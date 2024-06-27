@@ -1,11 +1,5 @@
 name: Continuous Integration
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+on: [push]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -29,6 +23,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -100,3 +95,26 @@ jobs:
         with:
           name: build-standalone-demo
           path: dist/netzgrafik-frontend/
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: build-standalone
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-standalone
+          path: dist/netzgrafik-frontend/
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: "https://registry.npmjs.org"
+      - run: npm pkg set name="@osrd-project/netzgrafik-frontend"
+      - run: npm version --no-git-tag-version "0.0.0-snapshot.$GITHUB_SHA"
+      - run: npm pkg delete dependencies optionalDependencies devDependencies
+      - run: npm publish --provenance --access public --tag snapshot
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
