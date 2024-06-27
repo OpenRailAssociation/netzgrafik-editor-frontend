@@ -1,3 +1,68 @@
+# Netzgrafik-Editor's OSRD fork
+
+Our fork uses the branch `standalone`, regularily rebased onto the base
+repository's `main` branch. We try to keep the list of patches applied on top
+of the base repository as small as possible, ideally upstreaming them little by
+little when it makes sense. The list of patches can be viewed here:
+https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/compare/main...osrd-project:netzgrafik-editor-frontend:standalone
+
+A new NPM package is automatically published on all pushes to any branch of the
+fork. The list of versions can be seen here:
+https://www.npmjs.com/package/@osrd-project/netzgrafik-frontend?activeTab=versions
+
+## Initial setup
+
+Clone the base repository, add OSRD's fork as a separate remote, checkout the
+fork's branch:
+
+```sh
+git clone git@github.com:SchweizerischeBundesbahnen/netzgrafik-editor-frontend.git
+cd netzgrafik-editor-frontend
+git remote add osrd-project git@github.com:osrd-project/netzgrafik-editor-frontend.git
+git fetch osrd-project
+git checkout standalone
+```
+
+## Pulling in changes from the base repository
+
+Fetch changes from the base repository and rebase our fork:
+
+```sh
+git fetch --all
+git checkout standalone
+git reset --hard osrd-project/standalone
+git rebase origin/main
+git push --force-with-lease
+```
+
+## Making changes to fork patches
+
+Sometimes it's necessary to make a change to one of our fork's patches (as
+opposed to one of the commits present in the base repository).
+
+First switch to the `standalone` branch and identify the commit you want to
+edit. Then create a new working branch, make the changes to the source files,
+and create a fixup commit:
+
+```sh
+git checkout standalone
+git checkout -b emersion/fix-all-the-bugs
+# edit source files, work work work
+git commit -a --fixup <hash>
+git push osrd-project
+```
+
+A pull request can then be opened and the changes can be reviewed. Once the PR
+is merged, the fixup can be squashed into its original commit:
+
+```sh
+git fetch --all
+git checkout standalone
+git reset --hard osrd-project/standalone
+git rebase --autosquash --keep-base origin/main
+git push --force-with-lease
+```
+
 # Netzgrafik-Editor
 
 <details>
