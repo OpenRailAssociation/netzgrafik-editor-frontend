@@ -59,7 +59,8 @@
     {{
       "app.view.editor-side-view.editor-tools-view-component.export-netzgrafik-as-json" | translate
     }}
-    <ng-container *ngIf="getVariantIsWritable()">
+    <!--
+      <ng-container *ngIf="getVariantIsWritable()">   
       <br />
       <button
         (click)="onLoadButton()"
@@ -75,8 +76,8 @@
         "app.view.editor-side-view.editor-tools-view-component.import-netzgrafik-as-json"
           | translate
       }}
-    </ng-container>
-
+     </ng-container>
+     -->
     <br />
     <button
       (click)="onExportZuglauf()"
@@ -152,32 +153,35 @@
     <sbb-expansion-panel-header>{{
       "app.view.editor-side-view.editor-tools-view-component.base-data" | translate
     }}</sbb-expansion-panel-header>
-    <ng-container *ngIf="getVariantIsWritable()">
-      <button
-        (click)="onLoadStammdatenButton()"
-        [title]="
+
+    <!--
+  <ng-container *ngIf="getVariantIsWritable()">
+    <button
+      (click)="onLoadStammdatenButton()"
+      [title]="
           'app.view.editor-side-view.editor-tools-view-component.import-base-data' | translate
         "
-        class="TrainrunDialog EditorToolButton"
-      >
-        <sbb-icon svgIcon="document-plus-small"></sbb-icon>
-      </button>
-      {{ "app.view.editor-side-view.editor-tools-view-component.import-base-data" | translate }}
-      <a
-        href="https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/CREATE_NODES.md#import-nodes-from-a-semicolon-seperate-value-file-csv"
-        class="sbb-link link-reset"
-        target="_blank"
-        >{{ "app.view.editor-side-view.editor-tools-view-component.help-csv-data" | translate }}</a
-      >
-      <input
-        hidden
-        #stammdatenFileInput
-        type="file"
-        accept=".csv"
-        (change)="onLoadStammdaten($event)"
-      />
-      <br />
-    </ng-container>
+      class="TrainrunDialog EditorToolButton"
+    >
+      <sbb-icon svgIcon="document-plus-small"></sbb-icon>
+    </button>
+    {{ "app.view.editor-side-view.editor-tools-view-component.import-base-data" | translate }}
+    <a
+      href="https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/CREATE_NODES.md#import-nodes-from-a-semicolon-seperate-value-file-csv"
+      class="sbb-link link-reset"
+      target="_blank"
+      >{{ "app.view.editor-side-view.editor-tools-view-component.help-csv-data" | translate }}</a
+    >
+    <input
+      hidden
+      #stammdatenFileInput
+      type="file"
+      accept=".csv"
+      (change)="onLoadStammdaten($event)"
+    />
+    <br />
+  </ng-container>
+     -->
     <button
       (click)="onExportStammdaten()"
       [title]="'app.view.editor-side-view.editor-tools-view-component.export-base-data' | translate"
