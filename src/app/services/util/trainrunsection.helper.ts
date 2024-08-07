@@ -289,7 +289,7 @@ export class TrainrunsectionHelper {
       leftArrivalTime: lastLeftNode.getArrivalTime(leftTrainrunSection),
       rightDepartureTime: lastRightNode.getDepartureTime(rightTrainrunSection),
       rightArrivalTime: lastRightNode.getArrivalTime(rightTrainrunSection),
-      travelTime: cumulativeTravelTime,
+      travelTime: cumulativeTravelTime || null,
     };
   }
 
