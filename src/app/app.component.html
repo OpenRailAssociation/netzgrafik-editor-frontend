@@ -2,6 +2,7 @@
   label="Netzgrafik-Editor"
   [subtitle]="'app.version' | translate: {version: version}"
   class="sbb-header-fixed-columns noprint"
+  *ngIf="!disableBackend"
 >
   <sbb-app-chooser-section [label]="'app.user-guide' | translate" class="noprint">
     <a
