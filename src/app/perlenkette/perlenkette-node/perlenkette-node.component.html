@@ -21,7 +21,7 @@
       height="28px"
     />
     <text x="8" y="55" class="node_text">{{ perlenketteNode.shortName }}</text>
-    <text x="88" y="55" text-anchor="end" class="node_connection_time">
+    <text x="88" y="55" text-anchor="end" class="node_connection_time" *ngIf="false">
       {{ perlenketteNode.connectionTime }}
     </text>
 
@@ -267,6 +267,7 @@
         [attr.y]="55 + heightConnectionSurplus"
         text-anchor="end"
         class="node_connection_time"
+        *ngIf="false"
       >
         {{ perlenketteNode.connectionTime }}
       </text>
