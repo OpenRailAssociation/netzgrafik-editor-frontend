@@ -171,7 +171,7 @@ export class NodesView {
     this.makeAnalyticsTextLeftArea(groupEnter);
     this.makeAnalyticsTextRightArea(groupEnter);
     this.makeLabelText(groupEnter);
-    this.makeLabelConnectionText(groupEnter);
+    // this.makeLabelConnectionText(groupEnter);
   }
 
   makeNodeLODLevel3(groupEnter: any) {
@@ -184,7 +184,7 @@ export class NodesView {
     this.makeAnalyticsTextLeftArea(groupEnter);
     this.makeAnalyticsTextRightArea(groupEnter);
     this.makeLabelText(groupEnter);
-    this.makeLabelConnectionText(groupEnter);
+    // this.makeLabelConnectionText(groupEnter);
   }
 
   makeNodeLODLevel2(groupEnter: any) {
@@ -195,7 +195,7 @@ export class NodesView {
     this.makeNodeDockable(groupEnter);
     this.makeAnalyticsArea(groupEnter);
     this.makeLabelText(groupEnter);
-    this.makeLabelConnectionText(groupEnter);
+    // this.makeLabelConnectionText(groupEnter);
   }
 
   makeNodeLODLevel1(groupEnter: any) {
