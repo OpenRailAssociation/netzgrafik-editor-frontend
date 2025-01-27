@@ -39,10 +39,10 @@
       </button>
     </div>
 
-    <sbb-label class="sbb-mt-m">{{
+    <sbb-label class="sbb-mt-m" *ngIf="false">{{
       "app.view.editor-filter-view.time-category" | translate
     }}</sbb-label>
-    <div class="sbb-trainrun-chip-group">
+    <div class="sbb-trainrun-chip-group" *ngIf="false">
       <button
         [class]="getTimeCategoryClassname(trainrunTimeCategory)"
         (click)="onTimeCategoryChanged(trainrunTimeCategory)"
