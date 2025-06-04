@@ -40,9 +40,7 @@
         >
           <ng-container *ngIf="showTrainrunName()">
             <p class="alignleft trainname" (click)="trainrunNameClicked($event)">
-              <span class="trainname"
-                >{{ perlenketteTrainrun.categoryShortName }}{{ perlenketteTrainrun.title }}</span
-              >
+              <span class="trainname">{{ perlenketteTrainrun.title }}</span>
             </p>
 
             <span class="trainrun-od alignright" (click)="trainrunNameClicked($event)">
