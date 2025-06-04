@@ -654,7 +654,7 @@ export class TrainRunSectionComponent implements OnDestroy, UpdateCounterHandler
   }
 
   getText(): string {
-    return this.trainrun.categoryShortName + this.trainrun.title;
+    return this.trainrun.title;
   }
 
   textWidth(): number {

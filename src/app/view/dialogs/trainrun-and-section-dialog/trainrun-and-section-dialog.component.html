@@ -15,10 +15,7 @@
     ></sbb-icon>
     <div data-testid="train-run-tab-group" class="TrainrunTabGrupe">
       <sbb-tab-group [selectedIndex]="data.type">
-        <sbb-tab
-          label="{{ selectedTrainrun.getCategoryShortName() }}{{ selectedTrainrun.getTitle() }}"
-          id="trainrun-tab"
-        >
+        <sbb-tab label="{{ selectedTrainrun.getTitle() }}" id="trainrun-tab">
           <sbb-trainrun-tab
             [trainrunDialogParameter]="trainrunDialogParameter"
             (trainrunDeleted)="closeDialog()"
