@@ -488,10 +488,7 @@ export class TrainrunSectionsView {
   }
 
   static extractTrainrunName(trainrunSection: TrainrunSection): string {
-    return (
-      trainrunSection.getTrainrun().getCategoryShortName() +
-      trainrunSection.getTrainrun().getTitle()
-    );
+    return trainrunSection.getTrainrun().getTitle();
   }
 
   static extractTravelTime(trainrunSection: TrainrunSection, editorView: EditorView): string {
