@@ -105,7 +105,6 @@
 
     <!--- Trainrun Editor --->
     <ng-container *ngIf="showTrainrunEditor()">
-      <div class="sepdiv" style="transform: translate(4px, 50px)"></div>
       <p class="trainRunEditor"></p>
       <div style="transform: translateX(4px); width: 66%">
         <sbb-toggle aria-label="" (change)="onSbbToogleChange($event)">
@@ -139,7 +138,6 @@
               class="TrainrunTabTrainrunEditor"
               [toolbarVisible]="false"
               [isIntegratedComponent]="true"
-              [innerContentScaleFactor]="0.9"
               [minHeightPx]="'20px'"
             ></sbb-trainrun-roundtrip-tab>
           </ng-container>

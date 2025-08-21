@@ -10,6 +10,10 @@
   pointer-events: none;
 }
 
+div.OneWayCardBetriebspunkt.muted {
+  opacity: 0.5;
+}
+
 .TrainrunSection {
   display: flex;
   flex-direction: column;
@@ -19,31 +23,36 @@
 }
 
 .OneWayCard {
-  border-radius: 15px;
+  border-radius: 8px;
   display: flex;
   padding: 1rem 0;
   justify-content: space-around;
   align-items: center;
+
   * > text.edge_text {
-    font-size: 10px;
+    font-size: 8px;
   }
+
   cursor: pointer;
+  user-select: none;
 }
 
 .OneWayCard.muted {
-  border: 1px solid $COLOR_MUTED_SILVER;
-}
-
-.OneWayCard.selected {
-  border: 1px solid $COLOR_Focus;
+  border: 1px solid var(--sbb-toggle-background-color-inactive);
+  background: var(--sbb-toggle-background-color-inactive);
 }
 
 .OneWayCard:hover {
-  background: var(--COLOR_TRANSITION_GRAYEDOUT);
+  border: 1px solid $COLOR_Default;
+}
+
+.OneWayCard.selected {
+  border: 1px solid var(--sbb-toggle-border-color-active);
+  background: var(--sbb-toggle-background-color-active);
 }
 
 .OneWayCard:active {
-  background-color: $COLOR_MUTED_SILVER;
+  background: var(--sbb-toggle-background-color-active);
 }
 
 .TrainFreqContainer {

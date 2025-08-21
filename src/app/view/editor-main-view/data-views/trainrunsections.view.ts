@@ -1085,12 +1085,13 @@ export class TrainrunSectionsView {
         .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
           d.trainrunSection.getTrainrun().selected(),
         )
+        .classed(StaticDomTags.TAG_LINE_ARROW_EDITOR, true)
         .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
           TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
         )
         .classed(StaticDomTags.TAG_EVENT_DISABLED, !enableEvents)
         .on("mouseup", (d: TrainrunSectionViewObject, i, a) => {
-          this.onTrainrunSectionMouseUp(d.trainrunSection, a[i]);
+          this.onTrainrunDirectionArrowMouseUp(d.trainrunSection, a[i]);
         })
         .on("mouseover", (d: TrainrunSectionViewObject, i, a) => {
           this.onTrainrunSectionMouseoverPath(d.trainrunSection, a[i]);
@@ -1818,6 +1819,17 @@ export class TrainrunSectionsView {
       textElement,
       clickPosition,
     );
+  }
+
+  onTrainrunDirectionArrowMouseUp(trainrunSection: TrainrunSection, domObj: any) {
+    d3.event.stopPropagation();
+    const rect: DOMRect = d3.select(domObj).node().getBoundingClientRect();
+    const clickPosition = new Vec2D(rect.x + rect.width / 2, rect.y + rect.height / 2);
+
+    if (this.editorView.editorMode === EditorMode.Analytics) {
+      return;
+    }
+    this.editorView.showTrainrunOneWayInformation(trainrunSection, clickPosition);
   }
 
   onTrainrunSectionMouseUp(trainrunSection: TrainrunSection, domObj: any) {

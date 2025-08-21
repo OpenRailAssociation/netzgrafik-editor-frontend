@@ -172,6 +172,7 @@ export class StaticDomTags {
   static EDGE_LINE_ARROW_SVG = "path";
   static EDGE_LINE_ARROW_CLASS = "edge_line_arrow";
   static EDGE_LINE_ARROW_DOM_REF = "path.edge_line_arrow";
+  static TAG_LINE_ARROW_EDITOR = "editor";
 
   static EDGE_LINE_PIN_SVG = "circle";
   static EDGE_LINE_PIN_CLASS = "edge_line_pin";

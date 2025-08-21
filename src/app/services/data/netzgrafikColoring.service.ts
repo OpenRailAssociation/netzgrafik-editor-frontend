@@ -490,6 +490,13 @@ export class NetzgrafikColoringService {
       sheet,
       colorRef,
       "stroke",
+      StaticDomTags.EDGE_LINE_ARROW_DOM_REF,
+      verbose,
+    );
+    NetzgrafikColoringService.generateColors(
+      sheet,
+      colorRef,
+      "stroke",
       StaticDomTags.EDGE_LINE_STOPS_DOM_REF,
       verbose,
     );

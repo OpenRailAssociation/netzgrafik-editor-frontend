@@ -303,6 +303,18 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       },
     );
 
+    this.editorView.bindShowTrainrunOneWayInformation(
+      (trainrunSection: TrainrunSection, position: Vec2D) => {
+        this.trainrunService.setTrainrunAsSelected(trainrunSection.getTrainrun().getId());
+        this.trainrunSectionService.setTrainrunSectionAsSelected(trainrunSection.getId());
+        const parameter = new TrainrunDialogParameter(
+          TrainrunDialogType.TRAINRUN_ONEWAY_DIALOG,
+          position,
+        );
+        this.uiInteractionService.showTrainrunDialog(parameter);
+      },
+    );
+
     this.editorView.bindGetConnectedTrainrunIds((trainrun: Trainrun) =>
       this.trainrunService.getConnectedTrainrunIdsFirstOrder(trainrun.getId()),
     );
