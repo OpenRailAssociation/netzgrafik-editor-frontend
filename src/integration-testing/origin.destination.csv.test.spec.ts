@@ -68,11 +68,16 @@ describe("Origin Destination CSV Test", () => {
       filterService,
       netzgrafikColoringService,
     );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTestingOdMatrix.getUnitTestNetzgrafik());
   });
 
-  it("integration test", () => {
-    dataService.loadNetzgrafikDto(NetzgrafikUnitTestingOdMatrix.getUnitTestNetzgrafik());
+  it("simple test", () => {
+    // select nodes [15..17]
+    for (let i = 15; i <= 17; i++) {
+      nodeService.selectNode(i);
+    }
     const nodes = nodeService.getNodes();
+    const odNodes = nodeService.getSelectedNodes();
     const trainruns = trainrunService.getTrainruns();
     const connectionPenalty = 5;
     const timeLimit = 60 * 10;
@@ -80,7 +85,115 @@ describe("Origin Destination CSV Test", () => {
     const start = new Date().getTime();
     const [edges, tsSuccessor] = buildEdges(
       nodes,
+      odNodes,
+      trainruns,
+      connectionPenalty,
+      trainrunService,
+      timeLimit,
+    );
+
+    const neighbors = computeNeighbors(edges);
+    const vertices = topoSort(neighbors);
+
+    const res = new Map<string, [number, number]>();
+    nodes.forEach((origin) => {
+      computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
+        (value, key) => {
+          res.set([origin.getId(), key].join(","), value);
+        },
+      );
+    });
+    const end = new Date().getTime();
+
+    // See https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/issues/199
+    expect(res).toEqual(
+      new Map([
+        // Making sure we traverse E <- F -> G correctly.
+        ["15,17", [4, 0]],
+        ["15,16", [1, 0]],
+        ["16,15", [1, 0]],
+        ["16,17", [1, 0]],
+        ["17,15", [4, 0]],
+        ["17,16", [1, 0]],
+      ]),
+    );
+    // This should be reasonably fast, likely less than 10ms.
+    expect(end - start).toBeLessThan(100);
+  });
+
+  it("use connection for optimal travel time", () => {
+    // select nodes [1,2,4,7]
+    nodeService.selectNode(1);
+    nodeService.selectNode(2);
+    nodeService.selectNode(4);
+    nodeService.selectNode(7);
+    const nodes = nodeService.getNodes();
+    const odNodes = nodeService.getSelectedNodes();
+    const trainruns = trainrunService.getTrainruns();
+    const connectionPenalty = 5;
+    const timeLimit = 60 * 10;
+
+    const start = new Date().getTime();
+    const [edges, tsSuccessor] = buildEdges(
       nodes,
+      odNodes,
+      trainruns,
+      connectionPenalty,
+      trainrunService,
+      timeLimit,
+    );
+
+    const neighbors = computeNeighbors(edges);
+    const vertices = topoSort(neighbors);
+
+    const res = new Map<string, [number, number]>();
+    nodes.forEach((origin) => {
+      computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
+        (value, key) => {
+          res.set([origin.getId(), key].join(","), value);
+        },
+      );
+    });
+    const end = new Date().getTime();
+
+    // See https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/issues/199
+    expect(res).toEqual(
+      new Map([
+        // Making sure we consider connections in H -> I -> J -> I -> K.
+        ["1,7", [1, 0]],
+        ["1,2", [1, 0]],
+        ["1,4", [1, 0]],
+        ["2,7", [15, 1]],
+        ["2,4", [4, 0]],
+        ["2,1", [1, 0]],
+        ["4,7", [8, 0]],
+        ["4,2", [4, 0]],
+        ["4,1", [1, 0]],
+        ["7,2", [15, 1]],
+        ["7,4", [8, 0]],
+        ["7,1", [1, 0]],
+        // TODO: ideally we would test L -> M -> Non-stop -> O works well in both directions.
+      ]),
+    );
+    // This should be reasonably fast, likely less than 10ms.
+    expect(end - start).toBeLessThan(100);
+  });
+
+  it("trainruns with different frequences", () => {
+    // select nodes [11..14]
+    for (let i = 11; i <= 14; i++) {
+      nodeService.selectNode(i);
+    }
+    const nodes = nodeService.getNodes();
+    const odNodes = nodeService.getSelectedNodes();
+    const trainruns = trainrunService.getTrainruns();
+    const connectionPenalty = 5;
+    const timeLimit = 60 * 10;
+
+    const start = new Date().getTime();
+    const [edges, tsSuccessor] = buildEdges(
+      nodes,
+      odNodes,
       trainruns,
       connectionPenalty,
       trainrunService,
@@ -115,27 +228,6 @@ describe("Origin Destination CSV Test", () => {
         ["14,13", [29, 1]],
         ["14,11", [6, 0]],
         ["14,12", [2, 0]],
-        // Making sure we traverse E <- F -> G correctly.
-        ["15,17", [4, 0]],
-        ["15,16", [1, 0]],
-        ["16,15", [1, 0]],
-        ["16,17", [1, 0]],
-        ["17,15", [4, 0]],
-        ["17,16", [1, 0]],
-        // Making sure we consider connections in H -> I -> J -> I -> K.
-        ["1,7", [1, 0]],
-        ["1,2", [1, 0]],
-        ["1,4", [1, 0]],
-        ["2,7", [15, 1]],
-        ["2,4", [4, 0]],
-        ["2,1", [1, 0]],
-        ["4,7", [8, 0]],
-        ["4,2", [4, 0]],
-        ["4,1", [1, 0]],
-        ["7,2", [15, 1]],
-        ["7,4", [8, 0]],
-        ["7,1", [1, 0]],
-        // TODO: ideally we would test L -> M -> Non-stop -> O works well in both directions.
       ]),
     );
     // This should be reasonably fast, likely less than 10ms.
@@ -143,9 +235,10 @@ describe("Origin Destination CSV Test", () => {
   });
 
   it("integration test with selected nodes", () => {
-    dataService.loadNetzgrafikDto(NetzgrafikUnitTestingOdMatrix.getUnitTestNetzgrafik());
-    nodeService.selectNode(13);
-    nodeService.selectNode(14);
+    // select nodes [13..14]
+    for (let i = 13; i <= 14; i++) {
+      nodeService.selectNode(i);
+    }
     const nodes = nodeService.getNodes();
     const odNodes = nodeService.getSelectedNodes();
     const trainruns = trainrunService.getTrainruns();
@@ -291,5 +384,60 @@ describe("Origin Destination CSV Test", () => {
     expect(distances3.get(1)).toEqual([10, 0]);
     // connection
     expect(distances3.get(2)).toEqual([30 + 5, 1]);
+  });
+
+  it("round trips and one-ways test", () => {
+    // select nodes [18..26]
+    for (let i = 18; i <= 26; i++) {
+      nodeService.selectNode(i);
+    }
+    const nodes = nodeService.getNodes();
+    const odNodes = nodeService.getSelectedNodes();
+    const trainruns = trainrunService.getTrainruns();
+    const connectionPenalty = 5;
+    const timeLimit = 60 * 10;
+
+    const [edges, tsSuccessor] = buildEdges(
+      nodes,
+      odNodes,
+      trainruns,
+      connectionPenalty,
+      trainrunService,
+      timeLimit,
+    );
+
+    const neighbors = computeNeighbors(edges);
+    const vertices = topoSort(neighbors);
+
+    const res = new Map<string, [number, number]>();
+    nodes.forEach((origin) => {
+      computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
+        (value, key) => {
+          res.set([origin.getId(), key].join(","), value);
+        },
+      );
+    });
+
+    expect(res).toEqual(
+      new Map([
+        // both trainrun are round trips
+        ["18,20", [66, 1]],
+        ["18,19", [5, 0]],
+        ["19,20", [1, 0]],
+        ["19,18", [5, 0]],
+        ["20,18", [66, 1]],
+        ["20,19", [1, 0]],
+        // one trainrun is round trip, the other one-way (22->23)
+        ["21,23", [66, 1]],
+        ["21,22", [5, 0]],
+        ["22,23", [1, 0]],
+        ["22,21", [5, 0]],
+        // one trainrun is round trip, the other one-way (25<-26)
+        ["24,25", [5, 0]],
+        ["25,24", [5, 0]],
+        ["26,24", [66, 1]],
+        ["26,25", [1, 0]],
+      ]),
+    );
   });
 });
