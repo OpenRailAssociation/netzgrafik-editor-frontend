@@ -259,7 +259,9 @@ const buildSectionEdgesFromIterator = (
       ? // Minus 1 so we don't conflate 0 with -0.
         -ts.getTrainrunId() - 1
       : ts.getTrainrunId();
+
     const reverseSection = tsIterator.current().node.getId() !== ts.getTargetNodeId();
+
     const v1Time = reverseSection
       ? ts.getTargetDepartureDto().consecutiveTime
       : ts.getSourceDepartureDto().consecutiveTime;

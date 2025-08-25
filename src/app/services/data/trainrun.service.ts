@@ -767,23 +767,12 @@ export class TrainrunService {
     const consecutiveTimes = new Map<number, number>();
     trainrunSections.forEach((ts) => {
       const trainrunId = ts.getTrainrunId();
-      let node = ts.getSourceNode();
-      if (node.isEndNode(ts)) {
-        const it = iterators.get(trainrunId);
-        const consecutiveTime = ts.getSourceDepartureDto().consecutiveTime;
-        if (it === undefined || consecutiveTimes.get(trainrunId) > consecutiveTime) {
-          iterators.set(trainrunId, this.getIterator(node, ts));
-          consecutiveTimes.set(trainrunId, consecutiveTime);
-        }
-      }
-      node = ts.getTargetNode();
-      if (node.isEndNode(ts)) {
-        const it = iterators.get(trainrunId);
-        const consecutiveTime = ts.getTargetDepartureDto().consecutiveTime;
-        if (it === undefined || consecutiveTimes.get(trainrunId) > consecutiveTime) {
-          iterators.set(trainrunId, this.getIterator(node, ts));
-          consecutiveTimes.set(trainrunId, consecutiveTime);
-        }
+      const node = ts.getSourceNode();
+      const it = iterators.get(trainrunId);
+      const consecutiveTime = ts.getSourceDepartureDto().consecutiveTime;
+      if (it === undefined || consecutiveTimes.get(trainrunId) > consecutiveTime) {
+        iterators.set(trainrunId, this.getIterator(node, ts));
+        consecutiveTimes.set(trainrunId, consecutiveTime);
       }
     });
     return iterators;
