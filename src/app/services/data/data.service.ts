@@ -282,13 +282,12 @@ export class DataService implements OnDestroy {
     // to maintain the relationship between the resource and the node correctly and to
     // avoid errors.
     // fix: https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/522
-    const resIds : number[] = [];
+    const resIds: number[] = [];
     // collect all resource (attached to node)
-    this.nodeService.getNodes().forEach( (n) => {
+    this.nodeService.getNodes().forEach((n) => {
       resIds.push(n.getResourceId());
     });
     // clean / fix resource objects which have no attechment.
     this.resourceService.fixResourceAttached(resIds);
   }
-
 }
