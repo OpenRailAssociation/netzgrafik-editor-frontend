@@ -20,15 +20,33 @@ export class ResourceService {
     return this.resourceStore.resources.find((res: Resource) => res.getId() === resourceId);
   }
 
-  changeCapacity(resourceId: number, capacity: number) {
-    this.resourceStore.resources.find((res) => res.getId() === resourceId).setCapacity(capacity);
-    this.resourceUpdated();
+  fixResourceAttached(validResourceIds: number[]) {
+    this.resourceStore.resources = this.resourceStore.resources.filter(
+      res => validResourceIds.includes(res.getId())
+    );
   }
 
-  createAndGetResource(): Resource {
+  changeCapacity(resourceId: number, capacity: number, enforceUpdate: boolean = true) {
+    this.resourceStore.resources.find((res: Resource) => res.getId() === resourceId).setCapacity(capacity);
+    if (enforceUpdate) {
+      this.resourceUpdated();
+    }
+  }
+
+  deleteResource(resourceId: number, enforceUpdate: boolean = true) {
+    this.resourceStore.resources =
+      this.resourceStore.resources.filter( (res : Resource) => res.getId() !== resourceId);
+    if (enforceUpdate){
+      this.resourceUpdated();
+    }
+  }
+
+  createAndGetResource(enforceUpdate: boolean = true): Resource {
     const resource = new Resource();
     this.resourceStore.resources.push(resource);
-    this.resourceUpdated();
+    if (enforceUpdate){
+      this.resourceUpdated();
+    }
     return resource;
   }
 
