@@ -21,22 +21,25 @@ export class ResourceService {
   }
 
   fixResourceAttached(validResourceIds: number[]) {
-    this.resourceStore.resources = this.resourceStore.resources.filter(
-      res => validResourceIds.includes(res.getId())
+    this.resourceStore.resources = this.resourceStore.resources.filter((res) =>
+      validResourceIds.includes(res.getId()),
     );
   }
 
   changeCapacity(resourceId: number, capacity: number, enforceUpdate: boolean = true) {
-    this.resourceStore.resources.find((res: Resource) => res.getId() === resourceId).setCapacity(capacity);
+    this.resourceStore.resources
+      .find((res: Resource) => res.getId() === resourceId)
+      .setCapacity(capacity);
     if (enforceUpdate) {
       this.resourceUpdated();
     }
   }
 
   deleteResource(resourceId: number, enforceUpdate: boolean = true) {
-    this.resourceStore.resources =
-      this.resourceStore.resources.filter( (res : Resource) => res.getId() !== resourceId);
-    if (enforceUpdate){
+    this.resourceStore.resources = this.resourceStore.resources.filter(
+      (res: Resource) => res.getId() !== resourceId,
+    );
+    if (enforceUpdate) {
       this.resourceUpdated();
     }
   }
@@ -44,7 +47,7 @@ export class ResourceService {
   createAndGetResource(enforceUpdate: boolean = true): Resource {
     const resource = new Resource();
     this.resourceStore.resources.push(resource);
-    if (enforceUpdate){
+    if (enforceUpdate) {
       this.resourceUpdated();
     }
     return resource;
