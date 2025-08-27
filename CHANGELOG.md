@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.10.0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.9.29...netzgrafik-frontend-v2.10.0) (2025-08-27)
+
+
+### Features
+
+* display origin-destination matrix ([403b23b](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/403b23bf2c862444e7ad7c8e17fd3f94a9a4a97a))
+* display origin-destination matrix ([09a43cd](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/09a43cdfc96038d88027aa74a8479886d3f4c25b))
+
+
+### Bug Fixes
+
+* Incorrect Handling of One-Way Train Runs in Track Data Assignment ([#518](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/518)) ([844d351](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/844d351262c95d4d6cc1d072708b1edae2dabc4b))
+* Resource deletion when node gets deleted ([#523](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/523)) ([5d15e60](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/5d15e608ca88741635e0a0de3abbd8ccbd0d79b1))
+* Roadmap link ([#512](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/512)) ([27e98ea](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/27e98eac923502f66dfd094c0c03e9febc8a31b8))
+
 ## [2.9.29](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.9.28...netzgrafik-frontend-v2.9.29) (2025-05-13)
 
 ### Bug Fixes
