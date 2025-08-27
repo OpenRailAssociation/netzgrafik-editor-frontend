@@ -99,7 +99,7 @@ export class DataService implements OnDestroy {
       this.trainrunSectionService.enforceConsistentSectionDirection(trainrun.getId());
     });
 
-    // This must be done due of the bug fix - ensure that each each resource object
+    // This must be done due of the bug fix - ensure that each resource object
     // is used in the Netzgrafik
     // https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/522
     this.ensureAllResourcesLinkedToNetzgrafikObjects();
