@@ -1122,6 +1122,7 @@ export class NodeService implements OnDestroy {
         enforceUpdate,
       );
     }
+    this.resourceService.deleteResource(node.getResourceId(), enforceUpdate);
     this.nodesStore.nodes = this.nodesStore.nodes.filter((n) => n.getId() !== nodeId);
   }
 

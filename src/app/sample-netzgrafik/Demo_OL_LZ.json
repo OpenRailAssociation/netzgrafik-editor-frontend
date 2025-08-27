@@ -2104,14 +2104,10 @@
     {"id": 67, "capacity": 15},
     {"id": 68, "capacity": 10},
     {"id": 69, "capacity": 3},
-    {"id": 70, "capacity": 2},
     {"id": 71, "capacity": 3},
     {"id": 72, "capacity": 3},
     {"id": 73, "capacity": 3},
-    {"id": 74, "capacity": 2},
-    {"id": 75, "capacity": 2},
-    {"id": 76, "capacity": 9},
-    {"id": 77, "capacity": 2}
+    {"id": 76, "capacity": 9}
   ],
   "metadata": {
     "netzgrafikColors": [

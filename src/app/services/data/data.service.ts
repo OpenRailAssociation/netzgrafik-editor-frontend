@@ -99,6 +99,11 @@ export class DataService implements OnDestroy {
       this.trainrunSectionService.enforceConsistentSectionDirection(trainrun.getId());
     });
 
+    // This must be done due of the bug fix - ensure that each resource object
+    // is used in the Netzgrafik
+    // https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/522
+    this.ensureAllResourcesLinkedToNetzgrafikObjects();
+
     this.netzgrafikLoadedInfoSubject.next(new NetzgrafikLoadedInfo(false, preview));
   }
 
@@ -271,5 +276,19 @@ export class DataService implements OnDestroy {
 
   getNetzgrafikLoadedInfo(): Observable<NetzgrafikLoadedInfo> {
     return this.netzgrafikLoadedInfo;
+  }
+
+  ensureAllResourcesLinkedToNetzgrafikObjects() {
+    // Ensures that a resource has exactly one node attached. This function is important
+    // to maintain the relationship between the resource and the node correctly and to
+    // avoid errors.
+    // fix: https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/522
+    const resIds: number[] = [];
+    // collect all resource (attached to node)
+    this.nodeService.getNodes().forEach((n) => {
+      resIds.push(n.getResourceId());
+    });
+    // clean / fix resource objects which have no attechment.
+    this.resourceService.clearUnlinkedResources(resIds);
   }
 }
