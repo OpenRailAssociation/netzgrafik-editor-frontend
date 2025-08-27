@@ -2,6 +2,7 @@ import {Injectable} from "@angular/core";
 import {BehaviorSubject} from "rxjs";
 import {Resource} from "../../models/resource.model";
 import {ResourceDto} from "../../data-structures/business.data.structures";
+import {Node} from "../../models/node.model";
 
 @Injectable({
   providedIn: "root",
@@ -18,6 +19,10 @@ export class ResourceService {
 
   getResource(resourceId: number): Resource {
     return this.resourceStore.resources.find((res: Resource) => res.getId() === resourceId);
+  }
+
+  getResources(): Resource[] {
+    return Object.assign({}, this.resourceStore).resources;
   }
 
   clearUnlinkedResources(validResourceIds: number[]) {

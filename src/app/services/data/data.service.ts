@@ -278,7 +278,7 @@ export class DataService implements OnDestroy {
     return this.netzgrafikLoadedInfo;
   }
 
-  private ensureAllResourcesLinkedToNetzgrafikObjects() {
+  ensureAllResourcesLinkedToNetzgrafikObjects() {
     // Ensures that a resource has exactly one node attached. This function is important
     // to maintain the relationship between the resource and the node correctly and to
     // avoid errors.
