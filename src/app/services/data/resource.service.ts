@@ -21,13 +21,13 @@ export class ResourceService {
   }
 
   clearUnlinkedResources(validResourceIds: number[]) {
-     // Filters the resources in the resource store to retain only those resources
-     // that are linked by their IDs to the provided array of linked resource IDs.
-     // Any resource whose ID is not included in the `linkedResourceIds` array will
-     // be removed from the resource store.
-     // linkedResourceIds - An array of linked resource IDs.
-     //                     Only resources with IDs present in this array
-     //                     will be retained in the resource store.
+    // Filters the resources in the resource store to retain only those resources
+    // that are linked by their IDs to the provided array of linked resource IDs.
+    // Any resource whose ID is not included in the `linkedResourceIds` array will
+    // be removed from the resource store.
+    // linkedResourceIds - An array of linked resource IDs.
+    //                     Only resources with IDs present in this array
+    //                     will be retained in the resource store.
     this.resourceStore.resources = this.resourceStore.resources.filter((res) =>
       validResourceIds.includes(res.getId()),
     );
