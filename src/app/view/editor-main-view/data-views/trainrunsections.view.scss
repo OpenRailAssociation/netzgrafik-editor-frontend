@@ -295,3 +295,8 @@
 ::ng-deep text.edge_text:hover {
   font-weight: bold;
 }
+
+::ng-deep path.edge_line_arrow.hidden {
+  pointer-events: none;
+  opacity: 0.01;
+}

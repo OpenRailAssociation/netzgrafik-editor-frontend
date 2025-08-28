@@ -1,8 +1,8 @@
 import {Component, OnDestroy, OnInit} from "@angular/core";
 import {FilterService} from "../../services/ui/filter.service";
 import {
-  Direction,
   TrainrunCategory,
+  Direction,
   TrainrunFrequency,
   TrainrunTimeCategory,
 } from "../../data-structures/business.data.structures";
@@ -181,113 +181,76 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     this.filterService.setTimeDisplayPrecision(this.timeDisplayPrecision);
   }
 
-  filterAllEmptyNodesChanged(check: boolean) {
-    if (!check) {
+  filterAllEmptyNodesChanged() {
+    if (!this.filterAllEmptyNodes) {
       this.filterService.enableFilterAllEmptyNodes();
     } else {
       this.filterService.disableFilterAllEmptyNodes();
     }
   }
 
-  filterNotesChanged(check: boolean) {
-    if (!check) {
+  filterNotesChanged() {
+    if (!this.filterNotes) {
       this.filterService.enableFilterNotes();
     } else {
       this.filterService.disableFilterNotes();
     }
   }
 
-  filterAllNonStopNodesChanged(check: boolean) {
-    if (!check) {
+  filterAllNonStopNodesChanged() {
+    if (!this.filterAllNonStopNodes) {
       this.filterService.enableFilterAllNonStopNodes();
     } else {
       this.filterService.disableFilterAllNonStopNodes();
     }
   }
 
-  filterDirectionArrowsChanged(check: boolean) {
-    console.log("", check, this.filterService.isFilterDirectionArrowsEnabled());
-    if (check) {
+  filterDirectionArrowsChanged() {
+    if (this.filterDirectionArrows) {
       this.filterService.enableFilterDirectionArrows();
     } else {
       this.filterService.disableFilterDirectionArrows();
     }
   }
 
-  filterArrivalDepartureTimeChanged(check: boolean) {
-    if (check) {
+  filterArrivalDepartureTimeChanged() {
+    if (this.filterArrivalDepartureTime) {
       this.filterService.enableFilterArrivalDepartureTime();
     } else {
       this.filterService.disableFilterArrivalDepartureTime();
     }
   }
 
-  filterShowNonStopTimeChanged(check: boolean) {
-    if (check) {
+  filterShowNonStopTimeChanged() {
+    if (this.filterShowNonStopTime) {
       this.filterService.enableFilterShowNonStopTime();
     } else {
       this.filterService.disableFilterShowNonStopTime();
     }
   }
 
-  filterTravelTimeChanged(check: boolean) {
-    if (check) {
+  filterTravelTimeChanged() {
+    if (this.filterTravelTime) {
       this.filterService.enableFilterTravelTime();
     } else {
       this.filterService.disableFilterTravelTime();
     }
   }
 
-  filterTrainrunNameChanged(check: boolean) {
-    if (check) {
+  filterTrainrunNameChanged() {
+    if (this.filterTrainrunName) {
       this.filterService.enableFilterTrainrunName();
     } else {
       this.filterService.disableFilterTrainrunName();
     }
   }
 
-  filterConnectionsChanged(check: boolean) {
-    if (check) {
+  filterConnectionsChanged() {
+    if (this.filterConnections) {
       this.filterService.enableFilterConnections();
     } else {
       this.filterService.disableFilterConnections();
     }
-  }
-
-  getNotesEnabledTagNonDefault() {
-    return !this.filterService.isFilterNotesEnabled();
-  }
-
-  getDirectionArrowsTagNonDefault() {
-    return !this.filterService.isFilterDirectionArrowsEnabled();
-  }
-
-  getArrivalDepartureTimeEnabledTagNonDefault() {
-    return !this.filterService.isFilterArrivalDepartureTimeEnabled();
-  }
-
-  getConnectionsEnabledTagNonDefault() {
-    return !this.filterService.isFilterConnectionsEnabled();
-  }
-
-  getTrainrunNameEnabledTagNonDefault() {
-    return !this.filterService.isFilterTrainrunNameEnabled();
-  }
-
-  getTravelTimeEnabledTagNonDefault() {
-    return !this.filterService.isFilterTravelTimeEnabled();
-  }
-
-  getShowNonStopTimeEnabledTagNonDefault() {
-    return !this.filterService.isFilterShowNonStopTimeEnabled();
-  }
-
-  getAllEmptyNodesTagNonDefault() {
-    return this.filterService.isFilteringAllEmptyNodes();
-  }
-
-  geAllNonStopTagNonDefault() {
-    return this.filterService.isFilteringAllNonStopNodes();
   }
 
   getCategoryClassname(trainrunCategory: TrainrunCategory): string {
