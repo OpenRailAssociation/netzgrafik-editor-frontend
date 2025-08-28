@@ -10,6 +10,7 @@ export class ToggleSwitchButtonComponent {
   @Input() checked = false;
   @Input() labelFalse: string = "";
   @Input() labelTrue: string = "";
+  @Input() tagNonDefault: boolean = false;
 
   onToggle(check: boolean) {
     if (!this.labelTrue || !this.labelFalse) {
@@ -27,13 +28,13 @@ export class ToggleSwitchButtonComponent {
   }
 
   createCheckboxClassTag(): string {
-    if (!this.labelFalse) {
-      return "only-one-label-true";
-    }
-    if (!this.labelTrue) {
-      return "only-one-label-false";
-    }
-    return "";
+    return (
+      (!this.tagNonDefault ? "" : "non-default") +
+      " " +
+      (this.labelFalse ? "" : "only-one-label-true") +
+      " " +
+      (this.labelTrue ? "" : "only-one-label-false")
+    );
   }
 
   createLabelCheckedTag(isTrueLabel: boolean): string {

@@ -93,4 +93,8 @@
   input:checked:focus-visible + .slider {
     background: $COLOR_Default_Selection;
   }
+
+  input.non-default + .slider:before {
+    background: rgb(236, 0, 0);
+  }
 }
