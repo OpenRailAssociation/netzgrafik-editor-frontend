@@ -15,14 +15,14 @@
         [class]="getEdgeLineArrowClass()"
         d="M0,4L0,6L8,6L8,10L14,5L8,0L8,4Z"
         [attr.transform]="getArrowTranslateAndRotate(35)"
-        [attr.hidden]="!filterService.isFilterDirectionArrowsEnabled() ? '' : null"
+        [attr.hidden]="isHiddenArrow() ? '' : null"
       ></path>
       <path
         *ngIf="!isRoundTrip()"
         [class]="getEdgeLineArrowClass()"
         d="M0,4L0,6L8,6L8,10L14,5L8,0L8,4Z"
         [attr.transform]="getArrowTranslateAndRotate(130)"
-        [attr.hidden]="!filterService.isFilterDirectionArrowsEnabled() ? '' : null"
+        [attr.hidden]="isHiddenArrow() ? '' : null"
       ></path>
     </g>
     <g>
@@ -231,14 +231,14 @@
             [class]="getEdgeLineArrowClass()"
             d="M0,4L0,6L8,6L8,10L14,5L8,0L8,4Z"
             [attr.transform]="getArrowTranslateAndRotate(35)"
-            [attr.hidden]="!filterService.isFilterDirectionArrowsEnabled() ? '' : null"
+            [attr.hidden]="isHiddenArrow() ? '' : null"
           ></path>
           <path
             *ngIf="!isRoundTrip()"
             [class]="getEdgeLineArrowClass()"
             d="M0,4L0,6L8,6L8,10L14,5L8,0L8,4Z"
             [attr.transform]="getArrowTranslateAndRotate(130)"
-            [attr.hidden]="!filterService.isFilterDirectionArrowsEnabled() ? '' : null"
+            [attr.hidden]="isHiddenArrow() ? '' : null"
           ></path>
         </g>
         <foreignObject height="192px" width="224px" x="25">
@@ -579,14 +579,14 @@
             [class]="getEdgeLineArrowClass()"
             d="M0,4L0,6L8,6L8,10L14,5L8,0L8,4Z"
             [attr.transform]="getArrowTranslateAndRotate(35)"
-            [attr.hidden]="!filterService.isFilterDirectionArrowsEnabled() ? '' : null"
+            [attr.hidden]="isHiddenArrow() ? '' : null"
           ></path>
           <path
             *ngIf="!isRoundTrip()"
             [class]="getEdgeLineArrowClass()"
             d="M0,4L0,6L8,6L8,10L14,5L8,0L8,4Z"
             [attr.transform]="getArrowTranslateAndRotate(130)"
-            [attr.hidden]="!filterService.isFilterDirectionArrowsEnabled() ? '' : null"
+            [attr.hidden]="isHiddenArrow() ? '' : null"
           ></path>
         </g>
         <g>
