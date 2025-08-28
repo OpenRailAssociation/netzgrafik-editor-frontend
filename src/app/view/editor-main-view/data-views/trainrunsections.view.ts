@@ -1075,8 +1075,12 @@ export class TrainrunSectionsView {
         .classed(
           StaticDomTags.TAG_HIDDEN,
           (d: TrainrunSectionViewObject) =>
-            !this.editorView.isFilterDirectionArrowsEnabled() ||
-            !this.filterTrainrunsectionAtNode(d.trainrunSection, arrowType === "BEGINNING_ARROW"),
+            !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
+            (!this.editorView.isFilterDirectionArrowsEnabled() ||
+              !this.filterTrainrunsectionAtNode(
+                d.trainrunSection,
+                arrowType === "BEGINNING_ARROW",
+              )),
         )
         .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
         .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
@@ -1663,7 +1667,8 @@ export class TrainrunSectionsView {
           this.getHiddenTagForTime(d, TrainrunSectionText.TargetDeparture),
           this.getHiddenTagForTime(d, TrainrunSectionText.TrainrunSectionTravelTime),
           this.getHiddenTagForTime(d, TrainrunSectionText.TrainrunSectionName),
-          !this.editorView.isFilterDirectionArrowsEnabled(),
+          !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
+            !this.editorView.isFilterDirectionArrowsEnabled(),
         ),
       );
     });
