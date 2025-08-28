@@ -254,6 +254,42 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     }
   }
 
+  getNotesEnabledTagNonDefault() {
+    return !this.filterService.isFilterNotesEnabled();
+  }
+
+  getDirectionArrowsTagNonDefault() {
+    return !this.filterService.isFilterDirectionArrowsEnabled();
+  }
+
+  getArrivalDepartureTimeEnabledTagNonDefault() {
+    return !this.filterService.isFilterArrivalDepartureTimeEnabled();
+  }
+
+  getConnectionsEnabledTagNonDefault() {
+    return !this.filterService.isFilterConnectionsEnabled();
+  }
+
+  getTrainrunNameEnabledTagNonDefault() {
+    return !this.filterService.isFilterTrainrunNameEnabled();
+  }
+
+  getTravelTimeEnabledTagNonDefault() {
+    return !this.filterService.isFilterTravelTimeEnabled();
+  }
+
+  getShowNonStopTimeEnabledTagNonDefault() {
+    return !this.filterService.isFilterShowNonStopTimeEnabled();
+  }
+
+  getAllEmptyNodesTagNonDefault() {
+    return this.filterService.isFilteringAllEmptyNodes();
+  }
+
+  geAllNonStopTagNonDefault() {
+    return this.filterService.isFilteringAllNonStopNodes();
+  }
+
   getCategoryClassname(trainrunCategory: TrainrunCategory): string {
     if (this.filterService.isFilterTrainrunCategoryEnabled(trainrunCategory)) {
       return (

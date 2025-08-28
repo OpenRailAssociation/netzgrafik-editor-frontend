@@ -7,7 +7,9 @@
         {{ "app.view.editor-filter-view.general" | translate }}
       </ng-container>
       <ng-container *ngIf="!isTrainrunFilteringActive()">
-        <label style="color: red">{{ "app.view.editor-filter-view.general" | translate }}</label>
+        <label style="color: rgb(236, 0, 0)">{{
+          "app.view.editor-filter-view.general" | translate
+        }}</label>
       </ng-container>
     </sbb-expansion-panel-header>
 
@@ -88,7 +90,7 @@
         {{ "app.view.editor-filter-view.filterable-labels-trainruns" | translate }}
       </ng-container>
       <ng-container *ngIf="isFilteringTrainrunLabels()">
-        <label style="color: red">{{
+        <label style="color: rgb(236, 0, 0)">{{
           "app.view.editor-filter-view.filterable-labels-trainruns" | translate
         }}</label>
       </ng-container>
@@ -105,7 +107,7 @@
         {{ "app.view.editor-filter-view.filterable-labels-nodes" | translate }}
       </ng-container>
       <ng-container *ngIf="isFilteringNodeLabels()">
-        <label style="color: red">{{
+        <label style="color: rgb(236, 0, 0)">{{
           "app.view.editor-filter-view.filterable-labels-nodes" | translate
         }}</label>
       </ng-container>
@@ -122,7 +124,7 @@
         {{ "app.view.editor-filter-view.filterable-labels-notes" | translate }}
       </ng-container>
       <ng-container *ngIf="isFilteringNoteLabels()">
-        <label style="color: red">{{
+        <label style="color: rgb(236, 0, 0)">{{
           "app.view.editor-filter-view.filterable-labels-notes" | translate
         }}</label>
       </ng-container>
@@ -139,7 +141,9 @@
         "app.view.editor-filter-view.display" | translate
       }}</ng-container>
       <ng-container *ngIf="!isDisplayFilteringActive()">
-        <label style="color: red">{{ "app.view.editor-filter-view.display" | translate }}</label>
+        <label style="color: rgb(236, 0, 0)">{{
+          "app.view.editor-filter-view.display" | translate
+        }}</label>
       </ng-container>
     </sbb-expansion-panel-header>
 
@@ -159,6 +163,7 @@
         [labelTrue]="'app.view.editor-filter-view.display-direction-arrows' | translate"
         [checked]="filterDirectionArrows"
         (checkedChanged)="filterDirectionArrowsChanged($event)"
+        [tagNonDefault]="getDirectionArrowsTagNonDefault()"
       />
     </div>
 
@@ -169,6 +174,7 @@
         [labelTrue]="'app.view.editor-filter-view.display-arrival-departure-times' | translate"
         [checked]="filterArrivalDepartureTime"
         (checkedChanged)="filterArrivalDepartureTimeChanged($event)"
+        [tagNonDefault]="getArrivalDepartureTimeEnabledTagNonDefault()"
       />
 
       <sbb-toggle-switch-button
@@ -177,18 +183,21 @@
         "
         [checked]="filterShowNonStopTime"
         (checkedChanged)="filterShowNonStopTimeChanged($event)"
+        [tagNonDefault]="getShowNonStopTimeEnabledTagNonDefault()"
       />
 
       <sbb-toggle-switch-button
         [labelTrue]="'app.view.editor-filter-view.display-travel-times' | translate"
         [checked]="filterTravelTime"
         (checkedChanged)="filterTravelTimeChanged($event)"
+        [tagNonDefault]="getTravelTimeEnabledTagNonDefault()"
       />
 
       <sbb-toggle-switch-button
         [labelTrue]="'app.view.editor-filter-view.display-trainrun-name' | translate"
         [checked]="filterTrainrunName"
         (checkedChanged)="filterTrainrunNameChanged($event)"
+        [tagNonDefault]="getTrainrunNameEnabledTagNonDefault()"
       />
     </div>
 
@@ -199,6 +208,7 @@
         [labelTrue]="'app.view.editor-filter-view.display-connections' | translate"
         [checked]="filterConnections"
         (checkedChanged)="filterConnectionsChanged($event)"
+        [tagNonDefault]="getConnectionsEnabledTagNonDefault()"
       />
     </div>
 
@@ -211,6 +221,7 @@
         "
         [checked]="filterAllEmptyNodes"
         (checkedChanged)="filterAllEmptyNodesChanged($event)"
+        [tagNonDefault]="getAllEmptyNodesTagNonDefault()"
       />
 
       <sbb-toggle-switch-button
@@ -219,6 +230,7 @@
         "
         [checked]="filterAllNonStopNodes"
         (checkedChanged)="filterAllNonStopNodesChanged($event)"
+        [tagNonDefault]="geAllNonStopTagNonDefault()"
       />
     </div>
 
@@ -230,6 +242,7 @@
           [labelTrue]="'app.view.editor-filter-view.display-notes' | translate"
           [checked]="filterNotes"
           (checkedChanged)="filterNotesChanged($event)"
+          [tagNonDefault]="getNotesEnabledTagNonDefault()"
         />
       </div>
     </ng-container>
