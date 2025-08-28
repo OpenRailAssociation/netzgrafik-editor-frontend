@@ -38,7 +38,7 @@ export class ToggleSwitchButtonComponent {
   }
 
   createLabelCheckedTag(isTrueLabel: boolean): string {
-    const base = "toggle-label";
+    const base = "toggle-label" + (!this.tagNonDefault ? "" : " non-default");
     if (!this.labelTrue || !this.labelFalse) {
       return base;
     }
