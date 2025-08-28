@@ -26,7 +26,7 @@
 
     <sbb-label class="sbb-mt-m">{{
       "app.view.editor-filter-view.frequency" | translate
-      }}</sbb-label>
+    }}</sbb-label>
     <div class="sbb-trainrun-chip-group">
       <button
         [class]="getFrequencyClassname(trainrunFrequency)"
@@ -41,7 +41,7 @@
 
     <sbb-label class="sbb-mt-m">{{
       "app.view.editor-filter-view.time-category" | translate
-      }}</sbb-label>
+    }}</sbb-label>
     <div class="sbb-trainrun-chip-group">
       <button
         [class]="getTimeCategoryClassname(trainrunTimeCategory)"
@@ -57,7 +57,7 @@
     <div *ngIf="hasOneWayTrainruns()">
       <sbb-label class="sbb-mt-m">{{
         "app.view.editor-filter-view.symmetry" | translate
-        }}</sbb-label>
+      }}</sbb-label>
       <div class="sbb-trainrun-chip-group">
         <button
           [class]="getDirectionClassname(direction)"
@@ -90,7 +90,7 @@
       <ng-container *ngIf="isFilteringTrainrunLabels()">
         <label style="color: red">{{
           "app.view.editor-filter-view.filterable-labels-trainruns" | translate
-          }}</label>
+        }}</label>
       </ng-container>
     </sbb-expansion-panel-header>
 
@@ -107,7 +107,7 @@
       <ng-container *ngIf="isFilteringNodeLabels()">
         <label style="color: red">{{
           "app.view.editor-filter-view.filterable-labels-nodes" | translate
-          }}</label>
+        }}</label>
       </ng-container>
     </sbb-expansion-panel-header>
 
@@ -124,7 +124,7 @@
       <ng-container *ngIf="isFilteringNoteLabels()">
         <label style="color: red">{{
           "app.view.editor-filter-view.filterable-labels-notes" | translate
-          }}</label>
+        }}</label>
       </ng-container>
     </sbb-expansion-panel-header>
 
@@ -137,7 +137,7 @@
     <sbb-expansion-panel-header>
       <ng-container *ngIf="isDisplayFilteringActive()">{{
         "app.view.editor-filter-view.display" | translate
-        }}</ng-container>
+      }}</ng-container>
       <ng-container *ngIf="!isDisplayFilteringActive()">
         <label style="color: red">{{ "app.view.editor-filter-view.display" | translate }}</label>
       </ng-container>
@@ -155,9 +155,8 @@
 
     <sbb-label>{{ "app.view.editor-filter-view.Round-trips" | translate }}</sbb-label>
     <div class="sbb-checkbox-group-vertical">
-      <sbb-checkbox [(ngModel)]="filterDirectionArrows"
-                    (change)="filterDirectionArrowsChanged()"
-      >{{ "app.view.editor-filter-view.display-direction-arrows" | translate }}
+      <sbb-checkbox [(ngModel)]="filterDirectionArrows" (change)="filterDirectionArrowsChanged()"
+        >{{ "app.view.editor-filter-view.display-direction-arrows" | translate }}
       </sbb-checkbox>
     </div>
 
@@ -167,18 +166,18 @@
       <sbb-checkbox
         [(ngModel)]="filterArrivalDepartureTime"
         (change)="filterArrivalDepartureTimeChanged()"
-      >{{ "app.view.editor-filter-view.display-arrival-departure-times" | translate }}
+        >{{ "app.view.editor-filter-view.display-arrival-departure-times" | translate }}
       </sbb-checkbox>
       <sbb-checkbox [(ngModel)]="filterShowNonStopTime" (change)="filterShowNonStopTimeChanged()">
         {{
-        "app.view.editor-filter-view.display-arrival-departure-times-for-connections" | translate
+          "app.view.editor-filter-view.display-arrival-departure-times-for-connections" | translate
         }}
       </sbb-checkbox>
       <sbb-checkbox [(ngModel)]="filterTravelTime" (change)="filterTravelTimeChanged()"
-      >{{ "app.view.editor-filter-view.display-travel-times" | translate }}
+        >{{ "app.view.editor-filter-view.display-travel-times" | translate }}
       </sbb-checkbox>
       <sbb-checkbox [(ngModel)]="filterTrainrunName" (change)="filterTrainrunNameChanged()"
-      >{{ "app.view.editor-filter-view.display-trainrun-name" | translate }}
+        >{{ "app.view.editor-filter-view.display-trainrun-name" | translate }}
       </sbb-checkbox>
     </div>
 
@@ -186,7 +185,7 @@
     <sbb-label>{{ "app.view.editor-filter-view.connections" | translate }}</sbb-label>
     <div class="sbb-checkbox-group-vertical">
       <sbb-checkbox [(ngModel)]="filterConnections" (change)="filterConnectionsChanged()"
-      >{{ "app.view.editor-filter-view.display-connections" | translate }}
+        >{{ "app.view.editor-filter-view.display-connections" | translate }}
       </sbb-checkbox>
     </div>
 
@@ -194,10 +193,10 @@
     <sbb-label>{{ "app.view.editor-filter-view.nodes" | translate }}</sbb-label>
     <div class="sbb-checkbox-group-vertical">
       <sbb-checkbox [(ngModel)]="filterAllEmptyNodes" (change)="filterAllEmptyNodesChanged()"
-      >{{ "app.view.editor-filter-view.display-nodes-without-visible-trainruns" | translate }}
+        >{{ "app.view.editor-filter-view.display-nodes-without-visible-trainruns" | translate }}
       </sbb-checkbox>
       <sbb-checkbox [(ngModel)]="filterAllNonStopNodes" (change)="filterAllNonStopNodesChanged()"
-      >{{ "app.view.editor-filter-view.display-nodes-with-only-stopping-trainruns" | translate }}
+        >{{ "app.view.editor-filter-view.display-nodes-with-only-stopping-trainruns" | translate }}
       </sbb-checkbox>
     </div>
 
@@ -206,7 +205,7 @@
       <sbb-label>{{ "app.view.editor-filter-view.notes" | translate }}</sbb-label>
       <div class="sbb-checkbox-group-vertical">
         <sbb-checkbox [(ngModel)]="filterNotes" (change)="filterNotesChanged()"
-        >{{ "app.view.editor-filter-view.display-notes" | translate }}
+          >{{ "app.view.editor-filter-view.display-notes" | translate }}
         </sbb-checkbox>
       </div>
     </ng-container>
