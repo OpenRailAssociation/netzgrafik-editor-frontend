@@ -86,6 +86,10 @@
     font-weight: bolder;
   }
 
+  .toggle-label.non-default {
+    color: $COLOR_SBB_RED;
+  }
+
   input:focus-visible + .slider {
     background: $COLOR_Default_Selection;
   }
@@ -95,6 +99,6 @@
   }
 
   input.non-default + .slider:before {
-    background: rgb(236, 0, 0);
+    background: $COLOR_SBB_RED;
   }
 }
