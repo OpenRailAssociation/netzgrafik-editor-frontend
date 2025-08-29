@@ -383,6 +383,10 @@
         "symmetry": "Symmetrie",
         "show-direction": "{$direction} einblenden",
         "hide-direction": "{$direction} ausblenden",
+        "show-asymmetric-trainruns": "Asymmetrische Zugfahrten einblenden",
+        "hide-asymmetric-trainruns": "Asymmetrische Zugfahrten ausblenden",
+        "symmetric": "Symm.",
+        "asymmetric": "Asymm.",
         "filterable-label-filter": {
           "no-labels-available": "Keine Labels vorhanden",
           "or": "Oder",

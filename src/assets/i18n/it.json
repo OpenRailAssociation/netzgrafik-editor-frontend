@@ -382,6 +382,10 @@
         "symmetry": "Symmetry",
         "show-direction": "Show {$direction}",
         "hide-direction": "Hide {$direction}",
+        "show-asymmetric-trainruns": "Show asymmetric trainruns",
+        "hide-asymmetric-trainruns": "Hide asymmetric trainruns",
+        "symmetric": "Symm.",
+        "asymmetric": "Asymm.",
         "filterable-label-filter": {
           "no-labels-available": "No labels available",
           "or": "Or",
