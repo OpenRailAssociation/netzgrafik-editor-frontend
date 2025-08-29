@@ -674,6 +674,30 @@ export class TrainrunSectionTimesService {
     this.offsetTransformationActive = false;
   }
 
+  getTrainrunLeftAndRightTimeStructure(): Omit<
+    LeftAndRightTimeStructure,
+    "travelTime" | "bottomTravelTime"
+  > {
+    const {firstTrainrunSection, lastTrainrunSection, swapped} =
+      this.trainrunService.getFirstAndLastTrainrunSections(
+        this.selectedTrainrunSection.getTrainrunId(),
+      );
+    return {
+      leftDepartureTime: swapped
+        ? firstTrainrunSection.getTargetDeparture()
+        : firstTrainrunSection.getSourceDeparture(),
+      leftArrivalTime: swapped
+        ? firstTrainrunSection.getTargetArrival()
+        : firstTrainrunSection.getSourceArrival(),
+      rightDepartureTime: swapped
+        ? lastTrainrunSection.getSourceDeparture()
+        : lastTrainrunSection.getTargetDeparture(),
+      rightArrivalTime: swapped
+        ? lastTrainrunSection.getSourceArrival()
+        : lastTrainrunSection.getTargetArrival(),
+    };
+  }
+
   private roundAllTimes() {
     const timeDisplayPrecision = this.filterService.getTimeDisplayPrecision();
     this.timeStructure.leftArrivalTime = MathUtils.round(
