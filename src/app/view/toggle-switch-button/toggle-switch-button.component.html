@@ -1,7 +1,11 @@
-<div class="toggle-switch-button-component">
-  <span *ngIf="!!labelFalse" [ngClass]="createLabelCheckedTag(false)" (click)="onToggle(false)">{{
-    labelFalse
-  }}</span>
+<div class="toggle-switch-button-component" [ngClass]="{disabled: disabled}">
+  <span
+    *ngIf="labelFalse"
+    [ngClass]="createLabelCheckedTag(false)"
+    (click)="!disabled && onToggle(false)"
+    [style.cursor]="disabled ? 'default' : 'pointer'"
+    >{{ labelFalse }}</span
+  >
   <label class="toggle-switch">
     <input
       type="checkbox"
@@ -11,7 +15,11 @@
     />
     <span class="slider"></span>
   </label>
-  <span *ngIf="!!labelTrue" [ngClass]="createLabelCheckedTag(true)" (click)="onToggle(true)">{{
-    labelTrue
-  }}</span>
+  <span
+    *ngIf="labelTrue"
+    [ngClass]="createLabelCheckedTag(true)"
+    (click)="!disabled && onToggle(true)"
+    [style.cursor]="disabled ? 'default' : 'pointer'"
+    >{{ labelTrue }}</span
+  >
 </div>
