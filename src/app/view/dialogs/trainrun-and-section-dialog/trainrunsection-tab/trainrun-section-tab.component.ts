@@ -251,8 +251,7 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     );
   }
 
-  getArrowTranslateAndRotate() {
-    if (this.isTopTrainrunSectionInfoDisplayed && !this.isBottomTrainrunSectionInfoDisplayed) {
+  getDirectionArrowTranslateAndRotate() {
       return "translate(60, 16) rotate(0)";
     } else if (
       !this.isTopTrainrunSectionInfoDisplayed &&
