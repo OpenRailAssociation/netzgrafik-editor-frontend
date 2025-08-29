@@ -402,6 +402,11 @@ export class SimpleTrainrunSectionRouter {
       namePosOffsetDirection,
     );
 
+    const trainrunSectionBackwardTravelTimePos = Vec2D.add(
+      Vec2D.scale(Vec2D.add(s1, t1), 0.5),
+      nameNumberOfStopsOffsetDirection,
+    );
+
     const trainrunSectionNumberOfStopsPos = Vec2D.add(
       Vec2D.scale(Vec2D.add(s1, t1), 0.5),
       nameNumberOfStopsOffsetDirection,
@@ -414,6 +419,8 @@ export class SimpleTrainrunSectionRouter {
       [TrainrunSectionText.TargetDeparture]: targetDeparturePos.toPointDto(),
       [TrainrunSectionText.TrainrunSectionName]: trainrunSectionNamePos.toPointDto(),
       [TrainrunSectionText.TrainrunSectionTravelTime]: trainrunSectionNamePos.toPointDto(),
+      [TrainrunSectionText.TrainrunSectionBackwardTravelTime]:
+        trainrunSectionBackwardTravelTimePos.toPointDto(),
       [TrainrunSectionText.TrainrunSectionNumberOfStops]:
         trainrunSectionNumberOfStopsPos.toPointDto(),
     };

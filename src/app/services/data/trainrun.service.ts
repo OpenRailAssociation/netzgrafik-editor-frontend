@@ -762,6 +762,72 @@ export class TrainrunService {
     );
   }
 
+  // TODO: refactor travelTime and backwardTravelTime to use the same logic
+  // and use reverse iterator?
+  // TODO: wip
+  sumBackwardTravelTimeUpToLastNonStopNode(node: Node, trainrunSection: TrainrunSection): number {
+    let summedBackwardTravelTime = 0;
+    const iterator = this.getNonStopIterator(node, trainrunSection); // TODO: reverse iterator
+    while (iterator.hasNext()) {
+      const nextPair = iterator.next();
+      summedBackwardTravelTime += nextPair.trainrunSection.getBackwardTravelTime();
+    }
+    return summedBackwardTravelTime;
+  }
+
+  getCumulativeBackwardTravelTime(trainrunSection: TrainrunSection) {
+    const iterator = this.getNonStopIterator(
+      // get reverse iterator instead
+      trainrunSection.getTargetNode(), // ???
+      trainrunSection,
+    );
+    while (iterator.hasNext()) {
+      // p-e le faire avant
+      iterator.next();
+    }
+    return this.sumBackwardTravelTimeUpToLastNonStopNode(
+      iterator.current().node,
+      iterator.current().trainrunSection,
+    );
+  }
+
+  getCumSumBackwardTravelTimeNodePathToLastNonStopNode(n: Node, ts: TrainrunSection) {
+    const data = [
+      {
+        node: n,
+        sumBackwardTravelTime: 0,
+        trainrunSection: ts,
+      },
+    ];
+    let summedBackwardTravelTime = 0;
+    const iterator = this.getNonStopIterator(n, ts); // TODO: reverse iterator
+    while (iterator.hasNext()) {
+      const nextPair = iterator.next();
+      summedBackwardTravelTime += nextPair.trainrunSection.getBackwardTravelTime();
+      data.push({
+        node: nextPair.node,
+        sumBackwardTravelTime: summedBackwardTravelTime,
+        trainrunSection: nextPair.trainrunSection,
+      });
+    }
+    return data;
+  }
+
+  getCumulativeBackwardTravelTimeAndNodePath(trainrunSection: TrainrunSection) {
+    const iterator = this.getNonStopIterator(
+      // TODO: reverse iterator
+      trainrunSection.getTargetNode(), // not sure for that
+      trainrunSection,
+    );
+    while (iterator.hasNext()) {
+      iterator.next();
+    }
+    return this.getCumSumBackwardTravelTimeNodePathToLastNonStopNode(
+      iterator.current().node,
+      iterator.current().trainrunSection,
+    );
+  }
+
   isStartEqualsEndNode(trainrunSectionId: number): boolean {
     const trainrunSection = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
     const startNode = this.getEndNode(trainrunSection.getSourceNode(), trainrunSection);
