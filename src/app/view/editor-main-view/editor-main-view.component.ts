@@ -357,12 +357,20 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       this.filterService.isFilterTravelTimeEnabled(),
     );
 
+    this.editorView.bindIsFilterBackwardTravelTimeEnabled(() =>
+      this.filterService.isFilterBackwardTravelTimeEnabled(),
+    );
+
     this.editorView.bindIsfilterTrainrunNameEnabled(() =>
       this.filterService.isFilterTrainrunNameEnabled(),
     );
 
     this.editorView.bindIsFilterDirectionArrowsEnabled(() =>
       this.filterService.isFilterDirectionArrowsEnabled(),
+    );
+
+    this.editorView.bindIsFilterAsymmetryArrowsEnabled(() =>
+      this.filterService.isFilterAsymmetryArrowsEnabled(),
     );
 
     this.editorView.bindIsfilterArrivalDepartureTimeEnabled(() =>
