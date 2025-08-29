@@ -881,6 +881,45 @@ export class TrainrunService {
     return this.getBothEndNodesFromTrainrunPart(trainrunSection);
   }
 
+  getFirstAndLastTrainrunSections(trainrunId: number): {
+    firstTrainrunSection: TrainrunSection;
+    lastTrainrunSection: TrainrunSection;
+    swapped: boolean;
+  } {
+    const trainrunSections =
+      this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(trainrunId);
+    const [startNode, endNode] = [
+      this.getStartNodeWithTrainrunId(trainrunId),
+      this.getEndNodeWithTrainrunId(trainrunId),
+    ];
+
+    // Try to find startNode → endNode
+    let firstTrainrunSection = trainrunSections.find(
+      (ts) => ts.getSourceNodeId() === startNode.getId(),
+    );
+    let lastTrainrunSection = [...trainrunSections]
+      .reverse()
+      .find((ts) => ts.getTargetNodeId() === endNode.getId());
+
+    let swapped = false;
+    if (!firstTrainrunSection && !lastTrainrunSection) {
+      firstTrainrunSection = trainrunSections.find(
+        (ts) => ts.getSourceNodeId() === endNode.getId(),
+      );
+      lastTrainrunSection = [...trainrunSections]
+        .reverse()
+        .find((ts) => ts.getTargetNodeId() === startNode.getId());
+      [firstTrainrunSection, lastTrainrunSection] = [lastTrainrunSection, firstTrainrunSection];
+      swapped = true;
+    }
+
+    return {
+      firstTrainrunSection: firstTrainrunSection,
+      lastTrainrunSection: lastTrainrunSection,
+      swapped: swapped,
+    };
+  }
+
   private createNewTrainrunFromDto(trainrun: TrainrunDto): Trainrun {
     const newTrainrun = new Trainrun();
     newTrainrun.setTrainrunCategory(this.dataService.getTrainrunCategory(trainrun.categoryId));
