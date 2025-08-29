@@ -196,7 +196,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     return "";
   }
 
-  isHiddenArrow(): boolean {
+  isDirectionArrowHidden(): boolean {
     return (
       !this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
       !this.filterService.isFilterDirectionArrowsEnabled()
