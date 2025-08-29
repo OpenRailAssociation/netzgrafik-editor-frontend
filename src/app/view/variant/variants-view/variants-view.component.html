@@ -18,12 +18,13 @@
           sbbInput
           [placeholder]="'app.view.variant.variants-view.search-variants' | translate"
         />
+        <sbb-toggle-switch-button
+          [labelTrue]="'app.view.variant.variants-view.show-archive' | translate"
+          [checked]="showArchiveControl.getRawValue()"
+          (checkedChanged)="showArchiveControl.setValue($event)"
+        />
       </div>
-      <div class="archive">
-        <sbb-checkbox [formControl]="showArchiveControl">{{
-          "app.view.variant.variants-view.show-archive" | translate
-        }}</sbb-checkbox>
-      </div>
+
       <sbb-card-grid>
         <sbb-card
           *ngIf="!showArchiveControl.value && proj.isWritable"

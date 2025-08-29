@@ -140,6 +140,8 @@ export class TrainrunSectionViewObject {
       "_" +
       editorView.checkFilterNode(d.getTargetNode()) +
       "_" +
+      editorView.isFilterDirectionArrowsEnabled() +
+      "_" +
       editorView.getLevelOfDetail() +
       "_" +
       editorView.trainrunSectionPreviewLineView.getVariantIsWritable();

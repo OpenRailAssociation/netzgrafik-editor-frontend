@@ -1,21 +1,15 @@
 <div sbbDialogContent [class]="getContentClassTag()" [style]="getContentStyleTag()">
-  <div class="toggle-container">
-    <span class="toggle-label" (click)="onIsOneWayChanged(false)">{{
-      "app.view.dialogs.trainrun-and-section-dialog.trainrun-roundtrip-tab.round-trip" | translate
-    }}</span>
-    <label class="toggle-switch">
-      <input
-        sbbInput
-        type="checkbox"
-        [checked]="isOneWay"
-        (change)="onIsOneWayChanged($event.target.checked)"
-      />
-      <span class="slider"></span>
-    </label>
-    <span class="toggle-label" (click)="onIsOneWayChanged(true)">{{
-      "app.view.dialogs.trainrun-and-section-dialog.trainrun-roundtrip-tab.one-way" | translate
-    }}</span>
-  </div>
+  <sbb-toggle-switch-button
+    [labelFalse]="
+      'app.view.dialogs.trainrun-and-section-dialog.trainrun-roundtrip-tab.round-trip' | translate
+    "
+    [labelTrue]="
+      'app.view.dialogs.trainrun-and-section-dialog.trainrun-roundtrip-tab.one-way' | translate
+    "
+    [checked]="isOneWay"
+    (checkedChanged)="onIsOneWayChanged($event)"
+  >
+  </sbb-toggle-switch-button>
   <sbb-trainrunsection-card *ngIf="isOneWay" [innerContentScaleFactor]="innerContentScaleFactor">
   </sbb-trainrunsection-card>
 </div>

@@ -108,7 +108,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     this.svgPoint = new Vec2D(0, -64);
   }
 
-  onSbbToogleChange(event) {
+  onSbbToggleChange(event) {
     this.sbbToogleValue = event.value;
   }
 

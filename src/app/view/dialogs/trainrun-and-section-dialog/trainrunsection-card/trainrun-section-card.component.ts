@@ -129,8 +129,19 @@ export class TrainrunSectionCardComponent implements AfterViewInit, OnDestroy {
   }
 
   getColorRefTag(cardPosition: string) {
-    const colorRefTag = cardPosition === this.chosenCard ? this.categoryColorRef : "NORMAL";
-    return colorRefTag;
+    return (
+      this.categoryColorRef +
+      " " +
+      (this.chosenCard === cardPosition
+        ? StaticDomTags.TAG_FOCUS
+        : this.chosenCard === null
+          ? ""
+          : StaticDomTags.TAG_MUTED)
+    );
+  }
+
+  getOneWayCardBetriebspunktClassTag(cardPosition: string) {
+    return "OneWayCardBetriebspunkt " + this.getColorRefTag(cardPosition);
   }
 
   getEdgeLineTextClass(cardPosition: string) {

@@ -140,11 +140,11 @@
           </ng-template>
         </td>
         <td>
-          <sbb-checkbox
-            [(ngModel)]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitIPV'].no_halt"
-            (change)="haltezeitIPVNoHaltChanged()"
-            >{{ "app.view.editor-side-view.editor-node-detail-view.no-stop" | translate }}
-          </sbb-checkbox>
+          <sbb-toggle-switch-button
+            [labelTrue]="'app.view.editor-side-view.editor-node-detail-view.no-stop' | translate"
+            [checked]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitIPV'].no_halt"
+            (checkedChanged)="haltezeitIPVNoHaltChanged($event)"
+          />
         </td>
       </tr>
       <tr>
@@ -167,11 +167,11 @@
           </ng-template>
         </td>
         <td>
-          <sbb-checkbox
-            [(ngModel)]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitA'].no_halt"
-            (change)="haltezeitANoHaltChanged()"
-            >{{ "app.view.editor-side-view.editor-node-detail-view.no-stop" | translate }}
-          </sbb-checkbox>
+          <sbb-toggle-switch-button
+            [labelTrue]="'app.view.editor-side-view.editor-node-detail-view.no-stop' | translate"
+            [checked]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitA'].no_halt"
+            (checkedChanged)="haltezeitANoHaltChanged($event)"
+          />
         </td>
       </tr>
       <tr>
@@ -194,11 +194,11 @@
           </ng-template>
         </td>
         <td>
-          <sbb-checkbox
-            [(ngModel)]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitB'].no_halt"
-            (change)="haltezeitBNoHaltChanged()"
-            >{{ "app.view.editor-side-view.editor-node-detail-view.no-stop" | translate }}
-          </sbb-checkbox>
+          <sbb-toggle-switch-button
+            [labelTrue]="'app.view.editor-side-view.editor-node-detail-view.no-stop' | translate"
+            [checked]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitB'].no_halt"
+            (checkedChanged)="haltezeitBNoHaltChanged($event)"
+          />
         </td>
       </tr>
       <tr>
@@ -221,11 +221,11 @@
           </ng-template>
         </td>
         <td>
-          <sbb-checkbox
-            [(ngModel)]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitC'].no_halt"
-            (change)="haltezeitCNoHaltChanged()"
-            >{{ "app.view.editor-side-view.editor-node-detail-view.no-stop" | translate }}
-          </sbb-checkbox>
+          <sbb-toggle-switch-button
+            [labelTrue]="'app.view.editor-side-view.editor-node-detail-view.no-stop' | translate"
+            [checked]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitC'].no_halt"
+            (checkedChanged)="haltezeitCNoHaltChanged($event)"
+          />
         </td>
       </tr>
       <tr>
@@ -248,11 +248,11 @@
           </ng-template>
         </td>
         <td>
-          <sbb-checkbox
-            [(ngModel)]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitD'].no_halt"
-            (change)="haltezeitDNoHaltChanged()"
-            >{{ "app.view.editor-side-view.editor-node-detail-view.no-stop" | translate }}
-          </sbb-checkbox>
+          <sbb-toggle-switch-button
+            [labelTrue]="'app.view.editor-side-view.editor-node-detail-view.no-stop' | translate"
+            [checked]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitD'].no_halt"
+            (checkedChanged)="haltezeitDNoHaltChanged($event)"
+          />
         </td>
       </tr>
     </table>
