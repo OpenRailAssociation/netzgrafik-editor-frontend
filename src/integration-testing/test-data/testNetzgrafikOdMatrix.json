@@ -302,13 +302,8 @@
       "sourcePortId": 11,
       "targetNodeId": 12,
       "targetPortId": 12,
-      "travelTime": {
-        "time": 2,
-        "consecutiveTime": 1,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 0,
         "consecutiveTime": 0,
@@ -334,6 +329,20 @@
         "time": 2,
         "consecutiveTime": 2,
         "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "travelTime": {
+        "time": 2,
+        "consecutiveTime": 1,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 2,
+        "consecutiveTime": 1,
+        "lock": true,
         "warning": null,
         "timeFormatter": null
       },
@@ -366,13 +375,8 @@
       "sourcePortId": 13,
       "targetNodeId": 11,
       "targetPortId": 14,
-      "travelTime": {
-        "time": 4,
-        "consecutiveTime": 1,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 3,
         "consecutiveTime": 3,
@@ -398,6 +402,20 @@
         "time": 7,
         "consecutiveTime": 7,
         "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "travelTime": {
+        "time": 4,
+        "consecutiveTime": 1,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 4,
+        "consecutiveTime": 1,
+        "lock": true,
         "warning": null,
         "timeFormatter": null
       },
@@ -430,13 +448,8 @@
       "sourcePortId": 15,
       "targetNodeId": 14,
       "targetPortId": 16,
-      "travelTime": {
-        "time": 6,
-        "consecutiveTime": 1,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 0,
         "consecutiveTime": 60,
@@ -462,6 +475,20 @@
         "time": 6,
         "consecutiveTime": 66,
         "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "travelTime": {
+        "time": 6,
+        "consecutiveTime": 1,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 6,
+        "consecutiveTime": 1,
+        "lock": true,
         "warning": null,
         "timeFormatter": null
       },
@@ -494,13 +521,8 @@
       "sourcePortId": 17,
       "targetNodeId": 13,
       "targetPortId": 18,
-      "travelTime": {
-        "time": 2,
-        "consecutiveTime": 1,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 8,
         "consecutiveTime": 8,
@@ -526,6 +548,20 @@
         "time": 10,
         "consecutiveTime": 10,
         "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "travelTime": {
+        "time": 2,
+        "consecutiveTime": 1,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 2,
+        "consecutiveTime": 1,
+        "lock": true,
         "warning": null,
         "timeFormatter": null
       },
@@ -558,13 +594,8 @@
       "sourcePortId": 19,
       "targetNodeId": 11,
       "targetPortId": 20,
-      "travelTime": {
-        "time": 5,
-        "consecutiveTime": 1,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 0,
         "consecutiveTime": 0,
@@ -590,6 +621,20 @@
         "time": 5,
         "consecutiveTime": 5,
         "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "travelTime": {
+        "time": 5,
+        "consecutiveTime": 1,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 5,
+        "consecutiveTime": 1,
+        "lock": true,
         "warning": null,
         "timeFormatter": null
       },
@@ -622,13 +667,8 @@
       "sourcePortId": 21,
       "targetNodeId": 13,
       "targetPortId": 22,
-      "travelTime": {
-        "time": 4,
-        "consecutiveTime": 1,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 5,
         "consecutiveTime": 5,
@@ -654,6 +694,20 @@
         "time": 9,
         "consecutiveTime": 9,
         "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "travelTime": {
+        "time": 4,
+        "consecutiveTime": 1,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 4,
+        "consecutiveTime": 1,
+        "lock": true,
         "warning": null,
         "timeFormatter": null
       },
@@ -686,13 +740,8 @@
       "sourcePortId": 23,
       "targetNodeId": 15,
       "targetPortId": 24,
-      "travelTime": {
-        "time": 1,
-        "consecutiveTime": 1,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 0,
         "consecutiveTime": 120,
@@ -718,6 +767,20 @@
         "time": 1,
         "consecutiveTime": 121,
         "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "travelTime": {
+        "time": 1,
+        "consecutiveTime": 1,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 1,
+        "consecutiveTime": 1,
+        "lock": true,
         "warning": null,
         "timeFormatter": null
       },
@@ -750,13 +813,8 @@
       "sourcePortId": 26,
       "targetNodeId": 16,
       "targetPortId": 25,
-      "travelTime": {
-        "time": 1,
-        "consecutiveTime": 1,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 57,
         "consecutiveTime": 117,
@@ -782,6 +840,20 @@
         "time": 58,
         "consecutiveTime": 118,
         "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "travelTime": {
+        "time": 1,
+        "consecutiveTime": 1,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 1,
+        "consecutiveTime": 1,
+        "lock": true,
         "warning": null,
         "timeFormatter": null
       },
@@ -814,13 +886,8 @@
       "sourcePortId": 27,
       "targetNodeId": 1,
       "targetPortId": 28,
-      "travelTime": {
-        "time": 1,
-        "consecutiveTime": 1,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 0,
         "consecutiveTime": 0,
@@ -846,6 +913,20 @@
         "time": 1,
         "consecutiveTime": 1,
         "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "travelTime": {
+        "time": 1,
+        "consecutiveTime": 1,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 1,
+        "consecutiveTime": 1,
+        "lock": true,
         "warning": null,
         "timeFormatter": null
       },
@@ -878,13 +959,8 @@
       "sourcePortId": 29,
       "targetNodeId": 4,
       "targetPortId": 30,
-      "travelTime": {
-        "time": 5,
-        "consecutiveTime": 1,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 3,
         "consecutiveTime": 3,
@@ -910,6 +986,20 @@
         "time": 8,
         "consecutiveTime": 8,
         "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "travelTime": {
+        "time": 5,
+        "consecutiveTime": 1,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 5,
+        "consecutiveTime": 1,
+        "lock": true,
         "warning": null,
         "timeFormatter": null
       },
@@ -942,13 +1032,8 @@
       "sourcePortId": 31,
       "targetNodeId": 1,
       "targetPortId": 32,
-      "travelTime": {
-        "time": 1,
-        "consecutiveTime": 1,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 6,
         "consecutiveTime": 66,
@@ -974,6 +1059,20 @@
         "time": 7,
         "consecutiveTime": 67,
         "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "travelTime": {
+        "time": 1,
+        "consecutiveTime": 1,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 1,
+        "consecutiveTime": 1,
+        "lock": true,
         "warning": null,
         "timeFormatter": null
       },
@@ -1006,13 +1105,8 @@
       "sourcePortId": 33,
       "targetNodeId": 2,
       "targetPortId": 34,
-      "travelTime": {
-        "time": 1,
-        "consecutiveTime": 1,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 9,
         "consecutiveTime": 69,
@@ -1038,6 +1132,20 @@
         "time": 10,
         "consecutiveTime": 70,
         "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "travelTime": {
+        "time": 1,
+        "consecutiveTime": 1,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 1,
+        "consecutiveTime": 1,
+        "lock": true,
         "warning": null,
         "timeFormatter": null
       },
@@ -1122,17 +1230,10 @@
     }
   ],
   "resources": [
-    {"id": 1, "capacity": 2},
     {"id": 2, "capacity": 2},
     {"id": 3, "capacity": 2},
-    {"id": 4, "capacity": 2},
     {"id": 5, "capacity": 2},
-    {"id": 6, "capacity": 2},
-    {"id": 7, "capacity": 2},
     {"id": 8, "capacity": 2},
-    {"id": 9, "capacity": 2},
-    {"id": 10, "capacity": 2},
-    {"id": 11, "capacity": 2},
     {"id": 12, "capacity": 2},
     {"id": 13, "capacity": 2},
     {"id": 14, "capacity": 2},
