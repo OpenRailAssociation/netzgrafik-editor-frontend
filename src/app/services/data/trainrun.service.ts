@@ -221,6 +221,7 @@ export class TrainrunService {
           targetArrival,
           (60 - targetArrival) % 60,
           ts.getTravelTime(),
+          ts.getBackwardTravelTime(),
           false, // disable event emission since UpdateTrainrunOperation is emitted below
         );
       });
@@ -265,6 +266,11 @@ export class TrainrunService {
   updateDirection(trainrun: Trainrun, direction: Direction) {
     const trainrunSection = this.getTrainrunFromId(trainrun.getId());
     trainrunSection.setDirection(direction);
+    if (!trainrun.isRoundTrip()) {
+      this.trainrunSectionService
+        .getAllTrainrunSectionsForTrainrun(trainrun.getId())
+        .forEach((ts: TrainrunSection) => ts.resetSymmetry());
+    }
     this.trainrunsUpdated();
     this.operation.emit(new TrainrunOperation(OperationType.update, trainrun));
   }
