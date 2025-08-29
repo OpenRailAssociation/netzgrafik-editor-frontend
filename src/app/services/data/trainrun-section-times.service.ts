@@ -643,6 +643,18 @@ export class TrainrunSectionTimesService {
     this.applyOffsetAndTransformTimeStructure();
   }
 
+  onTrainrunSymmetryChanged(trainrunId: number, reference: SymmetryReference) {
+    this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(trainrunId).forEach((section) => {
+      this.removeOffsetAndBackTransformTimeStructure();
+      section.resetSymmetry();
+      this.updateTrainrunSectionTime(
+        section,
+        this.calculateTimeStructureAfterSymmetrySelectionForTrainrunSection(reference, section),
+      );
+      this.applyOffsetAndTransformTimeStructure();
+    });
+  }
+
   /* Buttons in Footer */
   onPropagateTimeLeft(trainrunSection: TrainrunSection) {
     const nextStopRightNodeId = this.trainrunSectionHelper
@@ -851,11 +863,84 @@ export class TrainrunSectionTimesService {
         return timeStructure;
       }
 
+      case SymmetryOn.Trainrun: {
+        // TODO faire pareil que trainrunSection
+        const {firstTrainrunSection, lastTrainrunSection, swapped} =
+          this.trainrunService.getFirstAndLastTrainrunSections(
+            this.selectedTrainrunSection.getTrainrunId(),
+          );
+
+        timeStructure.leftArrivalTime = swapped
+          ? firstTrainrunSection.getTargetArrival()
+          : firstTrainrunSection.getSourceArrival();
+        timeStructure.leftDepartureTime = swapped
+          ? firstTrainrunSection.getTargetDeparture()
+          : firstTrainrunSection.getSourceDeparture();
+        timeStructure.rightArrivalTime = swapped
+          ? lastTrainrunSection.getSourceArrival()
+          : lastTrainrunSection.getTargetArrival();
+        timeStructure.rightDepartureTime = swapped
+          ? lastTrainrunSection.getSourceDeparture()
+          : lastTrainrunSection.getTargetDeparture();
+
+        if (reference === SymmetryReference.Top) {
+          timeStructure.leftArrivalTime = TrainrunsectionHelper.getSymmetricTime(
+            timeStructure.leftDepartureTime,
+          );
+          timeStructure.rightDepartureTime = TrainrunsectionHelper.getSymmetricTime(
+            timeStructure.rightArrivalTime,
+          );
+        } else {
+          timeStructure.leftDepartureTime = TrainrunsectionHelper.getSymmetricTime(
+            timeStructure.leftArrivalTime,
+          );
+          timeStructure.rightArrivalTime = TrainrunsectionHelper.getSymmetricTime(
+            timeStructure.rightDepartureTime,
+          );
+        }
+
+        timeStructure.travelTime = null; // not used in this context
+        timeStructure.bottomTravelTime = null; // not used in this context
+        return timeStructure;
+      }
+
       default:
         return timeStructure;
     }
   }
 
+  calculateTimeStructureAfterSymmetrySelectionForTrainrunSection(
+    reference: SymmetryReference,
+    trainrunSection: TrainrunSection,
+  ): LeftAndRightTimeStructure {
+    if (reference === SymmetryReference.Top) {
+      return {
+        leftDepartureTime: trainrunSection.getSourceDeparture(),
+        travelTime: trainrunSection.getTravelTime(),
+        rightArrivalTime: trainrunSection.getTargetArrival(),
+        rightDepartureTime: TrainrunsectionHelper.getSymmetricTime(
+          trainrunSection.getTargetArrival(),
+        ),
+        bottomTravelTime: trainrunSection.getTravelTime(),
+        leftArrivalTime: TrainrunsectionHelper.getSymmetricTime(
+          trainrunSection.getSourceDeparture(),
+        ),
+      };
+    } else {
+      return {
+        leftDepartureTime: TrainrunsectionHelper.getSymmetricTime(
+          trainrunSection.getSourceArrival(),
+        ),
+        travelTime: trainrunSection.getBackwardTravelTime(),
+        rightArrivalTime: TrainrunsectionHelper.getSymmetricTime(
+          trainrunSection.getTargetDeparture(),
+        ),
+        rightDepartureTime: trainrunSection.getTargetDeparture(),
+        bottomTravelTime: trainrunSection.getBackwardTravelTime(),
+        leftArrivalTime: trainrunSection.getSourceArrival(),
+      };
+    }
+  }
 
   private roundAllTimes() {
     const timeDisplayPrecision = this.filterService.getTimeDisplayPrecision();

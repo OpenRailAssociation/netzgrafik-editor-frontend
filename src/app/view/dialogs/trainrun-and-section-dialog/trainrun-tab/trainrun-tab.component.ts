@@ -1,4 +1,12 @@
-import {Component, EventEmitter, Input, OnDestroy, Output} from "@angular/core";
+import {
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  Output,
+  ViewChild,
+} from "@angular/core";
 import {
   TrainrunCategory,
   TrainrunFrequency,
@@ -15,6 +23,10 @@ import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
 import {TrainrunDialogParameter} from "../trainrun-and-section-dialog.component";
 import {VersionControlService} from "../../../../services/data/version-control.service";
+import {TrainrunSectionTimesService} from "src/app/services/data/trainrun-section-times.service";
+import {TrainrunsectionHelper} from "../../../../services/util/trainrunsection.helper";
+import {SymmetryToggleService} from "../../../../services/util/symmetry-toggle.service";
+import {ToggleSwitchButtonComponent} from "../../../toggle-switch-button/toggle-switch-button.component";
 
 @Component({
   selector: "sbb-trainrun-tab",
@@ -27,11 +39,14 @@ export class TrainrunTabComponent implements OnDestroy {
   @Input() isIntegratedComponent = false;
   @Input() trainrunDialogParameter: TrainrunDialogParameter;
 
+  @ViewChild("trainrunSymmetryToggle") trainrunSymmetryToggle: ToggleSwitchButtonComponent;
+
   public selectedTrainrun: Trainrun;
   public selectedFrequency: TrainrunFrequency;
   public selectedCategory: TrainrunCategory;
   public selectedTimeCategory: TrainrunTimeCategory;
   public trainrunTitle: string;
+  public trainrunsectionHelper: TrainrunsectionHelper;
 
   private destroyed = new Subject<void>();
 
@@ -39,9 +54,13 @@ export class TrainrunTabComponent implements OnDestroy {
     public dataService: DataService,
     private trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
+    public trainrunSectionTimesService: TrainrunSectionTimesService,
     private uiInteractionService: UiInteractionService,
     private versionControlService: VersionControlService,
+    private changeDetectionRef: ChangeDetectorRef,
+    private symmetryToggleService: SymmetryToggleService,
   ) {
+    this.trainrunsectionHelper = new TrainrunsectionHelper(trainrunService);
     this.initializeWithCurrentSelectedTrainrun();
     this.trainrunService.trainruns.pipe(takeUntil(this.destroyed)).subscribe(() => {
       this.initializeWithCurrentSelectedTrainrun();
@@ -176,6 +195,18 @@ export class TrainrunTabComponent implements OnDestroy {
     this.initializeWithCurrentSelectedTrainrun();
   }
 
+  isSymmetric(): boolean {
+    return this.trainrunSectionService.isTrainrunSymmetric(this.selectedTrainrun.getId());
+  }
+
+  onTrainrunSymmetryToggleChanged() {
+    this.symmetryToggleService.onTrainrunSymmetryToggleChanged(
+      this.selectedTrainrun.getId(),
+      this.trainrunSectionTimesService,
+      () => this.revertTrainrunSymmetryToggleState(false),
+    );
+  }
+
   private initializeWithCurrentSelectedTrainrun() {
     this.selectedTrainrun = this.trainrunService.getSelectedTrainrun();
     if (this.selectedTrainrun !== null) {
@@ -184,5 +215,12 @@ export class TrainrunTabComponent implements OnDestroy {
       this.selectedTimeCategory = this.selectedTrainrun.getTrainrunTimeCategory();
       this.trainrunTitle = this.selectedTrainrun.getTitle();
     }
+  }
+
+  private revertTrainrunSymmetryToggleState(originalState: boolean) {
+    if (this.trainrunSymmetryToggle) {
+      this.trainrunSymmetryToggle.checked = !originalState;
+    }
+    this.changeDetectionRef.detectChanges();
   }
 }
