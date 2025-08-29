@@ -12,9 +12,11 @@ export class TrainrunSectionViewObject {
     isMuted: boolean,
     hiddenTagSource: boolean,
     hiddenTagTarget: boolean,
-    hiddenTagTraveltime: boolean,
+    hiddenTagTravelTime: boolean,
+    hiddenTagBackwardTravelTime: boolean,
     hiddenTagTrainrunName: boolean,
     hiddenTagDirectionArrows: boolean,
+    hiddenTagAsymmetryArrows: boolean,
   ) {
     this.key = TrainrunSectionViewObject.generateKey(
       editorView,
@@ -24,9 +26,11 @@ export class TrainrunSectionViewObject {
       isMuted,
       hiddenTagSource,
       hiddenTagTarget,
-      hiddenTagTraveltime,
+      hiddenTagTravelTime,
+      hiddenTagBackwardTravelTime,
       hiddenTagTrainrunName,
       hiddenTagDirectionArrows,
+      hiddenTagAsymmetryArrows,
     );
   }
 
@@ -38,13 +42,19 @@ export class TrainrunSectionViewObject {
     isMuted: boolean,
     hiddenTagSource: boolean,
     hiddenTagTarget: boolean,
-    hiddenTagTraveltime: boolean,
+    hiddenTagTravelTime: boolean,
+    hiddenTagBackwardTravelTime: boolean,
     hiddenTagTrainrunName: boolean,
     hiddenTagDirectionArrows: boolean,
+    hiddenTagAsymmetryArrows: boolean,
   ): string {
     const cumulativeTravelTimeData = editorView.getCumulativeTravelTimeAndNodePath(d);
     const cumulativeTravelTime =
       cumulativeTravelTimeData[cumulativeTravelTimeData.length - 1].sumTravelTime;
+    const cumulativeBackwardTravelTimeData =
+      editorView.getCumulativeBackwardTravelTimeAndNodePath(d);
+    const cumulativeBackwardTravelTime =
+      cumulativeBackwardTravelTimeData[cumulativeBackwardTravelTimeData.length - 1].sumTravelTime;
 
     let key =
       "#" +
@@ -59,6 +69,10 @@ export class TrainrunSectionViewObject {
       d.getTravelTime() +
       "_" +
       cumulativeTravelTime +
+      "_" +
+      d.getBackwardTravelTime() +
+      "_" +
+      cumulativeBackwardTravelTime +
       "_" +
       editorView.getTimeDisplayPrecision() +
       "_" +
@@ -118,11 +132,15 @@ export class TrainrunSectionViewObject {
       "_" +
       hiddenTagTarget +
       "_" +
-      hiddenTagTraveltime +
+      hiddenTagTravelTime +
+      "_" +
+      hiddenTagBackwardTravelTime +
       "_" +
       hiddenTagTrainrunName +
       "_" +
       hiddenTagDirectionArrows +
+      "_" +
+      hiddenTagAsymmetryArrows +
       "_" +
       editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() +
       "_" +
@@ -147,6 +165,13 @@ export class TrainrunSectionViewObject {
       editorView.trainrunSectionPreviewLineView.getVariantIsWritable();
 
     cumulativeTravelTimeData.forEach((data) => {
+      key += "_" + data.node.getId();
+      key += "_" + editorView.isJunctionNode(data.node);
+      key += "_" + editorView.checkFilterNonStopNode(data.node);
+      key += "_" + editorView.checkFilterNode(data.node);
+    });
+
+    cumulativeBackwardTravelTimeData.forEach((data) => {
       key += "_" + data.node.getId();
       key += "_" + editorView.isJunctionNode(data.node);
       key += "_" + editorView.checkFilterNonStopNode(data.node);
