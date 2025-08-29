@@ -1,0 +1,221 @@
+<ng-template #symmetrySelectionDialogTemplate>
+  <div sbbDialogTitle>
+    {{ "app.view.dialogs.symmetry-dialog.selection" | translate }}
+  </div>
+
+  <div sbbDialogContent>
+    <div class="symmetry-selection-content">
+      <!-- Top times as symmetry reference -->
+      <div class="TrainrunSection">
+        <div
+          [ngClass]="[
+            'SymmetryCard',
+            selectedSymmetryReference === SymmetryReference.Top ? 'selected' : 'muted'
+          ]"
+          (click)="onCardSelection(SymmetryReference.Top)"
+        >
+          <div class="SymmetryCardBetriebspunkt">
+            <b>{{ startNode[1] }}</b> ({{ startNode[0] }})
+          </div>
+          <div class="TrainFreqContainer">
+            <svg class="renderer" width="96px" height="48px" viewBox="0 0 48 24">
+              <text [class]="getEdgeLineTextClass(SymmetryReference.Top)" x="18" y="5">
+                {{ topSymmetryTimeStructure.leftDepartureTime }}
+              </text>
+              <text [class]="getEdgeLineTextClass(SymmetryReference.Top)" x="8" y="21">
+                {{ topSymmetryTimeStructure.leftArrivalTime }}
+              </text>
+              <path
+                [class]="getEdgeLineClassAttrString(0, SymmetryReference.Top)"
+                d="M0,12L48,12"
+              ></path>
+              <path
+                [class]="getEdgeLineClassAttrString(1, SymmetryReference.Top)"
+                d="M0,12L48,12"
+              ></path>
+              <path
+                [class]="getEdgeLineClassAttrString(2, SymmetryReference.Top)"
+                d="M0,12L48,12"
+              ></path>
+              <path
+                [class]="getEdgeLineClassAttrString(3, SymmetryReference.Top)"
+                d="M0,12L48,12"
+              ></path>
+            </svg>
+            <svg class="renderer" width="48px" height="48px" viewBox="0 0 24 12">
+              <text
+                *ngIf="
+                  topSymmetryTimeStructure.travelTime === topSymmetryTimeStructure.bottomTravelTime
+                "
+                [class]="getEdgeLineTextClass(SymmetryReference.Top)"
+                x="12"
+                y="7"
+              >
+                {{ topSymmetryTimeStructure.travelTime }}
+              </text>
+              <text
+                *ngIf="
+                  topSymmetryTimeStructure.travelTime !== topSymmetryTimeStructure.bottomTravelTime
+                "
+                [class]="getEdgeLineTextClass(SymmetryReference.Top)"
+                x="15"
+                y="-1"
+              >
+                {{ topSymmetryTimeStructure.travelTime }}
+              </text>
+              <text
+                *ngIf="
+                  topSymmetryTimeStructure.travelTime !== topSymmetryTimeStructure.bottomTravelTime
+                "
+                [class]="getEdgeLineTextClass(SymmetryReference.Top)"
+                x="8"
+                y="15"
+              >
+                {{ topSymmetryTimeStructure.bottomTravelTime }}
+              </text>
+            </svg>
+            <svg class="renderer" width="96px" height="48px" viewBox="0 0 48 24">
+              <text [class]="getEdgeLineTextClass(SymmetryReference.Top)" x="40" y="5">
+                {{ topSymmetryTimeStructure.rightArrivalTime }}
+              </text>
+              <text [class]="getEdgeLineTextClass(SymmetryReference.Top)" x="30" y="21">
+                {{ topSymmetryTimeStructure.rightDepartureTime }}
+              </text>
+              <path
+                [class]="getEdgeLineClassAttrString(0, SymmetryReference.Top)"
+                d="M0,12L48,12"
+              ></path>
+              <path
+                [class]="getEdgeLineClassAttrString(1, SymmetryReference.Top)"
+                d="M0,12L48,12"
+              ></path>
+              <path
+                [class]="getEdgeLineClassAttrString(2, SymmetryReference.Top)"
+                d="M0,12L48,12"
+              ></path>
+              <path
+                [class]="getEdgeLineClassAttrString(3, SymmetryReference.Top)"
+                d="M0,12L48,12"
+              ></path>
+            </svg>
+          </div>
+          <div class="SymmetryCardBetriebspunkt">
+            <b>{{ endNode[1] }}</b> ({{ endNode[0] }})
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom times as symmetry reference -->
+      <div class="TrainrunSection">
+        <div
+          [ngClass]="[
+            'SymmetryCard',
+            selectedSymmetryReference === SymmetryReference.Bottom ? 'selected' : 'muted'
+          ]"
+          (click)="onCardSelection(SymmetryReference.Bottom)"
+        >
+          <div class="SymmetryCardBetriebspunkt">
+            <b>{{ startNode[1] }}</b> ({{ startNode[0] }})
+          </div>
+          <div class="TrainFreqContainer">
+            <svg class="renderer" width="96px" height="48px" viewBox="0 0 48 24">
+              <text [class]="getEdgeLineTextClass(SymmetryReference.Bottom)" x="18" y="5">
+                {{ bottomSymmetryTimeStructure.leftDepartureTime }}
+              </text>
+              <text [class]="getEdgeLineTextClass(SymmetryReference.Bottom)" x="8" y="21">
+                {{ bottomSymmetryTimeStructure.leftArrivalTime }}
+              </text>
+              <path
+                [class]="getEdgeLineClassAttrString(0, SymmetryReference.Bottom)"
+                d="M0,12L48,12"
+              ></path>
+              <path
+                [class]="getEdgeLineClassAttrString(1, SymmetryReference.Bottom)"
+                d="M0,12L48,12"
+              ></path>
+              <path
+                [class]="getEdgeLineClassAttrString(2, SymmetryReference.Bottom)"
+                d="M0,12L48,12"
+              ></path>
+              <path
+                [class]="getEdgeLineClassAttrString(3, SymmetryReference.Bottom)"
+                d="M0,12L48,12"
+              ></path>
+            </svg>
+            <svg class="renderer" width="48px" height="48px" viewBox="0 0 24 12">
+              <text
+                *ngIf="
+                  bottomSymmetryTimeStructure.travelTime ===
+                  bottomSymmetryTimeStructure.bottomTravelTime
+                "
+                [class]="getEdgeLineTextClass(SymmetryReference.Bottom)"
+                x="12"
+                y="7"
+              >
+                {{ bottomSymmetryTimeStructure.travelTime }}
+              </text>
+              <text
+                *ngIf="
+                  bottomSymmetryTimeStructure.travelTime !==
+                  bottomSymmetryTimeStructure.bottomTravelTime
+                "
+                [class]="getEdgeLineTextClass(SymmetryReference.Bottom)"
+                x="15"
+                y="-1"
+              >
+                {{ bottomSymmetryTimeStructure.travelTime }}
+              </text>
+              <text
+                *ngIf="
+                  bottomSymmetryTimeStructure.travelTime !==
+                  bottomSymmetryTimeStructure.bottomTravelTime
+                "
+                [class]="getEdgeLineTextClass(SymmetryReference.Bottom)"
+                x="8"
+                y="15"
+              >
+                {{ bottomSymmetryTimeStructure.bottomTravelTime }}
+              </text>
+            </svg>
+            <svg class="renderer" width="96px" height="48px" viewBox="0 0 48 24">
+              <text [class]="getEdgeLineTextClass(SymmetryReference.Bottom)" x="40" y="5">
+                {{ bottomSymmetryTimeStructure.rightArrivalTime }}
+              </text>
+              <text [class]="getEdgeLineTextClass(SymmetryReference.Bottom)" x="30" y="21">
+                {{ bottomSymmetryTimeStructure.rightDepartureTime }}
+              </text>
+              <path
+                [class]="getEdgeLineClassAttrString(0, SymmetryReference.Bottom)"
+                d="M0,12L48,12"
+              ></path>
+              <path
+                [class]="getEdgeLineClassAttrString(1, SymmetryReference.Bottom)"
+                d="M0,12L48,12"
+              ></path>
+              <path
+                [class]="getEdgeLineClassAttrString(2, SymmetryReference.Bottom)"
+                d="M0,12L48,12"
+              ></path>
+              <path
+                [class]="getEdgeLineClassAttrString(3, SymmetryReference.Bottom)"
+                d="M0,12L48,12"
+              ></path>
+            </svg>
+          </div>
+          <div class="SymmetryCardBetriebspunkt">
+            <b>{{ endNode[1] }}</b> ({{ endNode[0] }})
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div sbbDialogActions>
+    <button sbb-button [disabled]="isConfirmButtonDisabled()" (click)="onConfirm()">
+      {{ "app.view.dialogs.symmetry-dialog.apply-symmetry" | translate }}
+    </button>
+    <button sbb-secondary-button (click)="onCancel()">
+      {{ "app.view.dialogs.symmetry-dialog.cancel" | translate }}
+    </button>
+  </div>
+</ng-template>
