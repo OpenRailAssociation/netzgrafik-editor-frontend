@@ -741,8 +741,23 @@ export class TrainrunSection {
     return this.pathVec2D;
   }
 
-  isPathEmpty(): boolean {
-    return this.pathVec2D.length === 0;
+  isPathInvalid(): boolean {
+    if (this.pathVec2D.length === 0 || !this.path || !this.path.textPositions) {
+      return true;
+    }
+
+    // Check if all required TrainrunSectionText enum values have corresponding textPositions
+    const keys = [
+      TrainrunSectionText.SourceArrival,
+      TrainrunSectionText.SourceDeparture,
+      TrainrunSectionText.TargetArrival,
+      TrainrunSectionText.TargetDeparture,
+      TrainrunSectionText.TrainrunSectionName,
+      TrainrunSectionText.TrainrunSectionTravelTime,
+      TrainrunSectionText.TrainrunSectionBackwardTravelTime,
+      TrainrunSectionText.TrainrunSectionNumberOfStops,
+    ];
+    return keys.some((key) => !(key in this.path.textPositions));
   }
 
   routeEdgeAndPlaceText() {
