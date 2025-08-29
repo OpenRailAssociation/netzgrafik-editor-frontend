@@ -11,9 +11,7 @@
     <sbb-editor-edit-tools-view-component
       *ngIf="showEditorEditTools"
     ></sbb-editor-edit-tools-view-component>
-    <sbb-editor-tools-view-component
-      *ngIf="showEditorTools"
-    ></sbb-editor-tools-view-component>
+    <sbb-editor-tools-view-component *ngIf="showEditorTools"></sbb-editor-tools-view-component>
     <sbb-editor-properties-view-component
       *ngIf="showEditorProperties"
     ></sbb-editor-properties-view-component>
@@ -42,15 +40,10 @@
   </div>
 
   <div aside class="col-padding">
-    <sbb-editor-side-view
-      *ngIf="showDetail"
-      (closeSideView)="asideClosed()"
-    ></sbb-editor-side-view>
+    <sbb-editor-side-view *ngIf="showDetail" (closeSideView)="asideClosed()"></sbb-editor-side-view>
     <sbb-perlenkette
       *ngIf="showPerlenkette"
-      [sidebarElementHeight]="
-        filterMainSideViewElement.nativeElement.offsetHeight
-      "
+      [sidebarElementHeight]="filterMainSideViewElement.nativeElement.offsetHeight"
     ></sbb-perlenkette>
   </div>
 </sbb-column-layout>

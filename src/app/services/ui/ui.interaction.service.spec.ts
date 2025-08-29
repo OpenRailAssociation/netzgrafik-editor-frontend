@@ -49,16 +49,8 @@ describe("UiInteractionService", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -91,7 +83,7 @@ describe("UiInteractionService", () => {
       trainrunService,
       trainrunSectionService,
       nodeService,
-      filterService
+      filterService,
     );
     nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
 
@@ -113,29 +105,20 @@ describe("UiInteractionService", () => {
   });
 
   it("checkFilterNodeLabels", () => {
-    const viewboxProperties = uiInteractionService.getViewboxProperties(
-      EditorView.svgName,
-    );
-    uiInteractionService.setViewboxProperties(
-      EditorView.svgName,
-      viewboxProperties,
-    );
+    const viewboxProperties = uiInteractionService.getViewboxProperties(EditorView.svgName);
+    uiInteractionService.setViewboxProperties(EditorView.svgName, viewboxProperties);
     expect(viewboxProperties.currentViewBox).toBe(null);
   });
 
   it("getEditorMode", () => {
-    expect(uiInteractionService.getEditorMode()).toBe(
-      EditorMode.NetzgrafikEditing,
-    );
+    expect(uiInteractionService.getEditorMode()).toBe(EditorMode.NetzgrafikEditing);
   });
 
   it("setEditorMode", () => {
     uiInteractionService.setEditorMode(EditorMode.Analytics);
     expect(uiInteractionService.getEditorMode()).toBe(EditorMode.Analytics);
     uiInteractionService.setEditorMode(EditorMode.NetzgrafikEditing);
-    expect(uiInteractionService.getEditorMode()).toBe(
-      EditorMode.NetzgrafikEditing,
-    );
+    expect(uiInteractionService.getEditorMode()).toBe(EditorMode.NetzgrafikEditing);
   });
 
   it("createTheme", () => {

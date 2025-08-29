@@ -44,16 +44,8 @@ describe("ShortestTravelTimeSearch", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -93,13 +85,7 @@ describe("ShortestTravelTimeSearch", () => {
   it("ShortestDistanceEdge", () => {
     const node1 = new Node();
     const node2 = new Node();
-    const edge: ShortestDistanceEdge = new ShortestDistanceEdge(
-      node1,
-      node2,
-      19,
-      78,
-      [],
-    );
+    const edge: ShortestDistanceEdge = new ShortestDistanceEdge(node1, node2, 19, 78, []);
     expect(edge.getFromNode().getId()).toBe(node1.getId());
     expect(edge.getToNode().getId()).toBe(node2.getId());
     expect(edge.getArrivalTime()).toBe(78);
@@ -111,13 +97,7 @@ describe("ShortestTravelTimeSearch", () => {
     const node1 = new Node();
     const node2 = new Node();
     const ts = new TrainrunSection();
-    const edge: ShortestDistanceEdge = new ShortestDistanceEdge(
-      node1,
-      node2,
-      19,
-      78,
-      [ts],
-    );
+    const edge: ShortestDistanceEdge = new ShortestDistanceEdge(node1, node2, 19, 78, [ts]);
     expect(edge.getFromNode().getId()).toBe(node1.getId());
     expect(edge.getToNode().getId()).toBe(node2.getId());
     expect(edge.getArrivalTime()).toBe(78);
@@ -126,20 +106,13 @@ describe("ShortestTravelTimeSearch", () => {
   });
 
   it("Search shortest distance nodes: Starting trainrun section (ZUE -> OL)", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodes.length).toBe(5);
     expect(trainrunSections.length).toBe(8);
 
     let shortestDistancenodeData: ShortestDistanceNode[] = [];
-    analyticsService.shortestDistanceNode.subscribe(
-      (data) => (shortestDistancenodeData = data),
-    );
-    analyticsService.calculateShortestDistanceNodesFromStartingTrainrunSection(
-      1,
-      2,
-    );
+    analyticsService.shortestDistanceNode.subscribe((data) => (shortestDistancenodeData = data));
+    analyticsService.calculateShortestDistanceNodesFromStartingTrainrunSection(1, 2);
     shortestDistancenodeData.forEach((sdn) => {
       switch (sdn.node.getId()) {
         case 0:
@@ -183,16 +156,12 @@ describe("ShortestTravelTimeSearch", () => {
   });
 
   it("Search shortest distance nodes: Starting Node: BN", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodes.length).toBe(5);
     expect(trainrunSections.length).toBe(8);
 
     let shortestDistancenodeData: ShortestDistanceNode[] = [];
-    analyticsService.shortestDistanceNode.subscribe(
-      (data) => (shortestDistancenodeData = data),
-    );
+    analyticsService.shortestDistanceNode.subscribe((data) => (shortestDistancenodeData = data));
     analyticsService.calculateShortestDistanceNodesFromStartingNode(0);
 
     shortestDistancenodeData.forEach((sdn) => {
@@ -224,24 +193,16 @@ describe("ShortestTravelTimeSearch", () => {
   });
 
   it("Search shortest distance nodes: Starting Node: BN with filtering", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodes.length).toBe(5);
     expect(trainrunSections.length).toBe(8);
 
     filterService.resetFilterTrainrunCategory();
-    filterService.disableFilterTrainrunCategory(
-      dataService.getTrainrunCategory(1),
-    );
-    filterService.disableFilterTrainrunCategory(
-      dataService.getTrainrunCategory(3),
-    );
+    filterService.disableFilterTrainrunCategory(dataService.getTrainrunCategory(1));
+    filterService.disableFilterTrainrunCategory(dataService.getTrainrunCategory(3));
 
     let shortestDistancenodeData: ShortestDistanceNode[] = [];
-    analyticsService.shortestDistanceNode.subscribe(
-      (data) => (shortestDistancenodeData = data),
-    );
+    analyticsService.shortestDistanceNode.subscribe((data) => (shortestDistancenodeData = data));
     analyticsService.calculateShortestDistanceNodesFromStartingNode(0);
     shortestDistancenodeData.forEach((sdn) => {
       switch (sdn.node.getId()) {

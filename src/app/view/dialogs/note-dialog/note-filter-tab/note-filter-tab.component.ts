@@ -49,9 +49,7 @@ export class NoteFilterTabComponent implements OnInit, OnDestroy {
     this.noteService.notes.pipe(takeUntil(this.destroyed)).subscribe(() => {
       this.updateNoteLabelsAutoCompleteOptions();
     });
-    this.noteService.notes
-    .pipe(takeUntil(this.destroyed))
-    .subscribe(() => {
+    this.noteService.notes.pipe(takeUntil(this.destroyed)).subscribe(() => {
       this.initializeWithCurrentNote();
     });
     this.updateNoteLabelsAutoCompleteOptions();
@@ -68,9 +66,7 @@ export class NoteFilterTabComponent implements OnInit, OnDestroy {
     if (!value) {
       return;
     }
-    this.noteLabels = this.noteLabels.filter(
-      (labels) => labels !== valueDelete,
-    );
+    this.noteLabels = this.noteLabels.filter((labels) => labels !== valueDelete);
     this.isLabelBeingEdited = true;
     this.checkAndSetLabels();
     this.isLabelBeingEdited = false;
@@ -104,27 +100,18 @@ export class NoteFilterTabComponent implements OnInit, OnDestroy {
   }
 
   onDeleteNote(): void {
-    this.noteService.deleteNote(
-      this.noteDialogParameter.noteFormComponentModel.id,
-    );
+    this.noteService.deleteNote(this.noteDialogParameter.noteFormComponentModel.id);
     this.noteDeleted.emit();
   }
 
   getAutoCompleteLabels(): string[] {
-    return this.labelGroupService.getAutoCompleteLabels(
-      this.noteLabels,
-      LabelRef.Note,
-    );
+    return this.labelGroupService.getAutoCompleteLabels(this.noteLabels, LabelRef.Note);
   }
 
   private initializeWithCurrentNote() {
     if (this.note === null) return;
-    this.note = this.noteService.getNoteFromId(
-      this.noteDialogParameter.noteFormComponentModel.id,
-    );
-    this.noteLabels = this.labelService.getTextLabelsFromIds(
-      this.note.getLabelIds(),
-    );
+    this.note = this.noteService.getNoteFromId(this.noteDialogParameter.noteFormComponentModel.id);
+    this.noteLabels = this.labelService.getTextLabelsFromIds(this.note.getLabelIds());
     this.initialNoteLabels = [...this.noteLabels]; // initialize labels
   }
 
@@ -139,10 +126,7 @@ export class NoteFilterTabComponent implements OnInit, OnDestroy {
       this.noteLabels.length !== this.initialNoteLabels.length ||
       !this.noteLabels.every((label, index) => label === this.initialNoteLabels[index])
     ) {
-      this.noteService.setLabels(
-        this.note.getId(),
-        this.noteLabels
-      );
+      this.noteService.setLabels(this.note.getId(), this.noteLabels);
       this.initialNoteLabels = [...this.noteLabels];
     }
   }

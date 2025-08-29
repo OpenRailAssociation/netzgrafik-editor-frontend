@@ -60,9 +60,7 @@ export class StammdatenService {
       const zaz = StammdatenService.parseTimeAsFloat(stammdatenBP.ZAZ);
       const haltezeitIPV = StammdatenService.addZazValue(
         zaz,
-        StammdatenService.parseTimeAsFloat(
-          stammdatenBP.Fahrgastwechselzeit_IPV,
-        ),
+        StammdatenService.parseTimeAsFloat(stammdatenBP.Fahrgastwechselzeit_IPV),
       );
       const haltezeitA = StammdatenService.addZazValue(
         zaz,
@@ -80,29 +78,16 @@ export class StammdatenService {
         zaz,
         StammdatenService.parseTimeAsFloat(stammdatenBP.Fahrgastwechselzeit_D),
       );
-      const connectionTime = StammdatenService.parseTimeAsFloat(
-        stammdatenBP.Umsteigezeit,
-      );
-      const regions: string[] = StammdatenService.parseStringArray(
-        stammdatenBP.Region,
-      );
-      const filterableLabels: string[] = StammdatenService.parseStringArray(
-        stammdatenBP.Labels,
-      );
-      const kategorien: string[] = StammdatenService.parseStringArray(
-        stammdatenBP.Kategorie,
-      );
+      const connectionTime = StammdatenService.parseTimeAsFloat(stammdatenBP.Umsteigezeit);
+      const regions: string[] = StammdatenService.parseStringArray(stammdatenBP.Region);
+      const filterableLabels: string[] = StammdatenService.parseStringArray(stammdatenBP.Labels);
+      const kategorien: string[] = StammdatenService.parseStringArray(stammdatenBP.Kategorie);
       const bahnhof: string = stammdatenBP.Bahnhof;
       const erstellen: string = stammdatenBP.Erstellen;
       const posX: string = stammdatenBP.X;
       const posY: string = stammdatenBP.Y;
       let position: Vec2D;
-      if (
-        posX !== undefined &&
-        posY !== undefined &&
-        posX !== "" &&
-        posY !== ""
-      ) {
+      if (posX !== undefined && posY !== undefined && posX !== "" && posY !== "") {
         position = new Vec2D(+posX, +posY);
       }
 
@@ -110,8 +95,7 @@ export class StammdatenService {
         stammdatenBP.BP,
         {
           [HaltezeitFachCategories.IPV]: {
-            haltezeit:
-              MathUtils.roundAndForceValueGreaterEqualOne(haltezeitIPV),
+            haltezeit: MathUtils.roundAndForceValueGreaterEqualOne(haltezeitIPV),
             no_halt: haltezeitIPV === 0,
           },
           [HaltezeitFachCategories.A]: {
@@ -146,15 +130,11 @@ export class StammdatenService {
       );
     });
 
-    this.stammdatenSubject.next(
-      Object.assign({}, this.stammdatenStore).stammdaten,
-    );
+    this.stammdatenSubject.next(Object.assign({}, this.stammdatenStore).stammdaten);
   }
 
   getBPStammdaten(bpName: string): Stammdaten {
-    const stammdaten = this.stammdatenStore.stammdaten.find(
-      (std) => std.getBP() === bpName,
-    );
+    const stammdaten = this.stammdatenStore.stammdaten.find((std) => std.getBP() === bpName);
     if (stammdaten === undefined) {
       return null;
     }

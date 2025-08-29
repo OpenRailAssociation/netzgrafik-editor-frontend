@@ -45,16 +45,17 @@ export class AppComponent implements OnInit {
     return this.authService.claims?.email;
   }
 
-  constructor(private authService: AuthService,
-              private dataService: DataService,
-              private uiInteractionService: UiInteractionService,
-              private trainrunService: TrainrunService,
-              private trainrunSectionService: TrainrunSectionService,
-              private nodeService: NodeService,
-              private positionTransformationService: PositionTransformationService,
-              private labelService: LabelService,
-              private i18nService: I18nService,
-            ) {
+  constructor(
+    private authService: AuthService,
+    private dataService: DataService,
+    private uiInteractionService: UiInteractionService,
+    private trainrunService: TrainrunService,
+    private trainrunSectionService: TrainrunSectionService,
+    private nodeService: NodeService,
+    private positionTransformationService: PositionTransformationService,
+    private labelService: LabelService,
+    private i18nService: I18nService,
+  ) {
     if (!this.disableBackend) {
       this.authenticated = authService.initialized;
     }

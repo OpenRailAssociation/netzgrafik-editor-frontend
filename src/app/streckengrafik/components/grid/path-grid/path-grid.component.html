@@ -1,9 +1,7 @@
 <!---- HORIZONTAL ---->
 <ng-container *ngIf="horizontal">
   <svg:g *ngFor="let path of getSelectedTrainrunPaths()">
-    <svg:g
-      [attr.transform]="'translate(' + getTranslateX(path) + ',' + 0 + ')'"
-    >
+    <svg:g [attr.transform]="'translate(' + getTranslateX(path) + ',' + 0 + ')'">
       <ng-container *ngIf="!renderTrackLabels">
         <ng-container *ngIf="!renderOnlyGrid">
           <svg:g *ngIf="path.isNode()">
@@ -41,9 +39,7 @@
 
             <svg:line
               *ngFor="let gridTrackPos of getGridTrackPositions(path)"
-              [class]="
-                getClassTagWithTrackPos('TrackGridLine ', path, gridTrackPos)
-              "
+              [class]="getClassTagWithTrackPos('TrackGridLine ', path, gridTrackPos)"
               [attr.x1]="gridTrackPos"
               y1="-1000000000"
               [attr.x2]="gridTrackPos"
@@ -65,35 +61,21 @@
 
           <svg:line
             *ngFor="let gridTrackPos of getGridTrackPositions(path)"
-            [class]="
-              getClassTagWithTrackPos('TrackGridLine ', path, gridTrackPos)
-            "
+            [class]="getClassTagWithTrackPos('TrackGridLine ', path, gridTrackPos)"
             [attr.x1]="gridTrackPos"
             [attr.y1]="getRenderLabelPosY(gridTrackPos, false)"
             [attr.x2]="gridTrackPos"
             [attr.y2]="40"
           />
 
-          <ng-container
-            *ngFor="let gridTrackPos of getGridTrackPositions(path)"
-          >
+          <ng-container *ngFor="let gridTrackPos of getGridTrackPositions(path)">
             <svg:g
               [attr.transform]="
-                'translate(' +
-                gridTrackPos +
-                ',' +
-                getRenderLabelPosY(gridTrackPos, true) +
-                ')'
+                'translate(' + gridTrackPos + ',' + getRenderLabelPosY(gridTrackPos, true) + ')'
               "
             >
               <svg:text
-                [class]="
-                  getClassTagWithTrackPos(
-                    'TrackGridLabelText ',
-                    path,
-                    gridTrackPos
-                  )
-                "
+                [class]="getClassTagWithTrackPos('TrackGridLabelText ', path, gridTrackPos)"
                 [attr.x]="0"
                 [attr.y]="0"
               >

@@ -71,10 +71,7 @@ export class ConnectionsView {
     this.connectionsGroup.attr("class", "ConnectionsView");
   }
 
-  displayConnectionFilteredSelectedTrainrun(
-    c: Connection,
-    node: Node,
-  ): boolean {
+  displayConnectionFilteredSelectedTrainrun(c: Connection, node: Node): boolean {
     const port1 = node.getPort(c.getPortId1());
     const port2 = node.getPort(c.getPortId2());
     const selectedTrainrun = this.editorView.getSelectedTrainrun();
@@ -117,41 +114,29 @@ export class ConnectionsView {
     if (selectedTrainrun === null) {
       return true;
     }
-    if (
-      port1.getTrainrunSection().getTrainrunId() === selectedTrainrun.getId()
-    ) {
+    if (port1.getTrainrunSection().getTrainrunId() === selectedTrainrun.getId()) {
       return true;
     }
-    if (
-      port2.getTrainrunSection().getTrainrunId() === selectedTrainrun.getId()
-    ) {
+    if (port2.getTrainrunSection().getTrainrunId() === selectedTrainrun.getId()) {
       return true;
     }
     return false;
   }
 
   createConnectionCurve(drawingGroup: d3.selector) {
-
     drawingGroup
       .append(StaticDomTags.CONNECTION_LINE_SVG)
       .attr("class", StaticDomTags.CONNECTION_LINE_CLASS)
       .attr("d", (c: ConnectionsViewObject) =>
         D3Utils.getBezierCurveAsSVGString(c.connection.getPath()),
       )
-      .attr(StaticDomTags.CONNECTION_ID, (c: ConnectionsViewObject) =>
-        c.connection.getId(),
-      )
-      .classed(StaticDomTags.TAG_WARNING, (c: ConnectionsViewObject) =>
-        c.connection.hasWarning(),
-      )
+      .attr(StaticDomTags.CONNECTION_ID, (c: ConnectionsViewObject) => c.connection.getId())
+      .classed(StaticDomTags.TAG_WARNING, (c: ConnectionsViewObject) => c.connection.hasWarning())
       .classed(
         StaticDomTags.CONNECTION_NOT_VISIBLE,
-        (c: ConnectionsViewObject) =>
-          !ConnectionsView.displayConnection(c.connection, c.node),
+        (c: ConnectionsViewObject) => !ConnectionsView.displayConnection(c.connection, c.node),
       )
-      .classed(StaticDomTags.TAG_SELECTED, (c: ConnectionsViewObject) =>
-        c.connection.selected(),
-      )
+      .classed(StaticDomTags.TAG_SELECTED, (c: ConnectionsViewObject) => c.connection.selected())
       .on("mouseover", (c: ConnectionsViewObject, i, a) =>
         this.onConnectionMouseover(c.connection, a[i], c.node),
       )
@@ -179,12 +164,8 @@ export class ConnectionsView {
     drawingGroup
       .append(StaticDomTags.CONNECTION_LINE_PIN_SVG)
       .attr("class", StaticDomTags.CONNECTION_LINE_PIN_CLASS)
-      .attr(StaticDomTags.CONNECTION_NODE_ID, (cv: ConnectionsViewObject) =>
-        cv.node.getId(),
-      )
-      .attr(StaticDomTags.CONNECTION_ID, (c: ConnectionsViewObject) =>
-        c.connection.getId(),
-      )
+      .attr(StaticDomTags.CONNECTION_NODE_ID, (cv: ConnectionsViewObject) => cv.node.getId())
+      .attr(StaticDomTags.CONNECTION_ID, (c: ConnectionsViewObject) => c.connection.getId())
       .attr("cx", pinPos.getX())
       .attr("cy", pinPos.getY())
       .attr("org_x", pinPos.getX())
@@ -193,9 +174,7 @@ export class ConnectionsView {
       .attr(StaticDomTags.CONNECTION_TRAINRUN_ID, (cv: ConnectionsViewObject) =>
         ConnectionsView.getSelectedTrainrunId(cv.connection, cv.node),
       )
-      .classed(StaticDomTags.TAG_SELECTED, (c: ConnectionsViewObject) =>
-        c.connection.selected(),
-      )
+      .classed(StaticDomTags.TAG_SELECTED, (c: ConnectionsViewObject) => c.connection.selected())
       .on("mouseover", (cv: ConnectionsViewObject, i, a) =>
         this.onConnectionPinMouseover(cv.connection, a[i], cv.node),
       )
@@ -219,27 +198,15 @@ export class ConnectionsView {
       const ts2 = ConnectionsView.getTrainrunSectionPort2(c.connection, c.node);
       if (ConnectionsView.displayConnection(c.connection, c.node)) {
         if (ConnectionsView.displayConnectionPinPort2(c.connection, c.node)) {
-          if (
-            selectedTrainrun === null ||
-            selectedTrainrun.getId() === ts2.getTrainrunId()
-          ) {
-            const pinPos = ConnectionsView.getConnectionPinPosition(
-              ts1,
-              c.node,
-            );
+          if (selectedTrainrun === null || selectedTrainrun.getId() === ts2.getTrainrunId()) {
+            const pinPos = ConnectionsView.getConnectionPinPosition(ts1, c.node);
             this.createConnectionSinglePin(d3.select(a[i]), pinPos);
           }
         }
 
         if (ConnectionsView.displayConnectionPinPort1(c.connection, c.node)) {
-          if (
-            selectedTrainrun === null ||
-            selectedTrainrun.getId() === ts1.getTrainrunId()
-          ) {
-            const pinPos = ConnectionsView.getConnectionPinPosition(
-              ts2,
-              c.node,
-            );
+          if (selectedTrainrun === null || selectedTrainrun.getId() === ts1.getTrainrunId()) {
+            const pinPos = ConnectionsView.getConnectionPinPosition(ts2, c.node);
             this.createConnectionSinglePin(d3.select(a[i]), pinPos);
           }
         }
@@ -247,9 +214,7 @@ export class ConnectionsView {
     });
   }
 
-  createTransitionViewObjects(
-    inputConnection: Connection[],
-  ): ConnectionsViewObject[] {
+  createTransitionViewObjects(inputConnection: Connection[]): ConnectionsViewObject[] {
     const connectionsViewObjects: ConnectionsViewObject[] = [];
     inputConnection.forEach((connection: Connection) => {
       const node: Node = this.editorView.getNodeFromConnection(connection);
@@ -275,42 +240,30 @@ export class ConnectionsView {
     }
 
     const node: Node = this.editorView.getNodeFromConnection(con);
-    const trainrunSection1: TrainrunSection = node
-      .getPort(con.getPortId1())
-      .getTrainrunSection();
-    const trainrunSection2: TrainrunSection = node
-      .getPort(con.getPortId2())
-      .getTrainrunSection();
-    const filterTrainrun1 = this.editorView.filterTrainrun(
-      trainrunSection1.getTrainrun(),
-    );
-    const filterTrainrun2 = this.editorView.filterTrainrun(
-      trainrunSection2.getTrainrun(),
-    );
+    const trainrunSection1: TrainrunSection = node.getPort(con.getPortId1()).getTrainrunSection();
+    const trainrunSection2: TrainrunSection = node.getPort(con.getPortId2()).getTrainrunSection();
+    const filterTrainrun1 = this.editorView.filterTrainrun(trainrunSection1.getTrainrun());
+    const filterTrainrun2 = this.editorView.filterTrainrun(trainrunSection2.getTrainrun());
     const filterNode = this.editorView.checkFilterNode(node);
     return filterNode && filterTrainrun1 && filterTrainrun2;
   }
 
   displayConnections(inputConnections: Connection[]) {
-    const connections = inputConnections.filter((c) =>
-      this.editorView.doCullCheckPositionsInViewport(c.getPath()) &&
-      this.filterConnectionsToDisplay(c)
+    const connections = inputConnections.filter(
+      (c) =>
+        this.editorView.doCullCheckPositionsInViewport(c.getPath()) &&
+        this.filterConnectionsToDisplay(c),
     );
 
     const connectionsGroup = this.connectionsGroup
       .selectAll(StaticDomTags.CONNECTION_ROOT_CONTAINER_DOM_REF)
-      .data(
-        this.createTransitionViewObjects(connections),
-        (c: ConnectionsViewObject) => c.key,
-      );
+      .data(this.createTransitionViewObjects(connections), (c: ConnectionsViewObject) => c.key);
 
     const grpEnter = connectionsGroup
       .enter()
       .append(StaticDomTags.GROUP_SVG)
       .attr("class", StaticDomTags.CONNECTION_ROOT_CONTAINER)
-      .classed(StaticDomTags.TAG_SELECTED, (c: ConnectionsViewObject) =>
-        c.connection.selected(),
-      );
+      .classed(StaticDomTags.TAG_SELECTED, (c: ConnectionsViewObject) => c.connection.selected());
 
     if (!this.editorView.isElementDragging()) {
       this.renderConnectionObject(grpEnter);
@@ -318,9 +271,7 @@ export class ConnectionsView {
     connectionsGroup.exit().remove();
 
     d3.selectAll(
-      StaticDomTags.CONNECTION_ROOT_CONTAINER_DOM_REF +
-      "." +
-      StaticDomTags.TAG_SELECTED,
+      StaticDomTags.CONNECTION_ROOT_CONTAINER_DOM_REF + "." + StaticDomTags.TAG_SELECTED,
     ).raise();
   }
 
@@ -371,8 +322,7 @@ export class ConnectionsView {
     this.createConnectionCurve(groupEnter);
   }
 
-  makeConnectionLOD0(groupEnter: any) {
-  }
+  makeConnectionLOD0(groupEnter: any) {}
 
   onConnectionMouseup(connection: Connection, domObj: any, node: Node) {
     d3.event.stopPropagation();
@@ -404,8 +354,7 @@ export class ConnectionsView {
 
   onConnectionPinDragged(connection: Connection, domObj: any) {
     d3.select(domObj).classed(StaticDomTags.CONNECTION_PIN_DRAGGING, true);
-    const currentMousePosition =
-      this.editorView.svgMouseController.getCurrentMousePosition();
+    const currentMousePosition = this.editorView.svgMouseController.getCurrentMousePosition();
     const obj = d3.select(domObj);
     obj.attr("cx", currentMousePosition.getX());
     obj.attr("cy", currentMousePosition.getY());
@@ -425,22 +374,10 @@ export class ConnectionsView {
     this.setUnderlayingTrainrunAsSelected(connection, domObj, node);
   }
 
-  private setUnderlayingTrainrunAsSelected(
-    connection: Connection,
-    domObj: any,
-    node: Node,
-  ) {
-    const trainrunID = d3
-      .select(domObj)
-      .attr(StaticDomTags.CONNECTION_TRAINRUN_ID);
-    const trainrunPort1 = ConnectionsView.getTrainrunSectionPort1(
-      connection,
-      node,
-    ).getTrainrun();
-    const trainrunPort2 = ConnectionsView.getTrainrunSectionPort2(
-      connection,
-      node,
-    ).getTrainrun();
+  private setUnderlayingTrainrunAsSelected(connection: Connection, domObj: any, node: Node) {
+    const trainrunID = d3.select(domObj).attr(StaticDomTags.CONNECTION_TRAINRUN_ID);
+    const trainrunPort1 = ConnectionsView.getTrainrunSectionPort1(connection, node).getTrainrun();
+    const trainrunPort2 = ConnectionsView.getTrainrunSectionPort2(connection, node).getTrainrun();
     if ("" + trainrunPort1.getId() === trainrunID) {
       this.editorView.setTrainrunAsSelected(trainrunPort1);
     } else {

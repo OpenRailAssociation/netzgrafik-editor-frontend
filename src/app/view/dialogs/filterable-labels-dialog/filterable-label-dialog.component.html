@@ -1,6 +1,9 @@
 <div sbbDialogTitle>
   <ng-container>
-    {{ 'app.view.dialogs.filterable-labels-dialog.filterable-label-dialog-component.edit-filterable-labels' | translate:{ 'element': this.dialogTitle} }}
+    {{
+      "app.view.dialogs.filterable-labels-dialog.filterable-label-dialog-component.edit-filterable-labels"
+        | translate: {element: this.dialogTitle}
+    }}
   </ng-container>
 </div>
 <div sbbDialogContent sy>
@@ -12,7 +15,10 @@
     tabindex="-1"
     mode="icon"
     (click)="onTransferClicked()"
-    [title]="'app.view.dialogs.filterable-labels-dialog.filterable-label-dialog-component.transfer-to-all-visible' | translate"
+    [title]="
+      'app.view.dialogs.filterable-labels-dialog.filterable-label-dialog-component.transfer-to-all-visible'
+        | translate
+    "
   >
     <sbb-icon
       svgIcon="arrow-change-horizontal-medium"
@@ -26,13 +32,11 @@
     tabindex="-1"
     mode="icon"
     (click)="onDeleteClicked()"
-    [title]="'app.view.dialogs.filterable-labels-dialog.filterable-label-dialog-component.delete-from-all-visible' | translate"
+    [title]="
+      'app.view.dialogs.filterable-labels-dialog.filterable-label-dialog-component.delete-from-all-visible'
+        | translate
+    "
   >
-    <sbb-icon
-      svgIcon="trash-medium"
-      height="13px"
-      width="13px"
-      aria-hidden="false"
-    ></sbb-icon>
+    <sbb-icon svgIcon="trash-medium" height="13px" width="13px" aria-hidden="false"></sbb-icon>
   </button>
 </div>

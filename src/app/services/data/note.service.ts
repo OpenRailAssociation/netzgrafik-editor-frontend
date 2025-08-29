@@ -2,10 +2,7 @@ import {Injectable} from "@angular/core";
 import {BehaviorSubject} from "rxjs";
 import {Note} from "../../models/note.model";
 import {LogService} from "../../logger/log.service";
-import {
-  FreeFloatingTextDto,
-  LabelRef,
-} from "../../data-structures/business.data.structures";
+import {FreeFloatingTextDto, LabelRef} from "../../data-structures/business.data.structures";
 import {Vec2D} from "../../utils/vec2D";
 import {MathUtils} from "../../utils/math";
 import {NOTE_POSITION_BASIC_RASTER} from "../../view/rastering/definitions";
@@ -26,14 +23,9 @@ export class NoteService {
     private filterService: FilterService,
   ) {}
 
-  static alginNoteToRaster(
-    point: Vec2D,
-    gridRaster: number = NOTE_POSITION_BASIC_RASTER,
-  ): Vec2D {
-    const newNodePositionX =
-      gridRaster * MathUtils.round(point.getX() / gridRaster, 0);
-    const newNodePositionY =
-      gridRaster * MathUtils.round(point.getY() / gridRaster, 0);
+  static alginNoteToRaster(point: Vec2D, gridRaster: number = NOTE_POSITION_BASIC_RASTER): Vec2D {
+    const newNodePositionX = gridRaster * MathUtils.round(point.getX() / gridRaster, 0);
+    const newNodePositionY = gridRaster * MathUtils.round(point.getY() / gridRaster, 0);
     return new Vec2D(newNodePositionX, newNodePositionY);
   }
 
@@ -56,7 +48,11 @@ export class NoteService {
     });
   }
 
-  addNote(position: Vec2D, title = $localize`:@@app.models.note.default-title:Note title`, text = $localize`:@@app.models.note.default-text:Note text`): Note {
+  addNote(
+    position: Vec2D,
+    title = $localize`:@@app.models.note.default-title:Note title`,
+    text = $localize`:@@app.models.note.default-text:Note text`,
+  ): Note {
     const newNote = new Note();
     newNote.setPosition(position.getX(), position.getY());
     newNote.setTitle(title);
@@ -66,13 +62,7 @@ export class NoteService {
     return newNote;
   }
 
-  editNote(
-    noteId: number,
-    noteTitle: string,
-    noteText: string,
-    height: number,
-    width: number,
-  ) {
+  editNote(noteId: number, noteTitle: string, noteText: string, height: number, width: number) {
     const note = this.getNoteFromId(noteId);
     if (note === undefined) {
       return;
@@ -100,10 +90,7 @@ export class NoteService {
     const posY = note.getPositionY() + deltaPositionY;
     if (dragEnd) {
       const newPosition = NoteService.alginNoteToRaster(
-        new Vec2D(
-          note.getPositionX() + deltaPositionX,
-          note.getPositionY() + deltaPositionY,
-        ),
+        new Vec2D(note.getPositionX() + deltaPositionX, note.getPositionY() + deltaPositionY),
         round,
       );
       note.setPosition(newPosition.getX(), newPosition.getY());
@@ -124,9 +111,7 @@ export class NoteService {
       this.makeLabelIDCounterMap(this.getNotes()),
     );
     this.filterService.clearDeletetFilterNoteLabels(deletetLabelIds);
-    this.notesStore.notes = this.notesStore.notes.filter(
-      (n: Note) => n.getId() !== noteId,
-    );
+    this.notesStore.notes = this.notesStore.notes.filter((n: Note) => n.getId() !== noteId);
     if (enforceUpdate) {
       this.notesUpdated();
     }
@@ -137,30 +122,20 @@ export class NoteService {
   }
 
   visibleNotesDeleteLabel(labelRef: string) {
-    const labelObject = this.labelService.getLabelFromLabelAndLabelRef(
-      labelRef,
-      LabelRef.Note,
-    );
+    const labelObject = this.labelService.getLabelFromLabelAndLabelRef(labelRef, LabelRef.Note);
     if (labelObject === undefined) {
       return;
     }
     this.getNotes().forEach((n: Note) => {
       if (this.filterService.filterNote(n)) {
         this.filterService.clearDeletetFilterNoteLabel(labelObject.getId());
-        n.setLabelIds(
-          n
-            .getLabelIds()
-            .filter((labelId: number) => labelId !== labelObject.getId()),
-        );
+        n.setLabelIds(n.getLabelIds().filter((labelId: number) => labelId !== labelObject.getId()));
       }
     });
 
     const notes = this.getNotes().find(
       (n: Note) =>
-        n
-          .getLabelIds()
-          .find((labelId: number) => labelId === labelObject.getId()) !==
-        undefined,
+        n.getLabelIds().find((labelId: number) => labelId === labelObject.getId()) !== undefined,
     );
     if (notes === undefined) {
       this.labelService.deleteLabel(labelObject.getId());
@@ -169,10 +144,7 @@ export class NoteService {
   }
 
   visibleNotesSetLabel(labelRef: string) {
-    const labelObject = this.labelService.getLabelFromLabelAndLabelRef(
-      labelRef,
-      LabelRef.Note,
-    );
+    const labelObject = this.labelService.getLabelFromLabelAndLabelRef(labelRef, LabelRef.Note);
     if (labelObject === undefined) {
       return;
     }
@@ -191,8 +163,8 @@ export class NoteService {
 
     // ensure uniqueness of input labels
     const uniqueLabels = Array.from(new Set(labels));
-    const labelIds = uniqueLabels.map(label =>
-      this.labelService.getOrCreateLabel(label, LabelRef.Note).getId()
+    const labelIds = uniqueLabels.map((label) =>
+      this.labelService.getOrCreateLabel(label, LabelRef.Note).getId(),
     );
     const deletedLabelIds = this.labelService.clearLabel(
       this.findClearedLabel(note, labelIds),
@@ -252,9 +224,7 @@ export class NoteService {
 
   moveNoteToFront(noteId: number, enforceUpdate = true) {
     const note = this.getNoteFromId(noteId);
-    this.notesStore.notes = this.notesStore.notes.filter(
-      (n: Note) => n.getId() !== noteId,
-    );
+    this.notesStore.notes = this.notesStore.notes.filter((n: Note) => n.getId() !== noteId);
     this.notesStore.notes.push(note);
     if (enforceUpdate) {
       this.notesUpdated();
@@ -327,10 +297,7 @@ export class NoteService {
     const nodesToUpdate = this.notesStore.notes.filter((n) => n.selected());
     nodesToUpdate.forEach((n) => {
       const newPosition = NoteService.alginNoteToRaster(
-        new Vec2D(
-          n.getPositionX() + deltaPositionX,
-          n.getPositionY() + deltaPositionY,
-        ),
+        new Vec2D(n.getPositionX() + deltaPositionX, n.getPositionY() + deltaPositionY),
         round,
       );
       this.changeNotePositionWithoutUpdate(
@@ -360,9 +327,7 @@ export class NoteService {
   }
 
   private findClearedLabel(note: Note, labelIds: number[]) {
-    return []
-      .concat(note.getLabelIds())
-      .filter((oldlabelId) => !labelIds.includes(oldlabelId));
+    return [].concat(note.getLabelIds()).filter((oldlabelId) => !labelIds.includes(oldlabelId));
   }
 
   private makeLabelIDCounterMap(nNotes: Note[]): Map<number, number> {

@@ -10,9 +10,7 @@ import {
   ProjectDto,
   ProjectSummaryDto,
 } from "../../../api/generated";
-import {
-  ConfirmationDialogParameter
-} from "../../dialogs/confirmation-dialog/confirmation-dialog.component";
+import {ConfirmationDialogParameter} from "../../dialogs/confirmation-dialog/confirmation-dialog.component";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {NavigationService} from "../../../services/ui/navigation.service";
 import {SlotAction} from "../../action-menu/action-menu/action-menu.component";
@@ -44,9 +42,7 @@ export class ProjectsViewComponent implements OnDestroy {
 
     this.showArchiveControl.valueChanges
       .pipe(takeUntil(this.destroyed))
-      .subscribe((showArchive) =>
-        this.projectService.updateShowArchive(showArchive),
-      );
+      .subscribe((showArchive) => this.projectService.updateShowArchive(showArchive));
   }
 
   ngOnDestroy(): void {
@@ -59,7 +55,7 @@ export class ProjectsViewComponent implements OnDestroy {
     if (event$.buttons === 1) {
       const ele = document.documentElement;
       ele.scrollTop = ele.scrollTop - event$.movementY;
-      if (event$.movementY > 2){
+      if (event$.movementY > 2) {
         event$.stopPropagation();
         event$.preventDefault();
         window.getSelection().removeAllRanges();
@@ -73,30 +69,21 @@ export class ProjectsViewComponent implements OnDestroy {
         takeUntil(this.destroyed),
         mergeMap((project) => this.projectService.createProject(project)),
       )
-      .subscribe((projectId) =>
-        this.navigationService.navigateToVariants(projectId),
-      );
+      .subscribe((projectId) => this.navigationService.navigateToVariants(projectId));
   }
 
   onEditProjectClicked(projectToEdit: ProjectSummaryDto): void {
-    this.projectControllerBackendService
-      .getProject(projectToEdit.id)
-      .subscribe((projectDTO) => {
-        ProjectDialogComponent.open(this.dialog, projectDTO)
-          .pipe(
-            mergeMap((project) =>
-              this.projectControllerBackendService.updateProject(
-                projectToEdit.id,
-                project,
-              ),
-            ),
-            mergeMap(() =>
-              this.projectControllerBackendService.getProject(projectToEdit.id),
-            ),
-            takeUntil(this.destroyed),
-          )
-          .subscribe((project) => this.updateProject(project));
-      });
+    this.projectControllerBackendService.getProject(projectToEdit.id).subscribe((projectDTO) => {
+      ProjectDialogComponent.open(this.dialog, projectDTO)
+        .pipe(
+          mergeMap((project) =>
+            this.projectControllerBackendService.updateProject(projectToEdit.id, project),
+          ),
+          mergeMap(() => this.projectControllerBackendService.getProject(projectToEdit.id)),
+          takeUntil(this.destroyed),
+        )
+        .subscribe((project) => this.updateProject(project));
+    });
   }
 
   onArchiveProjectClicked(projectToEdit: ProjectSummaryDto): void {
@@ -109,12 +96,8 @@ export class ProjectsViewComponent implements OnDestroy {
       )
       .pipe(
         filter((confirmed) => confirmed),
-        mergeMap(() =>
-          this.projectControllerBackendService.archiveProject(projectToEdit.id),
-        ),
-        mergeMap(() =>
-          this.projectControllerBackendService.getProject(projectToEdit.id),
-        ),
+        mergeMap(() => this.projectControllerBackendService.archiveProject(projectToEdit.id)),
+        mergeMap(() => this.projectControllerBackendService.getProject(projectToEdit.id)),
         takeUntil(this.destroyed),
       )
       .subscribe((project) => this.updateProject(project));
@@ -130,14 +113,8 @@ export class ProjectsViewComponent implements OnDestroy {
       )
       .pipe(
         filter((confirmed) => confirmed),
-        mergeMap(() =>
-          this.projectControllerBackendService.unarchiveProject(
-            projectToEdit.id,
-          ),
-        ),
-        mergeMap(() =>
-          this.projectControllerBackendService.getProject(projectToEdit.id),
-        ),
+        mergeMap(() => this.projectControllerBackendService.unarchiveProject(projectToEdit.id)),
+        mergeMap(() => this.projectControllerBackendService.getProject(projectToEdit.id)),
         takeUntil(this.destroyed),
       )
       .subscribe((project) => this.updateProject(project));

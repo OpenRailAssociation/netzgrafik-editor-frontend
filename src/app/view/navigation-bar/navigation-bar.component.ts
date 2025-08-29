@@ -23,10 +23,13 @@ export class NavigationBarComponent implements OnInit {
         {
           name: this.projectsBackendService
             .getProject(params[0].asNumber())
-            .pipe(map((project) => $localize`:@@app.view.navigation-bar.project-name:Project «${project.name}:name:»`)),
-          route: this.navigationService.getRouteToVariants(
-            params[0].asNumber(),
-          ),
+            .pipe(
+              map(
+                (project) =>
+                  $localize`:@@app.view.navigation-bar.project-name:Project «${project.name}:name:»`,
+              ),
+            ),
+          route: this.navigationService.getRouteToVariants(params[0].asNumber()),
         },
       ],
     },
@@ -43,9 +46,7 @@ export class NavigationBarComponent implements OnInit {
                   : $localize`:@@app.view.navigation-bar.project-name-archived:Project «${project.name}:name:» (archived)`,
               ),
             ),
-          route: this.navigationService.getRouteToVariants(
-            params[0].asNumber(),
-          ),
+          route: this.navigationService.getRouteToVariants(params[0].asNumber()),
         },
         {
           name: this.variantsBackendService
@@ -93,9 +94,7 @@ export class NavigationBarComponent implements OnInit {
         const params = definitionHandler?.getParams(urlHandler);
 
         this.currentDefinitions =
-          definitionHandler && params
-            ? definitionHandler.definition.then(params)
-            : [];
+          definitionHandler && params ? definitionHandler.definition.then(params) : [];
       });
   }
 }
@@ -138,9 +137,7 @@ class BreadcrumbsDefinitionsHandler {
 
   getParams(urlHandler: UrlHandler): Param[] {
     return urlHandler.splittedUrl
-      .filter((value, index) =>
-        this.parameterPointers.find((pointer) => pointer === index),
-      )
+      .filter((value, index) => this.parameterPointers.find((pointer) => pointer === index))
       .map((value) => new Param(value));
   }
 }

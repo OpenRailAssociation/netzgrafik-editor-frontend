@@ -31,7 +31,12 @@ import {LabelService} from "./label.service";
 import {FilterService} from "../ui/filter.service";
 import {ConnectionDto} from "../../data-structures/technical.data.structures";
 import {TrainrunSectionValidator} from "../util/trainrunsection.validator";
-import {NodeOperation, Operation, OperationType, TrainrunOperation} from "../../models/operation.model";
+import {
+  NodeOperation,
+  Operation,
+  OperationType,
+  TrainrunOperation,
+} from "../../models/operation.model";
 
 @Injectable({
   providedIn: "root",
@@ -61,22 +66,15 @@ export class NodeService implements OnDestroy {
   ) {
     this.trainrunSectionService.setNodeService(this);
     this.trainrunService.setNodeService(this);
-    this.trainrunService.trainruns
-      .pipe(takeUntil(this.destroyed))
-      .subscribe(() => {
-        this.transitionsUpdated();
-        this.connectionsUpdated();
-      });
+    this.trainrunService.trainruns.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.transitionsUpdated();
+      this.connectionsUpdated();
+    });
   }
 
-  static alginNodeToRaster(
-    point: Vec2D,
-    gridRaster: number = NODE_POSITION_BASIC_RASTER,
-  ): Vec2D {
-    const newNodePositionX =
-      gridRaster * MathUtils.round(point.getX() / gridRaster, 0);
-    const newNodePositionY =
-      gridRaster * MathUtils.round(point.getY() / gridRaster, 0);
+  static alginNodeToRaster(point: Vec2D, gridRaster: number = NODE_POSITION_BASIC_RASTER): Vec2D {
+    const newNodePositionX = gridRaster * MathUtils.round(point.getX() / gridRaster, 0);
+    const newNodePositionY = gridRaster * MathUtils.round(point.getY() / gridRaster, 0);
     return new Vec2D(newNodePositionX, newNodePositionY);
   }
 
@@ -117,9 +115,7 @@ export class NodeService implements OnDestroy {
       } else {
         const existingLabels = existingNode.getLabelIds();
         const allLabels = node.labelIds.concat(existingLabels);
-        existingNode.setLabelIds(
-          allLabels.filter((v, i, a) => a.indexOf(v) === i),
-        );
+        existingNode.setLabelIds(allLabels.filter((v, i, a) => a.indexOf(v) === i));
       }
       const addedNode = this.nodesStore.nodes.find(
         (n) => n.getBetriebspunktName() === node.betriebspunktName,
@@ -134,14 +130,9 @@ export class NodeService implements OnDestroy {
       const newNodeId = nodeMap.get(nodeDto.id);
       const newNode = this.getNodeFromId(newNodeId);
       nodeDto.labelIds.forEach((labelsId) => {
-        const labelDtos: LabelDto[] = netzgrafikDto.labels.filter(
-          (label) => label.id === labelsId,
-        );
+        const labelDtos: LabelDto[] = netzgrafikDto.labels.filter((label) => label.id === labelsId);
         labelDtos.forEach((labelDto) => {
-          const label = this.labelService.getOrCreateLabel(
-            labelDto.label,
-            labelDto.labelRef,
-          );
+          const label = this.labelService.getOrCreateLabel(labelDto.label, labelDto.labelRef);
           if (!newNode.getLabelIds().includes(label.getId())) {
             newNode.getLabelIds().push(label.getId());
           }
@@ -160,20 +151,12 @@ export class NodeService implements OnDestroy {
       n.connections.forEach((c: ConnectionDto) => {
         const port1 = n.ports.find((p) => p.id === c.port1Id);
         const port2 = n.ports.find((p) => p.id === c.port2Id);
-        const mappedSectionId1 = trainrunSectionMap.get(
-          port1.trainrunSectionId,
-        );
-        const mappedSectionId2 = trainrunSectionMap.get(
-          port2.trainrunSectionId,
-        );
+        const mappedSectionId1 = trainrunSectionMap.get(port1.trainrunSectionId);
+        const mappedSectionId2 = trainrunSectionMap.get(port2.trainrunSectionId);
         if (mappedSectionId1 !== undefined && mappedSectionId2 !== undefined) {
           const nodeId = nodeMap.get(n.id);
           if (nodeId !== undefined) {
-            this.addConnectionToNode(
-              nodeId,
-              mappedSectionId1,
-              mappedSectionId2,
-            );
+            this.addConnectionToNode(nodeId, mappedSectionId1, mappedSectionId2);
           }
         }
       });
@@ -197,11 +180,10 @@ export class NodeService implements OnDestroy {
     this.nodesStore.nodes.forEach((node) => {
       node.getPorts().forEach((port) => {
         const oppositeNode = node.getOppositeNode(port.getTrainrunSection());
-        const portAlignments =
-          VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
-            node,
-            oppositeNode,
-          );
+        const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
+          node,
+          oppositeNode,
+        );
         port.setPositionAlignment(portAlignments.sourcePortPlacement);
         oppositeNode
           .getPortOfTrainrunSection(port.getTrainrunSection().getId())
@@ -231,9 +213,7 @@ export class NodeService implements OnDestroy {
       node.getFullName(),
       Object.assign([], node.getLabelIds()),
     );
-    newNode.setHaltezeit(
-      JSON.parse(JSON.stringify(node.getTrainrunCategoryHaltezeit())),
-    );
+    newNode.setHaltezeit(JSON.parse(JSON.stringify(node.getTrainrunCategoryHaltezeit())));
     newNode.setConnectionTime(node.getConnectionTime());
     return newNode;
   }
@@ -246,18 +226,14 @@ export class NodeService implements OnDestroy {
     labelIds?: number[],
     enforceUpdate = true,
   ): Node {
-    const alignedPosition = NodeService.alginNodeToRaster(
-      new Vec2D(positionX, positionY),
-    );
+    const alignedPosition = NodeService.alginNodeToRaster(new Vec2D(positionX, positionY));
     this.nodesStore.nodes.forEach((n) => n.unselect());
     const node: Node = new Node();
     const resource: Resource = this.resourceService.createAndGetResource();
     node.setResourceId(resource.getId());
     node.setPosition(alignedPosition.getX(), alignedPosition.getY());
     node.select();
-    const stammdaten = this.dataService.getBPStammdaten(
-      node.getBetriebspunktName(),
-    );
+    const stammdaten = this.dataService.getBPStammdaten(node.getBetriebspunktName());
     if (stammdaten !== null) {
       node.setHaltezeit(stammdaten.getHaltezeiten());
       node.setConnectionTime(stammdaten.getConnectionTime());
@@ -314,18 +290,14 @@ export class NodeService implements OnDestroy {
       if (!this.filterService.isNodeVisible(node)) {
         const connectedTrainrunSections = node.getConnectedTrainrunSections();
         if (connectedTrainrunSections.length !== 0) {
-          this.trainrunSectionService.deleteListOfTrainrunSections(
-            connectedTrainrunSections,
-          );
+          this.trainrunSectionService.deleteListOfTrainrunSections(connectedTrainrunSections);
         }
         const deletetLabelIds = this.labelService.clearLabel(
           node.getLabelIds(),
           this.makeLabelIDCounterMap(this.getNodes()),
         );
         this.filterService.clearDeletetFilterNodeLabels(deletetLabelIds);
-        this.nodesStore.nodes = this.nodesStore.nodes.filter(
-          (n) => n.getId() !== node.getId(),
-        );
+        this.nodesStore.nodes = this.nodesStore.nodes.filter((n) => n.getId() !== node.getId());
       }
     });
     this.nodesUpdated();
@@ -341,10 +313,7 @@ export class NodeService implements OnDestroy {
     const nodesToUpdate = this.nodesStore.nodes.filter((n) => n.selected());
     nodesToUpdate.forEach((n) => {
       const newPosition = NodeService.alginNodeToRaster(
-        new Vec2D(
-          n.getPositionX() + deltaPositionX,
-          n.getPositionY() + deltaPositionY,
-        ),
+        new Vec2D(n.getPositionX() + deltaPositionX, n.getPositionY() + deltaPositionY),
         round,
       );
       this.changeNodePositionWithoutUpdate(
@@ -393,10 +362,14 @@ export class NodeService implements OnDestroy {
     const port2 = node.getPort(transition.getPortId2());
     const trainrunSection1 = port1.getTrainrunSection();
     const trainrunSection2 = port2.getTrainrunSection();
-    const timeLock1 = trainrunSection1.getSourceNodeId() !== node.getId() ?
-      trainrunSection1.getSourceDepartureLock() : trainrunSection1.getTargetDepartureLock();
-    const timeLock2 = trainrunSection2.getSourceNodeId() !== node.getId() ?
-      trainrunSection2.getSourceDepartureLock() : trainrunSection2.getTargetDepartureLock();
+    const timeLock1 =
+      trainrunSection1.getSourceNodeId() !== node.getId()
+        ? trainrunSection1.getSourceDepartureLock()
+        : trainrunSection1.getTargetDepartureLock();
+    const timeLock2 =
+      trainrunSection2.getSourceNodeId() !== node.getId()
+        ? trainrunSection2.getSourceDepartureLock()
+        : trainrunSection2.getTargetDepartureLock();
 
     const oppNodeTrainrunSection1 = node.getOppositeNode(trainrunSection1);
     const oppNodeTrainrunSection2 = node.getOppositeNode(trainrunSection2);
@@ -405,24 +378,15 @@ export class NodeService implements OnDestroy {
     const arrTime = node.getArrivalConsecutiveTime(trainrunSection1);
     const transitionTravelTime = depTime - arrTime;
 
-    const transition1: Transition = oppNodeTrainrunSection1.getTransition(
-      trainrunSection1.getId(),
-    );
-    const nonStop1 =
-      transition1 !== undefined ? transition1.getIsNonStopTransit() : false;
-    const transition2: Transition = oppNodeTrainrunSection2.getTransition(
-      trainrunSection2.getId(),
-    );
-    const nonStop2 =
-      transition2 !== undefined ? transition2.getIsNonStopTransit() : false;
+    const transition1: Transition = oppNodeTrainrunSection1.getTransition(trainrunSection1.getId());
+    const nonStop1 = transition1 !== undefined ? transition1.getIsNonStopTransit() : false;
+    const transition2: Transition = oppNodeTrainrunSection2.getTransition(trainrunSection2.getId());
+    const nonStop2 = transition2 !== undefined ? transition2.getIsNonStopTransit() : false;
 
     if (oppNodeTrainrunSection1.getId() === oppNodeTrainrunSection2.getId()) {
       return;
     }
-    this.trainrunSectionService.deleteTrainrunSection(
-      trainrunSection2.getId(),
-      false,
-    );
+    this.trainrunSectionService.deleteTrainrunSection(trainrunSection2.getId(), false);
 
     // temporary store the source/target node information for updating the locks
     const isTargetNodeEqToNodeId = trainrunSection1.getTargetNodeId() === node.getId();
@@ -443,16 +407,11 @@ export class NodeService implements OnDestroy {
 
     // update the arrival and departure times
     node.setArrivalTime(trainrunSection1, trainrunSection2.getTargetArrival());
-    node.setDepartureTime(
-      trainrunSection1,
-      trainrunSection2.getTargetDeparture(),
-    );
+    node.setDepartureTime(trainrunSection1, trainrunSection2.getTargetDeparture());
 
     // update the travel time
     const travelTime =
-      trainrunSection1.getTravelTime() +
-      trainrunSection2.getTravelTime() +
-      transitionTravelTime;
+      trainrunSection1.getTravelTime() + trainrunSection2.getTravelTime() + transitionTravelTime;
     trainrunSection1.setTravelTime(travelTime);
 
     // update the number of stops
@@ -469,7 +428,7 @@ export class NodeService implements OnDestroy {
         timeLock1,
         timeLock2,
         trainrunSection1.getTravelTimeLock(),
-        enforceUpdate
+        enforceUpdate,
       );
     } else {
       this.trainrunSectionService.updateTrainrunSectionTimeLock(
@@ -477,27 +436,21 @@ export class NodeService implements OnDestroy {
         timeLock2,
         timeLock1,
         trainrunSection1.getTravelTimeLock(),
-        enforceUpdate
+        enforceUpdate,
       );
     }
 
-    const transitionNew1 = oppNodeTrainrunSection1.getTransition(
-      trainrunSection1.getId(),
-    );
+    const transitionNew1 = oppNodeTrainrunSection1.getTransition(trainrunSection1.getId());
     if (transitionNew1 !== undefined) {
       transitionNew1.setIsNonStopTransit(nonStop1);
     }
-    const transitionNew2 = oppNodeTrainrunSection2.getTransition(
-      trainrunSection1.getId(),
-    );
+    const transitionNew2 = oppNodeTrainrunSection2.getTransition(trainrunSection1.getId());
     if (transitionNew2 !== undefined) {
       transitionNew2.setIsNonStopTransit(nonStop2);
     }
 
     // re-propagte the consecutive time
-    this.trainrunService.propagateConsecutiveTimesForTrainrun(
-      trainrunSection1.getId(),
-    );
+    this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection1.getId());
 
     // re-validate the section after it was correctly updated (full update done)
     TrainrunSectionValidator.validateOneSection(trainrunSection1);
@@ -510,35 +463,22 @@ export class NodeService implements OnDestroy {
     }
   }
 
-  addPortsToNodes(
-    sourceNodeId: number,
-    targetNodeId: number,
-    trainrunSection: TrainrunSection,
-  ) {
+  addPortsToNodes(sourceNodeId: number, targetNodeId: number, trainrunSection: TrainrunSection) {
     const sourceNode = this.getNodeFromId(sourceNodeId);
     const targetNode = this.getNodeFromId(targetNodeId);
     const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
       sourceNode,
       targetNode,
     );
-    const sourcePortId = sourceNode.addPort(
-      portAlignments.sourcePortPlacement,
-      trainrunSection,
-    );
-    const targetPortId = targetNode.addPort(
-      portAlignments.targetPortPlacement,
-      trainrunSection,
-    );
+    const sourcePortId = sourceNode.addPort(portAlignments.sourcePortPlacement, trainrunSection);
+    const targetPortId = targetNode.addPort(portAlignments.targetPortPlacement, trainrunSection);
     sourceNode.updateTransitionsAndConnections();
     targetNode.updateTransitionsAndConnections();
     trainrunSection.setSourcePortId(sourcePortId);
     trainrunSection.setTargetPortId(targetPortId);
   }
 
-  hasPathAnyDepartureOrArrivalTimeLock(
-    node: Node,
-    trainrunSection: TrainrunSection,
-  ): boolean {
+  hasPathAnyDepartureOrArrivalTimeLock(node: Node, trainrunSection: TrainrunSection): boolean {
     const iterator = this.trainrunService.getIterator(node, trainrunSection);
     while (iterator.hasNext()) {
       iterator.next();
@@ -601,7 +541,9 @@ export class NodeService implements OnDestroy {
     TransitionValidator.validateTransition(node, transitionId);
     this.transitionsUpdated();
     this.nodesUpdated();
-    this.operation.emit(new TrainrunOperation(OperationType.update, trainrunSections.trainrunSection1.getTrainrun()));
+    this.operation.emit(
+      new TrainrunOperation(OperationType.update, trainrunSections.trainrunSection1.getTrainrun()),
+    );
   }
 
   checkExistsNoCycleTrainrunAfterFreePortsConnecting(
@@ -618,43 +560,19 @@ export class NodeService implements OnDestroy {
     return !checkPort1 || !checkPort2;
   }
 
-  addTransitionAndComputeRoutingFromFreePorts(
-    node: Node,
-    trainrun: Trainrun,
-    isNonStop = false,
-  ) {
+  addTransitionAndComputeRoutingFromFreePorts(node: Node, trainrun: Trainrun, isNonStop = false) {
     const freePorts = node.getFreePortsForTrainrun(trainrun.getId());
     if (freePorts.length <= 1) {
       return;
     }
-    if (
-      this.checkExistsNoCycleTrainrunAfterFreePortsConnecting(
-        node,
-        freePorts[0],
-        freePorts[1],
-      )
-    ) {
-      node.addTransitionAndComputeRouting(
-        freePorts[0],
-        freePorts[1],
-        trainrun,
-        isNonStop,
-      );
+    if (this.checkExistsNoCycleTrainrunAfterFreePortsConnecting(node, freePorts[0], freePorts[1])) {
+      node.addTransitionAndComputeRouting(freePorts[0], freePorts[1], trainrun, isNonStop);
     } else {
       if (freePorts.length === 3) {
         if (
-          this.checkExistsNoCycleTrainrunAfterFreePortsConnecting(
-            node,
-            freePorts[0],
-            freePorts[2],
-          )
+          this.checkExistsNoCycleTrainrunAfterFreePortsConnecting(node, freePorts[0], freePorts[2])
         ) {
-          node.addTransitionAndComputeRouting(
-            freePorts[0],
-            freePorts[2],
-            trainrun,
-            isNonStop,
-          );
+          node.addTransitionAndComputeRouting(freePorts[0], freePorts[2], trainrun, isNonStop);
         } else {
           if (
             this.checkExistsNoCycleTrainrunAfterFreePortsConnecting(
@@ -663,12 +581,7 @@ export class NodeService implements OnDestroy {
               freePorts[2],
             )
           ) {
-            node.addTransitionAndComputeRouting(
-              freePorts[1],
-              freePorts[2],
-              trainrun,
-              isNonStop,
-            );
+            node.addTransitionAndComputeRouting(freePorts[1], freePorts[2], trainrun, isNonStop);
           }
         }
       }
@@ -683,11 +596,7 @@ export class NodeService implements OnDestroy {
     const node = this.getNodeFromId(nodeId);
     const port1 = node.getPortOfTrainrunSection(trainrunSection1.getId());
     const port2 = node.getPortOfTrainrunSection(trainrunSection2.getId());
-    node.addTransitionAndComputeRouting(
-      port1,
-      port2,
-      trainrunSection1.getTrainrun(),
-    );
+    node.addTransitionAndComputeRouting(port1, port2, trainrunSection1.getTrainrun());
   }
 
   addTransitionToNodes(
@@ -712,27 +621,13 @@ export class NodeService implements OnDestroy {
     );
   }
 
-  isConditionToAddTransitionFullfilled(
-    node: Node,
-    trainrunSection: TrainrunSection,
-  ): boolean {
-    const freePorts = node.getFreePortsForTrainrun(
-      trainrunSection.getTrainrunId(),
-    );
-    const isStartEqualsEndNode = this.trainrunService.isStartEqualsEndNode(
-      trainrunSection.getId(),
-    );
-    if (
-      isStartEqualsEndNode &&
-      freePorts !== undefined &&
-      freePorts.length === 2
-    ) {
+  isConditionToAddTransitionFullfilled(node: Node, trainrunSection: TrainrunSection): boolean {
+    const freePorts = node.getFreePortsForTrainrun(trainrunSection.getTrainrunId());
+    const isStartEqualsEndNode = this.trainrunService.isStartEqualsEndNode(trainrunSection.getId());
+    if (isStartEqualsEndNode && freePorts !== undefined && freePorts.length === 2) {
       return false;
     } else {
-      return (
-        freePorts !== undefined &&
-        (freePorts.length === 2 || freePorts.length === 3)
-      );
+      return freePorts !== undefined && (freePorts.length === 2 || freePorts.length === 3);
     }
   }
 
@@ -744,26 +639,17 @@ export class NodeService implements OnDestroy {
     const node = this.getNodeFromId(nodeId);
     const transitions = node.getTransitions();
     const existingTransition = transitions.find(
-      (transition) =>
-        transition.getTrainrun().getId() ===
-        existingTrainrunSection.getTrainrunId(),
+      (transition) => transition.getTrainrun().getId() === existingTrainrunSection.getTrainrunId(),
     );
     const newTransition = transitions.find(
-      (transition) =>
-        transition.getTrainrun().getId() === trainrunSection.getTrainrunId(),
+      (transition) => transition.getTrainrun().getId() === trainrunSection.getTrainrunId(),
     );
     if (existingTransition !== undefined && newTransition !== undefined) {
-      newTransition.setIsNonStopTransit(
-        existingTransition.getIsNonStopTransit(),
-      );
+      newTransition.setIsNonStopTransit(existingTransition.getIsNonStopTransit());
     }
   }
 
-  addConnectionToNode(
-    nodeId: number,
-    trainrunSectionFromId: number,
-    trainrunSectionToId: number,
-  ) {
+  addConnectionToNode(nodeId: number, trainrunSectionFromId: number, trainrunSectionToId: number) {
     const node = this.getNodeFromId(nodeId);
     const portFrom = node.getPortOfTrainrunSection(trainrunSectionFromId);
     const portTo = node.getPortOfTrainrunSection(trainrunSectionToId);
@@ -772,14 +658,10 @@ export class NodeService implements OnDestroy {
         .getConnections()
         .find(
           (c: Connection) =>
-            (c.getPortId1() === portFrom.getId() &&
-              c.getPortId2() === portTo.getId()) ||
-            (c.getPortId1() === portFrom.getId() &&
-              c.getPortId2() === portFrom.getId()) ||
-            (c.getPortId1() === portTo.getId() &&
-              c.getPortId2() === portTo.getId()) ||
-            (c.getPortId1() === portTo.getId() &&
-              c.getPortId2() === portFrom.getId()),
+            (c.getPortId1() === portFrom.getId() && c.getPortId2() === portTo.getId()) ||
+            (c.getPortId1() === portFrom.getId() && c.getPortId2() === portFrom.getId()) ||
+            (c.getPortId1() === portTo.getId() && c.getPortId2() === portTo.getId()) ||
+            (c.getPortId1() === portTo.getId() && c.getPortId2() === portFrom.getId()),
         );
       if (conFound !== undefined) {
         return;
@@ -959,9 +841,7 @@ export class NodeService implements OnDestroy {
   changeNodeBetriebspunktName(nodeId: number, name: string) {
     const node = this.getNodeFromId(nodeId);
     node.setBetriebspunktName(name);
-    const stammdaten = this.dataService.getBPStammdaten(
-      node.getBetriebspunktName(),
-    );
+    const stammdaten = this.dataService.getBPStammdaten(node.getBetriebspunktName());
     if (stammdaten !== null) {
       node.setHaltezeit(stammdaten.getHaltezeiten());
       node.setConnectionTime(stammdaten.getConnectionTime());
@@ -987,8 +867,8 @@ export class NodeService implements OnDestroy {
 
     // ensure uniqueness of input labels
     const uniqueLabels = Array.from(new Set(labels));
-    const labelIds = uniqueLabels.map(label =>
-      this.labelService.getOrCreateLabel(label, LabelRef.Node).getId()
+    const labelIds = uniqueLabels.map((label) =>
+      this.labelService.getOrCreateLabel(label, LabelRef.Node).getId(),
     );
     const deletedLabelIds = this.labelService.clearLabel(
       this.findClearedLabel(node, labelIds),
@@ -1003,31 +883,21 @@ export class NodeService implements OnDestroy {
   }
 
   visibleNodesDeleteLabel(labelRef: string) {
-    const labelObject = this.labelService.getLabelFromLabelAndLabelRef(
-      labelRef,
-      LabelRef.Node,
-    );
+    const labelObject = this.labelService.getLabelFromLabelAndLabelRef(labelRef, LabelRef.Node);
     if (labelObject === undefined) {
       return;
     }
     this.getNodes().forEach((n: Node) => {
       if (this.filterService.filterNode(n)) {
         this.filterService.clearDeletetFilterNodeLabel(labelObject.getId());
-        n.setLabelIds(
-          n
-            .getLabelIds()
-            .filter((labelId: number) => labelId !== labelObject.getId()),
-        );
+        n.setLabelIds(n.getLabelIds().filter((labelId: number) => labelId !== labelObject.getId()));
       }
     });
 
     if (
       this.getNodes().find(
         (n: Node) =>
-          n
-            .getLabelIds()
-            .find((labelId: number) => labelId === labelObject.getId()) !==
-          undefined,
+          n.getLabelIds().find((labelId: number) => labelId === labelObject.getId()) !== undefined,
       ) === undefined
     ) {
       this.labelService.deleteLabel(labelObject.getId());
@@ -1036,10 +906,7 @@ export class NodeService implements OnDestroy {
   }
 
   visibleNodesSetLabel(labelRef: string) {
-    const labelObject = this.labelService.getLabelFromLabelAndLabelRef(
-      labelRef,
-      LabelRef.Node,
-    );
+    const labelObject = this.labelService.getLabelFromLabelAndLabelRef(labelRef, LabelRef.Node);
     if (labelObject === undefined) {
       return;
     }
@@ -1062,10 +929,7 @@ export class NodeService implements OnDestroy {
     this.nodesStore.nodes.forEach((node) => {
       if (node.containsTrainrun(trainrun)) {
         node.updateTransitionsAndConnections();
-        this.trainrunSectionService.updateTrainrunSectionRouting(
-          node,
-          enforceUpdate,
-        );
+        this.trainrunSectionService.updateTrainrunSectionRouting(node, enforceUpdate);
       }
     });
   }
@@ -1083,18 +947,11 @@ export class NodeService implements OnDestroy {
             if (pos !== undefined) {
               const labelIds: number[] = [];
               stdDaten.getFilterableLabels().forEach((strLabel) => {
-                labelIds.push(
-                  this.labelService
-                    .getOrCreateLabel(strLabel, LabelRef.Node)
-                    .getId(),
-                );
+                labelIds.push(this.labelService.getOrCreateLabel(strLabel, LabelRef.Node).getId());
               });
               labelIds.push(
                 this.labelService
-                  .getOrCreateLabel(
-                    "Knoten aus CSV-Datei importiert",
-                    LabelRef.Node,
-                  )
+                  .getOrCreateLabel("Knoten aus CSV-Datei importiert", LabelRef.Node)
                   .getId(),
               );
               this.addNodeWithPosition(
@@ -1111,24 +968,18 @@ export class NodeService implements OnDestroy {
     });
 
     this.nodesStore.nodes.forEach((node) => {
-      const bpStammdaten = stammdaten.find(
-        (std) => std.getBP() === node.getBetriebspunktName(),
-      );
+      const bpStammdaten = stammdaten.find((std) => std.getBP() === node.getBetriebspunktName());
       if (bpStammdaten !== undefined) {
         node.setHaltezeit(bpStammdaten.getHaltezeiten());
         node.setConnectionTime(bpStammdaten.getConnectionTime());
 
         const labels = node.getLabelIds();
         bpStammdaten.getFilterableLabels().forEach((label) => {
-          labels.push(
-            this.labelService.getOrCreateLabel(label, LabelRef.Node).getId(),
-          );
+          labels.push(this.labelService.getOrCreateLabel(label, LabelRef.Node).getId());
         });
         bpStammdaten.getRegions().forEach((region) => {
           labels.push(
-            this.labelService
-              .getOrCreateLabel("Region: " + region.trim(), LabelRef.Node)
-              .getId(),
+            this.labelService.getOrCreateLabel("Region: " + region.trim(), LabelRef.Node).getId(),
           );
         });
         bpStammdaten.getKategorien().forEach((kategorie) => {
@@ -1145,8 +996,7 @@ export class NodeService implements OnDestroy {
       const transitions = node.getTransitions();
       transitions.forEach((transition) => {
         transition.setIsNonStopTransit(
-          haltezeit[transition.getTrainrun().getTrainrunCategory().fachCategory]
-            .no_halt,
+          haltezeit[transition.getTrainrun().getTrainrunCategory().fachCategory].no_halt,
         );
       });
     });
@@ -1159,8 +1009,7 @@ export class NodeService implements OnDestroy {
     if (node === undefined) {
       return 0;
     }
-    const halteZeit =
-      node.getTrainrunCategoryHaltezeit()[trainrunCategory.fachCategory];
+    const halteZeit = node.getTrainrunCategoryHaltezeit()[trainrunCategory.fachCategory];
     if (halteZeit.no_halt) {
       return 0;
     }
@@ -1175,28 +1024,21 @@ export class NodeService implements OnDestroy {
   ) {
     const sourceNode = this.getNodeFromId(sourceNodeId);
     const targetNode = this.getNodeFromId(targetNodeId);
-    const trainrunSection =
-      this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
+    const trainrunSection = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
     if (trainrunSection === undefined) {
       return;
     }
-    const trainrun = this.trainrunService.getTrainrunFromId(
-      trainrunSection.getTrainrunId(),
-    );
+    const trainrun = this.trainrunService.getTrainrunFromId(trainrunSection.getTrainrunId());
     if (trainrun === undefined) {
       return;
     }
     // source node
-    if (
-      this.isConditionToAddTransitionFullfilled(sourceNode, trainrunSection)
-    ) {
+    if (this.isConditionToAddTransitionFullfilled(sourceNode, trainrunSection)) {
       this.addTransitionAndComputeRoutingFromFreePorts(sourceNode, trainrun);
     }
 
     // target node
-    if (
-      this.isConditionToAddTransitionFullfilled(targetNode, trainrunSection)
-    ) {
+    if (this.isConditionToAddTransitionFullfilled(targetNode, trainrunSection)) {
       this.addTransitionAndComputeRoutingFromFreePorts(targetNode, trainrun);
     }
     if (enforceUpdate) {
@@ -1257,18 +1099,12 @@ export class NodeService implements OnDestroy {
     let minY;
     let maxY;
     this.nodesStore.nodes.forEach((n) => {
-      minX =
-        minX === undefined
-          ? n.getPositionX()
-          : Math.min(minX, n.getPositionX());
+      minX = minX === undefined ? n.getPositionX() : Math.min(minX, n.getPositionX());
       maxX =
         maxX === undefined
           ? n.getPositionX() + n.getNodeWidth()
           : Math.max(maxX, n.getPositionX() + n.getNodeWidth());
-      minY =
-        minY === undefined
-          ? n.getPositionY()
-          : Math.min(minY, n.getPositionY());
+      minY = minY === undefined ? n.getPositionY() : Math.min(minY, n.getPositionY());
       maxY =
         maxY === undefined
           ? n.getPositionY() + n.getNodeHeight()
@@ -1283,12 +1119,11 @@ export class NodeService implements OnDestroy {
     if (connectedTrainrunSections.length !== 0) {
       this.trainrunSectionService.deleteListOfTrainrunSections(
         node.getConnectedTrainrunSections(),
-        enforceUpdate
+        enforceUpdate,
       );
     }
-    this.nodesStore.nodes = this.nodesStore.nodes.filter(
-      (n) => n.getId() !== nodeId,
-    );
+    this.resourceService.deleteResource(node.getResourceId(), enforceUpdate);
+    this.nodesStore.nodes = this.nodesStore.nodes.filter((n) => n.getId() !== nodeId);
   }
 
   private changeNodePositionWithoutUpdate(
@@ -1303,36 +1138,27 @@ export class NodeService implements OnDestroy {
     if (dragEnd) {
       node.getPorts().forEach((port) => {
         const oppositeNode = node.getOppositeNode(port.getTrainrunSection());
-        const portAlignments =
-          VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
-            node,
-            oppositeNode,
-          );
+        const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
+          node,
+          oppositeNode,
+        );
         port.setPositionAlignment(portAlignments.sourcePortPlacement);
         oppositeNode
           .getPortOfTrainrunSection(port.getTrainrunSection().getId())
           .setPositionAlignment(portAlignments.targetPortPlacement);
         oppositeNode.updateTransitionsAndConnections();
-        this.trainrunSectionService.updateTrainrunSectionRouting(
-          oppositeNode,
-          enforceUpdate,
-        );
+        this.trainrunSectionService.updateTrainrunSectionRouting(oppositeNode, enforceUpdate);
       });
       node.reorderAllPorts();
       this.operation.emit(new NodeOperation(OperationType.update, node));
     }
     node.updateTransitionsRouting();
     node.updateConnectionsRouting();
-    this.trainrunSectionService.updateTrainrunSectionRouting(
-      node,
-      enforceUpdate,
-    );
+    this.trainrunSectionService.updateTrainrunSectionRouting(node, enforceUpdate);
   }
 
   private findClearedLabel(node: Node, labelIds: number[]) {
-    return []
-      .concat(node.getLabelIds())
-      .filter((oldlabelId) => !labelIds.includes(oldlabelId));
+    return [].concat(node.getLabelIds()).filter((oldlabelId) => !labelIds.includes(oldlabelId));
   }
 
   private makeLabelIDCounterMap(nodes: Node[]): Map<number, number> {

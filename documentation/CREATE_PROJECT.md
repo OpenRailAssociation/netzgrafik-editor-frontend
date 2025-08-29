@@ -18,22 +18,25 @@ description. Now you have created a first project that can contain multiple vari
 [29-01-2024-001-Create_new_project.webm](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/assets/2674075/4e34d3a2-5291-4193-ac88-5e522f6223f7)
 
 #### Share a project
-Users can share their projects with other employees and assign different access rights. There are two options: 
+
+Users can share their projects with other employees and assign different access rights. There are two options:
+
 - write access
 - read access.
 
-#### With write access, 
-... the employee with whom the project is shared can edit the project, make changes to it, or delete it, including creating, deleting, and archiving variants.
-  
+#### With write access,
 
-#### With read access, 
+... the employee with whom the project is shared can edit the project, make changes to it, or delete it, including creating, deleting, and archiving variants.
+
+#### With read access,
+
 ... the employee can only view and read the project, but cannot make any changes to it (cannot save).
 
 The choice between write access and read access depends on the desired level of collaboration and contribution from the employees to the project.
 
 #### Example
-![image](https://github.com/user-attachments/assets/cc925325-1925-4256-a654-3216c13412d5)
 
+![image](https://github.com/user-attachments/assets/cc925325-1925-4256-a654-3216c13412d5)
 
 ### Create a new Variant within a project
 
@@ -77,14 +80,14 @@ The data model for the basic concept of Project/Variants includes the following 
 
 - **Version:** This entity represents a version within a variant. Versions are used to store the
   change history and preserve intermediate changes during the creative process. They allow users to
-  restore any previous version if needed.  
+  restore any previous version if needed.
 
 The relationship between the entities is as follows:
 
 ```mermaid
 erDiagram
     Project o|--|{ Variant : has
-    Variant o|--|{ Version : has 
+    Variant o|--|{ Version : has
 ```
 
 A user has to publish a version of a variant when he is ready with editing/creating the variant.
@@ -143,7 +146,7 @@ Step-by-step example
 </summary>
 
 | Version | Snapshot version | Author |                                              Comments                                              |
-|:-------:|:----------------:|:------:|:--------------------------------------------------------------------------------------------------:|
+| :-----: | :--------------: | :----: | :------------------------------------------------------------------------------------------------: |
 |    -    |        1         |  u123  |       Initial empty network diagram that is automatically created when creating the variant.       |
 |    -    |        2         |  u123  |                                  First modification by user u123.                                  |
 |    -    |        3         |  u123  |                                 Second modification by user u123.                                  |

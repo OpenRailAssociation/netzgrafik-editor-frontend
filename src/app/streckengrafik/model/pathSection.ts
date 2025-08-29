@@ -51,22 +51,13 @@ export class PathSection implements PathItem {
   }
 
   shortKey(): string {
-    if (
-      this.departurePathNode === undefined ||
-      this.arrivalPathNode === undefined
-    ) {
+    if (this.departurePathNode === undefined || this.arrivalPathNode === undefined) {
       return undefined;
     }
     if (this.backward) {
-      return (
-        this.arrivalPathNode.shortKey() +
-        ":" +
-        this.departurePathNode.shortKey()
-      );
+      return this.arrivalPathNode.shortKey() + ":" + this.departurePathNode.shortKey();
     }
-    return (
-      this.departurePathNode.shortKey() + ":" + this.arrivalPathNode.shortKey()
-    );
+    return this.departurePathNode.shortKey() + ":" + this.arrivalPathNode.shortKey();
   }
 
   isNode(): boolean {

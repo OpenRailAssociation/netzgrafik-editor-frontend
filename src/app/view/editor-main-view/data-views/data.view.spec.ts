@@ -28,9 +28,7 @@ import {TransitionViewObject} from "./transitionViewObject";
 import {StaticDomTags} from "./static.dom.tags";
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
-import {
-  PositionTransformationService
-} from "../../../services/util/position.transformation.service";
+import {PositionTransformationService} from "../../../services/util/position.transformation.service";
 
 describe("Editor-DataView", () => {
   let dataService: DataService;
@@ -62,16 +60,8 @@ describe("Editor-DataView", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -103,7 +93,7 @@ describe("Editor-DataView", () => {
       trainrunService,
       trainrunSectionService,
       nodeService,
-      filterService
+      filterService,
     );
 
     uiInteractionService = new UiInteractionService(
@@ -136,26 +126,22 @@ describe("Editor-DataView", () => {
       undoService,
     );
 
-
     const viewportCullService = new ViewportCullService(
       uiInteractionService,
       nodeService,
       noteService,
-      trainrunSectionService
+      trainrunSectionService,
     );
 
-    const levelOfDetailService = new LevelOfDetailService(
-      uiInteractionService
-    );
+    const levelOfDetailService = new LevelOfDetailService(uiInteractionService);
 
     const positionTransformationService = new PositionTransformationService(
       trainrunSectionService,
       nodeService,
       noteService,
       uiInteractionService,
-      viewportCullService
+      viewportCullService,
     );
-
 
     const controller = new EditorMainViewComponent(
       nodeService,
@@ -171,7 +157,7 @@ describe("Editor-DataView", () => {
       viewportCullService,
       levelOfDetailService,
       undefined,
-      positionTransformationService
+      positionTransformationService,
     );
 
     new EditorView(
@@ -188,7 +174,7 @@ describe("Editor-DataView", () => {
       viewportCullService,
       levelOfDetailService,
       undefined,
-      positionTransformationService
+      positionTransformationService,
     );
 
     controller.bindViewToServices();
@@ -196,9 +182,7 @@ describe("Editor-DataView", () => {
   });
 
   it("ConnectionsViewObject  - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const node = nodeService.getNodeFromId(2);
     const con = node.getConnectionFromId(2);
 
@@ -209,9 +193,7 @@ describe("Editor-DataView", () => {
   });
 
   it("NodeViewObject   - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const node = nodeService.getNodeFromId(2);
 
     const cvo1 = new NodeViewObject(editorView, node, false);
@@ -222,9 +204,7 @@ describe("Editor-DataView", () => {
   });
 
   it("NodeViewObject   - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const note = noteService.getNoteFromId(3);
     const cvo1 = new NoteViewObject(editorView, note);
     expect(cvo1.key).toBe(
@@ -233,9 +213,7 @@ describe("Editor-DataView", () => {
   });
 
   it("TrainrunSectionViewObject   - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(3);
     const cvo1 = new TrainrunSectionViewObject(
       editorView,
@@ -247,16 +225,15 @@ describe("Editor-DataView", () => {
       false,
       false,
       false,
+      false,
     );
     expect(cvo1.key).toBe(
-      "#3@1234_false_0_39_49_1_21_39_0_39_141_39_0_39_0_20_0_S_20_7/24_4_1_0_S_20_7/24_20_0_false_false_false_false_false_false_false_false_true_true_true_false_false_true_true_0_false_2_true_true_true_1_false_true_true_0_false_true_true(130,80)(194,80)(254,80)(318,80)",
+      "#3@1234_false_0_39_49_1_21_39_0_39_141_39_0_39_0_20_0_S_20_7/24_4_1_0_S_20_7/24_20_0_round_trip_false_false_false_false_false_false_false_false_false_true_true_true_false_false_true_true_true_0_false_2_true_true_true_1_false_true_true_0_false_true_true(130,80)(194,80)(254,80)(318,80)",
     );
   });
 
   it("TransitionViewObject - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const trans = nodeService.getNodeFromId(1).getTransitions()[0];
     const cvo1 = new TransitionViewObject(editorView, trans, false);
     expect(cvo1.key).toBe(
@@ -268,8 +245,6 @@ describe("Editor-DataView", () => {
     expect(StaticDomTags.makeClassTag("A", "B")).toBe(" A_B");
     expect(StaticDomTags.makeClassTag(undefined, "B")).toBe(" undefined_B");
     expect(StaticDomTags.makeClassTag("A", undefined)).toBe(" A_undefined");
-    expect(StaticDomTags.makeClassTag(undefined, undefined)).toBe(
-      " undefined_undefined",
-    );
+    expect(StaticDomTags.makeClassTag(undefined, undefined)).toBe(" undefined_undefined");
   });
 });

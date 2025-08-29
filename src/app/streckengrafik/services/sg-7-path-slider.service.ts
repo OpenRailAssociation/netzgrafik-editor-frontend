@@ -13,10 +13,8 @@ import {Sg6TrackService} from "./sg-6-track.service";
   providedIn: "root",
 })
 export class Sg7PathSliderService implements OnDestroy {
-  private readonly sgSelectedTrainrunSubject =
-    new BehaviorSubject<SgSelectedTrainrun>(undefined);
-  private readonly sgSelectedTrainrun$ =
-    this.sgSelectedTrainrunSubject.asObservable();
+  private readonly sgSelectedTrainrunSubject = new BehaviorSubject<SgSelectedTrainrun>(undefined);
+  private readonly sgSelectedTrainrun$ = this.sgSelectedTrainrunSubject.asObservable();
 
   private selectedTrainrun: SgSelectedTrainrun;
 
@@ -80,12 +78,7 @@ export class Sg7PathSliderService implements OnDestroy {
     // fahrzeitskaliert oder false gleichmässig
     let startPosition = 0;
     this.selectedTrainrun.paths.forEach((path) => {
-      path.xZoom = this.getXZoom(
-        path,
-        xPathFix,
-        xPathSection,
-        xPathSectionCount,
-      );
+      path.xZoom = this.getXZoom(path, xPathFix, xPathSection, xPathSectionCount);
       const zommedXPath = path.zoomedXPath();
       path.startPosition = startPosition;
       startPosition += zommedXPath;
@@ -94,23 +87,14 @@ export class Sg7PathSliderService implements OnDestroy {
     this.sgSelectedTrainrunSubject.next(this.selectedTrainrun);
   }
 
-  getXZoom(
-    path: SgPath,
-    xPathFix: number,
-    xPathSection: number,
-    xPathSectionCount: number,
-  ) {
+  getXZoom(path: SgPath, xPathFix: number, xPathSection: number, xPathSectionCount: number) {
     if (
       this.uiInteractionService.getActiveStreckengrafikRenderingType() ===
       StreckengrafikRenderingType.TimeScaledDistance
     ) {
       return (this.resizeChangeInfo.width - xPathFix) / xPathSection;
     } else {
-      return (
-        (this.resizeChangeInfo.width - xPathFix) /
-        xPathSectionCount /
-        path.travelTime()
-      );
+      return (this.resizeChangeInfo.width - xPathFix) / xPathSectionCount / path.travelTime();
     }
   }
 }

@@ -1,11 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  EventEmitter,
-  Inject,
-  Output,
-  ViewChild,
-} from "@angular/core";
+import {Component, ElementRef, EventEmitter, Inject, Output, ViewChild} from "@angular/core";
 import {DOCUMENT} from "@angular/common";
 
 @Component({

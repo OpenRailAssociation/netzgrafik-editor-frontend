@@ -37,35 +37,36 @@ export class D3Utils {
     //  StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF + "." + StaticDomTags.TAG_HOVER,
     //).raise();
     d3.selectAll(
-      StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF +
-      "." +
-      StaticDomTags.TAG_SELECTED,
+      StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF + "." + StaticDomTags.TAG_SELECTED,
     ).raise();
   }
 
   static hoverTrainrunSection(trainrunSection: TrainrunSection, bringToFront = true, domObj: any) {
+    d3.selectAll(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
+      .filter(
+        (d: TrainrunSectionViewObject) =>
+          d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
+      )
+      .classed(StaticDomTags.TAG_HOVER, true);
+
     d3.selectAll(StaticDomTags.EDGE_LINE_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
-          d !== undefined &&
-          d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
+          d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, true);
 
     d3.selectAll(StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
-          d !== undefined &&
-          d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
+          d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, true);
 
     d3.selectAll(StaticDomTags.TRANSITION_LINE_DOM_REF)
       .filter(
         (d: TransitionViewObject) =>
-          d !== undefined &&
-          d.transition.getTrainrun().getId() ===
-            trainrunSection.getTrainrunId(),
+          d !== undefined && d.transition.getTrainrun().getId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, true);
 
@@ -76,7 +77,9 @@ export class D3Utils {
     } else {
       if (domObj !== undefined) {
         const attrId = d3.select(domObj).attr("id");
-        const objs = d3.selectAll(StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF + "[id='" + attrId + "']");
+        const objs = d3.selectAll(
+          StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF + "[id='" + attrId + "']",
+        );
         objs.raise();
       }
     }
@@ -84,36 +87,36 @@ export class D3Utils {
   }
 
   static unhoverTrainrunSection(trainrunSection: TrainrunSection) {
+    d3.selectAll(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
+      .filter(
+        (d: TrainrunSectionViewObject) =>
+          d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
+      )
+      .classed(StaticDomTags.TAG_HOVER, false);
     d3.selectAll(StaticDomTags.EDGE_LINE_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
-          d !== undefined &&
-          d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
+          d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, false);
 
     d3.selectAll(StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
-          d !== undefined &&
-          d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
+          d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, false);
 
     d3.selectAll(StaticDomTags.TRANSITION_LINE_DOM_REF)
       .filter(
         (d: TransitionViewObject) =>
-          d !== undefined &&
-          d.transition.getTrainrun().getId() ===
-            trainrunSection.getTrainrunId(),
+          d !== undefined && d.transition.getTrainrun().getId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, false);
   }
 
   static updateTrainrunSectionPreviewLine(startPos: Vec2D) {
-    const mousePos = d3.mouse(
-      d3.select(StaticDomTags.PREVIEW_LINE_DOM_REF).node(),
-    );
+    const mousePos = d3.mouse(d3.select(StaticDomTags.PREVIEW_LINE_DOM_REF).node());
     const mousePosVec: Vec2D = new Vec2D(mousePos[0], mousePos[1]);
     const fromPos: Vec2D = Vec2D.add(
       startPos,
@@ -132,13 +135,8 @@ export class D3Utils {
     );
   }
 
-  static updateIntermediateStopOrTransitionPreviewLine(
-    startPos: Vec2D,
-    endPos: Vec2D,
-  ) {
-    const mousePos = d3.mouse(
-      d3.select(StaticDomTags.PREVIEW_LINE_DOM_REF).node(),
-    );
+  static updateIntermediateStopOrTransitionPreviewLine(startPos: Vec2D, endPos: Vec2D) {
+    const mousePos = d3.mouse(d3.select(StaticDomTags.PREVIEW_LINE_DOM_REF).node());
     const mousePosVec: Vec2D = new Vec2D(mousePos[0], mousePos[1]);
     const fromPos: Vec2D = Vec2D.add(
       startPos,
@@ -166,9 +164,7 @@ export class D3Utils {
   }
 
   static updateConnectionPreviewLine(startPos: Vec2D) {
-    const mousePos = d3.mouse(
-      d3.select(StaticDomTags.PREVIEW_CONNECTION_LINE_DOM_REF).node(),
-    );
+    const mousePos = d3.mouse(d3.select(StaticDomTags.PREVIEW_CONNECTION_LINE_DOM_REF).node());
     const mousePosVec: Vec2D = new Vec2D(mousePos[0], mousePos[1]);
     const fromPos: Vec2D = Vec2D.add(
       startPos,
@@ -180,14 +176,7 @@ export class D3Utils {
     );
     d3.selectAll(StaticDomTags.PREVIEW_CONNECTION_LINE_DOM_REF).attr(
       "d",
-      "M" +
-        fromPos.getX() +
-        "," +
-        fromPos.getY() +
-        "L" +
-        toPos.getX() +
-        "," +
-        toPos.getY(),
+      "M" + fromPos.getX() + "," + fromPos.getY() + "L" + toPos.getX() + "," + toPos.getY(),
     );
   }
 
@@ -200,11 +189,12 @@ export class D3Utils {
       StaticDomTags.EDGE_DISABLE_EVENTS,
       true,
     );
-    d3.selectAll(StaticDomTags.EDGE_LINE_DOM_REF).classed(
+    d3.selectAll(StaticDomTags.EDGE_LINE_DOM_REF).classed(StaticDomTags.EDGE_DISABLE_EVENTS, true);
+    d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF).classed(
       StaticDomTags.EDGE_DISABLE_EVENTS,
       true,
     );
-    d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF).classed(
+    d3.selectAll(StaticDomTags.EDGE_LINE_ARROW_DOM_REF).classed(
       StaticDomTags.EDGE_DISABLE_EVENTS,
       true,
     );
@@ -219,11 +209,12 @@ export class D3Utils {
       StaticDomTags.EDGE_DISABLE_EVENTS,
       false,
     );
-    d3.selectAll(StaticDomTags.EDGE_LINE_DOM_REF).classed(
+    d3.selectAll(StaticDomTags.EDGE_LINE_DOM_REF).classed(StaticDomTags.EDGE_DISABLE_EVENTS, false);
+    d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF).classed(
       StaticDomTags.EDGE_DISABLE_EVENTS,
       false,
     );
-    d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF).classed(
+    d3.selectAll(StaticDomTags.EDGE_LINE_ARROW_DOM_REF).classed(
       StaticDomTags.EDGE_DISABLE_EVENTS,
       false,
     );
@@ -265,10 +256,7 @@ export class D3Utils {
     return v;
   }
 
-  static doGrayoutTrainrunSectionPin(
-    trainrunSection: TrainrunSection,
-    node: Node,
-  ) {
+  static doGrayoutTrainrunSectionPin(trainrunSection: TrainrunSection, node: Node) {
     // Performance ISSUE : TODO - this special effect hast to be overworked. It's really slow!
     /*
     d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF)
@@ -346,10 +334,19 @@ export class D3Utils {
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);
   }
 
-  static doGrayout(
-    trainrunSection: TrainrunSection,
-    grayoutEdgeLinePinNode: Node = undefined,
-  ) {
+  static doGrayout(trainrunSection: TrainrunSection, grayoutEdgeLinePinNode: Node = undefined) {
+    d3.selectAll(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
+      .filter((d: TrainrunSectionViewObject) => {
+        if (d === undefined) {
+          return false;
+        }
+        return d.trainrunSection.getId() === trainrunSection.getId();
+      })
+      .classed(StaticDomTags.TAG_SELECTED, false)
+      .classed(StaticDomTags.TAG_HOVER, false)
+      .classed(StaticDomTags.TAG_WARNING, false)
+      .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, true);
+
     d3.selectAll(StaticDomTags.EDGE_LINE_DOM_REF)
       .filter((d: TrainrunSectionViewObject) => {
         if (d === undefined) {
@@ -384,45 +381,44 @@ export class D3Utils {
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, true);
 
     if (grayoutEdgeLinePinNode !== undefined) {
-      d3.selectAll(
-        StaticDomTags.EDGE_LINE_PIN_DOM_REF +
-          "." +
-          StaticDomTags.EDGE_IS_SOURCE,
-      )
+      d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF + "." + StaticDomTags.EDGE_IS_SOURCE)
         .filter((d: TrainrunSectionViewObject) => {
           if (d === undefined) {
             return false;
           }
           return (
             d.trainrunSection.getId() === trainrunSection.getId() &&
-            d.trainrunSection.getSourceNodeId() ===
-              grayoutEdgeLinePinNode.getId()
+            d.trainrunSection.getSourceNodeId() === grayoutEdgeLinePinNode.getId()
           );
         })
         .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, true);
-      d3.selectAll(
-        StaticDomTags.EDGE_LINE_PIN_DOM_REF +
-          "." +
-          StaticDomTags.EDGE_IS_TARGET,
-      )
+      d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF + "." + StaticDomTags.EDGE_IS_TARGET)
         .filter((d: TrainrunSectionViewObject) => {
           if (d === undefined) {
             return false;
           }
           return (
             d.trainrunSection.getId() === trainrunSection.getId() &&
-            d.trainrunSection.getTargetNodeId() ===
-              grayoutEdgeLinePinNode.getId()
+            d.trainrunSection.getTargetNodeId() === grayoutEdgeLinePinNode.getId()
           );
         })
         .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, true);
     }
   }
 
-  static removeGrayout(
-    trainrunSection: TrainrunSection,
-    grayoutEdgeLinePinNode: Node = undefined,
-  ) {
+  static removeGrayout(trainrunSection: TrainrunSection, grayoutEdgeLinePinNode: Node = undefined) {
+    d3.selectAll(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
+      .filter((d: TrainrunSectionViewObject) => {
+        if (d === undefined) {
+          return false;
+        }
+        return d.trainrunSection.getId() === trainrunSection.getId();
+      })
+      .classed(StaticDomTags.TAG_SELECTED, true)
+      .classed(StaticDomTags.TAG_HOVER, false)
+      .classed(StaticDomTags.TAG_WARNING, false)
+      .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);
+
     d3.selectAll(StaticDomTags.EDGE_LINE_DOM_REF)
       .filter((d: TrainrunSectionViewObject) => {
         if (d === undefined) {
@@ -457,35 +453,25 @@ export class D3Utils {
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);
 
     if (grayoutEdgeLinePinNode !== undefined) {
-      d3.selectAll(
-        StaticDomTags.EDGE_LINE_PIN_DOM_REF +
-          "." +
-          StaticDomTags.EDGE_IS_SOURCE,
-      )
+      d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF + "." + StaticDomTags.EDGE_IS_SOURCE)
         .filter((d: TrainrunSectionViewObject) => {
           if (d === undefined) {
             return false;
           }
           return (
             d.trainrunSection.getId() === trainrunSection.getId() &&
-            d.trainrunSection.getSourceNodeId() ===
-              grayoutEdgeLinePinNode.getId()
+            d.trainrunSection.getSourceNodeId() === grayoutEdgeLinePinNode.getId()
           );
         })
         .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);
-      d3.selectAll(
-        StaticDomTags.EDGE_LINE_PIN_DOM_REF +
-          "." +
-          StaticDomTags.EDGE_IS_TARGET,
-      )
+      d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF + "." + StaticDomTags.EDGE_IS_TARGET)
         .filter((d: TrainrunSectionViewObject) => {
           if (d === undefined) {
             return false;
           }
           return (
             d.trainrunSection.getId() === trainrunSection.getId() &&
-            d.trainrunSection.getTargetNodeId() ===
-              grayoutEdgeLinePinNode.getId()
+            d.trainrunSection.getTargetNodeId() === grayoutEdgeLinePinNode.getId()
           );
         })
         .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);
@@ -633,52 +619,26 @@ export class D3Utils {
       .selectAll("circle")
       .classed(StaticDomTags.TAG_ENFORCE_DISABLE_ALL_POINTER_EVENTS, false);
 
-    rootElement
-      .selectAll("text")
-      .classed(StaticDomTags.TAG_ANALYTICS_ENFORCE_DISABLE, false);
-    rootElement
-      .selectAll("rect")
-      .classed(StaticDomTags.TAG_ANALYTICS_ENFORCE_DISABLE, false);
-    rootElement
-      .selectAll("path")
-      .classed(StaticDomTags.TAG_ANALYTICS_ENFORCE_DISABLE, false);
-    rootElement
-      .selectAll("circle")
-      .classed(StaticDomTags.TAG_ANALYTICS_ENFORCE_DISABLE, false);
+    rootElement.selectAll("text").classed(StaticDomTags.TAG_ANALYTICS_ENFORCE_DISABLE, false);
+    rootElement.selectAll("rect").classed(StaticDomTags.TAG_ANALYTICS_ENFORCE_DISABLE, false);
+    rootElement.selectAll("path").classed(StaticDomTags.TAG_ANALYTICS_ENFORCE_DISABLE, false);
+    rootElement.selectAll("circle").classed(StaticDomTags.TAG_ANALYTICS_ENFORCE_DISABLE, false);
+
+    rootElement.selectAll("text").classed(StaticDomTags.TAG_EVENT_DISABLED, false);
+    rootElement.selectAll("rect").classed(StaticDomTags.TAG_EVENT_DISABLED, false);
+    rootElement.selectAll("path").classed(StaticDomTags.TAG_EVENT_DISABLED, false);
+    rootElement.selectAll("circle").classed(StaticDomTags.TAG_EVENT_DISABLED, false);
 
     rootElement
       .selectAll("text")
-      .classed(StaticDomTags.TAG_EVENT_DISABLED, false);
-    rootElement
-      .selectAll("rect")
-      .classed(StaticDomTags.TAG_EVENT_DISABLED, false);
-    rootElement
-      .selectAll("path")
-      .classed(StaticDomTags.TAG_EVENT_DISABLED, false);
-    rootElement
-      .selectAll("circle")
-      .classed(StaticDomTags.TAG_EVENT_DISABLED, false);
-
-    rootElement
-      .selectAll("text")
-      .classed(
-        StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_CLICKABLE,
-        false,
-      );
+      .classed(StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_CLICKABLE, false);
     rootElement
       .selectAll("text")
       .classed(StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_MUTED, false);
-    d3.selectAll("text").classed(
-      StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_FOCUSED,
-      false,
-    );
+    d3.selectAll("text").classed(StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_FOCUSED, false);
 
-    rootElement
-      .selectAll(StaticDomTags.NODE_ANALYTICSAREA_TEXT_LEFT_DOM_REF)
-      .text("");
-    rootElement
-      .selectAll(StaticDomTags.NODE_ANALYTICSAREA_TEXT_RIGHT_DOM_REF)
-      .text("");
+    rootElement.selectAll(StaticDomTags.NODE_ANALYTICSAREA_TEXT_LEFT_DOM_REF).text("");
+    rootElement.selectAll(StaticDomTags.NODE_ANALYTICSAREA_TEXT_RIGHT_DOM_REF).text("");
 
     D3Utils.isShortestDistanceRendererEnabled = false;
   }
@@ -709,15 +669,9 @@ export class D3Utils {
       .selectAll(StaticDomTags.NODE_ANALYTICSAREA_DOM_REF)
       .classed(StaticDomTags.TAG_ANALYTICS_LEVEL_5, false);
 
-    rootElement
-      .selectAll("text")
-      .classed(StaticDomTags.TAG_EVENT_DISABLED, true);
-    rootElement
-      .selectAll("rect")
-      .classed(StaticDomTags.TAG_EVENT_DISABLED, true);
-    rootElement
-      .selectAll("path")
-      .classed(StaticDomTags.TAG_EVENT_DISABLED, true);
+    rootElement.selectAll("text").classed(StaticDomTags.TAG_EVENT_DISABLED, true);
+    rootElement.selectAll("rect").classed(StaticDomTags.TAG_EVENT_DISABLED, true);
+    rootElement.selectAll("path").classed(StaticDomTags.TAG_EVENT_DISABLED, true);
     rootElement
       .selectAll("path")
       .classed(StaticDomTags.TAG_ENFORCE_DISABLE_ALL_POINTER_EVENTS, true);
@@ -728,9 +682,7 @@ export class D3Utils {
     rootElement
       .selectAll("text.edge_text")
       .classed(StaticDomTags.TAG_ANALYTICS_ENFORCE_DISABLE, true);
-    rootElement
-      .selectAll("text.edge_text")
-      .classed(StaticDomTags.TAG_EVENT_DISABLED, true);
+    rootElement.selectAll("text.edge_text").classed(StaticDomTags.TAG_EVENT_DISABLED, true);
 
     d3.selectAll("text.edge_text.SourceDeparture").classed(
       StaticDomTags.TAG_ANALYTICS_ENFORCE_DISABLE,
@@ -741,14 +693,8 @@ export class D3Utils {
       false,
     );
 
-    d3.selectAll("text.edge_text.SourceDeparture").classed(
-      StaticDomTags.TAG_EVENT_DISABLED,
-      false,
-    );
-    d3.selectAll("text.edge_text.TargetDeparture").classed(
-      StaticDomTags.TAG_EVENT_DISABLED,
-      false,
-    );
+    d3.selectAll("text.edge_text.SourceDeparture").classed(StaticDomTags.TAG_EVENT_DISABLED, false);
+    d3.selectAll("text.edge_text.TargetDeparture").classed(StaticDomTags.TAG_EVENT_DISABLED, false);
 
     d3.selectAll("text.edge_text.SourceDeparture").classed(
       StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_CLICKABLE,
@@ -769,20 +715,12 @@ export class D3Utils {
       false,
     );
 
-    rootElement
-      .selectAll(StaticDomTags.NODE_ANALYTICSAREA_TEXT_LEFT_DOM_REF)
-      .text("")
-      .raise();
-    rootElement
-      .selectAll(StaticDomTags.NODE_ANALYTICSAREA_TEXT_RIGHT_DOM_REF)
-      .text("")
-      .raise();
+    rootElement.selectAll(StaticDomTags.NODE_ANALYTICSAREA_TEXT_LEFT_DOM_REF).text("").raise();
+    rootElement.selectAll(StaticDomTags.NODE_ANALYTICSAREA_TEXT_RIGHT_DOM_REF).text("").raise();
     rootElement.selectAll(StaticDomTags.NODE_ANALYTICSAREA_DOM_REF).raise();
   }
 
-  static shortestDistanceRenderer(
-    finalShortestDistanceNodes: ShortestDistanceNode[],
-  ) {
+  static shortestDistanceRenderer(finalShortestDistanceNodes: ShortestDistanceNode[]) {
     D3Utils.initShortestDistanceRenderer();
 
     let finalTrainrunSections: TrainrunSection[] = [];
@@ -791,9 +729,7 @@ export class D3Utils {
         finalTrainrunSections.push(ts);
       });
     });
-    finalTrainrunSections = finalTrainrunSections.filter(
-      (v, i, a) => a.indexOf(v) === i,
-    );
+    finalTrainrunSections = finalTrainrunSections.filter((v, i, a) => a.indexOf(v) === i);
 
     if (finalShortestDistanceNodes.length > 0) {
       d3.selectAll("text.edge_text.SourceDeparture").classed(
@@ -817,77 +753,52 @@ export class D3Utils {
         rootElement
           .selectAll('text.edge_text[id="' + ts.getId() + '"]')
           .classed(StaticDomTags.TAG_ANALYTICS_ENFORCE_DISABLE, false)
-          .classed(
-            StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_MUTED,
-            false,
-          );
+          .classed(StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_MUTED, false);
         rootElement
           .selectAll('circle.edge_line_stops[id="' + ts.getId() + '"]')
           .classed(StaticDomTags.TAG_ENFORCE_DISABLE_ALL_POINTER_EVENTS, false);
         d3.selectAll('text.edge_text.SourceDeparture[id="' + ts.getId() + '"]')
           .classed(StaticDomTags.TAG_EVENT_DISABLED, false)
           .classed(StaticDomTags.TAG_ANALYTICS_ENFORCE_DISABLE, false)
-          .classed(
-            StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_CLICKABLE,
-            false,
-          );
+          .classed(StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_CLICKABLE, false);
         d3.selectAll('text.edge_text.TargetDeparture[id="' + ts.getId() + '"]')
           .classed(StaticDomTags.TAG_EVENT_DISABLED, false)
           .classed(StaticDomTags.TAG_ANALYTICS_ENFORCE_DISABLE, false)
-          .classed(
-            StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_CLICKABLE,
-            false,
-          );
+          .classed(StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_CLICKABLE, false);
 
         // orientation to improve readability
         if (ts.getTargetNodeId() === endNodeId) {
-          d3.selectAll(
-            'text.edge_text.TargetDeparture[id="' + ts.getId() + '"]',
-          ).classed(
+          d3.selectAll('text.edge_text.TargetDeparture[id="' + ts.getId() + '"]').classed(
             StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_MUTED,
             true,
           );
-          d3.selectAll(
-            'text.edge_text.SourceArrival[id="' + ts.getId() + '"]',
-          ).classed(
+          d3.selectAll('text.edge_text.SourceArrival[id="' + ts.getId() + '"]').classed(
             StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_MUTED,
             true,
           );
-          d3.selectAll(
-            'text.edge_text.SourceDeparture[id="' + ts.getId() + '"]',
-          ).classed(
+          d3.selectAll('text.edge_text.SourceDeparture[id="' + ts.getId() + '"]').classed(
             StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_FOCUSED,
             true,
           );
-          d3.selectAll(
-            'text.edge_text.TargetArrival[id="' + ts.getId() + '"]',
-          ).classed(
+          d3.selectAll('text.edge_text.TargetArrival[id="' + ts.getId() + '"]').classed(
             StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_FOCUSED,
             true,
           );
           endNodeId = ts.getSourceNodeId();
         } else {
-          d3.selectAll(
-            'text.edge_text.SourceDeparture[id="' + ts.getId() + '"]',
-          ).classed(
+          d3.selectAll('text.edge_text.SourceDeparture[id="' + ts.getId() + '"]').classed(
             StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_MUTED,
             true,
           );
-          d3.selectAll(
-            'text.edge_text.TargetArrival[id="' + ts.getId() + '"]',
-          ).classed(
+          d3.selectAll('text.edge_text.TargetArrival[id="' + ts.getId() + '"]').classed(
             StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_MUTED,
             true,
           );
-          d3.selectAll(
-            'text.edge_text.TargetDeparture[id="' + ts.getId() + '"]',
-          ).classed(
+          d3.selectAll('text.edge_text.TargetDeparture[id="' + ts.getId() + '"]').classed(
             StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_FOCUSED,
             true,
           );
-          d3.selectAll(
-            'text.edge_text.SourceArrival[id="' + ts.getId() + '"]',
-          ).classed(
+          d3.selectAll('text.edge_text.SourceArrival[id="' + ts.getId() + '"]').classed(
             StaticDomTags.TAG_ANALYTICS_TRAINRUNSECTION_TEXT_FOCUSED,
             true,
           );
@@ -900,21 +811,13 @@ export class D3Utils {
         const srcTrans = srcNode.getTransition(ts.getId());
         const trgTrans = trgNode.getTransition(ts.getId());
         if (srcTrans !== undefined) {
-          const srcId1 = srcNode
-            .getPort(srcTrans.getPortId1())
-            .getTrainrunSection()
-            .getId();
-          const srcId2 = srcNode
-            .getPort(srcTrans.getPortId2())
-            .getTrainrunSection()
-            .getId();
+          const srcId1 = srcNode.getPort(srcTrans.getPortId1()).getTrainrunSection().getId();
+          const srcId2 = srcNode.getPort(srcTrans.getPortId2()).getTrainrunSection().getId();
           if (
-            finalTrainrunSections.find(
-              (checkTs: TrainrunSection) => checkTs.getId() === srcId1,
-            ) !== undefined &&
-            finalTrainrunSections.find(
-              (checkTs: TrainrunSection) => checkTs.getId() === srcId2,
-            ) !== undefined
+            finalTrainrunSections.find((checkTs: TrainrunSection) => checkTs.getId() === srcId1) !==
+              undefined &&
+            finalTrainrunSections.find((checkTs: TrainrunSection) => checkTs.getId() === srcId2) !==
+              undefined
           ) {
             rootElement
               .selectAll(
@@ -928,28 +831,17 @@ export class D3Utils {
                   srcId2 +
                   '"]',
               )
-              .classed(
-                StaticDomTags.TAG_ENFORCE_DISABLE_ALL_POINTER_EVENTS,
-                false,
-              );
+              .classed(StaticDomTags.TAG_ENFORCE_DISABLE_ALL_POINTER_EVENTS, false);
           }
         }
         if (trgTrans !== undefined) {
-          const trgId1 = trgNode
-            .getPort(trgTrans.getPortId1())
-            .getTrainrunSection()
-            .getId();
-          const trgId2 = trgNode
-            .getPort(trgTrans.getPortId2())
-            .getTrainrunSection()
-            .getId();
+          const trgId1 = trgNode.getPort(trgTrans.getPortId1()).getTrainrunSection().getId();
+          const trgId2 = trgNode.getPort(trgTrans.getPortId2()).getTrainrunSection().getId();
           if (
-            finalTrainrunSections.find(
-              (checkTs: TrainrunSection) => checkTs.getId() === trgId1,
-            ) !== undefined &&
-            finalTrainrunSections.find(
-              (checkTs: TrainrunSection) => checkTs.getId() === trgId2,
-            ) !== undefined
+            finalTrainrunSections.find((checkTs: TrainrunSection) => checkTs.getId() === trgId1) !==
+              undefined &&
+            finalTrainrunSections.find((checkTs: TrainrunSection) => checkTs.getId() === trgId2) !==
+              undefined
           ) {
             rootElement
               .selectAll(
@@ -963,10 +855,7 @@ export class D3Utils {
                   trgId2 +
                   '"]',
               )
-              .classed(
-                StaticDomTags.TAG_ENFORCE_DISABLE_ALL_POINTER_EVENTS,
-                false,
-              );
+              .classed(StaticDomTags.TAG_ENFORCE_DISABLE_ALL_POINTER_EVENTS, false);
           }
         }
       });
@@ -992,15 +881,11 @@ export class D3Utils {
         .classed(StaticDomTags.TAG_ANALYTICS_LEVEL + Math.min(5, level), true);
 
       rootElement
-        .selectAll(
-          'text.node_title_analyticsarea_left[id="' + sdn.node.getId() + '"]',
-        )
+        .selectAll('text.node_title_analyticsarea_left[id="' + sdn.node.getId() + '"]')
         .text("#" + level);
 
       rootElement
-        .selectAll(
-          'text.node_title_analyticsarea_right[id="' + sdn.node.getId() + '"]',
-        )
+        .selectAll('text.node_title_analyticsarea_right[id="' + sdn.node.getId() + '"]')
         .text(D3Utils.formatTime(sdn.distance, 0));
     });
   }
@@ -1014,10 +899,7 @@ export class D3Utils {
     const hours = Math.floor(roundedTime / 60);
     const minutes = roundedTime % 60;
     return (
-      prefix +
-      (hours < 10 ? "0" + hours : hours) +
-      ":" +
-      (minutes < 10 ? "0" + minutes : minutes)
+      prefix + (hours < 10 ? "0" + hours : hours) + ":" + (minutes < 10 ? "0" + minutes : minutes)
     );
   }
 }

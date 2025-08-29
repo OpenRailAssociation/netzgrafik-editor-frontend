@@ -4,9 +4,7 @@ import {UiInteractionService} from "../../services/ui/ui.interaction.service";
 import {SbbRadioChange} from "@sbb-esta/angular/radio-button";
 import {ThemeBase} from "../themes/theme-base";
 import {ThemeRegistration} from "../themes/theme-registration";
-import {
-  StreckengrafikRenderingType
-} from "../themes/streckengrafik-rendering-type";
+import {StreckengrafikRenderingType} from "../themes/streckengrafik-rendering-type";
 import {TravelTimeCreationEstimatorType} from "../themes/editor-trainrun-traveltime-creator-type";
 
 @Component({
@@ -86,8 +84,7 @@ export class EditorPropertiesViewComponent {
   ];
   activeTravelTimeCreationEstimatorType: TravelTimeCreationEstimatorType = null;
 
-  activeDarkBackgroundColor =
-    EditorPropertiesViewComponent.DEFAULT_DARK_BACKGROUNDCOLOR;
+  activeDarkBackgroundColor = EditorPropertiesViewComponent.DEFAULT_DARK_BACKGROUNDCOLOR;
   activeBackgroundColor = EditorPropertiesViewComponent.DEFAULT_BACKGROUNDCOLOR;
 
   constructor(
@@ -102,13 +99,9 @@ export class EditorPropertiesViewComponent {
       this.uiInteractionService.getActiveTravelTimeCreationEstimatorType();
 
     if (activeTheme.isDark) {
-      this.activeDarkBackgroundColor = this.getHexColor(
-        activeTheme.backgroundColor,
-      );
+      this.activeDarkBackgroundColor = this.getHexColor(activeTheme.backgroundColor);
     } else {
-      this.activeBackgroundColor = this.getHexColor(
-        activeTheme.backgroundColor,
-      );
+      this.activeBackgroundColor = this.getHexColor(activeTheme.backgroundColor);
     }
   }
 
@@ -128,71 +121,48 @@ export class EditorPropertiesViewComponent {
     this.uiInteractionService.setActiveStreckengrafikRenderingType(event.value);
   }
 
-
   onUpdateaTravelTimeCreationEstimatorType(event: SbbRadioChange) {
     this.uiInteractionService.setActiveTravelTimeCreationEstimatorType(event.value);
   }
 
   colorPicked(value) {
     this.onUpdateColorTheme(
-      new SbbRadioChange(
-        null,
-        this.uiInteractionService.getActiveTheme().themeRegistration,
-      ),
+      new SbbRadioChange(null, this.uiInteractionService.getActiveTheme().themeRegistration),
     );
   }
 
   isDefaultBackgroundColorActive(): boolean {
-    return (
-      this.activeBackgroundColor ===
-      EditorPropertiesViewComponent.DEFAULT_BACKGROUNDCOLOR
-    );
+    return this.activeBackgroundColor === EditorPropertiesViewComponent.DEFAULT_BACKGROUNDCOLOR;
   }
 
   isDefaultDarkBackgroundColorActive(): boolean {
     return (
-      this.activeDarkBackgroundColor ===
-      EditorPropertiesViewComponent.DEFAULT_DARK_BACKGROUNDCOLOR
+      this.activeDarkBackgroundColor === EditorPropertiesViewComponent.DEFAULT_DARK_BACKGROUNDCOLOR
     );
   }
 
   isBackgroundColorWhite(): boolean {
-    return (
-      this.activeBackgroundColor ===
-      EditorPropertiesViewComponent.BACKGROUNDCOLOR_WHITE
-    );
+    return this.activeBackgroundColor === EditorPropertiesViewComponent.BACKGROUNDCOLOR_WHITE;
   }
 
   setBackgroundColorToWhite() {
-    this.activeBackgroundColor =
-      EditorPropertiesViewComponent.BACKGROUNDCOLOR_WHITE;
+    this.activeBackgroundColor = EditorPropertiesViewComponent.BACKGROUNDCOLOR_WHITE;
     this.onUpdateColorTheme(
-      new SbbRadioChange(
-        null,
-        this.uiInteractionService.getActiveTheme().themeRegistration,
-      ),
+      new SbbRadioChange(null, this.uiInteractionService.getActiveTheme().themeRegistration),
     );
   }
 
   onResetBackgroundColor() {
-    this.activeBackgroundColor =
-      EditorPropertiesViewComponent.DEFAULT_BACKGROUNDCOLOR;
+    this.activeBackgroundColor = EditorPropertiesViewComponent.DEFAULT_BACKGROUNDCOLOR;
     this.onUpdateColorTheme(
-      new SbbRadioChange(
-        null,
-        this.uiInteractionService.getActiveTheme().themeRegistration,
-      ),
+      new SbbRadioChange(null, this.uiInteractionService.getActiveTheme().themeRegistration),
     );
   }
 
   onResetDarkBackgroundColor() {
-    this.activeDarkBackgroundColor =
-      EditorPropertiesViewComponent.DEFAULT_DARK_BACKGROUNDCOLOR;
+    this.activeDarkBackgroundColor = EditorPropertiesViewComponent.DEFAULT_DARK_BACKGROUNDCOLOR;
     this.onUpdateColorTheme(
-      new SbbRadioChange(
-        null,
-        this.uiInteractionService.getActiveTheme().themeRegistration,
-      ),
+      new SbbRadioChange(null, this.uiInteractionService.getActiveTheme().themeRegistration),
     );
   }
 
@@ -217,9 +187,7 @@ export class EditorPropertiesViewComponent {
       // eslint-disable-next-line no-bitwise
       return (
         "#" +
-        ((1 << 24) + (colors[0] << 16) + (colors[1] << 8) + colors[2])
-          .toString(16)
-          .substring(1)
+        ((1 << 24) + (colors[0] << 16) + (colors[1] << 8) + colors[2]).toString(16).substring(1)
       );
     } else {
       return colorStr;

@@ -51,10 +51,4 @@ class LabelOperation extends Operation {
   }
 }
 
-export {
-  OperationType,
-  Operation,
-  TrainrunOperation,
-  NodeOperation,
-  LabelOperation,
-};
+export {OperationType, Operation, TrainrunOperation, NodeOperation, LabelOperation};

@@ -52,6 +52,7 @@ The operations related to the NGE framework are used to handle changes to Trainr
 - modify Trainrun name (trainrun window or Perlenkette, fill in the box + ENTER key / click elsewhere) => TrainrunOperation(update)
 - modify Trainrun category (trainrun window or Perlenkette, select another category) => TrainrunOperation(update)
 - modify Trainrun frequency (trainrun window or Perlenkette, select another frequency) => TrainrunOperation(update)
+- modify Trainrun direction (trainrun window, set round trip or one-way) => TrainrunOperation(update)
 - modify Trainrun timeCategory (trainrun window or Perlenkette, select another time range) => TrainrunOperation(update)
 - modify Trainrun transition stop (main window or Perlenkette, click on the hexagon in the middle of a node) => TrainrunOperation(update)
 - (if it does not exist, create and) add Trainrun label (trainrun window, fill in the box then ENTER key / click elsewhere) => TrainrunOperation(update)

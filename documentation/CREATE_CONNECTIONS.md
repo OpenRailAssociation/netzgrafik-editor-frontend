@@ -8,6 +8,7 @@ Connections can be easily created by following these steps:
 - Instead of re-routing the trainrun, you can use the pin (circle) to connect the trainrun to another
   trainrun. To create the connection, drag and drop the pin where the trainrun is aligned to node
   to another trainrun pin in the same node.
+
   > When dragging within a node, the line will appear dashed, and small circles will indicate all
   > possible connections (pins).
 

@@ -7,10 +7,7 @@ import {ResourceService} from "../app/services/data/resource.service";
 import {LogService} from "../app/logger/log.service";
 import {LogPublishersService} from "../app/logger/log.publishers.service";
 import {NetzgrafikUnitTesting} from "./netzgrafik.unit.testing";
-import {
-  NonStopTrainrunIterator,
-  TrainrunIterator,
-} from "../app/services/util/trainrun.iterator";
+import {NonStopTrainrunIterator, TrainrunIterator} from "../app/services/util/trainrun.iterator";
 import {NoteService} from "../app/services/data/note.service";
 import {LabelGroupService} from "../app/services/data/labelgroup.service";
 import {LabelService} from "../app/services/data/label.service";
@@ -40,16 +37,8 @@ describe("TrainrunSection Service Test", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -75,9 +64,7 @@ describe("TrainrunSection Service Test", () => {
   });
 
   it("test simple trainrun iterator 1 test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 
     const startingTrainrunSection = trainrunSectionService
       .getAllTrainrunSectionsForTrainrun(2)
@@ -109,9 +96,7 @@ describe("TrainrunSection Service Test", () => {
   });
 
   it("test simple trainrun iterator 2 test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 
     const startingTrainrunSection = trainrunSectionService
       .getAllTrainrunSectionsForTrainrun(2)
@@ -143,9 +128,7 @@ describe("TrainrunSection Service Test", () => {
   });
 
   it("test simple trainrun iterator 2 test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 
     const startingTrainrunSection = trainrunSectionService
       .getAllTrainrunSectionsForTrainrun(2)

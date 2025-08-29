@@ -9,8 +9,8 @@
       (keydown)="onKeydown($event)"
       placeholder="Name"
     />
-    <sbb-error *ngIf="model.getControl('name').errors?.required"
-      >{{ 'app.view.dialogs.filterable-labels-dialog.filterable-labels-form.mandatory-field' | translate }}</sbb-error
-    >
+    <sbb-error *ngIf="model.getControl('name').errors?.required">{{
+      "app.view.dialogs.filterable-labels-dialog.filterable-labels-form.mandatory-field" | translate
+    }}</sbb-error>
   </sbb-form-field>
 </div>

@@ -28,10 +28,7 @@ export interface VariantControllerBackendServiceInterface {
    *
    * @param variantId
    */
-  archiveVariant(
-    variantId: number,
-    extraHttpRequestParams?: any,
-  ): Observable<{}>;
+  archiveVariant(variantId: number, extraHttpRequestParams?: any): Observable<{}>;
 
   /**
    *
@@ -62,30 +59,21 @@ export interface VariantControllerBackendServiceInterface {
    *
    * @param variantId
    */
-  deleteVariant(
-    variantId: number,
-    extraHttpRequestParams?: any,
-  ): Observable<string>;
+  deleteVariant(variantId: number, extraHttpRequestParams?: any): Observable<string>;
 
   /**
    *
    *
    * @param variantId
    */
-  dropSnapshots(
-    variantId: number,
-    extraHttpRequestParams?: any,
-  ): Observable<{}>;
+  dropSnapshots(variantId: number, extraHttpRequestParams?: any): Observable<{}>;
 
   /**
    *
    *
    * @param variantId
    */
-  getVariant(
-    variantId: number,
-    extraHttpRequestParams?: any,
-  ): Observable<VariantDto>;
+  getVariant(variantId: number, extraHttpRequestParams?: any): Observable<VariantDto>;
 
   /**
    *
@@ -102,8 +90,5 @@ export interface VariantControllerBackendServiceInterface {
    *
    * @param variantId
    */
-  unarchiveVariant(
-    variantId: number,
-    extraHttpRequestParams?: any,
-  ): Observable<{}>;
+  unarchiveVariant(variantId: number, extraHttpRequestParams?: any): Observable<{}>;
 }

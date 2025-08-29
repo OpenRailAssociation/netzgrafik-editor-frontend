@@ -5,8 +5,7 @@ import {BehaviorSubject, Observable, Subject} from "rxjs";
   providedIn: "root",
 })
 export class StreckengrafikDisplayElementService {
-  private readonly streckengrafikDisplayElementSubject =
-    new BehaviorSubject<string>("all");
+  private readonly streckengrafikDisplayElementSubject = new BehaviorSubject<string>("all");
   private readonly streckengrafikDisplayElement$ =
     this.streckengrafikDisplayElementSubject.asObservable();
 

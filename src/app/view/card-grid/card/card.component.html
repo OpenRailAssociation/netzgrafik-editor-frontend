@@ -8,13 +8,10 @@
   <div *ngIf="subtitle" class="subtitle">
     {{ subtitle }}
   </div>
-  <a [attr.id]="getCardComponentRouterLinkId(route)" *ngIf="route" sbb-link [routerLink]="route"> {{ 'app.view.card-grid.card.open' | translate }} </a>
+  <a [attr.id]="getCardComponentRouterLinkId(route)" *ngIf="route" sbb-link [routerLink]="route">
+    {{ "app.view.card-grid.card.open" | translate }}
+  </a>
 </div>
-<div
-  *ngIf="icon"
-  [class.card]="true"
-  [class.icon]="icon"
-  (click)="icon && iconClick.emit()"
->
+<div *ngIf="icon" [class.card]="true" [class.icon]="icon" (click)="icon && iconClick.emit()">
   <sbb-icon *ngIf="icon" [svgIcon]="icon"></sbb-icon>
 </div>

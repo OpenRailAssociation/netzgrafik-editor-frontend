@@ -1,14 +1,5 @@
-import {
-  OriginDestination,
-  OriginDestinationService,
-} from "./origin-destination.service";
-import {
-  Component,
-  ElementRef,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-} from "@angular/core";
+import {OriginDestination, OriginDestinationService} from "./origin-destination.service";
+import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import * as d3 from "d3";
 
 import {Subject, takeUntil} from "rxjs";
@@ -16,10 +7,7 @@ import {
   SVGMouseController,
   SVGMouseControllerObserver,
 } from "src/app/view/util/svg.mouse.controller";
-import {
-  UiInteractionService,
-  ViewboxProperties,
-} from "src/app/services/ui/ui.interaction.service";
+import {UiInteractionService, ViewboxProperties} from "src/app/services/ui/ui.interaction.service";
 import {Vec2D} from "src/app/utils/vec2D";
 import {UndoService} from "src/app/services/data/undo.service";
 
@@ -64,10 +52,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
   private cellSize: number = 30;
 
-  private extractNumericODValues(
-    odList: OriginDestination[],
-    field: FieldName,
-  ): number[] {
+  private extractNumericODValues(odList: OriginDestination[], field: FieldName): number[] {
     return odList.filter((od) => od["found"]).map((od) => od[field]);
   }
 
@@ -95,19 +80,15 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     // Add some data so we can mouseover the diagonal cells.
     const origins = this.matrixData.map((d) => d.origin);
     const destinations = this.matrixData.map((d) => d.destination);
-    const uniqueOriginsDestinations = [
-      ...new Set([...origins, ...destinations]),
-    ];
-    const diagonalData: OriginDestination[] = uniqueOriginsDestinations.map(
-      (name) => ({
-        origin: name,
-        destination: name,
-        totalCost: undefined,
-        travelTime: undefined,
-        transfers: undefined,
-        found: false,
-      }),
-    );
+    const uniqueOriginsDestinations = [...new Set([...origins, ...destinations])];
+    const diagonalData: OriginDestination[] = uniqueOriginsDestinations.map((name) => ({
+      origin: name,
+      destination: name,
+      totalCost: undefined,
+      travelTime: undefined,
+      transfers: undefined,
+      found: false,
+    }));
     this.matrixData = [...this.matrixData, ...diagonalData];
     this.renderView();
 
@@ -139,15 +120,9 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       .attr("height", height)
       .attr("viewBox", `0 0 ${width} ${height}`);
 
-    const container = document.getElementById(
-      "main-origin-destination-container",
-    );
-    const containerHeight = container
-      ? container.clientHeight
-      : window.innerHeight;
-    const containerWidth = container
-      ? container.clientWidth
-      : window.innerWidth;
+    const container = document.getElementById("main-origin-destination-container");
+    const containerHeight = container ? container.clientHeight : window.innerHeight;
+    const containerWidth = container ? container.clientWidth : window.innerWidth;
     const offsetX = Math.max(0, (containerWidth - width) / 2);
     const offsetY = Math.max(0, (containerHeight - height) / 2);
 
@@ -193,16 +168,11 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       .style("pointer-events", "none")
       .call(d3.axisLeft(y).tickSize(0))
       .style("user-select", "none")
-      .call((g) =>
-        g.selectAll("text").attr("data-destination-label", (d: string) => d),
-      )
+      .call((g) => g.selectAll("text").attr("data-destination-label", (d: string) => d))
       .select(".domain")
       .remove();
 
-    const numericValues = this.extractNumericODValues(
-      this.matrixData,
-      this.colorBy,
-    );
+    const numericValues = this.extractNumericODValues(this.matrixData, this.colorBy);
     const maxValue = numericValues.length ? Math.max(...numericValues) : 1;
     const minValue = numericValues.length ? Math.min(...numericValues) : 0;
     this.colorScale = this.getColorScale(minValue, maxValue);
@@ -225,10 +195,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const mouseover = function (d: OriginDestination) {
       if (d.found) {
         tooltip.style("opacity", 1);
-        d3.select(this)
-          .style("stroke", "black")
-          .style("stroke-width", "2px")
-          .style("opacity", 1);
+        d3.select(this).style("stroke", "black").style("stroke-width", "2px").style("opacity", 1);
       }
 
       // Highlight axis labels in bold when hovering over a cell
@@ -244,9 +211,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const transfersTranslation = $localize`:@@app.origin-destination.tooltip.transfers:Transfers`;
     const travelTimeTranslation = $localize`:@@app.origin-destination.tooltip.travel-time:Travel time`;
 
-    const nodeNameMap = new Map(
-      nodeNames.map((n) => [n.shortName, n.fullName]),
-    );
+    const nodeNameMap = new Map(nodeNames.map((n) => [n.shortName, n.fullName]));
 
     const mousemove = function (d: OriginDestination) {
       let details = "";
@@ -263,19 +228,14 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
           ${details}`,
         )
         .style("left", `${d3.event.offsetX + 64}px`)
-        .style(
-          "top",
-          `${d3.event.offsetY + 64 < 0 ? 0 : d3.event.offsetY + 64}px`,
-        );
+        .style("top", `${d3.event.offsetY + 64 < 0 ? 0 : d3.event.offsetY + 64}px`);
     };
 
     const mouseleave = function (_d) {
       tooltip.style("opacity", 0);
       d3.select(this)
         .style("stroke", "none")
-        .style("opacity", (d: OriginDestination) =>
-          d.origin === d.destination ? 0 : 0.8,
-        );
+        .style("opacity", (d: OriginDestination) => (d.origin === d.destination ? 0 : 0.8));
 
       // Remove boldness from the axis labels
       d3.selectAll(`[data-origin-label="${_d.origin}"]`)
@@ -307,9 +267,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
       .style("stroke-width", 4)
       .style("stroke", "none")
-      .style("opacity", (d: OriginDestination) =>
-        d.origin === d.destination ? 0 : 0.8,
-      )
+      .style("opacity", (d: OriginDestination) => (d.origin === d.destination ? 0 : 0.8))
       .style("pointer-events", "auto")
 
       .on("mouseover", mouseover)
@@ -358,19 +316,11 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     };
   }
 
-  private createInitialViewboxProperties(
-    numberOfNodes: number,
-  ): ViewboxProperties {
+  private createInitialViewboxProperties(numberOfNodes: number): ViewboxProperties {
     const matrixSize = this.cellSize * numberOfNodes;
-    const container = document.getElementById(
-      "main-origin-destination-container",
-    );
-    const containerHeight = container
-      ? container.clientHeight
-      : window.innerHeight;
-    const containerWidth = container
-      ? container.clientWidth
-      : window.innerWidth;
+    const container = document.getElementById("main-origin-destination-container");
+    const containerHeight = container ? container.clientHeight : window.innerHeight;
+    const containerWidth = container ? container.clientWidth : window.innerWidth;
     const panZoomTop = Math.max(0, (containerHeight - matrixSize) / 2);
     const panZoomLeft = Math.max(0, (containerWidth - matrixSize) / 2);
     return {
@@ -385,10 +335,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     };
   }
 
-  private getCellValue(
-    d: OriginDestination,
-    field: FieldName,
-  ): number | undefined {
+  private getCellValue(d: OriginDestination, field: FieldName): number | undefined {
     return d["found"] ? d[field] : undefined;
   }
 

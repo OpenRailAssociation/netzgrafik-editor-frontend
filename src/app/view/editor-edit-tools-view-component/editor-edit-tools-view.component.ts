@@ -1,9 +1,7 @@
 import {Component, ElementRef, OnDestroy, ViewChild} from "@angular/core";
 import {DataService} from "../../services/data/data.service";
 import {UiInteractionService} from "../../services/ui/ui.interaction.service";
-import {
-  ConfirmationDialogParameter
-} from "../dialogs/confirmation-dialog/confirmation-dialog.component";
+import {ConfirmationDialogParameter} from "../dialogs/confirmation-dialog/confirmation-dialog.component";
 import {NodeService} from "../../services/data/node.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {EditorMode} from "../editor-menu/editor-mode";
@@ -51,29 +49,23 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     public filterService: FilterService,
     private uiInteractionService: UiInteractionService,
     private versionControlService: VersionControlService,
-    private positionTransformationService: PositionTransformationService
+    private positionTransformationService: PositionTransformationService,
   ) {
-    this.nodeLabelGroups = this.labelGroupService.getLabelGroupsFromLabelRef(
-      LabelRef.Node,
-    );
-    this.trainrunLabelGroups =
-      this.labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Trainrun);
+    this.nodeLabelGroups = this.labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Node);
+    this.trainrunLabelGroups = this.labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Trainrun);
 
-    this.labelGroupService.labelGroups
-      .pipe(takeUntil(this.destroyed))
-      .subscribe(() => {
-        this.nodeLabelGroups =
-          this.labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Node);
-        this.trainrunLabelGroups =
-          this.labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Trainrun);
-      });
+    this.labelGroupService.labelGroups.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.nodeLabelGroups = this.labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Node);
+      this.trainrunLabelGroups = this.labelGroupService.getLabelGroupsFromLabelRef(
+        LabelRef.Trainrun,
+      );
+    });
 
     this.labelService.labels.pipe(takeUntil(this.destroyed)).subscribe(() => {
-      this.nodeLabelGroups = this.labelGroupService.getLabelGroupsFromLabelRef(
-        LabelRef.Node,
+      this.nodeLabelGroups = this.labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Node);
+      this.trainrunLabelGroups = this.labelGroupService.getLabelGroupsFromLabelRef(
+        LabelRef.Trainrun,
       );
-      this.trainrunLabelGroups =
-        this.labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Trainrun);
     });
   }
 
@@ -202,10 +194,6 @@ export class EditorEditToolsViewComponent implements OnDestroy {
         "resources" in netzgrafikDto &&
         "metadata" in netzgrafikDto
       ) {
-        this.logger.log(
-          "onLoadNetzgrafikToMerge; load netzgrafik: ",
-          netzgrafikDto,
-        );
         this.setEditModeToNetzgrafikEditing();
         callback(netzgrafikDto);
       }

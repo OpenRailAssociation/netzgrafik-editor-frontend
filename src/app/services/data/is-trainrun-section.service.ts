@@ -12,24 +12,21 @@ export class IsTrainrunSelectedService implements OnDestroy {
   readonly trainrunIdSelecteds$ = this.trainrunIdSelectedSubject.asObservable();
 
   trainrunIdSelectedByClickSubject = new BehaviorSubject<number>(undefined);
-  readonly trainrunIdSelectedByClick$ =
-    this.trainrunIdSelectedByClickSubject.asObservable();
+  readonly trainrunIdSelectedByClick$ = this.trainrunIdSelectedByClickSubject.asObservable();
 
   private destroyed$ = new Subject<void>();
 
   constructor(private trainrunService: TrainrunService) {
-    this.trainrunService.trainruns
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((trainruns) => {
-        let selectedTrainrunId = undefined;
-        if (trainruns) {
-          const selectedTrainrun = this.trainrunService.getSelectedTrainrun();
-          if (selectedTrainrun) {
-            selectedTrainrunId = selectedTrainrun.getId();
-          }
+    this.trainrunService.trainruns.pipe(takeUntil(this.destroyed$)).subscribe((trainruns) => {
+      let selectedTrainrunId = undefined;
+      if (trainruns) {
+        const selectedTrainrun = this.trainrunService.getSelectedTrainrun();
+        if (selectedTrainrun) {
+          selectedTrainrunId = selectedTrainrun.getId();
         }
-        this.trainrunIdSelectedSubject.next(selectedTrainrunId);
-      });
+      }
+      this.trainrunIdSelectedSubject.next(selectedTrainrunId);
+    });
   }
 
   ngOnDestroy() {

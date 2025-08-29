@@ -37,14 +37,10 @@ export class UndoService implements OnDestroy {
       .subscribe((info: NetzgrafikLoadedInfo) => {
         this.netzgrafikIsLoading = info.load;
         if (!info.load && !this.undoNetzgrafikIsLoading) {
-          this.currentNetzgrafikJSON = JSON.stringify(
-            this.dataService.getNetzgrafikDto(),
-          );
+          this.currentNetzgrafikJSON = JSON.stringify(this.dataService.getNetzgrafikDto());
           if (!info.preview) {
             this.changeHistoryStack = [];
-            this.changeHistoryStack.push(
-              JSON.parse(this.currentNetzgrafikJSON),
-            );
+            this.changeHistoryStack.push(JSON.parse(this.currentNetzgrafikJSON));
           }
         }
       });
@@ -101,9 +97,7 @@ export class UndoService implements OnDestroy {
   }
 
   private internalPushCurrentVersion(enforce = false) {
-    const newNetzgrafikJson = JSON.stringify(
-      this.dataService.getNetzgrafikDto(),
-    );
+    const newNetzgrafikJson = JSON.stringify(this.dataService.getNetzgrafikDto());
     const modified = newNetzgrafikJson !== this.currentNetzgrafikJSON;
     if (modified || enforce) {
       this.changeHistoryStack.push(JSON.parse(newNetzgrafikJson));
@@ -136,9 +130,7 @@ export class UndoService implements OnDestroy {
 
   public reset(variantId: number) {
     if (this.currentVariantId !== variantId) {
-      this.currentNetzgrafikJSON = JSON.stringify(
-        this.dataService.getNetzgrafikDto(),
-      );
+      this.currentNetzgrafikJSON = JSON.stringify(this.dataService.getNetzgrafikDto());
       this.changeHistoryStack = [];
       this.changeHistoryStack.push(JSON.parse(this.currentNetzgrafikJSON));
     }

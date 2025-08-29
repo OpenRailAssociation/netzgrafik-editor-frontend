@@ -1,17 +1,10 @@
 import {Injectable, OnDestroy, EventEmitter} from "@angular/core";
 import {BehaviorSubject, Subject} from "rxjs";
 import {LogService} from "../../logger/log.service";
-import {
-  LabelDto,
-  LabelRef,
-} from "../../data-structures/business.data.structures";
+import {LabelDto, LabelRef} from "../../data-structures/business.data.structures";
 import {Label} from "../../models/label.model";
 import {LabelGroupService} from "./labelgroup.service";
-import {
-  LabelOperation,
-  Operation,
-  OperationType,
-} from "src/app/models/operation.model";
+import {LabelOperation, Operation, OperationType} from "src/app/models/operation.model";
 
 @Injectable({
   providedIn: "root",
@@ -50,13 +43,9 @@ export class LabelService implements OnDestroy {
     const removedLabels = this.labelStore.labels.filter((el: Label) =>
       labelIds.includes(el.getId()),
     );
-    const others = this.labelStore.labels.filter(
-      (el: Label) => !labelIds.includes(el.getId()),
-    );
+    const others = this.labelStore.labels.filter((el: Label) => !labelIds.includes(el.getId()));
     labelIds.forEach((labelId) => {
-      const labelObject = removedLabels.find(
-        (el: Label) => el.getId() === labelId,
-      );
+      const labelObject = removedLabels.find((el: Label) => el.getId() === labelId);
       others.push(labelObject);
     });
     this.labelStore.labels = others;
@@ -76,13 +65,9 @@ export class LabelService implements OnDestroy {
     const labelObject = this.getLabelFromId(labelId);
     if (labelObject !== undefined) {
       const groupId = labelObject.getLabelGroupId();
-      this.labelStore.labels = this.labelStore.labels.filter(
-        (el: Label) => el.getId() !== labelId,
-      );
+      this.labelStore.labels = this.labelStore.labels.filter((el: Label) => el.getId() !== labelId);
       if (
-        this.labelStore.labels.find(
-          (el: Label) => el.getLabelGroupId() === groupId,
-        ) === undefined
+        this.labelStore.labels.find((el: Label) => el.getLabelGroupId() === groupId) === undefined
       ) {
         this.labelGroupService.deleteLabelGroup(groupId);
       }
@@ -103,10 +88,7 @@ export class LabelService implements OnDestroy {
     this.labelUpdated();
   }
 
-  clearLabel(
-    labelIds: number[],
-    labelIDCounterMap: Map<number, number>,
-  ): number[] {
+  clearLabel(labelIds: number[], labelIDCounterMap: Map<number, number>): number[] {
     const deletetLabelIds: number[] = [];
     if (labelIds !== null && labelIds.length > 0) {
       labelIds.forEach((labelId) => {
@@ -157,9 +139,7 @@ export class LabelService implements OnDestroy {
     const newLabel: Label = new Label();
     newLabel.setLabel(label);
     newLabel.setLabelRef(labelRef);
-    newLabel.setLabelGroupId(
-      this.labelGroupService.getDefaultLabelGroup(labelRef).getId(),
-    );
+    newLabel.setLabelGroupId(this.labelGroupService.getDefaultLabelGroup(labelRef).getId());
     this.labelStore.labels.push(newLabel);
     this.labelUpdated();
     return newLabel;

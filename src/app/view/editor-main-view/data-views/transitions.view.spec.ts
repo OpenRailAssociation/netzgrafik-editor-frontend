@@ -23,9 +23,7 @@ import {NetzgrafikUnitTesting} from "../../../../integration-testing/netzgrafik.
 import {TransitionsView} from "./transitions.view";
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
-import {
-  PositionTransformationService
-} from "../../../services/util/position.transformation.service";
+import {PositionTransformationService} from "../../../services/util/position.transformation.service";
 
 describe("Transitions-View", () => {
   let dataService: DataService;
@@ -57,16 +55,8 @@ describe("Transitions-View", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -98,7 +88,7 @@ describe("Transitions-View", () => {
       trainrunService,
       trainrunSectionService,
       nodeService,
-      filterService
+      filterService,
     );
 
     uiInteractionService = new UiInteractionService(
@@ -131,15 +121,13 @@ describe("Transitions-View", () => {
       undoService,
     );
 
-    const levelOfDetailService = new LevelOfDetailService(
-      uiInteractionService
-    );
+    const levelOfDetailService = new LevelOfDetailService(uiInteractionService);
 
     const viewportCullService = new ViewportCullService(
       uiInteractionService,
       nodeService,
       noteService,
-      trainrunSectionService
+      trainrunSectionService,
     );
 
     const positionTransformationService = new PositionTransformationService(
@@ -147,7 +135,7 @@ describe("Transitions-View", () => {
       nodeService,
       noteService,
       uiInteractionService,
-      viewportCullService
+      viewportCullService,
     );
 
     const controller = new EditorMainViewComponent(
@@ -164,7 +152,7 @@ describe("Transitions-View", () => {
       viewportCullService,
       levelOfDetailService,
       undefined,
-      positionTransformationService
+      positionTransformationService,
     );
 
     new EditorView(
@@ -181,7 +169,7 @@ describe("Transitions-View", () => {
       viewportCullService,
       levelOfDetailService,
       undefined,
-      positionTransformationService
+      positionTransformationService,
     );
 
     controller.bindViewToServices();
@@ -189,16 +177,12 @@ describe("Transitions-View", () => {
   });
 
   it("transitionsView constructor test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const transitionsView = new TransitionsView(editorView);
   });
 
   it("TransitionsView.isMuted - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const t = trainrunService.getTrainrunFromId(2);
     const s = trainrunService.getTrainrunFromId(1);
     const v1 = TransitionsView.isMuted(t, null, undefined);
@@ -206,9 +190,7 @@ describe("Transitions-View", () => {
   });
 
   it("TransitionsView.isMuted - 002", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const t = trainrunService.getTrainrunFromId(2);
     const s = trainrunService.getTrainrunFromId(1);
     const v1 = TransitionsView.isMuted(t, s, []);
@@ -216,9 +198,7 @@ describe("Transitions-View", () => {
   });
 
   it("TransitionsView.isMuted - 003", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const t = trainrunService.getTrainrunFromId(2);
     const s = trainrunService.getTrainrunFromId(1);
     const v1 = TransitionsView.isMuted(t, s, [1, 3]);
@@ -226,9 +206,7 @@ describe("Transitions-View", () => {
   });
 
   it("TransitionsView.isMuted - 004", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const t = trainrunService.getTrainrunFromId(2);
     const s = trainrunService.getTrainrunFromId(1);
     const v1 = TransitionsView.isMuted(t, s, [1, 2, 3]);
@@ -236,9 +214,7 @@ describe("Transitions-View", () => {
   });
 
   it("TransitionsView.createTrainrunClassAttribute - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const t = trainrunService.getTrainrunFromId(2);
     const s = trainrunService.getTrainrunFromId(1);
     const v1 = TransitionsView.createTrainrunClassAttribute(t, null, undefined);
@@ -246,33 +222,23 @@ describe("Transitions-View", () => {
   });
 
   it("TransitionsView.createTrainrunClassAttribute - 002", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const t = trainrunService.getTrainrunFromId(2);
     const s = trainrunService.getTrainrunFromId(1);
     const v1 = TransitionsView.createTrainrunClassAttribute(t, s, []);
-    expect(v1).toBe(
-      "transition_line Freq_20 ColorRef_S LinePatternRef_7/24 muted",
-    );
+    expect(v1).toBe("transition_line Freq_20 ColorRef_S LinePatternRef_7/24 muted");
   });
 
   it("TransitionsView.createTrainrunClassAttribute - 003", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const t = trainrunService.getTrainrunFromId(2);
     const s = trainrunService.getTrainrunFromId(1);
     const v1 = TransitionsView.createTrainrunClassAttribute(t, s, [1, 3]);
-    expect(v1).toBe(
-      "transition_line Freq_20 ColorRef_S LinePatternRef_7/24 muted",
-    );
+    expect(v1).toBe("transition_line Freq_20 ColorRef_S LinePatternRef_7/24 muted");
   });
 
   it("TransitionsView.createTrainrunClassAttribute - 004", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const t = trainrunService.getTrainrunFromId(2);
     const s = trainrunService.getTrainrunFromId(1);
     const v1 = TransitionsView.createTrainrunClassAttribute(t, s, [1, 2, 3]);

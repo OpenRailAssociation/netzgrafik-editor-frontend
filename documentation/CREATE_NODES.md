@@ -25,11 +25,11 @@ so that the layout comes directly from the import.
 <summary>Import CSV interface description
 </summary>
 
-|                  |                      BP                      |                     Bahnhof                      |   Kategorie    |    Region     |              Fahrgastwechselzeit_IPV               |               Fahrgastwechselzeit_A                |               Fahrgastwechselzeit_B                |               Fahrgastwechselzeit_C                |               Fahrgastwechselzeit_D                |      ZAZ      |           Umsteigezeit           |              Labels              |         X         |          Y          |                            Erstellen                            |
-|:----------------:|:--------------------------------------------:|:------------------------------------------------:|:--------------:|:-------------:|:--------------------------------------------------:|:--------------------------------------------------:|:--------------------------------------------------:|:--------------------------------------------------:|:--------------------------------------------------:|:-------------:|:--------------------------------:|:--------------------------------:|:-----------------:|:-------------------:|:---------------------------------------------------------------:|
-|     Datatype     |                    string                    |                      string                      |     string     |   nummeric    |                      nummeric                      |                      nummeric                      |                      nummeric                      |                      nummeric                      |                      nummeric                      |   nummeric    |             nummeric             |             nummeric             |     nummeric      |      nummeric       |                          'JA' or empty                          |
+|                  |                      BP                      |                     Bahnhof                      |   Kategorie    |    Region     |              Fahrgastwechselzeit_IPV               |               Fahrgastwechselzeit_A                |               Fahrgastwechselzeit_B                |               Fahrgastwechselzeit_C                |               Fahrgastwechselzeit_D                |      ZAZ      |           Umsteigezeit           |              Labels               |         X         |          Y          |                            Erstellen                            |
+| :--------------: | :------------------------------------------: | :----------------------------------------------: | :------------: | :-----------: | :------------------------------------------------: | :------------------------------------------------: | :------------------------------------------------: | :------------------------------------------------: | :------------------------------------------------: | :-----------: | :------------------------------: | :-------------------------------: | :---------------: | :-----------------: | :-------------------------------------------------------------: |
+|     Datatype     |                    string                    |                      string                      |     string     |   nummeric    |                      nummeric                      |                      nummeric                      |                      nummeric                      |                      nummeric                      |                      nummeric                      |   nummeric    |             nummeric             |             nummeric              |     nummeric      |      nummeric       |                          'JA' or empty                          |
 |   Description    |                      id                      |                    full name                     | category label | region number | if <= 0 -> non stop, otherwise > default stop time | if <= 0 -> non stop, otherwise > default stop time | if <= 0 -> non stop, otherwise > default stop time | if <= 0 -> non stop, otherwise > default stop time | if <= 0 -> non stop, otherwise > default stop time | no implemened | min. connectiontime - Default: 2 | comma separated filterable labels | vertical position | horizontal position | if 'JA' missing nodes gets created, otherwise just updated (ID) |
-| More information | this is a unique identifier <br/>(non-empty) | full name of the station (node) <br/>(non-empty) | empty allowed  | empty allowed |                   empty allowed                    |                   empty allowed                    |                   empty allowed                    |                   empty allowed                    |                   empty allowed                    | empty allowed |          empty allowed           |          empty allowed           |   empty allowed   |    empty allowed    |                          empty allowed                          |
+| More information | this is a unique identifier <br/>(non-empty) | full name of the station (node) <br/>(non-empty) | empty allowed  | empty allowed |                   empty allowed                    |                   empty allowed                    |                   empty allowed                    |                   empty allowed                    |                   empty allowed                    | empty allowed |          empty allowed           |           empty allowed           |   empty allowed   |    empty allowed    |                          empty allowed                          |
 
 **category label:** If the node gets created or updated the category labels gets added as filterable
 label. The label template ist "Kategorie:" + value. Comma separated values allows to add more than
@@ -46,7 +46,7 @@ region label.
 </summary>
 
 | BP   | Bahnhof           | Region | Kategorie | Fahrgastwechselzeit_IPV | Fahrgastwechselzeit_A | Fahrgastwechselzeit_B | Fahrgastwechselzeit_C | Fahrgastwechselzeit_D | Umsteigezeit | ZAZ | Labels | Erstellen | X            | Y            |
-|------|-------------------|--------|-----------|-------------------------|-----------------------|-----------------------|-----------------------|-----------------------|--------------|-----|--------|-----------|--------------|--------------|
+| ---- | ----------------- | ------ | --------- | ----------------------- | --------------------- | --------------------- | --------------------- | --------------------- | ------------ | --- | ------ | --------- | ------------ | ------------ |
 | AA   | Aarau             | Mitte  | 2         | 2                       | 2                     | 2                     | 2                     | 2                     | 4            | 0.2 | SBB    | JA        | -209.4991625 | -427.021373  |
 | GD   | Arth-Goldau       | Sud    | 2         | 2                       | 2                     | 2                     | 2                     | 2                     | 4            |     |        | JA        | 951.9866035  | 758.834056   |
 | BEL  | Bellinzona        | Sud    | 2         | 2                       | 2                     | 2                     | 2                     | 2                     | 4            |     |        | JA        | 2121.053433  | 3728.103892  |
@@ -70,6 +70,7 @@ region label.
 | ZFH  | Zürich Flughafen  | Ost    | 2         | 3                       | 3                     | 3                     | 3                     | 3                     | 4            |     |        | JA        | 962.4904855  | -647.2111605 |
 
 [Demo base data CSV file](29-01-2024-004-Stammdaten_importieren.csv)
+
 </details>
 
 ### Move nodes
@@ -112,6 +113,7 @@ are the same, they are further sorted according to the order of the drawing - fi
 aligned.
 
 > **Sorting heuristic**
+>
 > - Position Alignment (Top > Bottom > Left > Right)
 > - Left - Right | Top - Down
 > - Category short name (predefined order)

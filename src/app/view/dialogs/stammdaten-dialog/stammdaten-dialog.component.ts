@@ -72,16 +72,11 @@ export class StammdatenDialogComponent implements OnDestroy {
     this.stammdaten.forEach((std) => {
       stammdatenConverted.push({
         betriebspunkt: std.getBP(),
-        [HaltezeitFachCategories.IPV]:
-          std.getHaltezeiten()[HaltezeitFachCategories.IPV],
-        [HaltezeitFachCategories.A]:
-          std.getHaltezeiten()[HaltezeitFachCategories.A],
-        [HaltezeitFachCategories.B]:
-          std.getHaltezeiten()[HaltezeitFachCategories.B],
-        [HaltezeitFachCategories.C]:
-          std.getHaltezeiten()[HaltezeitFachCategories.C],
-        [HaltezeitFachCategories.D]:
-          std.getHaltezeiten()[HaltezeitFachCategories.D],
+        [HaltezeitFachCategories.IPV]: std.getHaltezeiten()[HaltezeitFachCategories.IPV],
+        [HaltezeitFachCategories.A]: std.getHaltezeiten()[HaltezeitFachCategories.A],
+        [HaltezeitFachCategories.B]: std.getHaltezeiten()[HaltezeitFachCategories.B],
+        [HaltezeitFachCategories.C]: std.getHaltezeiten()[HaltezeitFachCategories.C],
+        [HaltezeitFachCategories.D]: std.getHaltezeiten()[HaltezeitFachCategories.D],
         connection_time: std.getConnectionTime(),
         zaz: std.getZAZ(),
         region: std.getRegions(),

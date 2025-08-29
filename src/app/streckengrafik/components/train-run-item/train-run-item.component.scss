@@ -22,9 +22,7 @@
   opacity: 1;
 }
 
-::ng-deep
-  g.AllTrainrunSections:hover
-  path.edge_line.Gleisbelegung.HeadwayReservation {
+::ng-deep g.AllTrainrunSections:hover path.edge_line.Gleisbelegung.HeadwayReservation {
   opacity: 0.5;
 }
 

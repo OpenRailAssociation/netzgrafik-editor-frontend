@@ -21,43 +21,91 @@ export class HtmlEditorComponent implements OnInit, OnDestroy {
     new HtmlEditorColor(
       $localize`:@@app.view.dialogs.note-dialog.html-editor.color-presets.ec.title:Use color of the color scheme for EC`,
       "EC",
-      "var(--" + StaticDomTags.PREFIX_COLOR_VARIABLE + "_EC_" + StaticDomTags.TAG_FOCUS.toUpperCase() + ")",
+      "var(--" +
+        StaticDomTags.PREFIX_COLOR_VARIABLE +
+        "_EC_" +
+        StaticDomTags.TAG_FOCUS.toUpperCase() +
+        ")",
     ),
     new HtmlEditorColor(
       $localize`:@@app.view.dialogs.note-dialog.html-editor.color-presets.ic.title:Use color of the color scheme for IC`,
       "IC",
-      "var(--" + StaticDomTags.PREFIX_COLOR_VARIABLE + "_IC_" + StaticDomTags.TAG_FOCUS.toUpperCase() + ")",
+      "var(--" +
+        StaticDomTags.PREFIX_COLOR_VARIABLE +
+        "_IC_" +
+        StaticDomTags.TAG_FOCUS.toUpperCase() +
+        ")",
     ),
     new HtmlEditorColor(
       $localize`:@@app.view.dialogs.note-dialog.html-editor.color-presets.ir.title:Use color of the color scheme for IR`,
       "IR",
-      "var(--" + StaticDomTags.PREFIX_COLOR_VARIABLE + "_IR_" + StaticDomTags.TAG_FOCUS.toUpperCase() + ")",
+      "var(--" +
+        StaticDomTags.PREFIX_COLOR_VARIABLE +
+        "_IR_" +
+        StaticDomTags.TAG_FOCUS.toUpperCase() +
+        ")",
     ),
     new HtmlEditorColor(
       $localize`:@@app.view.dialogs.note-dialog.html-editor.color-presets.re.title:Use color of the color scheme for RE`,
       "RE",
-      "var(--" + StaticDomTags.PREFIX_COLOR_VARIABLE + "_RE_" + StaticDomTags.TAG_FOCUS.toUpperCase() + ")",
+      "var(--" +
+        StaticDomTags.PREFIX_COLOR_VARIABLE +
+        "_RE_" +
+        StaticDomTags.TAG_FOCUS.toUpperCase() +
+        ")",
     ),
     new HtmlEditorColor(
       $localize`:@@app.view.dialogs.note-dialog.html-editor.color-presets.s.title:Use color of the color scheme for S`,
       "S",
-      "var(--" + StaticDomTags.PREFIX_COLOR_VARIABLE + "_S_" + StaticDomTags.TAG_FOCUS.toUpperCase() + ")",
+      "var(--" +
+        StaticDomTags.PREFIX_COLOR_VARIABLE +
+        "_S_" +
+        StaticDomTags.TAG_FOCUS.toUpperCase() +
+        ")",
     ),
     new HtmlEditorColor(
       $localize`:@@app.view.dialogs.note-dialog.html-editor.color-presets.gex.title:Use color of the color scheme for GEX`,
       "GEX",
-      "var(--" + StaticDomTags.PREFIX_COLOR_VARIABLE + "_GEX_" + StaticDomTags.TAG_FOCUS.toUpperCase() + ")",
+      "var(--" +
+        StaticDomTags.PREFIX_COLOR_VARIABLE +
+        "_GEX_" +
+        StaticDomTags.TAG_FOCUS.toUpperCase() +
+        ")",
     ),
     new HtmlEditorColor(
       $localize`:@@app.view.dialogs.note-dialog.html-editor.color-presets.g.title:Use color of the color scheme for G`,
       "G",
-      "var(--" + StaticDomTags.PREFIX_COLOR_VARIABLE + "_G_" + StaticDomTags.TAG_FOCUS.toUpperCase() + ")",
+      "var(--" +
+        StaticDomTags.PREFIX_COLOR_VARIABLE +
+        "_G_" +
+        StaticDomTags.TAG_FOCUS.toUpperCase() +
+        ")",
     ),
-    new HtmlEditorColor($localize`:@@app.view.dialogs.note-dialog.html-editor.color-presets.green.title:green`, "", "green"),
-    new HtmlEditorColor($localize`:@@app.view.dialogs.note-dialog.html-editor.color-presets.blue.title:blue`, "", "blue"),
-    new HtmlEditorColor($localize`:@@app.view.dialogs.note-dialog.html-editor.color-presets.magenta.title:magenta`, "", "magenta"),
-    new HtmlEditorColor($localize`:@@app.view.dialogs.note-dialog.html-editor.color-presets.red.title:red`, "", "red"),
-    new HtmlEditorColor($localize`:@@app.view.dialogs.note-dialog.html-editor.color-presets.warning.title:warning color`, "!", "var(--COLOR_Warning)"),
+    new HtmlEditorColor(
+      $localize`:@@app.view.dialogs.note-dialog.html-editor.color-presets.green.title:green`,
+      "",
+      "green",
+    ),
+    new HtmlEditorColor(
+      $localize`:@@app.view.dialogs.note-dialog.html-editor.color-presets.blue.title:blue`,
+      "",
+      "blue",
+    ),
+    new HtmlEditorColor(
+      $localize`:@@app.view.dialogs.note-dialog.html-editor.color-presets.magenta.title:magenta`,
+      "",
+      "magenta",
+    ),
+    new HtmlEditorColor(
+      $localize`:@@app.view.dialogs.note-dialog.html-editor.color-presets.red.title:red`,
+      "",
+      "red",
+    ),
+    new HtmlEditorColor(
+      $localize`:@@app.view.dialogs.note-dialog.html-editor.color-presets.warning.title:warning color`,
+      "!",
+      "var(--COLOR_Warning)",
+    ),
   ];
 
   updateSubscription: Subscription;
@@ -87,11 +135,7 @@ export class HtmlEditorComponent implements OnInit, OnDestroy {
   }
 
   onColor(color: HtmlEditorColor) {
-    if (
-      this.textBasedActiveColor.find(
-        (col: string) => col === color.colorCode,
-      ) !== undefined
-    ) {
+    if (this.textBasedActiveColor.find((col: string) => col === color.colorCode) !== undefined) {
       this.editor.commands.removeTextColor().exec();
       this.onUpdate();
       return;
@@ -121,11 +165,7 @@ export class HtmlEditorComponent implements OnInit, OnDestroy {
       }
       return "inactive";
     }
-    if (
-      this.textBasedActiveColor.find(
-        (col: string) => col === color.colorCode,
-      ) !== undefined
-    ) {
+    if (this.textBasedActiveColor.find((col: string) => col === color.colorCode) !== undefined) {
       return "active";
     }
     return "inactive";

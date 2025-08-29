@@ -45,8 +45,8 @@
   flex-wrap: wrap;
   margin: 1px;
   background: var(--sbb-header-lean-background-color);
-  border-right: 1px solid  var(--sbb-header-lean-border-bottom-color);
-  border-bottom: 1px solid  var(--sbb-header-lean-border-bottom-color);
+  border-right: 1px solid var(--sbb-header-lean-border-bottom-color);
+  border-bottom: 1px solid var(--sbb-header-lean-border-bottom-color);
 }
 
 ::ng-deep button.ngx-html-editor-color {

@@ -22,14 +22,8 @@
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
-            "assets": [
-              "src/favicon.ico",
-              "src/assets"
-            ],
-            "styles": [
-              "src/styles.scss",
-              "node_modules/@sbb-esta/angular/typography.css"
-            ],
+            "assets": ["src/favicon.ico", "src/assets"],
+            "styles": ["src/styles.scss", "node_modules/@sbb-esta/angular/typography.css"],
             "scripts": [],
             "vendorChunk": true,
             "extractLicenses": false,
@@ -38,10 +32,7 @@
             "sourceMap": true,
             "optimization": false,
             "namedChunks": true,
-            "allowedCommonJsDependencies": [
-              "papaparse",
-              "save-svg-as-png"
-            ]
+            "allowedCommonJsDependencies": ["papaparse", "save-svg-as-png"]
           },
           "configurations": {
             "production": {
@@ -98,7 +89,7 @@
                   "with": "src/environments/environment.standalonedemo.ts"
                 }
               ]
-            },
+            }
           },
           "defaultConfiguration": ""
         },
@@ -141,14 +132,8 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.spec.json",
             "karmaConfig": "karma.conf.js",
-            "assets": [
-              "src/favicon.ico",
-              "src/assets"
-            ],
-            "styles": [
-              "src/styles.scss",
-              "node_modules/@sbb-esta/angular/typography.css"
-            ],
+            "assets": ["src/favicon.ico", "src/assets"],
+            "styles": ["src/styles.scss", "node_modules/@sbb-esta/angular/typography.css"],
             "scripts": []
           },
           "configurations": {
@@ -158,20 +143,14 @@
               "sourceMap": false,
               "progress": false,
               "watch": false,
-              "reporters": [
-                "dots",
-                "sonarqube"
-              ]
+              "reporters": ["dots", "sonarqube"]
             }
           }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html"
-            ]
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
           }
         },
         "e2e": {

@@ -22,9 +22,7 @@ export class UpdateCounterController implements OnDestroy {
   }
 
   clear() {
-    this.updateCounterHandler
-      .getUpdateCounterTriggerService()
-      .clear(this.updateCounterHandler);
+    this.updateCounterHandler.getUpdateCounterTriggerService().clear(this.updateCounterHandler);
   }
 }
 
@@ -36,10 +34,7 @@ export class UpdateCounterTriggerService {
 
   constructor() {}
 
-  registerUpdateHandler(
-    updateCounterHandler: UpdateCounterHandler,
-    counter: number,
-  ) {
+  registerUpdateHandler(updateCounterHandler: UpdateCounterHandler, counter: number) {
     this.updateMap.set(updateCounterHandler, counter);
   }
 

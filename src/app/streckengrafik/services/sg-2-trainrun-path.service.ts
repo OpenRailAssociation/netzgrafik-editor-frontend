@@ -15,10 +15,8 @@ import {SgStopService} from "./sg-stop-.service";
   providedIn: "root",
 })
 export class Sg2TrainrunPathService implements OnDestroy {
-  private readonly sgSelectedTrainrunSubject =
-    new BehaviorSubject<SgSelectedTrainrun>(undefined);
-  private readonly sgSelectedTrainrun$ =
-    this.sgSelectedTrainrunSubject.asObservable();
+  private readonly sgSelectedTrainrunSubject = new BehaviorSubject<SgSelectedTrainrun>(undefined);
+  private readonly sgSelectedTrainrun$ = this.sgSelectedTrainrunSubject.asObservable();
 
   private trainrunItem: TrainrunItem;
 
@@ -109,12 +107,10 @@ export class Sg2TrainrunPathService implements OnDestroy {
           pathNode.filter,
         ); // backward
         if (pathNode.arrivalPathSection) {
-          sgPathNode.arrivalTrainrunSectionId =
-            pathNode.arrivalPathSection.trainrunSectionId;
+          sgPathNode.arrivalTrainrunSectionId = pathNode.arrivalPathSection.trainrunSectionId;
         }
         if (pathNode.departurePathSection) {
-          sgPathNode.departureTrainrunSectionId =
-            pathNode.departurePathSection.trainrunSectionId;
+          sgPathNode.departureTrainrunSectionId = pathNode.departurePathSection.trainrunSectionId;
         }
 
         returnSgPath.push(sgPathNode);

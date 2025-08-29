@@ -11,7 +11,9 @@ export class NavigationParameters {
   getProjectId(): number {
     const id = this.tryGetProjectId();
     if (!id) {
-      throw new Error($localize`:@@app.utils.navigation-parameters.no-project-id:No project ID available`);
+      throw new Error(
+        $localize`:@@app.utils.navigation-parameters.no-project-id:No project ID available`,
+      );
     }
     return id;
   }
@@ -24,7 +26,9 @@ export class NavigationParameters {
   getVariantId(): number {
     const id = this.tryGetVariantId();
     if (!id) {
-      throw new Error($localize`:@@app.utils.navigation-parameters.no-variant-id:No variant ID available`);
+      throw new Error(
+        $localize`:@@app.utils.navigation-parameters.no-variant-id:No variant ID available`,
+      );
     }
     return id;
   }
@@ -37,7 +41,9 @@ export class NavigationParameters {
   getVersionId(): number {
     const id = this.tryGetVersionId();
     if (!id) {
-      throw new Error($localize`:@@app.utils.navigation-parameters.no-version-id:No version ID available`);
+      throw new Error(
+        $localize`:@@app.utils.navigation-parameters.no-version-id:No version ID available`,
+      );
     }
     return id;
   }

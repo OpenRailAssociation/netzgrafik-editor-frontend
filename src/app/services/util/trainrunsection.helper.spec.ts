@@ -43,16 +43,8 @@ describe("TrainrunsectionHelper", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -85,9 +77,7 @@ describe("TrainrunsectionHelper", () => {
   });
 
   it("Test load data", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodes.length).toBe(5);
     expect(trainrunSections.length).toBe(8);
   });
@@ -329,63 +319,38 @@ describe("TrainrunsectionHelper", () => {
   });
 
   it("trainrunSectionService.getTrainrunSectionFromId", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 
     const ts = trainrunSectionService.getTrainrunSectionFromId(1);
-    const nodes = trainrunService.getBothEndNodesWithTrainrunId(
-      ts.getTrainrunId(),
-    );
-    const d = trainrunsectionHelper.getLeftAndRightLock(ts, [
-      nodes.endNode1,
-      nodes.endNode2,
-    ]);
+    const nodes = trainrunService.getBothEndNodesWithTrainrunId(ts.getTrainrunId());
+    const d = trainrunsectionHelper.getLeftAndRightLock(ts, [nodes.endNode1, nodes.endNode2]);
     expect(d.leftLock).toBe(false);
     expect(d.rightLock).toBe(false);
     expect(d.travelTimeLock).toBe(true);
   });
 
   it("getLeftBetriebspunkt - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(1);
-    const nodes = trainrunService.getBothEndNodesWithTrainrunId(
-      ts.getTrainrunId(),
-    );
-    const d = trainrunsectionHelper.getLeftBetriebspunkt(ts, [
-      nodes.endNode1,
-      nodes.endNode2,
-    ]);
+    const nodes = trainrunService.getBothEndNodesWithTrainrunId(ts.getTrainrunId());
+    const d = trainrunsectionHelper.getLeftBetriebspunkt(ts, [nodes.endNode1, nodes.endNode2]);
     expect(d[0]).toBe("OL");
     expect(d[1]).toBe("(Olten)");
   });
 
   it("getRightBetriebspunkt - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(1);
-    const nodes = trainrunService.getBothEndNodesWithTrainrunId(
-      ts.getTrainrunId(),
-    );
-    const d = trainrunsectionHelper.getRightBetriebspunkt(ts, [
-      nodes.endNode1,
-      nodes.endNode2,
-    ]);
+    const nodes = trainrunService.getBothEndNodesWithTrainrunId(ts.getTrainrunId());
+    const d = trainrunsectionHelper.getRightBetriebspunkt(ts, [nodes.endNode1, nodes.endNode2]);
     expect(d[0]).toBe("ZUE");
     expect(d[1]).toBe("(Zuerich)");
   });
 
   it("getSourceLock - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(1);
-    const nodes = trainrunService.getBothEndNodesWithTrainrunId(
-      ts.getTrainrunId(),
-    );
+    const nodes = trainrunService.getBothEndNodesWithTrainrunId(ts.getTrainrunId());
     const d = trainrunsectionHelper.getSourceLock(
       {
         leftLock: true,
@@ -398,13 +363,9 @@ describe("TrainrunsectionHelper", () => {
   });
 
   it("getTargetLock - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(1);
-    const nodes = trainrunService.getBothEndNodesWithTrainrunId(
-      ts.getTrainrunId(),
-    );
+    const nodes = trainrunService.getBothEndNodesWithTrainrunId(ts.getTrainrunId());
 
     const d = trainrunsectionHelper.getTargetLock(
       {

@@ -44,16 +44,8 @@ describe("UndoService", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -84,9 +76,7 @@ describe("UndoService", () => {
   });
 
   it("UndoService - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const undoService = new UndoService(
       dataService,
       nodeService,
@@ -108,9 +98,7 @@ describe("UndoService", () => {
   });
 
   it("UndoService - 002", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const undoService = new UndoService(
       dataService,
       nodeService,
@@ -148,9 +136,7 @@ describe("UndoService", () => {
   });
 
   it("UndoService - 003", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const undoService = new UndoService(
       dataService,
       nodeService,
@@ -195,9 +181,7 @@ describe("UndoService", () => {
   });
 
   it("UndoService - 004", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const undoService = new UndoService(
       dataService,
       nodeService,
@@ -206,40 +190,30 @@ describe("UndoService", () => {
       filterService,
     );
     expect(trainrunService.isAnyTrainrunSelected()).toBe(false);
-    const preChangedTrainrunSection =
-      trainrunService.getLastNonStopTrainrunSection(
-        nodeService.getNodeFromId(0),
-        trainrunSectionService.getTrainrunSectionFromId(0),
-      );
+    const preChangedTrainrunSection = trainrunService.getLastNonStopTrainrunSection(
+      nodeService.getNodeFromId(0),
+      trainrunSectionService.getTrainrunSectionFromId(0),
+    );
 
     undoService.reset(0);
     undoService.pushCurrentVersion(true);
-    const changedTrainrunSection =
-      trainrunService.getLastNonStopTrainrunSection(
-        nodeService.getNodeFromId(0),
-        trainrunSectionService.getTrainrunSectionFromId(0),
-      );
+    const changedTrainrunSection = trainrunService.getLastNonStopTrainrunSection(
+      nodeService.getNodeFromId(0),
+      trainrunSectionService.getTrainrunSectionFromId(0),
+    );
     undoService.undo();
     const postTrainrunSection = trainrunService.getLastNonStopTrainrunSection(
       nodeService.getNodeFromId(0),
       trainrunSectionService.getTrainrunSectionFromId(0),
     );
 
-    expect(
-      preChangedTrainrunSection.getId() === preChangedTrainrunSection.getId(),
-    ).toBe(true);
-    expect(postTrainrunSection.getId() === changedTrainrunSection.getId()).toBe(
-      true,
-    );
-    expect(changedTrainrunSection.getId() === postTrainrunSection.getId()).toBe(
-      true,
-    );
+    expect(preChangedTrainrunSection.getId() === preChangedTrainrunSection.getId()).toBe(true);
+    expect(postTrainrunSection.getId() === changedTrainrunSection.getId()).toBe(true);
+    expect(changedTrainrunSection.getId() === postTrainrunSection.getId()).toBe(true);
   });
 
   it("UndoService - 005", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const undoService = new UndoService(
       dataService,
       nodeService,
@@ -251,9 +225,7 @@ describe("UndoService", () => {
     undoService.pushCurrentVersion(true);
     const loaded = JSON.stringify(dataService.getNetzgrafikDto());
     const newNote = noteService.duplicateNote(3);
-    expect(noteService.getNoteFromId(newNote.getId()).getId()).toBe(
-      newNote.getId(),
-    );
+    expect(noteService.getNoteFromId(newNote.getId()).getId()).toBe(newNote.getId());
     const changed = JSON.stringify(dataService.getNetzgrafikDto());
     undoService.undo();
     const undone = JSON.stringify(dataService.getNetzgrafikDto());
@@ -264,9 +236,7 @@ describe("UndoService", () => {
   });
 
   it("UndoService - 006", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const undoService = new UndoService(
       dataService,
       nodeService,
@@ -278,9 +248,7 @@ describe("UndoService", () => {
     undoService.pushCurrentVersion(true);
     const loaded = JSON.stringify(dataService.getNetzgrafikDto());
     const newNode = nodeService.duplicateNode(0);
-    expect(nodeService.getNodeFromId(newNode.getId()).getId()).toBe(
-      newNode.getId(),
-    );
+    expect(nodeService.getNodeFromId(newNode.getId()).getId()).toBe(newNode.getId());
     const changed = JSON.stringify(dataService.getNetzgrafikDto());
     undoService.undo();
     const undone = JSON.stringify(dataService.getNetzgrafikDto());
@@ -291,9 +259,7 @@ describe("UndoService", () => {
   });
 
   it("UndoService - 007", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const undoService = new UndoService(
       dataService,
       nodeService,

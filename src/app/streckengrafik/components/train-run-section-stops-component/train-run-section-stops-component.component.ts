@@ -46,9 +46,7 @@ export class TrainRunSectionStopsComponentComponent {
   getClassTag(tag: string): string {
     let retTag = tag;
     retTag += " ColorRef_" + this.trainrun.colorRef;
-    retTag +=
-      " " +
-      this.trainDataService.createColoringClassTags(this.trainrun.trainrunId);
+    retTag += " " + this.trainDataService.createColoringClassTags(this.trainrun.trainrunId);
 
     if (!this.trainrunItem.isSection()) {
       return retTag;
@@ -89,10 +87,7 @@ export class TrainRunSectionStopsComponentComponent {
 
     if (Vec2D.norm(lineOrientationVector) > maxWidth) {
       const step = (Vec2D.norm(lineOrientationVector) - maxWidth) / 2.0;
-      lineOrientationVector = Vec2D.scale(
-        Vec2D.normalize(lineOrientationVector),
-        maxWidth,
-      );
+      lineOrientationVector = Vec2D.scale(Vec2D.normalize(lineOrientationVector), maxWidth);
       startPosition = Vec2D.add(
         startPosition,
         Vec2D.scale(Vec2D.normalize(lineOrientationVector), step),
@@ -104,22 +99,13 @@ export class TrainRunSectionStopsComponentComponent {
       for (let stopIndex = 0; stopIndex < numberOfStops; stopIndex++) {
         const position = Vec2D.add(
           startPosition,
-          Vec2D.scale(
-            lineOrientationVector,
-            (stopIndex + 1.0) / (numberOfStops + 1.0),
-          ),
+          Vec2D.scale(lineOrientationVector, (stopIndex + 1.0) / (numberOfStops + 1.0)),
         );
         retValue.push(position);
       }
     } else {
       retValue.push(
-        Vec2D.scale(
-          Vec2D.add(
-            this.scaledPath.scaledPathTo,
-            this.scaledPath.scaledPathFrom,
-          ),
-          0.5,
-        ),
+        Vec2D.scale(Vec2D.add(this.scaledPath.scaledPathTo, this.scaledPath.scaledPathFrom), 0.5),
       );
     }
 

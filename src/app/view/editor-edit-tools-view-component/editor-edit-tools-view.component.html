@@ -1,38 +1,41 @@
-<h2 class="SummaryTitle">{{ 'app.view.editor-edit-tools-view-component.edit' | translate }}</h2>
+<h2 class="SummaryTitle">{{ "app.view.editor-edit-tools-view-component.edit" | translate }}</h2>
 <sbb-accordion [multi]="false">
-  <sbb-expansion-panel
-    [expanded]="false"
-    [hideToggle]="false"
-    [disabled]="!getVariantIsWritable()"
-  >
-    <sbb-expansion-panel-header>{{ 'app.view.editor-edit-tools-view-component.filterable-labels' | translate }}</sbb-expansion-panel-header>
+  <sbb-expansion-panel [expanded]="false" [hideToggle]="false" [disabled]="!getVariantIsWritable()">
+    <sbb-expansion-panel-header>{{
+      "app.view.editor-edit-tools-view-component.filterable-labels" | translate
+    }}</sbb-expansion-panel-header>
     <sbb-accordion [multi]="false">
       <sbb-expansion-panel [expanded]="true">
-        <sbb-expansion-panel-header>{{ 'app.view.editor-edit-tools-view-component.trainruns' | translate }}</sbb-expansion-panel-header>
+        <sbb-expansion-panel-header>{{
+          "app.view.editor-edit-tools-view-component.trainruns" | translate
+        }}</sbb-expansion-panel-header>
         <sbb-label-drop-list-component
           [componentLabelRef]="'Trainrun'"
         ></sbb-label-drop-list-component>
       </sbb-expansion-panel>
       <sbb-expansion-panel [expanded]="false">
-        <sbb-expansion-panel-header>{{ 'app.view.editor-edit-tools-view-component.nodes' | translate }}</sbb-expansion-panel-header>
-        <sbb-label-drop-list-component
-          [componentLabelRef]="'Node'"
-        ></sbb-label-drop-list-component>
+        <sbb-expansion-panel-header>{{
+          "app.view.editor-edit-tools-view-component.nodes" | translate
+        }}</sbb-expansion-panel-header>
+        <sbb-label-drop-list-component [componentLabelRef]="'Node'"></sbb-label-drop-list-component>
       </sbb-expansion-panel>
 
       <sbb-expansion-panel [expanded]="false" *ngIf="!disableBackend">
-        <sbb-expansion-panel-header>{{ 'app.view.editor-edit-tools-view-component.notes' | translate }}</sbb-expansion-panel-header>
-        <sbb-label-drop-list-component
-          [componentLabelRef]="'Note'"
-        ></sbb-label-drop-list-component>
+        <sbb-expansion-panel-header>{{
+          "app.view.editor-edit-tools-view-component.notes" | translate
+        }}</sbb-expansion-panel-header>
+        <sbb-label-drop-list-component [componentLabelRef]="'Note'"></sbb-label-drop-list-component>
       </sbb-expansion-panel>
     </sbb-accordion>
   </sbb-expansion-panel>
 
   <sbb-expansion-panel
     [expanded]="getVariantIsWritable() && !getAreMultiObjectSelected()"
-    [disabled]="!getVariantIsWritable()">
-    <sbb-expansion-panel-header>{{ 'app.view.editor-edit-tools-view-component.delete-netzgrafik-title' | translate }}</sbb-expansion-panel-header>
+    [disabled]="!getVariantIsWritable()"
+  >
+    <sbb-expansion-panel-header>{{
+      "app.view.editor-edit-tools-view-component.delete-netzgrafik-title" | translate
+    }}</sbb-expansion-panel-header>
 
     <ng-container
       *ngIf="
@@ -40,64 +43,77 @@
         !this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
       "
     >
-      <br/>
-      <sbb-label>{{ 'app.view.editor-edit-tools-view-component.non-visible-elements' | translate }}</sbb-label>
-      <br/>
+      <br />
+      <sbb-label>{{
+        "app.view.editor-edit-tools-view-component.non-visible-elements" | translate
+      }}</sbb-label>
+      <br />
       <button
         (click)="onClearAllFiltered()"
-        [title]="'app.view.editor-edit-tools-view-component.delete-all-non-visible-elements-tooltip' | translate"
+        [title]="
+          'app.view.editor-edit-tools-view-component.delete-all-non-visible-elements-tooltip'
+            | translate
+        "
         class="TrainrunDialog EditorToolButton"
       >
         <sbb-icon svgIcon="bucket-foam-broom-small"></sbb-icon>
       </button>
-      {{ 'app.view.editor-edit-tools-view-component.delete-all-non-visible-elements' | translate }}
-      <br/>
+      {{ "app.view.editor-edit-tools-view-component.delete-all-non-visible-elements" | translate }}
+      <br />
     </ng-container>
-    <br/>
-    <sbb-label>{{ 'app.view.editor-edit-tools-view-component.visible-elements' | translate }}</sbb-label>
-    <br/>
+    <br />
+    <sbb-label>{{
+      "app.view.editor-edit-tools-view-component.visible-elements" | translate
+    }}</sbb-label>
+    <br />
     <button
       (click)="onClearAllTrainruns()"
-      [title]="'app.view.editor-edit-tools-view-component.delete-all-visible-trainruns-tooltip' | translate"
+      [title]="
+        'app.view.editor-edit-tools-view-component.delete-all-visible-trainruns-tooltip' | translate
+      "
       class="TrainrunDialog EditorToolButton"
     >
       <sbb-icon svgIcon="trash-small"></sbb-icon>
     </button>
-    {{ 'app.view.editor-edit-tools-view-component.delete-all-visible-trainruns' | translate }}
-    <br/>
+    {{ "app.view.editor-edit-tools-view-component.delete-all-visible-trainruns" | translate }}
+    <br />
     <button
       (click)="onClearAllNotes()"
-      [title]="'app.view.editor-edit-tools-view-component.delete-all-visible-notes-tooltip' | translate"
+      [title]="
+        'app.view.editor-edit-tools-view-component.delete-all-visible-notes-tooltip' | translate
+      "
       class="TrainrunDialog EditorToolButton"
     >
       <sbb-icon svgIcon="trash-small"></sbb-icon>
     </button>
-    {{ 'app.view.editor-edit-tools-view-component.delete-all-visible-notes' | translate }}
-    <br/>
+    {{ "app.view.editor-edit-tools-view-component.delete-all-visible-notes" | translate }}
+    <br />
     <button
       (click)="onClear()"
-      [title]="'app.view.editor-edit-tools-view-component.delete-all-visible-elements-tooltip' | translate"
+      [title]="
+        'app.view.editor-edit-tools-view-component.delete-all-visible-elements-tooltip' | translate
+      "
       class="TrainrunDialog EditorToolButton"
     >
       <sbb-icon svgIcon="trash-small"></sbb-icon>
     </button>
-    {{ 'app.view.editor-edit-tools-view-component.delete-all-visible-elements' | translate }}
+    {{ "app.view.editor-edit-tools-view-component.delete-all-visible-elements" | translate }}
   </sbb-expansion-panel>
-  <sbb-expansion-panel
-    [expanded]="false"
-    [disabled]="!getVariantIsWritable()">
+  <sbb-expansion-panel [expanded]="false" [disabled]="!getVariantIsWritable()">
     <sbb-expansion-panel-header>
-      {{ 'app.view.editor-edit-tools-view-component.merge-netzgrafik-title' | translate }}
+      {{ "app.view.editor-edit-tools-view-component.merge-netzgrafik-title" | translate }}
     </sbb-expansion-panel-header>
-    <br/>
+    <br />
     <button
       (click)="onLoadNetzgrafikToInsertCopieButton()"
-      [title]="'app.view.editor-edit-tools-view-component.add-netzgrafik-as-copy-tooltip' | translate"
+      [title]="
+        'app.view.editor-edit-tools-view-component.add-netzgrafik-as-copy-tooltip' | translate
+      "
       class="TrainrunDialog EditorToolButton"
     >
       <sbb-icon svgIcon="hierarchy-small"></sbb-icon>
     </button>
-    {{ 'app.view.editor-edit-tools-view-component.add-netzgrafik-as-copy' | translate }}
+    {{ "app.view.editor-edit-tools-view-component.add-netzgrafik-as-copy" | translate }}
     <input
       hidden
       #netzgrafikMergeAsACopyFileInput
@@ -106,7 +122,7 @@
       (change)="onLoadNetzgrafikToMergeAsACopy($event)"
     />
 
-    <br/>
+    <br />
     <button
       (click)="onLoadNetzgrafikToMergeButton()"
       [title]="'app.view.editor-edit-tools-view-component.merge-netzgrafik-tooltip' | translate"
@@ -114,7 +130,7 @@
     >
       <sbb-icon svgIcon="hierarchy-small"></sbb-icon>
     </button>
-    {{ 'app.view.editor-edit-tools-view-component.merge-netzgrafik' | translate }}
+    {{ "app.view.editor-edit-tools-view-component.merge-netzgrafik" | translate }}
     <input
       hidden
       #netzgrafikMergeFileInput
@@ -124,16 +140,15 @@
     />
   </sbb-expansion-panel>
 
-
-  <sbb-expansion-panel
-    *ngIf="getAreMultiObjectSelected()"
-    [expanded]="getAreMultiObjectSelected()">
+  <sbb-expansion-panel *ngIf="getAreMultiObjectSelected()" [expanded]="getAreMultiObjectSelected()">
     <sbb-expansion-panel-header>
-      <label style="color: red">
-        {{ 'app.view.editor-edit-tools-view-component.align-elements-netzgrafik-title' | translate }}
+      <label style="color: #ec0000">
+        {{
+          "app.view.editor-edit-tools-view-component.align-elements-netzgrafik-title" | translate
+        }}
       </label>
     </sbb-expansion-panel-header>
-    <br/>
+    <br />
     <button
       (click)="onAlignElementsLeft()"
       [title]="'app.view.editor-edit-tools-view-component.align-elements-left' | translate"
@@ -141,9 +156,9 @@
     >
       <sbb-icon svgIcon="arrow-left-small"></sbb-icon>
     </button>
-    {{ 'app.view.editor-edit-tools-view-component.align-elements-left' | translate }}
+    {{ "app.view.editor-edit-tools-view-component.align-elements-left" | translate }}
 
-    <br/>
+    <br />
     <button
       (click)="onAlignElementsRight()"
       [title]="'app.view.editor-edit-tools-view-component.align-elements-right' | translate"
@@ -151,9 +166,9 @@
     >
       <sbb-icon svgIcon="arrow-right-small"></sbb-icon>
     </button>
-    {{ 'app.view.editor-edit-tools-view-component.align-elements-right' | translate }}
+    {{ "app.view.editor-edit-tools-view-component.align-elements-right" | translate }}
 
-    <br/>
+    <br />
     <button
       (click)="onAlignElementsTop()"
       [title]="'app.view.editor-edit-tools-view-component.align-elements-top' | translate"
@@ -161,9 +176,9 @@
     >
       <sbb-icon svgIcon="arrow-up-small"></sbb-icon>
     </button>
-    {{ 'app.view.editor-edit-tools-view-component.align-elements-top' | translate }}
+    {{ "app.view.editor-edit-tools-view-component.align-elements-top" | translate }}
 
-    <br/>
+    <br />
     <button
       (click)="onAlignElementsBottom()"
       [title]="'app.view.editor-edit-tools-view-component.align-elements-bottom' | translate"
@@ -171,9 +186,6 @@
     >
       <sbb-icon svgIcon="arrow-down-small"></sbb-icon>
     </button>
-    {{ 'app.view.editor-edit-tools-view-component.align-elements-bottom' | translate }}
-
+    {{ "app.view.editor-edit-tools-view-component.align-elements-bottom" | translate }}
   </sbb-expansion-panel>
-
-
 </sbb-accordion>

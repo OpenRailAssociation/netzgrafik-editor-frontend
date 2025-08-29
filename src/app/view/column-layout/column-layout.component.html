@@ -4,11 +4,7 @@
   [class.new-view]="newView"
   [attr.style]="getLayoutContentStyle()"
 >
-  <div
-    id="cd-layout-filter"
-    class="cd-layout-panel sbb-scrollbar"
-    [ngClass]="{hide: hideFilter()}"
-  >
+  <div id="cd-layout-filter" class="cd-layout-panel sbb-scrollbar" [ngClass]="{hide: hideFilter()}">
     <ng-content select="[filter]"></ng-content>
     <div [class.cd-curtain]="curtain"></div>
   </div>

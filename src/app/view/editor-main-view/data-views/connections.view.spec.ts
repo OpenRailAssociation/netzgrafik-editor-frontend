@@ -49,16 +49,8 @@ describe("Connections View", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -90,7 +82,7 @@ describe("Connections View", () => {
       trainrunService,
       trainrunSectionService,
       nodeService,
-      filterService
+      filterService,
     );
 
     uiInteractionService = new UiInteractionService(
@@ -125,9 +117,7 @@ describe("Connections View", () => {
   });
 
   it("ConnectionsView.displayConnectionPinPort1 - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const node = nodeService.getNodeFromId(2);
     const con = node.getConnectionFromId(2);
     const flag = ConnectionsView.displayConnectionPinPort1(con, node);
@@ -135,9 +125,7 @@ describe("Connections View", () => {
   });
 
   it("ConnectionsView.displayConnectionPinPort1 - 002", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const node = nodeService.getNodeFromId(2);
     const con = node.getConnectionFromId(2);
     trainrunService.setTrainrunAsSelected(4);
@@ -146,9 +134,7 @@ describe("Connections View", () => {
   });
 
   it("ConnectionsView.displayConnectionPinPort2 - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const node = nodeService.getNodeFromId(2);
     const con = node.getConnectionFromId(2);
     const flag = ConnectionsView.displayConnectionPinPort2(con, node);
@@ -156,9 +142,7 @@ describe("Connections View", () => {
   });
 
   it("ConnectionsView.displayConnectionPinPort2 - 002", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const node = nodeService.getNodeFromId(2);
     const con = node.getConnectionFromId(2);
     trainrunService.setTrainrunAsSelected(2);
@@ -167,9 +151,7 @@ describe("Connections View", () => {
   });
 
   it("ConnectionsView.displayConnection - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const node = nodeService.getNodeFromId(2);
     const con = node.getConnectionFromId(2);
     const flag = ConnectionsView.displayConnection(con, node);
@@ -177,9 +159,7 @@ describe("Connections View", () => {
   });
 
   it("ConnectionsView.displayConnection - 002", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const node = nodeService.getNodeFromId(2);
     const con = node.getConnectionFromId(2);
     trainrunService.setTrainrunAsSelected(4);
@@ -188,9 +168,7 @@ describe("Connections View", () => {
   });
 
   it("ConnectionsView.getSelectedTrainrunId - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const node = nodeService.getNodeFromId(2);
     const con = node.getConnectionFromId(2);
     const flag = ConnectionsView.getSelectedTrainrunId(con, node);
@@ -198,9 +176,7 @@ describe("Connections View", () => {
   });
 
   it("ConnectionsView.getSelectedTrainrunId - 002", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const node = nodeService.getNodeFromId(2);
     const con = node.getConnectionFromId(2);
     trainrunService.setTrainrunAsSelected(4);
@@ -209,9 +185,7 @@ describe("Connections View", () => {
   });
 
   it("ConnectionsView.getSelectedTrainrunId - 003", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const node = nodeService.getNodeFromId(2);
     const con = node.getConnectionFromId(2);
     trainrunService.setTrainrunAsSelected(2);
@@ -220,9 +194,7 @@ describe("Connections View", () => {
   });
 
   it("ConnectionsView.getTrainrunSectionPort1 - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const node = nodeService.getNodeFromId(2);
     const con = node.getConnectionFromId(2);
     const ts = ConnectionsView.getTrainrunSectionPort1(con, node);
@@ -230,9 +202,7 @@ describe("Connections View", () => {
   });
 
   it("ConnectionsView.getTrainrunSectionPort2 - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const node = nodeService.getNodeFromId(2);
     const con = node.getConnectionFromId(2);
     const ts = ConnectionsView.getTrainrunSectionPort2(con, node);
@@ -240,9 +210,7 @@ describe("Connections View", () => {
   });
 
   it("ConnectionsView.getTrainrunSectionPort2 - 001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const node = nodeService.getNodeFromId(2);
     const con = node.getConnectionFromId(2);
     const ts = ConnectionsView.getTrainrunSectionPort2(con, node);
@@ -252,16 +220,11 @@ describe("Connections View", () => {
   });
 
   it("ConnectionsView.getTrainrunSectionPort2 - 002", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const node = nodeService.getNodeFromId(2);
     const con = node.getConnectionFromId(2);
     const ts = ConnectionsView.getTrainrunSectionPort2(con, node);
-    const pos = ConnectionsView.getConnectionPinPosition(
-      ts,
-      ts.getSourceNode(),
-    );
+    const pos = ConnectionsView.getConnectionPinPosition(ts, ts.getSourceNode());
     expect(pos.getX()).toBe(418);
     expect(pos.getY()).toBe(112);
   });

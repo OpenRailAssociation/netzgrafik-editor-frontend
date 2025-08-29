@@ -1,0 +1,71 @@
+<div class="TrainrunSection" [style]="getInnerContentStyleTag()">
+  <div
+    [ngClass]="['OneWayCard', chosenCard === 'top' ? 'selected' : 'muted']"
+    (click)="onTrainrunSectionCardClick('top')"
+  >
+    <div class="OneWayCardBetriebspunkt">
+      <b>{{ startNode[1] }}</b> ({{ startNode[0] }})
+    </div>
+    <div class="TrainFreqContainer">
+      <svg class="renderer" width="96px" height="48px" viewBox="0 0 48 24">
+        <text [class]="getEdgeLineTextClass('top')" x="8" y="5">
+          {{ getTrainrunTimeStructure()?.leftDepartureTime }}
+        </text>
+        <path [class]="getEdgeLineClassAttrString(0, 'top')" d="M0,12L48,12"></path>
+        <path [class]="getEdgeLineClassAttrString(1, 'top')" d="M0,12L48,12"></path>
+        <path [class]="getEdgeLineClassAttrString(2, 'top')" d="M0,12L48,12"></path>
+        <path [class]="getEdgeLineClassAttrString(3, 'top')" d="M0,12L48,12"></path>
+      </svg>
+      <svg class="renderer" width="32px" height="48px" viewBox="0 0 12 6">
+        <path [class]="getEdgeLineArrowClass('top')" d="M2,2L2,4L6,4L6,6L10,3L6,0L6,2Z" />
+      </svg>
+      <svg class="renderer" width="96px" height="48px" viewBox="0 0 48 24">
+        <text [class]="getEdgeLineTextClass('top')" x="40" y="5">
+          {{ getTrainrunTimeStructure()?.rightArrivalTime }}
+        </text>
+        <path [class]="getEdgeLineClassAttrString(0, 'top')" d="M0,12L48,12"></path>
+        <path [class]="getEdgeLineClassAttrString(1, 'top')" d="M0,12L48,12"></path>
+        <path [class]="getEdgeLineClassAttrString(2, 'top')" d="M0,12L48,12"></path>
+        <path [class]="getEdgeLineClassAttrString(3, 'top')" d="M0,12L48,12"></path>
+      </svg>
+    </div>
+    <div class="OneWayCardBetriebspunkt">
+      <b>{{ endNode[1] }}</b> ({{ endNode[0] }})
+    </div>
+  </div>
+
+  <div
+    [ngClass]="['OneWayCard', chosenCard === 'bottom' ? 'selected' : 'muted']"
+    (click)="onTrainrunSectionCardClick('bottom')"
+  >
+    <div class="OneWayCardBetriebspunkt">
+      <b>{{ startNode[1] }}</b> ({{ startNode[0] }})
+    </div>
+    <div class="TrainFreqContainer">
+      <svg class="renderer" width="96px" height="48px" viewBox="0 0 48 24">
+        <text [class]="getEdgeLineTextClass('bottom')" x="8" y="21">
+          {{ getTrainrunTimeStructure()?.leftArrivalTime }}
+        </text>
+        <path [class]="getEdgeLineClassAttrString(0, 'bottom')" d="M0,12L48,12"></path>
+        <path [class]="getEdgeLineClassAttrString(1, 'bottom')" d="M0,12L48,12"></path>
+        <path [class]="getEdgeLineClassAttrString(2, 'bottom')" d="M0,12L48,12"></path>
+        <path [class]="getEdgeLineClassAttrString(3, 'bottom')" d="M0,12L48,12"></path>
+      </svg>
+      <svg class="renderer" width="32px" height="48px" viewBox="0 0 12 6">
+        <path [class]="getEdgeLineArrowClass('bottom')" d="M2,3L6,0L6,2L10,2L10,4L6,4L6,6Z" />
+      </svg>
+      <svg class="renderer" width="96px" height="48px" viewBox="0 0 48 24">
+        <text [class]="getEdgeLineTextClass('bottom')" x="40" y="21">
+          {{ getTrainrunTimeStructure()?.rightDepartureTime }}
+        </text>
+        <path [class]="getEdgeLineClassAttrString(0, 'bottom')" d="M0,12L48,12"></path>
+        <path [class]="getEdgeLineClassAttrString(1, 'bottom')" d="M0,12L48,12"></path>
+        <path [class]="getEdgeLineClassAttrString(2, 'bottom')" d="M0,12L48,12"></path>
+        <path [class]="getEdgeLineClassAttrString(3, 'bottom')" d="M0,12L48,12"></path>
+      </svg>
+    </div>
+    <div class="OneWayCardBetriebspunkt">
+      <b>{{ endNode[1] }}</b> ({{ endNode[0] }})
+    </div>
+  </div>
+</div>

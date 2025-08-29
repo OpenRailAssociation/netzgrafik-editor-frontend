@@ -1,11 +1,4 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  OnDestroy,
-  OnInit,
-  Output,
-} from "@angular/core";
+import {ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output} from "@angular/core";
 import {Trainrun} from "../../../../models/trainrun.model";
 import {TrainrunService} from "../../../../services/data/trainrun.service";
 import {TrainrunSectionService} from "../../../../services/data/trainrunsection.service";
@@ -51,17 +44,13 @@ export class TrainrunFilterTabComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.trainrunSectionService.trainrunSections
-      .pipe(takeUntil(this.destroyed))
-      .subscribe(() => {
-        this.updateTrainrunLabelsAutoCompleteOptions();
-      });
+    this.trainrunSectionService.trainrunSections.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.updateTrainrunLabelsAutoCompleteOptions();
+    });
 
-    this.trainrunSectionService.trainrunSections
-      .pipe(takeUntil(this.destroyed))
-      .subscribe(() => {
-        this.initializeWithCurrentSelectedTrainrun();
-      });
+    this.trainrunSectionService.trainrunSections.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.initializeWithCurrentSelectedTrainrun();
+    });
 
     this.updateTrainrunLabelsAutoCompleteOptions();
   }
@@ -71,9 +60,9 @@ export class TrainrunFilterTabComponent implements OnInit, OnDestroy {
     this.destroyed.complete();
   }
 
-  getContentClassTag() : string {
+  getContentClassTag(): string {
     const retVal = "EditTrainrunFilterableLabelsDialogTabContent";
-    if (this.versionControlService.getVariantIsWritable()){
+    if (this.versionControlService.getVariantIsWritable()) {
       return retVal;
     }
     return retVal + " readonly";
@@ -87,16 +76,13 @@ export class TrainrunFilterTabComponent implements OnInit, OnDestroy {
     return retVal + " readonly";
   }
 
-
   remove(chipEvent: SbbChipEvent): void {
     const valueDelete = chipEvent.chip.value as string;
     const value = (valueDelete || "").trim();
     if (!value) {
       return;
     }
-    this.trainrunLabels = this.trainrunLabels.filter(
-      (labels) => labels !== valueDelete,
-    );
+    this.trainrunLabels = this.trainrunLabels.filter((labels) => labels !== valueDelete);
     this.isLabelBeingEdited = true;
     this.checkAndSetLabels();
     this.isLabelBeingEdited = false;
@@ -117,10 +103,7 @@ export class TrainrunFilterTabComponent implements OnInit, OnDestroy {
   onDeleteTrainrun() {
     const dialogTitle = $localize`:@@app.view.dialogs.trainrun-and-section-dialog.trainrun-tab.delete:Delete`;
     const dialogContent = $localize`:@@app.view.dialogs.trainrun-and-section-dialog.trainrun-tab.deleteConfirmationQuestion:Should the entire train route be definitively deleted?`;
-    const confirmationDialogParamter = new ConfirmationDialogParameter(
-      dialogTitle,
-      dialogContent,
-    );
+    const confirmationDialogParamter = new ConfirmationDialogParameter(dialogTitle, dialogContent);
     this.uiInteractionService
       .showConfirmationDiagramDialog(confirmationDialogParamter)
       .subscribe((confirmed: boolean) => {
@@ -154,10 +137,7 @@ export class TrainrunFilterTabComponent implements OnInit, OnDestroy {
   }
 
   getAutoCompleteLabels(): string[] {
-    return this.labelGroupService.getAutoCompleteLabels(
-      this.trainrunLabels,
-      LabelRef.Trainrun,
-    );
+    return this.labelGroupService.getAutoCompleteLabels(this.trainrunLabels, LabelRef.Trainrun);
   }
 
   private initializeWithCurrentSelectedTrainrun() {
@@ -180,10 +160,7 @@ export class TrainrunFilterTabComponent implements OnInit, OnDestroy {
       this.trainrunLabels.length !== this.initialTrainrunLabels.length ||
       !this.trainrunLabels.every((label, index) => label === this.initialTrainrunLabels[index])
     ) {
-      this.trainrunService.setLabels(
-        this.selectedTrainrun.getId(),
-        this.trainrunLabels
-      );
+      this.trainrunService.setLabels(this.selectedTrainrun.getId(), this.trainrunLabels);
       this.initialTrainrunLabels = [...this.trainrunLabels];
     }
   }

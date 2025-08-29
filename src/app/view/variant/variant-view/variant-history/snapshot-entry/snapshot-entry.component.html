@@ -1,7 +1,4 @@
-<sbb-history-entry
-  [actions]="actions"
-  (preview)="display.next($event ? model.id : null)"
->
+<sbb-history-entry [actions]="actions" (preview)="display.next($event ? model.id : null)">
   <sbb-version-entry-layout
     [state]="getState()"
     [message]="getMessage()"

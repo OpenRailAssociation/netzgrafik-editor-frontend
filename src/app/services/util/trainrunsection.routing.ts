@@ -31,10 +31,7 @@ export class SimpleTrainrunSectionRouter {
     );
   }
 
-  static getPortPositionForTrainrunSectionRouting(
-    node: Node,
-    port: Port,
-  ): Vec2D {
+  static getPortPositionForTrainrunSectionRouting(node: Node, port: Port): Vec2D {
     const topLeftPosition = new Vec2D(node.getPositionX(), node.getPositionY());
 
     let x = 0;
@@ -64,10 +61,7 @@ export class SimpleTrainrunSectionRouter {
     return new Vec2D(x, y);
   }
 
-  static getPortPositionForTransitionAndConnectionRouting(
-    node: Node,
-    port: Port,
-  ): Vec2D {
+  static getPortPositionForTransitionAndConnectionRouting(node: Node, port: Port): Vec2D {
     const topLeftPosition = new Vec2D(node.getPositionX(), node.getPositionY());
 
     let x = 0;
@@ -97,10 +91,7 @@ export class SimpleTrainrunSectionRouter {
     return new Vec2D(x, y);
   }
 
-  static getSimpleTrainrunSectionFirstPoint(
-    portPosition: Vec2D,
-    port: Port,
-  ): Vec2D | undefined {
+  static getSimpleTrainrunSectionFirstPoint(portPosition: Vec2D, port: Port): Vec2D | undefined {
     if (port.getPositionAlignment() === PortAlignment.Top) {
       return Vec2D.add(
         portPosition,
@@ -131,25 +122,13 @@ export class SimpleTrainrunSectionRouter {
     scaleFactor: number,
   ): Vec2D | undefined {
     if (port.getPositionAlignment() === PortAlignment.Top) {
-      return Vec2D.add(
-        portPosition,
-        Vec2D.scale(Vec2D.getSouthVec2D(), scaleFactor),
-      );
+      return Vec2D.add(portPosition, Vec2D.scale(Vec2D.getSouthVec2D(), scaleFactor));
     } else if (port.getPositionAlignment() === PortAlignment.Bottom) {
-      return Vec2D.add(
-        portPosition,
-        Vec2D.scale(Vec2D.getNorthVec2D(), scaleFactor),
-      );
+      return Vec2D.add(portPosition, Vec2D.scale(Vec2D.getNorthVec2D(), scaleFactor));
     } else if (port.getPositionAlignment() === PortAlignment.Left) {
-      return Vec2D.add(
-        portPosition,
-        Vec2D.scale(Vec2D.getEastVec2D(), scaleFactor),
-      );
+      return Vec2D.add(portPosition, Vec2D.scale(Vec2D.getEastVec2D(), scaleFactor));
     } else if (port.getPositionAlignment() === PortAlignment.Right) {
-      return Vec2D.add(
-        portPosition,
-        Vec2D.scale(Vec2D.getWestVec2D(), scaleFactor),
-      );
+      return Vec2D.add(portPosition, Vec2D.scale(Vec2D.getWestVec2D(), scaleFactor));
     }
     return undefined;
   }
@@ -215,38 +194,28 @@ export class SimpleTrainrunSectionRouter {
     targetNode: Node,
     targetPort: Port,
   ): Vec2D[] {
-    const s =
-      SimpleTrainrunSectionRouter.getPortPositionForTrainrunSectionRouting(
-        sourceNode,
-        sourcePort,
-      );
-    const t =
-      SimpleTrainrunSectionRouter.getPortPositionForTrainrunSectionRouting(
-        targetNode,
-        targetPort,
-      );
-    const s1 = SimpleTrainrunSectionRouter.getSimpleTrainrunSectionFirstPoint(
-      s,
+    const s = SimpleTrainrunSectionRouter.getPortPositionForTrainrunSectionRouting(
+      sourceNode,
       sourcePort,
     );
-    const t1 = SimpleTrainrunSectionRouter.getSimpleTrainrunSectionFirstPoint(
-      t,
+    const t = SimpleTrainrunSectionRouter.getPortPositionForTrainrunSectionRouting(
+      targetNode,
       targetPort,
     );
+    const s1 = SimpleTrainrunSectionRouter.getSimpleTrainrunSectionFirstPoint(s, sourcePort);
+    const t1 = SimpleTrainrunSectionRouter.getSimpleTrainrunSectionFirstPoint(t, targetPort);
     return [s, s1, t1, t];
   }
 
   static routeTransition(node: Node, port1: Port, port2: Port): Vec2D[] {
-    const s =
-      SimpleTrainrunSectionRouter.getPortPositionForTransitionAndConnectionRouting(
-        node,
-        port1,
-      );
-    const t =
-      SimpleTrainrunSectionRouter.getPortPositionForTransitionAndConnectionRouting(
-        node,
-        port2,
-      );
+    const s = SimpleTrainrunSectionRouter.getPortPositionForTransitionAndConnectionRouting(
+      node,
+      port1,
+    );
+    const t = SimpleTrainrunSectionRouter.getPortPositionForTransitionAndConnectionRouting(
+      node,
+      port2,
+    );
     const isPort1TopBottom =
       port1.getPositionAlignment() === PortAlignment.Top ||
       port1.getPositionAlignment() === PortAlignment.Bottom;
@@ -278,50 +247,26 @@ export class SimpleTrainrunSectionRouter {
     );
     if (port1.getPositionAlignment() === PortAlignment.Left) {
       const c = new Vec2D(t1.getX(), s1.getY());
-      const dS = Vec2D.scale(
-        Vec2D.normalize(Vec2D.sub(s, c)),
-        TRANSITION_LINE_AREA_SPAN,
-      );
-      const dT = Vec2D.scale(
-        Vec2D.normalize(Vec2D.sub(t, c)),
-        TRANSITION_LINE_AREA_SPAN,
-      );
+      const dS = Vec2D.scale(Vec2D.normalize(Vec2D.sub(s, c)), TRANSITION_LINE_AREA_SPAN);
+      const dT = Vec2D.scale(Vec2D.normalize(Vec2D.sub(t, c)), TRANSITION_LINE_AREA_SPAN);
       return [s, Vec2D.add(c, dS), Vec2D.add(c, dT), t];
     }
     if (port1.getPositionAlignment() === PortAlignment.Right) {
       const c = new Vec2D(t1.getX(), s1.getY());
-      const dS = Vec2D.scale(
-        Vec2D.normalize(Vec2D.sub(s, c)),
-        TRANSITION_LINE_AREA_SPAN,
-      );
-      const dT = Vec2D.scale(
-        Vec2D.normalize(Vec2D.sub(t, c)),
-        TRANSITION_LINE_AREA_SPAN,
-      );
+      const dS = Vec2D.scale(Vec2D.normalize(Vec2D.sub(s, c)), TRANSITION_LINE_AREA_SPAN);
+      const dT = Vec2D.scale(Vec2D.normalize(Vec2D.sub(t, c)), TRANSITION_LINE_AREA_SPAN);
       return [s, Vec2D.add(c, dS), Vec2D.add(c, dT), t];
     }
     if (port1.getPositionAlignment() === PortAlignment.Top) {
       const c = new Vec2D(s1.getX(), t1.getY());
-      const dS = Vec2D.scale(
-        Vec2D.normalize(Vec2D.sub(s, c)),
-        TRANSITION_LINE_AREA_SPAN,
-      );
-      const dT = Vec2D.scale(
-        Vec2D.normalize(Vec2D.sub(t, c)),
-        TRANSITION_LINE_AREA_SPAN,
-      );
+      const dS = Vec2D.scale(Vec2D.normalize(Vec2D.sub(s, c)), TRANSITION_LINE_AREA_SPAN);
+      const dT = Vec2D.scale(Vec2D.normalize(Vec2D.sub(t, c)), TRANSITION_LINE_AREA_SPAN);
       return [s, Vec2D.add(c, dS), Vec2D.add(c, dT), t];
     }
     if (port1.getPositionAlignment() === PortAlignment.Bottom) {
       const c = new Vec2D(s1.getX(), t1.getY());
-      const dS = Vec2D.scale(
-        Vec2D.normalize(Vec2D.sub(s, c)),
-        TRANSITION_LINE_AREA_SPAN,
-      );
-      const dT = Vec2D.scale(
-        Vec2D.normalize(Vec2D.sub(t, c)),
-        TRANSITION_LINE_AREA_SPAN,
-      );
+      const dS = Vec2D.scale(Vec2D.normalize(Vec2D.sub(s, c)), TRANSITION_LINE_AREA_SPAN);
+      const dT = Vec2D.scale(Vec2D.normalize(Vec2D.sub(t, c)), TRANSITION_LINE_AREA_SPAN);
       return [s, Vec2D.add(c, dS), Vec2D.add(c, dT), t];
     }
     return [s, s1, t1, t];
@@ -329,20 +274,24 @@ export class SimpleTrainrunSectionRouter {
 
   static routeConnection(node: Node, port1: Port, port2: Port): Vec2D[] {
     // https://developer.mozilla.org/de/docs/Web/SVG/Tutorial/Pfade
-    const start =
-      SimpleTrainrunSectionRouter.getPortPositionForTransitionAndConnectionRouting(
-        node,
-        port1,
-      );
-    const end =
-      SimpleTrainrunSectionRouter.getPortPositionForTransitionAndConnectionRouting(
-        node,
-        port2,
-      );
-    const controlPointStart =
-      SimpleTrainrunSectionRouter.getBezierCurveControlPoint(start, port1, end);
-    const controlPointEnd =
-      SimpleTrainrunSectionRouter.getBezierCurveControlPoint(end, port2, start);
+    const start = SimpleTrainrunSectionRouter.getPortPositionForTransitionAndConnectionRouting(
+      node,
+      port1,
+    );
+    const end = SimpleTrainrunSectionRouter.getPortPositionForTransitionAndConnectionRouting(
+      node,
+      port2,
+    );
+    const controlPointStart = SimpleTrainrunSectionRouter.getBezierCurveControlPoint(
+      start,
+      port1,
+      end,
+    );
+    const controlPointEnd = SimpleTrainrunSectionRouter.getBezierCurveControlPoint(
+      end,
+      port2,
+      start,
+    );
     return [start, controlPointStart, controlPointEnd, end];
   }
 
@@ -423,54 +372,30 @@ export class SimpleTrainrunSectionRouter {
     const sourceArrivalPos = Vec2D.add(
       Vec2D.add(
         s,
-        Vec2D.scale(
-          deltaS,
-          TRAINRUN_SECTION_TIME_CENTER - TRAINRUN_SECTION_TIME_FAR_NODE,
-        ),
+        Vec2D.scale(deltaS, TRAINRUN_SECTION_TIME_CENTER - TRAINRUN_SECTION_TIME_FAR_NODE),
       ),
-      Vec2D.scale(
-        rDeltaS,
-        TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM,
-      ),
+      Vec2D.scale(rDeltaS, TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM),
     );
     const sourceDeparturePos = Vec2D.add(
       Vec2D.add(
         s,
-        Vec2D.scale(
-          deltaS,
-          TRAINRUN_SECTION_TIME_CENTER - TRAINRUN_SECTION_TIME_CLOSE_NODE,
-        ),
+        Vec2D.scale(deltaS, TRAINRUN_SECTION_TIME_CENTER - TRAINRUN_SECTION_TIME_CLOSE_NODE),
       ),
-      Vec2D.scale(
-        rDeltaS,
-        -TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_TOP,
-      ),
+      Vec2D.scale(rDeltaS, -TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_TOP),
     );
     const targetArrivalPos = Vec2D.add(
       Vec2D.add(
         t,
-        Vec2D.scale(
-          deltaS,
-          -(TRAINRUN_SECTION_TIME_CENTER - TRAINRUN_SECTION_TIME_FAR_NODE),
-        ),
+        Vec2D.scale(deltaS, -(TRAINRUN_SECTION_TIME_CENTER - TRAINRUN_SECTION_TIME_FAR_NODE)),
       ),
-      Vec2D.scale(
-        rDeltaS,
-        -(TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM),
-      ),
+      Vec2D.scale(rDeltaS, -(TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM)),
     );
     const targetDeparturePos = Vec2D.add(
       Vec2D.add(
         t,
-        Vec2D.scale(
-          deltaS,
-          -(TRAINRUN_SECTION_TIME_CENTER - TRAINRUN_SECTION_TIME_CLOSE_NODE),
-        ),
+        Vec2D.scale(deltaS, -(TRAINRUN_SECTION_TIME_CENTER - TRAINRUN_SECTION_TIME_CLOSE_NODE)),
       ),
-      Vec2D.scale(
-        rDeltaS,
-        -(-TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_TOP),
-      ),
+      Vec2D.scale(rDeltaS, -(-TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_TOP)),
     );
     const trainrunSectionNamePos = Vec2D.add(
       Vec2D.scale(Vec2D.add(s1, t1), 0.5),
@@ -487,10 +412,8 @@ export class SimpleTrainrunSectionRouter {
       [TrainrunSectionText.SourceDeparture]: sourceDeparturePos.toPointDto(),
       [TrainrunSectionText.TargetArrival]: targetArrivalPos.toPointDto(),
       [TrainrunSectionText.TargetDeparture]: targetDeparturePos.toPointDto(),
-      [TrainrunSectionText.TrainrunSectionName]:
-        trainrunSectionNamePos.toPointDto(),
-      [TrainrunSectionText.TrainrunSectionTravelTime]:
-        trainrunSectionNamePos.toPointDto(),
+      [TrainrunSectionText.TrainrunSectionName]: trainrunSectionNamePos.toPointDto(),
+      [TrainrunSectionText.TrainrunSectionTravelTime]: trainrunSectionNamePos.toPointDto(),
       [TrainrunSectionText.TrainrunSectionNumberOfStops]:
         trainrunSectionNumberOfStopsPos.toPointDto(),
     };

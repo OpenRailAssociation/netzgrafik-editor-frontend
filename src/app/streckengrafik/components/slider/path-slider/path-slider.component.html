@@ -7,37 +7,18 @@
   >
     <g>
       <g *ngFor="let path of getSelectedTrainrunPaths()">
-        <g
-          [attr.transform]="'translate(' + getTranslateX(path) + ',' + 0 + ')'"
-        >
+        <g [attr.transform]="'translate(' + getTranslateX(path) + ',' + 0 + ')'">
           <g *ngIf="isPathNode(path)">
             <ng-container *ngIf="!isTrackOccupier(path)">
               <ng-container *ngIf="!isStartOrEndNode(path)">
                 <ng-container *ngIf="showRailTrackSlider">
-                  <line
-                    class="VerticalNodeLine NoTrackOccupier"
-                    x1="0"
-                    y1="18"
-                    x2="0"
-                    y2="40"
-                  />
+                  <line class="VerticalNodeLine NoTrackOccupier" x1="0" y1="18" x2="0" y2="40" />
                 </ng-container>
                 <ng-container *ngIf="!showRailTrackSlider">
-                  <line
-                    class="VerticalNodeLine NoTrackOccupier"
-                    x1="0"
-                    y1="28"
-                    x2="0"
-                    y2="40"
-                  />
+                  <line class="VerticalNodeLine NoTrackOccupier" x1="0" y1="28" x2="0" y2="40" />
                 </ng-container>
               </ng-container>
-              <text
-                [class]="getNodeTextClassTag(path)"
-                x="0"
-                y="15"
-                (click)="doClick(path)"
-              >
+              <text [class]="getNodeTextClassTag(path)" x="0" y="15" (click)="doClick(path)">
                 {{ getNodeShortName(path) }}
               </text>
             </ng-container>
@@ -58,13 +39,7 @@
                 {{ getNodeShortName(path) }}
               </text>
               <ng-container *ngIf="!isStartOrEndNode(path) || path.index !== 0">
-                <line
-                  class="VerticalNodeLine TrackOccupier"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="40"
-                />
+                <line class="VerticalNodeLine TrackOccupier" x1="0" y1="0" x2="0" y2="40" />
               </ng-container>
               <ng-container *ngIf="!isStartOrEndNode(path) || path.index === 0">
                 <line
@@ -79,11 +54,7 @@
           </g>
           <ng-container *ngIf="showRailTrackSlider">
             <g *ngIf="isPathSection(path)">
-              <g
-                sbb-path-slider-track-segments
-                [path]="path"
-                [horizontal]="horizontal"
-              ></g>
+              <g sbb-path-slider-track-segments [path]="path" [horizontal]="horizontal"></g>
             </g>
           </ng-container>
           <g *ngIf="isPathSection(path)">

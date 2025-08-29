@@ -41,16 +41,8 @@ describe("NodeService Test", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -78,9 +70,7 @@ describe("NodeService Test", () => {
   });
 
   it("check notes", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(notes.length).toBe(1);
 
     const stammdatenCSV =
@@ -103,25 +93,17 @@ describe("NodeService Test", () => {
     expect(aa.getConnectionTime()).toBe(4);
     expect(aa.getBahnhof()).toBe("Aarau");
     expect(aa.getBP()).toBe("AA");
-    expect(aa.getHaltezeiten()[HaltezeitFachCategories.IPV].haltezeit).toBe(
-      2.2,
-    );
+    expect(aa.getHaltezeiten()[HaltezeitFachCategories.IPV].haltezeit).toBe(2.2);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.A].haltezeit).toBe(2.2);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.B].haltezeit).toBe(2.2);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.C].haltezeit).toBe(1);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.D].haltezeit).toBe(1);
-    expect(
-      aa.getHaltezeiten()[HaltezeitFachCategories.Uncategorized].haltezeit,
-    ).toBe(0);
-    expect(aa.getHaltezeiten()[HaltezeitFachCategories.IPV].no_halt).toBe(
-      false,
-    );
+    expect(aa.getHaltezeiten()[HaltezeitFachCategories.Uncategorized].haltezeit).toBe(0);
+    expect(aa.getHaltezeiten()[HaltezeitFachCategories.IPV].no_halt).toBe(false);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.A].no_halt).toBe(false);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.B].no_halt).toBe(false);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.C].no_halt).toBe(true);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.D].no_halt).toBe(true);
-    expect(
-      aa.getHaltezeiten()[HaltezeitFachCategories.Uncategorized].no_halt,
-    ).toBe(true);
+    expect(aa.getHaltezeiten()[HaltezeitFachCategories.Uncategorized].no_halt).toBe(true);
   });
 });

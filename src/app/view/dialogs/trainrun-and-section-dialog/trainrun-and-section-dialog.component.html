@@ -16,9 +16,7 @@
     <div class="TrainrunTabGrupe">
       <sbb-tab-group [selectedIndex]="data.type">
         <sbb-tab
-          label="{{ selectedTrainrun.getCategoryShortName() }}{{
-            selectedTrainrun.getTitle()
-          }}"
+          label="{{ selectedTrainrun.getCategoryShortName() }}{{ selectedTrainrun.getTitle() }}"
           id="trainrun-tab"
         >
           <sbb-trainrun-tab
@@ -26,19 +24,38 @@
             (trainrunDeleted)="closeDialog()"
           ></sbb-trainrun-tab>
         </sbb-tab>
-        <sbb-tab
-          label="{{ selectedTrainrunSectionName }}"
-          id="trainrun-section-tab"
-        >
-          <sbb-trainrunsection-tab
-            [trainrunDialogParameter]="data"
-          ></sbb-trainrunsection-tab>
+        <sbb-tab id="trainrun-section-tab">
+          @if (getArrowDirectionForOneWayTrainrun() !== null) {
+            <ng-template sbb-tab-label>
+              <span style="transform: translateY(-2px)" class="onewayTrip">{{
+                nextStopLeftNodeName
+              }}</span>
+              <sbb-icon
+                style="transform: translateY(-2px)"
+                [svgIcon]="getArrowDirectionForOneWayTrainrun()"
+                aria-hidden="false"
+                height="13px"
+                width="13px"
+              ></sbb-icon>
+              <span style="transform: translateY(-2px)">{{ nextStopRightNodeName }}</span>
+            </ng-template>
+          } @else {
+            <ng-template sbb-tab-label>
+              <span>{{ nextStopLeftNodeName + " — " + nextStopRightNodeName }}</span>
+            </ng-template>
+          }
+          <sbb-trainrunsection-tab [trainrunDialogParameter]="data"></sbb-trainrunsection-tab>
         </sbb-tab>
-        <sbb-tab [label]="'app.view.dialogs.trainrun-and-section-dialog.filterableLabels' | translate"
-                 id="trainrun-filterable-labels-tab">
-          <sbb-trainrun-filter-tab
+        <sbb-tab
+          [label]="'app.view.dialogs.trainrun-and-section-dialog.filterableLabels' | translate"
+          id="trainrun-filterable-labels-tab"
+        >
+          <sbb-trainrun-filter-tab (trainrunDeleted)="closeDialog()"></sbb-trainrun-filter-tab>
+        </sbb-tab>
+        <sbb-tab label="&#8942;" id="trainrun-roundTrip-tab">
+          <sbb-trainrun-roundtrip-tab
             (trainrunDeleted)="closeDialog()"
-          ></sbb-trainrun-filter-tab>
+          ></sbb-trainrun-roundtrip-tab>
         </sbb-tab>
       </sbb-tab-group>
     </div>

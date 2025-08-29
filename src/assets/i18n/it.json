@@ -270,7 +270,7 @@
           "filterableLabels": "Filterable Labels",
           "trainrun-filter-tab": {
             "labels": "Labels",
-            "newLabels" : "New label...",
+            "newLabels": "New label...",
             "trainrunDuplicate": "Duplicate trainrun",
             "trainrunDelete": "Delete trainrun",
             "delete": "Delete",
@@ -285,6 +285,10 @@
             "trainrunDelete": "Delete trainrun",
             "delete": "Delete",
             "deleteConfirmationQuestion": "Should the entire train route be definitively deleted?"
+          },
+          "trainrun-roundtrip-tab": {
+            "one-way": "One-way",
+            "round-trip": "Round trip"
           },
           "trainrun-section-tab": {
             "warningTwoLocks": "Warning: Too many times are locked!",
@@ -346,6 +350,10 @@
         "filterable-labels-nodes": "Filterable labels: Nodes",
         "filterable-labels-notes": "Filterable labels: Notes",
         "display": "Display",
+        "Round-trips": "Round trips",
+        "round-trips": "round trips",
+        "one-ways": "one-ways",
+        "display-direction-arrows": "Display trainrun direction arrows",
         "times": "Times",
         "decimal-displayed": "Number of decimal place displayed",
         "display-arrival-departure-times": "Display departure and arrival times",
@@ -371,6 +379,9 @@
         "hide-trainrun-time-category": "Hide {$trainrunTimeCategory}",
         "show-trainrun-frequency": "Show {$trainrunFrequency}",
         "hide-trainrun-frequency": "Hide {$trainrunFrequency}",
+        "symmetry": "Symmetry",
+        "show-direction": "Show {$direction}",
+        "hide-direction": "Hide {$direction}",
         "filterable-label-filter": {
           "no-labels-available": "No labels available",
           "or": "Or",

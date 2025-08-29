@@ -1,16 +1,22 @@
 <div class="content">
-  <sbb-form-field [label]="'app.view.project.project-dialog.project-form.name' | translate" class="sbb-form-field-long">
+  <sbb-form-field
+    [label]="'app.view.project.project-dialog.project-form.name' | translate"
+    class="sbb-form-field-long"
+  >
     <input
       type="text"
       sbbInput
       [formControl]="model.getControl('name')"
       [placeholder]="'app.view.project.project-dialog.project-form.name' | translate"
     />
-    <sbb-error *ngIf="model.getControl('name').errors?.required"
-      >{{ 'app.view.project.project-dialog.project-form.mandatory-field' | translate }}</sbb-error
-    >
+    <sbb-error *ngIf="model.getControl('name').errors?.required">{{
+      "app.view.project.project-dialog.project-form.mandatory-field" | translate
+    }}</sbb-error>
   </sbb-form-field>
-  <sbb-form-field [label]="'app.view.project.project-dialog.project-form.summary' | translate" class="sbb-form-field-long">
+  <sbb-form-field
+    [label]="'app.view.project.project-dialog.project-form.summary' | translate"
+    class="sbb-form-field-long"
+  >
     <input
       type="text"
       sbbInput
@@ -18,7 +24,10 @@
       [placeholder]="'app.view.project.project-dialog.project-form.summary' | translate"
     />
   </sbb-form-field>
-  <sbb-form-field [label]="'app.view.project.project-dialog.project-form.description' | translate" class="sbb-form-field-long">
+  <sbb-form-field
+    [label]="'app.view.project.project-dialog.project-form.description' | translate"
+    class="sbb-form-field-long"
+  >
     <sbb-textarea
       [formControl]="model.getControl('description')"
       [maxlength]="500"
@@ -27,59 +36,58 @@
   </sbb-form-field>
   <ng-template #userTooltip>
     <sbb-tooltip>
-      {{ 'app.view.project.project-dialog.project-form.tooltip' | translate }}
+      {{ "app.view.project.project-dialog.project-form.tooltip" | translate }}
     </sbb-tooltip>
   </ng-template>
   <sbb-form-field class="sbb-form-field-long">
     <sbb-label>
-      {{ 'app.view.project.project-dialog.project-form.user-with-write-access' | translate }}
+      {{ "app.view.project.project-dialog.project-form.user-with-write-access" | translate }}
       <ng-container *ngTemplateOutlet="userTooltip"></ng-container>
     </sbb-label>
     <sbb-chip-list
       [formControl]="model.getControl('writeUsers')"
       (focusout)="onLabelsFocusoutWrite()"
     >
-      <sbb-chip
-        *ngFor="let element of model.getControl('writeUsers').value"
-        [value]="element"
+      <sbb-chip *ngFor="let element of model.getControl('writeUsers').value" [value]="element"
         >{{ element }}
       </sbb-chip>
       <input
         id="userWriteInput"
-        [placeholder]="'app.view.project.project-dialog.project-form.new-user-placeholder' | translate"
+        [placeholder]="
+          'app.view.project.project-dialog.project-form.new-user-placeholder' | translate
+        "
         sbbChipInput
         [sbbChipInputSeparatorKeyCodes]="separatorKeysCodes"
       />
     </sbb-chip-list>
     <sbb-error *ngIf="model.getControl('writeUsers').errors?.invalidUserIdAsEmails">
-      {{ 'app.view.project.project-dialog.project-form.invalid-values' | translate }}:
+      {{ "app.view.project.project-dialog.project-form.invalid-values" | translate }}:
       {{ model.getControl("writeUsers").errors?.invalidUserIdAsEmails }}
     </sbb-error>
   </sbb-form-field>
   <sbb-form-field class="sbb-form-field-long">
     <sbb-label>
-      {{ 'app.view.project.project-dialog.project-form.user-with-read-access' | translate }}
+      {{ "app.view.project.project-dialog.project-form.user-with-read-access" | translate }}
       <ng-container *ngTemplateOutlet="userTooltip"></ng-container>
     </sbb-label>
     <sbb-chip-list
       [formControl]="model.getControl('readUsers')"
       (focusout)="onLabelsFocusoutRead()"
     >
-      <sbb-chip
-        *ngFor="let element of model.getControl('readUsers').value"
-        [value]="element"
-      >
+      <sbb-chip *ngFor="let element of model.getControl('readUsers').value" [value]="element">
         {{ element }}
       </sbb-chip>
       <input
         id="userReadeInput"
-        [placeholder]="'app.view.project.project-dialog.project-form.new-user-placeholder' | translate"
+        [placeholder]="
+          'app.view.project.project-dialog.project-form.new-user-placeholder' | translate
+        "
         sbbChipInput
         [sbbChipInputSeparatorKeyCodes]="separatorKeysCodes"
       />
     </sbb-chip-list>
     <sbb-error *ngIf="model.getControl('readUsers').errors?.invalidUserIdAsEmails">
-      {{ 'app.view.project.project-dialog.project-form.invalid-values' | translate }}:
+      {{ "app.view.project.project-dialog.project-form.invalid-values" | translate }}:
       {{ model.getControl("readUsers").errors?.invalidUserIdAsEmails }}
     </sbb-error>
   </sbb-form-field>

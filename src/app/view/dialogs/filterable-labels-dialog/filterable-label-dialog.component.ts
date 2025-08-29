@@ -1,9 +1,5 @@
 import {Component, Inject, OnDestroy} from "@angular/core";
-import {
-  SBB_DIALOG_DATA,
-  SbbDialog,
-  SbbDialogRef,
-} from "@sbb-esta/angular/dialog";
+import {SBB_DIALOG_DATA, SbbDialog, SbbDialogRef} from "@sbb-esta/angular/dialog";
 import {FormModel} from "../../../utils/form-model";
 import {FilterableLabelsFormComponentModel} from "./filterable-labels-form/filterable-label-form.component";
 import {Observable, Subject} from "rxjs";
@@ -66,9 +62,7 @@ export class FilterableLabelDialogComponent implements OnDestroy {
     dialog: SbbDialog,
     initData: FilterableLabelsFormComponentModel,
   ): Observable<FilterableLabelsFormComponentModel> {
-    return dialog
-      .open(FilterableLabelDialogComponent, {data: initData})
-      .afterClosed();
+    return dialog.open(FilterableLabelDialogComponent, {data: initData}).afterClosed();
   }
 
   ngOnDestroy(): void {
@@ -79,10 +73,7 @@ export class FilterableLabelDialogComponent implements OnDestroy {
   onTransferClicked(): void {
     const dialogTitle = $localize`:@@app.view.dialogs.filterable-labels-dialog.filterable-label-dialog-component.transfer.title:Transfer`;
     const dialogContent = $localize`:@@app.view.dialogs.filterable-labels-dialog.filterable-label-dialog-component.transfer.content:Should the label ${this.originalLabel}:label: be applied on all visible ${dialogTitle}:element:?`;
-    const confirmationDialogParamter = new ConfirmationDialogParameter(
-      dialogTitle,
-      dialogContent,
-    );
+    const confirmationDialogParamter = new ConfirmationDialogParameter(dialogTitle, dialogContent);
     this.uiInteractionService
       .showConfirmationDiagramDialog(confirmationDialogParamter)
       .subscribe((confirmed: boolean) => {
@@ -96,10 +87,7 @@ export class FilterableLabelDialogComponent implements OnDestroy {
   onDeleteClicked(): void {
     const dialogTitle = $localize`:@@app.view.dialogs.filterable-labels-dialog.filterable-label-dialog-component.delete.title:Delete`;
     const dialogContent = $localize`:@@app.view.dialogs.filterable-labels-dialog.filterable-label-dialog-component.delete.content:Should the label ${this.originalLabel}:label: be definitely delete on all visible ${dialogTitle}:element:?`;
-    const confirmationDialogParamter = new ConfirmationDialogParameter(
-      dialogTitle,
-      dialogContent,
-    );
+    const confirmationDialogParamter = new ConfirmationDialogParameter(dialogTitle, dialogContent);
     this.uiInteractionService
       .showConfirmationDiagramDialog(confirmationDialogParamter)
       .subscribe((confirmed: boolean) => {

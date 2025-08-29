@@ -20,9 +20,7 @@ import {SliderChangeInfo} from "../model/util/sliderChangeInfo";
 import {TimeSliderService} from "../services/time-slider.service";
 import {UpdateCounterTriggerService} from "../services/util/update-counter.service";
 import {Sg4ToggleTrackOccupierService} from "../services/sg-4-toggle-track-occupier.service";
-import {
-  StreckengrafikDisplayElementService
-} from "../services/util/streckengrafik-display-element.service";
+import {StreckengrafikDisplayElementService} from "../services/util/streckengrafik-display-element.service";
 import {StreckengrafikDrawingContext} from "../model/util/streckengrafik.drawing.context";
 
 @Component({
@@ -30,8 +28,7 @@ import {StreckengrafikDrawingContext} from "../model/util/streckengrafik.drawing
   templateUrl: "./streckengrafik.component.html",
   styleUrls: ["./streckengrafik.component.scss"],
 })
-export class StreckengrafikComponent
-  implements OnInit, OnDestroy, AfterViewInit {
+export class StreckengrafikComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild("svg") svgRef: ElementRef;
 
   viewBox: string;
@@ -61,8 +58,7 @@ export class StreckengrafikComponent
     private resizeService: ResizeService,
     private streckengrafikDisplayElementService: StreckengrafikDisplayElementService,
     private ngZone: NgZone,
-  ) {
-  }
+  ) {}
 
   ngOnInit(): void {
     this.oldRect = undefined;
@@ -101,7 +97,7 @@ export class StreckengrafikComponent
   }
 
   getIsLoading(): boolean {
-    return !this.doShowTrainruns;//this.isLoading;
+    return !this.doShowTrainruns; //this.isLoading;
   }
 
   onResetButton() {
@@ -164,18 +160,14 @@ export class StreckengrafikComponent
   }
 
   getTimeButtonText(): string {
-    if (
-      this.streckengrafikDisplayElementService.isFilterStreckengrafikTimeNotFocusNorEnabled()
-    ) {
+    if (this.streckengrafikDisplayElementService.isFilterStreckengrafikTimeNotFocusNorEnabled()) {
       return `\u{2610} ${$localize`:@@app.streckengrafik.components.time:Time`}`;
     }
     return `\u{2611} ${$localize`:@@app.streckengrafik.components.time:Time`}`;
   }
 
   getNameButtonText(): string {
-    if (
-      this.streckengrafikDisplayElementService.isFilterStreckengrafikNameNotFocusNorEnabled()
-    ) {
+    if (this.streckengrafikDisplayElementService.isFilterStreckengrafikNameNotFocusNorEnabled()) {
       return `\u{2610} ${$localize`:@@app.streckengrafik.components.name:Name`}`;
     }
     return `\u{2611} ${$localize`:@@app.streckengrafik.components.name:Name`}`;
@@ -189,18 +181,14 @@ export class StreckengrafikComponent
   }
 
   getStreckengrafikNameNotFocusNorEnabledButtonClassTag(tag: string) {
-    if (
-      this.streckengrafikDisplayElementService.isFilterStreckengrafikNameNotFocusNorEnabled()
-    ) {
+    if (this.streckengrafikDisplayElementService.isFilterStreckengrafikNameNotFocusNorEnabled()) {
       return tag + " StreckengrafikNameNotFocusNorEnabled";
     }
     return tag;
   }
 
   getStreckengrafikTimeNotFocusNorEnabledButtonClassTag(tag: string) {
-    if (
-      this.streckengrafikDisplayElementService.isFilterStreckengrafikTimeNotFocusNorEnabled()
-    ) {
+    if (this.streckengrafikDisplayElementService.isFilterStreckengrafikTimeNotFocusNorEnabled()) {
       return tag + " StreckengrafikTimeNotFocusNorEnabled";
     }
     return tag;
@@ -227,8 +215,7 @@ export class StreckengrafikComponent
 
   updateContentSize(): void {
     StreckengrafikDrawingContext.updateDrawingContainerData();
-    const domRect: DOMRect =
-      this.svgRef?.nativeElement?.getBoundingClientRect();
+    const domRect: DOMRect = this.svgRef?.nativeElement?.getBoundingClientRect();
     const doc = document.getElementById("main-streckengrafik-container");
     if (doc !== null) {
       this.render(
@@ -266,17 +253,9 @@ export class StreckengrafikComponent
     event.preventDefault();
     event.stopImmediatePropagation();
     if (this.pathAlignmentHorizontal) {
-      this.timeSliderService.handleWheelZoom(
-        event.offsetY,
-        event.deltaY,
-        event.timeStamp,
-      );
+      this.timeSliderService.handleWheelZoom(event.offsetY, event.deltaY, event.timeStamp);
     } else {
-      this.timeSliderService.handleWheelZoom(
-        event.offsetX,
-        event.deltaY,
-        event.timeStamp,
-      );
+      this.timeSliderService.handleWheelZoom(event.offsetX, event.deltaY, event.timeStamp);
     }
   }
 
@@ -310,10 +289,7 @@ export class StreckengrafikComponent
   }
 
   private render(width: number, height: number) {
-    if (
-      this.oldResizeChangeInfo.width !== width ||
-      this.oldResizeChangeInfo.height !== height
-    ) {
+    if (this.oldResizeChangeInfo.width !== width || this.oldResizeChangeInfo.height !== height) {
       this.oldResizeChangeInfo = new ResizeChangeInfo(width, height);
       this.resizeService.resizeChange(this.oldResizeChangeInfo);
     }
