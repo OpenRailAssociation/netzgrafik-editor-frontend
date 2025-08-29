@@ -1,33 +1,21 @@
 <div (click)="disableSectionView()">
   <div>
-    <div
-      [attr.style]="
-        'pointer-events: none; margin: 0px; position: absolute; padding-left: ' +
-        (contentWidth - 55) +
-        'px; padding-top: ' +
-        getPositionY() +
-        'px;'
-      "
-    >
-      <ng-container *ngIf="!getShowAllLockStates()">
-        <sbb-icon
-          class="ToggleAllEyesButton"
-          svgIcon="eye-disabled-small"
-          style="pointer-events: auto"
-          (mouseup)="toggleShowAllLockStates()"
-          [title]="'app.perlenkette.show-only-closed-locks' | translate"
-        ></sbb-icon>
-      </ng-container>
-      <ng-container *ngIf="getShowAllLockStates()">
-        <sbb-icon
-          class="ToggleAllEyesButton"
-          svgIcon="eye-small"
-          style="pointer-events: auto"
-          (mouseup)="toggleShowAllLockStates()"
-          [title]="'app.perlenkette.show-all-locks' | translate"
-        ></sbb-icon>
-      </ng-container>
-    </div>
+    <ng-container *ngIf="!getShowAllLockStates()">
+      <sbb-icon
+        class="ToggleAllEyesButton"
+        svgIcon="eye-disabled-small"
+        (mouseup)="toggleShowAllLockStates()"
+        [title]="'app.perlenkette.show-only-closed-locks' | translate"
+      ></sbb-icon>
+    </ng-container>
+    <ng-container *ngIf="getShowAllLockStates()">
+      <sbb-icon
+        class="ToggleAllEyesButton"
+        svgIcon="eye-small"
+        (mouseup)="toggleShowAllLockStates()"
+        [title]="'app.perlenkette.show-all-locks' | translate"
+      ></sbb-icon>
+    </ng-container>
   </div>
 
   <div class="TitleArea">
@@ -147,21 +135,32 @@
       <div class="sepdiv"></div>
     </ng-container>
 
-    <!--- Station List (navigation) --->
-    <ng-container *ngFor="let pathItem of perlenketteTrainrun.pathItems">
-      <div *ngIf="pathItem.isPerlenketteNode()">
-        <p class="alignleft" style="line-height: 10px">
-          <span [class]="getSmallstationClassTag(pathItem)" (click)="goto(pathItem)">{{
-            pathItem.getPerlenketteNode().shortName
-          }}</span>
+    <div class="station-toggle-container">
+      <!--- Station List (navigation) --->
+      <div class="station-list">
+        <ng-container *ngFor="let pathItem of perlenketteTrainrun.pathItems">
+          <div *ngIf="pathItem.isPerlenketteNode()">
+            <p class="alignleft" style="line-height: 20px">
+              <span [class]="getSmallstationClassTag(pathItem)" (click)="goto(pathItem)">{{
+                pathItem.getPerlenketteNode().shortName
+              }}</span>
 
-          <ng-container *ngIf="isLastNodeButNotVeryLast(pathItem)">
-            <span [class]="getSmallstationClassTag(pathItem)"> &#x2022; </span>
-          </ng-container>
-        </p>
+              <ng-container *ngIf="isLastNodeButNotVeryLast(pathItem)">
+                <span [class]="getSmallstationClassTag(pathItem)"> &#x2022; </span>
+              </ng-container>
+            </p>
+          </div>
+        </ng-container>
       </div>
-    </ng-container>
 
+      <sbb-toggle-switch-button
+        *ngIf="!isSymmetric()"
+        [checked]="!isSymmetric()"
+        (checkedChanged)="onTrainrunSymmetryToggleChanged()"
+        #trainrunSymmetryToggle
+      >
+      </sbb-toggle-switch-button>
+    </div>
     <div class="sepdiv"></div>
   </div>
 
