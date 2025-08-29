@@ -66,10 +66,10 @@ describe("Reconnect TrainrunSection Test", () => {
     dataService.loadNetzgrafikDto(
       NetzgrafikUnitTestingReconnectTrainrunSection.getUnitTestReconnectTrainrunSectionNetzgrafik(),
     );
-    const trainrunSectionOfInterest1 = trainrunSectionService.getTrainrunSectionFromId(6);
+    const trainrunSectionOfInterest1 = trainrunSectionService.getTrainrunSectionFromId(1);
 
     trainrunSectionService.reconnectTrainrunSection(
-      12,
+      1,
       7,
       trainrunSectionOfInterest1.getId(),
       trainrunSectionOfInterest1.getTargetNodeId(),
@@ -80,12 +80,12 @@ describe("Reconnect TrainrunSection Test", () => {
       trainrunSectionOfInterest1.getSourceNode(),
       trainrunSectionOfInterest1,
     );
-    expect(endNode1.getId()).toBe(11);
+    expect(endNode1.getId()).toBe(8);
 
-    const trainrunSectionOfInterest2 = trainrunSectionService.getTrainrunSectionFromId(7);
+    const trainrunSectionOfInterest2 = trainrunSectionService.getTrainrunSectionFromId(2);
     trainrunSectionService.reconnectTrainrunSection(
-      12,
-      11,
+      1,
+      8,
       trainrunSectionOfInterest2.getId(),
       trainrunSectionOfInterest2.getTargetNodeId(),
       trainrunSectionOfInterest2.getSourceNodeId(),
@@ -95,12 +95,12 @@ describe("Reconnect TrainrunSection Test", () => {
       trainrunSectionOfInterest2.getSourceNode(),
       trainrunSectionOfInterest2,
     );
-    expect(endNode2.getId()).toBe(11);
+    expect(endNode2.getId()).toBe(1);
 
-    const trainrunSectionOfInterest4 = trainrunSectionService.getTrainrunSectionFromId(8);
+    const trainrunSectionOfInterest4 = trainrunSectionService.getTrainrunSectionFromId(4);
     trainrunSectionService.reconnectTrainrunSection(
-      11,
-      14,
+      1,
+      8,
       trainrunSectionOfInterest4.getId(),
       trainrunSectionOfInterest4.getTargetNodeId(),
       trainrunSectionOfInterest4.getSourceNodeId(),
@@ -110,26 +110,26 @@ describe("Reconnect TrainrunSection Test", () => {
       trainrunSectionOfInterest4.getSourceNode(),
       trainrunSectionOfInterest4,
     );
-    expect(endNode4.getId()).toBe(14);
+    expect(endNode4.getId()).toBe(7);
 
     trainrunSectionService.reconnectTrainrunSection(
       7,
-      12,
+      1,
       trainrunSectionOfInterest1.getId(),
       trainrunSectionOfInterest1.getTargetNodeId(),
       trainrunSectionOfInterest1.getSourceNodeId(),
     );
 
-    const nLTH = nodeService.getNodeFromId(11);
+    const nLTH = nodeService.getNodeFromId(8);
     expect(nLTH.getTransitions().length).toBe(1);
 
     const nRTR = nodeService.getNodeFromId(7);
     expect(nRTR.getTransitions().length).toBe(0);
 
-    const nBN = nodeService.getNodeFromId(14);
+    const nBN = nodeService.getNodeFromId(0);
     expect(nBN.getTransitions().length).toBe(0);
 
-    const nOL = nodeService.getNodeFromId(12);
+    const nOL = nodeService.getNodeFromId(1);
     expect(nOL.getTransitions().length).toBe(1);
   });
 });
