@@ -16,6 +16,7 @@ import {
   LeftAndRightElement,
   TrainrunsectionHelper,
 } from "../../../../services/util/trainrunsection.helper";
+import {SymmetryToggleService} from "../../../../services/util/symmetry-toggle.service";
 import {FilterService} from "../../../../services/ui/filter.service";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
@@ -24,6 +25,7 @@ import {StaticDomTags} from "../../../editor-main-view/data-views/static.dom.tag
 import {ColorRefType} from "../../../../data-structures/technical.data.structures";
 import {TrainrunSectionTimesService} from "../../../../services/data/trainrun-section-times.service";
 import {VersionControlService} from "../../../../services/data/version-control.service";
+import {ToggleSwitchButtonComponent} from "../../../toggle-switch-button/toggle-switch-button.component";
 
 export interface LeftAndRightTimeStructure {
   leftDepartureTime: number;
@@ -61,6 +63,8 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   travelTimeInputElement: ElementRef;
   @ViewChild("bottomTravelTimeInputElement")
   bottomTravelTimeInputElement: ElementRef;
+  @ViewChild("leftSymmetryToggle") leftSymmetryToggle: ToggleSwitchButtonComponent;
+  @ViewChild("rightSymmetryToggle") rightSymmetryToggle: ToggleSwitchButtonComponent;
 
   public selectedTrainrunSection: TrainrunSection;
   public leftBetriebspunkt: string[] = ["", ""];
@@ -87,9 +91,10 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     private filterService: FilterService,
     private trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
-    private changeDetection: ChangeDetectorRef,
+    private changeDetectionRef: ChangeDetectorRef,
     public trainrunSectionTimesService: TrainrunSectionTimesService,
     private versionControlService: VersionControlService,
+    private symmetryToggleService: SymmetryToggleService,
   ) {
     this.trainrunSectionHelper = new TrainrunsectionHelper(this.trainrunService);
 
@@ -169,7 +174,7 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     this.setFocusToUIElement(focusElement);
 
     this.updateAllValues();
-    this.changeDetection.detectChanges();
+    this.changeDetectionRef.detectChanges();
   }
 
   getContentClassTag(): string {
@@ -315,6 +320,38 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     // If not symmetric, travel time is displayed at the top
     // (and bottom travel time at the bottom)
     return "Top";
+  }
+
+  onLeftNodeSymmetryToggleChanged(symmetry: boolean) {
+    const originalState = TrainrunsectionHelper.isLeftNodeSymmetric(this.selectedTrainrunSection);
+    this.symmetryToggleService.onLeftNodeSymmetryToggleChanged(
+      this.selectedTrainrunSection,
+      this.trainrunSectionTimesService,
+      symmetry,
+      () => {
+        // Revert the toggle state
+        if (this.leftSymmetryToggle) {
+          this.leftSymmetryToggle.checked = !originalState;
+        }
+        this.changeDetectionRef.detectChanges();
+      },
+    );
+  }
+
+  onRightNodeSymmetryToggleChanged(symmetry: boolean) {
+    const originalState = TrainrunsectionHelper.isRightNodeSymmetric(this.selectedTrainrunSection);
+    this.symmetryToggleService.onRightNodeSymmetryToggleChanged(
+      this.selectedTrainrunSection,
+      this.trainrunSectionTimesService,
+      symmetry,
+      () => {
+        // Revert the toggle state
+        if (this.rightSymmetryToggle) {
+          this.rightSymmetryToggle.checked = !originalState;
+        }
+        this.changeDetectionRef.detectChanges();
+      },
+    );
   }
 
   isTrainrunSymmetric() {
