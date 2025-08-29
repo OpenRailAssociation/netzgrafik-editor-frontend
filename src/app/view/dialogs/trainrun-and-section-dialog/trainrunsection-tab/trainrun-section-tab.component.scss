@@ -205,6 +205,26 @@ input.NumberOfStopsInputElement.IsActive {
   grid-row: 3;
 }
 
+::ng-deep .LeftSymmetryToggle {
+  grid-column: 3;
+  grid-row: 2;
+  margin-top: 7px;
+  margin-left: 5px;
+  position: relative;
+  width: 50px;
+  height: 24px;
+}
+
+::ng-deep .RightSymmetryToggle {
+  grid-column: 15;
+  grid-row: 2;
+  margin-top: 7px;
+  margin-left: 5px;
+  position: relative;
+  width: 50px;
+  height: 24px;
+}
+
 ::ng-deep .TravelTime {
   grid-column: 7/11;
   grid-row: 2;

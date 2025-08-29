@@ -158,6 +158,20 @@
               #leftArrivalTimeInputElement
             />
           </div>
+          <sbb-toggle-switch-button
+            class="LeftSymmetryToggle"
+            *ngIf="selectedTrainrunSection.getTrainrun().isRoundTrip()"
+            [checked]="!TrainrunsectionHelper.isLeftNodeSymmetric(selectedTrainrunSection)"
+            (checkedChanged)="onLeftNodeSymmetryToggleChanged(!$event)"
+            [disabled]="
+              TrainrunsectionHelper.isLeftToggleDisabled(
+                selectedTrainrunSection,
+                trainrunSectionTimesService.getLockStructure()
+              )
+            "
+            #leftSymmetryToggle
+          >
+          </sbb-toggle-switch-button>
           <div
             class="NodeLeftArrivalPlus"
             *ngIf="TrainrunsectionHelper.isLeftSideDisplayed(selectedTrainrunSection)"
@@ -215,6 +229,20 @@
               +
             </button>
           </div>
+          <sbb-toggle-switch-button
+            class="RightSymmetryToggle"
+            *ngIf="selectedTrainrunSection.getTrainrun().isRoundTrip()"
+            [checked]="!TrainrunsectionHelper.isRightNodeSymmetric(selectedTrainrunSection)"
+            (checkedChanged)="onRightNodeSymmetryToggleChanged(!$event)"
+            [disabled]="
+              TrainrunsectionHelper.isRightToggleDisabled(
+                selectedTrainrunSection,
+                trainrunSectionTimesService.getLockStructure()
+              )
+            "
+            #rightSymmetryToggle
+          >
+          </sbb-toggle-switch-button>
           <div
             class="NodeRightArrivalMinus"
             *ngIf="TrainrunsectionHelper.isRightSideDisplayed(selectedTrainrunSection)"
