@@ -1720,9 +1720,11 @@ export class TrainrunSectionsView {
           this.getHiddenTagForTime(d, TrainrunSectionText.SourceDeparture),
           this.getHiddenTagForTime(d, TrainrunSectionText.TargetDeparture),
           this.getHiddenTagForTime(d, TrainrunSectionText.TrainrunSectionTravelTime),
+          this.getHiddenTagForTime(d, TrainrunSectionText.TrainrunSectionBackwardTravelTime),
           this.getHiddenTagForTime(d, TrainrunSectionText.TrainrunSectionName),
           !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
             !this.editorView.isFilterDirectionArrowsEnabled(),
+          !this.editorView.isFilterAsymmetryArrowsEnabled(),
         ),
       );
     });
