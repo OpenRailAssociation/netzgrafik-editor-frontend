@@ -334,8 +334,8 @@ describe("TrainrunService", () => {
 
     trainrunService.combineTwoTrainruns(
       node2,
-      node2.getPortOfTrainrunSection(7),
       node2.getPortOfTrainrunSection(5),
+      node2.getPortOfTrainrunSection(7),
     );
 
     const trainrunSections75 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(
