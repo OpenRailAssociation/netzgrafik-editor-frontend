@@ -431,12 +431,12 @@ export class TrainrunService {
     // Enforce updating all transitions. If the train run has "holes," we must also update
     // all other transitions that cannot be reached through train run iterations. However,
     // we don't need to update the times, so we can skip `shiftAllTimes`.
-    this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(trainrun2.getId()).forEach(
-      (ts) => {
+    this.trainrunSectionService
+      .getAllTrainrunSectionsForTrainrun(trainrun2.getId())
+      .forEach((ts) => {
         ts.getSourceNode().getTransition(ts.getId())?.setTrainrun(trainrun1);
         ts.getTargetNode().getTransition(ts.getId())?.setTrainrun(trainrun1);
-      }
-    );
+      });
 
     // update trainrun references (1st transition)
     const trans1 = node.getTransitionFromPortId(port1.getId());
@@ -484,7 +484,6 @@ export class TrainrunService {
 
     // Update the cumulative times for the combined trainrun
     this.propagateConsecutiveTimesForTrainrun(port1.getTrainrunSection().getId());
-
 
     // update
     this.trainrunsUpdated();
