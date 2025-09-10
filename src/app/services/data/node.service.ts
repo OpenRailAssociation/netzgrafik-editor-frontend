@@ -458,8 +458,7 @@ export class NodeService implements OnDestroy {
     // update the number of stops
     trainrunSection1.setNumberOfStops(
       trainrunSection2.getNumberOfStops() +
-        trainrunSection1.getNumberOfStops() +
-        (isNonStop ? 0 : 1),
+        trainrunSection1.getNumberOfStops()
     );
 
     // update the time Locks
@@ -553,28 +552,26 @@ export class NodeService implements OnDestroy {
     return false;
   }
 
-  toggleNonStop(nodeId: number, transitionId: number) {
+  propagateIfNonStop(nodeId : number, transitionId: number){
     const node = this.getNodeFromId(nodeId);
-    node.toggleNonStop(transitionId);
     const trainrunSections = node.getTrainrunSections(transitionId);
     const node1 = node.getOppositeNode(trainrunSections.trainrunSection1);
     const node2 = node.getOppositeNode(trainrunSections.trainrunSection2);
     const isForwardPathLocked = this.hasPathAnyDepartureOrArrivalTimeLock(
-      node1,
+      node,
       trainrunSections.trainrunSection1,
     );
     const isBackwardPathLocked = this.hasPathAnyDepartureOrArrivalTimeLock(
-      node2,
+      node,
       trainrunSections.trainrunSection2,
     );
-
-    if (!isForwardPathLocked) {
+    if (!isBackwardPathLocked) {
       this.trainrunSectionService.iterateAlongTrainrunUntilEndAndPropagateTime(
         node1,
         trainrunSections.trainrunSection1.getId(),
       );
     }
-    if (!isBackwardPathLocked) {
+    if (!isForwardPathLocked) {
       this.trainrunSectionService.iterateAlongTrainrunUntilEndAndPropagateTime(
         node2,
         trainrunSections.trainrunSection2.getId(),
@@ -603,6 +600,12 @@ export class NodeService implements OnDestroy {
     this.nodesUpdated();
     this.operation.emit(new TrainrunOperation(OperationType.update, trainrunSections.trainrunSection1.getTrainrun()));
   }
+
+  toggleNonStop(nodeId: number, transitionId: number) {
+    const node = this.getNodeFromId(nodeId);
+    node.toggleNonStop(transitionId);
+    this.propagateIfNonStop(nodeId, transitionId)
+ }
 
   checkExistsNoCycleTrainrunAfterFreePortsConnecting(
     node: Node,
