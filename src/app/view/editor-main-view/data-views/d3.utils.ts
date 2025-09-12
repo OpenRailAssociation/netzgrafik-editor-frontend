@@ -178,6 +178,11 @@ export class D3Utils {
       "d",
       "M" + fromPos.getX() + "," + fromPos.getY() + "L" + toPos.getX() + "," + toPos.getY(),
     );
+
+    d3.selectAll(StaticDomTags.PREVIEW_CONNECTION_LINE_DOM_REF).classed(
+      StaticDomTags.TAG_CTRLKEY,
+      d3.event.ctrlKey,
+    );
   }
 
   static disableTrainrunSectionForEventHandling() {
