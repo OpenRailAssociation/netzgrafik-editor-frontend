@@ -51,14 +51,14 @@ export class SVGMouseController {
   private ctrlKeyDownListener(e: KeyboardEvent) {
     const oldCtrlKeyPressed = this.ctrlKeyPressed;
     if (e.key === "Control") this.ctrlKeyPressed = true;
-    if (oldCtrlKeyPressed !== this.ctrlKeyPressed){
+    if (oldCtrlKeyPressed !== this.ctrlKeyPressed) {
       this.svgMouseControllerObserver.onCtrlKeyChanged(this.ctrlKeyPressed);
     }
   }
   private ctrlKeyUpListener(e: KeyboardEvent) {
     const oldCtrlKeyPressed = this.ctrlKeyPressed;
     if (e.key === "Control") this.ctrlKeyPressed = false;
-    if (oldCtrlKeyPressed !== this.ctrlKeyPressed){
+    if (oldCtrlKeyPressed !== this.ctrlKeyPressed) {
       this.svgMouseControllerObserver.onCtrlKeyChanged(this.ctrlKeyPressed);
     }
   }

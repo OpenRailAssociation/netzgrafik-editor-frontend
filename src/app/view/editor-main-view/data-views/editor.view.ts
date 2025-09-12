@@ -576,10 +576,13 @@ export class EditorView implements SVGMouseControllerObserver {
   }
 
   onCtrlKeyChanged(state: boolean) {
-    if ( this.trainrunSectionPreviewLineView.getMode() ===  PreviewLineMode.DragExistingTrainrunSection){
-
-      d3.selectAll(StaticDomTags.PREVIEW_CONNECTION_LINE_DOM_REF)
-        .classed(StaticDomTags.TAG_CTRLKEY,state);
+    if (
+      this.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.DragExistingTrainrunSection
+    ) {
+      d3.selectAll(StaticDomTags.PREVIEW_CONNECTION_LINE_DOM_REF).classed(
+        StaticDomTags.TAG_CTRLKEY,
+        state,
+      );
     }
   }
 

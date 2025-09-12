@@ -313,7 +313,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       updateMultiSelect: () => {},
       onEndMultiSelect: () => {},
       onScaleNetzgrafik: () => {},
-      onCtrlKeyChanged: () => {}
+      onCtrlKeyChanged: () => {},
     };
   }
 
