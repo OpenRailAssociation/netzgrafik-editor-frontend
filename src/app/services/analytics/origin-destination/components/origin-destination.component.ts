@@ -223,7 +223,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       }
       tooltip
         .html(
-          `${nodeNameMap.get(d.origin)} (<b>${d.origin}</b>) &#x2192; 
+          `${nodeNameMap.get(d.origin)} (<b>${d.origin}</b>) &#x2192;
           ${nodeNameMap.get(d.destination)} (<b>${d.destination}</b>)
           ${details}`,
         )
@@ -313,6 +313,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       updateMultiSelect: () => {},
       onEndMultiSelect: () => {},
       onScaleNetzgrafik: () => {},
+      onCtrlKeyChanged: () => {}
     };
   }
 

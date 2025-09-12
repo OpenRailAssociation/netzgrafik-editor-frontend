@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import {NodesView} from "./nodes.view";
 import {TrainrunSectionsView} from "./trainrunsections.view";
-import {TrainrunSectionPreviewLineView} from "./trainrunsection.previewline.view";
+import {PreviewLineMode, TrainrunSectionPreviewLineView} from "./trainrunsection.previewline.view";
 import {StaticDomTags} from "./static.dom.tags";
 import {TransitionsView} from "./transitions.view";
 import {Vec2D} from "../../../utils/vec2D";
@@ -573,6 +573,14 @@ export class EditorView implements SVGMouseControllerObserver {
     }
 
     this.trainrunSectionPreviewLineView.stopPreviewLine();
+  }
+
+  onCtrlKeyChanged(state: boolean) {
+    if ( this.trainrunSectionPreviewLineView.getMode() ===  PreviewLineMode.DragExistingTrainrunSection){
+
+      d3.selectAll(StaticDomTags.PREVIEW_CONNECTION_LINE_DOM_REF)
+        .classed(StaticDomTags.TAG_CTRLKEY,state);
+    }
   }
 
   onScaleNetzgrafik(factor: number, scaleCenter: Vec2D) {
