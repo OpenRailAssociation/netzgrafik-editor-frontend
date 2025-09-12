@@ -581,7 +581,7 @@ export class EditorView implements SVGMouseControllerObserver {
     ) {
       d3.selectAll(StaticDomTags.PREVIEW_CONNECTION_LINE_DOM_REF).classed(
         StaticDomTags.TAG_CTRLKEY,
-        state,
+        state && this.trainrunSectionPreviewLineView.canCombineTwoTrainruns(),
       );
     }
   }

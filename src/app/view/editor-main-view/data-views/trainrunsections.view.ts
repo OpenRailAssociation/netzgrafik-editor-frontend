@@ -1911,6 +1911,14 @@ export class TrainrunSectionsView {
       TrainrunSectionsView.getNode(trainrunSection, !atSource),
       startAT,
     );
+
+    if (
+      TrainrunSectionsView.getNode(trainrunSection, atSource).getTransition(
+        trainrunSection.getId(),
+      ) !== undefined
+    ) {
+      this.editorView.trainrunSectionPreviewLineView.markCanNotCombineTwoTrainruns();
+    }
     this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
 
     d3.selectAll(StaticDomTags.CONNECTION_LINE_PIN_DOM_REF).classed(
@@ -2545,8 +2553,9 @@ export class TrainrunSectionsView {
       this.editorView.trainrunSectionPreviewLineView.getExistingTrainrunSection();
     if (trainrunSectionFrom !== null) {
       if (trainrunSectionFrom.getTrainrunId() !== trainrunSection.getTrainrunId()) {
+        const canCombine = this.editorView.trainrunSectionPreviewLineView.canCombineTwoTrainruns();
         this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
-        if (d3.event.ctrlKey) {
+        if (d3.event.ctrlKey && canCombine) {
           const n: Node = endNode;
           this.editorView.combineTwoTrainruns(
             endNode,

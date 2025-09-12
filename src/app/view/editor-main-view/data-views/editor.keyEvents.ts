@@ -150,14 +150,18 @@ export class EditorKeyEvents {
   }
 
   private forwardCtrlKeyInformation() {
-    const obj1 = d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF);
-    obj1.each(function () {
-      d3.select(this).classed(StaticDomTags.TAG_CTRLKEY, d3.event.ctrlKey);
-    });
-    const obj2 = d3.selectAll(StaticDomTags.TRANSITION_BUTTON_DOM_REF);
-    obj2.each(function () {
-      d3.select(this).classed(StaticDomTags.TAG_CTRLKEY, d3.event.ctrlKey);
-    });
+    // only forward the ctrl key information if combine of two trainruns
+    // is possible
+    if (this.trainrunSectionPreviewLineView.canCombineTwoTrainruns()) {
+      const obj1 = d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF);
+      obj1.each(function () {
+        d3.select(this).classed(StaticDomTags.TAG_CTRLKEY, d3.event.ctrlKey);
+      });
+      const obj2 = d3.selectAll(StaticDomTags.TRANSITION_BUTTON_DOM_REF);
+      obj2.each(function () {
+        d3.select(this).classed(StaticDomTags.TAG_CTRLKEY, d3.event.ctrlKey);
+      });
+    }
   }
 
   private getSelectedTrainSectionId(): number {
