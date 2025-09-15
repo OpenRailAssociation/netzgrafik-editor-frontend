@@ -119,6 +119,11 @@
   stroke-dasharray: 4px 2px 2px;
 }
 
+::ng-deep path.edge_line.Freq_120.layer_0 {
+  stroke-dasharray: none;
+  stroke-opacity: 0.001;
+}
+
 ::ng-deep circle.edge_line_stops.fill.selected.hover {
   fill: white;
   stroke: $COLOR_Edit;
