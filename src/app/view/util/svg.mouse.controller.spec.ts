@@ -20,6 +20,8 @@ class DummySVGMouseControllerObserver implements SVGMouseControllerObserver {
   onEndMultiSelect() {}
 
   onScaleNetzgrafik(factor: number, scaleCenter: Vec2D) {}
+
+  onCtrlKeyChanged(state: boolean) {}
 }
 
 describe("general view functions", () => {
