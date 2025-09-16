@@ -150,11 +150,9 @@ export class EditorKeyEvents {
   }
 
   private forwardCtrlKeyInformation() {
-    let ctrlButtonState = d3.event.ctrlKey;
-    if (!this.trainrunSectionPreviewLineView.canCombineTwoTrainruns()) {
-      // override state/value
-      ctrlButtonState = false;
-    }
+    const ctrlButtonState =
+      d3.event.ctrlKey && this.trainrunSectionPreviewLineView.canCombineTwoTrainruns();
+
     const obj1 = d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF);
     obj1.each(function () {
       d3.select(this).classed(StaticDomTags.TAG_CTRLKEY, ctrlButtonState);
