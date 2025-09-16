@@ -439,7 +439,7 @@ export class EditorView implements SVGMouseControllerObserver {
   }
 
   onEarlyReturnFromMousemove(): boolean {
-    return this.trainrunSectionPreviewLineView.updatePreviewLine(false);
+    return this.trainrunSectionPreviewLineView.updatePreviewLine();
   }
 
   onStartMultiSelect() {

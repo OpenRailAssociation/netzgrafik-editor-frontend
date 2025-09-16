@@ -1792,7 +1792,7 @@ export class TrainrunSectionsView {
       position,
     );
 
-    this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(false);
+    this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
   }
 
   onIntermediateStopMouseUp(trainrunSection: TrainrunSection, domObj: any) {
@@ -1912,13 +1912,12 @@ export class TrainrunSectionsView {
       startAT,
     );
 
-    const hasTrainrunSectionOfInterestHasTransition =
+    const hasTrans =
       TrainrunSectionsView.getNode(trainrunSection, atSource).getTransition(
         trainrunSection.getId(),
       ) !== undefined;
-    this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(
-      hasTrainrunSectionOfInterestHasTransition,
-    );
+
+    this.editorView.trainrunSectionPreviewLineView.updatePreviewLineCombineTrainruns(hasTrans);
 
     d3.selectAll(StaticDomTags.CONNECTION_LINE_PIN_DOM_REF).classed(
       StaticDomTags.CONNECTION_TAG_ONGOING_GDRAGGING,

@@ -881,7 +881,7 @@ export class NodesView {
           D3Utils.doGrayout(dragTransitionInfo.trainrunSection1, node);
           D3Utils.doGrayout(dragTransitionInfo.trainrunSection2, node);
         }
-        this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(true);
+        this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
         return;
       }
 
