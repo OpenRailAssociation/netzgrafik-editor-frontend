@@ -233,7 +233,7 @@ export class TrainrunSectionPreviewLineView {
       this.displayConnectionPreviewLine();
       D3Utils.updateConnectionPreviewLine(
         this.startConnectionPos,
-        this.canNotCombineTwoTrainrunsFlag,
+        this.canCombineTwoTrainruns(),
       );
       return true;
     }
