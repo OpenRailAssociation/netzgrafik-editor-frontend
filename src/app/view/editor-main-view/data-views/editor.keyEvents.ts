@@ -150,14 +150,19 @@ export class EditorKeyEvents {
   }
 
   private forwardCtrlKeyInformation() {
+    let ctrlButtonState = d3.event.ctrlKey;
+    if (!this.trainrunSectionPreviewLineView.canCombineTwoTrainruns()) {
+      // override state/value
+      ctrlButtonState = false;
+    }
     const obj1 = d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF);
     obj1.each(function () {
-      d3.select(this).classed(StaticDomTags.TAG_CTRLKEY, d3.event.ctrlKey);
+      d3.select(this).classed(StaticDomTags.TAG_CTRLKEY, ctrlButtonState);
     });
 
     const obj2 = d3.selectAll(StaticDomTags.TRANSITION_BUTTON_DOM_REF);
     obj2.each(function () {
-      d3.select(this).classed(StaticDomTags.TAG_CTRLKEY, d3.event.ctrlKey);
+      d3.select(this).classed(StaticDomTags.TAG_CTRLKEY, ctrlButtonState);
     });
   }
 
