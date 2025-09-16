@@ -326,7 +326,7 @@ export class TransitionsView {
       new DragTransitionInfo(node, trainrunSection1, trainrunSection2, transition, true, domObj),
       position,
     );
-    this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
+    this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(true);
   }
 
   onTransitionMousemove(domObj: any) {
