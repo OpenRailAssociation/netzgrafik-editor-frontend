@@ -15,7 +15,8 @@
     "lib": ["es2018", "dom"],
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "useDefineForClassFields": false
+    "useDefineForClassFields": false,
+    "strictNullChecks": true
   },
   "angularCompilerOptions": {
     "fullTemplateTypeCheck": true,
