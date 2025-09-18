@@ -163,7 +163,7 @@ export class D3Utils {
     );
   }
 
-  static updateConnectionPreviewLine(startPos: Vec2D) {
+  static updateConnectionPreviewLine(startPos: Vec2D, canCombineTwoTrainrunsFlag: boolean) {
     const mousePos = d3.mouse(d3.select(StaticDomTags.PREVIEW_CONNECTION_LINE_DOM_REF).node());
     const mousePosVec: Vec2D = new Vec2D(mousePos[0], mousePos[1]);
     const fromPos: Vec2D = Vec2D.add(
@@ -178,6 +178,13 @@ export class D3Utils {
       "d",
       "M" + fromPos.getX() + "," + fromPos.getY() + "L" + toPos.getX() + "," + toPos.getY(),
     );
+
+    if (canCombineTwoTrainrunsFlag) {
+      d3.selectAll(StaticDomTags.PREVIEW_CONNECTION_LINE_DOM_REF).classed(
+        StaticDomTags.TAG_CTRLKEY,
+        d3.event.ctrlKey,
+      );
+    }
   }
 
   static disableTrainrunSectionForEventHandling() {

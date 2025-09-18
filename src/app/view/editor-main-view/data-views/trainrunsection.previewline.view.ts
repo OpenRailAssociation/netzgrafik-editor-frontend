@@ -52,6 +52,7 @@ export class TrainrunSectionPreviewLineView {
   private drawingConnectionObjectCreated = false;
   private dragIntermediateStopInfo: DragIntermediateStopInfo = null;
   private dragTransitionInfo: DragTransitionInfo = null;
+  private canCombineTwoTrainrunsFlag = false;
 
   constructor(
     private nodeService: NodeService,
@@ -175,6 +176,11 @@ export class TrainrunSectionPreviewLineView {
     D3Utils.disableTrainrunSectionForEventHandling();
   }
 
+  updatePreviewLineCombineTrainruns(transitionInvolved) {
+    this.canCombineTwoTrainrunsFlag = !transitionInvolved;
+    this.updatePreviewLine();
+  }
+
   updatePreviewLine() {
     if (this.dragIntermediateStopInfo !== null) {
       this.undisplayConnectionPreviewLine();
@@ -230,7 +236,7 @@ export class TrainrunSectionPreviewLineView {
     if (this.startConnectionPos !== null) {
       this.undisplayTrainrunSectionPreviewLine();
       this.displayConnectionPreviewLine();
-      D3Utils.updateConnectionPreviewLine(this.startConnectionPos);
+      D3Utils.updateConnectionPreviewLine(this.startConnectionPos, this.canCombineTwoTrainruns());
       return true;
     }
 
@@ -263,6 +269,10 @@ export class TrainrunSectionPreviewLineView {
       D3Utils.unhighlightNode(this.startNode);
     }
     this.resetInternalState();
+  }
+
+  canCombineTwoTrainruns() {
+    return this.canCombineTwoTrainrunsFlag;
   }
 
   private displayTrainrunSectionPreviewLine() {
@@ -309,6 +319,8 @@ export class TrainrunSectionPreviewLineView {
 
   private resetInternalState() {
     this.mode = PreviewLineMode.NotDragging;
+    this.canCombineTwoTrainrunsFlag = false;
+
     this.existingTrainrunSection = null;
     this.startNode = null;
     this.startPos = null;

@@ -311,6 +311,49 @@ describe("TrainrunService", () => {
     expect(trainrunSections75.length).toBe(3);
   });
 
+  it("combineTwoTrainruns - 003 - two trainrun with one hole inside segments tests", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+
+    trainrunSectionService.deleteTrainrunSection(4);
+
+    const ts5: TrainrunSection = trainrunSectionService.getTrainrunSectionFromId(5);
+    const ts7: TrainrunSection = trainrunSectionService.getTrainrunSectionFromId(7);
+    trainrunService.setTrainrunAsSelected(ts7.getId());
+    const ts7a = trainrunSectionService.createTrainrunSection(0, 1);
+    const ts7b = trainrunSectionService.createTrainrunSection(1, 3);
+    trainrunService.unselectAllTrainruns();
+
+    const node2: Node = nodeService.getNodeFromId(2);
+
+    const trainrunSections5 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      ts5.getTrainrunId(),
+    );
+    const trainrunSections7 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      ts7.getTrainrunId(),
+    );
+
+    trainrunService.combineTwoTrainruns(
+      node2,
+      node2.getPortOfTrainrunSection(5),
+      node2.getPortOfTrainrunSection(7),
+    );
+
+    const trainrunSections75 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      ts7.getTrainrunId(),
+    );
+
+    trainrunSections75.forEach((ts) => {
+      const srcTrans = ts.getSourceNode().getTransition(ts.getId());
+      if (srcTrans) {
+        expect(srcTrans.getTrainrun().getId()).toBe(ts7.getTrainrunId());
+      }
+      const trgTrans = ts.getTargetNode().getTransition(ts.getId());
+      if (trgTrans) {
+        expect(trgTrans.getTrainrun().getId()).toBe(ts7.getTrainrunId());
+      }
+    });
+  });
+
   it("getRootIterators", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 

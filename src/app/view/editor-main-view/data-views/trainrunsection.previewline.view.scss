@@ -14,3 +14,8 @@
   pointer-events: none;
   fill: none;
 }
+
+::ng-deep path.preview_connection_line.ctrlKey {
+  stroke-dasharray: 0px;
+  stroke-width: 6px;
+}
