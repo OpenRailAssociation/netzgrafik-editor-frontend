@@ -10,7 +10,7 @@
         <div
           [ngClass]="[
             'SymmetryCard',
-            selectedSymmetryReference === SymmetryReference.Top ? 'selected' : 'muted'
+            selectedSymmetryReference === SymmetryReference.Top ? 'selected' : 'muted',
           ]"
           (click)="onCardSelection(SymmetryReference.Top)"
         >
@@ -110,7 +110,7 @@
         <div
           [ngClass]="[
             'SymmetryCard',
-            selectedSymmetryReference === SymmetryReference.Bottom ? 'selected' : 'muted'
+            selectedSymmetryReference === SymmetryReference.Bottom ? 'selected' : 'muted',
           ]"
           (click)="onCardSelection(SymmetryReference.Bottom)"
         >
