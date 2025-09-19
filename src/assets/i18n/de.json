@@ -267,6 +267,11 @@
           "position": "Position",
           "close": "Schliessen"
         },
+        "symmetry-dialog": {
+          "apply-symmetry": "Symmetrie anwenden",
+          "cancel": "Abbrechen",
+          "selection": "Symmetrie-Auswahl"
+        },
         "trainrun-and-section-dialog": {
           "filterableLabels": "Filterbare Labels",
           "trainrun-filter-tab": {
@@ -355,6 +360,8 @@
         "round-trips": "Rundreisen",
         "one-ways": "Einzelfahrten",
         "display-direction-arrows": "Zugfahrt-Richtungs-Pfeile anzeigen",
+        "display-asymmetry-arrows": "Zugfahrt-Knoten-Asymmetrie-Pfeile anzeigen",
+        "display-backward-travel-times": "Rückwärtsfahrzeiten anzeigen (Asymmetrie)",
         "times": "Zeiten",
         "decimal-displayed": "Anzahl Nachkommastellenanzeigen",
         "display-arrival-departure-times": "Abfahrt- und Ankuftszeiten anzeigen",
@@ -383,6 +390,10 @@
         "symmetry": "Symmetrie",
         "show-direction": "{$direction} einblenden",
         "hide-direction": "{$direction} ausblenden",
+        "show-asymmetric-trainruns": "Asymmetrische Zugfahrten einblenden",
+        "hide-asymmetric-trainruns": "Asymmetrische Zugfahrten ausblenden",
+        "symmetric": "Symm.",
+        "asymmetric": "Asymm.",
         "filterable-label-filter": {
           "no-labels-available": "Keine Labels vorhanden",
           "or": "Oder",
