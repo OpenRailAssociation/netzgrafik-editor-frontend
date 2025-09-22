@@ -125,20 +125,20 @@
 }
 
 /// FREQ_15:hover
-path.transition_line.layer_0.Freq_15.hover {
+::ng-deep path.transition_line.layer_0.Freq_15.hover {
   stroke-width: 8.75px;
   stroke-opacity: 1;
 }
 
-path.transition_line.layer_1.Freq_15.hover {
+::ng-deep path.transition_line.layer_1.Freq_15.hover {
   stroke-width: 6.25px;
 }
 
-path.transition_line.layer_2.Freq_15.hover {
+::ng-deep path.transition_line.layer_2.Freq_15.hover {
   stroke-width: 3.75px;
 }
 
-path.transition_line.layer_3.Freq_15.hover {
+::ng-deep path.transition_line.layer_3.Freq_15.hover {
   stroke-width: 1.25px;
 }
 /// -------------------------------------------------------------
