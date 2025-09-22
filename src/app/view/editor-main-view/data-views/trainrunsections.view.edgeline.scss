@@ -26,6 +26,11 @@
 }
 
 /// FREQ_120
+::ng-deep path.edge_line.layer_0.Freq_120 {
+  stroke-width: 32px;
+  stroke-dasharray: none;
+}
+
 ::ng-deep path.edge_line.layer_1.Freq_120 {
   stroke-width: 2px;
 }
