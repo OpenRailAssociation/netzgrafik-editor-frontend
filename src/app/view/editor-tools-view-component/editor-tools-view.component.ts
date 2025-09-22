@@ -24,8 +24,11 @@ import {NetzgrafikColoringService} from "../../services/data/netzgrafikColoring.
 import {ViewportCullService} from "../../services/ui/viewport.cull.service";
 import {LevelOfDetailService} from "../../services/ui/level.of.detail.service";
 import {TrainrunSectionValidator} from "../../services/util/trainrunsection.validator";
-import {OriginDestinationService} from "src/app/services/analytics/origin-destination/components/origin-destination.service";
+import {
+  OriginDestinationService
+} from "src/app/services/analytics/origin-destination/components/origin-destination.service";
 import {EditorMode} from "../editor-menu/editor-mode";
+import {NODE_TEXT_AREA_HEIGHT, RASTERING_BASIC_GRID_SIZE} from "../rastering/definitions";
 
 interface ContainertoExportData {
   documentToExport: HTMLElement;
@@ -113,7 +116,7 @@ export class EditorToolsViewComponent {
     downloadBlob(
       blob,
       $localize`:@@app.view.editor-side-view.editor-tools-view-component.netzgrafikFile:netzgrafik` +
-        ".json",
+      ".json",
     );
   }
 
@@ -303,33 +306,33 @@ export class EditorToolsViewComponent {
       row.push(regions.map((reg) => "" + reg).join(comma));
       row.push(
         "" +
-          (trainrunCategoryHaltezeit[HaltezeitFachCategories.IPV].no_halt
-            ? 0
-            : trainrunCategoryHaltezeit[HaltezeitFachCategories.IPV].haltezeit - zaz),
+        (trainrunCategoryHaltezeit[HaltezeitFachCategories.IPV].no_halt
+          ? 0
+          : trainrunCategoryHaltezeit[HaltezeitFachCategories.IPV].haltezeit - zaz),
       );
       row.push(
         "" +
-          (trainrunCategoryHaltezeit[HaltezeitFachCategories.A].no_halt
-            ? 0
-            : trainrunCategoryHaltezeit[HaltezeitFachCategories.A].haltezeit - zaz),
+        (trainrunCategoryHaltezeit[HaltezeitFachCategories.A].no_halt
+          ? 0
+          : trainrunCategoryHaltezeit[HaltezeitFachCategories.A].haltezeit - zaz),
       );
       row.push(
         "" +
-          (trainrunCategoryHaltezeit[HaltezeitFachCategories.B].no_halt
-            ? 0
-            : trainrunCategoryHaltezeit[HaltezeitFachCategories.B].haltezeit - zaz),
+        (trainrunCategoryHaltezeit[HaltezeitFachCategories.B].no_halt
+          ? 0
+          : trainrunCategoryHaltezeit[HaltezeitFachCategories.B].haltezeit - zaz),
       );
       row.push(
         "" +
-          (trainrunCategoryHaltezeit[HaltezeitFachCategories.C].no_halt
-            ? 0
-            : trainrunCategoryHaltezeit[HaltezeitFachCategories.C].haltezeit - zaz),
+        (trainrunCategoryHaltezeit[HaltezeitFachCategories.C].no_halt
+          ? 0
+          : trainrunCategoryHaltezeit[HaltezeitFachCategories.C].haltezeit - zaz),
       );
       row.push(
         "" +
-          (trainrunCategoryHaltezeit[HaltezeitFachCategories.D].no_halt
-            ? 0
-            : trainrunCategoryHaltezeit[HaltezeitFachCategories.D].haltezeit - zaz),
+        (trainrunCategoryHaltezeit[HaltezeitFachCategories.D].no_halt
+          ? 0
+          : trainrunCategoryHaltezeit[HaltezeitFachCategories.D].haltezeit - zaz),
       );
       row.push("" + zaz);
       row.push("" + nodeElement.getConnectionTime());
@@ -361,17 +364,16 @@ export class EditorToolsViewComponent {
 
     switch (editorMode) {
       case EditorMode.StreckengrafikEditing: {
-        const boundingBox = this.nodeService.getNetzgrafikBoundingBox();
+        htmlElementToExport = document.getElementById("main-streckengrafik-container");
         param = {
           encoderOptions: 1.0,
-          scale: 2.0,
-          left: boundingBox.minCoordX - 32,
-          top: boundingBox.minCoordY - 32,
-          width: boundingBox.maxCoordX - boundingBox.minCoordX + 64,
-          height: boundingBox.maxCoordY - boundingBox.minCoordY + 64,
+          scale: 1.0,
+          left: 0,
+          top: 0,
+          width: htmlElementToExport.offsetWidth,
+          height: htmlElementToExport.offsetHeight,
           backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
         };
-        htmlElementToExport = document.getElementById("main-streckengrafik-container");
         break;
       }
       case EditorMode.OriginDestination: {
@@ -397,13 +399,18 @@ export class EditorToolsViewComponent {
         if (htmlElementToExport === null) {
           return undefined;
         }
+        const boundingBox = this.nodeService.getNetzgrafikBoundingBox();
         param = {
           encoderOptions: 1.0,
           scale: 1.0,
-          left: htmlElementToExport.offsetWidth / 3,
-          top: 80,
-          width: htmlElementToExport.offsetWidth,
-          height: htmlElementToExport.offsetHeight,
+          left: boundingBox.minCoordX - 2.0 * RASTERING_BASIC_GRID_SIZE,
+          top: boundingBox.minCoordY - 2.0 * RASTERING_BASIC_GRID_SIZE,
+          width: boundingBox.maxCoordX - boundingBox.minCoordX + 4.0 * RASTERING_BASIC_GRID_SIZE,
+          height:
+            boundingBox.maxCoordY -
+            boundingBox.minCoordY +
+            4.0 * RASTERING_BASIC_GRID_SIZE +
+            NODE_TEXT_AREA_HEIGHT,
           backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
         };
         break;
@@ -411,25 +418,23 @@ export class EditorToolsViewComponent {
     }
 
     const oldStyle = htmlElementToExport.getAttribute("style");
-    const htmlsTagCollection = document.getElementsByTagName("html");
-    if (htmlsTagCollection.length > 0) {
-      const htmlRoot = htmlsTagCollection[0];
-      htmlElementToExport.setAttribute("style", htmlRoot.getAttribute("style"));
+    const htmlRoot = document.getElementById("NetzgrafikRootHtml");
+    htmlElementToExport.setAttribute("style", htmlRoot.getAttribute("style"));
 
-      const styles = this.netzgrafikColoringService.generateGlobalStyles(
-        this.dataService.getTrainrunCategories(),
-        this.trainrunSectionService.getTrainrunSections(),
-      );
+    const styles = this.netzgrafikColoringService.generateGlobalStyles(
+      this.dataService.getTrainrunCategories(),
+      this.trainrunSectionService.getTrainrunSections(),
+    );
 
-      styles.forEach((s) => {
-        const docStyles = htmlRoot.ownerDocument.styleSheets;
-        for (let i = 0; i < s.cssRules.length; i++) {
-          htmlRoot.ownerDocument.styleSheets[docStyles.length - 1].insertRule(
-            s.cssRules[i].cssText,
-          );
-        }
-      });
-    }
+    styles.forEach((s) => {
+      const docStyles = htmlRoot.ownerDocument.styleSheets;
+      for (let i = 0; i < s.cssRules.length; i++) {
+        htmlRoot.ownerDocument.styleSheets[docStyles.length - 1].insertRule(
+          s.cssRules[i].cssText,
+        );
+      }
+    });
+
     return {
       documentToExport: htmlElementToExport,
       exportParameter: param,
@@ -634,7 +639,7 @@ export class EditorToolsViewComponent {
     return (
       netzgrafikDto.nodes.find((n: NodeDto) => n.ports === undefined) !== undefined ||
       netzgrafikDto.nodes.filter((n: NodeDto) => n.ports?.length === 0).length ===
-        netzgrafikDto.nodes.length ||
+      netzgrafikDto.nodes.length ||
       netzgrafikDto.trainrunSections.find(
         (ts: TrainrunSectionDto) =>
           ts.path === undefined || ts.path?.path === undefined || ts.path?.path?.length === 0,
