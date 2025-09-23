@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import {EventEmitter, Injectable} from "@angular/core";
 import {BehaviorSubject} from "rxjs";
 import {Note} from "../../models/note.model";
 import {LogService} from "../../logger/log.service";
@@ -8,6 +8,7 @@ import {MathUtils} from "../../utils/math";
 import {NOTE_POSITION_BASIC_RASTER} from "../../view/rastering/definitions";
 import {LabelService} from "./label.service";
 import {FilterService} from "../ui/filter.service";
+import {NoteOperation, Operation, OperationType} from "src/app/models/operation.model";
 
 @Injectable({
   providedIn: "root",
@@ -16,6 +17,7 @@ export class NoteService {
   noteSubject = new BehaviorSubject<Note[]>([]);
   readonly notes = this.noteSubject.asObservable();
   private notesStore: {notes: Note[]} = {notes: []}; // store the data in memory
+  private operation = new EventEmitter<Operation>();
 
   constructor(
     private logService: LogService,
@@ -59,6 +61,7 @@ export class NoteService {
     newNote.setText(text);
     this.notesStore.notes.push(newNote);
     this.notesUpdated();
+    this.operation.emit(new NoteOperation(OperationType.create, newNote));
     return newNote;
   }
 
@@ -72,6 +75,7 @@ export class NoteService {
     note.setHeight(Math.max(Note.DEFAULT_NOTE_HEIGHT, height));
     note.setWidth(Math.max(Note.DEFAULT_NOTE_WIDTH, width));
     this.notesUpdated();
+    this.operation.emit(new NoteOperation(OperationType.update, note));
   }
 
   moveNote(
@@ -115,6 +119,7 @@ export class NoteService {
     if (enforceUpdate) {
       this.notesUpdated();
     }
+    this.operation.emit(new NoteOperation(OperationType.delete, note));
   }
 
   getNotes(): Note[] {
@@ -141,6 +146,7 @@ export class NoteService {
       this.labelService.deleteLabel(labelObject.getId());
     }
     this.notesUpdated();
+    this.operation.emit(new NoteOperation(OperationType.update, notes));
   }
 
   visibleNotesSetLabel(labelRef: string) {
@@ -173,6 +179,7 @@ export class NoteService {
     this.filterService.clearDeletetFilterNoteLabels(deletedLabelIds);
     note.setLabelIds(labelIds);
     this.notesUpdated();
+    this.operation.emit(new NoteOperation(OperationType.update, note));
   }
 
   deleteAllVisibleNotes() {
@@ -215,6 +222,7 @@ export class NoteService {
       note.getTitle(),
       note.getText(),
     );
+    this.operation.emit(new NoteOperation(OperationType.create, newNote));
     return newNote;
   }
 
@@ -229,6 +237,7 @@ export class NoteService {
     if (enforceUpdate) {
       this.notesUpdated();
     }
+    this.operation.emit(new NoteOperation(OperationType.update, note));
   }
 
   getNoteLayerIndex(noteId: number): number {
