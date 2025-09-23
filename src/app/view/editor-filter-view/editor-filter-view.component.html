@@ -116,7 +116,7 @@
     ></sbb-filterable-label-filter-view>
   </sbb-expansion-panel>
 
-  <sbb-expansion-panel [expanded]="hasFilteringNoteLabels" *ngIf="!disableBackend">
+  <sbb-expansion-panel [expanded]="hasFilteringNoteLabels">
     <sbb-expansion-panel-header>
       <ng-container *ngIf="!isFilteringNoteLabels()">
         {{ "app.view.editor-filter-view.filterable-labels-notes" | translate }}
@@ -200,15 +200,13 @@
       </sbb-checkbox>
     </div>
 
-    <ng-container *ngIf="!disableBackend">
-      <br />
-      <sbb-label>{{ "app.view.editor-filter-view.notes" | translate }}</sbb-label>
-      <div class="sbb-checkbox-group-vertical">
-        <sbb-checkbox [(ngModel)]="filterNotes" (change)="filterNotesChanged()"
-          >{{ "app.view.editor-filter-view.display-notes" | translate }}
-        </sbb-checkbox>
-      </div>
-    </ng-container>
+    <br />
+    <sbb-label>{{ "app.view.editor-filter-view.notes" | translate }}</sbb-label>
+    <div class="sbb-checkbox-group-vertical">
+      <sbb-checkbox [(ngModel)]="filterNotes" (change)="filterNotesChanged()"
+        >{{ "app.view.editor-filter-view.display-notes" | translate }}
+      </sbb-checkbox>
+    </div>
 
     <button
       sbb-secondary-button

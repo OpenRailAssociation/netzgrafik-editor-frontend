@@ -6,7 +6,6 @@ import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 import {Subject} from "rxjs";
 import {NoteFormComponentModel} from "./note-form/note-form.component";
 import {takeUntil} from "rxjs/operators";
-import {environment} from "../../../../environments/environment";
 
 export enum NoteDialogType {
   NOTE_DIALOG,
@@ -43,8 +42,6 @@ export class NoteDialogComponent implements OnDestroy {
   public noteId: number;
   public noteTitle: string;
   public noteText: string;
-
-  readonly disableBackend = environment.disableBackend;
 
   private destroyed = new Subject<void>();
   private deleteNoteCallback = null;
