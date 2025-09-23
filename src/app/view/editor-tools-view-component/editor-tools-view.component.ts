@@ -31,6 +31,7 @@ import {NODE_TEXT_AREA_HEIGHT, RASTERING_BASIC_GRID_SIZE} from "../rastering/def
 interface ContainertoExportData {
   documentToExport: HTMLElement;
   exportParameter: any;
+  essentialProps: string[];
 }
 
 @Component({
@@ -129,7 +130,11 @@ export class EditorToolsViewComponent {
     const elements = element2export.querySelectorAll("*");
     elements.forEach((el) => {
       const style = window.getComputedStyle(el);
-      const inlineStyle = Array.from(style)
+      const essentialPropsArray =
+        containerInfo.essentialProps !== undefined
+          ? containerInfo.essentialProps
+          : Array.from(style);
+      const inlineStyle = essentialPropsArray
         .map((key) => `${key}:${style.getPropertyValue(key)};`)
         .join(" ");
       el.setAttribute("style", inlineStyle);
@@ -163,10 +168,15 @@ export class EditorToolsViewComponent {
     const containerInfo = this.getContainertoExport();
 
     const element2export = containerInfo.documentToExport;
+
     const elements = element2export.querySelectorAll("*");
     elements.forEach((el) => {
       const style = window.getComputedStyle(el);
-      const inlineStyle = Array.from(style)
+      const essentialPropsArray =
+        containerInfo.essentialProps !== undefined
+          ? containerInfo.essentialProps
+          : Array.from(style);
+      const inlineStyle = essentialPropsArray
         .map((key) => `${key}:${style.getPropertyValue(key)};`)
         .join(" ");
       el.setAttribute("style", inlineStyle);
@@ -379,6 +389,7 @@ export class EditorToolsViewComponent {
     let param = {};
 
     const editorMode = this.uiInteractionService.getEditorMode();
+    let essentialProps: string[] = undefined;
 
     switch (editorMode) {
       case EditorMode.StreckengrafikEditing: {
@@ -410,6 +421,20 @@ export class EditorToolsViewComponent {
           height: bbox.height + 2 * padding,
           backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
         };
+
+        essentialProps = [
+          "fill",
+          "stroke",
+          "stroke-width",
+          "stroke-dasharray",
+          "font-family",
+          "font-size",
+          "font-weight",
+          "opacity",
+          "text-anchor",
+          "dominant-baseline",
+        ];
+
         break;
       }
       default: {
@@ -420,7 +445,7 @@ export class EditorToolsViewComponent {
         const boundingBox = this.nodeService.getNetzgrafikBoundingBox();
         param = {
           encoderOptions: 1.0,
-          scale: 1.0,
+          scale: 2.0,
           left: boundingBox.minCoordX - 2.0 * RASTERING_BASIC_GRID_SIZE,
           top: boundingBox.minCoordY - 2.0 * RASTERING_BASIC_GRID_SIZE,
           width: boundingBox.maxCoordX - boundingBox.minCoordX + 4.0 * RASTERING_BASIC_GRID_SIZE,
@@ -431,6 +456,19 @@ export class EditorToolsViewComponent {
             NODE_TEXT_AREA_HEIGHT,
           backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
         };
+
+        essentialProps = [
+          "fill",
+          "stroke",
+          "stroke-width",
+          "stroke-dasharray",
+          "font-family",
+          "font-size",
+          "font-weight",
+          "opacity",
+          "text-anchor",
+          "dominant-baseline",
+        ];
         break;
       }
     }
@@ -441,6 +479,7 @@ export class EditorToolsViewComponent {
     return {
       documentToExport: htmlElementToExport,
       exportParameter: param,
+      essentialProps: essentialProps,
     };
   }
 
