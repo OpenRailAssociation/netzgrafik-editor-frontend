@@ -24,16 +24,13 @@ import {NetzgrafikColoringService} from "../../services/data/netzgrafikColoring.
 import {ViewportCullService} from "../../services/ui/viewport.cull.service";
 import {LevelOfDetailService} from "../../services/ui/level.of.detail.service";
 import {TrainrunSectionValidator} from "../../services/util/trainrunsection.validator";
-import {
-  OriginDestinationService
-} from "src/app/services/analytics/origin-destination/components/origin-destination.service";
+import {OriginDestinationService} from "src/app/services/analytics/origin-destination/components/origin-destination.service";
 import {EditorMode} from "../editor-menu/editor-mode";
 import {NODE_TEXT_AREA_HEIGHT, RASTERING_BASIC_GRID_SIZE} from "../rastering/definitions";
 
 interface ContainertoExportData {
   documentToExport: HTMLElement;
   exportParameter: any;
-  documentSavedStyle: string;
 }
 
 @Component({
@@ -116,7 +113,7 @@ export class EditorToolsViewComponent {
     downloadBlob(
       blob,
       $localize`:@@app.view.editor-side-view.editor-tools-view-component.netzgrafikFile:netzgrafik` +
-      ".json",
+        ".json",
     );
   }
 
@@ -127,7 +124,18 @@ export class EditorToolsViewComponent {
     this.viewportCullService.onViewportChangeUpdateRendering(false);
 
     const containerInfo = this.getContainertoExport();
-    svg.svgAsDataUri(containerInfo.documentToExport, containerInfo.exportParameter).then((uri) => {
+
+    const element2export = containerInfo.documentToExport;
+    const elements = element2export.querySelectorAll("*");
+    elements.forEach((el) => {
+      const style = window.getComputedStyle(el);
+      const inlineStyle = Array.from(style)
+        .map((key) => `${key}:${style.getPropertyValue(key)};`)
+        .join(" ");
+      el.setAttribute("style", inlineStyle);
+    });
+
+    svg.svgAsDataUri(element2export, containerInfo.exportParameter).then((uri) => {
       const a = document.createElement("a");
       document.body.appendChild(a);
       a.href = uri;
@@ -135,7 +143,6 @@ export class EditorToolsViewComponent {
       a.click();
       URL.revokeObjectURL(a.href);
       a.remove();
-      containerInfo.documentToExport.setAttribute("style", containerInfo.documentSavedStyle);
       this.levelOfDetailService.enableLevelOfDetailRendering();
     });
   }
@@ -154,12 +161,23 @@ export class EditorToolsViewComponent {
     this.viewportCullService.onViewportChangeUpdateRendering(false);
 
     const containerInfo = this.getContainertoExport();
+
+    const element2export = containerInfo.documentToExport;
+    const elements = element2export.querySelectorAll("*");
+    elements.forEach((el) => {
+      const style = window.getComputedStyle(el);
+      const inlineStyle = Array.from(style)
+        .map((key) => `${key}:${style.getPropertyValue(key)};`)
+        .join(" ");
+      el.setAttribute("style", inlineStyle);
+    });
+
     svg.saveSvgAsPng(
-      containerInfo.documentToExport,
+      element2export,
       this.getFilenameToExport() + ".png",
       containerInfo.exportParameter,
     );
-    //containerInfo.documentToExport.setAttribute('style', containerInfo.documentSavedStyle);
+
     this.levelOfDetailService.enableLevelOfDetailRendering();
   }
 
@@ -306,33 +324,33 @@ export class EditorToolsViewComponent {
       row.push(regions.map((reg) => "" + reg).join(comma));
       row.push(
         "" +
-        (trainrunCategoryHaltezeit[HaltezeitFachCategories.IPV].no_halt
-          ? 0
-          : trainrunCategoryHaltezeit[HaltezeitFachCategories.IPV].haltezeit - zaz),
+          (trainrunCategoryHaltezeit[HaltezeitFachCategories.IPV].no_halt
+            ? 0
+            : trainrunCategoryHaltezeit[HaltezeitFachCategories.IPV].haltezeit - zaz),
       );
       row.push(
         "" +
-        (trainrunCategoryHaltezeit[HaltezeitFachCategories.A].no_halt
-          ? 0
-          : trainrunCategoryHaltezeit[HaltezeitFachCategories.A].haltezeit - zaz),
+          (trainrunCategoryHaltezeit[HaltezeitFachCategories.A].no_halt
+            ? 0
+            : trainrunCategoryHaltezeit[HaltezeitFachCategories.A].haltezeit - zaz),
       );
       row.push(
         "" +
-        (trainrunCategoryHaltezeit[HaltezeitFachCategories.B].no_halt
-          ? 0
-          : trainrunCategoryHaltezeit[HaltezeitFachCategories.B].haltezeit - zaz),
+          (trainrunCategoryHaltezeit[HaltezeitFachCategories.B].no_halt
+            ? 0
+            : trainrunCategoryHaltezeit[HaltezeitFachCategories.B].haltezeit - zaz),
       );
       row.push(
         "" +
-        (trainrunCategoryHaltezeit[HaltezeitFachCategories.C].no_halt
-          ? 0
-          : trainrunCategoryHaltezeit[HaltezeitFachCategories.C].haltezeit - zaz),
+          (trainrunCategoryHaltezeit[HaltezeitFachCategories.C].no_halt
+            ? 0
+            : trainrunCategoryHaltezeit[HaltezeitFachCategories.C].haltezeit - zaz),
       );
       row.push(
         "" +
-        (trainrunCategoryHaltezeit[HaltezeitFachCategories.D].no_halt
-          ? 0
-          : trainrunCategoryHaltezeit[HaltezeitFachCategories.D].haltezeit - zaz),
+          (trainrunCategoryHaltezeit[HaltezeitFachCategories.D].no_halt
+            ? 0
+            : trainrunCategoryHaltezeit[HaltezeitFachCategories.D].haltezeit - zaz),
       );
       row.push("" + zaz);
       row.push("" + nodeElement.getConnectionTime());
@@ -417,28 +435,12 @@ export class EditorToolsViewComponent {
       }
     }
 
-    const oldStyle = htmlElementToExport.getAttribute("style");
     const htmlRoot = document.getElementById("NetzgrafikRootHtml");
     htmlElementToExport.setAttribute("style", htmlRoot.getAttribute("style"));
-
-    const styles = this.netzgrafikColoringService.generateGlobalStyles(
-      this.dataService.getTrainrunCategories(),
-      this.trainrunSectionService.getTrainrunSections(),
-    );
-
-    styles.forEach((s) => {
-      const docStyles = htmlRoot.ownerDocument.styleSheets;
-      for (let i = 0; i < s.cssRules.length; i++) {
-        htmlRoot.ownerDocument.styleSheets[docStyles.length - 1].insertRule(
-          s.cssRules[i].cssText,
-        );
-      }
-    });
 
     return {
       documentToExport: htmlElementToExport,
       exportParameter: param,
-      documentSavedStyle: oldStyle,
     };
   }
 
@@ -639,7 +641,7 @@ export class EditorToolsViewComponent {
     return (
       netzgrafikDto.nodes.find((n: NodeDto) => n.ports === undefined) !== undefined ||
       netzgrafikDto.nodes.filter((n: NodeDto) => n.ports?.length === 0).length ===
-      netzgrafikDto.nodes.length ||
+        netzgrafikDto.nodes.length ||
       netzgrafikDto.trainrunSections.find(
         (ts: TrainrunSectionDto) =>
           ts.path === undefined || ts.path?.path === undefined || ts.path?.path?.length === 0,
