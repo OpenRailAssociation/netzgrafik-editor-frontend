@@ -392,8 +392,8 @@
         "hide-direction": "Hide {$direction}",
         "show-asymmetric-trainruns": "Show asymmetric trainruns",
         "hide-asymmetric-trainruns": "Hide asymmetric trainruns",
-        "symmetric-short": "Symm.",
-        "asymmetric-short": "Asymm.",
+        "symmetric-short": "Sym.",
+        "asymmetric-short": "Asym.",
         "filterable-label-filter": {
           "no-labels-available": "No labels available",
           "or": "Or",

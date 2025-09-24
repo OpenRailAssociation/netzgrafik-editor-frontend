@@ -402,7 +402,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
 
   makeSymmetryButtonLabel(symmetry: boolean): string {
     if (symmetry) {
-      return $localize`:@@app.view.editor-filter-view.symmetric-short:Symm.`;
+      return $localize`:@@app.view.editor-filter-view.symmetric-short:Sym.`;
     } else {
       return $localize`:@@app.view.editor-filter-view.asymmetric-short:Asym.`;
     }
