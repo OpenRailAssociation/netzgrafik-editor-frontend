@@ -41,6 +41,7 @@ export class Node {
   private warnings: WarningDto[];
   private isSelected: boolean;
   private labelIds: number[];
+  private isCollapsed: boolean;
 
   constructor(
     {
@@ -59,6 +60,7 @@ export class Node {
       symmetryAxis,
       warnings,
       labelIds,
+      isCollapsed,
     }: NodeDto = {
       id: Node.incrementId(),
       betriebspunktName: $localize`:@@app.models.node.shortNameDefault:NEW`,
@@ -75,6 +77,7 @@ export class Node {
       symmetryAxis: null,
       warnings: null,
       labelIds: [],
+      isCollapsed: false,
     },
   ) {
     this.id = id;
@@ -96,6 +99,7 @@ export class Node {
     this.warnings = warnings;
     this.isSelected = false;
     this.labelIds = labelIds;
+    this.isCollapsed = isCollapsed;
 
     if (Node.currentId < this.id) {
       Node.currentId = this.id;
@@ -318,6 +322,14 @@ export class Node {
       }
     });
     return currentMaxIndex;
+  }
+
+  getIsCollapsed(): boolean {
+    return this.isCollapsed;
+  }
+
+  setIsCollapsed(isCollapsed: boolean) {
+    this.isCollapsed = isCollapsed;
   }
 
   addPort(alignment: PortAlignment, trainrunSection: TrainrunSection): number {
@@ -865,6 +877,7 @@ export class Node {
       symmetryAxis: this.symmetryAxis,
       warnings: this.warnings,
       labelIds: this.labelIds,
+      isCollapsed: this.isCollapsed,
     };
   }
 
