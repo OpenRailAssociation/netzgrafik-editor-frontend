@@ -404,7 +404,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     if (symmetry) {
       return $localize`:@@app.view.editor-filter-view.symmetric-short:Symm.`;
     } else {
-      return $localize`:@@app.view.editor-filter-view.asymmetric-short:Asymm.`;
+      return $localize`:@@app.view.editor-filter-view.asymmetric-short:Asym.`;
     }
   }
 
