@@ -28,7 +28,6 @@ export class TrainrunSection {
   private targetArrival: TimeLockDto;
   private targetDeparture: TimeLockDto;
   private travelTime: TimeLockDto;
-  private numberOfStops: number;
 
   private trainrunId: number;
   private resourceId: number;
@@ -54,7 +53,6 @@ export class TrainrunSection {
       targetDeparture,
       targetArrival,
       travelTime,
-      numberOfStops,
       trainrunId,
       resourceId,
       specificTrainrunSectionFrequencyId,
@@ -104,7 +102,6 @@ export class TrainrunSection {
       trainrunId: 0,
       resourceId: 0,
       specificTrainrunSectionFrequencyId: null,
-      numberOfStops: 0,
       path: {
         path: [],
         textPositions: {
@@ -136,7 +133,6 @@ export class TrainrunSection {
     this.path = path;
     this.warnings = warnings;
     this.isSelected = false;
-    this.numberOfStops = numberOfStops;
 
     this.convertPathToVec2D();
 
@@ -381,10 +377,6 @@ export class TrainrunSection {
     return TrainrunSection.getDisplayColorRef(this.targetArrival);
   }
 
-  getNumberOfStops(): number {
-    return this.numberOfStops;
-  }
-
   setTravelTime(time: number) {
     this.travelTime.time = time;
     TrainrunSectionValidator.validateTravelTime(this);
@@ -448,10 +440,6 @@ export class TrainrunSection {
 
   setTargetArrivalLock(lock: boolean) {
     this.targetArrival.lock = lock;
-  }
-
-  setNumberOfStops(numberOfStops: number) {
-    this.numberOfStops = numberOfStops;
   }
 
   hasTravelTimeWarning(): boolean {
@@ -657,8 +645,6 @@ export class TrainrunSection {
       sourceArrival: this.sourceArrival,
       targetDeparture: this.targetDeparture,
       targetArrival: this.targetArrival,
-
-      numberOfStops: this.numberOfStops,
 
       trainrunId: this.trainrunId,
       resourceId: this.resourceId,
