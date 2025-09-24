@@ -125,23 +125,6 @@ export class EditorToolsViewComponent {
     }, 1500); // to allow cd-layout-filter to close
   }
 
-  private prepareStyleForExport(containerInfo: ContainertoExportData) {
-    const element2export = containerInfo.documentToExport;
-
-    const elements = element2export.querySelectorAll("*");
-    elements.forEach((el) => {
-      const style = window.getComputedStyle(el);
-      const essentialPropsArray =
-        containerInfo.essentialProps !== undefined
-          ? containerInfo.essentialProps
-          : Array.from(style);
-      const inlineStyle = essentialPropsArray
-        .map((key) => `${key}:${style.getPropertyValue(key)};`)
-        .join(" ");
-      el.setAttribute("style", inlineStyle);
-    });
-  }
-
   onExportContainerAsSVG() {
     // option 2: save svg as svg
     // https://www.npmjs.com/package/save-svg-as-png
@@ -468,6 +451,23 @@ export class EditorToolsViewComponent {
       exportParameter: param,
       essentialProps: essentialProps,
     };
+  }
+
+  private prepareStyleForExport(containerInfo: ContainertoExportData) {
+    const element2export = containerInfo.documentToExport;
+
+    const elements = element2export.querySelectorAll("*");
+    elements.forEach((el) => {
+      const style = window.getComputedStyle(el);
+      const essentialPropsArray =
+        containerInfo.essentialProps !== undefined
+          ? containerInfo.essentialProps
+          : Array.from(style);
+      const inlineStyle = essentialPropsArray
+        .map((key) => `${key}:${style.getPropertyValue(key)};`)
+        .join(" ");
+      el.setAttribute("style", inlineStyle);
+    });
   }
 
   private getContainerToExport(): ContainertoExportData {
