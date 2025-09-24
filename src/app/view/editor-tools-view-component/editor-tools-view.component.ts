@@ -124,7 +124,7 @@ export class EditorToolsViewComponent {
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
 
-    const containerInfo = this.getContainertoExport();
+    const containerInfo = this.getContainerToExport();
 
     const element2export = containerInfo.documentToExport;
     const elements = element2export.querySelectorAll("*");
@@ -165,7 +165,7 @@ export class EditorToolsViewComponent {
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
 
-    const containerInfo = this.getContainertoExport();
+    const containerInfo = this.getContainerToExport();
 
     const element2export = containerInfo.documentToExport;
 
@@ -384,103 +384,111 @@ export class EditorToolsViewComponent {
     return this.buildCSVString(headers, rows);
   }
 
-  private getContainertoExport(): ContainertoExportData {
-    let htmlElementToExport: HTMLElement | null = null;
-    let param = {};
+  private getStreckengrafikEditingContainerToExport(): ContainertoExportData {
+    const htmlElementToExport = document.getElementById("main-streckengrafik-container");
+    const param = {
+      encoderOptions: 1.0,
+      scale: 1.0,
+      left: 0,
+      top: 0,
+      width: htmlElementToExport.offsetWidth,
+      height: htmlElementToExport.offsetHeight,
+      backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
+    };
 
-    const editorMode = this.uiInteractionService.getEditorMode();
-    let essentialProps: string[] = undefined;
+    return {
+      documentToExport: htmlElementToExport,
+      exportParameter: param,
+      essentialProps: undefined,
+    };
+  }
 
-    switch (editorMode) {
-      case EditorMode.StreckengrafikEditing: {
-        htmlElementToExport = document.getElementById("main-streckengrafik-container");
-        param = {
-          encoderOptions: 1.0,
-          scale: 1.0,
-          left: 0,
-          top: 0,
-          width: htmlElementToExport.offsetWidth,
-          height: htmlElementToExport.offsetHeight,
-          backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
-        };
-        break;
-      }
-      case EditorMode.OriginDestination: {
-        htmlElementToExport = document.getElementById("main-origin-destination-container");
-        if (htmlElementToExport === null) {
-          return undefined;
-        }
-        const bbox = (htmlElementToExport as unknown as SVGGElement).getBBox();
-        const padding = 10;
-        param = {
-          encoderOptions: 1.0,
-          scale: 1.0,
-          left: bbox.x - padding,
-          top: bbox.y - padding,
-          width: bbox.width + 2 * padding,
-          height: bbox.height + 2 * padding,
-          backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
-        };
-
-        essentialProps = [
-          "fill",
-          "stroke",
-          "stroke-width",
-          "stroke-dasharray",
-          "font-family",
-          "font-size",
-          "font-weight",
-          "opacity",
-          "text-anchor",
-          "dominant-baseline",
-        ];
-
-        break;
-      }
-      default: {
-        htmlElementToExport = document.getElementById("graphContainer");
-        if (htmlElementToExport === null) {
-          return undefined;
-        }
-        const boundingBox = this.nodeService.getNetzgrafikBoundingBox();
-        param = {
-          encoderOptions: 1.0,
-          scale: 2.0,
-          left: boundingBox.minCoordX - 2.0 * RASTERING_BASIC_GRID_SIZE,
-          top: boundingBox.minCoordY - 2.0 * RASTERING_BASIC_GRID_SIZE,
-          width: boundingBox.maxCoordX - boundingBox.minCoordX + 4.0 * RASTERING_BASIC_GRID_SIZE,
-          height:
-            boundingBox.maxCoordY -
-            boundingBox.minCoordY +
-            4.0 * RASTERING_BASIC_GRID_SIZE +
-            NODE_TEXT_AREA_HEIGHT,
-          backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
-        };
-
-        essentialProps = [
-          "fill",
-          "stroke",
-          "stroke-width",
-          "stroke-dasharray",
-          "font-family",
-          "font-size",
-          "font-weight",
-          "opacity",
-          "text-anchor",
-          "dominant-baseline",
-        ];
-        break;
-      }
+  private getOriginDestinationContainerToExport(): ContainertoExportData {
+    const htmlElementToExport = document.getElementById("main-origin-destination-container");
+    if (htmlElementToExport === null) {
+      return undefined;
     }
+    const bbox = (htmlElementToExport as unknown as SVGGElement).getBBox();
+    const padding = 10;
+    const param = {
+      encoderOptions: 1.0,
+      scale: 1.0,
+      left: bbox.x - padding,
+      top: bbox.y - padding,
+      width: bbox.width + 2 * padding,
+      height: bbox.height + 2 * padding,
+      backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
+    };
 
-    const htmlRoot = document.getElementById("NetzgrafikRootHtml");
-    htmlElementToExport.setAttribute("style", htmlRoot.getAttribute("style"));
+    const essentialProps = [
+      "fill",
+      "stroke",
+      "stroke-width",
+      "stroke-dasharray",
+      "font-family",
+      "font-size",
+      "font-weight",
+      "opacity",
+      "text-anchor",
+      "dominant-baseline",
+    ];
 
     return {
       documentToExport: htmlElementToExport,
       exportParameter: param,
       essentialProps: essentialProps,
     };
+  }
+
+  private getNetzgrafikEditingContainerToExport(): ContainertoExportData {
+    const htmlElementToExport = document.getElementById("graphContainer");
+    if (htmlElementToExport === null) {
+      return undefined;
+    }
+    const boundingBox = this.nodeService.getNetzgrafikBoundingBox();
+    const param = {
+      encoderOptions: 1.0,
+      scale: 2.0,
+      left: boundingBox.minCoordX - 2.0 * RASTERING_BASIC_GRID_SIZE,
+      top: boundingBox.minCoordY - 2.0 * RASTERING_BASIC_GRID_SIZE,
+      width: boundingBox.maxCoordX - boundingBox.minCoordX + 4.0 * RASTERING_BASIC_GRID_SIZE,
+      height:
+        boundingBox.maxCoordY -
+        boundingBox.minCoordY +
+        4.0 * RASTERING_BASIC_GRID_SIZE +
+        NODE_TEXT_AREA_HEIGHT,
+      backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
+    };
+
+    const essentialProps = [
+      "fill",
+      "stroke",
+      "stroke-width",
+      "stroke-dasharray",
+      "font-family",
+      "font-size",
+      "font-weight",
+      "opacity",
+      "text-anchor",
+      "dominant-baseline",
+    ];
+
+    return {
+      documentToExport: htmlElementToExport,
+      exportParameter: param,
+      essentialProps: essentialProps,
+    };
+  }
+
+  private getContainerToExport(): ContainertoExportData {
+    const editorMode = this.uiInteractionService.getEditorMode();
+    if (editorMode === EditorMode.StreckengrafikEditing) {
+      return this.getStreckengrafikEditingContainerToExport();
+    }
+    if (editorMode === EditorMode.OriginDestination) {
+      return this.getOriginDestinationContainerToExport();
+    }
+    return this.getNetzgrafikEditingContainerToExport();
   }
 
   private convertToZuglaufCSV(): string {
