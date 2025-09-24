@@ -118,15 +118,16 @@ export class EditorToolsViewComponent {
     );
   }
 
-  onExportContainerAsSVG() {
-    // option 2: save svg as svg
-    // https://www.npmjs.com/package/save-svg-as-png
-    this.levelOfDetailService.disableLevelOfDetailRendering();
-    this.viewportCullService.onViewportChangeUpdateRendering(false);
+  onPrintContainer() {
+    this.uiInteractionService.closeFilter();
+    setTimeout(() => {
+      this.uiInteractionService.print();
+    }, 1500); // to allow cd-layout-filter to close
+  }
 
-    const containerInfo = this.getContainerToExport();
-
+  private prepareStyleForExport(containerInfo: ContainertoExportData) {
     const element2export = containerInfo.documentToExport;
+
     const elements = element2export.querySelectorAll("*");
     elements.forEach((el) => {
       const style = window.getComputedStyle(el);
@@ -139,8 +140,18 @@ export class EditorToolsViewComponent {
         .join(" ");
       el.setAttribute("style", inlineStyle);
     });
+  }
 
-    svg.svgAsDataUri(element2export, containerInfo.exportParameter).then((uri) => {
+  onExportContainerAsSVG() {
+    // option 2: save svg as svg
+    // https://www.npmjs.com/package/save-svg-as-png
+    this.levelOfDetailService.disableLevelOfDetailRendering();
+    this.viewportCullService.onViewportChangeUpdateRendering(false);
+
+    const containerInfo = this.getContainerToExport();
+    this.prepareStyleForExport(containerInfo);
+
+    svg.svgAsDataUri(containerInfo.documentToExport, containerInfo.exportParameter).then((uri) => {
       const a = document.createElement("a");
       document.body.appendChild(a);
       a.href = uri;
@@ -152,13 +163,6 @@ export class EditorToolsViewComponent {
     });
   }
 
-  onPrintContainer() {
-    this.uiInteractionService.closeFilter();
-    setTimeout(() => {
-      this.uiInteractionService.print();
-    }, 1500); // to allow cd-layout-filter to close
-  }
-
   onExportContainerAsPNG() {
     // option 1: save svg as png
     // https://www.npmjs.com/package/save-svg-as-png
@@ -166,24 +170,10 @@ export class EditorToolsViewComponent {
     this.viewportCullService.onViewportChangeUpdateRendering(false);
 
     const containerInfo = this.getContainerToExport();
-
-    const element2export = containerInfo.documentToExport;
-
-    const elements = element2export.querySelectorAll("*");
-    elements.forEach((el) => {
-      const style = window.getComputedStyle(el);
-      const essentialPropsArray =
-        containerInfo.essentialProps !== undefined
-          ? containerInfo.essentialProps
-          : Array.from(style);
-      const inlineStyle = essentialPropsArray
-        .map((key) => `${key}:${style.getPropertyValue(key)};`)
-        .join(" ");
-      el.setAttribute("style", inlineStyle);
-    });
+    this.prepareStyleForExport(containerInfo);
 
     svg.saveSvgAsPng(
-      element2export,
+      containerInfo.documentToExport,
       this.getFilenameToExport() + ".png",
       containerInfo.exportParameter,
     );
