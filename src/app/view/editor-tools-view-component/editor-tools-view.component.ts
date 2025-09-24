@@ -482,13 +482,14 @@ export class EditorToolsViewComponent {
 
   private getContainerToExport(): ContainertoExportData {
     const editorMode = this.uiInteractionService.getEditorMode();
-    if (editorMode === EditorMode.StreckengrafikEditing) {
-      return this.getStreckengrafikEditingContainerToExport();
+    switch (editorMode) {
+      case EditorMode.StreckengrafikEditing:
+        return this.getStreckengrafikEditingContainerToExport();
+      case EditorMode.OriginDestination:
+        return this.getOriginDestinationContainerToExport();
+      default:
+        return this.getNetzgrafikEditingContainerToExport();
     }
-    if (editorMode === EditorMode.OriginDestination) {
-      return this.getOriginDestinationContainerToExport();
-    }
-    return this.getNetzgrafikEditingContainerToExport();
   }
 
   private convertToZuglaufCSV(): string {
