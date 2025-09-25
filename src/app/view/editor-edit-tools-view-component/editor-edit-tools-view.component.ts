@@ -15,7 +15,6 @@ import {LabelRef} from "../../data-structures/business.data.structures";
 import {LabelService} from "../../services/data/label.service";
 import {LabelGroupService} from "../../services/data/labelgroup.service";
 import {LabelGroup} from "../../models/labelGroup.model";
-import {environment} from "../../../environments/environment";
 import {VersionControlService} from "../../services/data/version-control.service";
 import {PositionTransformationService} from "../../services/util/position.transformation.service";
 
@@ -34,8 +33,6 @@ export class EditorEditToolsViewComponent implements OnDestroy {
   public nodeLabelGroups: LabelGroup[];
   public trainrunLabelGroups: LabelGroup[];
   private destroyed = new Subject<void>();
-
-  readonly disableBackend = environment.disableBackend;
 
   constructor(
     private dataService: DataService,

@@ -209,7 +209,7 @@
   </div>
 
   <div class="NoteEditor" [class.isStreckengrafikEditing]="isStreckengrafikEditing()">
-    <ng-container *ngIf="!isNoteEditing() && !disableBackend">
+    <ng-container *ngIf="!isNoteEditing()">
       <button
         mode="icon"
         class="ButtonNoteEditor NetzgrafikEditing"
@@ -227,7 +227,7 @@
         ></sbb-icon>
       </button>
     </ng-container>
-    <ng-container *ngIf="isNoteEditing() && !disableBackend">
+    <ng-container *ngIf="isNoteEditing()">
       <button
         mode="icon"
         class="ButtonNoteEditor NoteEditing"

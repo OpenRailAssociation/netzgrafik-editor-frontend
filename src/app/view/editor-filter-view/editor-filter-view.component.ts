@@ -13,7 +13,6 @@ import {Subject} from "rxjs";
 import {FilterSetting} from "../../models/filterSettings.model";
 import {takeUntil} from "rxjs/operators";
 import {StaticDomTags} from "../editor-main-view/data-views/static.dom.tags";
-import {environment} from "../../../environments/environment";
 import {VersionControlService} from "../../services/data/version-control.service";
 
 @Component({
@@ -39,8 +38,6 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
 
   activeFilterName: string;
   activeEditFilterSettingId: number;
-
-  readonly disableBackend = environment.disableBackend;
 
   private destroyed = new Subject<void>();
 
