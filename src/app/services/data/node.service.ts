@@ -215,6 +215,7 @@ export class NodeService implements OnDestroy {
     );
     newNode.setHaltezeit(JSON.parse(JSON.stringify(node.getTrainrunCategoryHaltezeit())));
     newNode.setConnectionTime(node.getConnectionTime());
+    this.operation.emit(new NodeOperation(OperationType.create, newNode));
     return newNode;
   }
 

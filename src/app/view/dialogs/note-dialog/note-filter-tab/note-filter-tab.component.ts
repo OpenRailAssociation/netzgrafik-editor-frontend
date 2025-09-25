@@ -61,8 +61,6 @@ export class NoteFilterTabComponent implements OnInit, OnDestroy {
   }
 
   remove(chipEvent: SbbChipEvent): void {
-    if (!this.noteLabels) return;
-
     const valueDelete = chipEvent.chip.value as string;
     const value = (valueDelete || "").trim();
     if (!value) {
@@ -75,8 +73,6 @@ export class NoteFilterTabComponent implements OnInit, OnDestroy {
   }
 
   add(chipInputEvent: SbbChipInputEvent): void {
-    if (!this.noteLabels) return;
-
     const value = (chipInputEvent.value || "").trim();
     if (!value) {
       return;
@@ -113,8 +109,8 @@ export class NoteFilterTabComponent implements OnInit, OnDestroy {
   }
 
   private initializeWithCurrentNote() {
+    if (this.note === null) return;
     this.note = this.noteService.getNoteFromId(this.noteDialogParameter.noteFormComponentModel.id);
-    if (!this.note) return;
     this.noteLabels = this.labelService.getTextLabelsFromIds(this.note.getLabelIds());
     this.initialNoteLabels = [...this.noteLabels]; // initialize labels
   }
@@ -126,7 +122,6 @@ export class NoteFilterTabComponent implements OnInit, OnDestroy {
 
   // set labels only if any of it has changed
   private checkAndSetLabels() {
-    if (!this.noteLabels || !this.initialNoteLabels) return;
     if (
       this.noteLabels.length !== this.initialNoteLabels.length ||
       !this.noteLabels.every((label, index) => label === this.initialNoteLabels[index])

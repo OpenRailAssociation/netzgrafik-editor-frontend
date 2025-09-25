@@ -15,6 +15,7 @@ import {I18nService} from "./core/i18n/i18n.service";
 import {PositionTransformationService} from "./services/util/position.transformation.service";
 import {NetzgrafikDefault} from "./sample-netzgrafik/netzgrafik.default";
 import {UiInteractionService} from "./services/ui/ui.interaction.service";
+import {NoteService} from "./services/data/note.service";
 
 @Component({
   selector: "sbb-root",
@@ -55,6 +56,7 @@ export class AppComponent implements OnInit {
     private positionTransformationService: PositionTransformationService,
     private labelService: LabelService,
     private i18nService: I18nService,
+    private noteService: NoteService,
   ) {
     if (!this.disableBackend) {
       this.authenticated = authService.initialized;
@@ -103,5 +105,6 @@ export class AppComponent implements OnInit {
     this.nodeService.operation,
     this.positionTransformationService.operation,
     this.labelService.operation,
+    this.noteService.operation,
   );
 }
