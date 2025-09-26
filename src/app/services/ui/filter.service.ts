@@ -370,18 +370,17 @@ export class FilterService implements OnDestroy {
     }
     /* Impelement user defined filtering */
     const filterTrainrunSection = this.checkFilterTrainrunLabels(trainrun.getLabelIds());
-    const asymmetry = this.dataService
-      .getTrainrunSectionsByTrainrunId(trainrun.getId())
-      .some((trainrunSection: TrainrunSection) =>
-        this.isFilterSymmetryEnabled(trainrunSection.isSymmetric()),
-      );
+    const trainrunSections = this.dataService.getTrainrunSectionsByTrainrunId(trainrun.getId());
+    const hasAsymmetricalSection = trainrunSections.some(
+      (trainrunSection: TrainrunSection) => !trainrunSection.isSymmetric(),
+    );
     return (
       filterTrainrunSection &&
       this.isFilterTrainrunFrequencyEnabled(trainrun.getTrainrunFrequency()) &&
       this.isFilterTrainrunCategoryEnabled(trainrun.getTrainrunCategory()) &&
       this.isFilterTrainrunTimeCategoryEnabled(trainrun.getTrainrunTimeCategory()) &&
       this.isFilterDirectionEnabled(trainrun.getDirection()) &&
-      asymmetry
+      this.isFilterSymmetryEnabled(!hasAsymmetricalSection)
     );
   }
 
