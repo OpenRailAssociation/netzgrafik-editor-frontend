@@ -1,0 +1,70 @@
+@import "../../rastering/definitions";
+
+// Style sbbDialogContent only within this component
+:host ::ng-deep [sbbDialogContent] {
+  flex: inherit;
+}
+
+.symmetry-selection-content {
+  padding: 0;
+  width: 100%;
+  min-width: 400px;
+  height: inherit;
+  min-height: inherit;
+  max-height: inherit;
+}
+
+::ng-deep div.SymmetryCardBetriebspunkt {
+  max-width: 160px;
+  padding: 1px;
+  text-align: center;
+  align-content: center;
+  height: 40px;
+  font-family: "SBBWeb Light", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.TrainrunSection {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  row-gap: 6px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.SymmetryCard {
+  border-radius: 15px;
+  display: flex;
+  padding: 1rem 0;
+  justify-content: space-around;
+  align-items: center;
+  cursor: pointer;
+  * {
+    cursor: pointer;
+  }
+
+  * > text.edge_text {
+    font-size: 10px;
+  }
+}
+
+.SymmetryCard.muted {
+  border: 1px solid $COLOR_MUTED_SILVER;
+}
+
+.SymmetryCard.selected {
+  border: 1px solid $COLOR_Focus;
+}
+
+.SymmetryCard:hover {
+  background: var(--COLOR_TRANSITION_GRAYEDOUT);
+}
+
+.SymmetryCard:active {
+  background-color: $COLOR_MUTED_SILVER;
+}
+
+.TrainFreqContainer {
+  display: flex;
+  align-items: center;
+}
