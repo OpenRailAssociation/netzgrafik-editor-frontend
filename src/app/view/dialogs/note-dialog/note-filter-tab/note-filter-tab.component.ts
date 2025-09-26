@@ -109,8 +109,8 @@ export class NoteFilterTabComponent implements OnInit, OnDestroy {
   }
 
   private initializeWithCurrentNote() {
-    if (this.note === null) return;
     this.note = this.noteService.getNoteFromId(this.noteDialogParameter.noteFormComponentModel.id);
+    if (!this.note) return;
     this.noteLabels = this.labelService.getTextLabelsFromIds(this.note.getLabelIds());
     this.initialNoteLabels = [...this.noteLabels]; // initialize labels
   }
