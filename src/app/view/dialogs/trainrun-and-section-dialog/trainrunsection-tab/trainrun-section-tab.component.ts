@@ -89,7 +89,7 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   constructor(
     private dataService: DataService,
     private filterService: FilterService,
-    private trainrunService: TrainrunService,
+    public trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
     private changeDetectionRef: ChangeDetectorRef,
     public trainrunSectionTimesService: TrainrunSectionTimesService,
@@ -323,7 +323,10 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   }
 
   onLeftNodeSymmetryToggleChanged(symmetry: boolean) {
-    const originalState = TrainrunsectionHelper.isLeftNodeSymmetric(this.selectedTrainrunSection);
+    const originalState = this.trainrunSectionHelper.isLeftNextStopNodeSymmetric(
+      this.selectedTrainrunSection,
+      this.trainrunSectionTimesService.getNodesOrdered(),
+    );
     this.symmetryToggleService.onLeftNodeSymmetryToggleChanged(
       this.selectedTrainrunSection,
       this.trainrunSectionTimesService,
@@ -339,7 +342,10 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   }
 
   onRightNodeSymmetryToggleChanged(symmetry: boolean) {
-    const originalState = TrainrunsectionHelper.isRightNodeSymmetric(this.selectedTrainrunSection);
+    const originalState = this.trainrunSectionHelper.isRightNextStopNodeSymmetric(
+      this.selectedTrainrunSection,
+      this.trainrunSectionTimesService.getNodesOrdered(),
+    );
     this.symmetryToggleService.onRightNodeSymmetryToggleChanged(
       this.selectedTrainrunSection,
       this.trainrunSectionTimesService,
