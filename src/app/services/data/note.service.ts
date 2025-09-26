@@ -131,10 +131,13 @@ export class NoteService {
     if (labelObject === undefined) {
       return;
     }
-    this.getNotes().forEach((n: Note) => {
-      if (this.filterService.filterNote(n)) {
+    this.getNotes().forEach((note: Note) => {
+      if (this.filterService.filterNote(note)) {
         this.filterService.clearDeletetFilterNoteLabel(labelObject.getId());
-        n.setLabelIds(n.getLabelIds().filter((labelId: number) => labelId !== labelObject.getId()));
+        note.setLabelIds(
+          note.getLabelIds().filter((labelId: number) => labelId !== labelObject.getId()),
+        );
+        this.operation.emit(new NoteOperation(OperationType.update, note));
       }
     });
 
@@ -146,9 +149,6 @@ export class NoteService {
       this.labelService.deleteLabel(labelObject.getId());
     }
     this.notesUpdated();
-    if (notes !== undefined) {
-      this.operation.emit(new NoteOperation(OperationType.update, notes));
-    }
   }
 
   visibleNotesSetLabel(labelRef: string) {
