@@ -191,7 +191,7 @@ export class TrainrunSectionService implements OnDestroy {
 
   setTrainrunSectionAsSelected(trainrunSectionId: number) {
     this.trainrunSectionsStore.trainrunSections.forEach((tr) => tr.unselect());
-    this.getTrainrunSectionFromId(trainrunSectionId).select();
+    this.getTrainrunSectionFromId(trainrunSectionId)?.select();
   }
 
   getSelectedTrainrunSection(): TrainrunSection {
