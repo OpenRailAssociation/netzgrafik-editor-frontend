@@ -161,12 +161,18 @@
           <sbb-toggle-switch-button
             class="LeftSymmetryToggle"
             *ngIf="selectedTrainrunSection.getTrainrun().isRoundTrip()"
-            [checked]="!TrainrunsectionHelper.isLeftNodeSymmetric(selectedTrainrunSection)"
+            [checked]="
+              !trainrunSectionHelper.isLeftNextStopNodeSymmetric(
+                selectedTrainrunSection,
+                trainrunSectionTimesService.getNodesOrdered()
+              )
+            "
             (checkedChanged)="onLeftNodeSymmetryToggleChanged(!$event)"
             [disabled]="
-              TrainrunsectionHelper.isLeftToggleDisabled(
+              trainrunSectionHelper.isLeftToggleDisabled(
                 selectedTrainrunSection,
-                trainrunSectionTimesService.getLockStructure()
+                trainrunSectionTimesService.getLockStructure(),
+                trainrunSectionTimesService.getNodesOrdered()
               )
             "
             #leftSymmetryToggle
@@ -232,12 +238,18 @@
           <sbb-toggle-switch-button
             class="RightSymmetryToggle"
             *ngIf="selectedTrainrunSection.getTrainrun().isRoundTrip()"
-            [checked]="!TrainrunsectionHelper.isRightNodeSymmetric(selectedTrainrunSection)"
+            [checked]="
+              !trainrunSectionHelper.isRightNextStopNodeSymmetric(
+                selectedTrainrunSection,
+                trainrunSectionTimesService.getNodesOrdered()
+              )
+            "
             (checkedChanged)="onRightNodeSymmetryToggleChanged(!$event)"
             [disabled]="
-              TrainrunsectionHelper.isRightToggleDisabled(
+              trainrunSectionHelper.isRightToggleDisabled(
                 selectedTrainrunSection,
-                trainrunSectionTimesService.getLockStructure()
+                trainrunSectionTimesService.getLockStructure(),
+                trainrunSectionTimesService.getNodesOrdered()
               )
             "
             #rightSymmetryToggle
