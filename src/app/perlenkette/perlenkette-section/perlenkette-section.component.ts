@@ -608,7 +608,10 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   onLeftNodeSymmetryToggleChanged(symmetry: boolean) {
-    const originalState = TrainrunsectionHelper.isLeftNodeSymmetric(this.trainrunSection);
+    const originalState = this.trainrunSectionHelper.isLeftNextStopNodeSymmetric(
+      this.trainrunSection,
+      this.trainrunSectionTimesService.getNodesOrdered(),
+    );
     this.symmetryToggleService.onLeftNodeSymmetryToggleChanged(
       this.trainrunSection,
       this.trainrunSectionTimesService,
@@ -624,7 +627,10 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   onRightNodeSymmetryToggleChanged(symmetry: boolean) {
-    const originalState = TrainrunsectionHelper.isRightNodeSymmetric(this.trainrunSection);
+    const originalState = this.trainrunSectionHelper.isRightNextStopNodeSymmetric(
+      this.trainrunSection,
+      this.trainrunSectionTimesService.getNodesOrdered(),
+    );
     this.symmetryToggleService.onRightNodeSymmetryToggleChanged(
       this.trainrunSection,
       this.trainrunSectionTimesService,

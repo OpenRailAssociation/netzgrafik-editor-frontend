@@ -435,7 +435,7 @@
               [checked]="!TrainrunsectionHelper.isLeftNodeSymmetric(trainrunSection)"
               (checkedChanged)="onLeftNodeSymmetryToggleChanged(!$event)"
               [disabled]="
-                TrainrunsectionHelper.isLeftToggleDisabled(
+                trainrunSectionHelper.isLeftToggleDisabled(
                   trainrunSection,
                   trainrunSectionTimesService.getLockStructure()
                 )
@@ -686,7 +686,7 @@
               [checked]="!TrainrunsectionHelper.isRightNodeSymmetric(trainrunSection)"
               (checkedChanged)="onRightNodeSymmetryToggleChanged(!$event)"
               [disabled]="
-                TrainrunsectionHelper.isRightToggleDisabled(
+                trainrunSectionHelper.isRightToggleDisabled(
                   trainrunSection,
                   trainrunSectionTimesService.getLockStructure()
                 )
