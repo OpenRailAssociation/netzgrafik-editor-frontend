@@ -87,6 +87,17 @@ The operations related to the NGE framework are used to handle changes to Trainr
 - delete Node (selection + DEL key) => NodeOperation(delete)
 - delete Nodes (multi selection + DEL key) => n\*(NodeOperation(delete))
 - delete Node (node window, Delete node button) => NodeOperation(delete)
+- duplicate Node (selection + CTRL-D key) => NodeOperation(create)
+
+#### Note
+
+- create Note manually => NoteOperation(create)
+- edit Note content/size (note dialog, title/body) => NoteOperation(update)
+- delete Note (selection + DEL key or via note dialog) => NoteOperation(delete)
+- duplicate Note (selection + CTRL-D key or via dedicated button) => NoteOperation(create)
+- move Note to front (z-order) => NoteOperation(update)
+- set Note labels (apply/remove) => NoteOperation(update)
+- delete Note label from visible notes (filterable labels) => NoteOperation(update)
 
 #### Label
 
