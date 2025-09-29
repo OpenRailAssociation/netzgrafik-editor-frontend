@@ -643,15 +643,20 @@ export class TrainrunSectionTimesService {
     this.applyOffsetAndTransformTimeStructure();
   }
 
-  onTrainrunSymmetryChanged(trainrunId: number, reference: SymmetryReference) {
+  onTrainrunSymmetryChanged(trainrunId: number, reference: SymmetryReference = null) {
     this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(trainrunId).forEach((section) => {
-      this.removeOffsetAndBackTransformTimeStructure();
-      section.resetSymmetry();
-      this.updateTrainrunSectionTime(
-        section,
-        this.calculateTimeStructureAfterSymmetrySelectionForTrainrunSection(reference, section),
-      );
-      this.applyOffsetAndTransformTimeStructure();
+      if (!reference) {
+        // on/off case
+        section.resetSymmetry();
+      } else {
+        this.removeOffsetAndBackTransformTimeStructure();
+        section.resetSymmetry();
+        this.updateTrainrunSectionTime(
+          section,
+          this.calculateTimeStructureAfterSymmetrySelectionForTrainrunSection(reference, section),
+        );
+        this.applyOffsetAndTransformTimeStructure();
+      }
     });
   }
 
@@ -940,6 +945,48 @@ export class TrainrunSectionTimesService {
         leftArrivalTime: trainrunSection.getSourceArrival(),
       };
     }
+  }
+
+  areLeftAndRightTimeStructuresEqual(symmetryOn: SymmetryOn) {
+    const top = this.calculateTimeStructureAfterSymmetrySelection(
+      symmetryOn,
+      SymmetryReference.Top,
+    );
+    const bottom = this.calculateTimeStructureAfterSymmetrySelection(
+      symmetryOn,
+      SymmetryReference.Bottom,
+    );
+    return (
+      top.leftDepartureTime === bottom.leftDepartureTime &&
+      top.leftArrivalTime === bottom.leftArrivalTime &&
+      top.rightDepartureTime === bottom.rightDepartureTime &&
+      top.rightArrivalTime === bottom.rightArrivalTime &&
+      top.travelTime === bottom.travelTime &&
+      top.bottomTravelTime === bottom.bottomTravelTime
+    );
+  }
+
+  areAllTimeStructuresEqual(trainrunId: number): boolean {
+    return this.trainrunSectionService
+      .getAllTrainrunSectionsForTrainrun(trainrunId)
+      .every((section) => {
+        const top = this.calculateTimeStructureAfterSymmetrySelectionForTrainrunSection(
+          SymmetryReference.Top,
+          section,
+        );
+        const bottom = this.calculateTimeStructureAfterSymmetrySelectionForTrainrunSection(
+          SymmetryReference.Bottom,
+          section,
+        );
+        return (
+          top.leftDepartureTime === bottom.leftDepartureTime &&
+          top.leftArrivalTime === bottom.leftArrivalTime &&
+          top.rightDepartureTime === bottom.rightDepartureTime &&
+          top.rightArrivalTime === bottom.rightArrivalTime &&
+          top.travelTime === bottom.travelTime &&
+          top.bottomTravelTime === bottom.bottomTravelTime
+        );
+      });
   }
 
   private roundAllTimes() {
