@@ -54,8 +54,7 @@ export class ConfirmationDialogComponent implements OnDestroy {
       .subscribe((parameter: ConfirmationDialogParameter) => {
         this.dialogTitle = parameter.dialogTitle;
         this.dialogContent = parameter.dialogContent;
-        this.dialogConfirmationButtonLabel =
-          parameter.dialogConfirmationButtonLabel;
+        this.dialogConfirmationButtonLabel = parameter.dialogConfirmationButtonLabel;
         this.dialogAbortButtonLabel = parameter.dialogAbortButtonLabel;
         this.openDialog(parameter);
       });
@@ -82,10 +81,7 @@ export class ConfirmationDialogComponent implements OnDestroy {
 
   openDialog(parameter: ConfirmationDialogParameter) {
     const dialogConfig = ConfirmationDialogComponent.getDialogConfig();
-    const dialogRef = this.dialog.open(
-      this.confirmationDialogTemplate,
-      dialogConfig,
-    );
+    const dialogRef = this.dialog.open(this.confirmationDialogTemplate, dialogConfig);
     let userHasConfirmed;
     dialogRef.afterClosed().subscribe((result) => {
       if (result === true) {

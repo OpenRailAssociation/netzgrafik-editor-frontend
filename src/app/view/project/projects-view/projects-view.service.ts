@@ -17,13 +17,9 @@ export class ProjectsViewService implements OnDestroy {
 
   private destroyed = new Subject<void>();
 
-  constructor(
-    private readonly projectService: ProjectControllerBackendService,
-  ) {
+  constructor(private readonly projectService: ProjectControllerBackendService) {
     this.filteredProjects = this.constructFilteredProjects().pipe(
-      map((projectSummaryDto) =>
-        projectSummaryDto.sort(this.sortByProjectSummaryDtoName),
-      ),
+      map((projectSummaryDto) => projectSummaryDto.sort(this.sortByProjectSummaryDtoName)),
     );
     this.loadProjects();
   }
@@ -42,8 +38,7 @@ export class ProjectsViewService implements OnDestroy {
       return project.isArchived === showArchive;
     }
     return (
-      project.isArchived === showArchive &&
-      project.name.toLocaleLowerCase().includes(searchQuery)
+      project.isArchived === showArchive && project.name.toLocaleLowerCase().includes(searchQuery)
     );
   }
 
@@ -72,15 +67,9 @@ export class ProjectsViewService implements OnDestroy {
   }
 
   private constructFilteredProjects() {
-    return combineLatest([
-      this.searchQuery,
-      this.showArchive,
-      this.allProjects,
-    ]).pipe(
+    return combineLatest([this.searchQuery, this.showArchive, this.allProjects]).pipe(
       map(([search, showArchive, projects]) =>
-        projects.filter((p) =>
-          ProjectsViewService.filterProject(search, showArchive, p),
-        ),
+        projects.filter((p) => ProjectsViewService.filterProject(search, showArchive, p)),
       ),
     );
   }

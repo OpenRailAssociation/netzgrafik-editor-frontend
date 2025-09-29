@@ -70,18 +70,11 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
         trainrunSection.getTrainrun().getCategoryColorRef(),
       );
 
-    if (
-      selectedTrainrun !== null &&
-      selectedTrainrun.getId() === trainrunSection.getTrainrunId()
-    ) {
+    if (selectedTrainrun !== null && selectedTrainrun.getId() === trainrunSection.getTrainrunId()) {
       classAttribute += " " + StaticDomTags.TAG_SELECTED;
     }
     if (
-      KnotenAuslastungViewComponent.isMuted(
-        trainrunSection,
-        selectedTrainrun,
-        connectedTrainIds,
-      )
+      KnotenAuslastungViewComponent.isMuted(trainrunSection, selectedTrainrun, connectedTrainIds)
     ) {
       classAttribute += " " + StaticDomTags.TAG_MUTED;
     }
@@ -114,21 +107,15 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
     this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe(() => {
       this.update();
     });
-    this.trainrunService.trainruns
-      .pipe(takeUntil(this.destroyed))
-      .subscribe(() => {
-        this.update();
-      });
-    this.trainrunSectionService.trainrunSections
-      .pipe(takeUntil(this.destroyed))
-      .subscribe(() => {
-        this.update();
-      });
-    this.resourceService.resourceObservable
-      .pipe(takeUntil(this.destroyed))
-      .subscribe(() => {
-        this.update();
-      });
+    this.trainrunService.trainruns.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.update();
+    });
+    this.trainrunSectionService.trainrunSections.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.update();
+    });
+    this.resourceService.resourceObservable.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.update();
+    });
   }
 
   private update() {
@@ -140,10 +127,9 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
     const selectedTrainrun = this.trainrunService.getSelectedTrainrun();
     let connectedTrainIds: number[] = [];
     if (selectedTrainrun !== null) {
-      connectedTrainIds =
-        this.trainrunService.getConnectedTrainrunIdsFirstOrder(
-          selectedTrainrun.getId(),
-        );
+      connectedTrainIds = this.trainrunService.getConnectedTrainrunIdsFirstOrder(
+        selectedTrainrun.getId(),
+      );
     }
 
     const element = this.svgDrawingContext.node();
@@ -153,11 +139,9 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
     const pixelRadius = (0.9 * Math.min(width, height)) / 2;
 
     this.knotenAuslastungDataPreparation.computeAuslastungsMatrix(selectedNode);
-    const nbrUsedOfTrackFound =
-      this.knotenAuslastungDataPreparation.getNrUsedTrackFound();
+    const nbrUsedOfTrackFound = this.knotenAuslastungDataPreparation.getNrUsedTrackFound();
     const nodeDatas = this.knotenAuslastungDataPreparation.getNodesData();
-    const resourceDatas =
-      this.knotenAuslastungDataPreparation.getResourcesData();
+    const resourceDatas = this.knotenAuslastungDataPreparation.getResourcesData();
 
     const arc = d3
       .arc()
@@ -165,20 +149,14 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
       .endAngle((d) => d.endAngle)
       .innerRadius(
         (d) =>
-          ((1 + (d.innerRadius + 0.05)) /
-            (2 + Math.max(nbrUsedOfTrackFound, 0))) *
-          pixelRadius,
+          ((1 + (d.innerRadius + 0.05)) / (2 + Math.max(nbrUsedOfTrackFound, 0))) * pixelRadius,
       )
       .outerRadius(
         (d) =>
-          ((1 + (d.outerRadius + 0.95)) /
-            (2 + Math.max(nbrUsedOfTrackFound, 0))) *
-          pixelRadius,
+          ((1 + (d.outerRadius + 0.95)) / (2 + Math.max(nbrUsedOfTrackFound, 0))) * pixelRadius,
       );
 
-    this.svgDrawingContext
-      .selectAll("g.KnotenAuslastungResourceGroup")
-      .remove();
+    this.svgDrawingContext.selectAll("g.KnotenAuslastungResourceGroup").remove();
     const rootResourceGroup = this.svgDrawingContext
       .selectAll("g.KnotenAuslastungResourceGroup")
       .data(resourceDatas);
@@ -192,9 +170,7 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
       .attr("d", arc)
       .classed("capacityLimitReached", (d) => d.capacityLimitReached);
 
-    this.svgDrawingContext
-      .selectAll(StaticDomTags.KNOTENAUSLASTUNG_DATA_GROUP_G)
-      .remove();
+    this.svgDrawingContext.selectAll(StaticDomTags.KNOTENAUSLASTUNG_DATA_GROUP_G).remove();
     const rootDataGroup = this.svgDrawingContext
       .selectAll(StaticDomTags.KNOTENAUSLASTUNG_DATA_GROUP_G)
       .data(nodeDatas);
@@ -216,9 +192,7 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
       )
       .attr("d", arc)
       .on("mousedown", (d) =>
-        this.trainrunService.setTrainrunAsSelected(
-          d.trainrunSection.getTrainrunId(),
-        ),
+        this.trainrunService.setTrainrunAsSelected(d.trainrunSection.getTrainrunId()),
       )
       .append("title")
       .html((d) => d.tooltip);
@@ -266,16 +240,12 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
       .attr("y", 0)
       .attr("text-anchor", "middle")
       .on("mousedown", (d) =>
-        this.trainrunService.setTrainrunAsSelected(
-          d.trainrunSection.getTrainrunId(),
-        ),
+        this.trainrunService.setTrainrunAsSelected(d.trainrunSection.getTrainrunId()),
       )
       .append("title")
       .html((d) => d.name + "<br>" + d.tooltip);
 
-    this.svgDrawingContext
-      .selectAll("g.KnotenAuslastungNbrTrackGroup")
-      .remove();
+    this.svgDrawingContext.selectAll("g.KnotenAuslastungNbrTrackGroup").remove();
     const nbrOfTrackGroup = this.svgDrawingContext
       .selectAll("g.KnotenAuslastungNbrTrackGroup")
       .data([nbrUsedOfTrackFound + 1]);
@@ -294,9 +264,7 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
           "" +
           Math.round(
             (100 * d) /
-            this.resourceService
-              .getResource(selectedNode.getResourceId())
-              .getCapacity(),
+              this.resourceService.getResource(selectedNode.getResourceId()).getCapacity(),
           ) +
           "%",
       );
@@ -312,23 +280,11 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
       .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
       .append("text")
       .attr("class", "KnotenAuslastungTimeGroup")
-      .attr(
-        "x",
-        (d) =>
-          (pixelRadius / 0.95) * Math.sin(Math.PI - (d / 60) * 2.0 * Math.PI),
-      )
-      .attr(
-        "y",
-        (d) =>
-          6 +
-          (pixelRadius / 0.95) * Math.cos(Math.PI - (d / 60) * 2.0 * Math.PI),
-      )
+      .attr("x", (d) => (pixelRadius / 0.95) * Math.sin(Math.PI - (d / 60) * 2.0 * Math.PI))
+      .attr("y", (d) => 6 + (pixelRadius / 0.95) * Math.cos(Math.PI - (d / 60) * 2.0 * Math.PI))
       .attr("text-anchor", "middle")
       .text((d) => "" + d);
 
-    this.svgDrawingContext.attr(
-      "viewBox",
-      "0 -4 " + width + " " + (height + 8),
-    );
+    this.svgDrawingContext.attr("viewBox", "0 -4 " + width + " " + (height + 8));
   }
 }

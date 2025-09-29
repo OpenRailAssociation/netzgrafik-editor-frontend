@@ -1,7 +1,9 @@
 <div *ngIf="hasNoFilterableLabels()">
   <sbb-label class="sbb-mt-m"
-    >&nbsp;&nbsp;&nbsp;&nbsp;{{ 'app.view.editor-edit-tools-view-component.label-drop-list.no-labels-available' | translate }} </sbb-label
-  >
+    >&nbsp;&nbsp;&nbsp;&nbsp;{{
+      "app.view.editor-edit-tools-view-component.label-drop-list.no-labels-available" | translate
+    }}
+  </sbb-label>
 </div>
 <div *ngIf="!hasNoFilterableLabels()">
   <div cdkDropListGroup>
@@ -10,27 +12,16 @@
         <div class="filterable-label-labelgroup-block">
           <div class="filterable-label-labelgroup-drop-list">
             <ng-container
-              *ngIf="
-                labelService.getLabelsFromLabelGroupId(labelGrp.getId())
-                  .length > 0
-              "
+              *ngIf="labelService.getLabelsFromLabelGroupId(labelGrp.getId()).length > 0"
             >
               <div
                 class="filterable-label-labelgroup-single-element-drop-list"
-                *ngFor="
-                  let labelObject of labelService.getLabelsFromLabelGroupId(
-                    labelGrp.getId()
-                  )
-                "
+                *ngFor="let labelObject of labelService.getLabelsFromLabelGroupId(labelGrp.getId())"
                 cdkDropList
                 cdkDropListOrientation="horizontal"
                 [cdkDropListData]="[labelObject]"
                 (cdkDropListDropped)="
-                  dropLabelElement(
-                    $event,
-                    labelObject.getId(),
-                    labelGrp.getId()
-                  )
+                  dropLabelElement($event, labelObject.getId(), labelGrp.getId())
                 "
               >
                 <button
@@ -43,21 +34,14 @@
               </div>
             </ng-container>
             <ng-container
-              *ngIf="
-                labelService.getLabelsFromLabelGroupId(labelGrp.getId())
-                  .length === 0
-              "
+              *ngIf="labelService.getLabelsFromLabelGroupId(labelGrp.getId()).length === 0"
             >
               <div
                 class="filterable-label-labelgroup-empty-drop-list"
                 cdkDropList
                 cdkDropListSortingDisabled="true"
-                [cdkDropListData]="
-                  labelService.getLabelsFromLabelGroupId(labelGrp.getId())
-                "
-                (cdkDropListDropped)="
-                  dropLabelElement($event, -1, labelGrp.getId())
-                "
+                [cdkDropListData]="labelService.getLabelsFromLabelGroupId(labelGrp.getId())"
+                (cdkDropListDropped)="dropLabelElement($event, -1, labelGrp.getId())"
               ></div>
             </ng-container>
           </div>
@@ -68,12 +52,11 @@
             <button
               class="filterable-label-grp-delete-add-button-button"
               (click)="onRemoveLabelGroup(labelGrp.getId())"
-              [title]="'app.view.editor-edit-tools-view-component.label-drop-list.delete-group' | translate"
+              [title]="
+                'app.view.editor-edit-tools-view-component.label-drop-list.delete-group' | translate
+              "
             >
-              <sbb-icon
-                class="LabelAddGroupButton"
-                svgIcon="circle-minus-small"
-              ></sbb-icon>
+              <sbb-icon class="LabelAddGroupButton" svgIcon="circle-minus-small"></sbb-icon>
             </button>
           </div>
           <div
@@ -83,12 +66,12 @@
             <button
               class="filterable-label-grp-delete-add-button-button"
               (click)="onCreateNewLabelGroup(labelGrp.getId())"
-              [title]="'app.view.editor-edit-tools-view-component.label-drop-list.add-new-group' | translate"
+              [title]="
+                'app.view.editor-edit-tools-view-component.label-drop-list.add-new-group'
+                  | translate
+              "
             >
-              <sbb-icon
-                class="LabelAddGroupButton"
-                svgIcon="circle-plus-small"
-              ></sbb-icon>
+              <sbb-icon class="LabelAddGroupButton" svgIcon="circle-plus-small"></sbb-icon>
             </button>
           </div>
         </div>

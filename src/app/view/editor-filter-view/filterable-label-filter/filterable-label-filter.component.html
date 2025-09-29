@@ -1,5 +1,7 @@
 <div *ngIf="hasNoFilterableLabels()">
-  <sbb-label class="sbb-mt-m">{{ 'app.view.editor-filter-view.filterable-label-filter.no-labels-available' | translate }}</sbb-label>
+  <sbb-label class="sbb-mt-m">{{
+    "app.view.editor-filter-view.filterable-label-filter.no-labels-available" | translate
+  }}</sbb-label>
 </div>
 <ng-container *ngIf="!hasNoFilterableLabels()">
   <div class="sbb-filter-chip-group-main">
@@ -11,7 +13,7 @@
             class="TrainrunDialog FilterableLabel LogicalOperator"
             (click)="enableLogicalFilterOperatorAnd(nodeLabelGrp)"
           >
-            {{ 'app.view.editor-filter-view.filterable-label-filter.or' | translate }}
+            {{ "app.view.editor-filter-view.filterable-label-filter.or" | translate }}
           </button>
         </ng-container>
         <ng-container *ngIf="!isFilterFunctionOrEnabled(nodeLabelGrp)">
@@ -19,7 +21,7 @@
             class="TrainrunDialog FilterableLabel LogicalOperator"
             (click)="enableLogicalFilterOperatorOr(nodeLabelGrp)"
           >
-            {{ 'app.view.editor-filter-view.filterable-label-filter.and' | translate }}
+            {{ "app.view.editor-filter-view.filterable-label-filter.and" | translate }}
           </button>
         </ng-container>
       </div>
@@ -29,11 +31,7 @@
           (click)="onFilterableLabelChanged(labelObject)"
           mode="ghost"
           [title]="getLabelTooltip(labelObject)"
-          *ngFor="
-            let labelObject of labelService.getLabelsFromLabelGroupId(
-              nodeLabelGrp.getId()
-            )
-          "
+          *ngFor="let labelObject of labelService.getLabelsFromLabelGroupId(nodeLabelGrp.getId())"
         >
           {{ labelObject.getLabel() }}
         </button>
@@ -49,6 +47,6 @@
     [title]="'app.view.editor-filter-view.filterable-label-filter.show-all' | translate"
     (click)="OnResetFilterableLabels()"
   >
-    {{ 'app.view.editor-filter-view.filterable-label-filter.reset-filter' | translate }}
+    {{ "app.view.editor-filter-view.filterable-label-filter.reset-filter" | translate }}
   </button>
 </div>

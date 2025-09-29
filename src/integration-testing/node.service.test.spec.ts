@@ -45,16 +45,8 @@ describe("NodeService Test", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -105,9 +97,7 @@ describe("NodeService Test", () => {
   });
 
   it("add node with position test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodes.length).toBe(5);
     let node3 = nodeService.getNodeFromId(5);
     expect(node3).toBe(undefined);
@@ -120,9 +110,7 @@ describe("NodeService Test", () => {
   });
 
   it("add node with position test 2", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodes.length).toBe(5);
 
     const betriebspunktName = "TT";
@@ -139,9 +127,7 @@ describe("NodeService Test", () => {
   });
 
   it("add node with position test 3", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodes.length).toBe(5);
 
     const betriebspunktName = "TT";
@@ -150,13 +136,7 @@ describe("NodeService Test", () => {
       .getLabelsFromLabelRef(LabelRef.Node)
       .map((label) => label.getId());
 
-    nodeService.addNodeWithPosition(
-      0,
-      0,
-      betriebspunktName,
-      fullName,
-      labelIds,
-    );
+    nodeService.addNodeWithPosition(0, 0, betriebspunktName, fullName, labelIds);
     expect(nodes.length).toBe(6);
     const n = nodes[nodes.length - 1];
     expect(n.getBetriebspunktName()).toBe(betriebspunktName);
@@ -168,9 +148,7 @@ describe("NodeService Test", () => {
   });
 
   it("delete node1 test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodes.length).toBe(5);
     expect(trainrunSections.length).toBe(8);
 
@@ -185,9 +163,7 @@ describe("NodeService Test", () => {
   });
 
   it("delete node2 test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodes.length).toBe(5);
     expect(trainrunSections.length).toBe(8);
 
@@ -203,9 +179,7 @@ describe("NodeService Test", () => {
   });
 
   it("delete all nodes test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodes.length).toBe(5);
     expect(trainrunSections.length).toBe(8);
 
@@ -215,9 +189,7 @@ describe("NodeService Test", () => {
   });
 
   it("delete all non visible nodes test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodes.length).toBe(5);
     expect(nodeService.getVisibleNodes().length).toBe(5);
     expect(trainrunSections.length).toBe(8);
@@ -230,9 +202,7 @@ describe("NodeService Test", () => {
   });
 
   it("delete all non visible nodes with label filtering active test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodes.length).toBe(5);
     expect(nodeService.getVisibleNodes().length).toBe(5);
     expect(trainrunSections.length).toBe(8);
@@ -247,9 +217,7 @@ describe("NodeService Test", () => {
   });
 
   it("change node position test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodes.length).toBe(5);
     expect(trainrunSections.length).toBe(8);
 
@@ -267,9 +235,7 @@ describe("NodeService Test", () => {
   });
 
   it("toggle transition test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodes.length).toBe(5);
     expect(trainrunSections.length).toBe(8);
     let node1 = nodeService.getNodeFromId(1);
@@ -316,22 +282,18 @@ describe("NodeService Test", () => {
     nodeService.undockTransition(1, 3);
     nodeService.undockTransition(1, 4);
 
-    const trainrunSections4Trainrun1 =
-      trainrunSectionService.getAllTrainrunSectionsForTrainrun(
-        trainrun1.getId(),
-      );
-    const trainrunSections4Trainrun2 =
-      trainrunSectionService.getAllTrainrunSectionsForTrainrun(
-        trainrun2.getId(),
-      );
-    const trainrunSections4Trainrun3 =
-      trainrunSectionService.getAllTrainrunSectionsForTrainrun(
-        trainrun3.getId(),
-      );
-    const trainrunSections4Trainrun4 =
-      trainrunSectionService.getAllTrainrunSectionsForTrainrun(
-        trainrun4.getId(),
-      );
+    const trainrunSections4Trainrun1 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      trainrun1.getId(),
+    );
+    const trainrunSections4Trainrun2 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      trainrun2.getId(),
+    );
+    const trainrunSections4Trainrun3 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      trainrun3.getId(),
+    );
+    const trainrunSections4Trainrun4 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      trainrun4.getId(),
+    );
 
     expect(trainrunSections4Trainrun1.length).toBe(1);
     const trainrunSection1 = trainrunSections4Trainrun1.pop();
@@ -480,10 +442,9 @@ describe("NodeService Test", () => {
     const transition1 = nodeOL.getTransitionFromId(1);
     const trainrun1 = transition1.getTrainrun();
     nodeService.undockTransition(1, 1);
-    let trainrunSections4Trainrun1 =
-      trainrunSectionService.getAllTrainrunSectionsForTrainrun(
-        trainrun1.getId(),
-      );
+    let trainrunSections4Trainrun1 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      trainrun1.getId(),
+    );
     const trainrunSection1 = trainrunSections4Trainrun1.pop();
 
     // check whether the basis is correct
@@ -501,10 +462,9 @@ describe("NodeService Test", () => {
       1,
       nodeOL.getId(),
     );
-    trainrunSections4Trainrun1 =
-      trainrunSectionService.getAllTrainrunSectionsForTrainrun(
-        trainrun1.getId(),
-      );
+    trainrunSections4Trainrun1 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      trainrun1.getId(),
+    );
     const trainrunSection2 = trainrunSections4Trainrun1.pop();
 
     // check whether the basis is correct
@@ -540,10 +500,9 @@ describe("NodeService Test", () => {
     const transition1 = nodeOL.getTransitionFromId(1);
     const trainrun1 = transition1.getTrainrun();
     nodeService.undockTransition(1, 1);
-    let trainrunSections4Trainrun1 =
-      trainrunSectionService.getAllTrainrunSectionsForTrainrun(
-        trainrun1.getId(),
-      );
+    let trainrunSections4Trainrun1 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      trainrun1.getId(),
+    );
     const trainrunSection1 = trainrunSections4Trainrun1.pop();
     trainrunSection1.setTravelTime(139);
 
@@ -562,10 +521,9 @@ describe("NodeService Test", () => {
       1,
       nodeOL.getId(),
     );
-    trainrunSections4Trainrun1 =
-      trainrunSectionService.getAllTrainrunSectionsForTrainrun(
-        trainrun1.getId(),
-      );
+    trainrunSections4Trainrun1 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      trainrun1.getId(),
+    );
     const trainrunSection2 = trainrunSections4Trainrun1.pop();
 
     // check whether the basis is correct
@@ -637,15 +595,11 @@ describe("NodeService Test", () => {
     const trainrunSection = prt.getTrainrunSection();
     expect(transition.getId()).toBe(1);
     expect(nodeOL.getTransition(trainrunSection.getId()).getId()).toBe(1);
-    expect(nodeOL.getTransition(trainrunSection.getId()).getId()).toBe(
-      transition.getId(),
-    );
+    expect(nodeOL.getTransition(trainrunSection.getId()).getId()).toBe(transition.getId());
   });
 
   it("add connection test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
 
     nodeService.addConnectionToNode(1, 0, 2);
@@ -655,9 +609,7 @@ describe("NodeService Test", () => {
   });
 
   it("connection test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
     const con = nodeService.getNodeFromId(2).getConnectionFromId(1);
     expect(con.getDto().id).toBe(1);
@@ -665,9 +617,7 @@ describe("NodeService Test", () => {
   });
 
   it("remove connection test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
 
     nodeService.addConnectionToNode(1, 0, 2);
@@ -682,37 +632,27 @@ describe("NodeService Test", () => {
   });
 
   it("change node details test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodeService.getNodeFromId(0).getBetriebspunktName()).toBe("BN");
 
     nodeService.changeNodeBetriebspunktName(0, "TEST");
     expect(nodeService.getNodeFromId(0).getBetriebspunktName()).toBe("TEST");
     nodeService.changeNodeFullName(0, "Test Betriebspunkt");
-    expect(nodeService.getNodeFromId(0).getFullName()).toBe(
-      "Test Betriebspunkt",
-    );
+    expect(nodeService.getNodeFromId(0).getFullName()).toBe("Test Betriebspunkt");
     nodeService.changeConnectionTime(0, 10);
     expect(nodeService.getNodeFromId(0).getConnectionTime()).toBe(10);
   });
 
   it("check connection (warning)", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodeService.getNodeFromId(2).getBetriebspunktName()).toBe("ZUE");
     const nodeZUE = nodeService.getNodeFromId(2);
     expect(nodeZUE.getConnections().length).toBe(2);
     nodeZUE.getConnections().forEach((connection) => {
       expect(connection.getPortId2()).toBe(9);
       connection.resetWarning();
-      const trainrunSection1 = nodeZUE
-        .getPort(connection.getPortId1())
-        .getTrainrunSection();
-      const trainrunSection2 = nodeZUE
-        .getPort(connection.getPortId2())
-        .getTrainrunSection();
+      const trainrunSection1 = nodeZUE.getPort(connection.getPortId1()).getTrainrunSection();
+      const trainrunSection2 = nodeZUE.getPort(connection.getPortId2()).getTrainrunSection();
 
       if (connection.getId() === 2) {
         const port = nodeZUE.getPort(connection.getPortId2());
@@ -731,34 +671,18 @@ describe("NodeService Test", () => {
   });
 
   it("copyTransitionProperties", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
-    const existingTrainrunSection =
-      trainrunSectionService.getAllTrainrunSectionsForTrainrun(0)[1];
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const existingTrainrunSection = trainrunSectionService.getAllTrainrunSectionsForTrainrun(0)[1];
     const ts0 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(0)[0];
-    const sourceNode = nodeService.getNodeFromId(
-      existingTrainrunSection.getSourceNodeId(),
-    );
-    const targetNode = nodeService.getNodeFromId(
-      existingTrainrunSection.getTargetNodeId(),
-    );
+    const sourceNode = nodeService.getNodeFromId(existingTrainrunSection.getSourceNodeId());
+    const targetNode = nodeService.getNodeFromId(existingTrainrunSection.getTargetNodeId());
     const copyTs = new TrainrunSection();
-    nodeService.addPortsToNodes(
-      sourceNode.getId(),
-      targetNode.getId(),
-      existingTrainrunSection,
-    );
+    nodeService.addPortsToNodes(sourceNode.getId(), targetNode.getId(), existingTrainrunSection);
 
     expect(
-      nodeService.isConditionToAddTransitionFullfilled(
-        sourceNode,
-        existingTrainrunSection,
-      ),
+      nodeService.isConditionToAddTransitionFullfilled(sourceNode, existingTrainrunSection),
     ).toBe(false);
-    expect(
-      nodeService.isConditionToAddTransitionFullfilled(sourceNode, ts0),
-    ).toBe(false);
+    expect(nodeService.isConditionToAddTransitionFullfilled(sourceNode, ts0)).toBe(false);
     nodeService.addTransitionToNodes(
       sourceNode.getId(),
       targetNode.getId(),
@@ -769,11 +693,7 @@ describe("NodeService Test", () => {
       .getTransitions()
       .find((t) => t.getTrainrun().getId() === copyTs.getTrainrunId());
     transition.setIsNonStopTransit(true);
-    nodeService.copyTransitionProperties(
-      sourceNode.getId(),
-      copyTs,
-      existingTrainrunSection,
-    );
+    nodeService.copyTransitionProperties(sourceNode.getId(), copyTs, existingTrainrunSection);
     const newTransition = nodeService
       .getNodeFromId(sourceNode.getId())
       .getTransitions()
@@ -782,9 +702,7 @@ describe("NodeService Test", () => {
   });
 
   it("move selected nodes test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 
     const ids = [
       nodeService.getNodes()[0].getId(),
@@ -817,9 +735,7 @@ describe("NodeService Test", () => {
   });
 
   it("select single node as selected test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 
     const ids = [
       nodeService.getNodes()[0].getId(),
@@ -853,9 +769,7 @@ describe("NodeService Test", () => {
   });
 
   it("unselect all nodes test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 
     const ids = [
       nodeService.getNodes()[0].getId(),

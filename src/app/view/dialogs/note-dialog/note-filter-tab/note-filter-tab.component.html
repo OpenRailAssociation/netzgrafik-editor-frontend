@@ -1,14 +1,10 @@
 <div sbbDialogContent class="EditNoteFilterableLabelsDialogTabContent">
-  <sbb-form-field class="sbb-form-field-long" [label]="'app.view.dialogs.note-dialog.note-filter-tab.labels' | translate">
-    <sbb-chip-list
-      [value]="noteLabels"
-      (focusout)="onLabelsFocusout()"
-    >
-      <sbb-chip
-        *ngFor="let element of noteLabels"
-        [value]="element"
-        (removed)="remove($event)"
-      >
+  <sbb-form-field
+    class="sbb-form-field-long"
+    [label]="'app.view.dialogs.note-dialog.note-filter-tab.labels' | translate"
+  >
+    <sbb-chip-list [value]="noteLabels" (focusout)="onLabelsFocusout()">
+      <sbb-chip *ngFor="let element of noteLabels" [value]="element" (removed)="remove($event)">
         {{ element }}
       </sbb-chip>
       <input
@@ -22,11 +18,9 @@
       />
     </sbb-chip-list>
     <sbb-autocomplete #noteLabelsAutoComplete="sbbAutocomplete">
-      <sbb-option
-        *ngFor="let option of noteLabelsAutoCompleteOptions"
-        [value]="option"
-        >{{ option }}</sbb-option
-      >
+      <sbb-option *ngFor="let option of noteLabelsAutoCompleteOptions" [value]="option">{{
+        option
+      }}</sbb-option>
     </sbb-autocomplete>
   </sbb-form-field>
 </div>

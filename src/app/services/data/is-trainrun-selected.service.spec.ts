@@ -41,16 +41,8 @@ describe("IsTrainrunSelectedService", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -81,20 +73,16 @@ describe("IsTrainrunSelectedService", () => {
   });
 
   it("Test load data", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodes.length).toBe(5);
     expect(trainrunSections.length).toBe(8);
   });
 
   it("IsTrainrunSelectedService - 001", () => {
     const itss = new IsTrainrunSelectedService(trainrunService);
-    itss
-      .getTrainrunIdSelectedByClick()
-      .subscribe((trainrunIdSelected: number) => {
-        expect(trainrunIdSelected).toBe(undefined);
-      });
+    itss.getTrainrunIdSelectedByClick().subscribe((trainrunIdSelected: number) => {
+      expect(trainrunIdSelected).toBe(undefined);
+    });
     itss.setTrainrunIdSelectedByClick(undefined);
   });
 

@@ -1,0 +1,39 @@
+<div sbbDialogContent [class]="getContentClassTag()" [style]="getContentStyleTag()">
+  <sbb-toggle-switch-button
+    [labelFalse]="
+      'app.view.dialogs.trainrun-and-section-dialog.trainrun-roundtrip-tab.round-trip' | translate
+    "
+    [labelTrue]="
+      'app.view.dialogs.trainrun-and-section-dialog.trainrun-roundtrip-tab.one-way' | translate
+    "
+    [checked]="isOneWay"
+    (checkedChanged)="onIsOneWayChanged($event)"
+  >
+  </sbb-toggle-switch-button>
+  <sbb-trainrunsection-card *ngIf="isOneWay" [innerContentScaleFactor]="innerContentScaleFactor">
+  </sbb-trainrunsection-card>
+</div>
+<ng-container *ngIf="toolbarVisible">
+  <div sbbDialogActions [class]="getContentFooterClassTag()">
+    <button
+      class="FunctionButton"
+      tabindex="-1"
+      (click)="onDuplicateTrainrun()"
+      [title]="
+        'app.view.dialogs.trainrun-and-section-dialog.trainrun-tab.trainrunDuplicate' | translate
+      "
+    >
+      <sbb-icon svgIcon="plus-medium" aria-hidden="false"></sbb-icon>
+    </button>
+    <button
+      class="FunctionButton"
+      tabindex="-1"
+      (click)="onDeleteTrainrun()"
+      [title]="
+        'app.view.dialogs.trainrun-and-section-dialog.trainrun-tab.trainrunDelete' | translate
+      "
+    >
+      <sbb-icon svgIcon="trash-medium" aria-hidden="false"></sbb-icon>
+    </button>
+  </div>
+</ng-container>

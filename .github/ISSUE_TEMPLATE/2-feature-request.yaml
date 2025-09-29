@@ -1,7 +1,7 @@
 name: Feature request or enhancement
 description: Request for a new component or enhancement of a component
 title: "[Feature request]: "
-labels: ['type: enhancement']
+labels: ["type: enhancement"]
 assignees:
   - octocat
 body:
@@ -25,8 +25,8 @@ body:
     attributes:
       label: Request type
       options:
-        - 'Request for a new component'
-        - 'Request for enhancement of a component'
+        - "Request for a new component"
+        - "Request for enhancement of a component"
     validations:
       required: true
   - type: textarea

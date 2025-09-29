@@ -1,21 +1,7 @@
 import {Component, HostListener, OnDestroy} from "@angular/core";
 import {ActivatedRoute} from "@angular/router";
-import {
-  BehaviorSubject,
-  combineLatest,
-  Observable,
-  of,
-  ReplaySubject,
-  Subject,
-} from "rxjs";
-import {
-  debounceTime,
-  filter,
-  map,
-  mergeMap,
-  startWith,
-  takeUntil,
-} from "rxjs/operators";
+import {BehaviorSubject, combineLatest, Observable, of, ReplaySubject, Subject} from "rxjs";
+import {debounceTime, filter, map, mergeMap, startWith, takeUntil} from "rxjs/operators";
 import {
   ProjectControllerBackendService,
   ProjectDto,
@@ -60,60 +46,50 @@ export class VariantsViewComponent implements OnDestroy {
           }
           return (
             v.isArchived === showArchive &&
-            this.getTitleCurrentVersion(v)
-              .toLocaleLowerCase()
-              .includes(searchQuery)
+            this.getTitleCurrentVersion(v).toLocaleLowerCase().includes(searchQuery)
           );
         }),
       ),
     )
-    .pipe(
-      map((variantSummaryDto) =>
-        variantSummaryDto.sort(this.sortByPVariantSummaryDtoName),
-      ),
-    );
+    .pipe(map((variantSummaryDto) => variantSummaryDto.sort(this.sortByPVariantSummaryDtoName)));
 
-  readonly projectDataActions: Observable<SlotAction[] | undefined> =
-    this.projectSubject.pipe(
-      map((project) => {
-        if (project.isWritable) {
-          return [
-            {
-              name: $localize`:@@app.view.variant.variants-view.edit-project:Edit project`,
-              icon: "pen-small",
-              action: () => this.onEditProjectClicked(),
-            },
-            {
-              name: $localize`:@@app.view.variant.variants-view.archive-project.title:Archive project`,
-              icon: "archive-box-small",
-              action: () => this.onArchiveProjectClicked(),
-            },
-          ];
-        } else if (project.isDeletable && project.isArchived) {
-          return [
-            {
-              name: $localize`:@@app.view.variant.variants-view.undo-archiving:Undo archiving`,
-              icon: "arrow-circle-eye-small",
-              action: () => this.onUnarchiveProjectClicked(),
-            },
-            {
-              name: $localize`:@@app.view.variant.variants-view.delete-project.title:Delete project`,
-              icon: "trash-small",
-              action: () => this.onDeleteProjectClicked(),
-            },
-          ];
-        } else {
-          return undefined;
-        }
-      }),
-    );
+  readonly projectDataActions: Observable<SlotAction[] | undefined> = this.projectSubject.pipe(
+    map((project) => {
+      if (project.isWritable) {
+        return [
+          {
+            name: $localize`:@@app.view.variant.variants-view.edit-project:Edit project`,
+            icon: "pen-small",
+            action: () => this.onEditProjectClicked(),
+          },
+          {
+            name: $localize`:@@app.view.variant.variants-view.archive-project.title:Archive project`,
+            icon: "archive-box-small",
+            action: () => this.onArchiveProjectClicked(),
+          },
+        ];
+      } else if (project.isDeletable && project.isArchived) {
+        return [
+          {
+            name: $localize`:@@app.view.variant.variants-view.undo-archiving:Undo archiving`,
+            icon: "arrow-circle-eye-small",
+            action: () => this.onUnarchiveProjectClicked(),
+          },
+          {
+            name: $localize`:@@app.view.variant.variants-view.delete-project.title:Delete project`,
+            icon: "trash-small",
+            action: () => this.onDeleteProjectClicked(),
+          },
+        ];
+      } else {
+        return undefined;
+      }
+    }),
+  );
 
   private readonly destroyed = new Subject<void>();
 
-  private sortByPVariantSummaryDtoName(
-    a: VariantSummaryDto,
-    b: VariantSummaryDto,
-  ) {
+  private sortByPVariantSummaryDtoName(a: VariantSummaryDto, b: VariantSummaryDto) {
     // prettier-ignore
     if(a.latestSnapshotVersion && b.latestSnapshotVersion) {
       if(a.latestSnapshotVersion.name === b.latestSnapshotVersion.name) return 0;
@@ -142,9 +118,7 @@ export class VariantsViewComponent implements OnDestroy {
 
     this.searchControl.valueChanges
       .pipe(takeUntil(this.destroyed), debounceTime(300))
-      .subscribe((query) =>
-        this.searchQuery.next(query.trim().toLocaleLowerCase()),
-      );
+      .subscribe((query) => this.searchQuery.next(query.trim().toLocaleLowerCase()));
   }
 
   ngOnDestroy(): void {
@@ -157,7 +131,7 @@ export class VariantsViewComponent implements OnDestroy {
     if (event$.buttons === 1) {
       const ele = document.documentElement;
       ele.scrollTop = ele.scrollTop - event$.movementY;
-      if (event$.movementY > 2){
+      if (event$.movementY > 2) {
         event$.stopPropagation();
         event$.preventDefault();
         window.getSelection().removeAllRanges();
@@ -201,13 +175,11 @@ export class VariantsViewComponent implements OnDestroy {
         takeUntil(this.destroyed),
       )
       .subscribe((project) => {
-        this.versionControlService
-          .archiveVariantWithId(variantToEdit.id)
-          .subscribe(() => {
-            this.projectService
-              .getProject(variantToEdit.projectId)
-              .subscribe((projectTdo) => this.updateProject(projectTdo));
-          });
+        this.versionControlService.archiveVariantWithId(variantToEdit.id).subscribe(() => {
+          this.projectService
+            .getProject(variantToEdit.projectId)
+            .subscribe((projectTdo) => this.updateProject(projectTdo));
+        });
       });
   }
 
@@ -224,13 +196,11 @@ export class VariantsViewComponent implements OnDestroy {
         takeUntil(this.destroyed),
       )
       .subscribe((project) => {
-        this.versionControlService
-          .unarchiveVariantWithId(variantToEdit.id)
-          .subscribe(() => {
-            this.projectService
-              .getProject(variantToEdit.projectId)
-              .subscribe((projectTdo) => this.updateProject(projectTdo));
-          });
+        this.versionControlService.unarchiveVariantWithId(variantToEdit.id).subscribe(() => {
+          this.projectService
+            .getProject(variantToEdit.projectId)
+            .subscribe((projectTdo) => this.updateProject(projectTdo));
+        });
       });
   }
 
@@ -248,9 +218,7 @@ export class VariantsViewComponent implements OnDestroy {
   onEditProjectClicked(): void {
     ProjectDialogComponent.open(this.dialog, this.project)
       .pipe(
-        mergeMap((project) =>
-          this.projectService.updateProject(this.project.id, project),
-        ),
+        mergeMap((project) => this.projectService.updateProject(this.project.id, project)),
         mergeMap(() => this.projectService.getProject(this.project.id)),
         takeUntil(this.destroyed),
       )
@@ -308,7 +276,9 @@ export class VariantsViewComponent implements OnDestroy {
   }
 
   getTitleCurrentVersion(variant: VariantSummaryDto): string {
-    const archivedSuffix = variant.isArchived ? " " + $localize`:@@app.view.variant.variants-view.archived:(archived)` : "";
+    const archivedSuffix = variant.isArchived
+      ? " " + $localize`:@@app.view.variant.variants-view.archived:(archived)`
+      : "";
 
     if (variant.latestSnapshotVersion) {
       return variant.latestSnapshotVersion.name + "*" + archivedSuffix;
@@ -318,7 +288,9 @@ export class VariantsViewComponent implements OnDestroy {
       return variant.latestReleaseVersion.name + archivedSuffix;
     }
 
-    throw new Error($localize`:@@app.view.variant.variants-view.error-unexpected-data:Unexpected data: No snapshot and no released version.`);
+    throw new Error(
+      $localize`:@@app.view.variant.variants-view.error-unexpected-data:Unexpected data: No snapshot and no released version.`,
+    );
   }
 
   getChangedAtCurrentVersion(variant: VariantSummaryDto): Date {
@@ -330,7 +302,9 @@ export class VariantsViewComponent implements OnDestroy {
       return new Date(variant.latestReleaseVersion.createdAt);
     }
 
-    throw new Error($localize`:@@app.view.variant.variants-view.error-unexpected-data:Unexpected data: No snapshot and no released version.`);
+    throw new Error(
+      $localize`:@@app.view.variant.variants-view.error-unexpected-data:Unexpected data: No snapshot and no released version.`,
+    );
   }
 
   private updateProject(project: ProjectDto): void {

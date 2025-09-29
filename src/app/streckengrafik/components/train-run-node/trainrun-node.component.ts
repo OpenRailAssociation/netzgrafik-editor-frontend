@@ -82,9 +82,7 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
 
   getClassTag(tag: string): string {
     let retTag = tag;
-    retTag +=
-      " " +
-      this.trainDataService.createColoringClassTags(this.trainrun.trainrunId);
+    retTag += " " + this.trainDataService.createColoringClassTags(this.trainrun.trainrunId);
     /* DEBUG
     if (this.checkRotated()) {
       retTag += ' rotate ';
@@ -173,11 +171,7 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (
-      !this.trainrunService
-        .getTrainrunFromId(this.trainrun.trainrunId)
-        ?.selected()
-    ) {
+    if (!this.trainrunService.getTrainrunFromId(this.trainrun.trainrunId)?.selected()) {
       this.trainrunService.setTrainrunAsSelected(this.trainrun.trainrunId);
     } else {
       const param: InformSelectedTrainrunClick = {
@@ -190,18 +184,14 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
 
   getId() {
     return (
-      "streckengrafik_trainrun_item_" +
-      this.trainrun.getId() +
-      "_" +
-      this.sgTrainrunItem.backward
+      "streckengrafik_trainrun_item_" + this.trainrun.getId() + "_" + this.sgTrainrunItem.backward
     );
   }
 
   nodePath() {
     const departureTime = this.sgTrainrunItem.departureTime * this.yZoom;
     const arrivalTime = this.sgTrainrunItem.arrivalTime * this.yZoom;
-    const track =
-      this.sgTrainrunItem.getTrainrunNode().trackData.track * this.trackWidth;
+    const track = this.sgTrainrunItem.getTrainrunNode().trackData.track * this.trackWidth;
     const nodeWidth = this.sgTrainrunItem.getPathNode().nodeWidth();
 
     const doRot = this.checkRotated();
@@ -261,18 +251,19 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
         }
         if (this.sgTrainrunItem.backward) {
           let path = "";
-          if (tn.departurePathSection !== undefined) {
-            if (tn.departurePathSection.backward) {
-              const x0 = doRot ? nodeWidth : 0;
-              path +=
-                " M " +
-                x0 +
-                " " +
-                departureTime +
-                " L " +
-                (track + this.halfStrokeWidth) +
-                " " +
-                departureTime;
+          // Extremity node on the target side (backward)
+          if (tn.departurePathSection !== undefined && tn.departurePathSection.backward) {
+            const x0 = doRot ? nodeWidth : 0;
+            path +=
+              " M " +
+              x0 +
+              " " +
+              departureTime +
+              " L " +
+              (track + this.halfStrokeWidth) +
+              " " +
+              departureTime;
+            if (this.sgTrainrunItem.getTrainrunNode().isTurnaround) {
               path +=
                 " M " +
                 x0 +
@@ -284,18 +275,19 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
                 arrivalTime;
             }
           }
-          if (tn.arrivalPathSection !== undefined) {
-            if (tn.arrivalPathSection.backward) {
-              const x1 = doRot ? 0 : nodeWidth;
-              path +=
-                " M " +
-                (track - this.halfStrokeWidth) +
-                " " +
-                arrivalTime +
-                " L " +
-                x1 +
-                " " +
-                arrivalTime;
+          // Extremity node on the source side (backward)
+          if (tn.arrivalPathSection !== undefined && tn.arrivalPathSection.backward) {
+            const x1 = doRot ? 0 : nodeWidth;
+            path +=
+              " M " +
+              (track - this.halfStrokeWidth) +
+              " " +
+              arrivalTime +
+              " L " +
+              x1 +
+              " " +
+              arrivalTime;
+            if (this.sgTrainrunItem.getTrainrunNode().isTurnaround) {
               path +=
                 " M " +
                 (track - this.halfStrokeWidth) +
@@ -310,18 +302,19 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
           return path;
         }
         let path = "";
-        if (tn.arrivalPathSection !== undefined) {
-          if (!tn.arrivalPathSection.backward) {
-            const x0 = doRot ? nodeWidth : 0;
-            path +=
-              " M " +
-              x0 +
-              " " +
-              arrivalTime +
-              " L " +
-              (track + this.halfStrokeWidth) +
-              " " +
-              arrivalTime;
+        // Extremity node on the target side (forward)
+        if (tn.arrivalPathSection !== undefined && !tn.arrivalPathSection.backward) {
+          const x0 = doRot ? nodeWidth : 0;
+          path +=
+            " M " +
+            x0 +
+            " " +
+            arrivalTime +
+            " L " +
+            (track + this.halfStrokeWidth) +
+            " " +
+            arrivalTime;
+          if (this.sgTrainrunItem.getTrainrunNode().isTurnaround) {
             path +=
               " M " +
               x0 +
@@ -333,18 +326,19 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
               departureTime;
           }
         }
-        if (tn.departurePathSection !== undefined) {
-          if (!tn.departurePathSection.backward) {
-            const x1 = doRot ? 0 : nodeWidth;
-            path +=
-              " M " +
-              (track - this.halfStrokeWidth) +
-              " " +
-              departureTime +
-              " L " +
-              x1 +
-              " " +
-              departureTime;
+        // Extremity node on the source side (forward)
+        if (tn.departurePathSection !== undefined && !tn.departurePathSection.backward) {
+          const x1 = doRot ? 0 : nodeWidth;
+          path +=
+            " M " +
+            (track - this.halfStrokeWidth) +
+            " " +
+            departureTime +
+            " L " +
+            x1 +
+            " " +
+            departureTime;
+          if (this.sgTrainrunItem.getTrainrunNode().isTurnaround) {
             path +=
               " M " +
               (track - this.halfStrokeWidth) +
@@ -405,35 +399,22 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
 
   pathGleisbelegung() {
     const delta =
-      this.sgTrainrunItem.departureTime - this.sgTrainrunItem.arrivalTime === 0
-        ? 0.1
-        : 0.0;
-    const departureTime =
-      (this.sgTrainrunItem.departureTime + delta) * this.yZoom;
+      this.sgTrainrunItem.departureTime - this.sgTrainrunItem.arrivalTime === 0 ? 0.1 : 0.0;
+    const departureTime = (this.sgTrainrunItem.departureTime + delta) * this.yZoom;
     const arrivalTime = (this.sgTrainrunItem.arrivalTime - delta) * this.yZoom;
-    const track =
-      this.sgTrainrunItem.getTrainrunNode().trackData.track * this.trackWidth;
+    const track = this.sgTrainrunItem.getTrainrunNode().trackData.track * this.trackWidth;
     if (this.sgTrainrunItem.backward) {
-      return (
-        "M " + track + " " + departureTime + " L " + track + " " + arrivalTime
-      );
+      return "M " + track + " " + departureTime + " L " + track + " " + arrivalTime;
     }
-    return (
-      "M " + track + " " + arrivalTime + " L " + track + " " + departureTime
-    );
+    return "M " + track + " " + arrivalTime + " L " + track + " " + departureTime;
   }
 
   pathHeadwayReservation() {
-    const track =
-      this.sgTrainrunItem.getTrainrunNode().trackData.track * this.trackWidth;
+    const track = this.sgTrainrunItem.getTrainrunNode().trackData.track * this.trackWidth;
     const departureTime =
-      (this.sgTrainrunItem.departureTime +
-        this.sgTrainrunItem.minimumHeadwayTime) *
-      this.yZoom;
+      (this.sgTrainrunItem.departureTime + this.sgTrainrunItem.minimumHeadwayTime) * this.yZoom;
     const arrivalTime = this.sgTrainrunItem.arrivalTime * this.yZoom;
-    return (
-      "M " + track + " " + arrivalTime + " L " + track + " " + departureTime
-    );
+    return "M " + track + " " + arrivalTime + " L " + track + " " + departureTime;
   }
 
   isTrackOccupier() {
@@ -446,10 +427,7 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
       if (tn.isEndNode()) {
         return false;
       }
-      if (
-        tn.departurePathSection !== undefined &&
-        tn.arrivalPathSection !== undefined
-      ) {
+      if (tn.departurePathSection !== undefined && tn.arrivalPathSection !== undefined) {
         return true;
       }
       return false;

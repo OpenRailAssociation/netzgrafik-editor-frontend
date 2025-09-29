@@ -3,8 +3,8 @@ import {registerLocaleData} from "@angular/common";
 import {loadTranslations} from "@angular/localize";
 
 @Injectable({
-    providedIn: "root",
-  })
+  providedIn: "root",
+})
 export class I18nService {
   readonly allowedLanguages = ["en", "fr", "de", "it"];
   private currentLanguage: string = this.getLanguageFromStorage() || this.detectNavigatorLanguage();
@@ -40,13 +40,13 @@ export class I18nService {
 
   private detectNavigatorLanguage(): string {
     const navigatorLanguage = navigator.language.slice(0, 2);
-    return this.allowedLanguages.includes(navigatorLanguage) ? navigatorLanguage : this.allowedLanguages[0];
+    return this.allowedLanguages.includes(navigatorLanguage)
+      ? navigatorLanguage
+      : this.allowedLanguages[0];
   }
 
   async loadTranslations() {
-    const languageTranslationsModule = await import(
-      `src/assets/i18n/${this.language}.json`
-    );
+    const languageTranslationsModule = await import(`src/assets/i18n/${this.language}.json`);
 
     this.translations = this.flattenTranslations(languageTranslationsModule.default);
     loadTranslations(this.translations);
@@ -88,7 +88,7 @@ export class I18nService {
     let translation = this.translations[key] || key;
 
     if (params) {
-      Object.keys(params).forEach(param => {
+      Object.keys(params).forEach((param) => {
         translation = translation.replace(`{$${param}}`, params[param]);
       });
     }

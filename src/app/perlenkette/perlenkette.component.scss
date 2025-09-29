@@ -33,6 +33,11 @@
   }
 }
 
+.trainrun-od {
+  display: flex;
+  align-items: center;
+}
+
 .alignleft {
   float: left;
 }
@@ -119,7 +124,7 @@ span.smallstation:hover {
   width: 100%;
   overflow: auto;
   padding: 0px;
-  min-height: 300px;
+  min-height: auto;
 }
 
 .highlight {
@@ -129,5 +134,5 @@ span.smallstation:hover {
 
 .ToggleAllEyesButton:hover {
   stroke: var(--COLOR_Edit);
-  stroke-width: .5px;
+  stroke-width: 0.5px;
 }

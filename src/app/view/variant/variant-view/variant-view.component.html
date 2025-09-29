@@ -1,7 +1,7 @@
 <h2 class="title" style="margin-right: -9px">
   {{ (versionControlService.variant$ | async)?.latestVersion?.name }}
   <ng-container *ngIf="versionControlService.variant.isArchived">
-    {{ 'app.view.variant.variant-view.archived' | translate }}
+    {{ "app.view.variant.variant-view.archived" | translate }}
   </ng-container>
   <div style="float: right">
     <button [sbbContextmenuTriggerFor]="menu"></button>
@@ -14,7 +14,7 @@
         *ngIf="versionControlService.variant.isWritable"
       >
         <sbb-icon svgIcon="pen-small"></sbb-icon>
-        {{ 'app.view.variant.variant-view.edit-variant' | translate }}
+        {{ "app.view.variant.variant-view.edit-variant" | translate }}
       </button>
       <button
         sbb-menu-item
@@ -24,7 +24,7 @@
         *ngIf="versionControlService.variant.isDeletable"
       >
         <sbb-icon svgIcon="trash-small"></sbb-icon>
-        {{ 'app.view.variant.variant-view.delete-variant.title' | translate }}
+        {{ "app.view.variant.variant-view.delete-variant.title" | translate }}
       </button>
     </sbb-menu>
   </div>
@@ -32,7 +32,9 @@
 
 <sbb-accordion [multi]="true">
   <sbb-expansion-panel [expanded]="true">
-    <sbb-expansion-panel-header>{{ 'app.view.variant.variant-view.versions' | translate }}</sbb-expansion-panel-header>
+    <sbb-expansion-panel-header>{{
+      "app.view.variant.variant-view.versions" | translate
+    }}</sbb-expansion-panel-header>
     <sbb-variant-history
       *ngIf="versionControlService.variant$ | async as variant"
       [variant]="variant"

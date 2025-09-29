@@ -48,16 +48,8 @@ describe("PositionTransformationService", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -89,7 +81,7 @@ describe("PositionTransformationService", () => {
       trainrunService,
       trainrunSectionService,
       nodeService,
-      filterService
+      filterService,
     );
 
     uiInteractionService = new UiInteractionService(
@@ -107,7 +99,7 @@ describe("PositionTransformationService", () => {
       uiInteractionService,
       nodeService,
       noteService,
-      trainrunSectionService
+      trainrunSectionService,
     );
 
     positionTransformationService = new PositionTransformationService(
@@ -115,14 +107,12 @@ describe("PositionTransformationService", () => {
       nodeService,
       noteService,
       uiInteractionService,
-      viewportCullService
+      viewportCullService,
     );
   });
 
   it("PositionTransformationService test-001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const pos: Vec2D[] = [];
     nodeService.getNodes().forEach((n) => {
       pos.push(new Vec2D(n.getPositionX(), n.getPositionY()));
@@ -139,9 +129,7 @@ describe("PositionTransformationService", () => {
   });
 
   it("PositionTransformationService test-001", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const pos: Vec2D[] = [];
     let minX = 100000;
     nodeService.getNodes().forEach((n) => {
@@ -158,9 +146,7 @@ describe("PositionTransformationService", () => {
   });
 
   it("PositionTransformationService test-002", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const pos: Vec2D[] = [];
     let minY = 100000;
     nodeService.getNodes().forEach((n) => {
@@ -177,21 +163,16 @@ describe("PositionTransformationService", () => {
   });
 
   it("PositionTransformationService test-003", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const pos: Vec2D[] = [];
     nodeService.getNodes().forEach((n) => {
       pos.push(new Vec2D(n.getPositionX(), n.getPositionY()));
     });
     // all node are selected (default) - nothing changes
-    positionTransformationService.scaleNetzgrafikArea(2.0,
-      new Vec2D(0.0, 0.0),
-      "graphContainer");
+    positionTransformationService.scaleNetzgrafikArea(2.0, new Vec2D(0.0, 0.0), "graphContainer");
     nodeService.getNodes().forEach((n: Node, index: number) => {
       expect(n.getPositionX()).toBe(pos[index].getX() * 2.0);
       expect(n.getPositionY()).toBe(pos[index].getY() * 2.0);
     });
   });
-
 });

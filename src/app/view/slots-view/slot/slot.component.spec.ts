@@ -1,7 +1,7 @@
 import {ComponentFixture, TestBed} from "@angular/core/testing";
 import {SlotComponent} from "./slot.component";
-import {SbbMenu} from "@sbb-esta/angular/menu";
 import {I18nModule} from "../../../core/i18n/i18n.module";
+import {CUSTOM_ELEMENTS_SCHEMA} from "@angular/core";
 
 describe("SlotComponent", () => {
   let component: SlotComponent;
@@ -10,7 +10,8 @@ describe("SlotComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [SlotComponent],
-      imports:[I18nModule],
+      imports: [I18nModule],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
   });
 

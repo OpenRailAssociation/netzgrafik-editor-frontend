@@ -14,19 +14,15 @@ $close-size: $close-padding * 2 + $defaultIconSize;
   @if ($main) {
     @if ($columns == 3) {
       @return calc(
-        (100% - 3 * #{$col-gap}) / 4 * #{$columns} + #{($columns - 1) * $col-gap} +
-          1 * #{$col-gap}
+        (100% - 3 * #{$col-gap}) / 4 * #{$columns} + #{($columns - 1) * $col-gap} + 1 * #{$col-gap}
       );
     } @else {
       @return calc(
-        (100% - 3 * #{$col-gap}) / 4 * #{$columns} + #{($columns - 1) * $col-gap} +
-          2 * #{$col-gap}
+        (100% - 3 * #{$col-gap}) / 4 * #{$columns} + #{($columns - 1) * $col-gap} + 2 * #{$col-gap}
       );
     }
   } @else {
-    @return calc(
-      (100% - 3 * #{$col-gap}) / 4 * #{$columns} + #{($columns - 1) * $col-gap}
-    );
+    @return calc((100% - 3 * #{$col-gap}) / 4 * #{$columns} + #{($columns - 1) * $col-gap});
   }
 }
 
@@ -78,8 +74,7 @@ $close-size: $close-padding * 2 + $defaultIconSize;
 
     transition:
       right $transitionLongDuration $transitionLongTiming,
-      opacity $transitionLongDuration * 0.2 $transitionLongTiming
-        $transitionLongDuration * 0.8;
+      opacity $transitionLongDuration * 0.2 $transitionLongTiming $transitionLongDuration * 0.8;
 
     &:before {
       content: "";
@@ -142,8 +137,7 @@ $close-size: $close-padding * 2 + $defaultIconSize;
 
     transition:
       right $transitionLongDuration $transitionLongTiming,
-      opacity $transitionLongDuration * 0.2 $transitionLongTiming
-        $transitionLongDuration * 0.8;
+      opacity $transitionLongDuration * 0.2 $transitionLongTiming $transitionLongDuration * 0.8;
 
     &:before {
       content: "";

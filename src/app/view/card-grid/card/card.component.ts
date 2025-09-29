@@ -27,8 +27,9 @@ export class CardComponent {
   actions?: Observable<SlotAction[]>;
 
   openLink(route: string | any[]) {
-    const element: HTMLElement =
-      document.getElementById(this.getCardComponentRouterLinkId(route)) as HTMLElement;
+    const element: HTMLElement = document.getElementById(
+      this.getCardComponentRouterLinkId(route),
+    ) as HTMLElement;
     if (element) {
       element.click();
     }

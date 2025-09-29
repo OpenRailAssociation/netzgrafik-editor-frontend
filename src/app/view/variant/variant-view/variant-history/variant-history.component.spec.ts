@@ -6,10 +6,7 @@ import {of} from "rxjs";
 import {PreviewService} from "../../../../services/data/preview.service";
 import {SbbDialogModule} from "@sbb-esta/angular/dialog";
 import {NavigationService} from "../../../../services/ui/navigation.service";
-import {
-  VariantControllerBackendService,
-  VariantCreateDto,
-} from "../../../../api/generated";
+import {VariantControllerBackendService, VariantCreateDto} from "../../../../api/generated";
 import {VersionControllerBackendService} from "../../../../api/generated";
 
 describe("VariantHistoryComponent", () => {

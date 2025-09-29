@@ -45,28 +45,20 @@ export interface ProjectControllerBackendServiceInterface {
    *
    * @param projectId
    */
-  deleteProject(
-    projectId: number,
-    extraHttpRequestParams?: any,
-  ): Observable<{}>;
+  deleteProject(projectId: number, extraHttpRequestParams?: any): Observable<{}>;
 
   /**
    *
    *
    */
-  getAllProjects(
-    extraHttpRequestParams?: any,
-  ): Observable<Array<ProjectSummaryDto>>;
+  getAllProjects(extraHttpRequestParams?: any): Observable<Array<ProjectSummaryDto>>;
 
   /**
    *
    *
    * @param projectId
    */
-  getProject(
-    projectId: number,
-    extraHttpRequestParams?: any,
-  ): Observable<ProjectDto>;
+  getProject(projectId: number, extraHttpRequestParams?: any): Observable<ProjectDto>;
 
   /**
    *

@@ -1,7 +1,6 @@
 @import "../../dialogs/trainrun-and-section-dialog/trainrunsection-tab/trainrun-section-tab.component.scss";
 
-::ng-deep
-  div.sbb-dialog-content.sbb-scrollbar.EditNoteFilterableLabelsDialogTabContent {
+::ng-deep div.sbb-dialog-content.sbb-scrollbar.EditNoteFilterableLabelsDialogTabContent {
   max-height: 350px;
   min-height: 350px;
 }

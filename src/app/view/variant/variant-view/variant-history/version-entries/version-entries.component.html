@@ -32,10 +32,7 @@
     (download)="download.emit($event)"
   ></sbb-snapshot-entry>
 
-  <div
-    *ngIf="canShowMoreSnapshots() || canHideSnapshots()"
-    class="show-more-entry"
-  >
+  <div *ngIf="canShowMoreSnapshots() || canHideSnapshots()" class="show-more-entry">
     <a *ngIf="canShowMoreSnapshots()" (click)="onShowMoreSnapshots()">
       <sbb-icon svgIcon="chevron-down-small"></sbb-icon>
     </a>

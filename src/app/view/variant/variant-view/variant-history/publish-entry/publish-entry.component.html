@@ -8,16 +8,23 @@
     <input
       type="text"
       sbbInput
-      [placeholder]="'app.view.variant.variant-view.variant-history.publish-entry.comment' | translate"
+      [placeholder]="
+        'app.view.variant.variant-view.variant-history.publish-entry.comment' | translate
+      "
       [formControl]="comment"
     />
     <button
       sbb-button
       (click)="onPublishClicked()"
       [disabled]="publishDisabled"
-      [title]="this.publishDisabled ? ('app.view.variant.variant-view.variant-history.publish-entry.local-changes' | translate) : ''"
+      [title]="
+        this.publishDisabled
+          ? ('app.view.variant.variant-view.variant-history.publish-entry.local-changes'
+            | translate)
+          : ''
+      "
     >
-      {{ 'app.view.variant.variant-view.variant-history.publish-entry.publish' | translate }}
+      {{ "app.view.variant.variant-view.variant-history.publish-entry.publish" | translate }}
     </button>
   </div>
 </sbb-history-entry>

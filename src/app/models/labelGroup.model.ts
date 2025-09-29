@@ -1,7 +1,4 @@
-import {
-  LabelGroupDto,
-  LabelRef,
-} from "../data-structures/business.data.structures";
+import {LabelGroupDto, LabelRef} from "../data-structures/business.data.structures";
 
 export enum LogicalFilterOperator {
   OR,
@@ -14,8 +11,7 @@ export class LabelGroup {
   private id: number;
   private name: string;
   private labelRef: LabelRef;
-  private logicalFilterOperator: LogicalFilterOperator =
-    LogicalFilterOperator.OR;
+  private logicalFilterOperator: LogicalFilterOperator = LogicalFilterOperator.OR;
 
   constructor(
     {id, name, labelRef}: LabelGroupDto = {

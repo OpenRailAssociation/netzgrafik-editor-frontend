@@ -34,9 +34,7 @@ import {VariantControllerBackendServiceInterface} from "./variantController.serv
 @Injectable({
   providedIn: "root",
 })
-export class VariantControllerBackendService
-  implements VariantControllerBackendServiceInterface
-{
+export class VariantControllerBackendService implements VariantControllerBackendServiceInterface {
   protected basePath = "http://localhost:8080";
   public defaultHeaders = new HttpHeaders();
   public configuration = new Configuration();
@@ -59,11 +57,7 @@ export class VariantControllerBackendService
     this.encoder = this.configuration.encoder || new CustomHttpParameterCodec();
   }
 
-  private addToHttpParams(
-    httpParams: HttpParams,
-    value: any,
-    key?: string,
-  ): HttpParams {
+  private addToHttpParams(httpParams: HttpParams, value: any, key?: string): HttpParams {
     if (typeof value === "object" && value instanceof Date === false) {
       httpParams = this.addToHttpParamsRecursive(httpParams, value);
     } else {
@@ -72,11 +66,7 @@ export class VariantControllerBackendService
     return httpParams;
   }
 
-  private addToHttpParamsRecursive(
-    httpParams: HttpParams,
-    value?: any,
-    key?: string,
-  ): HttpParams {
+  private addToHttpParamsRecursive(httpParams: HttpParams, value?: any, key?: string): HttpParams {
     if (value == null) {
       return httpParams;
     }
@@ -84,15 +74,11 @@ export class VariantControllerBackendService
     if (typeof value === "object") {
       if (Array.isArray(value)) {
         (value as any[]).forEach(
-          (elem) =>
-            (httpParams = this.addToHttpParamsRecursive(httpParams, elem, key)),
+          (elem) => (httpParams = this.addToHttpParamsRecursive(httpParams, elem, key)),
         );
       } else if (value instanceof Date) {
         if (key != null) {
-          httpParams = httpParams.append(
-            key,
-            (value as Date).toISOString().substr(0, 10),
-          );
+          httpParams = httpParams.append(key, (value as Date).toISOString().substr(0, 10));
         } else {
           throw Error("key may not be null if value is Date");
         }
@@ -158,23 +144,18 @@ export class VariantControllerBackendService
       headers = headers.set("Authorization", "Bearer " + credential);
     }
 
-    let httpHeaderAcceptSelected: string | undefined =
-      options && options.httpHeaderAccept;
+    let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
     if (httpHeaderAcceptSelected === undefined) {
       // to determine the Accept header
       const httpHeaderAccepts: string[] = [];
-      httpHeaderAcceptSelected =
-        this.configuration.selectHeaderAccept(httpHeaderAccepts);
+      httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
     }
     if (httpHeaderAcceptSelected !== undefined) {
       headers = headers.set("Accept", httpHeaderAcceptSelected);
     }
 
     let responseType: "text" | "json" = "json";
-    if (
-      httpHeaderAcceptSelected &&
-      httpHeaderAcceptSelected.startsWith("text")
-    ) {
+    if (httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith("text")) {
       responseType = "text";
     }
 
@@ -245,13 +226,11 @@ export class VariantControllerBackendService
       headers = headers.set("Authorization", "Bearer " + credential);
     }
 
-    let httpHeaderAcceptSelected: string | undefined =
-      options && options.httpHeaderAccept;
+    let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
     if (httpHeaderAcceptSelected === undefined) {
       // to determine the Accept header
       const httpHeaderAccepts: string[] = ["application/json"];
-      httpHeaderAcceptSelected =
-        this.configuration.selectHeaderAccept(httpHeaderAccepts);
+      httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
     }
     if (httpHeaderAcceptSelected !== undefined) {
       headers = headers.set("Accept", httpHeaderAcceptSelected);
@@ -266,10 +245,7 @@ export class VariantControllerBackendService
     }
 
     let responseType: "text" | "json" = "json";
-    if (
-      httpHeaderAcceptSelected &&
-      httpHeaderAcceptSelected.startsWith("text")
-    ) {
+    if (httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith("text")) {
       responseType = "text";
     }
 
@@ -325,10 +301,7 @@ export class VariantControllerBackendService
         "Required parameter versionId was null or undefined when calling createVariantFromVersion.",
       );
     }
-    if (
-      variantCreateFromVersionDto === null ||
-      variantCreateFromVersionDto === undefined
-    ) {
+    if (variantCreateFromVersionDto === null || variantCreateFromVersionDto === undefined) {
       throw new Error(
         "Required parameter variantCreateFromVersionDto was null or undefined when calling createVariantFromVersion.",
       );
@@ -343,13 +316,11 @@ export class VariantControllerBackendService
       headers = headers.set("Authorization", "Bearer " + credential);
     }
 
-    let httpHeaderAcceptSelected: string | undefined =
-      options && options.httpHeaderAccept;
+    let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
     if (httpHeaderAcceptSelected === undefined) {
       // to determine the Accept header
       const httpHeaderAccepts: string[] = ["application/json"];
-      httpHeaderAcceptSelected =
-        this.configuration.selectHeaderAccept(httpHeaderAccepts);
+      httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
     }
     if (httpHeaderAcceptSelected !== undefined) {
       headers = headers.set("Accept", httpHeaderAcceptSelected);
@@ -364,10 +335,7 @@ export class VariantControllerBackendService
     }
 
     let responseType: "text" | "json" = "json";
-    if (
-      httpHeaderAcceptSelected &&
-      httpHeaderAcceptSelected.startsWith("text")
-    ) {
+    if (httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith("text")) {
       responseType = "text";
     }
 
@@ -428,23 +396,18 @@ export class VariantControllerBackendService
       headers = headers.set("Authorization", "Bearer " + credential);
     }
 
-    let httpHeaderAcceptSelected: string | undefined =
-      options && options.httpHeaderAccept;
+    let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
     if (httpHeaderAcceptSelected === undefined) {
       // to determine the Accept header
       const httpHeaderAccepts: string[] = ["application/json"];
-      httpHeaderAcceptSelected =
-        this.configuration.selectHeaderAccept(httpHeaderAccepts);
+      httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
     }
     if (httpHeaderAcceptSelected !== undefined) {
       headers = headers.set("Accept", httpHeaderAcceptSelected);
     }
 
     let responseType: "text" | "json" = "json";
-    if (
-      httpHeaderAcceptSelected &&
-      httpHeaderAcceptSelected.startsWith("text")
-    ) {
+    if (httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith("text")) {
       responseType = "text";
     }
 
@@ -504,23 +467,18 @@ export class VariantControllerBackendService
       headers = headers.set("Authorization", "Bearer " + credential);
     }
 
-    let httpHeaderAcceptSelected: string | undefined =
-      options && options.httpHeaderAccept;
+    let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
     if (httpHeaderAcceptSelected === undefined) {
       // to determine the Accept header
       const httpHeaderAccepts: string[] = [];
-      httpHeaderAcceptSelected =
-        this.configuration.selectHeaderAccept(httpHeaderAccepts);
+      httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
     }
     if (httpHeaderAcceptSelected !== undefined) {
       headers = headers.set("Accept", httpHeaderAcceptSelected);
     }
 
     let responseType: "text" | "json" = "json";
-    if (
-      httpHeaderAcceptSelected &&
-      httpHeaderAcceptSelected.startsWith("text")
-    ) {
+    if (httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith("text")) {
       responseType = "text";
     }
 
@@ -580,23 +538,18 @@ export class VariantControllerBackendService
       headers = headers.set("Authorization", "Bearer " + credential);
     }
 
-    let httpHeaderAcceptSelected: string | undefined =
-      options && options.httpHeaderAccept;
+    let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
     if (httpHeaderAcceptSelected === undefined) {
       // to determine the Accept header
       const httpHeaderAccepts: string[] = ["application/json"];
-      httpHeaderAcceptSelected =
-        this.configuration.selectHeaderAccept(httpHeaderAccepts);
+      httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
     }
     if (httpHeaderAcceptSelected !== undefined) {
       headers = headers.set("Accept", httpHeaderAcceptSelected);
     }
 
     let responseType: "text" | "json" = "json";
-    if (
-      httpHeaderAcceptSelected &&
-      httpHeaderAcceptSelected.startsWith("text")
-    ) {
+    if (httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith("text")) {
       responseType = "text";
     }
 
@@ -656,23 +609,18 @@ export class VariantControllerBackendService
       headers = headers.set("Authorization", "Bearer " + credential);
     }
 
-    let httpHeaderAcceptSelected: string | undefined =
-      options && options.httpHeaderAccept;
+    let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
     if (httpHeaderAcceptSelected === undefined) {
       // to determine the Accept header
       const httpHeaderAccepts: string[] = [];
-      httpHeaderAcceptSelected =
-        this.configuration.selectHeaderAccept(httpHeaderAccepts);
+      httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
     }
     if (httpHeaderAcceptSelected !== undefined) {
       headers = headers.set("Accept", httpHeaderAcceptSelected);
     }
 
     let responseType: "text" | "json" = "json";
-    if (
-      httpHeaderAcceptSelected &&
-      httpHeaderAcceptSelected.startsWith("text")
-    ) {
+    if (httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith("text")) {
       responseType = "text";
     }
 
@@ -733,23 +681,18 @@ export class VariantControllerBackendService
       headers = headers.set("Authorization", "Bearer " + credential);
     }
 
-    let httpHeaderAcceptSelected: string | undefined =
-      options && options.httpHeaderAccept;
+    let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
     if (httpHeaderAcceptSelected === undefined) {
       // to determine the Accept header
       const httpHeaderAccepts: string[] = [];
-      httpHeaderAcceptSelected =
-        this.configuration.selectHeaderAccept(httpHeaderAccepts);
+      httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
     }
     if (httpHeaderAcceptSelected !== undefined) {
       headers = headers.set("Accept", httpHeaderAcceptSelected);
     }
 
     let responseType: "text" | "json" = "json";
-    if (
-      httpHeaderAcceptSelected &&
-      httpHeaderAcceptSelected.startsWith("text")
-    ) {
+    if (httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith("text")) {
       responseType = "text";
     }
 

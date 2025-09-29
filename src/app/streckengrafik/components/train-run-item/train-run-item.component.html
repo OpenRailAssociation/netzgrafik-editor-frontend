@@ -7,11 +7,7 @@
           (mouseover)="bringToFront(trainrun, trainrunItem, $event)"
         >
           <svg:g [attr.transform]="'translate(0.0,' + offset * yZoom + ')'">
-            <svg:g
-              [attr.transform]="
-              'translate(' + getTranslate(trainrunItem) + ',0.0)'
-            "
-            >
+            <svg:g [attr.transform]="'translate(' + getTranslate(trainrunItem) + ',0.0)'">
               <ng-container *ngIf="showSection(trainrunItem)">
                 <svg:g
                   sbb-train-run-section

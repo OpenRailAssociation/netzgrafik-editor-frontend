@@ -22,9 +22,7 @@ export class FilterableLabelFormComponent implements OnInit {
   }
 
   onUpdate() {
-    const updateLabelCallback = this.model.getControl(
-      "updateLabelCallback",
-    ).value;
+    const updateLabelCallback = this.model.getControl("updateLabelCallback").value;
     updateLabelCallback(this.model.getControl("name").value);
   }
 }

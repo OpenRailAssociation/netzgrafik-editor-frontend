@@ -1,10 +1,7 @@
 import {Vec2D} from "../../utils/vec2D";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {Node} from "../../models/node.model";
-import {
-  NODE_MIN_HEIGHT,
-  NODE_MIN_WIDTH,
-} from "../../view/rastering/definitions";
+import {NODE_MIN_HEIGHT, NODE_MIN_WIDTH} from "../../view/rastering/definitions";
 
 export interface NodePortPlacement {
   sourcePortPlacement: PortAlignment;
@@ -17,10 +14,7 @@ export class VisAVisPortPlacement {
     return Math.abs(delta.getX()) < Math.abs(delta.getY());
   }
 
-  static placePortsOnSourceAndTargetNode(
-    sourceNode: Node,
-    targetNode: Node,
-  ): NodePortPlacement {
+  static placePortsOnSourceAndTargetNode(sourceNode: Node, targetNode: Node): NodePortPlacement {
     const posStart: Vec2D = Vec2D.add(
       new Vec2D(sourceNode.getPositionX(), sourceNode.getPositionY()),
       new Vec2D(NODE_MIN_WIDTH / 2, NODE_MIN_HEIGHT / 2),

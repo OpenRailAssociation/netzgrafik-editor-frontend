@@ -30,11 +30,11 @@ body:
     attributes:
       label: Bug type
       options:
-        - 'Functionality'
-        - 'Accessibility'
-        - 'Performance'
-        - 'Security vulnerability'
-        - 'Other'
+        - "Functionality"
+        - "Accessibility"
+        - "Performance"
+        - "Security vulnerability"
+        - "Other"
     validations:
       required: true
   - type: input
@@ -67,9 +67,9 @@ body:
     attributes:
       label: Input mode
       options:
-        - 'Mouse/Keyboard'
-        - 'Touch'
-        - 'Other'
+        - "Mouse/Keyboard"
+        - "Touch"
+        - "Other"
     validations:
       required: false
   - type: input

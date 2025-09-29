@@ -286,6 +286,10 @@
             "delete": "Supprimer",
             "deleteConfirmationQuestion": "Faut-il supprimer définitivement l'ensemble du trajet de train ?"
           },
+          "trainrun-roundtrip-tab": {
+            "one-way": "Aller simple",
+            "round-trip": "Aller-retour"
+          },
           "trainrun-section-tab": {
             "warningTwoLocks": "Avertissement : Trop de temps sont bloqués !",
             "propagateTimesToLeft": "Propager les temps à gauche",
@@ -346,6 +350,10 @@
         "filterable-labels-nodes": "Labels filtrables: Noeuds",
         "filterable-labels-notes": "Labels filtrables: Notes",
         "display": "Affichage",
+        "Round-trips": "Aller-retours",
+        "round-trips": "aller-retours",
+        "one-ways": "allers simples",
+        "display-direction-arrows": "Afficher les flèches de direction des trains",
         "times": "Temps",
         "decimal-displayed": "Nombre de décimales affichées",
         "display-arrival-departure-times": "Afficher les heures de départ et d'arrivée",
@@ -371,6 +379,9 @@
         "hide-trainrun-time-category": "Masquer {$trainrunTimeCategory}",
         "show-trainrun-frequency": "Afficher {$trainrunFrequency}",
         "hide-trainrun-frequency": "Masquer {$trainrunFrequency}",
+        "symmetry": "Symétrie",
+        "show-direction": "Afficher les {$direction}",
+        "hide-direction": "Masquer les {$direction}",
         "filterable-label-filter": {
           "no-labels-available": "Aucun label disponible",
           "or": "Ou",

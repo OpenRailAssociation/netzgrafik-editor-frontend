@@ -1,9 +1,6 @@
 import {Injectable} from "@angular/core";
 import {BehaviorSubject} from "rxjs";
-import {
-  NetzgrafikColorDto,
-  TrainrunCategory,
-} from "../../data-structures/business.data.structures";
+import {NetzgrafikColorDto, TrainrunCategory} from "../../data-structures/business.data.structures";
 import {StaticDomTags} from "../../view/editor-main-view/data-views/static.dom.tags";
 import {NetzgrafikColor} from "../../models/netzgrafikColor.model";
 import {LogService} from "../../logger/log.service";
@@ -16,8 +13,7 @@ import {ColorRefType} from "../../data-structures/technical.data.structures";
 export class NetzgrafikColoringService {
   // Description of observable data service: https://coryrylan.com/blog/angular-observable-data-services
   netzgrafikColorSubject = new BehaviorSubject<NetzgrafikColor[]>([]);
-  readonly netzgrafikColorObservable =
-    this.netzgrafikColorSubject.asObservable();
+  readonly netzgrafikColorObservable = this.netzgrafikColorSubject.asObservable();
   netzgrafikColorStore: {netzgrafikColors: NetzgrafikColor[]} = {
     netzgrafikColors: [],
   }; // store the data in memory
@@ -29,26 +25,23 @@ export class NetzgrafikColoringService {
     this.generateColors();
   }
 
-  private static generateLinePatternColorUI(
-    sheet: CSSStyleSheet,
-    verbose = false,
-  ) {
+  private static generateLinePatternColorUI(sheet: CSSStyleSheet, verbose = false) {
     [
       "path.edge_line.layer_3.Freq_30." +
-      StaticDomTags.TAG_UI_DIALOG +
-      " {  stroke: var(--sbb-header-lean-background-color); }",
+        StaticDomTags.TAG_UI_DIALOG +
+        " {  stroke: var(--sbb-header-lean-background-color); }",
       "path.edge_line.layer_2.Freq_20." +
-      StaticDomTags.TAG_UI_DIALOG +
-      " {  stroke: var(--sbb-header-lean-background-color); }",
+        StaticDomTags.TAG_UI_DIALOG +
+        " {  stroke: var(--sbb-header-lean-background-color); }",
       "path.edge_line.layer_1.Freq_15." +
-      StaticDomTags.TAG_UI_DIALOG +
-      " {  stroke: var(--sbb-header-lean-background-color); }",
+        StaticDomTags.TAG_UI_DIALOG +
+        " {  stroke: var(--sbb-header-lean-background-color); }",
       "path.edge_line.layer_3.Freq_15." +
-      StaticDomTags.TAG_UI_DIALOG +
-      " {  stroke: var(--sbb-header-lean-background-color); }",
+        StaticDomTags.TAG_UI_DIALOG +
+        " {  stroke: var(--sbb-header-lean-background-color); }",
       "path.edge_line.layer_3.Freq_15." +
-      StaticDomTags.TAG_UI_DIALOG +
-      " {  stroke: var(--sbb-header-lean-background-color); }",
+        StaticDomTags.TAG_UI_DIALOG +
+        " {  stroke: var(--sbb-header-lean-background-color); }",
     ].forEach((rule) => {
       sheet.insertRule(rule, sheet.cssRules.length);
       if (verbose) {
@@ -57,10 +50,7 @@ export class NetzgrafikColoringService {
     });
   }
 
-  private static generateLinePatternColor(
-    sheet: CSSStyleSheet,
-    verbose = false,
-  ) {
+  private static generateLinePatternColor(sheet: CSSStyleSheet, verbose = false) {
     [
       "path.edge_line.layer_3.Freq_30           {  stroke: var(--COLOR_BACKGROUND); }",
       "path.edge_line.layer_2.Freq_20           {  stroke: var(--COLOR_BACKGROUND); }",
@@ -86,8 +76,7 @@ export class NetzgrafikColoringService {
     [
       {
         tag: "",
-        color:
-          "NODE_TEXT_FOCUS",
+        color: "NODE_TEXT_FOCUS",
         backgroundColor:
           StaticDomTags.PREFIX_COLOR_VARIABLE +
           "_" +
@@ -97,8 +86,7 @@ export class NetzgrafikColoringService {
       },
       {
         tag: StaticDomTags.TAG_SELECTED,
-        color:
-          "sbb-color-white",
+        color: "sbb-color-white",
         backgroundColor:
           StaticDomTags.PREFIX_COLOR_VARIABLE +
           "_" +
@@ -209,11 +197,7 @@ export class NetzgrafikColoringService {
       {
         tag: "",
         color:
-          StaticDomTags.TAG_UI_DIALOG +
-          "_" +
-          StaticDomTags.PREFIX_COLOR_VARIABLE +
-          "_" +
-          colorRef,
+          StaticDomTags.TAG_UI_DIALOG + "_" + StaticDomTags.PREFIX_COLOR_VARIABLE + "_" + colorRef,
       },
       {
         tag: StaticDomTags.TAG_HOVER,
@@ -300,81 +284,78 @@ export class NetzgrafikColoringService {
       const colors = netzgrafikColor.getColors(this.isDarkMode);
 
       document.documentElement.style.setProperty(
-        "--" +
-        StaticDomTags.PREFIX_COLOR_VARIABLE +
-        "_" +
-        netzgrafikColor.getColorRef(),
+        "--" + StaticDomTags.PREFIX_COLOR_VARIABLE + "_" + netzgrafikColor.getColorRef(),
         colors.color,
       );
       document.documentElement.style.setProperty(
         "--" +
-        StaticDomTags.PREFIX_COLOR_VARIABLE +
-        "_" +
-        netzgrafikColor.getColorRef() +
-        "_" +
-        StaticDomTags.TAG_FOCUS.toUpperCase(),
+          StaticDomTags.PREFIX_COLOR_VARIABLE +
+          "_" +
+          netzgrafikColor.getColorRef() +
+          "_" +
+          StaticDomTags.TAG_FOCUS.toUpperCase(),
         colors.colorFocus,
       );
       document.documentElement.style.setProperty(
         "--" +
-        StaticDomTags.PREFIX_COLOR_VARIABLE +
-        "_" +
-        netzgrafikColor.getColorRef() +
-        "_" +
-        StaticDomTags.TAG_MUTED.toUpperCase(),
+          StaticDomTags.PREFIX_COLOR_VARIABLE +
+          "_" +
+          netzgrafikColor.getColorRef() +
+          "_" +
+          StaticDomTags.TAG_MUTED.toUpperCase(),
         colors.colorMuted,
       );
       document.documentElement.style.setProperty(
         "--" +
-        StaticDomTags.PREFIX_COLOR_VARIABLE +
-        "_" +
-        netzgrafikColor.getColorRef() +
-        "_" +
-        StaticDomTags.TAG_RELATED.toUpperCase(),
+          StaticDomTags.PREFIX_COLOR_VARIABLE +
+          "_" +
+          netzgrafikColor.getColorRef() +
+          "_" +
+          StaticDomTags.TAG_RELATED.toUpperCase(),
         colors.colorRelated,
       );
 
       const uiColors = netzgrafikColor.getColors(false);
       document.documentElement.style.setProperty(
         "--" +
-        StaticDomTags.TAG_UI_DIALOG +
-        "_" +
-        StaticDomTags.PREFIX_COLOR_VARIABLE +
-        "_" +
-        netzgrafikColor.getColorRef(),
+          StaticDomTags.TAG_UI_DIALOG +
+          "_" +
+          StaticDomTags.PREFIX_COLOR_VARIABLE +
+          "_" +
+          netzgrafikColor.getColorRef(),
         uiColors.color,
       );
       document.documentElement.style.setProperty(
         "--" +
-        StaticDomTags.TAG_UI_DIALOG +
-        "_" +
-        StaticDomTags.PREFIX_COLOR_VARIABLE +
-        "_" +
-        netzgrafikColor.getColorRef() +
-        "_" +
-        StaticDomTags.TAG_FOCUS.toUpperCase(),
+          StaticDomTags.TAG_UI_DIALOG +
+          "_" +
+          StaticDomTags.PREFIX_COLOR_VARIABLE +
+          "_" +
+          netzgrafikColor.getColorRef() +
+          "_" +
+          StaticDomTags.TAG_FOCUS.toUpperCase(),
         uiColors.colorFocus,
       );
       document.documentElement.style.setProperty(
         "--" +
-        StaticDomTags.TAG_UI_DIALOG +
-        "_" +
-        StaticDomTags.PREFIX_COLOR_VARIABLE +
-        "_" +
-        netzgrafikColor.getColorRef() +
-        "_" +
-        StaticDomTags.TAG_MUTED.toUpperCase(),
+          StaticDomTags.TAG_UI_DIALOG +
+          "_" +
+          StaticDomTags.PREFIX_COLOR_VARIABLE +
+          "_" +
+          netzgrafikColor.getColorRef() +
+          "_" +
+          StaticDomTags.TAG_MUTED.toUpperCase(),
         uiColors.colorMuted,
       );
       document.documentElement.style.setProperty(
         "--" +
-        StaticDomTags.TAG_UI_DIALOG +
-        "_" +
-        StaticDomTags.PREFIX_COLOR_VARIABLE +
-        "_" +
-        netzgrafikColor.getColorRef() +
-        "_" +
-        StaticDomTags.TAG_RELATED.toUpperCase(),
+          StaticDomTags.TAG_UI_DIALOG +
+          "_" +
+          StaticDomTags.PREFIX_COLOR_VARIABLE +
+          "_" +
+          netzgrafikColor.getColorRef() +
+          "_" +
+          StaticDomTags.TAG_RELATED.toUpperCase(),
         uiColors.colorRelated,
       );
     });
@@ -386,15 +367,10 @@ export class NetzgrafikColoringService {
     verbose = false,
   ) {
     // collect all used colorRefs
-    const colorRefs = this.collectColorRefs(
-      trainrunCategories,
-      trainrunSections,
-    );
+    const colorRefs = this.collectColorRefs(trainrunCategories, trainrunSections);
 
     // check whether for each collect colorRef the object exists - otherwise create default
-    colorRefs.forEach((colorRef) =>
-      this.createDefaultColorForNotExistingColors(colorRef),
-    );
+    colorRefs.forEach((colorRef) => this.createDefaultColorForNotExistingColors(colorRef));
 
     // generate colors
     this.generateColors();
@@ -403,21 +379,12 @@ export class NetzgrafikColoringService {
     const sheet = new CSSStyleSheet();
     const sheetKnotenauslastung = new CSSStyleSheet();
     const sheetLinePattern = new CSSStyleSheet();
-    this.generatedStyleSheets = [
-      sheetKnotenauslastung,
-      sheet,
-      sheetLinePattern,
-    ];
+    this.generatedStyleSheets = [sheetKnotenauslastung, sheet, sheetLinePattern];
     document.adoptedStyleSheets = this.generatedStyleSheets;
 
     // generate CSS (styling)
     colorRefs.forEach((colorRef) =>
-      this.generateColorAndStyling(
-        colorRef,
-        sheetKnotenauslastung,
-        sheet,
-        sheetLinePattern,
-      ),
+      this.generateColorAndStyling(colorRef, sheetKnotenauslastung, sheet, sheetLinePattern),
     );
 
     return document.adoptedStyleSheets;
@@ -432,8 +399,7 @@ export class NetzgrafikColoringService {
 
   getNetzgrafikColor(colorRef: ColorRefType): NetzgrafikColor {
     return this.netzgrafikColorStore.netzgrafikColors.find(
-      (netzgrafikColor: NetzgrafikColor) =>
-        netzgrafikColor.getColorRef() === colorRef,
+      (netzgrafikColor: NetzgrafikColor) => netzgrafikColor.getColorRef() === colorRef,
     );
   }
 
@@ -448,9 +414,7 @@ export class NetzgrafikColoringService {
   }
 
   netzgrafikColorUpdated() {
-    this.netzgrafikColorSubject.next(
-      Object.assign({}, this.netzgrafikColorStore).netzgrafikColors,
-    );
+    this.netzgrafikColorSubject.next(Object.assign({}, this.netzgrafikColorStore).netzgrafikColors);
   }
 
   getDtos() {
@@ -495,7 +459,8 @@ export class NetzgrafikColoringService {
     colorRefs = colorRefs.filter((v, i, a) => a.indexOf(v) === i);
     colorRefs = colorRefs.filter((str) => str !== undefined);
 
-    return colorRefs;
+    // Add default colorRef when no trainrun is selected
+    return [...colorRefs, "NORMAL"];
   }
 
   private generateColorAndStyling(
@@ -512,6 +477,20 @@ export class NetzgrafikColoringService {
       colorRef,
       "stroke",
       StaticDomTags.EDGE_LINE_DOM_REF,
+      verbose,
+    );
+    NetzgrafikColoringService.generateColors(
+      sheet,
+      colorRef,
+      "fill",
+      StaticDomTags.EDGE_LINE_ARROW_DOM_REF,
+      verbose,
+    );
+    NetzgrafikColoringService.generateColors(
+      sheet,
+      colorRef,
+      "stroke",
+      StaticDomTags.EDGE_LINE_ARROW_DOM_REF,
       verbose,
     );
     NetzgrafikColoringService.generateColors(
@@ -534,9 +513,7 @@ export class NetzgrafikColoringService {
       sheet,
       colorRef,
       "fill",
-      StaticDomTags.EDGE_LINE_STOPS_DOM_REF +
-      "." +
-      StaticDomTags.EDGE_LINE_STOPS_FILL,
+      StaticDomTags.EDGE_LINE_STOPS_DOM_REF + "." + StaticDomTags.EDGE_LINE_STOPS_FILL,
       verbose,
     );
     NetzgrafikColoringService.generateColors(
@@ -564,9 +541,7 @@ export class NetzgrafikColoringService {
       sheet,
       colorRef,
       "fill",
-      StaticDomTags.EDGE_LINE_STOP_ICON_CLASS_DOM_REF +
-      "." +
-      StaticDomTags.TAG_FILL,
+      StaticDomTags.EDGE_LINE_STOP_ICON_CLASS_DOM_REF + "." + StaticDomTags.TAG_FILL,
       verbose,
     );
     NetzgrafikColoringService.generateColors(
@@ -608,13 +583,7 @@ export class NetzgrafikColoringService {
     );
 
     // Line Pattern Coloring
-    NetzgrafikColoringService.generateLinePatternColor(
-      sheetLinePattern,
-      verbose,
-    );
-    NetzgrafikColoringService.generateLinePatternColorUI(
-      sheetLinePattern,
-      verbose,
-    );
+    NetzgrafikColoringService.generateLinePatternColor(sheetLinePattern, verbose);
+    NetzgrafikColoringService.generateLinePatternColorUI(sheetLinePattern, verbose);
   }
 }

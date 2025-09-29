@@ -60,9 +60,7 @@ export class Configuration {
     // init default OAuth credential
     if (!this.credentials["OAuth"]) {
       this.credentials["OAuth"] = () => {
-        return typeof this.accessToken === "function"
-          ? this.accessToken()
-          : this.accessToken;
+        return typeof this.accessToken === "function" ? this.accessToken() : this.accessToken;
       };
     }
   }
@@ -121,9 +119,7 @@ export class Configuration {
       "i",
     );
     return (
-      mime !== null &&
-      (jsonMime.test(mime) ||
-        mime.toLowerCase() === "application/json-patch+json")
+      mime !== null && (jsonMime.test(mime) || mime.toLowerCase() === "application/json-patch+json")
     );
   }
 

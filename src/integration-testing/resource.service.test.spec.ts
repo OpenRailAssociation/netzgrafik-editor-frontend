@@ -39,16 +39,8 @@ describe("ResourceService Test", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -123,8 +115,6 @@ describe("ResourceService Test", () => {
     resourceService.changeCapacity(res1.getId(), 10);
     expect(resourceService.getResource(res1.getId()).getCapacity()).toBe(10);
     res1.setCapacity(undefined);
-    expect(resourceService.getResource(res1.getId()).getCapacity()).toBe(
-      undefined,
-    );
+    expect(resourceService.getResource(res1.getId()).getCapacity()).toBe(undefined);
   });
 });

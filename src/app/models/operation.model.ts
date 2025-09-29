@@ -1,6 +1,7 @@
 import {Node} from "./node.model";
 import {Trainrun} from "./trainrun.model";
 import {Label} from "./label.model";
+import {Note} from "./note.model";
 
 enum OperationType {
   create = "create",
@@ -12,6 +13,7 @@ enum OperationObjectType {
   trainrun = "trainrun",
   node = "node",
   label = "label",
+  note = "note",
 }
 
 abstract class Operation {
@@ -51,10 +53,13 @@ class LabelOperation extends Operation {
   }
 }
 
-export {
-  OperationType,
-  Operation,
-  TrainrunOperation,
-  NodeOperation,
-  LabelOperation,
-};
+class NoteOperation extends Operation {
+  readonly note: Note;
+
+  constructor(operationType: OperationType, note: Note) {
+    super(operationType, OperationObjectType.note);
+    this.note = note;
+  }
+}
+
+export {OperationType, Operation, TrainrunOperation, NodeOperation, LabelOperation, NoteOperation};

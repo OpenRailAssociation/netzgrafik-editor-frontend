@@ -3,7 +3,7 @@
 ## Table Of Contents
 
 - **General**
-  - [Introduction](#Introduction) 
+  - [Introduction](#Introduction)
   - [Project/Variant](#CreateNewProjectVariant)
 - **Creating/editing Netzgrafik**
   - [Nodes](#Nodes)
@@ -15,9 +15,9 @@
   - [Filters](#Filter)
 - **Views**
   - [Graphic timetable (Streckengrafik)](#Streckengrafik)
-  - [Perlenkette](#Perlenkette)  
+  - [Perlenkette](#Perlenkette)
 - **Advanced User Interaction**
-  - [Advanced editing short-cuts](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/AdvancedEditingShortcuts.md) 
+  - [Advanced editing short-cuts](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/AdvancedEditingShortcuts.md)
 - [Links](#Links)
 
 Additional information can be found under the provided [links](#Links).
@@ -61,13 +61,15 @@ Key Features
    function that improves further processing with third parties.
 
 ---
+
 <a id="CreateNewProjectVariant"></a>
 
 ## Project/Variant
+
 The container in which the planning work takes place is a project. Projects have a name and can be described. User authorisations for writing and reading are assigned at project level. Variants can be created within the projects, each of which contains a Netzgrafik (network graphic). Variants can be compared within a project.
 For more details and to create your first Netzgrafik have a look into [create a new project](CREATE_PROJECT.md).
- 
-<!--- 
+
+<!---
 
 ### Copy all visible elements
 
@@ -83,9 +85,11 @@ For more details and to create your first Netzgrafik have a look into [create a 
 --->
 
 ---
+
 <a id="Nodes"></a>
 
 ## Nodes
+
 The nodes represent the specific locations, such as stations or stops, where a trainrun can have different actions or events associated with it. These nodes serve as key points in the trainrun's route, determining where it stops, passes through, or starts and ends ([see data model](DATA_MODEL.md)).
 
 For more details have a look into [create and modify nodes](CREATE_NODES.md).
@@ -93,6 +97,7 @@ For more details have a look into [create and modify nodes](CREATE_NODES.md).
 <a id="Trains"></a>
 
 ## Trainruns
+
 A trainrun consists of one or more trainrun sections. The trainrun section represents a specific segment or portion of a trainrun that connects two nodes. It encapsulates all the relevant information related to that particular section, including temporal details like departure and arrival times. Additionally, it also stores the journey time, which indicates the duration it takes for the train to run to move from one node to another.
 
 A trainrun has references to behaviour-related abstractions such as
@@ -101,7 +106,7 @@ category (e.g., a regional train, an intercity train or a goods train), frequenc
 For more details have a look into [create and modify trainrun](CREATE_TRAINRUN.md).
 
 - [Split / Combine two trainruns](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/CREATE_TRAINRUN.md#split--combine-two-trainruns)
-- [Merge two independent Netzgrafik](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/CREATE_TRAINRUN.md#merge-two-indepandant-netzgrafik) 
+- [Merge two independent Netzgrafik](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/CREATE_TRAINRUN.md#merge-two-indepandant-netzgrafik)
 
 <a id="Connections"></a>
 
@@ -111,8 +116,8 @@ For more details have a look into [create and modify trainrun](CREATE_TRAINRUN.m
 
 For more details have a look into [create and modify connections](CREATE_CONNECTIONS.md).
 
-
 ---
+
 <a id="Filter"></a>
 
 ## Filters
@@ -120,6 +125,7 @@ For more details have a look into [create and modify connections](CREATE_CONNECT
 For more details have a look into [create and modify filters](CREATE_FILTERS.md).
 
 ---
+
 <a id="Streckengrafik"></a>
 
 ## Graphic timetable (Streckengrafik)
@@ -128,8 +134,8 @@ For more details have a look into [create and modify filters](CREATE_FILTERS.md)
 
 For more details have a look into [graphic timetable](Graphic_Timetable.md).
 
-
 ---
+
 <a id="Perlenkette"></a>
 
 ## Perlenkette
@@ -155,15 +161,18 @@ displaying the train's route as a vertical chain of nodes and trainrunsections.
 [2024-1-25_DeleteConnections-Perlenkette-Show_Connections.webm](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/assets/2674075/d272fc58-3f31-4427-aacf-cc3c50c03905)
 
 ### Change the time locks
-The time can be locked so that no propagation (automated update) will be done. Just click on the lock icon and the lock state switches: On to off or vice-versa. 
 
-### Toggle: show all locks / or only closed (default) 
+The time can be locked so that no propagation (automated update) will be done. Just click on the lock icon and the lock state switches: On to off or vice-versa.
+
+### Toggle: show all locks / or only closed (default)
+
 In the Perlenkette view, you can click on the eye icon in the bottom left corner
-to display all locks. By default, only the locks that are closed are shown. This is 
-visually visible with the disabled eye icon. When you click on the icon then the disabled 
+to display all locks. By default, only the locks that are closed are shown. This is
+visually visible with the disabled eye icon. When you click on the icon then the disabled
 eye icon switches to the visible eye icon - or vice-versa. Visible eye means all locks are visible.
 
 ---
+
 <a id="Conclusion"></a>
 
 ## Conclusion
@@ -171,13 +180,15 @@ eye icon switches to the visible eye icon - or vice-versa. Visible eye means all
 By following the instructions in this document, users can effectively create and facilitate the
 creation of comprehensive and visually appealing network representations.
 
-
 ---
+
 <a id="Links"></a>
 
 ## Links
+
 - [Netzgrafik-Editor data export/import (JSON)](DATA_MODEL_JSON.md)
 - [DATA MODEL](DATA_MODEL.md)
 
-## Technical documentation 
+## Technical documentation
+
 - [Trainrun iterator](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/trainrun_iterations.md)

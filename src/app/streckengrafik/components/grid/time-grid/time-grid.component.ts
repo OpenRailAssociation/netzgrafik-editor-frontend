@@ -25,9 +25,7 @@ import {
   styleUrls: ["./time-grid.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TimeGridComponent
-  implements OnInit, OnDestroy, UpdateCounterHandler
-{
+export class TimeGridComponent implements OnInit, OnDestroy, UpdateCounterHandler {
   @Input() horizontal = true;
 
   timesTicksIndices: number[] = [];
@@ -153,12 +151,8 @@ export class TimeGridComponent
       ? Math.floor(this.viewBoxChangeInfo.x * block)
       : Math.floor(this.viewBoxChangeInfo.y * block);
     let maxTime = !this.horizontal
-      ? Math.ceil(
-          (this.viewBoxChangeInfo.x + this.viewBoxChangeInfo.width) * block,
-        )
-      : Math.ceil(
-          (this.viewBoxChangeInfo.y + this.viewBoxChangeInfo.height) * block,
-        );
+      ? Math.ceil((this.viewBoxChangeInfo.x + this.viewBoxChangeInfo.width) * block)
+      : Math.ceil((this.viewBoxChangeInfo.y + this.viewBoxChangeInfo.height) * block);
 
     if (this.timesTicks.length > 0) {
       const first = this.timesTicks[0] / 15;

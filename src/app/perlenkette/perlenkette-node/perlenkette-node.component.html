@@ -1,13 +1,9 @@
-<div class="node-container" (click)="disableSectionView($event)"
-     [class.readonly]="!getVariantIsWritable()"
+<div
+  class="node-container"
+  (click)="disableSectionView($event)"
+  [class.readonly]="!getVariantIsWritable()"
 >
-  <svg
-    display="block"
-    width="96px"
-    height="64px"
-    overflow="visible"
-    *ngIf="!hasConnections()"
-  >
+  <svg display="block" width="96px" height="64px" overflow="visible" *ngIf="!hasConnections()">
     <rect
       [ngClass]="'main_rect' + getNodeClassTag()"
       x="0"
@@ -31,36 +27,17 @@
 
     <ng-container *ngIf="hasTransition()">
       <svg display="block" width="96px" height="64px" viewBox="-44 12 91 40">
-        <path
-          d="M0,0V36"
-          [ngClass]="[getPathClassTag()]"
-          class="edge_line layer_0"
-        ></path>
-        <path
-          d="M0,0V36"
-          [ngClass]="[getPathClassTag()]"
-          class="edge_line layer_1"
-        ></path>
-        <path
-          d="M0,0V36"
-          [ngClass]="[getPathClassTag()]"
-          class="edge_line layer_2"
-        ></path>
-        <path
-          d="M0,0V36"
-          [ngClass]="[getPathClassTag()]"
-          class="edge_line layer_3"
-        ></path>
+        <path d="M0,0V36" [ngClass]="[getPathClassTag()]" class="edge_line layer_0"></path>
+        <path d="M0,0V36" [ngClass]="[getPathClassTag()]" class="edge_line layer_1"></path>
+        <path d="M0,0V36" [ngClass]="[getPathClassTag()]" class="edge_line layer_2"></path>
+        <path d="M0,0V36" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
 
         <path
           [attr.d]="createPolygon(0, 18)"
           (click)="toggleNonStop()"
           style="cursor: pointer; stroke-dasharray: none"
           [class]="
-            'edge_line non_stop_toogle ' +
-            getNonStopClassTag() +
-            ' ' +
-            getColoringClassTag()
+            'edge_line non_stop_toogle ' + getNonStopClassTag() + ' ' + getColoringClassTag()
           "
         ></path>
       </svg>
@@ -96,9 +73,7 @@
       <ng-container *ngIf="isExpanded">
         <ng-container
           *ngFor="
-            let connectionGrpKey of perlenketteNode.getConnectionOrderGroup(
-              perlenketteTrainrun
-            )
+            let connectionGrpKey of perlenketteNode.getConnectionOrderGroup(perlenketteTrainrun)
           "
         >
           <g
@@ -115,38 +90,29 @@
               [attr.transform]="
                 getConnectedTrainEdgeLineTransform(
                   getTrainEdgeLineStartPos(),
-                  12 +
-                    transformIndex(connectionIndex, connectionGrpKey) * surplus
+                  12 + transformIndex(connectionIndex, connectionGrpKey) * surplus
                 )
               "
               (click)="selectConnection(connection)"
               style="cursor: pointer"
             >
               <path
-                [attr.d]="
-                  getConnectedTrainEdgeLine(0, 0, getTrainEdgeLineWidth())
-                "
+                [attr.d]="getConnectedTrainEdgeLine(0, 0, getTrainEdgeLineWidth())"
                 [ngClass]="[getPathClassTag(connection)]"
                 class="edge_line layer_0"
               ></path>
               <path
-                [attr.d]="
-                  getConnectedTrainEdgeLine(0, 0, getTrainEdgeLineWidth())
-                "
+                [attr.d]="getConnectedTrainEdgeLine(0, 0, getTrainEdgeLineWidth())"
                 [ngClass]="[getPathClassTag(connection)]"
                 class="edge_line layer_1"
               ></path>
               <path
-                [attr.d]="
-                  getConnectedTrainEdgeLine(0, 0, getTrainEdgeLineWidth())
-                "
+                [attr.d]="getConnectedTrainEdgeLine(0, 0, getTrainEdgeLineWidth())"
                 [ngClass]="[getPathClassTag(connection)]"
                 class="edge_line layer_2"
               ></path>
               <path
-                [attr.d]="
-                  getConnectedTrainEdgeLine(0, 0, getTrainEdgeLineWidth())
-                "
+                [attr.d]="getConnectedTrainEdgeLine(0, 0, getTrainEdgeLineWidth())"
                 [ngClass]="[getPathClassTag(connection)]"
                 class="edge_line layer_3"
               ></path>
@@ -154,30 +120,22 @@
 
             <text
               [attr.x]="getTrainrunNameFieldPosition()"
-              [attr.y]="
-                20 + transformIndex(connectionIndex, connectionGrpKey) * surplus
-              "
+              [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
               dominant-baseline="text-after-edge"
               class="edge_text station start layer0"
-              style=" stroke-width: 6px;"
+              style="stroke-width: 6px"
               (click)="selectConnection(connection)"
-              [ngClass]="[
-                getTextNameOrTimeClassTag(connection, connectionGrpKey, 0)
-              ]"
+              [ngClass]="[getTextNameOrTimeClassTag(connection, connectionGrpKey, 0)]"
             >
               {{ getTextNameOrTime(connection, connectionGrpKey, 0) }}
             </text>
             <text
               [attr.x]="getTrainrunNameFieldPosition()"
-              [attr.y]="
-                20 + transformIndex(connectionIndex, connectionGrpKey) * surplus
-              "
+              [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
               dominant-baseline="text-after-edge"
               class="edge_text station start"
               (click)="selectConnection(connection)"
-              [ngClass]="[
-                getTextNameOrTimeClassTag(connection, connectionGrpKey, 0)
-              ]"
+              [ngClass]="[getTextNameOrTimeClassTag(connection, connectionGrpKey, 0)]"
             >
               {{ getTextNameOrTime(connection, connectionGrpKey, 0) }}
             </text>
@@ -185,95 +143,71 @@
             <text
               *ngIf="filterService.isFilterArrivalDepartureTimeEnabled()"
               [attr.x]="getTimeFieldPos()"
-              [attr.y]="
-                20 + transformIndex(connectionIndex, connectionGrpKey) * surplus
-              "
+              [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
               text-anchor="end"
               dominant-baseline="text-after-edge"
               class="edge_text station end layer0"
               (click)="selectConnection(connection)"
-              style=" stroke-width: 6px;"
-              [ngClass]="[
-                getTextNameOrTimeClassTag(connection, connectionGrpKey, 1)
-              ]"
+              style="stroke-width: 6px"
+              [ngClass]="[getTextNameOrTimeClassTag(connection, connectionGrpKey, 1)]"
             >
               {{ getTextNameOrTime(connection, connectionGrpKey, 1) }}
             </text>
             <text
               *ngIf="filterService.isFilterArrivalDepartureTimeEnabled()"
               [attr.x]="getTimeFieldPos()"
-              [attr.y]="
-                20 + transformIndex(connectionIndex, connectionGrpKey) * surplus
-              "
+              [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
               text-anchor="end"
               dominant-baseline="text-after-edge"
               class="edge_text station end"
               (click)="selectConnection(connection)"
-              [ngClass]="[
-                getTextNameOrTimeClassTag(connection, connectionGrpKey, 1)
-              ]"
+              [ngClass]="[getTextNameOrTimeClassTag(connection, connectionGrpKey, 1)]"
             >
               {{ getTextNameOrTime(connection, connectionGrpKey, 1) }}
             </text>
 
             <text
               [attr.x]="getFromStationNameFieldPosition()"
-              [attr.y]="
-                20 + transformIndex(connectionIndex, connectionGrpKey) * surplus
-              "
+              [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
               dominant-baseline="text-after-edge"
               class="edge_text end station layer0"
               (click)="selectConnection(connection)"
-              style=" stroke-width: 6px;"
-              [ngClass]="[
-                getTextTerminalStationlassTag(connection, connectionGrpKey, 0)
-              ]"
+              style="stroke-width: 6px"
+              [ngClass]="[getTextTerminalStationlassTag(connection, connectionGrpKey, 0)]"
             >
               {{ getTextTerminalStation(connection, connectionGrpKey, 0) }}
             </text>
             <text
               [attr.x]="getFromStationNameFieldPosition()"
-              [attr.y]="
-                20 + transformIndex(connectionIndex, connectionGrpKey) * surplus
-              "
+              [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
               dominant-baseline="text-after-edge"
               class="edge_text end station"
               (click)="selectConnection(connection)"
-              [ngClass]="[
-                getTextTerminalStationlassTag(connection, connectionGrpKey, 0)
-              ]"
+              [ngClass]="[getTextTerminalStationlassTag(connection, connectionGrpKey, 0)]"
             >
               {{ getTextTerminalStation(connection, connectionGrpKey, 0) }}
             </text>
 
             <text
               [attr.x]="getToStationNameFieldPosition()"
-              [attr.y]="
-                20 + transformIndex(connectionIndex, connectionGrpKey) * surplus
-              "
+              [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
               text-anchor="start"
               dominant-baseline="text-after-edge"
               class="edge_text start station layer0"
               (click)="selectConnection(connection)"
-              style=" stroke-width: 6px;"
-              [ngClass]="[
-                getTextTerminalStationlassTag(connection, connectionGrpKey, 1)
-              ]"
+              style="stroke-width: 6px"
+              [ngClass]="[getTextTerminalStationlassTag(connection, connectionGrpKey, 1)]"
             >
               {{ getTextTerminalStation(connection, connectionGrpKey, 1) }}
             </text>
             <text
               [attr.x]="getToStationNameFieldPosition()"
-              [attr.y]="
-                20 + transformIndex(connectionIndex, connectionGrpKey) * surplus
-              "
+              [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
               text-anchor="start"
               dominant-baseline="text-after-edge"
               class="edge_text start station"
               (click)="selectConnection(connection)"
-              [ngClass]="[
-                getTextTerminalStationlassTag(connection, connectionGrpKey, 1)
-              ]"
+              [ngClass]="[getTextTerminalStationlassTag(connection, connectionGrpKey, 1)]"
             >
               {{ getTextTerminalStation(connection, connectionGrpKey, 1) }}
             </text>
@@ -306,10 +240,7 @@
           [attr.x]="getExpandedNodeWith() / 2"
           [attr.y]="20"
           font-size="14px"
-          style="
-            filter: hue-rotate(340deg) brightness(0.8);
-            text-anchor: middle;
-          "
+          style="filter: hue-rotate(340deg) brightness(0.8); text-anchor: middle"
           stroke-width="0.25px"
           fill="var(--COLOR_Warning)"
         >

@@ -1,14 +1,15 @@
 <h2 class="SummaryTitle">
-  {{ nodeProperties.nodeBetriebspunktFullName }} ({{
-    nodeProperties.nodeBetriebspunktName
-  }})
+  {{ nodeProperties.nodeBetriebspunktFullName }} ({{ nodeProperties.nodeBetriebspunktName }})
 </h2>
 <sbb-accordion [multi]="true">
   <sbb-expansion-panel [expanded]="true">
-    <sbb-expansion-panel-header>{{ 'app.view.editor-side-view.editor-node-detail-view.base-data' | translate }}</sbb-expansion-panel-header>
-    <sbb-form-field [label]="'app.view.editor-side-view.editor-node-detail-view.operational-point' | translate"
-                    class="sbb-form-field-long"
-                    [class.readonly]="!versionControlService.getVariantIsWritable()"
+    <sbb-expansion-panel-header>{{
+      "app.view.editor-side-view.editor-node-detail-view.base-data" | translate
+    }}</sbb-expansion-panel-header>
+    <sbb-form-field
+      [label]="'app.view.editor-side-view.editor-node-detail-view.operational-point' | translate"
+      class="sbb-form-field-long"
+      [class.readonly]="!versionControlService.getVariantIsWritable()"
     >
       <input
         sbbInput
@@ -16,9 +17,10 @@
         (change)="onBetriebspunktNameChanged($event)"
       />
     </sbb-form-field>
-    <sbb-form-field [label]="'app.view.editor-side-view.editor-node-detail-view.name' | translate"
-                    class="sbb-form-field-long"
-                    [class.readonly]="!versionControlService.getVariantIsWritable()"
+    <sbb-form-field
+      [label]="'app.view.editor-side-view.editor-node-detail-view.name' | translate"
+      class="sbb-form-field-long"
+      [class.readonly]="!versionControlService.getVariantIsWritable()"
     >
       <input
         sbbInput
@@ -26,9 +28,10 @@
         (change)="onFullNameChanged($event)"
       />
     </sbb-form-field>
-    <sbb-form-field [label]="'app.view.editor-side-view.editor-node-detail-view.connection-time' | translate"
-                    class="sbb-form-field-long"
-                    [class.readonly]="!versionControlService.getVariantIsWritable()"
+    <sbb-form-field
+      [label]="'app.view.editor-side-view.editor-node-detail-view.connection-time' | translate"
+      class="sbb-form-field-long"
+      [class.readonly]="!versionControlService.getVariantIsWritable()"
     >
       <input
         sbbInput
@@ -41,13 +44,16 @@
   </sbb-expansion-panel>
 
   <sbb-expansion-panel [expanded]="true">
-    <sbb-expansion-panel-header>{{ 'app.view.editor-side-view.editor-node-detail-view.occupancy' | translate }}</sbb-expansion-panel-header>
+    <sbb-expansion-panel-header>{{
+      "app.view.editor-side-view.editor-node-detail-view.occupancy" | translate
+    }}</sbb-expansion-panel-header>
     <div class="sbb-mt-m">
       <sbb-knoten-auslastung-view></sbb-knoten-auslastung-view>
     </div>
-    <sbb-form-field [label]="'app.view.editor-side-view.editor-node-detail-view.capacity' | translate"
-                    class="sbb-form-field-long"
-                    [class.readonly]="!versionControlService.getVariantIsWritable()"
+    <sbb-form-field
+      [label]="'app.view.editor-side-view.editor-node-detail-view.capacity' | translate"
+      class="sbb-form-field-long"
+      [class.readonly]="!versionControlService.getVariantIsWritable()"
     >
       <input
         sbbInput
@@ -62,15 +68,15 @@
   </sbb-expansion-panel>
 
   <sbb-expansion-panel [expanded]="false">
-    <sbb-expansion-panel-header>{{ 'app.view.editor-side-view.editor-node-detail-view.filterable-labels' | translate }}</sbb-expansion-panel-header>
-    <sbb-form-field [label]="'app.view.editor-side-view.editor-node-detail-view.labels' | translate"
-                    class="sbb-form-field-long"
-                    [class.readonly]="!versionControlService.getVariantIsWritable()"
+    <sbb-expansion-panel-header>{{
+      "app.view.editor-side-view.editor-node-detail-view.filterable-labels" | translate
+    }}</sbb-expansion-panel-header>
+    <sbb-form-field
+      [label]="'app.view.editor-side-view.editor-node-detail-view.labels' | translate"
+      class="sbb-form-field-long"
+      [class.readonly]="!versionControlService.getVariantIsWritable()"
     >
-      <sbb-chip-list
-        [value]="nodeProperties.labels"
-        (focusout)="onLabelsFocusout()"
-      >
+      <sbb-chip-list [value]="nodeProperties.labels" (focusout)="onLabelsFocusout()">
         <sbb-chip
           *ngFor="let element of nodeProperties.labels"
           [value]="element"
@@ -80,7 +86,9 @@
         </sbb-chip>
         <input
           id="nodeLabelsInput"
-          [placeholder]="'app.view.editor-side-view.editor-node-detail-view.new-label-placeholder' | translate"
+          [placeholder]="
+            'app.view.editor-side-view.editor-node-detail-view.new-label-placeholder' | translate
+          "
           sbbChipInput
           [sbbChipInputSeparatorKeyCodes]="separatorKeysCodes"
           (sbbChipInputTokenEnd)="add($event)"
@@ -88,32 +96,33 @@
         />
       </sbb-chip-list>
       <sbb-autocomplete #nodeLabelsAutoComplete="sbbAutocomplete">
-        <sbb-option
-          *ngFor="let option of nodeLabelsAutoCompleteOptions"
-          [value]="option"
-          >{{ option }}</sbb-option
-        >
+        <sbb-option *ngFor="let option of nodeLabelsAutoCompleteOptions" [value]="option">{{
+          option
+        }}</sbb-option>
       </sbb-autocomplete>
     </sbb-form-field>
   </sbb-expansion-panel>
 
   <sbb-expansion-panel [expanded]="false">
-    <sbb-expansion-panel-header> {{ 'app.view.editor-side-view.editor-node-detail-view.stopping-times' | translate }} </sbb-expansion-panel-header>
+    <sbb-expansion-panel-header>
+      {{ "app.view.editor-side-view.editor-node-detail-view.stopping-times" | translate }}
+    </sbb-expansion-panel-header>
 
-    <sbb-label class="sbb-mt-m">{{ 'app.view.editor-side-view.editor-node-detail-view.stopping-time-per-product' | translate }}</sbb-label>
+    <sbb-label class="sbb-mt-m">{{
+      "app.view.editor-side-view.editor-node-detail-view.stopping-time-per-product" | translate
+    }}</sbb-label>
 
     <!-- TIM: this should be done with sbb table component, but I don't know how
       (or better, use flexbox for each line and make it a two column area below a certain breakpoint)-->
-    <table class="NodeDataTable"
-           [class.readonly]="!versionControlService.getVariantIsWritable()"
-    >
+    <table class="NodeDataTable" [class.readonly]="!versionControlService.getVariantIsWritable()">
       <tr>
-        <td class="sbb-table-column-s">{{ 'app.view.editor-side-view.editor-node-detail-view.ipv' | translate }}</td>
+        <td class="sbb-table-column-s">
+          {{ "app.view.editor-side-view.editor-node-detail-view.ipv" | translate }}
+        </td>
         <td class="sbb-table-column-m">
           <div
             *ngIf="
-              !nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitIPV']
-                .no_halt;
+              !nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitIPV'].no_halt;
               else noHalt
             "
           >
@@ -122,10 +131,7 @@
               type="number"
               pattern="^[.0-9]*"
               step="0.1"
-              [(ngModel)]="
-                nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitIPV']
-                  .haltezeit
-              "
+              [(ngModel)]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitIPV'].haltezeit"
               (change)="onHaltezeitChanged()"
             />
           </div>
@@ -134,35 +140,25 @@
           </ng-template>
         </td>
         <td>
-          <sbb-checkbox
-            [(ngModel)]="
-              nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitIPV']
-                .no_halt
-            "
-            (change)="haltezeitIPVNoHaltChanged()"
-            >{{ 'app.view.editor-side-view.editor-node-detail-view.no-stop' | translate }}
-          </sbb-checkbox>
+          <sbb-toggle-switch-button
+            [labelTrue]="'app.view.editor-side-view.editor-node-detail-view.no-stop' | translate"
+            [checked]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitIPV'].no_halt"
+            (checkedChanged)="haltezeitIPVNoHaltChanged($event)"
+          />
         </td>
       </tr>
       <tr>
-        <td>{{ 'app.view.editor-side-view.editor-node-detail-view.a' | translate }}</td>
+        <td>{{ "app.view.editor-side-view.editor-node-detail-view.a" | translate }}</td>
         <td class="sbb-table-column-m">
           <div
-            *ngIf="
-              !nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitA']
-                .no_halt;
-              else noHalt
-            "
+            *ngIf="!nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitA'].no_halt; else noHalt"
           >
             <input
               sbbInput
               type="number"
               pattern="^[.0-9]*"
               step="0.1"
-              [(ngModel)]="
-                nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitA']
-                  .haltezeit
-              "
+              [(ngModel)]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitA'].haltezeit"
               (change)="onHaltezeitChanged()"
             />
           </div>
@@ -171,34 +167,25 @@
           </ng-template>
         </td>
         <td>
-          <sbb-checkbox
-            [(ngModel)]="
-              nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitA'].no_halt
-            "
-            (change)="haltezeitANoHaltChanged()"
-            >{{ 'app.view.editor-side-view.editor-node-detail-view.no-stop' | translate }}
-          </sbb-checkbox>
+          <sbb-toggle-switch-button
+            [labelTrue]="'app.view.editor-side-view.editor-node-detail-view.no-stop' | translate"
+            [checked]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitA'].no_halt"
+            (checkedChanged)="haltezeitANoHaltChanged($event)"
+          />
         </td>
       </tr>
       <tr>
-        <td>{{ 'app.view.editor-side-view.editor-node-detail-view.b' | translate }}</td>
+        <td>{{ "app.view.editor-side-view.editor-node-detail-view.b" | translate }}</td>
         <td class="sbb-table-column-m">
           <div
-            *ngIf="
-              !nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitB']
-                .no_halt;
-              else noHalt
-            "
+            *ngIf="!nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitB'].no_halt; else noHalt"
           >
             <input
               sbbInput
               type="number"
               pattern="^[.0-9]*"
               step="0.1"
-              [(ngModel)]="
-                nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitB']
-                  .haltezeit
-              "
+              [(ngModel)]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitB'].haltezeit"
               (change)="onHaltezeitChanged()"
             />
           </div>
@@ -207,34 +194,25 @@
           </ng-template>
         </td>
         <td>
-          <sbb-checkbox
-            [(ngModel)]="
-              nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitB'].no_halt
-            "
-            (change)="haltezeitBNoHaltChanged()"
-            >{{ 'app.view.editor-side-view.editor-node-detail-view.no-stop' | translate }}
-          </sbb-checkbox>
+          <sbb-toggle-switch-button
+            [labelTrue]="'app.view.editor-side-view.editor-node-detail-view.no-stop' | translate"
+            [checked]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitB'].no_halt"
+            (checkedChanged)="haltezeitBNoHaltChanged($event)"
+          />
         </td>
       </tr>
       <tr>
-        <td>{{ 'app.view.editor-side-view.editor-node-detail-view.c' | translate }}</td>
+        <td>{{ "app.view.editor-side-view.editor-node-detail-view.c" | translate }}</td>
         <td class="sbb-table-column-m">
           <div
-            *ngIf="
-              !nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitC']
-                .no_halt;
-              else noHalt
-            "
+            *ngIf="!nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitC'].no_halt; else noHalt"
           >
             <input
               sbbInput
               type="number"
               pattern="^[.0-9]*"
               step="0.1"
-              [(ngModel)]="
-                nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitC']
-                  .haltezeit
-              "
+              [(ngModel)]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitC'].haltezeit"
               (change)="onHaltezeitChanged()"
             />
           </div>
@@ -243,34 +221,25 @@
           </ng-template>
         </td>
         <td>
-          <sbb-checkbox
-            [(ngModel)]="
-              nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitC'].no_halt
-            "
-            (change)="haltezeitCNoHaltChanged()"
-            >{{ 'app.view.editor-side-view.editor-node-detail-view.no-stop' | translate }}
-          </sbb-checkbox>
+          <sbb-toggle-switch-button
+            [labelTrue]="'app.view.editor-side-view.editor-node-detail-view.no-stop' | translate"
+            [checked]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitC'].no_halt"
+            (checkedChanged)="haltezeitCNoHaltChanged($event)"
+          />
         </td>
       </tr>
       <tr>
-        <td>{{ 'app.view.editor-side-view.editor-node-detail-view.d' | translate }}</td>
+        <td>{{ "app.view.editor-side-view.editor-node-detail-view.d" | translate }}</td>
         <td class="sbb-table-column-m">
           <div
-            *ngIf="
-              !nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitD']
-                .no_halt;
-              else noHalt
-            "
+            *ngIf="!nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitD'].no_halt; else noHalt"
           >
             <input
               sbbInput
               type="number"
               pattern="^[.0-9]*"
               step="0.1"
-              [(ngModel)]="
-                nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitD']
-                  .haltezeit
-              "
+              [(ngModel)]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitD'].haltezeit"
               (change)="onHaltezeitChanged()"
             />
           </div>
@@ -279,19 +248,19 @@
           </ng-template>
         </td>
         <td>
-          <sbb-checkbox
-            [(ngModel)]="
-              nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitD'].no_halt
-            "
-            (change)="haltezeitDNoHaltChanged()"
-            >{{ 'app.view.editor-side-view.editor-node-detail-view.no-stop' | translate }}
-          </sbb-checkbox>
+          <sbb-toggle-switch-button
+            [labelTrue]="'app.view.editor-side-view.editor-node-detail-view.no-stop' | translate"
+            [checked]="nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitD'].no_halt"
+            (checkedChanged)="haltezeitDNoHaltChanged($event)"
+          />
         </td>
       </tr>
     </table>
   </sbb-expansion-panel>
   <sbb-expansion-panel [expanded]="false" *ngIf="!disableBackend">
-    <sbb-expansion-panel-header>{{ 'app.view.editor-side-view.editor-node-detail-view.links' | translate }}</sbb-expansion-panel-header>
+    <sbb-expansion-panel-header>{{
+      "app.view.editor-side-view.editor-node-detail-view.links" | translate
+    }}</sbb-expansion-panel-header>
     <ul>
       <li>
         <a
@@ -301,7 +270,7 @@
             nodeProperties.nodeBetriebspunktName
           }}"
         >
-          {{ 'app.view.editor-side-view.editor-node-detail-view.platform-information' | translate }}
+          {{ "app.view.editor-side-view.editor-node-detail-view.platform-information" | translate }}
         </a>
       </li>
       <li>
@@ -312,7 +281,7 @@
             nodeProperties.nodeBetriebspunktName
           }}&sort=-p_lange"
         >
-          {{ 'app.view.editor-side-view.editor-node-detail-view.platform-length' | translate }}
+          {{ "app.view.editor-side-view.editor-node-detail-view.platform-length" | translate }}
         </a>
       </li>
     </ul>
@@ -324,7 +293,7 @@
       class="sbb-mt-m sbb-ml-m"
       (click)="onDeleteNode()"
     >
-      {{ 'app.view.editor-side-view.editor-node-detail-view.delete-node' | translate }}
+      {{ "app.view.editor-side-view.editor-node-detail-view.delete-node" | translate }}
     </button>
   </ng-container>
 </sbb-accordion>

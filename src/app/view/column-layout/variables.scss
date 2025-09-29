@@ -28,8 +28,7 @@ $col-padding-top: $interComponentSpacingSmall;
 $col-padding-right: $innerComponentSpacing * 1.5; // * 1.5 to match sbb-expansion-panel padding
 $col-padding-bottom: $interComponentSpacingSmall;
 $col-padding-left: $innerComponentSpacing * 1.5; // * 1.5 to match sbb-expansion-panel padding
-$col-padding: $col-padding-top $col-padding-right $col-padding-bottom
-  $col-padding-left;
+$col-padding: $col-padding-top $col-padding-right $col-padding-bottom $col-padding-left;
 
 /**
  * Colors
@@ -115,11 +114,7 @@ $borderRadius: 2px;
 @function transitionMultipleProperties($duration, $timing, $properties...) {
   $transitions: ();
   @each $property in $properties {
-    $transitions: append(
-      $transitions,
-      unquote("#{$property} #{$duration} #{$timing}"),
-      "comma"
-    );
+    $transitions: append($transitions, unquote("#{$property} #{$duration} #{$timing}"), "comma");
   }
   @return $transitions;
 }

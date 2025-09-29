@@ -41,9 +41,7 @@ export class PreviewService implements OnDestroy {
       return;
     }
 
-    this.versionControlService.loadModel(
-      this.versionControlService.variant.latestVersion,
-    );
+    this.versionControlService.loadModel(this.versionControlService.variant.latestVersion);
     this.previewActive = true;
   }
 

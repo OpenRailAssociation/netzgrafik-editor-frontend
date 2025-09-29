@@ -11,7 +11,7 @@ easier to manage and edit complex network structures.
 ### Short-cuts
 
 |                                                     Keyboard                                                     |                                                                                            description                                                                                             |
-|:----------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :--------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 |                                                                                                                  |                                                                                                                                                                                                    |
 |                                                     `delete`                                                     |                                                                          Delete nodes, comments, and selected trainruns.                                                                           |
 |                                              `ctrl`+`d` / `insert`                                               |                                   Duplicate nodes, comments, and selected trainruns (if multiple nodes are selected, trains including nodes will be duplicated).                                   |
@@ -27,27 +27,29 @@ easier to manage and edit complex network structures.
 |                                                    `Arrow up`                                                    |                                                                           Aligns objects along their top edges (nodes).                                                                            |
 |                                                  `Arrow right`                                                   |                                                                          Aligns objects along their right edges (nodes).                                                                           |
 |                                                   `Arrow down`                                                   |                                                                          Aligns objects along their bottom edges (nodes).                                                                          |
+
 ---
 
-### Scale Netzgrafik 
-When you press `Ctrl` and use the `mouse wheel` (or `Ctrl` and pinch-to-zoom touchpad gesture), the netzgrafik gets scaled. This feature can be used when the nodes are spatially too close together. 
+### Scale Netzgrafik
+
+When you press `Ctrl` and use the `mouse wheel` (or `Ctrl` and pinch-to-zoom touchpad gesture), the netzgrafik gets scaled. This feature can be used when the nodes are spatially too close together.
 
 When you have selected multiple nodes with `right mouse button pressed and move`, then only the multi-selected nodes get scaled around their center of mass.
- 
+
 [CTRL_WHEEL_FULL_DEMO.webm](https://github.com/user-attachments/assets/1799626a-5e36-46f7-bdeb-f61e43bdbc9d)
 
 ---
 
 ### Duplicate
 
-To duplicate one or many elements - use `shift` + `left` mouse button pressed* to select several
+To duplicate one or many elements - use `shift` + `left` mouse button pressed\* to select several
 elements and press `ctrl`+`d`.
 
 If more than one node is selected, all train sections that are
 connected to two selected nodes are also duplicated. If further notes are selected, the notes are
 duplicated in the same way as the nodes.
 
-> If in the menu the *Knoten-Positionierungswerkzeug* is activated, you can *multi-select* nodes and
+> If in the menu the _Knoten-Positionierungswerkzeug_ is activated, you can _multi-select_ nodes and
 > notes by clicking. If you use `shift` + `right mouse button pressed`
 
 #### Duplicate trainrun
@@ -59,7 +61,7 @@ To duplicate a train in the project, follow these steps:
   it. This action will create an identical copy of the selected train.
 
   > There are alternative editing path to process duplication: Use the copy-paste idea: Select the
-  train und press `ctrl`+`c` then `ctrl`+`v`
+  > train und press `ctrl`+`c` then `ctrl`+`v`
 
 - Edit the train name: Click on the train name with the left mouse button, and a dialog window will
   open, allowing you to edit the train's details. Make the necessary changes to the train name or
@@ -95,7 +97,7 @@ To delete a train in the project, follow these steps:
   it. This action will create an identical copy of the selected train.
 
   > There are alternative editing path to process duplication: Use the copy-paste idea: Select
-  the train and press `ctrl`+`c` then `ctrl`+`v`.
+  > the train and press `ctrl`+`c` then `ctrl`+`v`.
 
 #### Delete nodes
 

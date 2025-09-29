@@ -1,16 +1,11 @@
 import {Component, OnDestroy, TemplateRef, ViewChild} from "@angular/core";
-import {
-  SbbDialog,
-  SbbDialogConfig,
-  SbbDialogPosition,
-} from "@sbb-esta/angular/dialog";
+import {SbbDialog, SbbDialogConfig, SbbDialogPosition} from "@sbb-esta/angular/dialog";
 import {Vec2D} from "../../../utils/vec2D";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 import {Subject} from "rxjs";
 import {NoteFormComponentModel} from "./note-form/note-form.component";
 import {takeUntil} from "rxjs/operators";
-import {environment} from "../../../../environments/environment";
 
 export enum NoteDialogType {
   NOTE_DIALOG,
@@ -48,8 +43,6 @@ export class NoteDialogComponent implements OnDestroy {
   public noteTitle: string;
   public noteText: string;
 
-  readonly disableBackend = environment.disableBackend;
-
   private destroyed = new Subject<void>();
   private deleteNoteCallback = null;
   private saveNoteCallback = null;
@@ -64,20 +57,18 @@ export class NoteDialogComponent implements OnDestroy {
     public dialog: SbbDialog,
     private uiInteractionService: UiInteractionService,
   ) {
-    this.uiInteractionService.noteDialog
-      .pipe(takeUntil(this.destroyed))
-      .subscribe((parameter) => {
-        this.data = parameter;
+    this.uiInteractionService.noteDialog.pipe(takeUntil(this.destroyed)).subscribe((parameter) => {
+      this.data = parameter;
 
-        this.noteText = this.data.noteText;
-        this.noteId = this.data.id;
-        this.noteTitle = this.data.noteTitle;
-        this.deleteNoteCallback = this.data.deleteNoteCallback;
-        this.saveNoteCallback = this.data.saveNoteCallback;
-        this.updateNoteCallback = this.data.updateNoteCallback;
+      this.noteText = this.data.noteText;
+      this.noteId = this.data.id;
+      this.noteTitle = this.data.noteTitle;
+      this.deleteNoteCallback = this.data.deleteNoteCallback;
+      this.saveNoteCallback = this.data.saveNoteCallback;
+      this.updateNoteCallback = this.data.updateNoteCallback;
 
-        this.openDialog(parameter);
-      });
+      this.openDialog(parameter);
+    });
   }
 
   static getDialogConfig(parameter: NoteDialogParameter): SbbDialogConfig {
@@ -114,18 +105,11 @@ export class NoteDialogComponent implements OnDestroy {
 
   openDialog(parameter: NoteDialogParameter) {
     this.dialogConfig = NoteDialogComponent.getDialogConfig(parameter);
-    this.dialogRef = this.dialog.open(
-      this.noteEditorTabsViewTemplate,
-      this.dialogConfig,
-    );
+    this.dialogRef = this.dialog.open(this.noteEditorTabsViewTemplate, this.dialogConfig);
     this.dialogPos = {
-      bottom:
-        parseInt(this.dialogConfig.position.top, 10) +
-        parseInt(this.dialogConfig.height, 10),
+      bottom: parseInt(this.dialogConfig.position.top, 10) + parseInt(this.dialogConfig.height, 10),
       left: parseInt(this.dialogConfig.position.left, 10),
-      right:
-        parseInt(this.dialogConfig.position.left, 10) +
-        parseInt(this.dialogConfig.width, 10),
+      right: parseInt(this.dialogConfig.position.left, 10) + parseInt(this.dialogConfig.width, 10),
       top: parseInt(this.dialogConfig.position.top, 10),
     };
   }
@@ -138,10 +122,7 @@ export class NoteDialogComponent implements OnDestroy {
     if (event.buttons === 1) {
       const eventTarget = event.target as HTMLElement;
       if (eventTarget.className === "sbb-tab-labels") {
-        this.dialogMovementLastPosition = new Vec2D(
-          event.screenX,
-          event.screenY,
-        );
+        this.dialogMovementLastPosition = new Vec2D(event.screenX, event.screenY);
       }
     }
   }

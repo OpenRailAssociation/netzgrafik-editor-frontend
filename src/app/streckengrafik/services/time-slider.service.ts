@@ -22,9 +22,7 @@ export class TimeSliderService implements OnDestroy {
     new SliderChangeInfo(this.yZoom, this.yMove),
   );
   private readonly sliderChange$ = this.sliderChangeSubject.asObservable();
-  private readonly timelineChangeSubject = new BehaviorSubject<number>(
-    undefined,
-  );
+  private readonly timelineChangeSubject = new BehaviorSubject<number>(undefined);
   private readonly timelineChange$ = this.timelineChangeSubject.asObservable();
   private readonly destroyed$ = new Subject<void>();
 
@@ -55,9 +53,7 @@ export class TimeSliderService implements OnDestroy {
   public reset() {
     this.yMove = this.initYMove;
     this.yZoom = this.initYZoom;
-    this.sliderChangeSubject.next(
-      new SliderChangeInfo(this.yZoom, this.yMove, true),
-    );
+    this.sliderChangeSubject.next(new SliderChangeInfo(this.yZoom, this.yMove, true));
   }
 
   public getTimelineChangeObservable(): Observable<number> {
@@ -74,17 +70,13 @@ export class TimeSliderService implements OnDestroy {
 
   yMoveChange(yMove: number) {
     this.yMove = yMove;
-    this.sliderChangeSubject.next(
-      new SliderChangeInfo(this.yZoom, this.yMove, false),
-    );
+    this.sliderChangeSubject.next(new SliderChangeInfo(this.yZoom, this.yMove, false));
   }
 
   yMoveAndZoomChange(yZoom: number, yMove: number, recalc = false) {
     this.yZoom = yZoom;
     this.yMove = yMove;
-    this.sliderChangeSubject.next(
-      new SliderChangeInfo(this.yZoom, this.yMove, recalc),
-    );
+    this.sliderChangeSubject.next(new SliderChangeInfo(this.yZoom, this.yMove, recalc));
   }
 
   changeZoom(yZoom: number) {
@@ -94,9 +86,7 @@ export class TimeSliderService implements OnDestroy {
     const deltaMove = localCoord / prevZoom - localCoord / yZoom;
     this.yMove = this.getYMove() + deltaMove * yZoom;
     this.yZoom = yZoom;
-    this.sliderChangeSubject.next(
-      new SliderChangeInfo(this.yZoom, this.yMove, true),
-    );
+    this.sliderChangeSubject.next(new SliderChangeInfo(this.yZoom, this.yMove, true));
   }
 
   getYMove(): number {
@@ -107,17 +97,11 @@ export class TimeSliderService implements OnDestroy {
     return this.yZoom;
   }
 
-  handleWheelZoom(
-    zoomingPoint: number,
-    zoomingDelta: number,
-    timeStamp: number,
-  ) {
+  handleWheelZoom(zoomingPoint: number, zoomingDelta: number, timeStamp: number) {
     const prevZoom = this.getYZoom();
     let yZoom =
       this.getYZoom() -
-      zoomingDelta *
-        0.005 *
-        (1.0 + 0.1 * Math.exp(-(1.0 / (this.minZoom + this.getYZoom()))));
+      zoomingDelta * 0.005 * (1.0 + 0.1 * Math.exp(-(1.0 / (this.minZoom + this.getYZoom()))));
     yZoom = Math.max(this.minZoom, Math.min(this.maxZoom, yZoom));
     const localCoord = this.getYMove() + zoomingPoint;
     const deltaMove = localCoord / prevZoom - localCoord / yZoom;

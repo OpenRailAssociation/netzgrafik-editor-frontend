@@ -5,11 +5,12 @@ import {
   ProjectControllerBackendService,
   VariantControllerBackendService,
 } from "../../api/generated";
-import {NavigationEnd, Router, RouterEvent} from "@angular/router";
+import {NavigationEnd, Router} from "@angular/router";
 import {NavigationService} from "../../services/ui/navigation.service";
 import {NEVER} from "rxjs";
 import {map} from "rxjs/operators";
 import {I18nModule} from "../../core/i18n/i18n.module";
+import {CUSTOM_ELEMENTS_SCHEMA} from "@angular/core";
 
 describe("NavigationBarComponent", () => {
   let component: NavigationBarComponent;
@@ -39,6 +40,7 @@ describe("NavigationBarComponent", () => {
           useValue: variantControllerBackendService,
         },
       ],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
   });
 

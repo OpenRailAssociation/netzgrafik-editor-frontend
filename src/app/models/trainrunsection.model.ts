@@ -1,7 +1,4 @@
-import {
-  LinePatternRefs,
-  TrainrunSectionDto,
-} from "../data-structures/business.data.structures";
+import {LinePatternRefs, TrainrunSectionDto} from "../data-structures/business.data.structures";
 import {Node} from "./node.model";
 import {Trainrun} from "./trainrun.model";
 import {Vec2D} from "../utils/vec2D";
@@ -135,8 +132,7 @@ export class TrainrunSection {
     this.travelTime = travelTime;
     this.trainrunId = trainrunId;
     this.resourceId = resourceId;
-    this.specificTrainrunSectionFrequencyId =
-      specificTrainrunSectionFrequencyId;
+    this.specificTrainrunSectionFrequencyId = specificTrainrunSectionFrequencyId;
     this.path = path;
     this.warnings = warnings;
     this.isSelected = false;
@@ -185,8 +181,18 @@ export class TrainrunSection {
     timeDate.setSeconds(((time.time + offset + 24 * 60) % 60) * 60);
 
     const patterns = {
-      "{{consecutiveTime}}.format(HH:mm:ss)": formatDate(consecutiveTimeDate.toISOString(), "HH:mm:ss", "en-US", "UTC"),
-      "{{consecutiveTime}}.format(HH:mm)": formatDate(consecutiveTimeDate.toISOString(), "HH:mm", "en-US", "UTC"),
+      "{{consecutiveTime}}.format(HH:mm:ss)": formatDate(
+        consecutiveTimeDate.toISOString(),
+        "HH:mm:ss",
+        "en-US",
+        "UTC",
+      ),
+      "{{consecutiveTime}}.format(HH:mm)": formatDate(
+        consecutiveTimeDate.toISOString(),
+        "HH:mm",
+        "en-US",
+        "UTC",
+      ),
       "{{consecutiveTime}}": "" + time.consecutiveTime,
       "{{time}}.format(HH:mm:ss)": formatDate(timeDate.toISOString(), "HH:mm:ss", "en-US", "UTC"),
       "{{time}}.format(HH:mm)": formatDate(timeDate.toISOString(), "HH:mm", "en-US", "UTC"),
@@ -623,11 +629,10 @@ export class TrainrunSection {
       this.targetNode.getPort(this.targetPortId),
     );
 
-    this.path.textPositions =
-      SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(
-        this.pathVec2D,
-        this.sourceNode.getPort(this.sourcePortId),
-      );
+    this.path.textPositions = SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(
+      this.pathVec2D,
+      this.sourceNode.getPort(this.sourcePortId),
+    );
   }
 
   setSourcePortId(sourcePortId: number) {
@@ -658,8 +663,7 @@ export class TrainrunSection {
       trainrunId: this.trainrunId,
       resourceId: this.resourceId,
 
-      specificTrainrunSectionFrequencyId:
-      this.specificTrainrunSectionFrequencyId,
+      specificTrainrunSectionFrequencyId: this.specificTrainrunSectionFrequencyId,
       path: this.path,
       warnings: this.warnings,
     };
@@ -723,7 +727,7 @@ export class TrainrunSection {
     this.pathVec2D = this.path.path.map((point) => new Vec2D(point.x, point.y));
   }
 
-  private convertVec2DToPath() {
+  convertVec2DToPath() {
     this.path = {
       path: this.pathVec2D.map((point) => ({
         x: point.getX(),

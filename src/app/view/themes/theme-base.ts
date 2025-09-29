@@ -17,12 +17,7 @@ export class ThemeBase {
     this.backgroundColor = backgroundColor;
     this.backgroundStreckengraphikColor = backgroundStreckengraphikColor;
     this.isDark = isDark;
-    ThemeBase.setColors(
-      ThemeBase.getGlobalColors(
-        backgroundColor,
-        backgroundStreckengraphikColor,
-      ),
-    );
+    ThemeBase.setColors(ThemeBase.getGlobalColors(backgroundColor, backgroundStreckengraphikColor));
   }
 
   static getGlobalColors(
@@ -59,10 +54,7 @@ export class ThemeBase {
   private static setColors(colorStrings: string[], colorPrefix = "") {
     for (const colorString of colorStrings) {
       const keyValue = colorString.split(":");
-      document.documentElement.style.setProperty(
-        "--" + colorPrefix + keyValue[0],
-        keyValue[1],
-      );
+      document.documentElement.style.setProperty("--" + colorPrefix + keyValue[0], keyValue[1]);
     }
   }
 }

@@ -13,11 +13,7 @@ export class TimeFormatter {
     if (hour === undefined) {
       return TimeFormatter.formatLeadingZeros(hour);
     }
-    return (
-      TimeFormatter.formatLeadingZeros(hour) +
-      ":" +
-      TimeFormatter.formatLeadingZeros(min)
-    );
+    return TimeFormatter.formatLeadingZeros(hour) + ":" + TimeFormatter.formatLeadingZeros(min);
   }
 
   private static formatLeadingZeros(data: number) {

@@ -14,8 +14,7 @@ export class VersionEntryLayoutComponent {
   @Input() dateField: Date;
   @Input() commentField?: string;
 
-  constructor(private readonly logService: LogService) {
-  }
+  constructor(private readonly logService: LogService) {}
 
   isInConflictState(): boolean {
     return this.state === "conflict";
@@ -68,6 +67,5 @@ export class VersionEntryLayoutComponent {
 }
 
 export class UserId {
-  constructor(readonly value: string) {
-  }
+  constructor(readonly value: string) {}
 }

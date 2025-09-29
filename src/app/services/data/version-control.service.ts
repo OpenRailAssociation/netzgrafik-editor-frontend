@@ -173,21 +173,15 @@ export class VersionControlService implements OnDestroy {
   }
 
   archiveVariantWithId(variantId: number): Observable<any> {
-    return this.variantsBackendService
-      .archiveVariant(variantId)
-      .pipe(takeUntil(this.destroyed));
+    return this.variantsBackendService.archiveVariant(variantId).pipe(takeUntil(this.destroyed));
   }
 
   unarchiveVariantWithId(variantId: number): Observable<any> {
-    return this.variantsBackendService
-      .unarchiveVariant(variantId)
-      .pipe(takeUntil(this.destroyed));
+    return this.variantsBackendService.unarchiveVariant(variantId).pipe(takeUntil(this.destroyed));
   }
 
   deleteVariant(): Observable<void> {
-    return this.variantsBackendService
-      .deleteVariant(this.variant.id)
-      .pipe(map(() => null));
+    return this.variantsBackendService.deleteVariant(this.variant.id).pipe(map(() => null));
   }
 
   getAndClearVarianteChangedSignal(): boolean {
@@ -205,7 +199,8 @@ export class VersionControlService implements OnDestroy {
       this.variantChanged = true;
       return;
     }
-    this.variantChanged = this.previousVariantDto.projectId !== variant.projectId &&
+    this.variantChanged =
+      this.previousVariantDto.projectId !== variant.projectId &&
       this.previousVariantDto.id !== variant.id;
     this.previousVariantDto = variant;
   }

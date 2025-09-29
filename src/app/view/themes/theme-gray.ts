@@ -4,16 +4,8 @@ import {ThemeRegistration} from "./theme-registration";
 import {StaticDomTags} from "../editor-main-view/data-views/static.dom.tags";
 
 export class ThemeGray extends ThemeBase {
-  constructor(
-    backgroundColor = "white",
-    backgroundStreckengraphikColor = "white",
-  ) {
-    super(
-      ThemeRegistration.ThemeGray,
-      backgroundColor,
-      backgroundStreckengraphikColor,
-      false,
-    );
+  constructor(backgroundColor = "white", backgroundStreckengraphikColor = "white") {
+    super(ThemeRegistration.ThemeGray, backgroundColor, backgroundStreckengraphikColor, false);
     ThemeBase.setUIColors(ThemeGray.getThemeGrayColors());
     ThemeBase.setRenderingColors(ThemeGray.getThemeGrayColors());
   }
@@ -47,9 +39,7 @@ export class ThemeGray extends ThemeBase {
         d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_NORMAL_RELATED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(
-          related,
-        ),
+        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(related),
 
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_EC: " +
@@ -62,9 +52,7 @@ export class ThemeGray extends ThemeBase {
         d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_EC_RELATED:" +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(
-          related,
-        ),
+        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(related),
 
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_IC: " +
@@ -77,9 +65,7 @@ export class ThemeGray extends ThemeBase {
         d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_IC_RELATED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(
-          related,
-        ),
+        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(related),
 
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_IR:" +
@@ -92,9 +78,7 @@ export class ThemeGray extends ThemeBase {
         d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_IR_RELATED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(
-          related,
-        ),
+        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(related),
 
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_RE: " +
@@ -107,9 +91,7 @@ export class ThemeGray extends ThemeBase {
         d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_RE_RELATED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#bbbbbb", "#000000"])(
-          related,
-        ),
+        d3.scaleLinear().domain([0, 100]).range(["#bbbbbb", "#000000"])(related),
 
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_S: " +
@@ -122,9 +104,7 @@ export class ThemeGray extends ThemeBase {
         d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_S_RELATED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#aaaaaa", "#000000"])(
-          related,
-        ),
+        d3.scaleLinear().domain([0, 100]).range(["#aaaaaa", "#000000"])(related),
 
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_GEX:" +
@@ -137,9 +117,7 @@ export class ThemeGray extends ThemeBase {
         d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_GEX_RELATED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#999999", "#000000"])(
-          related,
-        ),
+        d3.scaleLinear().domain([0, 100]).range(["#999999", "#000000"])(related),
 
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_G: " +
@@ -152,9 +130,7 @@ export class ThemeGray extends ThemeBase {
         d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_G_RELATED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#777777", "#000000"])(
-          related,
-        ),
+        d3.scaleLinear().domain([0, 100]).range(["#777777", "#000000"])(related),
 
       "COLOR_GRAYEDOUT: white",
       "COLOR_TRANSITION_GRAYEDOUT: whitesmoke",

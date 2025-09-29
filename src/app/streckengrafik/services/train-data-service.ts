@@ -19,21 +19,15 @@ export class TrainDataService implements OnDestroy {
     private trainrunSectionService: TrainrunSectionService,
     private nodeService: NodeService,
   ) {
-    this.trainrunService.trainruns
-      .pipe(takeUntil(this.destroyed))
-      .subscribe(() => {
-        this.lruCacheIsTrainrunConnected.clear();
-      });
-    this.trainrunSectionService.trainrunSections
-      .pipe(takeUntil(this.destroyed))
-      .subscribe(() => {
-        this.lruCacheIsTrainrunConnected.clear();
-      });
-    this.nodeService.transitions
-      .pipe(takeUntil(this.destroyed))
-      .subscribe(() => {
-        this.lruCacheIsTrainrunConnected.clear();
-      });
+    this.trainrunService.trainruns.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.lruCacheIsTrainrunConnected.clear();
+    });
+    this.trainrunSectionService.trainrunSections.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.lruCacheIsTrainrunConnected.clear();
+    });
+    this.nodeService.transitions.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.lruCacheIsTrainrunConnected.clear();
+    });
   }
 
   ngOnDestroy() {
@@ -52,12 +46,10 @@ export class TrainDataService implements OnDestroy {
       if (data !== undefined) {
         return data;
       }
-      const connectedTrainruns =
-        this.trainrunService.getConnectedTrainrunIdsFirstOrder(
-          selectedTrainrun.getId(),
-        );
-      const ret =
-        connectedTrainruns.find((id) => id === trainrunId) !== undefined;
+      const connectedTrainruns = this.trainrunService.getConnectedTrainrunIdsFirstOrder(
+        selectedTrainrun.getId(),
+      );
+      const ret = connectedTrainruns.find((id) => id === trainrunId) !== undefined;
       this.lruCacheIsTrainrunConnected.set(trainrunId, ret);
       return ret;
     }
@@ -79,12 +71,8 @@ export class TrainDataService implements OnDestroy {
     return tag;
   }
 
-  getDisplayTextHtmlStyle(
-    trainrunSectionId: number,
-    textElement: TrainrunSectionText,
-  ): string {
-    const trainrunSection =
-      this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
+  getDisplayTextHtmlStyle(trainrunSectionId: number, textElement: TrainrunSectionText): string {
+    const trainrunSection = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
     if (trainrunSection === undefined) {
       return undefined;
     }
@@ -109,8 +97,7 @@ export class TrainDataService implements OnDestroy {
     textElement: TrainrunSectionText,
     offset: number,
   ): string {
-    const trainrunSection =
-      this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
+    const trainrunSection = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
     if (trainrunSection === undefined) {
       return undefined;
     }
@@ -130,12 +117,8 @@ export class TrainDataService implements OnDestroy {
     }
   }
 
-  getDisplayTextColorRef(
-    trainrunSectionId: number,
-    textElement: TrainrunSectionText,
-  ): string {
-    const trainrunSection =
-      this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
+  getDisplayTextColorRef(trainrunSectionId: number, textElement: TrainrunSectionText): string {
+    const trainrunSection = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
     if (trainrunSection === undefined) {
       return undefined;
     }
@@ -155,12 +138,8 @@ export class TrainDataService implements OnDestroy {
     }
   }
 
-  getDisplayTextWidth(
-    trainrunSectionId: number,
-    textElement: TrainrunSectionText,
-  ): number {
-    const trainrunSection =
-      this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
+  getDisplayTextWidth(trainrunSectionId: number, textElement: TrainrunSectionText): number {
+    const trainrunSection = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
     if (trainrunSection === undefined) {
       return undefined;
     }

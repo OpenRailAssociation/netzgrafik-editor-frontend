@@ -69,10 +69,7 @@ export class LogService {
 
   private shouldLog(level: LogLevel): boolean {
     let ret = false;
-    if (
-      (level >= this.level && level !== LogLevel.Off) ||
-      this.level === LogLevel.All
-    ) {
+    if ((level >= this.level && level !== LogLevel.Off) || this.level === LogLevel.All) {
       ret = true;
     }
     return ret;

@@ -44,9 +44,7 @@ export class OriginDestinationService {
    */
   getODOutputNodes(): Node[] {
     const selectedNodes = this.nodeService.getSelectedNodes();
-    return selectedNodes.length > 0
-      ? selectedNodes
-      : this.nodeService.getVisibleNodes();
+    return selectedNodes.length > 0 ? selectedNodes : this.nodeService.getVisibleNodes();
   }
 
   /**
@@ -83,20 +81,15 @@ export class OriginDestinationService {
     // In theory we could parallelize the pathfindings, but the overhead might be too big.
     const res = new Map<string, [number, number]>();
     odNodes.forEach((origin) => {
-      computeShortestPaths(
-        origin.getId(),
-        neighbors,
-        vertices,
-        tsSuccessor,
-      ).forEach((value, key) => {
-        res.set([origin.getId(), key].join(","), value);
-      });
+      computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
+        (value, key) => {
+          res.set([origin.getId(), key].join(","), value);
+        },
+      );
     });
 
     const rows = [];
-    odNodes.sort((a, b) =>
-      a.getBetriebspunktName().localeCompare(b.getBetriebspunktName()),
-    );
+    odNodes.sort((a, b) => a.getBetriebspunktName().localeCompare(b.getBetriebspunktName()));
     odNodes.forEach((origin) => {
       odNodes.forEach((destination) => {
         if (origin.getId() === destination.getId()) {

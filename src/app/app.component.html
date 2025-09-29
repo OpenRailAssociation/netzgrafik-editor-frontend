@@ -1,14 +1,15 @@
 <sbb-header-lean
   label="Netzgrafik-Editor"
-  [subtitle]="'app.version' | translate:{ 'version': version }"
+  [subtitle]="'app.version' | translate: {version: version}"
   class="sbb-header-fixed-columns noprint"
 >
   <sbb-app-chooser-section [label]="'app.user-guide' | translate" class="noprint">
-    <a href="https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/USERMANUAL.md"
+    <a
+      href="https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/blob/main/documentation/USERMANUAL.md"
       class="nav-element"
       target="_blank"
     >
-      {{ 'app.user-manual' | translate }}
+      {{ "app.user-manual" | translate }}
     </a>
   </sbb-app-chooser-section>
   <sbb-header-environment class="noprint" *ngIf="environmentLabel">{{
@@ -36,10 +37,10 @@
       <sbb-option value="fr">🇫🇷 Français</sbb-option>
       <!-- <sbb-option value="it">🇮🇹 Italiano</sbb-option> -->
     </sbb-select>
-    <hr>
+    <hr />
     <button sbb-menu-item (click)="logout()">
       <sbb-icon svgIcon="exit-small" class="sbb-icon-fit"></sbb-icon>
-      <span>{{ 'app.logout' | translate }}</span>
+      <span>{{ "app.logout" | translate }}</span>
     </button>
   </sbb-menu>
 </sbb-header-lean>
@@ -50,10 +51,9 @@
 <ng-template #loading>
   <ng-container *ngIf="!disableBackend">
     <sbb-loading-indicator mode="big"></sbb-loading-indicator>
-    <div class="login-message">{{ 'app.login' | translate }}</div>
+    <div class="login-message">{{ "app.login" | translate }}</div>
   </ng-container>
   <ng-container *ngIf="disableBackend">
     <sbb-netzgrafik-editor></sbb-netzgrafik-editor>
   </ng-container>
 </ng-template>
-

@@ -9,18 +9,10 @@ export class TransitionViewObject {
     public transition: Transition,
     isMuted: boolean,
   ) {
-    this.key = TransitionViewObject.generateKey(
-      editorView,
-      transition,
-      isMuted,
-    );
+    this.key = TransitionViewObject.generateKey(editorView, transition, isMuted);
   }
 
-  static generateKey(
-    editorView: EditorView,
-    transition: Transition,
-    isMuted: boolean,
-  ): string {
+  static generateKey(editorView: EditorView, transition: Transition, isMuted: boolean): string {
     let key =
       "#" +
       transition.getId() +

@@ -33,9 +33,7 @@ import {
 import {SliderChangeInfo} from "../../model/util/sliderChangeInfo";
 import {NodeService} from "../../../services/data/node.service";
 import {SgTrainrunSection} from "../../model/streckengrafik-model/sg-trainrun-section";
-import {
-  StreckengrafikDisplayElementService
-} from "../../services/util/streckengrafik-display-element.service";
+import {StreckengrafikDisplayElementService} from "../../services/util/streckengrafik-display-element.service";
 import {ViewBoxChangeInfo} from "../../model/util/viewBoxChangeInfo";
 import {ViewBoxService} from "../../services/util/view-box.service";
 import {Sg4ToggleTrackOccupierService} from "../../services/sg-4-toggle-track-occupier.service";
@@ -47,8 +45,7 @@ import {Sg4ToggleTrackOccupierService} from "../../services/sg-4-toggle-track-oc
   styleUrls: ["./train-run-section.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TrainRunSectionComponent
-  implements OnDestroy, UpdateCounterHandler {
+export class TrainRunSectionComponent implements OnDestroy, UpdateCounterHandler {
   @Input()
   trainrun: SgTrainrun;
 
@@ -121,7 +118,6 @@ export class TrainRunSectionComponent
       .subscribe(() => {
         this.cd.markForCheck();
       });
-
   }
 
   ngOnDestroy(): void {
@@ -132,16 +128,11 @@ export class TrainRunSectionComponent
   onEdgeLineClick($event: MouseEvent) {
     $event.preventDefault();
     $event.stopImmediatePropagation();
-    if (
-      !this.trainrunService
-        .getTrainrunFromId(this.trainrun.trainrunId)
-        ?.selected()
-    ) {
+    if (!this.trainrunService.getTrainrunFromId(this.trainrun.trainrunId)?.selected()) {
       this.trainrunService.setTrainrunAsSelected(this.trainrun.trainrunId);
     } else {
       const param: InformSelectedTrainrunClick = {
-        trainrunSectionId:
-        this.trainrunItem.getTrainrunSection().trainrunSectionId,
+        trainrunSectionId: this.trainrunItem.getTrainrunSection().trainrunSectionId,
         open: true,
       };
       this.trainrunSectionService.clickSelectedTrainrunSection(param);
@@ -154,18 +145,14 @@ export class TrainRunSectionComponent
     retTag += " backward_" + this.trainrunItem.backward;
     retTag +=
       " trainrunBranchType_" +
-      TrainrunBranchType[
-        this.trainrunItem.getTrainrunSection().trainrunBranchType
-        ];
+      TrainrunBranchType[this.trainrunItem.getTrainrunSection().trainrunBranchType];
 
     retTag += " Streckengrafik ";
     return retTag;
   }
 
   getGeneralNoColorRefClassTag(tag: string): string {
-    tag +=
-      " " +
-      this.trainDataService.createColoringClassTags(this.trainrun.trainrunId);
+    tag += " " + this.trainDataService.createColoringClassTags(this.trainrun.trainrunId);
     return tag;
   }
 
@@ -219,11 +206,9 @@ export class TrainRunSectionComponent
     const y2 = this.viewBoxChangeInfo.y + this.viewBoxChangeInfo.height;
 
     const checkToX = sp.scaledPathTo.getX() < x1 || sp.scaledPathTo.getX() > x2;
-    const checkFromX =
-      sp.scaledPathFrom.getX() < x1 || sp.scaledPathFrom.getX() > x2;
+    const checkFromX = sp.scaledPathFrom.getX() < x1 || sp.scaledPathFrom.getX() > x2;
     const checkToY = sp.scaledPathTo.getY() < y1 || sp.scaledPathTo.getY() > y2;
-    const checkFromY =
-      sp.scaledPathFrom.getY() < y1 || sp.scaledPathFrom.getY() > y2;
+    const checkFromY = sp.scaledPathFrom.getY() < y1 || sp.scaledPathFrom.getY() > y2;
     this.clipData = checkFromX && checkToX && checkFromY && checkToY;
 
     return sp;
@@ -231,10 +216,7 @@ export class TrainRunSectionComponent
 
   scaledPath2(): ScaledPath {
     // Trainrun
-    if (
-      this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.Trainrun
-    ) {
+    if (this.trainrunItem.getTrainrunSection().trainrunBranchType === TrainrunBranchType.Trainrun) {
       const departureTime = this.trainrunItem.departureTime * this.yZoom;
       const arrivalTime = this.trainrunItem.arrivalTime * this.yZoom;
       const zommedXPath = this.trainrunItem.getPathSection().zoomedXPath();
@@ -258,8 +240,7 @@ export class TrainRunSectionComponent
       this.showTrainRunSectionStops = false;
       const arrivalTime = this.trainrunItem.arrivalTime * this.yZoom;
       const travelTime = this.trainrunItem.getPathSection().travelTime();
-      const arrivalTimeAndTravelTime =
-        (this.trainrunItem.arrivalTime - travelTime) * this.yZoom;
+      const arrivalTimeAndTravelTime = (this.trainrunItem.arrivalTime - travelTime) * this.yZoom;
       const zommedXPath = this.trainrunItem.getPathSection().zoomedXPath();
       if (this.trainrunItem.backward) {
         const scaledPathFrom = new Vec2D(0, arrivalTime);
@@ -313,15 +294,15 @@ export class TrainRunSectionComponent
   private showArrivalBranch() {
     if (
       this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.ArrivalBranchWithSection ||
+        TrainrunBranchType.ArrivalBranchWithSection ||
       this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.ArrivalBranchFilter
+        TrainrunBranchType.ArrivalBranchFilter
     ) {
       return true;
     }
     if (
       this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.ArrivalBranchOnly &&
+        TrainrunBranchType.ArrivalBranchOnly &&
       !this.trainrunItem.backward &&
       this.trainrunItem.getPathSection().arrivalPathNode &&
       this.trainrunItem.getPathSection().arrivalPathNode.trackOccupier
@@ -330,7 +311,7 @@ export class TrainRunSectionComponent
     }
     return (
       this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.ArrivalBranchOnly &&
+        TrainrunBranchType.ArrivalBranchOnly &&
       this.trainrunItem.backward &&
       this.trainrunItem.getPathSection().departurePathNode &&
       this.trainrunItem.getPathSection().departurePathNode.trackOccupier
@@ -340,15 +321,15 @@ export class TrainRunSectionComponent
   private showDepartureBranch() {
     if (
       this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.DepartureBranchWithSection ||
+        TrainrunBranchType.DepartureBranchWithSection ||
       this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.DepartureBranchFilter
+        TrainrunBranchType.DepartureBranchFilter
     ) {
       return true;
     }
     if (
       this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.DepartureBranchOnly &&
+        TrainrunBranchType.DepartureBranchOnly &&
       !this.trainrunItem.backward &&
       this.trainrunItem.getPathSection().departurePathNode &&
       this.trainrunItem.getPathSection().departurePathNode.trackOccupier
@@ -357,7 +338,7 @@ export class TrainRunSectionComponent
     }
     return (
       this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.DepartureBranchOnly &&
+        TrainrunBranchType.DepartureBranchOnly &&
       this.trainrunItem.backward &&
       this.trainrunItem.getPathSection().arrivalPathNode &&
       this.trainrunItem.getPathSection().arrivalPathNode.trackOccupier
@@ -429,9 +410,7 @@ export class TrainRunSectionComponent
         : TrainrunSectionText.SourceDeparture,
     );
     if (formattedTimeStyle !== undefined) {
-      return this.getGeneralNoColorRefClassTag(
-        tag + " ColorRef_" + formattedTimeStyle,
-      );
+      return this.getGeneralNoColorRefClassTag(tag + " ColorRef_" + formattedTimeStyle);
     }
     return this.getClassTag(tag);
   }
@@ -444,9 +423,7 @@ export class TrainRunSectionComponent
         : TrainrunSectionText.TargetArrival,
     );
     if (formattedTimeStyle !== undefined) {
-      return this.getGeneralNoColorRefClassTag(
-        tag + " ColorRef_" + formattedTimeStyle,
-      );
+      return this.getGeneralNoColorRefClassTag(tag + " ColorRef_" + formattedTimeStyle);
     }
     return this.getClassTag(tag);
   }
@@ -454,74 +431,49 @@ export class TrainRunSectionComponent
   getDepartureTextTransformation(scaledPath: ScaledPath): string {
     const scaledPathTo = scaledPath.scaledPathFrom;
     const scaledPathFrom = scaledPath.scaledPathTo;
-    const diff: Vec2D = Vec2D.normalize(
-      Vec2D.sub(scaledPathTo, scaledPathFrom),
-    );
+    const diff: Vec2D = Vec2D.normalize(Vec2D.sub(scaledPathTo, scaledPathFrom));
     const centerPosition = Vec2D.add(
       scaledPath.scaledPathFrom,
       Vec2D.scale(diff, this.getDepartureTextOffset()),
     );
     const alignOffset = new Vec2D(0, 0);
-    return this.translateAndRotateText(
-      centerPosition,
-      alignOffset,
-      scaledPathTo,
-      scaledPathFrom,
-    );
+    return this.translateAndRotateText(centerPosition, alignOffset, scaledPathTo, scaledPathFrom);
   }
 
   getArrivalTextTransformation(scaledPath: ScaledPath): string {
     const scaledPathTo = scaledPath.scaledPathFrom;
     const scaledPathFrom = scaledPath.scaledPathTo;
-    const diff: Vec2D = Vec2D.normalize(
-      Vec2D.sub(scaledPathFrom, scaledPathTo),
-    );
+    const diff: Vec2D = Vec2D.normalize(Vec2D.sub(scaledPathFrom, scaledPathTo));
     const centerPosition = Vec2D.add(
       scaledPath.scaledPathTo,
       Vec2D.scale(diff, this.getArrivalTextPosOffset()),
     );
     const alignOffset = new Vec2D(0, 0);
-    return this.translateAndRotateText(
-      centerPosition,
-      alignOffset,
-      scaledPathFrom,
-      scaledPathTo,
-    );
+    return this.translateAndRotateText(centerPosition, alignOffset, scaledPathFrom, scaledPathTo);
   }
 
   getTextLabelTransformation(scaledPath: ScaledPath): string {
     const alignOffset = new Vec2D(0, 0);
     const scaledPathTo = scaledPath.scaledPathFrom;
     const scaledPathFrom = scaledPath.scaledPathTo;
-    const centerPosition = Vec2D.scale(
-      Vec2D.add(scaledPathFrom, scaledPathTo),
-      0.5,
-    );
-    return this.translateAndRotateText(
-      centerPosition,
-      alignOffset,
-      scaledPathTo,
-      scaledPathFrom,
-    );
+    const centerPosition = Vec2D.scale(Vec2D.add(scaledPathFrom, scaledPathTo), 0.5);
+    return this.translateAndRotateText(centerPosition, alignOffset, scaledPathTo, scaledPathFrom);
   }
 
   getDepartureText(): string {
     let orgTime = this.trainrunItem.departureTime;
     if (
       this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.ArrivalBranchWithSection ||
+        TrainrunBranchType.ArrivalBranchWithSection ||
       this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.ArrivalBranchOnly ||
+        TrainrunBranchType.ArrivalBranchOnly ||
       this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.ArrivalBranchFilter
+        TrainrunBranchType.ArrivalBranchFilter
     ) {
       orgTime = this.trainrunItem.arrivalTime;
     }
 
-    if (
-      this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.Trainrun
-    ) {
+    if (this.trainrunItem.getTrainrunSection().trainrunBranchType === TrainrunBranchType.Trainrun) {
       if (this.trainrunItem.backward) {
         orgTime = this.trainrunItem.arrivalTime;
       }
@@ -532,60 +484,53 @@ export class TrainRunSectionComponent
   getArrivalText(): string {
     if (
       this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.ArrivalBranchWithSection ||
+        TrainrunBranchType.ArrivalBranchWithSection ||
       this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.ArrivalBranchOnly ||
+        TrainrunBranchType.ArrivalBranchOnly ||
       this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.ArrivalBranchFilter
+        TrainrunBranchType.ArrivalBranchFilter
     ) {
       if (this.trainrunItem.backward) {
         if (
           this.trainrunItem.getTrainrunSection() &&
           this.trainrunItem.getTrainrunSection().departureBranchEndNodeShortName
         ) {
-          return this.trainrunItem.getTrainrunSection()
-            .departureBranchEndNodeShortName;
+          return this.trainrunItem.getTrainrunSection().departureBranchEndNodeShortName;
         }
       }
       if (
         this.trainrunItem.getTrainrunSection() &&
         this.trainrunItem.getTrainrunSection().arrivalBranchEndNodeShortName
       ) {
-        return this.trainrunItem.getTrainrunSection()
-          .arrivalBranchEndNodeShortName;
+        return this.trainrunItem.getTrainrunSection().arrivalBranchEndNodeShortName;
       }
     }
     if (
       this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.DepartureBranchWithSection ||
+        TrainrunBranchType.DepartureBranchWithSection ||
       this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.DepartureBranchOnly ||
+        TrainrunBranchType.DepartureBranchOnly ||
       this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.DepartureBranchFilter
+        TrainrunBranchType.DepartureBranchFilter
     ) {
       if (this.trainrunItem.backward) {
         if (
           this.trainrunItem.getTrainrunSection() &&
           this.trainrunItem.getTrainrunSection().arrivalBranchEndNodeShortName
         ) {
-          return this.trainrunItem.getTrainrunSection()
-            .arrivalBranchEndNodeShortName;
+          return this.trainrunItem.getTrainrunSection().arrivalBranchEndNodeShortName;
         }
       }
       if (
         this.trainrunItem.getTrainrunSection() &&
         this.trainrunItem.getTrainrunSection().departureBranchEndNodeShortName
       ) {
-        return this.trainrunItem.getTrainrunSection()
-          .departureBranchEndNodeShortName;
+        return this.trainrunItem.getTrainrunSection().departureBranchEndNodeShortName;
       }
     }
 
     let orgTime = this.trainrunItem.arrivalTime;
-    if (
-      this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.Trainrun
-    ) {
+    if (this.trainrunItem.getTrainrunSection().trainrunBranchType === TrainrunBranchType.Trainrun) {
       if (this.trainrunItem.backward) {
         orgTime = this.trainrunItem.departureTime;
       }
@@ -602,17 +547,16 @@ export class TrainRunSectionComponent
     if (!this.filterService.isFilterShowNonStopTimeEnabled()) {
       if (
         this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-        TrainrunBranchType.ArrivalBranchWithSection ||
+          TrainrunBranchType.ArrivalBranchWithSection ||
         this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-        TrainrunBranchType.ArrivalBranchOnly ||
+          TrainrunBranchType.ArrivalBranchOnly ||
         this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-        TrainrunBranchType.ArrivalBranchFilter
+          TrainrunBranchType.ArrivalBranchFilter
       ) {
         if (this.trainrunItem.backward) {
           if (
             this.trainrunItem.getTrainrunSection() &&
-            this.trainrunItem.getTrainrunSection()
-              .departureBranchEndNodeShortName
+            this.trainrunItem.getTrainrunSection().departureBranchEndNodeShortName
           ) {
             const nodeId = this.trainrunItem.getTrainrunSection().arrivalNodeId;
             if (!this.isTimeFiltering(nodeId)) {
@@ -632,19 +576,18 @@ export class TrainRunSectionComponent
       }
       if (
         this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-        TrainrunBranchType.DepartureBranchWithSection ||
+          TrainrunBranchType.DepartureBranchWithSection ||
         this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-        TrainrunBranchType.DepartureBranchOnly ||
+          TrainrunBranchType.DepartureBranchOnly ||
         this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-        TrainrunBranchType.DepartureBranchFilter
+          TrainrunBranchType.DepartureBranchFilter
       ) {
         if (this.trainrunItem.backward) {
           if (
             this.trainrunItem.getTrainrunSection() &&
             this.trainrunItem.getTrainrunSection().arrivalBranchEndNodeShortName
           ) {
-            const nodeId =
-              this.trainrunItem.getTrainrunSection().departureNodeId;
+            const nodeId = this.trainrunItem.getTrainrunSection().departureNodeId;
             if (!this.isTimeFiltering(nodeId)) {
               return false;
             }
@@ -678,9 +621,7 @@ export class TrainRunSectionComponent
     if (!this.filterService.isFilterShowNonStopTimeEnabled()) {
       if (isTrainrunBranch) {
         const sgTs: SgTrainrunSection = this.trainrunItem.getTrainrunSection();
-        const nodeId = sgTs.backward
-          ? sgTs.arrivalNodeId
-          : sgTs.departureNodeId;
+        const nodeId = sgTs.backward ? sgTs.arrivalNodeId : sgTs.departureNodeId;
         if (!this.isTimeFiltering(nodeId)) {
           return false;
         }
@@ -735,10 +676,7 @@ export class TrainRunSectionComponent
     return this.filterService.isFilterTrainrunNameEnabled();
   }
 
-  openTrainrunSectionDialogDeparture(
-    $event: MouseEvent,
-    sgTrainrunItem: SgTrainrunItem,
-  ) {
+  openTrainrunSectionDialogDeparture($event: MouseEvent, sgTrainrunItem: SgTrainrunItem) {
     $event.preventDefault();
     $event.stopImmediatePropagation();
 
@@ -752,13 +690,12 @@ export class TrainRunSectionComponent
       position,
     );
     parameter.setOffset(this.trainrun.frequencyOffset + this.freqOffset);
-    const selectedTrainrunSection =
-      this.trainrunSectionService.getSelectedTrainrunSection();
+    const selectedTrainrunSection = this.trainrunSectionService.getSelectedTrainrunSection();
     if (
       selectedTrainrunSection.getTargetNode().getId() ===
-      this.trainrunItem.getTrainrunSection().departureNodeId &&
+        this.trainrunItem.getTrainrunSection().departureNodeId &&
       selectedTrainrunSection.getSourceNode().getId() ===
-      this.trainrunItem.getTrainrunSection().arrivalNodeId
+        this.trainrunItem.getTrainrunSection().arrivalNodeId
     ) {
       if (sgTrainrunItem.backward) {
         parameter.trainrunSectionText = TrainrunSectionText.SourceArrival;
@@ -768,9 +705,9 @@ export class TrainRunSectionComponent
     }
     if (
       selectedTrainrunSection.getTargetNode().getId() ===
-      this.trainrunItem.getTrainrunSection().arrivalNodeId &&
+        this.trainrunItem.getTrainrunSection().arrivalNodeId &&
       selectedTrainrunSection.getSourceNode().getId() ===
-      this.trainrunItem.getTrainrunSection().departureNodeId
+        this.trainrunItem.getTrainrunSection().departureNodeId
     ) {
       if (sgTrainrunItem.backward) {
         parameter.trainrunSectionText = TrainrunSectionText.TargetArrival;
@@ -782,10 +719,7 @@ export class TrainRunSectionComponent
     this.uiInteractionService.showTrainrunDialog(parameter);
   }
 
-  openTrainrunSectionDialogArrival(
-    $event: MouseEvent,
-    sgTrainrunItem: SgTrainrunItem,
-  ) {
+  openTrainrunSectionDialogArrival($event: MouseEvent, sgTrainrunItem: SgTrainrunItem) {
     $event.preventDefault();
     $event.stopImmediatePropagation();
 
@@ -799,13 +733,12 @@ export class TrainRunSectionComponent
       position,
     );
     parameter.setOffset(this.trainrun.frequencyOffset + this.freqOffset);
-    const selectedTrainrunSection =
-      this.trainrunSectionService.getSelectedTrainrunSection();
+    const selectedTrainrunSection = this.trainrunSectionService.getSelectedTrainrunSection();
     if (
       selectedTrainrunSection.getTargetNode().getId() ===
-      this.trainrunItem.getTrainrunSection().departureNodeId &&
+        this.trainrunItem.getTrainrunSection().departureNodeId &&
       selectedTrainrunSection.getSourceNode().getId() ===
-      this.trainrunItem.getTrainrunSection().arrivalNodeId
+        this.trainrunItem.getTrainrunSection().arrivalNodeId
     ) {
       if (sgTrainrunItem.backward) {
         parameter.trainrunSectionText = TrainrunSectionText.TargetDeparture;
@@ -815,9 +748,9 @@ export class TrainRunSectionComponent
     }
     if (
       selectedTrainrunSection.getTargetNode().getId() ===
-      this.trainrunItem.getTrainrunSection().arrivalNodeId &&
+        this.trainrunItem.getTrainrunSection().arrivalNodeId &&
       selectedTrainrunSection.getSourceNode().getId() ===
-      this.trainrunItem.getTrainrunSection().departureNodeId
+        this.trainrunItem.getTrainrunSection().departureNodeId
     ) {
       if (sgTrainrunItem.backward) {
         parameter.trainrunSectionText = TrainrunSectionText.SourceDeparture;
@@ -838,10 +771,7 @@ export class TrainRunSectionComponent
       sgTrainrunItem.getTrainrunSection().trainrunSectionId,
     );
     const position = new Vec2D($event.x, $event.y + 30);
-    const parameter = new TrainrunDialogParameter(
-      TrainrunDialogType.TRAINRUN_DIALOG,
-      position,
-    );
+    const parameter = new TrainrunDialogParameter(TrainrunDialogType.TRAINRUN_DIALOG, position);
     parameter.setOffset(this.trainrun.frequencyOffset + this.freqOffset);
     parameter.setForward(!sgTrainrunItem.backward);
     this.uiInteractionService.showTrainrunDialog(parameter);
@@ -852,10 +782,7 @@ export class TrainRunSectionComponent
   }
 
   private getArrivalTextPosOffset() {
-    if (
-      this.trainrunItem.getTrainrunSection().trainrunBranchType !==
-      TrainrunBranchType.Trainrun
-    ) {
+    if (this.trainrunItem.getTrainrunSection().trainrunBranchType !== TrainrunBranchType.Trainrun) {
       return 0.0;
     }
     return -16.0;
@@ -897,10 +824,7 @@ export class TrainRunSectionComponent
     );
   }
 
-  private calcBranchingTrainrunSection(
-    scaledPathFrom: Vec2D,
-    scaledPathTo: Vec2D,
-  ): Vec2D {
+  private calcBranchingTrainrunSection(scaledPathFrom: Vec2D, scaledPathTo: Vec2D): Vec2D {
     const diff = Vec2D.sub(scaledPathTo, scaledPathFrom);
     const nDiff = Vec2D.normalize(diff);
     const sDiff = Vec2D.scale(nDiff, 60);
@@ -909,9 +833,7 @@ export class TrainRunSectionComponent
 
   showText() {
     if (this.showTextLabel === true) {
-      if (
-        this.streckengrafikDisplayElementService.isFilterStreckengrafikNameNotFocusNorEnabled()
-      ) {
+      if (this.streckengrafikDisplayElementService.isFilterStreckengrafikNameNotFocusNorEnabled()) {
         return false;
       }
       return this.isShowText();
@@ -935,14 +857,10 @@ export class TrainRunSectionComponent
     }
 
     if (
-      this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.Trainrun ||
-      this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.Filter
+      this.trainrunItem.getTrainrunSection().trainrunBranchType === TrainrunBranchType.Trainrun ||
+      this.trainrunItem.getTrainrunSection().trainrunBranchType === TrainrunBranchType.Filter
     ) {
-      if (
-        this.streckengrafikDisplayElementService.isFilterStreckengrafikTimeNotFocusNorEnabled()
-      ) {
+      if (this.streckengrafikDisplayElementService.isFilterStreckengrafikTimeNotFocusNorEnabled()) {
         return false;
       }
     }
@@ -950,8 +868,7 @@ export class TrainRunSectionComponent
     if (
       this.trainrunItem &&
       this.trainrunItem.isSection() &&
-      this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.Trainrun
+      this.trainrunItem.getTrainrunSection().trainrunBranchType === TrainrunBranchType.Trainrun
     ) {
       return this.isArrivalTimeTextFiltering();
     }
@@ -962,17 +879,14 @@ export class TrainRunSectionComponent
     if (!this.showDepartureTime) {
       return false;
     }
-    if (
-      this.streckengrafikDisplayElementService.isFilterStreckengrafikTimeNotFocusNorEnabled()
-    ) {
+    if (this.streckengrafikDisplayElementService.isFilterStreckengrafikTimeNotFocusNorEnabled()) {
       return false;
     }
 
     if (
       this.trainrunItem &&
       this.trainrunItem.isSection() &&
-      this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-      TrainrunBranchType.Trainrun
+      this.trainrunItem.getTrainrunSection().trainrunBranchType === TrainrunBranchType.Trainrun
     ) {
       return this.isDepatureTimeTextFiltering(true);
     }
@@ -983,11 +897,11 @@ export class TrainRunSectionComponent
       (this.trainrunItem.getTrainrunSection().trainrunBranchType ===
         TrainrunBranchType.ArrivalBranchWithSection ||
         this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-        TrainrunBranchType.DepartureBranchWithSection ||
+          TrainrunBranchType.DepartureBranchWithSection ||
         this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-        TrainrunBranchType.ArrivalBranchOnly ||
+          TrainrunBranchType.ArrivalBranchOnly ||
         this.trainrunItem.getTrainrunSection().trainrunBranchType ===
-        TrainrunBranchType.DepartureBranchOnly)
+          TrainrunBranchType.DepartureBranchOnly)
     ) {
       return this.isDepatureTimeTextFiltering(false);
     }
@@ -1036,6 +950,5 @@ export class ScaledPath {
   constructor(
     public scaledPathFrom: Vec2D,
     public scaledPathTo: Vec2D,
-  ) {
-  }
+  ) {}
 }

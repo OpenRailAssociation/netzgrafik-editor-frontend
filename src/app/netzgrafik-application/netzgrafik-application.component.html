@@ -1,16 +1,14 @@
 <sbb-icon-sidebar-container [class]="getSidebarClassTag()">
-  <sbb-icon-sidebar [(expanded)]="expanded" >
+  <sbb-icon-sidebar [(expanded)]="expanded">
     <!--<a sbbIconSidebarItem label="Varianten" (click)="onVariantenClicked()" class="sbb-active">-->
-    <a *ngIf="!disableBackend"
+    <a
+      *ngIf="!disableBackend"
       sbbIconSidebarItem
       [label]="'app.netzgrafik-application.variants' | translate"
       [class]="getVariantsActivatedTag()"
       (click)="onVariantenClicked()"
     >
-      <sbb-icon
-        *ngIf="getVariantIsWritable()"
-        svgIcon="document-standard-small"
-      ></sbb-icon>
+      <sbb-icon *ngIf="getVariantIsWritable()" svgIcon="document-standard-small"></sbb-icon>
       <sbb-icon
         *ngIf="!getVariantIsWritable()"
         svgIcon="folder-lock-small"

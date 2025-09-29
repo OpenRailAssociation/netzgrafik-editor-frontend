@@ -18,9 +18,7 @@
   "paths": {
     "/v1/variants/{variantId}/unarchive": {
       "put": {
-        "tags": [
-          "variant-controller"
-        ],
+        "tags": ["variant-controller"],
         "operationId": "unarchiveVariant",
         "parameters": [
           {
@@ -41,9 +39,7 @@
     },
     "/v1/variants/{variantId}/snapshots/asNewest": {
       "put": {
-        "tags": [
-          "variant-controller"
-        ],
+        "tags": ["variant-controller"],
         "operationId": "raiseSnapshotsToNewestReleaseVersion",
         "parameters": [
           {
@@ -64,9 +60,7 @@
     },
     "/v1/variants/{variantId}/archive": {
       "put": {
-        "tags": [
-          "variant-controller"
-        ],
+        "tags": ["variant-controller"],
         "operationId": "archiveVariant",
         "parameters": [
           {
@@ -87,9 +81,7 @@
     },
     "/v1/projects/{id}": {
       "put": {
-        "tags": [
-          "project-controller"
-        ],
+        "tags": ["project-controller"],
         "operationId": "updateProject",
         "parameters": [
           {
@@ -120,9 +112,7 @@
     },
     "/v1/projects/{id}/unarchive": {
       "put": {
-        "tags": [
-          "project-controller"
-        ],
+        "tags": ["project-controller"],
         "operationId": "unarchiveProject",
         "parameters": [
           {
@@ -143,9 +133,7 @@
     },
     "/v1/projects/{id}/archive": {
       "put": {
-        "tags": [
-          "project-controller"
-        ],
+        "tags": ["project-controller"],
         "operationId": "archiveProject",
         "parameters": [
           {
@@ -166,9 +154,7 @@
     },
     "/v1/versions/{versionId}/variant/new": {
       "post": {
-        "tags": [
-          "variant-controller"
-        ],
+        "tags": ["variant-controller"],
         "operationId": "createVariantFromVersion",
         "parameters": [
           {
@@ -207,9 +193,7 @@
     },
     "/v1/versions/{versionId}/restore": {
       "post": {
-        "tags": [
-          "version-controller"
-        ],
+        "tags": ["version-controller"],
         "operationId": "restoreVersion",
         "parameters": [
           {
@@ -238,9 +222,7 @@
     },
     "/v1/versions/{snapshotVersionId}/release": {
       "post": {
-        "tags": [
-          "version-controller"
-        ],
+        "tags": ["version-controller"],
         "operationId": "createReleaseVersion",
         "parameters": [
           {
@@ -279,9 +261,7 @@
     },
     "/v1/versions/{baseVersionId}/snapshot": {
       "post": {
-        "tags": [
-          "version-controller"
-        ],
+        "tags": ["version-controller"],
         "operationId": "createSnapshotVersion",
         "parameters": [
           {
@@ -320,9 +300,7 @@
     },
     "/v1/projects": {
       "get": {
-        "tags": [
-          "project-controller"
-        ],
+        "tags": ["project-controller"],
         "operationId": "getAllProjects",
         "responses": {
           "200": {
@@ -341,9 +319,7 @@
         }
       },
       "post": {
-        "tags": [
-          "project-controller"
-        ],
+        "tags": ["project-controller"],
         "operationId": "createProject",
         "requestBody": {
           "content": {
@@ -372,9 +348,7 @@
     },
     "/v1/projects/{projectId}/variants": {
       "post": {
-        "tags": [
-          "variant-controller"
-        ],
+        "tags": ["variant-controller"],
         "operationId": "createVariant",
         "parameters": [
           {
@@ -413,9 +387,7 @@
     },
     "/v1/versions/{versionId}": {
       "get": {
-        "tags": [
-          "version-controller"
-        ],
+        "tags": ["version-controller"],
         "operationId": "getVersion",
         "parameters": [
           {
@@ -443,9 +415,7 @@
     },
     "/v1/versions/{versionId}/model": {
       "get": {
-        "tags": [
-          "version-controller"
-        ],
+        "tags": ["version-controller"],
         "operationId": "getVersionModel",
         "parameters": [
           {
@@ -473,9 +443,7 @@
     },
     "/v1/variants/{variantId}": {
       "get": {
-        "tags": [
-          "variant-controller"
-        ],
+        "tags": ["variant-controller"],
         "operationId": "getVariant",
         "parameters": [
           {
@@ -501,9 +469,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "variant-controller"
-        ],
+        "tags": ["variant-controller"],
         "operationId": "deleteVariant",
         "parameters": [
           {
@@ -531,9 +497,7 @@
     },
     "/v1/projects/{projectId}": {
       "get": {
-        "tags": [
-          "project-controller"
-        ],
+        "tags": ["project-controller"],
         "operationId": "getProject",
         "parameters": [
           {
@@ -559,9 +523,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "project-controller"
-        ],
+        "tags": ["project-controller"],
         "operationId": "deleteProject",
         "parameters": [
           {
@@ -582,9 +544,7 @@
     },
     "/v1/variants/{variantId}/snapshots": {
       "delete": {
-        "tags": [
-          "variant-controller"
-        ],
+        "tags": ["variant-controller"],
         "operationId": "dropSnapshots",
         "parameters": [
           {
@@ -607,13 +567,7 @@
   "components": {
     "schemas": {
       "ProjectCreateUpdateDto": {
-        "required": [
-          "description",
-          "name",
-          "readUsers",
-          "summary",
-          "writeUsers"
-        ],
+        "required": ["description", "name", "readUsers", "summary", "writeUsers"],
         "type": "object",
         "properties": {
           "name": {
@@ -640,9 +594,7 @@
         }
       },
       "VariantCreateFromVersionDto": {
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "type": "object",
         "properties": {
           "name": {
@@ -651,9 +603,7 @@
         }
       },
       "VersionCreateReleaseDto": {
-        "required": [
-          "comment"
-        ],
+        "required": ["comment"],
         "type": "object",
         "properties": {
           "comment": {
@@ -662,11 +612,7 @@
         }
       },
       "VersionCreateSnapshotDto": {
-        "required": [
-          "comment",
-          "model",
-          "name"
-        ],
+        "required": ["comment", "model", "name"],
         "type": "object",
         "properties": {
           "name": {
@@ -681,10 +627,7 @@
         }
       },
       "VariantCreateDto": {
-        "required": [
-          "initialModel",
-          "initialName"
-        ],
+        "required": ["initialModel", "initialName"],
         "type": "object",
         "properties": {
           "initialModel": {
@@ -784,11 +727,7 @@
         }
       },
       "ProjectSummaryDto": {
-        "required": [
-          "id",
-          "isArchived",
-          "name"
-        ],
+        "required": ["id", "isArchived", "name"],
         "type": "object",
         "properties": {
           "id": {

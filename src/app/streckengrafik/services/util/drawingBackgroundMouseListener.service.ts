@@ -10,19 +10,13 @@ export interface SliderChangeInfo {
   providedIn: "root",
 })
 export class DrawingBackgroundMouseListenerService {
-  private readonly mousemoveSubject = new BehaviorSubject<MouseEvent>(
-    undefined,
-  );
+  private readonly mousemoveSubject = new BehaviorSubject<MouseEvent>(undefined);
   private readonly mousemove$ = this.mousemoveSubject.asObservable();
 
-  private readonly mouseenterSubject = new BehaviorSubject<MouseEvent>(
-    undefined,
-  );
+  private readonly mouseenterSubject = new BehaviorSubject<MouseEvent>(undefined);
   private readonly mouseenter$ = this.mouseenterSubject.asObservable();
 
-  private readonly mouseleaveSubject = new BehaviorSubject<MouseEvent>(
-    undefined,
-  );
+  private readonly mouseleaveSubject = new BehaviorSubject<MouseEvent>(undefined);
   private readonly mouseleave$ = this.mouseleaveSubject.asObservable();
 
   onMouseMove(event: MouseEvent) {

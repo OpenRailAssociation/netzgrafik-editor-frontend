@@ -1,11 +1,4 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  OnDestroy,
-  OnInit,
-  Output,
-} from "@angular/core";
+import {ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output} from "@angular/core";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {NodeService} from "../../../services/data/node.service";
 import {
@@ -72,7 +65,7 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
     private nodeService: NodeService,
     private labelService: LabelService,
     private labelGroupService: LabelGroupService,
-    public versionControlService : VersionControlService,
+    public versionControlService: VersionControlService,
     private cd: ChangeDetectorRef,
   ) {}
 
@@ -96,18 +89,12 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
   }
 
   onBetriebspunktNameChanged(event: any) {
-    this.nodeService.changeNodeBetriebspunktName(
-      this.nodeProperties.nodeId,
-      event.target.value,
-    );
+    this.nodeService.changeNodeBetriebspunktName(this.nodeProperties.nodeId, event.target.value);
     this.uiInteractionService.updateNodeStammdaten();
   }
 
   onFullNameChanged(event: any) {
-    this.nodeService.changeNodeFullName(
-      this.nodeProperties.nodeId,
-      event.target.value,
-    );
+    this.nodeService.changeNodeFullName(this.nodeProperties.nodeId, event.target.value);
   }
 
   onConnectionTimeChanged() {
@@ -179,7 +166,7 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
     const node = this.nodeService.getSelectedNode();
     const confirmationDialogParamter = new ConfirmationDialogParameter(
       $localize`:@@app.view.editor-side-view.editor-node-detail-view.delete:Delete`,
-      $localize`:@@app.view.editor-side-view.editor-node-detail-view.deleteNodeDialog:Should the node ${node.getBetriebspunktName()}:operationalPointShortName: (${node.getFullName()}:operationalPointName:) be definitely deleted?`
+      $localize`:@@app.view.editor-side-view.editor-node-detail-view.deleteNodeDialog:Should the node ${node.getBetriebspunktName()}:operationalPointShortName: (${node.getFullName()}:operationalPointName:) be definitely deleted?`,
     );
     this.uiInteractionService
       .showConfirmationDiagramDialog(confirmationDialogParamter)
@@ -198,35 +185,40 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
     );
   }
 
-  haltezeitIPVNoHaltChanged() {
+  haltezeitIPVNoHaltChanged(check: boolean) {
+    this.nodeProperties.nodeTrainrunCategoryHaltezeit["HaltezeitIPV"].no_halt = check;
     this.nodeService.changeHaltezeit(
       this.nodeProperties.nodeId,
       this.nodeProperties.nodeTrainrunCategoryHaltezeit,
     );
   }
 
-  haltezeitANoHaltChanged() {
+  haltezeitANoHaltChanged(check: boolean) {
+    this.nodeProperties.nodeTrainrunCategoryHaltezeit["HaltezeitA"].no_halt = check;
     this.nodeService.changeHaltezeit(
       this.nodeProperties.nodeId,
       this.nodeProperties.nodeTrainrunCategoryHaltezeit,
     );
   }
 
-  haltezeitBNoHaltChanged() {
+  haltezeitBNoHaltChanged(check: boolean) {
+    this.nodeProperties.nodeTrainrunCategoryHaltezeit["HaltezeitB"].no_halt = check;
     this.nodeService.changeHaltezeit(
       this.nodeProperties.nodeId,
       this.nodeProperties.nodeTrainrunCategoryHaltezeit,
     );
   }
 
-  haltezeitCNoHaltChanged() {
+  haltezeitCNoHaltChanged(check: boolean) {
+    this.nodeProperties.nodeTrainrunCategoryHaltezeit["HaltezeitC"].no_halt = check;
     this.nodeService.changeHaltezeit(
       this.nodeProperties.nodeId,
       this.nodeProperties.nodeTrainrunCategoryHaltezeit,
     );
   }
 
-  haltezeitDNoHaltChanged() {
+  haltezeitDNoHaltChanged(check: boolean) {
+    this.nodeProperties.nodeTrainrunCategoryHaltezeit["HaltezeitD"].no_halt = check;
     this.nodeService.changeHaltezeit(
       this.nodeProperties.nodeId,
       this.nodeProperties.nodeTrainrunCategoryHaltezeit,
@@ -234,10 +226,7 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
   }
 
   getAutoCompleteLabels(): string[] {
-    return this.labelGroupService.getAutoCompleteLabels(
-      this.nodeProperties.labels,
-      LabelRef.Node,
-    );
+    return this.labelGroupService.getAutoCompleteLabels(this.nodeProperties.labels, LabelRef.Node);
   }
 
   private updateNodeLabelsAutoCompleteOptions() {
@@ -248,21 +237,16 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
   private updateNodeProperties() {
     const selectedNode = this.nodeService.getSelectedNode();
     if (selectedNode !== null) {
-      const resource: Resource = this.resourceService.getResource(
-        selectedNode.getResourceId(),
-      );
+      const resource: Resource = this.resourceService.getResource(selectedNode.getResourceId());
       this.nodeProperties = {
         nodeId: selectedNode.getId(),
         nodeBetriebspunktName: selectedNode.getBetriebspunktName(),
         nodeBetriebspunktFullName: selectedNode.getFullName(),
         nodeConnectionTime: selectedNode.getConnectionTime(),
-        nodeTrainrunCategoryHaltezeit:
-          selectedNode.getTrainrunCategoryHaltezeit(),
+        nodeTrainrunCategoryHaltezeit: selectedNode.getTrainrunCategoryHaltezeit(),
         nodeResouceId: resource.getId(),
         nodeCapacity: resource.getCapacity(),
-        labels: this.labelService.getTextLabelsFromIds(
-          selectedNode.getLabelIds(),
-        ),
+        labels: this.labelService.getTextLabelsFromIds(selectedNode.getLabelIds()),
       };
       this.initialNodeLabels = [...this.nodeProperties.labels]; // initialize labels
     }
@@ -274,10 +258,7 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
       this.nodeProperties.labels.length !== this.initialNodeLabels.length ||
       !this.nodeProperties.labels.every((label, index) => label === this.initialNodeLabels[index])
     ) {
-      this.nodeService.changeLabels(
-        this.nodeProperties.nodeId,
-        this.nodeProperties.labels
-      );
+      this.nodeService.changeLabels(this.nodeProperties.nodeId, this.nodeProperties.labels);
       this.initialNodeLabels = [...this.nodeProperties.labels];
     }
   }

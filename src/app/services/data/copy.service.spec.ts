@@ -49,16 +49,8 @@ describe("CopyService", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -90,7 +82,7 @@ describe("CopyService", () => {
       trainrunService,
       trainrunSectionService,
       nodeService,
-      filterService
+      filterService,
     );
 
     uiInteractionService = new UiInteractionService(
@@ -126,9 +118,7 @@ describe("CopyService", () => {
   });
 
   it("test loadNetzgrafikDto", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const loadedNetzgrafik = dataService.getNetzgrafikDto();
     expect(loadedNetzgrafik.trainruns.length).toBe(5);
     expect(loadedNetzgrafik.trainrunSections.length).toBe(8);
@@ -137,9 +127,7 @@ describe("CopyService", () => {
   });
 
   it("General tests - 001 (complete netzgrafik)", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const loadedNetzgrafik = dataService.getNetzgrafikDto();
     copyService.copyCurrentVisibleNetzgrafik();
     trainrunSectionService.deleteAllVisibleTrainrunSections();
@@ -147,9 +135,7 @@ describe("CopyService", () => {
     noteService.deleteAllVisibleNotes();
     copyService.insertCopiedNetzgrafik();
     const insertedNetzgrafik = dataService.getNetzgrafikDto();
-    expect(loadedNetzgrafik.trainruns.length).toBe(
-      insertedNetzgrafik.trainruns.length,
-    );
+    expect(loadedNetzgrafik.trainruns.length).toBe(insertedNetzgrafik.trainruns.length);
     expect(loadedNetzgrafik.trainrunSections.length).toBe(
       insertedNetzgrafik.trainrunSections.length,
     );
@@ -165,9 +151,7 @@ describe("CopyService", () => {
   });
 
   it("General tests - 002 (single trainrun)", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     trainrunService.setTrainrunAsSelected(0);
     copyService.copyCurrentVisibleNetzgrafik();
     nodeService.deleteAllNonVisibleNodes();
@@ -181,9 +165,7 @@ describe("CopyService", () => {
   });
 
   it("General tests - 003 (filterMultiSelected)", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     uiInteractionService.setEditorMode(EditorMode.MultiNodeMoving);
     trainrunService.setTrainrunAsSelected(0);
     copyService.copyCurrentVisibleNetzgrafik();
@@ -198,9 +180,7 @@ describe("CopyService", () => {
   });
 
   it("General tests - 004 (filterMultiSelected)", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     uiInteractionService.setEditorMode(EditorMode.MultiNodeMoving);
     trainrunSectionService.deleteAllVisibleTrainrunSections();
     nodeService.selectNode(1);
@@ -220,15 +200,9 @@ describe("CopyService", () => {
   });
 
   it("General tests - 005 (trainrun filtering)", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
-    filterService.disableFilterTrainrunCategory(
-      dataService.getTrainrunCategory(1),
-    );
-    filterService.disableFilterTrainrunCategory(
-      dataService.getTrainrunCategory(3),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    filterService.disableFilterTrainrunCategory(dataService.getTrainrunCategory(1));
+    filterService.disableFilterTrainrunCategory(dataService.getTrainrunCategory(3));
     noteService.deleteAllVisibleNotes();
     expect(filterService.isAnyFilterActive()).toBe(true);
     const data2copy = copyService.copyCurrentVisibleNetzgrafik();
@@ -246,9 +220,7 @@ describe("CopyService", () => {
   });
 
   it("General tests - 006 (trainrun filtering)", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     filterService.setFilterNodeLabels([3, 4]);
     expect(filterService.isAnyFilterActive()).toBe(true);
     const data2copy = copyService.copyCurrentVisibleNetzgrafik();

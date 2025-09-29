@@ -1,7 +1,4 @@
-import {
-  ConnectionDto,
-  WarningDto,
-} from "../data-structures/technical.data.structures";
+import {ConnectionDto, WarningDto} from "../data-structures/technical.data.structures";
 import {Vec2D} from "../utils/vec2D";
 
 export class Connection {

@@ -24,9 +24,7 @@ import {NetzgrafikUnitTesting} from "../../../../integration-testing/netzgrafik.
 import {Vec2D} from "../../../utils/vec2D";
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
-import {
-  PositionTransformationService
-} from "../../../services/util/position.transformation.service";
+import {PositionTransformationService} from "../../../services/util/position.transformation.service";
 
 describe("3d.Utils.tests", () => {
   let dataService: DataService;
@@ -58,16 +56,8 @@ describe("3d.Utils.tests", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -99,7 +89,7 @@ describe("3d.Utils.tests", () => {
       trainrunService,
       trainrunSectionService,
       nodeService,
-      filterService
+      filterService,
     );
 
     uiInteractionService = new UiInteractionService(
@@ -132,14 +122,12 @@ describe("3d.Utils.tests", () => {
       undoService,
     );
 
-    const levelOfDetailService = new LevelOfDetailService(
-      uiInteractionService
-    );
+    const levelOfDetailService = new LevelOfDetailService(uiInteractionService);
     const viewportCullService = new ViewportCullService(
       uiInteractionService,
       nodeService,
       noteService,
-      trainrunSectionService
+      trainrunSectionService,
     );
 
     const positionTransformationService = new PositionTransformationService(
@@ -147,7 +135,7 @@ describe("3d.Utils.tests", () => {
       nodeService,
       noteService,
       uiInteractionService,
-      viewportCullService
+      viewportCullService,
     );
 
     const controller = new EditorMainViewComponent(
@@ -164,7 +152,7 @@ describe("3d.Utils.tests", () => {
       viewportCullService,
       levelOfDetailService,
       undefined,
-      positionTransformationService
+      positionTransformationService,
     );
 
     new EditorView(
@@ -181,16 +169,14 @@ describe("3d.Utils.tests", () => {
       viewportCullService,
       levelOfDetailService,
       undefined,
-      positionTransformationService
+      positionTransformationService,
     );
     controller.bindViewToServices();
     editorView = controller.editorView;
   });
 
   it("NotesView.convertText", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const txt0 = D3Utils.getPathAsSVGString(
       trainrunSectionService.getTrainrunSectionFromId(1).getPath(),
     );
@@ -198,9 +184,7 @@ describe("3d.Utils.tests", () => {
   });
 
   it("NotesView.getBezierCurveAsSVGString", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const txt0 = D3Utils.getBezierCurveAsSVGString(
       trainrunSectionService.getTrainrunSectionFromId(1).getPath(),
     );
@@ -211,9 +195,7 @@ describe("3d.Utils.tests", () => {
     const txt0 = D3Utils.makeHexagonSVGPoints(new Vec2D(1978, 25), 4);
     expect(txt0).toBe(" 1976,21 1980,21 1982,25 1980,29 1976,29 1974,25");
     const txt1 = D3Utils.makeHexagonSVGPoints(new Vec2D(25, 4), 1978);
-    expect(txt1).toBe(
-      " -964,-1974 1014,-1974 2003,4 1014,1982 -964,1982 -1953,4",
-    );
+    expect(txt1).toBe(" -964,-1974 1014,-1974 2003,4 1014,1982 -964,1982 -1953,4");
     const txt2 = D3Utils.makeHexagonSVGPoints(new Vec2D(2, 4), -1);
     expect(txt2).toBe(" 2.5,5 1.5,5 1,4 1.5,3 2.5,3 3,4");
     const txt3 = D3Utils.makeHexagonSVGPoints(new Vec2D(1, 1), 0);

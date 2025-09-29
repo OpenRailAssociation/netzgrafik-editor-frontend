@@ -1,3 +1,4 @@
+import {Direction} from "src/app/data-structures/business.data.structures";
 import {PathItem} from "./pathItem";
 
 export class TrainrunItem {
@@ -11,6 +12,8 @@ export class TrainrunItem {
     public categoryShortName: string,
     public colorRef: string,
     public pathItems: PathItem[],
+    public leftToRight: boolean,
+    public direction: Direction,
   ) {}
 
   equal(trainrunItem: TrainrunItem) {
@@ -26,7 +29,9 @@ export class TrainrunItem {
       this.title === trainrunItem.title &&
       this.categoryShortName === trainrunItem.categoryShortName &&
       this.colorRef === trainrunItem.colorRef &&
-      this.equalPathItem(this.pathItems, trainrunItem.pathItems)
+      this.equalPathItem(this.pathItems, trainrunItem.pathItems) &&
+      this.leftToRight === trainrunItem.leftToRight &&
+      this.direction === trainrunItem.direction
     );
   }
 
@@ -52,10 +57,7 @@ export class TrainrunItem {
     return equal;
   }
 
-  static equalTrainrunItems(
-    trainrunItems1: TrainrunItem[],
-    trainrunItems2: TrainrunItem[],
-  ) {
+  static equalTrainrunItems(trainrunItems1: TrainrunItem[], trainrunItems2: TrainrunItem[]) {
     if (trainrunItems1 === undefined) {
       return true;
     }

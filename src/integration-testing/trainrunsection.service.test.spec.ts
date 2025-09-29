@@ -5,10 +5,7 @@ import {StammdatenService} from "../app/services/data/stammdaten.service";
 import {DataService} from "../app/services/data/data.service";
 import {Node} from "../app/models/node.model";
 import {TrainrunSection} from "../app/models/trainrunsection.model";
-import {
-  PortAlignment,
-  TrainrunSectionText,
-} from "../app/data-structures/technical.data.structures";
+import {PortAlignment, TrainrunSectionText} from "../app/data-structures/technical.data.structures";
 import {ResourceService} from "../app/services/data/resource.service";
 import {LogService} from "../app/logger/log.service";
 import {LogPublishersService} from "../app/logger/log.publishers.service";
@@ -46,16 +43,8 @@ describe("TrainrunSection Service Test", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -86,9 +75,7 @@ describe("TrainrunSection Service Test", () => {
   });
 
   it("delete trainrunSection test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
 
     trainrunSectionService.deleteTrainrunSection(0);
@@ -101,9 +88,7 @@ describe("TrainrunSection Service Test", () => {
   });
 
   it("add trainrunSection test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
     let node1 = nodeService.getNodeFromId(1);
     expect(node1.getTransitions().length).toBe(2);
@@ -113,9 +98,7 @@ describe("TrainrunSection Service Test", () => {
 
     const node0 = nodeService.getNodeFromId(0);
     expect(node0.getPorts().length).toBe(3);
-    expect(node0.getPorts()[1].getPositionAlignment()).toBe(
-      PortAlignment.Right,
-    );
+    expect(node0.getPorts()[1].getPositionAlignment()).toBe(PortAlignment.Right);
     expect(node0.getPorts()[1].getPositionIndex()).toBe(1);
     node1 = nodeService.getNodeFromId(1);
     expect(node1.getPorts().length).toBe(6);
@@ -137,9 +120,7 @@ describe("TrainrunSection Service Test", () => {
   });
 
   it("delete all trainrunSections test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
 
     trainrunSectionService.deleteAllVisibleTrainrunSections();
@@ -153,9 +134,7 @@ describe("TrainrunSection Service Test", () => {
   });
 
   it("delete all non visible trainrunSections test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
 
     trainrunSectionService.deleteAllNonVisibleTrainrunSections();
@@ -170,14 +149,10 @@ describe("TrainrunSection Service Test", () => {
   });
 
   it("delete all non visible trainrunSections with trainrun category filtering active test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
 
-    filterService.disableFilterTrainrunCategory(
-      dataService.getTrainrunCategories()[4],
-    );
+    filterService.disableFilterTrainrunCategory(dataService.getTrainrunCategories()[4]);
     trainrunSectionService.deleteAllNonVisibleTrainrunSections();
 
     expect(trainrunSections.length).toBe(4);
@@ -190,9 +165,7 @@ describe("TrainrunSection Service Test", () => {
   });
 
   it("compute arrival and departure time test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     let computedTimes = TrainrunSectionService.computeArrivalAndDeparture(
       2,
       trainrunSections[1],
@@ -228,9 +201,7 @@ describe("TrainrunSection Service Test", () => {
   });
 
   it("update trainrunSection time test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 
     trainrunSectionService.updateTrainrunSectionTime(0, 58, 2, 12, 48, 10);
 
@@ -242,9 +213,7 @@ describe("TrainrunSection Service Test", () => {
   });
 
   it("propagate time test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 
     trainrunSectionService.updateTrainrunSectionTime(0, 58, 2, 12, 48, 10);
     trainrunSectionService.propagateTimeAlongTrainrun(0, 0);
@@ -258,9 +227,7 @@ describe("TrainrunSection Service Test", () => {
   });
 
   it("reconnect trainrunSection test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     let node0 = nodeService.getNodeFromId(0);
     expect(node0.getPorts().length).toBe(2);
     let node2 = nodeService.getNodeFromId(2);
@@ -279,14 +246,10 @@ describe("TrainrunSection Service Test", () => {
   });
 
   it("get all trainrunsections for trainrun test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 
-    const trainrunSections0 =
-      trainrunSectionService.getAllTrainrunSectionsForTrainrun(0);
-    const trainrunSections1 =
-      trainrunSectionService.getAllTrainrunSectionsForTrainrun(1);
+    const trainrunSections0 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(0);
+    const trainrunSections1 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(1);
 
     expect(trainrunSections0.length).toBe(2);
     expect(trainrunSections0[0].getId()).toBe(0);
@@ -296,9 +259,7 @@ describe("TrainrunSection Service Test", () => {
   });
 
   it("delete trainrunsections with trainrun test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
 
     trainrunSectionService.deleteAllTrainrunSectionsOfTrainrun(0);
@@ -309,9 +270,7 @@ describe("TrainrunSection Service Test", () => {
   });
 
   it("check consecutive time", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
 
     const allTrainrunSections = trainrunSectionService.getTrainrunSections();
@@ -340,9 +299,7 @@ describe("TrainrunSection Service Test", () => {
   });
 
   it("check consecutive time : travel time 60min overflow ", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
 
     const allTrainrunSections = trainrunSectionService.getTrainrunSections();
@@ -373,9 +330,7 @@ describe("TrainrunSection Service Test", () => {
   });
 
   it("path router check", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
     const ts = trainrunSectionService.getTrainrunSectionFromId(0);
     ts.routeEdgeAndPlaceText();
@@ -396,17 +351,13 @@ describe("TrainrunSection Service Test", () => {
     expect(ts.getTextPositionX(TrainrunSectionText.TargetDeparture)).toBe(272);
     expect(ts.getTextPositionX(TrainrunSectionText.SourceArrival)).toBe(148);
     expect(ts.getTextPositionX(TrainrunSectionText.SourceDeparture)).toBe(176);
-    expect(
-      ts.getTextPositionX(TrainrunSectionText.TrainrunSectionTravelTime),
-    ).toBe(224);
+    expect(ts.getTextPositionX(TrainrunSectionText.TrainrunSectionTravelTime)).toBe(224);
 
     expect(ts.getTextPositionY(TrainrunSectionText.TargetArrival)).toBe(36);
     expect(ts.getTextPositionY(TrainrunSectionText.TargetDeparture)).toBe(60);
     expect(ts.getTextPositionY(TrainrunSectionText.SourceArrival)).toBe(60);
     expect(ts.getTextPositionY(TrainrunSectionText.SourceDeparture)).toBe(36);
-    expect(
-      ts.getTextPositionY(TrainrunSectionText.TrainrunSectionTravelTime),
-    ).toBe(36);
+    expect(ts.getTextPositionY(TrainrunSectionText.TrainrunSectionTravelTime)).toBe(36);
 
     expect(ts.getPositionAtSourceNode().getX()).toBe(130);
     expect(ts.getPositionAtSourceNode().getY()).toBe(48);
@@ -414,18 +365,14 @@ describe("TrainrunSection Service Test", () => {
     expect(ts.getPositionAtTargetNode().getY()).toBe(48);
     expect(ts.getFrequency()).toBe(60);
     expect(ts.getFrequencyLinePatternRef()).toBe(LinePatternRefs.Freq60);
-    expect(ts.getTimeCategoryLinePatternRef()).toBe(
-      LinePatternRefs.TimeCat7_24,
-    );
+    expect(ts.getTimeCategoryLinePatternRef()).toBe(LinePatternRefs.TimeCat7_24);
 
     const tsDto = ts.getDto();
     expect(tsDto.id).toBe(ts.getId());
   });
 
   it("trainrun check", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
     const ts = trainrunSectionService.getTrainrunSectionFromId(0);
     const trainrun = ts.getTrainrun();

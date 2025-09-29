@@ -8,12 +8,7 @@ export class ThemeFachDark extends ThemeBase {
     backgroundColor = "var(--sbb-header-lean-background-color)",
     backgroundStreckengraphikColor = "var(--sbb-header-lean-background-color)",
   ) {
-    super(
-      ThemeRegistration.ThemeFachDark,
-      backgroundColor,
-      backgroundStreckengraphikColor,
-      true,
-    );
+    super(ThemeRegistration.ThemeFachDark, backgroundColor, backgroundStreckengraphikColor, true);
     ThemeBase.setUIColors(ThemeFach.getThemeFachColors());
     ThemeBase.setRenderingColors(ThemeFachDark.getThemeFachDarkColors());
   }

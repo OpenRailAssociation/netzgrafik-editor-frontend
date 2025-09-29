@@ -15,9 +15,7 @@ export class ThemeDefaultUxDark extends ThemeBase {
       true,
     );
     ThemeBase.setUIColors(ThemeDefaultUx.getThemeDefaultUxColors());
-    ThemeBase.setRenderingColors(
-      ThemeDefaultUxDark.getThemeDefaultUxDarkColors(),
-    );
+    ThemeBase.setRenderingColors(ThemeDefaultUxDark.getThemeDefaultUxDarkColors());
   }
 
   static getThemeDefaultUxDarkColors(): string[] {

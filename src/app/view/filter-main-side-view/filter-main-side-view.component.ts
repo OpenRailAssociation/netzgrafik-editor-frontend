@@ -1,10 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-} from "@angular/core";
+import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import {LayoutMode} from "../column-layout/column-layout.component";
 import {EditorMainViewComponent} from "../editor-main-view/editor-main-view.component";
 import {DataService} from "../../services/data/data.service";
@@ -67,16 +61,12 @@ export class FilterMainSideViewComponent implements OnInit, OnDestroy {
   }
 
   get showDetail(): boolean {
-    return (
-      this.mode === LayoutMode.DETAIL_ONLY ||
-      this.mode === LayoutMode.FILTER_AND_DETAIL
-    );
+    return this.mode === LayoutMode.DETAIL_ONLY || this.mode === LayoutMode.FILTER_AND_DETAIL;
   }
 
   get showPerlenkette(): boolean {
     return (
-      this.mode === LayoutMode.PERLENKETTE_ONLY ||
-      this.mode === LayoutMode.FILTER_AND_PERLENKETTE
+      this.mode === LayoutMode.PERLENKETTE_ONLY || this.mode === LayoutMode.FILTER_AND_PERLENKETTE
     );
   }
 
@@ -107,10 +97,7 @@ export class FilterMainSideViewComponent implements OnInit, OnDestroy {
       .subscribe((type: FilterWindowType | null) => {
         this.type = type;
         if (type) {
-          if (
-            this.mode === LayoutMode.MAIN_FULL ||
-            this.mode === LayoutMode.FILTER_ONLY
-          ) {
+          if (this.mode === LayoutMode.MAIN_FULL || this.mode === LayoutMode.FILTER_ONLY) {
             this.setMode(LayoutMode.FILTER_ONLY);
           } else if (this.mode === LayoutMode.DETAIL_ONLY) {
             this.setMode(LayoutMode.FILTER_AND_DETAIL);
@@ -148,23 +135,21 @@ export class FilterMainSideViewComponent implements OnInit, OnDestroy {
           }
         }
       });
-    this.uiInteractionService.printGraphik
-      .pipe(takeUntil(this.destroyed))
-      .subscribe(() => {
-        timer(250).subscribe(() => {
-          print();
-        });
+    this.uiInteractionService.printGraphik.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      timer(250).subscribe(() => {
+        print();
       });
+    });
     this.uiInteractionService.streckengrafikWindow
       .pipe(takeUntil(this.destroyed))
       .subscribe((mainViewMode: MainViewMode) => {
         this.mainViewMode = mainViewMode;
       });
     this.uiInteractionService.originDestinationWindow
-        .pipe(takeUntil(this.destroyed))
-        .subscribe((mainViewMode: MainViewMode) => {
-          this.mainViewMode = mainViewMode;
-        });
+      .pipe(takeUntil(this.destroyed))
+      .subscribe((mainViewMode: MainViewMode) => {
+        this.mainViewMode = mainViewMode;
+      });
 
     this.dataService.triggerViewUpdate();
   }

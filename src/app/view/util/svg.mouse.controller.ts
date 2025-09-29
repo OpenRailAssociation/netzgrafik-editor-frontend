@@ -20,6 +20,8 @@ export interface SVGMouseControllerObserver {
   onEndMultiSelect();
 
   onScaleNetzgrafik(factor: number, scaleCenter: Vec2D);
+
+  onCtrlKeyChanged(state: boolean);
 }
 
 export class SVGMouseController {
@@ -47,10 +49,18 @@ export class SVGMouseController {
   }
 
   private ctrlKeyDownListener(e: KeyboardEvent) {
+    const oldCtrlKeyPressed = this.ctrlKeyPressed;
     if (e.key === "Control") this.ctrlKeyPressed = true;
+    if (oldCtrlKeyPressed !== this.ctrlKeyPressed) {
+      this.svgMouseControllerObserver.onCtrlKeyChanged(this.ctrlKeyPressed);
+    }
   }
   private ctrlKeyUpListener(e: KeyboardEvent) {
+    const oldCtrlKeyPressed = this.ctrlKeyPressed;
     if (e.key === "Control") this.ctrlKeyPressed = false;
+    if (oldCtrlKeyPressed !== this.ctrlKeyPressed) {
+      this.svgMouseControllerObserver.onCtrlKeyChanged(this.ctrlKeyPressed);
+    }
   }
 
   init(viewboxProperties: ViewboxProperties) {
@@ -103,12 +113,7 @@ export class SVGMouseController {
   resize(width: number, height: number) {
     this.svgDrawingContext.attr("width", width);
     this.svgDrawingContext.attr("height", height);
-    if (
-      !(
-        this.viewboxProperties.panZoomWidth > 0 &&
-        this.viewboxProperties.panZoomHeight > 0
-      )
-    ) {
+    if (!(this.viewboxProperties.panZoomWidth > 0 && this.viewboxProperties.panZoomHeight > 0)) {
       // initial values
       this.viewboxProperties.panZoomLeft = 0;
       this.viewboxProperties.panZoomTop = 0;
@@ -120,11 +125,8 @@ export class SVGMouseController {
       this.updateZoomCenter(new Vec2D(0.5, 0.5));
     }
     this.setViewbox();
-    this.svgMouseControllerObserver.zoomFactorChanged(
-      this.viewboxProperties.zoomFactor,
-    );
+    this.svgMouseControllerObserver.zoomFactorChanged(this.viewboxProperties.zoomFactor);
   }
-
 
   scaleIn(scaleCenter: Vec2D) {
     this.svgMouseControllerObserver.onScaleNetzgrafik(1.125, scaleCenter);
@@ -139,23 +141,16 @@ export class SVGMouseController {
       return;
     }
     if (this.viewboxProperties.zoomFactor < 300) {
-      const sigmoid =
-        1.0 / (1.0 + Math.exp(-this.viewboxProperties.zoomFactor - 300));
+      const sigmoid = 1.0 / (1.0 + Math.exp(-this.viewboxProperties.zoomFactor - 300));
       this.viewboxProperties.zoomFactor +=
         factor !== 1.0
           ? factor * sigmoid * this.viewboxProperties.zoomFactor
           : SVGMouseController.ZOOM_FACTOR_PERCENT;
-      this.viewboxProperties.zoomFactor = Math.min(
-        300,
-        this.viewboxProperties.zoomFactor,
-      );
-      this.viewboxProperties.zoomFactor =
-        Math.round(this.viewboxProperties.zoomFactor / 10) * 10;
+      this.viewboxProperties.zoomFactor = Math.min(300, this.viewboxProperties.zoomFactor);
+      this.viewboxProperties.zoomFactor = Math.round(this.viewboxProperties.zoomFactor / 10) * 10;
       this.temporaryDisableUndoServicePushCurrentVersion();
       this.updateZoomCenter(zoomCenter);
-      this.svgMouseControllerObserver.zoomFactorChanged(
-        this.viewboxProperties.zoomFactor,
-      );
+      this.svgMouseControllerObserver.zoomFactorChanged(this.viewboxProperties.zoomFactor);
     }
   }
 
@@ -164,23 +159,16 @@ export class SVGMouseController {
       return;
     }
     if (this.viewboxProperties.zoomFactor > 1) {
-      const sigmoid =
-        1.0 / (1.0 + Math.exp(-this.viewboxProperties.zoomFactor - 300));
+      const sigmoid = 1.0 / (1.0 + Math.exp(-this.viewboxProperties.zoomFactor - 300));
       this.viewboxProperties.zoomFactor -=
         factor !== 1.0
           ? factor * sigmoid * this.viewboxProperties.zoomFactor
           : SVGMouseController.ZOOM_FACTOR_PERCENT;
-      this.viewboxProperties.zoomFactor = Math.max(
-        10.0,
-        this.viewboxProperties.zoomFactor,
-      );
-      this.viewboxProperties.zoomFactor =
-        Math.round(this.viewboxProperties.zoomFactor / 10) * 10;
+      this.viewboxProperties.zoomFactor = Math.max(10.0, this.viewboxProperties.zoomFactor);
+      this.viewboxProperties.zoomFactor = Math.round(this.viewboxProperties.zoomFactor / 10) * 10;
       this.temporaryDisableUndoServicePushCurrentVersion();
       this.updateZoomCenter(zoomCenter);
-      this.svgMouseControllerObserver.zoomFactorChanged(
-        this.viewboxProperties.zoomFactor,
-      );
+      this.svgMouseControllerObserver.zoomFactorChanged(this.viewboxProperties.zoomFactor);
     }
   }
 
@@ -191,9 +179,7 @@ export class SVGMouseController {
     this.viewboxProperties.zoomFactor = 100;
     this.temporaryDisableUndoServicePushCurrentVersion();
     this.updateZoomCenter(zoomCenter);
-    this.svgMouseControllerObserver.zoomFactorChanged(
-      this.viewboxProperties.zoomFactor,
-    );
+    this.svgMouseControllerObserver.zoomFactorChanged(this.viewboxProperties.zoomFactor);
   }
 
   getCurrentMousePosition(): Vec2D {
@@ -208,19 +194,14 @@ export class SVGMouseController {
     if (this.viewboxProperties === undefined) {
       return;
     }
-    this.viewboxProperties.panZoomLeft =
-      center.getX() - this.viewboxProperties.panZoomWidth / 2.0;
-    this.viewboxProperties.panZoomTop =
-      center.getY() - this.viewboxProperties.panZoomHeight / 2.0;
+    this.viewboxProperties.panZoomLeft = center.getX() - this.viewboxProperties.panZoomWidth / 2.0;
+    this.viewboxProperties.panZoomTop = center.getY() - this.viewboxProperties.panZoomHeight / 2.0;
     this.setViewbox();
   }
 
   setViewbox() {
     this.viewboxProperties.currentViewBox = this.makeViewboxString();
-    this.svgDrawingContext.attr(
-      "viewBox",
-      this.viewboxProperties.currentViewBox,
-    );
+    this.svgDrawingContext.attr("viewBox", this.viewboxProperties.currentViewBox);
     this.svgMouseControllerObserver.onViewboxChanged(this.viewboxProperties);
   }
 
@@ -278,10 +259,7 @@ export class SVGMouseController {
         } else if (d3.event.button === 0) {
           if (this.previousPanMousePosition !== null) {
             const delta = Vec2D.norm(
-              Vec2D.sub(
-                this.previousPanMousePosition,
-                this.getCurrentMousePosition(),
-              ),
+              Vec2D.sub(this.previousPanMousePosition, this.getCurrentMousePosition()),
             );
             if (delta > 2) {
               // only start panning if the mouse cursor has moved more than 2 pixel (initial move check)
@@ -294,30 +272,15 @@ export class SVGMouseController {
         if (d3.event.shiftKey || d3.event.buttons === 2) {
           const curPos = this.getCurrentMousePosition();
           const topLef = new Vec2D(
-            Math.min(
-              this.previousMultiSelectShiftPosition.getX(),
-              curPos.getX(),
-            ),
-            Math.min(
-              this.previousMultiSelectShiftPosition.getY(),
-              curPos.getY(),
-            ),
+            Math.min(this.previousMultiSelectShiftPosition.getX(), curPos.getX()),
+            Math.min(this.previousMultiSelectShiftPosition.getY(), curPos.getY()),
           );
           const bottomRight = new Vec2D(
-            Math.max(
-              this.previousMultiSelectShiftPosition.getX(),
-              curPos.getX(),
-            ),
-            Math.max(
-              this.previousMultiSelectShiftPosition.getY(),
-              curPos.getY(),
-            ),
+            Math.max(this.previousMultiSelectShiftPosition.getX(), curPos.getX()),
+            Math.max(this.previousMultiSelectShiftPosition.getY(), curPos.getY()),
           );
           this.temporaryDisableUndoServicePushCurrentVersion();
-          this.svgMouseControllerObserver.updateMultiSelect(
-            topLef,
-            bottomRight,
-          );
+          this.svgMouseControllerObserver.updateMultiSelect(topLef, bottomRight);
         } else {
           this.svgMouseControllerObserver.onEndMultiSelect();
           this.previousMultiSelectShiftPosition = null;
@@ -420,37 +383,23 @@ export class SVGMouseController {
 
   private updateZoomCenter(zoomCenter: Vec2D) {
     const oldZoomCenter = new Vec2D(
-      this.viewboxProperties.panZoomLeft +
-      zoomCenter.getX() * this.viewboxProperties.panZoomWidth,
-      this.viewboxProperties.panZoomTop +
-      zoomCenter.getY() * this.viewboxProperties.panZoomHeight,
+      this.viewboxProperties.panZoomLeft + zoomCenter.getX() * this.viewboxProperties.panZoomWidth,
+      this.viewboxProperties.panZoomTop + zoomCenter.getY() * this.viewboxProperties.panZoomHeight,
     );
 
     const zoomFactor = 100.0 / this.viewboxProperties.zoomFactor;
-    this.viewboxProperties.panZoomHeight =
-      this.viewboxProperties.origHeight * zoomFactor;
-    this.viewboxProperties.panZoomWidth =
-      this.viewboxProperties.origWidth * zoomFactor;
-    this.viewboxProperties.panZoomHeight = Math.max(
-      this.viewboxProperties.panZoomHeight,
-      1,
-    );
-    this.viewboxProperties.panZoomWidth = Math.max(
-      this.viewboxProperties.panZoomWidth,
-      1,
-    );
+    this.viewboxProperties.panZoomHeight = this.viewboxProperties.origHeight * zoomFactor;
+    this.viewboxProperties.panZoomWidth = this.viewboxProperties.origWidth * zoomFactor;
+    this.viewboxProperties.panZoomHeight = Math.max(this.viewboxProperties.panZoomHeight, 1);
+    this.viewboxProperties.panZoomWidth = Math.max(this.viewboxProperties.panZoomWidth, 1);
 
     const newZoomCenter = new Vec2D(
-      this.viewboxProperties.panZoomLeft +
-      zoomCenter.getX() * this.viewboxProperties.panZoomWidth,
-      this.viewboxProperties.panZoomTop +
-      zoomCenter.getY() * this.viewboxProperties.panZoomHeight,
+      this.viewboxProperties.panZoomLeft + zoomCenter.getX() * this.viewboxProperties.panZoomWidth,
+      this.viewboxProperties.panZoomTop + zoomCenter.getY() * this.viewboxProperties.panZoomHeight,
     );
 
-    this.viewboxProperties.panZoomLeft -=
-      newZoomCenter.getX() - oldZoomCenter.getX();
-    this.viewboxProperties.panZoomTop -=
-      newZoomCenter.getY() - oldZoomCenter.getY();
+    this.viewboxProperties.panZoomLeft -= newZoomCenter.getX() - oldZoomCenter.getX();
+    this.viewboxProperties.panZoomTop -= newZoomCenter.getY() - oldZoomCenter.getY();
     this.setViewbox();
   }
 
@@ -460,10 +409,7 @@ export class SVGMouseController {
     }
 
     if (this.previousPanMousePosition !== null) {
-      const delta: Vec2D = Vec2D.sub(
-        this.previousPanMousePosition,
-        this.getCurrentMousePosition(),
-      );
+      const delta: Vec2D = Vec2D.sub(this.previousPanMousePosition, this.getCurrentMousePosition());
 
       this.viewboxProperties.panZoomLeft += delta.getX();
       this.viewboxProperties.panZoomTop += delta.getY();
@@ -486,9 +432,9 @@ export class SVGMouseController {
     );
   }
 
-  private temporaryDisableUndoServicePushCurrentVersion(){
+  private temporaryDisableUndoServicePushCurrentVersion() {
     // temporary disable undoService push current version
-    if (this.undoService !== undefined){
+    if (this.undoService !== undefined) {
       this.undoService.setIgnoreNextPushCurrentVersionCall();
     }
   }
