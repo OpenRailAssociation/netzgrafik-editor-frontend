@@ -313,14 +313,14 @@ export class TrainrunSectionService implements OnDestroy {
     const sourceTransition = sourceNode.getTransition(trsId)
     const sourceNonStop = sourceTransition !== undefined ? sourceTransition.getIsNonStopTransit() : false;
     if(sourceNonStop){
-      this.nodeService.propagateIfNonStop(sourceNode.getId(),sourceTransition.getId())
+      this.nodeService.propagateIfNonStop(sourceNode.getId(),sourceTransition.getId(), false)
     }
 
     const targetNode = trainrunSection.getTargetNode();
     const targetTransition = targetNode.getTransition(trsId)
     const targetNonStop = targetTransition !== undefined ? targetTransition.getIsNonStopTransit() : false;
     if(targetNonStop){
-      this.nodeService.propagateIfNonStop(targetNode.getId(),targetTransition.getId())
+      this.nodeService.propagateIfNonStop(targetNode.getId(),targetTransition.getId(), true)
     }
     this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection.getId());
     this.nodeService.validateConnections(trainrunSection.getSourceNode());
@@ -539,7 +539,6 @@ export class TrainrunSectionService implements OnDestroy {
 
     while (iterator.hasNext()) {
       const pair = iterator.next();
-
       const isNonStop = previousPair.node.isNonStop(pair.trainrunSection);
       const halteZeit = previousPair.node.getTrainrunCategoryHaltezeit();
       const previousNodeArrival = previousPair.node.getArrivalTime(previousPair.trainrunSection);

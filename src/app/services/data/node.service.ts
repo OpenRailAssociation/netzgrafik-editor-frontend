@@ -493,7 +493,7 @@ export class NodeService implements OnDestroy {
     return false;
   }
 
-  propagateIfNonStop(nodeId : number, transitionId: number){
+  propagateIfNonStop(nodeId : number, transitionId: number, isForward : boolean){
     const node = this.getNodeFromId(nodeId);
     const trainrunSections = node.getTrainrunSections(transitionId);
     const node1 = node.getOppositeNode(trainrunSections.trainrunSection1);
@@ -505,18 +505,36 @@ export class NodeService implements OnDestroy {
     const isBackwardPathLocked = this.hasPathAnyDepartureOrArrivalTimeLock(
       node,
       trainrunSections.trainrunSection2,
-    );
-    if (!isBackwardPathLocked) {
-      this.trainrunSectionService.iterateAlongTrainrunUntilEndAndPropagateTime(
-        node1,
-        trainrunSections.trainrunSection1.getId(),
-      );
+    );    
+    if(isForward){
+      if (!isBackwardPathLocked) {
+        this.trainrunSectionService.iterateAlongTrainrunUntilEndAndPropagateTime(
+          node1,
+          trainrunSections.trainrunSection1.getId(),
+        );
+      }
+      if (!isForwardPathLocked) {
+        this.trainrunSectionService.iterateAlongTrainrunUntilEndAndPropagateTime(
+          node2,
+          trainrunSections.trainrunSection2.getId(),
+        );
+      }
     }
-    if (!isForwardPathLocked) {
-      this.trainrunSectionService.iterateAlongTrainrunUntilEndAndPropagateTime(
-        node2,
-        trainrunSections.trainrunSection2.getId(),
-      );
+    else{
+      if (!isForwardPathLocked) {
+        this.trainrunSectionService.iterateAlongTrainrunUntilEndAndPropagateTime(
+          node2,
+          trainrunSections.trainrunSection2.getId(),
+        );
+      }
+
+      if (!isBackwardPathLocked) {
+        this.trainrunSectionService.iterateAlongTrainrunUntilEndAndPropagateTime(
+          node1,
+          trainrunSections.trainrunSection1.getId(),
+        );
+      }
+
     }
 
     if (isForwardPathLocked && isBackwardPathLocked) {
@@ -547,7 +565,7 @@ export class NodeService implements OnDestroy {
   toggleNonStop(nodeId: number, transitionId: number) {
     const node = this.getNodeFromId(nodeId);
     node.toggleNonStop(transitionId);
-    this.propagateIfNonStop(nodeId, transitionId)
+    this.propagateIfNonStop(nodeId, transitionId, true)
  }
 
   checkExistsNoCycleTrainrunAfterFreePortsConnecting(
