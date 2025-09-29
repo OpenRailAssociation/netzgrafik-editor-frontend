@@ -27,8 +27,11 @@ export class SymmetryToggleService {
     symmetry: boolean,
     revertToggleCallback: () => void,
   ) {
-    // Symmetry -> Asymmetry
-    if (!symmetry) {
+    // Symmetry -> Asymmetry and on/off case
+    if (
+      !symmetry ||
+      trainrunSectionTimesService.areLeftAndRightTimeStructuresEqual(SymmetryOn.LeftNode)
+    ) {
       trainrunSectionTimesService.onLeftNodeSymmetryChanged(
         symmetry,
         !TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection),
@@ -59,8 +62,11 @@ export class SymmetryToggleService {
     symmetry: boolean,
     revertToggleCallback: () => void,
   ) {
-    // Symmetry -> Asymmetry
-    if (!symmetry) {
+    // Symmetry -> Asymmetry and on/off case
+    if (
+      !symmetry ||
+      trainrunSectionTimesService.areLeftAndRightTimeStructuresEqual(SymmetryOn.RightNode)
+    ) {
       trainrunSectionTimesService.onRightNodeSymmetryChanged(
         symmetry,
         !TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection),
@@ -90,6 +96,10 @@ export class SymmetryToggleService {
     trainrunSectionTimesService: TrainrunSectionTimesService,
     revertToggleCallback: () => void,
   ) {
+    if (trainrunSectionTimesService.areAllTimeStructuresEqual(trainrunId)) {
+      trainrunSectionTimesService.onTrainrunSymmetryChanged(trainrunId);
+      return;
+    }
     this.showSymmetrySelectionDialog(SymmetryOn.Trainrun, trainrunSectionTimesService).then(
       (reference: SymmetryReference | null) => {
         if (!(reference in SymmetryReference)) {

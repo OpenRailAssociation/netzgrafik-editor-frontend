@@ -420,6 +420,7 @@ export class TrainrunsectionHelper {
     }
     return (
       !isLeftSymmetric &&
+      !trainrunSection.areTravelTimesEqual() &&
       ((lockStructure.travelTimeLock && lockStructure.rightLock) ||
         (isRightSymmetric && lockStructure.travelTimeLock))
     );
@@ -442,6 +443,7 @@ export class TrainrunsectionHelper {
     }
     return (
       !isRightSymmetric &&
+      !trainrunSection.areTravelTimesEqual() &&
       ((lockStructure.travelTimeLock && lockStructure.leftLock) ||
         (isLeftSymmetric && lockStructure.travelTimeLock))
     );
