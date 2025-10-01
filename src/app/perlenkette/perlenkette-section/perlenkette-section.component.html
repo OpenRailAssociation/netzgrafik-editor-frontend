@@ -712,7 +712,7 @@
               class="FunctionButton Rotation90"
               tabindex="-1"
               mode="icon"
-              (click)="trainrunSectionTimesService.onPropagateTimeLeft(trainrunSection)"
+              (click)="trainrunSectionTimesService.onPropagateTimeLeft(trainrunSection, true)"
               [title]="'app.perlenkette.perlenkette-section.propagate-times-upwards' | translate"
             >
               <div>
@@ -729,7 +729,7 @@
               class="FunctionButton Rotation90"
               tabindex="-1"
               mode="icon"
-              (click)="trainrunSectionTimesService.onPropagateTimeRight(trainrunSection)"
+              (click)="trainrunSectionTimesService.onPropagateTimeRight(trainrunSection, true)"
               [title]="'app.perlenkette.perlenkette-section.propagate-times-downwards' | translate"
             >
               <div>

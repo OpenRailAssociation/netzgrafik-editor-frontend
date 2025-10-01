@@ -60,7 +60,7 @@
         "node": {
           "transit-modified": {
             "title": "Durchfahrt geändert",
-            "description": "Zeiten können nicht angepasst werden, beidseitger Lock gefunden"
+            "description": "Zeiten können nicht angepasst werden, die Startzeit ist fest vorgegeben."
           }
         },
         "trainrunsection": {

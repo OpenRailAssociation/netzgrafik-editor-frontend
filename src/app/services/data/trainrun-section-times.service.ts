@@ -664,26 +664,34 @@ export class TrainrunSectionTimesService {
   }
 
   /* Buttons in Footer */
-  onPropagateTimeLeft(trainrunSection: TrainrunSection) {
+  onPropagateTimeLeft(trainrunSection: TrainrunSection, fromPerlenkette: boolean = false) {
     const nextStopRightNodeId = this.trainrunSectionHelper
       .getNextStopRightNode(trainrunSection, this.nodesOrdered)
       .getId();
-    this.trainrunSectionService.propagateTimeAlongTrainrun(
+    this.trainrunSectionService.propagateTimes(
       trainrunSection.getId(),
+      !TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection),
       nextStopRightNodeId,
+      false,
     );
-    this.loadPerlenketteService.render();
+    if (fromPerlenkette) {
+      this.loadPerlenketteService.render();
+    }
   }
 
-  onPropagateTimeRight(trainrunSection: TrainrunSection) {
+  onPropagateTimeRight(trainrunSection: TrainrunSection, fromPerlenkette: boolean = false) {
     const nextStopLeftNodeId = this.trainrunSectionHelper
       .getNextStopLeftNode(trainrunSection, this.nodesOrdered)
       .getId();
-    this.trainrunSectionService.propagateTimeAlongTrainrun(
+    this.trainrunSectionService.propagateTimes(
       trainrunSection.getId(),
+      TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection),
       nextStopLeftNodeId,
+      false,
     );
-    this.loadPerlenketteService.render();
+    if (fromPerlenkette) {
+      this.loadPerlenketteService.render();
+    }
   }
 
   applyOffsetAndTransformTimeStructure() {
