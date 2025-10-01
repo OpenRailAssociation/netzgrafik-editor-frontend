@@ -1173,9 +1173,16 @@ export class TrainrunSectionsView {
       groupLinesEnter
         .append(StaticDomTags.EDGE_LINE_ARROW_SVG)
         .attr(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) =>
-          // Hide arrow if asymmetry arrows are filtered out or if the node on this side is filtered out
+          // Hide arrow
+          // - if asymmetry arrows are filtered out or
+          // - if the node on this side is filtered out
+          // - if the node on this side is non-stop
           !this.editorView.isFilterAsymmetryArrowsEnabled() ||
-          !this.filterTrainrunsectionAtNode(d.trainrunSection, arrowType === "BEGINNING_ARROW")
+          !this.filterTrainrunsectionAtNode(d.trainrunSection, arrowType === "BEGINNING_ARROW") ||
+          TrainrunSectionsView.getNode(
+            d.trainrunSection,
+            arrowType === "BEGINNING_ARROW",
+          ).isNonStop(d.trainrunSection)
             ? ""
             : null,
         )

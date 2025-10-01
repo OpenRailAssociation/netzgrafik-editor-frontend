@@ -60,7 +60,7 @@
         "node": {
           "transit-modified": {
             "title": "Transition changed",
-            "description": "Times cannot be adjusted, lock found on both sides"
+            "description": "Times cannot be adjusted, the departure time is locked."
           }
         },
         "trainrunsection": {
