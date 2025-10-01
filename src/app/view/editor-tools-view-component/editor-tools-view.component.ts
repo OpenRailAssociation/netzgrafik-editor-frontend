@@ -410,6 +410,7 @@ export class EditorToolsViewComponent {
       "border-bottom",
       "border",
       "box-sizing",
+      "paint-order",
     ];
 
     return {
