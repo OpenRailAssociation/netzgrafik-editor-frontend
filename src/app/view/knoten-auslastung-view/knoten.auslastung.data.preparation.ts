@@ -182,7 +182,7 @@ export class KnotenAuslastungDataPreparation {
           innerRadius: trackLoop,
           outerRadius: trackLoop,
           capacityLimitReached:
-            trackLoop >= this.resourceService.getResource(node.getResourceId()).getCapacity(),
+            trackLoop >= this.resourceService.getResource(node.getResourceId())?.getCapacity(),
         });
       }
     }
