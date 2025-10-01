@@ -277,7 +277,34 @@ export class TrainrunsectionHelper {
   getLeftAndRightTimes(
     trainrunSection: TrainrunSection,
     orderedNodes: Node[],
+    onPerlenkette: boolean,
   ): LeftAndRightTimeStructure {
+    const targetIsRightOrBottom = TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection);
+
+    // Perlenkette component strictly displays the trainrunSection times, no matter if the trainrun stops at its source/target nodes
+    if (onPerlenkette) {
+      if (targetIsRightOrBottom) {
+        return {
+          leftDepartureTime: trainrunSection.getSourceNode().getDepartureTime(trainrunSection),
+          leftArrivalTime: trainrunSection.getSourceNode().getArrivalTime(trainrunSection),
+          rightDepartureTime: trainrunSection.getTargetNode().getDepartureTime(trainrunSection),
+          rightArrivalTime: trainrunSection.getTargetNode().getArrivalTime(trainrunSection),
+          travelTime: trainrunSection.getTravelTime(),
+          bottomTravelTime: trainrunSection.getBackwardTravelTime(),
+        };
+      } else {
+        return {
+          leftDepartureTime: trainrunSection.getTargetNode().getDepartureTime(trainrunSection),
+          leftArrivalTime: trainrunSection.getTargetNode().getArrivalTime(trainrunSection),
+          rightDepartureTime: trainrunSection.getSourceNode().getDepartureTime(trainrunSection),
+          rightArrivalTime: trainrunSection.getSourceNode().getArrivalTime(trainrunSection),
+          travelTime: trainrunSection.getBackwardTravelTime(),
+          bottomTravelTime: trainrunSection.getTravelTime(),
+        };
+      }
+    }
+
+    // The other components display the times a the trainrunSections chain where first and last nodes are stops for this trainrun
     const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
     const bothLastNonStopTrainrunSections =
       this.trainrunService.getBothLastNonStopTrainrunSections(trainrunSection);
@@ -293,7 +320,6 @@ export class TrainrunsectionHelper {
         ? bothLastNonStopTrainrunSections.lastNonStopTrainrunSection1
         : bothLastNonStopTrainrunSections.lastNonStopTrainrunSection2;
 
-    const targetIsRightOrBottom = TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection);
     const travelTime = targetIsRightOrBottom
       ? this.trainrunService.getCumulativeTravelTime(trainrunSection)
       : this.trainrunService.getCumulativeBackwardTravelTime(trainrunSection);
