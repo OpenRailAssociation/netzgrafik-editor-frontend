@@ -977,7 +977,9 @@ export class TrainrunService {
       if (!nextPair.node.isEndNode(nextPair.trainrunSection)) {
         const oldArrival = nextPair.node.getArrivalTime(nextPair.trainrunSection);
         const trs = nextPair.node.getNextTrainrunSection(nextPair.trainrunSection);
-        const nextDeparture = nextPair.node.getDepartureTime(trs);
+        const nextDeparture = nextPair.node.isNonStop(nextPair.trainrunSection)
+          ? oldArrival
+          : nextPair.node.getDepartureTime(trs);
         halteZeit =
           nextDeparture < oldArrival ? nextDeparture + 60 - oldArrival : nextDeparture - oldArrival;
       }
