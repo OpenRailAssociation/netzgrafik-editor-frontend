@@ -26,11 +26,12 @@ import {LevelOfDetailService} from "../../services/ui/level.of.detail.service";
 import {TrainrunSectionValidator} from "../../services/util/trainrunsection.validator";
 import {OriginDestinationService} from "src/app/services/analytics/origin-destination/components/origin-destination.service";
 import {EditorMode} from "../editor-menu/editor-mode";
+import {NODE_TEXT_AREA_HEIGHT, RASTERING_BASIC_GRID_SIZE} from "../rastering/definitions";
 
 interface ContainertoExportData {
   documentToExport: HTMLElement;
   exportParameter: any;
-  documentSavedStyle: string;
+  essentialProps: string[];
 }
 
 @Component({
@@ -117,13 +118,27 @@ export class EditorToolsViewComponent {
     );
   }
 
+  onPrintContainer() {
+    this.uiInteractionService.closeFilter();
+    setTimeout(() => {
+      this.uiInteractionService.print();
+    }, 1500); // to allow cd-layout-filter to close
+  }
+
   onExportContainerAsSVG() {
     // option 2: save svg as svg
     // https://www.npmjs.com/package/save-svg-as-png
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
 
-    const containerInfo = this.getContainertoExport();
+    const containerInfo = this.getContainerToExport();
+    this.prepareStyleForExport(containerInfo);
+
+    // SVG scaling does not affect resolution since SVGs are rendered as vector graphics.
+    // To ensure a good initial scale, we define the target width as 2000 pixels.
+    const scaleToTargetWidth = 2000 / containerInfo.exportParameter.width;
+    containerInfo.exportParameter.scale = scaleToTargetWidth;
+
     svg.svgAsDataUri(containerInfo.documentToExport, containerInfo.exportParameter).then((uri) => {
       const a = document.createElement("a");
       document.body.appendChild(a);
@@ -132,16 +147,8 @@ export class EditorToolsViewComponent {
       a.click();
       URL.revokeObjectURL(a.href);
       a.remove();
-      containerInfo.documentToExport.setAttribute("style", containerInfo.documentSavedStyle);
       this.levelOfDetailService.enableLevelOfDetailRendering();
     });
-  }
-
-  onPrintContainer() {
-    this.uiInteractionService.closeFilter();
-    setTimeout(() => {
-      this.uiInteractionService.print();
-    }, 1500); // to allow cd-layout-filter to close
   }
 
   onExportContainerAsPNG() {
@@ -150,13 +157,15 @@ export class EditorToolsViewComponent {
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
 
-    const containerInfo = this.getContainertoExport();
+    const containerInfo = this.getContainerToExport();
+    this.prepareStyleForExport(containerInfo);
+
     svg.saveSvgAsPng(
       containerInfo.documentToExport,
       this.getFilenameToExport() + ".png",
       containerInfo.exportParameter,
     );
-    //containerInfo.documentToExport.setAttribute('style', containerInfo.documentSavedStyle);
+
     this.levelOfDetailService.enableLevelOfDetailRendering();
   }
 
@@ -353,88 +362,168 @@ export class EditorToolsViewComponent {
     return this.buildCSVString(headers, rows);
   }
 
-  private getContainertoExport(): ContainertoExportData {
-    let htmlElementToExport: HTMLElement | null = null;
-    let param = {};
+  private getStreckengrafikEditingContainerToExport(): ContainertoExportData {
+    const htmlElementToExport = document.getElementById("main-streckengrafik-container");
+    const param = {
+      encoderOptions: 1.0,
+      scale: 1.0,
+      left: 0,
+      top: 0,
+      width: htmlElementToExport.offsetWidth,
+      height: htmlElementToExport.offsetHeight,
+      backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
+    };
 
-    const editorMode = this.uiInteractionService.getEditorMode();
+    const essentialProps = [
+      "fill",
+      "stroke",
+      "stroke-width",
+      "stroke-dasharray",
+      "font-family",
+      "font-size",
+      "font-weight",
+      "opacity",
+      "text-anchor",
+      "dominant-baseline",
+      "width",
+      "min-width",
+      "max-width",
+      "height",
+      "min-height",
+      "max-height",
+      "overflow",
+      "margin-bottom",
+      "margin-top",
+      "margin-left",
+      "margin-right",
+      "margin",
+      "padding",
+      "display",
+      "grid-template-columns",
+      "grid-template-rows",
+      "grid-gap",
+      "background",
+      "background-color",
+      "border-right",
+      "border-left",
+      "border-top",
+      "border-bottom",
+      "border",
+      "box-sizing",
+      "paint-order",
+    ];
 
-    switch (editorMode) {
-      case EditorMode.StreckengrafikEditing: {
-        const boundingBox = this.nodeService.getNetzgrafikBoundingBox();
-        param = {
-          encoderOptions: 1.0,
-          scale: 2.0,
-          left: boundingBox.minCoordX - 32,
-          top: boundingBox.minCoordY - 32,
-          width: boundingBox.maxCoordX - boundingBox.minCoordX + 64,
-          height: boundingBox.maxCoordY - boundingBox.minCoordY + 64,
-          backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
-        };
-        htmlElementToExport = document.getElementById("main-streckengrafik-container");
-        break;
-      }
-      case EditorMode.OriginDestination: {
-        htmlElementToExport = document.getElementById("main-origin-destination-container");
-        if (htmlElementToExport === null) {
-          return undefined;
-        }
-        const bbox = (htmlElementToExport as unknown as SVGGElement).getBBox();
-        const padding = 10;
-        param = {
-          encoderOptions: 1.0,
-          scale: 1.0,
-          left: bbox.x - padding,
-          top: bbox.y - padding,
-          width: bbox.width + 2 * padding,
-          height: bbox.height + 2 * padding,
-          backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
-        };
-        break;
-      }
-      default: {
-        htmlElementToExport = document.getElementById("graphContainer");
-        if (htmlElementToExport === null) {
-          return undefined;
-        }
-        param = {
-          encoderOptions: 1.0,
-          scale: 1.0,
-          left: htmlElementToExport.offsetWidth / 3,
-          top: 80,
-          width: htmlElementToExport.offsetWidth,
-          height: htmlElementToExport.offsetHeight,
-          backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
-        };
-        break;
-      }
-    }
-
-    const oldStyle = htmlElementToExport.getAttribute("style");
-    const htmlsTagCollection = document.getElementsByTagName("html");
-    if (htmlsTagCollection.length > 0) {
-      const htmlRoot = htmlsTagCollection[0];
-      htmlElementToExport.setAttribute("style", htmlRoot.getAttribute("style"));
-
-      const styles = this.netzgrafikColoringService.generateGlobalStyles(
-        this.dataService.getTrainrunCategories(),
-        this.trainrunSectionService.getTrainrunSections(),
-      );
-
-      styles.forEach((s) => {
-        const docStyles = htmlRoot.ownerDocument.styleSheets;
-        for (let i = 0; i < s.cssRules.length; i++) {
-          htmlRoot.ownerDocument.styleSheets[docStyles.length - 1].insertRule(
-            s.cssRules[i].cssText,
-          );
-        }
-      });
-    }
     return {
       documentToExport: htmlElementToExport,
       exportParameter: param,
-      documentSavedStyle: oldStyle,
+      essentialProps: essentialProps,
     };
+  }
+
+  private getOriginDestinationContainerToExport(): ContainertoExportData {
+    const htmlElementToExport = document.getElementById("main-origin-destination-container");
+    if (htmlElementToExport === null) {
+      return undefined;
+    }
+    const bbox = (htmlElementToExport as unknown as SVGGElement).getBBox();
+    const padding = 10;
+    const param = {
+      encoderOptions: 1.0,
+      scale: 1.0,
+      left: bbox.x - padding,
+      top: bbox.y - padding,
+      width: bbox.width + 2 * padding,
+      height: bbox.height + 2 * padding,
+      backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
+    };
+
+    const essentialProps = [
+      "fill",
+      "stroke",
+      "stroke-width",
+      "stroke-dasharray",
+      "font-family",
+      "font-size",
+      "font-weight",
+      "opacity",
+      "text-anchor",
+      "dominant-baseline",
+    ];
+
+    return {
+      documentToExport: htmlElementToExport,
+      exportParameter: param,
+      essentialProps: essentialProps,
+    };
+  }
+
+  private getNetzgrafikEditingContainerToExport(): ContainertoExportData {
+    const htmlElementToExport = document.getElementById("graphContainer");
+    if (htmlElementToExport === null) {
+      return undefined;
+    }
+    const boundingBox = this.nodeService.getNetzgrafikBoundingBox();
+    const param = {
+      encoderOptions: 1.0,
+      scale: 2.0,
+      left: boundingBox.minCoordX - 2.0 * RASTERING_BASIC_GRID_SIZE,
+      top: boundingBox.minCoordY - 2.0 * RASTERING_BASIC_GRID_SIZE,
+      width: boundingBox.maxCoordX - boundingBox.minCoordX + 4.0 * RASTERING_BASIC_GRID_SIZE,
+      height:
+        boundingBox.maxCoordY -
+        boundingBox.minCoordY +
+        4.0 * RASTERING_BASIC_GRID_SIZE +
+        NODE_TEXT_AREA_HEIGHT,
+      backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
+    };
+
+    const essentialProps = [
+      "fill",
+      "stroke",
+      "stroke-width",
+      "stroke-dasharray",
+      "font-family",
+      "font-size",
+      "font-weight",
+      "opacity",
+      "text-anchor",
+      "dominant-baseline",
+    ];
+
+    return {
+      documentToExport: htmlElementToExport,
+      exportParameter: param,
+      essentialProps: essentialProps,
+    };
+  }
+
+  private prepareStyleForExport(containerInfo: ContainertoExportData) {
+    const element2export = containerInfo.documentToExport;
+
+    const elements = element2export.querySelectorAll("*");
+    elements.forEach((el) => {
+      const style = window.getComputedStyle(el);
+      const essentialPropsArray =
+        containerInfo.essentialProps !== undefined
+          ? containerInfo.essentialProps
+          : Array.from(style);
+      const inlineStyle = essentialPropsArray
+        .map((key) => `${key}:${style.getPropertyValue(key)};`)
+        .join(" ");
+      el.setAttribute("style", inlineStyle);
+    });
+  }
+
+  private getContainerToExport(): ContainertoExportData {
+    const editorMode = this.uiInteractionService.getEditorMode();
+    switch (editorMode) {
+      case EditorMode.StreckengrafikEditing:
+        return this.getStreckengrafikEditingContainerToExport();
+      case EditorMode.OriginDestination:
+        return this.getOriginDestinationContainerToExport();
+      default:
+        return this.getNetzgrafikEditingContainerToExport();
+    }
   }
 
   private convertToZuglaufCSV(): string {
