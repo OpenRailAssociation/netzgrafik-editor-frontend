@@ -339,7 +339,7 @@ export class TimeSliderComponent implements OnInit, OnDestroy, UpdateCounterHand
         this.createOrUpdateTimeData(5, 5);
         break;
       case yZoom > 2.4:
-        this.createOrUpdateTimeData(15, 5);
+        this.createOrUpdateTimeData(15, 15);
         break;
       case yZoom > 1.2:
         this.createOrUpdateTimeData(30, 15);
