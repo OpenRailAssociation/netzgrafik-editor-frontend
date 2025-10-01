@@ -172,8 +172,8 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
       .showConfirmationDiagramDialog(confirmationDialogParamter)
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
-          this.nodeService.deleteNode(node.getId());
           this.nodeDeleted.emit();
+          this.nodeService.deleteNode(node.getId());
         }
       });
   }
