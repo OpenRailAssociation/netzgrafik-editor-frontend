@@ -34,6 +34,7 @@ import {
 import {StaticDomTags} from "../../view/editor-main-view/data-views/static.dom.tags";
 import {VersionControlService} from "../../services/data/version-control.service";
 import {ToggleSwitchButtonComponent} from "../../view/toggle-switch-button/toggle-switch-button.component";
+import {MathUtils} from "src/app/utils/math";
 
 @Component({
   selector: "sbb-perlenkette-section",
@@ -101,7 +102,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     this.trainrunSection = this.trainrunSectionService.getTrainrunSectionFromId(
       this.perlenketteSection.trainrunSectionId,
     );
-    this.trainrunSectionTimesService.setTrainrunSection(this.trainrunSection);
+    this.trainrunSectionTimesService.setTrainrunSection(this.trainrunSection, true);
     this.trainrunSectionTimesService.setOffset(0);
     this.trainrunSectionTimesService.setLockStructure(
       this.trainrunSectionHelper.getLeftAndRightLock(
@@ -445,6 +446,52 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   /* travel time */
+  getDefaultDisplayTravelTime() {
+    if (
+      TrainrunSectionsView.getNode(this.trainrunSection, true).isNonStop(this.trainrunSection) ||
+      TrainrunSectionsView.getNode(this.trainrunSection, false).isNonStop(this.trainrunSection)
+    ) {
+      const cumulativeTravelTime = TrainrunsectionHelper.isTargetRightOrBottom(this.trainrunSection)
+        ? this.trainrunService.getCumulativeTravelTime(this.trainrunSection)
+        : this.trainrunService.getCumulativeBackwardTravelTime(this.trainrunSection);
+      const travelTime = TrainrunsectionHelper.isTargetRightOrBottom(this.trainrunSection)
+        ? this.trainrunSection.getTravelTime()
+        : this.trainrunSection.getBackwardTravelTime();
+      return "" + this.roundTime(cumulativeTravelTime) + "' (" + this.roundTime(travelTime) + "')";
+    }
+    return (
+      "" + this.roundTime(this.trainrunSectionTimesService.getTimeStructure().travelTime) + "'"
+    );
+  }
+
+  getDefaultDisplayBottomTravelTime() {
+    if (
+      TrainrunSectionsView.getNode(this.trainrunSection, true).isNonStop(this.trainrunSection) ||
+      TrainrunSectionsView.getNode(this.trainrunSection, false).isNonStop(this.trainrunSection)
+    ) {
+      const cumulativeBackwardTravelTime = TrainrunsectionHelper.isTargetRightOrBottom(
+        this.trainrunSection,
+      )
+        ? this.trainrunService.getCumulativeBackwardTravelTime(this.trainrunSection)
+        : this.trainrunService.getCumulativeTravelTime(this.trainrunSection);
+      const bottomTravelTime = TrainrunsectionHelper.isTargetRightOrBottom(this.trainrunSection)
+        ? this.trainrunSection.getBackwardTravelTime()
+        : this.trainrunSection.getTravelTime();
+      return (
+        "" +
+        this.roundTime(cumulativeBackwardTravelTime) +
+        "' (" +
+        this.roundTime(bottomTravelTime) +
+        "')"
+      );
+    }
+    return (
+      "" +
+      this.roundTime(this.trainrunSectionTimesService.getTimeStructure().bottomTravelTime) +
+      "'"
+    );
+  }
+
   showTravelTime() {
     if (this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       return true;
@@ -647,6 +694,10 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
 
   isTrainrunSymmetric() {
     return this.trainrunSectionService.isTrainrunSymmetric(this.trainrunSection.getTrainrunId());
+  }
+
+  private roundTime(time: number) {
+    return MathUtils.round(time, this.filterService.getTimeDisplayPrecision());
   }
 
   private handleSwitchSection(fieldKey: string) {

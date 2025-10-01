@@ -207,7 +207,7 @@
             [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
             (click)="switchSectionView($event, 'travelTime')"
           >
-            {{ trainrunSectionTimesService.getTimeStructure().travelTime }}
+            {{ getDefaultDisplayTravelTime() }}
           </text>
         </g>
       </g>
@@ -223,7 +223,7 @@
             [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
             (click)="switchSectionView($event, 'bottomTravelTime')"
           >
-            {{ trainrunSectionTimesService.getTimeStructure().bottomTravelTime }}
+            {{ getDefaultDisplayBottomTravelTime() }}
           </text>
         </g>
       </g>
