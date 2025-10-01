@@ -374,10 +374,43 @@ export class EditorToolsViewComponent {
       backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
     };
 
+    const essentialProps = [
+      "fill",
+      "stroke",
+      "stroke-width",
+      "stroke-dasharray",
+      "font-family",
+      "font-size",
+      "font-weight",
+      "opacity",
+      "text-anchor",
+      "dominant-baseline",
+      "width",
+      "min-width",
+      "max-width",
+      "height",
+      "min-height",
+      "max-height",
+      "overflow",
+      "margin",
+      "padding",
+      "display",
+      "grid-template-columns",
+      "grid-template-rows",
+      "grid-gap",
+      "background",
+      "border-right",
+      "border-left",
+      "border-top",
+      "border-bottom",
+      "border",
+      "box-sizing",
+    ];
+
     return {
       documentToExport: htmlElementToExport,
       exportParameter: param,
-      essentialProps: undefined,
+      essentialProps: essentialProps,
     };
   }
 
