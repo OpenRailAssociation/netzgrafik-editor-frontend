@@ -136,8 +136,8 @@ export class EditorToolsViewComponent {
 
     // SVG scaling does not affect resolution since SVGs are rendered as vector graphics.
     // To ensure a good initial scale, we define the target width as 2000 pixels.
-    const scaleToTargetWidth  = 2000 / containerInfo.exportParameter.width;
-    containerInfo.exportParameter.scale = scaleToTargetWidth ;
+    const scaleToTargetWidth = 2000 / containerInfo.exportParameter.width;
+    containerInfo.exportParameter.scale = scaleToTargetWidth;
 
     svg.svgAsDataUri(containerInfo.documentToExport, containerInfo.exportParameter).then((uri) => {
       const a = document.createElement("a");
@@ -392,6 +392,10 @@ export class EditorToolsViewComponent {
       "min-height",
       "max-height",
       "overflow",
+      "margin-bottom",
+      "margin-top",
+      "margin-left",
+      "margin-right",
       "margin",
       "padding",
       "display",
@@ -399,6 +403,7 @@ export class EditorToolsViewComponent {
       "grid-template-rows",
       "grid-gap",
       "background",
+      "background-color",
       "border-right",
       "border-left",
       "border-top",
