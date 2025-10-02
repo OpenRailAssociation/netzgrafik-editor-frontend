@@ -36,27 +36,27 @@
 
 .TimeSliderComponent.HorizontalLine {
   stroke: var(--NODE_TEXT_FOCUS);
-  stroke-width: 0.25px;
+  stroke-width: 1px;
 }
 
 .TimeSliderComponent.HorizontalLine.Hour.Five {
   stroke: var(--NODE_TEXT_FOCUS);
-  stroke-width: 0.66px;
+  stroke-width: 1px;
 }
 
 .TimeSliderComponent.HorizontalLine.Hour.Quarter {
   stroke: var(--NODE_TEXT_FOCUS);
-  stroke-opacity: 0.5;
+  stroke-width: 1px;
 }
 
 .TimeSliderComponent.HorizontalLine.Hour.Half {
   stroke: var(--NODE_TEXT_FOCUS);
-  stroke-opacity: 0.5;
+  stroke-width: 1px;
 }
 
 .TimeSliderComponent.HorizontalLine.Hour.Full {
   stroke: var(--NODE_TEXT_FOCUS);
-  stroke-opacity: 0.5;
+  stroke-width: 1px;
 }
 
 .TimeSliderComponent.TimeLine {
