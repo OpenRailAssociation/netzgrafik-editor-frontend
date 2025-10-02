@@ -332,23 +332,23 @@ export class TimeSliderComponent implements OnInit, OnDestroy, UpdateCounterHand
   updateYZoom() {
     const yZoom = this.sliderChangeInfo.zoom;
     switch (true) {
-      case yZoom > 4.8:
+      case yZoom >= 41.6: // 15min
         this.createOrUpdateTimeData(1, 1);
         break;
-      case yZoom > 3.6:
-        this.createOrUpdateTimeData(5, 5);
+      case yZoom >= 20.8: // 30min
+        this.createOrUpdateTimeData(1, 1);
         break;
-      case yZoom > 2.4:
-        this.createOrUpdateTimeData(15, 15);
+      case yZoom >= 10.4: // 60min
+        this.createOrUpdateTimeData(15, 1);
         break;
-      case yZoom > 1.2:
-        this.createOrUpdateTimeData(30, 15);
+      case yZoom >= 5.2: // 120min
+        this.createOrUpdateTimeData(30, 5);
         break;
-      case yZoom > 0.6:
-        this.createOrUpdateTimeData(60, 30);
+      case yZoom >= 2.6: // 240min
+        this.createOrUpdateTimeData(60, 15);
         break;
       case yZoom >= 0.0:
-        this.createOrUpdateTimeData(120, 60);
+        this.createOrUpdateTimeData(120, 30);
         break;
     }
     this.updateTicksRenderingSpace();
