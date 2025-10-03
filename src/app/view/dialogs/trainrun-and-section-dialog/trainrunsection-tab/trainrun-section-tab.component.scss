@@ -205,6 +205,26 @@ input.NumberOfStopsInputElement.IsActive {
   grid-row: 3;
 }
 
+::ng-deep .LeftSymmetryToggle {
+  grid-column: 3;
+  grid-row: 2;
+  margin-top: 7px;
+  margin-left: 5px;
+  position: relative;
+  width: 50px;
+  height: 24px;
+}
+
+::ng-deep .RightSymmetryToggle {
+  grid-column: 15;
+  grid-row: 2;
+  margin-top: 7px;
+  margin-left: 5px;
+  position: relative;
+  width: 50px;
+  height: 24px;
+}
+
 ::ng-deep .TravelTime {
   grid-column: 7/11;
   grid-row: 2;
@@ -229,8 +249,62 @@ input.NumberOfStopsInputElement.IsActive {
   grid-row: 2;
 }
 
+::ng-deep .TopTravelTime {
+  grid-column: 8/12;
+  grid-row: 1;
+}
+
+::ng-deep div.TopTravelTime {
+  border: 1px solid var(--sbb-menu-item-label);
+}
+
+::ng-deep .TopTravelTimeMinus {
+  grid-column: 8;
+  grid-row: 1;
+}
+
+::ng-deep .TopTravelTimeTime {
+  grid-column: 9 / span 2;
+  grid-row: 1;
+}
+
+::ng-deep .TopTravelTimePlus {
+  grid-column: 11;
+  grid-row: 1;
+}
+
+::ng-deep .BottomTravelTime {
+  grid-column: 7/11;
+  grid-row: 3;
+}
+
+::ng-deep div.BottomTravelTime {
+  border: 1px solid var(--sbb-menu-item-label);
+}
+
+::ng-deep .BottomTravelTimeMinus {
+  grid-column: 7;
+  grid-row: 3;
+}
+
+::ng-deep .BottomTravelTimeTime {
+  grid-column: 8 / span 2;
+  grid-row: 3;
+}
+
+::ng-deep .BottomTravelTimePlus {
+  grid-column: 10;
+  grid-row: 3;
+}
+
 ::ng-deep .TravelTimeLock {
   grid-column: 11;
+  grid-row: 2;
+  background: var(--sbb-header-lean-background-color);
+}
+
+::ng-deep .TopTravelTimeLock {
+  grid-column: 9;
   grid-row: 2;
   background: var(--sbb-header-lean-background-color);
 }
@@ -288,6 +362,34 @@ input.NumberOfStopsInputElement.IsActive {
 }
 
 ::ng-deep input.InputTravelTimeElementHighlighted:read-only {
+  color: lightgray;
+}
+
+::ng-deep input.InputBottomTravelTimeElement {
+  padding: 6px;
+  width: 63px;
+  height: 30px;
+  border: 0px solid var(--sbb-background-color);
+  text-align: center;
+  margin: 1px;
+}
+
+::ng-deep input.InputBottomTravelTimeElement:read-only {
+  color: lightgray;
+}
+
+::ng-deep input.InputBottomTravelTimeElementHighlighted {
+  padding: 6px;
+  width: 63px;
+  height: 30px;
+  border: 0px solid var(--sbb-background-color);
+  text-align: center;
+  margin: 1px;
+  background: $COLOR_Edit;
+  color: white;
+}
+
+::ng-deep input.InputBottomTravelTimeElementHighlighted:read-only {
   color: lightgray;
 }
 

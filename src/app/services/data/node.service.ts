@@ -479,72 +479,72 @@ export class NodeService implements OnDestroy {
     trainrunSection.setTargetPortId(targetPortId);
   }
 
-  hasPathAnyDepartureOrArrivalTimeLock(node: Node, trainrunSection: TrainrunSection): boolean {
-    const iterator = this.trainrunService.getIterator(node, trainrunSection);
-    while (iterator.hasNext()) {
-      iterator.next();
-      const currentTrainrunSection = iterator.current().trainrunSection;
-      if (
-        currentTrainrunSection.getSourceDepartureLock() ||
-        currentTrainrunSection.getTargetArrivalLock()
-      ) {
-        return true;
+  propagateTimes(nodeId: number, transitionId: number, isForward: boolean) {
+    const node = this.getNodeFromId(nodeId);
+    const sections = node.getTrainrunSections(transitionId);
+    const node1 = node.getOppositeNode(sections.trainrunSection1);
+    const node2 = node.getOppositeNode(sections.trainrunSection2);
+
+    let isSection1Locked = false;
+    let isSection2Locked = false;
+    // Note: the source->target chain allows to check only the source or target locks based on isForward value
+    if (isForward) {
+      // Forward propagation (A->B->C): check A and B sides locks (sourceDepartures)
+      isSection1Locked = sections.trainrunSection1.getSourceDepartureLock();
+      isSection2Locked = sections.trainrunSection2.getSourceDepartureLock();
+
+      // order is important: section1 then section2
+      if (!isSection1Locked) {
+        this.trainrunSectionService.iterateAlongTrainrunUntilEndAndPropagateTime(
+          node1,
+          sections.trainrunSection1.getId(),
+        );
+      }
+      if (!isSection2Locked) {
+        this.trainrunSectionService.iterateAlongTrainrunUntilEndAndPropagateTime(
+          node2,
+          sections.trainrunSection2.getId(),
+        );
+      }
+    } else {
+      // Backward propagation (A<-B<-C): check B and C sides locks (targetDepartures)
+      isSection1Locked = sections.trainrunSection1.getTargetDepartureLock();
+      isSection2Locked = sections.trainrunSection2.getTargetDepartureLock();
+
+      // order is important: section2 then section1
+      if (!isSection2Locked) {
+        this.trainrunSectionService.iterateAlongTrainrunUntilEndAndPropagateTime(
+          node2,
+          sections.trainrunSection2.getId(),
+        );
+      }
+      if (!isSection1Locked) {
+        this.trainrunSectionService.iterateAlongTrainrunUntilEndAndPropagateTime(
+          node1,
+          sections.trainrunSection1.getId(),
+        );
       }
     }
-    return false;
-  }
 
-  toggleNonStop(nodeId: number, transitionId: number) {
-    const node = this.getNodeFromId(nodeId);
-    node.toggleNonStop(transitionId);
-    const trainrunSections = node.getTrainrunSections(transitionId);
-    const node1 = node.getOppositeNode(trainrunSections.trainrunSection1);
-    const node2 = node.getOppositeNode(trainrunSections.trainrunSection2);
-    const isForwardPathLocked = this.hasPathAnyDepartureOrArrivalTimeLock(
-      node1,
-      trainrunSections.trainrunSection1,
-    );
-    const isBackwardPathLocked = this.hasPathAnyDepartureOrArrivalTimeLock(
-      node2,
-      trainrunSections.trainrunSection2,
-    );
-
-    if (!isForwardPathLocked) {
-      this.trainrunSectionService.iterateAlongTrainrunUntilEndAndPropagateTime(
-        node1,
-        trainrunSections.trainrunSection1.getId(),
-      );
+    if (isSection1Locked) {
+      this.createTransitionWarning(sections.trainrunSection1, node);
     }
-    if (!isBackwardPathLocked) {
-      this.trainrunSectionService.iterateAlongTrainrunUntilEndAndPropagateTime(
-        node2,
-        trainrunSections.trainrunSection2.getId(),
-      );
-    }
-
-    if (isForwardPathLocked && isBackwardPathLocked) {
-      const warningTitle = $localize`:@@app.services.data.node.transit-modified.title:Transition changed`;
-      const warningDescription = $localize`:@@app.services.data.node.transit-modified.description:Times cannot be adjusted, lock found on both sides`;
-      this.trainrunSectionService.setWarningOnNode(
-        trainrunSections.trainrunSection1.getId(),
-        node.getId(),
-        warningTitle,
-        warningDescription,
-      );
-      this.trainrunSectionService.setWarningOnNode(
-        trainrunSections.trainrunSection2.getId(),
-        node.getId(),
-        warningTitle,
-        warningDescription,
-      );
+    if (isSection2Locked) {
+      this.createTransitionWarning(sections.trainrunSection2, node);
     }
 
     TransitionValidator.validateTransition(node, transitionId);
     this.transitionsUpdated();
     this.nodesUpdated();
     this.operation.emit(
-      new TrainrunOperation(OperationType.update, trainrunSections.trainrunSection1.getTrainrun()),
+      new TrainrunOperation(OperationType.update, sections.trainrunSection1.getTrainrun()),
     );
+  }
+
+  toggleNonStop(nodeId: number, transitionId: number) {
+    const node = this.getNodeFromId(nodeId);
+    node.toggleNonStop(transitionId);
+    this.propagateTimes(nodeId, transitionId, true);
   }
 
   checkExistsNoCycleTrainrunAfterFreePortsConnecting(
@@ -1175,5 +1175,16 @@ export class NodeService implements OnDestroy {
       });
     });
     return labelIDCauntMap;
+  }
+
+  private createTransitionWarning(trainrunSection: TrainrunSection, node: Node) {
+    const warningTitle = $localize`:@@app.services.data.node.transit-modified.title:Transition changed`;
+    const warningDescription = $localize`:@@app.services.data.node.transit-modified.description:Times cannot be adjusted, the departure time is locked.`;
+    this.trainrunSectionService.setWarningOnNode(
+      trainrunSection.getId(),
+      node.getId(),
+      warningTitle,
+      warningDescription,
+    );
   }
 }

@@ -8,11 +8,12 @@ import {Component, EventEmitter, Input, Output} from "@angular/core";
 export class ToggleSwitchButtonComponent {
   @Output() checkedChanged = new EventEmitter<boolean>();
   @Input() checked = false;
-  @Input() labelFalse: string = "";
-  @Input() labelTrue: string = "";
-  @Input() tagNonDefault: boolean = false;
+  @Input() labelFalse = "";
+  @Input() labelTrue = "";
+  @Input() tagNonDefault = false;
+  @Input() disabled = false;
 
-  onToggle(check: boolean) {
+  onToggle(check: boolean): void {
     if (!this.labelTrue || !this.labelFalse) {
       this.onChange(!this.checked);
       return;
@@ -20,7 +21,7 @@ export class ToggleSwitchButtonComponent {
     this.onChange(check);
   }
 
-  onChange(isChecked: boolean) {
+  onChange(isChecked: boolean): void {
     if (this.checked !== isChecked) {
       this.checked = isChecked;
       this.checkedChanged.next(this.checked);

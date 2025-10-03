@@ -76,6 +76,7 @@ export class TrainrunSectionCardComponent implements AfterViewInit, OnDestroy {
     this.categoryColorRef = selectedTrainrun.getCategoryColorRef();
     this.timeCategoryLinePattern = selectedTrainrun.getTimeCategoryLinePatternRef();
     this.trainrunSectionTimesService.setHighlightTravelTimeElement(false);
+    this.trainrunSectionTimesService.setHighlightBottomTravelTimeElement(false);
     this.trainrunSectionTimesService.applyOffsetAndTransformTimeStructure();
 
     const startNode = this.trainrunService.getStartNodeWithTrainrunId(
@@ -185,51 +186,5 @@ export class TrainrunSectionCardComponent implements AfterViewInit, OnDestroy {
       this.selectedTrainrunSection.getTrainrun(),
       Direction.ONE_WAY,
     );
-  }
-
-  getTrainrunTimeStructure(): Omit<LeftAndRightTimeStructure, "travelTime"> {
-    const selectedTrainrun = this.trainrunService.getSelectedTrainrun();
-    if (!selectedTrainrun) {
-      return undefined;
-    }
-    const selectedTrainrunId = selectedTrainrun.getId();
-    const trainrunSections =
-      this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(selectedTrainrunId);
-    const [startNode, endNode] = [
-      this.trainrunService.getStartNodeWithTrainrunId(selectedTrainrunId),
-      this.trainrunService.getEndNodeWithTrainrunId(selectedTrainrunId),
-    ];
-
-    // Try to find startNode → endNode
-    let firstTrainrunSection = trainrunSections.find(
-      (ts) => ts.getSourceNodeId() === startNode.getId(),
-    );
-    let lastTrainrunSection = [...trainrunSections]
-      .reverse()
-      .find((ts) => ts.getTargetNodeId() === endNode.getId());
-
-    // If not found, swap first and last sections (and source and target nodes)
-    if (!firstTrainrunSection && !lastTrainrunSection) {
-      firstTrainrunSection = trainrunSections.find(
-        (ts) => ts.getSourceNodeId() === endNode.getId(),
-      );
-      lastTrainrunSection = [...trainrunSections]
-        .reverse()
-        .find((ts) => ts.getTargetNodeId() === startNode.getId());
-      [firstTrainrunSection, lastTrainrunSection] = [lastTrainrunSection, firstTrainrunSection];
-      return {
-        leftDepartureTime: firstTrainrunSection.getTargetDeparture(),
-        leftArrivalTime: firstTrainrunSection.getTargetArrival(),
-        rightDepartureTime: lastTrainrunSection.getSourceDeparture(),
-        rightArrivalTime: lastTrainrunSection.getSourceArrival(),
-      };
-    }
-
-    return {
-      leftDepartureTime: firstTrainrunSection.getSourceDeparture(),
-      leftArrivalTime: firstTrainrunSection.getSourceArrival(),
-      rightDepartureTime: lastTrainrunSection.getTargetDeparture(),
-      rightArrivalTime: lastTrainrunSection.getTargetArrival(),
-    };
   }
 }
