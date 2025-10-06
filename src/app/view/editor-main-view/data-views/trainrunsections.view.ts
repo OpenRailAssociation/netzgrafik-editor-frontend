@@ -494,7 +494,7 @@ export class TrainrunSectionsView {
   static extractTravelTime(
     trainrunSection: TrainrunSection,
     editorView: EditorView,
-    isBackwardTravel: boolean = false,
+    isBackwardTravel: boolean,
   ): string {
     // invert travel times display since departures and arrivals
     // are also inverted if target is left or top
@@ -779,19 +779,18 @@ export class TrainrunSectionsView {
           editorView.getTimeDisplayPrecision(),
         );
       }
-      case TrainrunSectionText.TrainrunSectionTravelTime: {
-        const data = TrainrunSectionsView.getFormattedDisplayText(trainrunSection, textElement);
-        if (data !== undefined) {
-          return data;
-        }
-        return TrainrunSectionsView.extractTravelTime(trainrunSection, editorView);
-      }
+      case TrainrunSectionText.TrainrunSectionTravelTime:
       case TrainrunSectionText.TrainrunSectionBackwardTravelTime: {
         const data = TrainrunSectionsView.getFormattedDisplayText(trainrunSection, textElement);
         if (data !== undefined) {
+          console.log("textElement", textElement, "data", data);
           return data;
         }
-        return TrainrunSectionsView.extractTravelTime(trainrunSection, editorView, true);
+        return TrainrunSectionsView.extractTravelTime(
+          trainrunSection,
+          editorView,
+          textElement === TrainrunSectionText.TrainrunSectionBackwardTravelTime,
+        );
       }
       case TrainrunSectionText.TrainrunSectionName:
         return TrainrunSectionsView.extractTrainrunName(trainrunSection);

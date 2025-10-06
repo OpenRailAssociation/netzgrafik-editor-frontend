@@ -322,6 +322,7 @@ export class TrainrunSection {
   }
 
   areTravelTimesEqual(): boolean {
+    // indirectly checks this.isSymmetric() as well, because if not symmetric, travel times must be different
     return this.travelTime.time === this.backwardTravelTime.time;
   }
 
@@ -771,6 +772,7 @@ export class TrainrunSection {
     this.path.textPositions = SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(
       this.pathVec2D,
       this.sourceNode.getPort(this.sourcePortId),
+      !this.areTravelTimesEqual(),
     );
   }
 
