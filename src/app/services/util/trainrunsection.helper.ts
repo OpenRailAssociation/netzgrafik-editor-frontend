@@ -202,28 +202,28 @@ export class TrainrunsectionHelper {
   ): LeftAndRightElement | undefined {
     const nextStopLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
     const sourceNodeid = trainrunSection.getSourceNode().getId();
-    const targetNodeid = trainrunSection.getTargetNode().getId();
+    const isNextStopNodeSource = sourceNodeid === nextStopLeftNode.getId();
 
     switch (trainrunSectionSelectedText) {
       case TrainrunSectionText.SourceDeparture:
-        return sourceNodeid === nextStopLeftNode.getId()
+        return isNextStopNodeSource
           ? LeftAndRightElement.LeftDeparture
           : LeftAndRightElement.RightDeparture;
 
       case TrainrunSectionText.SourceArrival:
-        return sourceNodeid === nextStopLeftNode.getId()
+        return isNextStopNodeSource
           ? LeftAndRightElement.LeftArrival
           : LeftAndRightElement.RightArrival;
 
       case TrainrunSectionText.TargetDeparture:
-        return targetNodeid === nextStopLeftNode.getId()
-          ? LeftAndRightElement.LeftDeparture
-          : LeftAndRightElement.RightDeparture;
+        return isNextStopNodeSource
+          ? LeftAndRightElement.RightDeparture
+          : LeftAndRightElement.LeftDeparture;
 
       case TrainrunSectionText.TargetArrival:
-        return targetNodeid === nextStopLeftNode.getId()
-          ? LeftAndRightElement.LeftArrival
-          : LeftAndRightElement.RightArrival;
+        return isNextStopNodeSource
+          ? LeftAndRightElement.RightArrival
+          : LeftAndRightElement.LeftArrival;
 
       case TrainrunSectionText.TrainrunSectionName:
         if (forward === undefined) {
@@ -240,7 +240,7 @@ export class TrainrunsectionHelper {
             : LeftAndRightElement.LeftRightTrainrunName;
 
       case TrainrunSectionText.TrainrunSectionTravelTime:
-        return LeftAndRightElement.TravelTime;
+        return LeftAndRightElement.TravelTime; // p-e
 
       case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
         return LeftAndRightElement.BottomTravelTime;
