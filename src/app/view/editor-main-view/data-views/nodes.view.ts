@@ -114,7 +114,7 @@ export class NodesView {
   }
 
   filterNodesToDisplay(node: Node): boolean {
-    return this.editorView.isNodeVisible(node);
+    return this.editorView.isNodeVisible(node) && !node.getIsCollapsed();
   }
 
   displayNodes(inputNodes: Node[]) {
