@@ -109,6 +109,7 @@ export class NodeService implements OnDestroy {
           node.betriebspunktName,
           node.fullName,
           node.labelIds,
+          node.isCollapsed,
         );
       } else {
         const existingLabels = existingNode.getLabelIds();
@@ -241,6 +242,7 @@ export class NodeService implements OnDestroy {
     betriebspunktName?: string,
     fullName?: string,
     labelIds?: number[],
+    isCollapsed?: boolean,
     enforceUpdate = true,
   ): Node {
     const alignedPosition = NodeService.alginNodeToRaster(new Vec2D(positionX, positionY));
@@ -263,6 +265,9 @@ export class NodeService implements OnDestroy {
     }
     if (labelIds !== undefined) {
       node.setLabelIds(labelIds);
+    }
+    if (isCollapsed !== undefined) {
+      node.setIsCollapsed(isCollapsed);
     }
     this.nodesStore.nodes.push(node);
     if (enforceUpdate) {
