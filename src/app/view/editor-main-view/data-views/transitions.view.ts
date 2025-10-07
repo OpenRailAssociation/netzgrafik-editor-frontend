@@ -181,6 +181,11 @@ export class TransitionsView {
     }
 
     const node = this.editorView.getNodeFromTransition(transition);
+
+    if (node.getIsCollapsed()) {
+      return false;
+    }
+
     if (!this.editorView.checkFilterNonStopNode(node)) {
       return false;
     }
