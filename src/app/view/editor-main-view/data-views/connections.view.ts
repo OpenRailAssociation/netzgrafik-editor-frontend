@@ -240,6 +240,12 @@ export class ConnectionsView {
     }
 
     const node: Node = this.editorView.getNodeFromConnection(con);
+
+    // filter if node is collapsed - do not show connections for collapsed nodes
+    if (node.getIsCollapsed()) {
+      return false;
+    }
+
     const trainrunSection1: TrainrunSection = node.getPort(con.getPortId1()).getTrainrunSection();
     const trainrunSection2: TrainrunSection = node.getPort(con.getPortId2()).getTrainrunSection();
     const filterTrainrun1 = this.editorView.filterTrainrun(trainrunSection1.getTrainrun());

@@ -152,6 +152,79 @@ export class TrainrunSectionsView {
     return atSource ? trainrunSection.getSourceNode() : trainrunSection.getTargetNode();
   }
 
+  /**
+   * Creates a TrainrunSectionViewObject for collapsed node chains where the visual path
+   * goes directly from startNode to endNode instead of using the primary section's path.
+   * This is used when intermediate nodes are collapsed and should not be visible.
+   */
+  static createViewObjectForCollapsedChain(
+    editorView: EditorView,
+    primarySection: TrainrunSection,
+    allSections: TrainrunSection[],
+    startNode: Node,
+    endNode: Node,
+    isNonStopAtSource: boolean,
+    isNonStopAtTarget: boolean,
+    isMuted: boolean,
+    hiddenTagSource: boolean,
+    hiddenTagTarget: boolean,
+    hiddenTagTraveltime: boolean,
+    hiddenTagTrainrunName: boolean,
+    hiddenTagDirectionArrows: boolean,
+  ): TrainrunSectionViewObject {
+    // Create a standard view object first
+    const viewObject = new TrainrunSectionViewObject(
+      editorView,
+      primarySection,
+      isNonStopAtSource,
+      isNonStopAtTarget,
+      isMuted,
+      hiddenTagSource,
+      hiddenTagTarget,
+      hiddenTagTraveltime,
+      hiddenTagTrainrunName,
+      hiddenTagDirectionArrows,
+    );
+
+    // Override the path calculation to use startNode and endNode
+    // We need to temporarily modify the primary section's nodes for path calculation
+    const originalSourceNode = primarySection.getSourceNode();
+    const originalTargetNode = primarySection.getTargetNode();
+    const originalSourcePortId = primarySection.getSourcePortId();
+    const originalTargetPortId = primarySection.getTargetPortId();
+
+    try {
+      // Set temporary nodes for path calculation
+      primarySection.setSourceNode(startNode);
+      primarySection.setTargetNode(endNode);
+
+      // Find appropriate ports using the correct sections from the chain
+      // Source port: from the first section of the chain
+      // Target port: from the last section of the chain
+      const firstSection = allSections[0];
+      const lastSection = allSections[allSections.length - 1];
+
+      const sourcePort =
+        startNode.getPortOfTrainrunSection(firstSection.getId()) || startNode.getPorts()[0];
+      const targetPort =
+        endNode.getPortOfTrainrunSection(lastSection.getId()) || endNode.getPorts()[0];
+
+      primarySection.setSourcePortId(sourcePort.getId());
+      primarySection.setTargetPortId(targetPort.getId());
+
+      // Recalculate path with new nodes
+      primarySection.routeEdgeAndPlaceText();
+    } finally {
+      // Restore original nodes and ports
+      primarySection.setSourceNode(originalSourceNode);
+      primarySection.setTargetNode(originalTargetNode);
+      primarySection.setSourcePortId(originalSourcePortId);
+      primarySection.setTargetPortId(originalTargetPortId);
+    }
+
+    return viewObject;
+  }
+
   static hasWarning(trainrunSection: TrainrunSection, textElement: TrainrunSectionText): boolean {
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
@@ -1690,9 +1763,12 @@ export class TrainrunSectionsView {
         const primarySection = group.sections[0];
         const lastSection = group.sections[group.sections.length - 1];
         viewTrainrunSectionDataObjects.push(
-          new TrainrunSectionViewObject(
+          TrainrunSectionsView.createViewObjectForCollapsedChain(
             editorView,
             primarySection,
+            group.sections,
+            group.startNode,
+            group.endNode,
             group.startNode.isNonStop(primarySection),
             group.endNode.isNonStop(lastSection),
             TrainrunSectionsView.isMuted(primarySection, selectedTrainrun, connectedTrainIds),
