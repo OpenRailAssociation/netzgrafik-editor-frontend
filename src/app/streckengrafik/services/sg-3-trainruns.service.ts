@@ -39,6 +39,7 @@ export class Sg3TrainrunsService implements OnDestroy {
       .pipe(takeUntil(this.destroyed$))
       .subscribe((selectedTrainrun) => {
         this.selectedTrainrun = selectedTrainrun;
+        console.log("sg-3 : --1-- : this.sg2TrainrunPathService.getSgSelectedTrainrun()");
         this.render();
       });
 
@@ -47,6 +48,7 @@ export class Sg3TrainrunsService implements OnDestroy {
       .pipe(takeUntil(this.destroyed$))
       .subscribe((trainrunItems) => {
         this.trainrunItems = trainrunItems;
+        console.log("sg-3 : --2-- : this.sg1LoadTrainrunItemService.getTrainrunItems()");
         this.render();
       });
   }
