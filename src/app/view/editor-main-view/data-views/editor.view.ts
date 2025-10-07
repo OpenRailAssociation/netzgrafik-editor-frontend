@@ -138,7 +138,7 @@ export class EditorView implements SVGMouseControllerObserver {
     this.nodesView = new NodesView(this);
     this.transitionsView = new TransitionsView(this);
     this.connectionsView = new ConnectionsView(this);
-    this.trainrunSectionsView = new TrainrunSectionsView(this);
+    this.trainrunSectionsView = new TrainrunSectionsView(this, trainrunSectionService);
     this.trainrunSectionPreviewLineView = new TrainrunSectionPreviewLineView(
       nodeService,
       filterService,
@@ -468,7 +468,7 @@ export class EditorView implements SVGMouseControllerObserver {
 
     const allNodesOfInterest = this.nodeService.getNodes().filter((n: Node) => {
       this.nodeService.unselectNode(n.getId(), false);
-      if (this.filterService.filterNode(n)) {
+      if (this.filterService.filterNode(n) && !n.getIsCollapsed()) {
         if (
           topLeft.getX() < n.getPositionX() &&
           n.getPositionX() + n.getNodeWidth() < bottomRight.getX()
