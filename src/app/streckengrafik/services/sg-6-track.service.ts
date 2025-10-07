@@ -208,7 +208,7 @@ export class Sg6TrackService implements OnDestroy {
       // step 3 -> create data structure
       // ------------------------------------------------------------------------------------------------------------------
       const dataMatrix: number[][] = new Array(nDistanceCells)
-        .fill(0)
+        .fill([])
         .map(() => new Array(nTimeCells).fill(0));
       const tracksMatrix: number[] = new Array(nDistanceCells).fill(0);
 
@@ -229,26 +229,34 @@ export class Sg6TrackService implements OnDestroy {
 
         // iterate cell-by-cell foward
         for (let distCellIdx = 0; distCellIdx < nDistanceCells; distCellIdx++) {
+          // compute the idx - forward / backward direction (transformation)
+          const idx = item.backward ? nDistanceCells - distCellIdx - 1 : distCellIdx;
+          // just access the right data array (performance)
+          const dataMatAtIdx = dataMatrix[idx];
           // unroll frequency to get the trains - generated out of the "template" train
           for (
             let freqLoop = -this.maxFrequency;
             freqLoop <= this.maxFrequency;
             freqLoop = freqLoop + d.trainrun.frequency
           ) {
+            // just precompute "static" part (performance)
+            const timeCellIdxBase =
+              (item.departureTime % this.maxFrequency) +
+              (travelTime * distCellIdx) / (nDistanceCells - 0.5) +
+              freqLoop;
+
+            // just precompute "static" part (performance)
+            const baseTimeCellIdx = Math.round(timeRes * timeCellIdxBase);
+
             // the bands of "headway" - Nachbelegung (free the occupied resource just after this "band"
             for (let bandOffset = 0; bandOffset < timeRes * headwayTime; bandOffset++) {
               // compute the indices to get the matrix cell's where to fill in the information
-              const idx = item.backward ? nDistanceCells - distCellIdx - 1 : distCellIdx;
-              let timeCellIdx =
-                (item.departureTime % this.maxFrequency) +
-                (travelTime * distCellIdx) / (nDistanceCells - 0.5) +
-                freqLoop;
-              timeCellIdx = bandOffset + Math.round(timeRes * timeCellIdx);
+              const timeCellIdx = bandOffset + baseTimeCellIdx;
 
               // ensure if the idx is to small or to big (avoid crash / expection)
               if (timeCellIdx >= 0 && timeCellIdx < nTimeCells) {
-                dataMatrix[idx][timeCellIdx]++;
-                tracksMatrix[idx] = Math.max(tracksMatrix[idx], dataMatrix[idx][timeCellIdx]);
+                dataMatAtIdx[timeCellIdx]++;
+                tracksMatrix[idx] = Math.max(tracksMatrix[idx], dataMatAtIdx[timeCellIdx]);
               }
             }
           }
