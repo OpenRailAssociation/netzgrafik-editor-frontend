@@ -180,6 +180,9 @@ export class NodeService implements OnDestroy {
     this.nodesStore.nodes.forEach((node) => {
       node.getPorts().forEach((port) => {
         const oppositeNode = node.getOppositeNode(port.getTrainrunSection());
+        if (oppositeNode === undefined) {
+          return;
+        }
         const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
           node,
           oppositeNode,

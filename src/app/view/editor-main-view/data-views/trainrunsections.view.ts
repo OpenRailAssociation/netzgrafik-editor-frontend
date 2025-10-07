@@ -2133,7 +2133,6 @@ export class TrainrunSectionsView {
 
     if (!this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       if (ts.getSourceNode().isNonStopNode()) {
-        const node = ts.getSourceNode().getOppositeNode(ts);
         retPath = this.transformPathIfSourceNodeFilteredDueNonStopNodesFiltering(ts, retPath);
       }
       if (ts.getTargetNode().isNonStopNode()) {
