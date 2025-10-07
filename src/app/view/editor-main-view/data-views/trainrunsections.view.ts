@@ -28,6 +28,7 @@ import {EditorMode} from "../../editor-menu/editor-mode";
 import {Transition} from "../../../models/transition.model";
 import {InformSelectedTrainrunClick} from "../../../services/data/trainrunsection.service";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
+import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
 import {LinePatternRefs} from "../../../data-structures/business.data.structures";
 import {Direction} from "src/app/data-structures/business.data.structures";
 import {GeneralViewFunctions} from "../../util/generalViewFunctions";
@@ -36,7 +37,10 @@ import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helpe
 export class TrainrunSectionsView {
   trainrunSectionGroup;
 
-  constructor(private editorView: EditorView) {}
+  constructor(
+    private editorView: EditorView,
+    private trainrunSectionService: TrainrunSectionService,
+  ) {}
 
   static translateAndRotateText(
     trainrunSection: TrainrunSection,
@@ -1656,23 +1660,53 @@ export class TrainrunSectionsView {
     connectedTrainIds: any,
   ): TrainrunSectionViewObject[] {
     const viewTrainrunSectionDataObjects: TrainrunSectionViewObject[] = [];
-    inputTrainrunSections.forEach((d: TrainrunSection) => {
-      viewTrainrunSectionDataObjects.push(
-        new TrainrunSectionViewObject(
-          editorView,
-          d,
-          TrainrunSectionsView.getNode(d, true).isNonStop(d),
-          TrainrunSectionsView.getNode(d, false).isNonStop(d),
-          TrainrunSectionsView.isMuted(d, selectedTrainrun, connectedTrainIds),
-          this.getHiddenTagForTime(d, TrainrunSectionText.SourceDeparture),
-          this.getHiddenTagForTime(d, TrainrunSectionText.TargetDeparture),
-          this.getHiddenTagForTime(d, TrainrunSectionText.TrainrunSectionTravelTime),
-          this.getHiddenTagForTime(d, TrainrunSectionText.TrainrunSectionName),
-          !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
-            !this.editorView.isFilterDirectionArrowsEnabled(),
-        ),
-      );
+
+    // Group sections by collapsed nodes
+    const sectionGroups =
+      this.trainrunSectionService.groupTrainrunSectionsIntoChains(inputTrainrunSections);
+
+    sectionGroups.forEach((group) => {
+      if (group.sections.length === 1) {
+        // Simple section without collapsed intermediate nodes
+        const d = group.sections[0];
+        viewTrainrunSectionDataObjects.push(
+          new TrainrunSectionViewObject(
+            editorView,
+            d,
+            TrainrunSectionsView.getNode(d, true).isNonStop(d),
+            TrainrunSectionsView.getNode(d, false).isNonStop(d),
+            TrainrunSectionsView.isMuted(d, selectedTrainrun, connectedTrainIds),
+            this.getHiddenTagForTime(d, TrainrunSectionText.SourceDeparture),
+            this.getHiddenTagForTime(d, TrainrunSectionText.TargetDeparture),
+            this.getHiddenTagForTime(d, TrainrunSectionText.TrainrunSectionTravelTime),
+            this.getHiddenTagForTime(d, TrainrunSectionText.TrainrunSectionName),
+            !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
+              !this.editorView.isFilterDirectionArrowsEnabled(),
+          ),
+        );
+      } else {
+        // Chain of sections with collapsed nodes - create single view object
+        // Use the first section as the primary reference
+        const primarySection = group.sections[0];
+        const lastSection = group.sections[group.sections.length - 1];
+        viewTrainrunSectionDataObjects.push(
+          new TrainrunSectionViewObject(
+            editorView,
+            primarySection,
+            group.startNode.isNonStop(primarySection),
+            group.endNode.isNonStop(lastSection),
+            TrainrunSectionsView.isMuted(primarySection, selectedTrainrun, connectedTrainIds),
+            this.getHiddenTagForTime(primarySection, TrainrunSectionText.SourceDeparture),
+            this.getHiddenTagForTime(lastSection, TrainrunSectionText.TargetDeparture),
+            this.getHiddenTagForTime(primarySection, TrainrunSectionText.TrainrunSectionTravelTime),
+            this.getHiddenTagForTime(primarySection, TrainrunSectionText.TrainrunSectionName),
+            !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
+              !this.editorView.isFilterDirectionArrowsEnabled(),
+          ),
+        );
+      }
     });
+
     return viewTrainrunSectionDataObjects;
   }
 
