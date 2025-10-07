@@ -18,6 +18,7 @@ export class TrainrunSectionViewObject {
     this.textPositions = SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(
       this.getPath(),
       trainrunSections[0].getSourceNode().getPort(trainrunSections[0].getSourcePortId()),
+      !this.areTravelTimesEqual(),
     );
   }
 
@@ -75,6 +76,10 @@ export class TrainrunSectionViewObject {
 
       return sum + sectionTime;
     }, 0);
+  }
+
+  areTravelTimesEqual(): boolean {
+    return this.getTravelTime() === this.getBackwardTravelTime();
   }
 
   private generateKey(editorView: EditorView, trainrunSections: TrainrunSection[]): string {
