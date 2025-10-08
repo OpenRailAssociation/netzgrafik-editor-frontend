@@ -191,7 +191,6 @@ export class Sg6TrackService implements OnDestroy {
     distRes = 15, // Res 4s
     timeRes = 15, // Res 4s
   ) {
-    let cnt = 0;
     const sectionsTracks = new Map<string, number[]>();
     for (const keyNodeId of sectionsOfInterest.keys()) {
       // ------------------------------------------------------------------------------------------------------------------
@@ -232,7 +231,9 @@ export class Sg6TrackService implements OnDestroy {
             ? ts.getTrainrun().getTrainrunCategory().sectionHeadway
             : this.minimumHeadwayTime;
 
-        // iterate cell-by-cell foward
+        // ------------------------------------------------------------------------------------------------------------------
+        // step 4.1 -> iterate cell-by-cell foward
+        // ------------------------------------------------------------------------------------------------------------------
         for (let distCellIdx = 0; distCellIdx < nDistanceCells; distCellIdx++) {
           // compute the idx - forward / backward direction (transformation)
           const idx = item.backward ? nDistanceCells - distCellIdx - 1 : distCellIdx;
@@ -241,31 +242,17 @@ export class Sg6TrackService implements OnDestroy {
           // just access the right data array (performance)
           const dataMatAtIdx = dataMatrix[idx];
           // unroll frequency to get the trains - generated out of the "template" train
-          for (
-            let freqLoop = -this.maxFrequency;
-            freqLoop <= this.maxFrequency;
-            freqLoop = freqLoop + d.trainrun.frequency
-          ) {
-            // just precompute "static" part (performance)
-            const timeCellIdxBase = departureMod + travelTimeIdxPart + freqLoop;
-
-            // just precompute "static" part (performance)
-            // const baseTimeCellIdx = Math.round(timeRes * timeCellIdxBase);
-            const baseTimeCellIdx = Math.round(timeRes * timeCellIdxBase + 0.5);
-
-            tracksMatrix[idx] = Math.max(
-              tracksMatrix[idx],
-              this.fillOccupationBand(
-                dataMatAtIdx,
-                baseTimeCellIdx,
-                headwayTime,
-                timeRes,
-                nTimeCells,
-              ),
-            );
-            const bandLength = (timeRes * headwayTime) | 0; // Bitwise floor
-            cnt += bandLength;
-          }
+          this.extractSectionTracksUnrollFreq(
+            departureMod,
+            travelTimeIdxPart,
+            d.trainrun.frequency,
+            timeRes,
+            idx,
+            tracksMatrix,
+            dataMatAtIdx,
+            headwayTime,
+            nTimeCells,
+          );
         }
       });
 
@@ -278,11 +265,48 @@ export class Sg6TrackService implements OnDestroy {
       );
     }
 
-    console.log(cnt);
     return sectionsTracks;
   }
 
-  private fillOccupationBand(
+  private extractSectionTracksUnrollFreq(
+    departureMod: number,
+    travelTimeIdxPart: number,
+    frequency: number,
+    timeRes: number,
+    idx: number,
+    tracksMatrix: number[],
+    dataMatAtIdx: Uint8Array,
+    headwayTime: number,
+    nTimeCells: number,
+  ) {
+    for (
+      let freqLoop = -this.maxFrequency;
+      freqLoop <= this.maxFrequency;
+      freqLoop = freqLoop + frequency
+    ) {
+      // unroll frequency to get the trains - generated out of the "template" train
+
+      // just precompute "static" part (performance)
+      const timeCellIdxBase = departureMod + travelTimeIdxPart + freqLoop;
+
+      // just precompute "static" part (performance)
+      // const baseTimeCellIdx = Math.round(timeRes * timeCellIdxBase);
+      const baseTimeCellIdx = (timeRes * timeCellIdxBase + 0.5) | 0;
+
+      tracksMatrix[idx] = Math.max(
+        tracksMatrix[idx],
+        this.extractSectionTracksFillOccupationBand(
+          dataMatAtIdx,
+          baseTimeCellIdx,
+          headwayTime,
+          timeRes,
+          nTimeCells,
+        ),
+      );
+    }
+  }
+
+  private extractSectionTracksFillOccupationBand(
     dataRow: Uint8Array,
     baseTimeCellIdx: number,
     headwayTime: number,
@@ -290,7 +314,7 @@ export class Sg6TrackService implements OnDestroy {
     nTimeCells: number,
   ): number {
     // the bands of "headway" - Nachbelegung (free the occupied resource just after this "band"
-    const bandLength2 = Math.round(timeRes * headwayTime);
+    const bandLength2 = (timeRes * headwayTime + 0.5) | 0;
     let maxValue = 0;
     for (let offset = 0; offset < bandLength2; offset++) {
       // compute the indices to get the matrix cell's where to fill in the information
