@@ -207,7 +207,8 @@ export class Sg6TrackService implements OnDestroy {
       // ------------------------------------------------------------------------------------------------------------------
       // step 3 -> create data structure
       // ------------------------------------------------------------------------------------------------------------------
-      // we will never have more than 255 tracks
+      // We restrict the number of section tracks to 255 tracks (between two nodes we could only
+      // have 255 tracks - this improves the performance
       const dataMatrix = new Array(nDistanceCells);
       for (let idx = 0; idx < nDistanceCells; idx++) {
         dataMatrix[idx] = new Uint8Array(nTimeCells);
