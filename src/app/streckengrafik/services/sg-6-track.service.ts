@@ -253,31 +253,14 @@ export class Sg6TrackService implements OnDestroy {
 
             // just precompute "static" part (performance)
             // const baseTimeCellIdx = Math.round(timeRes * timeCellIdxBase);
-            const baseTimeCellIdx = (timeRes * timeCellIdxBase + 0.5) | 0;
-            
-            /*
-            // the bands of "headway" - Nachbelegung (free the occupied resource just after this "band"
-            for (let bandOffset = 0; bandOffset < timeRes * headwayTime; bandOffset++) {
-              // compute the indices to get the matrix cell's where to fill in the information
-              const timeCellIdx = bandOffset + baseTimeCellIdx;
+            const baseTimeCellIdx = Math.round(timeRes * timeCellIdxBase + 0.5);
 
-              // ensure if the idx is to small or to big (avoid crash / expection)
-              if (timeCellIdx >= 0 && timeCellIdx < nTimeCells) {
-                //dataMatAtIdx[timeCellIdx]++;
-                //tracksMatrix[idx] = Math.max(tracksMatrix[idx], dataMatAtIdx[timeCellIdx]);
-                const currentValue = dataMatAtIdx[timeCellIdx];
-                const newValue = currentValue + 1;
-                dataMatAtIdx[timeCellIdx] = newValue;
-                tracksMatrix[idx] = Math.max(tracksMatrix[idx], newValue);
-              }
-            }
-            */
-            tracksMatrix[idx] = Math.max(tracksMatrix[idx], 
+            tracksMatrix[idx] = Math.max(tracksMatrix[idx],
               this.fillOccupationBand(
-                dataMatAtIdx, 
-                baseTimeCellIdx, 
-                headwayTime, 
-                timeRes, 
+                dataMatAtIdx,
+                baseTimeCellIdx,
+                headwayTime,
+                timeRes,
                 nTimeCells
               )
             );
@@ -308,11 +291,14 @@ export class Sg6TrackService implements OnDestroy {
     timeRes: number,
     nTimeCells: number,
   ): number {
+    // the bands of "headway" - Nachbelegung (free the occupied resource just after this "band"
     const bandLength2 = Math.round(timeRes * headwayTime);
     const itrData = new Uint8Array(bandLength2);
     let maxValue = 0;
-    itrData.forEach( (_,offset) => {
+    itrData.forEach( (el,offset) => {
+      // compute the indices to get the matrix cell's where to fill in the information
       const timeIdx = baseTimeCellIdx + offset;
+      // ensure if the idx is to small or to big (avoid crash / expection)
       if (timeIdx >= 0 && timeIdx < nTimeCells) {
         const current = dataRow[timeIdx];
         if (current < 255) {
@@ -325,7 +311,7 @@ export class Sg6TrackService implements OnDestroy {
     });
     return maxValue;
   }
-  
+
 
   private getNodeKeyAlignmentsNodeData(pn: SgTrainrunNode): string {
     return "" + pn.getTrainrunNode().nodeId + "_" + pn.getTrainrunNode().index;
