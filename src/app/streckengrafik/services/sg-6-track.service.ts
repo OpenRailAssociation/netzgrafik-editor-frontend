@@ -14,6 +14,7 @@ import {TrainrunFrequency} from "../../data-structures/business.data.structures"
 import {NodeService} from "../../services/data/node.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
+import {TrainrunSection} from "../../models/trainrunsection.model";
 
 @Injectable({
   providedIn: "root",
@@ -68,20 +69,29 @@ export class Sg6TrackService implements OnDestroy {
       return;
     }
 
+    // prepare fast look (cache for big netzgrafik)
+    const trainrunSectionLookupCache = new Map<number, TrainrunSection>();
+
     // calculate the track occupier (node)
     const separateForwardBackwardTracks = this.separateForwardBackwardMainTracks;
-    this.computeTrackAlignments(this.selectedTrainrun, separateForwardBackwardTracks);
+    this.computeTrackAlignments(
+      this.selectedTrainrun,
+      separateForwardBackwardTracks,
+      trainrunSectionLookupCache,
+    );
 
     // calculate the required tracks "blocks" (section)
     const separateForwardBackwardSectionTracks = false;
     const sectionTrackMap = this.extractStreckenGleis(
       this.selectedTrainrun.trainruns,
       separateForwardBackwardSectionTracks,
+      trainrunSectionLookupCache,
     );
     this.mapTrackToTop(
       this.selectedTrainrun.trainruns,
       sectionTrackMap,
       separateForwardBackwardSectionTracks,
+      trainrunSectionLookupCache,
     );
 
     // update the rendering -> goto next pipeline step
@@ -91,12 +101,13 @@ export class Sg6TrackService implements OnDestroy {
   private extractStreckenGleis(
     trainrunItems: SgTrainrun[],
     separateForwardBackwardTracks: boolean,
+    trainrunSectionLookupCache: Map<number, TrainrunSection>,
   ) {
     const sectionsOfInterest = this.createSectionsOfInterestMap(
       trainrunItems,
       separateForwardBackwardTracks,
     );
-    return this.extractSectionTracks(sectionsOfInterest);
+    return this.extractSectionTracks(sectionsOfInterest, trainrunSectionLookupCache);
   }
 
   private createSectionsOfInterestMap(
@@ -188,6 +199,7 @@ export class Sg6TrackService implements OnDestroy {
 
   private extractSectionTracks(
     sectionsOfInterest: Map<string, any[]>,
+    trainrunSectionLookupCache: Map<number, TrainrunSection>,
     distRes = 15, // Res 4s
     timeRes = 15, // Res 4s
   ) {
@@ -223,9 +235,14 @@ export class Sg6TrackService implements OnDestroy {
         const travelTime = item.arrivalTime - item.departureTime;
         const departureMod = item.departureTime % this.maxFrequency;
 
-        const ts = this.trainrunSectionService.getTrainrunSectionFromId(
-          item.getTrainrunSection().trainrunSectionId,
-        );
+        const trainrunSectionId = item.getTrainrunSection().trainrunSectionId;
+        let cachedLookup: TrainrunSection = trainrunSectionLookupCache.get(trainrunSectionId);
+        if (cachedLookup === undefined) {
+          cachedLookup = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
+          trainrunSectionLookupCache.set(trainrunSectionId, cachedLookup);
+        }
+        const ts = cachedLookup;
+
         const headwayTime =
           ts !== undefined
             ? ts.getTrainrun().getTrainrunCategory().sectionHeadway
@@ -578,7 +595,10 @@ export class Sg6TrackService implements OnDestroy {
     ts.sgTrainrunItems = ts.sgTrainrunItems.concat(collectExtraTrainruns);
   }
 
-  private calculateMinimumHeadwayTimeAtNode(trainrunNode: SgTrainrunNode) {
+  private calculateMinimumHeadwayTimeAtNode(
+    trainrunNode: SgTrainrunNode,
+    trainrunSectionLookupCache: Map<number, TrainrunSection>,
+  ) {
     //this.calculateMinimumHeadwayTime(pathNode, trainrun, trainrunSection);
     const node = this.nodeService.getNodeFromId(trainrunNode.nodeId);
     let trainrunSectionId: number = undefined;
@@ -599,7 +619,12 @@ export class Sg6TrackService implements OnDestroy {
       return trainrun.getTrainrunCategory().nodeHeadwayStop;
     }
 
-    const trainrunSection = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
+    let cachedLookup: TrainrunSection = trainrunSectionLookupCache.get(trainrunSectionId);
+    if (cachedLookup === undefined) {
+      cachedLookup = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
+      trainrunSectionLookupCache.set(trainrunSectionId, cachedLookup);
+    }
+    const trainrunSection = cachedLookup;
     const trans = node.getTransition(trainrunSection.getId());
     const trainrun = trainrunSection.getTrainrun();
 
@@ -617,6 +642,7 @@ export class Sg6TrackService implements OnDestroy {
   private computeTrackAlignments(
     selectedTrainrun: SgSelectedTrainrun,
     separateForwardBackwardTracks = true,
+    trainrunSectionLookupCache: Map<number, TrainrunSection>,
   ) {
     const trackInfoMap = new Map<number, PathNodeNeighbour[]>();
 
@@ -637,7 +663,10 @@ export class Sg6TrackService implements OnDestroy {
       // ------------------------------------------------------------------------------------------------------------------
       ts.sgTrainrunItems.forEach((item) => {
         if (item.isNode()) {
-          const headwayTime = this.calculateMinimumHeadwayTimeAtNode(item.getTrainrunNode());
+          const headwayTime = this.calculateMinimumHeadwayTimeAtNode(
+            item.getTrainrunNode(),
+            trainrunSectionLookupCache,
+          );
           item.getTrainrunNode().setMinimumHeadwayTime(headwayTime);
         }
       });
@@ -1087,6 +1116,7 @@ export class Sg6TrackService implements OnDestroy {
     trainrunItems: SgTrainrun[],
     sectionTrackMap: Map<string, number[]>,
     separateForwardBackwardTracks: boolean,
+    trainrunSectionLookupCache: Map<number, TrainrunSection>,
   ) {
     const maxTrackMap = new Map<string, TrackData>();
     trainrunItems.forEach((trainrunItem) => {
@@ -1140,10 +1170,13 @@ export class Sg6TrackService implements OnDestroy {
         }
       });
     });
-    this.setMaxTrackMap(maxTrackMap);
+    this.setMaxTrackMap(maxTrackMap, trainrunSectionLookupCache);
   }
 
-  private setMaxTrackMap(maxTrackMap: Map<string, TrackData>) {
+  private setMaxTrackMap(
+    maxTrackMap: Map<string, TrackData>,
+    trainrunSectionLookupCache: Map<number, TrainrunSection>,
+  ) {
     maxTrackMap.forEach((trackData, key) => {
       this.selectedTrainrun.paths.forEach((path) => {
         if (path.isNode()) {
@@ -1172,7 +1205,16 @@ export class Sg6TrackService implements OnDestroy {
           const ps = path.getPathSection();
           const keyCommonBehavior = ps.arrivalNodeId + ":" + ps.departureNodeId;
           const keyOneWaySpecialCase = ps.departureNodeId + ":" + ps.arrivalNodeId;
-          const ts = this.trainrunSectionService.getTrainrunSectionFromId(ps.trainrunSectionId);
+
+          let cachedLookup: TrainrunSection = trainrunSectionLookupCache.get(ps.trainrunSectionId);
+          if (cachedLookup === undefined) {
+            cachedLookup = this.trainrunSectionService.getTrainrunSectionFromId(
+              ps.trainrunSectionId,
+            );
+            trainrunSectionLookupCache.set(ps.trainrunSectionId, cachedLookup);
+          }
+
+          const ts = cachedLookup;
           const isRoundTrip = ts.getTrainrun().isRoundTrip();
 
           if (keyCommonBehavior === key || (!isRoundTrip && keyOneWaySpecialCase === key)) {
