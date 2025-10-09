@@ -255,23 +255,27 @@ export class Sg6TrackService implements OnDestroy {
         // ------------------------------------------------------------------------------------------------------------------
         // step 4.1 -> iterate cell-by-cell foward
         // ------------------------------------------------------------------------------------------------------------------
+        const f = 1.0 / (nDistanceCells - 0.5);
+        const freq = d.trainrun.frequency;
         for (let distCellIdx = 0; distCellIdx < nDistanceCells; distCellIdx++) {
           // compute the idx - forward / backward direction (transformation)
           const idx = item.backward ? nDistanceCells - distCellIdx - 1 : distCellIdx;
           // just precompute "static" part (performance)
-          const travelTimeIdxPart = (travelTime * distCellIdx) / (nDistanceCells - 0.5);
-
+          const travelTimeIdxPart = travelTime * distCellIdx * f;
           // unroll frequency to get the trains - generated out of the "template" train
           const localMax = this.extractSectionTracksUnrollFreq(
             departureMod,
             travelTimeIdxPart,
-            d.trainrun.frequency,
+            freq,
             timeRes,
             dataMatrix[idx],
             headwayTime,
             nTimeCells,
           );
-          tracksMatrix[idx] = Math.max(tracksMatrix[idx], localMax);
+          const val = tracksMatrix[idx];
+          if (val < localMax) {
+            tracksMatrix[idx] = localMax;
+          }
         }
       });
 
@@ -297,29 +301,23 @@ export class Sg6TrackService implements OnDestroy {
     nTimeCells: number,
   ) {
     let localMax = 0;
-
-    for (
-      let freqLoop = -this.maxFrequency;
-      freqLoop <= this.maxFrequency;
-      freqLoop = freqLoop + frequency
-    ) {
+    const startAt = -this.maxFrequency;
+    const endAt = this.maxFrequency;
+    for (let freqLoop = startAt; freqLoop <= endAt; freqLoop = freqLoop + frequency) {
       // unroll frequency to get the trains - generated out of the "template" train
       // just precompute "static" part (performance)
       const timeCellIdxBase = departureMod + travelTimeIdxPart + freqLoop;
 
       // just precompute "static" part (performance)
-      const baseTimeCellIdx = Math.round(timeRes * timeCellIdxBase);
-
-      localMax = Math.max(
-        localMax,
-        this.extractSectionTracksFillOccupationBand(
-          dataMatAtIdx,
-          baseTimeCellIdx,
-          headwayTime,
-          timeRes,
-          nTimeCells,
-        ),
+      const baseTimeCellIdx = (timeRes * timeCellIdxBase + 0.5) | 0;
+      const bandMax = this.extractSectionTracksFillOccupationBand(
+        dataMatAtIdx,
+        baseTimeCellIdx,
+        headwayTime,
+        timeRes,
+        nTimeCells,
       );
+      if (bandMax > localMax) localMax = bandMax;
     }
     return localMax;
   }
@@ -332,20 +330,26 @@ export class Sg6TrackService implements OnDestroy {
     nTimeCells: number,
   ): number {
     // the bands of "headway" - Nachbelegung (free the occupied resource just after this "band"
-    const bandLength2 = Math.round(timeRes * headwayTime);
+    const bandLength = (timeRes * headwayTime + 0.5) | 0; // very fast Math.round
+    // ensure if the idx is to small or to big (avoid crash / expection)
+
+    // const startIdx = Math.max(0, Math.min(baseTimeCellIdx, nTimeCells)); -> (perf. opt.)
+    const startIdx =
+      baseTimeCellIdx < 0 ? 0 : baseTimeCellIdx > nTimeCells ? nTimeCells : baseTimeCellIdx;
+
+    // const endIdx = Math.max(0, Math.min(baseTimeCellIdx + bandLength, nTimeCells)); (perf. opt.)
+    const endVal = baseTimeCellIdx + bandLength;
+    const endIdx = endVal < 0 ? 0 : endVal > nTimeCells ? nTimeCells : endVal;
+
     let maxValue = 0;
-    for (let offset = 0; offset < bandLength2; offset++) {
-      // compute the indices to get the matrix cell's where to fill in the information
-      const timeIdx = baseTimeCellIdx + offset;
-      // ensure if the idx is to small or to big (avoid crash / expection)
-      if (timeIdx >= 0 && timeIdx < nTimeCells) {
-        const current = dataRow[timeIdx];
-        if (current < 255) {
-          const newValue = (dataRow[timeIdx] = current + 1);
-          if (newValue > maxValue) maxValue = newValue;
-        } else {
-          maxValue = 255;
-        }
+    for (let timeIdx = startIdx; timeIdx < endIdx; timeIdx++) {
+      const current = dataRow[timeIdx];
+      if (current < 255) {
+        const newValue = current + 1;
+        dataRow[timeIdx] = newValue;
+        if (newValue > maxValue) maxValue = newValue;
+      } else {
+        maxValue = 255;
       }
     }
     return maxValue;
