@@ -64,6 +64,21 @@ export class Sg6TrackService implements OnDestroy {
     return this.sgSelectedTrainrun$;
   }
 
+  private getTrainrunSectionFromCacheDuringRendering(
+    trainrunSectionId: number,
+    trainrunSectionLookupCache: Map<number, TrainrunSection>,
+  ): TrainrunSection {
+    // Retrieves a TrainrunSection by its ID, using a cache to avoid redundant lookups.
+    // If the section is not already in the provided cache, it fetches it from the service
+    // and stores it in the cache for future use. This improves performance during rendering.
+    let cachedLookup: TrainrunSection = trainrunSectionLookupCache.get(trainrunSectionId);
+    if (cachedLookup === undefined) {
+      cachedLookup = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
+      trainrunSectionLookupCache.set(trainrunSectionId, cachedLookup);
+    }
+    return cachedLookup;
+  }
+
   private render() {
     if (this.selectedTrainrun === undefined) {
       return;
@@ -235,13 +250,10 @@ export class Sg6TrackService implements OnDestroy {
         const travelTime = item.arrivalTime - item.departureTime;
         const departureMod = item.departureTime % this.maxFrequency;
 
-        const trainrunSectionId = item.getTrainrunSection().trainrunSectionId;
-        let cachedLookup: TrainrunSection = trainrunSectionLookupCache.get(trainrunSectionId);
-        if (cachedLookup === undefined) {
-          cachedLookup = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
-          trainrunSectionLookupCache.set(trainrunSectionId, cachedLookup);
-        }
-        const ts = cachedLookup;
+        const ts = this.getTrainrunSectionFromCacheDuringRendering(
+          item.getTrainrunSection().trainrunSectionId,
+          trainrunSectionLookupCache,
+        );
 
         const headwayTime =
           ts !== undefined
@@ -619,12 +631,11 @@ export class Sg6TrackService implements OnDestroy {
       return trainrun.getTrainrunCategory().nodeHeadwayStop;
     }
 
-    let cachedLookup: TrainrunSection = trainrunSectionLookupCache.get(trainrunSectionId);
-    if (cachedLookup === undefined) {
-      cachedLookup = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
-      trainrunSectionLookupCache.set(trainrunSectionId, cachedLookup);
-    }
-    const trainrunSection = cachedLookup;
+    const trainrunSection = this.getTrainrunSectionFromCacheDuringRendering(
+      trainrunSectionId,
+      trainrunSectionLookupCache,
+    );
+
     const trans = node.getTransition(trainrunSection.getId());
     const trainrun = trainrunSection.getTrainrun();
 
@@ -1206,15 +1217,10 @@ export class Sg6TrackService implements OnDestroy {
           const keyCommonBehavior = ps.arrivalNodeId + ":" + ps.departureNodeId;
           const keyOneWaySpecialCase = ps.departureNodeId + ":" + ps.arrivalNodeId;
 
-          let cachedLookup: TrainrunSection = trainrunSectionLookupCache.get(ps.trainrunSectionId);
-          if (cachedLookup === undefined) {
-            cachedLookup = this.trainrunSectionService.getTrainrunSectionFromId(
-              ps.trainrunSectionId,
-            );
-            trainrunSectionLookupCache.set(ps.trainrunSectionId, cachedLookup);
-          }
-
-          const ts = cachedLookup;
+          const ts = this.getTrainrunSectionFromCacheDuringRendering(
+            ps.trainrunSectionId,
+            trainrunSectionLookupCache,
+          );
           const isRoundTrip = ts.getTrainrun().isRoundTrip();
 
           if (keyCommonBehavior === key || (!isRoundTrip && keyOneWaySpecialCase === key)) {
