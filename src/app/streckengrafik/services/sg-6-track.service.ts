@@ -320,7 +320,7 @@ export class Sg6TrackService implements OnDestroy {
     tracksMatrix: number[],
   ) {
     // ----------------------------------------
-    // iterate section data cell-by-cell foward 
+    // iterate section data cell-by-cell foward
     // ----------------------------------------
     const f = 1.0 / (nDistanceCells - 0.5);
     for (let distCellIdx = 0; distCellIdx < nDistanceCells; distCellIdx++) {
@@ -353,8 +353,7 @@ export class Sg6TrackService implements OnDestroy {
     dataMatAtIdx: Uint8Array,
     headwayTime: number,
     nTimeCells: number,
-  ) : number
-  {
+  ): number {
     let localMax = 0;
     const startAt = -this.maxFrequency;
     const endAt = this.maxFrequency;

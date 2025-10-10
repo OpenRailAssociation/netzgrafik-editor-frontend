@@ -1,4 +1,5 @@
 {
   "bracketSpacing": false,
-  "singleQuote": false
+  "singleQuote": false,
+  "endOfLine": "crlf"
 }
