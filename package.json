@@ -11,7 +11,7 @@
     "build:standalone": "ng build --configuration=standalone",
     "build:standalonedemo": "ng build --configuration=standalonedemo",
     "test": "ng test -c ci",
-    "format": "prettier --write . ",
+    "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
