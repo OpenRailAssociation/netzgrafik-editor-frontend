@@ -319,9 +319,9 @@ export class Sg6TrackService implements OnDestroy {
     dataMatrix: any[],
     tracksMatrix: number[],
   ) {
-    // ---------------------------------
-    // iterate section data cell-by-cell
-    // ---------------------------------
+    // ----------------------------------------
+    // iterate section data cell-by-cell foward 
+    // ----------------------------------------
     const f = 1.0 / (nDistanceCells - 0.5);
     for (let distCellIdx = 0; distCellIdx < nDistanceCells; distCellIdx++) {
       // compute the idx - forward / backward direction (transformation)
