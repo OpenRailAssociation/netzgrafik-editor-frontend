@@ -25,7 +25,7 @@ jobs:
           cache: "npm"
       - run: npm clean-install
       - name: Check code formatting
-        run: npx prettier --check --log-level debug .
+        run: npx prettier --check .
 
   lint:
     runs-on: ubuntu-latest

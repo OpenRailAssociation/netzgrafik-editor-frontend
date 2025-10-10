@@ -12,7 +12,7 @@
     "build:standalonedemo": "ng build --configuration=standalonedemo",
     "test": "ng test -c ci",
     "format": "prettier --write . ",
-    "format:check": "prettier --check --loglevel debug .",
+    "format:check": "prettier --check .",
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
     "e2e": "ng e2e",
