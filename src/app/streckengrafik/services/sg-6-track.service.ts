@@ -259,32 +259,19 @@ export class Sg6TrackService implements OnDestroy {
           ts !== undefined
             ? ts.getTrainrun().getTrainrunCategory().sectionHeadway
             : this.minimumHeadwayTime;
-
-        // ------------------------------------------------------------------------------------------------------------------
-        // step 4.1 -> iterate cell-by-cell foward
-        // ------------------------------------------------------------------------------------------------------------------
-        const f = 1.0 / (nDistanceCells - 0.5);
-        const freq = d.trainrun.frequency;
-        for (let distCellIdx = 0; distCellIdx < nDistanceCells; distCellIdx++) {
-          // compute the idx - forward / backward direction (transformation)
-          const idx = item.backward ? nDistanceCells - distCellIdx - 1 : distCellIdx;
-          // just precompute "static" part (performance)
-          const travelTimeIdxPart = travelTime * distCellIdx * f;
-          // unroll frequency to get the trains - generated out of the "template" train
-          const localMax = this.extractSectionTracksUnrollFreq(
-            departureMod,
-            travelTimeIdxPart,
-            freq,
-            timeRes,
-            dataMatrix[idx],
-            headwayTime,
-            nTimeCells,
-          );
-          const val = tracksMatrix[idx];
-          if (val < localMax) {
-            tracksMatrix[idx] = localMax;
-          }
-        }
+            
+        this.extractSectionsTrackDataCellByCell(
+          nDistanceCells,
+          nTimeCells,
+          d.trainrun.frequency,
+          item.backward,
+          travelTime,
+          departureMod,
+          timeRes,
+          headwayTime,
+          dataMatrix,
+          tracksMatrix,
+        );
       });
 
       // ------------------------------------------------------------------------------------------------------------------
@@ -297,6 +284,44 @@ export class Sg6TrackService implements OnDestroy {
     }
 
     return sectionsTracks;
+  }
+
+  private extractSectionsTrackDataCellByCell(
+    nDistanceCells: number,
+    nTimeCells: number,
+    freq: number,
+    backward: boolean,
+    travelTime: number,
+    departureMod: number,
+    timeRes: number,
+    headwayTime: number,
+    dataMatrix: any[],
+    tracksMatrix: number[],
+  ) {
+    // ---------------------------------
+    // iterate section data cell-by-cell
+    // ---------------------------------
+    const f = 1.0 / (nDistanceCells - 0.5);
+    for (let distCellIdx = 0; distCellIdx < nDistanceCells; distCellIdx++) {
+      // compute the idx - forward / backward direction (transformation)
+      const idx = backward ? nDistanceCells - distCellIdx - 1 : distCellIdx;
+      // just precompute "static" part (performance)
+      const travelTimeIdxPart = travelTime * distCellIdx * f;
+      // unroll frequency to get the trains - generated out of the "template" train
+      const localMax = this.extractSectionTracksUnrollFreq(
+        departureMod,
+        travelTimeIdxPart,
+        freq,
+        timeRes,
+        dataMatrix[idx],
+        headwayTime,
+        nTimeCells,
+      );
+      const val = tracksMatrix[idx];
+      if (val < localMax) {
+        tracksMatrix[idx] = localMax;
+      }
+    }
   }
 
   private extractSectionTracksUnrollFreq(
@@ -339,7 +364,7 @@ export class Sg6TrackService implements OnDestroy {
   ): number {
     // the bands of "headway" - Nachbelegung (free the occupied resource just after this "band"
     const bandLength = (timeRes * headwayTime + 0.5) | 0; // very fast Math.round
-    
+
     // ensure if the idx is to small or to big (avoid crash / expection)
     // -----------------------------------------------------------------
     // const startIdx = Math.max(0, Math.min(baseTimeCellIdx, nTimeCells)); -> (perf. opt.)
