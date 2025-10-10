@@ -339,8 +339,9 @@ export class Sg6TrackService implements OnDestroy {
   ): number {
     // the bands of "headway" - Nachbelegung (free the occupied resource just after this "band"
     const bandLength = (timeRes * headwayTime + 0.5) | 0; // very fast Math.round
+    
     // ensure if the idx is to small or to big (avoid crash / expection)
-
+    // -----------------------------------------------------------------
     // const startIdx = Math.max(0, Math.min(baseTimeCellIdx, nTimeCells)); -> (perf. opt.)
     const startIdx =
       baseTimeCellIdx < 0 ? 0 : baseTimeCellIdx > nTimeCells ? nTimeCells : baseTimeCellIdx;
@@ -349,6 +350,8 @@ export class Sg6TrackService implements OnDestroy {
     const endVal = baseTimeCellIdx + bandLength;
     const endIdx = endVal < 0 ? 0 : endVal > nTimeCells ? nTimeCells : endVal;
 
+    // Loop over the band (expensive part of the code)
+    // -----------------------------------------------
     let maxValue = 0;
     for (let timeIdx = startIdx; timeIdx < endIdx; timeIdx++) {
       const current = dataRow[timeIdx];
