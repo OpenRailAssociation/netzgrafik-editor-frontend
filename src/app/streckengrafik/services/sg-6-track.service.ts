@@ -259,7 +259,7 @@ export class Sg6TrackService implements OnDestroy {
           ts !== undefined
             ? ts.getTrainrun().getTrainrunCategory().sectionHeadway
             : this.minimumHeadwayTime;
-            
+
         this.extractSectionsTrackDataCellByCell(
           nDistanceCells,
           nTimeCells,
@@ -332,7 +332,8 @@ export class Sg6TrackService implements OnDestroy {
     dataMatAtIdx: Uint8Array,
     headwayTime: number,
     nTimeCells: number,
-  ) {
+  ) : number
+  {
     let localMax = 0;
     const startAt = -this.maxFrequency;
     const endAt = this.maxFrequency;
@@ -362,11 +363,11 @@ export class Sg6TrackService implements OnDestroy {
     timeRes: number,
     nTimeCells: number,
   ): number {
-    // the bands of "headway" - Nachbelegung (free the occupied resource just after this "band"
+    // The headway bands – 'Nachbelegung' (release the "occupied resource" after this band).
     const bandLength = (timeRes * headwayTime + 0.5) | 0; // very fast Math.round
 
-    // ensure if the idx is to small or to big (avoid crash / expection)
-    // -----------------------------------------------------------------
+    // ensure if the idx is to small or too big (avoid crash / exception)
+    // ------------------------------------------------------------------
     // const startIdx = Math.max(0, Math.min(baseTimeCellIdx, nTimeCells)); -> (perf. opt.)
     const startIdx =
       baseTimeCellIdx < 0 ? 0 : baseTimeCellIdx > nTimeCells ? nTimeCells : baseTimeCellIdx;
