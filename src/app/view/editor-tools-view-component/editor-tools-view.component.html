@@ -92,6 +92,23 @@
       "app.view.editor-side-view.editor-tools-view-component.export-trainruns-as-csv-excel"
         | translate
     }}</sbb-tooltip>
+    {{ 'app.view.editor-side-view.editor-tools-view-component.export-trainruns-as-csv' | translate }}
+    <sbb-tooltip
+    >{{ 'app.view.editor-side-view.editor-tools-view-component.export-trainruns-as-csv-excel' | translate }}</sbb-tooltip
+    >
+
+    <br />
+    <button
+      (click)="onTrainrunDetailDataAsCSVData()"
+      [title]="'app.view.editor-side-view.editor-tools-view-component.export-trainruns-detail' | translate"
+      class="TrainrunDialog EditorToolButton"
+    >
+      <sbb-icon svgIcon="download-large-data-small"></sbb-icon>
+    </button>
+    {{ 'app.view.editor-side-view.editor-tools-view-component.export-trainruns-detail-as-csv' | translate }}
+    <sbb-tooltip
+      >{{ 'app.view.editor-side-view.editor-tools-view-component.export-trainruns-detail-as-csv-excel' | translate }}</sbb-tooltip
+    >
     <br />
     <button
       (click)="onExportOriginDestination()"

@@ -27,6 +27,8 @@ import {TrainrunSectionValidator} from "../../services/util/trainrunsection.vali
 import {OriginDestinationService} from "src/app/services/analytics/origin-destination/components/origin-destination.service";
 import {EditorMode} from "../editor-menu/editor-mode";
 import {NODE_TEXT_AREA_HEIGHT, RASTERING_BASIC_GRID_SIZE} from "../rastering/definitions";
+import {GeneralViewFunctions} from "../util/generalViewFunctions";
+import {TrainrunSection} from "../../models/trainrunsection.model";
 
 interface ContainertoExportData {
   documentToExport: HTMLElement;
@@ -201,6 +203,12 @@ export class EditorToolsViewComponent {
       $localize`:@@app.view.editor-side-view.editor-tools-view-component.trainrunFile:trainrun` +
       ".csv";
     const csvData = this.convertToZuglaufCSV();
+    this.onExport(filename, csvData);
+  }
+
+  onTrainrunDetailDataAsCSVData() {
+    const filename = $localize`:@@app.view.editor-side-view.editor-tools-view-component.trainrunExportFile:trainrunExportFile` + ".csv";
+    const csvData = this.createTrainrunDetailDataAsCSVData();
     this.onExport(filename, csvData);
   }
 
@@ -525,6 +533,181 @@ export class EditorToolsViewComponent {
         return this.getNetzgrafikEditingContainerToExport();
     }
   }
+
+  private createTrainrunDetailDataAsCSVData(): string {
+    /*
+      This prompt can be uses to test with any LLM
+
+      ---- start ----
+      Build agent that can process, analyze, and compare timetable data. In order to do this, data with trainruns is required.
+      A timetable consists of at least one or an unlimited number of trainruns. Each trainrun is described with attributes
+      such as Name, Frequency, Direction, and PathTime.
+
+      Name: The name indicates the train journey, which usually consists of one forward and one backward trainrun.
+      If a train journey only travels in one direction, then the train journey consists only of a forward trainrun.
+
+      Frequency: Each train journey has a frequency attribute that indicates how often the train runs.
+      For example, a frequency of 15 means that a single train departs from the starting point every 15 minutes,
+      resulting in 4 trains per hour. A frequency of 30 means a new train starts every half hour,
+      and 60 means once per hour. The trains of the train journey consist solely of a master train.
+      Using the frequency, all train run of a timetable can be infinitely rolled out or unfolded from the train
+      journey and its journeys. This leads to a full-day timetable that is suitable for planning problems and also
+      for complex timetable analyses.
+
+      PathTime: This attribute describes the temporal and spatial sequence of the travel route.
+      PathTime is a vector that consists of the following elements:
+
+      - Node: Name of the place or city.
+      - ArrivalTime: Consecutive Arrival time at the node: The time in minutes at which the train arrives at the node.
+      - DepartureTime: Consecutive Departure time at the node: The time in minutes at which the train leaves the node.
+      - Stop: True if the train stops so that passengers can board or alight and possibly take a connecting journey at the same node.
+            False if the train does not stop and passengers cannot board or alight.
+      - ArrivalMinute: Arrival time at the node: The time in minutes at which the train arrives at the node - just the minute - 0..60
+      - DepatureMinute: Departure time at the node: The time in minutes at which the train leaves the node -  just the minute - 0..60
+
+      Additional Information:
+      Within a train journey, all trainruns in opposite direction have a symmetric counterpart, expect there is just a one-way trainrun.
+      Symmetrical means that forward (F) and backward (B)
+      always have symmetrical times. The travel times are symmetrical to zero minutes, i.e., 60 minus the arrival
+      time corresponds to the departure time in the opposite direction.
+
+      Build the agent. Then ask the user if they can upload timetable data. Every time timetable data is uploaded,
+      create a new variant. Use only the timetable data that has been uploaded. Once a new variant is uploaded,
+      output in a table for the new data of the new variant how many trains were loaded and how many journes there are.
+      Only this should be output. Once everything is loaded, also output, "I am waiting for new instructions."
+
+      Output: Ask for the language the user would like to receive the response in. And write: "Please load the data by uploading CSV files."
+      ---- end ----
+
+      Prompt
+      ---- start ----
+      Please compare the variants and provide feedback on the differences you observe in the variants,
+      including route deviations, ArrivalMinute or DepatureMinute deviations, frequencies, ... .
+      The results should be visualized. For example, you could use a table with the variants and the
+      analysis results in the columns and the topic in the rows.
+      ---- end ----
+
+    */
+    const sep = ",";
+    const headers: string[] = [];
+    const rows: string[][] = [];
+
+    //headers.push("ID");
+    headers.push("Name");
+    headers.push("Frequency");
+    headers.push("Direction");
+    headers.push("PathTime");
+
+    const direction = ["F", "B"];
+
+    this.trainrunService
+      .getTrainruns()
+      .filter((trainrun) => this.filterService.filterTrainrun(trainrun))
+      .forEach((trainrun) => {
+        const freqsUnroll: number[] = [0];
+
+        direction.forEach(dir => {
+
+          let alltrainrunsections = this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(trainrun.getId());
+          while (alltrainrunsections.length > 0) {
+
+            const bothEndNodes =
+              this.trainrunService.getBothEndNodesFromTrainrunPart(alltrainrunsections[0]);
+
+            const startNodeTmp =
+              GeneralViewFunctions.getLeftOrTopNode(
+                bothEndNodes.endNode1,
+                bothEndNodes.endNode2,
+              );
+
+            // forward / backward
+            const startNode = dir === "F" ? startNodeTmp :
+              startNodeTmp.getId() === bothEndNodes.endNode1.getId() ?
+                bothEndNodes.endNode2 : bothEndNodes.endNode1;
+
+
+            const startTrainrunSection = startNode.getStartTrainrunSection(trainrun.getId());
+
+            const visitedTrainrunSections: TrainrunSection[] = [];
+            visitedTrainrunSections.push(startTrainrunSection);
+            const iterator = this.trainrunService.getIterator(startNode, startTrainrunSection);
+            let nodes: string = "Path=[" + startNode.getBetriebspunktName();
+
+            // calc start time
+            const startTime = startTrainrunSection.getSourceNodeId() === iterator.current().node.getId() ?
+              startTrainrunSection.getTargetDepartureConsecutiveTime() :
+              startTrainrunSection.getSourceDepartureConsecutiveTime();
+            const startTimeMinute = startTrainrunSection.getSourceNodeId() === iterator.current().node.getId() ?
+              startTrainrunSection.getTargetDeparture() :
+              startTrainrunSection.getSourceDeparture();
+
+            let pathTime: string = "PathTime=[(" + startNode.getBetriebspunktName() + ", null " + "," + startTime + "," + true + ", null, " + startTimeMinute +")";
+
+            while (iterator.hasNext()) {
+              iterator.next();
+              nodes += sep + iterator.current().node.getBetriebspunktName();
+              const ts = iterator.current().trainrunSection;
+
+              // calc time a
+              const timeA = ts.getSourceNodeId() === iterator.current().node.getId() ?
+                ts.getSourceArrivalConsecutiveTime() :
+                ts.getTargetArrivalConsecutiveTime();
+              const timeAMinute = ts.getSourceNodeId() === iterator.current().node.getId() ?
+                ts.getSourceArrival() :
+                ts.getTargetArrival();
+
+              const node = iterator.current().node;
+              const bpName = node.getBetriebspunktName();
+              const trans = node.getTransition(iterator.current().trainrunSection.getId());
+
+              const nonStop = trans === undefined ? false : !trans.getIsNonStopTransit();
+
+              if (iterator.hasNext()) {
+                const tsNext = iterator.current().node.getNextTrainrunSection(iterator.current().trainrunSection);
+
+                // calc time D
+                const timeD = tsNext.getSourceNodeId() === iterator.current().node.getId() ?
+                  tsNext.getSourceDepartureConsecutiveTime() :
+                  tsNext.getTargetDepartureConsecutiveTime();
+                const timeDMinute = tsNext.getSourceNodeId() === iterator.current().node.getId() ?
+                  tsNext.getSourceDeparture() :
+                  tsNext.getTargetDeparture();
+
+                pathTime += sep + "(" + bpName + "," + timeA + "," + timeD + "," + nonStop + "," + timeAMinute + "," +  timeDMinute + ")";
+              } else {
+                pathTime += sep + "(" + bpName + "," + timeA + ", null" + "," + true + ", " + timeAMinute + ", null)";
+              }
+
+              visitedTrainrunSections.push(iterator.current().trainrunSection);
+            }
+            visitedTrainrunSections.push(iterator.current().trainrunSection);
+
+            // create row data to push to rows
+            const row: string[] = [];
+            //row.push("" + trainrun.getId());
+            row.push("" + trainrun.getCategoryShortName() + trainrun.getTitle());
+            row.push("" + trainrun.getTrainrunFrequency().frequency);
+            row.push(dir);
+            //row.push(nodes + "]");
+            row.push(pathTime + "]");
+
+            // to storage
+            rows.push(row);
+
+            // filter all still visited trainrun sections
+            alltrainrunsections = alltrainrunsections.filter(ts =>
+              visitedTrainrunSections.indexOf(ts) === -1
+            );
+          }
+        }); // each direction F : forward / B : backward
+
+      }); // each trainrun
+
+
+    return this.buildCSVString(headers, rows);
+  }
+
+
 
   private convertToZuglaufCSV(): string {
     const comma = ",";
