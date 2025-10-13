@@ -199,4 +199,14 @@ export class FilterMainSideViewComponent implements OnInit, OnDestroy {
   isOriginDestination() {
     return this.mainViewMode === MainViewMode.OriginDestination;
   }
+
+  getCorrectZoomFactor(): string {
+    // Empirical observation: For devicePixelRatio of 1.5, no zoom adjustment is needed.
+    // The reason is unclear, but tests confirm this works reliably.
+    if (window.devicePixelRatio === 1.5) {
+      return "";
+    }
+    return "zoom: 1.0;";
+  }
+
 }
