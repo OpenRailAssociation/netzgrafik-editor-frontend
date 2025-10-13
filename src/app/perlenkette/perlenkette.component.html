@@ -4,7 +4,9 @@
       [attr.style]="
         'pointer-events: none; margin: 0px; position: absolute; padding-left: ' +
         (contentWidth - 55) +
-        'px; padding-top: ' + getPositionY() + 'px;'
+        'px; padding-top: ' +
+        getPositionY() +
+        'px;'
       "
     >
       <ng-container *ngIf="!getShowAllLockStates()">

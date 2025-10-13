@@ -208,5 +208,4 @@ export class FilterMainSideViewComponent implements OnInit, OnDestroy {
     }
     return "zoom: 1.0;";
   }
-
 }
