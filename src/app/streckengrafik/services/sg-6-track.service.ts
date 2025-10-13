@@ -384,7 +384,7 @@ export class Sg6TrackService implements OnDestroy {
     nTimeCells: number,
   ): number {
     // The headway bands – 'Nachbelegung' (release the "occupied resource" after this band).
-    const bandLength = Math.round(timeRes * headwayTime); 
+    const bandLength = Math.round(timeRes * headwayTime);
 
     // ensure if the idx is to small or too big (avoid crash / exception)
     // ------------------------------------------------------------------
