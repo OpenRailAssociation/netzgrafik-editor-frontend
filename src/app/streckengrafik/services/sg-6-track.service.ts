@@ -363,7 +363,7 @@ export class Sg6TrackService implements OnDestroy {
       const timeCellIdxBase = departureMod + travelTimeIdxPart + freqLoop;
 
       // just precompute "static" part (performance)
-      const baseTimeCellIdx = (timeRes * timeCellIdxBase + 0.5) | 0;
+      const baseTimeCellIdx = Math.round(timeRes * timeCellIdxBase);
       const bandMax = this.extractSectionTracksFillOccupationBand(
         dataMatAtIdx,
         baseTimeCellIdx,
@@ -384,7 +384,7 @@ export class Sg6TrackService implements OnDestroy {
     nTimeCells: number,
   ): number {
     // The headway bands – 'Nachbelegung' (release the "occupied resource" after this band).
-    const bandLength = (timeRes * headwayTime + 0.5) | 0; // very fast Math.round
+    const bandLength = Math.round(timeRes * headwayTime); 
 
     // ensure if the idx is to small or too big (avoid crash / exception)
     // ------------------------------------------------------------------
