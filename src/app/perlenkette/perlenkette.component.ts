@@ -331,6 +331,10 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     return this.versionControlService.getVariantIsWritable();
   }
 
+  getPositionY() : number {
+    return (this.contentHeight * window.devicePixelRatio - 40);
+  }
+
   disableSectionView() {
     if (!this.getVariantIsWritable()) {
       this.signalIsBeingEdited(undefined);
