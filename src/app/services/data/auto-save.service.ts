@@ -39,15 +39,11 @@ export class AutoSaveService implements OnDestroy {
       this.changesSubscription.unsubscribe();
     }
     this.modifiedSubject.next(false);
-    this.currentNetzgrafikJSON = JSON.stringify(
-      this.dataService.getNetzgrafikDto(),
-    );
+    this.currentNetzgrafikJSON = JSON.stringify(this.dataService.getNetzgrafikDto());
     this.changesSubscription = this.dataService
       .getNetzgrafikChangesObservable(300)
       .subscribe(() => {
-        const newNetzgrafikJson = JSON.stringify(
-          this.dataService.getNetzgrafikDto(),
-        );
+        const newNetzgrafikJson = JSON.stringify(this.dataService.getNetzgrafikDto());
         const modified = newNetzgrafikJson !== this.currentNetzgrafikJSON;
         this.currentNetzgrafikJSON = newNetzgrafikJson;
         this.modifiedSubject.next(modified);

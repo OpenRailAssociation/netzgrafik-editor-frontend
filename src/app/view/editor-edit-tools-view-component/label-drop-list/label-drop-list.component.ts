@@ -2,11 +2,7 @@ import {Component, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
 import {SbbDialog} from "@sbb-esta/angular/dialog";
-import {
-  CdkDragDrop,
-  CdkDropList,
-  CdkDropListGroup,
-} from "@angular/cdk/drag-drop";
+import {CdkDragDrop, CdkDropList, CdkDropListGroup} from "@angular/cdk/drag-drop";
 import {NodeService} from "../../../services/data/node.service";
 import {TrainrunService} from "../../../services/data/trainrun.service";
 import {LabelService} from "../../../services/data/label.service";
@@ -51,13 +47,11 @@ export class LabelDropListComponent implements OnInit, OnDestroy {
       this.translateComponentLabelRef(),
     );
 
-    this.labelGroupService.labelGroups
-      .pipe(takeUntil(this.destroyed))
-      .subscribe(() => {
-        this.labelGroups = this.labelGroupService.getLabelGroupsFromLabelRef(
-          this.translateComponentLabelRef(),
-        );
-      });
+    this.labelGroupService.labelGroups.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.labelGroups = this.labelGroupService.getLabelGroupsFromLabelRef(
+        this.translateComponentLabelRef(),
+      );
+    });
 
     this.labelService.labels.pipe(takeUntil(this.destroyed)).subscribe(() => {
       this.labelGroups = this.labelGroupService.getLabelGroupsFromLabelRef(
@@ -82,10 +76,7 @@ export class LabelDropListComponent implements OnInit, OnDestroy {
   }
 
   hasNoFilterableLabels(): boolean {
-    return (
-      this.labelService.getLabelsFromLabelRef(this.translateComponentLabelRef())
-        .length === 0
-    );
+    return this.labelService.getLabelsFromLabelRef(this.translateComponentLabelRef()).length === 0;
   }
 
   onLabelClicked(labelId: number) {
@@ -121,16 +112,11 @@ export class LabelDropListComponent implements OnInit, OnDestroy {
     FilterableLabelDialogComponent.open(this.dialog, callbackObject);
   }
 
-  dropLabelElement(
-    event: CdkDragDrop<Label[]>,
-    labelId: number,
-    grpId: number,
-  ) {
+  dropLabelElement(event: CdkDragDrop<Label[]>, labelId: number, grpId: number) {
     if (event.previousContainer === event.container) {
       return;
     } else {
-      const movedLabelObject: Label =
-        event.previousContainer.data[event.previousIndex];
+      const movedLabelObject: Label = event.previousContainer.data[event.previousIndex];
       if (movedLabelObject.getLabelGroupId() !== grpId) {
         movedLabelObject.setLabelGroupId(grpId);
         this.labelService.labelUpdated();
@@ -179,10 +165,7 @@ export class LabelDropListComponent implements OnInit, OnDestroy {
   isDefaultLabelGroup(labelGrpId: number) {
     const labelGroup = this.labelGroupService.getLabelGroup(labelGrpId);
     return (
-      labelGrpId !==
-      this.labelGroupService
-        .getDefaultLabelGroup(labelGroup.getLabelRef())
-        .getId()
+      labelGrpId !== this.labelGroupService.getDefaultLabelGroup(labelGroup.getLabelRef()).getId()
     );
   }
 }

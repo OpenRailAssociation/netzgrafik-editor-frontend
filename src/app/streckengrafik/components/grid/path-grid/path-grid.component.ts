@@ -1,11 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  Input,
-  OnDestroy,
-  OnInit,
-} from "@angular/core";
+import {AfterViewInit, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
 import {Subject} from "rxjs";
 import {ResizeChangeInfo} from "../../../model/util/resizeChangeInfo";
 import {ViewBoxChangeInfo} from "../../../model/util/viewBoxChangeInfo";
@@ -107,11 +100,7 @@ export class PathGridComponent implements OnInit, OnDestroy, AfterViewInit {
 
   getGridTrackPositions(path: SgPath): number[] {
     const gridTrackPositions = [];
-    for (
-      let idx = this.trackWidth;
-      idx < this.nodeWidth(path);
-      idx += this.trackWidth
-    ) {
+    for (let idx = this.trackWidth; idx < this.nodeWidth(path); idx += this.trackWidth) {
       gridTrackPositions.push(idx);
     }
     return gridTrackPositions;
@@ -132,28 +121,19 @@ export class PathGridComponent implements OnInit, OnDestroy, AfterViewInit {
       return 30;
     }
     const offset = isTextPos ? 35 : 38;
-    return (
-      offset +
-      ((((gridTrackPos - this.trackWidth) / this.trackWidth) % 2) - 1) * 7
-    );
+    return offset + ((((gridTrackPos - this.trackWidth) / this.trackWidth) % 2) - 1) * 7;
   }
 
   getTrackData(path: SgPath, gridTrackPos: number): TrackData {
-    const trackNbr = Math.round(
-      1 + (gridTrackPos - this.trackWidth) / this.trackWidth,
-    );
+    const trackNbr = Math.round(1 + (gridTrackPos - this.trackWidth) / this.trackWidth);
     const pathNode = path.getPathNode();
     const nodeTracks = pathNode.trackData.getNodeTracks();
     const trackIdx = trackNbr - 1;
-    return trackIdx < nodeTracks.length
-      ? nodeTracks[trackIdx]
-      : pathNode.trackData;
+    return trackIdx < nodeTracks.length ? nodeTracks[trackIdx] : pathNode.trackData;
   }
 
   getTrackLabel(path: SgPath, gridTrackPos: number): string {
-    const trackNbr = Math.round(
-      1 + (gridTrackPos - this.trackWidth) / this.trackWidth,
-    );
+    const trackNbr = Math.round(1 + (gridTrackPos - this.trackWidth) / this.trackWidth);
     return "" + trackNbr;
   }
 
@@ -209,11 +189,7 @@ export class PathGridComponent implements OnInit, OnDestroy, AfterViewInit {
     return tag;
   }
 
-  getClassTagWithTrackPos(
-    tag: string,
-    path: SgPath,
-    gridTrackPos: number,
-  ): string {
+  getClassTagWithTrackPos(tag: string, path: SgPath, gridTrackPos: number): string {
     let ret = this.getClassTag(tag, path);
     const trackData = this.getTrackData(path, gridTrackPos);
     if (trackData !== undefined) {

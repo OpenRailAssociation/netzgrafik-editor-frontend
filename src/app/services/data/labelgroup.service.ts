@@ -1,10 +1,7 @@
 import {Injectable, OnDestroy} from "@angular/core";
 import {BehaviorSubject, Subject} from "rxjs";
 import {LogService} from "../../logger/log.service";
-import {
-  LabelGroupDto,
-  LabelRef,
-} from "../../data-structures/business.data.structures";
+import {LabelGroupDto, LabelRef} from "../../data-structures/business.data.structures";
 import {LabelGroup} from "../../models/labelGroup.model";
 import {LabelService} from "./label.service";
 import {Label} from "../../models/label.model";
@@ -45,15 +42,11 @@ export class LabelGroupService implements OnDestroy {
   }
 
   labelGroupUpdated() {
-    this.labelGroupSubject.next(
-      Object.assign({}, this.labelGroupStore).labelGroups,
-    );
+    this.labelGroupSubject.next(Object.assign({}, this.labelGroupStore).labelGroups);
   }
 
   getLabelGroup(labelGroupId: number): LabelGroup {
-    return this.labelGroupStore.labelGroups.find(
-      (grp: LabelGroup) => grp.getId() === labelGroupId,
-    );
+    return this.labelGroupStore.labelGroups.find((grp: LabelGroup) => grp.getId() === labelGroupId);
   }
 
   getLabelGroupsFromLabelRef(labelRef: LabelRef): LabelGroup[] {
@@ -65,21 +58,17 @@ export class LabelGroupService implements OnDestroy {
   getAutoCompleteLabels(objectLabels: string[], labelRef: LabelRef): string[] {
     const retLabels: string[] = [];
     this.getLabelGroupsFromLabelRef(labelRef).forEach((grp: LabelGroup) => {
-      this.labelService
-        .getLabelsFromLabelGroupId(grp.getId())
-        .forEach((el: Label) => {
-          if (objectLabels.find((s) => s === el.getLabel()) === undefined) {
-            retLabels.push(el.getLabel());
-          }
-        });
+      this.labelService.getLabelsFromLabelGroupId(grp.getId()).forEach((el: Label) => {
+        if (objectLabels.find((s) => s === el.getLabel()) === undefined) {
+          retLabels.push(el.getLabel());
+        }
+      });
     });
     return retLabels;
   }
 
   getDtos() {
-    return this.labelGroupStore.labelGroups.map((labelGroup) =>
-      labelGroup.getDto(),
-    );
+    return this.labelGroupStore.labelGroups.map((labelGroup) => labelGroup.getDto());
   }
 
   isDefaultGroup(labelGroupId: number): boolean {
@@ -117,14 +106,10 @@ export class LabelGroupService implements OnDestroy {
     if (labelGroupObject === undefined) {
       return;
     }
-    const defaultGrp = this.getDefaultLabelGroup(
-      labelGroupObject.getLabelRef(),
-    );
+    const defaultGrp = this.getDefaultLabelGroup(labelGroupObject.getLabelRef());
     this.labelService
       .getLabelsFromLabelGroupId(labelGroupId)
-      .forEach((labelObject) =>
-        labelObject.setLabelGroupId(defaultGrp.getId()),
-      );
+      .forEach((labelObject) => labelObject.setLabelGroupId(defaultGrp.getId()));
     this.labelGroupStore.labelGroups = this.labelGroupStore.labelGroups.filter(
       (grp: LabelGroup) => grp.getId() !== labelGroupId,
     );

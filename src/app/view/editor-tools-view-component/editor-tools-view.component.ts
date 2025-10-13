@@ -26,13 +26,14 @@ import {LevelOfDetailService} from "../../services/ui/level.of.detail.service";
 import {TrainrunSectionValidator} from "../../services/util/trainrunsection.validator";
 import {OriginDestinationService} from "src/app/services/analytics/origin-destination/components/origin-destination.service";
 import {EditorMode} from "../editor-menu/editor-mode";
+import {NODE_TEXT_AREA_HEIGHT, RASTERING_BASIC_GRID_SIZE} from "../rastering/definitions";
 import {GeneralViewFunctions} from "../util/generalViewFunctions";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 
 interface ContainertoExportData {
   documentToExport: HTMLElement;
   exportParameter: any;
-  documentSavedStyle: string;
+  essentialProps: string[];
 }
 
 @Component({
@@ -46,12 +47,8 @@ export class EditorToolsViewComponent {
   @ViewChild("netgrafikJsonFileInput", {static: false})
   netgrafikJsonFileInput: ElementRef;
 
-  public isDeletable$ = this.versionControlService.variant$.pipe(
-    map((v) => v?.isDeletable),
-  );
-  public isWritable$ = this.versionControlService.variant$.pipe(
-    map((v) => v?.isWritable),
-  );
+  public isDeletable$ = this.versionControlService.variant$.pipe(map((v) => v?.isDeletable));
+  public isWritable$ = this.versionControlService.variant$.pipe(map((v) => v?.isWritable));
 
   constructor(
     private dataService: DataService,
@@ -68,8 +65,7 @@ export class EditorToolsViewComponent {
     private viewportCullService: ViewportCullService,
     private levelOfDetailService: LevelOfDetailService,
     private originDestinationService: OriginDestinationService,
-  ) {
-  }
+  ) {}
 
   onLoadButton() {
     this.netgrafikJsonFileInput.nativeElement.click();
@@ -117,35 +113,11 @@ export class EditorToolsViewComponent {
   onSave() {
     const data: NetzgrafikDto = this.dataService.getNetzgrafikDto();
     const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
-    downloadBlob(blob, $localize`:@@app.view.editor-side-view.editor-tools-view-component.netzgrafikFile:netzgrafik` + ".json");
-  }
-
-  onExportContainerAsSVG() {
-    // option 2: save svg as svg
-    // https://www.npmjs.com/package/save-svg-as-png
-    this.levelOfDetailService.disableLevelOfDetailRendering();
-    this.viewportCullService.onViewportChangeUpdateRendering(false);
-
-    const containerInfo = this.getContainertoExport();
-    svg
-      .svgAsDataUri(
-        containerInfo.documentToExport,
-        containerInfo.exportParameter,
-      )
-      .then((uri) => {
-        const a = document.createElement("a");
-        document.body.appendChild(a);
-        a.href = uri;
-        a.download = this.getFilenameToExport() + ".svg";
-        a.click();
-        URL.revokeObjectURL(a.href);
-        a.remove();
-        containerInfo.documentToExport.setAttribute(
-          "style",
-          containerInfo.documentSavedStyle,
-        );
-        this.levelOfDetailService.enableLevelOfDetailRendering();
-      });
+    downloadBlob(
+      blob,
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.netzgrafikFile:netzgrafik` +
+        ".json",
+    );
   }
 
   onPrintContainer() {
@@ -155,19 +127,47 @@ export class EditorToolsViewComponent {
     }, 1500); // to allow cd-layout-filter to close
   }
 
+  onExportContainerAsSVG() {
+    // option 2: save svg as svg
+    // https://www.npmjs.com/package/save-svg-as-png
+    this.levelOfDetailService.disableLevelOfDetailRendering();
+    this.viewportCullService.onViewportChangeUpdateRendering(false);
+
+    const containerInfo = this.getContainerToExport();
+    this.prepareStyleForExport(containerInfo);
+
+    // SVG scaling does not affect resolution since SVGs are rendered as vector graphics.
+    // To ensure a good initial scale, we define the target width as 2000 pixels.
+    const scaleToTargetWidth = 2000 / containerInfo.exportParameter.width;
+    containerInfo.exportParameter.scale = scaleToTargetWidth;
+
+    svg.svgAsDataUri(containerInfo.documentToExport, containerInfo.exportParameter).then((uri) => {
+      const a = document.createElement("a");
+      document.body.appendChild(a);
+      a.href = uri;
+      a.download = this.getFilenameToExport() + ".svg";
+      a.click();
+      URL.revokeObjectURL(a.href);
+      a.remove();
+      this.levelOfDetailService.enableLevelOfDetailRendering();
+    });
+  }
+
   onExportContainerAsPNG() {
     // option 1: save svg as png
     // https://www.npmjs.com/package/save-svg-as-png
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
 
-    const containerInfo = this.getContainertoExport();
+    const containerInfo = this.getContainerToExport();
+    this.prepareStyleForExport(containerInfo);
+
     svg.saveSvgAsPng(
       containerInfo.documentToExport,
       this.getFilenameToExport() + ".png",
       containerInfo.exportParameter,
     );
-    //containerInfo.documentToExport.setAttribute('style', containerInfo.documentSavedStyle);
+
     this.levelOfDetailService.enableLevelOfDetailRendering();
   }
 
@@ -191,13 +191,17 @@ export class EditorToolsViewComponent {
   }
 
   onExportStammdaten() {
-    const filename = $localize`:@@app.view.editor-side-view.editor-tools-view-component.baseDataFile:baseData` + ".csv";
+    const filename =
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.baseDataFile:baseData` +
+      ".csv";
     const csvData = this.convertToStammdatenCSV();
     this.onExport(filename, csvData);
   }
 
   onExportZuglauf() {
-    const filename = $localize`:@@app.view.editor-side-view.editor-tools-view-component.trainrunFile:trainrun` + ".csv";
+    const filename =
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.trainrunFile:trainrun` +
+      ".csv";
     const csvData = this.convertToZuglaufCSV();
     this.onExport(filename, csvData);
   }
@@ -209,7 +213,9 @@ export class EditorToolsViewComponent {
   }
 
   onExportOriginDestination() {
-    const filename = $localize`:@@app.view.editor-side-view.editor-tools-view-component.originDestinationFile:originDestination` + ".csv";
+    const filename =
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.originDestinationFile:originDestination` +
+      ".csv";
     const csvData = this.convertToOriginDestinationCSV();
     this.onExport(filename, csvData);
   }
@@ -233,7 +239,6 @@ export class EditorToolsViewComponent {
     }
     window.URL.revokeObjectURL(url);
   }
-
 
   getVariantIsWritable() {
     return this.versionControlService.getVariantIsWritable();
@@ -267,16 +272,32 @@ export class EditorToolsViewComponent {
 
     const headers: string[] = [];
     headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.bp:BP`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.station:Station`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.category:category`);
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.station:Station`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.category:category`,
+    );
     headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.region:Region`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.passengerConnectionTimeIPV:passengerConnectionTimeIPV`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.passengerConnectionTimeA:Passenger_connection_time_A`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.passengerConnectionTimeB:Passenger_connection_time_B`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.passengerConnectionTimeC:Passenger_connection_time_C`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.passengerConnectionTimeD:Passenger_connection_time_D`);
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.passengerConnectionTimeIPV:passengerConnectionTimeIPV`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.passengerConnectionTimeA:Passenger_connection_time_A`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.passengerConnectionTimeB:Passenger_connection_time_B`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.passengerConnectionTimeC:Passenger_connection_time_C`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.passengerConnectionTimeD:Passenger_connection_time_D`,
+    );
     headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.ZAZ:ZAZ`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.transferTime:Transfer_time`);
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.transferTime:Transfer_time`,
+    );
     headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.labels:Labels`);
     headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.X:X`);
     headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.Y:Y`);
@@ -286,9 +307,7 @@ export class EditorToolsViewComponent {
     this.nodeService.getNodes().forEach((nodeElement) => {
       const trainrunCategoryHaltezeit: TrainrunCategoryHaltezeit =
         nodeElement.getTrainrunCategoryHaltezeit();
-      const stammdaten = this.stammdatenService.getBPStammdaten(
-        nodeElement.getBetriebspunktName(),
-      );
+      const stammdaten = this.stammdatenService.getBPStammdaten(nodeElement.getBetriebspunktName());
       const zaz = stammdaten !== null ? stammdaten.getZAZ() : 0;
       const erstellen = stammdaten !== null ? stammdaten.getErstellen() : "JA";
       const kategorien = stammdaten !== null ? stammdaten.getKategorien() : [];
@@ -301,38 +320,33 @@ export class EditorToolsViewComponent {
       row.push(regions.map((reg) => "" + reg).join(comma));
       row.push(
         "" +
-        (trainrunCategoryHaltezeit[HaltezeitFachCategories.IPV].no_halt
-          ? 0
-          : trainrunCategoryHaltezeit[HaltezeitFachCategories.IPV].haltezeit -
-          zaz),
+          (trainrunCategoryHaltezeit[HaltezeitFachCategories.IPV].no_halt
+            ? 0
+            : trainrunCategoryHaltezeit[HaltezeitFachCategories.IPV].haltezeit - zaz),
       );
       row.push(
         "" +
-        (trainrunCategoryHaltezeit[HaltezeitFachCategories.A].no_halt
-          ? 0
-          : trainrunCategoryHaltezeit[HaltezeitFachCategories.A].haltezeit -
-          zaz),
+          (trainrunCategoryHaltezeit[HaltezeitFachCategories.A].no_halt
+            ? 0
+            : trainrunCategoryHaltezeit[HaltezeitFachCategories.A].haltezeit - zaz),
       );
       row.push(
         "" +
-        (trainrunCategoryHaltezeit[HaltezeitFachCategories.B].no_halt
-          ? 0
-          : trainrunCategoryHaltezeit[HaltezeitFachCategories.B].haltezeit -
-          zaz),
+          (trainrunCategoryHaltezeit[HaltezeitFachCategories.B].no_halt
+            ? 0
+            : trainrunCategoryHaltezeit[HaltezeitFachCategories.B].haltezeit - zaz),
       );
       row.push(
         "" +
-        (trainrunCategoryHaltezeit[HaltezeitFachCategories.C].no_halt
-          ? 0
-          : trainrunCategoryHaltezeit[HaltezeitFachCategories.C].haltezeit -
-          zaz),
+          (trainrunCategoryHaltezeit[HaltezeitFachCategories.C].no_halt
+            ? 0
+            : trainrunCategoryHaltezeit[HaltezeitFachCategories.C].haltezeit - zaz),
       );
       row.push(
         "" +
-        (trainrunCategoryHaltezeit[HaltezeitFachCategories.D].no_halt
-          ? 0
-          : trainrunCategoryHaltezeit[HaltezeitFachCategories.D].haltezeit -
-          zaz),
+          (trainrunCategoryHaltezeit[HaltezeitFachCategories.D].no_halt
+            ? 0
+            : trainrunCategoryHaltezeit[HaltezeitFachCategories.D].haltezeit - zaz),
       );
       row.push("" + zaz);
       row.push("" + nodeElement.getConnectionTime());
@@ -356,88 +370,168 @@ export class EditorToolsViewComponent {
     return this.buildCSVString(headers, rows);
   }
 
-  private getContainertoExport(): ContainertoExportData {
-    let htmlElementToExport: HTMLElement | null = null;
-    let param = {};
+  private getStreckengrafikEditingContainerToExport(): ContainertoExportData {
+    const htmlElementToExport = document.getElementById("main-streckengrafik-container");
+    const param = {
+      encoderOptions: 1.0,
+      scale: 1.0,
+      left: 0,
+      top: 0,
+      width: htmlElementToExport.offsetWidth,
+      height: htmlElementToExport.offsetHeight,
+      backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
+    };
 
-    const editorMode = this.uiInteractionService.getEditorMode();
+    const essentialProps = [
+      "fill",
+      "stroke",
+      "stroke-width",
+      "stroke-dasharray",
+      "font-family",
+      "font-size",
+      "font-weight",
+      "opacity",
+      "text-anchor",
+      "dominant-baseline",
+      "width",
+      "min-width",
+      "max-width",
+      "height",
+      "min-height",
+      "max-height",
+      "overflow",
+      "margin-bottom",
+      "margin-top",
+      "margin-left",
+      "margin-right",
+      "margin",
+      "padding",
+      "display",
+      "grid-template-columns",
+      "grid-template-rows",
+      "grid-gap",
+      "background",
+      "background-color",
+      "border-right",
+      "border-left",
+      "border-top",
+      "border-bottom",
+      "border",
+      "box-sizing",
+      "paint-order",
+    ];
 
-    switch (editorMode) {
-      case EditorMode.StreckengrafikEditing: {
-        const boundingBox = this.nodeService.getNetzgrafikBoundingBox();
-        param = {
-          encoderOptions: 1.0,
-          scale: 2.0,
-          left: boundingBox.minCoordX - 32,
-          top: boundingBox.minCoordY - 32,
-          width: boundingBox.maxCoordX - boundingBox.minCoordX + 64,
-          height: boundingBox.maxCoordY - boundingBox.minCoordY + 64,
-          backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
-        };
-        htmlElementToExport = document.getElementById("main-streckengrafik-container");
-        break;
-      }
-      case EditorMode.OriginDestination: {
-        htmlElementToExport = document.getElementById("main-origin-destination-container");
-        if (htmlElementToExport === null) {
-          return undefined;
-        }
-        const bbox = (htmlElementToExport as unknown as SVGGElement).getBBox();
-        const padding = 10;
-        param = {
-          encoderOptions: 1.0,
-          scale: 1.0,
-          left: bbox.x - padding,
-          top: bbox.y - padding,
-          width: bbox.width + 2 * padding,
-          height: bbox.height + 2 * padding,
-          backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
-        };
-        break;
-      }
-      default: {
-        htmlElementToExport = document.getElementById("graphContainer");
-        if (htmlElementToExport === null) {
-          return undefined;
-        }
-        param = {
-          encoderOptions: 1.0,
-          scale: 1.0,
-          left: htmlElementToExport.offsetWidth / 3,
-          top: 80,
-          width: htmlElementToExport.offsetWidth,
-          height: htmlElementToExport.offsetHeight,
-          backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
-        };
-        break;
-      }
-    }
-
-    const oldStyle = htmlElementToExport.getAttribute("style");
-    const htmlsTagCollection = document.getElementsByTagName("html");
-    if (htmlsTagCollection.length > 0) {
-      const htmlRoot = htmlsTagCollection[0];
-      htmlElementToExport.setAttribute("style", htmlRoot.getAttribute("style"));
-
-      const styles = this.netzgrafikColoringService.generateGlobalStyles(
-        this.dataService.getTrainrunCategories(),
-        this.trainrunSectionService.getTrainrunSections(),
-      );
-
-      styles.forEach((s) => {
-        const docStyles = htmlRoot.ownerDocument.styleSheets;
-        for (let i = 0; i < s.cssRules.length; i++) {
-          htmlRoot.ownerDocument.styleSheets[docStyles.length - 1].insertRule(
-            s.cssRules[i].cssText,
-          );
-        }
-      });
-    }
     return {
       documentToExport: htmlElementToExport,
       exportParameter: param,
-      documentSavedStyle: oldStyle
+      essentialProps: essentialProps,
     };
+  }
+
+  private getOriginDestinationContainerToExport(): ContainertoExportData {
+    const htmlElementToExport = document.getElementById("main-origin-destination-container");
+    if (htmlElementToExport === null) {
+      return undefined;
+    }
+    const bbox = (htmlElementToExport as unknown as SVGGElement).getBBox();
+    const padding = 10;
+    const param = {
+      encoderOptions: 1.0,
+      scale: 1.0,
+      left: bbox.x - padding,
+      top: bbox.y - padding,
+      width: bbox.width + 2 * padding,
+      height: bbox.height + 2 * padding,
+      backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
+    };
+
+    const essentialProps = [
+      "fill",
+      "stroke",
+      "stroke-width",
+      "stroke-dasharray",
+      "font-family",
+      "font-size",
+      "font-weight",
+      "opacity",
+      "text-anchor",
+      "dominant-baseline",
+    ];
+
+    return {
+      documentToExport: htmlElementToExport,
+      exportParameter: param,
+      essentialProps: essentialProps,
+    };
+  }
+
+  private getNetzgrafikEditingContainerToExport(): ContainertoExportData {
+    const htmlElementToExport = document.getElementById("graphContainer");
+    if (htmlElementToExport === null) {
+      return undefined;
+    }
+    const boundingBox = this.nodeService.getNetzgrafikBoundingBox();
+    const param = {
+      encoderOptions: 1.0,
+      scale: 2.0,
+      left: boundingBox.minCoordX - 2.0 * RASTERING_BASIC_GRID_SIZE,
+      top: boundingBox.minCoordY - 2.0 * RASTERING_BASIC_GRID_SIZE,
+      width: boundingBox.maxCoordX - boundingBox.minCoordX + 4.0 * RASTERING_BASIC_GRID_SIZE,
+      height:
+        boundingBox.maxCoordY -
+        boundingBox.minCoordY +
+        4.0 * RASTERING_BASIC_GRID_SIZE +
+        NODE_TEXT_AREA_HEIGHT,
+      backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
+    };
+
+    const essentialProps = [
+      "fill",
+      "stroke",
+      "stroke-width",
+      "stroke-dasharray",
+      "font-family",
+      "font-size",
+      "font-weight",
+      "opacity",
+      "text-anchor",
+      "dominant-baseline",
+    ];
+
+    return {
+      documentToExport: htmlElementToExport,
+      exportParameter: param,
+      essentialProps: essentialProps,
+    };
+  }
+
+  private prepareStyleForExport(containerInfo: ContainertoExportData) {
+    const element2export = containerInfo.documentToExport;
+
+    const elements = element2export.querySelectorAll("*");
+    elements.forEach((el) => {
+      const style = window.getComputedStyle(el);
+      const essentialPropsArray =
+        containerInfo.essentialProps !== undefined
+          ? containerInfo.essentialProps
+          : Array.from(style);
+      const inlineStyle = essentialPropsArray
+        .map((key) => `${key}:${style.getPropertyValue(key)};`)
+        .join(" ");
+      el.setAttribute("style", inlineStyle);
+    });
+  }
+
+  private getContainerToExport(): ContainertoExportData {
+    const editorMode = this.uiInteractionService.getEditorMode();
+    switch (editorMode) {
+      case EditorMode.StreckengrafikEditing:
+        return this.getStreckengrafikEditingContainerToExport();
+      case EditorMode.OriginDestination:
+        return this.getOriginDestinationContainerToExport();
+      default:
+        return this.getNetzgrafikEditingContainerToExport();
+    }
   }
 
   private createTrainrunDetailDataAsCSVData(): string {
@@ -618,21 +712,51 @@ export class EditorToolsViewComponent {
   private convertToZuglaufCSV(): string {
     const comma = ",";
     const headers: string[] = [];
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.trainCategory:Train category`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.trainName:Train name`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.startStation:Start station`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.destinationStation:Destination station`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.trafficPeriod:Traffic period`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.frequence:Frequence`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.departureMinuteAtStart:Minute of departure at start node`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.travelTimeStartDestination:Travel time start-destination`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.arrivalMinuteAtDestination:Arrival minute at destination node`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.turnaroundTimeDestination:Turnaround time at destination station`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.departureMinuteDeparture:Departure minute at destination node`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.travelTimeDestinationStart:Travel time destination-start`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.arrivalMinuteAtStart:Arrival minute at start node`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.turnaroundTimeStart:Turnaround time at start station`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.turnaroundTime:Turnaround time`);
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.trainCategory:Train category`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.trainName:Train name`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.startStation:Start station`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.destinationStation:Destination station`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.trafficPeriod:Traffic period`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.frequence:Frequence`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.departureMinuteAtStart:Minute of departure at start node`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.travelTimeStartDestination:Travel time start-destination`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.arrivalMinuteAtDestination:Arrival minute at destination node`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.turnaroundTimeDestination:Turnaround time at destination station`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.departureMinuteDeparture:Departure minute at destination node`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.travelTimeDestinationStart:Travel time destination-start`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.arrivalMinuteAtStart:Arrival minute at start node`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.turnaroundTimeStart:Turnaround time at start station`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.turnaroundTime:Turnaround time`,
+    );
     headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.labels:Labels`);
 
     const rows: string[][] = [];
@@ -655,27 +779,33 @@ export class EditorToolsViewComponent {
 
         startBetriebspunktName = startNode.getBetriebspunktName();
         endBetriebspunktName = iterator.current().node.getBetriebspunktName();
-        const departureTimeAtStart = startTrainrunSection.getSourceNodeId() === startNode.getId() ?
-          startTrainrunSection.getSourceDepartureConsecutiveTime() :
-          startTrainrunSection.getTargetDepartureConsecutiveTime();
-        const arrivalTimeAtEnd = iterator.current().trainrunSection.getSourceNodeId() === iterator.current().node.getId() ?
-          iterator.current().trainrunSection.getSourceArrivalConsecutiveTime() :
-          iterator.current().trainrunSection.getTargetArrivalConsecutiveTime();
+        const departureTimeAtStart =
+          startTrainrunSection.getSourceNodeId() === startNode.getId()
+            ? startTrainrunSection.getSourceDepartureConsecutiveTime()
+            : startTrainrunSection.getTargetDepartureConsecutiveTime();
+        const arrivalTimeAtEnd =
+          iterator.current().trainrunSection.getSourceNodeId() === iterator.current().node.getId()
+            ? iterator.current().trainrunSection.getSourceArrivalConsecutiveTime()
+            : iterator.current().trainrunSection.getTargetArrivalConsecutiveTime();
         const travelTime = arrivalTimeAtEnd - departureTimeAtStart;
 
-        const startNodeDeparture = startTrainrunSection.getSourceNodeId() === startNode.getId() ?
-          startTrainrunSection.getSourceDeparture() :
-          startTrainrunSection.getTargetDeparture();
-        const endNodeArrival = iterator.current().trainrunSection.getSourceNodeId() === iterator.current().node.getId() ?
-          iterator.current().trainrunSection.getSourceArrival() :
-          iterator.current().trainrunSection.getTargetArrival();
+        const startNodeDeparture =
+          startTrainrunSection.getSourceNodeId() === startNode.getId()
+            ? startTrainrunSection.getSourceDeparture()
+            : startTrainrunSection.getTargetDeparture();
+        const endNodeArrival =
+          iterator.current().trainrunSection.getSourceNodeId() === iterator.current().node.getId()
+            ? iterator.current().trainrunSection.getSourceArrival()
+            : iterator.current().trainrunSection.getTargetArrival();
 
-        const endNodeDeparture = iterator.current().trainrunSection.getSourceNodeId() === iterator.current().node.getId() ?
-          iterator.current().trainrunSection.getSourceDeparture() :
-          iterator.current().trainrunSection.getTargetDeparture();
-        const startNodeArrival = startTrainrunSection.getSourceNodeId() === startNode.getId() ?
-          startTrainrunSection.getSourceArrival() :
-          startTrainrunSection.getTargetArrival();
+        const endNodeDeparture =
+          iterator.current().trainrunSection.getSourceNodeId() === iterator.current().node.getId()
+            ? iterator.current().trainrunSection.getSourceDeparture()
+            : iterator.current().trainrunSection.getTargetDeparture();
+        const startNodeArrival =
+          startTrainrunSection.getSourceNodeId() === startNode.getId()
+            ? startTrainrunSection.getSourceArrival()
+            : startTrainrunSection.getTargetArrival();
 
         let waitingTimeOnStartStation = startNodeDeparture - startNodeArrival;
         let waitingTimeOnEndStation = endNodeDeparture - endNodeArrival;
@@ -695,17 +825,12 @@ export class EditorToolsViewComponent {
         }
 
         if (trainrun.getFrequency() < 60) {
-          waitingTimeOnEndStation =
-            waitingTimeOnEndStation % trainrun.getFrequency();
-          waitingTimeOnStartStation =
-            waitingTimeOnStartStation % trainrun.getFrequency();
+          waitingTimeOnEndStation = waitingTimeOnEndStation % trainrun.getFrequency();
+          waitingTimeOnStartStation = waitingTimeOnStartStation % trainrun.getFrequency();
         }
 
         const timeOfCirculation =
-          travelTime +
-          waitingTimeOnEndStation +
-          travelTime +
-          waitingTimeOnStartStation;
+          travelTime + waitingTimeOnEndStation + travelTime + waitingTimeOnStartStation;
         const row: string[] = [];
         row.push(trainrun.getTrainrunCategory().shortName.trim());
         row.push(trainrun.getTitle().trim());
@@ -726,13 +851,12 @@ export class EditorToolsViewComponent {
           trainrun
             .getLabelIds()
             .map((labelID) => {
-                const label = this.labelService.getLabelFromId(labelID);
-                if (label) {
-                  return label.getLabel().trim();
-                }
-                return "";
+              const label = this.labelService.getLabelFromId(labelID);
+              if (label) {
+                return label.getLabel().trim();
               }
-            )
+              return "";
+            })
             .join(comma),
         );
 
@@ -744,10 +868,18 @@ export class EditorToolsViewComponent {
   private convertToOriginDestinationCSV(): string {
     const headers: string[] = [];
     headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.origin:Origin`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.destination:Destination`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.travelTime:Travel time`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.transfers:Transfers`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.totalCost:Total cost`);
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.destination:Destination`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.travelTime:Travel time`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.transfers:Transfers`,
+    );
+    headers.push(
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.totalCost:Total cost`,
+    );
 
     const matrixData = this.originDestinationService.originDestinationData();
 
@@ -771,17 +903,15 @@ export class EditorToolsViewComponent {
   }
 
   private detectNetzgrafikJSON3rdParty(netzgrafikDto: NetzgrafikDto): boolean {
-    return netzgrafikDto.nodes.find((n: NodeDto) =>
-        n.ports === undefined) !== undefined
-      ||
-      netzgrafikDto.nodes.filter((n: NodeDto) =>
-        n.ports?.length === 0).length === netzgrafikDto.nodes.length
-      ||
-      netzgrafikDto.trainrunSections.find((ts: TrainrunSectionDto) =>
-        ts.path === undefined ||
-        ts.path?.path === undefined ||
-        ts.path?.path?.length === 0
-      ) !== undefined;
+    return (
+      netzgrafikDto.nodes.find((n: NodeDto) => n.ports === undefined) !== undefined ||
+      netzgrafikDto.nodes.filter((n: NodeDto) => n.ports?.length === 0).length ===
+        netzgrafikDto.nodes.length ||
+      netzgrafikDto.trainrunSections.find(
+        (ts: TrainrunSectionDto) =>
+          ts.path === undefined || ts.path?.path === undefined || ts.path?.path?.length === 0,
+      ) !== undefined
+    );
   }
 
   private processNetzgrafikJSON3rdParty(netzgrafikDto: NetzgrafikDto) {
@@ -790,7 +920,6 @@ export class EditorToolsViewComponent {
     // --------------------------------------------------------------------------------
     const msg = $localize`:@@app.view.editor-side-view.editor-tools-view-component.import-netzgrafik-as-json-info-3rd-party:3rd party import`;
     this.logger.info(msg);
-
 
     // --------------------------------------------------------------------------------
     // (Step 1) Import only nodes
@@ -840,8 +969,7 @@ export class EditorToolsViewComponent {
 
     // import data
     if (
-      netzgrafikDto.trainrunSections.length === 0
-      ||
+      netzgrafikDto.trainrunSections.length === 0 ||
       !this.detectNetzgrafikJSON3rdParty(netzgrafikDto)
     ) {
       // -----------------------------------------------

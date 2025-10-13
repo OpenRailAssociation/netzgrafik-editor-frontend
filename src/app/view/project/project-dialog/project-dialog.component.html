@@ -1,26 +1,22 @@
 <div sbbDialogTitle>
-  <ng-container *ngIf="isNewProject">{{ 'app.view.project.project-dialog.create-project' | translate }}</ng-container>
-  <ng-container *ngIf="!isNewProject">{{ 'app.view.project.project-dialog.edit-project' | translate }}</ng-container>
+  <ng-container *ngIf="isNewProject">{{
+    "app.view.project.project-dialog.create-project" | translate
+  }}</ng-container>
+  <ng-container *ngIf="!isNewProject">{{
+    "app.view.project.project-dialog.edit-project" | translate
+  }}</ng-container>
 </div>
 <div sbbDialogContent>
   <sbb-project-form [model]="formModel"></sbb-project-form>
 </div>
 <div sbbDialogActions>
-  <button
-    *ngIf="isNewProject"
-    sbb-button
-    cdkFocusInitial
-    (click)="onCreateClicked()"
-  >
-    {{ 'app.view.project.project-dialog.create' | translate }}
+  <button *ngIf="isNewProject" sbb-button cdkFocusInitial (click)="onCreateClicked()">
+    {{ "app.view.project.project-dialog.create" | translate }}
   </button>
-  <button
-    *ngIf="!isNewProject"
-    sbb-button
-    cdkFocusInitial
-    (click)="onCreateClicked()"
-  >
-    {{ 'app.view.project.project-dialog.save' | translate }}
+  <button *ngIf="!isNewProject" sbb-button cdkFocusInitial (click)="onCreateClicked()">
+    {{ "app.view.project.project-dialog.save" | translate }}
   </button>
-  <button sbb-secondary-button (click)="onCancelClicked()">{{ 'app.view.project.project-dialog.cancel' | translate }}</button>
+  <button sbb-secondary-button (click)="onCancelClicked()">
+    {{ "app.view.project.project-dialog.cancel" | translate }}
+  </button>
 </div>

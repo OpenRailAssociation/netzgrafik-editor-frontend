@@ -168,9 +168,7 @@ export class PathSliderComponent implements OnDestroy {
 
   doClick(path: SgPath) {
     if (path.isNode()) {
-      this.sg4ToggleTrackOccupierService.toggleTrackOccupier(
-        path.getPathNode().nodeId,
-      );
+      this.sg4ToggleTrackOccupierService.toggleTrackOccupier(path.getPathNode().nodeId);
     }
   }
 
@@ -183,17 +181,9 @@ export class PathSliderComponent implements OnDestroy {
   private renderViewBox() {
     const pathSliderMove = 0;
     if (this.horizontal) {
-      this.viewBox =
-        " " +
-        pathSliderMove +
-        " " +
-        "0 " +
-        this.viewBoxChangeInfo.width +
-        " " +
-        40;
+      this.viewBox = " " + pathSliderMove + " " + "0 " + this.viewBoxChangeInfo.width + " " + 40;
     } else {
-      this.viewBox =
-        "0 " + pathSliderMove + " " + 40 + " " + this.viewBoxChangeInfo.height;
+      this.viewBox = "0 " + pathSliderMove + " " + 40 + " " + this.viewBoxChangeInfo.height;
     }
   }
 
@@ -202,20 +192,14 @@ export class PathSliderComponent implements OnDestroy {
       if (path.startPosition <= this.viewBoxChangeInfo.x) {
         return 1;
       }
-      if (
-        path.startPosition + 10 >=
-        this.viewBoxChangeInfo.x + this.viewBoxChangeInfo.width
-      ) {
+      if (path.startPosition + 10 >= this.viewBoxChangeInfo.x + this.viewBoxChangeInfo.width) {
         return 2;
       }
     } else {
       if (path.startPosition <= this.viewBoxChangeInfo.y) {
         return 1;
       }
-      if (
-        path.startPosition + 10 >=
-        this.viewBoxChangeInfo.y + this.viewBoxChangeInfo.height
-      ) {
+      if (path.startPosition + 10 >= this.viewBoxChangeInfo.y + this.viewBoxChangeInfo.height) {
         return 2;
       }
     }

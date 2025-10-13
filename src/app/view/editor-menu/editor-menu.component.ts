@@ -38,13 +38,9 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
   // Remember the zoom factor for netzgrafik when switching (e.g. to origin-destination).
   public mainZoomFactor = 100;
 
-  public isWritable$ = this.versionControlService.variant$.pipe(
-    map((v) => v?.isWritable),
-  );
+  public isWritable$ = this.versionControlService.variant$.pipe(map((v) => v?.isWritable));
   public modified$ = this.autoSaveService.modified$;
-  public label$ = this.versionControlService.variant$.pipe(
-    map((v) => v?.latestVersion.name),
-  );
+  public label$ = this.versionControlService.variant$.pipe(map((v) => v?.latestVersion.name));
   private destroyed = new Subject<void>();
 
   private trainrunIdSelected: number;
@@ -107,10 +103,7 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
   }
 
   onZoomIn() {
-    if (
-      this.uiInteractionService.getEditorMode() ===
-      EditorMode.StreckengrafikEditing
-    ) {
+    if (this.uiInteractionService.getEditorMode() === EditorMode.StreckengrafikEditing) {
       this.timeSliderService.changeZoom(this.streckengrafikZoomFactor + 2.6);
       return;
     }
@@ -119,10 +112,7 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
   }
 
   onZoom100() {
-    if (
-      this.uiInteractionService.getEditorMode() ===
-      EditorMode.StreckengrafikEditing
-    ) {
+    if (this.uiInteractionService.getEditorMode() === EditorMode.StreckengrafikEditing) {
       this.timeSliderService.changeZoom(10.4);
       return;
     }
@@ -131,15 +121,9 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
   }
 
   onZoomOut() {
-    if (
-      this.uiInteractionService.getEditorMode() ===
-      EditorMode.StreckengrafikEditing
-    ) {
+    if (this.uiInteractionService.getEditorMode() === EditorMode.StreckengrafikEditing) {
       this.timeSliderService.changeZoom(
-        Math.min(
-          this.streckengrafikZoomFactor,
-          Math.max(this.streckengrafikZoomFactor - 2.6, 2.6),
-        ),
+        Math.min(this.streckengrafikZoomFactor, Math.max(this.streckengrafikZoomFactor - 2.6, 2.6)),
       );
       return;
     }
@@ -148,10 +132,7 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
   }
 
   getZoomFactor(): number {
-    if (
-      this.uiInteractionService.getEditorMode() ===
-      EditorMode.StreckengrafikEditing
-    ) {
+    if (this.uiInteractionService.getEditorMode() === EditorMode.StreckengrafikEditing) {
       return Math.round(100 * (this.streckengrafikZoomFactor / 10.4));
     }
     return this.zoomFactor;
@@ -159,12 +140,8 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
 
   onFilter() {
     if (!this.filterService.isAnyFilterActive()) {
-      if (
-        !this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
-      ) {
-        this.uiInteractionService.showOrCloseFilter(
-          FilterWindowType.EDITOR_FILTER,
-        );
+      if (!this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
+        this.uiInteractionService.showOrCloseFilter(FilterWindowType.EDITOR_FILTER);
       }
       this.filterService.resetTemporaryDisableFilteringOfItemsInView();
     } else {
@@ -183,9 +160,7 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
   }
 
   isTopologyEditing(): boolean {
-    return (
-      this.uiInteractionService.getEditorMode() === EditorMode.TopologyEditing
-    );
+    return this.uiInteractionService.getEditorMode() === EditorMode.TopologyEditing;
   }
 
   onNoteEditor() {
@@ -220,18 +195,13 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
   }
 
   isMultiNodeMoving(): boolean {
-    return (
-      this.uiInteractionService.getEditorMode() === EditorMode.MultiNodeMoving
-    );
+    return this.uiInteractionService.getEditorMode() === EditorMode.MultiNodeMoving;
   }
 
   onStreckengrafik() {
     const editorMode = this.uiInteractionService.getEditorMode();
     this.uiInteractionService.disableMultiSelectedNodesCorridor();
-    if (
-      editorMode !== EditorMode.NetzgrafikEditing &&
-      editorMode !== EditorMode.MultiNodeMoving
-    ) {
+    if (editorMode !== EditorMode.NetzgrafikEditing && editorMode !== EditorMode.MultiNodeMoving) {
       // enforce unselect all nodes
       this.nodeService.unselectAllNodes();
       this.uiInteractionService.showNetzgrafik();
@@ -250,13 +220,9 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
         }
       }
       if (this.trainrunIdSelected) {
-        this.isTrainrunSelectedService.setTrainrunIdSelectedByClick(
-          this.trainrunIdSelected,
-        );
+        this.isTrainrunSelectedService.setTrainrunIdSelectedByClick(this.trainrunIdSelected);
         this.uiInteractionService.showStreckengrafik();
-        this.uiInteractionService.setEditorMode(
-          EditorMode.StreckengrafikEditing,
-        );
+        this.uiInteractionService.setEditorMode(EditorMode.StreckengrafikEditing);
         return;
       }
       this._notification.open(
@@ -275,7 +241,10 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
 
     // Check if at least 2 nodes are selected
     const selectedNodes = this.nodeService.getNodes().filter((n: Node) => n.selected());
-    if (this.uiInteractionService.getEditorMode() === EditorMode.MultiNodeMoving && selectedNodes.length < 2){
+    if (
+      this.uiInteractionService.getEditorMode() === EditorMode.MultiNodeMoving &&
+      selectedNodes.length < 2
+    ) {
       this._notification.open(
         $localize`:@@app.view.editor-menu.errorOriginDestination:Origin-destination matrix cannot be displayed because less than 2 nodes are selected.`,
         {
@@ -288,10 +257,13 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
     }
 
     // If Node details are open and only one node is selected, unselect the node and compute od for all nodes.
-    if (this.uiInteractionService.getEditorMode() !== EditorMode.MultiNodeMoving && selectedNodes.length === 1) {
+    if (
+      this.uiInteractionService.getEditorMode() !== EditorMode.MultiNodeMoving &&
+      selectedNodes.length === 1
+    ) {
       this.nodeService.unselectAllNodes();
     }
-    
+
     if (editorMode === EditorMode.OriginDestination) {
       this.nodeService.unselectAllNodes();
       this.uiInteractionService.showNetzgrafik();
@@ -306,33 +278,23 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
   }
 
   isOriginDestination(): boolean {
-    return (
-      this.uiInteractionService.getEditorMode() === EditorMode.OriginDestination
-    );
+    return this.uiInteractionService.getEditorMode() === EditorMode.OriginDestination;
   }
 
   getOriginDestinationTitle(): string {
     if (this.isOriginDestination()) {
       return $localize`:@@app.view.editor-menu.closeOriginDestination:Close origin-destination matrix`;
-
     }
     return $localize`:@@app.view.editor-menu.displayOriginDestination:Display origin-destination matrix`;
   }
 
   isStreckengrafikEditing(): boolean {
-    return (
-      this.uiInteractionService.getEditorMode() ===
-      EditorMode.StreckengrafikEditing
-    );
+    return this.uiInteractionService.getEditorMode() === EditorMode.StreckengrafikEditing;
   }
 
   isNotStreckengrafikAllowed(): boolean {
-    if (
-      this.uiInteractionService.getEditorMode() === EditorMode.MultiNodeMoving
-    ) {
-      const nodes = this.nodeService
-        .getNodes()
-        .filter((n: Node) => n.selected());
+    if (this.uiInteractionService.getEditorMode() === EditorMode.MultiNodeMoving) {
+      const nodes = this.nodeService.getNodes().filter((n: Node) => n.selected());
       return nodes.length < 2;
     }
     return this.trainrunService.getSelectedTrainrun() === null;

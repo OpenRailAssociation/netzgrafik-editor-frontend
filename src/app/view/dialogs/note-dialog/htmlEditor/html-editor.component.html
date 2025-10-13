@@ -12,9 +12,7 @@
     </button>
     <ng-container *ngFor="let color of colorPresets">
       <button
-        class="NgxEditor__Color ngx-html-editor-color {{
-          setClassedTag(color)
-        }}"
+        class="NgxEditor__Color ngx-html-editor-color {{ setClassedTag(color) }}"
         (click)="onColor(color)"
         [title]="getColorTitle(color)"
         [style]="getColorStyle(color)"
@@ -33,7 +31,7 @@
     (focusout)="onUpdate()"
     (keydown)="onKeydown($event)"
   ></ngx-editor>
-  <sbb-error *ngIf="model.getControl('noteText').errors?.required"
-    >{{ 'app.view.dialogs.note-dialog.html-editor.mandatory-field' | translate }}</sbb-error
-  >
+  <sbb-error *ngIf="model.getControl('noteText').errors?.required">{{
+    "app.view.dialogs.note-dialog.html-editor.mandatory-field" | translate
+  }}</sbb-error>
 </div>

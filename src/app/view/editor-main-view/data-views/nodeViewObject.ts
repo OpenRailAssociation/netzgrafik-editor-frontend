@@ -12,11 +12,7 @@ export class NodeViewObject {
     this.key = NodeViewObject.generateKey(editorView, node, isNodeStopNode);
   }
 
-  static generateKey(
-    editorView: EditorView,
-    n: Node,
-    isNodeStopNode: boolean,
-  ): string {
+  static generateKey(editorView: EditorView, n: Node, isNodeStopNode: boolean): string {
     return (
       "#" +
       n.getId() +

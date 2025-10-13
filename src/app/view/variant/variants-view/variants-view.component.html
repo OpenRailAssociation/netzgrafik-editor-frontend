@@ -1,8 +1,10 @@
 <sbb-page-layout *ngIf="projectSubject.asObservable() | async as proj">
   <div class="header">
     <h1>
-      {{ proj.name + ' '}}
-      <ng-container *ngIf="proj.isArchived">{{ 'app.view.variant.variants-view.archived' | translate }}</ng-container>
+      {{ proj.name + " " }}
+      <ng-container *ngIf="proj.isArchived">{{
+        "app.view.variant.variants-view.archived" | translate
+      }}</ng-container>
     </h1>
   </div>
 
@@ -16,12 +18,13 @@
           sbbInput
           [placeholder]="'app.view.variant.variants-view.search-variants' | translate"
         />
+        <sbb-toggle-switch-button
+          [labelTrue]="'app.view.variant.variants-view.show-archive' | translate"
+          [checked]="showArchiveControl.getRawValue()"
+          (checkedChanged)="showArchiveControl.setValue($event)"
+        />
       </div>
-      <div class="archive">
-        <sbb-checkbox [formControl]="showArchiveControl"
-          >{{ 'app.view.variant.variants-view.show-archive' | translate }}</sbb-checkbox
-        >
-      </div>
+
       <sbb-card-grid>
         <sbb-card
           *ngIf="!showArchiveControl.value && proj.isWritable"
@@ -33,18 +36,17 @@
         <sbb-card
           *ngFor="let variant of variants | async"
           [title]="getTitleCurrentVersion(variant)"
-          [subtitle]="
-            getChangedAtCurrentVersion(variant) | date: 'dd.MM.yyyy HH:mm'
-          "
-          [route]="
-            navigationService.getRouteToEditor(variant.projectId, variant.id)
-          "
+          [subtitle]="getChangedAtCurrentVersion(variant) | date: 'dd.MM.yyyy HH:mm'"
+          [route]="navigationService.getRouteToEditor(variant.projectId, variant.id)"
           [actions]="getVariantDataActions(variant)"
         >
         </sbb-card>
       </sbb-card-grid>
     </sbb-slot>
-    <sbb-slot [title]="'app.view.variant.variants-view.project-description' | translate" [actions]="projectDataActions">
+    <sbb-slot
+      [title]="'app.view.variant.variants-view.project-description' | translate"
+      [actions]="projectDataActions"
+    >
       <div class="project-data">
         <div style="height: 32px"></div>
         <div style="font-weight: bold; vertical-align: bottom; height: 32px">

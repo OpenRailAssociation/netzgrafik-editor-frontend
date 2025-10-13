@@ -15,8 +15,10 @@ information about the newly created trainrun, such as trainrun category and name
 the window or press `ESC` to close the dialog window.
 
 > - If you like to (re)open the dialog windows just click on the trainrun name in the editor or
+
     click any number (time). The dialog window is displayed again with the clicked data input field
     in focus.
+
 > - If you click on the trainrun - it gets selected and you can modify it.
 > - Click for a second time the Perlenkette gets opened.
 
@@ -40,23 +42,23 @@ To create a new train or adding new trainrun section to an existing trainrun, pr
 > **Note:** Importantly, you don't have to select a train route to create a new trainrun -
 > otherwise, you modify the selected trainrun
 
-
 ##### Travel time estimator (Default)
+
 The application has a travel time pre-setting or heuristic implemented which
-allows for an automated determination of travel times when drawing a new section. 
+allows for an automated determination of travel times when drawing a new section.
 Currently, following different heuristics are available:
 
-- The **default method** (heuristic) assumes a constant travel time per section, with a default setting of 1 minute per section. 
-This means that regardless of the distance or other factors, each section has a fixed travel time of 1 minute. 
-This heuristic can be helpful as it generates obviously unusable travel times, prompting the user to address the travel time. The 
-1 minute is very clear that this time has to be manually adapted. 
+- The **default method** (heuristic) assumes a constant travel time per section, with a default setting of 1 minute per section.
+  This means that regardless of the distance or other factors, each section has a fixed travel time of 1 minute.
+  This heuristic can be helpful as it generates obviously unusable travel times, prompting the user to address the travel time. The
+  1 minute is very clear that this time has to be manually adapted.
 
-- A more complex method (heuristic) can be set to **derive the travel time from existing ones**. The travel time heuristic 
-searches for other trains of the same category on the section. If there are other trains, the longest travel
-time is adopted for the newly inserted section. If not, the heuristic searches for other trains, regardless of their category. 
-If other trains are found, the maximum travel time is used; otherwise, the default is set to 1 minute.
+- A more complex method (heuristic) can be set to **derive the travel time from existing ones**. The travel time heuristic
+  searches for other trains of the same category on the section. If there are other trains, the longest travel
+  time is adopted for the newly inserted section. If not, the heuristic searches for other trains, regardless of their category.
+  If other trains are found, the maximum travel time is used; otherwise, the default is set to 1 minute.
 
-The heuristic can be adjusted under Settings - Editor - Travel Time Pre-setting (heuristic). 
+The heuristic can be adjusted under Settings - Editor - Travel Time Pre-setting (heuristic).
 The setting is user-specific and is stored in the user's profile (browser).
 
 ### Rerouting trainrun sections
@@ -73,8 +75,8 @@ To reroute a train, follow these steps:
   the hexagon button, and both train sections will move together. Drag the sections to a different
   node to reroute them.
   > If you drag the hexagon button outside the node it generates an intermediate stop if there was a
-  stopping transition or it just removed the non-stop transition. For both cases it reroutes the
-  trainrun by removing the node alignment where the hexagon/transition was.
+  > stopping transition or it just removed the non-stop transition. For both cases it reroutes the
+  > trainrun by removing the node alignment where the hexagon/transition was.
 
 [2024-1-25-Rerouting_extend_remove_trainrunsections-001.webm](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/assets/2674075/d697594c-57a8-4159-b44f-8a9f804f297f)
 
@@ -103,34 +105,44 @@ To switch a train from a stop to a non-stop at a node, follow these steps:
 
 ### Split / Combine two trainruns and merge Netzgrafik
 
-For more details have a look into 
+For more details have a look into
+
 - [Split/Combine two trainruns](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/Split_Combine_Trainruns.md)
 - [Merge Netzgrafik](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/Merge_Netzgrafik.md)
 
 ## Special cases
 
-### Trainrun path with "holes" (missing sections) 
+### One-way trainruns (Direction)
+
+By default, a trainrun is a round-trip schedule for a defined path. However, some situations need to deal with only "one-way" trainruns. For that, a trainrun can be modified to only show the journey for a single direction. The direction of the trainrun is then stored in its attribute `Direction`, that is either one of the following value:
+
+- `"round_trip"`: trainrun represents `A - B - C`
+- `"one_way"`: trainrun represents `A -> B -> C` or `A <- B <- C` (same value of `Direction` attribute, but the trainrun (so the nodes path) is inverted)
+
+The resulting trainrun then behave then differently with the rest of the features of NGE (space-time chart, origin-destination matrix, node occupancy...).
+
+[2025-08-11-Update_Trainrun_Direction.webm](documentation/animated_images/2025-08-11-Update_Trainrun_Direction.webm)
+
+### Trainrun path with "holes" (missing sections)
 
 ![image](https://github.com/user-attachments/assets/d87b842c-7696-4e81-aa78-75cc966b5306)
-*Example Netzgrafik with missing sections (See the cargo trainrun GTwo_Part_trainrun)*
+_Example Netzgrafik with missing sections (See the cargo trainrun GTwo_Part_trainrun)_
 
-
-When creating a trainrun, the trairnun path should connect all nodes from start to destination using trainrun sections. 
-However, it can happen during the creation that not all trainrun sections have been drawn in the meantime. 
-Gaps may occur along the trainrun path where at least one trainrun section is missing. 
+When creating a trainrun, the trairnun path should connect all nodes from start to destination using trainrun sections.
+However, it can happen during the creation that not all trainrun sections have been drawn in the meantime.
+Gaps may occur along the trainrun path where at least one trainrun section is missing.
 These “holes” usually occur if the trainrun path has not yet been drawn completely or correctly.
-For example, a trainrun path could look like this with a "hole" in the middle, 
+For example, a trainrun path could look like this with a "hole" in the middle,
 
 A - B - C ---- (missing section) ---- E - F - G
 
 The trainrun section between C and E is missing here. However, these gaps can also occur if a partial cancelation is made for a train run.
 
 ![image](https://github.com/user-attachments/assets/5d1ef657-e421-41ff-ae57-622eee82f295)
-*Graphical timetable.*
+_Graphical timetable._
 
-
-In each of these cases, the trainrun has at least two parts, e.g. [(A B), (A C)] and [(E F)(F G)]. 
+In each of these cases, the trainrun has at least two parts, e.g. [(A B), (A C)] and [(E F)(F G)].
 In this case, the trainrun is interpreted as two separate trainruns.
-The Netzgrafik has no information about whether the missing part could be closed between C - E, C - D - E or 
-another possible variant, therefore the assumption that there is an independent trainrun for each trainrun part is 
-the best assumption. This avoids many new problems. 
+The Netzgrafik has no information about whether the missing part could be closed between C - E, C - D - E or
+another possible variant, therefore the assumption that there is an independent trainrun for each trainrun part is
+the best assumption. This avoids many new problems.

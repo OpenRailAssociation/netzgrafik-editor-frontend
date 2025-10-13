@@ -1,9 +1,5 @@
 import {Component, Inject} from "@angular/core";
-import {
-  SBB_DIALOG_DATA,
-  SbbDialog,
-  SbbDialogRef,
-} from "@sbb-esta/angular/dialog";
+import {SBB_DIALOG_DATA, SbbDialog, SbbDialogRef} from "@sbb-esta/angular/dialog";
 import {FormModel} from "../../../utils/form-model";
 import {VariantFormComponentModel} from "./variant-form/variant-form.component";
 import {Observable} from "rxjs";
@@ -19,15 +15,10 @@ export class VariantDialogComponent {
   readonly isNewVariant: boolean;
 
   constructor(
-    public readonly dialogRef: SbbDialogRef<
-      VariantDialogComponent,
-      VariantFormComponentModel
-    >,
+    public readonly dialogRef: SbbDialogRef<VariantDialogComponent, VariantFormComponentModel>,
     @Inject(SBB_DIALOG_DATA) data?: VariantFormComponentModel,
   ) {
-    this.formModel = new FormModel<VariantFormComponentModel>(
-      data ?? {name: ""},
-    );
+    this.formModel = new FormModel<VariantFormComponentModel>(data ?? {name: ""});
     this.isNewVariant = !!!data;
   }
 

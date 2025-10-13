@@ -82,17 +82,15 @@ export class VersionEntriesComponent implements OnInit {
   }
 
   private createSnapshotEntries(): SnapshotEntryModel[] {
-    return this.model.snapshotVersions
-      .slice(0, this.nrDisplayedSnapshots)
-      .map((version) => ({
-        id: version.id,
-        releaseVersion: version.releaseVersion,
-        snapshotVersion: version.snapshotVersion,
-        createdAt: new Date(version.createdAt),
-        createdBy: version.createdBy,
-        comment: version.comment,
-        lastAdded: this.isLastAdded(version.id),
-      }));
+    return this.model.snapshotVersions.slice(0, this.nrDisplayedSnapshots).map((version) => ({
+      id: version.id,
+      releaseVersion: version.releaseVersion,
+      snapshotVersion: version.snapshotVersion,
+      createdAt: new Date(version.createdAt),
+      createdBy: version.createdBy,
+      comment: version.comment,
+      lastAdded: this.isLastAdded(version.id),
+    }));
   }
 
   private hasReleaseConflict(): boolean {

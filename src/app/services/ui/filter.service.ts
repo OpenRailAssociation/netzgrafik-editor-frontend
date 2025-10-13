@@ -3,6 +3,7 @@ import {
   FilterDataDto,
   LabelRef,
   TrainrunCategory,
+  Direction,
   TrainrunFrequency,
   TrainrunTimeCategory,
 } from "../../data-structures/business.data.structures";
@@ -28,7 +29,7 @@ export class FilterService implements OnDestroy {
 
   filterSettingSubject = new BehaviorSubject<FilterSetting[]>(null);
   readonly filterSetting = this.filterSettingSubject.asObservable();
-  filterSettingStore: { filterSettings: FilterSetting[] } = {filterSettings: []}; // store the data in memory
+  filterSettingStore: {filterSettings: FilterSetting[]} = {filterSettings: []}; // store the data in memory
 
   private activeFilterSetting: FilterSetting = null;
   private destroyed = new Subject<void>();
@@ -53,14 +54,12 @@ export class FilterService implements OnDestroy {
   }
 
   filterSettingUpdated() {
-    this.filterSettingSubject.next(
-      Object.assign([], this.filterSettingStore).filterSettings,
-    );
+    this.filterSettingSubject.next(Object.assign([], this.filterSettingStore).filterSettings);
   }
 
   getDtos(): FilterDataDto {
-    const filterSettings = this.filterSettingStore.filterSettings.map(
-      (filterSetting) => filterSetting.getDto(),
+    const filterSettings = this.filterSettingStore.filterSettings.map((filterSetting) =>
+      filterSetting.getDto(),
     );
     return {
       filterSettings,
@@ -73,15 +72,11 @@ export class FilterService implements OnDestroy {
     this.filterSettingStore.filterSettings = filterData.filterSettings.map(
       (fs) => new FilterSetting(fs),
     );
-    this.filterSettingStore.filterSettings.forEach((fs) =>
-      this.initializeFilterSetting(fs),
-    );
+    this.filterSettingStore.filterSettings.forEach((fs) => this.initializeFilterSetting(fs));
   }
 
   activateFilterSetting(activeFilterSettingId: number): FilterSetting {
-    const activeFilterSetting = this.getFilterSettingFromId(
-      activeFilterSettingId,
-    );
+    const activeFilterSetting = this.getFilterSettingFromId(activeFilterSettingId);
     if (activeFilterSetting !== undefined) {
       this.activeFilterSetting.copyFilteringAttributes(activeFilterSetting);
     }
@@ -116,12 +111,8 @@ export class FilterService implements OnDestroy {
     const idx = this.filterSettingStore.filterSettings.findIndex(
       (fs) => fs.getId() === filterSetting.getId(),
     );
-    this.filterSettingStore.filterSettings[idx].copyFilteringAttributes(
-      this.activeFilterSetting,
-    );
-    this.activateFilterSetting(
-      this.filterSettingStore.filterSettings[idx].getId(),
-    );
+    this.filterSettingStore.filterSettings[idx].copyFilteringAttributes(this.activeFilterSetting);
+    this.activateFilterSetting(this.filterSettingStore.filterSettings[idx].getId());
     this.filterSettingUpdated();
   }
 
@@ -155,21 +146,16 @@ export class FilterService implements OnDestroy {
     );
     if (this.activeFilterSetting.getId() === filterSettingId) {
       if (idx > 0) {
-        this.activateFilterSetting(
-          this.filterSettingStore.filterSettings[idx - 1].getId(),
-        );
+        this.activateFilterSetting(this.filterSettingStore.filterSettings[idx - 1].getId());
       } else {
         if (this.filterSettingStore.filterSettings.length > 1) {
-          this.activateFilterSetting(
-            this.filterSettingStore.filterSettings[idx + 1].getId(),
-          );
+          this.activateFilterSetting(this.filterSettingStore.filterSettings[idx + 1].getId());
         }
       }
     }
-    this.filterSettingStore.filterSettings =
-      this.filterSettingStore.filterSettings.filter(
-        (fs) => fs.getId() !== filterSettingId,
-      );
+    this.filterSettingStore.filterSettings = this.filterSettingStore.filterSettings.filter(
+      (fs) => fs.getId() !== filterSettingId,
+    );
     if (this.filterSettingStore.filterSettings.length === 0) {
       this.activeFilterSetting = new FilterSetting();
       this.initializeFilterSetting(this.activeFilterSetting);
@@ -193,15 +179,13 @@ export class FilterService implements OnDestroy {
       this.activeFilterSetting.filterAllEmptyNodes ||
       this.activeFilterSetting.filterAllNonStopNodes
     ) {
-      this.activeFilterSetting.temporaryEmptyAndNonStopFilteringSwitchedOff =
-        false;
+      this.activeFilterSetting.temporaryEmptyAndNonStopFilteringSwitchedOff = false;
       this.filterChanged();
     }
   }
 
   isTemporaryEmptyAndNonStopFilteringSwitchedOff(): boolean {
-    return this.activeFilterSetting
-      .temporaryEmptyAndNonStopFilteringSwitchedOff;
+    return this.activeFilterSetting.temporaryEmptyAndNonStopFilteringSwitchedOff;
   }
 
   switchOffTemporaryEmptyAndNonStopFiltering() {
@@ -209,8 +193,7 @@ export class FilterService implements OnDestroy {
       this.activeFilterSetting.filterAllEmptyNodes ||
       this.activeFilterSetting.filterAllNonStopNodes
     ) {
-      this.activeFilterSetting.temporaryEmptyAndNonStopFilteringSwitchedOff =
-        true;
+      this.activeFilterSetting.temporaryEmptyAndNonStopFilteringSwitchedOff = true;
       this.filterChanged();
     }
   }
@@ -308,15 +291,10 @@ export class FilterService implements OnDestroy {
       return true;
     }
 
-    const filterSourceNode = this.checkFilterNode(
-      trainrunSection.getSourceNode(),
-    );
-    const filterTragetNode = this.checkFilterNode(
-      trainrunSection.getTargetNode(),
-    );
+    const filterSourceNode = this.checkFilterNode(trainrunSection.getSourceNode());
+    const filterTragetNode = this.checkFilterNode(trainrunSection.getTargetNode());
     return (
-      this.filterTrainrun(trainrunSection.getTrainrun()) &&
-      (filterSourceNode || filterTragetNode)
+      this.filterTrainrun(trainrunSection.getTrainrun()) && (filterSourceNode || filterTragetNode)
     );
   }
 
@@ -380,8 +358,7 @@ export class FilterService implements OnDestroy {
 
     let retVal = false;
     node.getPorts().forEach((p: Port) => {
-      retVal =
-        retVal || this.filterTrainrun(p.getTrainrunSection().getTrainrun());
+      retVal = retVal || this.filterTrainrun(p.getTrainrunSection().getTrainrun());
     });
     return retVal;
   }
@@ -392,14 +369,13 @@ export class FilterService implements OnDestroy {
       return true;
     }
     /* Impelement user defined filtering */
-    const filterTrainrunSection = this.checkFilterTrainrunLabels(
-      trainrun.getLabelIds(),
-    );
+    const filterTrainrunSection = this.checkFilterTrainrunLabels(trainrun.getLabelIds());
     return (
       filterTrainrunSection &&
       this.isFilterTrainrunFrequencyEnabled(trainrun.getTrainrunFrequency()) &&
       this.isFilterTrainrunCategoryEnabled(trainrun.getTrainrunCategory()) &&
-      this.isFilterTrainrunTimeCategoryEnabled(trainrun.getTrainrunTimeCategory())
+      this.isFilterTrainrunTimeCategoryEnabled(trainrun.getTrainrunTimeCategory()) &&
+      this.isFilterDirectionEnabled(trainrun.getDirection())
     );
   }
 
@@ -426,10 +402,9 @@ export class FilterService implements OnDestroy {
   }
 
   clearDeletetFilterNodeLabel(deletetLabelId: number) {
-    this.activeFilterSetting.filterNodeLabels =
-      this.activeFilterSetting.filterNodeLabels.filter(
-        (labelId) => labelId !== deletetLabelId,
-      );
+    this.activeFilterSetting.filterNodeLabels = this.activeFilterSetting.filterNodeLabels.filter(
+      (labelId) => labelId !== deletetLabelId,
+    );
     this.getFilterSettings().forEach((filterSetting) => {
       filterSetting.filterNodeLabels = filterSetting.filterNodeLabels.filter(
         (filterNodeId) => filterNodeId !== deletetLabelId,
@@ -450,10 +425,9 @@ export class FilterService implements OnDestroy {
   }
 
   clearDeletetFilterNoteLabel(deletetLabelId: number) {
-    this.activeFilterSetting.filterNoteLabels =
-      this.activeFilterSetting.filterNoteLabels.filter(
-        (labelId) => labelId !== deletetLabelId,
-      );
+    this.activeFilterSetting.filterNoteLabels = this.activeFilterSetting.filterNoteLabels.filter(
+      (labelId) => labelId !== deletetLabelId,
+    );
     this.getFilterSettings().forEach((filterSetting) => {
       filterSetting.filterNoteLabels = filterSetting.filterNoteLabels.filter(
         (filterLabelId) => filterLabelId !== deletetLabelId,
@@ -475,25 +449,19 @@ export class FilterService implements OnDestroy {
 
   clearDeletetFilterTrainrunLabel(deletetLabelId: number) {
     this.activeFilterSetting.filterTrainrunLabels =
-      this.activeFilterSetting.filterTrainrunLabels.filter(
-        (labelId) => labelId !== deletetLabelId,
-      );
+      this.activeFilterSetting.filterTrainrunLabels.filter((labelId) => labelId !== deletetLabelId);
     this.getFilterSettings().forEach((filterSetting) => {
-      filterSetting.filterTrainrunLabels =
-        filterSetting.filterTrainrunLabels.filter(
-          (filterLabelId) => filterLabelId !== deletetLabelId,
-        );
+      filterSetting.filterTrainrunLabels = filterSetting.filterTrainrunLabels.filter(
+        (filterLabelId) => filterLabelId !== deletetLabelId,
+      );
       this.deleteClearFilterSetting(filterSetting);
     });
   }
 
   deleteClearFilterSetting(filterSetting: FilterSetting) {
-    const trainrunCategoriesLength =
-      this.dataService.getTrainrunCategories().length;
-    const frainrunFrequenciesLength =
-      this.dataService.getTrainrunFrequencies().length;
-    const trainrunTimeCategoryLength =
-      this.dataService.getTrainrunTimeCategories().length;
+    const trainrunCategoriesLength = this.dataService.getTrainrunCategories().length;
+    const frainrunFrequenciesLength = this.dataService.getTrainrunFrequencies().length;
+    const trainrunTimeCategoryLength = this.dataService.getTrainrunTimeCategories().length;
     if (
       filterSetting.getId() !== this.getActiveFilterSettingId() &&
       filterSetting.isEmpty(
@@ -510,10 +478,8 @@ export class FilterService implements OnDestroy {
     if (
       this.labelGroupService
         .getLabelGroupsFromLabelRef(LabelRef.Node)
-        .find(
-          (grp: LabelGroup) =>
-            grp.getLogicalFilterOperator() !== LogicalFilterOperator.OR,
-        ) !== undefined
+        .find((grp: LabelGroup) => grp.getLogicalFilterOperator() !== LogicalFilterOperator.OR) !==
+      undefined
     ) {
       return true;
     }
@@ -524,10 +490,8 @@ export class FilterService implements OnDestroy {
     if (
       this.labelGroupService
         .getLabelGroupsFromLabelRef(LabelRef.Note)
-        .find(
-          (grp: LabelGroup) =>
-            grp.getLogicalFilterOperator() !== LogicalFilterOperator.OR,
-        ) !== undefined
+        .find((grp: LabelGroup) => grp.getLogicalFilterOperator() !== LogicalFilterOperator.OR) !==
+      undefined
     ) {
       return true;
     }
@@ -538,10 +502,8 @@ export class FilterService implements OnDestroy {
     if (
       this.labelGroupService
         .getLabelGroupsFromLabelRef(LabelRef.Trainrun)
-        .find(
-          (grp: LabelGroup) =>
-            grp.getLogicalFilterOperator() !== LogicalFilterOperator.OR,
-        ) !== undefined
+        .find((grp: LabelGroup) => grp.getLogicalFilterOperator() !== LogicalFilterOperator.OR) !==
+      undefined
     ) {
       return true;
     }
@@ -562,6 +524,20 @@ export class FilterService implements OnDestroy {
       this.activeFilterSetting.isTemporaryDisableFilteringOfItemsInView = false;
     }
     this.filterSubject.next();
+  }
+
+  isFilterDirectionArrowsEnabled(): boolean {
+    return this.activeFilterSetting.filterDirectionArrows;
+  }
+
+  enableFilterDirectionArrows() {
+    this.activeFilterSetting.filterDirectionArrows = true;
+    this.filterChanged();
+  }
+
+  disableFilterDirectionArrows() {
+    this.activeFilterSetting.filterDirectionArrows = false;
+    this.filterChanged();
   }
 
   isFilterArrivalDepartureTimeEnabled(): boolean {
@@ -642,9 +618,7 @@ export class FilterService implements OnDestroy {
   }
 
   getAllVisibleTrainrunCategoryIds(): number[] {
-    return this.activeFilterSetting.filterTrainrunCategory.map(
-      (element) => element.id,
-    );
+    return this.activeFilterSetting.filterTrainrunCategory.map((element) => element.id);
   }
 
   enableFilterTrainrunCategory(trainrunCategory: TrainrunCategory) {
@@ -661,14 +635,11 @@ export class FilterService implements OnDestroy {
   }
 
   resetFilterTrainrunCategory() {
-    this.activeFilterSetting.filterTrainrunCategory =
-      this.dataService.getTrainrunCategories();
+    this.activeFilterSetting.filterTrainrunCategory = this.dataService.getTrainrunCategories();
     this.filterChanged();
   }
 
-  isFilterTrainrunFrequencyEnabled(
-    trainrunFrequency: TrainrunFrequency,
-  ): boolean {
+  isFilterTrainrunFrequencyEnabled(trainrunFrequency: TrainrunFrequency): boolean {
     const found = this.activeFilterSetting.filterTrainrunFrequency.find(
       (element) => element.id === trainrunFrequency.id,
     );
@@ -689,14 +660,11 @@ export class FilterService implements OnDestroy {
   }
 
   resetFilterTrainrunFrequency() {
-    this.activeFilterSetting.filterTrainrunFrequency =
-      this.dataService.getTrainrunFrequencies();
+    this.activeFilterSetting.filterTrainrunFrequency = this.dataService.getTrainrunFrequencies();
     this.filterChanged();
   }
 
-  isFilterTrainrunTimeCategoryEnabled(
-    trainrunTimeCategory: TrainrunTimeCategory,
-  ): boolean {
+  isFilterTrainrunTimeCategoryEnabled(trainrunTimeCategory: TrainrunTimeCategory): boolean {
     const found = this.activeFilterSetting.filterTrainrunTimeCategory.find(
       (element) => element.id === trainrunTimeCategory.id,
     );
@@ -704,15 +672,11 @@ export class FilterService implements OnDestroy {
   }
 
   enableFilterTrainrunTimeCategory(trainrunTimeCategory: TrainrunTimeCategory) {
-    this.activeFilterSetting.filterTrainrunTimeCategory.push(
-      trainrunTimeCategory,
-    );
+    this.activeFilterSetting.filterTrainrunTimeCategory.push(trainrunTimeCategory);
     this.filterChanged();
   }
 
-  disableFilterTrainrunTimeCategory(
-    trainrunTimeCategory: TrainrunTimeCategory,
-  ) {
+  disableFilterTrainrunTimeCategory(trainrunTimeCategory: TrainrunTimeCategory) {
     this.activeFilterSetting.filterTrainrunTimeCategory =
       this.activeFilterSetting.filterTrainrunTimeCategory.filter(
         (element) => element.id !== trainrunTimeCategory.id,
@@ -723,6 +687,29 @@ export class FilterService implements OnDestroy {
   resetFilterTrainrunTimeCategory() {
     this.activeFilterSetting.filterTrainrunTimeCategory =
       this.dataService.getTrainrunTimeCategories();
+    this.filterChanged();
+  }
+
+  isFilterDirectionEnabled(direction: Direction): boolean {
+    return this.activeFilterSetting.filterDirection.includes(direction);
+  }
+
+  enableFilterDirection(direction: Direction) {
+    if (!this.activeFilterSetting.filterDirection.includes(direction)) {
+      this.activeFilterSetting.filterDirection.push(direction);
+      this.filterChanged();
+    }
+  }
+
+  disableFilterDirection(direction: Direction) {
+    this.activeFilterSetting.filterDirection = this.activeFilterSetting.filterDirection.filter(
+      (dir) => dir !== direction,
+    );
+    this.filterChanged();
+  }
+
+  resetFilterDirection() {
+    this.activeFilterSetting.filterDirection = Object.values(Direction);
     this.filterChanged();
   }
 
@@ -741,45 +728,45 @@ export class FilterService implements OnDestroy {
 
   isTrainrunFilteringActive(): boolean {
     let isActive = true;
-    this.dataService
-      .getTrainrunFrequencies()
-      .forEach((freq: TrainrunFrequency) => {
-        const isFilter = this.isFilterTrainrunFrequencyEnabled(freq);
-        if (!isFilter) {
-          isActive = false;
-          return;
-        }
-      });
-    this.dataService
-      .getTrainrunCategories()
-      .forEach((cat: TrainrunCategory) => {
-        const isFilter = this.isFilterTrainrunCategoryEnabled(cat);
-        if (!isFilter) {
-          isActive = false;
-          return;
-        }
-      });
-    this.dataService
-      .getTrainrunTimeCategories()
-      .forEach((catTime: TrainrunTimeCategory) => {
-        const isFilter = this.isFilterTrainrunTimeCategoryEnabled(catTime);
-        if (!isFilter) {
-          isActive = false;
-          return;
-        }
-      });
+    this.dataService.getTrainrunFrequencies().forEach((freq: TrainrunFrequency) => {
+      const isFilter = this.isFilterTrainrunFrequencyEnabled(freq);
+      if (!isFilter) {
+        isActive = false;
+        return;
+      }
+    });
+    this.dataService.getTrainrunCategories().forEach((cat: TrainrunCategory) => {
+      const isFilter = this.isFilterTrainrunCategoryEnabled(cat);
+      if (!isFilter) {
+        isActive = false;
+        return;
+      }
+    });
+    this.dataService.getTrainrunTimeCategories().forEach((catTime: TrainrunTimeCategory) => {
+      const isFilter = this.isFilterTrainrunTimeCategoryEnabled(catTime);
+      if (!isFilter) {
+        isActive = false;
+        return;
+      }
+    });
+    this.dataService.getDirections().forEach((direction: Direction) => {
+      const isFilter = this.isFilterDirectionEnabled(direction);
+      if (!isFilter) {
+        isActive = false;
+        return;
+      }
+    });
     return isActive;
   }
 
   isNodeFilteringActive(): boolean {
-    return (
-      !this.isFilteringAllNonStopNodes() && !this.isFilteringAllEmptyNodes()
-    );
+    return !this.isFilteringAllNonStopNodes() && !this.isFilteringAllEmptyNodes();
   }
 
   isDisplayFilteringActive(): boolean {
     return (
       !this.isFilterNotesEnabled() &&
+      this.isFilterDirectionArrowsEnabled() &&
       this.isFilterArrivalDepartureTimeEnabled() &&
       this.isFilterConnectionsEnabled() &&
       this.isFilterTrainrunNameEnabled() &&
@@ -795,34 +782,18 @@ export class FilterService implements OnDestroy {
   }
 
   private checkFilterNodeLabels(labelIds: number[]): boolean {
-    return this.filterLabels(
-      labelIds,
-      this.getFilterNodeLabels(),
-      LabelRef.Node,
-    );
+    return this.filterLabels(labelIds, this.getFilterNodeLabels(), LabelRef.Node);
   }
 
   private checkFilterNoteLabels(labelIds: number[]): boolean {
-    return this.filterLabels(
-      labelIds,
-      this.getFilterNoteLabels(),
-      LabelRef.Note,
-    );
+    return this.filterLabels(labelIds, this.getFilterNoteLabels(), LabelRef.Note);
   }
 
   private checkFilterTrainrunLabels(labelIds: number[]): boolean {
-    return this.filterLabels(
-      labelIds,
-      this.getFilterTrainrunLabels(),
-      LabelRef.Trainrun,
-    );
+    return this.filterLabels(labelIds, this.getFilterTrainrunLabels(), LabelRef.Trainrun);
   }
 
-  private filterLabels(
-    labelIds: number[],
-    filterLabelIds: number[],
-    labelRef: LabelRef,
-  ): boolean {
+  private filterLabels(labelIds: number[], filterLabelIds: number[], labelRef: LabelRef): boolean {
     if (labelIds.length === 0) {
       return true;
     }
@@ -832,15 +803,13 @@ export class FilterService implements OnDestroy {
       .map((label: Label) => label.getLabelGroupId())
       .filter((v, i, a) => a.indexOf(v) === i);
 
-    this.labelGroupService
-      .getLabelGroupsFromLabelRef(labelRef)
-      .forEach((grp: LabelGroup) => {
-        if (grp.getLogicalFilterOperator() === LogicalFilterOperator.AND) {
-          if (!uniqueLabelGroupsFilter.includes(grp.getId())) {
-            uniqueLabelGroupsFilter.push(grp.getId());
-          }
+    this.labelGroupService.getLabelGroupsFromLabelRef(labelRef).forEach((grp: LabelGroup) => {
+      if (grp.getLogicalFilterOperator() === LogicalFilterOperator.AND) {
+        if (!uniqueLabelGroupsFilter.includes(grp.getId())) {
+          uniqueLabelGroupsFilter.push(grp.getId());
         }
-      });
+      }
+    });
 
     let doFiltering = true;
     uniqueLabelGroupsFilter.forEach((grpId: number) => {
@@ -852,15 +821,12 @@ export class FilterService implements OnDestroy {
         (l: Label) => l.getLabelGroupId() === grpId,
       );
 
-      if (
-        groupOfInterest.getLogicalFilterOperator() === LogicalFilterOperator.OR
-      ) {
+      if (groupOfInterest.getLogicalFilterOperator() === LogicalFilterOperator.OR) {
         if (groupedLabelsFromEnvironment.length > 0) {
           doFiltering =
             doFiltering &&
-            groupedLabelsFromEnvironment.filter(
-              (value) => !groupedLabelsFromFilter.includes(value),
-            ).length > 0;
+            groupedLabelsFromEnvironment.filter((value) => !groupedLabelsFromFilter.includes(value))
+              .length > 0;
         }
       } else {
         const groupedLabelsAllMinusFilter = this.labelService
@@ -879,16 +845,16 @@ export class FilterService implements OnDestroy {
   private initializeFilterSetting(filterSetting: FilterSetting) {
     if (filterSetting !== undefined) {
       if (filterSetting.filterTrainrunCategory === null) {
-        filterSetting.filterTrainrunCategory =
-          this.dataService.getTrainrunCategories();
+        filterSetting.filterTrainrunCategory = this.dataService.getTrainrunCategories();
       }
       if (filterSetting.filterTrainrunFrequency === null) {
-        filterSetting.filterTrainrunFrequency =
-          this.dataService.getTrainrunFrequencies();
+        filterSetting.filterTrainrunFrequency = this.dataService.getTrainrunFrequencies();
       }
       if (filterSetting.filterTrainrunTimeCategory === null) {
-        filterSetting.filterTrainrunTimeCategory =
-          this.dataService.getTrainrunTimeCategories();
+        filterSetting.filterTrainrunTimeCategory = this.dataService.getTrainrunTimeCategories();
+      }
+      if (filterSetting.filterDirection === null) {
+        filterSetting.filterDirection = this.dataService.getDirections();
       }
     }
   }

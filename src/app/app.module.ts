@@ -35,6 +35,7 @@ import {ColumnLayoutComponent} from "./view/column-layout/column-layout.componen
 import {NetzgrafikApplicationComponent} from "./netzgrafik-application/netzgrafik-application.component";
 import {TrainrunTabComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrun-tab/trainrun-tab.component";
 import {TrainrunSectionTabComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrunsection-tab/trainrun-section-tab.component";
+import {TrainrunSectionCardComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrunsection-card/trainrun-section-card.component";
 import {EditorNodeDetailViewComponent} from "./view/editor-side-view/editor-node-detail-view/editor-node-detail-view.component";
 import {EditorFilterViewComponent} from "./view/editor-filter-view/editor-filter-view.component";
 import {EditorMenuComponent} from "./view/editor-menu/editor-menu.component";
@@ -71,6 +72,7 @@ import {PreviewButtonComponent} from "./view/variant/variant-view/variant-histor
 import {NavigationBarComponent} from "./view/navigation-bar/navigation-bar.component";
 import {EditorPropertiesViewComponent} from "./view/editor-properties-view-component/editor-properties-view.component";
 import {TrainrunFilterTabComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrun-filter-tab/trainrun-filter-tab.component";
+import {TrainrunRoundtripTabComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrun-roundtrip-tab/trainrun-roundtrip-tab.component";
 import {EditorEditToolsViewComponent} from "./view/editor-edit-tools-view-component/editor-edit-tools-view.component";
 import {FilterableLabelFormComponent} from "./view/dialogs/filterable-labels-dialog/filterable-labels-form/filterable-label-form.component";
 import {FilterableLabelDialogComponent} from "./view/dialogs/filterable-labels-dialog/filterable-label-dialog.component";
@@ -103,6 +105,8 @@ import {TrainRunNodeComponent} from "./streckengrafik/components/train-run-node/
 import {ActionMenuComponent} from "./view/action-menu/action-menu/action-menu.component";
 import {I18nModule} from "./core/i18n/i18n.module";
 import {OriginDestinationComponent} from "./services/analytics/origin-destination/components/origin-destination.component";
+import {SbbToggleModule} from "@sbb-esta/angular/toggle";
+import {ToggleSwitchButtonComponent} from "./view/toggle-switch-button/toggle-switch-button.component";
 
 @NgModule({
   declarations: [
@@ -112,7 +116,9 @@ import {OriginDestinationComponent} from "./services/analytics/origin-destinatio
     NetzgrafikApplicationComponent,
     TrainrunTabComponent,
     TrainrunFilterTabComponent,
+    TrainrunRoundtripTabComponent,
     TrainrunSectionTabComponent,
+    TrainrunSectionCardComponent,
     EditorNodeDetailViewComponent,
     EditorFilterViewComponent,
     StammdatenDialogComponent,
@@ -176,6 +182,7 @@ import {OriginDestinationComponent} from "./services/analytics/origin-destinatio
     PathSliderTrackSegmentsComponent,
     TrainRunSectionStopsComponentComponent,
     PathGridComponent,
+    ToggleSwitchButtonComponent,
   ],
   imports: [
     BrowserModule,
@@ -216,6 +223,7 @@ import {OriginDestinationComponent} from "./services/analytics/origin-destinatio
     SbbSelectModule,
     SbbCheckboxModule,
     SbbRadioButtonModule,
+    SbbToggleModule,
     SbbTableModule,
     SbbIconModule,
     SbbAccordionModule,
@@ -237,9 +245,7 @@ import {OriginDestinationComponent} from "./services/analytics/origin-destinatio
   ],
   bootstrap: environment.customElement ? [] : [AppComponent],
   providers: [
-    ...(environment.backendUrl
-      ? [{provide: BASE_PATH, useValue: environment.backendUrl}]
-      : []),
+    ...(environment.backendUrl ? [{provide: BASE_PATH, useValue: environment.backendUrl}] : []),
     {provide: HTTP_INTERCEPTORS, useClass: HttpErrorInterceptor, multi: true},
   ],
 })

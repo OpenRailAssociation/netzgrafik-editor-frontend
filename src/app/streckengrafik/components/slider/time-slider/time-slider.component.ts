@@ -26,9 +26,7 @@ import {
   styleUrls: ["./time-slider.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TimeSliderComponent
-  implements OnInit, OnDestroy, UpdateCounterHandler
-{
+export class TimeSliderComponent implements OnInit, OnDestroy, UpdateCounterHandler {
   @Input()
   sliderLinePos = 0;
 
@@ -124,9 +122,7 @@ export class TimeSliderComponent
         }
       });
 
-    this.timeSliderService.changeZoom(
-      this.timeSliderService.getYZoom() + 0.000001,
-    );
+    this.timeSliderService.changeZoom(this.timeSliderService.getYZoom() + 0.000001);
   }
 
   ngOnDestroy(): void {
@@ -139,17 +135,9 @@ export class TimeSliderComponent
     event.preventDefault();
     event.stopImmediatePropagation();
     if (this.horizontal) {
-      this.timeSliderService.handleWheelZoom(
-        event.offsetX,
-        event.deltaY,
-        event.timeStamp,
-      );
+      this.timeSliderService.handleWheelZoom(event.offsetX, event.deltaY, event.timeStamp);
     } else {
-      this.timeSliderService.handleWheelZoom(
-        event.offsetY,
-        event.deltaY,
-        event.timeStamp,
-      );
+      this.timeSliderService.handleWheelZoom(event.offsetY, event.deltaY, event.timeStamp);
     }
   }
 
@@ -159,13 +147,9 @@ export class TimeSliderComponent
     event.stopImmediatePropagation();
     if (event.buttons !== 0) {
       if (this.horizontal) {
-        this.timeSliderService.yMoveChange(
-          this.timeSliderService.getYMove() - event.movementX,
-        );
+        this.timeSliderService.yMoveChange(this.timeSliderService.getYMove() - event.movementX);
       } else {
-        this.timeSliderService.yMoveChange(
-          this.timeSliderService.getYMove() - event.movementY,
-        );
+        this.timeSliderService.yMoveChange(this.timeSliderService.getYMove() - event.movementY);
       }
       this.lastMouseMoveButtons = event.buttons;
     }
@@ -235,9 +219,7 @@ export class TimeSliderComponent
   }
 
   getTimeSliderClassTag(time: TimeDate): string {
-    return (
-      "TimeSliderComponent HorizontalLine " + this.getTimeGroupClassTag(time)
-    );
+    return "TimeSliderComponent HorizontalLine " + this.getTimeGroupClassTag(time);
   }
 
   getTimeLineClassTag(): string {
@@ -262,11 +244,9 @@ export class TimeSliderComponent
       return;
     }
     this.timeLinePos =
-      (this.timelineChangeInfo + this.sliderChangeInfo.move) /
-      this.sliderChangeInfo.zoom;
+      (this.timelineChangeInfo + this.sliderChangeInfo.move) / this.sliderChangeInfo.zoom;
     if (this.roundTimeLine > 0.01) {
-      this.timeLinePos =
-        Math.round(this.timeLinePos / this.roundTimeLine) * this.roundTimeLine;
+      this.timeLinePos = Math.round(this.timeLinePos / this.roundTimeLine) * this.roundTimeLine;
     }
     if (isNaN(this.timeLinePos)) {
       this.timeLinePos = undefined;
@@ -276,21 +256,10 @@ export class TimeSliderComponent
   private render() {
     if (this.horizontal) {
       this.viewBox =
-        " " +
-        this.sliderChangeInfo.move +
-        " " +
-        "0 " +
-        this.viewBoxChangeInfo.width +
-        " " +
-        40;
+        " " + this.sliderChangeInfo.move + " " + "0 " + this.viewBoxChangeInfo.width + " " + 40;
     } else {
       this.viewBox =
-        "0 " +
-        this.sliderChangeInfo.move +
-        " " +
-        40 +
-        " " +
-        this.viewBoxChangeInfo.height;
+        "0 " + this.sliderChangeInfo.move + " " + 40 + " " + this.viewBoxChangeInfo.height;
     }
     this.delayedRender();
   }
@@ -335,12 +304,8 @@ export class TimeSliderComponent
       ? Math.floor(this.viewBoxChangeInfo.x / block)
       : Math.floor(this.viewBoxChangeInfo.y / block);
     let maxTime = this.horizontal
-      ? Math.ceil(
-          (this.viewBoxChangeInfo.x + this.viewBoxChangeInfo.width) / block,
-        )
-      : Math.ceil(
-          (this.viewBoxChangeInfo.y + this.viewBoxChangeInfo.height) / block,
-        );
+      ? Math.ceil((this.viewBoxChangeInfo.x + this.viewBoxChangeInfo.width) / block)
+      : Math.ceil((this.viewBoxChangeInfo.y + this.viewBoxChangeInfo.height) / block);
 
     if (this.timesTicksIndices.length > 0) {
       const first = this.timesTicksIndices[0];
@@ -409,22 +374,15 @@ export class TimeSliderComponent
     return "";
   }
 
-  private createOrUpdateTimeData(
-    timeResolution: number,
-    timeVisualResolution: number,
-  ) {
+  private createOrUpdateTimeData(timeResolution: number, timeVisualResolution: number) {
     if (this.timeResolution !== timeResolution || this.times.length === 0) {
       const block = 60 * this.getScaleFactor();
       let timeRangeMinValueSeconds = this.horizontal
         ? Math.floor(this.viewBoxChangeInfo.x / block)
         : Math.floor(this.viewBoxChangeInfo.y / block);
       let timeRangeMaxValueSeconds = this.horizontal
-        ? Math.ceil(
-            (this.viewBoxChangeInfo.x + this.viewBoxChangeInfo.width) / block,
-          )
-        : Math.ceil(
-            (this.viewBoxChangeInfo.y + this.viewBoxChangeInfo.height) / block,
-          );
+        ? Math.ceil((this.viewBoxChangeInfo.x + this.viewBoxChangeInfo.width) / block)
+        : Math.ceil((this.viewBoxChangeInfo.y + this.viewBoxChangeInfo.height) / block);
       timeRangeMinValueSeconds = timeRangeMinValueSeconds * 3600 - 24 * 3600;
       timeRangeMaxValueSeconds = timeRangeMaxValueSeconds * 3600 + 24 * 3600;
 

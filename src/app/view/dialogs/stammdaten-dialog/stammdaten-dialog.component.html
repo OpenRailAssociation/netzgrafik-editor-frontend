@@ -1,18 +1,22 @@
 <ng-template #stammdatenTemplate>
   <div>
     <div sbbDialogTitle>
-      <b>{{ 'app.view.dialogs.stammdaten-dialog.base-data' | translate }}</b>
+      <b>{{ "app.view.dialogs.stammdaten-dialog.base-data" | translate }}</b>
     </div>
     <div sbbDialogContent>
       <table sbb-table [dataSource]="dataSource">
         <ng-container sbbColumnDef="betriebspunkt">
-          <th sbb-header-cell *sbbHeaderCellDef>{{ 'app.view.dialogs.stammdaten-dialog.operationalPoint' | translate }}</th>
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.stammdaten-dialog.operationalPoint" | translate }}
+          </th>
           <td sbb-cell *sbbCellDef="let element">
             {{ element.betriebspunkt }}
           </td>
         </ng-container>
         <ng-container sbbColumnDef="haltezeit_I_P_V">
-          <th sbb-header-cell *sbbHeaderCellDef>{{ 'app.view.dialogs.stammdaten-dialog.ipv-stop-time' | translate }}</th>
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.stammdaten-dialog.ipv-stop-time" | translate }}
+          </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="!element['HaltezeitIPV'].no_halt; else noHalt">
               {{ element["HaltezeitIPV"].haltezeit }}
@@ -21,7 +25,9 @@
           </td>
         </ng-container>
         <ng-container sbbColumnDef="haltezeit_A">
-          <th sbb-header-cell *sbbHeaderCellDef>{{ 'app.view.dialogs.stammdaten-dialog.a-stop-time' | translate }}</th>
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.stammdaten-dialog.a-stop-time" | translate }}
+          </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="!element['HaltezeitA'].no_halt; else noHalt">
               {{ element["HaltezeitA"].haltezeit }}
@@ -30,7 +36,9 @@
           </td>
         </ng-container>
         <ng-container sbbColumnDef="haltezeit_B">
-          <th sbb-header-cell *sbbHeaderCellDef>{{ 'app.view.dialogs.stammdaten-dialog.b-stop-time' | translate }}</th>
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.stammdaten-dialog.b-stop-time" | translate }}
+          </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="!element['HaltezeitB'].no_halt; else noHalt">
               {{ element["HaltezeitB"].haltezeit }}
@@ -39,7 +47,9 @@
           </td>
         </ng-container>
         <ng-container sbbColumnDef="haltezeit_C">
-          <th sbb-header-cell *sbbHeaderCellDef>{{ 'app.view.dialogs.stammdaten-dialog.c-stop-time' | translate }}</th>
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.stammdaten-dialog.c-stop-time" | translate }}
+          </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="!element['HaltezeitC'].no_halt; else noHalt">
               {{ element["HaltezeitC"].haltezeit }}
@@ -48,7 +58,9 @@
           </td>
         </ng-container>
         <ng-container sbbColumnDef="haltezeit_D">
-          <th sbb-header-cell *sbbHeaderCellDef>{{ 'app.view.dialogs.stammdaten-dialog.d-stop-time' | translate }}</th>
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.stammdaten-dialog.d-stop-time" | translate }}
+          </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="!element['HaltezeitD'].no_halt; else noHalt">
               {{ element["HaltezeitD"].haltezeit }}
@@ -57,7 +69,9 @@
           </td>
         </ng-container>
         <ng-container sbbColumnDef="zaz">
-          <th sbb-header-cell *sbbHeaderCellDef>{{ 'app.view.dialogs.stammdaten-dialog.zaz' | translate }}</th>
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.stammdaten-dialog.zaz" | translate }}
+          </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="element.zaz !== 0; else noZAZ">
               {{ element.zaz }}
@@ -66,7 +80,9 @@
           </td>
         </ng-container>
         <ng-container sbbColumnDef="connection_time">
-          <th sbb-header-cell *sbbHeaderCellDef>{{ 'app.view.dialogs.stammdaten-dialog.connection-time' | translate }}</th>
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.stammdaten-dialog.connection-time" | translate }}
+          </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="element.connection_time !== 0; else noHalt">
               {{ element.connection_time }}
@@ -75,7 +91,9 @@
           </td>
         </ng-container>
         <ng-container sbbColumnDef="region">
-          <th sbb-header-cell *sbbHeaderCellDef>{{ 'app.view.dialogs.stammdaten-dialog.region' | translate }}</th>
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.stammdaten-dialog.region" | translate }}
+          </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="element.region !== ''; else noRegion">
               {{ element.region }}
@@ -84,7 +102,9 @@
           </td>
         </ng-container>
         <ng-container sbbColumnDef="kategorie">
-          <th sbb-header-cell *sbbHeaderCellDef>{{ 'app.view.dialogs.stammdaten-dialog.category' | translate }}</th>
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.stammdaten-dialog.category" | translate }}
+          </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="element.kategorie !== ''; else noKategorie">
               {{ element.kategorie }}
@@ -93,7 +113,9 @@
           </td>
         </ng-container>
         <ng-container sbbColumnDef="filterableLabels">
-          <th sbb-header-cell *sbbHeaderCellDef>{{ 'app.view.dialogs.stammdaten-dialog.filterable-labels' | translate }}</th>
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.stammdaten-dialog.filterable-labels" | translate }}
+          </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="element.filterableLabels.length !== 0; else noLabels">
               {{ element.filterableLabels }}
@@ -102,7 +124,9 @@
           </td>
         </ng-container>
         <ng-container sbbColumnDef="pos">
-          <th sbb-header-cell *sbbHeaderCellDef>{{ 'app.view.dialogs.stammdaten-dialog.position' | translate }}</th>
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.stammdaten-dialog.position" | translate }}
+          </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="element.pos !== undefined; else noPos">
               {{ element.pos.getX() }} <br />
@@ -118,7 +142,7 @@
     </div>
     <div sbbDialogActions>
       <button sbb-alt-button sbbDialogClose [sbbDialogClose]="false">
-        {{ 'app.view.dialogs.stammdaten-dialog.close' | translate }}
+        {{ "app.view.dialogs.stammdaten-dialog.close" | translate }}
       </button>
     </div>
   </div>

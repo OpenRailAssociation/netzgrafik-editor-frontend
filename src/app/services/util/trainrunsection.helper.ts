@@ -21,8 +21,7 @@ export enum LeftAndRightElement {
 }
 
 export class TrainrunsectionHelper {
-  constructor(private trainrunService: TrainrunService) {
-  }
+  constructor(private trainrunService: TrainrunService) {}
 
   static getSymmetricTime(time: number) {
     return time === 0 ? 0 : 60 - time;
@@ -46,11 +45,13 @@ export class TrainrunsectionHelper {
     travelTimeFactor: number,
     trsTravelTime: number,
     isRightNodeNonStopTransit: boolean,
-    precision = TrainrunSectionService.TIME_PRECISION
+    precision = TrainrunSectionService.TIME_PRECISION,
   ): number {
     if (isRightNodeNonStopTransit) {
-      return Math.max(MathUtils.round(trsTravelTime * travelTimeFactor, precision),
-        1.0 / Math.pow(10, precision));
+      return Math.max(
+        MathUtils.round(trsTravelTime * travelTimeFactor, precision),
+        1.0 / Math.pow(10, precision),
+      );
     } else {
       return Math.max(
         MathUtils.round(totalTravelTime - summedTravelTime, precision),
@@ -61,71 +62,57 @@ export class TrainrunsectionHelper {
 
   static getRightArrivalTime(
     timeStructure: LeftAndRightTimeStructure,
-    precision = TrainrunSectionService.TIME_PRECISION
+    precision = TrainrunSectionService.TIME_PRECISION,
   ): number {
     return MathUtils.round(
       (timeStructure.leftDepartureTime + (timeStructure.travelTime % 60)) % 60,
-      precision
+      precision,
     );
   }
 
   static getRightDepartureTime(
     timeStructure: LeftAndRightTimeStructure,
-    precision = TrainrunSectionService.TIME_PRECISION
+    precision = TrainrunSectionService.TIME_PRECISION,
   ): number {
-    return MathUtils.round(
-      this.getSymmetricTime(timeStructure.rightArrivalTime),
-      precision
-    );
+    return MathUtils.round(this.getSymmetricTime(timeStructure.rightArrivalTime), precision);
   }
 
-  getLeftBetriebspunkt(
-    trainrunSection: TrainrunSection,
-    orderedNodes: Node[],
-  ): string[] {
-    const leftNode = this.getLeftNode(trainrunSection, orderedNodes);
-    return [
-      leftNode.getBetriebspunktName(),
-      "(" + leftNode.getFullName() + ")",
-    ];
+  getLeftBetriebspunkt(trainrunSection: TrainrunSection, orderedNodes: Node[]): string[] {
+    const nextStopLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
+    return [nextStopLeftNode.getBetriebspunktName(), "(" + nextStopLeftNode.getFullName() + ")"];
   }
 
-  getRightBetriebspunkt(
-    trainrunSection: TrainrunSection,
-    orderedNodes: Node[],
-  ): string[] {
-    const rightNode = this.getRightNode(trainrunSection, orderedNodes);
-    return [
-      rightNode.getBetriebspunktName(),
-      "(" + rightNode.getFullName() + ")",
-    ];
+  getRightBetriebspunkt(trainrunSection: TrainrunSection, orderedNodes: Node[]): string[] {
+    const nextStopRightNode = this.getNextStopRightNode(trainrunSection, orderedNodes);
+    return [nextStopRightNode.getBetriebspunktName(), "(" + nextStopRightNode.getFullName() + ")"];
   }
 
   getLeftRightSections(trainrunSection: TrainrunSection) {
     const bothLastNonStopTransitNodes =
       this.trainrunService.getBothLastNonStopNodes(trainrunSection);
 
-    const startForwardBackwardNode =
-      GeneralViewFunctions.getStartForwardAndBackwardNode(
-        bothLastNonStopTransitNodes.lastNonStopNode1,
-        bothLastNonStopTransitNodes.lastNonStopNode2,
-      );
+    const startForwardBackwardNode = GeneralViewFunctions.getStartForwardAndBackwardNode(
+      bothLastNonStopTransitNodes.lastNonStopNode1,
+      bothLastNonStopTransitNodes.lastNonStopNode2,
+    );
     const lastLeftNode = startForwardBackwardNode.startForwardNode;
     const lastRightNode = startForwardBackwardNode.startBackwardNode;
 
-    const towardsSource =
-      this.trainrunService.getLastNonStopTrainrunSection(
-        trainrunSection.getSourceNode(),
-        trainrunSection);
-    const towradsTarget =
-      this.trainrunService.getLastNonStopTrainrunSection(
-        trainrunSection.getTargetNode(),
-        trainrunSection);
+    const towardsSource = this.trainrunService.getLastNonStopTrainrunSection(
+      trainrunSection.getSourceNode(),
+      trainrunSection,
+    );
+    const towradsTarget = this.trainrunService.getLastNonStopTrainrunSection(
+      trainrunSection.getTargetNode(),
+      trainrunSection,
+    );
 
     let leftSection = towradsTarget;
     let rightSection = towardsSource;
-    if (towardsSource.getSourceNodeId() === lastLeftNode.getId() ||
-      towardsSource.getTargetNodeId() === lastLeftNode.getId()) {
+    if (
+      towardsSource.getSourceNodeId() === lastLeftNode.getId() ||
+      towardsSource.getTargetNodeId() === lastLeftNode.getId()
+    ) {
       leftSection = towardsSource;
       rightSection = towradsTarget;
     }
@@ -133,7 +120,7 @@ export class TrainrunsectionHelper {
       leftSection: leftSection,
       rightSection: rightSection,
       lastLeftNode: lastLeftNode,
-      lastRightNode: lastRightNode
+      lastRightNode: lastRightNode,
     };
   }
 
@@ -169,15 +156,23 @@ export class TrainrunsectionHelper {
     trainrunSection: TrainrunSection,
     orderedNodes: Node[],
   ): LeftAndRightLockStructure {
-    const lastLeftNode = this.getLeftNode(trainrunSection, orderedNodes);
-    const lastRightNode = this.getRightNode(trainrunSection, orderedNodes);
+    const lastLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
+    const lastRightNode = this.getNextStopRightNode(trainrunSection, orderedNodes);
 
-    const towardsSource = this.trainrunService.getLastNonStopTrainrunSection(trainrunSection.getSourceNode(), trainrunSection);
-    const towradsTarget = this.trainrunService.getLastNonStopTrainrunSection(trainrunSection.getTargetNode(), trainrunSection);
+    const towardsSource = this.trainrunService.getLastNonStopTrainrunSection(
+      trainrunSection.getSourceNode(),
+      trainrunSection,
+    );
+    const towradsTarget = this.trainrunService.getLastNonStopTrainrunSection(
+      trainrunSection.getTargetNode(),
+      trainrunSection,
+    );
     let leftSection = towradsTarget;
     let rightSection = towardsSource;
-    if (towardsSource.getSourceNodeId() === lastLeftNode.getId() ||
-      towardsSource.getTargetNodeId() === lastLeftNode.getId()) {
+    if (
+      towardsSource.getSourceNodeId() === lastLeftNode.getId() ||
+      towardsSource.getTargetNodeId() === lastLeftNode.getId()
+    ) {
       leftSection = towardsSource;
       rightSection = towradsTarget;
     }
@@ -185,16 +180,12 @@ export class TrainrunsectionHelper {
     return {
       leftLock:
         leftSection.getSourceNodeId() === lastLeftNode.getId()
-          ? leftSection.getSourceArrivalLock() ||
-          leftSection.getSourceDepartureLock()
-          : leftSection.getTargetArrivalLock() ||
-          leftSection.getTargetDepartureLock(),
+          ? leftSection.getSourceArrivalLock() || leftSection.getSourceDepartureLock()
+          : leftSection.getTargetArrivalLock() || leftSection.getTargetDepartureLock(),
       rightLock:
         rightSection.getSourceNodeId() === lastRightNode.getId()
-          ? rightSection.getSourceArrivalLock() ||
-          rightSection.getSourceDepartureLock()
-          : rightSection.getTargetArrivalLock() ||
-          rightSection.getTargetDepartureLock(),
+          ? rightSection.getSourceArrivalLock() || rightSection.getSourceDepartureLock()
+          : rightSection.getTargetArrivalLock() || rightSection.getTargetDepartureLock(),
       travelTimeLock: trainrunSection.getTravelTimeLock(),
     };
   }
@@ -205,38 +196,38 @@ export class TrainrunsectionHelper {
     orderedNodes: Node[],
     forward: boolean,
   ): LeftAndRightElement | undefined {
-    const leftNode = this.getLeftNode(trainrunSection, orderedNodes);
+    const nextStopLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
     const sourceNodeid = trainrunSection.getSourceNode().getId();
     const targetNodeid = trainrunSection.getTargetNode().getId();
 
     switch (trainrunSectionSelectedText) {
       case TrainrunSectionText.SourceDeparture:
-        return sourceNodeid === leftNode.getId()
+        return sourceNodeid === nextStopLeftNode.getId()
           ? LeftAndRightElement.LeftDeparture
           : LeftAndRightElement.RightDeparture;
 
       case TrainrunSectionText.SourceArrival:
-        return sourceNodeid === leftNode.getId()
+        return sourceNodeid === nextStopLeftNode.getId()
           ? LeftAndRightElement.LeftArrival
           : LeftAndRightElement.RightArrival;
 
       case TrainrunSectionText.TargetDeparture:
-        return targetNodeid === leftNode.getId()
+        return targetNodeid === nextStopLeftNode.getId()
           ? LeftAndRightElement.LeftDeparture
           : LeftAndRightElement.RightDeparture;
 
       case TrainrunSectionText.TargetArrival:
-        return targetNodeid === leftNode.getId()
+        return targetNodeid === nextStopLeftNode.getId()
           ? LeftAndRightElement.LeftArrival
           : LeftAndRightElement.RightArrival;
 
       case TrainrunSectionText.TrainrunSectionName:
         if (forward === undefined) {
-          return leftNode.getId()
+          return nextStopLeftNode.getId()
             ? LeftAndRightElement.LeftRightTrainrunName
             : LeftAndRightElement.RightLeftTrainrunName;
         }
-        return sourceNodeid === leftNode.getId()
+        return sourceNodeid === nextStopLeftNode.getId()
           ? forward
             ? LeftAndRightElement.LeftRightTrainrunName
             : LeftAndRightElement.RightLeftTrainrunName
@@ -255,16 +246,14 @@ export class TrainrunsectionHelper {
     orderedNodes: Node[],
     timeStructure: LeftAndRightTimeStructure,
   ): LeftAndRightTimeStructure {
-    const bothLastNonStopNodes =
-      this.trainrunService.getBothLastNonStopNodes(trainrunSection);
+    const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
     const leftNode = GeneralViewFunctions.getLeftOrTopNode(
       bothLastNonStopNodes.lastNonStopNode1,
       bothLastNonStopNodes.lastNonStopNode2,
     );
-    const localLeftNode = this.getLeftNode(trainrunSection, orderedNodes);
+    const localLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
     if (leftNode.getId() !== localLeftNode.getId()) {
-      const mappedTimeStructure =
-        TrainrunsectionHelper.getDefaultTimeStructure(timeStructure);
+      const mappedTimeStructure = TrainrunsectionHelper.getDefaultTimeStructure(timeStructure);
       mappedTimeStructure.rightArrivalTime = timeStructure.leftArrivalTime;
       mappedTimeStructure.leftArrivalTime = timeStructure.rightArrivalTime;
       mappedTimeStructure.rightDepartureTime = timeStructure.leftDepartureTime;
@@ -279,12 +268,11 @@ export class TrainrunsectionHelper {
     trainrunSection: TrainrunSection,
     orderedNodes: Node[],
   ): LeftAndRightTimeStructure {
-    const bothLastNonStopNodes =
-      this.trainrunService.getBothLastNonStopNodes(trainrunSection);
+    const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
     const bothLastNonStopTrainrunSections =
       this.trainrunService.getBothLastNonStopTrainrunSections(trainrunSection);
-    const lastLeftNode = this.getLeftNode(trainrunSection, orderedNodes);
-    const lastRightNode = this.getRightNode(trainrunSection, orderedNodes);
+    const lastLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
+    const lastRightNode = this.getNextStopRightNode(trainrunSection, orderedNodes);
 
     const leftTrainrunSection =
       lastLeftNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
@@ -294,8 +282,7 @@ export class TrainrunsectionHelper {
       lastRightNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
         ? bothLastNonStopTrainrunSections.lastNonStopTrainrunSection1
         : bothLastNonStopTrainrunSections.lastNonStopTrainrunSection2;
-    const cumulativeTravelTime =
-      this.trainrunService.getCumulativeTravelTime(trainrunSection);
+    const cumulativeTravelTime = this.trainrunService.getCumulativeTravelTime(trainrunSection);
 
     return {
       leftDepartureTime: lastLeftNode.getDepartureTime(leftTrainrunSection),
@@ -306,17 +293,14 @@ export class TrainrunsectionHelper {
     };
   }
 
-  getLeftNode(trainrunSection: TrainrunSection, orderedNodes: Node[]): Node {
-    const bothLastNonStopNodes =
-      this.trainrunService.getBothLastNonStopNodes(trainrunSection);
+  getNextStopLeftNode(trainrunSection: TrainrunSection, orderedNodes: Node[]): Node {
+    const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
     const bothNodesFound =
       orderedNodes.find(
-        (n: Node) =>
-          n.getId() === bothLastNonStopNodes.lastNonStopNode1.getId(),
+        (n: Node) => n.getId() === bothLastNonStopNodes.lastNonStopNode1.getId(),
       ) !== undefined &&
       orderedNodes.find(
-        (n: Node) =>
-          n.getId() === bothLastNonStopNodes.lastNonStopNode2.getId(),
+        (n: Node) => n.getId() === bothLastNonStopNodes.lastNonStopNode2.getId(),
       ) !== undefined;
     let leftNode;
     if (!bothNodesFound) {
@@ -334,17 +318,14 @@ export class TrainrunsectionHelper {
     return leftNode;
   }
 
-  getRightNode(trainrunSection: TrainrunSection, orderedNodes: Node[]): Node {
-    const bothLastNonStopNodes =
-      this.trainrunService.getBothLastNonStopNodes(trainrunSection);
+  getNextStopRightNode(trainrunSection: TrainrunSection, orderedNodes: Node[]): Node {
+    const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
     const bothNodesFound =
       orderedNodes.find(
-        (n: Node) =>
-          n.getId() === bothLastNonStopNodes.lastNonStopNode1.getId(),
+        (n: Node) => n.getId() === bothLastNonStopNodes.lastNonStopNode1.getId(),
       ) !== undefined &&
       orderedNodes.find(
-        (n: Node) =>
-          n.getId() === bothLastNonStopNodes.lastNonStopNode2.getId(),
+        (n: Node) => n.getId() === bothLastNonStopNodes.lastNonStopNode2.getId(),
       ) !== undefined;
     let rightNode;
     if (!bothNodesFound) {
@@ -360,5 +341,12 @@ export class TrainrunsectionHelper {
       );
     }
     return rightNode;
+  }
+
+  static isTargetRightOrBottom(trainrunSection: TrainrunSection): boolean {
+    const sourceNode = trainrunSection.getSourceNode();
+    const targetNode = trainrunSection.getTargetNode();
+
+    return GeneralViewFunctions.getRightOrBottomNode(sourceNode, targetNode) === targetNode;
   }
 }

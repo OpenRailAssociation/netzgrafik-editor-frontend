@@ -11,10 +11,8 @@ import {UpdateCounterTriggerService} from "./util/update-counter.service";
   providedIn: "root",
 })
 export class Sg8RenderService implements OnDestroy {
-  private readonly selectedTrainrunSubject =
-    new BehaviorSubject<SgSelectedTrainrun>(undefined);
-  private readonly selectedTrainrun$ =
-    this.selectedTrainrunSubject.asObservable();
+  private readonly selectedTrainrunSubject = new BehaviorSubject<SgSelectedTrainrun>(undefined);
+  private readonly selectedTrainrun$ = this.selectedTrainrunSubject.asObservable();
 
   private readonly trainrunSubject = new BehaviorSubject<SgTrainrun[]>([]);
   private readonly trainrun$ = this.trainrunSubject.asObservable();

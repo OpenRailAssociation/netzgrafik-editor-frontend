@@ -34,9 +34,7 @@ import {ProjectControllerBackendServiceInterface} from "./projectController.serv
 @Injectable({
   providedIn: "root",
 })
-export class ProjectControllerBackendService
-  implements ProjectControllerBackendServiceInterface
-{
+export class ProjectControllerBackendService implements ProjectControllerBackendServiceInterface {
   protected basePath = "http://localhost:8080";
   public defaultHeaders = new HttpHeaders();
   public configuration = new Configuration();
@@ -59,11 +57,7 @@ export class ProjectControllerBackendService
     this.encoder = this.configuration.encoder || new CustomHttpParameterCodec();
   }
 
-  private addToHttpParams(
-    httpParams: HttpParams,
-    value: any,
-    key?: string,
-  ): HttpParams {
+  private addToHttpParams(httpParams: HttpParams, value: any, key?: string): HttpParams {
     if (typeof value === "object" && value instanceof Date === false) {
       httpParams = this.addToHttpParamsRecursive(httpParams, value);
     } else {
@@ -72,11 +66,7 @@ export class ProjectControllerBackendService
     return httpParams;
   }
 
-  private addToHttpParamsRecursive(
-    httpParams: HttpParams,
-    value?: any,
-    key?: string,
-  ): HttpParams {
+  private addToHttpParamsRecursive(httpParams: HttpParams, value?: any, key?: string): HttpParams {
     if (value == null) {
       return httpParams;
     }
@@ -84,15 +74,11 @@ export class ProjectControllerBackendService
     if (typeof value === "object") {
       if (Array.isArray(value)) {
         (value as any[]).forEach(
-          (elem) =>
-            (httpParams = this.addToHttpParamsRecursive(httpParams, elem, key)),
+          (elem) => (httpParams = this.addToHttpParamsRecursive(httpParams, elem, key)),
         );
       } else if (value instanceof Date) {
         if (key != null) {
-          httpParams = httpParams.append(
-            key,
-            (value as Date).toISOString().substr(0, 10),
-          );
+          httpParams = httpParams.append(key, (value as Date).toISOString().substr(0, 10));
         } else {
           throw Error("key may not be null if value is Date");
         }
@@ -144,9 +130,7 @@ export class ProjectControllerBackendService
     options?: {httpHeaderAccept?: undefined},
   ): Observable<any> {
     if (id === null || id === undefined) {
-      throw new Error(
-        "Required parameter id was null or undefined when calling archiveProject.",
-      );
+      throw new Error("Required parameter id was null or undefined when calling archiveProject.");
     }
 
     let headers = this.defaultHeaders;
@@ -158,23 +142,18 @@ export class ProjectControllerBackendService
       headers = headers.set("Authorization", "Bearer " + credential);
     }
 
-    let httpHeaderAcceptSelected: string | undefined =
-      options && options.httpHeaderAccept;
+    let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
     if (httpHeaderAcceptSelected === undefined) {
       // to determine the Accept header
       const httpHeaderAccepts: string[] = [];
-      httpHeaderAcceptSelected =
-        this.configuration.selectHeaderAccept(httpHeaderAccepts);
+      httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
     }
     if (httpHeaderAcceptSelected !== undefined) {
       headers = headers.set("Accept", httpHeaderAcceptSelected);
     }
 
     let responseType: "text" | "json" = "json";
-    if (
-      httpHeaderAcceptSelected &&
-      httpHeaderAcceptSelected.startsWith("text")
-    ) {
+    if (httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith("text")) {
       responseType = "text";
     }
 
@@ -220,10 +199,7 @@ export class ProjectControllerBackendService
     reportProgress: boolean = false,
     options?: {httpHeaderAccept?: "application/json"},
   ): Observable<any> {
-    if (
-      projectCreateUpdateDto === null ||
-      projectCreateUpdateDto === undefined
-    ) {
+    if (projectCreateUpdateDto === null || projectCreateUpdateDto === undefined) {
       throw new Error(
         "Required parameter projectCreateUpdateDto was null or undefined when calling createProject.",
       );
@@ -238,13 +214,11 @@ export class ProjectControllerBackendService
       headers = headers.set("Authorization", "Bearer " + credential);
     }
 
-    let httpHeaderAcceptSelected: string | undefined =
-      options && options.httpHeaderAccept;
+    let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
     if (httpHeaderAcceptSelected === undefined) {
       // to determine the Accept header
       const httpHeaderAccepts: string[] = ["application/json"];
-      httpHeaderAcceptSelected =
-        this.configuration.selectHeaderAccept(httpHeaderAccepts);
+      httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
     }
     if (httpHeaderAcceptSelected !== undefined) {
       headers = headers.set("Accept", httpHeaderAcceptSelected);
@@ -259,10 +233,7 @@ export class ProjectControllerBackendService
     }
 
     let responseType: "text" | "json" = "json";
-    if (
-      httpHeaderAcceptSelected &&
-      httpHeaderAcceptSelected.startsWith("text")
-    ) {
+    if (httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith("text")) {
       responseType = "text";
     }
 
@@ -323,23 +294,18 @@ export class ProjectControllerBackendService
       headers = headers.set("Authorization", "Bearer " + credential);
     }
 
-    let httpHeaderAcceptSelected: string | undefined =
-      options && options.httpHeaderAccept;
+    let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
     if (httpHeaderAcceptSelected === undefined) {
       // to determine the Accept header
       const httpHeaderAccepts: string[] = [];
-      httpHeaderAcceptSelected =
-        this.configuration.selectHeaderAccept(httpHeaderAccepts);
+      httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
     }
     if (httpHeaderAcceptSelected !== undefined) {
       headers = headers.set("Accept", httpHeaderAcceptSelected);
     }
 
     let responseType: "text" | "json" = "json";
-    if (
-      httpHeaderAcceptSelected &&
-      httpHeaderAcceptSelected.startsWith("text")
-    ) {
+    if (httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith("text")) {
       responseType = "text";
     }
 
@@ -388,23 +354,18 @@ export class ProjectControllerBackendService
       headers = headers.set("Authorization", "Bearer " + credential);
     }
 
-    let httpHeaderAcceptSelected: string | undefined =
-      options && options.httpHeaderAccept;
+    let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
     if (httpHeaderAcceptSelected === undefined) {
       // to determine the Accept header
       const httpHeaderAccepts: string[] = ["application/json"];
-      httpHeaderAcceptSelected =
-        this.configuration.selectHeaderAccept(httpHeaderAccepts);
+      httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
     }
     if (httpHeaderAcceptSelected !== undefined) {
       headers = headers.set("Accept", httpHeaderAcceptSelected);
     }
 
     let responseType: "text" | "json" = "json";
-    if (
-      httpHeaderAcceptSelected &&
-      httpHeaderAcceptSelected.startsWith("text")
-    ) {
+    if (httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith("text")) {
       responseType = "text";
     }
 
@@ -464,23 +425,18 @@ export class ProjectControllerBackendService
       headers = headers.set("Authorization", "Bearer " + credential);
     }
 
-    let httpHeaderAcceptSelected: string | undefined =
-      options && options.httpHeaderAccept;
+    let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
     if (httpHeaderAcceptSelected === undefined) {
       // to determine the Accept header
       const httpHeaderAccepts: string[] = ["application/json"];
-      httpHeaderAcceptSelected =
-        this.configuration.selectHeaderAccept(httpHeaderAccepts);
+      httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
     }
     if (httpHeaderAcceptSelected !== undefined) {
       headers = headers.set("Accept", httpHeaderAcceptSelected);
     }
 
     let responseType: "text" | "json" = "json";
-    if (
-      httpHeaderAcceptSelected &&
-      httpHeaderAcceptSelected.startsWith("text")
-    ) {
+    if (httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith("text")) {
       responseType = "text";
     }
 
@@ -526,9 +482,7 @@ export class ProjectControllerBackendService
     options?: {httpHeaderAccept?: undefined},
   ): Observable<any> {
     if (id === null || id === undefined) {
-      throw new Error(
-        "Required parameter id was null or undefined when calling unarchiveProject.",
-      );
+      throw new Error("Required parameter id was null or undefined when calling unarchiveProject.");
     }
 
     let headers = this.defaultHeaders;
@@ -540,23 +494,18 @@ export class ProjectControllerBackendService
       headers = headers.set("Authorization", "Bearer " + credential);
     }
 
-    let httpHeaderAcceptSelected: string | undefined =
-      options && options.httpHeaderAccept;
+    let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
     if (httpHeaderAcceptSelected === undefined) {
       // to determine the Accept header
       const httpHeaderAccepts: string[] = [];
-      httpHeaderAcceptSelected =
-        this.configuration.selectHeaderAccept(httpHeaderAccepts);
+      httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
     }
     if (httpHeaderAcceptSelected !== undefined) {
       headers = headers.set("Accept", httpHeaderAcceptSelected);
     }
 
     let responseType: "text" | "json" = "json";
-    if (
-      httpHeaderAcceptSelected &&
-      httpHeaderAcceptSelected.startsWith("text")
-    ) {
+    if (httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith("text")) {
       responseType = "text";
     }
 
@@ -608,14 +557,9 @@ export class ProjectControllerBackendService
     options?: {httpHeaderAccept?: undefined},
   ): Observable<any> {
     if (id === null || id === undefined) {
-      throw new Error(
-        "Required parameter id was null or undefined when calling updateProject.",
-      );
+      throw new Error("Required parameter id was null or undefined when calling updateProject.");
     }
-    if (
-      projectCreateUpdateDto === null ||
-      projectCreateUpdateDto === undefined
-    ) {
+    if (projectCreateUpdateDto === null || projectCreateUpdateDto === undefined) {
       throw new Error(
         "Required parameter projectCreateUpdateDto was null or undefined when calling updateProject.",
       );
@@ -630,13 +574,11 @@ export class ProjectControllerBackendService
       headers = headers.set("Authorization", "Bearer " + credential);
     }
 
-    let httpHeaderAcceptSelected: string | undefined =
-      options && options.httpHeaderAccept;
+    let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
     if (httpHeaderAcceptSelected === undefined) {
       // to determine the Accept header
       const httpHeaderAccepts: string[] = [];
-      httpHeaderAcceptSelected =
-        this.configuration.selectHeaderAccept(httpHeaderAccepts);
+      httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
     }
     if (httpHeaderAcceptSelected !== undefined) {
       headers = headers.set("Accept", httpHeaderAcceptSelected);
@@ -651,10 +593,7 @@ export class ProjectControllerBackendService
     }
 
     let responseType: "text" | "json" = "json";
-    if (
-      httpHeaderAcceptSelected &&
-      httpHeaderAcceptSelected.startsWith("text")
-    ) {
+    if (httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith("text")) {
       responseType = "text";
     }
 

@@ -3,16 +3,8 @@ import {ThemeRegistration} from "./theme-registration";
 import {StaticDomTags} from "../editor-main-view/data-views/static.dom.tags";
 
 export class ThemeFach extends ThemeBase {
-  constructor(
-    backgroundColor = "whitesmoke",
-    backgroundStreckengraphikColor = "white",
-  ) {
-    super(
-      ThemeRegistration.ThemeFach,
-      backgroundColor,
-      backgroundStreckengraphikColor,
-      false,
-    );
+  constructor(backgroundColor = "whitesmoke", backgroundStreckengraphikColor = "white") {
+    super(ThemeRegistration.ThemeFach, backgroundColor, backgroundStreckengraphikColor, false);
     ThemeBase.setUIColors(ThemeFach.getThemeFachColors());
     ThemeBase.setRenderingColors(ThemeFach.getThemeFachColors());
   }

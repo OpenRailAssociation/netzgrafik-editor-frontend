@@ -38,9 +38,7 @@ export class OriginDestinationService {
    */
   getODOutputNodes(): Node[] {
     const selectedNodes = this.nodeService.getSelectedNodes();
-    return selectedNodes.length > 0
-      ? selectedNodes
-      : this.nodeService.getVisibleNodes();
+    return selectedNodes.length > 0 ? selectedNodes : this.nodeService.getVisibleNodes();
   }
 
   originDestinationData(): OriginDestination[] {
@@ -80,9 +78,7 @@ export class OriginDestinationService {
     });
 
     const rows = [];
-    odNodes.sort((a, b) =>
-      a.getBetriebspunktName().localeCompare(b.getBetriebspunktName()),
-    );
+    odNodes.sort((a, b) => a.getBetriebspunktName().localeCompare(b.getBetriebspunktName()));
     odNodes.forEach((origin) => {
       odNodes.forEach((destination) => {
         if (origin.getId() === destination.getId()) {

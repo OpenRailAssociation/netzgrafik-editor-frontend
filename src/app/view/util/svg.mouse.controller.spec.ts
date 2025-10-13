@@ -1,4 +1,4 @@
-import {SVGMouseController, SVGMouseControllerObserver,} from "./svg.mouse.controller";
+import {SVGMouseController, SVGMouseControllerObserver} from "./svg.mouse.controller";
 import {Vec2D} from "../../utils/vec2D";
 import {ViewboxProperties} from "../../services/ui/ui.interaction.service";
 
@@ -7,26 +7,21 @@ class DummySVGMouseControllerObserver implements SVGMouseControllerObserver {
     return true;
   }
 
-  onGraphContainerMouseup(mousePosition: Vec2D, onPaning: boolean) {
-  }
+  onGraphContainerMouseup(mousePosition: Vec2D, onPaning: boolean) {}
 
-  zoomFactorChanged(newZoomFactor: number) {
-  }
+  zoomFactorChanged(newZoomFactor: number) {}
 
-  onViewboxChanged(viewboxProperties: ViewboxProperties) {
-  }
+  onViewboxChanged(viewboxProperties: ViewboxProperties) {}
 
-  onStartMultiSelect() {
-  }
+  onStartMultiSelect() {}
 
-  updateMultiSelect(topLeft: Vec2D, bottomRight: Vec2D) {
-  }
+  updateMultiSelect(topLeft: Vec2D, bottomRight: Vec2D) {}
 
-  onEndMultiSelect() {
-  }
+  onEndMultiSelect() {}
 
-  onScaleNetzgrafik(factor: number, scaleCenter: Vec2D) {
-  }
+  onScaleNetzgrafik(factor: number, scaleCenter: Vec2D) {}
+
+  onCtrlKeyChanged(state: boolean) {}
 }
 
 describe("general view functions", () => {

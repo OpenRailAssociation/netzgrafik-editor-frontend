@@ -1,17 +1,17 @@
-<h2 class="SummaryTitle">{{ 'app.view.editor-filter-view.filter' | translate }}</h2>
+<h2 class="SummaryTitle">{{ "app.view.editor-filter-view.filter" | translate }}</h2>
 
 <sbb-accordion [multi]="true">
   <sbb-expansion-panel [expanded]="true">
     <sbb-expansion-panel-header>
       <ng-container *ngIf="isTrainrunFilteringActive()">
-        {{ 'app.view.editor-filter-view.general' | translate }}
+        {{ "app.view.editor-filter-view.general" | translate }}
       </ng-container>
       <ng-container *ngIf="!isTrainrunFilteringActive()">
-        <label style="color: red">{{ 'app.view.editor-filter-view.general' | translate }}</label>
+        <label style="color: red">{{ "app.view.editor-filter-view.general" | translate }}</label>
       </ng-container>
     </sbb-expansion-panel-header>
 
-    <sbb-label>{{ 'app.view.editor-filter-view.category' | translate }}</sbb-label>
+    <sbb-label>{{ "app.view.editor-filter-view.category" | translate }}</sbb-label>
     <div class="sbb-trainrun-chip-group">
       <button
         [class]="getCategoryClassname(trainrunCategory)"
@@ -24,7 +24,9 @@
       </button>
     </div>
 
-    <sbb-label class="sbb-mt-m">{{ 'app.view.editor-filter-view.frequency' | translate }}</sbb-label>
+    <sbb-label class="sbb-mt-m">{{
+      "app.view.editor-filter-view.frequency" | translate
+    }}</sbb-label>
     <div class="sbb-trainrun-chip-group">
       <button
         [class]="getFrequencyClassname(trainrunFrequency)"
@@ -37,19 +39,36 @@
       </button>
     </div>
 
-    <sbb-label class="sbb-mt-m">{{ 'app.view.editor-filter-view.time-category' | translate }}</sbb-label>
+    <sbb-label class="sbb-mt-m">{{
+      "app.view.editor-filter-view.time-category" | translate
+    }}</sbb-label>
     <div class="sbb-trainrun-chip-group">
       <button
         [class]="getTimeCategoryClassname(trainrunTimeCategory)"
         (click)="onTimeCategoryChanged(trainrunTimeCategory)"
         mode="ghost"
         [title]="getTimeCategoryTooltip(trainrunTimeCategory)"
-        *ngFor="
-          let trainrunTimeCategory of dataService.getTrainrunTimeCategories()
-        "
+        *ngFor="let trainrunTimeCategory of dataService.getTrainrunTimeCategories()"
       >
         {{ makeTimeCategoryButtonLabel(trainrunTimeCategory) }}
       </button>
+    </div>
+
+    <div *ngIf="hasOneWayTrainruns()">
+      <sbb-label class="sbb-mt-m">{{
+        "app.view.editor-filter-view.symmetry" | translate
+      }}</sbb-label>
+      <div class="sbb-trainrun-chip-group">
+        <button
+          [class]="getDirectionClassname(direction)"
+          (click)="onDirectionChanged(direction)"
+          mode="ghost"
+          [title]="getDirectionTooltip(direction)"
+          *ngFor="let direction of this.dataService.getDirections()"
+        >
+          {{ makeDirectionButtonLabel(direction) }}
+        </button>
+      </div>
     </div>
 
     <button
@@ -59,17 +78,19 @@
       [title]="'app.view.editor-filter-view.display-all-trainruns' | translate"
       (click)="onResetTrainrunFilter()"
     >
-      {{ 'app.view.editor-filter-view.reset-trainrun-filter' | translate }}
+      {{ "app.view.editor-filter-view.reset-trainrun-filter" | translate }}
     </button>
   </sbb-expansion-panel>
 
   <sbb-expansion-panel [expanded]="hasFilteringTrainrunLabels">
     <sbb-expansion-panel-header>
       <ng-container *ngIf="!isFilteringTrainrunLabels()">
-        {{ 'app.view.editor-filter-view.filterable-labels-trainruns' | translate }}
+        {{ "app.view.editor-filter-view.filterable-labels-trainruns" | translate }}
       </ng-container>
       <ng-container *ngIf="isFilteringTrainrunLabels()">
-        <label style="color: red">{{ 'app.view.editor-filter-view.filterable-labels-trainruns' | translate }}</label>
+        <label style="color: red">{{
+          "app.view.editor-filter-view.filterable-labels-trainruns" | translate
+        }}</label>
       </ng-container>
     </sbb-expansion-panel-header>
 
@@ -81,10 +102,12 @@
   <sbb-expansion-panel [expanded]="hasFilteringNodeLabels">
     <sbb-expansion-panel-header>
       <ng-container *ngIf="!isFilteringNodeLabels()">
-        {{ 'app.view.editor-filter-view.filterable-labels-nodes' | translate }}
+        {{ "app.view.editor-filter-view.filterable-labels-nodes" | translate }}
       </ng-container>
       <ng-container *ngIf="isFilteringNodeLabels()">
-        <label style="color: red">{{ 'app.view.editor-filter-view.filterable-labels-nodes' | translate }}</label>
+        <label style="color: red">{{
+          "app.view.editor-filter-view.filterable-labels-nodes" | translate
+        }}</label>
       </ng-container>
     </sbb-expansion-panel-header>
 
@@ -93,13 +116,15 @@
     ></sbb-filterable-label-filter-view>
   </sbb-expansion-panel>
 
-  <sbb-expansion-panel [expanded]="hasFilteringNoteLabels" *ngIf="!disableBackend">
+  <sbb-expansion-panel [expanded]="hasFilteringNoteLabels">
     <sbb-expansion-panel-header>
       <ng-container *ngIf="!isFilteringNoteLabels()">
-        {{ 'app.view.editor-filter-view.filterable-labels-notes' | translate }}
+        {{ "app.view.editor-filter-view.filterable-labels-notes" | translate }}
       </ng-container>
       <ng-container *ngIf="isFilteringNoteLabels()">
-        <label style="color: red">{{ 'app.view.editor-filter-view.filterable-labels-notes' | translate }}</label>
+        <label style="color: red">{{
+          "app.view.editor-filter-view.filterable-labels-notes" | translate
+        }}</label>
       </ng-container>
     </sbb-expansion-panel-header>
 
@@ -110,82 +135,78 @@
 
   <sbb-expansion-panel [expanded]="false">
     <sbb-expansion-panel-header>
-      <ng-container *ngIf="isDisplayFilteringActive()">{{ 'app.view.editor-filter-view.display' | translate }}</ng-container>
+      <ng-container *ngIf="isDisplayFilteringActive()">{{
+        "app.view.editor-filter-view.display" | translate
+      }}</ng-container>
       <ng-container *ngIf="!isDisplayFilteringActive()">
-        <label style="color: red">{{ 'app.view.editor-filter-view.display' | translate }}</label>
+        <label style="color: red">{{ "app.view.editor-filter-view.display" | translate }}</label>
       </ng-container>
     </sbb-expansion-panel-header>
 
-    <sbb-label>{{ 'app.view.editor-filter-view.times' | translate }}</sbb-label>
-    <div class="sbb-mt-m">
-      <sbb-form-field [label]="'app.view.editor-filter-view.decimal-displayed' | translate">
-        <input
-          sbbInput
-          type="number"
-          pattern="^[.0-9]*"
-          [(ngModel)]="timeDisplayPrecision"
-          (change)="onTimeDisplayPrecisionChanged()"
-        />
-      </sbb-form-field>
+    <sbb-form-field [label]="'app.view.editor-filter-view.decimal-displayed' | translate">
+      <input
+        sbbInput
+        type="number"
+        pattern="^[.0-9]*"
+        [(ngModel)]="timeDisplayPrecision"
+        (change)="onTimeDisplayPrecisionChanged()"
+      />
+    </sbb-form-field>
+
+    <sbb-label>{{ "app.view.editor-filter-view.Round-trips" | translate }}</sbb-label>
+    <div class="sbb-checkbox-group-vertical">
+      <sbb-checkbox [(ngModel)]="filterDirectionArrows" (change)="filterDirectionArrowsChanged()"
+        >{{ "app.view.editor-filter-view.display-direction-arrows" | translate }}
+      </sbb-checkbox>
     </div>
+
+    <br />
+    <sbb-label>{{ "app.view.editor-filter-view.times" | translate }}</sbb-label>
     <div class="sbb-checkbox-group-vertical">
       <sbb-checkbox
         [(ngModel)]="filterArrivalDepartureTime"
         (change)="filterArrivalDepartureTimeChanged()"
-        >{{ 'app.view.editor-filter-view.display-arrival-departure-times' | translate }}
+        >{{ "app.view.editor-filter-view.display-arrival-departure-times" | translate }}
       </sbb-checkbox>
-      <sbb-checkbox
-        [(ngModel)]="filterShowNonStopTime"
-        (change)="filterShowNonStopTimeChanged()"
-      >
-        {{ 'app.view.editor-filter-view.display-arrival-departure-times-for-connections' | translate }}
+      <sbb-checkbox [(ngModel)]="filterShowNonStopTime" (change)="filterShowNonStopTimeChanged()">
+        {{
+          "app.view.editor-filter-view.display-arrival-departure-times-for-connections" | translate
+        }}
       </sbb-checkbox>
-      <sbb-checkbox
-        [(ngModel)]="filterTravelTime"
-        (change)="filterTravelTimeChanged()"
-        >{{ 'app.view.editor-filter-view.display-travel-times' | translate }}
+      <sbb-checkbox [(ngModel)]="filterTravelTime" (change)="filterTravelTimeChanged()"
+        >{{ "app.view.editor-filter-view.display-travel-times" | translate }}
       </sbb-checkbox>
-      <sbb-checkbox
-        [(ngModel)]="filterTrainrunName"
-        (change)="filterTrainrunNameChanged()"
-        >{{ 'app.view.editor-filter-view.display-trainrun-name' | translate }}
+      <sbb-checkbox [(ngModel)]="filterTrainrunName" (change)="filterTrainrunNameChanged()"
+        >{{ "app.view.editor-filter-view.display-trainrun-name" | translate }}
       </sbb-checkbox>
     </div>
 
     <br />
-    <sbb-label>{{ 'app.view.editor-filter-view.connections' | translate }}</sbb-label>
+    <sbb-label>{{ "app.view.editor-filter-view.connections" | translate }}</sbb-label>
     <div class="sbb-checkbox-group-vertical">
-      <sbb-checkbox
-        [(ngModel)]="filterConnections"
-        (change)="filterConnectionsChanged()"
-        >{{ 'app.view.editor-filter-view.display-connections' | translate }}
+      <sbb-checkbox [(ngModel)]="filterConnections" (change)="filterConnectionsChanged()"
+        >{{ "app.view.editor-filter-view.display-connections" | translate }}
       </sbb-checkbox>
     </div>
 
     <br />
-    <sbb-label>{{ 'app.view.editor-filter-view.nodes' | translate }}</sbb-label>
+    <sbb-label>{{ "app.view.editor-filter-view.nodes" | translate }}</sbb-label>
     <div class="sbb-checkbox-group-vertical">
-      <sbb-checkbox
-        [(ngModel)]="filterAllEmptyNodes"
-        (change)="filterAllEmptyNodesChanged()"
-        >{{ 'app.view.editor-filter-view.display-nodes-without-visible-trainruns' | translate }}
+      <sbb-checkbox [(ngModel)]="filterAllEmptyNodes" (change)="filterAllEmptyNodesChanged()"
+        >{{ "app.view.editor-filter-view.display-nodes-without-visible-trainruns" | translate }}
       </sbb-checkbox>
-      <sbb-checkbox
-        [(ngModel)]="filterAllNonStopNodes"
-        (change)="filterAllNonStopNodesChanged()"
-        >{{ 'app.view.editor-filter-view.display-nodes-with-only-stopping-trainruns' | translate }}
+      <sbb-checkbox [(ngModel)]="filterAllNonStopNodes" (change)="filterAllNonStopNodesChanged()"
+        >{{ "app.view.editor-filter-view.display-nodes-with-only-stopping-trainruns" | translate }}
       </sbb-checkbox>
     </div>
 
-    <ng-container *ngIf="!disableBackend">
-      <br />
-      <sbb-label>{{ 'app.view.editor-filter-view.notes' | translate }}</sbb-label>
-      <div class="sbb-checkbox-group-vertical">
-        <sbb-checkbox [(ngModel)]="filterNotes" (change)="filterNotesChanged()"
-          >{{ 'app.view.editor-filter-view.display-notes' | translate }}
-        </sbb-checkbox>
-      </div>
-    </ng-container>
+    <br />
+    <sbb-label>{{ "app.view.editor-filter-view.notes" | translate }}</sbb-label>
+    <div class="sbb-checkbox-group-vertical">
+      <sbb-checkbox [(ngModel)]="filterNotes" (change)="filterNotesChanged()"
+        >{{ "app.view.editor-filter-view.display-notes" | translate }}
+      </sbb-checkbox>
+    </div>
 
     <button
       sbb-secondary-button
@@ -194,19 +215,17 @@
       [title]="'app.view.editor-filter-view.reset-display-filter' | translate"
       (click)="onResetDisplayFilter()"
     >
-      {{ 'app.view.editor-filter-view.reset-display-filter' | translate }}
+      {{ "app.view.editor-filter-view.reset-display-filter" | translate }}
     </button>
   </sbb-expansion-panel>
 
   <ng-container *ngIf="versionControlService.getVariantIsWritable()">
     <sbb-expansion-panel [expanded]="false">
       <sbb-expansion-panel-header>
-        {{ 'app.view.editor-filter-view.saved-filters' | translate }}
+        {{ "app.view.editor-filter-view.saved-filters" | translate }}
       </sbb-expansion-panel-header>
       <div class="sbb-filtersetting-chip-group">
-        <ng-container
-          *ngFor="let filterSetting of filterService.getFilterSettings()"
-        >
+        <ng-container *ngFor="let filterSetting of filterService.getFilterSettings()">
           <ng-container *ngIf="!isActiveEditFilterSetting(filterSetting)">
             <button
               [class]="getFilterSettingClassname(filterSetting)"
@@ -228,7 +247,7 @@
                   height="13px"
                   width="13px"
                   aria-hidden="false"
-                  style="transform: translate(-4px, 2px);"
+                  style="transform: translate(-4px, 2px)"
                 >
                 </sbb-icon>
               </ng-container>
@@ -239,7 +258,7 @@
                   height="13px"
                   width="13px"
                   aria-hidden="false"
-                  style="transform: translate(-4px, 2px);"
+                  style="transform: translate(-4px, 2px)"
                 >
                 </sbb-icon>
               </ng-container>
@@ -265,8 +284,7 @@
                 height="13px"
                 width="13px"
                 aria-hidden="false"
-                style="transform: translate(-4px, 2px);"
-
+                style="transform: translate(-4px, 2px)"
               >
               </sbb-icon>
             </button>
@@ -281,7 +299,7 @@
               height="13px"
               width="13px"
               aria-hidden="false"
-              style="transform: translate(-4px, 2px);"
+              style="transform: translate(-4px, 2px)"
             >
             </sbb-icon>
           </button>
@@ -295,7 +313,7 @@
         >
           <sbb-icon
             svgIcon="circle-plus-medium"
-            style="margin-top: 3px; transform: translate(-4px, 2px);"
+            style="margin-top: 3px; transform: translate(-4px, 2px)"
           ></sbb-icon>
         </button>
       </div>
@@ -311,6 +329,6 @@
     [title]="'app.view.editor-filter-view.reset-all-display-filters' | translate"
     (click)="onResetAllFilter()"
   >
-    {{ 'app.view.editor-filter-view.reset-all-display-filters' | translate }}
+    {{ "app.view.editor-filter-view.reset-all-display-filters" | translate }}
   </button>
 </div>

@@ -8,18 +8,20 @@ import {I18nService} from "./i18n.service";
   imports: [CommonModule],
   providers: [
     I18nService,
-    { // Load locale data at app start-up
+    {
+      // Load locale data at app start-up
       provide: APP_INITIALIZER,
       useFactory: (i18nService: I18nService) => () => i18nService.setLanguage(),
       deps: [I18nService],
       multi: true,
     },
-    { // Set the runtime locale for the app
+    {
+      // Set the runtime locale for the app
       provide: LOCALE_ID,
       useFactory: (i18nService: I18nService) => i18nService.language,
       deps: [I18nService],
-    }
+    },
   ],
-  exports: [TranslatePipe] // Export the pipe
+  exports: [TranslatePipe], // Export the pipe
 })
-export class I18nModule { }
+export class I18nModule {}

@@ -1,9 +1,5 @@
 import {Component, OnDestroy, TemplateRef, ViewChild} from "@angular/core";
-import {
-  SbbDialog,
-  SbbDialogConfig,
-  SbbDialogPosition,
-} from "@sbb-esta/angular/dialog";
+import {SbbDialog, SbbDialogConfig, SbbDialogPosition} from "@sbb-esta/angular/dialog";
 import {Vec2D} from "../../../utils/vec2D";
 import {Trainrun} from "../../../models/trainrun.model";
 import {TrainrunService} from "../../../services/data/trainrun.service";
@@ -22,6 +18,7 @@ export enum TrainrunDialogType {
   TRAINRUN_DIALOG,
   TRAINRUN_SECTION_DIALOG,
   TRAINRUN_FILTERABLE_LABELS_DIALOG,
+  TRAINRUN_ONEWAY_DIALOG,
 }
 
 export class TrainrunDialogParameter {
@@ -67,7 +64,8 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
   trainrunAndSectionEditorTabsViewTemplate: TemplateRef<any>;
 
   public selectedTrainrun: Trainrun;
-  public selectedTrainrunSectionName: string;
+  public nextStopLeftNodeName: string;
+  public nextStopRightNodeName: string;
 
   public data = null;
 
@@ -87,6 +85,13 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
     private trainrunSectionService: TrainrunSectionService,
     private dataService: DataService,
   ) {
+    this.trainrunService.trainruns.pipe(takeUntil(this.destroyed)).subscribe((trainrunList) => {
+      if (!trainrunList.length) {
+        this.closeDialog();
+        return;
+      }
+    });
+
     this.uiInteractionService.trainrunDialog
       .pipe(takeUntil(this.destroyed))
       .subscribe((parameter) => {
@@ -96,24 +101,21 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
         }
 
         this.data = parameter;
-        const selectedTrainrunSection =
-          this.trainrunSectionService.getSelectedTrainrunSection();
+        const selectedTrainrunSection = this.trainrunSectionService.getSelectedTrainrunSection();
         this.selectedTrainrun = this.trainrunService.getSelectedTrainrun();
-        this.trainrunSectionHelper = new TrainrunsectionHelper(
-          this.trainrunService,
-        );
+        this.trainrunSectionHelper = new TrainrunsectionHelper(this.trainrunService);
 
-        const leftNode = this.trainrunSectionHelper.getLeftNode(
+        const nextStopLeftNode = this.trainrunSectionHelper.getNextStopLeftNode(
           selectedTrainrunSection,
           parameter.nodesOrdered,
         );
-        const rightNode = this.trainrunSectionHelper.getRightNode(
+        const nextStopRightNode = this.trainrunSectionHelper.getNextStopRightNode(
           selectedTrainrunSection,
           parameter.nodesOrdered,
         );
-        this.selectedTrainrunSectionName =
-          leftNode.getFullName() + " — " + rightNode.getFullName();
 
+        this.nextStopLeftNodeName = nextStopLeftNode.getFullName();
+        this.nextStopRightNodeName = nextStopRightNode.getFullName();
         this.openDialog(parameter);
       });
   }
@@ -167,13 +169,9 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
       this.dialogConfig,
     );
     this.dialogPos = {
-      bottom:
-        parseInt(this.dialogConfig.position.top, 10) +
-        parseInt(this.dialogConfig.height, 10),
+      bottom: parseInt(this.dialogConfig.position.top, 10) + parseInt(this.dialogConfig.height, 10),
       left: parseInt(this.dialogConfig.position.left, 10),
-      right:
-        parseInt(this.dialogConfig.position.left, 10) +
-        parseInt(this.dialogConfig.width, 10),
+      right: parseInt(this.dialogConfig.position.left, 10) + parseInt(this.dialogConfig.width, 10),
       top: parseInt(this.dialogConfig.position.top, 10),
     };
   }
@@ -186,10 +184,7 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
     if (event.buttons === 1) {
       const eventTarget = event.target as HTMLElement;
       if (eventTarget.className === "sbb-tab-labels") {
-        this.dialogMovementLastPosition = new Vec2D(
-          event.screenX,
-          event.screenY,
-        );
+        this.dialogMovementLastPosition = new Vec2D(event.screenX, event.screenY);
       }
     }
   }
@@ -224,5 +219,19 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
       right: dialogPos.right + "px",
       top: dialogPos.top + "px",
     };
+  }
+
+  getArrowDirectionForOneWayTrainrun(): string {
+    if (!this.selectedTrainrun || this.selectedTrainrun.isRoundTrip()) {
+      return "minus-medium";
+    }
+    const isTargetRightOrBottom = TrainrunsectionHelper.isTargetRightOrBottom(
+      this.trainrunSectionService.getSelectedTrainrunSection(),
+    );
+    if (isTargetRightOrBottom) {
+      return "arrow-right-medium";
+    } else {
+      return "arrow-left-medium";
+    }
   }
 }

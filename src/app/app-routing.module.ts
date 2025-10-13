@@ -24,7 +24,9 @@ const routes: Routes = [
   {
     path: "404",
     component: ErrorViewComponent,
-    data: {error: $localize`:@@app-routing.module.path.404:The page you were looking for was not found.`},
+    data: {
+      error: $localize`:@@app-routing.module.path.404:The page you were looking for was not found.`,
+    },
   },
   {
     path: "401",
@@ -36,14 +38,15 @@ const routes: Routes = [
   {
     path: "403",
     component: ErrorViewComponent,
-    data: {error: $localize`:@@app-routing.module.path.403:You are not authorized to perform this action.`},
+    data: {
+      error: $localize`:@@app-routing.module.path.403:You are not authorized to perform this action.`,
+    },
   },
   {
     path: "409",
     component: ErrorViewComponent,
     data: {
-      error:
-        $localize`:@@app-routing.module.path.409:There was a conflict while executing your action, please try again.`,
+      error: $localize`:@@app-routing.module.path.409:There was a conflict while executing your action, please try again.`,
     },
   },
   {

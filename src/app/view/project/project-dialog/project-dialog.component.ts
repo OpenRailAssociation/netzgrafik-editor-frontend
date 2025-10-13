@@ -1,9 +1,5 @@
 import {Component, Inject} from "@angular/core";
-import {
-  SBB_DIALOG_DATA,
-  SbbDialog,
-  SbbDialogRef,
-} from "@sbb-esta/angular/dialog";
+import {SBB_DIALOG_DATA, SbbDialog, SbbDialogRef} from "@sbb-esta/angular/dialog";
 import {ProjectFormComponentModel} from "./project-form/project-form.component";
 import {FormModel} from "../../../utils/form-model";
 import {Observable} from "rxjs";
@@ -19,10 +15,7 @@ export class ProjectDialogComponent {
   readonly isNewProject: boolean;
 
   constructor(
-    public readonly dialogRef: SbbDialogRef<
-      ProjectDialogComponent,
-      ProjectFormComponentModel
-    >,
+    public readonly dialogRef: SbbDialogRef<ProjectDialogComponent, ProjectFormComponentModel>,
     @Inject(SBB_DIALOG_DATA) data?: ProjectFormComponentModel,
   ) {
     this.formModel = new FormModel<ProjectFormComponentModel>(

@@ -11,10 +11,10 @@ import {ResizeChangeInfo} from "../../model/util/resizeChangeInfo";
   providedIn: "root",
 })
 export class ViewBoxService implements OnDestroy {
-  private readonly viewBoxChangeInfoSubject =
-    new BehaviorSubject<ViewBoxChangeInfo>(new ViewBoxChangeInfo());
-  private readonly viewBoxChangeInfo$ =
-    this.viewBoxChangeInfoSubject.asObservable();
+  private readonly viewBoxChangeInfoSubject = new BehaviorSubject<ViewBoxChangeInfo>(
+    new ViewBoxChangeInfo(),
+  );
+  private readonly viewBoxChangeInfo$ = this.viewBoxChangeInfoSubject.asObservable();
 
   private readonly destroyed$ = new Subject<void>();
 

@@ -3,16 +3,8 @@ import {ThemeRegistration} from "./theme-registration";
 import {StaticDomTags} from "../editor-main-view/data-views/static.dom.tags";
 
 export class ThemeDefaultUx extends ThemeBase {
-  constructor(
-    backgroundColor = "white",
-    backgroundStreckengraphikColor = "white",
-  ) {
-    super(
-      ThemeRegistration.ThemeDefaultUx,
-      backgroundColor,
-      backgroundStreckengraphikColor,
-      false,
-    );
+  constructor(backgroundColor = "white", backgroundStreckengraphikColor = "white") {
+    super(ThemeRegistration.ThemeDefaultUx, backgroundColor, backgroundStreckengraphikColor, false);
     ThemeBase.setUIColors(ThemeDefaultUx.getThemeDefaultUxColors());
     ThemeBase.setRenderingColors(ThemeDefaultUx.getThemeDefaultUxColors());
   }

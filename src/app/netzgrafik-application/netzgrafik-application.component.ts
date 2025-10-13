@@ -59,7 +59,8 @@ export class NetzgrafikApplicationComponent {
         }
         uiInteractionService.setViewboxProperties(
           EditorView.svgName,
-          uiInteractionService.getDefaultViewProperties());
+          uiInteractionService.getDefaultViewProperties(),
+        );
       });
   }
 

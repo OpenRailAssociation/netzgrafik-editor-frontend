@@ -1,9 +1,11 @@
-<h2 class="SummaryTitle">{{ 'app.view.editor-properties-view-component.settings' | translate }}</h2>
+<h2 class="SummaryTitle">{{ "app.view.editor-properties-view-component.settings" | translate }}</h2>
 <sbb-accordion [multi]="true">
   <sbb-expansion-panel [expanded]="true">
-    <sbb-expansion-panel-header>{{ 'app.view.editor-properties-view-component.color-scheme' | translate }}</sbb-expansion-panel-header>
-    <sbb-label>{{ 'app.view.editor-properties-view-component.theme' | translate }}</sbb-label>
-    <br/>
+    <sbb-expansion-panel-header>{{
+      "app.view.editor-properties-view-component.color-scheme" | translate
+    }}</sbb-expansion-panel-header>
+    <sbb-label>{{ "app.view.editor-properties-view-component.theme" | translate }}</sbb-label>
+    <br />
     <sbb-radio-group
       [(ngModel)]="activeColorTheme.themeRegistration"
       class="sbb-radio-group-vertical"
@@ -17,9 +19,11 @@
       </sbb-radio-button>
     </sbb-radio-group>
 
-    <br/>
+    <br />
     <ng-container *ngIf="!isActiveColorThemeDark()">
-      <sbb-label>{{ 'app.view.editor-properties-view-component.background-color' | translate }}</sbb-label>
+      <sbb-label>{{
+        "app.view.editor-properties-view-component.background-color" | translate
+      }}</sbb-label>
       <input
         id="activeBackgroundColor"
         type="color"
@@ -32,7 +36,7 @@
       &nbsp;
       <button
         sbb-secondary-button
-        style="vertical-align: middle;"
+        style="vertical-align: middle"
         [disabled]="isBackgroundColorWhite()"
         [title]="'app.view.editor-properties-view-component.set-color-to-white' | translate"
         (click)="setBackgroundColorToWhite()"
@@ -57,22 +61,26 @@
       <button
         sbb-secondary-button
         [disabled]="isDefaultBackgroundColorActive()"
-        style="vertical-align: middle;"
-        [title]="'app.view.editor-properties-view-component.reset-background-color-to-default' | translate"
+        style="vertical-align: middle"
+        [title]="
+          'app.view.editor-properties-view-component.reset-background-color-to-default' | translate
+        "
         (click)="onResetBackgroundColor()"
       >
         <sbb-icon svgIcon="trash-small"></sbb-icon>
       </button>
     </ng-container>
     <ng-container *ngIf="isActiveColorThemeDark()">
-      <sbb-label>{{ 'app.view.editor-properties-view-component.background-color-black' | translate }}</sbb-label>
-      <br/>
+      <sbb-label>{{
+        "app.view.editor-properties-view-component.background-color-black" | translate
+      }}</sbb-label>
+      <br />
       <input
         id="activeDarkBackgroundColor"
         type="color"
         sbbInput
         [name]="'app.view.editor-properties-view-component.background-color' | translate"
-        style="width: 242px; min-height: 37px; vertical-align: middle;"
+        style="width: 242px; min-height: 37px; vertical-align: middle"
         [(ngModel)]="activeDarkBackgroundColor"
         (change)="colorPicked($event)"
       />
@@ -80,31 +88,38 @@
       <button
         sbb-secondary-button
         [disabled]="isDefaultDarkBackgroundColorActive()"
-        [title]="'app.view.editor-properties-view-component.reset-background-color-to-default' | translate"
-        style="vertical-align: middle;"
+        [title]="
+          'app.view.editor-properties-view-component.reset-background-color-to-default' | translate
+        "
+        style="vertical-align: middle"
         (click)="onResetDarkBackgroundColor()"
       >
         <sbb-icon svgIcon="trash-small"></sbb-icon>
       </button>
     </ng-container>
-    <br/>
+    <br />
     <ng-container *ngIf="isLocalStoredColorTheme()">
       <button
         sbb-secondary-button
         class="sbb-mt-m"
-        [title]="'app.view.editor-properties-view-component.useDefaultBrowserColorTheme' | translate"
+        [title]="
+          'app.view.editor-properties-view-component.useDefaultBrowserColorTheme' | translate
+        "
         (click)="resetLocalStoredColorData()"
       >
-        {{ 'app.view.editor-properties-view-component.defaultBrowserColorTheme' | translate }}
+        {{ "app.view.editor-properties-view-component.defaultBrowserColorTheme" | translate }}
       </button>
     </ng-container>
   </sbb-expansion-panel>
 
-
   <sbb-expansion-panel [expanded]="true">
-    <sbb-expansion-panel-header>{{ 'app.view.editor-properties-view-component.editor' | translate }}</sbb-expansion-panel-header>
-    <sbb-label>{{ 'app.view.editor-properties-view-component.travel-time-presetting-default' | translate }}</sbb-label>
-    <br/>
+    <sbb-expansion-panel-header>{{
+      "app.view.editor-properties-view-component.editor" | translate
+    }}</sbb-expansion-panel-header>
+    <sbb-label>{{
+      "app.view.editor-properties-view-component.travel-time-presetting-default" | translate
+    }}</sbb-label>
+    <br />
     <sbb-radio-group
       [(ngModel)]="activeTravelTimeCreationEstimatorType"
       class="sbb-radio-group-vertical"
@@ -121,9 +136,13 @@
   </sbb-expansion-panel>
 
   <sbb-expansion-panel [expanded]="true">
-    <sbb-expansion-panel-header>{{ 'app.view.editor-properties-view-component.graphicTimetable' | translate }}</sbb-expansion-panel-header>
-    <sbb-label>{{ 'app.view.editor-properties-view-component.axis-scaling-distance' | translate }}</sbb-label>
-    <br/>
+    <sbb-expansion-panel-header>{{
+      "app.view.editor-properties-view-component.graphicTimetable" | translate
+    }}</sbb-expansion-panel-header>
+    <sbb-label>{{
+      "app.view.editor-properties-view-component.axis-scaling-distance" | translate
+    }}</sbb-label>
+    <br />
     <sbb-radio-group
       [(ngModel)]="activeStreckengrafikRenderingType"
       class="sbb-radio-group-vertical"
@@ -138,5 +157,4 @@
       </sbb-radio-button>
     </sbb-radio-group>
   </sbb-expansion-panel>
-
 </sbb-accordion>

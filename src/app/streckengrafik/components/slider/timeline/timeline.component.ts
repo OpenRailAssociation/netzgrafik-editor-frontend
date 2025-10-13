@@ -1,11 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  Input,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-} from "@angular/core";
+import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import {SliderChangeInfo} from "../../../model/util/sliderChangeInfo";
 import {TimeSliderService} from "../../../services/time-slider.service";
 import {DrawingBackgroundMouseListenerService} from "../../../services/util/drawingBackgroundMouseListener.service";
@@ -27,9 +20,7 @@ import {
   templateUrl: "./timeline.component.html",
   styleUrls: ["./timeline.component.scss"],
 })
-export class TimelineComponent
-  implements OnInit, OnDestroy, UpdateCounterHandler
-{
+export class TimelineComponent implements OnInit, OnDestroy, UpdateCounterHandler {
   @ViewChild("componentElement")
   componentElementRef: ElementRef;
 
@@ -111,9 +102,7 @@ export class TimelineComponent
   getTimeText() {
     return TimeFormatter.formatHHMM(
       30 +
-        ((this.timelineChangeInfo + this.sliderChangeInfo.move) /
-          this.sliderChangeInfo.zoom) *
-          60,
+        ((this.timelineChangeInfo + this.sliderChangeInfo.move) / this.sliderChangeInfo.zoom) * 60,
     );
   }
 
@@ -121,12 +110,9 @@ export class TimelineComponent
     let timeLinePos = this.timelineChangeInfo;
     if (this.roundTimeLine > 0.01) {
       timeLinePos =
-        (this.timelineChangeInfo + this.sliderChangeInfo.move) /
-        this.sliderChangeInfo.zoom;
-      timeLinePos =
-        Math.round(timeLinePos / this.roundTimeLine) * this.roundTimeLine;
-      timeLinePos =
-        timeLinePos * this.sliderChangeInfo.zoom - this.sliderChangeInfo.move;
+        (this.timelineChangeInfo + this.sliderChangeInfo.move) / this.sliderChangeInfo.zoom;
+      timeLinePos = Math.round(timeLinePos / this.roundTimeLine) * this.roundTimeLine;
+      timeLinePos = timeLinePos * this.sliderChangeInfo.zoom - this.sliderChangeInfo.move;
     }
     if (isNaN(timeLinePos)) {
       timeLinePos = 0.0;
@@ -138,11 +124,9 @@ export class TimelineComponent
     const timeLinePos = this.getTimeLinePos();
     if (!isNaN(timeLinePos)) {
       if (this.horizontal) {
-        this.linePath =
-          "M " + timeLinePos + " 0 L " + timeLinePos + " " + 1000000;
+        this.linePath = "M " + timeLinePos + " 0 L " + timeLinePos + " " + 1000000;
       } else {
-        this.linePath =
-          "M 0 " + timeLinePos + " L " + 1000000 + " " + timeLinePos;
+        this.linePath = "M 0 " + timeLinePos + " L " + 1000000 + " " + timeLinePos;
       }
     } else {
       this.linePath = "M 0 0 L 0 0";
@@ -175,10 +159,7 @@ export class TimelineComponent
           pos.setX(v);
           changed = true;
         }
-        const newY = Math.max(
-          5,
-          Math.min(event.offsetY + 64, this.viewBoxChangeInfo.height - 64),
-        );
+        const newY = Math.max(5, Math.min(event.offsetY + 64, this.viewBoxChangeInfo.height - 64));
         if (pos.getY() !== newY) {
           pos.setY(newY);
           changed = true;
@@ -195,10 +176,7 @@ export class TimelineComponent
           pos.setY(v);
           changed = true;
         }
-        const newX = Math.max(
-          5,
-          Math.min(event.offsetX + 64, this.viewBoxChangeInfo.width - 64),
-        );
+        const newX = Math.max(5, Math.min(event.offsetX + 64, this.viewBoxChangeInfo.width - 64));
         if (pos.getX() !== newX) {
           pos.setX(newX);
           changed = true;

@@ -52,28 +52,19 @@ export interface VersionControllerBackendServiceInterface {
    *
    * @param versionId
    */
-  getVersion(
-    versionId: number,
-    extraHttpRequestParams?: any,
-  ): Observable<VersionDto>;
+  getVersion(versionId: number, extraHttpRequestParams?: any): Observable<VersionDto>;
 
   /**
    *
    *
    * @param versionId
    */
-  getVersionModel(
-    versionId: number,
-    extraHttpRequestParams?: any,
-  ): Observable<object>;
+  getVersionModel(versionId: number, extraHttpRequestParams?: any): Observable<object>;
 
   /**
    *
    *
    * @param versionId
    */
-  restoreVersion(
-    versionId: number,
-    extraHttpRequestParams?: any,
-  ): Observable<number>;
+  restoreVersion(versionId: number, extraHttpRequestParams?: any): Observable<number>;
 }

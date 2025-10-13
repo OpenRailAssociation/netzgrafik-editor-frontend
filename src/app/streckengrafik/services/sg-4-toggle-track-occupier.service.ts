@@ -10,14 +10,11 @@ import {UiInteractionService} from "../../services/ui/ui.interaction.service";
   providedIn: "root",
 })
 export class Sg4ToggleTrackOccupierService implements OnDestroy {
-  private readonly sgSelectedTrainrunSubject =
-    new BehaviorSubject<SgSelectedTrainrun>(undefined);
-  private readonly sgSelectedTrainrun$ =
-    this.sgSelectedTrainrunSubject.asObservable();
+  private readonly sgSelectedTrainrunSubject = new BehaviorSubject<SgSelectedTrainrun>(undefined);
+  private readonly sgSelectedTrainrun$ = this.sgSelectedTrainrunSubject.asObservable();
 
   private readonly trackOccupierOnOffSubject = new BehaviorSubject<void>(null);
-  private readonly trackOccupierOnOff$ =
-    this.trackOccupierOnOffSubject.asObservable();
+  private readonly trackOccupierOnOff$ = this.trackOccupierOnOffSubject.asObservable();
 
   private selectedTrainrun: SgSelectedTrainrun;
 

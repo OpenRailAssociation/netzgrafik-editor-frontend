@@ -1,46 +1,63 @@
-<div id="main-streckengrafik-container-root" style="width: 98%; height: 100%;">
-  <svg id='main-streckengrafik-container' [attr.height]="mainStreckengrafikContainer.offsetHeight"
-       [attr.width]="mainStreckengrafikContainer.offsetWidth">
-    <foreignObject [attr.height]="mainStreckengrafikContainer.offsetHeight"
-                   [attr.width]="mainStreckengrafikContainer.offsetWidth">
+<div id="main-streckengrafik-container-root" style="width: 98%; height: 100%">
+  <svg
+    id="main-streckengrafik-container"
+    [attr.height]="mainStreckengrafikContainer.offsetHeight"
+    [attr.width]="mainStreckengrafikContainer.offsetWidth"
+  >
+    <foreignObject
+      [attr.height]="mainStreckengrafikContainer.offsetHeight"
+      [attr.width]="mainStreckengrafikContainer.offsetWidth"
+    >
       <div #mainStreckengrafikContainer class="main-streckengrafik-container">
         <div class="head_1 background">
           <div class="noprint">
-            <button type="button"
-                    class="SimpleButton"
-                    [title]="'app.streckengrafik.components.reset' | translate"
-                    (click)="onResetButton()">
+            <button
+              type="button"
+              class="SimpleButton"
+              [title]="'app.streckengrafik.components.reset' | translate"
+              (click)="onResetButton()"
+            >
               <sbb-icon svgIcon="kom:arrow-circle-reset-small"></sbb-icon>
             </button>
           </div>
         </div>
         <div class="head_2 pathSlider">
-          <sbb-path-slider
-            [showRailTrackSlider]="showRailTrackSlider()"
-          />
+          <sbb-path-slider [showRailTrackSlider]="showRailTrackSlider()" />
         </div>
         <div class="head_3 background">
           <div class="noprint">
             <ng-container *ngIf="!allPathNodeClosed()">
-              <button type="button"
-                      height="16px" width="16px"
-                      class="SimpleButton TogglePathNode"
-                      [title]="'app.streckengrafik.components.close-all-path-nodes' | translate"
-                      (click)="collapseAllPathNodes()">
-                <sbb-icon svgIcon="kom:double-chevron-small-left-medium"
-                          height="16px" width="16px"
-                          aria-hidden="false"></sbb-icon>
+              <button
+                type="button"
+                height="16px"
+                width="16px"
+                class="SimpleButton TogglePathNode"
+                [title]="'app.streckengrafik.components.close-all-path-nodes' | translate"
+                (click)="collapseAllPathNodes()"
+              >
+                <sbb-icon
+                  svgIcon="kom:double-chevron-small-left-medium"
+                  height="16px"
+                  width="16px"
+                  aria-hidden="false"
+                ></sbb-icon>
               </button>
             </ng-container>
             <ng-container *ngIf="allPathNodeClosed()">
-              <button type="button"
-                      height="16px" width="16px"
-                      class="SimpleButton TogglePathNode"
-                      [title]="'app.streckengrafik.components.open-all-path-nodes' | translate"
-                      (click)="expandAllPathNodes()">
-                <sbb-icon svgIcon="kom:adouble-chevron-small-right-medium"
-                          height="16px" width="16px"
-                          aria-hidden="false"></sbb-icon>
+              <button
+                type="button"
+                height="16px"
+                width="16px"
+                class="SimpleButton TogglePathNode"
+                [title]="'app.streckengrafik.components.open-all-path-nodes' | translate"
+                (click)="expandAllPathNodes()"
+              >
+                <sbb-icon
+                  svgIcon="kom:adouble-chevron-small-right-medium"
+                  height="16px"
+                  width="16px"
+                  aria-hidden="false"
+                ></sbb-icon>
               </button>
             </ng-container>
           </div>
@@ -50,45 +67,43 @@
         <!---   new line  --->
         <div class="main_1 background">
           <ng-container *ngIf="showTimeSlider()">
-            <sbb-time-slider margin="1px"
-                             [horizontal]="false"
-                             [roundTimeLine]="0.0"
-                             [enableTimeLine]="true"
-                             [sliderLinePos]="40"
-                             [sliderTextPos]="32">
+            <sbb-time-slider
+              margin="1px"
+              [horizontal]="false"
+              [roundTimeLine]="0.0"
+              [enableTimeLine]="true"
+              [sliderLinePos]="40"
+              [sliderTextPos]="32"
+            >
             </sbb-time-slider>
           </ng-container>
         </div>
 
         <div class="main_2 background mainDrawingArea">
           <sbb-drawing-background-mouse-listener style="border: none">
-            <svg #svg
-                 id="StreckengrafikMainSVG"
-                 class="StreckengrafikMainSVG"
-                 [attr.viewBox]="viewBox"
-                 width="100%"
-                 height="100%"
-                 xmlns="http://www.w3.org/2000/svg">
-              <g sbb-path-grid
-                 [renderOnlyGrid]="true">
-              </g>
+            <svg
+              #svg
+              id="StreckengrafikMainSVG"
+              class="StreckengrafikMainSVG"
+              [attr.viewBox]="viewBox"
+              width="100%"
+              height="100%"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g sbb-path-grid [renderOnlyGrid]="true"> </g>
               <g sbb-time-grid></g>
-              <g sbb-path-grid
-                 [renderOnlyGrid]="false">
-              </g>
-              <g sbb-train-run
-                 [doShowTrainruns]="getShowTrainruns()"
-              ></g>
-              <g sbb-timeline
-                 [roundTimeLine]="1.0">
-              </g>
+              <g sbb-path-grid [renderOnlyGrid]="false"> </g>
+              <g sbb-train-run [doShowTrainruns]="getShowTrainruns()"></g>
+              <g sbb-timeline [roundTimeLine]="1.0"> </g>
             </svg>
           </sbb-drawing-background-mouse-listener>
 
           <ng-container *ngIf="getIsLoading()">
-            <sbb-loading-indicator mode="fullbox" aria-label="Loading, please wait"></sbb-loading-indicator>
+            <sbb-loading-indicator
+              mode="fullbox"
+              aria-label="Loading, please wait"
+            ></sbb-loading-indicator>
           </ng-container>
-
         </div>
 
         <div class="main_3 background">
@@ -99,7 +114,8 @@
               [roundTimeLine]="1.0"
               [enableTimeLine]="false"
               [sliderLinePos]="0"
-              [sliderTextPos]="32">
+              [sliderTextPos]="32"
+            >
             </sbb-time-slider>
           </ng-container>
         </div>
@@ -108,87 +124,139 @@
         <!---   new line  --->
         <div class="footer_1 background"></div>
         <div class="footer_2 background">
-          <button type="button"
-                  [class]="getZoomButtonClassTag('SimpleButton',41.6)"
-                  title="1/4h"
-                  (click)="onFixZoom(41.6)">
-            15'
-          </button>
-          <button type="button"
-                  [class]="getZoomButtonClassTag('SimpleButton',20.8)"
-                  title="1/2h"
-                  (click)="onFixZoom(20.8)">
-            30'
-          </button>
-
-          <button type="button"
-                  [class]="getZoomButtonClassTag('SimpleButton',10.4)"
-                  title="1h"
-                  (click)="onFixZoom(10.4)">
-            1h
-          </button>
-          <button type="button"
-                  [class]="getZoomButtonClassTag('SimpleButton',5.2)"
-                  title="2h"
-                  (click)="onFixZoom(5.2)">
-            2h
-          </button>
-          <button type="button"
-                  [class]="getZoomButtonClassTag('SimpleButton',2.6)"
-                  title="4h"
-                  (click)="onFixZoom(2.6)">
-            4h
-          </button>
-
-          <ng-container *ngIf="disabledDisplayTools">
-            <button type="button" class="SimpleButton Empty" (click)="toggleDisplayTools()"
-                    [title]="'app.streckengrafik.components.show-advanced-display-functions' | translate">
-              &#8942;
+          <p>
+            <button
+              type="button"
+              [class]="getZoomButtonClassTag('SimpleButton', 41.6)"
+              title="1/4h"
+              (click)="onFixZoom(41.6)"
+            >
+              15'
             </button>
-          </ng-container>
 
+            <button
+              type="button"
+              [class]="getZoomButtonClassTag('SimpleButton', 20.8)"
+              title="1/2h"
+              (click)="onFixZoom(20.8)"
+            >
+              30'
+            </button>
+
+            <button
+              type="button"
+              [class]="getZoomButtonClassTag('SimpleButton', 10.4)"
+              title="1h"
+              (click)="onFixZoom(10.4)"
+            >
+              1h
+            </button>
+
+            <button
+              type="button"
+              [class]="getZoomButtonClassTag('SimpleButton', 5.2)"
+              title="2h"
+              (click)="onFixZoom(5.2)"
+            >
+              2h
+            </button>
+
+            <button
+              type="button"
+              [class]="getZoomButtonClassTag('SimpleButton', 2.6)"
+              title="4h"
+              (click)="onFixZoom(2.6)"
+            >
+              4h
+            </button>
+
+            <ng-container *ngIf="disabledDisplayTools">
+              <button
+                type="button"
+                class="SimpleButton Empty"
+                (click)="toggleDisplayTools()"
+                [title]="
+                  'app.streckengrafik.components.show-advanced-display-functions' | translate
+                "
+              >
+                &#8942;
+              </button>
+            </ng-container>
+          </p>
           <ng-container *ngIf="!disabledDisplayTools">
-            <br>
-            <button type="button"
-                    [class]="getStreckengrafikTimeNotFocusNorEnabledButtonClassTag('SimpleButton Time')"
-                    [title]="'app.streckengrafik.components.show-or-hide-time-for-non-selected-trainruns' | translate"
-                    (click)="toggleStreckengrafikTimeNotFocusNorEnabledButton()"
-                    [attr.title]="'app.streckengrafik.components.show-or-hide' | translate:{ 'component': getTimeButtonText() }">
-              {{getTimeButtonText()}}
-            </button>
+            <p>
+              <button
+                type="button"
+                [class]="getStreckengrafikTimeNotFocusNorEnabledButtonClassTag('SimpleButton Time')"
+                [title]="
+                  'app.streckengrafik.components.show-or-hide-time-for-non-selected-trainruns'
+                    | translate
+                "
+                (click)="toggleStreckengrafikTimeNotFocusNorEnabledButton()"
+                [attr.title]="
+                  'app.streckengrafik.components.show-or-hide'
+                    | translate: {component: getTimeButtonText()}
+                "
+              >
+                {{ getTimeButtonText() }}
+              </button>
 
-            <button type="button"
-                    [class]="getStreckengrafikNameNotFocusNorEnabledButtonClassTag('SimpleButton Name')"
-                    [title]="'app.streckengrafik.components.show-or-hide-name-for-non-selected-trains' | translate"
-                    (click)="toggleStreckengrafikNameNotFocusNorEnabledButton()"
-                    [attr.title]="'app.streckengrafik.components.show-or-hide' | translate:{ 'component': getNameButtonText() }">
-              {{getNameButtonText()}}
-            </button>
+              <button
+                type="button"
+                [class]="getStreckengrafikNameNotFocusNorEnabledButtonClassTag('SimpleButton Name')"
+                [title]="
+                  'app.streckengrafik.components.show-or-hide-name-for-non-selected-trains'
+                    | translate
+                "
+                (click)="toggleStreckengrafikNameNotFocusNorEnabledButton()"
+                [attr.title]="
+                  'app.streckengrafik.components.show-or-hide'
+                    | translate: {component: getNameButtonText()}
+                "
+              >
+                {{ getNameButtonText() }}
+              </button>
 
-            <button type="button"
-                    [class]="getHeadwayVisibleButtonClassTag('SimpleButton HeadwayBand')"
-                    (click)="toggleHeadwayBandVisbility()"
-                    [attr.title]="'app.streckengrafik.components.show-or-hide' | translate:{ 'component': getHeadwayBandButtonText() }">
-              {{getHeadwayBandButtonText()}}
-            </button>
+              <button
+                type="button"
+                [class]="getHeadwayVisibleButtonClassTag('SimpleButton HeadwayBand')"
+                (click)="toggleHeadwayBandVisbility()"
+                [attr.title]="
+                  'app.streckengrafik.components.show-or-hide'
+                    | translate: {component: getHeadwayBandButtonText()}
+                "
+              >
+                {{ getHeadwayBandButtonText() }}
+              </button>
 
-            <button type="button"
-                    [class]="getRailTrackSliderVisibleButtonClassTag('SimpleButton RailTrackSlider')"
-                    (click)="toggleRailTrackSliderVisbility()"
-                    [attr.title]="'app.streckengrafik.components.show-or-hide' | translate:{ 'component': getRailTrackSliderButtonText() }">
-              {{getRailTrackSliderButtonText()}}
-            </button>
+              <button
+                type="button"
+                [class]="getRailTrackSliderVisibleButtonClassTag('SimpleButton RailTrackSlider')"
+                (click)="toggleRailTrackSliderVisbility()"
+                [attr.title]="
+                  'app.streckengrafik.components.show-or-hide'
+                    | translate: {component: getRailTrackSliderButtonText()}
+                "
+              >
+                {{ getRailTrackSliderButtonText() }}
+              </button>
 
-            <button type="button" class="SimpleButton Empty" style='background: none;'
-                    (click)="toggleDisplayTools()"
-                    [title]="'app.streckengrafik.components.hide-advanced-display-functions' | translate">
-              &#x2715;
-            </button>
+              <button
+                type="button"
+                class="SimpleButton Empty"
+                style="background: none"
+                (click)="toggleDisplayTools()"
+                [title]="
+                  'app.streckengrafik.components.hide-advanced-display-functions' | translate
+                "
+              >
+                &#x2715;
+              </button>
+            </p>
           </ng-container>
         </div>
         <div class="footer_3 background"></div>
         <div class="footer_4 background"></div>
-
       </div>
     </foreignObject>
   </svg>

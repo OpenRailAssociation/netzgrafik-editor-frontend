@@ -33,9 +33,7 @@ export class VariantViewComponent implements OnDestroy {
       name: this.versionControlService.variant.latestVersion.name,
     })
       .pipe(takeUntil(this.destroyed))
-      .subscribe((model) =>
-        this.versionControlService.createSnapshot(model.name),
-      );
+      .subscribe((model) => this.versionControlService.createSnapshot(model.name));
   }
 
   onDeleteVariant() {

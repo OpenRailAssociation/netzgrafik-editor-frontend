@@ -30,7 +30,7 @@ export class ConnectionValidator {
     if (nonStopConnectionError) {
       connection.setWarning(
         $localize`:@@app.services.util.connection-validator.connection-marked-for-transit.title:Connection marked for transition!`,
-        $localize`:@@app.services.util.connection-validator.connection-marked-for-transit.description:Connection marked for transition!`
+        $localize`:@@app.services.util.connection-validator.connection-marked-for-transit.description:Connection marked for transition!`,
       );
     } else {
       connection.resetWarning();
@@ -50,11 +50,7 @@ export class ConnectionValidator {
     return (arrivalTime + connectionTime) % 60;
   }
 
-  public static getShortestConnectionTime(
-    node: Node,
-    port1: Port,
-    port2: Port,
-  ): number {
+  public static getShortestConnectionTime(node: Node, port1: Port, port2: Port): number {
     const departureTime = this.getDepartureTime(node, port2);
     const earliestDeparture = this.getEarliestDeparture(node, port1);
 

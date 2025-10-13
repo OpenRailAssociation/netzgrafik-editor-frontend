@@ -38,24 +38,22 @@ export class PerlenketteNodeComponent implements OnInit {
     public trainrunService: TrainrunService,
     readonly filterService: FilterService,
     readonly uiInteractionService: UiInteractionService,
-    readonly versionControlService : VersionControlService,
-  ) {
-  }
+    readonly versionControlService: VersionControlService,
+  ) {}
 
   ngOnInit() {
     this.isExpanded = true;
     this.calculateHeightConnectionSurplus();
   }
 
-  getVariantIsWritable() : boolean {
+  getVariantIsWritable(): boolean {
     return this.versionControlService.getVariantIsWritable();
   }
 
   getConnectionIssue(): string {
     let amountOfWarningConnections = 0;
     this.perlenketteNode.connections.forEach(
-      (mockConnection) =>
-        mockConnection.connectionWarning && amountOfWarningConnections++,
+      (mockConnection) => mockConnection.connectionWarning && amountOfWarningConnections++,
     );
     if (amountOfWarningConnections === 0) {
       return $localize`:@@app.perlenkette.perlenkette-node.0-warning-connection:No incorrect connection`;
@@ -69,8 +67,7 @@ export class PerlenketteNodeComponent implements OnInit {
   getFittingConnections(): string {
     let amountOfFittingConnections = 0;
     this.perlenketteNode.connections.forEach(
-      (mockConnection) =>
-        !mockConnection.connectionWarning && amountOfFittingConnections++,
+      (mockConnection) => !mockConnection.connectionWarning && amountOfFittingConnections++,
     );
     if (amountOfFittingConnections === 0) {
       return $localize`:@@app.perlenkette.perlenkette-node.0-fitting-connection:No fitting connection`;
@@ -92,9 +89,7 @@ export class PerlenketteNodeComponent implements OnInit {
       this.perlenketteNode.isTopNode(this.perlenketteTrainrun);
 
     if (this.isExpanded) {
-      const topLen = this.perlenketteNode.getConnectionsTopNodes(
-        this.perlenketteTrainrun,
-      ).length;
+      const topLen = this.perlenketteNode.getConnectionsTopNodes(this.perlenketteTrainrun).length;
       const bottomLen = this.perlenketteNode.getConnectionsBottomNodes(
         this.perlenketteTrainrun,
       ).length;
@@ -102,16 +97,12 @@ export class PerlenketteNodeComponent implements OnInit {
       this.heightConnectionSurplus =
         (Math.max(startEndNode ? 0 : 1, topLen) +
           Math.max(0, (topLen > 0 ? 1 : 0) + bottomLen - 1) -
-          (this.perlenketteNode.isBottomNode(this.perlenketteTrainrun)
-            ? 1.0
-            : 0.0)) *
+          (this.perlenketteNode.isBottomNode(this.perlenketteTrainrun) ? 1.0 : 0.0)) *
         this.surplus;
     } else {
       this.heightConnectionSurplus = (2 - 1) * this.surplus;
     }
-    this.signalHeightChanged.next(
-      Math.max(64, 64 + this.heightConnectionSurplus),
-    );
+    this.signalHeightChanged.next(Math.max(64, 64 + this.heightConnectionSurplus));
   }
 
   hasConnections() {
@@ -139,10 +130,7 @@ export class PerlenketteNodeComponent implements OnInit {
         tag += " has_connections";
       }
     }
-    if (
-      this.perlenketteNode?.transition?.getIsNonStopTransit() &&
-      this.hasConnections()
-    ) {
+    if (this.perlenketteNode?.transition?.getIsNonStopTransit() && this.hasConnections()) {
       tag += " no_stop_has_connections";
     }
     return tag;
@@ -158,10 +146,7 @@ export class PerlenketteNodeComponent implements OnInit {
     return "nonstop";
   }
 
-  getConnectionsSize(
-    minSize: number,
-    calculatedConnectionSize: number,
-  ): number {
+  getConnectionsSize(minSize: number, calculatedConnectionSize: number): number {
     const startEndNode =
       this.perlenketteNode.isTopNode(this.perlenketteTrainrun) ||
       this.perlenketteNode.isTopNode(this.perlenketteTrainrun);
@@ -172,30 +157,18 @@ export class PerlenketteNodeComponent implements OnInit {
   }
 
   getSepLinePos() {
-    const topLen = this.perlenketteNode.getConnectionsTopNodes(
-      this.perlenketteTrainrun,
-    ).length;
+    const topLen = this.perlenketteNode.getConnectionsTopNodes(this.perlenketteTrainrun).length;
     if (topLen === 0) {
       return 0.75;
     }
     return topLen + 0.5;
   }
 
-  getTextTerminalStation(
-    connection: PerlenketteConnection,
-    connectionGrpKey: number,
-    pos: number,
-  ) {
-    return pos === 0
-      ? connection.terminalStationBackward
-      : connection.terminalStation;
+  getTextTerminalStation(connection: PerlenketteConnection, connectionGrpKey: number, pos: number) {
+    return pos === 0 ? connection.terminalStationBackward : connection.terminalStation;
   }
 
-  getTextNameOrTime(
-    connection: PerlenketteConnection,
-    connectionGrpKey: number,
-    pos: number,
-  ) {
+  getTextNameOrTime(connection: PerlenketteConnection, connectionGrpKey: number, pos: number) {
     return pos === 0
       ? connection.categoryShortName + "" + connection.title
       : "" + connection.remainingTime;
@@ -212,14 +185,8 @@ export class PerlenketteNodeComponent implements OnInit {
     if (connectionGrpKey === undefined) {
       return index;
     }
-    const topLen = this.perlenketteNode.getConnectionsTopNodes(
-      this.perlenketteTrainrun,
-    ).length;
-    return (
-      index +
-      Math.max(connectionGrpKey, startEndNode ? 0 : 1) +
-      (topLen > 0 ? 1 : 0)
-    );
+    const topLen = this.perlenketteNode.getConnectionsTopNodes(this.perlenketteTrainrun).length;
+    return index + Math.max(connectionGrpKey, startEndNode ? 0 : 1) + (topLen > 0 ? 1 : 0);
   }
 
   getColoringClassTag(connection: PerlenketteConnection = undefined): string {
@@ -232,9 +199,7 @@ export class PerlenketteNodeComponent implements OnInit {
       }
     }
     if (trainrun2 === undefined) {
-      trainrun2 = this.trainrunService.getTrainrunFromId(
-        this.perlenketteTrainrun.trainrunId,
-      );
+      trainrun2 = this.trainrunService.getTrainrunFromId(this.perlenketteTrainrun.trainrunId);
     }
     return (
       " ColorRef_" +
@@ -272,8 +237,10 @@ export class PerlenketteNodeComponent implements OnInit {
   getPathClassTag(connection: PerlenketteConnection = undefined): string {
     if (connection === undefined) {
       const lineTag =
-        " Freq_" + this.perlenketteTrainrun.frequency +
-        " LinePatternRef_" + this.perlenketteTrainrun.trainrunTimeCategory.linePatternRef;
+        " Freq_" +
+        this.perlenketteTrainrun.frequency +
+        " LinePatternRef_" +
+        this.perlenketteTrainrun.trainrunTimeCategory.linePatternRef;
       return "UI_DIALOG " + this.getColoringClassTag() + lineTag;
     }
 
@@ -282,15 +249,14 @@ export class PerlenketteNodeComponent implements OnInit {
       selected_tag = " " + StaticDomTags.TAG_SELECTED;
     }
     const lineTag =
-      " Freq_" + connection.frequency +
-      " LinePatternRef_" + connection.connectedTrainrun.getTimeCategoryLinePatternRef();
+      " Freq_" +
+      connection.frequency +
+      " LinePatternRef_" +
+      connection.connectedTrainrun.getTimeCategoryLinePatternRef();
     return "UI_DIALOG " + selected_tag + this.getColoringClassTag(connection) + lineTag;
   }
 
-  getConnectedTrainEdgeLineTransform(
-    startPosX: number,
-    startPosY: number,
-  ): string {
+  getConnectedTrainEdgeLineTransform(startPosX: number, startPosY: number): string {
     return "translate(" + startPosX + "," + startPosY + ")";
   }
 
@@ -299,21 +265,8 @@ export class PerlenketteNodeComponent implements OnInit {
     return "translate(0," + this.surplus / len + ")";
   }
 
-  getConnectedTrainEdgeLine(
-    startPosX: number,
-    startPosY: number,
-    width: number,
-  ): string {
-    return (
-      "M" +
-      startPosX +
-      "," +
-      startPosY +
-      " L" +
-      (startPosX + width) +
-      "," +
-      startPosY
-    );
+  getConnectedTrainEdgeLine(startPosX: number, startPosY: number, width: number): string {
+    return "M" + startPosX + "," + startPosY + " L" + (startPosX + width) + "," + startPosY;
   }
 
   toggleNonStop() {
@@ -341,10 +294,7 @@ export class PerlenketteNodeComponent implements OnInit {
   createPolygon(x: number, y: number): string {
     return (
       "M" +
-      D3Utils.makeHexagonSVGPoints(
-        new Vec2D(x, y),
-        StaticDomTags.TRANSITION_BUTTON_SIZE,
-      ) +
+      D3Utils.makeHexagonSVGPoints(new Vec2D(x, y), StaticDomTags.TRANSITION_BUTTON_SIZE) +
       "z"
     );
   }
@@ -360,9 +310,7 @@ export class PerlenketteNodeComponent implements OnInit {
     let maxTrainrunNameLen = 0;
     this.perlenketteTrainrun.pathItems.forEach((item: PerlenketteItem) => {
       if (item.isPerlenketteNode()) {
-        item
-          .getPerlenketteNode()
-          .connections.forEach((connection: PerlenketteConnection) => {
+        item.getPerlenketteNode().connections.forEach((connection: PerlenketteConnection) => {
           const name = connection.categoryShortName + "" + connection.title;
           maxTrainrunNameLen = Math.max(
             3 + connection.terminalStationBackward.length,
@@ -378,10 +326,7 @@ export class PerlenketteNodeComponent implements OnInit {
     if (maxTrainrunNameLen < 5) {
       return 192;
     }
-    return Math.min(
-      192.0 * Math.min(1.8125, 1.0 + (maxTrainrunNameLen - 5) / 12),
-      320,
-    );
+    return Math.min(192.0 * Math.min(1.8125, 1.0 + (maxTrainrunNameLen - 5) / 12), 320);
   }
 
   getTrainrunNameFieldPosition(): number {
@@ -401,9 +346,7 @@ export class PerlenketteNodeComponent implements OnInit {
   }
 
   getTrainEdgeLineWidth(): number {
-    return (
-      (this.getExpandedNodeWith() / 2 - this.getTrainEdgeLineStartPos()) * 2
-    );
+    return (this.getExpandedNodeWith() / 2 - this.getTrainEdgeLineStartPos()) * 2;
   }
 
   getTimeFieldPos(): number {

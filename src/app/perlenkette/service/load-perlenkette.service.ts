@@ -21,10 +21,8 @@ import {TrainrunSection} from "../../models/trainrunsection.model";
   providedIn: "root",
 })
 export class LoadPerlenketteService implements OnDestroy {
-  private readonly perlenketteTrainrunSubject =
-    new BehaviorSubject<PerlenketteTrainrun>(undefined);
-  private readonly perlenketteTrainrun$ =
-    this.perlenketteTrainrunSubject.asObservable();
+  private readonly perlenketteTrainrunSubject = new BehaviorSubject<PerlenketteTrainrun>(undefined);
+  private readonly perlenketteTrainrun$ = this.perlenketteTrainrunSubject.asObservable();
 
   private readonly destroyed$ = new Subject<void>();
 
@@ -36,12 +34,10 @@ export class LoadPerlenketteService implements OnDestroy {
     private nodeService: NodeService,
     private filterService: FilterService,
   ) {
-    this.trainrunService.trainruns
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((trainruns) => {
-        this.trainruns = trainruns;
-        this.render();
-      });
+    this.trainrunService.trainruns.pipe(takeUntil(this.destroyed$)).subscribe((trainruns) => {
+      this.trainruns = trainruns;
+      this.render();
+    });
 
     this.trainrunSectionService.trainrunSections
       .pipe(takeUntil(this.destroyed$))
@@ -49,23 +45,17 @@ export class LoadPerlenketteService implements OnDestroy {
         this.render();
       });
 
-    this.nodeService.transitions
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((transition) => {
-        this.render();
-      });
+    this.nodeService.transitions.pipe(takeUntil(this.destroyed$)).subscribe((transition) => {
+      this.render();
+    });
 
-    this.nodeService.nodes
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((node) => {
-        this.render();
-      });
+    this.nodeService.nodes.pipe(takeUntil(this.destroyed$)).subscribe((node) => {
+      this.render();
+    });
 
-    this.nodeService.connections
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((connection) => {
-        this.render();
-      });
+    this.nodeService.connections.pipe(takeUntil(this.destroyed$)).subscribe((connection) => {
+      this.render();
+    });
   }
 
   ngOnDestroy() {
@@ -110,36 +100,34 @@ export class LoadPerlenketteService implements OnDestroy {
       trainrun.getCategoryShortName(),
       trainrun.getCategoryColorRef(),
       this.getPerlenketteItem(trainrun),
+      trainrun.getDirection(),
     );
   }
 
   private getPerlenketteItem(trainrun: Trainrun): PerlenketteItem[] {
     const perlenketteItem: PerlenketteItem[] = [];
 
-    let allTrainrunSections =
-      this.trainrunSectionService
-        .getAllTrainrunSectionsForTrainrun(trainrun.getId());
+    let allTrainrunSections = this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      trainrun.getId(),
+    );
 
     while (allTrainrunSections.length > 0) {
       // traverse over all trainrun parts
       const trainrunSection = allTrainrunSections[0];
 
       // filter all still visited trainrun sections
-      allTrainrunSections = allTrainrunSections.filter(ts =>
-        ts.getId() !== trainrunSection.getId()
+      allTrainrunSections = allTrainrunSections.filter(
+        (ts) => ts.getId() !== trainrunSection.getId(),
       );
 
-      const bothEndNodes =
-        this.trainrunService.getBothEndNodesFromTrainrunPart(trainrunSection);
+      const bothEndNodes = this.trainrunService.getBothEndNodesFromTrainrunPart(trainrunSection);
       const startForwardNode = GeneralViewFunctions.getLeftOrTopNode(
         bothEndNodes.endNode1,
         bothEndNodes.endNode2,
       );
 
       if (startForwardNode) {
-        const startTrainrunSection = startForwardNode.getStartTrainrunSection(
-          trainrun.getId(),
-        );
+        const startTrainrunSection = startForwardNode.getStartTrainrunSection(trainrun.getId());
         if (startTrainrunSection === undefined) {
           return perlenketteItem;
         }
@@ -177,7 +165,7 @@ export class LoadPerlenketteService implements OnDestroy {
               trainrunSection.getNumberOfStops(),
               false,
               firstSection,
-              false
+              false,
             ),
           );
           firstSection = false;
@@ -192,14 +180,14 @@ export class LoadPerlenketteService implements OnDestroy {
               this.getPerlenketteConnections(trainrun, node),
               node.getTransition(trainrunSection.getId()),
               false,
-              false
+              false,
             ),
           );
           lastNode = node;
 
           // filter all still visited trainrun sections
-          allTrainrunSections = allTrainrunSections.filter(ts =>
-            ts.getId() !== currentTrainrunSectionNodePair.trainrunSection.getId()
+          allTrainrunSections = allTrainrunSections.filter(
+            (ts) => ts.getId() !== currentTrainrunSectionNodePair.trainrunSection.getId(),
           );
         }
 
@@ -215,8 +203,6 @@ export class LoadPerlenketteService implements OnDestroy {
             pn.setLastTrainrunPartNode(true);
           }
         }
-
-
       }
     }
     return perlenketteItem;
@@ -247,55 +233,34 @@ export class LoadPerlenketteService implements OnDestroy {
 
         let terminalStation;
         let terminalStationBackward;
-        if (
-          node.getId() !== port2.getTrainrunSection().getTargetNode().getId()
-        ) {
+        if (node.getId() !== port2.getTrainrunSection().getTargetNode().getId()) {
           terminalStation = this.trainrunService
-            .getEndNode(
-              port2.getTrainrunSection().getSourceNode(),
-              port2.getTrainrunSection(),
-            )
+            .getEndNode(port2.getTrainrunSection().getSourceNode(), port2.getTrainrunSection())
             .getBetriebspunktName();
           terminalStationBackward = this.trainrunService
-            .getEndNode(
-              port2.getTrainrunSection().getTargetNode(),
-              port2.getTrainrunSection(),
-            )
+            .getEndNode(port2.getTrainrunSection().getTargetNode(), port2.getTrainrunSection())
             .getBetriebspunktName();
-        } else if (
-          node.getId() !== port2.getTrainrunSection().getSourceNode().getId()
-        ) {
+        } else if (node.getId() !== port2.getTrainrunSection().getSourceNode().getId()) {
           terminalStation = this.trainrunService
-            .getEndNode(
-              port2.getTrainrunSection().getTargetNode(),
-              port2.getTrainrunSection(),
-            )
+            .getEndNode(port2.getTrainrunSection().getTargetNode(), port2.getTrainrunSection())
             .getBetriebspunktName();
           terminalStationBackward = this.trainrunService
-            .getEndNode(
-              port2.getTrainrunSection().getSourceNode(),
-              port2.getTrainrunSection(),
-            )
+            .getEndNode(port2.getTrainrunSection().getSourceNode(), port2.getTrainrunSection())
             .getBetriebspunktName();
         }
 
         let beginningStation: Node = undefined;
-        if (
-          node.getId() !== port1.getTrainrunSection().getTargetNode().getId()
-        ) {
+        if (node.getId() !== port1.getTrainrunSection().getTargetNode().getId()) {
           beginningStation = this.trainrunService.getEndNode(
             port1.getTrainrunSection().getSourceNode(),
             port1.getTrainrunSection(),
           );
-        } else if (
-          node.getId() !== port1.getTrainrunSection().getSourceNode().getId()
-        ) {
+        } else if (node.getId() !== port1.getTrainrunSection().getSourceNode().getId()) {
           beginningStation = this.trainrunService.getEndNode(
             port1.getTrainrunSection().getTargetNode(),
             port1.getTrainrunSection(),
           );
         }
-
 
         // calculate real connection time
         const arrivalTime = node.getArrivalTime(port1.getTrainrunSection());
@@ -308,10 +273,12 @@ export class LoadPerlenketteService implements OnDestroy {
           const freq1 = freqOff1 * port1.getTrainrunSection().getTrainrun().getFrequency();
           for (let freqOff2 = 0; freqOff2 < 8; freqOff2 += 1) {
             const freq2 = freqOff2 * port2.getTrainrunSection().getTrainrun().getFrequency();
-            const d = departureTime +
+            const d =
+              departureTime +
               freq2 +
               port2.getTrainrunSection().getTrainrun().getTrainrunFrequency().offset;
-            const a = arrivalTime +
+            const a =
+              arrivalTime +
               freq1 +
               port1.getTrainrunSection().getTrainrun().getTrainrunFrequency().offset;
             const delta = d - a;

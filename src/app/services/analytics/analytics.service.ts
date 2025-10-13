@@ -11,11 +11,8 @@ import {FilterService} from "../ui/filter.service";
   providedIn: "root",
 })
 export class AnalyticsService implements OnDestroy {
-  findAllShortestDistanceNodesSubject = new BehaviorSubject<
-    ShortestDistanceNode[]
-  >([]);
-  readonly shortestDistanceNode =
-    this.findAllShortestDistanceNodesSubject.asObservable();
+  findAllShortestDistanceNodesSubject = new BehaviorSubject<ShortestDistanceNode[]>([]);
+  readonly shortestDistanceNode = this.findAllShortestDistanceNodesSubject.asObservable();
   private destroyed = new Subject<void>();
 
   constructor(
@@ -38,9 +35,7 @@ export class AnalyticsService implements OnDestroy {
       this.filterService,
     );
     this.allShortestDistanceNodesUpdated(
-      shortestTravelTimeSearch.calculateShortestDistanceNodesFromStartingNode(
-        departureNodeId,
-      ),
+      shortestTravelTimeSearch.calculateShortestDistanceNodesFromStartingNode(departureNodeId),
     );
   }
 
@@ -62,11 +57,7 @@ export class AnalyticsService implements OnDestroy {
     );
   }
 
-  private allShortestDistanceNodesUpdated(
-    shortestDistanceNodes: ShortestDistanceNode[],
-  ) {
-    this.findAllShortestDistanceNodesSubject.next(
-      Object.assign([], shortestDistanceNodes),
-    );
+  private allShortestDistanceNodesUpdated(shortestDistanceNodes: ShortestDistanceNode[]) {
+    this.findAllShortestDistanceNodesSubject.next(Object.assign([], shortestDistanceNodes));
   }
 }

@@ -153,7 +153,6 @@ export interface LabelDto {
   labelRef: LabelRef; // label ref - declares the label group - used for double check - deprecate???
 }
 
-
 /**
  * Represents a filterable LabelGroup - in general one group per LabelRef are avaible, but user can
  * add more and algine labels to the right groups (right means = LabelRef must correspond to the
@@ -198,8 +197,8 @@ export interface TrainrunDto {
   categoryId: number; // reference to the trainrun category
   frequencyId: number; // reference to the trainrun frequency
   trainrunTimeCategoryId: number; // reference to the trainrun time category
-
   labelIds: number[];
+  direction: Direction; // direction of the trainrun
 }
 
 /**
@@ -284,12 +283,13 @@ export interface ResourceDto {
  * Represents the filter settings, which can be stored.
  */
 export interface FilterSettingDto {
-  id: number;  // unique indentifier
+  id: number; // unique indentifier
   name: string; // name
   description: string; // description
   filterNodeLabels: number[]; // labels to filter out (labels only of type - LabelRef: node)
   filterNoteLabels: number[]; // labels to filter out (labels only of type - LabelRef: note)
   filterTrainrunLabels: number[]; // labels to filter out (labels only of type - LabelRef: trainrun)
+  filterDirectionArrows: boolean; // flag for trainrun direction arrows (hide/show)
   filterArrivalDepartureTime: boolean; // flag for arrival and departure time filtering (hide/show)
   filterTravelTime: boolean; // flag for travel time filter (hide/show)
   filterTrainrunName: boolean; // flag for trainrun time filter (hide/show)
@@ -298,6 +298,7 @@ export interface FilterSettingDto {
   filterTrainrunCategory: TrainrunCategory[]; // list of category to filter out
   filterTrainrunFrequency: TrainrunFrequency[]; // list of frequency to filter out
   filterTrainrunTimeCategory: TrainrunTimeCategory[]; // list of time categroy to filter out
+  filterDirection: Direction[]; // list of trainrun direction to filter out
   filterAllEmptyNodes: boolean; // flag to filter all empty nodes (hide/show)
   filterAllNonStopNodes: boolean; // flag to filter all only non-stop nodes (hide/show)
   filterNotes: boolean; // flag to filter notes (hide/show)
@@ -326,4 +327,12 @@ export interface NetzgrafikDto {
   labels: LabelDto[]; // list of all labels - DB table (filterable labels)
   labelGroups: LabelGroupDto[]; // list of all label groups - DB table (filterable groups)
   filterData: FilterDataDto; // reference to the filter settings (predefined filters)
+}
+
+/**
+ * Represents the trainrun direction.
+ */
+export enum Direction {
+  ROUND_TRIP = "round_trip",
+  ONE_WAY = "one_way",
 }

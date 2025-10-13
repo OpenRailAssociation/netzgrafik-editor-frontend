@@ -216,15 +216,61 @@ echo "use flake" >> .envrc && direnv allow
 
 See [official direnv documentation](https://direnv.net/) for more information.
 
+### Linting
+
+```sh
+# to fix the eventual lint issues
+npm run lint
+
+# to check that the code is correctly linted
+npm run lint:fix
+```
+
+### Formatting
+
+Since we use Prettier as formatter, you can freely setup you favorite IDE to support you in the way. For example, if you use VSCode, follow these steps:
+
+- install the [Prettier extension](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+- (optionnal: install Prettier via npm `npm install --global prettier`)
+- now, if you try left-click and select "Format Document", you'll be able to format manually using Prettier
+
+Nice to have: Format on Save
+
+- you can enable this functionnality by opening VSCode "Settings" and activate "Editor: Format on Save" (this way, your code will be formatted each time your file is saved)
+- alternatively, you can just add these lines in `settings.json` (open using `Cmd` + `shift` + `p` and search "Open User Settings (JSON)")
+
+```json
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
+}
+```
+
+```sh
+# to check that the code is correctly formatted
+npm run format:check
+
+# to format the code according to Prettier rules
+npm run format
+```
+
+### Testing
+
+```sh
+
 ### Testing
 
 ```
+
 # just run the test once
+
 npm run test
 
 # or run the test in the browser
+
 npm run test -- --browsers Chrome
-```
+
+````
 
 ## Backend API code generation
 
@@ -243,7 +289,7 @@ The new API Service files can be generated using the following command:
 
 ```shell
 npm run generate:api
-```
+````
 
 ## Documentation
 

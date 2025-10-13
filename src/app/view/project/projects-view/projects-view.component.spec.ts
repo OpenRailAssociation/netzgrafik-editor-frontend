@@ -7,6 +7,7 @@ import {SbbDialogModule} from "@sbb-esta/angular/dialog";
 import {ProjectControllerBackendService} from "../../../api/generated";
 import {NavigationService} from "../../../services/ui/navigation.service";
 import {I18nModule} from "../../../core/i18n/i18n.module";
+import {CUSTOM_ELEMENTS_SCHEMA} from "@angular/core";
 
 describe("ProjectsViewComponent", () => {
   let component: ProjectsViewComponent;
@@ -30,12 +31,11 @@ describe("ProjectsViewComponent", () => {
         },
         {provide: NavigationService, useValue: {}},
       ],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
     })
       .overrideComponent(ProjectsViewComponent, {
         set: {
-          providers: [
-            {provide: ProjectsViewService, useValue: projectViewService},
-          ],
+          providers: [{provide: ProjectsViewService, useValue: projectViewService}],
         },
       })
       .compileComponents();

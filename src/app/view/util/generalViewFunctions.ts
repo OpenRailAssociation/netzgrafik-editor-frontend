@@ -5,10 +5,7 @@ import {Node} from "../../models/node.model";
 import {VisAVisPortPlacement} from "../../services/util/node.port.placement";
 
 export class GeneralViewFunctions {
-  static calcDialogTopLeftScreenCoordinate(
-    windowsPosition: Vec2D,
-    dialogDimension: Vec2D,
-  ): Vec2D {
+  static calcDialogTopLeftScreenCoordinate(windowsPosition: Vec2D, dialogDimension: Vec2D): Vec2D {
     /*
       The SVG (netzgrafik) rendering area has its own local coordinate system and can be different
       to the real screen visible coordinates.
@@ -34,14 +31,8 @@ export class GeneralViewFunctions {
     clientHeight: number,
     clientWidth: number,
   ): Vec2D {
-    let top: number =
-      windowsPosition.getY() -
-      dialogDimension.getY() -
-      RASTERING_BASIC_GRID_SIZE;
-    if (
-      top >
-      clientHeight - dialogDimension.getY() - RASTERING_BASIC_GRID_SIZE
-    ) {
+    let top: number = windowsPosition.getY() - dialogDimension.getY() - RASTERING_BASIC_GRID_SIZE;
+    if (top > clientHeight - dialogDimension.getY() - RASTERING_BASIC_GRID_SIZE) {
       top = clientHeight - dialogDimension.getY() - RASTERING_BASIC_GRID_SIZE;
     }
     if (top < clientTop + RASTERING_BASIC_GRID_SIZE / 2) {
@@ -49,13 +40,8 @@ export class GeneralViewFunctions {
     }
 
     let left: number =
-      windowsPosition.getX() -
-      dialogDimension.getX() / 2 -
-      RASTERING_BASIC_GRID_SIZE / 2;
-    if (
-      left >
-      clientWidth - dialogDimension.getX() - RASTERING_BASIC_GRID_SIZE
-    ) {
+      windowsPosition.getX() - dialogDimension.getX() / 2 - RASTERING_BASIC_GRID_SIZE / 2;
+    if (left > clientWidth - dialogDimension.getX() - RASTERING_BASIC_GRID_SIZE) {
       left = clientWidth - dialogDimension.getX() - RASTERING_BASIC_GRID_SIZE;
     }
     if (left < clientLeft + RASTERING_BASIC_GRID_SIZE / 2) {
@@ -66,14 +52,8 @@ export class GeneralViewFunctions {
   }
 
   static getLeftOrTopNode(node1: Node, node2: Node): Node {
-    const posNode1: Vec2D = new Vec2D(
-      node1.getPositionX(),
-      node1.getPositionY(),
-    );
-    const posNode2: Vec2D = new Vec2D(
-      node2.getPositionX(),
-      node2.getPositionY(),
-    );
+    const posNode1: Vec2D = new Vec2D(node1.getPositionX(), node1.getPositionY());
+    const posNode2: Vec2D = new Vec2D(node2.getPositionX(), node2.getPositionY());
     if (VisAVisPortPlacement.drawVerticalLine(posNode1, posNode2)) {
       return posNode1.getY() < posNode2.getY() ? node1 : node2;
     } else {
@@ -81,35 +61,26 @@ export class GeneralViewFunctions {
     }
   }
 
-  static getStartForwardAndBackwardNode(endNode1: Node, endNode2: Node): {
+  static getStartForwardAndBackwardNode(
+    endNode1: Node,
+    endNode2: Node,
+  ): {
     startForwardNode: Node;
     startBackwardNode: Node;
   } {
-    const startForwardNode = GeneralViewFunctions.getLeftOrTopNode(
-      endNode1,
-      endNode2,
-    );
+    const startForwardNode = GeneralViewFunctions.getLeftOrTopNode(endNode1, endNode2);
 
-    const startBackwardNode =
-      endNode1.getId() === startForwardNode.getId()
-        ? endNode2
-        : endNode1;
+    const startBackwardNode = endNode1.getId() === startForwardNode.getId() ? endNode2 : endNode1;
 
     return {
       startForwardNode: startForwardNode,
-      startBackwardNode: startBackwardNode
+      startBackwardNode: startBackwardNode,
     };
   }
 
   static getRightOrBottomNode(node1: Node, node2: Node): Node {
-    const posNode1: Vec2D = new Vec2D(
-      node1.getPositionX(),
-      node1.getPositionY(),
-    );
-    const posNode2: Vec2D = new Vec2D(
-      node2.getPositionX(),
-      node2.getPositionY(),
-    );
+    const posNode1: Vec2D = new Vec2D(node1.getPositionX(), node1.getPositionY());
+    const posNode2: Vec2D = new Vec2D(node2.getPositionX(), node2.getPositionY());
     if (VisAVisPortPlacement.drawVerticalLine(posNode1, posNode2)) {
       return posNode1.getY() < posNode2.getY() ? node2 : node1;
     } else {
@@ -117,11 +88,7 @@ export class GeneralViewFunctions {
     }
   }
 
-  static getLeftNodeAccordingToOrder(
-    nodesOrdered: Node[],
-    node1: Node,
-    node2: Node,
-  ): Node {
+  static getLeftNodeAccordingToOrder(nodesOrdered: Node[], node1: Node, node2: Node): Node {
     for (const node of nodesOrdered) {
       if (node.getId() === node1.getId()) {
         return node1;
@@ -132,11 +99,7 @@ export class GeneralViewFunctions {
     return undefined;
   }
 
-  static getRightNodeAccordingToOrder(
-    nodesOrdered: Node[],
-    node1: Node,
-    node2: Node,
-  ): Node {
+  static getRightNodeAccordingToOrder(nodesOrdered: Node[], node1: Node, node2: Node): Node {
     const copyNodesOrdered = Object.assign([], nodesOrdered);
     for (const node of copyNodesOrdered.reverse()) {
       if (node.getId() === node1.getId()) {

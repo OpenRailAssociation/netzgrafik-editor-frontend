@@ -52,7 +52,7 @@ export class ConnectionsViewObject {
       "_" +
       editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() +
       "_" +
-      editorView.getLevelOfDetail()  +
+      editorView.getLevelOfDetail() +
       "_" +
       editorView.trainrunSectionPreviewLineView.getVariantIsWritable();
 

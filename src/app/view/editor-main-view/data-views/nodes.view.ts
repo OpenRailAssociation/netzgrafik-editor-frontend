@@ -32,9 +32,7 @@ export class NodesView {
   constructor(private editorView: EditorView) {
     this.draggable = d3
       .drag()
-      .on("start", (n: NodeViewObject, i, a) =>
-        this.onNodeDragStart(n.node, a[i]),
-      )
+      .on("start", (n: NodeViewObject, i, a) => this.onNodeDragStart(n.node, a[i]))
       .on("drag", (n: NodeViewObject) => this.onNodeDragged(n.node))
       .on("end", (n: NodeViewObject, i, a) => this.onNodeDragEnd(n.node, a[i]));
     this.dragPreviousMousePosition = new Vec2D();
@@ -56,8 +54,7 @@ export class NodesView {
       this.editorView.unselectAllNotes();
     }
 
-    this.dragPreviousMousePosition =
-      this.editorView.svgMouseController.getCurrentMousePosition();
+    this.dragPreviousMousePosition = this.editorView.svgMouseController.getCurrentMousePosition();
     this.editorView.pauseUndoRecording();
   }
 
@@ -86,9 +83,7 @@ export class NodesView {
   createViewNodeDataObjects(nodes: Node[]): NodeViewObject[] {
     const viewNodeDataObjects: NodeViewObject[] = [];
     nodes.forEach((n: Node) => {
-      viewNodeDataObjects.push(
-        new NodeViewObject(this.editorView, n, n.isNonStopNode()),
-      );
+      viewNodeDataObjects.push(new NodeViewObject(this.editorView, n, n.isNonStopNode()));
     });
     return viewNodeDataObjects;
   }
@@ -98,23 +93,19 @@ export class NodesView {
   }
 
   displayNodes(inputNodes: Node[]) {
-    const nodes = inputNodes.filter((n) =>
-      this.editorView.doCullCheckPositionsInViewport(
-          [
-            new Vec2D(n.getPositionX(), n.getPositionY()),
-            new Vec2D(n.getPositionX() + n.getNodeWidth(), n.getPositionY()),
-            new Vec2D(n.getPositionX(), n.getPositionY() + n.getNodeHeight()),
-            new Vec2D(n.getPositionX() + n.getNodeWidth(), n.getPositionY() + n.getNodeHeight())
-          ]) &&
-      this.filterNodesToDisplay(n)
+    const nodes = inputNodes.filter(
+      (n) =>
+        this.editorView.doCullCheckPositionsInViewport([
+          new Vec2D(n.getPositionX(), n.getPositionY()),
+          new Vec2D(n.getPositionX() + n.getNodeWidth(), n.getPositionY()),
+          new Vec2D(n.getPositionX(), n.getPositionY() + n.getNodeHeight()),
+          new Vec2D(n.getPositionX() + n.getNodeWidth(), n.getPositionY() + n.getNodeHeight()),
+        ]) && this.filterNodesToDisplay(n),
     );
 
     const group = this.nodeGroup
       .selectAll(StaticDomTags.NODE_ROOT_CONTAINER_DOM_REF)
-      .data(
-        this.createViewNodeDataObjects(nodes),
-        (n: NodeViewObject) => n.key,
-      );
+      .data(this.createViewNodeDataObjects(nodes), (n: NodeViewObject) => n.key);
 
     const groupEnter2 = group
       .enter()
@@ -128,11 +119,7 @@ export class NodesView {
       .attr(
         "transform",
         (n: NodeViewObject) =>
-          "translate(" +
-          n.node.getPositionX() +
-          "," +
-          n.node.getPositionY() +
-          ")",
+          "translate(" + n.node.getPositionX() + "," + n.node.getPositionY() + ")",
       );
 
     this.renderNodeObject(groupEnter);
@@ -233,9 +220,7 @@ export class NodesView {
       .attr("height", (n: NodeViewObject) => n.node.getNodeHeight() + 24)
       .attr("x", -12)
       .attr("y", -12)
-      .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) =>
-        n.node.isNonStopNode(),
-      )
+      .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,
         (n: NodeViewObject) => n.node.getConnections().length > 0,
@@ -256,9 +241,7 @@ export class NodesView {
       .attr("height", (n: NodeViewObject) => n.node.getNodeHeight())
       .attr("x", 0)
       .attr("y", 0)
-      .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) =>
-        n.node.isNonStopNode(),
-      )
+      .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,
         (n: NodeViewObject) => n.node.getConnections().length > 0,
@@ -271,7 +254,6 @@ export class NodesView {
   }
 
   private makeBackground(groupEnter: any) {
-
     groupEnter
       .append(StaticDomTags.NODE_BACKGROUND_SVG)
       .attr("class", StaticDomTags.NODE_BACKGROUND_CLASS)
@@ -280,9 +262,7 @@ export class NodesView {
       .attr("height", (n: NodeViewObject) => n.node.getNodeHeight())
       .attr("x", 0)
       .attr("y", 0)
-      .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) =>
-        n.node.isNonStopNode(),
-      )
+      .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,
         (n: NodeViewObject) => n.node.getConnections().length > 0,
@@ -295,7 +275,6 @@ export class NodesView {
   }
 
   private makeLabelArea(groupEnter: any) {
-
     groupEnter
       .append(StaticDomTags.NODE_LABELAREA_SVG)
       .attr("class", StaticDomTags.NODE_LABELAREA_CLASS)
@@ -303,20 +282,13 @@ export class NodesView {
       .attr("width", (n: NodeViewObject) => n.node.getNodeWidth())
       .attr("height", () => NODE_TEXT_AREA_HEIGHT)
       .attr("x", 0)
-      .attr(
-        "y",
-        (n: NodeViewObject) => n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT,
-      )
-      .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) =>
-        n.node.isNonStopNode(),
-      )
+      .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT)
+      .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,
         (n: NodeViewObject) => n.node.getConnections().length > 0,
       )
-      .on("mouseover", (n: NodeViewObject) =>
-        this.onNodeLabelAreaMouseover(n.node, null),
-      )
+      .on("mouseover", (n: NodeViewObject) => this.onNodeLabelAreaMouseover(n.node, null))
       .on("mouseout", (n: NodeViewObject) => this.onNodeMouseout(n.node, null))
       .on("mousedown", (n: NodeViewObject) => this.onNodeMousedown(n.node))
       .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node))
@@ -324,127 +296,92 @@ export class NodesView {
   }
 
   private makeHoverDragBackground(groupEnter: any) {
-    const added=
-      groupEnter
-        .append(StaticDomTags.NODE_HOVER_DRAG_AREA_BACKGROUND_SVG);
+    const added = groupEnter.append(StaticDomTags.NODE_HOVER_DRAG_AREA_BACKGROUND_SVG);
     added
       .attr("class", StaticDomTags.NODE_HOVER_DRAG_AREA_BACKGROUND_CLASS)
-      .classed(StaticDomTags.TAG_SELECTED, (n: NodeViewObject) =>
-        n.node.selected(),
-      )
+      .classed(StaticDomTags.TAG_SELECTED, (n: NodeViewObject) => n.node.selected())
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("transform", (n: NodeViewObject) => "translate(-32.5,1)")
       .attr("width", 28)
       .attr("height", 28)
       .attr("x", 2)
-      .attr(
-        "y",
-        (n: NodeViewObject) => n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT,
-      )
+      .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT)
       .classed(
         StaticDomTags.NODE_READONLY,
-        !this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable()
+        !this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable(),
       );
 
-    if ( this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable() ){
-      added
-        .call(this.draggable);
+    if (this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable()) {
+      added.call(this.draggable);
     }
 
     added
-      .on("mouseover", (n: NodeViewObject, i, a) =>
-        this.onNodeMouseoverDragButton(n.node, a[i]),
-      )
-      .on("mouseout", (n: NodeViewObject, i, a) =>
-        this.onNodeMouseoutDragButton(n.node, a[i]),
-      )
+      .on("mouseover", (n: NodeViewObject, i, a) => this.onNodeMouseoverDragButton(n.node, a[i]))
+      .on("mouseout", (n: NodeViewObject, i, a) => this.onNodeMouseoutDragButton(n.node, a[i]))
       .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node))
       .on("dblclick", (n: NodeViewObject) => this.onNodeDblClick(n.node));
   }
 
   private makeHoverDragRoot(groupEnter: any) {
-    if ( !this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable() ){
+    if (!this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable()) {
       return;
     }
     groupEnter
       .append(StaticDomTags.NODE_HOVER_DRAG_AREA_SVG)
       .attr("class", StaticDomTags.NODE_HOVER_DRAG_AREA_CLASS)
-      .classed(StaticDomTags.TAG_SELECTED, (n: NodeViewObject) =>
-        n.node.selected(),
-      )
+      .classed(StaticDomTags.TAG_SELECTED, (n: NodeViewObject) => n.node.selected())
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr(
         "d",
         "m11.855 2.398-.356-.36-.356.36-3.841 3.897.712.702L11 " +
-        "3.97V11H3.957l2.647-2.647-.707-.708-3.5 3.5-.354.354.354.354 3.5 " +
-        "3.5.707-.708-2.646-2.645H11v7.03l-2.995-3.027-.71.703 3.852 3.894.356.36.355-.36 " +
-        "3.842-3.898-.712-.701L12 19.032v-7.031h7.041l-2.645 2.645.708.708 " +
-        "3.5-3.5.353-.354-.353-.354-3.5-3.5-.707.708L19.043 11H12V3.967l2.997 " +
-        "3.029.711-.704-3.853-3.894Z",
+          "3.97V11H3.957l2.647-2.647-.707-.708-3.5 3.5-.354.354.354.354 3.5 " +
+          "3.5.707-.708-2.646-2.645H11v7.03l-2.995-3.027-.71.703 3.852 3.894.356.36.355-.36 " +
+          "3.842-3.898-.712-.701L12 19.032v-7.031h7.041l-2.645 2.645.708.708 " +
+          "3.5-3.5.353-.354-.353-.354-3.5-3.5-.707.708L19.043 11H12V3.967l2.997 " +
+          "3.029.711-.704-3.853-3.894Z",
       )
       .attr(
         "transform",
         (n: NodeViewObject) =>
-          "translate(-28," +
-          (n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT + 4) +
-          "),scale(1.0)",
+          "translate(-28," + (n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT + 4) + "),scale(1.0)",
       )
       .call(this.draggable)
-      .on("mouseover", (n: NodeViewObject, i, a) =>
-        this.onNodeMouseoverDragButton(n.node, a[i]),
-      )
-      .on("mouseout", (n: NodeViewObject, i, a) =>
-        this.onNodeMouseoutDragButton(n.node, a[i]),
-      )
+      .on("mouseover", (n: NodeViewObject, i, a) => this.onNodeMouseoverDragButton(n.node, a[i]))
+      .on("mouseout", (n: NodeViewObject, i, a) => this.onNodeMouseoutDragButton(n.node, a[i]))
       .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node))
       .on("dblclick", (n: NodeViewObject) => this.onNodeDblClick(n.node));
   }
 
   private makeEditButtonBackground(groupEnter: any) {
-
     groupEnter
       .append(StaticDomTags.NODE_EDIT_AREA_BACKGROUND_SVG)
       .attr("class", StaticDomTags.NODE_EDIT_AREA_BACKGROUND_CLASS)
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
-      .attr(
-        "transform",
-        (n: NodeViewObject) =>
-          "translate(" + (n.node.getNodeWidth() + 1) + ",1)",
-      )
+      .attr("transform", (n: NodeViewObject) => "translate(" + (n.node.getNodeWidth() + 1) + ",1)")
       .attr("width", 28)
       .attr("height", 28)
       .attr("x", 2)
-      .attr(
-        "y",
-        (n: NodeViewObject) => n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT,
-      )
-      .on("mouseover", (n: NodeViewObject, i, a) =>
-        this.onNodeMouseoverEditButton(n.node, a[i]),
-      )
-      .on("mouseout", (n: NodeViewObject, i, a) =>
-        this.onNodeMouseoutEditButton(n.node, a[i]),
-      )
+      .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT)
+      .on("mouseover", (n: NodeViewObject, i, a) => this.onNodeMouseoverEditButton(n.node, a[i]))
+      .on("mouseout", (n: NodeViewObject, i, a) => this.onNodeMouseoutEditButton(n.node, a[i]))
       .on("mousedown", (n: NodeViewObject) => this.onNodeDetailsClicked(n.node))
       .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node));
   }
 
   private makeEditButton(groupEnter: any) {
-
     groupEnter
       .append(StaticDomTags.NODE_EDIT_AREA_SVG)
       .attr("class", StaticDomTags.NODE_EDIT_AREA_CLASS)
-      .classed(StaticDomTags.TAG_SELECTED, (n: NodeViewObject) =>
-        n.node.selected(),
-      )
+      .classed(StaticDomTags.TAG_SELECTED, (n: NodeViewObject) => n.node.selected())
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr(
         "d",
         "m25.853 6.71-.354-.352-.353.353-3.435 3.435-.353.354.353.353 " +
-        "3.435 3.435.355.355.353-.355 3.435-3.449.353-.354-.354-.353-3.435-3.421Zm-" +
-        "3.081 3.79 2.729-2.729 2.727 2.717-2.729 2.739-2.727-2.727Zm-2.918 2.212-." +
-        "354-.354-.354.354-11.25 11.25-.146.146V28.25h4.142l.147-.146 11.25-11.252." +
-        "353-.353-.354-.354-3.434-3.433ZM8.75 24.522l10.75-10.75 2.728 2.727-10.75 " +
-        "10.751H8.75v-2.728Z",
+          "3.435 3.435.355.355.353-.355 3.435-3.449.353-.354-.354-.353-3.435-3.421Zm-" +
+          "3.081 3.79 2.729-2.729 2.727 2.717-2.729 2.739-2.727-2.727Zm-2.918 2.212-." +
+          "354-.354-.354.354-11.25 11.25-.146.146V28.25h4.142l.147-.146 11.25-11.252." +
+          "353-.353-.354-.354-3.434-3.433ZM8.75 24.522l10.75-10.75 2.728 2.727-10.75 " +
+          "10.751H8.75v-2.728Z",
       )
       .attr(
         "transform",
@@ -455,32 +392,22 @@ export class NodesView {
           (n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT + 2) +
           "),scale(0.7)",
       )
-      .on("mouseover", (n: NodeViewObject, i, a) =>
-        this.onNodeMouseoverEditButton(n.node, a[i]),
-      )
-      .on("mouseout", (n: NodeViewObject, i, a) =>
-        this.onNodeMouseoutEditButton(n.node, a[i]),
-      )
+      .on("mouseover", (n: NodeViewObject, i, a) => this.onNodeMouseoverEditButton(n.node, a[i]))
+      .on("mouseout", (n: NodeViewObject, i, a) => this.onNodeMouseoutEditButton(n.node, a[i]))
       .on("mousedown", (n: NodeViewObject) => this.onNodeDetailsClicked(n.node))
       .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node));
   }
 
   private makeNodeDockable(groupEnter: any) {
-
     groupEnter
       .append(StaticDomTags.NODE_DOCKABLE_SVG)
       .attr("class", StaticDomTags.NODE_DOCKABLE_CLASS)
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("width", (n: NodeViewObject) => n.node.getNodeWidth())
-      .attr(
-        "height",
-        (n: NodeViewObject) => n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT,
-      )
+      .attr("height", (n: NodeViewObject) => n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT)
       .attr("x", 0)
       .attr("y", 0)
-      .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) =>
-        n.node.isNonStopNode(),
-      )
+      .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,
         (n: NodeViewObject) => n.node.getConnections().length > 0,
@@ -488,22 +415,16 @@ export class NodesView {
       .classed(
         StaticDomTags.TAG_MULTI_SELECTED,
         (n: NodeViewObject) =>
-          n.node.selected() &&
-          this.editorView.editorMode === EditorMode.MultiNodeMoving,
+          n.node.selected() && this.editorView.editorMode === EditorMode.MultiNodeMoving,
       )
-      .on("mouseover", (n: NodeViewObject, i, a) =>
-        this.onNodeDockableMouseover(n.node, a[i]),
-      )
-      .on("mouseout", (n: NodeViewObject, i, a) =>
-        this.onNodeDockableMouseout(n.node, a[i]),
-      )
+      .on("mouseover", (n: NodeViewObject, i, a) => this.onNodeDockableMouseover(n.node, a[i]))
+      .on("mouseout", (n: NodeViewObject, i, a) => this.onNodeDockableMouseout(n.node, a[i]))
       .on("mousedown", (n: NodeViewObject) => this.onNodeMousedown(n.node))
       .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node))
       .on("dblclick", (n: NodeViewObject) => this.onNodeDetailsClicked(n.node));
   }
 
   private makeAnalyticsArea(groupEnter: any) {
-
     groupEnter
       .append(StaticDomTags.NODE_ANALYTICSAREA_SVG)
       .attr("class", StaticDomTags.NODE_ANALYTICSAREA_CLASS)
@@ -514,31 +435,22 @@ export class NodesView {
       .attr(
         "y",
         (n: NodeViewObject) =>
-          n.node.getNodeHeight() -
-          NODE_TEXT_AREA_HEIGHT -
-          0.75 * NODE_ANALYTICS_AREA_HEIGHT,
+          n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT - 0.75 * NODE_ANALYTICS_AREA_HEIGHT,
       )
       .attr("title", "test")
-      .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) =>
-        n.node.isNonStopNode(),
-      )
+      .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,
         (n: NodeViewObject) => n.node.getConnections().length > 0,
       )
-      .on("mouseover", (n: NodeViewObject) =>
-        this.onNodeMouseover(n.node, null),
-      )
-      .on("mousemove", (n: NodeViewObject) =>
-        this.onNodeMousemove(n.node, null),
-      )
+      .on("mouseover", (n: NodeViewObject) => this.onNodeMouseover(n.node, null))
+      .on("mousemove", (n: NodeViewObject) => this.onNodeMousemove(n.node, null))
       .on("mouseout", (n: NodeViewObject) => this.onNodeMouseout(n.node, null))
       .on("mousedown", (n: NodeViewObject) => this.onNodeMousedown(n.node))
       .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node));
   }
 
   private makeAnalyticsTextLeftArea(groupEnter: any) {
-
     groupEnter
       .append(StaticDomTags.NODE_ANALYTICSAREA_TEXT_LEFT_SVG)
       .attr("class", StaticDomTags.NODE_ANALYTICSAREA_TEXT_LEFT_CLASS)
@@ -558,10 +470,7 @@ export class NodesView {
     groupEnter
       .append(StaticDomTags.NODE_ANALYTICSAREA_TEXT_RIGHT_SVG)
       .attr("class", StaticDomTags.NODE_ANALYTICSAREA_TEXT_RIGHT_CLASS)
-      .attr(
-        "x",
-        (n: NodeViewObject) => n.node.getNodeWidth() - NODE_TEXT_LEFT_SPACING,
-      )
+      .attr("x", (n: NodeViewObject) => n.node.getNodeWidth() - NODE_TEXT_LEFT_SPACING)
       .attr(
         "y",
         (n: NodeViewObject) =>
@@ -574,64 +483,49 @@ export class NodesView {
   }
 
   private makeLabelText(groupEnter: any) {
-    const added = groupEnter
-      .append(StaticDomTags.NODE_LABELAREA_TEXT_SVG);
+    const added = groupEnter.append(StaticDomTags.NODE_LABELAREA_TEXT_SVG);
     added
       .attr("class", StaticDomTags.NODE_LABELAREA_TEXT_CLASS)
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("x", NODE_TEXT_LEFT_SPACING)
       .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - TEXT_SIZE / 2)
       .text((n: NodeViewObject) => n.node.getBetriebspunktName())
-      .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) =>
-        n.node.isNonStopNode(),
-      )
+      .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,
         (n: NodeViewObject) => n.node.getConnections().length > 0,
       )
       .classed(
         StaticDomTags.NODE_READONLY,
-        !this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable()
+        !this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable(),
       );
 
-    if ( !this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable() ){
+    if (!this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable()) {
       return;
     }
 
     added
       .call(this.draggable)
-      .on("mouseover", (n: NodeViewObject, i, a) =>
-        this.onNodeLabelAreaMouseover(n.node, a[i]),
-      )
-      .on("mouseout", (n: NodeViewObject, i, a) =>
-        this.onNodeMouseout(n.node, a[i]),
-      )
+      .on("mouseover", (n: NodeViewObject, i, a) => this.onNodeLabelAreaMouseover(n.node, a[i]))
+      .on("mouseout", (n: NodeViewObject, i, a) => this.onNodeMouseout(n.node, a[i]))
       .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node))
       .on("dblclick", (n: NodeViewObject) => this.onNodeDblClick(n.node));
   }
 
   private makeLabelConnectionText(groupEnter: any) {
-
     groupEnter
       .append(StaticDomTags.NODE_CONNECTIONTIME_TEXT_SVG)
       .attr("class", StaticDomTags.NODE_CONNECTIONTIME_TEXT_CLASS)
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
-      .attr(
-        "x",
-        (n: NodeViewObject) => n.node.getNodeWidth() - NODE_TEXT_LEFT_SPACING,
-      )
+      .attr("x", (n: NodeViewObject) => n.node.getNodeWidth() - NODE_TEXT_LEFT_SPACING)
       .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - TEXT_SIZE / 2)
       .text((n: NodeViewObject) => n.node.getConnectionTime())
-      .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) =>
-        n.node.isNonStopNode(),
-      )
+      .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,
         (n: NodeViewObject) => n.node.getConnections().length > 0,
       )
-      .on("mouseover", (n: NodeViewObject) =>
-        this.onNodeLabelAreaMouseover(n.node, null),
-      )
+      .on("mouseover", (n: NodeViewObject) => this.onNodeLabelAreaMouseover(n.node, null))
       .on("mouseout", (n: NodeViewObject) => this.onNodeMouseout(n.node, null))
       .on("mousedown", (n: NodeViewObject) => this.onNodeDetailsClicked(n.node))
       .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node));
@@ -718,9 +612,7 @@ export class NodesView {
 
   onNodeMousedown(node: Node) {
     if (this.editorView.editorMode === EditorMode.NetzgrafikEditing) {
-      this.editorView.trainrunSectionPreviewLineView.startPreviewLine(
-        node.getId(),
-      );
+      this.editorView.trainrunSectionPreviewLineView.startPreviewLine(node.getId());
       return;
     }
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
@@ -733,9 +625,7 @@ export class NodesView {
       return;
     }
     if (this.editorView.editorMode === EditorMode.Analytics) {
-      this.editorView.calculateShortestDistanceNodesFromStartingNode(
-        node.getId(),
-      );
+      this.editorView.calculateShortestDistanceNodesFromStartingNode(node.getId());
     }
   }
 
@@ -757,28 +647,21 @@ export class NodesView {
       StaticDomTags.EDGE_LINE_PIN_CONNECTION,
       false,
     );
-    if (
-      this.editorView.trainrunSectionPreviewLineView.getMode() ===
-      PreviewLineMode.NotDragging
-    ) {
+    if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
       return;
     }
 
     const dragIntermediateStopInfo =
       this.editorView.trainrunSectionPreviewLineView.getDragIntermediateStopInfo();
     if (dragIntermediateStopInfo !== null) {
-      this.replaceIntermediateStopWithTrainrunSections(
-        dragIntermediateStopInfo,
-        endNode,
-      );
+      this.replaceIntermediateStopWithTrainrunSections(dragIntermediateStopInfo, endNode);
     } else {
       const dragTransitionInfo =
         this.editorView.trainrunSectionPreviewLineView.getDragTransitionInfo();
       if (dragTransitionInfo !== null) {
         this.reconnectTransition(dragTransitionInfo, endNode);
       } else {
-        const startNode: Node =
-          this.editorView.trainrunSectionPreviewLineView.getStartNode();
+        const startNode: Node = this.editorView.trainrunSectionPreviewLineView.getStartNode();
         this.createNewTrainrunSection(startNode, endNode);
       }
     }
@@ -864,10 +747,7 @@ export class NodesView {
 
     if (existingTrainrunSection === null) {
       const sourceObj = d3.select(
-        StaticDomTags.NODE_DOCKABLE_DOM_REF +
-        '[id="' +
-        startNode.getId() +
-        '"]',
+        StaticDomTags.NODE_DOCKABLE_DOM_REF + '[id="' + startNode.getId() + '"]',
       );
       const sourceRect: DOMRect = sourceObj.node().getBoundingClientRect();
       const sourcePos = new Vec2D(
@@ -892,18 +772,9 @@ export class NodesView {
 
       const position = Vec2D.scale(Vec2D.add(sourcePos, targetPos), 0.5);
 
-      this.editorView.addTrainrunSectionWithSourceTarget(
-        startNode,
-        endNode,
-        position,
-      );
+      this.editorView.addTrainrunSectionWithSourceTarget(startNode, endNode, position);
     } else {
-      this.editorView.reconnectTrainrunSection(
-        startNode,
-        endNode,
-        existingTrainrunSection,
-        true,
-      );
+      this.editorView.reconnectTrainrunSection(startNode, endNode, existingTrainrunSection, true);
     }
   }
 
@@ -926,14 +797,10 @@ export class NodesView {
     }
     if (
       !(
-        dragTransitionInfo.trainrunSection1.getSourceNodeId() !==
-        endNode.getId() &&
-        dragTransitionInfo.trainrunSection1.getTargetNodeId() !==
-        endNode.getId() &&
-        dragTransitionInfo.trainrunSection2.getSourceNodeId() !==
-        endNode.getId() &&
-        dragTransitionInfo.trainrunSection2.getTargetNodeId() !==
-        endNode.getId()
+        dragTransitionInfo.trainrunSection1.getSourceNodeId() !== endNode.getId() &&
+        dragTransitionInfo.trainrunSection1.getTargetNodeId() !== endNode.getId() &&
+        dragTransitionInfo.trainrunSection2.getSourceNodeId() !== endNode.getId() &&
+        dragTransitionInfo.trainrunSection2.getTargetNodeId() !== endNode.getId()
       )
     ) {
       this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
@@ -967,13 +834,9 @@ export class NodesView {
     );
 
     // update the "transition" stop-state
-    let trans = endNode.getTransition(
-      dragTransitionInfo.trainrunSection2.getId(),
-    );
+    let trans = endNode.getTransition(dragTransitionInfo.trainrunSection2.getId());
     if (trans === undefined) {
-      trans = endNode.getTransition(
-        dragTransitionInfo.trainrunSection1.getId(),
-      );
+      trans = endNode.getTransition(dragTransitionInfo.trainrunSection1.getId());
     }
     if (trans !== undefined) {
       if (trans.getIsNonStopTransit() !== isNonStop) {
@@ -993,36 +856,19 @@ export class NodesView {
     if (!dragEnd) {
       this.editorView.selectNode(nodeId, false);
     }
-    const currentMousePosition =
-      this.editorView.svgMouseController.getCurrentMousePosition();
-    const newPosition: Vec2D = Vec2D.sub(
-      currentMousePosition,
-      this.dragPreviousMousePosition,
-    );
+    const currentMousePosition = this.editorView.svgMouseController.getCurrentMousePosition();
+    const newPosition: Vec2D = Vec2D.sub(currentMousePosition, this.dragPreviousMousePosition);
     newPosition.setData(newPosition.getX(), newPosition.getY());
 
-    this.editorView.moveSelectedNodes(
-      newPosition.getX(),
-      newPosition.getY(),
-      round,
-      dragEnd,
-    );
-    this.editorView.moveSelectedNotes(
-      newPosition.getX(),
-      newPosition.getY(),
-      round,
-      dragEnd,
-    );
+    this.editorView.moveSelectedNodes(newPosition.getX(), newPosition.getY(), round, dragEnd);
+    this.editorView.moveSelectedNotes(newPosition.getX(), newPosition.getY(), round, dragEnd);
 
     // update the drag mouse position (previous for next dragging step)
     this.dragPreviousMousePosition = currentMousePosition;
   }
 
   private highlightPinsAsConnectionDropable(node: Node, hover: boolean) {
-    if (
-      this.editorView.trainrunSectionPreviewLineView.getMode() !==
-      PreviewLineMode.NotDragging
-    ) {
+    if (this.editorView.trainrunSectionPreviewLineView.getMode() !== PreviewLineMode.NotDragging) {
       const dragTransitionInfo: DragTransitionInfo =
         this.editorView.trainrunSectionPreviewLineView.getDragTransitionInfo();
       if (dragTransitionInfo !== null) {
@@ -1042,9 +888,7 @@ export class NodesView {
       const ts: TrainrunSection =
         this.editorView.trainrunSectionPreviewLineView.getExistingTrainrunSection();
       if (ts !== null) {
-        let startNodeId = this.editorView.trainrunSectionPreviewLineView
-          .getStartNode()
-          .getId();
+        let startNodeId = this.editorView.trainrunSectionPreviewLineView.getStartNode().getId();
         if (startNodeId === ts.getTargetNodeId()) {
           startNodeId = ts.getSourceNodeId();
         } else {
@@ -1056,10 +900,7 @@ export class NodesView {
             const obj = d3.select(this);
             if (obj.attr(StaticDomTags.EDGE_NODE_ID) === "" + node.getId()) {
               if (obj.attr(StaticDomTags.EDGE_ID) !== "" + ts.getId()) {
-                if (
-                  obj.attr(StaticDomTags.EDGE_LINE_LINE_ID) !==
-                  "" + ts.getTrainrunId()
-                ) {
+                if (obj.attr(StaticDomTags.EDGE_LINE_LINE_ID) !== "" + ts.getTrainrunId()) {
                   obj.classed(StaticDomTags.EDGE_LINE_PIN_CONNECTION, hover);
                 }
               }

@@ -1,5 +1,5 @@
 <sbb-page-layout>
-  <h1>{{ 'app.view.project.projects-view.projects' | translate }}</h1>
+  <h1>{{ "app.view.project.projects-view.projects" | translate }}</h1>
 
   <div class="actions">
     <input
@@ -9,11 +9,11 @@
       sbbInput
       [placeholder]="'app.view.project.projects-view.search-project' | translate"
     />
-    <div>
-      <sbb-checkbox [formControl]="showArchiveControl"
-        >{{ 'app.view.project.projects-view.show-archive' | translate }}</sbb-checkbox
-      >
-    </div>
+    <sbb-toggle-switch-button
+      [labelTrue]="'app.view.project.projects-view.show-archive' | translate"
+      [checked]="showArchiveControl.getRawValue()"
+      (checkedChanged)="showArchiveControl.setValue($event)"
+    />
   </div>
 
   <sbb-card-grid>
@@ -24,7 +24,10 @@
     ></sbb-card>
     <sbb-card
       *ngFor="let project of projectService.filteredProjects | async"
-      [title]="project.name + (project.isArchived ? ' ' + ('app.view.project.projects-view.archived' | translate) : '')"
+      [title]="
+        project.name +
+        (project.isArchived ? ' ' + ('app.view.project.projects-view.archived' | translate) : '')
+      "
       [route]="['/projects', project.id]"
       [actions]="getProjectDataActions(project)"
     >

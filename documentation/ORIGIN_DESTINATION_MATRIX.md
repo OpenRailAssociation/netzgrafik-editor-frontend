@@ -15,8 +15,9 @@ The Origin Destination Matrix will only use visible trainruns to compute paths.
 ## Results
 
 There are two ways to visualize the results:
-* From the export menu (left), the results can be exported as a CSV file.
-* From the tool bar (bottom), the results can be displayed in the Origin Destination Matrix view.
+
+- From the export menu (left), the results can be exported as a CSV file.
+- From the tool bar (bottom), the results can be displayed in the Origin Destination Matrix view.
 
 The Origin Destination Matrix view computes the results once (when opened). It allows to color the matrix based on a chosen palette and a field (right). It also displays a chosen field (bottom left).
 

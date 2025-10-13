@@ -44,16 +44,8 @@ describe("FilterService", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -92,32 +84,22 @@ describe("FilterService", () => {
   });
 
   it("Filter default all off", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodes.length).toBe(5);
     expect(trainrunSections.length).toBe(8);
 
-    nodes.forEach((n: Node) =>
-      expect(filterService.checkFilterNode(n)).toBe(true),
-    );
+    nodes.forEach((n: Node) => expect(filterService.checkFilterNode(n)).toBe(true));
     trainrunSections.forEach((ts: TrainrunSection) =>
       expect(filterService.filterTrainrun(ts.getTrainrun())).toBe(true),
     );
   });
 
   it("Filter Trainrun Category", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
 
-    filterService.disableFilterTrainrunCategory(
-      dataService.getTrainrunCategory(3),
-    );
-    filterService.disableFilterTrainrunCategory(
-      dataService.getTrainrunCategory(4),
-    );
+    filterService.disableFilterTrainrunCategory(dataService.getTrainrunCategory(3));
+    filterService.disableFilterTrainrunCategory(dataService.getTrainrunCategory(4));
     trainrunSections.forEach((ts: TrainrunSection) => {
       if (
         ts.getTrainrun().getCategoryShortName() === "RE" ||
@@ -131,14 +113,10 @@ describe("FilterService", () => {
   });
 
   it("Filter Trainrun Frequency", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
 
-    filterService.disableFilterTrainrunFrequency(
-      dataService.getTrainrunFrequency(3),
-    );
+    filterService.disableFilterTrainrunFrequency(dataService.getTrainrunFrequency(3));
     trainrunSections.forEach((ts: TrainrunSection) => {
       if (ts.getTrainrun().getTrainrunFrequency().shortName === "60") {
         expect(filterService.filterTrainrun(ts.getTrainrun())).toBe(false);
@@ -149,9 +127,7 @@ describe("FilterService", () => {
   });
 
   it("Filter Trainrun Labels - Sub-Test: 1", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
     labelGroupService.getLabelGroup(0).enableLogicalFilterOperatorOr();
     filterService.setFilterTrainrunLabels([0]);
@@ -164,9 +140,7 @@ describe("FilterService", () => {
     });
   });
   it("Filter Trainrun Labels - Sub-Test: 2", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
     labelGroupService.getLabelGroup(0).enableLogicalFilterOperatorOr();
     filterService.setFilterTrainrunLabels([1]);
@@ -179,9 +153,7 @@ describe("FilterService", () => {
     });
   });
   it("Filter Trainrun Labels - Sub-Test: 3", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
     labelGroupService.getLabelGroup(0).enableLogicalFilterOperatorOr();
     filterService.setFilterTrainrunLabels([1, 2]);
@@ -194,9 +166,7 @@ describe("FilterService", () => {
     });
   });
   it("Filter Trainrun Labels - Sub-Test: 4", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
     labelGroupService.getLabelGroup(0).enableLogicalFilterOperatorOr();
     filterService.setFilterTrainrunLabels([0, 1, 2]);
@@ -209,9 +179,7 @@ describe("FilterService", () => {
     });
   });
   it("Filter Trainrun Labels - Sub-Test: 5", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
     labelGroupService.getLabelGroup(0).enableLogicalFilterOperatorAnd();
     filterService.setFilterTrainrunLabels([]);
@@ -227,10 +195,7 @@ describe("FilterService", () => {
   it("setFilterTrainrunLabels", () => {
     const ids = [19, 78, 25, 4];
     filterService.setFilterTrainrunLabels(ids);
-    expect(
-      filterService.getFilterTrainrunLabels().filter((v) => ids.includes(v))
-        .length,
-    ).toBe(4);
+    expect(filterService.getFilterTrainrunLabels().filter((v) => ids.includes(v)).length).toBe(4);
     filterService.clearFilterTrainrunLabels();
     expect(filterService.getFilterTrainrunLabels().length).toBe(0);
   });
@@ -238,9 +203,7 @@ describe("FilterService", () => {
   it("setFilterNodeLabels", () => {
     const ids = [25, 4];
     filterService.setFilterNodeLabels(ids);
-    expect(
-      filterService.getFilterNodeLabels().filter((v) => ids.includes(v)).length,
-    ).toBe(2);
+    expect(filterService.getFilterNodeLabels().filter((v) => ids.includes(v)).length).toBe(2);
     filterService.clearFilterNodeLabels();
     expect(filterService.getFilterNodeLabels().length).toBe(0);
   });
@@ -259,9 +222,7 @@ describe("FilterService", () => {
   });
 
   it("enableFilterTrainrunCategory", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
 
     const trainrun = trainrunService.getTrainrunFromId(0);
@@ -279,18 +240,14 @@ describe("FilterService", () => {
   });
 
   it("enableFilterTrainrunTimeCategory", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
 
     const trainrun = trainrunService.getTrainrunFromId(0);
     const trainrunTimeCategory = dataService.getTrainrunTimeCategory(0);
 
     filterService.disableFilterTrainrunTimeCategory(trainrunTimeCategory);
-    expect(
-      filterService.isFilterTrainrunTimeCategoryEnabled(trainrunTimeCategory),
-    ).toBe(false);
+    expect(filterService.isFilterTrainrunTimeCategoryEnabled(trainrunTimeCategory)).toBe(false);
     expect(filterService.isAnyFilterActive()).toBe(true);
     expect(filterService.filterTrainrun(trainrun)).toBe(false);
 
@@ -301,18 +258,14 @@ describe("FilterService", () => {
   });
 
   it("enableFilterTrainrunFrequency", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
 
     const trainrun = trainrunService.getTrainrunFromId(0);
     const frequency = dataService.getTrainrunFrequency(3);
 
     filterService.disableFilterTrainrunFrequency(frequency);
-    expect(filterService.isFilterTrainrunFrequencyEnabled(frequency)).toBe(
-      false,
-    );
+    expect(filterService.isFilterTrainrunFrequencyEnabled(frequency)).toBe(false);
     expect(filterService.isAnyFilterActive()).toBe(true);
     expect(filterService.filterTrainrun(trainrun)).toBe(false);
 
@@ -379,9 +332,7 @@ describe("FilterService", () => {
   });
 
   it("checkFilterNodeLabels", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 
     filterService.setFilterNodeLabels([3]);
     nodes.forEach((n: Node) => {
@@ -417,13 +368,9 @@ describe("FilterService", () => {
     const defaultFilterSettings = filterService.getActiveFilterSetting();
     const copiedFS = defaultFilterSettings.copy();
     copiedFS.id = defaultFilterSettings.id;
-    expect(defaultFilterSettings.areFilteringAttributesEqual(copiedFS)).toBe(
-      true,
-    );
+    expect(defaultFilterSettings.areFilteringAttributesEqual(copiedFS)).toBe(true);
     copiedFS.description = "description changed **";
-    expect(defaultFilterSettings.areFilteringAttributesEqual(copiedFS)).toBe(
-      false,
-    );
+    expect(defaultFilterSettings.areFilteringAttributesEqual(copiedFS)).toBe(false);
   });
 
   it("FilterSetting - copy test 002", () => {
@@ -441,9 +388,7 @@ describe("FilterService", () => {
     const copiedFS = defaultFilterSettings.copy();
     defaultFilterSettings.copyFilteringAttributes(copiedFS);
     copiedFS.id = defaultFilterSettings.id;
-    expect(defaultFilterSettings.areFilteringAttributesEqual(copiedFS)).toBe(
-      true,
-    );
+    expect(defaultFilterSettings.areFilteringAttributesEqual(copiedFS)).toBe(true);
   });
 
   it("FilterService.deleteClearFilterSetting", () => {
@@ -451,15 +396,11 @@ describe("FilterService", () => {
     const fs: FilterSetting = filterService.saveAsNewFilterSetting();
     filterService.saveAsNewFilterSetting();
     expect(
-      filterService
-        .getFilterSettings()
-        .find((f: FilterSetting) => f.id === fs.id) !== undefined,
+      filterService.getFilterSettings().find((f: FilterSetting) => f.id === fs.id) !== undefined,
     ).toBe(true);
     filterService.deleteClearFilterSetting(fs);
     expect(
-      filterService
-        .getFilterSettings()
-        .find((f: FilterSetting) => f.id === fs.id) !== undefined,
+      filterService.getFilterSettings().find((f: FilterSetting) => f.id === fs.id) !== undefined,
     ).toBe(false);
   });
 

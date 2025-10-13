@@ -1,7 +1,4 @@
-import {
-  PortAlignment,
-  PortDto,
-} from "../data-structures/technical.data.structures";
+import {PortAlignment, PortDto} from "../data-structures/technical.data.structures";
 import {TrainrunSection} from "./trainrunsection.model";
 import {Vec2D} from "../utils/vec2D";
 

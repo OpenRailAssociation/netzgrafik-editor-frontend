@@ -12,10 +12,7 @@ import {LabelGroupService} from "../app/services/data/labelgroup.service";
 import {NetzgrafikUnitTesting} from "./netzgrafik.unit.testing";
 import {Label} from "../app/models/label.model";
 import {LabelGroup} from "../app/models/labelGroup.model";
-import {
-  LabelRef,
-  NetzgrafikDto,
-} from "../app/data-structures/business.data.structures";
+import {LabelRef, NetzgrafikDto} from "../app/data-structures/business.data.structures";
 import {FilterService} from "../app/services/ui/filter.service";
 import {NetzgrafikColoringService} from "../app/services/data/netzgrafikColoring.service";
 
@@ -42,16 +39,8 @@ describe("LabelGroupService Test", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -77,15 +66,9 @@ describe("LabelGroupService Test", () => {
   });
 
   it("set label group name", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
-    const trainrunGrp: LabelGroup = labelGroupService.getDefaultLabelGroup(
-      LabelRef.Trainrun,
-    );
-    const nodeGrp: LabelGroup = labelGroupService.getDefaultLabelGroup(
-      LabelRef.Node,
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const trainrunGrp: LabelGroup = labelGroupService.getDefaultLabelGroup(LabelRef.Trainrun);
+    const nodeGrp: LabelGroup = labelGroupService.getDefaultLabelGroup(LabelRef.Node);
     expect(trainrunGrp.getDto().id).toBe(0);
     expect(nodeGrp.getDto().id).toBe(1);
     expect(trainrunGrp.getName()).toBe("Standard");
@@ -94,111 +77,70 @@ describe("LabelGroupService Test", () => {
   });
 
   it("check label and labelgrp", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 
     const labelTrainrun: Label = labelService.getLabelFromId(0);
-    const labelTrainrunGrps: LabelGroup[] =
-      labelGroupService.getLabelGroupsFromLabelRef(labelTrainrun.getLabelRef());
-    expect(
-      labelTrainrunGrps.pop().getLabelRef() === labelTrainrun.getLabelRef(),
-    ).toBe(true);
-    const labelNode: Label = labelService.getLabelFromId(3);
-    const labelNodeGrps: LabelGroup[] =
-      labelGroupService.getLabelGroupsFromLabelRef(labelNode.getLabelRef());
-    expect(labelNodeGrps.pop().getLabelRef() === labelNode.getLabelRef()).toBe(
-      true,
+    const labelTrainrunGrps: LabelGroup[] = labelGroupService.getLabelGroupsFromLabelRef(
+      labelTrainrun.getLabelRef(),
     );
+    expect(labelTrainrunGrps.pop().getLabelRef() === labelTrainrun.getLabelRef()).toBe(true);
+    const labelNode: Label = labelService.getLabelFromId(3);
+    const labelNodeGrps: LabelGroup[] = labelGroupService.getLabelGroupsFromLabelRef(
+      labelNode.getLabelRef(),
+    );
+    expect(labelNodeGrps.pop().getLabelRef() === labelNode.getLabelRef()).toBe(true);
   });
 
   it("getLabelGroupsFromLabelRef", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
-    expect(
-      labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Undefinded).length,
-    ).toBe(0);
-    expect(
-      labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Trainrun).length,
-    ).toBe(1);
-    expect(
-      labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Node).pop().getId(),
-    ).toBe(1);
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    expect(labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Undefinded).length).toBe(0);
+    expect(labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Trainrun).length).toBe(1);
+    expect(labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Node).pop().getId()).toBe(1);
   });
 
   it("getLabelGroup", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(labelGroupService.getLabelGroup(1).getId()).toBe(1);
   });
 
   it("createLabelGroup", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    expect(labelGroupService.createLabelGroup(LabelRef.Node).getLabelRef()).toBe(LabelRef.Node);
+    expect(labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Undefinded).length).toBe(0);
+    expect(labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Trainrun).length).toBe(1);
+    expect(labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Node).pop().getLabelRef()).toBe(
+      LabelRef.Node,
     );
-    expect(
-      labelGroupService.createLabelGroup(LabelRef.Node).getLabelRef(),
-    ).toBe(LabelRef.Node);
-    expect(
-      labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Undefinded).length,
-    ).toBe(0);
-    expect(
-      labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Trainrun).length,
-    ).toBe(1);
-    expect(
-      labelGroupService
-        .getLabelGroupsFromLabelRef(LabelRef.Node)
-        .pop()
-        .getLabelRef(),
-    ).toBe(LabelRef.Node);
-    expect(
-      labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Undefinded).length,
-    ).toBe(0);
-    expect(
-      labelGroupService.createLabelGroup(LabelRef.Undefinded).getLabelRef(),
-    ).toBe(LabelRef.Undefinded);
-    expect(
-      labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Undefinded).length,
-    ).toBe(1);
+    expect(labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Undefinded).length).toBe(0);
+    expect(labelGroupService.createLabelGroup(LabelRef.Undefinded).getLabelRef()).toBe(
+      LabelRef.Undefinded,
+    );
+    expect(labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Undefinded).length).toBe(1);
   });
 
   it("getDefaultLabelGroup", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
-    expect(labelGroupService.getDefaultLabelGroup(LabelRef.Node).getId()).toBe(
-      1,
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    expect(labelGroupService.getDefaultLabelGroup(LabelRef.Node).getId()).toBe(1);
     labelGroupService.deleteLabelGroup(0);
     labelGroupService.deleteLabelGroup(1);
-    expect(
-      labelGroupService.getDefaultLabelGroup(LabelRef.Trainrun).getLabelRef(),
-    ).toBe(LabelRef.Trainrun);
-    expect(
-      labelGroupService.getDefaultLabelGroup(LabelRef.Undefinded).getLabelRef(),
-    ).toBe(LabelRef.Undefinded);
+    expect(labelGroupService.getDefaultLabelGroup(LabelRef.Trainrun).getLabelRef()).toBe(
+      LabelRef.Trainrun,
+    );
+    expect(labelGroupService.getDefaultLabelGroup(LabelRef.Undefinded).getLabelRef()).toBe(
+      LabelRef.Undefinded,
+    );
 
     const newLGrp = labelGroupService.createLabelGroup(LabelRef.Node);
     expect(newLGrp.getLabelRef()).toBe(LabelRef.Node);
-    expect(
-      labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Node).length,
-    ).toBe(2);
+    expect(labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Node).length).toBe(2);
     labelGroupService.deleteLabelGroup(-1);
-    expect(
-      labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Node).length,
-    ).toBe(2);
+    expect(labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Node).length).toBe(2);
     labelGroupService.deleteLabelGroup(newLGrp.getId());
-    expect(
-      labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Node).length,
-    ).toBe(1);
+    expect(labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Node).length).toBe(1);
   });
 
   it("isDfaultGroup", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(labelGroupService.isDefaultGroup(0)).toBe(true);
     expect(labelGroupService.isDefaultGroup(1)).toBe(true);
     expect(labelGroupService.isDefaultGroup(undefined)).toBe(false);
@@ -206,51 +148,25 @@ describe("LabelGroupService Test", () => {
   });
 
   it("getAutoCompleteLabels", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    expect(labelGroupService.getAutoCompleteLabels([], LabelRef.Undefinded).length).toBe(0);
+    expect(labelGroupService.getAutoCompleteLabels([], LabelRef.Node).length).toBe(2);
+    expect(labelGroupService.getAutoCompleteLabels(["Label"], LabelRef.Node).length).toBe(1);
+    expect(
+      labelGroupService.getAutoCompleteLabels(["Label", "Test"], LabelRef.Trainrun).length,
+    ).toBe(1);
+    expect(labelGroupService.getAutoCompleteLabels(["Label", "Test"], LabelRef.Node).length).toBe(
+      0,
     );
-    expect(
-      labelGroupService.getAutoCompleteLabels([], LabelRef.Undefinded).length,
-    ).toBe(0);
-    expect(
-      labelGroupService.getAutoCompleteLabels([], LabelRef.Node).length,
-    ).toBe(2);
-    expect(
-      labelGroupService.getAutoCompleteLabels(["Label"], LabelRef.Node).length,
-    ).toBe(1);
-    expect(
-      labelGroupService.getAutoCompleteLabels(
-        ["Label", "Test"],
-        LabelRef.Trainrun,
-      ).length,
-    ).toBe(1);
-    expect(
-      labelGroupService.getAutoCompleteLabels(["Label", "Test"], LabelRef.Node)
-        .length,
-    ).toBe(0);
-    expect(
-      labelGroupService.getAutoCompleteLabels(["Label", "X"], LabelRef.Node)
-        .length,
-    ).toBe(1);
-    expect(
-      labelGroupService.getAutoCompleteLabels(["Y", "X"], LabelRef.Node).length,
-    ).toBe(2);
-    expect(
-      labelGroupService.getAutoCompleteLabels([], LabelRef.Undefinded).length,
-    ).toBe(0);
-    expect(
-      labelGroupService.getAutoCompleteLabels(["Y"], LabelRef.Undefinded)
-        .length,
-    ).toBe(0);
-    expect(
-      labelGroupService.getAutoCompleteLabels(["Label"], LabelRef.Undefinded)
-        .length,
-    ).toBe(0);
+    expect(labelGroupService.getAutoCompleteLabels(["Label", "X"], LabelRef.Node).length).toBe(1);
+    expect(labelGroupService.getAutoCompleteLabels(["Y", "X"], LabelRef.Node).length).toBe(2);
+    expect(labelGroupService.getAutoCompleteLabels([], LabelRef.Undefinded).length).toBe(0);
+    expect(labelGroupService.getAutoCompleteLabels(["Y"], LabelRef.Undefinded).length).toBe(0);
+    expect(labelGroupService.getAutoCompleteLabels(["Label"], LabelRef.Undefinded).length).toBe(0);
   });
 
   it("getDefaultLabelGroup - empty start", () => {
-    const netzgrafik: NetzgrafikDto =
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik();
+    const netzgrafik: NetzgrafikDto = NetzgrafikUnitTesting.getUnitTestNetzgrafik();
     netzgrafik.labelGroups = [];
     netzgrafik.labels = [];
     dataService.loadNetzgrafikDto(netzgrafik);
@@ -258,36 +174,26 @@ describe("LabelGroupService Test", () => {
     expect(labelGroupService.isDefaultGroup(1)).toBe(false);
     expect(labelGroupService.isDefaultGroup(undefined)).toBe(false);
     expect(labelGroupService.isDefaultGroup(null)).toBe(false);
-    const defaultTrainrun = labelGroupService.getDefaultLabelGroup(
-      LabelRef.Trainrun,
-    );
+    const defaultTrainrun = labelGroupService.getDefaultLabelGroup(LabelRef.Trainrun);
     expect(defaultTrainrun.getLabelRef()).toBe(LabelRef.Trainrun);
     const defaultNode = labelGroupService.getDefaultLabelGroup(LabelRef.Node);
     expect(defaultNode.getLabelRef()).toBe(LabelRef.Node);
-    const defaultUndefinded = labelGroupService.getDefaultLabelGroup(
-      LabelRef.Undefinded,
-    );
+    const defaultUndefinded = labelGroupService.getDefaultLabelGroup(LabelRef.Undefinded);
     expect(defaultUndefinded.getLabelRef()).toBe(LabelRef.Undefinded);
 
     expect(
-      defaultTrainrun.getId() ===
-        labelGroupService.getDefaultLabelGroup(LabelRef.Trainrun).getId(),
+      defaultTrainrun.getId() === labelGroupService.getDefaultLabelGroup(LabelRef.Trainrun).getId(),
     ).toBe(true);
     expect(
-      defaultNode.getId() ===
-        labelGroupService.getDefaultLabelGroup(LabelRef.Node).getId(),
+      defaultNode.getId() === labelGroupService.getDefaultLabelGroup(LabelRef.Node).getId(),
     ).toBe(true);
     expect(
       defaultUndefinded.getId() ===
         labelGroupService.getDefaultLabelGroup(LabelRef.Undefinded).getId(),
     ).toBe(true);
 
-    expect(labelGroupService.isDefaultGroup(defaultTrainrun.getId())).toBe(
-      true,
-    );
+    expect(labelGroupService.isDefaultGroup(defaultTrainrun.getId())).toBe(true);
     expect(labelGroupService.isDefaultGroup(defaultNode.getId())).toBe(true);
-    expect(labelGroupService.isDefaultGroup(defaultUndefinded.getId())).toBe(
-      true,
-    );
+    expect(labelGroupService.isDefaultGroup(defaultUndefinded.getId())).toBe(true);
   });
 });

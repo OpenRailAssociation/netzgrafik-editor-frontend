@@ -7,10 +7,10 @@ import {ResizeChangeInfo} from "../../model/util/resizeChangeInfo";
 })
 export class ResizeService {
   private oldResizeChangeInfo: ResizeChangeInfo = undefined;
-  private readonly resizeChangeInfoSubject =
-    new BehaviorSubject<ResizeChangeInfo>(new ResizeChangeInfo());
-  private readonly resizeChangeInfo$ =
-    this.resizeChangeInfoSubject.asObservable();
+  private readonly resizeChangeInfoSubject = new BehaviorSubject<ResizeChangeInfo>(
+    new ResizeChangeInfo(),
+  );
+  private readonly resizeChangeInfo$ = this.resizeChangeInfoSubject.asObservable();
 
   getResizeChangeInfo(): Observable<ResizeChangeInfo> {
     return this.resizeChangeInfo$;

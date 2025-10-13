@@ -32,22 +32,12 @@ HORIZONTAL - is broken !!! not removed because the code could help to fix the sl
       [attr.width]="getScaleFactor() * 60"
       [attr.viewBox]="'0 0 ' + getScaleFactor() * 60 + '40'"
     >
-      <g
-        [attr.transform]="
-          'matrix(' + getScaleFactor() + ',0.00,0.00,1.00,0.00,0.00)'
-        "
-      >
+      <g [attr.transform]="'matrix(' + getScaleFactor() + ',0.00,0.00,1.00,0.00,0.00)'">
         <g *ngFor="let time of timesTicks">
-          <g
-            [attr.transform]="
-              'matrix(1.00,0.00,0.00,1.00,' + time.time + ',0.00)'
-            "
-          >
+          <g [attr.transform]="'matrix(1.00,0.00,0.00,1.00,' + time.time + ',0.00)'">
             <g
               [attr.transform]="
-                'matrix(' +
-                getInverseScaleFactor() +
-                ', 0.00, 0.00, 1.00, 0.00, 0.00)'
+                'matrix(' + getInverseScaleFactor() + ', 0.00, 0.00, 1.00, 0.00, 0.00)'
               "
             >
               <line
@@ -73,23 +63,13 @@ HORIZONTAL - is broken !!! not removed because the code could help to fix the sl
       [attr.viewBox]="'0 0 ' + getScaleFactor() * 24 * 60 + '40'"
     >
       <ng-container *ngIf="!disableText">
-        <g
-          [attr.transform]="
-            'matrix(' + getScaleFactor() + ',0.00,0.00,1.00,0.00,0.00)'
-          "
-        >
+        <g [attr.transform]="'matrix(' + getScaleFactor() + ',0.00,0.00,1.00,0.00,0.00)'">
           <g *ngFor="let time of times">
             <ng-container *ngIf="time.text !== ''">
-              <g
-                [attr.transform]="
-                  'matrix(1.00,0.00,0.00,1.00,' + time.time + ',0.00)'
-                "
-              >
+              <g [attr.transform]="'matrix(1.00,0.00,0.00,1.00,' + time.time + ',0.00)'">
                 <g
                   [attr.transform]="
-                    'matrix(' +
-                    getInverseScaleFactor() +
-                    ', 0.00, 0.00, 1.00, 0.00, 0.00)'
+                    'matrix(' + getInverseScaleFactor() + ', 0.00, 0.00, 1.00, 0.00, 0.00)'
                   "
                 >
                   <text
@@ -112,9 +92,7 @@ HORIZONTAL - is broken !!! not removed because the code could help to fix the sl
     <ng-container *ngFor="let index of [].constructor(72); index as hourOffset">
       <g
         [attr.transform]="
-          'matrix(1.00, 0.00, 0.00, 1.00, ' +
-          (hourOffset - 24) * 60 * getScaleFactor() +
-          ', 0.00)'
+          'matrix(1.00, 0.00, 0.00, 1.00, ' + (hourOffset - 24) * 60 * getScaleFactor() + ', 0.00)'
         "
       >
         <rect
@@ -144,30 +122,18 @@ HORIZONTAL - is broken !!! not removed because the code could help to fix the sl
           y="0"
           [attr.width]="getScaleFactor() * 24 * 60"
           height="40"
-          [attr.fill]="
-            'url(#horizontal_timeSliderTicksText_' + sliderLinePos + ')'
-          "
+          [attr.fill]="'url(#horizontal_timeSliderTicksText_' + sliderLinePos + ')'"
         />
       </g>
     </ng-container>
 
     <ng-container *ngIf="disableText">
-      <g
-        [attr.transform]="
-          'matrix(' + getScaleFactor() + ',0.00,0.00,1.00,0.00,0.00)'
-        "
-      >
+      <g [attr.transform]="'matrix(' + getScaleFactor() + ',0.00,0.00,1.00,0.00,0.00)'">
         <ng-container *ngIf="timeLinePos !== undefined">
-          <g
-            [attr.transform]="
-              'matrix(1.00,0.00,0.00,1.00,' + timeLinePos + ',0.00)'
-            "
-          >
+          <g [attr.transform]="'matrix(1.00,0.00,0.00,1.00,' + timeLinePos + ',0.00)'">
             <g
               [attr.transform]="
-                'matrix(' +
-                getInverseScaleFactor() +
-                ', 0.00, 0.00, 1.00, 0.00, 0.00)'
+                'matrix(' + getInverseScaleFactor() + ', 0.00, 0.00, 1.00, 0.00, 0.00)'
               "
             >
               <line
@@ -212,22 +178,12 @@ HORIZONTAL - is broken !!! not removed because the code could help to fix the sl
               ')'
             "
           >
-            <g
-              [attr.transform]="
-                'matrix(1.00, 0.00, 0.00, ' + getScaleFactor() + ', 0.00, 0.00)'
-              "
-            >
+            <g [attr.transform]="'matrix(1.00, 0.00, 0.00, ' + getScaleFactor() + ', 0.00, 0.00)'">
               <g *ngFor="let time of timesTicks">
-                <g
-                  [attr.transform]="
-                    'matrix(1.00, 0.00, 0.00, 1.00, 0.00, ' + time.time + ')'
-                  "
-                >
+                <g [attr.transform]="'matrix(1.00, 0.00, 0.00, 1.00, 0.00, ' + time.time + ')'">
                   <g
                     [attr.transform]="
-                      'matrix(1.00, 0.00, 0.00, ' +
-                      getInverseScaleFactor() +
-                      ', 0.00, 0.00)'
+                      'matrix(1.00, 0.00, 0.00, ' + getInverseScaleFactor() + ', 0.00, 0.00)'
                     "
                   >
                     <line
@@ -247,9 +203,7 @@ HORIZONTAL - is broken !!! not removed because the code could help to fix the sl
       </ng-container>
 
       <ng-container *ngIf="!disableText">
-        <ng-container
-          *ngFor="let index of [].constructor(3); index as hourOffset"
-        >
+        <ng-container *ngFor="let index of [].constructor(3); index as hourOffset">
           <g
             [attr.transform]="
               'matrix(1.00, 0.00, 0.00, 1.00, 0.00,' +
@@ -257,23 +211,13 @@ HORIZONTAL - is broken !!! not removed because the code could help to fix the sl
               ')'
             "
           >
-            <g
-              [attr.transform]="
-                'matrix(1.00, 0.00, 0.00, ' + getScaleFactor() + ', 0.00, 0.00)'
-              "
-            >
+            <g [attr.transform]="'matrix(1.00, 0.00, 0.00, ' + getScaleFactor() + ', 0.00, 0.00)'">
               <g *ngFor="let time of times">
                 <ng-container *ngIf="time.text !== ''">
-                  <g
-                    [attr.transform]="
-                      'matrix(1.00,0.00,0.00,1.00, 0.00,' + time.time + ')'
-                    "
-                  >
+                  <g [attr.transform]="'matrix(1.00,0.00,0.00,1.00, 0.00,' + time.time + ')'">
                     <g
                       [attr.transform]="
-                        'matrix(1.00, 0.00, 0.00, ' +
-                        getInverseScaleFactor() +
-                        ', 0.00, 0.00)'
+                        'matrix(1.00, 0.00, 0.00, ' + getInverseScaleFactor() + ', 0.00, 0.00)'
                       "
                     >
                       <text
@@ -294,22 +238,12 @@ HORIZONTAL - is broken !!! not removed because the code could help to fix the sl
       </ng-container>
 
       <ng-container *ngIf="disableText">
-        <g
-          [attr.transform]="
-            'matrix(1.00, 0.00, 0.00, ' + getScaleFactor() + ', 0.00, 0.00)'
-          "
-        >
+        <g [attr.transform]="'matrix(1.00, 0.00, 0.00, ' + getScaleFactor() + ', 0.00, 0.00)'">
           <ng-container *ngIf="timeLinePos !== undefined">
-            <g
-              [attr.transform]="
-                'matrix(1.00,0.00,0.00,1.00,0.00,' + timeLinePos + ')'
-              "
-            >
+            <g [attr.transform]="'matrix(1.00,0.00,0.00,1.00,0.00,' + timeLinePos + ')'">
               <g
                 [attr.transform]="
-                  'matrix(1.00, 0.00, 0.00, ' +
-                  getInverseScaleFactor() +
-                  ', 0.00, 0.00)'
+                  'matrix(1.00, 0.00, 0.00, ' + getInverseScaleFactor() + ', 0.00, 0.00)'
                 "
               >
                 <line

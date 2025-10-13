@@ -4,16 +4,8 @@ import {ThemeRegistration} from "./theme-registration";
 import {StaticDomTags} from "../editor-main-view/data-views/static.dom.tags";
 
 export class ThemeFachPrint extends ThemeBase {
-  constructor(
-    backgroundColor = "whitesmoke",
-    backgroundStreckengraphikColor = "white",
-  ) {
-    super(
-      ThemeRegistration.ThemeFachPrint,
-      backgroundColor,
-      backgroundStreckengraphikColor,
-      false,
-    );
+  constructor(backgroundColor = "whitesmoke", backgroundStreckengraphikColor = "white") {
+    super(ThemeRegistration.ThemeFachPrint, backgroundColor, backgroundStreckengraphikColor, false);
     ThemeBase.setUIColors(ThemeFach.getThemeFachColors());
     ThemeBase.setRenderingColors(ThemeFachPrint.getThemeFachPrintColors());
   }

@@ -11,71 +11,38 @@ import {ThemeGrayDark} from "./theme-gray-dark";
 
 describe("Theme Tests", () => {
   it("ThemeBase test - simple", () => {
-    expect(
-      new ThemeBase(ThemeRegistration.ThemeDefaultUx).themeRegistration,
-    ).toBe(0);
-    expect(
-      new ThemeBase(ThemeRegistration.ThemeDefaultUxDark).themeRegistration,
-    ).toBe(1);
-    expect(new ThemeBase(ThemeRegistration.ThemeFach).themeRegistration).toBe(
-      2,
-    );
-    expect(
-      new ThemeBase(ThemeRegistration.ThemeFachDark).themeRegistration,
-    ).toBe(3);
-    expect(
-      new ThemeBase(ThemeRegistration.ThemeFachPrint).themeRegistration,
-    ).toBe(4);
-    expect(new ThemeBase(ThemeRegistration.ThemeGray).themeRegistration).toBe(
-      5,
-    );
-    expect(
-      new ThemeBase(ThemeRegistration.ThemeGrayDark).themeRegistration,
-    ).toBe(6);
+    expect(new ThemeBase(ThemeRegistration.ThemeDefaultUx).themeRegistration).toBe(0);
+    expect(new ThemeBase(ThemeRegistration.ThemeDefaultUxDark).themeRegistration).toBe(1);
+    expect(new ThemeBase(ThemeRegistration.ThemeFach).themeRegistration).toBe(2);
+    expect(new ThemeBase(ThemeRegistration.ThemeFachDark).themeRegistration).toBe(3);
+    expect(new ThemeBase(ThemeRegistration.ThemeFachPrint).themeRegistration).toBe(4);
+    expect(new ThemeBase(ThemeRegistration.ThemeGray).themeRegistration).toBe(5);
+    expect(new ThemeBase(ThemeRegistration.ThemeGrayDark).themeRegistration).toBe(6);
   });
 
   it("ThemeBase test - extended", () => {
-    expect(
-      new ThemeBase(ThemeRegistration.ThemeDefaultUx, "red", "white", false)
-        .isDark,
-    ).toBe(false);
-    expect(
-      new ThemeBase(ThemeRegistration.ThemeDefaultUxDark, "red", "white", false)
-        .isDark,
-    ).toBe(false);
-    expect(
-      new ThemeBase(ThemeRegistration.ThemeFach, "red", "white", false).isDark,
-    ).toBe(false);
-    expect(
-      new ThemeBase(ThemeRegistration.ThemeFachDark, "red", "white", false)
-        .isDark,
-    ).toBe(false);
-    expect(
-      new ThemeBase(ThemeRegistration.ThemeFachPrint, "red", "white", true)
-        .isDark,
-    ).toBe(true);
-    expect(
-      new ThemeBase(ThemeRegistration.ThemeGray, "red", "white", true).isDark,
-    ).toBe(true);
-    expect(
-      new ThemeBase(ThemeRegistration.ThemeGrayDark, "red", "white", true)
-        .isDark,
-    ).toBe(true);
+    expect(new ThemeBase(ThemeRegistration.ThemeDefaultUx, "red", "white", false).isDark).toBe(
+      false,
+    );
+    expect(new ThemeBase(ThemeRegistration.ThemeDefaultUxDark, "red", "white", false).isDark).toBe(
+      false,
+    );
+    expect(new ThemeBase(ThemeRegistration.ThemeFach, "red", "white", false).isDark).toBe(false);
+    expect(new ThemeBase(ThemeRegistration.ThemeFachDark, "red", "white", false).isDark).toBe(
+      false,
+    );
+    expect(new ThemeBase(ThemeRegistration.ThemeFachPrint, "red", "white", true).isDark).toBe(true);
+    expect(new ThemeBase(ThemeRegistration.ThemeGray, "red", "white", true).isDark).toBe(true);
+    expect(new ThemeBase(ThemeRegistration.ThemeGrayDark, "red", "white", true).isDark).toBe(true);
   });
 
   it("getTheme...Colors() ", () => {
     const nbrColorEntries = 46;
-    expect(ThemeDefaultUx.getThemeDefaultUxColors().length).toBe(
-      nbrColorEntries,
-    );
-    expect(ThemeDefaultUxDark.getThemeDefaultUxDarkColors().length).toBe(
-      nbrColorEntries,
-    );
+    expect(ThemeDefaultUx.getThemeDefaultUxColors().length).toBe(nbrColorEntries);
+    expect(ThemeDefaultUxDark.getThemeDefaultUxDarkColors().length).toBe(nbrColorEntries);
     expect(ThemeFach.getThemeFachColors().length).toBe(nbrColorEntries);
     expect(ThemeFachDark.getThemeFachDarkColors().length).toBe(nbrColorEntries);
-    expect(ThemeFachPrint.getThemeFachPrintColors().length).toBe(
-      nbrColorEntries,
-    );
+    expect(ThemeFachPrint.getThemeFachPrintColors().length).toBe(nbrColorEntries);
     expect(ThemeGray.getThemeGrayColors().length).toBe(nbrColorEntries);
     expect(ThemeFachDark.getThemeFachDarkColors().length).toBe(nbrColorEntries);
   });
@@ -83,21 +50,17 @@ describe("Theme Tests", () => {
   it("check...Colors_keys() ", () => {
     const nbrColorEntries = 46;
     const keys: string[] = [];
-    ThemeDefaultUx.getThemeDefaultUxColors().forEach((str: string) =>
-      keys.push(str.split(":")[0]),
-    );
+    ThemeDefaultUx.getThemeDefaultUxColors().forEach((str: string) => keys.push(str.split(":")[0]));
 
     ThemeDefaultUx.getThemeDefaultUxColors().forEach((entry: string) => {
       const key: string = entry.split(":")[0];
       expect(keys.includes(key)).toBe(true);
     });
 
-    ThemeDefaultUxDark.getThemeDefaultUxDarkColors().forEach(
-      (entry: string) => {
-        const key: string = entry.split(":")[0];
-        expect(keys.includes(key)).toBe(true);
-      },
-    );
+    ThemeDefaultUxDark.getThemeDefaultUxDarkColors().forEach((entry: string) => {
+      const key: string = entry.split(":")[0];
+      expect(keys.includes(key)).toBe(true);
+    });
 
     ThemeFach.getThemeFachColors().forEach((entry: string) => {
       const key: string = entry.split(":")[0];
@@ -130,11 +93,7 @@ describe("Theme Tests", () => {
     expect(ThemeBase.getGlobalColors("red").length).toBe(12);
     expect(ThemeBase.getGlobalColors("red", "yellow").length).toBe(12);
 
-    expect(
-      ThemeBase.getGlobalColors("red", "yellow").includes(
-        "COLOR_BACKGROUND: red",
-      ),
-    ).toBe(true);
+    expect(ThemeBase.getGlobalColors("red", "yellow").includes("COLOR_BACKGROUND: red")).toBe(true);
     expect(
       ThemeBase.getGlobalColors("red", "yellow").includes(
         "COLOR_STRECKENGRAPHIK_BACKGROUND: yellow",

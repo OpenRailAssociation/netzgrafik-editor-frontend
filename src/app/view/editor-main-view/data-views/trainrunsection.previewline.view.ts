@@ -52,11 +52,12 @@ export class TrainrunSectionPreviewLineView {
   private drawingConnectionObjectCreated = false;
   private dragIntermediateStopInfo: DragIntermediateStopInfo = null;
   private dragTransitionInfo: DragTransitionInfo = null;
+  private canCombineTwoTrainrunsFlag = false;
 
   constructor(
     private nodeService: NodeService,
     private filterService: FilterService,
-    private versionControlService : VersionControlService
+    private versionControlService: VersionControlService,
   ) {}
 
   static setGroup(nodeGroup: d3.Selector) {
@@ -71,8 +72,8 @@ export class TrainrunSectionPreviewLineView {
       .attr("class", StaticDomTags.PREVIEW_CONNECTION_LINE_ROOT_CLASS);
   }
 
-  getVariantIsWritable() : boolean {
-    if ( !this.versionControlService?.getVariantIsWritable()){
+  getVariantIsWritable(): boolean {
+    if (!this.versionControlService?.getVariantIsWritable()) {
       return false;
     }
     return true;
@@ -92,9 +93,7 @@ export class TrainrunSectionPreviewLineView {
 
   setExistingTrainrunSection(trainrunSection: TrainrunSection) {
     this.mode = PreviewLineMode.DragExistingTrainrunSection;
-    this.existingTrainrunSection = new TrainrunSection(
-      trainrunSection.getDto(),
-    );
+    this.existingTrainrunSection = new TrainrunSection(trainrunSection.getDto());
     this.existingTrainrunSection.setTrainrun(trainrunSection.getTrainrun());
   }
 
@@ -102,7 +101,7 @@ export class TrainrunSectionPreviewLineView {
     dragIntermediateStopInfo: DragIntermediateStopInfo,
     startPosition: Vec2D,
   ) {
-    if ( !this.versionControlService?.getVariantIsWritable()){
+    if (!this.versionControlService?.getVariantIsWritable()) {
       return;
     }
     this.mode = PreviewLineMode.DragIntermediateStop;
@@ -113,11 +112,8 @@ export class TrainrunSectionPreviewLineView {
     D3Utils.doGrayout(dragIntermediateStopInfo.trainrunSection);
   }
 
-  startDragTransition(
-    dragTransition: DragTransitionInfo,
-    startPosition: Vec2D,
-  ) {
-    if ( !this.versionControlService?.getVariantIsWritable()){
+  startDragTransition(dragTransition: DragTransitionInfo, startPosition: Vec2D) {
+    if (!this.versionControlService?.getVariantIsWritable()) {
       return;
     }
     this.filterService.switchOffTemporaryEmptyAndNonStopFiltering();
@@ -127,14 +123,8 @@ export class TrainrunSectionPreviewLineView {
     this.displayTrainrunSectionPreviewLine();
     D3Utils.disableTrainrunSectionForEventHandling();
     D3Utils.doGrayoutTransition(dragTransition.transition);
-    D3Utils.doGrayoutTrainrunSectionPin(
-      dragTransition.trainrunSection1,
-      dragTransition.node,
-    );
-    D3Utils.doGrayoutTrainrunSectionPin(
-      dragTransition.trainrunSection2,
-      dragTransition.node,
-    );
+    D3Utils.doGrayoutTrainrunSectionPin(dragTransition.trainrunSection1, dragTransition.node);
+    D3Utils.doGrayoutTrainrunSectionPin(dragTransition.trainrunSection2, dragTransition.node);
   }
 
   getStartNode(): Node {
@@ -158,20 +148,18 @@ export class TrainrunSectionPreviewLineView {
   }
 
   startPreviewLine(nodeId: number) {
-    if ( !this.versionControlService?.getVariantIsWritable()){
+    if (!this.versionControlService?.getVariantIsWritable()) {
       return;
     }
     this.mode = PreviewLineMode.DragNewTrainrunSection;
-    const mousePosition = d3.mouse(
-      d3.select(StaticDomTags.PREVIEW_LINE_ROOT_DOM_REF).node(),
-    );
+    const mousePosition = d3.mouse(d3.select(StaticDomTags.PREVIEW_LINE_ROOT_DOM_REF).node());
     const startPosition = new Vec2D(mousePosition[0], mousePosition[1]);
     const startNode: Node = this.nodeService.getNodeFromId(nodeId);
     this.startPreviewLineAtPosition(startNode, startPosition);
   }
 
   startPreviewLineAtPosition(startNode: Node, startPosition: Vec2D) {
-    if ( !this.versionControlService?.getVariantIsWritable()){
+    if (!this.versionControlService?.getVariantIsWritable()) {
       return;
     }
     this.mode = PreviewLineMode.DragExistingTrainrunSection;
@@ -186,6 +174,11 @@ export class TrainrunSectionPreviewLineView {
 
     D3Utils.highlightNode(startNode);
     D3Utils.disableTrainrunSectionForEventHandling();
+  }
+
+  updatePreviewLineCombineTrainruns(transitionInvolved) {
+    this.canCombineTwoTrainrunsFlag = !transitionInvolved;
+    this.updatePreviewLine();
   }
 
   updatePreviewLine() {
@@ -223,16 +216,14 @@ export class TrainrunSectionPreviewLineView {
         const port2 = node2.getPortOfTrainrunSection(
           this.dragTransitionInfo.trainrunSection2.getId(),
         );
-        const startPos =
-          SimpleTrainrunSectionRouter.getPortPositionForTrainrunSectionRouting(
-            node1,
-            port1,
-          );
-        const endPos =
-          SimpleTrainrunSectionRouter.getPortPositionForTrainrunSectionRouting(
-            node2,
-            port2,
-          );
+        const startPos = SimpleTrainrunSectionRouter.getPortPositionForTrainrunSectionRouting(
+          node1,
+          port1,
+        );
+        const endPos = SimpleTrainrunSectionRouter.getPortPositionForTrainrunSectionRouting(
+          node2,
+          port2,
+        );
         D3Utils.updateIntermediateStopOrTransitionPreviewLine(startPos, endPos);
       }
       return true;
@@ -245,7 +236,7 @@ export class TrainrunSectionPreviewLineView {
     if (this.startConnectionPos !== null) {
       this.undisplayTrainrunSectionPreviewLine();
       this.displayConnectionPreviewLine();
-      D3Utils.updateConnectionPreviewLine(this.startConnectionPos);
+      D3Utils.updateConnectionPreviewLine(this.startConnectionPos, this.canCombineTwoTrainruns());
       return true;
     }
 
@@ -264,26 +255,24 @@ export class TrainrunSectionPreviewLineView {
     this.undisplayConnectionPreviewLine();
     if (this.dragIntermediateStopInfo !== null) {
       D3Utils.removeGrayout(this.dragIntermediateStopInfo.trainrunSection);
-      d3.select(this.dragIntermediateStopInfo.domRef).classed(
-        StaticDomTags.TAG_HOVER,
-        false,
-      );
+      d3.select(this.dragIntermediateStopInfo.domRef).classed(StaticDomTags.TAG_HOVER, false);
     }
     if (this.dragTransitionInfo !== null) {
       D3Utils.removeGrayoutTransition(this.dragTransitionInfo.transition);
       D3Utils.removeGrayoutTrainrunSectionPin();
-      d3.select(this.dragTransitionInfo.domRef).classed(
-        StaticDomTags.TAG_HOVER,
-        false,
-      );
+      d3.select(this.dragTransitionInfo.domRef).classed(StaticDomTags.TAG_HOVER, false);
     }
-    if (this.existingTrainrunSection !== null){
+    if (this.existingTrainrunSection !== null) {
       D3Utils.removeGrayout(this.existingTrainrunSection);
     }
     if (this.startNode !== null) {
       D3Utils.unhighlightNode(this.startNode);
     }
     this.resetInternalState();
+  }
+
+  canCombineTwoTrainruns() {
+    return this.canCombineTwoTrainrunsFlag;
   }
 
   private displayTrainrunSectionPreviewLine() {
@@ -330,6 +319,8 @@ export class TrainrunSectionPreviewLineView {
 
   private resetInternalState() {
     this.mode = PreviewLineMode.NotDragging;
+    this.canCombineTwoTrainrunsFlag = false;
+
     this.existingTrainrunSection = null;
     this.startNode = null;
     this.startPos = null;

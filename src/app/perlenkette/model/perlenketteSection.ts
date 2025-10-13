@@ -11,9 +11,8 @@ export class PerlenketteSection implements PerlenketteItem {
     public numberOfStops: number,
     public isBeingEdited: boolean = false,
     public fristTrainrunPartSection: boolean = false,
-    public lastTrainrunPartSection: boolean = false
-  ) {
-  }
+    public lastTrainrunPartSection: boolean = false,
+  ) {}
 
   isFristTrainrunPartSection(): boolean {
     return this.fristTrainrunPartSection;
@@ -23,7 +22,7 @@ export class PerlenketteSection implements PerlenketteItem {
     return this.lastTrainrunPartSection;
   }
 
-  setLastTrainrunPartSection(flag : boolean) {
+  setLastTrainrunPartSection(flag: boolean) {
     this.lastTrainrunPartSection = flag;
   }
 

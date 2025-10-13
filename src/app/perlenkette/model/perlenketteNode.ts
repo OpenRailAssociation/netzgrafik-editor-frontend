@@ -13,9 +13,8 @@ export class PerlenketteNode implements PerlenketteItem {
     public connections: PerlenketteConnection[],
     public transition: Transition,
     public fristTrainrunPartNode: boolean,
-    public lastTrainrunPartNode: boolean
-  ) {
-  }
+    public lastTrainrunPartNode: boolean,
+  ) {}
 
   isFristTrainrunPartNode(): boolean {
     return this.fristTrainrunPartNode;
@@ -25,7 +24,7 @@ export class PerlenketteNode implements PerlenketteItem {
     return this.lastTrainrunPartNode;
   }
 
-  setLastTrainrunPartNode(flag : boolean) {
+  setLastTrainrunPartNode(flag: boolean) {
     this.lastTrainrunPartNode = flag;
   }
 
@@ -46,9 +45,7 @@ export class PerlenketteNode implements PerlenketteItem {
   }
 
   getConnectionOrderGroup(perlenketteTrainrun: PerlenketteTrainrun): number[] {
-    const nodeTopStartNode = perlenketteTrainrun.pathItems
-      .at(0)
-      .getPerlenketteNode();
+    const nodeTopStartNode = perlenketteTrainrun.pathItems.at(0).getPerlenketteNode();
     return [
       null,
       this.connections.filter((a) => {
@@ -57,38 +54,26 @@ export class PerlenketteNode implements PerlenketteItem {
     ];
   }
 
-  getConnectionsTopNodes(
-    perlenketteTrainrun: PerlenketteTrainrun,
-  ): PerlenketteConnection[] {
+  getConnectionsTopNodes(perlenketteTrainrun: PerlenketteTrainrun): PerlenketteConnection[] {
     return this.connections.filter((a: PerlenketteConnection) => {
-      const nodeTopStartNode = perlenketteTrainrun.pathItems
-        .at(0)
-        .getPerlenketteNode();
+      const nodeTopStartNode = perlenketteTrainrun.pathItems.at(0).getPerlenketteNode();
       return a.beginningStationId === nodeTopStartNode.nodeId;
     });
   }
 
   isTopNode(perlenketteTrainrun: PerlenketteTrainrun) {
-    const nodeTopStartNode = perlenketteTrainrun.pathItems
-      .at(0)
-      .getPerlenketteNode();
+    const nodeTopStartNode = perlenketteTrainrun.pathItems.at(0).getPerlenketteNode();
     return this.nodeId === nodeTopStartNode.nodeId;
   }
 
   isBottomNode(perlenketteTrainrun: PerlenketteTrainrun) {
-    const nodeTopStartNode = perlenketteTrainrun.pathItems
-      .at(-1)
-      .getPerlenketteNode();
+    const nodeTopStartNode = perlenketteTrainrun.pathItems.at(-1).getPerlenketteNode();
     return this.nodeId === nodeTopStartNode.nodeId;
   }
 
-  getConnectionsBottomNodes(
-    perlenketteTrainrun: PerlenketteTrainrun,
-  ): PerlenketteConnection[] {
+  getConnectionsBottomNodes(perlenketteTrainrun: PerlenketteTrainrun): PerlenketteConnection[] {
     return this.connections.filter((a: PerlenketteConnection) => {
-      const nodeTopStartNode = perlenketteTrainrun.pathItems
-        .at(0)
-        .getPerlenketteNode();
+      const nodeTopStartNode = perlenketteTrainrun.pathItems.at(0).getPerlenketteNode();
       return a.beginningStationId !== nodeTopStartNode.nodeId;
     });
   }
@@ -111,9 +96,7 @@ export class PerlenketteNode implements PerlenketteItem {
     b: PerlenketteConnection,
     perlenketteTrainrun: PerlenketteTrainrun,
   ): number {
-    const nodeTopStartNode = perlenketteTrainrun.pathItems
-      .at(0)
-      .getPerlenketteNode();
+    const nodeTopStartNode = perlenketteTrainrun.pathItems.at(0).getPerlenketteNode();
     const check1 = a.beginningStationId === nodeTopStartNode.nodeId;
     const check2 = b.beginningStationId === nodeTopStartNode.nodeId;
     if (check1 === check2) {
@@ -128,29 +111,17 @@ export class PerlenketteNode implements PerlenketteItem {
     return -1;
   }
 
-  private sortLevel1CategoryOrder(
-    a: PerlenketteConnection,
-    b: PerlenketteConnection,
-  ): number {
-    if (
-      a.connectedTrainrun.getCategoryOrder() <
-      b.connectedTrainrun.getCategoryOrder()
-    ) {
+  private sortLevel1CategoryOrder(a: PerlenketteConnection, b: PerlenketteConnection): number {
+    if (a.connectedTrainrun.getCategoryOrder() < b.connectedTrainrun.getCategoryOrder()) {
       return -1;
     }
-    if (
-      a.connectedTrainrun.getCategoryOrder() >
-      b.connectedTrainrun.getCategoryOrder()
-    ) {
+    if (a.connectedTrainrun.getCategoryOrder() > b.connectedTrainrun.getCategoryOrder()) {
       return 1;
     }
     return this.sortLevel2Title(a, b);
   }
 
-  private sortLevel2Title(
-    a: PerlenketteConnection,
-    b: PerlenketteConnection,
-  ): number {
+  private sortLevel2Title(a: PerlenketteConnection, b: PerlenketteConnection): number {
     if (a.connectedTrainrun.getTitle() < b.connectedTrainrun.getTitle()) {
       return -1;
     }

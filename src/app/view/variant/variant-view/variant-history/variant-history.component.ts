@@ -1,10 +1,4 @@
-import {
-  Component,
-  Input,
-  OnChanges,
-  OnDestroy,
-  SimpleChanges,
-} from "@angular/core";
+import {Component, Input, OnChanges, OnDestroy, SimpleChanges} from "@angular/core";
 import {DownloadVersionModel, VersionId} from "./model";
 import {VersionControlService} from "../../../../services/data/version-control.service";
 import {
@@ -50,11 +44,9 @@ export class VariantHistoryComponent implements OnChanges, OnDestroy {
     private readonly versionBackendService: VersionControllerBackendService,
     private readonly autoSaveService: AutoSaveService,
   ) {
-    versionControlService.versionCreated$
-      .pipe(takeUntil(this.destroyed))
-      .subscribe((versionId) => {
-        this.lastAddedVersion = versionId;
-      });
+    versionControlService.versionCreated$.pipe(takeUntil(this.destroyed)).subscribe((versionId) => {
+      this.lastAddedVersion = versionId;
+    });
   }
 
   ngOnDestroy(): void {
@@ -63,9 +55,7 @@ export class VariantHistoryComponent implements OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    this.versionEntries = this.groupVersionsByReleaseNumber(
-      [...this.variant.versions].reverse(),
-    );
+    this.versionEntries = this.groupVersionsByReleaseNumber([...this.variant.versions].reverse());
   }
 
   onPublishClicked(comment: string): void {
@@ -151,10 +141,7 @@ export class VariantHistoryComponent implements OnChanges, OnDestroy {
         ),
       )
       .subscribe((variantId) =>
-        this.navigationService.navigateToEditor(
-          this.variant.projectId,
-          variantId,
-        ),
+        this.navigationService.navigateToEditor(this.variant.projectId, variantId),
       );
   }
 
@@ -170,22 +157,15 @@ export class VariantHistoryComponent implements OnChanges, OnDestroy {
       });
   }
 
-  private groupVersionsByReleaseNumber(
-    versions: VersionDto[],
-  ): VersionEntries[] {
+  private groupVersionsByReleaseNumber(versions: VersionDto[]): VersionEntries[] {
     return versions.reduce(
-      (previousValue, currentValue) =>
-        this.addVersionToGroup(previousValue, currentValue),
+      (previousValue, currentValue) => this.addVersionToGroup(previousValue, currentValue),
       new Array<VersionEntries>(),
     );
   }
 
-  private addVersionToGroup(
-    groups: VersionEntries[],
-    version: VersionDto,
-  ): VersionEntries[] {
-    const previousVersion =
-      groups.length > 0 ? groups[groups.length - 1] : null;
+  private addVersionToGroup(groups: VersionEntries[], version: VersionDto): VersionEntries[] {
+    const previousVersion = groups.length > 0 ? groups[groups.length - 1] : null;
 
     if (!version.snapshotVersion) {
       // is a release

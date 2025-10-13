@@ -1,26 +1,16 @@
-import {
-  UntypedFormControl,
-  UntypedFormGroup,
-  ValidatorFn,
-} from "@angular/forms";
+import {UntypedFormControl, UntypedFormGroup, ValidatorFn} from "@angular/forms";
 
 export class FormModel<T> {
   private readonly keys: string[];
   private readonly form: UntypedFormGroup;
   private readonly controls: {[key: string]: UntypedFormControl} = {};
 
-  private readonly validatorsByKey: Map<string, ValidatorFn[]> = new Map<
-    string,
-    ValidatorFn[]
-  >();
+  private readonly validatorsByKey: Map<string, ValidatorFn[]> = new Map<string, ValidatorFn[]>();
 
   constructor(orig: T) {
     this.keys = Object.getOwnPropertyNames(orig);
     this.keys.forEach(
-      (propertyName) =>
-        (this.controls[propertyName] = new UntypedFormControl(
-          orig[propertyName],
-        )),
+      (propertyName) => (this.controls[propertyName] = new UntypedFormControl(orig[propertyName])),
     );
     this.form = new UntypedFormGroup(this.controls);
   }

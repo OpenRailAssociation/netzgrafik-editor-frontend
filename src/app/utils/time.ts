@@ -4,9 +4,7 @@ export class TimeUtils {
     const minutes = Math.floor(timeSecondsAfterMidnight / 60) % 60;
     const seconds = timeSecondsAfterMidnight % 60;
 
-    const retVal: string = [hours, minutes, seconds]
-      .map((v) => (v < 10 ? "0" + v : v))
-      .join(":");
+    const retVal: string = [hours, minutes, seconds].map((v) => (v < 10 ? "0" + v : v)).join(":");
     return retVal;
   }
 }

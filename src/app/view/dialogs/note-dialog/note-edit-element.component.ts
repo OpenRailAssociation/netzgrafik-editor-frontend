@@ -1,11 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output,
-} from "@angular/core";
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from "@angular/core";
 import {FormModel} from "../../../utils/form-model";
 import {NoteFormComponentModel} from "./note-form/note-form.component";
 import {Subject} from "rxjs";
@@ -45,10 +38,8 @@ export class NoteEditElementComponent implements OnInit, OnDestroy {
       },
     );
 
-    this.deleteNoteCallback =
-      this.noteDialogParameter.noteFormComponentModel.deleteNoteCallback;
-    this.saveNoteCallback =
-      this.noteDialogParameter.noteFormComponentModel.saveNoteCallback;
+    this.deleteNoteCallback = this.noteDialogParameter.noteFormComponentModel.deleteNoteCallback;
+    this.saveNoteCallback = this.noteDialogParameter.noteFormComponentModel.saveNoteCallback;
   }
 
   ngOnDestroy(): void {

@@ -1,6 +1,7 @@
 import {
   FilterSettingDto,
   TrainrunCategory,
+  Direction,
   TrainrunFrequency,
   TrainrunTimeCategory,
 } from "../data-structures/business.data.structures";
@@ -18,6 +19,7 @@ export class FilterSetting {
   public filterNodeLabels: number[];
   public filterNoteLabels: number[];
   public filterTrainrunLabels: number[];
+  public filterDirectionArrows;
   public filterArrivalDepartureTime;
   public filterTravelTime;
   public filterTrainrunName;
@@ -26,6 +28,7 @@ export class FilterSetting {
   public filterTrainrunCategory: TrainrunCategory[];
   public filterTrainrunFrequency: TrainrunFrequency[];
   public filterTrainrunTimeCategory: TrainrunTimeCategory[];
+  public filterDirection: Direction[];
   public filterAllEmptyNodes;
   public filterAllNonStopNodes;
   public filterNotes;
@@ -41,6 +44,7 @@ export class FilterSetting {
       filterNodeLabels,
       filterNoteLabels,
       filterTrainrunLabels,
+      filterDirectionArrows: filterDirectionArrows,
       filterArrivalDepartureTime,
       filterTravelTime,
       filterTrainrunName,
@@ -49,6 +53,7 @@ export class FilterSetting {
       filterTrainrunCategory,
       filterTrainrunFrequency,
       filterTrainrunTimeCategory,
+      filterDirection: filterDirection,
       filterAllEmptyNodes,
       filterAllNonStopNodes,
       filterNotes,
@@ -62,6 +67,7 @@ export class FilterSetting {
       filterNodeLabels: [],
       filterNoteLabels: [],
       filterTrainrunLabels: [],
+      filterDirectionArrows: true,
       filterArrivalDepartureTime: true,
       filterTravelTime: true,
       filterTrainrunName: true,
@@ -70,6 +76,7 @@ export class FilterSetting {
       filterTrainrunCategory: null,
       filterTrainrunFrequency: null,
       filterTrainrunTimeCategory: null,
+      filterDirection: null,
       filterAllEmptyNodes: false,
       filterAllNonStopNodes: false,
       filterNotes: false,
@@ -84,6 +91,7 @@ export class FilterSetting {
     this.filterNodeLabels = filterNodeLabels;
     this.filterNoteLabels = filterNoteLabels;
     this.filterTrainrunLabels = filterTrainrunLabels;
+    this.filterDirectionArrows = filterDirectionArrows;
     this.filterArrivalDepartureTime = filterArrivalDepartureTime;
     this.filterTravelTime = filterTravelTime;
     this.filterTrainrunName = filterTrainrunName;
@@ -92,12 +100,12 @@ export class FilterSetting {
     this.filterTrainrunCategory = filterTrainrunCategory;
     this.filterTrainrunFrequency = filterTrainrunFrequency;
     this.filterTrainrunTimeCategory = filterTrainrunTimeCategory;
+    this.filterDirection = filterDirection;
     this.filterAllEmptyNodes = filterAllEmptyNodes;
     this.filterAllNonStopNodes = filterAllNonStopNodes;
     this.filterNotes = filterNotes;
     this.timeDisplayPrecision = timeDisplayPrecision;
-    this.isTemporaryDisableFilteringOfItemsInView =
-      isTemporaryDisableFilteringOfItemsInView;
+    this.isTemporaryDisableFilteringOfItemsInView = isTemporaryDisableFilteringOfItemsInView;
     this.temporaryEmptyAndNonStopFilteringSwitchedOff =
       temporaryEmptyAndNonStopFilteringSwitchedOff;
 
@@ -115,9 +123,7 @@ export class FilterSetting {
   }
 
   copy(): FilterSetting {
-    const newFilterSettting = new FilterSetting(
-      Object.assign({}, this.getDto()),
-    );
+    const newFilterSettting = new FilterSetting(Object.assign({}, this.getDto()));
     newFilterSettting.id = FilterSetting.incrementId();
     return newFilterSettting;
   }
@@ -126,9 +132,7 @@ export class FilterSetting {
     const self = this.getDto();
     let eq = true;
     Object.keys(self).forEach((key) => {
-      if (
-        key !== FilterSetting.isTemporaryDisableFilteringOfItemsInViewAttribute
-      ) {
+      if (key !== FilterSetting.isTemporaryDisableFilteringOfItemsInViewAttribute) {
         if (JSON.stringify(this[key]) !== JSON.stringify(fs[key])) {
           eq = false;
         }
@@ -140,10 +144,7 @@ export class FilterSetting {
   copyFilteringAttributes(fs: FilterSetting) {
     Object.keys(this).forEach((key) => {
       if (this[key] !== fs[key]) {
-        if (
-          key !==
-          FilterSetting.isTemporaryDisableFilteringOfItemsInViewAttribute
-        ) {
+        if (key !== FilterSetting.isTemporaryDisableFilteringOfItemsInViewAttribute) {
           if (Array.isArray(fs[key])) {
             this[key] = Object.assign([], fs[key]);
           } else {
@@ -163,6 +164,7 @@ export class FilterSetting {
       this.filterNodeLabels.length === 0 &&
       this.filterNoteLabels.length === 0 &&
       this.filterTrainrunLabels.length === 0 &&
+      this.filterDirectionArrows === true &&
       this.filterArrivalDepartureTime === true &&
       this.filterTravelTime === true &&
       this.filterTrainrunName === true &&
@@ -171,6 +173,7 @@ export class FilterSetting {
       this.filterTrainrunCategory.length === trainrunCategoriesLength &&
       this.filterTrainrunFrequency.length === frainrunFrequenciesLength &&
       this.filterTrainrunTimeCategory.length === trainrunTimeCategoryLength &&
+      this.filterDirection.length === Object.values(Direction).length &&
       this.filterAllEmptyNodes === false &&
       this.filterAllNonStopNodes === false &&
       this.filterNotes === false &&
@@ -188,6 +191,7 @@ export class FilterSetting {
       filterNodeLabels: this.filterNodeLabels,
       filterNoteLabels: this.filterNoteLabels,
       filterTrainrunLabels: this.filterTrainrunLabels,
+      filterDirectionArrows: this.filterDirectionArrows,
       filterArrivalDepartureTime: this.filterArrivalDepartureTime,
       filterTravelTime: this.filterTravelTime,
       filterTrainrunName: this.filterTrainrunName,
@@ -196,12 +200,12 @@ export class FilterSetting {
       filterTrainrunCategory: this.filterTrainrunCategory,
       filterTrainrunFrequency: this.filterTrainrunFrequency,
       filterTrainrunTimeCategory: this.filterTrainrunTimeCategory,
+      filterDirection: this.filterDirection,
       filterAllEmptyNodes: this.filterAllEmptyNodes,
       filterAllNonStopNodes: this.filterAllNonStopNodes,
       filterNotes: this.filterNotes,
       timeDisplayPrecision: this.timeDisplayPrecision,
-      isTemporaryDisableFilteringOfItemsInView:
-        this.isTemporaryDisableFilteringOfItemsInView,
+      isTemporaryDisableFilteringOfItemsInView: this.isTemporaryDisableFilteringOfItemsInView,
       temporaryEmptyAndNonStopFilteringSwitchedOff:
         this.temporaryEmptyAndNonStopFilteringSwitchedOff,
     };

@@ -1,13 +1,16 @@
 <div class="content">
-  <sbb-form-field [label]="'app.view.variant.variant-dialog.variant-form.name' | translate" class="sbb-form-field-long">
+  <sbb-form-field
+    [label]="'app.view.variant.variant-dialog.variant-form.name' | translate"
+    class="sbb-form-field-long"
+  >
     <input
       type="text"
       sbbInput
       [formControl]="model.getControl('name')"
       [placeholder]="'app.view.variant.variant-dialog.variant-form.name' | translate"
     />
-    <sbb-error *ngIf="model.getControl('name').errors?.required"
-      >{{ 'app.view.variant.variant-dialog.variant-form.mandatory-field' | translate }}</sbb-error
-    >
+    <sbb-error *ngIf="model.getControl('name').errors?.required">{{
+      "app.view.variant.variant-dialog.variant-form.mandatory-field" | translate
+    }}</sbb-error>
   </sbb-form-field>
 </div>

@@ -11,7 +11,6 @@ import * as d3 from "d3";
   styleUrls: ["./train-run.component.scss"],
 })
 export class TrainRunComponent {
-
   @Input()
   doShowTrainruns = false;
 

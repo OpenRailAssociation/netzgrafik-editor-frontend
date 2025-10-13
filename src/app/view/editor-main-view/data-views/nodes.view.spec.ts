@@ -23,9 +23,7 @@ import {EditorView} from "./editor.view";
 import {NodesView} from "./nodes.view";
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
-import {
-  PositionTransformationService
-} from "../../../services/util/position.transformation.service";
+import {PositionTransformationService} from "../../../services/util/position.transformation.service";
 
 describe("Nodes-View", () => {
   let dataService: DataService;
@@ -57,16 +55,8 @@ describe("Nodes-View", () => {
     labelGroupService = new LabelGroupService(logService);
     labelService = new LabelService(logService, labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
-    trainrunService = new TrainrunService(
-      logService,
-      labelService,
-      filterService,
-    );
-    trainrunSectionService = new TrainrunSectionService(
-      logService,
-      trainrunService,
-      filterService,
-    );
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
     nodeService = new NodeService(
       logService,
       resourceService,
@@ -98,7 +88,7 @@ describe("Nodes-View", () => {
       trainrunService,
       trainrunSectionService,
       nodeService,
-      filterService
+      filterService,
     );
 
     uiInteractionService = new UiInteractionService(
@@ -131,15 +121,13 @@ describe("Nodes-View", () => {
       undoService,
     );
 
-    const levelOfDetailService = new LevelOfDetailService(
-      uiInteractionService
-    );
+    const levelOfDetailService = new LevelOfDetailService(uiInteractionService);
 
     const viewportCullService = new ViewportCullService(
       uiInteractionService,
       nodeService,
       noteService,
-      trainrunSectionService
+      trainrunSectionService,
     );
 
     const positionTransformationService = new PositionTransformationService(
@@ -147,7 +135,7 @@ describe("Nodes-View", () => {
       nodeService,
       noteService,
       uiInteractionService,
-      viewportCullService
+      viewportCullService,
     );
 
     const controller = new EditorMainViewComponent(
@@ -164,7 +152,7 @@ describe("Nodes-View", () => {
       viewportCullService,
       levelOfDetailService,
       undefined,
-      positionTransformationService
+      positionTransformationService,
     );
 
     new EditorView(
@@ -181,7 +169,7 @@ describe("Nodes-View", () => {
       viewportCullService,
       levelOfDetailService,
       undefined,
-      positionTransformationService
+      positionTransformationService,
     );
 
     controller.bindViewToServices();
@@ -189,9 +177,7 @@ describe("Nodes-View", () => {
   });
 
   it("nodesView construction test", () => {
-    dataService.loadNetzgrafikDto(
-      NetzgrafikUnitTesting.getUnitTestNetzgrafik(),
-    );
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const nodesView = new NodesView(editorView);
     const data = nodesView.createViewNodeDataObjects(nodeService.getNodes());
   });

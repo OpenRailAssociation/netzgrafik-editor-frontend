@@ -1,0 +1,31 @@
+@import "../../../rastering/definitions";
+
+::ng-deep .sbb-trainrun-chip-group {
+  display: flex;
+}
+
+::ng-deep div.EditTrainrunRoundTripDialogTabContent {
+  border-style: none;
+  overflow: hidden;
+  max-height: 250px;
+  padding-bottom: 0px;
+}
+
+::ng-deep div.EditTrainrunDialogTabFooter {
+  border-style: none;
+  padding: 0 15px 0 0;
+  max-height: 48px;
+  min-height: 48px;
+}
+
+::ng-deep div.EditTrainrunRoundTripDialogTabContent.readonly {
+  pointer-events: none;
+}
+
+::ng-deep div.EditTrainrunDialogTabFooter.readonly {
+  pointer-events: none;
+}
+
+div.EditTrainrunRoundTripDialogTabContent.IntegratedComponent {
+  padding: 0px;
+}

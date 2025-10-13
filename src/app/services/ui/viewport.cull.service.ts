@@ -21,11 +21,12 @@ export class ViewportCullService implements OnDestroy {
   private destroyed = new Subject<void>();
   private doCheckIsInViewport = true;
 
-  constructor(private readonly uiInteractionService: UiInteractionService,
-              private nodeService: NodeService,
-              private noteService: NoteService,
-              private trainrunSectionService: TrainrunSectionService) {
-  }
+  constructor(
+    private readonly uiInteractionService: UiInteractionService,
+    private nodeService: NodeService,
+    private noteService: NoteService,
+    private trainrunSectionService: TrainrunSectionService,
+  ) {}
 
   ngOnDestroy(): void {
     this.destroyed.next();
@@ -44,7 +45,11 @@ export class ViewportCullService implements OnDestroy {
     this.trainrunSectionService.trainrunSectionsUpdated();
   }
 
-  private checkIsElementPositionInViewport(pos: Vec2D, strSvgName: string, extraPixels = 64): ViewportOut[] {
+  private checkIsElementPositionInViewport(
+    pos: Vec2D,
+    strSvgName: string,
+    extraPixels = 64,
+  ): ViewportOut[] {
     const vp = this.uiInteractionService.getViewboxProperties(strSvgName);
     const x0 = Number(vp.panZoomLeft) - extraPixels;
     const y0 = Number(vp.panZoomTop) - extraPixels;
@@ -70,38 +75,54 @@ export class ViewportCullService implements OnDestroy {
     return retOut;
   }
 
-  cullCheckPositionsInViewport(positions: Vec2D[], strSvgName: string, extraPixelsIn = 32): boolean {
+  cullCheckPositionsInViewport(
+    positions: Vec2D[],
+    strSvgName: string,
+    extraPixelsIn = 32,
+  ): boolean {
     if (!this.doCheckIsInViewport) {
       return true;
     }
     // check whether an element is inside the "Viewport", or the spanned object overlays the
     // viewport box
     const mappedPositions = positions.map((el: Vec2D) =>
-      this.checkIsElementPositionInViewport(el, strSvgName, extraPixelsIn));
+      this.checkIsElementPositionInViewport(el, strSvgName, extraPixelsIn),
+    );
 
-    if (mappedPositions.find(el => el.find(el2 => el2 === ViewportOut.ElementIsInside) !== undefined) !== undefined) {
+    if (
+      mappedPositions.find(
+        (el) => el.find((el2) => el2 === ViewportOut.ElementIsInside) !== undefined,
+      ) !== undefined
+    ) {
       // check whether an element is inside the "Viewport"
       return true;
     }
 
-    const topOutside = mappedPositions.filter(el => el.find(el2 => el2 === ViewportOut.TopOutside) !== undefined);
+    const topOutside = mappedPositions.filter(
+      (el) => el.find((el2) => el2 === ViewportOut.TopOutside) !== undefined,
+    );
     if (topOutside.length === mappedPositions.length) {
       return false;
     }
-    const bottomOutside = mappedPositions.filter(el => el.find(el2 => el2 === ViewportOut.BottomOutside) !== undefined);
+    const bottomOutside = mappedPositions.filter(
+      (el) => el.find((el2) => el2 === ViewportOut.BottomOutside) !== undefined,
+    );
     if (bottomOutside.length === mappedPositions.length) {
       return false;
     }
-    const leftOutside = mappedPositions.filter(el => el.find(el2 => el2 === ViewportOut.LeftOutside) !== undefined);
+    const leftOutside = mappedPositions.filter(
+      (el) => el.find((el2) => el2 === ViewportOut.LeftOutside) !== undefined,
+    );
     if (leftOutside.length === mappedPositions.length) {
       return false;
     }
-    const rightOutside = mappedPositions.filter(el => el.find(el2 => el2 === ViewportOut.RightOutside) !== undefined);
+    const rightOutside = mappedPositions.filter(
+      (el) => el.find((el2) => el2 === ViewportOut.RightOutside) !== undefined,
+    );
     if (rightOutside.length === mappedPositions.length) {
       return false;
     }
 
     return true;
   }
-
 }

@@ -20,8 +20,7 @@ import {
   templateUrl: "./train-run-item.component.html",
   styleUrls: ["./train-run-item.component.scss"],
 })
-export class TrainRunItemComponent
-  implements OnInit, OnDestroy, UpdateCounterHandler {
+export class TrainRunItemComponent implements OnInit, OnDestroy, UpdateCounterHandler {
   @Input()
   trainrun: SgTrainrun;
 
@@ -151,32 +150,24 @@ export class TrainRunItemComponent
           return false;
         }
       }
-
     }
     if (item.isSection()) {
       const ts = item.getTrainrunSection();
       fromPoint = (ts.departureTime + offset) * yZoom;
       toPoint = (ts.arrivalTime + offset + ts.minimumHeadwayTime) * yZoom;
     }
-    return (fromPoint >= fromTime && fromPoint <= toTime) ||
-      (toPoint >= fromTime && toPoint <= toTime) ||
-      (fromPoint <= fromTime && toPoint >= toTime);
-  }
-
-  getId(trainrun: SgTrainrun, trainrunItem: SgTrainrunItem) {
     return (
-      "streckengrafik_trainrun_item_" +
-      trainrun.getId() +
-      "_" +
-      trainrunItem.backward
+      (fromPoint >= fromTime && fromPoint <= toTime) ||
+      (toPoint >= fromTime && toPoint <= toTime) ||
+      (fromPoint <= fromTime && toPoint >= toTime)
     );
   }
 
-  bringToFront(
-    trainrun: SgTrainrun,
-    trainrunItem: SgTrainrunItem,
-    event: MouseEvent,
-  ) {
+  getId(trainrun: SgTrainrun, trainrunItem: SgTrainrunItem) {
+    return "streckengrafik_trainrun_item_" + trainrun.getId() + "_" + trainrunItem.backward;
+  }
+
+  bringToFront(trainrun: SgTrainrun, trainrunItem: SgTrainrunItem, event: MouseEvent) {
     if (event.buttons !== 0) {
       return;
     }

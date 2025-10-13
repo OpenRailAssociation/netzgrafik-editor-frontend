@@ -1,5 +1,5 @@
 import {PerlenketteItem} from "./perlenketteItem";
-import {TrainrunTimeCategory} from "../../data-structures/business.data.structures";
+import {Direction, TrainrunTimeCategory} from "../../data-structures/business.data.structures";
 
 export class PerlenketteTrainrun {
   constructor(
@@ -11,5 +11,6 @@ export class PerlenketteTrainrun {
     public categoryShortName: string,
     public colorRef: string,
     public pathItems: PerlenketteItem[] = [],
+    public direction: Direction,
   ) {}
 }

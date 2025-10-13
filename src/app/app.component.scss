@@ -63,16 +63,14 @@ sbb-loading-indicator {
   }
 }
 
-
 // firefox fix
-::ng-deep input[type=number]::-webkit-outer-spin-button,
-input[type=number]::-webkit-inner-spin-button {
+::ng-deep input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-::ng-deep
-input[type=number] {
+::ng-deep input[type="number"] {
   -moz-appearance: textfield;
 }
 

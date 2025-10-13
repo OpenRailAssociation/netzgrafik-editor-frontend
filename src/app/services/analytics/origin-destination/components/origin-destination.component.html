@@ -1,7 +1,5 @@
 <div class="matrix-wrapper">
-  <div
-    id="main-origin-destination-container-root"
-  ></div>
+  <div id="main-origin-destination-container-root"></div>
 
   <div class="palette-buttons">
     <div
@@ -38,7 +36,7 @@
           [checked]="colorBy === 'totalCost'"
           (change)="onChangeColorBy('totalCost')"
         />
-        {{ 'app.origin-destination.color-by-selector.total-cost' | translate }}
+        {{ "app.origin-destination.color-by-selector.total-cost" | translate }}
       </label>
       <label>
         <input
@@ -48,7 +46,7 @@
           [checked]="colorBy === 'travelTime'"
           (change)="onChangeColorBy('travelTime')"
         />
-        {{ 'app.origin-destination.color-by-selector.travel-time' | translate }}
+        {{ "app.origin-destination.color-by-selector.travel-time" | translate }}
       </label>
       <label>
         <input
@@ -58,20 +56,20 @@
           [checked]="colorBy === 'transfers'"
           (change)="onChangeColorBy('transfers')"
         />
-        {{ 'app.origin-destination.color-by-selector.transfers' | translate }}
+        {{ "app.origin-destination.color-by-selector.transfers" | translate }}
       </label>
     </div>
   </div>
 
   <sbb-radio-group class="sbb-checkbox-group-horizontal" [(ngModel)]="displayBy">
     <sbb-radio-button value="totalCost" (change)="onChangeDisplayBy('totalCost')">
-      {{ 'app.origin-destination.display-by-selector.total-cost' | translate }}
+      {{ "app.origin-destination.display-by-selector.total-cost" | translate }}
     </sbb-radio-button>
     <sbb-radio-button value="travelTime" (change)="onChangeDisplayBy('travelTime')">
-      {{ 'app.origin-destination.display-by-selector.travel-time' | translate }}
+      {{ "app.origin-destination.display-by-selector.travel-time" | translate }}
     </sbb-radio-button>
     <sbb-radio-button value="transfers" (change)="onChangeDisplayBy('transfers')">
-      {{ 'app.origin-destination.display-by-selector.transfers' | translate }}
+      {{ "app.origin-destination.display-by-selector.transfers" | translate }}
     </sbb-radio-button>
   </sbb-radio-group>
 </div>
