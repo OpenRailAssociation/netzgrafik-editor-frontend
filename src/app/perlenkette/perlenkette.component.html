@@ -5,7 +5,7 @@
         'pointer-events: none; margin: 0px; position: absolute; padding-left: ' +
         (contentWidth - 55) +
         'px; padding-top: ' +
-        (contentHeight - 40) +
+        getPositionY() +
         'px;'
       "
     >
@@ -36,7 +36,7 @@
         <div
           id="textbox"
           (click)="trainrunNameClicked($event)"
-          [attr.style]="'width:' + (contentWidth - 80) + 'px;float: left;'"
+          [attr.style]="'width:' + (contentWidth - 90) + 'px;float: left;'"
         >
           <ng-container *ngIf="showTrainrunName()">
             <p class="alignleft trainname" (click)="trainrunNameClicked($event)">
