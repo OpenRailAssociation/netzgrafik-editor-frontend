@@ -168,7 +168,9 @@ export class Sg6TrackService implements OnDestroy {
     sectionData.forEach((d) => {
       const item: SgTrainrunItem = d.item;
       const travelTime = item.arrivalTime - item.departureTime;
-      nDistanceCells = Math.max(nDistanceCells, Math.round(travelTime));
+      if (nDistanceCells < travelTime ) {
+        nDistanceCells =  Math.round(travelTime);
+      }
     });
     return nDistanceCells;
   }
@@ -316,11 +318,13 @@ export class Sg6TrackService implements OnDestroy {
         dataMatrix[idx],
         headwayTime,
         nTimeCells,
-      );
+      ); 
+
       const val = tracksMatrix[idx];
       if (val < localMax) {
         tracksMatrix[idx] = localMax;
       }
+
     }
   }
 
