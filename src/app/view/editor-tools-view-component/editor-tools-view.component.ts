@@ -366,7 +366,7 @@ export class EditorToolsViewComponent {
     const htmlElementToExport = document.getElementById("main-streckengrafik-container");
     const param = {
       encoderOptions: 1.0,
-      scale: window.devicePixelRatio || 1,
+      scale: 1.0,
       left: 0,
       top: 0,
       width: htmlElementToExport.offsetWidth,
@@ -429,7 +429,7 @@ export class EditorToolsViewComponent {
     const padding = 10;
     const param = {
       encoderOptions: 1.0,
-      scale: window.devicePixelRatio || 1,
+      scale: 1.0,
       left: bbox.x - padding,
       top: bbox.y - padding,
       width: bbox.width + 2 * padding,
@@ -465,7 +465,7 @@ export class EditorToolsViewComponent {
     const boundingBox = this.nodeService.getNetzgrafikBoundingBox();
     const param = {
       encoderOptions: 1.0,
-      scale: window.devicePixelRatio || 1,
+      scale: 1.0,
       left: boundingBox.minCoordX - 2.0 * RASTERING_BASIC_GRID_SIZE,
       top: boundingBox.minCoordY - 2.0 * RASTERING_BASIC_GRID_SIZE,
       width: boundingBox.maxCoordX - boundingBox.minCoordX + 4.0 * RASTERING_BASIC_GRID_SIZE,
