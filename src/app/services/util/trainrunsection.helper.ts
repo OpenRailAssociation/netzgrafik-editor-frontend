@@ -41,7 +41,7 @@ export class TrainrunsectionHelper {
     };
   }
 
-  static getTravelTime(
+  static getDistributedTravelTime(
     totalTravelTime: number,
     summedTravelTime: number,
     travelTimeFactor: number,
@@ -69,6 +69,16 @@ export class TrainrunsectionHelper {
   ): number {
     return MathUtils.round(
       (timeStructure.leftDepartureTime + (timeStructure.travelTime % 60)) % 60,
+      precision,
+    );
+  }
+
+  static getLeftArrivalTime(
+    timeStructure: LeftAndRightTimeStructure,
+    precision = TrainrunSectionService.TIME_PRECISION,
+  ): number {
+    return MathUtils.round(
+      (timeStructure.rightDepartureTime + (timeStructure.bottomTravelTime % 60)) % 60,
       precision,
     );
   }
