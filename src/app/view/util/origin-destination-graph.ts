@@ -120,10 +120,18 @@ export const buildEdges = (
 };
 
 // Given edges, return the neighbors (with weights) for each vertex, if any (outgoing adjacency list).
-export const computeNeighbors = (edges: Edge[]): Map<string, [Vertex, number][]> => {
+export const computeNeighbors = (
+  edges: Edge[],
+  cachedKey: Map<Vertex, string>,
+): Map<string, [Vertex, number][]> => {
   const neighbors = new Map<string, [Vertex, number][]>();
   edges.forEach((edge) => {
-    const v1 = JSON.stringify(edge.v1);
+    let v1 = cachedKey.get(edge.v1);
+    if (v1 === undefined) {
+      v1 = JSON.stringify(edge.v1);
+      cachedKey.set(edge.v1, v1);
+    }
+
     const v1Neighbors = neighbors.get(v1);
     if (v1Neighbors === undefined) {
       neighbors.set(v1, [[edge.v2, edge.weight]]);
@@ -154,6 +162,7 @@ export const computeShortestPaths = (
   neighbors: Map<string, [Vertex, number][]>,
   vertices: Vertex[],
   tsSuccessor: Map<number, number>,
+  cachedKey: Map<Vertex, string>,
 ): Map<number, [number, number]> => {
   const tsPredecessor = new Map<number, number>();
   tsSuccessor.forEach((v, k) => {
@@ -161,9 +170,15 @@ export const computeShortestPaths = (
   });
   const res = new Map<number, [number, number]>();
   const dist = new Map<string, [number, number]>();
+
   let started = false;
   vertices.forEach((vertex) => {
-    const key = JSON.stringify(vertex);
+    let key = cachedKey.get(vertex);
+    if (key === undefined) {
+      key = JSON.stringify(vertex);
+      cachedKey.set(vertex, key);
+    }
+
     // First, look for our start node.
     if (!started) {
       if (from === vertex.nodeId && vertex.isDeparture === true && vertex.time === undefined) {
@@ -173,25 +188,38 @@ export const computeShortestPaths = (
         return;
       }
     }
+
+    // Perf.Opt.: just cache the dist.get(key) access (is 3x used)
+    const cachedDistGetKey = dist.get(key);
+
     // We found an end node.
     if (
       vertex.isDeparture === false &&
       vertex.time === undefined &&
-      dist.get(key) !== undefined &&
+      cachedDistGetKey !== undefined &&
       vertex.nodeId !== from
     ) {
-      res.set(vertex.nodeId, dist.get(key));
+      res.set(vertex.nodeId, cachedDistGetKey);
     }
     const neighs = neighbors.get(key);
-    if (neighs === undefined || dist.get(key) === undefined) {
+    if (neighs === undefined || cachedDistGetKey === undefined) {
       return;
     }
     // The shortest path from the start node to this vertex is a shortest path from the start node to a neighbor
     // plus the weight of the edge connecting the neighbor to this vertex.
     neighs.forEach(([neighbor, weight]) => {
-      const alt = dist.get(key)[0] + weight;
-      const neighborKey = JSON.stringify(neighbor);
-      if (dist.get(neighborKey) === undefined || alt < dist.get(neighborKey)[0]) {
+      // Perf.Opt.: just cache the dist.get(key) access (is 2x used)
+      const distGetKey = dist.get(key);
+      const alt = distGetKey[0] + weight;
+
+      let neighborKey = cachedKey.get(neighbor);
+      if (neighborKey === undefined) {
+        neighborKey = JSON.stringify(neighbor);
+        cachedKey.set(neighbor, neighborKey);
+      }
+
+      const distNeighborKey = dist.get(neighborKey);
+      if (distNeighborKey === undefined || alt < distNeighborKey[0]) {
         let connection = 0;
         let successor = tsSuccessor;
         if (vertex.trainrunId < 0) {
@@ -206,7 +234,7 @@ export const computeShortestPaths = (
         ) {
           connection = 1;
         }
-        dist.set(neighborKey, [alt, dist.get(key)[1] + connection]);
+        dist.set(neighborKey, [alt, distGetKey[1] + connection]);
       }
     });
   });

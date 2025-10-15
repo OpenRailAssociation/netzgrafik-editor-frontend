@@ -8,6 +8,7 @@ import {
   computeNeighbors,
   computeShortestPaths,
   topoSort,
+  Vertex,
 } from "src/app/view/util/origin-destination-graph";
 
 // Computed values for an origin/destination pair.
@@ -75,13 +76,15 @@ export class OriginDestinationService {
       this.trainrunService,
       timeLimit,
     );
+    // Perf.Opt.: this map is used to cache the keys and thus the JSON.stringify will not be called for each key request
+    const cachedKey = new Map<Vertex, string>();
 
-    const neighbors = computeNeighbors(edges);
+    const neighbors = computeNeighbors(edges, cachedKey);
     const vertices = topoSort(neighbors);
     // In theory we could parallelize the pathfindings, but the overhead might be too big.
     const res = new Map<string, [number, number]>();
     odNodes.forEach((origin) => {
-      computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
+      computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor, cachedKey).forEach(
         (value, key) => {
           res.set([origin.getId(), key].join(","), value);
         },

@@ -91,13 +91,15 @@ describe("Origin Destination CSV Test", () => {
       trainrunService,
       timeLimit,
     );
+    // Perf.Opt.: this map is used to cache the keys and thus the JSON.stringify will not be called for each key request
+    const cachedKey = new Map<Vertex, string>();
 
-    const neighbors = computeNeighbors(edges);
+    const neighbors = computeNeighbors(edges, cachedKey);
     const vertices = topoSort(neighbors);
 
     const res = new Map<string, [number, number]>();
     nodes.forEach((origin) => {
-      computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
+      computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor, cachedKey).forEach(
         (value, key) => {
           res.set([origin.getId(), key].join(","), value);
         },
@@ -142,13 +144,15 @@ describe("Origin Destination CSV Test", () => {
       trainrunService,
       timeLimit,
     );
+    // Perf.Opt.: this map is used to cache the keys and thus the JSON.stringify will not be called for each key request
+    const cachedKey = new Map<Vertex, string>();
 
-    const neighbors = computeNeighbors(edges);
+    const neighbors = computeNeighbors(edges, cachedKey);
     const vertices = topoSort(neighbors);
 
     const res = new Map<string, [number, number]>();
     nodes.forEach((origin) => {
-      computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
+      computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor, cachedKey).forEach(
         (value, key) => {
           res.set([origin.getId(), key].join(","), value);
         },
@@ -199,13 +203,15 @@ describe("Origin Destination CSV Test", () => {
       trainrunService,
       timeLimit,
     );
+    // Perf.Opt.: this map is used to cache the keys and thus the JSON.stringify will not be called for each key request
+    const cachedKey = new Map<Vertex, string>();
 
-    const neighbors = computeNeighbors(edges);
+    const neighbors = computeNeighbors(edges, cachedKey);
     const vertices = topoSort(neighbors);
 
     const res = new Map<string, [number, number]>();
     nodes.forEach((origin) => {
-      computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
+      computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor, cachedKey).forEach(
         (value, key) => {
           res.set([origin.getId(), key].join(","), value);
         },
@@ -253,13 +259,15 @@ describe("Origin Destination CSV Test", () => {
       trainrunService,
       timeLimit,
     );
+    // Perf.Opt.: this map is used to cache the keys and thus the JSON.stringify will not be called for each key request
+    const cachedKey = new Map<Vertex, string>();
 
-    const neighbors = computeNeighbors(edges);
+    const neighbors = computeNeighbors(edges, cachedKey);
     const vertices = topoSort(neighbors);
 
     const res = new Map<string, [number, number]>();
     nodes.forEach((origin) => {
-      computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
+      computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor, cachedKey).forEach(
         (value, key) => {
           res.set([origin.getId(), key].join(","), value);
         },
@@ -286,7 +294,10 @@ describe("Origin Destination CSV Test", () => {
     const edges = [e1, e2, e3];
     const tsSuccessor = new Map<number, number>();
 
-    const neighbors = computeNeighbors(edges);
+    // Perf.Opt.: this map is used to cache the keys and thus the JSON.stringify will not be called for each key request
+    const cachedKey = new Map<Vertex, string>();
+
+    const neighbors = computeNeighbors(edges, cachedKey);
 
     // v4 has no outgoing edges.
     expect(neighbors).toHaveSize(3);
@@ -310,7 +321,7 @@ describe("Origin Destination CSV Test", () => {
       expect(v1Index).toBeLessThan(v2Index);
     });
 
-    const distances0 = computeShortestPaths(0, neighbors, topoVertices, tsSuccessor);
+    const distances0 = computeShortestPaths(0, neighbors, topoVertices, tsSuccessor, cachedKey);
 
     expect(distances0).toHaveSize(1);
     expect(distances0.get(1)).toEqual([15, 0]);
@@ -346,7 +357,10 @@ describe("Origin Destination CSV Test", () => {
     const edges = [e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11];
     const tsSuccessor = new Map<number, number>([[0, 1]]);
 
-    const neighbors = computeNeighbors(edges);
+    // Perf.Opt.: this map is used to cache the keys and thus the JSON.stringify will not be called for each key request
+    const cachedKey = new Map<Vertex, string>();
+
+    const neighbors = computeNeighbors(edges, cachedKey);
     expect(neighbors).toHaveSize(9);
     expect(neighbors.get(JSON.stringify(v1))).toHaveSize(1);
     expect(neighbors.get(JSON.stringify(v2))).toHaveSize(1);
@@ -370,16 +384,23 @@ describe("Origin Destination CSV Test", () => {
       expect(v1Index).toBeLessThan(v2Index);
     });
 
-    const distances0 = computeShortestPaths(0, neighbors, topoVertices, tsSuccessor);
+    // Perf.Opt.: this map is used to cache the keys and thus the JSON.stringify will not be called for each key request
+    const cachedKey2 = new Map<Vertex, string>();
+
+    const distances0 = computeShortestPaths(0, neighbors, topoVertices, tsSuccessor, cachedKey2);
     expect(distances0).toHaveSize(2);
     expect(distances0.get(1)).toEqual([15, 0]);
     expect(distances0.get(2)).toEqual([30, 0]);
 
-    const distances1 = computeShortestPaths(1, neighbors, topoVertices, tsSuccessor);
+    // Perf.Opt.: this map is used to cache the keys and thus the JSON.stringify will not be called for each key request
+    const cachedKey3 = new Map<Vertex, string>();
+    const distances1 = computeShortestPaths(1, neighbors, topoVertices, tsSuccessor, cachedKey3);
     expect(distances1).toHaveSize(1);
     expect(distances1.get(2)).toEqual([14, 0]);
 
-    const distances3 = computeShortestPaths(3, neighbors, topoVertices, tsSuccessor);
+    // Perf.Opt.: this map is used to cache the keys and thus the JSON.stringify will not be called for each key request
+    const cachedKey4 = new Map<Vertex, string>();
+    const distances3 = computeShortestPaths(3, neighbors, topoVertices, tsSuccessor, cachedKey4);
     expect(distances3).toHaveSize(2);
     expect(distances3.get(1)).toEqual([10, 0]);
     // connection
@@ -406,12 +427,15 @@ describe("Origin Destination CSV Test", () => {
       timeLimit,
     );
 
-    const neighbors = computeNeighbors(edges);
+    // Perf.Opt.: this map is used to cache the keys and thus the JSON.stringify will not be called for each key request
+    const cachedKey = new Map<Vertex, string>();
+
+    const neighbors = computeNeighbors(edges, cachedKey);
     const vertices = topoSort(neighbors);
 
     const res = new Map<string, [number, number]>();
     nodes.forEach((origin) => {
-      computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
+      computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor, cachedKey).forEach(
         (value, key) => {
           res.set([origin.getId(), key].join(","), value);
         },
