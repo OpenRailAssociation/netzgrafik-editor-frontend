@@ -335,11 +335,8 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     return this.contentHeight * window.devicePixelRatio - 40;
   }
 
-  disableSectionView() {
-    console.log("disableSectionView", this.getVariantIsWritable());
-    //if (!this.getVariantIsWritable()) {
-    this.signalIsBeingEdited(undefined);
-    //}
+  disableSectionView() { 
+    this.signalIsBeingEdited(undefined); 
   }
 
   scrollFirst(event: MouseEvent) {
