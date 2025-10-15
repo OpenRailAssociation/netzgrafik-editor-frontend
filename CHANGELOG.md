@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.10.0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.9.29...netzgrafik-frontend-v2.10.0) (2025-10-15)
+
+
+### Features
+
+* display origin-destination matrix ([403b23b](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/403b23bf2c862444e7ad7c8e17fd3f94a9a4a97a))
+* display origin-destination matrix ([09a43cd](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/09a43cdfc96038d88027aa74a8479886d3f4c25b))
+
+
+### Bug Fixes
+
+* add missing event emitter to node service when duplicating node ([d855e65](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/d855e6510d982775f001fb555cd54afc51777c34))
+* Bug `saveSvgAsPng` exports incorrectly when Windows display scaling ≠ 100% fixed ([#563](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/563)) ([6b0dfe8](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/6b0dfe8dac3823389defe31b31afed48300bfddd))
+* Firefox rendering issue fixed – styling slightly changed ([#548](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/548)) ([d939b84](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/d939b84409fb6410f34da2227812aa8810f61605))
+* Highlight entire trainrun when hovering a trainrun section line ([#534](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/534)) ([7785dea](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/7785dea05cc4781eca7cd091045ea2ccd5908a44))
+* improve guard initializeWithCurrentNote when note is not yet available ([37a8852](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/37a8852d77562f2dd585717ee6f5b487f9ef9e9d))
+* Incorrect Handling of One-Way Train Runs in Track Data Assignment ([#518](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/518)) ([844d351](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/844d351262c95d4d6cc1d072708b1edae2dabc4b))
+* Resource deletion when node gets deleted ([#523](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/523)) ([5d15e60](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/5d15e608ca88741635e0a0de3abbd8ccbd0d79b1))
+* Roadmap link ([#512](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/512)) ([27e98ea](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/27e98eac923502f66dfd094c0c03e9febc8a31b8))
+* update some npm packages  ([#511](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/511)) ([b5caa7d](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/b5caa7d444613522d63139a753a6c3c704168c90))
+
 ## [2.9.29](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.9.28...netzgrafik-frontend-v2.9.29) (2025-05-13)
 
 ### Bug Fixes
