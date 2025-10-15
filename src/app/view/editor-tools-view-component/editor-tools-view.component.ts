@@ -465,7 +465,7 @@ export class EditorToolsViewComponent {
     const boundingBox = this.nodeService.getNetzgrafikBoundingBox();
     const param = {
       encoderOptions: 1.0,
-      scale: 2.0,
+      scale: 1.0,
       left: boundingBox.minCoordX - 2.0 * RASTERING_BASIC_GRID_SIZE,
       top: boundingBox.minCoordY - 2.0 * RASTERING_BASIC_GRID_SIZE,
       width: boundingBox.maxCoordX - boundingBox.minCoordX + 4.0 * RASTERING_BASIC_GRID_SIZE,
