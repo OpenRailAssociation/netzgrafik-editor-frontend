@@ -336,9 +336,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   }
 
   disableSectionView() {
-    if (!this.getVariantIsWritable()) {
-      this.signalIsBeingEdited(undefined);
-    }
+    this.signalIsBeingEdited(undefined);
   }
 
   scrollFirst(event: MouseEvent) {
