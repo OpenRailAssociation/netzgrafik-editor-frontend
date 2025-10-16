@@ -156,6 +156,17 @@ export class TrainrunSectionViewObject {
     d.getPath().forEach((p) => {
       key += p.toString();
     });
+
+    // Include source and target node positions to detect when they move
+    key += "_SRC_" + d.getSourceNode().getPositionX() + "_" + d.getSourceNode().getPositionY();
+    key += "_TRG_" + d.getTargetNode().getPositionX() + "_" + d.getTargetNode().getPositionY();
+
+    // Disable cache for collapsed chains to ensure proper recalculation
+    // TODO: Optimize by including only relevant node positions
+    if (d.getSourceNode().getIsCollapsed() || d.getTargetNode().getIsCollapsed()) {
+      key += "_NOCACHE_" + Date.now();
+    }
+
     return key;
   }
 }

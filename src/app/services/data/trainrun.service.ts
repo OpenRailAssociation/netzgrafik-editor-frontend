@@ -17,7 +17,11 @@ import {DataService} from "./data.service";
 import {Node} from "../../models/node.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {GeneralViewFunctions} from "../../view/util/generalViewFunctions";
-import {NonStopTrainrunIterator, TrainrunIterator} from "../util/trainrun.iterator";
+import {
+  NonStopTrainrunIterator,
+  TrainrunIterator,
+  ExpandedTrainrunIterator,
+} from "../util/trainrun.iterator";
 import {LogService} from "../../logger/log.service";
 import {LabelService} from "./label.service";
 import {FilterService} from "../ui/filter.service";
@@ -758,6 +762,10 @@ export class TrainrunService {
 
   public getNonStopIterator(node: Node, trainrunSection: TrainrunSection) {
     return new NonStopTrainrunIterator(this.logService, node, trainrunSection);
+  }
+
+  public getExpandedIterator(node: Node, trainrunSection: TrainrunSection) {
+    return new ExpandedTrainrunIterator(this.logService, node, trainrunSection);
   }
 
   // For each trainrun, get iterator from the smallest consecutiveTime.
