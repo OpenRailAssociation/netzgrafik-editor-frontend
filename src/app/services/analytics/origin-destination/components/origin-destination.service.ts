@@ -56,7 +56,7 @@ export class OriginDestinationService {
     cachedKey: Map<Vertex, string>,
     res: Map<string, [number, number]>,
   ): Promise<void> {
-    const numThreads = 1;
+    const numThreads = 4;
     const chunkSize = Math.ceil(odNodes.length / numThreads);
     const allChunks: [number, number][] = [];
 
