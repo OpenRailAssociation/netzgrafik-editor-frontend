@@ -492,15 +492,6 @@ export class NodeService implements OnDestroy {
       node.getId(),
       false,
     );
-    // TODO: not working
-    // propagate times in target to source direction until a stop node
-    // to fix potential non-symmetrical times
-    this.trainrunSectionService.propagateTimes(
-      sections.trainrunSection2.getId(),
-      false,
-      node.getId(),
-      true,
-    );
 
     TransitionValidator.validateTransition(node, transitionId);
     this.transitionsUpdated();

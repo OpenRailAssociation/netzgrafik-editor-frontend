@@ -116,6 +116,14 @@
           "target-departure-not-reacheable": {
             "title": "Avertissement de départ à destination",
             "description": "L'heure de départ à destination ne peut être atteinte"
+          },
+          "source-departure-not-reacheable-asymmetry": {
+            "title": "Avertissement de départ à l'origine",
+            "description": "L'heure de départ à l'origine ne peut être atteinte à cause de temps de parcours asymétriques"
+          },
+          "target-departure-not-reacheable-asymmetry": {
+            "title": "Avertissement de départ à destination",
+            "description": "L'heure de départ à destination ne peut être atteinte à cause de temps de parcours asymétriques"
           }
         }
       }

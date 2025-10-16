@@ -116,6 +116,14 @@
           "target-departure-not-reacheable": {
             "title": "Ziel Abfahrt Warnung",
             "description": "Zielabfahrtszeit kann nicht erreicht werden"
+          },
+          "source-departure-not-reacheable-asymmetry": {
+            "title": "Quelle Abfahrt Warnung",
+            "description": "Quellabfahrtszeit kann nicht erreicht werden aufgrund asymmetrischer Reisezeiten"
+          },
+          "target-departure-not-reacheable-asymmetry": {
+            "title": "Ziel Abfahrt Warnung",
+            "description": "Zielabfahrtszeit kann nicht erreicht werden aufgrund asymmetrischer Reisezeiten"
           }
         }
       }

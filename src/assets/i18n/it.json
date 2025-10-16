@@ -116,6 +116,14 @@
           "target-departure-not-reacheable": {
             "title": "Target Departure Warning",
             "description": "Target departure time cannot be reached"
+          },
+          "source-departure-not-reacheable-asymmetry": {
+            "title": "Source Departure Warning",
+            "description": "Source departure time cannot be reached due to asymmetric travel times"
+          },
+          "target-departure-not-reacheable-asymmetry": {
+            "title": "Target Departure Warning",
+            "description": "Target departure time cannot be reached due to asymmetric travel times"
           }
         }
       }
