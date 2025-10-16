@@ -1472,20 +1472,13 @@ export class TrainrunSectionService implements OnDestroy {
 
   /**
    * Groups consecutive TrainrunSections that have collapsed nodes between them
-   * into chains with start and end nodes. Each chain starts and ends with a non-collapsed node.
+   * into chains. Each chain starts and ends with a non-collapsed node.
+   * Start and end nodes can be accessed via: sections[0].getSourceNode() and sections[sections.length - 1].getTargetNode()
    * @param trainrunSections List of TrainrunSections to group
-   * @returns Array of section groups with start/end nodes
+   * @returns Array of section chains
    */
-  groupTrainrunSectionsIntoChains(trainrunSections: TrainrunSection[]): Array<{
-    sections: TrainrunSection[];
-    startNode: Node;
-    endNode: Node;
-  }> {
-    const groups: Array<{
-      sections: TrainrunSection[];
-      startNode: Node;
-      endNode: Node;
-    }> = [];
+  groupTrainrunSectionsIntoChains(trainrunSections: TrainrunSection[]): TrainrunSection[][] {
+    const groups: TrainrunSection[][] = [];
     const visitedSections = new Set<number>();
 
     trainrunSections.forEach((section) => {
@@ -1493,46 +1486,31 @@ export class TrainrunSectionService implements OnDestroy {
         return;
       }
 
-      // Start a new group from this section
+      // Build chain using TrainrunIterator to leverage existing graph traversal
       const chain: TrainrunSection[] = [];
-      let currentSection = section;
+      const startNode = section.getSourceNode();
+      const iterator = this.trainrunService.getIterator(startNode, section);
 
-      // Add the first section
-      chain.push(currentSection);
-      visitedSections.add(currentSection.getId());
+      // Traverse the trainrun and collect sections with collapsed intermediate nodes
+      while (iterator.hasNext()) {
+        const pair = iterator.next();
 
-      // Look for consecutive sections with collapsed intermediate nodes
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        const targetNode = this.nodeService.getNodeFromId(currentSection.getTargetNodeId());
-        if (!targetNode || !targetNode.getIsCollapsed()) {
-          break; // End of chain if target node is not collapsed
+        if (visitedSections.has(pair.trainrunSection.getId())) {
+          break; // Already processed this section
         }
 
-        // Find next section starting from this collapsed node
-        const nextSection = trainrunSections.find(
-          (ts) =>
-            ts.getSourceNodeId() === currentSection.getTargetNodeId() &&
-            ts.getTrainrunId() === currentSection.getTrainrunId() &&
-            !visitedSections.has(ts.getId()),
-        );
-        if (!nextSection) {
-          break; // No further section found, end of chain
+        chain.push(pair.trainrunSection);
+        visitedSections.add(pair.trainrunSection.getId());
+
+        // Stop if we reach a non-collapsed node (end of collapsed chain)
+        if (!pair.node.getIsCollapsed()) {
+          break;
         }
-        chain.push(nextSection);
-        visitedSections.add(nextSection.getId());
-        currentSection = nextSection;
       }
 
-      // Create group with start and end nodes
-      const startNode = this.nodeService.getNodeFromId(chain[0].getSourceNodeId());
-      const endNode = this.nodeService.getNodeFromId(chain[chain.length - 1].getTargetNodeId());
-
-      groups.push({
-        sections: chain,
-        startNode: startNode,
-        endNode: endNode,
-      });
+      if (chain.length > 0) {
+        groups.push(chain);
+      }
     });
 
     return groups;
