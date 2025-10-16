@@ -10,6 +10,7 @@ import {
   topoSort,
   Vertex,
 } from "src/app/view/util/origin-destination-graph";
+import { M } from "@angular/cdk/keycodes";
 
 // Computed values for an origin/destination pair.
 export type OriginDestination = {
@@ -48,6 +49,132 @@ export class OriginDestinationService {
     return selectedNodes.length > 0 ? selectedNodes : this.nodeService.getVisibleNodes();
   }
 
+
+  // Given a graph (adjacency list), and vertices in topological order, return the shortest paths (and connections)
+  // from a given node to other nodes.
+  async computeShortestPaths (
+    origin : Node,
+    neighbors: Map<string, [Vertex, number][]>,
+    vertices: Vertex[],
+    tsSuccessor: Map<number, number>,
+    cachedKey: Map<Vertex, string>,
+    finalRes : any
+  ): Promise<void>  {
+    const from = origin.getId();
+    const tsPredecessor = new Map<number, number>();
+    for (const [k, v] of tsSuccessor.entries()) {
+      tsPredecessor.set(v, k);
+    }
+    const res = new Map<number, [number, number]>();
+    const dist = new Map<string, [number, number]>();
+
+    let started = false;
+    vertices.forEach( (vertex) => {
+       
+      let key = cachedKey.get(vertex);
+      if (key === undefined) {
+        key = JSON.stringify(vertex);
+        cachedKey.set(vertex, key);
+      }
+ 
+      // First, look for our start node.
+      if (!started) {
+        if (from === vertex.nodeId && vertex.isDeparture === true && vertex.time === undefined) {
+          started = true;
+          dist.set(key, [0, 0]);
+        } else {
+          return;
+        }
+      }
+       
+      // Perf.Opt.: just cache the dist.get(key) access (is 3x used)
+      const cachedDistGetKey = dist.get(key);
+
+      // We found an end node.
+      if (
+        vertex.isDeparture === false &&
+        vertex.time === undefined &&
+        cachedDistGetKey !== undefined &&
+        vertex.nodeId !== from
+      ) {
+        res.set(vertex.nodeId, cachedDistGetKey);
+      }
+      const neighs = neighbors.get(key);
+      if (neighs === undefined || cachedDistGetKey === undefined) {
+        return;
+      }
+      // The shortest path from the start node to this vertex is a shortest path from the start node to a neighbor
+      // plus the weight of the edge connecting the neighbor to this vertex.
+      //neighs.forEach(([neighbor, weight]) => {
+      for (let idx=0;idx < neighs.length; idx++) {
+        const data = neighs[idx];
+        const neighbor = data[0];
+        const weight = data[1];
+        // Perf.Opt.: just cache the dist.get(key) access (is 2x used)
+        const distGetKey = dist.get(key);
+        const alt = distGetKey[0] + weight;
+
+        let neighborKey = cachedKey.get(neighbor);
+        if (neighborKey === undefined) {
+          neighborKey = JSON.stringify(neighbor);
+          cachedKey.set(neighbor, neighborKey);
+        }
+
+        const distNeighborKey = dist.get(neighborKey);
+        if (distNeighborKey === undefined || alt < distNeighborKey[0]) {
+          let connection = 0;
+          let successor = tsSuccessor;
+          if (vertex.trainrunId < 0) {
+            successor = tsPredecessor;
+          }
+          if (
+            vertex.trainrunId !== undefined &&
+            neighbor.trainrunId !== undefined &&
+            (vertex.trainrunId !== neighbor.trainrunId ||
+              (successor.get(vertex.trainrunSectionId) !== neighbor.trainrunSectionId &&
+                vertex.isDeparture === false))
+          ) {
+            connection = 1;
+          }
+          dist.set(neighborKey, [alt, distGetKey[1] + connection]);
+        }
+      };
+    });
+
+    for (const [key, value] of res.entries()) {
+      finalRes.set([origin.getId(), key].join(","), value);
+    }
+    return;
+  };
+
+  async runThread(
+    startEnd: [number,number],
+    odNodes: Node[],
+    neighbors: Map<string, [Vertex, number][]>,
+    vertices: Vertex[],
+    tsSuccessor: Map<number, number>,
+    cachedKey: Map<Vertex, string>,
+    res: Map<string, [number, number]>,
+  ) {
+    // console.log(`Start ${startEnd} at ${new Date().toISOString()}`);
+    const start = startEnd[0];
+    const end = startEnd[1];
+    const chunk = odNodes.slice(start, end);
+
+    const promises = chunk.map(origin =>
+      this.computeShortestPaths(
+        origin,
+        neighbors,
+        vertices,
+        tsSuccessor,
+        cachedKey,
+        res
+      )
+    );
+    await Promise.all(promises);
+    // console.log(`End ${startEnd} at ${new Date().toISOString()}`);
+  }
+
   async computeBatchShortestPaths(
     odNodes: Node[],
     neighbors: Map<string, [Vertex, number][]>,
@@ -56,7 +183,7 @@ export class OriginDestinationService {
     cachedKey: Map<Vertex, string>,
     res: Map<string, [number, number]>,
   ): Promise<void> {
-    const numThreads = 4;
+    const numThreads = 8;
     const chunkSize = Math.ceil(odNodes.length / numThreads);
     const allChunks: [number, number][] = [];
 
@@ -65,33 +192,20 @@ export class OriginDestinationService {
     }
 
     const threads: Promise<void>[] = [];
+ 
+    const tasks = allChunks.map( (chunk)=>{
+      this.runThread(
+        chunk,
+        odNodes,
+        neighbors,
+        vertices,
+        tsSuccessor,
+        cachedKey,
+        res
+      );
+    });
 
-    for (const [start, end] of allChunks) {
-      const chunk = odNodes.slice(start, end);
-
-      const thread = new Promise<void>((resolve) => {
-        for (const origin of chunk) {
-          const results = computeShortestPaths(
-            origin.getId(),
-            neighbors,
-            vertices,
-            tsSuccessor,
-            cachedKey,
-          );
-
-          results.forEach((value, key) => {
-            res.set([origin.getId(), key].join(","), value);
-          });
-        }
-
-        console.log("done:", start, end);
-        resolve();
-      });
-
-      threads.push(thread);
-    }
-
-    await Promise.all(threads);
+    await Promise.all(tasks);
   }
 
   /**
