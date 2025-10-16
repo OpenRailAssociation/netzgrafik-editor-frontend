@@ -92,7 +92,6 @@ export class OriginDestinationService {
     });
 
     const rows = [];
-    odNodes.sort((a, b) => a.getBetriebspunktName().localeCompare(b.getBetriebspunktName()));
     odNodes.forEach((origin) => {
       odNodes.forEach((destination) => {
         if (origin.getId() === destination.getId()) {
