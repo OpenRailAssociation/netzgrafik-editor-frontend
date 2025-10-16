@@ -48,6 +48,52 @@ export class OriginDestinationService {
     return selectedNodes.length > 0 ? selectedNodes : this.nodeService.getVisibleNodes();
   }
 
+  async computeBatchShortestPaths(
+    odNodes: Node[],
+    neighbors: Map<string, [Vertex, number][]>,
+    vertices: Vertex[],
+    tsSuccessor: Map<number, number>,
+    cachedKey: Map<Vertex, string>,
+    res: Map<string, [number, number]>,
+  ): Promise<void> {
+    const numThreads = 1;
+    const chunkSize = Math.ceil(odNodes.length / numThreads);
+    const allChunks: [number, number][] = [];
+
+    for (let i = 0; i < odNodes.length; i += chunkSize) {
+      allChunks.push([i, Math.min(i + chunkSize, odNodes.length)]);
+    }
+
+    const threads: Promise<void>[] = [];
+
+    for (const [start, end] of allChunks) {
+      const chunk = odNodes.slice(start, end);
+
+      const thread = new Promise<void>((resolve) => {
+        for (const origin of chunk) {
+          const results = computeShortestPaths(
+            origin.getId(),
+            neighbors,
+            vertices,
+            tsSuccessor,
+            cachedKey,
+          );
+
+          results.forEach((value, key) => {
+            res.set([origin.getId(), key].join(","), value);
+          });
+        }
+
+        console.log("done:", start, end);
+        resolve();
+      });
+
+      threads.push(thread);
+    }
+
+    await Promise.all(threads);
+  }
+
   /**
    * Compute travelTime, transfers, and totalCost for all origin/destination pairs.
    *
@@ -83,6 +129,8 @@ export class OriginDestinationService {
     const vertices = topoSort(neighbors);
     // In theory we could parallelize the pathfindings, but the overhead might be too big.
     const res = new Map<string, [number, number]>();
+    this.computeBatchShortestPaths(odNodes, neighbors, vertices, tsSuccessor, cachedKey, res);
+    /*
     odNodes.forEach((origin) => {
       computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor, cachedKey).forEach(
         (value, key) => {
@@ -90,6 +138,7 @@ export class OriginDestinationService {
         },
       );
     });
+    */
 
     const rows = [];
     odNodes.forEach((origin) => {
