@@ -95,6 +95,10 @@
             "title": "Source Arrival Warning",
             "description": "Source arrival time cannot be reached"
           },
+          "travel-times-not-equal": {
+            "title": "Travel Times not equal",
+            "description": "Travel times are not compatible with return trip time schedules"
+          },
           "travel-time-less-than-1": {
             "title": "Travel Time less than 1",
             "description": "Travel time must be greater than or equal to 1"

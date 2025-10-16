@@ -95,6 +95,10 @@
             "title": "Avertissement d'arrivée à l'origine",
             "description": "L'heure d'arrivée à l'origine ne peut être atteinte"
           },
+          "travel-times-not-equal": {
+            "title": "Temps de parcours non symétriques",
+            "description": "Le temps de parcours n'est pas compatible avec les horaires du trajet retour"
+          },
           "travel-time-less-than-1": {
             "title": "Temps de trajet inférieur à 1",
             "description": "Le temps de trajet doit être supérieur ou égal à 1"

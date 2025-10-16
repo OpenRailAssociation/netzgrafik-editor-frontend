@@ -95,6 +95,10 @@
             "title": "Quelle Ankunft Warnung",
             "description": "Quellankunftszeit kann nicht erreicht werden"
           },
+          "travel-times-not-equal": {
+            "title": "Reisezeiten nicht symmetrisch",
+            "description": "Reisezeiten sind nicht kompatibel mit Rückreise-Zeitplänen"
+          },
           "travel-time-less-than-1": {
             "title": "Reisezeit weniger als 1",
             "description": "Die Reisezeit muss größer oder gleich 1 sein."
