@@ -384,6 +384,31 @@ export class Node {
     return undefined;
   }
 
+  getPreviousTrainrunSection(trainrunSection: TrainrunSection): TrainrunSection {
+    let transition = this.getTransitions().find((trans: Transition) => {
+      const t = this.getPortOfTrainrunSection(trainrunSection.getId());
+      if (t === undefined) {
+        return false;
+      }
+      return trans.getPortId2() === t.getId();
+    });
+    if (transition !== undefined) {
+      return this.getPort(transition.getPortId1()).getTrainrunSection();
+    }
+    transition = this.getTransitions().find((trans: Transition) => {
+      const t = this.getPortOfTrainrunSection(trainrunSection.getId());
+      if (t === undefined) {
+        return false;
+      }
+      return trans.getPortId1() === t.getId();
+    });
+    if (transition !== undefined) {
+      return this.getPort(transition.getPortId2()).getTrainrunSection();
+    }
+
+    return undefined;
+  }
+
   isEndNode(trainrunSection: TrainrunSection): boolean {
     const port = this.getPortOfTrainrunSection(trainrunSection.getId());
     if (port === undefined) {

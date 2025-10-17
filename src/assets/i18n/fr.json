@@ -60,7 +60,7 @@
         "node": {
           "transit-modified": {
             "title": "Transition modifiée",
-            "description": "Les temps ne peuvent pas être ajustés, le verrou se trouve des deux côtés."
+            "description": "Les temps ne peuvent pas être ajustés, le temps au départ est verrouillé."
           }
         },
         "trainrunsection": {
@@ -95,6 +95,10 @@
             "title": "Avertissement d'arrivée à l'origine",
             "description": "L'heure d'arrivée à l'origine ne peut être atteinte"
           },
+          "travel-times-not-equal": {
+            "title": "Temps de parcours non symétriques",
+            "description": "Le temps de parcours n'est pas compatible avec les horaires du trajet retour"
+          },
           "travel-time-less-than-1": {
             "title": "Temps de trajet inférieur à 1",
             "description": "Le temps de trajet doit être supérieur ou égal à 1"
@@ -116,6 +120,14 @@
           "target-departure-not-reacheable": {
             "title": "Avertissement de départ à destination",
             "description": "L'heure de départ à destination ne peut être atteinte"
+          },
+          "source-departure-not-reacheable-asymmetry": {
+            "title": "Avertissement de départ à l'origine",
+            "description": "L'heure de départ à l'origine ne peut être atteinte à cause de temps de parcours asymétriques"
+          },
+          "target-departure-not-reacheable-asymmetry": {
+            "title": "Avertissement de départ à destination",
+            "description": "L'heure de départ à destination ne peut être atteinte à cause de temps de parcours asymétriques"
           }
         }
       }
@@ -266,6 +278,11 @@
           "position": "Position",
           "close": "Fermer"
         },
+        "symmetry-dialog": {
+          "apply-symmetry": "Appliquer la symétrie",
+          "cancel": "Annuler",
+          "selection": "Sélection de la symétrie"
+        },
         "trainrun-and-section-dialog": {
           "filterableLabels": "Labels filtrables",
           "trainrun-filter-tab": {
@@ -354,6 +371,8 @@
         "round-trips": "aller-retours",
         "one-ways": "allers simples",
         "display-direction-arrows": "Afficher les flèches de direction des trains",
+        "display-asymmetry-arrows": "Afficher les flèches d'asymétrie au niveau des noeuds des trains",
+        "display-backward-travel-times": "Afficher les temps de parcours retour (asymmétrie)",
         "times": "Temps",
         "decimal-displayed": "Nombre de décimales affichées",
         "display-arrival-departure-times": "Afficher les heures de départ et d'arrivée",
@@ -382,6 +401,10 @@
         "symmetry": "Symétrie",
         "show-direction": "Afficher les {$direction}",
         "hide-direction": "Masquer les {$direction}",
+        "show-asymmetric-trainruns": "Afficher les trains asymétriques",
+        "hide-asymmetric-trainruns": "Masquer les trains asymétriques",
+        "symmetric-short": "Sym.",
+        "asymmetric-short": "Asym.",
         "filterable-label-filter": {
           "no-labels-available": "Aucun label disponible",
           "or": "Ou",

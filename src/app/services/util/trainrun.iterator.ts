@@ -13,10 +13,10 @@ export class TrainrunIterator {
   protected currentElement: TrainrunSectionNodePair = null;
   protected pointerElement: TrainrunSectionNodePair = null;
 
-  private visitedNodes: TrainrunSectionNodePair[] = [];
+  protected visitedNodes: TrainrunSectionNodePair[] = [];
 
   constructor(
-    private logService: LogService,
+    protected logService: LogService,
     private startNode: Node,
     private startTrainrunSection: TrainrunSection,
   ) {
@@ -73,10 +73,61 @@ export class TrainrunIterator {
   }
 }
 
+export class BackwardTrainrunIterator extends TrainrunIterator {
+  public next(): TrainrunSectionNodePair {
+    const currentElement = Object.assign({}, this.pointerElement);
+    const trainrunSection = this.pointerElement.node.getPreviousTrainrunSection(
+      this.pointerElement.trainrunSection,
+    );
+
+    if (trainrunSection === undefined) {
+      this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
+      this.currentElement = currentElement;
+      return this.currentElement;
+    }
+
+    const node = this.pointerElement.node.getOppositeNode(trainrunSection);
+    this.pointerElement = new TrainrunSectionNodePair(node, trainrunSection);
+
+    if (
+      this.visitedNodes.find(
+        (element) =>
+          element.node.getId() === node.getId() &&
+          element.trainrunSection.getId() === trainrunSection.getId(),
+      ) !== undefined
+    ) {
+      // The trainrun has a loop -> early break the avoid unfinitiy iterating
+      this.currentElement = Object.assign({}, this.pointerElement);
+      this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
+      // log the issue
+      this.logService.error(
+        $localize`:@@app.services.util.trainrun-iteration.error.infinity-loop:Iterator has detected an infinity loop. The iteration terminated early!`,
+        new Error().stack,
+      );
+      return this.currentElement;
+    }
+    this.visitedNodes.push(this.currentElement);
+    this.currentElement = currentElement;
+    return this.currentElement;
+  }
+}
+
 export class NonStopTrainrunIterator extends TrainrunIterator {
   public next(): TrainrunSectionNodePair {
     if (!this.pointerElement.node.isNonStop(this.pointerElement.trainrunSection)) {
       // The trainrun has a stop and break the forward iteration
+      this.currentElement = Object.assign({}, this.pointerElement);
+      this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
+      return this.currentElement;
+    }
+    return super.next();
+  }
+}
+
+export class BackwardNonStopTrainrunIterator extends BackwardTrainrunIterator {
+  public next(): TrainrunSectionNodePair {
+    if (!this.pointerElement.node.isNonStop(this.pointerElement.trainrunSection)) {
+      // The trainrun has a stop and break the backward iteration
       this.currentElement = Object.assign({}, this.pointerElement);
       this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
       return this.currentElement;
