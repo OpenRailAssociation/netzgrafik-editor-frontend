@@ -546,26 +546,26 @@ export class TrainrunSectionService implements OnDestroy {
       let previousForwardPair = forwardSections[0];
       TrainrunSectionValidator.validateOneSection(previousForwardPair.trainrunSection);
       forwardSections.shift();
-      forwardSections.forEach((currentPair) => {
+      for (const currentPair of forwardSections) {
         if (currentPair.trainrunSection.getSourceDepartureLock()) {
-          return;
+          break; // Stop propagation when lock is encountered
         }
         this.propagateTimesSourceToTarget(previousForwardPair, currentPair, true);
         TrainrunSectionValidator.validateOneSection(currentPair.trainrunSection);
         previousForwardPair = currentPair;
-      });
+      }
 
       // Backward propagation: target to source
       // first backward section is propagated, but has no previous section, special case
       let previousBackwardPair: TrainrunSectionNodePair | null = null;
-      forwardSections.reverse().forEach((currentPair) => {
+      for (const currentPair of forwardSections.toReversed()) {
         if (currentPair.trainrunSection.getTargetDepartureLock()) {
-          return;
+          break; // Stop propagation when lock is encountered
         }
         this.propagateTimesTargetToSource(previousBackwardPair, currentPair, false);
         TrainrunSectionValidator.validateOneSection(currentPair.trainrunSection);
         previousBackwardPair = currentPair;
-      });
+      }
     } else {
       // Backward iteration: target to source direction
       const backwardIterator = nonStopIterator
@@ -583,26 +583,26 @@ export class TrainrunSectionService implements OnDestroy {
       let previousForwardPair = backwardSections[0];
       TrainrunSectionValidator.validateOneSection(previousForwardPair.trainrunSection);
       backwardSections.shift();
-      backwardSections.forEach((currentPair) => {
+      for (const currentPair of backwardSections) {
         if (currentPair.trainrunSection.getTargetDepartureLock()) {
-          return;
+          break; // Stop propagation when lock is encountered
         }
         this.propagateTimesTargetToSource(previousForwardPair, currentPair, true);
         TrainrunSectionValidator.validateOneSection(currentPair.trainrunSection);
         previousForwardPair = currentPair;
-      });
+      }
 
       // Backward propagation: source to target (in the context of backward iteration)
       // first backward section is propagated, but has no previous section, special case
       let previousBackwardPair: TrainrunSectionNodePair | null = null;
-      backwardSections.reverse().forEach((currentPair) => {
+      for (const currentPair of backwardSections.toReversed()) {
         if (currentPair.trainrunSection.getSourceDepartureLock()) {
-          return;
+          break; // Stop propagation when lock is encountered
         }
         this.propagateTimesSourceToTarget(previousBackwardPair, currentPair, false);
         TrainrunSectionValidator.validateOneSection(currentPair.trainrunSection);
         previousBackwardPair = currentPair;
-      });
+      }
     }
 
     if (startTrainrunSection !== undefined) {
