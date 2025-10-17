@@ -1190,11 +1190,11 @@ export class TrainrunSectionsView {
           if (arrowType === "BEGINNING_ARROW") {
             return d.trainrunSection.isSourceSymmetricOrTimesSymmetric()
               ? ""
-              : "M-1,-8 V0 H-10 L1,8 V0 H10 Z";
+              : "M-1,-6 V0 H-8 L1,6 V0 H8 Z";
           } else {
             return d.trainrunSection.isTargetSymmetricOrTimesSymmetric()
               ? ""
-              : "M-1,-8 V0 H-10 L1,8 V0 H10 Z";
+              : "M-1,-6 V0 H-8 L1,6 V0 H8 Z";
           }
         })
         .attr("transform", (d: TrainrunSectionViewObject) =>
