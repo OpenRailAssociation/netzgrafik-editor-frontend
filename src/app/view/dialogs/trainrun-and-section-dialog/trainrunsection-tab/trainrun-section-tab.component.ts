@@ -83,12 +83,12 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   private destroyed = new Subject<void>();
 
   public get isSymmetric(): boolean {
-    const sourceTrainrunSection = this.trainrunService.getSourceNonStopTrainrunSection(
+    const firstTrainrunSection = this.trainrunService.getFirstNonStopTrainrunSection(
       this.selectedTrainrunSection,
     );
     const iterator = this.trainrunService.getNonStopIterator(
-      sourceTrainrunSection.getSourceNode(),
-      sourceTrainrunSection,
+      firstTrainrunSection.getSourceNode(),
+      firstTrainrunSection,
     );
     while (iterator.hasNext()) {
       const nextPair = iterator.next();

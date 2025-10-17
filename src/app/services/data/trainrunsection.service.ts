@@ -911,12 +911,12 @@ export class TrainrunSectionService implements OnDestroy {
     precision = 0,
   ) {
     // Get all pairs [ [node(stop) --ts--] [node(non-stop) --ts--] [...] node(stop) ]
-    const sourceTrainrunSection =
-      this.trainrunService.getSourceNonStopTrainrunSection(trainrunSection);
+    const firstTrainrunSection =
+      this.trainrunService.getFirstNonStopTrainrunSection(trainrunSection);
 
     const iterator = this.trainrunService.getNonStopIterator(
-      sourceTrainrunSection.getSourceNode(),
-      sourceTrainrunSection,
+      firstTrainrunSection.getSourceNode(),
+      firstTrainrunSection,
     );
     const pairs: TrainrunSectionNodePair[] = [];
     const pairTimeStructures: Map<TrainrunSectionNodePair, LeftAndRightTimeStructure> = new Map();
