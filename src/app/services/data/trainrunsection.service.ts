@@ -33,7 +33,16 @@ export interface InformSelectedTrainrunClick {
   open: boolean;
 }
 
-export interface PartialLeftAndRightTimeStructure {
+export interface TimeStructure {
+  sourceDepartureTime: number;
+  travelTime: number;
+  targetArrivalTime: number;
+  targetDepartureTime: number;
+  backwardTravelTime: number;
+  sourceArrivalTime: number;
+}
+
+export interface PartialTimeStructure {
   departureTime: number;
   travelTime: number;
   arrivalTime: number;
@@ -910,7 +919,7 @@ export class TrainrunSectionService implements OnDestroy {
   }
 
   setTimeStructureToTrainrunSections(
-    chainTimeStructure: LeftAndRightTimeStructure,
+    chainLeftAndRightTimeStructure: LeftAndRightTimeStructure,
     updatedTrainrunSection: TrainrunSection,
     precision = 0,
   ) {
@@ -923,204 +932,110 @@ export class TrainrunSectionService implements OnDestroy {
       firstTrainrunSection,
     );
     const pairs: TrainrunSectionNodePair[] = [];
-    const pairTimeStructures: Map<TrainrunSectionNodePair, LeftAndRightTimeStructure> = new Map();
+    const pairTimeStructures: Map<TrainrunSectionNodePair, TimeStructure> = new Map();
     while (iterator.hasNext()) {
       const nextPair = iterator.next();
       pairs.push(nextPair);
       pairTimeStructures.set(nextPair, {
-        leftDepartureTime: null,
-        leftArrivalTime: null,
-        rightDepartureTime: null,
-        rightArrivalTime: null,
+        sourceDepartureTime: null,
         travelTime: null,
-        bottomTravelTime: null,
+        targetArrivalTime: null,
+        targetDepartureTime: null,
+        backwardTravelTime: null,
+        sourceArrivalTime: null,
       });
     }
+
+    // Get rid of left/right paradigm
+    const chainTimeStructure = this.getTimeStructureFromLeftAndRightTimeStructure(
+      TrainrunsectionHelper.isChainTargetRightOrBottom(
+        firstTrainrunSection,
+        iterator.current().trainrunSection,
+      ),
+      chainLeftAndRightTimeStructure,
+    );
 
     // Notes:
     // - travelTimeFactor: get the sum of the travel times of all the sections from the non-stop sections chain
     // and compare it to the total cumulative travel time to the end of the non-stop sections chain (from the start of the trainrun)
     // - backwardTravelTimeFactor: get the sum of the backward travel times of all the sections from the non-stop sections chain
     // and compare it to the total cumulative travel time to the end of the reversed non-stop sections chain (from the start of the reversed trainrun)
-    if (
-      TrainrunsectionHelper.isTargetRightOrBottomSectionsChain(
-        firstTrainrunSection,
-        iterator.current().trainrunSection,
-      )
-    ) {
-      // Left (source) --chain--> Right (target)
-      const totalCumulativeTravelTime =
-        this.trainrunService.getCumulativeTravelTime(updatedTrainrunSection);
-      const travelTimeFactor = chainTimeStructure.travelTime / totalCumulativeTravelTime;
-      const subTimeStructure: PartialLeftAndRightTimeStructure = {
-        departureTime:
-          TrainrunsectionHelper.getDefaultTimeStructure(chainTimeStructure).leftDepartureTime,
-        travelTime: null,
-        arrivalTime: null,
-      };
-      let summedTravelTime = 0;
-      pairs.forEach((pair) => {
-        const finalTimeStructure = pairTimeStructures.get(pair);
-        subTimeStructure.travelTime = TrainrunsectionHelper.getDistributedTravelTime(
-          chainTimeStructure.travelTime,
-          summedTravelTime,
-          travelTimeFactor,
-          pair.trainrunSection.getTravelTime(),
-          pair.node.isNonStop(pair.trainrunSection),
-          precision,
-        );
-        subTimeStructure.arrivalTime = TrainrunsectionHelper.getArrivalTime(
-          subTimeStructure,
-          precision,
-        );
-        if (TrainrunsectionHelper.isTargetRightOrBottom(pair.trainrunSection)) {
-          finalTimeStructure.leftDepartureTime = subTimeStructure.departureTime;
-          finalTimeStructure.travelTime = subTimeStructure.travelTime;
-          finalTimeStructure.rightArrivalTime = subTimeStructure.arrivalTime;
-        } else {
-          finalTimeStructure.rightDepartureTime = subTimeStructure.departureTime;
-          finalTimeStructure.bottomTravelTime = subTimeStructure.travelTime;
-          finalTimeStructure.leftArrivalTime = subTimeStructure.arrivalTime;
-        }
-        // next section departure inherits from the previous arrival
-        subTimeStructure.departureTime = subTimeStructure.arrivalTime;
-        summedTravelTime += subTimeStructure.travelTime;
-      });
 
-      subTimeStructure.departureTime =
-        TrainrunsectionHelper.getDefaultTimeStructure(chainTimeStructure).rightDepartureTime;
-      subTimeStructure.travelTime = null;
-      subTimeStructure.arrivalTime = null;
+    // Source to target
+    const totalCumulativeTravelTime =
+      this.trainrunService.getCumulativeTravelTime(updatedTrainrunSection);
+    const travelTimeFactor = chainTimeStructure.travelTime / totalCumulativeTravelTime;
+    const tempTimeStructure: PartialTimeStructure = {
+      departureTime: chainTimeStructure.sourceDepartureTime,
+      travelTime: null,
+      arrivalTime: null,
+    };
+    let summedTravelTime = 0;
+    pairs.forEach((pair) => {
+      const finalTimeStructure = pairTimeStructures.get(pair);
+      tempTimeStructure.travelTime = TrainrunsectionHelper.getDistributedTravelTime(
+        chainTimeStructure.travelTime,
+        summedTravelTime,
+        travelTimeFactor,
+        pair.trainrunSection.getTravelTime(),
+        pair.node.isNonStop(pair.trainrunSection),
+        precision,
+      );
+      tempTimeStructure.arrivalTime = TrainrunsectionHelper.getArrivalTime(
+        tempTimeStructure,
+        precision,
+      );
+      finalTimeStructure.sourceDepartureTime = tempTimeStructure.departureTime;
+      finalTimeStructure.travelTime = tempTimeStructure.travelTime;
+      finalTimeStructure.targetArrivalTime = tempTimeStructure.arrivalTime;
+      // next section departure inherits from the previous arrival
+      tempTimeStructure.departureTime = tempTimeStructure.arrivalTime;
+      summedTravelTime += tempTimeStructure.travelTime;
+    });
 
-      // Left (source) <--chain-- Right (target)
-      const backwardPairs = pairs.toReversed();
-      const totalCumulativeBackwardTravelTime =
-        this.trainrunService.getCumulativeBackwardTravelTime(backwardPairs[0].trainrunSection);
-      const backwardTravelTimeFactor =
-        chainTimeStructure.bottomTravelTime / totalCumulativeBackwardTravelTime;
-      let summedBackwardTravelTime = 0;
-      backwardPairs.forEach((pair) => {
-        const finalTimeStructure = pairTimeStructures.get(pair);
-        // check for opposite node stop instead since we iterate backward on a regular iterator
-        subTimeStructure.travelTime = TrainrunsectionHelper.getDistributedTravelTime(
-          chainTimeStructure.bottomTravelTime,
-          summedBackwardTravelTime,
-          backwardTravelTimeFactor,
-          pair.trainrunSection.getBackwardTravelTime(),
-          pair.node.getOppositeNode(pair.trainrunSection).isNonStop(pair.trainrunSection),
-          precision,
-        );
-        subTimeStructure.arrivalTime = TrainrunsectionHelper.getArrivalTime(
-          subTimeStructure,
-          precision,
-        );
-        if (TrainrunsectionHelper.isTargetRightOrBottom(pair.trainrunSection)) {
-          finalTimeStructure.rightDepartureTime = subTimeStructure.departureTime;
-          finalTimeStructure.bottomTravelTime = subTimeStructure.travelTime;
-          finalTimeStructure.leftArrivalTime = subTimeStructure.arrivalTime;
-        } else {
-          finalTimeStructure.leftDepartureTime = subTimeStructure.departureTime;
-          finalTimeStructure.travelTime = subTimeStructure.travelTime;
-          finalTimeStructure.rightArrivalTime = subTimeStructure.arrivalTime;
-        }
-        // next section inherits from the previous arrival
-        subTimeStructure.departureTime = subTimeStructure.arrivalTime;
-        summedBackwardTravelTime += subTimeStructure.travelTime;
-      });
-    } else {
-      // Left (target) <--chain-- Right (source)
-      const totalCumulativeTravelTime =
-        this.trainrunService.getCumulativeTravelTime(updatedTrainrunSection);
-      const travelTimeFactor = chainTimeStructure.bottomTravelTime / totalCumulativeTravelTime; //
-      const subTimeStructure: PartialLeftAndRightTimeStructure = {
-        departureTime:
-          TrainrunsectionHelper.getDefaultTimeStructure(chainTimeStructure).rightDepartureTime, //
-        travelTime: null,
-        arrivalTime: null,
-      };
-      let summedTravelTime = 0;
-      pairs.forEach((pair) => {
-        const finalTimeStructure = pairTimeStructures.get(pair);
-        subTimeStructure.travelTime = TrainrunsectionHelper.getDistributedTravelTime(
-          chainTimeStructure.bottomTravelTime, //
-          summedTravelTime,
-          travelTimeFactor,
-          pair.trainrunSection.getTravelTime(),
-          pair.node.isNonStop(pair.trainrunSection),
-          precision,
-        );
-        subTimeStructure.arrivalTime = TrainrunsectionHelper.getArrivalTime(
-          subTimeStructure,
-          precision,
-        );
-        if (TrainrunsectionHelper.isTargetRightOrBottom(pair.trainrunSection)) {
-          finalTimeStructure.leftDepartureTime = subTimeStructure.departureTime;
-          finalTimeStructure.travelTime = subTimeStructure.travelTime;
-          finalTimeStructure.rightArrivalTime = subTimeStructure.arrivalTime;
-        } else {
-          finalTimeStructure.rightDepartureTime = subTimeStructure.departureTime;
-          finalTimeStructure.bottomTravelTime = subTimeStructure.travelTime;
-          finalTimeStructure.leftArrivalTime = subTimeStructure.arrivalTime;
-        }
-        // next section departure inherits from the previous arrival
-        subTimeStructure.departureTime = subTimeStructure.arrivalTime;
-        summedTravelTime += subTimeStructure.travelTime;
-      });
-
-      subTimeStructure.departureTime =
-        TrainrunsectionHelper.getDefaultTimeStructure(chainTimeStructure).leftDepartureTime; //
-      subTimeStructure.travelTime = null;
-      subTimeStructure.arrivalTime = null;
-
-      // Left (target) --chain--> Right (source)
-      const backwardPairs = pairs.toReversed();
-      const totalCumulativeBackwardTravelTime =
-        this.trainrunService.getCumulativeBackwardTravelTime(backwardPairs[0].trainrunSection);
-      const backwardTravelTimeFactor =
-        chainTimeStructure.travelTime / totalCumulativeBackwardTravelTime; //
-      let summedBackwardTravelTime = 0;
-      backwardPairs.forEach((pair) => {
-        const finalTimeStructure = pairTimeStructures.get(pair);
-        // check for opposite node stop instead since we iterate backward on a regular iterator
-        subTimeStructure.travelTime = TrainrunsectionHelper.getDistributedTravelTime(
-          chainTimeStructure.travelTime, //
-          summedBackwardTravelTime,
-          backwardTravelTimeFactor,
-          pair.trainrunSection.getBackwardTravelTime(),
-          pair.node.getOppositeNode(pair.trainrunSection).isNonStop(pair.trainrunSection),
-          precision,
-        );
-        subTimeStructure.arrivalTime = TrainrunsectionHelper.getArrivalTime(
-          subTimeStructure,
-          precision,
-        );
-        if (TrainrunsectionHelper.isTargetRightOrBottom(pair.trainrunSection)) {
-          finalTimeStructure.rightDepartureTime = subTimeStructure.departureTime;
-          finalTimeStructure.bottomTravelTime = subTimeStructure.travelTime;
-          finalTimeStructure.leftArrivalTime = subTimeStructure.arrivalTime;
-        } else {
-          finalTimeStructure.leftDepartureTime = subTimeStructure.departureTime;
-          finalTimeStructure.travelTime = subTimeStructure.travelTime;
-          finalTimeStructure.rightArrivalTime = subTimeStructure.arrivalTime;
-        }
-        // next section inherits from the previous arrival
-        subTimeStructure.departureTime = subTimeStructure.arrivalTime;
-        summedBackwardTravelTime += subTimeStructure.travelTime;
-      });
-    }
+    // Target to source
+    const backwardPairs = pairs.toReversed();
+    const totalCumulativeBackwardTravelTime = this.trainrunService.getCumulativeBackwardTravelTime(
+      backwardPairs[0].trainrunSection,
+    );
+    const backwardTravelTimeFactor =
+      chainTimeStructure.backwardTravelTime / totalCumulativeBackwardTravelTime;
+    tempTimeStructure.departureTime = chainTimeStructure.targetDepartureTime;
+    let summedBackwardTravelTime = 0;
+    backwardPairs.forEach((pair) => {
+      const finalTimeStructure = pairTimeStructures.get(pair);
+      // check for opposite node stop instead since we iterate backward on a regular iterator
+      tempTimeStructure.travelTime = TrainrunsectionHelper.getDistributedTravelTime(
+        chainTimeStructure.backwardTravelTime,
+        summedBackwardTravelTime,
+        backwardTravelTimeFactor,
+        pair.trainrunSection.getBackwardTravelTime(),
+        pair.node.getOppositeNode(pair.trainrunSection).isNonStop(pair.trainrunSection),
+        precision,
+      );
+      tempTimeStructure.arrivalTime = TrainrunsectionHelper.getArrivalTime(
+        tempTimeStructure,
+        precision,
+      );
+      finalTimeStructure.targetDepartureTime = tempTimeStructure.departureTime;
+      finalTimeStructure.backwardTravelTime = tempTimeStructure.travelTime;
+      finalTimeStructure.sourceArrivalTime = tempTimeStructure.arrivalTime;
+      // next section inherits from the previous arrival
+      tempTimeStructure.departureTime = tempTimeStructure.arrivalTime;
+      summedBackwardTravelTime += tempTimeStructure.travelTime;
+    });
 
     // then when all time structures are filled, update all trainrun sections
     pairs.forEach((pair) => {
-      const rightIsTarget = TrainrunsectionHelper.isTargetRightOrBottom(pair.trainrunSection);
       const timeStructure = pairTimeStructures.get(pair);
       this.updateTrainrunSectionTime(
         pair.trainrunSection.getId(),
-        rightIsTarget ? timeStructure.leftArrivalTime : timeStructure.rightArrivalTime,
-        rightIsTarget ? timeStructure.leftDepartureTime : timeStructure.rightDepartureTime,
-        rightIsTarget ? timeStructure.rightArrivalTime : timeStructure.leftArrivalTime,
-        rightIsTarget ? timeStructure.rightDepartureTime : timeStructure.leftDepartureTime,
-        rightIsTarget ? timeStructure.travelTime : timeStructure.bottomTravelTime,
-        rightIsTarget ? timeStructure.bottomTravelTime : timeStructure.travelTime,
+        timeStructure.sourceArrivalTime,
+        timeStructure.sourceDepartureTime,
+        timeStructure.targetArrivalTime,
+        timeStructure.targetDepartureTime,
+        timeStructure.travelTime,
+        timeStructure.backwardTravelTime,
         false,
       );
     });
@@ -1707,5 +1622,31 @@ export class TrainrunSectionService implements OnDestroy {
       : previousPair.node.getTrainrunCategoryHaltezeit()[
           pair.trainrunSection.getTrainrun().getTrainrunCategory().fachCategory
         ].haltezeit;
+  }
+
+  private getTimeStructureFromLeftAndRightTimeStructure(
+    isTargetRightOrBottom: boolean,
+    leftAndRightTimeStructure: LeftAndRightTimeStructure,
+  ): TimeStructure {
+    return {
+      sourceDepartureTime: isTargetRightOrBottom
+        ? leftAndRightTimeStructure.leftDepartureTime
+        : leftAndRightTimeStructure.rightDepartureTime,
+      travelTime: isTargetRightOrBottom
+        ? leftAndRightTimeStructure.travelTime
+        : leftAndRightTimeStructure.bottomTravelTime,
+      targetArrivalTime: isTargetRightOrBottom
+        ? leftAndRightTimeStructure.rightArrivalTime
+        : leftAndRightTimeStructure.leftArrivalTime,
+      targetDepartureTime: isTargetRightOrBottom
+        ? leftAndRightTimeStructure.rightDepartureTime
+        : leftAndRightTimeStructure.leftDepartureTime,
+      backwardTravelTime: isTargetRightOrBottom
+        ? leftAndRightTimeStructure.bottomTravelTime
+        : leftAndRightTimeStructure.travelTime,
+      sourceArrivalTime: isTargetRightOrBottom
+        ? leftAndRightTimeStructure.leftArrivalTime
+        : leftAndRightTimeStructure.rightArrivalTime,
+    };
   }
 }

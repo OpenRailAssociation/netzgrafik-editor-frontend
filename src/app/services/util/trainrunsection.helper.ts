@@ -5,7 +5,7 @@ import {
   LeftAndRightLockStructure,
   LeftAndRightTimeStructure,
 } from "../../view/dialogs/trainrun-and-section-dialog/trainrunsection-tab/trainrun-section-tab.component";
-import {PartialLeftAndRightTimeStructure} from "../data/trainrunsection.service";
+import {PartialTimeStructure} from "../data/trainrunsection.service";
 import {MathUtils} from "../../utils/math";
 import {TrainrunSectionText} from "../../data-structures/technical.data.structures";
 import {TrainrunService} from "../data/trainrun.service";
@@ -93,7 +93,7 @@ export class TrainrunsectionHelper {
   }
 
   static getArrivalTime(
-    timeStructure: PartialLeftAndRightTimeStructure,
+    timeStructure: PartialTimeStructure,
     precision = TrainrunSectionService.TIME_PRECISION,
   ): number {
     return MathUtils.round(
@@ -269,30 +269,6 @@ export class TrainrunsectionHelper {
       default:
         return undefined;
     }
-  }
-
-  mapLeftAndRightTimes(
-    trainrunSection: TrainrunSection,
-    orderedNodes: Node[],
-    timeStructure: LeftAndRightTimeStructure,
-  ): LeftAndRightTimeStructure {
-    const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
-    const leftNode = GeneralViewFunctions.getLeftOrTopNode(
-      bothLastNonStopNodes.lastNonStopNode1,
-      bothLastNonStopNodes.lastNonStopNode2,
-    );
-    const localLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
-    if (leftNode.getId() !== localLeftNode.getId()) {
-      const mappedTimeStructure = TrainrunsectionHelper.getDefaultTimeStructure(timeStructure);
-      mappedTimeStructure.rightArrivalTime = timeStructure.leftArrivalTime;
-      mappedTimeStructure.leftArrivalTime = timeStructure.rightArrivalTime;
-      mappedTimeStructure.rightDepartureTime = timeStructure.leftDepartureTime;
-      mappedTimeStructure.leftDepartureTime = timeStructure.rightDepartureTime;
-      mappedTimeStructure.travelTime = timeStructure.bottomTravelTime;
-      mappedTimeStructure.bottomTravelTime = timeStructure.travelTime;
-      return mappedTimeStructure;
-    }
-    return timeStructure;
   }
 
   getLeftAndRightTimes(
@@ -503,7 +479,7 @@ export class TrainrunsectionHelper {
     return GeneralViewFunctions.getRightOrBottomNode(sourceNode, targetNode) === targetNode;
   }
 
-  static isTargetRightOrBottomSectionsChain(
+  static isChainTargetRightOrBottom(
     firstTrainrunSection: TrainrunSection,
     lastTrainrunSection: TrainrunSection,
   ): boolean {

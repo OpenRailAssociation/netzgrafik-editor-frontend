@@ -1050,14 +1050,10 @@ export class TrainrunSectionTimesService {
 
   private updateTrainrunSectionTime(
     trainrunSection: TrainrunSection = this.selectedTrainrunSection,
-    timeStructure: LeftAndRightTimeStructure = this.timeStructure,
+    leftAndRightTimeStructure: LeftAndRightTimeStructure = this.timeStructure,
   ) {
     this.trainrunSectionService.setTimeStructureToTrainrunSections(
-      this.trainrunSectionHelper.mapLeftAndRightTimes(
-        trainrunSection,
-        this.nodesOrdered,
-        timeStructure,
-      ),
+      leftAndRightTimeStructure,
       trainrunSection,
       this.filterService.getTimeDisplayPrecision(),
     );
