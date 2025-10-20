@@ -65,7 +65,7 @@ export const buildEdges = (
       console.log("tgt is not an arrival: ", tgt);
     }
     const departuresByTrainrun = verticesDepartureByTrainrunByNode.get(src.nodeId);
-    const srcKey = `["${src.trainrunId}","${src.trainrunSectionId}"]`;
+    const srcKey = `[${src.trainrunId},${src.trainrunSectionId}]`;
     if (departuresByTrainrun === undefined) {
       verticesDepartureByTrainrunByNode.set(
         src.nodeId,
@@ -80,7 +80,7 @@ export const buildEdges = (
       }
     }
     const arrivalsByTrainrun = verticesArrivalByTrainrunByNode.get(tgt.nodeId);
-    const tgtKey = `["${tgt.trainrunId}","${tgt.trainrunSectionId}"]`;
+    const tgtKey = `[${tgt.trainrunId},${tgt.trainrunSectionId}]`;
     if (arrivalsByTrainrun === undefined) {
       verticesArrivalByTrainrunByNode.set(tgt.nodeId, new Map<string, Vertex[]>([[tgtKey, [tgt]]]));
     } else {
