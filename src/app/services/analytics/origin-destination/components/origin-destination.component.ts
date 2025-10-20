@@ -1,8 +1,7 @@
-import {OriginDestination, OriginDestinationService} from "./origin-destination.service";
 import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import * as d3 from "d3";
-
 import {Subject, takeUntil} from "rxjs";
+import {OriginDestination, OriginDestinationService} from "./origin-destination.service";
 import {
   SVGMouseController,
   SVGMouseControllerObserver,
@@ -11,25 +10,16 @@ import {UiInteractionService, ViewboxProperties} from "src/app/services/ui/ui.in
 import {Vec2D} from "src/app/utils/vec2D";
 import {UndoService} from "src/app/services/data/undo.service";
 
-// Fields that can be used for the color scale and display text.
 type FieldName = "totalCost" | "travelTime" | "transfers";
-// Palettes that can be used for the color scale.
 type ColorSetName = "red" | "blue" | "orange" | "gray";
 
-/**
- * Component to display the origin-destination matrix.
- * Initialization (DOM scaffold, axes, controller) is separated
- * from updates (cell content, colors, text).
- * It also provides options to change the color scale and display field.
- * The component is initialized with data from the OriginDestinationService.
- */
 @Component({
   selector: "sbb-origin-destination",
   templateUrl: "./origin-destination.component.html",
   styleUrls: ["./origin-destination.component.scss"],
 })
 export class OriginDestinationComponent implements OnInit, OnDestroy {
-  @ViewChild("div") divRef: ElementRef;
+  @ViewChild("div") divRef!: ElementRef;
 
   private readonly destroyed$ = new Subject<void>();
 
@@ -42,68 +32,33 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   private matrixData: OriginDestination[] = [];
   private nodeNames: {shortName: string; fullName: string}[] = [];
 
-  private colorScale: d3.ScaleLinear<string, string>;
-  private controller: SVGMouseController;
-
-  // Field used for the color scale.
   colorBy: FieldName = "totalCost";
-  // Field used to display the value in the cell.
   displayBy: FieldName = "totalCost";
-  // Palette used for the color scale.
   colorSetName: ColorSetName = "red";
 
-  private cellSize: number = 30;
+  // rendering
+  private zoomFactor = 1;
+  private cellSize = 1;
+  private offsetX = 1;
+  private offsetY = 1;
+  private cellSizeOrg = 64;
+  private offsetXOrg = 160;
+  private offsetYOrg = 160;
+  private canvas!: HTMLCanvasElement;
+  private ctx!: CanvasRenderingContext2D;
+  private tooltip!: any; // d3 Selection simplified to any to avoid signature issues
 
-  // avoid multiple dom access / creating (share)
-  private tooltip: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-
-  // cached selections for updates
-  private svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>;
-  private graphContentGroup: d3.Selection<SVGGElement, unknown, HTMLElement, any>;
-  private xScale: d3.ScaleBand<string>;
-  private yScale: d3.ScaleBand<string>;
-
-  private extractNumericODValues(odList: OriginDestination[], field: FieldName): any {
-    // This call avoids out-of-memory issue for very big netzgrafik.
-    let minValue = undefined;
-    let maxValue = undefined;
-    odList
-      .filter((od) => od["found"])
-      .map((od) => {
-        const v = od[field];
-        if (minValue !== undefined) {
-          if (v < minValue) {
-            minValue = v;
-          } else {
-            if (v > maxValue) {
-              maxValue = v;
-            }
-          }
-        } else {
-          minValue = v;
-          maxValue = minValue;
-        }
-      });
-    if (minValue === undefined) {
-      return {
-        minValue: 0,
-        maxValue: 1,
-      };
-    }
-    return {
-      minValue: minValue,
-      maxValue: maxValue,
-    };
-  }
+  // controller
+  private controller!: SVGMouseController;
+  private currentViewbox: ViewboxProperties | null = null;
 
   ngOnInit(): void {
-    // create tooltip (only once)
     this.createTooltip();
 
-    // compute matrix data (expensive) once
-    this.matrixData = this.originDestinationService.originDestinationData();
+    // load data
+    this.matrixData = this.originDestinationService.originDestinationData() ?? [];
 
-    // Add diagonal entries so we can mouseover diagonal cells
+    // add diagonal entries to ensure diagonal exists
     const origins = this.matrixData.map((d) => d.origin);
     const destinations = this.matrixData.map((d) => d.destination);
     const uniqueOriginsDestinations = [...new Set([...origins, ...destinations])];
@@ -117,37 +72,45 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     }));
     this.matrixData = [...this.matrixData, ...diagonalData];
 
-    // compute nodes and nodeNames once
-    const nodes = this.originDestinationService.getODOutputNodes();
-    this.nodeNames = nodes.map((node) => ({
+    // node names
+    const nodes = this.originDestinationService.getODOutputNodes() ?? [];
+    this.nodeNames = nodes.map((node: any) => ({
       shortName: node.getBetriebspunktName(),
       fullName: node.getFullName(),
     }));
 
-    // initialize DOM scaffold, axes and controller (only once)
-    this.initView();
+    this.initCanvasView();
+    this.drawCanvasMatrix();
 
-    // initial population of cells (and color scale)
-    this.updateView();
-
-    // wire zoom observables
+    // wire zoom observables (controller created in initCanvasView)
     this.uiInteractionService.zoomInObservable
       .pipe(takeUntil(this.destroyed$))
-      .subscribe((zoomCenter: Vec2D) => this.controller.zoomIn(zoomCenter));
-
+      .subscribe((zoomCenter: Vec2D) => this.controller?.zoomIn(zoomCenter));
     this.uiInteractionService.zoomOutObservable
       .pipe(takeUntil(this.destroyed$))
-      .subscribe((zoomCenter: Vec2D) => this.controller.zoomOut(zoomCenter));
-
+      .subscribe((zoomCenter: Vec2D) => this.controller?.zoomOut(zoomCenter));
     this.uiInteractionService.zoomResetObservable
       .pipe(takeUntil(this.destroyed$))
-      .subscribe((zoomCenter: Vec2D) => this.controller.zoomReset(zoomCenter));
+      .subscribe((zoomCenter: Vec2D) => this.controller?.zoomReset(zoomCenter));
+  }
+
+  ngOnDestroy(): void {
+    this.destroyed$.next();
+    this.destroyed$.complete();
+    try {
+      d3.select("#main-origin-destination-canvas").remove();
+      this.tooltip?.remove();
+      d3.select("#main-origin-destination-container").remove();
+    } catch {
+      // ignore
+    }
   }
 
   private createTooltip(): void {
-    // Ensure we don't create multiple tooltips
     const root = d3.select("#main-origin-destination-container-root");
-    const existing = root.select<HTMLDivElement>(".tooltip");
+    if (root.empty()) return;
+
+    const existing = root.select(".tooltip");
     if (!existing.empty()) {
       this.tooltip = existing as any;
       return;
@@ -160,90 +123,55 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       .style("position", "absolute")
       .style("background-color", "white")
       .style("border", "solid")
-      .style("border-width", "2px")
-      .style("border-radius", "5px")
-      .style("padding", "5px")
+      .style("border-width", "1px")
+      .style("border-radius", "4px")
+      .style("padding", "6px")
       .style("user-select", "none")
       .style("pointer-events", "none");
   }
 
-  /**
-   * initView
-   * - creates svg, axes, scales, container group and mouse-controller
-   * - does NOT create cells content (that is done by updateView)
-   */
-  private initView(): void {
-    const width = this.cellSize * this.nodeNames.length;
-    const height = this.cellSize * this.nodeNames.length;
+  private initCanvasView(): void {
+    const zf = this.zoomFactor / (1 + 0.1 * Math.sqrt(this.nodeNames.length));
+    this.cellSize = this.cellSizeOrg * zf;
+    this.offsetX = this.offsetXOrg;
+    this.offsetY = this.offsetYOrg;
+    const width = this.offsetX + this.cellSize * Math.max(1, this.nodeNames.length);
+    const height = this.offsetY + this.cellSize * Math.max(1, this.nodeNames.length);
 
-    // remove existing svg if any (defensive)
+    // cleanup
+    d3.select("#main-origin-destination-canvas").remove();
     d3.select("#main-origin-destination-container").remove();
 
-    this.svg = d3
-      .select("#main-origin-destination-container-root")
-      .append("svg")
-      .classed("main-origin-destination-container", true)
+    const root = d3.select("#main-origin-destination-container-root");
+    if (root.empty()) {
+      throw new Error("Container root #main-origin-destination-container-root not found");
+    }
+
+    const containerNode = root
+      .append("div")
       .attr("id", "main-origin-destination-container")
-      .attr("width", width)
-      .attr("height", height)
-      .attr("viewBox", `0 0 ${width} ${height}`);
+      .style("position", "relative")
+      .node() as HTMLElement;
 
-    const container = document.getElementById("main-origin-destination-container");
-    const containerHeight = container ? container.clientHeight : window.innerHeight;
-    const containerWidth = container ? container.clientWidth : window.innerWidth;
-    const offsetX = Math.max(0, (containerWidth - width) / 2);
-    const offsetY = Math.max(0, (containerHeight - height) / 2);
+    this.canvas = document.createElement("canvas");
+    this.canvas.id = "main-origin-destination-canvas";
+    this.canvas.width = width;
+    this.canvas.height = height;
+    this.canvas.style.display = "block";
+    this.canvas.style.width = `${width}px`;
+    this.canvas.style.height = `${height}px`;
+    this.canvas.style.touchAction = "none";
+    containerNode.appendChild(this.canvas);
 
-    this.graphContentGroup = this.svg
-      .append("g")
-      .attr("id", "zoom-group")
-      .attr("transform", `translate(${offsetX}, ${offsetY})`);
+    const ctx = this.canvas.getContext("2d");
+    if (!ctx) throw new Error("2D context not available");
+    this.ctx = ctx;
 
-    // Build X scales and axis:
-    this.xScale = d3
-      .scaleBand()
-      .range([0, width])
-      .domain(this.nodeNames.map((n) => n.shortName))
-      .padding(0.05);
+    // events
+    this.canvas.addEventListener("mousemove", this.handleCanvasMouseMove.bind(this));
+    this.canvas.addEventListener("mouseleave", () => this.tooltip?.style("opacity", 0));
 
-    this.graphContentGroup
-      .append("g")
-      .attr("id", "od-x-axis")
-      .style("pointer-events", "none")
-      .attr("transform", "translate(0, -20)")
-      .call(d3.axisBottom(this.xScale).tickSize(0))
-      .style("user-select", "none")
-      .call((g) =>
-        g
-          .selectAll("text")
-          .attr("data-origin-label", (d: string) => d)
-          .style("text-anchor", "start")
-          .attr("dx", "-0.8em")
-          .attr("dy", "0.4em")
-          .attr("transform", "rotate(-45)")
-          .style("user-select", "none"),
-      )
-      .select(".domain")
-      .remove();
-
-    // Build Y scales and axis:
-    this.yScale = d3
-      .scaleBand()
-      .range([height, 0])
-      .domain(this.nodeNames.map((n) => n.shortName).reverse())
-      .padding(0.05);
-
-    this.graphContentGroup
-      .append("g")
-      .attr("id", "od-y-axis")
-      .style("pointer-events", "none")
-      .call(d3.axisLeft(this.yScale).tickSize(0))
-      .style("user-select", "none")
-      .call((g) => g.selectAll("text").attr("data-destination-label", (d: string) => d))
-      .select(".domain")
-      .remove();
-
-    // create mouse controller (only once)
+    // create controller (existing API)
     this.controller = new SVGMouseController(
       "main-origin-destination-container",
       this.createSvgMouseControllerObserver(),
@@ -252,200 +180,142 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.controller.init(this.createInitialViewboxProperties(this.nodeNames.length));
   }
 
-  /**
-   * updateView
-   * - recomputes color scale based on current matrixData and colorBy
-   * - creates/updates cells (enter/update/exit) and texts
-   * - keeps axes and controller intact
-   */
-  private updateView(): void {
-    if (!this.graphContentGroup) {
+  private drawCanvasMatrix(): void {
+    if (!this.ctx || !this.canvas) return;
+
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    const shortNames = this.nodeNames.map((n) => n.shortName);
+    const nameIndex = new Map(shortNames.map((name, i) => [name, i]));
+
+    const numericValues = this.extractNumericODValues(this.matrixData, this.colorBy);
+    const colorScale = this.getColorScale(numericValues.minValue, numericValues.maxValue);
+
+    for (let i = 0, len = this.matrixData.length; i < len; i++) {
+      const d = this.matrixData[i];
+      const ox = nameIndex.get(d.origin);
+      const oy = nameIndex.get(d.destination);
+      if (ox === undefined || oy === undefined) continue;
+      const x = ox * this.cellSize + this.offsetX;
+      const y = oy * this.cellSize + this.offsetY;
+      const value = this.getCellValue(d, this.colorBy);
+      const color = value === undefined ? "#76767633" : colorScale(value);
+
+      ctx.fillStyle = color;
+      ctx.fillRect(x + 1, y + 1, this.cellSize - 2, this.cellSize - 2);
+    }
+
+    // optional cell text
+    if (this.cellSize >= 8) {
+      ctx.fillStyle = "white";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = `${Math.max(8, Math.floor(this.cellSize * 0.15 * this.zoomFactor))}px SBBWeb Roman`;
+
+      for (let i = 0, len = this.matrixData.length; i < len; i++) {
+        const d = this.matrixData[i];
+        const ox = nameIndex.get(d.origin);
+        const oy = nameIndex.get(d.destination);
+        if (ox === undefined || oy === undefined) continue;
+        const cx = ox * this.cellSize + this.offsetX + this.cellSize / 2;
+        const cy = oy * this.cellSize + this.offsetY + this.cellSize / 2;
+        const text = this.getCellText(d);
+        if (text) ctx.fillText(text, cx, cy);
+      }
+    }
+
+    // Y axis labels (left)
+    ctx.fillStyle = "#000";
+    ctx.font = `${Math.max(10, Math.floor(this.cellSize * 0.25 * this.zoomFactor))}px SBBWeb Roman`;
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    for (let i = 0; i < this.nodeNames.length; i++) {
+      const name = this.nodeNames[i].shortName;
+      const y = this.offsetY + i * this.cellSize + this.cellSize / 2;
+      ctx.fillText(name, this.offsetX - 8, y);
+    }
+
+    // X axis labels (top, rotated)
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    for (let i = 0; i < this.nodeNames.length; i++) {
+      const name = this.nodeNames[i].shortName;
+      const x = this.offsetX + i * this.cellSize + this.cellSize / 2;
+      ctx.save();
+      ctx.translate(x, this.offsetY - 12);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(name, 0, 0);
+      ctx.restore();
+    }
+  }
+
+  private handleCanvasMouseMove(e: MouseEvent): void {
+    if (!this.canvas || !this.tooltip) return;
+    const rect = this.canvas.getBoundingClientRect();
+    const xIndex = Math.floor((e.clientX - rect.left - this.offsetX) / this.cellSize);
+    const yIndex = Math.floor((e.clientY - rect.top - this.offsetY) / this.cellSize);
+
+    const origin = this.nodeNames[xIndex]?.shortName;
+    const destination = this.nodeNames[yIndex]?.shortName;
+    if (!origin || !destination) {
+      this.tooltip.style("opacity", 0);
       return;
     }
 
-    // compute color scale
-    const numericValues = this.extractNumericODValues(this.matrixData, this.colorBy);
-    this.colorScale = this.getColorScale(numericValues.minValue, numericValues.maxValue);
+    const d = this.matrixData.find((m) => m.origin === origin && m.destination === destination);
+    if (!d) {
+      this.tooltip.style("opacity", 0);
+      return;
+    }
 
-    // Prepare nodeNameMap and tooltip
-    const nodeNameMap = new Map(this.nodeNames.map((n) => [n.shortName, n.fullName]));
-    const tooltip = this.tooltip;
+    if (d.found) {
+      const nodeNameMap = new Map(this.nodeNames.map((n) => [n.shortName, n.fullName]));
+      const totalCostTranslation = $localize`:@@app.origin-destination.tooltip.total-cost:Total cost`;
+      const transfersTranslation = $localize`:@@app.origin-destination.tooltip.transfers:Transfers`;
+      const travelTimeTranslation = $localize`:@@app.origin-destination.tooltip.travel-time:Travel time`;
 
-    const totalCostTranslation = $localize`:@@app.origin-destination.tooltip.total-cost:Total cost`;
-    const transfersTranslation = $localize`:@@app.origin-destination.tooltip.transfers:Transfers`;
-    const travelTimeTranslation = $localize`:@@app.origin-destination.tooltip.travel-time:Travel time`;
-
-    // mouse handlers reference closure values
-    const mouseover = function (d: OriginDestination) {
-      if (d.found) {
-        tooltip.style("opacity", 1);
-        d3.select(this).style("stroke", "black").style("stroke-width", "2px").style("opacity", 1);
-      }
-      d3.selectAll(`[data-origin-label="${d.origin}"]`)
-        .style("font-weight", "bold")
-        .style("font-size", "12px");
-      d3.selectAll(`[data-destination-label="${d.destination}"]`)
-        .style("font-weight", "bold")
-        .style("font-size", "12px");
-    };
-
-    const mousemove = function (d: OriginDestination) {
-      let details = "";
-      if (d.found) {
-        details += "<br><hr> ";
-        details += `${totalCostTranslation}: ${d.totalCost}<br>`;
-        details += `${travelTimeTranslation}: ${d.travelTime}<br>`;
-        details += `${transfersTranslation}: ${d.transfers}`;
-      }
-      tooltip
+      this.tooltip
+        .style("opacity", 1)
+        .style("left", `${e.pageX + 10}px`)
+        .style("top", `${e.pageY + 10}px`)
         .html(
-          `${nodeNameMap.get(d.origin)} (<b>${d.origin}</b>) &#x2192;
-        ${nodeNameMap.get(d.destination)} (<b>${d.destination}</b>)
-        ${details}`,
-        )
-        .style("left", `${(d3.event as any).offsetX + 64}px`)
-        .style(
-          "top",
-          `${(d3.event as any).offsetY + 64 < 0 ? 0 : (d3.event as any).offsetY + 64}px`,
+          `${nodeNameMap.get(d.origin)} (<b>${d.origin}</b>) &#x2192; ${nodeNameMap.get(
+            d.destination,
+          )} (<b>${d.destination}</b>)<br><hr>
+          ${totalCostTranslation}: ${d.totalCost}<br>
+          ${travelTimeTranslation}: ${d.travelTime}<br>
+          ${transfersTranslation}: ${d.transfers}`,
         );
-    };
-
-    const mouseleave = function (_d: OriginDestination) {
-      tooltip.style("opacity", 0);
-      d3.select(this)
-        .style("stroke", "none")
-        .style("opacity", (d: OriginDestination) => (d.origin === d.destination ? 0 : 0.8));
-      d3.selectAll(`[data-origin-label="${_d.origin}"]`)
-        .style("font-weight", null)
-        .style("font-size", null);
-      d3.selectAll(`[data-destination-label="${_d.destination}"]`)
-        .style("font-weight", null)
-        .style("font-size", null);
-    };
-
-    // Build a color cache for performance
-    const colorCache = new Map<string, string>();
-    this.matrixData.forEach((d) => {
-      const key = `${d.origin}-${d.destination}`;
-      const value = this.getCellValue(d, this.colorBy);
-      colorCache.set(key, value === undefined ? "#76767633" : this.colorScale(value));
-    });
-
-    // DATA JOIN for cells (group elements)
-    const cells = this.graphContentGroup
-      .selectAll<SVGGElement, OriginDestination>("g.cell")
-      .data(this.matrixData, (d: any) => `${d.origin}-${d.destination}`);
-
-    // EXIT
-    cells.exit().remove();
-
-    // ENTER
-    const enterCells = cells.enter().append("g").classed("cell", true);
-    //.attr(
-    //  "transform",
-    //  (d) => `translate(${this.xScale(d.origin)}, ${this.yScale(d.destination)})`,
-    //);
-
-    const rectCellsGroup = enterCells.append("rect");
-    rectCellsGroup
-      .attr("rx", 4)
-      .attr("ry", 4)
-      .attr("x", (d) => this.xScale(d.origin))
-      .attr("y", (d) => this.yScale(d.destination))
-      .attr("width", this.xScale.bandwidth())
-      .attr("height", this.yScale.bandwidth())
-      .style("pointer-events", "auto")
-      .on("mouseover", mouseover)
-      .on("mousemove", mousemove)
-      .on("mouseleave", mouseleave);
-
-    const textCellGroup = enterCells.append("text");
-    textCellGroup
-      .attr("x", this.xScale.bandwidth() / 2)
-      .attr("y", this.yScale.bandwidth() / 2)
-      .style("text-anchor", "middle")
-      .style("alignment-baseline", "middle")
-      .style("font-size", "10px")
-      .style("pointer-events", "none")
-      .style("user-select", "none")
-      .style("fill", "white");
-
-    // UPDATE (both existing and newly entered)
-    const merged = enterCells.merge(cells as any);
-
-    //merged.attr(
-    //  "transform",
-    //  (d) => `translate(${this.xScale(d.origin)}, ${this.yScale(d.destination)})`,
-    //);
-
-    // Directly select rects and set fill from cache/scale
-    merged
-      .select("rect")
-      .style("fill", (d: OriginDestination) => {
-        const key = `${d.origin}-${d.destination}`;
-        return colorCache.get(key) ?? "#76767633";
-      })
-      .style("stroke-width", 4)
-      .style("stroke", "none")
-      .style("opacity", (d: OriginDestination) => (d.origin === d.destination ? 0 : 0.8));
-
-    // Update texts
-
-    merged
-      .select("text")
-      .attr("x", (d) => this.xScale(d.origin) + this.xScale.bandwidth() / 2)
-      .attr("y", (d) => this.yScale(d.destination) + this.yScale.bandwidth() / 2)
-      .text((d: OriginDestination) => this.getCellText(d));
+    } else {
+      this.tooltip.style("opacity", 0);
+    }
   }
 
-  private createSvgMouseControllerObserver(): SVGMouseControllerObserver {
-    return {
-      onEarlyReturnFromMousemove: () => false,
-      onGraphContainerMouseup: () => {},
-      zoomFactorChanged: (zoomFactor) => {
-        this.uiInteractionService.zoomFactorChanged(zoomFactor);
-      },
-      onViewboxChanged: (viewboxProperties) => {
-        const svg = d3.select("#main-origin-destination-container");
-        svg.attr(
-          "viewBox",
-          `${viewboxProperties.panZoomLeft} ${viewboxProperties.panZoomTop} ${viewboxProperties.panZoomWidth} ${viewboxProperties.panZoomHeight}`,
-        );
-      },
-      onStartMultiSelect: () => {},
-      updateMultiSelect: () => {},
-      onEndMultiSelect: () => {},
-      onScaleNetzgrafik: () => {},
-      onCtrlKeyChanged: () => {},
-    };
-  }
-
-  private createInitialViewboxProperties(numberOfNodes: number): ViewboxProperties {
-    const matrixSize = this.cellSize * numberOfNodes;
-    const container = document.getElementById("main-origin-destination-container");
-    const containerHeight = container ? container.clientHeight : window.innerHeight;
-    const containerWidth = container ? container.clientWidth : window.innerWidth;
-    const panZoomTop = Math.max(0, (containerHeight - matrixSize) / 2);
-    const panZoomLeft = Math.max(0, (containerWidth - matrixSize) / 2);
-    return {
-      zoomFactor: 100,
-      origWidth: matrixSize,
-      origHeight: matrixSize,
-      panZoomLeft: panZoomLeft,
-      panZoomTop: panZoomTop,
-      panZoomWidth: matrixSize,
-      panZoomHeight: matrixSize,
-      currentViewBox: null,
-    };
+  private extractNumericODValues(odList: OriginDestination[], field: FieldName): any {
+    let minValue: number | undefined = undefined;
+    let maxValue: number | undefined = undefined;
+    odList
+      .filter((od) => od["found"])
+      .forEach((od) => {
+        const v = od[field];
+        if (v === undefined || v === null) return;
+        if (minValue !== undefined) {
+          if (v < minValue) minValue = v;
+          if (v > maxValue!) maxValue = v;
+        } else {
+          minValue = v;
+          maxValue = v;
+        }
+      });
+    if (minValue === undefined) {
+      return {minValue: 0, maxValue: 1};
+    }
+    return {minValue, maxValue: maxValue!};
   }
 
   private getCellValue(d: OriginDestination, field: FieldName): number | undefined {
-    return d["found"] ? d[field] : undefined;
-  }
-
-  private getCellColor(d: OriginDestination): string {
-    const value = this.getCellValue(d, this.colorBy);
-    return value === undefined ? "#76767633" : this.colorScale(value);
+    return d["found"] ? (d as any)[field] : undefined;
   }
 
   private getCellText(d: OriginDestination): string {
@@ -453,15 +323,6 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     return value === undefined ? "" : value.toString();
   }
 
-  ngOnDestroy(): void {
-    this.destroyed$.next();
-    this.destroyed$.complete();
-    // optional cleanup
-    d3.select("#main-origin-destination-container").remove();
-    this.tooltip?.remove();
-  }
-
-  // Return the color scale based on the selected color set.
   getColorScale(min: number, max: number): d3.ScaleLinear<string, string> {
     const d1 = min + (max - min) * 0.33;
     const d2 = min + (max - min) * 0.66;
@@ -472,7 +333,6 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
           .domain([min, d1, d2, max])
           .range(["#2166AC", "#67A9CF", "#FDAE61", "#B2182B"])
           .clamp(true);
-
       case "gray":
         return d3
           .scaleLinear<string>()
@@ -500,21 +360,66 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Update palette and refresh cells without full re-init.
   onChangePalette(name: ColorSetName) {
     this.colorSetName = name;
-    this.updateView();
+    this.drawCanvasMatrix();
   }
 
-  // Update color field and refresh cells without full re-init.
   onChangeColorBy(field: FieldName) {
     this.colorBy = field;
-    this.updateView();
+    this.drawCanvasMatrix();
   }
 
-  // Update display field and refresh cells without full re-init.
   onChangeDisplayBy(field: FieldName) {
     this.displayBy = field;
-    this.updateView();
+    this.drawCanvasMatrix();
+  }
+
+  private createSvgMouseControllerObserver(): SVGMouseControllerObserver {
+    return {
+      onEarlyReturnFromMousemove: () => false,
+      onGraphContainerMouseup: () => {},
+      zoomFactorChanged: (zoomFactor) => {
+        this.zoomFactor = zoomFactor / 100;
+        this.uiInteractionService.zoomFactorChanged(zoomFactor);
+        this.drawCanvasMatrix();
+      },
+      onViewboxChanged: (viewboxProperties) => {
+        this.currentViewbox = viewboxProperties;
+        const scaleX = viewboxProperties.origWidth / viewboxProperties.panZoomWidth;
+        const scaleY = viewboxProperties.origHeight / viewboxProperties.panZoomHeight;
+        const scale = Math.min(scaleX, scaleY);
+        const tx = -viewboxProperties.panZoomLeft * scale;
+        const ty = -viewboxProperties.panZoomTop * scale;
+        if (this.canvas) {
+          this.canvas.style.transformOrigin = "0 0";
+          this.canvas.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+        }
+      },
+      onStartMultiSelect: () => {},
+      updateMultiSelect: () => {},
+      onEndMultiSelect: () => {},
+      onScaleNetzgrafik: () => {},
+      onCtrlKeyChanged: () => {},
+    };
+  }
+
+  private createInitialViewboxProperties(numberOfNodes: number): ViewboxProperties {
+    const matrixSize = this.cellSize * numberOfNodes;
+    const container = document.getElementById("main-origin-destination-container");
+    const containerHeight = container ? container.clientHeight : window.innerHeight;
+    const containerWidth = container ? container.clientWidth : window.innerWidth;
+    const panZoomTop = Math.max(0, (containerHeight - matrixSize) / 2);
+    const panZoomLeft = Math.max(0, (containerWidth - matrixSize) / 2);
+    return {
+      zoomFactor: 100,
+      origWidth: matrixSize,
+      origHeight: matrixSize,
+      panZoomLeft,
+      panZoomTop,
+      panZoomWidth: matrixSize,
+      panZoomHeight: matrixSize,
+      currentViewBox: null,
+    };
   }
 }
