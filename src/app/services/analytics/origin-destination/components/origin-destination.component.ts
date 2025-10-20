@@ -253,8 +253,6 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   private handleCanvasMouseMove(e: MouseEvent): void {
     if (!this.canvas || !this.tooltip) return;
 
-
-
     const rect = this.canvas.getBoundingClientRect();
     const zf = this.zoomFactor;
     const xIndex = Math.floor((e.clientX / zf - rect.left / zf - this.offsetX) / this.cellSize);
