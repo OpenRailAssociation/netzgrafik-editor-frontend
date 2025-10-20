@@ -131,6 +131,7 @@
         [disabled]="isStreckengrafikEditing() || isAnalytics() || !getVariantIsWritable()"
         (click)="onTopologieEditor()"
         [title]="'app.view.editor-menu.topology-editor-disabled' | translate"
+        data-testid="topology-editor-button"
       >
         <sbb-icon
           svgIcon="network-medium"

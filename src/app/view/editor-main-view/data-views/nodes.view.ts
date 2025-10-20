@@ -110,7 +110,8 @@ export class NodesView {
     const groupEnter2 = group
       .enter()
       .append(StaticDomTags.NODE_SVG)
-      .attr("class", StaticDomTags.NODE_ROOT_CONTAINER);
+      .attr("class", StaticDomTags.NODE_ROOT_CONTAINER)
+      .attr("data-testid", StaticDomTags.NODE_ROOT_CONTAINER);
 
     const groupEnter = groupEnter2
       .append(StaticDomTags.NODE_SVG)
@@ -486,6 +487,7 @@ export class NodesView {
     const added = groupEnter.append(StaticDomTags.NODE_LABELAREA_TEXT_SVG);
     added
       .attr("class", StaticDomTags.NODE_LABELAREA_TEXT_CLASS)
+      .attr("data-test", StaticDomTags.NODE_LABELAREA_TEXT_CLASS)
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("x", NODE_TEXT_LEFT_SPACING)
       .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - TEXT_SIZE / 2)

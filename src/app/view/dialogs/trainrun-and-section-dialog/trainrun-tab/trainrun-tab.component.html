@@ -14,6 +14,7 @@
       autocomplete="off"
       [(ngModel)]="trainrunTitle"
       (change)="onTrainrunTitleChanged()"
+      data-testid="train-run-title-input"
     />
   </sbb-form-field>
   <sbb-label>{{
@@ -42,6 +43,7 @@
           mode="ghost"
           [title]="trainrunFrequency.name"
           *ngFor="let trainrunFrequency of dataService.getTrainrunFrequencies()"
+          [attr.data-testid]="'frequency-' + trainrunFrequency.frequency"
         >
           {{ makeButtonLabel(trainrunFrequency.shortName) }}
         </button>

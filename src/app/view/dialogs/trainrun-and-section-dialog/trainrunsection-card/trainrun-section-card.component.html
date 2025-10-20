@@ -2,6 +2,7 @@
   <div
     [ngClass]="['OneWayCard', chosenCard === 'top' ? 'selected' : 'muted']"
     (click)="onTrainrunSectionCardClick('top')"
+    data-testid="one-way-top-card"
   >
     <div class="OneWayCardBetriebspunkt">
       <b>{{ startNode[1] }}</b> ({{ startNode[0] }})
@@ -37,6 +38,7 @@
   <div
     [ngClass]="['OneWayCard', chosenCard === 'bottom' ? 'selected' : 'muted']"
     (click)="onTrainrunSectionCardClick('bottom')"
+    data-testid="one-way-bottom-card"
   >
     <div class="OneWayCardBetriebspunkt">
       <b>{{ startNode[1] }}</b> ({{ startNode[0] }})
