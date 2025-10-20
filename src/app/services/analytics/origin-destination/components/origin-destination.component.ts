@@ -63,8 +63,36 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   private xScale: d3.ScaleBand<string>;
   private yScale: d3.ScaleBand<string>;
 
-  private extractNumericODValues(odList: OriginDestination[], field: FieldName): number[] {
-    return odList.filter((od) => od["found"]).map((od) => od[field]);
+  private extractNumericODValues(odList: OriginDestination[], field: FieldName): any {
+    let minValue = undefined;
+    let maxValue = undefined;
+    odList
+      .filter((od) => od["found"])
+      .map((od) => {
+        const v = od[field];
+        if (minValue !== undefined) {
+          if (v < minValue) {
+            minValue = v;
+          } else {
+            if (v > maxValue) {
+              maxValue = v;
+            }
+          }
+        } else {
+          minValue = v;
+          maxValue = minValue;
+        }
+      });
+    if (minValue === undefined) {
+      return {
+        minValue: 0,
+        maxValue: 1,
+      };
+    }
+    return {
+      minValue: minValue,
+      maxValue: maxValue,
+    };
   }
 
   ngOnInit(): void {
@@ -236,9 +264,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
     // compute color scale
     const numericValues = this.extractNumericODValues(this.matrixData, this.colorBy);
-    const maxValue = numericValues.length ? Math.max(...numericValues) : 1;
-    const minValue = numericValues.length ? Math.min(...numericValues) : 0;
-    this.colorScale = this.getColorScale(minValue, maxValue);
+    this.colorScale = this.getColorScale(numericValues.minValue, numericValues.maxValue);
 
     // Prepare nodeNameMap and tooltip
     const nodeNameMap = new Map(this.nodeNames.map((n) => [n.shortName, n.fullName]));
