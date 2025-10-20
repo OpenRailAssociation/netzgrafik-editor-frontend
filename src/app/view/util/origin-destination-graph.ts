@@ -121,6 +121,7 @@ export const buildEdges = (
 
 // Given edges, return the neighbors (with weights) for each vertex, if any (outgoing adjacency list).
 export const computeNeighbors = (edges: Edge[]): Map<Vertex, [Vertex, number][]> => {
+  // Note: we can use vertices as keys, as long as they are unique.
   const neighbors = new Map<Vertex, [Vertex, number][]>();
   edges.forEach((edge) => {
     const v1 = edge.v1;
@@ -163,12 +164,11 @@ export const computeShortestPaths = (
   const dist = new Map<Vertex, [number, number]>();
   let started = false;
   vertices.forEach((vertex) => {
-    const key = vertex;
     // First, look for our start node.
     if (!started) {
       if (from === vertex.nodeId && vertex.isDeparture === true && vertex.time === undefined) {
         started = true;
-        dist.set(key, [0, 0]);
+        dist.set(vertex, [0, 0]);
       } else {
         return;
       }
@@ -177,21 +177,20 @@ export const computeShortestPaths = (
     if (
       vertex.isDeparture === false &&
       vertex.time === undefined &&
-      dist.get(key) !== undefined &&
+      dist.get(vertex) !== undefined &&
       vertex.nodeId !== from
     ) {
-      res.set(vertex.nodeId, dist.get(key));
+      res.set(vertex.nodeId, dist.get(vertex));
     }
-    const neighs = neighbors.get(key);
-    if (neighs === undefined || dist.get(key) === undefined) {
+    const neighs = neighbors.get(vertex);
+    if (neighs === undefined || dist.get(vertex) === undefined) {
       return;
     }
     // The shortest path from the start node to this vertex is a shortest path from the start node to a neighbor
     // plus the weight of the edge connecting the neighbor to this vertex.
     neighs.forEach(([neighbor, weight]) => {
-      const alt = dist.get(key)[0] + weight;
-      const neighborKey = neighbor;
-      if (dist.get(neighborKey) === undefined || alt < dist.get(neighborKey)[0]) {
+      const alt = dist.get(vertex)[0] + weight;
+      if (dist.get(neighbor) === undefined || alt < dist.get(neighbor)[0]) {
         let connection = 0;
         let successor = tsSuccessor;
         if (vertex.trainrunId < 0) {
@@ -206,7 +205,7 @@ export const computeShortestPaths = (
         ) {
           connection = 1;
         }
-        dist.set(neighborKey, [alt, dist.get(key)[1] + connection]);
+        dist.set(neighbor, [alt, dist.get(vertex)[1] + connection]);
       }
     });
   });
