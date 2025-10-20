@@ -144,12 +144,15 @@ export const computeNeighbors = (
 
 // Given a graph (adjacency list), return the vertices in topological order.
 // Note: sorting vertices by time would be enough for our use case.
-export const topoSort = (graph: Map<string, [Vertex, number][]>): Vertex[] => {
+export const topoSort = (
+  graph: Map<string, [Vertex, number][]>,
+  cachedKey: Map<Vertex, string>,
+): Vertex[] => {
   const res = [];
   const visited = new Set<string>();
   for (const node of graph.keys()) {
     if (!visited.has(node)) {
-      depthFirstSearch(graph, JSON.parse(node) as Vertex, visited, res);
+      depthFirstSearch(graph, JSON.parse(node) as Vertex, visited, res, cachedKey);
     }
   }
   return res.reverse();
@@ -439,17 +442,50 @@ const depthFirstSearch = (
   root: Vertex,
   visited: Set<string>,
   res: Vertex[],
+  cachedKey: Map<Vertex, string>,
 ): void => {
-  const key = JSON.stringify(root);
-  visited.add(key);
-  const neighbors = graph.get(key);
-  if (neighbors !== undefined) {
-    neighbors.forEach(([neighbor, weight]) => {
-      if (!visited.has(JSON.stringify(neighbor))) {
-        depthFirstSearch(graph, neighbor, visited, res);
+  // Internal helpfer function to reduce the JSON key access complexity from cache
+  const getKey = (v: Vertex): string => {
+    let k = cachedKey.get(v);
+    if (k === undefined) {
+      k = JSON.stringify(v);
+      cachedKey.set(v, k);
+    }
+    return k;
+  };
+
+  const rootKey = getKey(root);
+
+  // mark the root
+  visited.add(rootKey);
+
+  // Stack frame for iterative DFS: vertex, its key, neighbors, next index
+  type Frame = {
+    vertex: Vertex;
+    key: string;
+    neighbors: [Vertex, number][] | undefined;
+    idx: number;
+  };
+  const stack: Frame[] = [{vertex: root, key: rootKey, neighbors: graph.get(rootKey), idx: 0}];
+
+  while (stack.length > 0) {
+    const frame = stack[stack.length - 1];
+
+    const nbrs = frame.neighbors;
+    if (nbrs !== undefined && frame.idx < nbrs.length) {
+      const [neighbor] = nbrs[frame.idx];
+      frame.idx += 1; // next time continue with the next neighbor
+
+      const neighborKey = getKey(neighbor);
+      if (!visited.has(neighborKey)) {
+        visited.add(neighborKey);
+        stack.push({vertex: neighbor, key: neighborKey, neighbors: graph.get(neighborKey), idx: 0});
       }
-    });
+      // if already visited, simply continue to the next neighbor
+    } else {
+      // all neighbors processed -> post-order like in the recursive original
+      res.push(frame.vertex);
+      stack.pop();
+    }
   }
-  // Note that the order is important for topological sorting.
-  res.push(root);
 };
