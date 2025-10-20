@@ -246,18 +246,18 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
         .style("font-size", null);
     };
 
-    // add the squares
-    graphContentGroup
+    // add the cells (squares+text) and use only one enter()
+    const cellsDomObj = graphContentGroup
       .selectAll()
       .data(this.matrixData)
       .enter()
+      .append("g")
+      .classed("cell", true)
+      .attr("transform", d => `translate(${x(d.origin)}, ${y(d.destination)})`);
+
+    // add the squares
+    cellsDomObj
       .append("rect")
-      .attr("x", (d: OriginDestination) => {
-        return x(d.origin);
-      })
-      .attr("y", function (d: OriginDestination) {
-        return y(d.destination);
-      })
       .attr("rx", 4)
       .attr("ry", 4)
       .attr("width", x.bandwidth())
@@ -274,18 +274,11 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       .on("mousemove", mousemove)
       .on("mouseleave", mouseleave);
 
-    graphContentGroup
-      .selectAll()
-      .data(this.matrixData)
-      .enter()
+    // add the text
+    cellsDomObj
       .append("text")
-      .style("pointer-events", "none")
-      .attr("x", (d: OriginDestination) => {
-        return x(d.origin) + x.bandwidth() / 2;
-      })
-      .attr("y", function (d: OriginDestination) {
-        return y(d.destination) + y.bandwidth() / 2;
-      })
+      .attr("x", x.bandwidth() / 2)
+      .attr("y", y.bandwidth() / 2)
       .text((d: OriginDestination) => this.getCellText(d))
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
