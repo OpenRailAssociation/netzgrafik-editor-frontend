@@ -164,6 +164,33 @@ export const topoSort = (
 
 // Given a graph (adjacency list), and vertices in topological order, return the shortest paths (and connections)
 // from a given node to other nodes.
+// Voraussetzung: class Vertex bleibt unverändert
+
+let _fastCache: WeakMap<
+  Map<string, [Vertex, number][]>,
+  {
+    vertexCount: number;
+    head: Int32Array;
+    to: Int32Array;
+    weight: Float64Array;
+    next: Int32Array;
+    nodeIdArr: Int32Array;
+    isDepArr: Uint8Array;
+    timeUndefArr: Uint8Array;
+    trainrunIdArr: Int32Array;
+    trainrunSectionArr: Int32Array;
+    successorSectionArr: Int32Array;
+    targetNodeIds: Int32Array;
+    targetCount: number;
+    verticesSnapshot: Vertex[];
+    cachedKeySnapshot: Map<Vertex, string>;
+  }
+> = new WeakMap();
+
+export const clearComputeShortestPathsCache = (): void => {
+  _fastCache = new WeakMap();
+};
+
 export const computeShortestPaths = (
   from: number,
   neighbors: Map<string, [Vertex, number][]>,
@@ -172,71 +199,271 @@ export const computeShortestPaths = (
   cachedKey: Map<Vertex, string>,
 ): Map<number, [number, number]> => {
   const tsPredecessor = new Map<number, number>();
-  tsSuccessor.forEach((v, k) => {
-    tsPredecessor.set(v, k);
-  });
-  const res = new Map<number, [number, number]>();
-  const dist = new Map<string, [number, number]>();
+  tsSuccessor.forEach((v, k) => tsPredecessor.set(v, k));
 
-  let started = false;
-  vertices.forEach((vertex) => {
-    const key = getOrCacheKey(vertex, cachedKey);
+  const n = vertices.length;
+  let cache = _fastCache.get(neighbors);
 
-    // First, look for our start node.
-    if (!started) {
-      if (from === vertex.nodeId && vertex.isDeparture === true && vertex.time === undefined) {
-        started = true;
-        dist.set(key, [0, 0]);
-      } else {
-        return;
-      }
+  if (
+    !cache ||
+    cache.verticesSnapshot !== vertices ||
+    cache.cachedKeySnapshot !== cachedKey ||
+    cache.vertexCount !== n
+  ) {
+    const vertexToIndex = new Map<Vertex, number>();
+    for (let i = 0; i < n; i++) vertexToIndex.set(vertices[i], i);
+
+    const keyToIndex = new Map<string, number>();
+    for (let i = 0; i < n; i++) {
+      const k = getOrCacheKey(vertices[i], cachedKey);
+      keyToIndex.set(k, i);
     }
 
-    // Perf.Opt.: just cache the dist.get(key) access (is 3x used)
-    const cachedDistGetKey = dist.get(key);
+    let edgeCount = 0;
+    neighbors.forEach((arr, key) => {
+      if (keyToIndex.has(key)) edgeCount += arr.length;
+    });
 
-    // We found an end node.
-    if (
-      vertex.isDeparture === false &&
-      vertex.time === undefined &&
-      cachedDistGetKey !== undefined &&
-      vertex.nodeId !== from
-    ) {
-      res.set(vertex.nodeId, cachedDistGetKey);
-    }
-    const neighs = neighbors.get(key);
-    if (neighs === undefined || cachedDistGetKey === undefined) {
-      return;
-    }
-    // The shortest path from the start node to this vertex is a shortest path from the start node to a neighbor
-    // plus the weight of the edge connecting the neighbor to this vertex.
-    neighs.forEach(([neighbor, weight]) => {
-      // Perf.Opt.: just cache the dist.get(key) access (is 2x used)
-      const distGetKey = dist.get(key);
-      const alt = distGetKey[0] + weight;
+    const head = new Int32Array(n);
+    head.fill(-1);
+    const to = new Int32Array(edgeCount);
+    const weight = new Float64Array(edgeCount);
+    const next = new Int32Array(edgeCount);
 
-      const neighborKey = getOrCacheKey(neighbor, cachedKey);
-      const distNeighborKey = dist.get(neighborKey);
-      if (distNeighborKey === undefined || alt < distNeighborKey[0]) {
-        let connection = 0;
-        let successor = tsSuccessor;
-        if (vertex.trainrunId < 0) {
-          successor = tsPredecessor;
+    let ep = 0;
+    neighbors.forEach((arr, key) => {
+      const fromIdx = keyToIndex.get(key);
+      if (fromIdx === undefined) return;
+      for (let i = 0; i < arr.length; i++) {
+        const nv = arr[i][0];
+        const w = arr[i][1];
+        let toIdx = vertexToIndex.get(nv);
+        if (toIdx === undefined) {
+          const nk = getOrCacheKey(nv, cachedKey);
+          toIdx = keyToIndex.get(nk);
         }
-        if (
-          vertex.trainrunId !== undefined &&
-          neighbor.trainrunId !== undefined &&
-          (vertex.trainrunId !== neighbor.trainrunId ||
-            (successor.get(vertex.trainrunSectionId) !== neighbor.trainrunSectionId &&
-              vertex.isDeparture === false))
-        ) {
-          connection = 1;
-        }
-        dist.set(neighborKey, [alt, distGetKey[1] + connection]);
+        if (toIdx === undefined) continue;
+        to[ep] = toIdx;
+        weight[ep] = w;
+        next[ep] = head[fromIdx];
+        head[fromIdx] = ep++;
       }
     });
-  });
-  return res;
+
+    const nodeIdArr = new Int32Array(n);
+    const isDepArr = new Uint8Array(n);
+    const timeUndefArr = new Uint8Array(n);
+    const trainrunIdArr = new Int32Array(n);
+    const trainrunSectionArr = new Int32Array(n);
+    const successorSectionArr = new Int32Array(n);
+    const INT_MIN = -2147483648;
+
+    const tmpTargets: number[] = [];
+    const seen = new Set<number>();
+
+    for (let i = 0; i < n; i++) {
+      const v = vertices[i];
+      nodeIdArr[i] = v.nodeId | 0;
+      isDepArr[i] = v.isDeparture ? 1 : 0;
+      timeUndefArr[i] = v.time === undefined ? 1 : 0;
+      trainrunIdArr[i] = v.trainrunId === undefined ? 0 : (v.trainrunId | 0) + 1;
+      trainrunSectionArr[i] = v.trainrunSectionId === undefined ? INT_MIN : v.trainrunSectionId | 0;
+      if (v.trainrunSectionId === undefined) successorSectionArr[i] = INT_MIN;
+      else {
+        if (v.trainrunId !== undefined && v.trainrunId < 0) {
+          const s = tsPredecessor.get(v.trainrunSectionId);
+          successorSectionArr[i] = s === undefined ? INT_MIN : s | 0;
+        } else {
+          const s = tsSuccessor.get(v.trainrunSectionId as number);
+          successorSectionArr[i] = s === undefined ? INT_MIN : s | 0;
+        }
+      }
+      if (!v.isDeparture && v.time === undefined && !seen.has(v.nodeId)) {
+        seen.add(v.nodeId);
+        tmpTargets.push(v.nodeId | 0);
+      }
+    }
+
+    const targets = new Int32Array(tmpTargets.length);
+    for (let i = 0; i < tmpTargets.length; i++) targets[i] = tmpTargets[i];
+
+    cache = {
+      vertexCount: n,
+      head,
+      to,
+      weight,
+      next,
+      nodeIdArr,
+      isDepArr,
+      timeUndefArr,
+      trainrunIdArr,
+      trainrunSectionArr,
+      successorSectionArr,
+      targetNodeIds: targets,
+      targetCount: targets.length,
+      verticesSnapshot: vertices,
+      cachedKeySnapshot: cachedKey,
+    };
+    _fastCache.set(neighbors, cache);
+  }
+
+  const head = cache.head,
+    to = cache.to,
+    weight = cache.weight,
+    next = cache.next;
+  const nodeIdArr = cache.nodeIdArr,
+    isDepArr = cache.isDepArr,
+    timeUndefArr = cache.timeUndefArr;
+  const trainrunIdArr = cache.trainrunIdArr,
+    trainrunSectionArr = cache.trainrunSectionArr,
+    successorSectionArr = cache.successorSectionArr;
+  const targetNodeIds = cache.targetNodeIds,
+    targetCount = cache.targetCount;
+
+  let startIndex: number | undefined;
+  for (let i = 0; i < n; i++) {
+    if (nodeIdArr[i] === from && isDepArr[i] === 1 && timeUndefArr[i] === 1) {
+      startIndex = i;
+      break;
+    }
+  }
+  if (startIndex === undefined) return new Map();
+
+  const dist = new Float64Array(n);
+  for (let i = 0; i < n; i++) dist[i] = Infinity;
+  const conn = new Int32Array(n);
+  const visited = new Uint8Array(n);
+
+  class FastHeap {
+    heap: Int32Array;
+    pos: Int32Array;
+    size = 0;
+    keys: Float64Array;
+    constructor(cap: number, keysRef: Float64Array) {
+      this.heap = new Int32Array(cap);
+      this.pos = new Int32Array(cap);
+      this.keys = keysRef;
+      for (let i = 0; i < cap; i++) this.pos[i] = -1;
+    }
+    pushOrDecrease(v: number) {
+      const p = this.pos[v];
+      if (p === -1) {
+        let i = this.size++;
+        this.heap[i] = v;
+        this.pos[v] = i;
+        this._siftUp(i);
+      } else this._siftUp(p);
+    }
+    pop(): number | undefined {
+      if (this.size === 0) return undefined;
+      const top = this.heap[0];
+      this.size--;
+      if (this.size > 0) {
+        const last = this.heap[this.size];
+        this.heap[0] = last;
+        this.pos[last] = 0;
+        this._siftDown(0);
+      }
+      this.pos[top] = -1;
+      return top;
+    }
+    isEmpty() {
+      return this.size === 0;
+    }
+    private _siftUp(i: number) {
+      const h = this.heap,
+        pArr = this.pos,
+        k = this.keys;
+      let idx = i;
+      const val = h[idx];
+      while (idx > 0) {
+        const p = (idx - 1) >> 1;
+        const pv = h[p];
+        if (k[val] >= k[pv]) break;
+        h[idx] = pv;
+        pArr[pv] = idx;
+        idx = p;
+      }
+      h[idx] = val;
+      pArr[val] = idx;
+    }
+    private _siftDown(i: number) {
+      const h = this.heap,
+        pArr = this.pos,
+        k = this.keys;
+      let idx = i;
+      const size = this.size;
+      const val = h[idx];
+      while (true) {
+        const l = idx * 2 + 1;
+        if (l >= size) break;
+        let s = l;
+        const r = l + 1;
+        if (r < size && k[h[r]] < k[h[l]]) s = r;
+        if (k[h[s]] >= k[val]) break;
+        h[idx] = h[s];
+        pArr[h[idx]] = idx;
+        idx = s;
+      }
+      h[idx] = val;
+      pArr[val] = idx;
+    }
+  }
+
+  dist[startIndex] = 0;
+  conn[startIndex] = 0;
+  const heap = new FastHeap(n, dist);
+  heap.pushOrDecrease(startIndex);
+
+  const result = new Map<number, [number, number]>();
+  const remainSet = new Set<number>();
+  for (let i = 0; i < targetCount; i++) remainSet.add(targetNodeIds[i]);
+  let remaining = remainSet.size;
+  const INT_MIN = -2147483648;
+
+  while (!heap.isEmpty()) {
+    const u = heap.pop()!;
+    if (visited[u]) continue;
+    visited[u] = 1;
+
+    const uNode = nodeIdArr[u],
+      uIsDep = isDepArr[u],
+      uTimeUndef = timeUndefArr[u];
+    if (uIsDep === 0 && uTimeUndef === 1 && uNode !== from) {
+      const prev = result.get(uNode);
+      const cur: [number, number] = [dist[u], conn[u]];
+      if (!prev || cur[0] < prev[0] || (cur[0] === prev[0] && cur[1] < prev[1]))
+        result.set(uNode, cur);
+      if (remainSet.has(uNode)) {
+        remainSet.delete(uNode);
+        if (--remaining === 0) break;
+      }
+    }
+
+    for (let e = head[u]; e !== -1; e = next[e]) {
+      const v = to[e];
+      const alt = dist[u] + weight[e];
+      if (alt < dist[v]) {
+        let connection = 0;
+        const uTrain = trainrunIdArr[u],
+          vTrain = trainrunIdArr[v];
+        if (uTrain !== 0 && vTrain !== 0) {
+          if (uTrain !== vTrain) connection = 1;
+          else if (uIsDep === 0) {
+            const succ = successorSectionArr[u];
+            if (succ !== INT_MIN) {
+              if (succ !== trainrunSectionArr[v]) connection = 1;
+            } else if (trainrunSectionArr[v] !== INT_MIN) connection = 1;
+          }
+        }
+        dist[v] = alt;
+        conn[v] = conn[u] + connection;
+        heap.pushOrDecrease(v);
+      }
+    }
+  }
+
+  return result;
 };
 
 const buildSectionEdges = (

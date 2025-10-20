@@ -5,6 +5,7 @@ import {DataService} from "../../../data/data.service";
 import {TrainrunService} from "../../../data/trainrun.service";
 import {
   buildEdges,
+  clearComputeShortestPathsCache,
   computeNeighbors,
   computeShortestPaths,
   topoSort,
@@ -78,6 +79,7 @@ export class OriginDestinationService {
     );
     // Perf.Opt.: this map is used to cache the keys and thus the JSON.stringify will not be called for each key request
     const cachedKey = new Map<Vertex, string>();
+    clearComputeShortestPathsCache();
 
     const neighbors = computeNeighbors(edges, cachedKey);
     const vertices = topoSort(neighbors, cachedKey);
