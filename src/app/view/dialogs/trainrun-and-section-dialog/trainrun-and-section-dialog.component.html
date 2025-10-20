@@ -9,11 +9,11 @@
     <sbb-icon
       class="closeDialog"
       svgIcon="cross-small"
-      aria-label="Clode Dialogr"
+      aria-label="Close Dialog"
       aria-hidden="false"
       (click)="closeDialog()"
     ></sbb-icon>
-    <div class="TrainrunTabGrupe">
+    <div data-testid="train-run-tab-group" class="TrainrunTabGrupe">
       <sbb-tab-group [selectedIndex]="data.type">
         <sbb-tab
           label="{{ selectedTrainrun.getCategoryShortName() }}{{ selectedTrainrun.getTitle() }}"

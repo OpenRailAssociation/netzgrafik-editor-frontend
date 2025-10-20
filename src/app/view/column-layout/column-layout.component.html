@@ -42,6 +42,7 @@
     *ngIf="showAsideClose"
     [ngClass]="{hide: hideAside()}"
     (click)="asideClosed?.emit(true)"
+    data-testid="close-aside-button"
   >
     <sbb-icon svgIcon="cross-small" aria-hidden="false"></sbb-icon>
   </div>

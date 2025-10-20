@@ -1558,6 +1558,7 @@ export class TrainrunSectionsView {
           TrainrunSectionText.TrainrunSectionNumberOfStops,
         ),
       )
+      .attr("data-testid", StaticDomTags.EDGE_LINE_TEXT_CLASS)
       .text(numberOfStops)
       .classed(StaticDomTags.TAG_MUTED, () =>
         TrainrunSectionsView.isMuted(trainrunSection, selectedTrainrun, connectedTrainIds),
@@ -1718,7 +1719,8 @@ export class TrainrunSectionsView {
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
         d.trainrunSection.getTrainrun().selected(),
       )
-      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId());
+      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
+      .attr("data-testid", `${StaticDomTags.EDGE_CLASS}-lines`);
 
     const groupLabels = edgeRootContainerEnter
       .append(StaticDomTags.EDGE_SVG)
@@ -1726,7 +1728,8 @@ export class TrainrunSectionsView {
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
         d.trainrunSection.getTrainrun().selected(),
       )
-      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId());
+      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
+      .attr("data-testid", `${StaticDomTags.EDGE_CLASS}-labels`);
 
     // Default case: Render default trainrunSection
     this.defaultTrainrunSectionsRendering(

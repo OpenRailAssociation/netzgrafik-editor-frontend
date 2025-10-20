@@ -1,4 +1,4 @@
-<h2 class="SummaryTitle">
+<h2 data-testid="summary-title" class="SummaryTitle">
   {{ nodeProperties.nodeBetriebspunktFullName }} ({{ nodeProperties.nodeBetriebspunktName }})
 </h2>
 <sbb-accordion [multi]="true">
@@ -292,6 +292,7 @@
       svgIcon="trash-small"
       class="sbb-mt-m sbb-ml-m"
       (click)="onDeleteNode()"
+      data-testid="delete-button"
     >
       {{ "app.view.editor-side-view.editor-node-detail-view.delete-node" | translate }}
     </button>
