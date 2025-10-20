@@ -120,10 +120,10 @@ export const buildEdges = (
 };
 
 // Given edges, return the neighbors (with weights) for each vertex, if any (outgoing adjacency list).
-export const computeNeighbors = (edges: Edge[]): Map<string, [Vertex, number][]> => {
-  const neighbors = new Map<string, [Vertex, number][]>();
+export const computeNeighbors = (edges: Edge[]): Map<Vertex, [Vertex, number][]> => {
+  const neighbors = new Map<Vertex, [Vertex, number][]>();
   edges.forEach((edge) => {
-    const v1 = JSON.stringify(edge.v1);
+    const v1 = edge.v1;
     const v1Neighbors = neighbors.get(v1);
     if (v1Neighbors === undefined) {
       neighbors.set(v1, [[edge.v2, edge.weight]]);
@@ -136,12 +136,12 @@ export const computeNeighbors = (edges: Edge[]): Map<string, [Vertex, number][]>
 
 // Given a graph (adjacency list), return the vertices in topological order.
 // Note: sorting vertices by time would be enough for our use case.
-export const topoSort = (graph: Map<string, [Vertex, number][]>): Vertex[] => {
+export const topoSort = (graph: Map<Vertex, [Vertex, number][]>): Vertex[] => {
   const res = [];
-  const visited = new Set<string>();
+  const visited = new Set<Vertex>();
   for (const node of graph.keys()) {
     if (!visited.has(node)) {
-      depthFirstSearch(graph, JSON.parse(node) as Vertex, visited, res);
+      depthFirstSearch(graph, node, visited, res);
     }
   }
   return res.reverse();
@@ -151,7 +151,7 @@ export const topoSort = (graph: Map<string, [Vertex, number][]>): Vertex[] => {
 // from a given node to other nodes.
 export const computeShortestPaths = (
   from: number,
-  neighbors: Map<string, [Vertex, number][]>,
+  neighbors: Map<Vertex, [Vertex, number][]>,
   vertices: Vertex[],
   tsSuccessor: Map<number, number>,
 ): Map<number, [number, number]> => {
@@ -160,10 +160,10 @@ export const computeShortestPaths = (
     tsPredecessor.set(v, k);
   });
   const res = new Map<number, [number, number]>();
-  const dist = new Map<string, [number, number]>();
+  const dist = new Map<Vertex, [number, number]>();
   let started = false;
   vertices.forEach((vertex) => {
-    const key = JSON.stringify(vertex);
+    const key = vertex;
     // First, look for our start node.
     if (!started) {
       if (from === vertex.nodeId && vertex.isDeparture === true && vertex.time === undefined) {
@@ -190,7 +190,7 @@ export const computeShortestPaths = (
     // plus the weight of the edge connecting the neighbor to this vertex.
     neighs.forEach(([neighbor, weight]) => {
       const alt = dist.get(key)[0] + weight;
-      const neighborKey = JSON.stringify(neighbor);
+      const neighborKey = neighbor;
       if (dist.get(neighborKey) === undefined || alt < dist.get(neighborKey)[0]) {
         let connection = 0;
         let successor = tsSuccessor;
@@ -407,17 +407,17 @@ const buildConnectionEdges = (
 };
 
 const depthFirstSearch = (
-  graph: Map<string, [Vertex, number][]>,
+  graph: Map<Vertex, [Vertex, number][]>,
   root: Vertex,
-  visited: Set<string>,
+  visited: Set<Vertex>,
   res: Vertex[],
 ): void => {
-  const key = JSON.stringify(root);
+  const key = root;
   visited.add(key);
   const neighbors = graph.get(key);
   if (neighbors !== undefined) {
     neighbors.forEach(([neighbor, weight]) => {
-      if (!visited.has(JSON.stringify(neighbor))) {
+      if (!visited.has(neighbor)) {
         depthFirstSearch(graph, neighbor, visited, res);
       }
     });

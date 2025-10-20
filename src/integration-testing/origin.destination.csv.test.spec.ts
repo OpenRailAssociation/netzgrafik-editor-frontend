@@ -290,12 +290,12 @@ describe("Origin Destination CSV Test", () => {
 
     // v4 has no outgoing edges.
     expect(neighbors).toHaveSize(3);
-    expect(neighbors.get(JSON.stringify(v1))).toHaveSize(1);
-    expect(neighbors.get(JSON.stringify(v1))).toContain([v2, 0]);
-    expect(neighbors.get(JSON.stringify(v2))).toHaveSize(1);
-    expect(neighbors.get(JSON.stringify(v2))).toContain([v3, 15]);
-    expect(neighbors.get(JSON.stringify(v3))).toHaveSize(1);
-    expect(neighbors.get(JSON.stringify(v3))).toContain([v4, 0]);
+    expect(neighbors.get(v1)).toHaveSize(1);
+    expect(neighbors.get(v1)).toContain([v2, 0]);
+    expect(neighbors.get(v2)).toHaveSize(1);
+    expect(neighbors.get(v2)).toContain([v3, 15]);
+    expect(neighbors.get(v3)).toHaveSize(1);
+    expect(neighbors.get(v3)).toContain([v4, 0]);
 
     const topoVertices = topoSort(neighbors);
 
@@ -348,15 +348,15 @@ describe("Origin Destination CSV Test", () => {
 
     const neighbors = computeNeighbors(edges);
     expect(neighbors).toHaveSize(9);
-    expect(neighbors.get(JSON.stringify(v1))).toHaveSize(1);
-    expect(neighbors.get(JSON.stringify(v2))).toHaveSize(1);
-    expect(neighbors.get(JSON.stringify(v3))).toHaveSize(2);
-    expect(neighbors.get(JSON.stringify(v4))).toHaveSize(1);
-    expect(neighbors.get(JSON.stringify(v5))).toHaveSize(1);
-    expect(neighbors.get(JSON.stringify(v7))).toHaveSize(1);
-    expect(neighbors.get(JSON.stringify(v8))).toHaveSize(1);
-    expect(neighbors.get(JSON.stringify(v9))).toHaveSize(2);
-    expect(neighbors.get(JSON.stringify(v11))).toHaveSize(1);
+    expect(neighbors.get(v1)).toHaveSize(1);
+    expect(neighbors.get(v2)).toHaveSize(1);
+    expect(neighbors.get(v3)).toHaveSize(2);
+    expect(neighbors.get(v4)).toHaveSize(1);
+    expect(neighbors.get(v5)).toHaveSize(1);
+    expect(neighbors.get(v7)).toHaveSize(1);
+    expect(neighbors.get(v8)).toHaveSize(1);
+    expect(neighbors.get(v9)).toHaveSize(2);
+    expect(neighbors.get(v11)).toHaveSize(1);
 
     const topoVertices = topoSort(neighbors);
     expect(topoVertices).toHaveSize(11);
