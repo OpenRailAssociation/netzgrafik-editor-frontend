@@ -121,6 +121,7 @@ export const buildEdges = (
 
 // Given edges, return the neighbors (with weights) for each vertex, if any (outgoing adjacency list).
 export const computeNeighbors = (edges: Edge[]): Map<Vertex, [Vertex, number][]> => {
+  // Note: we can use vertices as keys, as long as they are unique.
   const neighbors = new Map<Vertex, [Vertex, number][]>();
   edges.forEach((edge) => {
     const v1 = edge.v1;
@@ -189,6 +190,8 @@ export const computeShortestPaths = (
     // The shortest path from the start node to this vertex is a shortest path from the start node to a neighbor
     // plus the weight of the edge connecting the neighbor to this vertex.
     neighs.forEach(([neighbor, weight]) => {
+      const alt = dist.get(vertex)[0] + weight;
+      if (dist.get(neighbor) === undefined || alt < dist.get(neighbor)[0]) {
       const alt = dist.get(key)[0] + weight;
       const neighborKey = neighbor;
       if (dist.get(neighborKey) === undefined || alt < dist.get(neighborKey)[0]) {
