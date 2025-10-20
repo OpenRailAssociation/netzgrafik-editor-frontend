@@ -30,6 +30,15 @@ export class Edge {
   ) {}
 }
 
+const getOrCacheKey = (v: Vertex, cachedKey: Map<Vertex, string>): string => {
+  let k = cachedKey.get(v);
+  if (k === undefined) {
+    k = JSON.stringify(v);
+    cachedKey.set(v, k);
+  }
+  return k;
+};
+
 // In addition to edges, return a map of trainrunSection ids to their successor
 // (in the forward direction), so we can check for connections.
 export const buildEdges = (
@@ -56,7 +65,7 @@ export const buildEdges = (
       console.log("tgt is not an arrival: ", tgt);
     }
     const departuresByTrainrun = verticesDepartureByTrainrunByNode.get(src.nodeId);
-    const srcKey = JSON.stringify([src.trainrunId, src.trainrunSectionId]);
+    const srcKey = `[${src.trainrunId},${src.trainrunSectionId}]`;
     if (departuresByTrainrun === undefined) {
       verticesDepartureByTrainrunByNode.set(
         src.nodeId,
@@ -71,7 +80,7 @@ export const buildEdges = (
       }
     }
     const arrivalsByTrainrun = verticesArrivalByTrainrunByNode.get(tgt.nodeId);
-    const tgtKey = JSON.stringify([tgt.trainrunId, tgt.trainrunSectionId]);
+    const tgtKey = `[${tgt.trainrunId},${tgt.trainrunSectionId}]`;
     if (arrivalsByTrainrun === undefined) {
       verticesArrivalByTrainrunByNode.set(tgt.nodeId, new Map<string, Vertex[]>([[tgtKey, [tgt]]]));
     } else {
@@ -120,10 +129,13 @@ export const buildEdges = (
 };
 
 // Given edges, return the neighbors (with weights) for each vertex, if any (outgoing adjacency list).
-export const computeNeighbors = (edges: Edge[]): Map<string, [Vertex, number][]> => {
+export const computeNeighbors = (
+  edges: Edge[],
+  cachedKey: Map<Vertex, string>,
+): Map<string, [Vertex, number][]> => {
   const neighbors = new Map<string, [Vertex, number][]>();
   edges.forEach((edge) => {
-    const v1 = JSON.stringify(edge.v1);
+    const v1 = getOrCacheKey(edge.v1, cachedKey);
     const v1Neighbors = neighbors.get(v1);
     if (v1Neighbors === undefined) {
       neighbors.set(v1, [[edge.v2, edge.weight]]);
@@ -136,12 +148,15 @@ export const computeNeighbors = (edges: Edge[]): Map<string, [Vertex, number][]>
 
 // Given a graph (adjacency list), return the vertices in topological order.
 // Note: sorting vertices by time would be enough for our use case.
-export const topoSort = (graph: Map<string, [Vertex, number][]>): Vertex[] => {
+export const topoSort = (
+  graph: Map<string, [Vertex, number][]>,
+  cachedKey: Map<Vertex, string>,
+): Vertex[] => {
   const res = [];
   const visited = new Set<string>();
   for (const node of graph.keys()) {
     if (!visited.has(node)) {
-      depthFirstSearch(graph, JSON.parse(node) as Vertex, visited, res);
+      depthFirstSearch(graph, JSON.parse(node) as Vertex, visited, res, cachedKey);
     }
   }
   return res.reverse();
@@ -154,6 +169,7 @@ export const computeShortestPaths = (
   neighbors: Map<string, [Vertex, number][]>,
   vertices: Vertex[],
   tsSuccessor: Map<number, number>,
+  cachedKey: Map<Vertex, string>,
 ): Map<number, [number, number]> => {
   const tsPredecessor = new Map<number, number>();
   tsSuccessor.forEach((v, k) => {
@@ -161,9 +177,11 @@ export const computeShortestPaths = (
   });
   const res = new Map<number, [number, number]>();
   const dist = new Map<string, [number, number]>();
+
   let started = false;
   vertices.forEach((vertex) => {
-    const key = JSON.stringify(vertex);
+    const key = getOrCacheKey(vertex, cachedKey);
+
     // First, look for our start node.
     if (!started) {
       if (from === vertex.nodeId && vertex.isDeparture === true && vertex.time === undefined) {
@@ -173,25 +191,33 @@ export const computeShortestPaths = (
         return;
       }
     }
+
+    // Perf.Opt.: just cache the dist.get(key) access (is 3x used)
+    const cachedDistGetKey = dist.get(key);
+
     // We found an end node.
     if (
       vertex.isDeparture === false &&
       vertex.time === undefined &&
-      dist.get(key) !== undefined &&
+      cachedDistGetKey !== undefined &&
       vertex.nodeId !== from
     ) {
-      res.set(vertex.nodeId, dist.get(key));
+      res.set(vertex.nodeId, cachedDistGetKey);
     }
     const neighs = neighbors.get(key);
-    if (neighs === undefined || dist.get(key) === undefined) {
+    if (neighs === undefined || cachedDistGetKey === undefined) {
       return;
     }
     // The shortest path from the start node to this vertex is a shortest path from the start node to a neighbor
     // plus the weight of the edge connecting the neighbor to this vertex.
     neighs.forEach(([neighbor, weight]) => {
-      const alt = dist.get(key)[0] + weight;
-      const neighborKey = JSON.stringify(neighbor);
-      if (dist.get(neighborKey) === undefined || alt < dist.get(neighborKey)[0]) {
+      // Perf.Opt.: just cache the dist.get(key) access (is 2x used)
+      const distGetKey = dist.get(key);
+      const alt = distGetKey[0] + weight;
+
+      const neighborKey = getOrCacheKey(neighbor, cachedKey);
+      const distNeighborKey = dist.get(neighborKey);
+      if (distNeighborKey === undefined || alt < distNeighborKey[0]) {
         let connection = 0;
         let successor = tsSuccessor;
         if (vertex.trainrunId < 0) {
@@ -206,7 +232,7 @@ export const computeShortestPaths = (
         ) {
           connection = 1;
         }
-        dist.set(neighborKey, [alt, dist.get(key)[1] + connection]);
+        dist.set(neighborKey, [alt, distGetKey[1] + connection]);
       }
     });
   });
@@ -411,17 +437,41 @@ const depthFirstSearch = (
   root: Vertex,
   visited: Set<string>,
   res: Vertex[],
+  cachedKey: Map<Vertex, string>,
 ): void => {
-  const key = JSON.stringify(root);
-  visited.add(key);
-  const neighbors = graph.get(key);
-  if (neighbors !== undefined) {
-    neighbors.forEach(([neighbor, weight]) => {
-      if (!visited.has(JSON.stringify(neighbor))) {
-        depthFirstSearch(graph, neighbor, visited, res);
+  // Internal helpfer function to reduce the JSON key access complexity from cache
+  const rootKey = getOrCacheKey(root, cachedKey);
+
+  // mark the root
+  visited.add(rootKey);
+
+  // Stack frame for iterative DFS: vertex, its key, neighbors, next index
+  type Frame = {
+    vertex: Vertex;
+    key: string;
+    neighbors: [Vertex, number][] | undefined;
+    idx: number;
+  };
+  const stack: Frame[] = [{vertex: root, key: rootKey, neighbors: graph.get(rootKey), idx: 0}];
+
+  while (stack.length > 0) {
+    const frame = stack[stack.length - 1];
+
+    const nbrs = frame.neighbors;
+    if (nbrs !== undefined && frame.idx < nbrs.length) {
+      const [neighbor] = nbrs[frame.idx];
+      frame.idx += 1; // next time continue with the next neighbor
+
+      const neighborKey = getOrCacheKey(neighbor, cachedKey);
+      if (!visited.has(neighborKey)) {
+        visited.add(neighborKey);
+        stack.push({vertex: neighbor, key: neighborKey, neighbors: graph.get(neighborKey), idx: 0});
       }
-    });
+      // if already visited, simply continue to the next neighbor
+    } else {
+      // all neighbors processed -> post-order like in the recursive original
+      res.push(frame.vertex);
+      stack.pop();
+    }
   }
-  // Note that the order is important for topological sorting.
-  res.push(root);
 };
