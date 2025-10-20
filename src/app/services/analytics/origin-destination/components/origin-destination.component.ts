@@ -52,6 +52,9 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
   private cellSize: number = 30;
 
+  // avoid multiple dom access / creating (share)
+  private tooltip: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+
   private extractNumericODValues(odList: OriginDestination[], field: FieldName): number[] {
     return odList.filter((od) => od["found"]).map((od) => od[field]);
   }
@@ -73,8 +76,26 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.controller.init(this.createInitialViewboxProperties(nodeNames.length));
   }
 
+  private createTooltip(): void {
+    this.tooltip = d3
+      .select("#main-origin-destination-container-root")
+      .append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0)
+      .style("position", "absolute")
+      .style("background-color", "white")
+      .style("border", "solid")
+      .style("border-width", "2px")
+      .style("border-radius", "5px")
+      .style("padding", "5px")
+      .style("user-select", "none")
+      .style("pointer-events", "none");
+  }
+
   // Compute the matrix (expensive) and render the default view.
   ngOnInit(): void {
+    this.createTooltip();
+
     this.matrixData = this.originDestinationService.originDestinationData();
 
     // Add some data so we can mouseover the diagonal cells.
@@ -178,18 +199,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.colorScale = this.getColorScale(minValue, maxValue);
 
     // create a tooltip
-    const tooltip = d3
-      .select("#main-origin-destination-container-root")
-      .append("div")
-      .style("opacity", 0)
-      .attr("class", "tooltip")
-      .style("background-color", "white")
-      .style("border", "solid")
-      .style("border-width", "2px")
-      .style("border-radius", "5px")
-      .style("padding", "5px")
-      .style("user-select", "none")
-      .style("pointer-events", "none");
+    const tooltip = this.tooltip;
 
     // Three function that change the tooltip when user hover / move / leave a cell
     const mouseover = function (d: OriginDestination) {
@@ -253,7 +263,15 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       .enter()
       .append("g")
       .classed("cell", true)
-      .attr("transform", d => `translate(${x(d.origin)}, ${y(d.destination)})`);
+      .attr("transform", (d) => `translate(${x(d.origin)}, ${y(d.destination)})`);
+
+    // perf opt. cache color
+    const colorCache = new Map<string, string>();
+    this.matrixData.forEach((d) => {
+      const key = `${d.origin}-${d.destination}`;
+      const value = this.getCellValue(d, this.colorBy);
+      colorCache.set(key, value === undefined ? "#76767633" : this.colorScale(value));
+    });
 
     // add the squares
     cellsDomObj
@@ -263,7 +281,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       .attr("width", x.bandwidth())
       .attr("height", y.bandwidth())
 
-      .style("fill", (d: OriginDestination) => this.getCellColor(d))
+      .style("fill", (d: OriginDestination) => colorCache.get(`${d.origin}-${d.destination}`))
 
       .style("stroke-width", 4)
       .style("stroke", "none")
