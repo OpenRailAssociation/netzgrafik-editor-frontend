@@ -30,6 +30,15 @@ export class Edge {
   ) {}
 }
 
+const getOrCacheKey = (v: Vertex, cachedKey: Map<Vertex, string>): string => {
+  let k = cachedKey.get(v);
+  if (k === undefined) {
+    k = JSON.stringify(v);
+    cachedKey.set(v, k);
+  }
+  return k;
+};
+
 // In addition to edges, return a map of trainrunSection ids to their successor
 // (in the forward direction), so we can check for connections.
 export const buildEdges = (
@@ -56,7 +65,7 @@ export const buildEdges = (
       console.log("tgt is not an arrival: ", tgt);
     }
     const departuresByTrainrun = verticesDepartureByTrainrunByNode.get(src.nodeId);
-    const srcKey = JSON.stringify([src.trainrunId, src.trainrunSectionId]);
+    const srcKey = `["${src.trainrunId}","${src.trainrunSectionId}"]`;
     if (departuresByTrainrun === undefined) {
       verticesDepartureByTrainrunByNode.set(
         src.nodeId,
@@ -71,7 +80,7 @@ export const buildEdges = (
       }
     }
     const arrivalsByTrainrun = verticesArrivalByTrainrunByNode.get(tgt.nodeId);
-    const tgtKey = JSON.stringify([tgt.trainrunId, tgt.trainrunSectionId]);
+    const tgtKey = `["${tgt.trainrunId}","${tgt.trainrunSectionId}"]`;
     if (arrivalsByTrainrun === undefined) {
       verticesArrivalByTrainrunByNode.set(tgt.nodeId, new Map<string, Vertex[]>([[tgtKey, [tgt]]]));
     } else {
@@ -126,12 +135,7 @@ export const computeNeighbors = (
 ): Map<string, [Vertex, number][]> => {
   const neighbors = new Map<string, [Vertex, number][]>();
   edges.forEach((edge) => {
-    let v1 = cachedKey.get(edge.v1);
-    if (v1 === undefined) {
-      v1 = JSON.stringify(edge.v1);
-      cachedKey.set(edge.v1, v1);
-    }
-
+    const v1 = getOrCacheKey(edge.v1, cachedKey);
     const v1Neighbors = neighbors.get(v1);
     if (v1Neighbors === undefined) {
       neighbors.set(v1, [[edge.v2, edge.weight]]);
@@ -176,11 +180,7 @@ export const computeShortestPaths = (
 
   let started = false;
   vertices.forEach((vertex) => {
-    let key = cachedKey.get(vertex);
-    if (key === undefined) {
-      key = JSON.stringify(vertex);
-      cachedKey.set(vertex, key);
-    }
+    const key = getOrCacheKey(vertex, cachedKey);
 
     // First, look for our start node.
     if (!started) {
@@ -215,12 +215,7 @@ export const computeShortestPaths = (
       const distGetKey = dist.get(key);
       const alt = distGetKey[0] + weight;
 
-      let neighborKey = cachedKey.get(neighbor);
-      if (neighborKey === undefined) {
-        neighborKey = JSON.stringify(neighbor);
-        cachedKey.set(neighbor, neighborKey);
-      }
-
+      const neighborKey = getOrCacheKey(neighbor, cachedKey);
       const distNeighborKey = dist.get(neighborKey);
       if (distNeighborKey === undefined || alt < distNeighborKey[0]) {
         let connection = 0;
@@ -445,16 +440,7 @@ const depthFirstSearch = (
   cachedKey: Map<Vertex, string>,
 ): void => {
   // Internal helpfer function to reduce the JSON key access complexity from cache
-  const getKey = (v: Vertex): string => {
-    let k = cachedKey.get(v);
-    if (k === undefined) {
-      k = JSON.stringify(v);
-      cachedKey.set(v, k);
-    }
-    return k;
-  };
-
-  const rootKey = getKey(root);
+  const rootKey = getOrCacheKey(root, cachedKey);
 
   // mark the root
   visited.add(rootKey);
@@ -476,7 +462,7 @@ const depthFirstSearch = (
       const [neighbor] = nbrs[frame.idx];
       frame.idx += 1; // next time continue with the next neighbor
 
-      const neighborKey = getKey(neighbor);
+      const neighborKey = getOrCacheKey(neighbor, cachedKey);
       if (!visited.has(neighborKey)) {
         visited.add(neighborKey);
         stack.push({vertex: neighbor, key: neighborKey, neighbors: graph.get(neighborKey), idx: 0});
