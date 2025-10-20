@@ -95,7 +95,7 @@ describe("Origin Destination CSV Test", () => {
     const cachedKey = new Map<Vertex, string>();
 
     const neighbors = computeNeighbors(edges, cachedKey);
-    const vertices = topoSort(neighbors);
+    const vertices = topoSort(neighbors, cachedKey);
 
     const res = new Map<string, [number, number]>();
     nodes.forEach((origin) => {
@@ -148,7 +148,7 @@ describe("Origin Destination CSV Test", () => {
     const cachedKey = new Map<Vertex, string>();
 
     const neighbors = computeNeighbors(edges, cachedKey);
-    const vertices = topoSort(neighbors);
+    const vertices = topoSort(neighbors, cachedKey);
 
     const res = new Map<string, [number, number]>();
     nodes.forEach((origin) => {
@@ -207,7 +207,7 @@ describe("Origin Destination CSV Test", () => {
     const cachedKey = new Map<Vertex, string>();
 
     const neighbors = computeNeighbors(edges, cachedKey);
-    const vertices = topoSort(neighbors);
+    const vertices = topoSort(neighbors, cachedKey);
 
     const res = new Map<string, [number, number]>();
     nodes.forEach((origin) => {
@@ -263,7 +263,7 @@ describe("Origin Destination CSV Test", () => {
     const cachedKey = new Map<Vertex, string>();
 
     const neighbors = computeNeighbors(edges, cachedKey);
-    const vertices = topoSort(neighbors);
+    const vertices = topoSort(neighbors, cachedKey);
 
     const res = new Map<string, [number, number]>();
     nodes.forEach((origin) => {
@@ -308,7 +308,7 @@ describe("Origin Destination CSV Test", () => {
     expect(neighbors.get(JSON.stringify(v3))).toHaveSize(1);
     expect(neighbors.get(JSON.stringify(v3))).toContain([v4, 0]);
 
-    const topoVertices = topoSort(neighbors);
+    const topoVertices = topoSort(neighbors, cachedKey);
 
     expect(topoVertices).toHaveSize(4);
     edges.forEach((edge) => {
@@ -372,7 +372,7 @@ describe("Origin Destination CSV Test", () => {
     expect(neighbors.get(JSON.stringify(v9))).toHaveSize(2);
     expect(neighbors.get(JSON.stringify(v11))).toHaveSize(1);
 
-    const topoVertices = topoSort(neighbors);
+    const topoVertices = topoSort(neighbors, cachedKey);
     expect(topoVertices).toHaveSize(11);
     edges.forEach((edge) => {
       const v1Index = topoVertices.findIndex((value, index, obj) => {
@@ -431,7 +431,7 @@ describe("Origin Destination CSV Test", () => {
     const cachedKey = new Map<Vertex, string>();
 
     const neighbors = computeNeighbors(edges, cachedKey);
-    const vertices = topoSort(neighbors);
+    const vertices = topoSort(neighbors, cachedKey);
 
     const res = new Map<string, [number, number]>();
     nodes.forEach((origin) => {

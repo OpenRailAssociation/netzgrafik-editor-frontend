@@ -70,7 +70,7 @@ export class OriginDestinationService {
     const cachedKey = new Map<Vertex, string>();
 
     const neighbors = computeNeighbors(edges, cachedKey);
-    const vertices = topoSort(neighbors);
+    const vertices = topoSort(neighbors, cachedKey);
     // In theory we could parallelize the pathfindings, but the overhead might be too big.
     const res = new Map<string, [number, number]>();
     odNodes.forEach((origin) => {
