@@ -80,17 +80,22 @@ export class OriginDestinationService {
     const vertices = topoSort(neighbors);
     // In theory we could parallelize the pathfindings, but the overhead might be too big.
     const res = new Map<string, [number, number]>();
-    odNodes.forEach((origin) => {
-      computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
-        (value, key) => {
-          res.set([origin.getId(), key].join(","), value);
-        },
-      );
+    odNodes.forEach((origin, idx) => {
+      if (idx % 80 === 0) {
+        console.log("computeShortestPaths", idx, odNodes.length);
+        computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
+          (value, key) => {
+            res.set([origin.getId(), key].join(","), value);
+          },
+        );
+      }
     });
 
     const rows = [];
     odNodes.sort((a, b) => a.getBetriebspunktName().localeCompare(b.getBetriebspunktName()));
-    odNodes.forEach((origin) => {
+    odNodes.forEach((origin, idx) => {
+      console.log("compute o/d pairs", idx, odNodes.length);
+
       odNodes.forEach((destination) => {
         if (origin.getId() === destination.getId()) {
           return;
