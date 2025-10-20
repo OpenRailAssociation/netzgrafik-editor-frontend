@@ -394,6 +394,7 @@ export const computeShortestPaths = (
       let idx = i;
       const size = this.size;
       const val = h[idx];
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         const l = idx * 2 + 1;
         if (l >= size) break;
@@ -432,8 +433,9 @@ export const computeShortestPaths = (
     if (uIsDep === 0 && uTimeUndef === 1 && uNode !== from) {
       const prev = result.get(uNode);
       const cur: [number, number] = [dist[u], conn[u]];
-      if (!prev || cur[0] < prev[0] || (cur[0] === prev[0] && cur[1] < prev[1]))
+      if (!prev || cur[0] < prev[0] || (cur[0] === prev[0] && cur[1] < prev[1])) {
         result.set(uNode, cur);
+      }
       if (remainSet.has(uNode)) {
         remainSet.delete(uNode);
         if (--remaining === 0) break;
