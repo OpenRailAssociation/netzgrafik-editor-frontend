@@ -5,6 +5,7 @@ import {DataService} from "../../../data/data.service";
 import {TrainrunService} from "../../../data/trainrun.service";
 import {
   buildEdges,
+  clearComputeShortestPathsCache,
   computeNeighbors,
   computeShortestPaths,
   topoSort,
@@ -78,12 +79,14 @@ export class OriginDestinationService {
     );
     // Perf.Opt.: this map is used to cache the keys and thus the JSON.stringify will not be called for each key request
     const cachedKey = new Map<Vertex, string>();
+    clearComputeShortestPathsCache();
 
     const neighbors = computeNeighbors(edges, cachedKey);
     const vertices = topoSort(neighbors, cachedKey);
     // In theory we could parallelize the pathfindings, but the overhead might be too big.
     const res = new Map<string, [number, number]>();
-    odNodes.forEach((origin) => {
+    odNodes.forEach((origin, idx) => {
+      console.log("computeShortestPaths", idx, odNodes.length);
       computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor, cachedKey).forEach(
         (value, key) => {
           res.set([origin.getId(), key].join(","), value);
@@ -93,7 +96,9 @@ export class OriginDestinationService {
 
     const rows = [];
     odNodes.sort((a, b) => a.getBetriebspunktName().localeCompare(b.getBetriebspunktName()));
-    odNodes.forEach((origin) => {
+    odNodes.forEach((origin, idx) => {
+      console.log("compute o/d pairs", idx, odNodes.length);
+
       odNodes.forEach((destination) => {
         if (origin.getId() === destination.getId()) {
           return;
