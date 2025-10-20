@@ -18,6 +18,8 @@ type ColorSetName = "red" | "blue" | "orange" | "gray";
 
 /**
  * Component to display the origin-destination matrix.
+ * Initialization (DOM scaffold, axes, controller) is separated
+ * from updates (cell content, colors, text).
  * It also provides options to change the color scale and display field.
  * The component is initialized with data from the OriginDestinationService.
  */
@@ -38,9 +40,9 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   ) {}
 
   private matrixData: OriginDestination[] = [];
+  private nodeNames: {shortName: string; fullName: string}[] = [];
 
   private colorScale: d3.ScaleLinear<string, string>;
-
   private controller: SVGMouseController;
 
   // Field used for the color scale.
@@ -55,50 +57,24 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   // avoid multiple dom access / creating (share)
   private tooltip: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
 
+  // cached selections for updates
+  private svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>;
+  private graphContentGroup: d3.Selection<SVGGElement, unknown, HTMLElement, any>;
+  private xScale: d3.ScaleBand<string>;
+  private yScale: d3.ScaleBand<string>;
+
   private extractNumericODValues(odList: OriginDestination[], field: FieldName): number[] {
     return odList.filter((od) => od["found"]).map((od) => od[field]);
   }
 
-  private renderView() {
-    const nodes = this.originDestinationService.getODOutputNodes();
-    const nodeNames = nodes.map((node) => ({
-      shortName: node.getBetriebspunktName(),
-      fullName: node.getFullName(),
-    }));
-
-    this.rendermatrixOD(nodeNames);
-
-    this.controller = new SVGMouseController(
-      "main-origin-destination-container",
-      this.createSvgMouseControllerObserver(),
-      this.undoService,
-    );
-    this.controller.init(this.createInitialViewboxProperties(nodeNames.length));
-  }
-
-  private createTooltip(): void {
-    this.tooltip = d3
-      .select("#main-origin-destination-container-root")
-      .append("div")
-      .attr("class", "tooltip")
-      .style("opacity", 0)
-      .style("position", "absolute")
-      .style("background-color", "white")
-      .style("border", "solid")
-      .style("border-width", "2px")
-      .style("border-radius", "5px")
-      .style("padding", "5px")
-      .style("user-select", "none")
-      .style("pointer-events", "none");
-  }
-
-  // Compute the matrix (expensive) and render the default view.
   ngOnInit(): void {
+    // create tooltip (only once)
     this.createTooltip();
 
+    // compute matrix data (expensive) once
     this.matrixData = this.originDestinationService.originDestinationData();
 
-    // Add some data so we can mouseover the diagonal cells.
+    // Add diagonal entries so we can mouseover diagonal cells
     const origins = this.matrixData.map((d) => d.origin);
     const destinations = this.matrixData.map((d) => d.destination);
     const uniqueOriginsDestinations = [...new Set([...origins, ...destinations])];
@@ -111,8 +87,21 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       found: false,
     }));
     this.matrixData = [...this.matrixData, ...diagonalData];
-    this.renderView();
 
+    // compute nodes and nodeNames once
+    const nodes = this.originDestinationService.getODOutputNodes();
+    this.nodeNames = nodes.map((node) => ({
+      shortName: node.getBetriebspunktName(),
+      fullName: node.getFullName(),
+    }));
+
+    // initialize DOM scaffold, axes and controller (only once)
+    this.initView();
+
+    // initial population of cells (and color scale)
+    this.updateView();
+
+    // wire zoom observables
     this.uiInteractionService.zoomInObservable
       .pipe(takeUntil(this.destroyed$))
       .subscribe((zoomCenter: Vec2D) => this.controller.zoomIn(zoomCenter));
@@ -126,13 +115,42 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       .subscribe((zoomCenter: Vec2D) => this.controller.zoomReset(zoomCenter));
   }
 
-  // Render the matrix with the given node names.
-  rendermatrixOD(nodeNames: {shortName: string; fullName: string}[]) {
-    const width = this.cellSize * nodeNames.length;
-    const height = this.cellSize * nodeNames.length;
+  private createTooltip(): void {
+    // Ensure we don't create multiple tooltips
+    const root = d3.select("#main-origin-destination-container-root");
+    const existing = root.select<HTMLDivElement>(".tooltip");
+    if (!existing.empty()) {
+      this.tooltip = existing as any;
+      return;
+    }
 
-    // append the svg object to the body of the page
-    const svg = d3
+    this.tooltip = root
+      .append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0)
+      .style("position", "absolute")
+      .style("background-color", "white")
+      .style("border", "solid")
+      .style("border-width", "2px")
+      .style("border-radius", "5px")
+      .style("padding", "5px")
+      .style("user-select", "none")
+      .style("pointer-events", "none");
+  }
+
+  /**
+   * initView
+   * - creates svg, axes, scales, container group and mouse-controller
+   * - does NOT create cells content (that is done by updateView)
+   */
+  private initView(): void {
+    const width = this.cellSize * this.nodeNames.length;
+    const height = this.cellSize * this.nodeNames.length;
+
+    // remove existing svg if any (defensive)
+    d3.select("#main-origin-destination-container").remove();
+
+    this.svg = d3
       .select("#main-origin-destination-container-root")
       .append("svg")
       .classed("main-origin-destination-container", true)
@@ -147,23 +165,24 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const offsetX = Math.max(0, (containerWidth - width) / 2);
     const offsetY = Math.max(0, (containerHeight - height) / 2);
 
-    const graphContentGroup = svg
+    this.graphContentGroup = this.svg
       .append("g")
       .attr("id", "zoom-group")
       .attr("transform", `translate(${offsetX}, ${offsetY})`);
 
     // Build X scales and axis:
-    const x = d3
+    this.xScale = d3
       .scaleBand()
       .range([0, width])
-      .domain(nodeNames.map((n) => n.shortName))
+      .domain(this.nodeNames.map((n) => n.shortName))
       .padding(0.05);
 
-    graphContentGroup
+    this.graphContentGroup
       .append("g")
+      .attr("id", "od-x-axis")
       .style("pointer-events", "none")
       .attr("transform", "translate(0, -20)")
-      .call(d3.axisBottom(x).tickSize(0))
+      .call(d3.axisBottom(this.xScale).tickSize(0))
       .style("user-select", "none")
       .call((g) =>
         g
@@ -179,36 +198,62 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       .remove();
 
     // Build Y scales and axis:
-    const y = d3
+    this.yScale = d3
       .scaleBand()
       .range([height, 0])
-      .domain(nodeNames.map((n) => n.shortName).reverse())
+      .domain(this.nodeNames.map((n) => n.shortName).reverse())
       .padding(0.05);
-    graphContentGroup
+
+    this.graphContentGroup
       .append("g")
+      .attr("id", "od-y-axis")
       .style("pointer-events", "none")
-      .call(d3.axisLeft(y).tickSize(0))
+      .call(d3.axisLeft(this.yScale).tickSize(0))
       .style("user-select", "none")
       .call((g) => g.selectAll("text").attr("data-destination-label", (d: string) => d))
       .select(".domain")
       .remove();
 
+    // create mouse controller (only once)
+    this.controller = new SVGMouseController(
+      "main-origin-destination-container",
+      this.createSvgMouseControllerObserver(),
+      this.undoService,
+    );
+    this.controller.init(this.createInitialViewboxProperties(this.nodeNames.length));
+  }
+
+  /**
+   * updateView
+   * - recomputes color scale based on current matrixData and colorBy
+   * - creates/updates cells (enter/update/exit) and texts
+   * - keeps axes and controller intact
+   */
+  private updateView(): void {
+    if (!this.graphContentGroup) {
+      return;
+    }
+
+    // compute color scale
     const numericValues = this.extractNumericODValues(this.matrixData, this.colorBy);
     const maxValue = numericValues.length ? Math.max(...numericValues) : 1;
     const minValue = numericValues.length ? Math.min(...numericValues) : 0;
     this.colorScale = this.getColorScale(minValue, maxValue);
 
-    // create a tooltip
+    // Prepare nodeNameMap and tooltip
+    const nodeNameMap = new Map(this.nodeNames.map((n) => [n.shortName, n.fullName]));
     const tooltip = this.tooltip;
 
-    // Three function that change the tooltip when user hover / move / leave a cell
+    const totalCostTranslation = $localize`:@@app.origin-destination.tooltip.total-cost:Total cost`;
+    const transfersTranslation = $localize`:@@app.origin-destination.tooltip.transfers:Transfers`;
+    const travelTimeTranslation = $localize`:@@app.origin-destination.tooltip.travel-time:Travel time`;
+
+    // mouse handlers reference closure values
     const mouseover = function (d: OriginDestination) {
       if (d.found) {
         tooltip.style("opacity", 1);
         d3.select(this).style("stroke", "black").style("stroke-width", "2px").style("opacity", 1);
       }
-
-      // Highlight axis labels in bold when hovering over a cell
       d3.selectAll(`[data-origin-label="${d.origin}"]`)
         .style("font-weight", "bold")
         .style("font-size", "12px");
@@ -216,12 +261,6 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
         .style("font-weight", "bold")
         .style("font-size", "12px");
     };
-
-    const totalCostTranslation = $localize`:@@app.origin-destination.tooltip.total-cost:Total cost`;
-    const transfersTranslation = $localize`:@@app.origin-destination.tooltip.transfers:Transfers`;
-    const travelTimeTranslation = $localize`:@@app.origin-destination.tooltip.travel-time:Travel time`;
-
-    const nodeNameMap = new Map(nodeNames.map((n) => [n.shortName, n.fullName]));
 
     const mousemove = function (d: OriginDestination) {
       let details = "";
@@ -234,20 +273,21 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       tooltip
         .html(
           `${nodeNameMap.get(d.origin)} (<b>${d.origin}</b>) &#x2192;
-          ${nodeNameMap.get(d.destination)} (<b>${d.destination}</b>)
-          ${details}`,
+        ${nodeNameMap.get(d.destination)} (<b>${d.destination}</b>)
+        ${details}`,
         )
-        .style("left", `${d3.event.offsetX + 64}px`)
-        .style("top", `${d3.event.offsetY + 64 < 0 ? 0 : d3.event.offsetY + 64}px`);
+        .style("left", `${(d3.event as any).offsetX + 64}px`)
+        .style(
+          "top",
+          `${(d3.event as any).offsetY + 64 < 0 ? 0 : (d3.event as any).offsetY + 64}px`,
+        );
     };
 
-    const mouseleave = function (_d) {
+    const mouseleave = function (_d: OriginDestination) {
       tooltip.style("opacity", 0);
       d3.select(this)
         .style("stroke", "none")
         .style("opacity", (d: OriginDestination) => (d.origin === d.destination ? 0 : 0.8));
-
-      // Remove boldness from the axis labels
       d3.selectAll(`[data-origin-label="${_d.origin}"]`)
         .style("font-weight", null)
         .style("font-size", null);
@@ -256,16 +296,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
         .style("font-size", null);
     };
 
-    // add the cells (squares+text) and use only one enter()
-    const cellsDomObj = graphContentGroup
-      .selectAll()
-      .data(this.matrixData)
-      .enter()
-      .append("g")
-      .classed("cell", true)
-      .attr("transform", (d) => `translate(${x(d.origin)}, ${y(d.destination)})`);
-
-    // perf opt. cache color
+    // Build a color cache for performance
     const colorCache = new Map<string, string>();
     this.matrixData.forEach((d) => {
       const key = `${d.origin}-${d.destination}`;
@@ -273,37 +304,67 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       colorCache.set(key, value === undefined ? "#76767633" : this.colorScale(value));
     });
 
-    // add the squares
-    cellsDomObj
+    // DATA JOIN for cells (group elements)
+    const cells = this.graphContentGroup
+      .selectAll<SVGGElement, OriginDestination>("g.cell")
+      .data(this.matrixData, (d: any) => `${d.origin}-${d.destination}`);
+
+    // EXIT
+    cells.exit().remove();
+
+    // ENTER
+    const enterCells = cells
+      .enter()
+      .append("g")
+      .classed("cell", true)
+      .attr(
+        "transform",
+        (d) => `translate(${this.xScale(d.origin)}, ${this.yScale(d.destination)})`,
+      );
+
+    enterCells
       .append("rect")
       .attr("rx", 4)
       .attr("ry", 4)
-      .attr("width", x.bandwidth())
-      .attr("height", y.bandwidth())
-
-      .style("fill", (d: OriginDestination) => colorCache.get(`${d.origin}-${d.destination}`))
-
-      .style("stroke-width", 4)
-      .style("stroke", "none")
-      .style("opacity", (d: OriginDestination) => (d.origin === d.destination ? 0 : 0.8))
+      .attr("width", this.xScale.bandwidth())
+      .attr("height", this.yScale.bandwidth())
       .style("pointer-events", "auto")
-
       .on("mouseover", mouseover)
       .on("mousemove", mousemove)
       .on("mouseleave", mouseleave);
 
-    // add the text
-    cellsDomObj
+    enterCells
       .append("text")
-      .attr("x", x.bandwidth() / 2)
-      .attr("y", y.bandwidth() / 2)
-      .text((d: OriginDestination) => this.getCellText(d))
+      .attr("x", this.xScale.bandwidth() / 2)
+      .attr("y", this.yScale.bandwidth() / 2)
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
       .style("font-size", "10px")
       .style("pointer-events", "none")
       .style("user-select", "none")
       .style("fill", "white");
+
+    // UPDATE (both existing and newly entered)
+    const merged = enterCells.merge(cells as any);
+
+    merged.attr(
+      "transform",
+      (d) => `translate(${this.xScale(d.origin)}, ${this.yScale(d.destination)})`,
+    );
+
+    // Directly select rects and set fill from cache/scale
+    merged
+      .select("rect")
+      .style("fill", (d: OriginDestination) => {
+        const key = `${d.origin}-${d.destination}`;
+        return colorCache.get(key) ?? "#76767633";
+      })
+      .style("stroke-width", 4)
+      .style("stroke", "none")
+      .style("opacity", (d: OriginDestination) => (d.origin === d.destination ? 0 : 0.8));
+
+    // Update texts
+    merged.select("text").text((d: OriginDestination) => this.getCellText(d));
   }
 
   private createSvgMouseControllerObserver(): SVGMouseControllerObserver {
@@ -364,6 +425,9 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroyed$.next();
     this.destroyed$.complete();
+    // optional cleanup
+    d3.select("#main-origin-destination-container").remove();
+    this.tooltip?.remove();
   }
 
   // Return the color scale based on the selected color set.
@@ -405,25 +469,21 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Update color set and re-render the view.
+  // Update palette and refresh cells without full re-init.
   onChangePalette(name: ColorSetName) {
     this.colorSetName = name;
-    d3.select("#main-origin-destination-container").remove();
-    this.renderView();
+    this.updateView();
   }
 
-  // Update color field and re-render the view.
+  // Update color field and refresh cells without full re-init.
   onChangeColorBy(field: FieldName) {
     this.colorBy = field;
-    d3.select("#main-origin-destination-container").remove();
-    this.renderView();
+    this.updateView();
   }
 
-  // Update display field and re-render the view.
+  // Update display field and refresh cells without full re-init.
   onChangeDisplayBy(field: FieldName) {
-    // TODO: why is that needed?
     this.displayBy = field;
-    d3.select("#main-origin-destination-container").remove();
-    this.renderView();
+    this.updateView();
   }
 }
