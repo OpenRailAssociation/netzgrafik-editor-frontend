@@ -348,7 +348,7 @@ export const computeShortestPaths = (
     pushOrDecrease(v: number) {
       const p = this.pos[v];
       if (p === -1) {
-        let i = this.size++;
+        const i = this.size++;
         this.heap[i] = v;
         this.pos[v] = i;
         this._siftUp(i);
