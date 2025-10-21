@@ -233,7 +233,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       ctx.fillStyle = "white";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.font = `${Math.max(8, Math.floor(this.cellSize * 0.25 * Math.sqrt(this.zoomFactor)))}px SBBWeb Roman`;
+      ctx.font = `${Math.max(8, Math.floor(this.cellSize * 0.35 * Math.sqrt(this.zoomFactor)))}px SBBWeb Roman`;
 
       for (let i = 0, len = this.matrixData.length; i < len; i++) {
         const d = this.matrixData[i];
@@ -277,8 +277,13 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
     const rect = this.canvas.getBoundingClientRect();
     const zf = this.zoomFactor;
-    const xIndex = Math.floor((e.clientX / zf - rect.left / zf - this.offsetX) / this.cellSize);
-    const yIndex = Math.floor((e.clientY / zf - rect.top / zf - this.offsetY) / this.cellSize);
+
+    const xIndex = Math.floor(
+      (e.clientX - rect.left) / zf / this.cellSize - this.offsetX / this.cellSize,
+    );
+    const yIndex = Math.floor(
+      (e.clientY - rect.top) / zf / this.cellSize - this.offsetY / this.cellSize,
+    );
 
     const origin = this.nodeNames[xIndex]?.shortName;
     const destination = this.nodeNames[yIndex]?.shortName;
@@ -288,32 +293,45 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     }
 
     const d = this.matrixData.find((m) => m.origin === origin && m.destination === destination);
-    if (!d) {
+    if (!d || !d.found) {
       this.tooltip.style("opacity", 0);
       return;
     }
 
-    if (d.found) {
-      const nodeNameMap = new Map(this.nodeNames.map((n) => [n.shortName, n.fullName]));
-      const totalCostTranslation = $localize`:@@app.origin-destination.tooltip.total-cost:Total cost`;
-      const transfersTranslation = $localize`:@@app.origin-destination.tooltip.transfers:Transfers`;
-      const travelTimeTranslation = $localize`:@@app.origin-destination.tooltip.travel-time:Travel time`;
+    const nodeNameMap = new Map(this.nodeNames.map((n) => [n.shortName, n.fullName]));
+    const totalCostTranslation = $localize`:@@app.origin-destination.tooltip.total-cost:Total cost`;
+    const transfersTranslation = $localize`:@@app.origin-destination.tooltip.transfers:Transfers`;
+    const travelTimeTranslation = $localize`:@@app.origin-destination.tooltip.travel-time:Travel time`;
 
-      this.tooltip
-        .style("opacity", 1)
-        .style("left", `${e.clientX - 10 * zf}px`)
-        .style("top", `${e.clientY - 10 * zf}px`)
-        .html(
-          `${nodeNameMap.get(d.origin)} (<b>${d.origin}</b>) &#x2192; ${nodeNameMap.get(
-            d.destination,
-          )} (<b>${d.destination}</b>)<br><hr>
-          ${totalCostTranslation}: ${d.totalCost}<br>
-          ${travelTimeTranslation}: ${d.travelTime}<br>
-          ${transfersTranslation}: ${d.transfers}`,
-        );
+    const tooltipNode = this.tooltip.node() as HTMLElement | null;
+    const offsetParent = tooltipNode?.offsetParent as HTMLElement | null;
+
+    let leftPx: number;
+    let topPx: number;
+
+    if (offsetParent) {
+      const parentRect = offsetParent.getBoundingClientRect();
+      leftPx = e.clientX - parentRect.left + (this.cellSize / 2) * zf;
+      topPx = e.clientY - parentRect.top + (this.cellSize / 2) * zf;
     } else {
-      this.tooltip.style("opacity", 0);
+      leftPx = e.pageX;
+      topPx = e.pageY;
     }
+
+    const pointerOffset = 0;
+
+    this.tooltip
+      .style("opacity", 1)
+      .style("left", `${leftPx + pointerOffset}px`)
+      .style("top", `${topPx + pointerOffset}px`)
+      .html(
+        `${nodeNameMap.get(d.origin)} (<b>${d.origin}</b>) &#x2192; ${nodeNameMap.get(
+          d.destination,
+        )} (<b>${d.destination}</b>)<br><hr>
+      ${totalCostTranslation}: ${d.totalCost}<br>
+      ${travelTimeTranslation}: ${d.travelTime}<br>
+      ${transfersTranslation}: ${d.transfers}`,
+      );
   }
 
   private extractNumericODValues(odList: OriginDestination[], field: FieldName): any {
