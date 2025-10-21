@@ -189,9 +189,9 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
 
   getArrowTranslateAndRotate(y: number) {
     if (this.isRightSideDisplayed() && !this.isLeftSideDisplayed()) {
-      return `translate(142, ${y}) rotate(90)`;
+      return `translate(137, ${y}) rotate(90)`;
     } else if (!this.isRightSideDisplayed() && this.isLeftSideDisplayed()) {
-      return `translate(132, ${y + 15}) rotate(-90)`;
+      return `translate(137, ${y + 15}) rotate(-90)`;
     }
     return "";
   }
