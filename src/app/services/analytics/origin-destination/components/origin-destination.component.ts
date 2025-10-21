@@ -183,6 +183,26 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.controller.init(this.createInitialViewboxProperties(this.nodeNames.length));
   }
 
+  private makeCell(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    r: number,
+    color: string,
+  ) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+
   private drawCanvasMatrix(): void {
     if (!this.ctx || !this.canvas) return;
 
@@ -205,8 +225,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       const value = this.getCellValue(d, this.colorBy);
       const color = value === undefined ? "#76767633" : colorScale(value);
 
-      ctx.fillStyle = color;
-      ctx.fillRect(x + 1, y + 1, this.cellSize - 2, this.cellSize - 2);
+      this.makeCell(ctx, x + 1, y + 1, this.cellSize - 2, this.cellSize - 2, 2, color);
     }
 
     // optional cell text
@@ -214,7 +233,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       ctx.fillStyle = "white";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.font = `${Math.max(8, Math.floor(this.cellSize * 0.15 * this.zoomFactor))}px SBBWeb Roman`;
+      ctx.font = `${Math.max(8, Math.floor(this.cellSize * 0.25 * Math.sqrt(this.zoomFactor)))}px SBBWeb Roman`;
 
       for (let i = 0, len = this.matrixData.length; i < len; i++) {
         const d = this.matrixData[i];
