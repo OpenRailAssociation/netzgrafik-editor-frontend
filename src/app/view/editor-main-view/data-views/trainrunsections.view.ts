@@ -1057,7 +1057,7 @@ export class TrainrunSectionsView {
       groupLinesEnter
         .append(StaticDomTags.EDGE_LINE_ARROW_SVG)
         .attr("d", (d: TrainrunSectionViewObject) => {
-          return d.trainrunSection.getTrainrun().isRoundTrip() ? "" : "M-5,-7L3,0L-5,7Z";
+          return d.trainrunSection.getTrainrun().isRoundTrip() ? "" : "M-4,-5L2,0L-4,5Z";
         })
         .attr("transform", (d: TrainrunSectionViewObject) =>
           this.translateAndRotateArrow(d.trainrunSection, arrowType),
