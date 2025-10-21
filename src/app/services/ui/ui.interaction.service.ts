@@ -88,6 +88,9 @@ export class UiInteractionService implements OnDestroy {
   zoomFactorSubject = new Subject<number>();
   readonly zoomFactorObservable = this.zoomFactorSubject.asObservable();
 
+  themeChanged = new Subject<ThemeBase>();
+  readonly themeChangedObservable = this.themeChanged.asObservable();
+
   setEditorModeSubject = new Subject<number>();
   readonly setEditorModeObservable = this.setEditorModeSubject.asObservable();
 
@@ -432,6 +435,7 @@ export class UiInteractionService implements OnDestroy {
       this.saveUserSettingToLocalStorage();
     }
     this.updateLightDark();
+    this.themeChanged.next(this.activeTheme);
   }
 
   updateLightDark() {

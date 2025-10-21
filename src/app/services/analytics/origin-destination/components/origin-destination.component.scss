@@ -7,9 +7,12 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    width: calc(100% - 188px);
-    height: calc(100% - 74px);
+    width: calc(100% - 160px);
+    height: calc(100% - 61px);
     box-sizing: border-box;
+    overflow: hidden;
+    border: var(--COLOR_Default) solid 1px;
+    background: var(--NODE_DOCKABLE);
   }
 
   ::ng-deep svg.main-origin-destination-container {
@@ -31,6 +34,7 @@
     line-height: 1.5;
     text-align: left;
     text-align: start;
+    background: var(--NODE_DOCKABLE);
   }
   .palette-buttons {
     position: absolute;
@@ -81,7 +85,6 @@
   .color-by-selector {
     position: absolute;
     top: 24px;
-    right: 0px;
     padding: 12px 0px;
     border-radius: 2px;
     font-size: calc(var(--sbb-font-size) * 0.8);
@@ -103,7 +106,7 @@
 
   .sbb-checkbox-group-horizontal {
     position: absolute;
-    bottom: 44px;
+    bottom: 14px;
     left: 12px;
     padding: 8px 8px;
     border-radius: 4px;
