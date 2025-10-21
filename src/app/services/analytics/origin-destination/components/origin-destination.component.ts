@@ -239,7 +239,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       ctx.fillStyle = "white";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.font = `${Math.max(8, Math.floor(this.cellSize * 0.35 * Math.min(1.5,Math.sqrt(this.zoomFactor))))}px SBBWeb Roman`;
+      ctx.font = `${Math.max(8, Math.floor(this.cellSize * 0.35 * Math.min(1.5, Math.sqrt(this.zoomFactor))))}px SBBWeb Roman`;
 
       for (let i = 0, len = this.matrixData.length; i < len; i++) {
         const d = this.matrixData[i];
@@ -285,8 +285,12 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const zf = this.zoomFactor;
 
     // logical indices (same logic you already use)
-    const xIndex = Math.floor((e.clientX - rect.left) / zf / this.cellSize - this.offsetX / this.cellSize);
-    const yIndex = Math.floor((e.clientY - rect.top) / zf / this.cellSize - this.offsetY / this.cellSize);
+    const xIndex = Math.floor(
+      (e.clientX - rect.left) / zf / this.cellSize - this.offsetX / this.cellSize,
+    );
+    const yIndex = Math.floor(
+      (e.clientY - rect.top) / zf / this.cellSize - this.offsetY / this.cellSize,
+    );
 
     const origin = this.nodeNames[xIndex]?.shortName;
     const destination = this.nodeNames[yIndex]?.shortName;
@@ -317,8 +321,8 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     let tooltipTop: number;
     if (offsetParent) {
       const parentRect = offsetParent.getBoundingClientRect();
-      tooltipLeft = e.clientX - parentRect.left + (this.cellSize * 0.75) * zf;
-      tooltipTop = e.clientY - parentRect.top + (this.cellSize * 0.75) * zf;
+      tooltipLeft = e.clientX - parentRect.left + this.cellSize * 0.75 * zf;
+      tooltipTop = e.clientY - parentRect.top + this.cellSize * 0.75 * zf;
     } else {
       tooltipLeft = e.pageX;
       tooltipTop = e.pageY;
@@ -340,8 +344,8 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
     // ---------- Highlight: compute the hovered cell rectangle in screen (parent) coords ----------
     // Logical cell top-left in canvas-local coordinates
-    const cellLogicalX = (this.offsetX + xIndex * this.cellSize);
-    const cellLogicalY = (this.offsetY + yIndex * this.cellSize);
+    const cellLogicalX = this.offsetX + xIndex * this.cellSize;
+    const cellLogicalY = this.offsetY + yIndex * this.cellSize;
 
     // Convert to pixel coordinates on screen (canvas pixels after zoom) and then to offsetParent space
     const cellScreenX = rect.left + cellLogicalX * zf;
@@ -384,7 +388,6 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.highlight.style.width = `${Math.round(cellScreenW)}px`;
     this.highlight.style.height = `${Math.round(cellScreenH)}px`;
   }
-
 
   private extractNumericODValues(odList: OriginDestination[], field: FieldName): any {
     let minValue: number | undefined = undefined;
