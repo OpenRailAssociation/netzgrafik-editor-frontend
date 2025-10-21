@@ -48,6 +48,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   private canvas!: HTMLCanvasElement;
   private ctx!: CanvasRenderingContext2D;
   private tooltip!: any; // d3 Selection simplified to any to avoid signature issues
+  private highlight: any;
 
   // controller
   private controller!: SVGMouseController;
@@ -172,7 +173,12 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
     // events
     this.canvas.addEventListener("mousemove", this.handleCanvasMouseMove.bind(this));
-    this.canvas.addEventListener("mouseleave", () => this.tooltip?.style("opacity", 0));
+    this.canvas.addEventListener("mouseleave", () => {
+      this.tooltip?.style("opacity", 0);
+      if (this.highlight) {
+        this.highlight.style.opacity = "0";
+      }
+    });
 
     // create controller (existing API)
     this.controller = new SVGMouseController(
@@ -233,7 +239,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       ctx.fillStyle = "white";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.font = `${Math.max(8, Math.floor(this.cellSize * 0.35 * Math.sqrt(this.zoomFactor)))}px SBBWeb Roman`;
+      ctx.font = `${Math.max(8, Math.floor(this.cellSize * 0.35 * Math.min(1.5,Math.sqrt(this.zoomFactor))))}px SBBWeb Roman`;
 
       for (let i = 0, len = this.matrixData.length; i < len; i++) {
         const d = this.matrixData[i];
@@ -278,23 +284,23 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const rect = this.canvas.getBoundingClientRect();
     const zf = this.zoomFactor;
 
-    const xIndex = Math.floor(
-      (e.clientX - rect.left) / zf / this.cellSize - this.offsetX / this.cellSize,
-    );
-    const yIndex = Math.floor(
-      (e.clientY - rect.top) / zf / this.cellSize - this.offsetY / this.cellSize,
-    );
+    // logical indices (same logic you already use)
+    const xIndex = Math.floor((e.clientX - rect.left) / zf / this.cellSize - this.offsetX / this.cellSize);
+    const yIndex = Math.floor((e.clientY - rect.top) / zf / this.cellSize - this.offsetY / this.cellSize);
 
     const origin = this.nodeNames[xIndex]?.shortName;
     const destination = this.nodeNames[yIndex]?.shortName;
     if (!origin || !destination) {
       this.tooltip.style("opacity", 0);
+      // hide highlight if exists
+      if (this.highlight) this.highlight.style("display", "none");
       return;
     }
 
     const d = this.matrixData.find((m) => m.origin === origin && m.destination === destination);
     if (!d || !d.found) {
       this.tooltip.style("opacity", 0);
+      if (this.highlight) this.highlight.style("display", "none");
       return;
     }
 
@@ -303,27 +309,26 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const transfersTranslation = $localize`:@@app.origin-destination.tooltip.transfers:Transfers`;
     const travelTimeTranslation = $localize`:@@app.origin-destination.tooltip.travel-time:Travel time`;
 
+    // ---------- Tooltip: position exactly under pointer ----------
+    // Tooltip is positioned in the same coordinate space as its offsetParent, so convert client -> parent coords
     const tooltipNode = this.tooltip.node() as HTMLElement | null;
     const offsetParent = tooltipNode?.offsetParent as HTMLElement | null;
-
-    let leftPx: number;
-    let topPx: number;
-
+    let tooltipLeft: number;
+    let tooltipTop: number;
     if (offsetParent) {
       const parentRect = offsetParent.getBoundingClientRect();
-      leftPx = e.clientX - parentRect.left + (this.cellSize / 2) * zf;
-      topPx = e.clientY - parentRect.top + (this.cellSize / 2) * zf;
+      tooltipLeft = e.clientX - parentRect.left + (this.cellSize * 0.75) * zf;
+      tooltipTop = e.clientY - parentRect.top + (this.cellSize * 0.75) * zf;
     } else {
-      leftPx = e.pageX;
-      topPx = e.pageY;
+      tooltipLeft = e.pageX;
+      tooltipTop = e.pageY;
     }
 
-    const pointerOffset = 0;
-
+    // set tooltip (no additional offset so it's exactly under mouse; add small offset if you want)
     this.tooltip
       .style("opacity", 1)
-      .style("left", `${leftPx + pointerOffset}px`)
-      .style("top", `${topPx + pointerOffset}px`)
+      .style("left", `${tooltipLeft}px`)
+      .style("top", `${tooltipTop}px`)
       .html(
         `${nodeNameMap.get(d.origin)} (<b>${d.origin}</b>) &#x2192; ${nodeNameMap.get(
           d.destination,
@@ -332,7 +337,54 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       ${travelTimeTranslation}: ${d.travelTime}<br>
       ${transfersTranslation}: ${d.transfers}`,
       );
+
+    // ---------- Highlight: compute the hovered cell rectangle in screen (parent) coords ----------
+    // Logical cell top-left in canvas-local coordinates
+    const cellLogicalX = (this.offsetX + xIndex * this.cellSize);
+    const cellLogicalY = (this.offsetY + yIndex * this.cellSize);
+
+    // Convert to pixel coordinates on screen (canvas pixels after zoom) and then to offsetParent space
+    const cellScreenX = rect.left + cellLogicalX * zf;
+    const cellScreenY = rect.top + cellLogicalY * zf;
+    const cellScreenW = this.cellSize * zf;
+    const cellScreenH = this.cellSize * zf;
+
+    let highlightLeft: number;
+    let highlightTop: number;
+    if (offsetParent) {
+      const parentRect = offsetParent.getBoundingClientRect();
+      highlightLeft = cellScreenX - parentRect.left;
+      highlightTop = cellScreenY - parentRect.top;
+    } else {
+      highlightLeft = cellScreenX + window.scrollX;
+      highlightTop = cellScreenY + window.scrollY;
+    }
+
+    // Create highlight element on first use if missing
+    if (!this.highlight) {
+      // create a simple absolutely positioned div used as highlight
+      const hp = document.createElement("div");
+      hp.style.position = "absolute";
+      hp.style.pointerEvents = "none";
+      hp.style.border = "3px solid var(--NODE_TEXT_FOCUS)"; // blue border
+      hp.style.boxSizing = "border-box";
+      hp.style.borderRadius = "4px";
+      hp.style.background = "none"; // subtle fill
+      // append to same offsetParent as tooltip (or document.body if none)
+      const parentToAppend = offsetParent ?? document.body;
+      parentToAppend.appendChild(hp);
+      this.highlight = hp;
+    }
+
+    // Show and position highlight
+    this.highlight.style.opacity = "1.0";
+    this.highlight.style.display = "block";
+    this.highlight.style.left = `${Math.round(highlightLeft)}px`;
+    this.highlight.style.top = `${Math.round(highlightTop)}px`;
+    this.highlight.style.width = `${Math.round(cellScreenW)}px`;
+    this.highlight.style.height = `${Math.round(cellScreenH)}px`;
   }
+
 
   private extractNumericODValues(odList: OriginDestination[], field: FieldName): any {
     let minValue: number | undefined = undefined;
@@ -425,6 +477,12 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
         this.zoomFactor = zoomFactor / 100;
         this.uiInteractionService.zoomFactorChanged(zoomFactor);
         this.drawCanvasMatrix();
+        if (this.highlight) {
+          this.highlight.style.opacity = "0";
+        }
+        if (d3.event?.type === "wheel") {
+          this.handleCanvasMouseMove(d3.event);
+        }
       },
       onViewboxChanged: (viewboxProperties) => {
         this.currentViewbox = viewboxProperties;
