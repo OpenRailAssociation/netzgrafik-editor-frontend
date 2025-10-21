@@ -9,6 +9,7 @@ import {
 import {UiInteractionService, ViewboxProperties} from "src/app/services/ui/ui.interaction.service";
 import {Vec2D} from "src/app/utils/vec2D";
 import {UndoService} from "src/app/services/data/undo.service";
+import {ThemeBase} from "../../../../view/themes/theme-base";
 
 type FieldName = "totalCost" | "travelTime" | "transfers";
 type ColorSetName = "red" | "blue" | "orange" | "gray";
@@ -92,6 +93,9 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.uiInteractionService.zoomResetObservable
       .pipe(takeUntil(this.destroyed$))
       .subscribe((zoomCenter: Vec2D) => this.controller?.zoomReset(zoomCenter));
+    this.uiInteractionService.themeChangedObservable
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe(() => this.drawCanvasMatrix());
   }
 
   ngOnDestroy(): void {
@@ -121,7 +125,6 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       .attr("class", "tooltip")
       .style("opacity", 0)
       .style("position", "absolute")
-      .style("background-color", "white")
       .style("border", "solid")
       .style("border-width", "1px")
       .style("border-radius", "4px")
@@ -226,7 +229,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     }
 
     // Y axis labels (left)
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = this.uiInteractionService.getActiveTheme().isDark ? "white" : "black";
     ctx.font = `${Math.max(10, Math.floor(this.cellSize * 0.25 * this.zoomFactor))}px SBBWeb Roman`;
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
@@ -279,8 +282,8 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
       this.tooltip
         .style("opacity", 1)
-        .style("left", `${e.pageX + 10}px`)
-        .style("top", `${e.pageY + 10}px`)
+        .style("left", `${e.clientX - 10 * zf}px`)
+        .style("top", `${e.clientY - 10 * zf}px`)
         .html(
           `${nodeNameMap.get(d.origin)} (<b>${d.origin}</b>) &#x2192; ${nodeNameMap.get(
             d.destination,
