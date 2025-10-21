@@ -224,6 +224,12 @@ export class TrainrunSectionService implements OnDestroy {
     );
 
     this.trainrunSectionsStore.trainrunSections.forEach((trainrunSection) => {
+      trainrunSection.setSourceNode(
+        this.nodeService.getNodeFromId(trainrunSection.getSourceNodeId()),
+      );
+      trainrunSection.setTargetNode(
+        this.nodeService.getNodeFromId(trainrunSection.getTargetNodeId()),
+      );
       TrainrunSectionValidator.validateOneSection(trainrunSection);
       TrainrunSectionValidator.validateTravelTime(trainrunSection);
     });

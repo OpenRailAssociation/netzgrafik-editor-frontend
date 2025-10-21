@@ -70,7 +70,11 @@ export class TrainrunSectionValidator {
       4,
     );
     const sourceSymmetricCheck = Math.abs(sourceSum % 60) < 1 / 60;
-    if (!sourceSymmetricCheck && !trainrunSection.getSourceNode().isNonStop(trainrunSection)) {
+    if (
+      !sourceSymmetricCheck &&
+      trainrunSection.getSourceNode() &&
+      !trainrunSection.getSourceNode().isNonStop(trainrunSection)
+    ) {
       // display warning only if the target node is a stopping node
       trainrunSection.setSourceArrivalWarning(
         $localize`:@@app.services.util.trainrunsection-validator.broken-symmetry:Broken symmetry`,
@@ -92,7 +96,11 @@ export class TrainrunSectionValidator {
       4,
     );
     const targetSymmetricCheck = Math.abs(targetSum % 60) < 1 / 60;
-    if (!targetSymmetricCheck && !trainrunSection.getTargetNode().isNonStop(trainrunSection)) {
+    if (
+      !targetSymmetricCheck &&
+      trainrunSection.getTargetNode() &&
+      !trainrunSection.getTargetNode().isNonStop(trainrunSection)
+    ) {
       // display warning only if the target node is a stopping node
       trainrunSection.setTargetArrivalWarning(
         $localize`:@@app.services.util.trainrunsection-validator.broken-symmetry:Broken symmetry`,
