@@ -264,8 +264,12 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       });
 
     // filter changes should only redraw using existing data (data is loaded only once)
-    this.filterService.filter.pipe(takeUntil(this.destroyed$)).subscribe(() => {
-      this.drawCanvasMatrix();
+    this.filterService.filter
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe(() => {
+        if (!this.ctx || !this.canvas) return;
+        this.loadMatrixData();
+        this.drawCanvasMatrix();
     });
   }
 
