@@ -164,7 +164,6 @@ export const computeShortestPaths = (
   const dist = new Map<Vertex, [number, number]>();
   let started = false;
   vertices.forEach((vertex) => {
-    const key = vertex;
     // First, look for our start node.
     if (!started) {
       if (from === vertex.nodeId && vertex.isDeparture === true && vertex.time === undefined) {
@@ -190,11 +189,6 @@ export const computeShortestPaths = (
     // The shortest path from the start node to this vertex is a shortest path from the start node to a neighbor
     // plus the weight of the edge connecting the neighbor to this vertex.
     neighs.forEach(([neighbor, weight]) => {
-      const alt = dist.get(vertex)[0] + weight;
-      if (dist.get(neighbor) === undefined || alt < dist.get(neighbor)[0]) {
-      const alt = dist.get(key)[0] + weight;
-      const neighborKey = neighbor;
-      if (dist.get(neighborKey) === undefined || alt < dist.get(neighborKey)[0]) {
       const alt = dist.get(vertex)[0] + weight;
       if (dist.get(neighbor) === undefined || alt < dist.get(neighbor)[0]) {
         let connection = 0;
@@ -262,7 +256,7 @@ const buildSectionEdgesFromIterator = (
     let tsId = ts.getId();
     const trainrunId = reverseIterator
       ? // Minus 1 so we don't conflate 0 with -0.
-        -ts.getTrainrunId() - 1
+      -ts.getTrainrunId() - 1
       : ts.getTrainrunId();
 
     const reverseSection = tsIterator.current().node.getId() !== ts.getTargetNodeId();
