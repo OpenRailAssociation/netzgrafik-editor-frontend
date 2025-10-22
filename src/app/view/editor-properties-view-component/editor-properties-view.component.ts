@@ -121,7 +121,7 @@ export class EditorPropertiesViewComponent {
     this.uiInteractionService.setActiveStreckengrafikRenderingType(event.value);
   }
 
-  onUpdateaTravelTimeCreationEstimatorType(event: SbbRadioChange) {
+  onUpdateTravelTimeCreationEstimatorType(event: SbbRadioChange) {
     this.uiInteractionService.setActiveTravelTimeCreationEstimatorType(event.value);
   }
 

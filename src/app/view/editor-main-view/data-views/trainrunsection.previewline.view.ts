@@ -183,7 +183,7 @@ export class TrainrunSectionPreviewLineView {
 
   updatePreviewLine() {
     if (this.dragIntermediateStopInfo !== null) {
-      this.undisplayConnectionPreviewLine();
+      this.hideConnectionPreviewLine();
       this.displayTrainrunSectionPreviewLine();
       D3Utils.updateIntermediateStopOrTransitionPreviewLine(
         this.dragIntermediateStopInfo.trainrunSection.getPath()[0],
@@ -193,7 +193,7 @@ export class TrainrunSectionPreviewLineView {
     }
 
     if (this.dragTransitionInfo !== null) {
-      this.undisplayConnectionPreviewLine();
+      this.hideConnectionPreviewLine();
       this.displayTrainrunSectionPreviewLine();
       if (this.dragTransitionInfo.insideNode) {
         const startPos = this.dragTransitionInfo.transition.getPath()[0];
@@ -234,14 +234,14 @@ export class TrainrunSectionPreviewLineView {
     }
 
     if (this.startConnectionPos !== null) {
-      this.undisplayTrainrunSectionPreviewLine();
+      this.hideTrainrunSectionPreviewLine();
       this.displayConnectionPreviewLine();
       D3Utils.updateConnectionPreviewLine(this.startConnectionPos, this.canCombineTwoTrainruns());
       return true;
     }
 
     if (this.startPos !== null) {
-      this.undisplayConnectionPreviewLine();
+      this.hideConnectionPreviewLine();
       this.displayTrainrunSectionPreviewLine();
       D3Utils.updateTrainrunSectionPreviewLine(this.startPos);
       return true;
@@ -251,8 +251,8 @@ export class TrainrunSectionPreviewLineView {
 
   stopPreviewLine() {
     this.filterService.resetTemporaryEmptyAndNonStopFilteringSwitchedOff();
-    this.undisplayTrainrunSectionPreviewLine();
-    this.undisplayConnectionPreviewLine();
+    this.hideTrainrunSectionPreviewLine();
+    this.hideConnectionPreviewLine();
     if (this.dragIntermediateStopInfo !== null) {
       D3Utils.removeGrayout(this.dragIntermediateStopInfo.trainrunSection);
       d3.select(this.dragIntermediateStopInfo.domRef).classed(StaticDomTags.TAG_HOVER, false);
@@ -288,7 +288,7 @@ export class TrainrunSectionPreviewLineView {
       .attr("class", StaticDomTags.PREVIEW_LINE_CLASS);
   }
 
-  private undisplayTrainrunSectionPreviewLine() {
+  private hideTrainrunSectionPreviewLine() {
     if (!this.drawingTrainrunSectionObjectCreated) {
       return;
     }
@@ -309,7 +309,7 @@ export class TrainrunSectionPreviewLineView {
       .attr("class", StaticDomTags.PREVIEW_CONNECTION_LINE_CLASS);
   }
 
-  private undisplayConnectionPreviewLine() {
+  private hideConnectionPreviewLine() {
     if (!this.drawingConnectionObjectCreated) {
       return;
     }

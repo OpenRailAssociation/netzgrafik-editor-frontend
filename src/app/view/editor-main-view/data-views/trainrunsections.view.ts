@@ -1380,6 +1380,7 @@ export class TrainrunSectionsView {
           connectedTrainIds,
         ),
       )
+      .attr("data-testid", StaticDomTags.EDGE_LINE_TEXT_CLASS)
       .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
         d.trainrunSection.getTrainrunId(),
@@ -1558,7 +1559,6 @@ export class TrainrunSectionsView {
           TrainrunSectionText.TrainrunSectionNumberOfStops,
         ),
       )
-      .attr("data-testid", StaticDomTags.EDGE_LINE_TEXT_CLASS)
       .text(numberOfStops)
       .classed(StaticDomTags.TAG_MUTED, () =>
         TrainrunSectionsView.isMuted(trainrunSection, selectedTrainrun, connectedTrainIds),
@@ -1923,7 +1923,7 @@ export class TrainrunSectionsView {
     this.editorView.trainrunSectionPreviewLineView.updatePreviewLineCombineTrainruns(hasTrans);
 
     d3.selectAll(StaticDomTags.CONNECTION_LINE_PIN_DOM_REF).classed(
-      StaticDomTags.CONNECTION_TAG_ONGOING_GDRAGGING,
+      StaticDomTags.CONNECTION_TAG_ONGOING_DRAGGING,
       true,
     );
   }
@@ -1938,7 +1938,7 @@ export class TrainrunSectionsView {
 
   onTrainrunSectionMouseupPin(trainrunSection: TrainrunSection, atSource: boolean) {
     d3.selectAll(StaticDomTags.CONNECTION_LINE_PIN_DOM_REF).classed(
-      StaticDomTags.CONNECTION_TAG_ONGOING_GDRAGGING,
+      StaticDomTags.CONNECTION_TAG_ONGOING_DRAGGING,
       false,
     );
     this.createNewTrainrunSectionAfterPinDropped(
@@ -2051,9 +2051,9 @@ export class TrainrunSectionsView {
       );
       transformedPath = transformedPath.reverse();
 
-      const transtionObject: Transition = srcNode.getTransition(ts.getId());
-      if (transtionObject !== undefined) {
-        const tPath = Object.assign([], transtionObject.getPath());
+      const transitionObject: Transition = srcNode.getTransition(ts.getId());
+      if (transitionObject !== undefined) {
+        const tPath = Object.assign([], transitionObject.getPath());
         const n0 = Vec2D.norm(Vec2D.sub(element, tPath[0]));
         const n1 = Vec2D.norm(Vec2D.sub(element, tPath[3]));
         if (n0 <= n1) {
@@ -2092,9 +2092,9 @@ export class TrainrunSectionsView {
         transformedPath,
       );
 
-      const transtionObject: Transition = trgNode.getTransition(ts.getId());
-      if (transtionObject !== undefined) {
-        const tPath = Object.assign([], transtionObject.getPath());
+      const transitionObject: Transition = trgNode.getTransition(ts.getId());
+      if (transitionObject !== undefined) {
+        const tPath = Object.assign([], transitionObject.getPath());
         const n0 = Vec2D.norm(Vec2D.sub(element, tPath[0]));
         const n1 = Vec2D.norm(Vec2D.sub(element, tPath[3]));
         if (n0 <= n1) {
@@ -2154,8 +2154,8 @@ export class TrainrunSectionsView {
       return true;
     }
     const filterSourceNode = this.editorView.checkFilterNode(trainrunSection.getSourceNode());
-    const filterTragetNode = this.editorView.checkFilterNode(trainrunSection.getTargetNode());
-    return filterSourceNode && filterTragetNode;
+    const filterTargetNode = this.editorView.checkFilterNode(trainrunSection.getTargetNode());
+    return filterSourceNode && filterTargetNode;
   }
 
   private oneNodeHiddenTrainrunSectionsRendering(
@@ -2442,7 +2442,7 @@ export class TrainrunSectionsView {
     this.createTrainrunSection(
       groupLines,
       StaticDomTags.EDGE_LINE_LAYER_0,
-      [LinePatternRefs.Freq30], // LinePatternRefs.Freq60], (background is required to "strech the hower area"
+      [LinePatternRefs.Freq30], // LinePatternRefs.Freq60], (background is required to "stretch the lower area"
       selectedTrainrun,
       connectedTrainIds,
       enableEvents,

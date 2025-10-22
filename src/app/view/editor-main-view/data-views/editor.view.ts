@@ -508,7 +508,7 @@ export class EditorView implements SVGMouseControllerObserver {
       return;
     }
     this.isMultiSelectOn = false;
-    this.multiSelectRenderer.undisplayBox();
+    this.multiSelectRenderer.hideBox();
 
     if (
       this.nodeService.getSelectedNode() === null &&
@@ -519,11 +519,11 @@ export class EditorView implements SVGMouseControllerObserver {
     }
   }
 
-  onGraphContainerMouseup(mousePosition: Vec2D, onPaning: boolean) {
+  onGraphContainerMouseup(mousePosition: Vec2D, onPanning: boolean) {
     if (this.isMultiSelectOn) {
       return;
     }
-    if (!this.trainrunSectionPreviewLineView.isDragging() && !onPaning) {
+    if (!this.trainrunSectionPreviewLineView.isDragging() && !onPanning) {
       if (
         d3.event.button === 0 &&
         this.editorMode === EditorMode.TopologyEditing &&
