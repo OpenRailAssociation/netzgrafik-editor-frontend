@@ -143,7 +143,8 @@
         "transfers": "Umstiege"
       },
       "buttons": {
-        "reset": "Zurücksetzen"
+        "reset": "Zurücksetzen",
+        "crossHighlighting": "Zeilen/Spalten hervorheben"
       },
       "palette-buttons": {
         "red": "Rote Palette",

@@ -1,11 +1,20 @@
 <div class="matrix-wrapper">
   <button
     type="button"
-    class="ODResetButton"
+    class="ODLeftPanelButton ODResetButton"
     [title]="'app.origin-destination.buttons.reset' | translate"
     (click)="onResetButton()"
   >
     <sbb-icon svgIcon="kom:arrow-circle-reset-small"></sbb-icon>
+  </button>
+
+  <button
+    type="button"
+    [class]="'ODLeftPanelButton ODCrossHighlightingButton ' + getCrossHighlightingTag()"
+    [title]="'app.origin-destination.buttons.crossHighlighting' | translate"
+    (click)="toggleCrossHighlighting()"
+  >
+    <sbb-icon svgIcon="highlighter-small"></sbb-icon>
   </button>
 
   <div id="main-origin-destination-container-root"></div>

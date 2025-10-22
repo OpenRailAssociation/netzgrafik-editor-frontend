@@ -115,7 +115,7 @@
   }
 }
 
-button.ODResetButton {
+button.ODLeftPanelButton {
   min-width: 30px;
   max-width: 30px;
   min-height: 28px;
@@ -132,14 +132,34 @@ button.ODResetButton {
   position: absolute;
 }
 
-button.ODResetButton:hover {
+button.ODLeftPanelButton:hover {
   background: var(--COLOR_BACKGROUND);
   font-weight: bold;
-  transform: translate(-35px, -4px) scale(1.25);
+  transform: translate(-35px, -4px) scale(1);
 }
 
-button.ODResetButton:active {
+button.ODLeftPanelButton:active {
   background: var(--COLOR_BACKGROUND);
+}
+
+button.ODResetButton {
+  transform: translate(-35px, -4px) scale(1);
+}
+
+button.ODResetButton:hover {
+  transform: translate(-35px, -4px) scale(1);
+}
+
+button.ODCrossHighlightingButton {
+  transform: translate(-35px, 32px) scale(1);
+}
+
+button.ODCrossHighlightingButton:hover {
+  transform: translate(-35px, 32px) scale(1.25);
+}
+
+button.ODCrossHighlightingButton.isCrossHighlighting {
+  color: #eb0000;
 }
 
 .ODRadioButton:hover {
