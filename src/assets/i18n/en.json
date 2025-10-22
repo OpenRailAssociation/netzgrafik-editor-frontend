@@ -142,6 +142,9 @@
         "travel-time": "Travel time",
         "transfers": "Transfers"
       },
+      "buttons": {
+        "reset": "Reset"
+      },
       "palette-buttons": {
         "red": "Red palette",
         "blue": "Blue palette",

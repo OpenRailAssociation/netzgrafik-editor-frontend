@@ -141,6 +141,9 @@
         "travel-time": "Temps de parcours",
         "transfers": "Changements"
       },
+      "buttons": {
+        "reset": "Réinitialiser"
+      },
       "palette-buttons": {
         "red": "Palette rouge",
         "blue": "Palette bleue",
