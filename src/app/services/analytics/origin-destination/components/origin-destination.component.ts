@@ -10,6 +10,7 @@ import {UiInteractionService, ViewboxProperties} from "src/app/services/ui/ui.in
 import {Vec2D} from "src/app/utils/vec2D";
 import {UndoService} from "src/app/services/data/undo.service";
 import {ThemeBase} from "../../../../view/themes/theme-base";
+import {FilterService} from "../../../ui/filter.service";
 
 type FieldName = "totalCost" | "travelTime" | "transfers";
 type ColorSetName = "red" | "blue" | "orange" | "gray";
@@ -28,6 +29,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     private originDestinationService: OriginDestinationService,
     private uiInteractionService: UiInteractionService,
     private undoService: UndoService,
+    private filterService: FilterService,
   ) {}
 
   private matrixData: OriginDestination[] = [];
@@ -55,8 +57,67 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   private currentViewbox: ViewboxProperties | null = null;
 
   ngOnInit(): void {
+    // create the tooltip div which is use when mouse hovers over a cell
     this.createTooltip();
 
+    // create the highlight div which is use when mouse hovers over a cell
+    this.createHighlight();
+
+    // load the data and create the rendering system (canvas)
+    this.createAndRenderCanvas();
+
+    // wire zoom observables (controller created in initCanvasView)
+    this.uiInteractionService.zoomInObservable
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe((zoomCenter: Vec2D) => this.controller?.zoomIn(zoomCenter));
+    this.uiInteractionService.zoomOutObservable
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe((zoomCenter: Vec2D) => this.controller?.zoomOut(zoomCenter));
+    this.uiInteractionService.zoomResetObservable
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe((zoomCenter: Vec2D) => this.controller?.zoomReset(zoomCenter));
+    this.uiInteractionService.themeChangedObservable
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe(() => this.drawCanvasMatrix());
+    this.filterService.filter
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe(() => this.createAndRenderCanvas());
+  }
+
+  ngOnDestroy(): void {
+    this.destroyed$.next();
+    this.destroyed$.complete();
+    try {
+      d3.select("#main-origin-destination-canvas").remove();
+      this.tooltip?.remove();
+      d3.select("#main-origin-destination-container").remove();
+    } catch {
+      // ignore
+    }
+  }
+
+  private createAndRenderCanvas() {
+    // load the matrix data
+    this.loadMatrixData();
+    // initialize the canvas view
+    this.initCanvasView();
+    // render the data matrix with help of canvas
+    this.drawCanvasMatrix();
+    // create or update view box
+    this.createOrUpdateViewbox();
+  }
+
+  private createOrUpdateViewbox() {
+    // create controller (existing API)
+    this.controller = new SVGMouseController(
+      "main-origin-destination-container-root",
+      this.createSvgMouseControllerObserver(),
+      this.undoService,
+    );
+    this.controller.init(this.createInitialViewboxProperties(this.nodeNames.length));
+  }
+
+  private loadMatrixData() {
     // load data
     this.matrixData = this.originDestinationService.originDestinationData() ?? [];
 
@@ -80,35 +141,24 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       shortName: node.getBetriebspunktName(),
       fullName: node.getFullName(),
     }));
-
-    this.initCanvasView();
-    this.drawCanvasMatrix();
-
-    // wire zoom observables (controller created in initCanvasView)
-    this.uiInteractionService.zoomInObservable
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((zoomCenter: Vec2D) => this.controller?.zoomIn(zoomCenter));
-    this.uiInteractionService.zoomOutObservable
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((zoomCenter: Vec2D) => this.controller?.zoomOut(zoomCenter));
-    this.uiInteractionService.zoomResetObservable
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((zoomCenter: Vec2D) => this.controller?.zoomReset(zoomCenter));
-    this.uiInteractionService.themeChangedObservable
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe(() => this.drawCanvasMatrix());
   }
 
-  ngOnDestroy(): void {
-    this.destroyed$.next();
-    this.destroyed$.complete();
-    try {
-      d3.select("#main-origin-destination-canvas").remove();
-      this.tooltip?.remove();
-      d3.select("#main-origin-destination-container").remove();
-    } catch {
-      // ignore
-    }
+  private createHighlight() {
+    const tooltipNode = this.tooltip.node() as HTMLElement | null;
+    const offsetParent = tooltipNode?.offsetParent as HTMLElement | null;
+
+    // create a simple absolutely positioned div used as highlight
+    const hp = document.createElement("div");
+    hp.style.position = "absolute";
+    hp.style.pointerEvents = "none";
+    hp.style.border = "3px solid var(--NODE_TEXT_FOCUS)"; // blue border
+    hp.style.boxSizing = "border-box";
+    hp.style.borderRadius = "4px";
+    hp.style.background = "none"; // subtle fill
+    // append to same offsetParent as tooltip (or document.body if none)
+    const parentToAppend = offsetParent ?? document.body;
+    parentToAppend.appendChild(hp);
+    this.highlight = hp;
   }
 
   private createTooltip(): void {
@@ -179,14 +229,6 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
         this.highlight.style.opacity = "0";
       }
     });
-
-    // create controller (existing API)
-    this.controller = new SVGMouseController(
-      "main-origin-destination-container",
-      this.createSvgMouseControllerObserver(),
-      this.undoService,
-    );
-    this.controller.init(this.createInitialViewboxProperties(this.nodeNames.length));
   }
 
   private makeCell(
@@ -297,14 +339,14 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     if (!origin || !destination) {
       this.tooltip.style("opacity", 0);
       // hide highlight if exists
-      if (this.highlight) this.highlight.style("display", "none");
+      if (this.highlight) this.highlight.style.display = "none";
       return;
     }
 
     const d = this.matrixData.find((m) => m.origin === origin && m.destination === destination);
     if (!d || !d.found) {
       this.tooltip.style("opacity", 0);
-      if (this.highlight) this.highlight.style("display", "none");
+      if (this.highlight) this.highlight.style.display = "none";
       return;
     }
 
@@ -319,8 +361,9 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const offsetParent = tooltipNode?.offsetParent as HTMLElement | null;
     let tooltipLeft: number;
     let tooltipTop: number;
+    let parentRect: DOMRect = undefined;
     if (offsetParent) {
-      const parentRect = offsetParent.getBoundingClientRect();
+      parentRect = offsetParent.getBoundingClientRect();
       tooltipLeft = e.clientX - parentRect.left + this.cellSize * 0.75 * zf;
       tooltipTop = e.clientY - parentRect.top + this.cellSize * 0.75 * zf;
     } else {
@@ -355,29 +398,12 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
     let highlightLeft: number;
     let highlightTop: number;
-    if (offsetParent) {
-      const parentRect = offsetParent.getBoundingClientRect();
+    if (parentRect) {
       highlightLeft = cellScreenX - parentRect.left;
       highlightTop = cellScreenY - parentRect.top;
     } else {
       highlightLeft = cellScreenX + window.scrollX;
       highlightTop = cellScreenY + window.scrollY;
-    }
-
-    // Create highlight element on first use if missing
-    if (!this.highlight) {
-      // create a simple absolutely positioned div used as highlight
-      const hp = document.createElement("div");
-      hp.style.position = "absolute";
-      hp.style.pointerEvents = "none";
-      hp.style.border = "3px solid var(--NODE_TEXT_FOCUS)"; // blue border
-      hp.style.boxSizing = "border-box";
-      hp.style.borderRadius = "4px";
-      hp.style.background = "none"; // subtle fill
-      // append to same offsetParent as tooltip (or document.body if none)
-      const parentToAppend = offsetParent ?? document.body;
-      parentToAppend.appendChild(hp);
-      this.highlight = hp;
     }
 
     // Show and position highlight
@@ -509,7 +535,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
   private createInitialViewboxProperties(numberOfNodes: number): ViewboxProperties {
     const matrixSize = this.cellSize * numberOfNodes;
-    const container = document.getElementById("main-origin-destination-container");
+    const container = document.getElementById("main-origin-destination-container-root");
     const containerHeight = container ? container.clientHeight : window.innerHeight;
     const containerWidth = container ? container.clientWidth : window.innerWidth;
     const panZoomTop = Math.max(0, (containerHeight - matrixSize) / 2);
