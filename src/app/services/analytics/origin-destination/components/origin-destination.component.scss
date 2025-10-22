@@ -1,8 +1,10 @@
+@import "./../../../../view/rastering/definitions";
+
 .matrix-wrapper {
   position: relative;
   width: 100%;
   height: 98%;
-  margin: 8px 0px 0px 42px;
+  margin: 8px 0px 0px 64px;
 
   #main-origin-destination-container-root {
     display: flex;
@@ -143,19 +145,27 @@ button.ODLeftPanelButton:active {
 }
 
 button.ODResetButton {
-  transform: translate(-35px, -4px) scale(1);
+  transform: translate(-45px, 2px) scale(1);
 }
 
 button.ODResetButton:hover {
-  transform: translate(-35px, -4px) scale(1);
+  transform: translate(-45px, 2px) scale(1.25);
+}
+
+button.ODResetButton:active {
+  background-color: $COLOR_MUTED_SILVER;
 }
 
 button.ODCrossHighlightingButton {
-  transform: translate(-35px, 32px) scale(1);
+  transform: translate(-45px, 48px) scale(1);
 }
 
 button.ODCrossHighlightingButton:hover {
-  transform: translate(-35px, 32px) scale(1.25);
+  transform: translate(-45px, 48px) scale(1.25);
+}
+
+button.ODCrossHighlightingButton:active {
+  background-color: $COLOR_MUTED_SILVER;
 }
 
 button.ODCrossHighlightingButton.isCrossHighlighting {
