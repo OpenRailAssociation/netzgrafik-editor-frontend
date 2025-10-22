@@ -9,13 +9,21 @@ import {
 import {UiInteractionService, ViewboxProperties} from "src/app/services/ui/ui.interaction.service";
 import {Vec2D} from "src/app/utils/vec2D";
 import {UndoService} from "src/app/services/data/undo.service";
-import {ThemeBase} from "../../../../view/themes/theme-base";
 import {FilterService} from "../../../ui/filter.service";
 import {NodeService} from "../../../data/node.service";
 
 type FieldName = "totalCost" | "travelTime" | "transfers";
 type ColorSetName = "red" | "blue" | "orange" | "gray";
 
+/**
+ * OriginDestinationComponent
+ *
+ * - Refactored into small, focused methods.
+ * - Improved naming and consistent typing.
+ * - Tooltip and highlight use offsetParent coordinates for correct positioning.
+ * - Data is loaded only once during initialization.
+ * - Initial render is executed exactly once at the end of ngOnInit.
+ */
 @Component({
   selector: "sbb-origin-destination",
   templateUrl: "./origin-destination.component.html",
@@ -34,76 +42,65 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     private nodeService: NodeService,
   ) {}
 
+  // Data
   private matrixData: OriginDestination[] = [];
   private nodeNames: {shortName: string; fullName: string; id: number}[] = [];
 
+  // Controls
   colorBy: FieldName = "totalCost";
   displayBy: FieldName = "totalCost";
   colorSetName: ColorSetName = "red";
 
-  // rendering
-  private zoomFactor = 1;
+  // Rendering configuration
+  private zoomFactor = 1; // logical zoom factor (1 = 100%)
   private cellSize = 1;
   private offsetX = 1;
   private offsetY = 1;
-  private cellSizeOrg = 64;
-  private offsetXOrg = 160;
-  private offsetYOrg = 160;
+  private readonly cellSizeOrg = 64;
+  private readonly offsetXOrg = 160;
+  private readonly offsetYOrg = 160;
+
+  // DOM & drawing
   private canvas!: HTMLCanvasElement;
   private ctx!: CanvasRenderingContext2D;
-  private tooltip!: any; // d3 Selection simplified to any to avoid signature issues
-  private highlight: any;
+  private tooltip: d3.Selection<HTMLDivElement, unknown, null, undefined> | null = null;
+  private highlight: HTMLElement | null = null;
   private isCrossHighlighting = false;
 
-  // controller
+  // Controller
   private controller!: SVGMouseController;
   private currentViewbox: ViewboxProperties | null = null;
 
   ngOnInit(): void {
-    // create the tooltip div which is use when mouse hovers over a cell
-    this.createTooltip();
+    // create tooltip and highlight first so offsetParent is available
+    this.createTooltipIfNeeded();
+    this.createHighlightIfNeeded();
 
-    // create the highlight div which is use when mouse hovers over a cell
-    this.createHighlight();
+    // subscribe to observables (subscriptions do not reload data, only redraw)
+    this.subscribeToObservables();
 
-    // load the data and create the rendering system (canvas)
+    // load data only once
     this.loadMatrixData();
-    this.initCanvasView();
-    this.initViewbox();
 
-    // wire zoom observables (controller created in initCanvasView)
-    this.uiInteractionService.zoomInObservable
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((zoomCenter: Vec2D) => this.controller?.zoomIn(zoomCenter));
-    this.uiInteractionService.zoomOutObservable
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((zoomCenter: Vec2D) => this.controller?.zoomOut(zoomCenter));
-    this.uiInteractionService.zoomResetObservable
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((zoomCenter: Vec2D) => this.controller?.zoomReset(zoomCenter));
-    this.uiInteractionService.themeChangedObservable
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe(() => this.drawCanvasMatrix());
-    this.filterService.filter.pipe(takeUntil(this.destroyed$)).subscribe(() => {
-      this.loadMatrixData();
-      this.drawCanvasMatrix();
-    });
+    // create canvas & controller
+    this.initViewbox();
+    this.initCanvasView();
+
+    // initial render exactly once at the end of initialization
+    this.drawCanvasMatrix();
   }
 
   ngOnDestroy(): void {
     this.destroyed$.next();
     this.destroyed$.complete();
-    try {
-      d3.select("#main-origin-destination-canvas").remove();
-      this.tooltip?.remove();
-      d3.select("#main-origin-destination-container").remove();
-    } catch {
-      // ignore
-    }
+    this.cleanupDom();
   }
 
-  private initViewbox() {
-    // create controller (existing API)
+  // -------------------------
+  // Initialization helpers
+  // -------------------------
+
+  private initViewbox(): void {
     this.controller = new SVGMouseController(
       "main-origin-destination-container-root",
       this.createSvgMouseControllerObserver(),
@@ -112,28 +109,38 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.controller.init(this.createInitialViewboxProperties(this.nodeNames.length));
   }
 
-  private loadMatrixData() {
-    // load data
-    this.matrixData = this.originDestinationService.originDestinationData() ?? [];
-    console.log(this.matrixData);
+  private loadMatrixData(): void {
+    // Load raw OD data and ensure diagonal entries exist (only once on init)
+    const raw = this.originDestinationService.originDestinationData() ?? [];
+    this.matrixData = raw.slice();
 
-    // add diagonal entries to ensure diagonal exists
-    const origins = this.matrixData.map((d) => d.originID);
-    const destinations = this.matrixData.map((d) => d.destinationID);
-    const uniqueOriginsDestinations = [...new Set([...origins, ...destinations])];
-    const diagonalData: OriginDestination[] = uniqueOriginsDestinations.map((nodeID) => ({
-      origin: this.nodeService.getNodeFromId(nodeID).getBetriebspunktName(),
-      destination: this.nodeService.getNodeFromId(nodeID).getBetriebspunktName(),
-      originID: nodeID,
-      destinationID: nodeID,
-      totalCost: undefined,
-      travelTime: undefined,
-      transfers: undefined,
-      found: false,
-    }));
-    this.matrixData = [...this.matrixData, ...diagonalData];
+    // create diagonal entries for all involved node ids
+    const idSet = new Set<number>();
+    for (const od of this.matrixData) {
+      idSet.add(od.originID);
+      idSet.add(od.destinationID);
+    }
 
-    // node names
+    for (const nodeId of Array.from(idSet)) {
+      const exists = this.matrixData.some(
+        (d) => d.originID === nodeId && d.destinationID === nodeId,
+      );
+      if (!exists) {
+        const node = this.nodeService.getNodeFromId(nodeId);
+        this.matrixData.push({
+          origin: node.getBetriebspunktName(),
+          destination: node.getBetriebspunktName(),
+          originID: nodeId,
+          destinationID: nodeId,
+          totalCost: undefined,
+          travelTime: undefined,
+          transfers: undefined,
+          found: false,
+        });
+      }
+    }
+
+    // node names used for axes
     const nodes = this.originDestinationService.getODOutputNodes() ?? [];
     this.nodeNames = nodes.map((node: any) => ({
       shortName: node.getBetriebspunktName(),
@@ -142,25 +149,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     }));
   }
 
-  private createHighlight() {
-    const tooltipNode = this.tooltip.node() as HTMLElement | null;
-    const offsetParent = tooltipNode?.offsetParent as HTMLElement | null;
-
-    // create a simple absolutely positioned div used as highlight
-    const hp = document.createElement("div");
-    hp.style.position = "absolute";
-    hp.style.pointerEvents = "none";
-    hp.style.border = "3px solid var(--NODE_TEXT_FOCUS)"; // blue border
-    hp.style.boxSizing = "border-box";
-    hp.style.borderRadius = "6px";
-    hp.style.background = "none"; // subtle fill
-    // append to same offsetParent as tooltip (or document.body if none)
-    const parentToAppend = offsetParent ?? document.body;
-    parentToAppend.appendChild(hp);
-    this.highlight = hp;
-  }
-
-  private createTooltip(): void {
+  private createTooltipIfNeeded(): void {
     const root = d3.select("#main-origin-destination-container-root");
     if (root.empty()) return;
 
@@ -175,23 +164,45 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       .attr("class", "tooltip")
       .style("opacity", 0)
       .style("position", "absolute")
-      .style("border", "solid")
-      .style("border-width", "1px")
+      .style("border", "solid 1px")
       .style("border-radius", "4px")
       .style("padding", "6px")
       .style("user-select", "none")
       .style("pointer-events", "none");
   }
 
+  private createHighlightIfNeeded(): void {
+    // create highlight element and append to same offsetParent as tooltip, or document.body fallback
+    const tooltipNode = this.tooltip?.node() ?? null;
+    const offsetParent = tooltipNode?.offsetParent as HTMLElement | null;
+    const parent = offsetParent ?? document.body;
+
+    if (!this.highlight) {
+      const hp = document.createElement("div");
+      hp.style.position = "absolute";
+      hp.style.pointerEvents = "none";
+      hp.style.border = "3px solid var(--NODE_TEXT_FOCUS)";
+      hp.style.boxSizing = "border-box";
+      hp.style.borderRadius = "6px";
+      hp.style.background = "none";
+      hp.style.display = "none";
+      hp.style.opacity = "0";
+      parent.appendChild(hp);
+      this.highlight = hp;
+    }
+  }
+
   private initCanvasView(): void {
-    const zf = this.zoomFactor / (1 + 0.1 * Math.sqrt(this.nodeNames.length));
+    // compute cell size based on zoom and node count (keeps consistent sizing)
+    const zf = this.zoomFactor / (1 + 0.1 * Math.sqrt(Math.max(1, this.nodeNames.length)));
     this.cellSize = this.cellSizeOrg * zf;
     this.offsetX = this.offsetXOrg;
     this.offsetY = this.offsetYOrg;
-    const width = this.offsetX + this.cellSize * Math.max(1, this.nodeNames.length);
-    const height = this.offsetY + this.cellSize * Math.max(1, this.nodeNames.length);
 
-    // cleanup
+    const width = Math.round(this.offsetX + this.cellSize * Math.max(1, this.nodeNames.length));
+    const height = Math.round(this.offsetY + this.cellSize * Math.max(1, this.nodeNames.length));
+
+    // remove previous nodes
     d3.select("#main-origin-destination-canvas").remove();
     d3.select("#main-origin-destination-container").remove();
 
@@ -206,6 +217,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       .style("position", "relative")
       .node() as HTMLElement;
 
+    // canvas element
     this.canvas = document.createElement("canvas");
     this.canvas.id = "main-origin-destination-canvas";
     this.canvas.width = width;
@@ -216,28 +228,60 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.canvas.style.touchAction = "none";
     containerNode.appendChild(this.canvas);
 
+    // attach stable bound handlers
+    this.canvas.addEventListener("mousemove", this.handleCanvasMouseMoveBound);
+    this.canvas.addEventListener("mouseleave", this.handleCanvasMouseLeaveBound);
+
+    // create rendering context
     const ctx = this.canvas.getContext("2d");
     if (!ctx) throw new Error("2D context not available");
     this.ctx = ctx;
+  }
 
-    // events
-    this.canvas.addEventListener("mousemove", this.handleCanvasMouseMove.bind(this));
-    this.canvas.addEventListener("mouseleave", () => {
-      this.tooltip?.style("opacity", 0);
-      if (this.highlight) {
-        this.highlight.style.opacity = "0";
-      }
-      const ctx = this.ctx;
-      ctx.clearRect(0, 0, this.offsetXOrg, this.canvas.height);
-      ctx.clearRect(0, 0, this.canvas.width, this.offsetYOrg);
-      if (this.isCrossHighlighting) {
+  private subscribeToObservables(): void {
+    // zoom commands: controller handles zooming; these do not reload data
+    this.uiInteractionService.zoomInObservable
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe((c: Vec2D) => {
+        this.controller?.zoomIn(c);
+      });
+    this.uiInteractionService.zoomOutObservable
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe((c: Vec2D) => {
+        this.controller?.zoomOut(c);
+      });
+    this.uiInteractionService.zoomResetObservable
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe((c: Vec2D) => {
+        this.controller?.zoomReset(c);
+      });
+
+    // theme changes only trigger redraw
+    this.uiInteractionService.themeChangedObservable
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe(() => {
         this.drawCanvasMatrix();
-      } else {
-        this.drawXAxis(undefined);
-        this.drawYAxis(undefined);
-      }
+      });
+
+    // filter changes should only redraw using existing data (data is loaded only once)
+    this.filterService.filter.pipe(takeUntil(this.destroyed$)).subscribe(() => {
+      this.drawCanvasMatrix();
     });
   }
+
+  private cleanupDom(): void {
+    try {
+      d3.select("#main-origin-destination-canvas").remove();
+      this.tooltip?.remove();
+      d3.select("#main-origin-destination-container").remove();
+    } catch {
+      // ignore cleanup errors
+    }
+  }
+
+  // -------------------------
+  // Drawing helpers
+  // -------------------------
 
   private drawMatrixCell(
     ctx: CanvasRenderingContext2D,
@@ -247,8 +291,9 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     h: number,
     r: number,
     color: string,
-  ) {
+  ): void {
     ctx.beginPath();
+    // rounded rectangle via arcTo
     ctx.moveTo(x + r, y);
     ctx.arcTo(x + w, y, x + w, y + h, r);
     ctx.arcTo(x + w, y + h, x, y + h, r);
@@ -259,17 +304,14 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     ctx.fill();
   }
 
-  private drawCanvasMatrix(
-    xIndex: number | undefined = undefined,
-    yIndex: number | undefined = undefined,
-  ): void {
+  private drawCanvasMatrix(xIndex?: number, yIndex?: number): void {
     if (!this.ctx || !this.canvas) return;
 
-    const ctx: CanvasRenderingContext2D = this.ctx;
+    const ctx = this.ctx;
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     const idNames = this.nodeNames.map((n) => n.id);
-    const nameIndex = new Map(idNames.map((id, i) => [id, i]));
+    const nameIndex = new Map<number, number>(idNames.map((id, i) => [id, i]));
 
     const numericValues = this.extractNumericODValues(this.matrixData, this.colorBy);
     const colorScaleAlphaCC = this.getColorScale(
@@ -293,10 +335,12 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       const ox = nameIndex.get(d.originID);
       const oy = nameIndex.get(d.destinationID);
       if (ox === undefined || oy === undefined) continue;
+
       const x = ox * this.cellSize + this.offsetX;
       const y = oy * this.cellSize + this.offsetY;
       const value = this.getCellValue(d, this.colorBy);
-      let color = "#76767633";
+      let color = "#76767633"; // fallback translucent gray
+
       if (value !== undefined) {
         if (xIndex !== undefined || yIndex !== undefined) {
           color =
@@ -308,58 +352,83 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
         }
       }
 
-      this.drawMatrixCell(ctx, x + 1, y + 1, this.cellSize - 2, this.cellSize - 2, 4, color);
+      // small inset (1px) to provide crisp cell borders
+      this.drawMatrixCell(
+        ctx,
+        Math.round(x) + 1,
+        Math.round(y) + 1,
+        Math.max(0, this.cellSize - 2),
+        Math.max(0, this.cellSize - 2),
+        4,
+        color,
+      );
     }
 
-    // level of detail - only show text when zoom factor ...
     if (this.zoomFactor > 0.5) {
-      ctx.fillStyle = "white";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.font = `${Math.max(8, Math.floor(this.cellSize * 0.35 * Math.min(1.5, Math.sqrt(this.zoomFactor))))}px SBBWeb Roman`;
-
-      for (let i = 0, len = this.matrixData.length; i < len; i++) {
-        const d = this.matrixData[i];
-        const ox = nameIndex.get(d.originID);
-        const oy = nameIndex.get(d.destinationID);
-        if (ox === undefined || oy === undefined) continue;
-        const cx = ox * this.cellSize + this.offsetX + this.cellSize / 2;
-        const cy = oy * this.cellSize + this.offsetY + this.cellSize / 2;
-        const text = this.getCellText(d);
-        if (text) ctx.fillText(text, cx, cy);
-      }
+      this.drawCellTexts();
     }
 
     this.drawXAxis(xIndex);
     this.drawYAxis(yIndex);
   }
 
-  private drawYAxis(highlightIndex: number | undefined) {
-    // Y axis labels (left)
-    const color = this.uiInteractionService.getActiveTheme().isDark ? "255,255,255" : "0,0,0";
-    this.ctx.fillStyle = this.uiInteractionService.getActiveTheme().isDark ? "white" : "black";
+  private drawCellTexts(): void {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const fontSize = Math.max(
+      8,
+      Math.floor(this.cellSize * 0.35 * Math.min(1.5, Math.sqrt(this.zoomFactor))),
+    );
+    ctx.font = `${fontSize}px SBBWeb Roman`;
+
+    const idNames = this.nodeNames.map((n) => n.id);
+    const nameIndex = new Map<number, number>(idNames.map((id, i) => [id, i]));
+
+    for (let i = 0, len = this.matrixData.length; i < len; i++) {
+      const d = this.matrixData[i];
+      const ox = nameIndex.get(d.originID);
+      const oy = nameIndex.get(d.destinationID);
+      if (ox === undefined || oy === undefined) continue;
+      const cx = ox * this.cellSize + this.offsetX + this.cellSize / 2;
+      const cy = oy * this.cellSize + this.offsetY + this.cellSize / 2;
+      const text = this.getCellText(d);
+      if (text) ctx.fillText(text, cx, cy);
+    }
+  }
+
+  private drawYAxis(highlightIndex?: number): void {
+    const isDark = this.uiInteractionService.getActiveTheme().isDark;
+    const colorRGB = isDark ? "255,255,255" : "0,0,0";
+
     this.ctx.textAlign = "right";
     this.ctx.textBaseline = "middle";
+
     for (let i = 0; i < this.nodeNames.length; i++) {
       const name = this.nodeNames[i].shortName;
       const y = this.offsetY + i * this.cellSize + this.cellSize / 2;
       if (highlightIndex !== i) {
         const alpha = highlightIndex === undefined ? 1.0 : 0.75;
-        this.ctx.fillStyle = `rgba(${color},${alpha})`;
+        this.ctx.fillStyle = `rgba(${colorRGB},${alpha})`;
         this.ctx.font = `${Math.max(10, Math.floor(this.cellSize * 0.25 * this.zoomFactor))}px SBBWeb Roman`;
       } else {
-        this.ctx.fillStyle = `rgba(${color},1)`;
+        this.ctx.fillStyle = `rgba(${colorRGB},1)`;
         this.ctx.font = `bold ${Math.max(14, 4 + Math.floor(this.cellSize * 0.25 * this.zoomFactor))}px SBBWeb Roman`;
       }
       this.ctx.fillText(name, this.offsetX - 8, y);
     }
   }
 
-  private drawXAxis(highlightIndex: number | undefined) {
-    // X axis labels (top, rotated)
-    const color = this.uiInteractionService.getActiveTheme().isDark ? "255,255,255" : "0,0,0";
+  private drawXAxis(highlightIndex?: number): void {
+    const isDark = this.uiInteractionService.getActiveTheme().isDark;
+    const colorRGB = isDark ? "255,255,255" : "0,0,0";
+
     this.ctx.textAlign = "left";
     this.ctx.textBaseline = "middle";
+
     for (let i = 0; i < this.nodeNames.length; i++) {
       const name = this.nodeNames[i].shortName;
       const x = this.offsetX + i * this.cellSize + this.cellSize / 2;
@@ -368,10 +437,10 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       this.ctx.rotate(-Math.PI / 2);
       if (highlightIndex !== i) {
         const alpha = highlightIndex === undefined ? 1.0 : 0.75;
-        this.ctx.fillStyle = `rgba(${color},${alpha})`;
+        this.ctx.fillStyle = `rgba(${colorRGB},${alpha})`;
         this.ctx.font = `${Math.max(10, Math.floor(this.cellSize * 0.25 * this.zoomFactor))}px SBBWeb Roman`;
       } else {
-        this.ctx.fillStyle = `rgba(${color},1)`;
+        this.ctx.fillStyle = `rgba(${colorRGB},1)`;
         this.ctx.font = `bold ${Math.max(14, 4 + Math.floor(this.cellSize * 0.25 * this.zoomFactor))}px SBBWeb Roman`;
       }
       this.ctx.fillText(name, 0, 0);
@@ -379,13 +448,16 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     }
   }
 
+  // -------------------------
+  // Interaction handlers
+  // -------------------------
+
   private handleCanvasMouseMove(e: MouseEvent): void {
-    if (!this.canvas || !this.tooltip) return;
+    if (!this.canvas || !this.ctx || !this.tooltip) return;
 
     const rect = this.canvas.getBoundingClientRect();
     const zf = this.zoomFactor;
 
-    // logical indices (same logic you already use)
     const xIndex = Math.floor(
       (e.clientX - rect.left) / zf / this.cellSize - this.offsetX / this.cellSize,
     );
@@ -393,9 +465,8 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       (e.clientY - rect.top) / zf / this.cellSize - this.offsetY / this.cellSize,
     );
 
-    const ctx = this.ctx;
-    ctx.clearRect(0, 0, this.offsetXOrg, this.canvas.height);
-    ctx.clearRect(0, 0, this.canvas.width, this.offsetYOrg);
+    this.ctx.clearRect(0, 0, this.offsetXOrg, this.canvas.height);
+    this.ctx.clearRect(0, 0, this.canvas.width, this.offsetYOrg);
 
     if (this.isCrossHighlighting) {
       this.drawCanvasMatrix(xIndex, yIndex);
@@ -408,68 +479,81 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const destination = this.nodeNames[yIndex]?.shortName;
 
     if (!origin || !destination) {
-      this.tooltip.style("opacity", 0);
-      // hide highlight if exists
-      if (this.highlight) this.highlight.style.display = "none";
+      this.hideTooltipAndHighlight();
       return;
     }
 
     const d = this.matrixData.find((m) => m.origin === origin && m.destination === destination);
     if (!d || !d.found) {
-      this.tooltip.style("opacity", 0);
-      if (this.highlight) this.highlight.style.display = "none";
+      this.hideTooltipAndHighlight();
       return;
     }
 
+    this.showTooltipForCell(e, rect, xIndex, yIndex, d);
+    this.showHighlightForCell(e, rect, xIndex, yIndex);
+  }
+
+  private hideTooltipAndHighlight(): void {
+    this.tooltip?.style("opacity", 0);
+    if (this.highlight) {
+      this.highlight.style.display = "none";
+    }
+  }
+
+  private showTooltipForCell(
+    e: MouseEvent,
+    rect: DOMRect,
+    xIndex: number,
+    yIndex: number,
+    d: OriginDestination,
+  ): void {
     const nodeNameMap = new Map(this.nodeNames.map((n) => [n.shortName, n.fullName]));
     const totalCostTranslation = $localize`:@@app.origin-destination.tooltip.total-cost:Total cost`;
     const transfersTranslation = $localize`:@@app.origin-destination.tooltip.transfers:Transfers`;
     const travelTimeTranslation = $localize`:@@app.origin-destination.tooltip.travel-time:Travel time`;
 
-    // ---------- Tooltip: position exactly under pointer ----------
-    // Tooltip is positioned in the same coordinate space as its offsetParent, so convert client -> parent coords
-    const tooltipNode = this.tooltip.node() as HTMLElement | null;
+    const tooltipNode = this.tooltip!.node() as HTMLElement | null;
     const offsetParent = tooltipNode?.offsetParent as HTMLElement | null;
+
     let tooltipLeft: number;
     let tooltipTop: number;
-    let parentRect: DOMRect = undefined;
+
     if (offsetParent) {
-      parentRect = offsetParent.getBoundingClientRect();
-      tooltipLeft = e.clientX - parentRect.left + this.cellSize * 0.75 * zf;
-      tooltipTop = e.clientY - parentRect.top + this.cellSize * 0.75 * zf;
+      const parentRect = offsetParent.getBoundingClientRect();
+      tooltipLeft = e.clientX - parentRect.left + this.cellSize * 0.75 * this.zoomFactor;
+      tooltipTop = e.clientY - parentRect.top + this.cellSize * 0.75 * this.zoomFactor;
     } else {
       tooltipLeft = e.pageX;
       tooltipTop = e.pageY;
     }
 
-    // set tooltip (no additional offset so it's exactly under mouse; add small offset if you want)
-    this.tooltip
-      .style("opacity", 1)
-      .style("left", `${tooltipLeft}px`)
-      .style("top", `${tooltipTop}px`)
+    this.tooltip!.style("opacity", 1)
+      .style("left", `${Math.round(tooltipLeft)}px`)
+      .style("top", `${Math.round(tooltipTop)}px`)
       .html(
-        `${nodeNameMap.get(d.origin)} (<b>${d.origin}</b>) &#x2192; ${nodeNameMap.get(
-          d.destination,
-        )} (<b>${d.destination}</b>)<br><hr>
+        `${nodeNameMap.get(d.origin)} (<b>${d.origin}</b>) &#x2192; ${nodeNameMap.get(d.destination)} (<b>${d.destination}</b>)<br><hr>
       ${totalCostTranslation}: ${d.totalCost}<br>
       ${travelTimeTranslation}: ${d.travelTime}<br>
       ${transfersTranslation}: ${d.transfers}`,
       );
+  }
 
-    // ---------- Highlight: compute the hovered cell rectangle in screen (parent) coords ----------
-    // Logical cell top-left in canvas-local coordinates
+  private showHighlightForCell(e: MouseEvent, rect: DOMRect, xIndex: number, yIndex: number): void {
+    const tooltipNode = this.tooltip!.node() as HTMLElement | null;
+    const offsetParent = tooltipNode?.offsetParent as HTMLElement | null;
+
     const cellLogicalX = this.offsetX + xIndex * this.cellSize;
     const cellLogicalY = this.offsetY + yIndex * this.cellSize;
 
-    // Convert to pixel coordinates on screen (canvas pixels after zoom) and then to offsetParent space
-    const cellScreenX = rect.left + cellLogicalX * zf;
-    const cellScreenY = rect.top + cellLogicalY * zf;
-    const cellScreenW = this.cellSize * zf;
-    const cellScreenH = this.cellSize * zf;
+    const cellScreenX = rect.left + cellLogicalX * this.zoomFactor;
+    const cellScreenY = rect.top + cellLogicalY * this.zoomFactor;
+    const cellScreenW = this.cellSize * this.zoomFactor;
+    const cellScreenH = this.cellSize * this.zoomFactor;
 
     let highlightLeft: number;
     let highlightTop: number;
-    if (parentRect) {
+    if (offsetParent) {
+      const parentRect = offsetParent.getBoundingClientRect();
       highlightLeft = cellScreenX - parentRect.left;
       highlightTop = cellScreenY - parentRect.top;
     } else {
@@ -477,50 +561,85 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       highlightTop = cellScreenY + window.scrollY;
     }
 
-    // Show and position highlight
-    this.highlight.style.opacity = "1.0";
-    this.highlight.style.display = "block";
-    this.highlight.style.left = `${Math.round(highlightLeft)}px`;
-    this.highlight.style.top = `${Math.round(highlightTop)}px`;
-    this.highlight.style.width = `${Math.round(cellScreenW)}px`;
-    this.highlight.style.height = `${Math.round(cellScreenH)}px`;
+    if (this.highlight) {
+      this.highlight.style.opacity = "1";
+      this.highlight.style.display = "block";
+      this.highlight.style.left = `${Math.round(highlightLeft)}px`;
+      this.highlight.style.top = `${Math.round(highlightTop)}px`;
+      this.highlight.style.width = `${Math.round(cellScreenW)}px`;
+      this.highlight.style.height = `${Math.round(cellScreenH)}px`;
+    }
   }
 
-  private extractNumericODValues(odList: OriginDestination[], field: FieldName): any {
-    let minValue: number | undefined = undefined;
-    let maxValue: number | undefined = undefined;
-    odList
-      .filter((od) => od["found"])
-      .forEach((od) => {
-        const v = od[field];
-        if (v === undefined || v === null) return;
-        if (minValue !== undefined) {
-          if (v < minValue) minValue = v;
-          if (v > maxValue!) maxValue = v;
-        } else {
-          minValue = v;
-          maxValue = v;
-        }
-      });
-    if (minValue === undefined) {
+  // Bound handlers so they can be removed reliably if needed
+  private readonly handleCanvasMouseMoveBound = (e: MouseEvent) => this.handleCanvasMouseMove(e);
+  private readonly handleCanvasMouseLeaveBound = (_e: MouseEvent) => {
+    this.tooltip?.style("opacity", 0);
+    if (this.highlight) {
+      this.highlight.style.opacity = "0";
+      this.highlight.style.display = "none";
+    }
+
+    this.ctx.clearRect(0, 0, this.offsetXOrg, this.canvas.height);
+    this.ctx.clearRect(0, 0, this.canvas.width, this.offsetYOrg);
+
+    if (this.isCrossHighlighting) {
+      this.drawCanvasMatrix();
+    } else {
+      this.drawXAxis(undefined);
+      this.drawYAxis(undefined);
+    }
+  };
+
+  // -------------------------
+  // Utility / data helpers
+  // -------------------------
+
+  private extractNumericODValues(
+    odList: OriginDestination[],
+    field: FieldName,
+  ): {minValue: number; maxValue: number} {
+    let minValue: number | undefined;
+    let maxValue: number | undefined;
+
+    for (const od of odList) {
+      if (!od.found) continue;
+      const v = (od as any)[field];
+      if (v === undefined || v === null) continue;
+      if (minValue === undefined) {
+        minValue = v;
+        maxValue = v;
+      } else {
+        if (v < minValue) minValue = v;
+        if (v > (maxValue as number)) maxValue = v;
+      }
+    }
+
+    if (minValue === undefined || maxValue === undefined) {
       return {minValue: 0, maxValue: 1};
     }
-    return {minValue, maxValue: maxValue!};
+
+    // ensure min != max for color interpolation
+    if (minValue === maxValue) {
+      return {minValue: minValue - 1, maxValue: maxValue + 1};
+    }
+
+    return {minValue: minValue as number, maxValue: maxValue as number};
   }
 
   private getCellValue(d: OriginDestination, field: FieldName): number | undefined {
-    return d["found"] ? (d as any)[field] : undefined;
+    return d.found ? (d as any)[field] : undefined;
   }
 
   private getCellText(d: OriginDestination): string {
     const value = this.getCellValue(d, this.displayBy);
-    return value === undefined ? "" : value.toString();
+    return value === undefined ? "" : String(value);
   }
 
-  getColorScale(min: number, max: number, alpha: string = "CC"): d3.ScaleLinear<string, string> {
+  getColorScale(min: number, max: number, alpha = "CC"): d3.ScaleLinear<string, string> {
     const d1 = min + (max - min) * 0.33;
     const d2 = min + (max - min) * 0.66;
-    const addAlphaChannel = (d, alpha) => d.map((v) => v + alpha);
+    const addAlphaChannel = (arr: string[], a: string) => arr.map((v) => v + a);
 
     switch (this.colorSetName) {
       case "red":
@@ -556,30 +675,35 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     }
   }
 
-  onChangePalette(name: ColorSetName) {
+  // -------------------------
+  // Public controls
+  // -------------------------
+
+  onChangePalette(name: ColorSetName): void {
     this.colorSetName = name;
     this.drawCanvasMatrix();
   }
 
-  onChangeColorBy(field: FieldName) {
+  onChangeColorBy(field: FieldName): void {
     this.colorBy = field;
     this.drawCanvasMatrix();
   }
 
-  onChangeDisplayBy(field: FieldName) {
+  onChangeDisplayBy(field: FieldName): void {
     this.displayBy = field;
     this.drawCanvasMatrix();
   }
 
-  toggleCrossHighlighting() {
+  toggleCrossHighlighting(): void {
     this.isCrossHighlighting = !this.isCrossHighlighting;
+    this.drawCanvasMatrix();
   }
 
   getCrossHighlightingTag(): string {
     return this.isCrossHighlighting ? "isCrossHighlighting" : "";
   }
 
-  onResetButton() {
+  onResetButton(): void {
     this.initViewbox();
     this.colorBy = "totalCost";
     this.displayBy = "totalCost";
@@ -588,22 +712,24 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.drawCanvasMatrix();
   }
 
+  // -------------------------
+  // Integration with SVGMouseController
+  // -------------------------
+
   private createSvgMouseControllerObserver(): SVGMouseControllerObserver {
     return {
       onEarlyReturnFromMousemove: () => false,
       onGraphContainerMouseup: () => {},
-      zoomFactorChanged: (zoomFactor) => {
+      zoomFactorChanged: (zoomFactor: number) => {
+        // zoomFactor comes as percentage from controller
         this.zoomFactor = zoomFactor / 100;
         this.uiInteractionService.zoomFactorChanged(zoomFactor);
         this.drawCanvasMatrix();
         if (this.highlight) {
           this.highlight.style.opacity = "0";
         }
-        if (d3.event?.type === "wheel") {
-          this.handleCanvasMouseMove(d3.event);
-        }
       },
-      onViewboxChanged: (viewboxProperties) => {
+      onViewboxChanged: (viewboxProperties: ViewboxProperties) => {
         this.currentViewbox = viewboxProperties;
         const scaleX = viewboxProperties.origWidth / viewboxProperties.panZoomWidth;
         const scaleY = viewboxProperties.origHeight / viewboxProperties.panZoomHeight;
@@ -624,7 +750,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   }
 
   private createInitialViewboxProperties(numberOfNodes: number): ViewboxProperties {
-    const matrixSize = this.cellSize * numberOfNodes;
+    const matrixSize = this.cellSize * Math.max(1, numberOfNodes);
     const container = document.getElementById("main-origin-destination-container-root");
     const containerHeight = container ? container.clientHeight : window.innerHeight;
     const containerWidth = container ? container.clientWidth : window.innerWidth;
