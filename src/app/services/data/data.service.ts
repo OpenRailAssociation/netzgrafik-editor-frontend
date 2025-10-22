@@ -30,9 +30,7 @@ export class NetzgrafikLoadedInfo {
   ) {}
 }
 
-@Injectable({
-  providedIn: "root",
-})
+@Injectable({providedIn: "root"})
 export class DataService implements OnDestroy {
   private netzgrafikDtoStore: {netzgrafikDto: NetzgrafikDto} = {
     netzgrafikDto: NetzgrafikDefault.getDefaultNetzgrafik(),
@@ -98,6 +96,18 @@ export class DataService implements OnDestroy {
     this.trainrunService.getTrainruns().forEach((trainrun) => {
       this.trainrunSectionService.enforceConsistentSectionDirection(trainrun.getId());
     });
+    for (const trainrunSection of netzgrafikDto.trainrunSections) {
+      if (trainrunSection.numberOfStops > 0) {
+        for (let i = 0; i < trainrunSection.numberOfStops; i++) {
+          const newNode = this.nodeService.addEmptyNode();
+          this.trainrunSectionService.replaceIntermediateStopWithNode(
+            trainrunSection.id,
+            0,
+            newNode.getId(),
+          );
+        }
+      }
+    }
 
     // This must be done due of the bug fix - ensure that each resource object
     // is used in the Netzgrafik

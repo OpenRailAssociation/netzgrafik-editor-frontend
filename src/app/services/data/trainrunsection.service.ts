@@ -34,16 +34,12 @@ export interface InformSelectedTrainrunClick {
   open: boolean;
 }
 
-@Injectable({
-  providedIn: "root",
-})
+@Injectable({providedIn: "root"})
 export class TrainrunSectionService implements OnDestroy {
   // Description of observable data service: https://coryrylan.com/blog/angular-observable-data-services
   trainrunSectionsSubject = new BehaviorSubject<TrainrunSection[]>([]);
   readonly trainrunSections = this.trainrunSectionsSubject.asObservable();
-  trainrunSectionsStore: {trainrunSections: TrainrunSection[]} = {
-    trainrunSections: [],
-  }; // store the data in memory
+  trainrunSectionsStore: {trainrunSections: TrainrunSection[]} = {trainrunSections: []}; // store the data in memory
 
   readonly operation = new EventEmitter<Operation>();
 
@@ -936,6 +932,8 @@ export class TrainrunSectionService implements OnDestroy {
     });
   }
 
+  // this function is no longer used for its original purpose (drag a node that only existed inside numberOfStops and create it inside the real graph)
+  // original train run section keeps the remaining stops, new one has no stops
   replaceIntermediateStopWithNode(trainrunSectionId: number, stopIndex: number, nodeId: number) {
     const trainrunSection1 = this.getTrainrunSectionFromId(trainrunSectionId);
     if (
@@ -957,6 +955,8 @@ export class TrainrunSectionService implements OnDestroy {
     const transition2: Transition = node2.getTransition(trainrunSection1.getId());
     const nonStop2 = transition2 !== undefined ? transition2.getIsNonStopTransit() : false;
 
+    // can’t do all that after we have added
+    // problem: mutate directly node in the node store in place
     node2.replaceTrainrunSectionOnPort(trainrunSection1, trainrunSection2);
 
     trainrunSection1.setTargetNode(nodeIntermediate);
