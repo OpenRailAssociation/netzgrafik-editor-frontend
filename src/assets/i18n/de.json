@@ -142,6 +142,10 @@
         "travel-time": "Reisezeit",
         "transfers": "Umstiege"
       },
+      "buttons": {
+        "reset": "Zurücksetzen",
+        "crossHighlighting": "Zeilen/Spalten hervorheben"
+      },
       "palette-buttons": {
         "red": "Rote Palette",
         "blue": "Blaue Palette",

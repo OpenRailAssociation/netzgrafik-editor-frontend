@@ -141,6 +141,10 @@
         "travel-time": "Temps de parcours",
         "transfers": "Changements"
       },
+      "buttons": {
+        "reset": "Réinitialiser",
+        "crossHighlighting": "Mettre en surbrillance les lignes/colonnes"
+      },
       "palette-buttons": {
         "red": "Palette rouge",
         "blue": "Palette bleue",
