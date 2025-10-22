@@ -64,7 +64,9 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.createHighlight();
 
     // load the data and create the rendering system (canvas)
-    this.createAndRenderCanvas();
+    this.loadMatrixData();
+    this.initCanvasView();
+    this.initViewbox();
 
     // wire zoom observables (controller created in initCanvasView)
     this.uiInteractionService.zoomInObservable
@@ -79,9 +81,10 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.uiInteractionService.themeChangedObservable
       .pipe(takeUntil(this.destroyed$))
       .subscribe(() => this.drawCanvasMatrix());
-    this.filterService.filter
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe(() => this.createAndRenderCanvas());
+    this.filterService.filter.pipe(takeUntil(this.destroyed$)).subscribe(() => {
+      this.loadMatrixData();
+      this.drawCanvasMatrix();
+    });
   }
 
   ngOnDestroy(): void {
@@ -96,18 +99,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     }
   }
 
-  private createAndRenderCanvas() {
-    // load the matrix data
-    this.loadMatrixData();
-    // initialize the canvas view
-    this.initCanvasView();
-    // render the data matrix with help of canvas
-    this.drawCanvasMatrix();
-    // create or update view box
-    this.createOrUpdateViewbox();
-  }
-
-  private createOrUpdateViewbox() {
+  private initViewbox() {
     // create controller (existing API)
     this.controller = new SVGMouseController(
       "main-origin-destination-container-root",
@@ -231,7 +223,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     });
   }
 
-  private makeCell(
+  private drawMatrixCell(
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
@@ -273,11 +265,11 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       const value = this.getCellValue(d, this.colorBy);
       const color = value === undefined ? "#76767633" : colorScale(value);
 
-      this.makeCell(ctx, x + 1, y + 1, this.cellSize - 2, this.cellSize - 2, 2, color);
+      this.drawMatrixCell(ctx, x + 1, y + 1, this.cellSize - 2, this.cellSize - 2, 2, color);
     }
 
-    // optional cell text
-    if (this.cellSize >= 8) {
+    // level of detail - only show text when zoom factor ...
+    if (this.zoomFactor > 0.5) {
       ctx.fillStyle = "white";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -449,36 +441,38 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   getColorScale(min: number, max: number): d3.ScaleLinear<string, string> {
     const d1 = min + (max - min) * 0.33;
     const d2 = min + (max - min) * 0.66;
+    const addAlphaChannel = (d) => d.map((v) => v + "CC");
+
     switch (this.colorSetName) {
       case "red":
         return d3
           .scaleLinear<string>()
           .domain([min, d1, d2, max])
-          .range(["#2166AC", "#67A9CF", "#FDAE61", "#B2182B"])
+          .range(addAlphaChannel(["#2166AC", "#67A9CF", "#FDAE61", "#B2182B"]))
           .clamp(true);
       case "gray":
         return d3
           .scaleLinear<string>()
           .domain([min, d1, d2, max])
-          .range(["#CCCCCC", "#999999", "#666666", "#333333"])
+          .range(addAlphaChannel(["#CCCCCC", "#999999", "#666666", "#333333"]))
           .clamp(true);
       case "blue":
         return d3
           .scaleLinear<string>()
           .domain([min, d1, d2, max])
-          .range(["#003366", "#00A3E0", "#FDAE61", "#E60000"])
+          .range(addAlphaChannel(["#003366", "#00A3E0", "#FDAE61", "#E60000"]))
           .clamp(true);
       case "orange":
         return d3
           .scaleLinear<string>()
           .domain([min, d1, d2, max])
-          .range(["#4CAF50", "#FFCA28", "#F57C00", "#C60018"])
+          .range(addAlphaChannel(["#4CAF50", "#FFCA28", "#F57C00", "#C60018"]))
           .clamp(true);
       default:
         return d3
           .scaleLinear<string>()
           .domain([min, d1, d2, max])
-          .range(["#003366", "#00A3E0", "#FDAE61", "#E60000"])
+          .range(addAlphaChannel(["#003366", "#00A3E0", "#FDAE61", "#E60000"]))
           .clamp(true);
     }
   }
