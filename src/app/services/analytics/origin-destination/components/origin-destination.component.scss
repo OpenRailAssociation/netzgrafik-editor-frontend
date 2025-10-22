@@ -128,7 +128,7 @@ button.ODResetButton {
   padding: 0;
   margin: 0;
   color: var(--NODE_TEXT_FOCUS);
-  transform: translate(-35px, -4px) scale(1.0);
+  transform: translate(-35px, -4px) scale(1);
   position: absolute;
 }
 
@@ -144,5 +144,8 @@ button.ODResetButton:active {
 
 .ODRadioButton:hover {
   font-weight: bold;
-  transform: scale(1.05);
+}
+
+.sbb-selection-checked {
+  font-weight: bold !important;
 }
