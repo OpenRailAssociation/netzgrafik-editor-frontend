@@ -1,7 +1,17 @@
 <div class="matrix-wrapper">
+
+  <button
+    type="button"
+    class="ODResetButton"
+    [title]="'app.origin-destination.reset' | translate"
+    (click)="onResetButton()"
+  >
+    <sbb-icon svgIcon="kom:arrow-circle-reset-small"></sbb-icon>
+  </button>
+
   <div id="main-origin-destination-container-root"></div>
 
-  <div class="palette-buttons">
+  <div class="palette-buttons" style="transform: translateX(-32px);">
     <div
       class="palette-option red"
       [class.active]="colorSetName === 'red'"
@@ -30,6 +40,7 @@
     <div class="color-by-selector">
       <label>
         <input
+          class="ODRadioButton"
           type="radio"
           name="colorBy"
           value="totalCost"
@@ -40,6 +51,7 @@
       </label>
       <label>
         <input
+          class="ODRadioButton"
           type="radio"
           name="colorBy"
           value="travelTime"
@@ -50,6 +62,7 @@
       </label>
       <label>
         <input
+          class="ODRadioButton"
           type="radio"
           name="colorBy"
           value="transfers"
@@ -72,27 +85,20 @@
       flex-wrap: nowrap;
     "
   >
-    <button
-      type="button"
-      class="SimpleButton"
-      [title]="'app.streckengrafik.components.reset' | translate"
-      (click)="onResetButton()"
-    >
-      <sbb-icon svgIcon="kom:arrow-circle-reset-small"></sbb-icon>
-    </button>
+
 
     <sbb-radio-group
       class="sbb-checkbox-group-horizontal"
       [(ngModel)]="displayBy"
-      style="display: flex; flex-direction: row; gap: 0.5rem; transform: translate(32px, -1px)"
+      style="display: flex; flex-direction: row; gap: 0.5rem; transform: translateX(-16px)"
     >
-      <sbb-radio-button value="totalCost" (change)="onChangeDisplayBy('totalCost')">
+      <sbb-radio-button class="ODRadioButton" value="totalCost" (change)="onChangeDisplayBy('totalCost')">
         {{ "app.origin-destination.display-by-selector.total-cost" | translate }}
       </sbb-radio-button>
-      <sbb-radio-button value="travelTime" (change)="onChangeDisplayBy('travelTime')">
+      <sbb-radio-button class="ODRadioButton" value="travelTime" (change)="onChangeDisplayBy('travelTime')">
         {{ "app.origin-destination.display-by-selector.travel-time" | translate }}
       </sbb-radio-button>
-      <sbb-radio-button value="transfers" (change)="onChangeDisplayBy('transfers')">
+      <sbb-radio-button class="ODRadioButton" value="transfers" (change)="onChangeDisplayBy('transfers')">
         {{ "app.origin-destination.display-by-selector.transfers" | translate }}
       </sbb-radio-button>
     </sbb-radio-group>
