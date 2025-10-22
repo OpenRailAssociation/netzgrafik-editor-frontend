@@ -142,7 +142,8 @@
         "transfers": "Transfers"
       },
       "buttons": {
-        "reset": "Reset"
+        "reset": "Reset",
+        "crossHighlighting": "Highlight rows/columns"
       },
       "palette-buttons": {
         "red": "Red palette",

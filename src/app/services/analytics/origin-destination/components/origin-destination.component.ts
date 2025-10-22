@@ -51,6 +51,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   private ctx!: CanvasRenderingContext2D;
   private tooltip!: any; // d3 Selection simplified to any to avoid signature issues
   private highlight: any;
+  private isCrossHighlighting = false;
 
   // controller
   private controller!: SVGMouseController;
@@ -223,8 +224,12 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       const ctx = this.ctx;
       ctx.clearRect(0, 0, this.offsetXOrg, this.canvas.height);
       ctx.clearRect(0, 0, this.canvas.width, this.offsetYOrg);
-      this.drawXAxis(undefined);
-      this.drawYAxis(undefined);
+      if (this.isCrossHighlighting) {
+        this.drawCanvasMatrix();
+      } else {
+        this.drawXAxis(undefined);
+        this.drawYAxis(undefined);
+      }
     });
   }
 
@@ -248,7 +253,10 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     ctx.fill();
   }
 
-  private drawCanvasMatrix(): void {
+  private drawCanvasMatrix(
+    xIndex: number | undefined = undefined,
+    yIndex: number | undefined = undefined,
+  ): void {
     if (!this.ctx || !this.canvas) return;
 
     const ctx: CanvasRenderingContext2D = this.ctx;
@@ -258,7 +266,21 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const nameIndex = new Map(shortNames.map((name, i) => [name, i]));
 
     const numericValues = this.extractNumericODValues(this.matrixData, this.colorBy);
-    const colorScale = this.getColorScale(numericValues.minValue, numericValues.maxValue);
+    const colorScaleAlphaCC = this.getColorScale(
+      numericValues.minValue,
+      numericValues.maxValue,
+      "CC",
+    );
+    const colorScaleAlphaForeground = this.getColorScale(
+      numericValues.minValue,
+      numericValues.maxValue,
+      "FF",
+    );
+    const colorScaleAlphaBackground = this.getColorScale(
+      numericValues.minValue,
+      numericValues.maxValue,
+      "44",
+    );
 
     for (let i = 0, len = this.matrixData.length; i < len; i++) {
       const d = this.matrixData[i];
@@ -268,7 +290,17 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       const x = ox * this.cellSize + this.offsetX;
       const y = oy * this.cellSize + this.offsetY;
       const value = this.getCellValue(d, this.colorBy);
-      const color = value === undefined ? "#76767633" : colorScale(value);
+      let color = "#76767633";
+      if (value !== undefined) {
+        if (xIndex !== undefined || yIndex !== undefined) {
+          color =
+            ox === xIndex || oy === yIndex
+              ? colorScaleAlphaForeground(value)
+              : colorScaleAlphaBackground(value);
+        } else {
+          color = colorScaleAlphaCC(value);
+        }
+      }
 
       this.drawMatrixCell(ctx, x + 1, y + 1, this.cellSize - 2, this.cellSize - 2, 4, color);
     }
@@ -292,8 +324,8 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.drawXAxis(undefined);
-    this.drawYAxis(undefined);
+    this.drawXAxis(xIndex);
+    this.drawYAxis(yIndex);
   }
 
   private drawYAxis(highlightIndex: number | undefined) {
@@ -358,8 +390,13 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.offsetXOrg, this.canvas.height);
     ctx.clearRect(0, 0, this.canvas.width, this.offsetYOrg);
-    this.drawXAxis(xIndex);
-    this.drawYAxis(yIndex);
+
+    if (this.isCrossHighlighting) {
+      this.drawCanvasMatrix(xIndex, yIndex);
+    } else {
+      this.drawXAxis(xIndex);
+      this.drawYAxis(yIndex);
+    }
 
     const origin = this.nodeNames[xIndex]?.shortName;
     const destination = this.nodeNames[yIndex]?.shortName;
@@ -474,41 +511,41 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     return value === undefined ? "" : value.toString();
   }
 
-  getColorScale(min: number, max: number): d3.ScaleLinear<string, string> {
+  getColorScale(min: number, max: number, alpha: string = "CC"): d3.ScaleLinear<string, string> {
     const d1 = min + (max - min) * 0.33;
     const d2 = min + (max - min) * 0.66;
-    const addAlphaChannel = (d) => d.map((v) => v + "CC");
+    const addAlphaChannel = (d, alpha) => d.map((v) => v + alpha);
 
     switch (this.colorSetName) {
       case "red":
         return d3
           .scaleLinear<string>()
           .domain([min, d1, d2, max])
-          .range(addAlphaChannel(["#2166AC", "#67A9CF", "#FDAE61", "#B2182B"]))
+          .range(addAlphaChannel(["#2166AC", "#67A9CF", "#FDAE61", "#B2182B"], alpha))
           .clamp(true);
       case "gray":
         return d3
           .scaleLinear<string>()
           .domain([min, d1, d2, max])
-          .range(addAlphaChannel(["#CCCCCC", "#999999", "#666666", "#333333"]))
+          .range(addAlphaChannel(["#CCCCCC", "#999999", "#666666", "#333333"], alpha))
           .clamp(true);
       case "blue":
         return d3
           .scaleLinear<string>()
           .domain([min, d1, d2, max])
-          .range(addAlphaChannel(["#003366", "#00A3E0", "#FDAE61", "#E60000"]))
+          .range(addAlphaChannel(["#003366", "#00A3E0", "#FDAE61", "#E60000"], alpha))
           .clamp(true);
       case "orange":
         return d3
           .scaleLinear<string>()
           .domain([min, d1, d2, max])
-          .range(addAlphaChannel(["#4CAF50", "#FFCA28", "#F57C00", "#C60018"]))
+          .range(addAlphaChannel(["#4CAF50", "#FFCA28", "#F57C00", "#C60018"], alpha))
           .clamp(true);
       default:
         return d3
           .scaleLinear<string>()
           .domain([min, d1, d2, max])
-          .range(addAlphaChannel(["#003366", "#00A3E0", "#FDAE61", "#E60000"]))
+          .range(addAlphaChannel(["#003366", "#00A3E0", "#FDAE61", "#E60000"], alpha))
           .clamp(true);
     }
   }
@@ -528,11 +565,20 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.drawCanvasMatrix();
   }
 
+  toggleCrossHighlighting() {
+    this.isCrossHighlighting = !this.isCrossHighlighting;
+  }
+
+  getCrossHighlightingTag(): string {
+    return this.isCrossHighlighting ? "isCrossHighlighting" : "";
+  }
+
   onResetButton() {
     this.initViewbox();
     this.colorBy = "totalCost";
     this.displayBy = "totalCost";
     this.colorSetName = "red";
+    this.isCrossHighlighting = false;
     this.drawCanvasMatrix();
   }
 

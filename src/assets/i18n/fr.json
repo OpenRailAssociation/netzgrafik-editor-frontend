@@ -142,7 +142,8 @@
         "transfers": "Changements"
       },
       "buttons": {
-        "reset": "Réinitialiser"
+        "reset": "Réinitialiser",
+        "crossHighlighting": "Mettre en surbrillance les lignes/colonnes"
       },
       "palette-buttons": {
         "red": "Palette rouge",
