@@ -30,7 +30,7 @@ export class MultiSelectRenderer {
       .attr("height", bottomRight.getY() - topLeft.getY());
   }
 
-  undisplayBox() {
+  hideBox() {
     if (!this.isBoxDrawing) {
       return;
     }

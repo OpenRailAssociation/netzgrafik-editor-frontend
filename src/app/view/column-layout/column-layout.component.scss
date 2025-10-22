@@ -68,7 +68,7 @@ $close-size: $close-padding * 2 + $defaultIconSize;
     background: var(--sbb-color-background);
     fill: $colorBlack20;
     padding: $close-padding;
-    margin-left: -(calc($close-size/2));
+    margin-left: calc(-#{$close-size} / 2);
     width: $close-size;
     height: $close-size;
 
@@ -131,7 +131,7 @@ $close-size: $close-padding * 2 + $defaultIconSize;
     z-index: 3;
     fill: $colorBlack20;
     padding: $close-padding;
-    margin-right: -(calc($close-size/2));
+    margin-right: calc(-#{$close-size} / 2);
     width: $close-size;
     height: $close-size;
 

@@ -367,14 +367,14 @@ export class ConnectionsView {
       const obj = d3.select(domObj);
       obj.attr("cx", obj.attr("org_x"));
       obj.attr("cy", obj.attr("org_y"));
-      this.setUnderlayingTrainrunAsSelected(connection, domObj, node);
+      this.setUnderlyingTrainrunAsSelected(connection, domObj, node);
       return;
     }
     this.editorView.removeConnectionFromNode(connection, node);
-    this.setUnderlayingTrainrunAsSelected(connection, domObj, node);
+    this.setUnderlyingTrainrunAsSelected(connection, domObj, node);
   }
 
-  private setUnderlayingTrainrunAsSelected(connection: Connection, domObj: any, node: Node) {
+  private setUnderlyingTrainrunAsSelected(connection: Connection, domObj: any, node: Node) {
     const trainrunID = d3.select(domObj).attr(StaticDomTags.CONNECTION_TRAINRUN_ID);
     const trainrunPort1 = ConnectionsView.getTrainrunSectionPort1(connection, node).getTrainrun();
     const trainrunPort2 = ConnectionsView.getTrainrunSectionPort2(connection, node).getTrainrun();

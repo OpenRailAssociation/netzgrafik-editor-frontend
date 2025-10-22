@@ -49,7 +49,7 @@ export const userIdsAsEmailValidator = (control: UntypedFormControl) => {
     return null;
   }
   const userIds: string[] = control.value;
-  // email adresse validator: regex to match emails using the expression
+  // email address validator: regex to match emails using the expression
   const invalidEmailPattern = userIds.filter((id) => {
     const retVal = id.match(
       /^([a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*)|(u|ue|e)\d+$/,

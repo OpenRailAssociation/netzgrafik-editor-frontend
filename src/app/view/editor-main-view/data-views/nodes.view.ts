@@ -487,7 +487,7 @@ export class NodesView {
     const added = groupEnter.append(StaticDomTags.NODE_LABELAREA_TEXT_SVG);
     added
       .attr("class", StaticDomTags.NODE_LABELAREA_TEXT_CLASS)
-      .attr("data-test", StaticDomTags.NODE_LABELAREA_TEXT_CLASS)
+      .attr("data-testid", StaticDomTags.NODE_LABELAREA_TEXT_CLASS)
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("x", NODE_TEXT_LEFT_SPACING)
       .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - TEXT_SIZE / 2)
@@ -546,12 +546,12 @@ export class NodesView {
     this.unhoverNodeDockable(node, domObj);
   }
 
-  hoverPinsAsConnectionDropable(node: Node) {
-    this.highlightPinsAsConnectionDropable(node, true);
+  hoverPinsAsConnectionDroppable(node: Node) {
+    this.highlightPinsAsConnectionDroppable(node, true);
   }
 
-  unhoverPinsAsConnectionDropable(node: Node) {
-    this.highlightPinsAsConnectionDropable(node, false);
+  unhoverPinsAsConnectionDroppable(node: Node) {
+    this.highlightPinsAsConnectionDroppable(node, false);
   }
 
   onNodeMouseover(node: Node, domObj: any) {
@@ -559,7 +559,7 @@ export class NodesView {
   }
 
   onNodeMousemove(node: Node, domObj: any) {
-    this.hoverPinsAsConnectionDropable(node);
+    this.hoverPinsAsConnectionDroppable(node);
   }
 
   onNodeLabelAreaMouseover(node: Node, domObj: any) {
@@ -685,7 +685,7 @@ export class NodesView {
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, true);
 
-    this.hoverPinsAsConnectionDropable(node);
+    this.hoverPinsAsConnectionDroppable(node);
   }
 
   unhoverNode(node: Node, domObj: any) {
@@ -702,7 +702,7 @@ export class NodesView {
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_MUTED, false);
 
-    this.unhoverPinsAsConnectionDropable(node);
+    this.unhoverPinsAsConnectionDroppable(node);
   }
 
   hoverNodeDockable(node: Node, domObj: any) {
@@ -869,7 +869,7 @@ export class NodesView {
     this.dragPreviousMousePosition = currentMousePosition;
   }
 
-  private highlightPinsAsConnectionDropable(node: Node, hover: boolean) {
+  private highlightPinsAsConnectionDroppable(node: Node, hover: boolean) {
     if (this.editorView.trainrunSectionPreviewLineView.getMode() !== PreviewLineMode.NotDragging) {
       const dragTransitionInfo: DragTransitionInfo =
         this.editorView.trainrunSectionPreviewLineView.getDragTransitionInfo();

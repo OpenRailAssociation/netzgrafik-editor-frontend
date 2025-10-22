@@ -10,7 +10,7 @@ import {
 import {environment} from "../../../environments/environment";
 
 /**
- * Different layout modes. Generally the layout contains (up to) 3 columns that are distributed over a 4 columen layout:
+ * Different layout modes. Generally the layout contains (up to) 3 columns that are distributed over a 4 columns layout:
  * - filter (f)
  * - main (m)
  * - aside (a)

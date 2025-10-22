@@ -123,9 +123,9 @@ export class FilterSetting {
   }
 
   copy(): FilterSetting {
-    const newFilterSettting = new FilterSetting(Object.assign({}, this.getDto()));
-    newFilterSettting.id = FilterSetting.incrementId();
-    return newFilterSettting;
+    const newFilterSetting = new FilterSetting(Object.assign({}, this.getDto()));
+    newFilterSetting.id = FilterSetting.incrementId();
+    return newFilterSetting;
   }
 
   areFilteringAttributesEqual(fs: FilterSetting): boolean {

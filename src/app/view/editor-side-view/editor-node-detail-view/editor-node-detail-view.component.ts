@@ -24,7 +24,7 @@ interface NodeProperties {
   nodeBetriebspunktFullName: string;
   nodeConnectionTime: number;
   nodeTrainrunCategoryHaltezeit: TrainrunCategoryHaltezeit;
-  nodeResouceId: number;
+  nodeResourceId: number;
   nodeCapacity: number;
   labels: string[];
 }
@@ -44,7 +44,7 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
     nodeBetriebspunktFullName: "",
     nodeConnectionTime: 0,
     nodeTrainrunCategoryHaltezeit: Node.getDefaultHaltezeit(),
-    nodeResouceId: null,
+    nodeResourceId: null,
     nodeCapacity: 2,
     labels: [],
   };
@@ -148,28 +148,28 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
   onCapacityChanged() {
     if (this.nodeProperties.nodeCapacity > 0) {
       this.resourceService.changeCapacity(
-        this.nodeProperties.nodeResouceId,
+        this.nodeProperties.nodeResourceId,
         this.nodeProperties.nodeCapacity,
       );
     } else {
-      this.resourceService.changeCapacity(this.nodeProperties.nodeResouceId, 1);
+      this.resourceService.changeCapacity(this.nodeProperties.nodeResourceId, 1);
     }
   }
 
   loadCapacityValue() {
     this.nodeProperties.nodeCapacity = this.resourceService
-      .getResource(this.nodeProperties.nodeResouceId)
+      .getResource(this.nodeProperties.nodeResourceId)
       .getCapacity();
   }
 
   onDeleteNode() {
     const node = this.nodeService.getSelectedNode();
-    const confirmationDialogParamter = new ConfirmationDialogParameter(
+    const confirmationDialogParameter = new ConfirmationDialogParameter(
       $localize`:@@app.view.editor-side-view.editor-node-detail-view.delete:Delete`,
       $localize`:@@app.view.editor-side-view.editor-node-detail-view.deleteNodeDialog:Should the node ${node.getBetriebspunktName()}:operationalPointShortName: (${node.getFullName()}:operationalPointName:) be definitely deleted?`,
     );
     this.uiInteractionService
-      .showConfirmationDiagramDialog(confirmationDialogParamter)
+      .showConfirmationDiagramDialog(confirmationDialogParameter)
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
           this.nodeService.deleteNode(node.getId());
@@ -244,7 +244,7 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
         nodeBetriebspunktFullName: selectedNode.getFullName(),
         nodeConnectionTime: selectedNode.getConnectionTime(),
         nodeTrainrunCategoryHaltezeit: selectedNode.getTrainrunCategoryHaltezeit(),
-        nodeResouceId: resource.getId(),
+        nodeResourceId: resource.getId(),
         nodeCapacity: resource.getCapacity(),
         labels: this.labelService.getTextLabelsFromIds(selectedNode.getLabelIds()),
       };

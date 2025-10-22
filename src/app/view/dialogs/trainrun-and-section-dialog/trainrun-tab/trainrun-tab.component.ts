@@ -158,9 +158,9 @@ export class TrainrunTabComponent implements OnDestroy {
   onDeleteTrainrun() {
     const dialogTitle = $localize`:@@app.view.dialogs.trainrun-and-section-dialog.trainrun-tab.delete:Delete`;
     const dialogContent = $localize`:@@app.view.dialogs.trainrun-and-section-dialog.trainrun-tab.deleteConfirmationQuestion:Should the entire train route be definitively deleted?`;
-    const confirmationDialogParamter = new ConfirmationDialogParameter(dialogTitle, dialogContent);
+    const confirmationDialogParameter = new ConfirmationDialogParameter(dialogTitle, dialogContent);
     this.uiInteractionService
-      .showConfirmationDiagramDialog(confirmationDialogParamter)
+      .showConfirmationDiagramDialog(confirmationDialogParameter)
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
           this.trainrunSectionService.deleteAllTrainrunSectionsOfTrainrun(

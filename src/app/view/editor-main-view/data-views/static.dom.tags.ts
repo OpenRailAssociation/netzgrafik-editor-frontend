@@ -249,7 +249,7 @@ export class StaticDomTags {
   static CONNECTION_LINE_CLASS_1 = StaticDomTags.LINE_LAYER + "_1";
   static CONNECTION_LINE_CLASS_2 = StaticDomTags.LINE_LAYER + "_2";
   static CONNECTION_LINE_CLASS_3 = StaticDomTags.LINE_LAYER + "_3";
-  static CONNECTION_TAG_ONGOING_GDRAGGING = "connection_ongoing_dragging";
+  static CONNECTION_TAG_ONGOING_DRAGGING = "connection_ongoing_dragging";
 
   static CONNECTION_LINE_PIN_SVG = "circle";
   static CONNECTION_LINE_PIN_CLASS = "connection_line_pin";

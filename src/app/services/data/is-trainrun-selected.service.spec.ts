@@ -89,7 +89,7 @@ describe("IsTrainrunSelectedService", () => {
   it("IsTrainrunSelectedService - 002", () => {
     const itss = new IsTrainrunSelectedService(trainrunService);
     let nbrCalls = 0;
-    itss.getTrainrunIdSelecteds().subscribe((trainrunIdSelected: number) => {
+    itss.getTrainrunIdSelected().subscribe((trainrunIdSelected: number) => {
       if (nbrCalls === 0) {
         expect(trainrunIdSelected).toBe(undefined);
       } else {
@@ -103,7 +103,7 @@ describe("IsTrainrunSelectedService", () => {
   it("IsTrainrunSelectedService - 003", () => {
     const itss = new IsTrainrunSelectedService(trainrunService);
     let nbrCalls = 0;
-    itss.getTrainrunIdSelecteds().subscribe((trainrunIdSelected: number) => {
+    itss.getTrainrunIdSelected().subscribe((trainrunIdSelected: number) => {
       if (nbrCalls === 0) {
         expect(trainrunIdSelected).toBe(undefined);
       } else {

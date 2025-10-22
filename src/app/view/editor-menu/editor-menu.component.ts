@@ -75,7 +75,7 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
       });
 
     this.isTrainrunSelectedService
-      .getTrainrunIdSelecteds()
+      .getTrainrunIdSelected()
       .pipe(takeUntil(this.destroyed))
       .subscribe((trainrunIdSelected) => {
         this.trainrunIdSelected = trainrunIdSelected;
