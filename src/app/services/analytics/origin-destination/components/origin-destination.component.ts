@@ -11,6 +11,7 @@ import {Vec2D} from "src/app/utils/vec2D";
 import {UndoService} from "src/app/services/data/undo.service";
 import {ThemeBase} from "../../../../view/themes/theme-base";
 import {FilterService} from "../../../ui/filter.service";
+import {NodeService} from "../../../data/node.service";
 
 type FieldName = "totalCost" | "travelTime" | "transfers";
 type ColorSetName = "red" | "blue" | "orange" | "gray";
@@ -30,10 +31,11 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     private uiInteractionService: UiInteractionService,
     private undoService: UndoService,
     private filterService: FilterService,
+    private nodeService: NodeService,
   ) {}
 
   private matrixData: OriginDestination[] = [];
-  private nodeNames: {shortName: string; fullName: string}[] = [];
+  private nodeNames: {shortName: string; fullName: string; id: number}[] = [];
 
   colorBy: FieldName = "totalCost";
   displayBy: FieldName = "totalCost";
@@ -113,14 +115,17 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   private loadMatrixData() {
     // load data
     this.matrixData = this.originDestinationService.originDestinationData() ?? [];
+    console.log(this.matrixData);
 
     // add diagonal entries to ensure diagonal exists
-    const origins = this.matrixData.map((d) => d.origin);
-    const destinations = this.matrixData.map((d) => d.destination);
+    const origins = this.matrixData.map((d) => d.originID);
+    const destinations = this.matrixData.map((d) => d.destinationID);
     const uniqueOriginsDestinations = [...new Set([...origins, ...destinations])];
-    const diagonalData: OriginDestination[] = uniqueOriginsDestinations.map((name) => ({
-      origin: name,
-      destination: name,
+    const diagonalData: OriginDestination[] = uniqueOriginsDestinations.map((nodeID) => ({
+      origin: this.nodeService.getNodeFromId(nodeID).getBetriebspunktName(),
+      destination: this.nodeService.getNodeFromId(nodeID).getBetriebspunktName(),
+      originID: nodeID,
+      destinationID: nodeID,
       totalCost: undefined,
       travelTime: undefined,
       transfers: undefined,
@@ -133,6 +138,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.nodeNames = nodes.map((node: any) => ({
       shortName: node.getBetriebspunktName(),
       fullName: node.getFullName(),
+      id: node.getId(),
     }));
   }
 
@@ -262,8 +268,8 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const ctx: CanvasRenderingContext2D = this.ctx;
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    const shortNames = this.nodeNames.map((n) => n.shortName);
-    const nameIndex = new Map(shortNames.map((name, i) => [name, i]));
+    const idNames = this.nodeNames.map((n) => n.id);
+    const nameIndex = new Map(idNames.map((id, i) => [id, i]));
 
     const numericValues = this.extractNumericODValues(this.matrixData, this.colorBy);
     const colorScaleAlphaCC = this.getColorScale(
@@ -284,8 +290,8 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
     for (let i = 0, len = this.matrixData.length; i < len; i++) {
       const d = this.matrixData[i];
-      const ox = nameIndex.get(d.origin);
-      const oy = nameIndex.get(d.destination);
+      const ox = nameIndex.get(d.originID);
+      const oy = nameIndex.get(d.destinationID);
       if (ox === undefined || oy === undefined) continue;
       const x = ox * this.cellSize + this.offsetX;
       const y = oy * this.cellSize + this.offsetY;
@@ -314,8 +320,8 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
       for (let i = 0, len = this.matrixData.length; i < len; i++) {
         const d = this.matrixData[i];
-        const ox = nameIndex.get(d.origin);
-        const oy = nameIndex.get(d.destination);
+        const ox = nameIndex.get(d.originID);
+        const oy = nameIndex.get(d.destinationID);
         if (ox === undefined || oy === undefined) continue;
         const cx = ox * this.cellSize + this.offsetX + this.cellSize / 2;
         const cy = oy * this.cellSize + this.offsetY + this.cellSize / 2;
