@@ -1,15 +1,21 @@
+@import "./../../../../view/rastering/definitions";
+
 .matrix-wrapper {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: 98%;
+  margin: 8px 0px 0px 64px;
 
   #main-origin-destination-container-root {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: calc(100% - 188px);
-    height: calc(100% - 74px);
+    width: calc(100% - 240px);
+    height: calc(100% - 61px);
     box-sizing: border-box;
+    overflow: hidden;
+    border: var(--COLOR_Default) solid 1px;
+    background: var(--NODE_DOCKABLE);
   }
 
   ::ng-deep svg.main-origin-destination-container {
@@ -31,6 +37,7 @@
     line-height: 1.5;
     text-align: left;
     text-align: start;
+    background: var(--NODE_DOCKABLE);
   }
   .palette-buttons {
     position: absolute;
@@ -81,10 +88,9 @@
   .color-by-selector {
     position: absolute;
     top: 24px;
-    right: 0px;
     padding: 12px 0px;
     border-radius: 2px;
-    font-size: calc(var(--sbb-font-size) * 0.8);
+    font-size: var(--sbb-font-size);
     display: flex;
     flex-direction: column;
     gap: 1px;
@@ -103,10 +109,73 @@
 
   .sbb-checkbox-group-horizontal {
     position: absolute;
-    bottom: 44px;
+    bottom: 14px;
     left: 12px;
     padding: 8px 8px;
     border-radius: 4px;
     column-gap: 8px;
   }
+}
+
+button.ODLeftPanelButton {
+  min-width: 30px;
+  max-width: 30px;
+  min-height: 28px;
+  max-height: 28px;
+  background: var(--COLOR_BACKGROUND);
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  color: var(--NODE_TEXT_FOCUS);
+  transform: translate(-35px, -4px) scale(1);
+  position: absolute;
+}
+
+button.ODLeftPanelButton:hover {
+  background: var(--COLOR_BACKGROUND);
+  font-weight: bold;
+  transform: translate(-35px, -4px) scale(1);
+}
+
+button.ODLeftPanelButton:active {
+  background: var(--COLOR_BACKGROUND);
+}
+
+button.ODResetButton {
+  transform: translate(-45px, 2px) scale(1);
+}
+
+button.ODResetButton:hover {
+  transform: translate(-45px, 2px) scale(1.25);
+}
+
+button.ODResetButton:active {
+  background-color: $COLOR_MUTED_SILVER;
+}
+
+button.ODCrossHighlightingButton {
+  transform: translate(-45px, 48px) scale(1);
+}
+
+button.ODCrossHighlightingButton:hover {
+  transform: translate(-45px, 48px) scale(1.25);
+}
+
+button.ODCrossHighlightingButton:active {
+  background-color: $COLOR_MUTED_SILVER;
+}
+
+button.ODCrossHighlightingButton.isCrossHighlighting {
+  color: #eb0000;
+}
+
+.ODRadioButton:hover {
+  font-weight: bold;
+}
+
+.sbb-selection-checked {
+  font-weight: bold !important;
 }
