@@ -439,7 +439,7 @@ export class EditorToolsViewComponent {
     };
   }
 
-  private exportOriginDestinationCanvasToPNG(filename: string, quality = 1.0) {
+  private exportOriginDestinationCanvasToPNG(filename: string) {
     const sel = d3.select("#main-origin-destination-canvas");
     const canvas = sel.node(); // <- real HTMLCanvasElement or null
 
@@ -464,7 +464,7 @@ export class EditorToolsViewComponent {
     a.remove();
   }
 
-  private exportOriginDestinationCanvasToSVG(filename: string, quality = 1.0) {
+  private exportOriginDestinationCanvasToSVG(filename: string) {
     const sel = d3.select("#main-origin-destination-canvas");
     const canvas = sel.node(); // <- real HTMLCanvasElement or null
 
@@ -476,7 +476,7 @@ export class EditorToolsViewComponent {
     }
 
     if (canvas === null) {
-      return undefined;
+      return;
     }
     const buildSvgFromCanvas = (canvas) => {
       const width = canvas.width;
