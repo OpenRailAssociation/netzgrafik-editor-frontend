@@ -117,21 +117,21 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     // create diagonal entries for all involved node ids
     const idSet = new Set<number>();
     for (const od of this.matrixData) {
-      idSet.add(od.originID);
-      idSet.add(od.destinationID);
+      idSet.add(od.originId);
+      idSet.add(od.destinationId);
     }
 
     for (const nodeId of Array.from(idSet)) {
       const exists = this.matrixData.some(
-        (d) => d.originID === nodeId && d.destinationID === nodeId,
+        (d) => d.originId === nodeId && d.destinationId === nodeId,
       );
       if (!exists) {
         const node = this.nodeService.getNodeFromId(nodeId);
         this.matrixData.push({
           origin: node.getBetriebspunktName(),
           destination: node.getBetriebspunktName(),
-          originID: nodeId,
-          destinationID: nodeId,
+          originId: nodeId,
+          destinationId: nodeId,
           totalCost: undefined,
           travelTime: undefined,
           transfers: undefined,
@@ -332,8 +332,8 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
     for (let i = 0, len = this.matrixData.length; i < len; i++) {
       const d = this.matrixData[i];
-      const ox = nameIndex.get(d.originID);
-      const oy = nameIndex.get(d.destinationID);
+      const ox = nameIndex.get(d.originId);
+      const oy = nameIndex.get(d.destinationId);
       if (ox === undefined || oy === undefined) continue;
 
       const x = ox * this.cellSize + this.offsetX;
@@ -390,8 +390,8 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
     for (let i = 0, len = this.matrixData.length; i < len; i++) {
       const d = this.matrixData[i];
-      const ox = nameIndex.get(d.originID);
-      const oy = nameIndex.get(d.destinationID);
+      const ox = nameIndex.get(d.originId);
+      const oy = nameIndex.get(d.destinationId);
       if (ox === undefined || oy === undefined) continue;
       const cx = ox * this.cellSize + this.offsetX + this.cellSize / 2;
       const cy = oy * this.cellSize + this.offsetY + this.cellSize / 2;
