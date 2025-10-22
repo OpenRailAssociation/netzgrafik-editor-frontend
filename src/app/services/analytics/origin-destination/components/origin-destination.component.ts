@@ -492,6 +492,14 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.drawCanvasMatrix();
   }
 
+  onResetButton() {
+    this.initViewbox();
+    this.colorBy = "totalCost";
+    this.displayBy = "totalCost";
+    this.colorSetName = "red";
+    this.drawCanvasMatrix();
+  }
+
   private createSvgMouseControllerObserver(): SVGMouseControllerObserver {
     return {
       onEarlyReturnFromMousemove: () => false,
