@@ -145,7 +145,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     hp.style.pointerEvents = "none";
     hp.style.border = "3px solid var(--NODE_TEXT_FOCUS)"; // blue border
     hp.style.boxSizing = "border-box";
-    hp.style.borderRadius = "4px";
+    hp.style.borderRadius = "6px";
     hp.style.background = "none"; // subtle fill
     // append to same offsetParent as tooltip (or document.body if none)
     const parentToAppend = offsetParent ?? document.body;
@@ -220,6 +220,11 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       if (this.highlight) {
         this.highlight.style.opacity = "0";
       }
+      const ctx = this.ctx;
+      ctx.clearRect(0, 0, this.offsetXOrg, this.canvas.height);
+      ctx.clearRect(0, 0, this.canvas.width, this.offsetYOrg);
+      this.drawXAxis(undefined);
+      this.drawYAxis(undefined);
     });
   }
 
@@ -246,7 +251,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   private drawCanvasMatrix(): void {
     if (!this.ctx || !this.canvas) return;
 
-    const ctx = this.ctx;
+    const ctx: CanvasRenderingContext2D = this.ctx;
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     const shortNames = this.nodeNames.map((n) => n.shortName);
@@ -265,7 +270,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       const value = this.getCellValue(d, this.colorBy);
       const color = value === undefined ? "#76767633" : colorScale(value);
 
-      this.drawMatrixCell(ctx, x + 1, y + 1, this.cellSize - 2, this.cellSize - 2, 2, color);
+      this.drawMatrixCell(ctx, x + 1, y + 1, this.cellSize - 2, this.cellSize - 2, 4, color);
     }
 
     // level of detail - only show text when zoom factor ...
@@ -287,28 +292,52 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       }
     }
 
+    this.drawXAxis(undefined);
+    this.drawYAxis(undefined);
+  }
+
+  private drawYAxis(highlightIndex: number | undefined) {
     // Y axis labels (left)
-    ctx.fillStyle = this.uiInteractionService.getActiveTheme().isDark ? "white" : "black";
-    ctx.font = `${Math.max(10, Math.floor(this.cellSize * 0.25 * this.zoomFactor))}px SBBWeb Roman`;
-    ctx.textAlign = "right";
-    ctx.textBaseline = "middle";
+    const color = this.uiInteractionService.getActiveTheme().isDark ? "255,255,255" : "0,0,0";
+    this.ctx.fillStyle = this.uiInteractionService.getActiveTheme().isDark ? "white" : "black";
+    this.ctx.textAlign = "right";
+    this.ctx.textBaseline = "middle";
     for (let i = 0; i < this.nodeNames.length; i++) {
       const name = this.nodeNames[i].shortName;
       const y = this.offsetY + i * this.cellSize + this.cellSize / 2;
-      ctx.fillText(name, this.offsetX - 8, y);
+      if (highlightIndex !== i) {
+        const alpha = highlightIndex === undefined ? 1.0 : 0.75;
+        this.ctx.fillStyle = `rgba(${color},${alpha})`;
+        this.ctx.font = `${Math.max(10, Math.floor(this.cellSize * 0.25 * this.zoomFactor))}px SBBWeb Roman`;
+      } else {
+        this.ctx.fillStyle = `rgba(${color},1)`;
+        this.ctx.font = `bold ${Math.max(14, 4 + Math.floor(this.cellSize * 0.25 * this.zoomFactor))}px SBBWeb Roman`;
+      }
+      this.ctx.fillText(name, this.offsetX - 8, y);
     }
+  }
 
+  private drawXAxis(highlightIndex: number | undefined) {
     // X axis labels (top, rotated)
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
+    const color = this.uiInteractionService.getActiveTheme().isDark ? "255,255,255" : "0,0,0";
+    this.ctx.textAlign = "left";
+    this.ctx.textBaseline = "middle";
     for (let i = 0; i < this.nodeNames.length; i++) {
       const name = this.nodeNames[i].shortName;
       const x = this.offsetX + i * this.cellSize + this.cellSize / 2;
-      ctx.save();
-      ctx.translate(x, this.offsetY - 12);
-      ctx.rotate(-Math.PI / 2);
-      ctx.fillText(name, 0, 0);
-      ctx.restore();
+      this.ctx.save();
+      this.ctx.translate(x, this.offsetY - 12);
+      this.ctx.rotate(-Math.PI / 2);
+      if (highlightIndex !== i) {
+        const alpha = highlightIndex === undefined ? 1.0 : 0.75;
+        this.ctx.fillStyle = `rgba(${color},${alpha})`;
+        this.ctx.font = `${Math.max(10, Math.floor(this.cellSize * 0.25 * this.zoomFactor))}px SBBWeb Roman`;
+      } else {
+        this.ctx.fillStyle = `rgba(${color},1)`;
+        this.ctx.font = `bold ${Math.max(14, 4 + Math.floor(this.cellSize * 0.25 * this.zoomFactor))}px SBBWeb Roman`;
+      }
+      this.ctx.fillText(name, 0, 0);
+      this.ctx.restore();
     }
   }
 
@@ -326,8 +355,15 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       (e.clientY - rect.top) / zf / this.cellSize - this.offsetY / this.cellSize,
     );
 
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, this.offsetXOrg, this.canvas.height);
+    ctx.clearRect(0, 0, this.canvas.width, this.offsetYOrg);
+    this.drawXAxis(xIndex);
+    this.drawYAxis(yIndex);
+
     const origin = this.nodeNames[xIndex]?.shortName;
     const destination = this.nodeNames[yIndex]?.shortName;
+
     if (!origin || !destination) {
       this.tooltip.style("opacity", 0);
       // hide highlight if exists
