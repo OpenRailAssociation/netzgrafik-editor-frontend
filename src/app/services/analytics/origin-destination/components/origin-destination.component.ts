@@ -199,8 +199,8 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.offsetX = this.offsetXOrg;
     this.offsetY = this.offsetYOrg;
 
-    const width = Math.round(this.offsetX + this.cellSize * Math.max(1, this.nodeNames.length));
-    const height = Math.round(this.offsetY + this.cellSize * Math.max(1, this.nodeNames.length));
+    const width = Math.round(2 * this.offsetX + this.cellSize * Math.max(1, this.nodeNames.length));
+    const height = Math.round(2 * this.offsetY + this.cellSize * Math.max(1, this.nodeNames.length));
 
     // remove previous nodes
     d3.select("#main-origin-destination-canvas").remove();
@@ -438,7 +438,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       const x = this.offsetX + i * this.cellSize + this.cellSize / 2;
       this.ctx.save();
       this.ctx.translate(x, this.offsetY - 12);
-      this.ctx.rotate(-Math.PI / 2);
+      this.ctx.rotate(-Math.PI / 4);
       if (highlightIndex !== i) {
         const alpha = highlightIndex === undefined ? 1.0 : 0.75;
         this.ctx.fillStyle = `rgba(${colorRGB},${alpha})`;
