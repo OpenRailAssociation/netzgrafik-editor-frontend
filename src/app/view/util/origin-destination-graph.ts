@@ -256,7 +256,7 @@ const buildSectionEdgesFromIterator = (
     let tsId = ts.getId();
     const trainrunId = reverseIterator
       ? // Minus 1 so we don't conflate 0 with -0.
-      -ts.getTrainrunId() - 1
+        -ts.getTrainrunId() - 1
       : ts.getTrainrunId();
 
     const reverseSection = tsIterator.current().node.getId() !== ts.getTargetNodeId();
