@@ -73,9 +73,9 @@ export class FilterableLabelDialogComponent implements OnDestroy {
   onTransferClicked(): void {
     const dialogTitle = $localize`:@@app.view.dialogs.filterable-labels-dialog.filterable-label-dialog-component.transfer.title:Transfer`;
     const dialogContent = $localize`:@@app.view.dialogs.filterable-labels-dialog.filterable-label-dialog-component.transfer.content:Should the label ${this.originalLabel}:label: be applied on all visible ${dialogTitle}:element:?`;
-    const confirmationDialogParamter = new ConfirmationDialogParameter(dialogTitle, dialogContent);
+    const confirmationDialogParameter = new ConfirmationDialogParameter(dialogTitle, dialogContent);
     this.uiInteractionService
-      .showConfirmationDiagramDialog(confirmationDialogParamter)
+      .showConfirmationDiagramDialog(confirmationDialogParameter)
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
           this.transferLabelCallback(this.originalLabel);
@@ -87,9 +87,9 @@ export class FilterableLabelDialogComponent implements OnDestroy {
   onDeleteClicked(): void {
     const dialogTitle = $localize`:@@app.view.dialogs.filterable-labels-dialog.filterable-label-dialog-component.delete.title:Delete`;
     const dialogContent = $localize`:@@app.view.dialogs.filterable-labels-dialog.filterable-label-dialog-component.delete.content:Should the label ${this.originalLabel}:label: be definitely delete on all visible ${dialogTitle}:element:?`;
-    const confirmationDialogParamter = new ConfirmationDialogParameter(dialogTitle, dialogContent);
+    const confirmationDialogParameter = new ConfirmationDialogParameter(dialogTitle, dialogContent);
     this.uiInteractionService
-      .showConfirmationDiagramDialog(confirmationDialogParamter)
+      .showConfirmationDiagramDialog(confirmationDialogParameter)
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
           this.deleteLabelCallback(this.originalLabel);

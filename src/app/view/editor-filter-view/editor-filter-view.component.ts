@@ -129,16 +129,16 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
 
   getFilterSettingClassname(filterSetting: FilterSetting, isFunctionButton = false): string {
     if (isFunctionButton) {
-      return "FilterSettting function";
+      return "FilterSetting function";
     }
     if (this.checkIsFilterSettingActive(filterSetting)) {
-      return "FilterSettting selected";
+      return "FilterSetting selected";
     }
-    return "FilterSettting";
+    return "FilterSetting";
   }
 
   getFilterSettingAddButtonClassname(): string {
-    return "FilterSettting add_button";
+    return "FilterSetting add_button";
   }
 
   getFilterSettingTooltip(filterSetting: FilterSetting): string {

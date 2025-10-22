@@ -9,7 +9,7 @@ import {TrainrunService} from "./trainrun.service";
 export class IsTrainrunSelectedService implements OnDestroy {
   // Description of observable data service: https://coryrylan.com/blog/angular-observable-data-services
   trainrunIdSelectedSubject = new BehaviorSubject<number>(undefined);
-  readonly trainrunIdSelecteds$ = this.trainrunIdSelectedSubject.asObservable();
+  readonly trainrunIdSelected$ = this.trainrunIdSelectedSubject.asObservable();
 
   trainrunIdSelectedByClickSubject = new BehaviorSubject<number>(undefined);
   readonly trainrunIdSelectedByClick$ = this.trainrunIdSelectedByClickSubject.asObservable();
@@ -34,8 +34,8 @@ export class IsTrainrunSelectedService implements OnDestroy {
     this.destroyed$.complete();
   }
 
-  getTrainrunIdSelecteds(): Observable<number> {
-    return this.trainrunIdSelecteds$;
+  getTrainrunIdSelected(): Observable<number> {
+    return this.trainrunIdSelected$;
   }
 
   setTrainrunIdSelectedByClick(trainrunIdSelected: number) {

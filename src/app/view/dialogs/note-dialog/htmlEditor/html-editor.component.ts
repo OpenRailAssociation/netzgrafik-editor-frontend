@@ -151,7 +151,7 @@ export class HtmlEditorComponent implements OnInit, OnDestroy {
   getColorStyle(color: HtmlEditorColor): string {
     if (color === undefined) {
       if (this.textBasedActiveColor.length > 0) {
-        return "opactiy: 1.0";
+        return "opacity: 1.0";
       }
       return "opacity: 0.25";
     }

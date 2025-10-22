@@ -167,7 +167,7 @@ export class TransitionsView {
     this.transitionsGroup = transitionsGroup.append(StaticDomTags.GROUP_SVG);
     this.transitionsGroup.attr("class", "transitions");
     this.selectedTransitionsGroup = transitionsGroup.append(StaticDomTags.GROUP_SVG);
-    this.selectedTransitionsGroup.attr("class", "selectedTansitions");
+    this.selectedTransitionsGroup.attr("class", "selectedTransitions");
   }
 
   filtertransitionToDisplay(transition: Transition, trainrun: Trainrun) {
@@ -235,7 +235,7 @@ export class TransitionsView {
     TransitionsView.createTransitionLineLayer(
       grpEnter,
       StaticDomTags.TRANSITION_LINE_CLASS_0,
-      [LinePatternRefs.Freq30], // LinePatternRefs.Freq60], (background is required to "strech the hower area"
+      [LinePatternRefs.Freq30], // LinePatternRefs.Freq60], (background is required to "stretch the lower area"
       selectedTrainrun,
       connectedTrainIds,
       this.editorView,

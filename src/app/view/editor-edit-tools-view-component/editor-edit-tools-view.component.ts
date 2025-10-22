@@ -80,12 +80,12 @@ export class EditorEditToolsViewComponent implements OnDestroy {
   }
 
   onClearAllFiltered() {
-    const confirmationDialogParamter = new ConfirmationDialogParameter(
+    const confirmationDialogParameter = new ConfirmationDialogParameter(
       $localize`:@@app.view.editor-edit-tools-view-component.delete:Delete`,
       $localize`:@@app.view.editor-edit-tools-view-component.on-clear-delete-all-non-visible-elements:Should all non-visible elements be permanently deleted from the netzgrafik?`,
     );
     this.uiInteractionService
-      .showConfirmationDiagramDialog(confirmationDialogParamter)
+      .showConfirmationDiagramDialog(confirmationDialogParameter)
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
           this.trainrunSectionService.deleteAllNonVisibleTrainrunSections();
@@ -96,12 +96,12 @@ export class EditorEditToolsViewComponent implements OnDestroy {
   }
 
   onClear() {
-    const confirmationDialogParamter = new ConfirmationDialogParameter(
+    const confirmationDialogParameter = new ConfirmationDialogParameter(
       $localize`:@@app.view.editor-edit-tools-view-component.delete:Delete`,
       $localize`:@@app.view.editor-edit-tools-view-component.on-clear-delete-all-visible-elements:Should all visible elements be permanently deleted from the netzgrafik?`,
     );
     this.uiInteractionService
-      .showConfirmationDiagramDialog(confirmationDialogParamter)
+      .showConfirmationDiagramDialog(confirmationDialogParameter)
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
           this.trainrunSectionService.deleteAllVisibleTrainrunSections();
@@ -112,12 +112,12 @@ export class EditorEditToolsViewComponent implements OnDestroy {
   }
 
   onClearAllTrainruns() {
-    const confirmationDialogParamter = new ConfirmationDialogParameter(
+    const confirmationDialogParameter = new ConfirmationDialogParameter(
       $localize`:@@app.view.editor-edit-tools-view-component.delete:Delete`,
       $localize`:@@app.view.editor-edit-tools-view-component.on-clear-delete-all-visible-trainruns:Should all visible trainruns be permanently deleted from the netzgrafik?`,
     );
     this.uiInteractionService
-      .showConfirmationDiagramDialog(confirmationDialogParamter)
+      .showConfirmationDiagramDialog(confirmationDialogParameter)
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
           this.trainrunSectionService.deleteAllVisibleTrainrunSections();
@@ -126,12 +126,12 @@ export class EditorEditToolsViewComponent implements OnDestroy {
   }
 
   onClearAllNotes() {
-    const confirmationDialogParamter = new ConfirmationDialogParameter(
+    const confirmationDialogParameter = new ConfirmationDialogParameter(
       $localize`:@@app.view.editor-edit-tools-view-component.delete:Delete`,
       $localize`:@@app.view.editor-edit-tools-view-component.on-clear-delete-all-visible-notes:Should all visible notes be permanently deleted from the netzgrafik?`,
     );
     this.uiInteractionService
-      .showConfirmationDiagramDialog(confirmationDialogParamter)
+      .showConfirmationDiagramDialog(confirmationDialogParameter)
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
           this.noteService.deleteAllVisibleNotes();
@@ -139,7 +139,7 @@ export class EditorEditToolsViewComponent implements OnDestroy {
       });
   }
 
-  onLoadNetzgrafikToInsertCopieButton() {
+  onLoadNetzgrafikToInsertCopyButton() {
     this.netzgrafikMergeAsACopyFileInput.nativeElement.click();
   }
 
