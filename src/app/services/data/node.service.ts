@@ -424,19 +424,22 @@ export class NodeService implements OnDestroy {
 
     // update the time Locks
     if (isTargetNodeEqToNodeId) {
-      this.trainrunSectionService.updateTrainrunSectionTimeLock(
+      this.trainrunSectionService.updateTrainrunSectionSourceTargetTimeLocks(
         trainrunSection1.getId(),
         timeLock1,
         timeLock2,
+        enforceUpdate,
+      );
+      this.trainrunSectionService.updateSectionsChainTravelTimeLocks(
+        trainrunSection1.getId(),
         trainrunSection1.getTravelTimeLock(),
         enforceUpdate,
       );
     } else {
-      this.trainrunSectionService.updateTrainrunSectionTimeLock(
+      this.trainrunSectionService.updateTrainrunSectionSourceTargetTimeLocks(
         trainrunSection1.getId(),
         timeLock2,
         timeLock1,
-        trainrunSection1.getTravelTimeLock(),
         enforceUpdate,
       );
     }
@@ -491,6 +494,13 @@ export class NodeService implements OnDestroy {
       true,
       node.getId(),
       false,
+    );
+
+    // update locks using the source section as reference
+    this.trainrunSectionService.updateSectionsChainTravelTimeLocks(
+      sections.trainrunSection1.getId(),
+      sections.trainrunSection1.getTravelTimeLock(),
+      true,
     );
 
     TransitionValidator.validateTransition(node, transitionId);

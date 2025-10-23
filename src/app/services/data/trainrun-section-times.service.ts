@@ -570,21 +570,26 @@ export class TrainrunSectionTimesService {
   }
 
   updateTrainrunSectionTimeLock() {
-    const leftRight = this.trainrunSectionHelper.getLeftRightSections(this.selectedTrainrunSection);
+    const sections = this.trainrunService.getNonStopSectionsChain(this.selectedTrainrunSection);
+    const firstSection = sections[0];
+    const lastSection = sections[sections.length - 1];
 
-    this.trainrunSectionService.updateTrainrunSectionTimeLock(
-      leftRight.leftSection.getId(),
-      this.trainrunSectionHelper.getSourceLock(this.lockStructure, leftRight.leftSection),
-      this.trainrunSectionHelper.getTargetLock(this.lockStructure, leftRight.leftSection),
-      this.lockStructure.travelTimeLock,
+    this.trainrunSectionService.updateTrainrunSectionSourceTargetTimeLocks(
+      firstSection.getId(),
+      this.trainrunSectionHelper.getSourceLock(this.lockStructure, firstSection),
+      this.trainrunSectionHelper.getTargetLock(this.lockStructure, firstSection),
       true,
     );
 
-    this.trainrunSectionService.updateTrainrunSectionTimeLock(
-      leftRight.rightSection.getId(),
-      this.trainrunSectionHelper.getSourceLock(this.lockStructure, leftRight.rightSection),
-      this.trainrunSectionHelper.getTargetLock(this.lockStructure, leftRight.rightSection),
-      undefined,
+    this.trainrunSectionService.updateSectionsChainTravelTimeLocks(
+      firstSection.getId(),
+      this.lockStructure.travelTimeLock,
+    );
+
+    this.trainrunSectionService.updateTrainrunSectionSourceTargetTimeLocks(
+      lastSection.getId(),
+      this.trainrunSectionHelper.getSourceLock(this.lockStructure, lastSection),
+      this.trainrunSectionHelper.getTargetLock(this.lockStructure, lastSection),
       true,
     );
   }

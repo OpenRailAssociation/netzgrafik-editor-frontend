@@ -629,11 +629,10 @@ export class TrainrunSectionService implements OnDestroy {
     }
   }
 
-  updateTrainrunSectionTimeLock(
+  updateTrainrunSectionSourceTargetTimeLocks(
     trsId: number,
     sourceLock: boolean,
     targetLock: boolean,
-    travelTimeLock: boolean,
     enforceUpdate = true,
   ) {
     const trainrunSection = this.getTrainrunSectionFromId(trsId);
@@ -645,10 +644,23 @@ export class TrainrunSectionService implements OnDestroy {
       trainrunSection.setTargetArrivalLock(targetLock);
       trainrunSection.setTargetDepartureLock(targetLock);
     }
-    if (travelTimeLock !== undefined) {
-      trainrunSection.setTravelTimeLock(travelTimeLock);
-      trainrunSection.setBackwardTravelTimeLock(travelTimeLock);
+    if (enforceUpdate) {
+      this.trainrunSectionsUpdated();
     }
+  }
+
+  updateSectionsChainTravelTimeLocks(
+    trainrunSectionId: number,
+    lock: boolean,
+    enforceUpdate = true,
+  ) {
+    const sections = this.trainrunService.getNonStopSectionsChain(
+      this.getTrainrunSectionFromId(trainrunSectionId),
+    );
+    sections.forEach((section) => {
+      section.setTravelTimeLock(lock);
+      section.setBackwardTravelTimeLock(lock);
+    });
     if (enforceUpdate) {
       this.trainrunSectionsUpdated();
     }

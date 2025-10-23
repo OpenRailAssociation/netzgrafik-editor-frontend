@@ -112,52 +112,15 @@ export class TrainrunsectionHelper {
     return [nextStopRightNode.getBetriebspunktName(), "(" + nextStopRightNode.getFullName() + ")"];
   }
 
-  getLeftRightSections(trainrunSection: TrainrunSection) {
-    const bothLastNonStopTransitNodes =
-      this.trainrunService.getBothLastNonStopNodes(trainrunSection);
-
-    const startForwardBackwardNode = GeneralViewFunctions.getStartForwardAndBackwardNode(
-      bothLastNonStopTransitNodes.lastNonStopNode1,
-      bothLastNonStopTransitNodes.lastNonStopNode2,
-    );
-    const lastLeftNode = startForwardBackwardNode.startForwardNode;
-    const lastRightNode = startForwardBackwardNode.startBackwardNode;
-
-    const towardsSource = this.trainrunService.getLastNonStopTrainrunSection(
-      trainrunSection.getSourceNode(),
-      trainrunSection,
-    );
-    const towradsTarget = this.trainrunService.getLastNonStopTrainrunSection(
-      trainrunSection.getTargetNode(),
-      trainrunSection,
-    );
-
-    let leftSection = towradsTarget;
-    let rightSection = towardsSource;
-    if (
-      towardsSource.getSourceNodeId() === lastLeftNode.getId() ||
-      towardsSource.getTargetNodeId() === lastLeftNode.getId()
-    ) {
-      leftSection = towardsSource;
-      rightSection = towradsTarget;
-    }
-    return {
-      leftSection: leftSection,
-      rightSection: rightSection,
-      lastLeftNode: lastLeftNode,
-      lastRightNode: lastRightNode,
-    };
-  }
-
   getSourceLock(
     lockStructure: LeftAndRightLockStructure,
     trainrunSection: TrainrunSection,
   ): boolean {
-    const leftRight = this.getLeftRightSections(trainrunSection);
-    if (trainrunSection.getSourceNodeId() === leftRight.lastLeftNode.getId()) {
+    const sections = this.trainrunService.getNonStopSectionsChain(trainrunSection);
+    if (trainrunSection.getSourceNodeId() === sections[0].getSourceNodeId()) {
       return lockStructure.leftLock;
     }
-    if (trainrunSection.getSourceNodeId() === leftRight.lastRightNode.getId()) {
+    if (trainrunSection.getSourceNodeId() === sections[sections.length - 1].getTargetNodeId()) {
       return lockStructure.rightLock;
     }
     return undefined;
@@ -167,11 +130,11 @@ export class TrainrunsectionHelper {
     lockStructure: LeftAndRightLockStructure,
     trainrunSection: TrainrunSection,
   ): boolean {
-    const leftRight = this.getLeftRightSections(trainrunSection);
-    if (trainrunSection.getTargetNodeId() === leftRight.lastLeftNode.getId()) {
+    const sections = this.trainrunService.getNonStopSectionsChain(trainrunSection);
+    if (trainrunSection.getTargetNodeId() === sections[0].getSourceNodeId()) {
       return lockStructure.leftLock;
     }
-    if (trainrunSection.getTargetNodeId() === leftRight.lastRightNode.getId()) {
+    if (trainrunSection.getTargetNodeId() === sections[sections.length - 1].getTargetNodeId()) {
       return lockStructure.rightLock;
     }
     return undefined;
