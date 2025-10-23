@@ -321,7 +321,10 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonMinus"
-                  (click)="trainrunSectionTimesService.onNodeLeftArrivalTimeButtonMinus()"
+                  (click)="
+                    trainrunSectionTimesService.onNodeLeftArrivalTimeButtonMinus();
+                    stopPropagation($event)
+                  "
                 >
                   -
                 </button>
@@ -344,7 +347,10 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonPlus"
-                  (click)="trainrunSectionTimesService.onNodeLeftArrivalTimeButtonPlus()"
+                  (click)="
+                    trainrunSectionTimesService.onNodeLeftArrivalTimeButtonPlus();
+                    stopPropagation($event)
+                  "
                 >
                   +
                 </button>
@@ -369,7 +375,9 @@
                   height="25px"
                   width="25px"
                   aria-hidden="false"
-                  (click)="trainrunSectionTimesService.onButtonNodeLeftLock()"
+                  (click)="
+                    trainrunSectionTimesService.onButtonNodeLeftLock(); stopPropagation($event)
+                  "
                   title="Ab-/Ankunftszeit 'lock'"
                 >
                 </sbb-icon>
@@ -380,7 +388,9 @@
                   height="25px"
                   width="25px"
                   aria-hidden="false"
-                  (click)="trainrunSectionTimesService.onButtonNodeLeftLock()"
+                  (click)="
+                    trainrunSectionTimesService.onButtonNodeLeftLock(); stopPropagation($event)
+                  "
                   title="Ab-/Ankunftszeit 'lock' entfernen"
                 >
                 </sbb-icon>
@@ -399,7 +409,10 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonMinus"
-                  (click)="trainrunSectionTimesService.onNodeLeftDepartureTimeButtonMinus()"
+                  (click)="
+                    trainrunSectionTimesService.onNodeLeftDepartureTimeButtonMinus();
+                    stopPropagation($event)
+                  "
                 >
                   -
                 </button>
@@ -422,7 +435,10 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonPlus"
-                  (click)="trainrunSectionTimesService.onNodeLeftDepartureTimeButtonPlus()"
+                  (click)="
+                    trainrunSectionTimesService.onNodeLeftDepartureTimeButtonPlus();
+                    stopPropagation($event)
+                  "
                 >
                   +
                 </button>
@@ -463,7 +479,9 @@
                   height="25px"
                   width="25px"
                   aria-hidden="false"
-                  (click)="trainrunSectionTimesService.onButtonTravelTimeLock()"
+                  (click)="
+                    trainrunSectionTimesService.onButtonTravelTimeLock(); stopPropagation($event)
+                  "
                   title="Fahrzeit 'lock'"
                 >
                 </sbb-icon>
@@ -474,7 +492,9 @@
                   height="25px"
                   width="25px"
                   aria-hidden="false"
-                  (click)="trainrunSectionTimesService.onButtonTravelTimeLock()"
+                  (click)="
+                    trainrunSectionTimesService.onButtonTravelTimeLock(); stopPropagation($event)
+                  "
                   title="Fahrzeit 'lock' entfernen"
                 >
                 </sbb-icon>
@@ -492,7 +512,9 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonMinus"
-                  (click)="trainrunSectionTimesService.onTravelTimeButtonMinus()"
+                  (click)="
+                    trainrunSectionTimesService.onTravelTimeButtonMinus(); stopPropagation($event)
+                  "
                 >
                   -
                 </button>
@@ -515,7 +537,9 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonPlus"
-                  (click)="trainrunSectionTimesService.onTravelTimeButtonPlus()"
+                  (click)="
+                    trainrunSectionTimesService.onTravelTimeButtonPlus(); stopPropagation($event)
+                  "
                 >
                   +
                 </button>
@@ -531,7 +555,10 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonMinus"
-                  (click)="trainrunSectionTimesService.onBottomTravelTimeButtonMinus()"
+                  (click)="
+                    trainrunSectionTimesService.onBottomTravelTimeButtonMinus();
+                    stopPropagation($event)
+                  "
                 >
                   -
                 </button>
@@ -554,7 +581,10 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonPlus"
-                  (click)="trainrunSectionTimesService.onBottomTravelTimeButtonPlus()"
+                  (click)="
+                    trainrunSectionTimesService.onBottomTravelTimeButtonPlus();
+                    stopPropagation($event)
+                  "
                 >
                   +
                 </button>
@@ -573,7 +603,10 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonMinus"
-                  (click)="trainrunSectionTimesService.onNodeRightDepartureTimeButtonMinus()"
+                  (click)="
+                    trainrunSectionTimesService.onNodeRightDepartureTimeButtonMinus();
+                    stopPropagation($event)
+                  "
                 >
                   -
                 </button>
@@ -596,7 +629,10 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonPlus"
-                  (click)="trainrunSectionTimesService.onNodeRightDepartureTimeButtonPlus()"
+                  (click)="
+                    trainrunSectionTimesService.onNodeRightDepartureTimeButtonPlus();
+                    stopPropagation($event)
+                  "
                 >
                   +
                 </button>
@@ -621,7 +657,9 @@
                   height="25px"
                   width="25px"
                   aria-hidden="false"
-                  (click)="trainrunSectionTimesService.onButtonNodeRightLock()"
+                  (click)="
+                    trainrunSectionTimesService.onButtonNodeRightLock(); stopPropagation($event)
+                  "
                   title="Ab-/Ankunftszeit 'lock'"
                 >
                 </sbb-icon>
@@ -632,7 +670,9 @@
                   height="25px"
                   width="25px"
                   aria-hidden="false"
-                  (click)="trainrunSectionTimesService.onButtonNodeRightLock()"
+                  (click)="
+                    trainrunSectionTimesService.onButtonNodeRightLock(); stopPropagation($event)
+                  "
                   title="Ab-/Ankunftszeit 'lock' entfernen"
                 >
                 </sbb-icon>
@@ -651,7 +691,10 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonMinus"
-                  (click)="trainrunSectionTimesService.onNodeRightArrivalTimeButtonMinus()"
+                  (click)="
+                    trainrunSectionTimesService.onNodeRightArrivalTimeButtonMinus();
+                    stopPropagation($event)
+                  "
                 >
                   -
                 </button>
@@ -674,7 +717,10 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonPlus"
-                  (click)="trainrunSectionTimesService.onNodeRightArrivalTimeButtonPlus()"
+                  (click)="
+                    trainrunSectionTimesService.onNodeRightArrivalTimeButtonPlus();
+                    stopPropagation($event)
+                  "
                 >
                   +
                 </button>
@@ -712,7 +758,10 @@
               class="FunctionButton Rotation90"
               tabindex="-1"
               mode="icon"
-              (click)="trainrunSectionTimesService.onPropagateTimeLeft(trainrunSection, true)"
+              (click)="
+                trainrunSectionTimesService.onPropagateTimeLeft(trainrunSection, true);
+                stopPropagation($event)
+              "
               [title]="'app.perlenkette.perlenkette-section.propagate-times-upwards' | translate"
             >
               <div>
@@ -729,7 +778,10 @@
               class="FunctionButton Rotation90"
               tabindex="-1"
               mode="icon"
-              (click)="trainrunSectionTimesService.onPropagateTimeRight(trainrunSection, true)"
+              (click)="
+                trainrunSectionTimesService.onPropagateTimeRight(trainrunSection, true);
+                stopPropagation($event)
+              "
               [title]="'app.perlenkette.perlenkette-section.propagate-times-downwards' | translate"
             >
               <div>
@@ -840,7 +892,7 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonMinus"
-                  (click)="onInputNbrStopsElementButtonMinus($event)"
+                  (click)="onInputNbrStopsElementButtonMinus($event); stopPropagation($event)"
                 >
                   -
                 </button>
@@ -854,7 +906,7 @@
                   sbbInput
                   spellcheck="false"
                   pattern="^[0-9]*"
-                  [(ngModel)]="numberOfStops"
+                  [(ngModel)]="perlenketteSection.numberOfStops"
                   (change)="onInputNbrStopsChanged()"
                 />
               </div>
@@ -863,7 +915,7 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonPlus"
-                  (click)="onInputNbrStopsElementButtonPlus($event)"
+                  (click)="onInputNbrStopsElementButtonPlus($event); stopPropagation($event)"
                 >
                   +
                 </button>

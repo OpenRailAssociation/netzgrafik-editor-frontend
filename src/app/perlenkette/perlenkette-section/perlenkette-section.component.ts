@@ -96,6 +96,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   ngOnInit() {
+    this.numberOfStops = this.perlenketteSection.numberOfStops;
     this.stationNumberArray = Array(this.perlenketteSection.numberOfStops)
       .fill(1)
       .map((x, i) => i + 1);
