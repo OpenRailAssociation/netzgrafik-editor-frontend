@@ -846,6 +846,19 @@ export class TrainrunService {
     return new NonStopTrainrunIterator(this.logService, node, trainrunSection);
   }
 
+  public getNonStopSectionsChain(trainrunSection: TrainrunSection): TrainrunSection[] {
+    const firstTrainrunSection = this.getFirstNonStopTrainrunSection(trainrunSection);
+    const sectionsChain: TrainrunSection[] = [];
+    const iterator = this.getNonStopIterator(
+      firstTrainrunSection.getSourceNode(),
+      firstTrainrunSection,
+    );
+    while (iterator.hasNext()) {
+      sectionsChain.push(iterator.next().trainrunSection);
+    }
+    return sectionsChain;
+  }
+
   public getBackwardIterator(node: Node, trainrunSection: TrainrunSection) {
     return new BackwardTrainrunIterator(this.logService, node, trainrunSection);
   }
