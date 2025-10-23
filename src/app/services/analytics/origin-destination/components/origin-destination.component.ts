@@ -15,15 +15,6 @@ import {NodeService} from "../../../data/node.service";
 type FieldName = "totalCost" | "travelTime" | "transfers";
 type ColorSetName = "red" | "blue" | "orange" | "gray";
 
-/**
- * OriginDestinationComponent
- *
- * - Refactored into small, focused methods.
- * - Improved naming and consistent typing.
- * - Tooltip and highlight use offsetParent coordinates for correct positioning.
- * - Data is loaded only once during initialization.
- * - Initial render is executed exactly once at the end of ngOnInit.
- */
 @Component({
   selector: "sbb-origin-destination",
   templateUrl: "./origin-destination.component.html",
