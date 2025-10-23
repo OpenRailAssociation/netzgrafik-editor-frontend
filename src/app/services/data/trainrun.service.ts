@@ -583,6 +583,7 @@ export class TrainrunService {
     return {endNode1, endNode2};
   }
 
+  // TODO: refacto that using setTimeStructureToTrainrunSections code
   propagateConsecutiveTimesForTrainrun(trainrunSectionId: number) {
     const inTrainrunSection =
       this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
