@@ -200,7 +200,9 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.offsetY = this.offsetYOrg;
 
     const width = Math.round(2 * this.offsetX + this.cellSize * Math.max(1, this.nodeNames.length));
-    const height = Math.round(2 * this.offsetY + this.cellSize * Math.max(1, this.nodeNames.length));
+    const height = Math.round(
+      2 * this.offsetY + this.cellSize * Math.max(1, this.nodeNames.length),
+    );
 
     // remove previous nodes
     d3.select("#main-origin-destination-canvas").remove();
@@ -264,12 +266,10 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       });
 
     // filter changes should only redraw using existing data (data is loaded only once)
-    this.filterService.filter
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe(() => {
-        if (!this.ctx || !this.canvas) return;
-        this.loadMatrixData();
-        this.drawCanvasMatrix();
+    this.filterService.filter.pipe(takeUntil(this.destroyed$)).subscribe(() => {
+      if (!this.ctx || !this.canvas) return;
+      this.loadMatrixData();
+      this.drawCanvasMatrix();
     });
   }
 
