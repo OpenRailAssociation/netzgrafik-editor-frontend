@@ -17,7 +17,12 @@ import {DataService} from "./data.service";
 import {Node} from "../../models/node.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {GeneralViewFunctions} from "../../view/util/generalViewFunctions";
-import {NonStopTrainrunIterator, TrainrunIterator} from "../util/trainrun.iterator";
+import {
+  BackwardNonStopTrainrunIterator,
+  BackwardTrainrunIterator,
+  NonStopTrainrunIterator,
+  TrainrunIterator,
+} from "../util/trainrun.iterator";
 import {LogService} from "../../logger/log.service";
 import {LabelService} from "./label.service";
 import {FilterService} from "../ui/filter.service";
@@ -691,6 +696,18 @@ export class TrainrunService {
     };
   }
 
+  getFirstNonStopTrainrunSection(trainrunSection: TrainrunSection): TrainrunSection {
+    // starts at the target node, goes backwards to find the first section that is not a non-stop section
+    const iterator = this.getBackwardNonStopIterator(
+      trainrunSection.getTargetNode(),
+      trainrunSection,
+    );
+    while (iterator.hasNext()) {
+      iterator.next();
+    }
+    return iterator.current().trainrunSection;
+  }
+
   sumTravelTimeUpToLastNonStopNode(node: Node, trainrunSection: TrainrunSection): number {
     let summedTravelTime = 0;
     const iterator = this.getNonStopIterator(node, trainrunSection);
@@ -758,6 +775,14 @@ export class TrainrunService {
 
   public getNonStopIterator(node: Node, trainrunSection: TrainrunSection) {
     return new NonStopTrainrunIterator(this.logService, node, trainrunSection);
+  }
+
+  public getBackwardIterator(node: Node, trainrunSection: TrainrunSection) {
+    return new BackwardTrainrunIterator(this.logService, node, trainrunSection);
+  }
+
+  public getBackwardNonStopIterator(node: Node, trainrunSection: TrainrunSection) {
+    return new BackwardNonStopTrainrunIterator(this.logService, node, trainrunSection);
   }
 
   // For each trainrun, get iterator from the smallest consecutiveTime.
