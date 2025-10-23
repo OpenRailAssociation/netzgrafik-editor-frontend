@@ -113,10 +113,15 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     }
 
     for (const nodeId of Array.from(idSet)) {
+      // Ensures only missing diagonal elements are added
       const exists = this.matrixData.some(
         (d) => d.originId === nodeId && d.destinationId === nodeId,
       );
       if (!exists) {
+        // only add the diagonal element if it not exists
+        // it helps prevent future issues—such as if the calculation of
+        // this.originDestinationService.originDestinationData()
+        // changes and diagonal elements end up being sent as well.
         const node = this.nodeService.getNodeFromId(nodeId);
         this.matrixData.push({
           origin: node.getBetriebspunktName(),
