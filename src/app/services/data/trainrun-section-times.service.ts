@@ -1057,11 +1057,19 @@ export class TrainrunSectionTimesService {
     trainrunSection: TrainrunSection = this.selectedTrainrunSection,
     leftAndRightTimeStructure: LeftAndRightTimeStructure = this.timeStructure,
   ) {
-    this.trainrunSectionService.setTimeStructureToTrainrunSections(
-      leftAndRightTimeStructure,
-      trainrunSection,
-      this.filterService.getTimeDisplayPrecision(),
-    );
+    if (this.onPerlenkette) {
+      // non-stop trainruns in perlenkette: timeStructure is only for the section, not sections chain
+      this.trainrunSectionService.setTimeStructureToTrainrunSection(
+        leftAndRightTimeStructure,
+        trainrunSection,
+      );
+    } else {
+      this.trainrunSectionService.setTimeStructureToTrainrunSections(
+        leftAndRightTimeStructure,
+        trainrunSection,
+        this.filterService.getTimeDisplayPrecision(),
+      );
+    }
   }
 
   private isLeftNodeSymmetric(): boolean {

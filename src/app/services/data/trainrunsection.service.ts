@@ -1062,6 +1062,31 @@ export class TrainrunSectionService implements OnDestroy {
     this.nodeService.connectionsUpdated();
   }
 
+  setTimeStructureToTrainrunSection(
+    leftAndRightTimeStructure: LeftAndRightTimeStructure,
+    updatedTrainrunSection: TrainrunSection,
+  ) {
+    // Get rid of left/right paradigm
+    const timeStructure = this.getTimeStructureFromLeftAndRightTimeStructure(
+      TrainrunsectionHelper.isTargetRightOrBottom(updatedTrainrunSection),
+      leftAndRightTimeStructure,
+    );
+
+    this.updateTrainrunSectionTime(
+      updatedTrainrunSection.getId(),
+      timeStructure.sourceArrivalTime,
+      timeStructure.sourceDepartureTime,
+      timeStructure.targetArrivalTime,
+      timeStructure.targetDepartureTime,
+      timeStructure.travelTime,
+      timeStructure.backwardTravelTime,
+      false,
+    );
+
+    this.trainrunSectionsUpdated();
+    this.nodeService.connectionsUpdated();
+  }
+
   trainrunSectionsUpdated() {
     this.trainrunSectionsSubject.next(
       Object.assign({}, this.trainrunSectionsStore).trainrunSections,
