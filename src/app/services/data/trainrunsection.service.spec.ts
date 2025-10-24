@@ -113,7 +113,7 @@ describe("TrainrunSectionService", () => {
     expect(ts.getSourceDepartureConsecutiveTime()).toBe(12);
     expect(ts.getSourceArrivalConsecutiveTime()).toBe(48);
     // should not have any impact
-    trainrunSectionService.propagateTimesForNewTrainrunSection(ts);
+    trainrunSectionService.propagateTimesAtTrainrunSectionCreation(ts);
     expect(ts.getTargetDepartureConsecutiveTime()).toBe(38);
     expect(ts.getTargetArrivalConsecutiveTime()).toBe(22);
     expect(ts.getSourceDepartureConsecutiveTime()).toBe(12);

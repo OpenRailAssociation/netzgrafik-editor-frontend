@@ -555,46 +555,59 @@ export class TrainrunSectionTimesService {
   }
 
   updateTrainrunSectionTimeLock() {
-    const leftRight = this.trainrunSectionHelper.getLeftRightSections(this.selectedTrainrunSection);
+    const sections = this.trainrunService.getNonStopSectionsChain(this.selectedTrainrunSection);
+    const firstSection = sections[0];
+    const lastSection = sections[sections.length - 1];
 
-    this.trainrunSectionService.updateTrainrunSectionTimeLock(
-      leftRight.leftSection.getId(),
-      this.trainrunSectionHelper.getSourceLock(this.lockStructure, leftRight.leftSection),
-      this.trainrunSectionHelper.getTargetLock(this.lockStructure, leftRight.leftSection),
-      this.lockStructure.travelTimeLock,
+    this.trainrunSectionService.updateTrainrunSectionSourceTargetTimeLocks(
+      firstSection.getId(),
+      this.trainrunSectionHelper.getSourceLock(this.lockStructure, firstSection),
+      this.trainrunSectionHelper.getTargetLock(this.lockStructure, firstSection),
       true,
     );
 
-    this.trainrunSectionService.updateTrainrunSectionTimeLock(
-      leftRight.rightSection.getId(),
-      this.trainrunSectionHelper.getSourceLock(this.lockStructure, leftRight.rightSection),
-      this.trainrunSectionHelper.getTargetLock(this.lockStructure, leftRight.rightSection),
-      undefined,
+    this.trainrunSectionService.updateSectionsChainTravelTimeLocks(
+      firstSection.getId(),
+      this.lockStructure.travelTimeLock,
+    );
+
+    this.trainrunSectionService.updateTrainrunSectionSourceTargetTimeLocks(
+      lastSection.getId(),
+      this.trainrunSectionHelper.getSourceLock(this.lockStructure, lastSection),
+      this.trainrunSectionHelper.getTargetLock(this.lockStructure, lastSection),
       true,
     );
   }
 
   /* Buttons in Footer */
-  onPropagateTimeLeft(trainrunSection: TrainrunSection) {
+  onPropagateTimeLeft(trainrunSection: TrainrunSection, fromPerlenkette: boolean = false) {
     const nextStopRightNodeId = this.trainrunSectionHelper
       .getNextStopRightNode(trainrunSection, this.nodesOrdered)
       .getId();
-    this.trainrunSectionService.propagateTimeAlongTrainrun(
+    this.trainrunSectionService.propagateTimes(
       trainrunSection.getId(),
+      !TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection),
       nextStopRightNodeId,
+      false,
     );
-    this.loadPerlenketteService.render();
+    if (fromPerlenkette) {
+      this.loadPerlenketteService.render();
+    }
   }
 
-  onPropagateTimeRight(trainrunSection: TrainrunSection) {
+  onPropagateTimeRight(trainrunSection: TrainrunSection, fromPerlenkette: boolean = false) {
     const nextStopLeftNodeId = this.trainrunSectionHelper
       .getNextStopLeftNode(trainrunSection, this.nodesOrdered)
       .getId();
-    this.trainrunSectionService.propagateTimeAlongTrainrun(
+    this.trainrunSectionService.propagateTimes(
       trainrunSection.getId(),
+      TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection),
       nextStopLeftNodeId,
+      false,
     );
-    this.loadPerlenketteService.render();
+    if (fromPerlenkette) {
+      this.loadPerlenketteService.render();
+    }
   }
 
   applyOffsetAndTransformTimeStructure() {
@@ -663,6 +676,7 @@ export class TrainrunSectionTimesService {
     this.originalTimeStructure = this.trainrunSectionHelper.getLeftAndRightTimes(
       this.selectedTrainrunSection,
       this.nodesOrdered,
+      this.onPerlenkette,
     );
     this.offsetTransformationActive = false;
   }
