@@ -298,6 +298,7 @@ export class SimpleTrainrunSectionRouter {
   static placeTextOnTrainrunSection(
     lineWayPoints: Vec2D[],
     sourcePort: Port,
+    isBackwardTravelTimeDisplayed: boolean,
   ): TrainrunSectionTextPositions {
     const s = lineWayPoints[0];
     const s1 = lineWayPoints[1];
@@ -402,6 +403,17 @@ export class SimpleTrainrunSectionRouter {
       namePosOffsetDirection,
     );
 
+    const trainrunSectionTravelTimePos = isBackwardTravelTimeDisplayed
+      ? Vec2D.add(
+          Vec2D.scale(Vec2D.add(s1, t1), 0.5),
+          Vec2D.scale(rDeltaS, -TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_TOP),
+        )
+      : trainrunSectionNamePos;
+    const trainrunSectionBackwardTravelTimePos = Vec2D.add(
+      Vec2D.scale(Vec2D.add(s1, t1), 0.5),
+      Vec2D.scale(rDeltaS, TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM),
+    );
+
     const trainrunSectionNumberOfStopsPos = Vec2D.add(
       Vec2D.scale(Vec2D.add(s1, t1), 0.5),
       nameNumberOfStopsOffsetDirection,
@@ -413,7 +425,9 @@ export class SimpleTrainrunSectionRouter {
       [TrainrunSectionText.TargetArrival]: targetArrivalPos.toPointDto(),
       [TrainrunSectionText.TargetDeparture]: targetDeparturePos.toPointDto(),
       [TrainrunSectionText.TrainrunSectionName]: trainrunSectionNamePos.toPointDto(),
-      [TrainrunSectionText.TrainrunSectionTravelTime]: trainrunSectionNamePos.toPointDto(),
+      [TrainrunSectionText.TrainrunSectionTravelTime]: trainrunSectionTravelTimePos.toPointDto(),
+      [TrainrunSectionText.TrainrunSectionBackwardTravelTime]:
+        trainrunSectionBackwardTravelTimePos.toPointDto(),
       [TrainrunSectionText.TrainrunSectionNumberOfStops]:
         trainrunSectionNumberOfStopsPos.toPointDto(),
     };
