@@ -21,6 +21,7 @@ import {
 })
 export class TrainrunSectionTimesService {
   private trainrunSectionHelper: TrainrunsectionHelper;
+  private onPerlenkette: boolean;
   private selectedTrainrunSection: TrainrunSection;
 
   private timeStructure: LeftAndRightTimeStructure;
@@ -60,11 +61,13 @@ export class TrainrunSectionTimesService {
     this.trainrunSectionHelper = new TrainrunsectionHelper(this.trainrunService);
   }
 
-  public setTrainrunSection(trainrunSection: TrainrunSection) {
+  public setTrainrunSection(trainrunSection: TrainrunSection, onPerlenkette: boolean = false) {
+    this.onPerlenkette = onPerlenkette;
     this.selectedTrainrunSection = trainrunSection;
     this.originalTimeStructure = this.trainrunSectionHelper.getLeftAndRightTimes(
       this.selectedTrainrunSection,
       this.nodesOrdered,
+      onPerlenkette,
     );
     this.timeStructure = Object.assign({}, this.originalTimeStructure);
   }
