@@ -348,6 +348,96 @@ export class TrainrunsectionHelper {
     return rightNode;
   }
 
+  // TODO: refacto using getFirstNonStopTrainrunSection
+  isLeftNextStopNodeSymmetric(trainrunSection: TrainrunSection, orderedNodes: Node[]): boolean {
+    const leftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
+
+    // find the trainrunSection where this left node is bound
+    const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
+    const bothLastNonStopTrainrunSections =
+      this.trainrunService.getBothLastNonStopTrainrunSections(trainrunSection);
+    const leftTrainrunSection =
+      leftNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
+        ? bothLastNonStopTrainrunSections.lastNonStopTrainrunSection1
+        : bothLastNonStopTrainrunSections.lastNonStopTrainrunSection2;
+
+    if (leftTrainrunSection.getSourceNodeId() === leftNode.getId()) {
+      return leftTrainrunSection.getSourceSymmetry();
+    } else if (leftTrainrunSection.getTargetNodeId() === leftNode.getId()) {
+      return leftTrainrunSection.getTargetSymmetry();
+    } else {
+      throw new Error("Left node is neither source nor target of its trainrun section.");
+    }
+  }
+
+  // TODO: refacto using getFirstNonStopTrainrunSection
+  isRightNextStopNodeSymmetric(trainrunSection: TrainrunSection, orderedNodes: Node[]): boolean {
+    const rightNode = this.getNextStopRightNode(trainrunSection, orderedNodes);
+
+    // find the trainrun section where this right node is bound
+    const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
+    const bothLastNonStopTrainrunSections =
+      this.trainrunService.getBothLastNonStopTrainrunSections(trainrunSection);
+    const rightTrainrunSection =
+      rightNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
+        ? bothLastNonStopTrainrunSections.lastNonStopTrainrunSection1
+        : bothLastNonStopTrainrunSections.lastNonStopTrainrunSection2;
+
+    if (rightTrainrunSection.getSourceNodeId() === rightNode.getId()) {
+      return rightTrainrunSection.getSourceSymmetry();
+    } else if (rightTrainrunSection.getTargetNodeId() === rightNode.getId()) {
+      return rightTrainrunSection.getTargetSymmetry();
+    } else {
+      throw new Error("Right node is neither source nor target of its trainrun section.");
+    }
+  }
+
+  isLeftToggleDisabled(
+    trainrunSection: TrainrunSection,
+    lockStructure: LeftAndRightLockStructure,
+    orderedNodes?: Node[],
+  ): boolean {
+    let isLeftSymmetric, isRightSymmetric;
+    if (orderedNodes) {
+      // for sbb-trainrunsection-tab component
+      isLeftSymmetric = this.isLeftNextStopNodeSymmetric(trainrunSection, orderedNodes);
+      isRightSymmetric = this.isRightNextStopNodeSymmetric(trainrunSection, orderedNodes);
+    } else {
+      // for sbb-perlenkette-section component
+      isLeftSymmetric = TrainrunsectionHelper.isLeftNodeSymmetric(trainrunSection);
+      isRightSymmetric = TrainrunsectionHelper.isRightNodeSymmetric(trainrunSection);
+    }
+    return (
+      !isLeftSymmetric &&
+      !trainrunSection.areTravelTimesEqual() &&
+      ((lockStructure.travelTimeLock && lockStructure.rightLock) ||
+        (isRightSymmetric && lockStructure.travelTimeLock))
+    );
+  }
+
+  isRightToggleDisabled(
+    trainrunSection: TrainrunSection,
+    lockStructure: LeftAndRightLockStructure,
+    orderedNodes?: Node[],
+  ): boolean {
+    let isLeftSymmetric, isRightSymmetric;
+    if (orderedNodes) {
+      // for sbb-trainrunsection-tab component
+      isLeftSymmetric = this.isLeftNextStopNodeSymmetric(trainrunSection, orderedNodes);
+      isRightSymmetric = this.isRightNextStopNodeSymmetric(trainrunSection, orderedNodes);
+    } else {
+      // for sbb-perlenkette-section component
+      isLeftSymmetric = TrainrunsectionHelper.isLeftNodeSymmetric(trainrunSection);
+      isRightSymmetric = TrainrunsectionHelper.isRightNodeSymmetric(trainrunSection);
+    }
+    return (
+      !isRightSymmetric &&
+      !trainrunSection.areTravelTimesEqual() &&
+      ((lockStructure.travelTimeLock && lockStructure.leftLock) ||
+        (isLeftSymmetric && lockStructure.travelTimeLock))
+    );
+  }
+
   static isTargetRightOrBottom(trainrunSection: TrainrunSection): boolean {
     const sourceNode = trainrunSection.getSourceNode();
     const targetNode = trainrunSection.getTargetNode();
@@ -363,6 +453,20 @@ export class TrainrunsectionHelper {
     const targetNode = lastTrainrunSection.getTargetNode();
 
     return GeneralViewFunctions.getRightOrBottomNode(sourceNode, targetNode) === targetNode;
+  }
+
+  static isLeftSideDisplayed(trainrunSection: TrainrunSection): boolean {
+    return (
+      trainrunSection.getTrainrun().isRoundTrip() ||
+      !TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection)
+    );
+  }
+
+  static isRightSideDisplayed(trainrunSection: TrainrunSection): boolean {
+    return (
+      trainrunSection.getTrainrun().isRoundTrip() ||
+      TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection)
+    );
   }
 
   static getAdjustedTimeBasedOnSymmetry(
