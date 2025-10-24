@@ -349,4 +349,32 @@ export class TrainrunsectionHelper {
 
     return GeneralViewFunctions.getRightOrBottomNode(sourceNode, targetNode) === targetNode;
   }
+
+
+  static getAdjustedTimeBasedOnSymmetry(
+    isSymmetricOnNode: boolean,
+    defaultTime: number,
+    symmetricTime: number,
+  ): number {
+    if (isSymmetricOnNode) {
+      return TrainrunsectionHelper.getSymmetricTime(symmetricTime);
+    }
+    return defaultTime;
+  }
+
+  static isLeftNodeSymmetric(trainrunSection: TrainrunSection): boolean {
+    if (TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection)) {
+      return trainrunSection.getSourceSymmetry();
+    } else {
+      return trainrunSection.getTargetSymmetry();
+    }
+  }
+
+  static isRightNodeSymmetric(trainrunSection: TrainrunSection): boolean {
+    if (TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection)) {
+      return trainrunSection.getTargetSymmetry();
+    } else {
+      return trainrunSection.getSourceSymmetry();
+    }
+  }
 }
