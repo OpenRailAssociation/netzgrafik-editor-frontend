@@ -101,4 +101,9 @@
   input.non-default + .slider:before {
     background: $COLOR_SBB_RED;
   }
+
+  &.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
 }
