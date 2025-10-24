@@ -57,12 +57,6 @@
     },
     "services": {
       "data": {
-        "node": {
-          "transit-modified": {
-            "title": "Durchfahrt geändert",
-            "description": "Zeiten können nicht angepasst werden, beidseitger Lock gefunden"
-          }
-        },
         "trainrunsection": {
           "intermediate-stop-replacement": {
             "title": "Zwischenhalteumwandlung",
@@ -98,6 +92,10 @@
           "travel-time-less-than-1": {
             "title": "Reisezeit weniger als 1",
             "description": "Die Reisezeit muss größer oder gleich 1 sein."
+          },
+          "travel-times-not-equal": {
+            "title": "Reisezeiten nicht gleich",
+            "description": "Reisezeiten sind nicht kompatibel mit den Fahrplänen für Hin- und Rückfahrten bei symmetrischen Zugläufen"
           }
         },
         "transition-validator": {

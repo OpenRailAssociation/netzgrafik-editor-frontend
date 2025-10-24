@@ -57,12 +57,6 @@
     },
     "services": {
       "data": {
-        "node": {
-          "transit-modified": {
-            "title": "Transition changed",
-            "description": "Times cannot be adjusted, lock found on both sides"
-          }
-        },
         "trainrunsection": {
           "intermediate-stop-replacement": {
             "title": "Intermediate stop replacement",
@@ -98,6 +92,10 @@
           "travel-time-less-than-1": {
             "title": "Travel Time less than 1",
             "description": "Travel time must be greater than or equal to 1"
+          },
+          "travel-times-not-equal": {
+            "title": "Travel Times not equal",
+            "description": "Travel times are not compatible with return trip time schedules for symmetric trainruns"
           }
         },
         "transition-validator": {
