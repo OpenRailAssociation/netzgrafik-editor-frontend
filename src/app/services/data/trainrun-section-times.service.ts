@@ -113,6 +113,14 @@ export class TrainrunSectionTimesService {
     this.highlightTravelTimeElement = highlightTravelTimeElement;
   }
 
+  public getHighlightBottomTravelTimeElement() {
+    return this.highlightBottomTravelTimeElement;
+  }
+
+  public setHighlightBottomTravelTimeElement(highlightBottomTravelTimeElement: boolean) {
+    this.highlightBottomTravelTimeElement = highlightBottomTravelTimeElement;
+  }
+
   public setInitialLeftAndRightElement(initialLeftAndRightElement: LeftAndRightElement) {
     this.initialLeftAndRightElement = initialLeftAndRightElement;
   }
