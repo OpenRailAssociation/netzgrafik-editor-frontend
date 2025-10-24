@@ -162,6 +162,8 @@ export class TrainrunSectionsView {
         return trainrunSection.hasTargetArrivalWarning();
       case TrainrunSectionText.TrainrunSectionTravelTime:
         return trainrunSection.hasTravelTimeWarning();
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
+        return trainrunSection.hasBackwardTravelTimeWarning();
       case TrainrunSectionText.TrainrunSectionName:
       default:
         return false;
@@ -203,11 +205,16 @@ export class TrainrunSectionsView {
           ": " +
           trainrunSection.getTravelTimeWarning().description
         );
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
+        return (
+          trainrunSection.getBackwardTravelTimeWarning().title +
+          ": " +
+          trainrunSection.getBackwardTravelTimeWarning().description
+        );
       case TrainrunSectionText.TrainrunSectionName:
       default:
         return "";
     }
-    return "";
   }
 
   static getTime(trainrunSection: TrainrunSection, textElement: TrainrunSectionText): number {
@@ -222,6 +229,8 @@ export class TrainrunSectionsView {
         return trainrunSection.getTargetArrival();
       case TrainrunSectionText.TrainrunSectionTravelTime:
         return trainrunSection.getTravelTime();
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
+        return trainrunSection.getBackwardTravelTime();
       default:
         return 0;
     }
@@ -242,6 +251,8 @@ export class TrainrunSectionsView {
         return trainrunSection.getTargetArrivalFormattedDisplayText();
       case TrainrunSectionText.TrainrunSectionTravelTime:
         return trainrunSection.getTravelTimeFormattedDisplayText();
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
+        return trainrunSection.getBackwardTravelTimeFormattedDisplayText();
       default:
         return undefined;
     }
@@ -262,6 +273,8 @@ export class TrainrunSectionsView {
         return trainrunSection.getTargetArrivalFormattedDisplayTextWidth();
       case TrainrunSectionText.TrainrunSectionTravelTime:
         return trainrunSection.getTravelTimeFormattedDisplayTextWidth();
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
+        return trainrunSection.getBackwardTravelTimeFormattedDisplayTextWidth();
       default:
         return undefined;
     }
@@ -320,6 +333,7 @@ export class TrainrunSectionsView {
       case TrainrunSectionText.TargetArrival:
         return trainrunSection.getTextPositionX(textElement);
       case TrainrunSectionText.TrainrunSectionTravelTime:
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
         return RASTERING_BASIC_GRID_SIZE / 4;
       case TrainrunSectionText.TrainrunSectionName:
         return -RASTERING_BASIC_GRID_SIZE / 4;
@@ -335,9 +349,6 @@ export class TrainrunSectionsView {
       case TrainrunSectionText.TargetDeparture:
       case TrainrunSectionText.TargetArrival:
         return trainrunSection.getTextPositionY(textElement);
-      case TrainrunSectionText.TrainrunSectionTravelTime:
-      case TrainrunSectionText.TrainrunSectionName:
-        return 0.0;
       default:
         return 0;
     }
@@ -351,6 +362,7 @@ export class TrainrunSectionsView {
       case TrainrunSectionText.TargetArrival:
         return "dy";
       case TrainrunSectionText.TrainrunSectionTravelTime:
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
       case TrainrunSectionText.TrainrunSectionName:
         return "transform";
       default:
@@ -369,6 +381,7 @@ export class TrainrunSectionsView {
       case TrainrunSectionText.TargetArrival:
         return 1.5;
       case TrainrunSectionText.TrainrunSectionTravelTime:
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
       case TrainrunSectionText.TrainrunSectionName:
         return TrainrunSectionsView.translateAndRotateText(trainrunSection, textElement);
       default:
@@ -440,6 +453,7 @@ export class TrainrunSectionsView {
           )
         );
       case TrainrunSectionText.TrainrunSectionTravelTime:
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
         return timeTag;
       case TrainrunSectionText.TrainrunSectionName:
         return (
@@ -456,8 +470,9 @@ export class TrainrunSectionsView {
             trainrunSection.getTrainrun().getCategoryColorRef(),
           )
         );
+      default:
+        return undefined;
     }
-    return undefined;
   }
 
   static formatTime(value: number, precision: number): number {
@@ -478,21 +493,34 @@ export class TrainrunSectionsView {
     );
   }
 
-  static extractTravelTime(trainrunSection: TrainrunSection, editorView: EditorView): string {
-    const cumTravelTimeData = editorView.getCumulativeTravelTimeAndNodePath(trainrunSection);
-    const cumulativeTravelTime = cumTravelTimeData[cumTravelTimeData.length - 1].sumTravelTime;
+  static extractTravelTime(
+    trainrunSection: TrainrunSection,
+    editorView: EditorView,
+    isBackwardTravel: boolean,
+  ): string {
+    // invert travel times display since departures and arrivals
+    // are also inverted if target is left or top
+    isBackwardTravel = TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection)
+      ? isBackwardTravel
+      : !isBackwardTravel;
+    const travelTime = isBackwardTravel
+      ? trainrunSection.getBackwardTravelTime()
+      : trainrunSection.getTravelTime();
+    const cumTravelTimeData = isBackwardTravel
+      ? editorView.getCumulativeBackwardTravelTimeAndNodePath(trainrunSection)
+      : editorView.getCumulativeTravelTimeAndNodePath(trainrunSection);
+    const cumulativeTravelTime = isBackwardTravel
+      ? cumTravelTimeData[cumTravelTimeData.length - 1].sumBackwardTravelTime
+      : cumTravelTimeData[cumTravelTimeData.length - 1].sumTravelTime;
     if (
       trainrunSection.getTrainrun().selected() === true ||
       editorView.isFilterShowNonStopTimeEnabled() ||
       editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()
     ) {
-      if (cumulativeTravelTime === trainrunSection.getTravelTime()) {
+      if (cumulativeTravelTime === travelTime) {
         // default case
         return (
-          TrainrunSectionsView.formatTime(
-            trainrunSection.getTravelTime(),
-            editorView.getTimeDisplayPrecision(),
-          ) + "'"
+          TrainrunSectionsView.formatTime(travelTime, editorView.getTimeDisplayPrecision()) + "'"
         );
       } else {
         // special case - with non stops
@@ -633,7 +661,7 @@ export class TrainrunSectionsView {
         }
 
         if (TrainrunSectionsView.isBothSideNonStop(trainrunSection)) {
-          return "(" + TrainrunSectionsView.formatTime(trainrunSection.getTravelTime(), 1) + "')";
+          return "(" + TrainrunSectionsView.formatTime(travelTime, 1) + "')";
         }
         // default case for non stops
         return (
@@ -642,7 +670,7 @@ export class TrainrunSectionsView {
             editorView.getTimeDisplayPrecision(),
           ) +
           "' (" +
-          TrainrunSectionsView.formatTime(trainrunSection.getTravelTime(), 1) +
+          TrainrunSectionsView.formatTime(travelTime, 1) +
           "')"
         );
       }
@@ -753,17 +781,23 @@ export class TrainrunSectionsView {
           editorView.getTimeDisplayPrecision(),
         );
       }
-      case TrainrunSectionText.TrainrunSectionTravelTime: {
+      case TrainrunSectionText.TrainrunSectionTravelTime:
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime: {
         const data = TrainrunSectionsView.getFormattedDisplayText(trainrunSection, textElement);
         if (data !== undefined) {
           return data;
         }
-        return TrainrunSectionsView.extractTravelTime(trainrunSection, editorView);
+        return TrainrunSectionsView.extractTravelTime(
+          trainrunSection,
+          editorView,
+          textElement === TrainrunSectionText.TrainrunSectionBackwardTravelTime,
+        );
       }
       case TrainrunSectionText.TrainrunSectionName:
         return TrainrunSectionsView.extractTrainrunName(trainrunSection);
+      default:
+        return undefined;
     }
-    return undefined;
   }
 
   static getTrainrunSectionValueTextWidth(
@@ -775,7 +809,8 @@ export class TrainrunSectionsView {
       case TrainrunSectionText.SourceArrival:
       case TrainrunSectionText.TargetDeparture:
       case TrainrunSectionText.TargetArrival:
-      case TrainrunSectionText.TrainrunSectionTravelTime: {
+      case TrainrunSectionText.TrainrunSectionTravelTime:
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime: {
         const data = TrainrunSectionsView.getFormattedDisplayTextWidth(
           trainrunSection,
           textElement,
@@ -785,8 +820,9 @@ export class TrainrunSectionsView {
         }
         return TRAINRUN_SECTION_TEXT_AREA_WIDTH;
       }
+      default:
+        return TRAINRUN_SECTION_TEXT_AREA_WIDTH;
     }
-    return TRAINRUN_SECTION_TEXT_AREA_WIDTH;
   }
 
   static getTrainrunSectionValueHtmlStyle(
@@ -804,10 +840,11 @@ export class TrainrunSectionsView {
         return trainrunSection.getTargetArrivalFormattedDisplayHtmlStyle();
       case TrainrunSectionText.TrainrunSectionTravelTime:
         return trainrunSection.getTravelTimeFormattedDisplayHtmlStyle();
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
+        return trainrunSection.getBackwardTravelTimeFormattedDisplayHtmlStyle();
       default:
         return undefined;
     }
-    return undefined;
   }
 
   static getTrainrunSectionNextAndDestinationNodeToShow(
@@ -847,6 +884,8 @@ export class TrainrunSectionsView {
         return trainrunSection.getTargetArrivalFormatterColorRef();
       case TrainrunSectionText.TrainrunSectionTravelTime:
         return trainrunSection.getTravelTimeFormatterColorRef();
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
+        return trainrunSection.getBackwardTravelTimeFormatterColorRef();
       default:
         return undefined;
     }
@@ -892,6 +931,17 @@ export class TrainrunSectionsView {
         return TrainrunSectionsView.getNode(trainrunSection, false).isNonStop(trainrunSection);
       case TrainrunSectionText.TrainrunSectionTravelTime:
         if (!editorView.isFilterTravelTimeEnabled()) {
+          return true;
+        }
+        if (editorView.isFilterShowNonStopTimeEnabled()) {
+          return false;
+        }
+        return (
+          !trainrunSection.getTrainrun().selected() &&
+          TrainrunSectionsView.isBothSideNonStop(trainrunSection)
+        );
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
+        if (!trainrunSection.getTrainrun().isRoundTrip() || trainrunSection.isSymmetric()) {
           return true;
         }
         if (editorView.isFilterShowNonStopTimeEnabled()) {
@@ -1352,7 +1402,8 @@ export class TrainrunSectionsView {
   ) {
     const isDefaultText =
       textElement === TrainrunSectionText.TrainrunSectionName ||
-      textElement === TrainrunSectionText.TrainrunSectionTravelTime;
+      textElement === TrainrunSectionText.TrainrunSectionTravelTime ||
+      textElement === TrainrunSectionText.TrainrunSectionBackwardTravelTime;
     const atSource =
       textElement === TrainrunSectionText.SourceArrival ||
       textElement === TrainrunSectionText.SourceDeparture;
@@ -2005,11 +2056,15 @@ export class TrainrunSectionsView {
       case TrainrunSectionText.TargetDeparture:
       case TrainrunSectionText.TargetArrival:
       case TrainrunSectionText.TrainrunSectionTravelTime:
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
       case TrainrunSectionText.TrainrunSectionNumberOfStops:
         this.editorView.showTrainrunSectionInformation(trainrunSection, clickPos, textElement);
         break;
       case TrainrunSectionText.TrainrunSectionName:
         this.editorView.showTrainrunInformation(trainrunSection, clickPos);
+        break;
+      default:
+        break;
     }
   }
 
@@ -2419,6 +2474,13 @@ export class TrainrunSectionsView {
           selectedTrainrun,
           connectedTrainIds,
           TrainrunSectionText.TrainrunSectionTravelTime,
+        );
+        this.createTrainrunSectionElement(
+          // LevelOfDetail.LEVEL3
+          groupLabels,
+          selectedTrainrun,
+          connectedTrainIds,
+          TrainrunSectionText.TrainrunSectionBackwardTravelTime,
         );
       }
 

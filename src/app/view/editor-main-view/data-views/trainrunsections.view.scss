@@ -38,6 +38,11 @@
   text-align: left;
 }
 
+::ng-deep text.edge_text.TrainrunSectionBackwardTravelTime {
+  text-anchor: start;
+  text-align: left;
+}
+
 ::ng-deep text.edge_text.warning {
   stroke: $COLOR_Warning;
   fill: $COLOR_Warning;
