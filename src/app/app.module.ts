@@ -43,6 +43,7 @@ import {EditorSideViewComponent} from "./view/editor-side-view/editor-side-view.
 import {StammdatenDialogComponent} from "./view/dialogs/stammdaten-dialog/stammdaten-dialog.component";
 import {TrainrunAndSectionDialogComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrun-and-section-dialog.component";
 import {ConfirmationDialogComponent} from "./view/dialogs/confirmation-dialog/confirmation-dialog.component";
+import {SymmetrySelectionDialogComponent} from "./view/dialogs/symmetry-selection-dialog/symmetry-selection-dialog.component";
 import {FilterMainSideViewComponent} from "./view/filter-main-side-view/filter-main-side-view.component";
 import {KnotenAuslastungViewComponent} from "./view/knoten-auslastung-view/knoten-auslastung-view.component";
 import {environment} from "../environments/environment";
@@ -126,6 +127,7 @@ import {ToggleSwitchButtonComponent} from "./view/toggle-switch-button/toggle-sw
     EditorSideViewComponent,
     TrainrunAndSectionDialogComponent,
     ConfirmationDialogComponent,
+    SymmetrySelectionDialogComponent,
     FilterMainSideViewComponent,
     KnotenAuslastungViewComponent,
     ProjectsViewComponent,

@@ -60,7 +60,7 @@
         "node": {
           "transit-modified": {
             "title": "Durchfahrt geändert",
-            "description": "Zeiten können nicht angepasst werden, beidseitger Lock gefunden"
+            "description": "Zeiten können nicht angepasst werden, die Startzeit ist fest vorgegeben."
           }
         },
         "trainrunsection": {
@@ -95,6 +95,10 @@
             "title": "Quelle Ankunft Warnung",
             "description": "Quellankunftszeit kann nicht erreicht werden"
           },
+          "travel-times-not-equal": {
+            "title": "Reisezeiten nicht symmetrisch",
+            "description": "Reisezeiten sind nicht kompatibel mit Rückreise-Zeitplänen"
+          },
           "travel-time-less-than-1": {
             "title": "Reisezeit weniger als 1",
             "description": "Die Reisezeit muss größer oder gleich 1 sein."
@@ -116,6 +120,14 @@
           "target-departure-not-reacheable": {
             "title": "Ziel Abfahrt Warnung",
             "description": "Zielabfahrtszeit kann nicht erreicht werden"
+          },
+          "source-departure-not-reacheable-asymmetry": {
+            "title": "Quelle Abfahrt Warnung",
+            "description": "Quellabfahrtszeit kann nicht erreicht werden aufgrund asymmetrischer Reisezeiten"
+          },
+          "target-departure-not-reacheable-asymmetry": {
+            "title": "Ziel Abfahrt Warnung",
+            "description": "Zielabfahrtszeit kann nicht erreicht werden aufgrund asymmetrischer Reisezeiten"
           }
         }
       }
@@ -267,6 +279,11 @@
           "position": "Position",
           "close": "Schliessen"
         },
+        "symmetry-dialog": {
+          "apply-symmetry": "Symmetrie anwenden",
+          "cancel": "Abbrechen",
+          "selection": "Symmetrie-Auswahl"
+        },
         "trainrun-and-section-dialog": {
           "filterableLabels": "Filterbare Labels",
           "trainrun-filter-tab": {
@@ -355,6 +372,8 @@
         "round-trips": "Rundreisen",
         "one-ways": "Einzelfahrten",
         "display-direction-arrows": "Zugfahrt-Richtungs-Pfeile anzeigen",
+        "display-asymmetry-arrows": "Zugfahrt-Knoten-Asymmetrie-Pfeile anzeigen",
+        "display-backward-travel-times": "Rückwärtsfahrzeiten anzeigen (Asymmetrie)",
         "times": "Zeiten",
         "decimal-displayed": "Anzahl Nachkommastellenanzeigen",
         "display-arrival-departure-times": "Abfahrt- und Ankuftszeiten anzeigen",
@@ -383,6 +402,10 @@
         "symmetry": "Symmetrie",
         "show-direction": "{$direction} einblenden",
         "hide-direction": "{$direction} ausblenden",
+        "show-asymmetric-trainruns": "Asymmetrische Zugfahrten einblenden",
+        "hide-asymmetric-trainruns": "Asymmetrische Zugfahrten ausblenden",
+        "symmetric": "Sym.",
+        "asymmetric": "Asym.",
         "filterable-label-filter": {
           "no-labels-available": "Keine Labels vorhanden",
           "or": "Oder",
