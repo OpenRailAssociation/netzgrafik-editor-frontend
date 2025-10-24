@@ -322,7 +322,7 @@ export class Node {
     return currentMaxIndex;
   }
 
-  getIsCollapsed(): boolean {
+  collapsed(): boolean {
     return this.isCollapsed;
   }
 
