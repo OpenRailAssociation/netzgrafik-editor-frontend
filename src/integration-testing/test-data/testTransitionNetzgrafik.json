@@ -128,13 +128,8 @@
       "sourcePortId": 97,
       "targetNodeId": 1,
       "targetPortId": 188,
-      "travelTime": {
-        "time": 10,
-        "consecutiveTime": 10,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 48,
         "consecutiveTime": 48,
@@ -163,6 +158,20 @@
         "warning": null,
         "timeFormatter": null
       },
+      "travelTime": {
+        "time": 10,
+        "consecutiveTime": 10,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 10,
+        "consecutiveTime": 10,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
       "numberOfStops": 0,
       "trainrunId": 6,
       "resourceId": 0,
@@ -181,7 +190,8 @@
           "3": {"x": 816, "y": 476},
           "4": {"x": 640, "y": 372},
           "5": {"x": 640, "y": 372},
-          "6": {"x": 640, "y": 396}
+          "6": {"x": 640, "y": 396},
+          "7": {"x": 640, "y": 396}
         }
       },
       "warnings": null
@@ -192,13 +202,8 @@
       "sourcePortId": 70,
       "targetNodeId": 1,
       "targetPortId": 155,
-      "travelTime": {
-        "time": 10,
-        "consecutiveTime": 10,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 0,
         "consecutiveTime": 0,
@@ -230,6 +235,20 @@
         "warning": {"title": "Symétrie brisée", "description": "10 + 51 = 61"},
         "timeFormatter": null
       },
+      "travelTime": {
+        "time": 10,
+        "consecutiveTime": 10,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 10,
+        "consecutiveTime": 10,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
       "numberOfStops": 0,
       "trainrunId": 7,
       "resourceId": 0,
@@ -248,7 +267,8 @@
           "3": {"x": 816, "y": 508},
           "4": {"x": 640, "y": 404},
           "5": {"x": 640, "y": 404},
-          "6": {"x": 640, "y": 428}
+          "6": {"x": 640, "y": 428},
+          "7": {"x": 640, "y": 428}
         }
       },
       "warnings": null
@@ -259,13 +279,8 @@
       "sourcePortId": 99,
       "targetNodeId": 1,
       "targetPortId": 147,
-      "travelTime": {
-        "time": 9,
-        "consecutiveTime": 10,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 49,
         "consecutiveTime": 109,
@@ -297,6 +312,20 @@
         "warning": {"title": "Symétrie brisée", "description": "58 + 3 = 61"},
         "timeFormatter": null
       },
+      "travelTime": {
+        "time": 9,
+        "consecutiveTime": 10,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 9,
+        "consecutiveTime": 10,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
       "numberOfStops": 0,
       "trainrunId": 8,
       "resourceId": 0,
@@ -315,7 +344,8 @@
           "3": {"x": 1008, "y": 548},
           "4": {"x": 1200, "y": 452},
           "5": {"x": 1200, "y": 452},
-          "6": {"x": 1200, "y": 476}
+          "6": {"x": 1200, "y": 452},
+          "7": {"x": 1200, "y": 476}
         }
       },
       "warnings": null
@@ -326,13 +356,8 @@
       "sourcePortId": 82,
       "targetNodeId": 1,
       "targetPortId": 151,
-      "travelTime": {
-        "time": 10,
-        "consecutiveTime": 10,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 0,
         "consecutiveTime": 120,
@@ -364,6 +389,20 @@
         "warning": {"title": "Symétrie brisée", "description": "10 + 51 = 61"},
         "timeFormatter": null
       },
+      "travelTime": {
+        "time": 10,
+        "consecutiveTime": 10,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 10,
+        "consecutiveTime": 10,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
       "numberOfStops": 0,
       "trainrunId": 10,
       "resourceId": 0,
@@ -382,7 +421,8 @@
           "3": {"x": 1008, "y": 516},
           "4": {"x": 1200, "y": 420},
           "5": {"x": 1200, "y": 420},
-          "6": {"x": 1200, "y": 444}
+          "6": {"x": 1200, "y": 444},
+          "7": {"x": 1200, "y": 444}
         }
       },
       "warnings": null
@@ -393,13 +433,8 @@
       "sourcePortId": 148,
       "targetNodeId": 5,
       "targetPortId": 146,
-      "travelTime": {
-        "time": 8,
-        "consecutiveTime": 10,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 0,
         "consecutiveTime": 120,
@@ -428,6 +463,20 @@
         "warning": null,
         "timeFormatter": null
       },
+      "travelTime": {
+        "time": 8,
+        "consecutiveTime": 10,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 8,
+        "consecutiveTime": 10,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
       "numberOfStops": 0,
       "trainrunId": 8,
       "resourceId": 0,
@@ -446,7 +495,8 @@
           "3": {"x": 464, "y": 388},
           "4": {"x": 640, "y": 468},
           "5": {"x": 640, "y": 468},
-          "6": {"x": 640, "y": 492}
+          "6": {"x": 640, "y": 492},
+          "7": {"x": 640, "y": 492}
         }
       },
       "warnings": null
@@ -457,13 +507,8 @@
       "sourcePortId": 152,
       "targetNodeId": 5,
       "targetPortId": 150,
-      "travelTime": {
-        "time": 9,
-        "consecutiveTime": 10,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 13,
         "consecutiveTime": 133,
@@ -492,6 +537,20 @@
         "warning": null,
         "timeFormatter": null
       },
+      "travelTime": {
+        "time": 9,
+        "consecutiveTime": 10,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 9,
+        "consecutiveTime": 10,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
       "numberOfStops": 0,
       "trainrunId": 10,
       "resourceId": 0,
@@ -510,7 +569,8 @@
           "3": {"x": 464, "y": 356},
           "4": {"x": 640, "y": 436},
           "5": {"x": 640, "y": 436},
-          "6": {"x": 640, "y": 460}
+          "6": {"x": 640, "y": 460},
+          "7": {"x": 640, "y": 460}
         }
       },
       "warnings": null
@@ -521,13 +581,8 @@
       "sourcePortId": 156,
       "targetNodeId": 4,
       "targetPortId": 154,
-      "travelTime": {
-        "time": 9,
-        "consecutiveTime": 10,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 13,
         "consecutiveTime": 13,
@@ -556,6 +611,20 @@
         "warning": null,
         "timeFormatter": null
       },
+      "travelTime": {
+        "time": 9,
+        "consecutiveTime": 10,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 9,
+        "consecutiveTime": 10,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
       "numberOfStops": 0,
       "trainrunId": 7,
       "resourceId": 0,
@@ -574,7 +643,8 @@
           "3": {"x": 1392, "y": 316},
           "4": {"x": 1200, "y": 388},
           "5": {"x": 1200, "y": 388},
-          "6": {"x": 1200, "y": 412}
+          "6": {"x": 1200, "y": 412},
+          "7": {"x": 1200, "y": 412}
         }
       },
       "warnings": null
@@ -585,13 +655,8 @@
       "sourcePortId": 189,
       "targetNodeId": 4,
       "targetPortId": 185,
-      "travelTime": {
-        "time": 10,
-        "consecutiveTime": 10,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
       "sourceDeparture": {
         "time": 0,
         "consecutiveTime": 60,
@@ -620,6 +685,20 @@
         "warning": null,
         "timeFormatter": null
       },
+      "travelTime": {
+        "time": 10,
+        "consecutiveTime": 10,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "backwardTravelTime": {
+        "time": 10,
+        "consecutiveTime": 10,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
       "numberOfStops": 0,
       "trainrunId": 6,
       "resourceId": 0,
@@ -638,7 +717,8 @@
           "3": {"x": 1392, "y": 284},
           "4": {"x": 1200, "y": 356},
           "5": {"x": 1200, "y": 356},
-          "6": {"x": 1200, "y": 380}
+          "6": {"x": 1200, "y": 380},
+          "7": {"x": 1200, "y": 380}
         }
       },
       "warnings": null
@@ -683,19 +763,10 @@
     }
   ],
   "resources": [
-    {"id": 1, "capacity": 2},
     {"id": 2, "capacity": 2},
-    {"id": 3, "capacity": 2},
-    {"id": 4, "capacity": 2},
     {"id": 5, "capacity": 2},
     {"id": 6, "capacity": 2},
-    {"id": 7, "capacity": 2},
-    {"id": 8, "capacity": 2},
-    {"id": 9, "capacity": 2},
-    {"id": 10, "capacity": 2},
-    {"id": 11, "capacity": 2},
-    {"id": 12, "capacity": 2},
-    {"id": 13, "capacity": 2}
+    {"id": 12, "capacity": 2}
   ],
   "metadata": {
     "analyticsSettings": {"originDestinationSettings": {"connectionPenalty": 5}},
