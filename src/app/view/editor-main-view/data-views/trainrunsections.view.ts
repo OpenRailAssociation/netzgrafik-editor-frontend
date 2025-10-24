@@ -1061,7 +1061,8 @@ export class TrainrunSectionsView {
 
   translateAndRotateArrow(
     trainrunSection: TrainrunSection,
-    arrowType: "BEGINNING_ARROW" | "ENDING_ARROW",
+    arrowLocation: "BEGINNING_ARROW" | "ENDING_ARROW",
+    arrowType: "DIRECTION_ARROW" | "SYMMETRY_ARROW",
   ) {
     const positions = trainrunSection.getPath();
     const isTargetRightOrBottom = TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection);
@@ -1080,9 +1081,14 @@ export class TrainrunSectionsView {
 
     // Set arrow offset values : positions[1] and positions[2] are
     // the 2 intermediate points where the sections change direction
-    const arrowOffset = isTargetRightOrBottom ? [-44, 20] : [44, -20];
+    let arrowOffset: [number, number];
+    if (isTargetRightOrBottom) {
+      arrowOffset = arrowType === "DIRECTION_ARROW" ? [-44, 20] : [-32, 32];
+    } else {
+      arrowOffset = arrowType === "DIRECTION_ARROW" ? [44, -20] : [32, -32];
+    }
     let x, y: number;
-    if (arrowType === "BEGINNING_ARROW") {
+    if (arrowLocation === "BEGINNING_ARROW") {
       x = positions[1].getX() + (xDiff === 0 ? 0 : arrowOffset[0]);
       y = positions[1].getY() + (xDiff === 0 ? arrowOffset[0] : 0);
     } else {
@@ -1115,7 +1121,7 @@ export class TrainrunSectionsView {
         .append(StaticDomTags.EDGE_LINE_ARROW_SVG)
         .attr("d", "M-4,-5L2,0L-4,5Z")
         .attr("transform", (d: TrainrunSectionViewObject) =>
-          this.translateAndRotateArrow(d.trainrunSection, arrowType),
+          this.translateAndRotateArrow(d.trainrunSection, arrowType, "DIRECTION_ARROW"),
         )
         .attr(
           "class",
@@ -1151,6 +1157,81 @@ export class TrainrunSectionsView {
         .classed(StaticDomTags.TAG_EVENT_DISABLED, !enableEvents)
         .on("mouseup", (d: TrainrunSectionViewObject, i, a) => {
           this.onTrainrunDirectionArrowMouseUp(d.trainrunSection, a[i]);
+        })
+        .on("mouseover", (d: TrainrunSectionViewObject, i, a) => {
+          this.onTrainrunSectionMouseoverPath(d.trainrunSection, a[i]);
+        })
+        .on("mouseout", (d: TrainrunSectionViewObject, i, a) => {
+          this.onTrainrunSectionMouseoutPath(d.trainrunSection, a[i]);
+        });
+    });
+  }
+
+  createAsymmetryArrows(
+    groupLinesEnter: d3.Selection,
+    selectedTrainrun: Trainrun,
+    connectedTrainIds: any,
+    enableEvents = true,
+  ) {
+    (["BEGINNING_ARROW", "ENDING_ARROW"] as const).forEach((arrowType) => {
+      groupLinesEnter
+        .append(StaticDomTags.EDGE_LINE_ARROW_SVG)
+        .attr(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) =>
+          // Hide arrow
+          // - if the node on this side is filtered out
+          // - if the node on this side is non-stop
+          !this.filterTrainrunsectionAtNode(d.trainrunSection, arrowType === "BEGINNING_ARROW") ||
+          TrainrunSectionsView.getNode(
+            d.trainrunSection,
+            arrowType === "BEGINNING_ARROW",
+          ).isNonStop(d.trainrunSection)
+            ? ""
+            : null,
+        )
+        .attr("d", (d: TrainrunSectionViewObject) => {
+          if (arrowType === "BEGINNING_ARROW") {
+            return d.trainrunSection.isSourceSymmetricOrTimesSymmetric()
+              ? ""
+              : "M-1,-6 V0 H-8 L1,6 V0 H8 Z";
+          } else {
+            return d.trainrunSection.isTargetSymmetricOrTimesSymmetric()
+              ? ""
+              : "M-1,-6 V0 H-8 L1,6 V0 H8 Z";
+          }
+        })
+        .attr("transform", (d: TrainrunSectionViewObject) =>
+          this.translateAndRotateArrow(d.trainrunSection, arrowType, "SYMMETRY_ARROW"),
+        )
+        .attr(
+          "class",
+          (d: TrainrunSectionViewObject) =>
+            StaticDomTags.EDGE_LINE_ARROW_CLASS +
+            TrainrunSectionsView.createTrainrunSectionFrequencyClassAttribute(
+              d.trainrunSection,
+              selectedTrainrun,
+              connectedTrainIds,
+            ),
+        )
+        .classed(
+          StaticDomTags.TAG_HIDDEN,
+          (d: TrainrunSectionViewObject) =>
+            !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
+            !this.filterTrainrunsectionAtNode(d.trainrunSection, arrowType === "BEGINNING_ARROW"),
+        )
+        .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
+        .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
+          d.trainrunSection.getTrainrun().getId(),
+        )
+        .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
+          d.trainrunSection.getTrainrun().selected(),
+        )
+        .classed(StaticDomTags.TAG_LINE_ARROW_EDITOR, true)
+        .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
+          TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
+        )
+        .classed(StaticDomTags.TAG_EVENT_DISABLED, !enableEvents)
+        .on("mouseup", (d: TrainrunSectionViewObject, i, a) => {
+          this.onTrainrunAsymmetryArrowMouseUp(d.trainrunSection, a[i]);
         })
         .on("mouseover", (d: TrainrunSectionViewObject, i, a) => {
           this.onTrainrunSectionMouseoverPath(d.trainrunSection, a[i]);
@@ -1896,6 +1977,17 @@ export class TrainrunSectionsView {
     this.editorView.showTrainrunOneWayInformation(trainrunSection, clickPosition);
   }
 
+  onTrainrunAsymmetryArrowMouseUp(trainrunSection: TrainrunSection, domObj: any) {
+    d3.event.stopPropagation();
+    const rect: DOMRect = d3.select(domObj).node().getBoundingClientRect();
+    const clickPosition = new Vec2D(rect.x + rect.width / 2, rect.y + rect.height / 2);
+
+    if (this.editorView.editorMode === EditorMode.Analytics) {
+      return;
+    }
+    this.editorView.showTrainrunSectionInformation(trainrunSection, clickPosition);
+  }
+
   handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection: TrainrunSection) {
     this.editorView.unselectTrainrunSection(trainrunSection.getId());
     D3Utils.unhoverTrainrunSection(trainrunSection);
@@ -2036,6 +2128,8 @@ export class TrainrunSectionsView {
       case TrainrunSectionText.TargetDeparture:
         node = trainrunSection.getTargetNode();
         minute = trainrunSection.getTargetDeparture();
+        break;
+      default:
         break;
     }
     this.editorView.unselectAllNodes();
@@ -2256,6 +2350,7 @@ export class TrainrunSectionsView {
 
     if (!this.editorView.isElementDragging()) {
       this.createDirectionArrows(groupLines, selectedTrainrun, connectedTrainIds, false);
+      this.createAsymmetryArrows(groupLines, selectedTrainrun, connectedTrainIds, false);
 
       const groupLabels = inGroupLabels.filter(
         (d: TrainrunSectionViewObject) =>
@@ -2379,6 +2474,7 @@ export class TrainrunSectionsView {
 
     if (!this.editorView.isElementDragging()) {
       this.createDirectionArrows(groupLines, selectedTrainrun, connectedTrainIds, true);
+      this.createAsymmetryArrows(groupLines, selectedTrainrun, connectedTrainIds, true);
 
       const groupLabels = inGroupLabels.filter((d: TrainrunSectionViewObject) =>
         this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.trainrunSection),
