@@ -57,12 +57,6 @@
     },
     "services": {
       "data": {
-        "node": {
-          "transit-modified": {
-            "title": "Durchfahrt geändert",
-            "description": "Zeiten können nicht angepasst werden, beidseitger Lock gefunden"
-          }
-        },
         "trainrunsection": {
           "intermediate-stop-replacement": {
             "title": "Zwischenhalteumwandlung",

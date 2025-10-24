@@ -57,12 +57,6 @@
     },
     "services": {
       "data": {
-        "node": {
-          "transit-modified": {
-            "title": "Transition modifiée",
-            "description": "Les temps ne peuvent pas être ajustés, le verrou se trouve des deux côtés."
-          }
-        },
         "trainrunsection": {
           "intermediate-stop-replacement": {
             "title": "Remplacement des arrêts intermédiaires",

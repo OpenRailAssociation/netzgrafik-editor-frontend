@@ -57,12 +57,6 @@
     },
     "services": {
       "data": {
-        "node": {
-          "transit-modified": {
-            "title": "Transition changed",
-            "description": "Times cannot be adjusted, lock found on both sides"
-          }
-        },
         "trainrunsection": {
           "intermediate-stop-replacement": {
             "title": "Intermediate stop replacement",
