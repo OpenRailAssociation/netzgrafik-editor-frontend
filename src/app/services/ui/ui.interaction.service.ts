@@ -5,6 +5,7 @@ import {Stammdaten} from "../../models/stammdaten.model";
 import {TrainrunDialogParameter} from "../../view/dialogs/trainrun-and-section-dialog/trainrun-and-section-dialog.component";
 import {ThemeBase} from "../../view/themes/theme-base";
 import {ConfirmationDialogParameter} from "../../view/dialogs/confirmation-dialog/confirmation-dialog.component";
+import {SymmetrySelectionDialogParameter} from "../../view/dialogs/symmetry-selection-dialog/symmetry-selection-dialog.component";
 import {FilterService} from "./filter.service";
 import {NodeService} from "../data/node.service";
 import {StammdatenService} from "../data/stammdaten.service";
@@ -72,6 +73,9 @@ export class UiInteractionService implements OnDestroy {
 
   showConfirmationDiagramDialogSubject = new Subject<ConfirmationDialogParameter>();
   readonly confirmationDiagramDialog = this.showConfirmationDiagramDialogSubject.asObservable();
+
+  showSymmetrySelectionDialogSubject = new Subject<SymmetrySelectionDialogParameter>();
+  readonly symmetrySelectionDialog = this.showSymmetrySelectionDialogSubject.asObservable();
 
   showStammdatenEditDialogSubject = new Subject<Stammdaten[]>();
   readonly stammdatenEditDialog = this.showStammdatenEditDialogSubject.asObservable();
@@ -377,6 +381,13 @@ export class UiInteractionService implements OnDestroy {
   ): Observable<boolean> {
     this.showConfirmationDiagramDialogSubject.next(confirmationDiagramParameter);
     return confirmationDiagramParameter.dialogFeedback;
+  }
+
+  showSymmetrySelectionDialog(
+    symmetrySelectionParameter: SymmetrySelectionDialogParameter,
+  ): Observable<any> {
+    this.showSymmetrySelectionDialogSubject.next(symmetrySelectionParameter);
+    return symmetrySelectionParameter.dialogFeedback;
   }
 
   showStammdatenEditDialog(stammdaten: Stammdaten[]) {
