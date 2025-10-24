@@ -3,9 +3,11 @@ on:
   push:
     branches:
       - main
+      - mrd/new-nodes-management-system
   pull_request:
     branches:
       - main
+      - mrd/new-nodes-management-system
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
