@@ -267,6 +267,11 @@ export class TrainrunService {
   updateDirection(trainrun: Trainrun, direction: Direction) {
     const trainrunSection = this.getTrainrunFromId(trainrun.getId());
     trainrunSection.setDirection(direction);
+    if (!trainrun.isRoundTrip()) {
+      this.trainrunSectionService
+        .getAllTrainrunSectionsForTrainrun(trainrun.getId())
+        .forEach((ts: TrainrunSection) => ts.resetSymmetry());
+    }
     this.trainrunsUpdated();
     this.operation.emit(new TrainrunOperation(OperationType.update, trainrun));
   }

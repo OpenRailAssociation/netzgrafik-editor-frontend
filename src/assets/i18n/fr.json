@@ -264,6 +264,11 @@
           "position": "Position",
           "close": "Fermer"
         },
+        "symmetry-dialog": {
+          "apply-symmetry": "Appliquer la symétrie",
+          "cancel": "Annuler",
+          "selection": "Sélection de la symétrie"
+        },
         "trainrun-and-section-dialog": {
           "filterableLabels": "Labels filtrables",
           "trainrun-filter-tab": {
