@@ -366,6 +366,20 @@ export class TrainrunSectionService implements OnDestroy {
     this.nodeService.validateConnections(trainrunSection.getTargetNode());
   }
 
+  updateSourceSymmetry(trainrunSectionId: number, isSourceNodeSymmetric: boolean) {
+    const trainrunSection = this.getTrainrunSectionFromId(trainrunSectionId);
+    trainrunSection.setSourceSymmetry(isSourceNodeSymmetric);
+    this.trainrunSectionsUpdated();
+    this.operation.emit(new TrainrunOperation(OperationType.update, trainrunSection.getTrainrun()));
+  }
+
+  updateTargetSymmetry(trainrunSectionId: number, isTargetNodeSymmetric: boolean) {
+    const trainrunSection = this.getTrainrunSectionFromId(trainrunSectionId);
+    trainrunSection.setTargetSymmetry(isTargetNodeSymmetric);
+    this.trainrunSectionsUpdated();
+    this.operation.emit(new TrainrunOperation(OperationType.update, trainrunSection.getTrainrun()));
+  }
+
   private findTrainrunSectionForStopNode(
     trainrunSection: TrainrunSection,
     node: Node,
