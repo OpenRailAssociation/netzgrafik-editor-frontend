@@ -156,6 +156,12 @@ export class TrainrunSectionViewObject {
     d.getPath().forEach((p) => {
       key += p.toString();
     });
+
+    key += "_SRC_" + d.getSourceNode().getPositionX() + "_" + d.getSourceNode().getPositionY();
+    key += "_TRG_" + d.getTargetNode().getPositionX() + "_" + d.getTargetNode().getPositionY();
+
     return key;
   }
+
+
 }

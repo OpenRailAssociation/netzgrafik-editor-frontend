@@ -136,7 +136,7 @@ export class EditorView implements SVGMouseControllerObserver {
     this.nodesView = new NodesView(this);
     this.transitionsView = new TransitionsView(this);
     this.connectionsView = new ConnectionsView(this);
-    this.trainrunSectionsView = new TrainrunSectionsView(this);
+    this.trainrunSectionsView = new TrainrunSectionsView(this, trainrunSectionService);
     this.trainrunSectionPreviewLineView = new TrainrunSectionPreviewLineView(
       nodeService,
       filterService,
