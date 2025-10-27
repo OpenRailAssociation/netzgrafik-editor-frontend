@@ -696,6 +696,21 @@ export class TrainrunService {
     };
   }
 
+  getFirstTrainrunSection(trainrun: Trainrun): TrainrunSection | undefined {
+    const sections = this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      trainrun.getId(),
+    );
+    if (sections.length === 0) {
+      return undefined;
+    }
+    // sections[0] does not ensure to be the first section in the trainrun
+    const iterator = this.getBackwardIterator(sections[0].getTargetNode(), sections[0]);
+    while (iterator.hasNext()) {
+      iterator.next();
+    }
+    return iterator.current().trainrunSection;
+  }
+
   getFirstNonStopTrainrunSection(trainrunSection: TrainrunSection): TrainrunSection {
     // starts at the target node, goes backwards to find the first section that is not a non-stop section
     const iterator = this.getBackwardNonStopIterator(
