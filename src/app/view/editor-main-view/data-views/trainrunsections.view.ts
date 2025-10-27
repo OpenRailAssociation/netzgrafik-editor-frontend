@@ -2178,6 +2178,8 @@ export class TrainrunSectionsView {
     );
 
     if (!this.editorView.isElementDragging()) {
+      this.createDirectionArrows(groupLines, selectedTrainrun, connectedTrainIds, false);
+
       const groupLabels = inGroupLabels.filter(
         (d: TrainrunSectionViewObject) =>
           !this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.trainrunSection),
@@ -2299,6 +2301,8 @@ export class TrainrunSectionsView {
     );
 
     if (!this.editorView.isElementDragging()) {
+      this.createDirectionArrows(groupLines, selectedTrainrun, connectedTrainIds, true);
+
       const groupLabels = inGroupLabels.filter((d: TrainrunSectionViewObject) =>
         this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.trainrunSection),
       );
@@ -2471,8 +2475,6 @@ export class TrainrunSectionsView {
       connectedTrainIds,
       enableEvents,
     );
-
-    this.createDirectionArrows(groupLines, selectedTrainrun, connectedTrainIds, enableEvents);
   }
 
   private createSingleStopElement(
