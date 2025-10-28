@@ -172,18 +172,7 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
     if (!selectedTrainrun) {
       return;
     }
-
-    const bothEndNodes = this.trainrunService.getBothEndNodesWithTrainrunId(
-      selectedTrainrun.getId(),
-    );
-    const node = GeneralViewFunctions.getLeftOrTopNode(
-      bothEndNodes.endNode1,
-      bothEndNodes.endNode2,
-    );
-    const trainrunSection = node.getStartTrainrunSection(selectedTrainrun.getId());
-    if (!trainrunSection) {
-      return;
-    }
+    const trainrunSection = this.trainrunService.getFirstTrainrunSection(selectedTrainrun);
 
     // Get the left and right nodes to determine the cards order
     const leftNode = this.trainrunSectionHelper.getNextStopLeftNode(
