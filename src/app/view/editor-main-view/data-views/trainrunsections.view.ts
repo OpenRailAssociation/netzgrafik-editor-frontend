@@ -1055,10 +1055,9 @@ export class TrainrunSectionsView {
   ) {
     (["BEGINNING_ARROW", "ENDING_ARROW"] as const).forEach((arrowType) => {
       groupLinesEnter
+        .filter((d: TrainrunSectionViewObject) => !d.trainrunSection.getTrainrun().isRoundTrip())
         .append(StaticDomTags.EDGE_LINE_ARROW_SVG)
-        .attr("d", (d: TrainrunSectionViewObject) => {
-          return d.trainrunSection.getTrainrun().isRoundTrip() ? "" : "M-4,-5L2,0L-4,5Z";
-        })
+        .attr("d", "M-4,-5L2,0L-4,5Z")
         .attr("transform", (d: TrainrunSectionViewObject) =>
           this.translateAndRotateArrow(d.trainrunSection, arrowType),
         )
@@ -2178,6 +2177,8 @@ export class TrainrunSectionsView {
     );
 
     if (!this.editorView.isElementDragging()) {
+      this.createDirectionArrows(groupLines, selectedTrainrun, connectedTrainIds, false);
+
       const groupLabels = inGroupLabels.filter(
         (d: TrainrunSectionViewObject) =>
           !this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.trainrunSection),
@@ -2299,6 +2300,8 @@ export class TrainrunSectionsView {
     );
 
     if (!this.editorView.isElementDragging()) {
+      this.createDirectionArrows(groupLines, selectedTrainrun, connectedTrainIds, true);
+
       const groupLabels = inGroupLabels.filter((d: TrainrunSectionViewObject) =>
         this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.trainrunSection),
       );
@@ -2471,8 +2474,6 @@ export class TrainrunSectionsView {
       connectedTrainIds,
       enableEvents,
     );
-
-    this.createDirectionArrows(groupLines, selectedTrainrun, connectedTrainIds, enableEvents);
   }
 
   private createSingleStopElement(
