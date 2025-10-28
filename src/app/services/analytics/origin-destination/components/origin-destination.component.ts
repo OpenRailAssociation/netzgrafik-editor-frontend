@@ -43,7 +43,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   colorSetName: ColorSetName = "red";
 
   // Rendering configuration
-  private zoomFactor = 1; // logical zoom factor (1 = 100%)
+  private zoomFactor = 100; // logical zoom factor (100%)
   private cellSize = 1;
   private offsetX = 1;
   private offsetY = 1;
@@ -84,6 +84,13 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroyed$.next();
     this.destroyed$.complete();
+
+    // remove handlers
+    if (this.canvas) {
+      this.canvas.removeEventListener("mousemove", this.handleCanvasMouseMoveBound);
+      this.canvas.removeEventListener("mouseleave", this.handleCanvasMouseLeaveBound);
+    }
+
     this.cleanupDom();
   }
 
@@ -190,7 +197,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
   private initCanvasView(): void {
     // compute cell size based on zoom and node count (keeps consistent sizing)
-    const zf = this.zoomFactor / (1 + 0.1 * Math.sqrt(Math.max(1, this.nodeNames.length)));
+    const zf = this.zoomFactor / (100.0 + 10.0 * Math.sqrt(Math.max(1, this.nodeNames.length)));
     this.cellSize = this.cellSizeOrg * zf;
     this.offsetX = this.offsetXOrg;
     this.offsetY = this.offsetYOrg;
@@ -270,18 +277,10 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   }
 
   private cleanupDom(): void {
-    try {
-      d3.select("#main-origin-destination-canvas").remove();
-      this.tooltip?.remove();
-      d3.select("#main-origin-destination-container").remove();
-    } catch {
-      // ignore cleanup errors
-    }
+    d3.select("#main-origin-destination-canvas").remove();
+    this.tooltip?.remove();
+    d3.select("#main-origin-destination-container").remove();
   }
-
-  // -------------------------
-  // Drawing helpers
-  // -------------------------
 
   private drawMatrixCell(
     ctx: CanvasRenderingContext2D,
@@ -314,7 +313,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const nameIndex = new Map<number, number>(idNames.map((id, i) => [id, i]));
 
     const numericValues = this.extractNumericODValues(this.matrixData, this.colorBy);
-    const colorScaleAlphaCC = this.getColorScale(
+    const colorScaleAlphaCellColor = this.getColorScale(
       numericValues.minValue,
       numericValues.maxValue,
       "CC",
@@ -348,7 +347,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
               ? colorScaleAlphaForeground(value)
               : colorScaleAlphaBackground(value);
         } else {
-          color = colorScaleAlphaCC(value);
+          color = colorScaleAlphaCellColor(value);
         }
       }
 
@@ -364,7 +363,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       );
     }
 
-    if (this.zoomFactor > 0.5) {
+    if (this.zoomFactor > 50) {
       this.drawCellTexts();
     }
 
@@ -381,7 +380,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     ctx.textBaseline = "middle";
     const fontSize = Math.max(
       8,
-      Math.floor(this.cellSize * 0.35 * Math.min(1.5, Math.sqrt(this.zoomFactor))),
+      Math.floor(this.cellSize * 0.35 * Math.min(1.5, Math.sqrt(this.zoomFactor / 100.0))),
     );
     ctx.font = `${fontSize}px SBBWeb Roman`;
 
@@ -401,8 +400,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   }
 
   private drawYAxis(highlightIndex?: number): void {
-    const isDark = this.uiInteractionService.getActiveTheme().isDark;
-    const colorRGB = isDark ? "255,255,255" : "0,0,0";
+    const colorRGB = this.uiInteractionService.getActiveTheme().isDark ? "255,255,255" : "0,0,0";
 
     this.ctx.textAlign = "right";
     this.ctx.textBaseline = "middle";
@@ -413,18 +411,17 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       if (highlightIndex !== i) {
         const alpha = highlightIndex === undefined ? 1.0 : 0.75;
         this.ctx.fillStyle = `rgba(${colorRGB},${alpha})`;
-        this.ctx.font = `${Math.max(10, Math.floor(this.cellSize * 0.25 * this.zoomFactor))}px SBBWeb Roman`;
+        this.ctx.font = `${Math.max(10, Math.floor((this.cellSize * 0.25 * this.zoomFactor) / 100.0))}px SBBWeb Roman`;
       } else {
         this.ctx.fillStyle = `rgba(${colorRGB},1)`;
-        this.ctx.font = `bold ${Math.max(14, 4 + Math.floor(this.cellSize * 0.25 * this.zoomFactor))}px SBBWeb Roman`;
+        this.ctx.font = `bold ${Math.max(14, 4 + Math.floor((this.cellSize * 0.25 * this.zoomFactor) / 100.0))}px SBBWeb Roman`;
       }
       this.ctx.fillText(name, this.offsetX - 8, y);
     }
   }
 
   private drawXAxis(highlightIndex?: number): void {
-    const isDark = this.uiInteractionService.getActiveTheme().isDark;
-    const colorRGB = isDark ? "255,255,255" : "0,0,0";
+    const colorRGB = this.uiInteractionService.getActiveTheme().isDark ? "255,255,255" : "0,0,0";
 
     this.ctx.textAlign = "left";
     this.ctx.textBaseline = "middle";
@@ -438,25 +435,21 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       if (highlightIndex !== i) {
         const alpha = highlightIndex === undefined ? 1.0 : 0.75;
         this.ctx.fillStyle = `rgba(${colorRGB},${alpha})`;
-        this.ctx.font = `${Math.max(10, Math.floor(this.cellSize * 0.25 * this.zoomFactor))}px SBBWeb Roman`;
+        this.ctx.font = `${Math.max(10, Math.floor((this.cellSize * 0.25 * this.zoomFactor) / 100.0))}px SBBWeb Roman`;
       } else {
         this.ctx.fillStyle = `rgba(${colorRGB},1)`;
-        this.ctx.font = `bold ${Math.max(14, 4 + Math.floor(this.cellSize * 0.25 * this.zoomFactor))}px SBBWeb Roman`;
+        this.ctx.font = `bold ${Math.max(14, 4 + Math.floor((this.cellSize * 0.25 * this.zoomFactor) / 100.0))}px SBBWeb Roman`;
       }
       this.ctx.fillText(name, 0, 0);
       this.ctx.restore();
     }
   }
 
-  // -------------------------
-  // Interaction handlers
-  // -------------------------
-
   private handleCanvasMouseMove(e: MouseEvent): void {
     if (!this.canvas || !this.ctx || !this.tooltip) return;
 
     const rect = this.canvas.getBoundingClientRect();
-    const zf = this.zoomFactor;
+    const zf = this.zoomFactor / 100.0;
 
     const xIndex = Math.floor(
       (e.clientX - rect.left) / zf / this.cellSize - this.offsetX / this.cellSize,
@@ -520,8 +513,8 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
     if (offsetParent) {
       const parentRect = offsetParent.getBoundingClientRect();
-      tooltipLeft = e.clientX - parentRect.left + this.cellSize * 0.75 * this.zoomFactor;
-      tooltipTop = e.clientY - parentRect.top + this.cellSize * 0.75 * this.zoomFactor;
+      tooltipLeft = e.clientX - parentRect.left + (this.cellSize * 0.75 * this.zoomFactor) / 100.0;
+      tooltipTop = e.clientY - parentRect.top + (this.cellSize * 0.75 * this.zoomFactor) / 100.0;
     } else {
       tooltipLeft = e.pageX;
       tooltipTop = e.pageY;
@@ -545,10 +538,10 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const cellLogicalX = this.offsetX + xIndex * this.cellSize;
     const cellLogicalY = this.offsetY + yIndex * this.cellSize;
 
-    const cellScreenX = rect.left + cellLogicalX * this.zoomFactor;
-    const cellScreenY = rect.top + cellLogicalY * this.zoomFactor;
-    const cellScreenW = this.cellSize * this.zoomFactor;
-    const cellScreenH = this.cellSize * this.zoomFactor;
+    const cellScreenX = rect.left + (cellLogicalX * this.zoomFactor) / 100.0;
+    const cellScreenY = rect.top + (cellLogicalY * this.zoomFactor) / 100.0;
+    const cellScreenW = (this.cellSize * this.zoomFactor) / 100.0;
+    const cellScreenH = (this.cellSize * this.zoomFactor) / 100.0;
 
     let highlightLeft: number;
     let highlightTop: number;
@@ -591,10 +584,6 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     }
   };
 
-  // -------------------------
-  // Utility / data helpers
-  // -------------------------
-
   private extractNumericODValues(
     odList: OriginDestination[],
     field: FieldName,
@@ -624,7 +613,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       return {minValue: minValue - 1, maxValue: maxValue + 1};
     }
 
-    return {minValue: minValue as number, maxValue: maxValue as number};
+    return {minValue: minValue, maxValue: maxValue};
   }
 
   private getCellValue(d: OriginDestination, field: FieldName): number | undefined {
@@ -675,10 +664,6 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     }
   }
 
-  // -------------------------
-  // Public controls
-  // -------------------------
-
   onChangePalette(name: ColorSetName): void {
     this.colorSetName = name;
     this.drawCanvasMatrix();
@@ -712,17 +697,13 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.drawCanvasMatrix();
   }
 
-  // -------------------------
-  // Integration with SVGMouseController
-  // -------------------------
-
   private createSvgMouseControllerObserver(): SVGMouseControllerObserver {
     return {
       onEarlyReturnFromMousemove: () => false,
       onGraphContainerMouseup: () => {},
       zoomFactorChanged: (zoomFactor: number) => {
         // zoomFactor comes as percentage from controller
-        this.zoomFactor = zoomFactor / 100;
+        this.zoomFactor = zoomFactor;
         this.uiInteractionService.zoomFactorChanged(zoomFactor);
         this.drawCanvasMatrix();
         if (this.highlight) {

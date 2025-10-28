@@ -445,13 +445,6 @@ export class EditorToolsViewComponent {
 
     if (!canvas) {
       console.error("Canvas nicht gefunden:", sel);
-    } else {
-      const ctx = canvas.getContext("2d");
-      console.log("Canvas found, size:", canvas.width, canvas.height, ctx);
-    }
-
-    if (canvas === null) {
-      return;
     }
 
     // quality only used for image/jpeg
@@ -459,10 +452,9 @@ export class EditorToolsViewComponent {
     const a = document.createElement("a");
     a.href = dataUrl;
     a.download = filename;
-    document.body.appendChild(a);
     a.click();
     a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    setTimeout(() => URL.revokeObjectURL(dataUrl), 2000);
   }
 
   private exportOriginDestinationCanvasToSVG(filename: string) {
@@ -471,14 +463,8 @@ export class EditorToolsViewComponent {
 
     if (!canvas) {
       console.error("Canvas nicht gefunden:", sel);
-    } else {
-      const ctx = canvas.getContext("2d");
-      console.log("Canvas found, size:", canvas.width, canvas.height, ctx);
     }
 
-    if (canvas === null) {
-      return;
-    }
     const buildSvgFromCanvas = (canvas) => {
       const width = canvas.width;
       const height = canvas.height;
@@ -509,7 +495,6 @@ export class EditorToolsViewComponent {
     const a = document.createElement("a");
     a.href = url;
     a.download = filename;
-    document.body.appendChild(a);
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
