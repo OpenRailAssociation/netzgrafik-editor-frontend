@@ -162,16 +162,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.tooltip = root
-      .append("div")
-      .attr("class", "tooltip")
-      .style("opacity", 0)
-      .style("position", "absolute")
-      .style("border", "solid 1px")
-      .style("border-radius", "4px")
-      .style("padding", "6px")
-      .style("user-select", "none")
-      .style("pointer-events", "none");
+    this.tooltip = root.append("div");
   }
 
   private createHighlightIfNeeded(): void {
