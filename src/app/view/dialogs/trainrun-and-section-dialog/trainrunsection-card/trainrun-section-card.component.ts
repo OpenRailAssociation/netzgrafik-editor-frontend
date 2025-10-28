@@ -172,18 +172,33 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
     if (!selectedTrainrun) {
       return;
     }
-    const trainrunSection = this.trainrunService.getFirstTrainrunSection(selectedTrainrun);
 
-    // Get the left and right nodes to determine the cards order
-    const leftNode = this.trainrunSectionHelper.getNextStopLeftNode(
-      trainrunSection,
-      this.nodesOrdered,
-    );
-    const rightNode = this.trainrunSectionHelper.getNextStopRightNode(
-      trainrunSection,
-      this.nodesOrdered,
-    );
-    const wantedSourceNode = position === "top" ? leftNode : rightNode;
+    let trainrunSection = undefined;
+    let wantedSourceNode = undefined;
+    if (selectedTrainrun.isRoundTrip()){
+      const bothEndNodes = this.trainrunService.getBothEndNodesWithTrainrunId(
+        selectedTrainrun.getId(),
+      );
+      // direction top-left -> default
+      wantedSourceNode = GeneralViewFunctions.getLeftOrTopNode(
+        bothEndNodes.endNode1,
+        bothEndNodes.endNode2,
+      );
+      trainrunSection = wantedSourceNode.getStartTrainrunSection(selectedTrainrun.getId());
+    } else {
+      trainrunSection = this.trainrunService.getFirstTrainrunSection(selectedTrainrun);
+      // Get the left and right nodes to determine the cards order
+      const leftNode = this.trainrunSectionHelper.getNextStopLeftNode(
+        trainrunSection,
+        this.nodesOrdered,
+      );
+      const rightNode = this.trainrunSectionHelper.getNextStopRightNode(
+        trainrunSection,
+        this.nodesOrdered,
+      );
+      wantedSourceNode = position === "top" ? leftNode : rightNode;
+    }
+
     if (wantedSourceNode !== trainrunSection.getSourceNode()) {
       this.trainrunSectionService.invertTrainrunSectionsSourceAndTarget(
         trainrunSection.getTrainrunId(),
