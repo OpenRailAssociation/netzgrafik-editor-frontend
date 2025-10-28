@@ -462,6 +462,7 @@ export class EditorToolsViewComponent {
     document.body.appendChild(a);
     a.click();
     a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
   private exportOriginDestinationCanvasToSVG(filename: string) {
