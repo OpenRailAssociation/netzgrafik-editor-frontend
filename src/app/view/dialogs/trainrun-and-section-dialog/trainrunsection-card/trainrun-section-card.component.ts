@@ -1,17 +1,17 @@
-import {AfterViewInit, ChangeDetectorRef, Component, Input, OnDestroy} from "@angular/core";
+import {AfterViewInit, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
 import {TrainrunSectionService} from "../../../../services/data/trainrunsection.service";
-import {TrainrunSection} from "../../../../models/trainrunsection.model";
 import {TrainrunService} from "../../../../services/data/trainrun.service";
 import {TrainrunDialogParameter} from "../trainrun-and-section-dialog.component";
 import {TrainrunsectionHelper} from "../../../../services/util/trainrunsection.helper";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
 import {Node} from "../../../../models/node.model";
-import {LinePatternRefs, Direction} from "../../../../data-structures/business.data.structures";
+import {Direction, LinePatternRefs} from "../../../../data-structures/business.data.structures";
 import {StaticDomTags} from "../../../editor-main-view/data-views/static.dom.tags";
 import {ColorRefType} from "../../../../data-structures/technical.data.structures";
 import {TrainrunSectionTimesService} from "../../../../services/data/trainrun-section-times.service";
 import {LeftAndRightTimeStructure} from "../trainrunsection-tab/trainrun-section-tab.component";
+import {GeneralViewFunctions} from "../../../util/generalViewFunctions";
 
 @Component({
   selector: "sbb-trainrunsection-card",
@@ -19,17 +19,15 @@ import {LeftAndRightTimeStructure} from "../trainrunsection-tab/trainrun-section
   styleUrls: ["./trainrun-section-card.component.scss"],
   providers: [TrainrunSectionTimesService],
 })
-export class TrainrunSectionCardComponent implements AfterViewInit, OnDestroy {
+export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() trainrunDialogParameter: TrainrunDialogParameter;
   @Input() innerContentScaleFactor = "1.0";
 
-  public selectedTrainrunSection: TrainrunSection;
   public startNode: string[] = ["", ""];
   public endNode: string[] = ["", ""];
   public frequencyLinePattern: LinePatternRefs;
   public categoryColorRef: ColorRefType;
   public timeCategoryLinePattern: LinePatternRefs;
-  public direction = Direction;
   public chosenCard: "top" | "bottom";
 
   private trainrunSectionHelper: TrainrunsectionHelper;
@@ -54,41 +52,46 @@ export class TrainrunSectionCardComponent implements AfterViewInit, OnDestroy {
     this.trainrunSectionService.trainrunSections.pipe(takeUntil(this.destroyed)).subscribe(() => {
       this.updateAllValues();
     });
+  }
+
+  ngOnInit() {
+    this.updateAllValues();
+  }
+
+  updateAllValues() {
+    const selectedTrainrun = this.trainrunService.getSelectedTrainrun();
+    if (!selectedTrainrun) {
+      return;
+    }
+    const trainrunSection = this.trainrunService.getFirstTrainrunSection(selectedTrainrun);
+
+    this.trainrunSectionTimesService.setOffset(0);
+
     // Initialize the selected trainrun as one-way, selecting the [source] → [target] card
-    if (this.selectedTrainrunSection.getTrainrun().isRoundTrip()) {
-      if (TrainrunsectionHelper.isTargetRightOrBottom(this.selectedTrainrunSection)) {
+    if (selectedTrainrun.isRoundTrip()) {
+      if (TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection)) {
         this.onTrainrunSectionCardClick("top");
       } else {
         this.onTrainrunSectionCardClick("bottom");
       }
     }
-  }
 
-  updateAllValues() {
-    this.selectedTrainrunSection = this.trainrunSectionService.getSelectedTrainrunSection();
-    if (this.selectedTrainrunSection === null) {
-      return;
-    }
-
-    const selectedTrainrun = this.selectedTrainrunSection.getTrainrun();
-    this.trainrunSectionTimesService.setTrainrunSection(this.selectedTrainrunSection);
-    this.frequencyLinePattern = this.selectedTrainrunSection.getFrequencyLinePatternRef();
+    this.trainrunSectionTimesService.setTrainrunSection(trainrunSection);
+    this.frequencyLinePattern = trainrunSection.getFrequencyLinePatternRef();
     this.categoryColorRef = selectedTrainrun.getCategoryColorRef();
     this.timeCategoryLinePattern = selectedTrainrun.getTimeCategoryLinePatternRef();
     this.trainrunSectionTimesService.setHighlightTravelTimeElement(false);
     this.trainrunSectionTimesService.applyOffsetAndTransformTimeStructure();
 
     const startNode = this.trainrunService.getStartNodeWithTrainrunId(
-      this.selectedTrainrunSection.getTrainrunId(),
+      trainrunSection.getTrainrunId(),
     );
     this.startNode = [startNode.getFullName(), startNode.getBetriebspunktName()];
-    const endNode = this.trainrunService.getEndNodeWithTrainrunId(
-      this.selectedTrainrunSection.getTrainrunId(),
-    );
+    const endNode = this.trainrunService.getEndNodeWithTrainrunId(trainrunSection.getTrainrunId());
     this.endNode = [endNode.getFullName(), endNode.getBetriebspunktName()];
 
     if (!selectedTrainrun.isRoundTrip()) {
-      this.chosenCard = TrainrunsectionHelper.isTargetRightOrBottom(this.selectedTrainrunSection)
+      this.chosenCard = TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection)
         ? "top"
         : "bottom";
     }
@@ -164,27 +167,45 @@ export class TrainrunSectionCardComponent implements AfterViewInit, OnDestroy {
     if (this.chosenCard === position) {
       return;
     }
-    // Get the left and right nodes to determine the cards order
-    const leftNode = this.trainrunSectionHelper.getNextStopLeftNode(
-      this.selectedTrainrunSection,
-      this.nodesOrdered,
-    );
-    const rightNode = this.trainrunSectionHelper.getNextStopRightNode(
-      this.selectedTrainrunSection,
-      this.nodesOrdered,
-    );
 
-    const wantedSourceNode = position === "top" ? leftNode : rightNode;
-    if (wantedSourceNode !== this.selectedTrainrunSection.getSourceNode()) {
+    const selectedTrainrun = this.trainrunService.getSelectedTrainrun();
+    if (!selectedTrainrun) {
+      return;
+    }
+
+    let trainrunSection = undefined;
+    let wantedSourceNode = undefined;
+    if (selectedTrainrun.isRoundTrip()) {
+      const bothEndNodes = this.trainrunService.getBothEndNodesWithTrainrunId(
+        selectedTrainrun.getId(),
+      );
+      // direction top-left -> default
+      wantedSourceNode = GeneralViewFunctions.getLeftOrTopNode(
+        bothEndNodes.endNode1,
+        bothEndNodes.endNode2,
+      );
+      trainrunSection = wantedSourceNode.getStartTrainrunSection(selectedTrainrun.getId());
+    } else {
+      trainrunSection = this.trainrunService.getFirstTrainrunSection(selectedTrainrun);
+      // Get the left and right nodes to determine the cards order
+      const leftNode = this.trainrunSectionHelper.getNextStopLeftNode(
+        trainrunSection,
+        this.nodesOrdered,
+      );
+      const rightNode = this.trainrunSectionHelper.getNextStopRightNode(
+        trainrunSection,
+        this.nodesOrdered,
+      );
+      wantedSourceNode = position === "top" ? leftNode : rightNode;
+    }
+
+    if (wantedSourceNode !== trainrunSection.getSourceNode()) {
       this.trainrunSectionService.invertTrainrunSectionsSourceAndTarget(
-        this.selectedTrainrunSection.getTrainrunId(),
+        trainrunSection.getTrainrunId(),
       );
     }
     this.chosenCard = position;
-    this.trainrunService.updateDirection(
-      this.selectedTrainrunSection.getTrainrun(),
-      Direction.ONE_WAY,
-    );
+    this.trainrunService.updateDirection(selectedTrainrun, Direction.ONE_WAY);
   }
 
   getTrainrunTimeStructure(): Omit<LeftAndRightTimeStructure, "travelTime"> {
