@@ -175,7 +175,7 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
 
     let trainrunSection = undefined;
     let wantedSourceNode = undefined;
-    if (selectedTrainrun.isRoundTrip()){
+    if (selectedTrainrun.isRoundTrip()) {
       const bothEndNodes = this.trainrunService.getBothEndNodesWithTrainrunId(
         selectedTrainrun.getId(),
       );
