@@ -879,6 +879,7 @@ export class TrainrunSectionService implements OnDestroy {
       iterator: this.trainrunService.getNonStopIterator(firstSourceNode, firstTrainrunSection),
       totalCumulativeTravelTime: totalCumulativeTravelTime,
       precision,
+      direction: "sourceToTarget",
     });
 
     // Target to source
@@ -892,6 +893,7 @@ export class TrainrunSectionService implements OnDestroy {
       iterator: this.trainrunService.getNonStopIterator(lastTargetNode, lastTrainrunSection),
       totalCumulativeTravelTime: totalCumulativeBackwardTravelTime,
       precision,
+      direction: "targetToSource",
     });
 
     const iterator = this.trainrunService.getNonStopIterator(firstSourceNode, firstTrainrunSection);
@@ -911,12 +913,14 @@ export class TrainrunSectionService implements OnDestroy {
     iterator,
     totalCumulativeTravelTime,
     precision,
+    direction,
   }: {
     chainDepartureTime: number;
     chainTravelTime: number;
     iterator: TrainrunIterator;
     totalCumulativeTravelTime: number;
     precision: number;
+    direction: "sourceToTarget" | "targetToSource";
   }) {
     const travelTimeFactor = chainTravelTime / totalCumulativeTravelTime;
     let departureTime = chainDepartureTime;
@@ -925,14 +929,20 @@ export class TrainrunSectionService implements OnDestroy {
       const pair = iterator.next();
       const section = pair.getDirectedTrainrunSectionProxy();
 
-      const travelTime = TrainrunsectionHelper.getTravelTime(
-        chainTravelTime,
-        summedTravelTime,
-        travelTimeFactor,
-        section.getTravelTime(),
-        pair.node.isNonStop(pair.trainrunSection),
-        precision,
-      );
+      const isLastNode = !pair.node.isNonStop(pair.trainrunSection);
+      const travelTime = isLastNode
+        ? TrainrunsectionHelper.getLastSectionTravelTime(
+            chainTravelTime,
+            summedTravelTime,
+            precision,
+          )
+        : TrainrunsectionHelper.getSectionDistributedTravelTime(
+            direction === "sourceToTarget"
+              ? pair.trainrunSection.getTravelTime()
+              : pair.trainrunSection.getBackwardTravelTime(),
+            travelTimeFactor,
+            precision,
+          );
 
       const arrivalTime = MathUtils.round((departureTime + travelTime) % 60, precision);
 
