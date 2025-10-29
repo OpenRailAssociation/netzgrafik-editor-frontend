@@ -39,25 +39,26 @@ export class TrainrunsectionHelper {
     };
   }
 
-  static getTravelTime(
+  static getLastSectionTravelTime(
     totalTravelTime: number,
     summedTravelTime: number,
-    travelTimeFactor: number,
-    trsTravelTime: number,
-    isRightNodeNonStopTransit: boolean,
     precision = TrainrunSectionService.TIME_PRECISION,
   ): number {
-    if (isRightNodeNonStopTransit) {
-      return Math.max(
-        MathUtils.round(trsTravelTime * travelTimeFactor, precision),
-        1.0 / Math.pow(10, precision),
-      );
-    } else {
-      return Math.max(
-        MathUtils.round(totalTravelTime - summedTravelTime, precision),
-        1.0 / Math.pow(10, precision),
-      );
-    }
+    return Math.max(
+      MathUtils.round(totalTravelTime - summedTravelTime, precision),
+      1.0 / Math.pow(10, precision),
+    );
+  }
+
+  static getSectionDistributedTravelTime(
+    trsTravelTime: number,
+    travelTimeFactor: number,
+    precision = TrainrunSectionService.TIME_PRECISION,
+  ): number {
+    return Math.max(
+      MathUtils.round(trsTravelTime * travelTimeFactor, precision),
+      1.0 / Math.pow(10, precision),
+    );
   }
 
   static getRightArrivalTime(
