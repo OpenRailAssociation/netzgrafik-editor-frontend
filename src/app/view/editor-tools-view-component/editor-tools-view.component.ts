@@ -132,16 +132,24 @@ export class EditorToolsViewComponent {
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
 
-    // Handle special case origin destination matrix (canvas)
     const editorMode = this.uiInteractionService.getEditorMode();
-    if (editorMode === EditorMode.OriginDestination) {
-      this.exportOriginDestinationCanvasToSVG(this.getFilenameToExport() + ".svg");
-      this.levelOfDetailService.enableLevelOfDetailRendering();
-      return;
+    let containerInfo = undefined;
+    switch (editorMode) {
+      case EditorMode.NetzgrafikEditing:
+        containerInfo = this.getNetzgrafikEditingContainerToExport();
+        break;
+      case EditorMode.StreckengrafikEditing:
+        containerInfo = this.getStreckengrafikEditingContainerToExport();
+        break;
+      case EditorMode.OriginDestination:
+        this.exportOriginDestinationCanvasToSVG(this.getFilenameToExport() + ".svg");
+        this.levelOfDetailService.enableLevelOfDetailRendering();
+        return;
+      default:
+        containerInfo = this.getNetzgrafikEditingContainerToExport();
     }
 
     // Handle all other cases (svg)
-    const containerInfo = this.getContainerToExport();
     this.prepareStyleForExport(containerInfo);
 
     // SVG scaling does not affect resolution since SVGs are rendered as vector graphics.
@@ -167,16 +175,24 @@ export class EditorToolsViewComponent {
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
 
-    // Handle special case origin destination matrix (canvas)
     const editorMode = this.uiInteractionService.getEditorMode();
-    if (editorMode === EditorMode.OriginDestination) {
-      this.exportOriginDestinationCanvasToPNG(this.getFilenameToExport() + ".png");
-      this.levelOfDetailService.enableLevelOfDetailRendering();
-      return;
+    let containerInfo = undefined;
+    switch (editorMode) {
+      case EditorMode.NetzgrafikEditing:
+        containerInfo = this.getNetzgrafikEditingContainerToExport();
+        break;
+      case EditorMode.StreckengrafikEditing:
+        containerInfo = this.getStreckengrafikEditingContainerToExport();
+        break;
+      case EditorMode.OriginDestination:
+        this.exportOriginDestinationCanvasToPNG(this.getFilenameToExport() + ".svg");
+        this.levelOfDetailService.enableLevelOfDetailRendering();
+        return;
+      default:
+        containerInfo = this.getNetzgrafikEditingContainerToExport();
     }
 
     // Handle all other cases (svg)
-    const containerInfo = this.getContainerToExport();
     this.prepareStyleForExport(containerInfo);
 
     svg.saveSvgAsPng(
@@ -444,7 +460,7 @@ export class EditorToolsViewComponent {
     const canvas = sel.node(); // <- real HTMLCanvasElement or null
 
     if (!canvas) {
-      console.error("Canvas nicht gefunden:", sel);
+      console.error("Canvas not found:", sel);
     }
 
     // quality only used for image/jpeg
@@ -462,7 +478,7 @@ export class EditorToolsViewComponent {
     const canvas = sel.node(); // <- real HTMLCanvasElement or null
 
     if (!canvas) {
-      console.error("Canvas nicht gefunden:", sel);
+      console.error("Canvas not found:", sel);
     }
 
     const buildSvgFromCanvas = (canvas) => {
@@ -555,18 +571,6 @@ export class EditorToolsViewComponent {
         .join(" ");
       el.setAttribute("style", inlineStyle);
     });
-  }
-
-  private getContainerToExport(): ContainertoExportData {
-    const editorMode = this.uiInteractionService.getEditorMode();
-    switch (editorMode) {
-      case EditorMode.StreckengrafikEditing:
-        return this.getStreckengrafikEditingContainerToExport();
-      case EditorMode.OriginDestination:
-        return undefined;
-      default:
-        return this.getNetzgrafikEditingContainerToExport();
-    }
   }
 
   private convertToZuglaufCSV(): string {
