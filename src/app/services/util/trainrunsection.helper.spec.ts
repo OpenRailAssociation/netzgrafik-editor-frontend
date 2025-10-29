@@ -98,24 +98,34 @@ describe("TrainrunsectionHelper", () => {
     expect(d.leftArrivalTime).toBe(larts.leftArrivalTime);
   });
 
-  it("getTravelTime -- 001", () => {
-    const tt = TrainrunsectionHelper.getTravelTime(10, 10, 1, 12, false, 0);
+  it("getLastSectionTravelTime -- 001", () => {
+    const tt = TrainrunsectionHelper.getLastSectionTravelTime(10, 10, 0);
     expect(tt).toBe(1);
   });
 
-  it("getTravelTime -- 002", () => {
-    const tt = TrainrunsectionHelper.getTravelTime(10, 10, 1, 12, true, 0);
+  it("getLastSectionTravelTime -- 002", () => {
+    const tt = TrainrunsectionHelper.getLastSectionTravelTime(10, 8, 0);
+    expect(tt).toBe(2);
+  });
+
+  it("getLastSectionTravelTime -- 003", () => {
+    const tt = TrainrunsectionHelper.getLastSectionTravelTime(8, 10, 0);
+    expect(tt).toBe(1);
+  });
+
+  it("getLastSectionTravelTime -- 004", () => {
+    const tt = TrainrunsectionHelper.getLastSectionTravelTime(10, 2, 0);
+    expect(tt).toBe(8);
+  });
+
+  it("getSectionDistributedTravelTime -- 001", () => {
+    const tt = TrainrunsectionHelper.getSectionDistributedTravelTime(12, 1, 0);
     expect(tt).toBe(12);
   });
 
-  it("getTravelTime -- 003", () => {
-    const tt = TrainrunsectionHelper.getTravelTime(10, 10, 1, 12, false, 0);
-    expect(tt).toBe(1);
-  });
-
-  it("getTravelTime -- 004", () => {
-    const tt = TrainrunsectionHelper.getTravelTime(8, 10, 2, 12, false, 0);
-    expect(tt).toBe(1);
+  it("getSectionDistributedTravelTime -- 002", () => {
+    const tt = TrainrunsectionHelper.getSectionDistributedTravelTime(12, 2, 0);
+    expect(tt).toBe(24);
   });
 
   it("getRightArrivalTime - 001", () => {
