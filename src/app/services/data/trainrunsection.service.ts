@@ -1469,4 +1469,50 @@ export class TrainrunSectionService implements OnDestroy {
     trainrunSection.routeEdgeAndPlaceText();
     trainrunSection.convertVec2DToPath();
   }
+
+  /**
+   * Groups consecutive TrainrunSections that have collapsed nodes between them
+   * into chains. Each chain starts and ends with a non-collapsed node.
+   * Start and end nodes can be accessed via: sections[0].getSourceNode() and sections[sections.length - 1].getTargetNode()
+   * @param trainrunSections List of TrainrunSections to group
+   * @returns Array of section chains
+   */
+  groupTrainrunSectionsIntoChains(trainrunSections: TrainrunSection[]): TrainrunSection[][] {
+    const groups: TrainrunSection[][] = [];
+    const visitedSections = new Set<number>();
+
+    trainrunSections.forEach((section) => {
+      if (visitedSections.has(section.getId())) {
+        return;
+      }
+
+      // Build chain using TrainrunIterator to leverage existing graph traversal
+      const chain: TrainrunSection[] = [];
+      const startNode = section.getSourceNode();
+      const iterator = this.trainrunService.getIterator(startNode, section);
+
+      // Traverse the trainrun and collect sections with collapsed intermediate nodes
+      while (iterator.hasNext()) {
+        const pair = iterator.next();
+
+        if (visitedSections.has(pair.trainrunSection.getId())) {
+          break; // Already processed this section
+        }
+
+        chain.push(pair.trainrunSection);
+        visitedSections.add(pair.trainrunSection.getId());
+
+        // Stop if we reach a non-collapsed node (end of collapsed chain)
+        if (!pair.node.getIsCollapsed()) {
+          break;
+        }
+      }
+
+      if (chain.length > 0) {
+        groups.push(chain);
+      }
+    });
+
+    return groups;
+  }
 }

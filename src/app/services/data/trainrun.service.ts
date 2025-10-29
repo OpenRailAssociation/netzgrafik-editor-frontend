@@ -22,6 +22,7 @@ import {
   BackwardTrainrunIterator,
   NonStopTrainrunIterator,
   TrainrunIterator,
+  ExpandedTrainrunIterator,
 } from "../util/trainrun.iterator";
 import {LogService} from "../../logger/log.service";
 import {LabelService} from "./label.service";
@@ -798,6 +799,10 @@ export class TrainrunService {
 
   public getBackwardNonStopIterator(node: Node, trainrunSection: TrainrunSection) {
     return new BackwardNonStopTrainrunIterator(this.logService, node, trainrunSection);
+  }
+  
+  public getExpandedIterator(node: Node, trainrunSection: TrainrunSection) {
+    return new ExpandedTrainrunIterator(this.logService, node, trainrunSection);
   }
 
   // For each trainrun, get iterator from the smallest consecutiveTime.
