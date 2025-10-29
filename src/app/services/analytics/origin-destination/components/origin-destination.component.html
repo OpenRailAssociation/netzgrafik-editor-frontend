@@ -19,7 +19,7 @@
 
   <div id="main-origin-destination-container-root"></div>
 
-  <div class="palette-buttons" style="transform: translateX(-64px)">
+  <div class="palette-buttons">
     <div
       class="palette-option red"
       [class.active]="colorSetName === 'red'"
@@ -46,7 +46,7 @@
     ></div>
 
     <div class="color-by-selector">
-      <sbb-radio-group class="sbb-checkbox-group-horizontal" [(ngModel)]="colorBy">
+      <sbb-radio-group class="sbb-checkbox-group-vertikal" [(ngModel)]="colorBy">
         <sbb-radio-button
           class="ODRadioButton"
           value="totalCost"
@@ -74,22 +74,8 @@
     </div>
   </div>
 
-  <div
-    class="noprint"
-    style="
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      width: 100%;
-      height: 57px;
-      flex-wrap: nowrap;
-    "
-  >
-    <sbb-radio-group
-      class="sbb-checkbox-group-horizontal"
-      [(ngModel)]="displayBy"
-      style="display: flex; flex-direction: row; gap: 0.5rem; transform: translateX(-16px)"
-    >
+  <div class="ValueButtons noprint">
+    <sbb-radio-group class="sbb-checkbox-group-horizontal" [(ngModel)]="displayBy">
       <sbb-radio-button
         class="ODRadioButton"
         value="totalCost"

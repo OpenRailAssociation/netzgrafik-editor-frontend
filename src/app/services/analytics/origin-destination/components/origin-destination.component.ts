@@ -94,10 +94,6 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.cleanupDom();
   }
 
-  // -------------------------
-  // Initialization helpers
-  // -------------------------
-
   private initViewbox(): void {
     this.controller = new SVGMouseController(
       "main-origin-destination-container-root",
@@ -210,7 +206,6 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const containerNode = root
       .append("div")
       .attr("id", "main-origin-destination-container")
-      .style("position", "relative")
       .node() as HTMLElement;
 
     // canvas element
