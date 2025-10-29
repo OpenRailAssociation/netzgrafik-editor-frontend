@@ -879,15 +879,18 @@ export class TrainrunSectionService implements OnDestroy {
     while (iterator.hasNext()) {
       const nextPair = iterator.next();
 
-      const isRightNodeNonStop = nextPair.node.isNonStop(nextPair.trainrunSection);
-      trsTimeStructure.travelTime = TrainrunsectionHelper.getTravelTime(
-        newTotalTravelTime,
-        summedTravelTime,
-        travelTimeFactor,
-        nextPair.trainrunSection.getTravelTime(),
-        isRightNodeNonStop,
-        precision,
-      );
+      const isLastNode = !nextPair.node.isNonStop(nextPair.trainrunSection);
+      trsTimeStructure.travelTime = isLastNode
+        ? TrainrunsectionHelper.getLastSectionTravelTime(
+            newTotalTravelTime,
+            summedTravelTime,
+            precision,
+          )
+        : TrainrunsectionHelper.getSectionDistributedTravelTime(
+            nextPair.trainrunSection.getTravelTime(),
+            travelTimeFactor,
+            precision,
+          );
       trsTimeStructure.rightArrivalTime = TrainrunsectionHelper.getRightArrivalTime(
         trsTimeStructure,
         precision,
