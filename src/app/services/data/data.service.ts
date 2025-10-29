@@ -30,9 +30,7 @@ export class NetzgrafikLoadedInfo {
   ) {}
 }
 
-@Injectable({
-  providedIn: "root",
-})
+@Injectable({providedIn: "root"})
 export class DataService implements OnDestroy {
   private netzgrafikDtoStore: {netzgrafikDto: NetzgrafikDto} = {
     netzgrafikDto: NetzgrafikDefault.getDefaultNetzgrafik(),
@@ -99,12 +97,31 @@ export class DataService implements OnDestroy {
       this.trainrunSectionService.enforceConsistentSectionDirection(trainrun.getId());
     });
 
+    this.replaceLegacyNumberOfStopsWithRealNodes(netzgrafikDto);
+
     // This must be done due of the bug fix - ensure that each resource object
     // is used in the Netzgrafik
     // https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/522
     this.ensureAllResourcesLinkedToNetzgrafikObjects();
 
     this.netzgrafikLoadedInfoSubject.next(new NetzgrafikLoadedInfo(false, preview));
+  }
+
+  replaceLegacyNumberOfStopsWithRealNodes(netzgrafikDto: NetzgrafikDto) {
+    for (const trainrunSection of netzgrafikDto.trainrunSections) {
+      let currentSection = trainrunSection;
+      if (trainrunSection.numberOfStops > 0) {
+        for (let i = 0; i < trainrunSection.numberOfStops; i++) {
+          const newNode = this.nodeService.addEmptyNode();
+          const {trainrunSection2} = this.trainrunSectionService.replaceIntermediateStopWithNode(
+            currentSection.id,
+            0,
+            newNode.getId(),
+          );
+          currentSection = trainrunSection2.getDto();
+        }
+      }
+    }
   }
 
   insertCopyNetzgrafikDto(netzgrafikDto: NetzgrafikDto, enforceUpdate = true) {

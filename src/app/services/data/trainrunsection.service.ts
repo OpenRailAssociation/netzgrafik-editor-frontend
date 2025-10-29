@@ -21,6 +21,7 @@ import {takeUntil} from "rxjs/operators";
 import {FilterService} from "../ui/filter.service";
 import {TrainrunSectionNodePair} from "../util/trainrun.iterator";
 import {Operation, OperationType, TrainrunOperation} from "../../models/operation.model";
+import {Vec2D} from "../../utils/vec2D";
 
 interface DepartureAndArrivalTimes {
   nodeFromDepartureTime: number;
@@ -34,16 +35,12 @@ export interface InformSelectedTrainrunClick {
   open: boolean;
 }
 
-@Injectable({
-  providedIn: "root",
-})
+@Injectable({providedIn: "root"})
 export class TrainrunSectionService implements OnDestroy {
   // Description of observable data service: https://coryrylan.com/blog/angular-observable-data-services
   trainrunSectionsSubject = new BehaviorSubject<TrainrunSection[]>([]);
   readonly trainrunSections = this.trainrunSectionsSubject.asObservable();
-  trainrunSectionsStore: {trainrunSections: TrainrunSection[]} = {
-    trainrunSections: [],
-  }; // store the data in memory
+  trainrunSectionsStore: {trainrunSections: TrainrunSection[]} = {trainrunSections: []}; // store the data in memory
 
   readonly operation = new EventEmitter<Operation>();
 
@@ -936,13 +933,14 @@ export class TrainrunSectionService implements OnDestroy {
     });
   }
 
+  // this function is no longer used for its original purpose (drag a node that only existed inside numberOfStops and create it inside the real graph)
   replaceIntermediateStopWithNode(trainrunSectionId: number, stopIndex: number, nodeId: number) {
     const trainrunSection1 = this.getTrainrunSectionFromId(trainrunSectionId);
     if (
       trainrunSection1.getSourceNodeId() === nodeId ||
       trainrunSection1.getTargetNodeId() === nodeId
     ) {
-      return;
+      return {};
     }
     const origTravelTime = trainrunSection1.getTravelTime();
     const trainrunSection2 = this.copyTrainrunSection(
@@ -952,11 +950,18 @@ export class TrainrunSectionService implements OnDestroy {
     const node1 = trainrunSection1.getSourceNode();
     const node2 = trainrunSection1.getTargetNode();
     const nodeIntermediate = this.nodeService.getNodeFromId(nodeId);
+    const interpolatedPosition = new Vec2D(
+      node1.getPositionX() + (node2.getPositionX() - node1.getPositionX()) * 0.5,
+      node1.getPositionY() + (node2.getPositionY() - node1.getPositionY()) * 0.5,
+    );
+    nodeIntermediate.setPosition(interpolatedPosition.getX(), interpolatedPosition.getY());
     const transition1: Transition = node1.getTransition(trainrunSection1.getId());
     const nonStop1 = transition1 !== undefined ? transition1.getIsNonStopTransit() : false;
     const transition2: Transition = node2.getTransition(trainrunSection1.getId());
     const nonStop2 = transition2 !== undefined ? transition2.getIsNonStopTransit() : false;
 
+    // can’t do all that after we have added
+    // problem: mutate directly node in the node store in place
     node2.replaceTrainrunSectionOnPort(trainrunSection1, trainrunSection2);
 
     trainrunSection1.setTargetNode(nodeIntermediate);
@@ -1048,6 +1053,9 @@ export class TrainrunSectionService implements OnDestroy {
     this.nodeService.connectionsUpdated();
     this.nodeService.nodesUpdated();
     this.trainrunSectionsUpdated();
+    return {
+      trainrunSection2,
+    };
   }
 
   setWarningOnNode(
