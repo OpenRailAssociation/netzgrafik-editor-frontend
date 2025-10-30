@@ -64,7 +64,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // create tooltip and highlight first so offsetParent is available
-    this.createTooltipIfNeeded();
+    this.getTooltipHtmlElementRef();
     this.createHighlightIfNeeded();
 
     // subscribe to observables (subscriptions do not reload data, only redraw)
@@ -148,7 +148,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     }));
   }
 
-  private createTooltipIfNeeded(): void {
+  private getTooltipHtmlElementRef(): void {
     this.tooltip = d3.select("#tooltip");
   }
 
