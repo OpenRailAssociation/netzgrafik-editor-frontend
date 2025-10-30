@@ -197,7 +197,7 @@ export class EditorToolsViewComponent {
   handleOriginDestinationCanvasToPNG() {
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
-    this.exportOriginDestinationCanvasToPNG(this.getFilenameToExport() + ".svg");
+    this.exportOriginDestinationCanvasToPNG(this.getFilenameToExport() + ".png");
     this.levelOfDetailService.enableLevelOfDetailRendering();
   }
 
