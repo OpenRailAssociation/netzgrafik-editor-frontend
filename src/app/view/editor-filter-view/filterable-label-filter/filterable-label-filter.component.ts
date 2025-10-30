@@ -41,8 +41,6 @@ export class FilterableLabelFilterComponent implements OnInit, OnDestroy {
         this.translateComponentLabelRef(),
       );
     });
-
-    this.filterService.filterChanged();
   }
 
   ngOnDestroy(): void {

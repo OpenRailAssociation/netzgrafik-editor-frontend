@@ -1,5 +1,25 @@
 <div class="matrix-wrapper">
-  <div id="main-origin-destination-container-root"></div>
+  <button
+    type="button"
+    class="ODLeftPanelButton ODResetButton"
+    [title]="'app.origin-destination.buttons.reset' | translate"
+    (click)="onResetButton()"
+  >
+    <sbb-icon svgIcon="kom:arrow-circle-reset-small"></sbb-icon>
+  </button>
+
+  <button
+    type="button"
+    [class]="'ODLeftPanelButton ODCrossHighlightingButton ' + getCrossHighlightingTag()"
+    [title]="'app.origin-destination.buttons.crossHighlighting' | translate"
+    (click)="toggleCrossHighlighting()"
+  >
+    <sbb-icon svgIcon="highlighter-small"></sbb-icon>
+  </button>
+
+  <div id="main-origin-destination-container-root">
+    <div id="tooltip" class="tooltip"></div>
+  </div>
 
   <div class="palette-buttons">
     <div
@@ -28,48 +48,57 @@
     ></div>
 
     <div class="color-by-selector">
-      <label>
-        <input
-          type="radio"
-          name="colorBy"
+      <sbb-radio-group class="sbb-checkbox-group-vertikal" [(ngModel)]="colorBy">
+        <sbb-radio-button
+          class="ODRadioButton"
           value="totalCost"
-          [checked]="colorBy === 'totalCost'"
           (change)="onChangeColorBy('totalCost')"
-        />
-        {{ "app.origin-destination.color-by-selector.total-cost" | translate }}
-      </label>
-      <label>
-        <input
-          type="radio"
-          name="colorBy"
+        >
+          {{ "app.origin-destination.color-by-selector.total-cost" | translate }}
+        </sbb-radio-button>
+
+        <sbb-radio-button
+          class="ODRadioButton"
           value="travelTime"
-          [checked]="colorBy === 'travelTime'"
           (change)="onChangeColorBy('travelTime')"
-        />
-        {{ "app.origin-destination.color-by-selector.travel-time" | translate }}
-      </label>
-      <label>
-        <input
-          type="radio"
-          name="colorBy"
+        >
+          {{ "app.origin-destination.color-by-selector.travel-time" | translate }}
+        </sbb-radio-button>
+
+        <sbb-radio-button
+          class="ODRadioButton"
           value="transfers"
-          [checked]="colorBy === 'transfers'"
           (change)="onChangeColorBy('transfers')"
-        />
-        {{ "app.origin-destination.color-by-selector.transfers" | translate }}
-      </label>
+        >
+          {{ "app.origin-destination.color-by-selector.transfers" | translate }}
+        </sbb-radio-button>
+      </sbb-radio-group>
     </div>
   </div>
 
-  <sbb-radio-group class="sbb-checkbox-group-horizontal" [(ngModel)]="displayBy">
-    <sbb-radio-button value="totalCost" (change)="onChangeDisplayBy('totalCost')">
-      {{ "app.origin-destination.display-by-selector.total-cost" | translate }}
-    </sbb-radio-button>
-    <sbb-radio-button value="travelTime" (change)="onChangeDisplayBy('travelTime')">
-      {{ "app.origin-destination.display-by-selector.travel-time" | translate }}
-    </sbb-radio-button>
-    <sbb-radio-button value="transfers" (change)="onChangeDisplayBy('transfers')">
-      {{ "app.origin-destination.display-by-selector.transfers" | translate }}
-    </sbb-radio-button>
-  </sbb-radio-group>
+  <div class="ValueButtons noprint">
+    <sbb-radio-group class="sbb-checkbox-group-horizontal" [(ngModel)]="displayBy">
+      <sbb-radio-button
+        class="ODRadioButton"
+        value="totalCost"
+        (change)="onChangeDisplayBy('totalCost')"
+      >
+        {{ "app.origin-destination.display-by-selector.total-cost" | translate }}
+      </sbb-radio-button>
+      <sbb-radio-button
+        class="ODRadioButton"
+        value="travelTime"
+        (change)="onChangeDisplayBy('travelTime')"
+      >
+        {{ "app.origin-destination.display-by-selector.travel-time" | translate }}
+      </sbb-radio-button>
+      <sbb-radio-button
+        class="ODRadioButton"
+        value="transfers"
+        (change)="onChangeDisplayBy('transfers')"
+      >
+        {{ "app.origin-destination.display-by-selector.transfers" | translate }}
+      </sbb-radio-button>
+    </sbb-radio-group>
+  </div>
 </div>

@@ -27,6 +27,7 @@ import {TrainrunSectionValidator} from "../../services/util/trainrunsection.vali
 import {OriginDestinationService} from "src/app/services/analytics/origin-destination/components/origin-destination.service";
 import {EditorMode} from "../editor-menu/editor-mode";
 import {NODE_TEXT_AREA_HEIGHT, RASTERING_BASIC_GRID_SIZE} from "../rastering/definitions";
+import * as d3 from "d3";
 
 interface ContainertoExportData {
   documentToExport: HTMLElement;
@@ -126,12 +127,35 @@ export class EditorToolsViewComponent {
   }
 
   onExportContainerAsSVG() {
-    // option 2: save svg as svg
+    const editorMode = this.uiInteractionService.getEditorMode();
+    switch (editorMode) {
+      case EditorMode.NetzgrafikEditing:
+        this.handleExportContainerAsSVG(this.getNetzgrafikEditingContainerToExport());
+        return;
+      case EditorMode.StreckengrafikEditing:
+        this.handleExportContainerAsSVG(this.getStreckengrafikEditingContainerToExport());
+        return;
+      case EditorMode.OriginDestination:
+        this.handleOriginDestinationCanvasToSVG();
+        return;
+      default:
+        this.handleExportContainerAsSVG(this.getNetzgrafikEditingContainerToExport());
+    }
+  }
+
+  handleOriginDestinationCanvasToSVG() {
+    this.levelOfDetailService.disableLevelOfDetailRendering();
+    this.viewportCullService.onViewportChangeUpdateRendering(false);
+    this.exportOriginDestinationCanvasToSVG(this.getFilenameToExport() + ".svg");
+    this.levelOfDetailService.enableLevelOfDetailRendering();
+  }
+
+  handleExportContainerAsSVG(containerInfo: ContainertoExportData) {
     // https://www.npmjs.com/package/save-svg-as-png
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
 
-    const containerInfo = this.getContainerToExport();
+    // Handle all other cases (svg)
     this.prepareStyleForExport(containerInfo);
 
     // SVG scaling does not affect resolution since SVGs are rendered as vector graphics.
@@ -152,12 +176,35 @@ export class EditorToolsViewComponent {
   }
 
   onExportContainerAsPNG() {
-    // option 1: save svg as png
+    const editorMode = this.uiInteractionService.getEditorMode();
+    switch (editorMode) {
+      case EditorMode.NetzgrafikEditing:
+        this.handleExportContainerAsPNG(this.getNetzgrafikEditingContainerToExport());
+        return;
+      case EditorMode.StreckengrafikEditing:
+        this.handleExportContainerAsPNG(this.getStreckengrafikEditingContainerToExport());
+        return;
+      case EditorMode.OriginDestination:
+        this.handleOriginDestinationCanvasToPNG();
+        return;
+      default:
+        this.handleExportContainerAsPNG(this.getNetzgrafikEditingContainerToExport());
+    }
+  }
+
+  handleOriginDestinationCanvasToPNG() {
+    this.levelOfDetailService.disableLevelOfDetailRendering();
+    this.viewportCullService.onViewportChangeUpdateRendering(false);
+    this.exportOriginDestinationCanvasToPNG(this.getFilenameToExport() + ".png");
+    this.levelOfDetailService.enableLevelOfDetailRendering();
+  }
+
+  handleExportContainerAsPNG(containerInfo: ContainertoExportData) {
     // https://www.npmjs.com/package/save-svg-as-png
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
 
-    const containerInfo = this.getContainerToExport();
+    // Handle all other cases (svg)
     this.prepareStyleForExport(containerInfo);
 
     svg.saveSvgAsPng(
@@ -420,41 +467,65 @@ export class EditorToolsViewComponent {
     };
   }
 
-  private getOriginDestinationContainerToExport(): ContainertoExportData {
-    const htmlElementToExport = document.getElementById("main-origin-destination-container");
-    if (htmlElementToExport === null) {
-      return undefined;
+  private exportOriginDestinationCanvasToPNG(filename: string) {
+    const sel = d3.select("#main-origin-destination-canvas");
+    const canvas = sel.node(); // <- real HTMLCanvasElement or null
+
+    if (!canvas) {
+      console.error("Canvas not found:", sel);
     }
-    const bbox = (htmlElementToExport as unknown as SVGGElement).getBBox();
-    const padding = 10;
-    const param = {
-      encoderOptions: 1.0,
-      scale: 1.0,
-      left: bbox.x - padding,
-      top: bbox.y - padding,
-      width: bbox.width + 2 * padding,
-      height: bbox.height + 2 * padding,
-      backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
+
+    // quality only used for image/jpeg
+    const dataUrl = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = filename;
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(dataUrl), 2000);
+  }
+
+  private exportOriginDestinationCanvasToSVG(filename: string) {
+    const sel = d3.select("#main-origin-destination-canvas");
+    const canvas = sel.node(); // <- real HTMLCanvasElement or null
+
+    if (!canvas) {
+      console.error("Canvas not found:", sel);
+    }
+
+    const buildSvgFromCanvas = (canvas) => {
+      const width = canvas.width;
+      const height = canvas.height;
+      // canvas Data-URL (PNG)
+      const dataUrl = canvas.toDataURL("image/png");
+
+      // create SVG string where to embed the image
+      const svg = `<svg id="main-origin-destination-canvas" xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+        <image href="${dataUrl}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="none"/>
+        </svg>`;
+
+      return svg;
     };
 
-    const essentialProps = [
-      "fill",
-      "stroke",
-      "stroke-width",
-      "stroke-dasharray",
-      "font-family",
-      "font-size",
-      "font-weight",
-      "opacity",
-      "text-anchor",
-      "dominant-baseline",
-    ];
+    const svgString = buildSvgFromCanvas(canvas);
 
-    return {
-      documentToExport: htmlElementToExport,
-      exportParameter: param,
-      essentialProps: essentialProps,
-    };
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgString, "image/svg+xml");
+    const svgEl = doc.documentElement;
+
+    if (!svgEl.getAttribute("width")) svgEl.setAttribute("width", canvas.width);
+    if (!svgEl.getAttribute("height")) svgEl.setAttribute("height", canvas.height);
+
+    const blob = new Blob([new XMLSerializer().serializeToString(svgEl)], {
+      type: "image/svg+xml;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
   private getNetzgrafikEditingContainerToExport(): ContainertoExportData {
@@ -512,18 +583,6 @@ export class EditorToolsViewComponent {
         .join(" ");
       el.setAttribute("style", inlineStyle);
     });
-  }
-
-  private getContainerToExport(): ContainertoExportData {
-    const editorMode = this.uiInteractionService.getEditorMode();
-    switch (editorMode) {
-      case EditorMode.StreckengrafikEditing:
-        return this.getStreckengrafikEditingContainerToExport();
-      case EditorMode.OriginDestination:
-        return this.getOriginDestinationContainerToExport();
-      default:
-        return this.getNetzgrafikEditingContainerToExport();
-    }
   }
 
   private convertToZuglaufCSV(): string {
