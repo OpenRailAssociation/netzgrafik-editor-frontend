@@ -178,7 +178,6 @@ export class EditorToolsViewComponent {
 
   onExportContainerAsPNG() {
     const editorMode = this.uiInteractionService.getEditorMode();
-    let containerInfo = undefined;
     switch (editorMode) {
       case EditorMode.NetzgrafikEditing:
         this.handleExportContainerAsPNG(this.getNetzgrafikEditingContainerToExport());
