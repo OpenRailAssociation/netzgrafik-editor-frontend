@@ -149,16 +149,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   }
 
   private createTooltipIfNeeded(): void {
-    const root = d3.select("#main-origin-destination-container-root");
-    if (root.empty()) return;
-
-    const existing = root.select(".tooltip");
-    if (!existing.empty()) {
-      this.tooltip = existing as any;
-      return;
-    }
-
-    this.tooltip = root.append("div");
+    this.tooltip = d3.select("#tooltip");
   }
 
   private createHighlightIfNeeded(): void {
