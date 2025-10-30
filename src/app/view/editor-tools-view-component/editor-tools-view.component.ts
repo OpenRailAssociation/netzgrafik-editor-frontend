@@ -151,7 +151,6 @@ export class EditorToolsViewComponent {
   }
 
   handleExportContainerAsSVG(containerInfo: ContainertoExportData) {
-    // option 2: save svg as svg
     // https://www.npmjs.com/package/save-svg-as-png
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
@@ -201,7 +200,6 @@ export class EditorToolsViewComponent {
   }
 
   handleExportContainerAsPNG(containerInfo: ContainertoExportData) {
-    // option 1: save svg as png
     // https://www.npmjs.com/package/save-svg-as-png
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
