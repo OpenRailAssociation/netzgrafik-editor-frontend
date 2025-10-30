@@ -499,7 +499,7 @@ export class EditorToolsViewComponent {
       // canvas Data-URL (PNG)
       const dataUrl = canvas.toDataURL("image/png");
 
-      // Erzeuge SVG string mit eingebettetem Bild
+      // create SVG string where to embed the image
       const svg = `<svg id="main-origin-destination-canvas" xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
         <image href="${dataUrl}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="none"/>
         </svg>`;
