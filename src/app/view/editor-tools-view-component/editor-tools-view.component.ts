@@ -127,27 +127,34 @@ export class EditorToolsViewComponent {
   }
 
   onExportContainerAsSVG() {
+    const editorMode = this.uiInteractionService.getEditorMode();
+    switch (editorMode) {
+      case EditorMode.NetzgrafikEditing:
+        this.handleExportContainerAsSVG(this.getNetzgrafikEditingContainerToExport());
+        return;
+      case EditorMode.StreckengrafikEditing:
+        this.handleExportContainerAsSVG(this.getStreckengrafikEditingContainerToExport());
+        return;
+      case EditorMode.OriginDestination:
+        this.handleOriginDestinationCanvasToSVG();
+        return;
+      default:
+        this.handleExportContainerAsSVG(this.getNetzgrafikEditingContainerToExport());
+    }
+  }
+
+  handleOriginDestinationCanvasToSVG() {
+    this.levelOfDetailService.disableLevelOfDetailRendering();
+    this.viewportCullService.onViewportChangeUpdateRendering(false);
+    this.exportOriginDestinationCanvasToSVG(this.getFilenameToExport() + ".svg");
+    this.levelOfDetailService.enableLevelOfDetailRendering();
+  }
+
+  handleExportContainerAsSVG(containerInfo: ContainertoExportData) {
     // option 2: save svg as svg
     // https://www.npmjs.com/package/save-svg-as-png
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
-
-    const editorMode = this.uiInteractionService.getEditorMode();
-    let containerInfo = undefined;
-    switch (editorMode) {
-      case EditorMode.NetzgrafikEditing:
-        containerInfo = this.getNetzgrafikEditingContainerToExport();
-        break;
-      case EditorMode.StreckengrafikEditing:
-        containerInfo = this.getStreckengrafikEditingContainerToExport();
-        break;
-      case EditorMode.OriginDestination:
-        this.exportOriginDestinationCanvasToSVG(this.getFilenameToExport() + ".svg");
-        this.levelOfDetailService.enableLevelOfDetailRendering();
-        return;
-      default:
-        containerInfo = this.getNetzgrafikEditingContainerToExport();
-    }
 
     // Handle all other cases (svg)
     this.prepareStyleForExport(containerInfo);
@@ -170,27 +177,35 @@ export class EditorToolsViewComponent {
   }
 
   onExportContainerAsPNG() {
-    // option 1: save svg as png
-    // https://www.npmjs.com/package/save-svg-as-png
-    this.levelOfDetailService.disableLevelOfDetailRendering();
-    this.viewportCullService.onViewportChangeUpdateRendering(false);
-
     const editorMode = this.uiInteractionService.getEditorMode();
     let containerInfo = undefined;
     switch (editorMode) {
       case EditorMode.NetzgrafikEditing:
-        containerInfo = this.getNetzgrafikEditingContainerToExport();
-        break;
+        this.handleExportContainerAsPNG(this.getNetzgrafikEditingContainerToExport());
+        return;
       case EditorMode.StreckengrafikEditing:
-        containerInfo = this.getStreckengrafikEditingContainerToExport();
-        break;
+        this.handleExportContainerAsPNG(this.getStreckengrafikEditingContainerToExport());
+        return;
       case EditorMode.OriginDestination:
-        this.exportOriginDestinationCanvasToPNG(this.getFilenameToExport() + ".svg");
-        this.levelOfDetailService.enableLevelOfDetailRendering();
+        this.handleOriginDestinationCanvasToPNG();
         return;
       default:
-        containerInfo = this.getNetzgrafikEditingContainerToExport();
+        this.handleExportContainerAsPNG(this.getNetzgrafikEditingContainerToExport());
     }
+  }
+
+  handleOriginDestinationCanvasToPNG() {
+    this.levelOfDetailService.disableLevelOfDetailRendering();
+    this.viewportCullService.onViewportChangeUpdateRendering(false);
+    this.exportOriginDestinationCanvasToPNG(this.getFilenameToExport() + ".svg");
+    this.levelOfDetailService.enableLevelOfDetailRendering();
+  }
+
+  handleExportContainerAsPNG(containerInfo: ContainertoExportData) {
+    // option 1: save svg as png
+    // https://www.npmjs.com/package/save-svg-as-png
+    this.levelOfDetailService.disableLevelOfDetailRendering();
+    this.viewportCullService.onViewportChangeUpdateRendering(false);
 
     // Handle all other cases (svg)
     this.prepareStyleForExport(containerInfo);
