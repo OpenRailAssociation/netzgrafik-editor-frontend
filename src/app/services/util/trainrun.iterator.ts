@@ -350,14 +350,17 @@ export class BackwardTrainrunIterator extends TrainrunIterator {
   }
 }
 
-export class NonStopTrainrunIterator extends TrainrunIterator {
+export class NextExpandedStopIterator extends TrainrunIterator {
   /**
    * Throws an exception if called after the end of the iteration.
    * Check for `this.hasNext()` before.
    */
   public next(): TrainrunSectionNodePair {
     const currentElement = this.pointerElement!;
-    if (!currentElement.node.isNonStop(currentElement.trainrunSection)) {
+    if (
+      !this.pointerElement.node.isNonStop(this.pointerElement.trainrunSection) &&
+      !this.pointerElement.node.getIsCollapsed()
+    ) {
       // The trainrun has a stop and break the forward iteration
       this.currentElement = currentElement;
       this.pointerElement = undefined;
@@ -367,14 +370,17 @@ export class NonStopTrainrunIterator extends TrainrunIterator {
   }
 }
 
-export class BackwardNonStopTrainrunIterator extends BackwardTrainrunIterator {
+export class BackwardNextExpandedStopIterator extends BackwardTrainrunIterator {
   /**
    * Throws an exception if called after the end of the iteration.
    * Check for `this.hasNext()` before.
    */
   public next(): TrainrunSectionNodePair {
     const currentElement = this.pointerElement!;
-    if (!currentElement.node.isNonStop(currentElement.trainrunSection)) {
+    if (
+      !this.pointerElement.node.isNonStop(this.pointerElement.trainrunSection) &&
+      !this.pointerElement.node.getIsCollapsed()
+    ) {
       // The trainrun has a stop and break the backward iteration
       this.currentElement = currentElement;
       this.pointerElement = undefined;
