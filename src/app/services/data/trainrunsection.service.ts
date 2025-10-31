@@ -360,7 +360,7 @@ export class TrainrunSectionService implements OnDestroy {
     node: Node,
     stopNodeId: number,
   ) {
-    const iterator = this.trainrunService.getNonStopIterator(node, trainrunSection);
+    const iterator = this.trainrunService.getNextExpandedStopIterator(node, trainrunSection);
     while (iterator.hasNext()) {
       iterator.next();
       if (iterator.current().node.getId() === stopNodeId) {
@@ -876,7 +876,10 @@ export class TrainrunSectionService implements OnDestroy {
     this.setTimeStructureInDirection({
       chainDepartureTime: sourceDepartureTime,
       chainTravelTime: travelTime,
-      iterator: this.trainrunService.getNonStopIterator(firstSourceNode, firstTrainrunSection),
+      iterator: this.trainrunService.getNextExpandedStopIterator(
+        firstSourceNode,
+        firstTrainrunSection,
+      ),
       totalCumulativeTravelTime: totalCumulativeTravelTime,
       precision,
     });
@@ -889,12 +892,18 @@ export class TrainrunSectionService implements OnDestroy {
     this.setTimeStructureInDirection({
       chainDepartureTime: targetDepartureTime,
       chainTravelTime: backwardTravelTime,
-      iterator: this.trainrunService.getNonStopIterator(lastTargetNode, lastTrainrunSection),
+      iterator: this.trainrunService.getNextExpandedStopIterator(
+        lastTargetNode,
+        lastTrainrunSection,
+      ),
       totalCumulativeTravelTime: totalCumulativeBackwardTravelTime,
       precision,
     });
 
-    const iterator = this.trainrunService.getNonStopIterator(firstSourceNode, firstTrainrunSection);
+    const iterator = this.trainrunService.getNextExpandedStopIterator(
+      firstSourceNode,
+      firstTrainrunSection,
+    );
     while (iterator.hasNext()) {
       const pair = iterator.next();
       this.trainrunSectionTimesUpdated(pair.trainrunSection);
@@ -921,25 +930,31 @@ export class TrainrunSectionService implements OnDestroy {
     const travelTimeFactor = chainTravelTime / totalCumulativeTravelTime;
     let departureTime = chainDepartureTime;
     let summedTravelTime = 0;
+    let stopTime = 0;
+    let previousHeadArrival = null;
     while (iterator.hasNext()) {
       const pair = iterator.next();
       const section = pair.getDirectedTrainrunSectionProxy();
 
-      const isLastNode = !pair.node.isNonStop(pair.trainrunSection);
-      const travelTime = isLastNode
-        ? TrainrunsectionHelper.getLastSectionTravelTime(
+      if (previousHeadArrival !== null) {
+        stopTime = MathUtils.mod60(section.getTailDeparture() - previousHeadArrival);
+      }
+      previousHeadArrival = section.getHeadArrival();
+
+      const isIntermediateNode =
+        pair.node.isNonStop(pair.trainrunSection) || pair.node.getIsCollapsed();
+      const travelTime = isIntermediateNode
+        ? TrainrunsectionHelper.getSectionDistributedTravelTime(
+            section.getTravelTime(),
+            travelTimeFactor,
+            precision,
+          )
+        : TrainrunsectionHelper.getLastSectionTravelTime(
             chainTravelTime,
             summedTravelTime,
             precision,
-          )
-        : TrainrunsectionHelper.getSectionDistributedTravelTime(
-            direction === "sourceToTarget"
-              ? pair.trainrunSection.getTravelTime()
-              : pair.trainrunSection.getBackwardTravelTime(),
-            travelTimeFactor,
-            precision,
           );
-
+      departureTime = departureTime + stopTime;
       const arrivalTime = MathUtils.round((departureTime + travelTime) % 60, precision);
 
       section.setTailDeparture(departureTime);
