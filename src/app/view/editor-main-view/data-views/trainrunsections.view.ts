@@ -2910,14 +2910,12 @@ export class TrainrunSectionsView {
     textElement: TrainrunSectionText,
     editorView: EditorView,
   ) {
-    const trainrunSection = viewObject.trainrunSections[0];
-
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
       case TrainrunSectionText.SourceArrival:
         // For source times, use the original section times (should be from non-collapsed node)
         return TrainrunSectionsView.getTrainrunSectionValueToShow(
-          trainrunSection,
+          viewObject.trainrunSections[0],
           textElement,
           editorView,
         );
@@ -2925,12 +2923,9 @@ export class TrainrunSectionsView {
       case TrainrunSectionText.TargetDeparture:
       case TrainrunSectionText.TargetArrival: {
         // For collapsed chains, use the actual time from the last section in the chain
-        const chainSections = this.getAllSectionsInCollapsedChain(trainrunSection);
-        const lastSection = chainSections[chainSections.length - 1];
-
         // Use the actual time from the last section (which already includes all stops and travel times)
         return TrainrunSectionsView.getTrainrunSectionValueToShow(
-          lastSection,
+          viewObject.trainrunSections.at(-1)!,
           textElement,
           editorView,
         );
@@ -2938,12 +2933,12 @@ export class TrainrunSectionsView {
 
       case TrainrunSectionText.TrainrunSectionTravelTime: {
         // For collapsed chains, calculate total time including stops at collapsed nodes
-        const chainSections = this.getAllSectionsInCollapsedChain(trainrunSection);
-        const lastSection = chainSections[chainSections.length - 1];
+        const firstSection = viewObject.trainrunSections[0];
+        const lastSection = viewObject.trainrunSections.at(-1)!;
 
         // Calculate total time: arrival time at end - departure time at start
         const startTime = TrainrunSectionsView.getTime(
-          trainrunSection,
+          firstSection,
           TrainrunSectionText.SourceDeparture,
         );
         const endTime = TrainrunSectionsView.getTime(
@@ -2959,51 +2954,9 @@ export class TrainrunSectionsView {
 
       case TrainrunSectionText.TrainrunSectionName:
         // For name, use the original trainrun name
-        return TrainrunSectionsView.extractTrainrunName(trainrunSection);
+        return TrainrunSectionsView.extractTrainrunName(viewObject.trainrunSections[0]);
     }
 
     return undefined;
-  }
-
-  /**
-   * Get all sections that are part of the same collapsed chain
-   */
-  getAllSectionsInCollapsedChain(currentSection: TrainrunSection): TrainrunSection[] {
-    const sections: TrainrunSection[] = [];
-    let startSection = currentSection;
-
-    // Walk backwards to find start of chain
-    while (startSection.getSourceNode().getIsCollapsed()) {
-      const prevSections = this.getConnectedTrainrunSections(
-        startSection.getSourceNode(),
-        currentSection.getTrainrunId(),
-      ).filter((ts) => ts.getId() !== startSection.getId());
-
-      if (prevSections.length === 1) {
-        startSection = prevSections[0];
-      } else {
-        break;
-      }
-    }
-
-    // Walk forwards to find end of chain and collect all sections
-    let currentSectionInChain = startSection;
-    sections.push(currentSectionInChain);
-
-    while (currentSectionInChain.getTargetNode().getIsCollapsed()) {
-      const nextSections = this.getConnectedTrainrunSections(
-        currentSectionInChain.getTargetNode(),
-        currentSection.getTrainrunId(),
-      ).filter((ts) => ts.getId() !== currentSectionInChain.getId());
-
-      if (nextSections.length === 1) {
-        currentSectionInChain = nextSections[0];
-        sections.push(currentSectionInChain);
-      } else {
-        break;
-      }
-    }
-
-    return sections;
   }
 }
