@@ -352,7 +352,7 @@ export class ShortestTravelTimeSearch {
 
   private getOutgoingEdge(trainrunSection: TrainrunSection, node: Node): ShortestDistanceEdge {
     const path: TrainrunSection[] = [];
-    const iterator = this.trainrunService.getNonStopIterator(node, trainrunSection);
+    const iterator = this.trainrunService.getNextExpandedStopIterator(node, trainrunSection);
 
     while (iterator.hasNext()) {
       iterator.next();
