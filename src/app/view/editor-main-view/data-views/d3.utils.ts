@@ -90,20 +90,20 @@ export class D3Utils {
     d3.selectAll(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
-          d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
+          d !== undefined && d.trainrunSections[0].getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, false);
     d3.selectAll(StaticDomTags.EDGE_LINE_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
-          d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
+          d !== undefined && d.trainrunSections[0].getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, false);
 
     d3.selectAll(StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
-          d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
+          d !== undefined && d.trainrunSections[0].getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, false);
 
@@ -347,7 +347,7 @@ export class D3Utils {
         if (d === undefined) {
           return false;
         }
-        return d.trainrunSection.getId() === trainrunSection.getId();
+        return d.trainrunSections[0].getId() === trainrunSection.getId();
       })
       .classed(StaticDomTags.TAG_SELECTED, false)
       .classed(StaticDomTags.TAG_HOVER, false)
@@ -359,7 +359,7 @@ export class D3Utils {
         if (d === undefined) {
           return false;
         }
-        return d.trainrunSection.getId() === trainrunSection.getId();
+        return d.trainrunSections[0].getId() === trainrunSection.getId();
       })
       .classed(StaticDomTags.TAG_SELECTED, false)
       .classed(StaticDomTags.TAG_HOVER, false)
@@ -371,7 +371,7 @@ export class D3Utils {
         if (d === undefined) {
           return false;
         }
-        return d.trainrunSection.getId() === trainrunSection.getId();
+        return d.trainrunSections[0].getId() === trainrunSection.getId();
       })
       .classed(StaticDomTags.TAG_SELECTED, false)
       .classed(StaticDomTags.TAG_HOVER, false)
@@ -383,7 +383,7 @@ export class D3Utils {
         if (d === undefined) {
           return false;
         }
-        return d.trainrunSection.getId() === trainrunSection.getId();
+        return d.trainrunSections[0].getId() === trainrunSection.getId();
       })
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, true);
 
@@ -394,8 +394,8 @@ export class D3Utils {
             return false;
           }
           return (
-            d.trainrunSection.getId() === trainrunSection.getId() &&
-            d.trainrunSection.getSourceNodeId() === grayoutEdgeLinePinNode.getId()
+            d.trainrunSections[0].getId() === trainrunSection.getId() &&
+            d.trainrunSections[0].getSourceNodeId() === grayoutEdgeLinePinNode.getId()
           );
         })
         .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, true);
@@ -405,8 +405,8 @@ export class D3Utils {
             return false;
           }
           return (
-            d.trainrunSection.getId() === trainrunSection.getId() &&
-            d.trainrunSection.getTargetNodeId() === grayoutEdgeLinePinNode.getId()
+            d.trainrunSections[0].getId() === trainrunSection.getId() &&
+            d.trainrunSections[0].getTargetNodeId() === grayoutEdgeLinePinNode.getId()
           );
         })
         .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, true);
@@ -419,7 +419,7 @@ export class D3Utils {
         if (d === undefined) {
           return false;
         }
-        return d.trainrunSection.getId() === trainrunSection.getId();
+        return d.trainrunSections[0].getId() === trainrunSection.getId();
       })
       .classed(StaticDomTags.TAG_SELECTED, true)
       .classed(StaticDomTags.TAG_HOVER, false)
@@ -431,7 +431,7 @@ export class D3Utils {
         if (d === undefined) {
           return false;
         }
-        return d.trainrunSection.getId() === trainrunSection.getId();
+        return d.trainrunSections[0].getId() === trainrunSection.getId();
       })
       .classed(StaticDomTags.TAG_SELECTED, true)
       .classed(StaticDomTags.TAG_HOVER, false)
@@ -443,7 +443,7 @@ export class D3Utils {
         if (d === undefined) {
           return false;
         }
-        return d.trainrunSection.getId() === trainrunSection.getId();
+        return d.trainrunSections[0].getId() === trainrunSection.getId();
       })
       .classed(StaticDomTags.TAG_SELECTED, true)
       .classed(StaticDomTags.TAG_HOVER, false)
@@ -455,7 +455,7 @@ export class D3Utils {
         if (d === undefined) {
           return false;
         }
-        return d.trainrunSection.getId() === trainrunSection.getId();
+        return d.trainrunSections[0].getId() === trainrunSection.getId();
       })
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);
 
@@ -466,8 +466,8 @@ export class D3Utils {
             return false;
           }
           return (
-            d.trainrunSection.getId() === trainrunSection.getId() &&
-            d.trainrunSection.getSourceNodeId() === grayoutEdgeLinePinNode.getId()
+            d.trainrunSections[0].getId() === trainrunSection.getId() &&
+            d.trainrunSections[0].getSourceNodeId() === grayoutEdgeLinePinNode.getId()
           );
         })
         .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);
@@ -477,8 +477,8 @@ export class D3Utils {
             return false;
           }
           return (
-            d.trainrunSection.getId() === trainrunSection.getId() &&
-            d.trainrunSection.getTargetNodeId() === grayoutEdgeLinePinNode.getId()
+            d.trainrunSections[0].getId() === trainrunSection.getId() &&
+            d.trainrunSections[0].getTargetNodeId() === grayoutEdgeLinePinNode.getId()
           );
         })
         .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);
