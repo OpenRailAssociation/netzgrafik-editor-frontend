@@ -96,7 +96,7 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     const firstTrainrunSection = this.trainrunService.getFirstNonStopTrainrunSection(
       this.selectedTrainrunSection,
     );
-    const iterator = this.trainrunService.getNonStopIterator(
+    const iterator = this.trainrunService.getNextExpandedStopIterator(
       firstTrainrunSection.getSourceNode(),
       firstTrainrunSection,
     );
