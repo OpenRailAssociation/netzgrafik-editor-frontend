@@ -321,7 +321,7 @@ export class TrainrunSectionService implements OnDestroy {
     node: Node,
     stopNodeId: number,
   ) {
-    const iterator = this.trainrunService.getNonStopIterator(node, trainrunSection);
+    const iterator = this.trainrunService.getNextExpandedStopIterator(node, trainrunSection);
     while (iterator.hasNext()) {
       iterator.next();
       if (iterator.current().node.getId() === stopNodeId) {
@@ -875,12 +875,30 @@ export class TrainrunSectionService implements OnDestroy {
     const trsTimeStructure = TrainrunsectionHelper.getDefaultTimeStructure(timeStructure);
     let summedTravelTime = 0;
 
-    const iterator = this.trainrunService.getNonStopIterator(leftNode, trs);
+    const iterator = this.trainrunService.getNextExpandedStopIterator(leftNode, trs);
+    let prevInitialLeftArrival: number = null;
+    let stopTime: number;
     while (iterator.hasNext()) {
       const nextPair = iterator.next();
+      const rightIsTarget =
+        nextPair.node.getId() === nextPair.trainrunSection.getTargetNode().getId();
 
-      const isLastNode = !nextPair.node.isNonStop(nextPair.trainrunSection);
-      trsTimeStructure.travelTime = isLastNode
+      if (prevInitialLeftArrival !== null) {
+        stopTime = MathUtils.mod60(
+          (rightIsTarget
+            ? nextPair.trainrunSection.getSourceDeparture()
+            : nextPair.trainrunSection.getTargetDeparture()) - prevInitialLeftArrival,
+        );
+        trsTimeStructure.leftDepartureTime = trsTimeStructure.rightArrivalTime + stopTime;
+        trsTimeStructure.leftArrivalTime = trsTimeStructure.rightDepartureTime - stopTime;
+      }
+      prevInitialLeftArrival = rightIsTarget
+        ? nextPair.trainrunSection.getTargetArrival()
+        : nextPair.trainrunSection.getSourceArrival();
+
+      const isLastRightNode =
+        !nextPair.node.isNonStop(nextPair.trainrunSection) && !nextPair.node.getIsCollapsed();
+      trsTimeStructure.travelTime = isLastRightNode
         ? TrainrunsectionHelper.getLastSectionTravelTime(
             newTotalTravelTime,
             summedTravelTime,
@@ -891,6 +909,7 @@ export class TrainrunSectionService implements OnDestroy {
             travelTimeFactor,
             precision,
           );
+
       trsTimeStructure.rightArrivalTime = TrainrunsectionHelper.getRightArrivalTime(
         trsTimeStructure,
         precision,
@@ -899,8 +918,7 @@ export class TrainrunSectionService implements OnDestroy {
         trsTimeStructure,
         precision,
       );
-      const rightIsTarget =
-        nextPair.node.getId() === nextPair.trainrunSection.getTargetNode().getId();
+
       this.updateTrainrunSectionTime(
         nextPair.trainrunSection.getId(),
         rightIsTarget ? trsTimeStructure.leftArrivalTime : trsTimeStructure.rightArrivalTime,
@@ -910,8 +928,6 @@ export class TrainrunSectionService implements OnDestroy {
         trsTimeStructure.travelTime,
       );
 
-      trsTimeStructure.leftDepartureTime = trsTimeStructure.rightArrivalTime;
-      trsTimeStructure.leftArrivalTime = trsTimeStructure.rightDepartureTime;
       summedTravelTime += trsTimeStructure.travelTime;
     }
 
