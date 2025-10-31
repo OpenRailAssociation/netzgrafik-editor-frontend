@@ -247,7 +247,6 @@ export class TrainrunSectionTimesService {
         this.timeStructure.leftDepartureTime,
       );
     } else if (!this.lockStructure.travelTimeLock && this.lockStructure.leftLock) {
-      // pas sûre d'avoir compris comment fonctionnait l'extraHour
       const extraHour =
         this.timeStructure.travelTime -
         ((this.timeStructure.travelTime + this.timeStructure.stopTime) % 60);
