@@ -879,18 +879,32 @@ export class TrainrunSectionService implements OnDestroy {
     let summedTravelTime = 0;
 
     const iterator = this.trainrunService.getNonStopIterator(leftNode, trs);
+    let prevInitialTargetArrival: number = null;
+    let stopTime: number;
     while (iterator.hasNext()) {
+
       const nextPair = iterator.next();
 
-      const isRightNodeNonStop = nextPair.node.isNonStop(nextPair.trainrunSection);
-      trsTimeStructure.travelTime = TrainrunsectionHelper.getTravelTime(
+      if (prevInitialTargetArrival !== null) {
+        // gérer les modulo 60 et positif
+        stopTime = (nextPair.trainrunSection.getSourceDeparture() - prevInitialTargetArrival) % 60;
+        trsTimeStructure.leftDepartureTime = trsTimeStructure.rightArrivalTime + stopTime;
+        trsTimeStructure.leftArrivalTime = trsTimeStructure.rightDepartureTime + stopTime;
+      }
+      prevInitialTargetArrival = nextPair.trainrunSection.getTargetArrival();
+
+      const isFinalRightNode = !nextPair.node.isNonStop(nextPair.trainrunSection) && !nextPair.node.collapsed();
+      trsTimeStructure.travelTime = isFinalRightNode ?
+       TrainrunsectionHelper.getLastSectionTravelTime(
         newTotalTravelTime,
         summedTravelTime,
-        travelTimeFactor,
+        precision,
+      ) : TrainrunsectionHelper.getSectionTravelTime(
         nextPair.trainrunSection.getTravelTime(),
-        isRightNodeNonStop,
+        travelTimeFactor,
         precision,
       );
+
       trsTimeStructure.rightArrivalTime = TrainrunsectionHelper.getRightArrivalTime(
         trsTimeStructure,
         precision,
@@ -910,8 +924,6 @@ export class TrainrunSectionService implements OnDestroy {
         trsTimeStructure.travelTime,
       );
 
-      trsTimeStructure.leftDepartureTime = trsTimeStructure.rightArrivalTime;
-      trsTimeStructure.leftArrivalTime = trsTimeStructure.rightDepartureTime;
       summedTravelTime += trsTimeStructure.travelTime;
     }
 

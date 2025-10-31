@@ -114,7 +114,7 @@ export class BackwardTrainrunIterator extends TrainrunIterator {
 
 export class NonStopTrainrunIterator extends TrainrunIterator {
   public next(): TrainrunSectionNodePair {
-    if (!this.pointerElement.node.isNonStop(this.pointerElement.trainrunSection)) {
+    if (!this.pointerElement.node.isNonStop(this.pointerElement.trainrunSection) && !this.pointerElement.node.collapsed()) {
       // The trainrun has a stop and break the forward iteration
       this.currentElement = Object.assign({}, this.pointerElement);
       this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
