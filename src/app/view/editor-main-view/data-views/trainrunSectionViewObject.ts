@@ -13,6 +13,10 @@ export class TrainrunSectionViewObject {
     this.key = TrainrunSectionViewObject.generateKey(editorView, trainrunSection);
   }
 
+  getTrainrun() {
+    return this.trainrunSection.getTrainrun();
+  }
+
   static generateKey(editorView: EditorView, d: TrainrunSection): string {
     const selectedTrainrun = editorView.getSelectedTrainrun();
     let connectedTrainIds = [];

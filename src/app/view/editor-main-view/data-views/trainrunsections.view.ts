@@ -953,7 +953,7 @@ export class TrainrunSectionsView {
 
     groupEnter
       .filter((d: TrainrunSectionViewObject) => {
-        const displayTextBackground = d.trainrunSection.getTrainrun().isRoundTrip() || isOneWayText;
+        const displayTextBackground = d.getTrainrun().isRoundTrip() || isOneWayText;
         return (
           this.filterTrainrunsectionAtNode(d.trainrunSection, atSource) &&
           this.filterTimeTrainrunsectionNonStop(d.trainrunSection, atSource, isArrival) &&
@@ -973,7 +973,7 @@ export class TrainrunSectionsView {
       )
       .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrun().getId(),
+        d.getTrainrun().getId(),
       )
       .attr(StaticDomTags.EDGE_LINE_TEXT_INDEX, lineTextElement)
       .attr(
@@ -1061,7 +1061,7 @@ export class TrainrunSectionsView {
   ) {
     (["BEGINNING_ARROW", "ENDING_ARROW"] as const).forEach((arrowType) => {
       groupLinesEnter
-        .filter((d: TrainrunSectionViewObject) => !d.trainrunSection.getTrainrun().isRoundTrip())
+        .filter((d: TrainrunSectionViewObject) => !d.getTrainrun().isRoundTrip())
         .append(StaticDomTags.EDGE_LINE_ARROW_SVG)
         .attr("d", "M-4,-5L2,0L-4,5Z")
         .attr("transform", (d: TrainrunSectionViewObject) =>
@@ -1089,7 +1089,7 @@ export class TrainrunSectionsView {
         )
         .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
         .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
-          d.trainrunSection.getTrainrun().getId(),
+          d.getTrainrun().getId(),
         )
         .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
           TrainrunSectionsView.isSectionSelected(d.trainrunSection),
@@ -1136,7 +1136,7 @@ export class TrainrunSectionsView {
       )
       .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrun().getId(),
+        d.getTrainrun().getId(),
       )
       .attr("d", (d: TrainrunSectionViewObject) =>
         D3Utils.getPathAsSVGString(this.transformPath(d.trainrunSection)),
@@ -1201,7 +1201,7 @@ export class TrainrunSectionsView {
       )
       .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrunId(),
+        d.getTrainrun().getId(),
       )
       .attr("d", (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.createSemicircle(
@@ -1272,7 +1272,7 @@ export class TrainrunSectionsView {
       .attr("class", StaticDomTags.EDGE_LINE_PIN_CLASS)
       .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrunId(),
+        d.getTrainrun().getId(),
       )
       .attr("cx", (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.getPosition(d.trainrunSection, atSource).getX(),
@@ -1324,7 +1324,7 @@ export class TrainrunSectionsView {
         TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
       )
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrun().selected(),
+        d.getTrainrun().selected(),
       )
       .on("mouseover", (d: TrainrunSectionViewObject, i, a) =>
         this.onTrainrunSectionMouseoverPin(
@@ -1366,8 +1366,7 @@ export class TrainrunSectionsView {
 
     const renderingObjects = groupEnter
       .filter((d: TrainrunSectionViewObject) => {
-        const displayTextElement =
-          d.trainrunSection.getTrainrun().isRoundTrip() || isDefaultText || isOneWayText;
+        const displayTextElement = d.getTrainrun().isRoundTrip() || isDefaultText || isOneWayText;
 
         return (
           this.filterTrainrunsectionAtNode(d.trainrunSection, atSource) &&
@@ -1388,7 +1387,7 @@ export class TrainrunSectionsView {
       .attr("data-testid", StaticDomTags.EDGE_LINE_TEXT_CLASS)
       .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrunId(),
+        d.getTrainrun().getId(),
       )
       .attr(StaticDomTags.EDGE_LINE_TEXT_INDEX, textElement)
       .attr("x", (d: TrainrunSectionViewObject) =>
@@ -1498,7 +1497,7 @@ export class TrainrunSectionsView {
       )
       .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrunId(),
+        d.getTrainrun().getId(),
       )
       .attr(StaticDomTags.EDGE_LINE_TEXT_INDEX, textElement)
       .attr("x", 0)
@@ -2534,7 +2533,7 @@ export class TrainrunSectionsView {
       )
       .attr(StaticDomTags.EDGE_ID, (t: TrainrunSectionViewObject) => t.trainrunSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (t: TrainrunSectionViewObject) =>
-        t.trainrunSection.getTrainrun().getId(),
+        t.getTrainrun().getId(),
       )
       .attr("cx", position.getX())
       .attr("cy", position.getY())
