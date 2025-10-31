@@ -1570,36 +1570,20 @@ export class TrainrunSectionsView {
       )
       .attr(StaticDomTags.EDGE_LINE_TEXT_INDEX, textElement)
       .attr("x", (d: TrainrunSectionViewObject) => {
-        const collapsedChainPath = this.getCollapsedChainPath(d.trainrunSections[0]);
-        if (
-          collapsedChainPath &&
-          collapsedChainPath.length >= 4 &&
-          (textElement === TrainrunSectionText.TargetDeparture ||
-            textElement === TrainrunSectionText.TargetArrival)
-        ) {
-          const chainSections = this.getAllSectionsInCollapsedChain(d.trainrunSections[0]);
-          if (chainSections.length > 1) {
-            const lastSection = chainSections[chainSections.length - 1];
-            return lastSection.getTextPositionX(textElement);
-          }
-        }
-        return TrainrunSectionsView.getPositionX(d.trainrunSections[0], textElement);
+        const section =
+          textElement === TrainrunSectionText.TargetDeparture ||
+          textElement === TrainrunSectionText.TargetArrival
+            ? d.trainrunSections.at(-1)
+            : d.trainrunSections[0];
+        return TrainrunSectionsView.getPositionX(section, textElement);
       })
       .attr("y", (d: TrainrunSectionViewObject) => {
-        const collapsedChainPath = this.getCollapsedChainPath(d.trainrunSections[0]);
-        if (
-          collapsedChainPath &&
-          collapsedChainPath.length >= 4 &&
-          (textElement === TrainrunSectionText.TargetDeparture ||
-            textElement === TrainrunSectionText.TargetArrival)
-        ) {
-          const chainSections = this.getAllSectionsInCollapsedChain(d.trainrunSections[0]);
-          if (chainSections.length > 1) {
-            const lastSection = chainSections[chainSections.length - 1];
-            return lastSection.getTextPositionY(textElement);
-          }
-        }
-        return TrainrunSectionsView.getPositionY(d.trainrunSections[0], textElement);
+        const section =
+          textElement === TrainrunSectionText.TargetDeparture ||
+          textElement === TrainrunSectionText.TargetArrival
+            ? d.trainrunSections.at(-1)
+            : d.trainrunSections[0];
+        return TrainrunSectionsView.getPositionY(section, textElement);
       })
       .attr(
         TrainrunSectionsView.getAdditionPositioningAttr(textElement),
@@ -2921,25 +2905,6 @@ export class TrainrunSectionsView {
   /**
    * Get the value to show for collapsed chains (with corrected times)
    */
-  /**
-   * Get the node IDs path for a collapsed chain
-   */
-  getCollapsedChainNodePath(trainrunSection: TrainrunSection): number[] | null {
-    const sourceNodeId = trainrunSection.getSourceNodeId();
-    const targetNodeId = trainrunSection.getTargetNodeId();
-    const sourceNode = trainrunSection.getSourceNode();
-    const targetNode = trainrunSection.getTargetNode();
-
-    // Check if this section crosses collapsed nodes by looking at the full chain
-    const chainSections = this.getAllSectionsInCollapsedChain(trainrunSection);
-
-    if (chainSections.length > 1) {
-      return [sourceNodeId, targetNodeId];
-    }
-
-    return null;
-  }
-
   getTrainrunSectionValueToShowWithCollapsedSupport(
     viewObject: TrainrunSectionViewObject,
     textElement: TrainrunSectionText,
