@@ -1486,10 +1486,19 @@ export class TrainrunSectionService implements OnDestroy {
         return;
       }
 
+      const backwardIterator = this.trainrunService.getBackwardIterator(
+        section.getTargetNode(),
+        section,
+      );
+      while (backwardIterator.hasNext() && backwardIterator.current().node.getIsCollapsed()) {
+        backwardIterator.next();
+      }
+      const startNode = backwardIterator.current().node;
+      const startSection = backwardIterator.current().trainrunSection;
+
       // Build chain using TrainrunIterator to leverage existing graph traversal
       const chain: TrainrunSection[] = [];
-      const startNode = section.getSourceNode();
-      const iterator = this.trainrunService.getIterator(startNode, section);
+      const iterator = this.trainrunService.getIterator(startNode, startSection);
 
       // Traverse the trainrun and collect sections with collapsed intermediate nodes
       while (iterator.hasNext()) {
