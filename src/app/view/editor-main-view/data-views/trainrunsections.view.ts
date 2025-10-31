@@ -2912,18 +2912,6 @@ export class TrainrunSectionsView {
   ) {
     const trainrunSection = viewObject.trainrunSections[0];
 
-    // Use unified logic for both collapsed chains and regular sections
-    return this.getCollapsedChainValueToShow(trainrunSection, textElement, editorView);
-  }
-
-  /**
-   * Calculate the correct values for collapsed chains
-   */
-  getCollapsedChainValueToShow(
-    trainrunSection: TrainrunSection,
-    textElement: TrainrunSectionText,
-    editorView: EditorView,
-  ) {
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
       case TrainrunSectionText.SourceArrival:
