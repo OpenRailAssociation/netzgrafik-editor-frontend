@@ -126,8 +126,6 @@ export class TrainrunSectionsView {
     return SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(collapsedChainPath, sourcePort);
   }
 
-
-
   getAdditionPositioningValueForViewObjectWithCollapsedSupport(
     viewObject: TrainrunSectionViewObject,
     textElement: TrainrunSectionText,
@@ -1041,9 +1039,6 @@ export class TrainrunSectionsView {
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
       case TrainrunSectionText.SourceArrival:
-        if (TrainrunSectionsView.getNode(trainrunSection, true).getIsCollapsed()) {
-          return true;
-        }
         if (!this.editorView.isFilterArrivalDepartureTimeEnabled()) {
           return true;
         }
@@ -1060,9 +1055,6 @@ export class TrainrunSectionsView {
         return TrainrunSectionsView.getNode(trainrunSection, true).isNonStop(trainrunSection);
       case TrainrunSectionText.TargetDeparture:
       case TrainrunSectionText.TargetArrival:
-        if (TrainrunSectionsView.getNode(trainrunSection, false).getIsCollapsed()) {
-          return true;
-        }
         if (!this.editorView.isFilterArrivalDepartureTimeEnabled()) {
           return true;
         }
@@ -1078,10 +1070,6 @@ export class TrainrunSectionsView {
         }
         return TrainrunSectionsView.getNode(trainrunSection, false).isNonStop(trainrunSection);
       case TrainrunSectionText.TrainrunSectionTravelTime:
-        if (TrainrunSectionsView.isExitingCollapsedChain(trainrunSection)) {
-          return true;
-        }
-
         if (!this.editorView.isFilterTravelTimeEnabled()) {
           return true;
         }
@@ -1094,10 +1082,6 @@ export class TrainrunSectionsView {
         );
       case TrainrunSectionText.TrainrunSectionName:
         {
-          if (TrainrunSectionsView.isExitingCollapsedChain(trainrunSection)) {
-            return true;
-          }
-
           if (!this.editorView.isFilterTrainrunNameEnabled()) {
             return true;
           }
@@ -1478,22 +1462,22 @@ export class TrainrunSectionsView {
       .attr(StaticDomTags.EDGE_NODE_ID, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.getNode(d.trainrunSection, atSource).getId(),
       )
-      .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) => {
-        const node = TrainrunSectionsView.getNode(d.trainrunSection, atSource);
-        return (
-          (!this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
-            !this.editorView.checkFilterNonStopNode(node)) ||
-          node.getIsCollapsed()
-        );
-      })
-      .classed(StaticDomTags.TAG_EVENT_DISABLED, (d: TrainrunSectionViewObject) => {
-        const node = TrainrunSectionsView.getNode(d.trainrunSection, atSource);
-        return (
-          (!this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
-            !this.editorView.checkFilterNonStopNode(node)) ||
-          node.getIsCollapsed()
-        );
-      })
+      .classed(
+        StaticDomTags.TAG_HIDDEN,
+        (d: TrainrunSectionViewObject) =>
+          !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
+          !this.editorView.checkFilterNonStopNode(
+            TrainrunSectionsView.getNode(d.trainrunSection, atSource),
+          ),
+      )
+      .classed(
+        StaticDomTags.TAG_EVENT_DISABLED,
+        (d: TrainrunSectionViewObject) =>
+          !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
+          !this.editorView.checkFilterNonStopNode(
+            TrainrunSectionsView.getNode(d.trainrunSection, atSource),
+          ),
+      )
       .classed(atSource ? StaticDomTags.EDGE_IS_SOURCE : StaticDomTags.EDGE_IS_TARGET, true)
       .classed(StaticDomTags.EDGE_IS_END_NODE, (d: TrainrunSectionViewObject) => {
         let node = d.trainrunSection.getTargetNode();
@@ -1882,27 +1866,23 @@ export class TrainrunSectionsView {
       this.trainrunSectionService.groupTrainrunSectionsIntoChains(inputTrainrunSections);
 
     sectionGroups.forEach((sections) => {
-      sections.forEach((d) => {
-        if (this.shouldDisplayTrainrunSection(d)) {
-          this.updateTrainrunSectionPathForCollapsedChain(d);
-          
-          viewTrainrunSectionDataObjects.push(
-            new TrainrunSectionViewObject(
-              editorView,
-              d,
-              TrainrunSectionsView.getNode(d, true).isNonStop(d),
-              TrainrunSectionsView.getNode(d, false).isNonStop(d),
-              TrainrunSectionsView.isMuted(d, selectedTrainrun, connectedTrainIds),
-              this.getHiddenTagForTime(d, TrainrunSectionText.SourceDeparture),
-              this.getHiddenTagForTime(d, TrainrunSectionText.TargetDeparture),
-              this.getHiddenTagForTime(d, TrainrunSectionText.TrainrunSectionTravelTime),
-              this.getHiddenTagForTime(d, TrainrunSectionText.TrainrunSectionName),
-              !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
-                !this.editorView.isFilterDirectionArrowsEnabled(),
-            ),
-          );
-        }
-      });
+      const d = sections[0];
+      this.updateTrainrunSectionPathForCollapsedChain(d);
+      viewTrainrunSectionDataObjects.push(
+        new TrainrunSectionViewObject(
+          editorView,
+          d,
+          TrainrunSectionsView.getNode(d, true).isNonStop(d),
+          TrainrunSectionsView.getNode(d, false).isNonStop(d),
+          TrainrunSectionsView.isMuted(d, selectedTrainrun, connectedTrainIds),
+          this.getHiddenTagForTime(d, TrainrunSectionText.SourceDeparture),
+          this.getHiddenTagForTime(d, TrainrunSectionText.TargetDeparture),
+          this.getHiddenTagForTime(d, TrainrunSectionText.TrainrunSectionTravelTime),
+          this.getHiddenTagForTime(d, TrainrunSectionText.TrainrunSectionName),
+          !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
+            !this.editorView.isFilterDirectionArrowsEnabled(),
+        ),
+      );
     });
 
     return viewTrainrunSectionDataObjects;
@@ -2484,20 +2464,6 @@ export class TrainrunSectionsView {
     }
 
     return sections;
-  }
-
-  /**
-   * Determine if a trainrun section should be displayed (not an intermediate in a collapsed chain)
-   */
-  private shouldDisplayTrainrunSection(section: TrainrunSection): boolean {
-    return !section.getSourceNode().getIsCollapsed() || !section.getTargetNode().getIsCollapsed();
-  }
-
-  private static isExitingCollapsedChain(trainrunSection: TrainrunSection): boolean {
-    return (
-      TrainrunSectionsView.getNode(trainrunSection, true).getIsCollapsed() &&
-      !TrainrunSectionsView.getNode(trainrunSection, false).getIsCollapsed()
-    );
   }
 
   /**
