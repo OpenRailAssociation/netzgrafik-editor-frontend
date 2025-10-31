@@ -30,6 +30,10 @@ export class TrainrunSectionViewObject {
     );
   }
 
+  getTrainrun() {
+    return this.trainrunSection.getTrainrun();
+  }
+
   static generateKey(
     editorView: EditorView,
     d: TrainrunSection,
