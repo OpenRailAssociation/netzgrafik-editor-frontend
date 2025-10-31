@@ -6,7 +6,7 @@ import {loadTranslations} from "@angular/localize";
   providedIn: "root",
 })
 export class I18nService {
-  readonly allowedLanguages = ["en", "fr", "de", "it"];
+  readonly allowedLanguages = ["en", "fr", "de"];
   private currentLanguage: string = this.getLanguageFromStorage() || this.detectNavigatorLanguage();
   translations: any = {};
 
@@ -21,7 +21,7 @@ export class I18nService {
     }
 
     const languageModule = await import(
-      /* webpackInclude: /(en|de|fr|it)\.mjs$/ */
+      /* webpackInclude: /(en|de|fr)\.mjs$/ */
       `/node_modules/@angular/common/locales/${this.language}.mjs`
     );
     registerLocaleData(languageModule.default);
