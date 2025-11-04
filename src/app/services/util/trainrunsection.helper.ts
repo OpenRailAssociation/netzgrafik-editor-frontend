@@ -36,6 +36,7 @@ export class TrainrunsectionHelper {
       rightDepartureTime: 0,
       rightArrivalTime: 0,
       travelTime: 0,
+      stopTime: 0,
     };
   }
 
@@ -260,6 +261,7 @@ export class TrainrunsectionHelper {
       mappedTimeStructure.rightDepartureTime = timeStructure.leftDepartureTime;
       mappedTimeStructure.leftDepartureTime = timeStructure.rightDepartureTime;
       mappedTimeStructure.travelTime = timeStructure.travelTime;
+      mappedTimeStructure.stopTime = timeStructure.stopTime;
       return mappedTimeStructure;
     }
     return timeStructure;
@@ -285,12 +287,17 @@ export class TrainrunsectionHelper {
         : bothLastNonStopTrainrunSections.lastNonStopTrainrunSection2;
     const cumulativeTravelTime = this.trainrunService.getCumulativeTravelTime(trainrunSection);
 
+    const totalDuration =
+      lastRightNode.getArrivalTime(rightTrainrunSection) -
+      lastLeftNode.getDepartureTime(leftTrainrunSection);
+
     return {
       leftDepartureTime: lastLeftNode.getDepartureTime(leftTrainrunSection),
       leftArrivalTime: lastLeftNode.getArrivalTime(leftTrainrunSection),
       rightDepartureTime: lastRightNode.getDepartureTime(rightTrainrunSection),
       rightArrivalTime: lastRightNode.getArrivalTime(rightTrainrunSection),
       travelTime: cumulativeTravelTime,
+      stopTime: MathUtils.mod60(totalDuration - cumulativeTravelTime),
     };
   }
 
