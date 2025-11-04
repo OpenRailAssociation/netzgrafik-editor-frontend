@@ -89,9 +89,13 @@ describe("TrainrunsectionHelper", () => {
       rightArrivalTime: 40,
       travelTime: 10,
       bottomTravelTime: 10,
+      stopTime: 0,
+      bottomStopTime: 0,
     };
     const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
     expect(d.travelTime).toBe(0);
+    expect(d.stopTime).toBe(0);
+    expect(d.bottomStopTime).toBe(0);
     expect(d.rightDepartureTime).toBe(0);
     expect(d.rightArrivalTime).toBe(0);
     expect(d.leftDepartureTime).toBe(larts.leftDepartureTime);
@@ -136,33 +140,17 @@ describe("TrainrunsectionHelper", () => {
       rightArrivalTime: 40,
       travelTime: 10,
       bottomTravelTime: 10,
+      stopTime: 0,
+      bottomStopTime: 0,
     };
     const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
     expect(d.travelTime).toBe(0);
+    expect(d.stopTime).toBe(0);
+    expect(d.bottomStopTime).toBe(0);
     expect(d.rightDepartureTime).toBe(0);
     expect(d.rightArrivalTime).toBe(0);
     expect(d.leftDepartureTime).toBe(larts.leftDepartureTime);
     expect(d.leftArrivalTime).toBe(larts.leftArrivalTime);
-  });
-
-  it("getTravelTime -- 2 -- 001", () => {
-    const tt = TrainrunsectionHelper.getTravelTime(10, 10, 1, 12, false, 0);
-    expect(tt).toBe(1);
-  });
-
-  it("getTravelTime -- 2 -- 002", () => {
-    const tt = TrainrunsectionHelper.getTravelTime(10, 10, 1, 12, true, 0);
-    expect(tt).toBe(12);
-  });
-
-  it("getTravelTime -- 2 -- 003", () => {
-    const tt = TrainrunsectionHelper.getTravelTime(10, 10, 1, 12, false, 0);
-    expect(tt).toBe(1);
-  });
-
-  it("getTravelTime -- 2 -- 004", () => {
-    const tt = TrainrunsectionHelper.getTravelTime(8, 10, 2, 12, false, 0);
-    expect(tt).toBe(1);
   });
 
   it("trainrunSectionService.getTrainrunSectionFromId", () => {

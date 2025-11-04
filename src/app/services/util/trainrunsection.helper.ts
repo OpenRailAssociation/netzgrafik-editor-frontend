@@ -39,6 +39,8 @@ export class TrainrunsectionHelper {
       rightArrivalTime: 0,
       travelTime: 0,
       bottomTravelTime: 0,
+      stopTime: 0,
+      bottomStopTime: 0,
     };
   }
 
@@ -288,6 +290,8 @@ export class TrainrunsectionHelper {
         rightArrivalTime: section.getHeadArrival(),
         travelTime: section.getTravelTime(),
         bottomTravelTime: section.getReverseTravelTime(),
+        stopTime: 0,
+        bottomStopTime: 0,
       };
     }
 
@@ -330,6 +334,13 @@ export class TrainrunsectionHelper {
         : "sourceToTarget",
     );
 
+    const totalForwardDuration =
+      lastRightNode.getArrivalTime(rightTrainrunSection) -
+      lastLeftNode.getDepartureTime(leftTrainrunSection);
+    const totalBackwardDuration =
+      lastLeftNode.getArrivalTime(leftTrainrunSection) -
+      lastRightNode.getDepartureTime(rightTrainrunSection);
+
     return {
       leftDepartureTime: lastLeftNode.getDepartureTime(leftTrainrunSection),
       leftArrivalTime: lastLeftNode.getArrivalTime(leftTrainrunSection),
@@ -337,6 +348,8 @@ export class TrainrunsectionHelper {
       rightArrivalTime: lastRightNode.getArrivalTime(rightTrainrunSection),
       travelTime: cumulativeTravelTime,
       bottomTravelTime: cumulativeBottomTravelTime,
+      stopTime: MathUtils.mod60(totalForwardDuration - cumulativeTravelTime),
+      bottomStopTime: MathUtils.mod60(totalBackwardDuration - cumulativeBottomTravelTime),
     };
   }
 
