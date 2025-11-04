@@ -271,6 +271,12 @@
             </button>
           </div>
 
+          <div
+            [ngClass]="getTravelTimeCssClass() + 'StopTime'"
+            *ngIf="trainrunSectionTimesService.getTimeStructure().stopTime > 0"
+          >
+            <p>+ {{ trainrunSectionTimesService.getTimeStructure().stopTime }}</p>
+          </div>
           <div [ngClass]="getTravelTimeCssClass() + 'TravelTimeMinus'">
             <button
               tabindex="-1"
@@ -315,6 +321,15 @@
             </button>
           </div>
 
+          <div
+            class="BottomStopTime"
+            *ngIf="
+              !selectedTrainrunSection.isSymmetric() &&
+              trainrunSectionTimesService.getTimeStructure().bottomStopTime > 0
+            "
+          >
+            <p>+ {{ trainrunSectionTimesService.getTimeStructure().bottomStopTime }}</p>
+          </div>
           <div class="BottomTravelTimeMinus" *ngIf="isBottomTravelTimeDisplayed">
             <button
               tabindex="-1"

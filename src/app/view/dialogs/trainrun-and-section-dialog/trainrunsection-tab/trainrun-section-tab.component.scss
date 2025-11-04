@@ -239,6 +239,12 @@ input.NumberOfStopsInputElement.IsActive {
   grid-row: 2;
 }
 
+::ng-deep .StopTime {
+  grid-column: 8 / span 2;
+  grid-row: 1;
+  color: var(--sbb-form-label-color);
+}
+
 ::ng-deep .TravelTimeTime {
   grid-column: 8 / span 2;
   grid-row: 2;
@@ -263,6 +269,12 @@ input.NumberOfStopsInputElement.IsActive {
   grid-row: 1;
 }
 
+::ng-deep .TopStopTime {
+  grid-column: 12;
+  grid-row: 1;
+  color: var(--sbb-form-label-color);
+}
+
 ::ng-deep .TopTravelTimeTime {
   grid-column: 9 / span 2;
   grid-row: 1;
@@ -280,6 +292,12 @@ input.NumberOfStopsInputElement.IsActive {
 
 ::ng-deep div.BottomTravelTime {
   border: 1px solid var(--sbb-menu-item-label);
+}
+
+::ng-deep .BottomStopTime {
+  grid-column: 11;
+  grid-row: 3;
+  color: var(--sbb-form-label-color);
 }
 
 ::ng-deep .BottomTravelTimeMinus {
