@@ -331,6 +331,7 @@ export class TrainrunSectionsView {
       case TrainrunSectionText.TargetArrival:
         return trainrunSection.getTextPositionX(textElement);
       case TrainrunSectionText.TrainrunSectionTravelTime:
+        return RASTERING_BASIC_GRID_SIZE / 2;
       case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
         return RASTERING_BASIC_GRID_SIZE / 4;
       case TrainrunSectionText.TrainrunSectionName:
@@ -347,6 +348,11 @@ export class TrainrunSectionsView {
       case TrainrunSectionText.TargetDeparture:
       case TrainrunSectionText.TargetArrival:
         return trainrunSection.getTextPositionY(textElement);
+      case TrainrunSectionText.TrainrunSectionName:
+      case TrainrunSectionText.TrainrunSectionTravelTime:
+        return 3;
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
+        return 0;
       default:
         return 0;
     }
