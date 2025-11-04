@@ -266,6 +266,9 @@
               -
             </button>
           </div>
+          <div class="StopTime" *ngIf="trainrunSectionTimesService.getTimeStructure().stopTime > 0">
+            <p>+ {{ trainrunSectionTimesService.getTimeStructure().stopTime }}' stop</p>
+          </div>
           <div class="TravelTimeTime">
             <ng-container>
               <input
