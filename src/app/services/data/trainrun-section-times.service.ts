@@ -17,6 +17,8 @@ export interface LeftAndRightTimeStructure {
   rightArrivalTime: number;
   travelTime: number;
   bottomTravelTime: number;
+  stopTime: number;
+  bottomStopTime: number;
 }
 
 export interface LeftAndRightLockStructure {
@@ -41,6 +43,8 @@ const leftToRightStructureKeys = {
   headSymmetry: "rightSymmetry",
   travelTime: "travelTime",
   reverseTravelTime: "bottomTravelTime",
+  stopTime: "stopTime",
+  reverseStopTime: "bottomStopTime",
 } as const;
 const rightToLeftStructureKeys = {
   tailDepartureTime: "rightDepartureTime",
@@ -53,6 +57,8 @@ const rightToLeftStructureKeys = {
   headSymmetry: "leftSymmetry",
   travelTime: "bottomTravelTime",
   reverseTravelTime: "travelTime",
+  stopTime: "bottomStopTime",
+  reverseStopTime: "stopTime",
 } as const;
 
 type LeftAndRightStructureKeys = typeof leftToRightStructureKeys | typeof rightToLeftStructureKeys;
@@ -109,6 +115,8 @@ export class TrainrunSectionTimesService {
     rightArrivalTime: 0,
     travelTime: 0,
     bottomTravelTime: 0,
+    stopTime: 0,
+    bottomStopTime: 0,
   };
 
   private nodesOrdered: Node[] = [];
@@ -230,7 +238,13 @@ export class TrainrunSectionTimesService {
   }
 
   private updateTravelTimeMinutes(key: "travelTime" | "bottomTravelTime", minutes: number) {
-    const extraHour = this.timeStructure[key] - (this.timeStructure[key] % 60);
+    const stopTime =
+      this.timeStructure[
+        key === "travelTime"
+          ? leftToRightStructureKeys.stopTime
+          : leftToRightStructureKeys.reverseStopTime
+      ];
+    const extraHour = this.timeStructure[key] - ((this.timeStructure[key] + stopTime) % 60);
     this.timeStructure[key] = MathUtils.mod60(minutes);
     this.timeStructure[key] += extraHour;
   }
@@ -249,7 +263,9 @@ export class TrainrunSectionTimesService {
     }
     if (!this.lockStructure[keys.headLock]) {
       this.timeStructure[keys.headArrivalTime] = MathUtils.mod60(
-        this.timeStructure[keys.tailDepartureTime] + this.timeStructure[keys.travelTime],
+        this.timeStructure[keys.tailDepartureTime] +
+          this.timeStructure[keys.travelTime] +
+          this.timeStructure[keys.stopTime],
       );
       if (this.symmetryStructure[keys.headSymmetry]) {
         this.timeStructure[keys.headDepartureTime] = TrainrunsectionHelper.getSymmetricTime(
@@ -278,7 +294,9 @@ export class TrainrunSectionTimesService {
     } else if (!this.lockStructure.travelTimeLock) {
       this.updateTravelTimeMinutes(
         keys.travelTime,
-        this.timeStructure[keys.headArrivalTime] - this.timeStructure[keys.tailDepartureTime],
+        this.timeStructure[keys.headArrivalTime] -
+          this.timeStructure[keys.tailDepartureTime] -
+          this.timeStructure[keys.stopTime],
       );
       this.updateTravelTimeMinutes(
         keys.reverseTravelTime,
@@ -306,7 +324,9 @@ export class TrainrunSectionTimesService {
     }
     if (!this.lockStructure[keys.headLock]) {
       this.timeStructure[keys.headDepartureTime] = MathUtils.mod60(
-        this.timeStructure[keys.tailArrivalTime] - this.timeStructure[keys.reverseTravelTime],
+        this.timeStructure[keys.tailArrivalTime] -
+          this.timeStructure[keys.reverseTravelTime] -
+          this.timeStructure[keys.stopTime],
       );
       if (this.symmetryStructure[keys.headSymmetry]) {
         this.timeStructure[keys.headArrivalTime] = TrainrunsectionHelper.getSymmetricTime(
@@ -334,11 +354,15 @@ export class TrainrunSectionTimesService {
     } else if (!this.lockStructure.travelTimeLock) {
       this.updateTravelTimeMinutes(
         keys.travelTime,
-        this.timeStructure[keys.headArrivalTime] - this.timeStructure[keys.tailDepartureTime],
+        this.timeStructure[keys.headArrivalTime] -
+          this.timeStructure[keys.tailDepartureTime] -
+          this.timeStructure[keys.stopTime],
       );
       this.updateTravelTimeMinutes(
         keys.reverseTravelTime,
-        this.timeStructure[keys.tailArrivalTime] - this.timeStructure[keys.headDepartureTime],
+        this.timeStructure[keys.tailArrivalTime] -
+          this.timeStructure[keys.headDepartureTime] -
+          this.timeStructure[keys.reverseStopTime],
       );
     } else {
       this.showWarningTwoLocks = true;
