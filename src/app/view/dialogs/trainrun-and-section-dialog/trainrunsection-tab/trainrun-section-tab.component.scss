@@ -154,14 +154,34 @@ input.NumberOfStopsInputElement.IsActive {
   grid-row: 2;
 }
 
+::ng-deep .StopTime {
+  grid-column: 8 / span 2;
+  grid-row: 1;
+  color: var(--sbb-form-label-color);
+  display: flex;
+  justify-content: center;
+}
+
 ::ng-deep .TopTravelTime {
   grid-column: 8/12;
   grid-row: 1;
 }
 
+::ng-deep .TopStopTime {
+  grid-column: 12;
+  grid-row: 1;
+  color: var(--sbb-form-label-color);
+}
+
 ::ng-deep .BottomTravelTime {
   grid-column: 7/11;
   grid-row: 3;
+}
+
+::ng-deep .BottomStopTime {
+  grid-column: 11;
+  grid-row: 3;
+  color: var(--sbb-form-label-color);
 }
 
 ::ng-deep .TravelTimeLock {
