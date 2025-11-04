@@ -176,6 +176,8 @@ describe("TrainrunSectionService", () => {
           leftArrivalTime: 45,
           travelTime: 10,
           bottomTravelTime: 15,
+          stopTime: 0,
+          bottomStopTime: 0,
         },
         expectedTrainrunSectionTimes: [
           {
@@ -199,6 +201,8 @@ describe("TrainrunSectionService", () => {
           leftArrivalTime: 45,
           travelTime: 10,
           bottomTravelTime: 15,
+          stopTime: 0,
+          bottomStopTime: 0,
         },
         expectedTrainrunSectionTimes: [
           {
@@ -222,6 +226,8 @@ describe("TrainrunSectionService", () => {
           leftArrivalTime: 45,
           travelTime: 10,
           bottomTravelTime: 15,
+          stopTime: 0,
+          bottomStopTime: 0,
         },
         expectedTrainrunSectionTimes: [
           {
