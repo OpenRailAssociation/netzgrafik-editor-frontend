@@ -144,6 +144,14 @@
             (increment)="trainrunSectionTimesService.onNodeRightDepartureTimeButtonPlus()"
             #rightDepartureTimeInputElement
           ></sbb-time-stepper>
+          <div
+            [ngClass]="getTravelTimeCssClass() + 'StopTime'"
+            *ngIf="
+              numberOfStopsInput > 0 && trainrunSectionTimesService.getTimeStructure().stopTime > 0
+            "
+          >
+            <p>+ {{ trainrunSectionTimesService.getTimeStructure().stopTime }}'</p>
+          </div>
           <sbb-time-stepper
             [containerClass]="getTrafficSideClass(getTravelTimeCssClass('TravelTime'))"
             inputId="TravelTimeTimeInputElement"
@@ -160,6 +168,16 @@
             (increment)="trainrunSectionTimesService.onTravelTimeButtonPlus()"
             #travelTimeInputElement
           ></sbb-time-stepper>
+          <div
+            class="BottomStopTime"
+            *ngIf="
+              !selectedTrainrunSection.isSymmetric() &&
+              numberOfStopsInput > 0 &&
+              trainrunSectionTimesService.getTimeStructure().bottomStopTime > 0
+            "
+          >
+            <p>+ {{ trainrunSectionTimesService.getTimeStructure().bottomStopTime }}'</p>
+          </div>
           <sbb-time-stepper
             *ngIf="isBottomTravelTimeDisplayed"
             [containerClass]="getTrafficSideClass('BottomTravelTime')"

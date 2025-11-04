@@ -310,7 +310,7 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     return "NumberOfStopsInputElement" + activeTag;
   }
 
-  getTravelTimeCssClass(className: string): string {
+  getTravelTimeCssClass(className: string = ""): string {
     if (this.isBottomTravelTimeDisplayed) {
       // Travel time is displayed at the top
       // (and bottom travel time at the bottom)
