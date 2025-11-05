@@ -1,4 +1,5 @@
 import {TrainrunSection} from "../../../models/trainrunsection.model";
+import {Vec2D} from "../../../utils/vec2D";
 import {EditorView} from "./editor.view";
 
 export class TrainrunSectionViewObject {
@@ -16,7 +17,7 @@ export class TrainrunSectionViewObject {
     hiddenTagTrainrunName: boolean,
     hiddenTagDirectionArrows: boolean,
   ) {
-    this.key = TrainrunSectionViewObject.generateKey(
+    this.key = this.generateKey(
       editorView,
       trainrunSections,
       isNonStopAtSource,
@@ -34,7 +35,7 @@ export class TrainrunSectionViewObject {
     return this.trainrunSections[0].getTrainrun();
   }
 
-  static generateKey(
+  private generateKey(
     editorView: EditorView,
     trainrunSections: TrainrunSection[],
     isNonStopAtSource: boolean,
@@ -158,13 +159,16 @@ export class TrainrunSectionViewObject {
       key += "_" + editorView.checkFilterNode(data.node);
     });
 
-    d.getPath().forEach((p) => {
+    this.getPath().forEach((p) => {
       key += p.toString();
     });
 
-    key += "_SRC_" + d.getSourceNode().getPositionX() + "_" + d.getSourceNode().getPositionY();
-    key += "_TRG_" + d.getTargetNode().getPositionX() + "_" + d.getTargetNode().getPositionY();
-
     return key;
+  }
+
+  getPath(): Vec2D[] {
+    const sourcePath = this.trainrunSections[0].getPath().slice(0, 2);
+    const targetPath = this.trainrunSections.at(-1)!.getPath().slice(2, 4);
+    return [...sourcePath, ...targetPath];
   }
 }
