@@ -152,7 +152,7 @@ export class TrainrunSectionsView {
     trainrunSectionText: TrainrunSectionText,
   ) {
     const trainrunSection = viewObject.trainrunSections[0];
-    const collapsedChainPath = this.getCollapsedChainPath(trainrunSection);
+    const collapsedChainPath = viewObject.getPath();
 
     if (collapsedChainPath && collapsedChainPath.length >= MIN_PATH_LENGTH_FOR_ANGLE) {
       const textPositions = this.getTextPositionsForCollapsedChain(
@@ -278,34 +278,6 @@ export class TrainrunSectionsView {
 
   static getNode(trainrunSection: TrainrunSection, atSource: boolean): Node {
     return atSource ? trainrunSection.getSourceNode() : trainrunSection.getTargetNode();
-  }
-
-  /**
-   * Calculate a direct path between start and end nodes for collapsed chain visualization
-   */
-  static calculateDirectPath(
-    startNode: Node,
-    endNode: Node,
-    allSections: TrainrunSection[],
-    primarySection: TrainrunSection,
-  ): Vec2D[] {
-    const [firstSection, lastSection] = [allSections[0], allSections[allSections.length - 1]];
-
-    const sourcePort =
-      startNode.getPortOfTrainrunSection(firstSection.getId()) ?? startNode.getPorts()[0];
-    const targetPort =
-      endNode.getPortOfTrainrunSection(lastSection.getId()) ?? endNode.getPorts()[0];
-
-    if (!sourcePort || !targetPort) {
-      return [];
-    }
-
-    return SimpleTrainrunSectionRouter.routeTrainrunSection(
-      startNode,
-      sourcePort,
-      endNode,
-      targetPort,
-    );
   }
 
   static hasWarning(trainrunSection: TrainrunSection, textElement: TrainrunSectionText): boolean {
@@ -1316,7 +1288,7 @@ export class TrainrunSectionsView {
         d.getTrainrun().getId(),
       )
       .attr("d", (d: TrainrunSectionViewObject) =>
-        D3Utils.getPathAsSVGString(this.transformPath(d.trainrunSections[0])),
+        D3Utils.getPathAsSVGString(this.transformPath(d)),
       )
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
         d.getTrainrun().selected(),
@@ -1851,22 +1823,21 @@ export class TrainrunSectionsView {
 
     sectionGroups.forEach((sections) => {
       const d = sections[0];
-      this.updateTrainrunSectionPathForCollapsedChain(d);
-      viewTrainrunSectionDataObjects.push(
-        new TrainrunSectionViewObject(
-          editorView,
-          sections,
-          TrainrunSectionsView.getNode(d, true).isNonStop(d),
-          TrainrunSectionsView.getNode(d, false).isNonStop(d),
-          TrainrunSectionsView.isMuted(d, selectedTrainrun, connectedTrainIds),
-          this.getHiddenTagForTime(d, TrainrunSectionText.SourceDeparture),
-          this.getHiddenTagForTime(d, TrainrunSectionText.TargetDeparture),
-          this.getHiddenTagForTime(d, TrainrunSectionText.TrainrunSectionTravelTime),
-          this.getHiddenTagForTime(d, TrainrunSectionText.TrainrunSectionName),
-          !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
-            !this.editorView.isFilterDirectionArrowsEnabled(),
-        ),
+      const viewObject = new TrainrunSectionViewObject(
+        editorView,
+        sections,
+        TrainrunSectionsView.getNode(d, true).isNonStop(d),
+        TrainrunSectionsView.getNode(d, false).isNonStop(d),
+        TrainrunSectionsView.isMuted(d, selectedTrainrun, connectedTrainIds),
+        this.getHiddenTagForTime(d, TrainrunSectionText.SourceDeparture),
+        this.getHiddenTagForTime(d, TrainrunSectionText.TargetDeparture),
+        this.getHiddenTagForTime(d, TrainrunSectionText.TrainrunSectionTravelTime),
+        this.getHiddenTagForTime(d, TrainrunSectionText.TrainrunSectionName),
+        !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
+          !this.editorView.isFilterDirectionArrowsEnabled(),
       );
+      this.updateTrainrunSectionPathForCollapsedChain(viewObject);
+      viewTrainrunSectionDataObjects.push(viewObject);
     });
 
     return viewTrainrunSectionDataObjects;
@@ -2309,10 +2280,10 @@ export class TrainrunSectionsView {
     return transformedPath;
   }
 
-  private transformPath(ts: TrainrunSection): Vec2D[] {
-    const collapsedChainPath = this.getCollapsedChainPath(ts);
-    if (collapsedChainPath) {
-      return this.applyBasicFiltering(collapsedChainPath, ts);
+  private transformPath(viewObject: TrainrunSectionViewObject): Vec2D[] {
+    const ts = viewObject.trainrunSections[0];
+    if (viewObject.trainrunSections.length > 1) {
+      return this.applyBasicFiltering(viewObject.getPath(), ts);
     }
 
     const srcNode = ts.getSourceNode();
@@ -2349,47 +2320,13 @@ export class TrainrunSectionsView {
   }
 
   /**
-   * Detect collapsed node chains and calculate direct visualization path
-   *
-   * A collapsed chain occurs when intermediate nodes are hidden from view.
-   * Example: A-B*-C*-D where B* and C* are collapsed -> create direct path A→D
-   *
-   * Algorithm:
-   * 1. Walk backward from current section to find chain start (non-collapsed node)
-   * 2. Walk forward from current section to find chain end (non-collapsed node)
-   * 3. If start != end, calculate direct path using legacy routing system
-   *
-   * @param currentSection The section that might be part of a collapsed chain
-   * @returns Direct path Vec2D[] if chain detected, null otherwise
-   */
-  private getCollapsedChainPath(currentSection: TrainrunSection): Vec2D[] | null {
-    const trainrunId = currentSection.getTrainrunId();
-
-    const startSection = this.findChainBoundary(currentSection, trainrunId, "backward");
-    const endSection = this.findChainBoundary(currentSection, trainrunId, "forward");
-
-    if (startSection.getId() !== endSection.getId()) {
-      const startNode = startSection.getSourceNode();
-      const endNode = endSection.getTargetNode();
-
-      return TrainrunSectionsView.calculateDirectPath(
-        startNode,
-        endNode,
-        [startSection, endSection],
-        currentSection,
-      );
-    }
-
-    return null;
-  }
-
-  /**
    * Updates the TrainrunSection's path if it's part of a collapsed chain.
    * This ensures the visual rendering uses the correct collapsed path instead of the direct path.
    */
-  private updateTrainrunSectionPathForCollapsedChain(section: TrainrunSection): void {
-    const collapsedPath = this.getCollapsedChainPath(section);
-    if (collapsedPath) {
+  private updateTrainrunSectionPathForCollapsedChain(viewObject: TrainrunSectionViewObject): void {
+    const section = viewObject.trainrunSections[0];
+    const collapsedPath = viewObject.getPath();
+    if (viewObject.trainrunSections.length > 1) {
       (section as any).pathVec2D = collapsedPath;
 
       const sourcePort = section.getSourceNode().getPort(section.getSourcePortId());
@@ -2398,56 +2335,6 @@ export class TrainrunSectionsView {
           SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(collapsedPath, sourcePort);
       }
     }
-  }
-
-  /**
-   * Find the boundary of a collapsed chain by walking in the specified direction
-   */
-  private findChainBoundary(
-    startSection: TrainrunSection,
-    trainrunId: number,
-    direction: "forward" | "backward",
-  ): TrainrunSection {
-    let currentSection = startSection;
-
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      const node =
-        direction === "backward" ? currentSection.getSourceNode() : currentSection.getTargetNode();
-
-      if (!node.getIsCollapsed()) {
-        break;
-      }
-
-      const connectedSections = this.getConnectedTrainrunSections(node, trainrunId).filter(
-        (ts) => ts.getId() !== currentSection.getId(),
-      );
-
-      if (connectedSections.length === 1) {
-        currentSection = connectedSections[0];
-      } else {
-        break;
-      }
-    }
-
-    return currentSection;
-  }
-
-  /**
-   * Get all trainrun sections connected to a node for a specific trainrun
-   */
-  private getConnectedTrainrunSections(node: Node, trainrunId: number): TrainrunSection[] {
-    const sections: TrainrunSection[] = [];
-    const ports = node.getPorts();
-
-    for (const port of ports) {
-      const section = port.getTrainrunSection();
-      if (section && section.getTrainrunId() === trainrunId) {
-        sections.push(section);
-      }
-    }
-
-    return sections;
   }
 
   /**
