@@ -779,6 +779,7 @@ export class TrainrunSectionsView {
       }
       case TrainrunSectionText.TrainrunSectionTravelTime:
       case TrainrunSectionText.TrainrunSectionBackwardTravelTime: {
+        const isForward = textElement === TrainrunSectionText.TrainrunSectionTravelTime;
         const data = TrainrunSectionsView.getFormattedDisplayText(trainrunSection, textElement);
         if (data !== undefined) {
           return data;
@@ -786,9 +787,7 @@ export class TrainrunSectionsView {
         return TrainrunSectionsView.extractTravelTime(
           trainrunSection,
           editorView,
-          textElement === TrainrunSectionText.TrainrunSectionTravelTime
-            ? "sourceToTarget"
-            : "targetToSource",
+          isForward ? "sourceToTarget" : "targetToSource",
         );
       }
       case TrainrunSectionText.TrainrunSectionName:
@@ -1186,7 +1185,7 @@ export class TrainrunSectionsView {
               ? ""
               : "M-1,-6 V0 H-8 L1,6 V0 H8 Z";
           } else {
-            return d.trainrunSections[0].isTargetSymmetricOrTimesSymmetric()
+            return d.trainrunSections.at(-1)!.isTargetSymmetricOrTimesSymmetric()
               ? ""
               : "M-1,-6 V0 H-8 L1,6 V0 H8 Z";
           }
