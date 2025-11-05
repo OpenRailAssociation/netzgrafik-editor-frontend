@@ -74,7 +74,7 @@ export class TrainrunSectionViewObject {
       "_" +
       d.getSourceDeparture() +
       "_" +
-      d.getTargetArrival() +
+      d.getSourceArrival() +
       "_" +
       d.getTargetDepartureConsecutiveTime() +
       "_" +
