@@ -120,6 +120,7 @@ import {OriginDestinationComponent} from "./services/analytics/origin-destinatio
 import {SbbToggleModule} from "@sbb-esta/angular/toggle";
 import {ToggleSwitchButtonComponent} from "./view/toggle-switch-button/toggle-switch-button.component";
 import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrunsection-tab/time-stepper/time-stepper.component";
+import {GlobalNodesManagementComponent} from "./view/editor-edit-tools-view-component/global-nodes-management/global-nodes-management.component";
 
 @NgModule({
   declarations: [
@@ -201,6 +202,7 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     TrainRunSectionStopsComponentComponent,
     PathGridComponent,
     ToggleSwitchButtonComponent,
+    GlobalNodesManagementComponent,
   ],
   bootstrap: environment.customElement ? [] : [AppComponent],
   imports: [
