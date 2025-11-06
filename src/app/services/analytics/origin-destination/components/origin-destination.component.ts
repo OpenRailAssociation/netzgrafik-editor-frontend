@@ -275,10 +275,10 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       }
 
       // Highlight axis labels in bold when hovering over a cell
-      d3.selectAll(`[data-origin-label="${d.origin}"]`)
+      d3.selectAll(`[data-origin-label="${d.originId}"]`)
         .style("font-weight", "bold")
         .style("font-size", "12px");
-      d3.selectAll(`[data-destination-label="${d.destination}"]`)
+      d3.selectAll(`[data-destination-label="${d.destinationId}"]`)
         .style("font-weight", "bold")
         .style("font-size", "12px");
     };
@@ -311,13 +311,13 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       tooltip.style("opacity", 0);
       d3.select(this)
         .style("stroke", "none")
-        .style("opacity", (d: OriginDestination) => (d.origin === d.destination ? 0 : 0.8));
+        .style("opacity", (d: OriginDestination) => (d.originId === d.destinationId ? 0 : 0.8));
 
       // Remove boldness from the axis labels
-      d3.selectAll(`[data-origin-label="${_d.origin}"]`)
+      d3.selectAll(`[data-origin-label="${_d.originId}"]`)
         .style("font-weight", null)
         .style("font-size", null);
-      d3.selectAll(`[data-destination-label="${_d.destination}"]`)
+      d3.selectAll(`[data-destination-label="${_d.destinationId}"]`)
         .style("font-weight", null)
         .style("font-size", null);
     };
