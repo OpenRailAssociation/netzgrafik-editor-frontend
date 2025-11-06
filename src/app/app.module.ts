@@ -107,6 +107,7 @@ import {I18nModule} from "./core/i18n/i18n.module";
 import {OriginDestinationComponent} from "./services/analytics/origin-destination/components/origin-destination.component";
 import {SbbToggleModule} from "@sbb-esta/angular/toggle";
 import {ToggleSwitchButtonComponent} from "./view/toggle-switch-button/toggle-switch-button.component";
+import {GlobalNodesManagementComponent} from "./view/editor-edit-tools-view-component/global-nodes-management/global-nodes-management.component";
 
 @NgModule({
   declarations: [
@@ -152,6 +153,7 @@ import {ToggleSwitchButtonComponent} from "./view/toggle-switch-button/toggle-sw
     NavigationBarComponent,
     EditorPropertiesViewComponent,
     EditorEditToolsViewComponent,
+    GlobalNodesManagementComponent,
     FilterableLabelDialogComponent,
     FilterableLabelFormComponent,
     NoteDialogComponent,
