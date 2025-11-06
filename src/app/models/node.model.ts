@@ -62,8 +62,8 @@ export class Node {
       labelIds,
     }: NodeDto = {
       id: Node.incrementId(),
-      betriebspunktName: $localize`:@@app.models.node.shortNameDefault:NEW`,
-      fullName: $localize`:@@app.models.node.full-name-default:New node`,
+      betriebspunktName: `id${Node.currentId}`,
+      fullName: "",
       positionX: 0,
       positionY: 0,
       ports: [],
