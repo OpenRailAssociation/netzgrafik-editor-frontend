@@ -78,6 +78,31 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
   // Compute the matrix (expensive) and render the default view.
   ngOnInit(): void {
+    this.loadMatrixData();
+    this.renderView();
+
+    this.uiInteractionService.zoomInObservable
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe((zoomCenter: Vec2D) => this.controller.zoomIn(zoomCenter));
+
+    this.uiInteractionService.zoomOutObservable
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe((zoomCenter: Vec2D) => this.controller.zoomOut(zoomCenter));
+
+    this.uiInteractionService.zoomResetObservable
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe((zoomCenter: Vec2D) => this.controller.zoomReset(zoomCenter));
+
+    // filter changes should only reload and redraw
+    this.filterService.filter.pipe(takeUntil(this.destroyed$)).subscribe(() => {
+      this.loadMatrixData();
+      d3.select("#main-origin-destination-container").remove();
+      this.renderView();
+    });
+  }
+
+  private loadMatrixData(): void {
+    // Load raw OD data and ensure diagonal entries exist (only once on init)
     this.matrixData = this.originDestinationService.originDestinationData();
 
     // Add some data so we can mouseover the diagonal cells.
@@ -95,79 +120,6 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       found: false,
     }));
     this.matrixData = [...this.matrixData, ...diagonalData];
-    this.renderView();
-
-    this.uiInteractionService.zoomInObservable
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((zoomCenter: Vec2D) => this.controller.zoomIn(zoomCenter));
-
-    this.uiInteractionService.zoomOutObservable
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((zoomCenter: Vec2D) => this.controller.zoomOut(zoomCenter));
-
-    this.uiInteractionService.zoomResetObservable
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((zoomCenter: Vec2D) => this.controller.zoomReset(zoomCenter));
-
-    // filter changes should only reload and redraw
-    this.filterService.filter.pipe(takeUntil(this.destroyed$)).subscribe(() => {
-      this.matrixData = this.originDestinationService.originDestinationData();
-
-      // Add some data so we can mouseover the diagonal cells.
-      const origins = this.matrixData.map((d) => d.originId);
-      const destinations = this.matrixData.map((d) => d.destinationId);
-      const uniqueOriginsDestinations = [...new Set([...origins, ...destinations])];
-      const diagonalData: OriginDestination[] = uniqueOriginsDestinations.map((nodeId) => ({
-        origin: this.nodeService.getNodeFromId(nodeId).getBetriebspunktName(),
-        destination: this.nodeService.getNodeFromId(nodeId).getBetriebspunktName(),
-        originId: nodeId,
-        destinationId: nodeId,
-        totalCost: undefined,
-        travelTime: undefined,
-        transfers: undefined,
-        found: false,
-      }));
-      this.matrixData = [...this.matrixData, ...diagonalData];
-      d3.select("#main-origin-destination-container").remove();
-      this.renderView();
-    });
-  }
-
-  private loadMatrixData(): void {
-    // Load raw OD data and ensure diagonal entries exist (only once on init)
-    const raw = this.originDestinationService.originDestinationData() ?? [];
-    this.matrixData = raw.slice();
-
-    // create diagonal entries for all involved node ids
-    const idSet = new Set<number>();
-    for (const od of this.matrixData) {
-      idSet.add(od.originId);
-      idSet.add(od.destinationId);
-    }
-
-    for (const nodeId of Array.from(idSet)) {
-      // Ensures only missing diagonal elements are added
-      const exists = this.matrixData.some(
-        (d) => d.originId === nodeId && d.destinationId === nodeId,
-      );
-      if (!exists) {
-        // only add the diagonal element if it not exists
-        // it helps prevent future issues—such as if the calculation of
-        // this.originDestinationService.originDestinationData()
-        // changes and diagonal elements end up being sent as well.
-        const node = this.nodeService.getNodeFromId(nodeId);
-        this.matrixData.push({
-          origin: node.getBetriebspunktName(),
-          destination: node.getBetriebspunktName(),
-          originId: nodeId,
-          destinationId: nodeId,
-          totalCost: undefined,
-          travelTime: undefined,
-          transfers: undefined,
-          found: false,
-        });
-      }
-    }
   }
 
   // Render the matrix with the given node names.
