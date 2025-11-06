@@ -1,0 +1,56 @@
+<section class="global-nodes-management">
+  <div class="search">
+    <input
+      #globalNodesManagementQuery
+      sbbInput
+      type="search"
+      [value]="query"
+      (input)="updateState({query: globalNodesManagementQuery.value})"
+      [placeholder]="
+        'app.view.editor-edit-tools-view-component.nodes-search-placeholder' | translate
+      "
+    />
+  </div>
+  <div class="nodes-list">
+    @if (matchingNodes.length) {
+      <table>
+        <thead>
+          <tr>
+            @for (column of ["nodes-expanded", "nodes"]; track column) {
+              <th scope="col">
+                {{ "app.view.editor-edit-tools-view-component." + column | translate }}
+              </th>
+            }
+          </tr>
+          @if (matchingNodes.length > 1) {
+            <tr>
+              <td>
+                <sbb-checkbox
+                  [checked]="!!getGlobalCheckboxStatus()"
+                  [indeterminate]="getGlobalCheckboxStatus() === undefined"
+                  (click)="onClickGlobalCheckbox($event)"
+                />
+              </td>
+            </tr>
+          }
+        </thead>
+        <tbody>
+          @for (node of matchingNodes; track node.getId()) {
+            <tr>
+              <td class="offset">
+                <sbb-checkbox
+                  [checked]="!node.getIsCollapsed()"
+                  (change)="toggleIsCollapsed(node, !$event.checked)"
+                />
+              </td>
+              <td>{{ node.getBetriebspunktName() }}</td>
+              <td>{{ node.getFullName() }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <p>{{ "app.view.editor-edit-tools-view-component.nodes-no-result" | translate }}</p>
+    }
+  </div>
+</section>
