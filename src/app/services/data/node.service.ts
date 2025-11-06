@@ -232,6 +232,13 @@ export class NodeService implements OnDestroy {
     const alignedPosition = NodeService.alginNodeToRaster(new Vec2D(positionX, positionY));
     this.nodesStore.nodes.forEach((n) => n.unselect());
     const node: Node = new Node();
+    let maxNodeId: number = 0;
+    this.getNodes().forEach((node) => {
+      if (node.getId() > maxNodeId) {
+        maxNodeId = node.getId();
+      }
+    });
+    node.setBetriebspunktName(`id${maxNodeId + 1}`);
     const resource: Resource = this.resourceService.createAndGetResource();
     node.setResourceId(resource.getId());
     node.setPosition(alignedPosition.getX(), alignedPosition.getY());
@@ -264,7 +271,6 @@ export class NodeService implements OnDestroy {
   addEmptyNode(positionX: number, positionY: number): Node {
     const node: Node = new Node();
     node.setFullName("");
-    node.setBetriebspunktName("");
     node.setPosition(positionX, positionY);
     node.setIsCollapsed(true);
     const resource: Resource = this.resourceService.createAndGetResource();

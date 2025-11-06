@@ -64,8 +64,8 @@ export class Node {
       isCollapsed = false, // older DTO files don't have this field
     }: NodeDto = {
       id: Node.incrementId(),
-      betriebspunktName: $localize`:@@app.models.node.shortNameDefault:NEW`,
-      fullName: $localize`:@@app.models.node.full-name-default:New node`,
+      betriebspunktName: "",
+      fullName: "",
       positionX: 0,
       positionY: 0,
       ports: [],
