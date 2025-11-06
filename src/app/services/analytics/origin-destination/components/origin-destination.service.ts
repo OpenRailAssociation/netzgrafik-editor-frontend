@@ -14,7 +14,9 @@ import {
 export type OriginDestination = {
   // Names.
   origin: string;
+  originId: number;
   destination: string;
+  destinationId: number;
   // Travel time in minutes.
   travelTime: number | undefined;
   // Number of transfers.
@@ -101,6 +103,8 @@ export class OriginDestinationService {
           rows.push({
             origin: origin.getBetriebspunktName(),
             destination: destination.getBetriebspunktName(),
+            originId: origin.getId(),
+            destinationId: destination.getId(),
             found: false,
           });
           return;
@@ -109,6 +113,8 @@ export class OriginDestinationService {
         const row = {
           origin: origin.getBetriebspunktName(),
           destination: destination.getBetriebspunktName(),
+          originId: origin.getId(),
+          destinationId: destination.getId(),
           travelTime: totalCost - connections * connectionPenalty,
           transfers: connections,
           totalCost: totalCost,
