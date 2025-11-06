@@ -255,8 +255,8 @@ export class NodeService implements OnDestroy {
   }
 
   addEmptyNode(): Node {
-    this.nodesStore.nodes.forEach((n) => n.unselect());
     const node: Node = new Node();
+    node.setIsCollapsed(true);
     const resource: Resource = this.resourceService.createAndGetResource();
     node.setResourceId(resource.getId());
     this.nodesStore.nodes.push(node);

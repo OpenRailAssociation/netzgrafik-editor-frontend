@@ -960,8 +960,6 @@ export class TrainrunSectionService implements OnDestroy {
     const transition2: Transition = node2.getTransition(trainrunSection1.getId());
     const nonStop2 = transition2 !== undefined ? transition2.getIsNonStopTransit() : false;
 
-    // can’t do all that after we have added
-    // problem: mutate directly node in the node store in place
     node2.replaceTrainrunSectionOnPort(trainrunSection1, trainrunSection2);
 
     trainrunSection1.setTargetNode(nodeIntermediate);
@@ -1054,7 +1052,7 @@ export class TrainrunSectionService implements OnDestroy {
     this.nodeService.nodesUpdated();
     this.trainrunSectionsUpdated();
     return {
-      trainrunSection2,
+      newTrainRunSection: trainrunSection2,
     };
   }
 

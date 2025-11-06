@@ -110,16 +110,14 @@ export class DataService implements OnDestroy {
   replaceLegacyNumberOfStopsWithRealNodes(netzgrafikDto: NetzgrafikDto) {
     for (const trainrunSection of netzgrafikDto.trainrunSections) {
       let currentSection = trainrunSection;
-      if (trainrunSection.numberOfStops > 0) {
-        for (let i = 0; i < trainrunSection.numberOfStops; i++) {
-          const newNode = this.nodeService.addEmptyNode();
-          const {trainrunSection2} = this.trainrunSectionService.replaceIntermediateStopWithNode(
-            currentSection.id,
-            0,
-            newNode.getId(),
-          );
-          currentSection = trainrunSection2.getDto();
-        }
+      for (let i = 0; i < trainrunSection.numberOfStops; i++) {
+        const newNode = this.nodeService.addEmptyNode();
+        const {newTrainRunSection} = this.trainrunSectionService.replaceIntermediateStopWithNode(
+          currentSection.id,
+          0,
+          newNode.getId(),
+        );
+        currentSection = newTrainRunSection.getDto();
       }
     }
   }
