@@ -126,7 +126,6 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
   rendermatrixOD(nodeNames: {shortName: string; fullName: string; id: number}[]) {
     const width = this.cellSize * nodeNames.length;
     const height = this.cellSize * nodeNames.length;
-    console.log(nodeNames);
     // append the svg object to the body of the page
     const svg = d3
       .select("#main-origin-destination-container-root")
