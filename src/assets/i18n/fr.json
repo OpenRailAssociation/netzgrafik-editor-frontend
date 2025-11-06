@@ -336,7 +336,10 @@
           "trainruns": "Trajets de train",
           "notes": "Notes",
           "nodes": "Noeuds"
-        }
+        },
+        "nodes-search-placeholder": "Rechercher par noms ou trigrammes",
+        "nodes-expanded": "Agrandis",
+        "nodes-no-result": "Aucun noeud ne correspond à cette recherche."
       },
       "editor-filter-view": {
         "filter": "Filtres",

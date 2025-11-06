@@ -337,7 +337,10 @@
           "trainruns": "Trainruns",
           "notes": "Notes",
           "nodes": "Nodes"
-        }
+        },
+        "nodes-search-placeholder": "Search for names or trigrams",
+        "nodes-expanded": "Expanded",
+        "nodes-no-result": "There is no node matching the query."
       },
       "editor-filter-view": {
         "filter": "Filter",
