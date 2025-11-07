@@ -10,10 +10,10 @@ import {
 import {UiInteractionService, ViewboxProperties} from "src/app/services/ui/ui.interaction.service";
 import {Vec2D} from "src/app/utils/vec2D";
 import {UndoService} from "src/app/services/data/undo.service";
+import {FilterService} from "../../../ui/filter.service";
+import {NodeService} from "../../../data/node.service";
 
-// Fields that can be used for the color scale and display text.
 type FieldName = "totalCost" | "travelTime" | "transfers";
-// Palettes that can be used for the color scale.
 type ColorSetName = "red" | "blue" | "orange" | "gray";
 
 /**
@@ -35,6 +35,8 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     private originDestinationService: OriginDestinationService,
     private uiInteractionService: UiInteractionService,
     private undoService: UndoService,
+    private filterService: FilterService,
+    private nodeService: NodeService,
   ) {}
 
   private matrixData: OriginDestination[] = [];
@@ -61,6 +63,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const nodeNames = nodes.map((node) => ({
       shortName: node.getBetriebspunktName(),
       fullName: node.getFullName(),
+      id: node.getId(),
     }));
 
     this.rendermatrixOD(nodeNames);
@@ -75,21 +78,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
   // Compute the matrix (expensive) and render the default view.
   ngOnInit(): void {
-    this.matrixData = this.originDestinationService.originDestinationData();
-
-    // Add some data so we can mouseover the diagonal cells.
-    const origins = this.matrixData.map((d) => d.origin);
-    const destinations = this.matrixData.map((d) => d.destination);
-    const uniqueOriginsDestinations = [...new Set([...origins, ...destinations])];
-    const diagonalData: OriginDestination[] = uniqueOriginsDestinations.map((name) => ({
-      origin: name,
-      destination: name,
-      totalCost: undefined,
-      travelTime: undefined,
-      transfers: undefined,
-      found: false,
-    }));
-    this.matrixData = [...this.matrixData, ...diagonalData];
+    this.loadMatrixData();
     this.renderView();
 
     this.uiInteractionService.zoomInObservable
@@ -103,13 +92,40 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     this.uiInteractionService.zoomResetObservable
       .pipe(takeUntil(this.destroyed$))
       .subscribe((zoomCenter: Vec2D) => this.controller.zoomReset(zoomCenter));
+
+    // filter changes should only reload and redraw
+    this.filterService.filter.pipe(takeUntil(this.destroyed$)).subscribe(() => {
+      this.loadMatrixData();
+      d3.select("#main-origin-destination-container").remove();
+      this.renderView();
+    });
+  }
+
+  private loadMatrixData(): void {
+    // Load raw OD data and ensure diagonal entries exist (only once on init)
+    this.matrixData = this.originDestinationService.originDestinationData();
+
+    // Add some data so we can mouseover the diagonal cells.
+    const origins = this.matrixData.map((d) => d.originId);
+    const destinations = this.matrixData.map((d) => d.destinationId);
+    const uniqueOriginsDestinations = [...new Set([...origins, ...destinations])];
+    const diagonalData: OriginDestination[] = uniqueOriginsDestinations.map((nodeId) => ({
+      origin: this.nodeService.getNodeFromId(nodeId).getBetriebspunktName(),
+      destination: this.nodeService.getNodeFromId(nodeId).getBetriebspunktName(),
+      originId: nodeId,
+      destinationId: nodeId,
+      totalCost: undefined,
+      travelTime: undefined,
+      transfers: undefined,
+      found: false,
+    }));
+    this.matrixData = [...this.matrixData, ...diagonalData];
   }
 
   // Render the matrix with the given node names.
-  rendermatrixOD(nodeNames: {shortName: string; fullName: string}[]) {
+  rendermatrixOD(nodeNames: {shortName: string; fullName: string; id: number}[]) {
     const width = this.cellSize * nodeNames.length;
     const height = this.cellSize * nodeNames.length;
-
     // append the svg object to the body of the page
     const svg = d3
       .select("#main-origin-destination-container-root")
@@ -135,14 +151,20 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const x = d3
       .scaleBand()
       .range([0, width])
-      .domain(nodeNames.map((n) => n.shortName))
+      .domain(nodeNames.map((n) => n.id))
+
       .padding(0.05);
 
     graphContentGroup
       .append("g")
       .style("pointer-events", "none")
       .attr("transform", "translate(0, -20)")
-      .call(d3.axisBottom(x).tickSize(0))
+      .call(
+        d3
+          .axisBottom(x)
+          .tickSize(0)
+          .tickFormat((d) => this.nodeService.getNodeFromId(d).getBetriebspunktName()),
+      )
       .style("user-select", "none")
       .call((g) =>
         g
@@ -161,12 +183,17 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const y = d3
       .scaleBand()
       .range([height, 0])
-      .domain(nodeNames.map((n) => n.shortName).reverse())
+      .domain(nodeNames.map((n) => n.id).reverse())
       .padding(0.05);
     graphContentGroup
       .append("g")
       .style("pointer-events", "none")
-      .call(d3.axisLeft(y).tickSize(0))
+      .call(
+        d3
+          .axisLeft(y)
+          .tickSize(0)
+          .tickFormat((d) => this.nodeService.getNodeFromId(d).getBetriebspunktName()),
+      )
       .style("user-select", "none")
       .call((g) => g.selectAll("text").attr("data-destination-label", (d: string) => d))
       .select(".domain")
@@ -199,10 +226,10 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       }
 
       // Highlight axis labels in bold when hovering over a cell
-      d3.selectAll(`[data-origin-label="${d.origin}"]`)
+      d3.selectAll(`[data-origin-label="${d.originId}"]`)
         .style("font-weight", "bold")
         .style("font-size", "12px");
-      d3.selectAll(`[data-destination-label="${d.destination}"]`)
+      d3.selectAll(`[data-destination-label="${d.destinationId}"]`)
         .style("font-weight", "bold")
         .style("font-size", "12px");
     };
@@ -211,7 +238,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     const transfersTranslation = $localize`:@@app.origin-destination.tooltip.transfers:Transfers`;
     const travelTimeTranslation = $localize`:@@app.origin-destination.tooltip.travel-time:Travel time`;
 
-    const nodeNameMap = new Map(nodeNames.map((n) => [n.shortName, n.fullName]));
+    const nodeNameMap = new Map(nodeNames.map((n) => [n.id, n.fullName]));
 
     const mousemove = function (d: OriginDestination) {
       let details = "";
@@ -223,8 +250,8 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       }
       tooltip
         .html(
-          `${nodeNameMap.get(d.origin)} (<b>${d.origin}</b>) &#x2192;
-          ${nodeNameMap.get(d.destination)} (<b>${d.destination}</b>)
+          `${nodeNameMap.get(d.originId)} (<b>${d.origin}</b>) &#x2192;
+          ${nodeNameMap.get(d.destinationId)} (<b>${d.destination}</b>)
           ${details}`,
         )
         .style("left", `${d3.event.offsetX + 64}px`)
@@ -235,13 +262,13 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       tooltip.style("opacity", 0);
       d3.select(this)
         .style("stroke", "none")
-        .style("opacity", (d: OriginDestination) => (d.origin === d.destination ? 0 : 0.8));
+        .style("opacity", (d: OriginDestination) => (d.originId === d.destinationId ? 0 : 0.8));
 
       // Remove boldness from the axis labels
-      d3.selectAll(`[data-origin-label="${_d.origin}"]`)
+      d3.selectAll(`[data-origin-label="${_d.originId}"]`)
         .style("font-weight", null)
         .style("font-size", null);
-      d3.selectAll(`[data-destination-label="${_d.destination}"]`)
+      d3.selectAll(`[data-destination-label="${_d.destinationId}"]`)
         .style("font-weight", null)
         .style("font-size", null);
     };
@@ -253,10 +280,10 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       .enter()
       .append("rect")
       .attr("x", (d: OriginDestination) => {
-        return x(d.origin);
+        return x(d.originId);
       })
       .attr("y", function (d: OriginDestination) {
-        return y(d.destination);
+        return y(d.destinationId);
       })
       .attr("rx", 4)
       .attr("ry", 4)
@@ -267,7 +294,7 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
       .style("stroke-width", 4)
       .style("stroke", "none")
-      .style("opacity", (d: OriginDestination) => (d.origin === d.destination ? 0 : 0.8))
+      .style("opacity", (d: OriginDestination) => (d.originId === d.destinationId ? 0 : 0.8))
       .style("pointer-events", "auto")
 
       .on("mouseover", mouseover)
@@ -281,10 +308,10 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
       .append("text")
       .style("pointer-events", "none")
       .attr("x", (d: OriginDestination) => {
-        return x(d.origin) + x.bandwidth() / 2;
+        return x(d.originId) + x.bandwidth() / 2;
       })
       .attr("y", function (d: OriginDestination) {
-        return y(d.destination) + y.bandwidth() / 2;
+        return y(d.destinationId) + y.bandwidth() / 2;
       })
       .text((d: OriginDestination) => this.getCellText(d))
       .style("text-anchor", "middle")
