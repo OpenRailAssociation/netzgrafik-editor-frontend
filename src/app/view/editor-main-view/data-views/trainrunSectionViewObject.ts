@@ -84,7 +84,7 @@ export class TrainrunSectionViewObject {
       "_" +
       firstSection.getSourceDepartureConsecutiveTime() +
       "_" +
-      firstSection.getTargetArrivalConsecutiveTime() +
+      firstSection.getSourceArrivalConsecutiveTime() +
       "_" +
       firstSection.getNumberOfStops() +
       "_" +
