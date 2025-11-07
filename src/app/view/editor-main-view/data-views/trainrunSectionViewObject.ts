@@ -82,10 +82,6 @@ export class TrainrunSectionViewObject {
       "_" +
       d.getNumberOfStops() +
       "_" +
-      d.getFrequency() +
-      "_" +
-      d.getFrequencyOffset() +
-      "_" +
       d.getTrainrun().getTrainrunCategory().shortName +
       "_" +
       d.getTrainrun().getTrainrunFrequency().shortName +
