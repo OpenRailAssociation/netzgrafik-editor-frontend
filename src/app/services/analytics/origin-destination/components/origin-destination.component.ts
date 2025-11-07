@@ -1,5 +1,5 @@
 import {OriginDestination, OriginDestinationService} from "./origin-destination.service";
-import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import * as d3 from "d3";
 
 import {Subject, takeUntil} from "rxjs";
@@ -26,7 +26,7 @@ type ColorSetName = "red" | "blue" | "orange" | "gray";
   templateUrl: "./origin-destination.component.html",
   styleUrls: ["./origin-destination.component.scss"],
 })
-export class OriginDestinationComponent implements OnInit, OnDestroy {
+export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("div") divRef: ElementRef;
 
   private readonly destroyed$ = new Subject<void>();
@@ -54,11 +54,18 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
   private cellSize: number = 30;
 
+  private isReadyToRender = false;
+
   private extractNumericODValues(odList: OriginDestination[], field: FieldName): number[] {
     return odList.filter((od) => od["found"]).map((od) => od[field]);
   }
 
   private renderView() {
+    if (!this.isReadyToRender) {
+      return;
+    }
+    console.log("renderView");
+
     const nodes = this.originDestinationService.getODOutputNodes();
     const nodeNames = nodes.map((node) => ({
       shortName: node.getBetriebspunktName(),
@@ -78,9 +85,6 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
 
   // Compute the matrix (expensive) and render the default view.
   ngOnInit(): void {
-    this.loadMatrixData();
-    this.renderView();
-
     this.uiInteractionService.zoomInObservable
       .pipe(takeUntil(this.destroyed$))
       .subscribe((zoomCenter: Vec2D) => this.controller.zoomIn(zoomCenter));
@@ -101,7 +105,17 @@ export class OriginDestinationComponent implements OnInit, OnDestroy {
     });
   }
 
+  ngAfterViewInit() {
+    this.isReadyToRender = true;
+    this.loadMatrixData();
+    this.renderView();
+  }
+
   private loadMatrixData(): void {
+    if (!this.isReadyToRender) {
+      return;
+    }
+    console.trace("loadMatrixData");
     // Load raw OD data and ensure diagonal entries exist (only once on init)
     this.matrixData = this.originDestinationService.originDestinationData();
 
