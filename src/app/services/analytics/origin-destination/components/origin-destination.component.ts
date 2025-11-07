@@ -64,7 +64,6 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
     if (!this.isReadyToRender) {
       return;
     }
-    console.log("renderView");
 
     const nodes = this.originDestinationService.getODOutputNodes();
     const nodeNames = nodes.map((node) => ({
@@ -115,7 +114,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
     if (!this.isReadyToRender) {
       return;
     }
-    console.trace("loadMatrixData");
+
     // Load raw OD data and ensure diagonal entries exist (only once on init)
     this.matrixData = this.originDestinationService.originDestinationData();
 
