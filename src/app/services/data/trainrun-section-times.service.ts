@@ -26,6 +26,7 @@ export class TrainrunSectionTimesService {
     rightDepartureTime: 0,
     rightArrivalTime: 0,
     travelTime: 0,
+    stopTime: 0,
   };
 
   private nodesOrdered: Node[] = [];
@@ -142,15 +143,20 @@ export class TrainrunSectionTimesService {
     );
     if (!this.lockStructure.rightLock) {
       this.timeStructure.rightArrivalTime =
-        this.timeStructure.leftDepartureTime + (this.timeStructure.travelTime % 60);
+        this.timeStructure.leftDepartureTime +
+        ((this.timeStructure.travelTime + this.timeStructure.stopTime) % 60);
       this.timeStructure.rightArrivalTime %= 60;
       this.timeStructure.rightDepartureTime = TrainrunsectionHelper.getSymmetricTime(
         this.timeStructure.rightArrivalTime,
       );
     } else if (!this.lockStructure.travelTimeLock && this.lockStructure.rightLock) {
-      const extraHour = this.timeStructure.travelTime - (this.timeStructure.travelTime % 60);
+      const extraHour =
+        this.timeStructure.travelTime -
+        ((this.timeStructure.travelTime + this.timeStructure.stopTime) % 60);
       this.timeStructure.travelTime =
-        this.timeStructure.rightArrivalTime - this.timeStructure.leftDepartureTime;
+        this.timeStructure.rightArrivalTime -
+        this.timeStructure.leftDepartureTime -
+        this.timeStructure.stopTime;
       this.timeStructure.travelTime += this.timeStructure.travelTime < 0 ? 60 : 0;
       this.timeStructure.travelTime += extraHour;
     } else {
@@ -234,15 +240,20 @@ export class TrainrunSectionTimesService {
 
     if (!this.lockStructure.leftLock) {
       this.timeStructure.leftDepartureTime =
-        this.timeStructure.rightArrivalTime - (this.timeStructure.travelTime % 60);
+        this.timeStructure.rightArrivalTime -
+        ((this.timeStructure.travelTime + this.timeStructure.stopTime) % 60);
       this.timeStructure.leftDepartureTime += this.timeStructure.leftDepartureTime < 0 ? 60 : 0;
       this.timeStructure.leftArrivalTime = TrainrunsectionHelper.getSymmetricTime(
         this.timeStructure.leftDepartureTime,
       );
     } else if (!this.lockStructure.travelTimeLock && this.lockStructure.leftLock) {
-      const extraHour = this.timeStructure.travelTime - (this.timeStructure.travelTime % 60);
+      const extraHour =
+        this.timeStructure.travelTime -
+        ((this.timeStructure.travelTime + this.timeStructure.stopTime) % 60);
       this.timeStructure.travelTime =
-        this.timeStructure.rightArrivalTime - this.timeStructure.leftDepartureTime;
+        this.timeStructure.rightArrivalTime -
+        this.timeStructure.leftDepartureTime -
+        this.timeStructure.stopTime;
       this.timeStructure.travelTime += this.timeStructure.travelTime < 0 ? 60 : 0;
       this.timeStructure.travelTime += extraHour;
     } else {
@@ -280,15 +291,20 @@ export class TrainrunSectionTimesService {
     );
     if (!this.lockStructure.leftLock) {
       this.timeStructure.leftArrivalTime =
-        this.timeStructure.rightDepartureTime + (this.timeStructure.travelTime % 60);
+        this.timeStructure.rightDepartureTime +
+        ((this.timeStructure.travelTime + this.timeStructure.stopTime) % 60);
       this.timeStructure.leftArrivalTime %= 60;
       this.timeStructure.leftDepartureTime = TrainrunsectionHelper.getSymmetricTime(
         this.timeStructure.leftArrivalTime,
       );
     } else if (!this.lockStructure.travelTimeLock && this.lockStructure.leftLock) {
-      const extraHour = this.timeStructure.travelTime - (this.timeStructure.travelTime % 60);
+      const extraHour =
+        this.timeStructure.travelTime -
+        ((this.timeStructure.travelTime + this.timeStructure.stopTime) % 60);
       this.timeStructure.travelTime =
-        this.timeStructure.leftArrivalTime - this.timeStructure.rightDepartureTime;
+        this.timeStructure.leftArrivalTime -
+        this.timeStructure.rightDepartureTime -
+        this.timeStructure.stopTime;
       this.timeStructure.travelTime += this.timeStructure.travelTime < 0 ? 60 : 0;
       this.timeStructure.travelTime += extraHour;
     } else {
