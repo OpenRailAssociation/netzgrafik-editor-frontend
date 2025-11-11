@@ -104,7 +104,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
     });
   }
 
-  ngAfterViewInit() {
+  ngAfterViewInit(): void {
     this.isReadyToRender = true;
     this.loadMatrixData();
     this.renderView();
