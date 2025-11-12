@@ -7,6 +7,7 @@ import {Vec2D} from "../../utils/vec2D";
 import {Node} from "../../models/node.model";
 import {ViewportCullService} from "../ui/viewport.cull.service";
 import {NodeOperation, Operation, OperationType} from "src/app/models/operation.model";
+import {Note} from "../../models/note.model";
 
 @Injectable({
   providedIn: "root",
@@ -33,6 +34,22 @@ export class PositionTransformationService {
     const focalNode: Node = this.getFocalNode(scaleCenterCoordinates);
 
     this.nodeService.getNodes().forEach((n, index) => {
+      let newPos = new Vec2D(
+        (n.getPositionX() - scaleCenterCoordinates.getX()) * factor + scaleCenterCoordinates.getX(),
+        (n.getPositionY() - scaleCenterCoordinates.getY()) * factor + scaleCenterCoordinates.getY(),
+      );
+
+      if (focalNode?.getId() === n.getId()) {
+        const delta = Vec2D.sub(
+          newPos,
+          new Vec2D(focalNode.getPositionX(), focalNode.getPositionY()),
+        );
+        newPos = Vec2D.sub(newPos, delta);
+      }
+      n.setPosition(newPos.getX(), newPos.getY());
+    });
+
+    this.noteService.getNotes().forEach((n, index) => {
       let newPos = new Vec2D(
         (n.getPositionX() - scaleCenterCoordinates.getX()) * factor + scaleCenterCoordinates.getX(),
         (n.getPositionY() - scaleCenterCoordinates.getY()) * factor + scaleCenterCoordinates.getY(),
@@ -80,6 +97,7 @@ export class PositionTransformationService {
     factor: number,
     zoomCenter: Vec2D,
     nodes: Node[],
+    notes: Note[],
     windowViewboxPropertiesMapKey: string,
   ) {
     const scaleCenterCoordinates: Vec2D = this.computeScaleCenterCoordinates(
@@ -128,6 +146,18 @@ export class PositionTransformationService {
 
       n.setPosition(newPos.getX(), newPos.getY());
     });
+
+    notes.forEach((n, index) => {
+      const newPos = new Vec2D(
+        (n.getPositionX() + n.getWidth() / 2.0 - scaleCenterCoordinates.getX()) * factor +
+          scaleCenterCoordinates.getX() -
+          n.getWidth() / 2.0,
+        (n.getPositionY() + n.getHeight() / 2.0 - scaleCenterCoordinates.getY()) * factor +
+          scaleCenterCoordinates.getY() -
+          n.getHeight() / 2.0,
+      );
+      n.setPosition(newPos.getX(), newPos.getY());
+    });
   }
 
   private updateRendering() {
@@ -143,14 +173,15 @@ export class PositionTransformationService {
 
   scaleNetzgrafikArea(factor: number, zoomCenter: Vec2D, windowViewboxPropertiesMapKey: string) {
     const nodes: Node[] = this.nodeService.getSelectedNodes();
-
     if (nodes.length < 2) {
       this.scaleFullNetzgrafikArea(factor, zoomCenter, windowViewboxPropertiesMapKey);
     } else {
+      const notes: Note[] = this.noteService.getNotes();
       this.scaleNetzgrafikSelectedNodesArea(
         factor,
         zoomCenter,
         nodes,
+        notes,
         windowViewboxPropertiesMapKey,
       );
     }
