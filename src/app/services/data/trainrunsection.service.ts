@@ -950,11 +950,6 @@ export class TrainrunSectionService implements OnDestroy {
     const node1 = trainrunSection1.getSourceNode();
     const node2 = trainrunSection1.getTargetNode();
     const nodeIntermediate = this.nodeService.getNodeFromId(nodeId);
-    const interpolatedPosition = new Vec2D(
-      node1.getPositionX() + (node2.getPositionX() - node1.getPositionX()) * 0.5,
-      node1.getPositionY() + (node2.getPositionY() - node1.getPositionY()) * 0.5,
-    );
-    nodeIntermediate.setPosition(interpolatedPosition.getX(), interpolatedPosition.getY());
     const transition1: Transition = node1.getTransition(trainrunSection1.getId());
     const nonStop1 = transition1 !== undefined ? transition1.getIsNonStopTransit() : false;
     const transition2: Transition = node2.getTransition(trainrunSection1.getId());
@@ -1052,6 +1047,7 @@ export class TrainrunSectionService implements OnDestroy {
     this.nodeService.nodesUpdated();
     this.trainrunSectionsUpdated();
     return {
+      existingTrainRunSection: trainrunSection1,
       newTrainRunSection: trainrunSection2,
     };
   }

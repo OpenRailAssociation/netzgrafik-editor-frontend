@@ -22,6 +22,7 @@ import {DataMigration} from "../../utils/data-migration";
 import {FilterService} from "../ui/filter.service";
 import {NetzgrafikColoringService} from "./netzgrafikColoring.service";
 import {Trainrun} from "src/app/models/trainrun.model";
+import {Vec2D} from "src/app/utils/vec2D";
 
 export class NetzgrafikLoadedInfo {
   constructor(
@@ -112,11 +113,19 @@ export class DataService implements OnDestroy {
       let currentSection = trainrunSection;
       for (let i = 0; i < trainrunSection.numberOfStops; i++) {
         const newNode = this.nodeService.addEmptyNode();
-        const {newTrainRunSection} = this.trainrunSectionService.replaceIntermediateStopWithNode(
-          currentSection.id,
-          0,
-          newNode.getId(),
+        const {existingTrainRunSection, newTrainRunSection} =
+          this.trainrunSectionService.replaceIntermediateStopWithNode(
+            currentSection.id,
+            0,
+            newNode.getId(),
+          );
+        const sourceNode = existingTrainRunSection.getSourceNode();
+        const targetNode = newTrainRunSection.getTargetNode();
+        const interpolatedPosition = new Vec2D(
+          sourceNode.getPositionX() + (targetNode.getPositionX() - sourceNode.getPositionX()) * 0.5,
+          sourceNode.getPositionY() + (targetNode.getPositionY() - sourceNode.getPositionY()) * 0.5,
         );
+        newNode.setPosition(interpolatedPosition.getX(), interpolatedPosition.getY());
         currentSection = newTrainRunSection.getDto();
       }
     }
