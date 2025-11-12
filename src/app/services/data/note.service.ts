@@ -317,7 +317,7 @@ export class NoteService {
     round: number,
     dragEnd: boolean,
   ) {
-    const notesToUpdate = this.notesStore.notes.filter((n) => n.selected());
+    const notesToUpdate = this.getSelectedNotes();
     notesToUpdate.forEach((note) => {
       const newPosition = NoteService.alginNoteToRaster(
         new Vec2D(note.getPositionX() + deltaPositionX, note.getPositionY() + deltaPositionY),
