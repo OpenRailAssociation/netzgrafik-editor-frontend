@@ -111,7 +111,7 @@ export class Sg6TrackService implements OnDestroy {
       ts.sgTrainrunItems.forEach((trainrunItem: SgTrainrunItem) => {
         if (trainrunItem.isSection()) {
           const ps: SgTrainrunSection = trainrunItem.getTrainrunSection();
-          if (ps.trainrunBranchType === TrainrunBranchType.Trainrun) { 
+          if (ps.trainrunBranchType === TrainrunBranchType.Trainrun) {
             const sectionKey = this.getSectionKey(ps, separateForwardBackwardTracks).key;
             const sOfI = sectionsOfInterest.get(sectionKey);
             if (sOfI === undefined) {
