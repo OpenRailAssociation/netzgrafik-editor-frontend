@@ -145,8 +145,8 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .append("svg")
       .classed("main-origin-destination-container", true)
       .attr("id", "main-origin-destination-container")
-      .attr("width", width)
-      .attr("height", height)
+      .attr("width", "100%")
+      .attr("height", "100%")
       .attr("viewBox", `0 0 ${width} ${height}`);
 
     const container = document.getElementById("main-origin-destination-container");
@@ -344,10 +344,13 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       },
       onViewboxChanged: (viewboxProperties) => {
         const svg = d3.select("#main-origin-destination-container");
-        svg.attr(
-          "viewBox",
-          `${viewboxProperties.panZoomLeft} ${viewboxProperties.panZoomTop} ${viewboxProperties.panZoomWidth} ${viewboxProperties.panZoomHeight}`,
-        );
+        svg
+          .attr(
+            "viewBox",
+            `${viewboxProperties.panZoomLeft} ${viewboxProperties.panZoomTop} ${viewboxProperties.panZoomWidth} ${viewboxProperties.panZoomHeight}`,
+          )
+          .attr("width", "100%")
+          .attr("height", "100%");
       },
       onStartMultiSelect: () => {},
       updateMultiSelect: () => {},
