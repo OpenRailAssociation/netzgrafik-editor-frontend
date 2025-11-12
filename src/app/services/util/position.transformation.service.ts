@@ -176,7 +176,11 @@ export class PositionTransformationService {
     if (nodes.length < 2) {
       this.scaleFullNetzgrafikArea(factor, zoomCenter, windowViewboxPropertiesMapKey);
     } else {
-      const notes: Note[] = this.noteService.getNotes();
+      let notes: Note[] = this.noteService.getSelectedNotes();
+      if (notes.length === 0) {
+        notes = this.noteService.getNotes();
+      }
+      this.noteService.getSelectedNote();
       this.scaleNetzgrafikSelectedNodesArea(
         factor,
         zoomCenter,
