@@ -113,7 +113,7 @@
             *ngIf="TrainrunsectionHelper.isLeftSideDisplayed(selectedTrainrunSection)"
           ></div>
           <div [ngClass]="getTravelTimeScssClass() + 'TravelTime'"></div>
-          <div class="BottomTravelTime" *ngIf="!isSymmetric"></div>
+          <div class="BottomTravelTime" *ngIf="isBottomTravelTimeDisplayed"></div>
 
           <div
             class="focusguard"
@@ -387,7 +387,7 @@
             </button>
           </div>
 
-          <div class="BottomTravelTimeMinus" *ngIf="!isSymmetric">
+          <div class="BottomTravelTimeMinus" *ngIf="isBottomTravelTimeDisplayed">
             <button
               tabindex="-1"
               mode="ghost"
@@ -397,7 +397,7 @@
               -
             </button>
           </div>
-          <div class="BottomTravelTimeTime" *ngIf="!isSymmetric">
+          <div class="BottomTravelTimeTime" *ngIf="isBottomTravelTimeDisplayed">
             <ng-container>
               <input
                 tabindex="3"
@@ -420,7 +420,7 @@
               />
             </ng-container>
           </div>
-          <div class="BottomTravelTimePlus" *ngIf="!isSymmetric">
+          <div class="BottomTravelTimePlus" *ngIf="isBottomTravelTimeDisplayed">
             <button
               tabindex="-1"
               mode="ghost"
