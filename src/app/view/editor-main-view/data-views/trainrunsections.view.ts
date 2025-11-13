@@ -892,10 +892,60 @@ export class TrainrunSectionsView {
   }
 
   static getTrainrunSectionValueToShow(
-    trainrunSection: TrainrunSection,
+    trainrunSectionOrViewObject: TrainrunSection | TrainrunSectionViewObject,
     textElement: TrainrunSectionText,
     editorView: EditorView,
   ) {
+    // Determine which section to use
+    let trainrunSection: TrainrunSection;
+
+    if (trainrunSectionOrViewObject instanceof TrainrunSection) {
+      // Simple case: we have a TrainrunSection directly
+      trainrunSection = trainrunSectionOrViewObject;
+    } else {
+      // ViewObject case: determine which section to use based on textElement
+      const viewObject = trainrunSectionOrViewObject;
+
+      switch (textElement) {
+        case TrainrunSectionText.SourceDeparture:
+        case TrainrunSectionText.SourceArrival:
+          trainrunSection = viewObject.trainrunSections[0];
+          break;
+
+        case TrainrunSectionText.TargetDeparture:
+        case TrainrunSectionText.TargetArrival:
+          trainrunSection = viewObject.trainrunSections.at(-1)!;
+          break;
+
+        case TrainrunSectionText.TrainrunSectionTravelTime:
+          // Special case for multiple sections: calculate total time
+          if (viewObject.trainrunSections.length > 1) {
+            const firstSection = viewObject.trainrunSections[0];
+            const lastSection = viewObject.trainrunSections.at(-1)!;
+
+            const startTime = TrainrunSectionsView.getTime(
+              firstSection,
+              TrainrunSectionText.SourceDeparture,
+            );
+            const endTime = TrainrunSectionsView.getTime(
+              lastSection,
+              TrainrunSectionText.TargetArrival,
+            );
+            const totalTime = endTime - startTime;
+
+            return (
+              TrainrunSectionsView.formatTime(totalTime, editorView.getTimeDisplayPrecision()) + "'"
+            );
+          }
+          trainrunSection = viewObject.trainrunSections[0];
+          break;
+
+        default:
+          trainrunSection = viewObject.trainrunSections[0];
+      }
+    }
+
+    // Existing logic to display the value
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
       case TrainrunSectionText.SourceArrival:
@@ -1585,7 +1635,7 @@ export class TrainrunSectionsView {
       })
       .classed(StaticDomTags.TAG_EVENT_DISABLED, !enableEvents)
       .text((d: TrainrunSectionViewObject) =>
-        this.getTrainrunSectionValueToShowWithCollapsedSupport(d, textElement, this.editorView),
+        TrainrunSectionsView.getTrainrunSectionValueToShow(d, textElement, this.editorView),
       )
       .attr("style", (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.getTrainrunSectionValueHtmlStyle(d.trainrunSections[0], textElement),
@@ -2777,63 +2827,5 @@ export class TrainrunSectionsView {
     }
     this.editorView.nodesView.createNewTrainrunSection(startNode, endNode);
     this.editorView.setTrainrunSectionAsSelected(trainrunSectionFrom);
-  }
-
-  /**
-   * Get the value to show for collapsed chains (with corrected times)
-   */
-  getTrainrunSectionValueToShowWithCollapsedSupport(
-    viewObject: TrainrunSectionViewObject,
-    textElement: TrainrunSectionText,
-    editorView: EditorView,
-  ) {
-    switch (textElement) {
-      case TrainrunSectionText.SourceDeparture:
-      case TrainrunSectionText.SourceArrival:
-        // For source times, use the original section times (should be from non-collapsed node)
-        return TrainrunSectionsView.getTrainrunSectionValueToShow(
-          viewObject.trainrunSections[0],
-          textElement,
-          editorView,
-        );
-
-      case TrainrunSectionText.TargetDeparture:
-      case TrainrunSectionText.TargetArrival: {
-        // For collapsed chains, use the actual time from the last section in the chain
-        // Use the actual time from the last section (which already includes all stops and travel times)
-        return TrainrunSectionsView.getTrainrunSectionValueToShow(
-          viewObject.trainrunSections.at(-1)!,
-          textElement,
-          editorView,
-        );
-      }
-
-      case TrainrunSectionText.TrainrunSectionTravelTime: {
-        // For collapsed chains, calculate total time including stops at collapsed nodes
-        const firstSection = viewObject.trainrunSections[0];
-        const lastSection = viewObject.trainrunSections.at(-1)!;
-
-        // Calculate total time: arrival time at end - departure time at start
-        const startTime = TrainrunSectionsView.getTime(
-          firstSection,
-          TrainrunSectionText.SourceDeparture,
-        );
-        const endTime = TrainrunSectionsView.getTime(
-          lastSection,
-          TrainrunSectionText.TargetArrival,
-        );
-        const totalTime = endTime - startTime;
-
-        return (
-          TrainrunSectionsView.formatTime(totalTime, editorView.getTimeDisplayPrecision()) + "'"
-        );
-      }
-
-      case TrainrunSectionText.TrainrunSectionName:
-        // For name, use the original trainrun name
-        return TrainrunSectionsView.extractTrainrunName(viewObject.trainrunSections[0]);
-    }
-
-    return undefined;
   }
 }
