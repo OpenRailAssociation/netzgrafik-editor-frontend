@@ -35,6 +35,15 @@ export class TrainrunSectionViewObject {
     return this.trainrunSections[0].getTrainrun();
   }
 
+  getTravelTime(): number {
+    const firstSection = this.trainrunSections[0];
+    const lastSection = this.trainrunSections.at(-1);
+    const startTime = firstSection.getSourceDepartureConsecutiveTime();
+    const endTime = lastSection!.getTargetArrivalConsecutiveTime();
+
+    return endTime - startTime;
+  }
+
   private generateKey(
     editorView: EditorView,
     trainrunSections: TrainrunSection[],
@@ -64,7 +73,7 @@ export class TrainrunSectionViewObject {
       "_" +
       firstSection.getNumberOfStops() +
       "_" +
-      firstSection.getTravelTime() +
+      this.getTravelTime() +
       "_" +
       cumulativeTravelTime +
       "_" +
