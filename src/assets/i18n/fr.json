@@ -337,9 +337,14 @@
           "notes": "Notes",
           "nodes": "Noeuds"
         },
-        "nodes-search-placeholder": "Rechercher par noms ou trigrammes",
-        "nodes-expanded": "Agrandis",
-        "nodes-no-result": "Aucun noeud ne correspond à cette recherche."
+        "nodes-search-placeholder": "Rechercher par nom ou trigramme",
+        "nodes-expanded": "Développés",
+        "nodes-no-result": "Aucun noeud ne correspond à cette recherche.",
+        "global-nodes-management": "Gestion globale des noeuds",
+        "confirm-expand-all": "Êtes-vous sûr(e) de vouloir développer tous les noeuds ?",
+        "confirm-expand-matching": "Êtes-vous sûr(e) de vouloir développer les {$count} noeuds qui contiennent «{$query}» ?",
+        "confirm-collapse-all": "Êtes-vous sûr(e) de vouloir réduire tous les noeuds ?",
+        "confirm-collapse-matching": "Êtes-vous sûr(e) de vouloir réduire les {$count} noeuds qui contiennent «{$query}» ?"
       },
       "editor-filter-view": {
         "filter": "Filtres",
