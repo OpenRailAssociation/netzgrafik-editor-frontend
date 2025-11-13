@@ -505,7 +505,9 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
       return true;
     }
     return (
-      !this.trainrunSection.isSymmetric() && this.filterService.isFilterBackwardTravelTimeEnabled()
+      this.trainrunSection.getTrainrun().isRoundTrip() &&
+      !this.trainrunSection.isSymmetric() &&
+      this.filterService.isFilterBackwardTravelTimeEnabled()
     );
   }
 

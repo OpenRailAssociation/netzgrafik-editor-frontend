@@ -82,7 +82,10 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   public TrainrunsectionHelper = TrainrunsectionHelper;
   private destroyed = new Subject<void>();
 
-  public get isSymmetric(): boolean {
+  public get isBottomTravelTimeDisplayed(): boolean {
+    if (!this.selectedTrainrunSection.getTrainrun().isRoundTrip()) {
+      return false;
+    }
     const firstTrainrunSection = this.trainrunService.getFirstNonStopTrainrunSection(
       this.selectedTrainrunSection,
     );
@@ -93,10 +96,10 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     while (iterator.hasNext()) {
       const nextPair = iterator.next();
       if (!nextPair.trainrunSection.isSymmetric()) {
-        return false;
+        return true;
       }
     }
-    return true;
+    return false;
   }
 
   constructor(
@@ -326,13 +329,13 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   }
 
   getTravelTimeScssClass(): string {
-    if (this.isSymmetric) {
-      // If symmetric, travel time is displayed at the center
-      return "";
+    if (this.isBottomTravelTimeDisplayed) {
+      // Travel time is displayed at the top
+      // (and bottom travel time at the bottom)
+      return "Top";
     }
-    // If not symmetric, travel time is displayed at the top
-    // (and bottom travel time at the bottom)
-    return "Top";
+    // Travel time is displayed at the center
+    return "";
   }
 
   onLeftNodeSymmetryToggleChanged(symmetry: boolean) {

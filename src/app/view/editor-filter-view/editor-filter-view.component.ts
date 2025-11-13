@@ -240,8 +240,10 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   filterTravelTimeChanged() {
     if (this.filterTravelTime) {
       this.filterService.enableFilterTravelTime();
+      this.filterService.enableFilterBackwardTravelTime();
     } else {
       this.filterService.disableFilterTravelTime();
+      this.filterService.disableFilterBackwardTravelTime();
     }
   }
 

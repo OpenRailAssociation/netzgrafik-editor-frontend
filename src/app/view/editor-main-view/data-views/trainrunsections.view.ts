@@ -945,7 +945,11 @@ export class TrainrunSectionsView {
           TrainrunSectionsView.isBothSideNonStop(trainrunSection)
         );
       case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
-        if (!trainrunSection.getTrainrun().isRoundTrip() || trainrunSection.isSymmetric()) {
+        if (
+          !this.editorView.isFilterBackwardTravelTimeEnabled() ||
+          !trainrunSection.getTrainrun().isRoundTrip() ||
+          trainrunSection.areTravelTimesEqual()
+        ) {
           return true;
         }
         if (this.editorView.isFilterShowNonStopTimeEnabled()) {
