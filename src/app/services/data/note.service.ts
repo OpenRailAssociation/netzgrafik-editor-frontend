@@ -126,6 +126,10 @@ export class NoteService {
     return Object.assign({}, this.notesStore).notes;
   }
 
+  getSelectedNotes(): Note[] {
+    return this.getNotes().filter((n) => n.selected());
+  }
+
   visibleNotesDeleteLabel(labelRef: string) {
     const labelObject = this.labelService.getLabelFromLabelAndLabelRef(labelRef, LabelRef.Note);
     if (labelObject === undefined) {
@@ -313,7 +317,7 @@ export class NoteService {
     round: number,
     dragEnd: boolean,
   ) {
-    const notesToUpdate = this.notesStore.notes.filter((n) => n.selected());
+    const notesToUpdate = this.getSelectedNotes();
     notesToUpdate.forEach((note) => {
       const newPosition = NoteService.alginNoteToRaster(
         new Vec2D(note.getPositionX() + deltaPositionX, note.getPositionY() + deltaPositionY),
