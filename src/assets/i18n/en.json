@@ -340,7 +340,12 @@
         },
         "nodes-search-placeholder": "Search for names or trigrams",
         "nodes-expanded": "Expanded",
-        "nodes-no-result": "There is no node matching the query."
+        "nodes-no-result": "There is no node matching the query.",
+        "global-nodes-management": "Global nodes management",
+        "confirm-expand-all": "Are you sure you want to expand all nodes?",
+        "confirm-expand-matching": "Are you sure you want to expand the {$count} nodes matching \"{$query}\"?",
+        "confirm-collapse-all": "Are you sure you want to collapse all nodes?",
+        "confirm-collapse-matching": "Are you sure you want to collapse the {$count} nodes matching \"{$query}\"?"
       },
       "editor-filter-view": {
         "filter": "Filter",

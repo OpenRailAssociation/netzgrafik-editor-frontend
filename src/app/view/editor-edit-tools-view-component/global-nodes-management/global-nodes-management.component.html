@@ -1,16 +1,18 @@
 <section class="global-nodes-management">
   <div class="search">
     <input
+      #globalNodesManagementQuery
       sbbInput
       type="search"
-      [(ngModel)]="query"
+      [value]="query"
+      (input)="updateState({query: globalNodesManagementQuery.value})"
       [placeholder]="
         'app.view.editor-edit-tools-view-component.nodes-search-placeholder' | translate
       "
     />
   </div>
   <div class="nodes-list">
-    @if (getVisibleNodes().length) {
+    @if (matchingNodes.length) {
       <table>
         <thead>
           <tr>
@@ -20,23 +22,25 @@
               </th>
             }
           </tr>
-          <tr>
-            <td>
-              <sbb-checkbox
-                [checked]="!!getGlobalCheckboxStatus()"
-                [indeterminate]="getGlobalCheckboxStatus() === undefined"
-                (change)="toggleIsCollapsedOnAllVisibleNodes(!$event.checked)"
-              />
-            </td>
-          </tr>
+          @if (matchingNodes.length > 1) {
+            <tr>
+              <td>
+                <sbb-checkbox
+                  [checked]="!!getGlobalCheckboxStatus()"
+                  [indeterminate]="getGlobalCheckboxStatus() === undefined"
+                  (click)="onClickGlobalCheckbox($event)"
+                />
+              </td>
+            </tr>
+          }
         </thead>
         <tbody>
-          @for (node of getVisibleNodes(); track node.getId()) {
+          @for (node of matchingNodes; track node.getId()) {
             <tr>
               <td class="offset">
                 <sbb-checkbox
                   [checked]="!node.getIsCollapsed()"
-                  (change)="node.setIsCollapsed(!$event.checked)"
+                  (change)="toggleIsCollapsed(node, !$event.checked)"
                 />
               </td>
               <td>{{ node.getBetriebspunktName() }}</td>
