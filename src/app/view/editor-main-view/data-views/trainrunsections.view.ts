@@ -2339,22 +2339,48 @@ export class TrainrunSectionsView {
   }
 
   private transformPath(viewObject: TrainrunSectionViewObject): Vec2D[] {
-    const ts = viewObject.trainrunSections[0];
+    const firstSection = viewObject.trainrunSections[0];
+    const lastSection = viewObject.trainrunSections.at(-1)!;
+
+    // Handle multi-section chains (collapsed nodes)
     if (viewObject.trainrunSections.length > 1) {
-      return this.applyBasicFiltering(viewObject.getPath(), ts);
+      const path = viewObject.getPath();
+      const srcNode = firstSection.getSourceNode();
+      const trgNode = lastSection.getTargetNode();
+
+      let notFilteringSourceNode = this.editorView.checkFilterNode(srcNode);
+      let notFilteringTargetNode = this.editorView.checkFilterNode(trgNode);
+
+      if (this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
+        notFilteringSourceNode = true;
+        notFilteringTargetNode = true;
+      }
+
+      if (notFilteringSourceNode && notFilteringTargetNode) {
+        return path.map((p) => p.copy());
+      } else if (notFilteringSourceNode) {
+        return path.slice(0, 2).map((p) => p.copy());
+      } else if (notFilteringTargetNode) {
+        return path.slice(2).map((p) => p.copy());
+      } else {
+        return [];
+      }
     }
 
-    const srcNode = ts.getSourceNode();
-    const trgNode = ts.getTargetNode();
+    // Handle single sections
+    const srcNode = firstSection.getSourceNode();
+    const trgNode = firstSection.getTargetNode();
     let notFilteringSourceNode = this.editorView.checkFilterNode(srcNode);
     let notFilteringTargetNode = this.editorView.checkFilterNode(trgNode);
+
     if (this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       notFilteringSourceNode = true;
       notFilteringTargetNode = true;
     }
 
-    const path = ts.getPath();
+    const path = firstSection.getPath();
     let retPath: Vec2D[] = [];
+
     if (notFilteringSourceNode) {
       retPath.push(path[0].copy());
       retPath.push(path[1].copy());
@@ -2365,41 +2391,21 @@ export class TrainrunSectionsView {
     }
 
     if (!this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
-      if (ts.getSourceNode().isNonStopNode()) {
-        const node = ts.getSourceNode().getOppositeNode(ts);
-        retPath = this.transformPathIfSourceNodeFilteredDueNonStopNodesFiltering(ts, retPath);
+      if (firstSection.getSourceNode().isNonStopNode()) {
+        retPath = this.transformPathIfSourceNodeFilteredDueNonStopNodesFiltering(
+          firstSection,
+          retPath,
+        );
       }
-      if (ts.getTargetNode().isNonStopNode()) {
-        retPath = this.transformPathIfTargetNodeFilteredDueNonStopNodesFiltering(ts, retPath);
+      if (firstSection.getTargetNode().isNonStopNode()) {
+        retPath = this.transformPathIfTargetNodeFilteredDueNonStopNodesFiltering(
+          firstSection,
+          retPath,
+        );
       }
     }
 
     return retPath;
-  }
-
-  /**
-   * Apply basic filtering to a path
-   */
-  private applyBasicFiltering(path: Vec2D[], ts: TrainrunSection): Vec2D[] {
-    const srcNode = ts.getSourceNode();
-    const trgNode = ts.getTargetNode();
-    let notFilteringSourceNode = this.editorView.checkFilterNode(srcNode);
-    let notFilteringTargetNode = this.editorView.checkFilterNode(trgNode);
-
-    if (this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
-      notFilteringSourceNode = true;
-      notFilteringTargetNode = true;
-    }
-
-    if (notFilteringSourceNode && notFilteringTargetNode) {
-      return path.map((p) => p.copy());
-    } else if (notFilteringSourceNode) {
-      return path.slice(0, 2).map((p) => p.copy());
-    } else if (notFilteringTargetNode) {
-      return path.slice(2).map((p) => p.copy());
-    } else {
-      return [];
-    }
   }
 
   private filterOutAllTrainrunSectionWithHiddenNodeConnection(
