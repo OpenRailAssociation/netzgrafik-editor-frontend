@@ -12,7 +12,6 @@ import {NodeService} from "./node.service";
 import {TrainrunSectionValidator} from "../util/trainrunsection.validator";
 import {Trainrun} from "../../models/trainrun.model";
 import {MathUtils} from "../../utils/math";
-import {GeneralViewFunctions} from "../../view/util/generalViewFunctions";
 import {LeftAndRightTimeStructure} from "../../view/dialogs/trainrun-and-section-dialog/trainrunsection-tab/trainrun-section-tab.component";
 import {TrainrunsectionHelper} from "../util/trainrunsection.helper";
 import {LogService} from "../../logger/log.service";
@@ -32,6 +31,21 @@ interface DepartureAndArrivalTimes {
 export interface InformSelectedTrainrunClick {
   trainrunSectionId: number;
   open: boolean;
+}
+
+export interface TimeStructure {
+  sourceDepartureTime: number;
+  travelTime: number;
+  targetArrivalTime: number;
+  targetDepartureTime: number;
+  backwardTravelTime: number;
+  sourceArrivalTime: number;
+}
+
+export interface PartialTimeStructure {
+  departureTime: number;
+  travelTime: number;
+  arrivalTime: number;
 }
 
 @Injectable({
@@ -69,6 +83,7 @@ export class TrainrunSectionService implements OnDestroy {
 
   static TIME_PRECISION = 10;
 
+  // TODO: refacto
   static computeArrivalAndDeparture(
     nodeArrival: number,
     trainrunSection: TrainrunSection,
@@ -133,7 +148,7 @@ export class TrainrunSectionService implements OnDestroy {
     this.destroyed.complete();
   }
 
-  propagateTimesForNewTrainrunSection(trainrunSection: TrainrunSection) {
+  propagateTimesAtTrainrunSectionCreation(trainrunSection: TrainrunSection) {
     let nodeFrom = trainrunSection.getSourceNode();
     let previousTrainrunSection = nodeFrom.getNextTrainrunSection(trainrunSection);
     if (previousTrainrunSection === undefined) {
@@ -150,7 +165,6 @@ export class TrainrunSectionService implements OnDestroy {
         halteZeit,
         TrainrunSectionService.TIME_PRECISION,
       );
-
       if (trainrunSection.getSourceNodeId() === nodeFrom.getId()) {
         trainrunSection.setSourceDeparture(arrivalDepartureTimes.nodeFromDepartureTime);
         trainrunSection.setSourceArrival(arrivalDepartureTimes.nodeFromArrivalTime);
@@ -211,6 +225,12 @@ export class TrainrunSectionService implements OnDestroy {
     );
 
     this.trainrunSectionsStore.trainrunSections.forEach((trainrunSection) => {
+      trainrunSection.setSourceNode(
+        this.nodeService.getNodeFromId(trainrunSection.getSourceNodeId()),
+      );
+      trainrunSection.setTargetNode(
+        this.nodeService.getNodeFromId(trainrunSection.getTargetNodeId()),
+      );
       TrainrunSectionValidator.validateOneSection(trainrunSection);
       TrainrunSectionValidator.validateTravelTime(trainrunSection);
     });
@@ -280,7 +300,7 @@ export class TrainrunSectionService implements OnDestroy {
 
   initializeTrainrunSectionRouting() {
     this.trainrunSectionsStore.trainrunSections.forEach((trainrunSection) => {
-      if (trainrunSection.isPathEmpty()) {
+      if (trainrunSection.isPathInvalid()) {
         trainrunSection.routeEdgeAndPlaceText();
       }
     });
@@ -300,6 +320,7 @@ export class TrainrunSectionService implements OnDestroy {
     targetArrival: number,
     targetDeparture: number,
     travelTime: number,
+    backwardTravelTime: number,
     emit: boolean = true,
   ) {
     const trainrunSection = this.getTrainrunSectionFromId(trsId);
@@ -308,6 +329,7 @@ export class TrainrunSectionService implements OnDestroy {
     trainrunSection.setTargetArrival(targetArrival);
     trainrunSection.setTargetDeparture(targetDeparture);
     trainrunSection.setTravelTime(travelTime);
+    trainrunSection.setBackwardTravelTime(backwardTravelTime);
     TrainrunSectionValidator.validateOneSection(trainrunSection);
     this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection.getId());
     this.nodeService.validateConnections(trainrunSection.getSourceNode());
@@ -319,7 +341,21 @@ export class TrainrunSectionService implements OnDestroy {
     }
   }
 
-  private propagateTimeAlongTrainrunFixStartTrainrunSection(
+  updateSourceSymmetry(trainrunSectionId: number, isSourceNodeSymmetric: boolean) {
+    const trainrunSection = this.getTrainrunSectionFromId(trainrunSectionId);
+    trainrunSection.setSourceSymmetry(isSourceNodeSymmetric);
+    this.trainrunSectionsUpdated();
+    this.operation.emit(new TrainrunOperation(OperationType.update, trainrunSection.getTrainrun()));
+  }
+
+  updateTargetSymmetry(trainrunSectionId: number, isTargetNodeSymmetric: boolean) {
+    const trainrunSection = this.getTrainrunSectionFromId(trainrunSectionId);
+    trainrunSection.setTargetSymmetry(isTargetNodeSymmetric);
+    this.trainrunSectionsUpdated();
+    this.operation.emit(new TrainrunOperation(OperationType.update, trainrunSection.getTrainrun()));
+  }
+
+  private findTrainrunSectionForStopNode(
     trainrunSection: TrainrunSection,
     node: Node,
     stopNodeId: number,
@@ -334,236 +370,270 @@ export class TrainrunSectionService implements OnDestroy {
     return undefined;
   }
 
-  propagateTimeAlongTrainrun(trainrunSectionId: number, fromNodeIdOn: number) {
-    const trainrunSection = this.getTrainrunSectionFromId(trainrunSectionId);
-    const fromNode =
-      fromNodeIdOn === trainrunSection.getSourceNodeId()
-        ? trainrunSection.getSourceNode()
-        : trainrunSection.getTargetNode();
-    if (fromNode.getId() !== fromNodeIdOn) {
-      let trainrunSectionIdToStart = this.propagateTimeAlongTrainrunFixStartTrainrunSection(
-        trainrunSection,
-        trainrunSection.getSourceNode(),
-        fromNodeIdOn,
+  propagateTimes(
+    startTrainrunSectionId: number,
+    sourceToTarget: boolean,
+    nextStopNodeId: number,
+    nonStopIterator: boolean,
+  ) {
+    const startTrainrunSection = this.getTrainrunSectionFromId(startTrainrunSectionId);
+    const startNode = sourceToTarget
+      ? startTrainrunSection.getSourceNode()
+      : startTrainrunSection.getTargetNode();
+
+    let actualStartTrainrunSectionId = startTrainrunSectionId;
+
+    // Non-stop chain case: if the start node is not the next stop node,
+    // we need to find the trainrun section that connects to the actual stop node
+    if (startNode.getId() !== nextStopNodeId) {
+      const foundTrainrunSectionId = this.findTrainrunSectionForStopNode(
+        startTrainrunSection,
+        startNode,
+        nextStopNodeId,
       );
-      if (trainrunSectionIdToStart === undefined) {
-        trainrunSectionIdToStart = this.propagateTimeAlongTrainrunFixStartTrainrunSection(
-          trainrunSection,
-          trainrunSection.getTargetNode(),
-          fromNodeIdOn,
-        );
-      }
-      if (trainrunSectionIdToStart !== undefined) {
-        this.iterateAlongTrainrunUntilEndAndPropagateTime(
-          this.nodeService.getNodeFromId(fromNodeIdOn),
-          trainrunSectionIdToStart,
-        );
-        this.trainrunSectionsUpdated();
-        return;
+
+      if (foundTrainrunSectionId !== undefined) {
+        actualStartTrainrunSectionId = foundTrainrunSectionId;
       }
     }
-    this.iterateAlongTrainrunUntilEndAndPropagateTime(fromNode, trainrunSectionId);
+
+    this.iterateAlongTrainrunAndPropagateTimes(
+      startNode,
+      actualStartTrainrunSectionId,
+      sourceToTarget,
+      nonStopIterator,
+    );
     this.trainrunSectionsUpdated();
   }
 
-  propagteTimeSourceToTarget(
-    previousPair: TrainrunSectionNodePair,
+  propagateTimesSourceToTarget(
+    previousPair: TrainrunSectionNodePair | null,
     pair: TrainrunSectionNodePair,
-    arrivalDepartureTimes: DepartureAndArrivalTimes,
-    isNonStop: boolean,
+    forward: boolean,
   ) {
-    // -------------------------------------------------------------------------------------------
-    // Source to Target (pair)
-    // -------------------------------------------------------------------------------------------
-    // retrieve haltezeit at node
-    const arrivalTimeAtSource =
-      previousPair.node.getId() === previousPair.trainrunSection.getTargetNodeId()
-        ? previousPair.trainrunSection.getTargetArrival()
-        : previousPair.trainrunSection.getSourceArrival();
-
-    let halteZeit =
-      previousPair.node.getTrainrunCategoryHaltezeit()[
-        pair.trainrunSection.getTrainrun().getTrainrunCategory().fachCategory
-      ].haltezeit;
-    halteZeit = isNonStop ? 0 : halteZeit;
-
-    // try to update the pair (based on previousPair)
-    if (pair.trainrunSection.getSourceDepartureLock()) {
-      // the source element is locked - no changes allowed!
-      return;
-    }
-
-    // ----------------------------------------------------------------------------------
-    // update source arrival time
-    // ----------------------------------------------------------------------------------
-    const depTimeAtSource = MathUtils.round(
-      (arrivalTimeAtSource + halteZeit) % 60,
-      TrainrunSectionService.TIME_PRECISION,
-    );
-    const arrTimeAtSource = MathUtils.round(
-      TrainrunsectionHelper.getSymmetricTime(depTimeAtSource),
-      TrainrunSectionService.TIME_PRECISION,
-    );
-    pair.trainrunSection.setSourceDeparture(depTimeAtSource);
-    pair.trainrunSection.setSourceArrival(arrTimeAtSource);
-
-    // ----------------------------------------------------------------------------------
-    // Use travel time to update the target times - if allowed
-    // ----------------------------------------------------------------------------------
-    if (!pair.trainrunSection.getTargetArrivalLock()) {
-      // Target is not locked -> update the Target Arrival Time
-      const arrTimeAtTarget = MathUtils.round(
-        (depTimeAtSource + pair.trainrunSection.getTravelTime()) % 60,
-        TrainrunSectionService.TIME_PRECISION,
-      );
-      const depTimeAtTarget = MathUtils.round(
-        TrainrunsectionHelper.getSymmetricTime(arrTimeAtTarget),
-        TrainrunSectionService.TIME_PRECISION,
-      );
-      pair.trainrunSection.setTargetArrival(arrTimeAtTarget);
-      pair.trainrunSection.setTargetDeparture(depTimeAtTarget);
-
-      return;
-    }
-
-    // ----------------------------------------------------------------------------------
-    // update travel time if possible
-    // ----------------------------------------------------------------------------------
-    if (pair.trainrunSection.getTravelTimeLock()) {
-      return;
-    }
-
-    let newTravelTime = pair.trainrunSection.getTargetArrival() - depTimeAtSource;
-    newTravelTime += Math.floor(pair.trainrunSection.getTravelTime() / 60) * 60;
-    while (newTravelTime < 0.0) {
-      newTravelTime += 60;
-    }
-    pair.trainrunSection.setTravelTime(newTravelTime);
-  }
-
-  propagteTimeTargetToSource(
-    previousPair: TrainrunSectionNodePair,
-    pair: TrainrunSectionNodePair,
-    arrivalDepartureTimes: DepartureAndArrivalTimes,
-    isNonStop: boolean,
-  ) {
-    // -------------------------------------------------------------------------------------------
-    // Target to Source (pair)
-    // -------------------------------------------------------------------------------------------
-    // retrieve haltezeit at node
-    const arrivalTimeAtTarget =
-      previousPair.node.getId() === previousPair.trainrunSection.getTargetNodeId()
-        ? previousPair.trainrunSection.getTargetArrival()
-        : previousPair.trainrunSection.getSourceArrival();
-
-    let halteZeit =
-      previousPair.node.getTrainrunCategoryHaltezeit()[
-        pair.trainrunSection.getTrainrun().getTrainrunCategory().fachCategory
-      ].haltezeit;
-    halteZeit = isNonStop ? 0 : halteZeit;
-
-    // try to update the pair (based on previousPair)
-    if (pair.trainrunSection.getTargetDepartureLock()) {
-      // the source element is locked - no changes allowed!
-      return;
-    }
-
-    // ----------------------------------------------------------------------------------
-    // update source arrival time
-    // ----------------------------------------------------------------------------------
-    const depTimeAtTarget = MathUtils.round(
-      (arrivalTimeAtTarget + halteZeit) % 60,
-      TrainrunSectionService.TIME_PRECISION,
-    );
-    const arrTimeAtTarget = MathUtils.round(
-      TrainrunsectionHelper.getSymmetricTime(depTimeAtTarget),
-      TrainrunSectionService.TIME_PRECISION,
-    );
-    pair.trainrunSection.setTargetDeparture(depTimeAtTarget);
-    pair.trainrunSection.setTargetArrival(arrTimeAtTarget);
-
-    // ----------------------------------------------------------------------------------
-    // Use travel time to update the target times - if allowed
-    // ----------------------------------------------------------------------------------
-    if (!pair.trainrunSection.getSourceArrivalLock()) {
-      // Target is not locked -> update the Target Arrival Time
-      const arrTimeAtSource = MathUtils.round(
-        (depTimeAtTarget + pair.trainrunSection.getTravelTime()) % 60,
-        TrainrunSectionService.TIME_PRECISION,
-      );
-      const depTimeAtSource = MathUtils.round(
-        TrainrunsectionHelper.getSymmetricTime(arrTimeAtSource),
-        TrainrunSectionService.TIME_PRECISION,
-      );
-      pair.trainrunSection.setSourceArrival(arrTimeAtSource);
-      pair.trainrunSection.setSourceDeparture(depTimeAtSource);
-
-      return;
-    }
-
-    // ----------------------------------------------------------------------------------
-    // update travel time if possible
-    // ----------------------------------------------------------------------------------
-    if (pair.trainrunSection.getTravelTimeLock()) {
-      return;
-    }
-
-    let newTravelTime = pair.trainrunSection.getSourceArrival() - depTimeAtTarget;
-    newTravelTime += Math.floor(pair.trainrunSection.getTravelTime() / 60) * 60;
-    while (newTravelTime < 0.0) {
-      newTravelTime += 60;
-    }
-    pair.trainrunSection.setTravelTime(newTravelTime);
-  }
-
-  iterateAlongTrainrunUntilEndAndPropagateTime(nodeFrom: Node, trainrunSectionId: number) {
-    const trainrunSection = this.getTrainrunSectionFromId(trainrunSectionId);
-
-    const iterator = this.trainrunService.getIterator(nodeFrom, trainrunSection);
-    let previousPair = iterator.next();
-
-    TrainrunSectionValidator.validateOneSection(previousPair.trainrunSection);
-
-    while (iterator.hasNext()) {
-      const pair = iterator.next();
-
-      const isNonStop = previousPair.node.isNonStop(pair.trainrunSection);
-      const halteZeit = previousPair.node.getTrainrunCategoryHaltezeit();
-      const previousNodeArrival = previousPair.node.getArrivalTime(previousPair.trainrunSection);
-      const arrivalDepartureTimes = TrainrunSectionService.computeArrivalAndDeparture(
-        previousNodeArrival,
-        pair.trainrunSection,
-        isNonStop,
-        halteZeit,
-        TrainrunSectionService.TIME_PRECISION,
-      );
-
-      if (pair.trainrunSection.getSourceNodeId() === previousPair.node.getId()) {
-        this.propagteTimeSourceToTarget(previousPair, pair, arrivalDepartureTimes, isNonStop);
+    // Update source times
+    let newSourceDepartureTime;
+    if (previousPair) {
+      if (forward) {
+        newSourceDepartureTime = MathUtils.round(
+          (previousPair.trainrunSection.getTargetArrival() +
+            this.getPairsHaltezeit(previousPair, pair)) %
+            60,
+          TrainrunSectionService.TIME_PRECISION,
+        );
       } else {
-        this.propagteTimeTargetToSource(previousPair, pair, arrivalDepartureTimes, isNonStop);
+        if (pair.trainrunSection.getSourceSymmetry()) {
+          newSourceDepartureTime = TrainrunsectionHelper.getSymmetricTime(
+            pair.trainrunSection.getSourceArrival(),
+          );
+        } else {
+          if (pair.trainrunSection.getTargetSymmetry()) {
+            newSourceDepartureTime = MathUtils.round(
+              (TrainrunsectionHelper.getSymmetricTime(pair.trainrunSection.getTargetDeparture()) -
+                (pair.trainrunSection.getTravelTime() % 60) +
+                60) %
+                60,
+              TrainrunSectionService.TIME_PRECISION,
+            );
+          } else {
+            newSourceDepartureTime = MathUtils.round(
+              (previousPair.trainrunSection.getTargetArrival() +
+                this.getPairsHaltezeit(previousPair, pair)) %
+                60,
+              TrainrunSectionService.TIME_PRECISION,
+            );
+          }
+        }
       }
-      TrainrunSectionValidator.validateOneSection(pair.trainrunSection);
+    } else {
+      // start of trainrun case
+      newSourceDepartureTime = pair.trainrunSection.getSourceSymmetry()
+        ? TrainrunsectionHelper.getSymmetricTime(pair.trainrunSection.getSourceArrival())
+        : pair.trainrunSection.getSourceDeparture();
+    }
+    pair.trainrunSection.setSourceDeparture(newSourceDepartureTime);
 
-      if (
-        pair.trainrunSection.getSourceDepartureLock() ||
-        pair.trainrunSection.getTargetDepartureLock()
-      ) {
-        break;
-      }
-      previousPair = pair;
+    // Update target times if possible
+    if (!pair.trainrunSection.getTargetArrivalLock()) {
+      const newTargetArrivalTime = MathUtils.round(
+        (newSourceDepartureTime + pair.trainrunSection.getTravelTime()) % 60,
+        TrainrunSectionService.TIME_PRECISION,
+      );
+      pair.trainrunSection.setTargetArrival(newTargetArrivalTime);
     }
 
-    if (trainrunSection !== undefined) {
-      this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection.getId());
+    // Update travel times otherwise
+    if (!pair.trainrunSection.getTravelTimeLock()) {
+      let newTravelTime = pair.trainrunSection.getTargetArrival() - newSourceDepartureTime;
+      newTravelTime += Math.floor(pair.trainrunSection.getTravelTime() / 60) * 60;
+      while (newTravelTime < 0.0) {
+        newTravelTime += 60;
+      }
+      pair.trainrunSection.setTravelTime(newTravelTime);
     }
   }
 
-  updateTrainrunSectionTimeLock(
+  propagateTimesTargetToSource(
+    previousPair: TrainrunSectionNodePair | null,
+    pair: TrainrunSectionNodePair,
+    forward: boolean,
+  ) {
+    // Update target times
+    let newTargetDepartureTime;
+    if (previousPair) {
+      if (forward) {
+        newTargetDepartureTime = MathUtils.round(
+          (previousPair.trainrunSection.getSourceArrival() +
+            this.getPairsHaltezeit(previousPair, pair)) %
+            60,
+          TrainrunSectionService.TIME_PRECISION,
+        );
+      } else {
+        if (pair.trainrunSection.getTargetSymmetry()) {
+          newTargetDepartureTime = TrainrunsectionHelper.getSymmetricTime(
+            pair.trainrunSection.getTargetArrival(),
+          );
+        } else {
+          if (pair.trainrunSection.getSourceSymmetry()) {
+            newTargetDepartureTime = MathUtils.round(
+              (TrainrunsectionHelper.getSymmetricTime(pair.trainrunSection.getSourceDeparture()) -
+                (pair.trainrunSection.getBackwardTravelTime() % 60) +
+                60) %
+                60,
+              TrainrunSectionService.TIME_PRECISION,
+            );
+          } else {
+            // section is fully non-symmetric
+            newTargetDepartureTime = MathUtils.round(
+              (previousPair.trainrunSection.getSourceArrival() +
+                this.getPairsHaltezeit(previousPair, pair)) %
+                60,
+              TrainrunSectionService.TIME_PRECISION,
+            );
+          }
+        }
+      }
+    } else {
+      // end of trainrun case
+      newTargetDepartureTime = pair.trainrunSection.getTargetSymmetry()
+        ? TrainrunsectionHelper.getSymmetricTime(pair.trainrunSection.getTargetArrival())
+        : pair.trainrunSection.getTargetDeparture();
+    }
+    pair.trainrunSection.setTargetDeparture(newTargetDepartureTime);
+
+    // Update source times if possible
+    if (!pair.trainrunSection.getSourceArrivalLock()) {
+      const newSourceArrivalTime = MathUtils.round(
+        (newTargetDepartureTime + pair.trainrunSection.getBackwardTravelTime()) % 60,
+        TrainrunSectionService.TIME_PRECISION,
+      );
+      pair.trainrunSection.setSourceArrival(newSourceArrivalTime);
+    }
+
+    // Update travel times otherwise
+    if (!pair.trainrunSection.getTravelTimeLock()) {
+      let newBackwardTravelTime = pair.trainrunSection.getSourceArrival() - newTargetDepartureTime;
+      newBackwardTravelTime += Math.floor(pair.trainrunSection.getBackwardTravelTime() / 60) * 60;
+      while (newBackwardTravelTime < 0.0) {
+        newBackwardTravelTime += 60;
+      }
+      pair.trainrunSection.setBackwardTravelTime(newBackwardTravelTime);
+    }
+  }
+
+  iterateAlongTrainrunAndPropagateTimes(
+    startNode: Node,
+    startTrainrunSectionId: number,
+    sourceToTarget: boolean,
+    nonStopIterator: boolean,
+  ) {
+    const startTrainrunSection = this.getTrainrunSectionFromId(startTrainrunSectionId);
+
+    if (sourceToTarget) {
+      // Forward iteration: source to target direction
+      const forwardIterator = nonStopIterator
+        ? this.trainrunService.getNonStopIterator(startNode, startTrainrunSection)
+        : this.trainrunService.getIterator(startNode, startTrainrunSection);
+      const forwardSections: TrainrunSectionNodePair[] = [];
+      forwardSections.push(forwardIterator.next());
+      while (forwardIterator.hasNext()) {
+        const pair = forwardIterator.next();
+        forwardSections.push(pair);
+      }
+
+      // Forward propagation: source to target
+      // first section is not propagated, because it is the one that has been changed by the user
+      let previousForwardPair = forwardSections[0];
+      TrainrunSectionValidator.validateOneSection(previousForwardPair.trainrunSection);
+      forwardSections.shift();
+      for (const currentPair of forwardSections) {
+        if (currentPair.trainrunSection.getSourceDepartureLock()) {
+          break; // Stop propagation when lock is encountered
+        }
+        this.propagateTimesSourceToTarget(previousForwardPair, currentPair, true);
+        TrainrunSectionValidator.validateOneSection(currentPair.trainrunSection);
+        previousForwardPair = currentPair;
+      }
+
+      // Backward propagation: target to source
+      // first backward section is propagated, but has no previous section, special case
+      let previousBackwardPair: TrainrunSectionNodePair | null = null;
+      for (const currentPair of forwardSections.toReversed()) {
+        if (currentPair.trainrunSection.getTargetDepartureLock()) {
+          break; // Stop propagation when lock is encountered
+        }
+        this.propagateTimesTargetToSource(previousBackwardPair, currentPair, false);
+        TrainrunSectionValidator.validateOneSection(currentPair.trainrunSection);
+        previousBackwardPair = currentPair;
+      }
+    } else {
+      // Backward iteration: target to source direction
+      const backwardIterator = nonStopIterator
+        ? this.trainrunService.getBackwardNonStopIterator(startNode, startTrainrunSection)
+        : this.trainrunService.getBackwardIterator(startNode, startTrainrunSection);
+      const backwardSections: TrainrunSectionNodePair[] = [];
+      backwardSections.push(backwardIterator.next());
+      while (backwardIterator.hasNext()) {
+        const pair = backwardIterator.next();
+        backwardSections.push(pair);
+      }
+
+      // Forward propagation: target to source (in the context of backward iteration)
+      // first section is not propagated, because it is the one that has been changed by the user
+      let previousForwardPair = backwardSections[0];
+      TrainrunSectionValidator.validateOneSection(previousForwardPair.trainrunSection);
+      backwardSections.shift();
+      for (const currentPair of backwardSections) {
+        if (currentPair.trainrunSection.getTargetDepartureLock()) {
+          break; // Stop propagation when lock is encountered
+        }
+        this.propagateTimesTargetToSource(previousForwardPair, currentPair, true);
+        TrainrunSectionValidator.validateOneSection(currentPair.trainrunSection);
+        previousForwardPair = currentPair;
+      }
+
+      // Backward propagation: source to target (in the context of backward iteration)
+      // first backward section is propagated, but has no previous section, special case
+      let previousBackwardPair: TrainrunSectionNodePair | null = null;
+      for (const currentPair of backwardSections.toReversed()) {
+        if (currentPair.trainrunSection.getSourceDepartureLock()) {
+          break; // Stop propagation when lock is encountered
+        }
+        this.propagateTimesSourceToTarget(previousBackwardPair, currentPair, false);
+        TrainrunSectionValidator.validateOneSection(currentPair.trainrunSection);
+        previousBackwardPair = currentPair;
+      }
+    }
+
+    if (startTrainrunSection !== undefined) {
+      this.trainrunService.propagateConsecutiveTimesForTrainrun(startTrainrunSection.getId());
+    }
+  }
+
+  updateTrainrunSectionSourceTargetTimeLocks(
     trsId: number,
     sourceLock: boolean,
     targetLock: boolean,
-    travelTimeLock: boolean,
     enforceUpdate = true,
   ) {
     const trainrunSection = this.getTrainrunSectionFromId(trsId);
@@ -575,9 +645,23 @@ export class TrainrunSectionService implements OnDestroy {
       trainrunSection.setTargetArrivalLock(targetLock);
       trainrunSection.setTargetDepartureLock(targetLock);
     }
-    if (travelTimeLock !== undefined) {
-      trainrunSection.setTravelTimeLock(travelTimeLock);
+    if (enforceUpdate) {
+      this.trainrunSectionsUpdated();
     }
+  }
+
+  updateSectionsChainTravelTimeLocks(
+    trainrunSectionId: number,
+    lock: boolean,
+    enforceUpdate = true,
+  ) {
+    const sections = this.trainrunService.getNonStopSectionsChain(
+      this.getTrainrunSectionFromId(trainrunSectionId),
+    );
+    sections.forEach((section) => {
+      section.setTravelTimeLock(lock);
+      section.setBackwardTravelTimeLock(lock);
+    });
     if (enforceUpdate) {
       this.trainrunSectionsUpdated();
     }
@@ -647,10 +731,11 @@ export class TrainrunSectionService implements OnDestroy {
     this.handleNodeAndTrainrunSectionDetails(sourceNode, targetNode, trainrunSection);
 
     this.setTrainrunSectionAsSelected(trainrunSection.getId());
-    this.propagateTimesForNewTrainrunSection(trainrunSection);
 
     // Ensure consistent section direction considering the previous ones
     this.enforceConsistentSectionDirection(trainrunSection.getTrainrunId());
+
+    this.propagateTimesAtTrainrunSectionCreation(trainrunSection);
 
     //this.trainrunSectionsUpdated();
     this.trainrunService.trainrunsUpdated();
@@ -853,67 +938,149 @@ export class TrainrunSectionService implements OnDestroy {
   }
 
   setTimeStructureToTrainrunSections(
-    timeStructure: LeftAndRightTimeStructure,
-    trainrunSection: TrainrunSection,
+    chainLeftAndRightTimeStructure: LeftAndRightTimeStructure,
+    updatedTrainrunSection: TrainrunSection,
     precision = 0,
   ) {
-    const newTotalTravelTime = timeStructure.travelTime;
-
-    const oldTotalTravelTime = this.trainrunService.getCumulativeTravelTime(trainrunSection);
-    const travelTimeFactor = newTotalTravelTime / oldTotalTravelTime;
-
-    // prepare data structure for the first trainrunsection
-    const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
-    const bothLastNonStopTrainrunSections =
-      this.trainrunService.getBothLastNonStopTrainrunSections(trainrunSection);
-    const leftNode = GeneralViewFunctions.getLeftOrTopNode(
-      bothLastNonStopNodes.lastNonStopNode1,
-      bothLastNonStopNodes.lastNonStopNode2,
+    // Get all pairs [ [node(stop) --ts--] [node(non-stop) --ts--] [...] node(stop) ]
+    // and initialize their time structures
+    const firstTrainrunSection =
+      this.trainrunService.getFirstNonStopTrainrunSection(updatedTrainrunSection);
+    const iterator = this.trainrunService.getNonStopIterator(
+      firstTrainrunSection.getSourceNode(),
+      firstTrainrunSection,
     );
-    const trs =
-      leftNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
-        ? bothLastNonStopTrainrunSections.lastNonStopTrainrunSection1
-        : bothLastNonStopTrainrunSections.lastNonStopTrainrunSection2;
-
-    const trsTimeStructure = TrainrunsectionHelper.getDefaultTimeStructure(timeStructure);
-    let summedTravelTime = 0;
-
-    const iterator = this.trainrunService.getNonStopIterator(leftNode, trs);
+    const pairs: TrainrunSectionNodePair[] = [];
+    const pairTimeStructures: Map<TrainrunSectionNodePair, TimeStructure> = new Map();
     while (iterator.hasNext()) {
       const nextPair = iterator.next();
+      pairs.push(nextPair);
+      pairTimeStructures.set(nextPair, {
+        sourceDepartureTime: null,
+        travelTime: null,
+        targetArrivalTime: null,
+        targetDepartureTime: null,
+        backwardTravelTime: null,
+        sourceArrivalTime: null,
+      });
+    }
 
-      const isRightNodeNonStop = nextPair.node.isNonStop(nextPair.trainrunSection);
-      trsTimeStructure.travelTime = TrainrunsectionHelper.getTravelTime(
-        newTotalTravelTime,
+    // Get rid of left/right paradigm
+    const chainTimeStructure = this.getTimeStructureFromLeftAndRightTimeStructure(
+      TrainrunsectionHelper.isChainTargetRightOrBottom(
+        firstTrainrunSection,
+        iterator.current().trainrunSection,
+      ),
+      chainLeftAndRightTimeStructure,
+    );
+
+    // Notes:
+    // - travelTimeFactor: get the sum of the travel times of all the sections from the non-stop sections chain
+    // and compare it to the total cumulative travel time to the end of the non-stop sections chain (from the start of the trainrun)
+    // - backwardTravelTimeFactor: get the sum of the backward travel times of all the sections from the non-stop sections chain
+    // and compare it to the total cumulative travel time to the end of the reversed non-stop sections chain (from the start of the reversed trainrun)
+
+    // Source to target
+    const totalCumulativeTravelTime =
+      this.trainrunService.getCumulativeTravelTime(updatedTrainrunSection);
+    const travelTimeFactor = chainTimeStructure.travelTime / totalCumulativeTravelTime;
+    const tempTimeStructure: PartialTimeStructure = {
+      departureTime: chainTimeStructure.sourceDepartureTime,
+      travelTime: null,
+      arrivalTime: null,
+    };
+    let summedTravelTime = 0;
+    pairs.forEach((pair) => {
+      const finalTimeStructure = pairTimeStructures.get(pair);
+      tempTimeStructure.travelTime = TrainrunsectionHelper.getDistributedTravelTime(
+        chainTimeStructure.travelTime,
         summedTravelTime,
         travelTimeFactor,
-        nextPair.trainrunSection.getTravelTime(),
-        isRightNodeNonStop,
+        pair.trainrunSection.getTravelTime(),
+        pair.node.isNonStop(pair.trainrunSection),
         precision,
       );
-      trsTimeStructure.rightArrivalTime = TrainrunsectionHelper.getRightArrivalTime(
-        trsTimeStructure,
+      tempTimeStructure.arrivalTime = TrainrunsectionHelper.getArrivalTime(
+        tempTimeStructure,
         precision,
       );
-      trsTimeStructure.rightDepartureTime = TrainrunsectionHelper.getRightDepartureTime(
-        trsTimeStructure,
-        precision,
-      );
-      const rightIsTarget =
-        nextPair.node.getId() === nextPair.trainrunSection.getTargetNode().getId();
-      this.updateTrainrunSectionTime(
-        nextPair.trainrunSection.getId(),
-        rightIsTarget ? trsTimeStructure.leftArrivalTime : trsTimeStructure.rightArrivalTime,
-        rightIsTarget ? trsTimeStructure.leftDepartureTime : trsTimeStructure.rightDepartureTime,
-        rightIsTarget ? trsTimeStructure.rightArrivalTime : trsTimeStructure.leftArrivalTime,
-        rightIsTarget ? trsTimeStructure.rightDepartureTime : trsTimeStructure.leftDepartureTime,
-        trsTimeStructure.travelTime,
-      );
+      finalTimeStructure.sourceDepartureTime = tempTimeStructure.departureTime;
+      finalTimeStructure.travelTime = tempTimeStructure.travelTime;
+      finalTimeStructure.targetArrivalTime = tempTimeStructure.arrivalTime;
+      // next section departure inherits from the previous arrival
+      tempTimeStructure.departureTime = tempTimeStructure.arrivalTime;
+      summedTravelTime += tempTimeStructure.travelTime;
+    });
 
-      trsTimeStructure.leftDepartureTime = trsTimeStructure.rightArrivalTime;
-      trsTimeStructure.leftArrivalTime = trsTimeStructure.rightDepartureTime;
-      summedTravelTime += trsTimeStructure.travelTime;
-    }
+    // Target to source
+    const backwardPairs = pairs.toReversed();
+    const totalCumulativeBackwardTravelTime = this.trainrunService.getCumulativeBackwardTravelTime(
+      backwardPairs[0].trainrunSection,
+    );
+    const backwardTravelTimeFactor =
+      chainTimeStructure.backwardTravelTime / totalCumulativeBackwardTravelTime;
+    tempTimeStructure.departureTime = chainTimeStructure.targetDepartureTime;
+    let summedBackwardTravelTime = 0;
+    backwardPairs.forEach((pair) => {
+      const finalTimeStructure = pairTimeStructures.get(pair);
+      // check for opposite node stop instead since we iterate backward on a regular iterator
+      tempTimeStructure.travelTime = TrainrunsectionHelper.getDistributedTravelTime(
+        chainTimeStructure.backwardTravelTime,
+        summedBackwardTravelTime,
+        backwardTravelTimeFactor,
+        pair.trainrunSection.getBackwardTravelTime(),
+        pair.node.getOppositeNode(pair.trainrunSection).isNonStop(pair.trainrunSection),
+        precision,
+      );
+      tempTimeStructure.arrivalTime = TrainrunsectionHelper.getArrivalTime(
+        tempTimeStructure,
+        precision,
+      );
+      finalTimeStructure.targetDepartureTime = tempTimeStructure.departureTime;
+      finalTimeStructure.backwardTravelTime = tempTimeStructure.travelTime;
+      finalTimeStructure.sourceArrivalTime = tempTimeStructure.arrivalTime;
+      // next section inherits from the previous arrival
+      tempTimeStructure.departureTime = tempTimeStructure.arrivalTime;
+      summedBackwardTravelTime += tempTimeStructure.travelTime;
+    });
+
+    // then when all time structures are filled, update all trainrun sections
+    pairs.forEach((pair) => {
+      const timeStructure = pairTimeStructures.get(pair);
+      this.updateTrainrunSectionTime(
+        pair.trainrunSection.getId(),
+        timeStructure.sourceArrivalTime,
+        timeStructure.sourceDepartureTime,
+        timeStructure.targetArrivalTime,
+        timeStructure.targetDepartureTime,
+        timeStructure.travelTime,
+        timeStructure.backwardTravelTime,
+      );
+    });
+
+    this.trainrunSectionsUpdated();
+    this.nodeService.connectionsUpdated();
+  }
+
+  setTimeStructureToTrainrunSection(
+    leftAndRightTimeStructure: LeftAndRightTimeStructure,
+    updatedTrainrunSection: TrainrunSection,
+  ) {
+    // Get rid of left/right paradigm
+    const timeStructure = this.getTimeStructureFromLeftAndRightTimeStructure(
+      TrainrunsectionHelper.isTargetRightOrBottom(updatedTrainrunSection),
+      leftAndRightTimeStructure,
+    );
+
+    this.updateTrainrunSectionTime(
+      updatedTrainrunSection.getId(),
+      timeStructure.sourceArrivalTime,
+      timeStructure.sourceDepartureTime,
+      timeStructure.targetArrivalTime,
+      timeStructure.targetDepartureTime,
+      timeStructure.travelTime,
+      timeStructure.backwardTravelTime,
+    );
 
     this.trainrunSectionsUpdated();
     this.nodeService.connectionsUpdated();
@@ -1076,6 +1243,12 @@ export class TrainrunSectionService implements OnDestroy {
     });
   }
 
+  isTrainrunSymmetric(trainrunId: number): boolean {
+    return this.getAllTrainrunSectionsForTrainrun(trainrunId).every((section) =>
+      section.isSymmetric(),
+    );
+  }
+
   private copyTrainrunSection(
     existingTrainrunSection: TrainrunSection,
     newTrainrunId: number,
@@ -1084,6 +1257,15 @@ export class TrainrunSectionService implements OnDestroy {
     trainrunSection.setTrainrun(this.trainrunService.getTrainrunFromId(newTrainrunId));
     trainrunSection.setTravelTimeDto(
       JSON.parse(JSON.stringify(existingTrainrunSection.getTravelTimeDto())),
+    );
+    trainrunSection.setBackwardTravelTimeDto(
+      JSON.parse(JSON.stringify(existingTrainrunSection.getBackwardTravelTimeDto())),
+    );
+    trainrunSection.setSourceSymmetry(
+      JSON.parse(JSON.stringify(existingTrainrunSection.getSourceSymmetry())),
+    );
+    trainrunSection.setTargetSymmetry(
+      JSON.parse(JSON.stringify(existingTrainrunSection.getTargetSymmetry())),
     );
     trainrunSection.setSourceArrivalDto(
       JSON.parse(JSON.stringify(existingTrainrunSection.getSourceArrivalDto())),
@@ -1301,11 +1483,14 @@ export class TrainrunSectionService implements OnDestroy {
     const targetNode = this.nodeService.getNodeFromId(targetNodeId);
     newTrainrunSection.setSourceAndTargetNodeReference(sourceNode, targetNode);
 
+    newTrainrunSection.setSourceSymmetry(trainrunSection.sourceSymmetry);
+    newTrainrunSection.setTargetSymmetry(trainrunSection.targetSymmetry);
     newTrainrunSection.setSourceArrivalDto(trainrunSection.sourceArrival);
     newTrainrunSection.setTargetArrivalDto(trainrunSection.targetArrival);
     newTrainrunSection.setSourceDepartureDto(trainrunSection.sourceDeparture);
     newTrainrunSection.setTargetDepartureDto(trainrunSection.targetDeparture);
     newTrainrunSection.setTravelTimeDto(trainrunSection.travelTime);
+    newTrainrunSection.setBackwardTravelTimeDto(trainrunSection.backwardTravelTime);
     newTrainrunSection.setNumberOfStops(trainrunSection.numberOfStops);
     this.trainrunSectionsStore.trainrunSections.push(newTrainrunSection);
     const sourceIsNonStop = this.getIsNonStop(
@@ -1468,5 +1653,42 @@ export class TrainrunSectionService implements OnDestroy {
     // Update visuals and geometry
     trainrunSection.routeEdgeAndPlaceText();
     trainrunSection.convertVec2DToPath();
+  }
+
+  private getPairsHaltezeit(
+    previousPair: TrainrunSectionNodePair,
+    pair: TrainrunSectionNodePair,
+  ): number {
+    return previousPair.node.isNonStop(pair.trainrunSection)
+      ? 0
+      : previousPair.node.getTrainrunCategoryHaltezeit()[
+          pair.trainrunSection.getTrainrun().getTrainrunCategory().fachCategory
+        ].haltezeit;
+  }
+
+  private getTimeStructureFromLeftAndRightTimeStructure(
+    isTargetRightOrBottom: boolean,
+    leftAndRightTimeStructure: LeftAndRightTimeStructure,
+  ): TimeStructure {
+    return {
+      sourceDepartureTime: isTargetRightOrBottom
+        ? leftAndRightTimeStructure.leftDepartureTime
+        : leftAndRightTimeStructure.rightDepartureTime,
+      travelTime: isTargetRightOrBottom
+        ? leftAndRightTimeStructure.travelTime
+        : leftAndRightTimeStructure.bottomTravelTime,
+      targetArrivalTime: isTargetRightOrBottom
+        ? leftAndRightTimeStructure.rightArrivalTime
+        : leftAndRightTimeStructure.leftArrivalTime,
+      targetDepartureTime: isTargetRightOrBottom
+        ? leftAndRightTimeStructure.rightDepartureTime
+        : leftAndRightTimeStructure.leftDepartureTime,
+      backwardTravelTime: isTargetRightOrBottom
+        ? leftAndRightTimeStructure.bottomTravelTime
+        : leftAndRightTimeStructure.travelTime,
+      sourceArrivalTime: isTargetRightOrBottom
+        ? leftAndRightTimeStructure.leftArrivalTime
+        : leftAndRightTimeStructure.rightArrivalTime,
+    };
   }
 }
