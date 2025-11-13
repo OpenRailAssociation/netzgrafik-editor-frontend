@@ -128,31 +128,12 @@ export class Sg6TrackService implements OnDestroy {
   private getSectionKey(ps: SgTrainrunSection, separateForwardBackwardTracks: boolean) {
     let node1 = ps.arrivalPathNode === undefined ? undefined : ps.arrivalPathNode.nodeId;
     let node2 = ps.departurePathNode === undefined ? undefined : ps.departurePathNode.nodeId;
-    let key1 =
-      (ps.arrivalPathNode === undefined
-        ? "undefined_" + separateForwardBackwardTracks
-        : ps.arrivalPathNode.nodeShortName) +
-      "_" +
-      node1 +
-      "_" +
-      ps.index;
-    let key2 =
-      (ps.departurePathNode === undefined
-        ? "undefined_" + separateForwardBackwardTracks
-        : ps.departurePathNode.nodeShortName) +
-      "_" +
-      node2 +
-      "_" +
-      ps.index;
     if (node1 > node2) {
       const tmp = node1;
       node1 = node2;
       node2 = tmp;
-      const keyTmp = key1;
-      key1 = key2;
-      key2 = keyTmp;
     }
-    const sectionKey = key1 + "#" + key2;
+    const sectionKey = "@" + ps.index;
     return {key: sectionKey, node1: node1, node2: node2};
   }
 
