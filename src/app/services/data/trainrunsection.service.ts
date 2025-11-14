@@ -1505,7 +1505,9 @@ export class TrainrunSectionService implements OnDestroy {
         const pair = iterator.next();
 
         if (visitedSections.has(pair.trainrunSection.getId())) {
-          break; // Already processed this section
+          throw new Error(
+            `Cycle detected in trainrun section chain: section ${pair.trainrunSection.getId()} already visited for trainrun ${pair.trainrunSection.getTrainrunId()}`,
+          );
         }
 
         chain.push(pair.trainrunSection);
