@@ -38,9 +38,7 @@ import {
   TrainrunOperation,
 } from "../../models/operation.model";
 
-@Injectable({
-  providedIn: "root",
-})
+@Injectable({providedIn: "root"})
 export class NodeService implements OnDestroy {
   // Description of observable data service: https://coryrylan.com/blog/angular-observable-data-services
   nodesSubject = new BehaviorSubject<Node[]>([]);
@@ -252,6 +250,17 @@ export class NodeService implements OnDestroy {
     if (enforceUpdate) {
       this.nodesUpdated();
     }
+    this.operation.emit(new NodeOperation(OperationType.create, node));
+    return node;
+  }
+
+  addEmptyNode(positionX: number, positionY: number): Node {
+    const node: Node = new Node();
+    node.setPosition(positionX, positionY);
+    node.setIsCollapsed(true);
+    const resource: Resource = this.resourceService.createAndGetResource();
+    node.setResourceId(resource.getId());
+    this.nodesStore.nodes.push(node);
     this.operation.emit(new NodeOperation(OperationType.create, node));
     return node;
   }
