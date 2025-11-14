@@ -24,6 +24,7 @@ import {
   TrainrunCreateOperation,
   TrainrunUpdateOperation,
 } from "../../models/operation.model";
+
 interface DepartureAndArrivalTimes {
   nodeFromDepartureTime: number;
   nodeFromArrivalTime: number;
@@ -36,16 +37,12 @@ export interface InformSelectedTrainrunClick {
   open: boolean;
 }
 
-@Injectable({
-  providedIn: "root",
-})
+@Injectable({providedIn: "root"})
 export class TrainrunSectionService implements OnDestroy {
   // Description of observable data service: https://coryrylan.com/blog/angular-observable-data-services
   trainrunSectionsSubject = new BehaviorSubject<TrainrunSection[]>([]);
   readonly trainrunSections = this.trainrunSectionsSubject.asObservable();
-  trainrunSectionsStore: {trainrunSections: TrainrunSection[]} = {
-    trainrunSections: [],
-  }; // store the data in memory
+  trainrunSectionsStore: {trainrunSections: TrainrunSection[]} = {trainrunSections: []}; // store the data in memory
 
   readonly operation = new EventEmitter<Operation>();
 
@@ -980,13 +977,14 @@ export class TrainrunSectionService implements OnDestroy {
     });
   }
 
+  // this function is no longer used for its original purpose (drag a node that only existed inside numberOfStops and create it inside the real graph)
   replaceIntermediateStopWithNode(trainrunSectionId: number, stopIndex: number, nodeId: number) {
     const trainrunSection1 = this.getTrainrunSectionFromId(trainrunSectionId);
     if (
       trainrunSection1.getSourceNodeId() === nodeId ||
       trainrunSection1.getTargetNodeId() === nodeId
     ) {
-      return;
+      return {};
     }
     const origTravelTime = trainrunSection1.getTravelTime();
     const trainrunSection2 = this.copyTrainrunSection(
@@ -1098,13 +1096,10 @@ export class TrainrunSectionService implements OnDestroy {
     this.nodeService.connectionsUpdated();
     this.nodeService.nodesUpdated();
     this.trainrunSectionsUpdated();
-    this.operation.emit(
-      new TrainrunUpdateOperation(trainrunSection1.getTrainrun(), [
-        "nodes",
-        "times",
-        "numberOfStops",
-      ]),
-    );
+    return {
+      existingTrainRunSection: trainrunSection1,
+      newTrainRunSection: trainrunSection2,
+    };
   }
 
   setWarningOnNode(
