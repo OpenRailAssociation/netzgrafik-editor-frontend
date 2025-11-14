@@ -389,13 +389,13 @@ export class Sg6TrackService implements OnDestroy {
     // The headway bands – 'Nachbelegung' (release the "occupied resource" after this band).
     const bandLength = Math.round(timeRes * headwayTime);
 
-    // ensure if the idx is to small or too big (avoid crash / exception)
-    // ------------------------------------------------------------------
-    // const startIdx = Math.max(0, Math.min(baseTimeCellIdx, nTimeCells)); -> (perf. opt.)
+    // Ensure the index is within bounds to avoid crash/exception.
+    // Manual comparison is used instead of Math.max/Math.min for performance reasons,
+    // as this code is in a hot loop and avoids function call overhead.
     const startIdx =
       baseTimeCellIdx < 0 ? 0 : baseTimeCellIdx > nTimeCells ? nTimeCells : baseTimeCellIdx;
 
-    // const endIdx = Math.max(0, Math.min(baseTimeCellIdx + bandLength, nTimeCells)); (perf. opt.)
+    // Manual comparison for endIdx is also used for performance reasons.
     const endVal = baseTimeCellIdx + bandLength;
     const endIdx = endVal < 0 ? 0 : endVal > nTimeCells ? nTimeCells : endVal;
 
