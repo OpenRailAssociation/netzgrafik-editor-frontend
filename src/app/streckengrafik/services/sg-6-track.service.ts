@@ -14,6 +14,7 @@ import {TrainrunFrequency} from "../../data-structures/business.data.structures"
 import {NodeService} from "../../services/data/node.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
+import {TrainrunSection} from "../../models/trainrunsection.model";
 
 @Injectable({
   providedIn: "root",
@@ -63,25 +64,49 @@ export class Sg6TrackService implements OnDestroy {
     return this.sgSelectedTrainrun$;
   }
 
+  private getTrainrunSectionFromCacheDuringRendering(
+    trainrunSectionId: number,
+    trainrunSectionLookupCache: Map<number, TrainrunSection>,
+  ): TrainrunSection {
+    // Retrieves a TrainrunSection by its ID, using a cache to avoid redundant lookups.
+    // If the section is not already in the provided cache, it fetches it from the service
+    // and stores it in the cache for future use. This improves performance during rendering.
+    let cachedLookup: TrainrunSection = trainrunSectionLookupCache.get(trainrunSectionId);
+    if (cachedLookup === undefined) {
+      cachedLookup = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
+      trainrunSectionLookupCache.set(trainrunSectionId, cachedLookup);
+    }
+    return cachedLookup;
+  }
+
   private render() {
     if (this.selectedTrainrun === undefined) {
       return;
     }
 
+    // prepare fast look (cache for big netzgrafik)
+    const trainrunSectionLookupCache = new Map<number, TrainrunSection>();
+
     // calculate the track occupier (node)
     const separateForwardBackwardTracks = this.separateForwardBackwardMainTracks;
-    this.computeTrackAlignments(this.selectedTrainrun, separateForwardBackwardTracks);
+    this.computeTrackAlignments(
+      this.selectedTrainrun,
+      separateForwardBackwardTracks,
+      trainrunSectionLookupCache,
+    );
 
     // calculate the required tracks "blocks" (section)
     const separateForwardBackwardSectionTracks = false;
     const sectionTrackMap = this.extractStreckenGleis(
       this.selectedTrainrun.trainruns,
       separateForwardBackwardSectionTracks,
+      trainrunSectionLookupCache,
     );
     this.mapTrackToTop(
       this.selectedTrainrun.trainruns,
       sectionTrackMap,
       separateForwardBackwardSectionTracks,
+      trainrunSectionLookupCache,
     );
 
     // update the rendering -> goto next pipeline step
@@ -91,12 +116,13 @@ export class Sg6TrackService implements OnDestroy {
   private extractStreckenGleis(
     trainrunItems: SgTrainrun[],
     separateForwardBackwardTracks: boolean,
+    trainrunSectionLookupCache: Map<number, TrainrunSection>,
   ) {
     const sectionsOfInterest = this.createSectionsOfInterestMap(
       trainrunItems,
       separateForwardBackwardTracks,
     );
-    return this.extractSectionTracks(sectionsOfInterest);
+    return this.extractSectionTracks(sectionsOfInterest, trainrunSectionLookupCache);
   }
 
   private createSectionsOfInterestMap(
@@ -142,7 +168,9 @@ export class Sg6TrackService implements OnDestroy {
     sectionData.forEach((d) => {
       const item: SgTrainrunItem = d.item;
       const travelTime = item.arrivalTime - item.departureTime;
-      nDistanceCells = Math.max(nDistanceCells, Math.round(travelTime));
+      if (nDistanceCells < travelTime) {
+        nDistanceCells = Math.round(travelTime);
+      }
     });
     return nDistanceCells;
   }
@@ -188,6 +216,7 @@ export class Sg6TrackService implements OnDestroy {
 
   private extractSectionTracks(
     sectionsOfInterest: Map<string, any[]>,
+    trainrunSectionLookupCache: Map<number, TrainrunSection>,
     distRes = 15, // Res 4s
     timeRes = 15, // Res 4s
   ) {
@@ -207,9 +236,12 @@ export class Sg6TrackService implements OnDestroy {
       // ------------------------------------------------------------------------------------------------------------------
       // step 3 -> create data structure
       // ------------------------------------------------------------------------------------------------------------------
-      const dataMatrix: number[][] = new Array(nDistanceCells)
-        .fill(0)
-        .map(() => new Array(nTimeCells).fill(0));
+      // We restrict the number of section tracks to 255 tracks (between two nodes we could only
+      // have 255 tracks - this improves the performance
+      const dataMatrix = new Array(nDistanceCells);
+      for (let idx = 0; idx < nDistanceCells; idx++) {
+        dataMatrix[idx] = new Uint8Array(nTimeCells);
+      }
       const tracksMatrix: number[] = new Array(nDistanceCells).fill(0);
 
       // ------------------------------------------------------------------------------------------------------------------
@@ -218,41 +250,30 @@ export class Sg6TrackService implements OnDestroy {
       sectionData.forEach((d) => {
         const item: SgTrainrunItem = d.item;
         const travelTime = item.arrivalTime - item.departureTime;
+        const departureMod = item.departureTime % this.maxFrequency;
 
-        const ts = this.trainrunSectionService.getTrainrunSectionFromId(
+        const ts = this.getTrainrunSectionFromCacheDuringRendering(
           item.getTrainrunSection().trainrunSectionId,
+          trainrunSectionLookupCache,
         );
+
         const headwayTime =
           ts !== undefined
             ? ts.getTrainrun().getTrainrunCategory().sectionHeadway
             : this.minimumHeadwayTime;
 
-        // iterate cell-by-cell foward
-        for (let distCellIdx = 0; distCellIdx < nDistanceCells; distCellIdx++) {
-          // unroll frequency to get the trains - generated out of the "template" train
-          for (
-            let freqLoop = -this.maxFrequency;
-            freqLoop <= this.maxFrequency;
-            freqLoop = freqLoop + d.trainrun.frequency
-          ) {
-            // the bands of "headway" - Nachbelegung (free the occupied resource just after this "band"
-            for (let bandOffset = 0; bandOffset < timeRes * headwayTime; bandOffset++) {
-              // compute the indices to get the matrix cell's where to fill in the information
-              const idx = item.backward ? nDistanceCells - distCellIdx - 1 : distCellIdx;
-              let timeCellIdx =
-                (item.departureTime % this.maxFrequency) +
-                (travelTime * distCellIdx) / (nDistanceCells - 0.5) +
-                freqLoop;
-              timeCellIdx = bandOffset + Math.round(timeRes * timeCellIdx);
-
-              // ensure if the idx is to small or to big (avoid crash / expection)
-              if (timeCellIdx >= 0 && timeCellIdx < nTimeCells) {
-                dataMatrix[idx][timeCellIdx]++;
-                tracksMatrix[idx] = Math.max(tracksMatrix[idx], dataMatrix[idx][timeCellIdx]);
-              }
-            }
-          }
-        }
+        this.extractSectionsTrackDataCellByCell(
+          nDistanceCells,
+          nTimeCells,
+          d.trainrun.frequency,
+          item.backward,
+          travelTime,
+          departureMod,
+          timeRes,
+          headwayTime,
+          dataMatrix,
+          tracksMatrix,
+        );
       });
 
       // ------------------------------------------------------------------------------------------------------------------
@@ -263,7 +284,114 @@ export class Sg6TrackService implements OnDestroy {
         this.mergeDistanceCellGridResoultionToBigSegment(tracksMatrix, nDistanceCells),
       );
     }
+
     return sectionsTracks;
+  }
+
+  private extractSectionsTrackDataCellByCell(
+    nDistanceCells: number,
+    nTimeCells: number,
+    freq: number,
+    backward: boolean,
+    travelTime: number,
+    departureMod: number,
+    timeRes: number,
+    headwayTime: number,
+    dataMatrix: any[],
+    tracksMatrix: number[],
+  ) {
+    // ----------------------------------------
+    // iterate section data cell-by-cell foward
+    // ----------------------------------------
+    const f = 1.0 / (nDistanceCells - 0.5);
+    for (let distCellIdx = 0; distCellIdx < nDistanceCells; distCellIdx++) {
+      // compute the idx - forward / backward direction (transformation)
+      const idx = backward ? nDistanceCells - distCellIdx - 1 : distCellIdx;
+      // just precompute "static" part (performance)
+      const travelTimeIdxPart = travelTime * distCellIdx * f;
+      // unroll frequency to get the trains - generated out of the "template" train
+      const localMax = this.extractSectionTracksUnrollFreq(
+        departureMod,
+        travelTimeIdxPart,
+        freq,
+        timeRes,
+        dataMatrix[idx],
+        headwayTime,
+        nTimeCells,
+      );
+
+      const val = tracksMatrix[idx];
+      if (val < localMax) {
+        tracksMatrix[idx] = localMax;
+      }
+    }
+  }
+
+  private extractSectionTracksUnrollFreq(
+    departureMod: number,
+    travelTimeIdxPart: number,
+    frequency: number,
+    timeRes: number,
+    dataMatAtIdx: Uint8Array,
+    headwayTime: number,
+    nTimeCells: number,
+  ): number {
+    let localMax = 0;
+    const startAt = -this.maxFrequency;
+    const endAt = this.maxFrequency;
+    for (let freqLoop = startAt; freqLoop <= endAt; freqLoop = freqLoop + frequency) {
+      // unroll frequency to get the trains - generated out of the "template" train
+      // just precompute "static" part (performance)
+      const timeCellIdxBase = departureMod + travelTimeIdxPart + freqLoop;
+
+      // just precompute "static" part (performance)
+      const baseTimeCellIdx = Math.round(timeRes * timeCellIdxBase);
+      const bandMax = this.extractSectionTracksFillOccupationBand(
+        dataMatAtIdx,
+        baseTimeCellIdx,
+        headwayTime,
+        timeRes,
+        nTimeCells,
+      );
+      if (bandMax > localMax) localMax = bandMax;
+    }
+    return localMax;
+  }
+
+  private extractSectionTracksFillOccupationBand(
+    dataRow: Uint8Array,
+    baseTimeCellIdx: number,
+    headwayTime: number,
+    timeRes: number,
+    nTimeCells: number,
+  ): number {
+    // The headway bands – 'Nachbelegung' (release the "occupied resource" after this band).
+    const bandLength = Math.round(timeRes * headwayTime);
+
+    // Ensure the index is within bounds to avoid crash/exception.
+    // Manual comparison is used instead of Math.max/Math.min for performance reasons,
+    // as this code is in a hot loop and avoids function call overhead.
+    const startIdx =
+      baseTimeCellIdx < 0 ? 0 : baseTimeCellIdx > nTimeCells ? nTimeCells : baseTimeCellIdx;
+
+    // Manual comparison for endIdx is also used for performance reasons.
+    const endVal = baseTimeCellIdx + bandLength;
+    const endIdx = endVal < 0 ? 0 : endVal > nTimeCells ? nTimeCells : endVal;
+
+    // Loop over the band (expensive part of the code)
+    // -----------------------------------------------
+    let maxValue = 0;
+    for (let timeIdx = startIdx; timeIdx < endIdx; timeIdx++) {
+      const current = dataRow[timeIdx];
+      if (current < 255) {
+        const newValue = current + 1;
+        dataRow[timeIdx] = newValue;
+        if (newValue > maxValue) maxValue = newValue;
+      } else {
+        maxValue = 255;
+      }
+    }
+    return maxValue;
   }
 
   private getNodeKeyAlignmentsNodeData(pn: SgTrainrunNode): string {
@@ -510,7 +638,10 @@ export class Sg6TrackService implements OnDestroy {
     ts.sgTrainrunItems = ts.sgTrainrunItems.concat(collectExtraTrainruns);
   }
 
-  private calculateMinimumHeadwayTimeAtNode(trainrunNode: SgTrainrunNode) {
+  private calculateMinimumHeadwayTimeAtNode(
+    trainrunNode: SgTrainrunNode,
+    trainrunSectionLookupCache: Map<number, TrainrunSection>,
+  ) {
     //this.calculateMinimumHeadwayTime(pathNode, trainrun, trainrunSection);
     const node = this.nodeService.getNodeFromId(trainrunNode.nodeId);
     let trainrunSectionId: number = undefined;
@@ -531,7 +662,11 @@ export class Sg6TrackService implements OnDestroy {
       return trainrun.getTrainrunCategory().nodeHeadwayStop;
     }
 
-    const trainrunSection = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
+    const trainrunSection = this.getTrainrunSectionFromCacheDuringRendering(
+      trainrunSectionId,
+      trainrunSectionLookupCache,
+    );
+
     const trans = node.getTransition(trainrunSection.getId());
     const trainrun = trainrunSection.getTrainrun();
 
@@ -549,6 +684,7 @@ export class Sg6TrackService implements OnDestroy {
   private computeTrackAlignments(
     selectedTrainrun: SgSelectedTrainrun,
     separateForwardBackwardTracks = true,
+    trainrunSectionLookupCache: Map<number, TrainrunSection>,
   ) {
     const trackInfoMap = new Map<number, PathNodeNeighbour[]>();
 
@@ -569,7 +705,10 @@ export class Sg6TrackService implements OnDestroy {
       // ------------------------------------------------------------------------------------------------------------------
       ts.sgTrainrunItems.forEach((item) => {
         if (item.isNode()) {
-          const headwayTime = this.calculateMinimumHeadwayTimeAtNode(item.getTrainrunNode());
+          const headwayTime = this.calculateMinimumHeadwayTimeAtNode(
+            item.getTrainrunNode(),
+            trainrunSectionLookupCache,
+          );
           item.getTrainrunNode().setMinimumHeadwayTime(headwayTime);
         }
       });
@@ -1019,6 +1158,7 @@ export class Sg6TrackService implements OnDestroy {
     trainrunItems: SgTrainrun[],
     sectionTrackMap: Map<string, number[]>,
     separateForwardBackwardTracks: boolean,
+    trainrunSectionLookupCache: Map<number, TrainrunSection>,
   ) {
     const maxTrackMap = new Map<string, TrackData>();
     trainrunItems.forEach((trainrunItem) => {
@@ -1072,10 +1212,13 @@ export class Sg6TrackService implements OnDestroy {
         }
       });
     });
-    this.setMaxTrackMap(maxTrackMap);
+    this.setMaxTrackMap(maxTrackMap, trainrunSectionLookupCache);
   }
 
-  private setMaxTrackMap(maxTrackMap: Map<string, TrackData>) {
+  private setMaxTrackMap(
+    maxTrackMap: Map<string, TrackData>,
+    trainrunSectionLookupCache: Map<number, TrainrunSection>,
+  ) {
     maxTrackMap.forEach((trackData, key) => {
       this.selectedTrainrun.paths.forEach((path) => {
         if (path.isNode()) {
@@ -1104,7 +1247,11 @@ export class Sg6TrackService implements OnDestroy {
           const ps = path.getPathSection();
           const keyCommonBehavior = ps.arrivalNodeId + ":" + ps.departureNodeId;
           const keyOneWaySpecialCase = ps.departureNodeId + ":" + ps.arrivalNodeId;
-          const ts = this.trainrunSectionService.getTrainrunSectionFromId(ps.trainrunSectionId);
+
+          const ts = this.getTrainrunSectionFromCacheDuringRendering(
+            ps.trainrunSectionId,
+            trainrunSectionLookupCache,
+          );
           const isRoundTrip = ts.getTrainrun().isRoundTrip();
 
           if (keyCommonBehavior === key || (!isRoundTrip && keyOneWaySpecialCase === key)) {
