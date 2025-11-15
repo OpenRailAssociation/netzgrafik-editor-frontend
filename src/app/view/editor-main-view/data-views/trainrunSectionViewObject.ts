@@ -1,4 +1,5 @@
 import {TrainrunSection} from "../../../models/trainrunsection.model";
+import {Vec2D} from "../../../utils/vec2D";
 import {EditorView} from "./editor.view";
 
 export class TrainrunSectionViewObject {
@@ -6,7 +7,7 @@ export class TrainrunSectionViewObject {
 
   constructor(
     private editorView: EditorView,
-    public trainrunSection: TrainrunSection,
+    public trainrunSections: TrainrunSection[],
     isNonStopAtSource: boolean,
     isNonStopAtTarget: boolean,
     isMuted: boolean,
@@ -16,9 +17,9 @@ export class TrainrunSectionViewObject {
     hiddenTagTrainrunName: boolean,
     hiddenTagDirectionArrows: boolean,
   ) {
-    this.key = TrainrunSectionViewObject.generateKey(
+    this.key = this.generateKey(
       editorView,
-      trainrunSection,
+      trainrunSections,
       isNonStopAtSource,
       isNonStopAtTarget,
       isMuted,
@@ -30,9 +31,22 @@ export class TrainrunSectionViewObject {
     );
   }
 
-  static generateKey(
+  getTrainrun() {
+    return this.trainrunSections[0].getTrainrun();
+  }
+
+  getTravelTime(): number {
+    const firstSection = this.trainrunSections[0];
+    const lastSection = this.trainrunSections.at(-1);
+    const startTime = firstSection.getSourceDepartureConsecutiveTime();
+    const endTime = lastSection!.getTargetArrivalConsecutiveTime();
+
+    return endTime - startTime;
+  }
+
+  private generateKey(
     editorView: EditorView,
-    d: TrainrunSection,
+    trainrunSections: TrainrunSection[],
     isNonStopAtSource: boolean,
     isNonStopAtTarget: boolean,
     isMuted: boolean,
@@ -42,71 +56,70 @@ export class TrainrunSectionViewObject {
     hiddenTagTrainrunName: boolean,
     hiddenTagDirectionArrows: boolean,
   ): string {
-    const cumulativeTravelTimeData = editorView.getCumulativeTravelTimeAndNodePath(d);
+    const trainrun = this.getTrainrun();
+    const firstSection = trainrunSections[0];
+    const lastSection = trainrunSections.at(-1);
+    const cumulativeTravelTimeData = editorView.getCumulativeTravelTimeAndNodePath(firstSection);
     const cumulativeTravelTime =
       cumulativeTravelTimeData[cumulativeTravelTimeData.length - 1].sumTravelTime;
 
     let key =
       "#" +
-      d.getId() +
+      firstSection.getId() +
       "@" +
-      d.getTrainrun().getTitle() +
+      this.getTrainrun().getTitle() +
       "_" +
-      d.getTrainrun().selected() +
+      this.getTrainrun().selected() +
       "_" +
-      d.getNumberOfStops() +
+      firstSection.getNumberOfStops() +
       "_" +
-      d.getTravelTime() +
+      this.getTravelTime() +
       "_" +
       cumulativeTravelTime +
       "_" +
       editorView.getTimeDisplayPrecision() +
       "_" +
-      d.getTargetDeparture() +
+      lastSection.getTargetDeparture() +
       "_" +
-      d.getTargetArrival() +
+      lastSection.getTargetArrival() +
       "_" +
-      d.getSourceDeparture() +
+      firstSection.getSourceDeparture() +
       "_" +
-      d.getTargetArrival() +
+      firstSection.getSourceArrival() +
       "_" +
-      d.getTargetDepartureConsecutiveTime() +
+      lastSection.getTargetDepartureConsecutiveTime() +
       "_" +
-      d.getTargetArrivalConsecutiveTime() +
+      lastSection.getTargetArrivalConsecutiveTime() +
       "_" +
-      d.getSourceDepartureConsecutiveTime() +
+      firstSection.getSourceDepartureConsecutiveTime() +
       "_" +
-      d.getTargetArrivalConsecutiveTime() +
+      firstSection.getSourceArrivalConsecutiveTime() +
       "_" +
-      d.getNumberOfStops() +
+      firstSection.getNumberOfStops() +
       "_" +
-      d.getFrequency() +
+      this.getTrainrun().getTrainrunCategory().shortName +
       "_" +
-      d.getFrequencyOffset() +
+      this.getTrainrun().getTrainrunFrequency().shortName +
       "_" +
-      d.getTrainrun().getTrainrunCategory().shortName +
+      this.getTrainrun().getTrainrunTimeCategory().shortName +
       "_" +
-      d.getTrainrun().getTrainrunFrequency().shortName +
+      this.getTrainrun().getTrainrunCategory().id +
       "_" +
-      d.getTrainrun().getTrainrunTimeCategory().shortName +
+      this.getTrainrun().getTrainrunFrequency().id +
       "_" +
-      d.getTrainrun().getTrainrunCategory().id +
+      this.getTrainrun().getTrainrunTimeCategory().id +
       "_" +
-      d.getTrainrun().getTrainrunFrequency().id +
+      this.getTrainrun().getTrainrunCategory().colorRef +
       "_" +
-      d.getTrainrun().getTrainrunTimeCategory().id +
+      this.getTrainrun().getTrainrunFrequency().linePatternRef +
       "_" +
-      d.getTrainrun().getTrainrunCategory().colorRef +
+      this.getTrainrun().getTrainrunTimeCategory().linePatternRef +
       "_" +
-      d.getTrainrun().getTrainrunFrequency().linePatternRef +
+      this.getTrainrun().getTrainrunFrequency().frequency +
       "_" +
-      d.getTrainrun().getTrainrunTimeCategory().linePatternRef +
+      this.getTrainrun().getTrainrunFrequency().offset +
       "_" +
-      d.getTrainrun().getTrainrunFrequency().frequency +
-      "_" +
-      d.getTrainrun().getTrainrunFrequency().offset +
-      "_" +
-      d.getTrainrun().getDirection() +
+      this.getTrainrun().getDirection() +
       "_" +
       isNonStopAtSource +
       "_" +
@@ -128,17 +141,17 @@ export class TrainrunSectionViewObject {
       "_" +
       editorView.isFilterShowNonStopTimeEnabled() +
       "_" +
-      editorView.checkFilterNonStopNode(d.getSourceNode()) +
+      editorView.checkFilterNonStopNode(firstSection.getSourceNode()) +
       "_" +
-      editorView.checkFilterNonStopNode(d.getTargetNode()) +
+      editorView.checkFilterNonStopNode(lastSection.getTargetNode()) +
       "_" +
-      editorView.isJunctionNode(d.getSourceNode()) +
+      editorView.isJunctionNode(firstSection.getSourceNode()) +
       "_" +
-      editorView.isJunctionNode(d.getTargetNode()) +
+      editorView.isJunctionNode(lastSection.getTargetNode()) +
       "_" +
-      editorView.checkFilterNode(d.getSourceNode()) +
+      editorView.checkFilterNode(firstSection.getSourceNode()) +
       "_" +
-      editorView.checkFilterNode(d.getTargetNode()) +
+      editorView.checkFilterNode(lastSection.getTargetNode()) +
       "_" +
       editorView.isFilterDirectionArrowsEnabled() +
       "_" +
@@ -153,9 +166,16 @@ export class TrainrunSectionViewObject {
       key += "_" + editorView.checkFilterNode(data.node);
     });
 
-    d.getPath().forEach((p) => {
+    this.getPath().forEach((p) => {
       key += p.toString();
     });
+
     return key;
+  }
+
+  getPath(): Vec2D[] {
+    const sourcePath = this.trainrunSections[0].getPath().slice(0, 2);
+    const targetPath = this.trainrunSections.at(-1)!.getPath().slice(2, 4);
+    return [...sourcePath, ...targetPath];
   }
 }
