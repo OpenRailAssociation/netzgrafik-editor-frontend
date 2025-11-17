@@ -11,6 +11,7 @@ import {StammdatenService} from "../../services/data/stammdaten.service";
 import {LogService} from "../../logger/log.service";
 import {VersionControlService} from "../../services/data/version-control.service";
 import {
+  Direction,
   HaltezeitFachCategories,
   NetzgrafikDto,
   NodeDto,
@@ -27,6 +28,7 @@ import {TrainrunSectionValidator} from "../../services/util/trainrunsection.vali
 import {OriginDestinationService} from "src/app/services/analytics/origin-destination/components/origin-destination.service";
 import {EditorMode} from "../editor-menu/editor-mode";
 import {NODE_TEXT_AREA_HEIGHT, RASTERING_BASIC_GRID_SIZE} from "../rastering/definitions";
+import {ResourceService} from "../../services/data/resource.service";
 
 interface ContainertoExportData {
   documentToExport: HTMLElement;
@@ -63,6 +65,7 @@ export class EditorToolsViewComponent {
     private viewportCullService: ViewportCullService,
     private levelOfDetailService: LevelOfDetailService,
     private originDestinationService: OriginDestinationService,
+    private resourceService: ResourceService,
   ) {}
 
   onLoadButton() {
@@ -764,12 +767,24 @@ export class EditorToolsViewComponent {
         }
         trans.setIsNonStopTransit(arrivalTime - departureTime === 0);
       });
+
+      const res = this.resourceService.createAndGetResource(false);
+      n.setResourceId(res.getId());
     });
 
-    // step(4) Recalc/propagate consecutive times
+    // step(4) Migrate 3rd party imported trainruns/node/resource to ensure direction is set
+    this.dataService.ensureAllResourcesLinkedToNetzgrafikObjects();
+    this.trainrunService.getTrainruns().forEach((t) => {
+      const currentDirection = t.getDirection();
+      if (currentDirection === undefined) {
+        t.setDirection(Direction.ROUND_TRIP);
+      }
+    });
+
+    // step(5) Recalc/propagate consecutive times
     this.trainrunService.propagateInitialConsecutiveTimes();
 
-    // step(5) Validate all trainrun sections
+    // step(6) Validate all trainrun sections
     this.trainrunSectionService.getTrainrunSections().forEach((ts) => {
       TrainrunSectionValidator.validateOneSection(ts);
       TrainrunSectionValidator.validateTravelTime(ts);
