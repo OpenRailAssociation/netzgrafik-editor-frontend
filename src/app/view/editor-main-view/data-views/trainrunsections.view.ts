@@ -54,11 +54,21 @@ export class TrainrunSectionsView {
   static translateAndRotateText(
     trainrunSection: TrainrunSection,
     trainrunSectionText: TrainrunSectionText,
+    viewObject?: TrainrunSectionViewObject,
   ) {
     const x = trainrunSection.getTextPositionX(trainrunSectionText);
     const y = trainrunSection.getTextPositionY(trainrunSectionText);
 
-    const pathVec2D: Vec2D[] = trainrunSection.getPath();
+    // Use viewObject path if provided, otherwise use trainrunSection path
+    const pathVec2D: Vec2D[] = viewObject
+      ? viewObject.trainrunSections[0].getPath()
+      : trainrunSection.getPath();
+
+    // Check if path has enough points
+    if (pathVec2D.length < 4) {
+      return "translate(" + x + "," + y + ") rotate(0, 0,0) ";
+    }
+
     const s1: Vec2D = pathVec2D[1];
     const t1: Vec2D = pathVec2D[2];
     const diff: Vec2D = Vec2D.sub(t1, s1);
@@ -74,41 +84,6 @@ export class TrainrunSectionsView {
       a = DEFAULT_ANGLE_HORIZONTAL;
     }
     return "translate(" + x + "," + y + ") rotate(" + a + ", 0,0) ";
-  }
-
-  /**
-   * Version that works with TrainrunSectionViewObject to handle custom paths for collapsed chains
-   * This method needs access to the view instance to get the collapsed path
-   */
-  static translateAndRotateTextForViewObject(
-    viewObject: TrainrunSectionViewObject,
-    trainrunSectionText: TrainrunSectionText,
-  ) {
-    const trainrunSection = viewObject.trainrunSections[0];
-
-    const x = trainrunSection.getTextPositionX(trainrunSectionText);
-    const y = trainrunSection.getTextPositionY(trainrunSectionText);
-    const originalPath = trainrunSection.getPath();
-
-    if (originalPath.length >= 4) {
-      const s1: Vec2D = originalPath[1];
-      const t1: Vec2D = originalPath[2];
-      const diff: Vec2D = Vec2D.sub(t1, s1);
-      let a: number = (Math.atan2(diff.getY(), diff.getX()) / Math.PI) * 180.0;
-      if (Math.abs(a) > ANGLE_UPSIDE_DOWN_THRESHOLD) {
-        a = a + 180;
-      }
-      // Math.atan2 -> edge cases -> correct manually
-      if (Math.abs(diff.getX()) < EDGE_CASE_THRESHOLD) {
-        a = DEFAULT_ANGLE_VERTICAL;
-      }
-      if (Math.abs(diff.getY()) < EDGE_CASE_THRESHOLD) {
-        a = DEFAULT_ANGLE_HORIZONTAL;
-      }
-      return "translate(" + x + "," + y + ") rotate(" + a + ", 0,0) ";
-    }
-
-    return "translate(" + x + "," + y + ") rotate(0, 0,0) ";
   }
 
   private getTextPositionsForCollapsedChain(
@@ -189,9 +164,10 @@ export class TrainrunSectionsView {
       return `translate(${x},${y}) rotate(${angle}, 0,0) `;
     }
 
-    return TrainrunSectionsView.translateAndRotateTextForViewObject(
-      viewObject,
+    return TrainrunSectionsView.translateAndRotateText(
+      trainrunSection,
       trainrunSectionText,
+      viewObject,
     );
   }
 
@@ -497,6 +473,7 @@ export class TrainrunSectionsView {
   static getAdditionPositioningValue(
     trainrunSection: TrainrunSection,
     textElement: TrainrunSectionText,
+    viewObject?: TrainrunSectionViewObject,
   ) {
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
@@ -506,28 +483,11 @@ export class TrainrunSectionsView {
         return 1.5;
       case TrainrunSectionText.TrainrunSectionTravelTime:
       case TrainrunSectionText.TrainrunSectionName:
-        return TrainrunSectionsView.translateAndRotateText(trainrunSection, textElement);
-      default:
-        return 0;
-    }
-  }
-
-  /**
-   * Version that works with TrainrunSectionViewObject for collapsed chains
-   */
-  static getAdditionPositioningValueForViewObject(
-    viewObject: TrainrunSectionViewObject,
-    textElement: TrainrunSectionText,
-  ) {
-    switch (textElement) {
-      case TrainrunSectionText.SourceDeparture:
-      case TrainrunSectionText.SourceArrival:
-      case TrainrunSectionText.TargetDeparture:
-      case TrainrunSectionText.TargetArrival:
-        return 1.5;
-      case TrainrunSectionText.TrainrunSectionTravelTime:
-      case TrainrunSectionText.TrainrunSectionName:
-        return TrainrunSectionsView.translateAndRotateTextForViewObject(viewObject, textElement);
+        return TrainrunSectionsView.translateAndRotateText(
+          trainrunSection,
+          textElement,
+          viewObject,
+        );
       default:
         return 0;
     }
