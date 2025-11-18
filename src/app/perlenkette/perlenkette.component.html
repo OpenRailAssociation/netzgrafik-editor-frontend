@@ -52,9 +52,9 @@
                 style="transform: translateY(-2px)"
                 >{{ perlenketteTrainrun.pathItems.at(0).getPerlenketteNode().fullName }}</span
               >
-              @if (getArrowDirectionForOneWayTrainrun() !== null) {
+              @if (trainrunService.getSbbArrowForTrainrunDirection() !== null) {
                 <sbb-icon
-                  [svgIcon]="getArrowDirectionForOneWayTrainrun()"
+                  [svgIcon]="trainrunService.getSbbArrowForTrainrunDirection()"
                   aria-hidden="false"
                   height="13px"
                   width="13px"
@@ -77,9 +77,9 @@
               <span class="station" (click)="scrollFirst($event)">{{
                 perlenketteTrainrun.pathItems.at(0).getPerlenketteNode().fullName
               }}</span>
-              @if (getArrowDirectionForOneWayTrainrun() !== null) {
+              @if (trainrunService.getSbbArrowForTrainrunDirection() !== null) {
                 <sbb-icon
-                  [svgIcon]="getArrowDirectionForOneWayTrainrun()"
+                  [svgIcon]="trainrunService.getSbbArrowForTrainrunDirection()"
                   aria-hidden="false"
                   height="13px"
                   width="13px"
@@ -114,10 +114,13 @@
             </sbb-toggle-icon>
           </sbb-toggle-option>
           <sbb-toggle-option
-            label="⟷"
+            label=""
             subtitle=""
             [value]="ShowTrainrunEditTab.sbb_trainrun_roundtrip_tab"
           >
+            <sbb-toggle-icon>
+              <sbb-icon [svgIcon]="trainrunService.getSbbArrowForTrainrunDirection()"></sbb-icon>
+            </sbb-toggle-icon>
           </sbb-toggle-option>
         </sbb-toggle>
       </div>
