@@ -9,6 +9,7 @@ import {
   computeShortestPaths,
   topoSort,
 } from "src/app/view/util/origin-destination-graph";
+import {MathUtils} from "../../../../utils/math";
 
 // Computed values for an origin/destination pair.
 export type OriginDestination = {
@@ -115,9 +116,9 @@ export class OriginDestinationService {
           destination: destination.getBetriebspunktName(),
           originId: origin.getId(),
           destinationId: destination.getId(),
-          travelTime: totalCost - connections * connectionPenalty,
-          transfers: connections,
-          totalCost: totalCost,
+          travelTime: MathUtils.round(totalCost - connections * connectionPenalty, 10),
+          transfers: MathUtils.round(connections, 10),
+          totalCost: MathUtils.round(totalCost, 10),
           found: true,
         };
         rows.push(row);
