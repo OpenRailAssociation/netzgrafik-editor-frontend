@@ -58,8 +58,6 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
 
   private showAllLockStates = false;
 
-  private trainrunSectionHelper: TrainrunsectionHelper;
-
   public showTrainrunEditTab: ShowTrainrunEditTab = ShowTrainrunEditTab.sbb_trainrun_tab;
 
   sbbToogleValue = ShowTrainrunEditTab.sbb_trainrun_tab;
@@ -71,11 +69,10 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     private readonly nodeService: NodeService,
     private versionControlService: VersionControlService,
     private changeDetectorRef: ChangeDetectorRef,
-    private trainrunService: TrainrunService,
+    public trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
   ) {
     this.selectedPerlenketteConnection = undefined;
-    this.trainrunSectionHelper = new TrainrunsectionHelper(this.trainrunService);
 
     this.loadPerlenketteService
       .getPerlenketteData()
@@ -442,20 +439,6 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     this.svgPoint.setY(
       Math.max(-this.contentHeight / 4, Math.min(this.renderedElementsHeight - 48, y)),
     );
-  }
-
-  getArrowDirectionForOneWayTrainrun(): string {
-    if (!this.perlenketteTrainrun || this.perlenketteTrainrun.direction === Direction.ROUND_TRIP) {
-      return "minus-medium";
-    }
-    const isTargetRightOrBottom = TrainrunsectionHelper.isTargetRightOrBottom(
-      this.trainrunSectionService.getSelectedTrainrunSection(),
-    );
-    if (isTargetRightOrBottom) {
-      return "arrow-right-medium";
-    } else {
-      return "arrow-left-medium";
-    }
   }
 
   protected readonly ShowTrainrunEditTab = ShowTrainrunEditTab;

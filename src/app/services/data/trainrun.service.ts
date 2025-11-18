@@ -30,6 +30,7 @@ import {Transition} from "../../models/transition.model";
 import {Port} from "../../models/port.model";
 import {Connection} from "../../models/connection.model";
 import {Operation, OperationType, TrainrunOperation} from "../../models/operation.model";
+import {TrainrunsectionHelper} from "../util/trainrunsection.helper";
 
 @Injectable({
   providedIn: "root",
@@ -723,6 +724,21 @@ export class TrainrunService {
     return iterator.current().trainrunSection;
   }
 
+  getLastTrainrunSection(trainrun: Trainrun): TrainrunSection | undefined {
+    const sections = this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      trainrun.getId(),
+    );
+    if (sections.length === 0) {
+      return undefined;
+    }
+    // sections[0] does not ensure to be the first section in the trainrun
+    const iterator = this.getIterator(sections[0].getSourceNode(), sections[0]);
+    while (iterator.hasNext()) {
+      iterator.next();
+    }
+    return iterator.current().trainrunSection;
+  }
+
   sumTravelTimeUpToLastNonStopNode(node: Node, trainrunSection: TrainrunSection): number {
     let summedTravelTime = 0;
     const iterator = this.getNonStopIterator(node, trainrunSection);
@@ -911,5 +927,32 @@ export class TrainrunService {
       });
     });
     return labelIDCauntMap;
+  }
+
+  getSbbArrowForTrainrunSectionDirection(): string {
+    if (!this.getSelectedTrainrun() || this.getSelectedTrainrun().isRoundTrip()) {
+      return "arrows-left-right-medium";
+    }
+    const isTargetRightOrBottom = TrainrunsectionHelper.isTargetRightOrBottom(
+      this.trainrunSectionService.getSelectedTrainrunSection(),
+    );
+    if (isTargetRightOrBottom) {
+      return "arrow-right-medium";
+    } else {
+      return "arrow-left-medium";
+    }
+  }
+
+  getSbbArrowForTrainrunDirection(): string {
+    if (!this.getSelectedTrainrun() || this.getSelectedTrainrun().isRoundTrip()) {
+      return "arrows-left-right-medium";
+    }
+    const firstNode = this.getFirstTrainrunSection(this.getSelectedTrainrun()).getSourceNode();
+    const lastNode = this.getLastTrainrunSection(this.getSelectedTrainrun()).getTargetNode();
+    if (GeneralViewFunctions.getRightOrBottomNode(firstNode, lastNode) === lastNode) {
+      return "arrow-right-medium";
+    } else {
+      return "arrow-left-medium";
+    }
   }
 }

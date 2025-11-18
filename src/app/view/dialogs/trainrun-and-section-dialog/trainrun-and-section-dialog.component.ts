@@ -81,7 +81,7 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
   constructor(
     public dialog: SbbDialog,
     private uiInteractionService: UiInteractionService,
-    private trainrunService: TrainrunService,
+    public trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
     private dataService: DataService,
   ) {
@@ -219,19 +219,5 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
       right: dialogPos.right + "px",
       top: dialogPos.top + "px",
     };
-  }
-
-  getArrowDirectionForOneWayTrainrun(): string {
-    if (!this.selectedTrainrun || this.selectedTrainrun.isRoundTrip()) {
-      return "minus-medium";
-    }
-    const isTargetRightOrBottom = TrainrunsectionHelper.isTargetRightOrBottom(
-      this.trainrunSectionService.getSelectedTrainrunSection(),
-    );
-    if (isTargetRightOrBottom) {
-      return "arrow-right-medium";
-    } else {
-      return "arrow-left-medium";
-    }
   }
 }

@@ -25,25 +25,16 @@
           ></sbb-trainrun-tab>
         </sbb-tab>
         <sbb-tab id="trainrun-section-tab">
-          @if (getArrowDirectionForOneWayTrainrun() !== null) {
-            <ng-template sbb-tab-label>
-              <span style="transform: translateY(-2px)" class="onewayTrip">{{
-                nextStopLeftNodeName
-              }}</span>
-              <sbb-icon
-                style="transform: translateY(-2px)"
-                [svgIcon]="getArrowDirectionForOneWayTrainrun()"
-                aria-hidden="false"
-                height="13px"
-                width="13px"
-              ></sbb-icon>
-              <span style="transform: translateY(-2px)">{{ nextStopRightNodeName }}</span>
-            </ng-template>
-          } @else {
-            <ng-template sbb-tab-label>
-              <span>{{ nextStopLeftNodeName + " — " + nextStopRightNodeName }}</span>
-            </ng-template>
-          }
+          <ng-template sbb-tab-label
+            >{{ nextStopLeftNodeName }}
+            <sbb-icon
+              [svgIcon]="trainrunService.getSbbArrowForTrainrunSectionDirection()"
+              aria-hidden="false"
+              height="13px"
+              width="13px"
+            ></sbb-icon
+            >{{ nextStopRightNodeName }}
+          </ng-template>
           <sbb-trainrunsection-tab [trainrunDialogParameter]="data"></sbb-trainrunsection-tab>
         </sbb-tab>
         <sbb-tab
@@ -52,7 +43,15 @@
         >
           <sbb-trainrun-filter-tab (trainrunDeleted)="closeDialog()"></sbb-trainrun-filter-tab>
         </sbb-tab>
-        <sbb-tab label="⟷" id="trainrun-roundTrip-tab">
+        <sbb-tab id="trainrun-roundTrip-tab">
+          <ng-template sbb-tab-label>
+            <sbb-icon
+              [svgIcon]="trainrunService.getSbbArrowForTrainrunDirection()"
+              aria-hidden="false"
+              height="13px"
+              width="13px"
+            ></sbb-icon>
+          </ng-template>
           <sbb-trainrun-roundtrip-tab
             (trainrunDeleted)="closeDialog()"
           ></sbb-trainrun-roundtrip-tab>
