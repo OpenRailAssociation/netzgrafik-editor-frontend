@@ -852,75 +852,55 @@ export class TrainrunSectionsView {
   }
 
   static getTrainrunSectionValueToShow(
-    trainrunSectionOrViewObject: TrainrunSection | TrainrunSectionViewObject,
+    viewObject: TrainrunSectionViewObject,
     textElement: TrainrunSectionText,
     editorView: EditorView,
   ) {
-    // Determine which section to use
-    let trainrunSection: TrainrunSection;
-
-    if (trainrunSectionOrViewObject instanceof TrainrunSection) {
-      // Simple case: we have a TrainrunSection directly
-      trainrunSection = trainrunSectionOrViewObject;
-    } else {
-      // ViewObject case: determine which section to use based on textElement
-      const viewObject = trainrunSectionOrViewObject;
-
-      switch (textElement) {
-        case TrainrunSectionText.SourceDeparture:
-        case TrainrunSectionText.SourceArrival:
-          trainrunSection = viewObject.trainrunSections[0];
-          break;
-
-        case TrainrunSectionText.TargetDeparture:
-        case TrainrunSectionText.TargetArrival:
-          trainrunSection = viewObject.trainrunSections.at(-1)!;
-          break;
-
-        case TrainrunSectionText.TrainrunSectionTravelTime:
-          // Special case for multiple sections: calculate total time including stop times at intermediate nodes
-          if (viewObject.trainrunSections.length > 1) {
-            return (
-              TrainrunSectionsView.formatTime(
-                viewObject.getTravelTime(),
-                editorView.getTimeDisplayPrecision(),
-              ) + "'"
-            );
-          }
-          trainrunSection = viewObject.trainrunSections[0];
-          break;
-
-        default:
-          trainrunSection = viewObject.trainrunSections[0];
-      }
-    }
-
-    // Existing logic to display the value
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
       case TrainrunSectionText.SourceArrival:
       case TrainrunSectionText.TargetDeparture:
       case TrainrunSectionText.TargetArrival: {
-        const data = TrainrunSectionsView.getFormattedDisplayText(trainrunSection, textElement);
-        if (data !== undefined) {
-          return data;
-        }
-        return TrainrunSectionsView.formatTime(
-          TrainrunSectionsView.getTime(trainrunSection, textElement),
-          editorView.getTimeDisplayPrecision(),
+        const isTarget =
+          textElement === TrainrunSectionText.TargetDeparture ||
+          textElement === TrainrunSectionText.TargetArrival;
+        const trainrunSection = isTarget
+          ? viewObject.trainrunSections.at(-1)!
+          : viewObject.trainrunSections[0];
+
+        return (
+          TrainrunSectionsView.getFormattedDisplayText(trainrunSection, textElement) ??
+          TrainrunSectionsView.formatTime(
+            TrainrunSectionsView.getTime(trainrunSection, textElement),
+            editorView.getTimeDisplayPrecision(),
+          )
         );
       }
       case TrainrunSectionText.TrainrunSectionTravelTime: {
-        const data = TrainrunSectionsView.getFormattedDisplayText(trainrunSection, textElement);
-        if (data !== undefined) {
-          return data;
+        const trainrunSection = viewObject.trainrunSections[0];
+        const formattedData = TrainrunSectionsView.getFormattedDisplayText(
+          trainrunSection,
+          textElement,
+        );
+        if (formattedData !== undefined) {
+          return formattedData;
+        }
+        // Special case for multiple sections: calculate total time including stop times at intermediate nodes
+        if (viewObject.trainrunSections.length > 1) {
+          return (
+            TrainrunSectionsView.formatTime(
+              viewObject.getTravelTime(),
+              editorView.getTimeDisplayPrecision(),
+            ) + "'"
+          );
         }
         return TrainrunSectionsView.extractTravelTime(trainrunSection, editorView);
       }
       case TrainrunSectionText.TrainrunSectionName:
-        return TrainrunSectionsView.extractTrainrunName(trainrunSection);
+        return TrainrunSectionsView.extractTrainrunName(viewObject.trainrunSections[0]);
+      default:
+        return undefined;
     }
-    return undefined;
   }
 
   static getTrainrunSectionValueTextWidth(
