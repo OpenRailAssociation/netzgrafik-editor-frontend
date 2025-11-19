@@ -222,14 +222,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .select("#main-origin-destination-container-root")
       .append("div")
       .style("opacity", 0)
-      .attr("class", "tooltip")
-      .style("background-color", "white")
-      .style("border", "solid")
-      .style("border-width", "2px")
-      .style("border-radius", "5px")
-      .style("padding", "5px")
-      .style("user-select", "none")
-      .style("pointer-events", "none");
+      .attr("class", "tooltip");
 
     // Three function that change the tooltip when user hover / move / leave a cell
     const mouseover = function (d: OriginDestination) {
