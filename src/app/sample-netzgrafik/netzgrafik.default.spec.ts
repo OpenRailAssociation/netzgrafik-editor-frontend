@@ -83,6 +83,9 @@ describe("NetzgrafikDefault", () => {
       dataService.loadNetzgrafikDto(inputDto);
 
       const outputJson = dataService.getNetzgrafikDto();
+
+      // The demo file should be up-to-date with numberOfStops: 0 and collapsed nodes
+      // already in place. No expansion should occur.
       expect(JSON.stringify(inputDto, null, 2)).toEqual(JSON.stringify(outputJson, null, 2));
     });
   });
