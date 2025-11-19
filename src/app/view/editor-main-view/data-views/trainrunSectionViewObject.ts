@@ -36,12 +36,25 @@ export class TrainrunSectionViewObject {
   }
 
   getTravelTime(): number {
-    const firstSection = this.trainrunSections[0];
-    const lastSection = this.trainrunSections.at(-1);
-    const startTime = firstSection.getSourceDepartureConsecutiveTime();
-    const endTime = lastSection!.getTargetArrivalConsecutiveTime();
+    if (this.trainrunSections.length === 1) {
+      return this.trainrunSections[0].getTravelTime();
+    }
 
-    return endTime - startTime;
+    return this.trainrunSections.reduce((sum, section, index) => {
+      let sectionTime = section.getTravelTime();
+
+      // Add stop time at intermediate nodes (all except the last section)
+      if (index < this.trainrunSections.length - 1) {
+        const nextSection = this.trainrunSections[index + 1];
+        const stopTime = Math.abs(
+          nextSection.getSourceDepartureConsecutiveTime() -
+            section.getTargetArrivalConsecutiveTime(),
+        );
+        sectionTime += stopTime;
+      }
+
+      return sum + sectionTime;
+    }, 0);
   }
 
   private generateKey(
