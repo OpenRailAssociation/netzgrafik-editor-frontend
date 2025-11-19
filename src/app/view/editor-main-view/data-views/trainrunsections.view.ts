@@ -880,25 +880,11 @@ export class TrainrunSectionsView {
         case TrainrunSectionText.TrainrunSectionTravelTime:
           // Special case for multiple sections: calculate total time including stop times at intermediate nodes
           if (viewObject.trainrunSections.length > 1) {
-            const totalTime = viewObject.trainrunSections.reduce((sum, section, index) => {
-              // Add travel time for this section
-              let sectionTime = section.getTravelTime();
-
-              // Add stop time at intermediate nodes (all except the last section)
-              if (index < viewObject.trainrunSections.length - 1) {
-                const nextSection = viewObject.trainrunSections[index + 1];
-                const stopTime = Math.abs(
-                  nextSection.getSourceDepartureConsecutiveTime() -
-                    section.getTargetArrivalConsecutiveTime(),
-                );
-                sectionTime += stopTime;
-              }
-
-              return sum + sectionTime;
-            }, 0);
-
             return (
-              TrainrunSectionsView.formatTime(totalTime, editorView.getTimeDisplayPrecision()) + "'"
+              TrainrunSectionsView.formatTime(
+                viewObject.getTravelTime(),
+                editorView.getTimeDisplayPrecision(),
+              ) + "'"
             );
           }
           trainrunSection = viewObject.trainrunSections[0];
