@@ -60,9 +60,7 @@ export class TrainrunSectionsView {
     const y = trainrunSection.getTextPositionY(trainrunSectionText);
 
     // Use viewObject path if provided, otherwise use trainrunSection path
-    const pathVec2D: Vec2D[] = viewObject
-      ? viewObject.trainrunSections[0].getPath()
-      : trainrunSection.getPath();
+    const pathVec2D: Vec2D[] = viewObject ? viewObject.getPath() : trainrunSection.getPath();
 
     // Check if path has enough points
     if (pathVec2D.length < 4) {
@@ -2272,34 +2270,10 @@ export class TrainrunSectionsView {
     const firstSection = viewObject.trainrunSections[0];
     const lastSection = viewObject.trainrunSections.at(-1)!;
 
-    // Handle multi-section chains (collapsed nodes)
-    if (viewObject.trainrunSections.length > 1) {
-      const path = viewObject.getPath();
-      const srcNode = firstSection.getSourceNode();
-      const trgNode = lastSection.getTargetNode();
-
-      let notFilteringSourceNode = this.editorView.checkFilterNode(srcNode);
-      let notFilteringTargetNode = this.editorView.checkFilterNode(trgNode);
-
-      if (this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
-        notFilteringSourceNode = true;
-        notFilteringTargetNode = true;
-      }
-
-      if (notFilteringSourceNode && notFilteringTargetNode) {
-        return path.map((p) => p.copy());
-      } else if (notFilteringSourceNode) {
-        return path.slice(0, 2).map((p) => p.copy());
-      } else if (notFilteringTargetNode) {
-        return path.slice(2).map((p) => p.copy());
-      } else {
-        return [];
-      }
-    }
-
-    // Handle single sections
     const srcNode = firstSection.getSourceNode();
-    const trgNode = firstSection.getTargetNode();
+    const trgNode = lastSection.getTargetNode();
+    const path = viewObject.getPath();
+
     let notFilteringSourceNode = this.editorView.checkFilterNode(srcNode);
     let notFilteringTargetNode = this.editorView.checkFilterNode(trgNode);
 
@@ -2308,7 +2282,6 @@ export class TrainrunSectionsView {
       notFilteringTargetNode = true;
     }
 
-    const path = firstSection.getPath();
     let retPath: Vec2D[] = [];
 
     if (notFilteringSourceNode) {
@@ -2327,9 +2300,9 @@ export class TrainrunSectionsView {
           retPath,
         );
       }
-      if (firstSection.getTargetNode().isNonStopNode()) {
+      if (lastSection.getTargetNode().isNonStopNode()) {
         retPath = this.transformPathIfTargetNodeFilteredDueNonStopNodesFiltering(
-          firstSection,
+          lastSection,
           retPath,
         );
       }
