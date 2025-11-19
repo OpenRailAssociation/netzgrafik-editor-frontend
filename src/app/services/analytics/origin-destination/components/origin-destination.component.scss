@@ -31,7 +31,14 @@
     line-height: 1.5;
     text-align: left;
     text-align: start;
+    background-color: var(--NODE_DOCKABLE);
+    border: 1px solid var(--COLOR_Default);
+    border-radius: 5px;
+    padding: 5px;
+    user-select: none;
+    pointer-events: none;
   }
+
   .palette-buttons {
     position: absolute;
     top: 16px;
