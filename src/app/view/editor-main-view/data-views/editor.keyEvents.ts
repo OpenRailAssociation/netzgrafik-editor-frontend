@@ -167,8 +167,8 @@ export class EditorKeyEvents {
       const n = allNodes.find(() => true);
       n.getTransitions().forEach((tr) => {
         const ts = this.nodeService.undockTransition(n.getId(), tr.getId(), false);
-        if (ts){
-          ts.setNumberOfStops( Math.max(0,ts.getNumberOfStops() - 1));
+        if (ts) {
+          ts.setNumberOfStops(Math.max(0, ts.getNumberOfStops() - 1));
         }
       });
       this.nodeService.deleteNode(n.getId());
@@ -185,7 +185,7 @@ export class EditorKeyEvents {
     // insert a stop node to split all the selected trainrun sections
     const allSelectedTrainrunSections =
       this.trainrunSectionService.getAllSelectedTrainrunSections();
-    if (!allSelectedTrainrunSections || allSelectedTrainrunSections.length === 0){
+    if (!allSelectedTrainrunSections || allSelectedTrainrunSections.length === 0) {
       return false;
     }
 

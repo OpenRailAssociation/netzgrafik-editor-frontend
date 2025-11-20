@@ -354,7 +354,7 @@ export class NodeService implements OnDestroy {
     }
   }
 
-  undockTransition(nodeId: number, transitionId: number, enforceUpdate = true) : TrainrunSection {
+  undockTransition(nodeId: number, transitionId: number, enforceUpdate = true): TrainrunSection {
     const transition: Transition = this.getTransition(nodeId, transitionId);
 
     const isNonStop = transition.getIsNonStopTransit();
