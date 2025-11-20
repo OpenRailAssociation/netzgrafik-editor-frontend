@@ -213,13 +213,15 @@ export class EditorKeyEvents {
     for (const [key, sections] of collectAllNodesPairs.entries()) {
       const anchorTs = sections.find(() => true);
       if (anchorTs) {
+        const anchorSrcNode = anchorTs.getSourceNode();
+        const anchorTrgNode = anchorTs.getTargetNode();
         let x = 0;
         let y = 0;
         sections.forEach((ts) => {
-          const p = anchorTs.getPath();
-          const center = Vec2D.scale(Vec2D.add(p[0], p[3]), 0.5);
-          x += center.getX();
-          y += center.getY();
+          const src = anchorTs.getSourceNode();
+          const trg = anchorTs.getTargetNode();
+          x += (src.getPositionX() + trg.getPositionX()) / 2.0;
+          y += (trg.getPositionY() + src.getPositionY()) / 2.0;
         });
         x /= sections.length;
         y /= sections.length;
