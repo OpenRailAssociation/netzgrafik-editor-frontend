@@ -52,6 +52,8 @@ export class TrainrunSectionViewObject {
       "@" +
       d.getTrainrun().getTitle() +
       "_" +
+      d.selected() +
+      "_" +
       d.getTrainrun().selected() +
       "_" +
       d.getNumberOfStops() +

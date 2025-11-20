@@ -189,9 +189,21 @@ export class TrainrunSectionService implements OnDestroy {
     );
   }
 
-  setTrainrunSectionAsSelected(trainrunSectionId: number) {
+  getAllSelectedTrainrunSections(): TrainrunSection[] {
+    return this.trainrunSectionsStore.trainrunSections.filter((tr) => tr.selected());
+  }
+
+  unselectAllTrainrunSections(enforceUpdate = true) {
     this.trainrunSectionsStore.trainrunSections.forEach((tr) => tr.unselect());
+    if (enforceUpdate) {
+      this.trainrunSectionsUpdated();
+    }
+  }
+
+  setTrainrunSectionAsSelected(trainrunSectionId: number) {
+    this.unselectAllTrainrunSections(false);
     this.getTrainrunSectionFromId(trainrunSectionId)?.select();
+    this.trainrunSectionsUpdated();
   }
 
   getSelectedTrainrunSection(): TrainrunSection {

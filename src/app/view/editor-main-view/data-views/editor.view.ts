@@ -94,6 +94,7 @@ export class EditorView implements SVGMouseControllerObserver {
   selectNote = null;
   unselectNote = null;
   unselectAllNotes = null;
+  unselectAllTrainrunSections = null;
   isNoteSelected = null;
   addNote = null;
   editNote = null;
@@ -384,6 +385,10 @@ export class EditorView implements SVGMouseControllerObserver {
     this.unselectAllNotes = callback;
   }
 
+  bindUnselectAllTrainrunSections(callback) {
+    this.unselectAllTrainrunSections = callback;
+  }
+
   bindIsNodeSelected(callback) {
     this.isNodeSelected = callback;
   }
@@ -498,6 +503,37 @@ export class EditorView implements SVGMouseControllerObserver {
       this.noteService.selectNote(n.getId(), false);
     });
 
+    if (allNodesOfInterest.length === 0 && allNotesOfInterest.length === 0) {
+      // try to use multi select trainrunsections
+      this.trainrunSectionService.getTrainrunSections().forEach((ts) => {
+        ts.unselect();
+        const p = ts.getPath();
+        const minX = Math.min(p[1].getX(), p[2].getX());
+        const maxX = Math.max(p[1].getX(), p[2].getX());
+        const minY = Math.min(p[1].getY(), p[2].getY());
+        const maxY = Math.max(p[1].getY(), p[2].getY());
+        const center = Vec2D.scale(Vec2D.add(p[1], p[2]), 0.5);
+
+        if (this.filterService.filterTrainrun(ts.getTrainrun())) {
+          if (
+            topLeft.getX() < center.getX() &&
+            center.getX() < bottomRight.getX() &&
+            topLeft.getY() < center.getY() &&
+            center.getY() < bottomRight.getY() &&
+            ((minX < topLeft.getX() && maxX > bottomRight.getX()) ||
+              (minY < topLeft.getY() && maxY > bottomRight.getY()))
+          ) {
+            // Select the trainrun section
+            ts.select();
+          }
+        }
+      });
+
+      this.trainrunSectionService.trainrunSectionsUpdated();
+    } else {
+      this.trainrunSectionService.unselectAllTrainrunSections();
+    }
+
     this.nodeService.nodesUpdated();
     this.noteService.notesUpdated();
     this.multiSelectRenderer.updateBox(topLeft, bottomRight);
@@ -512,7 +548,8 @@ export class EditorView implements SVGMouseControllerObserver {
 
     if (
       this.nodeService.getSelectedNode() === null &&
-      this.noteService.getSelectedNote() === null
+      this.noteService.getSelectedNote() === null &&
+      this.trainrunSectionService.getSelectedTrainrunSection() === null
     ) {
       this.uiInteractionService.setEditorMode(EditorMode.NetzgrafikEditing);
       return;
@@ -545,6 +582,7 @@ export class EditorView implements SVGMouseControllerObserver {
       ) {
         this.unselectAllNodes();
         this.unselectAllNotes();
+        this.unselectAllTrainrunSections();
         this.uiInteractionService.setEditorMode(EditorMode.NetzgrafikEditing);
       }
       if (
@@ -625,6 +663,7 @@ export class EditorView implements SVGMouseControllerObserver {
       this.unselectAllNodes();
       this.unselectAllNotes();
       this.unselectAllTrainruns();
+      this.unselectAllTrainrunSections();
     }
     this.editorMode = mode;
 

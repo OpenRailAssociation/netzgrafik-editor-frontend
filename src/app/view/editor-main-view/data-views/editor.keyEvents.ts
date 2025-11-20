@@ -20,6 +20,7 @@ import {PreviewLineMode, TrainrunSectionPreviewLineView} from "./trainrunsection
 import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {Trainrun} from "../../../models/trainrun.model";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
+import {Vec2D} from "../../../utils/vec2D";
 
 export class EditorKeyEvents {
   private editorMode: EditorMode;
@@ -85,6 +86,9 @@ export class EditorKeyEvents {
             d3.event.preventDefault();
           }
           break;
+        case "KeyS":
+          this.onInsertStopNode();
+          break;
         case "KeyA":
           if (ctrlKey) {
             if (this.onSelectAll()) {
@@ -147,6 +151,55 @@ export class EditorKeyEvents {
           break;
       }
     });
+  }
+
+  private onInsertStopNode() {
+    // insert a stop node to split all the selected trainrun sections
+    const allSelectedTrainrunSections =
+      this.trainrunSectionService.getAllSelectedTrainrunSections();
+    if (allSelectedTrainrunSections) {
+      const collectAllNodesPairs = new Map<string, TrainrunSection[]>();
+      allSelectedTrainrunSections.forEach((ts) => {
+        const srcNodeId = ts.getSourceNode().getId();
+        const trgNodeId = ts.getTargetNode().getId();
+        const pair = {
+          nodeA: srcNodeId < trgNodeId ? srcNodeId : trgNodeId,
+          nodeB: srcNodeId < trgNodeId ? trgNodeId : srcNodeId,
+        };
+        const key = `${pair.nodeA}-${pair.nodeB}`;
+        let d: TrainrunSection[] = collectAllNodesPairs.get(key);
+        if (d === undefined) {
+          collectAllNodesPairs.set(key, []);
+          d = collectAllNodesPairs.get(key);
+        }
+        d.push(ts);
+      });
+      for (const [key, sections] of collectAllNodesPairs.entries()) {
+        const anchorTs = sections.find(() => true);
+        if (anchorTs) {
+          let x = 0;
+          let y = 0;
+          sections.forEach((ts) => {
+            const p = anchorTs.getPath();
+            const center = Vec2D.scale(Vec2D.add(p[0], p[3]), 0.5);
+            x += center.getX();
+            y += center.getY();
+          });
+          x /= sections.length;
+          y /= sections.length;
+          const node = this.nodeService.addNodeWithPosition(x, y);
+          sections.forEach((ts) => {
+            ts.setNumberOfStops(ts.getNumberOfStops() + 1);
+            this.trainrunSectionService.replaceIntermediateStopWithNode(
+              ts.getId(),
+              Math.ceil(ts.getNumberOfStops() / 2)-1,
+              node.getId(),
+            );
+          });
+          this.trainrunSectionService.unselectAllTrainrunSections();
+        }
+      }
+    }
   }
 
   private forwardCtrlKeyInformation() {
@@ -498,6 +551,7 @@ export class EditorKeyEvents {
     if (this.editorMode === EditorMode.MultiNodeMoving) {
       this.nodeService.unselectAllNodes();
       this.noteService.unselectAllNotes();
+      this.trainrunSectionService.unselectAllTrainrunSections();
     }
     return true;
   }

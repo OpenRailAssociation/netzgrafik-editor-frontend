@@ -506,19 +506,19 @@ export class D3Utils {
     const rootElement = d3.select("#graphContainer");
 
     rootElement
-      .selectAll("path")
+      .selectAll("path:not(.selected)")
       .classed(StaticDomTags.TAG_ENFORCE_DISABLE_ALL_POINTER_EVENTS, true);
     rootElement
-      .selectAll("rect")
+      .selectAll("rect:not(.selected)")
       .classed(StaticDomTags.TAG_ENFORCE_DISABLE_ALL_POINTER_EVENTS, true);
     rootElement
-      .selectAll("circle")
+      .selectAll("circle:not(.selected)")
       .classed(StaticDomTags.TAG_ENFORCE_DISABLE_ALL_POINTER_EVENTS, true);
     rootElement
-      .selectAll("line")
+      .selectAll("line:not(.selected)")
       .classed(StaticDomTags.TAG_ENFORCE_DISABLE_ALL_POINTER_EVENTS, true);
     rootElement
-      .selectAll("text")
+      .selectAll("text:not(.selected)")
       .classed(StaticDomTags.TAG_ENFORCE_DISABLE_ALL_POINTER_EVENTS, true);
 
     d3.selectAll(StaticDomTags.NODE_ROOT_DOM_REF).classed(

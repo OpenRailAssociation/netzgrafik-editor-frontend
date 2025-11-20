@@ -442,6 +442,10 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
 
     this.editorView.bindUnselectAllNotes(() => this.noteService.unselectAllNotes());
 
+    this.editorView.bindUnselectAllTrainrunSections(() =>
+      this.trainrunSectionService.unselectAllTrainrunSections(),
+    );
+
     this.editorView.bindIsNoteSelected((noteId) => this.noteService.isNoteSelected(noteId));
 
     this.editorView.bindAddNote((position: Vec2D, clickPosition: Vec2D) => {

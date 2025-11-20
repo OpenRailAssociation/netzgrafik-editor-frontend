@@ -63,6 +63,10 @@ export class TrainrunSectionsView {
     return "translate(" + x + "," + y + ") rotate(" + a + ", 0,0) ";
   }
 
+  static isSectionSelected(trainrunSection: TrainrunSection): boolean {
+    return trainrunSection.getTrainrun().selected() || trainrunSection.selected();
+  }
+
   static isMuted(
     trainrunSection: TrainrunSection,
     selectedTrainrun: Trainrun,
@@ -1086,7 +1090,7 @@ export class TrainrunSectionsView {
           d.trainrunSection.getTrainrun().getId(),
         )
         .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
-          d.trainrunSection.getTrainrun().selected(),
+          TrainrunSectionsView.isSectionSelected(d.trainrunSection),
         )
         .classed(StaticDomTags.TAG_LINE_ARROW_EDITOR, true)
         .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
@@ -1136,7 +1140,7 @@ export class TrainrunSectionsView {
         D3Utils.getPathAsSVGString(this.transformPath(d.trainrunSection)),
       )
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrun().selected(),
+        TrainrunSectionsView.isSectionSelected(d.trainrunSection),
       )
       .classed(StaticDomTags.TAG_EVENT_DISABLED, !enableEvents)
       .classed(classRef, true);
@@ -1223,7 +1227,7 @@ export class TrainrunSectionsView {
         TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
       )
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrun().selected(),
+        TrainrunSectionsView.isSectionSelected(d.trainrunSection),
       );
   }
 
@@ -1397,7 +1401,7 @@ export class TrainrunSectionsView {
           TrainrunSectionsView.getAdditionPositioningValue(d.trainrunSection, textElement),
       )
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrun().selected(),
+        TrainrunSectionsView.isSectionSelected(d.trainrunSection),
       )
       .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
@@ -1504,7 +1508,7 @@ export class TrainrunSectionsView {
         ),
       )
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrun().selected(),
+        TrainrunSectionsView.isSectionSelected(d.trainrunSection),
       )
       .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
@@ -1562,7 +1566,9 @@ export class TrainrunSectionsView {
       .classed(StaticDomTags.TAG_MUTED, () =>
         TrainrunSectionsView.isMuted(trainrunSection, selectedTrainrun, connectedTrainIds),
       )
-      .classed(StaticDomTags.TAG_SELECTED, () => trainrunSection.getTrainrun().selected())
+      .classed(StaticDomTags.TAG_SELECTED, () =>
+        TrainrunSectionsView.isSectionSelected(trainrunSection),
+      )
       .on("mouseup", (t: TrainrunSectionViewObject, i, a) =>
         this.onIntermediateStopMouseUp(t.trainrunSection, a[i]),
       );
@@ -1706,7 +1712,7 @@ export class TrainrunSectionsView {
       .attr("class", StaticDomTags.EDGE_ROOT_CONTAINER)
       .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrun().selected(),
+        TrainrunSectionsView.isSectionSelected(d.trainrunSection),
       )
       .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
@@ -1716,7 +1722,7 @@ export class TrainrunSectionsView {
       .append(StaticDomTags.EDGE_SVG)
       .attr("class", StaticDomTags.EDGE_CLASS + " Lines")
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrun().selected(),
+        TrainrunSectionsView.isSectionSelected(d.trainrunSection),
       )
       .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
       .attr("data-testid", `${StaticDomTags.EDGE_CLASS}-lines`);
@@ -1725,7 +1731,7 @@ export class TrainrunSectionsView {
       .append(StaticDomTags.EDGE_SVG)
       .attr("class", StaticDomTags.EDGE_CLASS + " Labels")
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrun().selected(),
+        TrainrunSectionsView.isSectionSelected(d.trainrunSection),
       )
       .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
       .attr("data-testid", `${StaticDomTags.EDGE_CLASS}-labels`);
@@ -2515,8 +2521,10 @@ export class TrainrunSectionsView {
       .classed(StaticDomTags.TAG_MUTED, (t: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isMuted(t.trainrunSection, selectedTrainrun, connectedTrainIds),
       )
-      .classed(StaticDomTags.TAG_SELECTED, (t: TrainrunSectionViewObject) =>
-        t.trainrunSection.getTrainrun().selected(),
+      .classed(
+        StaticDomTags.TAG_SELECTED,
+        (t: TrainrunSectionViewObject) =>
+          TrainrunSectionsView.isSectionSelected(t.trainrunSection),
       )
       .classed(StaticDomTags.EDGE_LINE_STOPS_FILL, () => !collapsedStops)
       .on("mouseover", (t: TrainrunSectionViewObject, i, a) =>
