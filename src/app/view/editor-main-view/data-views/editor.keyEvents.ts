@@ -162,6 +162,12 @@ export class EditorKeyEvents {
 
   private doTrainrunSectionsFusion() {
     let allNodes = this.nodeService.getSelectedNodes();
+    if (allNodes.length === 0) {
+      const hoveredNodeId = this.getHoveredNodeId();
+      if (hoveredNodeId !== undefined) {
+        allNodes.push(this.nodeService.getNodeFromId(hoveredNodeId));
+      }
+    }
     const totalLen = allNodes.length;
     while (allNodes.length > 0) {
       const n = allNodes.find(() => true);
