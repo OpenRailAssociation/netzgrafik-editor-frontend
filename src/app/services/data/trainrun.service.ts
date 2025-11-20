@@ -184,7 +184,7 @@ export class TrainrunService {
 
   unselectAllTrainruns(enforceUpdate = true) {
     this.trainrunsStore.trainruns.forEach((trainrun) => trainrun.unselect());
-    this.trainrunSectionService.unselectAllTrainrunSections();
+    this.trainrunSectionService.unselectAllTrainrunSections(enforceUpdate);
     if (enforceUpdate) {
       this.trainrunsUpdated();
     }
