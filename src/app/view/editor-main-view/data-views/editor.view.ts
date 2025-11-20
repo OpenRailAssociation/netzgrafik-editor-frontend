@@ -458,7 +458,7 @@ export class EditorView implements SVGMouseControllerObserver {
 
     const allNodesOfInterest = this.nodeService.getNodes().filter((n: Node) => {
       this.nodeService.unselectNode(n.getId(), false);
-      if (this.filterService.filterNode(n)) {
+      if (this.filterService.filterNode(n) && !n.getIsCollapsed()) {
         if (
           topLeft.getX() < n.getPositionX() &&
           n.getPositionX() + n.getNodeWidth() < bottomRight.getX()
