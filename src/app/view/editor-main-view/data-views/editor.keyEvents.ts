@@ -87,7 +87,7 @@ export class EditorKeyEvents {
           }
           break;
         case "KeyS":
-          this.onInsertStopNode();
+          this.onTrainrunSectionSplit();
           break;
         case "KeyA":
           if (ctrlKey) {
@@ -153,53 +153,88 @@ export class EditorKeyEvents {
     });
   }
 
-  private onInsertStopNode() {
+  private onTrainrunSectionSplit() {
+    if (this.doTrainrunSectionsSplit()) {
+      return;
+    }
+    this.doTrainrunSectionsFusion();
+  }
+
+  private doTrainrunSectionsFusion() {
+    let allNodes = this.nodeService.getSelectedNodes();
+    const totalLen = allNodes.length;
+    while (allNodes.length > 0) {
+      const n = allNodes.find(() => true);
+      n.getTransitions().forEach((tr) => {
+        const ts = this.nodeService.undockTransition(n.getId(), tr.getId(), false);
+        if (ts){
+          ts.setNumberOfStops( Math.max(0,ts.getNumberOfStops() - 1));
+        }
+      });
+      this.nodeService.deleteNode(n.getId());
+      allNodes = this.nodeService.getSelectedNodes();
+    }
+    this.nodeService.nodesUpdated();
+    this.nodeService.transitionsUpdated();
+    this.trainrunService.trainrunsUpdated();
+    this.trainrunSectionService.trainrunSectionsUpdated();
+    return totalLen > 0;
+  }
+
+  private doTrainrunSectionsSplit(): boolean {
     // insert a stop node to split all the selected trainrun sections
     const allSelectedTrainrunSections =
       this.trainrunSectionService.getAllSelectedTrainrunSections();
-    if (allSelectedTrainrunSections) {
-      const collectAllNodesPairs = new Map<string, TrainrunSection[]>();
-      allSelectedTrainrunSections.forEach((ts) => {
-        const srcNodeId = ts.getSourceNode().getId();
-        const trgNodeId = ts.getTargetNode().getId();
-        const pair = {
-          nodeA: srcNodeId < trgNodeId ? srcNodeId : trgNodeId,
-          nodeB: srcNodeId < trgNodeId ? trgNodeId : srcNodeId,
-        };
-        const key = `${pair.nodeA}-${pair.nodeB}`;
-        let d: TrainrunSection[] = collectAllNodesPairs.get(key);
-        if (d === undefined) {
-          collectAllNodesPairs.set(key, []);
-          d = collectAllNodesPairs.get(key);
-        }
-        d.push(ts);
-      });
-      for (const [key, sections] of collectAllNodesPairs.entries()) {
-        const anchorTs = sections.find(() => true);
-        if (anchorTs) {
-          let x = 0;
-          let y = 0;
-          sections.forEach((ts) => {
-            const p = anchorTs.getPath();
-            const center = Vec2D.scale(Vec2D.add(p[0], p[3]), 0.5);
-            x += center.getX();
-            y += center.getY();
-          });
-          x /= sections.length;
-          y /= sections.length;
-          const node = this.nodeService.addNodeWithPosition(x, y);
-          sections.forEach((ts) => {
-            ts.setNumberOfStops(ts.getNumberOfStops() + 1);
-            this.trainrunSectionService.replaceIntermediateStopWithNode(
-              ts.getId(),
-              Math.ceil(ts.getNumberOfStops() / 2)-1,
-              node.getId(),
-            );
-          });
-          this.trainrunSectionService.unselectAllTrainrunSections();
-        }
+    if (!allSelectedTrainrunSections || allSelectedTrainrunSections.length === 0){
+      return false;
+    }
+
+    const collectAllNodesPairs = new Map<string, TrainrunSection[]>();
+    allSelectedTrainrunSections.forEach((ts) => {
+      const srcNodeId = ts.getSourceNode().getId();
+      const trgNodeId = ts.getTargetNode().getId();
+      const pair = {
+        nodeA: srcNodeId < trgNodeId ? srcNodeId : trgNodeId,
+        nodeB: srcNodeId < trgNodeId ? trgNodeId : srcNodeId,
+      };
+      const key = `${pair.nodeA}-${pair.nodeB}`;
+      let d: TrainrunSection[] = collectAllNodesPairs.get(key);
+      if (d === undefined) {
+        collectAllNodesPairs.set(key, []);
+        d = collectAllNodesPairs.get(key);
+      }
+      d.push(ts);
+    });
+    for (const [key, sections] of collectAllNodesPairs.entries()) {
+      const anchorTs = sections.find(() => true);
+      if (anchorTs) {
+        let x = 0;
+        let y = 0;
+        sections.forEach((ts) => {
+          const p = anchorTs.getPath();
+          const center = Vec2D.scale(Vec2D.add(p[0], p[3]), 0.5);
+          x += center.getX();
+          y += center.getY();
+        });
+        x /= sections.length;
+        y /= sections.length;
+        const node = this.nodeService.addNodeWithPosition(x, y);
+        sections.forEach((ts) => {
+          ts.setNumberOfStops(ts.getNumberOfStops() + 1);
+          this.trainrunSectionService.replaceIntermediateStopWithNode(
+            ts.getId(),
+            Math.ceil(ts.getNumberOfStops() / 2) - 1,
+            node.getId(),
+          );
+        });
+        this.trainrunSectionService.unselectAllTrainrunSections();
       }
     }
+    this.nodeService.nodesUpdated();
+    this.nodeService.transitionsUpdated();
+    this.trainrunService.trainrunsUpdated();
+    this.trainrunSectionService.trainrunSectionsUpdated();
+    return true;
   }
 
   private forwardCtrlKeyInformation() {

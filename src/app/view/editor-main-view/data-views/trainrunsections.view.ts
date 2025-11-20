@@ -2521,10 +2521,8 @@ export class TrainrunSectionsView {
       .classed(StaticDomTags.TAG_MUTED, (t: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isMuted(t.trainrunSection, selectedTrainrun, connectedTrainIds),
       )
-      .classed(
-        StaticDomTags.TAG_SELECTED,
-        (t: TrainrunSectionViewObject) =>
-          TrainrunSectionsView.isSectionSelected(t.trainrunSection),
+      .classed(StaticDomTags.TAG_SELECTED, (t: TrainrunSectionViewObject) =>
+        TrainrunSectionsView.isSectionSelected(t.trainrunSection),
       )
       .classed(StaticDomTags.EDGE_LINE_STOPS_FILL, () => !collapsedStops)
       .on("mouseover", (t: TrainrunSectionViewObject, i, a) =>

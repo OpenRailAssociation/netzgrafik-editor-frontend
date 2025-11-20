@@ -354,7 +354,7 @@ export class NodeService implements OnDestroy {
     }
   }
 
-  undockTransition(nodeId: number, transitionId: number, enforceUpdate = true) {
+  undockTransition(nodeId: number, transitionId: number, enforceUpdate = true) : TrainrunSection {
     const transition: Transition = this.getTransition(nodeId, transitionId);
 
     const isNonStop = transition.getIsNonStopTransit();
@@ -385,7 +385,7 @@ export class NodeService implements OnDestroy {
     const nonStop2 = transition2 !== undefined ? transition2.getIsNonStopTransit() : false;
 
     if (oppNodeTrainrunSection1.getId() === oppNodeTrainrunSection2.getId()) {
-      return;
+      return undefined;
     }
     this.trainrunSectionService.deleteTrainrunSection(trainrunSection2.getId(), false);
 
@@ -462,6 +462,8 @@ export class NodeService implements OnDestroy {
       this.transitionsUpdated();
       this.nodesUpdated();
     }
+
+    return trainrunSection1;
   }
 
   addPortsToNodes(sourceNodeId: number, targetNodeId: number, trainrunSection: TrainrunSection) {
