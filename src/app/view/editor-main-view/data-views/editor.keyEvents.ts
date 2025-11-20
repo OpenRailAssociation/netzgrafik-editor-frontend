@@ -24,7 +24,9 @@ import {Connection} from "../../../models/connection.model";
 import {PreviewLineMode, TrainrunSectionPreviewLineView} from "./trainrunsection.previewline.view";
 import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {Trainrun} from "../../../models/trainrun.model";
-import {PositionTransformationService} from "../../../services/util/position.transformation.service";
+import {
+  PositionTransformationService
+} from "../../../services/util/position.transformation.service";
 import {Vec2D} from "../../../utils/vec2D";
 
 export class EditorKeyEvents {
@@ -193,6 +195,10 @@ export class EditorKeyEvents {
   }
 
   private doTrainrunSectionsSplit(): boolean {
+    if (this.uiInteractionService.getEditorMode() !== EditorMode.MultiNodeMoving ){
+      return false;
+    }
+
     // insert a stop node to split all the selected trainrun sections
     const allSelectedTrainrunSections =
       this.trainrunSectionService.getAllSelectedTrainrunSections();
