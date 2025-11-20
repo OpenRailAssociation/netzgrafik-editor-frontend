@@ -204,13 +204,12 @@ export class EditorKeyEvents {
         nodeB: srcNodeId < trgNodeId ? trgNodeId : srcNodeId,
       };
       const key = `${pair.nodeA}-${pair.nodeB}`;
-      let d: TrainrunSection[] = collectAllNodesPairs.get(key);
-      if (d === undefined) {
+      if (collectAllNodesPairs.get(key) === undefined) {
         collectAllNodesPairs.set(key, []);
-        d = collectAllNodesPairs.get(key);
       }
-      d.push(ts);
+      collectAllNodesPairs.get(key).push(ts);
     });
+    const addedNodes: Node[] = [];
     for (const [key, sections] of collectAllNodesPairs.entries()) {
       const anchorTs = sections.find(() => true);
       if (anchorTs) {
@@ -225,6 +224,7 @@ export class EditorKeyEvents {
         x /= sections.length;
         y /= sections.length;
         const node = this.nodeService.addNodeWithPosition(x, y);
+        addedNodes.push(node);
         sections.forEach((ts) => {
           ts.setNumberOfStops(ts.getNumberOfStops() + 1);
           this.trainrunSectionService.replaceIntermediateStopWithNode(
@@ -236,6 +236,7 @@ export class EditorKeyEvents {
         this.trainrunSectionService.unselectAllTrainrunSections();
       }
     }
+    addedNodes.forEach((n) => n.select());
     this.nodeService.nodesUpdated();
     this.nodeService.transitionsUpdated();
     this.trainrunService.trainrunsUpdated();
