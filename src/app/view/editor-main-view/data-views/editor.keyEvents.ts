@@ -6,7 +6,12 @@ import {TrainrunSectionService} from "../../../services/data/trainrunsection.ser
 import {SVGMouseController} from "../../util/svg.mouse.controller";
 import {LogService} from "../../../logger/log.service";
 import {NoteService} from "../../../services/data/note.service";
-import {RASTERING_BASIC_GRID_SIZE} from "../../rastering/definitions";
+import {
+  NODE_MIN_HEIGHT,
+  NODE_MIN_WIDTH,
+  NODE_TEXT_AREA_HEIGHT,
+  RASTERING_BASIC_GRID_SIZE,
+} from "../../rastering/definitions";
 import {EditorMode} from "../../editor-menu/editor-mode";
 import {Note} from "../../../models/note.model";
 import {Node} from "../../../models/node.model";
@@ -220,8 +225,44 @@ export class EditorKeyEvents {
         sections.forEach((ts) => {
           const src = anchorTs.getSourceNode();
           const trg = anchorTs.getTargetNode();
-          x += (src.getPositionX() + trg.getPositionX()) / 2.0;
-          y += (trg.getPositionY() + src.getPositionY()) / 2.0;
+          const p = ts.getPath();
+          const delta = Vec2D.sub(p[3], p[0]);
+          if (delta.getX() === 0) {
+            x += (src.getPositionX() + trg.getPositionX()) / 2.0;
+            if (src.getPositionY() < trg.getPositionY()) {
+              y +=
+                (src.getPositionY() +
+                  src.getNodeHeight() +
+                  trg.getPositionY() -
+                  NODE_MIN_HEIGHT -
+                  NODE_TEXT_AREA_HEIGHT) /
+                2.0;
+            } else {
+              y +=
+                (src.getPositionY() +
+                  trg.getPositionY() +
+                  trg.getNodeHeight() -
+                  NODE_MIN_HEIGHT -
+                  NODE_TEXT_AREA_HEIGHT) /
+                2.0;
+            }
+          } else {
+            if (delta.getY() === 0) {
+              if (src.getPositionX() < trg.getPositionX()) {
+                x +=
+                  (src.getPositionX() + src.getNodeWidth() + trg.getPositionX() - NODE_MIN_WIDTH) /
+                  2.0;
+              } else {
+                x +=
+                  (src.getPositionX() + trg.getPositionX() + trg.getNodeWidth() - NODE_MIN_WIDTH) /
+                  2.0;
+              }
+              y += (trg.getPositionY() + src.getPositionY()) / 2.0;
+            } else {
+              x += (src.getPositionX() + trg.getPositionX()) / 2.0;
+              y += (trg.getPositionY() + src.getPositionY()) / 2.0;
+            }
+          }
         });
         x /= sections.length;
         y /= sections.length;
