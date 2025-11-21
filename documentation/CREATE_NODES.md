@@ -88,6 +88,13 @@ If you want to move a node process as follows:
   symbol.)
 - As long as the left mouse button is pressed you can move the node by just drag-and-drop.
 
+#### Multi-select nodes 
+
+When you use the `left mouse button` pressed and drag a box - you can select multiple nodes. Once you have them selected you can drag (move) the nodes like a single one but now as a group. 
+[chrome-capture-2025-11-21.webm](https://github.com/user-attachments/assets/40917122-efa2-4a64-8e14-afe34c6e05fd)
+
+
+
 #### Trainrun sorting heuristics
 
 ##### Single trainrun
