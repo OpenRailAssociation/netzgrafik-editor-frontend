@@ -176,13 +176,7 @@ export class EditorKeyEvents {
     const totalLen = allNodes.length;
     while (allNodes.length > 0) {
       const n = allNodes.find(() => true);
-      n.getTransitions().forEach((tr) => {
-        const ts = this.nodeService.undockTransition(n.getId(), tr.getId(), false);
-        if (ts) {
-          ts.setNumberOfStops(Math.max(0, ts.getNumberOfStops() - 1));
-        }
-      });
-      this.nodeService.deleteNode(n.getId());
+      this.nodeService.deleteNodeUndockTransitions(n.getId(), false, false);
       allNodes = this.nodeService.getSelectedNodes();
     }
     this.nodeService.nodesUpdated();

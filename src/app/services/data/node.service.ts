@@ -270,6 +270,28 @@ export class NodeService implements OnDestroy {
     this.operation.emit(new NodeOperation(OperationType.delete, node));
   }
 
+  deleteNodeUndockTransitions(
+    nodeId: number,
+    createIntermediateStop = false,
+    enforceUpdate = true,
+  ) {
+    const node = this.getNodeFromId(nodeId);
+    node.getTransitions().forEach((tr) => {
+      const ts = this.undockTransition(node.getId(), tr.getId(), false);
+      if (ts && !createIntermediateStop) {
+        ts.setNumberOfStops(Math.max(0, ts.getNumberOfStops() - 1));
+      }
+    });
+    this.deleteNode(node.getId(), false);
+
+    if (enforceUpdate) {
+      this.nodesUpdated();
+      this.transitionsUpdated();
+      this.trainrunService.trainrunsUpdated();
+      this.trainrunSectionService.trainrunSectionsUpdated();
+    }
+  }
+
   deleteAllVisibleNodes() {
     const nodes = this.nodesStore.nodes;
     nodes.forEach((node) => {
