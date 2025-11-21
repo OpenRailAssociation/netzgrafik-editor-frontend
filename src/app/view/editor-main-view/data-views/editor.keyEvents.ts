@@ -223,8 +223,6 @@ export class EditorKeyEvents {
     for (const [key, sections] of collectAllNodesPairs.entries()) {
       const anchorTs = sections.find(() => true);
       if (anchorTs) {
-        const anchorSrcNode = anchorTs.getSourceNode();
-        const anchorTrgNode = anchorTs.getTargetNode();
         let x = 0;
         let y = 0;
         sections.forEach((ts) => {

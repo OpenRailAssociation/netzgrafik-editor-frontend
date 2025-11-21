@@ -82,20 +82,20 @@ To reroute a train, follow these steps:
 
 [2024-1-25-Rerouting_trainrunsections-001.webm](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/assets/2674075/9368c34c-fddf-4698-abf6-e07afba5a1d6)
 
+### Remove Nodes // Add Intermediate Stop Nodes
 
-
-### Remove Nodes // Add Intermediate Stop Nodes 
-without deleting trainrun sections (undock transitions), resp. create node to split trainrun section into two 
+without deleting trainrun sections (undock transitions), resp. create node to split trainrun section into two
 and dock to the new intermediate stop node in between.
 
 #### Remove a Node
+
 - **What happens**  
   Hover the mouse cursor over a node and press `s`. The node will be deleted.
 - **Result**  
   All trainrun sections that were docked to this node will be undocked. They are no longer connected and become "free-floating."
 
-
 #### Add an Intermediate Stop Node (Split & Dock)
+
 - **How to select**
   - Hold the left mouse button to select multiple nodes.
   - Alternatively, use **Shift + mouse click** for multi-selection.
@@ -106,7 +106,6 @@ and dock to the new intermediate stop node in between.
   - A new intermediate stop node is created.
   - The selected trainrun sections are docked to this new node.
   - The trainrun sections are split into segments aligned with the new intermediate stop node.
-
 
 ### Delete a trainrun section
 
