@@ -14,6 +14,9 @@ export class ToggleSwitchButtonComponent {
   @Input() disabled = false;
 
   onToggle(check: boolean): void {
+    if (this.disabled) {
+      return;
+    }
     if (!this.labelTrue || !this.labelFalse) {
       this.onChange(!this.checked);
       return;
