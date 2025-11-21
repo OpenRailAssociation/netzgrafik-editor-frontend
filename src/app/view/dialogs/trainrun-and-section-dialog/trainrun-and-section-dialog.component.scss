@@ -66,3 +66,29 @@
     z-index: 1001;
   }
 }
+
+.closeButtonLayer0 {
+  transform: translate(610px, 16px);
+  position: absolute;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--sbb-menu-item-label);
+  background-color: var(--sbb-header-lean-background-color);
+}
+
+.closeButtonLayer1 {
+  transform: translate(620px, 16px);
+  position: absolute;
+  width: 10px;
+  height: 40px;
+  border: 5px solid var(--sbb-header-lean-background-color);
+  background-color: var(--sbb-header-lean-background-color);
+}
+
+.closeIconLayer0 {
+  transform: translate(12px, 7px);
+}
+.closeIconLayer0:hover {
+  color: #eb0000;
+}
