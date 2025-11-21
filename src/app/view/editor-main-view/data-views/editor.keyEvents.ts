@@ -327,7 +327,7 @@ export class EditorKeyEvents {
     return (src.getPositionX() + trg.getPositionX() + trg.getNodeWidth() - NODE_MIN_WIDTH) / 2.0;
   }
 
-  private finalizehandleShortcutSUpdates(): void {
+  private servicesUpdate(): void {
     this.nodeService.nodesUpdated();
     this.nodeService.transitionsUpdated();
     this.trainrunService.trainrunsUpdated();
