@@ -191,7 +191,6 @@ export class EditorKeyEvents {
     this.nodeService.transitionsUpdated();
     this.trainrunService.trainrunsUpdated();
     this.trainrunSectionService.trainrunSectionsUpdated();
-    return totalLen > 0;
   }
 
   private doTrainrunSectionsSplit(): boolean {
