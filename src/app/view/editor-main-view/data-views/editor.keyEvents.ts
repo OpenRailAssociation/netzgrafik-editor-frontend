@@ -92,7 +92,7 @@ export class EditorKeyEvents {
           }
           break;
         case "KeyS":
-          this.handleShortcutS();
+          this.onKeySPressed();
           break;
         case "KeyA":
           if (ctrlKey) {
@@ -172,7 +172,7 @@ export class EditorKeyEvents {
       this.processNodeRemoval(node);
     });
 
-    this.finalizehandleShortcutSUpdates();
+    this.servicesUpdate();
   }
 
   private getNodesToRemove(): Node[] {
@@ -218,7 +218,7 @@ export class EditorKeyEvents {
     const addedNodes = this.insertStopNodes(groupedSections);
 
     addedNodes.forEach((n) => n.select());
-    this.finalizehandleShortcutSUpdates();
+    this.servicesUpdate();
     return true;
   }
 
