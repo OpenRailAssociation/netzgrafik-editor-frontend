@@ -92,7 +92,7 @@ export class EditorKeyEvents {
           }
           break;
         case "KeyS":
-          this.onTrainrunSectionSplit();
+          this.handleShortcutS();
           break;
         case "KeyA":
           if (ctrlKey) {
@@ -158,136 +158,180 @@ export class EditorKeyEvents {
     });
   }
 
-  private onTrainrunSectionSplit() {
-    if (this.doTrainrunSectionsSplit()) {
+  private handleShortcutS() {
+    if (this.splitSelectedTrainrunSectionsWithNewNode()) {
       return;
     }
-    this.doTrainrunSectionsFusion();
+    this.removeNodeWithoutDeletingSections();
   }
 
-  private doTrainrunSectionsFusion() {
-    let allNodes = this.nodeService.getSelectedNodes();
-    if (
-      allNodes.length === 0 ||
-      this.uiInteractionService.getEditorMode() !== EditorMode.MultiNodeMoving
-    ) {
-      allNodes = [];
+  private removeNodeWithoutDeletingSections(): void {
+    const targetNodes = this.getNodesToRemove();
+
+    targetNodes.forEach((node) => {
+      this.processNodeRemoval(node);
+    });
+
+    this.finalizehandleShortcutSUpdates();
+  }
+
+  private getNodesToRemove(): Node[] {
+    let nodes = this.nodeService.getSelectedNodes();
+
+    const isMultiNodeMode =
+      this.uiInteractionService.getEditorMode() === EditorMode.MultiNodeMoving;
+    if (nodes.length === 0 || !isMultiNodeMode) {
       const hoveredNodeId = this.getHoveredNodeId();
       if (hoveredNodeId !== undefined) {
-        allNodes.push(this.nodeService.getNodeFromId(hoveredNodeId));
+        const hoveredNode = this.nodeService.getNodeFromId(hoveredNodeId);
+        if (hoveredNode) {
+          nodes = [hoveredNode];
+        }
       }
     }
-    const totalLen = allNodes.length;
-    while (allNodes.length > 0) {
-      const n = allNodes.find(() => true);
-      const selNodeDelete = this.nodeService.isNodeSelected(n.getId());
-      this.nodeService.deleteNodeUndockTransitions(n.getId(), false, false);
-      if (selNodeDelete) {
-        this.uiInteractionService.closeNodeStammdaten();
-      }
-      allNodes = allNodes.filter((node) => node.getId() !== n.getId());
-    }
-    this.nodeService.nodesUpdated();
-    this.nodeService.transitionsUpdated();
-    this.trainrunService.trainrunsUpdated();
-    this.trainrunSectionService.trainrunSectionsUpdated();
+    return nodes;
   }
 
-  private doTrainrunSectionsSplit(): boolean {
-    if (this.uiInteractionService.getEditorMode() !== EditorMode.MultiNodeMoving) {
+  private processNodeRemoval(node: Node): void {
+    const nodeId = node.getId();
+    const wasSelected = this.nodeService.isNodeSelected(nodeId);
+
+    // Undock transitions but do not delete trainrun sections
+    this.nodeService.deleteNodeUndockTransitions(nodeId, false, false);
+
+    if (wasSelected) {
+      this.uiInteractionService.closeNodeStammdaten();
+    }
+  }
+
+  private splitSelectedTrainrunSectionsWithNewNode(): boolean {
+    if (!this.isMultiNodeMovingMode()) {
       return false;
     }
 
-    // insert a stop node to split all the selected trainrun sections
-    const allSelectedTrainrunSections =
-      this.trainrunSectionService.getAllSelectedTrainrunSections();
-    if (!allSelectedTrainrunSections || allSelectedTrainrunSections.length === 0) {
+    const selectedSections = this.getSelectedTrainrunSections();
+    if (selectedSections.length === 0) {
       return false;
     }
 
-    const collectAllNodesPairs = new Map<string, TrainrunSection[]>();
-    allSelectedTrainrunSections.forEach((ts) => {
-      const srcNodeId = ts.getSourceNode().getId();
-      const trgNodeId = ts.getTargetNode().getId();
-      const pair = {
-        nodeA: srcNodeId < trgNodeId ? srcNodeId : trgNodeId,
-        nodeB: srcNodeId < trgNodeId ? trgNodeId : srcNodeId,
-      };
-      const key = `${pair.nodeA}-${pair.nodeB}`;
-      if (collectAllNodesPairs.get(key) === undefined) {
-        collectAllNodesPairs.set(key, []);
-      }
-      collectAllNodesPairs.get(key).push(ts);
-    });
-    const addedNodes: Node[] = [];
-    for (const [_, sections] of collectAllNodesPairs.entries()) {
-      const anchorTs = sections.find(() => true);
-      if (anchorTs) {
-        let x = 0;
-        let y = 0;
-        sections.forEach((ts) => {
-          const src = anchorTs.getSourceNode();
-          const trg = anchorTs.getTargetNode();
-          const p = ts.getPath();
-          const delta = Vec2D.sub(p[3], p[0]);
-          if (delta.getX() === 0) {
-            x += (src.getPositionX() + trg.getPositionX()) / 2.0;
-            if (src.getPositionY() < trg.getPositionY()) {
-              y +=
-                (src.getPositionY() +
-                  src.getNodeHeight() +
-                  trg.getPositionY() -
-                  NODE_MIN_HEIGHT -
-                  NODE_TEXT_AREA_HEIGHT) /
-                2.0;
-            } else {
-              y +=
-                (src.getPositionY() +
-                  trg.getPositionY() +
-                  trg.getNodeHeight() -
-                  NODE_MIN_HEIGHT -
-                  NODE_TEXT_AREA_HEIGHT) /
-                2.0;
-            }
-          } else {
-            if (delta.getY() === 0) {
-              if (src.getPositionX() < trg.getPositionX()) {
-                x +=
-                  (src.getPositionX() + src.getNodeWidth() + trg.getPositionX() - NODE_MIN_WIDTH) /
-                  2.0;
-              } else {
-                x +=
-                  (src.getPositionX() + trg.getPositionX() + trg.getNodeWidth() - NODE_MIN_WIDTH) /
-                  2.0;
-              }
-              y += (trg.getPositionY() + src.getPositionY()) / 2.0;
-            } else {
-              x += (src.getPositionX() + trg.getPositionX()) / 2.0;
-              y += (trg.getPositionY() + src.getPositionY()) / 2.0;
-            }
-          }
-        });
-        x /= sections.length;
-        y /= sections.length;
-        const node = this.nodeService.addNodeWithPosition(x, y);
-        addedNodes.push(node);
-        sections.forEach((ts) => {
-          ts.setNumberOfStops(ts.getNumberOfStops() + 1);
-          this.trainrunSectionService.replaceIntermediateStopWithNode(
-            ts.getId(),
-            Math.ceil(ts.getNumberOfStops() / 2) - 1,
-            node.getId(),
-          );
-        });
-        this.trainrunSectionService.unselectAllTrainrunSections();
-      }
-    }
+    const groupedSections = this.groupSectionsByNodePairs(selectedSections);
+    const addedNodes = this.insertStopNodes(groupedSections);
+
     addedNodes.forEach((n) => n.select());
+    this.finalizehandleShortcutSUpdates();
+    return true;
+  }
+
+  private isMultiNodeMovingMode(): boolean {
+    return this.uiInteractionService.getEditorMode() === EditorMode.MultiNodeMoving;
+  }
+
+  private getSelectedTrainrunSections(): TrainrunSection[] {
+    return this.trainrunSectionService.getAllSelectedTrainrunSections() ?? [];
+  }
+
+  private groupSectionsByNodePairs(sections: TrainrunSection[]): Map<string, TrainrunSection[]> {
+    const map = new Map<string, TrainrunSection[]>();
+    sections.forEach((ts) => {
+      const srcId = ts.getSourceNode().getId();
+      const trgId = ts.getTargetNode().getId();
+      const [nodeA, nodeB] = srcId < trgId ? [srcId, trgId] : [trgId, srcId];
+      const key = `${nodeA}-${nodeB}`;
+      if (!map.has(key)) {
+        map.set(key, []);
+      }
+      map.get(key).push(ts);
+    });
+    return map;
+  }
+
+  private insertStopNodes(groupedSections: Map<string, TrainrunSection[]>): Node[] {
+    const addedNodes: Node[] = [];
+
+    for (const sections of groupedSections.values()) {
+      const anchor = sections[0];
+      if (!anchor) continue;
+
+      const {x, y} = this.calculateAveragePosition(sections, anchor);
+      const node = this.nodeService.addNodeWithPosition(x, y);
+      addedNodes.push(node);
+
+      sections.forEach((ts) => {
+        ts.setNumberOfStops(ts.getNumberOfStops() + 1);
+        this.trainrunSectionService.replaceIntermediateStopWithNode(
+          ts.getId(),
+          Math.ceil(ts.getNumberOfStops() / 2) - 1,
+          node.getId(),
+        );
+      });
+
+      this.trainrunSectionService.unselectAllTrainrunSections();
+    }
+
+    return addedNodes;
+  }
+
+  private calculateAveragePosition(
+    sections: TrainrunSection[],
+    anchor: TrainrunSection,
+  ): {x: number; y: number} {
+    let x = 0,
+      y = 0;
+    const src = anchor.getSourceNode();
+    const trg = anchor.getTargetNode();
+
+    sections.forEach((ts) => {
+      const p = ts.getPath();
+      const delta = Vec2D.sub(p[3], p[0]);
+
+      if (delta.getX() === 0) {
+        x += (src.getPositionX() + trg.getPositionX()) / 2.0;
+        y += this.calculateVerticalY(src, trg);
+      } else if (delta.getY() === 0) {
+        x += this.calculateHorizontalX(src, trg);
+        y += (src.getPositionY() + trg.getPositionY()) / 2.0;
+      } else {
+        x += (src.getPositionX() + trg.getPositionX()) / 2.0;
+        y += (src.getPositionY() + trg.getPositionY()) / 2.0;
+      }
+    });
+
+    return {x: x / sections.length, y: y / sections.length};
+  }
+
+  private calculateVerticalY(src: Node, trg: Node): number {
+    if (src.getPositionY() < trg.getPositionY()) {
+      return (
+        (src.getPositionY() +
+          src.getNodeHeight() +
+          trg.getPositionY() -
+          NODE_MIN_HEIGHT -
+          NODE_TEXT_AREA_HEIGHT) /
+        2.0
+      );
+    }
+    return (
+      (src.getPositionY() +
+        trg.getPositionY() +
+        trg.getNodeHeight() -
+        NODE_MIN_HEIGHT -
+        NODE_TEXT_AREA_HEIGHT) /
+      2.0
+    );
+  }
+
+  private calculateHorizontalX(src: Node, trg: Node): number {
+    if (src.getPositionX() < trg.getPositionX()) {
+      return (src.getPositionX() + src.getNodeWidth() + trg.getPositionX() - NODE_MIN_WIDTH) / 2.0;
+    }
+    return (src.getPositionX() + trg.getPositionX() + trg.getNodeWidth() - NODE_MIN_WIDTH) / 2.0;
+  }
+
+  private finalizehandleShortcutSUpdates(): void {
     this.nodeService.nodesUpdated();
     this.nodeService.transitionsUpdated();
     this.trainrunService.trainrunsUpdated();
     this.trainrunSectionService.trainrunSectionsUpdated();
-    return true;
   }
 
   private forwardCtrlKeyInformation() {
@@ -440,7 +484,7 @@ export class EditorKeyEvents {
   }
 
   private doDuplicateNode(): boolean {
-    if (this.uiInteractionService.getEditorMode() === EditorMode.MultiNodeMoving) {
+    if (this.isMultiNodeMovingMode()) {
       return false;
     }
     const hoveredNodeId = this.getHoveredNodeId();
@@ -453,7 +497,7 @@ export class EditorKeyEvents {
   }
 
   private doDuplicateMultiSelectedNode(): boolean {
-    if (this.uiInteractionService.getEditorMode() !== EditorMode.MultiNodeMoving) {
+    if (!this.isMultiNodeMovingMode()) {
       return false;
     }
 
