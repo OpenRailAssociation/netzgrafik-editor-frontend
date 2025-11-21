@@ -167,7 +167,11 @@ export class EditorKeyEvents {
 
   private doTrainrunSectionsFusion() {
     let allNodes = this.nodeService.getSelectedNodes();
-    if (allNodes.length === 0) {
+    if (
+      allNodes.length === 0 ||
+      this.uiInteractionService.getEditorMode() !== EditorMode.MultiNodeMoving
+    ) {
+      allNodes = [];
       const hoveredNodeId = this.getHoveredNodeId();
       if (hoveredNodeId !== undefined) {
         allNodes.push(this.nodeService.getNodeFromId(hoveredNodeId));
@@ -181,7 +185,7 @@ export class EditorKeyEvents {
       if (selNodeDelete) {
         this.uiInteractionService.closeNodeStammdaten();
       }
-      allNodes = this.nodeService.getSelectedNodes();
+      allNodes = allNodes.filter((node) => node.getId() !== n.getId());
     }
     this.nodeService.nodesUpdated();
     this.nodeService.transitionsUpdated();
