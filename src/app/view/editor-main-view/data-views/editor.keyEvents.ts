@@ -220,7 +220,7 @@ export class EditorKeyEvents {
       collectAllNodesPairs.get(key).push(ts);
     });
     const addedNodes: Node[] = [];
-    for (const [key, sections] of collectAllNodesPairs.entries()) {
+    for (const [_, sections] of collectAllNodesPairs.entries()) {
       const anchorTs = sections.find(() => true);
       if (anchorTs) {
         let x = 0;
