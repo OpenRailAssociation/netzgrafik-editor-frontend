@@ -508,6 +508,7 @@ export class D3Utils {
     rootElement
       .selectAll("path:not(.selected)")
       .classed(StaticDomTags.TAG_ENFORCE_DISABLE_ALL_POINTER_EVENTS, true);
+    rootElement.selectAll("path").style("pointer-events", "none");
     rootElement
       .selectAll("rect:not(.selected)")
       .classed(StaticDomTags.TAG_ENFORCE_DISABLE_ALL_POINTER_EVENTS, true);
@@ -572,7 +573,8 @@ export class D3Utils {
     const rootElement = d3.select("#graphContainer");
     rootElement
       .selectAll("path")
-      .classed(StaticDomTags.TAG_ENFORCE_DISABLE_ALL_POINTER_EVENTS, false);
+      .classed(StaticDomTags.TAG_ENFORCE_DISABLE_ALL_POINTER_EVENTS, false)
+      .style("pointer-events", "none");
     rootElement
       .selectAll("rect")
       .classed(StaticDomTags.TAG_ENFORCE_DISABLE_ALL_POINTER_EVENTS, false);
