@@ -89,19 +89,19 @@ without deleting trainrun sections (undock transitions), resp. create node to sp
 and dock to the new intermediate stop node in between.
 
 #### Remove a Node
-- **What happens:**  
+- **What happens**  
   Hover the mouse cursor over a node and press `s`. The node will be deleted.
-- **Result:**  
+- **Result**  
   All trainrun sections that were docked to this node will be undocked. They are no longer connected and become "free-floating."
 
 
 #### Add an Intermediate Stop Node (Split & Dock)
-- **How to select:**
+- **How to select**
   - Hold the left mouse button to select multiple nodes.
   - Alternatively, use **Shift + mouse click** for multi-selection.
   - You can also select trainrun sections by drawing a selection box over their names.
 
-- **What happens after selection:**  
+- **What happens after selection**  
   When at least one trainrun section is selected and you press `s`:
   - A new intermediate stop node is created.
   - The selected trainrun sections are docked to this new node.
