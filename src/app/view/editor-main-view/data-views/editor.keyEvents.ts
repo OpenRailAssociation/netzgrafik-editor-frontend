@@ -176,7 +176,11 @@ export class EditorKeyEvents {
     const totalLen = allNodes.length;
     while (allNodes.length > 0) {
       const n = allNodes.find(() => true);
+      const selNodeDelete = this.nodeService.isNodeSelected(n.getId());
       this.nodeService.deleteNodeUndockTransitions(n.getId(), false, false);
+      if (selNodeDelete) {
+        this.uiInteractionService.closeNodeStammdaten();
+      }
       allNodes = this.nodeService.getSelectedNodes();
     }
     this.nodeService.nodesUpdated();
