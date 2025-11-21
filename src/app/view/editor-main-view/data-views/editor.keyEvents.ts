@@ -158,7 +158,7 @@ export class EditorKeyEvents {
     });
   }
 
-  private handleShortcutS() {
+  private onKeySPressed() {
     if (this.splitSelectedTrainrunSectionsWithNewNode()) {
       return;
     }
