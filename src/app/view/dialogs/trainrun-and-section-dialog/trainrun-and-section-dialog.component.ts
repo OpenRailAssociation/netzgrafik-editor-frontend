@@ -183,7 +183,10 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
   onMouseDown(event: MouseEvent) {
     if (event.buttons === 1) {
       const eventTarget = event.target as HTMLElement;
-      if (eventTarget.className === "sbb-tab-labels") {
+      if (
+        eventTarget.className === "sbb-tab-labels" ||
+        eventTarget.className === "TrainrunTabGroup"
+      ) {
         this.dialogMovementLastPosition = new Vec2D(event.screenX, event.screenY);
       }
     }
@@ -191,7 +194,6 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
 
   onMouseMove(event: MouseEvent) {
     if (event.buttons === 1) {
-      const eventTarget = event.target as HTMLElement;
       if (this.dialogMovementLastPosition !== undefined) {
         const newLayer = new Vec2D(event.screenX, event.screenY);
         const movement = Vec2D.sub(newLayer, this.dialogMovementLastPosition);

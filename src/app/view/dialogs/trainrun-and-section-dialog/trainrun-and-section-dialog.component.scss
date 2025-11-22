@@ -30,8 +30,9 @@
     border-top-color: var(--sbb-header-lean-background-color);
   }
 
-  .TrainrunTabGrupe {
+  .TrainrunTabGroup {
     padding: 15px;
+    cursor: move;
   }
 
   .sbb-tab-group-content {
@@ -91,4 +92,8 @@
 }
 .closeIconLayer0:hover {
   color: #eb0000;
+}
+
+.sbb-tab-group {
+  user-select: none;
 }

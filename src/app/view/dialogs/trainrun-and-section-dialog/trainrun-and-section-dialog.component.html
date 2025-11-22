@@ -16,7 +16,13 @@
     (mousemove)="onMouseMove($event)"
     (mousedown)="onMouseDown($event)"
   >
-    <div data-testid="train-run-tab-group" class="TrainrunTabGrupe">
+    <div
+      data-testid="train-run-tab-group"
+      class="TrainrunTabGroup"
+      (mouseup)="onMouseUp($event)"
+      (mousemove)="onMouseMove($event)"
+      (mousedown)="onMouseDown($event)"
+    >
       <sbb-tab-group [selectedIndex]="data.type">
         <sbb-tab
           label="{{ selectedTrainrun.getCategoryShortName() }}{{ selectedTrainrun.getTitle() }}"
