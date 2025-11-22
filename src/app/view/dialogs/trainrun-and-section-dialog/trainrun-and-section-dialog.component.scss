@@ -71,7 +71,7 @@
 .closeButtonLayer0 {
   transform: translate(610px, 16px);
   position: absolute;
-  border-radius: 50%;
+  border-radius: 10px;
   width: 40px;
   height: 40px;
   border: 1px solid var(--sbb-menu-item-label);
@@ -88,10 +88,36 @@
 }
 
 .closeIconLayer0 {
-  transform: translate(12px, 7px);
+  transform: translate(-5px, 3px);
 }
 .closeIconLayer0:hover {
   color: #eb0000;
+}
+
+.moveButtonLayer0 {
+  transform: translate(610px, 64px);
+  position: absolute;
+  border-radius: 10px;
+  width: 40px;
+  height: 128px;
+  border: 1px solid var(--sbb-menu-item-label);
+  background-color: var(--sbb-header-lean-background-color);
+  cursor: move;
+}
+
+.moveButtonLayer1 {
+  transform: translate(614px, 65px);
+  position: absolute;
+  width: 10px;
+  height: 126px;
+  border: 14px solid var(--sbb-header-lean-background-color);
+  background-color: var(--sbb-header-lean-background-color);
+  cursor: move;
+}
+
+.moveIconLayer0 {
+  transform: translate(-6px, 0px);
+  pointer-events: none;
 }
 
 .sbb-tab-group {

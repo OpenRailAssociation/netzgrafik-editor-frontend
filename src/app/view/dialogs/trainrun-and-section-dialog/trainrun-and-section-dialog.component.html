@@ -1,13 +1,11 @@
 <ng-template #trainrunAndSectionEditorTabsViewTemplate>
-  <div class="closeButtonLayer0" (click)="closeDialog()">
-    <sbb-icon
-      class="closeIconLayer0"
-      svgIcon="cross-small"
-      height="13px"
-      width="13px"
-      (click)="closeDialog()"
-    ></sbb-icon>
-  </div>
+  <div class="closeButtonLayer0" (click)="closeDialog()"></div>
+  <div
+    class="moveButtonLayer0"
+    (mouseup)="onMouseUp($event)"
+    (mousemove)="onMouseMove($event)"
+    (mousedown)="onMouseDown($event)"
+  ></div>
 
   <div
     class="MainTrainrunTabViewDialog"
@@ -69,5 +67,26 @@
     </div>
   </div>
 
-  <div class="closeButtonLayer1" (click)="closeDialog()"></div>
+  <div class="closeButtonLayer1" (click)="closeDialog()">
+    <sbb-icon
+      class="closeIconLayer0"
+      svgIcon="cross-small"
+      height="13px"
+      width="13px"
+      (click)="closeDialog()"
+    ></sbb-icon>
+  </div>
+  <div
+    class="moveButtonLayer1"
+    (mouseup)="onMouseUp($event)"
+    (mousemove)="onMouseMove($event)"
+    (mousedown)="onMouseDown($event)"
+  >
+    <sbb-icon
+      class="moveIconLayer0"
+      svgIcon="arrows-left-right-down-up-small"
+      height="11px"
+      width="11px"
+    ></sbb-icon>
+  </div>
 </ng-template>

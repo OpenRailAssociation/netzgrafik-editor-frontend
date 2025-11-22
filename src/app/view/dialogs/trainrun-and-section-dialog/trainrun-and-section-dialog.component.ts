@@ -183,9 +183,12 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
   onMouseDown(event: MouseEvent) {
     if (event.buttons === 1) {
       const eventTarget = event.target as HTMLElement;
+      const clName = eventTarget.className.split(" ")[0];
       if (
-        eventTarget.className === "sbb-tab-labels" ||
-        eventTarget.className === "TrainrunTabGroup"
+        clName === "sbb-tab-labels" ||
+        clName === "TrainrunTabGroup" ||
+        clName === "moveButtonLayer0" ||
+        clName === "moveButtonLayer1"
       ) {
         this.dialogMovementLastPosition = new Vec2D(event.screenX, event.screenY);
       }
