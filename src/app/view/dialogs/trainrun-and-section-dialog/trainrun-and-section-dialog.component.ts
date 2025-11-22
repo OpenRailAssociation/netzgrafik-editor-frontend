@@ -120,6 +120,12 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
       });
   }
 
+  hasLongTrainrunName(): boolean {
+    const name =
+      this.selectedTrainrun.getCategoryShortName() + " " + this.selectedTrainrun.getTitle();
+    return name.length > 20;
+  }
+
   static getDialogConfig(
     parameter: TrainrunDialogParameter,
     trainrunFrequency: TrainrunFrequency[],
