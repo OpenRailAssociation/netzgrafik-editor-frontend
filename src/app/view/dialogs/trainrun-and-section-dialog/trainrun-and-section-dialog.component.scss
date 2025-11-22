@@ -69,55 +69,56 @@
 }
 
 .closeButtonLayer0 {
-  transform: translate(610px, 16px);
+  transform: translate(610px, 0px);
   position: absolute;
-  border-radius: 10px;
+  border-top-right-radius: 4px;
   width: 40px;
-  height: 40px;
+  height: 55px;
   border: 1px solid var(--sbb-menu-item-label);
   background-color: var(--sbb-header-lean-background-color);
 }
 
 .closeButtonLayer1 {
-  transform: translate(620px, 16px);
+  transform: translate(620px, 1px);
   position: absolute;
   width: 10px;
-  height: 40px;
+  height: 53px;
   border: 5px solid var(--sbb-header-lean-background-color);
   background-color: var(--sbb-header-lean-background-color);
 }
 
 .closeIconLayer0 {
-  transform: translate(-5px, 3px);
+  transform: translate(-8px, 17px);
 }
 .closeIconLayer0:hover {
   color: #eb0000;
 }
 
 .moveButtonLayer0 {
-  transform: translate(610px, 64px);
+  transform: translate(610px, 56px);
   position: absolute;
-  border-radius: 10px;
+  border-bottom-right-radius: 4px;
   width: 40px;
-  height: 128px;
+  height: 329px;
   border: 1px solid var(--sbb-menu-item-label);
   background-color: var(--sbb-header-lean-background-color);
   cursor: move;
 }
 
 .moveButtonLayer1 {
-  transform: translate(614px, 65px);
+  transform: translate(614px, 58px);
   position: absolute;
   width: 10px;
-  height: 126px;
-  border: 14px solid var(--sbb-header-lean-background-color);
+  height: 326px;
+  border: 15px solid var(--sbb-header-lean-background-color);
   background-color: var(--sbb-header-lean-background-color);
   cursor: move;
 }
 
 .moveIconLayer0 {
-  transform: translate(-6px, 0px);
+  transform: translate(-49px, -60px);
   pointer-events: none;
+  opacity: 0.25;
 }
 
 .sbb-tab-group {
