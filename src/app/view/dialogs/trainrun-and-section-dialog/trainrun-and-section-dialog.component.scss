@@ -67,6 +67,12 @@
     padding: 10px 15px;
     z-index: 1001;
   }
+
+
+  .sbb-tab-body-wrapper {
+    cursor: pointer;
+  }
+
 }
 
 .closeButtonLayer0 {
@@ -121,13 +127,8 @@
 .moveIconLayer1 {
   transform: translate(-12px, 260px);
   pointer-events: none;
-  opacity: 0.25;
 }
 
 .sbb-tab-group {
   user-select: none;
-}
-
-::ng-deep .sbb-tab-body-wrapper {
-  cursor: pointer;
 }
