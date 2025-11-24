@@ -124,7 +124,7 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
     parameter: TrainrunDialogParameter,
     trainrunFrequency: TrainrunFrequency[],
   ): SbbDialogConfig {
-    const width = 630;
+    const width = 650;
     let height = 405;
     if (trainrunFrequency.length > 6) {
       height += 32;
@@ -183,15 +183,21 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
   onMouseDown(event: MouseEvent) {
     if (event.buttons === 1) {
       const eventTarget = event.target as HTMLElement;
-      if (eventTarget.className === "sbb-tab-labels") {
-        this.dialogMovementLastPosition = new Vec2D(event.screenX, event.screenY);
+      if (typeof eventTarget.className === "string") {
+        const clName = eventTarget.className.split(" ")[0];
+        if (
+          clName === "sbb-tab-labels" ||
+          clName === "trainrun-dialog-tab-group" ||
+          clName === "dialog-drag-and-close-handle-area"
+        ) {
+          this.dialogMovementLastPosition = new Vec2D(event.screenX, event.screenY);
+        }
       }
     }
   }
 
   onMouseMove(event: MouseEvent) {
     if (event.buttons === 1) {
-      const eventTarget = event.target as HTMLElement;
       if (this.dialogMovementLastPosition !== undefined) {
         const newLayer = new Vec2D(event.screenX, event.screenY);
         const movement = Vec2D.sub(newLayer, this.dialogMovementLastPosition);

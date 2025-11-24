@@ -1,19 +1,18 @@
 <ng-template #trainrunAndSectionEditorTabsViewTemplate>
   <div
-    class="MainTrainrunTabViewDialog"
+    class="trainrun-dialog-container"
     sbbDialog
     (mouseup)="onMouseUp($event)"
     (mousemove)="onMouseMove($event)"
     (mousedown)="onMouseDown($event)"
   >
-    <sbb-icon
-      class="closeDialog"
-      svgIcon="cross-small"
-      aria-label="Close Dialog"
-      aria-hidden="false"
-      (click)="closeDialog()"
-    ></sbb-icon>
-    <div data-testid="train-run-tab-group" class="TrainrunTabGrupe">
+    <div
+      data-testid="train-run-tab-group"
+      class="trainrun-dialog-tab-group"
+      (mouseup)="onMouseUp($event)"
+      (mousemove)="onMouseMove($event)"
+      (mousedown)="onMouseDown($event)"
+    >
       <sbb-tab-group [selectedIndex]="data.type">
         <sbb-tab
           label="{{ selectedTrainrun.getCategoryShortName() }}{{ selectedTrainrun.getTitle() }}"
@@ -30,10 +29,8 @@
             <sbb-icon
               [svgIcon]="trainrunService.getSbbArrowForTrainrunSectionDirection()"
               aria-hidden="false"
-              height="13px"
-              width="13px"
-            ></sbb-icon
-            >{{ nextStopRightNodeName }}
+            ></sbb-icon>
+            {{ nextStopRightNodeName }}
           </ng-template>
           <sbb-trainrunsection-tab [trainrunDialogParameter]="data"></sbb-trainrunsection-tab>
         </sbb-tab>
@@ -48,8 +45,6 @@
             <sbb-icon
               [svgIcon]="trainrunService.getSbbArrowForTrainrunDirection()"
               aria-hidden="false"
-              height="13px"
-              width="13px"
             ></sbb-icon>
           </ng-template>
           <sbb-trainrun-roundtrip-tab
@@ -58,5 +53,19 @@
         </sbb-tab>
       </sbb-tab-group>
     </div>
+  </div>
+
+  <div
+    class="dialog-drag-and-close-handle-area"
+    (mouseup)="onMouseUp($event)"
+    (mousemove)="onMouseMove($event)"
+    (mousedown)="onMouseDown($event)"
+  >
+    <sbb-icon
+      class="dialog-close-button-icon"
+      svgIcon="cross-small"
+      (click)="closeDialog()"
+    ></sbb-icon>
+    <sbb-icon class="dialog-drag-handle-icon" svgIcon="arrows-left-right-down-up-small"></sbb-icon>
   </div>
 </ng-template>

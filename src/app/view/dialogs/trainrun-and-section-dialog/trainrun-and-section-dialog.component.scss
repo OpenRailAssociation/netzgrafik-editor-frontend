@@ -1,11 +1,12 @@
 @import "../../dialogs/trainrun-and-section-dialog/trainrunsection-tab/trainrun-section-tab.component.scss";
+
 ::ng-deep #TrainrunTabViewDialogId {
   border: none;
   box-shadow: none;
   background-color: transparent;
 }
 
-::ng-deep .MainTrainrunTabViewDialog {
+::ng-deep .trainrun-dialog-container {
   position: relative;
   padding-top: 4px; // optical alignment
   border: 1px solid var(--sbb-menu-item-label);
@@ -30,8 +31,10 @@
     border-top-color: var(--sbb-header-lean-background-color);
   }
 
-  .TrainrunTabGrupe {
+  .trainrun-dialog-tab-group {
     padding: 15px;
+    cursor: move;
+    width: 630px;
   }
 
   .sbb-tab-group-content {
@@ -65,4 +68,58 @@
     padding: 10px 15px;
     z-index: 1001;
   }
+
+  .sbb-tab-body-wrapper {
+    cursor: pointer;
+  }
+}
+
+.dialog-close-button-layer {
+  transform: translate(620px, 1px);
+  position: absolute;
+  width: 10px;
+  height: 53px;
+  border: 5px solid var(--sbb-header-lean-background-color);
+  background-color: var(--sbb-header-lean-background-color);
+  cursor: pointer;
+}
+
+.dialog-close-button-icon {
+  transform: translate(-14px, -60px);
+}
+
+.dialog-close-button-icon:hover {
+  color: #eb0000;
+}
+
+.dialog-drag-and-close-handle-area {
+  transform: translate(616px, 58px);
+  position: absolute;
+  width: 20px;
+  height: 326px;
+  border: 16px solid var(--sbb-header-lean-background-color);
+  cursor: move;
+
+  .dialog-drag-handle-icon {
+    transform: translate(-12px, 242px);
+    pointer-events: none;
+    opacity: 0.25;
+  }
+
+  &:active .dialog-drag-handle-icon {
+    color: #eb0000;
+    opacity: 0.5;
+  }
+}
+
+::ng-deep
+  .trainrun-dialog-container:active
+  ~ .dialog-drag-and-close-handle-area
+  .dialog-drag-handle-icon {
+  color: #eb0000;
+  opacity: 0.5;
+}
+
+.sbb-tab-group {
+  user-select: none;
 }
