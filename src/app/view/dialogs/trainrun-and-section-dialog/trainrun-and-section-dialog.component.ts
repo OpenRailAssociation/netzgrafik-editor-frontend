@@ -188,8 +188,7 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
         if (
           clName === "sbb-tab-labels" ||
           clName === "trainrun-dialog-tab-group" ||
-          clName === "dialog-drag-handle-layer-0" ||
-          clName === "dialog-drag-handle-layer"
+          clName === "dialog-drag-and-close-handle-area"
         ) {
           this.dialogMovementLastPosition = new Vec2D(event.screenX, event.screenY);
         }

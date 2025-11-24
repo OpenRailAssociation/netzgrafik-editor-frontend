@@ -96,7 +96,7 @@
   transform: translate(-114px, -160px);
 }
 
-.dialog-drag-handle-layer {
+.dialog-drag-and-close-handle-area {
   transform: translate(616px, 58px);
   position: absolute;
   width: 20px;
@@ -111,7 +111,7 @@
   }
 }
 
-.dialog-drag-handle-layer:hover {
+.dialog-drag-and-close-handle-area:hover {
   border: 16px solid var(--COLOR_TRANSITION_GRAYEDOUT);
 
   .dialog-drag-handle-icon {
@@ -121,7 +121,7 @@
   }
 }
 
-.dialog-drag-handle-layer:active {
+.dialog-drag-and-close-handle-area:active {
   border: 116px solid rgba(0, 0, 0, 0);
 
   .dialog-drag-handle-icon {
