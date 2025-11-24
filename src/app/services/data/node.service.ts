@@ -254,8 +254,9 @@ export class NodeService implements OnDestroy {
     return node;
   }
 
-  addEmptyNode(): Node {
+  addEmptyNode(positionX: number, positionY: number): Node {
     const node: Node = new Node();
+    node.setPosition(positionX, positionY);
     node.setIsCollapsed(true);
     const resource: Resource = this.resourceService.createAndGetResource();
     node.setResourceId(resource.getId());
