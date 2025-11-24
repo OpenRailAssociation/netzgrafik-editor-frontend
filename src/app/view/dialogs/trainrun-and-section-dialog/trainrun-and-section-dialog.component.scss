@@ -5,7 +5,7 @@
   background-color: transparent;
 }
 
-::ng-deep .MainTrainrunTabViewDialog {
+::ng-deep .trainrun-dialog-container {
   position: relative;
   padding-top: 4px; // optical alignment
   border: 1px solid var(--sbb-menu-item-label);
@@ -31,7 +31,7 @@
     border-top-color: var(--sbb-header-lean-background-color);
   }
 
-  .TrainrunTabGroup {
+  .trainrun-dialog-tab-group {
     padding: 15px;
     cursor: move;
   }
@@ -73,7 +73,7 @@
   }
 }
 
-.closeButtonLayer0 {
+.dialog-close-button-layer0 {
   transform: translate(610px, 0px);
   position: absolute;
   border-top-right-radius: 4px;
@@ -81,25 +81,30 @@
   height: 385px;
   border: 1px solid var(--sbb-menu-item-label);
   background-color: var(--sbb-header-lean-background-color);
+  cursor: pointer;
 }
 
-.closeButtonLayer1 {
+.dialog-close-button-layer1 {
   transform: translate(620px, 1px);
   position: absolute;
   width: 10px;
   height: 53px;
   border: 5px solid var(--sbb-header-lean-background-color);
   background-color: var(--sbb-header-lean-background-color);
+  cursor: pointer;
 }
 
 .closeIconLayer0 {
   transform: translate(-7px, 9px);
-}
-.closeIconLayer0:hover {
-  color: #eb0000;
+  cursor: pointer;
 }
 
-.moveButtonLayer0 {
+.closeIconLayer0:hover {
+  color: #eb0000;
+  cursor: pointer;
+}
+
+.dialog-drag-handle-layer-0 {
   transform: translate(615px, 57px);
   position: absolute;
   width: 40px;
@@ -108,7 +113,7 @@
   cursor: move;
 }
 
-.moveButtonLayer1 {
+.dialog-drag-handle-layer-1 {
   transform: translate(616px, 58px);
   position: absolute;
   width: 20px;
@@ -117,12 +122,12 @@
   cursor: move;
 }
 
-.moveButtonLayer1:hover {
+.dialog-drag-handle-layer-1:hover {
   border: 16px solid var(--COLOR_TRANSITION_GRAYEDOUT);
   opacity: 0.5;
 }
 
-.moveIconLayer1 {
+.dialog-drag-handle-icon {
   transform: translate(-12px, 260px);
   pointer-events: none;
 }

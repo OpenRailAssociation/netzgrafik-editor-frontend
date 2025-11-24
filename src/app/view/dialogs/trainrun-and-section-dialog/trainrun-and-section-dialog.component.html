@@ -1,13 +1,14 @@
 <ng-template #trainrunAndSectionEditorTabsViewTemplate>
-  <div class="closeButtonLayer0" (click)="closeDialog()"></div>
+  <div class="dialog-close-button-layer0"
+       (click)="closeDialog()"></div>
   <div
-    class="moveButtonLayer0"
+    class="dialog-drag-handle-layer-0"
     (mouseup)="onMouseUp($event)"
     (mousemove)="onMouseMove($event)"
     (mousedown)="onMouseDown($event)"
   ></div>
   <div
-    class="MainTrainrunTabViewDialog"
+    class="trainrun-dialog-container"
     sbbDialog
     (mouseup)="onMouseUp($event)"
     (mousemove)="onMouseMove($event)"
@@ -15,7 +16,7 @@
   >
     <div
       data-testid="train-run-tab-group"
-      class="TrainrunTabGroup"
+      class="trainrun-dialog-tab-group"
       (mouseup)="onMouseUp($event)"
       (mousemove)="onMouseMove($event)"
       (mousedown)="onMouseDown($event)"
@@ -66,7 +67,7 @@
     </div>
   </div>
 
-  <div class="closeButtonLayer1" (click)="closeDialog()">
+  <div class="dialog-close-button-layer1" (click)="closeDialog()">
     <sbb-icon
       class="closeIconLayer0"
       svgIcon="cross-small"
@@ -76,13 +77,13 @@
     ></sbb-icon>
   </div>
   <div
-    class="moveButtonLayer1"
+    class="dialog-drag-handle-layer-1"
     (mouseup)="onMouseUp($event)"
     (mousemove)="onMouseMove($event)"
     (mousedown)="onMouseDown($event)"
   >
     <sbb-icon
-      class="moveIconLayer1"
+      class="dialog-drag-handle-icon"
       svgIcon="arrows-left-right-down-up-small"
       height="11px"
       width="11px"
