@@ -112,12 +112,9 @@
 }
 
 .dialog-drag-and-close-handle-area:hover {
-  border: 16px solid var(--COLOR_TRANSITION_GRAYEDOUT);
-
   .dialog-drag-handle-icon {
     transform: translate(-12px, 260px);
     pointer-events: none;
-    opacity: 1;
   }
 }
 
@@ -127,8 +124,6 @@
   .dialog-drag-handle-icon {
     transform: translate(-112px, 160px);
     pointer-events: none;
-    color: #eb0000;
-    opacity: 1;
   }
 }
 
