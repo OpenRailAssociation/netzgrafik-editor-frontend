@@ -46,7 +46,10 @@ export class I18nService {
   }
 
   async loadTranslations() {
-    const languageTranslationsModule = await import(`src/assets/i18n/${this.language}.json`);
+    const languageTranslationsModule = await import(
+      /* webpackInclude: /(en|de|fr)\.json$/ */
+      `src/assets/i18n/${this.language}.json`
+    );
 
     this.translations = this.flattenTranslations(languageTranslationsModule.default);
     loadTranslations(this.translations);
