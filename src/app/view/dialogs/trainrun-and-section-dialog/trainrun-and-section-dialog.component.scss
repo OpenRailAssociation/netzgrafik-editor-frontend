@@ -1,4 +1,5 @@
 @import "../../dialogs/trainrun-and-section-dialog/trainrunsection-tab/trainrun-section-tab.component.scss";
+
 ::ng-deep #TrainrunTabViewDialogId {
   border: none;
   box-shadow: none;
@@ -12,7 +13,6 @@
   min-height: 385px;
   max-height: 385px;
   background-color: var(--sbb-header-lean-background-color);
-  border-right: none;
 
   &:before,
   &:after {
@@ -73,18 +73,7 @@
   }
 }
 
-.dialog-close-button-layer0 {
-  transform: translate(610px, 0px);
-  position: absolute;
-  border-top-right-radius: 4px;
-  width: 40px;
-  height: 385px;
-  border: 1px solid var(--sbb-menu-item-label);
-  background-color: var(--sbb-header-lean-background-color);
-  cursor: pointer;
-}
-
-.dialog-close-button-layer1 {
+.dialog-close-button-layer {
   transform: translate(620px, 1px);
   position: absolute;
   width: 10px;
@@ -94,26 +83,15 @@
   cursor: pointer;
 }
 
-.closeIconLayer0 {
-  transform: translate(-7px, 9px);
-  cursor: pointer;
+.dialog-close-button-icon {
+  transform: translate(-14px, -60px);
 }
 
-.closeIconLayer0:hover {
+.dialog-close-button-icon:hover {
   color: #eb0000;
-  cursor: pointer;
 }
 
-.dialog-drag-handle-layer-0 {
-  transform: translate(615px, 57px);
-  position: absolute;
-  width: 40px;
-  height: 328px;
-  border: none;
-  cursor: move;
-}
-
-.dialog-drag-handle-layer-1 {
+.dialog-drag-handle-layer {
   transform: translate(616px, 58px);
   position: absolute;
   width: 20px;
@@ -122,8 +100,9 @@
   cursor: move;
 }
 
-.dialog-drag-handle-layer-1:hover {
+.dialog-drag-handle-layer:hover {
   border: 16px solid var(--COLOR_TRANSITION_GRAYEDOUT);
+  color: #eb0000;
   opacity: 0.5;
 }
 

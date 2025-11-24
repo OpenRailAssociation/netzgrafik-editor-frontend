@@ -1,11 +1,4 @@
 <ng-template #trainrunAndSectionEditorTabsViewTemplate>
-  <div class="dialog-close-button-layer0" (click)="closeDialog()"></div>
-  <div
-    class="dialog-drag-handle-layer-0"
-    (mouseup)="onMouseUp($event)"
-    (mousemove)="onMouseMove($event)"
-    (mousedown)="onMouseDown($event)"
-  ></div>
   <div
     class="trainrun-dialog-container"
     sbbDialog
@@ -14,6 +7,7 @@
     (mousedown)="onMouseDown($event)"
   >
     <div
+      style="width: 630px"
       data-testid="train-run-tab-group"
       class="trainrun-dialog-tab-group"
       (mouseup)="onMouseUp($event)"
@@ -36,8 +30,6 @@
             <sbb-icon
               [svgIcon]="trainrunService.getSbbArrowForTrainrunSectionDirection()"
               aria-hidden="false"
-              height="13px"
-              width="13px"
             ></sbb-icon>
             {{ nextStopRightNodeName }}
           </ng-template>
@@ -54,8 +46,6 @@
             <sbb-icon
               [svgIcon]="trainrunService.getSbbArrowForTrainrunDirection()"
               aria-hidden="false"
-              height="13px"
-              width="13px"
             ></sbb-icon>
           </ng-template>
           <sbb-trainrun-roundtrip-tab
@@ -66,26 +56,19 @@
     </div>
   </div>
 
-  <div class="dialog-close-button-layer1" (click)="closeDialog()">
+  <div class="dialog-drag-handle-layer" (click)="closeDialog()">
     <sbb-icon
-      class="closeIconLayer0"
+      class="dialog-close-button-icon"
       svgIcon="cross-small"
-      height="13px"
-      width="13px"
       (click)="closeDialog()"
     ></sbb-icon>
   </div>
   <div
-    class="dialog-drag-handle-layer-1"
+    class="dialog-drag-handle-layer"
     (mouseup)="onMouseUp($event)"
     (mousemove)="onMouseMove($event)"
     (mousedown)="onMouseDown($event)"
   >
-    <sbb-icon
-      class="dialog-drag-handle-icon"
-      svgIcon="arrows-left-right-down-up-small"
-      height="11px"
-      width="11px"
-    ></sbb-icon>
+    <sbb-icon class="dialog-drag-handle-icon" svgIcon="arrows-left-right-down-up-small"></sbb-icon>
   </div>
 </ng-template>

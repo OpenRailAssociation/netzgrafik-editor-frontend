@@ -124,7 +124,7 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
     parameter: TrainrunDialogParameter,
     trainrunFrequency: TrainrunFrequency[],
   ): SbbDialogConfig {
-    const width = 630;
+    const width = 650;
     let height = 405;
     if (trainrunFrequency.length > 6) {
       height += 32;
@@ -189,7 +189,7 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
           clName === "sbb-tab-labels" ||
           clName === "trainrun-dialog-tab-group" ||
           clName === "dialog-drag-handle-layer-0" ||
-          clName === "dialog-drag-handle-layer-1"
+          clName === "dialog-drag-handle-layer"
         ) {
           this.dialogMovementLastPosition = new Vec2D(event.screenX, event.screenY);
         }
