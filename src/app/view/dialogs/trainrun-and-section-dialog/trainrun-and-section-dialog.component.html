@@ -1,13 +1,11 @@
 <ng-template #trainrunAndSectionEditorTabsViewTemplate>
-  <ng-container *ngIf="hasLongTrainrunName()">
-    <div class="closeButtonLayer0" (click)="closeDialog()"></div>
-    <div
-      class="moveButtonLayer0"
-      (mouseup)="onMouseUp($event)"
-      (mousemove)="onMouseMove($event)"
-      (mousedown)="onMouseDown($event)"
-    ></div>
-  </ng-container>
+  <div class="closeButtonLayer0" (click)="closeDialog()"></div>
+  <div
+    class="moveButtonLayer0"
+    (mouseup)="onMouseUp($event)"
+    (mousemove)="onMouseMove($event)"
+    (mousedown)="onMouseDown($event)"
+  ></div>
   <div
     class="MainTrainrunTabViewDialog"
     sbbDialog
@@ -15,15 +13,6 @@
     (mousemove)="onMouseMove($event)"
     (mousedown)="onMouseDown($event)"
   >
-    <ng-container *ngIf="!hasLongTrainrunName()">
-      <sbb-icon
-        class="closeDialog"
-        svgIcon="cross-small"
-        aria-label="Close Dialog"
-        aria-hidden="false"
-        (click)="closeDialog()"
-      ></sbb-icon>
-    </ng-container>
     <div
       data-testid="train-run-tab-group"
       class="TrainrunTabGroup"
@@ -77,28 +66,26 @@
     </div>
   </div>
 
-  <ng-container *ngIf="hasLongTrainrunName()">
-    <div class="closeButtonLayer1" (click)="closeDialog()">
-      <sbb-icon
-        class="closeIconLayer0"
-        svgIcon="cross-small"
-        height="13px"
-        width="13px"
-        (click)="closeDialog()"
-      ></sbb-icon>
-    </div>
-    <div
-      class="moveButtonLayer1"
-      (mouseup)="onMouseUp($event)"
-      (mousemove)="onMouseMove($event)"
-      (mousedown)="onMouseDown($event)"
-    >
-      <sbb-icon
-        class="moveIconLayer1"
-        svgIcon="arrows-left-right-down-up-small"
-        height="11px"
-        width="11px"
-      ></sbb-icon>
-    </div>
-  </ng-container>
+  <div class="closeButtonLayer1" (click)="closeDialog()">
+    <sbb-icon
+      class="closeIconLayer0"
+      svgIcon="cross-small"
+      height="13px"
+      width="13px"
+      (click)="closeDialog()"
+    ></sbb-icon>
+  </div>
+  <div
+    class="moveButtonLayer1"
+    (mouseup)="onMouseUp($event)"
+    (mousemove)="onMouseMove($event)"
+    (mousedown)="onMouseDown($event)"
+  >
+    <sbb-icon
+      class="moveIconLayer1"
+      svgIcon="arrows-left-right-down-up-small"
+      height="11px"
+      width="11px"
+    ></sbb-icon>
+  </div>
 </ng-template>
