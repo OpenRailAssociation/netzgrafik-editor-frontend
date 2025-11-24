@@ -55,15 +55,17 @@
     </div>
   </div>
 
-  <div class="dialog-drag-and-close-handle-area" (click)="closeDialog()">
-    <sbb-icon class="dialog-close-button-icon" svgIcon="cross-small"></sbb-icon>
-  </div>
   <div
     class="dialog-drag-and-close-handle-area"
     (mouseup)="onMouseUp($event)"
     (mousemove)="onMouseMove($event)"
     (mousedown)="onMouseDown($event)"
   >
+    <sbb-icon
+      class="dialog-close-button-icon"
+      svgIcon="cross-small"
+      (click)="closeDialog()"
+    ></sbb-icon>
     <sbb-icon class="dialog-drag-handle-icon" svgIcon="arrows-left-right-down-up-small"></sbb-icon>
   </div>
 </ng-template>

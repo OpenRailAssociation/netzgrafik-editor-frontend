@@ -92,10 +92,6 @@
   color: #eb0000;
 }
 
-.dialog-close-button-icon:active {
-  transform: translate(-114px, -160px);
-}
-
 .dialog-drag-and-close-handle-area {
   transform: translate(616px, 58px);
   position: absolute;
@@ -105,26 +101,23 @@
   cursor: move;
 
   .dialog-drag-handle-icon {
-    transform: translate(-12px, 260px);
+    transform: translate(-12px, 242px);
     pointer-events: none;
     opacity: 0.25;
   }
-}
 
-.dialog-drag-and-close-handle-area:hover {
-  .dialog-drag-handle-icon {
-    transform: translate(-12px, 260px);
-    pointer-events: none;
+  &:active .dialog-drag-handle-icon {
+    color: #eb0000;
+    opacity: 0.5;
   }
 }
 
-.dialog-drag-and-close-handle-area:active {
-  border: 116px solid rgba(0, 0, 0, 0);
-
+::ng-deep
+  .trainrun-dialog-container:active
+  ~ .dialog-drag-and-close-handle-area
   .dialog-drag-handle-icon {
-    transform: translate(-112px, 160px);
-    pointer-events: none;
-  }
+  color: #eb0000;
+  opacity: 0.5;
 }
 
 .sbb-tab-group {
