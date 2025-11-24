@@ -121,6 +121,8 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
   }
 
   hasLongTrainrunName(): boolean {
+    return true;
+
     const name =
       this.selectedTrainrun.getCategoryShortName() + " " + this.selectedTrainrun.getTitle();
     return name.length > 20;
