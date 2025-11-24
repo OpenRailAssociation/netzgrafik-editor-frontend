@@ -91,6 +91,10 @@
   color: #eb0000;
 }
 
+.dialog-close-button-icon:active {
+  transform: translate(-114px, -160px);
+}
+
 .dialog-drag-handle-layer {
   transform: translate(616px, 58px);
   position: absolute;
