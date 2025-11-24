@@ -112,20 +112,28 @@ export class DataService implements OnDestroy {
     for (const trainrunSection of netzgrafikDto.trainrunSections) {
       let currentSection = trainrunSection;
       for (let i = 0; i < trainrunSection.numberOfStops; i++) {
-        const newNode = this.nodeService.addEmptyNode();
+        const oldTrainrunSection = this.trainrunSectionService.getTrainrunSectionFromId(
+          currentSection.id,
+        );
+        const sourceNode = oldTrainrunSection.getSourceNode();
+        const targetNode = oldTrainrunSection.getTargetNode();
+        const interpolatedPosition = new Vec2D(
+          sourceNode.getPositionX() + (targetNode.getPositionX() - sourceNode.getPositionX()) * 0.5,
+          sourceNode.getPositionY() + (targetNode.getPositionY() - sourceNode.getPositionY()) * 0.5,
+        );
+
+        const newNode = this.nodeService.addEmptyNode(
+          interpolatedPosition.getX(),
+          interpolatedPosition.getY(),
+        );
+
         const {existingTrainRunSection, newTrainRunSection} =
           this.trainrunSectionService.replaceIntermediateStopWithNode(
             currentSection.id,
             0,
             newNode.getId(),
           );
-        const sourceNode = existingTrainRunSection.getSourceNode();
-        const targetNode = newTrainRunSection.getTargetNode();
-        const interpolatedPosition = new Vec2D(
-          sourceNode.getPositionX() + (targetNode.getPositionX() - sourceNode.getPositionX()) * 0.5,
-          sourceNode.getPositionY() + (targetNode.getPositionY() - sourceNode.getPositionY()) * 0.5,
-        );
-        newNode.setPosition(interpolatedPosition.getX(), interpolatedPosition.getY());
+
         currentSection = newTrainRunSection.getDto();
       }
     }
