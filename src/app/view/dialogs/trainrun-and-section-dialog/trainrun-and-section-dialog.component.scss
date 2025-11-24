@@ -98,17 +98,33 @@
   height: 326px;
   border: 16px solid var(--sbb-header-lean-background-color);
   cursor: move;
+
+  .dialog-drag-handle-icon {
+    transform: translate(-12px, 260px);
+    pointer-events: none;
+    opacity: 0.25;
+  }
 }
 
 .dialog-drag-handle-layer:hover {
   border: 16px solid var(--COLOR_TRANSITION_GRAYEDOUT);
-  color: #eb0000;
-  opacity: 0.5;
+
+  .dialog-drag-handle-icon {
+    transform: translate(-12px, 260px);
+    pointer-events: none;
+    opacity: 1;
+  }
 }
 
-.dialog-drag-handle-icon {
-  transform: translate(-12px, 260px);
-  pointer-events: none;
+.dialog-drag-handle-layer:active {
+  border: 116px solid rgba(0, 0, 0, 0);
+
+  .dialog-drag-handle-icon {
+    transform: translate(-112px, 160px);
+    pointer-events: none;
+    color: #eb0000;
+    opacity: 1;
+  }
 }
 
 .sbb-tab-group {
