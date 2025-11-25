@@ -57,12 +57,6 @@
     },
     "services": {
       "data": {
-        "node": {
-          "transit-modified": {
-            "title": "Durchfahrt geändert",
-            "description": "Zeiten können nicht angepasst werden, beidseitger Lock gefunden"
-          }
-        },
         "trainrunsection": {
           "intermediate-stop-replacement": {
             "title": "Zwischenhalteumwandlung",
@@ -98,6 +92,10 @@
           "travel-time-less-than-1": {
             "title": "Reisezeit weniger als 1",
             "description": "Die Reisezeit muss größer oder gleich 1 sein."
+          },
+          "travel-times-not-equal": {
+            "title": "Reisezeiten nicht gleich",
+            "description": "Reisezeiten sind nicht kompatibel mit den Fahrplänen für Hin- und Rückfahrten bei symmetrischen Zugläufen"
           }
         },
         "transition-validator": {
@@ -267,6 +265,11 @@
           "position": "Position",
           "close": "Schliessen"
         },
+        "symmetry-dialog": {
+          "apply-symmetry": "Symmetrie anwenden",
+          "cancel": "Abbrechen",
+          "selection": "Symmetrie-Auswahl"
+        },
         "trainrun-and-section-dialog": {
           "filterableLabels": "Filterbare Labels",
           "trainrun-filter-tab": {
@@ -355,6 +358,8 @@
         "round-trips": "Rundreisen",
         "one-ways": "Einzelfahrten",
         "display-direction-arrows": "Zugfahrt-Richtungs-Pfeile anzeigen",
+        "display-asymmetry-arrows": "Zugfahrt-Knoten-Asymmetrie-Pfeile anzeigen",
+        "display-backward-travel-times": "Rückwärtsfahrzeiten anzeigen (Asymmetrie)",
         "times": "Zeiten",
         "decimal-displayed": "Anzahl Nachkommastellenanzeigen",
         "display-arrival-departure-times": "Abfahrt- und Ankuftszeiten anzeigen",
@@ -383,6 +388,10 @@
         "symmetry": "Symmetrie",
         "show-direction": "{$direction} einblenden",
         "hide-direction": "{$direction} ausblenden",
+        "show-asymmetric-trainruns": "Asymmetrische Zugfahrten einblenden",
+        "hide-asymmetric-trainruns": "Asymmetrische Zugfahrten ausblenden",
+        "symmetric": "Sym.",
+        "asymmetric": "Asym.",
         "filterable-label-filter": {
           "no-labels-available": "Keine Labels vorhanden",
           "or": "Oder",

@@ -69,6 +69,14 @@
 </div>
 <ng-container *ngIf="toolbarVisible">
   <div sbbDialogActions [class]="getContentFooterClassTag()">
+    <sbb-toggle-switch-button
+      *ngIf="!isSymmetric()"
+      style="margin-left: 10px; margin-right: auto"
+      [checked]="!isSymmetric()"
+      (checkedChanged)="onTrainrunSymmetryToggleChanged()"
+      #trainrunSymmetryToggle
+    >
+    </sbb-toggle-switch-button>
     <button
       class="FunctionButton"
       tabindex="-1"

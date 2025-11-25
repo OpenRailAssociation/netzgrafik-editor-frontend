@@ -57,12 +57,6 @@
     },
     "services": {
       "data": {
-        "node": {
-          "transit-modified": {
-            "title": "Transition changed",
-            "description": "Times cannot be adjusted, lock found on both sides"
-          }
-        },
         "trainrunsection": {
           "intermediate-stop-replacement": {
             "title": "Intermediate stop replacement",
@@ -98,6 +92,10 @@
           "travel-time-less-than-1": {
             "title": "Travel Time less than 1",
             "description": "Travel time must be greater than or equal to 1"
+          },
+          "travel-times-not-equal": {
+            "title": "Travel Times not equal",
+            "description": "Travel times are not compatible with return trip time schedules for symmetric trainruns"
           }
         },
         "transition-validator": {
@@ -267,6 +265,11 @@
           "position": "Position",
           "close": "Close"
         },
+        "symmetry-dialog": {
+          "apply-symmetry": "Apply symmetry",
+          "cancel": "Cancel",
+          "selection": "Symmetry selection"
+        },
         "trainrun-and-section-dialog": {
           "filterableLabels": "Filterable Labels",
           "trainrun-filter-tab": {
@@ -355,6 +358,8 @@
         "round-trips": "round trips",
         "one-ways": "one-ways",
         "display-direction-arrows": "Display trainrun direction arrows",
+        "display-asymmetry-arrows": "Display trainrun section asymmetry arrows at nodes",
+        "display-backward-travel-times": "Display backward travel times (asymmetry)",
         "times": "Times",
         "decimal-displayed": "Number of decimal place displayed",
         "display-arrival-departure-times": "Display departure and arrival times",
@@ -383,6 +388,10 @@
         "symmetry": "Symmetry",
         "show-direction": "Show {$direction}",
         "hide-direction": "Hide {$direction}",
+        "show-asymmetric-trainruns": "Show asymmetric trainruns",
+        "hide-asymmetric-trainruns": "Hide asymmetric trainruns",
+        "symmetric-short": "Sym.",
+        "asymmetric-short": "Asym.",
         "filterable-label-filter": {
           "no-labels-available": "No labels available",
           "or": "Or",

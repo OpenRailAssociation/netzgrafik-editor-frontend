@@ -245,6 +245,15 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       this.trainrunService.getCumulativeTravelTimeAndNodePath(trainrunSection),
     );
 
+    this.editorView.bindGetCumulativeBackwardTravelTime((trainrunSection: TrainrunSection) =>
+      this.trainrunService.getCumulativeBackwardTravelTime(trainrunSection),
+    );
+
+    this.editorView.bindGetCumulativeBackwardTravelTimeAndNodePath(
+      (trainrunSection: TrainrunSection) =>
+        this.trainrunService.getCumulativeBackwardTravelTimeAndNodePath(trainrunSection),
+    );
+
     this.editorView.bindAddConnectionToNode(
       (node: Node, trainrunSectionFrom: TrainrunSection, trainrunSectionTo: TrainrunSection) => {
         this.nodeService.addConnectionToNode(
@@ -348,12 +357,20 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       this.filterService.isFilterTravelTimeEnabled(),
     );
 
+    this.editorView.bindIsFilterBackwardTravelTimeEnabled(() =>
+      this.filterService.isFilterBackwardTravelTimeEnabled(),
+    );
+
     this.editorView.bindIsfilterTrainrunNameEnabled(() =>
       this.filterService.isFilterTrainrunNameEnabled(),
     );
 
     this.editorView.bindIsFilterDirectionArrowsEnabled(() =>
       this.filterService.isFilterDirectionArrowsEnabled(),
+    );
+
+    this.editorView.bindIsFilterAsymmetryArrowsEnabled(() =>
+      this.filterService.isFilterAsymmetryArrowsEnabled(),
     );
 
     this.editorView.bindIsfilterArrivalDepartureTimeEnabled(() =>

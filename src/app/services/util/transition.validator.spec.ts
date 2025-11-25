@@ -164,13 +164,13 @@ describe("TransitionValidator", () => {
     TransitionValidator.validateTransition(ts.getSourceNode(), transitionId);
 
     expect(trainrunSections.trainrunSection1.hasTargetArrivalWarning()).toBe(true);
-    expect(trainrunSections.trainrunSection1.hasTargetDepartureWarning()).toBe(true);
+    expect(trainrunSections.trainrunSection1.hasTargetDepartureWarning()).toBe(false);
     expect(trainrunSections.trainrunSection1.hasSourceArrivalWarning()).toBe(false);
     expect(trainrunSections.trainrunSection1.hasSourceDepartureWarning()).toBe(false);
 
     expect(trainrunSections.trainrunSection2.hasTargetArrivalWarning()).toBe(false);
     expect(trainrunSections.trainrunSection2.hasTargetDepartureWarning()).toBe(false);
-    expect(trainrunSections.trainrunSection2.hasSourceArrivalWarning()).toBe(true);
+    expect(trainrunSections.trainrunSection2.hasSourceArrivalWarning()).toBe(false);
     expect(trainrunSections.trainrunSection2.hasSourceDepartureWarning()).toBe(true);
   });
 
@@ -214,7 +214,7 @@ describe("TransitionValidator", () => {
 
     TransitionValidator.validateTransition(ts.getSourceNode(), transitionId);
 
-    expect(trainrunSections.trainrunSection1.hasTargetArrivalWarning()).toBe(true);
+    expect(trainrunSections.trainrunSection1.hasTargetArrivalWarning()).toBe(false);
     expect(trainrunSections.trainrunSection1.hasTargetDepartureWarning()).toBe(true);
     expect(trainrunSections.trainrunSection1.hasSourceArrivalWarning()).toBe(false);
     expect(trainrunSections.trainrunSection1.hasSourceDepartureWarning()).toBe(false);
@@ -222,7 +222,7 @@ describe("TransitionValidator", () => {
     expect(trainrunSections.trainrunSection2.hasTargetArrivalWarning()).toBe(false);
     expect(trainrunSections.trainrunSection2.hasTargetDepartureWarning()).toBe(false);
     expect(trainrunSections.trainrunSection2.hasSourceArrivalWarning()).toBe(true);
-    expect(trainrunSections.trainrunSection2.hasSourceDepartureWarning()).toBe(true);
+    expect(trainrunSections.trainrunSection2.hasSourceDepartureWarning()).toBe(false);
   });
 
   it("Validate Test - 004", () => {
@@ -339,7 +339,7 @@ describe("TransitionValidator", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts1 = trainrunSectionService.getTrainrunSectionFromId(4);
     const ts2 = trainrunSectionService.getTrainrunSectionFromId(5);
-    const trainrun = trainrunService.getSelectedOrNewTrainrun();
+    trainrunService.getSelectedOrNewTrainrun();
     trainrunSectionService.createTrainrunSection(ts1.getTargetNodeId(), ts1.getSourceNodeId());
     trainrunSectionService.createTrainrunSection(ts2.getTargetNodeId(), ts2.getSourceNodeId());
     const ts = trainrunSectionService.getSelectedTrainrunSection();
@@ -385,23 +385,35 @@ describe("TransitionValidator", () => {
 
     TransitionValidator.validateTransition(ts.getTargetNode(), transitionId);
 
-    expect(trainrunSections.trainrunSection1.hasTargetArrivalWarning()).toBe(false);
+    expect(trainrunSections.trainrunSection1.hasTargetArrivalWarning()).toBe(true);
     expect(trainrunSections.trainrunSection1.hasTargetDepartureWarning()).toBe(false);
-    expect(trainrunSections.trainrunSection1.hasSourceArrivalWarning()).toBe(true);
-    expect(trainrunSections.trainrunSection1.hasSourceDepartureWarning()).toBe(true);
+    expect(trainrunSections.trainrunSection1.hasSourceArrivalWarning()).toBe(false);
+    expect(trainrunSections.trainrunSection1.hasSourceDepartureWarning()).toBe(false);
 
-    expect(trainrunSections.trainrunSection2.hasTargetArrivalWarning()).toBe(true);
-    expect(trainrunSections.trainrunSection2.hasTargetDepartureWarning()).toBe(true);
+    expect(trainrunSections.trainrunSection2.hasTargetArrivalWarning()).toBe(false);
+    expect(trainrunSections.trainrunSection2.hasTargetDepartureWarning()).toBe(false);
     expect(trainrunSections.trainrunSection2.hasSourceArrivalWarning()).toBe(false);
-    expect(trainrunSections.trainrunSection2.hasSourceDepartureWarning()).toBe(false);
+    expect(trainrunSections.trainrunSection2.hasSourceDepartureWarning()).toBe(true);
   });
 
   it("Validate Test - 007", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const ts1 = trainrunSectionService.getTrainrunSectionFromId(4);
+    // stop case
+    const ts1 = trainrunSectionService.getTrainrunSectionFromId(1);
     ts1.setSourceDeparture((ts1.getSourceDeparture() + 1) % 60);
-    const a = ts1.getSourceArrival();
-    const b = ts1.getSourceDeparture();
-    expect(ts1.getSourceArrivalWarning().description).toBe("" + a + " + " + b + " = " + (a + b));
+    const a1 = ts1.getSourceArrival();
+    const b1 = ts1.getSourceDeparture();
+    expect(ts1.getSourceDepartureWarning().description).toBe(
+      "" + a1 + " + " + b1 + " = " + (a1 + b1),
+    );
+    expect(ts1.getSourceArrivalWarning().description).toBe(
+      "" + a1 + " + " + b1 + " = " + (a1 + b1),
+    );
+    expect(ts1.getTargetArrivalWarning().description).toBeDefined();
+
+    // non-stop case
+    const ts4 = trainrunSectionService.getTrainrunSectionFromId(4);
+    ts4.setSourceDeparture((ts1.getSourceDeparture() + 1) % 60);
+    expect(ts1.getTargetArrivalWarning().description).toBeDefined();
   });
 });

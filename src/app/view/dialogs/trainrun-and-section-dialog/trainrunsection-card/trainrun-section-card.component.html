@@ -10,7 +10,9 @@
     <div class="TrainFreqContainer">
       <svg class="renderer" width="96px" height="48px" viewBox="0 0 48 24">
         <text [class]="getEdgeLineTextClass('top')" x="8" y="5">
-          {{ getTrainrunTimeStructure()?.leftDepartureTime }}
+          {{
+            trainrunSectionTimesService.getTrainrunLeftAndRightTimeStructure()?.leftDepartureTime
+          }}
         </text>
         <path [class]="getEdgeLineClassAttrString(0, 'top')" d="M0,12L48,12"></path>
         <path [class]="getEdgeLineClassAttrString(1, 'top')" d="M0,12L48,12"></path>
@@ -22,7 +24,7 @@
       </svg>
       <svg class="renderer" width="96px" height="48px" viewBox="0 0 48 24">
         <text [class]="getEdgeLineTextClass('top')" x="40" y="5">
-          {{ getTrainrunTimeStructure()?.rightArrivalTime }}
+          {{ trainrunSectionTimesService.getTrainrunLeftAndRightTimeStructure()?.rightArrivalTime }}
         </text>
         <path [class]="getEdgeLineClassAttrString(0, 'top')" d="M0,12L48,12"></path>
         <path [class]="getEdgeLineClassAttrString(1, 'top')" d="M0,12L48,12"></path>
@@ -46,7 +48,7 @@
     <div class="TrainFreqContainer">
       <svg class="renderer" width="96px" height="48px" viewBox="0 0 48 24">
         <text [class]="getEdgeLineTextClass('bottom')" x="8" y="21">
-          {{ getTrainrunTimeStructure()?.leftArrivalTime }}
+          {{ trainrunSectionTimesService.getTrainrunLeftAndRightTimeStructure()?.leftArrivalTime }}
         </text>
         <path [class]="getEdgeLineClassAttrString(0, 'bottom')" d="M0,12L48,12"></path>
         <path [class]="getEdgeLineClassAttrString(1, 'bottom')" d="M0,12L48,12"></path>
@@ -58,7 +60,9 @@
       </svg>
       <svg class="renderer" width="96px" height="48px" viewBox="0 0 48 24">
         <text [class]="getEdgeLineTextClass('bottom')" x="40" y="21">
-          {{ getTrainrunTimeStructure()?.rightDepartureTime }}
+          {{
+            trainrunSectionTimesService.getTrainrunLeftAndRightTimeStructure()?.rightDepartureTime
+          }}
         </text>
         <path [class]="getEdgeLineClassAttrString(0, 'bottom')" d="M0,12L48,12"></path>
         <path [class]="getEdgeLineClassAttrString(1, 'bottom')" d="M0,12L48,12"></path>

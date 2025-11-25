@@ -57,12 +57,6 @@
     },
     "services": {
       "data": {
-        "node": {
-          "transit-modified": {
-            "title": "Transition modifiée",
-            "description": "Les temps ne peuvent pas être ajustés, le verrou se trouve des deux côtés."
-          }
-        },
         "trainrunsection": {
           "intermediate-stop-replacement": {
             "title": "Remplacement des arrêts intermédiaires",
@@ -98,6 +92,10 @@
           "travel-time-less-than-1": {
             "title": "Temps de trajet inférieur à 1",
             "description": "Le temps de trajet doit être supérieur ou égal à 1"
+          },
+          "travel-times-not-equal": {
+            "title": "Temps de trajet non égaux",
+            "description": "Les temps de trajet ne sont pas compatibles avec les horaires des trajets aller-retour pour les trajets de train symétriques"
           }
         },
         "transition-validator": {
@@ -266,6 +264,11 @@
           "position": "Position",
           "close": "Fermer"
         },
+        "symmetry-dialog": {
+          "apply-symmetry": "Appliquer la symétrie",
+          "cancel": "Annuler",
+          "selection": "Sélection de la symétrie"
+        },
         "trainrun-and-section-dialog": {
           "filterableLabels": "Labels filtrables",
           "trainrun-filter-tab": {
@@ -354,6 +357,8 @@
         "round-trips": "aller-retours",
         "one-ways": "allers simples",
         "display-direction-arrows": "Afficher les flèches de direction des trains",
+        "display-asymmetry-arrows": "Afficher les flèches d'asymétrie au niveau des noeuds des trains",
+        "display-backward-travel-times": "Afficher les temps de parcours retour (asymmétrie)",
         "times": "Temps",
         "decimal-displayed": "Nombre de décimales affichées",
         "display-arrival-departure-times": "Afficher les heures de départ et d'arrivée",
@@ -382,6 +387,10 @@
         "symmetry": "Symétrie",
         "show-direction": "Afficher les {$direction}",
         "hide-direction": "Masquer les {$direction}",
+        "show-asymmetric-trainruns": "Afficher les trains asymétriques",
+        "hide-asymmetric-trainruns": "Masquer les trains asymétriques",
+        "symmetric-short": "Sym.",
+        "asymmetric-short": "Asym.",
         "filterable-label-filter": {
           "no-labels-available": "Aucun label disponible",
           "or": "Ou",

@@ -424,19 +424,22 @@ export class NodeService implements OnDestroy {
 
     // update the time Locks
     if (isTargetNodeEqToNodeId) {
-      this.trainrunSectionService.updateTrainrunSectionTimeLock(
+      this.trainrunSectionService.updateTrainrunSectionSourceTargetTimeLocks(
         trainrunSection1.getId(),
         timeLock1,
         timeLock2,
+        enforceUpdate,
+      );
+      this.trainrunSectionService.updateSectionsChainTravelTimeLocks(
+        trainrunSection1.getId(),
         trainrunSection1.getTravelTimeLock(),
         enforceUpdate,
       );
     } else {
-      this.trainrunSectionService.updateTrainrunSectionTimeLock(
+      this.trainrunSectionService.updateTrainrunSectionSourceTargetTimeLocks(
         trainrunSection1.getId(),
         timeLock2,
         timeLock1,
-        trainrunSection1.getTravelTimeLock(),
         enforceUpdate,
       );
     }
@@ -479,71 +482,32 @@ export class NodeService implements OnDestroy {
     trainrunSection.setTargetPortId(targetPortId);
   }
 
-  hasPathAnyDepartureOrArrivalTimeLock(node: Node, trainrunSection: TrainrunSection): boolean {
-    const iterator = this.trainrunService.getIterator(node, trainrunSection);
-    while (iterator.hasNext()) {
-      iterator.next();
-      const currentTrainrunSection = iterator.current().trainrunSection;
-      if (
-        currentTrainrunSection.getSourceDepartureLock() ||
-        currentTrainrunSection.getTargetArrivalLock()
-      ) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   toggleNonStop(nodeId: number, transitionId: number) {
     const node = this.getNodeFromId(nodeId);
     node.toggleNonStop(transitionId);
-    const trainrunSections = node.getTrainrunSections(transitionId);
-    const node1 = node.getOppositeNode(trainrunSections.trainrunSection1);
-    const node2 = node.getOppositeNode(trainrunSections.trainrunSection2);
-    const isForwardPathLocked = this.hasPathAnyDepartureOrArrivalTimeLock(
-      node1,
-      trainrunSections.trainrunSection1,
-    );
-    const isBackwardPathLocked = this.hasPathAnyDepartureOrArrivalTimeLock(
-      node2,
-      trainrunSections.trainrunSection2,
+
+    const sections = node.getTrainrunSections(transitionId);
+
+    // propagate times in source to target direction until end of trainrun
+    this.trainrunSectionService.propagateTimes(
+      sections.trainrunSection1.getId(),
+      true,
+      node.getId(),
+      false,
     );
 
-    if (!isForwardPathLocked) {
-      this.trainrunSectionService.iterateAlongTrainrunUntilEndAndPropagateTime(
-        node1,
-        trainrunSections.trainrunSection1.getId(),
-      );
-    }
-    if (!isBackwardPathLocked) {
-      this.trainrunSectionService.iterateAlongTrainrunUntilEndAndPropagateTime(
-        node2,
-        trainrunSections.trainrunSection2.getId(),
-      );
-    }
-
-    if (isForwardPathLocked && isBackwardPathLocked) {
-      const warningTitle = $localize`:@@app.services.data.node.transit-modified.title:Transition changed`;
-      const warningDescription = $localize`:@@app.services.data.node.transit-modified.description:Times cannot be adjusted, lock found on both sides`;
-      this.trainrunSectionService.setWarningOnNode(
-        trainrunSections.trainrunSection1.getId(),
-        node.getId(),
-        warningTitle,
-        warningDescription,
-      );
-      this.trainrunSectionService.setWarningOnNode(
-        trainrunSections.trainrunSection2.getId(),
-        node.getId(),
-        warningTitle,
-        warningDescription,
-      );
-    }
+    // update locks using the source section as reference
+    this.trainrunSectionService.updateSectionsChainTravelTimeLocks(
+      sections.trainrunSection1.getId(),
+      sections.trainrunSection1.getTravelTimeLock(),
+      true,
+    );
 
     TransitionValidator.validateTransition(node, transitionId);
     this.transitionsUpdated();
     this.nodesUpdated();
     this.operation.emit(
-      new TrainrunOperation(OperationType.update, trainrunSections.trainrunSection1.getTrainrun()),
+      new TrainrunOperation(OperationType.update, sections.trainrunSection1.getTrainrun()),
     );
   }
 
