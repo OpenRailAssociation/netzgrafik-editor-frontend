@@ -109,6 +109,7 @@ export class NodeService implements OnDestroy {
           node.betriebspunktName,
           node.fullName,
           node.labelIds,
+          node.isCollapsed,
         );
       } else {
         const existingLabels = existingNode.getLabelIds();
@@ -177,13 +178,13 @@ export class NodeService implements OnDestroy {
   initPortOrdering() {
     this.nodesStore.nodes.forEach((node) => {
       node.getPorts().forEach((port) => {
-        const oppositeNode = node.getOppositeNode(port.getTrainrunSection());
+        const oppositeExpandedNode = this.getOppositeExpandedNode(port.getTrainrunSection(), node);
         const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
           node,
-          oppositeNode,
+          oppositeExpandedNode,
         );
         port.setPositionAlignment(portAlignments.sourcePortPlacement);
-        oppositeNode
+        oppositeExpandedNode
           .getPortOfTrainrunSection(port.getTrainrunSection().getId())
           .setPositionAlignment(portAlignments.targetPortPlacement);
       });
@@ -223,6 +224,7 @@ export class NodeService implements OnDestroy {
     betriebspunktName?: string,
     fullName?: string,
     labelIds?: number[],
+    isCollapsed?: boolean,
     enforceUpdate = true,
   ): Node {
     const alignedPosition = NodeService.alginNodeToRaster(new Vec2D(positionX, positionY));
@@ -245,6 +247,9 @@ export class NodeService implements OnDestroy {
     }
     if (labelIds !== undefined) {
       node.setLabelIds(labelIds);
+    }
+    if (isCollapsed !== undefined) {
+      node.setIsCollapsed(isCollapsed);
     }
     this.nodesStore.nodes.push(node);
     if (enforceUpdate) {
@@ -474,8 +479,14 @@ export class NodeService implements OnDestroy {
   }
 
   addPortsToNodes(sourceNodeId: number, targetNodeId: number, trainrunSection: TrainrunSection) {
-    const sourceNode = this.getNodeFromId(sourceNodeId);
-    const targetNode = this.getNodeFromId(targetNodeId);
+    const sourceNode = this.getOppositeExpandedNode(
+      trainrunSection,
+      this.getNodeFromId(sourceNodeId),
+    );
+    const targetNode = this.getOppositeExpandedNode(
+      trainrunSection,
+      this.getNodeFromId(targetNodeId),
+    );
     const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
       sourceNode,
       targetNode,
@@ -1123,6 +1134,30 @@ export class NodeService implements OnDestroy {
     return {minCoordX: minX, minCoordY: minY, maxCoordX: maxX, maxCoordY: maxY};
   }
 
+  getOppositeExpandedNode(trainrunSection: TrainrunSection, currentNode: Node): Node | undefined {
+    const groups = this.trainrunSectionService.groupTrainrunSectionsIntoChains(
+      this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+        trainrunSection.getTrainrunId(),
+      ),
+    );
+    // keep only the groups which contain the given trainrun section
+    const filteredGroup = groups.find(
+      (group) => group.find((trs) => trs.getId() === trainrunSection.getId()) !== undefined,
+    );
+    if (filteredGroup === undefined) {
+      return undefined;
+    }
+    if (currentNode.getId() === trainrunSection.getSourceNodeId()) {
+      // get target node of the last trainrun section in the group
+      const lastTrainrunSection = filteredGroup.at(-1);
+      return this.getNodeFromId(lastTrainrunSection.getTargetNodeId());
+    } else {
+      // get source node of the first trainrun section in the group
+      const firstTrainrunSection = filteredGroup.at(0);
+      return this.getNodeFromId(firstTrainrunSection.getSourceNodeId());
+    }
+  }
+
   private deleteNodeWithoutUpdate(nodeId: number, enforceUpdate = true) {
     const node = this.getNodeFromId(nodeId);
     const connectedTrainrunSections = node.getConnectedTrainrunSections();
@@ -1147,17 +1182,20 @@ export class NodeService implements OnDestroy {
     node.setPosition(newPositionX, newPositionY);
     if (dragEnd) {
       node.getPorts().forEach((port) => {
-        const oppositeNode = node.getOppositeNode(port.getTrainrunSection());
+        const oppositeExpandedNode = this.getOppositeExpandedNode(port.getTrainrunSection(), node);
         const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
           node,
-          oppositeNode,
+          oppositeExpandedNode,
         );
         port.setPositionAlignment(portAlignments.sourcePortPlacement);
-        oppositeNode
+        oppositeExpandedNode
           .getPortOfTrainrunSection(port.getTrainrunSection().getId())
           .setPositionAlignment(portAlignments.targetPortPlacement);
-        oppositeNode.updateTransitionsAndConnections();
-        this.trainrunSectionService.updateTrainrunSectionRouting(oppositeNode, enforceUpdate);
+        oppositeExpandedNode.updateTransitionsAndConnections();
+        this.trainrunSectionService.updateTrainrunSectionRouting(
+          oppositeExpandedNode,
+          enforceUpdate,
+        );
       });
       node.reorderAllPorts();
       this.operation.emit(new NodeOperation(OperationType.update, node));

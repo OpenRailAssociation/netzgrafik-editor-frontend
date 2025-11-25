@@ -708,17 +708,19 @@ export class TrainrunSectionService implements OnDestroy {
     TrainrunSectionService.setToNode(sourceNodeId, trainrunSection, nodeToNew, targetNodeId);
 
     this.updateTrainrunSectionRouting(nodeToOld, false);
-    nodeToNew.addPortWithRespectToOppositeNode(nodeFrom, trainrunSection);
+    const sourceExpandedNode = this.nodeService.getOppositeExpandedNode(trainrunSection, nodeFrom);
+    const targetExpandedNode = this.nodeService.getOppositeExpandedNode(trainrunSection, nodeToNew);
+    nodeToNew.addPortWithRespectToOppositeNode(sourceExpandedNode, trainrunSection);
     if (this.nodeService.isConditionToAddTransitionFullfilled(nodeToNew, trainrunSection)) {
       this.nodeService.addTransitionAndComputeRoutingFromFreePorts(
         nodeToNew,
         trainrunSection.getTrainrun(),
       );
     }
-    nodeFrom.reAlignPortWithRespectToOppositeNode(nodeToNew, trainrunSection);
+    sourceExpandedNode.reAlignPortWithRespectToOppositeNode(targetExpandedNode, trainrunSection);
 
     trainrunSection.routeEdgeAndPlaceText();
-    this.reRouteAffectedTrainrunSections(nodeFrom.getId(), nodeToNew.getId());
+    this.reRouteAffectedTrainrunSections(sourceExpandedNode.getId(), targetExpandedNode.getId());
 
     if (previousTrainrunSection !== undefined) {
       this.nodeService.checkAndFixMissingTransitions(
@@ -976,10 +978,12 @@ export class TrainrunSectionService implements OnDestroy {
 
     node2.replaceTrainrunSectionOnPort(trainrunSection1, trainrunSection2);
 
+    // const sourceExpandedNode = this.nodeService.getOppositeExpandedNode(trainrunSection1, node1);
     trainrunSection1.setTargetNode(nodeIntermediate);
     nodeIntermediate.addPortWithRespectToOppositeNode(node1, trainrunSection1);
     node1.reAlignPortWithRespectToOppositeNode(nodeIntermediate, trainrunSection1);
 
+    // const targetExpandedNode = this.nodeService.getOppositeExpandedNode(trainrunSection1, node2);
     trainrunSection2.setSourceNode(nodeIntermediate);
     trainrunSection2.setTargetNode(node2);
     nodeIntermediate.addPortWithRespectToOppositeNode(node2, trainrunSection2);
@@ -1489,5 +1493,62 @@ export class TrainrunSectionService implements OnDestroy {
     // Update visuals and geometry
     trainrunSection.routeEdgeAndPlaceText();
     trainrunSection.convertVec2DToPath();
+  }
+
+  /**
+   * Groups consecutive TrainrunSections that have collapsed nodes between them
+   * into chains. Each chain starts and ends with a non-collapsed node.
+   * Start and end nodes can be accessed via: sections[0].getSourceNode() and sections[sections.length - 1].getTargetNode()
+   * @param trainrunSections List of TrainrunSections to group
+   * @returns Array of section chains
+   */
+  groupTrainrunSectionsIntoChains(trainrunSections: TrainrunSection[]): TrainrunSection[][] {
+    const groups: TrainrunSection[][] = [];
+    const visitedSections = new Set<number>();
+
+    trainrunSections.forEach((section) => {
+      if (visitedSections.has(section.getId())) {
+        return;
+      }
+
+      const backwardIterator = this.trainrunService.getBackwardIterator(
+        section.getTargetNode(),
+        section,
+      );
+      while (backwardIterator.hasNext() && backwardIterator.current().node.getIsCollapsed()) {
+        backwardIterator.next();
+      }
+      const startNode = backwardIterator.current().node;
+      const startSection = backwardIterator.current().trainrunSection;
+
+      // Build chain using TrainrunIterator to leverage existing graph traversal
+      const chain: TrainrunSection[] = [];
+      const iterator = this.trainrunService.getIterator(startNode, startSection);
+
+      // Traverse the trainrun and collect sections with collapsed intermediate nodes
+      while (iterator.hasNext()) {
+        const pair = iterator.next();
+
+        if (visitedSections.has(pair.trainrunSection.getId())) {
+          throw new Error(
+            `Cycle detected in trainrun section chain: section ${pair.trainrunSection.getId()} already visited for trainrun ${pair.trainrunSection.getTrainrunId()}`,
+          );
+        }
+
+        chain.push(pair.trainrunSection);
+        visitedSections.add(pair.trainrunSection.getId());
+
+        // Stop if we reach a non-collapsed node (end of collapsed chain)
+        if (!pair.node.getIsCollapsed()) {
+          break;
+        }
+      }
+
+      if (chain.length > 0) {
+        groups.push(chain);
+      }
+    });
+
+    return groups;
   }
 }
