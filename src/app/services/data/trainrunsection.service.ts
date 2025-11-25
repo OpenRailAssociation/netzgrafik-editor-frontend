@@ -708,17 +708,19 @@ export class TrainrunSectionService implements OnDestroy {
     TrainrunSectionService.setToNode(sourceNodeId, trainrunSection, nodeToNew, targetNodeId);
 
     this.updateTrainrunSectionRouting(nodeToOld, false);
-    nodeToNew.addPortWithRespectToOppositeNode(nodeFrom, trainrunSection);
+    const sourceExpandedNode = this.nodeService.getOppositeExpandedNode(trainrunSection, nodeFrom);
+    const targetExpandedNode = this.nodeService.getOppositeExpandedNode(trainrunSection, nodeToNew);
+    nodeToNew.addPortWithRespectToOppositeNode(sourceExpandedNode, trainrunSection);
     if (this.nodeService.isConditionToAddTransitionFullfilled(nodeToNew, trainrunSection)) {
       this.nodeService.addTransitionAndComputeRoutingFromFreePorts(
         nodeToNew,
         trainrunSection.getTrainrun(),
       );
     }
-    nodeFrom.reAlignPortWithRespectToOppositeNode(nodeToNew, trainrunSection);
+    sourceExpandedNode.reAlignPortWithRespectToOppositeNode(targetExpandedNode, trainrunSection);
 
     trainrunSection.routeEdgeAndPlaceText();
-    this.reRouteAffectedTrainrunSections(nodeFrom.getId(), nodeToNew.getId());
+    this.reRouteAffectedTrainrunSections(sourceExpandedNode.getId(), targetExpandedNode.getId());
 
     if (previousTrainrunSection !== undefined) {
       this.nodeService.checkAndFixMissingTransitions(
@@ -976,10 +978,12 @@ export class TrainrunSectionService implements OnDestroy {
 
     node2.replaceTrainrunSectionOnPort(trainrunSection1, trainrunSection2);
 
+    // const sourceExpandedNode = this.nodeService.getOppositeExpandedNode(trainrunSection1, node1);
     trainrunSection1.setTargetNode(nodeIntermediate);
     nodeIntermediate.addPortWithRespectToOppositeNode(node1, trainrunSection1);
     node1.reAlignPortWithRespectToOppositeNode(nodeIntermediate, trainrunSection1);
 
+    // const targetExpandedNode = this.nodeService.getOppositeExpandedNode(trainrunSection1, node2);
     trainrunSection2.setSourceNode(nodeIntermediate);
     trainrunSection2.setTargetNode(node2);
     nodeIntermediate.addPortWithRespectToOppositeNode(node2, trainrunSection2);
