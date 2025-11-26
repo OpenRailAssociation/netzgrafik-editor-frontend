@@ -157,6 +157,8 @@ export class FilterMainSideViewComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroyed.next();
     this.destroyed.complete();
+    // this must be reset to MainViewMode.Netzgrafik - otherwise side-effect when reloading data
+    this.uiInteractionService.showOriginDestinationSubjet.next(MainViewMode.Netzgrafik);
   }
 
   setMode(mode: string) {
