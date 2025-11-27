@@ -90,20 +90,23 @@ export class D3Utils {
     d3.selectAll(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
-          d !== undefined && d.trainrunSections[0].getTrainrunId() === trainrunSection.getTrainrunId(),
+          d !== undefined &&
+          d.trainrunSections[0].getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, false);
     d3.selectAll(StaticDomTags.EDGE_LINE_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
-          d !== undefined && d.trainrunSections[0].getTrainrunId() === trainrunSection.getTrainrunId(),
+          d !== undefined &&
+          d.trainrunSections[0].getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, false);
 
     d3.selectAll(StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
-          d !== undefined && d.trainrunSections[0].getTrainrunId() === trainrunSection.getTrainrunId(),
+          d !== undefined &&
+          d.trainrunSections[0].getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, false);
 

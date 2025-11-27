@@ -806,7 +806,7 @@ export class TrainrunService {
   public getBackwardNonStopIterator(node: Node, trainrunSection: TrainrunSection) {
     return new BackwardNonStopTrainrunIterator(this.logService, node, trainrunSection);
   }
-  
+
   public getExpandedIterator(node: Node, trainrunSection: TrainrunSection) {
     return new ExpandedTrainrunIterator(this.logService, node, trainrunSection);
   }
