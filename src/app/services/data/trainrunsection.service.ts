@@ -189,9 +189,28 @@ export class TrainrunSectionService implements OnDestroy {
     );
   }
 
-  setTrainrunSectionAsSelected(trainrunSectionId: number) {
+  getAllSelectedTrainrunSections(): TrainrunSection[] {
+    return this.trainrunSectionsStore.trainrunSections.filter((ts) => ts.selected());
+  }
+
+  unselectAllTrainrunSections(enforceUpdate = true) {
     this.trainrunSectionsStore.trainrunSections.forEach((tr) => tr.unselect());
+    if (enforceUpdate) {
+      this.trainrunSectionsUpdated();
+    }
+  }
+
+  unselectTrainrunSection(trainrunSectionId: number, enforceUpdate = true) {
+    this.getTrainrunSectionFromId(trainrunSectionId).unselect();
+    if (enforceUpdate) {
+      this.trainrunSectionsUpdated();
+    }
+  }
+
+  setTrainrunSectionAsSelected(trainrunSectionId: number) {
+    this.unselectAllTrainrunSections(false);
     this.getTrainrunSectionFromId(trainrunSectionId)?.select();
+    this.trainrunSectionsUpdated();
   }
 
   getSelectedTrainrunSection(): TrainrunSection {
@@ -986,17 +1005,12 @@ export class TrainrunSectionService implements OnDestroy {
       nodeId,
       trainrunSection1.getTrainrun().getTrainrunCategory(),
     );
-    let travelTime1 =
-      trainrunSection1.getTargetDepartureConsecutiveTime() -
-      trainrunSection1.getSourceDepartureConsecutiveTime();
-    let travelTime2 =
-      trainrunSection1.getSourceArrivalConsecutiveTime() -
-      trainrunSection1.getTargetDepartureConsecutiveTime();
-    travelTime1 = travelTime1 < 0 ? travelTime2 : travelTime1;
-    travelTime2 = travelTime2 < 0 ? travelTime1 : travelTime2;
-    const calculatedTravelTime = Math.min(travelTime1, travelTime2);
+    const calculatedTravelTime = Math.abs(
+      trainrunSection1.getTargetArrivalConsecutiveTime() -
+        trainrunSection1.getSourceDepartureConsecutiveTime(),
+    );
     const halteZeit = Math.min(minHalteZeitFromNode, Math.max(0, calculatedTravelTime - 2));
-    const travelTimeIssue = travelTime1 === travelTime2 || minHalteZeitFromNode !== halteZeit;
+    const travelTimeIssue = !calculatedTravelTime || minHalteZeitFromNode !== halteZeit;
     const travelTime = Math.max(trainrunSection1.getTravelTime() - halteZeit, 2);
     const halfTravelTime = Math.floor(travelTime / 2);
     trainrunSection1.setTravelTime(Math.max(1, travelTime - halfTravelTime));

@@ -172,6 +172,7 @@ export class TrainrunService {
 
   setTrainrunAsSelected(trainrunId: number, enforceUpdate = true) {
     this.trainrunsStore.trainruns.forEach((tr) => tr.unselect());
+    this.trainrunSectionService.unselectAllTrainrunSections(enforceUpdate);
     const trainrun = this.getTrainrunFromId(trainrunId);
     if (trainrun !== undefined) {
       trainrun.select();
@@ -183,6 +184,7 @@ export class TrainrunService {
 
   unselectAllTrainruns(enforceUpdate = true) {
     this.trainrunsStore.trainruns.forEach((trainrun) => trainrun.unselect());
+    this.trainrunSectionService.unselectAllTrainrunSections(enforceUpdate);
     if (enforceUpdate) {
       this.trainrunsUpdated();
     }

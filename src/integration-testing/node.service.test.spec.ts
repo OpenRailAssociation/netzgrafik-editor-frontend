@@ -162,6 +162,21 @@ describe("NodeService Test", () => {
     expect(node2.getPorts().length).toBe(3);
   });
 
+  it("deleteNodeUndockTransitions node1 test", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    expect(nodes.length).toBe(5);
+    expect(trainrunSections.length).toBe(8);
+
+    nodeService.deleteNodeUndockTransitions(1);
+    expect(nodes.length).toBe(4);
+    expect(trainrunSections.length).toBe(5);
+
+    const node0 = nodeService.getNodeFromId(2);
+    const node2 = nodeService.getNodeFromId(2);
+    expect(node0.getPorts().length).toBe(5);
+    expect(node2.getPorts().length).toBe(5);
+  });
+
   it("delete node2 test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(nodes.length).toBe(5);

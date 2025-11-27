@@ -270,6 +270,28 @@ export class NodeService implements OnDestroy {
     this.operation.emit(new NodeOperation(OperationType.delete, node));
   }
 
+  deleteNodeUndockTransitions(
+    nodeId: number,
+    createIntermediateStop = false,
+    enforceUpdate = true,
+  ) {
+    const node = this.getNodeFromId(nodeId);
+    node.getTransitions().forEach((tr) => {
+      const ts = this.undockTransition(node.getId(), tr.getId(), false);
+      if (ts && !createIntermediateStop) {
+        ts.setNumberOfStops(Math.max(0, ts.getNumberOfStops() - 1));
+      }
+    });
+    this.deleteNode(node.getId(), false);
+
+    if (enforceUpdate) {
+      this.nodesUpdated();
+      this.transitionsUpdated();
+      this.trainrunService.trainrunsUpdated();
+      this.trainrunSectionService.trainrunSectionsUpdated();
+    }
+  }
+
   deleteAllVisibleNodes() {
     const nodes = this.nodesStore.nodes;
     nodes.forEach((node) => {
@@ -354,7 +376,11 @@ export class NodeService implements OnDestroy {
     }
   }
 
-  undockTransition(nodeId: number, transitionId: number, enforceUpdate = true) {
+  undockTransition(
+    nodeId: number,
+    transitionId: number,
+    enforceUpdate = true,
+  ): TrainrunSection | undefined {
     const transition: Transition = this.getTransition(nodeId, transitionId);
 
     const isNonStop = transition.getIsNonStopTransit();
@@ -385,7 +411,7 @@ export class NodeService implements OnDestroy {
     const nonStop2 = transition2 !== undefined ? transition2.getIsNonStopTransit() : false;
 
     if (oppNodeTrainrunSection1.getId() === oppNodeTrainrunSection2.getId()) {
-      return;
+      return undefined;
     }
     this.trainrunSectionService.deleteTrainrunSection(trainrunSection2.getId(), false);
 
@@ -462,6 +488,8 @@ export class NodeService implements OnDestroy {
       this.transitionsUpdated();
       this.nodesUpdated();
     }
+
+    return trainrunSection1;
   }
 
   addPortsToNodes(sourceNodeId: number, targetNodeId: number, trainrunSection: TrainrunSection) {

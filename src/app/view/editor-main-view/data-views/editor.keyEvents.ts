@@ -6,7 +6,12 @@ import {TrainrunSectionService} from "../../../services/data/trainrunsection.ser
 import {SVGMouseController} from "../../util/svg.mouse.controller";
 import {LogService} from "../../../logger/log.service";
 import {NoteService} from "../../../services/data/note.service";
-import {RASTERING_BASIC_GRID_SIZE} from "../../rastering/definitions";
+import {
+  NODE_MIN_HEIGHT,
+  NODE_MIN_WIDTH,
+  NODE_TEXT_AREA_HEIGHT,
+  RASTERING_BASIC_GRID_SIZE,
+} from "../../rastering/definitions";
 import {EditorMode} from "../../editor-menu/editor-mode";
 import {Note} from "../../../models/note.model";
 import {Node} from "../../../models/node.model";
@@ -20,6 +25,7 @@ import {PreviewLineMode, TrainrunSectionPreviewLineView} from "./trainrunsection
 import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {Trainrun} from "../../../models/trainrun.model";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
+import {Vec2D} from "../../../utils/vec2D";
 
 export class EditorKeyEvents {
   private editorMode: EditorMode;
@@ -85,6 +91,9 @@ export class EditorKeyEvents {
             d3.event.preventDefault();
           }
           break;
+        case "KeyS":
+          this.onKeySPressed();
+          break;
         case "KeyA":
           if (ctrlKey) {
             if (this.onSelectAll()) {
@@ -147,6 +156,182 @@ export class EditorKeyEvents {
           break;
       }
     });
+  }
+
+  private onKeySPressed() {
+    if (this.splitSelectedTrainrunSectionsWithNewNode()) {
+      return;
+    }
+    this.removeNodeWithoutDeletingSections();
+  }
+
+  private removeNodeWithoutDeletingSections(): void {
+    const targetNodes = this.getNodesToRemove();
+
+    targetNodes.forEach((node) => {
+      this.processNodeRemoval(node);
+    });
+
+    this.servicesUpdate();
+  }
+
+  private getNodesToRemove(): Node[] {
+    let nodes = this.nodeService.getSelectedNodes();
+
+    const isMultiNodeMode =
+      this.uiInteractionService.getEditorMode() === EditorMode.MultiNodeMoving;
+    if (nodes.length === 0 || !isMultiNodeMode) {
+      const hoveredNodeId = this.getHoveredNodeId();
+      if (hoveredNodeId !== undefined) {
+        const hoveredNode = this.nodeService.getNodeFromId(hoveredNodeId);
+        if (hoveredNode) {
+          nodes = [hoveredNode];
+        }
+      }
+    }
+    return nodes;
+  }
+
+  private processNodeRemoval(node: Node): void {
+    const nodeId = node.getId();
+    const wasSelected = this.nodeService.isNodeSelected(nodeId);
+
+    // Undock transitions but do not delete trainrun sections
+    this.nodeService.deleteNodeUndockTransitions(nodeId, false, false);
+
+    if (wasSelected) {
+      this.uiInteractionService.closeNodeStammdaten();
+    }
+  }
+
+  private splitSelectedTrainrunSectionsWithNewNode(): boolean {
+    if (!this.isMultiNodeMovingMode()) {
+      return false;
+    }
+
+    const selectedSections = this.getSelectedTrainrunSections();
+    if (selectedSections.length === 0) {
+      return false;
+    }
+
+    const groupedSections = this.groupSectionsByNodePairs(selectedSections);
+    const addedNodes = this.insertStopNodes(groupedSections);
+
+    addedNodes.forEach((n) => n.select());
+    this.servicesUpdate();
+    return true;
+  }
+
+  private isMultiNodeMovingMode(): boolean {
+    return this.uiInteractionService.getEditorMode() === EditorMode.MultiNodeMoving;
+  }
+
+  private getSelectedTrainrunSections(): TrainrunSection[] {
+    return this.trainrunSectionService.getAllSelectedTrainrunSections() ?? [];
+  }
+
+  private groupSectionsByNodePairs(sections: TrainrunSection[]): Map<string, TrainrunSection[]> {
+    const map = new Map<string, TrainrunSection[]>();
+    sections.forEach((ts) => {
+      const srcId = ts.getSourceNode().getId();
+      const trgId = ts.getTargetNode().getId();
+      const [nodeA, nodeB] = srcId < trgId ? [srcId, trgId] : [trgId, srcId];
+      const key = `${nodeA}-${nodeB}`;
+      if (!map.has(key)) {
+        map.set(key, []);
+      }
+      map.get(key).push(ts);
+    });
+    return map;
+  }
+
+  private insertStopNodes(groupedSections: Map<string, TrainrunSection[]>): Node[] {
+    const addedNodes: Node[] = [];
+
+    for (const sections of groupedSections.values()) {
+      const anchor = sections[0];
+      if (!anchor) continue;
+
+      const {x, y} = this.calculateAveragePosition(sections, anchor);
+      const node = this.nodeService.addNodeWithPosition(x, y);
+      addedNodes.push(node);
+
+      sections.forEach((ts) => {
+        ts.setNumberOfStops(ts.getNumberOfStops() + 1);
+        this.trainrunSectionService.replaceIntermediateStopWithNode(
+          ts.getId(),
+          Math.ceil(ts.getNumberOfStops() / 2) - 1,
+          node.getId(),
+        );
+      });
+
+      this.trainrunSectionService.unselectAllTrainrunSections();
+    }
+
+    return addedNodes;
+  }
+
+  private calculateAveragePosition(
+    sections: TrainrunSection[],
+    anchor: TrainrunSection,
+  ): {x: number; y: number} {
+    let x = 0,
+      y = 0;
+    const src = anchor.getSourceNode();
+    const trg = anchor.getTargetNode();
+
+    sections.forEach((ts) => {
+      const p = ts.getPath();
+      const delta = Vec2D.sub(p[3], p[0]);
+
+      if (delta.getX() === 0) {
+        x += (src.getPositionX() + trg.getPositionX()) / 2.0;
+        y += this.calculateVerticalY(src, trg);
+      } else if (delta.getY() === 0) {
+        x += this.calculateHorizontalX(src, trg);
+        y += (src.getPositionY() + trg.getPositionY()) / 2.0;
+      } else {
+        x += (src.getPositionX() + trg.getPositionX()) / 2.0;
+        y += (src.getPositionY() + trg.getPositionY()) / 2.0;
+      }
+    });
+
+    return {x: x / sections.length, y: y / sections.length};
+  }
+
+  private calculateVerticalY(src: Node, trg: Node): number {
+    if (src.getPositionY() < trg.getPositionY()) {
+      return (
+        (src.getPositionY() +
+          src.getNodeHeight() +
+          trg.getPositionY() -
+          NODE_MIN_HEIGHT -
+          NODE_TEXT_AREA_HEIGHT) /
+        2.0
+      );
+    }
+    return (
+      (src.getPositionY() +
+        trg.getPositionY() +
+        trg.getNodeHeight() -
+        NODE_MIN_HEIGHT -
+        NODE_TEXT_AREA_HEIGHT) /
+      2.0
+    );
+  }
+
+  private calculateHorizontalX(src: Node, trg: Node): number {
+    if (src.getPositionX() < trg.getPositionX()) {
+      return (src.getPositionX() + src.getNodeWidth() + trg.getPositionX() - NODE_MIN_WIDTH) / 2.0;
+    }
+    return (src.getPositionX() + trg.getPositionX() + trg.getNodeWidth() - NODE_MIN_WIDTH) / 2.0;
+  }
+
+  private servicesUpdate(): void {
+    this.nodeService.nodesUpdated();
+    this.nodeService.transitionsUpdated();
+    this.trainrunService.trainrunsUpdated();
+    this.trainrunSectionService.trainrunSectionsUpdated();
   }
 
   private forwardCtrlKeyInformation() {
@@ -299,7 +484,7 @@ export class EditorKeyEvents {
   }
 
   private doDuplicateNode(): boolean {
-    if (this.uiInteractionService.getEditorMode() === EditorMode.MultiNodeMoving) {
+    if (this.isMultiNodeMovingMode()) {
       return false;
     }
     const hoveredNodeId = this.getHoveredNodeId();
@@ -312,7 +497,7 @@ export class EditorKeyEvents {
   }
 
   private doDuplicateMultiSelectedNode(): boolean {
-    if (this.uiInteractionService.getEditorMode() !== EditorMode.MultiNodeMoving) {
+    if (!this.isMultiNodeMovingMode()) {
       return false;
     }
 
@@ -498,6 +683,7 @@ export class EditorKeyEvents {
     if (this.editorMode === EditorMode.MultiNodeMoving) {
       this.nodeService.unselectAllNodes();
       this.noteService.unselectAllNotes();
+      this.trainrunSectionService.unselectAllTrainrunSections();
     }
     return true;
   }

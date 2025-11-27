@@ -342,6 +342,10 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
 
     this.editorView.bindUnselectAllTrainruns(() => this.trainrunService.unselectAllTrainruns());
 
+    this.editorView.bindUnselectTrainrunSection((trainrunSectionId: number) =>
+      this.trainrunSectionService.unselectTrainrunSection(trainrunSectionId),
+    );
+
     this.editorView.bindIsAnyTrainSelected(() => this.trainrunService.isAnyTrainrunSelected());
 
     this.editorView.bindIsFilterTravelTimeEnabled(() =>
@@ -441,6 +445,10 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     this.editorView.bindUnselectNote((noteId) => this.noteService.unselectNote(noteId));
 
     this.editorView.bindUnselectAllNotes(() => this.noteService.unselectAllNotes());
+
+    this.editorView.bindUnselectAllTrainrunSections(() =>
+      this.trainrunSectionService.unselectAllTrainrunSections(),
+    );
 
     this.editorView.bindIsNoteSelected((noteId) => this.noteService.isNoteSelected(noteId));
 

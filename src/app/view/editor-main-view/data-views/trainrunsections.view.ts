@@ -29,8 +29,6 @@ import {Transition} from "../../../models/transition.model";
 import {InformSelectedTrainrunClick} from "../../../services/data/trainrunsection.service";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
 import {LinePatternRefs} from "../../../data-structures/business.data.structures";
-import {Direction} from "src/app/data-structures/business.data.structures";
-import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helper";
 
 export class TrainrunSectionsView {
@@ -61,6 +59,10 @@ export class TrainrunSectionsView {
       a = 0;
     }
     return "translate(" + x + "," + y + ") rotate(" + a + ", 0,0) ";
+  }
+
+  static isSectionSelected(trainrunSection: TrainrunSection): boolean {
+    return trainrunSection.getTrainrun().selected() || trainrunSection.selected();
   }
 
   static isMuted(
@@ -1086,7 +1088,7 @@ export class TrainrunSectionsView {
           d.trainrunSection.getTrainrun().getId(),
         )
         .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
-          d.trainrunSection.getTrainrun().selected(),
+          TrainrunSectionsView.isSectionSelected(d.trainrunSection),
         )
         .classed(StaticDomTags.TAG_LINE_ARROW_EDITOR, true)
         .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
@@ -1136,7 +1138,7 @@ export class TrainrunSectionsView {
         D3Utils.getPathAsSVGString(this.transformPath(d.trainrunSection)),
       )
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrun().selected(),
+        TrainrunSectionsView.isSectionSelected(d.trainrunSection),
       )
       .classed(StaticDomTags.TAG_EVENT_DISABLED, !enableEvents)
       .classed(classRef, true);
@@ -1223,7 +1225,7 @@ export class TrainrunSectionsView {
         TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
       )
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrun().selected(),
+        TrainrunSectionsView.isSectionSelected(d.trainrunSection),
       );
   }
 
@@ -1397,7 +1399,7 @@ export class TrainrunSectionsView {
           TrainrunSectionsView.getAdditionPositioningValue(d.trainrunSection, textElement),
       )
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrun().selected(),
+        TrainrunSectionsView.isSectionSelected(d.trainrunSection),
       )
       .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
@@ -1504,7 +1506,7 @@ export class TrainrunSectionsView {
         ),
       )
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrun().selected(),
+        TrainrunSectionsView.isSectionSelected(d.trainrunSection),
       )
       .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
@@ -1562,7 +1564,9 @@ export class TrainrunSectionsView {
       .classed(StaticDomTags.TAG_MUTED, () =>
         TrainrunSectionsView.isMuted(trainrunSection, selectedTrainrun, connectedTrainIds),
       )
-      .classed(StaticDomTags.TAG_SELECTED, () => trainrunSection.getTrainrun().selected())
+      .classed(StaticDomTags.TAG_SELECTED, () =>
+        TrainrunSectionsView.isSectionSelected(trainrunSection),
+      )
       .on("mouseup", (t: TrainrunSectionViewObject, i, a) =>
         this.onIntermediateStopMouseUp(t.trainrunSection, a[i]),
       );
@@ -1706,7 +1710,7 @@ export class TrainrunSectionsView {
       .attr("class", StaticDomTags.EDGE_ROOT_CONTAINER)
       .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrun().selected(),
+        TrainrunSectionsView.isSectionSelected(d.trainrunSection),
       )
       .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
@@ -1716,7 +1720,7 @@ export class TrainrunSectionsView {
       .append(StaticDomTags.EDGE_SVG)
       .attr("class", StaticDomTags.EDGE_CLASS + " Lines")
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrun().selected(),
+        TrainrunSectionsView.isSectionSelected(d.trainrunSection),
       )
       .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
       .attr("data-testid", `${StaticDomTags.EDGE_CLASS}-lines`);
@@ -1725,7 +1729,7 @@ export class TrainrunSectionsView {
       .append(StaticDomTags.EDGE_SVG)
       .attr("class", StaticDomTags.EDGE_CLASS + " Labels")
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
-        d.trainrunSection.getTrainrun().selected(),
+        TrainrunSectionsView.isSectionSelected(d.trainrunSection),
       )
       .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
       .attr("data-testid", `${StaticDomTags.EDGE_CLASS}-labels`);
@@ -1785,6 +1789,11 @@ export class TrainrunSectionsView {
     position: Vec2D,
     domObj: any,
   ) {
+    if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
+      d3.event.stopPropagation();
+      return;
+    }
+
     if (!d3.select(domObj).classed(StaticDomTags.TAG_SELECTED)) {
       d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
       return;
@@ -1799,6 +1808,10 @@ export class TrainrunSectionsView {
 
   onIntermediateStopMouseUp(trainrunSection: TrainrunSection, domObj: any) {
     d3.event.stopPropagation();
+    if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
+      this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
+      return;
+    }
     D3Utils.removeGrayout(trainrunSection);
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
     this.editorView.setTrainrunAsSelected(trainrunSection.getTrainrun());
@@ -1814,6 +1827,12 @@ export class TrainrunSectionsView {
     textElement: TrainrunSectionText,
   ) {
     d3.event.stopPropagation();
+
+    if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
+      this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
+      return;
+    }
+
     const rect: DOMRect = d3.select(domObj).node().getBoundingClientRect();
     const clickPosition = new Vec2D(rect.x + rect.width / 2, rect.y + rect.height / 2);
 
@@ -1830,6 +1849,10 @@ export class TrainrunSectionsView {
 
   onTrainrunDirectionArrowMouseUp(trainrunSection: TrainrunSection, domObj: any) {
     d3.event.stopPropagation();
+    if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
+      this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
+      return;
+    }
     const rect: DOMRect = d3.select(domObj).node().getBoundingClientRect();
     const clickPosition = new Vec2D(rect.x + rect.width / 2, rect.y + rect.height / 2);
 
@@ -1839,8 +1862,12 @@ export class TrainrunSectionsView {
     this.editorView.showTrainrunOneWayInformation(trainrunSection, clickPosition);
   }
 
-  onTrainrunSectionMouseUp(trainrunSection: TrainrunSection, domObj: any) {
-    d3.event.stopPropagation();
+  handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection: TrainrunSection) {
+    this.editorView.unselectTrainrunSection(trainrunSection.getId());
+    D3Utils.unhoverTrainrunSection(trainrunSection);
+  }
+
+  handleDefaultTrainrunSectionMouseUp(trainrunSection: TrainrunSection) {
     const ts = this.editorView.getSelectedTrainrun();
     if (ts === null) {
       D3Utils.enableFastRenderingUpdate();
@@ -1864,6 +1891,15 @@ export class TrainrunSectionsView {
       open: true,
     };
     this.editorView.clickSelectedTrainrunSection(param);
+  }
+
+  onTrainrunSectionMouseUp(trainrunSection: TrainrunSection, domObj: any) {
+    d3.event.stopPropagation();
+    if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
+      this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
+      return;
+    }
+    this.handleDefaultTrainrunSectionMouseUp(trainrunSection);
   }
 
   onTrainrunSectionMouseoverPath(trainrunSection: TrainrunSection, domObj: any) {
@@ -1936,6 +1972,10 @@ export class TrainrunSectionsView {
   }
 
   onTrainrunSectionMouseupPin(trainrunSection: TrainrunSection, atSource: boolean) {
+    if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
+      this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
+      return;
+    }
     d3.selectAll(StaticDomTags.CONNECTION_LINE_PIN_DOM_REF).classed(
       StaticDomTags.CONNECTION_TAG_ONGOING_DRAGGING,
       false,
@@ -2516,7 +2556,7 @@ export class TrainrunSectionsView {
         TrainrunSectionsView.isMuted(t.trainrunSection, selectedTrainrun, connectedTrainIds),
       )
       .classed(StaticDomTags.TAG_SELECTED, (t: TrainrunSectionViewObject) =>
-        t.trainrunSection.getTrainrun().selected(),
+        TrainrunSectionsView.isSectionSelected(t.trainrunSection),
       )
       .classed(StaticDomTags.EDGE_LINE_STOPS_FILL, () => !collapsedStops)
       .on("mouseover", (t: TrainrunSectionViewObject, i, a) =>

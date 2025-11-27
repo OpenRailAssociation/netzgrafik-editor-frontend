@@ -187,6 +187,7 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
       editorMode = EditorMode.NetzgrafikEditing;
       this.nodeService.unselectAllNodes();
       this.noteService.unselectAllNotes();
+      this.trainrunSectionService.unselectAllTrainrunSections();
     } else {
       editorMode = EditorMode.MultiNodeMoving;
       this.uiInteractionService.closeNodeStammdaten();
