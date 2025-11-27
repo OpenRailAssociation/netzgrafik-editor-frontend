@@ -101,23 +101,30 @@
   cursor: move;
 
   .dialog-drag-handle-icon {
-    transform: translate(-12px, 242px);
+    transform: translate(-12px, 230px);
     pointer-events: none;
     opacity: 0.25;
   }
+}
 
-  &:active .dialog-drag-handle-icon {
-    color: #eb0000;
-    opacity: 0.5;
+.dialog-drag-and-close-handle-area:hover {
+  .dialog-drag-handle-icon {
+    transform: translate(-12px, 230px);
+    pointer-events: none;
   }
 }
 
-::ng-deep
-  .trainrun-dialog-container:active
-  ~ .dialog-drag-and-close-handle-area
+.dialog-drag-and-close-handle-area:active {
+  border: 116px solid rgba(0, 0, 0, 0);
+
   .dialog-drag-handle-icon {
-  color: #eb0000;
-  opacity: 0.5;
+    transform: translate(-112px, 130px);
+    pointer-events: none;
+  }
+
+  .dialog-close-button-icon {
+    transform: translate(-114px, -160px);
+  }
 }
 
 .sbb-tab-group {
