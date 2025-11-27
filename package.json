@@ -10,7 +10,7 @@
     "build": "ng run netzgrafik-frontend:ngsscbuild",
     "build:standalone": "ng build --configuration=standalone",
     "build:standalonedemo": "ng build --configuration=standalonedemo",
-    "validate:ts": "tsc --noEmit --skipLibCheck",
+    "validate:ts": "tsc --noEmit --skipLibCheck --resolveJsonModule --experimentalDecorators --esModuleInterop",
     "test": "ng test -c ci",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
