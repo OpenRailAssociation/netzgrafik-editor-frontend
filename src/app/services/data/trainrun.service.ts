@@ -20,9 +20,11 @@ import {GeneralViewFunctions} from "../../view/util/generalViewFunctions";
 import {
   BackwardNextExpandedStopIterator,
   BackwardTrainrunIterator,
+  NextExpandedIterator,
   NextExpandedStopIterator,
   TrainrunIterator,
   ExpandedTrainrunIterator,
+  BackwardNextExpandedIterator,
 } from "../util/trainrun.iterator";
 import {LogService} from "../../logger/log.service";
 import {LabelService} from "./label.service";
@@ -802,6 +804,14 @@ export class TrainrunService {
 
   public getIterator(node: Node, trainrunSection: TrainrunSection) {
     return new TrainrunIterator(this.logService, node, trainrunSection);
+  }
+
+  public getNextExpandedIterator(node: Node, trainrunSection: TrainrunSection) {
+    return new NextExpandedIterator(this.logService, node, trainrunSection);
+  }
+
+  public getBackwardNextExpandedIterator(node: Node, trainrunSection: TrainrunSection) {
+    return new BackwardNextExpandedIterator(this.logService, node, trainrunSection);
   }
 
   public getNextExpandedStopIterator(node: Node, trainrunSection: TrainrunSection) {
