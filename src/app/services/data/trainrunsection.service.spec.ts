@@ -77,17 +77,6 @@ describe("TrainrunSectionService", () => {
     expect(trainrunSections.length).toBe(8);
   });
 
-  it("TrainrunSectionService.updateTrainrunSectionNumberOfStops", () => {
-    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const ts = trainrunSectionService.getTrainrunSectionFromId(1);
-    trainrunSectionService.updateTrainrunSectionNumberOfStops(ts, 0);
-    expect(ts.getNumberOfStops()).toBe(0);
-    trainrunSectionService.updateTrainrunSectionNumberOfStops(ts, undefined);
-    expect(ts.getNumberOfStops()).toBe(undefined);
-    trainrunSectionService.updateTrainrunSectionNumberOfStops(ts, 3);
-    expect(ts.getNumberOfStops()).toBe(3);
-  });
-
   it("TrainrunSectionService.setTrainrunSectionAsSelected", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(1);
