@@ -1789,6 +1789,11 @@ export class TrainrunSectionsView {
     position: Vec2D,
     domObj: any,
   ) {
+    if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
+      d3.event.stopPropagation();
+      return;
+    }
+
     if (!d3.select(domObj).classed(StaticDomTags.TAG_SELECTED)) {
       d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
       return;
@@ -1803,6 +1808,10 @@ export class TrainrunSectionsView {
 
   onIntermediateStopMouseUp(trainrunSection: TrainrunSection, domObj: any) {
     d3.event.stopPropagation();
+    if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
+      this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
+      return;
+    }
     D3Utils.removeGrayout(trainrunSection);
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
     this.editorView.setTrainrunAsSelected(trainrunSection.getTrainrun());
@@ -1818,6 +1827,12 @@ export class TrainrunSectionsView {
     textElement: TrainrunSectionText,
   ) {
     d3.event.stopPropagation();
+
+    if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
+      this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
+      return;
+    }
+
     const rect: DOMRect = d3.select(domObj).node().getBoundingClientRect();
     const clickPosition = new Vec2D(rect.x + rect.width / 2, rect.y + rect.height / 2);
 
@@ -1834,6 +1849,10 @@ export class TrainrunSectionsView {
 
   onTrainrunDirectionArrowMouseUp(trainrunSection: TrainrunSection, domObj: any) {
     d3.event.stopPropagation();
+    if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
+      this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
+      return;
+    }
     const rect: DOMRect = d3.select(domObj).node().getBoundingClientRect();
     const clickPosition = new Vec2D(rect.x + rect.width / 2, rect.y + rect.height / 2);
 
@@ -1953,6 +1972,10 @@ export class TrainrunSectionsView {
   }
 
   onTrainrunSectionMouseupPin(trainrunSection: TrainrunSection, atSource: boolean) {
+    if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
+      this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
+      return;
+    }
     d3.selectAll(StaticDomTags.CONNECTION_LINE_PIN_DOM_REF).classed(
       StaticDomTags.CONNECTION_TAG_ONGOING_DRAGGING,
       false,
