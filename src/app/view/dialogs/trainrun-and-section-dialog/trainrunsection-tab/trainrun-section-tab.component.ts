@@ -71,6 +71,7 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   public categoryColorRef: ColorRefType;
   public timeCategoryShortName: string;
   public timeCategoryLinePattern: LinePatternRefs;
+  public numberOfStopsWarning = "";
 
   private trainrunSectionHelper: TrainrunsectionHelper;
   private numberOfStops: number;
@@ -139,7 +140,9 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
       .getTrainrun()
       .getTimeCategoryLinePatternRef();
     this.trainrunSectionTimesService.setHighlightTravelTimeElement(false);
-    this.numberOfStops = this.selectedTrainrunSection.getNumberOfStops();
+    this.numberOfStops = this.trainrunSectionService.getNumberOfCollapsedStops(
+      this.selectedTrainrunSection,
+    );
     this.numberOfStopsInput = this.numberOfStops;
     this.trainrunSectionTimesService.applyOffsetAndTransformTimeStructure();
 
@@ -278,37 +281,49 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   }
 
   /* number of stops */
-  onNumberOfStopsChanged(stopsNbDiff: number) {
+  onNumberOfStopsChanged(newNumberOfStops: number) {
+    this.numberOfStopsWarning = "";
+    const stopsNbDiff = Math.max(0, newNumberOfStops) - this.numberOfStops;
     if (stopsNbDiff === 0) return;
     if (stopsNbDiff > 0) {
       for (let i = 0; i < stopsNbDiff; i++) {
-        this.numberOfStops += 1;
-        this.trainrunSectionTimesService.setHighlightTravelTimeElement(false);
+        const success = this.trainrunSectionService.addIntermediateStopOnTrainrunSection(
+          this.selectedTrainrunSection,
+        );
+        if (success) this.numberOfStops += 1;
+        else {
+          this.numberOfStopsWarning = "not-enough-travel-time-to-add-intermediate-stop";
+          break;
+        }
       }
+      this.trainrunSectionTimesService.setHighlightTravelTimeElement(false);
     } else {
       const stopsToRemove = Math.min(Math.abs(stopsNbDiff), this.numberOfStops);
       for (let i = 0; i < stopsToRemove; i++) {
-        this.numberOfStops -= 1;
+        const success = this.trainrunSectionService.removeIntermediateStopOnTrainrunSection(
+          this.selectedTrainrunSection,
+        );
+        if (success) this.numberOfStops -= 1;
+        else {
+          this.numberOfStopsWarning = "cannot-delete-not-empty-node";
+          break;
+        }
       }
     }
-    this.trainrunSectionService.updateTrainrunSectionNumberOfStops(
-      this.selectedTrainrunSection,
-      this.numberOfStops,
-    );
     this.numberOfStopsInput = this.numberOfStops;
+    this.trainrunSectionService.updateTrainrunSectionNumberOfStops(this.selectedTrainrunSection);
   }
 
   onNumberOfStopsInputChanged() {
-    const numberOfStopsDiff = Math.max(0, this.numberOfStopsInput) - this.numberOfStops;
-    this.onNumberOfStopsChanged(numberOfStopsDiff);
+    this.onNumberOfStopsChanged(this.numberOfStopsInput);
   }
 
   onInputNumberOfStopsElementButtonPlus() {
-    this.onNumberOfStopsChanged(1);
+    this.onNumberOfStopsChanged(this.numberOfStops + 1);
   }
 
   onInputNumberOfStopsElementButtonMinus() {
-    this.onNumberOfStopsChanged(-1);
+    this.onNumberOfStopsChanged(this.numberOfStops - 1);
   }
 
   onMouseEnterNbrStopInput() {

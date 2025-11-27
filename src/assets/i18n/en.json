@@ -293,6 +293,8 @@
           },
           "trainrun-section-tab": {
             "warningTwoLocks": "Warning: Too many times are locked!",
+            "cannot-delete-not-empty-node": "Warning: Cannot delete non-empty nodes",
+            "not-enough-travel-time-to-add-intermediate-stop": "Warning: Travel time too short to add an intermediate stop",
             "propagateTimesToLeft": "Propagate times to the left",
             "propagateTimesToRight": "Propagate times to the right"
           }
