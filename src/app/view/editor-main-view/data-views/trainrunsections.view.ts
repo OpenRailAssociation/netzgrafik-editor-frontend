@@ -1930,6 +1930,10 @@ export class TrainrunSectionsView {
     stopIndex: number,
     domObj: any,
   ) {
+    if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
+      d3.event.stopPropagation();
+      return;
+    }
     if (!d3.select(domObj).classed(StaticDomTags.TAG_SELECTED)) {
       d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
       return;
