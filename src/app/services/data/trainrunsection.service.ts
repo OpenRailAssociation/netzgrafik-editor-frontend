@@ -998,16 +998,6 @@ export class TrainrunSectionService implements OnDestroy {
       nodeId,
       trainrunSection1.getTrainrun().getTrainrunCategory(),
     );
-    let travelTime1 =
-      trainrunSection1.getTargetDepartureConsecutiveTime() -
-      trainrunSection1.getSourceArrivalConsecutiveTime();
-    let travelTime2 =
-      trainrunSection1.getSourceArrivalConsecutiveTime() -
-      trainrunSection1.getTargetDepartureConsecutiveTime();
-    travelTime1 = travelTime1 < 0 ? travelTime2 : travelTime1;
-    travelTime2 = travelTime2 < 0 ? travelTime1 : travelTime2;
-    const calculatedTravelTime = Math.min(travelTime1, travelTime2);
-    const halteZeit = Math.min(minHalteZeitFromNode, Math.max(0, calculatedTravelTime - 2));
     const calculatedTravelTime = Math.abs(
       trainrunSection1.getTargetArrivalConsecutiveTime() -
         trainrunSection1.getSourceDepartureConsecutiveTime(),
