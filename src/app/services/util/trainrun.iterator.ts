@@ -303,9 +303,12 @@ export class NextExpandedStopIterator extends TrainrunIterator {
   }
 }
 
-export class BackwardNonStopTrainrunIterator extends BackwardTrainrunIterator {
+export class BackwardNextExpandedStopIterator extends BackwardTrainrunIterator {
   public next(): TrainrunSectionNodePair {
-    if (!this.pointerElement.node.isNonStop(this.pointerElement.trainrunSection)) {
+    if (
+      !this.pointerElement.node.isNonStop(this.pointerElement.trainrunSection) &&
+      !this.pointerElement.node.getIsCollapsed()
+    ) {
       // The trainrun has a stop and break the backward iteration
       this.currentElement = this.pointerElement;
       this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);

@@ -18,7 +18,7 @@ import {Node} from "../../models/node.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {GeneralViewFunctions} from "../../view/util/generalViewFunctions";
 import {
-  BackwardNonStopTrainrunIterator,
+  BackwardNextExpandedStopIterator,
   BackwardTrainrunIterator,
   NextExpandedStopIterator,
   TrainrunIterator,
@@ -812,8 +812,8 @@ export class TrainrunService {
     return new BackwardTrainrunIterator(this.logService, node, trainrunSection);
   }
 
-  public getBackwardNonStopIterator(node: Node, trainrunSection: TrainrunSection) {
-    return new BackwardNonStopTrainrunIterator(this.logService, node, trainrunSection);
+  public getBackwardNextExpandedStopIterator(node: Node, trainrunSection: TrainrunSection) {
+    return new BackwardNextExpandedStopIterator(this.logService, node, trainrunSection);
   }
 
   public getExpandedIterator(node: Node, trainrunSection: TrainrunSection) {
