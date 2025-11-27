@@ -310,7 +310,6 @@ export class UiInteractionService implements OnDestroy {
 
   setActiveTrafficSideType(activeTrafficSideType: TrafficSide) {
     this.dataService.setTrafficSide(activeTrafficSideType);
-    this.trainrunSectionService.updateText();
     this.trainrunSectionService.trainrunSectionsUpdated();
     this.operation.emit(new MetadataOperation({trafficSide: activeTrafficSideType}));
   }
