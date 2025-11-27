@@ -283,9 +283,8 @@ export class TrainrunSectionService implements OnDestroy {
     });
   }
 
-  updateTrainrunSectionNumberOfStops(trs: TrainrunSection, numberOfStops: number) {
+  updateTrainrunSectionNumberOfStops(trs: TrainrunSection) {
     const trainrunSection = this.getTrainrunSectionFromId(trs.getId());
-    trainrunSection.setNumberOfStops(numberOfStops);
     this.trainrunSectionsUpdated();
     this.operation.emit(new TrainrunOperation(OperationType.update, trainrunSection.getTrainrun()));
   }
@@ -995,10 +994,6 @@ export class TrainrunSectionService implements OnDestroy {
     );
     this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection1.getId());
 
-    const numberOfStops = trainrunSection1.getNumberOfStops();
-    trainrunSection1.setNumberOfStops(stopIndex);
-    trainrunSection2.setNumberOfStops(numberOfStops - stopIndex - 1);
-
     const minHalteZeitFromNode = this.nodeService.getHaltezeit(
       nodeId,
       trainrunSection1.getTrainrun().getTrainrunCategory(),
@@ -1069,6 +1064,63 @@ export class TrainrunSectionService implements OnDestroy {
       existingTrainRunSection: trainrunSection1,
       newTrainRunSection: trainrunSection2,
     };
+  }
+
+  addIntermediateStopOnTrainrunSection(trainrunSection: TrainrunSection) {
+    const sourceNode = trainrunSection.getSourceNode();
+    const targetNode = trainrunSection.getTargetNode();
+    const interpolatedPosition = new Vec2D(
+      sourceNode.getPositionX() + (targetNode.getPositionX() - sourceNode.getPositionX()) * 0.5,
+      sourceNode.getPositionY() + (targetNode.getPositionY() - sourceNode.getPositionY()) * 0.5,
+    );
+
+    const newNode = this.nodeService.addEmptyNode(
+      interpolatedPosition.getX(),
+      interpolatedPosition.getY(),
+    );
+
+    return this.replaceIntermediateStopWithNode(
+      trainrunSection.getId(),
+      trainrunSection.getNumberOfStops() + 1,
+      newNode.getId(),
+    );
+  }
+
+  removeIntermediateStopOnTrainrunSection(initialTrainrunSection: TrainrunSection) {
+    // look for the end of the trainrun sections chain
+    const node = initialTrainrunSection.getTargetNode();
+    const forwardIterator = this.trainrunService.getNextExpandedIterator(
+      node,
+      initialTrainrunSection,
+    );
+    while (forwardIterator.hasNext()) forwardIterator.next();
+    const lastExpandedPair = forwardIterator.current();
+
+    // traverse the chain and look for a node to remove
+    let nodeRemoved = false;
+    const backwardIterator = this.trainrunService.getBackwardNextExpandedIterator(
+      lastExpandedPair.node,
+      lastExpandedPair.trainrunSection,
+    );
+    while (backwardIterator.hasNext() && !nodeRemoved) {
+      backwardIterator.next();
+      const {node, trainrunSection} = backwardIterator.current();
+      if (
+        !node.isNonStopNode() &&
+        node.getBetriebspunktName() === $localize`:@@app.models.node.shortNameDefault:NEW` &&
+        node.getFullName() === $localize`:@@app.models.node.full-name-default:New node`
+      ) {
+        // undock the empty node of the trainrun and remove it
+        this.nodeService.undockTransition(
+          node.getId(),
+          node.getTransition(trainrunSection.getId()).getId(),
+        );
+        // ATTENTION: noeud à ne retirer que s'il n'est pas utilisé par d'autres trains
+        this.nodeService.deleteNode(node.getId());
+        nodeRemoved = true;
+      }
+    }
+    return nodeRemoved;
   }
 
   setWarningOnNode(
@@ -1546,5 +1598,38 @@ export class TrainrunSectionService implements OnDestroy {
     });
 
     return groups;
+  }
+
+  public getNumberOfCollapsedStops(section: TrainrunSection) {
+    const backwardIterator = this.trainrunService.getBackwardNextExpandedStopIterator(
+      section.getTargetNode(),
+      section,
+    );
+    while (backwardIterator.hasNext() && backwardIterator.current().node.getIsCollapsed()) {
+      backwardIterator.next();
+    }
+    const startNode = backwardIterator.current().node;
+    const startSection = backwardIterator.current().trainrunSection;
+
+    let numberOfCollapsedStops = 0;
+    const iterator = this.trainrunService.getNextExpandedStopIterator(startNode, startSection);
+
+    // Traverse the trainrun and collect sections with collapsed intermediate nodes
+    while (iterator.hasNext()) {
+      const {node, trainrunSection} = iterator.next();
+
+      // Stop if we reach a non-collapsed node (end of collapsed chain)
+      if (!node.getIsCollapsed()) break;
+
+      // Stop if we reach the end of the trainrunsection
+      const transition = node.getTransition(trainrunSection.getId());
+      if (!transition) break;
+
+      const isNonStop = transition.getIsNonStopTransit();
+      if (node.getIsCollapsed() && !isNonStop) {
+        numberOfCollapsedStops += 1;
+      }
+    }
+    return numberOfCollapsedStops;
   }
 }

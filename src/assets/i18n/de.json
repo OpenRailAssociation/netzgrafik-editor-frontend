@@ -293,6 +293,7 @@
           },
           "trainrun-section-tab": {
             "warningTwoLocks": "Warnung: Zu viele Zeiten sind gelockt!",
+            "warningNumberOfStops": "Warnung: Nicht leere Knoten können nicht gelöscht werden.",
             "propagateTimesToLeft": "Zeiten nach links propagieren",
             "propagateTimesToRight": "Zeiten nach rechts propagieren"
           }

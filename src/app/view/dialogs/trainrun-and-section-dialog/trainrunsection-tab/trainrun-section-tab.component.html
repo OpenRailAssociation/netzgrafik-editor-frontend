@@ -385,6 +385,12 @@
         | translate
     }}
   </button>
+  <button class="warning" *ngIf="showNumberOfStopsWarning" disabled>
+    {{
+      "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.warningNumberOfStops"
+        | translate
+    }}
+  </button>
   <button
     class="FunctionButton"
     tabindex="-1"

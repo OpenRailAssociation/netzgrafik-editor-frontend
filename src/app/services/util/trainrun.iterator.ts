@@ -112,6 +112,31 @@ export class BackwardTrainrunIterator extends TrainrunIterator {
   }
 }
 
+/** Iterate on the trainrun sections until we find a node which not collapsed */
+export class NextExpandedIterator extends TrainrunIterator {
+  public next(): TrainrunSectionNodePair {
+    if (!this.pointerElement.node.getIsCollapsed()) {
+      // The current node is expanded and break the forward iteration
+      this.currentElement = Object.assign({}, this.pointerElement);
+      this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
+      return this.currentElement;
+    }
+    return super.next();
+  }
+}
+
+export class BackwardNextExpandedIterator extends BackwardTrainrunIterator {
+  public next(): TrainrunSectionNodePair {
+    if (!this.pointerElement.node.getIsCollapsed()) {
+      // The current node is node and break the backward iteration
+      this.currentElement = Object.assign({}, this.pointerElement);
+      this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
+      return this.currentElement;
+    }
+    return super.next();
+  }
+}
+
 /** Iterate on the trainrun sections until we find a node which is a stop of the trainrun and not collapsed */
 export class NextExpandedStopIterator extends TrainrunIterator {
   public next(): TrainrunSectionNodePair {
