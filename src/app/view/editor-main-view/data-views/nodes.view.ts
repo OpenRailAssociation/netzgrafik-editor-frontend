@@ -817,7 +817,6 @@ export class NodesView {
 
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
   }
-
   reconnectTransition(dragTransitionInfo: DragTransitionInfo, endNode: Node) {
     if (dragTransitionInfo.node.getId() === endNode.getId()) {
       this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
