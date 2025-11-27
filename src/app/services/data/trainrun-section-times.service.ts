@@ -63,7 +63,7 @@ const rightToLeftStructureKeys = {
 
 type LeftAndRightStructureKeys = typeof leftToRightStructureKeys | typeof rightToLeftStructureKeys;
 
-type Warning = null | "too-many-locks";
+type Warning = null | "too-many-locks" | "cannot-delete-not-empty-node";
 
 /**
  * A service responsible for updating times for one or more trainrun sections.
@@ -182,7 +182,7 @@ export class TrainrunSectionTimesService {
     return this.warning;
   }
 
-  public setOutsideWarning(newWarning: null | "too-many-locks") {
+  public setOutsideWarning(newWarning: null | "cannot-delete-not-empty-node" | "too-many-locks") {
     // if new warning is not null, update warning and override a potential too-many-locks warning
     if (newWarning !== null) this.warning = newWarning;
     // else reset warning without overrinding too-many-locks warning
