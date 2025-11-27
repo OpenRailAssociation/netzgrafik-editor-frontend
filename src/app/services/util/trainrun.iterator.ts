@@ -350,6 +350,40 @@ export class BackwardTrainrunIterator extends TrainrunIterator {
   }
 }
 
+export class NextExpandedIterator extends TrainrunIterator {
+  /**
+   * Throws an exception if called after the end of the iteration.
+   * Check for `this.hasNext()` before.
+   */
+  public next(): TrainrunSectionNodePair {
+    const currentElement = this.pointerElement!;
+    if (!currentElement.node.getIsCollapsed()) {
+      // The current node is expanded and break the forward iteration
+      this.currentElement = currentElement;
+      this.pointerElement = undefined;
+      return this.currentElement;
+    }
+    return super.next();
+  }
+}
+
+export class BackwardNextExpandedIterator extends BackwardTrainrunIterator {
+  /**
+   * Throws an exception if called after the end of the iteration.
+   * Check for `this.hasNext()` before.
+   */
+  public next(): TrainrunSectionNodePair {
+    const currentElement = this.pointerElement!;
+    if (!currentElement.node.getIsCollapsed()) {
+      // The current node is node and break the backward iteration
+      this.currentElement = currentElement;
+      this.pointerElement = undefined;
+      return this.currentElement;
+    }
+    return super.next();
+  }
+}
+
 export class NextExpandedStopIterator extends TrainrunIterator {
   /**
    * Throws an exception if called after the end of the iteration.
