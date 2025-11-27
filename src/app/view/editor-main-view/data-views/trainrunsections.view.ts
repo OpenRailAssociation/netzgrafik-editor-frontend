@@ -1716,12 +1716,16 @@ export class TrainrunSectionsView {
 
   createIntermediateStops(
     groupEnter: d3.Selector,
-    trainrunSection: TrainrunSection,
     selectedTrainrun: Trainrun,
     connectedTrainIds: any,
+    trainrunSectionViewObject: TrainrunSectionViewObject,
   ) {
-    const numberOfStops = trainrunSection.getNumberOfStops();
-    const path = trainrunSection.getPath();
+    // retrieve collapsed node count from view object if available
+    const collapsedNodeCount = trainrunSectionViewObject.getCollapsedIntermediateStopCount() ?? 0;
+    const trainrunSection = trainrunSectionViewObject.trainrunSections[0];
+    // const nodes = currentTrainrunSections
+    const numberOfStops = trainrunSection.getNumberOfStops() + collapsedNodeCount;
+    const path = trainrunSectionViewObject.getPath();
     let startPosition = path[1];
     let lineOrientationVector = Vec2D.sub(path[2], startPosition);
     const maxNumberOfStops = Math.min(
@@ -1786,7 +1790,7 @@ export class TrainrunSectionsView {
         .select(a[i])
         .append(StaticDomTags.EDGE_LINE_STOPS_GROUP_SVG)
         .attr("class", StaticDomTags.EDGE_LINE_STOPS_GROUP_CLASS);
-      this.createIntermediateStops(grp, t.trainrunSections[0], selectedTrainrun, connectedTrainIds);
+      this.createIntermediateStops(grp, selectedTrainrun, connectedTrainIds, t);
     });
   }
 
