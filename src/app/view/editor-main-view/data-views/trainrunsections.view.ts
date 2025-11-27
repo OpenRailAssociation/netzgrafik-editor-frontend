@@ -1845,6 +1845,7 @@ export class TrainrunSectionsView {
 
   handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection: TrainrunSection) {
     this.editorView.unselectTrainrunSection(trainrunSection.getId());
+    D3Utils.unhoverTrainrunSection(trainrunSection);
   }
 
   handleDefaultTrainrunSectionMouseUp(trainrunSection: TrainrunSection) {
