@@ -29,8 +29,6 @@ import {Transition} from "../../../models/transition.model";
 import {InformSelectedTrainrunClick} from "../../../services/data/trainrunsection.service";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
 import {LinePatternRefs} from "../../../data-structures/business.data.structures";
-import {Direction} from "src/app/data-structures/business.data.structures";
-import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helper";
 
 export class TrainrunSectionsView {
@@ -1845,8 +1843,11 @@ export class TrainrunSectionsView {
     this.editorView.showTrainrunOneWayInformation(trainrunSection, clickPosition);
   }
 
-  onTrainrunSectionMouseUp(trainrunSection: TrainrunSection, domObj: any) {
-    d3.event.stopPropagation();
+  handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection: TrainrunSection) {
+    this.editorView.unselectTrainrunSection(trainrunSection.getId());
+  }
+
+  handleDefaultTrainrunSectionMouseUp(trainrunSection: TrainrunSection) {
     const ts = this.editorView.getSelectedTrainrun();
     if (ts === null) {
       D3Utils.enableFastRenderingUpdate();
@@ -1870,6 +1871,15 @@ export class TrainrunSectionsView {
       open: true,
     };
     this.editorView.clickSelectedTrainrunSection(param);
+  }
+
+  onTrainrunSectionMouseUp(trainrunSection: TrainrunSection, domObj: any) {
+    d3.event.stopPropagation();
+    if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
+      this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
+      return;
+    }
+    this.handleDefaultTrainrunSectionMouseUp(trainrunSection);
   }
 
   onTrainrunSectionMouseoverPath(trainrunSection: TrainrunSection, domObj: any) {

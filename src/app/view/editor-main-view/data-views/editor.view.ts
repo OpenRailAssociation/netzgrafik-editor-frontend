@@ -68,6 +68,7 @@ export class EditorView implements SVGMouseControllerObserver {
   getCumulativeTravelTime = null;
   getCumulativeTravelTimeAndNodePath = null;
   unselectAllTrainruns = null;
+  unselectTrainrunSection = null;
   isAnyTrainSelected = null;
   getConnectedTrainrunIds = null;
   toggleNonStop = null;
@@ -247,6 +248,10 @@ export class EditorView implements SVGMouseControllerObserver {
 
   bindUnselectAllTrainruns(callback) {
     this.unselectAllTrainruns = callback;
+  }
+
+  bindUnselectTrainrunSection(callback) {
+    this.unselectTrainrunSection = callback;
   }
 
   bindIsAnyTrainSelected(callback) {

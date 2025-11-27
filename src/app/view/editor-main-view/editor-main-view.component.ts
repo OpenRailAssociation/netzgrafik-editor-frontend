@@ -342,6 +342,10 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
 
     this.editorView.bindUnselectAllTrainruns(() => this.trainrunService.unselectAllTrainruns());
 
+    this.editorView.bindUnselectTrainrunSection((trainrunSectionId: number) =>
+      this.trainrunSectionService.unselectTrainrunSection(trainrunSectionId),
+    );
+
     this.editorView.bindIsAnyTrainSelected(() => this.trainrunService.isAnyTrainrunSelected());
 
     this.editorView.bindIsFilterTravelTimeEnabled(() =>
