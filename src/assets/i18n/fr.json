@@ -293,6 +293,7 @@
           },
           "trainrun-section-tab": {
             "too-many-locks": "Avertissement : Trop de temps sont bloqués !",
+            "cannot-delete-not-empty-node": "Avertissement: Impossible de supprimer des noeuds non vides",
             "propagateTimesToLeft": "Propager les temps à gauche",
             "propagateTimesToRight": "Propager les temps à droite"
           }
