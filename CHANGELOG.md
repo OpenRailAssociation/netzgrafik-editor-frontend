@@ -1,5 +1,46 @@
 # Changelog
 
+## [2.10.0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.9.29...netzgrafik-frontend-v2.10.0) (2025-11-27)
+
+
+### Features
+
+* display origin-destination matrix ([403b23b](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/403b23bf2c862444e7ad7c8e17fd3f94a9a4a97a))
+* display origin-destination matrix ([09a43cd](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/09a43cdfc96038d88027aa74a8479886d3f4c25b))
+* Drag drop reroute multi sections ([#633](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/633)) ([0f9e567](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/0f9e567980a898fa138b88378f3d08dcfee0e382))
+
+
+### Bug Fixes
+
+* add missing event emitter to node service when duplicating node ([d855e65](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/d855e6510d982775f001fb555cd54afc51777c34))
+* Bug `saveSvgAsPng` exports incorrectly when Windows display scaling ≠ 100% fixed ([#563](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/563)) ([6b0dfe8](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/6b0dfe8dac3823389defe31b31afed48300bfddd))
+* Clicking in the background in the Pearl view triggers stop editing ([#566](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/566)) ([6a9de5c](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/6a9de5c61a2a07aee14aee78dd64fff997a7ad09))
+* Ensure the SVG container uses the full - space ([#612](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/612)) ([616b8d2](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/616b8d2d2d29c750f757119eeff2b894e9974635))
+* Firefox rendering issue fixed – styling slightly changed ([#548](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/548)) ([d939b84](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/d939b84409fb6410f34da2227812aa8810f61605))
+* for downwards propagation the translation key was wrong ([#630](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/630)) ([46c293c](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/46c293c9c9ae49f1bba77511f0379b9ae54f43c7))
+* Graphical Timetable (Streckengrafik) – Section Track Estimator Not Working for Train with direction changes ([#614](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/614)) ([a623d3f](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/a623d3f4cb29a62b48e48ce644d89243ed8c2de6))
+* Highlight entire trainrun when hovering a trainrun section line ([#534](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/534)) ([7785dea](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/7785dea05cc4781eca7cd091045ea2ccd5908a44))
+* If there is in the data a epsilon issue, we just remove it at latest point to ensure the export and rendering looks good ([#622](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/622)) ([6e81f56](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/6e81f568da3b75b0f65194b5623778727649c9a6))
+* improve guard initializeWithCurrentNote when note is not yet available ([37a8852](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/37a8852d77562f2dd585717ee6f5b487f9ef9e9d))
+* Incorrect Handling of One-Way Train Runs in Track Data Assignment ([#518](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/518)) ([844d351](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/844d351262c95d4d6cc1d072708b1edae2dabc4b))
+* Issue fixed. Styling is now in scss no longer in the typescript ([#627](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/627)) ([93c0d27](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/93c0d27f0a5ed37b35ac0b100d6edfc131f0d3f6))
+* just in case the update is faster then the deletion (close window) ([35d79c2](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/35d79c25becd19db42219d20055191fe4cf2c633))
+* Multiply filter change event (signal) triggers when filter panel gets shown  ([#610](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/610)) ([177e0ab](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/177e0abdc0a907d8b2e56fe2d0c29dcad3a329c7))
+* One way train run arrows are drawn outside of lines when moving node ([#591](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/591)) ([ef671ff](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/ef671ff5a1816a30288f0897ab2f3bc8c2aa148b))
+* Problem fixed and refactored some part. This refactoring fixes a… ([#594](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/594)) ([9acf684](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/9acf684e95dd8f12f9e49e0c6a897a43ed8b9e22))
+* problem solved - design addapted to the left / right side-bar ([#639](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/639)) ([30fb09a](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/30fb09ad5b057c5569be844f50ef0b8fd95c669d))
+* Reset state (subject) when closing the Editor/..View ([#647](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/647)) ([fda7342](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/fda7342e98b976796967796e5fa322545b58f7d5))
+* Resource deletion when node gets deleted ([#523](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/523)) ([5d15e60](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/5d15e608ca88741635e0a0de3abbd8ccbd0d79b1))
+* revert the order change (emit only at the very end) ([b8c7612](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/b8c7612ff0999106272fb447724ee6a344c17258))
+* Roadmap link ([#512](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/512)) ([27e98ea](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/27e98eac923502f66dfd094c0c03e9febc8a31b8))
+* Scale netzgrafik does not include notes ([#616](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/616)) ([240471b](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/240471b6652eb96e981dde1c76b3a80ba7e78987))
+* simplify OD matrices processing (performance) ([7d18cd5](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/7d18cd55aab0abf8796f7236bd8c3a90bf7ed9fa))
+* simplify OD matrices processing (performance) ([e9d2e55](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/e9d2e55134ac12b0234c3039e7652db7a9df4b41))
+* The migration of the third-party import was not correctly performed during the one-way feature implementation. ([#620](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/620)) ([70b46e3](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/70b46e31ef4e48bff57c626d85671fde8718d24a))
+* There was an issue introduced during refactoring. The problem occurs when the user drags too quickly from left to right: the mouse suddenly leaves the dialog window and loses the drag content. This causes the dragging to get stuck and results in poor UX. ([#642](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/642)) ([5408a97](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/5408a97beb9ab85935e0bed2b8fa3a9f55c953d6))
+* update some npm packages  ([#511](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/511)) ([b5caa7d](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/b5caa7d444613522d63139a753a6c3c704168c90))
+* We have to close the sbb-editor-node-detail-view before deleting the node. Just change the call-order. ([f0f6d7b](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/f0f6d7b14bc5c9cefec7b9c98a8981685fda7979))
+
 ## [2.9.29](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.9.28...netzgrafik-frontend-v2.9.29) (2025-05-13)
 
 ### Bug Fixes
