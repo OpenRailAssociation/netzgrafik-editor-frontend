@@ -471,10 +471,8 @@ describe("NodeService Test", () => {
     expect(trainrunSection1.getTargetDeparture()).toBe(52);
     expect(trainrunSection1.getTargetArrival()).toBe(8);
 
-    trainrunSection1.setNumberOfStops(4);
     trainrunSectionService.replaceIntermediateStopWithNode(
       trainrunSection1.getId(),
-      1,
       nodeOL.getId(),
     );
     trainrunSections4Trainrun1 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(
@@ -489,19 +487,16 @@ describe("NodeService Test", () => {
     // check update times
     expect(trainrunSection1.getSourceDeparture()).toBe(49);
     expect(trainrunSection1.getSourceArrival()).toBe(11);
-    expect(trainrunSection1.getTargetDeparture()).toBe(1.5);
-    expect(trainrunSection1.getTargetArrival()).toBe(58.5);
+    expect(trainrunSection1.getTargetDeparture()).toBe(2.25);
+    expect(trainrunSection1.getTargetArrival()).toBe(57.75);
 
-    expect(trainrunSection2.getSourceDeparture()).toBe(0);
-    expect(trainrunSection2.getSourceArrival()).toBe(0);
+    expect(trainrunSection2.getSourceDeparture()).toBe(59.25);
+    expect(trainrunSection2.getSourceArrival()).toBe(0.75);
     expect(trainrunSection2.getTargetDeparture()).toBe(52);
     expect(trainrunSection2.getTargetArrival()).toBe(8);
 
-    expect(trainrunSection1.getNumberOfStops()).toBe(1);
-    expect(trainrunSection2.getNumberOfStops()).toBe(2);
-
-    expect(trainrunSection1.getTravelTime()).toBe(9.5);
-    expect(trainrunSection2.getTravelTime()).toBe(8);
+    expect(trainrunSection1.getTravelTime()).toBe(8.75);
+    expect(trainrunSection2.getTravelTime()).toBe(8.75);
   });
 
   it("undock transition - redock Intermediate stop test <2>", () => {
@@ -530,10 +525,8 @@ describe("NodeService Test", () => {
     expect(trainrunSection1.getTargetDeparture()).toBe(52);
     expect(trainrunSection1.getTargetArrival()).toBe(8);
 
-    trainrunSection1.setNumberOfStops(4);
     trainrunSectionService.replaceIntermediateStopWithNode(
       trainrunSection1.getId(),
-      1,
       nodeOL.getId(),
     );
     trainrunSections4Trainrun1 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(
@@ -548,19 +541,16 @@ describe("NodeService Test", () => {
     // check update times
     expect(trainrunSection1.getSourceDeparture()).toBe(49);
     expect(trainrunSection1.getSourceArrival()).toBe(11);
-    expect(trainrunSection1.getTargetDeparture()).toBe(1.5);
-    expect(trainrunSection1.getTargetArrival()).toBe(58.5);
+    expect(trainrunSection1.getTargetDeparture()).toBe(2.25);
+    expect(trainrunSection1.getTargetArrival()).toBe(57.75);
 
-    expect(trainrunSection2.getSourceDeparture()).toBe(0);
-    expect(trainrunSection2.getSourceArrival()).toBe(0);
+    expect(trainrunSection2.getSourceDeparture()).toBe(59.25);
+    expect(trainrunSection2.getSourceArrival()).toBe(0.75);
     expect(trainrunSection2.getTargetDeparture()).toBe(52);
     expect(trainrunSection2.getTargetArrival()).toBe(8);
 
-    expect(trainrunSection1.getNumberOfStops()).toBe(1);
-    expect(trainrunSection2.getNumberOfStops()).toBe(2);
-
-    expect(trainrunSection1.getTravelTime()).toBe(69.5);
-    expect(trainrunSection2.getTravelTime()).toBe(68);
+    expect(trainrunSection1.getTravelTime()).toBe(68.75);
+    expect(trainrunSection2.getTravelTime()).toBe(68.75);
   });
 
   it("reconnect trainrunsection test", () => {

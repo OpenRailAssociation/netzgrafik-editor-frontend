@@ -419,9 +419,12 @@ export class NodeService implements OnDestroy {
     const oppNodeTrainrunSection1 = node.getOppositeNode(trainrunSection1);
     const oppNodeTrainrunSection2 = node.getOppositeNode(trainrunSection2);
 
-    const depTime = node.getDepartureConsecutiveTime(trainrunSection2);
-    const arrTime = node.getArrivalConsecutiveTime(trainrunSection1);
-    const transitionTravelTime = depTime - arrTime;
+    const transitionTravelTime =
+      node.getDepartureConsecutiveTime(trainrunSection2) -
+      node.getArrivalConsecutiveTime(trainrunSection1);
+    const transitionBackwardTravelTime =
+      node.getDepartureConsecutiveTime(trainrunSection1) -
+      node.getArrivalConsecutiveTime(trainrunSection2);
 
     const transition1: Transition = oppNodeTrainrunSection1.getTransition(trainrunSection1.getId());
     const nonStop1 = transition1 !== undefined ? transition1.getIsNonStopTransit() : false;
@@ -458,6 +461,11 @@ export class NodeService implements OnDestroy {
     const travelTime =
       trainrunSection1.getTravelTime() + trainrunSection2.getTravelTime() + transitionTravelTime;
     trainrunSection1.setTravelTime(travelTime);
+    const backwardTravelTime =
+      trainrunSection1.getBackwardTravelTime() +
+      trainrunSection2.getBackwardTravelTime() +
+      transitionBackwardTravelTime;
+    trainrunSection1.setBackwardTravelTime(backwardTravelTime);
 
     // update the number of stops
     trainrunSection1.setNumberOfStops(
