@@ -84,7 +84,7 @@ To reroute a train, follow these steps:
 
 ### Remove Nodes // Add Intermediate Stop Nodes
 
-without deleting trainrun sections (undock transitions), resp. create node to split trainrun section into two
+Without deleting trainrun sections (undock transitions), resp. create node to split trainrun section into two
 and dock to the new intermediate stop node in between.
 
 #### Remove a Node
