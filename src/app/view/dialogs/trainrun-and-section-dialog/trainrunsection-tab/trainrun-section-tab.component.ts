@@ -64,15 +64,17 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   public leftBetriebspunkt: string[] = ["", ""];
   public rightBetriebspunkt: string[] = ["", ""];
   public tagNbrStopInput = false;
-  public numberOfStops: number;
+  public numberOfStopsInput: number;
   public frequency: number;
   public frequencyLinePattern: LinePatternRefs;
   public categoryShortName: string;
   public categoryColorRef: ColorRefType;
   public timeCategoryShortName: string;
   public timeCategoryLinePattern: LinePatternRefs;
+  public showNumberOfStopsWarning = false;
 
   private trainrunSectionHelper: TrainrunsectionHelper;
+  private numberOfStops: number;
   private destroyed = new Subject<void>();
 
   public get isTopTrainrunSectionInfoDisplayed(): boolean {
@@ -138,7 +140,10 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
       .getTrainrun()
       .getTimeCategoryLinePatternRef();
     this.trainrunSectionTimesService.setHighlightTravelTimeElement(false);
-    this.numberOfStops = this.selectedTrainrunSection.getNumberOfStops();
+    this.numberOfStops = this.trainrunSectionService.getNumberOfCollapsedStops(
+      this.selectedTrainrunSection,
+    );
+    this.numberOfStopsInput = this.numberOfStops;
     this.trainrunSectionTimesService.applyOffsetAndTransformTimeStructure();
 
     this.trainrunSectionTimesService.setLockStructure(
@@ -276,24 +281,47 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   }
 
   /* number of stops */
-  onNumberOfStopsChanged() {
-    this.numberOfStops = Math.max(0, this.numberOfStops);
-    this.trainrunSectionService.updateTrainrunSectionNumberOfStops(
-      this.selectedTrainrunSection,
-      this.numberOfStops,
-    );
+  onNumberOfStopsChanged(newNumberOfStops: number) {
+    this.showNumberOfStopsWarning = false;
+    const stopsNbDiff = Math.max(0, newNumberOfStops) - this.numberOfStops;
+    if (stopsNbDiff === 0) return;
+    if (stopsNbDiff > 0) {
+      for (let i = 0; i < stopsNbDiff; i++) {
+        this.trainrunSectionService.addIntermediateStopOnTrainrunSection(
+          this.selectedTrainrunSection,
+        );
+        this.numberOfStops += 1;
+      }
+      this.trainrunSectionTimesService.setHighlightTravelTimeElement(false);
+    } else {
+      const stopsToRemoved = Math.min(Math.abs(stopsNbDiff), this.numberOfStops);
+      for (let i = 0; i < stopsToRemoved; i++) {
+        const removedNodesCount =
+          this.trainrunSectionService.removeIntermediateStopOnTrainrunSection(
+            this.selectedTrainrunSection,
+          );
+        if (removedNodesCount) {
+          this.numberOfStops -= 1;
+        } else {
+          this.showNumberOfStopsWarning = true;
+          break;
+        }
+      }
+    }
+    this.numberOfStopsInput = this.numberOfStops;
+    this.trainrunSectionService.updateTrainrunSectionNumberOfStops(this.selectedTrainrunSection);
+  }
+
+  onNumberOfStopsInputChanged() {
+    this.onNumberOfStopsChanged(this.numberOfStopsInput);
   }
 
   onInputNumberOfStopsElementButtonPlus() {
-    this.numberOfStops += 1;
-    this.trainrunSectionTimesService.setHighlightTravelTimeElement(false);
-    this.onNumberOfStopsChanged();
+    this.onNumberOfStopsChanged(this.numberOfStops + 1);
   }
 
   onInputNumberOfStopsElementButtonMinus() {
-    this.numberOfStops -= 1;
-    this.numberOfStops = Math.max(0, this.numberOfStops);
-    this.onNumberOfStopsChanged();
+    this.onNumberOfStopsChanged(this.numberOfStops - 1);
   }
 
   onMouseEnterNbrStopInput() {

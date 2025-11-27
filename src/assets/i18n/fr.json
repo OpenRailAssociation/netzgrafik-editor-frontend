@@ -292,6 +292,7 @@
           },
           "trainrun-section-tab": {
             "warningTwoLocks": "Avertissement : Trop de temps sont bloqués !",
+            "warningNumberOfStops": "Avertissement: Impossible de supprimer des noeuds non vides",
             "propagateTimesToLeft": "Propager les temps à gauche",
             "propagateTimesToRight": "Propager les temps à droite"
           }
