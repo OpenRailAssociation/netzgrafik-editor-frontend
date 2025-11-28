@@ -128,9 +128,9 @@ export interface TrainrunSectionDto {
   trainrunId: number; // reference to the trainrun (main object)
   resourceId: number; // reference to the algined (resource - not yet implemented)
 
-  specificTrainrunSectionFrequencyId: number; // Default 0 - deprecate???
+  specificTrainrunSectionFrequencyId: number | null; // Default 0 - deprecate???
   path: PathDto; // cached - precomputed path for rendering
-  warnings: WarningDto[]; // business logic failures - warnings storage
+  warnings: WarningDto[] | null; // business logic failures - warnings storage
 }
 
 /**
@@ -183,7 +183,7 @@ export interface NodeDto {
   connectionTime: number; // aka Umsteigezeit - time used to change train in minutes
   trainrunCategoryHaltezeiten: TrainrunCategoryHaltezeit; // user can over-write the halte times
   symmetryAxis: number; // deprecate ???
-  warnings: WarningDto[]; // business logic failures - warnings storage
+  warnings: WarningDto[] | null; // business logic failures - warnings storage
 
   labelIds: number[]; // list of assigned filterable labels (identifiers: See Label, LabelDto.)
 }
