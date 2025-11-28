@@ -23,8 +23,8 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
   @Input() trainrunDialogParameter: TrainrunDialogParameter;
   @Input() innerContentScaleFactor = "1.0";
 
-  public startNode: string[] = ["", ""];
-  public endNode: string[] = ["", ""];
+  public startNode: Node;
+  public endNode: Node;
   public frequencyLinePattern: LinePatternRefs;
   public categoryColorRef: ColorRefType;
   public timeCategoryLinePattern: LinePatternRefs;
@@ -74,6 +74,10 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
       } else {
         this.onTrainrunSectionCardClick("bottom");
       }
+    } else {
+      this.chosenCard = TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection)
+        ? "top"
+        : "bottom";
     }
 
     this.trainrunSectionTimesService.setTrainrunSection(trainrunSection);
@@ -83,18 +87,10 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
     this.trainrunSectionTimesService.setHighlightTravelTimeElement(false);
     this.trainrunSectionTimesService.applyOffsetAndTransformTimeStructure();
 
-    const startNode = this.trainrunService.getStartNodeWithTrainrunId(
+    this.startNode = this.trainrunService.getStartNodeWithTrainrunId(
       trainrunSection.getTrainrunId(),
     );
-    this.startNode = [startNode.getFullName(), startNode.getBetriebspunktName()];
-    const endNode = this.trainrunService.getEndNodeWithTrainrunId(trainrunSection.getTrainrunId());
-    this.endNode = [endNode.getFullName(), endNode.getBetriebspunktName()];
-
-    if (!selectedTrainrun.isRoundTrip()) {
-      this.chosenCard = TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection)
-        ? "top"
-        : "bottom";
-    }
+    this.endNode = this.trainrunService.getEndNodeWithTrainrunId(trainrunSection.getTrainrunId());
   }
 
   ngOnDestroy() {
