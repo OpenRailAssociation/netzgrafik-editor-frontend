@@ -65,19 +65,17 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
     }
     const trainrunSection = this.trainrunService.getFirstTrainrunSection(selectedTrainrun);
 
-    this.trainrunSectionTimesService.setOffset(0);
+    this.startNode = this.trainrunService.getStartNodeWithTrainrunId(
+      trainrunSection.getTrainrunId(),
+    );
+    this.endNode = this.trainrunService.getEndNodeWithTrainrunId(trainrunSection.getTrainrunId());
 
-    // Initialize the selected trainrun as one-way, selecting the [source] → [target] card
+    this.trainrunSectionTimesService.setOffset(0);
     if (selectedTrainrun.isRoundTrip()) {
-      if (TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection)) {
-        this.onTrainrunSectionCardClick("top");
-      } else {
-        this.onTrainrunSectionCardClick("bottom");
-      }
+      // Initialize round trip trainrun with top card
+      this.onTrainrunSectionCardClick("top");
     } else {
-      this.chosenCard = TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection)
-        ? "top"
-        : "bottom";
+      this.chosenCard = this.trainrunService.isTrainrunTargetRightOrBottom() ? "top" : "bottom";
     }
 
     this.trainrunSectionTimesService.setTrainrunSection(trainrunSection);
@@ -86,11 +84,6 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
     this.timeCategoryLinePattern = selectedTrainrun.getTimeCategoryLinePatternRef();
     this.trainrunSectionTimesService.setHighlightTravelTimeElement(false);
     this.trainrunSectionTimesService.applyOffsetAndTransformTimeStructure();
-
-    this.startNode = this.trainrunService.getStartNodeWithTrainrunId(
-      trainrunSection.getTrainrunId(),
-    );
-    this.endNode = this.trainrunService.getEndNodeWithTrainrunId(trainrunSection.getTrainrunId());
   }
 
   ngOnDestroy() {
@@ -169,33 +162,15 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
       return;
     }
 
-    let trainrunSection = undefined;
-    let wantedSourceNode = undefined;
+    let trainrunSection = this.trainrunService.getFirstTrainrunSection(selectedTrainrun);
     if (selectedTrainrun.isRoundTrip()) {
-      const bothEndNodes = this.trainrunService.getBothEndNodesWithTrainrunId(
-        selectedTrainrun.getId(),
-      );
-      // direction top-left -> default
-      wantedSourceNode = GeneralViewFunctions.getLeftOrTopNode(
-        bothEndNodes.endNode1,
-        bothEndNodes.endNode2,
-      );
-      trainrunSection = wantedSourceNode.getStartTrainrunSection(selectedTrainrun.getId());
-    } else {
-      trainrunSection = this.trainrunService.getFirstTrainrunSection(selectedTrainrun);
-      // Get the left and right nodes to determine the cards order
-      const leftNode = this.trainrunSectionHelper.getNextStopLeftNode(
-        trainrunSection,
-        this.nodesOrdered,
-      );
-      const rightNode = this.trainrunSectionHelper.getNextStopRightNode(
-        trainrunSection,
-        this.nodesOrdered,
-      );
-      wantedSourceNode = position === "top" ? leftNode : rightNode;
+      // For a round trip trainrun, we want to choose the most top/left
+      // section as reference when switching to a one-way trainrun
+      trainrunSection = this.trainrunService.getLeftStartSection();
     }
 
-    if (wantedSourceNode !== trainrunSection.getSourceNode()) {
+    const referenceNode = position === "top" ? this.startNode : this.endNode;
+    if (referenceNode !== trainrunSection.getSourceNode()) {
       this.trainrunSectionService.invertTrainrunSectionsSourceAndTarget(
         trainrunSection.getTrainrunId(),
       );

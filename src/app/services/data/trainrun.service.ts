@@ -931,6 +931,29 @@ export class TrainrunService {
     return labelIDCauntMap;
   }
 
+  isTrainrunTargetRightOrBottom(): boolean {
+    if (!this.getSelectedTrainrun()) {
+      return false;
+    }
+    const firstNode = this.getFirstTrainrunSection(this.getSelectedTrainrun()).getSourceNode();
+    const lastNode = this.getLastTrainrunSection(this.getSelectedTrainrun()).getTargetNode();
+    return GeneralViewFunctions.getRightOrBottomNode(firstNode, lastNode) === lastNode;
+  }
+
+  getLeftStartSection(): TrainrunSection {
+    if (!this.getSelectedTrainrun()) {
+      return null;
+    }
+
+    const bothEndNodes = this.getBothEndNodesWithTrainrunId(this.getSelectedTrainrun().getId());
+    const leftNode = GeneralViewFunctions.getLeftOrTopNode(
+      bothEndNodes.endNode1,
+      bothEndNodes.endNode2,
+    );
+
+    return leftNode.getStartTrainrunSection(this.getSelectedTrainrun().getId());
+  }
+
   getSbbArrowForTrainrunSectionDirection(): string {
     if (!this.getSelectedTrainrun() || this.getSelectedTrainrun().isRoundTrip()) {
       return "arrows-left-right-medium";
@@ -949,9 +972,7 @@ export class TrainrunService {
     if (!this.getSelectedTrainrun() || this.getSelectedTrainrun().isRoundTrip()) {
       return "arrows-left-right-medium";
     }
-    const firstNode = this.getFirstTrainrunSection(this.getSelectedTrainrun()).getSourceNode();
-    const lastNode = this.getLastTrainrunSection(this.getSelectedTrainrun()).getTargetNode();
-    if (GeneralViewFunctions.getRightOrBottomNode(firstNode, lastNode) === lastNode) {
+    if (this.isTrainrunTargetRightOrBottom()) {
       return "arrow-right-medium";
     } else {
       return "arrow-left-medium";
