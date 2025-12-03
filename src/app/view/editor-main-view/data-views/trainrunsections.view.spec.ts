@@ -196,8 +196,9 @@ describe("TrainrunSection-View", () => {
   it("TrainrunSectionsView.translateAndRotateText - TrainrunSectionName", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(4);
+    const viewObject = createTrainrunSectionViewObject(ts);
     const text = TrainrunSectionsView.translateAndRotateText(
-      ts,
+      viewObject,
       TrainrunSectionText.TrainrunSectionName,
     );
     expect(text).toBe("translate(576,116) rotate(9.659893078442336, 0,0) ");
@@ -206,8 +207,9 @@ describe("TrainrunSection-View", () => {
   it("TrainrunSectionsView.translateAndRotateText - TrainrunSectionTravelTime", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(4);
+    const viewObject = createTrainrunSectionViewObject(ts);
     const text = TrainrunSectionsView.translateAndRotateText(
-      ts,
+      viewObject,
       TrainrunSectionText.TrainrunSectionTravelTime,
     );
     expect(text).toBe("translate(576,116) rotate(9.659893078442336, 0,0) ");
@@ -216,8 +218,9 @@ describe("TrainrunSection-View", () => {
   it("TrainrunSectionsView.translateAndRotateText - TrainrunSectionNumberOfStops", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(4);
+    const viewObject = createTrainrunSectionViewObject(ts);
     const text = TrainrunSectionsView.translateAndRotateText(
-      ts,
+      viewObject,
       TrainrunSectionText.TrainrunSectionNumberOfStops,
     );
     expect(text).toBe("translate(576,140) rotate(9.659893078442336, 0,0) ");
@@ -226,8 +229,9 @@ describe("TrainrunSection-View", () => {
   it("TrainrunSectionsView.translateAndRotateText - TrainrunSectionName", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(4);
+    const viewObject = createTrainrunSectionViewObject(ts);
     const text = TrainrunSectionsView.translateAndRotateText(
-      ts,
+      viewObject,
       TrainrunSectionText.TrainrunSectionName,
     );
     expect(text).toBe("translate(576,116) rotate(9.659893078442336, 0,0) ");
@@ -236,22 +240,31 @@ describe("TrainrunSection-View", () => {
   it("TrainrunSectionsView.translateAndRotateText - SourceArrival", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(4);
-    const text = TrainrunSectionsView.translateAndRotateText(ts, TrainrunSectionText.SourceArrival);
+    const viewObject = createTrainrunSectionViewObject(ts);
+    const text = TrainrunSectionsView.translateAndRotateText(
+      viewObject,
+      TrainrunSectionText.SourceArrival,
+    );
     expect(text).toBe("translate(436,124) rotate(9.659893078442336, 0,0) ");
   });
 
   it("TrainrunSectionsView.translateAndRotateText - TargetArrival", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(4);
-    const text = TrainrunSectionsView.translateAndRotateText(ts, TrainrunSectionText.TargetArrival);
+    const viewObject = createTrainrunSectionViewObject(ts);
+    const text = TrainrunSectionsView.translateAndRotateText(
+      viewObject,
+      TrainrunSectionText.TargetArrival,
+    );
     expect(text).toBe("translate(716,132) rotate(9.659893078442336, 0,0) ");
   });
 
   it("TrainrunSectionsView.translateAndRotateText - SourceDeparture", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(4);
+    const viewObject = createTrainrunSectionViewObject(ts);
     const text = TrainrunSectionsView.translateAndRotateText(
-      ts,
+      viewObject,
       TrainrunSectionText.SourceDeparture,
     );
     expect(text).toBe("translate(464,100) rotate(9.659893078442336, 0,0) ");
@@ -260,8 +273,9 @@ describe("TrainrunSection-View", () => {
   it("TrainrunSectionsView.translateAndRotateText - TargetDeparture", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(4);
+    const viewObject = createTrainrunSectionViewObject(ts);
     const text = TrainrunSectionsView.translateAndRotateText(
-      ts,
+      viewObject,
       TrainrunSectionText.TargetDeparture,
     );
     expect(text).toBe("translate(688,156) rotate(9.659893078442336, 0,0) ");
