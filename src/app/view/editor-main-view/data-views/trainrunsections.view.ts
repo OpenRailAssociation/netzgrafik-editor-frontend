@@ -1672,7 +1672,7 @@ export class TrainrunSectionsView {
 
   createNumberOfStopsTextElement(
     groupEnter: d3.Selector,
-    trainrunSection: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
     selectedTrainrun: Trainrun,
     connectedTrainIds: any,
     numberOfStops: number,
@@ -1684,30 +1684,34 @@ export class TrainrunSectionsView {
         StaticDomTags.EDGE_LINE_TEXT_CLASS +
           " " +
           TrainrunSectionsView.createTrainrunSectionFrequencyClassAttribute(
-            trainrunSection,
+            viewObject.trainrunSections[0],
             selectedTrainrun,
             connectedTrainIds,
           ) +
           " " +
           TrainrunSectionText[TrainrunSectionText.TrainrunSectionNumberOfStops],
       )
-      .attr(StaticDomTags.EDGE_ID, () => trainrunSection.getId())
-      .attr(StaticDomTags.EDGE_LINE_LINE_ID, () => trainrunSection.getTrainrunId())
+      .attr(StaticDomTags.EDGE_ID, () => viewObject.trainrunSections[0].getId())
+      .attr(StaticDomTags.EDGE_LINE_LINE_ID, () => viewObject.getTrainrun().getId())
       .attr(StaticDomTags.EDGE_LINE_TEXT_INDEX, TrainrunSectionText.TrainrunSectionNumberOfStops)
       .attr("numberOfStops", numberOfStops)
       .attr("x", 0.0)
       .attr("y", 0.0)
       .attr("transform", () =>
         TrainrunSectionsView.translateAndRotateText(
-          trainrunSection,
+          viewObject.trainrunSections[0],
           TrainrunSectionText.TrainrunSectionNumberOfStops,
         ),
       )
       .text(numberOfStops)
       .classed(StaticDomTags.TAG_MUTED, () =>
-        TrainrunSectionsView.isMuted(trainrunSection, selectedTrainrun, connectedTrainIds),
+        TrainrunSectionsView.isMuted(
+          viewObject.trainrunSections[0],
+          selectedTrainrun,
+          connectedTrainIds,
+        ),
       )
-      .classed(StaticDomTags.TAG_SELECTED, () => trainrunSection.getTrainrun().selected())
+      .classed(StaticDomTags.TAG_SELECTED, () => viewObject.getTrainrun().selected())
       .on("mouseup", (t: TrainrunSectionViewObject, i, a) =>
         this.onIntermediateStopMouseUp(t.trainrunSections[0], a[i]),
       );
@@ -1767,7 +1771,7 @@ export class TrainrunSectionsView {
       );
       this.createNumberOfStopsTextElement(
         groupEnter,
-        viewObject.trainrunSections[0],
+        viewObject,
         selectedTrainrun,
         connectedTrainIds,
         numberOfStops,
