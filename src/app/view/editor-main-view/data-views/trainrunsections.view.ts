@@ -5,7 +5,6 @@ import {
   DEFAULT_PIN_RADIUS,
   DEFAULT_STOP_ICON,
   EDGE_CASE_THRESHOLD,
-  MIN_PATH_LENGTH_FOR_ANGLE,
   NODE_EDGE_WIDTH,
   NODE_TEXT_AREA_HEIGHT,
   RASTERING_BASIC_GRID_SIZE,
@@ -106,58 +105,10 @@ export class TrainrunSectionsView {
         return 1.5;
       case TrainrunSectionText.TrainrunSectionTravelTime:
       case TrainrunSectionText.TrainrunSectionName:
-        return this.translateAndRotateTextForViewObjectWithCollapsedSupport(
-          viewObject,
-          textElement,
-        );
+        return TrainrunSectionsView.translateAndRotateText(viewObject, textElement);
       default:
         return 0;
     }
-  }
-
-  translateAndRotateTextForViewObjectWithCollapsedSupport(
-    viewObject: TrainrunSectionViewObject,
-    trainrunSectionText: TrainrunSectionText,
-  ) {
-    const trainrunSection = viewObject.trainrunSections[0];
-    const collapsedChainPath = viewObject.getPath();
-
-    if (collapsedChainPath && collapsedChainPath.length >= MIN_PATH_LENGTH_FOR_ANGLE) {
-      const textPositions = this.getTextPositionsForCollapsedChain(
-        collapsedChainPath,
-        trainrunSection,
-      );
-      const x =
-        textPositions?.[trainrunSectionText]?.x ??
-        trainrunSection.getTextPositionX(trainrunSectionText);
-      const y =
-        textPositions?.[trainrunSectionText]?.y ??
-        trainrunSection.getTextPositionY(trainrunSectionText);
-
-      // Use existing calculation logic with collapsed path
-      if (collapsedChainPath.length < MIN_PATH_LENGTH_FOR_ANGLE) {
-        return `translate(${x},${y}) rotate(0, 0,0) `;
-      }
-
-      const [s1, t1] = [collapsedChainPath[1], collapsedChainPath[2]];
-      const diff = Vec2D.sub(t1, s1);
-      let angle = (Math.atan2(diff.getY(), diff.getX()) / Math.PI) * 180.0;
-
-      if (Math.abs(angle) > ANGLE_UPSIDE_DOWN_THRESHOLD) {
-        angle += 180;
-      }
-
-      if (Math.abs(diff.getX()) < EDGE_CASE_THRESHOLD) {
-        angle = DEFAULT_ANGLE_VERTICAL;
-      }
-      if (Math.abs(diff.getY()) < EDGE_CASE_THRESHOLD) {
-        angle = DEFAULT_ANGLE_HORIZONTAL;
-      }
-
-      return `translate(${x},${y}) rotate(${angle}, 0,0) `;
-    }
-
-    return TrainrunSectionsView.translateAndRotateText(viewObject, trainrunSectionText);
   }
 
   static isMuted(
