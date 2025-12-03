@@ -63,7 +63,6 @@ export const SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS = 5;
 /*
   Text rotation and path constants for trainrun sections
  */
-export const MIN_PATH_LENGTH_FOR_ANGLE = 4;
 export const ANGLE_UPSIDE_DOWN_THRESHOLD = 90;
 export const EDGE_CASE_THRESHOLD = 1;
 export const DEFAULT_ANGLE_VERTICAL = -90;
