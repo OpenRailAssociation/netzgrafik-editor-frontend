@@ -93,24 +93,6 @@ export class TrainrunSectionsView {
     return SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(collapsedChainPath, sourcePort);
   }
 
-  getAdditionPositioningValueForViewObjectWithCollapsedSupport(
-    viewObject: TrainrunSectionViewObject,
-    textElement: TrainrunSectionText,
-  ) {
-    switch (textElement) {
-      case TrainrunSectionText.SourceDeparture:
-      case TrainrunSectionText.SourceArrival:
-      case TrainrunSectionText.TargetDeparture:
-      case TrainrunSectionText.TargetArrival:
-        return 1.5;
-      case TrainrunSectionText.TrainrunSectionTravelTime:
-      case TrainrunSectionText.TrainrunSectionName:
-        return TrainrunSectionsView.translateAndRotateText(viewObject, textElement);
-      default:
-        return 0;
-    }
-  }
-
   static isMuted(
     trainrunSection: TrainrunSection,
     selectedTrainrun: Trainrun,
@@ -411,9 +393,8 @@ export class TrainrunSectionsView {
   }
 
   static getAdditionPositioningValue(
-    trainrunSection: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
     textElement: TrainrunSectionText,
-    viewObject?: TrainrunSectionViewObject,
   ) {
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
@@ -1483,7 +1464,7 @@ export class TrainrunSectionsView {
       .attr(
         TrainrunSectionsView.getAdditionPositioningAttr(textElement),
         (d: TrainrunSectionViewObject) =>
-          this.getAdditionPositioningValueForViewObjectWithCollapsedSupport(d, textElement),
+          TrainrunSectionsView.getAdditionPositioningValue(d, textElement),
       )
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
         d.getTrainrun().selected(),
