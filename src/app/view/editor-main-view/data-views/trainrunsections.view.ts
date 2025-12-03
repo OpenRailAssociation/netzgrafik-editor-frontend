@@ -39,7 +39,6 @@ import {LinePatternRefs} from "../../../data-structures/business.data.structures
 import {Direction} from "src/app/data-structures/business.data.structures";
 import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helper";
-import {SimpleTrainrunSectionRouter} from "../../../services/util/trainrunsection.routing";
 
 export class TrainrunSectionsView {
   trainrunSectionGroup;
@@ -76,21 +75,6 @@ export class TrainrunSectionsView {
       a = DEFAULT_ANGLE_HORIZONTAL;
     }
     return "translate(" + x + "," + y + ") rotate(" + a + ", 0,0) ";
-  }
-
-  private getTextPositionsForCollapsedChain(
-    collapsedChainPath: Vec2D[],
-    trainrunSection: TrainrunSection,
-  ): any {
-    const sourceNode = trainrunSection.getSourceNode();
-    const sourcePort =
-      sourceNode.getPortOfTrainrunSection(trainrunSection.getId()) || sourceNode.getPorts()[0];
-
-    if (!sourcePort) {
-      return null;
-    }
-
-    return SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(collapsedChainPath, sourcePort);
   }
 
   static isMuted(
