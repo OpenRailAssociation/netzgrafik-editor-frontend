@@ -51,15 +51,11 @@ export class TrainrunSectionsView {
   ) {}
 
   static translateAndRotateText(
-    trainrunSection: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
     trainrunSectionText: TrainrunSectionText,
-    viewObject?: TrainrunSectionViewObject,
   ) {
-    const x = trainrunSection.getTextPositionX(trainrunSectionText);
-    const y = trainrunSection.getTextPositionY(trainrunSectionText);
-
-    // Use viewObject path if provided, otherwise use trainrunSection path
-    const pathVec2D: Vec2D[] = viewObject ? viewObject.getPath() : trainrunSection.getPath();
+    const {x, y} = viewObject.textPositions[trainrunSectionText];
+    const pathVec2D = viewObject.getPath();
 
     // Check if path has enough points
     if (pathVec2D.length < 4) {
@@ -161,11 +157,7 @@ export class TrainrunSectionsView {
       return `translate(${x},${y}) rotate(${angle}, 0,0) `;
     }
 
-    return TrainrunSectionsView.translateAndRotateText(
-      trainrunSection,
-      trainrunSectionText,
-      viewObject,
-    );
+    return TrainrunSectionsView.translateAndRotateText(viewObject, trainrunSectionText);
   }
 
   static isMuted(
@@ -480,11 +472,7 @@ export class TrainrunSectionsView {
         return 1.5;
       case TrainrunSectionText.TrainrunSectionTravelTime:
       case TrainrunSectionText.TrainrunSectionName:
-        return TrainrunSectionsView.translateAndRotateText(
-          trainrunSection,
-          textElement,
-          viewObject,
-        );
+        return TrainrunSectionsView.translateAndRotateText(viewObject, textElement);
       default:
         return 0;
     }
@@ -1699,7 +1687,7 @@ export class TrainrunSectionsView {
       .attr("y", 0.0)
       .attr("transform", () =>
         TrainrunSectionsView.translateAndRotateText(
-          viewObject.trainrunSections[0],
+          viewObject,
           TrainrunSectionText.TrainrunSectionNumberOfStops,
         ),
       )
