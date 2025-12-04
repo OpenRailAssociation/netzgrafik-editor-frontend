@@ -35,6 +35,13 @@ export class TrainrunSectionViewObject {
     return this.trainrunSections[0].getTrainrun();
   }
 
+  getCollapsedIntermediateStopCount(): number {
+    // Count collapsed source nodes from all trainrun sections except the first one
+    return this.trainrunSections
+      .slice(1) // skip first section
+      .filter((section) => section.getSourceNode().getIsCollapsed()).length;
+  }
+
   getTravelTime(): number {
     if (this.trainrunSections.length === 1) {
       return this.trainrunSections[0].getTravelTime();
