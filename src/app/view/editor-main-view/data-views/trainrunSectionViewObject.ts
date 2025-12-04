@@ -43,6 +43,14 @@ export class TrainrunSectionViewObject {
     return this.trainrunSections[0].getTrainrun();
   }
 
+  getNumberOfStops(): number {
+    // Count non-stop collapsed source nodes
+    // Note: in this context, all intermediate sections are collapsed
+    return this.trainrunSections
+      .slice(1) // skip first section
+      .filter((section) => !section.getSourceNode().isNonStop(section)).length;
+  }
+
   getTravelTime(): number {
     if (this.trainrunSections.length === 1) {
       return this.trainrunSections[0].getTravelTime();

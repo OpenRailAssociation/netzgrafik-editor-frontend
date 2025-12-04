@@ -1627,7 +1627,7 @@ export class TrainrunSectionsView {
     selectedTrainrun: Trainrun,
     connectedTrainIds: any,
   ) {
-    const numberOfStops = viewObject.trainrunSections.length - 1;
+    const numberOfStops = viewObject.getNumberOfStops();
     const path = viewObject.getPath();
     let startPosition = path[1];
     let lineOrientationVector = Vec2D.sub(path[2], startPosition);
