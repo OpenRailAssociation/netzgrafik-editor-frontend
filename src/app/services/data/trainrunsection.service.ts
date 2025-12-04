@@ -952,7 +952,12 @@ export class TrainrunSectionService implements OnDestroy {
   }
 
   // this function is no longer used for its original purpose (drag a node that only existed inside numberOfStops and create it inside the real graph)
-  replaceIntermediateStopWithNode(trainrunSectionId: number, stopIndex: number, nodeId: number) {
+  replaceIntermediateStopWithNode(
+    trainrunSectionId: number,
+    stopIndex: number,
+    nodeId: number,
+    isNonStop: boolean = false,
+  ) {
     const trainrunSection1 = this.getTrainrunSectionFromId(trainrunSectionId);
     if (
       trainrunSection1.getSourceNodeId() === nodeId ||
@@ -991,6 +996,7 @@ export class TrainrunSectionService implements OnDestroy {
       nodeIntermediate.getId(),
       trainrunSection1,
       trainrunSection2,
+      isNonStop,
     );
     this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection1.getId());
 
@@ -1083,6 +1089,7 @@ export class TrainrunSectionService implements OnDestroy {
       trainrunSection.getId(),
       trainrunSection.getNumberOfStops() + 1,
       newNode.getId(),
+      true,
     );
   }
 
