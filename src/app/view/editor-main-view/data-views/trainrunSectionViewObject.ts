@@ -5,8 +5,8 @@ import {Vec2D} from "../../../utils/vec2D";
 import {EditorView} from "./editor.view";
 
 export class TrainrunSectionViewObject {
-  key: string;
-  textPositions: TrainrunSectionTextPositions;
+  readonly key: string;
+  readonly textPositions: TrainrunSectionTextPositions;
 
   constructor(
     private editorView: EditorView,
