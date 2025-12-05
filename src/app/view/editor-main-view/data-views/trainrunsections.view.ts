@@ -5,10 +5,8 @@ import {
   DEFAULT_PIN_RADIUS,
   DEFAULT_STOP_ICON,
   EDGE_CASE_THRESHOLD,
-  MIN_PATH_LENGTH_FOR_ANGLE,
   NODE_EDGE_WIDTH,
   NODE_TEXT_AREA_HEIGHT,
-  PATH_COMPARISON_TOLERANCE,
   RASTERING_BASIC_GRID_SIZE,
   SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS,
   TRAINRUN_SECTION_TEXT_AREA_HEIGHT,
@@ -41,7 +39,6 @@ import {LinePatternRefs} from "../../../data-structures/business.data.structures
 import {Direction} from "src/app/data-structures/business.data.structures";
 import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helper";
-import {SimpleTrainrunSectionRouter} from "../../../services/util/trainrunsection.routing";
 
 export class TrainrunSectionsView {
   trainrunSectionGroup;
@@ -52,15 +49,11 @@ export class TrainrunSectionsView {
   ) {}
 
   static translateAndRotateText(
-    trainrunSection: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
     trainrunSectionText: TrainrunSectionText,
-    viewObject?: TrainrunSectionViewObject,
   ) {
-    const x = trainrunSection.getTextPositionX(trainrunSectionText);
-    const y = trainrunSection.getTextPositionY(trainrunSectionText);
-
-    // Use viewObject path if provided, otherwise use trainrunSection path
-    const pathVec2D: Vec2D[] = viewObject ? viewObject.getPath() : trainrunSection.getPath();
+    const {x, y} = viewObject.textPositions[trainrunSectionText];
+    const pathVec2D = viewObject.getPath();
 
     // Check if path has enough points
     if (pathVec2D.length < 4) {
@@ -82,91 +75,6 @@ export class TrainrunSectionsView {
       a = DEFAULT_ANGLE_HORIZONTAL;
     }
     return "translate(" + x + "," + y + ") rotate(" + a + ", 0,0) ";
-  }
-
-  private getTextPositionsForCollapsedChain(
-    collapsedChainPath: Vec2D[],
-    trainrunSection: TrainrunSection,
-  ): any {
-    const sourceNode = trainrunSection.getSourceNode();
-    const sourcePort =
-      sourceNode.getPortOfTrainrunSection(trainrunSection.getId()) || sourceNode.getPorts()[0];
-
-    if (!sourcePort) {
-      return null;
-    }
-
-    return SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(collapsedChainPath, sourcePort);
-  }
-
-  getAdditionPositioningValueForViewObjectWithCollapsedSupport(
-    viewObject: TrainrunSectionViewObject,
-    textElement: TrainrunSectionText,
-  ) {
-    switch (textElement) {
-      case TrainrunSectionText.SourceDeparture:
-      case TrainrunSectionText.SourceArrival:
-      case TrainrunSectionText.TargetDeparture:
-      case TrainrunSectionText.TargetArrival:
-        return 1.5;
-      case TrainrunSectionText.TrainrunSectionTravelTime:
-      case TrainrunSectionText.TrainrunSectionName:
-        return this.translateAndRotateTextForViewObjectWithCollapsedSupport(
-          viewObject,
-          textElement,
-        );
-      default:
-        return 0;
-    }
-  }
-
-  translateAndRotateTextForViewObjectWithCollapsedSupport(
-    viewObject: TrainrunSectionViewObject,
-    trainrunSectionText: TrainrunSectionText,
-  ) {
-    const trainrunSection = viewObject.trainrunSections[0];
-    const collapsedChainPath = viewObject.getPath();
-
-    if (collapsedChainPath && collapsedChainPath.length >= MIN_PATH_LENGTH_FOR_ANGLE) {
-      const textPositions = this.getTextPositionsForCollapsedChain(
-        collapsedChainPath,
-        trainrunSection,
-      );
-      const x =
-        textPositions?.[trainrunSectionText]?.x ??
-        trainrunSection.getTextPositionX(trainrunSectionText);
-      const y =
-        textPositions?.[trainrunSectionText]?.y ??
-        trainrunSection.getTextPositionY(trainrunSectionText);
-
-      // Use existing calculation logic with collapsed path
-      if (collapsedChainPath.length < MIN_PATH_LENGTH_FOR_ANGLE) {
-        return `translate(${x},${y}) rotate(0, 0,0) `;
-      }
-
-      const [s1, t1] = [collapsedChainPath[1], collapsedChainPath[2]];
-      const diff = Vec2D.sub(t1, s1);
-      let angle = (Math.atan2(diff.getY(), diff.getX()) / Math.PI) * 180.0;
-
-      if (Math.abs(angle) > ANGLE_UPSIDE_DOWN_THRESHOLD) {
-        angle += 180;
-      }
-
-      if (Math.abs(diff.getX()) < EDGE_CASE_THRESHOLD) {
-        angle = DEFAULT_ANGLE_VERTICAL;
-      }
-      if (Math.abs(diff.getY()) < EDGE_CASE_THRESHOLD) {
-        angle = DEFAULT_ANGLE_HORIZONTAL;
-      }
-
-      return `translate(${x},${y}) rotate(${angle}, 0,0) `;
-    }
-
-    return TrainrunSectionsView.translateAndRotateText(
-      trainrunSection,
-      trainrunSectionText,
-      viewObject,
-    );
   }
 
   static isMuted(
@@ -469,9 +377,8 @@ export class TrainrunSectionsView {
   }
 
   static getAdditionPositioningValue(
-    trainrunSection: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
     textElement: TrainrunSectionText,
-    viewObject?: TrainrunSectionViewObject,
   ) {
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
@@ -481,11 +388,7 @@ export class TrainrunSectionsView {
         return 1.5;
       case TrainrunSectionText.TrainrunSectionTravelTime:
       case TrainrunSectionText.TrainrunSectionName:
-        return TrainrunSectionsView.translateAndRotateText(
-          trainrunSection,
-          textElement,
-          viewObject,
-        );
+        return TrainrunSectionsView.translateAndRotateText(viewObject, textElement);
       default:
         return 0;
     }
@@ -1545,7 +1448,7 @@ export class TrainrunSectionsView {
       .attr(
         TrainrunSectionsView.getAdditionPositioningAttr(textElement),
         (d: TrainrunSectionViewObject) =>
-          this.getAdditionPositioningValueForViewObjectWithCollapsedSupport(d, textElement),
+          TrainrunSectionsView.getAdditionPositioningValue(d, textElement),
       )
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
         d.getTrainrun().selected(),
@@ -1673,7 +1576,7 @@ export class TrainrunSectionsView {
 
   createNumberOfStopsTextElement(
     groupEnter: d3.Selector,
-    trainrunSection: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
     selectedTrainrun: Trainrun,
     connectedTrainIds: any,
     numberOfStops: number,
@@ -1685,30 +1588,34 @@ export class TrainrunSectionsView {
         StaticDomTags.EDGE_LINE_TEXT_CLASS +
           " " +
           TrainrunSectionsView.createTrainrunSectionFrequencyClassAttribute(
-            trainrunSection,
+            viewObject.trainrunSections[0],
             selectedTrainrun,
             connectedTrainIds,
           ) +
           " " +
           TrainrunSectionText[TrainrunSectionText.TrainrunSectionNumberOfStops],
       )
-      .attr(StaticDomTags.EDGE_ID, () => trainrunSection.getId())
-      .attr(StaticDomTags.EDGE_LINE_LINE_ID, () => trainrunSection.getTrainrunId())
+      .attr(StaticDomTags.EDGE_ID, () => viewObject.trainrunSections[0].getId())
+      .attr(StaticDomTags.EDGE_LINE_LINE_ID, () => viewObject.getTrainrun().getId())
       .attr(StaticDomTags.EDGE_LINE_TEXT_INDEX, TrainrunSectionText.TrainrunSectionNumberOfStops)
       .attr("numberOfStops", numberOfStops)
       .attr("x", 0.0)
       .attr("y", 0.0)
       .attr("transform", () =>
         TrainrunSectionsView.translateAndRotateText(
-          trainrunSection,
+          viewObject,
           TrainrunSectionText.TrainrunSectionNumberOfStops,
         ),
       )
       .text(numberOfStops)
       .classed(StaticDomTags.TAG_MUTED, () =>
-        TrainrunSectionsView.isMuted(trainrunSection, selectedTrainrun, connectedTrainIds),
+        TrainrunSectionsView.isMuted(
+          viewObject.trainrunSections[0],
+          selectedTrainrun,
+          connectedTrainIds,
+        ),
       )
-      .classed(StaticDomTags.TAG_SELECTED, () => trainrunSection.getTrainrun().selected())
+      .classed(StaticDomTags.TAG_SELECTED, () => viewObject.getTrainrun().selected())
       .on("mouseup", (t: TrainrunSectionViewObject, i, a) =>
         this.onIntermediateStopMouseUp(t.trainrunSections[0], a[i]),
       );
@@ -1716,12 +1623,12 @@ export class TrainrunSectionsView {
 
   createIntermediateStops(
     groupEnter: d3.Selector,
-    trainrunSection: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
     selectedTrainrun: Trainrun,
     connectedTrainIds: any,
   ) {
-    const numberOfStops = trainrunSection.getNumberOfStops();
-    const path = trainrunSection.getPath();
+    const numberOfStops = viewObject.trainrunSections.length - 1;
+    const path = viewObject.getPath();
     let startPosition = path[1];
     let lineOrientationVector = Vec2D.sub(path[2], startPosition);
     const maxNumberOfStops = Math.min(
@@ -1768,7 +1675,7 @@ export class TrainrunSectionsView {
       );
       this.createNumberOfStopsTextElement(
         groupEnter,
-        trainrunSection,
+        viewObject,
         selectedTrainrun,
         connectedTrainIds,
         numberOfStops,
@@ -1786,7 +1693,7 @@ export class TrainrunSectionsView {
         .select(a[i])
         .append(StaticDomTags.EDGE_LINE_STOPS_GROUP_SVG)
         .attr("class", StaticDomTags.EDGE_LINE_STOPS_GROUP_CLASS);
-      this.createIntermediateStops(grp, t.trainrunSections[0], selectedTrainrun, connectedTrainIds);
+      this.createIntermediateStops(grp, t, selectedTrainrun, connectedTrainIds);
     });
   }
 
