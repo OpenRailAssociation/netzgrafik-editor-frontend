@@ -1721,9 +1721,8 @@ export class TrainrunSectionsView {
     trainrunSectionViewObject: TrainrunSectionViewObject,
   ) {
     // retrieve collapsed node count from view object
-    const collapsedNodeCount = trainrunSectionViewObject.getCollapsedIntermediateStopCount();
+    const numberOfStops = trainrunSectionViewObject.getCollapsedIntermediateStopCount();
     const trainrunSection = trainrunSectionViewObject.trainrunSections[0];
-    const numberOfStops = trainrunSection.getNumberOfStops() + collapsedNodeCount;
     const path = trainrunSectionViewObject.getPath();
     let startPosition = path[1];
     let lineOrientationVector = Vec2D.sub(path[2], startPosition);
