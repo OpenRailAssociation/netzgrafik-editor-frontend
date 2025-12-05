@@ -1559,7 +1559,7 @@ export class TrainrunSectionsView {
       })
       .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) => {
         const trainrunSection = d.trainrunSections.at(atTarget ? -1 : 0)!;
-        return this.getHiddenTagForTime(d.trainrunSections[0], textElement);
+        return this.getHiddenTagForTime(trainrunSection, textElement);
       })
       .classed(StaticDomTags.TAG_EVENT_DISABLED, !enableEvents)
       .text((d: TrainrunSectionViewObject) =>
