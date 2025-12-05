@@ -37,8 +37,8 @@
                 maxlength="2"
                 spellcheck="false"
                 pattern="^[0-9.]*"
-                [(ngModel)]="numberOfStops"
-                (change)="onNumberOfStopsChanged()"
+                [(ngModel)]="numberOfStopsInput"
+                (change)="onNumberOfStopsInputChanged()"
                 (mouseenter)="onMouseEnterNbrStopInput()"
                 (mouseleave)="onMouseOutNbrStopInput()"
               />
@@ -382,6 +382,12 @@
   >
     {{
       "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.warningTwoLocks"
+        | translate
+    }}
+  </button>
+  <button class="warning" *ngIf="showNumberOfStopsWarning" disabled>
+    {{
+      "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.warningNumberOfStops"
         | translate
     }}
   </button>
