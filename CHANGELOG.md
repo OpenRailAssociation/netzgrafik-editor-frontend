@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.1](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.0...netzgrafik-frontend-v2.10.1) (2025-12-05)
+
+
+### Bug Fixes
+
+* Mouse cursor issue fixed ([#662](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/662)) ([4ca8377](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/4ca8377c0ece96e377572031da39cc92d213b24e))
+
 ## [2.10.0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.9.29...netzgrafik-frontend-v2.10.0) (2025-11-27)
 
 ### Features
