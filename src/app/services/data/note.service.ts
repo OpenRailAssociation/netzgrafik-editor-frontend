@@ -246,6 +246,7 @@ export class NoteService {
 
   moveNoteToFront(noteId: number, enforceUpdate = true) {
     const note = this.getNoteFromId(noteId);
+    if (this.notesStore.notes.at(-1) === note) return;
     this.notesStore.notes = this.notesStore.notes.filter((n: Note) => n.getId() !== noteId);
     this.notesStore.notes.push(note);
     if (enforceUpdate) {
