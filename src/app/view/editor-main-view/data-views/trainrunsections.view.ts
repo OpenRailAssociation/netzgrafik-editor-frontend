@@ -1655,8 +1655,8 @@ export class TrainrunSectionsView {
         TrainrunSectionsView.isMuted(d.trainrunSections[0], selectedTrainrun, connectedTrainIds),
       )
       .classed(StaticDomTags.TAG_WARNING, (d: TrainrunSectionViewObject) => {
-        const trainrunSections = d.trainrunSections.at(atSource ? 0 : -1);
-        return TrainrunSectionsView.hasWarning(d.trainrunSections[0], textElement);
+        const trainrunSection = d.trainrunSections.at(atSource ? 0 : -1);
+        return TrainrunSectionsView.hasWarning(trainrunSection, textElement);
       })
       .classed(StaticDomTags.TAG_EVENT_DISABLED, true)
       .classed(StaticDomTags.TAG_START_TEXT_ANCHOR, (d: TrainrunSectionViewObject) =>
