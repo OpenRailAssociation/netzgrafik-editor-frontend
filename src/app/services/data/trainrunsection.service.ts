@@ -976,14 +976,18 @@ export class TrainrunSectionService implements OnDestroy {
 
     node2.replaceTrainrunSectionOnPort(trainrunSection1, trainrunSection2);
 
+    const sourceExpandedNode = this.nodeService.getOppositeExpandedNode(trainrunSection1, node2);
+    const targetExpandedNode = this.nodeService.getOppositeExpandedNode(trainrunSection1, node1);
+
     trainrunSection1.setTargetNode(nodeIntermediate);
-    nodeIntermediate.addPortWithRespectToOppositeNode(node1, trainrunSection1);
-    node1.reAlignPortWithRespectToOppositeNode(nodeIntermediate, trainrunSection1);
+    node2.addPortWithRespectToOppositeNode(sourceExpandedNode, trainrunSection1);
+    node1.reAlignPortWithRespectToOppositeNode(targetExpandedNode, trainrunSection1);
+    // console.log(node1, node2);
 
     trainrunSection2.setSourceNode(nodeIntermediate);
     trainrunSection2.setTargetNode(node2);
-    nodeIntermediate.addPortWithRespectToOppositeNode(node2, trainrunSection2);
-    node2.reAlignPortWithRespectToOppositeNode(nodeIntermediate, trainrunSection2);
+    node1.addPortWithRespectToOppositeNode(targetExpandedNode, trainrunSection2);
+    node2.reAlignPortWithRespectToOppositeNode(sourceExpandedNode, trainrunSection2);
 
     this.reRouteAffectedTrainrunSections(node1.getId(), nodeIntermediate.getId());
     this.reRouteAffectedTrainrunSections(node2.getId(), nodeIntermediate.getId());
