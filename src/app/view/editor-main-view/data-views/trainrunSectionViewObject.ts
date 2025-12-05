@@ -1,9 +1,12 @@
+import {TrainrunSectionTextPositions} from "../../../data-structures/technical.data.structures";
 import {TrainrunSection} from "../../../models/trainrunsection.model";
+import {SimpleTrainrunSectionRouter} from "../../../services/util/trainrunsection.routing";
 import {Vec2D} from "../../../utils/vec2D";
 import {EditorView} from "./editor.view";
 
 export class TrainrunSectionViewObject {
   readonly key: string;
+  readonly textPositions: TrainrunSectionTextPositions;
 
   constructor(
     private editorView: EditorView,
@@ -28,6 +31,11 @@ export class TrainrunSectionViewObject {
       hiddenTagTraveltime,
       hiddenTagTrainrunName,
       hiddenTagDirectionArrows,
+    );
+
+    this.textPositions = SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(
+      this.getPath(),
+      trainrunSections[0].getSourceNode().getPort(trainrunSections[0].getSourcePortId()),
     );
   }
 
