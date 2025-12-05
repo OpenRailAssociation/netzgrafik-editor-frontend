@@ -1,17 +1,25 @@
+import {TrainrunSectionTextPositions} from "../../../data-structures/technical.data.structures";
 import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {TrainrunSectionText} from "../../../data-structures/technical.data.structures";
+import {SimpleTrainrunSectionRouter} from "../../../services/util/trainrunsection.routing";
 import {Vec2D} from "../../../utils/vec2D";
 import {EditorView} from "./editor.view";
 import {TrainrunSectionsView} from "./trainrunsections.view";
 
 export class TrainrunSectionViewObject {
   readonly key: string;
+  readonly textPositions: TrainrunSectionTextPositions;
 
   constructor(
     private editorView: EditorView,
     readonly trainrunSections: TrainrunSection[],
   ) {
     this.key = this.generateKey(editorView, trainrunSections);
+    this.textPositions = SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(
+      this.getPath(),
+      trainrunSections[0].getSourceNode().getPort(trainrunSections[0].getSourcePortId()),
+      !this.areTravelTimesEqual(),
+    );
   }
 
   getTrainrun() {
@@ -60,6 +68,10 @@ export class TrainrunSectionViewObject {
 
       return sum + sectionTime;
     }, 0);
+  }
+
+  areTravelTimesEqual(): boolean {
+    return this.getTravelTime() === this.getBackwardTravelTime();
   }
 
   private generateKey(editorView: EditorView, trainrunSections: TrainrunSection[]): string {
