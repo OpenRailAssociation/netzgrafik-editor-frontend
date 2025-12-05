@@ -3,11 +3,11 @@ import {Vec2D} from "../../../utils/vec2D";
 import {EditorView} from "./editor.view";
 
 export class TrainrunSectionViewObject {
-  key: string;
+  readonly key: string;
 
   constructor(
     private editorView: EditorView,
-    public trainrunSections: TrainrunSection[],
+    readonly trainrunSections: TrainrunSection[],
     isNonStopAtSource: boolean,
     isNonStopAtTarget: boolean,
     isMuted: boolean,
