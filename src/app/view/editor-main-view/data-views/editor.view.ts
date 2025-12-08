@@ -44,6 +44,7 @@ import {
   TrainrunFrequency,
 } from "../../../data-structures/business.data.structures";
 import {TrainrunSectionText} from "../../../data-structures/technical.data.structures";
+import {SimpleTrainrunSectionRouter} from "src/app/services/util/trainrunsection.routing";
 
 export class EditorView implements SVGMouseControllerObserver {
   static svgName = "graphContainer";
@@ -225,6 +226,7 @@ export class EditorView implements SVGMouseControllerObserver {
       this.svgMouseController,
       this.trainrunSectionPreviewLineView,
       this.positionTransformationService,
+      this,
     );
   }
 
@@ -659,7 +661,7 @@ export class EditorView implements SVGMouseControllerObserver {
       // try to use multi select trainrunsections
       this.trainrunSectionService.getTrainrunSections().forEach((ts) => {
         ts.unselect();
-        const p = ts.getPath();
+        const p = SimpleTrainrunSectionRouter.computePath(ts);
         const minX = Math.min(p[1].getX(), p[2].getX());
         const maxX = Math.max(p[1].getX(), p[2].getX());
         const minY = Math.min(p[1].getY(), p[2].getY());
