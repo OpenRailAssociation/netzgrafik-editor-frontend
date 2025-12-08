@@ -27,6 +27,7 @@ import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
+import {ConnectionsView} from "./connections.view";
 
 describe("TrainrunSection-View", () => {
   let dataService: DataService;
@@ -1612,5 +1613,25 @@ describe("TrainrunSection-View", () => {
       true,
     );
     expect(v1).toBe("ZUE");
+  });
+
+  it("ConnectionsView.getConnectionPinPosition - 001", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const node = nodeService.getNodeFromId(2);
+    const con = node.getConnectionFromId(2);
+    const ts = ConnectionsView.getTrainrunSectionPort2(con, node);
+    const pos = editorView.connectionsView.getConnectionPinPosition(ts, node);
+    expect(pos.getX()).toBe(734);
+    expect(pos.getY()).toBe(144);
+  });
+
+  it("ConnectionsView.getConnectionPinPosition - 002", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const node = nodeService.getNodeFromId(2);
+    const con = node.getConnectionFromId(2);
+    const ts = ConnectionsView.getTrainrunSectionPort2(con, node);
+    const pos = editorView.connectionsView.getConnectionPinPosition(ts, ts.getSourceNode());
+    expect(pos.getX()).toBe(418);
+    expect(pos.getY()).toBe(112);
   });
 });

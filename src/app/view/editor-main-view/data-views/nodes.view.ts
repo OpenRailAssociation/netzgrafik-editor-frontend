@@ -19,7 +19,6 @@ import {
 import {Vec2D} from "../../../utils/vec2D";
 import {D3Utils} from "./d3.utils";
 import {NodeViewObject} from "./nodeViewObject";
-import {ConnectionsView} from "./connections.view";
 import {EditorMode} from "../../editor-menu/editor-mode";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
 
@@ -912,7 +911,7 @@ export class NodesView {
           if (hover) {
             D3Utils.removeGrayout(ts);
             this.editorView.trainrunSectionPreviewLineView.setStartConnectionPos(
-              ConnectionsView.getConnectionPinPosition(ts, node),
+              this.editorView.connectionsView.getConnectionPinPosition(ts, node),
             );
           } else {
             this.editorView.trainrunSectionPreviewLineView.resetStartConnectionPos();
