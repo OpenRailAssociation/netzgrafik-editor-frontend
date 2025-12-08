@@ -10,6 +10,7 @@ import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {RASTERING_BASIC_GRID_SIZE} from "../../view/rastering/definitions";
 import {Vec2D} from "src/app/utils/vec2D";
 import {NodeOperation, Operation, OperationType} from "src/app/models/operation.model";
+import {SimpleTrainrunSectionRouter} from "./trainrunsection.routing";
 
 // This auto-layout service was introduced at www.hack4rail.org 2026 at the Vienna hackathon.
 // It is a simple implementation of a layout optimization algorithm that stretches or shrinks
@@ -180,8 +181,7 @@ export class AutoLayoutService {
   }
 
   private getSectionInfo(section: TrainrunSection): SectionInfo {
-    const source = section.getPositionAtSourceNode();
-    const target = section.getPositionAtTargetNode();
+    const {source, target} = this.getPositionsAtNodes(section);
 
     const sourceNode = section.getSourceNode();
     const targetNode = section.getTargetNode();
@@ -464,11 +464,8 @@ export class AutoLayoutService {
   }
 
   private getAllowedShrinkDelta(section: TrainrunSection, direction: LayoutDirection): number {
-    const span = this.getSectionSpan(
-      section.getPositionAtSourceNode(),
-      section.getPositionAtTargetNode(),
-      direction,
-    );
+    const {source, target} = this.getPositionsAtNodes(section);
+    const span = this.getSectionSpan(source, target, direction);
     const minLength =
       AutoLayoutService.MIN_SECTION_LENGTH_PX + this.getTrainrunCategoryAndTitleCharLength(section);
     const grid = RASTERING_BASIC_GRID_SIZE;
@@ -483,5 +480,18 @@ export class AutoLayoutService {
       // Do not call updateTransitionsAndConnections() here.
       // It would re-apply spatial port ordering and undo initPortOrdering().
     }
+  }
+
+  private getPositionsAtNodes(section: TrainrunSection): {source: PointLike; target: PointLike} {
+    const group = this.trainrunSectionService.getTrainrunSectionsGroupOrientedBasedOnPort(
+      section.getSourceNode().getPort(section.getSourcePortId()),
+    );
+
+    if (group === undefined || group.length < 1) {
+      throw new Error("No trainrun sections found for the given section.");
+    }
+
+    const path = SimpleTrainrunSectionRouter.computePath(group[0], group[group.length - 1]);
+    return {source: path[0], target: path[path.length - 1]};
   }
 }
