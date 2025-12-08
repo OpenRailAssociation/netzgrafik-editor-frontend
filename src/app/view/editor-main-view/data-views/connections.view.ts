@@ -8,6 +8,7 @@ import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {DEFAULT_PIN_RADIUS} from "../../rastering/definitions";
 import {Vec2D} from "../../../utils/vec2D";
 import {ConnectionsViewObject} from "./connectionViewObject";
+import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
 
 export class ConnectionsView {
@@ -59,11 +60,24 @@ export class ConnectionsView {
     return port2.getTrainrunSection();
   }
 
-  static getConnectionPinPosition(ts: TrainrunSection, node: Node): Vec2D {
+  getConnectionPinPosition(ts: TrainrunSection, node: Node): Vec2D {
+    const viewObject = new TrainrunSectionViewObject(
+      this.editorView,
+      [ts],
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+    );
+
     if (node.getId() === ts.getSourceNodeId()) {
-      return ts.getPositionAtSourceNode();
+      return viewObject.getPositionAtSourceNode();
     }
-    return ts.getPositionAtTargetNode();
+    return viewObject.getPositionAtTargetNode();
   }
 
   setGroup(connectionsGroup) {
@@ -199,14 +213,14 @@ export class ConnectionsView {
       if (ConnectionsView.displayConnection(c.connection, c.node)) {
         if (ConnectionsView.displayConnectionPinPort2(c.connection, c.node)) {
           if (selectedTrainrun === null || selectedTrainrun.getId() === ts2.getTrainrunId()) {
-            const pinPos = ConnectionsView.getConnectionPinPosition(ts1, c.node);
+            const pinPos = this.getConnectionPinPosition(ts1, c.node);
             this.createConnectionSinglePin(d3.select(a[i]), pinPos);
           }
         }
 
         if (ConnectionsView.displayConnectionPinPort1(c.connection, c.node)) {
           if (selectedTrainrun === null || selectedTrainrun.getId() === ts1.getTrainrunId()) {
-            const pinPos = ConnectionsView.getConnectionPinPosition(ts2, c.node);
+            const pinPos = this.getConnectionPinPosition(ts2, c.node);
             this.createConnectionSinglePin(d3.select(a[i]), pinPos);
           }
         }
