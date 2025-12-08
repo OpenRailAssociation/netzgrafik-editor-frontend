@@ -14,7 +14,7 @@ export class TrainrunSectionViewObject {
   readonly textPositions: TrainrunSectionTextPositions;
 
   constructor(
-    private editorView: EditorView,
+    editorView: EditorView,
     readonly trainrunSections: TrainrunSection[],
   ) {
     this.path = SimpleTrainrunSectionRouter.routeTrainrunSection(
@@ -81,7 +81,6 @@ export class TrainrunSectionViewObject {
   }
 
   private generateKey(editorView: EditorView, trainrunSections: TrainrunSection[]): string {
-    const trainrun = this.getTrainrun();
     const firstSection = trainrunSections[0];
     const lastSection = trainrunSections.at(-1);
 
