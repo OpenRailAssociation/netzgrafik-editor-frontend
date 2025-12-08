@@ -5,6 +5,7 @@ import {
 import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {SimpleTrainrunSectionRouter} from "../../../services/util/trainrunsection.routing";
 import {Vec2D} from "../../../utils/vec2D";
+import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 import {EditorView} from "./editor.view";
 import {TrainrunSectionsView} from "./trainrunsections.view";
 import {Node} from "src/app/models/node.model";
@@ -114,6 +115,12 @@ export class TrainrunSectionViewObject {
 
   getPositionAtTargetNode(): Vec2D {
     return this.path[this.path.length - 1];
+  }
+
+  isTargetRightOrBottom(): boolean {
+    const firstNode = this.firstSection.getSourceNode();
+    const lastNode = this.lastSection.getTargetNode();
+    return GeneralViewFunctions.getRightOrBottomNode(firstNode, lastNode) === lastNode;
   }
 
   private generateKey(editorView: EditorView, trainrunSections: TrainrunSection[]): string {
