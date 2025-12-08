@@ -36,6 +36,7 @@ import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
 import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
 import {LinePatternRefs} from "../../../data-structures/business.data.structures";
 import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helper";
+import {SimpleTrainrunSectionRouter} from "src/app/services/util/trainrunsection.routing";
 
 export class TrainrunSectionsView {
   trainrunSectionGroup;
@@ -50,7 +51,7 @@ export class TrainrunSectionsView {
     trainrunSectionText: TrainrunSectionText,
   ) {
     const {x, y} = viewObject.textPositions[trainrunSectionText];
-    const pathVec2D = viewObject.getPath();
+    const pathVec2D = viewObject.path;
 
     // Check if path has enough points
     if (pathVec2D.length < 4) {
@@ -126,8 +127,8 @@ export class TrainrunSectionsView {
     return classAttribute;
   }
 
-  static createSemicircle(trainrunSection: TrainrunSection, position: Vec2D): string {
-    const path = trainrunSection.getPath();
+  static createSemicircle(viewObject: TrainrunSectionViewObject, position: Vec2D): string {
+    const path = viewObject.path;
     let delta: Vec2D = Vec2D.sub(path[1], path[0]);
     if (Vec2D.equal(path[3], position)) {
       delta = Vec2D.sub(path[2], path[3]);
@@ -156,10 +157,7 @@ export class TrainrunSectionsView {
   }
 
   static getPosition(viewObject: TrainrunSectionViewObject, atSource: boolean): Vec2D {
-    const trainrunSection = viewObject.getExtremitySection(atSource);
-    return atSource
-      ? trainrunSection.getPositionAtSourceNode()
-      : trainrunSection.getPositionAtTargetNode();
+    return atSource ? viewObject.getPositionAtSourceNode() : viewObject.getPositionAtTargetNode();
   }
 
   static getNode(trainrunSection: TrainrunSection, atSource: boolean): Node {
@@ -284,7 +282,7 @@ export class TrainrunSectionsView {
   }
 
   static enforceStartTextAnchor(viewObject: TrainrunSectionViewObject, atSource: boolean): boolean {
-    const path = viewObject.getPath();
+    const path = viewObject.path;
     if (atSource) {
       if (Math.floor(path[1].getX() - path[0].getX()) > 0) {
         return true;
@@ -307,7 +305,7 @@ export class TrainrunSectionsView {
     viewObject: TrainrunSectionViewObject,
     atSource: boolean,
   ): string {
-    const path = viewObject.getPath();
+    const path = viewObject.path;
     let pos: Vec2D;
     if (atSource) {
       pos = Vec2D.add(path[1], Vec2D.scale(Vec2D.normalize(Vec2D.sub(path[1], path[0])), 16));
@@ -328,13 +326,16 @@ export class TrainrunSectionsView {
     return retPos + `rotate(${DEFAULT_ANGLE_VERTICAL})`;
   }
 
-  static getPositionX(trainrunSection: TrainrunSection, textElement: TrainrunSectionText): number {
+  static getPositionX(
+    viewObject: TrainrunSectionViewObject,
+    textElement: TrainrunSectionText,
+  ): number {
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
       case TrainrunSectionText.SourceArrival:
       case TrainrunSectionText.TargetDeparture:
       case TrainrunSectionText.TargetArrival:
-        return trainrunSection.getTextPositionX(textElement);
+        return viewObject.getTextPositionX(textElement);
       case TrainrunSectionText.TrainrunSectionTravelTime:
         return RASTERING_BASIC_GRID_SIZE / 4;
       case TrainrunSectionText.TrainrunSectionName:
@@ -344,13 +345,16 @@ export class TrainrunSectionsView {
     }
   }
 
-  static getPositionY(trainrunSection: TrainrunSection, textElement: TrainrunSectionText): number {
+  static getPositionY(
+    viewObject: TrainrunSectionViewObject,
+    textElement: TrainrunSectionText,
+  ): number {
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
       case TrainrunSectionText.SourceArrival:
       case TrainrunSectionText.TargetDeparture:
       case TrainrunSectionText.TargetArrival:
-        return trainrunSection.getTextPositionY(textElement);
+        return viewObject.getTextPositionY(textElement);
       case TrainrunSectionText.TrainrunSectionTravelTime:
       case TrainrunSectionText.TrainrunSectionName:
         return 0.0;
@@ -1011,45 +1015,46 @@ export class TrainrunSectionsView {
         d.getTrainrun().getId(),
       )
       .attr(StaticDomTags.EDGE_LINE_TEXT_INDEX, lineTextElement)
-      .attr("x", (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.getExtremitySection(atSource);
-        return (
-          trainrunSection.getTextPositionX(lineTextElement) -
-          TrainrunSectionsView.getTrainrunSectionValueTextWidth(trainrunSection, lineTextElement) /
-            2
-        );
-      })
-      .attr("y", (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.getExtremitySection(atSource);
-        return (
-          trainrunSection.getTextPositionY(lineTextElement) - TRAINRUN_SECTION_TEXT_AREA_HEIGHT / 2
-        );
-      })
-      .attr("width", (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.getExtremitySection(atSource);
-        return TrainrunSectionsView.getTrainrunSectionValueTextWidth(
-          trainrunSection,
+      .attr(
+        "x",
+        (d: TrainrunSectionViewObject) =>
+          d.getTextPositionX(lineTextElement) -
+          TrainrunSectionsView.getTrainrunSectionValueTextWidth(
+            d.getExtremitySection(atSource),
+            lineTextElement,
+          ) /
+            2,
+      )
+      .attr(
+        "y",
+        (d: TrainrunSectionViewObject) =>
+          d.getTextPositionY(lineTextElement) - TRAINRUN_SECTION_TEXT_AREA_HEIGHT / 2,
+      )
+      .attr("width", (d: TrainrunSectionViewObject) =>
+        TrainrunSectionsView.getTrainrunSectionValueTextWidth(
+          d.getExtremitySection(atSource),
           lineTextElement,
-        );
-      })
+        ),
+      )
       .attr("height", TRAINRUN_SECTION_TEXT_AREA_HEIGHT)
       .classed(TrainrunSectionText[lineTextElement], true)
-      .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.getExtremitySection(atSource);
-        return TrainrunSectionsView.getHiddenTagForTime(
+      .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) =>
+        TrainrunSectionsView.getHiddenTagForTime(
           this.editorView,
-          trainrunSection,
+          d.getExtremitySection(atSource),
           lineTextElement,
-        );
-      });
+        ),
+      );
   }
 
   translateAndRotateArrow(
-    trainrunSection: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
     arrowType: "BEGINNING_ARROW" | "ENDING_ARROW",
   ) {
-    const positions = trainrunSection.getPath();
-    const isTargetRightOrBottom = TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection);
+    const positions = viewObject.path;
+    const isTargetRightOrBottom = TrainrunsectionHelper.isTargetRightOrBottom(
+      viewObject.firstSection,
+    );
 
     // Use the first segment of the section to determine the direction
     const xDiff = positions[1].getX() - positions[0].getX();
@@ -1101,8 +1106,7 @@ export class TrainrunSectionsView {
         .append(StaticDomTags.EDGE_LINE_ARROW_SVG)
         .attr("d", "M-4,-5L2,0L-4,5Z")
         .attr("transform", (d: TrainrunSectionViewObject) => {
-          const trainrunSection = d.getExtremitySection(arrowType === "BEGINNING_ARROW");
-          return this.translateAndRotateArrow(trainrunSection, arrowType);
+          return this.translateAndRotateArrow(d, arrowType);
         })
         .attr(
           "class",
@@ -1237,7 +1241,7 @@ export class TrainrunSectionsView {
       )
       .attr("d", (d: TrainrunSectionViewObject) => {
         return TrainrunSectionsView.createSemicircle(
-          d.getExtremitySection(atSource),
+          d,
           TrainrunSectionsView.getPosition(d, atSource),
         );
       })
@@ -1424,14 +1428,12 @@ export class TrainrunSectionsView {
         d.getTrainrun().getId(),
       )
       .attr(StaticDomTags.EDGE_LINE_TEXT_INDEX, textElement)
-      .attr("x", (d: TrainrunSectionViewObject) => {
-        const section = d.getExtremitySection(!atTarget);
-        return TrainrunSectionsView.getPositionX(section, textElement);
-      })
-      .attr("y", (d: TrainrunSectionViewObject) => {
-        const section = d.getExtremitySection(!atTarget);
-        return TrainrunSectionsView.getPositionY(section, textElement);
-      })
+      .attr("x", (d: TrainrunSectionViewObject) =>
+        TrainrunSectionsView.getPositionX(d, textElement),
+      )
+      .attr("y", (d: TrainrunSectionViewObject) =>
+        TrainrunSectionsView.getPositionY(d, textElement),
+      )
       .attr(
         TrainrunSectionsView.getAdditionPositioningAttr(textElement),
         (d: TrainrunSectionViewObject) =>
@@ -1612,7 +1614,7 @@ export class TrainrunSectionsView {
     connectedTrainIds: any,
   ) {
     const numberOfStops = viewObject.getNumberOfStops();
-    const path = viewObject.getPath();
+    const path = viewObject.path;
     let startPosition = path[1];
     let lineOrientationVector = Vec2D.sub(path[2], startPosition);
     const maxNumberOfStops = Math.min(
@@ -1711,8 +1713,9 @@ export class TrainrunSectionsView {
 
     const filteredTrainrunSections = trainrunSections.filter(
       (trainrunSection: TrainrunSection) =>
-        this.editorView.doCullCheckPositionsInViewport(trainrunSection.getPath()) &&
-        this.filterTrainrunSectionToDisplay(trainrunSection),
+        this.editorView.doCullCheckPositionsInViewport(
+          SimpleTrainrunSectionRouter.computePath(trainrunSection),
+        ) && this.filterTrainrunSectionToDisplay(trainrunSection),
     );
 
     const group = this.trainrunSectionGroup
@@ -1802,7 +1805,7 @@ export class TrainrunSectionsView {
   }
 
   onIntermediateStopMouseDown(
-    trainrunSection: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
     stopIndex: number,
     position: Vec2D,
     domObj: any,
@@ -1817,7 +1820,7 @@ export class TrainrunSectionsView {
       return;
     }
     this.editorView.trainrunSectionPreviewLineView.startDragIntermediateStop(
-      new DragIntermediateStopInfo(trainrunSection, stopIndex, domObj),
+      new DragIntermediateStopInfo(viewObject, stopIndex, domObj),
       position,
     );
 
@@ -2096,24 +2099,25 @@ export class TrainrunSectionsView {
   }
 
   private transformPathIfSourceNodeFilteredDueNonStopNodesFiltering(
-    ts: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
     transformedPath: Vec2D[],
   ): Vec2D[] {
-    const srcNode = ts.getSourceNode();
-    const path: Vec2D[] = Object.assign([], ts.getPath());
+    const sourceSection = viewObject.firstSection;
+    const srcNode = sourceSection.getSourceNode();
+    const path: Vec2D[] = Object.assign([], viewObject.path);
 
     if (!this.editorView.checkFilterNonStopNode(srcNode)) {
       const element = path[0].copy();
       transformedPath = transformedPath.reverse();
       transformedPath = this.transformPathAddExtraElementForPortAlignmentBottom(
         srcNode,
-        ts,
+        sourceSection,
         element,
         transformedPath,
       );
       transformedPath = transformedPath.reverse();
 
-      const transitionObject: Transition = srcNode.getTransition(ts.getId());
+      const transitionObject: Transition = srcNode.getTransition(sourceSection.getId());
       if (transitionObject !== undefined) {
         const tPath = Object.assign([], transitionObject.getPath());
         const n0 = Vec2D.norm(Vec2D.sub(element, tPath[0]));
@@ -2139,22 +2143,23 @@ export class TrainrunSectionsView {
   }
 
   private transformPathIfTargetNodeFilteredDueNonStopNodesFiltering(
-    ts: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
     transformedPath: Vec2D[],
   ): Vec2D[] {
-    const trgNode = ts.getTargetNode();
-    const path: Vec2D[] = Object.assign([], ts.getPath());
+    const targetSection = viewObject.lastSection;
+    const trgNode = targetSection.getTargetNode();
+    const path: Vec2D[] = Object.assign([], viewObject.path);
 
     if (!this.editorView.checkFilterNonStopNode(trgNode)) {
       const element = path[3].copy();
       transformedPath = this.transformPathAddExtraElementForPortAlignmentBottom(
         trgNode,
-        ts,
+        targetSection,
         element,
         transformedPath,
       );
 
-      const transitionObject: Transition = trgNode.getTransition(ts.getId());
+      const transitionObject: Transition = trgNode.getTransition(targetSection.getId());
       if (transitionObject !== undefined) {
         const tPath = Object.assign([], transitionObject.getPath());
         const n0 = Vec2D.norm(Vec2D.sub(element, tPath[0]));
@@ -2181,7 +2186,7 @@ export class TrainrunSectionsView {
 
     const srcNode = firstSection.getSourceNode();
     const trgNode = lastSection.getTargetNode();
-    const path = viewObject.getPath();
+    const path = viewObject.path;
 
     let notFilteringSourceNode = this.editorView.checkFilterNode(srcNode);
     let notFilteringTargetNode = this.editorView.checkFilterNode(trgNode);
@@ -2205,13 +2210,13 @@ export class TrainrunSectionsView {
     if (!this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       if (firstSection.getSourceNode().isNonStopNode()) {
         retPath = this.transformPathIfSourceNodeFilteredDueNonStopNodesFiltering(
-          firstSection,
+          viewObject,
           retPath,
         );
       }
       if (lastSection.getTargetNode().isNonStopNode()) {
         retPath = this.transformPathIfTargetNodeFilteredDueNonStopNodesFiltering(
-          lastSection,
+          viewObject,
           retPath,
         );
       }
@@ -2600,7 +2605,7 @@ export class TrainrunSectionsView {
         this.onIntermediateStopMouseOut(t.firstSection, stopIndex, position, a[i]),
       )
       .on("mousedown", (t: TrainrunSectionViewObject, i, a) =>
-        this.onIntermediateStopMouseDown(t.firstSection, stopIndex, position, a[i]),
+        this.onIntermediateStopMouseDown(t, stopIndex, position, a[i]),
       )
       .on("mouseup", (t: TrainrunSectionViewObject, i, a) =>
         this.onIntermediateStopMouseUp(t.firstSection, a[i]),

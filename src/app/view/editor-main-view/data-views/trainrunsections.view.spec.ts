@@ -27,6 +27,8 @@ import {Vec2D} from "../../../utils/vec2D";
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
+import {ConnectionsView} from "./connections.view";
+import {LinePatternRefs} from "src/app/data-structures/business.data.structures";
 
 describe("TrainrunSection-View", () => {
   let dataService: DataService;
@@ -179,6 +181,47 @@ describe("TrainrunSection-View", () => {
     editorView = controller.editorView;
   });
 
+  it("path router check", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    expect(trainrunSections.length).toBe(8);
+    const ts = trainrunSectionService.getTrainrunSectionFromId(0);
+    const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
+    expect(viewObject.path[0].getX()).toBe(130);
+    expect(viewObject.path[0].getY()).toBe(48);
+    expect(viewObject.path[1].getX()).toBe(194);
+    expect(viewObject.path[1].getY()).toBe(48);
+    expect(viewObject.path[2].getX()).toBe(254);
+    expect(viewObject.path[2].getY()).toBe(48);
+    expect(viewObject.path[3].getX()).toBe(318);
+    expect(viewObject.path[3].getY()).toBe(48);
+    expect(ts.getSourcePortId()).toBe(0);
+    expect(ts.getTargetPortId()).toBe(1);
+    expect(ts.getNumberOfStops()).toBe(0);
+
+    expect(viewObject.getTextPositionX(TrainrunSectionText.TargetArrival)).toBe(300);
+    expect(viewObject.getTextPositionX(TrainrunSectionText.TargetDeparture)).toBe(272);
+    expect(viewObject.getTextPositionX(TrainrunSectionText.SourceArrival)).toBe(148);
+    expect(viewObject.getTextPositionX(TrainrunSectionText.SourceDeparture)).toBe(176);
+    expect(viewObject.getTextPositionX(TrainrunSectionText.TrainrunSectionTravelTime)).toBe(224);
+
+    expect(viewObject.getTextPositionY(TrainrunSectionText.TargetArrival)).toBe(36);
+    expect(viewObject.getTextPositionY(TrainrunSectionText.TargetDeparture)).toBe(60);
+    expect(viewObject.getTextPositionY(TrainrunSectionText.SourceArrival)).toBe(60);
+    expect(viewObject.getTextPositionY(TrainrunSectionText.SourceDeparture)).toBe(36);
+    expect(viewObject.getTextPositionY(TrainrunSectionText.TrainrunSectionTravelTime)).toBe(36);
+
+    expect(viewObject.getPositionAtSourceNode().getX()).toBe(130);
+    expect(viewObject.getPositionAtSourceNode().getY()).toBe(48);
+    expect(viewObject.getPositionAtTargetNode().getX()).toBe(318);
+    expect(viewObject.getPositionAtTargetNode().getY()).toBe(48);
+    expect(ts.getFrequency()).toBe(60);
+    expect(ts.getFrequencyLinePatternRef()).toBe(LinePatternRefs.Freq60);
+    expect(ts.getTimeCategoryLinePatternRef()).toBe(LinePatternRefs.TimeCat7_24);
+
+    const tsDto = ts.getDto();
+    expect(tsDto.id).toBe(ts.getId());
+  });
+
   it("TrainrunSectionsView.translateAndRotateText - TrainrunSectionName", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(4);
@@ -322,14 +365,16 @@ describe("TrainrunSection-View", () => {
   it("TrainrunSectionsView.createSemicircle - 001", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(4);
-    const str = TrainrunSectionsView.createSemicircle(ts, new Vec2D(100, 25));
+    const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
+    const str = TrainrunSectionsView.createSemicircle(viewObject, new Vec2D(100, 25));
     expect(str).toBe("M2.4492935982947064e-16,-4A4,4,0,1,1,2.4492935982947064e-16,4L0,0Z");
   });
 
   it("TrainrunSectionsView.createSemicircle - 002", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(4);
-    const str = TrainrunSectionsView.createSemicircle(ts, ts.getPath()[3]);
+    const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
+    const str = TrainrunSectionsView.createSemicircle(viewObject, viewObject.path[3]);
     expect(str).toBe("M-7.347880794884119e-16,4A4,4,0,1,1,2.4492935982947064e-16,-4L0,0Z");
   });
 
@@ -1029,8 +1074,8 @@ describe("TrainrunSection-View", () => {
   it("TrainrunSectionsView.enforceStartTextAnchor - 007", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(7);
-    ts.getPath()[1].setY(-1);
     const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
+    viewObject.path[1].setY(-1);
     const v1 = TrainrunSectionsView.enforceStartTextAnchor(viewObject, true);
     expect(v1).toBe(true);
   });
@@ -1038,9 +1083,9 @@ describe("TrainrunSection-View", () => {
   it("TrainrunSectionsView.enforceStartTextAnchor - 008", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(7);
-    ts.getPath()[3].setX(ts.getPath()[2].getX());
-    ts.getPath()[3].setY(ts.getPath()[2].getY() + 1000);
     const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
+    viewObject.path[3].setX(viewObject.path[2].getX());
+    viewObject.path[3].setY(viewObject.path[2].getY() + 1000);
     const v1 = TrainrunSectionsView.enforceStartTextAnchor(viewObject, false);
     expect(v1).toBe(true);
   });
@@ -1064,9 +1109,9 @@ describe("TrainrunSection-View", () => {
   it("TrainrunSectionsView.getAdditionTextCloseToNodePositioningValue - 003", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(6);
-    ts.getPath()[3].setX(ts.getPath()[2].getX());
-    ts.getPath()[3].setY(ts.getPath()[2].getY() + 1000);
     const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
+    viewObject.path[3].setX(viewObject.path[2].getX());
+    viewObject.path[3].setY(viewObject.path[2].getY() + 1000);
     const v1 = TrainrunSectionsView.getAdditionTextCloseToNodePositioningValue(viewObject, false);
     expect(v1).toBe("translate(898,96) rotate(-90)");
   });
@@ -1074,9 +1119,9 @@ describe("TrainrunSection-View", () => {
   it("TrainrunSectionsView.getAdditionTextCloseToNodePositioningValue - 003", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(6);
-    ts.getPath()[1].setX(ts.getPath()[0].getX());
-    ts.getPath()[1].setY(ts.getPath()[0].getY());
     const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
+    viewObject.path[1].setX(viewObject.path[0].getX());
+    viewObject.path[1].setY(viewObject.path[0].getY());
     const v1 = TrainrunSectionsView.getAdditionTextCloseToNodePositioningValue(viewObject, true);
     expect(v1).toBe("translate(1054,272) rotate(-90)");
   });
@@ -1084,29 +1129,39 @@ describe("TrainrunSection-View", () => {
   it("TrainrunSectionsView.getPositionX - TrainrunSectionName", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(2);
-    const v1 = TrainrunSectionsView.getPositionX(ts, TrainrunSectionText.TrainrunSectionName);
+    const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
+    const v1 = TrainrunSectionsView.getPositionX(
+      viewObject,
+      TrainrunSectionText.TrainrunSectionName,
+    );
     expect(v1).toBe(-8);
   });
 
   it("TrainrunSectionsView.getPositionX - TrainrunSectionTravelTime", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(2);
-    const v1 = TrainrunSectionsView.getPositionX(ts, TrainrunSectionText.TrainrunSectionTravelTime);
+    const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
+    const v1 = TrainrunSectionsView.getPositionX(
+      viewObject,
+      TrainrunSectionText.TrainrunSectionTravelTime,
+    );
     expect(v1).toBe(8);
   });
 
   it("TrainrunSectionsView.getPositionX - TargetDeparture", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(2);
-    const v1 = TrainrunSectionsView.getPositionX(ts, TrainrunSectionText.TargetDeparture);
+    const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
+    const v1 = TrainrunSectionsView.getPositionX(viewObject, TrainrunSectionText.TargetDeparture);
     expect(v1).toBe(688);
   });
 
   it("TrainrunSectionsView.getPositionX - TrainrunSectionNumberOfStops", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(2);
+    const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
     const v1 = TrainrunSectionsView.getPositionX(
-      ts,
+      viewObject,
       TrainrunSectionText.TrainrunSectionNumberOfStops,
     );
     expect(v1).toBe(0);
@@ -1115,36 +1170,50 @@ describe("TrainrunSection-View", () => {
   it("TrainrunSectionsView.getPositionY - TrainrunSectionName", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(2);
-    const v1 = TrainrunSectionsView.getPositionY(ts, TrainrunSectionText.TrainrunSectionName);
+    const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
+    const v1 = TrainrunSectionsView.getPositionY(
+      viewObject,
+      TrainrunSectionText.TrainrunSectionName,
+    );
     expect(v1).toBe(0);
   });
 
   it("TrainrunSectionsView.getPositionY - TrainrunSectionName", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(2);
-    const v1 = TrainrunSectionsView.getPositionX(ts, TrainrunSectionText.TrainrunSectionName);
+    const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
+    const v1 = TrainrunSectionsView.getPositionX(
+      viewObject,
+      TrainrunSectionText.TrainrunSectionName,
+    );
     expect(v1).toBe(-8);
   });
 
   it("TrainrunSectionsView.getPositionY - TrainrunSectionTravelTime", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(2);
-    const v1 = TrainrunSectionsView.getPositionX(ts, TrainrunSectionText.TrainrunSectionTravelTime);
+    const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
+    const v1 = TrainrunSectionsView.getPositionX(
+      viewObject,
+      TrainrunSectionText.TrainrunSectionTravelTime,
+    );
     expect(v1).toBe(8);
   });
 
   it("TrainrunSectionsView.getPositionY - TargetDeparture", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(2);
-    const v1 = TrainrunSectionsView.getPositionY(ts, TrainrunSectionText.TargetDeparture);
+    const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
+    const v1 = TrainrunSectionsView.getPositionY(viewObject, TrainrunSectionText.TargetDeparture);
     expect(v1).toBe(124);
   });
 
   it("TrainrunSectionsView.getPositionY - TrainrunSectionNumberOfStops", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(2);
+    const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
     const v1 = TrainrunSectionsView.getPositionY(
-      ts,
+      viewObject,
       TrainrunSectionText.TrainrunSectionNumberOfStops,
     );
     expect(v1).toBe(0);
@@ -1572,5 +1641,25 @@ describe("TrainrunSection-View", () => {
       true,
     );
     expect(v1).toBe("ZUE");
+  });
+
+  it("ConnectionsView.getConnectionPinPosition - 001", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const node = nodeService.getNodeFromId(2);
+    const con = node.getConnectionFromId(2);
+    const ts = ConnectionsView.getTrainrunSectionPort2(con, node);
+    const pos = editorView.connectionsView.getConnectionPinPosition(ts, node);
+    expect(pos.getX()).toBe(734);
+    expect(pos.getY()).toBe(144);
+  });
+
+  it("ConnectionsView.getConnectionPinPosition - 002", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const node = nodeService.getNodeFromId(2);
+    const con = node.getConnectionFromId(2);
+    const ts = ConnectionsView.getTrainrunSectionPort2(con, node);
+    const pos = editorView.connectionsView.getConnectionPinPosition(ts, ts.getSourceNode());
+    expect(pos.getX()).toBe(418);
+    expect(pos.getY()).toBe(112);
   });
 });

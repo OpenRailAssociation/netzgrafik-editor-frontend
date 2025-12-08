@@ -208,24 +208,4 @@ describe("Connections View", () => {
     const ts = ConnectionsView.getTrainrunSectionPort2(con, node);
     expect(ts.getId()).toBe(4);
   });
-
-  it("ConnectionsView.getTrainrunSectionPort2 - 001", () => {
-    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const node = nodeService.getNodeFromId(2);
-    const con = node.getConnectionFromId(2);
-    const ts = ConnectionsView.getTrainrunSectionPort2(con, node);
-    const pos = ConnectionsView.getConnectionPinPosition(ts, node);
-    expect(pos.getX()).toBe(734);
-    expect(pos.getY()).toBe(144);
-  });
-
-  it("ConnectionsView.getTrainrunSectionPort2 - 002", () => {
-    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const node = nodeService.getNodeFromId(2);
-    const con = node.getConnectionFromId(2);
-    const ts = ConnectionsView.getTrainrunSectionPort2(con, node);
-    const pos = ConnectionsView.getConnectionPinPosition(ts, ts.getSourceNode());
-    expect(pos.getX()).toBe(418);
-    expect(pos.getY()).toBe(112);
-  });
 });
