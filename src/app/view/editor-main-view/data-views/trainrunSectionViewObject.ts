@@ -13,7 +13,7 @@ export class TrainrunSectionViewObject {
   readonly textPositions: TrainrunSectionTextPositions;
 
   constructor(
-    private editorView: EditorView,
+    editorView: EditorView,
     public trainrunSections: TrainrunSection[],
     isNonStopAtSource: boolean,
     isNonStopAtTarget: boolean,
@@ -110,7 +110,6 @@ export class TrainrunSectionViewObject {
     hiddenTagTrainrunName: boolean,
     hiddenTagDirectionArrows: boolean,
   ): string {
-    const trainrun = this.getTrainrun();
     const firstSection = trainrunSections[0];
     const lastSection = trainrunSections.at(-1);
     const cumulativeTravelTimeData = editorView.getCumulativeTravelTimeAndNodePath(firstSection);
