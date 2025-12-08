@@ -29,6 +29,8 @@ import {Vec2D} from "../../../utils/vec2D";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
 import {NoteViewObject} from "./noteViewObject";
 import {NodeViewObject} from "./nodeViewObject";
+import {EditorView} from "./editor.view";
+import {SimpleTrainrunSectionRouter} from "src/app/services/util/trainrunsection.routing";
 
 export class EditorKeyEvents {
   private editorMode: EditorMode;
@@ -46,6 +48,7 @@ export class EditorKeyEvents {
     private svgMouseController: SVGMouseController,
     private trainrunSectionPreviewLineView: TrainrunSectionPreviewLineView,
     private positionTransformationService: PositionTransformationService,
+    private editorView: EditorView,
   ) {
     this.activateMousekeyDownHandler(EditorMode.NetzgrafikEditing);
   }
@@ -284,7 +287,7 @@ export class EditorKeyEvents {
     const trg = anchor.getTargetNode();
 
     sections.forEach((ts) => {
-      const p = ts.getPath();
+      const p = SimpleTrainrunSectionRouter.computePath(ts);
       const delta = Vec2D.sub(p[3], p[0]);
 
       if (delta.getX() === 0) {
