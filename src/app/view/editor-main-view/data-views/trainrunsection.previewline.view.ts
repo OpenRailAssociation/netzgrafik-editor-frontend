@@ -9,6 +9,7 @@ import {SimpleTrainrunSectionRouter} from "../../../services/util/trainrunsectio
 import {NodeService} from "../../../services/data/node.service";
 import {FilterService} from "../../../services/ui/filter.service";
 import {VersionControlService} from "../../../services/data/version-control.service";
+import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
 
 export enum PreviewLineMode {
   NotDragging,
@@ -20,7 +21,7 @@ export enum PreviewLineMode {
 
 export class DragIntermediateStopInfo {
   constructor(
-    public trainrunSection: TrainrunSection,
+    public viewObject: TrainrunSectionViewObject,
     public intermediateStopIndex: number,
     public domRef: any,
   ) {}
@@ -109,7 +110,7 @@ export class TrainrunSectionPreviewLineView {
     this.startIntermediatePos = startPosition;
     this.displayTrainrunSectionPreviewLine();
     D3Utils.disableTrainrunSectionForEventHandling();
-    D3Utils.doGrayout(dragIntermediateStopInfo.trainrunSection);
+    D3Utils.doGrayout(dragIntermediateStopInfo.viewObject.firstSection);
   }
 
   startDragTransition(dragTransition: DragTransitionInfo, startPosition: Vec2D) {
@@ -186,8 +187,8 @@ export class TrainrunSectionPreviewLineView {
       this.hideConnectionPreviewLine();
       this.displayTrainrunSectionPreviewLine();
       D3Utils.updateIntermediateStopOrTransitionPreviewLine(
-        this.dragIntermediateStopInfo.trainrunSection.getPath()[0],
-        this.dragIntermediateStopInfo.trainrunSection.getPath()[3],
+        this.dragIntermediateStopInfo.viewObject.getPositionAtSourceNode(),
+        this.dragIntermediateStopInfo.viewObject.getPositionAtTargetNode(),
       );
       return true;
     }
@@ -254,7 +255,7 @@ export class TrainrunSectionPreviewLineView {
     this.hideTrainrunSectionPreviewLine();
     this.hideConnectionPreviewLine();
     if (this.dragIntermediateStopInfo !== null) {
-      D3Utils.removeGrayout(this.dragIntermediateStopInfo.trainrunSection);
+      D3Utils.removeGrayout(this.dragIntermediateStopInfo.viewObject.firstSection);
       d3.select(this.dragIntermediateStopInfo.domRef).classed(StaticDomTags.TAG_HOVER, false);
     }
     if (this.dragTransitionInfo !== null) {
