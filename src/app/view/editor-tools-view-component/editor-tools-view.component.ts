@@ -726,11 +726,7 @@ export class EditorToolsViewComponent {
     return (
       netzgrafikDto.nodes.find((n: NodeDto) => n.ports === undefined) !== undefined ||
       netzgrafikDto.nodes.filter((n: NodeDto) => n.ports?.length === 0).length ===
-        netzgrafikDto.nodes.length ||
-      netzgrafikDto.trainrunSections.find(
-        (ts: TrainrunSectionDto) =>
-          ts.path === undefined || ts.path?.path === undefined || ts.path?.path?.length === 0,
-      ) !== undefined
+        netzgrafikDto.nodes.length
     );
   }
 
