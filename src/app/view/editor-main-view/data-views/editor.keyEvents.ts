@@ -20,6 +20,9 @@ import {PreviewLineMode, TrainrunSectionPreviewLineView} from "./trainrunsection
 import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {Trainrun} from "../../../models/trainrun.model";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
+import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
+import {NoteViewObject} from "./noteViewObject";
+import {NodeViewObject} from "./nodeViewObject";
 
 export class EditorKeyEvents {
   private editorMode: EditorMode;
@@ -168,7 +171,7 @@ export class EditorKeyEvents {
     let selectedTrainrunSectionId: number = undefined;
     d3.select(StaticDomTags.EDGE_LINE_DOM_REF + "." + StaticDomTags.TAG_SELECTED).classed(
       "KeyEventHandling",
-      (tsvo) => {
+      (tsvo: TrainrunSectionViewObject) => {
         if (tsvo === undefined) {
           const trainRun = this.trainrunService.getSelectedTrainrun();
           if (trainRun !== null) {
@@ -189,8 +192,8 @@ export class EditorKeyEvents {
     let noteHoveredId: number = undefined;
     d3.select(StaticDomTags.NOTE_ROOT_DOM_REF + "." + StaticDomTags.TAG_HOVER).classed(
       "KeyEventHandling",
-      (tsvo) => {
-        noteHoveredId = tsvo.note.getId();
+      (nvo: NoteViewObject) => {
+        noteHoveredId = nvo.note.getId();
         return false;
       },
     );
@@ -201,7 +204,7 @@ export class EditorKeyEvents {
     let hoveredNodeId: number = undefined;
     d3.select(StaticDomTags.NODE_ROOT_DOM_REF + "." + StaticDomTags.TAG_HOVER).classed(
       "KeyEventHandling",
-      (nvo) => {
+      (nvo: NodeViewObject) => {
         hoveredNodeId = nvo.node.getId();
         return false;
       },
