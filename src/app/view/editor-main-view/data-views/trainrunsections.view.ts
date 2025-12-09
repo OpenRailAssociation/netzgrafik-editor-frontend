@@ -1842,9 +1842,6 @@ export class TrainrunSectionsView {
     if (selectedTrainrun !== null) {
       connectedTrainIds = this.editorView.getConnectedTrainrunIds(selectedTrainrun);
     }
-    // Node sizes depend on the displayed node names
-    trainrunSections.forEach((trainrunSection) => trainrunSection.routeEdgeAndPlaceText());
-
     const filteredTrainrunSections = trainrunSections.filter(
       (trainrunSection: TrainrunSection) =>
         this.editorView.doCullCheckPositionsInViewport(
