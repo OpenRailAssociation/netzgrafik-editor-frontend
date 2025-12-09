@@ -158,10 +158,6 @@ export class AutoLayoutService {
     runGlobally: boolean,
     sign: number,
   ): void {
-    if (section.isPathInvalid()) {
-      return;
-    }
-
     const info = this.getSectionInfo(section);
 
     if (this.shouldSkipSection(info, processedKeys, runGlobally, sign)) {
@@ -395,7 +391,6 @@ export class AutoLayoutService {
 
   private updateRendering(): void {
     this.nodeService.initPortOrdering();
-    this.routeAllSections();
     this.viewportCullService.onViewportChangeUpdateRendering(true);
   }
 
@@ -406,10 +401,6 @@ export class AutoLayoutService {
     centerX: number,
     centerY: number,
   ): number {
-    if (section.isPathInvalid()) {
-      return currentDelta;
-    }
-
     if (!this.sectionCrossesCenterLine(section, direction, centerX, centerY)) {
       return currentDelta;
     }
@@ -471,15 +462,6 @@ export class AutoLayoutService {
     const grid = RASTERING_BASIC_GRID_SIZE;
 
     return Math.floor((span - minLength) / 2 / grid) * grid;
-  }
-
-  private routeAllSections(): void {
-    for (const section of this.trainrunSectionService.getTrainrunSections()) {
-      section.routeEdgeAndPlaceText();
-
-      // Do not call updateTransitionsAndConnections() here.
-      // It would re-apply spatial port ordering and undo initPortOrdering().
-    }
   }
 
   private getPositionsAtNodes(section: TrainrunSection): {source: PointLike; target: PointLike} {
