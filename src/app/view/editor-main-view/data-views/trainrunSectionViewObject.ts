@@ -9,6 +9,8 @@ import {EditorView} from "./editor.view";
 import {TrainrunSectionsView} from "./trainrunsections.view";
 
 export class TrainrunSectionViewObject {
+  readonly firstSection: TrainrunSection;
+  readonly lastSection: TrainrunSection;
   readonly key: string;
   readonly path: Vec2D[];
   readonly textPositions: TrainrunSectionTextPositions;
@@ -17,24 +19,23 @@ export class TrainrunSectionViewObject {
     editorView: EditorView,
     readonly trainrunSections: TrainrunSection[],
   ) {
+    this.firstSection = trainrunSections[0];
+    this.lastSection = trainrunSections.at(-1)!;
     this.path = SimpleTrainrunSectionRouter.routeTrainrunSection(
-      this.trainrunSections[0].getSourceNode(),
-      this.trainrunSections[0].getSourceNode().getPort(this.trainrunSections[0].getSourcePortId()),
-      this.trainrunSections.at(-1)!.getTargetNode(),
-      this.trainrunSections
-        .at(-1)!
-        .getTargetNode()
-        .getPort(this.trainrunSections.at(-1)!.getTargetPortId()),
+      this.firstSection.getSourceNode(),
+      this.firstSection.getSourceNode().getPort(this.firstSection.getSourcePortId()),
+      this.lastSection.getTargetNode(),
+      this.lastSection.getTargetNode().getPort(this.lastSection.getTargetPortId()),
     );
     this.textPositions = SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(
       this.path,
-      trainrunSections[0].getSourceNode().getPort(trainrunSections[0].getSourcePortId()),
+      this.firstSection.getSourceNode().getPort(this.firstSection.getSourcePortId()),
     );
     this.key = this.generateKey(editorView, trainrunSections);
   }
 
   getTrainrun() {
-    return this.trainrunSections[0].getTrainrun();
+    return this.firstSection.getTrainrun();
   }
 
   getNumberOfStops(): number {
@@ -47,7 +48,7 @@ export class TrainrunSectionViewObject {
 
   getTravelTime(): number {
     if (this.trainrunSections.length === 1) {
-      return this.trainrunSections[0].getTravelTime();
+      return this.firstSection.getTravelTime();
     }
 
     return this.trainrunSections.reduce((sum, section, index) => {
@@ -129,7 +130,7 @@ export class TrainrunSectionViewObject {
 
     let key =
       "#" +
-      firstSection.getId() +
+      this.firstSection.getId() +
       "@" +
       this.getTrainrun().getTitle() +
       "_" +
@@ -137,7 +138,7 @@ export class TrainrunSectionViewObject {
       "_" +
       this.getTrainrun().selected() +
       "_" +
-      firstSection.getNumberOfStops() +
+      this.firstSection.getNumberOfStops() +
       "_" +
       this.getTravelTime() +
       "_" +
@@ -145,23 +146,23 @@ export class TrainrunSectionViewObject {
       "_" +
       editorView.getTimeDisplayPrecision() +
       "_" +
-      lastSection.getTargetDeparture() +
+      this.lastSection.getTargetDeparture() +
       "_" +
-      lastSection.getTargetArrival() +
+      this.lastSection.getTargetArrival() +
       "_" +
-      firstSection.getSourceDeparture() +
+      this.firstSection.getSourceDeparture() +
       "_" +
-      firstSection.getSourceArrival() +
+      this.firstSection.getSourceArrival() +
       "_" +
-      lastSection.getTargetDepartureConsecutiveTime() +
+      this.lastSection.getTargetDepartureConsecutiveTime() +
       "_" +
-      lastSection.getTargetArrivalConsecutiveTime() +
+      this.lastSection.getTargetArrivalConsecutiveTime() +
       "_" +
-      firstSection.getSourceDepartureConsecutiveTime() +
+      this.firstSection.getSourceDepartureConsecutiveTime() +
       "_" +
-      firstSection.getSourceArrivalConsecutiveTime() +
+      this.firstSection.getSourceArrivalConsecutiveTime() +
       "_" +
-      firstSection.getNumberOfStops() +
+      this.firstSection.getNumberOfStops() +
       "_" +
       this.getTrainrun().getTrainrunCategory().shortName +
       "_" +
@@ -207,17 +208,17 @@ export class TrainrunSectionViewObject {
       "_" +
       editorView.isFilterShowNonStopTimeEnabled() +
       "_" +
-      editorView.checkFilterNonStopNode(firstSection.getSourceNode()) +
+      editorView.checkFilterNonStopNode(this.firstSection.getSourceNode()) +
       "_" +
-      editorView.checkFilterNonStopNode(lastSection.getTargetNode()) +
+      editorView.checkFilterNonStopNode(this.lastSection.getTargetNode()) +
       "_" +
-      editorView.isJunctionNode(firstSection.getSourceNode()) +
+      editorView.isJunctionNode(this.firstSection.getSourceNode()) +
       "_" +
-      editorView.isJunctionNode(lastSection.getTargetNode()) +
+      editorView.isJunctionNode(this.lastSection.getTargetNode()) +
       "_" +
-      editorView.checkFilterNode(firstSection.getSourceNode()) +
+      editorView.checkFilterNode(this.firstSection.getSourceNode()) +
       "_" +
-      editorView.checkFilterNode(lastSection.getTargetNode()) +
+      editorView.checkFilterNode(this.lastSection.getTargetNode()) +
       "_" +
       editorView.isFilterDirectionArrowsEnabled() +
       "_" +
