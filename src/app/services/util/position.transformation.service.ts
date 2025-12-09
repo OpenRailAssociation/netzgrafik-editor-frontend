@@ -134,7 +134,6 @@ export class PositionTransformationService {
     this.nodeService.initPortOrdering();
 
     this.trainrunSectionService.getTrainrunSections().forEach((ts) => {
-      ts.routeEdgeAndPlaceText();
       ts.getSourceNode().updateTransitionsAndConnections();
     });
 
