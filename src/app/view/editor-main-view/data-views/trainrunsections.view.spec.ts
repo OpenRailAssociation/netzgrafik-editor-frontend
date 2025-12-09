@@ -383,7 +383,7 @@ describe("TrainrunSection-View", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(4);
     const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
-    const v = TrainrunSectionsView.getPosition(viewObject, false);
+    const v = viewObject.getPosition(false);
     expect(v.getX()).toBe(734);
     expect(v.getY()).toBe(144);
   });
@@ -392,7 +392,7 @@ describe("TrainrunSection-View", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(4);
     const viewObject = new TrainrunSectionViewObject(editorView, [ts]);
-    const v = TrainrunSectionsView.getPosition(viewObject, true);
+    const v = viewObject.getPosition(true);
     expect(v.getX()).toBe(418);
     expect(v.getY()).toBe(112);
   });
