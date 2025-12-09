@@ -712,18 +712,6 @@ export class TrainrunService {
     return iterator.current().trainrunSection;
   }
 
-  getFirstNonStopTrainrunSection(trainrunSection: TrainrunSection): TrainrunSection {
-    // starts at the target node, goes backwards to find the first section that is not a non-stop section
-    const iterator = this.getBackwardNonStopIterator(
-      trainrunSection.getTargetNode(),
-      trainrunSection,
-    );
-    while (iterator.hasNext()) {
-      iterator.next();
-    }
-    return iterator.current().trainrunSection;
-  }
-
   sumTravelTimeUpToLastNonStopNode(node: Node, trainrunSection: TrainrunSection): number {
     let summedTravelTime = 0;
     const iterator = this.getNextExpandedStopIterator(node, trainrunSection);
