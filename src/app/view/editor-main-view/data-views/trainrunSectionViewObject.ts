@@ -228,10 +228,4 @@ export class TrainrunSectionViewObject {
 
     return key;
   }
-
-  getPath(): Vec2D[] {
-    const sourcePath = this.trainrunSections[0].getPath().slice(0, 2);
-    const targetPath = this.trainrunSections.at(-1)!.getPath().slice(2, 4);
-    return [...sourcePath, ...targetPath];
-  }
 }
