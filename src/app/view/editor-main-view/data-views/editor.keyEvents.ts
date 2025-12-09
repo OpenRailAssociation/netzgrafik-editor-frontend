@@ -176,8 +176,8 @@ export class EditorKeyEvents {
           }
           return false;
         }
-        if (tsvo.trainrunSections[0].getTrainrun().selected()) {
-          selectedTrainrunSectionId = tsvo.trainrunSections[0].getTrainrunId();
+        if (tsvo.getTrainrun().selected()) {
+          selectedTrainrunSectionId = tsvo.getTrainrun().getId();
         }
         return false;
       },
