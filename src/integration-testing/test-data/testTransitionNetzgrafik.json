@@ -167,23 +167,6 @@
       "trainrunId": 6,
       "resourceId": 0,
       "specificTrainrunSectionFrequencyId": null,
-      "path": {
-        "path": [
-          {"x": 418, "y": 304},
-          {"x": 482, "y": 304},
-          {"x": 798, "y": 464},
-          {"x": 862, "y": 464}
-        ],
-        "textPositions": {
-          "0": {"x": 436, "y": 316},
-          "1": {"x": 464, "y": 292},
-          "2": {"x": 844, "y": 452},
-          "3": {"x": 816, "y": 476},
-          "4": {"x": 640, "y": 372},
-          "5": {"x": 640, "y": 372},
-          "6": {"x": 640, "y": 396}
-        }
-      },
       "warnings": null
     },
     {
@@ -234,23 +217,6 @@
       "trainrunId": 7,
       "resourceId": 0,
       "specificTrainrunSectionFrequencyId": null,
-      "path": {
-        "path": [
-          {"x": 418, "y": 336},
-          {"x": 482, "y": 336},
-          {"x": 798, "y": 496},
-          {"x": 862, "y": 496}
-        ],
-        "textPositions": {
-          "0": {"x": 436, "y": 348},
-          "1": {"x": 464, "y": 324},
-          "2": {"x": 844, "y": 484},
-          "3": {"x": 816, "y": 508},
-          "4": {"x": 640, "y": 404},
-          "5": {"x": 640, "y": 404},
-          "6": {"x": 640, "y": 428}
-        }
-      },
       "warnings": null
     },
     {
@@ -301,23 +267,6 @@
       "trainrunId": 8,
       "resourceId": 0,
       "specificTrainrunSectionFrequencyId": null,
-      "path": {
-        "path": [
-          {"x": 1438, "y": 368},
-          {"x": 1374, "y": 368},
-          {"x": 1026, "y": 560},
-          {"x": 962, "y": 560}
-        ],
-        "textPositions": {
-          "0": {"x": 1420, "y": 356},
-          "1": {"x": 1392, "y": 380},
-          "2": {"x": 980, "y": 572},
-          "3": {"x": 1008, "y": 548},
-          "4": {"x": 1200, "y": 452},
-          "5": {"x": 1200, "y": 452},
-          "6": {"x": 1200, "y": 476}
-        }
-      },
       "warnings": null
     },
     {
@@ -368,23 +317,6 @@
       "trainrunId": 10,
       "resourceId": 0,
       "specificTrainrunSectionFrequencyId": null,
-      "path": {
-        "path": [
-          {"x": 1438, "y": 336},
-          {"x": 1374, "y": 336},
-          {"x": 1026, "y": 528},
-          {"x": 962, "y": 528}
-        ],
-        "textPositions": {
-          "0": {"x": 1420, "y": 324},
-          "1": {"x": 1392, "y": 348},
-          "2": {"x": 980, "y": 540},
-          "3": {"x": 1008, "y": 516},
-          "4": {"x": 1200, "y": 420},
-          "5": {"x": 1200, "y": 420},
-          "6": {"x": 1200, "y": 444}
-        }
-      },
       "warnings": null
     },
     {
@@ -432,23 +364,6 @@
       "trainrunId": 8,
       "resourceId": 0,
       "specificTrainrunSectionFrequencyId": null,
-      "path": {
-        "path": [
-          {"x": 862, "y": 560},
-          {"x": 798, "y": 560},
-          {"x": 482, "y": 400},
-          {"x": 418, "y": 400}
-        ],
-        "textPositions": {
-          "0": {"x": 844, "y": 548},
-          "1": {"x": 816, "y": 572},
-          "2": {"x": 436, "y": 412},
-          "3": {"x": 464, "y": 388},
-          "4": {"x": 640, "y": 468},
-          "5": {"x": 640, "y": 468},
-          "6": {"x": 640, "y": 492}
-        }
-      },
       "warnings": null
     },
     {
@@ -496,23 +411,6 @@
       "trainrunId": 10,
       "resourceId": 0,
       "specificTrainrunSectionFrequencyId": null,
-      "path": {
-        "path": [
-          {"x": 862, "y": 528},
-          {"x": 798, "y": 528},
-          {"x": 482, "y": 368},
-          {"x": 418, "y": 368}
-        ],
-        "textPositions": {
-          "0": {"x": 844, "y": 516},
-          "1": {"x": 816, "y": 540},
-          "2": {"x": 436, "y": 380},
-          "3": {"x": 464, "y": 356},
-          "4": {"x": 640, "y": 436},
-          "5": {"x": 640, "y": 436},
-          "6": {"x": 640, "y": 460}
-        }
-      },
       "warnings": null
     },
     {
@@ -560,23 +458,6 @@
       "trainrunId": 7,
       "resourceId": 0,
       "specificTrainrunSectionFrequencyId": null,
-      "path": {
-        "path": [
-          {"x": 962, "y": 496},
-          {"x": 1026, "y": 496},
-          {"x": 1374, "y": 304},
-          {"x": 1438, "y": 304}
-        ],
-        "textPositions": {
-          "0": {"x": 980, "y": 508},
-          "1": {"x": 1008, "y": 484},
-          "2": {"x": 1420, "y": 292},
-          "3": {"x": 1392, "y": 316},
-          "4": {"x": 1200, "y": 388},
-          "5": {"x": 1200, "y": 388},
-          "6": {"x": 1200, "y": 412}
-        }
-      },
       "warnings": null
     },
     {
@@ -624,23 +505,6 @@
       "trainrunId": 6,
       "resourceId": 0,
       "specificTrainrunSectionFrequencyId": null,
-      "path": {
-        "path": [
-          {"x": 962, "y": 464},
-          {"x": 1026, "y": 464},
-          {"x": 1374, "y": 272},
-          {"x": 1438, "y": 272}
-        ],
-        "textPositions": {
-          "0": {"x": 980, "y": 476},
-          "1": {"x": 1008, "y": 452},
-          "2": {"x": 1420, "y": 260},
-          "3": {"x": 1392, "y": 284},
-          "4": {"x": 1200, "y": 356},
-          "5": {"x": 1200, "y": 356},
-          "6": {"x": 1200, "y": 380}
-        }
-      },
       "warnings": null
     }
   ],
@@ -683,19 +547,10 @@
     }
   ],
   "resources": [
-    {"id": 1, "capacity": 2},
     {"id": 2, "capacity": 2},
-    {"id": 3, "capacity": 2},
-    {"id": 4, "capacity": 2},
     {"id": 5, "capacity": 2},
     {"id": 6, "capacity": 2},
-    {"id": 7, "capacity": 2},
-    {"id": 8, "capacity": 2},
-    {"id": 9, "capacity": 2},
-    {"id": 10, "capacity": 2},
-    {"id": 11, "capacity": 2},
-    {"id": 12, "capacity": 2},
-    {"id": 13, "capacity": 2}
+    {"id": 12, "capacity": 2}
   ],
   "metadata": {
     "analyticsSettings": {"originDestinationSettings": {"connectionPenalty": 5}},
