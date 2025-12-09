@@ -29,15 +29,12 @@ import {MathUtils} from "../../../utils/math";
 import {Trainrun} from "../../../models/trainrun.model";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
 import {Node} from "../../../models/node.model";
-import {Port} from "../../../models/port.model";
 import {EditorMode} from "../../editor-menu/editor-mode";
 import {Transition} from "../../../models/transition.model";
 import {InformSelectedTrainrunClick} from "../../../services/data/trainrunsection.service";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
 import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
 import {LinePatternRefs} from "../../../data-structures/business.data.structures";
-import {Direction} from "src/app/data-structures/business.data.structures";
-import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helper";
 
 export class TrainrunSectionsView {
@@ -153,7 +150,7 @@ export class TrainrunSectionsView {
   }
 
   static getPosition(viewObject: TrainrunSectionViewObject, atSource: boolean): Vec2D {
-    return atSource ? viewObject.getPositionAtSourceNode() : viewObject.getPositionAtTargetNode();
+    return viewObject.getPosition(atSource);
   }
 
   static getNode(trainrunSection: TrainrunSection, atSource: boolean): Node {
@@ -161,8 +158,7 @@ export class TrainrunSectionsView {
   }
 
   static getNodeFromViewObject(viewObject: TrainrunSectionViewObject, atSource: boolean): Node {
-    const trainrunSection = viewObject.trainrunSections.at(atSource ? 0 : -1)!;
-    return TrainrunSectionsView.getNode(trainrunSection, atSource);
+    return TrainrunSectionsView.getNode(viewObject.getSection(atSource), atSource);
   }
 
   static hasWarning(trainrunSection: TrainrunSection, textElement: TrainrunSectionText): boolean {
@@ -768,7 +764,7 @@ export class TrainrunSectionsView {
         const isTarget =
           textElement === TrainrunSectionText.TargetDeparture ||
           textElement === TrainrunSectionText.TargetArrival;
-        const trainrunSection = isTarget ? viewObject.lastSection : viewObject.firstSection;
+        const trainrunSection = viewObject.getSection(!isTarget);
 
         return (
           TrainrunSectionsView.getFormattedDisplayText(trainrunSection, textElement) ??
@@ -854,7 +850,7 @@ export class TrainrunSectionsView {
     editorView: EditorView,
     atSource: boolean,
   ): string {
-    const trainrunSection = viewObject.trainrunSections.at(atSource ? 0 : -1);
+    const trainrunSection = viewObject.getSection(atSource);
     let startNode: Node;
     if (atSource) {
       startNode = trainrunSection.getSourceNode();
@@ -1017,10 +1013,12 @@ export class TrainrunSectionsView {
       )
       .attr(StaticDomTags.EDGE_LINE_TEXT_INDEX, lineTextElement)
       .attr("x", (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atSource ? 0 : -1)!;
         return (
           d.getTextPositionX(lineTextElement) -
-          TrainrunSectionsView.getTrainrunSectionValueTextWidth(trainrunSection, lineTextElement) /
+          TrainrunSectionsView.getTrainrunSectionValueTextWidth(
+            d.getSection(atSource),
+            lineTextElement,
+          ) /
             2
         );
       })
@@ -1028,17 +1026,15 @@ export class TrainrunSectionsView {
         return d.getTextPositionY(lineTextElement) - TRAINRUN_SECTION_TEXT_AREA_HEIGHT / 2;
       })
       .attr("width", (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atSource ? 0 : -1)!;
         return TrainrunSectionsView.getTrainrunSectionValueTextWidth(
-          trainrunSection,
+          d.getSection(atSource),
           lineTextElement,
         );
       })
       .attr("height", TRAINRUN_SECTION_TEXT_AREA_HEIGHT)
       .classed(TrainrunSectionText[lineTextElement], true)
       .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atSource ? 0 : -1)!;
-        return this.getHiddenTagForTime(trainrunSection, lineTextElement);
+        return this.getHiddenTagForTime(d.getSection(atSource), lineTextElement);
       });
   }
 
@@ -1115,7 +1111,6 @@ export class TrainrunSectionsView {
             ),
         )
         .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) => {
-          const trainrunSection = d.trainrunSections.at(arrowType === "BEGINNING_ARROW" ? 0 : -1)!;
           return (
             !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
             (!this.editorView.isFilterDirectionArrowsEnabled() ||
@@ -1211,7 +1206,7 @@ export class TrainrunSectionsView {
     groupEnter
       .filter((d: TrainrunSectionViewObject) => this.filterTrainrunsectionAtNode(d, atSource))
       .filter((d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atSource ? 0 : -1)!;
+        const trainrunSection = d.getSection(atSource);
         const trans = TrainrunSectionsView.getNode(trainrunSection, atSource).getTransition(
           trainrunSection.getId(),
         );
@@ -1257,7 +1252,7 @@ export class TrainrunSectionsView {
       )
       .classed(StaticDomTags.EDGE_IS_TARGET, !atSource)
       .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atSource ? 0 : -1)!;
+        const trainrunSection = d.getSection(atSource);
         return TrainrunSectionsView.getNode(trainrunSection, atSource).isNonStop(trainrunSection);
       })
       .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
@@ -1409,13 +1404,12 @@ export class TrainrunSectionsView {
 
     const renderingObjects = groupEnter
       .filter((d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atTarget ? -1 : 0)!;
         const displayTextElement = d.getTrainrun().isRoundTrip() || isDefaultText || isOneWayText;
 
         return (
           this.filterTrainrunsectionAtNode(d, atSource) &&
           this.filterTimeTrainrunsectionNonStop(d, atSource, isArrival) &&
-          TrainrunSectionsView.hasWarning(trainrunSection, textElement) === hasWarning &&
+          TrainrunSectionsView.hasWarning(d.getSection(atSource), textElement) === hasWarning &&
           displayTextElement
         );
       })
@@ -1452,8 +1446,7 @@ export class TrainrunSectionsView {
         TrainrunSectionsView.isMuted(d.firstSection, selectedTrainrun, connectedTrainIds),
       )
       .classed(StaticDomTags.TAG_WARNING, (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atTarget ? -1 : 0)!;
-        return TrainrunSectionsView.hasWarning(trainrunSection, textElement);
+        return TrainrunSectionsView.hasWarning(d.getSection(!atTarget), textElement);
       })
       .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) =>
         this.getHiddenTagForTime(d.firstSection, textElement),
@@ -1483,8 +1476,7 @@ export class TrainrunSectionsView {
 
     if (hasWarning) {
       renderingObjects.append("svg:title").text((d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atTarget ? -1 : 0)!;
-        return TrainrunSectionsView.getWarning(trainrunSection, textElement);
+        return TrainrunSectionsView.getWarning(d.getSection(!atTarget), textElement);
       });
     }
   }
@@ -2024,7 +2016,7 @@ export class TrainrunSectionsView {
     if (!isArrival) {
       return true;
     }
-    const trainrunSection = viewObject.trainrunSections.at(atSource ? 0 : -1);
+    const trainrunSection = viewObject.getSection(atSource);
     if (atSource) {
       return !trainrunSection.getSourceNode().isNonStop(trainrunSection);
     }
@@ -2038,7 +2030,7 @@ export class TrainrunSectionsView {
     if (this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       return true;
     }
-    const trainrunSection = viewObject.trainrunSections.at(atSource ? 0 : -1);
+    const trainrunSection = viewObject.getSection(atSource);
     return this.editorView.checkFilterNode(TrainrunSectionsView.getNode(trainrunSection, atSource));
   }
 
