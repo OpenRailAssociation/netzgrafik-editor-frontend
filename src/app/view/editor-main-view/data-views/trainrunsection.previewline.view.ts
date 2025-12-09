@@ -114,7 +114,7 @@ export class TrainrunSectionPreviewLineView {
     this.startIntermediatePos = startPosition;
     this.displayTrainrunSectionPreviewLine();
     D3Utils.disableTrainrunSectionForEventHandling();
-    D3Utils.doGrayout(dragIntermediateStopInfo.viewObject.trainrunSections[0]);
+    D3Utils.doGrayout(dragIntermediateStopInfo.viewObject.firstSection);
   }
 
   startDragTransition(dragTransition: DragTransitionInfo, startPosition: Vec2D) {
@@ -259,7 +259,7 @@ export class TrainrunSectionPreviewLineView {
     this.hideTrainrunSectionPreviewLine();
     this.hideConnectionPreviewLine();
     if (this.dragIntermediateStopInfo !== null) {
-      D3Utils.removeGrayout(this.dragIntermediateStopInfo.viewObject.trainrunSections[0]);
+      D3Utils.removeGrayout(this.dragIntermediateStopInfo.viewObject.firstSection);
       d3.select(this.dragIntermediateStopInfo.domRef).classed(StaticDomTags.TAG_HOVER, false);
     }
     if (this.dragTransitionInfo !== null) {
