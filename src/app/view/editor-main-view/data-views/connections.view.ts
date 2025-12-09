@@ -61,18 +61,7 @@ export class ConnectionsView {
   }
 
   getConnectionPinPosition(ts: TrainrunSection, node: Node): Vec2D {
-    const viewObject = new TrainrunSectionViewObject(
-      this.editorView,
-      [ts],
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-    );
+    const viewObject = new TrainrunSectionViewObject(this.editorView, [ts]);
 
     if (node.getId() === ts.getSourceNodeId()) {
       return viewObject.getPositionAtSourceNode();
