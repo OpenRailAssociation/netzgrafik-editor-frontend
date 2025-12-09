@@ -89,6 +89,10 @@ export class TrainrunSectionViewObject {
     return this.path[this.path.length - 1];
   }
 
+  getPosition(atSource: boolean): Vec2D {
+    return atSource ? this.getPositionAtSourceNode() : this.getPositionAtTargetNode();
+  }
+
   private generateKey(editorView: EditorView, trainrunSections: TrainrunSection[]): string {
     const selectedTrainrun = editorView.getSelectedTrainrun();
     let connectedTrainIds = [];
