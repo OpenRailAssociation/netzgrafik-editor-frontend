@@ -233,7 +233,7 @@ export class TrainrunService {
         );
       });
 
-    this.nodeService.reorderPortsOnNodesForTrainrun(trainrun, false);
+    this.nodeService.reorderPortsOnNodesForTrainrun(trainrun);
     this.propagateTrainrunInitialConsecutiveTimes(trainrun);
     this.nodeService.initPortOrdering();
     this.trainrunsUpdated();
@@ -247,7 +247,7 @@ export class TrainrunService {
       return;
     }
     this.getTrainrunFromId(trainrun.getId()).setTrainrunCategory(category);
-    this.nodeService.reorderPortsOnNodesForTrainrun(trainrun, false);
+    this.nodeService.reorderPortsOnNodesForTrainrun(trainrun);
     this.nodeService.initPortOrdering();
     this.trainrunsUpdated();
     this.operation.emit(new TrainrunUpdateOperation(trainrun, ["categoryId"]));
@@ -260,7 +260,7 @@ export class TrainrunService {
     }
 
     this.getTrainrunFromId(trainrun.getId()).setTrainrunTimeCategory(timeCategory);
-    this.nodeService.reorderPortsOnNodesForTrainrun(trainrun, false);
+    this.nodeService.reorderPortsOnNodesForTrainrun(trainrun);
     this.nodeService.initPortOrdering();
     this.trainrunsUpdated();
     this.operation.emit(new TrainrunUpdateOperation(trainrun, ["timeCategoryId"]));
@@ -268,7 +268,7 @@ export class TrainrunService {
 
   updateTrainrunTitle(trainrun: Trainrun, title: string) {
     this.getTrainrunFromId(trainrun.getId()).setTitle(title);
-    this.nodeService.reorderPortsOnNodesForTrainrun(trainrun, false);
+    this.nodeService.reorderPortsOnNodesForTrainrun(trainrun);
     this.nodeService.initPortOrdering();
     this.trainrunsUpdated();
     this.operation.emit(new TrainrunUpdateOperation(trainrun, ["name"]));
@@ -505,7 +505,7 @@ export class TrainrunService {
 
     // select
     trainrun1.select();
-    this.nodeService.reorderPortsOnNodesForTrainrun(trainrun1, false);
+    this.nodeService.reorderPortsOnNodesForTrainrun(trainrun1);
 
     // Ensure consistent section direction considering the previous ones
     this.trainrunSectionService.enforceConsistentSectionDirection(trainrunSection.getTrainrunId());
