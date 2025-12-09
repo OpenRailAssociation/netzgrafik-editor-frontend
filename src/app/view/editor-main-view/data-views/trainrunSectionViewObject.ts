@@ -97,6 +97,10 @@ export class TrainrunSectionViewObject {
       .filter((section) => !section.getSourceNode().isNonStop(section)).length;
   }
 
+  getSection(atSource: boolean): TrainrunSection {
+    return atSource ? this.firstSection : this.lastSection;
+  }
+
   getTravelTime(): number {
     if (this.trainrunSections.length === 1) {
       return this.firstSection.getTravelTime();
@@ -133,6 +137,10 @@ export class TrainrunSectionViewObject {
 
   getPositionAtTargetNode(): Vec2D {
     return this.path[this.path.length - 1];
+  }
+
+  getPosition(atSource: boolean): Vec2D {
+    return atSource ? this.getPositionAtSourceNode() : this.getPositionAtTargetNode();
   }
 
   getHiddenTagForTime(trainrunSection: TrainrunSection, textElement: TrainrunSectionText): boolean {
