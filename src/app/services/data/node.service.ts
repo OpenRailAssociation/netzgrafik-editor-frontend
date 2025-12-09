@@ -203,12 +203,10 @@ export class NodeService implements OnDestroy {
       this.nodesStore.nodes.forEach((node) => {
         node.updateTransitionsRouting();
         node.updateConnectionsRouting();
-        this.trainrunSectionService.updateTrainrunSectionRouting(node, false);
       });
     } else {
       this.nodesStore.nodes.forEach((node) => {
         node.updateTransitionsAndConnections();
-        this.trainrunSectionService.updateTrainrunSectionRouting(node, false);
       });
     }
   }
@@ -1017,7 +1015,6 @@ export class NodeService implements OnDestroy {
     this.nodesStore.nodes.forEach((node) => {
       if (node.containsTrainrun(trainrun)) {
         node.updateTransitionsAndConnections(this.currentOrderingAlgorithm);
-        this.trainrunSectionService.updateTrainrunSectionRouting(node, enforceUpdate);
       }
     });
   }
@@ -1253,13 +1250,11 @@ export class NodeService implements OnDestroy {
         this.nodesStore.nodes.forEach((n) => {
           n.updateTransitionsRouting();
           n.updateConnectionsRouting();
-          this.trainrunSectionService.updateTrainrunSectionRouting(n, enforceUpdate);
         });
       } else {
         node.getPorts().forEach((port) => {
           const oppositeNode = node.getOppositeNode(port.getTrainrunSection());
           oppositeNode.updateTransitionsAndConnections(this.currentOrderingAlgorithm);
-          this.trainrunSectionService.updateTrainrunSectionRouting(oppositeNode, enforceUpdate);
         });
         node.reorderAllPorts(this.currentOrderingAlgorithm);
       }
@@ -1268,7 +1263,6 @@ export class NodeService implements OnDestroy {
 
     node.updateTransitionsRouting();
     node.updateConnectionsRouting();
-    this.trainrunSectionService.updateTrainrunSectionRouting(node, enforceUpdate);
   }
 
   private findClearedLabel(node: Node, labelIds: number[]) {
