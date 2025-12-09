@@ -178,36 +178,18 @@ describe("3d.Utils.tests", () => {
 
   it("NotesView.convertText", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const viewObject = new TrainrunSectionViewObject(
-      editorView,
-      [trainrunSectionService.getTrainrunSectionFromId(1)],
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-    );
+    const viewObject = new TrainrunSectionViewObject(editorView, [
+      trainrunSectionService.getTrainrunSectionFromId(1),
+    ]);
     const txt0 = D3Utils.getPathAsSVGString(viewObject.path);
     expect(txt0).toBe("M418,48L482,48L670,80L734,80");
   });
 
   it("NotesView.getBezierCurveAsSVGString", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const viewObject = new TrainrunSectionViewObject(
-      editorView,
-      [trainrunSectionService.getTrainrunSectionFromId(1)],
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-    );
+    const viewObject = new TrainrunSectionViewObject(editorView, [
+      trainrunSectionService.getTrainrunSectionFromId(1),
+    ]);
     const txt0 = D3Utils.getBezierCurveAsSVGString(viewObject.path);
     expect(txt0).toBe("M 418 48C 482 48, 670 80, 734,80");
   });

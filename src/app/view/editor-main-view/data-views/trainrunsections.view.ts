@@ -1703,8 +1703,6 @@ export class TrainrunSectionsView {
   createViewTrainrunSectionDataObjects(
     editorView: EditorView,
     inputTrainrunSections: TrainrunSection[],
-    selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
   ): TrainrunSectionViewObject[] {
     const viewTrainrunSectionDataObjects: TrainrunSectionViewObject[] = [];
 
@@ -1712,21 +1710,7 @@ export class TrainrunSectionsView {
       this.trainrunSectionService.groupTrainrunSectionsIntoChains(inputTrainrunSections);
 
     sectionGroups.forEach((sections) => {
-      const firstSection = sections[0];
-      const lastSection = sections.at(-1)!;
-      const viewObject = new TrainrunSectionViewObject(
-        editorView,
-        sections,
-        TrainrunSectionsView.getNode(firstSection, true).isNonStop(firstSection),
-        TrainrunSectionsView.getNode(lastSection, false).isNonStop(lastSection),
-        TrainrunSectionsView.isMuted(firstSection, selectedTrainrun, connectedTrainIds),
-        this.getHiddenTagForTime(firstSection, TrainrunSectionText.SourceDeparture),
-        this.getHiddenTagForTime(lastSection, TrainrunSectionText.TargetDeparture),
-        this.getHiddenTagForTime(firstSection, TrainrunSectionText.TrainrunSectionTravelTime),
-        this.getHiddenTagForTime(firstSection, TrainrunSectionText.TrainrunSectionName),
-        !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
-          !this.editorView.isFilterDirectionArrowsEnabled(),
-      );
+      const viewObject = new TrainrunSectionViewObject(editorView, sections);
       viewTrainrunSectionDataObjects.push(viewObject);
     });
 
@@ -1743,30 +1727,14 @@ export class TrainrunSectionsView {
     const filteredTrainrunSections = trainrunSections.filter(
       (trainrunSection: TrainrunSection) =>
         this.editorView.doCullCheckPositionsInViewport(
-          new TrainrunSectionViewObject(
-            this.editorView,
-            [trainrunSection],
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-          ).path,
+          new TrainrunSectionViewObject(this.editorView, [trainrunSection]).path,
         ) && this.filterTrainrunSectionToDisplay(trainrunSection),
     );
 
     const group = this.trainrunSectionGroup
       .selectAll(StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF)
       .data(
-        this.createViewTrainrunSectionDataObjects(
-          this.editorView,
-          filteredTrainrunSections,
-          selectedTrainrun,
-          connectedTrainIds,
-        ),
+        this.createViewTrainrunSectionDataObjects(this.editorView, filteredTrainrunSections),
         (d: TrainrunSectionViewObject) => d.key,
       );
 
