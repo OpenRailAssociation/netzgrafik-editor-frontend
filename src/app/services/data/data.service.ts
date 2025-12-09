@@ -180,7 +180,6 @@ export class DataService implements OnDestroy {
     this.nodeService.initializePortsWithReferencesToTrainrunSections();
     this.nodeService.initializeTransitionsWithReferencesToTrainrun();
     this.nodeService.initPortOrdering();
-    this.trainrunSectionService.initializeTrainrunSectionRouting();
     this.nodeService.validateAllConnections();
     this.trainrunService.propagateInitialConsecutiveTimes();
     this.nodeService.nodesUpdated();
