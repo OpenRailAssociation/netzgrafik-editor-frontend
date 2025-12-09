@@ -156,10 +156,6 @@ export class TrainrunSectionsView {
     return arcGenerator();
   }
 
-  static getPosition(viewObject: TrainrunSectionViewObject, atSource: boolean): Vec2D {
-    return atSource ? viewObject.getPositionAtSourceNode() : viewObject.getPositionAtTargetNode();
-  }
-
   static getNode(trainrunSection: TrainrunSection, atSource: boolean): Node {
     return atSource ? trainrunSection.getSourceNode() : trainrunSection.getTargetNode();
   }
@@ -1245,18 +1241,15 @@ export class TrainrunSectionsView {
         d.getTrainrun().getId(),
       )
       .attr("d", (d: TrainrunSectionViewObject) => {
-        return TrainrunSectionsView.createSemicircle(
-          d,
-          TrainrunSectionsView.getPosition(d, atSource),
-        );
+        return TrainrunSectionsView.createSemicircle(d, d.getPosition(atSource));
       })
       .attr(
         "transform",
         (d: TrainrunSectionViewObject) =>
           "translate(" +
-          TrainrunSectionsView.getPosition(d, atSource).getX() +
+          d.getPosition(atSource).getX() +
           "," +
-          TrainrunSectionsView.getPosition(d, atSource).getY() +
+          d.getPosition(atSource).getY() +
           ")",
       )
       .attr(StaticDomTags.EDGE_NODE_ID, (d: TrainrunSectionViewObject) =>
@@ -1317,12 +1310,8 @@ export class TrainrunSectionsView {
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
         d.getTrainrun().getId(),
       )
-      .attr("cx", (d: TrainrunSectionViewObject) =>
-        TrainrunSectionsView.getPosition(d, atSource).getX(),
-      )
-      .attr("cy", (d: TrainrunSectionViewObject) =>
-        TrainrunSectionsView.getPosition(d, atSource).getY(),
-      )
+      .attr("cx", (d: TrainrunSectionViewObject) => d.getPosition(atSource).getX())
+      .attr("cy", (d: TrainrunSectionViewObject) => d.getPosition(atSource).getY())
       .attr("r", DEFAULT_PIN_RADIUS)
       .attr(StaticDomTags.EDGE_NODE_ID, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.getNodeFromViewObject(d, atSource).getId(),
