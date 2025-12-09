@@ -981,7 +981,6 @@ export class NodeService implements OnDestroy {
     this.nodesStore.nodes.forEach((node) => {
       if (node.containsTrainrun(trainrun)) {
         node.updateTransitionsAndConnections();
-        this.trainrunSectionService.updateTrainrunSectionRouting(node, enforceUpdate);
       }
     });
   }
@@ -1199,14 +1198,12 @@ export class NodeService implements OnDestroy {
           .getPortOfTrainrunSection(port.getTrainrunSection().getId())
           .setPositionAlignment(portAlignments.targetPortPlacement);
         oppositeNode.updateTransitionsAndConnections();
-        this.trainrunSectionService.updateTrainrunSectionRouting(oppositeNode, enforceUpdate);
       });
       node.reorderAllPorts();
       this.operation.emit(new NodeOperation(OperationType.update, node));
     }
     node.updateTransitionsRouting();
     node.updateConnectionsRouting();
-    this.trainrunSectionService.updateTrainrunSectionRouting(node, enforceUpdate);
   }
 
   private findClearedLabel(node: Node, labelIds: number[]) {
