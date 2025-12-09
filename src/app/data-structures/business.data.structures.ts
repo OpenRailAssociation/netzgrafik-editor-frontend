@@ -5,7 +5,6 @@ import {
   ColorRefType,
   ConnectionDto,
   OrderingAlgorithm,
-  PathDto,
   PortDto,
   TimeLockDto,
   TransitionDto,
@@ -133,7 +132,6 @@ export interface TrainrunSectionDto {
   resourceId: number; // reference to the aligned (resource - not yet implemented)
 
   specificTrainrunSectionFrequencyId: number | null; // Default 0 - deprecate???
-  path: PathDto; // cached - precomputed path for rendering
   warnings: WarningDto[]; // business logic failures - warnings storage
 }
 
