@@ -560,21 +560,6 @@ export class TrainrunSectionService implements OnDestroy {
     }
   }
 
-  updateTrainrunSectionRouting(node: Node, enforceUpdate = true) {
-    this.trainrunSectionsStore.trainrunSections.forEach((trainrunSection) => {
-      if (
-        node.getId() === trainrunSection.getSourceNodeId() ||
-        node.getId() === trainrunSection.getTargetNodeId()
-      ) {
-        trainrunSection.routeEdgeAndPlaceText();
-      }
-    });
-
-    if (enforceUpdate) {
-      this.trainrunSectionsUpdated();
-    }
-  }
-
   retrieveTravelTime(sourceNodeId: number, targetNodeId: number, trainrun: Trainrun): number {
     const foundTrainruns = this.getTrainrunSections().filter(
       (ts) =>
@@ -691,7 +676,6 @@ export class TrainrunSectionService implements OnDestroy {
     nodeToOld.updateTransitionsAndConnections(this.nodeService.getCurrentOrderingAlgorithm());
     TrainrunSectionService.setToNode(sourceNodeId, trainrunSection, nodeToNew, targetNodeId);
 
-    this.updateTrainrunSectionRouting(nodeToOld, false);
     const orderingType = this.nodeService.getCurrentOrderingAlgorithm();
     nodeToNew.addPortWithRespectToOppositeNode(nodeFrom, trainrunSection, orderingType);
     if (this.nodeService.isConditionToAddTransitionFullfilled(nodeToNew, trainrunSection)) {
@@ -701,9 +685,6 @@ export class TrainrunSectionService implements OnDestroy {
       );
     }
     nodeFrom.reAlignPortWithRespectToOppositeNode(nodeToNew, trainrunSection, orderingType);
-
-    trainrunSection.routeEdgeAndPlaceText();
-    this.reRouteAffectedTrainrunSections(nodeFrom.getId(), nodeToNew.getId());
 
     if (previousTrainrunSection !== undefined) {
       this.nodeService.checkAndFixMissingTransitions(
@@ -1032,9 +1013,6 @@ export class TrainrunSectionService implements OnDestroy {
       portOrderingType,
     );
 
-    this.reRouteAffectedTrainrunSections(node1.getId(), nodeIntermediate.getId());
-    this.reRouteAffectedTrainrunSections(node2.getId(), nodeIntermediate.getId());
-
     this.nodeService.addTransitionToNodeForTrainrunSections(
       nodeIntermediate.getId(),
       trainrunSection1,
@@ -1198,8 +1176,6 @@ export class TrainrunSectionService implements OnDestroy {
       existingTrainrunSection,
     );
 
-    trainrunSection.routeEdgeAndPlaceText();
-    this.reRouteAffectedTrainrunSections(sourceNode.getId(), targetNode.getId());
     this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection.getId());
 
     return trainrunSection;
@@ -1222,10 +1198,6 @@ export class TrainrunSectionService implements OnDestroy {
       this.trainrunSectionsStore.trainrunSections.filter(
         (e) => e.getId() !== trainrunSection.getId(),
       );
-    this.reRouteAffectedTrainrunSections(
-      trainrunSection.getSourceNodeId(),
-      trainrunSection.getTargetNodeId(),
-    );
     this.checkMissingTransitionsAfterDeletion(trainrunSection.getTrainrun());
     this.deleteTrainrunIfNotUsedAnymore(trainrunSection.getTrainrun(), false);
 
@@ -1277,19 +1249,6 @@ export class TrainrunSectionService implements OnDestroy {
           targetNode.getId(),
           trgPortsWithoutTransitions[0].getTrainrunSection(),
         );
-      }
-    });
-  }
-
-  private reRouteAffectedTrainrunSections(sourceNodeId: number, targetNodeId: number) {
-    this.trainrunSectionsStore.trainrunSections.forEach((e) => {
-      if (
-        e.getSourceNodeId() === sourceNodeId ||
-        e.getSourceNodeId() === targetNodeId ||
-        e.getTargetNodeId() === sourceNodeId ||
-        e.getTargetNodeId() === targetNodeId
-      ) {
-        e.routeEdgeAndPlaceText();
       }
     });
   }
@@ -1352,8 +1311,6 @@ export class TrainrunSectionService implements OnDestroy {
       this.nodeService.nodesUpdated();
       this.nodeService.transitionsUpdated();
     }
-    trainrunSection.routeEdgeAndPlaceText();
-    this.reRouteAffectedTrainrunSections(sourceNode.getId(), targetNode.getId());
   }
 
   private createNewTrainrunSectionFromDto(
@@ -1541,10 +1498,6 @@ export class TrainrunSectionService implements OnDestroy {
 
     // Source arrival becomes target arrival
     trainrunSection.setSourceArrivalDto(oldTargetArrivalDto);
-
-    // Update visuals and geometry
-    trainrunSection.routeEdgeAndPlaceText();
-    trainrunSection.convertVec2DToPath();
   }
 
   /**
