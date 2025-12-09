@@ -5,7 +5,7 @@ import {StammdatenService} from "../app/services/data/stammdaten.service";
 import {DataService} from "../app/services/data/data.service";
 import {Node} from "../app/models/node.model";
 import {TrainrunSection} from "../app/models/trainrunsection.model";
-import {PortAlignment, TrainrunSectionText} from "../app/data-structures/technical.data.structures";
+import {PortAlignment} from "../app/data-structures/technical.data.structures";
 import {ResourceService} from "../app/services/data/resource.service";
 import {LogService} from "../app/logger/log.service";
 import {LogPublishersService} from "../app/logger/log.publishers.service";
@@ -13,7 +13,6 @@ import {NetzgrafikUnitTesting} from "./netzgrafik.unit.testing";
 import {NoteService} from "../app/services/data/note.service";
 import {LabelGroupService} from "../app/services/data/labelgroup.service";
 import {LabelService} from "../app/services/data/label.service";
-import {LinePatternRefs} from "../app/data-structures/business.data.structures";
 import {FilterService} from "../app/services/ui/filter.service";
 import {NetzgrafikColoringService} from "../app/services/data/netzgrafikColoring.service";
 
@@ -327,48 +326,6 @@ describe("TrainrunSection Service Test", () => {
     expect(nextTrainrunSection.getSourceArrivalConsecutiveTime()).toBe(261);
     expect(nextTrainrunSection.getTargetDepartureConsecutiveTime()).toBe(251);
     expect(nextTrainrunSection.getTargetArrivalConsecutiveTime()).toBe(169);
-  });
-
-  it("path router check", () => {
-    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    expect(trainrunSections.length).toBe(8);
-    const ts = trainrunSectionService.getTrainrunSectionFromId(0);
-    ts.routeEdgeAndPlaceText();
-    const path = ts.getPath();
-    expect(path[0].getX()).toBe(130);
-    expect(path[0].getY()).toBe(48);
-    expect(path[1].getX()).toBe(194);
-    expect(path[1].getY()).toBe(48);
-    expect(path[2].getX()).toBe(254);
-    expect(path[2].getY()).toBe(48);
-    expect(path[3].getX()).toBe(318);
-    expect(path[3].getY()).toBe(48);
-    expect(ts.getSourcePortId()).toBe(0);
-    expect(ts.getTargetPortId()).toBe(1);
-    expect(ts.getNumberOfStops()).toBe(0);
-
-    expect(ts.getTextPositionX(TrainrunSectionText.TargetArrival)).toBe(300);
-    expect(ts.getTextPositionX(TrainrunSectionText.TargetDeparture)).toBe(272);
-    expect(ts.getTextPositionX(TrainrunSectionText.SourceArrival)).toBe(148);
-    expect(ts.getTextPositionX(TrainrunSectionText.SourceDeparture)).toBe(176);
-    expect(ts.getTextPositionX(TrainrunSectionText.TrainrunSectionTravelTime)).toBe(224);
-
-    expect(ts.getTextPositionY(TrainrunSectionText.TargetArrival)).toBe(36);
-    expect(ts.getTextPositionY(TrainrunSectionText.TargetDeparture)).toBe(60);
-    expect(ts.getTextPositionY(TrainrunSectionText.SourceArrival)).toBe(60);
-    expect(ts.getTextPositionY(TrainrunSectionText.SourceDeparture)).toBe(36);
-    expect(ts.getTextPositionY(TrainrunSectionText.TrainrunSectionTravelTime)).toBe(36);
-
-    expect(ts.getPositionAtSourceNode().getX()).toBe(130);
-    expect(ts.getPositionAtSourceNode().getY()).toBe(48);
-    expect(ts.getPositionAtTargetNode().getX()).toBe(318);
-    expect(ts.getPositionAtTargetNode().getY()).toBe(48);
-    expect(ts.getFrequency()).toBe(60);
-    expect(ts.getFrequencyLinePatternRef()).toBe(LinePatternRefs.Freq60);
-    expect(ts.getTimeCategoryLinePatternRef()).toBe(LinePatternRefs.TimeCat7_24);
-
-    const tsDto = ts.getDto();
-    expect(tsDto.id).toBe(ts.getId());
   });
 
   it("trainrun check", () => {

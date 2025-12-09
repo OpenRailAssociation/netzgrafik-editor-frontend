@@ -28,6 +28,7 @@ import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
 import {ConnectionsView} from "./connections.view";
+import {LinePatternRefs} from "src/app/data-structures/business.data.structures";
 
 describe("TrainrunSection-View", () => {
   let dataService: DataService;
@@ -193,6 +194,47 @@ describe("TrainrunSection-View", () => {
       false,
       false,
     );
+
+  it("path router check", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    expect(trainrunSections.length).toBe(8);
+    const ts = trainrunSectionService.getTrainrunSectionFromId(0);
+    const viewObject = createTrainrunSectionViewObject(ts);
+    expect(viewObject.path[0].getX()).toBe(130);
+    expect(viewObject.path[0].getY()).toBe(48);
+    expect(viewObject.path[1].getX()).toBe(194);
+    expect(viewObject.path[1].getY()).toBe(48);
+    expect(viewObject.path[2].getX()).toBe(254);
+    expect(viewObject.path[2].getY()).toBe(48);
+    expect(viewObject.path[3].getX()).toBe(318);
+    expect(viewObject.path[3].getY()).toBe(48);
+    expect(ts.getSourcePortId()).toBe(0);
+    expect(ts.getTargetPortId()).toBe(1);
+    expect(ts.getNumberOfStops()).toBe(0);
+
+    expect(viewObject.getTextPositionX(TrainrunSectionText.TargetArrival)).toBe(300);
+    expect(viewObject.getTextPositionX(TrainrunSectionText.TargetDeparture)).toBe(272);
+    expect(viewObject.getTextPositionX(TrainrunSectionText.SourceArrival)).toBe(148);
+    expect(viewObject.getTextPositionX(TrainrunSectionText.SourceDeparture)).toBe(176);
+    expect(viewObject.getTextPositionX(TrainrunSectionText.TrainrunSectionTravelTime)).toBe(224);
+
+    expect(viewObject.getTextPositionY(TrainrunSectionText.TargetArrival)).toBe(36);
+    expect(viewObject.getTextPositionY(TrainrunSectionText.TargetDeparture)).toBe(60);
+    expect(viewObject.getTextPositionY(TrainrunSectionText.SourceArrival)).toBe(60);
+    expect(viewObject.getTextPositionY(TrainrunSectionText.SourceDeparture)).toBe(36);
+    expect(viewObject.getTextPositionY(TrainrunSectionText.TrainrunSectionTravelTime)).toBe(36);
+
+    expect(viewObject.getPositionAtSourceNode().getX()).toBe(130);
+    expect(viewObject.getPositionAtSourceNode().getY()).toBe(48);
+    expect(viewObject.getPositionAtTargetNode().getX()).toBe(318);
+    expect(viewObject.getPositionAtTargetNode().getY()).toBe(48);
+    expect(ts.getFrequency()).toBe(60);
+    expect(ts.getFrequencyLinePatternRef()).toBe(LinePatternRefs.Freq60);
+    expect(ts.getTimeCategoryLinePatternRef()).toBe(LinePatternRefs.TimeCat7_24);
+
+    const tsDto = ts.getDto();
+    expect(tsDto.id).toBe(ts.getId());
+  });
 
   it("TrainrunSectionsView.translateAndRotateText - TrainrunSectionName", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());

@@ -27,8 +27,11 @@ export class TrainrunSectionViewObject {
     this.path = SimpleTrainrunSectionRouter.routeTrainrunSection(
       this.trainrunSections[0].getSourceNode(),
       this.trainrunSections[0].getSourceNode().getPort(this.trainrunSections[0].getSourcePortId()),
-      this.trainrunSections[0].getTargetNode(),
-      this.trainrunSections[0].getTargetNode().getPort(this.trainrunSections[0].getTargetPortId()),
+      this.trainrunSections.at(-1)!.getTargetNode(),
+      this.trainrunSections
+        .at(-1)!
+        .getTargetNode()
+        .getPort(this.trainrunSections.at(-1)!.getTargetPortId()),
     );
     this.textPositions = SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(
       this.path,
