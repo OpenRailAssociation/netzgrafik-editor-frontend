@@ -576,6 +576,7 @@ export class EditorView implements SVGMouseControllerObserver {
         this.uiInteractionService.showNodeStammdaten();
       } else if (this.isAnyTrainSelected()) {
         this.unselectAllTrainruns();
+        this.unselectAllTrainrunSections();
       } else {
         this.nodeService.unselectAllNodes();
         this.uiInteractionService.closeNodeStammdaten();
