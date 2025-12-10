@@ -972,9 +972,7 @@ export class TrainrunService {
     if (!this.getSelectedTrainrun() || this.getSelectedTrainrun().isRoundTrip()) {
       return "arrows-left-right-medium";
     }
-    const firstNode = this.getFirstTrainrunSection(this.getSelectedTrainrun()).getSourceNode();
-    const lastNode = this.getLastTrainrunSection(this.getSelectedTrainrun()).getTargetNode();
-    if (GeneralViewFunctions.getRightOrBottomNode(firstNode, lastNode) === lastNode) {
+    if (this.isTrainrunTargetRightOrBottom()) {
       return "arrow-right-medium";
     } else {
       return "arrow-left-medium";
