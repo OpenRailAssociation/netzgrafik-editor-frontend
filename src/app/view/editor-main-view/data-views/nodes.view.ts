@@ -653,10 +653,10 @@ export class NodesView {
       return;
     }
 
-    const dragIntermediateStopInfo =
-      this.editorView.trainrunSectionPreviewLineView.getDragIntermediateStopInfo();
-    if (dragIntermediateStopInfo !== null) {
-      this.replaceIntermediateStopWithTrainrunSections(dragIntermediateStopInfo, endNode);
+    const dragCollapsedNodeInfo =
+      this.editorView.trainrunSectionPreviewLineView.getDragCollapsedNodeInfo();
+    if (dragCollapsedNodeInfo !== null) {
+      this.replaceCollapsedNodeWithNode(dragCollapsedNodeInfo, endNode);
     } else {
       const dragTransitionInfo =
         this.editorView.trainrunSectionPreviewLineView.getDragTransitionInfo();
@@ -780,15 +780,42 @@ export class NodesView {
     }
   }
 
-  replaceIntermediateStopWithTrainrunSections(
-    dragIntermediateStopInfo: DragIntermediateStopInfo,
-    endNode: Node,
-  ) {
-    this.editorView.replaceIntermediateStopWithNode(
-      dragIntermediateStopInfo.trainrunSection.getId(),
-      dragIntermediateStopInfo.intermediateStopIndex,
-      endNode.getId(),
+  replaceCollapsedNodeWithNode(dragCollapsedNodeInfo: any, endNode: Node) {
+    const collapsedNode = dragCollapsedNodeInfo.viewObject.getCollapsedNodeFromStopIndex(
+      dragCollapsedNodeInfo.stopIndex,
     );
+
+    if (collapsedNode.getId() === endNode.getId()) {
+      this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
+      return;
+    }
+
+    const previousSection = dragCollapsedNodeInfo.viewObject.trainrunSections.find(
+      (ts: TrainrunSection) => ts.getTargetNodeId() === collapsedNode.getId(),
+    );
+
+    const nextSection = dragCollapsedNodeInfo.viewObject.trainrunSections.find(
+      (ts: TrainrunSection) => ts.getSourceNodeId() === collapsedNode.getId(),
+    );
+
+    if (previousSection) {
+      this.editorView.reconnectTrainrunSection(
+        previousSection.getSourceNode(),
+        endNode,
+        previousSection,
+        false,
+      );
+    }
+
+    if (nextSection) {
+      this.editorView.reconnectTrainrunSection(
+        endNode,
+        nextSection.getTargetNode(),
+        nextSection,
+        true,
+      );
+    }
+
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
   }
 

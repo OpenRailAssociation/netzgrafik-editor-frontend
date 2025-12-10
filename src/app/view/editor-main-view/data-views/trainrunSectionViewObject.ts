@@ -1,3 +1,4 @@
+import {Node} from "src/app/models/node.model";
 import {TrainrunSectionTextPositions} from "../../../data-structures/technical.data.structures";
 import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {SimpleTrainrunSectionRouter} from "../../../services/util/trainrunsection.routing";
@@ -49,6 +50,10 @@ export class TrainrunSectionViewObject {
     return this.trainrunSections
       .slice(1) // skip first section
       .filter((section) => !section.getSourceNode().isNonStop(section)).length;
+  }
+
+  getCollapsedNodeFromStopIndex(stopIndex: number): Node {
+    return this.trainrunSections[stopIndex].getTargetNode();
   }
 
   getTravelTime(): number {
