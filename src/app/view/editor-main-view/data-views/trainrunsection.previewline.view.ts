@@ -100,6 +100,10 @@ export class TrainrunSectionPreviewLineView {
       this.existingTrainrunSection,
       trainrunSection.getTrainrun(),
     );
+    this.existingTrainrunSection.setSourceAndTargetNodeReference(
+      trainrunSection.getSourceNode(),
+      trainrunSection.getTargetNode(),
+    );
   }
 
   startDragIntermediateStop(dragIntermediateStopInfo: DragIntermediateStopInfo) {
