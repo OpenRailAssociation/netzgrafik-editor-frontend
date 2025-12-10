@@ -5,7 +5,7 @@
     data-testid="one-way-top-card"
   >
     <div class="OneWayCardBetriebspunkt">
-      <b>{{ startNode[1] }}</b> ({{ startNode[0] }})
+      <b>{{ leftNode.getBetriebspunktName() }}</b> ({{ leftNode.getFullName() }})
     </div>
     <div class="TrainFreqContainer">
       <svg class="renderer" width="96px" height="48px" viewBox="0 0 48 24">
@@ -31,7 +31,7 @@
       </svg>
     </div>
     <div class="OneWayCardBetriebspunkt">
-      <b>{{ endNode[1] }}</b> ({{ endNode[0] }})
+      <b>{{ rightNode.getBetriebspunktName() }}</b> ({{ rightNode.getFullName() }})
     </div>
   </div>
 
@@ -41,7 +41,7 @@
     data-testid="one-way-bottom-card"
   >
     <div class="OneWayCardBetriebspunkt">
-      <b>{{ startNode[1] }}</b> ({{ startNode[0] }})
+      <b>{{ leftNode.getBetriebspunktName() }}</b> ({{ leftNode.getFullName() }})
     </div>
     <div class="TrainFreqContainer">
       <svg class="renderer" width="96px" height="48px" viewBox="0 0 48 24">
@@ -67,7 +67,7 @@
       </svg>
     </div>
     <div class="OneWayCardBetriebspunkt">
-      <b>{{ endNode[1] }}</b> ({{ endNode[0] }})
+      <b>{{ rightNode.getBetriebspunktName() }}</b> ({{ rightNode.getFullName() }})
     </div>
   </div>
 </div>
