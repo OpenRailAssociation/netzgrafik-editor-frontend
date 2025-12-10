@@ -423,7 +423,7 @@ export class Node {
     );
   }
 
-  getStartTrainrunSection(trainrunId: number, returnForwardStartNode = true): TrainrunSection {
+  getExtremityTrainrunSection(trainrunId: number, returnForwardStartNode = true): TrainrunSection {
     const portsForTrainrun = this.ports.filter(
       (port) => port.getTrainrunSection().getTrainrunId() === trainrunId,
     );

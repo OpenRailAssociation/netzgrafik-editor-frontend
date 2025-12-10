@@ -1119,7 +1119,10 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     let trainrunSectionGroup: TrainrunSectionGroup = undefined;
     let fromNode = node;
     let toNode = undefined;
-    const startTrainrunSection = node.getStartTrainrunSection(trainrunId, returnForwardStartNode);
+    const startTrainrunSection = node.getExtremityTrainrunSection(
+      trainrunId,
+      returnForwardStartNode,
+    );
     if (startTrainrunSection === undefined) {
       return {
         trainrunSectionGroups: trainrunSectionGroups,
