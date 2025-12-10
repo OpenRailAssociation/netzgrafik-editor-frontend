@@ -931,6 +931,29 @@ export class TrainrunService {
     return labelIDCauntMap;
   }
 
+  isTrainrunTargetRightOrBottom(): boolean {
+    if (!this.getSelectedTrainrun()) {
+      return false;
+    }
+    const firstNode = this.getFirstTrainrunSection(this.getSelectedTrainrun()).getSourceNode();
+    const lastNode = this.getLastTrainrunSection(this.getSelectedTrainrun()).getTargetNode();
+    return GeneralViewFunctions.getRightOrBottomNode(firstNode, lastNode) === lastNode;
+  }
+
+  getLeftOrTopExtremitySection(): TrainrunSection {
+    if (!this.getSelectedTrainrun()) {
+      return null;
+    }
+
+    const bothEndNodes = this.getBothEndNodesWithTrainrunId(this.getSelectedTrainrun().getId());
+    const leftOrTopNode = GeneralViewFunctions.getLeftOrTopNode(
+      bothEndNodes.endNode1,
+      bothEndNodes.endNode2,
+    );
+
+    return leftOrTopNode.getExtremityTrainrunSection(this.getSelectedTrainrun().getId());
+  }
+
   getSbbArrowForTrainrunSectionDirection(): string {
     if (!this.getSelectedTrainrun() || this.getSelectedTrainrun().isRoundTrip()) {
       return "arrows-left-right-medium";
