@@ -564,7 +564,7 @@ export class TrainrunService {
   }
 
   propagateTrainrunInitialConsecutiveTimes(trainrun: Trainrun) {
-    const startNode = this.getStartNodeWithTrainrunId(trainrun.getId());
+    const startNode = this.getLeftOrTopNodeWithTrainrunId(trainrun.getId());
     const ts = startNode.getTrainrunSection(trainrun);
     this.propagateConsecutiveTimesForTrainrun(ts.getId());
   }
@@ -603,7 +603,7 @@ export class TrainrunService {
 
       const propDataForward = this.propagateConsecutiveTimes(
         startForwardBackwardNode.startForwardNode,
-        startForwardBackwardNode.startForwardNode.getStartTrainrunSection(
+        startForwardBackwardNode.startForwardNode.getExtremityTrainrunSection(
           trainrunSection.getTrainrunId(),
           true,
         ),
@@ -621,7 +621,7 @@ export class TrainrunService {
 
       const propDataBackward = this.propagateConsecutiveTimes(
         startForwardBackwardNode.startBackwardNode,
-        startForwardBackwardNode.startBackwardNode.getStartTrainrunSection(
+        startForwardBackwardNode.startBackwardNode.getExtremityTrainrunSection(
           trainrunSection.getTrainrunId(),
           false,
         ),
@@ -637,12 +637,12 @@ export class TrainrunService {
     }
   }
 
-  getStartNodeWithTrainrunId(trainrunId: number): Node {
+  getLeftOrTopNodeWithTrainrunId(trainrunId: number): Node {
     const bothEndNodes = this.getBothEndNodesWithTrainrunId(trainrunId);
     return GeneralViewFunctions.getLeftOrTopNode(bothEndNodes.endNode1, bothEndNodes.endNode2);
   }
 
-  getEndNodeWithTrainrunId(trainrunId: number): Node {
+  getRightOrBottomNodeWithTrainrunId(trainrunId: number): Node {
     const bothEndNodes = this.getBothEndNodesWithTrainrunId(trainrunId);
     return GeneralViewFunctions.getRightOrBottomNode(bothEndNodes.endNode1, bothEndNodes.endNode2);
   }

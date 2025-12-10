@@ -590,8 +590,8 @@ export class EditorToolsViewComponent {
         // Retrieve start -> end with:
         // start {startNode, startTrainrunSection}
         // end {iterator.current.node, iterator.current.trainrunSection}
-        const startNode = this.trainrunService.getStartNodeWithTrainrunId(trainrun.getId());
-        const startTrainrunSection = startNode.getStartTrainrunSection(trainrun.getId());
+        const startNode = this.trainrunService.getLeftOrTopNodeWithTrainrunId(trainrun.getId());
+        const startTrainrunSection = startNode.getExtremityTrainrunSection(trainrun.getId());
         const iterator = this.trainrunService.getIterator(startNode, startTrainrunSection);
         while (iterator.hasNext()) {
           iterator.next();

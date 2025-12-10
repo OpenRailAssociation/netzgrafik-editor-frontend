@@ -582,9 +582,9 @@ describe("TrainrunSection Model Test", () => {
     const port2 = node2.addPort(PortAlignment.Right, ts2);
     node2.addTransitionAndComputeRouting(node2.getPort(port1), node2.getPort(port2), tr, true);
 
-    const ts001 = node1.getStartTrainrunSection(tr.getId());
-    const ts002 = node2.getStartTrainrunSection(tr.getId());
-    const ts003 = node3.getStartTrainrunSection(tr.getId());
+    const ts001 = node1.getExtremityTrainrunSection(tr.getId());
+    const ts002 = node2.getExtremityTrainrunSection(tr.getId());
+    const ts003 = node3.getExtremityTrainrunSection(tr.getId());
 
     expect(ts001).toBe(undefined);
     expect(ts002).toBe(undefined);

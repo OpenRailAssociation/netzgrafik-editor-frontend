@@ -281,8 +281,8 @@ describe("TrainrunSection Service Test", () => {
       trs.setTargetArrivalConsecutiveTime(undefined);
     });
     trainrunService.propagateInitialConsecutiveTimes();
-    const startNode = trainrunService.getStartNodeWithTrainrunId(2);
-    const startTrainrunSection = startNode.getStartTrainrunSection(2);
+    const startNode = trainrunService.getLeftOrTopNodeWithTrainrunId(2);
+    const startTrainrunSection = startNode.getExtremityTrainrunSection(2);
 
     expect(startTrainrunSection.getSourceDepartureConsecutiveTime()).toBe(0);
     expect(startTrainrunSection.getSourceArrivalConsecutiveTime()).toBe(180);
@@ -309,11 +309,11 @@ describe("TrainrunSection Service Test", () => {
       trs.setTargetDepartureConsecutiveTime(undefined);
       trs.setTargetArrivalConsecutiveTime(undefined);
     });
-    const startNode = trainrunService.getStartNodeWithTrainrunId(2);
-    const trainrunSection = startNode.getStartTrainrunSection(2);
+    const startNode = trainrunService.getLeftOrTopNodeWithTrainrunId(2);
+    const trainrunSection = startNode.getExtremityTrainrunSection(2);
     trainrunSection.setTravelTime(123);
     trainrunService.propagateInitialConsecutiveTimes();
-    const startTrainrunSection = startNode.getStartTrainrunSection(2);
+    const startTrainrunSection = startNode.getExtremityTrainrunSection(2);
 
     expect(startTrainrunSection.getSourceDepartureConsecutiveTime()).toBe(0);
     expect(startTrainrunSection.getSourceArrivalConsecutiveTime()).toBe(420);
