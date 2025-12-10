@@ -95,6 +95,10 @@ export class TrainrunSectionPreviewLineView {
   setExistingTrainrunSection(trainrunSection: TrainrunSection) {
     this.mode = PreviewLineMode.DragExistingTrainrunSection;
     this.existingTrainrunSection = new TrainrunSection(trainrunSection.getDto());
+    this.existingTrainrunSection.setSourceAndTargetNodeReference(
+      trainrunSection.getSourceNode(),
+      trainrunSection.getTargetNode(),
+    );
     this.existingTrainrunSection.setTrainrun(trainrunSection.getTrainrun());
   }
 
