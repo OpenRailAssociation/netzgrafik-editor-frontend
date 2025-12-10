@@ -207,24 +207,20 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     if (this.trainrunSection === null) {
       return false;
     }
-    const isTargetRightOrBottom = TrainrunsectionHelper.isTargetRightOrBottom(
-      this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
-        this.trainrunSection.getTrainrunId(),
-      )[0],
+    return (
+      this.trainrunSection.getTrainrun().isRoundTrip() ||
+      !this.trainrunService.isTrainrunTargetRightOrBottom()
     );
-    return this.trainrunSection.getTrainrun().isRoundTrip() || !isTargetRightOrBottom;
   }
 
   isRightSideDisplayed(): boolean {
     if (this.trainrunSection === null) {
       return false;
     }
-    const isTargetRightOrBottom = TrainrunsectionHelper.isTargetRightOrBottom(
-      this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
-        this.trainrunSection.getTrainrunId(),
-      )[0],
+    return (
+      this.trainrunSection.getTrainrun().isRoundTrip() ||
+      this.trainrunService.isTrainrunTargetRightOrBottom()
     );
-    return this.trainrunSection.getTrainrun().isRoundTrip() || isTargetRightOrBottom;
   }
 
   getVariantIsWritable(): boolean {
