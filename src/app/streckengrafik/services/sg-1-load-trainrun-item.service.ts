@@ -621,7 +621,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         trainrun.getCategoryShortName(),
         trainrun.getCategoryColorRef(),
         pathItems,
-        TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection),
+        this.trainrunService.isTrainrunTargetRightOrBottom(),
         trainrun.getDirection(),
       ),
       visitedTrainrunSections: visitedTrainrunSections,
