@@ -366,6 +366,7 @@ export class TrainrunService {
       }
       iterator.current().trainrunSection.setTrainrun(newTrainrun);
     }
+    this.operation.emit(new TrainrunOperation(OperationType.create, newTrainrun));
 
     this.nodeService.checkAndFixMissingTransitions(
       port1.getTrainrunSection().getSourceNodeId(),
@@ -489,7 +490,6 @@ export class TrainrunService {
     copiedtrainrun.setTitle(trainrun.getTitle() + postfix);
     copiedtrainrun.setLabelIds(trainrun.getLabelIds());
     this.trainrunsStore.trainruns.push(copiedtrainrun);
-    this.operation.emit(new TrainrunOperation(OperationType.create, copiedtrainrun));
     return copiedtrainrun;
   }
 
@@ -503,6 +503,7 @@ export class TrainrunService {
       trainrunId,
       copiedtrainrun.getId(),
     );
+    this.operation.emit(new TrainrunOperation(OperationType.create, copiedtrainrun));
     this.setTrainrunAsSelected(copiedtrainrun.getId(), false);
     if (enforceUpdate) {
       this.nodeService.transitionsUpdated();
