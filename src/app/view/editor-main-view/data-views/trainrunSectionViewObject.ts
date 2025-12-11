@@ -143,6 +143,7 @@ export class TrainrunSectionViewObject {
     return atSource ? this.getPositionAtSourceNode() : this.getPositionAtTargetNode();
   }
 
+  // TODO: this method is not clear, a refacto in smaller functions might be nice
   getHiddenTagForTime(trainrunSection: TrainrunSection, textElement: TrainrunSectionText): boolean {
     if (this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       // disable filtering in view (render all objects)
@@ -151,36 +152,10 @@ export class TrainrunSectionViewObject {
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
       case TrainrunSectionText.SourceArrival:
-        if (!this.editorView.isFilterArrivalDepartureTimeEnabled()) {
-          return true;
-        }
-        if (
-          !this.editorView.checkFilterNonStopNode(
-            TrainrunSectionsView.getNode(trainrunSection, true),
-          )
-        ) {
-          return true;
-        }
-        if (this.editorView.isFilterShowNonStopTimeEnabled()) {
-          return false;
-        }
-        return TrainrunSectionsView.getNode(trainrunSection, true).isNonStop(trainrunSection);
+        return this.isTimeHidden(trainrunSection, true);
       case TrainrunSectionText.TargetDeparture:
       case TrainrunSectionText.TargetArrival:
-        if (!this.editorView.isFilterArrivalDepartureTimeEnabled()) {
-          return true;
-        }
-        if (
-          !this.editorView.checkFilterNonStopNode(
-            TrainrunSectionsView.getNode(trainrunSection, false),
-          )
-        ) {
-          return true;
-        }
-        if (this.editorView.isFilterShowNonStopTimeEnabled()) {
-          return false;
-        }
-        return TrainrunSectionsView.getNode(trainrunSection, false).isNonStop(trainrunSection);
+        return this.isTimeHidden(trainrunSection, false);
       case TrainrunSectionText.TrainrunSectionTravelTime:
         if (!this.editorView.isFilterTravelTimeEnabled()) {
           return true;
@@ -343,5 +318,22 @@ export class TrainrunSectionViewObject {
     });
 
     return key;
+  }
+
+  private isTimeHidden(trainrunSection: TrainrunSection, atSource: boolean): boolean {
+    if (!this.editorView.isFilterArrivalDepartureTimeEnabled()) {
+      return true;
+    }
+    if (
+      !this.editorView.checkFilterNonStopNode(
+        TrainrunSectionsView.getNode(trainrunSection, atSource),
+      )
+    ) {
+      return true;
+    }
+    if (this.editorView.isFilterShowNonStopTimeEnabled()) {
+      return false;
+    }
+    return TrainrunSectionsView.getNode(trainrunSection, atSource).isNonStop(trainrunSection);
   }
 }
