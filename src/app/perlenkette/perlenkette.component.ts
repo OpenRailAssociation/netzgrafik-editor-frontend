@@ -90,6 +90,9 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
       });
 
     this.trainrunService.trainruns.pipe(takeUntil(this.destroyed$)).subscribe((trainrunList) => {
+      if (!this.trainrunService.getSelectedTrainrun()) {
+        return;
+      }
       if (!this.trainrunSectionService.getSelectedTrainrunSection()) {
         this.trainrunSectionService.setTrainrunSectionAsSelected(
           this.perlenketteTrainrun.pathItems
