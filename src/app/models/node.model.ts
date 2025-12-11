@@ -503,29 +503,39 @@ export class Node {
   }
 
   sortPorts() {
-    const original = this.ports;
-    console.log("original ports before sort:", original);
-
-    // 1. Separate locked & unlocked ports
+    const originalPorts = this.ports;
+    const lockedIndexes: Set<number> = new Set();
     const portsToKeepLocked: Port[] = [];
     const portsToReorder: Port[] = [];
 
-    original.forEach((port) => {
+    originalPorts.forEach((port, index) => {
       if (port.getLocked()) {
+        lockedIndexes.add(index);
         portsToKeepLocked.push(port);
       } else {
         portsToReorder.push(port);
       }
     });
 
-    // 2. Sort ONLY the unlocked ports
+    // Sort ONLY the unlocked ports
     portsToReorder.sort((a, b) => {
       return this.comparePorts(a, b);
     });
 
-    // 3. Merge: All locked ports first
-    console.log("after", [...portsToKeepLocked, ...portsToReorder]);
-    this.ports = [...portsToKeepLocked, ...portsToReorder];
+    // Insert locked ports back in their original places
+    const newPorts: Port[] = [];
+    let lockedIndex = 0;
+    let reordredIndex = 0;
+    for (let index = 0; index < originalPorts.length; index++) {
+      if (lockedIndexes.has(index)) {
+        newPorts.push(portsToKeepLocked[lockedIndex]);
+        lockedIndex += 1;
+      } else {
+        newPorts.push(portsToReorder[reordredIndex]);
+        reordredIndex += 1;
+      }
+    }
+    this.ports = newPorts;
   }
 
   resetPositionIndex(alignment: PortAlignment) {
