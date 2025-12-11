@@ -378,6 +378,7 @@ export class TrainrunService {
     newTrainrun.select();
     this.nodeService.transitionsUpdated();
     this.trainrunsUpdated();
+    this.operation.emit(new TrainrunOperation(OperationType.create, newTrainrun));
   }
 
   combineTwoTrainruns(node: Node, port1: Port, port2: Port) {
@@ -489,7 +490,6 @@ export class TrainrunService {
     copiedtrainrun.setTitle(trainrun.getTitle() + postfix);
     copiedtrainrun.setLabelIds(trainrun.getLabelIds());
     this.trainrunsStore.trainruns.push(copiedtrainrun);
-    this.operation.emit(new TrainrunOperation(OperationType.create, copiedtrainrun));
     return copiedtrainrun;
   }
 
@@ -509,6 +509,7 @@ export class TrainrunService {
       this.nodeService.nodesUpdated();
       this.trainrunsUpdated();
     }
+    this.operation.emit(new TrainrunOperation(OperationType.create, copiedtrainrun));
     return copiedtrainrun;
   }
 
