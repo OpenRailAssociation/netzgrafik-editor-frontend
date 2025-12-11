@@ -113,6 +113,7 @@ export interface PortDto {
   positionIndex: number; // position index starts at 0, ... for each PortAlignment group
   positionAlignment: PortAlignment; // defines corresponding PortAlignment group within the node
   trainrunSectionId: number; // reference to the connected trainrun section
+  locked: boolean;
 }
 
 /**

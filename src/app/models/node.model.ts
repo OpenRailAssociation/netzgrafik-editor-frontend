@@ -181,6 +181,49 @@ export class Node {
     return ++Node.currentId;
   }
 
+  private comparePorts(a: Port, b: Port): number {
+    if (a.getPositionAlignment() > b.getPositionAlignment()) {
+      return 1;
+    } else {
+      if (a.getPositionAlignment() === b.getPositionAlignment()) {
+        if (
+          a.getPositionAlignment() === PortAlignment.Left ||
+          a.getPositionAlignment() === PortAlignment.Right
+        ) {
+          if (
+            a.getOppositeNodePosition(this.getId()).getY() >
+            b.getOppositeNodePosition(this.getId()).getY()
+          ) {
+            return 1;
+          } else if (
+            a.getOppositeNodePosition(this.getId()).getY() ===
+            b.getOppositeNodePosition(this.getId()).getY()
+          ) {
+            return Node.orderPortsTrainCategory(a, b);
+          } else {
+            return -1;
+          }
+        } else {
+          if (
+            a.getOppositeNodePosition(this.getId()).getX() >
+            b.getOppositeNodePosition(this.getId()).getX()
+          ) {
+            return 1;
+          } else if (
+            a.getOppositeNodePosition(this.getId()).getX() ===
+            b.getOppositeNodePosition(this.getId()).getX()
+          ) {
+            return Node.orderPortsTrainCategory(a, b);
+          } else {
+            return -1;
+          }
+        }
+      } else {
+        return -1;
+      }
+    }
+  }
+
   initializePortsWithReferencesToTrainrunSections(trainrunSections: TrainrunSection[]) {
     this.ports.forEach((port) => {
       const trainrunSection = trainrunSections.find(
@@ -460,48 +503,29 @@ export class Node {
   }
 
   sortPorts() {
-    this.ports.sort((a, b) => {
-      if (a.getPositionAlignment() > b.getPositionAlignment()) {
-        return 1;
+    const original = this.ports;
+    console.log("original ports before sort:", original);
+
+    // 1. Separate locked & unlocked ports
+    const portsToKeepLocked: Port[] = [];
+    const portsToReorder: Port[] = [];
+
+    original.forEach((port) => {
+      if (port.getLocked()) {
+        portsToKeepLocked.push(port);
       } else {
-        if (a.getPositionAlignment() === b.getPositionAlignment()) {
-          if (
-            a.getPositionAlignment() === PortAlignment.Left ||
-            a.getPositionAlignment() === PortAlignment.Right
-          ) {
-            if (
-              a.getOppositeNodePosition(this.getId()).getY() >
-              b.getOppositeNodePosition(this.getId()).getY()
-            ) {
-              return 1;
-            } else if (
-              a.getOppositeNodePosition(this.getId()).getY() ===
-              b.getOppositeNodePosition(this.getId()).getY()
-            ) {
-              return Node.orderPortsTrainCategory(a, b);
-            } else {
-              return -1;
-            }
-          } else {
-            if (
-              a.getOppositeNodePosition(this.getId()).getX() >
-              b.getOppositeNodePosition(this.getId()).getX()
-            ) {
-              return 1;
-            } else if (
-              a.getOppositeNodePosition(this.getId()).getX() ===
-              b.getOppositeNodePosition(this.getId()).getX()
-            ) {
-              return Node.orderPortsTrainCategory(a, b);
-            } else {
-              return -1;
-            }
-          }
-        } else {
-          return -1;
-        }
+        portsToReorder.push(port);
       }
     });
+
+    // 2. Sort ONLY the unlocked ports
+    portsToReorder.sort((a, b) => {
+      return this.comparePorts(a, b);
+    });
+
+    // 3. Merge: All locked ports first
+    console.log("after", [...portsToKeepLocked, ...portsToReorder]);
+    this.ports = [...portsToKeepLocked, ...portsToReorder];
   }
 
   resetPositionIndex(alignment: PortAlignment) {

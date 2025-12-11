@@ -206,6 +206,7 @@ export class NodeService implements OnDestroy {
 
   duplicateNode(nodeId: number, enforceUpdate = true): Node {
     const node = this.getNodeFromId(nodeId);
+    // duplicate lock ports for each node ?
     const newNode = this.addNodeWithPosition(
       node.getPositionX(),
       node.getPositionY(),
