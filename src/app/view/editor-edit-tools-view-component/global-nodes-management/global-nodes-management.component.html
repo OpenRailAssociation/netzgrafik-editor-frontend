@@ -43,8 +43,8 @@
                   (change)="toggleIsCollapsed(node, !$event.checked)"
                 />
               </td>
-              <td>{{ node.getBetriebspunktName() }}</td>
-              <td>{{ node.getFullName() }}</td>
+              <td>{{ node.getBetriebspunktName() || "?" }}</td>
+              <td>{{ node.getFullName() || "?" }}</td>
             </tr>
           }
         </tbody>
