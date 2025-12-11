@@ -16,6 +16,16 @@ export class TrainrunSectionViewObject {
   readonly path: Vec2D[];
   readonly textPositions: TrainrunSectionTextPositions;
 
+  // TODO: use these values in trainrunsections.view.ts instead of recomputing
+  readonly isNonStopAtSource: boolean;
+  readonly isNonStopAtTarget: boolean;
+  readonly isMuted: boolean;
+  readonly hiddenTagSource: boolean;
+  readonly hiddenTagTarget: boolean;
+  readonly hiddenTagTraveltime: boolean;
+  readonly hiddenTagTrainrunName: boolean;
+  readonly hiddenTagDirectionArrows: boolean;
+
   constructor(
     private editorView: EditorView,
     public trainrunSections: TrainrunSection[],
@@ -41,47 +51,48 @@ export class TrainrunSectionViewObject {
     if (selectedTrainrun !== null) {
       connectedTrainIds = this.editorView.getConnectedTrainrunIds(selectedTrainrun);
     }
-    const isNonStopAtSource = TrainrunSectionsView.getNode(this.firstSection, true).isNonStop(
+
+    this.isNonStopAtSource = TrainrunSectionsView.getNode(this.firstSection, true).isNonStop(
       this.firstSection,
     );
-    const isNonStopAtTarget = TrainrunSectionsView.getNode(this.lastSection, false).isNonStop(
+    this.isNonStopAtTarget = TrainrunSectionsView.getNode(this.lastSection, false).isNonStop(
       this.lastSection,
     );
-    const isMuted = TrainrunSectionsView.isMuted(
+    this.isMuted = TrainrunSectionsView.isMuted(
       this.firstSection,
       selectedTrainrun,
       connectedTrainIds,
     );
-    const hiddenTagSource = this.getHiddenTagForTime(
+    this.hiddenTagSource = this.getHiddenTagForTime(
       this.firstSection,
       TrainrunSectionText.SourceDeparture,
     );
-    const hiddenTagTarget = this.getHiddenTagForTime(
+    this.hiddenTagTarget = this.getHiddenTagForTime(
       this.lastSection,
       TrainrunSectionText.TargetDeparture,
     );
-    const hiddenTagTraveltime = this.getHiddenTagForTime(
+    this.hiddenTagTraveltime = this.getHiddenTagForTime(
       this.firstSection,
       TrainrunSectionText.TrainrunSectionTravelTime,
     );
-    const hiddenTagTrainrunName = this.getHiddenTagForTime(
+    this.hiddenTagTrainrunName = this.getHiddenTagForTime(
       this.firstSection,
       TrainrunSectionText.TrainrunSectionName,
     );
-    const hiddenTagDirectionArrows =
+    this.hiddenTagDirectionArrows =
       !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
       !this.editorView.isFilterDirectionArrowsEnabled();
 
     this.key = this.generateKey(
       editorView,
-      isNonStopAtSource,
-      isNonStopAtTarget,
-      isMuted,
-      hiddenTagSource,
-      hiddenTagTarget,
-      hiddenTagTraveltime,
-      hiddenTagTrainrunName,
-      hiddenTagDirectionArrows,
+      this.isNonStopAtSource,
+      this.isNonStopAtTarget,
+      this.isMuted,
+      this.hiddenTagSource,
+      this.hiddenTagTarget,
+      this.hiddenTagTraveltime,
+      this.hiddenTagTrainrunName,
+      this.hiddenTagDirectionArrows,
     );
   }
 
