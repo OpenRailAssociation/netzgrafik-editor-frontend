@@ -321,19 +321,14 @@ export class TrainrunSectionViewObject {
   }
 
   private isTimeHidden(trainrunSection: TrainrunSection, atSource: boolean): boolean {
-    if (!this.editorView.isFilterArrivalDepartureTimeEnabled()) {
-      return true;
-    }
-    if (
-      !this.editorView.checkFilterNonStopNode(
-        TrainrunSectionsView.getNode(trainrunSection, atSource),
-      )
-    ) {
-      return true;
-    }
-    if (this.editorView.isFilterShowNonStopTimeEnabled()) {
-      return false;
-    }
-    return TrainrunSectionsView.getNode(trainrunSection, atSource).isNonStop(trainrunSection);
+    const node = TrainrunSectionsView.getNode(trainrunSection, atSource);
+    // If global arrival/departure time filtering is disabled, hide times
+    // Or if global non-stop times is disabled, hide times
+    // Or if node is non-stop, hide time sourceArrival at source and targetArrival at target
+    return (
+      !this.editorView.isFilterArrivalDepartureTimeEnabled() ||
+      !this.editorView.isFilterShowNonStopTimeEnabled() ||
+      !this.editorView.checkFilterNonStopNode(node)
+    );
   }
 }
