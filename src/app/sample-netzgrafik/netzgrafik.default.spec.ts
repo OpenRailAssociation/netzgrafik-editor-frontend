@@ -104,7 +104,7 @@ describe("NetzgrafikDefault", () => {
         // the existing trainrunSection A -> B to now be A -> NEW
         // and a new trainrunSection NEW -> B
         const newNode = outputJson.nodes[2];
-        expect(newNode.betriebspunktName).toBe("NEW");
+        expect(newNode.betriebspunktName).toBe("");
         expect(newNode.positionX).toBe(1488);
         expect(newNode.positionY).toBe(512);
         expect(outputJson.trainrunSections[0].sourceNodeId).toBe(11);
@@ -125,15 +125,15 @@ describe("NetzgrafikDefault", () => {
         // A ------ C ------ D ------ E ------ B
         const outputJson = dataService.getNetzgrafikDto();
         const newNode1 = outputJson.nodes[2];
-        expect(newNode1.betriebspunktName).toBe("NEW");
+        expect(newNode1.betriebspunktName).toBe("");
         expect(newNode1.positionX).toBe(1488);
         expect(newNode1.positionY).toBe(512);
         const newNode2 = outputJson.nodes[3];
-        expect(newNode2.betriebspunktName).toBe("NEW");
+        expect(newNode2.betriebspunktName).toBe("");
         expect(newNode2.positionX).toBe(1576);
         expect(newNode2.positionY).toBe(512);
         const newNode3 = outputJson.nodes[4];
-        expect(newNode3.betriebspunktName).toBe("NEW");
+        expect(newNode3.betriebspunktName).toBe("");
         expect(newNode3.positionX).toBe(1620);
         expect(newNode3.positionY).toBe(512);
         expect(outputJson.trainrunSections[0].sourceNodeId).toBe(11);
@@ -161,11 +161,11 @@ describe("NetzgrafikDefault", () => {
         const outputJson = dataService.getNetzgrafikDto();
 
         const newNode1 = outputJson.nodes[3];
-        expect(newNode1.betriebspunktName).toBe("NEW");
+        expect(newNode1.betriebspunktName).toBe("");
         expect(newNode1.positionX).toBe(1488);
         expect(newNode1.positionY).toBe(512);
         const newNode2 = outputJson.nodes[4];
-        expect(newNode2.betriebspunktName).toBe("NEW");
+        expect(newNode2.betriebspunktName).toBe("");
         expect(newNode2.positionX).toBe(1808);
         expect(newNode2.positionY).toBe(544);
         expect(outputJson.trainrunSections[0].sourceNodeId).toBe(11);
