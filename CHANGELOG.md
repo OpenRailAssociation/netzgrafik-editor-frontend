@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.2](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.1...netzgrafik-frontend-v2.10.2) (2025-12-11)
+
+
+### Bug Fixes
+
+* Trainrun deselection leaves single trainrun section marked/selected ([#682](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/682)) ([86f7120](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/86f712000a52e5c776663df52cf6935cbe16d286))
+
 ## [2.10.1](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.0...netzgrafik-frontend-v2.10.1) (2025-12-05)
 
 ### Bug Fixes
