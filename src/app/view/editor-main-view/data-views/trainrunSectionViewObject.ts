@@ -204,6 +204,20 @@ export class TrainrunSectionViewObject {
     }
   }
 
+  isTip(atSource: boolean): boolean {
+    if (atSource) {
+      return (
+        !this.firstSection.getSourceNode().getIsCollapsed() &&
+        this.lastSection.getTargetNode().getIsCollapsed()
+      );
+    } else {
+      return (
+        this.firstSection.getSourceNode().getIsCollapsed() &&
+        !this.lastSection.getTargetNode().getIsCollapsed()
+      );
+    }
+  }
+
   private generateKey(
     editorView: EditorView,
     isNonStopAtSource: boolean,
@@ -254,6 +268,10 @@ export class TrainrunSectionViewObject {
       this.firstSection.getSourceArrivalConsecutiveTime() +
       "_" +
       this.firstSection.getNumberOfStops() +
+      "_" +
+      this.firstSection.getSourceNode().getIsCollapsed() +
+      "_" +
+      this.lastSection.getTargetNode().getIsCollapsed() +
       "_" +
       this.getTrainrun().getTrainrunCategory().shortName +
       "_" +
