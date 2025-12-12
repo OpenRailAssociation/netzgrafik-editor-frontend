@@ -1698,12 +1698,14 @@ export class TrainrunSectionsView {
       connectedTrainIds = this.editorView.getConnectedTrainrunIds(selectedTrainrun);
     }
 
-    const filteredTrainrunSections = trainrunSections.filter(
-      (trainrunSection: TrainrunSection) =>
-        this.editorView.doCullCheckPositionsInViewport(
-          new TrainrunSectionViewObject(this.editorView, [trainrunSection]).path,
-        ) && this.filterTrainrunSectionToDisplay(trainrunSection),
-    );
+    const filteredTrainrunSections = trainrunSections.filter((trainrunSection: TrainrunSection) => {
+      const viewObject = new TrainrunSectionViewObject(this.editorView, [trainrunSection]);
+      return (
+        this.editorView.doCullCheckPositionsInViewport(viewObject.path) &&
+        this.filterTrainrunSectionToDisplay(trainrunSection) &&
+        !viewObject.areBothEndCollapsed()
+      );
+    });
 
     const group = this.trainrunSectionGroup
       .selectAll(StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF)
@@ -2064,8 +2066,11 @@ export class TrainrunSectionsView {
     if (this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       return true;
     }
-    const trainrunSection = viewObject.getSection(atSource);
-    return this.editorView.checkFilterNode(TrainrunSectionsView.getNode(trainrunSection, atSource));
+    return (
+      this.editorView.checkFilterNode(
+        TrainrunSectionsView.getNode(viewObject.getSection(atSource), atSource),
+      ) && !viewObject.isTip(!atSource)
+    );
   }
 
   private transformPathAddExtraElementForPortAlignmentBottom(
@@ -2176,8 +2181,10 @@ export class TrainrunSectionsView {
     const trgNode = lastSection.getTargetNode();
     const path = viewObject.path;
 
-    let notFilteringSourceNode = this.editorView.checkFilterNode(srcNode);
-    let notFilteringTargetNode = this.editorView.checkFilterNode(trgNode);
+    let notFilteringSourceNode =
+      this.editorView.checkFilterNode(srcNode) && !viewObject.isTip(false);
+    let notFilteringTargetNode =
+      this.editorView.checkFilterNode(trgNode) && !viewObject.isTip(true);
 
     if (this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       notFilteringSourceNode = true;
@@ -2214,14 +2221,18 @@ export class TrainrunSectionsView {
   }
 
   private filterOutAllTrainrunSectionWithHiddenNodeConnection(
-    trainrunSection: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
   ): boolean {
     if (this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       return true;
     }
-    const filterSourceNode = this.editorView.checkFilterNode(trainrunSection.getSourceNode());
-    const filterTargetNode = this.editorView.checkFilterNode(trainrunSection.getTargetNode());
-    return filterSourceNode && filterTargetNode;
+    const isSourceNodeFiltered =
+      this.editorView.checkFilterNode(viewObject.firstSection.getSourceNode()) &&
+      !viewObject.isTip(false);
+    const isTargetNodeFiltered =
+      this.editorView.checkFilterNode(viewObject.lastSection.getTargetNode()) &&
+      !viewObject.isTip(true);
+    return isSourceNodeFiltered && isTargetNodeFiltered;
   }
 
   private oneNodeHiddenTrainrunSectionsRendering(
@@ -2232,7 +2243,7 @@ export class TrainrunSectionsView {
   ) {
     const groupLines = inGroupLines.filter(
       (d: TrainrunSectionViewObject) =>
-        !this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.firstSection),
+        !this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d),
     );
 
     this.make4LayerTrainrunSectionLines(
@@ -2248,7 +2259,7 @@ export class TrainrunSectionsView {
 
       const groupLabels = inGroupLabels.filter(
         (d: TrainrunSectionViewObject) =>
-          !this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.firstSection),
+          !this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d),
       );
 
       if (this.editorView.getLevelOfDetail() === LevelOfDetail.FULL) {
@@ -2355,7 +2366,7 @@ export class TrainrunSectionsView {
     inGroupLabels,
   ) {
     const groupLines = inGroupLines.filter((d: TrainrunSectionViewObject) =>
-      this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.firstSection),
+      this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d),
     );
 
     this.make4LayerTrainrunSectionLines(
@@ -2370,7 +2381,7 @@ export class TrainrunSectionsView {
       this.createDirectionArrows(groupLines, selectedTrainrun, connectedTrainIds, true);
 
       const groupLabels = inGroupLabels.filter((d: TrainrunSectionViewObject) =>
-        this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.firstSection),
+        this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d),
       );
 
       if (

@@ -551,6 +551,10 @@ export class TrainrunSection {
     return this.targetNodeId;
   }
 
+  areBothNodesCollapsed(): boolean {
+    return this.sourceNode.getIsCollapsed() && this.targetNode.getIsCollapsed();
+  }
+
   getTrainrun(): Trainrun {
     return this.trainrun;
   }
