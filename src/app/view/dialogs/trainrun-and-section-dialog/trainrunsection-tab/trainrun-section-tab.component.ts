@@ -71,7 +71,6 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   public categoryColorRef: ColorRefType;
   public timeCategoryShortName: string;
   public timeCategoryLinePattern: LinePatternRefs;
-  public numberOfStopsWarning = "";
 
   private trainrunSectionHelper: TrainrunsectionHelper;
   private numberOfStops: number;
@@ -282,7 +281,7 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
 
   /* number of stops */
   onNumberOfStopsChanged(newNumberOfStops: number) {
-    this.numberOfStopsWarning = "";
+    this.trainrunSectionTimesService.setOutsideWarning("");
     const stopsNbDiff = Math.max(0, newNumberOfStops) - this.numberOfStops;
     if (stopsNbDiff === 0) return;
     if (stopsNbDiff > 0) {
@@ -302,7 +301,7 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
         );
         if (success) this.numberOfStops -= 1;
         else {
-          this.numberOfStopsWarning = "cannot-delete-not-empty-node";
+          this.trainrunSectionTimesService.setOutsideWarning("cannot-delete-not-empty-node");
           break;
         }
       }
