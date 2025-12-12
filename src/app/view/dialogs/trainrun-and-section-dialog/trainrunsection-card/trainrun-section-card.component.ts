@@ -90,13 +90,6 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
   }
 
   ngAfterViewInit(): void {
-    if (
-      this.trainrunDialogParameter !== undefined &&
-      this.trainrunDialogParameter.nodesOrdered.length > 0
-    ) {
-      this.trainrunSectionTimesService.setNodesOrdered(this.trainrunDialogParameter.nodesOrdered);
-    }
-
     this.updateAllValues();
     this.changeDetection.detectChanges();
   }

@@ -162,13 +162,6 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    if (
-      this.trainrunDialogParameter !== undefined &&
-      this.trainrunDialogParameter.nodesOrdered.length > 0
-    ) {
-      this.trainrunSectionTimesService.setNodesOrdered(this.trainrunDialogParameter.nodesOrdered);
-    }
-
     this.calcAndSetOffset();
     const focusElement = this.trainrunSectionHelper.mapSelectedTimeElement(
       this.trainrunDialogParameter.trainrunSectionText,
