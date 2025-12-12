@@ -1117,13 +1117,15 @@ export class TrainrunSectionService implements OnDestroy {
       backwardIterator.next();
       const {node, trainrunSection} = backwardIterator.current();
       if (!node.isNonStopNode() && node.getIsCollapsed() && node.isEmpty()) {
-        // undock the empty node of the trainrun and remove it
+        // undock the empty node of the trainrun
         this.nodeService.undockTransition(
           node.getId(),
           node.getTransition(trainrunSection.getId()).getId(),
         );
-        // ATTENTION: noeud à ne retirer que s'il n'est pas utilisé par d'autres trains
-        this.nodeService.deleteNode(node.getId());
+        // remove node only if it is not used anymore
+        if (node.getTransitions().length === 0) {
+          this.nodeService.deleteNode(node.getId());
+        }
         nodeRemoved = true;
       }
     }
