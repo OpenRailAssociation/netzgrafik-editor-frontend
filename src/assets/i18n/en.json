@@ -292,7 +292,7 @@
             "round-trip": "Round trip"
           },
           "trainrun-section-tab": {
-            "warningTwoLocks": "Warning: Too many times are locked!",
+            "too-many-locks": "Warning: Too many times are locked!",
             "propagateTimesToLeft": "Propagate times to the left",
             "propagateTimesToRight": "Propagate times to the right"
           }
