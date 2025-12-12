@@ -522,7 +522,7 @@ export class EditorView implements SVGMouseControllerObserver {
         const maxY = Math.max(p[1].getY(), p[2].getY());
         const center = Vec2D.scale(Vec2D.add(p[1], p[2]), 0.5);
 
-        if (this.filterService.filterTrainrun(ts.getTrainrun())) {
+        if (this.filterService.filterTrainrun(ts.getTrainrun()) && ts.areBothNodesExpanded()) {
           if (
             topLeft.getX() < center.getX() &&
             center.getX() < bottomRight.getX() &&
