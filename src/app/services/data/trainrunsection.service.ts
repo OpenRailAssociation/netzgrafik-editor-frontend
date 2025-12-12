@@ -385,7 +385,7 @@ export class TrainrunSectionService implements OnDestroy {
     this.trainrunSectionsUpdated();
   }
 
-  propagteTimeSourceToTarget(
+  propagateTimeSourceToTarget(
     previousPair: TrainrunSectionNodePair,
     pair: TrainrunSectionNodePair,
     arrivalDepartureTimes: DepartureAndArrivalTimes,
@@ -482,7 +482,7 @@ export class TrainrunSectionService implements OnDestroy {
         TrainrunSectionService.TIME_PRECISION,
       );
 
-      this.propagteTimeSourceToTarget(previousPair, pair, arrivalDepartureTimes, isNonStop);
+      this.propagateTimeSourceToTarget(previousPair, pair, arrivalDepartureTimes, isNonStop);
       TrainrunSectionValidator.validateOneSection(pair.trainrunSection);
 
       if (
