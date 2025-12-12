@@ -377,11 +377,11 @@
 <div sbbDialogActions [class]="getContentFooterClassTag()">
   <button
     class="warning"
-    *ngIf="trainrunSectionTimesService.getShowWarningTwoLocks() === true"
+    *ngIf="trainrunSectionTimesService.getWarning()"
     disabled
   >
     {{
-      "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.warningTwoLocks"
+      "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab." + trainrunSectionTimesService.getWarning()
         | translate
     }}
   </button>
