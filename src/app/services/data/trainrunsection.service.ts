@@ -949,14 +949,19 @@ export class TrainrunSectionService implements OnDestroy {
 
     node2.replaceTrainrunSectionOnPort(trainrunSection1, trainrunSection2);
 
+    const sourceExpandedNode = this.nodeService.getOppositeExpandedNode(trainrunSection1, node2);
+    console.log("sourceExpandedNode", sourceExpandedNode);
+    const targetExpandedNode = this.nodeService.getOppositeExpandedNode(trainrunSection1, node1);
+    console.log("targetExpandedNode", targetExpandedNode);
+
     trainrunSection1.setTargetNode(nodeIntermediate);
-    nodeIntermediate.addPortWithRespectToOppositeNode(node1, trainrunSection1);
-    node1.reAlignPortWithRespectToOppositeNode(nodeIntermediate, trainrunSection1);
+    node2.addPortWithRespectToOppositeNode(sourceExpandedNode, trainrunSection1);
+    node1.reAlignPortWithRespectToOppositeNode(targetExpandedNode, trainrunSection1);
 
     trainrunSection2.setSourceNode(nodeIntermediate);
     trainrunSection2.setTargetNode(node2);
-    nodeIntermediate.addPortWithRespectToOppositeNode(node2, trainrunSection2);
-    node2.reAlignPortWithRespectToOppositeNode(nodeIntermediate, trainrunSection2);
+    node1.addPortWithRespectToOppositeNode(targetExpandedNode, trainrunSection2);
+    node2.reAlignPortWithRespectToOppositeNode(sourceExpandedNode, trainrunSection2);
 
     this.nodeService.addTransitionToNodeForTrainrunSections(
       nodeIntermediate.getId(),
@@ -1448,6 +1453,7 @@ export class TrainrunSectionService implements OnDestroy {
     const visitedSections = new Set<number>();
 
     trainrunSections.forEach((section) => {
+      console.log("Processing section", section);
       if (visitedSections.has(section.getId())) {
         return;
       }
@@ -1459,6 +1465,7 @@ export class TrainrunSectionService implements OnDestroy {
       while (backwardIterator.hasNext() && backwardIterator.current().node.getIsCollapsed()) {
         backwardIterator.next();
       }
+      console.log("Found start of chain at node", backwardIterator);
       const startNode = backwardIterator.current().node;
       const startSection = backwardIterator.current().trainrunSection;
 

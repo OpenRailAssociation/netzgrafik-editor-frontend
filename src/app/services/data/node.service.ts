@@ -192,6 +192,22 @@ export class NodeService implements OnDestroy {
       node.updateTransitionsAndConnections();
     });
   }
+  // initPortOrdering() {
+  // this.nodesStore.nodes.forEach((node) => {
+  //   node.getPorts().forEach((port) => {
+  //     const oppositeExpandedNode = this.getOppositeExpandedNode(port.getTrainrunSection(), node);
+  //     const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
+  //       node,
+  //       oppositeExpandedNode,
+  //     );
+  //     port.setPositionAlignment(portAlignments.sourcePortPlacement);
+  //     oppositeExpandedNode
+  //       .getPortOfTrainrunSection(port.getTrainrunSection().getId())
+  //       ?.setPositionAlignment(portAlignments.targetPortPlacement);
+  //   });
+
+  //   node.updateTransitionsAndConnections();
+  // });
 
   validateConnections(node: Node) {
     this.getNodeFromId(node.getId()).validateAllConnections();
@@ -492,6 +508,26 @@ export class NodeService implements OnDestroy {
     trainrunSection.setSourcePortId(sourcePortId);
     trainrunSection.setTargetPortId(targetPortId);
   }
+  // addPortsToNodes(sourceNodeId: number, targetNodeId: number, trainrunSection: TrainrunSection) {
+  //   const sourceNode = this.getOppositeExpandedNode(
+  //     trainrunSection,
+  //     this.getNodeFromId(targetNodeId),
+  //   );
+  //   const targetNode = this.getOppositeExpandedNode(
+  //     trainrunSection,
+  //     this.getNodeFromId(sourceNodeId),
+  //   );
+  //   const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
+  //     sourceNode,
+  //     targetNode,
+  //   );
+  //   const sourcePortId = sourceNode.addPort(portAlignments.sourcePortPlacement, trainrunSection);
+  //   const targetPortId = targetNode.addPort(portAlignments.targetPortPlacement, trainrunSection);
+  //   sourceNode.updateTransitionsAndConnections();
+  //   targetNode.updateTransitionsAndConnections();
+  //   trainrunSection.setSourcePortId(sourcePortId);
+  //   trainrunSection.setTargetPortId(targetPortId);
+  // }
 
   hasPathAnyDepartureOrArrivalTimeLock(node: Node, trainrunSection: TrainrunSection): boolean {
     const iterator = this.trainrunService.getIterator(node, trainrunSection);
@@ -1127,6 +1163,30 @@ export class NodeService implements OnDestroy {
     return {minCoordX: minX, minCoordY: minY, maxCoordX: maxX, maxCoordY: maxY};
   }
 
+  getOppositeExpandedNode(trainrunSection: TrainrunSection, currentNode: Node): Node | undefined {
+    const groups = this.trainrunSectionService.groupTrainrunSectionsIntoChains(
+      this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+        trainrunSection.getTrainrunId(),
+      ),
+    );
+    // keep only the groups which contain the given trainrun section
+    const filteredGroup = groups.find(
+      (group) => group.find((trs) => trs.getId() === trainrunSection.getId()) !== undefined,
+    );
+    if (filteredGroup === undefined) {
+      return undefined;
+    }
+    if (currentNode.getId() === trainrunSection.getSourceNodeId()) {
+      // get target node of the last trainrun section in the group
+      const lastTrainrunSection = filteredGroup.at(-1);
+      return this.getNodeFromId(lastTrainrunSection.getTargetNodeId());
+    } else {
+      // get source node of the first trainrun section in the group
+      const firstTrainrunSection = filteredGroup.at(0);
+      return this.getNodeFromId(firstTrainrunSection.getSourceNodeId());
+    }
+  }
+
   private deleteNodeWithoutUpdate(nodeId: number, enforceUpdate = true) {
     const node = this.getNodeFromId(nodeId);
     const connectedTrainrunSections = node.getConnectedTrainrunSections();
@@ -1168,6 +1228,34 @@ export class NodeService implements OnDestroy {
     node.updateTransitionsRouting();
     node.updateConnectionsRouting();
   }
+  // private changeNodePositionWithoutUpdate(
+  //   nodeId: number,
+  //   newPositionX: number,
+  //   newPositionY: number,
+  //   dragEnd: boolean,
+  //   enforceUpdate = true,
+  // ) {
+  //   const node = this.getNodeFromId(nodeId);
+  //   node.setPosition(newPositionX, newPositionY);
+  //   if (dragEnd) {
+  //     node.getPorts().forEach((port) => {
+  //       const oppositeExpandedNode = this.getOppositeExpandedNode(port.getTrainrunSection(), node);
+  //       const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
+  //         node,
+  //         oppositeExpandedNode,
+  //       );
+  //       port.setPositionAlignment(portAlignments.sourcePortPlacement);
+  //       oppositeExpandedNode
+  //         .getPortOfTrainrunSection(port.getTrainrunSection().getId())
+  //         ?.setPositionAlignment(portAlignments.targetPortPlacement);
+  //       oppositeExpandedNode.updateTransitionsAndConnections();
+  //     });
+  //     node.reorderAllPorts();
+  //     this.operation.emit(new NodeOperation(OperationType.update, node));
+  //   }
+  //   node.updateTransitionsRouting();
+  //   node.updateConnectionsRouting();
+  // }
 
   private findClearedLabel(node: Node, labelIds: number[]) {
     return [].concat(node.getLabelIds()).filter((oldlabelId) => !labelIds.includes(oldlabelId));
