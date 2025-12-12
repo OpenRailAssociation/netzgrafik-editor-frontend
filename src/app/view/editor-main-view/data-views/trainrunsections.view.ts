@@ -29,15 +29,12 @@ import {MathUtils} from "../../../utils/math";
 import {Trainrun} from "../../../models/trainrun.model";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
 import {Node} from "../../../models/node.model";
-import {Port} from "../../../models/port.model";
 import {EditorMode} from "../../editor-menu/editor-mode";
 import {Transition} from "../../../models/transition.model";
 import {InformSelectedTrainrunClick} from "../../../services/data/trainrunsection.service";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
 import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
 import {LinePatternRefs} from "../../../data-structures/business.data.structures";
-import {Direction} from "src/app/data-structures/business.data.structures";
-import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helper";
 
 export class TrainrunSectionsView {
@@ -53,7 +50,7 @@ export class TrainrunSectionsView {
     trainrunSectionText: TrainrunSectionText,
   ) {
     const {x, y} = viewObject.textPositions[trainrunSectionText];
-    const pathVec2D = viewObject.getPath();
+    const pathVec2D = viewObject.path;
 
     // Check if path has enough points
     if (pathVec2D.length < 4) {
@@ -123,8 +120,8 @@ export class TrainrunSectionsView {
     return classAttribute;
   }
 
-  static createSemicircle(trainrunSection: TrainrunSection, position: Vec2D): string {
-    const path = trainrunSection.getPath();
+  static createSemicircle(viewObject: TrainrunSectionViewObject, position: Vec2D): string {
+    const path = viewObject.path;
     let delta: Vec2D = Vec2D.sub(path[1], path[0]);
     if (Vec2D.equal(path[3], position)) {
       delta = Vec2D.sub(path[2], path[3]);
@@ -153,10 +150,7 @@ export class TrainrunSectionsView {
   }
 
   static getPosition(viewObject: TrainrunSectionViewObject, atSource: boolean): Vec2D {
-    const trainrunSection = viewObject.trainrunSections.at(atSource ? 0 : -1)!;
-    return atSource
-      ? trainrunSection.getPositionAtSourceNode()
-      : trainrunSection.getPositionAtTargetNode();
+    return viewObject.getPosition(atSource);
   }
 
   static getNode(trainrunSection: TrainrunSection, atSource: boolean): Node {
@@ -164,8 +158,7 @@ export class TrainrunSectionsView {
   }
 
   static getNodeFromViewObject(viewObject: TrainrunSectionViewObject, atSource: boolean): Node {
-    const trainrunSection = viewObject.trainrunSections.at(atSource ? 0 : -1)!;
-    return TrainrunSectionsView.getNode(trainrunSection, atSource);
+    return TrainrunSectionsView.getNode(viewObject.getSection(atSource), atSource);
   }
 
   static hasWarning(trainrunSection: TrainrunSection, textElement: TrainrunSectionText): boolean {
@@ -286,7 +279,7 @@ export class TrainrunSectionsView {
   }
 
   static enforceStartTextAnchor(viewObject: TrainrunSectionViewObject, atSource: boolean): boolean {
-    const path = viewObject.getPath();
+    const path = viewObject.path;
     if (atSource) {
       if (Math.floor(path[1].getX() - path[0].getX()) > 0) {
         return true;
@@ -309,7 +302,7 @@ export class TrainrunSectionsView {
     viewObject: TrainrunSectionViewObject,
     atSource: boolean,
   ): string {
-    const path = viewObject.getPath();
+    const path = viewObject.path;
     let pos: Vec2D;
     if (atSource) {
       pos = Vec2D.add(path[1], Vec2D.scale(Vec2D.normalize(Vec2D.sub(path[1], path[0])), 16));
@@ -330,13 +323,16 @@ export class TrainrunSectionsView {
     return retPos + `rotate(${DEFAULT_ANGLE_VERTICAL})`;
   }
 
-  static getPositionX(trainrunSection: TrainrunSection, textElement: TrainrunSectionText): number {
+  static getPositionX(
+    viewObject: TrainrunSectionViewObject,
+    textElement: TrainrunSectionText,
+  ): number {
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
       case TrainrunSectionText.SourceArrival:
       case TrainrunSectionText.TargetDeparture:
       case TrainrunSectionText.TargetArrival:
-        return trainrunSection.getTextPositionX(textElement);
+        return viewObject.getTextPositionX(textElement);
       case TrainrunSectionText.TrainrunSectionTravelTime:
         return RASTERING_BASIC_GRID_SIZE / 4;
       case TrainrunSectionText.TrainrunSectionName:
@@ -346,13 +342,16 @@ export class TrainrunSectionsView {
     }
   }
 
-  static getPositionY(trainrunSection: TrainrunSection, textElement: TrainrunSectionText): number {
+  static getPositionY(
+    viewObject: TrainrunSectionViewObject,
+    textElement: TrainrunSectionText,
+  ): number {
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
       case TrainrunSectionText.SourceArrival:
       case TrainrunSectionText.TargetDeparture:
       case TrainrunSectionText.TargetArrival:
-        return trainrunSection.getTextPositionY(textElement);
+        return viewObject.getTextPositionY(textElement);
       case TrainrunSectionText.TrainrunSectionTravelTime:
       case TrainrunSectionText.TrainrunSectionName:
         return 0.0;
@@ -765,9 +764,7 @@ export class TrainrunSectionsView {
         const isTarget =
           textElement === TrainrunSectionText.TargetDeparture ||
           textElement === TrainrunSectionText.TargetArrival;
-        const trainrunSection = isTarget
-          ? viewObject.trainrunSections.at(-1)!
-          : viewObject.trainrunSections[0];
+        const trainrunSection = viewObject.getSection(!isTarget);
 
         return (
           TrainrunSectionsView.getFormattedDisplayText(trainrunSection, textElement) ??
@@ -778,7 +775,7 @@ export class TrainrunSectionsView {
         );
       }
       case TrainrunSectionText.TrainrunSectionTravelTime: {
-        const trainrunSection = viewObject.trainrunSections[0];
+        const trainrunSection = viewObject.firstSection;
         const formattedData = TrainrunSectionsView.getFormattedDisplayText(
           trainrunSection,
           textElement,
@@ -798,7 +795,7 @@ export class TrainrunSectionsView {
         return TrainrunSectionsView.extractTravelTime(trainrunSection, editorView);
       }
       case TrainrunSectionText.TrainrunSectionName:
-        return TrainrunSectionsView.extractTrainrunName(viewObject.trainrunSections[0]);
+        return TrainrunSectionsView.extractTrainrunName(viewObject.firstSection);
       default:
         return undefined;
     }
@@ -853,7 +850,7 @@ export class TrainrunSectionsView {
     editorView: EditorView,
     atSource: boolean,
   ): string {
-    const trainrunSection = viewObject.trainrunSections.at(atSource ? 0 : -1);
+    const trainrunSection = viewObject.getSection(atSource);
     let startNode: Node;
     if (atSource) {
       startNode = trainrunSection.getSourceNode();
@@ -1005,51 +1002,50 @@ export class TrainrunSectionsView {
         (d: TrainrunSectionViewObject) =>
           StaticDomTags.EDGE_LINE_TEXT_BACKGROUND_CLASS +
           TrainrunSectionsView.createTrainrunSectionFrequencyClassAttribute(
-            d.trainrunSections[0],
+            d.firstSection,
             selectedTrainrun,
             connectedTrainIds,
           ),
       )
-      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSections[0].getId())
+      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.firstSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
         d.getTrainrun().getId(),
       )
       .attr(StaticDomTags.EDGE_LINE_TEXT_INDEX, lineTextElement)
       .attr("x", (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atSource ? 0 : -1)!;
         return (
-          trainrunSection.getTextPositionX(lineTextElement) -
-          TrainrunSectionsView.getTrainrunSectionValueTextWidth(trainrunSection, lineTextElement) /
+          d.getTextPositionX(lineTextElement) -
+          TrainrunSectionsView.getTrainrunSectionValueTextWidth(
+            d.getSection(atSource),
+            lineTextElement,
+          ) /
             2
         );
       })
       .attr("y", (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atSource ? 0 : -1)!;
-        return (
-          trainrunSection.getTextPositionY(lineTextElement) - TRAINRUN_SECTION_TEXT_AREA_HEIGHT / 2
-        );
+        return d.getTextPositionY(lineTextElement) - TRAINRUN_SECTION_TEXT_AREA_HEIGHT / 2;
       })
       .attr("width", (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atSource ? 0 : -1)!;
         return TrainrunSectionsView.getTrainrunSectionValueTextWidth(
-          trainrunSection,
+          d.getSection(atSource),
           lineTextElement,
         );
       })
       .attr("height", TRAINRUN_SECTION_TEXT_AREA_HEIGHT)
       .classed(TrainrunSectionText[lineTextElement], true)
       .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atSource ? 0 : -1)!;
-        return this.getHiddenTagForTime(trainrunSection, lineTextElement);
+        return this.getHiddenTagForTime(d.getSection(atSource), lineTextElement);
       });
   }
 
   translateAndRotateArrow(
-    trainrunSection: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
     arrowType: "BEGINNING_ARROW" | "ENDING_ARROW",
   ) {
-    const positions = trainrunSection.getPath();
-    const isTargetRightOrBottom = TrainrunsectionHelper.isTargetRightOrBottom(trainrunSection);
+    const positions = viewObject.path;
+    const isTargetRightOrBottom = TrainrunsectionHelper.isTargetRightOrBottom(
+      viewObject.firstSection,
+    );
 
     // Use the first segment of the section to determine the direction
     const xDiff = positions[1].getX() - positions[0].getX();
@@ -1102,30 +1098,26 @@ export class TrainrunSectionsView {
           return d.getTrainrun().isRoundTrip() ? "" : "M-4,-5L2,0L-4,5Z";
         })
         .attr("transform", (d: TrainrunSectionViewObject) => {
-          const trainrunSection = d.trainrunSections.at(arrowType === "BEGINNING_ARROW" ? 0 : -1)!;
-          return this.translateAndRotateArrow(trainrunSection, arrowType);
+          return this.translateAndRotateArrow(d, arrowType);
         })
         .attr(
           "class",
           (d: TrainrunSectionViewObject) =>
             StaticDomTags.EDGE_LINE_ARROW_CLASS +
             TrainrunSectionsView.createTrainrunSectionFrequencyClassAttribute(
-              d.trainrunSections[0],
+              d.firstSection,
               selectedTrainrun,
               connectedTrainIds,
             ),
         )
         .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) => {
-          const trainrunSection = d.trainrunSections.at(arrowType === "BEGINNING_ARROW" ? 0 : -1)!;
           return (
             !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
             (!this.editorView.isFilterDirectionArrowsEnabled() ||
               !this.filterTrainrunsectionAtNode(d, arrowType === "BEGINNING_ARROW"))
           );
         })
-        .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) =>
-          d.trainrunSections[0].getId(),
-        )
+        .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.firstSection.getId())
         .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
           d.getTrainrun().getId(),
         )
@@ -1134,17 +1126,17 @@ export class TrainrunSectionsView {
         )
         .classed(StaticDomTags.TAG_LINE_ARROW_EDITOR, true)
         .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
-          TrainrunSectionsView.isMuted(d.trainrunSections[0], selectedTrainrun, connectedTrainIds),
+          TrainrunSectionsView.isMuted(d.firstSection, selectedTrainrun, connectedTrainIds),
         )
         .classed(StaticDomTags.TAG_EVENT_DISABLED, !enableEvents)
         .on("mouseup", (d: TrainrunSectionViewObject, i, a) => {
-          this.onTrainrunDirectionArrowMouseUp(d.trainrunSections[0], a[i]);
+          this.onTrainrunDirectionArrowMouseUp(d.firstSection, a[i]);
         })
         .on("mouseover", (d: TrainrunSectionViewObject, i, a) => {
-          this.onTrainrunSectionMouseoverPath(d.trainrunSections[0], a[i]);
+          this.onTrainrunSectionMouseoverPath(d.firstSection, a[i]);
         })
         .on("mouseout", (d: TrainrunSectionViewObject, i, a) => {
-          this.onTrainrunSectionMouseoutPath(d.trainrunSections[0], a[i]);
+          this.onTrainrunSectionMouseoutPath(d.firstSection, a[i]);
         });
     });
   }
@@ -1159,7 +1151,7 @@ export class TrainrunSectionsView {
   ) {
     const trainrunSectionElements = groupEnter
       .filter((d: TrainrunSectionViewObject) => {
-        return !levelFreqFilter.includes(d.trainrunSections[0].getFrequencyLinePatternRef());
+        return !levelFreqFilter.includes(d.firstSection.getFrequencyLinePatternRef());
       })
       .append(StaticDomTags.EDGE_LINE_SVG)
       .attr(
@@ -1167,12 +1159,12 @@ export class TrainrunSectionsView {
         (d: TrainrunSectionViewObject) =>
           StaticDomTags.EDGE_LINE_CLASS +
           TrainrunSectionsView.createTrainrunSectionFrequencyClassAttribute(
-            d.trainrunSections[0],
+            d.firstSection,
             selectedTrainrun,
             connectedTrainIds,
           ),
       )
-      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSections[0].getId())
+      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.firstSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
         d.getTrainrun().getId(),
       )
@@ -1189,17 +1181,17 @@ export class TrainrunSectionsView {
       trainrunSectionElements
         .on("mouseup", (d: TrainrunSectionViewObject, i, a) => {
           if (enableEvents) {
-            this.onTrainrunSectionMouseUp(d.trainrunSections[0], a[i]);
+            this.onTrainrunSectionMouseUp(d.firstSection, a[i]);
           }
         })
         .on("mouseover", (d: TrainrunSectionViewObject, i, a) => {
           if (enableEvents) {
-            this.onTrainrunSectionMouseoverPath(d.trainrunSections[0], a[i]);
+            this.onTrainrunSectionMouseoverPath(d.firstSection, a[i]);
           }
         })
         .on("mouseout", (d: TrainrunSectionViewObject, i, a) => {
           if (enableEvents) {
-            this.onTrainrunSectionMouseoutPath(d.trainrunSections[0], a[i]);
+            this.onTrainrunSectionMouseoutPath(d.firstSection, a[i]);
           }
         });
     }
@@ -1214,7 +1206,7 @@ export class TrainrunSectionsView {
     groupEnter
       .filter((d: TrainrunSectionViewObject) => this.filterTrainrunsectionAtNode(d, atSource))
       .filter((d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atSource ? 0 : -1)!;
+        const trainrunSection = d.getSection(atSource);
         const trans = TrainrunSectionsView.getNode(trainrunSection, atSource).getTransition(
           trainrunSection.getId(),
         );
@@ -1231,18 +1223,18 @@ export class TrainrunSectionsView {
           " " +
           StaticDomTags.TAG_FILL +
           TrainrunSectionsView.createTrainrunSectionFrequencyClassAttribute(
-            d.trainrunSections[0],
+            d.firstSection,
             selectedTrainrun,
             connectedTrainIds,
           ),
       )
-      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSections[0].getId())
+      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.firstSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
         d.getTrainrun().getId(),
       )
       .attr("d", (d: TrainrunSectionViewObject) => {
         return TrainrunSectionsView.createSemicircle(
-          d.trainrunSections.at(atSource ? 0 : -1)!,
+          d,
           TrainrunSectionsView.getPosition(d, atSource),
         );
       })
@@ -1260,11 +1252,11 @@ export class TrainrunSectionsView {
       )
       .classed(StaticDomTags.EDGE_IS_TARGET, !atSource)
       .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atSource ? 0 : -1)!;
+        const trainrunSection = d.getSection(atSource);
         return TrainrunSectionsView.getNode(trainrunSection, atSource).isNonStop(trainrunSection);
       })
       .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
-        TrainrunSectionsView.isMuted(d.trainrunSections[0], selectedTrainrun, connectedTrainIds),
+        TrainrunSectionsView.isMuted(d.firstSection, selectedTrainrun, connectedTrainIds),
       )
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
         d.getTrainrun().selected(),
@@ -1309,7 +1301,7 @@ export class TrainrunSectionsView {
     groupEnter
       .append(StaticDomTags.EDGE_LINE_PIN_SVG)
       .attr("class", StaticDomTags.EDGE_LINE_PIN_CLASS)
-      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSections[0].getId())
+      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.firstSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
         d.getTrainrun().getId(),
       )
@@ -1341,10 +1333,10 @@ export class TrainrunSectionsView {
       )
       .classed(atSource ? StaticDomTags.EDGE_IS_SOURCE : StaticDomTags.EDGE_IS_TARGET, true)
       .classed(StaticDomTags.EDGE_IS_END_NODE, (d: TrainrunSectionViewObject) => {
-        let trainrunSection = d.trainrunSections.at(-1)!;
+        let trainrunSection = d.lastSection;
         let node = trainrunSection.getTargetNode();
         if (atSource) {
-          trainrunSection = d.trainrunSections[0];
+          trainrunSection = d.firstSection;
           node = trainrunSection.getSourceNode();
         }
         const port = node.getPortOfTrainrunSection(trainrunSection.getId());
@@ -1352,10 +1344,10 @@ export class TrainrunSectionsView {
         return trans === undefined;
       })
       .classed(StaticDomTags.EDGE_IS_NOT_END_NODE, (d: TrainrunSectionViewObject) => {
-        let trainrunSection = d.trainrunSections.at(-1)!;
+        let trainrunSection = d.lastSection;
         let node = trainrunSection.getTargetNode();
         if (atSource) {
-          trainrunSection = d.trainrunSections[0];
+          trainrunSection = d.firstSection;
           node = trainrunSection.getSourceNode();
         }
         const port = node.getPortOfTrainrunSection(trainrunSection.getId());
@@ -1364,24 +1356,24 @@ export class TrainrunSectionsView {
       })
 
       .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
-        TrainrunSectionsView.isMuted(d.trainrunSections[0], selectedTrainrun, connectedTrainIds),
+        TrainrunSectionsView.isMuted(d.firstSection, selectedTrainrun, connectedTrainIds),
       )
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
         d.getTrainrun().selected(),
       )
       .on("mouseover", (d: TrainrunSectionViewObject, i, a) =>
         this.onTrainrunSectionMouseoverPin(
-          TrainrunSectionsView.getNode(d.trainrunSections[0], atSource),
+          TrainrunSectionsView.getNode(d.firstSection, atSource),
           a[i],
         ),
       )
       .on("mouseout", (d: TrainrunSectionViewObject, i, a) =>
-        this.onTrainrunSectionMouseoutPin(d.trainrunSections[0], a[i], atSource),
+        this.onTrainrunSectionMouseoutPin(d.firstSection, a[i], atSource),
       )
       .on("mousedown", () => this.onTrainrunSectionMousedownPin())
       .on("mousemove", () => this.onTrainrunSectionMousemovePin())
       .on("mouseup", (d: TrainrunSectionViewObject) =>
-        this.onTrainrunSectionMouseupPin(d.trainrunSections[0], atSource),
+        this.onTrainrunSectionMouseupPin(d.firstSection, atSource),
       );
   }
 
@@ -1412,38 +1404,35 @@ export class TrainrunSectionsView {
 
     const renderingObjects = groupEnter
       .filter((d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atTarget ? -1 : 0)!;
         const displayTextElement = d.getTrainrun().isRoundTrip() || isDefaultText || isOneWayText;
 
         return (
           this.filterTrainrunsectionAtNode(d, atSource) &&
           this.filterTimeTrainrunsectionNonStop(d, atSource, isArrival) &&
-          TrainrunSectionsView.hasWarning(trainrunSection, textElement) === hasWarning &&
+          TrainrunSectionsView.hasWarning(d.getSection(atSource), textElement) === hasWarning &&
           displayTextElement
         );
       })
       .append(StaticDomTags.EDGE_LINE_TEXT_SVG)
       .attr("class", (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.getTrainrunSectionTimeElementClass(
-          d.trainrunSections[0],
+          d.firstSection,
           textElement,
           selectedTrainrun,
           connectedTrainIds,
         ),
       )
       .attr("data-testid", StaticDomTags.EDGE_LINE_TEXT_CLASS)
-      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSections[0].getId())
+      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.firstSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
         d.getTrainrun().getId(),
       )
       .attr(StaticDomTags.EDGE_LINE_TEXT_INDEX, textElement)
       .attr("x", (d: TrainrunSectionViewObject) => {
-        const section = d.trainrunSections.at(atTarget ? -1 : 0)!;
-        return TrainrunSectionsView.getPositionX(section, textElement);
+        return TrainrunSectionsView.getPositionX(d, textElement);
       })
       .attr("y", (d: TrainrunSectionViewObject) => {
-        const section = d.trainrunSections.at(atTarget ? -1 : 0)!;
-        return TrainrunSectionsView.getPositionY(section, textElement);
+        return TrainrunSectionsView.getPositionY(d, textElement);
       })
       .attr(
         TrainrunSectionsView.getAdditionPositioningAttr(textElement),
@@ -1454,43 +1443,40 @@ export class TrainrunSectionsView {
         d.getTrainrun().selected(),
       )
       .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
-        TrainrunSectionsView.isMuted(d.trainrunSections[0], selectedTrainrun, connectedTrainIds),
+        TrainrunSectionsView.isMuted(d.firstSection, selectedTrainrun, connectedTrainIds),
       )
       .classed(StaticDomTags.TAG_WARNING, (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atTarget ? -1 : 0)!;
-        return TrainrunSectionsView.hasWarning(trainrunSection, textElement);
+        return TrainrunSectionsView.hasWarning(d.getSection(!atTarget), textElement);
       })
-      .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atTarget ? -1 : 0)!;
-        return this.getHiddenTagForTime(trainrunSection, textElement);
-      })
+      .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) =>
+        this.getHiddenTagForTime(d.firstSection, textElement),
+      )
       .classed(StaticDomTags.TAG_EVENT_DISABLED, !enableEvents)
       .text((d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.getTrainrunSectionValueToShow(d, textElement, this.editorView),
       )
       .attr("style", (d: TrainrunSectionViewObject) =>
-        TrainrunSectionsView.getTrainrunSectionValueHtmlStyle(d.trainrunSections[0], textElement),
+        TrainrunSectionsView.getTrainrunSectionValueHtmlStyle(d.firstSection, textElement),
       )
       .on("mouseover", (d: TrainrunSectionViewObject, i, a) => {
         if (enableEvents) {
-          this.onTrainrunSectionTextMouseover(d.trainrunSections[0], a[i]);
+          this.onTrainrunSectionTextMouseover(d.firstSection, a[i]);
         }
       })
       .on("mouseout", (d: TrainrunSectionViewObject, i, a) => {
         if (enableEvents) {
-          this.onTrainrunSectionTextMouseout(d.trainrunSections[0], a[i]);
+          this.onTrainrunSectionTextMouseout(d.firstSection, a[i]);
         }
       })
       .on("mouseup", (d: TrainrunSectionViewObject, i, a) => {
         if (enableEvents) {
-          this.onTrainrunSectionElementClicked(d.trainrunSections[0], a[i], textElement);
+          this.onTrainrunSectionElementClicked(d.firstSection, a[i], textElement);
         }
       });
 
     if (hasWarning) {
       renderingObjects.append("svg:title").text((d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atTarget ? -1 : 0)!;
-        return TrainrunSectionsView.getWarning(trainrunSection, textElement);
+        return TrainrunSectionsView.getWarning(d.getSection(!atTarget), textElement);
       });
     }
   }
@@ -1535,13 +1521,13 @@ export class TrainrunSectionsView {
       .append(StaticDomTags.EDGE_LINE_TEXT_SVG)
       .attr("class", (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.getTrainrunSectionTimeElementClass(
-          d.trainrunSections[0],
+          d.firstSection,
           textElement,
           selectedTrainrun,
           connectedTrainIds,
         ),
       )
-      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSections[0].getId())
+      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.firstSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
         d.getTrainrun().getId(),
       )
@@ -1555,12 +1541,11 @@ export class TrainrunSectionsView {
         d.getTrainrun().selected(),
       )
       .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
-        TrainrunSectionsView.isMuted(d.trainrunSections[0], selectedTrainrun, connectedTrainIds),
+        TrainrunSectionsView.isMuted(d.firstSection, selectedTrainrun, connectedTrainIds),
       )
-      .classed(StaticDomTags.TAG_WARNING, (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.trainrunSections.at(atSource ? 0 : -1);
-        return TrainrunSectionsView.hasWarning(trainrunSection, textElement);
-      })
+      .classed(StaticDomTags.TAG_WARNING, (d: TrainrunSectionViewObject) =>
+        TrainrunSectionsView.hasWarning(d.firstSection, textElement),
+      )
       .classed(StaticDomTags.TAG_EVENT_DISABLED, true)
       .classed(StaticDomTags.TAG_START_TEXT_ANCHOR, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.enforceStartTextAnchor(d, atSource),
@@ -1588,14 +1573,14 @@ export class TrainrunSectionsView {
         StaticDomTags.EDGE_LINE_TEXT_CLASS +
           " " +
           TrainrunSectionsView.createTrainrunSectionFrequencyClassAttribute(
-            viewObject.trainrunSections[0],
+            viewObject.firstSection,
             selectedTrainrun,
             connectedTrainIds,
           ) +
           " " +
           TrainrunSectionText[TrainrunSectionText.TrainrunSectionNumberOfStops],
       )
-      .attr(StaticDomTags.EDGE_ID, () => viewObject.trainrunSections[0].getId())
+      .attr(StaticDomTags.EDGE_ID, () => viewObject.firstSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, () => viewObject.getTrainrun().getId())
       .attr(StaticDomTags.EDGE_LINE_TEXT_INDEX, TrainrunSectionText.TrainrunSectionNumberOfStops)
       .attr("numberOfStops", numberOfStops)
@@ -1609,15 +1594,11 @@ export class TrainrunSectionsView {
       )
       .text(numberOfStops)
       .classed(StaticDomTags.TAG_MUTED, () =>
-        TrainrunSectionsView.isMuted(
-          viewObject.trainrunSections[0],
-          selectedTrainrun,
-          connectedTrainIds,
-        ),
+        TrainrunSectionsView.isMuted(viewObject.firstSection, selectedTrainrun, connectedTrainIds),
       )
       .classed(StaticDomTags.TAG_SELECTED, () => viewObject.getTrainrun().selected())
       .on("mouseup", (t: TrainrunSectionViewObject, i, a) =>
-        this.onIntermediateStopMouseUp(t.trainrunSections[0], a[i]),
+        this.onIntermediateStopMouseUp(t.firstSection, a[i]),
       );
   }
 
@@ -1628,7 +1609,7 @@ export class TrainrunSectionsView {
     connectedTrainIds: any,
   ) {
     const numberOfStops = viewObject.getNumberOfStops();
-    const path = viewObject.getPath();
+    const path = viewObject.path;
     let startPosition = path[1];
     let lineOrientationVector = Vec2D.sub(path[2], startPosition);
     const maxNumberOfStops = Math.min(
@@ -1704,8 +1685,6 @@ export class TrainrunSectionsView {
   createViewTrainrunSectionDataObjects(
     editorView: EditorView,
     inputTrainrunSections: TrainrunSection[],
-    selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
   ): TrainrunSectionViewObject[] {
     const viewTrainrunSectionDataObjects: TrainrunSectionViewObject[] = [];
 
@@ -1713,21 +1692,7 @@ export class TrainrunSectionsView {
       this.trainrunSectionService.groupTrainrunSectionsIntoChains(inputTrainrunSections);
 
     sectionGroups.forEach((sections) => {
-      const firstSection = sections[0];
-      const lastSection = sections.at(-1)!;
-      const viewObject = new TrainrunSectionViewObject(
-        editorView,
-        sections,
-        TrainrunSectionsView.getNode(firstSection, true).isNonStop(firstSection),
-        TrainrunSectionsView.getNode(lastSection, false).isNonStop(lastSection),
-        TrainrunSectionsView.isMuted(firstSection, selectedTrainrun, connectedTrainIds),
-        this.getHiddenTagForTime(firstSection, TrainrunSectionText.SourceDeparture),
-        this.getHiddenTagForTime(lastSection, TrainrunSectionText.TargetDeparture),
-        this.getHiddenTagForTime(firstSection, TrainrunSectionText.TrainrunSectionTravelTime),
-        this.getHiddenTagForTime(firstSection, TrainrunSectionText.TrainrunSectionName),
-        !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
-          !this.editorView.isFilterDirectionArrowsEnabled(),
-      );
+      const viewObject = new TrainrunSectionViewObject(editorView, sections);
       viewTrainrunSectionDataObjects.push(viewObject);
     });
 
@@ -1743,19 +1708,15 @@ export class TrainrunSectionsView {
 
     const filteredTrainrunSections = trainrunSections.filter(
       (trainrunSection: TrainrunSection) =>
-        this.editorView.doCullCheckPositionsInViewport(trainrunSection.getPath()) &&
-        this.filterTrainrunSectionToDisplay(trainrunSection),
+        this.editorView.doCullCheckPositionsInViewport(
+          new TrainrunSectionViewObject(this.editorView, [trainrunSection]).path,
+        ) && this.filterTrainrunSectionToDisplay(trainrunSection),
     );
 
     const group = this.trainrunSectionGroup
       .selectAll(StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF)
       .data(
-        this.createViewTrainrunSectionDataObjects(
-          this.editorView,
-          filteredTrainrunSections,
-          selectedTrainrun,
-          connectedTrainIds,
-        ),
+        this.createViewTrainrunSectionDataObjects(this.editorView, filteredTrainrunSections),
         (d: TrainrunSectionViewObject) => d.key,
       );
 
@@ -1763,12 +1724,12 @@ export class TrainrunSectionsView {
       .enter()
       .append(StaticDomTags.EDGE_SVG)
       .attr("class", StaticDomTags.EDGE_ROOT_CONTAINER)
-      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSections[0].getId())
+      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.firstSection.getId())
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
         d.getTrainrun().selected(),
       )
       .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
-        TrainrunSectionsView.isMuted(d.trainrunSections[0], selectedTrainrun, connectedTrainIds),
+        TrainrunSectionsView.isMuted(d.firstSection, selectedTrainrun, connectedTrainIds),
       );
 
     const groupLines = edgeRootContainerEnter
@@ -1777,7 +1738,7 @@ export class TrainrunSectionsView {
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
         d.getTrainrun().selected(),
       )
-      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSections[0].getId())
+      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.firstSection.getId())
       .attr("data-testid", `${StaticDomTags.EDGE_CLASS}-lines`);
 
     const groupLabels = edgeRootContainerEnter
@@ -1786,7 +1747,7 @@ export class TrainrunSectionsView {
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
         d.getTrainrun().selected(),
       )
-      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSections[0].getId())
+      .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.firstSection.getId())
       .attr("data-testid", `${StaticDomTags.EDGE_CLASS}-labels`);
 
     // Default case: Render default trainrunSection
@@ -1839,7 +1800,7 @@ export class TrainrunSectionsView {
   }
 
   onIntermediateStopMouseDown(
-    trainrunSection: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
     stopIndex: number,
     position: Vec2D,
     domObj: any,
@@ -1849,7 +1810,7 @@ export class TrainrunSectionsView {
       return;
     }
     this.editorView.trainrunSectionPreviewLineView.startDragIntermediateStop(
-      new DragIntermediateStopInfo(trainrunSection, stopIndex, domObj),
+      new DragIntermediateStopInfo(viewObject, stopIndex, domObj),
       position,
     );
 
@@ -1962,9 +1923,7 @@ export class TrainrunSectionsView {
           "." +
           (atSource ? StaticDomTags.EDGE_IS_TARGET : StaticDomTags.EDGE_IS_SOURCE),
       )
-      .filter(
-        (d: TrainrunSectionViewObject) => d.trainrunSections[0].getId() === trainrunSection.getId(),
-      );
+      .filter((d: TrainrunSectionViewObject) => d.firstSection.getId() === trainrunSection.getId());
     const startAT: Vec2D = new Vec2D(+obj.attr("cx"), +obj.attr("cy"));
     this.editorView.trainrunSectionPreviewLineView.setExistingTrainrunSection(trainrunSection);
     D3Utils.doGrayout(trainrunSection);
@@ -2057,7 +2016,7 @@ export class TrainrunSectionsView {
     if (!isArrival) {
       return true;
     }
-    const trainrunSection = viewObject.trainrunSections.at(atSource ? 0 : -1);
+    const trainrunSection = viewObject.getSection(atSource);
     if (atSource) {
       return !trainrunSection.getSourceNode().isNonStop(trainrunSection);
     }
@@ -2071,8 +2030,11 @@ export class TrainrunSectionsView {
     if (this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       return true;
     }
-    const trainrunSection = viewObject.trainrunSections.at(atSource ? 0 : -1);
-    return this.editorView.checkFilterNode(TrainrunSectionsView.getNode(trainrunSection, atSource));
+    return (
+      this.editorView.checkFilterNode(
+        TrainrunSectionsView.getNode(viewObject.getSection(atSource), atSource),
+      ) && !viewObject.isTip(!atSource)
+    );
   }
 
   private transformPathAddExtraElementForPortAlignmentBottom(
@@ -2094,24 +2056,25 @@ export class TrainrunSectionsView {
   }
 
   private transformPathIfSourceNodeFilteredDueNonStopNodesFiltering(
-    ts: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
     transformedPath: Vec2D[],
   ): Vec2D[] {
-    const srcNode = ts.getSourceNode();
-    const path: Vec2D[] = Object.assign([], ts.getPath());
+    const sourceSection = viewObject.firstSection;
+    const srcNode = sourceSection.getSourceNode();
+    const path: Vec2D[] = Object.assign([], viewObject.path);
 
     if (!this.editorView.checkFilterNonStopNode(srcNode)) {
       const element = path[0].copy();
       transformedPath = transformedPath.reverse();
       transformedPath = this.transformPathAddExtraElementForPortAlignmentBottom(
         srcNode,
-        ts,
+        sourceSection,
         element,
         transformedPath,
       );
       transformedPath = transformedPath.reverse();
 
-      const transitionObject: Transition = srcNode.getTransition(ts.getId());
+      const transitionObject: Transition = srcNode.getTransition(sourceSection.getId());
       if (transitionObject !== undefined) {
         const tPath = Object.assign([], transitionObject.getPath());
         const n0 = Vec2D.norm(Vec2D.sub(element, tPath[0]));
@@ -2137,22 +2100,23 @@ export class TrainrunSectionsView {
   }
 
   private transformPathIfTargetNodeFilteredDueNonStopNodesFiltering(
-    ts: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
     transformedPath: Vec2D[],
   ): Vec2D[] {
-    const trgNode = ts.getTargetNode();
-    const path: Vec2D[] = Object.assign([], ts.getPath());
+    const targetSection = viewObject.lastSection;
+    const trgNode = targetSection.getTargetNode();
+    const path: Vec2D[] = Object.assign([], viewObject.path);
 
     if (!this.editorView.checkFilterNonStopNode(trgNode)) {
       const element = path[3].copy();
       transformedPath = this.transformPathAddExtraElementForPortAlignmentBottom(
         trgNode,
-        ts,
+        targetSection,
         element,
         transformedPath,
       );
 
-      const transitionObject: Transition = trgNode.getTransition(ts.getId());
+      const transitionObject: Transition = trgNode.getTransition(targetSection.getId());
       if (transitionObject !== undefined) {
         const tPath = Object.assign([], transitionObject.getPath());
         const n0 = Vec2D.norm(Vec2D.sub(element, tPath[0]));
@@ -2174,15 +2138,17 @@ export class TrainrunSectionsView {
   }
 
   private transformPath(viewObject: TrainrunSectionViewObject): Vec2D[] {
-    const firstSection = viewObject.trainrunSections[0];
-    const lastSection = viewObject.trainrunSections.at(-1)!;
+    const firstSection = viewObject.firstSection;
+    const lastSection = viewObject.lastSection;
 
     const srcNode = firstSection.getSourceNode();
     const trgNode = lastSection.getTargetNode();
-    const path = viewObject.getPath();
+    const path = viewObject.path;
 
-    let notFilteringSourceNode = this.editorView.checkFilterNode(srcNode);
-    let notFilteringTargetNode = this.editorView.checkFilterNode(trgNode);
+    let notFilteringSourceNode =
+      this.editorView.checkFilterNode(srcNode) && !viewObject.isTip(false);
+    let notFilteringTargetNode =
+      this.editorView.checkFilterNode(trgNode) && !viewObject.isTip(true);
 
     if (this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       notFilteringSourceNode = true;
@@ -2203,13 +2169,13 @@ export class TrainrunSectionsView {
     if (!this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       if (firstSection.getSourceNode().isNonStopNode()) {
         retPath = this.transformPathIfSourceNodeFilteredDueNonStopNodesFiltering(
-          firstSection,
+          viewObject,
           retPath,
         );
       }
       if (lastSection.getTargetNode().isNonStopNode()) {
         retPath = this.transformPathIfTargetNodeFilteredDueNonStopNodesFiltering(
-          lastSection,
+          viewObject,
           retPath,
         );
       }
@@ -2219,13 +2185,17 @@ export class TrainrunSectionsView {
   }
 
   private filterOutAllTrainrunSectionWithHiddenNodeConnection(
-    trainrunSection: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
   ): boolean {
     if (this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       return true;
     }
-    const filterSourceNode = this.editorView.checkFilterNode(trainrunSection.getSourceNode());
-    const filterTargetNode = this.editorView.checkFilterNode(trainrunSection.getTargetNode());
+    const filterSourceNode =
+      this.editorView.checkFilterNode(viewObject.firstSection.getSourceNode()) &&
+      !viewObject.isTip(false);
+    const filterTargetNode =
+      this.editorView.checkFilterNode(viewObject.lastSection.getTargetNode()) &&
+      !viewObject.isTip(true);
     return filterSourceNode && filterTargetNode;
   }
 
@@ -2237,7 +2207,7 @@ export class TrainrunSectionsView {
   ) {
     const groupLines = inGroupLines.filter(
       (d: TrainrunSectionViewObject) =>
-        !this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.trainrunSections[0]),
+        !this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d),
     );
 
     this.make4LayerTrainrunSectionLines(
@@ -2251,7 +2221,7 @@ export class TrainrunSectionsView {
     if (!this.editorView.isElementDragging()) {
       const groupLabels = inGroupLabels.filter(
         (d: TrainrunSectionViewObject) =>
-          !this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.trainrunSections[0]),
+          !this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d),
       );
 
       if (this.editorView.getLevelOfDetail() === LevelOfDetail.FULL) {
@@ -2358,7 +2328,7 @@ export class TrainrunSectionsView {
     inGroupLabels,
   ) {
     const groupLines = inGroupLines.filter((d: TrainrunSectionViewObject) =>
-      this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.trainrunSections[0]),
+      this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d),
     );
 
     this.make4LayerTrainrunSectionLines(
@@ -2371,7 +2341,7 @@ export class TrainrunSectionsView {
 
     if (!this.editorView.isElementDragging()) {
       const groupLabels = inGroupLabels.filter((d: TrainrunSectionViewObject) =>
-        this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.trainrunSections[0]),
+        this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d),
       );
 
       if (
@@ -2568,12 +2538,12 @@ export class TrainrunSectionsView {
         (t: TrainrunSectionViewObject) =>
           StaticDomTags.EDGE_LINE_STOPS_CLASS +
           TrainrunSectionsView.createTrainrunSectionFrequencyClassAttribute(
-            t.trainrunSections[0],
+            t.firstSection,
             selectedTrainrun,
             connectedTrainIds,
           ),
       )
-      .attr(StaticDomTags.EDGE_ID, (t: TrainrunSectionViewObject) => t.trainrunSections[0].getId())
+      .attr(StaticDomTags.EDGE_ID, (t: TrainrunSectionViewObject) => t.firstSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (t: TrainrunSectionViewObject) =>
         t.getTrainrun().getId(),
       )
@@ -2583,23 +2553,23 @@ export class TrainrunSectionsView {
       .attr(StaticDomTags.EDGE_LINE_STOPS_INDEX, stopIndex)
       .attr("numberOfStops", numberOfStops)
       .classed(StaticDomTags.TAG_MUTED, (t: TrainrunSectionViewObject) =>
-        TrainrunSectionsView.isMuted(t.trainrunSections[0], selectedTrainrun, connectedTrainIds),
+        TrainrunSectionsView.isMuted(t.firstSection, selectedTrainrun, connectedTrainIds),
       )
       .classed(StaticDomTags.TAG_SELECTED, (t: TrainrunSectionViewObject) =>
         t.getTrainrun().selected(),
       )
       .classed(StaticDomTags.EDGE_LINE_STOPS_FILL, () => !collapsedStops)
       .on("mouseover", (t: TrainrunSectionViewObject, i, a) =>
-        this.onIntermediateStopMouseOver(t.trainrunSections[0], stopIndex, position, a[i]),
+        this.onIntermediateStopMouseOver(t.firstSection, stopIndex, position, a[i]),
       )
       .on("mouseout", (t: TrainrunSectionViewObject, i, a) =>
-        this.onIntermediateStopMouseOut(t.trainrunSections[0], stopIndex, position, a[i]),
+        this.onIntermediateStopMouseOut(t.firstSection, stopIndex, position, a[i]),
       )
       .on("mousedown", (t: TrainrunSectionViewObject, i, a) =>
-        this.onIntermediateStopMouseDown(t.trainrunSections[0], stopIndex, position, a[i]),
+        this.onIntermediateStopMouseDown(t, stopIndex, position, a[i]),
       )
       .on("mouseup", (t: TrainrunSectionViewObject, i, a) =>
-        this.onIntermediateStopMouseUp(t.trainrunSections[0], a[i]),
+        this.onIntermediateStopMouseUp(t.firstSection, a[i]),
       );
   }
 
