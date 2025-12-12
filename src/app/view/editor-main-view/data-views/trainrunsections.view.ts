@@ -1835,7 +1835,9 @@ export class TrainrunSectionsView {
       (trainrunSection: TrainrunSection) =>
         this.editorView.doCullCheckPositionsInViewport(
           SimpleTrainrunSectionRouter.computePath(trainrunSection),
-        ) && this.filterTrainrunSectionToDisplay(trainrunSection),
+        ) &&
+        this.filterTrainrunSectionToDisplay(trainrunSection) &&
+        !trainrunSection.areBothNodesCollapsed(),
     );
 
     const group = this.trainrunSectionGroup
@@ -2210,7 +2212,10 @@ export class TrainrunSectionsView {
     if (this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       return true;
     }
-    return this.editorView.checkFilterNode(viewObject.getExtremityNode(atSource));
+    return (
+      this.editorView.checkFilterNode(viewObject.getExtremityNode(atSource)) &&
+      !viewObject.isTip(!atSource)
+    );
   }
 
   private transformPathAddExtraElementForPortAlignmentBottom(
@@ -2321,8 +2326,10 @@ export class TrainrunSectionsView {
     const trgNode = lastSection.getTargetNode();
     const path = viewObject.path;
 
-    let notFilteringSourceNode = this.editorView.checkFilterNode(srcNode);
-    let notFilteringTargetNode = this.editorView.checkFilterNode(trgNode);
+    let notFilteringSourceNode =
+      this.editorView.checkFilterNode(srcNode) && !viewObject.isTip(false);
+    let notFilteringTargetNode =
+      this.editorView.checkFilterNode(trgNode) && !viewObject.isTip(true);
 
     if (this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       notFilteringSourceNode = true;
@@ -2358,15 +2365,19 @@ export class TrainrunSectionsView {
     return retPath;
   }
 
-  private filterOutAllTrainrunSectionWithHiddenNodeConnection(
-    trainrunSection: TrainrunSection,
+  private isFilteredOutAllTrainrunSectionWithHiddenNodeConnection(
+    viewObject: TrainrunSectionViewObject,
   ): boolean {
     if (this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       return true;
     }
-    const filterSourceNode = this.editorView.checkFilterNode(trainrunSection.getSourceNode());
-    const filterTargetNode = this.editorView.checkFilterNode(trainrunSection.getTargetNode());
-    return filterSourceNode && filterTargetNode;
+    const isSourceNodeFiltered =
+      this.editorView.checkFilterNode(viewObject.firstSection.getSourceNode()) &&
+      !viewObject.isTip(false);
+    const isTargetNodeFiltered =
+      this.editorView.checkFilterNode(viewObject.lastSection.getTargetNode()) &&
+      !viewObject.isTip(true);
+    return isSourceNodeFiltered && isTargetNodeFiltered;
   }
 
   private oneNodeHiddenTrainrunSectionsRendering(
@@ -2377,7 +2388,7 @@ export class TrainrunSectionsView {
   ) {
     const groupLines = inGroupLines.filter(
       (d: TrainrunSectionViewObject) =>
-        !this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.firstSection),
+        !this.isFilteredOutAllTrainrunSectionWithHiddenNodeConnection(d),
     );
 
     this.make4LayerTrainrunSectionLines(
@@ -2394,7 +2405,7 @@ export class TrainrunSectionsView {
 
       const groupLabels = inGroupLabels.filter(
         (d: TrainrunSectionViewObject) =>
-          !this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.firstSection),
+          !this.isFilteredOutAllTrainrunSectionWithHiddenNodeConnection(d),
       );
 
       if (this.editorView.getLevelOfDetail() === LevelOfDetail.FULL) {
@@ -2501,7 +2512,7 @@ export class TrainrunSectionsView {
     inGroupLabels,
   ) {
     const groupLines = inGroupLines.filter((d: TrainrunSectionViewObject) =>
-      this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.firstSection),
+      this.isFilteredOutAllTrainrunSectionWithHiddenNodeConnection(d),
     );
 
     this.make4LayerTrainrunSectionLines(
@@ -2517,7 +2528,7 @@ export class TrainrunSectionsView {
       this.createAsymmetryArrows(groupLines, selectedTrainrun, connectedTrainIds, true);
 
       const groupLabels = inGroupLabels.filter((d: TrainrunSectionViewObject) =>
-        this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.firstSection),
+        this.isFilteredOutAllTrainrunSectionWithHiddenNodeConnection(d),
       );
 
       if (
