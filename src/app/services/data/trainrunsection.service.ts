@@ -460,81 +460,6 @@ export class TrainrunSectionService implements OnDestroy {
     pair.trainrunSection.setTravelTime(newTravelTime);
   }
 
-  propagteTimeTargetToSource(
-    previousPair: TrainrunSectionNodePair,
-    pair: TrainrunSectionNodePair,
-    arrivalDepartureTimes: DepartureAndArrivalTimes,
-    isNonStop: boolean,
-  ) {
-    // -------------------------------------------------------------------------------------------
-    // Target to Source (pair)
-    // -------------------------------------------------------------------------------------------
-    // retrieve haltezeit at node
-    const arrivalTimeAtTarget =
-      previousPair.node.getId() === previousPair.trainrunSection.getTargetNodeId()
-        ? previousPair.trainrunSection.getTargetArrival()
-        : previousPair.trainrunSection.getSourceArrival();
-
-    let halteZeit =
-      previousPair.node.getTrainrunCategoryHaltezeit()[
-        pair.trainrunSection.getTrainrun().getTrainrunCategory().fachCategory
-      ].haltezeit;
-    halteZeit = isNonStop ? 0 : halteZeit;
-
-    // try to update the pair (based on previousPair)
-    if (pair.trainrunSection.getTargetDepartureLock()) {
-      // the source element is locked - no changes allowed!
-      return;
-    }
-
-    // ----------------------------------------------------------------------------------
-    // update source arrival time
-    // ----------------------------------------------------------------------------------
-    const depTimeAtTarget = MathUtils.round(
-      (arrivalTimeAtTarget + halteZeit) % 60,
-      TrainrunSectionService.TIME_PRECISION,
-    );
-    const arrTimeAtTarget = MathUtils.round(
-      TrainrunsectionHelper.getSymmetricTime(depTimeAtTarget),
-      TrainrunSectionService.TIME_PRECISION,
-    );
-    pair.trainrunSection.setTargetDeparture(depTimeAtTarget);
-    pair.trainrunSection.setTargetArrival(arrTimeAtTarget);
-
-    // ----------------------------------------------------------------------------------
-    // Use travel time to update the target times - if allowed
-    // ----------------------------------------------------------------------------------
-    if (!pair.trainrunSection.getSourceArrivalLock()) {
-      // Target is not locked -> update the Target Arrival Time
-      const arrTimeAtSource = MathUtils.round(
-        (depTimeAtTarget + pair.trainrunSection.getTravelTime()) % 60,
-        TrainrunSectionService.TIME_PRECISION,
-      );
-      const depTimeAtSource = MathUtils.round(
-        TrainrunsectionHelper.getSymmetricTime(arrTimeAtSource),
-        TrainrunSectionService.TIME_PRECISION,
-      );
-      pair.trainrunSection.setSourceArrival(arrTimeAtSource);
-      pair.trainrunSection.setSourceDeparture(depTimeAtSource);
-
-      return;
-    }
-
-    // ----------------------------------------------------------------------------------
-    // update travel time if possible
-    // ----------------------------------------------------------------------------------
-    if (pair.trainrunSection.getTravelTimeLock()) {
-      return;
-    }
-
-    let newTravelTime = pair.trainrunSection.getSourceArrival() - depTimeAtTarget;
-    newTravelTime += Math.floor(pair.trainrunSection.getTravelTime() / 60) * 60;
-    while (newTravelTime < 0.0) {
-      newTravelTime += 60;
-    }
-    pair.trainrunSection.setTravelTime(newTravelTime);
-  }
-
   iterateAlongTrainrunUntilEndAndPropagateTime(nodeFrom: Node, trainrunSectionId: number) {
     const trainrunSection = this.getTrainrunSectionFromId(trainrunSectionId);
 
@@ -557,11 +482,7 @@ export class TrainrunSectionService implements OnDestroy {
         TrainrunSectionService.TIME_PRECISION,
       );
 
-      if (pair.trainrunSection.getSourceNodeId() === previousPair.node.getId()) {
-        this.propagteTimeSourceToTarget(previousPair, pair, arrivalDepartureTimes, isNonStop);
-      } else {
-        this.propagteTimeTargetToSource(previousPair, pair, arrivalDepartureTimes, isNonStop);
-      }
+      this.propagteTimeSourceToTarget(previousPair, pair, arrivalDepartureTimes, isNonStop);
       TrainrunSectionValidator.validateOneSection(pair.trainrunSection);
 
       if (
