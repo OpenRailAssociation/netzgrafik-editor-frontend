@@ -338,7 +338,7 @@ export class TrainrunSectionService implements OnDestroy {
     }
   }
 
-  private propagateTimeAlongTrainrunFixStartTrainrunSection(
+  private findTrainrunSectionForStopNode(
     trainrunSection: TrainrunSection,
     node: Node,
     stopNodeId: number,
@@ -360,13 +360,13 @@ export class TrainrunSectionService implements OnDestroy {
         ? trainrunSection.getSourceNode()
         : trainrunSection.getTargetNode();
     if (fromNode.getId() !== fromNodeIdOn) {
-      let trainrunSectionIdToStart = this.propagateTimeAlongTrainrunFixStartTrainrunSection(
+      let trainrunSectionIdToStart = this.findTrainrunSectionForStopNode(
         trainrunSection,
         trainrunSection.getSourceNode(),
         fromNodeIdOn,
       );
       if (trainrunSectionIdToStart === undefined) {
-        trainrunSectionIdToStart = this.propagateTimeAlongTrainrunFixStartTrainrunSection(
+        trainrunSectionIdToStart = this.findTrainrunSectionForStopNode(
           trainrunSection,
           trainrunSection.getTargetNode(),
           fromNodeIdOn,
