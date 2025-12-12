@@ -1014,11 +1014,15 @@ export class TrainrunSectionService implements OnDestroy {
     const calculatedTravelTime = Math.min(travelTime1, travelTime2);
     const halteZeit =
       stopDuration ?? Math.min(minHalteZeitFromNode, Math.max(0, calculatedTravelTime - 2));
-    const travelTimeIssue = travelTime1 === travelTime2 || minHalteZeitFromNode !== halteZeit;
-    const travelTime = Math.max(trainrunSection1.getTravelTime() - halteZeit, 2);
-    const halfTravelTime = Math.floor(travelTime / 2);
-    trainrunSection1.setTravelTime(Math.max(1, travelTime - halfTravelTime));
-    trainrunSection2.setTravelTime(Math.max(1, halfTravelTime));
+    let travelTimeIssue = travelTime1 === travelTime2 || minHalteZeitFromNode !== halteZeit;
+    const travelTime = Math.max(trainrunSection1.getTravelTime() - halteZeit, 0);
+    if (travelTime === 0) {
+      console.error("Warning: Travel time is 0");
+      travelTimeIssue = true;
+    }
+    const halfTravelTime = travelTime / 2;
+    trainrunSection1.setTravelTime(travelTime - halfTravelTime);
+    trainrunSection2.setTravelTime(halfTravelTime);
 
     trainrunSection1.setTargetArrival(
       TrainrunSectionService.boundMinutesToOneHour(
@@ -1073,9 +1077,6 @@ export class TrainrunSectionService implements OnDestroy {
   }
 
   addIntermediateStopOnTrainrunSection(trainrunSection: TrainrunSection) {
-    // if the travel time is too short, then can not add an intermediate stop
-    if (trainrunSection.getTravelTime() < 2) return false;
-
     const sourceNode = trainrunSection.getSourceNode();
     const targetNode = trainrunSection.getTargetNode();
     const interpolatedPosition = new Vec2D(
@@ -1094,7 +1095,6 @@ export class TrainrunSectionService implements OnDestroy {
       newNode.getId(),
       0,
     );
-    return true;
   }
 
   removeIntermediateStopOnTrainrunSection(initialTrainrunSection: TrainrunSection) {

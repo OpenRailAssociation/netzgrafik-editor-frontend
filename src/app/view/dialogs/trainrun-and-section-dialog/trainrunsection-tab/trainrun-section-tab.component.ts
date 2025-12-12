@@ -287,14 +287,11 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     if (stopsNbDiff === 0) return;
     if (stopsNbDiff > 0) {
       for (let i = 0; i < stopsNbDiff; i++) {
-        const success = this.trainrunSectionService.addIntermediateStopOnTrainrunSection(
+        this.trainrunSectionService.addIntermediateStopOnTrainrunSection(
           this.selectedTrainrunSection,
         );
-        if (success) this.numberOfStops += 1;
-        else {
-          this.numberOfStopsWarning = "not-enough-travel-time-to-add-intermediate-stop";
-          break;
-        }
+        this.numberOfStops += 1;
+
       }
       this.trainrunSectionTimesService.setHighlightTravelTimeElement(false);
     } else {
