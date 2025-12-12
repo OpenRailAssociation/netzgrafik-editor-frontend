@@ -25,24 +25,18 @@ export class TrainrunDialogParameter {
   public type: TrainrunDialogType;
   public position: Vec2D;
   public trainrunSectionText: TrainrunSectionText;
-  public nodesOrdered: Node[];
   public offset: number;
   public forward: boolean;
 
   constructor(type: TrainrunDialogType, position: Vec2D) {
     this.type = type;
     this.position = position;
-    this.nodesOrdered = [];
     this.offset = 0;
     this.forward = undefined;
   }
 
   setTrainrunSectionText(trainrunSectionText: TrainrunSectionText) {
     this.trainrunSectionText = trainrunSectionText;
-  }
-
-  setNodesOrdered(nodesOrdered: Node[]) {
-    this.nodesOrdered = nodesOrdered;
   }
 
   setOffset(offset: number) {
@@ -107,11 +101,11 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
 
         const nextStopLeftNode = this.trainrunSectionHelper.getNextStopLeftNode(
           selectedTrainrunSection,
-          parameter.nodesOrdered,
+          [],
         );
         const nextStopRightNode = this.trainrunSectionHelper.getNextStopRightNode(
           selectedTrainrunSection,
-          parameter.nodesOrdered,
+          [],
         );
 
         this.nextStopLeftNodeName = nextStopLeftNode.getFullName();
