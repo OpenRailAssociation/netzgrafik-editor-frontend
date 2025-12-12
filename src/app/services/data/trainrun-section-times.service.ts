@@ -63,6 +63,8 @@ const rightToLeftStructureKeys = {
 
 type LeftAndRightStructureKeys = typeof leftToRightStructureKeys | typeof rightToLeftStructureKeys;
 
+type Warning = null | "too-many-locks";
+
 /**
  * A service responsible for updating times for one or more trainrun sections.
  *
@@ -126,7 +128,7 @@ export class TrainrunSectionTimesService {
     rightLock: false,
     travelTimeLock: false,
   };
-  private showWarningTwoLocks = false;
+  private warning: Warning = null;
 
   private symmetryStructure: LeftAndRightSymmetryStructure = {
     leftSymmetry: true,
@@ -175,8 +177,19 @@ export class TrainrunSectionTimesService {
     return this.offsetTransformationActive;
   }
 
-  public getShowWarningTwoLocks(): boolean {
-    return this.showWarningTwoLocks;
+  public getWarning(): Warning {
+    return this.warning;
+  }
+
+  public setOutsideWarning(newWarning: null | "too-many-locks") {
+    // if new warning is not null, update warning and override a potential too-many-locks warning
+    if (newWarning !== null) this.warning = newWarning;
+    // else reset warning without overrinding too-many-locks warning
+    else if (this.warning !== "too-many-locks") this.warning = newWarning;
+  }
+
+  resetTooManyLocksWarning() {
+    if (this.warning === "too-many-locks") this.warning = null;
   }
 
   public getNodesOrdered(): Node[] {
@@ -249,7 +262,7 @@ export class TrainrunSectionTimesService {
   }
 
   private onNodeTailDepartureTimeChanged(keys: LeftAndRightStructureKeys) {
-    this.showWarningTwoLocks = false;
+    this.resetTooManyLocksWarning();
     this.roundAllTimes();
     this.removeOffsetAndBackTransformTimeStructure();
 
@@ -282,7 +295,7 @@ export class TrainrunSectionTimesService {
               this.timeStructure[keys.tailArrivalTime] - this.timeStructure[keys.headDepartureTime],
             );
           } else {
-            this.showWarningTwoLocks = true;
+            this.setOutsideWarning("too-many-locks");
           }
         }
       } else {
@@ -302,7 +315,7 @@ export class TrainrunSectionTimesService {
         this.timeStructure[keys.tailArrivalTime] - this.timeStructure[keys.headDepartureTime],
       );
     } else {
-      this.showWarningTwoLocks = true;
+      this.setOutsideWarning("too-many-locks");
     }
 
     this.updateTrainrunSectionTime();
@@ -310,7 +323,7 @@ export class TrainrunSectionTimesService {
   }
 
   private onNodeTailArrivalTimeChanged(keys: LeftAndRightStructureKeys) {
-    this.showWarningTwoLocks = false;
+    this.resetTooManyLocksWarning();
     this.roundAllTimes();
     this.removeOffsetAndBackTransformTimeStructure();
 
@@ -342,7 +355,7 @@ export class TrainrunSectionTimesService {
               this.timeStructure[keys.headArrivalTime] - this.timeStructure[keys.tailDepartureTime],
             );
           } else {
-            this.showWarningTwoLocks = true;
+            this.setOutsideWarning("too-many-locks");
           }
         }
       } else {
@@ -364,7 +377,7 @@ export class TrainrunSectionTimesService {
           this.timeStructure[keys.reverseStopTime],
       );
     } else {
-      this.showWarningTwoLocks = true;
+      this.setOutsideWarning("too-many-locks");
     }
 
     this.updateTrainrunSectionTime();
@@ -500,7 +513,7 @@ export class TrainrunSectionTimesService {
       1.0 / Math.pow(10, this.filterService.getTimeDisplayPrecision()),
     );
 
-    this.showWarningTwoLocks = false;
+    this.resetTooManyLocksWarning();
     this.roundAllTimes();
     this.removeOffsetAndBackTransformTimeStructure();
 
@@ -527,7 +540,7 @@ export class TrainrunSectionTimesService {
           this.timeStructure[keys.tailArrivalTime] - this.timeStructure[keys.headDepartureTime],
         );
       } else {
-        this.showWarningTwoLocks = true;
+        this.setOutsideWarning("too-many-locks");
       }
     } else if (!this.lockStructure[keys.tailLock]) {
       this.timeStructure[keys.tailDepartureTime] = MathUtils.mod60(
@@ -543,7 +556,7 @@ export class TrainrunSectionTimesService {
         );
       }
     } else {
-      this.showWarningTwoLocks = true;
+      this.setOutsideWarning("too-many-locks");
     }
 
     this.updateTrainrunSectionTime();
