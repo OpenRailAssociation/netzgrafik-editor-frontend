@@ -1,7 +1,6 @@
 import {AfterViewInit, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
 import {TrainrunSectionService} from "../../../../services/data/trainrunsection.service";
 import {TrainrunService} from "../../../../services/data/trainrun.service";
-import {TrainrunDialogParameter} from "../trainrun-and-section-dialog.component";
 import {TrainrunsectionHelper} from "../../../../services/util/trainrunsection.helper";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
@@ -19,7 +18,6 @@ import {LeftAndRightTimeStructure} from "../trainrunsection-tab/trainrun-section
   providers: [TrainrunSectionTimesService],
 })
 export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDestroy {
-  @Input() trainrunDialogParameter: TrainrunDialogParameter;
   @Input() innerContentScaleFactor = "1.0";
 
   public leftNode: Node;
