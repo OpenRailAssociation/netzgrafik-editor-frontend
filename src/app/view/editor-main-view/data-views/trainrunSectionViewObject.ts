@@ -98,6 +98,38 @@ export class TrainrunSectionViewObject {
     return atSource ? trainrunSection.getSourceNode() : trainrunSection.getTargetNode();
   }
 
+  // A "Tip" is the state of a trainrun section's end (source or target). This state is represented
+  // as a cropped line on the end's side and a node's name displayed next to it. A trainrun section's
+  // end is a Tip when the node on its side is collapsed or filtered.
+  // Note: in this function, we deal only with collapsed node, because the filtering system is a mess.
+  isTip(atSource: boolean): boolean {
+    if (atSource) {
+      return (
+        !this.firstSection.getSourceNode().getIsCollapsed() &&
+        this.lastSection.getTargetNode().getIsCollapsed()
+      );
+    } else {
+      return (
+        this.firstSection.getSourceNode().getIsCollapsed() &&
+        !this.lastSection.getTargetNode().getIsCollapsed()
+      );
+    }
+  }
+
+  areBothEndCollapsed(): boolean {
+    return (
+      this.firstSection.getSourceNode().getIsCollapsed() &&
+      this.lastSection.getTargetNode().getIsCollapsed()
+    );
+  }
+
+  areBothEndExpanded(): boolean {
+    return (
+      !this.firstSection.getSourceNode().getIsCollapsed() &&
+      !this.lastSection.getTargetNode().getIsCollapsed()
+    );
+  }
+
   private generateKey(editorView: EditorView, trainrunSections: TrainrunSection[]): string {
     const firstSection = trainrunSections[0];
     const lastSection = trainrunSections.at(-1);
@@ -177,6 +209,10 @@ export class TrainrunSectionViewObject {
       this.firstSection.getSourceArrivalConsecutiveTime() +
       "_" +
       this.firstSection.getNumberOfStops() +
+      "_" +
+      this.firstSection.getSourceNode().getIsCollapsed() +
+      "_" +
+      this.lastSection.getTargetNode().getIsCollapsed() +
       "_" +
       this.getTrainrun().getTrainrunCategory().shortName +
       "_" +
