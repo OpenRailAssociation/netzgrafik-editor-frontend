@@ -292,7 +292,7 @@
             "round-trip": "Rundreise"
           },
           "trainrun-section-tab": {
-            "warningTwoLocks": "Warnung: Zu viele Zeiten sind gelockt!",
+            "too-many-locks": "Warnung: Zu viele Zeiten sind gelockt!",
             "propagateTimesToLeft": "Zeiten nach links propagieren",
             "propagateTimesToRight": "Zeiten nach rechts propagieren"
           }
