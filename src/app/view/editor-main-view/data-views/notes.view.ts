@@ -34,6 +34,12 @@ export class NotesView {
   static convertText(strToConvert: string): string {
     return strToConvert
       .trim()
+      // Convert HTML tab entities to actual tab characters first, then handle them
+      .replace(/&amp;#9;/g, '\t')
+      .replace(/&#9;/g, '\t')
+      .replace(/&nbsp;&nbsp;&nbsp;&nbsp;/g, '\t') // 4 spaces as approximation
+      // Handle actual tab characters by converting to spaces for SVG display
+      .replace(/\t/g, '    ') // Convert tabs to 4 spaces for display
       .split("::marker")
       .join("")
       .split("<ul>")
@@ -78,7 +84,14 @@ export class NotesView {
   static extractTextBasedWidth(n: Note): number {
     let maxLen = 0;
     const div = document.createElement("div");
-    div.innerHTML = n.getText().split("<br>").join("<br>\n").split("<p>").join("<p>\n");
+    // Pre-process the text to handle tabs like in convertText
+    const processedText = n.getText()
+      .replace(/&amp;#9;/g, '\t')
+      .replace(/&#9;/g, '\t')
+      .replace(/&nbsp;&nbsp;&nbsp;&nbsp;/g, '\t')
+      .replace(/\t/g, '    '); // Convert tabs to 4 spaces for width calculation
+
+    div.innerHTML = processedText.split("<br>").join("<br>\n").split("<p>").join("<p>\n");
     div.textContent.split("\n", 9999).forEach((v) => {
       maxLen = Math.max(maxLen, v.length);
     });
