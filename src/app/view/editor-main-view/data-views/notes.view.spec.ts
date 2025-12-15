@@ -12,8 +12,8 @@ import {LabelService} from "../../../services/data/label.service";
 import {NetzgrafikColoringService} from "../../../services/data/netzgrafikColoring.service";
 import {UndoService} from "../../../services/data/undo.service";
 import {CopyService} from "../../../services/data/copy.service";
-import {LogService} from "../../../logger/log.service";
-import {LogPublishersService} from "../../../logger/log.publishers.service";
+import {LogService} from "../../logger/log.service";
+import {LogPublishersService} from "../../logger/log.publishers.service";
 import {FilterService} from "../../../services/ui/filter.service";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {LoadPerlenketteService} from "../../../perlenkette/service/load-perlenkette.service";
@@ -183,5 +183,47 @@ describe("Notes-View", () => {
   it("NotesView.convertText", () => {
     const txt0 = NotesView.convertText("qwertz");
     expect(txt0).toBe("qwertz");
+  });
+
+  it("NotesView.convertText should handle tab characters", () => {
+    // Test direct tab characters
+    const txt1 = NotesView.convertText("hello\tworld");
+    expect(txt1).toBe("hello    world");
+
+    // Test HTML tab entities
+    const txt2 = NotesView.convertText("hello&#9;world");
+    expect(txt2).toBe("hello    world");
+
+    // Test double-escaped HTML tab entities
+    const txt3 = NotesView.convertText("hello&amp;#9;world");
+    expect(txt3).toBe("hello    world");
+
+    // Test four non-breaking spaces as tab approximation (converted to tab then to spaces)
+    const txt4 = NotesView.convertText("hello&nbsp;&nbsp;&nbsp;&nbsp;world");
+    expect(txt4).toBe("hello    world");
+
+    // Test multiple tabs
+    const txt5 = NotesView.convertText("first\t\tsecond");
+    expect(txt5).toBe("first        second");
+
+    // Test mixed content with tabs
+    const txt6 = NotesView.convertText("<p>text with\ttab</p>");
+    expect(txt6).toBe('<tspan x="8" dy="24">text with    tab</tspan>&nbsp;</tspan>');
+  });
+
+  it("NotesView.extractTextBasedWidth should handle tab characters", () => {
+    // Create a mock note object
+    const mockNote = {
+      getText: () => "hello\tworld",
+      getTitle: () => "test",
+      getWidth: () => 100
+    } as any;
+
+    // The width calculation should convert tabs to spaces
+    const width = NotesView.extractTextBasedWidth(mockNote);
+    expect(width).toBeGreaterThan(0);
+    // Since "hello    world" (4 spaces for tab) is longer than "test",
+    // the width should be based on the text length
+    expect(width).toBeGreaterThan(100);
   });
 });
