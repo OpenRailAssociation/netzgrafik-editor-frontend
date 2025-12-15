@@ -2,6 +2,12 @@ import {Node} from "./node.model";
 import {Trainrun} from "./trainrun.model";
 import {Label} from "./label.model";
 import {Note} from "./note.model";
+import {
+  FreeFloatingTextDto,
+  LabelDto,
+  NodeDto,
+  TrainrunDto,
+} from "../data-structures/business.data.structures";
 
 enum OperationType {
   create = "create",
@@ -27,38 +33,38 @@ abstract class Operation {
 }
 
 class TrainrunOperation extends Operation {
-  readonly trainrun: Trainrun;
+  readonly trainrun: TrainrunDto;
 
   constructor(operationType: OperationType, trainrun: Trainrun) {
     super(operationType, OperationObjectType.trainrun);
-    this.trainrun = trainrun;
+    this.trainrun = trainrun.getDto();
   }
 }
 
 class NodeOperation extends Operation {
-  readonly node: Node;
+  readonly node: NodeDto;
 
   constructor(operationType: OperationType, node: Node) {
     super(operationType, OperationObjectType.node);
-    this.node = node;
+    this.node = node.getDto();
   }
 }
 
 class LabelOperation extends Operation {
-  readonly label: Label;
+  readonly label: LabelDto;
 
   constructor(operationType: OperationType, label: Label) {
     super(operationType, OperationObjectType.label);
-    this.label = label;
+    this.label = label.getDto();
   }
 }
 
 class NoteOperation extends Operation {
-  readonly note: Note;
+  readonly note: FreeFloatingTextDto;
 
   constructor(operationType: OperationType, note: Note) {
     super(operationType, OperationObjectType.note);
-    this.note = note;
+    this.note = note.getDto();
   }
 }
 
