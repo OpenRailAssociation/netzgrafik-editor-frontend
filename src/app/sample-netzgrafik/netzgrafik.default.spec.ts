@@ -111,8 +111,8 @@ describe("NetzgrafikDefault", () => {
         expect(outputJson.trainrunSections[0].targetNodeId).toBe(newNode.id);
         expect(outputJson.trainrunSections[1].sourceNodeId).toBe(newNode.id);
         expect(outputJson.trainrunSections[1].targetNodeId).toBe(12);
-        expect(outputJson.trainrunSections[0].numberOfStops).toBe(0);
-        expect(outputJson.trainrunSections[1].numberOfStops).toBe(0);
+        expect(outputJson.trainrunSections[0].numberOfStops).toBe(1);
+        expect(outputJson.trainrunSections[1].numberOfStops).toBe(1);
       });
       it("should replace the numberOfStops: 3 with an equivalent graph portion", () => {
         const inputDto = NetzgrafikTestData.getLegacyNtezgrafik2Nodes();
@@ -144,10 +144,10 @@ describe("NetzgrafikDefault", () => {
         expect(outputJson.trainrunSections[2].targetNodeId).toBe(newNode3.id);
         expect(outputJson.trainrunSections[3].sourceNodeId).toBe(newNode3.id);
         expect(outputJson.trainrunSections[3].targetNodeId).toBe(12);
-        expect(outputJson.trainrunSections[0].numberOfStops).toBe(0);
-        expect(outputJson.trainrunSections[1].numberOfStops).toBe(0);
-        expect(outputJson.trainrunSections[2].numberOfStops).toBe(0);
-        expect(outputJson.trainrunSections[3].numberOfStops).toBe(0);
+        expect(outputJson.trainrunSections[0].numberOfStops).toBe(3);
+        expect(outputJson.trainrunSections[1].numberOfStops).toBe(3);
+        expect(outputJson.trainrunSections[2].numberOfStops).toBe(3);
+        expect(outputJson.trainrunSections[3].numberOfStops).toBe(3);
       });
     });
     describe("3 nodes", () => {
