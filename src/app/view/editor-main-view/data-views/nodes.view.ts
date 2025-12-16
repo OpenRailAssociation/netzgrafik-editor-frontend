@@ -11,16 +11,13 @@ import {Node} from "../../../models/node.model";
 import {StaticDomTags} from "./static.dom.tags";
 import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {EditorView} from "./editor.view";
-import {
-  DragIntermediateStopInfo,
-  DragTransitionInfo,
-  PreviewLineMode,
-} from "./trainrunsection.previewline.view";
+import {DragIntermediateStopInfo, DragTransitionInfo, PreviewLineMode} from "./trainrunsection.previewline.view";
 import {Vec2D} from "../../../utils/vec2D";
 import {D3Utils} from "./d3.utils";
 import {NodeViewObject} from "./nodeViewObject";
 import {EditorMode} from "../../editor-menu/editor-mode";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
+import {NodeService} from "src/app/services/data/node.service";
 
 export class NodesView {
   dragPreviousMousePosition: Vec2D;
@@ -28,7 +25,10 @@ export class NodesView {
   draggable: any;
   private LevelOfDetails: LevelOfDetail;
 
-  constructor(private editorView: EditorView) {
+  constructor(
+    private editorView: EditorView,
+    private nodeService: NodeService,
+  ) {
     this.draggable = d3
       .drag()
       .on("start", (n: NodeViewObject, i, a) => this.onNodeDragStart(n.node, a[i]))
@@ -652,10 +652,10 @@ export class NodesView {
       return;
     }
 
-    const dragIntermediateStopInfo =
-      this.editorView.trainrunSectionPreviewLineView.getDragIntermediateStopInfo();
-    if (dragIntermediateStopInfo !== null) {
-      this.replaceIntermediateStopWithTrainrunSections(dragIntermediateStopInfo, endNode);
+    const dragCollapsedNodeInfo =
+      this.editorView.trainrunSectionPreviewLineView.getDragCollapsedNodeInfo();
+    if (dragCollapsedNodeInfo !== null) {
+      this.replaceCollapsedNodeWithNode(dragCollapsedNodeInfo, endNode);
     } else {
       const dragTransitionInfo =
         this.editorView.trainrunSectionPreviewLineView.getDragTransitionInfo();
@@ -788,6 +788,46 @@ export class NodesView {
       dragIntermediateStopInfo.intermediateStopIndex,
       endNode.getId(),
     );
+    this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
+  }
+
+  replaceCollapsedNodeWithNode(dragCollapsedNodeInfo: any, endNode: Node) {
+    const draggedNode = dragCollapsedNodeInfo.viewObject.getCollapsedStopNodeFromStopIndex(
+      dragCollapsedNodeInfo.stopIndex,
+    );
+
+    if (draggedNode.getId() === endNode.getId()) {
+      this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
+      return;
+    }
+
+    const previousSection = dragCollapsedNodeInfo.viewObject.trainrunSections.find(
+      (ts: TrainrunSection) => ts.getTargetNodeId() === draggedNode.getId(),
+    );
+
+    const nextSection = dragCollapsedNodeInfo.viewObject.trainrunSections.find(
+      (ts: TrainrunSection) => ts.getSourceNodeId() === draggedNode.getId(),
+    );
+
+    this.editorView.reconnectTrainrunSection(
+      previousSection.getSourceNode(),
+      endNode,
+      previousSection,
+      false,
+    );
+
+    this.editorView.reconnectTrainrunSection(
+      endNode,
+      nextSection.getTargetNode(),
+      nextSection,
+      true,
+    );
+
+    const connectedTS: TrainrunSection[] = draggedNode.getConnectedTrainrunSections();
+    if (connectedTS.length === 0) {
+      this.nodeService.deleteNode(draggedNode.getId());
+    }
+
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
   }
 
