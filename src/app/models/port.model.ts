@@ -46,6 +46,7 @@ export class Port {
   }
 
   setPositionAlignment(positionAlignment: PortAlignment) {
+    if (this.locked) return;
     this.positionAlignment = positionAlignment;
   }
 
