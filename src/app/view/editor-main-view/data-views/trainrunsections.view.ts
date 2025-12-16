@@ -24,7 +24,7 @@ import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {EditorView} from "./editor.view";
 
 import {D3Utils} from "./d3.utils";
-import {DragIntermediateStopInfo, PreviewLineMode} from "./trainrunsection.previewline.view";
+import {DragCollapsedStopNodeInfo, PreviewLineMode} from "./trainrunsection.previewline.view";
 import {MathUtils} from "../../../utils/math";
 import {Trainrun} from "../../../models/trainrun.model";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
@@ -1616,9 +1616,7 @@ export class TrainrunSectionsView {
         ),
       )
       .classed(StaticDomTags.TAG_SELECTED, () => viewObject.getTrainrun().selected())
-      .on("mouseup", (t: TrainrunSectionViewObject, i, a) =>
-        this.onIntermediateStopMouseUp(t.trainrunSections[0], a[i]),
-      );
+      .on("mouseup", (t: TrainrunSectionViewObject, i, a) => this.onCollapsedNodeMouseUp(t, a[i]));
   }
 
   createIntermediateStops(
@@ -1828,7 +1826,7 @@ export class TrainrunSectionsView {
     }
   }
 
-  onIntermediateStopMouseOver(
+  onCollapsedNodeMouseOver(
     trainrunSection: TrainrunSection,
     stopIndex: number,
     position: Vec2D,
@@ -1837,30 +1835,30 @@ export class TrainrunSectionsView {
     d3.event.stopPropagation();
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, true);
   }
-
-  onIntermediateStopMouseDown(
-    trainrunSection: TrainrunSection,
-    stopIndex: number,
+  onCollapsedNodeMouseDown(
+    viewObject: TrainrunSectionViewObject,
+    numberOfStops: number,
     position: Vec2D,
+    stopIndex: number,
     domObj: any,
   ) {
     if (!d3.select(domObj).classed(StaticDomTags.TAG_SELECTED)) {
       d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
       return;
     }
-    this.editorView.trainrunSectionPreviewLineView.startDragIntermediateStop(
-      new DragIntermediateStopInfo(trainrunSection, stopIndex, domObj),
+    this.editorView.trainrunSectionPreviewLineView.startDragCollapsedNode(
+      new DragCollapsedStopNodeInfo(viewObject, stopIndex, domObj),
       position,
     );
 
     this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
   }
 
-  onIntermediateStopMouseUp(trainrunSection: TrainrunSection, domObj: any) {
+  onCollapsedNodeMouseUp(viewObject: TrainrunSectionViewObject, domObj: any) {
     d3.event.stopPropagation();
-    D3Utils.removeGrayout(trainrunSection);
+    D3Utils.removeGrayout(viewObject.trainrunSections[0]);
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
-    this.editorView.setTrainrunAsSelected(trainrunSection.getTrainrun());
+    this.editorView.setTrainrunAsSelected(viewObject.getTrainrun());
   }
 
   onTrainrunSectionTextMouseout(trainrunSection: TrainrunSection, domObj: any) {
@@ -2590,17 +2588,15 @@ export class TrainrunSectionsView {
       )
       .classed(StaticDomTags.EDGE_LINE_STOPS_FILL, () => !collapsedStops)
       .on("mouseover", (t: TrainrunSectionViewObject, i, a) =>
-        this.onIntermediateStopMouseOver(t.trainrunSections[0], stopIndex, position, a[i]),
+        this.onCollapsedNodeMouseOver(t.trainrunSections[0], stopIndex, position, a[i]),
       )
       .on("mouseout", (t: TrainrunSectionViewObject, i, a) =>
         this.onIntermediateStopMouseOut(t.trainrunSections[0], stopIndex, position, a[i]),
       )
       .on("mousedown", (t: TrainrunSectionViewObject, i, a) =>
-        this.onIntermediateStopMouseDown(t.trainrunSections[0], stopIndex, position, a[i]),
+        this.onCollapsedNodeMouseDown(t, numberOfStops, position, stopIndex, a[i]),
       )
-      .on("mouseup", (t: TrainrunSectionViewObject, i, a) =>
-        this.onIntermediateStopMouseUp(t.trainrunSections[0], a[i]),
-      );
+      .on("mouseup", (t: TrainrunSectionViewObject, i, a) => this.onCollapsedNodeMouseUp(t, a[i]));
   }
 
   private createNewTrainrunSectionAfterPinDropped(endNode: any, trainrunSection: TrainrunSection) {
