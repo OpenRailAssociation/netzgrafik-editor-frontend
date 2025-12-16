@@ -44,6 +44,19 @@ export class TrainrunSectionViewObject {
       .filter((section) => !section.getSourceNode().isNonStop(section)).length;
   }
 
+  getCollapsedStopNodes(): Node[] {
+    return this.trainrunSections
+      .slice(1)
+      .map((section) =>
+        !section.getSourceNode().isNonStop(section) ? section.getSourceNode() : null,
+      )
+      .filter((node) => node !== null && node.getIsCollapsed);
+  }
+
+  getCollapsedStopNodeFromStopIndex(stopIndex: number): Node {
+    return this.getCollapsedStopNodes()[stopIndex];
+  }
+
   getTravelTime(): number {
     if (this.trainrunSections.length === 1) {
       return this.firstSection.getTravelTime();
