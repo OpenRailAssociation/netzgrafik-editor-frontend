@@ -38,7 +38,7 @@ export class TrainrunSectionTimesService {
   private showWarningTwoLocks = false;
   private onLockButtonClicked = false;
 
-  private offset: number;
+  private offset = 0;
   private offsetTransformationActive = false;
 
   private highlightTravelTimeElement: boolean;
