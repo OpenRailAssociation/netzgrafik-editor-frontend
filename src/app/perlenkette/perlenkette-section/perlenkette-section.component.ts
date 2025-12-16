@@ -641,257 +641,89 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     return this.leftAndRightTimeStructure.travelTime;
   }
 
-  private getTimeButtonPlusMinusStep(val: number) {
-    return 1 - val + Math.floor(val);
-  }
-
   /* Left Departure Time */
   onNodeLeftDepartureTimeButtonPlus(event: MouseEvent) {
     this.stopPropagation(event);
-    this.leftAndRightTimeStructure.leftDepartureTime += this.getTimeButtonPlusMinusStep(
-      this.leftAndRightTimeStructure.leftDepartureTime,
-    );
-    this.leftAndRightTimeStructure.leftDepartureTime %= 60;
-    this.onNodeLeftDepartureTimeChanged();
+    this.trainrunSectionTimesService.onNodeLeftDepartureTimeButtonPlus();
   }
 
   onNodeLeftDepartureTimeButtonMinus(event: MouseEvent) {
     this.stopPropagation(event);
-    this.leftAndRightTimeStructure.leftDepartureTime -= this.getTimeButtonPlusMinusStep(
-      this.leftAndRightTimeStructure.leftDepartureTime,
-    );
-    this.leftAndRightTimeStructure.leftDepartureTime +=
-      this.leftAndRightTimeStructure.leftDepartureTime < 0 ? 60 : 0;
-    this.onNodeLeftDepartureTimeChanged();
+    this.trainrunSectionTimesService.onNodeLeftDepartureTimeButtonMinus();
   }
 
   onNodeLeftDepartureTimeChanged() {
-    this.leftAndRightTimeStructure.leftDepartureTime =
-      this.leftAndRightTimeStructure.leftDepartureTime % 60;
-    this.leftAndRightTimeStructure.leftDepartureTime +=
-      this.leftAndRightTimeStructure.leftDepartureTime < 0 ? 60 : 0;
-
-    this.leftAndRightTimeStructure.leftArrivalTime = TrainrunsectionHelper.getSymmetricTime(
-      this.leftAndRightTimeStructure.leftDepartureTime,
-    );
-    if (!this.lockStructure.rightLock) {
-      this.leftAndRightTimeStructure.rightArrivalTime =
-        this.leftAndRightTimeStructure.leftDepartureTime +
-        (this.leftAndRightTimeStructure.travelTime % 60);
-      this.leftAndRightTimeStructure.rightArrivalTime %= 60;
-      this.leftAndRightTimeStructure.rightDepartureTime = TrainrunsectionHelper.getSymmetricTime(
-        this.leftAndRightTimeStructure.rightArrivalTime,
-      );
-    } else if (!this.lockStructure.travelTimeLock && this.lockStructure.rightLock) {
-      this.leftAndRightTimeStructure.travelTime =
-        this.leftAndRightTimeStructure.leftArrivalTime -
-        this.leftAndRightTimeStructure.rightDepartureTime;
-      this.leftAndRightTimeStructure.travelTime +=
-        this.leftAndRightTimeStructure.travelTime < 0 ? 60 : 0;
-    }
-
-    this.updateTrainrunSectionTime();
+    this.trainrunSectionTimesService.getTimeStructure().leftDepartureTime =
+      this.leftAndRightTimeStructure.leftDepartureTime;
+    this.trainrunSectionTimesService.onNodeLeftDepartureTimeChanged();
   }
 
   /* Left Arrival Time */
   onNodeLeftArrivalTimeButtonPlus(event: MouseEvent) {
     this.stopPropagation(event);
-    this.leftAndRightTimeStructure.leftArrivalTime += this.getTimeButtonPlusMinusStep(
-      this.leftAndRightTimeStructure.leftArrivalTime,
-    );
-    this.leftAndRightTimeStructure.leftArrivalTime %= 60;
-    this.onNodeLeftArrivalTimeChanged();
+    this.trainrunSectionTimesService.onNodeLeftArrivalTimeButtonPlus();
   }
 
   onNodeLeftArrivalTimeButtonMinus(event: MouseEvent) {
     this.stopPropagation(event);
-    this.leftAndRightTimeStructure.leftArrivalTime -= this.getTimeButtonPlusMinusStep(
-      this.leftAndRightTimeStructure.leftArrivalTime,
-    );
-    this.leftAndRightTimeStructure.leftArrivalTime +=
-      this.leftAndRightTimeStructure.leftArrivalTime < 0 ? 60 : 0;
-    this.onNodeLeftArrivalTimeChanged();
+    this.trainrunSectionTimesService.onNodeLeftArrivalTimeButtonMinus();
   }
 
   onNodeLeftArrivalTimeChanged() {
-    this.leftAndRightTimeStructure.leftArrivalTime =
-      this.leftAndRightTimeStructure.leftArrivalTime % 60;
-    this.leftAndRightTimeStructure.leftArrivalTime +=
-      this.leftAndRightTimeStructure.leftArrivalTime < 0 ? 60 : 0;
-
-    this.leftAndRightTimeStructure.leftDepartureTime = TrainrunsectionHelper.getSymmetricTime(
-      this.leftAndRightTimeStructure.leftArrivalTime,
-    );
-    if (!this.lockStructure.rightLock) {
-      this.leftAndRightTimeStructure.rightDepartureTime =
-        this.leftAndRightTimeStructure.leftArrivalTime -
-        (this.leftAndRightTimeStructure.travelTime % 60);
-      this.leftAndRightTimeStructure.rightDepartureTime +=
-        this.leftAndRightTimeStructure.rightDepartureTime < 0 ? 60 : 0;
-      this.leftAndRightTimeStructure.rightArrivalTime = TrainrunsectionHelper.getSymmetricTime(
-        this.leftAndRightTimeStructure.rightDepartureTime,
-      );
-    } else if (!this.lockStructure.travelTimeLock && this.lockStructure.rightLock) {
-      this.leftAndRightTimeStructure.travelTime =
-        this.leftAndRightTimeStructure.leftArrivalTime -
-        this.leftAndRightTimeStructure.rightDepartureTime;
-      this.leftAndRightTimeStructure.travelTime +=
-        this.leftAndRightTimeStructure.travelTime < 0 ? 60 : 0;
-    }
-
-    this.updateTrainrunSectionTime();
+    this.trainrunSectionTimesService.getTimeStructure().leftArrivalTime =
+      this.leftAndRightTimeStructure.leftArrivalTime;
+    this.trainrunSectionTimesService.onNodeLeftArrivalTimeChanged();
   }
 
   /* Right Arrival Time */
   onNodeRightArrivalTimeButtonPlus(event: MouseEvent) {
     this.stopPropagation(event);
-    this.leftAndRightTimeStructure.rightArrivalTime += this.getTimeButtonPlusMinusStep(
-      this.leftAndRightTimeStructure.rightArrivalTime,
-    );
-    this.leftAndRightTimeStructure.rightArrivalTime %= 60;
-    this.onNodeRightArrivalTimeChanged();
+    this.trainrunSectionTimesService.onNodeRightArrivalTimeButtonPlus();
   }
 
   onNodeRightArrivalTimeButtonMinus(event: MouseEvent) {
     this.stopPropagation(event);
-    this.leftAndRightTimeStructure.rightArrivalTime -= this.getTimeButtonPlusMinusStep(
-      this.leftAndRightTimeStructure.rightArrivalTime,
-    );
-    this.leftAndRightTimeStructure.rightArrivalTime +=
-      this.leftAndRightTimeStructure.rightArrivalTime < 0 ? 60 : 0;
-    this.onNodeRightArrivalTimeChanged();
+    this.trainrunSectionTimesService.onNodeRightArrivalTimeButtonMinus();
   }
 
   onNodeRightArrivalTimeChanged() {
-    this.leftAndRightTimeStructure.rightArrivalTime =
-      this.leftAndRightTimeStructure.rightArrivalTime % 60;
-    this.leftAndRightTimeStructure.rightArrivalTime +=
-      this.leftAndRightTimeStructure.rightArrivalTime < 0 ? 60 : 0;
-
-    this.leftAndRightTimeStructure.rightDepartureTime = TrainrunsectionHelper.getSymmetricTime(
-      this.leftAndRightTimeStructure.rightArrivalTime,
-    );
-    if (!this.lockStructure.leftLock) {
-      this.leftAndRightTimeStructure.leftDepartureTime =
-        this.leftAndRightTimeStructure.rightArrivalTime -
-        (this.leftAndRightTimeStructure.travelTime % 60);
-      this.leftAndRightTimeStructure.leftDepartureTime +=
-        this.leftAndRightTimeStructure.leftDepartureTime < 0 ? 60 : 0;
-      this.leftAndRightTimeStructure.leftArrivalTime = TrainrunsectionHelper.getSymmetricTime(
-        this.leftAndRightTimeStructure.leftDepartureTime,
-      );
-    } else if (!this.lockStructure.travelTimeLock && this.lockStructure.leftLock) {
-      this.leftAndRightTimeStructure.travelTime =
-        this.leftAndRightTimeStructure.rightArrivalTime -
-        this.leftAndRightTimeStructure.leftDepartureTime;
-      this.leftAndRightTimeStructure.travelTime +=
-        this.leftAndRightTimeStructure.travelTime < 0 ? 60 : 0;
-    }
-
-    this.updateTrainrunSectionTime();
+    this.trainrunSectionTimesService.getTimeStructure().rightArrivalTime =
+      this.leftAndRightTimeStructure.rightArrivalTime;
+    this.trainrunSectionTimesService.onNodeRightArrivalTimeChanged();
   }
 
   /* Right Departure Time */
   onNodeRightDepartureTimeButtonPlus(event: MouseEvent) {
     this.stopPropagation(event);
-    this.leftAndRightTimeStructure.rightDepartureTime += this.getTimeButtonPlusMinusStep(
-      this.leftAndRightTimeStructure.rightDepartureTime,
-    );
-    this.leftAndRightTimeStructure.rightDepartureTime %= 60;
-    this.onNodeRightDepartureTimeChanged();
+    this.trainrunSectionTimesService.onNodeRightDepartureTimeButtonPlus();
   }
 
   onNodeRightDepartureTimeButtonMinus(event: MouseEvent) {
     this.stopPropagation(event);
-    this.leftAndRightTimeStructure.rightDepartureTime -= this.getTimeButtonPlusMinusStep(
-      this.leftAndRightTimeStructure.rightDepartureTime,
-    );
-    this.leftAndRightTimeStructure.rightDepartureTime +=
-      this.leftAndRightTimeStructure.rightDepartureTime < 0 ? 60 : 0;
-    this.onNodeRightDepartureTimeChanged();
+    this.trainrunSectionTimesService.onNodeRightDepartureTimeButtonMinus();
   }
 
   onNodeRightDepartureTimeChanged() {
-    this.leftAndRightTimeStructure.rightDepartureTime =
-      this.leftAndRightTimeStructure.rightDepartureTime % 60;
-    this.leftAndRightTimeStructure.rightDepartureTime +=
-      this.leftAndRightTimeStructure.rightDepartureTime < 0 ? 60 : 0;
-
-    this.leftAndRightTimeStructure.rightArrivalTime = TrainrunsectionHelper.getSymmetricTime(
-      this.leftAndRightTimeStructure.rightDepartureTime,
-    );
-    if (!this.lockStructure.leftLock) {
-      this.leftAndRightTimeStructure.leftArrivalTime =
-        this.leftAndRightTimeStructure.rightDepartureTime +
-        (this.leftAndRightTimeStructure.travelTime % 60);
-      this.leftAndRightTimeStructure.leftArrivalTime %= 60;
-      this.leftAndRightTimeStructure.leftDepartureTime = TrainrunsectionHelper.getSymmetricTime(
-        this.leftAndRightTimeStructure.leftArrivalTime,
-      );
-    } else if (!this.lockStructure.travelTimeLock && this.lockStructure.leftLock) {
-      this.leftAndRightTimeStructure.travelTime =
-        this.leftAndRightTimeStructure.rightArrivalTime -
-        this.leftAndRightTimeStructure.leftDepartureTime;
-      this.leftAndRightTimeStructure.travelTime +=
-        this.leftAndRightTimeStructure.travelTime < 0 ? 60 : 0;
-    }
-
-    this.updateTrainrunSectionTime();
+    this.trainrunSectionTimesService.getTimeStructure().rightDepartureTime =
+      this.leftAndRightTimeStructure.rightDepartureTime;
+    this.trainrunSectionTimesService.onNodeRightDepartureTimeChanged();
   }
 
   /* Travel Time */
   onInputTravelTimeElementButtonPlus(event: MouseEvent) {
     this.stopPropagation(event);
-    this.leftAndRightTimeStructure.travelTime += this.getTimeButtonPlusMinusStep(
-      this.leftAndRightTimeStructure.travelTime,
-    );
-    this.onInputTravelTimeChanged();
+    this.trainrunSectionTimesService.onInputTravelTimeElementButtonPlus();
   }
 
   onInputTravelTimeElementButtonMinus(event: MouseEvent) {
     this.stopPropagation(event);
-    this.leftAndRightTimeStructure.travelTime -= this.getTimeButtonPlusMinusStep(
-      this.leftAndRightTimeStructure.travelTime,
-    );
-    this.leftAndRightTimeStructure.travelTime = Math.max(
-      1,
-      this.leftAndRightTimeStructure.travelTime,
-    );
-    this.onInputTravelTimeChanged();
-  }
-
-  updateTravelTimeChanged() {
-    this.leftAndRightTimeStructure.travelTime = Math.max(
-      this.leftAndRightTimeStructure.travelTime,
-      1,
-    );
-
-    if (!this.lockStructure.rightLock) {
-      this.leftAndRightTimeStructure.rightArrivalTime =
-        this.leftAndRightTimeStructure.leftDepartureTime +
-        this.leftAndRightTimeStructure.travelTime;
-      this.leftAndRightTimeStructure.rightArrivalTime +=
-        this.leftAndRightTimeStructure.rightArrivalTime < 0 ? 60 : 0;
-      this.leftAndRightTimeStructure.rightArrivalTime %= 60;
-      this.leftAndRightTimeStructure.rightDepartureTime = TrainrunsectionHelper.getSymmetricTime(
-        this.leftAndRightTimeStructure.rightArrivalTime,
-      );
-    } else if (!this.lockStructure.leftLock) {
-      this.leftAndRightTimeStructure.leftArrivalTime =
-        this.leftAndRightTimeStructure.rightDepartureTime +
-        this.leftAndRightTimeStructure.travelTime;
-      this.leftAndRightTimeStructure.leftArrivalTime +=
-        this.leftAndRightTimeStructure.leftArrivalTime < 0 ? 60 : 0;
-      this.leftAndRightTimeStructure.leftArrivalTime %= 60;
-      this.leftAndRightTimeStructure.leftDepartureTime = TrainrunsectionHelper.getSymmetricTime(
-        this.leftAndRightTimeStructure.leftArrivalTime,
-      );
-    }
+    this.trainrunSectionTimesService.onInputTravelTimeElementButtonMinus();
   }
 
   onInputTravelTimeChanged() {
-    this.updateTravelTimeChanged();
-    this.updateTrainrunSectionTime();
+    this.trainrunSectionTimesService.getTimeStructure().travelTime =
+      this.leftAndRightTimeStructure.travelTime;
+    this.trainrunSectionTimesService.onInputTravelTimeChanged();
   }
 
   roundTime(time: number) {
@@ -1039,25 +871,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
       return this.getLockCloseSvgPath();
     }
     return this.getLockOpenSvgPath();
-  }
-
-  private updateTrainrunSectionTime() {
-    const trsId = this.trainrunSection.getId();
-    const sourceArrivalTime = this.getSectionSourceArrivalTime();
-    const sourceDeparture = this.getSectionSourceDepartureTime();
-    const targetArrival = this.getSectionTargetArrivalTime();
-    const targetDeparture = this.getSectionTargetDepartureTime();
-    const travelTime = this.getSectionTravelTime();
-
-    this.trainrunSectionService.updateTrainrunSectionTime(
-      trsId,
-      sourceArrivalTime,
-      sourceDeparture,
-      targetArrival,
-      targetDeparture,
-      travelTime,
-    );
-    this.trainrunSectionService.trainrunSectionsUpdated();
   }
 
   private updateLeftAndRightTimeStructure() {
