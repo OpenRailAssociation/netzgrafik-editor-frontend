@@ -25,7 +25,11 @@ import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {EditorView} from "./editor.view";
 
 import {D3Utils} from "./d3.utils";
-import {DragIntermediateStopInfo, PreviewLineMode} from "./trainrunsection.previewline.view";
+import {
+  DragIntermediateStopInfo,
+  DragCollapsedStopNodeInfo,
+  PreviewLineMode,
+} from "./trainrunsection.previewline.view";
 import {MathUtils} from "../../../utils/math";
 import {Trainrun} from "../../../models/trainrun.model";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
@@ -1943,6 +1947,23 @@ export class TrainrunSectionsView {
     this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(event);
   }
 
+  onCollapsedNodeMouseDown(
+    event: MouseEvent,
+    viewObject: TrainrunSectionViewObject,
+    stopIndex: number,
+  ) {
+    const domObj = D3Utils.getMouseEventCurrentTarget(event);
+    if (!d3.select(domObj).classed(StaticDomTags.TAG_SELECTED)) {
+      d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
+      return;
+    }
+    this.editorView.trainrunSectionPreviewLineView.startDragCollapsedNode(
+      new DragCollapsedStopNodeInfo(viewObject, stopIndex, domObj),
+    );
+
+    this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(event);
+  }
+
   onIntermediateStopMouseUp(event: MouseEvent, trainrunSection: TrainrunSection) {
     event.stopPropagation();
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
@@ -1957,6 +1978,13 @@ export class TrainrunSectionsView {
   onTrainrunSectionTextMouseout(event: MouseEvent) {
     const domObj = D3Utils.getMouseEventCurrentTarget(event);
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
+  }
+
+  onCollapsedNodeMouseUp(event: MouseEvent, trainrunSection: TrainrunSection) {
+    event.stopPropagation();
+    D3Utils.removeGrayout(trainrunSection);
+    this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
+    this.editorView.setTrainrunAsSelected(trainrunSection.getTrainrun());
   }
 
   onTrainrunSectionElementClicked(
@@ -2745,10 +2773,10 @@ export class TrainrunSectionsView {
       .on("mouseover", (event: MouseEvent) => this.onIntermediateStopMouseOver(event))
       .on("mouseout", (event: MouseEvent) => this.onIntermediateStopMouseOut(event))
       .on("mousedown", (event: MouseEvent, t: TrainrunSectionViewObject) =>
-        this.onIntermediateStopMouseDown(event, t, stopIndex),
+        this.onCollapsedNodeMouseDown(event, t, stopIndex),
       )
       .on("mouseup", (event: MouseEvent, t: TrainrunSectionViewObject) =>
-        this.onIntermediateStopMouseUp(event, t.firstSection),
+        this.onCollapsedNodeMouseUp(event, t.firstSection),
       );
   }
 
