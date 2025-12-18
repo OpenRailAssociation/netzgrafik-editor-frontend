@@ -1492,4 +1492,12 @@ export class TrainrunSectionService implements OnDestroy {
 
     return groups;
   }
+
+  getTrainrunSectionGroup(trainrunSection: TrainrunSection): TrainrunSection[] {
+    const sections = this.getAllTrainrunSectionsForTrainrun(trainrunSection.getTrainrun().getId());
+    const groups = this.groupTrainrunSectionsIntoChains(sections);
+    return groups.find(
+      (group) => group.find((trs) => trs.getId() === trainrunSection.getId()) !== undefined,
+    );
+  }
 }

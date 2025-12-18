@@ -178,15 +178,19 @@ export class NodeService implements OnDestroy {
   initPortOrdering() {
     this.nodesStore.nodes.forEach((node) => {
       node.getPorts().forEach((port) => {
-        const oppositeNode = node.getOppositeNode(port.getTrainrunSection());
+        const group = this.trainrunSectionService.getTrainrunSectionGroup(
+          port.getTrainrunSection(),
+        );
+        const oppositeExpandedNode = this.getOppositeExpandedNode(group[0], node);
         const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
           node,
-          oppositeNode,
+          oppositeExpandedNode,
         );
         port.setPositionAlignment(portAlignments.sourcePortPlacement);
-        oppositeNode
-          .getPortOfTrainrunSection(port.getTrainrunSection().getId())
-          .setPositionAlignment(portAlignments.targetPortPlacement);
+        if (node.getIsCollapsed()) return;
+        oppositeExpandedNode
+          .getPortOfTrainrunSection(group.at(-1)!.getId())
+          ?.setPositionAlignment(portAlignments.targetPortPlacement);
       });
 
       node.updateTransitionsAndConnections();
@@ -1127,6 +1131,30 @@ export class NodeService implements OnDestroy {
     return {minCoordX: minX, minCoordY: minY, maxCoordX: maxX, maxCoordY: maxY};
   }
 
+  getOppositeExpandedNode(trainrunSection: TrainrunSection, currentNode: Node): Node | undefined {
+    const groups = this.trainrunSectionService.groupTrainrunSectionsIntoChains(
+      this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+        trainrunSection.getTrainrunId(),
+      ),
+    );
+    // keep only the groups which contain the given trainrun section
+    const filteredGroup = groups.find(
+      (group) => group.find((trs) => trs.getId() === trainrunSection.getId()) !== undefined,
+    );
+    if (filteredGroup === undefined) {
+      return undefined;
+    }
+    if (currentNode.getId() === trainrunSection.getSourceNodeId()) {
+      // get target node of the last trainrun section in the group
+      const lastTrainrunSection = filteredGroup.at(-1);
+      return this.getNodeFromId(lastTrainrunSection.getTargetNodeId());
+    } else {
+      // get source node of the first trainrun section in the group
+      const firstTrainrunSection = filteredGroup.at(0);
+      return this.getNodeFromId(firstTrainrunSection.getSourceNodeId());
+    }
+  }
+
   private deleteNodeWithoutUpdate(nodeId: number, enforceUpdate = true) {
     const node = this.getNodeFromId(nodeId);
     const connectedTrainrunSections = node.getConnectedTrainrunSections();
@@ -1151,16 +1179,19 @@ export class NodeService implements OnDestroy {
     node.setPosition(newPositionX, newPositionY);
     if (dragEnd) {
       node.getPorts().forEach((port) => {
-        const oppositeNode = node.getOppositeNode(port.getTrainrunSection());
+        const group = this.trainrunSectionService.getTrainrunSectionGroup(
+          port.getTrainrunSection(),
+        );
+        const oppositeExpandedNode = this.getOppositeExpandedNode(group[0], node);
         const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
           node,
-          oppositeNode,
+          oppositeExpandedNode,
         );
         port.setPositionAlignment(portAlignments.sourcePortPlacement);
-        oppositeNode
-          .getPortOfTrainrunSection(port.getTrainrunSection().getId())
-          .setPositionAlignment(portAlignments.targetPortPlacement);
-        oppositeNode.updateTransitionsAndConnections();
+        oppositeExpandedNode
+          .getPortOfTrainrunSection(group.at(-1)!.getId())
+          ?.setPositionAlignment(portAlignments.targetPortPlacement);
+        oppositeExpandedNode.updateTransitionsAndConnections();
       });
       node.reorderAllPorts();
       this.operation.emit(new NodeOperation(OperationType.update, node));
