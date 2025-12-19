@@ -115,6 +115,10 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     this.trainrunSection = this.trainrunSectionService.getTrainrunSectionFromId(
       this.perlenketteSection.trainrunSectionId,
     );
+    this.trainrunSectionTimesService.setNodesOrdered([
+      this.perlenketteSection.fromNode,
+      this.perlenketteSection.toNode,
+    ]);
     this.trainrunSectionTimesService.setTrainrunSection(this.trainrunSection);
     this.trainrunSectionTimesService.setLockStructure(
       this.trainrunSectionHelper.getLeftAndRightLock(
@@ -139,16 +143,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
           }
         }
       });
-    this.trainrunSectionTimesService.setNodesOrdered([
-      this.perlenketteSection.fromNode,
-      this.perlenketteSection.toNode,
-    ]);
-    this.trainrunSectionTimesService.setLockStructure(
-      this.trainrunSectionHelper.getLeftAndRightLock(
-        this.trainrunSection,
-        this.trainrunSectionTimesService.getNodesOrdered(),
-      ),
-    );
 
     this.updateLockStructure();
 
