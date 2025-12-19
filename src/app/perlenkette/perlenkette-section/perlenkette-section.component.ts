@@ -223,21 +223,21 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     if (this.showAllLockStates) {
       return true;
     }
-    return this.lockStructure.travelTimeLock;
+    return this.trainrunSectionTimesService.getLockStructure().travelTimeLock;
   }
 
   showLeftLock(): boolean {
     if (this.showAllLockStates) {
       return true;
     }
-    return this.lockStructure.leftLock;
+    return this.trainrunSectionTimesService.getLockStructure().leftLock;
   }
 
   showRightLock(): boolean {
     if (this.showAllLockStates) {
       return true;
     }
-    return this.lockStructure.rightLock;
+    return this.trainrunSectionTimesService.getLockStructure().rightLock;
   }
 
   getPathClassTag(noLinePatterns = false): string {
