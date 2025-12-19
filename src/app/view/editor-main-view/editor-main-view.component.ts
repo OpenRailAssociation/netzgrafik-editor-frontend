@@ -6,6 +6,7 @@ import {
   OnDestroy,
   ViewChild,
 } from "@angular/core";
+import {DomSanitizer} from "@angular/platform-browser";
 import {Node} from "../../models/node.model";
 import {Trainrun} from "../../models/trainrun.model";
 import {Vec2D} from "../../utils/vec2D";
@@ -78,6 +79,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     private levelOfDetailService: LevelOfDetailService,
     private versionControlService: VersionControlService,
     private positionTransformationService: PositionTransformationService,
+    private sanitizer: DomSanitizer,
   ) {
     this.editorView = new EditorView(
       this,
@@ -94,6 +96,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       levelOfDetailService,
       versionControlService,
       positionTransformationService,
+      sanitizer,
     );
     this.uiInteractionService.zoomInObservable
       .pipe(takeUntil(this.destroyed))

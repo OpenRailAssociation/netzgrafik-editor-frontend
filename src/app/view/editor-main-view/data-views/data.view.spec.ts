@@ -158,6 +158,7 @@ describe("Editor-DataView", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      undefined,
     );
 
     new EditorView(
@@ -175,6 +176,7 @@ describe("Editor-DataView", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      undefined,
     );
 
     controller.bindViewToServices();
