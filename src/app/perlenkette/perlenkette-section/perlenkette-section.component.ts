@@ -35,14 +35,6 @@ import {StaticDomTags} from "../../view/editor-main-view/data-views/static.dom.t
 import {MathUtils} from "../../utils/math";
 import {VersionControlService} from "../../services/data/version-control.service";
 
-export interface TopAndBottomTimeStructure {
-  leftDepartureTime: number;
-  leftArrivalTime: number;
-  rightDepartureTime: number;
-  rightArrivalTime: number;
-  travelTime: number;
-}
-
 export interface LeftAndRightLockStructure {
   leftLock: boolean;
   rightLock: boolean;
@@ -85,7 +77,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   public trainrunSection: TrainrunSection;
   private trainrunSectionHelper: TrainrunsectionHelper;
 
-  public leftAndRightTimeStructure: TopAndBottomTimeStructure;
   lockStructure: LeftAndRightLockStructure = {
     leftLock: false,
     rightLock: false,
@@ -130,7 +121,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
         this.trainrunSectionTimesService.getNodesOrdered(),
       ),
     );
-    this.updateLeftAndRightTimeStructure();
   }
 
   ngAfterContentInit() {
@@ -554,16 +544,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     return this.filterService.isFilterTravelTimeEnabled();
   }
 
-  /* Get Section Times */
-  getSectionSourceArrivalTime(): number {
-    const sourceId = this.trainrunSection.getSourceNodeId();
-    const fromId = this.perlenketteSection.fromNode.getId();
-    if (sourceId === fromId) {
-      return this.leftAndRightTimeStructure.leftArrivalTime;
-    }
-    return this.leftAndRightTimeStructure.rightArrivalTime;
-  }
-
   showArrivalAndDepartureTime(): boolean {
     if (this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       return true;
@@ -595,33 +575,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     return tag;
   }
 
-  getSectionSourceDepartureTime(): number {
-    const sourceId = this.trainrunSection.getSourceNodeId();
-    const fromId = this.perlenketteSection.fromNode.getId();
-    if (sourceId === fromId) {
-      return this.leftAndRightTimeStructure.leftDepartureTime;
-    }
-    return this.leftAndRightTimeStructure.rightDepartureTime;
-  }
-
-  getSectionTargetDepartureTime(): number {
-    const sourceId = this.trainrunSection.getSourceNodeId();
-    const toId = this.perlenketteSection.toNode.getId();
-    if (sourceId === toId) {
-      return this.leftAndRightTimeStructure.leftDepartureTime;
-    }
-    return this.leftAndRightTimeStructure.rightDepartureTime;
-  }
-
-  getSectionTargetArrivalTime(): number {
-    const sourceId = this.trainrunSection.getSourceNodeId();
-    const toId = this.perlenketteSection.toNode.getId();
-    if (sourceId === toId) {
-      return this.leftAndRightTimeStructure.leftArrivalTime;
-    }
-    return this.leftAndRightTimeStructure.rightArrivalTime;
-  }
-
   getTravelTime() {
     if (
       TrainrunSectionsView.getNode(this.trainrunSection, true).isNonStop(this.trainrunSection) ||
@@ -638,10 +591,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     return (
       "" + this.roundTime(this.trainrunSectionTimesService.getTimeStructure().travelTime) + "'"
     );
-  }
-
-  getSectionTravelTime() {
-    return this.leftAndRightTimeStructure.travelTime;
   }
 
   /* Left Departure Time */
@@ -864,16 +813,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
       return this.getLockCloseSvgPath();
     }
     return this.getLockOpenSvgPath();
-  }
-
-  private updateLeftAndRightTimeStructure() {
-    this.leftAndRightTimeStructure = {
-      leftArrivalTime: this.getLeftArrivalTime(),
-      leftDepartureTime: this.getLeftDepartureTime(),
-      rightArrivalTime: this.getRightArrivalTime(),
-      rightDepartureTime: this.getRightDepartureTime(),
-      travelTime: this.trainrunSection.getTravelTime(),
-    };
   }
 
   private updateLockStructure() {
