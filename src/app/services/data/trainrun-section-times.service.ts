@@ -514,6 +514,21 @@ export class TrainrunSectionTimesService {
   }
 
   private updateTrainrunSectionTime() {
+    if (this.nodesOrdered.length > 0) {
+      const leftIsSource =
+        this.nodesOrdered[0].getId() === this.selectedTrainrunSection.getSourceNode().getId();
+      this.trainrunSectionService.updateTrainrunSectionTime(
+        this.selectedTrainrunSection.getId(),
+        leftIsSource ? this.timeStructure.leftArrivalTime : this.timeStructure.rightArrivalTime,
+        leftIsSource ? this.timeStructure.leftDepartureTime : this.timeStructure.rightDepartureTime,
+        leftIsSource ? this.timeStructure.rightArrivalTime : this.timeStructure.leftArrivalTime,
+        leftIsSource ? this.timeStructure.rightDepartureTime : this.timeStructure.leftDepartureTime,
+        this.timeStructure.travelTime,
+      );
+      this.trainrunSectionService.trainrunSectionsUpdated();
+      return;
+    }
+
     this.trainrunSectionService.setTimeStructureToTrainrunSections(
       this.trainrunSectionHelper.mapLeftAndRightTimes(
         this.selectedTrainrunSection,
