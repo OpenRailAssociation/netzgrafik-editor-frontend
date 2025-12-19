@@ -268,6 +268,16 @@ export class TrainrunsectionHelper {
     trainrunSection: TrainrunSection,
     orderedNodes: Node[],
   ): LeftAndRightTimeStructure {
+    if (orderedNodes.length > 0) {
+      return {
+        leftDepartureTime: orderedNodes[0].getDepartureTime(trainrunSection),
+        leftArrivalTime: orderedNodes[0].getArrivalTime(trainrunSection),
+        rightDepartureTime: orderedNodes[1].getDepartureTime(trainrunSection),
+        rightArrivalTime: orderedNodes[1].getArrivalTime(trainrunSection),
+        travelTime: trainrunSection.getTravelTime(),
+      };
+    }
+
     const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
     const bothLastNonStopTrainrunSections =
       this.trainrunService.getBothLastNonStopTrainrunSections(trainrunSection);
