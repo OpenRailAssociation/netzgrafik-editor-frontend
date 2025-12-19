@@ -346,6 +346,11 @@ export class TrainrunSectionViewObject {
       key += p.toString();
     });
 
+    // this.trainrunSections.forEach((section) => {
+    //   key += "_" + section.getSourceNode().getIsCollapsed();
+    // });
+    // key += "_" + this.lastSection.getTargetNode().getIsCollapsed();
+
     return key;
   }
 
