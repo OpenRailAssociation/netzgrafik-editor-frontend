@@ -621,11 +621,14 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
       TrainrunSectionsView.getNode(this.trainrunSection, true).isNonStop(this.trainrunSection) ||
       TrainrunSectionsView.getNode(this.trainrunSection, false).isNonStop(this.trainrunSection)
     ) {
+      const cumulativeTravelTime = this.trainrunService.getCumulativeTravelTime(
+        this.trainrunSection,
+      );
       return (
         "" +
-        this.roundTime(this.trainrunSectionTimesService.getTimeStructure().travelTime) +
+        this.roundTime(cumulativeTravelTime) +
         "' (" +
-        this.roundTime(this.trainrunSection.getTravelTime()) +
+        this.roundTime(this.trainrunSectionTimesService.getTimeStructure().travelTime) +
         "')"
       );
     }
