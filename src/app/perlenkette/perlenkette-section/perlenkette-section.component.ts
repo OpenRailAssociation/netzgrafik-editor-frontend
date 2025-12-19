@@ -659,8 +659,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   onNodeLeftDepartureTimeChanged() {
-    this.trainrunSectionTimesService.getTimeStructure().leftDepartureTime =
-      this.leftAndRightTimeStructure.leftDepartureTime;
     this.trainrunSectionTimesService.onNodeLeftDepartureTimeChanged();
   }
 
@@ -676,8 +674,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   onNodeLeftArrivalTimeChanged() {
-    this.trainrunSectionTimesService.getTimeStructure().leftArrivalTime =
-      this.leftAndRightTimeStructure.leftArrivalTime;
     this.trainrunSectionTimesService.onNodeLeftArrivalTimeChanged();
   }
 
@@ -693,8 +689,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   onNodeRightArrivalTimeChanged() {
-    this.trainrunSectionTimesService.getTimeStructure().rightArrivalTime =
-      this.leftAndRightTimeStructure.rightArrivalTime;
     this.trainrunSectionTimesService.onNodeRightArrivalTimeChanged();
   }
 
@@ -710,8 +704,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   onNodeRightDepartureTimeChanged() {
-    this.trainrunSectionTimesService.getTimeStructure().rightDepartureTime =
-      this.leftAndRightTimeStructure.rightDepartureTime;
     this.trainrunSectionTimesService.onNodeRightDepartureTimeChanged();
   }
 
@@ -727,8 +719,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   onInputTravelTimeChanged() {
-    this.trainrunSectionTimesService.getTimeStructure().travelTime =
-      this.leftAndRightTimeStructure.travelTime;
     this.trainrunSectionTimesService.onInputTravelTimeChanged();
   }
 
