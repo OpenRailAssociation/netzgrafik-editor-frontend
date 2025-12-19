@@ -674,47 +674,17 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   /* Lock */
   onButtonTravelTimeLock(event: MouseEvent) {
     this.stopPropagation(event);
-    this.lockStructure.travelTimeLock = !this.lockStructure.travelTimeLock;
-    this.updateTrainrunSectionTimeLock();
+    this.trainrunSectionTimesService.onButtonTravelTimeLock();
   }
 
   onButtonNodeLeftLock(event: MouseEvent) {
     this.stopPropagation(event);
-    this.lockStructure.leftLock = !this.lockStructure.leftLock;
-    this.updateTrainrunSectionTimeLock();
+    this.trainrunSectionTimesService.onButtonNodeLeftLock();
   }
 
   onButtonNodeRightLock(event: MouseEvent) {
     this.stopPropagation(event);
-    this.lockStructure.rightLock = !this.lockStructure.rightLock;
-    this.updateTrainrunSectionTimeLock();
-  }
-
-  getSourceLock(): boolean {
-    const sourceId = this.trainrunSection.getSourceNodeId();
-    const fromNode = this.perlenketteSection.fromNode.getId();
-    if (sourceId === fromNode) {
-      return this.lockStructure.leftLock;
-    }
-    return this.lockStructure.rightLock;
-  }
-
-  getTargetLock(): boolean {
-    const targetId = this.trainrunSection.getTargetNodeId();
-    const toId = this.perlenketteSection.toNode.getId();
-    if (targetId === toId) {
-      return this.lockStructure.rightLock;
-    }
-    return this.lockStructure.leftLock;
-  }
-
-  updateTrainrunSectionTimeLock() {
-    this.trainrunSectionService.updateTrainrunSectionTimeLock(
-      this.trainrunSection.getId(),
-      this.getSourceLock(),
-      this.getTargetLock(),
-      this.lockStructure.travelTimeLock,
-    );
+    this.trainrunSectionTimesService.onButtonNodeRightLock();
   }
 
   /* Buttons in Footer */
