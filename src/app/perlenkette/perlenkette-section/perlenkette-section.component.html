@@ -96,7 +96,7 @@
           (click)="switchSectionViewToggleLock($event, 'leftDepartureTime')"
         ></rect>
         <path
-          [attr.d]="getLockSvgPath(lockStructure.leftLock)"
+          [attr.d]="getLockSvgPath(trainrunSectionTimesService.getLockStructure().leftLock)"
           [ngClass]="[getPathClassTag(true)]"
           class="edge_line"
           style="stroke-width: 1px; cursor: pointer"
@@ -122,7 +122,7 @@
           (click)="switchSectionViewToggleLock($event, 'travelTime')"
         ></rect>
         <path
-          [attr.d]="getLockSvgPath(lockStructure.travelTimeLock)"
+          [attr.d]="getLockSvgPath(trainrunSectionTimesService.getLockStructure().travelTimeLock)"
           [ngClass]="[getPathClassTag(true)]"
           class="edge_line"
           style="stroke-width: 1px; cursor: pointer"
@@ -140,7 +140,7 @@
           (click)="switchSectionViewToggleLock($event, 'rightDepartureTime')"
         ></rect>
         <path
-          [attr.d]="getLockSvgPath(lockStructure.rightLock)"
+          [attr.d]="getLockSvgPath(trainrunSectionTimesService.getLockStructure().rightLock)"
           [ngClass]="[getPathClassTag(true)]"
           class="edge_line"
           style="stroke-width: 1px; cursor: pointer"
@@ -284,9 +284,17 @@
 
             <div
               [class]="getNodeLeftLockClassTag()"
-              *ngIf="lockStructure.leftLock === true || showArrivalAndDepartureTime()"
+              *ngIf="
+                trainrunSectionTimesService.getLockStructure().leftLock === true ||
+                showArrivalAndDepartureTime()
+              "
             >
-              <div *ngIf="lockStructure.leftLock === false && showArrivalAndDepartureTime()">
+              <div
+                *ngIf="
+                  trainrunSectionTimesService.getLockStructure().leftLock === false &&
+                  showArrivalAndDepartureTime()
+                "
+              >
                 <sbb-icon
                   svgIcon="lock-open-medium"
                   height="25px"
@@ -297,7 +305,7 @@
                 >
                 </sbb-icon>
               </div>
-              <div *ngIf="lockStructure.leftLock === true">
+              <div *ngIf="trainrunSectionTimesService.getLockStructure().leftLock === true">
                 <sbb-icon
                   svgIcon="lock-closed-medium"
                   height="25px"
@@ -351,9 +359,17 @@
 
             <div
               [class]="getTravelTimeLockClassTag()"
-              *ngIf="lockStructure.travelTimeLock === true || showTravelTime()"
+              *ngIf="
+                trainrunSectionTimesService.getLockStructure().travelTimeLock === true ||
+                showTravelTime()
+              "
             >
-              <div *ngIf="lockStructure.travelTimeLock === false && showTravelTime()">
+              <div
+                *ngIf="
+                  trainrunSectionTimesService.getLockStructure().travelTimeLock === false &&
+                  showTravelTime()
+                "
+              >
                 <sbb-icon
                   svgIcon="lock-open-medium"
                   height="25px"
@@ -364,7 +380,7 @@
                 >
                 </sbb-icon>
               </div>
-              <div *ngIf="lockStructure.travelTimeLock === true">
+              <div *ngIf="trainrunSectionTimesService.getLockStructure().travelTimeLock === true">
                 <sbb-icon
                   svgIcon="lock-closed-medium"
                   height="25px"
@@ -454,9 +470,17 @@
 
             <div
               [class]="getNodeRightLockClassTag()"
-              *ngIf="lockStructure.rightLock === true || showArrivalAndDepartureTime()"
+              *ngIf="
+                trainrunSectionTimesService.getLockStructure().rightLock === true ||
+                showArrivalAndDepartureTime()
+              "
             >
-              <div *ngIf="lockStructure.rightLock === false && showArrivalAndDepartureTime()">
+              <div
+                *ngIf="
+                  trainrunSectionTimesService.getLockStructure().rightLock === false &&
+                  showArrivalAndDepartureTime()
+                "
+              >
                 <sbb-icon
                   svgIcon="lock-open-medium"
                   height="25px"
@@ -467,7 +491,7 @@
                 >
                 </sbb-icon>
               </div>
-              <div *ngIf="lockStructure.rightLock === true">
+              <div *ngIf="trainrunSectionTimesService.getLockStructure().rightLock === true">
                 <sbb-icon
                   svgIcon="lock-closed-medium"
                   height="25px"
