@@ -35,12 +35,6 @@ import {StaticDomTags} from "../../view/editor-main-view/data-views/static.dom.t
 import {MathUtils} from "../../utils/math";
 import {VersionControlService} from "../../services/data/version-control.service";
 
-export interface LeftAndRightLockStructure {
-  leftLock: boolean;
-  rightLock: boolean;
-  travelTimeLock: boolean;
-}
-
 @Component({
   selector: "sbb-perlenkette-section",
   templateUrl: "./perlenkette-section.component.html",
@@ -76,12 +70,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   stationNumberArray: number[];
   public trainrunSection: TrainrunSection;
   private trainrunSectionHelper: TrainrunsectionHelper;
-
-  lockStructure: LeftAndRightLockStructure = {
-    leftLock: false,
-    rightLock: false,
-    travelTimeLock: false,
-  };
 
   public numberOfStops: number;
 
@@ -139,8 +127,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
       });
 
     this.nodesOrdered = [this.perlenketteSection.fromNode, this.perlenketteSection.toNode];
-
-    this.updateLockStructure();
 
     this.signalHeightChanged.next(192);
   }
@@ -786,23 +772,5 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
       return this.getLockCloseSvgPath();
     }
     return this.getLockOpenSvgPath();
-  }
-
-  private updateLockStructure() {
-    const sourceId = this.trainrunSection.getSourceNodeId();
-    const fromId = this.perlenketteSection.fromNode.getId();
-    if (sourceId === fromId) {
-      this.lockStructure.leftLock = this.trainrunSection.getSourceDepartureLock();
-    } else {
-      this.lockStructure.leftLock = this.trainrunSection.getTargetArrivalLock();
-    }
-    const targetId = this.trainrunSection.getTargetNodeId();
-    const toId = this.perlenketteSection.toNode.getId();
-    if (targetId === toId) {
-      this.lockStructure.rightLock = this.trainrunSection.getTargetArrivalLock();
-    } else {
-      this.lockStructure.rightLock = this.trainrunSection.getSourceDepartureLock();
-    }
-    this.lockStructure.travelTimeLock = this.trainrunSection.getTravelTimeLock();
   }
 }
