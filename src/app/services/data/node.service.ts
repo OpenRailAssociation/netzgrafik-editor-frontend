@@ -176,25 +176,7 @@ export class NodeService implements OnDestroy {
   }
 
   initPortOrdering() {
-    this.nodesStore.nodes.forEach((node) => {
-      node.getPorts().forEach((port) => {
-        const group = this.trainrunSectionService.getTrainrunSectionGroup(
-          port.getTrainrunSection(),
-        );
-        const oppositeExpandedNode = this.getOppositeExpandedNode(group[0], node);
-        const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
-          node,
-          oppositeExpandedNode,
-        );
-        port.setPositionAlignment(portAlignments.sourcePortPlacement);
-        if (node.getIsCollapsed()) return;
-        oppositeExpandedNode
-          .getPortOfTrainrunSection(group.at(-1)!.getId())
-          ?.setPositionAlignment(portAlignments.targetPortPlacement);
-      });
-
-      node.updateTransitionsAndConnections();
-    });
+    this.nodesStore.nodes.forEach((node) => this.updateNodePortsPositions(node));
   }
 
   validateConnections(node: Node) {
@@ -1178,26 +1160,10 @@ export class NodeService implements OnDestroy {
     const node = this.getNodeFromId(nodeId);
     node.setPosition(newPositionX, newPositionY);
     if (dragEnd) {
-      node.getPorts().forEach((port) => {
-        const group = this.trainrunSectionService.getTrainrunSectionGroup(
-          port.getTrainrunSection(),
-        );
-        const oppositeExpandedNode = this.getOppositeExpandedNode(group[0], node);
-        const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
-          node,
-          oppositeExpandedNode,
-        );
-        port.setPositionAlignment(portAlignments.sourcePortPlacement);
-        oppositeExpandedNode
-          .getPortOfTrainrunSection(group.at(-1)!.getId())
-          ?.setPositionAlignment(portAlignments.targetPortPlacement);
-        oppositeExpandedNode.updateTransitionsAndConnections();
-      });
-      node.reorderAllPorts();
+      this.updateNodePortsPositions(node);
       this.operation.emit(new NodeOperation(OperationType.update, node));
     }
-    node.updateTransitionsRouting();
-    node.updateConnectionsRouting();
+    node.updateTransitionsAndConnections();
   }
 
   private findClearedLabel(node: Node, labelIds: number[]) {
@@ -1217,5 +1183,48 @@ export class NodeService implements OnDestroy {
       });
     });
     return labelIDCauntMap;
+  }
+
+  updateNodePortsPositions(node: Node) {
+    node.getPorts().forEach((port) => {
+      const group = this.trainrunSectionService.getTrainrunSectionGroup(port.getTrainrunSection());
+      const oppositeExpandedNode = this.getOppositeExpandedNode(group[0], node);
+      const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
+        node,
+        oppositeExpandedNode,
+      );
+      port.setPositionAlignment(portAlignments.sourcePortPlacement);
+      oppositeExpandedNode
+        .getPortOfTrainrunSection(group.at(-1)!.getId())
+        ?.setPositionAlignment(portAlignments.targetPortPlacement);
+      oppositeExpandedNode.updateTransitionsAndConnections();
+    });
+    node.updateTransitionsAndConnections();
+  }
+
+  updateAllPortsOfNode(node: Node) {
+    node.getPorts().forEach((port) => {
+      const group = this.trainrunSectionService.getTrainrunSectionGroup(port.getTrainrunSection());
+      const sourceNode = group[0].getSourceNode();
+      const targetNode = group.at(-1)!.getTargetNode();
+      const isSourcePort = port.getTrainrunSection().getSourceNodeId() === node.getId();
+      const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
+        node,
+        isSourcePort ? targetNode : sourceNode,
+      );
+      port.setPositionAlignment(portAlignments.sourcePortPlacement);
+      if (isSourcePort) {
+        targetNode
+          .getPortOfTrainrunSection(group.at(-1)!.getId())
+          ?.setPositionAlignment(portAlignments.targetPortPlacement);
+        targetNode.updateTransitionsAndConnections();
+      } else {
+        sourceNode
+          .getPortOfTrainrunSection(group[0].getId())
+          ?.setPositionAlignment(portAlignments.targetPortPlacement);
+        sourceNode.updateTransitionsAndConnections();
+      }
+    });
+    node.updateTransitionsAndConnections();
   }
 }
