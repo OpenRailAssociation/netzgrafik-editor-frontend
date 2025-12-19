@@ -41,7 +41,6 @@ export interface TopAndBottomTimeStructure {
   rightDepartureTime: number;
   rightArrivalTime: number;
   travelTime: number;
-  nbrOfStops: number;
 }
 
 export interface LeftAndRightLockStructure {
@@ -93,6 +92,8 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     travelTimeLock: false,
   };
 
+  public numberOfStops: number;
+
   private nodesOrdered: Node[] = [];
 
   private destroyed$ = new Subject<void>();
@@ -111,6 +112,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   ngOnInit() {
+    this.numberOfStops = this.perlenketteSection.numberOfStops;
     this.stationNumberArray = Array(this.perlenketteSection.numberOfStops)
       .fill(1)
       .map((x, i) => i + 1);
@@ -803,7 +805,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   onInputNbrStopsChanged() {
-    const nos = Math.max(this.leftAndRightTimeStructure.nbrOfStops);
+    const nos = Math.max(this.numberOfStops);
     this.trainrunSectionService.updateTrainrunSectionNumberOfStops(this.trainrunSection, nos);
   }
 
@@ -881,7 +883,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
       rightArrivalTime: this.getRightArrivalTime(),
       rightDepartureTime: this.getRightDepartureTime(),
       travelTime: this.trainrunSection.getTravelTime(),
-      nbrOfStops: this.trainrunSection.getNumberOfStops(),
     };
   }
 
