@@ -266,7 +266,7 @@
                   sbbInput
                   spellcheck="false"
                   pattern="^[0-9]*"
-                  [(ngModel)]="leftAndRightTimeStructure.leftArrivalTime"
+                  [(ngModel)]="trainrunSectionTimesService.getTimeStructure().leftArrivalTime"
                   (change)="onNodeLeftArrivalTimeChanged()"
                 />
               </div>
@@ -333,7 +333,7 @@
                   sbbInput
                   spellcheck="false"
                   pattern="^[0-9]*"
-                  [(ngModel)]="leftAndRightTimeStructure.leftDepartureTime"
+                  [(ngModel)]="trainrunSectionTimesService.getTimeStructure().leftDepartureTime"
                   (change)="onNodeLeftDepartureTimeChanged()"
                 />
               </div>
@@ -397,7 +397,7 @@
                   sbbInput
                   spellcheck="false"
                   pattern="^[0-9]*"
-                  [(ngModel)]="leftAndRightTimeStructure.travelTime"
+                  [(ngModel)]="trainrunSectionTimesService.getTimeStructure().travelTime"
                   (change)="onInputTravelTimeChanged()"
                 />
               </div>
@@ -436,7 +436,7 @@
                   sbbInput
                   spellcheck="false"
                   pattern="^[0-9]*"
-                  [(ngModel)]="leftAndRightTimeStructure.rightDepartureTime"
+                  [(ngModel)]="trainrunSectionTimesService.getTimeStructure().rightDepartureTime"
                   (change)="onNodeRightDepartureTimeChanged()"
                 />
               </div>
@@ -503,7 +503,7 @@
                   sbbInput
                   spellcheck="false"
                   pattern="^[0-9]*"
-                  [(ngModel)]="leftAndRightTimeStructure.rightArrivalTime"
+                  [(ngModel)]="trainrunSectionTimesService.getTimeStructure().rightArrivalTime"
                   (change)="onNodeRightArrivalTimeChanged()"
                 />
               </div>
