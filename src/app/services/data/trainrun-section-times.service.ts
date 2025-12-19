@@ -366,6 +366,19 @@ export class TrainrunSectionTimesService {
   }
 
   updateTrainrunSectionTimeLock() {
+    if (this.nodesOrdered.length > 0) {
+      const leftIsSource =
+        this.nodesOrdered[0].getId() === this.selectedTrainrunSection.getSourceNode().getId();
+      this.trainrunSectionService.updateTrainrunSectionTimeLock(
+        this.selectedTrainrunSection.getId(),
+        leftIsSource ? this.lockStructure.leftLock : this.lockStructure.rightLock,
+        leftIsSource ? this.lockStructure.rightLock : this.lockStructure.leftLock,
+        this.lockStructure.travelTimeLock,
+        true,
+      );
+      return;
+    }
+
     const leftRight = this.trainrunSectionHelper.getLeftRightSections(this.selectedTrainrunSection);
 
     this.trainrunSectionService.updateTrainrunSectionTimeLock(
