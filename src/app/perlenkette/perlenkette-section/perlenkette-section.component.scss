@@ -201,3 +201,8 @@ button.FunctionButton.Rotation90.disabled {
   pointer-events: none;
   opacity: 0;
 }
+
+.lock-icon-background {
+  cursor: pointer;
+  fill: var(--sbb-color-background);
+}
