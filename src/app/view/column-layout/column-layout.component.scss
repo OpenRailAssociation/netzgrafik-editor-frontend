@@ -111,7 +111,6 @@ $close-size: $close-padding * 2 + $defaultIconSize;
   #cd-layout-aside {
     z-index: 1; // animate aside from behind main
     border-left: 1px solid $colorSeparationBorder;
-    background: var(--sbb-header-lean-background-color);
 
     &.hide {
       opacity: 0;
