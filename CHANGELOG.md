@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.10.3](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.2...netzgrafik-frontend-v2.10.3) (2025-12-21)
+
+
+### Bug Fixes
+
+* Lock symbol (svg) background rendering issue pearls view ([#704](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/704)) ([8c766e1](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/8c766e1e098e8b1a4a5e8fa53a5c98749b643419))
+* use getDto() in NGE events instead of models ([5b59eee](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/5b59eeeaeebe26ec42e230af69326350f4491d22))
+
 ## [2.10.2](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.1...netzgrafik-frontend-v2.10.2) (2025-12-11)
 
 
