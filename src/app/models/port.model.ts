@@ -10,7 +10,7 @@ export class Port {
   private positionIndex: number;
   private positionAlignment: number;
 
-  private trainrunSection: TrainrunSection = null;
+  private trainrunSection: TrainrunSection | null = null;
 
   constructor(
     {id, trainrunSectionId, positionIndex, positionAlignment}: PortDto = {
@@ -64,6 +64,9 @@ export class Port {
   }
 
   getTrainrunSection(): TrainrunSection {
+    if (this.trainrunSection === null) {
+      throw new Error(`Error while trying to access uninitialized TrainrunSection on Port with id ${this.id}`);
+    }
     return this.trainrunSection;
   }
 
