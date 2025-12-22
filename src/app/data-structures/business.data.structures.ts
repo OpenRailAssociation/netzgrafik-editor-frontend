@@ -178,11 +178,11 @@ export interface NodeDto {
   transitions: TransitionDto[]; // all tranisitons aligned to the node
   connections: ConnectionDto[]; // all connections aligned to the node
 
-  resourceId: number; // reference to the algined (resource - not yet implemented)
+  resourceId: number | null; // reference to the algined (resource - not yet implemented)
   perronkanten: number; // number of tracks where train can stop
   connectionTime: number; // aka Umsteigezeit - time used to change train in minutes
   trainrunCategoryHaltezeiten: TrainrunCategoryHaltezeit; // user can over-write the halte times
-  symmetryAxis: number; // deprecate ???
+  symmetryAxis: number | null; // deprecate ???
   warnings: WarningDto[] | null; // business logic failures - warnings storage
 
   labelIds: number[]; // list of assigned filterable labels (identifiers: See Label, LabelDto.)
