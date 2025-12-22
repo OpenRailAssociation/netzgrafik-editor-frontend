@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.10.4](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.3...netzgrafik-frontend-v2.10.4) (2025-12-22)
+
+
+### Bug Fixes
+
+* check strict null from temporary config file instead of package.json ([3fce925](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/3fce9251536a9723b99633ac149ce03fa2536479))
+* handle potential null values in app/view/themes directory ([1dfb0ac](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/1dfb0ac6987e60c05394a5008e2fdcd73e7cd596))
+
 ## [2.10.3](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.2...netzgrafik-frontend-v2.10.3) (2025-12-21)
 
 
