@@ -2,9 +2,9 @@ import {ThemeRegistration} from "./theme-registration";
 import {StaticDomTags} from "../editor-main-view/data-views/static.dom.tags";
 
 export class ThemeBase {
-  themeRegistration: ThemeRegistration = null;
-  backgroundColor: string = null;
-  backgroundStreckengraphikColor: string = null;
+  themeRegistration: ThemeRegistration;
+  backgroundColor: string;
+  backgroundStreckengraphikColor: string;
   isDark = false;
 
   constructor(
