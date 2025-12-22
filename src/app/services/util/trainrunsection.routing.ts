@@ -91,7 +91,7 @@ export class SimpleTrainrunSectionRouter {
     return new Vec2D(x, y);
   }
 
-  static getSimpleTrainrunSectionFirstPoint(portPosition: Vec2D, port: Port): Vec2D | undefined {
+  static getSimpleTrainrunSectionFirstPoint(portPosition: Vec2D, port: Port): Vec2D {
     if (port.getPositionAlignment() === PortAlignment.Top) {
       return Vec2D.add(
         portPosition,
@@ -113,14 +113,14 @@ export class SimpleTrainrunSectionRouter {
         Vec2D.scale(Vec2D.getEastVec2D(), TRAINRUN_SECTION_LINE_AREA_SPAN),
       );
     }
-    return undefined;
+    throw new Error("Invalid port alignment for simple trainrun section first point calculation");
   }
 
   static getSimpleTransitionFirstPoint(
     portPosition: Vec2D,
     port: Port,
     scaleFactor: number,
-  ): Vec2D | undefined {
+  ): Vec2D {
     if (port.getPositionAlignment() === PortAlignment.Top) {
       return Vec2D.add(portPosition, Vec2D.scale(Vec2D.getSouthVec2D(), scaleFactor));
     } else if (port.getPositionAlignment() === PortAlignment.Bottom) {
@@ -130,14 +130,14 @@ export class SimpleTrainrunSectionRouter {
     } else if (port.getPositionAlignment() === PortAlignment.Right) {
       return Vec2D.add(portPosition, Vec2D.scale(Vec2D.getWestVec2D(), scaleFactor));
     }
-    return undefined;
+    throw new Error("Invalid port alignment for simple transition first point calculation");
   }
 
   static getBezierCurveControlPoint(
     portPosition: Vec2D,
     port: Port,
     oppositePortPosition: Vec2D,
-  ): Vec2D | undefined {
+  ): Vec2D {
     if (port.getPositionAlignment() === PortAlignment.Top) {
       const diff = SimpleTrainrunSectionRouter.getAbsoluteYDifference(
         portPosition,
@@ -175,7 +175,7 @@ export class SimpleTrainrunSectionRouter {
         Vec2D.scale(Vec2D.getWestVec2D(), diff * BEZIER_CONTROL_POINT_FACTOR),
       );
     }
-    return undefined;
+    throw new Error("Invalid port alignment for bezier control point calculation");
   }
 
   static getAbsoluteYDifference(position1: Vec2D, position2: Vec2D) {
