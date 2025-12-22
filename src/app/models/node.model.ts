@@ -505,13 +505,11 @@ export class Node {
   sortPorts() {
     const originalPorts = this.ports;
     const lockedIndexes: Set<number> = new Set();
-    const portsToKeepLocked: Port[] = [];
     const portsToReorder: Port[] = [];
 
     originalPorts.forEach((port, index) => {
       if (port.getLocked()) {
         lockedIndexes.add(index);
-        portsToKeepLocked.push(port);
       } else {
         portsToReorder.push(port);
       }
@@ -524,15 +522,13 @@ export class Node {
 
     // Insert locked ports back in their original places
     const newPorts: Port[] = [];
-    let lockedIndex = 0;
-    let reordredIndex = 0;
+    let reorderedIndex = 0;
     for (let index = 0; index < originalPorts.length; index++) {
       if (lockedIndexes.has(index)) {
-        newPorts.push(portsToKeepLocked[lockedIndex]);
-        lockedIndex += 1;
+        newPorts.push(originalPorts[index]);
       } else {
-        newPorts.push(portsToReorder[reordredIndex]);
-        reordredIndex += 1;
+        newPorts.push(portsToReorder[reorderedIndex]);
+        reorderedIndex += 1;
       }
     }
     this.ports = newPorts;

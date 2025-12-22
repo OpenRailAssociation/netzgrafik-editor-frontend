@@ -7,34 +7,10 @@
       "positionX": -3072,
       "positionY": 544,
       "ports": [
-        {
-          "id": 1207,
-          "trainrunSectionId": 596,
-          "positionIndex": 0,
-          "positionAlignment": 2,
-          "locked": true
-        },
-        {
-          "id": 1187,
-          "trainrunSectionId": 586,
-          "positionIndex": 1,
-          "positionAlignment": 2,
-          "locked": true
-        },
-        {
-          "id": 1382,
-          "trainrunSectionId": 683,
-          "positionIndex": 0,
-          "positionAlignment": 3,
-          "locked": true
-        },
-        {
-          "id": 1380,
-          "trainrunSectionId": 682,
-          "positionIndex": 1,
-          "positionAlignment": 3,
-          "locked": true
-        }
+        {"id": 1207, "trainrunSectionId": 596, "positionIndex": 0, "positionAlignment": 2},
+        {"id": 1187, "trainrunSectionId": 586, "positionIndex": 1, "positionAlignment": 2},
+        {"id": 1382, "trainrunSectionId": 683, "positionIndex": 0, "positionAlignment": 3},
+        {"id": 1380, "trainrunSectionId": 682, "positionIndex": 1, "positionAlignment": 3}
       ],
       "transitions": [
         {"id": 345, "port1Id": 1187, "port2Id": 1380, "isNonStopTransit": false},
