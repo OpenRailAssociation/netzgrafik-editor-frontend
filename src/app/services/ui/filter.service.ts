@@ -844,16 +844,16 @@ export class FilterService implements OnDestroy {
 
   private initializeFilterSetting(filterSetting: FilterSetting) {
     if (filterSetting !== undefined) {
-      if (filterSetting.filterTrainrunCategory === null) {
+      if (filterSetting.filterTrainrunCategory.length === 0) {
         filterSetting.filterTrainrunCategory = this.dataService.getTrainrunCategories();
       }
-      if (filterSetting.filterTrainrunFrequency === null) {
+      if (filterSetting.filterTrainrunFrequency.length === 0) {
         filterSetting.filterTrainrunFrequency = this.dataService.getTrainrunFrequencies();
       }
-      if (filterSetting.filterTrainrunTimeCategory === null) {
+      if (filterSetting.filterTrainrunTimeCategory.length === 0) {
         filterSetting.filterTrainrunTimeCategory = this.dataService.getTrainrunTimeCategories();
       }
-      if (filterSetting.filterDirection === null) {
+      if (filterSetting.filterDirection.length === 0) {
         filterSetting.filterDirection = this.dataService.getDirections();
       }
     }
