@@ -1,3 +1,4 @@
+import {DomSanitizer} from "@angular/platform-browser";
 import * as d3 from "d3";
 import {NodesView} from "./nodes.view";
 import {TrainrunSectionsView} from "./trainrunsections.view";
@@ -132,6 +133,7 @@ export class EditorView implements SVGMouseControllerObserver {
     private levelOfDetailService: LevelOfDetailService,
     private versionControlService: VersionControlService,
     private positionTransformationService: PositionTransformationService,
+    private sanitizer: DomSanitizer,
   ) {
     this.controller = controller;
     this.svgMouseController = new SVGMouseController(EditorView.svgName, this, undoService);
@@ -145,7 +147,7 @@ export class EditorView implements SVGMouseControllerObserver {
       versionControlService,
     );
     this.multiSelectRenderer = new MultiSelectRenderer();
-    this.notesView = new NotesView(this);
+    this.notesView = new NotesView(this, sanitizer);
     this.editorKeyEvents = new EditorKeyEvents(
       nodeService,
       trainrunService,
