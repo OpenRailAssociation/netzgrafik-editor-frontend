@@ -93,8 +93,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     travelTimeLock: false,
   };
 
-  private nodesOrdered: Node[] = [];
-
   private destroyed$ = new Subject<void>();
 
   constructor(
@@ -151,8 +149,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
         this.trainrunSectionTimesService.getNodesOrdered(),
       ),
     );
-
-    this.nodesOrdered = [this.perlenketteSection.fromNode, this.perlenketteSection.toNode];
 
     this.updateLockStructure();
 
