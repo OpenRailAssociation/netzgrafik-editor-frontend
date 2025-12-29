@@ -104,15 +104,15 @@ describe("NetzgrafikDefault", () => {
         // the existing trainrunSection A -> B to now be A -> NEW
         // and a new trainrunSection NEW -> B
         const newNode = outputJson.nodes[2];
-        expect(newNode.betriebspunktName).toBe("NEW");
+        expect(newNode.betriebspunktName).toBe("");
         expect(newNode.positionX).toBe(1488);
         expect(newNode.positionY).toBe(512);
         expect(outputJson.trainrunSections[0].sourceNodeId).toBe(11);
         expect(outputJson.trainrunSections[0].targetNodeId).toBe(newNode.id);
         expect(outputJson.trainrunSections[1].sourceNodeId).toBe(newNode.id);
         expect(outputJson.trainrunSections[1].targetNodeId).toBe(12);
-        expect(outputJson.trainrunSections[0].numberOfStops).toBe(0);
-        expect(outputJson.trainrunSections[1].numberOfStops).toBe(0);
+        expect(outputJson.trainrunSections[0].numberOfStops).toBe(1);
+        expect(outputJson.trainrunSections[1].numberOfStops).toBe(1);
       });
       it("should replace the numberOfStops: 3 with an equivalent graph portion", () => {
         const inputDto = NetzgrafikTestData.getLegacyNtezgrafik2Nodes();
@@ -125,15 +125,15 @@ describe("NetzgrafikDefault", () => {
         // A ------ C ------ D ------ E ------ B
         const outputJson = dataService.getNetzgrafikDto();
         const newNode1 = outputJson.nodes[2];
-        expect(newNode1.betriebspunktName).toBe("NEW");
+        expect(newNode1.betriebspunktName).toBe("");
         expect(newNode1.positionX).toBe(1488);
         expect(newNode1.positionY).toBe(512);
         const newNode2 = outputJson.nodes[3];
-        expect(newNode2.betriebspunktName).toBe("NEW");
+        expect(newNode2.betriebspunktName).toBe("");
         expect(newNode2.positionX).toBe(1576);
         expect(newNode2.positionY).toBe(512);
         const newNode3 = outputJson.nodes[4];
-        expect(newNode3.betriebspunktName).toBe("NEW");
+        expect(newNode3.betriebspunktName).toBe("");
         expect(newNode3.positionX).toBe(1620);
         expect(newNode3.positionY).toBe(512);
         expect(outputJson.trainrunSections[0].sourceNodeId).toBe(11);
@@ -144,10 +144,10 @@ describe("NetzgrafikDefault", () => {
         expect(outputJson.trainrunSections[2].targetNodeId).toBe(newNode3.id);
         expect(outputJson.trainrunSections[3].sourceNodeId).toBe(newNode3.id);
         expect(outputJson.trainrunSections[3].targetNodeId).toBe(12);
-        expect(outputJson.trainrunSections[0].numberOfStops).toBe(0);
-        expect(outputJson.trainrunSections[1].numberOfStops).toBe(0);
-        expect(outputJson.trainrunSections[2].numberOfStops).toBe(0);
-        expect(outputJson.trainrunSections[3].numberOfStops).toBe(0);
+        expect(outputJson.trainrunSections[0].numberOfStops).toBe(3);
+        expect(outputJson.trainrunSections[1].numberOfStops).toBe(3);
+        expect(outputJson.trainrunSections[2].numberOfStops).toBe(3);
+        expect(outputJson.trainrunSections[3].numberOfStops).toBe(3);
       });
     });
     describe("3 nodes", () => {
@@ -161,11 +161,11 @@ describe("NetzgrafikDefault", () => {
         const outputJson = dataService.getNetzgrafikDto();
 
         const newNode1 = outputJson.nodes[3];
-        expect(newNode1.betriebspunktName).toBe("NEW");
+        expect(newNode1.betriebspunktName).toBe("");
         expect(newNode1.positionX).toBe(1488);
         expect(newNode1.positionY).toBe(512);
         const newNode2 = outputJson.nodes[4];
-        expect(newNode2.betriebspunktName).toBe("NEW");
+        expect(newNode2.betriebspunktName).toBe("");
         expect(newNode2.positionX).toBe(1808);
         expect(newNode2.positionY).toBe(544);
         expect(outputJson.trainrunSections[0].sourceNodeId).toBe(11);
