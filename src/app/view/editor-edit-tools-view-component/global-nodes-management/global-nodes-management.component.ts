@@ -43,9 +43,7 @@ export class GlobalNodesManagementComponent {
 
     if (!normalizedQuery) this.matchingNodes = this.allNodes;
     else if (normalizedQuery === "?") {
-      this.matchingNodes = this.allNodes.filter(
-        (node) => node.getFullName() === "" && node.getBetriebspunktName() === "",
-      );
+      this.matchingNodes = this.allNodes.filter((node) => node.isEmpty());
     } else {
       this.matchingNodes = this.allNodes.filter(
         (node) =>
