@@ -976,19 +976,16 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
 
   onInputNbrStopsElementButtonMinus(event: MouseEvent) {
     event.stopPropagation();
-    const nos = Math.max(0, this.trainrunSection.getNumberOfStops() - 1);
-    this.trainrunSectionService.updateTrainrunSectionNumberOfStops(this.trainrunSection);
+    // To reimplement later
   }
 
   onInputNbrStopsChanged() {
-    const nos = Math.max(this.leftAndRightTimeStructure.nbrOfStops);
-    this.trainrunSectionService.updateTrainrunSectionNumberOfStops(this.trainrunSection);
+    // To reimplement later
   }
 
   onInputNbrStopsElementButtonPlus(event: MouseEvent) {
     event.stopPropagation();
-    const nos = Math.max(0, this.trainrunSection.getNumberOfStops() + 1);
-    this.trainrunSectionService.updateTrainrunSectionNumberOfStops(this.trainrunSection);
+    // To reimplement later
   }
 
   onEdgeLineClick() {

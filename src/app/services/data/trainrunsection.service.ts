@@ -283,12 +283,6 @@ export class TrainrunSectionService implements OnDestroy {
     });
   }
 
-  updateTrainrunSectionNumberOfStops(trs: TrainrunSection) {
-    const trainrunSection = this.getTrainrunSectionFromId(trs.getId());
-    this.trainrunSectionsUpdated();
-    this.operation.emit(new TrainrunOperation(OperationType.update, trainrunSection.getTrainrun()));
-  }
-
   updateTrainrunSectionTime(
     trsId: number,
     sourceArrivalTime: number,
@@ -1014,12 +1008,8 @@ export class TrainrunSectionService implements OnDestroy {
     const calculatedTravelTime = Math.min(travelTime1, travelTime2);
     const halteZeit =
       stopDuration ?? Math.min(minHalteZeitFromNode, Math.max(0, calculatedTravelTime - 2));
-    let travelTimeIssue = travelTime1 === travelTime2 || minHalteZeitFromNode !== halteZeit;
+    const travelTimeIssue = travelTime1 === travelTime2 || minHalteZeitFromNode !== halteZeit;
     const travelTime = Math.max(trainrunSection1.getTravelTime() - halteZeit, 0);
-    if (travelTime === 0) {
-      console.error("Warning: Travel time is 0");
-      travelTimeIssue = true;
-    }
     const halfTravelTime = travelTime / 2;
     trainrunSection1.setTravelTime(travelTime - halfTravelTime);
     trainrunSection2.setTravelTime(halfTravelTime);

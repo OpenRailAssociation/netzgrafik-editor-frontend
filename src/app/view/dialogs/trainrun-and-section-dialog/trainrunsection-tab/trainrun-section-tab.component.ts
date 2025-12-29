@@ -306,7 +306,6 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
       }
     }
     this.numberOfStopsInput = this.numberOfStops;
-    this.trainrunSectionService.updateTrainrunSectionNumberOfStops(this.selectedTrainrunSection);
   }
 
   onNumberOfStopsInputChanged() {
