@@ -12,6 +12,8 @@ import {TrainrunSection} from "../../models/trainrunsection.model";
 import {Node} from "../../models/node.model";
 import {LoadPerlenketteService} from "../../perlenkette/service/load-perlenkette.service";
 
+type Warning = "" | "too-many-locks";
+
 @Injectable({
   providedIn: "root",
 })
@@ -36,7 +38,7 @@ export class TrainrunSectionTimesService {
     rightLock: false,
     travelTimeLock: false,
   };
-  private warning = "";
+  private warning: Warning = "";
   private onLockButtonClicked = false;
 
   private offset: number;
@@ -72,14 +74,19 @@ export class TrainrunSectionTimesService {
     return this.offsetTransformationActive;
   }
 
-  public getWarning(): string {
+  public getWarning(): Warning {
     return this.warning;
   }
 
-  public setOutsideWarning(warning: string) {
-    if (warning !== "" || this.warning !== "too-many-locks") {
-      this.warning = warning;
-    }
+  public setOutsideWarning(newWarning: "") {
+    // if new warning is not an empty string, update warning and override a potential too-many-locks warning
+    if (newWarning !== "") this.warning = newWarning;
+    // else reset warning without overrinding too-many-locks warning
+    else if (this.warning !== "too-many-locks") this.warning = newWarning;
+  }
+
+  resetTooManyLocksWarning() {
+    if (this.warning === "too-many-locks") this.warning = "";
   }
 
   public getNodesOrdered(): Node[] {
@@ -140,7 +147,7 @@ export class TrainrunSectionTimesService {
   }
 
   onNodeLeftDepartureTimeChanged() {
-    if (this.warning === "too-many-locks") this.warning = "";
+    this.resetTooManyLocksWarning();
     this.roundAllTimes();
     this.removeOffsetAndBackTransformTimeStructure();
 
@@ -191,7 +198,7 @@ export class TrainrunSectionTimesService {
   }
 
   onNodeLeftArrivalTimeChanged() {
-    if (this.warning === "too-many-locks") this.warning = "";
+    this.resetTooManyLocksWarning();
     this.roundAllTimes();
     this.removeOffsetAndBackTransformTimeStructure();
 
@@ -237,7 +244,7 @@ export class TrainrunSectionTimesService {
   }
 
   onNodeRightArrivalTimeChanged() {
-    if (this.warning === "too-many-locks") this.warning = "";
+    this.resetTooManyLocksWarning();
     this.roundAllTimes();
     this.removeOffsetAndBackTransformTimeStructure();
     this.timeStructure.rightDepartureTime = TrainrunsectionHelper.getSymmetricTime(
@@ -288,7 +295,7 @@ export class TrainrunSectionTimesService {
   }
 
   onNodeRightDepartureTimeChanged() {
-    if (this.warning === "too-many-locks") this.warning = "";
+    this.resetTooManyLocksWarning();
     this.roundAllTimes();
     this.removeOffsetAndBackTransformTimeStructure();
 
@@ -336,7 +343,7 @@ export class TrainrunSectionTimesService {
   }
 
   updateTravelTimeChanged() {
-    if (this.warning === "too-many-locks") this.warning = "";
+    this.resetTooManyLocksWarning();
     this.roundAllTimes();
 
     if (!this.lockStructure.rightLock) {
