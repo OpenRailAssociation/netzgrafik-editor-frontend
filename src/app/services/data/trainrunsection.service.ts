@@ -388,7 +388,6 @@ export class TrainrunSectionService implements OnDestroy {
   propagteTimeSourceToTarget(
     previousPair: TrainrunSectionNodePair,
     pair: TrainrunSectionNodePair,
-    arrivalDepartureTimes: DepartureAndArrivalTimes,
     isNonStop: boolean,
   ) {
     // -------------------------------------------------------------------------------------------
@@ -463,7 +462,6 @@ export class TrainrunSectionService implements OnDestroy {
   propagteTimeTargetToSource(
     previousPair: TrainrunSectionNodePair,
     pair: TrainrunSectionNodePair,
-    arrivalDepartureTimes: DepartureAndArrivalTimes,
     isNonStop: boolean,
   ) {
     // -------------------------------------------------------------------------------------------
@@ -547,20 +545,11 @@ export class TrainrunSectionService implements OnDestroy {
       const pair = iterator.next();
 
       const isNonStop = previousPair.node.isNonStop(pair.trainrunSection);
-      const halteZeit = previousPair.node.getTrainrunCategoryHaltezeit();
-      const previousNodeArrival = previousPair.node.getArrivalTime(previousPair.trainrunSection);
-      const arrivalDepartureTimes = TrainrunSectionService.computeArrivalAndDeparture(
-        previousNodeArrival,
-        pair.trainrunSection,
-        isNonStop,
-        halteZeit,
-        TrainrunSectionService.TIME_PRECISION,
-      );
 
       if (pair.trainrunSection.getSourceNodeId() === previousPair.node.getId()) {
-        this.propagteTimeSourceToTarget(previousPair, pair, arrivalDepartureTimes, isNonStop);
+        this.propagteTimeSourceToTarget(previousPair, pair, isNonStop);
       } else {
-        this.propagteTimeTargetToSource(previousPair, pair, arrivalDepartureTimes, isNonStop);
+        this.propagteTimeTargetToSource(previousPair, pair, isNonStop);
       }
       TrainrunSectionValidator.validateOneSection(pair.trainrunSection);
 
