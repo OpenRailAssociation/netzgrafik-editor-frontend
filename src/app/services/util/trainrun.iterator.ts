@@ -4,8 +4,8 @@ import {LogService} from "../../logger/log.service";
 
 export class TrainrunSectionNodePair {
   constructor(
-    public node: Node,
-    public trainrunSection: TrainrunSection,
+    readonly node: Node,
+    readonly trainrunSection: TrainrunSection,
   ) {}
 }
 
