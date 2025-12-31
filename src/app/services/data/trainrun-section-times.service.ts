@@ -38,7 +38,7 @@ export class TrainrunSectionTimesService {
   private showWarningTwoLocks = false;
   private onLockButtonClicked = false;
 
-  private offset: number;
+  private offset = 0;
   private offsetTransformationActive = false;
 
   private highlightTravelTimeElement: boolean;
@@ -366,6 +366,19 @@ export class TrainrunSectionTimesService {
   }
 
   updateTrainrunSectionTimeLock() {
+    if (this.nodesOrdered.length > 0) {
+      const leftIsSource =
+        this.nodesOrdered[0].getId() === this.selectedTrainrunSection.getSourceNode().getId();
+      this.trainrunSectionService.updateTrainrunSectionTimeLock(
+        this.selectedTrainrunSection.getId(),
+        leftIsSource ? this.lockStructure.leftLock : this.lockStructure.rightLock,
+        leftIsSource ? this.lockStructure.rightLock : this.lockStructure.leftLock,
+        this.lockStructure.travelTimeLock,
+        true,
+      );
+      return;
+    }
+
     const leftRight = this.trainrunSectionHelper.getLeftRightSections(this.selectedTrainrunSection);
 
     this.trainrunSectionService.updateTrainrunSectionTimeLock(
@@ -514,6 +527,21 @@ export class TrainrunSectionTimesService {
   }
 
   private updateTrainrunSectionTime() {
+    if (this.nodesOrdered.length > 0) {
+      const leftIsSource =
+        this.nodesOrdered[0].getId() === this.selectedTrainrunSection.getSourceNode().getId();
+      this.trainrunSectionService.updateTrainrunSectionTime(
+        this.selectedTrainrunSection.getId(),
+        leftIsSource ? this.timeStructure.leftArrivalTime : this.timeStructure.rightArrivalTime,
+        leftIsSource ? this.timeStructure.leftDepartureTime : this.timeStructure.rightDepartureTime,
+        leftIsSource ? this.timeStructure.rightArrivalTime : this.timeStructure.leftArrivalTime,
+        leftIsSource ? this.timeStructure.rightDepartureTime : this.timeStructure.leftDepartureTime,
+        this.timeStructure.travelTime,
+      );
+      this.trainrunSectionService.trainrunSectionsUpdated();
+      return;
+    }
+
     this.trainrunSectionService.setTimeStructureToTrainrunSections(
       this.trainrunSectionHelper.mapLeftAndRightTimes(
         this.selectedTrainrunSection,
