@@ -2,6 +2,12 @@ import {Node} from "../../models/node.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {LogService} from "../../logger/log.service";
 
+/**
+ * A pair of trainrun section and node, obtained while iterating on a trainrun.
+ *
+ * The node will be traversed at the next iteration (ie, the node is not the
+ * one which got traversed at the previous iteration).
+ */
 export class TrainrunSectionNodePair {
   constructor(
     readonly node: Node,
