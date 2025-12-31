@@ -19,7 +19,7 @@ import {LogService} from "../../logger/log.service";
 import {Transition} from "../../models/transition.model";
 import {takeUntil} from "rxjs/operators";
 import {FilterService} from "../ui/filter.service";
-import {TrainrunSectionNodePair} from "../util/trainrun.iterator";
+import {DirectedTrainrunSectionProxy} from "../util/trainrun.iterator";
 import {Operation, OperationType, TrainrunOperation} from "../../models/operation.model";
 
 interface DepartureAndArrivalTimes {
@@ -385,152 +385,64 @@ export class TrainrunSectionService implements OnDestroy {
     this.trainrunSectionsUpdated();
   }
 
-  propagteTimeSourceToTarget(
-    previousPair: TrainrunSectionNodePair,
-    pair: TrainrunSectionNodePair,
+  propagateTrainrunSectionTime(
+    previousSection: DirectedTrainrunSectionProxy,
+    section: DirectedTrainrunSectionProxy,
     isNonStop: boolean,
   ) {
-    // -------------------------------------------------------------------------------------------
-    // Source to Target (pair)
-    // -------------------------------------------------------------------------------------------
-    // retrieve haltezeit at node
-    const arrivalTimeAtSource =
-      previousPair.node.getId() === previousPair.trainrunSection.getTargetNodeId()
-        ? previousPair.trainrunSection.getTargetArrival()
-        : previousPair.trainrunSection.getSourceArrival();
+    const arrivalTimeAtTail = previousSection.getHeadArrival();
 
-    let halteZeit =
-      previousPair.node.getTrainrunCategoryHaltezeit()[
-        pair.trainrunSection.getTrainrun().getTrainrunCategory().fachCategory
-      ].haltezeit;
+    let halteZeit = previousSection.getHeadNode().getTrainrunCategoryHaltezeit()[
+      section.trainrunSection.getTrainrun().getTrainrunCategory().fachCategory
+    ].haltezeit;
     halteZeit = isNonStop ? 0 : halteZeit;
 
-    // try to update the pair (based on previousPair)
-    if (pair.trainrunSection.getSourceDepartureLock()) {
-      // the source element is locked - no changes allowed!
+    // Try to update the section (based on previous section)
+    if (section.getTailDepartureLock()) {
+      // The tail element is locked - no changes allowed!
       return;
     }
 
-    // ----------------------------------------------------------------------------------
-    // update source arrival time
-    // ----------------------------------------------------------------------------------
-    const depTimeAtSource = MathUtils.round(
-      (arrivalTimeAtSource + halteZeit) % 60,
+    // Update tail arrival time
+    const depTimeAtTail = MathUtils.round(
+      (arrivalTimeAtTail + halteZeit) % 60,
       TrainrunSectionService.TIME_PRECISION,
     );
-    const arrTimeAtSource = MathUtils.round(
-      TrainrunsectionHelper.getSymmetricTime(depTimeAtSource),
+    const arrTimeAtTail = MathUtils.round(
+      TrainrunsectionHelper.getSymmetricTime(depTimeAtTail),
       TrainrunSectionService.TIME_PRECISION,
     );
-    pair.trainrunSection.setSourceDeparture(depTimeAtSource);
-    pair.trainrunSection.setSourceArrival(arrTimeAtSource);
+    section.setTailDeparture(depTimeAtTail);
+    section.setTailArrival(arrTimeAtTail);
 
-    // ----------------------------------------------------------------------------------
-    // Use travel time to update the target times - if allowed
-    // ----------------------------------------------------------------------------------
-    if (!pair.trainrunSection.getTargetArrivalLock()) {
+    // Use travel time to update the head times - if allowed
+    if (!section.getHeadArrivalLock()) {
       // Target is not locked -> update the Target Arrival Time
-      const arrTimeAtTarget = MathUtils.round(
-        (depTimeAtSource + pair.trainrunSection.getTravelTime()) % 60,
+      const arrTimeAtHead = MathUtils.round(
+        (depTimeAtTail + section.getTravelTime()) % 60,
         TrainrunSectionService.TIME_PRECISION,
       );
-      const depTimeAtTarget = MathUtils.round(
-        TrainrunsectionHelper.getSymmetricTime(arrTimeAtTarget),
+      const depTimeAtHead = MathUtils.round(
+        TrainrunsectionHelper.getSymmetricTime(arrTimeAtHead),
         TrainrunSectionService.TIME_PRECISION,
       );
-      pair.trainrunSection.setTargetArrival(arrTimeAtTarget);
-      pair.trainrunSection.setTargetDeparture(depTimeAtTarget);
+      section.setHeadArrival(arrTimeAtHead);
+      section.setHeadDeparture(depTimeAtHead);
 
       return;
     }
 
-    // ----------------------------------------------------------------------------------
-    // update travel time if possible
-    // ----------------------------------------------------------------------------------
-    if (pair.trainrunSection.getTravelTimeLock()) {
+    // Update travel time if possible
+    if (section.getTravelTimeLock()) {
       return;
     }
 
-    let newTravelTime = pair.trainrunSection.getTargetArrival() - depTimeAtSource;
-    newTravelTime += Math.floor(pair.trainrunSection.getTravelTime() / 60) * 60;
+    let newTravelTime = section.getHeadArrival() - depTimeAtTail;
+    newTravelTime += Math.floor(section.getTravelTime() / 60) * 60;
     while (newTravelTime < 0.0) {
       newTravelTime += 60;
     }
-    pair.trainrunSection.setTravelTime(newTravelTime);
-  }
-
-  propagteTimeTargetToSource(
-    previousPair: TrainrunSectionNodePair,
-    pair: TrainrunSectionNodePair,
-    isNonStop: boolean,
-  ) {
-    // -------------------------------------------------------------------------------------------
-    // Target to Source (pair)
-    // -------------------------------------------------------------------------------------------
-    // retrieve haltezeit at node
-    const arrivalTimeAtTarget =
-      previousPair.node.getId() === previousPair.trainrunSection.getTargetNodeId()
-        ? previousPair.trainrunSection.getTargetArrival()
-        : previousPair.trainrunSection.getSourceArrival();
-
-    let halteZeit =
-      previousPair.node.getTrainrunCategoryHaltezeit()[
-        pair.trainrunSection.getTrainrun().getTrainrunCategory().fachCategory
-      ].haltezeit;
-    halteZeit = isNonStop ? 0 : halteZeit;
-
-    // try to update the pair (based on previousPair)
-    if (pair.trainrunSection.getTargetDepartureLock()) {
-      // the source element is locked - no changes allowed!
-      return;
-    }
-
-    // ----------------------------------------------------------------------------------
-    // update source arrival time
-    // ----------------------------------------------------------------------------------
-    const depTimeAtTarget = MathUtils.round(
-      (arrivalTimeAtTarget + halteZeit) % 60,
-      TrainrunSectionService.TIME_PRECISION,
-    );
-    const arrTimeAtTarget = MathUtils.round(
-      TrainrunsectionHelper.getSymmetricTime(depTimeAtTarget),
-      TrainrunSectionService.TIME_PRECISION,
-    );
-    pair.trainrunSection.setTargetDeparture(depTimeAtTarget);
-    pair.trainrunSection.setTargetArrival(arrTimeAtTarget);
-
-    // ----------------------------------------------------------------------------------
-    // Use travel time to update the target times - if allowed
-    // ----------------------------------------------------------------------------------
-    if (!pair.trainrunSection.getSourceArrivalLock()) {
-      // Target is not locked -> update the Target Arrival Time
-      const arrTimeAtSource = MathUtils.round(
-        (depTimeAtTarget + pair.trainrunSection.getTravelTime()) % 60,
-        TrainrunSectionService.TIME_PRECISION,
-      );
-      const depTimeAtSource = MathUtils.round(
-        TrainrunsectionHelper.getSymmetricTime(arrTimeAtSource),
-        TrainrunSectionService.TIME_PRECISION,
-      );
-      pair.trainrunSection.setSourceArrival(arrTimeAtSource);
-      pair.trainrunSection.setSourceDeparture(depTimeAtSource);
-
-      return;
-    }
-
-    // ----------------------------------------------------------------------------------
-    // update travel time if possible
-    // ----------------------------------------------------------------------------------
-    if (pair.trainrunSection.getTravelTimeLock()) {
-      return;
-    }
-
-    let newTravelTime = pair.trainrunSection.getSourceArrival() - depTimeAtTarget;
-    newTravelTime += Math.floor(pair.trainrunSection.getTravelTime() / 60) * 60;
-    while (newTravelTime < 0.0) {
-      newTravelTime += 60;
-    }
-    pair.trainrunSection.setTravelTime(newTravelTime);
+    section.setTravelTime(newTravelTime);
   }
 
   iterateAlongTrainrunUntilEndAndPropagateTime(nodeFrom: Node, trainrunSectionId: number) {
@@ -545,12 +457,9 @@ export class TrainrunSectionService implements OnDestroy {
       const pair = iterator.next();
 
       const isNonStop = previousPair.node.isNonStop(pair.trainrunSection);
-
-      if (pair.trainrunSection.getSourceNodeId() === previousPair.node.getId()) {
-        this.propagteTimeSourceToTarget(previousPair, pair, isNonStop);
-      } else {
-        this.propagteTimeTargetToSource(previousPair, pair, isNonStop);
-      }
+      const previousSection = previousPair.getDirectedTrainrunSectionProxy();
+      const section = pair.getDirectedTrainrunSectionProxy();
+      this.propagateTrainrunSectionTime(previousSection, section, isNonStop);
       TrainrunSectionValidator.validateOneSection(pair.trainrunSection);
 
       if (
