@@ -13,6 +13,149 @@ export class TrainrunSectionNodePair {
     readonly node: Node,
     readonly trainrunSection: TrainrunSection,
   ) {}
+
+  /**
+   * Obtain a directed trainrun section proxy with the iteration direction.
+   */
+  getDirectedTrainrunSectionProxy(): DirectedTrainrunSectionProxy {
+    const direction =
+      this.trainrunSection.getTargetNodeId() === this.node.getId()
+        ? "sourceToTarget"
+        : "targetToSource";
+    return new DirectedTrainrunSectionProxy(this.trainrunSection, direction);
+  }
+}
+
+/**
+ * A proxy for a trainrun section, seen in a given direction.
+ *
+ * Trainrun sections have a source node and a target node. Thus they have a
+ * "natural" iteration order. However, NGE algorithms often need to operate in
+ * one direction or the other, depending on the relative position of nodes
+ * (left/right, top/bottom) or end user needs (arrow button).
+ *
+ * To avoid duplicating logic, this class provides a proxy object which wraps a
+ * trainrun section and introduces abstract "head" and "tail" nodes:
+ *
+ *     ┌──────┐           ┌──────┐
+ *     │      │  Section  │      │
+ *     │ Tail ├──────────►│ Head │
+ *     │      │           │      │
+ *     └──────┘           └──────┘
+ *
+ * When operating on the section in the source-to-target order, the tail is the
+ * source and the head is the target. When operating in target-to-source order,
+ * the tail is the target and the head is the source.
+ */
+export class DirectedTrainrunSectionProxy {
+  constructor(
+    readonly trainrunSection: TrainrunSection,
+    readonly direction: "sourceToTarget" | "targetToSource",
+  ) {}
+
+  getTailNode(): Node {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getSourceNode()
+      : this.trainrunSection.getTargetNode();
+  }
+
+  getHeadNode(): Node {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getTargetNode()
+      : this.trainrunSection.getSourceNode();
+  }
+
+  getTailDeparture(): number {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getSourceDeparture()
+      : this.trainrunSection.getTargetDeparture();
+  }
+
+  getTailArrival(): number {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getSourceArrival()
+      : this.trainrunSection.getTargetArrival();
+  }
+
+  getHeadDeparture(): number {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getTargetDeparture()
+      : this.trainrunSection.getSourceDeparture();
+  }
+
+  getHeadArrival(): number {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getTargetArrival()
+      : this.trainrunSection.getSourceArrival();
+  }
+
+  getTravelTime(): number {
+    return this.trainrunSection.getTravelTime();
+  }
+
+  setTailDeparture(time: number) {
+    if (this.direction === "sourceToTarget") {
+      this.trainrunSection.setSourceDeparture(time);
+    } else {
+      this.trainrunSection.setTargetDeparture(time);
+    }
+  }
+
+  setTailArrival(time: number) {
+    if (this.direction === "sourceToTarget") {
+      this.trainrunSection.setSourceArrival(time);
+    } else {
+      this.trainrunSection.setTargetArrival(time);
+    }
+  }
+
+  setHeadDeparture(time: number) {
+    if (this.direction === "sourceToTarget") {
+      this.trainrunSection.setTargetDeparture(time);
+    } else {
+      this.trainrunSection.setSourceDeparture(time);
+    }
+  }
+
+  setHeadArrival(time: number) {
+    if (this.direction === "sourceToTarget") {
+      this.trainrunSection.setTargetArrival(time);
+    } else {
+      this.trainrunSection.setSourceArrival(time);
+    }
+  }
+
+  setTravelTime(time: number) {
+    this.trainrunSection.setTravelTime(time);
+  }
+
+  getTailDepartureLock(): boolean {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getSourceDepartureLock()
+      : this.trainrunSection.getTargetDepartureLock();
+  }
+
+  getTailArrivalLock(): boolean {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getSourceArrivalLock()
+      : this.trainrunSection.getTargetArrivalLock();
+  }
+
+  getHeadDepartureLock(): boolean {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getTargetDepartureLock()
+      : this.trainrunSection.getSourceDepartureLock();
+  }
+
+  getHeadArrivalLock(): boolean {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getTargetArrivalLock()
+      : this.trainrunSection.getSourceArrivalLock();
+  }
+
+  getTravelTimeLock(): boolean {
+    return this.trainrunSection.getTravelTimeLock();
+  }
 }
 
 /**
