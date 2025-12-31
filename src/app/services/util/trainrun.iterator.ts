@@ -24,7 +24,7 @@ export class TrainrunIterator {
       this.startNode.getOppositeNode(this.startTrainrunSection),
       this.startTrainrunSection,
     );
-    this.currentElement = Object.assign({}, this.pointerElement);
+    this.currentElement = this.pointerElement;
     this.visitedNodes.push(this.currentElement);
   }
 
@@ -33,7 +33,7 @@ export class TrainrunIterator {
   }
 
   public next(): TrainrunSectionNodePair {
-    this.currentElement = Object.assign({}, this.pointerElement);
+    this.currentElement = this.pointerElement;
     const trainrunSection = this.pointerElement.node.getNextTrainrunSection(
       this.pointerElement.trainrunSection,
     );
@@ -54,7 +54,7 @@ export class TrainrunIterator {
       ) !== undefined
     ) {
       // The trainrun has a loop -> early break the avoid unfinitiy iterating
-      this.currentElement = Object.assign({}, this.pointerElement);
+      this.currentElement = this.pointerElement;
       this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
       // log the issue
       this.logService.error(
