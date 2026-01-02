@@ -6,7 +6,7 @@ export class TrainrunSectionViewObject {
 
   constructor(
     private editorView: EditorView,
-    readonly trainrunSection: TrainrunSection,
+    readonly trainrunSections: TrainrunSection[],
     isNonStopAtSource: boolean,
     isNonStopAtTarget: boolean,
     isMuted: boolean,
@@ -18,7 +18,7 @@ export class TrainrunSectionViewObject {
   ) {
     this.key = TrainrunSectionViewObject.generateKey(
       editorView,
-      trainrunSection,
+      trainrunSections,
       isNonStopAtSource,
       isNonStopAtTarget,
       isMuted,
@@ -31,12 +31,12 @@ export class TrainrunSectionViewObject {
   }
 
   getTrainrun() {
-    return this.trainrunSection.getTrainrun();
+    return this.trainrunSections[0].getTrainrun();
   }
 
   static generateKey(
     editorView: EditorView,
-    d: TrainrunSection,
+    trainrunSections: TrainrunSection[],
     isNonStopAtSource: boolean,
     isNonStopAtTarget: boolean,
     isMuted: boolean,
@@ -46,6 +46,7 @@ export class TrainrunSectionViewObject {
     hiddenTagTrainrunName: boolean,
     hiddenTagDirectionArrows: boolean,
   ): string {
+    const d = trainrunSections[0];
     const cumulativeTravelTimeData = editorView.getCumulativeTravelTimeAndNodePath(d);
     const cumulativeTravelTime =
       cumulativeTravelTimeData[cumulativeTravelTimeData.length - 1].sumTravelTime;
