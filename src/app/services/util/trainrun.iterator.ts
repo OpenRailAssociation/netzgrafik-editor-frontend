@@ -317,3 +317,17 @@ export class BackwardNextExpandedStopIterator extends BackwardTrainrunIterator {
     return super.next();
   }
 }
+
+export class ExpandedTrainrunIterator extends TrainrunIterator {
+  public next(): TrainrunSectionNodePair {
+    // Continue traversing only if the current node is collapsed
+    // Stop when we reach an expanded (non-collapsed) node
+    if (!this.pointerElement.node.getIsCollapsed()) {
+      // The trainrun has reached an expanded (non-collapsed) node and break the forward iteration
+      this.currentElement = Object.assign({}, this.pointerElement);
+      this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
+      return this.currentElement;
+    }
+    return super.next();
+  }
+}
