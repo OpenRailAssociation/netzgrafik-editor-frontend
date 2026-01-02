@@ -8,16 +8,18 @@ export class TrainrunSectionViewObject {
 
   constructor(
     private editorView: EditorView,
-    readonly trainrunSection: TrainrunSection,
+    readonly trainrunSections: TrainrunSection[],
   ) {
-    this.key = TrainrunSectionViewObject.generateKey(editorView, trainrunSection);
+    this.key = TrainrunSectionViewObject.generateKey(editorView, trainrunSections);
   }
 
   getTrainrun() {
-    return this.trainrunSection.getTrainrun();
+    return this.trainrunSections[0].getTrainrun();
   }
 
-  static generateKey(editorView: EditorView, d: TrainrunSection): string {
+  static generateKey(editorView: EditorView, trainrunSections: TrainrunSection[]): string {
+    const d = trainrunSections[0];
+
     const selectedTrainrun = editorView.getSelectedTrainrun();
     let connectedTrainIds = [];
     if (selectedTrainrun !== null) {
