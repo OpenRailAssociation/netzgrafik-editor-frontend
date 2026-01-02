@@ -390,6 +390,25 @@ export class BackwardNextExpandedStopIterator extends BackwardTrainrunIterator {
   }
 }
 
+export class ExpandedTrainrunIterator extends TrainrunIterator {
+  /**
+   * Throws an exception if called after the end of the iteration.
+   * Check for `this.hasNext()` before.
+   */
+  public next(): TrainrunSectionNodePair {
+    // Continue traversing only if the current node is collapsed
+    // Stop when we reach an expanded (non-collapsed) node
+    const currentElement = this.pointerElement!;
+    if (!this.pointerElement.node.getIsCollapsed()) {
+      // The trainrun has reached an expanded (non-collapsed) node and break the forward iteration
+      this.currentElement = currentElement;
+      this.pointerElement = undefined;
+      return this.currentElement;
+    }
+    return super.next();
+  }
+}
+
 class TrainrunIteratorIterator implements Iterator<TrainrunSectionNodePair> {
   constructor(private iterator: TrainrunIterator) {}
 
