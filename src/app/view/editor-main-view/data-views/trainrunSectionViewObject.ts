@@ -2,11 +2,11 @@ import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {EditorView} from "./editor.view";
 
 export class TrainrunSectionViewObject {
-  key: string;
+  readonly key: string;
 
   constructor(
     private editorView: EditorView,
-    public trainrunSection: TrainrunSection,
+    readonly trainrunSection: TrainrunSection,
     isNonStopAtSource: boolean,
     isNonStopAtTarget: boolean,
     isMuted: boolean,
