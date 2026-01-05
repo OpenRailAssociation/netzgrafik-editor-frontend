@@ -55,7 +55,8 @@
     "zone.js": "~0.14.10"
   },
   "optionalDependencies": {
-    "puppeteer": "^22.13.1"
+    "puppeteer": "^22.13.1",
+    "devtools-protocol": "*"
   },
   "devDependencies": {
     "@angular-devkit/architect": "^0.1700.10",
