@@ -1664,8 +1664,8 @@ export class TrainrunSectionsView {
         new TrainrunSectionViewObject(
           editorView,
           d,
-          TrainrunSectionsView.getNode(d, true).isNonStop(d),
-          TrainrunSectionsView.getNode(d, false).isNonStop(d),
+          d.getSourceNode().isNonStop(d),
+          d.getTargetNode().isNonStop(d),
           TrainrunSectionsView.isMuted(d, selectedTrainrun, connectedTrainIds),
           this.getHiddenTagForTime(d, TrainrunSectionText.SourceDeparture),
           this.getHiddenTagForTime(d, TrainrunSectionText.TargetDeparture),
