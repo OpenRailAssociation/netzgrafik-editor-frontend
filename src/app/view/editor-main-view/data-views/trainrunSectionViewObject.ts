@@ -1,5 +1,7 @@
 import {TrainrunSection} from "../../../models/trainrunsection.model";
+import {TrainrunSectionText} from "../../../data-structures/technical.data.structures";
 import {EditorView} from "./editor.view";
+import {TrainrunSectionsView} from "./trainrunsections.view";
 
 export class TrainrunSectionViewObject {
   readonly key: string;
@@ -7,41 +9,43 @@ export class TrainrunSectionViewObject {
   constructor(
     private editorView: EditorView,
     readonly trainrunSection: TrainrunSection,
-    isNonStopAtSource: boolean,
-    isNonStopAtTarget: boolean,
-    isMuted: boolean,
-    hiddenTagSource: boolean,
-    hiddenTagTarget: boolean,
-    hiddenTagTraveltime: boolean,
-    hiddenTagTrainrunName: boolean,
-    hiddenTagDirectionArrows: boolean,
   ) {
-    this.key = TrainrunSectionViewObject.generateKey(
-      editorView,
-      trainrunSection,
-      isNonStopAtSource,
-      isNonStopAtTarget,
-      isMuted,
-      hiddenTagSource,
-      hiddenTagTarget,
-      hiddenTagTraveltime,
-      hiddenTagTrainrunName,
-      hiddenTagDirectionArrows,
-    );
+    this.key = TrainrunSectionViewObject.generateKey(editorView, trainrunSection);
   }
 
-  static generateKey(
-    editorView: EditorView,
-    d: TrainrunSection,
-    isNonStopAtSource: boolean,
-    isNonStopAtTarget: boolean,
-    isMuted: boolean,
-    hiddenTagSource: boolean,
-    hiddenTagTarget: boolean,
-    hiddenTagTraveltime: boolean,
-    hiddenTagTrainrunName: boolean,
-    hiddenTagDirectionArrows: boolean,
-  ): string {
+  static generateKey(editorView: EditorView, d: TrainrunSection): string {
+    const selectedTrainrun = editorView.getSelectedTrainrun();
+    let connectedTrainIds = [];
+    if (selectedTrainrun !== null) {
+      connectedTrainIds = editorView.getConnectedTrainrunIds(selectedTrainrun);
+    }
+
+    const isNonStopAtSource = d.getSourceNode().isNonStop(d);
+    const isNonStopAtTarget = d.getTargetNode().isNonStop(d);
+    const isMuted = TrainrunSectionsView.isMuted(d, selectedTrainrun, connectedTrainIds);
+    const hiddenTagSource = TrainrunSectionsView.getHiddenTagForTime(
+      editorView,
+      d,
+      TrainrunSectionText.SourceDeparture,
+    );
+    const hiddenTagTarget = TrainrunSectionsView.getHiddenTagForTime(
+      editorView,
+      d,
+      TrainrunSectionText.TargetDeparture,
+    );
+    const hiddenTagTraveltime = TrainrunSectionsView.getHiddenTagForTime(
+      editorView,
+      d,
+      TrainrunSectionText.TrainrunSectionTravelTime,
+    );
+    const hiddenTagTrainrunName = TrainrunSectionsView.getHiddenTagForTime(
+      editorView,
+      d,
+      TrainrunSectionText.TrainrunSectionName,
+    );
+    const hiddenTagDirectionArrows =
+      !editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
+      !editorView.isFilterDirectionArrowsEnabled();
     const cumulativeTravelTimeData = editorView.getCumulativeTravelTimeAndNodePath(d);
     const cumulativeTravelTime =
       cumulativeTravelTimeData[cumulativeTravelTimeData.length - 1].sumTravelTime;
