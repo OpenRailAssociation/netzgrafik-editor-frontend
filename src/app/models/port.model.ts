@@ -14,7 +14,7 @@ export class Port {
   private trainrunSection: TrainrunSection = null;
 
   constructor(
-    {id, trainrunSectionId, positionIndex, positionAlignment, locked}: PortDto = {
+    {id, trainrunSectionId, positionIndex, positionAlignment, locked = false}: PortDto = {
       id: Port.incrementId(),
       positionIndex: 0,
       positionAlignment: PortAlignment.Top,
