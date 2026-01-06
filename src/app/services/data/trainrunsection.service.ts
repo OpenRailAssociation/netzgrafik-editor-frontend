@@ -1013,6 +1013,15 @@ export class TrainrunSectionService implements OnDestroy {
     trainrunSection.setTravelTimeDto(
       JSON.parse(JSON.stringify(existingTrainrunSection.getTravelTimeDto())),
     );
+    trainrunSection.setBackwardTravelTimeDto(
+      JSON.parse(JSON.stringify(existingTrainrunSection.getBackwardTravelTimeDto())),
+    );
+    trainrunSection.setSourceSymmetry(
+      JSON.parse(JSON.stringify(existingTrainrunSection.getSourceSymmetry())),
+    );
+    trainrunSection.setTargetSymmetry(
+      JSON.parse(JSON.stringify(existingTrainrunSection.getTargetSymmetry())),
+    );
     trainrunSection.setSourceArrivalDto(
       JSON.parse(JSON.stringify(existingTrainrunSection.getSourceArrivalDto())),
     );
@@ -1229,11 +1238,14 @@ export class TrainrunSectionService implements OnDestroy {
     const targetNode = this.nodeService.getNodeFromId(targetNodeId);
     newTrainrunSection.setSourceAndTargetNodeReference(sourceNode, targetNode);
 
+    newTrainrunSection.setSourceSymmetry(trainrunSection.sourceSymmetry);
+    newTrainrunSection.setTargetSymmetry(trainrunSection.targetSymmetry);
     newTrainrunSection.setSourceArrivalDto(trainrunSection.sourceArrival);
     newTrainrunSection.setTargetArrivalDto(trainrunSection.targetArrival);
     newTrainrunSection.setSourceDepartureDto(trainrunSection.sourceDeparture);
     newTrainrunSection.setTargetDepartureDto(trainrunSection.targetDeparture);
     newTrainrunSection.setTravelTimeDto(trainrunSection.travelTime);
+    newTrainrunSection.setBackwardTravelTimeDto(trainrunSection.backwardTravelTime);
     newTrainrunSection.setNumberOfStops(trainrunSection.numberOfStops);
     this.trainrunSectionsStore.trainrunSections.push(newTrainrunSection);
     const sourceIsNonStop = this.getIsNonStop(

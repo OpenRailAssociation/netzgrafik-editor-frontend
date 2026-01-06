@@ -117,11 +117,14 @@ export interface TrainrunSectionDto {
   targetNodeId: number; // reference to the node by Node.id
   targetPortId: number; // reference to the node by Node.id
 
+  sourceSymmetry: boolean; // binds sourceDeparture and sourceArrival times
+  targetSymmetry: boolean; // binds targetDeparture and targetArrival times
   sourceArrival: TimeLockDto; // declares the soruce arrival time
   sourceDeparture: TimeLockDto; // declares the soruce departure time
   targetArrival: TimeLockDto; // declares the target arrival time
   targetDeparture: TimeLockDto; // declares the target departure time
-  travelTime: TimeLockDto; // declares the travel arrival time
+  travelTime: TimeLockDto; // declares the travel time (forward direction)
+  backwardTravelTime: TimeLockDto; // declares the travel time in the opposite direction
 
   numberOfStops: number; // number of stops - not declared in detail (no node attached)
 
