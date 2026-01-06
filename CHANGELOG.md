@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.10.5](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.4...netzgrafik-frontend-v2.10.5) (2026-01-05)
+
+
+### Bug Fixes
+
+* add missing source arrival in TrainrunSectionViewObject.generateKey() ([8fad923](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/8fad923a81129c60dcc08a4724878d7e08797401))
+* drop duplicate frequency in TrainrunSectionViewObject.generateKey() ([233b0f1](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/233b0f1c424b740e1c73e393fa594b19d16c06cd))
+
 ## [2.10.4](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.3...netzgrafik-frontend-v2.10.4) (2025-12-22)
 
 
