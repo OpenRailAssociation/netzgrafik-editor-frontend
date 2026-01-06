@@ -40,6 +40,7 @@ jobs:
           tags: |
             type=raw,value=${{ needs.release-please.outputs.major }}.${{ needs.release-please.outputs.minor }}.${{ needs.release-please.outputs.patch }}
             type=raw,value=latest
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -66,14 +67,15 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
           cache: "npm"
           registry-url: "https://registry.npmjs.org"
+
       - run: npm clean-install
       - run: npm run build:standalone
       - run: npm pkg delete dependencies optionalDependencies devDependencies
+
       - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
