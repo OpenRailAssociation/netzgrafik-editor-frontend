@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.6](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.5...netzgrafik-frontend-v2.10.6) (2026-01-06)
+
+
+### Bug Fixes
+
+* Release-please no with Trusted Publisher NPM ([#728](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/728)) ([42978ce](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/42978cebee21392f5c241cae10731b7c4ef777e0))
+
 ## [2.10.5](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.4...netzgrafik-frontend-v2.10.5) (2026-01-05)
 
 
