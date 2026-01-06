@@ -92,4 +92,15 @@ export class TrainrunSectionValidator {
       trainrunSection.resetTravelTimeWarning();
     }
   }
+
+  static validateBackwardTravelTime(trainrunSection: TrainrunSection) {
+    if (trainrunSection.getBackwardTravelTime() < 1) {
+      trainrunSection.setBackwardTravelTimeWarning(
+        $localize`:@@app.services.util.trainrunsection-validator.travel-time-less-than-1.title:Travel Time less than 1`,
+        $localize`:@@app.services.util.trainrunsection-validator.travel-time-less-than-1.description:Travel time must be greater than or equal to 1`,
+      );
+    } else {
+      trainrunSection.resetBackwardTravelTimeWarning();
+    }
+  }
 }
