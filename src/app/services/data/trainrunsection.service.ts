@@ -299,7 +299,7 @@ export class TrainrunSectionService implements OnDestroy {
 
   initializeTrainrunSectionRouting() {
     this.trainrunSectionsStore.trainrunSections.forEach((trainrunSection) => {
-      if (trainrunSection.isPathEmpty()) {
+      if (trainrunSection.isPathInvalid()) {
         trainrunSection.routeEdgeAndPlaceText();
       }
     });

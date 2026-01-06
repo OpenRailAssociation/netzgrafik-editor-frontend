@@ -131,6 +131,7 @@ export class TrainrunSection {
           [TrainrunSectionText.TargetDeparture]: {x: 0, y: 0},
           [TrainrunSectionText.TrainrunSectionName]: {x: 0, y: 0},
           [TrainrunSectionText.TrainrunSectionTravelTime]: {x: 0, y: 0},
+          [TrainrunSectionText.TrainrunSectionBackwardTravelTime]: {x: 0, y: 0},
           [TrainrunSectionText.TrainrunSectionNumberOfStops]: {x: 0, y: 0},
         },
       },
@@ -746,8 +747,13 @@ export class TrainrunSection {
     return this.pathVec2D;
   }
 
-  isPathEmpty(): boolean {
-    return this.pathVec2D.length === 0;
+  isPathInvalid(): boolean {
+    if (this.pathVec2D.length === 0 || !this.path || !this.path.textPositions) {
+      return true;
+    }
+
+    // Check if all required TrainrunSectionText enum values have corresponding textPositions
+    return Object.values(TrainrunSectionText).some((key) => !(key in this.path.textPositions));
   }
 
   routeEdgeAndPlaceText() {
@@ -761,6 +767,7 @@ export class TrainrunSection {
     this.path.textPositions = SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(
       this.pathVec2D,
       this.sourceNode.getPort(this.sourcePortId),
+      !this.areTravelTimesEqual(),
     );
   }
 
