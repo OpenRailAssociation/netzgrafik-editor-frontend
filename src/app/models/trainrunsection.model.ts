@@ -12,6 +12,7 @@ import {
 } from "../data-structures/technical.data.structures";
 import {TrainrunSectionValidator} from "../services/util/trainrunsection.validator";
 import {formatDate} from "@angular/common";
+import {TrainrunsectionHelper} from "../services/util/trainrunsection.helper";
 
 export class TrainrunSection {
   private static currentId = 0;
@@ -23,11 +24,15 @@ export class TrainrunSection {
   private targetNodeId: number;
   private targetPortId: number;
 
+  private sourceSymmetry: boolean;
+  private targetSymmetry: boolean;
   private sourceArrival: TimeLockDto;
   private sourceDeparture: TimeLockDto;
   private targetArrival: TimeLockDto;
   private targetDeparture: TimeLockDto;
   private travelTime: TimeLockDto;
+  private backwardTravelTime: TimeLockDto;
+
   private numberOfStops: number;
 
   private trainrunId: number;
@@ -49,11 +54,14 @@ export class TrainrunSection {
       sourcePortId,
       targetNodeId,
       targetPortId,
+      sourceSymmetry = true, // older DTO files don't have this field
+      targetSymmetry = true, // older DTO files don't have this field
       sourceDeparture,
       sourceArrival,
       targetDeparture,
       targetArrival,
       travelTime,
+      backwardTravelTime = {...travelTime}, // older DTO files don't have this field
       numberOfStops,
       trainrunId,
       resourceId,
@@ -66,6 +74,8 @@ export class TrainrunSection {
       sourcePortId: 0,
       targetNodeId: 0,
       targetPortId: 0,
+      sourceSymmetry: true,
+      targetSymmetry: true,
       sourceDeparture: {
         time: 0,
         consecutiveTime: 0,
@@ -101,6 +111,13 @@ export class TrainrunSection {
         warning: null,
         timeFormatter: null,
       },
+      backwardTravelTime: {
+        time: 1,
+        consecutiveTime: 1,
+        lock: true,
+        warning: null,
+        timeFormatter: null,
+      },
       trainrunId: 0,
       resourceId: 0,
       specificTrainrunSectionFrequencyId: null,
@@ -125,11 +142,14 @@ export class TrainrunSection {
     this.sourcePortId = sourcePortId;
     this.targetNodeId = targetNodeId;
     this.targetPortId = targetPortId;
+    this.sourceSymmetry = sourceSymmetry;
+    this.targetSymmetry = targetSymmetry;
     this.sourceDeparture = sourceDeparture;
     this.sourceArrival = sourceArrival;
     this.targetDeparture = targetDeparture;
     this.targetArrival = targetArrival;
     this.travelTime = travelTime;
+    this.backwardTravelTime = backwardTravelTime;
     this.trainrunId = trainrunId;
     this.resourceId = resourceId;
     this.specificTrainrunSectionFrequencyId = specificTrainrunSectionFrequencyId;
@@ -237,6 +257,24 @@ export class TrainrunSection {
     this.trainrunId = trainrun.getId();
   }
 
+  setSourceSymmetry(sourceSymmetry: boolean) {
+    this.sourceSymmetry = sourceSymmetry;
+  }
+
+  setTargetSymmetry(targetSymmetry: boolean) {
+    this.targetSymmetry = targetSymmetry;
+  }
+
+  resetSymmetry() {
+    this.sourceSymmetry = true;
+    this.targetSymmetry = true;
+  }
+
+  setAsymmetry() {
+    this.sourceSymmetry = false;
+    this.targetSymmetry = false;
+  }
+
   setSourceArrivalDto(sourceArrivalDto: TimeLockDto) {
     this.sourceArrival = sourceArrivalDto;
   }
@@ -255,6 +293,41 @@ export class TrainrunSection {
 
   setTravelTimeDto(travelTimeDto: TimeLockDto) {
     this.travelTime = travelTimeDto;
+  }
+
+  setBackwardTravelTimeDto(backwardTravelTimeDto: TimeLockDto) {
+    this.backwardTravelTime = backwardTravelTimeDto;
+  }
+
+  getSourceSymmetry(): boolean {
+    return this.sourceSymmetry;
+  }
+
+  getTargetSymmetry(): boolean {
+    return this.targetSymmetry;
+  }
+
+  isSymmetric(): boolean {
+    return this.sourceSymmetry && this.targetSymmetry;
+  }
+
+  isSourceSymmetricOrTimesSymmetric(): boolean {
+    return (
+      this.sourceSymmetry ||
+      TrainrunsectionHelper.getSymmetricTime(this.sourceDeparture.time) === this.sourceArrival.time
+    );
+  }
+
+  isTargetSymmetricOrTimesSymmetric(): boolean {
+    return (
+      this.targetSymmetry ||
+      TrainrunsectionHelper.getSymmetricTime(this.targetDeparture.time) === this.targetArrival.time
+    );
+  }
+
+  areTravelTimesEqual(): boolean {
+    // indirectly checks this.isSymmetric() as well, because if not symmetric, travel times must be different
+    return this.travelTime.time === this.backwardTravelTime.time;
   }
 
   getSourceArrivalDto(): TimeLockDto {
@@ -277,12 +350,20 @@ export class TrainrunSection {
     return this.travelTime;
   }
 
+  getBackwardTravelTimeDto(): TimeLockDto {
+    return this.backwardTravelTime;
+  }
+
   getId(): number {
     return this.id;
   }
 
   getTravelTime(): number {
     return this.travelTime.time;
+  }
+
+  getBackwardTravelTime(): number {
+    return this.backwardTravelTime.time;
   }
 
   getSourceDeparture(): number {
@@ -305,6 +386,10 @@ export class TrainrunSection {
     return TrainrunSection.formatDisplayText(this.travelTime, offset);
   }
 
+  getBackwardTravelTimeFormattedDisplayText(offset = 0): string {
+    return TrainrunSection.formatDisplayText(this.backwardTravelTime, offset);
+  }
+
   getSourceDepartureFormattedDisplayText(offset = 0): string {
     return TrainrunSection.formatDisplayText(this.sourceDeparture, offset);
   }
@@ -323,6 +408,10 @@ export class TrainrunSection {
 
   getTravelTimeFormattedDisplayTextWidth(): number {
     return TrainrunSection.getDisplayTextWidth(this.travelTime);
+  }
+
+  getBackwardTravelTimeFormattedDisplayTextWidth(): number {
+    return TrainrunSection.getDisplayTextWidth(this.backwardTravelTime);
   }
 
   getSourceDepartureFormattedDisplayTextWidth(): number {
@@ -345,6 +434,10 @@ export class TrainrunSection {
     return TrainrunSection.getDisplayHtmlStyle(this.travelTime);
   }
 
+  getBackwardTravelTimeFormattedDisplayHtmlStyle(): string {
+    return TrainrunSection.getDisplayHtmlStyle(this.backwardTravelTime);
+  }
+
   getSourceDepartureFormattedDisplayHtmlStyle(): string {
     return TrainrunSection.getDisplayHtmlStyle(this.sourceDeparture);
   }
@@ -363,6 +456,10 @@ export class TrainrunSection {
 
   getTravelTimeFormatterColorRef(): ColorRefType {
     return TrainrunSection.getDisplayColorRef(this.travelTime);
+  }
+
+  getBackwardTravelTimeFormatterColorRef(): ColorRefType {
+    return TrainrunSection.getDisplayColorRef(this.backwardTravelTime);
   }
 
   getSourceDepartureFormatterColorRef(): ColorRefType {
@@ -390,6 +487,11 @@ export class TrainrunSection {
     TrainrunSectionValidator.validateTravelTime(this);
   }
 
+  setBackwardTravelTime(time: number) {
+    this.backwardTravelTime.time = time;
+    TrainrunSectionValidator.validateBackwardTravelTime(this);
+  }
+
   setSourceDeparture(time: number) {
     this.sourceDeparture.time = time;
     TrainrunSectionValidator.validateOneSection(this);
@@ -414,6 +516,10 @@ export class TrainrunSection {
     return this.travelTime.lock;
   }
 
+  getBackwardTravelTimeLock(): boolean {
+    return this.backwardTravelTime.lock;
+  }
+
   getSourceDepartureLock(): boolean {
     return this.sourceDeparture.lock;
   }
@@ -432,6 +538,10 @@ export class TrainrunSection {
 
   setTravelTimeLock(lock: boolean) {
     this.travelTime.lock = lock;
+  }
+
+  setBackwardTravelTimeLock(lock: boolean) {
+    this.backwardTravelTime.lock = lock;
   }
 
   setSourceDepartureLock(lock: boolean) {
@@ -456,6 +566,10 @@ export class TrainrunSection {
 
   hasTravelTimeWarning(): boolean {
     return this.travelTime.warning !== null;
+  }
+
+  hasBackwardTravelTimeWarning(): boolean {
+    return this.backwardTravelTime.warning !== null;
   }
 
   hasSourceDepartureWarning(): boolean {
@@ -509,6 +623,13 @@ export class TrainrunSection {
     };
   }
 
+  setBackwardTravelTimeWarning(warningTitle: string, warningDescription: string) {
+    this.backwardTravelTime.warning = {
+      title: warningTitle,
+      description: warningDescription,
+    };
+  }
+
   getTargetArrivalWarning() {
     return this.targetArrival.warning;
   }
@@ -529,6 +650,10 @@ export class TrainrunSection {
     return this.travelTime.warning;
   }
 
+  getBackwardTravelTimeWarning() {
+    return this.backwardTravelTime.warning;
+  }
+
   resetTargetArrivalWarning() {
     this.targetArrival.warning = null;
   }
@@ -547,6 +672,10 @@ export class TrainrunSection {
 
   resetTravelTimeWarning() {
     this.travelTime.warning = null;
+  }
+
+  resetBackwardTravelTimeWarning() {
+    this.backwardTravelTime.warning = null;
   }
 
   getTrainrunId(): number {
@@ -651,12 +780,15 @@ export class TrainrunSection {
       sourcePortId: this.sourcePortId,
       targetNodeId: this.targetNodeId,
       targetPortId: this.targetPortId,
-      travelTime: this.travelTime,
 
+      sourceSymmetry: this.sourceSymmetry,
+      targetSymmetry: this.targetSymmetry,
       sourceDeparture: this.sourceDeparture,
       sourceArrival: this.sourceArrival,
       targetDeparture: this.targetDeparture,
       targetArrival: this.targetArrival,
+      travelTime: this.travelTime,
+      backwardTravelTime: this.backwardTravelTime,
 
       numberOfStops: this.numberOfStops,
 
