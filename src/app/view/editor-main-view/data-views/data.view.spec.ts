@@ -217,7 +217,7 @@ describe("Editor-DataView", () => {
     const ts = trainrunSectionService.getTrainrunSectionFromId(3);
     const cvo1 = new TrainrunSectionViewObject(editorView, ts);
     expect(cvo1.key).toBe(
-      "#3@1234_false_false_0_39_49_39_undefined_1_21_39_0_0_141_39_0_180_0_S_20_7/24_4_1_0_S_20_7/24_20_0_round_trip_false_true_false_false_false_false_true_false_false_false_true_true_true_false_false_true_true_true_0_false_2_true_true_true_1_false_true_true_0_false_true_true_0_false_true_true_1_false_true_true_2_true_true_true(130,80)(194,80)(254,80)(318,80)",
+      "#3@1234_false_false_0_39_49_39_undefined_1_21_39_0_0_141_39_0_180_0_S_20_7/24_4_1_0_S_20_7/24_20_0_round_trip_false_true_false_false_false_false_true_false_false_false_false_true_true_true_false_false_true_true_true_0_false_2_true_true_true_1_false_true_true_0_false_true_true_0_false_true_true_1_false_true_true_2_true_true_true(130,80)(194,80)(254,80)(318,80)",
     );
   });
 
