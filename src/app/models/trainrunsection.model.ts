@@ -1,4 +1,5 @@
 import {LinePatternRefs, TrainrunSectionDto} from "../data-structures/business.data.structures";
+import {TrainrunSectionTextPositions} from "../data-structures/technical.data.structures";
 import {Node} from "./node.model";
 import {Trainrun} from "./trainrun.model";
 import {Vec2D} from "../utils/vec2D";
@@ -13,6 +14,17 @@ import {
 import {TrainrunSectionValidator} from "../services/util/trainrunsection.validator";
 import {formatDate} from "@angular/common";
 import {TrainrunsectionHelper} from "../services/util/trainrunsection.helper";
+
+const EMPTY_TEXT_POSITIONS: TrainrunSectionTextPositions = {
+  [TrainrunSectionText.SourceArrival]: {x: 0, y: 0},
+  [TrainrunSectionText.SourceDeparture]: {x: 0, y: 0},
+  [TrainrunSectionText.TargetArrival]: {x: 0, y: 0},
+  [TrainrunSectionText.TargetDeparture]: {x: 0, y: 0},
+  [TrainrunSectionText.TrainrunSectionName]: {x: 0, y: 0},
+  [TrainrunSectionText.TrainrunSectionTravelTime]: {x: 0, y: 0},
+  [TrainrunSectionText.TrainrunSectionBackwardTravelTime]: {x: 0, y: 0},
+  [TrainrunSectionText.TrainrunSectionNumberOfStops]: {x: 0, y: 0},
+};
 
 export class TrainrunSection {
   private static currentId = 0;
@@ -124,15 +136,7 @@ export class TrainrunSection {
       numberOfStops: 0,
       path: {
         path: [],
-        textPositions: {
-          [TrainrunSectionText.SourceArrival]: {x: 0, y: 0},
-          [TrainrunSectionText.SourceDeparture]: {x: 0, y: 0},
-          [TrainrunSectionText.TargetArrival]: {x: 0, y: 0},
-          [TrainrunSectionText.TargetDeparture]: {x: 0, y: 0},
-          [TrainrunSectionText.TrainrunSectionName]: {x: 0, y: 0},
-          [TrainrunSectionText.TrainrunSectionTravelTime]: {x: 0, y: 0},
-          [TrainrunSectionText.TrainrunSectionNumberOfStops]: {x: 0, y: 0},
-        },
+        textPositions: {...EMPTY_TEXT_POSITIONS},
       },
       warnings: null,
     },
@@ -746,8 +750,13 @@ export class TrainrunSection {
     return this.pathVec2D;
   }
 
-  isPathEmpty(): boolean {
-    return this.pathVec2D.length === 0;
+  isPathInvalid(): boolean {
+    if (this.pathVec2D.length === 0 || !this.path || !this.path.textPositions) {
+      return true;
+    }
+
+    // Check if all required TrainrunSectionText enum values have corresponding textPositions
+    return Object.keys(EMPTY_TEXT_POSITIONS).some((key) => !(key in this.path.textPositions));
   }
 
   routeEdgeAndPlaceText() {
@@ -761,6 +770,7 @@ export class TrainrunSection {
     this.path.textPositions = SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(
       this.pathVec2D,
       this.sourceNode.getPort(this.sourcePortId),
+      !this.areTravelTimesEqual(),
     );
   }
 
