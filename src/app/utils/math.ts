@@ -7,4 +7,9 @@ export class MathUtils {
     const multiplier = Math.pow(10, precision || 0);
     return Math.round(value * multiplier) / multiplier;
   }
+
+  /** Computes the positive modulo 60 of a given number */
+  static mod60(value: number): number {
+    return ((value % 60) + 60) % 60;
+  }
 }
