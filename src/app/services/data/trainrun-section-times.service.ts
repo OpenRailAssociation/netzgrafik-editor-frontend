@@ -1,6 +1,7 @@
 import {Injectable} from "@angular/core";
 import {MathUtils} from "../../utils/math";
 import {LeftAndRightElement, TrainrunsectionHelper} from "../util/trainrunsection.helper";
+import {DirectedTrainrunSectionProxy} from "../util/trainrun.iterator";
 import {
   LeftAndRightLockStructure,
   LeftAndRightTimeStructure,
@@ -528,15 +529,13 @@ export class TrainrunSectionTimesService {
 
   private updateTrainrunSectionTime() {
     if (this.nodesOrdered.length > 0) {
-      const leftIsSource =
-        this.nodesOrdered[0].getId() === this.selectedTrainrunSection.getSourceNode().getId();
-      this.trainrunSectionService.updateTrainrunSectionTime(
-        this.selectedTrainrunSection.getId(),
-        leftIsSource ? this.timeStructure.leftArrivalTime : this.timeStructure.rightArrivalTime,
-        leftIsSource ? this.timeStructure.leftDepartureTime : this.timeStructure.rightDepartureTime,
-        leftIsSource ? this.timeStructure.rightArrivalTime : this.timeStructure.leftArrivalTime,
-        leftIsSource ? this.timeStructure.rightDepartureTime : this.timeStructure.leftDepartureTime,
-        this.timeStructure.travelTime,
+      const direction =
+        this.nodesOrdered[0].getId() === this.selectedTrainrunSection.getSourceNode().getId()
+          ? "sourceToTarget"
+          : "targetToSource";
+      this.trainrunSectionService.setTimeStructureToSingleTrainrunSection(
+        new DirectedTrainrunSectionProxy(this.selectedTrainrunSection, direction),
+        this.timeStructure,
       );
       this.trainrunSectionService.trainrunSectionsUpdated();
       return;
