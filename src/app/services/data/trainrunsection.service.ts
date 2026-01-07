@@ -327,15 +327,19 @@ export class TrainrunSectionService implements OnDestroy {
     trainrunSection.setTargetArrival(targetArrival);
     trainrunSection.setTargetDeparture(targetDeparture);
     trainrunSection.setTravelTime(travelTime);
-    TrainrunSectionValidator.validateOneSection(trainrunSection);
-    this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection.getId());
-    this.nodeService.validateConnections(trainrunSection.getSourceNode());
-    this.nodeService.validateConnections(trainrunSection.getTargetNode());
+    this.trainrunSectionTimesUpdated(trainrunSection);
     if (emit) {
       this.operation.emit(
         new TrainrunOperation(OperationType.update, trainrunSection.getTrainrun()),
       );
     }
+  }
+
+  private trainrunSectionTimesUpdated(trainrunSection: TrainrunSection) {
+    TrainrunSectionValidator.validateOneSection(trainrunSection);
+    this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection.getId());
+    this.nodeService.validateConnections(trainrunSection.getSourceNode());
+    this.nodeService.validateConnections(trainrunSection.getTargetNode());
   }
 
   private findTrainrunSectionForStopNode(
