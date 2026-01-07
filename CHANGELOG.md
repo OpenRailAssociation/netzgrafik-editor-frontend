@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.7](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.6...netzgrafik-frontend-v2.10.7) (2026-01-07)
+
+
+### Bug Fixes
+
+* emit trainrun create after creating its sections when duplicating ([58d202e](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/58d202eed988772018deb0ac086194d7ea2b344c))
+
 ## [2.10.6](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.5...netzgrafik-frontend-v2.10.6) (2026-01-06)
 
 
