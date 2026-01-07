@@ -335,6 +335,18 @@ export class TrainrunSectionService implements OnDestroy {
     }
   }
 
+  private updateTrainrunSectionLeftAndRightTimes(
+    section: DirectedTrainrunSectionProxy,
+    timeStructure: LeftAndRightTimeStructure,
+  ) {
+    section.setTailDeparture(timeStructure.leftDepartureTime);
+    section.setTailArrival(timeStructure.leftArrivalTime);
+    section.setHeadDeparture(timeStructure.rightDepartureTime);
+    section.setHeadArrival(timeStructure.rightArrivalTime);
+    section.setTravelTime(timeStructure.travelTime);
+    this.trainrunSectionTimesUpdated(section.trainrunSection);
+  }
+
   private trainrunSectionTimesUpdated(trainrunSection: TrainrunSection) {
     TrainrunSectionValidator.validateOneSection(trainrunSection);
     this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection.getId());
@@ -773,6 +785,16 @@ export class TrainrunSectionService implements OnDestroy {
     }
   }
 
+  setTimeStructureToSingleTrainrunSection(
+    section: DirectedTrainrunSectionProxy,
+    timeStructure: LeftAndRightTimeStructure,
+  ) {
+    this.updateTrainrunSectionLeftAndRightTimes(section, timeStructure);
+    this.operation.emit(
+      new TrainrunOperation(OperationType.update, section.trainrunSection.getTrainrun()),
+    );
+  }
+
   setTimeStructureToTrainrunSections(
     timeStructure: LeftAndRightTimeStructure,
     trainrunSection: TrainrunSection,
@@ -820,16 +842,10 @@ export class TrainrunSectionService implements OnDestroy {
         trsTimeStructure,
         precision,
       );
-      const rightIsTarget =
-        nextPair.node.getId() === nextPair.trainrunSection.getTargetNode().getId();
-      this.updateTrainrunSectionTime(
-        nextPair.trainrunSection.getId(),
-        rightIsTarget ? trsTimeStructure.leftArrivalTime : trsTimeStructure.rightArrivalTime,
-        rightIsTarget ? trsTimeStructure.leftDepartureTime : trsTimeStructure.rightDepartureTime,
-        rightIsTarget ? trsTimeStructure.rightArrivalTime : trsTimeStructure.leftArrivalTime,
-        rightIsTarget ? trsTimeStructure.rightDepartureTime : trsTimeStructure.leftDepartureTime,
-        trsTimeStructure.travelTime,
-        false,
+
+      this.updateTrainrunSectionLeftAndRightTimes(
+        nextPair.getDirectedTrainrunSectionProxy(),
+        trsTimeStructure,
       );
 
       trsTimeStructure.leftDepartureTime = trsTimeStructure.rightArrivalTime;
