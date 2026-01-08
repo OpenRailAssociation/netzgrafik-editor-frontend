@@ -105,7 +105,7 @@ describe("Origin Destination CSV Test", () => {
     });
     const end = new Date().getTime();
 
-    // See https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/issues/199
+    // See https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/199
     expect(res).toEqual(
       new Map([
         // Making sure we traverse E <- F -> G correctly.
@@ -156,7 +156,7 @@ describe("Origin Destination CSV Test", () => {
     });
     const end = new Date().getTime();
 
-    // See https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/issues/199
+    // See https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/199
     expect(res).toEqual(
       new Map([
         // Making sure we consider connections in H -> I -> J -> I -> K.
@@ -213,7 +213,7 @@ describe("Origin Destination CSV Test", () => {
     });
     const end = new Date().getTime();
 
-    // See https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/issues/199
+    // See https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/199
     expect(res).toEqual(
       new Map([
         ["11,13", [22, 1]],
@@ -266,7 +266,7 @@ describe("Origin Destination CSV Test", () => {
       );
     });
 
-    // See https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/issues/199
+    // See https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/199
     expect(res).toEqual(
       new Map([
         ["13,14", [29, 1]],
