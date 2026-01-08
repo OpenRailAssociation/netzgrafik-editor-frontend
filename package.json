@@ -21,7 +21,7 @@
     "extract-i18n": "ng extract-i18n"
   },
   "name": "netzgrafik-frontend",
-  "version": "2.10.7",
+  "version": "2.10.8",
   "repository": {
     "type": "git",
     "url": "https://github.com/OpenRailAssociation/netzgrafik-editor-frontend.git"

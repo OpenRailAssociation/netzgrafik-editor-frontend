@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.8](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.7...netzgrafik-frontend-v2.10.8) (2026-01-08)
+
+
+### Bug Fixes
+
+* After pusblishing the netzgrafik-editor under the host of OpenRailAssocation there should no longer the old github url in the repo. ([#737](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/737)) ([c3997e6](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/c3997e682f8799a32577ad815e965160cf9dd1d6))
+
 ## [2.10.7](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.6...netzgrafik-frontend-v2.10.7) (2026-01-07)
 
 
