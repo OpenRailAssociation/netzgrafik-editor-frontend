@@ -121,7 +121,7 @@ describe("TrainrunSectionService", () => {
   });
 
   it("TrainrunSectionService.checkMissingTransitionsAfterDeletion", () => {
-    // tests: https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/issues/369
+    // tests: https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/369
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     trainrunSectionService.deleteAllVisibleTrainrunSections();
     nodeService.deleteAllVisibleNodes();
