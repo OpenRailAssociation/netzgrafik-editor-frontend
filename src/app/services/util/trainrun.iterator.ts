@@ -15,6 +15,32 @@ export class TrainrunSectionNodePair {
   ) {}
 }
 
+/**
+ * A helper to iterate on trainrun sections.
+ *
+ * The initial node and trainrun section indicate the iteration direction: the
+ * first iteration will cross the initial trainrun section starting from the
+ * initial node. The first iteration yields the opposite node and the initial
+ * trainrun section. The node source/target ordering doesn't have an impact on
+ * the iteration direction.
+ *
+ * For instance, given the following trainrun:
+ *
+ *          ts₁        ts₂
+ *     n₁ ─────── n₂ ─────── n₃
+ *
+ * Iterating left-to-right starting from (n₁, ts₁) will yield the following
+ * pairs when calling next():
+ *
+ *     (n₂, ts₁)
+ *     (n₃, ts₂)
+ *
+ * Iterating right-to-left starting from (n₃, ts₂) will yield the following
+ * pairs when calling next():
+ *
+ *     (n₂, ts₂)
+ *     (n₁, ts₁)
+ */
 export class TrainrunIterator {
   protected currentElement: TrainrunSectionNodePair = null;
   protected pointerElement: TrainrunSectionNodePair = null;
