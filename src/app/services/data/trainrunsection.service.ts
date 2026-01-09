@@ -13,7 +13,7 @@ import {TrainrunSectionValidator} from "../util/trainrunsection.validator";
 import {Trainrun} from "../../models/trainrun.model";
 import {MathUtils} from "../../utils/math";
 import {GeneralViewFunctions} from "../../view/util/generalViewFunctions";
-import {LeftAndRightTimeStructure} from "../../view/dialogs/trainrun-and-section-dialog/trainrunsection-tab/trainrun-section-tab.component";
+import {LeftAndRightTimeStructure} from "./trainrun-section-times.service";
 import {TrainrunsectionHelper} from "../util/trainrunsection.helper";
 import {LogService} from "../../logger/log.service";
 import {Transition} from "../../models/transition.model";

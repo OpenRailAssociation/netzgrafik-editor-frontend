@@ -3,6 +3,7 @@ import {NodeService} from "../data/node.service";
 import {ResourceService} from "../data/resource.service";
 import {TrainrunService} from "../data/trainrun.service";
 import {TrainrunSectionService} from "../data/trainrunsection.service";
+import {LeftAndRightTimeStructure} from "../data/trainrun-section-times.service";
 import {StammdatenService} from "../data/stammdaten.service";
 import {NoteService} from "../data/note.service";
 import {Node} from "../../models/node.model";
@@ -15,7 +16,6 @@ import {NetzgrafikUnitTesting} from "../../../integration-testing/netzgrafik.uni
 import {FilterService} from "../ui/filter.service";
 import {NetzgrafikColoringService} from "../data/netzgrafikColoring.service";
 import {TrainrunsectionHelper} from "./trainrunsection.helper";
-import {LeftAndRightTimeStructure} from "../../view/dialogs/trainrun-and-section-dialog/trainrunsection-tab/trainrun-section-tab.component";
 
 describe("TrainrunsectionHelper", () => {
   let dataService: DataService;
