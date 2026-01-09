@@ -301,9 +301,10 @@ export class TrainrunSectionTimesService {
     this.onTravelTimeChanged();
   }
 
-  updateTravelTimeChanged() {
+  onTravelTimeChanged() {
     this.showWarningTwoLocks = false;
     this.roundAllTimes();
+    this.removeOffsetAndBackTransformTimeStructure();
 
     if (!this.lockStructure.rightLock) {
       this.timeStructure.rightArrivalTime = MathUtils.mod60(
@@ -322,11 +323,7 @@ export class TrainrunSectionTimesService {
     } else {
       this.showWarningTwoLocks = true;
     }
-  }
 
-  onTravelTimeChanged() {
-    this.removeOffsetAndBackTransformTimeStructure();
-    this.updateTravelTimeChanged();
     this.updateTrainrunSectionTime();
     this.applyOffsetAndTransformTimeStructure();
   }
