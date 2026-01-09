@@ -224,7 +224,6 @@ export class TrainrunService {
           targetArrival,
           (60 - targetArrival) % 60,
           ts.getTravelTime(),
-          false, // disable event emission since UpdateTrainrunOperation is emitted below
         );
       });
 
@@ -791,6 +790,66 @@ export class TrainrunService {
       iterator.next();
     }
     return this.getCumSumTravelTimeNodePathToLastNonStopNode(
+      iterator.current().node,
+      iterator.current().trainrunSection,
+    );
+  }
+
+  sumBackwardTravelTimeUpToLastNonStopNode(node: Node, trainrunSection: TrainrunSection): number {
+    let summedBackwardTravelTime = 0;
+    const iterator = this.getBackwardNonStopIterator(node, trainrunSection);
+    while (iterator.hasNext()) {
+      const nextPair = iterator.next();
+      summedBackwardTravelTime += nextPair.trainrunSection.getBackwardTravelTime();
+    }
+    return summedBackwardTravelTime;
+  }
+
+  getCumulativeBackwardTravelTime(trainrunSection: TrainrunSection) {
+    const iterator = this.getBackwardNonStopIterator(
+      trainrunSection.getTargetNode(),
+      trainrunSection,
+    );
+    while (iterator.hasNext()) {
+      iterator.next();
+    }
+    return this.sumBackwardTravelTimeUpToLastNonStopNode(
+      iterator.current().node,
+      iterator.current().trainrunSection,
+    );
+  }
+
+  getCumSumBackwardTravelTimeNodePathToLastNonStopNode(n: Node, ts: TrainrunSection) {
+    const data = [
+      {
+        node: n,
+        sumBackwardTravelTime: 0,
+        trainrunSection: ts,
+      },
+    ];
+    let summedBackwardTravelTime = 0;
+    const iterator = this.getBackwardNonStopIterator(n, ts);
+    while (iterator.hasNext()) {
+      const nextPair = iterator.next();
+      summedBackwardTravelTime += nextPair.trainrunSection.getBackwardTravelTime();
+      data.push({
+        node: nextPair.node,
+        sumBackwardTravelTime: summedBackwardTravelTime,
+        trainrunSection: nextPair.trainrunSection,
+      });
+    }
+    return data;
+  }
+
+  getCumulativeBackwardTravelTimeAndNodePath(trainrunSection: TrainrunSection) {
+    const iterator = this.getBackwardNonStopIterator(
+      trainrunSection.getTargetNode(),
+      trainrunSection,
+    );
+    while (iterator.hasNext()) {
+      iterator.next();
+    }
+    return this.getCumSumBackwardTravelTimeNodePathToLastNonStopNode(
       iterator.current().node,
       iterator.current().trainrunSection,
     );

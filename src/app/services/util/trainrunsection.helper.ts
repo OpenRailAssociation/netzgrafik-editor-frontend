@@ -1,3 +1,4 @@
+import {DirectedTrainrunSectionProxy} from "./trainrun.iterator";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {Node} from "../../models/node.model";
 import {GeneralViewFunctions} from "../../view/util/generalViewFunctions";
@@ -36,6 +37,7 @@ export class TrainrunsectionHelper {
       rightDepartureTime: 0,
       rightArrivalTime: 0,
       travelTime: 0,
+      bottomTravelTime: 0,
     };
   }
 
@@ -121,6 +123,35 @@ export class TrainrunsectionHelper {
       rightSection: rightSection,
       lastLeftNode: lastLeftNode,
       lastRightNode: lastRightNode,
+    };
+  }
+
+  getLeftRightDirectedSectionProxies(trainrunSection: TrainrunSection, orderedNodes: Node[]) {
+    if (orderedNodes.length > 0) {
+      const direction =
+        orderedNodes[0].getId() === trainrunSection.getSourceNode().getId()
+          ? "sourceToTarget"
+          : "targetToSource";
+      const section = new DirectedTrainrunSectionProxy(trainrunSection, direction);
+      return {leftSection: section, rightSection: section};
+    }
+
+    const {leftSection, rightSection, lastLeftNode, lastRightNode} =
+      this.getLeftRightSections(trainrunSection);
+
+    return {
+      leftSection: new DirectedTrainrunSectionProxy(
+        leftSection,
+        leftSection.getSourceNode().getId() === lastLeftNode.getId()
+          ? "sourceToTarget"
+          : "targetToSource",
+      ),
+      rightSection: new DirectedTrainrunSectionProxy(
+        rightSection,
+        rightSection.getTargetNode().getId() === lastRightNode.getId()
+          ? "sourceToTarget"
+          : "targetToSource",
+      ),
     };
   }
 
@@ -282,12 +313,18 @@ export class TrainrunsectionHelper {
     orderedNodes: Node[],
   ): LeftAndRightTimeStructure {
     if (orderedNodes.length > 0) {
+      const direction =
+        orderedNodes[0].getId() === trainrunSection.getSourceNode().getId()
+          ? "sourceToTarget"
+          : "targetToSource";
+      const section = new DirectedTrainrunSectionProxy(trainrunSection, direction);
       return {
-        leftDepartureTime: orderedNodes[0].getDepartureTime(trainrunSection),
-        leftArrivalTime: orderedNodes[0].getArrivalTime(trainrunSection),
-        rightDepartureTime: orderedNodes[1].getDepartureTime(trainrunSection),
-        rightArrivalTime: orderedNodes[1].getArrivalTime(trainrunSection),
-        travelTime: trainrunSection.getTravelTime(),
+        leftDepartureTime: section.getTailDeparture(),
+        leftArrivalTime: section.getTailArrival(),
+        rightDepartureTime: section.getHeadDeparture(),
+        rightArrivalTime: section.getHeadArrival(),
+        travelTime: section.getTravelTime(),
+        bottomTravelTime: section.getReverseTravelTime(),
       };
     }
 
@@ -305,7 +342,14 @@ export class TrainrunsectionHelper {
       lastRightNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
         ? bothLastNonStopTrainrunSections.lastNonStopTrainrunSection1
         : bothLastNonStopTrainrunSections.lastNonStopTrainrunSection2;
-    const cumulativeTravelTime = this.trainrunService.getCumulativeTravelTime(trainrunSection);
+    const cumulativeTravelTime =
+      lastLeftNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
+        ? this.trainrunService.getCumulativeTravelTime(trainrunSection)
+        : this.trainrunService.getCumulativeBackwardTravelTime(trainrunSection);
+    const cumulativeBackwardTravelTime =
+      lastRightNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
+        ? this.trainrunService.getCumulativeTravelTime(trainrunSection)
+        : this.trainrunService.getCumulativeBackwardTravelTime(trainrunSection);
 
     return {
       leftDepartureTime: lastLeftNode.getDepartureTime(leftTrainrunSection),
@@ -313,6 +357,18 @@ export class TrainrunsectionHelper {
       rightDepartureTime: lastRightNode.getDepartureTime(rightTrainrunSection),
       rightArrivalTime: lastRightNode.getArrivalTime(rightTrainrunSection),
       travelTime: cumulativeTravelTime,
+      bottomTravelTime: cumulativeBackwardTravelTime,
+    };
+  }
+
+  getLeftAndRightSymmetries(trainrunSection: TrainrunSection, orderedNodes: Node[]) {
+    const {leftSection, rightSection} = this.getLeftRightDirectedSectionProxies(
+      trainrunSection,
+      orderedNodes,
+    );
+    return {
+      leftSymmetry: leftSection.getTailSymmetry(),
+      rightSymmetry: rightSection.getHeadSymmetry(),
     };
   }
 

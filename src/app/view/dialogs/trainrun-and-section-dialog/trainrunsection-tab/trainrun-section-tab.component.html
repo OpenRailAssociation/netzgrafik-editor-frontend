@@ -261,7 +261,7 @@
               tabindex="-1"
               mode="ghost"
               class="ButtonMinus"
-              (click)="trainrunSectionTimesService.onInputTravelTimeElementButtonMinus()"
+              (click)="trainrunSectionTimesService.onTravelTimeButtonMinus()"
             >
               -
             </button>
@@ -284,7 +284,7 @@
                 pattern="^[0-9.]*"
                 minlength="1"
                 [(ngModel)]="trainrunSectionTimesService.getTimeStructure().travelTime"
-                (change)="trainrunSectionTimesService.onInputTravelTimeChanged()"
+                (change)="trainrunSectionTimesService.onTravelTimeChanged()"
                 #travelTimeInputElement
               />
             </ng-container>
@@ -294,7 +294,7 @@
               tabindex="-1"
               mode="ghost"
               class="ButtonPlus"
-              (click)="trainrunSectionTimesService.onInputTravelTimeElementButtonPlus()"
+              (click)="trainrunSectionTimesService.onTravelTimeButtonPlus()"
             >
               +
             </button>
