@@ -1,3 +1,4 @@
+import {DirectedTrainrunSectionProxy} from "./trainrun.iterator";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {Node} from "../../models/node.model";
 import {GeneralViewFunctions} from "../../view/util/generalViewFunctions";
@@ -282,12 +283,17 @@ export class TrainrunsectionHelper {
     orderedNodes: Node[],
   ): LeftAndRightTimeStructure {
     if (orderedNodes.length > 0) {
+      const direction =
+        orderedNodes[0].getId() === trainrunSection.getSourceNode().getId()
+          ? "sourceToTarget"
+          : "targetToSource";
+      const section = new DirectedTrainrunSectionProxy(trainrunSection, direction);
       return {
-        leftDepartureTime: orderedNodes[0].getDepartureTime(trainrunSection),
-        leftArrivalTime: orderedNodes[0].getArrivalTime(trainrunSection),
-        rightDepartureTime: orderedNodes[1].getDepartureTime(trainrunSection),
-        rightArrivalTime: orderedNodes[1].getArrivalTime(trainrunSection),
-        travelTime: trainrunSection.getTravelTime(),
+        leftDepartureTime: section.getTailDeparture(),
+        leftArrivalTime: section.getTailArrival(),
+        rightDepartureTime: section.getHeadDeparture(),
+        rightArrivalTime: section.getHeadArrival(),
+        travelTime: section.getTravelTime(),
       };
     }
 
