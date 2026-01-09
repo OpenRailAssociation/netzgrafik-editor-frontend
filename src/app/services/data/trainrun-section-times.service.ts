@@ -22,17 +22,21 @@ const leftToRightStructureKeys = {
   tailDepartureTime: "leftDepartureTime",
   tailArrivalTime: "leftArrivalTime",
   tailLock: "leftLock",
+  tailSymmetry: "leftSymmetry",
   headDepartureTime: "rightDepartureTime",
   headArrivalTime: "rightArrivalTime",
   headLock: "rightLock",
+  headSymmetry: "rightSymmetry",
 } as const;
 const rightToLeftStructureKeys = {
   tailDepartureTime: "rightDepartureTime",
   tailArrivalTime: "rightArrivalTime",
   tailLock: "rightLock",
+  tailSymmetry: "rightSymmetry",
   headDepartureTime: "leftDepartureTime",
   headArrivalTime: "leftArrivalTime",
   headLock: "leftLock",
+  headSymmetry: "leftSymmetry",
 } as const;
 
 type LeftAndRightStructureKeys = typeof leftToRightStructureKeys | typeof rightToLeftStructureKeys;
@@ -73,6 +77,7 @@ export class TrainrunSectionTimesService {
   private offsetTransformationActive = false;
 
   private highlightTravelTimeElement: boolean;
+  private highlightBottomTravelTimeElement: boolean;
 
   private initialLeftAndRightElement: LeftAndRightElement = LeftAndRightElement.LeftArrival;
 
@@ -156,16 +161,15 @@ export class TrainrunSectionTimesService {
     this.roundAllTimes();
     this.removeOffsetAndBackTransformTimeStructure();
 
-    this.timeStructure[keys.tailArrivalTime] = TrainrunsectionHelper.getSymmetricTime(
-      this.timeStructure[keys.tailDepartureTime],
-    );
     if (!this.lockStructure[keys.headLock]) {
       this.timeStructure[keys.headArrivalTime] = MathUtils.mod60(
         this.timeStructure[keys.headDepartureTime] + (this.timeStructure.travelTime % 60),
       );
-      this.timeStructure[keys.headDepartureTime] = TrainrunsectionHelper.getSymmetricTime(
-        this.timeStructure[keys.headArrivalTime],
-      );
+      if (this.symmetryStructure[keys.headSymmetry]) {
+        this.timeStructure[keys.headDepartureTime] = TrainrunsectionHelper.getSymmetricTime(
+          this.timeStructure[keys.headArrivalTime],
+        );
+      }
     } else if (!this.lockStructure.travelTimeLock && this.lockStructure[keys.headLock]) {
       const extraHour = this.timeStructure.travelTime - (this.timeStructure.travelTime % 60);
       this.timeStructure.travelTime = MathUtils.mod60(
@@ -497,6 +501,10 @@ export class TrainrunSectionTimesService {
       this.timeStructure.travelTime,
       timeDisplayPrecision,
     );
+    this.timeStructure.bottomTravelTime = MathUtils.round(
+      this.timeStructure.bottomTravelTime,
+      timeDisplayPrecision,
+    );
   }
 
   private fixAllTimesPrecision() {
@@ -513,6 +521,8 @@ export class TrainrunSectionTimesService {
       timeDisplayPrecision;
     this.timeStructure.travelTime =
       Math.round(this.timeStructure.travelTime * timeDisplayPrecision) / timeDisplayPrecision;
+    this.timeStructure.bottomTravelTime =
+      Math.round(this.timeStructure.bottomTravelTime * timeDisplayPrecision) / timeDisplayPrecision;
   }
 
   private updateTrainrunSectionTime() {
@@ -538,5 +548,21 @@ export class TrainrunSectionTimesService {
       this.selectedTrainrunSection,
       this.filterService.getTimeDisplayPrecision(),
     );
+  }
+
+  private isLeftNodeSymmetric(): boolean {
+    if (TrainrunsectionHelper.isTargetRightOrBottom(this.selectedTrainrunSection)) {
+      return this.selectedTrainrunSection.getSourceSymmetry();
+    } else {
+      return this.selectedTrainrunSection.getTargetSymmetry();
+    }
+  }
+
+  private isRightNodeSymmetric(): boolean {
+    if (TrainrunsectionHelper.isTargetRightOrBottom(this.selectedTrainrunSection)) {
+      return this.selectedTrainrunSection.getTargetSymmetry();
+    } else {
+      return this.selectedTrainrunSection.getSourceSymmetry();
+    }
   }
 }
