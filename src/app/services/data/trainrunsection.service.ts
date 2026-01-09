@@ -927,6 +927,7 @@ export class TrainrunSectionService implements OnDestroy {
         rightIsTarget ? trsTimeStructure.rightArrivalTime : trsTimeStructure.leftArrivalTime,
         rightIsTarget ? trsTimeStructure.rightDepartureTime : trsTimeStructure.leftDepartureTime,
         trsTimeStructure.travelTime,
+        false,
       );
 
       trsTimeStructure.leftDepartureTime = trsTimeStructure.rightArrivalTime;
@@ -936,6 +937,7 @@ export class TrainrunSectionService implements OnDestroy {
 
     this.trainrunSectionsUpdated();
     this.nodeService.connectionsUpdated();
+    this.operation.emit(new TrainrunOperation(OperationType.update, trainrunSection.getTrainrun()));
   }
 
   trainrunSectionsUpdated() {
