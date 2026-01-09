@@ -361,6 +361,17 @@ export class TrainrunsectionHelper {
     };
   }
 
+  getLeftAndRightSymmetries(trainrunSection: TrainrunSection, orderedNodes: Node[]) {
+    const {leftSection, rightSection} = this.getLeftRightDirectedSectionProxies(
+      trainrunSection,
+      orderedNodes,
+    );
+    return {
+      leftSymmetry: leftSection.getTailSymmetry(),
+      rightSymmetry: rightSection.getHeadSymmetry(),
+    };
+  }
+
   getNextStopLeftNode(trainrunSection: TrainrunSection, orderedNodes: Node[]): Node {
     const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
     const bothNodesFound =
