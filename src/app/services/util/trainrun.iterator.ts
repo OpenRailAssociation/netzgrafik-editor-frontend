@@ -90,7 +90,15 @@ export class DirectedTrainrunSectionProxy {
   }
 
   getTravelTime(): number {
-    return this.trainrunSection.getTravelTime();
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getTravelTime()
+      : this.trainrunSection.getBackwardTravelTime();
+  }
+
+  getReverseTravelTime(): number {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getBackwardTravelTime()
+      : this.trainrunSection.getTravelTime();
   }
 
   setTailDeparture(time: number) {
@@ -126,7 +134,19 @@ export class DirectedTrainrunSectionProxy {
   }
 
   setTravelTime(time: number) {
-    this.trainrunSection.setTravelTime(time);
+    if (this.direction === "sourceToTarget") {
+      this.trainrunSection.setTravelTime(time);
+    } else {
+      this.trainrunSection.setBackwardTravelTime(time);
+    }
+  }
+
+  setReverseTravelTime(time: number) {
+    if (this.direction === "sourceToTarget") {
+      this.trainrunSection.setBackwardTravelTime(time);
+    } else {
+      this.trainrunSection.setTravelTime(time);
+    }
   }
 
   getTailDepartureLock(): boolean {
