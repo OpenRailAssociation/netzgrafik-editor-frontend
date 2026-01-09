@@ -13,6 +13,11 @@ import {TrainrunSection} from "../../models/trainrunsection.model";
 import {Node} from "../../models/node.model";
 import {LoadPerlenketteService} from "../../perlenkette/service/load-perlenkette.service";
 
+interface LeftAndRightSymmetryStructure {
+  leftSymmetry: boolean;
+  rightSymmetry: boolean;
+}
+
 const leftToRightStructureKeys = {
   tailDepartureTime: "leftDepartureTime",
   tailArrivalTime: "leftArrivalTime",
@@ -59,6 +64,11 @@ export class TrainrunSectionTimesService {
   private showWarningTwoLocks = false;
   private onLockButtonClicked = false;
 
+  private symmetryStructure: LeftAndRightSymmetryStructure = {
+    leftSymmetry: true,
+    rightSymmetry: true,
+  };
+
   private offset = 0;
   private offsetTransformationActive = false;
 
@@ -82,6 +92,11 @@ export class TrainrunSectionTimesService {
       this.nodesOrdered,
     );
     this.timeStructure = Object.assign({}, this.originalTimeStructure);
+
+    this.symmetryStructure = this.trainrunSectionHelper.getLeftAndRightSymmetries(
+      this.selectedTrainrunSection,
+      this.nodesOrdered,
+    );
   }
 
   public getTimeStructure(): LeftAndRightTimeStructure {
