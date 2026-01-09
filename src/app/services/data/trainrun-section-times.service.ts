@@ -288,17 +288,17 @@ export class TrainrunSectionTimesService {
   }
 
   /* Travel Time */
-  onInputTravelTimeElementButtonPlus() {
+  onTravelTimeButtonPlus() {
     this.timeStructure.travelTime += this.getTimeButtonPlusMinusStep(this.timeStructure.travelTime);
     this.highlightTravelTimeElement = false;
-    this.onInputTravelTimeChanged();
+    this.onTravelTimeChanged();
   }
 
-  onInputTravelTimeElementButtonMinus() {
+  onTravelTimeButtonMinus() {
     this.timeStructure.travelTime -= this.getTimeButtonPlusMinusStep(this.timeStructure.travelTime);
     this.timeStructure.travelTime = Math.max(1, this.timeStructure.travelTime);
     this.highlightTravelTimeElement = false;
-    this.onInputTravelTimeChanged();
+    this.onTravelTimeChanged();
   }
 
   updateTravelTimeChanged() {
@@ -324,7 +324,7 @@ export class TrainrunSectionTimesService {
     }
   }
 
-  onInputTravelTimeChanged() {
+  onTravelTimeChanged() {
     this.removeOffsetAndBackTransformTimeStructure();
     this.updateTravelTimeChanged();
     this.updateTrainrunSectionTime();
