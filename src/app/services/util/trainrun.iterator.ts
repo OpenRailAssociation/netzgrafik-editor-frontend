@@ -176,6 +176,34 @@ export class DirectedTrainrunSectionProxy {
   getTravelTimeLock(): boolean {
     return this.trainrunSection.getTravelTimeLock();
   }
+
+  getTailSymmetry(): boolean {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getSourceSymmetry()
+      : this.trainrunSection.getTargetSymmetry();
+  }
+
+  getHeadSymmetry(): boolean {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getTargetSymmetry()
+      : this.trainrunSection.getSourceSymmetry();
+  }
+
+  setTailSymmetry(symmetry: boolean) {
+    if (this.direction === "sourceToTarget") {
+      this.trainrunSection.setSourceSymmetry(symmetry);
+    } else {
+      this.trainrunSection.setTargetSymmetry(symmetry);
+    }
+  }
+
+  setHeadSymmetry(symmetry: boolean) {
+    if (this.direction === "sourceToTarget") {
+      this.trainrunSection.setTargetSymmetry(symmetry);
+    } else {
+      this.trainrunSection.setSourceSymmetry(symmetry);
+    }
+  }
 }
 
 /**
