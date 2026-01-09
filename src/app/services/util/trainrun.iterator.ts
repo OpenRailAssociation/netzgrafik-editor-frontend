@@ -176,6 +176,18 @@ export class DirectedTrainrunSectionProxy {
   getTravelTimeLock(): boolean {
     return this.trainrunSection.getTravelTimeLock();
   }
+
+  getTailSymmetry(): boolean {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getSourceSymmetry()
+      : this.trainrunSection.getTargetSymmetry();
+  }
+
+  getHeadSymmetry(): boolean {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getTargetSymmetry()
+      : this.trainrunSection.getSourceSymmetry();
+  }
 }
 
 /**
