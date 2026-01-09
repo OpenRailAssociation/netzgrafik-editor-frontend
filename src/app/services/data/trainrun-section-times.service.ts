@@ -24,6 +24,11 @@ export interface LeftAndRightLockStructure {
   travelTimeLock: boolean;
 }
 
+interface LeftAndRightSymmetryStructure {
+  leftSymmetry: boolean;
+  rightSymmetry: boolean;
+}
+
 const leftToRightStructureKeys = {
   tailDepartureTime: "leftDepartureTime",
   tailArrivalTime: "leftArrivalTime",
@@ -70,6 +75,11 @@ export class TrainrunSectionTimesService {
   private showWarningTwoLocks = false;
   private onLockButtonClicked = false;
 
+  private symmetryStructure: LeftAndRightSymmetryStructure = {
+    leftSymmetry: true,
+    rightSymmetry: true,
+  };
+
   private offset = 0;
   private offsetTransformationActive = false;
 
@@ -97,6 +107,10 @@ export class TrainrunSectionTimesService {
       this.selectedTrainrunSection,
       this.nodesOrdered,
     );
+    this.symmetryStructure = this.trainrunSectionHelper.getLeftAndRightSymmetries(
+      this.selectedTrainrunSection,
+      this.nodesOrdered,
+    );
   }
 
   public getTimeStructure(): LeftAndRightTimeStructure {
@@ -121,6 +135,10 @@ export class TrainrunSectionTimesService {
 
   public getLockStructure(): LeftAndRightLockStructure {
     return this.lockStructure;
+  }
+
+  public getSymmetryStructure(): LeftAndRightSymmetryStructure {
+    return this.symmetryStructure;
   }
 
   public getOffset(): number {
