@@ -22,22 +22,12 @@ import {Subject} from "rxjs";
 import {LinePatternRefs} from "../../../../data-structures/business.data.structures";
 import {StaticDomTags} from "../../../editor-main-view/data-views/static.dom.tags";
 import {ColorRefType} from "../../../../data-structures/technical.data.structures";
-import {TrainrunSectionTimesService} from "../../../../services/data/trainrun-section-times.service";
+import {
+  TrainrunSectionTimesService,
+  LeftAndRightLockStructure,
+  LeftAndRightTimeStructure,
+} from "../../../../services/data/trainrun-section-times.service";
 import {VersionControlService} from "../../../../services/data/version-control.service";
-
-export interface LeftAndRightTimeStructure {
-  leftDepartureTime: number;
-  leftArrivalTime: number;
-  rightDepartureTime: number;
-  rightArrivalTime: number;
-  travelTime: number;
-}
-
-export interface LeftAndRightLockStructure {
-  leftLock: boolean;
-  rightLock: boolean;
-  travelTimeLock: boolean;
-}
 
 @Component({
   selector: "sbb-trainrunsection-tab",
