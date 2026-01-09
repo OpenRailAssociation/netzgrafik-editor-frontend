@@ -1,14 +1,14 @@
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {Node} from "../../models/node.model";
 import {GeneralViewFunctions} from "../../view/util/generalViewFunctions";
-import {
-  LeftAndRightLockStructure,
-  LeftAndRightTimeStructure,
-} from "../../view/dialogs/trainrun-and-section-dialog/trainrunsection-tab/trainrun-section-tab.component";
 import {MathUtils} from "../../utils/math";
 import {TrainrunSectionText} from "../../data-structures/technical.data.structures";
 import {TrainrunService} from "../data/trainrun.service";
 import {TrainrunSectionService} from "../data/trainrunsection.service";
+import {
+  LeftAndRightLockStructure,
+  LeftAndRightTimeStructure,
+} from "../data/trainrun-section-times.service";
 
 export enum LeftAndRightElement {
   LeftDeparture,

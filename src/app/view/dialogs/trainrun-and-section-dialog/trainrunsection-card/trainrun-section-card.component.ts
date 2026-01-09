@@ -8,8 +8,10 @@ import {Node} from "../../../../models/node.model";
 import {Direction, LinePatternRefs} from "../../../../data-structures/business.data.structures";
 import {StaticDomTags} from "../../../editor-main-view/data-views/static.dom.tags";
 import {ColorRefType} from "../../../../data-structures/technical.data.structures";
-import {TrainrunSectionTimesService} from "../../../../services/data/trainrun-section-times.service";
-import {LeftAndRightTimeStructure} from "../trainrunsection-tab/trainrun-section-tab.component";
+import {
+  TrainrunSectionTimesService,
+  LeftAndRightTimeStructure,
+} from "../../../../services/data/trainrun-section-times.service";
 
 @Component({
   selector: "sbb-trainrunsection-card",
