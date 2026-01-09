@@ -37,6 +37,7 @@ export class TrainrunsectionHelper {
       rightDepartureTime: 0,
       rightArrivalTime: 0,
       travelTime: 0,
+      bottomTravelTime: 0,
     };
   }
 
@@ -272,7 +273,8 @@ export class TrainrunsectionHelper {
       mappedTimeStructure.leftArrivalTime = timeStructure.rightArrivalTime;
       mappedTimeStructure.rightDepartureTime = timeStructure.leftDepartureTime;
       mappedTimeStructure.leftDepartureTime = timeStructure.rightDepartureTime;
-      mappedTimeStructure.travelTime = timeStructure.travelTime;
+      mappedTimeStructure.travelTime = timeStructure.bottomTravelTime;
+      mappedTimeStructure.bottomTravelTime = timeStructure.travelTime;
       return mappedTimeStructure;
     }
     return timeStructure;
@@ -294,6 +296,7 @@ export class TrainrunsectionHelper {
         rightDepartureTime: section.getHeadDeparture(),
         rightArrivalTime: section.getHeadArrival(),
         travelTime: section.getTravelTime(),
+        bottomTravelTime: section.getReverseTravelTime(),
       };
     }
 
@@ -313,7 +316,15 @@ export class TrainrunsectionHelper {
         : bothLastNonStopTrainrunSections.lastNonStopTrainrunSection2;
     const cumulativeTravelTime = this.trainrunService.getCumulativeTravelTime(
       trainrunSection,
-      "sourceToTarget",
+      lastLeftNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
+        ? "targetToSource"
+        : "sourceToTarget",
+    );
+    const cumulativeBackwardTravelTime = this.trainrunService.getCumulativeTravelTime(
+      trainrunSection,
+      lastRightNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
+        ? "targetToSource"
+        : "sourceToTarget",
     );
 
     return {
@@ -322,6 +333,7 @@ export class TrainrunsectionHelper {
       rightDepartureTime: lastRightNode.getDepartureTime(rightTrainrunSection),
       rightArrivalTime: lastRightNode.getArrivalTime(rightTrainrunSection),
       travelTime: cumulativeTravelTime,
+      bottomTravelTime: cumulativeBackwardTravelTime,
     };
   }
 
