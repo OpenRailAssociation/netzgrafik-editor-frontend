@@ -151,7 +151,7 @@ describe("TrainrunSectionTimesService", () => {
       rightDepartureTime: () => trairunSectionTimesService.onNodeRightDepartureTimeChanged(),
       leftArrivalTime: () => trairunSectionTimesService.onNodeLeftArrivalTimeChanged(),
       rightArrivalTime: () => trairunSectionTimesService.onNodeRightArrivalTimeChanged(),
-      travelTime: () => trairunSectionTimesService.onInputTravelTimeChanged(),
+      travelTime: () => trairunSectionTimesService.onTravelTimeChanged(),
     };
 
     const testCases = [
