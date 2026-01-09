@@ -126,6 +126,35 @@ export class TrainrunsectionHelper {
     };
   }
 
+  getLeftRightDirectedSectionProxies(trainrunSection: TrainrunSection, orderedNodes: Node[]) {
+    if (orderedNodes.length > 0) {
+      const direction =
+        orderedNodes[0].getId() === trainrunSection.getSourceNode().getId()
+          ? "sourceToTarget"
+          : "targetToSource";
+      const section = new DirectedTrainrunSectionProxy(trainrunSection, direction);
+      return {leftSection: section, rightSection: section};
+    }
+
+    const {leftSection, rightSection, lastLeftNode, lastRightNode} =
+      this.getLeftRightSections(trainrunSection);
+
+    return {
+      leftSection: new DirectedTrainrunSectionProxy(
+        leftSection,
+        leftSection.getSourceNode().getId() === lastLeftNode.getId()
+          ? "sourceToTarget"
+          : "targetToSource",
+      ),
+      rightSection: new DirectedTrainrunSectionProxy(
+        rightSection,
+        rightSection.getTargetNode().getId() === lastRightNode.getId()
+          ? "sourceToTarget"
+          : "targetToSource",
+      ),
+    };
+  }
+
   getSourceLock(
     lockStructure: LeftAndRightLockStructure,
     trainrunSection: TrainrunSection,
