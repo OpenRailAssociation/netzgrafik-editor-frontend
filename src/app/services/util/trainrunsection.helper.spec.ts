@@ -89,6 +89,7 @@ describe("TrainrunsectionHelper", () => {
       rightDepartureTime: 20,
       rightArrivalTime: 40,
       travelTime: 10,
+      bottomTravelTime: 10,
     };
     const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
     expect(d.travelTime).toBe(0);
@@ -125,6 +126,7 @@ describe("TrainrunsectionHelper", () => {
       rightDepartureTime: 20,
       rightArrivalTime: 40,
       travelTime: 10,
+      bottomTravelTime: 10,
     };
     const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
     const a = TrainrunsectionHelper.getRightArrivalTime(d);
@@ -138,6 +140,7 @@ describe("TrainrunsectionHelper", () => {
       rightDepartureTime: 20,
       rightArrivalTime: 40,
       travelTime: 10,
+      bottomTravelTime: 10,
     };
     const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
     d.leftArrivalTime = -10;
@@ -152,6 +155,7 @@ describe("TrainrunsectionHelper", () => {
       rightDepartureTime: 20,
       rightArrivalTime: 40,
       travelTime: 10,
+      bottomTravelTime: 10,
     };
     const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
     d.leftDepartureTime = undefined;
@@ -166,6 +170,7 @@ describe("TrainrunsectionHelper", () => {
       rightDepartureTime: 20,
       rightArrivalTime: 40,
       travelTime: 10,
+      bottomTravelTime: 10,
     };
     const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
     const a = TrainrunsectionHelper.getRightDepartureTime(d);
@@ -179,6 +184,7 @@ describe("TrainrunsectionHelper", () => {
       rightDepartureTime: 20,
       rightArrivalTime: 40,
       travelTime: 10,
+      bottomTravelTime: 10,
     };
     const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
     d.rightArrivalTime = -10;
@@ -193,6 +199,7 @@ describe("TrainrunsectionHelper", () => {
       rightDepartureTime: 20,
       rightArrivalTime: 40,
       travelTime: 10,
+      bottomTravelTime: 10,
     };
     const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
     d.rightArrivalTime = undefined;
@@ -207,6 +214,7 @@ describe("TrainrunsectionHelper", () => {
       rightDepartureTime: 20,
       rightArrivalTime: 40,
       travelTime: 10,
+      bottomTravelTime: 10,
     };
     const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
     expect(d.travelTime).toBe(0);
@@ -243,6 +251,7 @@ describe("TrainrunsectionHelper", () => {
       rightDepartureTime: 20,
       rightArrivalTime: 40,
       travelTime: 10,
+      bottomTravelTime: 10,
     };
     const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
     const a = TrainrunsectionHelper.getRightArrivalTime(d);
@@ -256,6 +265,7 @@ describe("TrainrunsectionHelper", () => {
       rightDepartureTime: 20,
       rightArrivalTime: 40,
       travelTime: 10,
+      bottomTravelTime: 10,
     };
     const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
     d.leftArrivalTime = -10;
@@ -270,6 +280,7 @@ describe("TrainrunsectionHelper", () => {
       rightDepartureTime: 20,
       rightArrivalTime: 40,
       travelTime: 10,
+      bottomTravelTime: 10,
     };
     const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
     d.leftDepartureTime = undefined;
@@ -284,6 +295,7 @@ describe("TrainrunsectionHelper", () => {
       rightDepartureTime: 20,
       rightArrivalTime: 40,
       travelTime: 10,
+      bottomTravelTime: 10,
     };
     const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
     const a = TrainrunsectionHelper.getRightDepartureTime(d);
@@ -297,6 +309,7 @@ describe("TrainrunsectionHelper", () => {
       rightDepartureTime: 20,
       rightArrivalTime: 40,
       travelTime: 10,
+      bottomTravelTime: 10,
     };
     const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
     d.rightArrivalTime = -10;
@@ -311,6 +324,7 @@ describe("TrainrunsectionHelper", () => {
       rightDepartureTime: 20,
       rightArrivalTime: 40,
       travelTime: 10,
+      bottomTravelTime: 10,
     };
     const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
     d.rightArrivalTime = undefined;
