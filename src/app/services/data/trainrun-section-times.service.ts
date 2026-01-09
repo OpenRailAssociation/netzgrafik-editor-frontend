@@ -46,6 +46,7 @@ export class TrainrunSectionTimesService {
     rightDepartureTime: 0,
     rightArrivalTime: 0,
     travelTime: 0,
+    bottomTravelTime: 0,
   };
 
   private nodesOrdered: Node[] = [];

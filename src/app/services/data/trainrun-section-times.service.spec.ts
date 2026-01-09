@@ -100,6 +100,7 @@ describe("TrainrunSectionTimesService", () => {
           rightDepartureTime: 38,
           rightArrivalTime: 22,
           travelTime: 10,
+          bottomTravelTime: 10,
         },
       },
       {
@@ -111,6 +112,7 @@ describe("TrainrunSectionTimesService", () => {
           rightDepartureTime: 0,
           rightArrivalTime: 0,
           travelTime: 10,
+          bottomTravelTime: 10,
         },
       },
       {
@@ -122,6 +124,7 @@ describe("TrainrunSectionTimesService", () => {
           rightDepartureTime: 11,
           rightArrivalTime: 49,
           travelTime: 49,
+          bottomTravelTime: 49,
         },
       },
     ];
@@ -144,6 +147,7 @@ describe("TrainrunSectionTimesService", () => {
       rightDepartureTime: 38,
       rightArrivalTime: 22,
       travelTime: 10,
+      bottomTravelTime: 10,
     };
 
     const onChanged = {
@@ -207,6 +211,7 @@ describe("TrainrunSectionTimesService", () => {
           rightDepartureTime: 28,
           rightArrivalTime: 32,
           travelTime: 20,
+          bottomTravelTime: 20,
         },
       },
       {
@@ -218,6 +223,7 @@ describe("TrainrunSectionTimesService", () => {
           leftDepartureTime: 15,
           leftArrivalTime: 45,
           travelTime: 7,
+          bottomTravelTime: 7,
         },
       },
       {
@@ -229,6 +235,7 @@ describe("TrainrunSectionTimesService", () => {
           leftDepartureTime: 14,
           leftArrivalTime: 46,
           travelTime: 8,
+          bottomTravelTime: 8,
         },
       },
       {
@@ -240,6 +247,7 @@ describe("TrainrunSectionTimesService", () => {
           leftDepartureTime: 2,
           leftArrivalTime: 58,
           travelTime: 20,
+          bottomTravelTime: 20,
         },
       },
     ];
