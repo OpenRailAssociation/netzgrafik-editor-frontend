@@ -338,6 +338,7 @@ export class TrainrunSectionService implements OnDestroy {
     section.setHeadDeparture(timeStructure.rightDepartureTime);
     section.setHeadArrival(timeStructure.rightArrivalTime);
     section.setTravelTime(timeStructure.travelTime);
+    section.setReverseTravelTime(timeStructure.bottomTravelTime);
     this.trainrunSectionTimesUpdated(section.trainrunSection);
   }
 
