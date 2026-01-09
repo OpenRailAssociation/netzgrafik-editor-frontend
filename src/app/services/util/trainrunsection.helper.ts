@@ -37,6 +37,7 @@ export class TrainrunsectionHelper {
       rightDepartureTime: 0,
       rightArrivalTime: 0,
       travelTime: 0,
+      bottomTravelTime: 0,
     };
   }
 
@@ -294,6 +295,7 @@ export class TrainrunsectionHelper {
         rightDepartureTime: section.getHeadDeparture(),
         rightArrivalTime: section.getHeadArrival(),
         travelTime: section.getTravelTime(),
+        bottomTravelTime: section.getReverseTravelTime(),
       };
     }
 
@@ -311,7 +313,14 @@ export class TrainrunsectionHelper {
       lastRightNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
         ? bothLastNonStopTrainrunSections.lastNonStopTrainrunSection1
         : bothLastNonStopTrainrunSections.lastNonStopTrainrunSection2;
-    const cumulativeTravelTime = this.trainrunService.getCumulativeTravelTime(trainrunSection);
+    const cumulativeTravelTime =
+      lastLeftNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
+        ? this.trainrunService.getCumulativeTravelTime(trainrunSection)
+        : this.trainrunService.getCumulativeBackwardTravelTime(trainrunSection);
+    const cumulativeBackwardTravelTime =
+      lastRightNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
+        ? this.trainrunService.getCumulativeTravelTime(trainrunSection)
+        : this.trainrunService.getCumulativeBackwardTravelTime(trainrunSection);
 
     return {
       leftDepartureTime: lastLeftNode.getDepartureTime(leftTrainrunSection),
@@ -319,6 +328,7 @@ export class TrainrunsectionHelper {
       rightDepartureTime: lastRightNode.getDepartureTime(rightTrainrunSection),
       rightArrivalTime: lastRightNode.getArrivalTime(rightTrainrunSection),
       travelTime: cumulativeTravelTime,
+      bottomTravelTime: cumulativeBackwardTravelTime,
     };
   }
 

@@ -31,6 +31,7 @@ export interface LeftAndRightTimeStructure {
   rightDepartureTime: number;
   rightArrivalTime: number;
   travelTime: number;
+  bottomTravelTime: number;
 }
 
 export interface LeftAndRightLockStructure {
