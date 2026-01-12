@@ -92,6 +92,7 @@ export class TrainrunSectionTimesService {
   private offsetTransformationActive = false;
 
   private highlightTravelTimeElement: boolean;
+  private highlightBottomTravelTimeElement: boolean;
 
   private initialLeftAndRightElement: LeftAndRightElement = LeftAndRightElement.LeftArrival;
 
@@ -163,6 +164,14 @@ export class TrainrunSectionTimesService {
 
   public setHighlightTravelTimeElement(highlightTravelTimeElement: boolean) {
     this.highlightTravelTimeElement = highlightTravelTimeElement;
+  }
+
+  public getHighlightBottomTravelTimeElement() {
+    return this.highlightBottomTravelTimeElement;
+  }
+
+  public setHighlightBottomTravelTimeElement(highlightBottomTravelTimeElement: boolean) {
+    this.highlightBottomTravelTimeElement = highlightBottomTravelTimeElement;
   }
 
   public setInitialLeftAndRightElement(initialLeftAndRightElement: LeftAndRightElement) {
