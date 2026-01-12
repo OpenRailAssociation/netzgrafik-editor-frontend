@@ -81,6 +81,7 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
     this.categoryColorRef = selectedTrainrun.getCategoryColorRef();
     this.timeCategoryLinePattern = selectedTrainrun.getTimeCategoryLinePatternRef();
     this.trainrunSectionTimesService.setHighlightTravelTimeElement(false);
+    this.trainrunSectionTimesService.setHighlightBottomTravelTimeElement(false);
     this.trainrunSectionTimesService.applyOffsetAndTransformTimeStructure();
   }
 
