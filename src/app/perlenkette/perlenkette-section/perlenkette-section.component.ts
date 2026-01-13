@@ -101,12 +101,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
       this.perlenketteSection.toNode,
     ]);
     this.trainrunSectionTimesService.setTrainrunSection(this.trainrunSection);
-    this.trainrunSectionTimesService.setLockStructure(
-      this.trainrunSectionHelper.getLeftAndRightLock(
-        this.trainrunSection,
-        this.trainrunSectionTimesService.getNodesOrdered(),
-      ),
-    );
   }
 
   ngAfterContentInit() {
