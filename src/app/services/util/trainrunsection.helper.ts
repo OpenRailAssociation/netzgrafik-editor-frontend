@@ -5,7 +5,7 @@ import {GeneralViewFunctions} from "../../view/util/generalViewFunctions";
 import {MathUtils} from "../../utils/math";
 import {TrainrunSectionText} from "../../data-structures/technical.data.structures";
 import {TrainrunService} from "../data/trainrun.service";
-import {TrainrunSectionService} from "../data/trainrunsection.service";
+import {TrainrunSectionService, PartialTimeStructure} from "../data/trainrunsection.service";
 import {
   LeftAndRightLockStructure,
   LeftAndRightTimeStructure,
@@ -77,6 +77,16 @@ export class TrainrunsectionHelper {
     precision = TrainrunSectionService.TIME_PRECISION,
   ): number {
     return MathUtils.round(this.getSymmetricTime(timeStructure.rightArrivalTime), precision);
+  }
+
+  static getArrivalTime(
+    timeStructure: PartialTimeStructure,
+    precision = TrainrunSectionService.TIME_PRECISION,
+  ): number {
+    return MathUtils.round(
+      (timeStructure.departureTime + (timeStructure.travelTime % 60)) % 60,
+      precision,
+    );
   }
 
   getLeftBetriebspunkt(trainrunSection: TrainrunSection, orderedNodes: Node[]): string[] {
@@ -430,6 +440,16 @@ export class TrainrunsectionHelper {
   static isTargetRightOrBottom(trainrunSection: TrainrunSection): boolean {
     const sourceNode = trainrunSection.getSourceNode();
     const targetNode = trainrunSection.getTargetNode();
+
+    return GeneralViewFunctions.getRightOrBottomNode(sourceNode, targetNode) === targetNode;
+  }
+
+  static isChainTargetRightOrBottom(
+    firstTrainrunSection: TrainrunSection,
+    lastTrainrunSection: TrainrunSection,
+  ): boolean {
+    const sourceNode = firstTrainrunSection.getSourceNode();
+    const targetNode = lastTrainrunSection.getTargetNode();
 
     return GeneralViewFunctions.getRightOrBottomNode(sourceNode, targetNode) === targetNode;
   }
