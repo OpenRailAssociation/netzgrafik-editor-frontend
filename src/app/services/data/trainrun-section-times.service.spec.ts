@@ -250,12 +250,53 @@ describe("TrainrunSectionTimesService", () => {
           bottomTravelTime: 20,
         },
       },
+      {
+        leftAsymmetry: true,
+        key: "leftDepartureTime" as const,
+        value: 15,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          leftArrivalTime: 45,
+          rightDepartureTime: 35,
+          rightArrivalTime: 25,
+        },
+      },
+      {
+        rightLock: true,
+        leftAsymmetry: true,
+        key: "leftDepartureTime" as const,
+        value: 15,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          travelTime: 7,
+        },
+      },
+      {
+        leftAsymmetry: true,
+        rightAsymmetry: true,
+        key: "leftDepartureTime" as const,
+        value: 15,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          rightArrivalTime: 25,
+        },
+      },
+      // TODO: update travel time and arrival time
     ];
 
-    for (const {rightLock, key, value, expectedTimeStructure} of testCases) {
+    for (const {rightLock, leftAsymmetry, rightAsymmetry, key, value, expectedTimeStructure} of testCases) {
       let testName = `set ${key} to ${value}`;
       if (rightLock) {
         testName += " with rightLock";
+      }
+      if (leftAsymmetry) {
+        testName += " without leftSymmetry";
+      }
+      if (rightAsymmetry) {
+        testName += " without rightSymmetry";
       }
 
       it(testName, () => {
@@ -268,6 +309,18 @@ describe("TrainrunSectionTimesService", () => {
           lockStructure.travelTimeLock = false;
           lockStructure.rightLock = true;
           trairunSectionTimesService.updateTrainrunSectionTimeLock();
+        }
+
+        // Apply the symmetry update, if any
+        if (leftAsymmetry || rightAsymmetry) {
+          const symmetryStructure = trairunSectionTimesService.getSymmetryStructure();
+          if (leftAsymmetry) {
+            symmetryStructure.leftSymmetry = false;
+          }
+          if (rightAsymmetry) {
+            symmetryStructure.rightSymmetry = false;
+          }
+          // TODO: apply update
         }
 
         // Apply the time update
