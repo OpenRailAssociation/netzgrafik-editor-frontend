@@ -203,7 +203,7 @@ describe("TrainrunSection Service Test", () => {
   it("update trainrunSection time test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 
-    trainrunSectionService.updateTrainrunSectionTime(0, 58, 2, 12, 48, 10);
+    trainrunSectionService.updateTrainrunSectionTime(0, 58, 2, 12, 48, 10, 10);
 
     const trainrunSection = trainrunSectionService.getTrainrunSectionFromId(0);
     expect(trainrunSection.getSourceArrival()).toBe(58);
@@ -215,7 +215,7 @@ describe("TrainrunSection Service Test", () => {
   it("propagate time test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 
-    trainrunSectionService.updateTrainrunSectionTime(0, 58, 2, 12, 48, 10);
+    trainrunSectionService.updateTrainrunSectionTime(0, 58, 2, 12, 48, 10, 10);
     trainrunSectionService.propagateTimeAlongTrainrun(0, 0);
     trainrunSectionService.propagateTimeAlongTrainrun(0, 1);
 
