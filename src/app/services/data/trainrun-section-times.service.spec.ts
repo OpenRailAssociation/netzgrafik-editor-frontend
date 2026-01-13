@@ -1,0 +1,138 @@
+import {DataService} from "../data/data.service";
+import {NodeService} from "../data/node.service";
+import {ResourceService} from "../data/resource.service";
+import {TrainrunService} from "../data/trainrun.service";
+import {TrainrunSectionService} from "../data/trainrunsection.service";
+import {StammdatenService} from "../data/stammdaten.service";
+import {NoteService} from "../data/note.service";
+import {Node} from "../../models/node.model";
+import {TrainrunSection} from "../../models/trainrunsection.model";
+import {LogService} from "../../logger/log.service";
+import {LogPublishersService} from "../../logger/log.publishers.service";
+import {LabelGroupService} from "../data/labelgroup.service";
+import {LabelService} from "./label.service";
+import {NetzgrafikUnitTesting} from "../../../integration-testing/netzgrafik.unit.testing";
+import {FilterService} from "../ui/filter.service";
+import {NetzgrafikColoringService} from "../data/netzgrafikColoring.service";
+import {TrainrunSectionTimesService} from "./trainrun-section-times.service";
+import {LoadPerlenketteService} from "../../perlenkette/service/load-perlenkette.service";
+
+describe("TrainrunSectionTimesService", () => {
+  let dataService: DataService;
+  let nodeService: NodeService;
+  let resourceService: ResourceService;
+  let trainrunService: TrainrunService;
+  let trainrunSectionService: TrainrunSectionService;
+  let stammdatenService: StammdatenService;
+  let noteService: NoteService;
+  let nodes: Node[];
+  let trainrunSections: TrainrunSection[];
+  let logService: LogService;
+  let logPublishersService: LogPublishersService;
+  let labelGroupService: LabelGroupService;
+  let labelService: LabelService;
+  let filterService: FilterService;
+  let netzgrafikColoringService: NetzgrafikColoringService;
+  let loadPerlenketteService: LoadPerlenketteService;
+  let trainrunSectionTimesService: TrainrunSectionTimesService;
+
+  beforeEach(() => {
+    stammdatenService = new StammdatenService();
+    resourceService = new ResourceService();
+    logPublishersService = new LogPublishersService();
+    logService = new LogService(logPublishersService);
+    labelGroupService = new LabelGroupService(logService);
+    labelService = new LabelService(logService, labelGroupService);
+    filterService = new FilterService(labelService, labelGroupService);
+    trainrunService = new TrainrunService(logService, labelService, filterService);
+    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
+    nodeService = new NodeService(
+      logService,
+      resourceService,
+      trainrunService,
+      trainrunSectionService,
+      labelService,
+      filterService,
+    );
+    noteService = new NoteService(logService, labelService, filterService);
+    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    dataService = new DataService(
+      resourceService,
+      nodeService,
+      trainrunSectionService,
+      trainrunService,
+      stammdatenService,
+      noteService,
+      labelService,
+      labelGroupService,
+      filterService,
+      netzgrafikColoringService,
+    );
+    loadPerlenketteService = new LoadPerlenketteService(
+      trainrunService,
+      trainrunSectionService,
+      nodeService,
+      filterService,
+    );
+    trainrunSectionTimesService = new TrainrunSectionTimesService(
+      trainrunService,
+      trainrunSectionService,
+      filterService,
+      loadPerlenketteService,
+    );
+
+    nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
+    trainrunSectionService.trainrunSections.subscribe(
+      (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
+    );
+
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+  });
+
+  describe("getTimeStructure", () => {
+    const testCases = [
+      {
+        name: "single section, source on the left",
+        id: 1,
+        expectedTimeStructure: {
+          leftDepartureTime: 12,
+          leftArrivalTime: 48,
+          rightDepartureTime: 38,
+          rightArrivalTime: 22,
+          travelTime: 10,
+        },
+      },
+      {
+        name: "single section, source on the right",
+        id: 7,
+        expectedTimeStructure: {
+          leftDepartureTime: 50,
+          leftArrivalTime: 10,
+          rightDepartureTime: 0,
+          rightArrivalTime: 0,
+          travelTime: 10,
+        },
+      },
+      {
+        name: "multiple sections, source on the left",
+        id: 4,
+        expectedTimeStructure: {
+          leftDepartureTime: 0,
+          leftArrivalTime: 0,
+          rightDepartureTime: 11,
+          rightArrivalTime: 49,
+          travelTime: 49,
+        },
+      },
+    ];
+
+    for (const {name, id, expectedTimeStructure} of testCases) {
+      it(`${name} (section ${id})`, () => {
+        const ts = trainrunSectionService.getTrainrunSectionFromId(id);
+        trainrunSectionTimesService.setTrainrunSection(ts);
+        const timeStructure = trainrunSectionTimesService.getTimeStructure();
+        expect(timeStructure).toEqual(expectedTimeStructure);
+      });
+    }
+  });
+});
