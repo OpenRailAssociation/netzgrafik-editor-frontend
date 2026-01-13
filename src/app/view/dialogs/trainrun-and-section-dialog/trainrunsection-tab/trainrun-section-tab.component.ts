@@ -140,12 +140,6 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     this.numberOfStops = this.selectedTrainrunSection.getNumberOfStops();
     this.trainrunSectionTimesService.applyOffsetAndTransformTimeStructure();
 
-    this.trainrunSectionTimesService.setLockStructure(
-      this.trainrunSectionHelper.getLeftAndRightLock(
-        this.selectedTrainrunSection,
-        this.trainrunSectionTimesService.getNodesOrdered(),
-      ),
-    );
     this.leftBetriebspunkt = this.trainrunSectionHelper.getLeftBetriebspunkt(
       this.selectedTrainrunSection,
       this.trainrunSectionTimesService.getNodesOrdered(),

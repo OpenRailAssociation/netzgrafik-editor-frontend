@@ -61,6 +61,10 @@ export class TrainrunSectionTimesService {
       this.nodesOrdered,
     );
     this.timeStructure = Object.assign({}, this.originalTimeStructure);
+    this.lockStructure = this.trainrunSectionHelper.getLeftAndRightLock(
+      this.selectedTrainrunSection,
+      this.nodesOrdered,
+    );
   }
 
   public getTimeStructure(): LeftAndRightTimeStructure {
@@ -85,10 +89,6 @@ export class TrainrunSectionTimesService {
 
   public getLockStructure(): LeftAndRightLockStructure {
     return this.lockStructure;
-  }
-
-  public setLockStructure(lockStructure: LeftAndRightLockStructure) {
-    this.lockStructure = lockStructure;
   }
 
   public getOffset(): number {
