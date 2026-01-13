@@ -135,4 +135,97 @@ describe("TrainrunSectionTimesService", () => {
       });
     }
   });
+
+  describe("update", () => {
+    const trainrunSectionId = 1;
+    const originalTimeStructure = {
+      leftDepartureTime: 12,
+      leftArrivalTime: 48,
+      rightDepartureTime: 38,
+      rightArrivalTime: 22,
+      travelTime: 10,
+    };
+
+    const onChanged = {
+      leftDepartureTime: () => trairunSectionTimesService.onNodeLeftDepartureTimeChanged(),
+      rightDepartureTime: () => trairunSectionTimesService.onNodeRightDepartureTimeChanged(),
+      leftArrivalTime: () => trairunSectionTimesService.onNodeLeftArrivalTimeChanged(),
+      rightArrivalTime: () => trairunSectionTimesService.onNodeRightArrivalTimeChanged(),
+      travelTime: () => trairunSectionTimesService.onInputTravelTimeChanged(),
+    };
+
+    const testCases = [
+      {
+        key: "leftDepartureTime" as const,
+        value: 15,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          leftArrivalTime: 45,
+          rightDepartureTime: 35,
+          rightArrivalTime: 25,
+        },
+      },
+      {
+        key: "rightDepartureTime" as const,
+        value: 35,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          leftArrivalTime: 45,
+          rightDepartureTime: 35,
+          rightArrivalTime: 25,
+        },
+      },
+      {
+        key: "leftArrivalTime" as const,
+        value: 51,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 9,
+          leftArrivalTime: 51,
+          rightDepartureTime: 41,
+          rightArrivalTime: 19,
+        },
+      },
+      {
+        key: "rightArrivalTime" as const,
+        value: 3,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 53,
+          leftArrivalTime: 7,
+          rightDepartureTime: 57,
+          rightArrivalTime: 3,
+        },
+      },
+      {
+        key: "travelTime" as const,
+        value: 20,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          rightDepartureTime: 28,
+          rightArrivalTime: 32,
+          travelTime: 20,
+        },
+      },
+    ];
+
+    for (const {key, value, expectedTimeStructure} of testCases) {
+      it(`set ${key} to ${value}`, () => {
+        const ts = trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
+        trairunSectionTimesService.setTrainrunSection(ts);
+
+        // Apply the time update
+        const timeStructure = trairunSectionTimesService.getTimeStructure();
+        timeStructure[key] = value;
+        onChanged[key]();
+
+        // Reload time structure from model and check
+        trairunSectionTimesService.setTrainrunSection(ts);
+        const updatedTimeStructure = trairunSectionTimesService.getTimeStructure();
+        expect(updatedTimeStructure).toEqual(expectedTimeStructure);
+      });
+    }
+  });
 });
