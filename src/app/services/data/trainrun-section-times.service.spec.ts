@@ -250,6 +250,7 @@ describe("TrainrunSectionTimesService", () => {
           bottomTravelTime: 20,
         },
       },
+
       // negative times tests
       {
         key: "leftDepartureTime" as const,
@@ -295,20 +296,152 @@ describe("TrainrunSectionTimesService", () => {
           rightArrivalTime: 3,
         },
       },
+
+      // asymmetric tests
+      {
+        leftAsymmetry: true,
+        key: "leftDepartureTime" as const,
+        value: 15,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          leftArrivalTime: 45,
+          rightDepartureTime: 35,
+          rightArrivalTime: 25,
+        },
+      },
+      {
+        leftAsymmetry: true,
+        leftLock: true,
+        key: "leftDepartureTime" as const,
+        value: 15,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          rightDepartureTime: 35,
+          rightArrivalTime: 25,
+          bottomTravelTime: 13,
+        },
+      },
+      {
+        rightLock: true,
+        leftAsymmetry: true,
+        key: "leftDepartureTime" as const,
+        value: 15,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          travelTime: 7,
+        },
+      },
+      {
+        leftAsymmetry: true,
+        rightAsymmetry: true,
+        key: "leftDepartureTime" as const,
+        value: 15,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          rightArrivalTime: 25,
+        },
+      },
+      {
+        rightAsymmetry: true,
+        key: "travelTime" as const,
+        value: 20,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          rightArrivalTime: 32,
+          travelTime: 20,
+        },
+      },
+      {
+        leftAsymmetry: true,
+        rightLock: true,
+        key: "travelTime" as const,
+        value: 20,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 2,
+          travelTime: 20,
+        },
+      },
+      {
+        rightAsymmetry: true,
+        key: "rightArrivalTime" as const,
+        value: 3,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 53,
+          leftArrivalTime: 7,
+          rightDepartureTime: 57,
+          rightArrivalTime: 3,
+        },
+      },
+      {
+        rightLock: true,
+        rightAsymmetry: true,
+        key: "rightArrivalTime" as const,
+        value: 3,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 53,
+          leftArrivalTime: 7,
+          rightArrivalTime: 3,
+          bottomTravelTime: 29,
+        },
+      },
+      {
+        leftAsymmetry: true,
+        rightAsymmetry: true,
+        key: "rightArrivalTime" as const,
+        value: 3,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 53,
+          rightArrivalTime: 3,
+        },
+      },
     ];
 
-    for (const {rightLock, key, value, expectedTimeStructure} of testCases) {
-      const rightLockDesc = rightLock ? "with rightLock" : "";
-      it(`set ${key} to ${value} ${rightLockDesc}`, () => {
+    for (const {
+      leftLock,
+      rightLock,
+      leftAsymmetry,
+      rightAsymmetry,
+      key,
+      value,
+      expectedTimeStructure,
+    } of testCases) {
+      const options = {
+        leftLock,
+        rightLock,
+        leftAsymmetry,
+        rightAsymmetry,
+      };
+      const optionsDesc = Object.entries(options)
+        .filter(([option, enabled]) => enabled)
+        .map(([option, enabled]) => `with ${option}`)
+        .join(" ");
+      it(`set ${key} to ${value} ${optionsDesc}`, () => {
         const ts = trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
         trainrunSectionTimesService.setTrainrunSection(ts);
 
         // Apply the lock update, if any
-        if (rightLock) {
+        if (leftLock || rightLock) {
           const lockStructure = trainrunSectionTimesService.getLockStructure();
           lockStructure.travelTimeLock = false;
-          lockStructure.rightLock = true;
+          lockStructure.leftLock = leftLock;
+          lockStructure.rightLock = rightLock;
           trainrunSectionTimesService.updateTrainrunSectionTimeLock();
+        }
+
+        // Apply the symmetry update, if any
+        if (leftAsymmetry || rightAsymmetry) {
+          const symmetryStructure = trainrunSectionTimesService.getSymmetryStructure();
+          symmetryStructure.leftSymmetry = !leftAsymmetry;
+          symmetryStructure.rightSymmetry = !rightAsymmetry;
+          // TODO: apply update
         }
 
         // Apply the time update
