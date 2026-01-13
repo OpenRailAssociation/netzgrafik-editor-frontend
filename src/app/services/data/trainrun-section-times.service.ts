@@ -135,6 +135,10 @@ export class TrainrunSectionTimesService {
     return this.lockStructure;
   }
 
+  public getSymmetryStructure(): LeftAndRightSymmetryStructure {
+    return this.symmetryStructure;
+  }
+
   public getOffset(): number {
     return this.offset;
   }
