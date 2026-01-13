@@ -319,6 +319,7 @@ export class TrainrunSectionService implements OnDestroy {
     targetArrival: number,
     targetDeparture: number,
     travelTime: number,
+    backwardTravelTime: number,
   ) {
     const trainrunSection = this.getTrainrunSectionFromId(trsId);
     trainrunSection.setSourceArrival(sourceArrivalTime);
@@ -326,6 +327,7 @@ export class TrainrunSectionService implements OnDestroy {
     trainrunSection.setTargetArrival(targetArrival);
     trainrunSection.setTargetDeparture(targetDeparture);
     trainrunSection.setTravelTime(travelTime);
+    trainrunSection.setBackwardTravelTime(backwardTravelTime);
     this.trainrunSectionTimesUpdated(trainrunSection);
   }
 
