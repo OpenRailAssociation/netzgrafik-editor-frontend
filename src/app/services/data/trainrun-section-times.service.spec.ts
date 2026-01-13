@@ -250,11 +250,50 @@ describe("TrainrunSectionTimesService", () => {
           bottomTravelTime: 20,
         },
       },
+      {
+        leftAsymmetry: true,
+        key: "leftDepartureTime" as const,
+        value: 15,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          leftArrivalTime: 45,
+          rightDepartureTime: 35,
+          rightArrivalTime: 25,
+        },
+      },
+      {
+        rightLock: true,
+        leftAsymmetry: true,
+        key: "leftDepartureTime" as const,
+        value: 15,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          travelTime: 7,
+        },
+      },
+      {
+        leftAsymmetry: true,
+        rightAsymmetry: true,
+        key: "leftDepartureTime" as const,
+        value: 15,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          rightArrivalTime: 25,
+        },
+      },
+      // TODO: update travel time and arrival time
     ];
 
-    for (const {rightLock, key, value, expectedTimeStructure} of testCases) {
-      const rightLockDesc = rightLock ? "with rightLock" : "";
-      it(`set ${key} to ${value} ${rightLockDesc}`, () => {
+    for (const {rightLock, leftAsymmetry, rightAsymmetry, key, value, expectedTimeStructure} of testCases) {
+      const optionsDesc = [
+        rightLock ? "with rightLock" : null,
+        leftAsymmetry ? "with leftAsymmetry" : null,
+        rightAsymmetry ? "with rightAsymmetry" : null,
+      ].filter((desc) => desc != null).join(' ');
+      it(`set ${key} to ${value} ${optionsDesc}`, () => {
         const ts = trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
         trainrunSectionTimesService.setTrainrunSection(ts);
 
@@ -264,6 +303,18 @@ describe("TrainrunSectionTimesService", () => {
           lockStructure.travelTimeLock = false;
           lockStructure.rightLock = true;
           trainrunSectionTimesService.updateTrainrunSectionTimeLock();
+        }
+
+        // Apply the symmetry update, if any
+        if (leftAsymmetry || rightAsymmetry) {
+          const symmetryStructure = trainrunSectionTimesService.getSymmetryStructure();
+          if (leftAsymmetry) {
+            symmetryStructure.leftSymmetry = false;
+          }
+          if (rightAsymmetry) {
+            symmetryStructure.rightSymmetry = false;
+          }
+          // TODO: apply update
         }
 
         // Apply the time update
