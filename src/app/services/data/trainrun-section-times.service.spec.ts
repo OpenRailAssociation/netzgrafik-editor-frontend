@@ -209,12 +209,58 @@ describe("TrainrunSectionTimesService", () => {
           travelTime: 20,
         },
       },
+      {
+        rightLock: true,
+        key: "leftDepartureTime" as const,
+        value: 15,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          leftArrivalTime: 45,
+          travelTime: 7,
+        },
+      },
+      {
+        rightLock: true,
+        key: "leftArrivalTime" as const,
+        value: 46,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 14,
+          leftArrivalTime: 46,
+          travelTime: 8,
+        },
+      },
+      {
+        rightLock: true,
+        key: "travelTime" as const,
+        value: 20,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 2,
+          leftArrivalTime: 58,
+          travelTime: 20,
+        },
+      },
     ];
 
-    for (const {key, value, expectedTimeStructure} of testCases) {
-      it(`set ${key} to ${value}`, () => {
+    for (const {rightLock, key, value, expectedTimeStructure} of testCases) {
+      let testName = `set ${key} to ${value}`;
+      if (rightLock) {
+        testName += " with rightLock";
+      }
+
+      it(testName, () => {
         const ts = trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
         trairunSectionTimesService.setTrainrunSection(ts);
+
+        // Apply the lock update, if any
+        if (rightLock) {
+          const lockStructure = trairunSectionTimesService.getLockStructure();
+          lockStructure.travelTimeLock = false;
+          lockStructure.rightLock = true;
+          trairunSectionTimesService.updateTrainrunSectionTimeLock();
+        }
 
         // Apply the time update
         const timeStructure = trairunSectionTimesService.getTimeStructure();
