@@ -796,7 +796,7 @@ export class TrainrunSectionService implements OnDestroy {
   ) {
     const newTotalTravelTime = timeStructure.travelTime;
 
-    const oldTotalTravelTime = this.trainrunService.getCumulativeTravelTime(trainrunSection);
+    const oldTotalTravelTime = this.trainrunService.getCumulativeTravelTime(trainrunSection, 'sourceToTarget');
     const travelTimeFactor = newTotalTravelTime / oldTotalTravelTime;
 
     // prepare data structure for the first trainrunsection

@@ -741,7 +741,7 @@ export class TrainrunService {
     return iterator.current().trainrunSection;
   }
 
-  getCumulativeTravelTime(trainrunSection: TrainrunSection) {
+  getCumulativeTravelTime(trainrunSection: TrainrunSection, direction: 'sourceToTarget' | 'targetToSource') {
     let iterator = this.getNonStopIterator(trainrunSection.getSourceNode(), trainrunSection);
     while (iterator.hasNext()) {
       iterator.next();
@@ -751,7 +751,11 @@ export class TrainrunService {
     let summedTravelTime = 0;
     while (iterator.hasNext()) {
       const nextPair = iterator.next();
-      summedTravelTime += nextPair.trainrunSection.getTravelTime();
+      if (direction == 'sourceToTarget') {
+        summedTravelTime += nextPair.trainrunSection.getTravelTime();
+      } else {
+        summedTravelTime += nextPair.trainrunSection.getBackwardTravelTime();
+      }
     }
     return summedTravelTime;
   }
@@ -784,30 +788,6 @@ export class TrainrunService {
       iterator.next();
     }
     return this.getCumSumTravelTimeNodePathToLastNonStopNode(
-      iterator.current().node,
-      iterator.current().trainrunSection,
-    );
-  }
-
-  sumBackwardTravelTimeUpToLastNonStopNode(node: Node, trainrunSection: TrainrunSection): number {
-    let summedBackwardTravelTime = 0;
-    const iterator = this.getBackwardNonStopIterator(node, trainrunSection);
-    while (iterator.hasNext()) {
-      const nextPair = iterator.next();
-      summedBackwardTravelTime += nextPair.trainrunSection.getBackwardTravelTime();
-    }
-    return summedBackwardTravelTime;
-  }
-
-  getCumulativeBackwardTravelTime(trainrunSection: TrainrunSection) {
-    const iterator = this.getBackwardNonStopIterator(
-      trainrunSection.getTargetNode(),
-      trainrunSection,
-    );
-    while (iterator.hasNext()) {
-      iterator.next();
-    }
-    return this.sumBackwardTravelTimeUpToLastNonStopNode(
       iterator.current().node,
       iterator.current().trainrunSection,
     );
