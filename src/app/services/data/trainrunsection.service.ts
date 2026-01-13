@@ -19,7 +19,11 @@ import {LogService} from "../../logger/log.service";
 import {Transition} from "../../models/transition.model";
 import {takeUntil} from "rxjs/operators";
 import {FilterService} from "../ui/filter.service";
-import {DirectedTrainrunSectionProxy} from "../util/trainrun.iterator";
+import {
+  DirectedTrainrunSectionProxy,
+  TrainrunSectionNodePair,
+  TrainrunIterator,
+} from "../util/trainrun.iterator";
 import {Operation, OperationType, TrainrunOperation} from "../../models/operation.model";
 
 interface DepartureAndArrivalTimes {
@@ -801,65 +805,107 @@ export class TrainrunSectionService implements OnDestroy {
     trainrunSection: TrainrunSection,
     precision = 0,
   ) {
-    const newTotalTravelTime = timeStructure.travelTime;
+    const firstTrainrunSection =
+      this.trainrunService.getFirstNonStopTrainrunSection(trainrunSection);
+    const firstSourceNode = firstTrainrunSection.getSourceNode();
+    const lastTrainrunSection = this.trainrunService.getLastNonStopTrainrunSection(
+      firstSourceNode,
+      firstTrainrunSection,
+    );
+    const lastTargetNode = lastTrainrunSection.getTargetNode();
 
-    const oldTotalTravelTime = this.trainrunService.getCumulativeTravelTime(
-      trainrunSection,
+    // Get rid of left/right paradigm
+    const isTargetRightOrBottom =
+      GeneralViewFunctions.getRightOrBottomNode(firstSourceNode, lastTargetNode) === lastTargetNode;
+    let sourceDepartureTime, travelTime, targetDepartureTime, backwardTravelTime;
+    if (isTargetRightOrBottom) {
+      sourceDepartureTime = timeStructure.leftDepartureTime;
+      targetDepartureTime = timeStructure.rightDepartureTime;
+      travelTime = timeStructure.travelTime;
+      backwardTravelTime = timeStructure.bottomTravelTime;
+    } else {
+      sourceDepartureTime = timeStructure.rightDepartureTime;
+      targetDepartureTime = timeStructure.leftDepartureTime;
+      travelTime = timeStructure.bottomTravelTime;
+      backwardTravelTime = timeStructure.travelTime;
+    }
+
+    // Source to target
+    const totalCumulativeTravelTime = this.trainrunService.getCumulativeTravelTime(
+      firstTrainrunSection,
       "sourceToTarget",
     );
-    const travelTimeFactor = newTotalTravelTime / oldTotalTravelTime;
+    this.setTimeStructureInDirection({
+      chainDepartureTime: sourceDepartureTime,
+      chainTravelTime: travelTime,
+      iterator: this.trainrunService.getNonStopIterator(firstSourceNode, firstTrainrunSection),
+      totalCumulativeTravelTime: totalCumulativeTravelTime,
+      precision,
+    });
 
-    // prepare data structure for the first trainrunsection
-    const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
-    const bothLastNonStopTrainrunSections =
-      this.trainrunService.getBothLastNonStopTrainrunSections(trainrunSection);
-    const leftNode = GeneralViewFunctions.getLeftOrTopNode(
-      bothLastNonStopNodes.lastNonStopNode1,
-      bothLastNonStopNodes.lastNonStopNode2,
+    // Target to source
+    const totalCumulativeBackwardTravelTime = this.trainrunService.getCumulativeTravelTime(
+      lastTrainrunSection,
+      "targetToSource",
     );
-    const trs =
-      leftNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
-        ? bothLastNonStopTrainrunSections.lastNonStopTrainrunSection1
-        : bothLastNonStopTrainrunSections.lastNonStopTrainrunSection2;
+    this.setTimeStructureInDirection({
+      chainDepartureTime: targetDepartureTime,
+      chainTravelTime: backwardTravelTime,
+      iterator: this.trainrunService.getNonStopIterator(lastTargetNode, lastTrainrunSection),
+      totalCumulativeTravelTime: totalCumulativeBackwardTravelTime,
+      precision,
+    });
 
-    const trsTimeStructure = TrainrunsectionHelper.getDefaultTimeStructure(timeStructure);
-    let summedTravelTime = 0;
-
-    const iterator = this.trainrunService.getNonStopIterator(leftNode, trs);
+    const iterator = this.trainrunService.getNonStopIterator(firstSourceNode, firstTrainrunSection);
     while (iterator.hasNext()) {
-      const nextPair = iterator.next();
-
-      const isRightNodeNonStop = nextPair.node.isNonStop(nextPair.trainrunSection);
-      trsTimeStructure.travelTime = TrainrunsectionHelper.getTravelTime(
-        newTotalTravelTime,
-        summedTravelTime,
-        travelTimeFactor,
-        nextPair.trainrunSection.getTravelTime(),
-        isRightNodeNonStop,
-        precision,
-      );
-      trsTimeStructure.rightArrivalTime = TrainrunsectionHelper.getRightArrivalTime(
-        trsTimeStructure,
-        precision,
-      );
-      trsTimeStructure.rightDepartureTime = TrainrunsectionHelper.getRightDepartureTime(
-        trsTimeStructure,
-        precision,
-      );
-
-      this.updateTrainrunSectionLeftAndRightTimes(
-        nextPair.getDirectedTrainrunSectionProxy(),
-        trsTimeStructure,
-      );
-
-      trsTimeStructure.leftDepartureTime = trsTimeStructure.rightArrivalTime;
-      trsTimeStructure.leftArrivalTime = trsTimeStructure.rightDepartureTime;
-      summedTravelTime += trsTimeStructure.travelTime;
+      const pair = iterator.next();
+      this.trainrunSectionTimesUpdated(pair.trainrunSection);
     }
 
     this.trainrunSectionsUpdated();
     this.nodeService.connectionsUpdated();
     this.operation.emit(new TrainrunOperation(OperationType.update, trainrunSection.getTrainrun()));
+  }
+
+  private setTimeStructureInDirection({
+    chainDepartureTime,
+    chainTravelTime,
+    iterator,
+    totalCumulativeTravelTime,
+    precision,
+  }: {
+    chainDepartureTime: number;
+    chainTravelTime: number;
+    iterator: TrainrunIterator;
+    totalCumulativeTravelTime: number;
+    precision: number;
+  }) {
+    const travelTimeFactor = chainTravelTime / totalCumulativeTravelTime;
+    let departureTime = chainDepartureTime;
+    let summedTravelTime = 0;
+    while (iterator.hasNext()) {
+      const pair = iterator.next();
+      const section = pair.getDirectedTrainrunSectionProxy();
+
+      const travelTime = TrainrunsectionHelper.getTravelTime(
+        chainTravelTime,
+        summedTravelTime,
+        travelTimeFactor,
+        section.getTravelTime(),
+        pair.node.isNonStop(pair.trainrunSection),
+        precision,
+      );
+
+      const arrivalTime = MathUtils.round((departureTime + travelTime) % 60, precision);
+
+      section.setTailDeparture(departureTime);
+      section.setTravelTime(travelTime);
+      section.setHeadArrival(arrivalTime);
+
+      // Next section departure inherits from the previous arrival
+      departureTime = arrivalTime;
+      summedTravelTime += travelTime;
+    }
   }
 
   trainrunSectionsUpdated() {
