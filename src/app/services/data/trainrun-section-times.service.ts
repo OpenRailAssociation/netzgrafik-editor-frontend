@@ -390,6 +390,10 @@ export class TrainrunSectionTimesService {
     this.applyOffsetAndTransformTimeStructure();
   }
 
+  onBottomTravelTimeButtonPlus() {}
+  onBottomTravelTimeButtonMinus() {}
+  onBottomTravelTimeChanged() {}
+
   /* Lock */
   onButtonTravelTimeLock() {
     this.lockStructure.travelTimeLock = !this.lockStructure.travelTimeLock;
