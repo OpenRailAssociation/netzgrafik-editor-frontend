@@ -445,6 +445,27 @@ export class TrainrunSectionTimesService {
     this.onDirectTravelTimeChanged(leftToRightStructureKeys);
   }
 
+  onBottomTravelTimeButtonPlus() {
+    this.timeStructure.bottomTravelTime += this.getTimeButtonPlusMinusStep(
+      this.timeStructure.bottomTravelTime,
+    );
+    this.highlightTravelTimeElement = false;
+    this.onBottomTravelTimeChanged();
+  }
+
+  onBottomTravelTimeButtonMinus() {
+    this.timeStructure.bottomTravelTime -= this.getTimeButtonPlusMinusStep(
+      this.timeStructure.bottomTravelTime,
+    );
+    this.timeStructure.bottomTravelTime = Math.max(1, this.timeStructure.bottomTravelTime);
+    this.highlightTravelTimeElement = false;
+    this.onBottomTravelTimeChanged();
+  }
+
+  onBottomTravelTimeChanged() {
+    this.onDirectTravelTimeChanged(rightToLeftStructureKeys);
+  }
+
   private onDirectTravelTimeChanged(keys: LeftAndRightStructureKeys) {
     this.showWarningTwoLocks = false;
     this.roundAllTimes();
