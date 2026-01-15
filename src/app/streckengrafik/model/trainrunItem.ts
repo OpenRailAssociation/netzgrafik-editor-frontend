@@ -12,7 +12,7 @@ export class TrainrunItem {
     public categoryShortName: string,
     public colorRef: string,
     public pathItems: PathItem[],
-    public leftToRight: boolean,
+    public isGoingRightToLeft: boolean, // renamed since this is compared to pathItem.backward (which refers to a "right-to-left" direction)
     public direction: Direction,
   ) {}
 
@@ -30,7 +30,7 @@ export class TrainrunItem {
       this.categoryShortName === trainrunItem.categoryShortName &&
       this.colorRef === trainrunItem.colorRef &&
       this.equalPathItem(this.pathItems, trainrunItem.pathItems) &&
-      this.leftToRight === trainrunItem.leftToRight &&
+      this.isGoingRightToLeft === trainrunItem.isGoingRightToLeft &&
       this.direction === trainrunItem.direction
     );
   }

@@ -1,111 +1,15 @@
 {
   "nodes": [
     {
-      "id": 0,
-      "betriebspunktName": "BN",
-      "fullName": "Bern",
-      "positionX": -192,
-      "positionY": 32,
-      "ports": [],
+      "id": 187,
+      "betriebspunktName": "A",
+      "fullName": "A",
+      "positionX": 416,
+      "positionY": 512,
+      "ports": [{"id": 1465, "trainrunSectionId": 725, "positionIndex": 0, "positionAlignment": 3}],
       "transitions": [],
       "connections": [],
-      "resourceId": 1,
-      "perronkanten": 10,
-      "connectionTime": 5,
-      "trainrunCategoryHaltezeiten": {
-        "HaltezeitIPV": {"haltezeit": 3, "no_halt": false},
-        "HaltezeitA": {"haltezeit": 2, "no_halt": false},
-        "HaltezeitB": {"haltezeit": 2, "no_halt": false},
-        "HaltezeitC": {"haltezeit": 1, "no_halt": false},
-        "HaltezeitD": {"haltezeit": 1, "no_halt": false},
-        "HaltezeitUncategorized": {"haltezeit": 0, "no_halt": true}
-      },
-      "symmetryAxis": 0,
-      "warnings": null,
-      "labelIds": []
-    },
-    {
-      "id": 1,
-      "betriebspunktName": "OL",
-      "fullName": "Olten",
-      "positionX": 832,
-      "positionY": 32,
-      "ports": [],
-      "transitions": [],
-      "connections": [],
-      "resourceId": 2,
-      "perronkanten": 10,
-      "connectionTime": 5,
-      "trainrunCategoryHaltezeiten": {
-        "HaltezeitIPV": {"haltezeit": 3, "no_halt": false},
-        "HaltezeitA": {"haltezeit": 2, "no_halt": false},
-        "HaltezeitB": {"haltezeit": 2, "no_halt": false},
-        "HaltezeitC": {"haltezeit": 1, "no_halt": false},
-        "HaltezeitD": {"haltezeit": 1, "no_halt": false},
-        "HaltezeitUncategorized": {"haltezeit": 0, "no_halt": true}
-      },
-      "symmetryAxis": null,
-      "warnings": null,
-      "labelIds": []
-    },
-    {
-      "id": 2,
-      "betriebspunktName": "ZUE",
-      "fullName": "Zuerich",
-      "positionX": 1632,
-      "positionY": 32,
-      "ports": [],
-      "transitions": [],
-      "connections": [],
-      "resourceId": 3,
-      "perronkanten": 10,
-      "connectionTime": 5,
-      "trainrunCategoryHaltezeiten": {
-        "HaltezeitIPV": {"haltezeit": 3, "no_halt": false},
-        "HaltezeitA": {"haltezeit": 2, "no_halt": false},
-        "HaltezeitB": {"haltezeit": 2, "no_halt": false},
-        "HaltezeitC": {"haltezeit": 1, "no_halt": false},
-        "HaltezeitD": {"haltezeit": 1, "no_halt": false},
-        "HaltezeitUncategorized": {"haltezeit": 0, "no_halt": true}
-      },
-      "symmetryAxis": null,
-      "warnings": null,
-      "labelIds": []
-    },
-    {
-      "id": 3,
-      "betriebspunktName": "LZ",
-      "fullName": "Luzern",
-      "positionX": 1184,
-      "positionY": 960,
-      "ports": [],
-      "transitions": [],
-      "connections": [],
-      "resourceId": 4,
-      "perronkanten": 10,
-      "connectionTime": 5,
-      "trainrunCategoryHaltezeiten": {
-        "HaltezeitIPV": {"haltezeit": 3, "no_halt": false},
-        "HaltezeitA": {"haltezeit": 2, "no_halt": false},
-        "HaltezeitB": {"haltezeit": 2, "no_halt": false},
-        "HaltezeitC": {"haltezeit": 1, "no_halt": false},
-        "HaltezeitD": {"haltezeit": 1, "no_halt": false},
-        "HaltezeitUncategorized": {"haltezeit": 0, "no_halt": true}
-      },
-      "symmetryAxis": null,
-      "warnings": null,
-      "labelIds": []
-    },
-    {
-      "id": 4,
-      "betriebspunktName": "ZF",
-      "fullName": "Zofingen",
-      "positionX": 832,
-      "positionY": 448,
-      "ports": [],
-      "transitions": [],
-      "connections": [],
-      "resourceId": 5,
+      "resourceId": 211,
       "perronkanten": 5,
       "connectionTime": 3,
       "trainrunCategoryHaltezeiten": {
@@ -121,17 +25,20 @@
       "labelIds": []
     },
     {
-      "id": 5,
-      "betriebspunktName": "ZG",
-      "fullName": "Zug",
-      "positionX": 1184,
-      "positionY": 576,
-      "ports": [],
-      "transitions": [],
+      "id": 188,
+      "betriebspunktName": "B",
+      "fullName": "B",
+      "positionX": 1024,
+      "positionY": 512,
+      "ports": [
+        {"id": 1467, "trainrunSectionId": 726, "positionIndex": 0, "positionAlignment": 0},
+        {"id": 1466, "trainrunSectionId": 725, "positionIndex": 0, "positionAlignment": 2}
+      ],
+      "transitions": [{"id": 395, "port1Id": 1467, "port2Id": 1466, "isNonStopTransit": false}],
       "connections": [],
-      "resourceId": 6,
+      "resourceId": 212,
       "perronkanten": 5,
-      "connectionTime": 5,
+      "connectionTime": 3,
       "trainrunCategoryHaltezeiten": {
         "HaltezeitIPV": {"haltezeit": 3, "no_halt": false},
         "HaltezeitA": {"haltezeit": 2, "no_halt": false},
@@ -145,113 +52,17 @@
       "labelIds": []
     },
     {
-      "id": 6,
-      "betriebspunktName": "SS",
-      "fullName": "Sursee",
-      "positionX": 672,
-      "positionY": 800,
-      "ports": [],
-      "transitions": [],
-      "connections": [],
-      "resourceId": 7,
-      "perronkanten": 5,
-      "connectionTime": 6,
-      "trainrunCategoryHaltezeiten": {
-        "HaltezeitIPV": {"haltezeit": 3, "no_halt": false},
-        "HaltezeitA": {"haltezeit": 2, "no_halt": false},
-        "HaltezeitB": {"haltezeit": 2, "no_halt": false},
-        "HaltezeitC": {"haltezeit": 1, "no_halt": false},
-        "HaltezeitD": {"haltezeit": 1, "no_halt": false},
-        "HaltezeitUncategorized": {"haltezeit": 0, "no_halt": true}
-      },
-      "symmetryAxis": null,
-      "warnings": null,
-      "labelIds": []
-    },
-    {
-      "id": 7,
-      "betriebspunktName": "RTR",
-      "fullName": "Rothrist",
-      "positionX": 320,
+      "id": 189,
+      "betriebspunktName": "C",
+      "fullName": "C",
+      "positionX": 1024,
       "positionY": 32,
-      "ports": [],
+      "ports": [{"id": 1468, "trainrunSectionId": 726, "positionIndex": 0, "positionAlignment": 1}],
       "transitions": [],
       "connections": [],
-      "resourceId": 8,
+      "resourceId": 213,
       "perronkanten": 5,
-      "connectionTime": 5,
-      "trainrunCategoryHaltezeiten": {
-        "HaltezeitIPV": {"haltezeit": 3, "no_halt": false},
-        "HaltezeitA": {"haltezeit": 2, "no_halt": false},
-        "HaltezeitB": {"haltezeit": 2, "no_halt": false},
-        "HaltezeitC": {"haltezeit": 1, "no_halt": false},
-        "HaltezeitD": {"haltezeit": 1, "no_halt": false},
-        "HaltezeitUncategorized": {"haltezeit": 0, "no_halt": true}
-      },
-      "symmetryAxis": null,
-      "warnings": null,
-      "labelIds": []
-    },
-    {
-      "id": 8,
-      "betriebspunktName": "LTH",
-      "fullName": "Langenthal",
-      "positionX": 320,
-      "positionY": 192,
-      "ports": [],
-      "transitions": [],
-      "connections": [],
-      "resourceId": 9,
-      "perronkanten": 5,
-      "connectionTime": 5,
-      "trainrunCategoryHaltezeiten": {
-        "HaltezeitIPV": {"haltezeit": 3, "no_halt": false},
-        "HaltezeitA": {"haltezeit": 2, "no_halt": false},
-        "HaltezeitB": {"haltezeit": 2, "no_halt": false},
-        "HaltezeitC": {"haltezeit": 1, "no_halt": false},
-        "HaltezeitD": {"haltezeit": 1, "no_halt": false},
-        "HaltezeitUncategorized": {"haltezeit": 0, "no_halt": true}
-      },
-      "symmetryAxis": null,
-      "warnings": null,
-      "labelIds": []
-    },
-    {
-      "id": 9,
-      "betriebspunktName": "BAA",
-      "fullName": "Baar",
-      "positionX": 1536,
-      "positionY": 480,
-      "ports": [],
-      "transitions": [],
-      "connections": [],
-      "resourceId": 10,
-      "perronkanten": 5,
-      "connectionTime": 5,
-      "trainrunCategoryHaltezeiten": {
-        "HaltezeitIPV": {"haltezeit": 3, "no_halt": false},
-        "HaltezeitA": {"haltezeit": 2, "no_halt": false},
-        "HaltezeitB": {"haltezeit": 2, "no_halt": false},
-        "HaltezeitC": {"haltezeit": 1, "no_halt": false},
-        "HaltezeitD": {"haltezeit": 1, "no_halt": false},
-        "HaltezeitUncategorized": {"haltezeit": 0, "no_halt": true}
-      },
-      "symmetryAxis": null,
-      "warnings": null,
-      "labelIds": []
-    },
-    {
-      "id": 10,
-      "betriebspunktName": "GD",
-      "fullName": "Goldau",
-      "positionX": 1728,
-      "positionY": 960,
-      "ports": [],
-      "transitions": [],
-      "connections": [],
-      "resourceId": 11,
-      "perronkanten": 5,
-      "connectionTime": 5,
+      "connectionTime": 3,
       "trainrunCategoryHaltezeiten": {
         "HaltezeitIPV": {"haltezeit": 3, "no_halt": false},
         "HaltezeitA": {"haltezeit": 2, "no_halt": false},
@@ -265,20 +76,151 @@
       "labelIds": []
     }
   ],
-  "trainrunSections": [],
-  "trainruns": [],
+  "trainrunSections": [
+    {
+      "id": 725,
+      "sourceNodeId": 187,
+      "sourcePortId": 1465,
+      "targetNodeId": 188,
+      "targetPortId": 1466,
+      "travelTime": {
+        "time": 1,
+        "consecutiveTime": 1,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "sourceDeparture": {
+        "time": 5,
+        "consecutiveTime": 5,
+        "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "sourceArrival": {
+        "time": 55,
+        "consecutiveTime": 55,
+        "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "targetDeparture": {
+        "time": 54,
+        "consecutiveTime": 54,
+        "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "targetArrival": {
+        "time": 6,
+        "consecutiveTime": 6,
+        "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "numberOfStops": 0,
+      "trainrunId": 102,
+      "resourceId": 0,
+      "specificTrainrunSectionFrequencyId": null,
+      "path": {
+        "path": [
+          {"x": 514, "y": 528},
+          {"x": 578, "y": 528},
+          {"x": 958, "y": 528},
+          {"x": 1022, "y": 528}
+        ],
+        "textPositions": {
+          "0": {"x": 532, "y": 540},
+          "1": {"x": 560, "y": 516},
+          "2": {"x": 1004, "y": 516},
+          "3": {"x": 976, "y": 540},
+          "4": {"x": 768, "y": 516},
+          "5": {"x": 768, "y": 516},
+          "6": {"x": 768, "y": 540}
+        }
+      },
+      "warnings": null
+    },
+    {
+      "id": 726,
+      "sourceNodeId": 188,
+      "sourcePortId": 1467,
+      "targetNodeId": 189,
+      "targetPortId": 1468,
+      "travelTime": {
+        "time": 1,
+        "consecutiveTime": 1,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "sourceDeparture": {
+        "time": 8,
+        "consecutiveTime": 8,
+        "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "sourceArrival": {
+        "time": 52,
+        "consecutiveTime": 52,
+        "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "targetDeparture": {
+        "time": 51,
+        "consecutiveTime": 51,
+        "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "targetArrival": {
+        "time": 9,
+        "consecutiveTime": 9,
+        "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "numberOfStops": 0,
+      "trainrunId": 102,
+      "resourceId": 0,
+      "specificTrainrunSectionFrequencyId": null,
+      "path": {
+        "path": [
+          {"x": 1040, "y": 510},
+          {"x": 1040, "y": 446},
+          {"x": 1040, "y": 162},
+          {"x": 1040, "y": 98}
+        ],
+        "textPositions": {
+          "0": {"x": 1052, "y": 492},
+          "1": {"x": 1028, "y": 464},
+          "2": {"x": 1028, "y": 116},
+          "3": {"x": 1052, "y": 144},
+          "4": {"x": 1028, "y": 304},
+          "5": {"x": 1028, "y": 304},
+          "6": {"x": 1052, "y": 304}
+        }
+      },
+      "warnings": null
+    }
+  ],
+  "trainruns": [
+    {
+      "id": 102,
+      "name": "X",
+      "categoryId": 1,
+      "frequencyId": 3,
+      "trainrunTimeCategoryId": 0,
+      "labelIds": [],
+      "direction": "one_way"
+    }
+  ],
   "resources": [
-    {"id": 1, "capacity": 2},
-    {"id": 2, "capacity": 2},
-    {"id": 3, "capacity": 2},
-    {"id": 4, "capacity": 2},
-    {"id": 5, "capacity": 2},
-    {"id": 6, "capacity": 2},
-    {"id": 7, "capacity": 2},
-    {"id": 8, "capacity": 2},
-    {"id": 9, "capacity": 2},
-    {"id": 10, "capacity": 2},
-    {"id": 11, "capacity": 2}
+    {"id": 211, "capacity": 2},
+    {"id": 212, "capacity": 2},
+    {"id": 213, "capacity": 2}
   ],
   "metadata": {
     "analyticsSettings": {"originDestinationSettings": {"connectionPenalty": 5}},
@@ -458,7 +400,7 @@
     ],
     "netzgrafikColors": [
       {
-        "id": 2,
+        "id": 3,
         "colorRef": "NORMAL",
         "color": "#767676",
         "colorFocus": "#000000",
@@ -473,6 +415,6 @@
   },
   "freeFloatingTexts": [],
   "labels": [],
-  "labelGroups": [],
+  "labelGroups": [{"id": 1, "name": "Standard", "labelRef": "Node"}],
   "filterData": {"filterSettings": []}
 }

@@ -445,7 +445,7 @@ export class Node {
     // interest - or the backward (end node)
     if (portsWithNoTransition.length === 1 || returnForwardStartNode) {
       // forward
-      return portsWithNoTransition[0].getTrainrunSection();
+      return portsWithNoTransition[0].getTrainrunSection(); // is this return consistent?
     }
     // backward
     return portsWithNoTransition[1].getTrainrunSection();

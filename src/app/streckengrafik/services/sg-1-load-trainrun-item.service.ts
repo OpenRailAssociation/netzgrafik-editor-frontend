@@ -427,7 +427,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     const tsgForward = this.trainrunSectionGroup(
       trainrun.getId(),
       forwardBackwardNodes.startForwardNode,
-      true,
+      true, // "forward" sections only
     );
     const forwardTrainrunSectionGroup = tsgForward.trainrunSectionGroups;
     visitedTrainrunSections = visitedTrainrunSections.concat(tsgForward.visitedTrainrunSections);
@@ -466,7 +466,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
           fromNode.getBetriebspunktName(),
           index++,
           new TrackData(1), //forward track 1
-          false,
+          false, // here, backward=false
           fromNodeHaltezeit[trainrunFachCategory].haltezeit,
           !this.filterService.filterNode(fromNode),
         );
@@ -621,7 +621,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         trainrun.getCategoryShortName(),
         trainrun.getCategoryColorRef(),
         pathItems,
-        this.trainrunService.isTrainrunTargetRightOrBottom(),
+        !this.trainrunService.isTrainrunTargetRightOrBottom(), // ici / isGoingRightToLeft
         trainrun.getDirection(),
       ),
       visitedTrainrunSections: visitedTrainrunSections,
@@ -1123,6 +1123,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
       trainrunId,
       returnForwardStartNode,
     );
+    // start trainrun section is the same no matter the direction :/
     if (startTrainrunSection === undefined) {
       return {
         trainrunSectionGroups: trainrunSectionGroups,

@@ -89,7 +89,7 @@ export class Sg3TrainrunsService implements OnDestroy {
       trainrunItem.pathItems.forEach((pathItem) => {
         if (
           trainrunItem.direction === Direction.ONE_WAY &&
-          pathItem.backward === trainrunItem.leftToRight
+          pathItem.backward === trainrunItem.isGoingRightToLeft
         ) {
           return;
         }
@@ -109,7 +109,7 @@ export class Sg3TrainrunsService implements OnDestroy {
               Arrival node: occupation from arrival to (arrival + haltezeit)
             */
             if (trainrunItem.direction === Direction.ONE_WAY) {
-              if (trainrunItem.leftToRight) {
+              if (trainrunItem.isGoingRightToLeft) {
                 if (pathNode.departurePathSection === undefined) {
                   departureTime = pathItem.arrivalTime + pathNodeHaltezeit;
                 }
