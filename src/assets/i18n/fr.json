@@ -130,6 +130,7 @@
         "show-or-hide": "Activer/Désactiver {$component}",
         "show-or-hide-name-for-non-selected-trainruns": "Afficher/masquer le nom des trajets de train non sélectionnés",
         "hide-advanced-display-functions": "Masquer les fonctionnalités d'affichage avancées",
+        "rail-track-slider": "Voies minimum",
         "headway-band": "Espacement",
         "time": "Temps",
         "name": "Nom"
