@@ -286,6 +286,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
       0,
       undefined,
       false, //(ts12.getSourceNodeId() === n2.nodeId && ts12.getTargetNodeId() === n1.nodeId),
+      true,
       undefined,
       undefined,
       TrainrunBranchType.Trainrun,
@@ -467,6 +468,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
           index++,
           new TrackData(1), //forward track 1
           false,
+          true,
           fromNodeHaltezeit[trainrunFachCategory].haltezeit,
           !this.filterService.filterNode(fromNode),
         );
@@ -498,6 +500,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         index++,
         new TrackData(1), // forward
         false,
+        true,
         toNodeHaltezeit[trainrunFachCategory].haltezeit,
         !this.filterService.filterNode(toNode),
       );
@@ -534,6 +537,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
             index-- - 1,
             new TrackData(2), // backward
             true,
+            true,
             fromNodeHaltezeit[trainrunFachCategory].haltezeit,
             !this.filterService.filterNode(fromNode),
           );
@@ -563,6 +567,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
           toNode.getBetriebspunktName(),
           index-- - 1,
           new TrackData(2), // backward
+          true,
           true,
           toNodeHaltezeit[trainrunFachCategory].haltezeit,
           !this.filterService.filterNode(toNode),
@@ -647,6 +652,44 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
           while (alltrainrunsections.length > 0) {
             const ts: TrainrunSection = alltrainrunsections.find((ts) => true);
             const loadeddata = this.loadTrainrunItem(ts, false);
+
+            const tsItem = loadeddata.trainrunItem.pathItems[1];
+            loadeddata.trainrunItem.pathItems.forEach((item) => {
+              if (loadeddata.trainrunItem.direction === Direction.ONE_WAY) {
+                if (item.isNode()) {
+                  item.getPathNode().active = item.getPathNode().backward;
+                } else {
+                  item.getPathSection().active = item.getPathSection().backward;
+                }
+                if (loadeddata.trainrunItem.leftToRight) {
+                  const ps = tsItem.getPathSection();
+                  const fromN = ps.departurePathNode.nodeId;
+                  const ts = this.trainrunSectionService.getTrainrunSectionFromId(
+                    ps.trainrunSectionId,
+                  );
+                  if (ts.getSourceNodeId() !== fromN) {
+                    if (item.isNode()) {
+                      item.getPathNode().active = !item.getPathNode().backward;
+                    } else {
+                      item.getPathSection().active = !item.getPathSection().backward;
+                    }
+                  }
+                } else {
+                  const ps = tsItem.getPathSection();
+                  const fromN = ps.departurePathNode.nodeId;
+                  const ts = this.trainrunSectionService.getTrainrunSectionFromId(
+                    ps.trainrunSectionId,
+                  );
+                  if (ts.getTargetNodeId() !== fromN) {
+                    if (item.isNode()) {
+                      item.getPathNode().active = !item.getPathNode().backward;
+                    } else {
+                      item.getPathSection().active = !item.getPathSection().backward;
+                    }
+                  }
+                }
+              }
+            });
 
             // correct projections directions
             this.sortTrainrunItemAndRotateAlongTemplatePath(

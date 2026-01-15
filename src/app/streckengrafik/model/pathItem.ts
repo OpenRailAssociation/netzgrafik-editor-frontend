@@ -7,6 +7,7 @@ export interface PathItem {
   departureTime: number;
   arrivalTime: number;
   backward: boolean;
+  active: boolean;
   trainrunBranchType: TrainrunBranchType;
   isPartOfTemplatePath: TrainrunTemplatePathAlignmentType;
   oppDirectionTemplatePath: boolean;

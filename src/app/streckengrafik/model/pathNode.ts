@@ -15,6 +15,7 @@ export class PathNode implements PathItem {
     public index: number,
     public trackData: TrackData,
     public backward = false,
+    public active = true,
     public haltezeit: number = 4,
     public filter = false,
     public trackOccupier = false,
@@ -85,6 +86,7 @@ export class PathNode implements PathItem {
       this.nodeShortName === pathNode.nodeShortName &&
       this.trackData === pathNode.trackData &&
       this.backward === pathNode.backward &&
+      this.active === pathNode.active &&
       this.haltezeit === pathNode.haltezeit &&
       this.filter === pathNode.filter &&
       this.trackOccupier === pathNode.trackOccupier &&
@@ -104,6 +106,7 @@ export class PathNode implements PathItem {
       this.index,
       this.trackData,
       this.backward,
+      this.active,
       this.haltezeit,
       this.filter,
       this.trackOccupier,

@@ -87,10 +87,7 @@ export class Sg3TrainrunsService implements OnDestroy {
       const trainrunItems: SgTrainrunItem[] = [];
 
       trainrunItem.pathItems.forEach((pathItem) => {
-        if (
-          trainrunItem.direction === Direction.ONE_WAY &&
-          pathItem.backward === trainrunItem.leftToRight
-        ) {
+        if (trainrunItem.direction === Direction.ONE_WAY && !pathItem.active) {
           return;
         }
         // Node items
