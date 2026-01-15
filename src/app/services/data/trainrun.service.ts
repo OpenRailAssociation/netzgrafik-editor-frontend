@@ -932,12 +932,12 @@ export class TrainrunService {
     return labelIDCauntMap;
   }
 
-  isTrainrunTargetRightOrBottom(): boolean {
-    if (!this.getSelectedTrainrun()) {
+  isTrainrunTargetRightOrBottom(trainrun: Trainrun = this.getSelectedTrainrun()): boolean {
+    if (!trainrun) {
       return false;
     }
-    const firstNode = this.getFirstTrainrunSection(this.getSelectedTrainrun()).getSourceNode();
-    const lastNode = this.getLastTrainrunSection(this.getSelectedTrainrun()).getTargetNode();
+    const firstNode = this.getFirstTrainrunSection(trainrun).getSourceNode();
+    const lastNode = this.getLastTrainrunSection(trainrun).getTargetNode();
     return GeneralViewFunctions.getRightOrBottomNode(firstNode, lastNode) === lastNode;
   }
 
