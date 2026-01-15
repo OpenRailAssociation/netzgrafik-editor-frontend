@@ -16,6 +16,7 @@ export class SgTrainrunNode implements SgTrainrunItem {
     public departureTime: number,
     public arrivalTime: number,
     public backward: boolean,
+    public active: boolean,
     public trackData: TrackData,
     public sgPathNode: SgPathNode,
     public endNode: boolean,
@@ -41,6 +42,7 @@ export class SgTrainrunNode implements SgTrainrunItem {
       item.departureTime,
       item.arrivalTime,
       item.backward,
+      item.active,
       new TrackData(
         item.trackData.track,
         item.trackData.nodeId1,

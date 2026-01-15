@@ -21,6 +21,7 @@ export class SgTrainrunSection implements SgTrainrunItem {
     public departureBranchEndNodeShortName: string,
     public arrivalBranchEndNodeShortName: string,
     public backward: boolean,
+    public active: boolean,
     public numberOfStops: number,
     public trackData: TrackData,
     public pathSection: SgPathSection,
