@@ -79,58 +79,39 @@ svg.StreckengrafikMainSVG:active {
 }
 
 button.SimpleButton.Name {
-  min-width: 65px;
-  max-width: 65px;
+  min-width: 70px;
+  text-align: center;
+  padding-left: 5px;
+  padding-right: 5px;
   font-weight: bold;
-  text-align: start;
-  padding-left: 1px;
-  padding-right: 1px;
   background: none;
 }
 
 button.SimpleButton.Time {
-  min-width: 70px;
-  max-width: 70px;
+  min-width: 80px;
+  text-align: center;
+  padding-left: 5px;
+  padding-right: 5px;
   font-weight: bold;
-  text-align: start;
-  padding-right: 1px;
   background: none;
 }
 
 button.SimpleButton.HeadwayBand {
-  min-width: 145px;
-  max-width: 145px;
-  font-weight: bold;
+  min-width: 155px;
   text-align: center;
-  padding-left: 1px;
-  padding-right: 1px;
+  padding-left: 5px;
+  padding-right: 5px;
+  font-weight: bold;
   background: none;
 }
 
 button.SimpleButton.RailTrackSlider {
-  min-width: 122px;
-  max-width: 122px;
-  font-weight: bold;
+  min-width: 150px;
   text-align: center;
-  padding-left: 1px;
-  padding-right: 1px;
+  padding-left: 5px;
+  padding-right: 5px;
+  font-weight: bold;
   background: none;
-}
-
-button.SimpleButton.Name:hover {
-  font-weight: bold;
-}
-
-button.SimpleButton.Time:hover {
-  font-weight: bold;
-}
-
-button.SimpleButton.HeadwayBand:hover {
-  font-weight: bold;
-}
-
-button.SimpleButton.RailTrackSlider:hover {
-  font-weight: bold;
 }
 
 button.SimpleButton.Name.StreckengrafikNameNotFocusNorEnabled {
@@ -167,7 +148,7 @@ button.SimpleButton.RailTrackSlider.RailTrackSliderVisible:active {
 
 button.SimpleButton.Empty {
   min-width: 20px;
-  max-width: 20px;
+  padding-left: 15px;
 }
 
 div.main_1 {
