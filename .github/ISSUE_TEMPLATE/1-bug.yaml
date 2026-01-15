@@ -15,11 +15,11 @@ body:
     attributes:
       label: Preflight Checklist
       options:
-        - label: I have read the [Contributing Guidelines](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/CONTRIBUTING.md) for this project.
+        - label: I have read the [Contributing Guidelines](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/blob/main/CONTRIBUTING.md) for this project.
           required: true
-        - label: I agree to follow the [Code of Conduct](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/CODE_OF_CONDUCT.md) that this project adheres to.
+        - label: I agree to follow the [Code of Conduct](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/blob/main/CODE_OF_CONDUCT.md) that this project adheres to.
           required: true
-        - label: I have searched the [issue tracker](https://github.com/orgs/sbb-design-systems/projects/1) for an issue that matches the one I want to file, without success.
+        - label: I have searched the [issue tracker](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) for an issue that matches the one I want to file, without success.
           required: true
   - type: markdown
     attributes:
