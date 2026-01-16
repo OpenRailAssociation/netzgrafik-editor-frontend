@@ -17,6 +17,8 @@ import {LabelGroupService} from "../../services/data/labelgroup.service";
 import {LabelGroup} from "../../models/labelGroup.model";
 import {VersionControlService} from "../../services/data/version-control.service";
 import {PositionTransformationService} from "../../services/util/position.transformation.service";
+import {OrderingAlgorithm} from "../../data-structures/technical.data.structures";
+import {SbbRadioChange} from "@sbb-esta/angular/radio-button";
 
 @Component({
   selector: "sbb-editor-edit-tools-view-component",
@@ -33,6 +35,20 @@ export class EditorEditToolsViewComponent implements OnDestroy {
   public nodeLabelGroups: LabelGroup[];
   public trainrunLabelGroups: LabelGroup[];
   private destroyed = new Subject<void>();
+
+  orderingAlgorithmOptions = [
+    {
+      name: $localize`:@@app.view.editor-edit-tools-view-component.alphabeticalOrdering:Alphabetical`,
+      title: $localize`:@@app.view.editor-edit-tools-view-component.alphabeticalOrderingTooltip:Order ports alphabetically by train categories.`,
+      orderingAlgorithm: OrderingAlgorithm.Alphabetical,
+    },
+    {
+      name: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwareOrdering:Crossing aware`,
+      title: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwareOrderingTooltip:Minimizes crossings of trainruns within the nodes.`,
+      orderingAlgorithm: OrderingAlgorithm.CrossingAware,
+    },
+  ];
+  activeOrderingAlgorithm: OrderingAlgorithm = null;
 
   constructor(
     private dataService: DataService,
@@ -63,6 +79,11 @@ export class EditorEditToolsViewComponent implements OnDestroy {
       this.trainrunLabelGroups = this.labelGroupService.getLabelGroupsFromLabelRef(
         LabelRef.Trainrun,
       );
+    });
+
+    this.activeOrderingAlgorithm = this.uiInteractionService.getActiveOrderingAlgorithm();
+    this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.activeOrderingAlgorithm = this.uiInteractionService.getActiveOrderingAlgorithm();
     });
   }
 
@@ -161,6 +182,10 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     this.loadNetzgrafik(param, (netzgrafikDto) =>
       this.dataService.mergeNetzgrafikDto(netzgrafikDto),
     );
+  }
+
+  onUpdateOrderingAlgorithm(event: SbbRadioChange) {
+    this.uiInteractionService.setActiveOrderingAlgorithm(event.value);
   }
 
   onAlignElementsLeft() {

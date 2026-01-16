@@ -4,6 +4,7 @@ add's additional functionality */
 import {
   ColorRefType,
   ConnectionDto,
+  OrderingAlgorithm,
   PathDto,
   PortDto,
   TimeLockDto,
@@ -269,6 +270,7 @@ export interface MetadataDto {
   trainrunTimeCategories: TrainrunTimeCategory[];
   netzgrafikColors: NetzgrafikColorDto[];
   analyticsSettings: AnalyticsSettingsDto;
+  orderingAlgorithm?: OrderingAlgorithm;
 }
 
 /**
