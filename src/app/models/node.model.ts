@@ -805,8 +805,8 @@ export class Node {
     return this.trainrunCategoryHaltezeiten;
   }
 
-  getTrainrunSections(transitionid: number) {
-    const transition = this.getTransitionFromId(transitionid);
+  getTrainrunSections(transitionId: number) {
+    const transition = this.getTransitionFromId(transitionId);
     const portId1 = transition.getPortId1();
     const portId2 = transition.getPortId2();
     const port1 = this.getPort(portId1);
