@@ -653,42 +653,9 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
             const ts: TrainrunSection = alltrainrunsections.find((ts) => true);
             const loadeddata = this.loadTrainrunItem(ts, false);
 
-            const tsItem = loadeddata.trainrunItem.pathItems[1];
+            // detects the one-way trainrun
             loadeddata.trainrunItem.pathItems.forEach((item) => {
-              if (loadeddata.trainrunItem.direction === Direction.ONE_WAY) {
-                if (item.isNode()) {
-                  item.getPathNode().active = item.getPathNode().backward;
-                } else {
-                  item.getPathSection().active = item.getPathSection().backward;
-                }
-                if (loadeddata.trainrunItem.leftToRight) {
-                  const ps = tsItem.getPathSection();
-                  const fromN = ps.departurePathNode.nodeId;
-                  const ts = this.trainrunSectionService.getTrainrunSectionFromId(
-                    ps.trainrunSectionId,
-                  );
-                  if (ts.getSourceNodeId() !== fromN) {
-                    if (item.isNode()) {
-                      item.getPathNode().active = !item.getPathNode().backward;
-                    } else {
-                      item.getPathSection().active = !item.getPathSection().backward;
-                    }
-                  }
-                } else {
-                  const ps = tsItem.getPathSection();
-                  const fromN = ps.departurePathNode.nodeId;
-                  const ts = this.trainrunSectionService.getTrainrunSectionFromId(
-                    ps.trainrunSectionId,
-                  );
-                  if (ts.getTargetNodeId() !== fromN) {
-                    if (item.isNode()) {
-                      item.getPathNode().active = !item.getPathNode().backward;
-                    } else {
-                      item.getPathSection().active = !item.getPathSection().backward;
-                    }
-                  }
-                }
-              }
+              this.setActiveFlag(item, loadeddata.trainrunItem);
             });
 
             // correct projections directions
@@ -708,6 +675,41 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
       });
     }
     return trainrunItems;
+  }
+
+  setActiveFlag(item: PathItem, trainrunItem: TrainrunItem) {
+    // set the active flag. When true the unrolled trainrun is used.
+    // this corrects one-way trainrun will not be correct : analytics/visualisation
+    if (trainrunItem.direction === Direction.ONE_WAY) {
+      let active = true;
+      if (item.isSection()) {
+        const s = item.getPathSection();
+        const ts = this.trainrunSectionService.getTrainrunSectionFromId(s.trainrunSectionId);
+        if (s.departurePathNode.nodeId !== ts.getSourceNodeId()) {
+          active = false;
+        }
+        // update active state
+        item.getPathSection().active = active;
+      }
+      if (item.isNode()) {
+        const n = item.getPathNode();
+
+        const trainrunSectionId =
+          n.departurePathSection !== undefined
+            ? n.departurePathSection.trainrunSectionId
+            : n.arrivalPathSection.trainrunSectionId;
+        const ts = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
+
+        const nodeId =
+          n.departurePathSection !== undefined ? ts.getSourceNodeId() : ts.getTargetNodeId();
+
+        if (n.nodeId !== nodeId) {
+          active = false;
+        }
+        // update active state
+        item.getPathNode().active = active;
+      }
+    }
   }
 
   sortTrainrunItemAndRotateAlongTemplatePath(
