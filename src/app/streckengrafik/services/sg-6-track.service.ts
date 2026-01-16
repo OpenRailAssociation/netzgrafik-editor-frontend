@@ -565,7 +565,7 @@ export class Sg6TrackService implements OnDestroy {
     // ------------------------------------------------------------------------------------------------------------------
     selectedTrainrun.trainruns.forEach((ts) => {
       // ------------------------------------------------------------------------------------------------------------------
-      // pass 1 -> transform endNode ("Umlauf")
+      // pass 1 -> estimate the headway time at node
       // ------------------------------------------------------------------------------------------------------------------
       ts.sgTrainrunItems.forEach((item) => {
         if (item.isNode()) {
@@ -584,7 +584,7 @@ export class Sg6TrackService implements OnDestroy {
       });
 
       // ------------------------------------------------------------------------------------------------------------------
-      // pass 3 -> detect self alignment issue
+      // pass 3 -> detect self alignment issue (handle only non-end-node)
       // ------------------------------------------------------------------------------------------------------------------
       this.clearExtraTrains(ts);
       const collectExtraTrainruns: SgTrainrunNode[] = [];

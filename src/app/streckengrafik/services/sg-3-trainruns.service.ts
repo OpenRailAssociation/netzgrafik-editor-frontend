@@ -87,7 +87,11 @@ export class Sg3TrainrunsService implements OnDestroy {
       const trainrunItems: SgTrainrunItem[] = [];
 
       trainrunItem.pathItems.forEach((pathItem) => {
-        if (trainrunItem.direction === Direction.ONE_WAY && !pathItem.active) {
+        if (!pathItem.active) {
+          // If the trainrunItem.direction is Direction.ONE_WAY there are unrolled trainruns
+          // which are not activated for further analyse (either there is a forward or a backward
+          // trainrun but not both (just one-way). The active flag enable/disalbe one of the
+          // generally unrolled trainrun
           return;
         }
         // Node items
