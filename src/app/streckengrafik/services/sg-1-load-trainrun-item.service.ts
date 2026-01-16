@@ -680,35 +680,34 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
   setActiveFlag(item: PathItem, trainrunItem: TrainrunItem) {
     // set the active flag. When true the unrolled trainrun is used.
     // this corrects one-way trainrun will not be correct : analytics/visualisation
-    if (trainrunItem.direction === Direction.ONE_WAY) {
-      let active = true;
-      if (item.isSection()) {
-        const s = item.getPathSection();
-        const ts = this.trainrunSectionService.getTrainrunSectionFromId(s.trainrunSectionId);
-        if (s.departurePathNode.nodeId !== ts.getSourceNodeId()) {
-          active = false;
-        }
-        // update active state
-        item.getPathSection().active = active;
-      }
-      if (item.isNode()) {
-        const n = item.getPathNode();
+    if (trainrunItem.direction !== Direction.ONE_WAY) {
+      return;
+    }
 
-        const trainrunSectionId =
-          n.departurePathSection !== undefined
-            ? n.departurePathSection.trainrunSectionId
-            : n.arrivalPathSection.trainrunSectionId;
-        const ts = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
+    // handle section
+    if (item.isSection()) {
+      const s = item.getPathSection();
+      const ts = this.trainrunSectionService.getTrainrunSectionFromId(s.trainrunSectionId);
+      // update active state
+      item.getPathSection().active = s.departurePathNode.nodeId === ts.getSourceNodeId();
+      return;
+    }
 
-        const nodeId =
-          n.departurePathSection !== undefined ? ts.getSourceNodeId() : ts.getTargetNodeId();
+    // handle node
+    if (item.isNode()) {
+      const n = item.getPathNode();
 
-        if (n.nodeId !== nodeId) {
-          active = false;
-        }
-        // update active state
-        item.getPathNode().active = active;
-      }
+      const trainrunSectionId =
+        n.departurePathSection !== undefined
+          ? n.departurePathSection.trainrunSectionId
+          : n.arrivalPathSection.trainrunSectionId;
+      const ts = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
+
+      const nodeId =
+        n.departurePathSection !== undefined ? ts.getSourceNodeId() : ts.getTargetNodeId();
+
+      // update active state
+      item.getPathNode().active = n.nodeId === nodeId;
     }
   }
 
