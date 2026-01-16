@@ -694,18 +694,20 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     }
 
     // handle node
-    if (item.isNode()) {
-      const n = item.getPathNode();
-      const trainrunSectionId =
-        n.departurePathSection !== undefined
-          ? n.departurePathSection.trainrunSectionId
-          : n.arrivalPathSection.trainrunSectionId;
-      const ts = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
-      const nodeId =
-        n.departurePathSection !== undefined ? ts.getSourceNodeId() : ts.getTargetNodeId();
-      // update active state
-      item.getPathNode().active = n.nodeId === nodeId;
+    if (!item.isNode()) {
+      // this case can not happend - but you can never know
+      return;
     }
+    const n = item.getPathNode();
+    const trainrunSectionId =
+      n.departurePathSection !== undefined
+        ? n.departurePathSection.trainrunSectionId
+        : n.arrivalPathSection.trainrunSectionId;
+    const ts = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
+    const nodeId =
+      n.departurePathSection !== undefined ? ts.getSourceNodeId() : ts.getTargetNodeId();
+    // update active state
+    item.getPathNode().active = n.nodeId === nodeId;
   }
 
   sortTrainrunItemAndRotateAlongTemplatePath(
