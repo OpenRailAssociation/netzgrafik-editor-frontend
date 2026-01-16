@@ -443,7 +443,12 @@
         "fixed": "Constante 1min",
         "fixedTooltip": "Adopte le temps de parcours avec une constante de 1min (par défaut).",
         "retrieveFromEdge": "Temps de parcours de la section",
-        "retrieveFromEdgeTooltip": "Reprend le temps de parcours maximal sur le même tronçon de tous les trains de la même catégorie, sinon le temps de parcours maximal de tous les trains, sinon 1 min."
+        "retrieveFromEdgeTooltip": "Reprend le temps de parcours maximal sur le même tronçon de tous les trains de la même catégorie, sinon le temps de parcours maximal de tous les trains, sinon 1 min.",
+        "port-ordering": "Ordre des ports",
+        "alphabeticalPortOrdering": "Alphabétique",
+        "alphabeticalPortOrderingTooltip": "Ordonne les ports par ordre alphabétique des catégories de train.",
+        "crossingAwarePortOrdering": "Réduction des croisements",
+        "crossingAwarePortOrderingTooltip": "Minimise les croisements des trajets à l'intérieur des nœuds."
       },
       "editor-side-view": {
         "editor-node-detail-view": {

@@ -624,18 +624,19 @@ export class TrainrunSectionService implements OnDestroy {
     nodeToOld.removeTransition(trainrunSection);
     nodeToOld.removeConnectionFromTrainrunSection(trainrunSection);
     nodeToOld.removePort(trainrunSection);
-    nodeToOld.updateTransitionsAndConnections();
+    nodeToOld.updateTransitionsAndConnections(this.nodeService.getCurrentPortOrderingType());
     TrainrunSectionService.setToNode(sourceNodeId, trainrunSection, nodeToNew, targetNodeId);
 
     this.updateTrainrunSectionRouting(nodeToOld, false);
-    nodeToNew.addPortWithRespectToOppositeNode(nodeFrom, trainrunSection);
+    const orderingType = this.nodeService.getCurrentPortOrderingType();
+    nodeToNew.addPortWithRespectToOppositeNode(nodeFrom, trainrunSection, orderingType);
     if (this.nodeService.isConditionToAddTransitionFullfilled(nodeToNew, trainrunSection)) {
       this.nodeService.addTransitionAndComputeRoutingFromFreePorts(
         nodeToNew,
         trainrunSection.getTrainrun(),
       );
     }
-    nodeFrom.reAlignPortWithRespectToOppositeNode(nodeToNew, trainrunSection);
+    nodeFrom.reAlignPortWithRespectToOppositeNode(nodeToNew, trainrunSection, orderingType);
 
     trainrunSection.routeEdgeAndPlaceText();
     this.reRouteAffectedTrainrunSections(nodeFrom.getId(), nodeToNew.getId());
@@ -878,14 +879,23 @@ export class TrainrunSectionService implements OnDestroy {
 
     node2.replaceTrainrunSectionOnPort(trainrunSection1, trainrunSection2);
 
+    const portOrderingType = this.nodeService.getCurrentPortOrderingType();
     trainrunSection1.setTargetNode(nodeIntermediate);
-    nodeIntermediate.addPortWithRespectToOppositeNode(node1, trainrunSection1);
-    node1.reAlignPortWithRespectToOppositeNode(nodeIntermediate, trainrunSection1);
+    nodeIntermediate.addPortWithRespectToOppositeNode(node1, trainrunSection1, portOrderingType);
+    node1.reAlignPortWithRespectToOppositeNode(
+      nodeIntermediate,
+      trainrunSection1,
+      portOrderingType,
+    );
 
     trainrunSection2.setSourceNode(nodeIntermediate);
     trainrunSection2.setTargetNode(node2);
-    nodeIntermediate.addPortWithRespectToOppositeNode(node2, trainrunSection2);
-    node2.reAlignPortWithRespectToOppositeNode(nodeIntermediate, trainrunSection2);
+    nodeIntermediate.addPortWithRespectToOppositeNode(node2, trainrunSection2, portOrderingType);
+    node2.reAlignPortWithRespectToOppositeNode(
+      nodeIntermediate,
+      trainrunSection2,
+      portOrderingType,
+    );
 
     this.reRouteAffectedTrainrunSections(node1.getId(), nodeIntermediate.getId());
     this.reRouteAffectedTrainrunSections(node2.getId(), nodeIntermediate.getId());

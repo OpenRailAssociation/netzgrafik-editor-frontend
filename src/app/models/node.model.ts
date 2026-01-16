@@ -14,7 +14,11 @@ import {TrainrunSection} from "./trainrunsection.model";
 import {Transition} from "./transition.model";
 import {SimpleTrainrunSectionRouter} from "../services/util/trainrunsection.routing";
 import {Trainrun} from "./trainrun.model";
-import {PortAlignment, WarningDto} from "../data-structures/technical.data.structures";
+import {
+  PortAlignment,
+  PortOrderingType,
+  WarningDto,
+} from "../data-structures/technical.data.structures";
 import {Connection} from "./connection.model";
 import {ConnectionValidator} from "../services/util/connection.validator";
 import {VisAVisPortPlacement} from "../services/util/node.port.placement";
@@ -451,8 +455,10 @@ export class Node {
     return portsWithNoTransition[1].getTrainrunSection();
   }
 
-  reorderAllPorts() {
-    this.sortPorts();
+  reorderAllPorts(orderingType: PortOrderingType = PortOrderingType.Alphabetical) {
+    if (orderingType === PortOrderingType.Alphabetical) {
+      this.sortPorts();
+    }
     this.resetPositionIndex(PortAlignment.Top);
     this.resetPositionIndex(PortAlignment.Bottom);
     this.resetPositionIndex(PortAlignment.Left);
@@ -581,8 +587,8 @@ export class Node {
     this.connections.push(connection);
   }
 
-  updateTransitionsAndConnections() {
-    this.reorderAllPorts();
+  updateTransitionsAndConnections(orderingType: PortOrderingType = PortOrderingType.Alphabetical) {
+    this.reorderAllPorts(orderingType);
     this.updateTransitionsRouting();
     this.updateConnectionsRouting();
   }
@@ -600,9 +606,12 @@ export class Node {
     });
   }
 
-  toggleNonStop(transitionid: number) {
+  toggleNonStop(
+    transitionid: number,
+    orderingType: PortOrderingType = PortOrderingType.Alphabetical,
+  ) {
     this.getTransitionFromId(transitionid).toggleIsNonStopTransit();
-    this.updateTransitionsAndConnections();
+    this.updateTransitionsAndConnections(orderingType);
   }
 
   getIsNonStop(transitionid: number): boolean {
@@ -647,10 +656,14 @@ export class Node {
     );
   }
 
-  addPortWithRespectToOppositeNode(oppositeNode: Node, trainrunSection: TrainrunSection) {
+  addPortWithRespectToOppositeNode(
+    oppositeNode: Node,
+    trainrunSection: TrainrunSection,
+    orderingType: PortOrderingType = PortOrderingType.Alphabetical,
+  ) {
     const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(this, oppositeNode);
     const portId = this.addPort(portAlignments.sourcePortPlacement, trainrunSection);
-    this.updateTransitionsAndConnections();
+    this.updateTransitionsAndConnections(orderingType);
     if (this.getId() === trainrunSection.getSourceNodeId()) {
       trainrunSection.setSourcePortId(portId);
     } else {
@@ -658,11 +671,15 @@ export class Node {
     }
   }
 
-  reAlignPortWithRespectToOppositeNode(oppositeNode: Node, trainrunSection: TrainrunSection) {
+  reAlignPortWithRespectToOppositeNode(
+    oppositeNode: Node,
+    trainrunSection: TrainrunSection,
+    orderingType: PortOrderingType = PortOrderingType.Alphabetical,
+  ) {
     const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(this, oppositeNode);
     const port = this.getPortOfTrainrunSection(trainrunSection.getId());
     port.setPositionAlignment(portAlignments.sourcePortPlacement);
-    this.updateTransitionsAndConnections();
+    this.updateTransitionsAndConnections(orderingType);
   }
 
   getConnectedTrainrunSections(): TrainrunSection[] {

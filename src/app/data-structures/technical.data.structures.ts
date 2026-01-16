@@ -63,6 +63,14 @@ export enum PortAlignment {
 }
 
 /**
+ * Represents the port ordering algorithm to use when arranging ports on nodes.
+ */
+export enum PortOrderingType {
+  Alphabetical, // Order by train category name (default)
+  CrossingAware, // Minimize crossings using global propagation
+}
+
+/**
  * Represents a general warning object widely used in different objects. E.g. TrainrunSection times.
  * The WarningDto is used to build a storeable warning object with human description.
  */

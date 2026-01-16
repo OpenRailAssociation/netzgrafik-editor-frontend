@@ -443,7 +443,12 @@
         "fixed": "Constant 1min",
         "fixedTooltip": "Adopts the travel time with a constant 1min (default).",
         "retrieveFromEdge": "Section travel time",
-        "retrieveFromEdgeTooltip": "Takes over the max. travel time on the same section of all trains of the same category, otherwise max. travel time of all trains, otherwise 1 min."
+        "retrieveFromEdgeTooltip": "Takes over the max. travel time on the same section of all trains of the same category, otherwise max. travel time of all trains, otherwise 1 min.",
+        "port-ordering": "Port ordering",
+        "alphabeticalPortOrdering": "Alphabetical",
+        "alphabeticalPortOrderingTooltip": "Order ports alphabetically by train categories.",
+        "crossingAwarePortOrdering": "Crossing aware",
+        "crossingAwarePortOrderingTooltip": "Minimizes crossings of trainruns within the nodes."
       },
       "editor-side-view": {
         "editor-node-detail-view": {
