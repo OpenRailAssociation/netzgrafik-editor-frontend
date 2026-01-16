@@ -174,7 +174,6 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
       undefined,
       undefined,
       [],
-      false,
       Direction.ROUND_TRIP,
     );
 
@@ -626,7 +625,6 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         trainrun.getCategoryShortName(),
         trainrun.getCategoryColorRef(),
         pathItems,
-        this.trainrunService.isTrainrunTargetRightOrBottom(),
         trainrun.getDirection(),
       ),
       visitedTrainrunSections: visitedTrainrunSections,
