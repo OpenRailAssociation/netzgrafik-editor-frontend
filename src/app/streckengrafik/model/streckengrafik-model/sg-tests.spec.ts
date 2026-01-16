@@ -91,6 +91,7 @@ describe("StreckengrafikModelTests", () => {
       "CC",
       "DD",
       false,
+      true,
       2,
       new TrackData(2),
       undefined,
@@ -113,6 +114,7 @@ describe("StreckengrafikModelTests", () => {
       20,
       0,
       0,
+      true,
       true,
       new TrackData(3),
       new SgPathNode(0, 0, "TEST", 20, 10, 0, 0, new TrackData(2), undefined, false, 0, 12),
@@ -144,7 +146,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       [],
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -158,7 +159,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       [],
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -172,7 +172,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       [],
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -198,10 +197,46 @@ describe("StreckengrafikModelTests", () => {
   });
 
   it("Streckengrafik-Model - Test - TrainrunItem  - 002", () => {
-    const node0 = new PathNode(0, 0, 9, "AA", 10, new TrackData(2), false, undefined, false, false);
-    const node1 = new PathNode(0, 0, 9, "BB", 10, new TrackData(2), false, undefined, false, false);
+    const node0 = new PathNode(
+      0,
+      0,
+      9,
+      "AA",
+      10,
+      new TrackData(2),
+      false,
+      true,
+      undefined,
+      false,
+      false,
+    );
+    const node1 = new PathNode(
+      0,
+      0,
+      9,
+      "BB",
+      10,
+      new TrackData(2),
+      false,
+      true,
+      undefined,
+      false,
+      false,
+    );
 
-    const node2 = new PathNode(1, 2, 9, "CC", 10, new TrackData(1), true, undefined, false, false);
+    const node2 = new PathNode(
+      1,
+      2,
+      9,
+      "CC",
+      10,
+      new TrackData(1),
+      true,
+      true,
+      undefined,
+      false,
+      false,
+    );
 
     const item0: TrainrunItem = new TrainrunItem(
       1,
@@ -213,7 +248,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       [node0],
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -227,7 +261,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       [node0, node1],
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -241,7 +274,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       [node0, node1],
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -255,7 +287,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       item0.pathItems,
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -269,7 +300,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       [node2, node2],
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -296,7 +326,19 @@ describe("StreckengrafikModelTests", () => {
   });
 
   it("Streckengrafik-Model - Test - TrainrunItem  - 003", () => {
-    const node0 = new PathNode(0, 0, 9, "AA", 10, new TrackData(2), false, undefined, false, true);
+    const node0 = new PathNode(
+      0,
+      0,
+      9,
+      "AA",
+      10,
+      new TrackData(2),
+      false,
+      true,
+      undefined,
+      false,
+      true,
+    );
     expect(node0.xPath()).toBe(60);
     expect(node0.getPathSection()).toBe(undefined);
   });
@@ -318,7 +360,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       [],
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -332,7 +373,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       item0.pathItems,
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -347,6 +387,7 @@ describe("StreckengrafikModelTests", () => {
       20,
       new TrackData(1),
       false,
+      true,
       undefined,
       undefined,
       TrainrunBranchType.DepartureBranchOnly,
@@ -362,7 +403,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       [s1],
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -376,7 +416,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       [s1],
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -391,6 +430,7 @@ describe("StreckengrafikModelTests", () => {
       20,
       new TrackData(1),
       false,
+      true,
       undefined,
       undefined,
       TrainrunBranchType.DepartureBranchOnly,
@@ -403,6 +443,7 @@ describe("StreckengrafikModelTests", () => {
       20,
       new TrackData(1),
       false,
+      true,
       undefined,
       undefined,
       TrainrunBranchType.DepartureBranchOnly,
@@ -418,7 +459,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       [s1],
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -432,7 +472,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       [s2, s1],
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -447,6 +486,7 @@ describe("StreckengrafikModelTests", () => {
       20,
       new TrackData(1),
       false,
+      true,
       undefined,
       undefined,
       TrainrunBranchType.DepartureBranchOnly,
@@ -459,6 +499,7 @@ describe("StreckengrafikModelTests", () => {
       20,
       new TrackData(1),
       false,
+      true,
       undefined,
       undefined,
       TrainrunBranchType.DepartureBranchOnly,
@@ -474,7 +515,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       [s1],
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -488,7 +528,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       [s2],
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -503,6 +542,7 @@ describe("StreckengrafikModelTests", () => {
       20,
       new TrackData(1),
       false,
+      true,
       undefined,
       undefined,
       TrainrunBranchType.DepartureBranchOnly,
@@ -518,7 +558,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       [],
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -532,7 +571,6 @@ describe("StreckengrafikModelTests", () => {
       "S",
       "S",
       [s2],
-      true,
       Direction.ROUND_TRIP,
     );
 
@@ -553,6 +591,7 @@ describe("StreckengrafikModelTests", () => {
       "",
       "",
       false,
+      true,
       0,
       new TrackData(1),
       undefined,
