@@ -97,7 +97,6 @@ export class EditorPropertiesViewComponent {
       this.uiInteractionService.getActiveStreckengrafikRenderingType();
     this.activeTravelTimeCreationEstimatorType =
       this.uiInteractionService.getActiveTravelTimeCreationEstimatorType();
-
     if (activeTheme.isDark) {
       this.activeDarkBackgroundColor = this.getHexColor(activeTheme.backgroundColor);
     } else {
