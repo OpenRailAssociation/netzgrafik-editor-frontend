@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.10.10](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.9...netzgrafik-frontend-v2.10.10) (2026-01-19)
+
+
+### Bug Fixes
+
+* **streckengrafik:** add missing translation key ([1fd41e5](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/1fd41e5a0a2bdf249bfcb047dcf6828d9e4bcd6d))
+* **streckengrafik:** bottom options overflow ([1cdf83f](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/1cdf83fc41f606dc4af9abd14af155202ef076c7))
+
 ## [2.10.9](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.8...netzgrafik-frontend-v2.10.9) (2026-01-19)
 
 
