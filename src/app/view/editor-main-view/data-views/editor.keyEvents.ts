@@ -694,8 +694,16 @@ export class EditorKeyEvents {
       this.uiInteractionService.getEditorMode() === EditorMode.NetzgrafikEditing
     ) {
       this.uiInteractionService.setEditorMode(EditorMode.MultiNodeMoving);
-      this.noteService.getNotes().forEach((n: Note) => n.select());
-      this.nodeService.getNodes().forEach((n: Node) => n.select());
+      this.noteService.getNotes().forEach((n: Note) => {
+        if (this.filterService.filterNote(n)) {
+          n.select();
+        }
+      });
+      this.nodeService.getNodes().forEach((n: Node) => {
+        if (this.filterService.filterNode(n)) {
+          n.select();
+        }
+      });
       this.noteService.notesUpdated();
       this.nodeService.nodesUpdated();
     }
