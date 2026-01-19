@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.10.9](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.8...netzgrafik-frontend-v2.10.9) (2026-01-19)
+
+
+### Bug Fixes
+
+* compute leftToRight per trainrun in Streckengrafik ([#749](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/749)) ([f8469fa](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/f8469fa6c9901c1244a6bf1f23b92ff79bff5927))
+* emit single operation in setTimeStructureToTrainrunSections() ([7d85bee](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/7d85bee5e19417094be395b2720f383c5364c1b4))
+
 ## [2.10.8](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.7...netzgrafik-frontend-v2.10.8) (2026-01-08)
 
 
