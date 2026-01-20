@@ -242,8 +242,9 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
         this.trainrunService.getCumulativeTravelTime(trainrunSection, direction),
     );
 
-    this.editorView.bindGetCumulativeTravelTimeAndNodePath((trainrunSection: TrainrunSection) =>
-      this.trainrunService.getCumulativeTravelTimeAndNodePath(trainrunSection),
+    this.editorView.bindGetCumulativeTravelTimeAndNodePath(
+      (trainrunSection: TrainrunSection, direction: "sourceToTarget" | "targetToSource") =>
+        this.trainrunService.getCumulativeTravelTimeAndNodePath(trainrunSection, direction),
     );
 
     this.editorView.bindAddConnectionToNode(

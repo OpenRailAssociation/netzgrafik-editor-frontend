@@ -46,7 +46,10 @@ export class TrainrunSectionViewObject {
     const hiddenTagDirectionArrows =
       !editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
       !editorView.isFilterDirectionArrowsEnabled();
-    const cumulativeTravelTimeData = editorView.getCumulativeTravelTimeAndNodePath(d);
+    const cumulativeTravelTimeData = editorView.getCumulativeTravelTimeAndNodePath(
+      d,
+      "sourceToTarget",
+    );
     const cumulativeTravelTime =
       cumulativeTravelTimeData[cumulativeTravelTimeData.length - 1].sumTravelTime;
 
