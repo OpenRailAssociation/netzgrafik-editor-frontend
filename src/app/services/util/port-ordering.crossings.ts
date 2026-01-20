@@ -84,3 +84,73 @@ export function countCrossings(node: Node): number {
 
   return crossings;
 }
+
+/**
+ * This function counts all relevant crossings, given a set of nodes. It counts different types of
+ * crossings:
+ * 1. Between transitions within each node
+ * 2. Between parallel trainrun sections - with both same extremities, thus same alignments
+ * 3. Between trainrun sections that share exactly one extremity - same node, AND same alignment
+ *
+ * It does not count crossings between trainruns that don't share any extremity.
+ */
+export function countAllCrossings(nodes: Node[]): number {
+  let crossingsCase1 = 0;
+  let crossingsCase2 = 0;
+  let crossingsCase3 = 0;
+
+  nodes.forEach((node) => {
+    // Case 1: Crossings within nodes:
+    crossingsCase1 += countCrossings(node);
+
+    ALIGNMENTS_CLOCKWISE_ORDER.forEach((alignment) => {
+      const ports = node.getPorts().filter((port) => port.getPositionAlignment() === alignment);
+
+      for (let i = 0; i < ports.length - 1; i++) {
+        const port1 = ports[i];
+        const opposite1Node = port1.getOppositeNode(node.getId());
+
+        for (let j = i + 1; j < ports.length; j++) {
+          const port2 = ports[j];
+          const opposite2Node = port2.getOppositeNode(node.getId());
+
+          const isPort1AfterPort2 = port1.getPositionIndex() > port2.getPositionIndex();
+
+          // Case 2: Two exactly parallel trainrun sections:
+          if (opposite1Node === opposite2Node) {
+            // This test prevents these pairs to be counted twice
+            // (on each extremity):
+            if (node.getId() < opposite1Node.getId()) {
+              const port1SectionId = port1.getTrainrunSectionId();
+              const opposite1Port = opposite1Node
+                .getPorts()
+                .find((port) => port.getTrainrunSectionId() === port1SectionId);
+
+              const port2SectionId = port2.getTrainrunSectionId();
+              const opposite2Port = opposite2Node
+                .getPorts()
+                .find((port) => port.getTrainrunSectionId() === port2SectionId);
+
+              const isOpposite1AfterOpposite2 =
+                opposite1Port.getPositionIndex() > opposite2Port.getPositionIndex();
+              if (isPort1AfterPort2 !== isOpposite1AfterOpposite2) crossingsCase2++;
+            }
+          }
+
+          // Case 3: Two trainrun sections that share one extremity:
+          else {
+            const relevantDimension = isHorizontalAlignment(alignment)
+              ? ("getPositionX" as const)
+              : ("getPositionY" as const);
+
+            const isOpposite1AfterOpposite2 =
+              opposite1Node[relevantDimension]() > opposite2Node[relevantDimension]();
+            if (isPort1AfterPort2 !== isOpposite1AfterOpposite2) crossingsCase3++;
+          }
+        }
+      }
+    });
+  });
+
+  return crossingsCase1 + crossingsCase2 + crossingsCase3;
+}
