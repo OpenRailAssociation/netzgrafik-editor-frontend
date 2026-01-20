@@ -608,17 +608,7 @@ export class Sg6TrackService implements OnDestroy {
           // get the trainrun node data (typ casting)
           const pn: SgTrainrunNode = item.getTrainrunNode();
           if (pn.endNode && !pn.unusedForTurnaround) {
-
-            // handle special case one way
-            const tr = this.trainrunService.getTrainrunFromId(pn.trainrunId);
-            if (tr.getDirection() === Direction.ONE_WAY) {
-              if (pn.arrivalPathSection === undefined) {
-                item.arrivalTime = item.departureTime - item.minimumHeadwayTime;
-              } else {
-                item.departureTime = item.arrivalTime + item.minimumHeadwayTime;
-              }
-            }
-
+            this.handleExtraCaseOneWayEndNodeTurnaround(pn);
             this.alignTrainrunNodeToTrack(
               item,
               ts,
@@ -657,6 +647,18 @@ export class Sg6TrackService implements OnDestroy {
     // ------------------------------------------------------------------------------------------------------------------
     this.makeTrackSymmetric(trackInfoMap, separateForwardBackwardTracks);
     this.updateTracksForAllPathNodes(trackInfoMap, separateForwardBackwardTracks);
+  }
+
+  private handleExtraCaseOneWayEndNodeTurnaround(pn: SgTrainrunNode) {
+    // handle special case one way
+    const tr = this.trainrunService.getTrainrunFromId(pn.trainrunId);
+    if (tr.getDirection() === Direction.ONE_WAY) {
+      if (pn.arrivalPathSection === undefined) {
+        pn.arrivalTime = pn.departureTime - pn.minimumHeadwayTime;
+      } else {
+        pn.departureTime = pn.arrivalTime + pn.minimumHeadwayTime;
+      }
+    }
   }
 
   private alignTrainrunNodeToTrack(
