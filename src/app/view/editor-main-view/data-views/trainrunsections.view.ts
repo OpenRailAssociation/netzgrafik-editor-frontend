@@ -479,7 +479,10 @@ export class TrainrunSectionsView {
   }
 
   static extractTravelTime(trainrunSection: TrainrunSection, editorView: EditorView): string {
-    const cumTravelTimeData = editorView.getCumulativeTravelTimeAndNodePath(trainrunSection);
+    const cumTravelTimeData = editorView.getCumulativeTravelTimeAndNodePath(
+      trainrunSection,
+      "sourceToTarget",
+    );
     const cumulativeTravelTime = cumTravelTimeData[cumTravelTimeData.length - 1].sumTravelTime;
     if (
       trainrunSection.getTrainrun().selected() === true ||
