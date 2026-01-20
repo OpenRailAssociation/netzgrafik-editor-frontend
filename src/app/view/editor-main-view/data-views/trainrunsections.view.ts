@@ -478,11 +478,18 @@ export class TrainrunSectionsView {
     );
   }
 
-  static extractTravelTime(trainrunSection: TrainrunSection, editorView: EditorView): string {
-    const travelTime = trainrunSection.getTravelTime();
+  static extractTravelTime(
+    trainrunSection: TrainrunSection,
+    editorView: EditorView,
+    direction: "sourceToTarget" | "targetToSource",
+  ): string {
+    const travelTime =
+      direction === "targetToSource"
+        ? trainrunSection.getBackwardTravelTime()
+        : trainrunSection.getTravelTime();
     const cumTravelTimeData = editorView.getCumulativeTravelTimeAndNodePath(
       trainrunSection,
-      "sourceToTarget",
+      direction,
     );
     const cumulativeTravelTime = cumTravelTimeData[cumTravelTimeData.length - 1].sumTravelTime;
     if (
@@ -759,7 +766,11 @@ export class TrainrunSectionsView {
         if (data !== undefined) {
           return data;
         }
-        return TrainrunSectionsView.extractTravelTime(trainrunSection, editorView);
+        return TrainrunSectionsView.extractTravelTime(
+          trainrunSection,
+          editorView,
+          "sourceToTarget",
+        );
       }
       case TrainrunSectionText.TrainrunSectionName:
         return TrainrunSectionsView.extractTrainrunName(trainrunSection);
