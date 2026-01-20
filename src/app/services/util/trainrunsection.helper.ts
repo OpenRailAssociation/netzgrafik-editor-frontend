@@ -305,7 +305,10 @@ export class TrainrunsectionHelper {
       lastRightNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
         ? bothLastNonStopTrainrunSections.lastNonStopTrainrunSection1
         : bothLastNonStopTrainrunSections.lastNonStopTrainrunSection2;
-    const cumulativeTravelTime = this.trainrunService.getCumulativeTravelTime(trainrunSection);
+    const cumulativeTravelTime = this.trainrunService.getCumulativeTravelTime(
+      trainrunSection,
+      "sourceToTarget",
+    );
 
     return {
       leftDepartureTime: lastLeftNode.getDepartureTime(leftTrainrunSection),
