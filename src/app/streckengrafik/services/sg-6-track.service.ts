@@ -10,7 +10,7 @@ import {SgTrainrun} from "../model/streckengrafik-model/sg-trainrun";
 import {TrainrunBranchType} from "../model/enum/trainrun-branch-type-type";
 import {Sg5FilterService} from "./sg-5-filter.service";
 import {DataService} from "../../services/data/data.service";
-import {TrainrunFrequency} from "../../data-structures/business.data.structures";
+import {Direction, TrainrunFrequency} from "../../data-structures/business.data.structures";
 import {NodeService} from "../../services/data/node.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
@@ -608,6 +608,17 @@ export class Sg6TrackService implements OnDestroy {
           // get the trainrun node data (typ casting)
           const pn: SgTrainrunNode = item.getTrainrunNode();
           if (pn.endNode && !pn.unusedForTurnaround) {
+
+            // handle special case one way
+            const tr = this.trainrunService.getTrainrunFromId(pn.trainrunId);
+            if (tr.getDirection() === Direction.ONE_WAY) {
+              if (pn.arrivalPathSection === undefined) {
+                item.arrivalTime = item.departureTime - item.minimumHeadwayTime;
+              } else {
+                item.departureTime = item.arrivalTime + item.minimumHeadwayTime;
+              }
+            }
+
             this.alignTrainrunNodeToTrack(
               item,
               ts,
