@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.10.11](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.10...netzgrafik-frontend-v2.10.11) (2026-01-20)
+
+
+### Bug Fixes
+
+* Check/correct missing transition after combine two trainruns ([#767](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/767)) ([5a5e766](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/5a5e766f6d091f4517f17987cb53fae8686a58ac))
+* **issue_template:** url in pr, issue and bug report template ([0be456d](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/0be456db453ffc8d742ba0ac46cae37af56eb3e4))
+* Select all nodes/notes with `ctrl + a` no longer ignores active filters ([#766](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/766)) ([8684f4d](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/8684f4d3faa4a9f81f8d82480ae08c8eb650516f))
+
 ## [2.10.10](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.9...netzgrafik-frontend-v2.10.10) (2026-01-19)
 
 
