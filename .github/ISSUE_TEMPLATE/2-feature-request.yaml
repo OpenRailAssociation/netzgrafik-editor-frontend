@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to make NGE evolve!
+        Thanks for taking the time to make Netzgrafik-Editor evolve!
         Before requesting a new feature, please ensure that your idea is not already requested (access the list [here](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues?q=is%3Aissue%20label%3A%22feature-request%22)).
 
   - type: dropdown

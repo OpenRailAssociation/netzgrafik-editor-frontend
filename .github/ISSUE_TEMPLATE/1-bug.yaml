@@ -1,5 +1,5 @@
 name: "Bug Report 🐛"
-description: Report a bug encountered while operating NGE
+description: Report a bug encountered while operating Netzgrafik-Editor
 labels: []
 type: Bug
 body:
@@ -96,7 +96,7 @@ body:
   - type: input
     id: ngeVersion
     attributes:
-      label: NGE version (top left corner `Version x.yy.zz`)
+      label: Netzgrafik-Editor version (top left corner `Version x.yy.zz`)
       placeholder: "2.10.9"
     validations:
       required: true
