@@ -23,7 +23,7 @@ export class TrainrunSectionValidator {
     }
 
     const calculatedSourceArrivalTime =
-      (trainrunSection.getTargetDeparture() + trainrunSection.getTravelTime()) % 60;
+      (trainrunSection.getTargetDeparture() + trainrunSection.getBackwardTravelTime()) % 60;
     if (Math.abs(calculatedSourceArrivalTime - trainrunSection.getSourceArrival()) > 1 / 60) {
       trainrunSection.setSourceArrivalWarning(
         $localize`:@@app.services.util.trainrunsection-validator.source-arrival-not-reacheable.title:Source Arrival Warning`,
@@ -35,15 +35,16 @@ export class TrainrunSectionValidator {
   }
 
   static validateUnsymmetricTimesOneSection(trainrunSection: TrainrunSection) {
-    // check for broken symmetry (times)
     trainrunSection.resetSourceDepartureWarning();
     trainrunSection.resetTargetDepartureWarning();
+    trainrunSection.resetTravelTimeWarning();
+
     const sourceSum = MathUtils.round(
       trainrunSection.getSourceArrival() + trainrunSection.getSourceDeparture(),
       4,
     );
     const sourceSymmetricCheck = Math.abs(sourceSum % 60) < 1 / 60;
-    if (!sourceSymmetricCheck) {
+    if (trainrunSection.getSourceSymmetry() && !sourceSymmetricCheck) {
       trainrunSection.setSourceArrivalWarning(
         $localize`:@@app.services.util.trainrunsection-validator.broken-symmetry:Broken symmetry`,
         "" +
@@ -59,12 +60,13 @@ export class TrainrunSectionValidator {
           sourceSum,
       );
     }
+
     const targetSum = MathUtils.round(
       trainrunSection.getTargetArrival() + trainrunSection.getTargetDeparture(),
       4,
     );
     const targetSymmetricCheck = Math.abs(targetSum % 60) < 1 / 60;
-    if (!targetSymmetricCheck) {
+    if (trainrunSection.getTargetSymmetry() && !targetSymmetricCheck) {
       trainrunSection.setTargetArrivalWarning(
         $localize`:@@app.services.util.trainrunsection-validator.broken-symmetry:Broken symmetry`,
         "" +
@@ -78,6 +80,16 @@ export class TrainrunSectionValidator {
           (trainrunSection.getTargetArrival() + " + " + trainrunSection.getTargetDeparture()) +
           " =  " +
           targetSum,
+      );
+    }
+
+    if (
+      trainrunSection.isSymmetric() &&
+      trainrunSection.getTravelTime() !== trainrunSection.getBackwardTravelTime()
+    ) {
+      trainrunSection.setTravelTimeWarning(
+        $localize`:@@app.services.util.trainrunsection-validator.broken-symmetry:Broken symmetry`,
+        `${trainrunSection.getTravelTime()} ≠ ${trainrunSection.getBackwardTravelTime()}`,
       );
     }
   }
