@@ -764,7 +764,15 @@ export class TrainrunService {
     return summedTravelTime;
   }
 
-  getCumSumTravelTimeNodePathToLastNonStopNode(n: Node, ts: TrainrunSection) {
+  getCumulativeTravelTimeAndNodePath(trainrunSection: TrainrunSection) {
+    let iterator = this.getNonStopIterator(trainrunSection.getSourceNode(), trainrunSection);
+    while (iterator.hasNext()) {
+      iterator.next();
+    }
+    const n = iterator.current().node;
+    const ts = iterator.current().trainrunSection;
+
+    iterator = this.getNonStopIterator(n, ts);
     const data = [
       {
         node: n,
@@ -773,7 +781,6 @@ export class TrainrunService {
       },
     ];
     let summedTravelTime = 0;
-    const iterator = this.getNonStopIterator(n, ts);
     while (iterator.hasNext()) {
       const nextPair = iterator.next();
       summedTravelTime += nextPair.trainrunSection.getTravelTime();
@@ -784,17 +791,6 @@ export class TrainrunService {
       });
     }
     return data;
-  }
-
-  getCumulativeTravelTimeAndNodePath(trainrunSection: TrainrunSection) {
-    const iterator = this.getNonStopIterator(trainrunSection.getSourceNode(), trainrunSection);
-    while (iterator.hasNext()) {
-      iterator.next();
-    }
-    return this.getCumSumTravelTimeNodePathToLastNonStopNode(
-      iterator.current().node,
-      iterator.current().trainrunSection,
-    );
   }
 
   isStartEqualsEndNode(trainrunSectionId: number): boolean {
