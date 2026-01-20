@@ -484,6 +484,9 @@ export class TrainrunService {
     // remove empty trainrun
     this.deleteTrainrun(trainrun2, false);
 
+    // check/correct transitions
+    this.trainrunSectionService.checkMissingTransitionsAfterDeletion(trainrun1);
+
     // select
     trainrun1.select();
     this.nodeService.reorderPortsOnNodesForTrainrun(trainrun1, false);

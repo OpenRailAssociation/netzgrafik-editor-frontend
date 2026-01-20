@@ -1082,7 +1082,7 @@ export class TrainrunSectionService implements OnDestroy {
     }
   }
 
-  private checkMissingTransitionsAfterDeletion(trainrun: Trainrun) {
+  checkMissingTransitionsAfterDeletion(trainrun: Trainrun) {
     const trainrunSections = this.getAllTrainrunSectionsForTrainrun(trainrun.getId());
     trainrunSections.forEach((ts) => {
       const sourceNode = ts.getSourceNode();
