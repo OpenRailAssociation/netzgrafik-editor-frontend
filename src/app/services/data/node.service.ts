@@ -30,7 +30,7 @@ import {MathUtils} from "../../utils/math";
 import {LabelService} from "./label.service";
 import {FilterService} from "../ui/filter.service";
 import {ConnectionDto, PortOrderingType} from "../../data-structures/technical.data.structures";
-import {reorderAllPorts as reorderAllPortsGlobal} from "../util/port-ordering";
+import {reorderAllPorts as reorderAllPortsGlobal} from "../util/port-ordering.algo";
 import {TrainrunSectionValidator} from "../util/trainrunsection.validator";
 import {
   NodeOperation,

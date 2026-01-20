@@ -4,21 +4,54 @@ import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {Transition} from "../../models/transition.model";
 import {
   ALIGNMENTS_CLOCKWISE_ORDER,
-  getOppositeAlignmentScore,
-  isElbowSwapped,
   isHorizontalAlignment,
-} from "./port-ordering.utils";
+  SWAPPED_ALIGNMENTS,
+} from "./port-ordering.crossings";
+
+// Scores for sorting opposite alignments from top/left to bottom/right
+const HORIZONTAL_OPPOSITE_SCORES = new Map([
+  [PortAlignment.Left, 1],
+  [PortAlignment.Top, 2],
+  [PortAlignment.Bottom, 3],
+  [PortAlignment.Right, 4],
+]);
+const VERTICAL_OPPOSITE_SCORES = new Map([
+  [PortAlignment.Top, 1],
+  [PortAlignment.Left, 2],
+  [PortAlignment.Right, 3],
+  [PortAlignment.Bottom, 4],
+]);
 
 /**
- * This function sorts all ports in a given node, in a way that minimizes
- * crossings as much as possible. The strategy is described in detail within
- * the function itself.
+ * This function helps to sort all alignments opposite of a given alignment, from top/left to
+ * bottom/right.
+ */
+function getOppositeAlignmentScore(alignment: PortAlignment, opposite: PortAlignment): number {
+  const scores = isHorizontalAlignment(alignment)
+    ? HORIZONTAL_OPPOSITE_SCORES
+    : VERTICAL_OPPOSITE_SCORES;
+  return scores.get(opposite);
+}
+
+/**
+ * This function returns true when the elbow described by the two input alignments must have swapped
+ * orders, in order to have non-crossing paths.
+ *
+ * Basically, it's true if the elbow is top+right or left+bottom, or if both.
+ */
+function isElbowSwapped(from: PortAlignment, to: PortAlignment): boolean {
+  return SWAPPED_ALIGNMENTS.has(from) === SWAPPED_ALIGNMENTS.has(to);
+}
+
+/**
+ * This function sorts all ports in a given node, in a way that minimizes crossings as much as
+ * possible. The strategy is described in detail within the function itself.
  */
 export function orderPorts(
   node: Node,
   orderedNodeIDs = new Set<number>(),
   trainrunsScores: Record<number, number> = {},
-): void {
+) {
   const transitions = node.getTransitions();
   const ports = node.getPorts();
 
@@ -139,9 +172,8 @@ function getNeighborsCount(node: Node): number {
 }
 
 /**
- * Orders all ports across all nodes using BFS traversal from a root node.
- * Each connected component is processed separately, starting from the node
- * with the most neighbors.
+ * Orders all ports across all nodes using BFS traversal from a root node. Each connected component
+ * is processed separately, starting from the node with the most neighbors.
  */
 export function reorderAllPorts(nodes: Node[]): void {
   const nodesWithPorts = nodes.filter((n) => n.getPorts().length > 0);
