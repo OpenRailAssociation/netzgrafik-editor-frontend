@@ -1,5 +1,4 @@
 import {Node} from "../../models/node.model";
-import {Port} from "../../models/port.model";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {Transition} from "../../models/transition.model";
 import {
@@ -7,6 +6,7 @@ import {
   isHorizontalAlignment,
   SWAPPED_ALIGNMENTS,
 } from "./port-ordering.crossings";
+import {getConnectedComponents, getPortOppositeNodeId} from "./port-ordering.components";
 
 // Scores for sorting opposite alignments from top/left to bottom/right
 const HORIZONTAL_OPPOSITE_SCORES = new Map([
@@ -162,20 +162,18 @@ export function orderPorts(
   });
 }
 
-function getPortTargetNodeId(port: Port, nodeId: number): number {
-  const ts = port.getTrainrunSection();
-  return ts.getSourceNodeId() === nodeId ? ts.getTargetNodeId() : ts.getSourceNodeId();
-}
-
 function getNeighborsCount(node: Node): number {
-  return new Set(node.getPorts().map((p) => getPortTargetNodeId(p, node.getId()))).size;
+  return new Set(node.getPorts().map((p) => getPortOppositeNodeId(p, node.getId()))).size;
 }
 
 /**
- * Orders all ports across all nodes using BFS traversal from a root node. Each connected component
- * is processed separately, starting from the node with the most neighbors.
+ * This function orders all ports across all nodes using BFS traversal from a root node. Each
+ * connected component is processed separately, starting from the node with the most neighbors.
+ *
+ * This function assumes all nodes are somehow connected. If you don't know that for sure, you
+ * should call reorderAllPorts instead, that first looks for all connected components.
  */
-export function reorderAllPorts(nodes: Node[]): void {
+export function reorderComponentPorts(nodes: Node[]): void {
   const nodesWithPorts = nodes.filter((n) => n.getPorts().length > 0);
   if (nodesWithPorts.length === 0) return;
 
@@ -204,7 +202,7 @@ export function reorderAllPorts(nodes: Node[]): void {
       const nodeId = queue.shift()!;
       const node = nodeMap.get(nodeId)!;
 
-      const neighborIds = new Set(node.getPorts().map((p) => getPortTargetNodeId(p, nodeId)));
+      const neighborIds = new Set(node.getPorts().map((p) => getPortOppositeNodeId(p, nodeId)));
 
       for (const neighborId of neighborIds) {
         if (visited.has(neighborId)) continue;
@@ -217,4 +215,13 @@ export function reorderAllPorts(nodes: Node[]): void {
       }
     }
   }
+}
+
+/**
+ * This function orders all ports in all nodes to minimize crossings. It first calls
+ * getConnectedComponents, and then reorderComponentPorts on each connected component.
+ */
+export function reorderAllPorts(nodes: Node[]): void {
+  const components = getConnectedComponents(nodes);
+  components.forEach((componentNodes) => reorderComponentPorts(componentNodes));
 }
