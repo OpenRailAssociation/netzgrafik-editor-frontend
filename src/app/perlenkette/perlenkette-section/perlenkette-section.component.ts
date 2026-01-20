@@ -558,6 +558,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     ) {
       const cumulativeTravelTime = this.trainrunService.getCumulativeTravelTime(
         this.trainrunSection,
+        "sourceToTarget",
       );
       return (
         "" +
