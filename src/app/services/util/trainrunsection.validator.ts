@@ -35,6 +35,9 @@ export class TrainrunSectionValidator {
   }
 
   static validateUnsymmetricTimesOneSection(trainrunSection: TrainrunSection) {
+    if (!trainrunSection.isSymmetric()) {
+      return;
+    }
     // check for broken symmetry (times)
     trainrunSection.resetSourceDepartureWarning();
     trainrunSection.resetTargetDepartureWarning();
