@@ -479,6 +479,7 @@ export class TrainrunSectionsView {
   }
 
   static extractTravelTime(trainrunSection: TrainrunSection, editorView: EditorView): string {
+    const travelTime = trainrunSection.getTravelTime();
     const cumTravelTimeData = editorView.getCumulativeTravelTimeAndNodePath(
       trainrunSection,
       "sourceToTarget",
@@ -489,13 +490,10 @@ export class TrainrunSectionsView {
       editorView.isFilterShowNonStopTimeEnabled() ||
       editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()
     ) {
-      if (cumulativeTravelTime === trainrunSection.getTravelTime()) {
+      if (cumulativeTravelTime === travelTime) {
         // default case
         return (
-          TrainrunSectionsView.formatTime(
-            trainrunSection.getTravelTime(),
-            editorView.getTimeDisplayPrecision(),
-          ) + "'"
+          TrainrunSectionsView.formatTime(travelTime, editorView.getTimeDisplayPrecision()) + "'"
         );
       } else {
         // special case - with non stops
@@ -636,7 +634,7 @@ export class TrainrunSectionsView {
         }
 
         if (TrainrunSectionsView.isBothSideNonStop(trainrunSection)) {
-          return "(" + TrainrunSectionsView.formatTime(trainrunSection.getTravelTime(), 1) + "')";
+          return "(" + TrainrunSectionsView.formatTime(travelTime, 1) + "')";
         }
         // default case for non stops
         return (
@@ -645,7 +643,7 @@ export class TrainrunSectionsView {
             editorView.getTimeDisplayPrecision(),
           ) +
           "' (" +
-          TrainrunSectionsView.formatTime(trainrunSection.getTravelTime(), 1) +
+          TrainrunSectionsView.formatTime(travelTime, 1) +
           "')"
         );
       }
