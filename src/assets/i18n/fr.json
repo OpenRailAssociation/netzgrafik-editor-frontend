@@ -356,6 +356,7 @@
         "one-ways": "allers simples",
         "display-direction-arrows": "Afficher les flèches de direction des trains",
         "display-asymmetry-arrows": "Afficher les flèches d'asymétrie au niveau des noeuds des trains",
+        "display-backward-travel-times": "Afficher les temps de parcours retour (asymmétrie)",
         "times": "Temps",
         "decimal-displayed": "Nombre de décimales affichées",
         "display-arrival-departure-times": "Afficher les heures de départ et d'arrivée",
