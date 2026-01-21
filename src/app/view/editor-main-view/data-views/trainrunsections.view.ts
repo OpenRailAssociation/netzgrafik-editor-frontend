@@ -935,6 +935,7 @@ export class TrainrunSectionsView {
         );
       case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
         if (
+          !editorView.isFilterBackwardTravelTimeEnabled() ||
           !trainrunSection.getTrainrun().isRoundTrip() ||
           trainrunSection.areTravelTimesEqual()
         ) {

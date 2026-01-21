@@ -596,6 +596,20 @@ export class FilterService implements OnDestroy {
     this.filterChanged();
   }
 
+  isFilterBackwardTravelTimeEnabled(): boolean {
+    return this.activeFilterSetting.filterBackwardTravelTime;
+  }
+
+  enableFilterBackwardTravelTime() {
+    this.activeFilterSetting.filterBackwardTravelTime = true;
+    this.filterChanged();
+  }
+
+  disableFilterBackwardTravelTime() {
+    this.activeFilterSetting.filterBackwardTravelTime = false;
+    this.filterChanged();
+  }
+
   isFilterTrainrunNameEnabled(): boolean {
     return this.activeFilterSetting.filterTrainrunName;
   }
@@ -786,6 +800,7 @@ export class FilterService implements OnDestroy {
       this.isFilterConnectionsEnabled() &&
       this.isFilterTrainrunNameEnabled() &&
       this.isFilterTravelTimeEnabled() &&
+      this.isFilterBackwardTravelTimeEnabled() &&
       this.isFilterShowNonStopTimeEnabled()
     );
   }
