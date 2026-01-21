@@ -79,6 +79,7 @@ export class EditorView implements SVGMouseControllerObserver {
   isFilterTravelTimeEnabled = null;
   isFilterTrainrunNameEnabled = null;
   isFilterDirectionArrowsEnabled = null;
+  isFilterAsymmetryArrowsEnabled = null;
   isFilterArrivalDepartureTimeEnabled = null;
   isFilterShowNonStopTimeEnabled = null;
   isFilterTrainrunCategoryEnabled = null;
@@ -292,6 +293,10 @@ export class EditorView implements SVGMouseControllerObserver {
 
   bindIsFilterDirectionArrowsEnabled(callback) {
     this.isFilterDirectionArrowsEnabled = callback;
+  }
+
+  bindIsFilterAsymmetryArrowsEnabled(callback) {
+    this.isFilterAsymmetryArrowsEnabled = callback;
   }
 
   bindIsfilterArrivalDepartureTimeEnabled(callback) {
