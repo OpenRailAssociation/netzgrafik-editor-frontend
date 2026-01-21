@@ -314,9 +314,23 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     return "TrainrunDialog Direction ";
   }
 
+  getSymmetryClassname(symmetry: boolean): string {
+    if (this.filterService.isFilterSymmetryEnabled(symmetry)) {
+      return "TrainrunDialog Symmetry " + StaticDomTags.TAG_SELECTED;
+    }
+    return "TrainrunDialog Symmetry ";
+  }
+
   hasOneWayTrainruns(): boolean {
     for (const trainrun of this.dataService.getTrainruns()) {
       if (!trainrun.isRoundTrip()) return true;
+    }
+    return false;
+  }
+
+  isAsymmetryActive(): boolean {
+    for (const section of this.dataService.getTrainrunSections()) {
+      if (!section.isSymmetric()) return true;
     }
     return false;
   }
@@ -356,6 +370,13 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     return $localize`:@@app.view.editor-filter-view.hide-direction:Hide ${directionTranslation}:direction:`;
   }
 
+  getSymmetryTooltip(symmetry: boolean): string {
+    if (!this.filterService.isFilterSymmetryEnabled(symmetry)) {
+      return $localize`:@@app.view.editor-filter-view.show-asymmetric-trainruns:Show asymmetric trainruns`;
+    }
+    return $localize`:@@app.view.editor-filter-view.hide-asymmetric-trainruns:Hide asymmetric trainruns`;
+  }
+
   makeCategoryButtonLabel(trainrunCategory: TrainrunCategory): string {
     const label = trainrunCategory.shortName.toUpperCase();
     if (label.length > 4) {
@@ -380,6 +401,14 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     }
   }
 
+  makeSymmetryButtonLabel(symmetry: boolean): string {
+    if (symmetry) {
+      return $localize`:@@app.view.editor-filter-view.symmetric-short:Sym.`;
+    } else {
+      return $localize`:@@app.view.editor-filter-view.asymmetric-short:Asym.`;
+    }
+  }
+
   onCategoryChanged(trainrunCategory: TrainrunCategory) {
     if (!this.filterService.isFilterTrainrunCategoryEnabled(trainrunCategory)) {
       this.filterService.enableFilterTrainrunCategory(trainrunCategory);
@@ -401,6 +430,14 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
       this.filterService.enableFilterDirection(direction);
     } else {
       this.filterService.disableFilterDirection(direction);
+    }
+  }
+
+  onSymmetryChanged(symmetry: boolean) {
+    if (!this.filterService.isFilterSymmetryEnabled(symmetry)) {
+      this.filterService.enableFilterSymmetry(symmetry);
+    } else {
+      this.filterService.disableFilterSymmetry(symmetry);
     }
   }
 
@@ -448,6 +485,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     this.filterService.resetFilterTrainrunFrequency();
     this.filterService.resetFilterTrainrunTimeCategory();
     this.filterService.resetFilterDirection();
+    this.filterService.resetFilterSymmetry();
   }
 
   onResetNodeFilter() {

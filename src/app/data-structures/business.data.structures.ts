@@ -304,6 +304,7 @@ export interface FilterSettingDto {
   filterTrainrunFrequency: TrainrunFrequency[]; // list of frequency to filter out
   filterTrainrunTimeCategory: TrainrunTimeCategory[]; // list of time categroy to filter out
   filterDirection: Direction[]; // list of trainrun direction to filter out
+  filterSymmetry: boolean[]; // list of trainrun symmetry values (true/false) to filter out
   filterAllEmptyNodes: boolean; // flag to filter all empty nodes (hide/show)
   filterAllNonStopNodes: boolean; // flag to filter all only non-stop nodes (hide/show)
   filterNotes: boolean; // flag to filter notes (hide/show)

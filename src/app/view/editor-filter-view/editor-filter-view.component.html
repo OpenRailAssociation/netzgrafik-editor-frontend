@@ -54,20 +54,33 @@
       </button>
     </div>
 
-    <div *ngIf="hasOneWayTrainruns()">
+    <div *ngIf="hasOneWayTrainruns() || isAsymmetryActive()">
       <sbb-label class="sbb-mt-m">{{
         "app.view.editor-filter-view.symmetry" | translate
       }}</sbb-label>
       <div class="sbb-trainrun-chip-group">
-        <button
-          [class]="getDirectionClassname(direction)"
-          (click)="onDirectionChanged(direction)"
-          mode="ghost"
-          [title]="getDirectionTooltip(direction)"
-          *ngFor="let direction of this.dataService.getDirections()"
-        >
-          {{ makeDirectionButtonLabel(direction) }}
-        </button>
+        <ng-container *ngIf="hasOneWayTrainruns()">
+          <button
+            [class]="getDirectionClassname(direction)"
+            (click)="onDirectionChanged(direction)"
+            mode="ghost"
+            [title]="getDirectionTooltip(direction)"
+            *ngFor="let direction of this.dataService.getDirections()"
+          >
+            {{ makeDirectionButtonLabel(direction) }}
+          </button>
+        </ng-container>
+        <ng-container *ngIf="isAsymmetryActive()">
+          <button
+            *ngFor="let symmetry of [true, false]"
+            [class]="getSymmetryClassname(symmetry)"
+            (click)="onSymmetryChanged(symmetry)"
+            mode="ghost"
+            [title]="getSymmetryTooltip(symmetry)"
+          >
+            {{ makeSymmetryButtonLabel(symmetry) }}
+          </button>
+        </ng-container>
       </div>
     </div>
 
