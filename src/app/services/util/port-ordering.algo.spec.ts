@@ -1,11 +1,11 @@
-import {orderPorts, reorderAllPorts} from "./port-ordering.algo";
-import {countCrossings} from "./port-ordering.crossings";
+import {reorderNodePorts, optimizePorts} from "./port-ordering.algo";
+import {countCrossingsInNode} from "./port-ordering.crossings";
 import {buildNetwork, getTrainrunIDsOnSide} from "./port-ordering.test-helpers";
 
 describe("port-ordering", () => {
   describe("orderPorts", () => {
     it("should order ports with two parallel trainruns (horizontal)", () => {
-      // A -- B -- C (two trainruns going A→B→C)
+      // A - B - C
       const {nodesMap, trainrunIDs} = buildNetwork({
         nodes: {A: {x: 0, y: 0}, B: {x: 100, y: 0}, C: {x: 200, y: 0}},
         trainruns: [
@@ -14,7 +14,7 @@ describe("port-ordering", () => {
         ],
       });
 
-      orderPorts(nodesMap.get("B"));
+      reorderNodePorts(nodesMap.get("B"));
 
       // On both sides, trainruns are ordered in their given order:
       expect(getTrainrunIDsOnSide(nodesMap.get("B"), "left")).toEqual(trainrunIDs);
@@ -35,7 +35,7 @@ describe("port-ordering", () => {
       reversedTrainrunIDs.forEach((id, index) => (tiebreakerScores[id] = index));
 
       // Give trainrun2 a lower score (should come first)
-      orderPorts(nodesMap.get("B"), new Set(), tiebreakerScores);
+      reorderNodePorts(nodesMap.get("B"), new Set(), tiebreakerScores);
 
       // Trainrun2 should be ordered before trainrun1 on left side
       expect(getTrainrunIDsOnSide(nodesMap.get("B"), "left")).toEqual(reversedTrainrunIDs);
@@ -57,13 +57,13 @@ describe("port-ordering", () => {
         ],
       });
 
-      orderPorts(nodesMap.get("B"));
+      reorderNodePorts(nodesMap.get("B"));
 
       // B's left ports ordered by Y: A (y=0) before C (y=100)
       expect(getTrainrunIDsOnSide(nodesMap.get("B"), "left")).toEqual([t1, t2, t2, t1]);
 
       // There should be no crossing within B
-      expect(countCrossings(nodesMap.get("B"))).toBe(0);
+      expect(countCrossingsInNode(nodesMap.get("B"))).toBe(0);
     });
 
     it("should order same-side ports by opposite node Y position (swapped side)", () => {
@@ -81,13 +81,13 @@ describe("port-ordering", () => {
         ],
       });
 
-      orderPorts(nodesMap.get("B"));
+      reorderNodePorts(nodesMap.get("B"));
 
       // B's right ports ordered by Y: A (y=0) before C (y=100)
       expect(getTrainrunIDsOnSide(nodesMap.get("B"), "right")).toEqual([t1, t2, t2, t1]);
 
       // There should be no crossing within B
-      expect(countCrossings(nodesMap.get("B"))).toBe(0);
+      expect(countCrossingsInNode(nodesMap.get("B"))).toBe(0);
     });
   });
 
@@ -104,9 +104,9 @@ describe("port-ordering", () => {
         ],
       });
 
-      reorderAllPorts(nodesArray);
+      optimizePorts(nodesArray);
 
-      expect(countCrossings(nodesMap.get("B"))).toBe(0);
+      expect(countCrossingsInNode(nodesMap.get("B"))).toBe(0);
       expect(getTrainrunIDsOnSide(nodesMap.get("B"), "top")).toEqual(trainrunIDs);
       expect(getTrainrunIDsOnSide(nodesMap.get("B"), "right")).toEqual(trainrunIDs.toReversed());
     });
@@ -123,9 +123,9 @@ describe("port-ordering", () => {
         ],
       });
 
-      reorderAllPorts(nodesArray);
+      optimizePorts(nodesArray);
 
-      expect(countCrossings(nodesMap.get("B"))).toBe(0);
+      expect(countCrossingsInNode(nodesMap.get("B"))).toBe(0);
       expect(getTrainrunIDsOnSide(nodesMap.get("B"), "top")).toEqual(trainrunIDs);
       expect(getTrainrunIDsOnSide(nodesMap.get("B"), "left")).toEqual(trainrunIDs);
     });
@@ -148,13 +148,13 @@ describe("port-ordering", () => {
         ],
       });
 
-      reorderAllPorts(nodesArray);
+      optimizePorts(nodesArray);
 
       // Both subgraphs processed: each B node has 1 transition, 0 crossings
       expect(nodesMap.get("B1").getTransitions().length).toBe(1);
       expect(nodesMap.get("B2").getTransitions().length).toBe(1);
-      expect(countCrossings(nodesMap.get("B1"))).toBe(0);
-      expect(countCrossings(nodesMap.get("B2"))).toBe(0);
+      expect(countCrossingsInNode(nodesMap.get("B1"))).toBe(0);
+      expect(countCrossingsInNode(nodesMap.get("B2"))).toBe(0);
     });
   });
 });

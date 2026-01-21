@@ -3,6 +3,7 @@ import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {Transition} from "../../models/transition.model";
 import {
   ALIGNMENTS_CLOCKWISE_ORDER,
+  countAllCrossings,
   isHorizontalAlignment,
   SWAPPED_ALIGNMENTS,
 } from "./port-ordering.crossings";
@@ -47,7 +48,7 @@ function isElbowSwapped(from: PortAlignment, to: PortAlignment): boolean {
  * This function sorts all ports in a given node, in a way that minimizes crossings as much as
  * possible. The strategy is described in detail within the function itself.
  */
-export function orderPorts(
+export function reorderNodePorts(
   node: Node,
   orderedNodeIDs = new Set<number>(),
   trainrunsScores: Record<number, number> = {},
@@ -167,13 +168,14 @@ function getNeighborsCount(node: Node): number {
 }
 
 /**
- * This function orders all ports across all nodes using BFS traversal from a root node. Each
- * connected component is processed separately, starting from the node with the most neighbors.
- *
- * This function assumes all nodes are somehow connected. If you don't know that for sure, you
- * should call reorderAllPorts instead, that first looks for all connected components.
+ * This function orders all ports across all nodes using BFS traversal from a root node. To see
+ * exactly how ports are ordered in a single node (where the logic actually is), check
+ * reorderNodePorts.
  */
-export function reorderComponentPorts(nodes: Node[]): void {
+export function reorderComponentPorts(
+  nodes: Node[],
+  trainrunsScores: Record<number, number> = {},
+): void {
   const nodesWithPorts = nodes.filter((n) => n.getPorts().length > 0);
   if (nodesWithPorts.length === 0) return;
 
@@ -194,7 +196,7 @@ export function reorderComponentPorts(nodes: Node[]): void {
     const root = sortedNodes.find((node) => !visited.has(node.getId()));
     const queue: number[] = [root.getId()];
 
-    orderPorts(root, visited);
+    reorderNodePorts(root, visited, trainrunsScores);
     visited.add(root.getId());
 
     // BFS traversal
@@ -211,17 +213,130 @@ export function reorderComponentPorts(nodes: Node[]): void {
         queue.push(neighborId);
 
         const neighbor = nodeMap.get(neighborId)!;
-        orderPorts(neighbor, visited);
+        reorderNodePorts(neighbor, visited, trainrunsScores);
       }
     }
   }
 }
 
+type OptimizeComponentPortsOptions = {
+  maxRuns: number;
+  maxNewCandidates: number;
+};
+const DEFAULT_OPTIMIZE_COMPONENT_PORTS_OPTIONS: OptimizeComponentPortsOptions = {
+  maxRuns: 50,
+  maxNewCandidates: 10,
+};
+
+/**
+ * This function tries to optimize port ordering across all nodes to minimize edge crossings.
+ *
+ * ## Strategy: Greedy search with crossing-guided candidate generation
+ *
+ * The core insight is that `reorderComponentPorts` uses a trainrun ordering as a tie-breaker when
+ * two ports can't be distinguished by geometry alone. By trying different trainrun orderings, we
+ * can explore different port arrangements, and find one with fewer crossings.
+ *
+ * ## Algorithm
+ *
+ * 1. Start with the initial trainrun order (from node transitions)
+ * 2. For each candidate trainrun ordering:
+ *    - Apply it via `reorderComponentPorts` (uses ordering as tie-breaker)
+ *    - Count resulting crossings with `countAllCrossings`
+ *    - If crossings improved, generate new candidates from detected group-crossings
+ * 3. Repeat until no improvement or `maxRuns` reached
+ * 4. Re-apply the best candidate found
+ *
+ * ## Candidate generation
+ *
+ * When crossings are detected, `countAllCrossings` returns `groupCrossings`: contiguous groups of
+ * trainruns that cross each other. By permuting these groups in the trainrun ordering, we generate
+ * new candidates that might reduce those specific crossings.
+ *
+ * Example: if trainruns [1,2] cross [3,4], we try reordering to [3,4,1,2].
+ *
+ * ## Limitations
+ *
+ * - This is a heuristic, not guaranteed to find the global optimum
+ * - Uses depth-first search (stack), so may miss better solutions on other branches
+ * - Stops early if no improvement, even if unexplored candidates remain
+ *
+ * ## Parameters
+ *
+ * - `maxRuns`: Maximum iterations to prevent infinite loops (default: 50)
+ * - `maxNewCandidates`: Max new candidates per improvement (default: 10), limits branching factor
+ */
+export function optimizeComponentPorts(
+  nodes: Node[],
+  parameters: Partial<OptimizeComponentPortsOptions> = {},
+): void {
+  const {maxRuns, maxNewCandidates} = {...DEFAULT_OPTIMIZE_COMPONENT_PORTS_OPTIONS, ...parameters};
+
+  // Preserves insertion order while removing duplicates
+  const toUnique = (arr: number[]): number[] => {
+    const result: number[] = [];
+    const set = new Set<number>();
+    arr.forEach((n) => {
+      if (!set.has(n)) {
+        set.add(n);
+        result.push(n);
+      }
+    });
+    return result;
+  };
+
+  // Converts trainrun ID array to score map (index = priority)
+  const trainrunsToScore = (trainruns: number[]): Record<number, number> => {
+    const scores: Record<number, number> = {};
+    trainruns.forEach((id, index) => (scores[id] = index));
+    return scores;
+  };
+
+  // Permutes trainrun ordering by replacing group positions with flattened group order.
+  // Example: trainruns=[1,2,3,4], groups=[[3,4],[1,2]] → [3,4,1,2]
+  const reorderGroups = (trainruns: number[], groups: number[][]): number[] => {
+    const reorderedIDs = toUnique(groups.flat());
+    const set = new Set(reorderedIDs);
+    let j = 0;
+    return trainruns.map((v) => (set.has(v) ? reorderedIDs[j++] : v));
+  };
+
+  const initialTrainrunsOrder = toUnique(
+    nodes.flatMap((node) => node.getTransitions().map((t) => t.getTrainrun().getId())),
+  );
+
+  let runs = 0;
+  let bestCrossings = Infinity;
+  let bestCandidate: number[] = [];
+  const candidates = [initialTrainrunsOrder];
+
+  while (runs++ <= maxRuns && candidates.length > 0) {
+    const candidate = candidates.pop();
+
+    reorderComponentPorts(nodes, trainrunsToScore(candidate));
+    const {crossings, groupCrossings} = countAllCrossings(nodes);
+
+    if (crossings < bestCrossings) {
+      bestCandidate = candidate;
+      bestCrossings = crossings;
+
+      // Generate new candidates from worst crossings (reversed so worst is tried last/first-popped)
+      const newCandidates = groupCrossings.slice(0, maxNewCandidates).toReversed();
+      newCandidates.forEach((groupCrossing) => {
+        candidates.push(reorderGroups(candidate, groupCrossing.groups));
+      });
+    }
+  }
+
+  // Re-apply best result (last iteration may have been worse)
+  reorderComponentPorts(nodes, trainrunsToScore(bestCandidate));
+}
+
 /**
  * This function orders all ports in all nodes to minimize crossings. It first calls
- * getConnectedComponents, and then reorderComponentPorts on each connected component.
+ * getConnectedComponents, and then optimizeComponentPorts on each connected component.
  */
-export function reorderAllPorts(nodes: Node[]): void {
+export function optimizePorts(nodes: Node[]): void {
   const components = getConnectedComponents(nodes);
-  components.forEach((componentNodes) => reorderComponentPorts(componentNodes));
+  components.forEach((componentNodes) => optimizeComponentPorts(componentNodes));
 }

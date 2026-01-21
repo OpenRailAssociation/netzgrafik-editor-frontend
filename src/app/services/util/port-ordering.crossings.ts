@@ -1,5 +1,6 @@
 import {Node} from "../../models/node.model";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
+import {Port} from "../../models/port.model";
 
 export const ALIGNMENTS_CLOCKWISE_ORDER = [
   PortAlignment.Top,
@@ -20,10 +21,125 @@ export function isHorizontalAlignment(a: PortAlignment) {
   return a === PortAlignment.Top || a === PortAlignment.Bottom;
 }
 
+export type Segments = number[] | number[][];
+
+function normalizeSegments(input: Segments): number[][] {
+  if (input.length === 0) return [];
+  // If first element is a number, it's a flat array
+  if (typeof input[0] === "number") {
+    return [input as number[]];
+  }
+  return (input as number[][]).filter((a) => a.length);
+}
+
+/**
+ * This function finds largest groups of elements that stay contiguous and in the same order in two
+ * different "segment" inputs.
+ *
+ * Each segment input is either a number[] or a number[][]. It describes trainrun IDs, in their
+ * order on the side of one or multiple nodes. Finding stable contiguous groups helps to find
+ * permutation candidates, to globally reduce the amount of crossings.
+ */
+export function groupContiguous(a1: Segments, a2: Segments): number[][] {
+  const segments1 = normalizeSegments(a1);
+  const segments2 = normalizeSegments(a2);
+
+  if (segments1.length === 0) return [];
+
+  // Map each element to its segment index and global position (for a2)
+  const info2 = new Map<number, {segment: number; pos: number}>();
+  let globalPos = 0;
+  segments2.forEach((segment, segIdx) => {
+    segment.forEach((val) => {
+      info2.set(val, {segment: segIdx, pos: globalPos++});
+    });
+  });
+
+  // Same for a1
+  const info1 = new Map<number, {segment: number; pos: number}>();
+  globalPos = 0;
+  segments1.forEach((segment, segIdx) => {
+    segment.forEach((val) => {
+      info1.set(val, {segment: segIdx, pos: globalPos++});
+    });
+  });
+
+  // Flatten a1 for iteration
+  const flat1 = segments1.flat();
+
+  const result: number[][] = [];
+  let currentGroup: number[] = [flat1[0]];
+
+  for (let i = 1; i < flat1.length; i++) {
+    const prev1 = info1.get(flat1[i - 1])!;
+    const curr1 = info1.get(flat1[i])!;
+    const prev2 = info2.get(flat1[i - 1])!;
+    const curr2 = info2.get(flat1[i])!;
+
+    const sameSegment1 = curr1.segment === prev1.segment;
+    const sameSegment2 = curr2.segment === prev2.segment;
+    const consecutive2 = curr2.pos === prev2.pos + 1;
+
+    if (sameSegment1 && sameSegment2 && consecutive2) {
+      currentGroup.push(flat1[i]);
+    } else {
+      result.push(currentGroup);
+      currentGroup = [flat1[i]];
+    }
+  }
+
+  result.push(currentGroup);
+  return result;
+}
+
+/**
+ * This function counts all intersections between two orderings of trainrun IDs:
+ * - `direct` refers to crossings between trainrun sections that have exact same extremity nodes
+ * - `indirect` refers to crossings between trainrun sections that only share one extremity node
+ */
+export function countCrossingsBetweenSides(
+  a1: Segments,
+  a2: Segments,
+): {direct: number; indirect: number} {
+  const flat1 = normalizeSegments(a1).flat();
+  const segments2 = normalizeSegments(a2);
+
+  // Build segment and position info for a2
+  const info2 = new Map<number, {segment: number; posInSegment: number}>();
+  segments2.forEach((segment, segIdx) => {
+    segment.forEach((val, posInSegment) => {
+      info2.set(val, {segment: segIdx, posInSegment});
+    });
+  });
+
+  let direct = 0;
+  let indirect = 0;
+
+  // Compare all pairs from a1
+  for (let i = 0; i < flat1.length - 1; i++) {
+    for (let j = i + 1; j < flat1.length; j++) {
+      const infoI = info2.get(flat1[i]);
+      const infoJ = info2.get(flat1[j]);
+      if (!infoI || !infoJ) continue;
+
+      // In a1: i comes before j
+      if (infoI.segment === infoJ.segment) {
+        // Same opposite node → direct crossing if order inverted
+        if (infoI.posInSegment > infoJ.posInSegment) direct++;
+      } else {
+        // Different opposite nodes → indirect crossing if segment order inverted
+        if (infoI.segment > infoJ.segment) indirect++;
+      }
+    }
+  }
+
+  return {direct, indirect};
+}
+
 /**
  * This function counts all crossings within a node.
  */
-export function countCrossings(node: Node): number {
+export function countCrossingsInNode(node: Node): number {
   let crossings = 0;
   const transitions = node.getTransitions();
   for (let i = 0; i < transitions.length - 1; i++) {
@@ -85,6 +201,16 @@ export function countCrossings(node: Node): number {
   return crossings;
 }
 
+export interface GroupCrossing {
+  groups: number[][];
+  crossings: number;
+}
+
+export interface CrossingsInfo {
+  crossings: number;
+  groupCrossings: GroupCrossing[];
+}
+
 /**
  * This function counts all relevant crossings, given a set of nodes. It counts different types of
  * crossings:
@@ -94,63 +220,76 @@ export function countCrossings(node: Node): number {
  *
  * It does not count crossings between trainruns that don't share any extremity.
  */
-export function countAllCrossings(nodes: Node[]): number {
-  let crossingsCase1 = 0;
-  let crossingsCase2 = 0;
-  let crossingsCase3 = 0;
+export function countAllCrossings(nodes: Node[]): CrossingsInfo {
+  const groupCrossings: GroupCrossing[] = [];
+  let crossings = 0;
 
   nodes.forEach((node) => {
-    // Case 1: Crossings within nodes:
-    crossingsCase1 += countCrossings(node);
+    const nodeId = node.getId();
+
+    crossings += countCrossingsInNode(node);
 
     ALIGNMENTS_CLOCKWISE_ORDER.forEach((alignment) => {
-      const ports = node.getPorts().filter((port) => port.getPositionAlignment() === alignment);
+      const relevantDimension = isHorizontalAlignment(alignment)
+        ? ("getPositionX" as const)
+        : ("getPositionY" as const);
 
-      for (let i = 0; i < ports.length - 1; i++) {
-        const port1 = ports[i];
-        const opposite1Node = port1.getOppositeNode(node.getId());
+      const ports = node
+        .getPorts()
+        .filter((port) => port.getPositionAlignment() === alignment)
+        .sort((a, b) => a.getPositionIndex() - b.getPositionIndex());
+      const oppositePortsPerNode: Record<number, {node: Node; port: Port}[]> = {};
+      ports.forEach((port) => {
+        const trainrunSectionId = port.getTrainrunSectionId();
+        const oppositeNode = port.getOppositeNode(nodeId);
+        const oppositeNodeID = oppositeNode.getId();
+        const oppositePort = oppositeNode
+          .getPorts()
+          .find((p) => p.getTrainrunSectionId() === trainrunSectionId);
 
-        for (let j = i + 1; j < ports.length; j++) {
-          const port2 = ports[j];
-          const opposite2Node = port2.getOppositeNode(node.getId());
-
-          const isPort1AfterPort2 = port1.getPositionIndex() > port2.getPositionIndex();
-
-          // Case 2: Two exactly parallel trainrun sections:
-          if (opposite1Node === opposite2Node) {
-            // This test prevents these pairs to be counted twice
-            // (on each extremity):
-            if (node.getId() < opposite1Node.getId()) {
-              const port1SectionId = port1.getTrainrunSectionId();
-              const opposite1Port = opposite1Node
-                .getPorts()
-                .find((port) => port.getTrainrunSectionId() === port1SectionId);
-
-              const port2SectionId = port2.getTrainrunSectionId();
-              const opposite2Port = opposite2Node
-                .getPorts()
-                .find((port) => port.getTrainrunSectionId() === port2SectionId);
-
-              const isOpposite1AfterOpposite2 =
-                opposite1Port.getPositionIndex() > opposite2Port.getPositionIndex();
-              if (isPort1AfterPort2 !== isOpposite1AfterOpposite2) crossingsCase2++;
-            }
-          }
-
-          // Case 3: Two trainrun sections that share one extremity:
-          else {
-            const relevantDimension = isHorizontalAlignment(alignment)
-              ? ("getPositionX" as const)
-              : ("getPositionY" as const);
-
-            const isOpposite1AfterOpposite2 =
-              opposite1Node[relevantDimension]() > opposite2Node[relevantDimension]();
-            if (isPort1AfterPort2 !== isOpposite1AfterOpposite2) crossingsCase3++;
-          }
-        }
+        oppositePortsPerNode[oppositeNodeID] = oppositePortsPerNode[oppositeNodeID] || [];
+        oppositePortsPerNode[oppositeNodeID].push({
+          node: oppositeNode,
+          port: oppositePort,
+        });
+      });
+      const oppositeNodes: {node: Node; ports: Port[]}[] = [];
+      for (const nodeId in oppositePortsPerNode) {
+        const node = oppositePortsPerNode[nodeId][0].node;
+        const ports = oppositePortsPerNode[nodeId].map(({port}) => port);
+        oppositeNodes.push({node, ports});
       }
+
+      const portsTrainrunIDs = ports.map((port) => port.getTrainrunSection().getTrainrunId());
+      const oppositePortsTrainrunIDs = oppositeNodes
+        .toSorted((a, b) => a.node[relevantDimension]() - b.node[relevantDimension]())
+        .map(({ports}) =>
+          ports
+            .toSorted((a, b) => a.getPositionIndex() - b.getPositionIndex())
+            .map((port) => port.getTrainrunSection().getTrainrunId()),
+        );
+
+      // Count crossings:
+      const {direct, indirect} = countCrossingsBetweenSides(
+        portsTrainrunIDs,
+        oppositePortsTrainrunIDs,
+      );
+
+      // Detect contiguous groups of nodes:
+      const contiguous = groupContiguous(oppositePortsTrainrunIDs, portsTrainrunIDs);
+
+      if (direct + indirect) {
+        groupCrossings.push({
+          crossings: direct + indirect,
+          groups: contiguous,
+        });
+      }
+
+      // Add local crossings to total count
+      // (divide direct crossings by two, as these crossings will be counted twice)
+      crossings += direct / 2 + indirect;
     });
   });
 
-  return crossingsCase1 + crossingsCase2 + crossingsCase3;
+  return {crossings, groupCrossings: groupCrossings.toSorted((a, b) => b.crossings - a.crossings)};
 }
