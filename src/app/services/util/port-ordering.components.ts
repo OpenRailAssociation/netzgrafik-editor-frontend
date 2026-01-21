@@ -19,7 +19,6 @@ export function getConnectedComponents(nodes: Node[]): Node[][] {
     if (visited.has(startNode.getId())) continue;
 
     const componentNodes: Node[] = [];
-    const componentTrainrunIDs = new Set<number>();
     const queue: number[] = [startNode.getId()];
 
     while (queue.length > 0) {
@@ -31,7 +30,6 @@ export function getConnectedComponents(nodes: Node[]): Node[][] {
       componentNodes.push(node);
 
       node.getPorts().forEach((port) => {
-        componentTrainrunIDs.add(port.getTrainrunSection().getTrainrunId());
         const neighborId = getPortOppositeNodeId(port, nodeId);
         if (!visited.has(neighborId) && nodeMap.has(neighborId)) {
           queue.push(neighborId);
