@@ -23,6 +23,7 @@ export class FilterSetting {
   public filterAsymmetryArrows: boolean;
   public filterArrivalDepartureTime;
   public filterTravelTime;
+  public filterBackwardTravelTime: boolean;
   public filterTrainrunName;
   public filterConnections;
   public filterShowNonStopTime;
@@ -49,6 +50,7 @@ export class FilterSetting {
       filterAsymmetryArrows,
       filterArrivalDepartureTime,
       filterTravelTime,
+      filterBackwardTravelTime,
       filterTrainrunName,
       filterConnections,
       filterShowNonStopTime,
@@ -73,6 +75,7 @@ export class FilterSetting {
       filterAsymmetryArrows: true,
       filterArrivalDepartureTime: true,
       filterTravelTime: true,
+      filterBackwardTravelTime: true,
       filterTrainrunName: true,
       filterConnections: true,
       filterShowNonStopTime: true,
@@ -98,6 +101,7 @@ export class FilterSetting {
     this.filterAsymmetryArrows = filterAsymmetryArrows;
     this.filterArrivalDepartureTime = filterArrivalDepartureTime;
     this.filterTravelTime = filterTravelTime;
+    this.filterBackwardTravelTime = filterBackwardTravelTime;
     this.filterTrainrunName = filterTrainrunName;
     this.filterConnections = filterConnections;
     this.filterShowNonStopTime = filterShowNonStopTime;
@@ -172,6 +176,7 @@ export class FilterSetting {
       this.filterAsymmetryArrows === true &&
       this.filterArrivalDepartureTime === true &&
       this.filterTravelTime === true &&
+      this.filterBackwardTravelTime === true &&
       this.filterTrainrunName === true &&
       this.filterConnections === true &&
       this.filterShowNonStopTime === true &&
@@ -200,6 +205,7 @@ export class FilterSetting {
       filterAsymmetryArrows: this.filterAsymmetryArrows,
       filterArrivalDepartureTime: this.filterArrivalDepartureTime,
       filterTravelTime: this.filterTravelTime,
+      filterBackwardTravelTime: this.filterBackwardTravelTime,
       filterTrainrunName: this.filterTrainrunName,
       filterConnections: this.filterConnections,
       filterShowNonStopTime: this.filterShowNonStopTime,
