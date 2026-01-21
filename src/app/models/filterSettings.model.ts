@@ -19,7 +19,8 @@ export class FilterSetting {
   public filterNodeLabels: number[];
   public filterNoteLabels: number[];
   public filterTrainrunLabels: number[];
-  public filterDirectionArrows;
+  public filterDirectionArrows: boolean;
+  public filterAsymmetryArrows: boolean;
   public filterArrivalDepartureTime;
   public filterTravelTime;
   public filterTrainrunName;
@@ -44,7 +45,8 @@ export class FilterSetting {
       filterNodeLabels,
       filterNoteLabels,
       filterTrainrunLabels,
-      filterDirectionArrows: filterDirectionArrows,
+      filterDirectionArrows,
+      filterAsymmetryArrows,
       filterArrivalDepartureTime,
       filterTravelTime,
       filterTrainrunName,
@@ -68,6 +70,7 @@ export class FilterSetting {
       filterNoteLabels: [],
       filterTrainrunLabels: [],
       filterDirectionArrows: true,
+      filterAsymmetryArrows: true,
       filterArrivalDepartureTime: true,
       filterTravelTime: true,
       filterTrainrunName: true,
@@ -92,6 +95,7 @@ export class FilterSetting {
     this.filterNoteLabels = filterNoteLabels;
     this.filterTrainrunLabels = filterTrainrunLabels;
     this.filterDirectionArrows = filterDirectionArrows;
+    this.filterAsymmetryArrows = filterAsymmetryArrows;
     this.filterArrivalDepartureTime = filterArrivalDepartureTime;
     this.filterTravelTime = filterTravelTime;
     this.filterTrainrunName = filterTrainrunName;
@@ -165,6 +169,7 @@ export class FilterSetting {
       this.filterNoteLabels.length === 0 &&
       this.filterTrainrunLabels.length === 0 &&
       this.filterDirectionArrows === true &&
+      this.filterAsymmetryArrows === true &&
       this.filterArrivalDepartureTime === true &&
       this.filterTravelTime === true &&
       this.filterTrainrunName === true &&
@@ -192,6 +197,7 @@ export class FilterSetting {
       filterNoteLabels: this.filterNoteLabels,
       filterTrainrunLabels: this.filterTrainrunLabels,
       filterDirectionArrows: this.filterDirectionArrows,
+      filterAsymmetryArrows: this.filterAsymmetryArrows,
       filterArrivalDepartureTime: this.filterArrivalDepartureTime,
       filterTravelTime: this.filterTravelTime,
       filterTrainrunName: this.filterTrainrunName,

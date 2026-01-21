@@ -25,6 +25,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   filterNotes: boolean;
   filterAllNonStopNodes: boolean;
   filterDirectionArrows: boolean;
+  filterAsymmetryArrows: boolean;
   filterArrivalDepartureTime: boolean;
   filterShowNonStopTime: boolean;
   filterTravelTime: boolean;
@@ -67,6 +68,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
 
   updateFilterData() {
     this.filterDirectionArrows = this.filterService.isFilterDirectionArrowsEnabled();
+    this.filterAsymmetryArrows = this.filterService.isFilterAsymmetryArrowsEnabled();
     this.filterArrivalDepartureTime = this.filterService.isFilterArrivalDepartureTimeEnabled();
     this.filterShowNonStopTime = this.filterService.isFilterShowNonStopTimeEnabled();
     this.filterTravelTime = this.filterService.isFilterTravelTimeEnabled();
@@ -206,6 +208,14 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
       this.filterService.enableFilterDirectionArrows();
     } else {
       this.filterService.disableFilterDirectionArrows();
+    }
+  }
+
+  filterAsymmetryArrowsChanged() {
+    if (this.filterAsymmetryArrows) {
+      this.filterService.enableFilterAsymmetryArrows();
+    } else {
+      this.filterService.disableFilterAsymmetryArrows();
     }
   }
 
@@ -444,12 +454,14 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     this.onResetNodeFilter();
     this.onResetNoteFilter();
     this.filterService.enableFilterDirectionArrows();
+    this.filterService.enableFilterAsymmetryArrows();
     this.filterService.enableFilterArrivalDepartureTime();
     this.filterService.enableFilterTravelTime();
     this.filterService.enableFilterTrainrunName();
     this.filterService.enableFilterShowNonStopTime();
     this.filterService.enableFilterConnections();
     this.filterDirectionArrows = this.filterService.isFilterDirectionArrowsEnabled();
+    this.filterAsymmetryArrows = this.filterService.isFilterAsymmetryArrowsEnabled();
     this.filterArrivalDepartureTime = this.filterService.isFilterArrivalDepartureTimeEnabled();
     this.filterTravelTime = this.filterService.isFilterTravelTimeEnabled();
     this.filterTrainrunName = this.filterService.isFilterTrainrunNameEnabled();

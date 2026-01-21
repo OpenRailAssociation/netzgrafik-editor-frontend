@@ -355,6 +355,7 @@
         "round-trips": "Rundreisen",
         "one-ways": "Einzelfahrten",
         "display-direction-arrows": "Zugfahrt-Richtungs-Pfeile anzeigen",
+        "display-asymmetry-arrows": "Zugfahrt-Knoten-Asymmetrie-Pfeile anzeigen",
         "times": "Zeiten",
         "decimal-displayed": "Anzahl Nachkommastellenanzeigen",
         "display-arrival-departure-times": "Abfahrt- und Ankuftszeiten anzeigen",
