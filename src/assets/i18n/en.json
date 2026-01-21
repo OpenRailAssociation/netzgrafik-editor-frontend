@@ -355,6 +355,7 @@
         "round-trips": "round trips",
         "one-ways": "one-ways",
         "display-direction-arrows": "Display trainrun direction arrows",
+        "display-asymmetry-arrows": "Display trainrun section asymmetry arrows at nodes",
         "times": "Times",
         "decimal-displayed": "Number of decimal place displayed",
         "display-arrival-departure-times": "Display departure and arrival times",
