@@ -540,6 +540,20 @@ export class FilterService implements OnDestroy {
     this.filterChanged();
   }
 
+  isFilterAsymmetryArrowsEnabled(): boolean {
+    return this.activeFilterSetting.filterAsymmetryArrows;
+  }
+
+  enableFilterAsymmetryArrows() {
+    this.activeFilterSetting.filterAsymmetryArrows = true;
+    this.filterChanged();
+  }
+
+  disableFilterAsymmetryArrows() {
+    this.activeFilterSetting.filterAsymmetryArrows = false;
+    this.filterChanged();
+  }
+
   isFilterArrivalDepartureTimeEnabled(): boolean {
     return this.activeFilterSetting.filterArrivalDepartureTime;
   }
@@ -767,6 +781,7 @@ export class FilterService implements OnDestroy {
     return (
       !this.isFilterNotesEnabled() &&
       this.isFilterDirectionArrowsEnabled() &&
+      this.isFilterAsymmetryArrowsEnabled() &&
       this.isFilterArrivalDepartureTimeEnabled() &&
       this.isFilterConnectionsEnabled() &&
       this.isFilterTrainrunNameEnabled() &&
