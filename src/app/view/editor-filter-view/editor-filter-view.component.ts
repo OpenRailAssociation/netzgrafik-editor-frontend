@@ -29,6 +29,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   filterArrivalDepartureTime: boolean;
   filterShowNonStopTime: boolean;
   filterTravelTime: boolean;
+  filterBackwardTravelTime: boolean;
   filterTrainrunName: boolean;
   filterConnections: boolean;
   timeDisplayPrecision: number;
@@ -72,6 +73,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     this.filterArrivalDepartureTime = this.filterService.isFilterArrivalDepartureTimeEnabled();
     this.filterShowNonStopTime = this.filterService.isFilterShowNonStopTimeEnabled();
     this.filterTravelTime = this.filterService.isFilterTravelTimeEnabled();
+    this.filterBackwardTravelTime = this.filterService.isFilterBackwardTravelTimeEnabled();
     this.filterTrainrunName = this.filterService.isFilterTrainrunNameEnabled();
     this.filterConnections = this.filterService.isFilterConnectionsEnabled();
     this.filterNotes = !this.filterService.isFilterNotesEnabled();
@@ -238,8 +240,18 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   filterTravelTimeChanged() {
     if (this.filterTravelTime) {
       this.filterService.enableFilterTravelTime();
+      this.filterService.enableFilterBackwardTravelTime();
     } else {
       this.filterService.disableFilterTravelTime();
+      this.filterService.disableFilterBackwardTravelTime();
+    }
+  }
+
+  filterBackwardTravelTimeChanged() {
+    if (this.filterBackwardTravelTime) {
+      this.filterService.enableFilterBackwardTravelTime();
+    } else {
+      this.filterService.disableFilterBackwardTravelTime();
     }
   }
 
@@ -457,6 +469,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     this.filterService.enableFilterAsymmetryArrows();
     this.filterService.enableFilterArrivalDepartureTime();
     this.filterService.enableFilterTravelTime();
+    this.filterService.enableFilterBackwardTravelTime();
     this.filterService.enableFilterTrainrunName();
     this.filterService.enableFilterShowNonStopTime();
     this.filterService.enableFilterConnections();
@@ -464,6 +477,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     this.filterAsymmetryArrows = this.filterService.isFilterAsymmetryArrowsEnabled();
     this.filterArrivalDepartureTime = this.filterService.isFilterArrivalDepartureTimeEnabled();
     this.filterTravelTime = this.filterService.isFilterTravelTimeEnabled();
+    this.filterBackwardTravelTime = this.filterService.isFilterBackwardTravelTimeEnabled();
     this.filterTrainrunName = this.filterService.isFilterTrainrunNameEnabled();
     this.filterConnections = this.filterService.isFilterConnectionsEnabled();
     this.filterShowNonStopTime = this.filterService.isFilterShowNonStopTimeEnabled();

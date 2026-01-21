@@ -77,6 +77,7 @@ export class EditorView implements SVGMouseControllerObserver {
   combineTwoTrainruns = null;
   getNodeFromConnection = null;
   isFilterTravelTimeEnabled = null;
+  isFilterBackwardTravelTimeEnabled = null;
   isFilterTrainrunNameEnabled = null;
   isFilterDirectionArrowsEnabled = null;
   isFilterAsymmetryArrowsEnabled = null;
@@ -285,6 +286,10 @@ export class EditorView implements SVGMouseControllerObserver {
 
   bindIsFilterTravelTimeEnabled(callback) {
     this.isFilterTravelTimeEnabled = callback;
+  }
+
+  bindIsFilterBackwardTravelTimeEnabled(callback) {
+    this.isFilterBackwardTravelTimeEnabled = callback;
   }
 
   bindIsfilterTrainrunNameEnabled(callback) {
