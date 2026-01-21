@@ -296,6 +296,7 @@ export interface FilterSettingDto {
   filterAsymmetryArrows: boolean; // flag for trainrun section asymmetry arrows (hide/show)
   filterArrivalDepartureTime: boolean; // flag for arrival and departure time filtering (hide/show)
   filterTravelTime: boolean; // flag for travel time filter (hide/show)
+  filterBackwardTravelTime: boolean; // flag for trainrun section backward travel times (hide/show)
   filterTrainrunName: boolean; // flag for trainrun time filter (hide/show)
   filterConnections: boolean; // flag for connections filtering (hide/show)
   filterShowNonStopTime: boolean; // flag for non-stop time filtering (hide/show)
