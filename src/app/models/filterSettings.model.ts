@@ -31,6 +31,7 @@ export class FilterSetting {
   public filterTrainrunFrequency: TrainrunFrequency[];
   public filterTrainrunTimeCategory: TrainrunTimeCategory[];
   public filterDirection: Direction[];
+  public filterSymmetry: boolean[];
   public filterAllEmptyNodes;
   public filterAllNonStopNodes;
   public filterNotes;
@@ -58,6 +59,7 @@ export class FilterSetting {
       filterTrainrunFrequency,
       filterTrainrunTimeCategory,
       filterDirection: filterDirection,
+      filterSymmetry: filterSymmetry,
       filterAllEmptyNodes,
       filterAllNonStopNodes,
       filterNotes,
@@ -83,6 +85,7 @@ export class FilterSetting {
       filterTrainrunFrequency: null,
       filterTrainrunTimeCategory: null,
       filterDirection: null,
+      filterSymmetry: null,
       filterAllEmptyNodes: false,
       filterAllNonStopNodes: false,
       filterNotes: false,
@@ -109,6 +112,7 @@ export class FilterSetting {
     this.filterTrainrunFrequency = filterTrainrunFrequency;
     this.filterTrainrunTimeCategory = filterTrainrunTimeCategory;
     this.filterDirection = filterDirection;
+    this.filterSymmetry = filterSymmetry;
     this.filterAllEmptyNodes = filterAllEmptyNodes;
     this.filterAllNonStopNodes = filterAllNonStopNodes;
     this.filterNotes = filterNotes;
@@ -184,6 +188,7 @@ export class FilterSetting {
       this.filterTrainrunFrequency.length === frainrunFrequenciesLength &&
       this.filterTrainrunTimeCategory.length === trainrunTimeCategoryLength &&
       this.filterDirection.length === Object.values(Direction).length &&
+      this.filterSymmetry.length === 2 &&
       this.filterAllEmptyNodes === false &&
       this.filterAllNonStopNodes === false &&
       this.filterNotes === false &&
@@ -213,6 +218,7 @@ export class FilterSetting {
       filterTrainrunFrequency: this.filterTrainrunFrequency,
       filterTrainrunTimeCategory: this.filterTrainrunTimeCategory,
       filterDirection: this.filterDirection,
+      filterSymmetry: this.filterSymmetry,
       filterAllEmptyNodes: this.filterAllEmptyNodes,
       filterAllNonStopNodes: this.filterAllNonStopNodes,
       filterNotes: this.filterNotes,
