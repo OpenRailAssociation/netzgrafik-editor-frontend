@@ -370,12 +370,17 @@ export class FilterService implements OnDestroy {
     }
     /* Impelement user defined filtering */
     const filterTrainrunSection = this.checkFilterTrainrunLabels(trainrun.getLabelIds());
+    const trainrunSections = this.dataService.getTrainrunSectionsByTrainrunId(trainrun.getId());
+    const hasAsymmetricalSection = trainrunSections.some(
+      (trainrunSection: TrainrunSection) => !trainrunSection.isSymmetric(),
+    );
     return (
       filterTrainrunSection &&
       this.isFilterTrainrunFrequencyEnabled(trainrun.getTrainrunFrequency()) &&
       this.isFilterTrainrunCategoryEnabled(trainrun.getTrainrunCategory()) &&
       this.isFilterTrainrunTimeCategoryEnabled(trainrun.getTrainrunTimeCategory()) &&
-      this.isFilterDirectionEnabled(trainrun.getDirection())
+      this.isFilterDirectionEnabled(trainrun.getDirection()) &&
+      this.isFilterSymmetryEnabled(!hasAsymmetricalSection)
     );
   }
 
@@ -741,6 +746,29 @@ export class FilterService implements OnDestroy {
     this.filterChanged();
   }
 
+  isFilterSymmetryEnabled(symmetry: boolean): boolean {
+    return this.activeFilterSetting.filterSymmetry.includes(symmetry);
+  }
+
+  enableFilterSymmetry(symmetry: boolean) {
+    if (!this.activeFilterSetting.filterSymmetry.includes(symmetry)) {
+      this.activeFilterSetting.filterSymmetry.push(symmetry);
+      this.filterChanged();
+    }
+  }
+
+  disableFilterSymmetry(symmetry: boolean) {
+    this.activeFilterSetting.filterSymmetry = this.activeFilterSetting.filterSymmetry.filter(
+      (sym) => sym !== symmetry,
+    );
+    this.filterChanged();
+  }
+
+  resetFilterSymmetry() {
+    this.activeFilterSetting.filterSymmetry = [true, false];
+    this.filterChanged();
+  }
+
   isAnyFilterActive(): boolean {
     return (
       !this.isDisplayFilteringActive() ||
@@ -779,6 +807,13 @@ export class FilterService implements OnDestroy {
     });
     this.dataService.getDirections().forEach((direction: Direction) => {
       const isFilter = this.isFilterDirectionEnabled(direction);
+      if (!isFilter) {
+        isActive = false;
+        return;
+      }
+    });
+    [true, false].forEach((symmetry: boolean) => {
+      const isFilter = this.isFilterSymmetryEnabled(symmetry);
       if (!isFilter) {
         isActive = false;
         return;
