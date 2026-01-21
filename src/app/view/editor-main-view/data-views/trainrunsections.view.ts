@@ -1197,10 +1197,12 @@ export class TrainrunSectionsView {
           StaticDomTags.TAG_HIDDEN,
           (d: TrainrunSectionViewObject) =>
             // Hide arrow
+            // - if asymmetry arrows are filtered out or
             // - if the node on this side is filtered out
             // - if the node on this side is non-stop
             !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
-            (!this.filterTrainrunsectionAtNode(d.trainrunSection, arrowLocation === "BEGINNING") ||
+            (!this.editorView.isFilterAsymmetryArrowsEnabled() ||
+              !this.filterTrainrunsectionAtNode(d.trainrunSection, arrowLocation === "BEGINNING") ||
               TrainrunSectionsView.getNode(
                 d.trainrunSection,
                 arrowLocation === "BEGINNING",
