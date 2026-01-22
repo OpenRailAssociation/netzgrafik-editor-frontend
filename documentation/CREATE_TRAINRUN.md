@@ -149,6 +149,7 @@ The resulting trainrun then behave then differently with the rest of the feature
 [2025-08-11-Update_Trainrun_Direction.webm](documentation/animated_images/2025-08-11-Update_Trainrun_Direction.webm)
 
 #### Minimum dwell time is used for one‑way train‑run staging/unstaging
+
 When the user opens the Streckengraphik (graphical timetable) and requests the track occupier at nodes, all trainruns that start or end at a node are shown as occupying one track (platform) for the entire turnaround.
 However, one‑way trainruns do not have a turnaround concept. Therefore, we must define the time before departure and after arrival at the first and last node of the trainrun.
 This time is used for node‑track occupancy.
