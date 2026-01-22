@@ -148,6 +148,13 @@ The resulting trainrun then behave then differently with the rest of the feature
 
 [2025-08-11-Update_Trainrun_Direction.webm](documentation/animated_images/2025-08-11-Update_Trainrun_Direction.webm)
 
+#### Minimum dwell time is used for one‑way train‑run staging/unstaging
+When the user opens the Streckengraphik (graphical timetable) and requests the track occupier at nodes, all trainruns that start or end at a node are shown as occupying one track (platform) for the entire turnaround.
+However, one‑way trainruns do not have a turnaround concept. Therefore, we must define the time before departure and after arrival at the first and last node of the trainrun.
+This time is used for node‑track occupancy.
+
+> The current version of the Netzgrafik Editor uses the minimum dwell time for staging and unstaging at the beginning and end of the trainrun.
+
 ### Trainrun path with "holes" (missing sections)
 
 ![image](https://github.com/user-attachments/assets/d87b842c-7696-4e81-aa78-75cc966b5306)
@@ -161,7 +168,7 @@ For example, a trainrun path could look like this with a "hole" in the middle,
 
 A - B - C ---- (missing section) ---- E - F - G
 
-The trainrun section between C and E is missing here. However, these gaps can also occur if a partial cancelation is made for a train run.
+The trainrun section between C and E is missing here. However, these gaps can also occur if a partial cancelation is made for a trainrun.
 
 ![image](https://github.com/user-attachments/assets/5d1ef657-e421-41ff-ae57-622eee82f295)
 _Graphical timetable._
