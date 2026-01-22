@@ -653,10 +653,13 @@ export class Sg6TrackService implements OnDestroy {
     // handle special case one way
     const tr = this.trainrunService.getTrainrunFromId(pn.trainrunId);
     if (tr.getDirection() === Direction.ONE_WAY) {
+      const node = this.nodeService.getNodeFromId(pn.nodeId);
+      const nodeHaltezeiten = node.getTrainrunCategoryHaltezeit();
+      const trainrunHaltezeit = nodeHaltezeiten[tr.getTrainrunCategory().fachCategory].haltezeit;
       if (pn.arrivalPathSection === undefined) {
-        pn.arrivalTime = pn.departureTime - pn.minimumHeadwayTime;
+        pn.arrivalTime = pn.departureTime - trainrunHaltezeit;
       } else {
-        pn.departureTime = pn.arrivalTime + pn.minimumHeadwayTime;
+        pn.departureTime = pn.arrivalTime + trainrunHaltezeit;
       }
     }
   }
