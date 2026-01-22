@@ -46,7 +46,7 @@
     "angular-server-side-configuration": "^17.0.5",
     "d3": "^5.16.0",
     "extract-i18n": "^1.0.0",
-    "ngx-editor": "^15.0.1",
+    "ngx-editor": "^18.0.0",
     "papaparse": "^5.3.2",
     "rxjs": "^7.8.2",
     "save-svg-as-png": "^1.4.17",
