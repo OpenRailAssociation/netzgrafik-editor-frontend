@@ -608,7 +608,7 @@ export class Sg6TrackService implements OnDestroy {
           // get the trainrun node data (typ casting)
           const pn: SgTrainrunNode = item.getTrainrunNode();
           if (pn.endNode && !pn.unusedForTurnaround) {
-            this.handleExtraCaseOneWayEndNodeTurnaround(pn);
+            this.updateStagingDwellAtEndpoints(pn);
             this.alignTrainrunNodeToTrack(
               item,
               ts,
@@ -649,7 +649,7 @@ export class Sg6TrackService implements OnDestroy {
     this.updateTracksForAllPathNodes(trackInfoMap, separateForwardBackwardTracks);
   }
 
-  private handleExtraCaseOneWayEndNodeTurnaround(pn: SgTrainrunNode) {
+  private updateStagingDwellAtEndpoints(pn: SgTrainrunNode) {
     // handle special case one way
     const tr = this.trainrunService.getTrainrunFromId(pn.trainrunId);
     if (tr.getDirection() === Direction.ONE_WAY) {
