@@ -344,6 +344,12 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     // TODO
   }
 
+  isTrainrunSymmetric() {
+    return this.trainrunSectionService.isTrainrunSymmetric(
+      this.selectedTrainrunSection.getTrainrunId(),
+    );
+  }
+
   private resetOffsetAfterTrainrunChanged() {
     if (this.trainrunSectionTimesService.getOffsetTransformationActive()) {
       this.trainrunSectionTimesService.removeOffsetAndBackTransformTimeStructure();
