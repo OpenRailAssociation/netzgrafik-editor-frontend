@@ -17,6 +17,7 @@ export enum LeftAndRightElement {
   RightDeparture,
   RightArrival,
   TravelTime,
+  BottomTravelTime,
   LeftRightTrainrunName,
   RightLeftTrainrunName,
 }
