@@ -24,6 +24,7 @@ import {PerlenketteConnection} from "./model/perlenketteConnection";
 import {VersionControlService} from "../services/data/version-control.service";
 import {Direction} from "../data-structures/business.data.structures";
 import {TrainrunsectionHelper} from "../services/util/trainrunsection.helper";
+import {SymmetryToggleService} from "../services/util/symmetry-toggle.service";
 import {TrainrunSectionService} from "../services/data/trainrunsection.service";
 import {TrainrunService} from "../services/data/trainrun.service";
 import {TrainrunSectionTimesService} from "../services/data/trainrun-section-times.service";
@@ -75,6 +76,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     public trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
     public trainrunSectionTimesService: TrainrunSectionTimesService,
+    private symmetryToggleService: SymmetryToggleService,
   ) {
     this.selectedPerlenketteConnection = undefined;
 
@@ -449,7 +451,11 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   }
 
   onTrainrunSymmetryToggleChanged() {
-    // TODO
+    this.symmetryToggleService.onTrainrunSymmetryToggleChanged(
+      this.perlenketteTrainrun.trainrunId,
+      this.trainrunSectionTimesService,
+      () => this.revertTrainrunSymmetryToggleState(false),
+    );
   }
 
   protected readonly ShowTrainrunEditTab = ShowTrainrunEditTab;

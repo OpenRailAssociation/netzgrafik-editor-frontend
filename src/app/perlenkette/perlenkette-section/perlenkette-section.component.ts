@@ -13,6 +13,7 @@ import {
 import {PerlenketteSection} from "../model/perlenketteSection";
 import {PerlenketteTrainrun} from "../model/perlenketteTrainrun";
 import {TrainrunsectionHelper} from "../../services/util/trainrunsection.helper";
+import {SymmetryToggleService} from "../../services/util/symmetry-toggle.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {takeUntil} from "rxjs/operators";
@@ -87,6 +88,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     private loadPerlenketteService: LoadPerlenketteService,
     private versionControlService: VersionControlService,
     private changeDetectionRef: ChangeDetectorRef,
+    private symmetryToggleService: SymmetryToggleService,
   ) {
     this.trainrunSectionHelper = new TrainrunsectionHelper(this.trainrunService);
   }
@@ -677,11 +679,35 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   onLeftNodeSymmetryToggleChanged(symmetry: boolean) {
-    // TODO
+    const originalState = this.trainrunSectionTimesService.getSymmetryStructure().leftSymmetry;
+    this.symmetryToggleService.onLeftNodeSymmetryToggleChanged(
+      this.trainrunSection,
+      this.trainrunSectionTimesService,
+      symmetry,
+      () => {
+        // Revert the toggle state
+        if (this.leftSymmetryToggle) {
+          this.leftSymmetryToggle.checked = !originalState;
+        }
+        this.changeDetectionRef.detectChanges();
+      },
+    );
   }
 
   onRightNodeSymmetryToggleChanged(symmetry: boolean) {
-    // TODO
+    const originalState = this.trainrunSectionTimesService.getSymmetryStructure().rightSymmetry;
+    this.symmetryToggleService.onRightNodeSymmetryToggleChanged(
+      this.trainrunSection,
+      this.trainrunSectionTimesService,
+      symmetry,
+      () => {
+        // Revert the toggle state
+        if (this.rightSymmetryToggle) {
+          this.rightSymmetryToggle.checked = !originalState;
+        }
+        this.changeDetectionRef.detectChanges();
+      },
+    );
   }
 
   isTrainrunSymmetric() {
