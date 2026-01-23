@@ -1090,6 +1090,12 @@ export class TrainrunSectionService implements OnDestroy {
     });
   }
 
+  isTrainrunSymmetric(trainrunId: number): boolean {
+    return this.getAllTrainrunSectionsForTrainrun(trainrunId).every((section) =>
+      section.isSymmetric(),
+    );
+  }
+
   private copyTrainrunSection(
     existingTrainrunSection: TrainrunSection,
     newTrainrunId: number,
