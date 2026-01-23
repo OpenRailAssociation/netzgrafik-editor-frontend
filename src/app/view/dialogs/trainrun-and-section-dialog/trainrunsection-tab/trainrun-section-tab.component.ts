@@ -16,6 +16,7 @@ import {
   LeftAndRightElement,
   TrainrunsectionHelper,
 } from "../../../../services/util/trainrunsection.helper";
+import {SymmetryToggleService} from "../../../../services/util/symmetry-toggle.service";
 import {FilterService} from "../../../../services/ui/filter.service";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
@@ -125,6 +126,7 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     private changeDetection: ChangeDetectorRef,
     public trainrunSectionTimesService: TrainrunSectionTimesService,
     private versionControlService: VersionControlService,
+    private symmetryToggleService: SymmetryToggleService,
   ) {
     this.trainrunSectionHelper = new TrainrunsectionHelper(this.trainrunService);
 
@@ -337,11 +339,37 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   }
 
   onLeftNodeSymmetryToggle(symmetry: boolean) {
-    // TODO
+    this.trainrunSectionTimesService.getSymmetryStructure().leftSymmetry = symmetry;
+    const originalState = this.trainrunSectionTimesService.getSymmetryStructure().leftSymmetry;
+    this.symmetryToggleService.onLeftNodeSymmetryToggleChanged(
+      this.selectedTrainrunSection,
+      this.trainrunSectionTimesService,
+      symmetry,
+      () => {
+        // Revert the toggle state
+        if (this.leftSymmetryToggle) {
+          this.leftSymmetryToggle.checked = !originalState;
+        }
+        this.changeDetection.detectChanges();
+      },
+    );
   }
 
   onRightNodeSymmetryToggle(symmetry: boolean) {
-    // TODO
+    this.trainrunSectionTimesService.getSymmetryStructure().rightSymmetry = symmetry;
+    const originalState = this.trainrunSectionTimesService.getSymmetryStructure().rightSymmetry;
+    this.symmetryToggleService.onRightNodeSymmetryToggleChanged(
+      this.selectedTrainrunSection,
+      this.trainrunSectionTimesService,
+      symmetry,
+      () => {
+        // Revert the toggle state
+        if (this.rightSymmetryToggle) {
+          this.rightSymmetryToggle.checked = !originalState;
+        }
+        this.changeDetection.detectChanges();
+      },
+    );
   }
 
   isTrainrunSymmetric() {
