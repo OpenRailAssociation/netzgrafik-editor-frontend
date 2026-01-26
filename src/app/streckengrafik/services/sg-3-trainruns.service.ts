@@ -95,19 +95,29 @@ export class Sg3TrainrunsService implements OnDestroy {
         }
         // Node items
         if (pathItem.isNode()) {
-          const pathNodes: SgPathNode[] = this.searchAllPathNodes(pathItem.getPathNode());
+          const matchingSelectedPathNodes: SgPathNode[] = this.searchAllPathNodes(
+            pathItem.getPathNode(),
+          );
 
           const isEndNode = this.checkIsEndNode(pathItem);
           let departureTime = pathItem.departureTime;
           let arrivalTime = pathItem.arrivalTime;
-          const pathNodeHaltezeit = pathItem.getPathNode().haltezeit;
 
-          pathNodes.forEach((pathNode: SgPathNode) => {
-            /* For one-way trains, adjust extremity nodes occupation times to use only the stop time (haltezeit)
-              instead of the default 1-hour occupation time used for round-trip trains.
-              Departure node: occupation from (departure - haltezeit) to departure
-              Arrival node: occupation from arrival to (arrival + haltezeit)
-            */
+          const pathNode = pathItem.getPathNode();
+          const pathNodeHaltezeit = pathNode.haltezeit;
+
+          matchingSelectedPathNodes.forEach((matchingSelectedPathNode: SgPathNode) => {
+            /**
+             * For one-way trains, adjust extremity nodes occupation times to use only the stop time
+             * (haltezeit), instead of the default 1-hour occupation time used for round-trip
+             * trains:
+             * - Departure node: occupation from (departure - haltezeit) to departure
+             * - Arrival node: occupation from arrival to (arrival + haltezeit)
+             *
+             * Also, don't use matchingSelectedPathNode (which is related to the path of
+             * selectedTrainrun), but use pathItem = pathItem.getPathNode() instead (which is
+             * related to the proper trainrunItem):
+             */
             if (trainrunItem.direction === Direction.ONE_WAY) {
               if (trainrunItem.leftToRight) {
                 if (pathNode.departurePathSection === undefined) {
@@ -127,18 +137,18 @@ export class Sg3TrainrunsService implements OnDestroy {
             }
 
             const trainrunNode = new SgTrainrunNode(
-              pathNode.index,
-              pathNode.nodeId,
-              pathNode.nodeShortName,
+              matchingSelectedPathNode.index,
+              matchingSelectedPathNode.nodeId,
+              matchingSelectedPathNode.nodeShortName,
               trainrunItem.trainrunId,
               departureTime,
               arrivalTime,
               pathItem.backward,
               new TrackData(this.getTrack(pathItem)),
-              pathNode,
+              matchingSelectedPathNode,
               isEndNode,
             );
-            pathNode.trainrunNodes.push(trainrunNode);
+            matchingSelectedPathNode.trainrunNodes.push(trainrunNode);
             trainrunItems.push(trainrunNode);
           });
         }
