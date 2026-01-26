@@ -1846,6 +1846,12 @@ export class TrainrunSectionsView {
   }
 
   handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection: TrainrunSection) {
+    if (d3.event.button === 2 || (d3.event.shiftKey && d3.event.button === 0)) {
+      // Right mouse button released → do not deselect,
+      // otherwise multi‑selection will not work correctly.
+      this.editorView.onEndMultiSelect();
+      return;
+    }
     this.editorView.unselectTrainrunSection(trainrunSection.getId());
     D3Utils.unhoverTrainrunSection(trainrunSection);
   }
