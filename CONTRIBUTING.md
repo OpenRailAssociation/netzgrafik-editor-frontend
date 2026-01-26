@@ -207,6 +207,7 @@ The project is using [Release please](https://github.com/googleapis/release-plea
 
 A [configuration file](commitlint.config.ts) ensures the commits are following the format, in particular that the commit message prefix is one of the following:
 - `feat:`: a new feature
+- `end-user-feat:` an user-visible feature
 - `fix:`: a bug fix, or preventing a future bug
 - `docs:`: Documentation only changes
 - `style:`: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
