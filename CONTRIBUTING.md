@@ -95,7 +95,7 @@ chances of your issue being dealt with quickly:
 
 You can file new issues by providing the above information [here](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/issues/new).
 
-To be able to quickly address issues, we'll need to work better on **_typing_** and **_labeling_** issues.
+To be able to quickly address issues, we strive to organize issues with types and labels.
 
 #### Types
 
@@ -209,14 +209,13 @@ A [configuration file](commitlint.config.ts) ensures the commits are following t
 - `feat:`: a new feature
 - `end-user-feat:` an user-visible feature
 - `fix:`: a bug fix, or preventing a future bug
-- `docs:`: Documentation only changes
-- `style:`: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
-- `refactor:`: A code change that neither fixes a bug nor adds a feature
-- `perf:`: A code change that improves performance
-- `test:`: Adding missing tests or correcting existing tests
-- `build:`: Changes that affect the build system or external dependencies
-- `ci:`: Changes to the CI configuration files and scripts
-- `chore:`: Other changes that don't modify src or test files
+- `docs:`: documentation only changes
+- `style:`: changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+- `refactor:`: a code change that neither fixes a bug nor adds a feature (but could prepare the work for a following commit)
+- `perf:`: a code change that improves performance
+- `test:`: adding missing tests or correcting existing tests
+- `build:`: changes that affect the build system or external dependencies
+- `ci:`: changes to the CI configuration files and scripts
 
 Note: `feat!:`, or `fix!:`, `refactor!:`, etc., which represent a breaking change (indicated by the `!`).
 
