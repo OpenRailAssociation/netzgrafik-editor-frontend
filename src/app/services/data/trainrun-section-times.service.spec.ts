@@ -135,7 +135,7 @@ describe("TrainrunSectionTimesService", () => {
       });
     }
   });
-
+  
   describe("update", () => {
     const trainrunSectionId = 1;
     const originalTimeStructure = {
@@ -240,6 +240,51 @@ describe("TrainrunSectionTimesService", () => {
           leftDepartureTime: 2,
           leftArrivalTime: 58,
           travelTime: 20,
+        },
+      },
+      // negative times tests
+      {
+        key: "leftDepartureTime" as const,
+        value: -45,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          leftArrivalTime: 45,
+          rightDepartureTime: 35,
+          rightArrivalTime: 25,
+        },
+      },
+      {
+        key: "rightDepartureTime" as const,
+        value: -25,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          leftArrivalTime: 45,
+          rightDepartureTime: 35,
+          rightArrivalTime: 25,
+        },
+      },
+      {
+        key: "leftArrivalTime" as const,
+        value: -9,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 9,
+          leftArrivalTime: 51,
+          rightDepartureTime: 41,
+          rightArrivalTime: 19,
+        },
+      },
+      {
+        key: "rightArrivalTime" as const,
+        value: -57,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 53,
+          leftArrivalTime: 7,
+          rightDepartureTime: 57,
+          rightArrivalTime: 3,
         },
       },
     ];
