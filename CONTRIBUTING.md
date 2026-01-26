@@ -205,13 +205,19 @@ As an example, please refer to: https://github.com/sbb-design-systems/sbb-angula
 
 The project is using [Release please](https://github.com/googleapis/release-please?tab=readme-ov-file#how-should-i-write-my-commits)
 
-The most important prefixes you should have in mind are:
+A [configuration file](commitlint.config.ts) ensures the commits are following the format, in particular that the commit message prefix is one of the following:
+- `feat:`: a new feature
+- `fix:`: a bug fix, or preventing a future bug
+- `docs:`: Documentation only changes
+- `style:`: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+- `refactor:`: A code change that neither fixes a bug nor adds a feature
+- `perf:`: A code change that improves performance
+- `test:`: Adding missing tests or correcting existing tests
+- `build:`: Changes that affect the build system or external dependencies
+- `ci:`: Changes to the CI configuration files and scripts
+- `chore:`: Other changes that don't modify src or test files
 
-- `fix:` which represents bug fixes, and correlates to a [SemVer](https://semver.org/)
-  patch.
-- `feat:` which represents a new feature, and correlates to a SemVer minor.
-- `feat!:`, or `fix!:`, `refactor!:`, etc., which represent a breaking change
-  (indicated by the `!`) and will result in a SemVer major.
+Note: `feat!:`, or `fix!:`, `refactor!:`, etc., which represent a breaking change (indicated by the `!`).
 
 ## Your First Code Contribution
 
