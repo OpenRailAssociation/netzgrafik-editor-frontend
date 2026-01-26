@@ -206,6 +206,7 @@ As an example, please refer to: https://github.com/sbb-design-systems/sbb-angula
 The project is using [Release please](https://github.com/googleapis/release-please?tab=readme-ov-file#how-should-i-write-my-commits)
 
 A [configuration file](commitlint.config.ts) ensures the commits are following the format, in particular that the commit message prefix is one of the following:
+
 - `feat:`: a new feature
 - `end-user-feat:` an user-visible feature
 - `fix:`: a bug fix, or preventing a future bug
