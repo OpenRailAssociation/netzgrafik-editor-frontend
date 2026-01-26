@@ -146,8 +146,8 @@ export class TrainrunSectionTimesService {
 
   private enforceNonNegativeTime(keyValue: string) {
     // ensure non-negative time values for "keyValue"
-    while (this.timeStructure[keyValue] < 0){
-      this.timeStructure[keyValue] += 60
+    while (this.timeStructure[keyValue] < 0) {
+      this.timeStructure[keyValue] += 60;
     }
   }
 
@@ -155,7 +155,7 @@ export class TrainrunSectionTimesService {
     this.showWarningTwoLocks = false;
     this.roundAllTimes();
     this.removeOffsetAndBackTransformTimeStructure();
-    
+
     this.enforceNonNegativeTime(keys.tailDepartureTime);
 
     this.timeStructure[keys.tailArrivalTime] = TrainrunsectionHelper.getSymmetricTime(

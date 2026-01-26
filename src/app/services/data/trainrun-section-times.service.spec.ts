@@ -135,7 +135,7 @@ describe("TrainrunSectionTimesService", () => {
       });
     }
   });
-  
+
   describe("update", () => {
     const trainrunSectionId = 1;
     const originalTimeStructure = {
