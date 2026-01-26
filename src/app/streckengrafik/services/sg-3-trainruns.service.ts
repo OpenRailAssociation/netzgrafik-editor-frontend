@@ -115,24 +115,15 @@ export class Sg3TrainrunsService implements OnDestroy {
              * - Arrival node: occupation from arrival to (arrival + haltezeit)
              *
              * Also, don't use matchingSelectedPathNode (which is related to the path of
-             * selectedTrainrun), but use pathItem = pathItem.getPathNode() instead (which is
+             * selectedTrainrun), but use pathNode = pathItem.getPathNode() instead (which is
              * related to the proper trainrunItem):
              */
             if (trainrunItem.direction === Direction.ONE_WAY) {
-              if (trainrunItem.leftToRight) {
-                if (pathNode.departurePathSection === undefined) {
-                  departureTime = pathItem.arrivalTime + pathNodeHaltezeit;
-                }
-                if (pathNode.arrivalPathSection === undefined) {
-                  arrivalTime = pathItem.departureTime - pathNodeHaltezeit;
-                }
-              } else {
-                if (pathNode.departurePathSection === undefined) {
-                  arrivalTime = pathItem.departureTime - pathNodeHaltezeit;
-                }
-                if (pathNode.arrivalPathSection === undefined) {
-                  departureTime = pathItem.arrivalTime + pathNodeHaltezeit;
-                }
+              if (pathNode.departurePathSection === undefined) {
+                departureTime = pathNode.arrivalTime + pathNodeHaltezeit;
+              }
+              if (pathNode.arrivalPathSection === undefined) {
+                arrivalTime = pathNode.departureTime - pathNodeHaltezeit;
               }
             }
 
