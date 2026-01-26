@@ -1,8 +1,11 @@
-module.exports = {
+import type {UserConfig} from "@commitlint/types";
+import {RuleConfigSeverity} from "@commitlint/types";
+
+const Configuration: UserConfig = {
   extends: ["@commitlint/config-conventional"],
   rules: {
     "type-enum": [
-      2,
+      RuleConfigSeverity.Error,
       "always",
       [
         "feat", // A new feature
@@ -17,10 +20,12 @@ module.exports = {
         "chore", // Other changes that don't modify src or test files
       ],
     ],
-    "subject-case": [0],
-    "subject-empty": [2, "never"],
-    "subject-full-stop": [2, "never", "."],
-    "type-empty": [2, "never"],
-    "type-case": [2, "always", "lower-case"],
+    "subject-case": [RuleConfigSeverity.Disabled],
+    "subject-empty": [RuleConfigSeverity.Error, "never"],
+    "subject-full-stop": [RuleConfigSeverity.Error, "never", "."],
+    "type-empty": [RuleConfigSeverity.Error, "never"],
+    "type-case": [RuleConfigSeverity.Error, "always", "lower-case"],
   },
 };
+
+export default Configuration;

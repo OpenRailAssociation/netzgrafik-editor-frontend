@@ -54,8 +54,8 @@
     "zone.js": "~0.14.10"
   },
   "optionalDependencies": {
-    "puppeteer": "^22.13.1",
-    "devtools-protocol": "*"
+    "devtools-protocol": "*",
+    "puppeteer": "^22.13.1"
   },
   "devDependencies": {
     "@angular-devkit/architect": "^0.1700.10",
@@ -68,6 +68,7 @@
     "@angular/cli": "^17.3.17",
     "@angular/compiler-cli": "^17.0.9",
     "@angular/language-service": "^17.0.9",
+    "@commitlint/types": "^20.3.1",
     "@openapitools/openapi-generator-cli": "^2.18.4",
     "@types/jasmine": "~3.6.11",
     "@types/jasminewd2": "~2.0.13",
