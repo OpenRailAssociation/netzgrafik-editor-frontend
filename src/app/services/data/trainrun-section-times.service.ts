@@ -220,6 +220,8 @@ export class TrainrunSectionTimesService {
   }
 
   onNodeLeftDepartureTimeChanged() {
+    // Clamp to valid range [0..59]
+    this.timeStructure.leftDepartureTime = Math.max(0, Math.min(59, this.timeStructure.leftDepartureTime));
     this.onNodeTailDepartureTimeChanged(leftToRightStructureKeys);
   }
 
@@ -241,6 +243,8 @@ export class TrainrunSectionTimesService {
   }
 
   onNodeLeftArrivalTimeChanged() {
+    // Clamp to valid range [0..59]
+    this.timeStructure.leftArrivalTime = Math.max(0, Math.min(59, this.timeStructure.leftArrivalTime));
     this.onNodeTailArrivalTimeChanged(leftToRightStructureKeys);
   }
 
@@ -262,6 +266,8 @@ export class TrainrunSectionTimesService {
   }
 
   onNodeRightArrivalTimeChanged() {
+    // Clamp to valid range [0..59]
+    this.timeStructure.rightArrivalTime = Math.max(0, Math.min(59, this.timeStructure.rightArrivalTime));
     this.onNodeTailArrivalTimeChanged(rightToLeftStructureKeys);
   }
 
@@ -283,6 +289,8 @@ export class TrainrunSectionTimesService {
   }
 
   onNodeRightDepartureTimeChanged() {
+    // Clamp to valid range [0..59]
+    this.timeStructure.rightDepartureTime = Math.max(0, Math.min(59, this.timeStructure.rightDepartureTime));
     this.onNodeTailDepartureTimeChanged(rightToLeftStructureKeys);
   }
 
@@ -324,6 +332,8 @@ export class TrainrunSectionTimesService {
   }
 
   onInputTravelTimeChanged() {
+    // Ensure travel time is always greater than 0
+    this.timeStructure.travelTime = Math.max(0.0001, this.timeStructure.travelTime);
     this.removeOffsetAndBackTransformTimeStructure();
     this.updateTravelTimeChanged();
     this.updateTrainrunSectionTime();
@@ -493,6 +503,15 @@ export class TrainrunSectionTimesService {
       this.timeStructure.travelTime,
       timeDisplayPrecision,
     );
+    
+    // Validate and clamp departure/arrival times to [0..59] range
+    this.timeStructure.leftArrivalTime = Math.max(0, Math.min(59, this.timeStructure.leftArrivalTime));
+    this.timeStructure.leftDepartureTime = Math.max(0, Math.min(59, this.timeStructure.leftDepartureTime));
+    this.timeStructure.rightArrivalTime = Math.max(0, Math.min(59, this.timeStructure.rightArrivalTime));
+    this.timeStructure.rightDepartureTime = Math.max(0, Math.min(59, this.timeStructure.rightDepartureTime));
+    
+    // Ensure travel time is always greater than 0
+    this.timeStructure.travelTime = Math.max(0.0001, this.timeStructure.travelTime);
   }
 
   private fixAllTimesPrecision() {
