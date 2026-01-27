@@ -173,7 +173,7 @@ export class TrainrunSectionTimesService {
       this.timeStructure[keys.headDepartureTime] = TrainrunsectionHelper.getSymmetricTime(
         this.timeStructure[keys.headArrivalTime],
       );
-    } else if (!this.lockStructure.travelTimeLock && this.lockStructure[keys.headLock]) {
+    } else if (!this.lockStructure.travelTimeLock) {
       this.updateTravelTimeMinutes(
         this.timeStructure[keys.headArrivalTime] - this.timeStructure[keys.tailDepartureTime],
       );
@@ -202,7 +202,7 @@ export class TrainrunSectionTimesService {
       this.timeStructure[keys.headArrivalTime] = TrainrunsectionHelper.getSymmetricTime(
         this.timeStructure[keys.headDepartureTime],
       );
-    } else if (!this.lockStructure.travelTimeLock && this.lockStructure[keys.headLock]) {
+    } else if (!this.lockStructure.travelTimeLock) {
       this.updateTravelTimeMinutes(
         this.timeStructure[keys.tailArrivalTime] - this.timeStructure[keys.headDepartureTime],
       );
