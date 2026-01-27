@@ -150,6 +150,12 @@ export class TrainrunSectionTimesService {
     this.timeStructure[keyValue] = MathUtils.mod60(this.timeStructure[keyValue]);
   }
 
+  private updateTravelTimeMinutes(minutes: number) {
+    const extraHour = this.timeStructure.travelTime - (this.timeStructure.travelTime % 60);
+    this.timeStructure.travelTime = MathUtils.mod60(minutes);
+    this.timeStructure.travelTime += extraHour;
+  }
+
   private onNodeTailDepartureTimeChanged(keys: LeftAndRightStructureKeys) {
     this.showWarningTwoLocks = false;
     this.roundAllTimes();
@@ -168,11 +174,9 @@ export class TrainrunSectionTimesService {
         this.timeStructure[keys.headArrivalTime],
       );
     } else if (!this.lockStructure.travelTimeLock && this.lockStructure[keys.headLock]) {
-      const extraHour = this.timeStructure.travelTime - (this.timeStructure.travelTime % 60);
-      this.timeStructure.travelTime = MathUtils.mod60(
+      this.updateTravelTimeMinutes(
         this.timeStructure[keys.headArrivalTime] - this.timeStructure[keys.tailDepartureTime],
       );
-      this.timeStructure.travelTime += extraHour;
     } else {
       this.showWarningTwoLocks = true;
     }
@@ -199,11 +203,9 @@ export class TrainrunSectionTimesService {
         this.timeStructure[keys.headDepartureTime],
       );
     } else if (!this.lockStructure.travelTimeLock && this.lockStructure[keys.headLock]) {
-      const extraHour = this.timeStructure.travelTime - (this.timeStructure.travelTime % 60);
-      this.timeStructure.travelTime = MathUtils.mod60(
+      this.updateTravelTimeMinutes(
         this.timeStructure[keys.tailArrivalTime] - this.timeStructure[keys.headDepartureTime],
       );
-      this.timeStructure.travelTime += extraHour;
     } else {
       this.showWarningTwoLocks = true;
     }
