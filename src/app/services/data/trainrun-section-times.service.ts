@@ -146,9 +146,7 @@ export class TrainrunSectionTimesService {
 
   private enforceNonNegativeTime(keyValue: string) {
     // ensure non-negative time values for "keyValue"
-    while (this.timeStructure[keyValue] < 0) {
-      this.timeStructure[keyValue] += 60;
-    }
+    this.timeStructure[keyValue] = MathUtils.mod60(this.timeStructure[keyValue]);
   }
 
   private onNodeTailDepartureTimeChanged(keys: LeftAndRightStructureKeys) {
