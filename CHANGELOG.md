@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.10.12](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.11...netzgrafik-frontend-v2.10.12) (2026-01-27)
+
+
+### Bug Fixes
+
+* Add extra check for MultiNodeMoving trainrun section   ([#769](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/769)) ([5466655](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/54666558c33c8f2e0cde9b9453817acb9281112f))
+* **streckengrafik:** correct arrival time for right-to-left ONE_WAY trains ([#786](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/786)) ([#787](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/787)) ([6f48b7d](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/6f48b7df03031fb5ddd44c116d0796bc3ba82ccc))
+* **streckengrafik:** use proper node for ONE_WAY extremity detection ([#764](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/764)) ([402b5ae](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/402b5ae6146dfea4d496e4ce305bc31f2d712b3f))
+
 ## [2.10.11](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.10...netzgrafik-frontend-v2.10.11) (2026-01-20)
 
 
