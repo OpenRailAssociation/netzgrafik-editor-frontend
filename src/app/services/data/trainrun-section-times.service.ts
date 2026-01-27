@@ -168,7 +168,7 @@ export class TrainrunSectionTimesService {
     );
     if (!this.lockStructure[keys.headLock]) {
       this.timeStructure[keys.headArrivalTime] = MathUtils.mod60(
-        this.timeStructure[keys.tailDepartureTime] + (this.timeStructure.travelTime % 60),
+        this.timeStructure[keys.tailDepartureTime] + this.timeStructure.travelTime,
       );
       this.timeStructure[keys.headDepartureTime] = TrainrunsectionHelper.getSymmetricTime(
         this.timeStructure[keys.headArrivalTime],
@@ -197,7 +197,7 @@ export class TrainrunSectionTimesService {
     );
     if (!this.lockStructure[keys.headLock]) {
       this.timeStructure[keys.headDepartureTime] = MathUtils.mod60(
-        this.timeStructure[keys.tailArrivalTime] - (this.timeStructure.travelTime % 60),
+        this.timeStructure[keys.tailArrivalTime] - this.timeStructure.travelTime,
       );
       this.timeStructure[keys.headArrivalTime] = TrainrunsectionHelper.getSymmetricTime(
         this.timeStructure[keys.headDepartureTime],
