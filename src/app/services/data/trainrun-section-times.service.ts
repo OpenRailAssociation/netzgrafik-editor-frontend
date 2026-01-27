@@ -33,17 +33,21 @@ const leftToRightStructureKeys = {
   tailDepartureTime: "leftDepartureTime",
   tailArrivalTime: "leftArrivalTime",
   tailLock: "leftLock",
+  tailSymmetry: "leftSymmetry",
   headDepartureTime: "rightDepartureTime",
   headArrivalTime: "rightArrivalTime",
   headLock: "rightLock",
+  headSymmetry: "rightSymmetry",
 } as const;
 const rightToLeftStructureKeys = {
   tailDepartureTime: "rightDepartureTime",
   tailArrivalTime: "rightArrivalTime",
   tailLock: "rightLock",
+  tailSymmetry: "rightSymmetry",
   headDepartureTime: "leftDepartureTime",
   headArrivalTime: "leftArrivalTime",
   headLock: "leftLock",
+  headSymmetry: "leftSymmetry",
 } as const;
 
 type LeftAndRightStructureKeys = typeof leftToRightStructureKeys | typeof rightToLeftStructureKeys;
@@ -222,16 +226,20 @@ export class TrainrunSectionTimesService {
 
     this.enforceNonNegativeTime(keys.tailDepartureTime);
 
-    this.timeStructure[keys.tailArrivalTime] = TrainrunsectionHelper.getSymmetricTime(
-      this.timeStructure[keys.tailDepartureTime],
-    );
+    if (this.symmetryStructure[keys.tailSymmetry]) {
+      this.timeStructure[keys.tailArrivalTime] = TrainrunsectionHelper.getSymmetricTime(
+        this.timeStructure[keys.tailDepartureTime],
+      );
+    }
     if (!this.lockStructure[keys.headLock]) {
       this.timeStructure[keys.headArrivalTime] = MathUtils.mod60(
         this.timeStructure[keys.tailDepartureTime] + this.timeStructure.travelTime,
       );
-      this.timeStructure[keys.headDepartureTime] = TrainrunsectionHelper.getSymmetricTime(
-        this.timeStructure[keys.headArrivalTime],
-      );
+      if (this.symmetryStructure[keys.headSymmetry]) {
+        this.timeStructure[keys.headDepartureTime] = TrainrunsectionHelper.getSymmetricTime(
+          this.timeStructure[keys.headArrivalTime],
+        );
+      }
     } else if (!this.lockStructure.travelTimeLock) {
       this.updateTravelTimeMinutes(
         this.timeStructure[keys.headArrivalTime] - this.timeStructure[keys.tailDepartureTime],
@@ -251,16 +259,20 @@ export class TrainrunSectionTimesService {
 
     this.enforceNonNegativeTime(keys.tailArrivalTime);
 
-    this.timeStructure[keys.tailDepartureTime] = TrainrunsectionHelper.getSymmetricTime(
-      this.timeStructure[keys.tailArrivalTime],
-    );
+    if (this.symmetryStructure[keys.tailSymmetry]) {
+      this.timeStructure[keys.tailDepartureTime] = TrainrunsectionHelper.getSymmetricTime(
+        this.timeStructure[keys.tailArrivalTime],
+      );
+    }
     if (!this.lockStructure[keys.headLock]) {
       this.timeStructure[keys.headDepartureTime] = MathUtils.mod60(
         this.timeStructure[keys.tailArrivalTime] - this.timeStructure.travelTime,
       );
-      this.timeStructure[keys.headArrivalTime] = TrainrunsectionHelper.getSymmetricTime(
-        this.timeStructure[keys.headDepartureTime],
-      );
+      if (this.symmetryStructure[keys.headSymmetry]) {
+        this.timeStructure[keys.headArrivalTime] = TrainrunsectionHelper.getSymmetricTime(
+          this.timeStructure[keys.headDepartureTime],
+        );
+      }
     } else if (!this.lockStructure.travelTimeLock) {
       this.updateTravelTimeMinutes(
         this.timeStructure[keys.tailArrivalTime] - this.timeStructure[keys.headDepartureTime],
@@ -380,16 +392,20 @@ export class TrainrunSectionTimesService {
       this.timeStructure.rightArrivalTime = MathUtils.mod60(
         this.timeStructure.leftDepartureTime + this.timeStructure.travelTime,
       );
-      this.timeStructure.rightDepartureTime = TrainrunsectionHelper.getSymmetricTime(
-        this.timeStructure.rightArrivalTime,
-      );
+      if (this.symmetryStructure.rightSymmetry) {
+        this.timeStructure.rightDepartureTime = TrainrunsectionHelper.getSymmetricTime(
+          this.timeStructure.rightArrivalTime,
+        );
+      }
     } else if (!this.lockStructure.leftLock) {
       this.timeStructure.leftDepartureTime = MathUtils.mod60(
         this.timeStructure.rightArrivalTime - this.timeStructure.travelTime,
       );
-      this.timeStructure.leftArrivalTime = TrainrunsectionHelper.getSymmetricTime(
-        this.timeStructure.leftDepartureTime,
-      );
+      if (this.symmetryStructure.leftSymmetry) {
+        this.timeStructure.leftArrivalTime = TrainrunsectionHelper.getSymmetricTime(
+          this.timeStructure.leftDepartureTime,
+        );
+      }
     } else {
       this.showWarningTwoLocks = true;
     }
