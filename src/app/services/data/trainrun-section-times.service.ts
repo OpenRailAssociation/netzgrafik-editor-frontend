@@ -48,6 +48,45 @@ const rightToLeftStructureKeys = {
 
 type LeftAndRightStructureKeys = typeof leftToRightStructureKeys | typeof rightToLeftStructureKeys;
 
+/**
+ * A service responsible for updating times for one or more trainrun sections.
+ *
+ * This service is used by the trainrun section tab in the trainrun dialog, as well as the
+ * perlenkette.
+ *
+ * The user is presented time fields organized spatially: the node positioned on the left/top in the
+ * editor main view is displayed on the left/top. Thus, the left node might be the source or the
+ * target. (Same goes for the right/bottom node.)
+ *
+ * Because the logic for updating times on the left side is exactly the same as the one for updating
+ * times on the right side, some functions use abstract tail/head nodes. When updating times on the
+ * left side, the tail is the left and the head is the right. When updating times on the right side,
+ * the tail is the right and the head is the left.
+ *
+ * Here is a visualization of all of the fields:
+ *
+ *
+ *          ┌────────────────┐         ┌─────────────┐              ┌────────────────┐
+ *          │                │         │             │              │                │
+ *          │ Tail departure ├────────►│             ├─────────────►│  Head arrival  │
+ *          │                │         │             │              │                │
+ *          └────────────────┘         │             │              └────────────────┘
+ *                                     │             │
+ *           Tail lock                 │ Travel time │                 Head lock
+ *                                     │             │
+ *     ┌────────────────┐              │             │         ┌────────────────┐
+ *     │                │              │             │         │                │
+ *     │  Tail arrival  │◄─────────────┤             │◄────────┤ Head departure │
+ *     │                │              │             │         │                │
+ *     └────────────────┘              └─────────────┘         └────────────────┘
+ *
+ *                                     Travel time lock
+ *
+ * When one field changes, some other fields are recomputed. For instance, when the tail departure
+ * time is updated by the user, the travel time or head arrival time are updated depending on locks.
+ * Additionally, the tail arrival time is updated with the tail departure time's symmetric, and the
+ * head departure time is updated with the head arrival time's symmetric.
+ */
 @Injectable({
   providedIn: "root",
 })
