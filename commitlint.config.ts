@@ -7,7 +7,7 @@ const Configuration: UserConfig = {
     "type-enum": [
       RuleConfigSeverity.Error,
       "always",
-      ["feat", "fix", "docs", "style", "refactor", "perf", "test", "build", "ci"],
+      ["feat", "fix", "docs", "style", "refactor", "perf", "test", "build", "ci", "chore"],
     ],
     "subject-case": [RuleConfigSeverity.Disabled],
     "subject-empty": [RuleConfigSeverity.Error, "never"],

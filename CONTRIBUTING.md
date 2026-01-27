@@ -216,6 +216,7 @@ A [configuration file](commitlint.config.ts) ensures the commits are following t
 - `test:`: adding missing tests or correcting existing tests
 - `build:`: changes that affect the build system or external dependencies
 - `ci:`: changes to the CI configuration files and scripts
+- `chore:`: dependencies update (mostly from dependabot and release-please)
 
 Note: `feat!:`, or `fix!:`, `refactor!:`, etc., which represent a breaking change (indicated by the `!`).
 
