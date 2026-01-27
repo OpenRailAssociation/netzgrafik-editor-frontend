@@ -145,10 +145,17 @@ export class TrainrunSectionTimesService {
     return 1 - val + Math.floor(val);
   }
 
+  private enforceNonNegativeTime(keyValue: string) {
+    // ensure non-negative time values for "keyValue"
+    this.timeStructure[keyValue] = MathUtils.mod60(this.timeStructure[keyValue]);
+  }
+
   private onNodeTailDepartureTimeChanged(keys: LeftAndRightStructureKeys) {
     this.showWarningTwoLocks = false;
     this.roundAllTimes();
     this.removeOffsetAndBackTransformTimeStructure();
+
+    this.enforceNonNegativeTime(keys.tailDepartureTime);
 
     this.timeStructure[keys.tailArrivalTime] = TrainrunsectionHelper.getSymmetricTime(
       this.timeStructure[keys.tailDepartureTime],
@@ -178,6 +185,8 @@ export class TrainrunSectionTimesService {
     this.showWarningTwoLocks = false;
     this.roundAllTimes();
     this.removeOffsetAndBackTransformTimeStructure();
+
+    this.enforceNonNegativeTime(keys.tailArrivalTime);
 
     this.timeStructure[keys.tailDepartureTime] = TrainrunsectionHelper.getSymmetricTime(
       this.timeStructure[keys.tailArrivalTime],
