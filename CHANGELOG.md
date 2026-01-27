@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.13](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.12...netzgrafik-frontend-v2.10.13) (2026-01-27)
+
+
+### Bug Fixes
+
+* Entering a negative value causes incorrect departure/arrival times ([#780](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/780)) ([85fce12](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/85fce12b5268cda5f4dfcf6dc169cdbfeb03e7cf))
+
 ## [2.10.12](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.11...netzgrafik-frontend-v2.10.12) (2026-01-27)
 
 
