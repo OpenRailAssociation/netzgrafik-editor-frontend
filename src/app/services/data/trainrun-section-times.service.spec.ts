@@ -315,4 +315,32 @@ describe("TrainrunSectionTimesService", () => {
       });
     }
   });
+
+  describe("update with travel time > 60", () => {
+    it("set leftDepartureTime to 15 with rightLock", () => {
+      const ts = trainrunSectionService.getTrainrunSectionFromId(1);
+      trainrunSectionTimesService.setTrainrunSection(ts);
+
+      // Set travel time to 2 hours and 10 minutes
+      let timeStructure = trainrunSectionTimesService.getTimeStructure();
+      timeStructure.travelTime = 130;
+      trainrunSectionTimesService.onTravelTimeChanged();
+
+      // Enable right lock
+      const lockStructure = trainrunSectionTimesService.getLockStructure();
+      lockStructure.travelTimeLock = false;
+      lockStructure.rightLock = true;
+      trainrunSectionTimesService.updateTrainrunSectionTimeLock();
+
+      // Update left departure time
+      timeStructure = trainrunSectionTimesService.getTimeStructure();
+      timeStructure.leftDepartureTime = 15;
+      trainrunSectionTimesService.onNodeLeftDepartureTimeChanged();
+
+      // Reload time structure from model and check that travel time is still > 2 hours
+      trainrunSectionTimesService.setTrainrunSection(ts);
+      const updatedTimeStructure = trainrunSectionTimesService.getTimeStructure();
+      expect(updatedTimeStructure.travelTime).toEqual(127);
+    });
+  });
 });
