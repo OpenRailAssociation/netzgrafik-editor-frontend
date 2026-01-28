@@ -1,45 +1,50 @@
-name: Feature request or enhancement
-description: Request for a new component or enhancement of a component
-title: "[Feature request]: "
-labels: ["type: enhancement"]
-assignees:
-  - octocat
+name: "Feature Request"
+description: Request of a new feature or enhancement of a new one
+labels: ["feature-request"]
+type: Feature
 body:
-  - type: checkboxes
-    id: preflight-checklist
-    attributes:
-      label: Preflight Checklist
-      options:
-        - label: I have read the [Contributing Guidelines](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/blob/main/CONTRIBUTING.md) for this project.
-          required: true
-        - label: I agree to follow the [Code of Conduct](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/blob/main/CODE_OF_CONDUCT.md) that this project adheres to.
-          required: true
-        - label: I have searched the [issue tracker](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues?q=is%3Aissue%20state%3Aopen%20-label%3Abug) for an issue that matches the one I want to file, without success.
-          required: true
   - type: markdown
     attributes:
       value: |
-        ## Please describe your idea in as much detail as possible.
+        Thanks for taking the time to make Netzgrafik-Editor evolve!
+        Before requesting a new feature, please ensure that your idea is not already requested (access the list [here](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues?q=is%3Aissue%20label%3A%22feature-request%22)).
+
   - type: dropdown
-    id: new-or-enhancement
+    id: audience
     attributes:
-      label: Request type
+      label: Who would benefit from this feature?
+      multiple: true
       options:
-        - "Request for a new component"
-        - "Request for enhancement of a component"
-    validations:
-      required: true
+        - Users
+        - Developers
+
   - type: textarea
-    id: request
+    id: abilities
     attributes:
-      label: Functionality
-      description: For what purpose is the component used? What features does it need to have? Which component should be enhanced?
+      label: What is this feature about?
+      value: |
+        - adding a new way to create ...
+        - making ... able to be displayed on the network graph
+        - making ... data model evolve
+        - (also, mock-ups or screenshots highly help to apprehend a new feature or concept)
     validations:
       required: true
-  - type: input
-    id: link
+
+  - type: textarea
+    id: value
     attributes:
-      label: Link to design proposal file
-      description: Figma-Link
+      label: Why is this feature valuable?
+      value: |
+        This feature matters because it:
+        - enables ...
+        - will make ... easier
+        If this feature is not accepted, this would compromise:
+        - this feature ...
+        - or this use case ...
     validations:
-      required: false
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        If you are a user of Netzgrafik-Editor, adding the label `from-user` might help to prioritize fixing this bug.

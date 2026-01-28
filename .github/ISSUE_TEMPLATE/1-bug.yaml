@@ -1,115 +1,111 @@
-name: Bug Report
-description: File a bug report
-title: "[Bug]: "
-labels: ["bug"]
-assignees:
-  - octocat
+name: "Bug Report 🐛"
+description: Report a bug encountered while operating Netzgrafik-Editor
+labels: []
+type: Bug
 body:
   - type: markdown
     attributes:
       value: |
-        # Thanks for taking the time to fill out this bug report!
-        ## Preflight Checklist
-  - type: checkboxes
-    id: preflight-checklist
-    attributes:
-      label: Preflight Checklist
-      options:
-        - label: I have read the [Contributing Guidelines](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/blob/main/CONTRIBUTING.md) for this project.
-          required: true
-        - label: I agree to follow the [Code of Conduct](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/blob/main/CODE_OF_CONDUCT.md) that this project adheres to.
-          required: true
-        - label: I have searched the [issue tracker](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) for an issue that matches the one I want to file, without success.
-          required: true
-  - type: markdown
-    attributes:
-      value: |
-        ## General Information
+        Thanks for taking the time to fill out this bug report!
+        Before reporting a bug, please ensure that:
+        - Your problem is not already reported (access the list [here](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues?q=is%3Aissue%20state%3Aopen%20type%3ABug))
+        - Your problem is not already fixed on the `main` branch, if you are able to check
+
   - type: dropdown
-    id: bug-type
+    id: input
     attributes:
-      label: Bug type
+      label: What is the input mode?
+      multiple: false
       options:
-        - "Functionality"
-        - "Accessibility"
-        - "Performance"
-        - "Security vulnerability"
-        - "Other"
-    validations:
-      required: true
-  - type: input
-    id: version
-    attributes:
-      label: Which version are you using
-      description: e.g. 15.5.0
-    validations:
-      required: false
-  - type: markdown
-    attributes:
-      value: |
-        ## Environment
-  - type: input
-    id: os
-    attributes:
-      label: Operating system
-      description: e.g. Windows 10
-    validations:
-      required: false
-  - type: input
-    id: browser
-    attributes:
-      label: Browser / Browser version
-      description: e.g. Mozilla Firefox 74.0 (64-bit)
-    validations:
-      required: false
+        - Mouse
+        - Touchpad
+        - Other
+      default: 0
+
   - type: dropdown
-    id: input-mode
+    id: type
     attributes:
-      label: Input mode
+      label: What type of issue is it?
+      multiple: true
       options:
-        - "Mouse/Keyboard"
-        - "Touch"
-        - "Other"
-    validations:
-      required: false
-  - type: input
-    id: additional-settings
-    attributes:
-      label: Additional settings
-      description: e.g. save data active
-    validations:
-      required: false
-  - type: markdown
-    attributes:
-      value: |
-        ## Detailed description
+        - Functionality
+        - Accessibility
+        - Performance
+        - Security vulnerability
+        - Other
+      default: 0
+
   - type: textarea
-    id: what-happened
+    id: problem
     attributes:
       label: What happened?
-      description: Also tell us, what did you expect to happen?
-      placeholder: Tell us what you see!
-      value: |
-        Describe in detail the issue you are having.
-        What did you expect to happen? What happened instead? What would you like to see changed?
-        Is the issue related to a specific component?
+      description: |
+        Please provide as much information as possible. Not doing so may result in your bug not being addressed in a timely manner.
+        Screenshots and videos are very useful.
     validations:
       required: true
+
   - type: textarea
-    id: steps
+    id: expected
     attributes:
-      label: Steps to reproduce the issue
-      description: Also tell us, what did you expect to happen?
-      placeholder: Tell us what you see!
-      value: |
-        1. Step one
-        2. Step two
-        3. ...
+      label: What did you expect to happen?
+    validations:
+      required: false
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: How can we reproduce it (as minimally and precisely as possible)?
+      placeholder: |
+        💡 When specific data is involved, providing a Netzgrafik JSON export can help a lot to reproduce quickly and precisely.
+        1. Go to '...'
+        2. Click on '....'
+        3. See error
     validations:
       required: true
-  - type: textarea
-    id: logs
+
+  - type: dropdown
+    id: environment
     attributes:
-      label: Relevant log output
-      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
-      render: shell
+      label: On which environments the bug occurs?
+      multiple: true
+      options:
+        - Local
+        - Intern (SBB)
+        - GitHub pages demo
+        - Flatland
+        - Embedded (like in OSRD)
+        - Custom (Docker compose)
+        - Other
+      default: 0
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: On which browser the bug occurs?
+      multiple: true
+      options:
+        - Firefox
+        - Google Chrome
+        - Microsoft Edge
+        - Safari
+        - Opera
+        - Other
+      default: 0
+
+  - type: input
+    id: ngeVersion
+    attributes:
+      label: Netzgrafik-Editor version (top left corner `Version x.yy.zz`)
+      placeholder: "2.10.9"
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        If you're already a member of the repo, add a label about the bug severity, by adding one of a following labels:
+        - `bug:minor` (the impacted functionality is still usable)
+        - `bug:major` (the impacted functionality is hardly usable)
+        - `bug:critical` (the impacted functionality is not usable at all)
+        Also, if you are a user of Netzgrafik-Editor, adding the label `from-user` might help to prioritize fixing this bug.
