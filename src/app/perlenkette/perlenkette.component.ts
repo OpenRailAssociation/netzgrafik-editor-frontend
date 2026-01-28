@@ -26,6 +26,8 @@ import {Direction} from "../data-structures/business.data.structures";
 import {TrainrunsectionHelper} from "../services/util/trainrunsection.helper";
 import {TrainrunSectionService} from "../services/data/trainrunsection.service";
 import {TrainrunService} from "../services/data/trainrun.service";
+import {TrainrunSectionTimesService} from "../services/data/trainrun-section-times.service";
+import {ToggleSwitchButtonComponent} from "../view/toggle-switch-button/toggle-switch-button.component";
 
 enum ShowTrainrunEditTab {
   sbb_trainrun_tab = "GENERAL",
@@ -41,6 +43,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   perlenketteTrainrun: PerlenketteTrainrun;
   @ViewChild("svgPerlenkette") svgPerlenkette: ElementRef<SVGSVGElement>;
   @ViewChild("drawingContainer") drawingContainer: ElementRef;
+  @ViewChild("trainrunSymmetryToggle") trainrunSymmetryToggle: ToggleSwitchButtonComponent;
   @Input() sidebarElementHeight: number;
 
   private readonly destroyed$ = new Subject<void>();
@@ -71,6 +74,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     private changeDetectorRef: ChangeDetectorRef,
     public trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
+    public trainrunSectionTimesService: TrainrunSectionTimesService,
   ) {
     this.selectedPerlenketteConnection = undefined;
 
@@ -331,10 +335,6 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     return this.versionControlService.getVariantIsWritable();
   }
 
-  getPositionY(): number {
-    return this.contentHeight * window.devicePixelRatio - 40;
-  }
-
   disableSectionView() {
     this.signalIsBeingEdited(undefined);
   }
@@ -444,5 +444,21 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     );
   }
 
+  isSymmetric(): boolean {
+    return this.trainrunSectionService.isTrainrunSymmetric(this.perlenketteTrainrun.trainrunId);
+  }
+
+  onTrainrunSymmetryToggleChanged() {
+    // TODO
+  }
+
   protected readonly ShowTrainrunEditTab = ShowTrainrunEditTab;
+
+  private revertTrainrunSymmetryToggleState(originalState: boolean) {
+    if (this.trainrunSymmetryToggle) {
+      // Manually set the checked state to revert the toggle
+      this.trainrunSymmetryToggle.checked = !originalState;
+    }
+    this.changeDetectorRef.detectChanges();
+  }
 }

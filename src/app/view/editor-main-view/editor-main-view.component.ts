@@ -237,12 +237,14 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
 
     this.editorView.bindGetSelectedTrainrun(() => this.trainrunService.getSelectedTrainrun());
 
-    this.editorView.bindGetCumulativeTravelTime((trainrunSection: TrainrunSection) =>
-      this.trainrunService.getCumulativeTravelTime(trainrunSection),
+    this.editorView.bindGetCumulativeTravelTime(
+      (trainrunSection: TrainrunSection, direction: "sourceToTarget" | "targetToSource") =>
+        this.trainrunService.getCumulativeTravelTime(trainrunSection, direction),
     );
 
-    this.editorView.bindGetCumulativeTravelTimeAndNodePath((trainrunSection: TrainrunSection) =>
-      this.trainrunService.getCumulativeTravelTimeAndNodePath(trainrunSection),
+    this.editorView.bindGetCumulativeTravelTimeAndNodePath(
+      (trainrunSection: TrainrunSection, direction: "sourceToTarget" | "targetToSource") =>
+        this.trainrunService.getCumulativeTravelTimeAndNodePath(trainrunSection, direction),
     );
 
     this.editorView.bindAddConnectionToNode(
@@ -352,12 +354,20 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       this.filterService.isFilterTravelTimeEnabled(),
     );
 
+    this.editorView.bindIsFilterBackwardTravelTimeEnabled(() =>
+      this.filterService.isFilterBackwardTravelTimeEnabled(),
+    );
+
     this.editorView.bindIsfilterTrainrunNameEnabled(() =>
       this.filterService.isFilterTrainrunNameEnabled(),
     );
 
     this.editorView.bindIsFilterDirectionArrowsEnabled(() =>
       this.filterService.isFilterDirectionArrowsEnabled(),
+    );
+
+    this.editorView.bindIsFilterAsymmetryArrowsEnabled(() =>
+      this.filterService.isFilterAsymmetryArrowsEnabled(),
     );
 
     this.editorView.bindIsfilterArrivalDepartureTimeEnabled(() =>
