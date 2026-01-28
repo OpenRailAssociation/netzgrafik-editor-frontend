@@ -384,11 +384,11 @@ export class TrainrunSectionTimesService {
         this.timeStructure.rightArrivalTime,
       );
     } else if (!this.lockStructure.leftLock) {
-      this.timeStructure.leftArrivalTime = MathUtils.mod60(
-        this.timeStructure.rightDepartureTime + this.timeStructure.travelTime,
+      this.timeStructure.leftDepartureTime = MathUtils.mod60(
+        this.timeStructure.rightArrivalTime - this.timeStructure.travelTime,
       );
-      this.timeStructure.leftDepartureTime = TrainrunsectionHelper.getSymmetricTime(
-        this.timeStructure.leftArrivalTime,
+      this.timeStructure.leftArrivalTime = TrainrunsectionHelper.getSymmetricTime(
+        this.timeStructure.leftDepartureTime,
       );
     } else {
       this.showWarningTwoLocks = true;
