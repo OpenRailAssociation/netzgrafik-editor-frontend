@@ -181,6 +181,49 @@ export class Node {
     return ++Node.currentId;
   }
 
+  private comparePorts(a: Port, b: Port): number {
+    if (a.getPositionAlignment() > b.getPositionAlignment()) {
+      return 1;
+    } else {
+      if (a.getPositionAlignment() === b.getPositionAlignment()) {
+        if (
+          a.getPositionAlignment() === PortAlignment.Left ||
+          a.getPositionAlignment() === PortAlignment.Right
+        ) {
+          if (
+            a.getOppositeNodePosition(this.getId()).getY() >
+            b.getOppositeNodePosition(this.getId()).getY()
+          ) {
+            return 1;
+          } else if (
+            a.getOppositeNodePosition(this.getId()).getY() ===
+            b.getOppositeNodePosition(this.getId()).getY()
+          ) {
+            return Node.orderPortsTrainCategory(a, b);
+          } else {
+            return -1;
+          }
+        } else {
+          if (
+            a.getOppositeNodePosition(this.getId()).getX() >
+            b.getOppositeNodePosition(this.getId()).getX()
+          ) {
+            return 1;
+          } else if (
+            a.getOppositeNodePosition(this.getId()).getX() ===
+            b.getOppositeNodePosition(this.getId()).getX()
+          ) {
+            return Node.orderPortsTrainCategory(a, b);
+          } else {
+            return -1;
+          }
+        }
+      } else {
+        return -1;
+      }
+    }
+  }
+
   initializePortsWithReferencesToTrainrunSections(trainrunSections: TrainrunSection[]) {
     this.ports.forEach((port) => {
       const trainrunSection = trainrunSections.find(
@@ -460,48 +503,35 @@ export class Node {
   }
 
   sortPorts() {
-    this.ports.sort((a, b) => {
-      if (a.getPositionAlignment() > b.getPositionAlignment()) {
-        return 1;
+    const originalPorts = this.ports;
+    const lockedIndexes: Set<number> = new Set();
+    const portsToReorder: Port[] = [];
+
+    originalPorts.forEach((port, index) => {
+      if (port.getLocked()) {
+        lockedIndexes.add(index);
       } else {
-        if (a.getPositionAlignment() === b.getPositionAlignment()) {
-          if (
-            a.getPositionAlignment() === PortAlignment.Left ||
-            a.getPositionAlignment() === PortAlignment.Right
-          ) {
-            if (
-              a.getOppositeNodePosition(this.getId()).getY() >
-              b.getOppositeNodePosition(this.getId()).getY()
-            ) {
-              return 1;
-            } else if (
-              a.getOppositeNodePosition(this.getId()).getY() ===
-              b.getOppositeNodePosition(this.getId()).getY()
-            ) {
-              return Node.orderPortsTrainCategory(a, b);
-            } else {
-              return -1;
-            }
-          } else {
-            if (
-              a.getOppositeNodePosition(this.getId()).getX() >
-              b.getOppositeNodePosition(this.getId()).getX()
-            ) {
-              return 1;
-            } else if (
-              a.getOppositeNodePosition(this.getId()).getX() ===
-              b.getOppositeNodePosition(this.getId()).getX()
-            ) {
-              return Node.orderPortsTrainCategory(a, b);
-            } else {
-              return -1;
-            }
-          }
-        } else {
-          return -1;
-        }
+        portsToReorder.push(port);
       }
     });
+
+    // Sort ONLY the unlocked ports
+    portsToReorder.sort((a, b) => {
+      return this.comparePorts(a, b);
+    });
+
+    // Insert locked ports back in their original places
+    const newPorts: Port[] = [];
+    let reorderedIndex = 0;
+    for (let index = 0; index < originalPorts.length; index++) {
+      if (lockedIndexes.has(index)) {
+        newPorts.push(originalPorts[index]);
+      } else {
+        newPorts.push(portsToReorder[reorderedIndex]);
+        reorderedIndex += 1;
+      }
+    }
+    this.ports = newPorts;
   }
 
   resetPositionIndex(alignment: PortAlignment) {
