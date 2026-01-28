@@ -3,6 +3,15 @@ description: Design on a future feature and proposition of implementation
 labels: ["design-document"]
 type: Feature
 body:
+  - type: input
+    id: size
+    attributes:
+      label: Estimated Size (weeks)
+      description: Estimate the size of work for 1 full time employee in weeks (e.g., 2, 4, 6)
+      placeholder: "4"
+    validations:
+      required: true
+
   - type: textarea
     id: description
     attributes:
