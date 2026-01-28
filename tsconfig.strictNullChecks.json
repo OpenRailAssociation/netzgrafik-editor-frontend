@@ -6,6 +6,11 @@
     "strictNullChecks": true
   },
   "files": [],
-  "include": ["src/app/view/themes/**/*.ts"],
+  "include": [
+    "src/app/view/themes/**/*.ts",
+    "src/app/data-structures/**/*.ts",
+    "src/polyfills.ts",
+    "src/app/models/**/*.ts"
+  ],
   "exclude": ["src/test.ts", "**/*.spec.ts"]
 }
