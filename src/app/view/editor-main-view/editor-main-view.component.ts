@@ -292,7 +292,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       (
         trainrunSection: TrainrunSection,
         position: Vec2D,
-        trainrunSectionText: TrainrunSectionText,
+        trainrunSectionText?: TrainrunSectionText,
       ) => {
         this.trainrunService.setTrainrunAsSelected(trainrunSection.getTrainrun().getId());
         this.trainrunSectionService.setTrainrunSectionAsSelected(trainrunSection.getId());
@@ -300,7 +300,9 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
           TrainrunDialogType.TRAINRUN_SECTION_DIALOG,
           position,
         );
-        parameter.setTrainrunSectionText(trainrunSectionText);
+        if (trainrunSectionText) {
+          parameter.setTrainrunSectionText(trainrunSectionText);
+        }
         this.uiInteractionService.showTrainrunDialog(parameter);
       },
     );
