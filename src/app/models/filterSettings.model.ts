@@ -57,7 +57,7 @@ export class FilterSetting {
       filterTrainrunCategory,
       filterTrainrunFrequency,
       filterTrainrunTimeCategory,
-      filterDirection: filterDirection,
+      filterDirection,
       filterAllEmptyNodes,
       filterAllNonStopNodes,
       filterNotes,
