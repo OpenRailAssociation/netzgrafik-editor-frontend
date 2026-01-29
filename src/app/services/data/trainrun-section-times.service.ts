@@ -572,6 +572,30 @@ export class TrainrunSectionTimesService {
     );
   }
 
+  /* Symmetry */
+  onLeftNodeSymmetryToggle(symmetry: boolean) {
+    this.symmetryStructure.leftSymmetry = symmetry;
+    this.updateTrainrunSectionSymmetry();
+  }
+
+  onRightNodeSymmetryToggle(symmetry: boolean) {
+    this.symmetryStructure.rightSymmetry = symmetry;
+    this.updateTrainrunSectionSymmetry();
+  }
+
+  private updateTrainrunSectionSymmetry() {
+    const {leftSection, rightSection} =
+      this.trainrunSectionHelper.getLeftRightDirectedSectionProxies(
+        this.selectedTrainrunSection,
+        this.nodesOrdered,
+      );
+
+    leftSection.setTailSymmetry(this.symmetryStructure.leftSymmetry);
+    leftSection.setHeadSymmetry(this.symmetryStructure.rightSymmetry);
+
+    this.trainrunSectionService.trainrunSectionsUpdated();
+  }
+
   /* Buttons in Footer */
   onPropagateTimeLeft(trainrunSection: TrainrunSection) {
     const nextStopRightNodeId = this.trainrunSectionHelper
