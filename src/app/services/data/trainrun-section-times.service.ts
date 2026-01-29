@@ -1,6 +1,7 @@
 import {Injectable} from "@angular/core";
 import {MathUtils} from "../../utils/math";
 import {LeftAndRightElement, TrainrunsectionHelper} from "../util/trainrunsection.helper";
+import {TrainrunSectionValidator} from "../util/trainrunsection.validator";
 import {DirectedTrainrunSectionProxy} from "../util/trainrun.iterator";
 import {TrainrunService} from "./trainrun.service";
 import {TrainrunSectionService} from "./trainrunsection.service";
@@ -570,6 +571,33 @@ export class TrainrunSectionTimesService {
       undefined,
       true,
     );
+  }
+
+  /* Symmetry */
+  onLeftNodeSymmetryToggle(symmetry: boolean) {
+    this.symmetryStructure.leftSymmetry = symmetry;
+    this.updateTrainrunSectionSymmetry();
+  }
+
+  onRightNodeSymmetryToggle(symmetry: boolean) {
+    this.symmetryStructure.rightSymmetry = symmetry;
+    this.updateTrainrunSectionSymmetry();
+  }
+
+  private updateTrainrunSectionSymmetry() {
+    const {leftSection, rightSection} =
+      this.trainrunSectionHelper.getLeftRightDirectedSectionProxies(
+        this.selectedTrainrunSection,
+        this.nodesOrdered,
+      );
+
+    leftSection.setTailSymmetry(this.symmetryStructure.leftSymmetry);
+    rightSection.setHeadSymmetry(this.symmetryStructure.rightSymmetry);
+
+    TrainrunSectionValidator.validateOneSection(leftSection.trainrunSection);
+    TrainrunSectionValidator.validateOneSection(rightSection.trainrunSection);
+
+    this.trainrunSectionService.trainrunSectionsUpdated();
   }
 
   /* Buttons in Footer */
