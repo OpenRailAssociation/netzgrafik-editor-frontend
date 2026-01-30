@@ -521,7 +521,8 @@ export class Sg6TrackService implements OnDestroy {
       trainrunSectionId = trainrunNode.departurePathSection.trainrunSectionId;
     }
 
-    if (trainrunSectionId === undefined) {
+    const trainrunSection = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
+    if (trainrunSection === undefined) {
       const trainrun = this.trainrunService.getTrainrunFromId(trainrunNode.trainrunId);
       if (trainrun === undefined) {
         // return default
@@ -531,7 +532,6 @@ export class Sg6TrackService implements OnDestroy {
       return trainrun.getTrainrunCategory().nodeHeadwayStop;
     }
 
-    const trainrunSection = this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
     const trans = node.getTransition(trainrunSection.getId());
     const trainrun = trainrunSection.getTrainrun();
 
@@ -652,6 +652,12 @@ export class Sg6TrackService implements OnDestroy {
   private updateStagingDwellAtEndpoints(pn: SgTrainrunNode) {
     // handle special case one way
     const tr = this.trainrunService.getTrainrunFromId(pn.trainrunId);
+    if (tr === undefined) {
+      // Ensure that the trainrun section is still valid. This may no
+      // longer be the case, e.g., when a trainrun has been deleted and the
+      // graphical timetable has not yet been fully updated.
+      return;
+    }
     if (tr.getDirection() === Direction.ONE_WAY) {
       const node = this.nodeService.getNodeFromId(pn.nodeId);
       const nodeHaltezeiten = node.getTrainrunCategoryHaltezeit();
@@ -1121,10 +1127,14 @@ export class Sg6TrackService implements OnDestroy {
           const keyCommonBehavior = ps.arrivalNodeId + ":" + ps.departureNodeId;
           const keyOneWaySpecialCase = ps.departureNodeId + ":" + ps.arrivalNodeId;
           const ts = this.trainrunSectionService.getTrainrunSectionFromId(ps.trainrunSectionId);
-          const isRoundTrip = ts.getTrainrun().isRoundTrip();
-
-          if (keyCommonBehavior === key || (!isRoundTrip && keyOneWaySpecialCase === key)) {
-            ps.trackData = trackData;
+          if (ts) {
+            // Ensure that the trainrun section is still valid. This may no
+            // longer be the case, e.g., when a trainrun has been deleted and the
+            // graphical timetable has not yet been fully updated.
+            const isRoundTrip = ts.getTrainrun().isRoundTrip();
+            if (keyCommonBehavior === key || (!isRoundTrip && keyOneWaySpecialCase === key)) {
+              ps.trackData = trackData;
+            }
           }
         }
       });
