@@ -95,6 +95,64 @@ chances of your issue being dealt with quickly:
 
 You can file new issues by providing the above information [here](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/issues/new).
 
+To be able to quickly address issues, we strive to organize issues with types and labels.
+
+#### Types
+
+Types (coming from OpenRailAssociation organization):
+
+| Type      | Corresponding issues                                                                                                                                                                                                                                                  |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Bug`     | Bugs (⚠️ need to also set the `bug:{severity}` label) (Issue template is "Bug")                                                                                                                                                                                       |
+| `Enabler` | Enablers:<br>- technical<br>- data model evolution                                                                                                                                                                                                                    |
+| `Feature` | - Feature proposal (= design document): problem with the solution to implement (Issue template is "Design Document")<br>- Feature request: problem to solve, mostly from external users (Issue template is "Feature Request")<br>- Enhancement of an existing feature |
+| `Refacto` | - Technical chores (dependency issues, ...)<br>- Code quality<br>- Technical enhancements                                                                                                                                                                             |
+| `Task`    | Subdivision of a larger Feature                                                                                                                                                                                                                                       |
+
+#### Labels
+
+Labels (coming from [OpenRailAssociation/netzgrafik-editor-frontend](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend) (see already existing [NGE's labels](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/labels) and [OSRD's labels](https://github.com/OpenRailAssociation/osrd/labels?page=1)):
+
+| Label              | Description                                                                                                                                                                                                        | Examples                                                                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `area:view`        | Actual components ("visual" stuff)                                                                                                                                                                                 | - `src/app/view/*`<br>- `src/app/perlenkette/perlenkette-section`                                                                       |
+| `area:services`    | Services, helpers, utils and i18n ("logical" stuff)                                                                                                                                                                | - `src/app/services/*`<br>- `src/app/utils/*`<br>- `src/app/perlenkette/service`                                                        |
+| `area:data-model`  | Data models and structures                                                                                                                                                                                         | - `src/app/data-structures/*`<br>- `src/app/models/*`<br>- `src/app/perlenkette/model`                                                  |
+| `area:ci`          | GitHub actions                                                                                                                                                                                                     | - `.github/*`                                                                                                                           |
+| `bug:minor`        | The feature is not compromised (e.g. slight `css` bug)                                                                                                                                                             | [# trainrun-and-section-tab component closing issue #739](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/739) |
+| `bug:major`        | The feature is not fully compromised and requires the user to "hack" to get the full feature (e.g. having to close manually something or reload the window)                                                        | [# One-way card selection order #658](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/658)                     |
+| `bug:critical`     | The feature is fully compromised (e.g. white screen or a view that does not open at all)                                                                                                                           | [# O/D Matrix - overlays nodes with the same name. #489](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/489)  |
+| `design-document`  | This is the main document that a developer uses to implement a feature, everything needed should be part of it ("Description", "Mock-ups", "Acceptance Criteria", "Implementation Plan" and "Definition of Ready") | [# Manually re-order trainruns in nodes #636](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/636)             |
+| `feature-request`  | A request of a new feature of the enhancement of an existing one.                                                                                                                                                  | [Asymmetric Times in Timetable Concepts #242](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/242)             |
+| `dependencies`     | Dependencies (from Dependabot mostly)                                                                                                                                                                              |                                                                                                                                         |
+| `documentation`    | About documentation                                                                                                                                                                                                |                                                                                                                                         |
+| `experimental`     | For mad scientists                                                                                                                                                                                                 |                                                                                                                                         |
+| `help-wanted`      | Ask for help on a matter                                                                                                                                                                                           |                                                                                                                                         |
+| `postponed`        | Postponed                                                                                                                                                                                                          |                                                                                                                                         |
+| `ux/ui`            | User experience, user interface (design)                                                                                                                                                                           |                                                                                                                                         |
+| `good-first-issue` | Issue that does not need large business or technical context                                                                                                                                                       |                                                                                                                                         |
+| `from-user`        | Issue from user                                                                                                                                                                                                    |                                                                                                                                         |
+
+#### Milestones
+
+Because each release is linked on a milestone, issues need to be tagged as a milestone, if relevant, to be able to quickly see what's prior in the issues list.
+
+Issue that need to be tagged as a milestone:
+
+- Features that directly impact the users
+  - As well as Design Documents
+- Evolutions of the data model
+- Large refactoring issues
+- Critical bug fixes
+- Major bug fixes
+
+Issues that do not need to be tagged as a milestone:
+
+- Technical issues
+- Refactoring issues
+- Minor bug fixes
+- Pull Requests (since a Pull Request should always reference an opened issue (using "Ref \#issue" or "Close \#issue"))
+
 ### <a id="submit-pr"></a> Submitting a Pull Request (PR)
 
 Before you submit your Pull Request (PR) consider the following guidelines:
@@ -147,13 +205,20 @@ As an example, please refer to: https://github.com/sbb-design-systems/sbb-angula
 
 The project is using [Release please](https://github.com/googleapis/release-please?tab=readme-ov-file#how-should-i-write-my-commits)
 
-The most important prefixes you should have in mind are:
+A [configuration file](commitlint.config.ts) ensures the commits are following the format, in particular that the commit message prefix is one of the following:
 
-- `fix:` which represents bug fixes, and correlates to a [SemVer](https://semver.org/)
-  patch.
-- `feat:` which represents a new feature, and correlates to a SemVer minor.
-- `feat!:`, or `fix!:`, `refactor!:`, etc., which represent a breaking change
-  (indicated by the `!`) and will result in a SemVer major.
+- `feat:`: a new user-visible feature
+- `fix:`: a bug fix, or preventing a future bug
+- `docs:`: documentation only changes
+- `style:`: changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+- `refactor:`: a code change that neither fixes a bug nor adds a feature (but could prepare the work for a following commit)
+- `perf:`: a code change that improves performance
+- `test:`: adding missing tests or correcting existing tests
+- `build:`: changes that affect the build system or external dependencies
+- `ci:`: changes to the CI configuration files and scripts
+- `chore:`: dependencies update (mostly from dependabot and release-please)
+
+Note: `feat!:`, or `fix!:`, `refactor!:`, etc., which represent a breaking change (indicated by the `!`).
 
 ## Your First Code Contribution
 

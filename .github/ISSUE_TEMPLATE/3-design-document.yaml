@@ -1,0 +1,74 @@
+name: "Design document"
+description: Design on a future feature and proposition of implementation
+labels: ["design-document"]
+type: Feature
+body:
+  - type: input
+    id: size
+    attributes:
+      label: Estimated Size (weeks)
+      description: Estimate the size of work for 1 full time employee in weeks (e.g., 2, 4, 6)
+      placeholder: "4"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please give a brief description of the feature
+    validations:
+      required: true
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mock-ups
+      description: Give a link to the mock-up or some screenshots
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: A clear and exhaustive list of criteria/details that must be fulfilled
+      placeholder: |
+        - [ ] Criteria 1
+        - [ ] Criteria 2
+        - [ ] ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation-plan
+    attributes:
+      label: Implementation Plan
+      description: A clear and exhaustive list of steps to achieve this feature
+      placeholder: |
+        - Evolution of ... in the data model
+        - Add ... and ... helper functions in ... service
+        - Create ... component
+        - ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: tests
+    attributes:
+      label: Tests
+      description: A clear and exhaustive list of tests that should be implemented to ensure this feature is well tested
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: definition-of-ready
+    attributes:
+      label: Definition of Ready
+      options:
+        - label: Mock-ups are complete and validated (PO/UX-UI)
+          required: true
+        - label: ACs are clear and have been reviewed by another refiner (PO/UX-UI)
+          required: true
+        - label: Implementation plan has been written and validated by another maintainer (Technical)
+          required: true
+        - label: Validated by Adrian (General)
+          required: true
