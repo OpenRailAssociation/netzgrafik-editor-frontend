@@ -14,4 +14,3 @@ There are two ways to visualize the results:
 The Origin Destination Matrix view computes the results once (when opened). It allows to color the matrix based on a chosen palette and a field (right). It also displays a chosen field (bottom left).
 
 [O_D_Matrix_demo_001.webm](https://github.com/user-attachments/assets/92a52142-19a3-4bad-a3c8-03fca7c283f7)
-
