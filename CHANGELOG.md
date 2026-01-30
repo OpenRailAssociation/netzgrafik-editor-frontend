@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.14](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.13...netzgrafik-frontend-v2.10.14) (2026-01-30)
+
+
+### Bug Fixes
+
+* Add checks to ensure the trainrun section remains valid in edge cases. ([#793](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/793)) ([b62bb93](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/b62bb939666168d9cf94c9bcf4c4142cb97afb53))
+
 ## [2.10.13](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.12...netzgrafik-frontend-v2.10.13) (2026-01-27)
 
 
