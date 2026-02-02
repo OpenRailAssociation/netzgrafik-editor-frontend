@@ -614,17 +614,17 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   /* Travel Time */
-  onInputTravelTimeElementButtonPlus(event: MouseEvent) {
+  onTravelTimeButtonPlus(event: MouseEvent) {
     this.stopPropagation(event);
     this.trainrunSectionTimesService.onTravelTimeButtonPlus();
   }
 
-  onInputTravelTimeElementButtonMinus(event: MouseEvent) {
+  onTravelTimeButtonMinus(event: MouseEvent) {
     this.stopPropagation(event);
     this.trainrunSectionTimesService.onTravelTimeButtonMinus();
   }
 
-  onInputTravelTimeChanged() {
+  onTravelTimeChanged() {
     this.trainrunSectionTimesService.onTravelTimeChanged();
   }
 
