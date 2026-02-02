@@ -207,18 +207,12 @@ The project is using [Release please](https://github.com/googleapis/release-plea
 
 A [configuration file](commitlint.config.ts) ensures the commits are following the format, in particular that the commit message prefix is one of the following:
 
-- `feat:`: a new user-visible feature
-- `fix:`: a bug fix, or preventing a future bug
-- `docs:`: documentation only changes
-- `style:`: changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
-- `refactor:`: a code change that neither fixes a bug nor adds a feature (but could prepare the work for a following commit)
-- `perf:`: a code change that improves performance
-- `test:`: adding missing tests or correcting existing tests
-- `build:`: changes that affect the build system or external dependencies
-- `ci:`: changes to the CI configuration files and scripts
-- `chore:`: dependencies update (mostly from dependabot and release-please)
+#### Commit Message Format
 
-Note: `feat!:`, or `fix!:`, `refactor!:`, etc., which represent a breaking change (indicated by the `!`).
+Commit messages must follow the conventional prefix rules defined in our [commitlint configuration](commitlint.config.ts).
+
+The full list of allowed prefixes is documented separately in  
+➡️ [`commit-prefixes.md`](./documentation/technical/commit-prefixes.md#commit-prefixes)
 
 ## Your First Code Contribution
 
