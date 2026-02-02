@@ -14,14 +14,14 @@
         *ngIf="!isRoundTrip()"
         [class]="getEdgeLineArrowClass()"
         d="M-4,-5L2,0L-4,5Z"
-        [attr.transform]="getArrowTranslateAndRotate(45)"
+        [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
         [attr.hidden]="isDirectionArrowHidden() ? '' : null"
       ></path>
       <path
         *ngIf="!isRoundTrip()"
         [class]="getEdgeLineArrowClass()"
         d="M-4,-5L2,0L-4,5Z"
-        [attr.transform]="getArrowTranslateAndRotate(145)"
+        [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
         [attr.hidden]="isDirectionArrowHidden() ? '' : null"
       ></path>
     </g>
@@ -224,14 +224,14 @@
             *ngIf="!isRoundTrip()"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
-            [attr.transform]="getArrowTranslateAndRotate(45)"
+            [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
             [attr.hidden]="isDirectionArrowHidden() ? '' : null"
           ></path>
           <path
             *ngIf="!isRoundTrip()"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
-            [attr.transform]="getArrowTranslateAndRotate(145)"
+            [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
             [attr.hidden]="isDirectionArrowHidden() ? '' : null"
           ></path>
         </g>
@@ -596,14 +596,14 @@
             *ngIf="!isRoundTrip()"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
-            [attr.transform]="getArrowTranslateAndRotate(45)"
+            [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
             [attr.hidden]="isDirectionArrowHidden() ? '' : null"
           ></path>
           <path
             *ngIf="!isRoundTrip()"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
-            [attr.transform]="getArrowTranslateAndRotate(145)"
+            [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
             [attr.hidden]="isDirectionArrowHidden() ? '' : null"
           ></path>
         </g>
