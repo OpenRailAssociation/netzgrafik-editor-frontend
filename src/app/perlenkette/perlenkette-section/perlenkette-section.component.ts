@@ -515,6 +515,21 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     return tag;
   }
 
+  getTravelTimeLockTransform() {
+    if (this.stationNumberArray.length > 0) {
+      if (this.stationNumberArray.length <= 5) {
+        // move a bit to the right when some stops are shown
+        return "translate(142, 82)";
+      } else {
+        // move a bit more to the right when many stops are shown
+        return "translate(155, 82)";
+      }
+    } else {
+      // default position
+      return "translate(125, 82)";
+    }
+  }
+
   getTravelTime() {
     if (
       TrainrunSectionsView.getNode(this.trainrunSection, true).isNonStop(this.trainrunSection) ||

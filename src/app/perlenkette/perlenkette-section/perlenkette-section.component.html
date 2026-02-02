@@ -104,13 +104,7 @@
         />
       </g>
       <g
-        [attr.transform]="
-          stationNumberArray.length > 0
-            ? stationNumberArray.length > 5
-              ? 'translate(155, 82)'
-              : 'translate(142, 82)'
-            : 'translate(125, 82)'
-        "
+        [attr.transform]="getTravelTimeLockTransform()"
         *ngIf="showTravelTime() && showTravelTimeLock()"
       >
         <rect
