@@ -651,16 +651,12 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   /* Buttons in Footer */
   onPropagateTimeLeft(event: MouseEvent) {
     this.stopPropagation(event);
-    const toId = this.perlenketteSection.toNode.getId();
-    this.trainrunSectionService.propagateTimeAlongTrainrun(this.trainrunSection.getId(), toId);
-    this.loadPerlenketteService.render();
+    this.trainrunSectionTimesService.onPropagateTimeLeft(this.trainrunSection);
   }
 
   onPropagateTimeRight(event: MouseEvent) {
     this.stopPropagation(event);
-    const fromId = this.perlenketteSection.fromNode.getId();
-    this.trainrunSectionService.propagateTimeAlongTrainrun(this.trainrunSection.getId(), fromId);
-    this.loadPerlenketteService.render();
+    this.trainrunSectionTimesService.onPropagateTimeRight(this.trainrunSection);
   }
 
   clickStopElement() {
