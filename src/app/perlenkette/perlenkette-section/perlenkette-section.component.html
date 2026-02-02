@@ -3,13 +3,14 @@
   (click)="disableSectionView($event)"
   [class.readonly]="!getVariantIsWritable()"
 >
-  <!--- START - RENDER SVG --->
+  <!--- START - RENDER SVG (default) --->
   <svg *ngIf="isBeingEdited() === 'Rendering'" width="274px" viewBox="70 0 137 192">
     <g class="edge Lines" (click)="onEdgeLineClick()">
       <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_0"></path>
       <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_1"></path>
       <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_2"></path>
       <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
+      <!-- Direction arrows (one way trainrun) -->
       <path
         *ngIf="!isRoundTrip()"
         [class]="getEdgeLineArrowClass()"
@@ -26,6 +27,7 @@
       ></path>
     </g>
     <g>
+      <!-- Intermediary stops (numberOfStops) -->
       <ng-container *ngIf="stationNumberArray.length <= 5">
         <circle
           *ngFor="let stationNumber of stationNumberArray"
@@ -209,9 +211,9 @@
       </g>
     </g>
   </svg>
-  <!--- END - RENDER SVG --->
+  <!--- END - RENDER SVG (default) --->
 
-  <!--- START - TIME EDITING --->
+  <!--- START - TIME EDITION --->
   <ng-container *ngIf="isBeingEdited() === 'TimeEditor'">
     <div class="editingContainer" (click)="switchSectionView($event, 'editingContainer')">
       <svg width="274px" viewBox="70 0 137 192">
@@ -220,6 +222,7 @@
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_1"></path>
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_2"></path>
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
+          <!-- Direction arrows (one way trainrun) -->
           <path
             *ngIf="!isRoundTrip()"
             [class]="getEdgeLineArrowClass()"
@@ -582,8 +585,9 @@
       </svg>
     </div>
   </ng-container>
-  <!--- END - TIME EDITING --->
+  <!--- END - TIME EDITION --->
 
+  <!--- START - STOPS EDITION --->
   <ng-container *ngIf="isBeingEdited() === 'StopsEditor'">
     <div class="editingContainer" (click)="switchSectionView($event, 'editingContainer')">
       <svg width="274px" viewBox="70 0 137 192">
@@ -592,6 +596,7 @@
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_1"></path>
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_2"></path>
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
+          <!-- Direction arrows (one way trainrun) -->
           <path
             *ngIf="!isRoundTrip()"
             [class]="getEdgeLineArrowClass()"
@@ -693,4 +698,5 @@
       </svg>
     </div>
   </ng-container>
+  <!--- END - STOPS EDITION --->
 </div>
