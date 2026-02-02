@@ -21,6 +21,6 @@ If some nodes are selected, then the Origin Destination Matrix will only show re
 
 The Origin Destination Matrix will only show results between visible nodes (but other nodes may be used to compute paths).
 
-The Origin Destination Matrix will only use visible trainruns to compute paths.
+The Origin Destination Matrix will only use non-filtered trainruns to compute paths.
 
 [od_filtering.webm](https://github.com/user-attachments/assets/f0847407-8560-4038-8966-99d709d6bd0f)
