@@ -44,7 +44,8 @@ Replace <n> with the number of recent commits you want to edit (e.g., HEAD~3).
    In the editor, change pick to reword for each commit whose message you want to fix:
 
 ```bash
-reword 1234abcd old commit message
+pick 1234567 docs: Commit Message Prefixes
+reword 8901223 old commit message
 ```
 
 4. Adjust the commit message
