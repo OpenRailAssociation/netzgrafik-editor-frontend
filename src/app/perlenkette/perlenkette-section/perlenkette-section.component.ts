@@ -11,7 +11,6 @@ import {
 } from "@angular/core";
 import {PerlenketteSection} from "../model/perlenketteSection";
 import {PerlenketteTrainrun} from "../model/perlenketteTrainrun";
-import {TrainrunsectionHelper} from "../../services/util/trainrunsection.helper";
 import {TrainrunService} from "../../services/data/trainrun.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {takeUntil} from "rxjs/operators";
@@ -21,9 +20,7 @@ import {TrainrunSection} from "../../models/trainrunsection.model";
 import {TrainrunSectionTimesService} from "../../services/data/trainrun-section-times.service";
 import {TrainrunSectionsView} from "../../view/editor-main-view/data-views/trainrunsections.view";
 import {FilterService} from "../../services/ui/filter.service";
-import {Node} from "../../models/node.model";
 import {LoadPerlenketteService} from "../service/load-perlenkette.service";
-import {NodeService} from "../../services/data/node.service";
 import {EditorMode} from "../../view/editor-menu/editor-mode";
 import {Vec2D} from "../../utils/vec2D";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
@@ -69,7 +66,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
 
   stationNumberArray: number[];
   public trainrunSection: TrainrunSection;
-  private trainrunSectionHelper: TrainrunsectionHelper;
 
   public numberOfStops: number;
 
@@ -78,15 +74,12 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   constructor(
     private trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
-    private nodeService: NodeService,
     private uiInteractionService: UiInteractionService,
     public trainrunSectionTimesService: TrainrunSectionTimesService,
     readonly filterService: FilterService,
     private loadPerlenketteService: LoadPerlenketteService,
     private versionControlService: VersionControlService,
-  ) {
-    this.trainrunSectionHelper = new TrainrunsectionHelper(this.trainrunService);
-  }
+  ) {}
 
   ngOnInit() {
     this.numberOfStops = this.perlenketteSection.numberOfStops;
