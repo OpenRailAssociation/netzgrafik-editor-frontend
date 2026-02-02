@@ -132,7 +132,33 @@ span.smallstation:hover {
   stroke: var(--COLOR_Edit);
 }
 
+.ToggleAllEyesButton {
+  pointer-events: auto;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+}
+
 .ToggleAllEyesButton:hover {
   stroke: var(--COLOR_Edit);
   stroke-width: 0.5px;
+}
+
+.station-toggle-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+  min-height: 30px;
+}
+
+.station-list {
+  flex: 1;
+  min-width: 0;
+
+  p {
+    display: inline;
+    margin: 0;
+  }
 }
