@@ -158,7 +158,7 @@
           "
           (click)="switchSectionView($event, 'leftArrivalTime')"
         >
-          {{ getLeftArrivalTime() }}
+          {{ trainrunSectionTimesService.getTimeStructure().leftArrivalTime }}
         </text>
       </g>
       <g transform="translate(149, 32)" *ngIf="showLeftDepartureTime() && isRightSideDisplayed()">
@@ -171,7 +171,7 @@
             'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef + getLeftDepartureTimeClassTag()
           "
         >
-          {{ getLeftDepartureTime() }}
+          {{ trainrunSectionTimesService.getTimeStructure().leftDepartureTime }}
         </text>
       </g>
       <g transform="translate(121, 93)" *ngIf="showTravelTime()">
@@ -197,7 +197,7 @@
           "
           (click)="switchSectionView($event, 'rightDepartureTime')"
         >
-          {{ getRightDepartureTime() }}
+          {{ trainrunSectionTimesService.getTimeStructure().rightDepartureTime }}
         </text>
       </g>
       <g transform="translate(149, 178)" *ngIf="showRightArrivalTime() && isRightSideDisplayed()">
@@ -210,7 +210,7 @@
           "
           (click)="switchSectionView($event, 'rightArrivalTime')"
         >
-          {{ getRightArrivalTime() }}
+          {{ trainrunSectionTimesService.getTimeStructure().rightArrivalTime }}
         </text>
       </g>
     </g>

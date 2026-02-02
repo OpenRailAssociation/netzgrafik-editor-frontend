@@ -305,15 +305,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   /* right departure time */
-  getRightDepartureTime(): number {
-    const targetId = this.trainrunSection.getTargetNodeId();
-    const toId = this.perlenketteSection.toNode.getId();
-    if (targetId === toId) {
-      return this.roundTime(this.trainrunSection.getTargetDeparture());
-    }
-    return this.roundTime(this.trainrunSection.getSourceDeparture());
-  }
-
   getRightDepartureTimeClassTag(): string {
     const targetId = this.trainrunSection.getTargetNodeId();
     const toId = this.perlenketteSection.toNode.getId();
@@ -345,15 +336,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   /* right arrival time */
-  getRightArrivalTime(): number {
-    const targetId = this.trainrunSection.getTargetNodeId();
-    const toId = this.perlenketteSection.toNode.getId();
-    if (targetId === toId) {
-      return this.roundTime(this.trainrunSection.getTargetArrival());
-    }
-    return this.roundTime(this.trainrunSection.getSourceArrival());
-  }
-
   getRightArrivalTimeClassTag(): string {
     const targetId = this.trainrunSection.getTargetNodeId();
     const toId = this.perlenketteSection.toNode.getId();
@@ -422,15 +404,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   /* left departure time */
-  getLeftDepartureTime(): number {
-    const sourceId = this.trainrunSection.getSourceNodeId();
-    const fromId = this.perlenketteSection.fromNode.getId();
-    if (sourceId === fromId) {
-      return this.roundTime(this.trainrunSection.getSourceDeparture());
-    }
-    return this.roundTime(this.trainrunSection.getTargetDeparture());
-  }
-
   getLeftDepartureTimeClassTag(): string {
     const sourceId = this.trainrunSection.getSourceNodeId();
     const fromId = this.perlenketteSection.fromNode.getId();
@@ -462,15 +435,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   /* left arrival time */
-  getLeftArrivalTime(): number {
-    const sourceId = this.trainrunSection.getSourceNodeId();
-    const fromId = this.perlenketteSection.fromNode.getId();
-    if (sourceId === fromId) {
-      return this.roundTime(this.trainrunSection.getSourceArrival());
-    }
-    return this.roundTime(this.trainrunSection.getTargetArrival());
-  }
-
   getLeftArrivalTimeClassTag(): string {
     const sourceId = this.trainrunSection.getSourceNodeId();
     const fromId = this.perlenketteSection.fromNode.getId();
