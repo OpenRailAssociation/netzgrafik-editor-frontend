@@ -647,7 +647,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     this.loadPerlenketteService.render();
   }
 
-  clickStopElement(perlenketteSection: PerlenketteSection) {
+  clickStopElement() {
     this.handleSwitchSection("stops");
   }
 

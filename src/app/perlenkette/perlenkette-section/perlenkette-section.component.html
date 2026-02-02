@@ -35,7 +35,7 @@
           "
           [ngClass]="[getPathClassTag()]"
           class="edge_line_stops fill PerlenketteStopElement"
-          (click)="clickStopElement(perlenketteSection)"
+          (click)="clickStopElement()"
         ></circle>
       </ng-container>
       <ng-container *ngIf="stationNumberArray.length > 5">
@@ -49,7 +49,7 @@
             'LinePatternRef_7/24',
           ]"
           class="edge_line_stops PerlenketteFill5 PerlenketteStopElement"
-          (click)="clickStopElement(perlenketteSection)"
+          (click)="clickStopElement()"
         ></circle>
         <g transform="translate(151, 96)">
           <g transform="rotate(-90)">
