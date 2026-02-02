@@ -260,7 +260,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     }
   }
 
-  handleSwitchSection(fieldKey: string) {
+  private handleSwitchSection(fieldKey: string) {
     this.perlenketteSection.isBeingEdited = !this.perlenketteSection.isBeingEdited;
     if (this.perlenketteSection.isBeingEdited) {
       this.signalIsBeingEdited.next(this.perlenketteSection);
@@ -624,7 +624,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     this.trainrunSectionTimesService.onTravelTimeChanged();
   }
 
-  roundTime(time: number) {
+  private roundTime(time: number) {
     return MathUtils.round(time, this.filterService.getTimeDisplayPrecision());
   }
 
@@ -719,11 +719,11 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     }
   }
 
-  getLockOpenSvgPath(): string {
+  private getLockOpenSvgPath(): string {
     return "M4 6a3 3 0 1 1 6 0v3h8v11H6V9h3V6a2 2 0 1 0-4 0H4Zm8.5 7v4h-1v-4h1ZM7 19v-9h10v9H7Z";
   }
 
-  getLockCloseSvgPath(): string {
+  private getLockCloseSvgPath(): string {
     return (
       "M12 4a2 2 0 0 0-2 2v3h4V6a2 2 0 0 0-2-2Zm3 5V6a3 3 0 0 0-6 0v3H6v11h12V9h-3Zm-2.5 " +
       "4v4h-1v-4h1ZM7 19v-9h10v9H7Z"
