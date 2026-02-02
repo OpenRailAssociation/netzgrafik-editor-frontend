@@ -399,7 +399,7 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonMinus"
-                  (click)="onInputTravelTimeElementButtonMinus($event)"
+                  (click)="onTravelTimeButtonMinus($event)"
                 >
                   -
                 </button>
@@ -414,7 +414,7 @@
                   spellcheck="false"
                   pattern="^[0-9]*"
                   [(ngModel)]="trainrunSectionTimesService.getTimeStructure().travelTime"
-                  (change)="onInputTravelTimeChanged()"
+                  (change)="onTravelTimeChanged()"
                 />
               </div>
               <div class="nodePlus">
@@ -422,7 +422,7 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonPlus"
-                  (click)="onInputTravelTimeElementButtonPlus($event)"
+                  (click)="onTravelTimeButtonPlus($event)"
                 >
                   +
                 </button>
