@@ -463,43 +463,34 @@ export class Node {
     this.ports.sort((a, b) => {
       if (a.getPositionAlignment() > b.getPositionAlignment()) {
         return 1;
-      } else {
-        if (a.getPositionAlignment() === b.getPositionAlignment()) {
-          if (
-            a.getPositionAlignment() === PortAlignment.Left ||
-            a.getPositionAlignment() === PortAlignment.Right
-          ) {
-            if (
-              a.getOppositeNodePosition(this.getId()).getY() >
-              b.getOppositeNodePosition(this.getId()).getY()
-            ) {
-              return 1;
-            } else if (
-              a.getOppositeNodePosition(this.getId()).getY() ===
-              b.getOppositeNodePosition(this.getId()).getY()
-            ) {
-              return Node.orderPortsTrainCategory(a, b);
-            } else {
-              return -1;
-            }
-          } else {
-            if (
-              a.getOppositeNodePosition(this.getId()).getX() >
-              b.getOppositeNodePosition(this.getId()).getX()
-            ) {
-              return 1;
-            } else if (
-              a.getOppositeNodePosition(this.getId()).getX() ===
-              b.getOppositeNodePosition(this.getId()).getX()
-            ) {
-              return Node.orderPortsTrainCategory(a, b);
-            } else {
-              return -1;
-            }
-          }
-        } else {
-          return -1;
+      }
+      if (a.getPositionAlignment() < b.getPositionAlignment()) {
+        return -1;
+      }
+
+      const aOppNodePos = a.getOppositeNodePosition(this.getId());
+      const bOppNodePos = b.getOppositeNodePosition(this.getId());
+      if (!aOppNodePos || !bOppNodePos) return Node.orderPortsTrainCategory(a, b);
+
+      if (
+        a.getPositionAlignment() === PortAlignment.Left ||
+        a.getPositionAlignment() === PortAlignment.Right
+      ) {
+        if (aOppNodePos.getY() > bOppNodePos.getY()) {
+          return 1;
         }
+        if (aOppNodePos.getY() === bOppNodePos.getY()) {
+          return Node.orderPortsTrainCategory(a, b);
+        }
+        return -1;
+      } else {
+        if (aOppNodePos.getX() > bOppNodePos.getX()) {
+          return 1;
+        }
+        if (aOppNodePos.getX() === bOppNodePos.getX()) {
+          return Node.orderPortsTrainCategory(a, b);
+        }
+        return -1;
       }
     });
   }
