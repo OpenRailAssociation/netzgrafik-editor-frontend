@@ -66,4 +66,5 @@ Major Changes to this governance policy require an affirmative vote of two-third
 Based on inputs from:
 - [GitHub's Minimum Viable Governance (MVG)](https://github.com/github/MVG)
 - [Kopia Governance](https://github.com/kopia/kopia/blob/master/GOVERNANCE.md?plain=1)
+  
 Licensed under the [CC-BY 4.0 License](https://creativecommons.org/licenses/by/4.0/).
