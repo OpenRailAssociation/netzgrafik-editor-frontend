@@ -21,9 +21,7 @@ import {TrainrunSection} from "../../models/trainrunsection.model";
 import {TrainrunSectionTimesService} from "../../services/data/trainrun-section-times.service";
 import {TrainrunSectionsView} from "../../view/editor-main-view/data-views/trainrunsections.view";
 import {FilterService} from "../../services/ui/filter.service";
-import {Node} from "../../models/node.model";
 import {LoadPerlenketteService} from "../service/load-perlenkette.service";
-import {NodeService} from "../../services/data/node.service";
 import {EditorMode} from "../../view/editor-menu/editor-mode";
 import {Vec2D} from "../../utils/vec2D";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
@@ -78,7 +76,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   constructor(
     private trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
-    private nodeService: NodeService,
     private uiInteractionService: UiInteractionService,
     public trainrunSectionTimesService: TrainrunSectionTimesService,
     readonly filterService: FilterService,
@@ -263,7 +260,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     }
   }
 
-  handleSwitchSection(fieldKey: string) {
+  private handleSwitchSection(fieldKey: string) {
     this.perlenketteSection.isBeingEdited = !this.perlenketteSection.isBeingEdited;
     if (this.perlenketteSection.isBeingEdited) {
       this.signalIsBeingEdited.next(this.perlenketteSection);
@@ -306,12 +303,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
 
   /* right departure time */
   getRightDepartureTime(): number {
-    const targetId = this.trainrunSection.getTargetNodeId();
-    const toId = this.perlenketteSection.toNode.getId();
-    if (targetId === toId) {
-      return this.roundTime(this.trainrunSection.getTargetDeparture());
-    }
-    return this.roundTime(this.trainrunSection.getSourceDeparture());
+    return this.roundTime(this.trainrunSectionTimesService.getTimeStructure().rightDepartureTime);
   }
 
   getRightDepartureTimeClassTag(): string {
@@ -337,21 +329,9 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     );
   }
 
-  showRightDepartureTime() {
-    if (this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
-      return true;
-    }
-    return this.filterService.isFilterArrivalDepartureTimeEnabled();
-  }
-
   /* right arrival time */
   getRightArrivalTime(): number {
-    const targetId = this.trainrunSection.getTargetNodeId();
-    const toId = this.perlenketteSection.toNode.getId();
-    if (targetId === toId) {
-      return this.roundTime(this.trainrunSection.getTargetArrival());
-    }
-    return this.roundTime(this.trainrunSection.getSourceArrival());
+    return this.roundTime(this.trainrunSectionTimesService.getTimeStructure().rightArrivalTime);
   }
 
   getRightArrivalTimeClassTag(): string {
@@ -423,12 +403,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
 
   /* left departure time */
   getLeftDepartureTime(): number {
-    const sourceId = this.trainrunSection.getSourceNodeId();
-    const fromId = this.perlenketteSection.fromNode.getId();
-    if (sourceId === fromId) {
-      return this.roundTime(this.trainrunSection.getSourceDeparture());
-    }
-    return this.roundTime(this.trainrunSection.getTargetDeparture());
+    return this.roundTime(this.trainrunSectionTimesService.getTimeStructure().leftDepartureTime);
   }
 
   getLeftDepartureTimeClassTag(): string {
@@ -454,21 +429,9 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     );
   }
 
-  showLeftDepartureTime() {
-    if (this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
-      return true;
-    }
-    return this.filterService.isFilterArrivalDepartureTimeEnabled();
-  }
-
   /* left arrival time */
   getLeftArrivalTime(): number {
-    const sourceId = this.trainrunSection.getSourceNodeId();
-    const fromId = this.perlenketteSection.fromNode.getId();
-    if (sourceId === fromId) {
-      return this.roundTime(this.trainrunSection.getSourceArrival());
-    }
-    return this.roundTime(this.trainrunSection.getTargetArrival());
+    return this.roundTime(this.trainrunSectionTimesService.getTimeStructure().leftArrivalTime);
   }
 
   getLeftArrivalTimeClassTag(): string {
@@ -549,6 +512,21 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
       tag += " Center";
     }
     return tag;
+  }
+
+  getTravelTimeLockTransform() {
+    if (this.stationNumberArray.length > 0) {
+      if (this.stationNumberArray.length <= 5) {
+        // move a bit to the right when some stops are shown
+        return "translate(142, 82)";
+      } else {
+        // move a bit more to the right when many stops are shown
+        return "translate(155, 82)";
+      }
+    } else {
+      // default position
+      return "translate(125, 82)";
+    }
   }
 
   getTravelTime() {
@@ -633,21 +611,21 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   /* Travel Time */
-  onInputTravelTimeElementButtonPlus(event: MouseEvent) {
+  onTravelTimeButtonPlus(event: MouseEvent) {
     this.stopPropagation(event);
     this.trainrunSectionTimesService.onTravelTimeButtonPlus();
   }
 
-  onInputTravelTimeElementButtonMinus(event: MouseEvent) {
+  onTravelTimeButtonMinus(event: MouseEvent) {
     this.stopPropagation(event);
     this.trainrunSectionTimesService.onTravelTimeButtonMinus();
   }
 
-  onInputTravelTimeChanged() {
+  onTravelTimeChanged() {
     this.trainrunSectionTimesService.onTravelTimeChanged();
   }
 
-  roundTime(time: number) {
+  private roundTime(time: number) {
     return MathUtils.round(time, this.filterService.getTimeDisplayPrecision());
   }
 
@@ -682,7 +660,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     this.loadPerlenketteService.render();
   }
 
-  clickStopElement(perlenketteSection: PerlenketteSection) {
+  clickStopElement() {
     this.handleSwitchSection("stops");
   }
 
@@ -746,11 +724,11 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     }
   }
 
-  getLockOpenSvgPath(): string {
+  private getLockOpenSvgPath(): string {
     return "M4 6a3 3 0 1 1 6 0v3h8v11H6V9h3V6a2 2 0 1 0-4 0H4Zm8.5 7v4h-1v-4h1ZM7 19v-9h10v9H7Z";
   }
 
-  getLockCloseSvgPath(): string {
+  private getLockCloseSvgPath(): string {
     return (
       "M12 4a2 2 0 0 0-2 2v3h4V6a2 2 0 0 0-2-2Zm3 5V6a3 3 0 0 0-6 0v3H6v11h12V9h-3Zm-2.5 " +
       "4v4h-1v-4h1ZM7 19v-9h10v9H7Z"
