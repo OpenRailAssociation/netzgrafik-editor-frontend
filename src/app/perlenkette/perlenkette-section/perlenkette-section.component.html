@@ -12,14 +12,14 @@
       <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
       <!-- Direction arrows (one way trainrun) -->
       <path
-        *ngIf="!isRoundTrip()"
+        *ngIf="shouldDisplayDirectionArrow()"
         [class]="getEdgeLineArrowClass()"
         d="M-4,-5L2,0L-4,5Z"
         [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
         [attr.hidden]="isDirectionArrowHidden() ? '' : null"
       ></path>
       <path
-        *ngIf="!isRoundTrip()"
+        *ngIf="shouldDisplayDirectionArrow()"
         [class]="getEdgeLineArrowClass()"
         d="M-4,-5L2,0L-4,5Z"
         [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
@@ -230,14 +230,14 @@
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
           <!-- Direction arrows (one way trainrun) -->
           <path
-            *ngIf="!isRoundTrip()"
+            *ngIf="shouldDisplayDirectionArrow()"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
             [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
             [attr.hidden]="isDirectionArrowHidden() ? '' : null"
           ></path>
           <path
-            *ngIf="!isRoundTrip()"
+            *ngIf="shouldDisplayDirectionArrow()"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
             [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
@@ -604,14 +604,14 @@
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
           <!-- Direction arrows (one way trainrun) -->
           <path
-            *ngIf="!isRoundTrip()"
+            *ngIf="shouldDisplayDirectionArrow()"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
             [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
             [attr.hidden]="isDirectionArrowHidden() ? '' : null"
           ></path>
           <path
-            *ngIf="!isRoundTrip()"
+            *ngIf="shouldDisplayDirectionArrow()"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
             [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
