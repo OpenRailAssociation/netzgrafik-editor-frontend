@@ -72,7 +72,7 @@
     <g>
       <g
         transform="translate(137, 0)"
-        *ngIf="!showLeftDepartureTime() && showStopArcStart() && isRightSideDisplayed()"
+        *ngIf="!showArrivalAndDepartureTime() && showStopArcStart() && isRightSideDisplayed()"
       >
         <path
           d="M4,0A4,4,0,1,1,-4,4.898587196589413e-16L0,0Z"
@@ -80,7 +80,7 @@
           class="edge_line_stop_arcs fill"
         />
       </g>
-      <g transform="translate(137, 192)" *ngIf="!showRightDepartureTime() && showStopArcEnd()">
+      <g transform="translate(137, 192)" *ngIf="!showArrivalAndDepartureTime() && showStopArcEnd()">
         <path
           d="M-4,-4.898587196589413e-16A4,4,0,1,1,4,0L0,0Z"
           [ngClass]="[getPathClassTag()]"
@@ -88,7 +88,7 @@
         />
       </g>
 
-      <g transform="translate(125, 8)" *ngIf="showLeftDepartureTime() && showLeftLock()">
+      <g transform="translate(125, 8)" *ngIf="showArrivalAndDepartureTime() && showLeftLock()">
         <rect
           x="6"
           y="1"
@@ -126,7 +126,7 @@
         />
       </g>
 
-      <g transform="translate(125, 152)" *ngIf="showRightDepartureTime() && showRightLock()">
+      <g transform="translate(125, 152)" *ngIf="showArrivalAndDepartureTime() && showRightLock()">
         <rect
           x="6"
           y="1"
@@ -157,7 +157,10 @@
           {{ getLeftArrivalTime() }}
         </text>
       </g>
-      <g transform="translate(149, 32)" *ngIf="showLeftDepartureTime() && isRightSideDisplayed()">
+      <g
+        transform="translate(149, 32)"
+        *ngIf="showArrivalAndDepartureTime() && isRightSideDisplayed()"
+      >
         <text
           (click)="switchSectionView($event, 'leftDepartureTime')"
           x="0"
@@ -183,7 +186,10 @@
           </text>
         </g>
       </g>
-      <g transform="translate(124, 164)" *ngIf="showRightDepartureTime() && isLeftSideDisplayed()">
+      <g
+        transform="translate(124, 164)"
+        *ngIf="showArrivalAndDepartureTime() && isLeftSideDisplayed()"
+      >
         <text
           x="0"
           y="0"
@@ -317,7 +323,7 @@
 
             <div
               class="nodeBorderContainer nodeBorderContainerTopRight"
-              *ngIf="showLeftDepartureTime() && isRightSideDisplayed()"
+              *ngIf="showArrivalAndDepartureTime() && isRightSideDisplayed()"
             >
               <div class="nodeMinus">
                 <button
@@ -428,7 +434,7 @@
 
             <div
               class="nodeBorderContainer nodeBorderContainerBottomLeft"
-              *ngIf="showRightDepartureTime() && isLeftSideDisplayed()"
+              *ngIf="showArrivalAndDepartureTime() && isLeftSideDisplayed()"
             >
               <div class="nodeMinus">
                 <button
