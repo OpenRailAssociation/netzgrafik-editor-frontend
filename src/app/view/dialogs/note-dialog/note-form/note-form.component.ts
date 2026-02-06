@@ -25,6 +25,7 @@ export class NoteFormComponent {
     const newNoteText: string = this.model.getControl("noteText").value;
     const newNoteHeight: string = this.model.getControl("noteHeight").value;
     const newNoteWidth: string = this.model.getControl("noteWidth").value;
+    const newNoteRotation: number = this.model.getControl("noteRotation").value;
     const saveNoteCallback = this.model.getControl("saveNoteCallback").value;
     saveNoteCallback(
       this.model.getControl("id").value,
@@ -32,6 +33,7 @@ export class NoteFormComponent {
       newNoteText,
       newNoteHeight,
       newNoteWidth,
+      newNoteRotation,
     );
   }
 }
@@ -42,6 +44,7 @@ export interface NoteFormComponentModel {
   noteText: string;
   noteHeight: number;
   noteWidth: number;
+  noteRotation: number;
   notePositionX: number;
   notePositionY: number;
   saveNoteCallback;

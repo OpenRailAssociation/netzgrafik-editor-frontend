@@ -10,6 +10,7 @@ export class Note {
   public static DEFAULT_NOTE_TEXT = $localize`:@@app.models.note.text-default:Note text`;
   public static DEFAULT_NOTE_BACKGROUND_COLOR = "#ffffff";
   public static DEFAULT_NOTE_TEXT_COLOR = "#000000";
+  public static DEFAULT_NOTE_ROTATION = 0;
 
   private static currentId = 0;
   private id: number;
@@ -21,6 +22,7 @@ export class Note {
   private text: string;
   private backgroundColor: string;
   private textColor: string;
+  private rotation: number;
   private isSelected: boolean;
   private labelIds: number[];
 
@@ -35,6 +37,7 @@ export class Note {
       text,
       backgroundColor,
       textColor,
+      rotation,
       labelIds,
     }: FreeFloatingTextDto = {
       id: Note.incrementId(),
@@ -46,6 +49,7 @@ export class Note {
       text: Note.DEFAULT_NOTE_TEXT,
       backgroundColor: Note.DEFAULT_NOTE_BACKGROUND_COLOR,
       textColor: Note.DEFAULT_NOTE_TEXT_COLOR,
+      rotation: Note.DEFAULT_NOTE_ROTATION,
       labelIds: [],
     },
   ) {
@@ -58,6 +62,7 @@ export class Note {
     this.text = text;
     this.backgroundColor = backgroundColor;
     this.textColor = textColor;
+    this.rotation = rotation;
     this.isSelected = false;
     this.labelIds = labelIds;
 
@@ -148,7 +153,13 @@ export class Note {
   setTextColor(textColor: string) {
     this.textColor = textColor;
   }
+   getRotation(): number {
+    return this.rotation;
+  }
 
+   setRotation(rotation: number) {
+    this.rotation = rotation;
+  }
   getDto(): FreeFloatingTextDto {
     return {
       id: this.id,
@@ -160,6 +171,7 @@ export class Note {
       text: this.text,
       backgroundColor: this.backgroundColor,
       textColor: this.textColor,
+      rotation: this.rotation,
       labelIds: this.labelIds,
     };
   }
