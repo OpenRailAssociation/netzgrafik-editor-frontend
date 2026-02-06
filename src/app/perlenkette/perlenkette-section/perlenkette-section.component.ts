@@ -325,13 +325,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     );
   }
 
-  showRightDepartureTime() {
-    if (this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
-      return true;
-    }
-    return this.filterService.isFilterArrivalDepartureTimeEnabled();
-  }
-
   /* right arrival time */
   getRightArrivalTime(): number {
     return this.roundTime(this.trainrunSectionTimesService.getTimeStructure().rightArrivalTime);
@@ -430,13 +423,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
       ) +
       (this.trainrunSection.hasTargetDepartureWarning() ? " " + StaticDomTags.TAG_WARNING : "")
     );
-  }
-
-  showLeftDepartureTime() {
-    if (this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
-      return true;
-    }
-    return this.filterService.isFilterArrivalDepartureTimeEnabled();
   }
 
   /* left arrival time */
