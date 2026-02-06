@@ -6,6 +6,7 @@ import {ThemeBase} from "../themes/theme-base";
 import {ThemeRegistration} from "../themes/theme-registration";
 import {StreckengrafikRenderingType} from "../themes/streckengrafik-rendering-type";
 import {TravelTimeCreationEstimatorType} from "../themes/editor-trainrun-traveltime-creator-type";
+import {PortOrderingType} from "../../data-structures/technical.data.structures";
 
 @Component({
   selector: "sbb-editor-properties-view-component",
@@ -84,6 +85,20 @@ export class EditorPropertiesViewComponent {
   ];
   activeTravelTimeCreationEstimatorType: TravelTimeCreationEstimatorType = null;
 
+  portOrderingTypeOptions = [
+    {
+      name: $localize`:@@app.view.editor-properties-view-component.alphabeticalPortOrdering:Alphabetical`,
+      title: $localize`:@@app.view.editor-properties-view-component.alphabeticalPortOrderingTooltip:Order ports alphabetically by train category.`,
+      portOrderingType: PortOrderingType.Alphabetical,
+    },
+    {
+      name: $localize`:@@app.view.editor-properties-view-component.crossingAwarePortOrdering:Crossing aware`,
+      title: $localize`:@@app.view.editor-properties-view-component.crossingAwarePortOrderingTooltip:Minimize visual crossings using global propagation.`,
+      portOrderingType: PortOrderingType.CrossingAware,
+    },
+  ];
+  activePortOrderingType: PortOrderingType = null;
+
   activeDarkBackgroundColor = EditorPropertiesViewComponent.DEFAULT_DARK_BACKGROUNDCOLOR;
   activeBackgroundColor = EditorPropertiesViewComponent.DEFAULT_BACKGROUNDCOLOR;
 
@@ -97,6 +112,7 @@ export class EditorPropertiesViewComponent {
       this.uiInteractionService.getActiveStreckengrafikRenderingType();
     this.activeTravelTimeCreationEstimatorType =
       this.uiInteractionService.getActiveTravelTimeCreationEstimatorType();
+    this.activePortOrderingType = this.uiInteractionService.getActivePortOrderingType();
 
     if (activeTheme.isDark) {
       this.activeDarkBackgroundColor = this.getHexColor(activeTheme.backgroundColor);
@@ -123,6 +139,10 @@ export class EditorPropertiesViewComponent {
 
   onUpdateTravelTimeCreationEstimatorType(event: SbbRadioChange) {
     this.uiInteractionService.setActiveTravelTimeCreationEstimatorType(event.value);
+  }
+
+  onUpdatePortOrderingType(event: SbbRadioChange) {
+    this.uiInteractionService.setActivePortOrderingType(event.value);
   }
 
   colorPicked(value) {

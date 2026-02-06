@@ -29,6 +29,7 @@ import {TrainrunService} from "../data/trainrun.service";
 import {Trainrun} from "../../models/trainrun.model";
 import {LoadPerlenketteService} from "../../perlenkette/service/load-perlenkette.service";
 import {TravelTimeCreationEstimatorType} from "../../view/themes/editor-trainrun-traveltime-creator-type";
+import {PortOrderingType} from "../../data-structures/technical.data.structures";
 
 export interface ViewboxProperties {
   currentViewBox: string;
@@ -104,6 +105,7 @@ export class UiInteractionService implements OnDestroy {
   private activeTheme: ThemeBase = null;
   private activeStreckengrafikRenderingType: StreckengrafikRenderingType = null;
   private activeTravelTimeCreationEstimatorType: TravelTimeCreationEstimatorType = null;
+  private activePortOrderingType: PortOrderingType = null;
   private editorMode: EditorMode = EditorMode.NetzgrafikEditing;
   private isMultiSelectedNodesCorridor = false;
 
@@ -236,6 +238,9 @@ export class UiInteractionService implements OnDestroy {
     if (this.activeTravelTimeCreationEstimatorType === null) {
       this.activeTravelTimeCreationEstimatorType = TravelTimeCreationEstimatorType.RetrieveFromEdge;
     }
+    if (this.activePortOrderingType === null) {
+      this.activePortOrderingType = PortOrderingType.Alphabetical;
+    }
   }
 
   createTheme(
@@ -292,6 +297,23 @@ export class UiInteractionService implements OnDestroy {
     }
     this.activeTravelTimeCreationEstimatorType = activeTravelTimeCreationEstimatorType;
     this.saveUserSettingToLocalStorage();
+  }
+
+  getActivePortOrderingType(): PortOrderingType {
+    return this.activePortOrderingType;
+  }
+
+  setActivePortOrderingType(portOrderingType: PortOrderingType) {
+    if (portOrderingType === undefined) {
+      portOrderingType = PortOrderingType.Alphabetical;
+    }
+    this.activePortOrderingType = portOrderingType;
+    this.saveUserSettingToLocalStorage();
+    this.nodeService.initPortOrdering(portOrderingType);
+    this.nodeService.nodesUpdated();
+    this.nodeService.transitionsUpdated();
+    this.nodeService.connectionsUpdated();
+    this.trainrunSectionService.trainrunSectionsUpdated();
   }
 
   updateNodeStammdaten() {
@@ -462,6 +484,12 @@ export class UiInteractionService implements OnDestroy {
       this.setActiveTravelTimeCreationEstimatorType(
         localStoredInfo.travelTimeCreationEstimatorType,
       );
+      if (localStoredInfo.portOrderingType !== undefined) {
+        // Just store the preference; don't call initPortOrdering() since no data is loaded yet.
+        // DataService.initializeDataServices() will apply it when data loads.
+        this.activePortOrderingType = localStoredInfo.portOrderingType;
+        this.nodeService.setPortOrderingType(localStoredInfo.portOrderingType);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -475,6 +503,7 @@ export class UiInteractionService implements OnDestroy {
           activeTheme: this.getActiveTheme(),
           streckengrafikRenderingType: this.getActiveStreckengrafikRenderingType(),
           travelTimeCreationEstimatorType: this.getActiveTravelTimeCreationEstimatorType(),
+          portOrderingType: this.getActivePortOrderingType(),
         }),
       );
     } catch (err) {
