@@ -119,10 +119,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     this.destroyed$.complete();
   }
 
-  isRoundTrip(): boolean {
-    return this.trainrunSection.getTrainrun().isRoundTrip();
-  }
-
   getEdgeLineArrowClass() {
     const trainrun = this.trainrunSection.getTrainrun();
     return (
@@ -140,6 +136,10 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
         trainrun.getTimeCategoryLinePatternRef(),
       )
     );
+  }
+
+  shouldDisplayDirectionArrow(): boolean {
+    return !this.trainrunSection.getTrainrun().isRoundTrip();
   }
 
   getDirectionArrowTranslateAndRotate(y: number) {
