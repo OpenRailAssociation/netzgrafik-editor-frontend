@@ -60,8 +60,8 @@ jobs:
 
   release-npm-package:
     needs: release-please
-    #  Workflow step temporarily disabled - it might be removed later on  or we have to fix the publishing final step 
-    #  If the packages are still on github release published whe don't neet the npmjs.org anymore 
+    #  Workflow step temporarily disabled - it might be removed later on  or we have to fix the publishing final step
+    #  If the packages are still on github release published whe don't neet the npmjs.org anymore
     if: false
     # if: ${{ needs.release-please.outputs.release_created }}
     runs-on: ubuntu-latest
@@ -81,6 +81,6 @@ jobs:
       - run: npm run build:standalone
       - run: npm pkg delete dependencies optionalDependencies devDependencies
 
-      #  Publishing temporarily disabled - it might be removed later on  
+      #  Publishing temporarily disabled - it might be removed later on
       # - run: npm publish --provenance --access public
       - run: echo "Skipping npm publish (temporarily disabled)"
