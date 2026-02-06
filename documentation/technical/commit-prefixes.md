@@ -48,7 +48,7 @@ pick 1234567 docs: Commit Message Prefixes
 reword 8901223 old commit message
 ```
 
-4. Adjust the commit message
+3. Adjust the commit message
    Git will open an editor for each reword commit. Update the message to follow the prefix rules, for example:
 
 ```bash
@@ -57,7 +57,7 @@ fix: handle null value in parser
 refactor: simplify validation logic
 ```
 
-5. Force-push the updated history
+4. Force-push the updated history
    After the rebase completes successfully, push the rewritten commits:
    Use `--force-with-lease` to avoid accidentally overwriting work from others:
 
