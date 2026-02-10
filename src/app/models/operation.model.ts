@@ -48,8 +48,10 @@ class TrainrunUpdateOperation extends TrainrunOperation {
 }
 
 class TrainrunCreateOperation extends TrainrunOperation {
-  constructor(trainrun: Trainrun) {
+  readonly duplicatedTrainrunId?: number;
+  constructor(trainrun: Trainrun, duplicatedTrainrunId?: number) {
     super(OperationType.create, trainrun);
+    this.duplicatedTrainrunId = duplicatedTrainrunId;
   }
 }
 
