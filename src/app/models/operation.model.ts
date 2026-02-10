@@ -32,24 +32,51 @@ type MetadataDto = {
   trafficSide?: TrafficSide;
 };
 
-abstract class BaseOperation<O extends OperationObjectType> {
-  readonly type: OperationType;
+abstract class BaseOperation<
+  O extends OperationObjectType,
+  T extends OperationType = OperationType,
+> {
+  readonly type: T;
   readonly objectType: O;
 
   /** @internal */
-  constructor(type: OperationType, objectType: O) {
+  constructor(type: T, objectType: O) {
     this.type = type;
     this.objectType = objectType;
   }
 }
 
-class TrainrunOperation extends BaseOperation<OperationObjectType.trainrun> {
+abstract class TrainrunOperation<T extends OperationType> extends BaseOperation<
+  OperationObjectType.trainrun,
+  T
+> {
   readonly trainrun: TrainrunDto;
 
   /** @internal */
-  constructor(operationType: OperationType, trainrun: Trainrun) {
+  constructor(operationType: T, trainrun: Trainrun) {
     super(operationType, OperationObjectType.trainrun);
     this.trainrun = trainrun.getDto();
+  }
+}
+
+class TrainrunUpdateOperation extends TrainrunOperation<OperationType.update> {
+  /** @internal*/
+  constructor(trainrun: Trainrun) {
+    super(OperationType.update, trainrun);
+  }
+}
+
+class TrainrunCreateOperation extends TrainrunOperation<OperationType.create> {
+  /** @internal*/
+  constructor(trainrun: Trainrun) {
+    super(OperationType.create, trainrun);
+  }
+}
+
+class TrainrunDeleteOperation extends TrainrunOperation<OperationType.delete> {
+  /** @internal*/
+  constructor(trainrun: Trainrun) {
+    super(OperationType.delete, trainrun);
   }
 }
 
@@ -104,7 +131,9 @@ class FilterSettingOperation extends BaseOperation<OperationObjectType.filterSet
 }
 
 type Operation =
-  | TrainrunOperation
+  | TrainrunUpdateOperation
+  | TrainrunCreateOperation
+  | TrainrunDeleteOperation
   | NodeOperation
   | LabelOperation
   | NoteOperation
@@ -114,7 +143,9 @@ type Operation =
 export {
   OperationType,
   Operation,
-  TrainrunOperation,
+  TrainrunUpdateOperation,
+  TrainrunCreateOperation,
+  TrainrunDeleteOperation,
   NodeOperation,
   LabelOperation,
   NoteOperation,
