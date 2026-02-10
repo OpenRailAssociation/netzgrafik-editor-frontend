@@ -67,9 +67,12 @@ class TrainrunUpdateOperation extends TrainrunOperation<OperationType.update> {
 }
 
 class TrainrunCreateOperation extends TrainrunOperation<OperationType.create> {
+  readonly duplicatedTrainrunId?: number;
+
   /** @internal*/
-  constructor(trainrun: Trainrun) {
+  constructor(trainrun: Trainrun, duplicatedTrainrunId?: number) {
     super(OperationType.create, trainrun);
+    this.duplicatedTrainrunId = duplicatedTrainrunId;
   }
 }
 
