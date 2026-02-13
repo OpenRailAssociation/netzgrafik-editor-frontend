@@ -4,10 +4,10 @@ import netzgrafikLegacy3NodesJson from "./3-nodes-legacy.json";
 
 export class NetzgrafikTestData {
   // old exported json data, still using numberOfStops trainrunSections format
-  static getLegacyNtezgrafik2Nodes(): NetzgrafikDto {
+  static getLegacyNetzgrafik2Nodes(): NetzgrafikDto {
     return JSON.parse(JSON.stringify(netzgrafikLegacy2NodesJson)) as NetzgrafikDto;
   }
-  static getLegacyNtezgrafik3Nodes(): NetzgrafikDto {
+  static getLegacyNetzgrafik3Nodes(): NetzgrafikDto {
     return JSON.parse(JSON.stringify(netzgrafikLegacy3NodesJson)) as NetzgrafikDto;
   }
 }

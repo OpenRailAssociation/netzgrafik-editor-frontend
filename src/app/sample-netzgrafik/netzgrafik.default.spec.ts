@@ -94,7 +94,7 @@ describe("NetzgrafikDefault", () => {
     describe("2 nodes", () => {
       // A -> B has 1 stop
       it("should replace the numberOfStops: 1 with an equivalent graph portion", () => {
-        const inputDto = NetzgrafikTestData.getLegacyNtezgrafik2Nodes();
+        const inputDto = NetzgrafikTestData.getLegacyNetzgrafik2Nodes();
 
         dataService.loadNetzgrafikDto(inputDto);
 
@@ -115,7 +115,7 @@ describe("NetzgrafikDefault", () => {
         expect(outputJson.trainrunSections[1].numberOfStops).toBe(0);
       });
       it("should replace the numberOfStops: 3 with an equivalent graph portion", () => {
-        const inputDto = NetzgrafikTestData.getLegacyNtezgrafik2Nodes();
+        const inputDto = NetzgrafikTestData.getLegacyNetzgrafik2Nodes();
         inputDto.trainrunSections[0].numberOfStops = 3;
 
         dataService.loadNetzgrafikDto(inputDto);
@@ -154,7 +154,7 @@ describe("NetzgrafikDefault", () => {
       // A -> B -> C
       // each trainrunSection with 1 stop
       it("should replace the numberOfStops: 1 with an equivalent graph portion for each section", () => {
-        const inputDto = NetzgrafikTestData.getLegacyNtezgrafik3Nodes();
+        const inputDto = NetzgrafikTestData.getLegacyNetzgrafik3Nodes();
 
         dataService.loadNetzgrafikDto(inputDto);
 
