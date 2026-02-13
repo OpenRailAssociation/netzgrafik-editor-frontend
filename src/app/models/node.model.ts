@@ -57,7 +57,7 @@ export class Node {
       symmetryAxis,
       warnings,
       labelIds,
-      isCollapsed,
+      isCollapsed = false, // older DTO files don't have this field
     }: NodeDto = {
       id: Node.incrementId(),
       betriebspunktName: $localize`:@@app.models.node.shortNameDefault:NEW`,
