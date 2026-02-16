@@ -81,6 +81,4 @@ jobs:
       - run: npm run build:standalone
       - run: npm pkg delete dependencies optionalDependencies devDependencies
 
-      #  Publishing temporarily disabled - it might be removed later on
-      # - run: npm publish --provenance --access public
-      - run: echo "Skipping npm publish (temporarily disabled)"
+      - run: npm publish --provenance --access public
