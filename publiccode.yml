@@ -1,0 +1,41 @@
+# publiccode.yml for Netzgrafik-Editor Frontend
+publiccodeYmlVersion: "0.1"
+
+name: "Netzgrafik-Editor Frontend"
+url: "https://github.com/OpenRailAssociation/netzgrafik-editor-frontend"
+landingURL: "https://openrailassociation.github.io/netzgrafik-editor-frontend/"
+softwareVersion: "v2.10.14"
+releaseDate: "2026-01-30"
+
+platforms:
+  - web
+
+categories:
+  - transport
+  - planning
+  - visualization
+
+developmentStatus: stable
+softwareType: "standalone/web"
+
+description:
+  en:
+    shortDescription: >
+      A powerful web-based editor for creating and analysing regular-interval timetables.
+    longDescription: >
+      The Netzgrafik-Editor Frontend is the user interface component of the
+      OpenRailAssociation's Netzgrafik-Editor suite. It enables intuitive
+      creation, editing, and analysis of regular-interval timetables via a
+      browser-based interface. It is implemented in Angular and communicates
+      with a backend API (OpenAPI specification included).
+    features:
+      - "Interactive timetable graphic editor"
+      - "Visual planning tools"
+      - "Integration with backend API"
+      - "Supports analysis of regular-interval schedules"
+
+legal:
+  license: "Apache-2.0"
+
+maintenance:
+  type: community
