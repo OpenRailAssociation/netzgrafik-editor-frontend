@@ -33,22 +33,20 @@ thus no complex calculation must be reimplemented by the 3rd party provider.
 
 ###### Detection of Third-Party Data
 
-The function [detectNetzgrafikJSON3rdParty](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/src/app/view/editor-tools-view-component/editor-tools-view.component.ts#L580) checks if the imported data comes from a third party and if it needs to be adjusted accordingly.
+The function [detectNetzgrafikJSON3rdParty](./../../src/app/view/editor-tools-view-component/editor-tools-view.component.ts#:~:text=detectNetzgrafikJSON3rdParty>) checks if the imported data comes from a third party and if it needs to be adjusted accordingly.
 
 ```typescript
 private detectNetzgrafikJSON3rdParty(netzgrafikDto: NetzgrafikDto): boolean {
-    return netzgrafikDto.nodes.find((n: NodeDto) =>
-        n.ports === undefined) !== undefined
-      ||
-      netzgrafikDto.nodes.filter((n: NodeDto) =>
-        n.ports?.length === 0).length === netzgrafikDto.nodes.length
-      ||
-      netzgrafikDto.trainrunSections.find((ts: TrainrunSectionDto) =>
-        ts.path === undefined ||
-        ts.path?.path === undefined ||
-        ts.path?.path?.length === 0
-      ) !== undefined;
-  }
+  return (
+    netzgrafikDto.nodes.find((n: NodeDto) => n.ports === undefined) !== undefined ||
+    netzgrafikDto.nodes.filter((n: NodeDto) => n.ports?.length === 0).length ===
+    netzgrafikDto.nodes.length ||
+    netzgrafikDto.trainrunSections.find(
+      (ts: TrainrunSectionDto) =>
+        ts.path === undefined || ts.path?.path === undefined || ts.path?.path?.length === 0,
+    ) !== undefined
+  );
+}
 ```
 
 The function performs the following checks:
@@ -88,7 +86,7 @@ The JSON-based data import from third parties into the net graphic system is des
 
 This is the basic data structure to represent the various elements in a JSON description. You can populate each element with the specific data relevant to your scenario.
 
-See also [DATA_MODEL.md : business orientated description](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/documentation/JSON_DATA/documentation/DATA_MODEL.md#business-orientated-description)
+See also [DATA_MODEL.md : business orientated description](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/documentation/JSON_DATA/documentation/technical/DATA_MODEL.md#business-orientated-description)
 
 ---
 
@@ -153,8 +151,8 @@ See also [DATA_MODEL.md : business orientated description](https://github.com/Sc
 - **fullName**: The full name of the operation control point : string
 - **positionX**: The X position - where the node is placed in the editor (map / horizontal position) : numeric
 - **positionY**: The Y position - where the node is placed in the editor (map / vertical position) : numeric
-- **ports** : The ports assigned to the node. (See also [node:port](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/DATA_MODEL.md#ports-alignment) : Array of ports
-- **transitions** : The trainrun [transitions](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/DATA_MODEL.md) assigned to the node : Array of transitions
+- **ports** : The ports assigned to the node. (See also [node:port](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL.md#ports-alignment) : Array of ports
+- **transitions** : The trainrun [transitions](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL.md) assigned to the node : Array of transitions
 - **connections** : The trainrun connections in the node : Array of connections
 - **resourceId**: Reference to the resourceId : numeric
 - **perronkanten** : The number of platform (Perron) within the node : numeric
@@ -181,7 +179,7 @@ More details about ports
 - **id**: Technical identifier (key), must be unique : numeric
 - **trainrunSectionId**: Reference to the trainrunsection assigned to the port : numeric
 - **positionIndex**: Position index within the port alignment sorting: numeric
-- **positionAlignment**: [Position aligment](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/DATA_MODEL.md#ports-alignment) - reference [0, 1, 2, 3] : numeric
+- **positionAlignment**: [Position aligment](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL.md#ports-alignment) - reference [0, 1, 2, 3] : numeric
 
 </details>
 
@@ -298,14 +296,14 @@ More details about trainrunCategoryHaltezeiten
 
 - **id**: Technical identifier (key), must be unique : numeric
 - **sourceNodeId**: Reference to the node : numeric
-- **sourcePortId**: Reference to the [node:port](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/DATA_MODEL.md#ports-alignment) : numeric
+- **sourcePortId**: Reference to the [node:port](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL.md#ports-alignment) : numeric
 - **targetNodeId**: Reference to the node : numeric
-- **targetPortId**: Reference to the [node:port](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/DATA_MODEL.md#ports-alignment) : numeric
-- **travelTime**: The travel time and lock information : [TimeLock ](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/DATA_MODEL_JSON.md#timelock)
-- **sourceDeparture**: The departure time at source node in minute and lock information : [TimeLock ](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/DATA_MODEL_JSON.md#timelock)
-- **sourceArrival**: The arrival time at source node in minute and lock information : [TimeLock ](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/DATA_MODEL_JSON.md#timelock)
-- **targetDeparture**: The departure time at target node in minute and lock information : [TimeLock ](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/DATA_MODEL_JSON.md#timelock)
-- **targetArrival**: The arrival time at source node in minute and lock information : [TimeLock ](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/DATA_MODEL_JSON.md#timelock)
+- **targetPortId**: Reference to the [node:port](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL.md#ports-alignment) : numeric
+- **travelTime**: The travel time and lock information : [TimeLock ](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL_JSON.md#timelock)
+- **sourceDeparture**: The departure time at source node in minute and lock information : [TimeLock ](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL_JSON.md#timelock)
+- **sourceArrival**: The arrival time at source node in minute and lock information : [TimeLock ](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL_JSON.md#timelock)
+- **targetDeparture**: The departure time at target node in minute and lock information : [TimeLock ](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL_JSON.md#timelock)
+- **targetArrival**: The arrival time at source node in minute and lock information : [TimeLock ](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL_JSON.md#timelock)
 - **numberOfStops**: The number of intermediate stops: numeric
 - **trainrunId**: Reference to the trainrunId : numeric
 - **resourceId**: Reference to the resourceId : numeric
@@ -400,9 +398,9 @@ export interface TimeLockDto {
 
 - **id**: Technical identifier (key), must be unique : numeric
 - **name**: The name of the trainrun : string
-- **categoryId**: Reference to the [trainrunCategories](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/DATA_MODEL_JSON.md#metadata) : numeric
-- **frequencyId**: Reference to the [trainrunFrequencies](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/DATA_MODEL_JSON.md#metadata) : numeric
-- **trainrunTimeCategoryId**: Reference to the [trainrunTimeCategories](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/DATA_MODEL_JSON.md#metadata) : numeric
+- **categoryId**: Reference to the [trainrunCategories](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL_JSON.md#metadata) : numeric
+- **frequencyId**: Reference to the [trainrunFrequencies](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL_JSON.md#metadata) : numeric
+- **trainrunTimeCategoryId**: Reference to the [trainrunTimeCategories](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL_JSON.md#metadata) : numeric
 - **labelIds**: Filterable labels assigned to the node are stored in this array of label identifiers : Array of integer
 - **direction**: Direction of the trainrun : Direction (enum value)
 

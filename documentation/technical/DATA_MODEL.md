@@ -3,7 +3,7 @@
 The data model consists of the following key elements: **_trainrun_**, **_trainrun section_**,
 **_transition_**, **_trainrun connection_**, **_port_** and **_node_**.
 
-![Data model](./images/DataMoel_Sketch_KeyElement_001.jpg)
+![Data model](../images/DataMoel_Sketch_KeyElement_001.jpg)
 
 ---
 
@@ -132,7 +132,7 @@ The key concept of network visualization is to obtain a clear and automated repr
 connections (lines). For this purpose, a routing heuristic is implemented, which arranges the lines
 in a visually organized manner.
 
-![Port Alignment](./images/PortAlignment.png)
+![Port Alignment](../images/PortAlignment.png)
 
 To begin with, the heuristic focuses on the pair of nodes that are connected by the trainrun
 section. At each node, a decision is made regarding whether the line exits the node in an
@@ -155,12 +155,12 @@ export enum PortAlignment {
 ```
 
 See for more
-details [VisAVisPortPlacement.placePortsOnSourceAndTargetNode(srcNode, targetNode)](./../src/app/services/util/node.port.placement.ts).
+details [VisAVisPortPlacement.placePortsOnSourceAndTargetNode(srcNode, targetNode)](../../src/app/services/util/node.port.placement.ts).
 
 ##### Ports sorting
 
 The sorting heuristics description can be found in
-the [chapter](./CREATE_NODES.md#MultipleTrainruns), it is
+the [chapter](../CREATE_NODES.md#MultipleTrainruns), it is
 worth taking a look there before diving into the source
 code [Node.sortPorts()](<./../src/app/models/node.model.ts#:~:text=sortPorts()%20{>) for detailed information.
 
