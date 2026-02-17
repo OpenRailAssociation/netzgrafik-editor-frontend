@@ -123,8 +123,6 @@ export interface TrainrunSectionDto {
   targetDeparture: TimeLockDto; // declares the target departure time
   travelTime: TimeLockDto; // declares the travel arrival time
 
-  numberOfStops: number; // number of stops - not declared in detail (no node attached)
-
   trainrunId: number; // reference to the trainrun (main object)
   resourceId: number; // reference to the algined (resource - not yet implemented)
 
