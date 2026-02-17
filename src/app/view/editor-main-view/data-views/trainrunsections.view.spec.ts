@@ -155,6 +155,7 @@ describe("TrainrunSection-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      undefined,
     );
 
     new EditorView(
@@ -172,6 +173,7 @@ describe("TrainrunSection-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      undefined,
     );
 
     controller.bindViewToServices();
