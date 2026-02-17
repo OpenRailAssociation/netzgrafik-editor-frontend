@@ -836,12 +836,6 @@ export class TrainrunService {
       .trainrunSection;
   }
 
-  getFirstNonStopTrainrunSection(trainrunSection: TrainrunSection): TrainrunSection {
-    // starts at the target node, goes backwards to find the first section that is not a non-stop section
-    return this.getBackwardNextExpandedStopIterator(trainrunSection.getTargetNode(), trainrunSection).last()
-      .trainrunSection;
-  }
-
   getLastTrainrunSection(trainrun: Trainrun): TrainrunSection | undefined {
     const sections = this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
       trainrun.getId(),
