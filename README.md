@@ -60,7 +60,7 @@ Regular-interval timetable
 It offers various functions to enhance the efficiency and optimization of the logistics network.
 Some of the key features include:
 
-- **Interactive drawing tool to edit the Netzgrafik:** A user-friendly and interactive graphical
+- **Interactive drawing tool to edit the network graph (Netzgrafik):** A user-friendly and interactive graphical
   editor for creating and editing regular-interval timetables. It provides a
   visual interface to easily visualize and adjust the logistics network.
 
@@ -68,7 +68,7 @@ Some of the key features include:
   All lines (trainruns) defined in the Netzgrafik can be transferred into a graphical timetable
   representation (Streckengrafik).
 
-- **Perlenkette trainrun editing:** Planners can manually draw and edit the trainruns as a chain,
+- **Pearl necklace trainrun editing (Perlenkette):** Planners can manually draw and edit the trainruns as a chain,
   allowing them
   to define crucial aspects of the logistics network and tailor it
   to specific requirements and constraints.
