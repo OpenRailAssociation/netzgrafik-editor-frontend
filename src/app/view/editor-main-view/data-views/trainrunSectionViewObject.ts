@@ -1,3 +1,4 @@
+import {Node} from "src/app/models/node.model";
 import {
   TrainrunSectionText,
   TrainrunSectionTextPositions,
@@ -90,6 +91,11 @@ export class TrainrunSectionViewObject {
 
   getPosition(atSource: boolean): Vec2D {
     return atSource ? this.getPositionAtSourceNode() : this.getPositionAtTargetNode();
+  }
+
+  getNode(atSource: boolean): Node {
+    const trainrunSection = this.getSection(atSource);
+    return atSource ? trainrunSection.getSourceNode() : trainrunSection.getTargetNode();
   }
 
   private generateKey(editorView: EditorView, trainrunSections: TrainrunSection[]): string {
