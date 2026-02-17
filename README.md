@@ -148,7 +148,7 @@ The user manual can be found here [USERMANUAL.md](documentation/USERMANUAL.md)
 
 [Extern: nge.flatland.cloud](https://nge.flatland.cloud) - powered by [Flatland Association](https://www.flatland-association.org/)
 
-( [Sample Netzgrafik](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/src/app/sample-netzgrafik/Demo_Netzgrafik_Fernverkehr_2024.json) - [How to Import JSON](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/DATA_MODEL_JSON.md) )
+( [Sample Netzgrafik](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/src/app/sample-netzgrafik/Demo_Netzgrafik_Fernverkehr_2024.json) - [How to Import JSON](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL_JSON.md) )
 
 ## Setup Local Demo Environment with Docker Compose
 
@@ -295,7 +295,7 @@ npm run generate:api
 
 Please consider the following information:
 
-- [DATA MODEL](./documentation/DATA_MODEL.md)
+- [DATA MODEL](./documentation/technical/DATA_MODEL.md)
 
 - [CODING_STANDARDS.md](CODING_STANDARDS.md)
 - [CONTRIBUTING.md](CONTRIBUTING.md)

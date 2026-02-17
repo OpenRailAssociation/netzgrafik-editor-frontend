@@ -51,7 +51,7 @@ The Angular frontend depends on the backed in the [netzgrafik-editor-backend](ht
 
 ### <a id="design-decisions"></a> Design Decisions
 
-Have a look at [DATA_MODEL.md](documentation/DATA_MODEL.md)
+Have a look at [DATA_MODEL.md](./documentation/technical/DATA_MODEL.md)
 
 ## <a id="issue"></a> Found an Issue?
 
