@@ -33,7 +33,7 @@ thus no complex calculation must be reimplemented by the 3rd party provider.
 
 ###### Detection of Third-Party Data
 
-The function [detectNetzgrafikJSON3rdParty](./../../src/app/view/editor-tools-view-component/editor-tools-view.component.ts#:~:text=detectNetzgrafikJSON3rdParty>) checks if the imported data comes from a third party and if it needs to be adjusted accordingly.
+The function [detectNetzgrafikJSON3rdParty](./../../src/app/view/editor-tools-view-component/editor-tools-view.component.ts#:~:text=detectNetzgrafikJSON3rdParty) checks if the imported data comes from a third party and if it needs to be adjusted accordingly.
 
 ```typescript
 private detectNetzgrafikJSON3rdParty(netzgrafikDto: NetzgrafikDto): boolean {
