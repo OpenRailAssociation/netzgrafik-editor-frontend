@@ -46,6 +46,10 @@ export class TrainrunSectionViewObject {
       .filter((section) => !section.getSourceNode().isNonStop(section)).length;
   }
 
+  getSection(atSource: boolean): TrainrunSection {
+    return atSource ? this.firstSection : this.lastSection;
+  }
+
   getTravelTime(): number {
     if (this.trainrunSections.length === 1) {
       return this.firstSection.getTravelTime();
