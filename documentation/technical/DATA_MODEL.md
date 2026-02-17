@@ -172,7 +172,7 @@ changed or not. Once the path changes, it is redrawn. Therefore, as long as ther
 nothing is rendered, which greatly increases the interactivity of the application but also requires
 more storage space.
 
-![PathDrawing](./images/PathDrawing.png)
+![PathDrawing](../images/PathDrawing.png)
 
 Additionally, using the native JSON format adds more complexity because the stored path must be
 provided during import.
