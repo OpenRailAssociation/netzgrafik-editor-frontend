@@ -159,10 +159,6 @@ export class TrainrunSectionsView {
     return atSource ? trainrunSection.getSourceNode() : trainrunSection.getTargetNode();
   }
 
-  static getNodeFromViewObject(viewObject: TrainrunSectionViewObject, atSource: boolean): Node {
-    return TrainrunSectionsView.getNode(viewObject.getSection(atSource), atSource);
-  }
-
   static hasWarning(trainrunSection: TrainrunSection, textElement: TrainrunSectionText): boolean {
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
@@ -1250,7 +1246,7 @@ export class TrainrunSectionsView {
           ")",
       )
       .attr(StaticDomTags.EDGE_NODE_ID, (d: TrainrunSectionViewObject) =>
-        TrainrunSectionsView.getNodeFromViewObject(d, atSource).getId(),
+        d.getNode(atSource).getId(),
       )
       .classed(StaticDomTags.EDGE_IS_TARGET, !atSource)
       .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) => {
@@ -1311,23 +1307,19 @@ export class TrainrunSectionsView {
       .attr("cy", (d: TrainrunSectionViewObject) => d.getPosition(atSource).getY())
       .attr("r", DEFAULT_PIN_RADIUS)
       .attr(StaticDomTags.EDGE_NODE_ID, (d: TrainrunSectionViewObject) =>
-        TrainrunSectionsView.getNodeFromViewObject(d, atSource).getId(),
+        d.getNode(atSource).getId(),
       )
       .classed(
         StaticDomTags.TAG_HIDDEN,
         (d: TrainrunSectionViewObject) =>
           !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
-          !this.editorView.checkFilterNonStopNode(
-            TrainrunSectionsView.getNodeFromViewObject(d, atSource),
-          ),
+          !this.editorView.checkFilterNonStopNode(d.getNode(atSource)),
       )
       .classed(
         StaticDomTags.TAG_EVENT_DISABLED,
         (d: TrainrunSectionViewObject) =>
           !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
-          !this.editorView.checkFilterNonStopNode(
-            TrainrunSectionsView.getNodeFromViewObject(d, atSource),
-          ),
+          !this.editorView.checkFilterNonStopNode(d.getNode(atSource)),
       )
       .classed(atSource ? StaticDomTags.EDGE_IS_SOURCE : StaticDomTags.EDGE_IS_TARGET, true)
       .classed(StaticDomTags.EDGE_IS_END_NODE, (d: TrainrunSectionViewObject) => {
