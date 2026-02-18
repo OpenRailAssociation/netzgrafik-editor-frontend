@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.15](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.14...netzgrafik-frontend-v2.10.15) (2026-02-17)
+
+
+### Bug Fixes
+
+* synch prosemirror-model versions in ngx-editor dependencies ([c4cf303](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/c4cf303002b829d9cb2ae8371762c6bbd0ec5534))
+
 ## [2.10.14](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.13...netzgrafik-frontend-v2.10.14) (2026-01-30)
 
 
