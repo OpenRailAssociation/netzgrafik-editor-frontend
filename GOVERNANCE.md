@@ -58,7 +58,7 @@ If the appeal is rejected, it may be escalated to the PSC, which will also respo
 ## 4. No Confidentiality
 Information disclosed in connection with any project activity, including meetings, contributions, and submissions, is not confidential, regardless of any markings or statements to the contrary.
 
-## 5. Amendments.
+## 5. Amendments
 Major Changes to this governance policy require an affirmative vote of two-thirds of all Maintainers and Business Domain Stewards, with approval by the Technical Committee.
 
 ---
