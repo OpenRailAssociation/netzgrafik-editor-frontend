@@ -46,7 +46,7 @@ The PSC consists of Maintainers and Business Domain Stewards and includes betwee
 ### 2.8 Technical Committee (TC) of the OpenRail Association
 The Technical Committee (TC) provides guidance to help the project achieve its objectives. It ensures the project adheres to open governance principles and the goals and values of the association. The TC may support governance implementation and mediate conflicts when required.
 
-## 3. Decisions.
+## 3. Decisions
 
 **3.1. Lazy Consensus-Based Decision Making**. 
 The project makes most decisions through lazy consensus among the Maintainers. Consensus is determined in good faith, taking into account the dominant view of contributors and the nature of support and objections. Evidence of consensus should be documented.
