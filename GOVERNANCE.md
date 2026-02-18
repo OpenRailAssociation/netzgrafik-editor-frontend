@@ -51,7 +51,7 @@ The Technical Committee (TC) provides guidance to help the project achieve its o
 ### 3.1. Lazy Consensus-Based Decision Making 
 The project makes most decisions through lazy consensus among the Maintainers. Consensus is determined in good faith, taking into account the dominant view of contributors and the nature of support and objections. Evidence of consensus should be documented.
 
-**3.2. Appeal Process**. 
+### 3.2. Appeal Process
 Decisions may be appealed by opening an issue. Maintainers will review the appeal in good faith and respond in writing within a reasonable time.
 If the appeal is rejected, it may be escalated to the PSC, which will also respond in writing. If a decision contradicts the stated principles or is deemed to endanger the project, the TC may be asked to provide mediation.
 
