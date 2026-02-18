@@ -55,7 +55,7 @@ The project makes most decisions through lazy consensus among the Maintainers. C
 Decisions may be appealed by opening an issue. Maintainers will review the appeal in good faith and respond in writing within a reasonable time.
 If the appeal is rejected, it may be escalated to the PSC, which will also respond in writing. If a decision contradicts the stated principles or is deemed to endanger the project, the TC may be asked to provide mediation.
 
-## 4. No Confidentiality.
+## 4. No Confidentiality
 Information disclosed in connection with any project activity, including meetings, contributions, and submissions, is not confidential, regardless of any markings or statements to the contrary.
 
 ## 5. Amendments.
