@@ -27,6 +27,14 @@ export enum TrainrunSectionText {
 }
 
 /**
+ * Classifies which anchor (node) of a TrainrunSection is being evaluated.
+ */
+export enum TrainrunSectionNodeAnchor {
+  Source = "source",
+  Target = "target",
+}
+
+/**
  * Represents a mapping of TrainrunSectionText and PointDTO used in the "cached" path : PathDto.
  * The PathDto is used in the TrainrunSectionDto. The application (editor) recalculates after each
  * position update the path and stores the positions of the text in this mapping.

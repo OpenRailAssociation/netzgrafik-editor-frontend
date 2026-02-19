@@ -23,7 +23,10 @@ import {FilterService} from "../../services/ui/filter.service";
 import {LoadPerlenketteService} from "../service/load-perlenkette.service";
 import {EditorMode} from "../../view/editor-menu/editor-mode";
 import {Vec2D} from "../../utils/vec2D";
-import {PortAlignment} from "../../data-structures/technical.data.structures";
+import {
+  PortAlignment,
+  TrainrunSectionNodeAnchor,
+} from "../../data-structures/technical.data.structures";
 import {
   TRAINRUN_SECTION_PORT_SPAN_HORIZONTAL,
   TRAINRUN_SECTION_PORT_SPAN_VERTICAL,
@@ -527,8 +530,14 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
 
   getTravelTime() {
     if (
-      TrainrunSectionsView.getNode(this.trainrunSection, true).isNonStop(this.trainrunSection) ||
-      TrainrunSectionsView.getNode(this.trainrunSection, false).isNonStop(this.trainrunSection)
+      TrainrunSectionsView.getNode(
+        this.trainrunSection,
+        TrainrunSectionNodeAnchor.Source,
+      ).isNonStop(this.trainrunSection) ||
+      TrainrunSectionsView.getNode(
+        this.trainrunSection,
+        TrainrunSectionNodeAnchor.Target,
+      ).isNonStop(this.trainrunSection)
     ) {
       const cumulativeTravelTime = this.trainrunService.getCumulativeTravelTime(
         this.trainrunSection,
