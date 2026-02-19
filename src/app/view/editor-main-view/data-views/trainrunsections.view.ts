@@ -943,9 +943,6 @@ export class TrainrunSectionsView {
     const atSource =
       lineTextElement === TrainrunSectionText.SourceArrival ||
       lineTextElement === TrainrunSectionText.SourceDeparture;
-    const isArrival =
-      lineTextElement === TrainrunSectionText.SourceArrival ||
-      lineTextElement === TrainrunSectionText.TargetArrival;
 
     const isOneWayText =
       lineTextElement === TrainrunSectionText.SourceDeparture ||
@@ -956,7 +953,7 @@ export class TrainrunSectionsView {
         const displayTextBackground = d.trainrunSection.getTrainrun().isRoundTrip() || isOneWayText;
         return (
           this.filterTrainrunsectionAtNode(d.trainrunSection, atSource) &&
-          this.filterTimeTrainrunsectionNonStop(d.trainrunSection, atSource, isArrival) &&
+          this.filterTimeTrainrunsectionNonStop(d.trainrunSection, lineTextElement) &&
           displayTextBackground
         );
       })
@@ -1356,9 +1353,6 @@ export class TrainrunSectionsView {
     const atSource =
       textElement === TrainrunSectionText.SourceArrival ||
       textElement === TrainrunSectionText.SourceDeparture;
-    const isArrival =
-      textElement === TrainrunSectionText.SourceArrival ||
-      textElement === TrainrunSectionText.TargetArrival;
 
     const isOneWayText =
       textElement === TrainrunSectionText.SourceDeparture ||
@@ -1371,7 +1365,7 @@ export class TrainrunSectionsView {
 
         return (
           this.filterTrainrunsectionAtNode(d.trainrunSection, atSource) &&
-          this.filterTimeTrainrunsectionNonStop(d.trainrunSection, atSource, isArrival) &&
+          this.filterTimeTrainrunsectionNonStop(d.trainrunSection, textElement) &&
           TrainrunSectionsView.hasWarning(d.trainrunSection, textElement) === hasWarning &&
           displayTextElement
         );
@@ -2021,16 +2015,16 @@ export class TrainrunSectionsView {
 
   private filterTimeTrainrunsectionNonStop(
     trainrunSection: TrainrunSection,
-    atSource: boolean,
-    isArrival: boolean,
+    lineTextElement: TrainrunSectionText,
   ): boolean {
-    if (!isArrival) {
-      return true;
+    switch (lineTextElement) {
+      case TrainrunSectionText.SourceDeparture:
+        return !trainrunSection.getSourceNode().isNonStop(trainrunSection);
+      case TrainrunSectionText.TargetDeparture:
+        return !trainrunSection.getTargetNode().isNonStop(trainrunSection);
+      default:
+        return true;
     }
-    if (atSource) {
-      return !trainrunSection.getSourceNode().isNonStop(trainrunSection);
-    }
-    return !trainrunSection.getTargetNode().isNonStop(trainrunSection);
   }
 
   private filterTrainrunsectionAtNode(
