@@ -82,11 +82,12 @@ export class TrainrunSectionValidator {
     }
   }
 
-  static validateTravelTime(trainrunSection: TrainrunSection) {
-    if (trainrunSection.getTravelTime() < 1) {
+  static validateTravelTime(trainrunSection: TrainrunSection, timeDisplayPrecision: number = 1) {
+    const minimumTravelTime = 1 / Math.pow(10, timeDisplayPrecision);
+    if (trainrunSection.getTravelTime() < minimumTravelTime) {
       trainrunSection.setTravelTimeWarning(
-        $localize`:@@app.services.util.trainrunsection-validator.travel-time-less-than-1.title:Travel Time less than 1`,
-        $localize`:@@app.services.util.trainrunsection-validator.travel-time-less-than-1.description:Travel time must be greater than or equal to 1`,
+        $localize`:@@app.services.util.trainrunsection-validator.travel-time-less-than-1.title:Travel Time less than ${minimumTravelTime}:minimumTravelTime:`,
+        $localize`:@@app.services.util.trainrunsection-validator.travel-time-less-than-1.description:Travel time must be greater than or equal to ${minimumTravelTime}:minimumTravelTime:`,
       );
     } else {
       trainrunSection.resetTravelTimeWarning();
