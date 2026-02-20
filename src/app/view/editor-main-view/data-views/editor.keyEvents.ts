@@ -364,8 +364,8 @@ export class EditorKeyEvents {
           }
           return false;
         }
-        if (tsvo.trainrunSection.getTrainrun().selected()) {
-          selectedTrainrunSectionId = tsvo.trainrunSection.getTrainrunId();
+        if (tsvo.trainrunSections[0].getTrainrun().selected()) {
+          selectedTrainrunSectionId = tsvo.trainrunSections[0].getTrainrunId();
         }
         return false;
       },
