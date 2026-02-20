@@ -242,7 +242,7 @@ export class TrainrunIterator {
    * Throws an exception if `startNode` isn't part of `startTrainrunSection`.
    */
   constructor(
-    protected logService: LogService,
+    protected logService: LogService | null,
     private startNode: Node,
     private startTrainrunSection: TrainrunSection,
   ) {
