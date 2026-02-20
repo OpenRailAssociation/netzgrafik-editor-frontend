@@ -471,6 +471,8 @@ export class Node {
     this.resetPositionIndex(PortAlignment.Right);
   }
 
+  // need to actually compare first and last ports of the trainrun sections chain
+  // instead of section to section
   sortPorts() {
     this.ports.sort((a, b) => {
       if (a.getPositionAlignment() > b.getPositionAlignment()) {

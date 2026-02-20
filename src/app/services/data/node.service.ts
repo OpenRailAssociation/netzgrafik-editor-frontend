@@ -1235,8 +1235,10 @@ export class NodeService implements OnDestroy {
       oppositeExpandedNode
         .getPortOfTrainrunSection(group.at(-1)!.getId())
         ?.setPositionAlignment(portAlignments.targetPortPlacement);
+      // TODO: set the ports index?
       oppositeExpandedNode.updateTransitionsAndConnections();
     });
+    // node.reorderAllPorts(); // not working
     node.updateTransitionsAndConnections();
   }
 }
