@@ -1944,8 +1944,8 @@
       "positionX": 2432,
       "positionY": 2464,
       "ports": [
-        {"id": 1442, "trainrunSectionId": 713, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1441, "trainrunSectionId": 529, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1442, "trainrunSectionId": 713, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1441, "trainrunSectionId": 529, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 387, "port1Id": 1441, "port2Id": 1442, "isNonStopTransit": false}],
       "connections": [],
@@ -1972,8 +1972,8 @@
       "positionX": 2352,
       "positionY": 2352,
       "ports": [
-        {"id": 1444, "trainrunSectionId": 714, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1443, "trainrunSectionId": 713, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1444, "trainrunSectionId": 714, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1443, "trainrunSectionId": 713, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 388, "port1Id": 1443, "port2Id": 1444, "isNonStopTransit": false}],
       "connections": [],
@@ -2000,8 +2000,8 @@
       "positionX": 2312,
       "positionY": 2296,
       "ports": [
-        {"id": 1446, "trainrunSectionId": 715, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1445, "trainrunSectionId": 714, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1446, "trainrunSectionId": 715, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1445, "trainrunSectionId": 714, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 389, "port1Id": 1445, "port2Id": 1446, "isNonStopTransit": false}],
       "connections": [],
@@ -2028,8 +2028,8 @@
       "positionX": 2292,
       "positionY": 2268,
       "ports": [
-        {"id": 1448, "trainrunSectionId": 716, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1447, "trainrunSectionId": 715, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1448, "trainrunSectionId": 716, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1447, "trainrunSectionId": 715, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 390, "port1Id": 1447, "port2Id": 1448, "isNonStopTransit": false}],
       "connections": [],
@@ -2056,8 +2056,8 @@
       "positionX": 2282,
       "positionY": 2254,
       "ports": [
-        {"id": 1450, "trainrunSectionId": 717, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1449, "trainrunSectionId": 716, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1450, "trainrunSectionId": 717, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1449, "trainrunSectionId": 716, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 391, "port1Id": 1449, "port2Id": 1450, "isNonStopTransit": false}],
       "connections": [],
@@ -2084,8 +2084,8 @@
       "positionX": 2464,
       "positionY": 2208,
       "ports": [
-        {"id": 1451, "trainrunSectionId": 530, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1452, "trainrunSectionId": 718, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1452, "trainrunSectionId": 718, "positionIndex": 0, "positionAlignment": 2},
+        {"id": 1451, "trainrunSectionId": 530, "positionIndex": 1, "positionAlignment": 2}
       ],
       "transitions": [{"id": 392, "port1Id": 1451, "port2Id": 1452, "isNonStopTransit": false}],
       "connections": [],
@@ -2112,8 +2112,8 @@
       "positionX": 2656,
       "positionY": 1984,
       "ports": [
-        {"id": 1454, "trainrunSectionId": 719, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1453, "trainrunSectionId": 531, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1453, "trainrunSectionId": 531, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1454, "trainrunSectionId": 719, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 393, "port1Id": 1453, "port2Id": 1454, "isNonStopTransit": false}],
       "connections": [],
@@ -2140,8 +2140,8 @@
       "positionX": 2656,
       "positionY": 1888,
       "ports": [
-        {"id": 1456, "trainrunSectionId": 720, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1455, "trainrunSectionId": 719, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1455, "trainrunSectionId": 719, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1456, "trainrunSectionId": 720, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 394, "port1Id": 1455, "port2Id": 1456, "isNonStopTransit": false}],
       "connections": [],
@@ -2168,8 +2168,8 @@
       "positionX": 2656,
       "positionY": 1840,
       "ports": [
-        {"id": 1458, "trainrunSectionId": 721, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1457, "trainrunSectionId": 720, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1457, "trainrunSectionId": 720, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1458, "trainrunSectionId": 721, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 395, "port1Id": 1457, "port2Id": 1458, "isNonStopTransit": false}],
       "connections": [],
@@ -2197,7 +2197,7 @@
       "positionY": 3232,
       "ports": [
         {"id": 1459, "trainrunSectionId": 533, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1460, "trainrunSectionId": 722, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1460, "trainrunSectionId": 722, "positionIndex": 1, "positionAlignment": 2}
       ],
       "transitions": [{"id": 396, "port1Id": 1459, "port2Id": 1460, "isNonStopTransit": false}],
       "connections": [],
@@ -2225,7 +2225,7 @@
       "positionY": 3232,
       "ports": [
         {"id": 1461, "trainrunSectionId": 722, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1462, "trainrunSectionId": 723, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1462, "trainrunSectionId": 723, "positionIndex": 1, "positionAlignment": 2}
       ],
       "transitions": [{"id": 397, "port1Id": 1461, "port2Id": 1462, "isNonStopTransit": false}],
       "connections": [],
@@ -2253,7 +2253,7 @@
       "positionY": 3232,
       "ports": [
         {"id": 1463, "trainrunSectionId": 723, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1464, "trainrunSectionId": 724, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1464, "trainrunSectionId": 724, "positionIndex": 1, "positionAlignment": 2}
       ],
       "transitions": [{"id": 398, "port1Id": 1463, "port2Id": 1464, "isNonStopTransit": false}],
       "connections": [],
@@ -2280,8 +2280,8 @@
       "positionX": 2592,
       "positionY": 2960,
       "ports": [
-        {"id": 1466, "trainrunSectionId": 725, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1465, "trainrunSectionId": 534, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1465, "trainrunSectionId": 534, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1466, "trainrunSectionId": 725, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 399, "port1Id": 1465, "port2Id": 1466, "isNonStopTransit": false}],
       "connections": [],
@@ -2308,8 +2308,8 @@
       "positionX": 2432,
       "positionY": 2464,
       "ports": [
-        {"id": 1468, "trainrunSectionId": 726, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1467, "trainrunSectionId": 535, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1468, "trainrunSectionId": 726, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1467, "trainrunSectionId": 535, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 400, "port1Id": 1467, "port2Id": 1468, "isNonStopTransit": false}],
       "connections": [],
@@ -2336,8 +2336,8 @@
       "positionX": 2352,
       "positionY": 2352,
       "ports": [
-        {"id": 1470, "trainrunSectionId": 727, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1469, "trainrunSectionId": 726, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1470, "trainrunSectionId": 727, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1469, "trainrunSectionId": 726, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 401, "port1Id": 1469, "port2Id": 1470, "isNonStopTransit": false}],
       "connections": [],
@@ -2364,8 +2364,8 @@
       "positionX": 2312,
       "positionY": 2296,
       "ports": [
-        {"id": 1472, "trainrunSectionId": 728, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1471, "trainrunSectionId": 727, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1472, "trainrunSectionId": 728, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1471, "trainrunSectionId": 727, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 402, "port1Id": 1471, "port2Id": 1472, "isNonStopTransit": false}],
       "connections": [],
@@ -2392,8 +2392,8 @@
       "positionX": 2292,
       "positionY": 2268,
       "ports": [
-        {"id": 1474, "trainrunSectionId": 729, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1473, "trainrunSectionId": 728, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1474, "trainrunSectionId": 729, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1473, "trainrunSectionId": 728, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 403, "port1Id": 1473, "port2Id": 1474, "isNonStopTransit": false}],
       "connections": [],
@@ -2420,8 +2420,8 @@
       "positionX": 2282,
       "positionY": 2254,
       "ports": [
-        {"id": 1476, "trainrunSectionId": 730, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1475, "trainrunSectionId": 729, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1476, "trainrunSectionId": 730, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1475, "trainrunSectionId": 729, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 404, "port1Id": 1475, "port2Id": 1476, "isNonStopTransit": false}],
       "connections": [],
@@ -2448,8 +2448,8 @@
       "positionX": 2464,
       "positionY": 2208,
       "ports": [
-        {"id": 1477, "trainrunSectionId": 536, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1478, "trainrunSectionId": 731, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1478, "trainrunSectionId": 731, "positionIndex": 0, "positionAlignment": 2},
+        {"id": 1477, "trainrunSectionId": 536, "positionIndex": 1, "positionAlignment": 2}
       ],
       "transitions": [{"id": 405, "port1Id": 1477, "port2Id": 1478, "isNonStopTransit": false}],
       "connections": [],
@@ -2476,8 +2476,8 @@
       "positionX": 2656,
       "positionY": 1984,
       "ports": [
-        {"id": 1480, "trainrunSectionId": 732, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1479, "trainrunSectionId": 537, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1479, "trainrunSectionId": 537, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1480, "trainrunSectionId": 732, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 406, "port1Id": 1479, "port2Id": 1480, "isNonStopTransit": false}],
       "connections": [],
@@ -2504,8 +2504,8 @@
       "positionX": 2656,
       "positionY": 1888,
       "ports": [
-        {"id": 1482, "trainrunSectionId": 733, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1481, "trainrunSectionId": 732, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1481, "trainrunSectionId": 732, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1482, "trainrunSectionId": 733, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 407, "port1Id": 1481, "port2Id": 1482, "isNonStopTransit": false}],
       "connections": [],
@@ -2532,8 +2532,8 @@
       "positionX": 2656,
       "positionY": 1840,
       "ports": [
-        {"id": 1484, "trainrunSectionId": 734, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1483, "trainrunSectionId": 733, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1483, "trainrunSectionId": 733, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1484, "trainrunSectionId": 734, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 408, "port1Id": 1483, "port2Id": 1484, "isNonStopTransit": false}],
       "connections": [],
@@ -2560,8 +2560,8 @@
       "positionX": 2656,
       "positionY": 1024,
       "ports": [
-        {"id": 1486, "trainrunSectionId": 735, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1485, "trainrunSectionId": 541, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1485, "trainrunSectionId": 541, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1486, "trainrunSectionId": 735, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 409, "port1Id": 1485, "port2Id": 1486, "isNonStopTransit": false}],
       "connections": [],
@@ -2589,7 +2589,7 @@
       "positionY": 32,
       "ports": [
         {"id": 1487, "trainrunSectionId": 562, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1488, "trainrunSectionId": 736, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1488, "trainrunSectionId": 736, "positionIndex": 1, "positionAlignment": 2}
       ],
       "transitions": [{"id": 410, "port1Id": 1487, "port2Id": 1488, "isNonStopTransit": false}],
       "connections": [],
@@ -2617,7 +2617,7 @@
       "positionY": 64,
       "ports": [
         {"id": 1489, "trainrunSectionId": 564, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1490, "trainrunSectionId": 737, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1490, "trainrunSectionId": 737, "positionIndex": 1, "positionAlignment": 2}
       ],
       "transitions": [{"id": 411, "port1Id": 1489, "port2Id": 1490, "isNonStopTransit": false}],
       "connections": [],
@@ -2645,7 +2645,7 @@
       "positionY": 80,
       "ports": [
         {"id": 1491, "trainrunSectionId": 737, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1492, "trainrunSectionId": 738, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1492, "trainrunSectionId": 738, "positionIndex": 1, "positionAlignment": 2}
       ],
       "transitions": [{"id": 412, "port1Id": 1491, "port2Id": 1492, "isNonStopTransit": false}],
       "connections": [],
@@ -2673,7 +2673,7 @@
       "positionY": 88,
       "ports": [
         {"id": 1493, "trainrunSectionId": 738, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1494, "trainrunSectionId": 739, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1494, "trainrunSectionId": 739, "positionIndex": 1, "positionAlignment": 2}
       ],
       "transitions": [{"id": 413, "port1Id": 1493, "port2Id": 1494, "isNonStopTransit": false}],
       "connections": [],
@@ -2701,7 +2701,7 @@
       "positionY": 92,
       "ports": [
         {"id": 1495, "trainrunSectionId": 739, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1496, "trainrunSectionId": 740, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1496, "trainrunSectionId": 740, "positionIndex": 1, "positionAlignment": 2}
       ],
       "transitions": [{"id": 414, "port1Id": 1495, "port2Id": 1496, "isNonStopTransit": false}],
       "connections": [],
@@ -2729,7 +2729,7 @@
       "positionY": 640,
       "ports": [
         {"id": 1497, "trainrunSectionId": 565, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1498, "trainrunSectionId": 741, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1498, "trainrunSectionId": 741, "positionIndex": 1, "positionAlignment": 0}
       ],
       "transitions": [{"id": 415, "port1Id": 1497, "port2Id": 1498, "isNonStopTransit": false}],
       "connections": [],
@@ -2757,7 +2757,7 @@
       "positionY": 912,
       "ports": [
         {"id": 1499, "trainrunSectionId": 741, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1500, "trainrunSectionId": 742, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1500, "trainrunSectionId": 742, "positionIndex": 1, "positionAlignment": 0}
       ],
       "transitions": [{"id": 416, "port1Id": 1499, "port2Id": 1500, "isNonStopTransit": false}],
       "connections": [],
@@ -2785,7 +2785,7 @@
       "positionY": 1048,
       "ports": [
         {"id": 1501, "trainrunSectionId": 742, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1502, "trainrunSectionId": 743, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1502, "trainrunSectionId": 743, "positionIndex": 1, "positionAlignment": 0}
       ],
       "transitions": [{"id": 417, "port1Id": 1501, "port2Id": 1502, "isNonStopTransit": false}],
       "connections": [],
@@ -2813,7 +2813,7 @@
       "positionY": 1116,
       "ports": [
         {"id": 1503, "trainrunSectionId": 743, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1504, "trainrunSectionId": 744, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1504, "trainrunSectionId": 744, "positionIndex": 1, "positionAlignment": 0}
       ],
       "transitions": [{"id": 418, "port1Id": 1503, "port2Id": 1504, "isNonStopTransit": false}],
       "connections": [],
@@ -2841,7 +2841,7 @@
       "positionY": 1150,
       "ports": [
         {"id": 1505, "trainrunSectionId": 744, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1506, "trainrunSectionId": 745, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1506, "trainrunSectionId": 745, "positionIndex": 1, "positionAlignment": 0}
       ],
       "transitions": [{"id": 419, "port1Id": 1505, "port2Id": 1506, "isNonStopTransit": false}],
       "connections": [],
@@ -2869,7 +2869,7 @@
       "positionY": 1536,
       "ports": [
         {"id": 1507, "trainrunSectionId": 566, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1508, "trainrunSectionId": 746, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1508, "trainrunSectionId": 746, "positionIndex": 1, "positionAlignment": 0}
       ],
       "transitions": [{"id": 420, "port1Id": 1507, "port2Id": 1508, "isNonStopTransit": false}],
       "connections": [],
@@ -2897,7 +2897,7 @@
       "positionY": 1712,
       "ports": [
         {"id": 1509, "trainrunSectionId": 746, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1510, "trainrunSectionId": 747, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1510, "trainrunSectionId": 747, "positionIndex": 1, "positionAlignment": 0}
       ],
       "transitions": [{"id": 421, "port1Id": 1509, "port2Id": 1510, "isNonStopTransit": false}],
       "connections": [],
@@ -2925,7 +2925,7 @@
       "positionY": 1536,
       "ports": [
         {"id": 1511, "trainrunSectionId": 568, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1512, "trainrunSectionId": 748, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1512, "trainrunSectionId": 748, "positionIndex": 1, "positionAlignment": 0}
       ],
       "transitions": [{"id": 422, "port1Id": 1511, "port2Id": 1512, "isNonStopTransit": false}],
       "connections": [],
@@ -2953,7 +2953,7 @@
       "positionY": 1536,
       "ports": [
         {"id": 1513, "trainrunSectionId": 570, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1514, "trainrunSectionId": 749, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1514, "trainrunSectionId": 749, "positionIndex": 1, "positionAlignment": 0}
       ],
       "transitions": [{"id": 423, "port1Id": 1513, "port2Id": 1514, "isNonStopTransit": false}],
       "connections": [],
@@ -2981,7 +2981,7 @@
       "positionY": 32,
       "ports": [
         {"id": 1515, "trainrunSectionId": 571, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1516, "trainrunSectionId": 750, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1516, "trainrunSectionId": 750, "positionIndex": 1, "positionAlignment": 2}
       ],
       "transitions": [{"id": 424, "port1Id": 1515, "port2Id": 1516, "isNonStopTransit": false}],
       "connections": [],
@@ -3008,8 +3008,8 @@
       "positionX": -3024,
       "positionY": 256,
       "ports": [
-        {"id": 1518, "trainrunSectionId": 751, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1517, "trainrunSectionId": 584, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1517, "trainrunSectionId": 584, "positionIndex": 0, "positionAlignment": 3},
+        {"id": 1518, "trainrunSectionId": 751, "positionIndex": 1, "positionAlignment": 3}
       ],
       "transitions": [{"id": 425, "port1Id": 1517, "port2Id": 1518, "isNonStopTransit": false}],
       "connections": [],
@@ -3036,8 +3036,8 @@
       "positionX": -3272,
       "positionY": 400,
       "ports": [
-        {"id": 1520, "trainrunSectionId": 752, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1519, "trainrunSectionId": 751, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1519, "trainrunSectionId": 751, "positionIndex": 0, "positionAlignment": 3},
+        {"id": 1520, "trainrunSectionId": 752, "positionIndex": 1, "positionAlignment": 3}
       ],
       "transitions": [{"id": 426, "port1Id": 1519, "port2Id": 1520, "isNonStopTransit": false}],
       "connections": [],
@@ -3064,8 +3064,8 @@
       "positionX": 2976,
       "positionY": 32,
       "ports": [
-        {"id": 1522, "trainrunSectionId": 753, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1521, "trainrunSectionId": 588, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1521, "trainrunSectionId": 588, "positionIndex": 0, "positionAlignment": 3},
+        {"id": 1522, "trainrunSectionId": 753, "positionIndex": 1, "positionAlignment": 3}
       ],
       "transitions": [{"id": 427, "port1Id": 1521, "port2Id": 1522, "isNonStopTransit": false}],
       "connections": [],
@@ -3092,8 +3092,8 @@
       "positionX": 4256,
       "positionY": 64,
       "ports": [
-        {"id": 1524, "trainrunSectionId": 754, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1523, "trainrunSectionId": 598, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1524, "trainrunSectionId": 754, "positionIndex": 0, "positionAlignment": 3},
+        {"id": 1523, "trainrunSectionId": 598, "positionIndex": 1, "positionAlignment": 3}
       ],
       "transitions": [{"id": 428, "port1Id": 1523, "port2Id": 1524, "isNonStopTransit": false}],
       "connections": [],
@@ -3120,8 +3120,8 @@
       "positionX": 4064,
       "positionY": 48,
       "ports": [
-        {"id": 1526, "trainrunSectionId": 755, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1525, "trainrunSectionId": 754, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1526, "trainrunSectionId": 755, "positionIndex": 0, "positionAlignment": 3},
+        {"id": 1525, "trainrunSectionId": 754, "positionIndex": 1, "positionAlignment": 3}
       ],
       "transitions": [{"id": 429, "port1Id": 1525, "port2Id": 1526, "isNonStopTransit": false}],
       "connections": [],
@@ -3148,8 +3148,8 @@
       "positionX": 3968,
       "positionY": 40,
       "ports": [
-        {"id": 1528, "trainrunSectionId": 756, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1527, "trainrunSectionId": 755, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1528, "trainrunSectionId": 756, "positionIndex": 0, "positionAlignment": 3},
+        {"id": 1527, "trainrunSectionId": 755, "positionIndex": 1, "positionAlignment": 3}
       ],
       "transitions": [{"id": 430, "port1Id": 1527, "port2Id": 1528, "isNonStopTransit": false}],
       "connections": [],
@@ -3176,8 +3176,8 @@
       "positionX": 3920,
       "positionY": 36,
       "ports": [
-        {"id": 1530, "trainrunSectionId": 757, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1529, "trainrunSectionId": 756, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1530, "trainrunSectionId": 757, "positionIndex": 0, "positionAlignment": 3},
+        {"id": 1529, "trainrunSectionId": 756, "positionIndex": 1, "positionAlignment": 3}
       ],
       "transitions": [{"id": 431, "port1Id": 1529, "port2Id": 1530, "isNonStopTransit": false}],
       "connections": [],
@@ -3204,8 +3204,8 @@
       "positionX": 4064,
       "positionY": -192,
       "ports": [
-        {"id": 1532, "trainrunSectionId": 758, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1531, "trainrunSectionId": 617, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1531, "trainrunSectionId": 617, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1532, "trainrunSectionId": 758, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 432, "port1Id": 1531, "port2Id": 1532, "isNonStopTransit": false}],
       "connections": [],
@@ -3232,8 +3232,8 @@
       "positionX": 4160,
       "positionY": -304,
       "ports": [
-        {"id": 1534, "trainrunSectionId": 759, "positionIndex": 0, "positionAlignment": 0},
-        {"id": 1533, "trainrunSectionId": 758, "positionIndex": 0, "positionAlignment": 1}
+        {"id": 1533, "trainrunSectionId": 758, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 1534, "trainrunSectionId": 759, "positionIndex": 1, "positionAlignment": 1}
       ],
       "transitions": [{"id": 433, "port1Id": 1533, "port2Id": 1534, "isNonStopTransit": false}],
       "connections": [],
@@ -3261,7 +3261,7 @@
       "positionY": 960,
       "ports": [
         {"id": 1535, "trainrunSectionId": 674, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1536, "trainrunSectionId": 760, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1536, "trainrunSectionId": 760, "positionIndex": 1, "positionAlignment": 2}
       ],
       "transitions": [{"id": 434, "port1Id": 1535, "port2Id": 1536, "isNonStopTransit": false}],
       "connections": [],
@@ -3289,7 +3289,7 @@
       "positionY": 1072,
       "ports": [
         {"id": 1537, "trainrunSectionId": 760, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1538, "trainrunSectionId": 761, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1538, "trainrunSectionId": 761, "positionIndex": 1, "positionAlignment": 2}
       ],
       "transitions": [{"id": 435, "port1Id": 1537, "port2Id": 1538, "isNonStopTransit": false}],
       "connections": [],
@@ -3317,7 +3317,7 @@
       "positionY": 1128,
       "ports": [
         {"id": 1539, "trainrunSectionId": 761, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1540, "trainrunSectionId": 762, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1540, "trainrunSectionId": 762, "positionIndex": 1, "positionAlignment": 2}
       ],
       "transitions": [{"id": 436, "port1Id": 1539, "port2Id": 1540, "isNonStopTransit": false}],
       "connections": [],
@@ -3345,7 +3345,7 @@
       "positionY": 1156,
       "ports": [
         {"id": 1541, "trainrunSectionId": 762, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1542, "trainrunSectionId": 763, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1542, "trainrunSectionId": 763, "positionIndex": 1, "positionAlignment": 2}
       ],
       "transitions": [{"id": 437, "port1Id": 1541, "port2Id": 1542, "isNonStopTransit": false}],
       "connections": [],
@@ -3373,7 +3373,7 @@
       "positionY": 1170,
       "ports": [
         {"id": 1543, "trainrunSectionId": 763, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1544, "trainrunSectionId": 764, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1544, "trainrunSectionId": 764, "positionIndex": 1, "positionAlignment": 2}
       ],
       "transitions": [{"id": 438, "port1Id": 1543, "port2Id": 1544, "isNonStopTransit": false}],
       "connections": [],
@@ -3400,8 +3400,8 @@
       "positionX": -2816,
       "positionY": 416,
       "ports": [
-        {"id": 1546, "trainrunSectionId": 765, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1545, "trainrunSectionId": 682, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1545, "trainrunSectionId": 682, "positionIndex": 0, "positionAlignment": 3},
+        {"id": 1546, "trainrunSectionId": 765, "positionIndex": 1, "positionAlignment": 3}
       ],
       "transitions": [{"id": 439, "port1Id": 1545, "port2Id": 1546, "isNonStopTransit": false}],
       "connections": [],
@@ -3428,8 +3428,8 @@
       "positionX": -2944,
       "positionY": 480,
       "ports": [
-        {"id": 1548, "trainrunSectionId": 766, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1547, "trainrunSectionId": 765, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1547, "trainrunSectionId": 765, "positionIndex": 0, "positionAlignment": 3},
+        {"id": 1548, "trainrunSectionId": 766, "positionIndex": 1, "positionAlignment": 3}
       ],
       "transitions": [{"id": 440, "port1Id": 1547, "port2Id": 1548, "isNonStopTransit": false}],
       "connections": [],
@@ -3457,7 +3457,7 @@
       "positionY": 352,
       "ports": [
         {"id": 1549, "trainrunSectionId": 692, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1550, "trainrunSectionId": 767, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1550, "trainrunSectionId": 767, "positionIndex": 1, "positionAlignment": 2}
       ],
       "transitions": [{"id": 441, "port1Id": 1549, "port2Id": 1550, "isNonStopTransit": false}],
       "connections": [],
@@ -3484,8 +3484,8 @@
       "positionX": -3728,
       "positionY": 576,
       "ports": [
-        {"id": 1552, "trainrunSectionId": 768, "positionIndex": 0, "positionAlignment": 2},
-        {"id": 1551, "trainrunSectionId": 703, "positionIndex": 0, "positionAlignment": 3}
+        {"id": 1551, "trainrunSectionId": 703, "positionIndex": 0, "positionAlignment": 3},
+        {"id": 1552, "trainrunSectionId": 768, "positionIndex": 1, "positionAlignment": 3}
       ],
       "transitions": [{"id": 442, "port1Id": 1551, "port2Id": 1552, "isNonStopTransit": false}],
       "connections": [],
