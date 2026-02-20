@@ -291,7 +291,7 @@ export class TrainrunIterator {
       this.currentElement = this.pointerElement;
       this.pointerElement = undefined;
       // log the issue
-      this.logService.error(
+      this.logService?.error(
         $localize`:@@app.services.util.trainrun-iteration.error.infinity-loop:Iterator has detected an infinity loop. The iteration terminated early!`,
         new Error().stack,
       );
@@ -338,7 +338,7 @@ export class BackwardTrainrunIterator extends TrainrunIterator {
       this.currentElement = this.pointerElement;
       this.pointerElement = undefined;
       // log the issue
-      this.logService.error(
+      this.logService?.error(
         $localize`:@@app.services.util.trainrun-iteration.error.infinity-loop:Iterator has detected an infinity loop. The iteration terminated early!`,
         new Error().stack,
       );
@@ -358,8 +358,8 @@ export class NextExpandedStopIterator extends TrainrunIterator {
   public next(): TrainrunSectionNodePair {
     const currentElement = this.pointerElement!;
     if (
-      !this.pointerElement.node.isNonStop(this.pointerElement.trainrunSection) &&
-      !this.pointerElement.node.getIsCollapsed()
+      !currentElement.node.isNonStop(currentElement.trainrunSection) &&
+      !currentElement.node.getIsCollapsed()
     ) {
       // The trainrun has a stop and break the forward iteration
       this.currentElement = currentElement;
@@ -378,8 +378,8 @@ export class BackwardNextExpandedStopIterator extends BackwardTrainrunIterator {
   public next(): TrainrunSectionNodePair {
     const currentElement = this.pointerElement!;
     if (
-      !this.pointerElement.node.isNonStop(this.pointerElement.trainrunSection) &&
-      !this.pointerElement.node.getIsCollapsed()
+      !currentElement.node.isNonStop(currentElement.trainrunSection) &&
+      !currentElement.node.getIsCollapsed()
     ) {
       // The trainrun has a stop and break the backward iteration
       this.currentElement = currentElement;
@@ -399,8 +399,25 @@ export class ExpandedTrainrunIterator extends TrainrunIterator {
     // Continue traversing only if the current node is collapsed
     // Stop when we reach an expanded (non-collapsed) node
     const currentElement = this.pointerElement!;
-    if (!this.pointerElement.node.getIsCollapsed()) {
+    if (!currentElement.node.getIsCollapsed()) {
       // The trainrun has reached an expanded (non-collapsed) node and break the forward iteration
+      this.currentElement = currentElement;
+      this.pointerElement = undefined;
+      return this.currentElement;
+    }
+    return super.next();
+  }
+}
+
+export class BackwardExpandedStopIterator extends BackwardTrainrunIterator {
+  /**
+   * Throws an exception if called after the end of the iteration.
+   * Check for `this.hasNext()` before.
+   */
+  public next(): TrainrunSectionNodePair {
+    const currentElement = this.pointerElement!;
+    if (!currentElement.node.getIsCollapsed()) {
+      // The trainrun has a stop and break the backward iteration
       this.currentElement = currentElement;
       this.pointerElement = undefined;
       return this.currentElement;
