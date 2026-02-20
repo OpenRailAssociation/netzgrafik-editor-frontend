@@ -25,7 +25,7 @@ import {
   TrainrunIterator,
 } from "../util/trainrun.iterator";
 import {Operation, OperationType, TrainrunOperation} from "../../models/operation.model";
-import {Vec2D} from "../../utils/vec2D";
+import {Port} from "src/app/models/port.model";
 
 interface DepartureAndArrivalTimes {
   nodeFromDepartureTime: number;
@@ -684,6 +684,7 @@ export class TrainrunSectionService implements OnDestroy {
     this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection.getId());
 
     if (enforceUpdate) {
+      this.nodeService.initPortOrdering();
       this.nodeService.nodesUpdated();
       this.nodeService.connectionsUpdated();
       this.nodeService.transitionsUpdated();
@@ -1541,5 +1542,18 @@ export class TrainrunSectionService implements OnDestroy {
     });
 
     return groups;
+  }
+
+  getTrainrunSectionsGroupOrientedBasedOnPort(port: Port): TrainrunSection[] | undefined {
+    const section = port.getTrainrunSection();
+    const sections = this.getAllTrainrunSectionsForTrainrun(section.getTrainrun().getId());
+    const groups = this.groupTrainrunSectionsIntoChains(sections);
+    const group = groups.find((group) => group.some((trs) => trs.getId() === section.getId()));
+    if (group === undefined) return undefined;
+    if (group[0].getSourcePortId() === port.getId()) {
+      return group;
+    } else {
+      return [...group].reverse();
+    }
   }
 }
