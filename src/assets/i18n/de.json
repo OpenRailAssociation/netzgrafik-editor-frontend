@@ -96,8 +96,8 @@
             "description": "Quellankunftszeit kann nicht erreicht werden"
           },
           "travel-time-less-than-1": {
-            "title": "Reisezeit weniger als 1",
-            "description": "Die Reisezeit muss größer oder gleich 1 sein."
+            "title": "Reisezeit weniger als {$minimumTravelTime}",
+            "description": "Die Reisezeit muss größer oder gleich {$minimumTravelTime} sein."
           }
         },
         "transition-validator": {

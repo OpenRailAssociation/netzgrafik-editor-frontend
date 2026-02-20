@@ -96,8 +96,8 @@
             "description": "L'heure d'arrivée à l'origine ne peut être atteinte"
           },
           "travel-time-less-than-1": {
-            "title": "Temps de trajet inférieur à 1",
-            "description": "Le temps de trajet doit être supérieur ou égal à 1"
+            "title": "Temps de trajet inférieur à {$minimumTravelTime}",
+            "description": "Le temps de trajet doit être supérieur ou égal à {$minimumTravelTime}"
           }
         },
         "transition-validator": {

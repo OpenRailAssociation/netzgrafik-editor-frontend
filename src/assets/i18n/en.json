@@ -96,8 +96,8 @@
             "description": "Source arrival time cannot be reached"
           },
           "travel-time-less-than-1": {
-            "title": "Travel Time less than 1",
-            "description": "Travel time must be greater than or equal to 1"
+            "title": "Travel Time less than {$minimumTravelTime}",
+            "description": "Travel time must be greater than or equal to {$minimumTravelTime}"
           }
         },
         "transition-validator": {

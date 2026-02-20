@@ -787,7 +787,7 @@ export class EditorToolsViewComponent {
     // step(6) Validate all trainrun sections
     this.trainrunSectionService.getTrainrunSections().forEach((ts) => {
       TrainrunSectionValidator.validateOneSection(ts);
-      TrainrunSectionValidator.validateTravelTime(ts);
+      TrainrunSectionValidator.validateTravelTime(ts, this.filterService.getTimeDisplayPrecision());
     });
   }
 

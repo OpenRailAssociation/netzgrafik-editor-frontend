@@ -387,7 +387,7 @@ export class TrainrunSection {
 
   setTravelTime(time: number) {
     this.travelTime.time = time;
-    TrainrunSectionValidator.validateTravelTime(this);
+    TrainrunSectionValidator.validateTravelTime(this, 1); // TODO: I don't think this should be done here
   }
 
   setSourceDeparture(time: number) {
