@@ -71,3 +71,9 @@ table.NodeDataTable.readonly {
   pointer-events: none;
   cursor: default;
 }
+
+.node-display-mode-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
