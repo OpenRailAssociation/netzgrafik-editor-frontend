@@ -160,12 +160,22 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
       trainrunSection = this.trainrunService.getLeftOrTopExtremitySection();
     }
 
-    const referenceNode = position === "top" ? this.leftNode : this.rightNode;
-    if (referenceNode !== trainrunSection.getSourceNode()) {
+    if (this.leftNode === this.rightNode) {
+      // Cyclic trainrun
+      // This ensures the two cards represent different directions
       this.trainrunSectionService.invertTrainrunSectionsSourceAndTarget(
         trainrunSection.getTrainrunId(),
       );
+    } else {
+      // Non-cyclic trainrun
+      const referenceNode = position === "top" ? this.leftNode : this.rightNode;
+      if (referenceNode !== trainrunSection.getSourceNode()) {
+        this.trainrunSectionService.invertTrainrunSectionsSourceAndTarget(
+          trainrunSection.getTrainrunId(),
+        );
+      }
     }
+
     this.chosenCard = position;
     this.trainrunService.updateDirection(selectedTrainrun, Direction.ONE_WAY);
   }
