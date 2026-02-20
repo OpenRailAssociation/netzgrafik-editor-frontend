@@ -1257,12 +1257,7 @@ export class TrainrunSectionsView {
       .attr(StaticDomTags.EDGE_NODE_ID, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.getNode(d.trainrunSection, anchorNode).getId(),
       )
-      .classed(
-        StaticDomTags.EDGE_IS_TARGET,
-        anchorNode === TrainrunSectionNodeAnchor.Source
-          ? TrainrunSectionNodeAnchor.Target
-          : TrainrunSectionNodeAnchor.Source,
-      )
+      .classed(StaticDomTags.EDGE_IS_TARGET, anchorNode !== TrainrunSectionNodeAnchor.Source)
       .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.getNode(d.trainrunSection, anchorNode).isNonStop(d.trainrunSection),
       )
