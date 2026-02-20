@@ -455,6 +455,9 @@
       },
       "editor-side-view": {
         "editor-node-detail-view": {
+          "display": "Affichage",
+          "expanded": "Développé",
+          "collapsed": "Réduit",
           "base-data": "Données de base",
           "operational-point": "Point opérationnel",
           "name": "Nom",
