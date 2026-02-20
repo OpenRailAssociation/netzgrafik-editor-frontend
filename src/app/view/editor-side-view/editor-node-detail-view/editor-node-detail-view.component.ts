@@ -35,6 +35,7 @@ interface NodeProperties {
   nodeResourceId: number;
   nodeCapacity: number;
   labels: string[];
+  isCollapsed: boolean;
 }
 
 @Component({
@@ -57,6 +58,7 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
     nodeResourceId: null,
     nodeCapacity: 2,
     labels: [],
+    isCollapsed: false,
   };
 
   private initialNodeLabels: string[];
@@ -111,6 +113,10 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
       this.nodeProperties.nodeId,
       this.nodeProperties.nodeConnectionTime,
     );
+  }
+
+  onNodeDisplayModeChanged(display: "expanded" | "collapsed") {
+    this.nodeService.changeIsCollapsed(this.nodeProperties.nodeId, display === "collapsed");
   }
 
   add(chipInputEvent: SbbChipInputEvent) {
@@ -237,6 +243,7 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
         nodeResourceId: resource.getId(),
         nodeCapacity: resource.getCapacity(),
         labels: this.labelService.getTextLabelsFromIds(selectedNode.getLabelIds()),
+        isCollapsed: selectedNode.getIsCollapsed(),
       };
       this.initialNodeLabels = [...this.nodeProperties.labels]; // initialize labels
     }
