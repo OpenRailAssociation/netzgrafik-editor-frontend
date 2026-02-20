@@ -482,13 +482,13 @@ export class Node {
             a.getPositionAlignment() === PortAlignment.Right
           ) {
             if (
-              a.getOppositeNodePosition(this.getId()).getY() >
-              b.getOppositeNodePosition(this.getId()).getY()
+              a.getOppositeExpandedNodePosition(this.getId()).getY() >
+              b.getOppositeExpandedNodePosition(this.getId()).getY()
             ) {
               return 1;
             } else if (
-              a.getOppositeNodePosition(this.getId()).getY() ===
-              b.getOppositeNodePosition(this.getId()).getY()
+              a.getOppositeExpandedNodePosition(this.getId()).getY() ===
+              b.getOppositeExpandedNodePosition(this.getId()).getY()
             ) {
               return Node.orderPortsTrainCategory(a, b);
             } else {
@@ -496,13 +496,13 @@ export class Node {
             }
           } else {
             if (
-              a.getOppositeNodePosition(this.getId()).getX() >
-              b.getOppositeNodePosition(this.getId()).getX()
+              a.getOppositeExpandedNodePosition(this.getId()).getX() >
+              b.getOppositeExpandedNodePosition(this.getId()).getX()
             ) {
               return 1;
             } else if (
-              a.getOppositeNodePosition(this.getId()).getX() ===
-              b.getOppositeNodePosition(this.getId()).getX()
+              a.getOppositeExpandedNodePosition(this.getId()).getX() ===
+              b.getOppositeExpandedNodePosition(this.getId()).getX()
             ) {
               return Node.orderPortsTrainCategory(a, b);
             } else {
