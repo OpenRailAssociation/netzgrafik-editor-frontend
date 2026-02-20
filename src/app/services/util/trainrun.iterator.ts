@@ -191,7 +191,7 @@ export class TrainrunIterator {
   protected visitedNodes: TrainrunSectionNodePair[] = [];
 
   constructor(
-    protected logService: LogService,
+    protected logService: LogService | null,
     private startNode: Node,
     private startTrainrunSection: TrainrunSection,
   ) {
