@@ -905,6 +905,15 @@ export class NodeService implements OnDestroy {
     this.operation.emit(new NodeOperation(OperationType.update, this.getNodeFromId(nodeId)));
   }
 
+  changeIsCollapsed(nodeId: number, isCollapsed: boolean) {
+    this.getNodeFromId(nodeId).setIsCollapsed(isCollapsed);
+    this.nodesUpdated();
+    this.trainrunSectionService.trainrunSectionsUpdated();
+    this.connectionsUpdated();
+    this.transitionsUpdated();
+    this.operation.emit(new NodeOperation(OperationType.update, this.getNodeFromId(nodeId)));
+  }
+
   changeLabels(nodeId: number, labels: string[]) {
     const node = this.getNodeFromId(nodeId);
 
