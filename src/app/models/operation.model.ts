@@ -41,9 +41,26 @@ abstract class TrainrunOperation extends Operation {
   }
 }
 
+type TrainrunUpdateTag =
+  | "nodes"
+  | "times"
+  | "numberOfStops"
+  | "name"
+  | "categoryId"
+  | "frequencyId"
+  | "timeCategoryId"
+  | "labelIds"
+  | "direction";
+
 class TrainrunUpdateOperation extends TrainrunOperation {
-  constructor(trainrun: Trainrun) {
+  readonly tags: TrainrunUpdateTag[];
+  constructor(
+    trainrun: Trainrun,
+    tags: TrainrunUpdateTag[],
+    oneWayDirection?: "forward" | "backward",
+  ) {
     super(OperationType.update, trainrun);
+    this.tags = tags;
   }
 }
 
