@@ -59,10 +59,24 @@ abstract class TrainrunOperation<T extends OperationType> extends BaseOperation<
   }
 }
 
+type TrainrunUpdateTag =
+  | "nodes"
+  | "times"
+  | "numberOfStops"
+  | "name"
+  | "categoryId"
+  | "frequencyId"
+  | "timeCategoryId"
+  | "labelIds"
+  | "direction";
+
 class TrainrunUpdateOperation extends TrainrunOperation<OperationType.update> {
+  readonly tags: TrainrunUpdateTag[];
+
   /** @internal*/
-  constructor(trainrun: Trainrun) {
+  constructor(trainrun: Trainrun, tags: TrainrunUpdateTag[]) {
     super(OperationType.update, trainrun);
+    this.tags = tags;
   }
 }
 

@@ -236,7 +236,7 @@ export class TrainrunService {
     this.propagateTrainrunInitialConsecutiveTimes(trainrun);
     this.nodeService.initPortOrdering();
     this.trainrunsUpdated();
-    this.operation.emit(new TrainrunUpdateOperation(trainrun));
+    this.operation.emit(new TrainrunUpdateOperation(trainrun, ["times", "frequencyId"]));
     return freqOffset;
   }
 
@@ -249,7 +249,7 @@ export class TrainrunService {
     this.nodeService.reorderPortsOnNodesForTrainrun(trainrun, false);
     this.nodeService.initPortOrdering();
     this.trainrunsUpdated();
-    this.operation.emit(new TrainrunUpdateOperation(trainrun));
+    this.operation.emit(new TrainrunUpdateOperation(trainrun, ["categoryId"]));
   }
 
   updateTrainrunTimeCategory(trainrun: Trainrun, timeCategory: TrainrunTimeCategory) {
@@ -262,7 +262,7 @@ export class TrainrunService {
     this.nodeService.reorderPortsOnNodesForTrainrun(trainrun, false);
     this.nodeService.initPortOrdering();
     this.trainrunsUpdated();
-    this.operation.emit(new TrainrunUpdateOperation(trainrun));
+    this.operation.emit(new TrainrunUpdateOperation(trainrun, ["timeCategoryId"]));
   }
 
   updateTrainrunTitle(trainrun: Trainrun, title: string) {
@@ -270,14 +270,16 @@ export class TrainrunService {
     this.nodeService.reorderPortsOnNodesForTrainrun(trainrun, false);
     this.nodeService.initPortOrdering();
     this.trainrunsUpdated();
-    this.operation.emit(new TrainrunUpdateOperation(trainrun));
+    this.operation.emit(new TrainrunUpdateOperation(trainrun, ["name"]));
   }
 
   updateDirection(trainrun: Trainrun, direction: Direction) {
     const trainrunSection = this.getTrainrunFromId(trainrun.getId());
     trainrunSection.setDirection(direction);
     this.trainrunsUpdated();
-    this.operation.emit(new TrainrunUpdateOperation(trainrun));
+    this.operation.emit(
+      new TrainrunUpdateOperation(trainrun, ["direction", "nodes", "times"]),
+    );
   }
 
   getTrainruns(): Trainrun[] {
@@ -559,7 +561,7 @@ export class TrainrunService {
     trainrun.setLabelIds(labelIds);
     this.trainrunsUpdated();
     if (uniqueLabels.length === labels.length) {
-      this.operation.emit(new TrainrunUpdateOperation(trainrun));
+      this.operation.emit(new TrainrunUpdateOperation(trainrun, ["labelIds"]));
     }
   }
 
