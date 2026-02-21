@@ -273,12 +273,16 @@ export class TrainrunService {
     this.operation.emit(new TrainrunUpdateOperation(trainrun, ["name"]));
   }
 
-  updateDirection(trainrun: Trainrun, direction: Direction) {
+  updateDirection(
+    trainrun: Trainrun,
+    direction: Direction,
+    oneWayDirection?: "forward" | "backward",
+  ) {
     const trainrunSection = this.getTrainrunFromId(trainrun.getId());
     trainrunSection.setDirection(direction);
     this.trainrunsUpdated();
     this.operation.emit(
-      new TrainrunUpdateOperation(trainrun, ["direction", "nodes", "times"]),
+      new TrainrunUpdateOperation(trainrun, ["direction", "nodes", "times"], oneWayDirection),
     );
   }
 

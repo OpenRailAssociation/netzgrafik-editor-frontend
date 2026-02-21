@@ -72,11 +72,17 @@ type TrainrunUpdateTag =
 
 class TrainrunUpdateOperation extends TrainrunOperation<OperationType.update> {
   readonly tags: TrainrunUpdateTag[];
+  readonly oneWayDirection?: "forward" | "backward";
 
   /** @internal*/
-  constructor(trainrun: Trainrun, tags: TrainrunUpdateTag[]) {
+  constructor(
+    trainrun: Trainrun,
+    tags: TrainrunUpdateTag[],
+    oneWayDirection?: "forward" | "backward",
+  ) {
     super(OperationType.update, trainrun);
     this.tags = tags;
+    this.oneWayDirection = oneWayDirection;
   }
 }
 
