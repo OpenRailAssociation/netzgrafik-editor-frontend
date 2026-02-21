@@ -270,12 +270,14 @@ export class TrainrunService {
     this.operation.emit(new TrainrunUpdateOperation(trainrun, ["name"]));
   }
 
-  updateDirection(trainrun: Trainrun, direction: Direction) {
+  updateDirection(trainrun: Trainrun, direction: Direction, isTrainInverted?: boolean) {
     const trainrunSection = this.getTrainrunFromId(trainrun.getId());
     trainrunSection.setDirection(direction);
     this.trainrunsUpdated();
+    let oneWayDirection = undefined;
+    if (direction === Direction.ONE_WAY) oneWayDirection = isTrainInverted ? "backward" : "forward";
     this.operation.emit(
-      new TrainrunUpdateOperation(trainrun, ["direction", "nodes", "times"]),
+      new TrainrunUpdateOperation(trainrun, ["direction", "nodes", "times"], oneWayDirection),
     );
   }
 

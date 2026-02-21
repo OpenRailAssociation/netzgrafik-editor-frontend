@@ -161,13 +161,15 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
     }
 
     const referenceNode = position === "top" ? this.leftNode : this.rightNode;
+    let isTrainInverted = false;
     if (referenceNode !== trainrunSection.getSourceNode()) {
+      isTrainInverted = true;
       this.trainrunSectionService.invertTrainrunSectionsSourceAndTarget(
         trainrunSection.getTrainrunId(),
       );
     }
     this.chosenCard = position;
-    this.trainrunService.updateDirection(selectedTrainrun, Direction.ONE_WAY);
+    this.trainrunService.updateDirection(selectedTrainrun, Direction.ONE_WAY, isTrainInverted);
   }
 
   getTrainrunTimeStructure(): Omit<LeftAndRightTimeStructure, "travelTime"> {
