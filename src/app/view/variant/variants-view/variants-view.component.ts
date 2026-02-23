@@ -22,6 +22,7 @@ import {NavigationService} from "../../../services/ui/navigation.service";
 import {VersionControlService} from "../../../services/data/version-control.service";
 import {SlotAction} from "../../action-menu/action-menu/action-menu.component";
 import {DataService} from "../../../services/data/data.service";
+import {NetzgrafikDto} from "../../../data-structures/business.data.structures";
 
 @Component({
   selector: "sbb-variants-view",
@@ -179,20 +180,28 @@ export class VariantsViewComponent implements OnDestroy {
       ? variantToEdit.latestSnapshotVersion.id
       : variantToEdit.latestReleaseVersion.id;
 
-    VariantDialogComponent.open(this.dialog, {name: oldName})
-      .pipe(takeUntil(this.destroyed))
-      .subscribe((fromVariantModel) => {
-        this.versionsBackendService
-          .createSnapshotVersion(baseVersionId, {
-            name: fromVariantModel.name,
-            comment: "",
-            model: JSON.stringify(this.dataService.getNetzgrafikDto()),
-          })
+    this.versionsBackendService
+      .getVersionModel(baseVersionId)
+      .pipe(
+        takeUntil(this.destroyed),
+        map((model) => model as NetzgrafikDto),
+      )
+      .subscribe((netzgrafik) => {
+        VariantDialogComponent.open(this.dialog, {name: oldName})
           .pipe(takeUntil(this.destroyed))
-          .subscribe((versionId) => {
-            this.projectService.getProject(variantToEdit.projectId).subscribe((projectDto) => {
-              this.updateProject(projectDto);
-            });
+          .subscribe((fromVariantModel) => {
+            this.versionsBackendService
+              .createSnapshotVersion(baseVersionId, {
+                name: fromVariantModel.name,
+                comment: "",
+                model: JSON.stringify(netzgrafik),
+              })
+              .pipe(takeUntil(this.destroyed))
+              .subscribe((versionId) => {
+                this.projectService.getProject(variantToEdit.projectId).subscribe((projectDto) => {
+                  this.updateProject(projectDto);
+                });
+              });
           });
       });
   }
