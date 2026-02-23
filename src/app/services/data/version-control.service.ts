@@ -98,7 +98,9 @@ export class VersionControlService implements OnDestroy {
     this.versionsBackendService
       .createSnapshotVersion(this.variant.latestVersion.id, {
         name,
-        comment: newName ? `Neuer Name: ${newName}` : "",
+        comment: newName
+          ? $localize`:@@app.services.data.version-control.new-name-comment:New name: ${newName}`
+          : "",
         model: JSON.stringify(this.dataService.getNetzgrafikDto()),
       })
       .pipe(takeUntil(this.destroyed))

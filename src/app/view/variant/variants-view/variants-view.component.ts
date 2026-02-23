@@ -183,27 +183,23 @@ export class VariantsViewComponent implements OnDestroy {
     this.versionsBackendService
       .getVersionModel(baseVersionId)
       .pipe(
-        takeUntil(this.destroyed),
         map((model) => model as NetzgrafikDto),
+        mergeMap((netzgrafik) =>
+          VariantDialogComponent.open(this.dialog, {name: oldName}).pipe(
+            map((formComponentModel) => ({netzgrafik, formComponentModel})),
+          ),
+        ),
+        mergeMap(({netzgrafik, formComponentModel}) =>
+          this.versionsBackendService.createSnapshotVersion(baseVersionId, {
+            name: formComponentModel.name,
+            comment: $localize`:@@app.services.data.version-control.new-name-comment:New name: ${formComponentModel.name}`,
+            model: JSON.stringify(netzgrafik),
+          }),
+        ),
+        mergeMap(() => this.projectService.getProject(variantToEdit.projectId)),
+        takeUntil(this.destroyed),
       )
-      .subscribe((netzgrafik) => {
-        VariantDialogComponent.open(this.dialog, {name: oldName})
-          .pipe(takeUntil(this.destroyed))
-          .subscribe((formComponentModel) => {
-            this.versionsBackendService
-              .createSnapshotVersion(baseVersionId, {
-                name: formComponentModel.name,
-                comment: `Neuer Name: ${formComponentModel.name}`,
-                model: JSON.stringify(netzgrafik),
-              })
-              .pipe(takeUntil(this.destroyed))
-              .subscribe((versionId) => {
-                this.projectService.getProject(variantToEdit.projectId).subscribe((projectDto) => {
-                  this.updateProject(projectDto);
-                });
-              });
-          });
-      });
+      .subscribe((projectDto) => this.updateProject(projectDto));
   }
 
   onArchiveVariantClicked(variantToEdit: VariantSummaryDto) {

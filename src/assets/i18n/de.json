@@ -68,6 +68,9 @@
             "title": "Zwischenhalteumwandlung",
             "description": "Zwischenhalteumwandlung führte bei der Vergabe der Zeiten zu inkonsistenzen!"
           }
+        },
+        "version-control": {
+          "new-name-comment": "Neuer Name: {$PH}"
         }
       },
       "ui": {
@@ -680,7 +683,8 @@
             "title": "Archivierung rückgängig machen",
             "content": "Möchten Sie die Archivierung des Projekts rückgängig machen?"
           },
-          "error-unexpected-data": "Unerwartete Daten: Kein Snapshot und keine freigegebene Version."
+          "error-unexpected-data": "Unerwartete Daten: Kein Snapshot und keine freigegebene Version.",
+          "new-name-comment": "Neuer Name: {$PH}"
         }
       }
     }
