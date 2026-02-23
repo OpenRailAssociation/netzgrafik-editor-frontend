@@ -154,59 +154,71 @@
     </sbb-form-field>
 
     <sbb-label>{{ "app.view.editor-filter-view.Round-trips" | translate }}</sbb-label>
-    <div class="sbb-checkbox-group-vertical">
-      <sbb-checkbox [(ngModel)]="filterDirectionArrows" (change)="filterDirectionArrowsChanged()"
-        >{{ "app.view.editor-filter-view.display-direction-arrows" | translate }}
-      </sbb-checkbox>
-    </div>
+    <sbb-toggle-switch-button
+      [labelTrue]="'app.view.editor-filter-view.display-direction-arrows' | translate"
+      [checked]="filterDirectionArrows"
+      (checkedChanged)="filterDirectionArrowsChanged()"
+    />
 
     <br />
     <sbb-label>{{ "app.view.editor-filter-view.times" | translate }}</sbb-label>
     <div class="sbb-checkbox-group-vertical">
-      <sbb-checkbox
-        [(ngModel)]="filterArrivalDepartureTime"
-        (change)="filterArrivalDepartureTimeChanged()"
-        >{{ "app.view.editor-filter-view.display-arrival-departure-times" | translate }}
-      </sbb-checkbox>
-      <sbb-checkbox [(ngModel)]="filterShowNonStopTime" (change)="filterShowNonStopTimeChanged()">
-        {{
-          "app.view.editor-filter-view.display-arrival-departure-times-for-connections" | translate
-        }}
-      </sbb-checkbox>
-      <sbb-checkbox [(ngModel)]="filterTravelTime" (change)="filterTravelTimeChanged()"
-        >{{ "app.view.editor-filter-view.display-travel-times" | translate }}
-      </sbb-checkbox>
-      <sbb-checkbox [(ngModel)]="filterTrainrunName" (change)="filterTrainrunNameChanged()"
-        >{{ "app.view.editor-filter-view.display-trainrun-name" | translate }}
-      </sbb-checkbox>
+      <sbb-toggle-switch-button
+        [labelTrue]="'app.view.editor-filter-view.display-arrival-departure-times' | translate"
+        [checked]="filterArrivalDepartureTime"
+        (checkedChanged)="filterArrivalDepartureTimeChanged()"
+      />
+      <sbb-toggle-switch-button
+        [labelTrue]="
+          'app.view.editor-filter-view.display-arrival-departure-times-for-connections' | translate
+        "
+        [checked]="filterShowNonStopTime"
+        (checkedChanged)="filterShowNonStopTimeChanged()"
+      />
+      <sbb-toggle-switch-button
+        [labelTrue]="'app.view.editor-filter-view.display-travel-times' | translate"
+        [checked]="filterTravelTime"
+        (checkedChanged)="filterTravelTimeChanged()"
+      />
+      <sbb-toggle-switch-button
+        [labelTrue]="'app.view.editor-filter-view.display-trainrun-name' | translate"
+        [checked]="filterTrainrunName"
+        (checkedChanged)="filterTrainrunNameChanged()"
+      />
     </div>
 
     <br />
     <sbb-label>{{ "app.view.editor-filter-view.connections" | translate }}</sbb-label>
-    <div class="sbb-checkbox-group-vertical">
-      <sbb-checkbox [(ngModel)]="filterConnections" (change)="filterConnectionsChanged()"
-        >{{ "app.view.editor-filter-view.display-connections" | translate }}
-      </sbb-checkbox>
-    </div>
+    <sbb-toggle-switch-button
+      [labelTrue]="'app.view.editor-filter-view.display-connections' | translate"
+      [checked]="filterConnections"
+      (checkedChanged)="filterConnectionsChanged()"
+    />
 
     <br />
     <sbb-label>{{ "app.view.editor-filter-view.nodes" | translate }}</sbb-label>
-    <div class="sbb-checkbox-group-vertical">
-      <sbb-checkbox [(ngModel)]="filterAllEmptyNodes" (change)="filterAllEmptyNodesChanged()"
-        >{{ "app.view.editor-filter-view.display-nodes-without-visible-trainruns" | translate }}
-      </sbb-checkbox>
-      <sbb-checkbox [(ngModel)]="filterAllNonStopNodes" (change)="filterAllNonStopNodesChanged()"
-        >{{ "app.view.editor-filter-view.display-nodes-with-only-stopping-trainruns" | translate }}
-      </sbb-checkbox>
-    </div>
+    <sbb-toggle-switch-button
+      [labelTrue]="
+        'app.view.editor-filter-view.display-nodes-without-visible-trainruns' | translate
+      "
+      [checked]="filterAllEmptyNodes"
+      (checkedChanged)="filterAllEmptyNodesChanged()"
+    />
+    <sbb-toggle-switch-button
+      [labelTrue]="
+        'app.view.editor-filter-view.display-nodes-with-only-stopping-trainruns' | translate
+      "
+      [checked]="filterAllNonStopNodes"
+      (checkedChanged)="filterAllNonStopNodesChanged()"
+    />
 
     <br />
     <sbb-label>{{ "app.view.editor-filter-view.notes" | translate }}</sbb-label>
-    <div class="sbb-checkbox-group-vertical">
-      <sbb-checkbox [(ngModel)]="filterNotes" (change)="filterNotesChanged()"
-        >{{ "app.view.editor-filter-view.display-notes" | translate }}
-      </sbb-checkbox>
-    </div>
+    <sbb-toggle-switch-button
+      [labelTrue]="'app.view.editor-filter-view.display-notes' | translate"
+      [checked]="filterNotes"
+      (checkedChanged)="filterNotesChanged()"
+    />
 
     <button
       sbb-secondary-button
