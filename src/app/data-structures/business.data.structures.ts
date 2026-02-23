@@ -25,6 +25,7 @@ export interface FreeFloatingTextDto {
   text: string; // user defined text (human-readable)
   backgroundColor: string; // Not a ColorRef , such html color, eg. #F0F0F0
   textColor: string; // Not a ColorRef , such html color, eg. #FF0000
+  rotation: number; // rotation angle in degrees (0, 90, 180, 270)
   labelIds: number[]; // list of assigned filterable labels (identifiers: See Label, LabelDto.)
 }
 
