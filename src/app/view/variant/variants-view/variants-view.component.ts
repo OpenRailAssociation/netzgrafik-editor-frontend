@@ -189,11 +189,11 @@ export class VariantsViewComponent implements OnDestroy {
       .subscribe((netzgrafik) => {
         VariantDialogComponent.open(this.dialog, {name: oldName})
           .pipe(takeUntil(this.destroyed))
-          .subscribe((fromVariantModel) => {
+          .subscribe((formComponentModel) => {
             this.versionsBackendService
               .createSnapshotVersion(baseVersionId, {
-                name: fromVariantModel.name,
-                comment: "",
+                name: formComponentModel.name,
+                comment: `Neuer Name: ${formComponentModel.name}`,
                 model: JSON.stringify(netzgrafik),
               })
               .pipe(takeUntil(this.destroyed))
