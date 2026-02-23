@@ -1,4 +1,13 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from "@angular/core";
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  SecurityContext,
+} from "@angular/core";
+import {DomSanitizer} from "@angular/platform-browser";
 import {FormModel} from "../../../utils/form-model";
 import {NoteFormComponentModel} from "./note-form/note-form.component";
 import {Subject} from "rxjs";
@@ -22,9 +31,11 @@ export class NoteEditElementComponent implements OnInit, OnDestroy {
   private deleteNoteCallback = null;
   private saveNoteCallback = null;
 
+  constructor(private sanitizer: DomSanitizer) {}
+
   ngOnInit(): void {
     this.formModel = new FormModel<NoteFormComponentModel>(
-      this.noteDialogParameter.noteFormComponentModel ?? {
+      this.sanitizeModel(this.noteDialogParameter.noteFormComponentModel) ?? {
         id: 0,
         noteTitle: "",
         noteText: "",
@@ -65,5 +76,12 @@ export class NoteEditElementComponent implements OnInit, OnDestroy {
       newNoteHeight,
       newNoteWidth,
     );
+  }
+
+  private sanitizeModel(data: NoteFormComponentModel): NoteFormComponentModel {
+    return {
+      ...data,
+      noteText: this.sanitizer.sanitize(SecurityContext.HTML, data.noteText),
+    };
   }
 }

@@ -153,6 +153,7 @@ describe("Nodes-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      undefined,
     );
 
     new EditorView(
@@ -170,6 +171,7 @@ describe("Nodes-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      undefined,
     );
 
     controller.bindViewToServices();

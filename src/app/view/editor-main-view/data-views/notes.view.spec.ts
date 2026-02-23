@@ -153,6 +153,7 @@ describe("Notes-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      undefined,
     );
 
     new EditorView(
@@ -170,6 +171,7 @@ describe("Notes-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      undefined,
     );
     controller.bindViewToServices();
     editorView = controller.editorView;
@@ -177,7 +179,7 @@ describe("Notes-View", () => {
 
   it("notesView constructor test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const notesView = new NotesView(editorView);
+    const notesView = new NotesView(editorView, undefined);
   });
 
   it("NotesView.convertText", () => {
