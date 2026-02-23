@@ -488,6 +488,13 @@ export class NodeService implements OnDestroy {
       this.transitionsUpdated();
       this.nodesUpdated();
     }
+    this.operation.emit(
+      new TrainrunUpdateOperation(trainrunSection1.getTrainrun(), [
+        "nodes",
+        "times",
+        "numberOfStops",
+      ]),
+    );
 
     return trainrunSection1;
   }
