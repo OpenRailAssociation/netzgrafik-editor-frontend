@@ -162,30 +162,28 @@
 
     <br />
     <sbb-label>{{ "app.view.editor-filter-view.times" | translate }}</sbb-label>
-    <div class="sbb-checkbox-group-vertical">
-      <sbb-toggle-switch-button
-        [labelTrue]="'app.view.editor-filter-view.display-arrival-departure-times' | translate"
-        [checked]="filterArrivalDepartureTime"
-        (checkedChanged)="filterArrivalDepartureTimeChanged()"
-      />
-      <sbb-toggle-switch-button
-        [labelTrue]="
-          'app.view.editor-filter-view.display-arrival-departure-times-for-connections' | translate
-        "
-        [checked]="filterShowNonStopTime"
-        (checkedChanged)="filterShowNonStopTimeChanged()"
-      />
-      <sbb-toggle-switch-button
-        [labelTrue]="'app.view.editor-filter-view.display-travel-times' | translate"
-        [checked]="filterTravelTime"
-        (checkedChanged)="filterTravelTimeChanged()"
-      />
-      <sbb-toggle-switch-button
-        [labelTrue]="'app.view.editor-filter-view.display-trainrun-name' | translate"
-        [checked]="filterTrainrunName"
-        (checkedChanged)="filterTrainrunNameChanged()"
-      />
-    </div>
+    <sbb-toggle-switch-button
+      [labelTrue]="'app.view.editor-filter-view.display-arrival-departure-times' | translate"
+      [checked]="filterArrivalDepartureTime"
+      (checkedChanged)="filterArrivalDepartureTimeChanged()"
+    />
+    <sbb-toggle-switch-button
+      [labelTrue]="
+        'app.view.editor-filter-view.display-arrival-departure-times-for-connections' | translate
+      "
+      [checked]="filterShowNonStopTime"
+      (checkedChanged)="filterShowNonStopTimeChanged()"
+    />
+    <sbb-toggle-switch-button
+      [labelTrue]="'app.view.editor-filter-view.display-travel-times' | translate"
+      [checked]="filterTravelTime"
+      (checkedChanged)="filterTravelTimeChanged()"
+    />
+    <sbb-toggle-switch-button
+      [labelTrue]="'app.view.editor-filter-view.display-trainrun-name' | translate"
+      [checked]="filterTrainrunName"
+      (checkedChanged)="filterTrainrunNameChanged()"
+    />
 
     <br />
     <sbb-label>{{ "app.view.editor-filter-view.connections" | translate }}</sbb-label>
