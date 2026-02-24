@@ -14,6 +14,7 @@ import {PerlenketteConnection} from "../model/perlenketteConnection";
 import {PerlenketteItem} from "../model/perlenketteItem";
 import {UiInteractionService} from "../../services/ui/ui.interaction.service";
 import {VersionControlService} from "../../services/data/version-control.service";
+import {Direction} from "src/app/data-structures/business.data.structures";
 
 @Component({
   selector: "sbb-perlenkette-node",
@@ -267,6 +268,34 @@ export class PerlenketteNodeComponent implements OnInit {
 
   getConnectedTrainEdgeLine(startPosX: number, startPosY: number, width: number): string {
     return "M" + startPosX + "," + startPosY + " L" + (startPosX + width) + "," + startPosY;
+  }
+
+  getEdgeLineArrowClass() {
+    const trainrun = this.perlenketteTrainrun;
+    return (
+      StaticDomTags.EDGE_LINE_ARROW_CLASS +
+      " " +
+      StaticDomTags.TAG_UI_DIALOG +
+      " " +
+      StaticDomTags.makeClassTag(StaticDomTags.TAG_COLOR_REF, trainrun.colorRef) +
+      StaticDomTags.makeClassTag(
+        StaticDomTags.TAG_LINEPATTERN_REF,
+        trainrun.trainrunTimeCategory.linePatternRef,
+      )
+    );
+  }
+
+  isRoundTrip(): boolean {
+    return this.perlenketteTrainrun.direction === Direction.ROUND_TRIP;
+  }
+
+  isDirectionArrowHidden(): boolean {
+    // TODO
+    return false;
+  }
+
+  getOneWayPathEdgeLine() {
+    return "M-4,-5L2,0L-4,5Z";
   }
 
   toggleNonStop() {

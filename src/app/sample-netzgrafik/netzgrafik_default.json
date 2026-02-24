@@ -30,9 +30,12 @@
       "fullName": "Olten",
       "positionX": 832,
       "positionY": 32,
-      "ports": [],
+      "ports": [
+        {"id": 3, "trainrunSectionId": 2, "positionIndex": 0, "positionAlignment": 1},
+        {"id": 2, "trainrunSectionId": 1, "positionIndex": 0, "positionAlignment": 2}
+      ],
       "transitions": [],
-      "connections": [],
+      "connections": [{"id": 1, "port1Id": 2, "port2Id": 3}],
       "resourceId": 2,
       "perronkanten": 10,
       "connectionTime": 5,
@@ -102,7 +105,7 @@
       "fullName": "Zofingen",
       "positionX": 832,
       "positionY": 448,
-      "ports": [],
+      "ports": [{"id": 4, "trainrunSectionId": 2, "positionIndex": 0, "positionAlignment": 0}],
       "transitions": [],
       "connections": [],
       "resourceId": 5,
@@ -198,7 +201,7 @@
       "fullName": "Langenthal",
       "positionX": 320,
       "positionY": 192,
-      "ports": [],
+      "ports": [{"id": 1, "trainrunSectionId": 1, "positionIndex": 0, "positionAlignment": 3}],
       "transitions": [],
       "connections": [],
       "resourceId": 9,
@@ -265,8 +268,156 @@
       "labelIds": []
     }
   ],
-  "trainrunSections": [],
-  "trainruns": [],
+  "trainrunSections": [
+    {
+      "id": 1,
+      "sourceNodeId": 8,
+      "sourcePortId": 1,
+      "targetNodeId": 1,
+      "targetPortId": 2,
+      "travelTime": {
+        "time": 1,
+        "consecutiveTime": 1,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "sourceDeparture": {
+        "time": 0,
+        "consecutiveTime": 0,
+        "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "sourceArrival": {
+        "time": 0,
+        "consecutiveTime": 60,
+        "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "targetDeparture": {
+        "time": 59,
+        "consecutiveTime": 59,
+        "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "targetArrival": {
+        "time": 1,
+        "consecutiveTime": 1,
+        "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "numberOfStops": 0,
+      "trainrunId": 1,
+      "resourceId": 0,
+      "specificTrainrunSectionFrequencyId": null,
+      "path": {
+        "path": [
+          {"x": 418, "y": 208},
+          {"x": 482, "y": 208},
+          {"x": 766, "y": 48},
+          {"x": 830, "y": 48}
+        ],
+        "textPositions": {
+          "0": {"x": 436, "y": 220},
+          "1": {"x": 464, "y": 196},
+          "2": {"x": 812, "y": 36},
+          "3": {"x": 784, "y": 60},
+          "4": {"x": 624, "y": 116},
+          "5": {"x": 624, "y": 116},
+          "6": {"x": 624, "y": 140}
+        }
+      },
+      "warnings": null
+    },
+    {
+      "id": 2,
+      "sourceNodeId": 1,
+      "sourcePortId": 3,
+      "targetNodeId": 4,
+      "targetPortId": 4,
+      "travelTime": {
+        "time": 1,
+        "consecutiveTime": 1,
+        "lock": true,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "sourceDeparture": {
+        "time": 0,
+        "consecutiveTime": 0,
+        "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "sourceArrival": {
+        "time": 0,
+        "consecutiveTime": 60,
+        "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "targetDeparture": {
+        "time": 59,
+        "consecutiveTime": 59,
+        "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "targetArrival": {
+        "time": 1,
+        "consecutiveTime": 1,
+        "lock": false,
+        "warning": null,
+        "timeFormatter": null
+      },
+      "numberOfStops": 0,
+      "trainrunId": 2,
+      "resourceId": 0,
+      "specificTrainrunSectionFrequencyId": null,
+      "path": {
+        "path": [
+          {"x": 848, "y": 98},
+          {"x": 848, "y": 162},
+          {"x": 848, "y": 382},
+          {"x": 848, "y": 446}
+        ],
+        "textPositions": {
+          "0": {"x": 836, "y": 116},
+          "1": {"x": 860, "y": 144},
+          "2": {"x": 860, "y": 428},
+          "3": {"x": 836, "y": 400},
+          "4": {"x": 836, "y": 272},
+          "5": {"x": 836, "y": 272},
+          "6": {"x": 860, "y": 272}
+        }
+      },
+      "warnings": null
+    }
+  ],
+  "trainruns": [
+    {
+      "id": 1,
+      "name": "X",
+      "categoryId": 1,
+      "frequencyId": 3,
+      "trainrunTimeCategoryId": 0,
+      "labelIds": [],
+      "direction": "one_way"
+    },
+    {
+      "id": 2,
+      "name": "X",
+      "categoryId": 1,
+      "frequencyId": 3,
+      "trainrunTimeCategoryId": 0,
+      "labelIds": [],
+      "direction": "round_trip"
+    }
+  ],
   "resources": [
     {"id": 1, "capacity": 2},
     {"id": 2, "capacity": 2},

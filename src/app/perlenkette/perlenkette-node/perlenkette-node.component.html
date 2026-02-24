@@ -97,6 +97,15 @@
               style="cursor: pointer"
             >
               <path
+                *ngIf="!isRoundTrip()"
+                [attr.hidden]="isDirectionArrowHidden() ? '' : null"
+                [attr.d]="getOneWayPathEdgeLine()"
+                attr.transform="translate(0, 0)"
+                attr.rotate="90"
+                [ngClass]="[getPathClassTag(connection)]"
+                class="edge_line one_way_arrow"
+              ></path>
+              <path
                 [attr.d]="getConnectedTrainEdgeLine(0, 0, getTrainEdgeLineWidth())"
                 [ngClass]="[getPathClassTag(connection)]"
                 class="edge_line layer_0"

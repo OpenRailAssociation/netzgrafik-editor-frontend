@@ -288,7 +288,7 @@ export class LoadPerlenketteService implements OnDestroy {
           }
         }
 
-        const perlenketteConnection = new PerlenketteConnection(
+        const perlenketteConnection = new PerlenketteConnection( //
           port2.getTrainrunSection().getTrainrun().getTitle(),
           port2.getTrainrunSection().getTrainrun().getCategoryShortName(),
           beginningStation.getBetriebspunktName(),
