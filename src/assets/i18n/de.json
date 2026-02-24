@@ -70,7 +70,7 @@
           }
         },
         "version-control": {
-          "new-name-comment": "Neuer Name: {$PH}"
+          "new-name-comment": "Neuer Name: {$name}"
         }
       },
       "ui": {
