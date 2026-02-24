@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.10.16](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.15...netzgrafik-frontend-v2.10.16) (2026-02-24)
+
+
+### Bug Fixes
+
+* **i18n:** zoom out german typo ([158555f](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/158555f9d6c0174d3c4ce8830c480d2b2844ddf1))
+* **trainrun:** allows to change direction of cyclic one way trainrun ([a32cacc](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/a32cacc90e1f7675e38486ce4c5a23fb1fcd7596))
+* **trainrun:** validate that travel time respect timePrecision ([b777e25](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/b777e25e24383c2f61ea9a91e8d4a48a697e025a))
+
 ## [2.10.15](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.14...netzgrafik-frontend-v2.10.15) (2026-02-17)
 
 
