@@ -7,6 +7,7 @@ import {
   ProjectDto,
   VariantControllerBackendService,
   VariantCreateDto,
+  VersionControllerBackendService,
 } from "../../../api/generated";
 import {of} from "rxjs";
 import {ActivatedRoute} from "@angular/router";
@@ -14,6 +15,7 @@ import {NavigationService} from "../../../services/ui/navigation.service";
 import {VersionControlService} from "../../../services/data/version-control.service";
 import {I18nModule} from "../../../core/i18n/i18n.module";
 import {CUSTOM_ELEMENTS_SCHEMA} from "@angular/core";
+import {DataService} from "../../../services/data/data.service";
 
 describe("VariantsViewComponent", () => {
   let component: VariantsViewComponent;
@@ -23,6 +25,8 @@ describe("VariantsViewComponent", () => {
   let variantControllerBackendService: Partial<VariantControllerBackendService>;
   let activatedRoute: Partial<ActivatedRoute>;
   let versionControlService: Partial<VersionControlService>;
+  let versionControllerBackendService: Partial<VersionControllerBackendService>;
+  let dataService: Partial<DataService>;
 
   beforeEach(async () => {
     projectControllerBackendService = {
@@ -69,6 +73,8 @@ describe("VariantsViewComponent", () => {
           useValue: variantControllerBackendService,
         },
         {provide: VersionControlService, useValue: versionControlService},
+        {provide: VersionControllerBackendService, useValue: versionControllerBackendService},
+        {provide: DataService, useValue: dataService},
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();

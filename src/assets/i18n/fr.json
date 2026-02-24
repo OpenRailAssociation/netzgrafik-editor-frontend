@@ -68,6 +68,9 @@
             "title": "Remplacement des arrêts intermédiaires",
             "description": "Le remplacement des arrêts intermédiaires a entraîné des incohérences dans l'attribution des temps !"
           }
+        },
+        "version-control": {
+          "new-name-comment": "Nouveau nom : {$PH}"
         }
       },
       "ui": {
@@ -680,7 +683,8 @@
             "title": "Archiver la variante",
             "content": "Voulez-vous annuler l'archivage du projet ?"
           },
-          "error-unexpected-data": "Données inattendues : Pas de snapshot ni de version publiée."
+          "error-unexpected-data": "Données inattendues : Pas de snapshot ni de version publiée.",
+          "new-name-comment": "Nouveau nom : {$PH}"
         }
       }
     }

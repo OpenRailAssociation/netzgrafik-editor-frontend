@@ -8,6 +8,7 @@ import {
   ProjectSummaryDto,
   VariantControllerBackendService,
   VariantSummaryDto,
+  VersionControllerBackendService,
 } from "../../../api/generated";
 import {SbbDialog} from "@sbb-esta/angular/dialog";
 import {ProjectDialogComponent} from "../../project/project-dialog/project-dialog.component";
@@ -20,6 +21,8 @@ import {UntypedFormControl} from "@angular/forms";
 import {NavigationService} from "../../../services/ui/navigation.service";
 import {VersionControlService} from "../../../services/data/version-control.service";
 import {SlotAction} from "../../action-menu/action-menu/action-menu.component";
+import {DataService} from "../../../services/data/data.service";
+import {NetzgrafikDto} from "../../../data-structures/business.data.structures";
 
 @Component({
   selector: "sbb-variants-view",
@@ -107,6 +110,8 @@ export class VariantsViewComponent implements OnDestroy {
     private readonly dialog: SbbDialog,
     private readonly uiInteractionService: UiInteractionService,
     private versionControlService: VersionControlService,
+    private readonly versionsBackendService: VersionControllerBackendService,
+    private readonly dataService: DataService,
   ) {
     activatedRoute.params
       .pipe(
@@ -155,11 +160,46 @@ export class VariantsViewComponent implements OnDestroy {
     }
     return of([
       {
+        name: $localize`:@@app.view.variant.variant-view.edit-variant:Edit`,
+        icon: "pen-small",
+        action: () => this.onOpenVariantDialog(variant),
+      },
+      {
         name: $localize`:@@app.view.variant.variants-view.archive:Archive`,
         icon: "archive-box-small",
         action: () => this.onArchiveVariantClicked(variant),
       },
     ]);
+  }
+
+  onOpenVariantDialog(variantToEdit: VariantSummaryDto) {
+    const oldName = variantToEdit.latestSnapshotVersion
+      ? variantToEdit.latestSnapshotVersion.name
+      : variantToEdit.latestReleaseVersion.name;
+    const baseVersionId = variantToEdit.latestSnapshotVersion
+      ? variantToEdit.latestSnapshotVersion.id
+      : variantToEdit.latestReleaseVersion.id;
+
+    this.versionsBackendService
+      .getVersionModel(baseVersionId)
+      .pipe(
+        map((model) => model as NetzgrafikDto),
+        mergeMap((netzgrafik) =>
+          VariantDialogComponent.open(this.dialog, {name: oldName}).pipe(
+            map((formComponentModel) => ({netzgrafik, formComponentModel})),
+          ),
+        ),
+        mergeMap(({netzgrafik, formComponentModel}) =>
+          this.versionsBackendService.createSnapshotVersion(baseVersionId, {
+            name: formComponentModel.name,
+            comment: $localize`:@@app.services.data.version-control.new-name-comment:New name: ${formComponentModel.name}`,
+            model: JSON.stringify(netzgrafik),
+          }),
+        ),
+        mergeMap(() => this.projectService.getProject(variantToEdit.projectId)),
+        takeUntil(this.destroyed),
+      )
+      .subscribe((projectDto) => this.updateProject(projectDto));
   }
 
   onArchiveVariantClicked(variantToEdit: VariantSummaryDto) {

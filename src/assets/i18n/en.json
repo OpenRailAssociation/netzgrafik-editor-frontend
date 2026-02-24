@@ -68,6 +68,9 @@
             "title": "Intermediate stop replacement",
             "description": "Intermediate stop replacement led to inconsistencies in the allocation of times!"
           }
+        },
+        "version-control": {
+          "new-name-comment": "New name: {$PH}"
         }
       },
       "ui": {
@@ -680,7 +683,8 @@
             "title": "Archive variant",
             "content": "Would you like to undo the archiving of the project?"
           },
-          "error-unexpected-data": "Unexpected data: No snapshot and no released version."
+          "error-unexpected-data": "Unexpected data: No snapshot and no released version.",
+          "new-name-comment": "New name: {$PH}"
         }
       }
     }
