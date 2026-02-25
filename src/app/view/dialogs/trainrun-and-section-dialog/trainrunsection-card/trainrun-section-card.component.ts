@@ -81,6 +81,7 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
     this.categoryColorRef = selectedTrainrun.getCategoryColorRef();
     this.timeCategoryLinePattern = selectedTrainrun.getTimeCategoryLinePatternRef();
     this.trainrunSectionTimesService.setHighlightTravelTimeElement(false);
+    this.trainrunSectionTimesService.setHighlightBottomTravelTimeElement(false);
     this.trainrunSectionTimesService.applyOffsetAndTransformTimeStructure();
   }
 
@@ -180,7 +181,7 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
     this.trainrunService.updateDirection(selectedTrainrun, Direction.ONE_WAY);
   }
 
-  getTrainrunTimeStructure(): Omit<LeftAndRightTimeStructure, "travelTime"> {
+  getTrainrunTimeStructure(): Omit<LeftAndRightTimeStructure, "travelTime" | "bottomTravelTime"> {
     const selectedTrainrun = this.trainrunService.getSelectedTrainrun();
     if (!selectedTrainrun) {
       return undefined;

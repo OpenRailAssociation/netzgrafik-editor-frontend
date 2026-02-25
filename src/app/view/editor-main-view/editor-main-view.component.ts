@@ -237,12 +237,14 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
 
     this.editorView.bindGetSelectedTrainrun(() => this.trainrunService.getSelectedTrainrun());
 
-    this.editorView.bindGetCumulativeTravelTime((trainrunSection: TrainrunSection) =>
-      this.trainrunService.getCumulativeTravelTime(trainrunSection),
+    this.editorView.bindGetCumulativeTravelTime(
+      (trainrunSection: TrainrunSection, direction: "sourceToTarget" | "targetToSource") =>
+        this.trainrunService.getCumulativeTravelTime(trainrunSection, direction),
     );
 
-    this.editorView.bindGetCumulativeTravelTimeAndNodePath((trainrunSection: TrainrunSection) =>
-      this.trainrunService.getCumulativeTravelTimeAndNodePath(trainrunSection),
+    this.editorView.bindGetCumulativeTravelTimeAndNodePath(
+      (trainrunSection: TrainrunSection, direction: "sourceToTarget" | "targetToSource") =>
+        this.trainrunService.getCumulativeTravelTimeAndNodePath(trainrunSection, direction),
     );
 
     this.editorView.bindAddConnectionToNode(
@@ -290,7 +292,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       (
         trainrunSection: TrainrunSection,
         position: Vec2D,
-        trainrunSectionText: TrainrunSectionText,
+        trainrunSectionText?: TrainrunSectionText,
       ) => {
         this.trainrunService.setTrainrunAsSelected(trainrunSection.getTrainrun().getId());
         this.trainrunSectionService.setTrainrunSectionAsSelected(trainrunSection.getId());
@@ -298,7 +300,9 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
           TrainrunDialogType.TRAINRUN_SECTION_DIALOG,
           position,
         );
-        parameter.setTrainrunSectionText(trainrunSectionText);
+        if (trainrunSectionText) {
+          parameter.setTrainrunSectionText(trainrunSectionText);
+        }
         this.uiInteractionService.showTrainrunDialog(parameter);
       },
     );
@@ -352,12 +356,20 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       this.filterService.isFilterTravelTimeEnabled(),
     );
 
+    this.editorView.bindIsFilterBackwardTravelTimeEnabled(() =>
+      this.filterService.isFilterBackwardTravelTimeEnabled(),
+    );
+
     this.editorView.bindIsfilterTrainrunNameEnabled(() =>
       this.filterService.isFilterTrainrunNameEnabled(),
     );
 
     this.editorView.bindIsFilterDirectionArrowsEnabled(() =>
       this.filterService.isFilterDirectionArrowsEnabled(),
+    );
+
+    this.editorView.bindIsFilterAsymmetryArrowsEnabled(() =>
+      this.filterService.isFilterAsymmetryArrowsEnabled(),
     );
 
     this.editorView.bindIsfilterArrivalDepartureTimeEnabled(() =>

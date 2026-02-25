@@ -45,6 +45,7 @@ svg text.edge_text {
 
 .editingContainer {
   display: flex;
+  position: relative;
 
   .mainGridLayout {
     margin: 6px 0 !important;
@@ -77,9 +78,19 @@ svg text.edge_text {
       grid-row: 2 / span 3;
     }
 
+    .nodeBorderContainerCenterLeft {
+      grid-column: 1 / span 3;
+      grid-row: 6 / span 3; // ou grid-row: 7 / span 3;
+    }
+
     .nodeBorderContainerCenter {
       grid-column: 3 / span 3;
       grid-row: 7 / span 3;
+    }
+
+    .nodeBorderContainerCenterRight {
+      grid-column: 5 / span 3;
+      grid-row: 8 / span 3; // ou grid-row: 7 / span 3;
     }
 
     .nodeBorderContainerBottomLeft {
@@ -158,6 +169,20 @@ svg text.edge_text {
       background: var(--COLOR_GRAYEDOUT);
       margin: 1px;
     }
+  }
+
+  .LeftSymmetryToggle {
+    grid-column: 8 / span 2;
+    grid-row: 2 / span 3;
+    margin-left: 5px;
+    margin-top: 6px;
+  }
+
+  .RightSymmetryToggle {
+    grid-column: 8 / span 2;
+    grid-row: 13 / span 3;
+    margin-left: 5px;
+    margin-top: 6px;
   }
 
   .propagationButtonContainer {

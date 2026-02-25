@@ -12,18 +12,33 @@
       <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
       <!-- Direction arrows (one way trainrun) -->
       <path
-        *ngIf="!isRoundTrip()"
+        *ngIf="shouldDisplayDirectionArrow()"
         [class]="getEdgeLineArrowClass()"
         d="M-4,-5L2,0L-4,5Z"
-        [attr.transform]="getArrowTranslateAndRotate(45)"
+        [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
         [attr.hidden]="isDirectionArrowHidden() ? '' : null"
       ></path>
       <path
-        *ngIf="!isRoundTrip()"
+        *ngIf="shouldDisplayDirectionArrow()"
         [class]="getEdgeLineArrowClass()"
         d="M-4,-5L2,0L-4,5Z"
-        [attr.transform]="getArrowTranslateAndRotate(145)"
+        [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
         [attr.hidden]="isDirectionArrowHidden() ? '' : null"
+      ></path>
+      <!-- Asymmetry arrows (asymmetric trainrun)-->
+      <path
+        *ngIf="shouldDisplayAsymmetryArrow('top')"
+        [class]="getEdgeLineArrowClass()"
+        d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
+        [attr.transform]="getAsymmetryArrowTranslate(24)"
+        [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
+      ></path>
+      <path
+        *ngIf="shouldDisplayAsymmetryArrow('bottom')"
+        [class]="getEdgeLineArrowClass()"
+        d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
+        [attr.transform]="getAsymmetryArrowTranslate(169)"
+        [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
       ></path>
     </g>
     <g>
@@ -173,7 +188,7 @@
           {{ getLeftDepartureTime() }}
         </text>
       </g>
-      <g transform="translate(121, 93)" *ngIf="showTravelTime()">
+      <g [attr.transform]="getTravelTimeTransform('travelTime')" *ngIf="showTravelTime()">
         <g transform="rotate(-90)">
           <text
             x="0"
@@ -183,6 +198,22 @@
             (click)="switchSectionView($event, 'travelTime')"
           >
             {{ getTravelTime() }}
+          </text>
+        </g>
+      </g>
+      <g
+        [attr.transform]="getTravelTimeTransform('bottomTravelTime')"
+        *ngIf="showBottomTravelTime()"
+      >
+        <g transform="rotate(-90)">
+          <text
+            x="0"
+            y="0"
+            class="edge_text start_text bottomTravelTime"
+            [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
+            (click)="switchSectionView($event, 'bottomTravelTime')"
+          >
+            {{ getBottomTravelTime() }}
           </text>
         </g>
       </g>
@@ -230,21 +261,36 @@
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
           <!-- Direction arrows (one way trainrun) -->
           <path
-            *ngIf="!isRoundTrip()"
+            *ngIf="shouldDisplayDirectionArrow()"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
-            [attr.transform]="getArrowTranslateAndRotate(45)"
+            [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
             [attr.hidden]="isDirectionArrowHidden() ? '' : null"
           ></path>
           <path
-            *ngIf="!isRoundTrip()"
+            *ngIf="shouldDisplayDirectionArrow()"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
-            [attr.transform]="getArrowTranslateAndRotate(145)"
+            [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
             [attr.hidden]="isDirectionArrowHidden() ? '' : null"
           ></path>
+          <!-- Asymmetry arrows (asymmetric trainrun)-->
+          <path
+            *ngIf="shouldDisplayAsymmetryArrow('top')"
+            [class]="getEdgeLineArrowClass()"
+            d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
+            [attr.transform]="getAsymmetryArrowTranslate(24)"
+            [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
+          ></path>
+          <path
+            *ngIf="shouldDisplayAsymmetryArrow('bottom')"
+            [class]="getEdgeLineArrowClass()"
+            d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
+            [attr.transform]="getAsymmetryArrowTranslate(169)"
+            [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
+          ></path>
         </g>
-        <foreignObject height="192px" width="224px" x="25">
+        <foreignObject height="192px" width="290px" x="25">
           <div class="mainGridLayout">
             <div
               class="nodeBorderContainer nodeBorderContainerTopLeft"
@@ -360,6 +406,16 @@
               </div>
             </div>
 
+            <sbb-toggle-switch-button
+              class="LeftSymmetryToggle"
+              *ngIf="trainrunSection.getTrainrun().isRoundTrip()"
+              [checked]="trainrunSectionTimesService.getSymmetryStructure().leftSymmetry"
+              (checkedChanged)="onLeftNodeSymmetryToggle($event)"
+              #leftSymmetryToggle
+              (click)="stopPropagation($event)"
+            >
+            </sbb-toggle-switch-button>
+
             <div
               [class]="getTravelTimeLockClassTag()"
               *ngIf="
@@ -396,7 +452,13 @@
               </div>
             </div>
 
-            <div class="nodeBorderContainer nodeBorderContainerCenter" *ngIf="showTravelTime()">
+            <div
+              [ngClass]="
+                'nodeBorderContainer nodeBorderContainerCenter' +
+                getNodeBorderContainerClassSuffix()
+              "
+              *ngIf="showTravelTime()"
+            >
               <div class="nodeMinus">
                 <button
                   tabindex="-1"
@@ -426,6 +488,45 @@
                   mode="ghost"
                   class="ButtonPlus"
                   (click)="onTravelTimeButtonPlus($event)"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div
+              class="nodeBorderContainer nodeBorderContainerCenterLeft"
+              *ngIf="showBottomTravelTime()"
+            >
+              <div class="nodeMinus">
+                <button
+                  tabindex="-1"
+                  mode="ghost"
+                  class="ButtonMinus"
+                  (click)="onBottomTravelTimeButtonMinus($event)"
+                >
+                  -
+                </button>
+              </div>
+              <div class="nodeTime" (click)="stopPropagation($event)">
+                <input
+                  #bottomTravelTime
+                  tabindex="2"
+                  class="InputElement firstInput"
+                  type="number"
+                  sbbInput
+                  spellcheck="false"
+                  pattern="^[0-9]*"
+                  [(ngModel)]="trainrunSectionTimesService.getTimeStructure().bottomTravelTime"
+                  (change)="onBottomTravelTimeChanged()"
+                />
+              </div>
+              <div class="nodePlus">
+                <button
+                  tabindex="-1"
+                  mode="ghost"
+                  class="ButtonPlus"
+                  (click)="onBottomTravelTimeButtonPlus($event)"
                 >
                   +
                 </button>
@@ -545,15 +646,29 @@
                 </button>
               </div>
             </div>
+            <sbb-toggle-switch-button
+              class="RightSymmetryToggle"
+              *ngIf="trainrunSection.getTrainrun().isRoundTrip()"
+              [checked]="trainrunSectionTimesService.getSymmetryStructure().rightSymmetry"
+              (checkedChanged)="onRightNodeSymmetryToggle($event)"
+              #rightSymmetryToggle
+              (click)="stopPropagation($event)"
+            >
+            </sbb-toggle-switch-button>
           </div>
         </foreignObject>
       </svg>
 
-      <svg width="45px">
+      <svg
+        width="45px"
+        [style.transform]="
+          trainrunSection.getTrainrun().isRoundTrip() ? 'translateX(30px)' : 'none'
+        "
+      >
         <foreignObject height="192px" width="45px">
           <div class="propagationButtonContainer">
             <button
-              [class]="isFirstSection === true ? 'disabled' : ''"
+              [class]="isFirstSection === true || !isTrainrunSymmetric() ? 'disabled' : ''"
               class="FunctionButton Rotation90"
               tabindex="-1"
               mode="icon"
@@ -570,7 +685,7 @@
               </div>
             </button>
             <button
-              [class]="isLastSection === true ? 'disabled' : ''"
+              [class]="isLastSection === true || !isTrainrunSymmetric() ? 'disabled' : ''"
               class="FunctionButton Rotation90"
               tabindex="-1"
               mode="icon"
@@ -604,18 +719,33 @@
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
           <!-- Direction arrows (one way trainrun) -->
           <path
-            *ngIf="!isRoundTrip()"
+            *ngIf="shouldDisplayDirectionArrow()"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
-            [attr.transform]="getArrowTranslateAndRotate(45)"
+            [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
             [attr.hidden]="isDirectionArrowHidden() ? '' : null"
           ></path>
           <path
-            *ngIf="!isRoundTrip()"
+            *ngIf="shouldDisplayDirectionArrow()"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
-            [attr.transform]="getArrowTranslateAndRotate(145)"
+            [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
             [attr.hidden]="isDirectionArrowHidden() ? '' : null"
+          ></path>
+          <!-- Asymmetry arrows (asymmetric trainrun)-->
+          <path
+            *ngIf="shouldDisplayAsymmetryArrow('top')"
+            [class]="getEdgeLineArrowClass()"
+            d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
+            [attr.transform]="getAsymmetryArrowTranslate(24)"
+            [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
+          ></path>
+          <path
+            *ngIf="shouldDisplayAsymmetryArrow('bottom')"
+            [class]="getEdgeLineArrowClass()"
+            d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
+            [attr.transform]="getAsymmetryArrowTranslate(169)"
+            [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
           ></path>
         </g>
         <g>
