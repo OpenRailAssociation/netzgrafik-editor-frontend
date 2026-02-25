@@ -128,7 +128,7 @@ export interface TrainrunSectionDto {
   trainrunId: number; // reference to the trainrun (main object)
   resourceId: number; // reference to the algined (resource - not yet implemented)
 
-  specificTrainrunSectionFrequencyId: number; // Default 0 - deprecate???
+  specificTrainrunSectionFrequencyId: number | null; // Default 0 - deprecate???
   path: PathDto; // cached - precomputed path for rendering
   warnings: WarningDto[]; // business logic failures - warnings storage
 }
