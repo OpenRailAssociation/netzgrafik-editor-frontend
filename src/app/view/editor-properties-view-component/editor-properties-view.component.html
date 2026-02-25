@@ -133,6 +133,21 @@
         {{ option.name }}
       </sbb-radio-button>
     </sbb-radio-group>
+    <br /><br />
+    <sbb-label>{{
+      "app.view.editor-properties-view-component.port-ordering" | translate
+    }}</sbb-label>
+    <br />
+    <sbb-radio-group [(ngModel)]="activePortOrderingType" class="sbb-radio-group-vertical">
+      <sbb-radio-button
+        *ngFor="let option of portOrderingTypeOptions"
+        [value]="option.portOrderingType"
+        [title]="option.title"
+        (change)="onUpdatePortOrderingType($event)"
+      >
+        {{ option.name }}
+      </sbb-radio-button>
+    </sbb-radio-group>
   </sbb-expansion-panel>
 
   <sbb-expansion-panel [expanded]="true">
