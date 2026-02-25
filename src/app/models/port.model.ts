@@ -9,21 +9,24 @@ export class Port {
   private trainrunSectionId: number;
   private positionIndex: number;
   private positionAlignment: number;
+  private locked: boolean;
 
   private trainrunSection: TrainrunSection = null;
 
   constructor(
-    {id, trainrunSectionId, positionIndex, positionAlignment}: PortDto = {
+    {id, trainrunSectionId, positionIndex, positionAlignment, locked = false}: PortDto = {
       id: Port.incrementId(),
       positionIndex: 0,
       positionAlignment: PortAlignment.Top,
       trainrunSectionId: 0,
+      locked: false,
     },
   ) {
     this.id = id;
     this.trainrunSectionId = trainrunSectionId;
     this.positionIndex = positionIndex;
     this.positionAlignment = positionAlignment;
+    this.locked = locked;
 
     if (Port.currentId < this.id) {
       Port.currentId = this.id;
@@ -43,6 +46,7 @@ export class Port {
   }
 
   setPositionAlignment(positionAlignment: PortAlignment) {
+    if (this.locked) return;
     this.positionAlignment = positionAlignment;
   }
 
@@ -81,12 +85,21 @@ export class Port {
     }
   }
 
+  getLocked(): boolean {
+    return this.locked;
+  }
+
+  setLocked(locked: boolean) {
+    this.locked = locked;
+  }
+
   getDto(): PortDto {
     return {
       id: this.id,
       trainrunSectionId: this.trainrunSectionId,
       positionIndex: this.positionIndex,
       positionAlignment: this.positionAlignment,
+      locked: this.locked,
     };
   }
 }
