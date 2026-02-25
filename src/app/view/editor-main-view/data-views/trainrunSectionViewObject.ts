@@ -5,6 +5,7 @@ import {SimpleTrainrunSectionRouter} from "../../../services/util/trainrunsectio
 import {Vec2D} from "../../../utils/vec2D";
 import {EditorView} from "./editor.view";
 import {TrainrunSectionsView} from "./trainrunsections.view";
+import {Node} from "src/app/models/node.model";
 
 export class TrainrunSectionViewObject {
   readonly firstSection: TrainrunSection;
@@ -61,6 +62,11 @@ export class TrainrunSectionViewObject {
 
   getExtremitySection(atSource: boolean): TrainrunSection {
     return atSource ? this.firstSection : this.lastSection;
+  }
+
+  getExtremityNode(atSource: boolean): Node {
+    const trainrunSection = this.getExtremitySection(atSource);
+    return atSource ? trainrunSection.getSourceNode() : trainrunSection.getTargetNode();
   }
 
   private generateKey(editorView: EditorView, trainrunSections: TrainrunSection[]): string {
