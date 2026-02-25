@@ -15,7 +15,7 @@ export class TrainrunSectionViewObject {
     readonly trainrunSections: TrainrunSection[],
   ) {
     this.key = this.generateKey(editorView, trainrunSections);
-    this.textPositions = SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(
+    this.textPositions = SimpleTrainrunSectionRouter.computeTextPositions(
       this.getPath(),
       trainrunSections[0].getSourceNode().getPort(trainrunSections[0].getSourcePortId()),
     );
