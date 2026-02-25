@@ -86,6 +86,10 @@ export class TrainrunSectionViewObject {
     return this.getTravelTime() === this.getBackwardTravelTime();
   }
 
+  getExtremitySection(atSource: boolean): TrainrunSection {
+    return atSource ? this.firstSection : this.lastSection;
+  }
+
   private generateKey(editorView: EditorView, trainrunSections: TrainrunSection[]): string {
     const selectedTrainrun = editorView.getSelectedTrainrun();
     let connectedTrainIds = [];
