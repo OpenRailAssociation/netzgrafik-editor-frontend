@@ -167,10 +167,6 @@ export class TrainrunSectionsView {
     return atSource ? trainrunSection.getSourceNode() : trainrunSection.getTargetNode();
   }
 
-  static getNodeFromViewObject(viewObject: TrainrunSectionViewObject, atSource: boolean): Node {
-    return TrainrunSectionsView.getNode(viewObject.getExtremitySection(atSource), atSource);
-  }
-
   static hasWarning(trainrunSection: TrainrunSection, textElement: TrainrunSectionText): boolean {
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
@@ -1344,10 +1340,9 @@ export class TrainrunSectionsView {
     groupEnter
       .filter((d: TrainrunSectionViewObject) => this.filterTrainrunsectionAtNode(d, atSource))
       .filter((d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.getExtremitySection(atSource);
-        const trans = TrainrunSectionsView.getNode(trainrunSection, atSource).getTransition(
-          trainrunSection.getId(),
-        );
+        const trans = d
+          .getExtremityNode(atSource)
+          .getTransition(d.getExtremitySection(atSource).getId());
         if (trans === undefined) {
           return true;
         }
@@ -1386,13 +1381,12 @@ export class TrainrunSectionsView {
           ")",
       )
       .attr(StaticDomTags.EDGE_NODE_ID, (d: TrainrunSectionViewObject) =>
-        TrainrunSectionsView.getNodeFromViewObject(d, atSource).getId(),
+        d.getExtremityNode(atSource).getId(),
       )
       .classed(StaticDomTags.EDGE_IS_TARGET, !atSource)
-      .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) => {
-        const trainrunSection = d.getExtremitySection(atSource);
-        return TrainrunSectionsView.getNode(trainrunSection, atSource).isNonStop(trainrunSection);
-      })
+      .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) =>
+        d.getExtremityNode(atSource).isNonStop(d.getExtremitySection(atSource)),
+      )
       .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isMuted(d.firstSection, selectedTrainrun, connectedTrainIds),
       )
@@ -1451,23 +1445,19 @@ export class TrainrunSectionsView {
       )
       .attr("r", DEFAULT_PIN_RADIUS)
       .attr(StaticDomTags.EDGE_NODE_ID, (d: TrainrunSectionViewObject) =>
-        TrainrunSectionsView.getNodeFromViewObject(d, atSource).getId(),
+        d.getExtremityNode(atSource).getId(),
       )
       .classed(
         StaticDomTags.TAG_HIDDEN,
         (d: TrainrunSectionViewObject) =>
           !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
-          !this.editorView.checkFilterNonStopNode(
-            TrainrunSectionsView.getNodeFromViewObject(d, atSource),
-          ),
+          !this.editorView.checkFilterNonStopNode(d.getExtremityNode(atSource)),
       )
       .classed(
         StaticDomTags.TAG_EVENT_DISABLED,
         (d: TrainrunSectionViewObject) =>
           !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
-          !this.editorView.checkFilterNonStopNode(
-            TrainrunSectionsView.getNodeFromViewObject(d, atSource),
-          ),
+          !this.editorView.checkFilterNonStopNode(d.getExtremityNode(atSource)),
       )
       .classed(atSource ? StaticDomTags.EDGE_IS_SOURCE : StaticDomTags.EDGE_IS_TARGET, true)
       .classed(StaticDomTags.EDGE_IS_END_NODE, (d: TrainrunSectionViewObject) => {
@@ -1502,7 +1492,7 @@ export class TrainrunSectionsView {
       .on("mouseover", (event: MouseEvent, d: TrainrunSectionViewObject) =>
         this.onTrainrunSectionMouseoverPin(
           event,
-          TrainrunSectionsView.getNode(d.firstSection, atSource),
+          TrainrunSectionsView.getNode(d.getExtremitySection(atSource), atSource),
         ),
       )
       .on("mouseout", (event: MouseEvent, d: TrainrunSectionViewObject) =>
@@ -2241,8 +2231,7 @@ export class TrainrunSectionsView {
     if (this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       return true;
     }
-    const trainrunSection = viewObject.getExtremitySection(atSource);
-    return this.editorView.checkFilterNode(TrainrunSectionsView.getNode(trainrunSection, atSource));
+    return this.editorView.checkFilterNode(viewObject.getExtremityNode(atSource));
   }
 
   private transformPathAddExtraElementForPortAlignmentBottom(
