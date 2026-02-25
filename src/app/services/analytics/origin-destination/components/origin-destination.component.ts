@@ -160,7 +160,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .attr("id", "zoom-group")
       .attr("transform", `translate(${offsetX}, ${offsetY})`);
 
-    // Build X scales and axis:
+    // Build X scales and axis (destinations):
     const x = d3
       .scaleBand()
       .range([0, width])
@@ -182,7 +182,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .call((g) =>
         g
           .selectAll("text")
-          .attr("data-origin-label", (d: string) => d)
+          .attr("data-destination-label", (d: string) => d)
           .style("text-anchor", "start")
           .attr("dx", "-0.8em")
           .attr("dy", "0.4em")
@@ -192,7 +192,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .select(".domain")
       .remove();
 
-    // Build Y scales and axis:
+    // Build Y scales and axis (origins):
     const y = d3
       .scaleBand()
       .range([height, 0])
@@ -208,7 +208,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
           .tickFormat((d) => this.nodeService.getNodeFromId(d).getBetriebspunktName()),
       )
       .style("user-select", "none")
-      .call((g) => g.selectAll("text").attr("data-destination-label", (d: string) => d))
+      .call((g) => g.selectAll("text").attr("data-origin-label", (d: string) => d))
       .select(".domain")
       .remove();
 
@@ -286,10 +286,10 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .enter()
       .append("rect")
       .attr("x", (d: OriginDestination) => {
-        return x(d.originId);
+        return x(d.destinationId);
       })
       .attr("y", function (d: OriginDestination) {
-        return y(d.destinationId);
+        return y(d.originId);
       })
       .attr("rx", 4)
       .attr("ry", 4)
@@ -314,10 +314,10 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .append("text")
       .style("pointer-events", "none")
       .attr("x", (d: OriginDestination) => {
-        return x(d.originId) + x.bandwidth() / 2;
+        return x(d.destinationId) + x.bandwidth() / 2;
       })
       .attr("y", function (d: OriginDestination) {
-        return y(d.destinationId) + y.bandwidth() / 2;
+        return y(d.originId) + y.bandwidth() / 2;
       })
       .text((d: OriginDestination) => this.getCellText(d))
       .style("text-anchor", "middle")
