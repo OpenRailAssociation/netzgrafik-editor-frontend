@@ -729,19 +729,19 @@ export class NodesView {
         this.editorView.trainrunSectionPreviewLineView.getExistingTrainrunSection();
     }
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
-    if (startNode === endNode) {
+    if (!startNode || !endNode || startNode?.getId() === endNode?.getId()) {
       return;
     }
     if (existingTrainrunSection !== null) {
       if (
-        existingTrainrunSection.getSourceNode() === startNode &&
-        existingTrainrunSection.getTargetNode() === endNode
+        existingTrainrunSection.getSourceNodeId() === startNode.getId() &&
+        existingTrainrunSection.getTargetNodeId() === endNode.getId()
       ) {
         return;
       }
       if (
-        existingTrainrunSection.getSourceNode() === endNode &&
-        existingTrainrunSection.getTargetNode() === startNode
+        existingTrainrunSection.getSourceNodeId() === endNode.getId() &&
+        existingTrainrunSection.getTargetNodeId() === startNode.getId()
       ) {
         return;
       }
