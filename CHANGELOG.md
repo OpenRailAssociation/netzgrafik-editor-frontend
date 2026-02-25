@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.17](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.16...netzgrafik-frontend-v2.10.17) (2026-02-25)
+
+
+### Bug Fixes
+
+* Swap the O/D data ([#856](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/856)) ([049fdb5](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/049fdb552b0c7eb61b69edcfec29042c8aa22ba2))
+
 ## [2.10.16](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.15...netzgrafik-frontend-v2.10.16) (2026-02-24)
 
 
