@@ -760,14 +760,9 @@ export class TrainrunSection {
   }
 
   routeEdgeAndPlaceText() {
-    this.pathVec2D = SimpleTrainrunSectionRouter.routeTrainrunSection(
-      this.sourceNode,
-      this.sourceNode.getPort(this.sourcePortId),
-      this.targetNode,
-      this.targetNode.getPort(this.targetPortId),
-    );
+    this.pathVec2D = SimpleTrainrunSectionRouter.computePath(this);
 
-    this.path.textPositions = SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(
+    this.path.textPositions = SimpleTrainrunSectionRouter.computeTextPositions(
       this.pathVec2D,
       this.sourceNode.getPort(this.sourcePortId),
       !this.areTravelTimesEqual(),
