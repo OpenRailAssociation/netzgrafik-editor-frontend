@@ -27,6 +27,8 @@ export class ConnectionsViewObject {
     displayConnectionPin2: boolean,
   ): string {
     let key =
+      "LC" +
+      editorView.getNetzgrafikLoadCounter() +
       "#" +
       connection.getId() +
       "@" +

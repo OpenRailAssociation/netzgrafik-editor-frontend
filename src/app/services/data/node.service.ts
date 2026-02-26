@@ -87,6 +87,10 @@ export class NodeService implements OnDestroy {
     this.dataService = dataService;
   }
 
+  getNetzgrafikLoadCounter(): number {
+    return this.dataService?.getNetzgrafikLoadCounter() ?? 0;
+  }
+
   setNodeData(nodes: NodeDto[]) {
     this.nodesStore.nodes = nodes.map((nodeDto) => {
       const node: Node = new Node(nodeDto);

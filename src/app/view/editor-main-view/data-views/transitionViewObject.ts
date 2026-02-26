@@ -14,6 +14,8 @@ export class TransitionViewObject {
 
   static generateKey(editorView: EditorView, transition: Transition, isMuted: boolean): string {
     let key =
+      "LC" +
+      editorView.getNetzgrafikLoadCounter() +
       "#" +
       transition.getId() +
       "@" +

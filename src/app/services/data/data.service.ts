@@ -40,6 +40,10 @@ export class DataService implements OnDestroy {
 
   private destroyed = new Subject<void>();
 
+  // Counter to force D3 data rebinding when loading new DTO (not for undo/redo)
+  // Fixes issue #851: prevents stale object references in D3 callbacks
+  private netzgrafikLoadCounter = 0;
+
   private readonly netzgrafikLoadedInfoSubject = new BehaviorSubject<NetzgrafikLoadedInfo>(
     new NetzgrafikLoadedInfo(true, false),
   );
@@ -72,7 +76,14 @@ export class DataService implements OnDestroy {
     this.destroyed.complete();
   }
 
-  loadNetzgrafikDto(netzgrafikDto: NetzgrafikDto, preview = false) {
+  getNetzgrafikLoadCounter(): number {
+    return this.netzgrafikLoadCounter;
+  }
+
+  loadNetzgrafikDto(netzgrafikDto: NetzgrafikDto, preview = false, incrementLoadCounter = false) {
+    if (incrementLoadCounter) {
+      this.netzgrafikLoadCounter++;
+    }
     this.netzgrafikLoadedInfoSubject.next(new NetzgrafikLoadedInfo(true, preview));
 
     DataMigration.migrateNetzgrafikDto(netzgrafikDto);

@@ -13,6 +13,8 @@ export class NoteViewObject {
 
   static generateKey(editorView: EditorView, n: Note): string {
     return (
+      "LC" +
+      editorView.getNetzgrafikLoadCounter() +
       "#" +
       n.getId() +
       "@" +

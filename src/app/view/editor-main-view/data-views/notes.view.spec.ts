@@ -153,6 +153,7 @@ describe("Notes-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      dataService,
     );
 
     new EditorView(

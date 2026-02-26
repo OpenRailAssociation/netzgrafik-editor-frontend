@@ -166,6 +166,10 @@ export class EditorView implements SVGMouseControllerObserver {
     this.svgMouseController.destroy();
   }
 
+  getNetzgrafikLoadCounter(): number {
+    return this.nodeService.getNetzgrafikLoadCounter();
+  }
+
   bindAddNode(callback) {
     this.addNode = callback;
   }

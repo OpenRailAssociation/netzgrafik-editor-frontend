@@ -94,7 +94,7 @@ export class AppComponent implements OnInit {
 
   set netzgrafikDto(netzgrafikDto: NetzgrafikDto) {
     this.netzgrafikDtoIsSet = true;
-    this.dataService.loadNetzgrafikDto(netzgrafikDto);
+    this.dataService.loadNetzgrafikDto(netzgrafikDto, false, true);
     this.uiInteractionService.closeTrainrunDialog();
   }
 
