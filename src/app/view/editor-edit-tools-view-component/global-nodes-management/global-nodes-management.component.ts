@@ -68,9 +68,9 @@ export class GlobalNodesManagementComponent {
   }
 
   toggleIsCollapsed(node: Node, isCollapsed: boolean) {
-    node.setIsCollapsed(isCollapsed);
-    this.dataService.triggerViewUpdate();
+    this.nodeService.changeIsCollapsed(node.getId(), isCollapsed);
   }
+
   onClickGlobalCheckbox(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
