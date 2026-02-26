@@ -2573,7 +2573,7 @@ export class TrainrunSectionsView {
       return;
     }
 
-    const startNode: Node = this.editorView.trainrunSectionPreviewLineView.getStartNode();
+    const startNode = this.editorView.trainrunSectionPreviewLineView.getStartNode();
     if (!startNode || startNode.getId() === endNode.getId()) {
       this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
       return;
