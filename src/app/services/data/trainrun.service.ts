@@ -394,8 +394,8 @@ export class TrainrunService {
     if (!node.isEndNode(ts1) || !node.isEndNode(ts2)) {
       return;
     }
-    const trainrun1 = port1.getTrainrunSection().getTrainrun();
-    const trainrun2 = port2.getTrainrunSection().getTrainrun();
+    const trainrun1 = ts1.getTrainrun();
+    const trainrun2 = ts2.getTrainrun();
     if (trainrun1.getId() === trainrun2.getId()) {
       return;
     }
