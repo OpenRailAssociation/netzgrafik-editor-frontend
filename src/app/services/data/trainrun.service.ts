@@ -389,6 +389,11 @@ export class TrainrunService {
   }
 
   combineTwoTrainruns(node: Node, port1: Port, port2: Port) {
+    const ts1 = port1.getTrainrunSection();
+    const ts2 = port2.getTrainrunSection();
+    if (!node.isEndNode(ts1) || !node.isEndNode(ts2)) {
+      return;
+    }
     const trainrun1 = port1.getTrainrunSection().getTrainrun();
     const trainrun2 = port2.getTrainrunSection().getTrainrun();
     if (trainrun1.getId() === trainrun2.getId()) {
