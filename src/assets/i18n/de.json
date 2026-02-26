@@ -450,6 +450,9 @@
       },
       "editor-side-view": {
         "editor-node-detail-view": {
+          "display": "Anzeige",
+          "expanded": "Erweitert",
+          "collapsed": "Zusammengeklappt",
           "base-data": "Stammdaten",
           "operational-point": "Betriebspunkt",
           "name": "Name",

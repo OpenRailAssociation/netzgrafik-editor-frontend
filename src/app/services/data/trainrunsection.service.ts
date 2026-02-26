@@ -21,6 +21,7 @@ import {takeUntil} from "rxjs/operators";
 import {FilterService} from "../ui/filter.service";
 import {DirectedTrainrunSectionProxy} from "../util/trainrun.iterator";
 import {Operation, OperationType, TrainrunOperation} from "../../models/operation.model";
+import {Vec2D} from "../../utils/vec2D";
 
 interface DepartureAndArrivalTimes {
   nodeFromDepartureTime: number;
@@ -34,16 +35,12 @@ export interface InformSelectedTrainrunClick {
   open: boolean;
 }
 
-@Injectable({
-  providedIn: "root",
-})
+@Injectable({providedIn: "root"})
 export class TrainrunSectionService implements OnDestroy {
   // Description of observable data service: https://coryrylan.com/blog/angular-observable-data-services
   trainrunSectionsSubject = new BehaviorSubject<TrainrunSection[]>([]);
   readonly trainrunSections = this.trainrunSectionsSubject.asObservable();
-  trainrunSectionsStore: {trainrunSections: TrainrunSection[]} = {
-    trainrunSections: [],
-  }; // store the data in memory
+  trainrunSectionsStore: {trainrunSections: TrainrunSection[]} = {trainrunSections: []}; // store the data in memory
 
   readonly operation = new EventEmitter<Operation>();
 
@@ -356,7 +353,7 @@ export class TrainrunSectionService implements OnDestroy {
     node: Node,
     stopNodeId: number,
   ) {
-    const iterator = this.trainrunService.getNonStopIterator(node, trainrunSection);
+    const iterator = this.trainrunService.getNextExpandedStopIterator(node, trainrunSection);
     while (iterator.hasNext()) {
       iterator.next();
       if (iterator.current().node.getId() === stopNodeId) {
@@ -818,19 +815,41 @@ export class TrainrunSectionService implements OnDestroy {
     const trsTimeStructure = TrainrunsectionHelper.getDefaultTimeStructure(timeStructure);
     let summedTravelTime = 0;
 
-    const iterator = this.trainrunService.getNonStopIterator(leftNode, trs);
+    const iterator = this.trainrunService.getNextExpandedStopIterator(leftNode, trs);
+    let prevInitialLeftArrival: number = null;
+    let stopTime: number;
     while (iterator.hasNext()) {
       const nextPair = iterator.next();
+      const rightIsTarget =
+        nextPair.node.getId() === nextPair.trainrunSection.getTargetNode().getId();
 
-      const isRightNodeNonStop = nextPair.node.isNonStop(nextPair.trainrunSection);
-      trsTimeStructure.travelTime = TrainrunsectionHelper.getTravelTime(
-        newTotalTravelTime,
-        summedTravelTime,
-        travelTimeFactor,
-        nextPair.trainrunSection.getTravelTime(),
-        isRightNodeNonStop,
-        precision,
-      );
+      if (prevInitialLeftArrival !== null) {
+        stopTime = MathUtils.mod60(
+          (rightIsTarget
+            ? nextPair.trainrunSection.getSourceDeparture()
+            : nextPair.trainrunSection.getTargetDeparture()) - prevInitialLeftArrival,
+        );
+        trsTimeStructure.leftDepartureTime = trsTimeStructure.rightArrivalTime + stopTime;
+        trsTimeStructure.leftArrivalTime = trsTimeStructure.rightDepartureTime - stopTime;
+      }
+      prevInitialLeftArrival = rightIsTarget
+        ? nextPair.trainrunSection.getTargetArrival()
+        : nextPair.trainrunSection.getSourceArrival();
+
+      const isLastRightNode =
+        !nextPair.node.isNonStop(nextPair.trainrunSection) && !nextPair.node.getIsCollapsed();
+      trsTimeStructure.travelTime = isLastRightNode
+        ? TrainrunsectionHelper.getLastSectionTravelTime(
+            newTotalTravelTime,
+            summedTravelTime,
+            precision,
+          )
+        : TrainrunsectionHelper.getSectionDistributedTravelTime(
+            nextPair.trainrunSection.getTravelTime(),
+            travelTimeFactor,
+            precision,
+          );
+
       trsTimeStructure.rightArrivalTime = TrainrunsectionHelper.getRightArrivalTime(
         trsTimeStructure,
         precision,
@@ -845,8 +864,6 @@ export class TrainrunSectionService implements OnDestroy {
         trsTimeStructure,
       );
 
-      trsTimeStructure.leftDepartureTime = trsTimeStructure.rightArrivalTime;
-      trsTimeStructure.leftArrivalTime = trsTimeStructure.rightDepartureTime;
       summedTravelTime += trsTimeStructure.travelTime;
     }
 
@@ -872,13 +889,14 @@ export class TrainrunSectionService implements OnDestroy {
     });
   }
 
+  // this function is no longer used for its original purpose (drag a node that only existed inside numberOfStops and create it inside the real graph)
   replaceIntermediateStopWithNode(trainrunSectionId: number, stopIndex: number, nodeId: number) {
     const trainrunSection1 = this.getTrainrunSectionFromId(trainrunSectionId);
     if (
       trainrunSection1.getSourceNodeId() === nodeId ||
       trainrunSection1.getTargetNodeId() === nodeId
     ) {
-      return;
+      return {};
     }
     const origTravelTime = trainrunSection1.getTravelTime();
     const trainrunSection2 = this.copyTrainrunSection(
@@ -979,6 +997,10 @@ export class TrainrunSectionService implements OnDestroy {
     this.nodeService.connectionsUpdated();
     this.nodeService.nodesUpdated();
     this.trainrunSectionsUpdated();
+    return {
+      existingTrainRunSection: trainrunSection1,
+      newTrainRunSection: trainrunSection2,
+    };
   }
 
   setWarningOnNode(
@@ -1399,5 +1421,62 @@ export class TrainrunSectionService implements OnDestroy {
     // Update visuals and geometry
     trainrunSection.routeEdgeAndPlaceText();
     trainrunSection.convertVec2DToPath();
+  }
+
+  /**
+   * Groups consecutive TrainrunSections that have collapsed nodes between them
+   * into chains. Each chain starts and ends with a non-collapsed node.
+   * Start and end nodes can be accessed via: sections[0].getSourceNode() and sections[sections.length - 1].getTargetNode()
+   * @param trainrunSections List of TrainrunSections to group
+   * @returns Array of section chains
+   */
+  groupTrainrunSectionsIntoChains(trainrunSections: TrainrunSection[]): TrainrunSection[][] {
+    const groups: TrainrunSection[][] = [];
+    const visitedSections = new Set<number>();
+
+    trainrunSections.forEach((section) => {
+      if (visitedSections.has(section.getId())) {
+        return;
+      }
+
+      const backwardIterator = this.trainrunService.getBackwardIterator(
+        section.getTargetNode(),
+        section,
+      );
+      while (backwardIterator.hasNext() && backwardIterator.current().node.getIsCollapsed()) {
+        backwardIterator.next();
+      }
+      const startNode = backwardIterator.current().node;
+      const startSection = backwardIterator.current().trainrunSection;
+
+      // Build chain using TrainrunIterator to leverage existing graph traversal
+      const chain: TrainrunSection[] = [];
+      const iterator = this.trainrunService.getIterator(startNode, startSection);
+
+      // Traverse the trainrun and collect sections with collapsed intermediate nodes
+      while (iterator.hasNext()) {
+        const pair = iterator.next();
+
+        if (visitedSections.has(pair.trainrunSection.getId())) {
+          throw new Error(
+            `Cycle detected in trainrun section chain: section ${pair.trainrunSection.getId()} already visited for trainrun ${pair.trainrunSection.getTrainrunId()}`,
+          );
+        }
+
+        chain.push(pair.trainrunSection);
+        visitedSections.add(pair.trainrunSection.getId());
+
+        // Stop if we reach a non-collapsed node (end of collapsed chain)
+        if (!pair.node.getIsCollapsed()) {
+          break;
+        }
+      }
+
+      if (chain.length > 0) {
+        groups.push(chain);
+      }
+    });
+
+    return groups;
   }
 }

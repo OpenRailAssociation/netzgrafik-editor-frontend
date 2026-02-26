@@ -38,9 +38,7 @@ import {
   TrainrunOperation,
 } from "../../models/operation.model";
 
-@Injectable({
-  providedIn: "root",
-})
+@Injectable({providedIn: "root"})
 export class NodeService implements OnDestroy {
   // Description of observable data service: https://coryrylan.com/blog/angular-observable-data-services
   nodesSubject = new BehaviorSubject<Node[]>([]);
@@ -111,6 +109,7 @@ export class NodeService implements OnDestroy {
           node.betriebspunktName,
           node.fullName,
           node.labelIds,
+          node.isCollapsed,
         );
       } else {
         const existingLabels = existingNode.getLabelIds();
@@ -225,6 +224,7 @@ export class NodeService implements OnDestroy {
     betriebspunktName?: string,
     fullName?: string,
     labelIds?: number[],
+    isCollapsed?: boolean,
     enforceUpdate = true,
   ): Node {
     const alignedPosition = NodeService.alginNodeToRaster(new Vec2D(positionX, positionY));
@@ -248,10 +248,24 @@ export class NodeService implements OnDestroy {
     if (labelIds !== undefined) {
       node.setLabelIds(labelIds);
     }
+    if (isCollapsed !== undefined) {
+      node.setIsCollapsed(isCollapsed);
+    }
     this.nodesStore.nodes.push(node);
     if (enforceUpdate) {
       this.nodesUpdated();
     }
+    this.operation.emit(new NodeOperation(OperationType.create, node));
+    return node;
+  }
+
+  addEmptyNode(positionX: number, positionY: number): Node {
+    const node: Node = new Node();
+    node.setPosition(positionX, positionY);
+    node.setIsCollapsed(true);
+    const resource: Resource = this.resourceService.createAndGetResource();
+    node.setResourceId(resource.getId());
+    this.nodesStore.nodes.push(node);
     this.operation.emit(new NodeOperation(OperationType.create, node));
     return node;
   }
@@ -888,6 +902,15 @@ export class NodeService implements OnDestroy {
   changeConnectionTime(nodeId: number, connectionTime: number) {
     this.getNodeFromId(nodeId).setConnectionTime(connectionTime);
     this.nodesUpdated();
+    this.operation.emit(new NodeOperation(OperationType.update, this.getNodeFromId(nodeId)));
+  }
+
+  changeIsCollapsed(nodeId: number, isCollapsed: boolean) {
+    this.getNodeFromId(nodeId).setIsCollapsed(isCollapsed);
+    this.nodesUpdated();
+    this.trainrunSectionService.trainrunSectionsUpdated();
+    this.connectionsUpdated();
+    this.transitionsUpdated();
     this.operation.emit(new NodeOperation(OperationType.update, this.getNodeFromId(nodeId)));
   }
 
