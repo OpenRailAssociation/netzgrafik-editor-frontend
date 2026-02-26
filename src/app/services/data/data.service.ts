@@ -151,13 +151,7 @@ export class DataService implements OnDestroy {
     this.trainrunSectionService.initializeTrainrunSectionRouting();
     this.nodeService.validateAllConnections();
     this.trainrunService.propagateInitialConsecutiveTimes();
-    this.nodeService.nodesUpdated();
-    this.nodeService.transitionsUpdated();
-    this.nodeService.connectionsUpdated();
-    this.trainrunSectionService.trainrunSectionsUpdated();
-    this.noteService.notesUpdated();
-    this.labelService.labelUpdated();
-    this.labelGroupService.labelGroupUpdated();
+    this.triggerViewUpdate();
 
     this.netzgrafikColoringService.generateGlobalStyles(
       this.getTrainrunCategories(),
