@@ -1969,7 +1969,7 @@ export class TrainrunSectionsView {
       StaticDomTags.CONNECTION_TAG_ONGOING_DRAGGING,
       false,
     );
-    this.createHandleTrainrunSectionAfterPinDropped(
+    this.handleTrainrunSectionAfterPinDropped(
       TrainrunSectionsView.getNode(trainrunSection, atSource),
       trainrunSection,
     );
@@ -2562,7 +2562,7 @@ export class TrainrunSectionsView {
       );
   }
 
-  private createHandleTrainrunSectionAfterPinDropped(
+  private handleTrainrunSectionAfterPinDropped(
     endNode: Node,
     trainrunSection: TrainrunSection,
   ) {
