@@ -2586,7 +2586,7 @@ export class TrainrunSectionsView {
       if (trainrunSectionFrom.getTrainrunId() !== trainrunSection.getTrainrunId()) {
         const canCombine = this.editorView.trainrunSectionPreviewLineView.canCombineTwoTrainruns();
         this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
-        if (d3.event.ctrlKey && canCombine && endNode.isEndNode(trainrunSection)) {
+        if (d3.event.ctrlKey && canCombine) {
           const n: Node = endNode;
           this.editorView.combineTwoTrainruns(
             endNode,
