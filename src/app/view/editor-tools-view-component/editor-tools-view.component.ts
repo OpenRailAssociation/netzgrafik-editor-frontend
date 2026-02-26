@@ -746,7 +746,7 @@ export class EditorToolsViewComponent {
     const netzgrafikOnlyNodeDto: NetzgrafikDto = Object.assign({}, netzgrafikDto);
     netzgrafikOnlyNodeDto.trainruns = [];
     netzgrafikOnlyNodeDto.trainrunSections = [];
-    this.dataService.loadNetzgrafikDto(netzgrafikOnlyNodeDto, false, true);
+    this.dataService.loadNetzgrafikDto(netzgrafikOnlyNodeDto, false);
 
     // (Step 2) Import nodes and trainrunSectiosn by trainrun inseration (copy => create)
     this.dataService.insertCopyNetzgrafikDto(netzgrafikDto, false);
@@ -807,7 +807,7 @@ export class EditorToolsViewComponent {
       // -----------------------------------------------
       // Default: Netzgrafik-Editor exported JSON
       // -----------------------------------------------
-      this.dataService.loadNetzgrafikDto(netzgrafikDto, false, true);
+      this.dataService.loadNetzgrafikDto(netzgrafikDto, false);
       // -----------------------------------------------
     } else {
       // -----------------------------------------------

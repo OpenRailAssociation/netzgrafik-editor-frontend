@@ -80,10 +80,8 @@ export class DataService implements OnDestroy {
     return this.netzgrafikLoadCounter;
   }
 
-  loadNetzgrafikDto(netzgrafikDto: NetzgrafikDto, preview = false, incrementLoadCounter = false) {
-    if (incrementLoadCounter) {
-      this.netzgrafikLoadCounter++;
-    }
+  loadNetzgrafikDto(netzgrafikDto: NetzgrafikDto, preview = false) {
+    this.netzgrafikLoadCounter++;
     this.netzgrafikLoadedInfoSubject.next(new NetzgrafikLoadedInfo(true, preview));
 
     DataMigration.migrateNetzgrafikDto(netzgrafikDto);

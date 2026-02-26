@@ -77,7 +77,7 @@ export class VersionControlService implements OnDestroy {
   }
 
   loadNetzgrafikDTO(netzgrafik: NetzgrafikDto) {
-    this.dataService.loadNetzgrafikDto(netzgrafik, false, true);
+    this.dataService.loadNetzgrafikDto(netzgrafik, false);
     this.autoSaveService.reset();
     this.undoService.reset(this.undoService.getCurrentVariantId() + 1);
   }
@@ -140,7 +140,7 @@ export class VersionControlService implements OnDestroy {
         map((model) => model as NetzgrafikDto),
       )
       .subscribe((netzgrafik) => {
-        this.dataService.loadNetzgrafikDto(netzgrafik, false, true);
+        this.dataService.loadNetzgrafikDto(netzgrafik, false);
         this.autoSaveService.reset();
         this.undoService.reset(version.variantId);
       });
