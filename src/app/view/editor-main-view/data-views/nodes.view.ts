@@ -663,7 +663,7 @@ export class NodesView {
       if (dragTransitionInfo !== null) {
         this.reconnectTransition(dragTransitionInfo, endNode);
       } else {
-        const startNode: Node = this.editorView.trainrunSectionPreviewLineView.getStartNode();
+        const startNode = this.editorView.trainrunSectionPreviewLineView.getStartNode();
         this.createNewTrainrunSection(startNode, endNode);
       }
     }
