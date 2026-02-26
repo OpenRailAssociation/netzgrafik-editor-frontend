@@ -1969,7 +1969,7 @@ export class TrainrunSectionsView {
       StaticDomTags.CONNECTION_TAG_ONGOING_DRAGGING,
       false,
     );
-    this.createNewTrainrunSectionAfterPinDropped(
+    this.createHandleTrainrunSectionAfterPinDropped(
       TrainrunSectionsView.getNode(trainrunSection, atSource),
       trainrunSection,
     );
@@ -2562,19 +2562,22 @@ export class TrainrunSectionsView {
       );
   }
 
-  private createNewTrainrunSectionAfterPinDropped(endNode: any, trainrunSection: TrainrunSection) {
+  private createHandleTrainrunSectionAfterPinDropped(
+    endNode: Node,
+    trainrunSection: TrainrunSection,
+  ) {
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
       return;
     }
 
-    if (endNode === null) {
+    if (!endNode) {
       this.editorView.deleteTrainrunSection(trainrunSection);
       this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
       return;
     }
 
-    const startNode: any = this.editorView.trainrunSectionPreviewLineView.getStartNode();
-    if (startNode === endNode) {
+    const startNode: Node = this.editorView.trainrunSectionPreviewLineView.getStartNode();
+    if (!startNode || startNode.getId() === endNode.getId()) {
       this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
       return;
     }
