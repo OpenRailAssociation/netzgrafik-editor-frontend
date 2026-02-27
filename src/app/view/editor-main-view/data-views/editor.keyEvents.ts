@@ -262,11 +262,7 @@ export class EditorKeyEvents {
 
       sections.forEach((ts) => {
         ts.setNumberOfStops(ts.getNumberOfStops() + 1);
-        this.trainrunSectionService.replaceIntermediateStopWithNode(
-          ts.getId(),
-          Math.ceil(ts.getNumberOfStops() / 2) - 1,
-          node.getId(),
-        );
+        this.trainrunSectionService.replaceIntermediateStopWithNode(ts.getId(), node.getId());
       });
 
       this.trainrunSectionService.unselectAllTrainrunSections();

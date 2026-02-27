@@ -37,8 +37,8 @@
                 maxlength="2"
                 spellcheck="false"
                 pattern="^[0-9.]*"
-                [(ngModel)]="numberOfStops"
-                (change)="onNumberOfStopsChanged()"
+                [(ngModel)]="numberOfStopsInput"
+                (change)="onNumberOfStopsInputChanged()"
                 (mouseenter)="onMouseEnterNbrStopInput()"
                 (mouseleave)="onMouseOutNbrStopInput()"
               />
@@ -375,14 +375,10 @@
   </table>
 </div>
 <div sbbDialogActions [class]="getContentFooterClassTag()">
-  <button
-    class="warning"
-    *ngIf="trainrunSectionTimesService.getShowWarningTwoLocks() === true"
-    disabled
-  >
+  <button class="warning" *ngIf="trainrunSectionTimesService.getWarning()" disabled>
     {{
-      "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.warningTwoLocks"
-        | translate
+      "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab." +
+        trainrunSectionTimesService.getWarning() | translate
     }}
   </button>
   <button

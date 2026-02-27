@@ -292,7 +292,8 @@
             "round-trip": "Round trip"
           },
           "trainrun-section-tab": {
-            "warningTwoLocks": "Warning: Too many times are locked!",
+            "too-many-locks": "Warning: Too many times are locked!",
+            "cannot-delete-not-empty-node": "Warning: Cannot delete non-empty nodes",
             "propagateTimesToLeft": "Propagate times to the left",
             "propagateTimesToRight": "Propagate times to the right"
           }

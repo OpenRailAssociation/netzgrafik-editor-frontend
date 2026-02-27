@@ -411,13 +411,8 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
 
     this.editorView.bindIsFilterNotesEnabled(() => this.filterService.isFilterNotesEnabled());
 
-    this.editorView.bindReplaceIntermediateStopWithNode(
-      (trainsectionId: number, stopIndex: number, nodeId: number) =>
-        this.trainrunSectionService.replaceIntermediateStopWithNode(
-          trainsectionId,
-          stopIndex,
-          nodeId,
-        ),
+    this.editorView.bindReplaceIntermediateStopWithNode((trainsectionId: number, nodeId: number) =>
+      this.trainrunSectionService.replaceIntermediateStopWithNode(trainsectionId, nodeId),
     );
 
     this.editorView.bindGetTimeDisplayPrecision(() => this.filterService.getTimeDisplayPrecision());

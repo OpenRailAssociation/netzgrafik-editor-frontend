@@ -761,6 +761,10 @@ export class Node {
     return this.isSelected;
   }
 
+  isEmpty(): boolean {
+    return this.getBetriebspunktName() === "" && this.getFullName() === "";
+  }
+
   isNonStop(trainrunSection: TrainrunSection): boolean {
     const port = this.getPortOfTrainrunSection(trainrunSection.getId());
     if (port === undefined) {

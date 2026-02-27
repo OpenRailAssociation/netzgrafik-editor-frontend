@@ -41,13 +41,16 @@ export class GlobalNodesManagementComponent {
 
     const normalizedQuery = normalizeStr(this.query);
 
-    this.matchingNodes = normalizedQuery
-      ? this.allNodes.filter(
-          (node) =>
-            normalizeStr(node.getFullName()).includes(normalizedQuery) ||
-            normalizeStr(node.getBetriebspunktName()).includes(normalizedQuery),
-        )
-      : this.allNodes;
+    if (!normalizedQuery) this.matchingNodes = this.allNodes;
+    else if (normalizedQuery === "?") {
+      this.matchingNodes = this.allNodes.filter((node) => node.isEmpty());
+    } else {
+      this.matchingNodes = this.allNodes.filter(
+        (node) =>
+          normalizeStr(node.getFullName()).includes(normalizedQuery) ||
+          normalizeStr(node.getBetriebspunktName()).includes(normalizedQuery),
+      );
+    }
   }
 
   getGlobalCheckboxStatus(): boolean | undefined {
@@ -71,6 +74,7 @@ export class GlobalNodesManagementComponent {
     node.setIsCollapsed(isCollapsed);
     this.dataService.triggerViewUpdate();
   }
+
   onClickGlobalCheckbox(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
