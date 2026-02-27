@@ -855,119 +855,127 @@ export class TrainrunSectionService implements OnDestroy {
   // this function is no longer used for its original purpose (drag a node that only existed inside numberOfStops and create it inside the real graph)
   replaceIntermediateStopWithNode(
     trainrunSectionId: number,
-    nodeId: number,
-    stopDuration?: number,
-  ) {
-    const trainrunSection1 = this.getTrainrunSectionFromId(trainrunSectionId);
+    intermediateNodeId: number,
+    initialStopDuration?: number,
+  ): {initialSection: TrainrunSection; newSection: TrainrunSection} {
+    const initialSection = this.getTrainrunSectionFromId(trainrunSectionId);
     if (
-      trainrunSection1.getSourceNodeId() === nodeId ||
-      trainrunSection1.getTargetNodeId() === nodeId
+      initialSection.getSourceNodeId() === intermediateNodeId ||
+      initialSection.getTargetNodeId() === intermediateNodeId
     ) {
-      return {};
+      return {
+        initialSection: undefined,
+        newSection: undefined,
+      };
     }
-    const origTravelTime = trainrunSection1.getTravelTime();
-    const trainrunSection2 = this.copyTrainrunSection(
-      trainrunSection1,
-      trainrunSection1.getTrainrunId(),
-    );
-    const node1 = trainrunSection1.getSourceNode();
-    const node2 = trainrunSection1.getTargetNode();
-    const nodeIntermediate = this.nodeService.getNodeFromId(nodeId);
-    const transition1: Transition = node1.getTransition(trainrunSection1.getId());
-    const nonStop1 = transition1 !== undefined ? transition1.getIsNonStopTransit() : false;
-    const transition2: Transition = node2.getTransition(trainrunSection1.getId());
-    const nonStop2 = transition2 !== undefined ? transition2.getIsNonStopTransit() : false;
+    const initialTravelTime = initialSection.getTravelTime();
+    const newSection = this.copyTrainrunSection(initialSection, initialSection.getTrainrunId());
+    const initialSourceNode = initialSection.getSourceNode();
+    const initialTargetNode = initialSection.getTargetNode();
+    const intermediateNode = this.nodeService.getNodeFromId(intermediateNodeId);
+    const initialSourceNodeTransition = initialSourceNode.getTransition(initialSection.getId());
+    const isSourceNodeNonStop =
+      initialSourceNodeTransition !== undefined
+        ? initialSourceNodeTransition.getIsNonStopTransit()
+        : false;
+    const initialTargetNodeTransition = initialTargetNode.getTransition(initialSection.getId());
+    const isTargetNodeNonStop =
+      initialTargetNodeTransition !== undefined
+        ? initialTargetNodeTransition.getIsNonStopTransit()
+        : false;
 
-    node2.replaceTrainrunSectionOnPort(trainrunSection1, trainrunSection2);
+    initialTargetNode.replaceTrainrunSectionOnPort(initialSection, newSection);
 
-    trainrunSection1.setTargetNode(nodeIntermediate);
-    nodeIntermediate.addPortWithRespectToOppositeNode(node1, trainrunSection1);
-    node1.reAlignPortWithRespectToOppositeNode(nodeIntermediate, trainrunSection1);
+    initialSection.setTargetNode(intermediateNode);
+    intermediateNode.addPortWithRespectToOppositeNode(initialSourceNode, initialSection);
+    initialSourceNode.reAlignPortWithRespectToOppositeNode(intermediateNode, initialSection);
 
-    trainrunSection2.setSourceNode(nodeIntermediate);
-    trainrunSection2.setTargetNode(node2);
-    nodeIntermediate.addPortWithRespectToOppositeNode(node2, trainrunSection2);
-    node2.reAlignPortWithRespectToOppositeNode(nodeIntermediate, trainrunSection2);
+    newSection.setSourceNode(intermediateNode);
+    newSection.setTargetNode(initialTargetNode);
+    intermediateNode.addPortWithRespectToOppositeNode(initialTargetNode, newSection);
+    initialTargetNode.reAlignPortWithRespectToOppositeNode(intermediateNode, newSection);
 
     this.nodeService.addTransitionToNodeForTrainrunSections(
-      nodeIntermediate.getId(),
-      trainrunSection1,
-      trainrunSection2,
+      intermediateNode.getId(),
+      initialSection,
+      newSection,
     );
-    this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection1.getId());
+    this.trainrunService.propagateConsecutiveTimesForTrainrun(initialSection.getId());
 
-    const minHalteZeitFromNode = this.nodeService.getHaltezeit(
-      nodeId,
-      trainrunSection1.getTrainrun().getTrainrunCategory(),
+    const minimumHalteZeitAtIntermediateNode = this.nodeService.getHaltezeit(
+      intermediateNodeId,
+      initialSection.getTrainrun().getTrainrunCategory(),
     );
-    let travelTime1 =
-      trainrunSection1.getTargetArrivalConsecutiveTime() -
-      trainrunSection1.getSourceDepartureConsecutiveTime();
-    let travelTime2 =
-      trainrunSection1.getSourceArrivalConsecutiveTime() -
-      trainrunSection1.getTargetDepartureConsecutiveTime();
-    travelTime1 = travelTime1 < 0 ? travelTime2 : travelTime1;
-    travelTime2 = travelTime2 < 0 ? travelTime1 : travelTime2;
-    const calculatedTravelTime = Math.min(travelTime1, travelTime2);
-    const halteZeit =
-      stopDuration ?? Math.min(minHalteZeitFromNode, Math.max(0, calculatedTravelTime - 2));
-    const travelTimeIssue = !travelTime1 || !travelTime2;
-    const halteZeitIssue = minHalteZeitFromNode < halteZeit;
-    const travelTime = Math.max(trainrunSection1.getTravelTime() - halteZeit, 0);
+    let forwardTravelTime =
+      initialSection.getTargetArrivalConsecutiveTime() -
+      initialSection.getSourceDepartureConsecutiveTime();
+    let backwardTravelTime =
+      initialSection.getSourceArrivalConsecutiveTime() -
+      initialSection.getTargetDepartureConsecutiveTime();
+    forwardTravelTime = forwardTravelTime < 0 ? backwardTravelTime : forwardTravelTime;
+    backwardTravelTime = backwardTravelTime < 0 ? forwardTravelTime : backwardTravelTime;
+    const minimumCalculatedTravelTime = Math.min(forwardTravelTime, backwardTravelTime);
+    const stopDuration =
+      initialStopDuration ??
+      Math.min(minimumHalteZeitAtIntermediateNode, Math.max(0, minimumCalculatedTravelTime - 2));
+    const travelTimeIssue = !forwardTravelTime || !backwardTravelTime;
+    const halteZeitIssue = minimumHalteZeitAtIntermediateNode < stopDuration;
+    const travelTime = Math.max(initialSection.getTravelTime() - stopDuration, 0);
     const halfTravelTime = travelTime / 2;
-    trainrunSection1.setTravelTime(travelTime - halfTravelTime);
-    trainrunSection2.setTravelTime(halfTravelTime);
+    initialSection.setTravelTime(travelTime - halfTravelTime);
+    newSection.setTravelTime(halfTravelTime);
 
-    trainrunSection1.setTargetArrival(
+    initialSection.setTargetArrival(
       TrainrunSectionService.boundMinutesToOneHour(
-        trainrunSection1.getSourceDeparture() + trainrunSection1.getTravelTime(),
+        initialSection.getSourceDeparture() + initialSection.getTravelTime(),
       ),
     );
-    trainrunSection2.setSourceArrival(
+    newSection.setSourceArrival(
       TrainrunSectionService.boundMinutesToOneHour(
-        trainrunSection1.getTargetDeparture() + trainrunSection2.getTravelTime(),
+        initialSection.getTargetDeparture() + newSection.getTravelTime(),
       ),
     );
-    trainrunSection1.setTargetDeparture(
-      TrainrunSectionService.boundMinutesToOneHour(halteZeit + trainrunSection2.getSourceArrival()),
+    initialSection.setTargetDeparture(
+      TrainrunSectionService.boundMinutesToOneHour(stopDuration + newSection.getSourceArrival()),
     );
-    trainrunSection2.setSourceDeparture(
-      TrainrunSectionService.boundMinutesToOneHour(halteZeit + trainrunSection1.getTargetArrival()),
+    newSection.setSourceDeparture(
+      TrainrunSectionService.boundMinutesToOneHour(
+        stopDuration + initialSection.getTargetArrival(),
+      ),
     );
 
     if (
       halteZeitIssue ||
-      trainrunSection1.getTravelTime() + trainrunSection2.getTravelTime() + halteZeit !==
-        origTravelTime ||
+      initialSection.getTravelTime() + newSection.getTravelTime() + stopDuration !==
+        initialTravelTime ||
       travelTimeIssue
     ) {
       const title = $localize`:@@app.services.data.trainrunsection.intermediate-stop-replacement.title:Intermediate stop replacement`;
       const description = $localize`:@@app.services.data.trainrunsection.intermediate-stop-replacement.description:Intermediate stop replacement led to inconsistencies in the allocation of times!`;
-      trainrunSection1.setTargetArrivalWarning(title, description);
-      trainrunSection1.setTargetDepartureWarning(title, description);
-      trainrunSection2.setSourceArrivalWarning(title, description);
-      trainrunSection2.setSourceDepartureWarning(title, description);
+      initialSection.setTargetArrivalWarning(title, description);
+      initialSection.setTargetDepartureWarning(title, description);
+      newSection.setSourceArrivalWarning(title, description);
+      newSection.setSourceDepartureWarning(title, description);
     }
 
-    const transitionNew1 = node1.getTransition(trainrunSection1.getId());
-    if (transitionNew1 !== undefined) {
-      transitionNew1.setIsNonStopTransit(nonStop1);
+    const initialSectionNewSourceTransition = initialSourceNode.getTransition(
+      initialSection.getId(),
+    );
+    if (initialSectionNewSourceTransition !== undefined) {
+      initialSectionNewSourceTransition.setIsNonStopTransit(isSourceNodeNonStop);
     }
-    const transitionNew2 = node2.getTransition(trainrunSection2.getId());
-    if (transitionNew2 !== undefined) {
-      transitionNew2.setIsNonStopTransit(nonStop2);
+    const initialSectionNewTargetTransition = initialTargetNode.getTransition(newSection.getId());
+    if (initialSectionNewTargetTransition !== undefined) {
+      initialSectionNewTargetTransition.setIsNonStopTransit(isTargetNodeNonStop);
     }
 
-    this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection1.getId());
+    this.trainrunService.propagateConsecutiveTimesForTrainrun(initialSection.getId());
 
     this.nodeService.transitionsUpdated();
     this.nodeService.connectionsUpdated();
     this.nodeService.nodesUpdated();
     this.trainrunSectionsUpdated();
-    return {
-      existingTrainrunSection: trainrunSection1,
-      newTrainrunSection: trainrunSection2,
-    };
+    return {initialSection: initialSection, newSection: newSection};
   }
 
   addIntermediateStopOnTrainrunSection(trainrunSection: TrainrunSection) {

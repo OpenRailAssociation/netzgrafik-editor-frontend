@@ -128,13 +128,13 @@ export class DataService implements OnDestroy {
         );
 
         this.trainrunSectionService.getTrainrunSectionFromId(currentSection.id).setNumberOfStops(0);
-        const {existingTrainrunSection, newTrainrunSection} =
+        const {initialSection, newSection} =
           this.trainrunSectionService.replaceIntermediateStopWithNode(
             currentSection.id,
             newNode.getId(),
           );
 
-        currentSection = newTrainrunSection.getDto();
+        currentSection = newSection.getDto();
       }
     }
   }
