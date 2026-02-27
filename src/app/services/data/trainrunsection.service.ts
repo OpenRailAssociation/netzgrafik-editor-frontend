@@ -911,7 +911,8 @@ export class TrainrunSectionService implements OnDestroy {
     const calculatedTravelTime = Math.min(travelTime1, travelTime2);
     const halteZeit =
       stopDuration ?? Math.min(minHalteZeitFromNode, Math.max(0, calculatedTravelTime - 2));
-    const travelTimeIssue = travelTime1 === travelTime2 || minHalteZeitFromNode !== halteZeit;
+    const travelTimeIssue = !travelTime1 || !travelTime2;
+    const halteZeitIssue = minHalteZeitFromNode < halteZeit;
     const travelTime = Math.max(trainrunSection1.getTravelTime() - halteZeit, 0);
     const halfTravelTime = travelTime / 2;
     trainrunSection1.setTravelTime(travelTime - halfTravelTime);
@@ -935,7 +936,7 @@ export class TrainrunSectionService implements OnDestroy {
     );
 
     if (
-      minHalteZeitFromNode < halteZeit ||
+      halteZeitIssue ||
       trainrunSection1.getTravelTime() + trainrunSection2.getTravelTime() + halteZeit !==
         origTravelTime ||
       travelTimeIssue
