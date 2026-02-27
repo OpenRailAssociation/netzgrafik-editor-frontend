@@ -191,7 +191,7 @@ export class TrainrunIterator {
   protected visitedNodes: TrainrunSectionNodePair[] = [];
 
   constructor(
-    protected logService: LogService,
+    protected logService: LogService | null,
     private startNode: Node,
     private startTrainrunSection: TrainrunSection,
   ) {
@@ -232,7 +232,7 @@ export class TrainrunIterator {
       this.currentElement = this.pointerElement;
       this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
       // log the issue
-      this.logService.error(
+      this.logService?.error(
         $localize`:@@app.services.util.trainrun-iteration.error.infinity-loop:Iterator has detected an infinity loop. The iteration terminated early!`,
         new Error().stack,
       );
@@ -275,7 +275,7 @@ export class BackwardTrainrunIterator extends TrainrunIterator {
       this.currentElement = this.pointerElement;
       this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
       // log the issue
-      this.logService.error(
+      this.logService?.error(
         $localize`:@@app.services.util.trainrun-iteration.error.infinity-loop:Iterator has detected an infinity loop. The iteration terminated early!`,
         new Error().stack,
       );
@@ -325,6 +325,18 @@ export class ExpandedTrainrunIterator extends TrainrunIterator {
     if (!this.pointerElement.node.getIsCollapsed()) {
       // The trainrun has reached an expanded (non-collapsed) node and break the forward iteration
       this.currentElement = Object.assign({}, this.pointerElement);
+      this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
+      return this.currentElement;
+    }
+    return super.next();
+  }
+}
+
+export class BackwardExpandedStopIterator extends BackwardTrainrunIterator {
+  public next(): TrainrunSectionNodePair {
+    if (!this.pointerElement.node.getIsCollapsed()) {
+      // The trainrun has a stop and break the backward iteration
+      this.currentElement = this.pointerElement;
       this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
       return this.currentElement;
     }
