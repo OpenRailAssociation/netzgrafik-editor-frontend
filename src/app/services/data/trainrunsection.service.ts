@@ -857,7 +857,7 @@ export class TrainrunSectionService implements OnDestroy {
     trainrunSectionId: number,
     intermediateNodeId: number,
     initialStopDuration?: number,
-  ): {initialSection: TrainrunSection; newSection: TrainrunSection} {
+  ): TrainrunSection | null {
     // Before:
     // initialSourceNode ◄─[port]──[port]─► initialTargetNode
     //                     initialSection
@@ -872,10 +872,7 @@ export class TrainrunSectionService implements OnDestroy {
       initialSection.getTargetNodeId() === intermediateNodeId
     ) {
       // Early return if the intermediate node is already part of the trainrun section
-      return {
-        initialSection: undefined,
-        newSection: undefined,
-      };
+      return null;
     }
     // Create new section with same properties as initial section
     const newSection = this.copyTrainrunSection(initialSection, initialSection.getTrainrunId());
@@ -981,7 +978,7 @@ export class TrainrunSectionService implements OnDestroy {
     this.nodeService.connectionsUpdated();
     this.nodeService.nodesUpdated();
     this.trainrunSectionsUpdated();
-    return {initialSection: initialSection, newSection: newSection};
+    return newSection;
   }
 
   addIntermediateStopOnTrainrunSection(trainrunSection: TrainrunSection) {
