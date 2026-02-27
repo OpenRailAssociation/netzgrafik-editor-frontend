@@ -858,54 +858,67 @@ export class TrainrunSectionService implements OnDestroy {
     intermediateNodeId: number,
     initialStopDuration?: number,
   ): {initialSection: TrainrunSection; newSection: TrainrunSection} {
+    // Before:
+    // initialSourceNode ◄─[port]──[port]─► initialTargetNode
+    //                     initialSection
+    //
+    // After:
+    // initialSourceNode ◄-[port]──[port]─► intermediateNode ◄─[port]──[port]─► initialTargetNode
+    //                     initialSection                        newSection
+
     const initialSection = this.getTrainrunSectionFromId(trainrunSectionId);
     if (
       initialSection.getSourceNodeId() === intermediateNodeId ||
       initialSection.getTargetNodeId() === intermediateNodeId
     ) {
+      // Early return if the intermediate node is already part of the trainrun section
       return {
         initialSection: undefined,
         newSection: undefined,
       };
     }
-    const initialTravelTime = initialSection.getTravelTime();
+    // Create new section with same properties as initial section
     const newSection = this.copyTrainrunSection(initialSection, initialSection.getTrainrunId());
+
+    // Store initial values for later validation
+    const initialTravelTime = initialSection.getTravelTime();
     const initialSourceNode = initialSection.getSourceNode();
     const initialTargetNode = initialSection.getTargetNode();
-    const intermediateNode = this.nodeService.getNodeFromId(intermediateNodeId);
-    const initialSourceNodeTransition = initialSourceNode.getTransition(initialSection.getId());
-    const isSourceNodeNonStop =
-      initialSourceNodeTransition !== undefined
-        ? initialSourceNodeTransition.getIsNonStopTransit()
-        : false;
-    const initialTargetNodeTransition = initialTargetNode.getTransition(initialSection.getId());
-    const isTargetNodeNonStop =
-      initialTargetNodeTransition !== undefined
-        ? initialTargetNodeTransition.getIsNonStopTransit()
-        : false;
 
+    // Store initial transition properties for later validation
+    const initialTargetNodeTransition = initialTargetNode.getTransition(initialSection.getId());
+    const isInitialTargetNodeNonStop = initialTargetNodeTransition?.getIsNonStopTransit();
+
+    // Update initial target node port to use new section instead of initial section
     initialTargetNode.replaceTrainrunSectionOnPort(initialSection, newSection);
 
+    // Update initial section to point from intermediate node to initial target node
+    const intermediateNode = this.nodeService.getNodeFromId(intermediateNodeId);
     initialSection.setTargetNode(intermediateNode);
     intermediateNode.addPortWithRespectToOppositeNode(initialSourceNode, initialSection);
     initialSourceNode.reAlignPortWithRespectToOppositeNode(intermediateNode, initialSection);
 
+    // Update new section to point from intermediate node to initial target node
     newSection.setSourceNode(intermediateNode);
     newSection.setTargetNode(initialTargetNode);
     intermediateNode.addPortWithRespectToOppositeNode(initialTargetNode, newSection);
     initialTargetNode.reAlignPortWithRespectToOppositeNode(intermediateNode, newSection);
 
+    // Add transitions and connections for new section
     this.nodeService.addTransitionToNodeForTrainrunSections(
       intermediateNode.getId(),
       initialSection,
       newSection,
     );
+    const initialSectionNewTargetTransition = initialTargetNode.getTransition(newSection.getId());
+    if (initialSectionNewTargetTransition !== undefined) {
+      initialSectionNewTargetTransition.setIsNonStopTransit(isInitialTargetNodeNonStop);
+    }
+
+    // Propagate times to ensure that the new section gets correct times based on the initial section
     this.trainrunService.propagateConsecutiveTimesForTrainrun(initialSection.getId());
 
-    const minimumHalteZeitAtIntermediateNode = this.nodeService.getHaltezeit(
-      intermediateNodeId,
-      initialSection.getTrainrun().getTrainrunCategory(),
-    );
+    // Calculate travel time using consecutive times in both directions
     let forwardTravelTime =
       initialSection.getTargetArrivalConsecutiveTime() -
       initialSection.getSourceDepartureConsecutiveTime();
@@ -915,16 +928,23 @@ export class TrainrunSectionService implements OnDestroy {
     forwardTravelTime = forwardTravelTime < 0 ? backwardTravelTime : forwardTravelTime;
     backwardTravelTime = backwardTravelTime < 0 ? forwardTravelTime : backwardTravelTime;
     const minimumCalculatedTravelTime = Math.min(forwardTravelTime, backwardTravelTime);
+    const travelTimeIssue = !forwardTravelTime || !backwardTravelTime;
+
+    // Determine stop duration at intermediate node based on calculated travel time
+    // and minimum haltezeit for the trainrun category at the intermediate node
+    const minimumHalteZeitAtIntermediateNode = this.nodeService.getHaltezeit(
+      intermediateNodeId,
+      initialSection.getTrainrun().getTrainrunCategory(),
+    );
     const stopDuration =
       initialStopDuration ??
       Math.min(minimumHalteZeitAtIntermediateNode, Math.max(0, minimumCalculatedTravelTime - 2));
-    const travelTimeIssue = !forwardTravelTime || !backwardTravelTime;
     const halteZeitIssue = minimumHalteZeitAtIntermediateNode < stopDuration;
-    const travelTime = Math.max(initialSection.getTravelTime() - stopDuration, 0);
-    const halfTravelTime = travelTime / 2;
-    initialSection.setTravelTime(travelTime - halfTravelTime);
-    newSection.setTravelTime(halfTravelTime);
 
+    // Finally, set the times for both sections (order of setting times is important)
+    const travelTime = Math.max(initialSection.getTravelTime() - stopDuration, 0);
+    initialSection.setTravelTime(travelTime / 2);
+    newSection.setTravelTime(travelTime / 2);
     initialSection.setTargetArrival(
       TrainrunSectionService.boundMinutesToOneHour(
         initialSection.getSourceDeparture() + initialSection.getTravelTime(),
@@ -944,12 +964,11 @@ export class TrainrunSectionService implements OnDestroy {
       ),
     );
 
-    if (
-      halteZeitIssue ||
+    // Validate that the changes did not lead to inconsistencies in the times
+    const finalTravelTimeIssue =
       initialSection.getTravelTime() + newSection.getTravelTime() + stopDuration !==
-        initialTravelTime ||
-      travelTimeIssue
-    ) {
+      initialTravelTime;
+    if (travelTimeIssue || halteZeitIssue || finalTravelTimeIssue) {
       const title = $localize`:@@app.services.data.trainrunsection.intermediate-stop-replacement.title:Intermediate stop replacement`;
       const description = $localize`:@@app.services.data.trainrunsection.intermediate-stop-replacement.description:Intermediate stop replacement led to inconsistencies in the allocation of times!`;
       initialSection.setTargetArrivalWarning(title, description);
@@ -957,19 +976,6 @@ export class TrainrunSectionService implements OnDestroy {
       newSection.setSourceArrivalWarning(title, description);
       newSection.setSourceDepartureWarning(title, description);
     }
-
-    const initialSectionNewSourceTransition = initialSourceNode.getTransition(
-      initialSection.getId(),
-    );
-    if (initialSectionNewSourceTransition !== undefined) {
-      initialSectionNewSourceTransition.setIsNonStopTransit(isSourceNodeNonStop);
-    }
-    const initialSectionNewTargetTransition = initialTargetNode.getTransition(newSection.getId());
-    if (initialSectionNewTargetTransition !== undefined) {
-      initialSectionNewTargetTransition.setIsNonStopTransit(isTargetNodeNonStop);
-    }
-
-    this.trainrunService.propagateConsecutiveTimesForTrainrun(initialSection.getId());
 
     this.nodeService.transitionsUpdated();
     this.nodeService.connectionsUpdated();
