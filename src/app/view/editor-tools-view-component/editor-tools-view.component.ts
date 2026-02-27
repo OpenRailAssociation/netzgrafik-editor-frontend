@@ -807,7 +807,7 @@ export class EditorToolsViewComponent {
       // -----------------------------------------------
       // Default: Netzgrafik-Editor exported JSON
       // -----------------------------------------------
-      this.dataService.loadNetzgrafikDto(netzgrafikDto, false);
+      this.dataService.loadNetzgrafikDto(netzgrafikDto);
       // -----------------------------------------------
     } else {
       // -----------------------------------------------
