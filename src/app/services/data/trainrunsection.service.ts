@@ -901,7 +901,7 @@ export class TrainrunSectionService implements OnDestroy {
       trainrunSection1.getTrainrun().getTrainrunCategory(),
     );
     let travelTime1 =
-      trainrunSection1.getTargetDepartureConsecutiveTime() -
+      trainrunSection1.getTargetArrivalConsecutiveTime() -
       trainrunSection1.getSourceDepartureConsecutiveTime();
     let travelTime2 =
       trainrunSection1.getSourceArrivalConsecutiveTime() -
