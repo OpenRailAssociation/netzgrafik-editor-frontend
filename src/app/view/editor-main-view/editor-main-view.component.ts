@@ -175,6 +175,8 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
   }
 
   bindViewToServices() {
+    this.editorView.bindGetNetzgrafikLoadCounter(() => this.dataService.getNetzgrafikLoadCounter());
+
     this.editorView.bindAddNode((positionX: number, positionY: number) =>
       this.nodeService.addNodeWithPosition(positionX, positionY),
     );
