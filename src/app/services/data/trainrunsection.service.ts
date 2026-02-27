@@ -855,7 +855,6 @@ export class TrainrunSectionService implements OnDestroy {
   // this function is no longer used for its original purpose (drag a node that only existed inside numberOfStops and create it inside the real graph)
   replaceIntermediateStopWithNode(
     trainrunSectionId: number,
-    stopIndex: number,
     nodeId: number,
     stopDuration?: number,
   ) {
@@ -965,8 +964,8 @@ export class TrainrunSectionService implements OnDestroy {
     this.nodeService.nodesUpdated();
     this.trainrunSectionsUpdated();
     return {
-      existingTrainRunSection: trainrunSection1,
-      newTrainRunSection: trainrunSection2,
+      existingTrainrunSection: trainrunSection1,
+      newTrainrunSection: trainrunSection2,
     };
   }
 
@@ -983,12 +982,7 @@ export class TrainrunSectionService implements OnDestroy {
       interpolatedPosition.getY(),
     );
 
-    this.replaceIntermediateStopWithNode(
-      trainrunSection.getId(),
-      trainrunSection.getNumberOfStops() + 1,
-      newNode.getId(),
-      0,
-    );
+    this.replaceIntermediateStopWithNode(trainrunSection.getId(), newNode.getId(), 0);
   }
 
   removeIntermediateStopOnTrainrunSection(initialTrainrunSection: TrainrunSection) {

@@ -785,7 +785,6 @@ export class NodesView {
   ) {
     this.editorView.replaceIntermediateStopWithNode(
       dragIntermediateStopInfo.viewObject.firstSection.getId(),
-      dragIntermediateStopInfo.intermediateStopIndex,
       endNode.getId(),
     );
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
