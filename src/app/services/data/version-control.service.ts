@@ -77,7 +77,7 @@ export class VersionControlService implements OnDestroy {
   }
 
   loadNetzgrafikDTO(netzgrafik: NetzgrafikDto) {
-    this.dataService.loadNetzgrafikDto(netzgrafik, false);
+    this.dataService.loadNetzgrafikDto(netzgrafik);
     this.autoSaveService.reset();
     this.undoService.reset(this.undoService.getCurrentVariantId() + 1);
   }
