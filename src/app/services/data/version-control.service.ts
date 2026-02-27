@@ -140,7 +140,7 @@ export class VersionControlService implements OnDestroy {
         map((model) => model as NetzgrafikDto),
       )
       .subscribe((netzgrafik) => {
-        this.dataService.loadNetzgrafikDto(netzgrafik, false);
+        this.dataService.loadNetzgrafikDto(netzgrafik);
         this.autoSaveService.reset();
         this.undoService.reset(version.variantId);
       });
