@@ -155,6 +155,7 @@ describe("TrainrunSection-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      dataService,
     );
 
     new EditorView(

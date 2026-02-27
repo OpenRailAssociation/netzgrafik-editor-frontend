@@ -43,6 +43,7 @@ import {LevelOfDetailService} from "../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../services/ui/viewport.cull.service";
 import {VersionControlService} from "../../services/data/version-control.service";
 import {PositionTransformationService} from "../../services/util/position.transformation.service";
+import {DataService} from "../../services/data/data.service";
 
 @Component({
   selector: "sbb-editor-main-view",
@@ -78,6 +79,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     private levelOfDetailService: LevelOfDetailService,
     private versionControlService: VersionControlService,
     private positionTransformationService: PositionTransformationService,
+    private dataService: DataService,
   ) {
     this.editorView = new EditorView(
       this,
@@ -110,6 +112,16 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     this.uiInteractionService.moveNetzgrafikEditorViewFocalPointObservable
       .pipe(takeUntil(this.destroyed))
       .subscribe((center: Vec2D) => this.moveNetzgrafikEditorViewFocalPoint(center));
+    this.dataService
+      .getNetzgrafikLoadedInfo()
+      .pipe(takeUntil(this.destroyed))
+      .subscribe((loadedInfo) => {
+        // Reset preview line view when new DTO is loaded to clear stale object references
+        // This fixes issue #851: prevents creating invalid trainruns when clicking nodes after import
+        if (!loadedInfo.load && !loadedInfo.preview) {
+          this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
+        }
+      });
   }
 
   @HostListener("window:resize", ["$event"])
@@ -163,6 +175,8 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
   }
 
   bindViewToServices() {
+    this.editorView.bindGetNetzgrafikLoadCounter(() => this.dataService.getNetzgrafikLoadCounter());
+
     this.editorView.bindAddNode((positionX: number, positionY: number) =>
       this.nodeService.addNodeWithPosition(positionX, positionY),
     );

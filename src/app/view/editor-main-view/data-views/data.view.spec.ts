@@ -158,6 +158,7 @@ describe("Editor-DataView", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      dataService,
     );
 
     new EditorView(
@@ -188,7 +189,7 @@ describe("Editor-DataView", () => {
 
     const cvo = new ConnectionsViewObject(editorView, con, node, false, false);
     expect(cvo.key).toBe(
-      "#2@false_15_9_false_(832,144)_(774.4,144)_(793.6,144)_(736,144)_false_false_false_0_false(832,144)(774.4,144)(793.6,144)(736,144)",
+      "LC1#2@false_15_9_false_(832,144)_(774.4,144)_(793.6,144)_(736,144)_false_false_false_0_false(832,144)(774.4,144)(793.6,144)(736,144)",
     );
   });
 
@@ -197,10 +198,10 @@ describe("Editor-DataView", () => {
     const node = nodeService.getNodeFromId(2);
 
     const cvo1 = new NodeViewObject(editorView, node, false);
-    expect(cvo1.key).toBe("#2@736_64_ZUE_6_5_96_124_false_2_false_true_false_0_false");
+    expect(cvo1.key).toBe("LC1#2@736_64_ZUE_6_5_96_124_false_2_false_true_false_0_false");
 
     const cvo2 = new NodeViewObject(editorView, node, true);
-    expect(cvo2.key).toBe("#2@736_64_ZUE_6_5_96_124_false_2_true_true_false_0_false");
+    expect(cvo2.key).toBe("LC1#2@736_64_ZUE_6_5_96_124_false_2_true_true_false_0_false");
   });
 
   it("NodeViewObject   - 001", () => {
@@ -208,7 +209,7 @@ describe("Editor-DataView", () => {
     const note = noteService.getNoteFromId(3);
     const cvo1 = new NoteViewObject(editorView, note);
     expect(cvo1.key).toBe(
-      "#3@1312_160_64_192_<p><em>Folgendes</em></p>spannend<p><strong>FETT</strong>_Frabcodierter Text_false_0_false_false_0_false",
+      "LC1#3@1312_160_64_192_<p><em>Folgendes</em></p>spannend<p><strong>FETT</strong>_Frabcodierter Text_false_0_false_false_0_false",
     );
   });
 
@@ -217,7 +218,7 @@ describe("Editor-DataView", () => {
     const ts = trainrunSectionService.getTrainrunSectionFromId(3);
     const cvo1 = new TrainrunSectionViewObject(editorView, ts);
     expect(cvo1.key).toBe(
-      "#3@1234_false_false_0_39_49_1_21_39_0_0_141_39_0_180_0_S_20_7/24_4_1_0_S_20_7/24_20_0_round_trip_false_true_false_false_false_false_false_false_false_true_true_true_false_false_true_true_true_0_false_2_true_true_true_1_false_true_true_0_false_true_true(130,80)(194,80)(254,80)(318,80)",
+      "LC1#3@1234_false_false_0_39_49_1_21_39_0_0_141_39_0_180_0_S_20_7/24_4_1_0_S_20_7/24_20_0_round_trip_false_true_false_false_false_false_false_false_false_true_true_true_false_false_true_true_true_0_false_2_true_true_true_1_false_true_true_0_false_true_true(130,80)(194,80)(254,80)(318,80)",
     );
   });
 
@@ -226,7 +227,7 @@ describe("Editor-DataView", () => {
     const trans = nodeService.getNodeFromId(1).getTransitions()[0];
     const cvo1 = new TransitionViewObject(editorView, trans, false);
     expect(cvo1.key).toBe(
-      "#0@false_false_IC_60_7/24_1_3_0_IC_60_7/24_60_false_false_false(320,48)(324,48)(412,48)(416,48)",
+      "LC1#0@false_false_IC_60_7/24_1_3_0_IC_60_7/24_60_false_false_false(320,48)(324,48)(412,48)(416,48)",
     );
   });
 
