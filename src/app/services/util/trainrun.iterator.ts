@@ -292,7 +292,10 @@ export class NextExpandedIterator extends TrainrunIterator {
   public next(): TrainrunSectionNodePair {
     if (!this.pointerElement.node.getIsCollapsed()) {
       // The current node is expanded and break the forward iteration
-      this.currentElement = Object.assign({}, this.pointerElement);
+      this.currentElement = new TrainrunSectionNodePair(
+        this.pointerElement.node,
+        this.pointerElement.trainrunSection,
+      );
       this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
       return this.currentElement;
     }
@@ -304,7 +307,10 @@ export class BackwardNextExpandedIterator extends BackwardTrainrunIterator {
   public next(): TrainrunSectionNodePair {
     if (!this.pointerElement.node.getIsCollapsed()) {
       // The current node is node and break the backward iteration
-      this.currentElement = Object.assign({}, this.pointerElement);
+      this.currentElement = new TrainrunSectionNodePair(
+        this.pointerElement.node,
+        this.pointerElement.trainrunSection,
+      );
       this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
       return this.currentElement;
     }
@@ -320,7 +326,10 @@ export class NextExpandedStopIterator extends TrainrunIterator {
       !this.pointerElement.node.getIsCollapsed()
     ) {
       // The trainrun has a stop and breaks the forward iteration
-      this.currentElement = Object.assign({}, this.pointerElement);
+      this.currentElement = new TrainrunSectionNodePair(
+        this.pointerElement.node,
+        this.pointerElement.trainrunSection,
+      );
       this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
       return this.currentElement;
     }
@@ -335,7 +344,10 @@ export class BackwardNextExpandedStopIterator extends BackwardTrainrunIterator {
       !this.pointerElement.node.getIsCollapsed()
     ) {
       // The trainrun has a stop and breaks the backward iteration
-      this.currentElement = Object.assign({}, this.pointerElement);
+      this.currentElement = new TrainrunSectionNodePair(
+        this.pointerElement.node,
+        this.pointerElement.trainrunSection,
+      );
       this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
       return this.currentElement;
     }
@@ -349,7 +361,10 @@ export class ExpandedTrainrunIterator extends TrainrunIterator {
     // Stop when we reach an expanded (non-collapsed) node
     if (!this.pointerElement.node.getIsCollapsed()) {
       // The trainrun has reached an expanded (non-collapsed) node and breaks the forward iteration
-      this.currentElement = Object.assign({}, this.pointerElement);
+      this.currentElement = new TrainrunSectionNodePair(
+        this.pointerElement.node,
+        this.pointerElement.trainrunSection,
+      );
       this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
       return this.currentElement;
     }
