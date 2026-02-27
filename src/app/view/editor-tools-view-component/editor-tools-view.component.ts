@@ -746,7 +746,7 @@ export class EditorToolsViewComponent {
     const netzgrafikOnlyNodeDto: NetzgrafikDto = Object.assign({}, netzgrafikDto);
     netzgrafikOnlyNodeDto.trainruns = [];
     netzgrafikOnlyNodeDto.trainrunSections = [];
-    this.dataService.loadNetzgrafikDto(netzgrafikOnlyNodeDto, false);
+    this.dataService.loadNetzgrafikDto(netzgrafikOnlyNodeDto);
 
     // (Step 2) Import nodes and trainrunSectiosn by trainrun inseration (copy => create)
     this.dataService.insertCopyNetzgrafikDto(netzgrafikDto, false);
