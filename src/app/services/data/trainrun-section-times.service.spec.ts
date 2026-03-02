@@ -343,4 +343,34 @@ describe("TrainrunSectionTimesService", () => {
       expect(updatedTimeStructure.travelTime).toEqual(127);
     });
   });
+
+  it("Test getTimeButtonPlusStep", () => {
+    expect(0.4).toBe(trainrunSectionTimesService.getTimeButtonPlusStep(0.6));
+    expect(0.6).toBe(trainrunSectionTimesService.getTimeButtonPlusStep(0.4));
+    expect(1.0).toBe(trainrunSectionTimesService.getTimeButtonPlusStep(1.0));
+    expect(1.0).toBe(trainrunSectionTimesService.getTimeButtonPlusStep(2.0));
+
+    let inputVal = 5.6;
+    inputVal = inputVal + trainrunSectionTimesService.getTimeButtonPlusStep(inputVal);
+    expect(inputVal).toBe(6);
+    inputVal = inputVal + trainrunSectionTimesService.getTimeButtonPlusStep(inputVal);
+    expect(inputVal).toBe(7);
+    inputVal = inputVal + trainrunSectionTimesService.getTimeButtonPlusStep(inputVal);
+    expect(inputVal).toBe(8);
+  });
+
+  it("Test getTimeButtonMinusStep", () => {
+    expect(0.4).toBe(trainrunSectionTimesService.getTimeButtonMinusStep(0.4));
+    expect(0.6).toBe(trainrunSectionTimesService.getTimeButtonMinusStep(0.6));
+    expect(1.0).toBe(trainrunSectionTimesService.getTimeButtonMinusStep(1.0));
+    expect(1.0).toBe(trainrunSectionTimesService.getTimeButtonMinusStep(2.0));
+
+    let inputVal = 5.6;
+    inputVal = inputVal - trainrunSectionTimesService.getTimeButtonMinusStep(inputVal);
+    expect(inputVal).toBe(5);
+    inputVal = inputVal - trainrunSectionTimesService.getTimeButtonMinusStep(inputVal);
+    expect(inputVal).toBe(4);
+    inputVal = inputVal - trainrunSectionTimesService.getTimeButtonMinusStep(inputVal);
+    expect(inputVal).toBe(3);
+  });
 });
