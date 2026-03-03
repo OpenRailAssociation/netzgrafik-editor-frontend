@@ -418,12 +418,10 @@ export class TrainrunSectionService implements OnDestroy {
     section: DirectedTrainrunSectionProxy,
   ) {
     const arrivalTimeAtTail = previousSection.getHeadArrival();
-
-    const isNonStop = previousSection.getHeadNode().isNonStop(section.trainrunSection);
-    let halteZeit = previousSection.getHeadNode().getTrainrunCategoryHaltezeit()[
-      section.trainrunSection.getTrainrun().getTrainrunCategory().fachCategory
-    ].haltezeit;
-    halteZeit = isNonStop ? 0 : halteZeit;
+    const halteZeit = this.getTrainrunSectionHaltezeit(
+      previousSection.getHeadNode(),
+      section.trainrunSection,
+    );
 
     // Try to update the section (based on previous section)
     if (section.getTailDepartureLock()) {
@@ -471,6 +469,15 @@ export class TrainrunSectionService implements OnDestroy {
       newTravelTime += 60;
     }
     section.setTravelTime(newTravelTime);
+  }
+
+  private getTrainrunSectionHaltezeit(node: Node, trainrunSection: TrainrunSection): number {
+    if (node.isNonStop(trainrunSection)) {
+      return 0;
+    }
+    const trainrunCategoryHaltezeit = node.getTrainrunCategoryHaltezeit();
+    const fachCategory = trainrunSection.getTrainrun().getTrainrunCategory().fachCategory;
+    return trainrunCategoryHaltezeit[fachCategory].haltezeit;
   }
 
   iterateAlongTrainrunUntilEndAndPropagateTime(nodeFrom: Node, trainrunSectionId: number) {
