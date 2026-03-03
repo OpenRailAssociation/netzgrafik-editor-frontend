@@ -12,6 +12,7 @@ import {
   TrainrunSectionTimesService,
   LeftAndRightTimeStructure,
 } from "../../../../services/data/trainrun-section-times.service";
+import {TrainrunSectionsView} from "../../../editor-main-view/data-views/trainrunsections.view";
 
 @Component({
   selector: "sbb-trainrunsection-card",
@@ -127,11 +128,32 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
     return "OneWayCardBetriebspunkt " + this.getColorRefTag(cardPosition);
   }
 
-  getEdgeLineTextClass(cardPosition: string) {
+  getEdgeLineTextClass(cardPosition: string, n: Node, timeSelector: "Departure" | "Arrival") {
     return (
       StaticDomTags.EDGE_LINE_TEXT_CLASS +
       " " +
-      StaticDomTags.makeClassTag(StaticDomTags.TAG_COLOR_REF, this.getColorRefTag(cardPosition))
+      StaticDomTags.makeClassTag(StaticDomTags.TAG_COLOR_REF, this.getColorRefTag(cardPosition)) +
+      " " +
+      this.getEdgeLineTextOddOffsetClass(n, timeSelector)
+    );
+  }
+
+  private getEdgeLineTextOddOffsetClass(n: Node, timeSelector: "Departure" | "Arrival") {
+    const tr = this.trainrunService.getSelectedTrainrun();
+    const trainrunSection = n.getTrainrunSection(tr);
+    if (timeSelector === "Departure") {
+      return TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
+        trainrunSection.getTargetNodeId() === n.getId()
+          ? trainrunSection.getTargetDepartureConsecutiveTime()
+          : trainrunSection.getSourceDepartureConsecutiveTime(),
+        trainrunSection,
+      );
+    }
+    return TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
+      trainrunSection.getTargetNodeId() === n.getId()
+        ? trainrunSection.getTargetArrivalConsecutiveTime()
+        : trainrunSection.getSourceArrivalConsecutiveTime(),
+      trainrunSection,
     );
   }
 
