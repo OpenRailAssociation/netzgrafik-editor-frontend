@@ -787,6 +787,16 @@ export class Node {
       .getTrainrunSection();
   }
 
+  getEndingTrainrunSection(trainrun: Trainrun): TrainrunSection {
+    return this.ports
+      .find(
+        (port) =>
+          port.getTrainrunSection().getTrainrunId() === trainrun.getId() &&
+          this.isEndNode(port.getTrainrunSection()),
+      )
+      .getTrainrunSection();
+  }
+
   getPorts(): Port[] {
     return this.ports;
   }
