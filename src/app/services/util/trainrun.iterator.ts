@@ -372,7 +372,7 @@ export class ExpandedTrainrunIterator extends TrainrunIterator {
     // Stop when we reach an expanded (non-collapsed) node
     if (!this.pointerElement.node.getIsCollapsed()) {
       // The trainrun has reached an expanded (non-collapsed) node and break the forward iteration
-      this.currentElement = Object.assign({}, this.pointerElement);
+      this.currentElement = this.pointerElement;
       this.pointerElement = new TrainrunSectionNodePair(undefined, undefined);
       return this.currentElement;
     }
