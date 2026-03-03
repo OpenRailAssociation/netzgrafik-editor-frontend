@@ -141,8 +141,12 @@ export class TrainrunSectionTimesService {
     this.initialLeftAndRightElement = initialLeftAndRightElement;
   }
 
-  private getTimeButtonPlusMinusStep(val: number) {
-    return 1 - val + Math.floor(val);
+  public getTimeButtonPlusStep(val: number, precision = TrainrunSectionService.TIME_PRECISION) {
+    return MathUtils.round(1 - val + Math.floor(val), precision);
+  }
+
+  public getTimeButtonMinusStep(val: number, precision = TrainrunSectionService.TIME_PRECISION) {
+    return MathUtils.round(1 + val - Math.ceil(val), precision);
   }
 
   private enforceNonNegativeTime(keyValue: string) {
@@ -216,7 +220,7 @@ export class TrainrunSectionTimesService {
 
   /* Left Departure Time */
   onNodeLeftDepartureTimeButtonPlus() {
-    this.timeStructure.leftDepartureTime += this.getTimeButtonPlusMinusStep(
+    this.timeStructure.leftDepartureTime += this.getTimeButtonPlusStep(
       this.timeStructure.leftDepartureTime,
     );
     this.timeStructure.leftDepartureTime %= 60;
@@ -224,7 +228,7 @@ export class TrainrunSectionTimesService {
   }
 
   onNodeLeftDepartureTimeButtonMinus() {
-    this.timeStructure.leftDepartureTime -= this.getTimeButtonPlusMinusStep(
+    this.timeStructure.leftDepartureTime -= this.getTimeButtonMinusStep(
       this.timeStructure.leftDepartureTime,
     );
     this.timeStructure.leftDepartureTime += this.timeStructure.leftDepartureTime < 0 ? 60 : 0;
@@ -237,7 +241,7 @@ export class TrainrunSectionTimesService {
 
   /* Left Arrival Time */
   onNodeLeftArrivalTimeButtonPlus() {
-    this.timeStructure.leftArrivalTime += this.getTimeButtonPlusMinusStep(
+    this.timeStructure.leftArrivalTime += this.getTimeButtonPlusStep(
       this.timeStructure.leftArrivalTime,
     );
     this.timeStructure.leftArrivalTime %= 60;
@@ -245,7 +249,7 @@ export class TrainrunSectionTimesService {
   }
 
   onNodeLeftArrivalTimeButtonMinus() {
-    this.timeStructure.leftArrivalTime -= this.getTimeButtonPlusMinusStep(
+    this.timeStructure.leftArrivalTime -= this.getTimeButtonMinusStep(
       this.timeStructure.leftArrivalTime,
     );
     this.timeStructure.leftArrivalTime += this.timeStructure.leftArrivalTime < 0 ? 60 : 0;
@@ -258,7 +262,7 @@ export class TrainrunSectionTimesService {
 
   /* Right Arrival Time */
   onNodeRightArrivalTimeButtonPlus() {
-    this.timeStructure.rightArrivalTime += this.getTimeButtonPlusMinusStep(
+    this.timeStructure.rightArrivalTime += this.getTimeButtonPlusStep(
       this.timeStructure.rightArrivalTime,
     );
     this.timeStructure.rightArrivalTime %= 60;
@@ -266,7 +270,7 @@ export class TrainrunSectionTimesService {
   }
 
   onNodeRightArrivalTimeButtonMinus() {
-    this.timeStructure.rightArrivalTime -= this.getTimeButtonPlusMinusStep(
+    this.timeStructure.rightArrivalTime -= this.getTimeButtonMinusStep(
       this.timeStructure.rightArrivalTime,
     );
     this.timeStructure.rightArrivalTime += this.timeStructure.rightArrivalTime < 0 ? 60 : 0;
@@ -279,7 +283,7 @@ export class TrainrunSectionTimesService {
 
   /* Right Departure Time */
   onNodeRightDepartureTimeButtonPlus() {
-    this.timeStructure.rightDepartureTime += this.getTimeButtonPlusMinusStep(
+    this.timeStructure.rightDepartureTime += this.getTimeButtonPlusStep(
       this.timeStructure.rightDepartureTime,
     );
     this.timeStructure.rightDepartureTime %= 60;
@@ -287,7 +291,7 @@ export class TrainrunSectionTimesService {
   }
 
   onNodeRightDepartureTimeButtonMinus() {
-    this.timeStructure.rightDepartureTime -= this.getTimeButtonPlusMinusStep(
+    this.timeStructure.rightDepartureTime -= this.getTimeButtonMinusStep(
       this.timeStructure.rightDepartureTime,
     );
     this.timeStructure.rightDepartureTime += this.timeStructure.rightDepartureTime < 0 ? 60 : 0;
@@ -300,13 +304,13 @@ export class TrainrunSectionTimesService {
 
   /* Travel Time */
   onTravelTimeButtonPlus() {
-    this.timeStructure.travelTime += this.getTimeButtonPlusMinusStep(this.timeStructure.travelTime);
+    this.timeStructure.travelTime += this.getTimeButtonPlusStep(this.timeStructure.travelTime);
     this.highlightTravelTimeElement = false;
     this.onTravelTimeChanged();
   }
 
   onTravelTimeButtonMinus() {
-    this.timeStructure.travelTime -= this.getTimeButtonPlusMinusStep(this.timeStructure.travelTime);
+    this.timeStructure.travelTime -= this.getTimeButtonMinusStep(this.timeStructure.travelTime);
     this.timeStructure.travelTime = Math.max(1, this.timeStructure.travelTime);
     this.highlightTravelTimeElement = false;
     this.onTravelTimeChanged();
