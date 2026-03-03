@@ -69,7 +69,7 @@
   pointer-events: none;
 }
 
-::ng-deep circle.connection_line_pin.is_not_end_node.ctrlKey {
+::ng-deep circle.connection_line_pin.ctrlKey {
   stroke: none;
   fill: none;
   r: $PIN_RADIUS_HIDDEN;
