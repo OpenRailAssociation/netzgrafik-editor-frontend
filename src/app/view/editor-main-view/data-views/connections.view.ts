@@ -171,6 +171,20 @@ export class ConnectionsView {
       .attr("org_x", pinPos.getX())
       .attr("org_y", pinPos.getY())
       .attr("r", DEFAULT_PIN_RADIUS)
+      .classed(StaticDomTags.EDGE_IS_END_NODE, (d: ConnectionsViewObject) => {
+        const port1 = d.node.getPort(d.connection.getPortId1());
+        const port2 = d.node.getPort(d.connection.getPortId2());
+        const trans1 = d.node.getTransitionFromPortId(port1.getId());
+        const trans2 = d.node.getTransitionFromPortId(port2.getId());
+        return trans1 === undefined && trans2 === undefined;
+      })
+      .classed(StaticDomTags.EDGE_IS_NOT_END_NODE, (d: ConnectionsViewObject) => {
+        const port1 = d.node.getPort(d.connection.getPortId1());
+        const port2 = d.node.getPort(d.connection.getPortId2());
+        const trans1 = d.node.getTransitionFromPortId(port1.getId());
+        const trans2 = d.node.getTransitionFromPortId(port2.getId());
+        return !(trans1 === undefined && trans2 === undefined);
+      })
       .attr(StaticDomTags.CONNECTION_TRAINRUN_ID, (cv: ConnectionsViewObject) =>
         ConnectionsView.getSelectedTrainrunId(cv.connection, cv.node),
       )

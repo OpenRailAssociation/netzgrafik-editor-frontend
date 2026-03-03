@@ -68,3 +68,10 @@
 ::ng-deep circle.connection_line_pin.connection_ongoing_dragging {
   pointer-events: none;
 }
+
+::ng-deep circle.connection_line_pin.is_not_end_node.ctrlKey {
+  stroke: none;
+  fill: none;
+  r: $PIN_RADIUS_HIDDEN;
+  cursor: pointer;
+}
