@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.10.18](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.17...netzgrafik-frontend-v2.10.18) (2026-03-03)
+
+
+### Bug Fixes
+
+* adding strict null checks for app/data-structures directory ([#657](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/657)) ([b5e3dbb](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/b5e3dbbbb93b7df2110580de7b60863be96a2be3))
+* Odd times for freq &gt; 60 will be italic rendering in the trainrun-section-card.component ([#865](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/865)) ([15ebe4a](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/15ebe4a38f1c31873ec51337aa70a14d6188ef67))
+* Perlenkette Connection Time display precision fixed ([#863](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/863)) ([9bc89e4](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/9bc89e413ae93c2d74785a6a7e704a6a8cc72fa4))
+* Reported minus/plus button issue resolved ([#864](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/864)) ([5eed8d2](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/5eed8d2a8fe8880402ca9364d7ec1beba202987a))
+
 ## [2.10.17](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.16...netzgrafik-frontend-v2.10.17) (2026-02-25)
 
 
