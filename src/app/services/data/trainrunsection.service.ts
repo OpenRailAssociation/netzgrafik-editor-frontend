@@ -375,33 +375,33 @@ export class TrainrunSectionService implements OnDestroy {
 
   propagateTimeAlongTrainrun(trainrunSectionId: number, fromNodeIdOn: number) {
     const trainrunSection = this.getTrainrunSectionFromId(trainrunSectionId);
-    const fromNode =
+
+    let fromNode =
       fromNodeIdOn === trainrunSection.getSourceNodeId()
         ? trainrunSection.getSourceNode()
         : trainrunSection.getTargetNode();
+    let fromTrainrunSectionId: number | undefined = trainrunSectionId;
+
     if (fromNode.getId() !== fromNodeIdOn) {
-      let trainrunSectionIdToStart = this.findTrainrunSectionForStopNode(
+      fromNode = this.nodeService.getNodeFromId(fromNodeIdOn);
+      fromTrainrunSectionId = this.findTrainrunSectionForStopNode(
         trainrunSection,
         trainrunSection.getSourceNode(),
         fromNodeIdOn,
       );
-      if (trainrunSectionIdToStart === undefined) {
-        trainrunSectionIdToStart = this.findTrainrunSectionForStopNode(
+      if (fromTrainrunSectionId === undefined) {
+        fromTrainrunSectionId = this.findTrainrunSectionForStopNode(
           trainrunSection,
           trainrunSection.getTargetNode(),
           fromNodeIdOn,
         );
       }
-      if (trainrunSectionIdToStart !== undefined) {
-        this.iterateAlongTrainrunUntilEndAndPropagateTime(
-          this.nodeService.getNodeFromId(fromNodeIdOn),
-          trainrunSectionIdToStart,
-        );
-        this.trainrunSectionsUpdated();
+      if (fromTrainrunSectionId === undefined) {
         return;
       }
     }
-    this.iterateAlongTrainrunUntilEndAndPropagateTime(fromNode, trainrunSectionId);
+
+    this.iterateAlongTrainrunUntilEndAndPropagateTime(fromNode, fromTrainrunSectionId);
     this.trainrunSectionsUpdated();
   }
 
