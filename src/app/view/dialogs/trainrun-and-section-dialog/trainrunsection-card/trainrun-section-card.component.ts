@@ -219,23 +219,22 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
     const firstTrainrunSection = startNode.getEndingTrainrunSection(selectedTrainrun);
     const lastTrainrunSection = endNode.getEndingTrainrunSection(selectedTrainrun);
 
+    const isFirstSectionAtSourceNode = firstTrainrunSection.getSourceNodeId() === startNode.getId();
+    const isLastSectionAtSourceNode = lastTrainrunSection.getSourceNodeId() === endNode.getId();
+
     return {
-      leftDepartureTime:
-        firstTrainrunSection.getSourceNodeId() === startNode.getId()
-          ? firstTrainrunSection.getSourceDeparture()
-          : firstTrainrunSection.getTargetDeparture(),
-      leftArrivalTime:
-        firstTrainrunSection.getSourceNodeId() === startNode.getId()
-          ? firstTrainrunSection.getSourceArrival()
-          : firstTrainrunSection.getTargetArrival(),
-      rightDepartureTime:
-        lastTrainrunSection.getSourceNodeId() === endNode.getId()
-          ? lastTrainrunSection.getSourceDeparture()
-          : lastTrainrunSection.getTargetDeparture(),
-      rightArrivalTime:
-        lastTrainrunSection.getSourceNodeId() === endNode.getId()
-          ? lastTrainrunSection.getSourceArrival()
-          : lastTrainrunSection.getTargetArrival(),
+      leftDepartureTime: isFirstSectionAtSourceNode
+        ? firstTrainrunSection.getSourceDeparture()
+        : firstTrainrunSection.getTargetDeparture(),
+      leftArrivalTime: isFirstSectionAtSourceNode
+        ? firstTrainrunSection.getSourceArrival()
+        : firstTrainrunSection.getTargetArrival(),
+      rightDepartureTime: isLastSectionAtSourceNode
+        ? lastTrainrunSection.getSourceDeparture()
+        : lastTrainrunSection.getTargetDeparture(),
+      rightArrivalTime: isLastSectionAtSourceNode
+        ? lastTrainrunSection.getSourceArrival()
+        : lastTrainrunSection.getTargetArrival(),
     };
   }
 }
