@@ -408,10 +408,10 @@ export class TrainrunSectionService implements OnDestroy {
   propagateTrainrunSectionTime(
     previousSection: DirectedTrainrunSectionProxy,
     section: DirectedTrainrunSectionProxy,
-    isNonStop: boolean,
   ) {
     const arrivalTimeAtTail = previousSection.getHeadArrival();
 
+    const isNonStop = previousSection.getHeadNode().isNonStop(section.trainrunSection);
     let halteZeit = previousSection.getHeadNode().getTrainrunCategoryHaltezeit()[
       section.trainrunSection.getTrainrun().getTrainrunCategory().fachCategory
     ].haltezeit;
@@ -476,10 +476,9 @@ export class TrainrunSectionService implements OnDestroy {
     while (iterator.hasNext()) {
       const pair = iterator.next();
 
-      const isNonStop = previousPair.node.isNonStop(pair.trainrunSection);
       const previousSection = previousPair.getDirectedTrainrunSectionProxy();
       const section = pair.getDirectedTrainrunSectionProxy();
-      this.propagateTrainrunSectionTime(previousSection, section, isNonStop);
+      this.propagateTrainrunSectionTime(previousSection, section);
       TrainrunSectionValidator.validateOneSection(pair.trainrunSection);
 
       if (
