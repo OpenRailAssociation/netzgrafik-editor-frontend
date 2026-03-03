@@ -14,6 +14,7 @@ import {PerlenketteConnection} from "../model/perlenketteConnection";
 import {PerlenketteItem} from "../model/perlenketteItem";
 import {UiInteractionService} from "../../services/ui/ui.interaction.service";
 import {VersionControlService} from "../../services/data/version-control.service";
+import {MathUtils} from "../../utils/math";
 
 @Component({
   selector: "sbb-perlenkette-node",
@@ -171,7 +172,8 @@ export class PerlenketteNodeComponent implements OnInit {
   getTextNameOrTime(connection: PerlenketteConnection, connectionGrpKey: number, pos: number) {
     return pos === 0
       ? connection.categoryShortName + "" + connection.title
-      : "" + connection.remainingTime;
+      : "" +
+          MathUtils.round(connection.remainingTime, this.filterService.getTimeDisplayPrecision());
   }
 
   transformIndex(index: number, connectionGrpKey: number): number {
