@@ -1795,12 +1795,7 @@ export class TrainrunSectionsView {
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, true);
   }
 
-  onIntermediateStopMouseDown(
-    viewObject: TrainrunSectionViewObject,
-    stopIndex: number,
-    position: Vec2D,
-    domObj: any,
-  ) {
+  onIntermediateStopMouseDown(viewObject: TrainrunSectionViewObject, position: Vec2D, domObj: any) {
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
       d3.event.stopPropagation();
       return;
@@ -1811,7 +1806,7 @@ export class TrainrunSectionsView {
       return;
     }
     this.editorView.trainrunSectionPreviewLineView.startDragIntermediateStop(
-      new DragIntermediateStopInfo(viewObject, stopIndex, domObj),
+      new DragIntermediateStopInfo(viewObject, domObj),
       position,
     );
 
@@ -2605,7 +2600,7 @@ export class TrainrunSectionsView {
         this.onIntermediateStopMouseOut(t.firstSection, stopIndex, position, a[i]),
       )
       .on("mousedown", (t: TrainrunSectionViewObject, i, a) =>
-        this.onIntermediateStopMouseDown(t, stopIndex, position, a[i]),
+        this.onIntermediateStopMouseDown(t, position, a[i]),
       )
       .on("mouseup", (t: TrainrunSectionViewObject, i, a) =>
         this.onIntermediateStopMouseUp(t.firstSection, a[i]),
