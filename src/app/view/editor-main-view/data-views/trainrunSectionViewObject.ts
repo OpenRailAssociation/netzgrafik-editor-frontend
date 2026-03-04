@@ -43,13 +43,18 @@ export class TrainrunSectionViewObject {
       .filter((section) => !section.getSourceNode().isNonStop(section)).length;
   }
 
+  firstSectionMatchesFirstOrLastSection(tsvo: TrainrunSectionViewObject): boolean {
+    return (
+      this.firstSection.getId() === tsvo.firstSection.getId() ||
+      this.firstSection.getId() === tsvo.lastSection.getId()
+    );
+  }
+
   getCollapsedStopNodes(): Node[] {
     return this.trainrunSections
       .slice(1)
-      .map((section) =>
-        !section.getSourceNode().isNonStop(section) ? section.getSourceNode() : null,
-      )
-      .filter((node) => node !== null && node.getIsCollapsed);
+      .filter((section) => !section.getSourceNode().isNonStop(section))
+      .map((section) => section.getSourceNode());
   }
 
   getCollapsedStopNodeFromStopIndex(stopIndex: number): Node {
@@ -131,6 +136,78 @@ export class TrainrunSectionViewObject {
 
   getPosition(atSource: boolean): Vec2D {
     return atSource ? this.getPositionAtSourceNode() : this.getPositionAtTargetNode();
+  }
+
+  /**
+   * Given the id of a dragged node (which must be at one extremity of this TSVO),
+   * returns the four "links" that describe the drag anchor:
+   *
+   * Single-section TSVO (innerSection === outerSection):
+   *
+   *   outerNode ---[outerSection = innerSection]--- innerNode (= draggedNode)
+   *
+   * Multi-section TSVO:
+   *
+   *   outerNode ---[outerSection]--- ... ---[innerSection]--- innerNode (= draggedNode)
+   *
+   * Example with TSVO: A --[s1]-- B --[s2]-- C --[s3]-- D, dragging A:
+   *
+   *   outerNode=D, outerSection=s3, innerNode=A, innerSection=s1
+   *
+   * @throws Error if draggedNodeId is not an extremity of this TSVO
+   */
+  getExtremityLinks(draggedNodeId: number): {
+    outerNode: Node;
+    outerSection: TrainrunSection;
+    innerNode: Node;
+    innerSection: TrainrunSection;
+  } {
+    const touchesFirst = this.firstSection.isLinkedToNode(draggedNodeId);
+    const touchesLast = this.lastSection.isLinkedToNode(draggedNodeId);
+
+    // Single-section TSVO: innerSection === outerSection, determine which end is the dragged node
+    if (touchesFirst && touchesLast) {
+      const section = this.firstSection;
+      const isDraggedNodeAtSource = section.getSourceNode().getId() === draggedNodeId;
+
+      const sourceNode = section.getSourceNode();
+      const targetNode = section.getTargetNode();
+
+      return isDraggedNodeAtSource
+        ? {
+            outerNode: targetNode,
+            outerSection: section,
+            innerNode: sourceNode,
+            innerSection: section,
+          }
+        : {
+            outerNode: sourceNode,
+            outerSection: section,
+            innerNode: targetNode,
+            innerSection: section,
+          };
+    }
+    // Multi-section TSVO: dragged node is at the source extremity
+    if (touchesFirst && !touchesLast) {
+      return {
+        outerNode: this.lastSection.getTargetNode(),
+        outerSection: this.lastSection,
+        innerNode: this.firstSection.getSourceNode(),
+        innerSection: this.firstSection,
+      };
+    }
+    // Multi-section TSVO: dragged node is at the target extremity
+    if (touchesLast && !touchesFirst) {
+      return {
+        outerNode: this.firstSection.getSourceNode(),
+        outerSection: this.firstSection,
+        innerNode: this.lastSection.getTargetNode(),
+        innerSection: this.lastSection,
+      };
+    }
+    throw new Error(
+      `getExtremityLinks: draggedNodeId ${draggedNodeId} is not an extremity of this TSVO`,
+    );
   }
 
   // A "Tip" is the state of a trainrun section's end (source or target). This state is represented
