@@ -8,6 +8,7 @@ on:
       - main
 
 permissions:
+  id-token: write # Required for OIDC
   contents: write
   pull-requests: write
   packages: write
@@ -69,13 +70,20 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
         with:
-          node-version-file: ".nvmrc"
-          cache: "npm"
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "18"
           registry-url: "https://registry.npmjs.org"
+
+      - name: Cache node_modules
+        uses: actions/cache@v5
+        with:
+          path: "**/node_modules"
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
 
       - run: npm clean-install
       - run: npm run build:standalone
