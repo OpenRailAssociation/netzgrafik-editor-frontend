@@ -141,7 +141,7 @@ export class EditorView implements SVGMouseControllerObserver {
     this.controller = controller;
     this.svgMouseController = new SVGMouseController(EditorView.svgName, this, undoService);
     this.nodesView = new NodesView(this, nodeService);
-    this.transitionsView = new TransitionsView(this);
+    this.transitionsView = new TransitionsView(this, trainrunSectionService);
     this.connectionsView = new ConnectionsView(this);
     this.trainrunSectionsView = new TrainrunSectionsView(this, trainrunSectionService);
     this.trainrunSectionPreviewLineView = new TrainrunSectionPreviewLineView(
@@ -628,8 +628,8 @@ export class EditorView implements SVGMouseControllerObserver {
 
     const dragTransitionInfo = this.trainrunSectionPreviewLineView.getDragTransitionInfo();
     if (dragTransitionInfo !== null) {
-      D3Utils.removeGrayout(dragTransitionInfo.trainrunSection1);
-      D3Utils.removeGrayout(dragTransitionInfo.trainrunSection2);
+      D3Utils.removeGrayout(dragTransitionInfo.tsvo1);
+      D3Utils.removeGrayout(dragTransitionInfo.tsvo2);
       this.undockTransition(dragTransitionInfo.node.getId(), dragTransitionInfo.transition.getId());
     }
 
