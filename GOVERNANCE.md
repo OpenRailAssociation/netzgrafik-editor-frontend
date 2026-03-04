@@ -24,7 +24,7 @@ The project encourages users to participate in the community as much as possible
 - promoting the project (e.g. linking from websites or raising awareness by word of mouth)
 - informing developers about strengths and weaknesses from a user perspective
 - providing community support
-Users who remain engaged with the project may become Contributors over time.
+Users may become Contributors.
 
 ### 2.3 Participants 
 Participants form a broad group, ranging from users contributing documentation and requirements to engineers contributing to the platform’s codebase, infrastructure, and architecture. Participants may act on behalf of an organisation or independently. Participants may create issues, comment on issues. 
