@@ -462,11 +462,8 @@ export class TrainrunSectionService implements OnDestroy {
       return;
     }
 
-    let newTravelTime = section.getHeadArrival() - newTailDeparture;
+    let newTravelTime = MathUtils.mod60(section.getHeadArrival() - newTailDeparture);
     newTravelTime += Math.floor(section.getTravelTime() / 60) * 60;
-    while (newTravelTime < 0.0) {
-      newTravelTime += 60;
-    }
     section.setTravelTime(newTravelTime);
   }
 
