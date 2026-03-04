@@ -1,7 +1,7 @@
 import {Environment} from "./environment.model";
 
 export const environment: Environment = {
-  production: true,
+  production: false,
   disableBackend: true,
   customElement: true,
   standalonedemo: false,

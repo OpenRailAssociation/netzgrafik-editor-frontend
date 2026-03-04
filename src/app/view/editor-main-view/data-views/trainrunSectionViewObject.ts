@@ -106,6 +106,37 @@ export class TrainrunSectionViewObject {
     return atSource ? this.getPositionAtSourceNode() : this.getPositionAtTargetNode();
   }
 
+  resolveOuterAnchor(dragNodeId: number): {
+    outerNode: Node;
+    outerSection: TrainrunSection;
+  } {
+    const first = this.firstSection;
+    const last = this.lastSection;
+
+    const touchesFirst = first.isSectionTouchingNode(dragNodeId);
+    const touchesLast = last.isSectionTouchingNode(dragNodeId);
+    console.log("touchesFirst", touchesFirst);
+    console.log("touchesLast", touchesLast);
+
+    if(touchesFirst && touchesLast) {
+      if(first.getSourceNode().getId() === dragNodeId) {
+        return {outerNode: first.getTargetNode(), outerSection: first};
+      } else {
+        return {outerNode: first.getSourceNode(), outerSection: first};
+      }
+    }
+    if (touchesFirst && !touchesLast) {
+      console.log("touchesFirst", touchesFirst);
+      return {outerNode: last.getTargetNode(), outerSection: last};
+    }
+    if (touchesLast && !touchesFirst) {
+      console.log("touchesLast", touchesLast);
+      return {outerNode: first.getSourceNode(), outerSection: first};
+    }
+
+    throw new Error("TSVO: drag node is not on exactly one extremity");
+  }
+
   // A "Tip" is the state of a trainrun section's end (source or target). This state is represented
   // as a cropped line on the end's side and a node's name displayed next to it. A trainrun section's
   // end is a Tip when the node on its side is collapsed or filtered.

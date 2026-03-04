@@ -18,6 +18,7 @@ import {NodeViewObject} from "./nodeViewObject";
 import {EditorMode} from "../../editor-menu/editor-mode";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
 import {NodeService} from "src/app/services/data/node.service";
+import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
 
 export class NodesView {
   dragPreviousMousePosition: Vec2D;
@@ -660,7 +661,7 @@ export class NodesView {
       const dragTransitionInfo =
         this.editorView.trainrunSectionPreviewLineView.getDragTransitionInfo();
       if (dragTransitionInfo !== null) {
-        this.reconnectTransition(dragTransitionInfo, endNode);
+        // this.reconnectTransition(dragTransitionInfo, endNode);
       } else {
         const startNode: Node = this.editorView.trainrunSectionPreviewLineView.getStartNode();
         this.createNewTrainrunSection(startNode, endNode);
@@ -836,6 +837,16 @@ export class NodesView {
       this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
       return;
     }
+
+    const {outerNode: outerNode1, outerSection: outerSection1} = dragTransitionInfo.tsvo1.resolveOuterAnchor(dragTransitionInfo.node.getId());
+    const {outerNode: outerNode2, outerSection: outerSection2} = dragTransitionInfo.tsvo2.resolveOuterAnchor(dragTransitionInfo.node.getId());
+
+    if(outerNode1.getId() === endNode.getId() || outerNode2.getId() === endNode.getId()) {
+      this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
+      D3Utils.removeGrayout(dragTransitionInfo.tsvo1);
+      D3Utils.removeGrayout(dragTransitionInfo.tsvo2);
+      return;
+    }
     if (
       !(
         dragTransitionInfo.trainrunSection1.getSourceNodeId() !== endNode.getId() &&
@@ -915,12 +926,12 @@ export class NodesView {
       if (dragTransitionInfo !== null) {
         if (hover && dragTransitionInfo.node.getId() === node.getId()) {
           dragTransitionInfo.setInsideNode(true);
-          D3Utils.removeGrayout(dragTransitionInfo.trainrunSection1, node);
-          D3Utils.removeGrayout(dragTransitionInfo.trainrunSection2, node);
+          D3Utils.removeGrayout(dragTransitionInfo.tsvo1, node);
+          D3Utils.removeGrayout(dragTransitionInfo.tsvo2, node);
         } else {
           dragTransitionInfo.setInsideNode(false);
-          D3Utils.doGrayout(dragTransitionInfo.trainrunSection1, node);
-          D3Utils.doGrayout(dragTransitionInfo.trainrunSection2, node);
+          D3Utils.doGrayout(dragTransitionInfo.tsvo1, node);
+          D3Utils.doGrayout(dragTransitionInfo.tsvo2, node);
         }
         this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
         return;
@@ -949,13 +960,13 @@ export class NodesView {
           });
 
           if (hover) {
-            D3Utils.removeGrayout(ts);
+            D3Utils.removeGrayout(new TrainrunSectionViewObject(this.editorView,[ts]));
             this.editorView.trainrunSectionPreviewLineView.setStartConnectionPos(
               this.editorView.connectionsView.getConnectionPinPosition(ts, node),
             );
           } else {
             this.editorView.trainrunSectionPreviewLineView.resetStartConnectionPos();
-            D3Utils.doGrayout(ts);
+            D3Utils.doGrayout(new TrainrunSectionViewObject(this.editorView, [ts]));
           }
         }
       }
