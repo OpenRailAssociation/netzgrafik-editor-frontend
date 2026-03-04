@@ -35,18 +35,18 @@ Contributors provide any material that becomes part of the project, including co
 ### 2.3.2 Committer
 Committers are trusted contributors with recognised expertise in their domain and in the project’s infrastructure. They have permission to modify source code or documentation and may commit directly to the main repository. In practice, they can create branches, submit pull requests, and perform code reviews. A Contributor may be nominated for Committer status by an existing Committer. Appointment requires confirmation by a Maintainer.
 
-### 2.5 Maintainer
+### 2.4 Maintainer
 Maintainers are responsible for the quality, technical direction, and governance of the project. They actively contribute to development, manage contributions, and ensure overall quality and alignment with the project vision. A Committer may be nominated for Maintainer status by existing Maintainers. Appointment must be confirmed by the Project Steering Committee (PSC).
 
-### 2.6 Business Domain Steward
+### 2.5 Business Domain Steward
 The business domain stewards are responsible to bring the expertise of the real-world business into the open source project. They understand the value the software provides, how it is used in practice, and which needs matter most to users. They guide feature prioritisation based on business relevance, refine requirements, validate releases from a business perspective, and contribute to documentation, training, and enablement. Business Domain Stewards are accountable for artefacts directed at users. New Business Domain Stewards are appointed by existing Stewards and confirmed by the PSC.
 
-### 2.7 Project Steering Commitee (PSC)
+### 2.6 Project Steering Commitee (PSC)
 The PSC addresses strategic directions and makes decisions as a collegial body. It develops a long-term vision, defines roadmaps and milestones, offers guidance, mediates differing views, and supports effective implementation.
 
 The PSC consists of Maintainers and Business Domain Stewards and includes between three and seven members. It appoints new members from the group of maintainers and business domain stewards. The PSC should strive to make decisions consensually. The PSC strives to make decisions by consensus. If consensus cannot be reached, decisions are made by vote, with each member holding one vote. In the event of a tie, the longest-serving PSC member casts the deciding vote.
 
-### 2.8 Technical Committee (TC) of the OpenRail Association
+### 2.7 Technical Committee (TC) of the OpenRail Association
 The Technical Committee (TC) provides guidance to help the project achieve its objectives. It ensures the project adheres to open governance principles and the goals and values of the association. The TC may support governance implementation and mediate conflicts when required.
 
 ## 3. Decisions
