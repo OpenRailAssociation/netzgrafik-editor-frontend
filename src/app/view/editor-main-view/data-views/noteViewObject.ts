@@ -28,6 +28,8 @@ export class NoteViewObject {
       "_" +
       n.getTitle() +
       "_" +
+      n.getRotation() +
+      "_" +
       n.selected() +
       "_" +
       editorView.getNoteLayerIndex(n.getId()) +

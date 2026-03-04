@@ -12,3 +12,19 @@
     [placeholder]="'app.view.dialogs.note-dialog.note-form.name' | translate"
   />
 </sbb-form-field>
+<sbb-form-field
+  [label]="'app.view.dialogs.note-dialog.note-form.rotation' | translate"
+  class="sbb-form-field-short"
+>
+  <input
+    type="number"
+    sbbInput
+    [formControl]="model.getControl('noteRotation')"
+    (focusout)="onUpdate()"
+    (keydown)="onKeydown($event)"
+    placeholder="Rotation (0, 90, 180, 270)"
+    min="0"
+    max="360"
+    step="90"
+  />
+</sbb-form-field>
