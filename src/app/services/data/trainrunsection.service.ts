@@ -433,30 +433,30 @@ export class TrainrunSectionService implements OnDestroy {
     }
 
     // Update tail arrival time
-    const depTimeAtTail = MathUtils.round(
+    const newTailDeparture = MathUtils.round(
       (arrivalTimeAtTail + halteZeit) % 60,
       TrainrunSectionService.TIME_PRECISION,
     );
-    const arrTimeAtTail = MathUtils.round(
-      TrainrunsectionHelper.getSymmetricTime(depTimeAtTail),
+    const newTailArrival = MathUtils.round(
+      TrainrunsectionHelper.getSymmetricTime(newTailDeparture),
       TrainrunSectionService.TIME_PRECISION,
     );
-    section.setTailDeparture(depTimeAtTail);
-    section.setTailArrival(arrTimeAtTail);
+    section.setTailDeparture(newTailDeparture);
+    section.setTailArrival(newTailArrival);
 
     // Use travel time to update the head times - if allowed
     if (!section.getHeadArrivalLock()) {
       // Target is not locked -> update the Target Arrival Time
-      const arrTimeAtHead = MathUtils.round(
-        (depTimeAtTail + section.getTravelTime()) % 60,
+      const newHeadArrival = MathUtils.round(
+        (newTailDeparture + section.getTravelTime()) % 60,
         TrainrunSectionService.TIME_PRECISION,
       );
-      const depTimeAtHead = MathUtils.round(
-        TrainrunsectionHelper.getSymmetricTime(arrTimeAtHead),
+      const newHeadDeparture = MathUtils.round(
+        TrainrunsectionHelper.getSymmetricTime(newHeadArrival),
         TrainrunSectionService.TIME_PRECISION,
       );
-      section.setHeadArrival(arrTimeAtHead);
-      section.setHeadDeparture(depTimeAtHead);
+      section.setHeadArrival(newHeadArrival);
+      section.setHeadDeparture(newHeadDeparture);
 
       return;
     }
@@ -466,7 +466,7 @@ export class TrainrunSectionService implements OnDestroy {
       return;
     }
 
-    let newTravelTime = section.getHeadArrival() - depTimeAtTail;
+    let newTravelTime = section.getHeadArrival() - newTailDeparture;
     newTravelTime += Math.floor(section.getTravelTime() / 60) * 60;
     while (newTravelTime < 0.0) {
       newTravelTime += 60;
