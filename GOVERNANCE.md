@@ -18,7 +18,7 @@ The project operates according to established open source principles and values.
 The community consists of users, contributors, committers, maintainers, and business domain stewards. Open source projects thrive when supported by an active community. Anyone in the community may support the project and contribute to community building.
 
 ### 2.2 User
-Users have a need for the project. They are essential to the project’s purpose and they are the business domain experts. There are no technical requirements to become a user, as the Netzgrafik-Editor is available as a publicly accessible service.
+Users have a need for the project. They are essential to the project’s purpose and they are the business domain experts. There are no requirements or restrictions for using the Netzgrafik-Editor. As open source software, its license grants anyone the right to use it for any purpose.
 
 The project encourages users to participate in the community as much as possible. Common ways users contribute include:
 - promoting the project (e.g. linking from websites or raising awareness by word of mouth)
