@@ -179,7 +179,7 @@ describe("Transitions-View", () => {
 
   it("transitionsView constructor test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const transitionsView = new TransitionsView(editorView);
+    const transitionsView = new TransitionsView(editorView, trainrunSectionService);
   });
 
   it("TransitionsView.isMuted - 001", () => {
