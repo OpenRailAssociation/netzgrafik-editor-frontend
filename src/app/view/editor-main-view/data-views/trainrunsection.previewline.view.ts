@@ -22,7 +22,6 @@ export enum PreviewLineMode {
 export class DragIntermediateStopInfo {
   constructor(
     public viewObject: TrainrunSectionViewObject,
-    public intermediateStopIndex: number,
     public domRef: any,
   ) {}
 }
