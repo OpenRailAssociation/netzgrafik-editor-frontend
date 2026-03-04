@@ -174,7 +174,7 @@ describe("Nodes-View", () => {
 
   it("nodesView construction test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const nodesView = new NodesView(editorView);
+    const nodesView = new NodesView(editorView, nodeService);
     nodesView.createViewNodeDataObjects(nodeService.getNodes());
   });
 });
