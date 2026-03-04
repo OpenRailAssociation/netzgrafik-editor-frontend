@@ -14,61 +14,77 @@ The project operates according to established open source principles and values.
 - **Effective decisions** - The project follows a policy of lazy consensus, allowing most decisions to be made without formal voting.
 
 ## 2. Roles
+
 ### 2.1 Community
+
 The community consists of users, contributors, committers, maintainers, and business domain stewards. Open source projects thrive when supported by an active community. Anyone in the community may support the project and contribute to community building.
 
 ### 2.2 User
+
 Users have a need for the project. They are essential to the project’s purpose and they are the business domain experts. There are no requirements or restrictions for using the Netzgrafik-Editor. As open source software, its license grants anyone the right to use it for any purpose.
 
 The project encourages users to participate in the community as much as possible. Users are invited to get engaged with the project by:
+
 - promoting the project (e.g. linking from websites or raising awareness by word of mouth)
 - informing developers about strengths and weaknesses from a user perspective
 - providing community support
-Users may become Contributors.
+  Users may become Contributors.
 
-### 2.3 Participants 
-Participants form a broad group, ranging from users contributing documentation and requirements to engineers contributing to the platform’s codebase, infrastructure, and architecture. Participants may act on behalf of an organisation or independently. Participants may create issues, comment on issues. 
+### 2.3 Participants
+
+Participants form a broad group, ranging from users contributing documentation and requirements to engineers contributing to the platform’s codebase, infrastructure, and architecture. Participants may act on behalf of an organisation or independently. Participants may create issues, comment on issues.
 
 ### 2.3.1 Contributors
+
 Contributors provide any material that becomes part of the project, including code, documentation, or other content integrated into the code base. They do not have direct write access to the main repository. Instead, they may submit pull requests or work through a fork of the repository.
 
 ### 2.3.2 Committer
-Committers are trusted contributors with recognised expertise in their domain and in the project’s infrastructure. They have permission to modify source code or documentation and may commit directly to the main repository. However, they are not allowed to merge changes without an approved pull request. All modifications must pass the review process under the four‑eye principle. 
+
+Committers are trusted contributors with recognised expertise in their domain and in the project’s infrastructure. They have permission to modify source code or documentation and may commit directly to the main repository. However, they are not allowed to merge changes without an approved pull request. All modifications must pass the review process under the four‑eye principle.
 A Contributor may be nominated for Committer status by an existing Committer. Appointment requires confirmation by a Maintainer.
 
 ### 2.4 Maintainer
+
 Maintainers are responsible for the quality, technical direction, and governance of the project. They actively contribute to development, manage contributions, and ensure overall quality and alignment with the project vision. A Committer may be nominated for Maintainer status by existing Maintainers. Appointment must be confirmed by the Project Steering Committee (PSC).
 
 ### 2.5 Business Domain Steward
+
 The business domain stewards are responsible to bring the expertise of the real-world business into the open source project. They understand the value the software provides, how it is used in practice, and which needs matter most to users. They guide feature prioritisation based on business relevance, refine requirements, validate releases from a business perspective, and contribute to documentation, training, and enablement. Business Domain Stewards are accountable for artefacts directed at users. New Business Domain Stewards are appointed by existing Stewards and confirmed by the PSC.
 
 ### 2.6 Project Steering Commitee (PSC)
+
 The PSC addresses strategic directions and makes decisions as a collegial body. It develops a long-term vision, defines roadmaps and milestones, offers guidance, mediates differing views, and supports effective implementation.
 
 The PSC consists of Maintainers and Business Domain Stewards and includes between three and seven members. It appoints new members from the group of maintainers and business domain stewards. The PSC should strive to make decisions consensually. The PSC strives to make decisions by consensus. If consensus cannot be reached, decisions are made by vote, with each member holding one vote. In the event of a tie, the longest-serving PSC member casts the deciding vote.
 
 ### 2.7 Technical Committee (TC) of the OpenRail Association
+
 The Technical Committee (TC) provides guidance to help the project achieve its objectives. It ensures the project adheres to open governance principles and the goals and values of the association. The TC may support governance implementation and mediate conflicts when required.
 
 ## 3. Decisions
 
-### 3.1. Lazy Consensus-Based Decision Making 
+### 3.1. Lazy Consensus-Based Decision Making
+
 The project makes most decisions through lazy consensus among the Maintainers. Consensus is determined in good faith, taking into account the dominant view of contributors and the nature of support and objections. Evidence of consensus should be documented.
 
 ### 3.2. Appeal Process
+
 Decisions may be appealed by opening an issue. Maintainers will review the appeal in good faith and respond in writing within a reasonable time.
 If the appeal is rejected, it may be escalated to the PSC, which will also respond in writing. If a decision contradicts the stated principles or is deemed to endanger the project, the TC may be asked to provide mediation.
 
 ## 4. No Confidentiality
+
 Information disclosed in connection with any Project activity, including but not limited to meetings, contributions, and submissions, is not confidential, regardless of any markings or statements to the contrary.
 
 ## 5. Amendments
+
 Major changes to this governance policy require a decision by the Project Steering Committee (PSC).
 
 ---
 
 Based on inputs from:
+
 - [GitHub's Minimum Viable Governance (MVG)](https://github.com/github/MVG)
 - [Kopia Governance](https://github.com/kopia/kopia/blob/master/GOVERNANCE.md?plain=1)
-  
+
 Licensed under the [CC-BY 4.0 License](https://creativecommons.org/licenses/by/4.0/).
