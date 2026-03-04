@@ -20,7 +20,7 @@ The community consists of users, contributors, committers, maintainers, and busi
 ### 2.2 User
 Users have a need for the project. They are essential to the project’s purpose and they are the business domain experts. There are no requirements or restrictions for using the Netzgrafik-Editor. As open source software, its license grants anyone the right to use it for any purpose.
 
-The project encourages users to participate in the community as much as possible. Common ways users contribute include:
+The project encourages users to participate in the community as much as possible. Users are invited to get engaged with the project by:
 - promoting the project (e.g. linking from websites or raising awareness by word of mouth)
 - informing developers about strengths and weaknesses from a user perspective
 - providing community support
