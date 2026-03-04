@@ -409,7 +409,6 @@ export class TrainrunSectionService implements OnDestroy {
     previousSection: DirectedTrainrunSectionProxy,
     section: DirectedTrainrunSectionProxy,
   ) {
-    const arrivalTimeAtTail = previousSection.getHeadArrival();
     const halteZeit = this.getTrainrunSectionHaltezeit(
       previousSection.getHeadNode(),
       section.trainrunSection,
@@ -423,7 +422,7 @@ export class TrainrunSectionService implements OnDestroy {
 
     // Update tail arrival time
     const newTailDeparture = MathUtils.round(
-      (arrivalTimeAtTail + halteZeit) % 60,
+      (previousSection.getHeadArrival() + halteZeit) % 60,
       TrainrunSectionService.TIME_PRECISION,
     );
     const newTailArrival = MathUtils.round(
