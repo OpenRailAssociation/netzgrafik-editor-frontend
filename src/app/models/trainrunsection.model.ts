@@ -14,6 +14,8 @@ import {TrainrunSectionValidator} from "../services/util/trainrunsection.validat
 import {formatDate} from "@angular/common";
 
 export class TrainrunSection {
+  static MIN_TRAVEL_TIME = 0.01; // 1 / 100 minute = 0.6 second - defined min. travel time
+
   private static currentId = 0;
 
   private id: number;
@@ -386,8 +388,8 @@ export class TrainrunSection {
   }
 
   setTravelTime(time: number) {
-    this.travelTime.time = time;
-    TrainrunSectionValidator.validateTravelTime(this, 1); // TODO: I don't think this should be done here
+    this.travelTime.time = Math.max(time, TrainrunSection.MIN_TRAVEL_TIME);
+    TrainrunSectionValidator.validateTravelTime(this);
   }
 
   setSourceDeparture(time: number) {
