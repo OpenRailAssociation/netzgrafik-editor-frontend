@@ -554,6 +554,7 @@ export class TrainrunSectionService implements OnDestroy {
     }
     if (travelTimeLock !== undefined) {
       trainrunSection.setTravelTimeLock(travelTimeLock);
+      trainrunSection.setBackwardTravelTimeLock(travelTimeLock);
     }
     if (enforceUpdate) {
       this.trainrunSectionsUpdated();
