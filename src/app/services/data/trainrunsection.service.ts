@@ -425,10 +425,31 @@ export class TrainrunSectionService implements OnDestroy {
       (previousSection.getHeadArrival() + halteZeit) % 60,
       TrainrunSectionService.TIME_PRECISION,
     );
-    const newTailArrival = MathUtils.round(
-      TrainrunsectionHelper.getSymmetricTime(newTailDeparture),
-      TrainrunSectionService.TIME_PRECISION,
-    );
+    let newTailArrival;
+    if (section.getTailSymmetry()) {
+      newTailArrival = MathUtils.round(
+        TrainrunsectionHelper.getSymmetricTime(newTailDeparture),
+        TrainrunSectionService.TIME_PRECISION,
+      );
+    } else if (section.getHeadSymmetry()) {
+      // TODO: de-duplicate with logic below
+      let newHeadDeparture;
+      if (!section.getHeadArrivalLock()) {
+        const newHeadArrival = MathUtils.mod60(newTailDeparture + section.getTravelTime());
+        newHeadDeparture = TrainrunsectionHelper.getSymmetricTime(newHeadArrival);
+      } else {
+        newHeadDeparture = section.getHeadDeparture();
+      }
+      newTailArrival = MathUtils.round(
+        MathUtils.mod60(newHeadDeparture + section.getReverseTravelTime()),
+        TrainrunSectionService.TIME_PRECISION,
+      );
+    } else {
+      newTailArrival = MathUtils.round(
+        MathUtils.mod60(previousSection.getHeadDeparture() - halteZeit),
+        TrainrunSectionService.TIME_PRECISION,
+      );
+    }
     section.setTailDeparture(newTailDeparture);
     section.setTailArrival(newTailArrival);
 
@@ -439,10 +460,18 @@ export class TrainrunSectionService implements OnDestroy {
         (newTailDeparture + section.getTravelTime()) % 60,
         TrainrunSectionService.TIME_PRECISION,
       );
-      const newHeadDeparture = MathUtils.round(
-        TrainrunsectionHelper.getSymmetricTime(newHeadArrival),
-        TrainrunSectionService.TIME_PRECISION,
-      );
+      let newHeadDeparture;
+      if (section.getHeadSymmetry()) {
+        newHeadDeparture = MathUtils.round(
+          TrainrunsectionHelper.getSymmetricTime(newHeadArrival),
+          TrainrunSectionService.TIME_PRECISION,
+        );
+      } else {
+        newHeadDeparture = MathUtils.round(
+          MathUtils.mod60(newTailArrival - section.getReverseTravelTime()),
+          TrainrunSectionService.TIME_PRECISION,
+        );
+      }
       section.setHeadArrival(newHeadArrival);
       section.setHeadDeparture(newHeadDeparture);
 
@@ -457,6 +486,10 @@ export class TrainrunSectionService implements OnDestroy {
     let newTravelTime = MathUtils.mod60(section.getHeadArrival() - newTailDeparture);
     newTravelTime += Math.floor(section.getTravelTime() / 60) * 60;
     section.setTravelTime(newTravelTime);
+
+    let newReverseTravelTime = MathUtils.mod60(newTailArrival - section.getHeadDeparture());
+    newReverseTravelTime += Math.floor(section.getReverseTravelTime() / 60) * 60;
+    section.setReverseTravelTime(newReverseTravelTime);
   }
 
   private getTrainrunSectionHaltezeit(node: Node, trainrunSection: TrainrunSection): number {
