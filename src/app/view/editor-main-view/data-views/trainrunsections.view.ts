@@ -24,7 +24,11 @@ import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {EditorView} from "./editor.view";
 
 import {D3Utils} from "./d3.utils";
-import {DragIntermediateStopInfo, DragCollapsedStopNodeInfo, PreviewLineMode} from "./trainrunsection.previewline.view";
+import {
+  DragIntermediateStopInfo,
+  DragCollapsedStopNodeInfo,
+  PreviewLineMode,
+} from "./trainrunsection.previewline.view";
 import {MathUtils} from "../../../utils/math";
 import {Trainrun} from "../../../models/trainrun.model";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
@@ -1745,7 +1749,7 @@ export class TrainrunSectionsView {
         TrainrunSectionsView.isSectionSelected(t),
       )
       .on("mouseup", (event: MouseEvent, t: TrainrunSectionViewObject) =>
-        this.onIntermediateStopMouseUp(event, t.firstSection),
+        this.onCollapsedNodeMouseUp(event, t),
       );
   }
 
@@ -1994,27 +1998,20 @@ export class TrainrunSectionsView {
     this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(event);
   }
 
-  onIntermediateStopMouseUp(event: MouseEvent, trainrunSection: TrainrunSection) {
+  onCollapsedNodeMouseUp(event: MouseEvent, viewObject: TrainrunSectionViewObject) {
     event.stopPropagation();
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
-      this.handleMultiNodeMovingTrainrunSectionMouseUp(event, trainrunSection);
+      this.handleMultiNodeMovingTrainrunSectionMouseUp(event, viewObject.firstSection);
       return;
     }
-    D3Utils.removeGrayout(trainrunSection);
+    D3Utils.removeGrayout(viewObject);
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
-    this.editorView.setTrainrunAsSelected(trainrunSection.getTrainrun());
+    this.editorView.setTrainrunAsSelected(viewObject.getTrainrun());
   }
 
   onTrainrunSectionTextMouseout(event: MouseEvent, trainrunSection: TrainrunSection) {
     const domObj = D3Utils.getMouseEventCurrentTarget(event);
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
-  }
-
-  onCollapsedNodeMouseUp(event: MouseEvent, trainrunSection: TrainrunSection) {
-    event.stopPropagation();
-    D3Utils.removeGrayout(trainrunSection);
-    this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
-    this.editorView.setTrainrunAsSelected(trainrunSection.getTrainrun());
   }
 
   onTrainrunSectionElementClicked(
@@ -2168,7 +2165,7 @@ export class TrainrunSectionsView {
       );
     const startAT: Vec2D = new Vec2D(+obj.attr("cx"), +obj.attr("cy"));
     this.editorView.trainrunSectionPreviewLineView.setExistingTrainrunSection(trainrunSection);
-    D3Utils.doGrayout(trainrunSection);
+    D3Utils.doGrayout(new TrainrunSectionViewObject(this.editorView, [trainrunSection]));
     this.editorView.trainrunSectionPreviewLineView.startPreviewLineAtPosition(
       TrainrunSectionsView.getNode(trainrunSection, !atSource),
       startAT,
@@ -2827,7 +2824,7 @@ export class TrainrunSectionsView {
         this.onCollapsedNodeMouseDown(event, t, stopIndex, position),
       )
       .on("mouseup", (event: MouseEvent, t: TrainrunSectionViewObject) =>
-        this.onCollapsedNodeMouseUp(event, t.firstSection),
+        this.onCollapsedNodeMouseUp(event, t),
       );
   }
 

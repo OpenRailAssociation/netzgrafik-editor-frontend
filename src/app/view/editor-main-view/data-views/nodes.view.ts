@@ -11,13 +11,18 @@ import {Node} from "../../../models/node.model";
 import {StaticDomTags} from "./static.dom.tags";
 import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {EditorView} from "./editor.view";
-import {DragIntermediateStopInfo, DragTransitionInfo, PreviewLineMode} from "./trainrunsection.previewline.view";
+import {
+  DragIntermediateStopInfo,
+  DragTransitionInfo,
+  PreviewLineMode,
+} from "./trainrunsection.previewline.view";
 import {Vec2D} from "../../../utils/vec2D";
 import {D3Utils} from "./d3.utils";
 import {NodeViewObject} from "./nodeViewObject";
 import {EditorMode} from "../../editor-menu/editor-mode";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
 import {NodeService} from "src/app/services/data/node.service";
+import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
 
 type NodeDragEvent = d3.D3DragEvent<SVGElement, NodeViewObject, unknown>;
 
@@ -925,7 +930,7 @@ export class NodesView {
   }
 
   replaceCollapsedNodeWithNode(dragCollapsedNodeInfo: any, endNode: Node) {
-    const draggedNode = dragCollapsedNodeInfo.viewObject.getCollapsedStopNodeFromStopIndex(
+    const draggedNode: Node = dragCollapsedNodeInfo.viewObject.getCollapsedStopNodeFromStopIndex(
       dragCollapsedNodeInfo.stopIndex,
     );
 
@@ -937,7 +942,6 @@ export class NodesView {
     const previousSection = dragCollapsedNodeInfo.viewObject.trainrunSections.find(
       (ts: TrainrunSection) => ts.getTargetNodeId() === draggedNode.getId(),
     );
-
     const nextSection = dragCollapsedNodeInfo.viewObject.trainrunSections.find(
       (ts: TrainrunSection) => ts.getSourceNodeId() === draggedNode.getId(),
     );
@@ -948,7 +952,6 @@ export class NodesView {
       previousSection,
       false,
     );
-
     this.editorView.reconnectTrainrunSection(
       endNode,
       nextSection.getTargetNode(),
@@ -956,8 +959,8 @@ export class NodesView {
       true,
     );
 
-    const connectedTS: TrainrunSection[] = draggedNode.getConnectedTrainrunSections();
-    if (connectedTS.length === 0) {
+    const connectedSections: TrainrunSection[] = draggedNode.getConnectedTrainrunSections();
+    if (connectedSections.length === 0 && draggedNode.isEmpty()) {
       this.nodeService.deleteNode(draggedNode.getId());
     }
 
@@ -969,15 +972,29 @@ export class NodesView {
       this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
       return;
     }
-    if (!(
-      dragTransitionInfo.trainrunSection1.getSourceNodeId() !== endNode.getId() &&
-      dragTransitionInfo.trainrunSection1.getTargetNodeId() !== endNode.getId() &&
-      dragTransitionInfo.trainrunSection2.getSourceNodeId() !== endNode.getId() &&
-      dragTransitionInfo.trainrunSection2.getTargetNodeId() !== endNode.getId()
-    )) {
+
+    const {
+      outerNode: outerNode1,
+      outerSection: outerSection1,
+      innerNode: innerNode1,
+      innerSection: innerSection1,
+    } = dragTransitionInfo.tsvo1.getExtremityLinks(dragTransitionInfo.node.getId());
+    const {
+      outerNode: outerNode2,
+      outerSection: outerSection2,
+      innerNode: innerNode2,
+      innerSection: innerSection2,
+    } = dragTransitionInfo.tsvo2.getExtremityLinks(dragTransitionInfo.node.getId());
+
+    if (
+      outerNode1.getId() === endNode.getId() ||
+      innerNode1.getId() === endNode.getId() ||
+      outerNode2.getId() === endNode.getId() ||
+      innerNode2.getId() === endNode.getId()
+    ) {
       this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
-      D3Utils.removeGrayout(dragTransitionInfo.trainrunSection1);
-      D3Utils.removeGrayout(dragTransitionInfo.trainrunSection2);
+      D3Utils.removeGrayout(dragTransitionInfo.tsvo1);
+      D3Utils.removeGrayout(dragTransitionInfo.tsvo2);
       return;
     }
 
@@ -985,30 +1002,19 @@ export class NodesView {
     const nodeId = dragTransitionInfo.node.getId();
     const isNonStop = dragTransitionInfo.transition.getIsNonStopTransit();
     const startNode1 =
-      dragTransitionInfo.trainrunSection1.getSourceNodeId() !== nodeId
-        ? dragTransitionInfo.trainrunSection1.getSourceNode()
-        : dragTransitionInfo.trainrunSection1.getTargetNode();
+      innerSection1.getTargetNodeId() !== nodeId
+        ? innerSection1.getTargetNode()
+        : innerSection1.getSourceNode();
     const startNode2 =
-      dragTransitionInfo.trainrunSection2.getSourceNodeId() !== nodeId
-        ? dragTransitionInfo.trainrunSection2.getSourceNode()
-        : dragTransitionInfo.trainrunSection2.getTargetNode();
-    this.editorView.reconnectTrainrunSection(
-      startNode1,
-      endNode,
-      dragTransitionInfo.trainrunSection1,
-      false,
-    );
-    this.editorView.reconnectTrainrunSection(
-      startNode2,
-      endNode,
-      dragTransitionInfo.trainrunSection2,
-      true,
-    );
+      innerSection2.getTargetNodeId() !== nodeId
+        ? innerSection2.getTargetNode()
+        : innerSection2.getSourceNode();
+    this.editorView.reconnectTrainrunSection(startNode1, endNode, innerSection1, false);
+    this.editorView.reconnectTrainrunSection(startNode2, endNode, innerSection2, true);
 
-    // update the "transition" stop-state
-    let trans = endNode.getTransition(dragTransitionInfo.trainrunSection2.getId());
+    let trans = endNode.getTransition(outerSection2.getId());
     if (trans === undefined) {
-      trans = endNode.getTransition(dragTransitionInfo.trainrunSection1.getId());
+      trans = endNode.getTransition(outerSection1.getId());
     }
     if (trans !== undefined) {
       if (trans.getIsNonStopTransit() !== isNonStop) {
@@ -1048,12 +1054,12 @@ export class NodesView {
       if (dragTransitionInfo !== null) {
         if (hover && dragTransitionInfo.node.getId() === node.getId()) {
           dragTransitionInfo.setInsideNode(true);
-          D3Utils.removeGrayout(dragTransitionInfo.trainrunSection1, node);
-          D3Utils.removeGrayout(dragTransitionInfo.trainrunSection2, node);
+          D3Utils.removeGrayout(dragTransitionInfo.tsvo1, node);
+          D3Utils.removeGrayout(dragTransitionInfo.tsvo2, node);
         } else {
           dragTransitionInfo.setInsideNode(false);
-          D3Utils.doGrayout(dragTransitionInfo.trainrunSection1, node);
-          D3Utils.doGrayout(dragTransitionInfo.trainrunSection2, node);
+          D3Utils.doGrayout(dragTransitionInfo.tsvo1, node);
+          D3Utils.doGrayout(dragTransitionInfo.tsvo2, node);
         }
         this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(event);
         return;
@@ -1092,13 +1098,13 @@ export class NodesView {
           });
 
           if (hover) {
-            D3Utils.removeGrayout(ts);
+            D3Utils.removeGrayout(new TrainrunSectionViewObject(this.editorView, [ts]));
             this.editorView.trainrunSectionPreviewLineView.setStartConnectionPos(
               this.editorView.connectionsView.getConnectionPinPosition(ts, node),
             );
           } else {
             this.editorView.trainrunSectionPreviewLineView.resetStartConnectionPos();
-            D3Utils.doGrayout(ts);
+            D3Utils.doGrayout(new TrainrunSectionViewObject(this.editorView, [ts]));
           }
         }
       }
