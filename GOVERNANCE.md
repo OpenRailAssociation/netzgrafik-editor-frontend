@@ -26,10 +26,13 @@ The project encourages users to participate in the community as much as possible
 - providing community support
 Users who remain engaged with the project may become Contributors over time.
 
-### 2.3 Contributor
-Contributors form a broad group, ranging from users contributing documentation and requirements to engineers contributing to the platform’s codebase, infrastructure, and architecture. Contributors may act on behalf of an organisation or independently. Contributors do not have direct write access to the main repository. They may create issues, comment on issues, fork the repository, and submit pull requests.
+### 2.3 Participants 
+Participants form a broad group, ranging from users contributing documentation and requirements to engineers contributing to the platform’s codebase, infrastructure, and architecture. Participants may act on behalf of an organisation or independently. Participants may create issues, comment on issues. 
 
-### 2.4 Committer
+### 2.3.1 Contributors
+Contributors provide any material that becomes part of the project, including code, documentation, or other content integrated into the code base. They do not have direct write access to the main repository. Instead, they may submit pull requests or work through a fork of the repository.
+
+### 2.3.2 Committer
 Committers are trusted contributors with recognised expertise in their domain and in the project’s infrastructure. They have permission to modify source code or documentation and may commit directly to the main repository. In practice, they can create branches, submit pull requests, and perform code reviews. A Contributor may be nominated for Committer status by an existing Committer. Appointment requires confirmation by a Maintainer.
 
 ### 2.5 Maintainer
