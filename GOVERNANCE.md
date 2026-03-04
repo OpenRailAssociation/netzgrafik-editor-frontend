@@ -60,7 +60,7 @@ Decisions may be appealed by opening an issue. Maintainers will review the appea
 If the appeal is rejected, it may be escalated to the PSC, which will also respond in writing. If a decision contradicts the stated principles or is deemed to endanger the project, the TC may be asked to provide mediation.
 
 ## 4. No Confidentiality
-Information disclosed in connection with any project activity, including meetings, contributions, and submissions, is not confidential, regardless of any markings or statements to the contrary.
+Information disclosed in connection with any Project activity, including but not limited to meetings, contributions, and submissions, is not confidential, regardless of any markings or statements to the contrary.
 
 ## 5. Amendments
 Major Changes to this governance policy require an affirmative vote of two-thirds of all Maintainers and Business Domain Stewards, with approval by the Technical Committee.
