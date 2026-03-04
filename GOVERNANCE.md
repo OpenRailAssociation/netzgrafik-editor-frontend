@@ -33,7 +33,8 @@ Participants form a broad group, ranging from users contributing documentation a
 Contributors provide any material that becomes part of the project, including code, documentation, or other content integrated into the code base. They do not have direct write access to the main repository. Instead, they may submit pull requests or work through a fork of the repository.
 
 ### 2.3.2 Committer
-Committers are trusted contributors with recognised expertise in their domain and in the project’s infrastructure. They have permission to modify source code or documentation and may commit directly to the main repository. In practice, they can create branches, submit pull requests, and perform code reviews. A Contributor may be nominated for Committer status by an existing Committer. Appointment requires confirmation by a Maintainer.
+Committers are trusted contributors with recognised expertise in their domain and in the project’s infrastructure. They have permission to modify source code or documentation and may commit directly to the main repository. However, they are not allowed to merge changes without an approved pull request. All modifications must pass the review process under the four‑eye principle. 
+A Contributor may be nominated for Committer status by an existing Committer. Appointment requires confirmation by a Maintainer.
 
 ### 2.4 Maintainer
 Maintainers are responsible for the quality, technical direction, and governance of the project. They actively contribute to development, manage contributions, and ensure overall quality and alignment with the project vision. A Committer may be nominated for Maintainer status by existing Maintainers. Appointment must be confirmed by the Project Steering Committee (PSC).
