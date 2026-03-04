@@ -183,7 +183,7 @@ describe("Transitions-View", () => {
 
   it("transitionsView constructor test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    new TransitionsView(editorView);
+    new TransitionsView(editorView, trainrunSectionService);
   });
 
   it("TransitionsView.isMuted - 001", () => {
