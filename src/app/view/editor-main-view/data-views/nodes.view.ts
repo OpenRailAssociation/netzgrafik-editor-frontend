@@ -11,16 +11,14 @@ import {Node} from "../../../models/node.model";
 import {StaticDomTags} from "./static.dom.tags";
 import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {EditorView} from "./editor.view";
-import {
-  DragIntermediateStopInfo,
-  DragTransitionInfo,
-  PreviewLineMode,
-} from "./trainrunsection.previewline.view";
+import {DragIntermediateStopInfo, DragTransitionInfo, PreviewLineMode} from "./trainrunsection.previewline.view";
 import {Vec2D} from "../../../utils/vec2D";
 import {D3Utils} from "./d3.utils";
 import {NodeViewObject} from "./nodeViewObject";
 import {EditorMode} from "../../editor-menu/editor-mode";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
+import {NodeService} from "src/app/services/data/node.service";
+import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
 
 export class NodesView {
   dragPreviousMousePosition: Vec2D;
@@ -28,7 +26,10 @@ export class NodesView {
   draggable: any;
   private LevelOfDetails: LevelOfDetail;
 
-  constructor(private editorView: EditorView) {
+  constructor(
+    private editorView: EditorView,
+    private nodeService: NodeService,
+  ) {
     this.draggable = d3
       .drag()
       .on("start", (n: NodeViewObject, i, a) => this.onNodeDragStart(n.node, a[i]))
@@ -652,15 +653,15 @@ export class NodesView {
       return;
     }
 
-    const dragIntermediateStopInfo =
-      this.editorView.trainrunSectionPreviewLineView.getDragIntermediateStopInfo();
-    if (dragIntermediateStopInfo !== null) {
-      this.replaceIntermediateStopWithTrainrunSections(dragIntermediateStopInfo, endNode);
+    const dragCollapsedNodeInfo =
+      this.editorView.trainrunSectionPreviewLineView.getDragCollapsedNodeInfo();
+    if (dragCollapsedNodeInfo !== null) {
+      this.replaceCollapsedNodeWithNode(dragCollapsedNodeInfo, endNode);
     } else {
       const dragTransitionInfo =
         this.editorView.trainrunSectionPreviewLineView.getDragTransitionInfo();
       if (dragTransitionInfo !== null) {
-        this.reconnectTransition(dragTransitionInfo, endNode);
+        // this.reconnectTransition(dragTransitionInfo, endNode);
       } else {
         const startNode: Node = this.editorView.trainrunSectionPreviewLineView.getStartNode();
         this.createNewTrainrunSection(startNode, endNode);
@@ -791,9 +792,59 @@ export class NodesView {
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
   }
 
+  replaceCollapsedNodeWithNode(dragCollapsedNodeInfo: any, endNode: Node) {
+    const draggedNode = dragCollapsedNodeInfo.viewObject.getCollapsedStopNodeFromStopIndex(
+      dragCollapsedNodeInfo.stopIndex,
+    );
+
+    if (draggedNode.getId() === endNode.getId()) {
+      this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
+      return;
+    }
+
+    const previousSection = dragCollapsedNodeInfo.viewObject.trainrunSections.find(
+      (ts: TrainrunSection) => ts.getTargetNodeId() === draggedNode.getId(),
+    );
+
+    const nextSection = dragCollapsedNodeInfo.viewObject.trainrunSections.find(
+      (ts: TrainrunSection) => ts.getSourceNodeId() === draggedNode.getId(),
+    );
+
+    this.editorView.reconnectTrainrunSection(
+      previousSection.getSourceNode(),
+      endNode,
+      previousSection,
+      false,
+    );
+
+    this.editorView.reconnectTrainrunSection(
+      endNode,
+      nextSection.getTargetNode(),
+      nextSection,
+      true,
+    );
+
+    const connectedTS: TrainrunSection[] = draggedNode.getConnectedTrainrunSections();
+    if (connectedTS.length === 0) {
+      this.nodeService.deleteNode(draggedNode.getId());
+    }
+
+    this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
+  }
+
   reconnectTransition(dragTransitionInfo: DragTransitionInfo, endNode: Node) {
     if (dragTransitionInfo.node.getId() === endNode.getId()) {
       this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
+      return;
+    }
+
+    const {outerNode: outerNode1, outerSection: outerSection1} = dragTransitionInfo.tsvo1.resolveOuterAnchor(dragTransitionInfo.node.getId());
+    const {outerNode: outerNode2, outerSection: outerSection2} = dragTransitionInfo.tsvo2.resolveOuterAnchor(dragTransitionInfo.node.getId());
+
+    if(outerNode1.getId() === endNode.getId() || outerNode2.getId() === endNode.getId()) {
+      this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
+      D3Utils.removeGrayout(dragTransitionInfo.tsvo1);
+      D3Utils.removeGrayout(dragTransitionInfo.tsvo2);
       return;
     }
     if (
@@ -875,12 +926,12 @@ export class NodesView {
       if (dragTransitionInfo !== null) {
         if (hover && dragTransitionInfo.node.getId() === node.getId()) {
           dragTransitionInfo.setInsideNode(true);
-          D3Utils.removeGrayout(dragTransitionInfo.trainrunSection1, node);
-          D3Utils.removeGrayout(dragTransitionInfo.trainrunSection2, node);
+          D3Utils.removeGrayout(dragTransitionInfo.tsvo1, node);
+          D3Utils.removeGrayout(dragTransitionInfo.tsvo2, node);
         } else {
           dragTransitionInfo.setInsideNode(false);
-          D3Utils.doGrayout(dragTransitionInfo.trainrunSection1, node);
-          D3Utils.doGrayout(dragTransitionInfo.trainrunSection2, node);
+          D3Utils.doGrayout(dragTransitionInfo.tsvo1, node);
+          D3Utils.doGrayout(dragTransitionInfo.tsvo2, node);
         }
         this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
         return;
@@ -909,13 +960,13 @@ export class NodesView {
           });
 
           if (hover) {
-            D3Utils.removeGrayout(ts);
+            D3Utils.removeGrayout(new TrainrunSectionViewObject(this.editorView,[ts]));
             this.editorView.trainrunSectionPreviewLineView.setStartConnectionPos(
               this.editorView.connectionsView.getConnectionPinPosition(ts, node),
             );
           } else {
             this.editorView.trainrunSectionPreviewLineView.resetStartConnectionPos();
-            D3Utils.doGrayout(ts);
+            D3Utils.doGrayout(new TrainrunSectionViewObject(this.editorView, [ts]));
           }
         }
       }

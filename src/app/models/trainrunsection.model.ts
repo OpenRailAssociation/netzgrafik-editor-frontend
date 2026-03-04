@@ -633,6 +633,10 @@ export class TrainrunSection {
     return this.isSelected;
   }
 
+  isSectionTouchingNode( nodeId: number): boolean {
+    return this.getSourceNodeId() === nodeId || this.getTargetNodeId() === nodeId;
+  }
+
   setSourceDepartureConsecutiveTime(time: number) {
     this.sourceDeparture.consecutiveTime = time;
   }

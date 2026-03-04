@@ -42,6 +42,19 @@ export class TrainrunSectionViewObject {
       .filter((section) => !section.getSourceNode().isNonStop(section)).length;
   }
 
+  getCollapsedStopNodes(): Node[] {
+    return this.trainrunSections
+      .slice(1)
+      .map((section) =>
+        !section.getSourceNode().isNonStop(section) ? section.getSourceNode() : null,
+      )
+      .filter((node) => node !== null && node.getIsCollapsed);
+  }
+
+  getCollapsedStopNodeFromStopIndex(stopIndex: number): Node {
+    return this.getCollapsedStopNodes()[stopIndex];
+  }
+
   getTravelTime(): number {
     if (this.trainrunSections.length === 1) {
       return this.firstSection.getTravelTime();
@@ -91,6 +104,37 @@ export class TrainrunSectionViewObject {
 
   getPosition(atSource: boolean): Vec2D {
     return atSource ? this.getPositionAtSourceNode() : this.getPositionAtTargetNode();
+  }
+
+  resolveOuterAnchor(dragNodeId: number): {
+    outerNode: Node;
+    outerSection: TrainrunSection;
+  } {
+    const first = this.firstSection;
+    const last = this.lastSection;
+
+    const touchesFirst = first.isSectionTouchingNode(dragNodeId);
+    const touchesLast = last.isSectionTouchingNode(dragNodeId);
+    console.log("touchesFirst", touchesFirst);
+    console.log("touchesLast", touchesLast);
+
+    if(touchesFirst && touchesLast) {
+      if(first.getSourceNode().getId() === dragNodeId) {
+        return {outerNode: first.getTargetNode(), outerSection: first};
+      } else {
+        return {outerNode: first.getSourceNode(), outerSection: first};
+      }
+    }
+    if (touchesFirst && !touchesLast) {
+      console.log("touchesFirst", touchesFirst);
+      return {outerNode: last.getTargetNode(), outerSection: last};
+    }
+    if (touchesLast && !touchesFirst) {
+      console.log("touchesLast", touchesLast);
+      return {outerNode: first.getSourceNode(), outerSection: first};
+    }
+
+    throw new Error("TSVO: drag node is not on exactly one extremity");
   }
 
   // A "Tip" is the state of a trainrun section's end (source or target). This state is represented
