@@ -24,7 +24,11 @@ import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {EditorView} from "./editor.view";
 
 import {D3Utils} from "./d3.utils";
-import {DragIntermediateStopInfo, DragCollapsedStopNodeInfo, PreviewLineMode} from "./trainrunsection.previewline.view";
+import {
+  DragIntermediateStopInfo,
+  DragCollapsedStopNodeInfo,
+  PreviewLineMode,
+} from "./trainrunsection.previewline.view";
 import {MathUtils} from "../../../utils/math";
 import {Trainrun} from "../../../models/trainrun.model";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
@@ -1963,20 +1967,20 @@ export class TrainrunSectionsView {
     this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
   }
 
-  onIntermediateStopMouseUp(trainrunSection: TrainrunSection, domObj: any) {
-    d3.event.stopPropagation();
-    if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
-      this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
-      return;
-    }
-    D3Utils.removeGrayout(trainrunSection);
-    this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
-    this.editorView.setTrainrunAsSelected(trainrunSection.getTrainrun());
-  }
+  // onIntermediateStopMouseUp(trainrunSection: TrainrunSection, domObj: any) {
+  //   d3.event.stopPropagation();
+  //   if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
+  //     this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
+  //     return;
+  //   }
+  //   D3Utils.removeGrayout(trainrunSection);
+  //   this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
+  //   this.editorView.setTrainrunAsSelected(trainrunSection.getTrainrun());
+  // }
 
   onCollapsedNodeMouseUp(viewObject: TrainrunSectionViewObject, domObj: any) {
     d3.event.stopPropagation();
-    D3Utils.removeGrayout(viewObject.trainrunSections[0]);
+    D3Utils.removeGrayout(viewObject);
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
     this.editorView.setTrainrunAsSelected(viewObject.getTrainrun());
   }
@@ -2127,7 +2131,7 @@ export class TrainrunSectionsView {
       );
     const startAT: Vec2D = new Vec2D(+obj.attr("cx"), +obj.attr("cy"));
     this.editorView.trainrunSectionPreviewLineView.setExistingTrainrunSection(trainrunSection);
-    D3Utils.doGrayout(trainrunSection);
+    D3Utils.doGrayout(new TrainrunSectionViewObject(this.editorView, [trainrunSection]));
     this.editorView.trainrunSectionPreviewLineView.startPreviewLineAtPosition(
       TrainrunSectionsView.getNode(trainrunSection, !atSource),
       startAT,
