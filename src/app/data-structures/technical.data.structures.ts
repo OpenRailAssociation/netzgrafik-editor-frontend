@@ -23,6 +23,7 @@ export enum TrainrunSectionText {
   TargetDeparture,
   TrainrunSectionName,
   TrainrunSectionTravelTime,
+  TrainrunSectionBackwardTravelTime,
   TrainrunSectionNumberOfStops,
 }
 
@@ -38,6 +39,7 @@ export interface TrainrunSectionTextPositions {
   [TrainrunSectionText.TargetDeparture]: PointDto;
   [TrainrunSectionText.TrainrunSectionName]: PointDto;
   [TrainrunSectionText.TrainrunSectionTravelTime]: PointDto;
+  [TrainrunSectionText.TrainrunSectionBackwardTravelTime]: PointDto;
   [TrainrunSectionText.TrainrunSectionNumberOfStops]: PointDto;
 }
 
