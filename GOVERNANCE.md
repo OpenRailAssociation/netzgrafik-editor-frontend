@@ -55,7 +55,7 @@ The business domain stewards are responsible to bring the expertise of the real-
 
 The PSC addresses strategic directions and makes decisions as a collegial body. It develops a long-term vision, defines roadmaps and milestones, offers guidance, mediates differing views, and supports effective implementation.
 
-The PSC consists of Maintainers and Business Domain Stewards and includes between three and seven members. It appoints new members from the group of maintainers and business domain stewards. The PSC should strive to make decisions consensually. The PSC strives to make decisions by consensus. If consensus cannot be reached, decisions are made by vote, with each member holding one vote. In the event of a tie, the longest-serving PSC member casts the deciding vote.
+The PSC consists of Maintainers and Business Domain Stewards and includes between three and seven members. It appoints new members from the group of maintainers and business domain stewards. The PSC strives to make decisions by consensus. If consensus cannot be reached, decisions are made by vote, with each member holding one vote. In the event of a tie, the longest-serving PSC member casts the deciding vote.
 
 ### 2.7 Technical Committee (TC) of the OpenRail Association
 
