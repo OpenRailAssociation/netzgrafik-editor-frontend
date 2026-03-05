@@ -53,7 +53,7 @@ export class NodeService implements OnDestroy {
 
   readonly operation = new EventEmitter<Operation>();
 
-  private dataService: DataService = null;
+  private dataService: DataService | null = null;
   private destroyed = new Subject<void>();
 
   constructor(
@@ -120,7 +120,7 @@ export class NodeService implements OnDestroy {
       const addedNode = this.nodesStore.nodes.find(
         (n) => n.getBetriebspunktName() === node.betriebspunktName,
       );
-      nodeMap.set(node.id, addedNode.getId());
+      nodeMap.set(node.id, addedNode!.getId());
     });
     return nodeMap;
   }
@@ -133,8 +133,8 @@ export class NodeService implements OnDestroy {
         const labelDtos: LabelDto[] = netzgrafikDto.labels.filter((label) => label.id === labelsId);
         labelDtos.forEach((labelDto) => {
           const label = this.labelService.getOrCreateLabel(labelDto.label, labelDto.labelRef);
-          if (!newNode.getLabelIds().includes(label.getId())) {
-            newNode.getLabelIds().push(label.getId());
+          if (!newNode?.getLabelIds().includes(label.getId())) {
+            newNode?.getLabelIds().push(label.getId());
           }
         });
       });
@@ -144,15 +144,15 @@ export class NodeService implements OnDestroy {
 
   mergeConnections(
     netzgrafikDto: NetzgrafikDto,
-    trainrunSectionMap: Map<number, number>,
+    trainrunSectionMap: Map<number | undefined, number>,
     nodeMap: Map<number, number>,
   ) {
     netzgrafikDto.nodes.forEach((n: NodeDto) => {
       n.connections.forEach((c: ConnectionDto) => {
         const port1 = n.ports.find((p) => p.id === c.port1Id);
         const port2 = n.ports.find((p) => p.id === c.port2Id);
-        const mappedSectionId1 = trainrunSectionMap.get(port1.trainrunSectionId);
-        const mappedSectionId2 = trainrunSectionMap.get(port2.trainrunSectionId);
+        const mappedSectionId1 = trainrunSectionMap.get(port1?.trainrunSectionId);
+        const mappedSectionId2 = trainrunSectionMap.get(port2?.trainrunSectionId);
         if (mappedSectionId1 !== undefined && mappedSectionId2 !== undefined) {
           const nodeId = nodeMap.get(n.id);
           if (nodeId !== undefined) {
@@ -187,7 +187,7 @@ export class NodeService implements OnDestroy {
         port.setPositionAlignment(portAlignments.sourcePortPlacement);
         oppositeNode
           .getPortOfTrainrunSection(port.getTrainrunSection().getId())
-          .setPositionAlignment(portAlignments.targetPortPlacement);
+          ?.setPositionAlignment(portAlignments.targetPortPlacement);
       });
 
       node.updateTransitionsAndConnections();
@@ -843,25 +843,25 @@ export class NodeService implements OnDestroy {
     }
   }
 
-  getNodeFromId(nodeId: number): Node {
+  getNodeFromId(nodeId: number | undefined): Node | undefined {
     return this.nodesStore.nodes.find((n: Node) => n.getId() === nodeId);
   }
 
-  getTransition(nodeId: number, transitionId: number): Transition {
-    const node: Node = this.getNodeFromId(nodeId);
+  getTransition(nodeId: number, transitionId: number): Transition | undefined {
+    const node: Node | undefined = this.getNodeFromId(nodeId);
     if (node === undefined) {
       return undefined;
     }
     return node.getTransitionFromId(transitionId);
   }
 
-  getNodeFromTransition(transition: Transition): Node {
+  getNodeFromTransition(transition: Transition): Node | undefined {
     return this.nodesStore.nodes.find(
       (n: Node) => n.getTransitionFromId(transition.getId()) !== undefined,
     );
   }
 
-  getNodeForConnection(connection: Connection): Node {
+  getNodeForConnection(connection: Connection): Node | undefined {
     return this.nodesStore.nodes.find(
       (n: Node) => n.getConnectionFromId(connection.getId()) !== undefined,
     );
@@ -1174,7 +1174,7 @@ export class NodeService implements OnDestroy {
         port.setPositionAlignment(portAlignments.sourcePortPlacement);
         oppositeNode
           .getPortOfTrainrunSection(port.getTrainrunSection().getId())
-          .setPositionAlignment(portAlignments.targetPortPlacement);
+          ?.setPositionAlignment(portAlignments.targetPortPlacement);
         oppositeNode.updateTransitionsAndConnections();
         this.trainrunSectionService.updateTrainrunSectionRouting(oppositeNode, enforceUpdate);
       });

@@ -10,7 +10,7 @@ export class Port {
   private positionIndex: number;
   private positionAlignment: number;
 
-  private trainrunSection: TrainrunSection = null;
+  private trainrunSection: TrainrunSection | null = null;
 
   constructor(
     {id, trainrunSectionId, positionIndex, positionAlignment}: PortDto = {
@@ -63,20 +63,22 @@ export class Port {
     this.trainrunSection = trainrunSection;
   }
 
-  getTrainrunSection(): TrainrunSection {
+  getTrainrunSection(): TrainrunSection | null {
     return this.trainrunSection;
   }
 
-  getOppositeNodePosition(fromNodeId: number): Vec2D {
-    if (this.getTrainrunSection().getSourceNodeId() === fromNodeId) {
+  getOppositeNodePosition(fromNodeId: number): Vec2D | null {
+    const trainrunSection = this.getTrainrunSection();
+    if (!trainrunSection) return null;
+    if (trainrunSection.getSourceNodeId() === fromNodeId) {
       return new Vec2D(
-        this.getTrainrunSection().getTargetNode().getPositionX(),
-        this.getTrainrunSection().getTargetNode().getPositionY(),
+        trainrunSection.getTargetNode().getPositionX(),
+        trainrunSection.getTargetNode().getPositionY(),
       );
     } else {
       return new Vec2D(
-        this.getTrainrunSection().getSourceNode().getPositionX(),
-        this.getTrainrunSection().getSourceNode().getPositionY(),
+        trainrunSection.getSourceNode().getPositionX(),
+        trainrunSection.getSourceNode().getPositionY(),
       );
     }
   }
