@@ -99,6 +99,7 @@ export class DataService implements OnDestroy {
     });
 
     this.replaceLegacyNumberOfStopsWithRealNodes(netzgrafikDto);
+    this.nodeService.initPortOrdering();
 
     // This must be done due of the bug fix - ensure that each resource object
     // is used in the Netzgrafik
@@ -179,7 +180,6 @@ export class DataService implements OnDestroy {
     this.trainrunSectionService.initializeTrainrunSectionsWithReferencesToNodesAndTrainruns();
     this.nodeService.initializePortsWithReferencesToTrainrunSections();
     this.nodeService.initializeTransitionsWithReferencesToTrainrun();
-    this.nodeService.initPortOrdering();
     this.nodeService.validateAllConnections();
     this.trainrunService.propagateInitialConsecutiveTimes();
     this.nodeService.nodesUpdated();
