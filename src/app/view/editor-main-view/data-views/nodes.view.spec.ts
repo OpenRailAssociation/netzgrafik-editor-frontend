@@ -153,6 +153,7 @@ describe("Nodes-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      dataService,
     );
 
     new EditorView(
