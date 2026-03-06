@@ -140,6 +140,22 @@
     />
   </sbb-expansion-panel>
 
+  <sbb-expansion-panel [expanded]="false" [disabled]="!getVariantIsWritable()">
+    <sbb-expansion-panel-header>
+      {{ "app.view.editor-edit-tools-view-component.node-optimization-title" | translate }}
+    </sbb-expansion-panel-header>
+    <sbb-radio-group [(ngModel)]="activeOrderingAlgorithm" class="sbb-radio-group-vertical">
+      <sbb-radio-button
+        *ngFor="let option of orderingAlgorithmOptions"
+        [value]="option.orderingAlgorithm"
+        [title]="option.title"
+        (change)="onUpdateOrderingAlgorithm($event)"
+      >
+        {{ option.name }}
+      </sbb-radio-button>
+    </sbb-radio-group>
+  </sbb-expansion-panel>
+
   <sbb-expansion-panel *ngIf="getAreMultiObjectSelected()" [expanded]="getAreMultiObjectSelected()">
     <sbb-expansion-panel-header>
       <label style="color: #ec0000">

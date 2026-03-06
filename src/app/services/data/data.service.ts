@@ -91,6 +91,11 @@ export class DataService implements OnDestroy {
     this.netzgrafikColoringService.setNetzgrafikColors(
       this.netzgrafikDtoStore.netzgrafikDto.metadata.netzgrafikColors,
     );
+    if (this.netzgrafikDtoStore.netzgrafikDto.metadata.orderingAlgorithm !== undefined) {
+      this.nodeService.setOrderingAlgorithm(
+        this.netzgrafikDtoStore.netzgrafikDto.metadata.orderingAlgorithm,
+      );
+    }
 
     this.initializeDataServices();
 
@@ -179,6 +184,7 @@ export class DataService implements OnDestroy {
   getNetzgrafikDto(): NetzgrafikDto {
     const metadata = this.netzgrafikDtoStore.netzgrafikDto.metadata;
     metadata.netzgrafikColors = this.netzgrafikColoringService.getDtos();
+    metadata.orderingAlgorithm = this.nodeService.getCurrentOrderingAlgorithm();
 
     return {
       nodes: this.nodeService.getDtos(),

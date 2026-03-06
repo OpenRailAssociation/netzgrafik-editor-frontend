@@ -14,7 +14,11 @@ import {TrainrunSection} from "./trainrunsection.model";
 import {Transition} from "./transition.model";
 import {SimpleTrainrunSectionRouter} from "../services/util/trainrunsection.routing";
 import {Trainrun} from "./trainrun.model";
-import {PortAlignment, WarningDto} from "../data-structures/technical.data.structures";
+import {
+  PortAlignment,
+  OrderingAlgorithm,
+  WarningDto,
+} from "../data-structures/technical.data.structures";
 import {Connection} from "./connection.model";
 import {ConnectionValidator} from "../services/util/connection.validator";
 import {VisAVisPortPlacement} from "../services/util/node.port.placement";
@@ -451,8 +455,10 @@ export class Node {
     return portsWithNoTransition[1].getTrainrunSection();
   }
 
-  reorderAllPorts() {
-    this.sortPorts();
+  reorderAllPorts(orderingType: OrderingAlgorithm = OrderingAlgorithm.Alphabetical) {
+    if (orderingType === OrderingAlgorithm.Alphabetical) {
+      this.sortPorts();
+    }
     this.resetPositionIndex(PortAlignment.Top);
     this.resetPositionIndex(PortAlignment.Bottom);
     this.resetPositionIndex(PortAlignment.Left);
@@ -581,8 +587,10 @@ export class Node {
     this.connections.push(connection);
   }
 
-  updateTransitionsAndConnections() {
-    this.reorderAllPorts();
+  updateTransitionsAndConnections(
+    orderingType: OrderingAlgorithm = OrderingAlgorithm.Alphabetical,
+  ) {
+    this.reorderAllPorts(orderingType);
     this.updateTransitionsRouting();
     this.updateConnectionsRouting();
   }
@@ -600,13 +608,16 @@ export class Node {
     });
   }
 
-  toggleNonStop(transitionid: number) {
-    this.getTransitionFromId(transitionid).toggleIsNonStopTransit();
-    this.updateTransitionsAndConnections();
+  toggleNonStop(
+    transitionId: number,
+    orderingType: OrderingAlgorithm = OrderingAlgorithm.Alphabetical,
+  ) {
+    this.getTransitionFromId(transitionId).toggleIsNonStopTransit();
+    this.updateTransitionsAndConnections(orderingType);
   }
 
-  getIsNonStop(transitionid: number): boolean {
-    return this.getTransitionFromId(transitionid).getIsNonStopTransit();
+  getIsNonStop(transitionId: number): boolean {
+    return this.getTransitionFromId(transitionId).getIsNonStopTransit();
   }
 
   removePort(trainrunSection: TrainrunSection) {
@@ -647,10 +658,14 @@ export class Node {
     );
   }
 
-  addPortWithRespectToOppositeNode(oppositeNode: Node, trainrunSection: TrainrunSection) {
+  addPortWithRespectToOppositeNode(
+    oppositeNode: Node,
+    trainrunSection: TrainrunSection,
+    orderingType: OrderingAlgorithm = OrderingAlgorithm.Alphabetical,
+  ) {
     const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(this, oppositeNode);
     const portId = this.addPort(portAlignments.sourcePortPlacement, trainrunSection);
-    this.updateTransitionsAndConnections();
+    this.updateTransitionsAndConnections(orderingType);
     if (this.getId() === trainrunSection.getSourceNodeId()) {
       trainrunSection.setSourcePortId(portId);
     } else {
@@ -658,11 +673,15 @@ export class Node {
     }
   }
 
-  reAlignPortWithRespectToOppositeNode(oppositeNode: Node, trainrunSection: TrainrunSection) {
+  reAlignPortWithRespectToOppositeNode(
+    oppositeNode: Node,
+    trainrunSection: TrainrunSection,
+    orderingType: OrderingAlgorithm = OrderingAlgorithm.Alphabetical,
+  ) {
     const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(this, oppositeNode);
     const port = this.getPortOfTrainrunSection(trainrunSection.getId());
     port.setPositionAlignment(portAlignments.sourcePortPlacement);
-    this.updateTransitionsAndConnections();
+    this.updateTransitionsAndConnections(orderingType);
   }
 
   getConnectedTrainrunSections(): TrainrunSection[] {
@@ -805,8 +824,8 @@ export class Node {
     return this.trainrunCategoryHaltezeiten;
   }
 
-  getTrainrunSections(transitionid: number) {
-    const transition = this.getTransitionFromId(transitionid);
+  getTrainrunSections(transitionId: number) {
+    const transition = this.getTransitionFromId(transitionId);
     const portId1 = transition.getPortId1();
     const portId2 = transition.getPortId2();
     const port1 = this.getPort(portId1);

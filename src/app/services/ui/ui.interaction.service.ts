@@ -29,6 +29,7 @@ import {TrainrunService} from "../data/trainrun.service";
 import {Trainrun} from "../../models/trainrun.model";
 import {LoadPerlenketteService} from "../../perlenkette/service/load-perlenkette.service";
 import {TravelTimeCreationEstimatorType} from "../../view/themes/editor-trainrun-traveltime-creator-type";
+import {OrderingAlgorithm} from "../../data-structures/technical.data.structures";
 
 export interface ViewboxProperties {
   currentViewBox: string;
@@ -292,6 +293,21 @@ export class UiInteractionService implements OnDestroy {
     }
     this.activeTravelTimeCreationEstimatorType = activeTravelTimeCreationEstimatorType;
     this.saveUserSettingToLocalStorage();
+  }
+
+  getActiveOrderingAlgorithm(): OrderingAlgorithm {
+    return this.nodeService.getCurrentOrderingAlgorithm();
+  }
+
+  setActiveOrderingAlgorithm(orderingAlgorithm: OrderingAlgorithm) {
+    if (orderingAlgorithm === undefined) {
+      orderingAlgorithm = OrderingAlgorithm.Alphabetical;
+    }
+    this.nodeService.initPortOrdering(orderingAlgorithm);
+    this.nodeService.nodesUpdated();
+    this.nodeService.transitionsUpdated();
+    this.nodeService.connectionsUpdated();
+    this.trainrunSectionService.trainrunSectionsUpdated();
   }
 
   updateNodeStammdaten() {

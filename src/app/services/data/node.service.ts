@@ -29,7 +29,8 @@ import {NODE_POSITION_BASIC_RASTER} from "../../view/rastering/definitions";
 import {MathUtils} from "../../utils/math";
 import {LabelService} from "./label.service";
 import {FilterService} from "../ui/filter.service";
-import {ConnectionDto} from "../../data-structures/technical.data.structures";
+import {ConnectionDto, OrderingAlgorithm} from "../../data-structures/technical.data.structures";
+import {optimizePorts as reorderAllPortsGlobal} from "../util/port-ordering.algo";
 import {TrainrunSectionValidator} from "../util/trainrunsection.validator";
 import {
   NodeOperation,
@@ -55,6 +56,7 @@ export class NodeService implements OnDestroy {
 
   private dataService: DataService = null;
   private destroyed = new Subject<void>();
+  private currentOrderingAlgorithm: OrderingAlgorithm = OrderingAlgorithm.Alphabetical;
 
   constructor(
     private logger: LogService,
@@ -176,7 +178,12 @@ export class NodeService implements OnDestroy {
     });
   }
 
-  initPortOrdering() {
+  initPortOrdering(portOrderingType?: OrderingAlgorithm) {
+    if (portOrderingType !== undefined) {
+      this.currentOrderingAlgorithm = portOrderingType;
+    }
+
+    // First pass: set port alignments based on opposite node positions
     this.nodesStore.nodes.forEach((node) => {
       node.getPorts().forEach((port) => {
         const oppositeNode = node.getOppositeNode(port.getTrainrunSection());
@@ -189,9 +196,22 @@ export class NodeService implements OnDestroy {
           .getPortOfTrainrunSection(port.getTrainrunSection().getId())
           .setPositionAlignment(portAlignments.targetPortPlacement);
       });
-
-      node.updateTransitionsAndConnections();
     });
+
+    // Second pass: reorder ports and update routing
+    if (this.currentOrderingAlgorithm === OrderingAlgorithm.CrossingAware) {
+      reorderAllPortsGlobal(this.nodesStore.nodes);
+      this.nodesStore.nodes.forEach((node) => {
+        node.updateTransitionsRouting();
+        node.updateConnectionsRouting();
+        this.trainrunSectionService.updateTrainrunSectionRouting(node, false);
+      });
+    } else {
+      this.nodesStore.nodes.forEach((node) => {
+        node.updateTransitionsAndConnections();
+        this.trainrunSectionService.updateTrainrunSectionRouting(node, false);
+      });
+    }
   }
 
   validateConnections(node: Node) {
@@ -501,8 +521,8 @@ export class NodeService implements OnDestroy {
     );
     const sourcePortId = sourceNode.addPort(portAlignments.sourcePortPlacement, trainrunSection);
     const targetPortId = targetNode.addPort(portAlignments.targetPortPlacement, trainrunSection);
-    sourceNode.updateTransitionsAndConnections();
-    targetNode.updateTransitionsAndConnections();
+    sourceNode.updateTransitionsAndConnections(this.currentOrderingAlgorithm);
+    targetNode.updateTransitionsAndConnections(this.currentOrderingAlgorithm);
     trainrunSection.setSourcePortId(sourcePortId);
     trainrunSection.setTargetPortId(targetPortId);
   }
@@ -524,7 +544,7 @@ export class NodeService implements OnDestroy {
 
   toggleNonStop(nodeId: number, transitionId: number) {
     const node = this.getNodeFromId(nodeId);
-    node.toggleNonStop(transitionId);
+    node.toggleNonStop(transitionId, this.currentOrderingAlgorithm);
     const trainrunSections = node.getTrainrunSections(transitionId);
     const node1 = node.getOppositeNode(trainrunSections.trainrunSection1);
     const node2 = node.getOppositeNode(trainrunSections.trainrunSection2);
@@ -724,8 +744,8 @@ export class NodeService implements OnDestroy {
   updateTransitionsAndConnectionsOnNodes(trainrunSection: TrainrunSection) {
     const sourceNode = this.getNodeFromId(trainrunSection.getSourceNodeId());
     const targetNode = this.getNodeFromId(trainrunSection.getTargetNodeId());
-    sourceNode.updateTransitionsAndConnections();
-    targetNode.updateTransitionsAndConnections();
+    sourceNode.updateTransitionsAndConnections(this.currentOrderingAlgorithm);
+    targetNode.updateTransitionsAndConnections(this.currentOrderingAlgorithm);
   }
 
   removeConnectionFromNode(nodeId: number, connectionId: number) {
@@ -957,7 +977,7 @@ export class NodeService implements OnDestroy {
   reorderPortsOnNodesForTrainrun(trainrun: Trainrun, enforceUpdate = true) {
     this.nodesStore.nodes.forEach((node) => {
       if (node.containsTrainrun(trainrun)) {
-        node.updateTransitionsAndConnections();
+        node.updateTransitionsAndConnections(this.currentOrderingAlgorithm);
         this.trainrunSectionService.updateTrainrunSectionRouting(node, enforceUpdate);
       }
     });
@@ -1098,6 +1118,14 @@ export class NodeService implements OnDestroy {
     this.nodesUpdated();
   }
 
+  getCurrentOrderingAlgorithm(): OrderingAlgorithm {
+    return this.currentOrderingAlgorithm;
+  }
+
+  setOrderingAlgorithm(portOrderingType: OrderingAlgorithm) {
+    this.currentOrderingAlgorithm = portOrderingType;
+  }
+
   getNodes(): Node[] {
     return Object.assign({}, this.nodesStore).nodes;
   }
@@ -1164,6 +1192,7 @@ export class NodeService implements OnDestroy {
   ) {
     const node = this.getNodeFromId(nodeId);
     node.setPosition(newPositionX, newPositionY);
+
     if (dragEnd) {
       node.getPorts().forEach((port) => {
         const oppositeNode = node.getOppositeNode(port.getTrainrunSection());
@@ -1175,12 +1204,27 @@ export class NodeService implements OnDestroy {
         oppositeNode
           .getPortOfTrainrunSection(port.getTrainrunSection().getId())
           .setPositionAlignment(portAlignments.targetPortPlacement);
-        oppositeNode.updateTransitionsAndConnections();
-        this.trainrunSectionService.updateTrainrunSectionRouting(oppositeNode, enforceUpdate);
       });
-      node.reorderAllPorts();
+
+      // Reorder ports and update routing
+      if (this.currentOrderingAlgorithm === OrderingAlgorithm.CrossingAware) {
+        reorderAllPortsGlobal(this.nodesStore.nodes);
+        this.nodesStore.nodes.forEach((n) => {
+          n.updateTransitionsRouting();
+          n.updateConnectionsRouting();
+          this.trainrunSectionService.updateTrainrunSectionRouting(n, enforceUpdate);
+        });
+      } else {
+        node.getPorts().forEach((port) => {
+          const oppositeNode = node.getOppositeNode(port.getTrainrunSection());
+          oppositeNode.updateTransitionsAndConnections(this.currentOrderingAlgorithm);
+          this.trainrunSectionService.updateTrainrunSectionRouting(oppositeNode, enforceUpdate);
+        });
+        node.reorderAllPorts(this.currentOrderingAlgorithm);
+      }
       this.operation.emit(new NodeOperation(OperationType.update, node));
     }
+
     node.updateTransitionsRouting();
     node.updateConnectionsRouting();
     this.trainrunSectionService.updateTrainrunSectionRouting(node, enforceUpdate);
