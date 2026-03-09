@@ -159,10 +159,14 @@ details [VisAVisPortPlacement.placePortsOnSourceAndTargetNode(srcNode, targetNod
 
 ##### Ports sorting
 
-The sorting heuristics description can be found in
-the [chapter](../CREATE_NODES.md#MultipleTrainruns), it is
-worth taking a look there before diving into the source
-code [Node.sortPorts()](<./../src/app/models/node.model.ts#:~:text=sortPorts()%20{>) for detailed information.
+Ports on each side of a node are sorted to control how edges are visually ordered. Two modes are available,
+selectable via radio buttons in the editor tools panel:
+
+- **Alphabetical** (default): Ports are sorted by train category name. See
+  [Node.sortPorts()](<./../src/app/models/node.model.ts#:~:text=sortPorts()%20{>) and the
+  [CREATE_NODES chapter](../CREATE_NODES.md#MultipleTrainruns) for details.
+- **Crossing aware**: Ports are reordered to minimize edge crossings using global propagation. See
+  [CROSSING_AWARE_ORDERING.md](CROSSING_AWARE_ORDERING.md) for a full description of the algorithm.
 
 ##### Pre-computed paths
 
