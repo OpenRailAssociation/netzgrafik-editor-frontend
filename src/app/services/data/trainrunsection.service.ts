@@ -1151,12 +1151,8 @@ export class TrainrunSectionService implements OnDestroy {
     trainrunSection.setBackwardTravelTimeDto(
       JSON.parse(JSON.stringify(existingTrainrunSection.getBackwardTravelTimeDto())),
     );
-    trainrunSection.setSourceSymmetry(
-      JSON.parse(JSON.stringify(existingTrainrunSection.getSourceSymmetry())),
-    );
-    trainrunSection.setTargetSymmetry(
-      JSON.parse(JSON.stringify(existingTrainrunSection.getTargetSymmetry())),
-    );
+    trainrunSection.setSourceSymmetry(existingTrainrunSection.getSourceSymmetry());
+    trainrunSection.setTargetSymmetry(existingTrainrunSection.getTargetSymmetry());
     trainrunSection.setSourceArrivalDto(
       JSON.parse(JSON.stringify(existingTrainrunSection.getSourceArrivalDto())),
     );
