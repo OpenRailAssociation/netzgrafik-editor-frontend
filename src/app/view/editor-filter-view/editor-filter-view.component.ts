@@ -371,13 +371,14 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   }
 
   getSymmetryTooltip(symmetry: boolean): string {
-    const symmetryName = symmetry
-      ? $localize`:@@app.view.editor-filter-view.symmetric:symmetric`
-      : $localize`:@@app.view.editor-filter-view.asymmetric:asymmetric`;
     if (!this.filterService.isFilterSymmetryEnabled(symmetry)) {
-      return $localize`:@@app.view.editor-filter-view.show-symmetric-trainruns:Show ${symmetryName} trainruns`;
+      return symmetry
+        ? $localize`:@@app.view.editor-filter-view.show-symmetric-trainruns:Show symmetric trainruns`
+        : $localize`:@@app.view.editor-filter-view.show-asymmetric-trainruns:Show asymmetric trainruns`;
     }
-    return $localize`:@@app.view.editor-filter-view.hide-symmetric-trainruns:Hide ${symmetryName} trainruns`;
+    return symmetry
+      ? $localize`:@@app.view.editor-filter-view.hide-symmetric-trainruns:Hide symmetric trainruns`
+      : $localize`:@@app.view.editor-filter-view.hide-asymmetric-trainruns:Hide asymmetric trainruns`;
   }
 
   makeCategoryButtonLabel(trainrunCategory: TrainrunCategory): string {
