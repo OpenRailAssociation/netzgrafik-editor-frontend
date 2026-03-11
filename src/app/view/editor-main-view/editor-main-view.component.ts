@@ -300,7 +300,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
           TrainrunDialogType.TRAINRUN_SECTION_DIALOG,
           position,
         );
-        if (trainrunSectionText) {
+        if (trainrunSectionText !== undefined) {
           parameter.setTrainrunSectionText(trainrunSectionText);
         }
         this.uiInteractionService.showTrainrunDialog(parameter);
