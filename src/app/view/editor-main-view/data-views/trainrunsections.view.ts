@@ -1166,17 +1166,6 @@ export class TrainrunSectionsView {
     (["BEGINNING", "ENDING"] as const).forEach((arrowLocation) => {
       groupLinesEnter
         .append(StaticDomTags.EDGE_LINE_ARROW_SVG)
-        .attr(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) =>
-          // Hide arrow
-          // - if the node on this side is filtered out
-          // - if the node on this side is non-stop
-          !this.filterTrainrunsectionAtNode(d.trainrunSection, arrowLocation === "BEGINNING") ||
-          TrainrunSectionsView.getNode(d.trainrunSection, arrowLocation === "BEGINNING").isNonStop(
-            d.trainrunSection,
-          )
-            ? ""
-            : null,
-        )
         .attr("d", (d: TrainrunSectionViewObject) => {
           if (arrowLocation === "BEGINNING") {
             return d.trainrunSection.isSourceSymmetricOrTimesSymmetric()
@@ -1204,8 +1193,15 @@ export class TrainrunSectionsView {
         .classed(
           StaticDomTags.TAG_HIDDEN,
           (d: TrainrunSectionViewObject) =>
+            // Hide arrow
+            // - if the node on this side is filtered out
+            // - if the node on this side is non-stop
             !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
-            !this.filterTrainrunsectionAtNode(d.trainrunSection, arrowLocation === "BEGINNING"),
+            (!this.filterTrainrunsectionAtNode(d.trainrunSection, arrowLocation === "BEGINNING") ||
+              TrainrunSectionsView.getNode(
+                d.trainrunSection,
+                arrowLocation === "BEGINNING",
+              ).isNonStop(d.trainrunSection)),
         )
         .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
         .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
