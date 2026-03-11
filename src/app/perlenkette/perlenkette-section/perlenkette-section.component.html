@@ -668,7 +668,7 @@
         <foreignObject height="192px" width="45px">
           <div class="propagationButtonContainer">
             <button
-              [class]="isFirstSection === true || !isTrainrunSymmetric() ? 'disabled' : ''"
+              [class]="isFirstSection === true ? 'disabled' : ''"
               class="FunctionButton Rotation90"
               tabindex="-1"
               mode="icon"
@@ -685,7 +685,7 @@
               </div>
             </button>
             <button
-              [class]="isLastSection === true || !isTrainrunSymmetric() ? 'disabled' : ''"
+              [class]="isLastSection === true ? 'disabled' : ''"
               class="FunctionButton Rotation90"
               tabindex="-1"
               mode="icon"
