@@ -129,7 +129,6 @@ export interface TrainrunSectionDto {
   resourceId: number; // reference to the algined (resource - not yet implemented)
 
   specificTrainrunSectionFrequencyId: number | null; // Default 0 - deprecate???
-  path: PathDto; // cached - precomputed path for rendering
   warnings: WarningDto[]; // business logic failures - warnings storage
 }
 
@@ -173,6 +172,7 @@ export interface NodeDto {
   fullName: string; // full name of the trainrun eg. BN => Bern Wankdorf
   positionX: number; // coordinate X
   positionY: number; // coordinate Y
+  isCollapsed: boolean; // flag to collapse the node
 
   ports: PortDto[]; // all ports aligned to the node
   transitions: TransitionDto[]; // all tranisitons aligned to the node

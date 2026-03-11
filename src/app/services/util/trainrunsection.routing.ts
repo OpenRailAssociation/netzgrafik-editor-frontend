@@ -22,6 +22,7 @@ import {
 } from "../../data-structures/technical.data.structures";
 import {Node} from "../../models/node.model";
 import {Port} from "../../models/port.model";
+import {TrainrunSection} from "src/app/models/trainrunsection.model";
 
 export class SimpleTrainrunSectionRouter {
   static isLineVertical(sourcePort: Port): boolean {
@@ -188,12 +189,15 @@ export class SimpleTrainrunSectionRouter {
     return diff !== 0 ? diff : BEZIER_CONTROL_SAME_ALIGNMENT_DIFFERENCE;
   }
 
-  static routeTrainrunSection(
-    sourceNode: Node,
-    sourcePort: Port,
-    targetNode: Node,
-    targetPort: Port,
+  static computePath(
+    firstSection: TrainrunSection,
+    lastSection: TrainrunSection = firstSection,
   ): Vec2D[] {
+    const sourceNode = firstSection.getSourceNode();
+    const sourcePort = sourceNode.getPort(firstSection.getSourcePortId());
+    const targetNode = lastSection.getTargetNode();
+    const targetPort = targetNode.getPort(lastSection.getTargetPortId());
+
     const s = SimpleTrainrunSectionRouter.getPortPositionForTrainrunSectionRouting(
       sourceNode,
       sourcePort,
@@ -204,6 +208,7 @@ export class SimpleTrainrunSectionRouter {
     );
     const s1 = SimpleTrainrunSectionRouter.getSimpleTrainrunSectionFirstPoint(s, sourcePort);
     const t1 = SimpleTrainrunSectionRouter.getSimpleTrainrunSectionFirstPoint(t, targetPort);
+
     return [s, s1, t1, t];
   }
 
@@ -295,7 +300,7 @@ export class SimpleTrainrunSectionRouter {
     return [start, controlPointStart, controlPointEnd, end];
   }
 
-  static placeTextOnTrainrunSection(
+  static computeTextPositions(
     lineWayPoints: Vec2D[],
     sourcePort: Port,
   ): TrainrunSectionTextPositions {

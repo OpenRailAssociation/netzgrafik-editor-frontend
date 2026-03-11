@@ -30,6 +30,8 @@ import {StreckengrafikDrawingContext} from "../../../streckengrafik/model/util/s
 import {LevelOfDetail, LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {VersionControlService} from "../../../services/data/version-control.service";
+import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
+import {SimpleTrainrunSectionRouter} from "src/app/services/util/trainrunsection.routing";
 
 export class EditorView implements SVGMouseControllerObserver {
   static svgName = "graphContainer";
@@ -138,7 +140,7 @@ export class EditorView implements SVGMouseControllerObserver {
     this.nodesView = new NodesView(this);
     this.transitionsView = new TransitionsView(this);
     this.connectionsView = new ConnectionsView(this);
-    this.trainrunSectionsView = new TrainrunSectionsView(this);
+    this.trainrunSectionsView = new TrainrunSectionsView(this, trainrunSectionService);
     this.trainrunSectionPreviewLineView = new TrainrunSectionPreviewLineView(
       nodeService,
       filterService,
@@ -159,6 +161,7 @@ export class EditorView implements SVGMouseControllerObserver {
       this.svgMouseController,
       this.trainrunSectionPreviewLineView,
       this.positionTransformationService,
+      this,
     );
   }
 
@@ -468,7 +471,7 @@ export class EditorView implements SVGMouseControllerObserver {
 
     const allNodesOfInterest = this.nodeService.getNodes().filter((n: Node) => {
       this.nodeService.unselectNode(n.getId(), false);
-      if (this.filterService.filterNode(n)) {
+      if (this.filterService.filterNode(n) && !n.getIsCollapsed()) {
         if (
           topLeft.getX() < n.getPositionX() &&
           n.getPositionX() + n.getNodeWidth() < bottomRight.getX()
@@ -512,14 +515,14 @@ export class EditorView implements SVGMouseControllerObserver {
       // try to use multi select trainrunsections
       this.trainrunSectionService.getTrainrunSections().forEach((ts) => {
         ts.unselect();
-        const p = ts.getPath();
+        const p = SimpleTrainrunSectionRouter.computePath(ts);
         const minX = Math.min(p[1].getX(), p[2].getX());
         const maxX = Math.max(p[1].getX(), p[2].getX());
         const minY = Math.min(p[1].getY(), p[2].getY());
         const maxY = Math.max(p[1].getY(), p[2].getY());
         const center = Vec2D.scale(Vec2D.add(p[1], p[2]), 0.5);
 
-        if (this.filterService.filterTrainrun(ts.getTrainrun())) {
+        if (this.filterService.filterTrainrun(ts.getTrainrun()) && ts.areBothNodesExpanded()) {
           if (
             topLeft.getX() < center.getX() &&
             center.getX() < bottomRight.getX() &&
