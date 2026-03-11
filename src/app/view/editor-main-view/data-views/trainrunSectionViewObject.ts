@@ -51,6 +51,8 @@ export class TrainrunSectionViewObject {
       cumulativeTravelTimeData[cumulativeTravelTimeData.length - 1].sumTravelTime;
 
     let key =
+      "LC" +
+      editorView.getNetzgrafikLoadCounter() +
       "#" +
       d.getId() +
       "@" +
