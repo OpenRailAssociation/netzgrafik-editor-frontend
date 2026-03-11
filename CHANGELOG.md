@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.19](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.18...netzgrafik-frontend-v2.10.19) (2026-03-11)
+
+
+### Bug Fixes
+
+* ensure both trainruns have endNodes at "pin" ([#862](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/862)) ([766463c](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/766463ce34c849e7e3d0d1e6a659a0ed0e8384a8))
+
 ## [2.10.18](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.17...netzgrafik-frontend-v2.10.18) (2026-03-03)
 
 
