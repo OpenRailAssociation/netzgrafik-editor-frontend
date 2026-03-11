@@ -281,7 +281,14 @@ export class TrainrunsectionHelper {
             : LeftAndRightElement.LeftRightTrainrunName;
 
       case TrainrunSectionText.TrainrunSectionTravelTime:
-        return LeftAndRightElement.TravelTime;
+        return sourceNodeid === nextStopLeftNode.getId() || trainrunSection.areTravelTimesEqual()
+          ? LeftAndRightElement.TravelTime
+          : LeftAndRightElement.BottomTravelTime;
+
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
+        return targetNodeid === nextStopLeftNode.getId() || trainrunSection.areTravelTimesEqual()
+          ? LeftAndRightElement.TravelTime
+          : LeftAndRightElement.BottomTravelTime;
     }
     return undefined;
   }
