@@ -91,18 +91,6 @@
   r: $PIN_RADIUS_HOVER;
 }
 
-::ng-deep circle.edge_line_pin.is_not_end_node.ctrlKey {
-  stroke: none;
-  fill: none;
-  r: $PIN_RADIUS_HIDDEN;
-  cursor: pointer;
-}
-
-::ng-deep circle.edge_line_pin.is_end_node.ctrlKey {
-  stroke: $COLOR_Edit;
-  cursor: cell;
-}
-
 ::ng-deep circle.edge_line_pin.connection_pin {
   stroke: $COLOR_Default;
   fill: $COLOR_MUTED_SILVER;
@@ -299,4 +287,16 @@
 ::ng-deep path.edge_line_arrow.hidden {
   pointer-events: none;
   opacity: 0.01;
+}
+
+::ng-deep circle.edge_line_pin.is_not_end_node.ctrlKey {
+  stroke: none;
+  fill: none;
+  r: $PIN_RADIUS_HIDDEN;
+  cursor: pointer;
+}
+
+::ng-deep circle.edge_line_pin.is_end_node.ctrlKey {
+  stroke: $COLOR_Edit;
+  cursor: cell;
 }

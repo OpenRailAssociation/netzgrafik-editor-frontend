@@ -178,6 +178,7 @@ export class StaticDomTags {
   static EDGE_LINE_PIN_CLASS = "edge_line_pin";
   static EDGE_LINE_PIN_DOM_REF = "circle.edge_line_pin";
   static EDGE_LINE_PIN_CONNECTION = "connection_pin";
+  static EDGE_LINE_PIN_CONNECTION_DOM_REF = "circle.connection_line_pin";
 
   static EDGE_LINE_STOP_ICON_SVG = "path";
   static EDGE_LINE_STOP_ICON_CLASS = "edge_line_stop_arcs";

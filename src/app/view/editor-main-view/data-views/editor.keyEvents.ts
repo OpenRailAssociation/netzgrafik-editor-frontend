@@ -350,6 +350,11 @@ export class EditorKeyEvents {
     obj2.each(function () {
       d3.select(this).classed(StaticDomTags.TAG_CTRLKEY, ctrlButtonState);
     });
+
+    const obj3 = d3.selectAll(StaticDomTags.EDGE_LINE_PIN_CONNECTION_DOM_REF);
+    obj3.each(function () {
+      d3.select(this).classed(StaticDomTags.TAG_CTRLKEY, ctrlButtonState);
+    });
   }
 
   private getSelectedTrainSectionId(): number {
