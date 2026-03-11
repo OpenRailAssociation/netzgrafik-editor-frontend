@@ -367,7 +367,7 @@ export class TrainrunsectionHelper {
         ? "targetToSource"
         : "sourceToTarget",
     );
-    const cumulativeBackwardTravelTime = this.trainrunService.getCumulativeTravelTime(
+    const cumulativeBottomTravelTime = this.trainrunService.getCumulativeTravelTime(
       trainrunSection,
       lastRightNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
         ? "targetToSource"
@@ -380,7 +380,7 @@ export class TrainrunsectionHelper {
       rightDepartureTime: lastRightNode.getDepartureTime(rightTrainrunSection),
       rightArrivalTime: lastRightNode.getArrivalTime(rightTrainrunSection),
       travelTime: cumulativeTravelTime,
-      bottomTravelTime: cumulativeBackwardTravelTime,
+      bottomTravelTime: cumulativeBottomTravelTime,
     };
   }
 
