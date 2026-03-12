@@ -1940,15 +1940,26 @@ export class TrainrunSectionsView {
     this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(event);
   }
 
-  onCollapsedNodeMouseUp(event: MouseEvent, viewObject: TrainrunSectionViewObject) {
+  onCollapsedNodeMouseUp(
+    event: MouseEvent,
+    viewObject: TrainrunSectionViewObject,
+    stopIndex?: number,
+    numberOfStops?: number,
+  ) {
     event.stopPropagation();
-    if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
-      this.handleMultiNodeMovingTrainrunSectionMouseUp(event, viewObject.firstSection);
-      return;
-    }
     D3Utils.removeGrayout(viewObject);
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
     this.editorView.setTrainrunAsSelected(viewObject.getTrainrun());
+    if (
+      numberOfStops !== undefined &&
+      stopIndex !== undefined &&
+      numberOfStops <= SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS
+    ) {
+      this.editorView.nodeService.setSingleNodeAsSelected(
+        viewObject.getCollapsedStopNodeFromStopIndex(stopIndex).getId(),
+      );
+      this.editorView.uiInteractionService.showNodeBaseData();
+    }
   }
 
   onTrainrunSectionTextMouseout(event: MouseEvent) {
@@ -2745,7 +2756,7 @@ export class TrainrunSectionsView {
         this.onCollapsedNodeMouseDown(event, t, stopIndex),
       )
       .on("mouseup", (event: MouseEvent, t: TrainrunSectionViewObject) =>
-        this.onCollapsedNodeMouseUp(event, t),
+        this.onCollapsedNodeMouseUp(event, t, stopIndex, numberOfStops),
       );
   }
 
