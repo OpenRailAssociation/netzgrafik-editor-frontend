@@ -141,6 +141,7 @@
 ::ng-deep circle.edge_line_stops {
   fill: $COLOR_BACKGROUND;
   stroke-width: 1px;
+  cursor: pointer;
 }
 
 ::ng-deep path.edge_line_stop_arcs.hover {
