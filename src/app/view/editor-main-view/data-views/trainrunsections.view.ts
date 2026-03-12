@@ -1942,11 +1942,26 @@ export class TrainrunSectionsView {
     this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
   }
 
-  onCollapsedNodeMouseUp(viewObject: TrainrunSectionViewObject, domObj: any) {
+  onCollapsedNodeMouseUp(
+    viewObject: TrainrunSectionViewObject,
+    domObj: any,
+    numberOfStops?: number,
+    stopIndex?: number,
+  ) {
     d3.event.stopPropagation();
     D3Utils.removeGrayout(viewObject);
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
     this.editorView.setTrainrunAsSelected(viewObject.getTrainrun());
+    if (
+      numberOfStops !== undefined &&
+      stopIndex !== undefined &&
+      numberOfStops < SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS
+    ) {
+      this.editorView.nodeService.setSingleNodeAsSelected(
+        viewObject.getCollapsedStopNodeFromStopIndex(stopIndex).getId(),
+      );
+      this.editorView.uiInteractionService.showNodeStammdaten();
+    }
   }
 
   onTrainrunSectionTextMouseout(trainrunSection: TrainrunSection, domObj: any) {
@@ -2749,7 +2764,9 @@ export class TrainrunSectionsView {
       .on("mousedown", (t: TrainrunSectionViewObject, i, a) =>
         this.onCollapsedNodeMouseDown(t, numberOfStops, position, stopIndex, a[i]),
       )
-      .on("mouseup", (t: TrainrunSectionViewObject, i, a) => this.onCollapsedNodeMouseUp(t, a[i]));
+      .on("mouseup", (t: TrainrunSectionViewObject, i, a) =>
+        this.onCollapsedNodeMouseUp(t, a[i], numberOfStops, stopIndex),
+      );
   }
 
   private createNewTrainrunSectionAfterPinDropped(endNode: any, trainrunSection: TrainrunSection) {
