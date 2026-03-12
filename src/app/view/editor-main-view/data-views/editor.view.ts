@@ -124,12 +124,12 @@ export class EditorView implements SVGMouseControllerObserver {
 
   constructor(
     controller: EditorMainViewComponent,
-    private nodeService: NodeService,
+    public nodeService: NodeService,
     private trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
     private noteService: NoteService,
     private filterService: FilterService,
-    private uiInteractionService: UiInteractionService,
+    public uiInteractionService: UiInteractionService,
     private undoService: UndoService,
     private copyService: CopyService,
     private logService: LogService,
