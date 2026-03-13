@@ -1795,7 +1795,6 @@ export class TrainrunSectionsView {
 
   onCollapsedNodeMouseDown(
     viewObject: TrainrunSectionViewObject,
-    numberOfStops: number,
     position: Vec2D,
     stopIndex: number,
     domObj: any,
@@ -2601,7 +2600,7 @@ export class TrainrunSectionsView {
         this.onIntermediateStopMouseOut(t.firstSection, stopIndex, position, a[i]),
       )
       .on("mousedown", (t: TrainrunSectionViewObject, i, a) =>
-        this.onCollapsedNodeMouseDown(t, numberOfStops, position, stopIndex, a[i]),
+        this.onCollapsedNodeMouseDown(t, position, stopIndex, a[i]),
       )
       .on("mouseup", (t: TrainrunSectionViewObject, i, a) =>
         this.onCollapsedNodeMouseUp(t, a[i], stopIndex),

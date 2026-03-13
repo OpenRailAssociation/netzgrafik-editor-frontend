@@ -11,7 +11,11 @@ import {Node} from "../../../models/node.model";
 import {StaticDomTags} from "./static.dom.tags";
 import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {EditorView} from "./editor.view";
-import {DragTransitionInfo, PreviewLineMode} from "./trainrunsection.previewline.view";
+import {
+  DragCollapsedStopNodeInfo,
+  DragTransitionInfo,
+  PreviewLineMode,
+} from "./trainrunsection.previewline.view";
 import {Vec2D} from "../../../utils/vec2D";
 import {D3Utils} from "./d3.utils";
 import {NodeViewObject} from "./nodeViewObject";
@@ -780,8 +784,8 @@ export class NodesView {
     }
   }
 
-  replaceCollapsedNodeWithNode(dragCollapsedNodeInfo: any, endNode: Node) {
-    const draggedNode: Node = dragCollapsedNodeInfo.viewObject.getCollapsedStopNodeFromStopIndex(
+  replaceCollapsedNodeWithNode(dragCollapsedNodeInfo: DragCollapsedStopNodeInfo, endNode: Node) {
+    const draggedNode = dragCollapsedNodeInfo.viewObject.getCollapsedStopNodeFromStopIndex(
       dragCollapsedNodeInfo.stopIndex,
     );
 
