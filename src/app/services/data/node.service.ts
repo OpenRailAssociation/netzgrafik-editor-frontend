@@ -248,6 +248,8 @@ export class NodeService implements OnDestroy {
 
   addEmptyNode(positionX: number, positionY: number): Node {
     const node: Node = new Node();
+    node.setFullName("");
+    node.setBetriebspunktName("");
     node.setPosition(positionX, positionY);
     node.setIsCollapsed(true);
     const resource: Resource = this.resourceService.createAndGetResource();
@@ -825,7 +827,8 @@ export class NodeService implements OnDestroy {
   }
 
   isNodeSelected(nodeId: number): boolean {
-    return this.getNodeFromId(nodeId).selected();
+    const node = this.getNodeFromId(nodeId);
+    return node !== undefined && node.selected();
   }
 
   unselectAllNodes(enforceUpdate = true) {
