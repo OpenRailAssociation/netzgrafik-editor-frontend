@@ -1,3 +1,5 @@
+import {SecurityContext} from "@angular/core";
+import {DomSanitizer} from "@angular/platform-browser";
 import * as d3 from "d3";
 import {Note} from "../../../models/note.model";
 import {EditorView} from "./editor.view";
@@ -22,7 +24,10 @@ export class NotesView {
   notesGroup;
   draggable: any;
 
-  constructor(private editorView: EditorView) {
+  constructor(
+    private editorView: EditorView,
+    private sanitizer: DomSanitizer,
+  ) {
     this.draggable = d3
       .drag()
       .on("start", (n: NoteViewObject, i, a) => this.onNoteDragStart(n.note, a[i]))
@@ -75,10 +80,11 @@ export class NotesView {
     );
   }
 
-  static extractTextBasedWidth(n: Note): number {
+  extractTextBasedWidth(n: Note): number {
+    const html = this.sanitizer.sanitize(SecurityContext.HTML, n.getText());
     let maxLen = 0;
     const div = document.createElement("div");
-    div.innerHTML = n.getText().split("<br>").join("<br>\n").split("<p>").join("<p>\n");
+    div.innerHTML = html.split("<br>").join("<br>\n").split("<p>").join("<p>\n");
     div.textContent.split("\n", 9999).forEach((v) => {
       maxLen = Math.max(maxLen, v.length);
     });
@@ -208,7 +214,7 @@ export class NotesView {
     added
       .attr("class", StaticDomTags.NOTE_HOVER_ROOT_CLASS)
       .attr(StaticDomTags.NOTE_ID, (n: NoteViewObject) => n.note.getId())
-      .attr("width", (n: NoteViewObject) => NotesView.extractTextBasedWidth(n.note) + 48)
+      .attr("width", (n: NoteViewObject) => this.extractTextBasedWidth(n.note) + 48)
       .attr("height", (n: NoteViewObject) => NotesView.extractTextBasedHeight(n.note) + 48)
       .attr("x", -24)
       .attr("y", -24);
@@ -228,7 +234,7 @@ export class NotesView {
       .append(StaticDomTags.NOTE_ROOT_SVG)
       .attr("class", StaticDomTags.NOTE_ROOT_CLASS)
       .attr(StaticDomTags.NOTE_ID, (n: NoteViewObject) => n.note.getId())
-      .attr("width", (n: NoteViewObject) => NotesView.extractTextBasedWidth(n.note) + 40)
+      .attr("width", (n: NoteViewObject) => this.extractTextBasedWidth(n.note) + 40)
       .attr("height", (n: NoteViewObject) => NotesView.extractTextBasedHeight(n.note) + 40)
       .attr("x", -20)
       .attr("y", -20)
@@ -248,7 +254,7 @@ export class NotesView {
       .append(StaticDomTags.NOTE_TITELAREA_SVG)
       .attr("class", StaticDomTags.NOTE_TITELAREA_CLASS)
       .attr(StaticDomTags.NOTE_ID, (n: NoteViewObject) => n.note.getId())
-      .attr("width", (n: NoteViewObject) => NotesView.extractTextBasedWidth(n.note))
+      .attr("width", (n: NoteViewObject) => this.extractTextBasedWidth(n.note))
       .attr("height", () => NOTE_TEXT_AREA_HEIGHT)
       .attr("x", 0)
       .attr("y", 0)
@@ -268,7 +274,7 @@ export class NotesView {
       .append(StaticDomTags.NOTE_TEXTAREA_SVG)
       .attr("class", StaticDomTags.NOTE_TEXTAREA_CLASS)
       .attr(StaticDomTags.NOTE_ID, (n: NoteViewObject) => n.note.getId())
-      .attr("width", (n: NoteViewObject) => NotesView.extractTextBasedWidth(n.note))
+      .attr("width", (n: NoteViewObject) => this.extractTextBasedWidth(n.note))
       .attr(
         "height",
         (n: NoteViewObject) => NotesView.extractTextBasedHeight(n.note) - NOTE_TEXT_AREA_HEIGHT,
@@ -306,7 +312,9 @@ export class NotesView {
       .attr(StaticDomTags.NOTE_ID, (n: NoteViewObject) => n.note.getId())
       .attr("x", NOTE_TEXT_LEFT_SPACING)
       .attr("y", 3 * TEXT_SIZE)
-      .html((n: NoteViewObject) => NotesView.convertText(n.note.getText()))
+      .html((n: NoteViewObject) =>
+        NotesView.convertText(this.sanitizer.sanitize(SecurityContext.HTML, n.note.getText())),
+      )
       .on("mousedown", (n: NoteViewObject) => this.onNoteMousedown(n.note))
       .on("mouseout", (n: NoteViewObject) => this.onNoteMouseout(n.note, null))
       .on("mouseover", (n: NoteViewObject, i, a) => this.onNoteMouseover(n.note, a[i]));
