@@ -354,11 +354,8 @@ export class TransitionsView {
       groups.find((group) => group.some((trs) => trs.getId() === trainrunSection2.getId())),
     );
 
-    const position = Vec2D.scale(Vec2D.add(transition.getPath()[1], transition.getPath()[2]), 0.5);
-
     this.editorView.trainrunSectionPreviewLineView.startDragTransition(
       new DragTransitionInfo(node, tsvo1, tsvo2, transition, true, domObj),
-      position,
     );
     this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(event);
   }
