@@ -11,11 +11,7 @@ import {Node} from "../../../models/node.model";
 import {StaticDomTags} from "./static.dom.tags";
 import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {EditorView} from "./editor.view";
-import {
-  DragIntermediateStopInfo,
-  DragTransitionInfo,
-  PreviewLineMode,
-} from "./trainrunsection.previewline.view";
+import {DragTransitionInfo, PreviewLineMode} from "./trainrunsection.previewline.view";
 import {Vec2D} from "../../../utils/vec2D";
 import {D3Utils} from "./d3.utils";
 import {NodeViewObject} from "./nodeViewObject";
@@ -782,18 +778,6 @@ export class NodesView {
     } else {
       this.editorView.reconnectTrainrunSection(startNode, endNode, existingTrainrunSection, true);
     }
-  }
-
-  replaceIntermediateStopWithTrainrunSections(
-    dragIntermediateStopInfo: DragIntermediateStopInfo,
-    endNode: Node,
-  ) {
-    this.editorView.replaceIntermediateStopWithNode(
-      dragIntermediateStopInfo.viewObject.firstSection.getId(),
-      dragIntermediateStopInfo.intermediateStopIndex,
-      endNode.getId(),
-    );
-    this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
   }
 
   replaceCollapsedNodeWithNode(dragCollapsedNodeInfo: any, endNode: Node) {

@@ -24,11 +24,7 @@ import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {EditorView} from "./editor.view";
 
 import {D3Utils} from "./d3.utils";
-import {
-  DragIntermediateStopInfo,
-  DragCollapsedStopNodeInfo,
-  PreviewLineMode,
-} from "./trainrunsection.previewline.view";
+import {DragCollapsedStopNodeInfo, PreviewLineMode} from "./trainrunsection.previewline.view";
 import {MathUtils} from "../../../utils/math";
 import {Trainrun} from "../../../models/trainrun.model";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
@@ -1931,29 +1927,6 @@ export class TrainrunSectionsView {
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, true);
   }
 
-  onIntermediateStopMouseDown(
-    viewObject: TrainrunSectionViewObject,
-    stopIndex: number,
-    position: Vec2D,
-    domObj: any,
-  ) {
-    if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
-      d3.event.stopPropagation();
-      return;
-    }
-
-    if (!d3.select(domObj).classed(StaticDomTags.TAG_SELECTED)) {
-      d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
-      return;
-    }
-    this.editorView.trainrunSectionPreviewLineView.startDragIntermediateStop(
-      new DragIntermediateStopInfo(viewObject, stopIndex, domObj),
-      position,
-    );
-
-    this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
-  }
-
   onCollapsedNodeMouseDown(
     viewObject: TrainrunSectionViewObject,
     numberOfStops: number,
@@ -1972,17 +1945,6 @@ export class TrainrunSectionsView {
 
     this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
   }
-
-  // onIntermediateStopMouseUp(trainrunSection: TrainrunSection, domObj: any) {
-  //   d3.event.stopPropagation();
-  //   if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
-  //     this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
-  //     return;
-  //   }
-  //   D3Utils.removeGrayout(trainrunSection);
-  //   this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
-  //   this.editorView.setTrainrunAsSelected(trainrunSection.getTrainrun());
-  // }
 
   onCollapsedNodeMouseUp(viewObject: TrainrunSectionViewObject, domObj: any) {
     d3.event.stopPropagation();
