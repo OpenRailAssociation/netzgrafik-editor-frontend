@@ -24,7 +24,7 @@ export enum TrainrunDialogType {
 export class TrainrunDialogParameter {
   public type: TrainrunDialogType;
   public position: Vec2D;
-  public trainrunSectionText: TrainrunSectionText;
+  public trainrunSectionText?: TrainrunSectionText;
   public offset: number;
   public forward: boolean;
 
