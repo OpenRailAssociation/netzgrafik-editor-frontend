@@ -827,7 +827,8 @@ export class NodeService implements OnDestroy {
   }
 
   isNodeSelected(nodeId: number): boolean {
-    return this.getNodeFromId(nodeId).selected();
+    const node = this.getNodeFromId(nodeId);
+    return node !== undefined && node.selected();
   }
 
   unselectAllNodes(enforceUpdate = true) {
