@@ -24,11 +24,7 @@ import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {EditorView} from "./editor.view";
 
 import {D3Utils} from "./d3.utils";
-import {
-  DragIntermediateStopInfo,
-  DragCollapsedStopNodeInfo,
-  PreviewLineMode,
-} from "./trainrunsection.previewline.view";
+import {DragCollapsedStopNodeInfo, PreviewLineMode} from "./trainrunsection.previewline.view";
 import {MathUtils} from "../../../utils/math";
 import {Trainrun} from "../../../models/trainrun.model";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
@@ -1953,30 +1949,6 @@ export class TrainrunSectionsView {
     event.stopPropagation();
     const domObj = D3Utils.getMouseEventCurrentTarget(event);
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, true);
-  }
-
-  onIntermediateStopMouseDown(
-    event: MouseEvent,
-    viewObject: TrainrunSectionViewObject,
-    stopIndex: number,
-    position: Vec2D,
-  ) {
-    if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
-      event.stopPropagation();
-      return;
-    }
-
-    const domObj = D3Utils.getMouseEventCurrentTarget(event);
-    if (!d3.select(domObj).classed(StaticDomTags.TAG_SELECTED)) {
-      d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
-      return;
-    }
-    this.editorView.trainrunSectionPreviewLineView.startDragIntermediateStop(
-      new DragIntermediateStopInfo(viewObject, stopIndex, domObj),
-      position,
-    );
-
-    this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(event);
   }
 
   onCollapsedNodeMouseDown(
