@@ -259,12 +259,32 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
   }
 
   private makePathElement(nodeId1: number, nodeId2: number, travelTime: number) {
-    const n1 = new PathNode(0, 0, nodeId1, undefined, 0, undefined, false);
-    const n2 = new PathNode(travelTime, travelTime, nodeId2, undefined, 1, undefined, false);
-    const node1 = this.nodeService.getNodeFromId(n1.nodeId);
-    n1.nodeShortName = node1.getBetriebspunktName();
-    const node2 = this.nodeService.getNodeFromId(n2.nodeId);
-    n2.nodeShortName = node2.getBetriebspunktName();
+    const node1 = this.nodeService.getNodeFromId(nodeId1);
+    const node2 = this.nodeService.getNodeFromId(nodeId2);
+    const n1 = new PathNode(
+      0,
+      0,
+      nodeId1,
+      node1.getBetriebspunktName(),
+      0,
+      undefined,
+      false,
+      4,
+      !this.filterService.filterNode(node1),
+      node1.getIsCollapsed(),
+    );
+    const n2 = new PathNode(
+      travelTime,
+      travelTime,
+      nodeId2,
+      node2.getBetriebspunktName(),
+      1,
+      undefined,
+      false,
+      4,
+      !this.filterService.filterNode(node2),
+      node2.getIsCollapsed(),
+    );
 
     let ts12 = this.trainrunSectionService
       .getTrainrunSections()
@@ -469,6 +489,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
           false,
           fromNodeHaltezeit[trainrunFachCategory].haltezeit,
           !this.filterService.filterNode(fromNode),
+          fromNode.getIsCollapsed(),
         );
         trainrunStartTime = sourcePathNode.departureTime;
         forwardStartNode = sourcePathNode;
@@ -500,6 +521,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         false,
         toNodeHaltezeit[trainrunFachCategory].haltezeit,
         !this.filterService.filterNode(toNode),
+        toNode.getIsCollapsed(),
       );
 
       if (toNode.getId() === forwardBackwardNodes.startBackwardNode.getId()) {
@@ -536,6 +558,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
             true,
             fromNodeHaltezeit[trainrunFachCategory].haltezeit,
             !this.filterService.filterNode(fromNode),
+            fromNode.getIsCollapsed(),
           );
           backwardStartNode = sourcePathNode;
           pathItems.push(sourcePathNode);
@@ -566,6 +589,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
           true,
           toNodeHaltezeit[trainrunFachCategory].haltezeit,
           !this.filterService.filterNode(toNode),
+          toNode.getIsCollapsed(),
         );
 
         if (toNode.getId() === forwardBackwardNodes.startForwardNode.getId()) {
