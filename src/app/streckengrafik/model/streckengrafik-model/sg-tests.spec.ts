@@ -296,7 +296,19 @@ describe("StreckengrafikModelTests", () => {
   });
 
   it("Streckengrafik-Model - Test - TrainrunItem  - 003", () => {
-    const node0 = new PathNode(0, 0, 9, "AA", 10, new TrackData(2), false, undefined, false, true);
+    const node0 = new PathNode(
+      0,
+      0,
+      9,
+      "AA",
+      10,
+      new TrackData(2),
+      false,
+      undefined,
+      false,
+      false,
+      true,
+    );
     expect(node0.xPath()).toBe(60);
     expect(node0.getPathSection()).toBe(undefined);
   });
