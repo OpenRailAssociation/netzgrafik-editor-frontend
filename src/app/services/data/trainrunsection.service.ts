@@ -1248,7 +1248,12 @@ export class TrainrunSectionService implements OnDestroy {
       this.trainrunSectionsStore.trainrunSections.filter(
         (e) => e.getId() !== trainrunSection.getId(),
       );
-    this.checkMissingTransitionsAfterDeletion(trainrunSection.getTrainrun());
+    this.nodeService.checkAndFixMissingTransitions(
+      trainrunSection.getSourceNodeId(),
+      trainrunSection.getTargetNodeId(),
+      trainrunSection.getId(),
+      enforceUpdate,
+    );
     this.deleteTrainrunIfNotUsedAnymore(trainrunSection.getTrainrun(), false);
 
     if (
