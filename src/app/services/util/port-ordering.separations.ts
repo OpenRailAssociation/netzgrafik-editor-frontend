@@ -73,8 +73,8 @@ export function getSeparationPairsBetweenNodes(node: Node): [number, number][] {
         const a = sidePorts[i];
         const b = sidePorts[j];
 
-        const oppositeNode = a.getOppositeNode(nodeId);
-        if (oppositeNode.getId() !== b.getOppositeNode(nodeId).getId()) continue;
+        const oppositeNode = a.getOppositeExpandedNode(nodeId);
+        if (oppositeNode.getId() !== b.getOppositeExpandedNode(nodeId).getId()) continue;
 
         const oppositePorts = oppositeNode.getPorts();
         const aOpposite = oppositePorts.find(

@@ -8,6 +8,7 @@ import {
   COUNTERCLOCKWISE_ALIGNMENTS,
   isHorizontalAlignment,
 } from "./port-ordering.helpers";
+import {getMatchingPortInOppositeNode} from "./port-ordering.components";
 
 type Segments = number[] | number[][];
 
@@ -213,12 +214,9 @@ export function getBetweenSideOrderings(
     .sort((a, b) => a.getPositionIndex() - b.getPositionIndex());
   const oppositePortsPerNode: Record<number, {node: Node; port: Port}[]> = {};
   ports.forEach((port) => {
-    const trainrunSectionId = port.getTrainrunSectionId();
-    const oppositeNode = port.getOppositeNode(nodeId);
+    const oppositeNode = port.getOppositeExpandedNode(nodeId);
     const oppositeNodeID = oppositeNode.getId();
-    const oppositePort = oppositeNode
-      .getPorts()
-      .find((p) => p.getTrainrunSectionId() === trainrunSectionId);
+    const oppositePort = getMatchingPortInOppositeNode(port, nodeId);
 
     oppositePortsPerNode[oppositeNodeID] = oppositePortsPerNode[oppositeNodeID] || [];
     oppositePortsPerNode[oppositeNodeID].push({node: oppositeNode, port: oppositePort});
