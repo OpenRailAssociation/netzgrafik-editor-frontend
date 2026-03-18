@@ -13,6 +13,7 @@ concurrency:
 
 permissions:
   packages: write
+  deployments: write
 
 jobs:
   format:
@@ -122,3 +123,26 @@ jobs:
         with:
           name: build-standalone-demo
           path: dist/netzgrafik-frontend/
+
+  deploy-preview:
+    runs-on: ubuntu-latest
+    needs: build-standalone
+    steps:
+      - uses: OpenRailAssociation/web-deployment-action@v1
+        with:
+          artifact_name: build-standalone
+          condition_production: false # GitHub Pages is used for production
+          domain_preview: ${{ vars.WEB_DOMAIN_PREVIEW }}
+          dir_base: ${{ vars.WEB_DIR_BASE }}
+          dir_preview_base: ${{ vars.WEB_DIR_PREVIEW_BASE }}
+          dir_preview_subdir: nge-pr-${{ github.event.number }}
+          ssh_host: ${{ vars.WEB_SSH_HOST }}
+          ssh_user: ${{ vars.WEB_SSH_USER }}
+          ssh_key: ${{ secrets.DEMO_WEBSITE_SSH_KEY }}
+          linkchecker_enabled: false
+          sticky_comment_enabled: false
+          step_summary_enabled: true
+          gh_deployment: demo
+        env:
+          HAVE_SSH_KEY: ${{ secrets.DEMO_WEBSITE_SSH_KEY != '' }}
+        if: ${{ env.HAVE_SSH_KEY == 'true' }}
