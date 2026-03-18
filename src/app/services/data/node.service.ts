@@ -186,7 +186,10 @@ export class NodeService implements OnDestroy {
 
     // Second pass: reorder ports and update routing
     if (this.usesOptimizePorts()) {
-      optimizePorts(this.nodesStore.nodes, this.getClutterWeights());
+      optimizePorts(
+        this.nodesStore.nodes.filter((n) => !n.getIsCollapsed()),
+        this.getClutterWeights(),
+      );
       this.nodesStore.nodes.forEach((node) => {
         node.updateTransitionsRouting();
         node.updateConnectionsRouting();
@@ -1271,8 +1274,10 @@ export class NodeService implements OnDestroy {
         node.reorderAllPorts(this.currentOrderingAlgorithm);
       }
       this.operation.emit(new NodeOperation(OperationType.update, node));
+    } else {
+      node.updateTransitionsRouting();
+      node.updateConnectionsRouting();
     }
-    node.updateTransitionsAndConnections();
   }
 
   private findClearedLabel(node: Node, labelIds: number[]) {
