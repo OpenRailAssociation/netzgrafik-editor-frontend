@@ -185,7 +185,7 @@ export class NodeService implements OnDestroy {
     this.nodesStore.nodes.forEach((node) => this.updateNodePortPositions(node));
 
     if (this.currentOrderingAlgorithm === OrderingAlgorithm.CrossingAware) {
-      optimizePorts(this.nodesStore.nodes);
+      optimizePorts(this.nodesStore.nodes.filter((n) => !n.getIsCollapsed()));
       this.nodesStore.nodes.forEach((node) => {
         node.updateTransitionsRouting();
         node.updateConnectionsRouting();
@@ -1225,8 +1225,10 @@ export class NodeService implements OnDestroy {
     if (dragEnd) {
       this.initPortOrdering();
       this.operation.emit(new NodeOperation(OperationType.update, node));
+    } else {
+      node.updateTransitionsRouting();
+      node.updateConnectionsRouting();
     }
-    node.updateTransitionsAndConnections();
   }
 
   private findClearedLabel(node: Node, labelIds: number[]) {
