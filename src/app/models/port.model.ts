@@ -72,14 +72,7 @@ export class Port {
     return this.trainrunSection;
   }
 
-  getOppositeNode(fromNodeId: number) {
-    const trainrunSection = this.getTrainrunSection();
-    return trainrunSection.getSourceNodeId() === fromNodeId
-      ? trainrunSection.getTargetNode()
-      : trainrunSection.getSourceNode();
-  }
-
-  getOppositeExpandedNodePosition(fromNodeId: number): Vec2D {
+  getOppositeExpandedNode(fromNodeId: number) {
     const trainrunSection = this.getTrainrunSection();
     const isFromSourceNode = trainrunSection.getSourceNodeId() === fromNodeId;
 
@@ -90,10 +83,12 @@ export class Port {
       iterator.next();
     }
 
-    return new Vec2D(
-      iterator.current().node.getPositionX(),
-      iterator.current().node.getPositionY(),
-    );
+    return iterator.current().node;
+  }
+
+  getOppositeExpandedNodePosition(fromNodeId: number): Vec2D {
+    const node = this.getOppositeExpandedNode(fromNodeId);
+    return new Vec2D(node.getPositionX(), node.getPositionY());
   }
 
   getDto(): PortDto {
