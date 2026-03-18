@@ -936,7 +936,7 @@ export class NodesView {
   }
 
   replaceCollapsedNodeWithNode(dragCollapsedNodeInfo: DragCollapsedStopNodeInfo, endNode: Node) {
-    const draggedNode = dragCollapsedNodeInfo.viewObject.getCollapsedStopNodeFromStopIndex(
+    const draggedNode = dragCollapsedNodeInfo.viewObject.getCollapsedNodeToDrag(
       dragCollapsedNodeInfo.stopIndex,
     );
 
