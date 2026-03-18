@@ -606,9 +606,13 @@ export class TrainrunSectionService implements OnDestroy {
     trainrunSection.setTrainrun(this.trainrunService.getSelectedOrNewTrainrun());
 
     if (retrieveTravelTimeFromEdge) {
-      trainrunSection.setTravelTime(
-        this.retrieveTravelTime(sourceNodeId, targetNodeId, trainrunSection.getTrainrun()),
+      const travelTime = this.retrieveTravelTime(
+        sourceNodeId,
+        targetNodeId,
+        trainrunSection.getTrainrun(),
       );
+      trainrunSection.setTravelTime(travelTime);
+      trainrunSection.setBackwardTravelTime(travelTime);
     }
 
     const sourceNode = this.nodeService.getNodeFromId(sourceNodeId);
