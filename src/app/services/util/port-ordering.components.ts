@@ -4,9 +4,20 @@ import {Transition} from "../../models/transition.model";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {groupBy} from "../../utils/collection";
 
-export function getPortOppositeNodeId(port: Port, nodeId: number): number {
-  const ts = port.getTrainrunSection();
-  return ts.getSourceNodeId() === nodeId ? ts.getTargetNodeId() : ts.getSourceNodeId();
+export function getPortOppositeExpandedNodeId(port: Port, nodeId: number): number {
+  return port.getOppositeExpandedNode(nodeId).getId();
+}
+
+export function getMatchingPortInOppositeNode(port: Port, nodeId: number): Port | undefined {
+  const trainrunId = port.getTrainrunSection().getTrainrunId();
+  const oppositeNode = port.getOppositeExpandedNode(nodeId);
+  return oppositeNode
+    .getPorts()
+    .find(
+      (p) =>
+        p.getTrainrunSection().getTrainrunId() === trainrunId &&
+        p.getOppositeExpandedNode(oppositeNode.getId()).getId() === nodeId,
+    );
 }
 
 export type SidesComponent = {node: Node; side: PortAlignment}[];
@@ -64,7 +75,7 @@ export function getComponents(nodes: Node[]): SidesComponent[] {
 
     // 1. Bundle link:
     // A link with at least two parallel sections groups all its ports together
-    groupBy(node.getPorts(), (p) => getPortOppositeNodeId(p, id)).forEach((linkPorts) => {
+    groupBy(node.getPorts(), (p) => getPortOppositeExpandedNodeId(p, id)).forEach((linkPorts) => {
       if (linkPorts.length < 2) return;
       linkPorts.forEach((p) =>
         sectionPorts
