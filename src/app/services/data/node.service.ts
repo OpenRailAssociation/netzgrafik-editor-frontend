@@ -184,7 +184,10 @@ export class NodeService implements OnDestroy {
 
     // Second pass: reorder ports and update routing
     if (this.usesOptimizePorts()) {
-      optimizePorts(this.nodesStore.nodes, this.getClutterWeights());
+      optimizePorts(
+        this.nodesStore.nodes.filter((n) => !n.getIsCollapsed()),
+        this.getClutterWeights(),
+      );
       this.nodesStore.nodes.forEach((node) => {
         node.updateTransitionsRouting();
         node.validateConnections();
@@ -1241,32 +1244,7 @@ export class NodeService implements OnDestroy {
     node.setPosition(newPositionX, newPositionY);
 
     if (dragEnd) {
-      node.getPorts().forEach((port) => {
-        const oppositeNode = node.getOppositeNode(port.getTrainrunSection());
-        const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
-          node,
-          oppositeNode,
-        );
-        port.setPositionAlignment(portAlignments.sourcePortPlacement);
-        oppositeNode
-          .getPortOfTrainrunSection(port.getTrainrunSection().getId())
-          .setPositionAlignment(portAlignments.targetPortPlacement);
-      });
-
-      // Reorder ports and update routing
-      if (this.usesOptimizePorts()) {
-        optimizePorts(this.nodesStore.nodes, this.getClutterWeights());
-        this.nodesStore.nodes.forEach((n) => {
-          n.updateTransitionsRouting();
-          n.validateConnections();
-        });
-      } else {
-        node.getPorts().forEach((port) => {
-          const oppositeNode = node.getOppositeNode(port.getTrainrunSection());
-          oppositeNode.updateTransitionsAndConnections(this.currentOrderingAlgorithm);
-        });
-        node.reorderAllPorts(this.currentOrderingAlgorithm);
-      }
+      this.initPortOrdering();
       this.operation.emit(new NodeOperation(OperationType.update, node));
     }
 
