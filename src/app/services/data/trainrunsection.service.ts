@@ -1133,6 +1133,7 @@ export class TrainrunSectionService implements OnDestroy {
       trainrunSection.getId(),
       enforceUpdate,
     );
+    this.checkMissingTransitionsAfterDeletion(trainrunSection.getTrainrun());
     this.deleteTrainrunIfNotUsedAnymore(trainrunSection.getTrainrun(), false);
 
     if (
