@@ -136,6 +136,8 @@ The openness of the project encourages innovation, expertise from different sect
 improvements to optimize the
 planning processes.
 
+Feel free to join our [Matrix room](https://matrix.to/#/#nge:osrd.fr) if you want to chat with other Netzgrafik-Editor developers.
+
 ## Roadmap
 
 Get an insight into the plan and future [ROADMAP.md](ROADMAP.md).
