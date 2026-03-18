@@ -9,6 +9,7 @@ import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 import {EditorView} from "./editor.view";
 import {TrainrunSectionsView} from "./trainrunsections.view";
 import {Node} from "src/app/models/node.model";
+import {SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS} from "../../rastering/definitions";
 
 export class TrainrunSectionViewObject {
   readonly firstSection: TrainrunSection;
@@ -60,6 +61,14 @@ export class TrainrunSectionViewObject {
 
   getCollapsedStopNodeFromStopIndex(stopIndex: number): Node {
     return this.getCollapsedStopNodes()[stopIndex];
+  }
+
+  getCollapsedNodeToDrag(stopIndex: number): Node {
+    const numberOfCollapsedStops = this.getCollapsedStopNodes().length;
+    if (numberOfCollapsedStops >= SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS) {
+      return this.getCollapsedStopNodeFromStopIndex(numberOfCollapsedStops - 1);
+    }
+    return this.getCollapsedStopNodeFromStopIndex(stopIndex);
   }
 
   getTravelTime(): number {
