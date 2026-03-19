@@ -1120,10 +1120,13 @@ export class TrainrunSectionService implements OnDestroy {
       if (!node.isEmpty()) break;
       if (!node.isNonStopNode() && node.getIsCollapsed()) {
         // undock the empty node of the trainrun
-        this.nodeService.undockTransition(
+        const mergedSection = this.nodeService.undockTransition(
           node.getId(),
           node.getTransition(trainrunSection.getId()).getId(),
         );
+        if (mergedSection) {
+          mergedSection.setNumberOfStops(Math.max(0, mergedSection.getNumberOfStops() - 1));
+        }
         // remove node only if it is not used anymore
         if (node.getTransitions().length === 0) {
           // unselect details
