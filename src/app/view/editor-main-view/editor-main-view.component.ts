@@ -217,7 +217,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       },
     );
     this.editorView.bindDeleteTrainrunSection((trainrunSection: TrainrunSection) =>
-      this.trainrunSectionService.deleteTrainrunSection(trainrunSection.getId()),
+      this.trainrunSectionService.deleteTrainrunSection(trainrunSection.getId(), true, true),
     );
     this.editorView.bindSetTrainrunSectionAsSelected((trainrunSection: TrainrunSection) => {
       this.trainrunService.setTrainrunAsSelected(trainrunSection.getTrainrun().getId());
