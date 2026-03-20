@@ -681,8 +681,13 @@ export class TrainrunSectionService implements OnDestroy {
     }
   }
 
-  deleteTrainrunSection(trainrunSectionId: number, enforceUpdate = true) {
+  deleteTrainrunSection(
+    trainrunSectionId: number,
+    enforceUpdate = true,
+    checkAllTransitions = false,
+  ) {
     const trainrunSection = this.getTrainrunSectionFromId(trainrunSectionId);
+    const trainrun = trainrunSection.getTrainrun();
     const sourceNodeId = trainrunSection.getSourceNodeId();
     const targetNodeId = trainrunSection.getTargetNodeId();
     this.deleteTrainrunSectionAndCleanupNodes(trainrunSection, false);
@@ -702,6 +707,12 @@ export class TrainrunSectionService implements OnDestroy {
           false,
         );
       });
+    if (
+      checkAllTransitions &&
+      this.getAllTrainrunSectionsForTrainrun(trainrun.getId()).length > 0
+    ) {
+      this.checkMissingTransitionsAfterDeletion(trainrun);
+    }
     if (enforceUpdate) {
       this.nodeService.transitionsUpdated();
       this.nodeService.connectionsUpdated();
@@ -1160,40 +1171,25 @@ export class TrainrunSectionService implements OnDestroy {
 
   checkMissingTransitionsAfterDeletion(trainrun: Trainrun) {
     const trainrunSections = this.getAllTrainrunSectionsForTrainrun(trainrun.getId());
+
+    const nodesSeen = new Map<number, Node>();
     trainrunSections.forEach((ts) => {
-      const sourceNode = ts.getSourceNode();
-      const targetNode = ts.getTargetNode();
+      nodesSeen.set(ts.getSourceNode().getId(), ts.getSourceNode());
+      nodesSeen.set(ts.getTargetNode().getId(), ts.getTargetNode());
+    });
 
-      const srcPortsWithoutTransitions = sourceNode
-        .getPorts()
-        .filter(
-          (port) =>
-            port.getTrainrunSection().getTrainrunId() === trainrun.getId() &&
-            sourceNode.getTransitionFromPortId(port.getId()) === undefined,
-        );
-      const trgPortsWithoutTransitions = targetNode
-        .getPorts()
-        .filter(
-          (port) =>
-            port.getTrainrunSection().getTrainrunId() === trainrun.getId() &&
-            targetNode.getTransitionFromPortId(port.getId()) === undefined,
-        );
+    nodesSeen.forEach((node) => {
+      const freePorts = node.getFreePortsForTrainrun(trainrun.getId());
+      if (freePorts.length !== 2) return;
 
-      if (srcPortsWithoutTransitions.length > 1) {
-        this.nodeService.addTransitionToNodes(
-          sourceNode.getId(),
-          targetNode.getId(),
-          srcPortsWithoutTransitions[0].getTrainrunSection(),
-        );
-      }
+      const ts1 = freePorts[0].getTrainrunSection();
+      const ts2 = freePorts[1].getTrainrunSection();
 
-      if (trgPortsWithoutTransitions.length > 1) {
-        this.nodeService.addTransitionToNodes(
-          sourceNode.getId(),
-          targetNode.getId(),
-          trgPortsWithoutTransitions[0].getTrainrunSection(),
-        );
-      }
+      // Skip natural terminal nodes of circular paths (e.g. A in A-B-C-A):
+      // if the trainrun still forms a cycle, no transition should be created.
+      if (this.trainrunService.isStartEqualsEndNode(ts1.getId())) return;
+
+      this.nodeService.addTransitionToNodeForTrainrunSections(node.getId(), ts1, ts2);
     });
   }
 

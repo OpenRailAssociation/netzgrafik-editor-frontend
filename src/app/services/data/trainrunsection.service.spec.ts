@@ -140,6 +140,8 @@ describe("TrainrunSectionService", () => {
 
     trainrunSectionService.deleteTrainrunSection(
       trainrunSectionService.getTrainrunSections()[1].getId(),
+      true,
+      true,
     );
 
     expect(nodeA.getTransitions().length).toBe(1);
@@ -147,7 +149,6 @@ describe("TrainrunSectionService", () => {
     expect(nodeC.getTransitions().length).toBe(0);
     expect(nodeD.getTransitions().length).toBe(1);
     expect(nodeE.getTransitions().length).toBe(1);
-
     const transA_AB2 = nodeA.getTransition(tsAB.getId());
     const transA_EA2 = nodeA.getTransition(tsEA.getId());
     expect(transA_AB2.getId()).toBe(transA_EA2.getId());
