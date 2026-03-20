@@ -153,6 +153,7 @@ describe("3d.Utils.tests", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      dataService,
     );
 
     new EditorView(

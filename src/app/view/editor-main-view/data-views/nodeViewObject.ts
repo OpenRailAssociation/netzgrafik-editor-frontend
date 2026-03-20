@@ -14,6 +14,8 @@ export class NodeViewObject {
 
   static generateKey(editorView: EditorView, n: Node, isNodeStopNode: boolean): string {
     return (
+      "LC" +
+      editorView.getNetzgrafikLoadCounter() +
       "#" +
       n.getId() +
       "@" +

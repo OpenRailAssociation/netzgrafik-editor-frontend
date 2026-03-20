@@ -47,6 +47,7 @@ export class EditorView implements SVGMouseControllerObserver {
   notesView: NotesView;
   isMultiSelectOn = false;
 
+  getNetzgrafikLoadCounter = null;
   addNode = null;
   getNodePathToEnd = null;
   addTrainrunSectionWithSourceTarget = null;
@@ -164,6 +165,10 @@ export class EditorView implements SVGMouseControllerObserver {
 
   destroyView() {
     this.svgMouseController.destroy();
+  }
+
+  bindGetNetzgrafikLoadCounter(callback) {
+    this.getNetzgrafikLoadCounter = callback;
   }
 
   bindAddNode(callback) {
