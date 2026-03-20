@@ -547,7 +547,7 @@ export class EditorKeyEvents {
         if (ts.getSourceNode().selected() && ts.getTargetNode().selected()) {
           newTrainrunSectionToModify.push(ts);
         } else {
-          this.trainrunSectionService.deleteTrainrunSection(ts.getId(), false);
+          this.trainrunSectionService.deleteTrainrunSection(ts.getId(), false, true);
         }
       });
     });
@@ -755,7 +755,7 @@ export class EditorKeyEvents {
     });
     visibleTrainrunSections = visibleTrainrunSections.filter((v, i, a) => a.indexOf(v) === i);
     visibleTrainrunSections.forEach((trainrunSectionId: number) => {
-      this.trainrunSectionService.deleteTrainrunSection(trainrunSectionId, false);
+      this.trainrunSectionService.deleteTrainrunSection(trainrunSectionId, false, true);
     });
 
     let selectedNodeDeleted = false;
