@@ -153,6 +153,7 @@ describe("3d.Utils.tests", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      undefined,
     );
 
     new EditorView(
@@ -170,6 +171,7 @@ describe("3d.Utils.tests", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      undefined,
     );
     controller.bindViewToServices();
     editorView = controller.editorView;
