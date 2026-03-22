@@ -231,10 +231,7 @@ export class TrainrunSectionService implements OnDestroy {
 
     this.trainrunSectionsStore.trainrunSections.forEach((trainrunSection) => {
       TrainrunSectionValidator.validateOneSection(trainrunSection);
-      TrainrunSectionValidator.validateTravelTime(
-        trainrunSection,
-        this.filterService.getTimeDisplayPrecision(),
-      );
+      TrainrunSectionValidator.validateTravelTime(trainrunSection);
     });
   }
 

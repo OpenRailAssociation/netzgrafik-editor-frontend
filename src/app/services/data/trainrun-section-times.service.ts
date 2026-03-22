@@ -321,6 +321,11 @@ export class TrainrunSectionTimesService {
     this.roundAllTimes();
     this.removeOffsetAndBackTransformTimeStructure();
 
+    this.timeStructure.travelTime = Math.max(
+      this.timeStructure.travelTime,
+      TrainrunSection.MIN_TRAVEL_TIME,
+    );
+
     if (!this.lockStructure.rightLock) {
       this.timeStructure.rightArrivalTime = MathUtils.mod60(
         this.timeStructure.leftDepartureTime + this.timeStructure.travelTime,
