@@ -1167,6 +1167,9 @@ export class TrainrunSectionsView {
       groupLinesEnter
         .append(StaticDomTags.EDGE_LINE_ARROW_SVG)
         .attr("d", (d: TrainrunSectionViewObject) => {
+          if (!d.trainrunSection.getTrainrun().isRoundTrip()) {
+            return "";
+          }
           if (arrowLocation === "BEGINNING") {
             return d.trainrunSection.isSourceSymmetricOrTimesSymmetric()
               ? ""
