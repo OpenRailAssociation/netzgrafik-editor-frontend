@@ -274,6 +274,7 @@ export interface MetadataDto {
   netzgrafikColors: NetzgrafikColorDto[];
   analyticsSettings: AnalyticsSettingsDto;
   orderingAlgorithm?: OrderingAlgorithm;
+  trafficSide?: TrafficSide;
 }
 
 /**
@@ -344,3 +345,11 @@ export enum Direction {
   ROUND_TRIP = "round_trip",
   ONE_WAY = "one_way",
 }
+
+/**
+ * Represents the traffic side, i.e. whether trains on a line are
+ * generally operated according to left-hand or right-hand running
+ * conventions in railway operations. This determines on which
+ * track (left or right) trains are positioned and operated.
+ */
+export type TrafficSide = "leftHand" | "rightHand";
