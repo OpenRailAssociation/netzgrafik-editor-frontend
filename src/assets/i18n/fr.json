@@ -19,6 +19,8 @@
     "logger": {
       "title": "Titre"
     },
+    "left": "Gauche",
+    "right": "Droite",
     "models": {
       "node": {
         "shortNameDefault": "NEW",
@@ -459,7 +461,10 @@
         "fixed": "Constante 1min",
         "fixedTooltip": "Adopte le temps de parcours avec une constante de 1min (par défaut).",
         "retrieveFromEdge": "Temps de parcours de la section",
-        "retrieveFromEdgeTooltip": "Reprend le temps de parcours maximal sur le même tronçon de tous les trains de la même catégorie, sinon le temps de parcours maximal de tous les trains, sinon 1 min."
+        "retrieveFromEdgeTooltip": "Reprend le temps de parcours maximal sur le même tronçon de tous les trains de la même catégorie, sinon le temps de parcours maximal de tous les trains, sinon 1 min.",
+        "trafficSide": "Sens de circulation",
+        "leftTrafficSideTooltip": "Les trains sont exploités selon les conventions de circulation à gauche.",
+        "rightTrafficSideTooltip": "Les trains sont exploités selon les conventions de circulation à droite."
       },
       "editor-side-view": {
         "editor-node-detail-view": {
