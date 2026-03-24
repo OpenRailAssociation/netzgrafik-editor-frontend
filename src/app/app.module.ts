@@ -1,3 +1,4 @@
+import {HashLocationStrategy, LocationStrategy} from "@angular/common";
 import {NgModule, Injector, DoBootstrap} from "@angular/core";
 import {NgxEditorModule} from "ngx-editor";
 import {BrowserModule} from "@angular/platform-browser";
@@ -245,7 +246,9 @@ import {ToggleSwitchButtonComponent} from "./view/toggle-switch-button/toggle-sw
   ],
   bootstrap: environment.customElement ? [] : [AppComponent],
   providers: [
-    ...(environment.backendUrl ? [{provide: BASE_PATH, useValue: environment.backendUrl}] : []),
+    ...(environment.backendUrl
+      ? [{provide: BASE_PATH, useValue: environment.backendUrl}]
+      : [{provide: LocationStrategy, useClass: HashLocationStrategy}]),
     {provide: HTTP_INTERCEPTORS, useClass: HttpErrorInterceptor, multi: true},
   ],
 })
