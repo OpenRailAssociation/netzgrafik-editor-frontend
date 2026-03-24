@@ -414,7 +414,8 @@ export interface TimeLockDto {
   "trainrunCategories": [],
   "trainrunFrequencies": [],
   "trainrunTimeCategories": [],
-  "analyticsSettings": {}
+  "analyticsSettings": {},
+  "trafficSide": "leftHand" || "rightHand"
 }
 ```
 
