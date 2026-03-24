@@ -874,6 +874,7 @@ export class TrainrunSectionService implements OnDestroy {
     trainrunSectionId: number,
     nodeId: number,
     stopDuration?: number,
+    enforceUpdate = true,
   ) {
     const trainrunSection1 = this.getTrainrunSectionFromId(trainrunSectionId);
     if (
@@ -986,10 +987,11 @@ export class TrainrunSectionService implements OnDestroy {
 
     this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection1.getId());
 
-    this.nodeService.transitionsUpdated();
-    this.nodeService.connectionsUpdated();
-    this.nodeService.nodesUpdated();
-    this.trainrunSectionsUpdated();
+    if (enforceUpdate) {
+      this.nodeService.transitionsUpdated();
+      this.nodeService.connectionsUpdated();
+      this.trainrunSectionsUpdated();
+    }
     return {
       existingTrainrunSection: trainrunSection1,
       newTrainrunSection: trainrunSection2,
