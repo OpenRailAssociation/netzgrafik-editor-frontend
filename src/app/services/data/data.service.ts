@@ -143,11 +143,16 @@ export class DataService implements OnDestroy {
           this.trainrunSectionService.replaceIntermediateStopWithNode(
             currentSection.id,
             newNode.getId(),
+            undefined,
+            false,
           );
 
         currentSection = newTrainrunSection.getDto();
       }
     }
+    this.nodeService.transitionsUpdated();
+    this.nodeService.connectionsUpdated();
+    this.trainrunSectionService.trainrunSectionsUpdated();
   }
 
   insertCopyNetzgrafikDto(netzgrafikDto: NetzgrafikDto, enforceUpdate = true) {
