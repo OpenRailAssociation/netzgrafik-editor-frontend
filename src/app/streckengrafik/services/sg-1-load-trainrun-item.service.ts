@@ -22,7 +22,7 @@ import {NodeService} from "../../services/data/node.service";
 import {TrainrunBranchType} from "../model/enum/trainrun-branch-type-type";
 import {MultiSelectNodeGraph} from "../../utils/multi-select-node-graph";
 import {Direction} from "src/app/data-structures/business.data.structures";
-import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helper";
+import {collapsePathItems} from "../utils/collapse-path-items";
 
 @Injectable({
   providedIn: "root",
@@ -206,6 +206,9 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
       }
     });
 
+    // collapse hidden nodes in the corridor
+    this.cachedTrainrunItems.pathItems = collapsePathItems(this.cachedTrainrunItems.pathItems);
+
     // clean up
     this.trainrunService.unselectAllTrainruns(false);
     this.nodeService.unselectAllNodes(false);
@@ -259,12 +262,32 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
   }
 
   private makePathElement(nodeId1: number, nodeId2: number, travelTime: number) {
-    const n1 = new PathNode(0, 0, nodeId1, undefined, 0, undefined, false);
-    const n2 = new PathNode(travelTime, travelTime, nodeId2, undefined, 1, undefined, false);
-    const node1 = this.nodeService.getNodeFromId(n1.nodeId);
-    n1.nodeShortName = node1.getBetriebspunktName();
-    const node2 = this.nodeService.getNodeFromId(n2.nodeId);
-    n2.nodeShortName = node2.getBetriebspunktName();
+    const node1 = this.nodeService.getNodeFromId(nodeId1);
+    const node2 = this.nodeService.getNodeFromId(nodeId2);
+    const n1 = new PathNode(
+      0,
+      0,
+      nodeId1,
+      node1.getBetriebspunktName(),
+      0,
+      undefined,
+      false,
+      4,
+      !this.filterService.filterNode(node1),
+      node1.getIsCollapsed(),
+    );
+    const n2 = new PathNode(
+      travelTime,
+      travelTime,
+      nodeId2,
+      node2.getBetriebspunktName(),
+      1,
+      undefined,
+      false,
+      4,
+      !this.filterService.filterNode(node2),
+      node2.getIsCollapsed(),
+    );
 
     let ts12 = this.trainrunSectionService
       .getTrainrunSections()
@@ -469,6 +492,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
           false,
           fromNodeHaltezeit[trainrunFachCategory].haltezeit,
           !this.filterService.filterNode(fromNode),
+          fromNode.getIsCollapsed(),
         );
         trainrunStartTime = sourcePathNode.departureTime;
         forwardStartNode = sourcePathNode;
@@ -500,6 +524,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         false,
         toNodeHaltezeit[trainrunFachCategory].haltezeit,
         !this.filterService.filterNode(toNode),
+        toNode.getIsCollapsed(),
       );
 
       if (toNode.getId() === forwardBackwardNodes.startBackwardNode.getId()) {
@@ -536,6 +561,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
             true,
             fromNodeHaltezeit[trainrunFachCategory].haltezeit,
             !this.filterService.filterNode(fromNode),
+            fromNode.getIsCollapsed(),
           );
           backwardStartNode = sourcePathNode;
           pathItems.push(sourcePathNode);
@@ -566,6 +592,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
           true,
           toNodeHaltezeit[trainrunFachCategory].haltezeit,
           !this.filterService.filterNode(toNode),
+          toNode.getIsCollapsed(),
         );
 
         if (toNode.getId() === forwardBackwardNodes.startForwardNode.getId()) {
@@ -594,22 +621,37 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
       }
     }
 
-    pathItems.forEach((pathItem, i) => {
+    const collapsedPathItems = collapsePathItems(pathItems);
+
+    collapsedPathItems.forEach((pathItem, i) => {
       if (pathItem.isNode()) {
         const pathNode = pathItem.getPathNode();
-        pathNode.arrivalPathSection = this.getPreviousPathSection(pathItems, i);
-        pathNode.departurePathSection = this.getNextPathSection(pathItems, i);
+        pathNode.arrivalPathSection = this.getPreviousPathSection(collapsedPathItems, i);
+        pathNode.departurePathSection = this.getNextPathSection(collapsedPathItems, i);
       }
       if (pathItem.isSection()) {
         const pathSection = pathItem.getPathSection();
-        pathSection.departurePathNode = this.getPreviousPathNode(pathItems, i);
-        pathSection.arrivalPathNode = this.getNextPathNode(pathItems, i);
-        pathSection.isFilteredDepartureNode = this.getDepartureNodeIsFilterd(pathItems, i);
-        pathSection.isFilteredArrivalNode = this.getArrivalNodeIsFilterdr(pathItems, i);
-        pathSection.arrivalBranchEndNode = this.getFirstPathNode(pathItems);
-        pathSection.departureBranchEndNode = this.getLastPathNode(pathItems);
+        pathSection.departurePathNode = this.getPreviousPathNode(collapsedPathItems, i);
+        pathSection.arrivalPathNode = this.getNextPathNode(collapsedPathItems, i);
+        pathSection.isFilteredDepartureNode = this.getDepartureNodeIsFilterd(collapsedPathItems, i);
+        pathSection.isFilteredArrivalNode = this.getArrivalNodeIsFilterdr(collapsedPathItems, i);
+        pathSection.arrivalBranchEndNode = this.getFirstPathNode(collapsedPathItems);
+        pathSection.departureBranchEndNode = this.getLastPathNode(collapsedPathItems);
       }
     });
+
+    // If all sections have fixed width (all endpoints filtered/collapsed),
+    // clear the filter flags so they expand to fill available space
+    const sections = collapsedPathItems
+      .filter((item) => item.isSection())
+      .map((item) => item.getPathSection());
+    if (sections.length > 0 && sections.every((s) => s.xPathFix())) {
+      sections.forEach((s) => {
+        s.isFilteredDepartureNode = false;
+        s.isFilteredArrivalNode = false;
+      });
+    }
+
     return {
       trainrunItem: new TrainrunItem(
         trainrun.getId(),
@@ -620,7 +662,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         trainrun.getTitle(),
         trainrun.getCategoryShortName(),
         trainrun.getCategoryColorRef(),
-        pathItems,
+        collapsedPathItems,
         this.trainrunService.isTrainrunTargetRightOrBottom(trainrun),
         trainrun.getDirection(),
       ),

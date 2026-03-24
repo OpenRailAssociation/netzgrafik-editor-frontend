@@ -19,8 +19,11 @@ import {LogService} from "../../logger/log.service";
 import {Transition} from "../../models/transition.model";
 import {takeUntil} from "rxjs/operators";
 import {FilterService} from "../ui/filter.service";
+import {UiInteractionService} from "../ui/ui.interaction.service";
 import {DirectedTrainrunSectionProxy} from "../util/trainrun.iterator";
 import {Operation, OperationType, TrainrunOperation} from "../../models/operation.model";
+import {Port} from "src/app/models/port.model";
+import {Vec2D} from "src/app/utils/vec2D";
 
 interface DepartureAndArrivalTimes {
   nodeFromDepartureTime: number;
@@ -34,16 +37,12 @@ export interface InformSelectedTrainrunClick {
   open: boolean;
 }
 
-@Injectable({
-  providedIn: "root",
-})
+@Injectable({providedIn: "root"})
 export class TrainrunSectionService implements OnDestroy {
   // Description of observable data service: https://coryrylan.com/blog/angular-observable-data-services
   trainrunSectionsSubject = new BehaviorSubject<TrainrunSection[]>([]);
   readonly trainrunSections = this.trainrunSectionsSubject.asObservable();
-  trainrunSectionsStore: {trainrunSections: TrainrunSection[]} = {
-    trainrunSections: [],
-  }; // store the data in memory
+  trainrunSectionsStore: {trainrunSections: TrainrunSection[]} = {trainrunSections: []}; // store the data in memory
 
   readonly operation = new EventEmitter<Operation>();
 
@@ -300,21 +299,6 @@ export class TrainrunSectionService implements OnDestroy {
     );
   }
 
-  initializeTrainrunSectionRouting() {
-    this.trainrunSectionsStore.trainrunSections.forEach((trainrunSection) => {
-      if (trainrunSection.isPathEmpty()) {
-        trainrunSection.routeEdgeAndPlaceText();
-      }
-    });
-  }
-
-  updateTrainrunSectionNumberOfStops(trs: TrainrunSection, numberOfStops: number) {
-    const trainrunSection = this.getTrainrunSectionFromId(trs.getId());
-    trainrunSection.setNumberOfStops(numberOfStops);
-    this.trainrunSectionsUpdated();
-    this.operation.emit(new TrainrunOperation(OperationType.update, trainrunSection.getTrainrun()));
-  }
-
   updateTrainrunSectionTime(
     trsId: number,
     sourceArrivalTime: number,
@@ -356,7 +340,7 @@ export class TrainrunSectionService implements OnDestroy {
     node: Node,
     stopNodeId: number,
   ) {
-    const iterator = this.trainrunService.getNonStopIterator(node, trainrunSection);
+    const iterator = this.trainrunService.getNextExpandedStopIterator(node, trainrunSection);
     while (iterator.hasNext()) {
       iterator.next();
       if (iterator.current().node.getId() === stopNodeId) {
@@ -513,21 +497,6 @@ export class TrainrunSectionService implements OnDestroy {
     }
   }
 
-  updateTrainrunSectionRouting(node: Node, enforceUpdate = true) {
-    this.trainrunSectionsStore.trainrunSections.forEach((trainrunSection) => {
-      if (
-        node.getId() === trainrunSection.getSourceNodeId() ||
-        node.getId() === trainrunSection.getTargetNodeId()
-      ) {
-        trainrunSection.routeEdgeAndPlaceText();
-      }
-    });
-
-    if (enforceUpdate) {
-      this.trainrunSectionsUpdated();
-    }
-  }
-
   retrieveTravelTime(sourceNodeId: number, targetNodeId: number, trainrun: Trainrun): number {
     const foundTrainruns = this.getTrainrunSections().filter(
       (ts) =>
@@ -640,7 +609,6 @@ export class TrainrunSectionService implements OnDestroy {
     nodeToOld.updateTransitionsAndConnections(this.nodeService.getCurrentOrderingAlgorithm());
     TrainrunSectionService.setToNode(sourceNodeId, trainrunSection, nodeToNew, targetNodeId);
 
-    this.updateTrainrunSectionRouting(nodeToOld, false);
     const orderingType = this.nodeService.getCurrentOrderingAlgorithm();
     nodeToNew.addPortWithRespectToOppositeNode(nodeFrom, trainrunSection, orderingType);
     if (this.nodeService.isConditionToAddTransitionFullfilled(nodeToNew, trainrunSection)) {
@@ -650,9 +618,6 @@ export class TrainrunSectionService implements OnDestroy {
       );
     }
     nodeFrom.reAlignPortWithRespectToOppositeNode(nodeToNew, trainrunSection, orderingType);
-
-    trainrunSection.routeEdgeAndPlaceText();
-    this.reRouteAffectedTrainrunSections(nodeFrom.getId(), nodeToNew.getId());
 
     if (previousTrainrunSection !== undefined) {
       this.nodeService.checkAndFixMissingTransitions(
@@ -716,8 +681,13 @@ export class TrainrunSectionService implements OnDestroy {
     }
   }
 
-  deleteTrainrunSection(trainrunSectionId: number, enforceUpdate = true) {
+  deleteTrainrunSection(
+    trainrunSectionId: number,
+    enforceUpdate = true,
+    checkAllTransitions = false,
+  ) {
     const trainrunSection = this.getTrainrunSectionFromId(trainrunSectionId);
+    const trainrun = trainrunSection.getTrainrun();
     const sourceNodeId = trainrunSection.getSourceNodeId();
     const targetNodeId = trainrunSection.getTargetNodeId();
     this.deleteTrainrunSectionAndCleanupNodes(trainrunSection, false);
@@ -737,6 +707,12 @@ export class TrainrunSectionService implements OnDestroy {
           false,
         );
       });
+    if (
+      checkAllTransitions &&
+      this.getAllTrainrunSectionsForTrainrun(trainrun.getId()).length > 0
+    ) {
+      this.checkMissingTransitionsAfterDeletion(trainrun);
+    }
     if (enforceUpdate) {
       this.nodeService.transitionsUpdated();
       this.nodeService.connectionsUpdated();
@@ -819,19 +795,41 @@ export class TrainrunSectionService implements OnDestroy {
     const trsTimeStructure = TrainrunsectionHelper.getDefaultTimeStructure(timeStructure);
     let summedTravelTime = 0;
 
-    const iterator = this.trainrunService.getNonStopIterator(leftNode, trs);
+    const iterator = this.trainrunService.getNextExpandedStopIterator(leftNode, trs);
+    let prevInitialLeftArrival: number = null;
+    let stopTime: number;
     while (iterator.hasNext()) {
       const nextPair = iterator.next();
+      const rightIsTarget =
+        nextPair.node.getId() === nextPair.trainrunSection.getTargetNode().getId();
 
-      const isRightNodeNonStop = nextPair.node.isNonStop(nextPair.trainrunSection);
-      trsTimeStructure.travelTime = TrainrunsectionHelper.getTravelTime(
-        newTotalTravelTime,
-        summedTravelTime,
-        travelTimeFactor,
-        nextPair.trainrunSection.getTravelTime(),
-        isRightNodeNonStop,
-        precision,
-      );
+      if (prevInitialLeftArrival !== null) {
+        stopTime = MathUtils.mod60(
+          (rightIsTarget
+            ? nextPair.trainrunSection.getSourceDeparture()
+            : nextPair.trainrunSection.getTargetDeparture()) - prevInitialLeftArrival,
+        );
+        trsTimeStructure.leftDepartureTime = trsTimeStructure.rightArrivalTime + stopTime;
+        trsTimeStructure.leftArrivalTime = trsTimeStructure.rightDepartureTime - stopTime;
+      }
+      prevInitialLeftArrival = rightIsTarget
+        ? nextPair.trainrunSection.getTargetArrival()
+        : nextPair.trainrunSection.getSourceArrival();
+
+      const isLastRightNode =
+        !nextPair.node.isNonStop(nextPair.trainrunSection) && !nextPair.node.getIsCollapsed();
+      trsTimeStructure.travelTime = isLastRightNode
+        ? TrainrunsectionHelper.getLastSectionTravelTime(
+            newTotalTravelTime,
+            summedTravelTime,
+            precision,
+          )
+        : TrainrunsectionHelper.getSectionDistributedTravelTime(
+            nextPair.trainrunSection.getTravelTime(),
+            travelTimeFactor,
+            precision,
+          );
+
       trsTimeStructure.rightArrivalTime = TrainrunsectionHelper.getRightArrivalTime(
         trsTimeStructure,
         precision,
@@ -846,8 +844,6 @@ export class TrainrunSectionService implements OnDestroy {
         trsTimeStructure,
       );
 
-      trsTimeStructure.leftDepartureTime = trsTimeStructure.rightArrivalTime;
-      trsTimeStructure.leftArrivalTime = trsTimeStructure.rightDepartureTime;
       summedTravelTime += trsTimeStructure.travelTime;
     }
 
@@ -873,13 +869,19 @@ export class TrainrunSectionService implements OnDestroy {
     });
   }
 
-  replaceIntermediateStopWithNode(trainrunSectionId: number, stopIndex: number, nodeId: number) {
+  // this function is no longer used for its original purpose (drag a node that only existed inside numberOfStops and create it inside the real graph)
+  replaceIntermediateStopWithNode(
+    trainrunSectionId: number,
+    nodeId: number,
+    stopDuration?: number,
+    enforceUpdate = true,
+  ) {
     const trainrunSection1 = this.getTrainrunSectionFromId(trainrunSectionId);
     if (
       trainrunSection1.getSourceNodeId() === nodeId ||
       trainrunSection1.getTargetNodeId() === nodeId
     ) {
-      return;
+      return {};
     }
     const origTravelTime = trainrunSection1.getTravelTime();
     const trainrunSection2 = this.copyTrainrunSection(
@@ -914,9 +916,6 @@ export class TrainrunSectionService implements OnDestroy {
       portOrderingType,
     );
 
-    this.reRouteAffectedTrainrunSections(node1.getId(), nodeIntermediate.getId());
-    this.reRouteAffectedTrainrunSections(node2.getId(), nodeIntermediate.getId());
-
     this.nodeService.addTransitionToNodeForTrainrunSections(
       nodeIntermediate.getId(),
       trainrunSection1,
@@ -924,24 +923,27 @@ export class TrainrunSectionService implements OnDestroy {
     );
     this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection1.getId());
 
-    const numberOfStops = trainrunSection1.getNumberOfStops();
-    trainrunSection1.setNumberOfStops(stopIndex);
-    trainrunSection2.setNumberOfStops(numberOfStops - stopIndex - 1);
-
     const minHalteZeitFromNode = this.nodeService.getHaltezeit(
       nodeId,
       trainrunSection1.getTrainrun().getTrainrunCategory(),
     );
-    const calculatedTravelTime = Math.abs(
+    let travelTime1 =
       trainrunSection1.getTargetArrivalConsecutiveTime() -
-        trainrunSection1.getSourceDepartureConsecutiveTime(),
-    );
-    const halteZeit = Math.min(minHalteZeitFromNode, Math.max(0, calculatedTravelTime - 2));
-    const travelTimeIssue = !calculatedTravelTime || minHalteZeitFromNode !== halteZeit;
-    const travelTime = Math.max(trainrunSection1.getTravelTime() - halteZeit, 2);
-    const halfTravelTime = Math.floor(travelTime / 2);
-    trainrunSection1.setTravelTime(Math.max(1, travelTime - halfTravelTime));
-    trainrunSection2.setTravelTime(Math.max(1, halfTravelTime));
+      trainrunSection1.getSourceDepartureConsecutiveTime();
+    let travelTime2 =
+      trainrunSection1.getSourceArrivalConsecutiveTime() -
+      trainrunSection1.getTargetDepartureConsecutiveTime();
+    travelTime1 = travelTime1 < 0 ? travelTime2 : travelTime1;
+    travelTime2 = travelTime2 < 0 ? travelTime1 : travelTime2;
+    const calculatedTravelTime = Math.min(travelTime1, travelTime2);
+    const halteZeit =
+      stopDuration ?? Math.min(minHalteZeitFromNode, Math.max(0, calculatedTravelTime - 2));
+    const travelTimeIssue = !travelTime1 || !travelTime2;
+    const halteZeitIssue = minHalteZeitFromNode < halteZeit;
+    const travelTime = Math.max(trainrunSection1.getTravelTime() - halteZeit, 0);
+    const halfTravelTime = travelTime / 2;
+    trainrunSection1.setTravelTime(travelTime - halfTravelTime);
+    trainrunSection2.setTravelTime(halfTravelTime);
 
     trainrunSection1.setTargetArrival(
       TrainrunSectionService.boundMinutesToOneHour(
@@ -961,7 +963,7 @@ export class TrainrunSectionService implements OnDestroy {
     );
 
     if (
-      minHalteZeitFromNode < halteZeit ||
+      halteZeitIssue ||
       trainrunSection1.getTravelTime() + trainrunSection2.getTravelTime() + halteZeit !==
         origTravelTime ||
       travelTimeIssue
@@ -985,10 +987,74 @@ export class TrainrunSectionService implements OnDestroy {
 
     this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection1.getId());
 
-    this.nodeService.transitionsUpdated();
-    this.nodeService.connectionsUpdated();
-    this.nodeService.nodesUpdated();
-    this.trainrunSectionsUpdated();
+    if (enforceUpdate) {
+      this.nodeService.transitionsUpdated();
+      this.nodeService.connectionsUpdated();
+      this.trainrunSectionsUpdated();
+    }
+    return {
+      existingTrainrunSection: trainrunSection1,
+      newTrainrunSection: trainrunSection2,
+    };
+  }
+
+  addIntermediateStopOnTrainrunSection(trainrunSection: TrainrunSection) {
+    const sourceNode = trainrunSection.getSourceNode();
+    const targetNode = trainrunSection.getTargetNode();
+    const interpolatedPosition = new Vec2D(
+      sourceNode.getPositionX() + (targetNode.getPositionX() - sourceNode.getPositionX()) * 0.5,
+      sourceNode.getPositionY() + (targetNode.getPositionY() - sourceNode.getPositionY()) * 0.5,
+    );
+
+    const newNode = this.nodeService.addEmptyNode(
+      interpolatedPosition.getX(),
+      interpolatedPosition.getY(),
+    );
+
+    this.replaceIntermediateStopWithNode(trainrunSection.getId(), newNode.getId(), 0);
+  }
+
+  removeIntermediateStopOnTrainrunSection(initialTrainrunSection: TrainrunSection): boolean {
+    // look for the end of the trainrun sections chain
+    const forwardIterator = this.trainrunService.getNextExpandedIterator(
+      initialTrainrunSection.getSourceNode(),
+      initialTrainrunSection,
+    );
+    while (forwardIterator.hasNext()) forwardIterator.next();
+    const lastExpandedPair = forwardIterator.current();
+
+    // traverse the chain and look for a node to remove
+    let nodeRemoved = false;
+    const backwardIterator = this.trainrunService.getBackwardNextExpandedIterator(
+      lastExpandedPair.node,
+      lastExpandedPair.trainrunSection,
+    );
+    while (backwardIterator.hasNext() && !nodeRemoved) {
+      backwardIterator.next();
+      const {node, trainrunSection} = backwardIterator.current();
+      if (!node.isEmpty()) break;
+      if (!node.isNonStopNode() && node.getIsCollapsed()) {
+        // undock the empty node of the trainrun
+        const mergedSection = this.nodeService.undockTransition(
+          node.getId(),
+          node.getTransition(trainrunSection.getId()).getId(),
+        );
+        if (mergedSection) {
+          mergedSection.setNumberOfStops(Math.max(0, mergedSection.getNumberOfStops() - 1));
+        }
+        // remove node only if it is not used anymore
+        if (node.getTransitions().length === 0) {
+          // unselect details
+          if (this.nodeService.isNodeSelected(node.getId())) {
+            this.nodeService.unselectNode(node.getId());
+            // TODO: also call UiInteractionService.closeNodeStammdaten() if opened
+          }
+          this.nodeService.deleteNode(node.getId());
+        }
+        nodeRemoved = true;
+      }
+    }
+    return nodeRemoved;
   }
 
   setWarningOnNode(
@@ -1065,8 +1131,6 @@ export class TrainrunSectionService implements OnDestroy {
       existingTrainrunSection,
     );
 
-    trainrunSection.routeEdgeAndPlaceText();
-    this.reRouteAffectedTrainrunSections(sourceNode.getId(), targetNode.getId());
     this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection.getId());
 
     return trainrunSection;
@@ -1089,11 +1153,12 @@ export class TrainrunSectionService implements OnDestroy {
       this.trainrunSectionsStore.trainrunSections.filter(
         (e) => e.getId() !== trainrunSection.getId(),
       );
-    this.reRouteAffectedTrainrunSections(
+    this.nodeService.checkAndFixMissingTransitions(
       trainrunSection.getSourceNodeId(),
       trainrunSection.getTargetNodeId(),
+      trainrunSection.getId(),
+      enforceUpdate,
     );
-    this.checkMissingTransitionsAfterDeletion(trainrunSection.getTrainrun());
     this.deleteTrainrunIfNotUsedAnymore(trainrunSection.getTrainrun(), false);
 
     if (
@@ -1111,53 +1176,25 @@ export class TrainrunSectionService implements OnDestroy {
 
   checkMissingTransitionsAfterDeletion(trainrun: Trainrun) {
     const trainrunSections = this.getAllTrainrunSectionsForTrainrun(trainrun.getId());
+
+    const nodesSeen = new Map<number, Node>();
     trainrunSections.forEach((ts) => {
-      const sourceNode = ts.getSourceNode();
-      const targetNode = ts.getTargetNode();
-
-      const srcPortsWithoutTransitions = sourceNode
-        .getPorts()
-        .filter(
-          (port) =>
-            port.getTrainrunSection().getTrainrunId() === trainrun.getId() &&
-            sourceNode.getTransitionFromPortId(port.getId()) === undefined,
-        );
-      const trgPortsWithoutTransitions = targetNode
-        .getPorts()
-        .filter(
-          (port) =>
-            port.getTrainrunSection().getTrainrunId() === trainrun.getId() &&
-            targetNode.getTransitionFromPortId(port.getId()) === undefined,
-        );
-
-      if (srcPortsWithoutTransitions.length > 1) {
-        this.nodeService.addTransitionToNodes(
-          sourceNode.getId(),
-          targetNode.getId(),
-          srcPortsWithoutTransitions[0].getTrainrunSection(),
-        );
-      }
-
-      if (trgPortsWithoutTransitions.length > 1) {
-        this.nodeService.addTransitionToNodes(
-          sourceNode.getId(),
-          targetNode.getId(),
-          trgPortsWithoutTransitions[0].getTrainrunSection(),
-        );
-      }
+      nodesSeen.set(ts.getSourceNode().getId(), ts.getSourceNode());
+      nodesSeen.set(ts.getTargetNode().getId(), ts.getTargetNode());
     });
-  }
 
-  private reRouteAffectedTrainrunSections(sourceNodeId: number, targetNodeId: number) {
-    this.trainrunSectionsStore.trainrunSections.forEach((e) => {
-      if (
-        e.getSourceNodeId() === sourceNodeId ||
-        e.getSourceNodeId() === targetNodeId ||
-        e.getTargetNodeId() === sourceNodeId ||
-        e.getTargetNodeId() === targetNodeId
-      ) {
-        e.routeEdgeAndPlaceText();
-      }
+    nodesSeen.forEach((node) => {
+      const freePorts = node.getFreePortsForTrainrun(trainrun.getId());
+      if (freePorts.length !== 2) return;
+
+      const ts1 = freePorts[0].getTrainrunSection();
+      const ts2 = freePorts[1].getTrainrunSection();
+
+      // Skip natural terminal nodes of circular paths (e.g. A in A-B-C-A):
+      // if the trainrun still forms a cycle, no transition should be created.
+      if (this.trainrunService.isStartEqualsEndNode(ts1.getId())) return;
+
+      this.nodeService.addTransitionToNodeForTrainrunSections(node.getId(), ts1, ts2);
     });
   }
 
@@ -1219,8 +1256,6 @@ export class TrainrunSectionService implements OnDestroy {
       this.nodeService.nodesUpdated();
       this.nodeService.transitionsUpdated();
     }
-    trainrunSection.routeEdgeAndPlaceText();
-    this.reRouteAffectedTrainrunSections(sourceNode.getId(), targetNode.getId());
   }
 
   private createNewTrainrunSectionFromDto(
@@ -1405,9 +1440,108 @@ export class TrainrunSectionService implements OnDestroy {
 
     // Source arrival becomes target arrival
     trainrunSection.setSourceArrivalDto(oldTargetArrivalDto);
+  }
 
-    // Update visuals and geometry
-    trainrunSection.routeEdgeAndPlaceText();
-    trainrunSection.convertVec2DToPath();
+  /**
+   * Groups consecutive TrainrunSections that have collapsed nodes between them
+   * into chains. Each chain starts and ends with a non-collapsed node.
+   * Start and end nodes can be accessed via: sections[0].getSourceNode() and sections[sections.length - 1].getTargetNode()
+   * @param trainrunSections List of TrainrunSections to group
+   * @returns Array of section chains
+   */
+  groupTrainrunSectionsIntoChains(trainrunSections: TrainrunSection[]): TrainrunSection[][] {
+    const groups: TrainrunSection[][] = [];
+    const visitedSections = new Set<number>();
+
+    trainrunSections.forEach((section) => {
+      if (visitedSections.has(section.getId())) {
+        return;
+      }
+
+      const backwardIterator = this.trainrunService.getBackwardIterator(
+        section.getTargetNode(),
+        section,
+      );
+      while (backwardIterator.hasNext() && backwardIterator.current().node.getIsCollapsed()) {
+        backwardIterator.next();
+      }
+      const startNode = backwardIterator.current().node;
+      const startSection = backwardIterator.current().trainrunSection;
+
+      // Build chain using TrainrunIterator to leverage existing graph traversal
+      const chain: TrainrunSection[] = [];
+      const iterator = this.trainrunService.getIterator(startNode, startSection);
+
+      // Traverse the trainrun and collect sections with collapsed intermediate nodes
+      while (iterator.hasNext()) {
+        const pair = iterator.next();
+
+        if (visitedSections.has(pair.trainrunSection.getId())) {
+          throw new Error(
+            `Cycle detected in trainrun section chain: section ${pair.trainrunSection.getId()} already visited for trainrun ${pair.trainrunSection.getTrainrunId()}`,
+          );
+        }
+
+        chain.push(pair.trainrunSection);
+        visitedSections.add(pair.trainrunSection.getId());
+
+        // Stop if we reach a non-collapsed node (end of collapsed chain)
+        if (!pair.node.getIsCollapsed()) {
+          break;
+        }
+      }
+
+      if (chain.length > 0) {
+        groups.push(chain);
+      }
+    });
+
+    return groups;
+  }
+
+  getNumberOfCollapsedStops(section: TrainrunSection) {
+    const backwardIterator = this.trainrunService.getBackwardNextExpandedStopIterator(
+      section.getTargetNode(),
+      section,
+    );
+    while (backwardIterator.hasNext() && backwardIterator.current().node.getIsCollapsed()) {
+      backwardIterator.next();
+    }
+    const startNode = backwardIterator.current().node;
+    const startSection = backwardIterator.current().trainrunSection;
+
+    let numberOfCollapsedStops = 0;
+    const iterator = this.trainrunService.getNextExpandedStopIterator(startNode, startSection);
+
+    // Traverse the trainrun and collect sections with collapsed intermediate nodes
+    while (iterator.hasNext()) {
+      const {node, trainrunSection} = iterator.next();
+
+      // Stop if we reach a non-collapsed node (end of collapsed chain)
+      if (!node.getIsCollapsed()) break;
+
+      // Stop if we reach the end of the trainrunsection
+      const transition = node.getTransition(trainrunSection.getId());
+      if (!transition) break;
+
+      const isNonStop = transition.getIsNonStopTransit();
+      if (node.getIsCollapsed() && !isNonStop) {
+        numberOfCollapsedStops += 1;
+      }
+    }
+    return numberOfCollapsedStops;
+  }
+
+  getTrainrunSectionsGroupOrientedBasedOnPort(port: Port): TrainrunSection[] | undefined {
+    const section = port.getTrainrunSection();
+    const sections = this.getAllTrainrunSectionsForTrainrun(section.getTrainrun().getId());
+    const groups = this.groupTrainrunSectionsIntoChains(sections);
+    const group = groups.find((group) => group.some((trs) => trs.getId() === section.getId()));
+    if (group === undefined) return undefined;
+    if (group[0].getSourcePortId() === port.getId()) {
+      return group;
+    } else {
+      return [...group].reverse();
+    }
   }
 }
