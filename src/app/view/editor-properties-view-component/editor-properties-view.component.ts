@@ -6,6 +6,7 @@ import {ThemeBase} from "../themes/theme-base";
 import {ThemeRegistration} from "../themes/theme-registration";
 import {StreckengrafikRenderingType} from "../themes/streckengrafik-rendering-type";
 import {TravelTimeCreationEstimatorType} from "../themes/editor-trainrun-traveltime-creator-type";
+import {TrafficSide} from "src/app/data-structures/business.data.structures";
 
 @Component({
   selector: "sbb-editor-properties-view-component",
@@ -84,6 +85,20 @@ export class EditorPropertiesViewComponent {
   ];
   activeTravelTimeCreationEstimatorType: TravelTimeCreationEstimatorType = null;
 
+  trafficSideTypeOptions = [
+    {
+      name: $localize`:@@app.left:Left`,
+      title: $localize`:@@app.view.editor-properties-view-component.leftTrafficSideTooltip:Trains are operated according to left-hand running conventions.`,
+      trafficSide: "leftHand" as const,
+    },
+    {
+      name: $localize`:@@app.right:Right`,
+      title: $localize`:@@app.view.editor-properties-view-component.rightTrafficSideTooltip:Trains are operated according to right-hand running conventions.`,
+      trafficSide: "rightHand" as const,
+    },
+  ];
+  activeTrafficSideType: TrafficSide = null;
+
   activeDarkBackgroundColor = EditorPropertiesViewComponent.DEFAULT_DARK_BACKGROUNDCOLOR;
   activeBackgroundColor = EditorPropertiesViewComponent.DEFAULT_BACKGROUNDCOLOR;
 
@@ -97,6 +112,7 @@ export class EditorPropertiesViewComponent {
       this.uiInteractionService.getActiveStreckengrafikRenderingType();
     this.activeTravelTimeCreationEstimatorType =
       this.uiInteractionService.getActiveTravelTimeCreationEstimatorType();
+    this.activeTrafficSideType = this.uiInteractionService.getActiveTrafficSideType();
     if (activeTheme.isDark) {
       this.activeDarkBackgroundColor = this.getHexColor(activeTheme.backgroundColor);
     } else {
@@ -122,6 +138,11 @@ export class EditorPropertiesViewComponent {
 
   onUpdateTravelTimeCreationEstimatorType(event: SbbRadioChange) {
     this.uiInteractionService.setActiveTravelTimeCreationEstimatorType(event.value);
+  }
+
+  onUpdateTrafficSideType(event: SbbRadioChange) {
+    this.uiInteractionService.setActiveTrafficSideType(event.value);
+    this.activeTrafficSideType = event.value;
   }
 
   colorPicked(value) {

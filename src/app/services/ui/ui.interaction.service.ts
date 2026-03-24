@@ -30,6 +30,8 @@ import {Trainrun} from "../../models/trainrun.model";
 import {LoadPerlenketteService} from "../../perlenkette/service/load-perlenkette.service";
 import {TravelTimeCreationEstimatorType} from "../../view/themes/editor-trainrun-traveltime-creator-type";
 import {OrderingAlgorithm} from "../../data-structures/technical.data.structures";
+import {TrafficSide} from "src/app/data-structures/business.data.structures";
+import {DataService} from "../data/data.service";
 
 export interface ViewboxProperties {
   currentViewBox: string;
@@ -105,6 +107,7 @@ export class UiInteractionService implements OnDestroy {
   private activeTheme: ThemeBase = null;
   private activeStreckengrafikRenderingType: StreckengrafikRenderingType = null;
   private activeTravelTimeCreationEstimatorType: TravelTimeCreationEstimatorType = null;
+  private activeTrafficSideType: TrafficSide = "leftHand";
   private editorMode: EditorMode = EditorMode.NetzgrafikEditing;
   private isMultiSelectedNodesCorridor = false;
 
@@ -122,6 +125,7 @@ export class UiInteractionService implements OnDestroy {
     private trainrunService: TrainrunService,
     private netzgrafikColoringService: NetzgrafikColoringService,
     private loadPerlenketteService: LoadPerlenketteService,
+    private dataService: DataService,
   ) {
     this.activeTheme = null;
     this.loadActiveTheme();
@@ -293,6 +297,14 @@ export class UiInteractionService implements OnDestroy {
     }
     this.activeTravelTimeCreationEstimatorType = activeTravelTimeCreationEstimatorType;
     this.saveUserSettingToLocalStorage();
+  }
+
+  getActiveTrafficSideType(): TrafficSide {
+    return this.activeTrafficSideType || this.dataService.getTrafficSide();
+  }
+
+  setActiveTrafficSideType(activeTrafficSideType: TrafficSide) {
+    this.activeTrafficSideType = activeTrafficSideType;
   }
 
   getActiveOrderingAlgorithm(): OrderingAlgorithm {

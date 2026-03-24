@@ -5,6 +5,7 @@ import {
   Direction,
   TrainrunFrequency,
   TrainrunTimeCategory,
+  TrafficSide,
 } from "../../data-structures/business.data.structures";
 import {NetzgrafikDefault} from "../../sample-netzgrafik/netzgrafik.default";
 import {NodeService} from "./node.service";
@@ -185,6 +186,7 @@ export class DataService implements OnDestroy {
     const metadata = this.netzgrafikDtoStore.netzgrafikDto.metadata;
     metadata.netzgrafikColors = this.netzgrafikColoringService.getDtos();
     metadata.orderingAlgorithm = this.nodeService.getCurrentOrderingAlgorithm();
+    metadata.trafficSide = this.getTrafficSide();
 
     return {
       nodes: this.nodeService.getDtos(),
@@ -255,6 +257,14 @@ export class DataService implements OnDestroy {
 
   getTrainrunTimeCategories(): TrainrunTimeCategory[] {
     return this.netzgrafikDtoStore.netzgrafikDto.metadata.trainrunTimeCategories;
+  }
+
+  getTrafficSide(): TrafficSide {
+    return this.netzgrafikDtoStore.netzgrafikDto.metadata.trafficSide || "leftHand";
+  }
+
+  setTrafficSide(trafficSideType: TrafficSide) {
+    this.netzgrafikDtoStore.netzgrafikDto.metadata.trafficSide = trafficSideType || "leftHand";
   }
 
   getDirections(): Direction[] {
