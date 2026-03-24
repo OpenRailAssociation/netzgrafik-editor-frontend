@@ -19,6 +19,8 @@
     "logger": {
       "title": "Titel"
     },
+    "left": "Links",
+    "right": "Rechts",
     "models": {
       "node": {
         "shortNameDefault": "NEW",
@@ -446,7 +448,10 @@
         "fixed": "Konstant 1min.",
         "fixedTooltip": "Übernimmt die Fahrzeit mit konstant 1min (Default).",
         "retrieveFromEdge": "Abschnittsfahrzeit",
-        "retrieveFromEdgeTooltip": "Übernimmt die max. Fahrzeit auf dem selben Abschnitt aller Züge gleicher Kategorie, sonst max. Fahrzeit aller Züge, sonst 1 Min."
+        "retrieveFromEdgeTooltip": "Übernimmt die max. Fahrzeit auf dem selben Abschnitt aller Züge gleicher Kategorie, sonst max. Fahrzeit aller Züge, sonst 1 Min.",
+        "trafficSide": "Verkehrsseite",
+        "leftTrafficSideTooltip": "Die Züge verkehren nach den Regeln für Linksverkehr.",
+        "rightTrafficSideTooltip": "Die Züge verkehren nach den Regeln für Rechtsverkehr."
       },
       "editor-side-view": {
         "editor-node-detail-view": {
