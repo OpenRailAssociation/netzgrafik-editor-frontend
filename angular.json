@@ -74,6 +74,7 @@
             },
             "standalone": {
               "outputHashing": "none",
+              "index": "src/environments/standalone/index.html",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
@@ -83,6 +84,7 @@
             },
             "standalonedemo": {
               "outputHashing": "none",
+              "index": "src/environments/standalone/index.html",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
