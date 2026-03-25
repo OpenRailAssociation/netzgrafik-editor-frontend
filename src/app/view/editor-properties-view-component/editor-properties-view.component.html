@@ -137,6 +137,29 @@
 
   <sbb-expansion-panel [expanded]="true">
     <sbb-expansion-panel-header>{{
+      "app.view.editor-properties-view-component.trafficSide" | translate  
+    }}</sbb-expansion-panel-header>
+    <sbb-label>{{
+      "app.view.editor-properties-view-component.trafficSide" | translate
+    }}</sbb-label>
+    <br />
+     <sbb-radio-group
+      [(ngModel)]="activeTrafficSideType"
+      class="sbb-radio-group-vertical"
+    >
+      <sbb-radio-button
+        *ngFor="let option of trafficSideTypeOptions"
+        [value]="option.trafficSide"
+        [title]="option.title"
+        (change)="onUpdateTrafficSideType($event)"
+      >
+        {{ option.name }}
+      </sbb-radio-button>
+    </sbb-radio-group>
+  </sbb-expansion-panel>
+
+  <sbb-expansion-panel [expanded]="true">
+    <sbb-expansion-panel-header>{{
       "app.view.editor-properties-view-component.graphicTimetable" | translate
     }}</sbb-expansion-panel-header>
     <sbb-label>{{
