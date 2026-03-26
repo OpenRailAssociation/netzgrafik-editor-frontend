@@ -98,8 +98,8 @@ describe("Origin Destination CSV Test", () => {
     const res = new Map<string, [number, number]>();
     nodes.forEach((origin) => {
       computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
-        (value, key) => {
-          res.set([origin.getId(), key].join(","), value);
+        ([cost, connections, _trainrunSectionIds], key) => {
+          res.set([origin.getId(), key].join(","), [cost, connections]);
         },
       );
     });
@@ -149,8 +149,8 @@ describe("Origin Destination CSV Test", () => {
     const res = new Map<string, [number, number]>();
     nodes.forEach((origin) => {
       computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
-        (value, key) => {
-          res.set([origin.getId(), key].join(","), value);
+        ([cost, connections, _trainrunSectionIds], key) => {
+          res.set([origin.getId(), key].join(","), [cost, connections]);
         },
       );
     });
@@ -206,8 +206,8 @@ describe("Origin Destination CSV Test", () => {
     const res = new Map<string, [number, number]>();
     nodes.forEach((origin) => {
       computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
-        (value, key) => {
-          res.set([origin.getId(), key].join(","), value);
+        ([cost, connections, _trainrunSectionIds], key) => {
+          res.set([origin.getId(), key].join(","), [cost, connections]);
         },
       );
     });
@@ -260,8 +260,8 @@ describe("Origin Destination CSV Test", () => {
     const res = new Map<string, [number, number]>();
     nodes.forEach((origin) => {
       computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
-        (value, key) => {
-          res.set([origin.getId(), key].join(","), value);
+        ([cost, connections, _trainrunSectionIds], key) => {
+          res.set([origin.getId(), key].join(","), [cost, connections]);
         },
       );
     });
@@ -313,7 +313,7 @@ describe("Origin Destination CSV Test", () => {
     const distances0 = computeShortestPaths(0, neighbors, topoVertices, tsSuccessor);
 
     expect(distances0).toHaveSize(1);
-    expect(distances0.get(1)).toEqual([15, 0]);
+    expect(distances0.get(1)).toEqual([15, 0, [0]]);
   });
 
   it("connection unit test", () => {
@@ -372,18 +372,60 @@ describe("Origin Destination CSV Test", () => {
 
     const distances0 = computeShortestPaths(0, neighbors, topoVertices, tsSuccessor);
     expect(distances0).toHaveSize(2);
-    expect(distances0.get(1)).toEqual([15, 0]);
-    expect(distances0.get(2)).toEqual([30, 0]);
+    expect(distances0.get(1)).toEqual([15, 0, [0]]);
+    expect(distances0.get(2)).toEqual([30, 0, [0, 1]]);
 
     const distances1 = computeShortestPaths(1, neighbors, topoVertices, tsSuccessor);
     expect(distances1).toHaveSize(1);
-    expect(distances1.get(2)).toEqual([14, 0]);
+    expect(distances1.get(2)).toEqual([14, 0, [1]]);
 
     const distances3 = computeShortestPaths(3, neighbors, topoVertices, tsSuccessor);
     expect(distances3).toHaveSize(2);
-    expect(distances3.get(1)).toEqual([10, 0]);
+    expect(distances3.get(1)).toEqual([10, 0, [2]]);
     // connection
-    expect(distances3.get(2)).toEqual([30 + 5, 1]);
+    expect(distances3.get(2)).toEqual([30 + 5, 1, [2, 1]]);
+  });
+
+  it("tiebreaker prefers fewer connections when costs are equal", () => {
+    // Graph: node 0 -> node 1 -> node 2
+    // Trainrun 0 goes 0->1->2 (no transfer at node 1).
+    // Trainrun 1 also goes 1->2 with equal cost, but requires a transfer at node 1.
+    // The tiebreaker should prefer trainrun 0 (0 connections) over trainrun 1 (1 connection).
+
+    // trainrun 0: node 0 -> node 1 (section 0), node 1 -> node 2 (section 1)
+    const v1 = new Vertex(0, true);
+    const v2 = new Vertex(0, true, 0, 0, 0);
+    const v3 = new Vertex(1, false, 10, 0, 0);
+    const v4 = new Vertex(1, true, 11, 0, 1);
+    const v5 = new Vertex(2, false, 21, 0, 1);
+    const v6 = new Vertex(2, false);
+    const e1 = new Edge(v1, v2, 0);
+    const e2 = new Edge(v2, v3, 10);
+    const e3 = new Edge(v3, v4, 1); // same-train continuation
+    const e4 = new Edge(v4, v5, 10);
+    const e5 = new Edge(v5, v6, 0);
+
+    // trainrun 1: node 1 -> node 2 (section 2), same total cost but requires transfer
+    const v7 = new Vertex(1, true, 12, 1, 2);
+    const v8 = new Vertex(2, false, 21, 1, 2);
+    const e6 = new Edge(v3, v7, 1); // transfer from trainrun 0 to trainrun 1
+    const e7 = new Edge(v7, v8, 10);
+    const e8 = new Edge(v8, v6, 0);
+
+    // convenience
+    const v9 = new Vertex(1, false);
+    const e9 = new Edge(v3, v9, 0);
+
+    const edges = [e1, e2, e3, e4, e5, e6, e7, e8, e9];
+    const tsSuccessor = new Map<number, number>([[0, 1]]);
+
+    const neighbors = computeNeighbors(edges);
+    const topoVertices = topoSort(neighbors);
+    const distances = computeShortestPaths(0, neighbors, topoVertices, tsSuccessor);
+
+    // Node 2 should be reached via trainrun 0 (sections [0, 1], 0 connections),
+    // not via trainrun 1 (sections [0, 2], 1 connection).
+    expect(distances.get(2)).toEqual([21, 0, [0, 1]]);
   });
 
   it("round trips and one-ways test", () => {
@@ -412,8 +454,8 @@ describe("Origin Destination CSV Test", () => {
     const res = new Map<string, [number, number]>();
     nodes.forEach((origin) => {
       computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
-        (value, key) => {
-          res.set([origin.getId(), key].join(","), value);
+        ([cost, connections, _trainrunSectionIds], key) => {
+          res.set([origin.getId(), key].join(","), [cost, connections]);
         },
       );
     });
