@@ -71,8 +71,8 @@ export class OriginDestinationService {
     const res = new Map<string, [number, number]>();
     odNodes.forEach((origin) => {
       computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
-        (value, key) => {
-          res.set([origin.getId(), key].join(","), value);
+        ([cost, connections, _trainrunSectionIds], key) => {
+          res.set([origin.getId(), key].join(","), [cost, connections]);
         },
       );
     });
