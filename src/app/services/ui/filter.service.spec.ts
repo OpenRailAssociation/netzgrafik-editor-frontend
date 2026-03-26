@@ -12,7 +12,7 @@ import {LogPublishersService} from "../../logger/log.publishers.service";
 import {LabelGroupService} from "../data/labelgroup.service";
 import {LabelService} from "../data/label.service";
 import {NetzgrafikUnitTesting} from "../../../integration-testing/netzgrafik.unit.testing";
-import {FilterService} from "../ui/filter.service";
+import {FilterService} from "./filter.service";
 import {AnalyticsService} from "../analytics/analytics.service";
 import {NetzgrafikColoringService} from "../data/netzgrafikColoring.service";
 import {FilterSetting} from "../../models/filterSettings.model";
@@ -69,12 +69,7 @@ describe("FilterService", () => {
       netzgrafikColoringService,
     );
     nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
-    analyticsService = new AnalyticsService(
-      nodeService,
-      trainrunSectionService,
-      trainrunService,
-      filterService,
-    );
+    analyticsService = new AnalyticsService(nodeService, trainrunSectionService, trainrunService);
 
     nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
     trainrunSectionService.trainrunSections.subscribe(

@@ -60,12 +60,7 @@ describe("UiInteractionService", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    analyticsService = new AnalyticsService(
-      nodeService,
-      trainrunSectionService,
-      trainrunService,
-      filterService,
-    );
+    analyticsService = new AnalyticsService(nodeService, trainrunSectionService, trainrunService);
     netzgrafikColoringService = new NetzgrafikColoringService(logService);
     dataService = new DataService(
       resourceService,
