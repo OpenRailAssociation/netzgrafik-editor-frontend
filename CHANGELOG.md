@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.11.0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.19...netzgrafik-frontend-v2.11.0) (2026-03-29)
+
+
+### Features
+
+* add port ordering algorithm to minimize crossings ([143a7a7](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/143a7a7daef9f2e63acd7820aa1fed157a41c40c))
+* integrate new port ordering into UI ([#635](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/635)) ([87cf7cb](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/87cf7cb9396eeb428e8ef818fbb01597ff26e5a1))
+* **models:** add helpers to Port and Transition ([a395aed](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/a395aed1edc845ded1cb6145a203c8ab7a07336d))
+
+
+### Bug Fixes
+
+* use HashLocationStrategy for standalone mode ([e8a155a](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/e8a155ae22578f793f1b325048574c805e097af6))
+
 ## [2.10.19](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.18...netzgrafik-frontend-v2.10.19) (2026-03-11)
 
 
