@@ -396,6 +396,7 @@ export class TrainrunSectionService implements OnDestroy {
     }
     this.iterateAlongTrainrunUntilEndAndPropagateTime(fromNode, trainrunSectionId);
     this.trainrunSectionsUpdated();
+    this.operation.emit(new TrainrunOperation(OperationType.update, trainrunSection.getTrainrun()));
   }
 
   propagateTrainrunSectionTime(
