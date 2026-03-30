@@ -307,7 +307,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     const depTime = fromNode.getDepartureConsecutiveTime(trainrunSection);
 
     let wendeTime =
-      (Math.max(trainrun.getFrequency(), 60) - 2 * fromNode.getArrivalTime(trainrunSection)) %
+      (fromNode.getDepartureTime(trainrunSection) - fromNode.getArrivalTime(trainrunSection)) %
       trainrun.getFrequency();
     if (wendeTime < 0) {
       wendeTime += trainrun.getFrequency();
@@ -326,7 +326,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     const arrTime = toNode.getArrivalConsecutiveTime(trainrunSection);
 
     let wendeTime =
-      (Math.max(trainrun.getFrequency(), 60) - 2 * toNode.getArrivalTime(trainrunSection)) %
+      (toNode.getDepartureTime(trainrunSection) - toNode.getArrivalTime(trainrunSection)) %
       trainrun.getFrequency();
     if (wendeTime < 0) {
       wendeTime += trainrun.getFrequency();
