@@ -77,12 +77,6 @@ export interface GTFSCalendar {
   end_date: string;
 }
 
-export interface GTFSCalendarDate {
-  service_id: string;
-  date: string; // YYYYMMDD
-  exception_type: string; // 1 = added, 2 = removed
-}
-
 export interface GTFSData {
   agencies: GTFSAgency[];
   allAgencies?: GTFSAgency[];  // All agencies before filtering
@@ -91,7 +85,6 @@ export interface GTFSData {
   trips: GTFSTrip[];
   stopTimes: GTFSStopTime[];
   calendar?: GTFSCalendar[];
-  calendarDates?: GTFSCalendarDate[];
 }
 
 /**
@@ -148,7 +141,7 @@ export class GTFSParserService {
       }
       
       if (!routeStopTimes || routeStopTimes.length === 0) {
-        route.frequency = GTFSParserService.normalizeFrequency(60); // Default 60 minutes
+        route.frequency = 60; // Default 60 minutes
         // Try to find a sample trip for this route
         const routeTrip = trips.find(t => t.route_id === route.route_id);
         if (routeTrip) {
@@ -168,16 +161,17 @@ export class GTFSParserService {
         }
       }
       
-      // Sort departure times
+      // Sort departure times and get sample trip
       const tripDepartures = Array.from(tripFirstStops.entries()).sort((a, b) => a[1] - b[1]);
       const departures = tripDepartures.map(td => td[1]);
       
+      // Set sample trip (first trip in time window)
+      if (tripDepartures.length > 0) {
+        route.sample_trip_id = tripDepartures[0][0];
+      }
+      
       if (departures.length < 2) {
-        route.frequency = GTFSParserService.normalizeFrequency(60);
-        // Set sample trip (just use first one if only one trip)
-        if (tripDepartures.length > 0) {
-          route.sample_trip_id = tripDepartures[0][0];
-        }
+        route.frequency = 60;
         continue;
       }
       
@@ -191,70 +185,17 @@ export class GTFSParserService {
       const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
       
       // Round to nearest standard frequency
-      let calculatedFreq: number;
       if (avgInterval <= 17) {
-        calculatedFreq = 15;
+        route.frequency = 15;
       } else if (avgInterval <= 25) {
-        calculatedFreq = 20;
+        route.frequency = 20;
       } else if (avgInterval <= 45) {
-        calculatedFreq = 30;
+        route.frequency = 30;
       } else if (avgInterval <= 90) {
-        calculatedFreq = 60;
-      } else if (avgInterval <= 150) {
-        calculatedFreq = 120;
+        route.frequency = 60;
       } else {
-        // >150 minutes = 121 (120+, odd hours)
-        calculatedFreq = 121;
+        route.frequency = 120;
       }
-      route.frequency = GTFSParserService.normalizeFrequency(calculatedFreq);
-      
-      // Select representative trip based on frequency pattern
-      // For each frequency, pick trip that departs at the "correct" minute/hour pattern
-      let selectedTrip: string | undefined;
-      
-      for (const [tripId, depMinutes] of tripDepartures) {
-        const hour = Math.floor(depMinutes / 60);
-        const minute = depMinutes % 60;
-        
-        let matches = false;
-        
-        switch (route.frequency) {
-          case 15:
-            // 4x/hour: :00, :15, :30, :45
-            matches = (minute === 0 || minute === 15 || minute === 30 || minute === 45);
-            break;
-          case 20:
-            // 3x/hour: :00, :20, :40
-            matches = (minute === 0 || minute === 20 || minute === 40);
-            break;
-          case 30:
-            // 2x/hour: :00, :30
-            matches = (minute === 0 || minute === 30);
-            break;
-          case 60:
-            // 1x/hour: :00
-            matches = (minute === 0);
-            break;
-          case 120:
-            // 120 min: even hours (00, 02, 04, ...)
-            matches = (minute === 0 && hour % 2 === 0);
-            break;
-          case 121:
-            // 120+ min: odd hours (01, 03, 05, ...)
-            matches = (minute === 0 && hour % 2 === 1);
-            break;
-          default:
-            matches = true; // Fallback: accept any trip
-        }
-        
-        if (matches) {
-          selectedTrip = tripId;
-          break; // Take first matching trip
-        }
-      }
-      
-      // Fallback: if no trip matches the pattern, use first trip
-      route.sample_trip_id = selectedTrip || tripDepartures[0][0];
     }
     
     // Log frequency distribution
@@ -264,7 +205,6 @@ export class GTFSParserService {
       30: routes.filter(r => r.frequency === 30).length,
       60: routes.filter(r => r.frequency === 60).length,
       120: routes.filter(r => r.frequency === 120).length,
-      '120+': routes.filter(r => r.frequency === 121).length,
     };
     console.log('  ✓ Calculated frequencies for', routes.length, 'routes');
     console.log('  📊 Frequency distribution:', freqDist);
@@ -457,72 +397,6 @@ export class GTFSParserService {
   }
 
   /**
-   * Lightweight GTFS parser - only reads agencies and routes for filter autocomplete
-   * Much faster than full parse, used to populate filter options quickly
-   * @param file The ZIP file containing GTFS data
-   * @param allowedRouteTypes Optional array of GTFS route_type values to filter
-   * @returns Promise with agencies and routes
-   */
-  async parseGTFSZipLight(file: File, allowedRouteTypes?: number[]): Promise<{ 
-    agencies: GTFSAgency[], 
-    routes: GTFSRoute[]
-  }> {
-    console.log('⚡ GTFS Light Parser: Quick scan for filter options');
-    console.log('📦 ZIP file size:', (file.size / 1024 / 1024).toFixed(2), 'MB');
-    
-    const zip = new JSZip();
-    const zipContent = await zip.loadAsync(file);
-    console.log('✅ ZIP opened');
-
-    const result = {
-      agencies: [] as GTFSAgency[],
-      routes: [] as GTFSRoute[]
-    };
-
-    // Parse agency.txt only
-    console.log('🏢 Reading agency.txt...');
-    const agencyFile = zipContent.file("agency.txt");
-    if (agencyFile) {
-      const agencyText = await agencyFile.async("text");
-      result.agencies = this.parseCSV<GTFSAgency>(agencyText);
-      console.log('  ✓ Found', result.agencies.length, 'agencies');
-    }
-
-    // Parse routes.txt only (for categories)
-    console.log('🚂 Reading routes.txt...');
-    const routesFile = zipContent.file("routes.txt");
-    if (routesFile) {
-      const routesText = await routesFile.async("text");
-      result.routes = this.parseCSV<GTFSRoute>(routesText);
-      console.log('  ✓ Found', result.routes.length, 'routes');
-      
-      // Apply route type filter if specified
-      if (allowedRouteTypes && allowedRouteTypes.length > 0) {
-        const beforeFilter = result.routes.length;
-        result.routes = result.routes.filter(route => {
-          const routeType = parseInt(route.route_type?.toString() || '3', 10);
-          return allowedRouteTypes.includes(routeType);
-        });
-        console.log('  🔍 Filtered to', result.routes.length, 'routes by type (removed', beforeFilter - result.routes.length, ')');
-      }
-    }
-
-    console.log('⚡ Light parse complete - ready for filter autocomplete');
-    return result;
-  }
-
-  /**
-   * Helper: Parse GTFS date string (YYYYMMDD) to Date object
-   */
-  private parseGTFSDate(dateStr: string): Date | null {
-    if (!dateStr || dateStr.length !== 8) return null;
-    const year = parseInt(dateStr.substring(0, 4));
-    const month = parseInt(dateStr.substring(4, 6)) - 1; // 0-based
-    const day = parseInt(dateStr.substring(6, 8));
-    return new Date(year, month, day);
-  }
-
-  /**
    * Parse multiple GTFS files from a ZIP file
    * @param file The ZIP file containing GTFS data
    * @param allowedRouteTypes Optional array of GTFS route_type values to filter (e.g., [0, 1, 2] for tram, metro, rail)
@@ -667,9 +541,11 @@ export class GTFSParserService {
         console.log('  🔍 Filtered to', gtfsData.trips.length, 'trips (removed', beforeFilter - gtfsData.trips.length, 'trips)');
       }
       
-      // Keep ALL trips - will select most frequent per route AFTER parsing stop_times
-      console.log('  💡 Keeping all', gtfsData.trips.length, 'trips');
-      console.log('  💡 Will select most frequent trip (8-16h) per route AFTER parsing stop_times');
+      // Reduce trips to representatives (one per route/direction) to save memory
+      console.log('  🔄 Analyzing trip patterns and reducing to representatives...');
+      const reducedTrips = this.reduceTripsToRepresentatives(gtfsData.trips, gtfsData.routes);
+      console.log('  ✓ Reduced to', reducedTrips.length, 'representative trips (removed', gtfsData.trips.length - reducedTrips.length, 'trips)');
+      gtfsData.trips = reducedTrips;
     } else {
       console.warn('  ⚠️  trips.txt not found in ZIP');
     }
@@ -681,10 +557,13 @@ export class GTFSParserService {
     
     if (stopTimesFile) {
       try {
-        console.log('  ℹ️  Streaming stop_times for', gtfsData.trips.length, 'trips');
+        console.log('  ℹ️  Streaming stop_times for', gtfsData.trips.length, 'representative trips');
+        console.log('  ℹ️  Filtering to 4-hour time window (06:00-10:00) to reduce memory usage');
         
         // Create Set of allowed trip IDs for fast lookup
         const allowedTripIds = new Set(gtfsData.trips.map(t => t.trip_id));
+        const minTime = 6 * 60;   // 06:00 in minutes
+        const maxTime = 10 * 60;  // 10:00 in minutes
         
         // Use arraybuffer and process in chunks to avoid string length limit
         const chunkSize = 10 * 1024 * 1024; // 10MB chunks
@@ -735,6 +614,20 @@ export class GTFSParserService {
             // Quick filter: only process if trip_id matches
             if (!allowedTripIds.has(tripId)) continue;
             
+            // Get departure time
+            let depTime = '';
+            if (departureTimeIndex >= 0 && departureTimeIndex < values.length) {
+              depTime = values[departureTimeIndex].trim().replace(/['"]/g, '');
+            } else if (arrivalTimeIndex >= 0 && arrivalTimeIndex < values.length) {
+              depTime = values[arrivalTimeIndex].trim().replace(/['"]/g, '');
+            }
+            
+            // Filter by time window
+            if (depTime) {
+              const minutes = GTFSParserService.timeToMinutes(depTime);
+              if (minutes < minTime || minutes > maxTime) continue;
+            }
+            
             // Parse full record
             const record: any = {};
             for (let i = 0; i < header.length && i < values.length; i++) {
@@ -774,29 +667,13 @@ export class GTFSParserService {
       console.log('  ℹ️  calendar.txt not found (optional)');
     }
 
-    // Parse calendar_dates.txt (optional)
-    console.log('📅 Parsing calendar_dates.txt (optional)...');
-    const calendarDatesFile = zipContent.file("calendar_dates.txt");
-    if (calendarDatesFile) {
-      const calendarDatesText = await calendarDatesFile.async("text");
-      gtfsData.calendarDates = this.parseCSV<GTFSCalendarDate>(calendarDatesText);
-      console.log('  ✓ Parsed', gtfsData.calendarDates.length, 'calendar_dates entries');
-    } else {
-      console.log('  ℹ️  calendar_dates.txt not found (optional)');
-    }
-
     // Post-processing: Calculate frequencies and classify nodes
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('POST-PROCESSING: ANALYSIS & ENRICHMENT');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     
     if (gtfsData.stopTimes.length > 0) {
-      // Select most frequent trip per route (8-16h window, includes frequency calculation)
-      console.log('📊 Analyzing trip patterns across all days...');
-      this.selectMostFrequentTripPatterns(gtfsData);
-      console.log('  ℹ️  Frequencies calculated during pattern selection (8-16h window)');
-      
-      // Always classify nodes
+      this.calculateRouteFrequencies(gtfsData.routes, gtfsData.trips, gtfsData.stopTimes);
       this.classifyNodes(gtfsData.stops, gtfsData.stopTimes, gtfsData.trips);
     } else {
       console.warn('  ⚠️  Skipping frequency calculation and node classification (no stop_times data)');
@@ -813,199 +690,6 @@ export class GTFSParserService {
     });
 
     return gtfsData;
-  }
-
-  /**
-   * Select most frequent trip pattern per route+direction
-   * Analyzes ALL trips across all service days to find the most common pattern
-   * Filters to 8-16h time window per Swiss GTFS standards
-   * @param gtfsData GTFS data to filter in-place
-   */
-  private selectMostFrequentTripPatterns(gtfsData: GTFSData): void {
-    console.log('🔍 Selecting most frequent trip patterns per route (all days)...');
-    console.log('⏰ Time window: 08:00-16:00 (must start in this window)');
-    
-    const TIME_WINDOW_START = 8 * 60;  // 08:00
-    const TIME_WINDOW_END = 16 * 60;   // 16:00
-    
-    // Build trip_id -> stop_sequence pattern mapping
-    const tripPatterns = new Map<string, string>();
-    const tripFirstDeparture = new Map<string, number>(); // trip_id -> first departure time in minutes
-    
-    // Build full patterns (sorted stop_ids) and extract first departure time
-    const tripStopTimes = new Map<string, GTFSStopTime[]>();
-    for (const st of gtfsData.stopTimes) {
-      if (!tripStopTimes.has(st.trip_id)) {
-        tripStopTimes.set(st.trip_id, []);
-      }
-      tripStopTimes.get(st.trip_id)!.push(st);
-    }
-    
-    for (const [tripId, stopTimes] of tripStopTimes.entries()) {
-      const sorted = stopTimes.sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence));
-      const pattern = sorted.map(st => st.stop_id).join(',');
-      tripPatterns.set(tripId, pattern);
-      
-      // Extract first departure time
-      if (sorted.length > 0) {
-        const firstStop = sorted[0];
-        const depTime = firstStop.departure_time || firstStop.arrival_time;
-        if (depTime) {
-          tripFirstDeparture.set(tripId, GTFSParserService.timeToMinutes(depTime));
-        }
-      }
-    }
-    
-    // Group trips by route_id + direction_id
-    const routeGroups = new Map<string, GTFSTrip[]>();
-    for (const trip of gtfsData.trips) {
-      const key = `${trip.route_id}|${trip.direction_id || '0'}`;
-      if (!routeGroups.has(key)) {
-        routeGroups.set(key, []);
-      }
-      routeGroups.get(key)!.push(trip);
-    }
-    
-    console.log('  📊 Analyzing', routeGroups.size, 'route+direction combinations');
-    
-    // For each group, find most frequent pattern AND calculate frequency
-    const selectedTripIds = new Set<string>();
-    let totalPatternsByRoute = 0;
-    let totalTripsKept = 0;
-    let tripsInTimeWindow = 0;
-    let tripsOutsideWindow = 0;
-    
-    for (const [routeKey, trips] of routeGroups.entries()) {
-      // Filter trips to time window (8-16h)
-      const tripsInWindow = trips.filter(trip => {
-        const depTime = tripFirstDeparture.get(trip.trip_id);
-        return depTime !== undefined && depTime >= TIME_WINDOW_START && depTime < TIME_WINDOW_END;
-      });
-      
-      tripsInTimeWindow += tripsInWindow.length;
-      tripsOutsideWindow += (trips.length - tripsInWindow.length);
-      
-      // If no trips in time window, skip this route
-      if (tripsInWindow.length === 0) {
-        console.log(`  ⚠️  Route ${routeKey}: No trips in 8-16h window, skipping`);
-        continue;
-      }
-      
-      // Count pattern frequencies (only in time window)
-      const patternCounts = new Map<string, number>();
-      const patternExamples = new Map<string, string[]>(); // pattern -> array of trip_ids
-      
-      for (const trip of tripsInWindow) {
-        const pattern = tripPatterns.get(trip.trip_id);
-        if (pattern) {
-          patternCounts.set(pattern, (patternCounts.get(pattern) || 0) + 1);
-          if (!patternExamples.has(pattern)) {
-            patternExamples.set(pattern, []);
-          }
-          patternExamples.get(pattern)!.push(trip.trip_id);
-        }
-      }
-      
-      if (patternCounts.size === 0) continue;
-      
-      // Find most frequent pattern
-      let maxCount = 0;
-      let mostFrequentPattern = '';
-      for (const [pattern, count] of patternCounts.entries()) {
-        if (count > maxCount) {
-          maxCount = count;
-          mostFrequentPattern = pattern;
-        }
-      }
-      
-      // Get all trips with most frequent pattern
-      const representativeTrips = patternExamples.get(mostFrequentPattern) || [];
-      
-      // Calculate frequency: Count how often this pattern appears (across all days)
-      // This represents the frequency over the entire GTFS validity period
-      const departureTimes = representativeTrips
-        .map(tid => tripFirstDeparture.get(tid))
-        .filter(t => t !== undefined)
-        .sort((a, b) => a! - b!);
-      
-      let frequency = 60; // default
-      if (departureTimes.length >= 2) {
-        // Count unique departure times (same time = same takt)
-        const uniqueTimes = new Set(departureTimes);
-        
-        // If many trips with same departure time → high frequency
-        // Average trips per unique time gives us frequency indicator
-        const tripsPerTime = representativeTrips.length / uniqueTimes.size;
-        
-        // Calculate intervals between unique departure times
-        const uniqueTimesArray = Array.from(uniqueTimes).sort((a, b) => a - b);
-        const intervals: number[] = [];
-        for (let i = 1; i < uniqueTimesArray.length; i++) {
-          intervals.push(uniqueTimesArray[i] - uniqueTimesArray[i-1]);
-        }
-        
-        if (intervals.length > 0) {
-          const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-          
-          // Round to standard frequencies
-          if (avgInterval <= 17) frequency = 15;
-          else if (avgInterval <= 25) frequency = 20;
-          else if (avgInterval <= 45) frequency = 30;
-          else if (avgInterval <= 90) frequency = 60;
-          else if (avgInterval <= 150) frequency = 120;
-          else frequency = 121; // 120+
-        }
-      }
-      // Normalize frequency to ensure only valid values are used
-      frequency = GTFSParserService.normalizeFrequency(frequency);
-      
-      // Select ONE representative trip (prefer one in middle of time window)
-      let representativeTripId = representativeTrips[0];
-      if (representativeTrips.length > 1) {
-        // Find trip closest to 12:00 (middle of day)
-        const midDay = 12 * 60;
-        let minDiff = Infinity;
-        for (const tid of representativeTrips) {
-          const depTime = tripFirstDeparture.get(tid);
-          if (depTime !== undefined) {
-            const diff = Math.abs(depTime - midDay);
-            if (diff < minDiff) {
-              minDiff = diff;
-              representativeTripId = tid;
-            }
-          }
-        }
-      }
-      
-      if (representativeTripId) {
-        selectedTripIds.add(representativeTripId);
-        totalTripsKept++;
-        
-        // Store frequency in route (for later use)
-        const route = gtfsData.routes.find(r => r.route_id === routeKey.split('|')[0]);
-        if (route && !route.frequency) {
-          route.frequency = GTFSParserService.normalizeFrequency(frequency);
-        }
-      }
-      
-      totalPatternsByRoute += patternCounts.size;
-      
-      // Debug: Show pattern analysis for this route
-      if (patternCounts.size > 1 || maxCount > 5) {
-        console.log(`  📋 Route ${routeKey}: ${patternCounts.size} patterns, freq=${frequency}min (${maxCount} trips), selected trip @${GTFSParserService.minutesToTime(tripFirstDeparture.get(representativeTripId!) || 0)}`);
-      }
-    }
-    
-    // Filter trips and stopTimes
-    const beforeTrips = gtfsData.trips.length;
-    gtfsData.trips = gtfsData.trips.filter(trip => selectedTripIds.has(trip.trip_id));
-    const beforeStopTimes = gtfsData.stopTimes.length;
-    gtfsData.stopTimes = gtfsData.stopTimes.filter(st => selectedTripIds.has(st.trip_id));
-    
-    console.log('  ✅ Selected', totalTripsKept, 'representative trips (one per route+direction)');
-    console.log('  📊 Removed', beforeTrips - gtfsData.trips.length, 'trips and', beforeStopTimes - gtfsData.stopTimes.length, 'stop_times');
-    console.log('  ⏰ Time window analysis:', tripsInTimeWindow, 'trips in 8-16h,', tripsOutsideWindow, 'outside');
-    console.log('  📈 Average patterns per route:', (totalPatternsByRoute / routeGroups.size).toFixed(1));
   }
 
   /**
@@ -1043,87 +727,5 @@ export class GTFSParserService {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
-  }
-
-  /**
-   * Normalize frequency to standard values: 15, 20, 30, 60, 120, 121
-   * If frequency is not one of these values, default to 60
-   * @param frequency Frequency value to normalize
-   * @returns Normalized frequency (15, 20, 30, 60, 120, or 121)
-   */
-  private static normalizeFrequency(frequency: number): number {
-    const validFrequencies = [15, 20, 30, 60, 120, 121];
-    if (validFrequencies.includes(frequency)) {
-      return frequency;
-    }
-    console.warn(`  ⚠️  Invalid frequency ${frequency} detected, defaulting to 60`);
-    return 60;
-  }
-
-  /**
-   * Get all service_ids that operate on a specific date
-   * @param dateStr Date in YYYY-MM-DD format
-   * @param calendar Calendar entries
-   * @param calendarDates Calendar dates (exceptions)
-   * @returns Set of service_ids operating on this date
-   */
-  private getServiceIdsForDate(
-    dateStr: string, 
-    calendar: GTFSCalendar[], 
-    calendarDates: GTFSCalendarDate[]
-  ): Set<string> {
-    const serviceIds = new Set<string>();
-    const targetDate = new Date(dateStr);
-    const targetDateStr = dateStr.replace(/-/g, ''); // YYYYMMDD
-    const dayOfWeek = targetDate.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-    
-    console.log('  📅 Analyzing service for date:', dateStr, '(day of week:', dayOfWeek, ')');
-    
-    // Step 1: Check calendar.txt for regular services
-    for (const cal of calendar) {
-      const startDate = this.parseGTFSDate(cal.start_date);
-      const endDate = this.parseGTFSDate(cal.end_date);
-      
-      if (!startDate || !endDate) continue;
-      
-      // Check if date is within service period
-      if (targetDate >= startDate && targetDate <= endDate) {
-        // Check if service runs on this day of week
-        const runsOnDay = (
-          (dayOfWeek === 1 && cal.monday === '1') ||
-          (dayOfWeek === 2 && cal.tuesday === '1') ||
-          (dayOfWeek === 3 && cal.wednesday === '1') ||
-          (dayOfWeek === 4 && cal.thursday === '1') ||
-          (dayOfWeek === 5 && cal.friday === '1') ||
-          (dayOfWeek === 6 && cal.saturday === '1') ||
-          (dayOfWeek === 0 && cal.sunday === '1')
-        );
-        
-        if (runsOnDay) {
-          serviceIds.add(cal.service_id);
-        }
-      }
-    }
-    
-    console.log('  ✓ Found', serviceIds.size, 'services from calendar.txt');
-    
-    // Step 2: Apply calendar_dates.txt exceptions
-    for (const calDate of calendarDates) {
-      if (calDate.date === targetDateStr) {
-        if (calDate.exception_type === '1') {
-          // Service added on this date
-          serviceIds.add(calDate.service_id);
-          console.log('  ➕ Added service from exception:', calDate.service_id);
-        } else if (calDate.exception_type === '2') {
-          // Service removed on this date
-          serviceIds.delete(calDate.service_id);
-          console.log('  ➖ Removed service from exception:', calDate.service_id);
-        }
-      }
-    }
-    
-    console.log('  ✓ Final service count after exceptions:', serviceIds.size);
-    
-    return serviceIds;
   }
 }
