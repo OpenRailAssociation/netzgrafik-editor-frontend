@@ -178,7 +178,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   }
 
   filterAllEmptyNodesChanged() {
-    if (!this.filterAllEmptyNodes) {
+    if (this.filterAllEmptyNodes) {
       this.filterService.enableFilterAllEmptyNodes();
     } else {
       this.filterService.disableFilterAllEmptyNodes();
@@ -186,7 +186,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   }
 
   filterNotesChanged() {
-    if (!this.filterNotes) {
+    if (this.filterNotes) {
       this.filterService.enableFilterNotes();
     } else {
       this.filterService.disableFilterNotes();
@@ -194,7 +194,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   }
 
   filterAllNonStopNodesChanged() {
-    if (!this.filterAllNonStopNodes) {
+    if (this.filterAllNonStopNodes) {
       this.filterService.enableFilterAllNonStopNodes();
     } else {
       this.filterService.disableFilterAllNonStopNodes();
@@ -202,7 +202,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   }
 
   filterDirectionArrowsChanged() {
-    if (this.filterDirectionArrows) {
+    if (!this.filterDirectionArrows) {
       this.filterService.enableFilterDirectionArrows();
     } else {
       this.filterService.disableFilterDirectionArrows();
@@ -210,7 +210,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   }
 
   filterArrivalDepartureTimeChanged() {
-    if (this.filterArrivalDepartureTime) {
+    if (!this.filterArrivalDepartureTime) {
       this.filterService.enableFilterArrivalDepartureTime();
     } else {
       this.filterService.disableFilterArrivalDepartureTime();
@@ -218,7 +218,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   }
 
   filterShowNonStopTimeChanged() {
-    if (this.filterShowNonStopTime) {
+    if (!this.filterShowNonStopTime) {
       this.filterService.enableFilterShowNonStopTime();
     } else {
       this.filterService.disableFilterShowNonStopTime();
@@ -226,7 +226,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   }
 
   filterTravelTimeChanged() {
-    if (this.filterTravelTime) {
+    if (!this.filterTravelTime) {
       this.filterService.enableFilterTravelTime();
     } else {
       this.filterService.disableFilterTravelTime();
@@ -234,7 +234,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   }
 
   filterTrainrunNameChanged() {
-    if (this.filterTrainrunName) {
+    if (!this.filterTrainrunName) {
       this.filterService.enableFilterTrainrunName();
     } else {
       this.filterService.disableFilterTrainrunName();
@@ -242,7 +242,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   }
 
   filterConnectionsChanged() {
-    if (this.filterConnections) {
+    if (!this.filterConnections) {
       this.filterService.enableFilterConnections();
     } else {
       this.filterService.disableFilterConnections();
