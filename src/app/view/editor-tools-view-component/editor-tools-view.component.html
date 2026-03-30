@@ -223,6 +223,38 @@
         </div>
       </div>
 
+      <!-- Agency Filter -->
+      <div style="margin-bottom: 10px; padding: 5px; background-color: #f5f5f5; border-radius: 4px;">
+        <strong>{{ "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-agencies" | translate }}</strong>
+        <div style="margin-top: 5px;">
+          <textarea 
+            [(ngModel)]="gtfsAgencyFilterText" 
+            placeholder="Schweizerische Bundesbahnen SBB, BLS AG"
+            rows="2"
+            style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px; font-family: inherit; font-size: 12px; resize: vertical;"
+            [title]="'app.view.editor-side-view.editor-tools-view-component.gtfs-agency-filter-hint' | translate"
+          ></textarea>
+          <small style="display: block; margin-top: 3px; color: #666;">
+            {{ "app.view.editor-side-view.editor-tools-view-component.gtfs-agency-filter-hint" | translate }}
+          </small>
+          <div *ngIf="gtfsAvailableAgencies.length > 0" style="margin-top: 8px;">
+            <strong style="font-size: 12px; display: block; margin-bottom: 5px;">
+              {{ "app.view.editor-side-view.editor-tools-view-component.gtfs-available-agencies" | translate }} ({{ gtfsAvailableAgencies.length }}):
+            </strong>
+            <div style="max-height: 150px; overflow-y: auto; font-size: 11px; padding: 5px; background: white; border: 1px solid #ddd; border-radius: 3px;">
+              <div *ngFor="let agency of gtfsAvailableAgencies" 
+                   style="padding: 3px 5px; border-bottom: 1px solid #f0f0f0; cursor: pointer;"
+                   (click)="addAgencyToFilter(agency)"
+                   (mouseenter)="$event.target.style.backgroundColor='#e8f4f8'"
+                   (mouseleave)="$event.target.style.backgroundColor='white'"
+                   title="Click to add to filter">
+                {{ agency }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Node/Stop Classification Filter -->
       <div style="margin-bottom: 10px; padding: 5px; background-color: #f5f5f5; border-radius: 4px;">
         <strong>{{ "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-nodes" | translate }}</strong>
@@ -266,309 +298,3 @@
 
 
 </sbb-accordion>
-
-<!-- GTFS Import Progress Overlay -->
-<div *ngIf="gtfsImportOverlayVisible" 
-     style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
-            background-color: rgba(0, 0, 0, 0.7); z-index: 10000; 
-            display: flex; align-items: center; justify-content: center;">
-  <div style="background: white; border-radius: 8px; padding: 20px; 
-              max-width: 900px; width: 90%; max-height: 80vh; 
-              display: flex; flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-    
-    <!-- Header -->
-    <div style="display: flex; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #007bff; padding-bottom: 10px;">
-      <div style="font-size: 20px; font-weight: bold; color: #007bff; flex: 1;">
-        🚆 GTFS Import Progress
-      </div>
-      <div style="font-size: 12px; color: #666;">
-        {{ gtfsImportLogs.length }} Einträge
-      </div>
-    </div>
-    
-    <!-- Phase Overview -->
-    <div style="margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 4px; border: 1px solid #dee2e6;">
-      <div style="font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #495057;">
-        📋 Import Fortschritt
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <div *ngFor="let phase of gtfsImportPhases" 
-             style="display: flex; align-items: center; gap: 10px; padding: 8px; 
-                    border-radius: 4px;"
-             [style.background-color]="phase.status === 'completed' ? '#d4edda' : phase.status === 'running' ? '#fff3cd' : phase.status === 'error' ? '#f8d7da' : 'white'">
-          <!-- Status Icon -->
-          <div style="flex-shrink: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
-            <span *ngIf="phase.status === 'pending'" style="color: #6c757d; font-size: 18px;">⏸️</span>
-            <span *ngIf="phase.status === 'running'" style="color: #ffc107; font-size: 18px;">⏳</span>
-            <span *ngIf="phase.status === 'completed'" style="color: #28a745; font-size: 18px;">✅</span>
-            <span *ngIf="phase.status === 'error'" style="color: #dc3545; font-size: 18px;">❌</span>
-          </div>
-          
-          <!-- Phase Label -->
-          <div style="flex: 1; font-size: 13px;"
-               [style.color]="phase.status === 'completed' ? '#155724' : phase.status === 'running' ? '#856404' : phase.status === 'error' ? '#721c24' : '#6c757d'"
-               [style.font-weight]="phase.status === 'running' ? 'bold' : 'normal'">
-            {{ phase.label }}
-          </div>
-          
-          <!-- Loading Spinner for Running Phase -->
-          <div *ngIf="phase.status === 'running'" 
-               style="width: 16px; height: 16px; border: 2px solid #f3f3f3; 
-                      border-top: 2px solid #ffc107; border-radius: 50%; 
-                      animation: spin 1s linear infinite;">
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Log Container (scrollable) -->
-    <div id="gtfsImportLogContainer"
-         style="flex: 1; overflow-y: auto; background: #f5f5f5; 
-                border: 1px solid #ddd; border-radius: 4px; 
-                padding: 15px; font-family: 'Courier New', monospace; 
-                font-size: 12px; line-height: 1.5; min-height: 300px; max-height: 45vh;">
-      <div *ngFor="let log of gtfsImportLogs" 
-           [style.color]="log.includes('❌') ? '#dc3545' : log.includes('✅') || log.includes('✓') ? '#28a745' : log.includes('⚠️') ? '#ffc107' : log.includes('🔍') || log.includes('📊') || log.includes('🚆') ? '#007bff' : '#333'"
-           style="white-space: pre-wrap; word-break: break-word; margin-bottom: 4px;">
-        {{ log }}
-      </div>
-    </div>
-    
-    <!-- Footer with OK Button (only when complete) -->
-    <div style="margin-top: 15px; text-align: right;">
-      <button *ngIf="gtfsImportComplete"
-              (click)="closeGtfsImportOverlay()" 
-              style="padding: 10px 30px; font-size: 14px; font-weight: bold; 
-                     background-color: #28a745; color: white; border: none; 
-                     border-radius: 4px; cursor: pointer; transition: background-color 0.2s;"
-              onmouseover="this.style.backgroundColor='#218838'"
-              onmouseout="this.style.backgroundColor='#28a745'">
-        ✅ OK
-      </button>
-      <div *ngIf="!gtfsImportComplete"
-           style="padding: 10px 30px; font-size: 13px; color: #6c757d; font-style: italic;">
-        ⏳ Import läuft...
-      </div>
-    </div>
-    
-    <style>
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    </style>
-  </div>
-</div>
-
-<!-- GTFS Filter Dialog -->
-<div *ngIf="gtfsFilterDialogVisible" 
-     style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
-            background-color: rgba(0, 0, 0, 0.7); z-index: 10001; 
-            display: flex; align-items: center; justify-content: center;">
-  <div style="background: white; border-radius: 8px; padding: 25px; 
-              max-width: 900px; width: 90%; max-height: 85vh; 
-              display: flex; flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-    
-    <!-- Header -->
-    <div style="margin-bottom: 20px; border-bottom: 2px solid #007bff; padding-bottom: 15px;">
-      <div style="font-size: 22px; font-weight: bold; color: #007bff;">
-        {{ gtfsDataIsLoading ? '🚆 GTFS Import - Lade Daten...' : '🎛️ GTFS Import Filter' }}
-      </div>
-      <div style="font-size: 13px; color: #666; margin-top: 5px;">
-        {{ gtfsDataIsLoading ? 'Bitte warten Sie, während die GTFS-Daten geladen werden' : 'Wählen Sie die zu importierenden Daten aus' }}
-      </div>
-    </div>
-    
-    <!-- Loading Phase: Show Console Logs -->
-    <div *ngIf="gtfsDataIsLoading" style="flex: 1; display: flex; flex-direction: column;">
-      <!-- Log Container (scrollable) -->
-      <div id="gtfsFilterDialogLogContainer"
-           style="flex: 1; overflow-y: auto; background: #f5f5f5; 
-                  border: 1px solid #ddd; border-radius: 4px; 
-                  padding: 15px; font-family: 'Courier New', monospace; 
-                  font-size: 12px; line-height: 1.5; min-height: 400px; max-height: 60vh;">
-        <div *ngFor="let log of gtfsImportLogs" 
-             [style.color]="log.includes('❌') ? '#dc3545' : log.includes('✅') || log.includes('✓') ? '#28a745' : log.includes('⚠️') ? '#ffc107' : log.includes('🔍') || log.includes('📊') || log.includes('🚆') ? '#007bff' : '#333'"
-             style="white-space: pre-wrap; word-break: break-word; margin-bottom: 4px;">
-          {{ log }}
-        </div>
-      </div>
-      
-      <!-- Footer with Cancel Button -->
-      <div style="margin-top: 15px; text-align: right;">
-        <button (click)="closeGtfsFilterDialog()" 
-                style="padding: 10px 20px; font-size: 14px; font-weight: bold; 
-                       background-color: #6c757d; color: white; border: none; 
-                       border-radius: 4px; cursor: pointer; transition: background-color 0.2s;"
-                onmouseover="this.style.backgroundColor='#5a6268'"
-                onmouseout="this.style.backgroundColor='#6c757d'">
-          Abbrechen
-        </button>
-      </div>
-    </div>
-    
-    <!-- Filter Selection Phase: Show Filter Options -->
-    <div *ngIf="!gtfsDataIsLoading" style="overflow-y: auto;">
-    
-    <!-- Agency Filter (Chip Input + Autocomplete) -->
-    <div style="margin-bottom: 25px;">
-      <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
-        🏢 Verkehrsunternehmen (Agency)
-      </label>
-      
-      <!-- Selected Agencies as Chips -->
-      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; min-height: 36px; 
-                  padding: 8px; background: #f5f5f5; border-radius: 4px; border: 1px solid #ddd;">
-        <span *ngFor="let agency of gtfsSelectedAgencies" 
-              style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; 
-                     background: #007bff; color: white; border-radius: 16px; font-size: 13px;">
-          {{ agency }}
-          <button (click)="removeGtfsAgency(agency)" 
-                  style="background: none; border: none; color: white; cursor: pointer; 
-                         font-size: 16px; line-height: 1; padding: 0; margin: 0;">
-            ×
-          </button>
-        </span>
-        <span *ngIf="gtfsSelectedAgencies.length === 0" 
-              style="color: #999; font-size: 13px; padding: 4px 10px;">
-          Keine Auswahl (alle Unternehmen)
-        </span>
-      </div>
-      
-      <!-- Search Input + Autocomplete -->
-      <div style="position: relative;">
-        <input type="text" 
-               [(ngModel)]="gtfsAgencySearchText"
-               (input)="onGtfsAgencySearch()"
-               placeholder="Suche Verkehrsunternehmen..."
-               style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; 
-                      font-size: 13px; box-sizing: border-box;" />
-        
-        <!-- Autocomplete Dropdown -->
-        <div *ngIf="gtfsAgencySearchText && gtfsFilteredAgencies.length > 0" 
-             style="position: absolute; top: 100%; left: 0; right: 0; background: white; 
-                    border: 1px solid #ccc; border-top: none; border-radius: 0 0 4px 4px; 
-                    max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-          <div *ngFor="let agency of gtfsFilteredAgencies.slice(0, 20)" 
-               (click)="addGtfsAgency(agency)"
-               style="padding: 8px 12px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f0f0f0;"
-               onmouseover="this.style.backgroundColor='#f5f5f5'"
-               onmouseout="this.style.backgroundColor='white'">
-            {{ agency }}
-          </div>
-        </div>
-      </div>
-      
-      <small style="display: block; margin-top: 5px; color: #666; font-size: 12px;">
-        Default: Schweizerische Bundesbahnen SBB (falls vorhanden)
-      </small>
-    </div>
-    
-    <!-- Category Filter (Chip Input + Autocomplete) -->
-    <div style="margin-bottom: 25px;">
-      <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
-        🚆 Zugkategorie (route_desc)
-      </label>
-      
-      <!-- Selected Categories as Chips -->
-      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; min-height: 36px; 
-                  padding: 8px; background: #f5f5f5; border-radius: 4px; border: 1px solid #ddd;">
-        <span *ngFor="let category of gtfsSelectedCategories" 
-              style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; 
-                     background: #28a745; color: white; border-radius: 16px; font-size: 13px;">
-          {{ category }}
-          <button (click)="removeGtfsCategory(category)" 
-                  style="background: none; border: none; color: white; cursor: pointer; 
-                         font-size: 16px; line-height: 1; padding: 0; margin: 0;">
-            ×
-          </button>
-        </span>
-        <span *ngIf="gtfsSelectedCategories.length === 0" 
-              style="color: #999; font-size: 13px; padding: 4px 10px;">
-          Keine Auswahl (alle Kategorien)
-        </span>
-      </div>
-      
-      <!-- Search Input + Autocomplete -->
-      <div style="position: relative;">
-        <input type="text" 
-               [(ngModel)]="gtfsCategorySearchText"
-               (input)="onGtfsCategorySearch()"
-               placeholder="Suche Zugkategorie..."
-               style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; 
-                      font-size: 13px; box-sizing: border-box;" />
-        
-        <!-- Autocomplete Dropdown -->
-        <div *ngIf="gtfsCategorySearchText && gtfsFilteredCategories.length > 0" 
-             style="position: absolute; top: 100%; left: 0; right: 0; background: white; 
-                    border: 1px solid #ccc; border-top: none; border-radius: 0 0 4px 4px; 
-                    max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-          <div *ngFor="let category of gtfsFilteredCategories.slice(0, 20)" 
-               (click)="addGtfsCategory(category)"
-               style="padding: 8px 12px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f0f0f0;"
-               onmouseover="this.style.backgroundColor='#f5f5f5'"
-               onmouseout="this.style.backgroundColor='white'">
-            {{ category }}
-          </div>
-        </div>
-      </div>
-      
-      <small style="display: block; margin-top: 5px; color: #666; font-size: 12px;">
-        Default: EC, IC, IR, RE, S (falls vorhanden). Alle Kategorien sind auswählbar.
-      </small>
-    </div>
-    
-    <!-- Line Filter (Text Input) -->
-    <div style="margin-bottom: 25px;">
-      <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
-        🚂 Linien-Filter (route_short_name)
-      </label>
-      <input type="text" 
-             [(ngModel)]="gtfsLineFilter"
-             placeholder="z.B. IR15, IC1, S1 (komma-getrennt, leer = alle)"
-             style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; 
-                    font-size: 13px; box-sizing: border-box;" />
-      <small style="display: block; margin-top: 5px; color: #666; font-size: 12px;">
-        Optional: Nur bestimmte Linien importieren. Leer = alle Linien.
-      </small>
-    </div>
-    
-    <!-- Available Data Summary / Loading State -->
-    <div style="margin-bottom: 20px; padding: 12px; background: #e7f3ff; border-left: 4px solid #007bff; border-radius: 4px;">
-      <div style="font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #0056b3;">
-        📊 Gefundene Filter-Optionen:
-      </div>
-      <div style="font-size: 12px; color: #333; line-height: 1.6;">
-        • {{ gtfsAvailableAgencies.length }} Verkehrsunternehmen<br/>
-        • {{ gtfsAvailableCategories.length }} Zugkategorien<br/>
-        • {{ gtfsAvailableRoutes.length }} verfügbare Linien
-      </div>
-      <div style="font-size: 11px; color: #666; margin-top: 8px; font-style: italic;">
-        ℹ️ Vollständiges Parsing erfolgt beim Import
-      </div>
-    </div>
-    
-    <!-- Footer Buttons -->
-    <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 15px; border-top: 1px solid #ddd;">
-      <button (click)="closeGtfsFilterDialog()" 
-              style="padding: 10px 20px; font-size: 14px; font-weight: bold; 
-                     background-color: #6c757d; color: white; border: none; 
-                     border-radius: 4px; cursor: pointer; transition: background-color 0.2s;"
-              onmouseover="this.style.backgroundColor='#5a6268'"
-              onmouseout="this.style.backgroundColor='#6c757d'">
-        Abbrechen
-      </button>
-      <button (click)="applyGtfsFiltersAndImport()" 
-              style="padding: 10px 30px; font-size: 14px; font-weight: bold; 
-                     background-color: #28a745; color: white; border: none; 
-                     border-radius: 4px; cursor: pointer; transition: background-color 0.2s;"
-              onmouseover="this.style.backgroundColor='#218838'"
-              onmouseout="this.style.backgroundColor='#28a745'">
-        ✅ Import starten
-      </button>
-    </div>
-    
-    </div><!-- End Filter Selection Phase -->
-    
-  </div>
-</div>
