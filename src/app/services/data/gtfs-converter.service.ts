@@ -66,11 +66,15 @@ export class GTFSConverterService {
     const categories: TrainrunCategory[] = existingMetadata?.trainrunCategories || [];
     const categoryMap = new Map<string, number>();
     
-    // Build existing category name -> ID map
-    const existingCategoryNames = new Map<string, number>();
+    // Build existing category maps (by shortName and name)
+    const existingCategoryByShortName = new Map<string, TrainrunCategory>();
+    const existingCategoryByName = new Map<string, TrainrunCategory>();
     categories.forEach(cat => {
+      if (cat.shortName) {
+        existingCategoryByShortName.set(cat.shortName.toUpperCase(), cat);
+      }
       if (cat.name) {
-        existingCategoryNames.set(cat.name.toUpperCase(), cat.id);
+        existingCategoryByName.set(cat.name.toUpperCase(), cat);
       }
     });
     
@@ -92,12 +96,22 @@ export class GTFSConverterService {
     // Create or find category for each unique description
     uniqueDescriptions.forEach(desc => {
       const normalizedDesc = desc.toUpperCase();
+      const shortDesc = desc.substring(0, 10).toUpperCase();
       
-      if (existingCategoryNames.has(normalizedDesc)) {
-        // Use existing category
-        const categoryId = existingCategoryNames.get(normalizedDesc)!;
-        categoryMap.set(desc, categoryId);
-      } else {
+      // Priority 1: Match by shortName (Abkürzung)
+      if (existingCategoryByShortName.has(shortDesc)) {
+        const existingCategory = existingCategoryByShortName.get(shortDesc)!;
+        categoryMap.set(desc, existingCategory.id);
+        console.log(`    ✓ Reusing existing category by shortName: "${desc}" → "${existingCategory.name}" (ID: ${existingCategory.id})`);
+      }
+      // Priority 2: Match by full name
+      else if (existingCategoryByName.has(normalizedDesc)) {
+        const existingCategory = existingCategoryByName.get(normalizedDesc)!;
+        categoryMap.set(desc, existingCategory.id);
+        console.log(`    ✓ Reusing existing category by name: "${desc}" (ID: ${existingCategory.id})`);
+      }
+      // Create new category
+      else {
         // Create new category with JAHR000i format
         const newId = 2026_0000 + this.categoryIdCounter++;
         const newCategory: TrainrunCategory = {
@@ -114,7 +128,7 @@ export class GTFSConverterService {
         };
         categories.push(newCategory);
         categoryMap.set(desc, newId);
-        console.log(`    ✓ Created new category: ${desc} (ID: ${newId})`);
+        console.log(`    ✓ Created new category: ${desc} (shortName: ${newCategory.shortName}, ID: ${newId})`);
       }
     });
     
@@ -439,6 +453,19 @@ export class GTFSConverterService {
       console.log(`    Route: ${route.route_short_name || route.route_long_name}`);
       console.log(`    Direction: ${pattern.directionId} (0=outbound, 1=inbound)`);
       console.log(`    Stops: ${stopTimes.length}`);
+      
+      // DEBUG: Print raw GTFS route data
+      console.log(`    📋 RAW GTFS ROUTE DATA:`);
+      console.log(`       Route ID: ${route.route_id}`);
+      console.log(`       Route Short Name: ${route.route_short_name || '(none)'}`);
+      console.log(`       Route Long Name: ${route.route_long_name || '(none)'}`);
+      console.log(`       Route Desc: ${route.route_desc || '(none)'}`);
+      console.log(`       Route Type: ${route.route_type}`);
+      console.log(`       Route Color: ${route.route_color || '(none)'}`);
+      console.log(`       Agency ID: ${route.agency_id || '(none)'}`);
+      console.log(`       Frequency: ${route.frequency || '(calculated)'} min`);
+      console.log(`       Sample Trip ID: ${route.sample_trip_id || '(none)'}`);
+      console.log(`    ─────────────────────────────────────────────────────────────`);
 
       // Get category and frequency IDs
       const routeDesc = route.route_desc || route.route_short_name || 'Train';
@@ -461,46 +488,155 @@ export class GTFSConverterService {
       trainruns.push(trainrun);
       console.log(`    ✓ Created trainrun #${trainrun.id}: ${trainrun.name} (category: ${routeDesc}, freq: ${route.frequency || 'default'})`);
 
+      // DEBUG: Print raw GTFS trip data
+      console.log(`    📋 RAW GTFS TRIP DATA:`);
+      console.log(`       Trip ID: ${representativeTrip.trip_id}`);
+      console.log(`       Trip Headsign: ${representativeTrip.trip_headsign || '(none)'}`);
+      console.log(`       Trip Short Name: ${representativeTrip.trip_short_name || '(none)'}`);
+      console.log(`       Service ID: ${representativeTrip.service_id}`);
+      console.log(`       Block ID: ${representativeTrip.block_id || '(none)'}`);
+      console.log(`    📋 RAW STOP_TIMES (${stopTimes.length} stops):`);
+      stopTimes.forEach((st, idx) => {
+        const stop = gtfsData.stops.find(s => s.stop_id === st.stop_id);
+        const stopName = stop ? stop.stop_name : st.stop_id;
+        const parentStation = stop?.parent_station ? `(parent: ${stop.parent_station})` : '(no parent)';
+        const pickup = st.pickup_type === '1' ? '🚫board' : '✅board';
+        const dropoff = st.drop_off_type === '1' ? '🚫alight' : '✅alight';
+        const times = `arr:${st.arrival_time} dep:${st.departure_time}`;
+        console.log(`       ${(idx + 1).toString().padStart(2, '0')}. seq:${st.stop_sequence.padStart(3, ' ')} | ${stopName.padEnd(30)} | ${times.padEnd(25)} | ${pickup} ${dropoff} ${parentStation}`);
+      });
+      console.log(`    ─────────────────────────────────────────────────────────────`);
 
       // Create trainrun sections
+      // Process all stations in sequence, including non-stop (through) stations
       let sectionsCreated = 0;
-      for (let i = 0; i < stopTimes.length - 1; i++) {
-        const currentStop = stopTimes[i];
-        const nextStop = stopTimes[i + 1];
-
-        const sourceNodeId = nodeIdMap.get(currentStop.stop_id);
-        const targetNodeId = nodeIdMap.get(nextStop.stop_id);
-
-        if (!sourceNodeId || !targetNodeId) {
-          console.warn(`      ⚠️  Section ${i}: Node mapping not found (source: ${currentStop.stop_id}→${sourceNodeId || 'missing'}, target: ${nextStop.stop_id}→${targetNodeId || 'missing'})`);
-          continue;
+      
+      // Group consecutive stops by station (parent_station)
+      // Each group represents one station with potentially multiple platforms
+      const stationGroups: {
+        nodeId: number;
+        stops: GTFSStopTime[];
+        isStop: boolean; // true if at least one platform allows boarding/alighting
+      }[] = [];
+      
+      let currentGroup: typeof stationGroups[0] | null = null;
+      
+      for (const stopTime of stopTimes) {
+        const nodeId = nodeIdMap.get(stopTime.stop_id);
+        if (!nodeId) continue;
+        
+        // Check if this is an actual stop (not a through-run)
+        const isStop = stopTime.pickup_type !== '1' || stopTime.drop_off_type !== '1';
+        
+        if (!currentGroup || currentGroup.nodeId !== nodeId) {
+          // Start a new station group
+          if (currentGroup) {
+            stationGroups.push(currentGroup);
+          }
+          currentGroup = {
+            nodeId,
+            stops: [stopTime],
+            isStop: isStop
+          };
+        } else {
+          // Add to current group
+          currentGroup.stops.push(stopTime);
+          // If ANY platform in this station allows boarding/alighting, mark as stop
+          currentGroup.isStop = currentGroup.isStop || isStop;
         }
-
-        const departureTime = GTFSParserService.timeToMinutes(currentStop.departure_time);
-        const arrivalTime = GTFSParserService.timeToMinutes(nextStop.arrival_time);
+      }
+      
+      // Don't forget the last group
+      if (currentGroup) {
+        stationGroups.push(currentGroup);
+      }
+      
+      console.log(`    Station groups: ${stationGroups.length} (${stationGroups.filter(g => g.isStop).length} stops, ${stationGroups.filter(g => !g.isStop).length} through)`);
+      
+      // DEBUG: Print stop sequence with station names
+      console.log(`    📍 STOP SEQUENCE for ${trainrunName}:`);
+      stationGroups.forEach((group, idx) => {
+        // Get node info
+        const node = nodes.find(n => n.id === group.nodeId);
+        const nodeName = node ? node.betriebspunktName : `Node#${group.nodeId}`;
+        const nodeFullName = node ? node.fullName : '';
+        
+        // Get first stop time for this station
+        const firstStop = group.stops[0];
+        const arrivalTime = GTFSParserService.timeToMinutes(firstStop.arrival_time);
+        const departureTime = GTFSParserService.timeToMinutes(firstStop.departure_time || firstStop.arrival_time);
+        
+        const stopType = group.isStop ? '🔵 HALT' : '🔴 DURCH';
+        const timeStr = group.isStop 
+          ? `${Math.floor(arrivalTime / 60).toString().padStart(2, '0')}:${(arrivalTime % 60).toString().padStart(2, '0')} - ${Math.floor(departureTime / 60).toString().padStart(2, '0')}:${(departureTime % 60).toString().padStart(2, '0')}`
+          : `${Math.floor(arrivalTime / 60).toString().padStart(2, '0')}:${(arrivalTime % 60).toString().padStart(2, '0')} (durch)`;
+        
+        console.log(`      ${(idx + 1).toString().padStart(2, ' ')}. ${stopType} ${nodeName.padEnd(12)} ${timeStr} ${nodeFullName ? '| ' + nodeFullName : ''}`);
+      });
+      console.log(`    ─────────────────────────────────────────────────────────────`);
+      
+      // Create sections between consecutive stations
+      for (let i = 0; i < stationGroups.length - 1; i++) {
+        const sourceGroup = stationGroups[i];
+        const targetGroup = stationGroups[i + 1];
+        
+        // Get the last stop time in source station (departure)
+        const sourceStop = sourceGroup.stops[sourceGroup.stops.length - 1];
+        // Get the first stop time in target station (arrival)
+        const targetStop = targetGroup.stops[0];
+        
+        const departureTime = GTFSParserService.timeToMinutes(sourceStop.departure_time || sourceStop.arrival_time);
+        const arrivalTime = GTFSParserService.timeToMinutes(targetStop.arrival_time || targetStop.departure_time);
         const travelTime = this.calculateTravelTime(departureTime, arrivalTime);
-
+        
+        // For NON-STOP stations: set arrival = departure time
+        // This triggers the 3rd-party import to set isNonStopTransit: true
+        const targetIsStop = targetGroup.isStop;
+        const targetArrivalTime = targetIsStop ? arrivalTime : arrivalTime;
+        const targetDepartureTime = targetIsStop ? arrivalTime : arrivalTime; // Same time for non-stop!
+        
         const section: TrainrunSectionDto = {
           id: sectionId++,
-          sourceNodeId: sourceNodeId,
-          sourcePortId: 0, // Will be created automatically during import
-          targetNodeId: targetNodeId,
-          targetPortId: 0, // Will be created automatically during import
-          sourceArrival: { time: departureTime % 60, consecutiveTime: 0, lock: false },
-          sourceDeparture: { time: departureTime % 60, consecutiveTime: 0, lock: false },
-          targetArrival: { time: arrivalTime % 60, consecutiveTime: 0, lock: false },
-          targetDeparture: { time: arrivalTime % 60, consecutiveTime: 0, lock: false },
-          travelTime: { time: travelTime, consecutiveTime: 0, lock: false },
-          numberOfStops: 0,
+          sourceNodeId: sourceGroup.nodeId,
+          sourcePortId: 0,
+          targetNodeId: targetGroup.nodeId,
+          targetPortId: 0,
+          sourceSymmetry: false,
+          targetSymmetry: false,
+          sourceArrival: { time: departureTime % 60, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },
+          sourceDeparture: { time: departureTime % 60, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },
+          targetArrival: { time: targetArrivalTime % 60, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },
+          targetDeparture: { time: targetDepartureTime % 60, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },
+          travelTime: { time: travelTime, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },
+          backwardTravelTime: { time: travelTime, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },
+          numberOfStops: 0, // No intermediate stops between consecutive stations in this model
           trainrunId: trainrun.id,
           resourceId: 0,
           specificTrainrunSectionFrequencyId: null,
-          path: undefined, // undefined to trigger 3rd party import (will be computed during import)
+          path: undefined,
           warnings: [],
         };
         trainrunSections.push(section);
         sectionsCreated++;
       }
+      
+      // DEBUG: Print created sections
+      console.log(`    🔗 CREATED SECTIONS (${sectionsCreated}):`);
+      const trainrunSectionsForThisRun = trainrunSections.filter(s => s.trainrunId === trainrun.id);
+      trainrunSectionsForThisRun.forEach((section, idx) => {
+        const sourceNode = nodes.find(n => n.id === section.sourceNodeId);
+        const targetNode = nodes.find(n => n.id === section.targetNodeId);
+        const sourceName = sourceNode ? sourceNode.betriebspunktName : `#${section.sourceNodeId}`;
+        const targetName = targetNode ? targetNode.betriebspunktName : `#${section.targetNodeId}`;
+        
+        const depTime = section.sourceDeparture.time; // minutes 0-59
+        const arrTime = section.targetArrival.time; // minutes 0-59
+        const isNonStop = section.targetArrival.time === section.targetDeparture.time;
+        const marker = isNonStop ? '→→' : '→';
+        
+        console.log(`      ${(idx + 1).toString().padStart(2, ' ')}. ${sourceName.padEnd(12)} ${marker} ${targetName.padEnd(12)} (:${depTime.toString().padStart(2, '0')} → :${arrTime.toString().padStart(2, '0')}, ${section.travelTime.time}min)${isNonStop ? ' [DURCH]' : ''}`);
+      });
+      
       console.log(`    ✓ Created ${sectionsCreated} sections for this trainrun`);
     });
 
@@ -796,6 +932,50 @@ export class GTFSConverterService {
   }
 
   /**
+   * Count intermediate stops between two station stops (excluding through-runs)
+   * A stop is counted if it's NOT a through-run (pickup_type != '1' OR drop_off_type != '1')
+   * AND it belongs to a different station (parent_station) than source and target
+   * @param stopTimes All stop times for the trip, sorted by stop_sequence
+   * @param startIndex Index of the source stop
+   * @param endIndex Index of the target stop
+   * @param nodeIdMap Map from stop_id to node_id (to identify which station each stop belongs to)
+   * @param sourceNodeId Node ID of the source station
+   * @param targetNodeId Node ID of the target station
+   * @returns Number of actual intermediate stops at different stations (excluding through-runs and same-station stops)
+   */
+  private countIntermediateStops(
+    stopTimes: GTFSStopTime[], 
+    startIndex: number, 
+    endIndex: number,
+    nodeIdMap: Map<string, number>,
+    sourceNodeId: number,
+    targetNodeId: number
+  ): number {
+    let count = 0;
+    // Count stops between startIndex and endIndex (exclusive)
+    for (let i = startIndex + 1; i < endIndex; i++) {
+      const stop = stopTimes[i];
+      
+      // Get the node (station) this stop belongs to
+      const stopNodeId = nodeIdMap.get(stop.stop_id);
+      if (!stopNodeId) continue;
+      
+      // Skip if this stop belongs to the same station as source or target
+      if (stopNodeId === sourceNodeId || stopNodeId === targetNodeId) {
+        continue;
+      }
+      
+      // A stop is counted if passengers CAN board OR alight (not a through-run)
+      // through-run: pickup_type === '1' AND drop_off_type === '1'
+      const isActualStop = stop.pickup_type !== '1' || stop.drop_off_type !== '1';
+      if (isActualStop) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
    * Create default Haltezeiten object
    */
   private createDefaultHaltezeiten(): TrainrunCategoryHaltezeit {
@@ -821,6 +1001,7 @@ export class GTFSConverterService {
       [TrainrunSectionText.TargetDeparture]: defaultPoint,
       [TrainrunSectionText.TrainrunSectionName]: defaultPoint,
       [TrainrunSectionText.TrainrunSectionTravelTime]: defaultPoint,
+      [TrainrunSectionText.TrainrunSectionBackwardTravelTime]: defaultPoint,
       [TrainrunSectionText.TrainrunSectionNumberOfStops]: defaultPoint,
     };
   }

@@ -68,6 +68,10 @@ export class EditorToolsViewComponent {
   public gtfsAgencyFilterText = 'Schweizerische Bundesbahnen SBB';
   public gtfsAvailableAgencies: string[] = [];
 
+  // GTFS Route/Line Name Filter (dynamic text input)
+  public gtfsRouteNameFilterText = '';
+  public gtfsAvailableRoutes: string[] = [];
+
   // GTFS Node/Stop Filter (by classification)
   public gtfsNodeFilter = {
     start: true,       // Start nodes (trip origins)
@@ -381,6 +385,57 @@ export class EditorToolsViewComponent {
       
       this.logger.info($localize`:@@app.view.editor-side-view.editor-tools-view-component.gtfs-converting:Converting GTFS to Netzgrafik format...`);
       
+      // Apply route/line name filter
+      console.log('\n🔍 Applying route/line name filter...');
+      if (this.gtfsRouteNameFilterText && this.gtfsRouteNameFilterText.trim()) {
+        const allowedRouteNames = this.gtfsRouteNameFilterText.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        console.log('  🚂 Allowed route names:', allowedRouteNames);
+        
+        const beforeFilter = gtfsData.routes.length;
+        // Filter routes by route_short_name or route_long_name
+        gtfsData.routes = gtfsData.routes.filter(route => {
+          const shortName = route.route_short_name || '';
+          const longName = route.route_long_name || '';
+          return allowedRouteNames.some(allowed => 
+            shortName.includes(allowed) || longName.includes(allowed)
+          );
+        });
+        console.log('  🔍 Filtered routes from', beforeFilter, 'to', gtfsData.routes.length, '(removed', beforeFilter - gtfsData.routes.length, ')');
+        
+        // Build set of valid route_ids
+        const validRouteIds = new Set(gtfsData.routes.map(r => r.route_id));
+        
+        // Filter trips to only include valid routes
+        const beforeTrips = gtfsData.trips.length;
+        gtfsData.trips = gtfsData.trips.filter(trip => validRouteIds.has(trip.route_id));
+        console.log('  🔍 Filtered trips from', beforeTrips, 'to', gtfsData.trips.length, '(removed', beforeTrips - gtfsData.trips.length, ')');
+        
+        // Build set of valid trip_ids
+        const validTripIds = new Set(gtfsData.trips.map(t => t.trip_id));
+        
+        // Filter stop_times to only include valid trips
+        const beforeStopTimes = gtfsData.stopTimes.length;
+        gtfsData.stopTimes = gtfsData.stopTimes.filter(st => validTripIds.has(st.trip_id));
+        console.log('  🔍 Filtered stop_times from', beforeStopTimes, 'to', gtfsData.stopTimes.length, '(removed', beforeStopTimes - gtfsData.stopTimes.length, ')');
+        
+        // Build set of stops that are still used
+        const usedStopIds = new Set(gtfsData.stopTimes.map(st => st.stop_id));
+        
+        // Filter stops to only include used ones (and their parent stations)
+        const usedStopIdsWithParents = new Set(usedStopIds);
+        gtfsData.stops.forEach(stop => {
+          if (usedStopIds.has(stop.stop_id) && stop.parent_station) {
+            usedStopIdsWithParents.add(stop.parent_station);
+          }
+        });
+        
+        const beforeStops = gtfsData.stops.length;
+        gtfsData.stops = gtfsData.stops.filter(stop => usedStopIdsWithParents.has(stop.stop_id));
+        console.log('  🔍 Filtered stops from', beforeStops, 'to', gtfsData.stops.length, '(removed', beforeStops - gtfsData.stops.length, ')');
+      } else {
+        console.log('  ℹ️  No route name filter - keeping all', gtfsData.routes.length, 'routes');
+      }
+      
       // Apply node/stop filter based on classification
       console.log('\n🔍 Applying node classification filter...');
       const nodeFilterTypes: string[] = [];
@@ -394,11 +449,55 @@ export class EditorToolsViewComponent {
       
       const beforeFilter = gtfsData.stops.length;
       if (nodeFilterTypes.length > 0 && nodeFilterTypes.length < 5) {
-        // Filter stops by node type
-        gtfsData.stops = gtfsData.stops.filter(stop => 
-          !stop.node_type || nodeFilterTypes.includes(stop.node_type)
+        // Build set of valid stop_ids (stations + their platforms)
+        const validStopIds = new Set<string>();
+        
+        // First, collect all stations that match the filter
+        const filteredStations = gtfsData.stops.filter(stop => 
+          (stop.location_type === '1' || !stop.parent_station || stop.parent_station === '') &&
+          (!stop.node_type || nodeFilterTypes.includes(stop.node_type))
         );
+        
+        console.log('  🔍 Filtered stations:', filteredStations.length, 'of', gtfsData.stops.filter(s => s.location_type === '1' || !s.parent_station).length, 'total stations');
+        
+        // Add the station IDs
+        filteredStations.forEach(station => validStopIds.add(station.stop_id));
+        
+        // Add all platforms that belong to these stations
+        gtfsData.stops.forEach(stop => {
+          if (stop.parent_station && validStopIds.has(stop.parent_station)) {
+            validStopIds.add(stop.stop_id);
+          }
+        });
+        
+        console.log('  📋 Valid stop IDs (stations + platforms):', validStopIds.size);
+        
+        // Filter stops
+        gtfsData.stops = gtfsData.stops.filter(stop => validStopIds.has(stop.stop_id));
         console.log('  🔍 Filtered stops from', beforeFilter, 'to', gtfsData.stops.length, '(removed', beforeFilter - gtfsData.stops.length, ')');
+        
+        // Filter stop_times to only include valid stops
+        const beforeStopTimes = gtfsData.stopTimes.length;
+        gtfsData.stopTimes = gtfsData.stopTimes.filter(st => validStopIds.has(st.stop_id));
+        console.log('  🔍 Filtered stop_times from', beforeStopTimes, 'to', gtfsData.stopTimes.length, '(removed', beforeStopTimes - gtfsData.stopTimes.length, ')');
+        
+        // Build set of trips that still have stops
+        const validTripIds = new Set<string>();
+        gtfsData.stopTimes.forEach(st => validTripIds.add(st.trip_id));
+        
+        // Filter trips to only include those with remaining stops
+        const beforeTrips = gtfsData.trips.length;
+        gtfsData.trips = gtfsData.trips.filter(trip => validTripIds.has(trip.trip_id));
+        console.log('  🔍 Filtered trips from', beforeTrips, 'to', gtfsData.trips.length, '(removed', beforeTrips - gtfsData.trips.length, ')');
+        
+        // Build set of routes that still have trips
+        const validRouteIds = new Set<string>();
+        gtfsData.trips.forEach(trip => validRouteIds.add(trip.route_id));
+        
+        // Filter routes to only include those with remaining trips
+        const beforeRoutes = gtfsData.routes.length;
+        gtfsData.routes = gtfsData.routes.filter(route => validRouteIds.has(route.route_id));
+        console.log('  🔍 Filtered routes from', beforeRoutes, 'to', gtfsData.routes.length, '(removed', beforeRoutes - gtfsData.routes.length, ')');
       } else {
         console.log('  ℹ️  All node types selected or none classified - keeping all', gtfsData.stops.length, 'stops');
       }

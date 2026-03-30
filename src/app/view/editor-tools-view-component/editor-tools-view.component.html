@@ -255,6 +255,23 @@
         </div>
       </div>
 
+      <!-- Route/Line Name Filter -->
+      <div style="margin-bottom: 10px; padding: 5px; background-color: #f5f5f5; border-radius: 4px;">
+        <strong>Linien-Filter (z.B. IR15, IC1)</strong>
+        <div style="margin-top: 5px;">
+          <textarea 
+            [(ngModel)]="gtfsRouteNameFilterText" 
+            placeholder="IR15, IC1, S1"
+            rows="2"
+            style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px; font-family: inherit; font-size: 12px; resize: vertical;"
+            title="Komma-getrennte Liste von Liniennamen (route_short_name). Leer = alle Linien."
+          ></textarea>
+          <small style="display: block; margin-top: 3px; color: #666;">
+            Komma-getrennt. Beispiel: IR15, IC1, S1. Leer = alle Linien.
+          </small>
+        </div>
+      </div>
+
       <!-- Node/Stop Classification Filter -->
       <div style="margin-bottom: 10px; padding: 5px; background-color: #f5f5f5; border-radius: 4px;">
         <strong>{{ "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-nodes" | translate }}</strong>
