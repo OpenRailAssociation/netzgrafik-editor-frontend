@@ -29,6 +29,8 @@ import {OriginDestinationService} from "src/app/services/analytics/origin-destin
 import {EditorMode} from "../editor-menu/editor-mode";
 import {NODE_TEXT_AREA_HEIGHT, RASTERING_BASIC_GRID_SIZE} from "../rastering/definitions";
 import {ResourceService} from "../../services/data/resource.service";
+import {GTFSParserService} from "../../services/data/gtfs-parser.service";
+import {GTFSConverterService} from "../../services/data/gtfs-converter.service";
 
 interface ContainertoExportData {
   documentToExport: HTMLElement;
@@ -47,9 +49,33 @@ export class EditorToolsViewComponent {
   stammdatenFileInput: ElementRef;
   @ViewChild("netgrafikJsonFileInput", {static: false})
   netgrafikJsonFileInput: ElementRef;
+  @ViewChild("gtfsFileInput", {static: false})
+  gtfsFileInput: ElementRef;
 
   public isDeletable$ = this.versionControlService.variant$.pipe(map((v) => v?.isDeletable));
   public isWritable$ = this.versionControlService.variant$.pipe(map((v) => v?.isWritable));
+
+  // GTFS Route Type Filter (GTFS route_type values)
+  public gtfsRouteTypeFilter = {
+    tram: false,     // 0 - Tram, Streetcar, Light rail
+    metro: false,    // 1 - Subway, Metro
+    rail: true,      // 2 - Rail (intercity, regional)
+    bus: false,      // 3 - Bus
+    ferry: false,    // 4 - Ferry
+  };
+
+  // GTFS Agency Filter (dynamic text input)
+  public gtfsAgencyFilterText = 'Schweizerische Bundesbahnen SBB';
+  public gtfsAvailableAgencies: string[] = [];
+
+  // GTFS Node/Stop Filter (by classification)
+  public gtfsNodeFilter = {
+    start: true,       // Start nodes (trip origins)
+    end: true,         // End nodes (trip destinations)
+    junction: true,    // Junction nodes (branching, no stop)
+    major_stop: true,  // Major stops (multiple routes)
+    minor_stop: false, // Minor stops (degree 2, single route)
+  };
 
   constructor(
     private dataService: DataService,
@@ -67,6 +93,8 @@ export class EditorToolsViewComponent {
     private levelOfDetailService: LevelOfDetailService,
     private originDestinationService: OriginDestinationService,
     private resourceService: ResourceService,
+    private gtfsParserService: GTFSParserService,
+    private gtfsConverterService: GTFSConverterService,
   ) {}
 
   onLoadButton() {
@@ -235,6 +263,233 @@ export class EditorToolsViewComponent {
     }
     window.URL.revokeObjectURL(url);
   }
+
+  onImportGTFSButton() {
+    this.gtfsFileInput.nativeElement.click();
+  }
+
+  addAgencyToFilter(agencyName: string) {
+    // Add agency to filter text (comma-separated)
+    if (!this.gtfsAgencyFilterText || this.gtfsAgencyFilterText.trim() === '') {
+      this.gtfsAgencyFilterText = agencyName;
+    } else {
+      // Check if agency is already in the filter
+      const existingAgencies = this.gtfsAgencyFilterText.split(',').map(s => s.trim());
+      if (!existingAgencies.includes(agencyName)) {
+        this.gtfsAgencyFilterText += ', ' + agencyName;
+      }
+    }
+  }
+
+  async onLoadGTFS(event: any) {
+    const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
+
+    console.log('\n════════════════════════════════════════════');
+    console.log('🚀 GTFS IMPORT STARTED');
+    console.log('════════════════════════════════════════════\n');
+    console.log('📁 File:', file.name);
+    console.log('📦 Size:', (file.size / 1024 / 1024).toFixed(2), 'MB');
+    
+    // Warn if file is too large
+    const fileSizeMB = file.size / 1024 / 1024;
+    if (fileSizeMB > 50) {
+      console.warn('⚠️  WARNING: File is very large (' + fileSizeMB.toFixed(2) + ' MB)');
+      console.warn('   This may cause memory issues in the browser.');
+      console.warn('   Consider using a smaller/filtered GTFS dataset.');
+    }
+    
+    console.log('\n');
+
+    try {
+      this.logger.info($localize`:@@app.view.editor-side-view.editor-tools-view-component.gtfs-parsing:Parsing GTFS data...`);
+      
+      // Parse GTFS ZIP file
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('PHASE 1: PARSING GTFS ZIP FILE');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      
+      let gtfsData;
+      try {
+        // Convert filter to route_type numbers
+        const allowedRouteTypes: number[] = [];
+        if (this.gtfsRouteTypeFilter.tram) {
+          allowedRouteTypes.push(0);    // Tram, Streetcar, Light rail
+        }
+        if (this.gtfsRouteTypeFilter.metro) {
+          allowedRouteTypes.push(1);    // Metro, Subway
+        }
+        if (this.gtfsRouteTypeFilter.rail) {
+          allowedRouteTypes.push(2);    // Rail (Basic GTFS)
+          // Extended GTFS route types for rail (100-117)
+          allowedRouteTypes.push(100);  // Railway Service
+          allowedRouteTypes.push(101);  // High Speed Rail Service
+          allowedRouteTypes.push(102);  // Long Distance Trains
+          allowedRouteTypes.push(103);  // Inter Regional Rail Service
+          allowedRouteTypes.push(104);  // Car Transport Rail Service
+          allowedRouteTypes.push(105);  // Sleeper Rail Service
+          allowedRouteTypes.push(106);  // Regional Rail Service
+          allowedRouteTypes.push(107);  // Tourist Railway Service
+          allowedRouteTypes.push(108);  // Rail Shuttle (Within Complex)
+          allowedRouteTypes.push(109);  // Suburban Railway
+          allowedRouteTypes.push(117);  // Rack and Pinion Railway
+        }
+        if (this.gtfsRouteTypeFilter.bus) {
+          allowedRouteTypes.push(3);    // Bus
+        }
+        if (this.gtfsRouteTypeFilter.ferry) {
+          allowedRouteTypes.push(4);    // Ferry
+        }
+        
+        // Convert agency filter to array
+        const allowedAgencies: string[] = [];
+        if (this.gtfsAgencyFilterText && this.gtfsAgencyFilterText.trim()) {
+          // Split by comma and trim each agency name
+          const agencyNames = this.gtfsAgencyFilterText.split(',').map(s => s.trim()).filter(s => s.length > 0);
+          allowedAgencies.push(...agencyNames);
+        }
+        
+        console.log('🔍 Route type filter:', allowedRouteTypes);
+        console.log('🏢 Agency filter:', allowedAgencies);
+        
+        gtfsData = await this.gtfsParserService.parseGTFSZip(file, allowedRouteTypes, allowedAgencies);
+        
+        // Store ALL available agencies (before filtering) for display and autocomplete
+        if (gtfsData && gtfsData.allAgencies) {
+          const uniqueNames = new Set(gtfsData.allAgencies.map(a => a.agency_name));
+          this.gtfsAvailableAgencies = Array.from(uniqueNames).filter((n): n is string => !!n).sort();
+          console.log('📋 Total unique agencies in GTFS:', this.gtfsAvailableAgencies.length);
+          console.log('📋 Sample agencies:', this.gtfsAvailableAgencies.slice(0, 10));
+        }
+        
+        console.log('\n✅ Phase 1 complete! GTFS data parsed successfully.');
+      } catch (parseError) {
+        console.error('\n❌ Phase 1 FAILED!');
+        console.error('Parse error:', parseError);
+        throw parseError;
+      }
+      
+      // Validate parsed data
+      if (!gtfsData) {
+        throw new Error('GTFS data is null or undefined');
+      }
+      if (!gtfsData.stops || !gtfsData.routes || !gtfsData.trips || !gtfsData.stopTimes) {
+        throw new Error('GTFS data is missing required fields');
+      }
+      
+      this.logger.info($localize`:@@app.view.editor-side-view.editor-tools-view-component.gtfs-converting:Converting GTFS to Netzgrafik format...`);
+      
+      // Apply node/stop filter based on classification
+      console.log('\n🔍 Applying node classification filter...');
+      const nodeFilterTypes: string[] = [];
+      if (this.gtfsNodeFilter.start) nodeFilterTypes.push('start');
+      if (this.gtfsNodeFilter.end) nodeFilterTypes.push('end');
+      if (this.gtfsNodeFilter.junction) nodeFilterTypes.push('junction');
+      if (this.gtfsNodeFilter.major_stop) nodeFilterTypes.push('major_stop');
+      if (this.gtfsNodeFilter.minor_stop) nodeFilterTypes.push('minor_stop');
+      
+      console.log('  Active node types:', nodeFilterTypes);
+      
+      const beforeFilter = gtfsData.stops.length;
+      if (nodeFilterTypes.length > 0 && nodeFilterTypes.length < 5) {
+        // Filter stops by node type
+        gtfsData.stops = gtfsData.stops.filter(stop => 
+          !stop.node_type || nodeFilterTypes.includes(stop.node_type)
+        );
+        console.log('  🔍 Filtered stops from', beforeFilter, 'to', gtfsData.stops.length, '(removed', beforeFilter - gtfsData.stops.length, ')');
+      } else {
+        console.log('  ℹ️  All node types selected or none classified - keeping all', gtfsData.stops.length, 'stops');
+      }
+      
+      // Convert to Netzgrafik format
+      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('PHASE 2: CONVERTING TO NETZGRAFIK FORMAT');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      
+      // Get existing metadata to extend (merge with new categories/frequencies)
+      const existingNetzgrafik = this.dataService.getNetzgrafikDto();
+      const existingMetadata = existingNetzgrafik?.metadata;
+      
+      let netzgrafikDto;
+      try {
+        netzgrafikDto = this.gtfsConverterService.convertToNetzgrafik(gtfsData, {
+          maxTripsPerRoute: 10, // Limit number of trips per route
+          minStopsPerTrip: 3,    // Minimum stops required
+          existingMetadata: existingMetadata, // Pass existing metadata for merging
+        });
+        console.log('\n✅ Phase 2 complete! Data converted successfully.');
+        console.log('\n netzgrafikDto: ', netzgrafikDto)
+      } catch (convertError) {
+        console.error('\n❌ Phase 2 FAILED!');
+        console.error('Convert error:', convertError);
+        throw convertError;
+      }
+
+      this.logger.info($localize`:@@app.view.editor-side-view.editor-tools-view-component.gtfs-importing:Importing Netzgrafik data...`);
+      
+      // Import the converted data
+      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('PHASE 3: IMPORTING INTO EDITOR');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      console.log('🎯 Importing', netzgrafikDto.nodes.length, 'nodes...');
+      console.log('📋 Nodes (first 5):', netzgrafikDto.nodes.slice(0, 5));
+      console.log('📋 All nodes:', netzgrafikDto.nodes);
+      
+      console.log('\n🎯 Importing', netzgrafikDto.trainruns.length, 'trainruns...');
+      console.log('📋 Trainruns (first 5):', netzgrafikDto.trainruns.slice(0, 5));
+      console.log('📋 All trainruns:', netzgrafikDto.trainruns);
+      
+      console.log('\n🎯 Importing', netzgrafikDto.trainrunSections.length, 'sections...');
+      console.log('📋 Sections (first 10):', netzgrafikDto.trainrunSections.slice(0, 10));
+      console.log('📋 All sections:', netzgrafikDto.trainrunSections);
+      console.log();
+      
+      // Use processNetzgrafikJSON instead of direct loadNetzgrafikDto
+      // This will detect 3rd party format and use proper import logic
+      this.processNetzgrafikJSON(netzgrafikDto);
+      
+      console.log('\n✅ Import into editor complete!');
+      console.log('\n════════════════════════════════════════════');
+      console.log('✅ GTFS IMPORT SUCCESSFUL!');
+      console.log('════════════════════════════════════════════\n');
+      
+      console.log('📊 Final Netzgrafik state:', this);
+      console.log('📋 Data:', this.dataService);
+      console.log('📋 Nodes:', this.nodeService);
+      console.log('📋 Trainruns:', this.trainrunService);
+      console.log('📋 Sections:', this.trainrunSectionService);
+
+      this.logger.info($localize`:@@app.view.editor-side-view.editor-tools-view-component.gtfs-success:GTFS data imported successfully`);
+    } catch (error) {
+      console.error('\n❌ ERROR IMPORTING GTFS:');
+      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.error('Error type:', error?.constructor?.name);
+      console.error('Error message:', error?.message);
+      console.error('Full error:', error);
+      console.error('Stack trace:', error?.stack);
+      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      
+      let userMessage = '';
+      if (error?.message?.includes('Invalid string length') || error?.message?.includes('out of memory')) {
+        userMessage = 'Die GTFS-Datei ist zu groß für den Browser-Speicher. ' +
+                     'Bitte verwenden Sie eine kleinere GTFS-Datei oder filtern Sie die Daten vor dem Import.';
+        console.error('💡 SOLUTION:');
+        console.error('   1. Use a smaller GTFS dataset (< 50 MB recommended)');
+        console.error('   2. Filter the GTFS data before importing (e.g., specific routes or dates)');
+        console.error('   3. Use GTFS tools to extract only needed routes/stops');
+      } else {
+        userMessage = error?.message || String(error);
+      }
+      
+      this.logger.error($localize`:@@app.view.editor-side-view.editor-tools-view-component.gtfs-error:Error importing GTFS data: ${userMessage}`);
+    }
+
+    // Reset input to allow importing same file again
+    event.target.value = null;
+  }
+
 
   getVariantIsWritable() {
     return this.versionControlService.getVariantIsWritable();
@@ -729,8 +984,8 @@ export class EditorToolsViewComponent {
       netzgrafikDto.nodes.filter((n: NodeDto) => n.ports?.length === 0).length ===
         netzgrafikDto.nodes.length ||
       netzgrafikDto.trainrunSections.find(
-        (ts: TrainrunSectionDto) =>
-          ts.path === undefined || ts.path?.path === undefined || ts.path?.path?.length === 0,
+      (ts: TrainrunSectionDto) =>
+        ts.path === undefined || ts.path?.path === undefined || ts.path?.path?.length === 0,
       ) !== undefined
     );
   }
