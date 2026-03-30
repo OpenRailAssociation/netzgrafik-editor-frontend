@@ -153,6 +153,7 @@ describe("Transitions-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      dataService,
     );
 
     new EditorView(
