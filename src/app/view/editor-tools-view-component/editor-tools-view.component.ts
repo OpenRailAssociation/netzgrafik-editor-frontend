@@ -84,7 +84,11 @@ export class EditorToolsViewComponent {
   public gtfsFilteredCategories: string[] = [];
   public gtfsAvailableCategories: string[] = [];
   
-  // Line filter (text input)
+  // Line filter (chip input with autocomplete)
+  public gtfsSelectedLines: string[] = [];
+  public gtfsLineSearchText = '';
+  public gtfsFilteredLines: string[] = [];
+  // Legacy text input (kept for backward compatibility, but replaced with chip input)
   public gtfsLineFilter = '';
 
   // GTFS Import Progress Overlay
@@ -333,6 +337,8 @@ export class EditorToolsViewComponent {
     this.gtfsAvailableRoutes = [];
     this.gtfsSelectedAgencies = [];
     this.gtfsSelectedCategories = [];
+    this.gtfsSelectedLines = [];
+    this.gtfsLineFilter = '';
     
     // Start capturing console logs for display in filter dialog
     this.gtfsImportLogs = [];
@@ -375,15 +381,21 @@ export class EditorToolsViewComponent {
       // Extract categories from route_desc and route_short_name
       const categorySet = new Set<string>();
       lightData.routes.forEach(route => {
-        // From route_desc (if present)
+        // From route_desc (if present) - this is the primary source for categories
         const desc = (route.route_desc || '').trim();
         if (desc) {
           categorySet.add(desc.toUpperCase());
-        }
-        // From route_short_name (e.g., "IR15", "IC1", "S1")
-        const shortName = (route.route_short_name || '').trim();
-        if (shortName) {
-          categorySet.add(shortName.toUpperCase());
+        } else {
+          // If route_desc is empty, extract category prefix from route_short_name
+          // E.g., "IR15" -> "IR", "S1" -> "S", "IC8" -> "IC"
+          const shortName = (route.route_short_name || '').trim();
+          if (shortName) {
+            // Extract leading letters (category prefix) before numbers
+            const match = shortName.match(/^[A-Za-z]+/);
+            if (match) {
+              categorySet.add(match[0].toUpperCase());
+            }
+          }
         }
       });
       this.gtfsAvailableCategories = Array.from(categorySet).sort();
@@ -421,13 +433,17 @@ export class EditorToolsViewComponent {
         this.gtfsAvailableCategories.includes(cat)
       );
       
-      // Default line filter: empty
+      // Default line filter: empty (no lines selected by default = all lines)
+      this.gtfsSelectedLines = [];
       this.gtfsLineFilter = '';
       
       // Initialize autocomplete
       this.gtfsAgencySearchText = '';
       this.gtfsFilteredAgencies = [...this.gtfsAvailableAgencies];
       this.gtfsCategorySearchText = '';
+      this.gtfsFilteredCategories = [...this.gtfsAvailableCategories];
+      this.gtfsLineSearchText = '';
+      this.gtfsFilteredLines = [...this.gtfsAvailableRoutes];
       this.gtfsFilteredCategories = [...this.gtfsAvailableCategories];
       
       console.log('\n✅ Smart defaults set:');
@@ -1119,6 +1135,25 @@ export class EditorToolsViewComponent {
     this.gtfsSelectedCategories = this.gtfsSelectedCategories.filter(c => c !== category);
   }
 
+  onGtfsLineSearch(): void {
+    const search = this.gtfsLineSearchText.toLowerCase();
+    this.gtfsFilteredLines = this.gtfsAvailableRoutes.filter(line => 
+      line.toLowerCase().includes(search)
+    );
+  }
+
+  addGtfsLine(line: string): void {
+    if (!this.gtfsSelectedLines.includes(line)) {
+      this.gtfsSelectedLines.push(line);
+    }
+    this.gtfsLineSearchText = '';
+    this.gtfsFilteredLines = [...this.gtfsAvailableRoutes];
+  }
+
+  removeGtfsLine(line: string): void {
+    this.gtfsSelectedLines = this.gtfsSelectedLines.filter(l => l !== line);
+  }
+
   async applyGtfsFiltersAndImport(): Promise<void> {
     if (!this.gtfsFile) {
       console.error('No GTFS file loaded');
@@ -1139,7 +1174,7 @@ export class EditorToolsViewComponent {
       console.log('════════════════════════════════════════════\n');
       console.log('🏢 Selected agencies:', this.gtfsSelectedAgencies);
       console.log('🚆 Selected categories:', this.gtfsSelectedCategories);
-      console.log('🚂 Line filter:', this.gtfsLineFilter || '(none)');
+      console.log('🚂 Selected lines:', this.gtfsSelectedLines.length > 0 ? this.gtfsSelectedLines : '(all lines)');
       
       // PHASE 1: Full GTFS parse with filters
       this.gtfsImportPhases[0].status = 'running';
@@ -1196,11 +1231,25 @@ export class EditorToolsViewComponent {
           const desc = (route.route_desc || '').toUpperCase();
           const shortName = (route.route_short_name || '').toUpperCase();
           
-          // Check if any selected category matches route_desc OR route_short_name
+          // Check if any selected category matches:
+          // 1. route_desc (primary source)
+          // 2. OR the category prefix extracted from route_short_name (e.g., "IR" from "IR15")
           const matches = this.gtfsSelectedCategories.some(cat => {
             const catUpper = cat.toUpperCase();
-            // Match if route_desc contains category OR route_short_name contains category
-            return desc.includes(catUpper) || shortName.includes(catUpper);
+            
+            // Match if route_desc contains category
+            if (desc.includes(catUpper)) {
+              return true;
+            }
+            
+            // Or match if route_short_name starts with the category prefix
+            // Extract category prefix from route_short_name (letters before numbers)
+            const prefixMatch = shortName.match(/^[A-Za-z]+/);
+            if (prefixMatch && prefixMatch[0] === catUpper) {
+              return true;
+            }
+            
+            return false;
           });
           
           if (!matches) {
@@ -1231,15 +1280,13 @@ export class EditorToolsViewComponent {
       
       // Apply line filter
       console.log('\n🔍 Applying line filter...');
-      if (this.gtfsLineFilter && this.gtfsLineFilter.trim()) {
-        const allowedLines = this.gtfsLineFilter.split(',').map(s => s.trim().toUpperCase()).filter(s => s.length > 0);
-        console.log('  🚂 Allowed lines:', allowedLines);
+      if (this.gtfsSelectedLines.length > 0) {
+        console.log('  🚂 Selected lines:', this.gtfsSelectedLines);
         
         const beforeFilter = gtfsData.routes.length;
         gtfsData.routes = gtfsData.routes.filter(route => {
           const shortName = (route.route_short_name || '').toUpperCase();
-          const longName = (route.route_long_name || '').toUpperCase();
-          return allowedLines.some(line => shortName.includes(line) || longName.includes(line));
+          return this.gtfsSelectedLines.some(line => shortName === line.toUpperCase());
         });
         console.log('  🔍 Filtered routes from', beforeFilter, 'to', gtfsData.routes.length);
         

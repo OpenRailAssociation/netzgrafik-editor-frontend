@@ -78,6 +78,7 @@ import {EditorEditToolsViewComponent} from "./view/editor-edit-tools-view-compon
 import {FilterableLabelFormComponent} from "./view/dialogs/filterable-labels-dialog/filterable-labels-form/filterable-label-form.component";
 import {FilterableLabelDialogComponent} from "./view/dialogs/filterable-labels-dialog/filterable-label-dialog.component";
 import {EditorToolsViewComponent} from "./view/editor-tools-view-component/editor-tools-view.component";
+import {GtfsImportDialogsComponent} from "./view/editor-tools-view-component/gtfs-import-dialogs/gtfs-import-dialogs.component";
 import {NoteDialogComponent} from "./view/dialogs/note-dialog/note-dialog.component";
 import {NoteFormComponent} from "./view/dialogs/note-dialog/note-form/note-form.component";
 import {HtmlEditorComponent} from "./view/dialogs/note-dialog/htmlEditor/html-editor.component";
@@ -159,6 +160,7 @@ import {ToggleSwitchButtonComponent} from "./view/toggle-switch-button/toggle-sw
     NoteEditElementComponent,
     NoteFormComponent,
     EditorToolsViewComponent,
+    GtfsImportDialogsComponent,
     HtmlEditorComponent,
     NoteFilterTabComponent,
     LabelDropListComponent,

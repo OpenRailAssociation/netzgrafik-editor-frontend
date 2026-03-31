@@ -514,6 +514,7 @@
           "import-base-data": "Importer les données de base",
           "help-csv-data": "Aide: CSV - Données",
           "export-base-data": "Exporter les données de base",
+          "import": "Import",
           "gtfs": "GTFS",
           "import-gtfs-data": "Importer les données GTFS",
           "gtfs-parsing": "Lecture des données GTFS...",
