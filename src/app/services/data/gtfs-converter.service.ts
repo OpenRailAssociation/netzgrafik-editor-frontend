@@ -691,34 +691,10 @@ export class GTFSConverterService {
         stop.parent_station === station.stop_id && stop.stop_id !== station.stop_id
       );
 
-      // Collect all stop names (station + platforms)
-      const allNames: string[] = [station.stop_name];
-      platforms.forEach(platform => {
-        if (platform.stop_name && platform.stop_name !== station.stop_name) {
-          allNames.push(platform.stop_name);
-        }
-      });
-
-      // Create detailed fullName with debug info
-      const platformInfo: string[] = [];
-      platforms.forEach(platform => {
-        const parts: string[] = [];
-        if (platform.stop_name) parts.push(platform.stop_name);
-        if (platform.platform_code) parts.push(`Gleis ${platform.platform_code}`);
-        if (platform.stop_id) parts.push(`ID:${platform.stop_id}`);
-        if (parts.length > 0) {
-          platformInfo.push(parts.join(' | '));
-        }
-      });
-
-      // Build comprehensive fullName with all debug information
-      let fullName = `${station.stop_name} (Station-ID: ${station.stop_id})`;
-      if (platforms.length > 0) {
-        fullName += ` [${platforms.length} Platforms: ${platformInfo.join('; ')}]`;
-      }
-      if (station.platform_code) {
-        fullName += ` Platform-Code: ${station.platform_code}`;
-      }
+      // Build fullName with platform count
+      const fullName = platforms.length > 0 
+        ? `${station.stop_name} -> #Platform (${platforms.length})`
+        : station.stop_name;
 
       // Use station name as betriebspunktName (truncate if too long)
       const betriebspunktName = station.stop_name.length <= 50 

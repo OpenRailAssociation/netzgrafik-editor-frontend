@@ -2,6 +2,26 @@
   {{ "app.view.editor-side-view.editor-tools-view-component.more-functions" | translate }}
 </h2>
 <sbb-accordion [multi]="true">
+  <sbb-expansion-panel [expanded]="false">
+    <sbb-expansion-panel-header>{{
+      "app.view.editor-side-view.editor-tools-view-component.import" | translate
+    }}</sbb-expansion-panel-header>
+    <ng-container *ngIf="getVariantIsWritable()">
+      
+      <button
+        (click)="onImportGTFSButton()"
+        [title]="
+          'app.view.editor-side-view.editor-tools-view-component.import-gtfs-data' | translate
+        "
+        class="TrainrunDialog EditorToolButton"
+      >
+        <sbb-icon svgIcon="document-plus-small"></sbb-icon>
+      </button>
+      <input hidden #gtfsFileInput type="file" accept=".zip" (change)="onLoadGTFS($event)" />
+      {{ "app.view.editor-side-view.editor-tools-view-component.import-gtfs-data" | translate }}
+    </ng-container>   
+  </sbb-expansion-panel>
+
   <sbb-expansion-panel [expanded]="true">
     <sbb-expansion-panel-header>{{
       "app.view.editor-side-view.editor-tools-view-component.export" | translate
@@ -188,113 +208,40 @@
     {{ "app.view.editor-side-view.editor-tools-view-component.export-base-data" | translate }}
   </sbb-expansion-panel>
 
-
-
-  <sbb-expansion-panel [expanded]="false">
-    <sbb-expansion-panel-header>{{
-      "app.view.editor-side-view.editor-tools-view-component.gtfs" | translate
-    }}</sbb-expansion-panel-header>
-    <ng-container *ngIf="getVariantIsWritable()">
-      
-      <!-- Route Type Filter -->
-      <div style="margin-bottom: 10px; padding: 5px; background-color: #f5f5f5; border-radius: 4px;">
-        <strong>{{ "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-route-types" | translate }}</strong>
-        <div style="margin-top: 5px;">
-          <label style="display: block; margin: 3px 0;">
-            <input type="checkbox" [(ngModel)]="gtfsRouteTypeFilter.rail" />
-            {{ "app.view.editor-side-view.editor-tools-view-component.gtfs-route-type-rail" | translate }}
-          </label>
-          <label style="display: block; margin: 3px 0;">
-            <input type="checkbox" [(ngModel)]="gtfsRouteTypeFilter.metro" />
-            {{ "app.view.editor-side-view.editor-tools-view-component.gtfs-route-type-metro" | translate }}
-          </label>
-          <label style="display: block; margin: 3px 0;">
-            <input type="checkbox" [(ngModel)]="gtfsRouteTypeFilter.tram" />
-            {{ "app.view.editor-side-view.editor-tools-view-component.gtfs-route-type-tram" | translate }}
-          </label>
-          <label style="display: block; margin: 3px 0;">
-            <input type="checkbox" [(ngModel)]="gtfsRouteTypeFilter.bus" />
-            {{ "app.view.editor-side-view.editor-tools-view-component.gtfs-route-type-bus" | translate }}
-          </label>
-          <label style="display: block; margin: 3px 0;">
-            <input type="checkbox" [(ngModel)]="gtfsRouteTypeFilter.ferry" />
-            {{ "app.view.editor-side-view.editor-tools-view-component.gtfs-route-type-ferry" | translate }}
-          </label>
-        </div>
-      </div>
-
-      <!-- Agency Filter -->
-      <div style="margin-bottom: 10px; padding: 5px; background-color: #f5f5f5; border-radius: 4px;">
-        <strong>{{ "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-agencies" | translate }}</strong>
-        <div style="margin-top: 5px;">
-          <textarea 
-            [(ngModel)]="gtfsAgencyFilterText" 
-            placeholder="Schweizerische Bundesbahnen SBB, BLS AG"
-            rows="2"
-            style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px; font-family: inherit; font-size: 12px; resize: vertical;"
-            [title]="'app.view.editor-side-view.editor-tools-view-component.gtfs-agency-filter-hint' | translate"
-          ></textarea>
-          <small style="display: block; margin-top: 3px; color: #666;">
-            {{ "app.view.editor-side-view.editor-tools-view-component.gtfs-agency-filter-hint" | translate }}
-          </small>
-          <div *ngIf="gtfsAvailableAgencies.length > 0" style="margin-top: 8px;">
-            <strong style="font-size: 12px; display: block; margin-bottom: 5px;">
-              {{ "app.view.editor-side-view.editor-tools-view-component.gtfs-available-agencies" | translate }} ({{ gtfsAvailableAgencies.length }}):
-            </strong>
-            <div style="max-height: 150px; overflow-y: auto; font-size: 11px; padding: 5px; background: white; border: 1px solid #ddd; border-radius: 3px;">
-              <div *ngFor="let agency of gtfsAvailableAgencies" 
-                   style="padding: 3px 5px; border-bottom: 1px solid #f0f0f0; cursor: pointer;"
-                   (click)="addAgencyToFilter(agency)"
-                   (mouseenter)="$event.target.style.backgroundColor='#e8f4f8'"
-                   (mouseleave)="$event.target.style.backgroundColor='white'"
-                   title="Click to add to filter">
-                {{ agency }}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Node/Stop Classification Filter -->
-      <div style="margin-bottom: 10px; padding: 5px; background-color: #f5f5f5; border-radius: 4px;">
-        <strong>{{ "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-nodes" | translate }}</strong>
-        <div style="margin-top: 5px;">
-          <label style="display: block; margin: 3px 0;">
-            <input type="checkbox" [(ngModel)]="gtfsNodeFilter.start" />
-            {{ "app.view.editor-side-view.editor-tools-view-component.gtfs-node-start" | translate }}
-          </label>
-          <label style="display: block; margin: 3px 0;">
-            <input type="checkbox" [(ngModel)]="gtfsNodeFilter.end" />
-            {{ "app.view.editor-side-view.editor-tools-view-component.gtfs-node-end" | translate }}
-          </label>
-          <label style="display: block; margin: 3px 0;">
-            <input type="checkbox" [(ngModel)]="gtfsNodeFilter.junction" />
-            {{ "app.view.editor-side-view.editor-tools-view-component.gtfs-node-junction" | translate }}
-          </label>
-          <label style="display: block; margin: 3px 0;">
-            <input type="checkbox" [(ngModel)]="gtfsNodeFilter.major_stop" />
-            {{ "app.view.editor-side-view.editor-tools-view-component.gtfs-node-major" | translate }}
-          </label>
-          <label style="display: block; margin: 3px 0;">
-            <input type="checkbox" [(ngModel)]="gtfsNodeFilter.minor_stop" />
-            {{ "app.view.editor-side-view.editor-tools-view-component.gtfs-node-minor" | translate }}
-          </label>
-        </div>
-      </div>
-      
-      <button
-        (click)="onImportGTFSButton()"
-        [title]="
-          'app.view.editor-side-view.editor-tools-view-component.import-gtfs-data' | translate
-        "
-        class="TrainrunDialog EditorToolButton"
-      >
-        <sbb-icon svgIcon="document-plus-small"></sbb-icon>
-      </button>
-      <input hidden #gtfsFileInput type="file" accept=".zip" (change)="onLoadGTFS($event)" />
-      {{ "app.view.editor-side-view.editor-tools-view-component.import-gtfs-data" | translate }}
-    </ng-container>   
-  </sbb-expansion-panel>
-
-
 </sbb-accordion>
+
+<!-- GTFS Import Dialogs Component -->
+<app-gtfs-import-dialogs
+  [gtfsFilterDialogVisible]="gtfsFilterDialogVisible"
+  [gtfsImportOverlayVisible]="gtfsImportOverlayVisible"
+  [gtfsDataIsLoading]="gtfsDataIsLoading"
+  [gtfsImportLogs]="gtfsImportLogs"
+  [gtfsImportPhases]="gtfsImportPhases"
+  [gtfsImportComplete]="gtfsImportComplete"
+  [gtfsAvailableAgencies]="gtfsAvailableAgencies"
+  [gtfsAvailableCategories]="gtfsAvailableCategories"
+  [gtfsAvailableRoutes]="gtfsAvailableRoutes"
+  [gtfsSelectedAgencies]="gtfsSelectedAgencies"
+  [gtfsSelectedCategories]="gtfsSelectedCategories"
+  [gtfsSelectedLines]="gtfsSelectedLines"
+  [gtfsAgencySearchText]="gtfsAgencySearchText"
+  [gtfsFilteredAgencies]="gtfsFilteredAgencies"
+  [gtfsCategorySearchText]="gtfsCategorySearchText"
+  [gtfsFilteredCategories]="gtfsFilteredCategories"
+  [gtfsLineSearchText]="gtfsLineSearchText"
+  [gtfsFilteredLines]="gtfsFilteredLines"
+  [gtfsRouteTypeFilter]="gtfsRouteTypeFilter"
+  [gtfsNodeFilter]="gtfsNodeFilter"
+  (closeFilterDialog)="closeGtfsFilterDialog()"
+  (applyFilters)="applyGtfsFiltersAndImport()"
+  (closeImportOverlay)="closeGtfsImportOverlay()"
+  (agencySearch)="onGtfsAgencySearch()"
+  (addAgency)="addGtfsAgency($event)"
+  (removeAgency)="removeGtfsAgency($event)"
+  (categorySearch)="onGtfsCategorySearch()"
+  (addCategory)="addGtfsCategory($event)"
+  (removeCategory)="removeGtfsCategory($event)"
+  (lineSearch)="onGtfsLineSearch()"
+  (addLine)="addGtfsLine($event)"
+  (removeLine)="removeGtfsLine($event)"
+></app-gtfs-import-dialogs>
