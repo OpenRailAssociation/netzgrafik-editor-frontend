@@ -472,9 +472,30 @@ export class GTFSConverterService {
       const categoryId = categoryMap.get(routeDesc) || categories[0]?.id || 1;
       const frequencyId = route.frequency ? (frequencyMap.get(route.frequency) || frequencies[0]?.id || 1) : (frequencies[0]?.id || 1);
 
-      // Create trainrun with direction-aware name
+      // Create trainrun with direction and destination in name
       const directionSuffix = pattern.directionId === '1' ? ' ↩' : ' →';
-      const trainrunName = `${route.route_short_name || route.route_long_name || `Trip ${patternIndex + 1}`}${directionSuffix}`;
+      const headsign = representativeTrip.trip_headsign || '';
+      const tripShortName = representativeTrip.trip_short_name || '';
+      
+      // Build name: "15 → Luzern (2505)" or "15 → Luzern" or "15 →"
+      // Remove category prefix from route name to avoid duplication in display (e.g., "IR" + "IR15" → "IRIR15")
+      let routeName = route.route_short_name || route.route_long_name || `Trip ${patternIndex + 1}`;
+      const categoryPrefix = routeDesc.trim();
+      if (routeName.toUpperCase().startsWith(categoryPrefix.toUpperCase())) {
+        routeName = routeName.substring(categoryPrefix.length).trim();
+      }
+      
+      let trainrunName = routeName;
+      
+      if (headsign) {
+        trainrunName += ` → ${headsign}`;
+      } else {
+        trainrunName += directionSuffix;
+      }
+      
+      if (tripShortName) {
+        trainrunName += ` (${tripShortName})`;
+      }
       
       const trainrun: TrainrunDto = {
         id: trainrunId++,
@@ -495,15 +516,17 @@ export class GTFSConverterService {
       console.log(`       Trip Short Name: ${representativeTrip.trip_short_name || '(none)'}`);
       console.log(`       Service ID: ${representativeTrip.service_id}`);
       console.log(`       Block ID: ${representativeTrip.block_id || '(none)'}`);
-      console.log(`    📋 RAW STOP_TIMES (${stopTimes.length} stops):`);
+      console.log(`    📋 RAW STOP_TIMES (${stopTimes.length} stops - sorted by time):`);
       stopTimes.forEach((st, idx) => {
         const stop = gtfsData.stops.find(s => s.stop_id === st.stop_id);
         const stopName = stop ? stop.stop_name : st.stop_id;
         const parentStation = stop?.parent_station ? `(parent: ${stop.parent_station})` : '(no parent)';
         const pickup = st.pickup_type === '1' ? '🚫board' : '✅board';
         const dropoff = st.drop_off_type === '1' ? '🚫alight' : '✅alight';
-        const times = `arr:${st.arrival_time} dep:${st.departure_time}`;
-        console.log(`       ${(idx + 1).toString().padStart(2, '0')}. seq:${st.stop_sequence.padStart(3, ' ')} | ${stopName.padEnd(30)} | ${times.padEnd(25)} | ${pickup} ${dropoff} ${parentStation}`);
+        const arrTime = GTFSParserService.timeToMinutes(st.arrival_time);
+        const depTime = GTFSParserService.timeToMinutes(st.departure_time || st.arrival_time);
+        const times = `arr:${st.arrival_time} dep:${st.departure_time} (${arrTime}→${depTime}min)`;
+        console.log(`       ${(idx + 1).toString().padStart(2, '0')}. seq:${st.stop_sequence.padStart(3, ' ')} | ${stopName.padEnd(30)} | ${times.padEnd(40)} | ${pickup} ${dropoff} ${parentStation}`);
       });
       console.log(`    ─────────────────────────────────────────────────────────────`);
 
@@ -759,9 +782,27 @@ export class GTFSConverterService {
       stopTimesByTrip.get(stopTime.trip_id)!.push(stopTime);
     });
 
-    // Sort stop times by sequence
-    stopTimesByTrip.forEach((stopTimes) => {
-      stopTimes.sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence));
+    // Sort stop times by departure time (chronological), then by sequence as fallback
+    stopTimesByTrip.forEach((stopTimes, tripId) => {
+      const beforeSort = stopTimes.map(st => `${st.stop_id}@${st.departure_time}`).join(' → ');
+      
+      stopTimes.sort((a, b) => {
+        // Primary: sort by departure time (chronological)
+        const timeA = GTFSParserService.timeToMinutes(a.departure_time || a.arrival_time);
+        const timeB = GTFSParserService.timeToMinutes(b.departure_time || b.arrival_time);
+        
+        if (timeA !== timeB) {
+          return timeA - timeB;
+        }
+        
+        // Secondary: sort by stop_sequence if times are equal
+        return parseInt(a.stop_sequence) - parseInt(b.stop_sequence);
+      });
+      
+      const afterSort = stopTimes.map(st => `${st.stop_id}@${st.departure_time}`).join(' → ');
+      if (beforeSort !== afterSort) {
+        console.log(`    ⚠️  Reordered trip ${tripId} stops by time (was by sequence)`);
+      }
     });
 
     // Create patterns
