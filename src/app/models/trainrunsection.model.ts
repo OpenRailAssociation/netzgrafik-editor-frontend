@@ -493,7 +493,7 @@ export class TrainrunSection {
 
   setBackwardTravelTime(time: number) {
     this.backwardTravelTime.time = time;
-    TrainrunSectionValidator.validateBackwardTravelTime(this);
+    TrainrunSectionValidator.validateBackwardTravelTime(this, 1);
   }
 
   setSourceDeparture(time: number) {
