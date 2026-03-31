@@ -1,1 +1,479 @@
 // GTFS Import Dialogs Component Styles
+
+// CDK Overlay Styles (SBB Pattern)
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  pointer-events: auto;
+  background-color: var(--sbb-color-backdrop, rgba(0, 0, 0, 0.5));
+  display: flex;
+  max-width: 100%;
+  max-height: 100%;
+  align-items: center;
+  justify-content: center;
+
+  &.import-overlay {
+    z-index: 1000;
+  }
+
+  &.filter-overlay {
+    z-index: 1001;
+  }
+}
+
+// SBB Dialog Container
+.dialog-container {
+  display: flex;
+  flex-direction: column;
+  border: var(--sbb-border-width, 1px) solid var(--sbb-form-input-border-color); 
+  box-sizing: border-box;
+  overflow: hidden;
+  outline: 0;
+  background-color: var(--sbb-color-background, var(--sbb-dialog-container-background-color, #fff));
+  box-shadow: var(--sbb-box-shadow-below, 0 4px 20px rgba(0, 0, 0, 0.3));
+  width: 100%;
+  height: 100%;
+  max-width: 900px;
+  max-height: 80vh;
+  min-height: inherit;
+
+  &.filter-dialog {
+    max-height: 85vh;
+  }
+}
+
+// SBB Dialog Title Styles
+.sbb-dialog-title,
+[sbb-dialog-title] {
+  margin: 0;
+  padding: var(--sbb-spacing-responsive-m, 20px) var(--sbb-spacing-responsive-m, 20px) var(--sbb-spacing-responsive-s, 15px) var(--sbb-spacing-responsive-m, 20px);
+  font-size: var(--sbb-font-size-title-5, 20px);
+  font-weight: bold;
+  line-height: var(--sbb-line-height-title-5, 1.2);
+  color: var(--sbb-color-text, var(--sbb-dialog-title-color, #000));
+  border-bottom: var(--sbb-border-width, 1px) solid var(--sbb-form-input-border-color);
+  display: flex;
+  align-items: center;
+  position: relative;
+  
+  .header-count {
+    font-size: 12px;
+    color: var(--sbb-color-metal, var(--sbb-color-text-disabled, #666));
+    margin-left: 10px;
+    font-weight: normal;
+  }
+  
+  .dialog-subtitle {
+    display: block;
+    font-size: 13px;
+    color: var(--sbb-color-metal, var(--sbb-color-text-disabled, #666));
+    font-weight: normal;
+    margin-top: 5px;
+  }
+  
+  // Close Button
+  .sbb-dialog-title-close-button {
+    margin-left: auto;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    color: var(--sbb-color-text, #000);
+    
+    &:hover {
+      background-color: var(--sbb-color-background-hover, rgba(0, 0, 0, 0.05));
+      border-radius: 50%;
+    }
+    
+    sbb-icon {
+      width: 24px;
+      height: 24px;
+    }
+  }
+}
+
+// SBB Dialog Content Styles
+.sbb-dialog-content,
+sbb-dialog-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sbb-spacing-responsive-m, 20px);
+  box-sizing: border-box;
+  color: var(--sbb-color-text, #000);
+  
+  &.sbb-scrollbar {
+    // SBB Scrollbar
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--sbb-color-graphite-alpha-20, rgba(0, 0, 0, 0.2));
+      border-radius: 4px;
+    }
+  }
+  
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+}
+
+// SBB Dialog Actions Styles
+.sbb-dialog-actions,
+sbb-dialog-actions {
+  padding: var(--sbb-spacing-responsive-s, 15px) var(--sbb-spacing-responsive-m, 20px);
+  border-top: var(--sbb-border-width, 1px) solid var(--sbb-form-input-border-color);
+  display: flex;
+  gap: var(--sbb-spacing-responsive-xs, 12px);
+  align-items: center;
+  flex-wrap: wrap;
+  
+  &.sbb-dialog-actions-align-end {
+    justify-content: flex-end;
+  }
+  
+  &.sbb-dialog-actions-align-start {
+    justify-content: flex-start;
+  }
+  
+  &.sbb-dialog-actions-align-center {
+    justify-content: center;
+  }
+  
+  .loading-message {
+    flex: 1;
+    font-size: 13px;
+    color: var(--sbb-color-metal, var(--sbb-color-text-disabled, #6c757d));
+    font-style: italic;
+    text-align: left;
+  }
+}
+
+// Phase overview styles
+.phase-overview {
+  margin-bottom: 15px;
+  padding: 15px; 
+  border-radius: 4px; 
+}
+
+.phase-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 10px; 
+}
+
+.phase-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.phase-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 4px;
+
+  &.completed {
+    background-color: var(--sbb-color-green25,  var(--NODE_COLOR_BACKGROUND));
+  }
+
+  &.running {
+    background-color: var(--NODE_COLOR_BACKGROUND);
+  }
+
+  &.error {
+    background-color: var(--COLOR_Warning,   var(--NODE_COLOR_BACKGROUND));
+  }
+
+  &.pending {
+    background-color: var(--NODE_COLOR_BACKGROUND);
+  }
+}
+
+.phase-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.pending {
+    font-size: 18px;
+  }
+
+  &.running {
+    font-size: 18px;
+  }
+
+  &.completed {
+    font-size: 18px;
+  }
+
+  &.error {
+    color: var(--COLOR_Warning);
+    font-size: 18px;
+  }
+}
+
+.phase-label {
+  flex: 1;
+  font-size: 13px;
+
+  
+  &.error {
+    color: var(--COLOR_Warning);
+  }
+ 
+}
+
+.phase-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--sbb-color-cloud, #f3f3f3);
+  border-top: 2px solid var(--sbb-color-peach, #ffc107);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// Log container styles
+.log-container {
+  flex: 1;
+  overflow-y: auto; 
+  border-radius: 4px;
+  padding: 15px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  min-height: 128px;
+  max-height: 300px;
+
+  &.filter-log {
+    min-height: 400px;
+    max-height: 60vh;
+  }
+}
+
+.log-entry {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: 4px;
+
+  &.error {
+    color: var(--sbb-color-error);
+  }
+ 
+
+  &.warning {
+    color: var(--COLOR_Warning);
+  }
+ 
+  &.default {
+    color: var(--sbb-color-text);
+  }
+}
+
+// Filter group styles
+.filter-group {
+  margin-bottom: 25px;
+}
+
+.filter-label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: var(--sbb-color-charcoal, var(--sbb-color-text, #333));
+}
+
+// Chip container styles
+.chip-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+  min-height: 36px;
+  padding: 8px;
+  background: var(--sbb-color-milk, var(--sbb-color-background-tertiary, #f5f5f5));
+  border-radius: 4px;
+  border: 1px solid var(--sbb-color-cloud, var(--sbb-color-border, #ddd));
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  color: var(--sbb-color-white, white);
+  border-radius: 16px;
+  font-size: 13px;
+
+  &.agency-chip {
+    background: var(--sbb-color-blue, #007bff);
+  }
+
+  &.category-chip {
+    background: var(--sbb-color-green, #28a745);
+  }
+
+  &.line-chip {
+    background: var(--sbb-color-sky, #17a2b8);
+  }
+}
+
+.chip-remove {
+  background: none;
+  border: none;
+  color: var(--sbb-color-white, white);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  margin: 0;
+}
+
+.chip-placeholder {
+  color: var(--sbb-color-granite, #999);
+  font-size: 13px;
+  padding: 4px 10px;
+}
+
+// Autocomplete styles
+.autocomplete-wrapper {
+  position: relative;
+}
+
+.autocomplete-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--sbb-color-cloud, var(--sbb-color-border, #ccc));
+  border-radius: 4px;
+  font-size: 13px;
+  box-sizing: border-box;
+  background: var(--sbb-color-background, white);
+  color: var(--sbb-color-text, #000);
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--sbb-color-background, white);
+  border: 1px solid var(--sbb-color-cloud, var(--sbb-color-border, #ccc));
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: var(--sbb-box-shadow-below, 0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.autocomplete-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  border-bottom: 1px solid var(--sbb-color-milk, #f0f0f0);
+  color: var(--sbb-color-text, #000);
+
+  &:hover {
+    background-color: var(--sbb-color-milk, var(--sbb-color-background-hover, #f5f5f5));
+  }
+}
+
+.filter-hint {
+  display: block;
+  margin-top: 5px;
+  color: var(--sbb-color-metal, var(--sbb-color-text-disabled, #666));
+  font-size: 12px;
+}
+
+// SBB Checkbox Group (Horizontal)
+.sbb-checkbox-group-horizontal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sbb-spacing-responsive-m, 16px);
+  padding: var(--sbb-spacing-responsive-s, 12px);
+  
+  border-radius: 4px; 
+}
+
+// Info box styles
+.info-box {
+  margin-bottom: 20px;
+  padding: 12px;
+  background: var(--sbb-color-sky25, #e7f3ff);
+  border-left: 4px solid var(--sbb-color-blue, #007bff);
+  border-radius: 4px;
+}
+
+.info-box-title {
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: var(--sbb-color-blue, #0056b3);
+}
+
+.info-box-content {
+  font-size: 12px;
+  color: var(--sbb-color-charcoal, var(--sbb-color-text, #333));
+  line-height: 1.6;
+}
+
+.info-box-footer {
+  font-size: 11px;
+  color: var(--sbb-color-metal, var(--sbb-color-text-disabled, #666));
+  margin-top: 8px;
+  font-style: italic;
+}
+
+// Remove old chip and autocomplete styles (now handled by SBB components)
+.filter-group {
+  sbb-form-field {
+    width: 100%;
+  }
+  
+  sbb-chip-list {
+    display: block;
+  }
+}
+
+// Ensure proper spacing for hint text
+.filter-hint {
+  display: block;
+  margin-top: 8px;
+  color: var(--sbb-color-metal, var(--sbb-color-text-disabled, #666));
+  font-size: 12px;
+}
+
+.filter-warning {
+  display: block;
+  margin-top: 8px;
+  color: var(--sbb-color-red, #d32f2f);
+  font-size: 12px;
+  font-weight: bold;
+}

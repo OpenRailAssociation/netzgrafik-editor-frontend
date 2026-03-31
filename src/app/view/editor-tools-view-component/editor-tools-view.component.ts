@@ -66,6 +66,9 @@ export class EditorToolsViewComponent {
   // Available values extracted from parsed GTFS data
   public gtfsAvailableAgencies: string[] = [];
   public gtfsAvailableRoutes: string[] = [];
+  
+  // Store light data for dynamic filtering
+  private gtfsLightData: any = null;
 
   // GTFS Filter Dialog
   public gtfsFilterDialogVisible = false;
@@ -73,23 +76,22 @@ export class EditorToolsViewComponent {
   public gtfsDataIsLoading = false; // Loading state for dialog
   private gtfsFile: File | null = null; // Store file for later full parse
   
-  // Agency filter (chip input)
+  // Agency filter (chip input with autocomplete)
   public gtfsSelectedAgencies: string[] = [];
-  public gtfsAgencySearchText = '';
   public gtfsFilteredAgencies: string[] = [];
   
-  // Category filter (chip input)
+  // Category filter (chip input with autocomplete)
   public gtfsSelectedCategories: string[] = [];
-  public gtfsCategorySearchText = '';
   public gtfsFilteredCategories: string[] = [];
   public gtfsAvailableCategories: string[] = [];
   
   // Line filter (chip input with autocomplete)
   public gtfsSelectedLines: string[] = [];
-  public gtfsLineSearchText = '';
   public gtfsFilteredLines: string[] = [];
-  // Legacy text input (kept for backward compatibility, but replaced with chip input)
-  public gtfsLineFilter = '';
+  
+  // Warnings for empty filters
+  public gtfsNoCategoriesWarning = false;
+  public gtfsNoLinesWarning = false;
 
   // GTFS Import Progress Overlay
   public gtfsImportOverlayVisible = false;
@@ -98,10 +100,10 @@ export class EditorToolsViewComponent {
   
   // Import phase tracking
   public gtfsImportPhases = [
-    { id: 'parse', label: 'GTFS Parsing', status: 'pending' },
-    { id: 'filter', label: 'Filter anwenden', status: 'pending' },
-    { id: 'convert', label: 'Netzgrafik Konvertierung', status: 'pending' },
-    { id: 'import', label: 'Editor Import', status: 'pending' }
+    { id: 'parse', labelKey: 'app.view.editor-side-view.editor-tools-view-component.gtfs-import-phase-parsing', status: 'pending' },
+    { id: 'filter', labelKey: 'app.view.editor-side-view.editor-tools-view-component.gtfs-import-phase-filter', status: 'pending' },
+    { id: 'convert', labelKey: 'app.view.editor-side-view.editor-tools-view-component.gtfs-import-phase-convert', status: 'pending' },
+    { id: 'import', labelKey: 'app.view.editor-side-view.editor-tools-view-component.gtfs-import-phase-import', status: 'pending' }
   ];
   public gtfsImportComplete = false;
 
@@ -319,18 +321,12 @@ export class EditorToolsViewComponent {
       return;
     }
 
-    console.log('\n════════════════════════════════════════════');
-    console.log('🚀 GTFS FILE SELECTED');
-    console.log('════════════════════════════════════════════\n');
-    console.log('📁 File:', file.name);
-    console.log('📦 Size:', (file.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('🚀 GTFS FILE SELECTED:', file.name, `(${(file.size / 1024 / 1024).toFixed(2)} MB)`);
     
     // Store file for later full parsing
     this.gtfsFile = file;
     
-    // Show filter dialog immediately with loading state
-    this.gtfsFilterDialogVisible = true;
-    this.gtfsDataIsLoading = true;
+    // Reset state
     this.gtfsParsedData = null;
     this.gtfsAvailableAgencies = [];
     this.gtfsAvailableCategories = [];
@@ -338,17 +334,10 @@ export class EditorToolsViewComponent {
     this.gtfsSelectedAgencies = [];
     this.gtfsSelectedCategories = [];
     this.gtfsSelectedLines = [];
-    this.gtfsLineFilter = '';
-    
-    // Start capturing console logs for display in filter dialog
-    this.gtfsImportLogs = [];
-    this.startCapturingConsoleLogs();
     
     try {
       // PHASE 1: LIGHT PARSE - Only read agencies and routes for filter autocomplete
-      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('PHASE 1: QUICK SCAN FOR FILTER OPTIONS');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      console.log('\n📋 PHASE 1: Quick scan for filter options');
       
       // Convert transport mode filter to route_type numbers
       const allowedRouteTypes: number[] = [];
@@ -360,19 +349,17 @@ export class EditorToolsViewComponent {
       if (this.gtfsRouteTypeFilter.bus) allowedRouteTypes.push(3);
       if (this.gtfsRouteTypeFilter.ferry) allowedRouteTypes.push(4);
       
-      console.log('🔍 Transport mode filter:', allowedRouteTypes);
-      console.log('⚡ Using LIGHT parse - only reading agencies + routes (skipping trips, stops, etc.)');
+      console.log('⚡ Light parse - Transport modes:', allowedRouteTypes);
       
       // Light parse - only agencies and routes
       const lightData = await this.gtfsParserService.parseGTFSZipLight(file, allowedRouteTypes);
       
-      console.log('\n✅ Quick scan complete!');
-      console.log('📊 Found filter options:');
-      console.log('  - Agencies:', lightData.agencies.length);
-      console.log('  - Routes:', lightData.routes.length);
+      // Store light data for dynamic filtering
+      this.gtfsLightData = lightData;
       
-      // PHASE 2: Extract available filter values (very fast - just Set operations)
-      console.log('\n🔍 Building autocomplete lists...');
+      console.log('✅ Found:', lightData.agencies.length, 'agencies,', lightData.routes.length, 'routes');
+      
+      // PHASE 2: Extract available filter values
       this.gtfsAvailableAgencies = lightData.agencies
         .map(a => a.agency_name)
         .filter((name, idx, arr) => arr.indexOf(name) === idx) // Unique
@@ -400,13 +387,7 @@ export class EditorToolsViewComponent {
       });
       this.gtfsAvailableCategories = Array.from(categorySet).sort();
       
-      // DEBUG: Show which routes contributed which categories
-      console.log('\n🔍 Category extraction debug (first 20 routes):');
-      lightData.routes.slice(0, 20).forEach(route => {
-        const desc = (route.route_desc || '').trim();
-        const shortName = (route.route_short_name || '').trim();
-        console.log(`  route_short_name="${shortName}", route_desc="${desc}"`);
-      });
+      // Categories extracted from route_desc or route_short_name prefix
       
       // Extract available route names (optional for future use)
       this.gtfsAvailableRoutes = lightData.routes
@@ -414,9 +395,7 @@ export class EditorToolsViewComponent {
         .filter((name, idx, arr) => name && arr.indexOf(name) === idx)
         .sort();
       
-      console.log('\n📋 Available agencies:', this.gtfsAvailableAgencies.length);
-      console.log('   Sample:', this.gtfsAvailableAgencies.slice(0, 5));
-      console.log('📋 Available categories:', this.gtfsAvailableCategories);
+      console.log('📋 Available:', this.gtfsAvailableAgencies.length, 'agencies,', this.gtfsAvailableCategories.length, 'categories');
       
       // PHASE 3: Set smart defaults
       // Default agency: Schweizerische Bundesbahnen SBB (prefer full name)
@@ -435,32 +414,23 @@ export class EditorToolsViewComponent {
       
       // Default line filter: empty (no lines selected by default = all lines)
       this.gtfsSelectedLines = [];
-      this.gtfsLineFilter = '';
       
-      // Initialize autocomplete
-      this.gtfsAgencySearchText = '';
+      // Initialize filtered lists for autocomplete
       this.gtfsFilteredAgencies = [...this.gtfsAvailableAgencies];
-      this.gtfsCategorySearchText = '';
       this.gtfsFilteredCategories = [...this.gtfsAvailableCategories];
-      this.gtfsLineSearchText = '';
       this.gtfsFilteredLines = [...this.gtfsAvailableRoutes];
-      this.gtfsFilteredCategories = [...this.gtfsAvailableCategories];
       
-      console.log('\n✅ Smart defaults set:');
-      console.log('  - Agencies:', this.gtfsSelectedAgencies);
-      console.log('  - Categories:', this.gtfsSelectedCategories);
+      // Update available filters based on selected agencies/categories (cascading)
+      this.updateAvailableFilters();
       
-      // Stop capturing logs
-      this.stopCapturingConsoleLogs();
+      console.log('✅ Defaults:', this.gtfsSelectedAgencies, '/', this.gtfsSelectedCategories);
       
-      // End loading state - show filter options and import button
-      this.gtfsDataIsLoading = false;
+      // Open filter dialog after successful light parse
+      this.gtfsFilterDialogVisible = true;
       
-      console.log('\n🎛️  Filter dialog ready!');
-      console.log('ℹ️  Full GTFS parsing will happen when you click "Import starten"');
+      console.log('🎛️  Filter dialog ready - full parsing on import');
       
     } catch (error) {
-      this.stopCapturingConsoleLogs();
       console.error('\n❌ ERROR SCANNING GTFS:');
       console.error('Error:', error);
       
@@ -473,10 +443,6 @@ export class EditorToolsViewComponent {
       }
       
       this.logger.error($localize`:@@app.view.editor-side-view.editor-tools-view-component.gtfs-error:Error scanning GTFS data: ${userMessage}`);
-      
-      // Keep dialog open with logs visible so user can see the error
-      // gtfsDataIsLoading stays true to show log view
-      // User can close dialog with "Abbrechen" button
     }
 
     // Reset input to allow importing same file again
@@ -1093,65 +1059,120 @@ export class EditorToolsViewComponent {
   closeGtfsFilterDialog(): void {
     this.gtfsFilterDialogVisible = false;
     this.gtfsParsedData = null;
-    this.gtfsDataIsLoading = false;
     this.gtfsFile = null;
-  }
-
-  onGtfsAgencySearch(): void {
-    const search = this.gtfsAgencySearchText.toLowerCase();
-    this.gtfsFilteredAgencies = this.gtfsAvailableAgencies.filter(a => 
-      a.toLowerCase().includes(search)
-    );
   }
 
   addGtfsAgency(agency: string): void {
     if (!this.gtfsSelectedAgencies.includes(agency)) {
       this.gtfsSelectedAgencies.push(agency);
     }
-    this.gtfsAgencySearchText = '';
-    this.gtfsFilteredAgencies = [...this.gtfsAvailableAgencies];
+    this.updateAvailableFilters();
   }
 
   removeGtfsAgency(agency: string): void {
     this.gtfsSelectedAgencies = this.gtfsSelectedAgencies.filter(a => a !== agency);
-  }
-
-  onGtfsCategorySearch(): void {
-    const search = this.gtfsCategorySearchText.toLowerCase();
-    this.gtfsFilteredCategories = this.gtfsAvailableCategories.filter(c => 
-      c.toLowerCase().includes(search)
-    );
+    this.updateAvailableFilters();
   }
 
   addGtfsCategory(category: string): void {
     if (!this.gtfsSelectedCategories.includes(category)) {
       this.gtfsSelectedCategories.push(category);
     }
-    this.gtfsCategorySearchText = '';
-    this.gtfsFilteredCategories = [...this.gtfsAvailableCategories];
+    this.updateAvailableFilters();
   }
 
   removeGtfsCategory(category: string): void {
     this.gtfsSelectedCategories = this.gtfsSelectedCategories.filter(c => c !== category);
-  }
-
-  onGtfsLineSearch(): void {
-    const search = this.gtfsLineSearchText.toLowerCase();
-    this.gtfsFilteredLines = this.gtfsAvailableRoutes.filter(line => 
-      line.toLowerCase().includes(search)
-    );
+    this.updateAvailableFilters();
   }
 
   addGtfsLine(line: string): void {
     if (!this.gtfsSelectedLines.includes(line)) {
       this.gtfsSelectedLines.push(line);
     }
-    this.gtfsLineSearchText = '';
-    this.gtfsFilteredLines = [...this.gtfsAvailableRoutes];
   }
 
   removeGtfsLine(line: string): void {
     this.gtfsSelectedLines = this.gtfsSelectedLines.filter(l => l !== line);
+  }
+  
+  // Update available filter options based on selected filters (cascading)
+  private updateAvailableFilters(): void {
+    if (!this.gtfsLightData) {
+      return;
+    }
+    
+    // Start with all routes
+    let filteredRoutes = [...this.gtfsLightData.routes];
+    
+    // Apply agency filter
+    if (this.gtfsSelectedAgencies.length > 0) {
+      const selectedAgencyIds = this.gtfsLightData.agencies
+        .filter(a => this.gtfsSelectedAgencies.includes(a.agency_name))
+        .map(a => a.agency_id);
+      
+      filteredRoutes = filteredRoutes.filter(route => 
+        selectedAgencyIds.includes(route.agency_id)
+      );
+    }
+    
+    // Extract available categories from filtered routes
+    const categorySet = new Set<string>();
+    filteredRoutes.forEach(route => {
+      const desc = (route.route_desc || '').trim();
+      if (desc) {
+        categorySet.add(desc.toUpperCase());
+      } else {
+        const shortName = (route.route_short_name || '').trim();
+        if (shortName) {
+          const match = shortName.match(/^[A-Za-z]+/);
+          if (match) {
+            categorySet.add(match[0].toUpperCase());
+          }
+        }
+      }
+    });
+    this.gtfsAvailableCategories = Array.from(categorySet).sort();
+    this.gtfsFilteredCategories = [...this.gtfsAvailableCategories];
+    
+    // Apply category filter to routes
+    if (this.gtfsSelectedCategories.length > 0) {
+      filteredRoutes = filteredRoutes.filter(route => {
+        const desc = (route.route_desc || '').toUpperCase();
+        const shortName = (route.route_short_name || '').toUpperCase();
+        
+        return this.gtfsSelectedCategories.some(cat => {
+          const catUpper = cat.toUpperCase();
+          if (desc.includes(catUpper)) {
+            return true;
+          }
+          const prefixMatch = shortName.match(/^[A-Za-z]+/);
+          if (prefixMatch && prefixMatch[0] === catUpper) {
+            return true;
+          }
+          return false;
+        });
+      });
+    }
+    
+    // Extract available lines from filtered routes
+    this.gtfsAvailableRoutes = filteredRoutes
+      .map(r => r.route_short_name || r.route_long_name || '')
+      .filter((name, idx, arr) => name && arr.indexOf(name) === idx)
+      .sort();
+    this.gtfsFilteredLines = [...this.gtfsAvailableRoutes];
+    
+    // Remove selected items that are no longer available
+    this.gtfsSelectedCategories = this.gtfsSelectedCategories.filter(c => 
+      this.gtfsAvailableCategories.includes(c)
+    );
+    this.gtfsSelectedLines = this.gtfsSelectedLines.filter(l => 
+      this.gtfsAvailableRoutes.includes(l)
+    );
+    
+    // Set warnings
+    this.gtfsNoCategoriesWarning = this.gtfsAvailableCategories.length === 0;
+    this.gtfsNoLinesWarning = this.gtfsAvailableRoutes.length === 0;
   }
 
   async applyGtfsFiltersAndImport(): Promise<void> {
@@ -1169,18 +1190,14 @@ export class EditorToolsViewComponent {
     this.startCapturingConsoleLogs();
 
     try {
-      console.log('\n════════════════════════════════════════════');
-      console.log('🚀 GTFS FULL IMPORT WITH SELECTED FILTERS');
-      console.log('════════════════════════════════════════════\n');
-      console.log('🏢 Selected agencies:', this.gtfsSelectedAgencies);
-      console.log('🚆 Selected categories:', this.gtfsSelectedCategories);
-      console.log('🚂 Selected lines:', this.gtfsSelectedLines.length > 0 ? this.gtfsSelectedLines : '(all lines)');
+      console.log('\n🚀 GTFS FULL IMPORT');
+      console.log('Agencies:', this.gtfsSelectedAgencies);
+      console.log('Categories:', this.gtfsSelectedCategories);
+      console.log('Lines:', this.gtfsSelectedLines.length > 0 ? this.gtfsSelectedLines : '(all)');
       
       // PHASE 1: Full GTFS parse with filters
       this.gtfsImportPhases[0].status = 'running';
-      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('PHASE 1: FULL GTFS PARSING (trips, stops, etc.)');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      console.log('\n📋 PHASE 1: Full GTFS parsing');
       
       // Convert transport mode filter to route_type numbers
       const allowedRouteTypes: number[] = [];
@@ -1192,9 +1209,7 @@ export class EditorToolsViewComponent {
       if (this.gtfsRouteTypeFilter.bus) allowedRouteTypes.push(3);
       if (this.gtfsRouteTypeFilter.ferry) allowedRouteTypes.push(4);
       
-      console.log('🔍 Filters:');
-      console.log('  - Transport modes:', allowedRouteTypes);
-      console.log('  - Agencies:', this.gtfsSelectedAgencies.length > 0 ? this.gtfsSelectedAgencies : '(all)');
+      console.log('Transport modes:', allowedRouteTypes);
       
       // Full parse with agency filter (NO date filter)
       let gtfsData = await this.gtfsParserService.parseGTFSZip(
@@ -1203,19 +1218,9 @@ export class EditorToolsViewComponent {
         this.gtfsSelectedAgencies
       );
       
-      console.log('\n✅ Full GTFS parsed!');
-      console.log('📊 Data after agency filter:');
-      console.log('  - Routes:', gtfsData.routes.length);
-      console.log('  - Trips:', gtfsData.trips.length);
-      console.log('  - Stops:', gtfsData.stops.length);
+      console.log('✅ Parsed:', gtfsData.routes.length, 'routes,', gtfsData.trips.length, 'trips,', gtfsData.stops.length, 'stops');
       
-      // Debug: Show sample routes with their desc and short_name
-      if (gtfsData.routes.length > 0) {
-        console.log('\n📋 Sample routes (first 10):');
-        gtfsData.routes.slice(0, 10).forEach(route => {
-          console.log(`  - route_short_name="${route.route_short_name}", route_desc="${route.route_desc}", route_type=${route.route_type}`);
-        });
-      }
+      // Sample routes available in parsed data
       
       this.gtfsImportPhases[0].status = 'completed';
       
@@ -1223,9 +1228,8 @@ export class EditorToolsViewComponent {
       
       // PHASE 2: Apply category filter
       this.gtfsImportPhases[1].status = 'running';
-      console.log('\n🔍 Applying category filter...');
+      console.log('\n🔍 Applying category filter');
       if (this.gtfsSelectedCategories.length > 0) {
-        console.log('  📋 Selected categories:', this.gtfsSelectedCategories);
         const beforeFilter = gtfsData.routes.length;
         gtfsData.routes = gtfsData.routes.filter(route => {
           const desc = (route.route_desc || '').toUpperCase();
@@ -1252,53 +1256,48 @@ export class EditorToolsViewComponent {
             return false;
           });
           
-          if (!matches) {
-            console.log(`    ❌ Filtered out: ${route.route_short_name} (desc="${route.route_desc}", short="${route.route_short_name}")`);
-          }
           return matches;
         });
-        console.log('  🔍 Filtered routes from', beforeFilter, 'to', gtfsData.routes.length);
+        console.log('Routes filtered:', beforeFilter, '→', gtfsData.routes.length);
         
         if (gtfsData.routes.length === 0) {
-          console.error('  ❌ NO ROUTES LEFT AFTER FILTERING!');
-          console.error('  💡 Check if selected categories match route_desc or route_short_name');
-          console.error('  💡 Selected categories:', this.gtfsSelectedCategories);
+          console.error('❌ No routes match categories:', this.gtfsSelectedCategories);
         }
         
         const validRouteIds = new Set(gtfsData.routes.map(r => r.route_id));
         const beforeTrips = gtfsData.trips.length;
         gtfsData.trips = gtfsData.trips.filter(t => validRouteIds.has(t.route_id));
-        console.log('  🔍 Filtered trips from', beforeTrips, 'to', gtfsData.trips.length);
+        console.log('Trips filtered:', beforeTrips, '→', gtfsData.trips.length);
         
         const validTripIds = new Set(gtfsData.trips.map(t => t.trip_id));
         const beforeStopTimes = gtfsData.stopTimes.length;
         gtfsData.stopTimes = gtfsData.stopTimes.filter(st => validTripIds.has(st.trip_id));
-        console.log('  🔍 Filtered stop_times from', beforeStopTimes, 'to', gtfsData.stopTimes.length);
+        console.log('Stop times filtered:', beforeStopTimes, '→', gtfsData.stopTimes.length);
       } else {
-        console.log('  ℹ️  No category filter - keeping all categories');
+        console.log('No category filter - keeping all');
       }
       
       // Apply line filter
-      console.log('\n🔍 Applying line filter...');
+      console.log('\n🔍 Applying line filter');
       if (this.gtfsSelectedLines.length > 0) {
-        console.log('  🚂 Selected lines:', this.gtfsSelectedLines);
+        console.log('Selected lines:', this.gtfsSelectedLines);
         
         const beforeFilter = gtfsData.routes.length;
         gtfsData.routes = gtfsData.routes.filter(route => {
           const shortName = (route.route_short_name || '').toUpperCase();
           return this.gtfsSelectedLines.some(line => shortName === line.toUpperCase());
         });
-        console.log('  🔍 Filtered routes from', beforeFilter, 'to', gtfsData.routes.length);
+        console.log('Routes filtered:', beforeFilter, '→', gtfsData.routes.length);
         
         const validRouteIds = new Set(gtfsData.routes.map(r => r.route_id));
         const beforeTrips = gtfsData.trips.length;
         gtfsData.trips = gtfsData.trips.filter(t => validRouteIds.has(t.route_id));
-        console.log('  🔍 Filtered trips from', beforeTrips, 'to', gtfsData.trips.length);
+        console.log('Trips filtered:', beforeTrips, '→', gtfsData.trips.length);
         
         const validTripIds = new Set(gtfsData.trips.map(t => t.trip_id));
         const beforeStopTimes = gtfsData.stopTimes.length;
         gtfsData.stopTimes = gtfsData.stopTimes.filter(st => validTripIds.has(st.trip_id));
-        console.log('  🔍 Filtered stop_times from', beforeStopTimes, 'to', gtfsData.stopTimes.length);
+        console.log('Stop times filtered:', beforeStopTimes, '→', gtfsData.stopTimes.length);
         
         const usedStopIds = new Set(gtfsData.stopTimes.map(st => st.stop_id));
         const usedStopIdsWithParents = new Set(usedStopIds);
@@ -1309,15 +1308,14 @@ export class EditorToolsViewComponent {
         });
         const beforeStops = gtfsData.stops.length;
         gtfsData.stops = gtfsData.stops.filter(stop => usedStopIdsWithParents.has(stop.stop_id));
-        console.log('  🔍 Filtered stops from', beforeStops, 'to', gtfsData.stops.length);
+        console.log('Stops filtered:', beforeStops, '→', gtfsData.stops.length);
       } else {
-        console.log('  ℹ️  No line filter - keeping all lines');
+        console.log('No line filter - keeping all');
       }
       
       // Continue with node classification filter and conversion
-      console.log('\n🔍 Applying node classification filter...');
+      console.log('\n🔍 Applying node filter');
       const activeNodeTypes = Object.keys(this.gtfsNodeFilter).filter(key => this.gtfsNodeFilter[key]);
-      console.log('  Active node types:', activeNodeTypes);
       
       if (activeNodeTypes.length > 0 && activeNodeTypes.length < 5) {
         const acceptedClassifications = new Set(activeNodeTypes);
@@ -1325,17 +1323,15 @@ export class EditorToolsViewComponent {
         gtfsData.stops = gtfsData.stops.filter(stop => 
           !stop.node_type || acceptedClassifications.has(stop.node_type)
         );
-        console.log('  ✓ Filtered stops from', beforeFilter, 'to', gtfsData.stops.length);
+        console.log('Stops filtered:', beforeFilter, '→', gtfsData.stops.length);
       } else {
-        console.log('  ℹ️  All node types selected or none classified - keeping all stops');
+        console.log('All node types selected - keeping all');
       }
       this.gtfsImportPhases[1].status = 'completed';
       
       // Convert to Netzgrafik format
       this.gtfsImportPhases[2].status = 'running';
-      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('PHASE 2: CONVERTING TO NETZGRAFIK FORMAT');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      console.log('\n📋 PHASE 2: Converting to Netzgrafik format');
       
       const existingNetzgrafik = this.dataService.getNetzgrafikDto();
       const existingMetadata = existingNetzgrafik?.metadata;
@@ -1358,17 +1354,12 @@ export class EditorToolsViewComponent {
       
       // Import into editor
       this.gtfsImportPhases[3].status = 'running';
-      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('PHASE 3: IMPORTING INTO EDITOR');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-      console.log('🎯 Importing', netzgrafikDto.nodes.length, 'nodes');
-      console.log('🎯 Importing', netzgrafikDto.trainruns.length, 'trainruns');
-      console.log('🎯 Importing', netzgrafikDto.trainrunSections.length, 'sections');
+      console.log('\n📋 PHASE 3: Importing into editor');
+      console.log('Importing', netzgrafikDto.nodes.length, 'nodes,', netzgrafikDto.trainruns.length, 'trainruns,', netzgrafikDto.trainrunSections.length, 'sections');
       
       this.processNetzgrafikJSON(netzgrafikDto);
       
       console.log('\n✅ Import complete!');
-      console.log('\n════════════════════════════════════════════');
       this.gtfsImportPhases[3].status = 'completed';
       
       this.stopCapturingConsoleLogs();
