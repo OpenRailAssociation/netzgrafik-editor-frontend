@@ -2,26 +2,6 @@
   {{ "app.view.editor-side-view.editor-tools-view-component.more-functions" | translate }}
 </h2>
 <sbb-accordion [multi]="true">
-  <sbb-expansion-panel [expanded]="false">
-    <sbb-expansion-panel-header>{{
-      "app.view.editor-side-view.editor-tools-view-component.import" | translate
-    }}</sbb-expansion-panel-header>
-    <ng-container *ngIf="getVariantIsWritable()">
-      
-      <button
-        (click)="onImportGTFSButton()"
-        [title]="
-          'app.view.editor-side-view.editor-tools-view-component.import-gtfs-data' | translate
-        "
-        class="TrainrunDialog EditorToolButton"
-      >
-        <sbb-icon svgIcon="document-plus-small"></sbb-icon>
-      </button>
-      <input hidden #gtfsFileInput type="file" accept=".zip" (change)="onLoadGTFS($event)" />
-      {{ "app.view.editor-side-view.editor-tools-view-component.import-gtfs-data" | translate }}
-    </ng-container>   
-  </sbb-expansion-panel>
-
   <sbb-expansion-panel [expanded]="true">
     <sbb-expansion-panel-header>{{
       "app.view.editor-side-view.editor-tools-view-component.export" | translate
@@ -61,6 +41,26 @@
       <sbb-icon svgIcon="printer-small"></sbb-icon>
     </button>
     {{ "app.view.editor-side-view.editor-tools-view-component.print" | translate }}
+  </sbb-expansion-panel>
+
+  <sbb-expansion-panel [expanded]="false">
+    <sbb-expansion-panel-header>{{
+      "app.view.editor-side-view.editor-tools-view-component.import" | translate
+    }}</sbb-expansion-panel-header>
+    <ng-container *ngIf="getVariantIsWritable()">
+      
+      <button
+        (click)="onImportGTFSButton()"
+        [title]="
+          'app.view.editor-side-view.editor-tools-view-component.import-gtfs-data' | translate
+        "
+        class="TrainrunDialog EditorToolButton"
+      >
+        <sbb-icon svgIcon="document-plus-small"></sbb-icon>
+      </button>
+      <input hidden #gtfsFileInput type="file" accept=".zip" (change)="onLoadGTFS($event)" />
+      {{ "app.view.editor-side-view.editor-tools-view-component.import-gtfs-data" | translate }}
+    </ng-container>   
   </sbb-expansion-panel>
 
   <sbb-expansion-panel [expanded]="false">
