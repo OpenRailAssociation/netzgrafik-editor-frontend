@@ -168,8 +168,14 @@ export class GTFSConverterService {
     
     // Get all unique frequencies from routes
     const uniqueFrequencies = new Set<number>();
+    const validFrequencies = [15, 20, 30, 60, 120, 121];
     routes.forEach(route => {
       if (route.frequency) {
+        // Validate frequency and normalize to 60 if invalid
+        if (!validFrequencies.includes(route.frequency)) {
+          console.warn(`  ⚠️  Invalid frequency ${route.frequency} in route ${route.route_id}, normalizing to 60`);
+          route.frequency = 60;
+        }
         uniqueFrequencies.add(route.frequency);
       }
     });

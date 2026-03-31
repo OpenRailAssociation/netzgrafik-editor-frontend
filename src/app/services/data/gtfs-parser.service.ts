@@ -148,7 +148,7 @@ export class GTFSParserService {
       }
       
       if (!routeStopTimes || routeStopTimes.length === 0) {
-        route.frequency = 60; // Default 60 minutes
+        route.frequency = GTFSParserService.normalizeFrequency(60); // Default 60 minutes
         // Try to find a sample trip for this route
         const routeTrip = trips.find(t => t.route_id === route.route_id);
         if (routeTrip) {
@@ -173,7 +173,7 @@ export class GTFSParserService {
       const departures = tripDepartures.map(td => td[1]);
       
       if (departures.length < 2) {
-        route.frequency = 60;
+        route.frequency = GTFSParserService.normalizeFrequency(60);
         // Set sample trip (just use first one if only one trip)
         if (tripDepartures.length > 0) {
           route.sample_trip_id = tripDepartures[0][0];
@@ -191,20 +191,22 @@ export class GTFSParserService {
       const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
       
       // Round to nearest standard frequency
+      let calculatedFreq: number;
       if (avgInterval <= 17) {
-        route.frequency = 15;
+        calculatedFreq = 15;
       } else if (avgInterval <= 25) {
-        route.frequency = 20;
+        calculatedFreq = 20;
       } else if (avgInterval <= 45) {
-        route.frequency = 30;
+        calculatedFreq = 30;
       } else if (avgInterval <= 90) {
-        route.frequency = 60;
+        calculatedFreq = 60;
       } else if (avgInterval <= 150) {
-        route.frequency = 120;
+        calculatedFreq = 120;
       } else {
         // >150 minutes = 121 (120+, odd hours)
-        route.frequency = 121;
+        calculatedFreq = 121;
       }
+      route.frequency = GTFSParserService.normalizeFrequency(calculatedFreq);
       
       // Select representative trip based on frequency pattern
       // For each frequency, pick trip that departs at the "correct" minute/hour pattern
@@ -954,6 +956,8 @@ export class GTFSParserService {
           else frequency = 121; // 120+
         }
       }
+      // Normalize frequency to ensure only valid values are used
+      frequency = GTFSParserService.normalizeFrequency(frequency);
       
       // Select ONE representative trip (prefer one in middle of time window)
       let representativeTripId = representativeTrips[0];
@@ -980,7 +984,7 @@ export class GTFSParserService {
         // Store frequency in route (for later use)
         const route = gtfsData.routes.find(r => r.route_id === routeKey.split('|')[0]);
         if (route && !route.frequency) {
-          route.frequency = frequency;
+          route.frequency = GTFSParserService.normalizeFrequency(frequency);
         }
       }
       
@@ -1039,6 +1043,21 @@ export class GTFSParserService {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
+  }
+
+  /**
+   * Normalize frequency to standard values: 15, 20, 30, 60, 120, 121
+   * If frequency is not one of these values, default to 60
+   * @param frequency Frequency value to normalize
+   * @returns Normalized frequency (15, 20, 30, 60, 120, or 121)
+   */
+  private static normalizeFrequency(frequency: number): number {
+    const validFrequencies = [15, 20, 30, 60, 120, 121];
+    if (validFrequencies.includes(frequency)) {
+      return frequency;
+    }
+    console.warn(`  ⚠️  Invalid frequency ${frequency} detected, defaulting to 60`);
+    return 60;
   }
 
   /**
