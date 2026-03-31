@@ -28,7 +28,7 @@ The project encourages users to participate in the community as much as possible
 - promoting the project (e.g. linking from websites or raising awareness by word of mouth)
 - informing developers about strengths and weaknesses from a user perspective
 - providing community support
-  Users may become Contributors.
+- users may become Contributors
 
 ### 2.3 Participants
 
