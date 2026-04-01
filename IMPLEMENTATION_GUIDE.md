@@ -1,7 +1,9 @@
 # GTFS Filter Dialog - Implementierungsanleitung
 
 ## ✅ Status: Properties bereits hinzugefügt
+
 Die folgenden Properties sind bereits im Component vorhanden (Zeilen 75-94):
+
 - `gtfsFilterDialogVisible`
 - `gtfsParsedData`
 - `gtfsSelectedAgencies`
@@ -12,7 +14,9 @@ Die folgenden Properties sind bereits im Component vorhanden (Zeilen 75-94):
 - `gtfsLineFilter`
 
 ## ✅ Status: Hilfsfunktionen bereits hinzugefügt
+
 Die folgenden Funktionen sind bereits im Component vorhanden (Zeilen ~1284-1460):
+
 - `closeGtfsFilterDialog()`
 - `onGtfsAgencySearch()`
 - `addGtfsAgency(agency)`
@@ -22,14 +26,18 @@ Die folgenden Funktionen sind bereits im Component vorhanden (Zeilen ~1284-1460)
 ## ⚠️ TODO: onLoadGTFS Function ersetzen
 
 ### Aktueller Stand:
+
 Die `onLoadGTFS` Funktion (Zeilen ~310-676) macht momentan:
+
 1. Datei laden
 2. Parsen mit Filtern
 3. Direkt in Netzgrafik konvertieren
 4. Direkt importieren
 
 ### Neue Funktionalität:
+
 Die Funktion soll ändern zu:
+
 1. Datei laden
 2. Parsen **OHNE** Agency/Category/Line Filter (nur Transport Mode)
 3. Verfügbare Agencies und Kategorien extrahieren
@@ -39,13 +47,16 @@ Die Funktion soll ändern zu:
 7. (applyGtfsFiltersAndImport wird aufgerufen when user clicks "Import starten")
 
 ### Vorgehensweise:
+
 **Option 1: Manuelle Ersetzung (empfohlen)**
+
 1. Öffne `editor-tools-view.component.ts`
 2. Finde die `onLoadGTFS` Funktion (ca. Zeile 310)
 3. Ersetze die gesamte Funktion (bis Zeile ~676) mit dem Inhalt aus:
    `NEW_ONLOADGTFS_FUNCTION.ts`
 
 **Option 2: Automatische Ersetzung**
+
 ```bash
 # Backup erstellen
 cp src/app/view/editor-tools-view-component/editor-tools-view.component.ts src/app/view/editor-tools-view-component/editor-tools-view.component.ts.backup
@@ -56,11 +67,13 @@ cp src/app/view/editor-tools-view-component/editor-tools-view.component.ts src/a
 ## ⚠️ TODO: HTML für Filter-Dialog hinzufügen
 
 ### Wo einfügen:
+
 Öffne `editor-tools-view.component.html`
 
 Füge den Inhalt aus `GTFS_FILTER_DIALOG.html` ein **NACH** dem GTFS Import Progress Overlay (ca. Zeile 385) und **VOR** `</sbb-accordion>`.
 
 ### Reihenfolge der Overlays:
+
 ```html
 ... Sidebar content ...
 
@@ -84,15 +97,18 @@ Die folgenden Filter können aus der Sidebar entfernt werden, da sie jetzt im Di
 ### In `editor-tools-view.component.html` (ca. Zeilen 220-270):
 
 **Zu entfernen:**
+
 1. Agency Filter Section (Textarea + Available Agencies)
-2. Category Filter Section (Input field) 
+2. Category Filter Section (Input field)
 3. Route/Line Name Filter Section (Textarea)
 
 **Zu behalten:**
+
 1. Transport Mode Filter (tram, metro, rail, bus, ferry)
 2. Node Classification Filter (start, end, junction, major_stop, minor_stop)
 
 ### Beispiel-Änderung:
+
 ```html
 <!-- BEHALTEN: Transport Mode Filter -->
 <div style="...">
@@ -146,9 +162,9 @@ Nach der Implementierung:
    - Zeigt verfügbare Agencies
    - Zeigt verfügbare Kategorien
    - Smart Defaults sind gesetzt:
-     * Agency: "Schweizerische Bundesbahnen SBB" (falls vorhanden)
-     * Kategorien: EC, IC, IR, RE, S (falls vorhanden)
-     * Linien: leer
+     - Agency: "Schweizerische Bundesbahnen SBB" (falls vorhanden)
+     - Kategorien: EC, IC, IR, RE, S (falls vorhanden)
+     - Linien: leer
 
 3. **Filter anpassen:**
    - Agencies: Suchen und als Chips hinzufügen/entfernen
@@ -177,12 +193,15 @@ Nach der Implementierung:
 Nach der Implementierung:
 
 **Alter Workflow:**
+
 1. Filter in Sidebar setzen → 2. Datei laden → 3. Import
 
 **Neuer Workflow:**
+
 1. Transport Mode in Sidebar setzen → 2. Datei laden → 3. **Dialog mit intelligenten Defaults** → 4. Filter anpassen → 5. Import starten
 
 **Vorteile:**
+
 - ✅ User sieht verfügbare Werte (Autocomplete)
 - ✅ Smart Defaults (SBB, EC/IC/IR/RE/S)
 - ✅ Bessere UX mit Chips für Agencies

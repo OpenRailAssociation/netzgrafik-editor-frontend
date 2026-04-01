@@ -48,7 +48,6 @@
       "app.view.editor-side-view.editor-tools-view-component.import" | translate
     }}</sbb-expansion-panel-header>
     <ng-container *ngIf="getVariantIsWritable()">
-      
       <button
         (click)="onImportGTFSButton()"
         [title]="
@@ -60,7 +59,7 @@
       </button>
       <input hidden #gtfsFileInput type="file" accept=".zip" (change)="onLoadGTFS($event)" />
       {{ "app.view.editor-side-view.editor-tools-view-component.import-gtfs-data" | translate }}
-    </ng-container>   
+    </ng-container>
   </sbb-expansion-panel>
 
   <sbb-expansion-panel [expanded]="false">
@@ -207,7 +206,6 @@
     </button>
     {{ "app.view.editor-side-view.editor-tools-view-component.export-base-data" | translate }}
   </sbb-expansion-panel>
-
 </sbb-accordion>
 
 <!-- GTFS Import Dialogs Component -->
