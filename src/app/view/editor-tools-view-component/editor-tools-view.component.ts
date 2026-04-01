@@ -95,7 +95,7 @@ export class EditorToolsViewComponent {
   public gtfsNoLinesWarning = false;
 
   // Time sync tolerance for round-trip matching (in seconds)
-  public gtfsTimeSyncTolerance = 150; // ±150 seconds (2.5 minutes) default
+  public gtfsTimeSyncTolerance = 180; // ±180 seconds (3 minutes) default
 
   // GTFS Import Progress Overlay
   public gtfsImportOverlayVisible = false;
@@ -1346,6 +1346,7 @@ export class EditorToolsViewComponent {
           maxTripsPerRoute: 10,
           minStopsPerTrip: 3,
           existingMetadata: existingMetadata,
+          timeSyncTolerance: this.gtfsTimeSyncTolerance, // From UI input
           labelCreator: (labelText: string) => {
             // Create label for debug/tracking purposes (shows GTFS route path)
             const label = this.labelService.getOrCreateLabel(labelText, LabelRef.Trainrun);

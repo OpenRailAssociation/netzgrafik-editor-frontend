@@ -258,6 +258,7 @@ export class GTFSConverterService {
       minStopsPerTrip?: number;
       existingMetadata?: MetadataDto;
       labelCreator?: (labelText: string) => number; // Callback to create labels and return label ID
+      timeSyncTolerance?: number; // Tolerance in seconds for round-trip time matching (default: 150)
     } = {}
   ): NetzgrafikDto {
     const maxTripsPerRoute = options.maxTripsPerRoute || 10;
@@ -703,8 +704,37 @@ export class GTFSConverterService {
     });
 
     console.log('\n✅ Step 5 complete!');
-    console.log(`  Created ${trainruns.length} trainruns`);
+    console.log(`  Created ${trainruns.length} trainruns (all ONE_WAY initially)`);
     console.log(`  Created ${trainrunSections.length} sections`);
+
+    // Step 5.1: Match and merge round-trip patterns
+    console.log('\n🔄 Step 5.1: Matching round-trip patterns...');
+    const timeSyncTolerance = options.timeSyncTolerance || 150; // seconds
+    console.log(`  ⚙️  Time sync tolerance: ±${timeSyncTolerance} seconds`);
+    
+    // Build trainrun -> pattern map
+    const trainrunToPattern = new Map<number, TripPattern>();
+    selectedPatterns.forEach((pattern, index) => {
+      // Trainrun IDs start at 1, and match pattern order
+      const trainrunId = index + 1;
+      if (trainruns.find(t => t.id === trainrunId)) {
+        trainrunToPattern.set(trainrunId, pattern);
+      }
+    });
+    
+    this.matchAndMergeRoundTrips(
+      trainruns, 
+      trainrunSections, 
+      trainrunToPattern,
+      gtfsData, 
+      timeSyncTolerance
+    );
+    
+    const roundTripCount = trainruns.filter(t => t.direction === Direction.ROUND_TRIP).length;
+    const oneWayCount = trainruns.filter(t => t.direction === Direction.ONE_WAY).length;
+    console.log(`  ✓ Matching complete:`);
+    console.log(`    ${roundTripCount} ROUND_TRIP trainruns`);
+    console.log(`    ${oneWayCount} ONE_WAY trainruns`);
 
     // Step 5.5: Apply topology-preserving spring layout
     console.log('\n🔧 Step 5.5: Applying topology-preserving spring layout (target: 500px edges)...');
@@ -789,6 +819,223 @@ export class GTFSConverterService {
     });
 
     return netzgrafikDto;
+  }
+
+  /**
+   * Match and merge round-trip patterns
+   * Finds pairs of patterns that can be combined into ROUND_TRIP trainruns
+   */
+  private matchAndMergeRoundTrips(
+    trainruns: TrainrunDto[],
+    trainrunSections: TrainrunSectionDto[],
+    trainrunToPattern: Map<number, TripPattern>,
+    gtfsData: GTFSData,
+    timeSyncTolerance: number
+  ): void {
+    console.log('  🔍 Searching for round-trip patterns...');
+    
+    const routeMap = new Map<string, GTFSRoute>();
+    gtfsData.routes.forEach(r => routeMap.set(r.route_id, r));
+    
+    const matched = new Set<number>(); // Track which trainruns have been merged
+    let mergeCount = 0;
+    
+    // For each trainrun, try to find its reverse pattern
+    for (let i = 0; i < trainruns.length; i++) {
+      if (matched.has(i)) continue; // Already merged
+      
+      const trainrun1 = trainruns[i];
+      const pattern1 = trainrunToPattern.get(trainrun1.id);
+      if (!pattern1) {
+        console.log(`  ⚠️  No pattern found for trainrun #${trainrun1.id}`);
+        continue;
+      }
+      
+      const route1 = routeMap.get(pattern1.routeId);
+      if (!route1) continue;
+      
+      // Search for matching reverse pattern
+      for (let j = i + 1; j < trainruns.length; j++) {
+        if (matched.has(j)) continue;
+        
+        const trainrun2 = trainruns[j];
+        const pattern2 = trainrunToPattern.get(trainrun2.id);
+        if (!pattern2) continue;
+        
+        const route2 = routeMap.get(pattern2.routeId);
+        if (!route2) continue;
+        
+        // Check matching criteria
+        const isMatch = this.checkRoundTripMatch(
+          pattern1, pattern2,
+          route1, route2,
+          trainrun1, trainrun2,
+          trainrunSections,
+          timeSyncTolerance
+        );
+        
+        if (isMatch) {
+          console.log(`  ✓ MATCH FOUND: Trainrun #${trainrun1.id} + #${trainrun2.id}`);
+          console.log(`    Route ID: ${route1.route_id}`);
+          console.log(`    Pattern 1: ${pattern1.stopSequence[0]} → ${pattern1.stopSequence[pattern1.stopSequence.length - 1]} (dir: ${pattern1.directionId})`);
+          console.log(`    Pattern 2: ${pattern2.stopSequence[0]} → ${pattern2.stopSequence[pattern2.stopSequence.length - 1]} (dir: ${pattern2.directionId})`);
+          
+          // Merge: Keep trainrun1, remove trainrun2
+          trainrun1.direction = Direction.ROUND_TRIP;
+          trainrun1.labelIds = [...trainrun1.labelIds, ...trainrun2.labelIds]; // Combine labels
+          
+          // Mark trainrun2 for deletion
+          matched.add(j);
+          mergeCount++;
+          
+          console.log(`    → Merged to ROUND_TRIP (trainrun #${trainrun1.id})`);
+          console.log(`    → Labels: ${trainrun1.labelIds.length} total`);
+          
+          break; // Found match for this trainrun, move to next
+        }
+      }
+    }
+    
+    // Remove matched trainruns (in reverse order to preserve indices)
+    const indicesToRemove = Array.from(matched).sort((a, b) => b - a);
+    for (const index of indicesToRemove) {
+      const removedTrainrun = trainruns[index];
+      console.log(`  🗑️  Removing trainrun #${removedTrainrun.id} (merged into round-trip)`);
+      
+      // Remove trainrun
+      trainruns.splice(index, 1);
+      
+      // Remove associated sections
+      const sectionsToRemove = trainrunSections.filter(s => s.trainrunId === removedTrainrun.id);
+      sectionsToRemove.forEach(section => {
+        const sectionIndex = trainrunSections.indexOf(section);
+        if (sectionIndex >= 0) {
+          trainrunSections.splice(sectionIndex, 1);
+        }
+      });
+    }
+    
+    console.log(`  ✓ Merged ${mergeCount} round-trip pairs`);
+  }
+
+  /**
+   * Check if two patterns can be merged into a round-trip
+   */
+  private checkRoundTripMatch(
+    pattern1: TripPattern,
+    pattern2: TripPattern,
+    route1: GTFSRoute,
+    route2: GTFSRoute,
+    trainrun1: TrainrunDto,
+    trainrun2: TrainrunDto,
+    trainrunSections: TrainrunSectionDto[],
+    timeSyncTolerance: number
+  ): boolean {
+    const debugLog = (msg: string) => console.log(`      ${msg}`);
+    
+    debugLog(`Checking trainrun #${trainrun1.id} vs #${trainrun2.id}`);
+    
+    // 1. Same route_id
+    if (pattern1.routeId !== pattern2.routeId) {
+      debugLog(`✗ Different route_id: "${pattern1.routeId}" vs "${pattern2.routeId}"`);
+      return false;
+    }
+    debugLog(`✓ Same route_id: "${pattern1.routeId}"`);
+    
+    // 2. Same category (route_desc)
+    const category1 = route1.route_desc || route1.route_short_name || '';
+    const category2 = route2.route_desc || route2.route_short_name || '';
+    if (category1 !== category2) {
+      debugLog(`✗ Different category: "${category1}" vs "${category2}"`);
+      return false;
+    }
+    debugLog(`✓ Same category: "${category1}"`);
+    
+    // 3. Same frequency
+    if (route1.frequency !== route2.frequency) {
+      debugLog(`✗ Different frequency: ${route1.frequency} vs ${route2.frequency}`);
+      return false;
+    }
+    debugLog(`✓ Same frequency: ${route1.frequency}`);
+    
+    // 4. Different direction_id
+    if (pattern1.directionId === pattern2.directionId) {
+      debugLog(`✗ Same direction_id: ${pattern1.directionId}`);
+      return false;
+    }
+    debugLog(`✓ Different direction_id: ${pattern1.directionId} vs ${pattern2.directionId}`);
+    
+    // 5. Reversed stopSequence
+    const reversed2 = [...pattern2.stopSequence].reverse();
+    if (pattern1.stopSequence.length !== reversed2.length) {
+      debugLog(`✗ Different path length: ${pattern1.stopSequence.length} vs ${reversed2.length}`);
+      return false;
+    }
+    
+    let pathMismatch = -1;
+    for (let i = 0; i < pattern1.stopSequence.length; i++) {
+      if (pattern1.stopSequence[i] !== reversed2[i]) {
+        pathMismatch = i;
+        break;
+      }
+    }
+    
+    if (pathMismatch >= 0) {
+      debugLog(`✗ Path mismatch at position ${pathMismatch}:`);
+      debugLog(`  Pattern1: ${pattern1.stopSequence.slice(Math.max(0, pathMismatch - 1), pathMismatch + 2).join(' → ')}`);
+      debugLog(`  Pattern2 (reversed): ${reversed2.slice(Math.max(0, pathMismatch - 1), pathMismatch + 2).join(' → ')}`);
+      return false;
+    }
+    debugLog(`✓ Reversed path match (${pattern1.stopSequence.length} stops)`);
+    
+    // 6. Check time symmetry with tolerance
+    const sections1 = trainrunSections.filter(s => s.trainrunId === trainrun1.id);
+    const sections2 = trainrunSections.filter(s => s.trainrunId === trainrun2.id);
+    
+    if (sections1.length !== sections2.length) {
+      debugLog(`✗ Different section count: ${sections1.length} vs ${sections2.length}`);
+      return false;
+    }
+    
+    // Check each corresponding section pair for symmetry
+    for (let i = 0; i < sections1.length; i++) {
+      const sec1 = sections1[i];
+      const sec2 = sections2[sections2.length - 1 - i]; // Reversed order
+      
+      // Check source departure symmetry
+      const sourceDep1 = sec1.sourceDeparture.time;
+      const targetArr2 = sec2.targetArrival.time;
+      const expectedArr2 = (60 - sourceDep1) % 60;
+      const diffSource = Math.min(
+        Math.abs(targetArr2 - expectedArr2),
+        60 - Math.abs(targetArr2 - expectedArr2) // Handle wrap-around (e.g., 59 vs 1)
+      );
+      
+      if (diffSource * 60 > timeSyncTolerance) {
+        debugLog(`✗ Time symmetry failed at section ${i}:`);
+        debugLog(`  sourceDep1=${sourceDep1}, targetArr2=${targetArr2}, expected=${expectedArr2}, diff=${diffSource} min (tolerance=${timeSyncTolerance / 60} min)`);
+        return false; // Outside tolerance
+      }
+      
+      // Check target arrival symmetry
+      const targetArr1 = sec1.targetArrival.time;
+      const sourceDep2 = sec2.sourceDeparture.time;
+      const expectedDep2 = (60 - targetArr1) % 60;
+      const diffTarget = Math.min(
+        Math.abs(sourceDep2 - expectedDep2),
+        60 - Math.abs(sourceDep2 - expectedDep2)
+      );
+      
+      if (diffTarget * 60 > timeSyncTolerance) {
+        debugLog(`✗ Time symmetry failed at section ${i}:`);
+        debugLog(`  targetArr1=${targetArr1}, sourceDep2=${sourceDep2}, expected=${expectedDep2}, diff=${diffTarget} min (tolerance=${timeSyncTolerance / 60} min)`);
+        return false; // Outside tolerance
+      }
+    }
+    debugLog(`✓ Time symmetry OK for all ${sections1.length} sections`);
+    
+    // All checks passed!
+    return true;
   }
 
   /**
