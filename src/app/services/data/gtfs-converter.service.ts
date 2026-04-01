@@ -19,6 +19,9 @@ import {
   TrainrunCategory,
   TrainrunFrequency,
   TrainrunTimeCategory,
+  LabelDto,
+  LabelGroupDto,
+  LabelRef,
 } from "../../data-structures/business.data.structures";
 import {
   TrainrunSectionText,
@@ -722,7 +725,7 @@ export class GTFSConverterService {
       }
     });
     
-    this.matchAndMergeRoundTrips(
+    const matchingStatus = this.matchAndMergeRoundTrips(
       trainruns, 
       trainrunSections, 
       trainrunToPattern,
@@ -735,6 +738,11 @@ export class GTFSConverterService {
     console.log(`  ✓ Matching complete:`);
     console.log(`    ${roundTripCount} ROUND_TRIP trainruns`);
     console.log(`    ${oneWayCount} ONE_WAY trainruns`);
+
+    // Step 5.2: Create labels for round-trip matching status
+    console.log('\n🏷️  Step 5.2: Creating matching status labels...');
+    const { labels, labelGroup } = this.createMatchingStatusLabels(trainruns, matchingStatus);
+    console.log(`  ✓ Created ${labels.length} status labels in group "${labelGroup.name}"`);
 
     // Step 5.5: Apply topology-preserving spring layout
     console.log('\n🔧 Step 5.5: Applying topology-preserving spring layout (target: 500px edges)...');
@@ -803,8 +811,8 @@ export class GTFSConverterService {
       resources: [],
       metadata: metadata,
       freeFloatingTexts: [],
-      labels: [],
-      labelGroups: [],
+      labels: labels,
+      labelGroups: [labelGroup],
       filterData: {
         filterSettings: [],
       },
@@ -822,8 +830,64 @@ export class GTFSConverterService {
   }
 
   /**
+   * Create labels for round-trip matching status
+   * Returns labels and a label group for filtering trainruns by matching status
+   */
+  private createMatchingStatusLabels(
+    trainruns: TrainrunDto[],
+    matchingStatus: Map<number, string>
+  ): { labels: LabelDto[]; labelGroup: LabelGroupDto } {
+    // Create the label group for matching status
+    const labelGroup: LabelGroupDto = {
+      id: 1,
+      name: 'Round-Trip Matching',
+      labelRef: LabelRef.Trainrun
+    };
+
+    // Collect all unique status messages
+    const statusMessages = new Set<string>();
+    matchingStatus.forEach(status => {
+      // Don't create label for merged trainruns (they no longer exist)
+      if (status !== '✓ Round-Trip (merged)') {
+        statusMessages.add(status);
+      }
+    });
+
+    // Create a label for each status message
+    const labels: LabelDto[] = [];
+    let labelIdCounter = 1;
+    const statusToLabelId = new Map<string, number>();
+
+    statusMessages.forEach(status => {
+      const label: LabelDto = {
+        id: labelIdCounter,
+        label: status,
+        labelGroupId: labelGroup.id,
+        labelRef: LabelRef.Trainrun
+      };
+      labels.push(label);
+      statusToLabelId.set(status, labelIdCounter);
+      labelIdCounter++;
+    });
+
+    // Assign labels to trainruns based on their matching status
+    trainruns.forEach(trainrun => {
+      const status = matchingStatus.get(trainrun.id);
+      if (status && status !== '✓ Round-Trip (merged)') {
+        const labelId = statusToLabelId.get(status);
+        if (labelId !== undefined && !trainrun.labelIds.includes(labelId)) {
+          trainrun.labelIds.push(labelId);
+        }
+      }
+    });
+
+    return { labels, labelGroup };
+  }
+
+  /**
    * Match and merge round-trip patterns
    * Finds pairs of patterns that can be combined into ROUND_TRIP trainruns
+   * Returns a map of trainrun IDs to matching failure reasons (or "✓ Round-Trip" for success)
    */
   private matchAndMergeRoundTrips(
     trainruns: TrainrunDto[],
@@ -831,13 +895,14 @@ export class GTFSConverterService {
     trainrunToPattern: Map<number, TripPattern>,
     gtfsData: GTFSData,
     timeSyncTolerance: number
-  ): void {
+  ): Map<number, string> {
     console.log('  🔍 Searching for round-trip patterns...');
     
     const routeMap = new Map<string, GTFSRoute>();
     gtfsData.routes.forEach(r => routeMap.set(r.route_id, r));
     
     const matched = new Set<number>(); // Track which trainruns have been merged
+    const matchingStatus = new Map<number, string>(); // trainrun ID -> status message
     let mergeCount = 0;
     
     // For each trainrun, try to find its reverse pattern
@@ -848,11 +913,17 @@ export class GTFSConverterService {
       const pattern1 = trainrunToPattern.get(trainrun1.id);
       if (!pattern1) {
         console.log(`  ⚠️  No pattern found for trainrun #${trainrun1.id}`);
+        matchingStatus.set(trainrun1.id, '⊚ No pattern data');
         continue;
       }
       
       const route1 = routeMap.get(pattern1.routeId);
-      if (!route1) continue;
+      if (!route1) {
+        matchingStatus.set(trainrun1.id, '⊚ Route not found');
+        continue;
+      }
+      
+      let foundMatch = false;
       
       // Search for matching reverse pattern
       for (let j = i + 1; j < trainruns.length; j++) {
@@ -865,8 +936,8 @@ export class GTFSConverterService {
         const route2 = routeMap.get(pattern2.routeId);
         if (!route2) continue;
         
-        // Check matching criteria
-        const isMatch = this.checkRoundTripMatch(
+        // Check matching criteria (returns null if match, error message if no match)
+        const failureReason = this.checkRoundTripMatch(
           pattern1, pattern2,
           route1, route2,
           trainrun1, trainrun2,
@@ -874,7 +945,8 @@ export class GTFSConverterService {
           timeSyncTolerance
         );
         
-        if (isMatch) {
+        if (failureReason === null) {
+          // Success! Merge the trainruns
           console.log(`  ✓ MATCH FOUND: Trainrun #${trainrun1.id} + #${trainrun2.id}`);
           console.log(`    Route ID: ${route1.route_id}`);
           console.log(`    Pattern 1: ${pattern1.stopSequence[0]} → ${pattern1.stopSequence[pattern1.stopSequence.length - 1]} (dir: ${pattern1.directionId})`);
@@ -884,15 +956,52 @@ export class GTFSConverterService {
           trainrun1.direction = Direction.ROUND_TRIP;
           trainrun1.labelIds = [...trainrun1.labelIds, ...trainrun2.labelIds]; // Combine labels
           
+          // Mark both as successfully matched
+          matchingStatus.set(trainrun1.id, '✓ Round-Trip');
+          matchingStatus.set(trainrun2.id, '✓ Round-Trip (merged)');
+          
           // Mark trainrun2 for deletion
           matched.add(j);
           mergeCount++;
+          foundMatch = true;
           
           console.log(`    → Merged to ROUND_TRIP (trainrun #${trainrun1.id})`);
           console.log(`    → Labels: ${trainrun1.labelIds.length} total`);
           
           break; // Found match for this trainrun, move to next
         }
+      }
+      
+      // If no match was found, record why the first attempt failed
+      if (!foundMatch) {
+        // Try to find the best failure reason by checking against the most likely candidate
+        let bestFailureReason = '⊚ No reverse pattern';
+        for (let j = i + 1; j < trainruns.length; j++) {
+          if (matched.has(j)) continue;
+          
+          const trainrun2 = trainruns[j];
+          const pattern2 = trainrunToPattern.get(trainrun2.id);
+          if (!pattern2) continue;
+          
+          const route2 = routeMap.get(pattern2.routeId);
+          if (!route2) continue;
+          
+          // Check if this is a potential match for the same route
+          if (pattern1.routeId === pattern2.routeId) {
+            const failureReason = this.checkRoundTripMatch(
+              pattern1, pattern2,
+              route1, route2,
+              trainrun1, trainrun2,
+              trainrunSections,
+              timeSyncTolerance
+            );
+            if (failureReason !== null) {
+              bestFailureReason = failureReason;
+              break; // Found a same-route failure
+            }
+          }
+        }
+        matchingStatus.set(trainrun1.id, bestFailureReason);
       }
     }
     
@@ -916,10 +1025,17 @@ export class GTFSConverterService {
     }
     
     console.log(`  ✓ Merged ${mergeCount} round-trip pairs`);
+    
+    return matchingStatus;
   }
 
   /**
    * Check if two patterns can be merged into a round-trip
+   * Returns null if patterns match, or a string describing the failure reason
+   */
+  /**
+   * Check if two patterns can be merged into a round-trip
+   * Returns null if patterns match, or a string describing the failure reason
    */
   private checkRoundTripMatch(
     pattern1: TripPattern,
@@ -930,7 +1046,7 @@ export class GTFSConverterService {
     trainrun2: TrainrunDto,
     trainrunSections: TrainrunSectionDto[],
     timeSyncTolerance: number
-  ): boolean {
+  ): string | null {
     const debugLog = (msg: string) => console.log(`      ${msg}`);
     
     debugLog(`Checking trainrun #${trainrun1.id} vs #${trainrun2.id}`);
@@ -938,7 +1054,7 @@ export class GTFSConverterService {
     // 1. Same route_id
     if (pattern1.routeId !== pattern2.routeId) {
       debugLog(`✗ Different route_id: "${pattern1.routeId}" vs "${pattern2.routeId}"`);
-      return false;
+      return '✗ Different route';
     }
     debugLog(`✓ Same route_id: "${pattern1.routeId}"`);
     
@@ -947,21 +1063,21 @@ export class GTFSConverterService {
     const category2 = route2.route_desc || route2.route_short_name || '';
     if (category1 !== category2) {
       debugLog(`✗ Different category: "${category1}" vs "${category2}"`);
-      return false;
+      return '✗ Different category';
     }
     debugLog(`✓ Same category: "${category1}"`);
     
     // 3. Same frequency
     if (route1.frequency !== route2.frequency) {
       debugLog(`✗ Different frequency: ${route1.frequency} vs ${route2.frequency}`);
-      return false;
+      return '✗ Different frequency';
     }
     debugLog(`✓ Same frequency: ${route1.frequency}`);
     
     // 4. Different direction_id
     if (pattern1.directionId === pattern2.directionId) {
       debugLog(`✗ Same direction_id: ${pattern1.directionId}`);
-      return false;
+      return '✗ Same direction';
     }
     debugLog(`✓ Different direction_id: ${pattern1.directionId} vs ${pattern2.directionId}`);
     
@@ -969,7 +1085,7 @@ export class GTFSConverterService {
     const reversed2 = [...pattern2.stopSequence].reverse();
     if (pattern1.stopSequence.length !== reversed2.length) {
       debugLog(`✗ Different path length: ${pattern1.stopSequence.length} vs ${reversed2.length}`);
-      return false;
+      return '✗ Path mismatch';
     }
     
     let pathMismatch = -1;
@@ -984,7 +1100,7 @@ export class GTFSConverterService {
       debugLog(`✗ Path mismatch at position ${pathMismatch}:`);
       debugLog(`  Pattern1: ${pattern1.stopSequence.slice(Math.max(0, pathMismatch - 1), pathMismatch + 2).join(' → ')}`);
       debugLog(`  Pattern2 (reversed): ${reversed2.slice(Math.max(0, pathMismatch - 1), pathMismatch + 2).join(' → ')}`);
-      return false;
+      return '✗ Path mismatch';
     }
     debugLog(`✓ Reversed path match (${pattern1.stopSequence.length} stops)`);
     
@@ -994,7 +1110,7 @@ export class GTFSConverterService {
     
     if (sections1.length !== sections2.length) {
       debugLog(`✗ Different section count: ${sections1.length} vs ${sections2.length}`);
-      return false;
+      return '✗ Section count mismatch';
     }
     
     // Check each corresponding section pair for symmetry
@@ -1014,7 +1130,7 @@ export class GTFSConverterService {
       if (diffSource * 60 > timeSyncTolerance) {
         debugLog(`✗ Time symmetry failed at section ${i}:`);
         debugLog(`  sourceDep1=${sourceDep1}, targetArr2=${targetArr2}, expected=${expectedArr2}, diff=${diffSource} min (tolerance=${timeSyncTolerance / 60} min)`);
-        return false; // Outside tolerance
+        return '✗ Time symmetry failed';
       }
       
       // Check target arrival symmetry
@@ -1029,13 +1145,13 @@ export class GTFSConverterService {
       if (diffTarget * 60 > timeSyncTolerance) {
         debugLog(`✗ Time symmetry failed at section ${i}:`);
         debugLog(`  targetArr1=${targetArr1}, sourceDep2=${sourceDep2}, expected=${expectedDep2}, diff=${diffTarget} min (tolerance=${timeSyncTolerance / 60} min)`);
-        return false; // Outside tolerance
+        return '✗ Time symmetry failed';
       }
     }
     debugLog(`✓ Time symmetry OK for all ${sections1.length} sections`);
     
     // All checks passed!
-    return true;
+    return null;
   }
 
   /**
