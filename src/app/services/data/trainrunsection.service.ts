@@ -312,6 +312,12 @@ export class TrainrunSectionService implements OnDestroy {
     });
   }
 
+  updateText() {
+    this.trainrunSectionsStore.trainrunSections.forEach((trainrunSection) => {
+      trainrunSection.routeEdgeAndPlaceText();
+    });
+  }
+
   updateTrainrunSectionNumberOfStops(trs: TrainrunSection, numberOfStops: number) {
     const trainrunSection = this.getTrainrunSectionFromId(trs.getId());
     trainrunSection.setNumberOfStops(numberOfStops);

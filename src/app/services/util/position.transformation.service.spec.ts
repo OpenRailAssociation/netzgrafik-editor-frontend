@@ -93,6 +93,7 @@ describe("PositionTransformationService", () => {
       trainrunService,
       netzgrafikColoringService,
       loadPerlenketteService,
+      dataService,
     );
 
     const viewportCullService = new ViewportCullService(

@@ -6,6 +6,7 @@ import {
   FreeFloatingTextDto,
   LabelDto,
   NodeDto,
+  TrafficSide,
   TrainrunDto,
 } from "../data-structures/business.data.structures";
 
@@ -20,7 +21,12 @@ enum OperationObjectType {
   node = "node",
   label = "label",
   note = "note",
+  metadata = "metadata",
 }
+
+type MetadataDto = {
+  trafficSide?: TrafficSide;
+};
 
 abstract class Operation {
   readonly type: OperationType;
@@ -68,4 +74,21 @@ class NoteOperation extends Operation {
   }
 }
 
-export {OperationType, Operation, TrainrunOperation, NodeOperation, LabelOperation, NoteOperation};
+class MetadataOperation extends Operation {
+  readonly metadata: MetadataDto;
+
+  constructor(metadata: MetadataDto) {
+    super(OperationType.update, OperationObjectType.metadata);
+    this.metadata = metadata;
+  }
+}
+
+export {
+  OperationType,
+  Operation,
+  TrainrunOperation,
+  NodeOperation,
+  LabelOperation,
+  NoteOperation,
+  MetadataOperation,
+};

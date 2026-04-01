@@ -118,6 +118,7 @@ describe("StreckengrafikServicesTests", () => {
       trainrunService,
       netzgrafikColoringService,
       loadPerlenketteService,
+      dataService,
     );
 
     isTrainrunSelectedService = new IsTrainrunSelectedService(trainrunService);

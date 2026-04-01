@@ -94,6 +94,7 @@ describe("CopyService", () => {
       trainrunService,
       netzgrafikColoringService,
       loadPerlenketteService,
+      dataService,
     );
 
     undoService = new UndoService(

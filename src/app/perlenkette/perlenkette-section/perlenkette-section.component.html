@@ -159,7 +159,10 @@
         />
       </g>
 
-      <g transform="translate(124, 18)" *ngIf="showLeftArrivalTime() && isLeftSideDisplayed()">
+      <g
+        [attr.transform]="getTimeTransform('leftArrivalTime')"
+        *ngIf="showLeftArrivalTime() && isLeftSideDisplayed()"
+      >
         <text
           x="0"
           y="0"
@@ -173,7 +176,7 @@
         </text>
       </g>
       <g
-        transform="translate(149, 32)"
+        [attr.transform]="getTimeTransform('rightDepartureTime')"
         *ngIf="showArrivalAndDepartureTime() && isRightSideDisplayed()"
       >
         <text
@@ -188,7 +191,7 @@
           {{ getLeftDepartureTime() }}
         </text>
       </g>
-      <g [attr.transform]="getTravelTimeTransform('travelTime')" *ngIf="showTravelTime()">
+      <g [attr.transform]="getTimeTransform('travelTime')" *ngIf="showTravelTime()">
         <g transform="rotate(-90)">
           <text
             x="0"
@@ -201,10 +204,7 @@
           </text>
         </g>
       </g>
-      <g
-        [attr.transform]="getTravelTimeTransform('bottomTravelTime')"
-        *ngIf="showBottomTravelTime()"
-      >
+      <g [attr.transform]="getTimeTransform('bottomTravelTime')" *ngIf="showBottomTravelTime()">
         <g transform="rotate(-90)">
           <text
             x="0"
@@ -218,7 +218,7 @@
         </g>
       </g>
       <g
-        transform="translate(124, 164)"
+        [attr.transform]="getTimeTransform('leftDepartureTime')"
         *ngIf="showArrivalAndDepartureTime() && isLeftSideDisplayed()"
       >
         <text
@@ -233,7 +233,10 @@
           {{ getRightDepartureTime() }}
         </text>
       </g>
-      <g transform="translate(149, 178)" *ngIf="showRightArrivalTime() && isRightSideDisplayed()">
+      <g
+        [attr.transform]="getTimeTransform('rightArrivalTime')"
+        *ngIf="showRightArrivalTime() && isRightSideDisplayed()"
+      >
         <text
           x="0"
           y="0"

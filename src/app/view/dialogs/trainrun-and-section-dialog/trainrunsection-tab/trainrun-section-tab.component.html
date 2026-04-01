@@ -98,7 +98,7 @@
 
           <sbb-time-stepper
             *ngIf="isBottomTrainrunSectionInfoDisplayed"
-            containerClass="NodeLeftArrival"
+            [containerClass]="getTrafficSideClass('NodeLeftArrival')"
             inputId="NodeLeftArrivalTimeInputElement"
             inputClass="InputElement lastInput"
             [tabIndex]="6"
@@ -110,7 +110,7 @@
           ></sbb-time-stepper>
           <sbb-time-stepper
             *ngIf="isTopTrainrunSectionInfoDisplayed"
-            containerClass="NodeLeftDeparture"
+            [containerClass]="getTrafficSideClass('NodeLeftDeparture')"
             inputId="NodeLeftDepartureTimeInputElement"
             inputClass="InputElement firstInput"
             [tabIndex]="2"
@@ -122,7 +122,7 @@
           ></sbb-time-stepper>
           <sbb-time-stepper
             *ngIf="isTopTrainrunSectionInfoDisplayed"
-            containerClass="NodeRightArrival"
+            [containerClass]="getTrafficSideClass('NodeRightArrival')"
             inputId="NodeRightArrivalTimeInputElement"
             inputClass="InputElement"
             [tabIndex]="4"
@@ -134,7 +134,7 @@
           ></sbb-time-stepper>
           <sbb-time-stepper
             *ngIf="isBottomTrainrunSectionInfoDisplayed"
-            containerClass="NodeRightDeparture"
+            [containerClass]="getTrafficSideClass('NodeRightDeparture')"
             inputId="NodeRightDepartureTimeInputElement"
             inputClass="InputElement"
             [tabIndex]="5"
@@ -145,7 +145,7 @@
             #rightDepartureTimeInputElement
           ></sbb-time-stepper>
           <sbb-time-stepper
-            [containerClass]="getTravelTimeCssClass() + 'TravelTime' + ' time-button'"
+            [containerClass]="getTrafficSideClass(getTravelTimeCssClass('TravelTime'))"
             inputId="TravelTimeTimeInputElement"
             [inputClass]="{
               InputTravelTimeElement: !trainrunSectionTimesService.getHighlightTravelTimeElement(),
@@ -162,7 +162,7 @@
           ></sbb-time-stepper>
           <sbb-time-stepper
             *ngIf="isBottomTravelTimeDisplayed"
-            containerClass="BottomTravelTime"
+            [containerClass]="getTrafficSideClass('BottomTravelTime')"
             inputId="BottomTravelTimeTimeInputElement"
             [inputClass]="{
               InputTravelTimeElement:
@@ -207,7 +207,7 @@
             #rightSymmetryToggle
           ></sbb-toggle-switch-button>
 
-          <div [ngClass]="getTravelTimeCssClass() + 'TravelTimeLock'">
+          <div [ngClass]="getTravelTimeCssClass('TravelTimeLock')">
             <div *ngIf="trainrunSectionTimesService.getLockStructure().travelTimeLock === false">
               <sbb-icon
                 svgIcon="lock-open-medium"

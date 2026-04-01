@@ -56,6 +56,7 @@ export class TrainrunSectionViewObject {
       d,
       "sourceToTarget",
     );
+    const activeTrafficSideType = editorView.getActiveTrafficSideType();
     const cumulativeTravelTime =
       cumulativeTravelTimeData[cumulativeTravelTimeData.length - 1].sumTravelTime;
     const cumulativeBackwardTravelTime = editorView.getCumulativeTravelTime(d, "targetToSource");
@@ -143,6 +144,8 @@ export class TrainrunSectionViewObject {
       hiddenTagDirectionArrows +
       "_" +
       hiddenTagAsymmetryArrows +
+      "_" +
+      activeTrafficSideType +
       "_" +
       editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() +
       "_" +

@@ -23,6 +23,7 @@ import {DataMigration} from "../../utils/data-migration";
 import {FilterService} from "../ui/filter.service";
 import {NetzgrafikColoringService} from "./netzgrafikColoring.service";
 import {Trainrun} from "src/app/models/trainrun.model";
+import {SimpleTrainrunSectionRouter} from "../util/trainrunsection.routing";
 
 export class NetzgrafikLoadedInfo {
   constructor(
@@ -79,6 +80,9 @@ export class DataService implements OnDestroy {
     DataMigration.migrateNetzgrafikDto(netzgrafikDto);
 
     this.netzgrafikDtoStore.netzgrafikDto = netzgrafikDto;
+    SimpleTrainrunSectionRouter.setTrafficSideType(
+      this.netzgrafikDtoStore.netzgrafikDto.metadata.trafficSide,
+    );
     this.resourceService.setResourceData(this.netzgrafikDtoStore.netzgrafikDto.resources);
     this.nodeService.setNodeData(this.netzgrafikDtoStore.netzgrafikDto.nodes);
     this.trainrunSectionService.setTrainrunSectionsDataAndValidate(

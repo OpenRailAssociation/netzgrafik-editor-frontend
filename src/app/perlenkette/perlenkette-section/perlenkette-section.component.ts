@@ -32,7 +32,33 @@ import {StaticDomTags} from "../../view/editor-main-view/data-views/static.dom.t
 import {MathUtils} from "../../utils/math";
 import {VersionControlService} from "../../services/data/version-control.service";
 import {ToggleSwitchButtonComponent} from "../../view/toggle-switch-button/toggle-switch-button.component";
+import {TrafficSide} from "src/app/data-structures/business.data.structures";
 
+const timeCoordinates = {
+  leftHand: {
+    leftDepartureTime: {x: 124, y: 164},
+    leftArrivalTime: {x: 124, y: 18},
+    rightDepartureTime: {x: 149, y: 32},
+    rightArrivalTime: {x: 149, y: 178},
+    travelTime: {x: 121, y: 93},
+    travelTimeAsymmetry: {x: 155, y: 93},
+    bottomTravelTime: {x: 121, y: 100},
+  },
+  rightHand: {
+    leftDepartureTime: {x: 166, y: 164},
+    leftArrivalTime: {x: 166, y: 18},
+    rightDepartureTime: {x: 108, y: 32},
+    rightArrivalTime: {x: 108, y: 178},
+    travelTime: {x: 155, y: 93},
+    travelTimeAsymmetry: {x: 121, y: 93},
+    bottomTravelTime: {x: 155, y: 100},
+  },
+};
+
+type KeyOfTimeCoordinates = keyof (
+  | typeof timeCoordinates.leftHand
+  | typeof timeCoordinates.rightHand
+);
 @Component({
   selector: "sbb-perlenkette-section",
   templateUrl: "./perlenkette-section.component.html",
@@ -75,6 +101,8 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
 
   private destroyed$ = new Subject<void>();
 
+  private trafficSide: TrafficSide;
+
   constructor(
     private trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
@@ -86,6 +114,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   ) {}
 
   ngOnInit() {
+    this.trafficSide = this.uiInteractionService.getActiveTrafficSideType();
     this.numberOfStops = this.perlenketteSection.numberOfStops;
     this.stationNumberArray = Array(this.perlenketteSection.numberOfStops)
       .fill(1)
@@ -517,22 +546,12 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     return this.filterService.isFilterArrivalDepartureTimeEnabled();
   }
 
-  getTravelTimeTransform(element: "travelTime" | "bottomTravelTime") {
-    if (element === "travelTime") {
-      if (this.trainrunSection.isSymmetric()) {
-        // default position
-        return "translate(121, 93)";
-      }
-      // position swapped when asymmetric to match leftDepartureTime and rightArrivalTime that are always shown on the right side
-      if (this.stationNumberArray.length > 5) {
-        // move a bit more to the right when many stops are shown
-        return "translate(165, 106)";
-      }
-      return "translate(155, 106)";
-    } else {
-      // position on the left side to match leftArrivalTime and rightDepartureTime that are always shown on the left side
-      return "translate(121, 93)";
+  getTimeTransform(element: KeyOfTimeCoordinates) {
+    if (element === "travelTime" && !this.trainrunSection.isSymmetric()) {
+      element += "Asymmetry";
     }
+    const {x, y} = timeCoordinates[this.trafficSide][element as KeyOfTimeCoordinates];
+    return `translate(${x}, ${y})`;
   }
 
   getNodeBorderContainerClassSuffix(): "" | "Right" {

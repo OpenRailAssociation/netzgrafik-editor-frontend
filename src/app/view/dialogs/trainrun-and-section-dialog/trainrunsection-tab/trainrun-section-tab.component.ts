@@ -310,14 +310,14 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     return "NumberOfStopsInputElement" + activeTag;
   }
 
-  getTravelTimeCssClass(): "" | "Top" {
+  getTravelTimeCssClass(className: string): string {
     if (this.isBottomTravelTimeDisplayed) {
       // Travel time is displayed at the top
       // (and bottom travel time at the bottom)
-      return "Top";
+      return "Top" + className;
     }
     // Travel time is displayed at the center
-    return "";
+    return className;
   }
 
   private resetOffsetAfterTrainrunChanged() {
@@ -349,5 +349,13 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
 
   isRoundTrip() {
     return this.selectedTrainrunSection.getTrainrun().isRoundTrip();
+  }
+
+  getTrafficSideClass(className: string): string {
+    const trafficSide = this.dataService.getTrafficSide();
+    if (trafficSide === "rightHand") {
+      return (className += "-right");
+    }
+    return className;
   }
 }

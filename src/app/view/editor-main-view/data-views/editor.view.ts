@@ -30,6 +30,7 @@ import {StreckengrafikDrawingContext} from "../../../streckengrafik/model/util/s
 import {LevelOfDetail, LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {VersionControlService} from "../../../services/data/version-control.service";
+import {TrafficSide} from "../../../data-structures/business.data.structures";
 
 export class EditorView implements SVGMouseControllerObserver {
   static svgName = "graphContainer";
@@ -218,6 +219,10 @@ export class EditorView implements SVGMouseControllerObserver {
 
   bindShowTrainrunSectionInformation(callback) {
     this.showTrainrunSectionInformation = callback;
+  }
+
+  getActiveTrafficSideType(): TrafficSide {
+    return this.uiInteractionService.getActiveTrafficSideType();
   }
 
   bindShowTrainrunOneWayInformation(callback) {
