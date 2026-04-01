@@ -2,253 +2,361 @@
 <ng-container *ngIf="gtfsImportOverlayVisible">
   <div class="overlay import-overlay">
     <div class="dialog-container">
-      
       <!-- Dialog Title -->
       <div sbb-dialog-title class="sbb-dialog-title">
-        {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-import-progress-title' | translate }}
-        <span class="header-count">{{ gtfsImportLogs.length }} {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-import-progress-entries' | translate }}</span>
-
+        {{
+          "app.view.editor-side-view.editor-tools-view-component.gtfs-import-progress-title"
+            | translate
+        }}
+        <span class="header-count"
+          >{{ gtfsImportLogs.length }}
+          {{
+            "app.view.editor-side-view.editor-tools-view-component.gtfs-import-progress-entries"
+              | translate
+          }}</span
+        >
       </div>
 
-    <!-- Dialog Content (scrollable) -->
-    <sbb-dialog-content class="sbb-dialog-content sbb-scrollbar">
-      <!-- Phase Overview -->
-    <div class="phase-overview">
-      <div class="phase-title">
-        {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-import-progress-label' | translate }}
-      </div>
-      <div class="phase-list">
-        <div *ngFor="let phase of gtfsImportPhases" 
-             class="phase-item"
-             [class.completed]="phase.status === 'completed'"
-             [class.running]="phase.status === 'running'"
-             [class.error]="phase.status === 'error'"
-             [class.pending]="phase.status === 'pending'">
-          <!-- Status Icon -->
-          <div class="phase-icon" [ngClass]="phase.status">
-            <span *ngIf="phase.status === 'pending'">⏸️</span>
-            <span *ngIf="phase.status === 'running'">⏳</span>
-            <span *ngIf="phase.status === 'completed'">✅</span>
-            <span *ngIf="phase.status === 'error'">❌</span>
+      <!-- Dialog Content (scrollable) -->
+      <sbb-dialog-content class="sbb-dialog-content sbb-scrollbar">
+        <!-- Phase Overview -->
+        <div class="phase-overview">
+          <div class="phase-title">
+            {{
+              "app.view.editor-side-view.editor-tools-view-component.gtfs-import-progress-label"
+                | translate
+            }}
           </div>
-          
-          <!-- Phase Label -->
-          <div class="phase-label" [ngClass]="phase.status">
-            {{ phase.labelKey | translate }}
+          <div class="phase-list">
+            <div
+              *ngFor="let phase of gtfsImportPhases"
+              class="phase-item"
+              [class.completed]="phase.status === 'completed'"
+              [class.running]="phase.status === 'running'"
+              [class.error]="phase.status === 'error'"
+              [class.pending]="phase.status === 'pending'"
+            >
+              <!-- Status Icon -->
+              <div class="phase-icon" [ngClass]="phase.status">
+                <span *ngIf="phase.status === 'pending'">⏸️</span>
+                <span *ngIf="phase.status === 'running'">⏳</span>
+                <span *ngIf="phase.status === 'completed'">✅</span>
+                <span *ngIf="phase.status === 'error'">❌</span>
+              </div>
+
+              <!-- Phase Label -->
+              <div class="phase-label" [ngClass]="phase.status">
+                {{ phase.labelKey | translate }}
+              </div>
+
+              <!-- Loading Spinner for Running Phase -->
+              <div *ngIf="phase.status === 'running'" class="phase-spinner"></div>
+            </div>
           </div>
-          
-          <!-- Loading Spinner for Running Phase -->
-          <div *ngIf="phase.status === 'running'" class="phase-spinner"></div>
         </div>
-      </div>
-    </div>
-    
-      <!-- Log Container (scrollable) -->
-      <div id="gtfsImportLogContainer" class="log-container">
-        <div *ngFor="let log of gtfsImportLogs" 
-             class="log-entry"
-             [class.error]="log.includes('❌')"
-             [class.success]="log.includes('✅') || log.includes('✓')"
-             [class.warning]="log.includes('⚠️')"
-             [class.info]="log.includes('🔍') || log.includes('📊') || log.includes('🚆')"
-             [class.default]="!log.includes('❌') && !log.includes('✅') && !log.includes('✓') && !log.includes('⚠️') && !log.includes('🔍') && !log.includes('📊') && !log.includes('🚆')">
-          {{ log }}
+
+        <!-- Log Container (scrollable) -->
+        <div id="gtfsImportLogContainer" class="log-container">
+          <div
+            *ngFor="let log of gtfsImportLogs"
+            class="log-entry"
+            [class.error]="log.includes('❌')"
+            [class.success]="log.includes('✅') || log.includes('✓')"
+            [class.warning]="log.includes('⚠️')"
+            [class.info]="log.includes('🔍') || log.includes('📊') || log.includes('🚆')"
+            [class.default]="
+              !log.includes('❌') &&
+              !log.includes('✅') &&
+              !log.includes('✓') &&
+              !log.includes('⚠️') &&
+              !log.includes('🔍') &&
+              !log.includes('📊') &&
+              !log.includes('🚆')
+            "
+          >
+            {{ log }}
+          </div>
         </div>
-      </div>
-    </sbb-dialog-content>
-    
-    <!-- Dialog Actions -->
-    <sbb-dialog-actions class="sbb-dialog-actions sbb-dialog-actions-align-end">
-      <button *ngIf="gtfsImportComplete"
-              sbb-button
-              (click)="closeGtfsImportOverlay()">
-        OK
-      </button>
-      <div *ngIf="!gtfsImportComplete" class="loading-message">
-        <sbb-loading-indicator mode="medium"></sbb-loading-indicator>
-      </div>
-    </sbb-dialog-actions>
+      </sbb-dialog-content>
+
+      <!-- Dialog Actions -->
+      <sbb-dialog-actions class="sbb-dialog-actions sbb-dialog-actions-align-end">
+        <button *ngIf="gtfsImportComplete" sbb-button (click)="closeGtfsImportOverlay()">OK</button>
+        <div *ngIf="!gtfsImportComplete" class="loading-message">
+          <sbb-loading-indicator mode="medium"></sbb-loading-indicator>
+        </div>
+      </sbb-dialog-actions>
     </div>
   </div>
 </ng-container>
-
 
 <!-- GTFS Filter Dialog -->
 <ng-container *ngIf="gtfsFilterDialogVisible">
   <div class="overlay filter-overlay">
     <div class="dialog-container filter-dialog">
-      
       <!-- Dialog Title -->
       <div sbb-dialog-title class="sbb-dialog-title">
-        {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-title' | translate }}
-        <button class="sbb-dialog-title-close-button sbb-button-reset-frameless"
-                aria-label="Close dialog"
-                type="button"
-                (click)="closeGtfsFilterDialog()">
+        {{ "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-title" | translate }}
+        <button
+          class="sbb-dialog-title-close-button sbb-button-reset-frameless"
+          aria-label="Close dialog"
+          type="button"
+          (click)="closeGtfsFilterDialog()"
+        >
           <sbb-icon svgIcon="cross-small"></sbb-icon>
         </button>
       </div>
-    
-    <!-- Dialog Content (scrollable) -->
-    <sbb-dialog-content class="sbb-dialog-content sbb-scrollbar">
-      <!-- Filter Selection -->
-      <div class="filter-section">
-    
-    <!-- Agency Filter (Chip Input + Autocomplete) -->
-    <div class="filter-group">
-      <sbb-form-field [label]="'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-agency-label' | translate">
-        <sbb-chip-list>
-          <sbb-chip
-            *ngFor="let agency of gtfsSelectedAgencies"
-            (removed)="onRemoveAgency(agency)">
-            {{ agency }}
-          </sbb-chip>
-          <input
-            [placeholder]="'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-agency-placeholder' | translate"
-            [formControl]="agencyInputCtrl"
-            sbbChipInput
-            [sbbAutocomplete]="agencyAutocomplete" />
-        </sbb-chip-list>
-        <sbb-autocomplete #agencyAutocomplete="sbbAutocomplete" (optionSelected)="onAgencySelected($event.option.value)">
-          <sbb-option *ngFor="let agency of filteredAgencies$ | async" [value]="agency">
-            {{ agency }}
-          </sbb-option>
-        </sbb-autocomplete>
-      </sbb-form-field>
-      <small class="filter-hint">
-        {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-agency-hint' | translate }}
-      </small>
-    </div>
-    
-    <!-- Category Filter (Chip Input + Autocomplete) -->
-    <div class="filter-group">
-      <sbb-form-field [label]="'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-category-label' | translate">
-        <sbb-chip-list>
-          <sbb-chip
-            *ngFor="let category of gtfsSelectedCategories"
-            (removed)="onRemoveCategory(category)">
-            {{ category }}
-          </sbb-chip>
-          <input
-            [placeholder]="'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-category-placeholder' | translate"
-            [formControl]="categoryInputCtrl"
-            sbbChipInput
-            [sbbAutocomplete]="categoryAutocomplete" />
-        </sbb-chip-list>
-        <sbb-autocomplete #categoryAutocomplete="sbbAutocomplete" (optionSelected)="onCategorySelected($event.option.value)">
-          <sbb-option *ngFor="let category of filteredCategories$ | async" [value]="category">
-            {{ category }}
-          </sbb-option>
-        </sbb-autocomplete>
-      </sbb-form-field>
-      <small *ngIf="!gtfsNoCategoriesWarning" class="filter-hint">
-        {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-category-hint' | translate }}
-      </small>
-      <small *ngIf="gtfsNoCategoriesWarning" class="filter-warning">
-        {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-category-warning' | translate }}
-      </small>
-    </div>
-    
-    <!-- Line Filter (Chip Input with Autocomplete) -->
-    <div class="filter-group">
-      <sbb-form-field [label]="'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-line-label' | translate">
-        <sbb-chip-list>
-          <sbb-chip
-            *ngFor="let line of gtfsSelectedLines"
-            (removed)="onRemoveLine(line)">
-            {{ line }}
-          </sbb-chip>
-          <input
-            [placeholder]="'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-line-placeholder' | translate"
-            [formControl]="lineInputCtrl"
-            sbbChipInput
-            [sbbAutocomplete]="lineAutocomplete" />
-        </sbb-chip-list>
-        <sbb-autocomplete #lineAutocomplete="sbbAutocomplete" (optionSelected)="onLineSelected($event.option.value)">
-          <sbb-option *ngFor="let line of filteredLines$ | async" [value]="line">
-            {{ line }}
-          </sbb-option>
-        </sbb-autocomplete>
-      </sbb-form-field>
-      <small *ngIf="!gtfsNoLinesWarning" class="filter-hint">
-        {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-line-hint' | translate }}
-      </small>
-      <small *ngIf="gtfsNoLinesWarning" class="filter-warning">
-        {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-line-warning' | translate }}
-      </small>
-    </div>
-    
-    <!-- Time Sync Tolerance (for round-trip matching) -->
-    <div class="filter-group">
-      <sbb-form-field label="Time Sync Tolerance (±seconds)">
-        <input 
-          sbbInput 
-          type="number" 
-          min="0" 
-          max="300" 
-          step="10"
-          [(ngModel)]="gtfsTimeSyncTolerance"
-          (ngModelChange)="gtfsTimeSyncToleranceChange.emit($event)"
-          placeholder="150" />
-      </sbb-form-field>
-      <small class="filter-hint">
-        Trips with departure times within ±{{gtfsTimeSyncTolerance}}s are considered identical. Used for round-trip matching.
-      </small>
-    </div>
-    
-    <!-- Transport Mode Filter (Horizontal Checkboxes) -->
-    <div class="filter-group">
-      <sbb-label>
-        {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-transport-modes' | translate }}
-      </sbb-label>
-      <div class="sbb-checkbox-group-horizontal">
-        <sbb-checkbox [(ngModel)]="gtfsRouteTypeFilter.rail">
-          {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-mode-rail' | translate }}
-        </sbb-checkbox>
-        <sbb-checkbox [(ngModel)]="gtfsRouteTypeFilter.metro">
-          {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-mode-metro' | translate }}
-        </sbb-checkbox>
-        <sbb-checkbox [(ngModel)]="gtfsRouteTypeFilter.tram">
-          {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-mode-tram' | translate }}
-        </sbb-checkbox>
-        <sbb-checkbox [(ngModel)]="gtfsRouteTypeFilter.bus">
-          {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-mode-bus' | translate }}
-        </sbb-checkbox>
-        <sbb-checkbox [(ngModel)]="gtfsRouteTypeFilter.ferry">
-          {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-mode-ferry' | translate }}
-        </sbb-checkbox>
-      </div> 
-    </div>
-    
-    <!-- Available Data Summary / Loading State -->
-    <div class="info-box">
-      <div class="info-box-title">
-        {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-info-title' | translate }}
-      </div>
-      <div class="info-box-content">
-        • {{ gtfsAvailableAgencies.length }} {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-info-agencies' | translate }}<br/>
-        • {{ gtfsAvailableCategories.length }} {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-info-categories' | translate }}<br/>
-        • {{ gtfsAvailableRoutes.length }} {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-info-lines' | translate }}
-      </div>
-        <div class="info-box-footer">
-          {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-info-footer' | translate }}
+
+      <!-- Dialog Content (scrollable) -->
+      <sbb-dialog-content class="sbb-dialog-content sbb-scrollbar">
+        <!-- Filter Selection -->
+        <div class="filter-section">
+          <!-- Agency Filter (Chip Input + Autocomplete) -->
+          <div class="filter-group">
+            <sbb-form-field
+              [label]="
+                'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-agency-label'
+                  | translate
+              "
+            >
+              <sbb-chip-list>
+                <sbb-chip
+                  *ngFor="let agency of gtfsSelectedAgencies"
+                  (removed)="onRemoveAgency(agency)"
+                >
+                  {{ agency }}
+                </sbb-chip>
+                <input
+                  [placeholder]="
+                    'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-agency-placeholder'
+                      | translate
+                  "
+                  [formControl]="agencyInputCtrl"
+                  sbbChipInput
+                  [sbbAutocomplete]="agencyAutocomplete"
+                />
+              </sbb-chip-list>
+              <sbb-autocomplete
+                #agencyAutocomplete="sbbAutocomplete"
+                (optionSelected)="onAgencySelected($event.option.value)"
+              >
+                <sbb-option *ngFor="let agency of filteredAgencies$ | async" [value]="agency">
+                  {{ agency }}
+                </sbb-option>
+              </sbb-autocomplete>
+            </sbb-form-field>
+            <small class="filter-hint">
+              {{
+                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-agency-hint"
+                  | translate
+              }}
+            </small>
+          </div>
+
+          <!-- Category Filter (Chip Input + Autocomplete) -->
+          <div class="filter-group">
+            <sbb-form-field
+              [label]="
+                'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-category-label'
+                  | translate
+              "
+            >
+              <sbb-chip-list>
+                <sbb-chip
+                  *ngFor="let category of gtfsSelectedCategories"
+                  (removed)="onRemoveCategory(category)"
+                >
+                  {{ category }}
+                </sbb-chip>
+                <input
+                  [placeholder]="
+                    'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-category-placeholder'
+                      | translate
+                  "
+                  [formControl]="categoryInputCtrl"
+                  sbbChipInput
+                  [sbbAutocomplete]="categoryAutocomplete"
+                />
+              </sbb-chip-list>
+              <sbb-autocomplete
+                #categoryAutocomplete="sbbAutocomplete"
+                (optionSelected)="onCategorySelected($event.option.value)"
+              >
+                <sbb-option *ngFor="let category of filteredCategories$ | async" [value]="category">
+                  {{ category }}
+                </sbb-option>
+              </sbb-autocomplete>
+            </sbb-form-field>
+            <small *ngIf="!gtfsNoCategoriesWarning" class="filter-hint">
+              {{
+                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-category-hint"
+                  | translate
+              }}
+            </small>
+            <small *ngIf="gtfsNoCategoriesWarning" class="filter-warning">
+              {{
+                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-category-warning"
+                  | translate
+              }}
+            </small>
+          </div>
+
+          <!-- Line Filter (Chip Input with Autocomplete) -->
+          <div class="filter-group">
+            <sbb-form-field
+              [label]="
+                'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-line-label'
+                  | translate
+              "
+            >
+              <sbb-chip-list>
+                <sbb-chip *ngFor="let line of gtfsSelectedLines" (removed)="onRemoveLine(line)">
+                  {{ line }}
+                </sbb-chip>
+                <input
+                  [placeholder]="
+                    'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-line-placeholder'
+                      | translate
+                  "
+                  [formControl]="lineInputCtrl"
+                  sbbChipInput
+                  [sbbAutocomplete]="lineAutocomplete"
+                />
+              </sbb-chip-list>
+              <sbb-autocomplete
+                #lineAutocomplete="sbbAutocomplete"
+                (optionSelected)="onLineSelected($event.option.value)"
+              >
+                <sbb-option *ngFor="let line of filteredLines$ | async" [value]="line">
+                  {{ line }}
+                </sbb-option>
+              </sbb-autocomplete>
+            </sbb-form-field>
+            <small *ngIf="!gtfsNoLinesWarning" class="filter-hint">
+              {{
+                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-line-hint"
+                  | translate
+              }}
+            </small>
+            <small *ngIf="gtfsNoLinesWarning" class="filter-warning">
+              {{
+                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-line-warning"
+                  | translate
+              }}
+            </small>
+          </div>
+
+          <!-- Time Sync Tolerance (for round-trip matching) -->
+          <div class="filter-group">
+            <sbb-form-field label="Time Sync Tolerance (±seconds)">
+              <input
+                sbbInput
+                type="number"
+                min="0"
+                max="300"
+                step="10"
+                [(ngModel)]="gtfsTimeSyncTolerance"
+                (ngModelChange)="gtfsTimeSyncToleranceChange.emit($event)"
+                placeholder="150"
+              />
+            </sbb-form-field>
+            <small class="filter-hint">
+              Trips with departure times within ±{{ gtfsTimeSyncTolerance }}s are considered
+              identical. Used for round-trip matching.
+            </small>
+          </div>
+
+          <!-- Transport Mode Filter (Horizontal Checkboxes) -->
+          <div class="filter-group">
+            <sbb-label>
+              {{
+                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-transport-modes"
+                  | translate
+              }}
+            </sbb-label>
+            <div class="sbb-checkbox-group-horizontal">
+              <sbb-checkbox [(ngModel)]="gtfsRouteTypeFilter.rail">
+                {{
+                  "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-mode-rail"
+                    | translate
+                }}
+              </sbb-checkbox>
+              <sbb-checkbox [(ngModel)]="gtfsRouteTypeFilter.metro">
+                {{
+                  "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-mode-metro"
+                    | translate
+                }}
+              </sbb-checkbox>
+              <sbb-checkbox [(ngModel)]="gtfsRouteTypeFilter.tram">
+                {{
+                  "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-mode-tram"
+                    | translate
+                }}
+              </sbb-checkbox>
+              <sbb-checkbox [(ngModel)]="gtfsRouteTypeFilter.bus">
+                {{
+                  "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-mode-bus"
+                    | translate
+                }}
+              </sbb-checkbox>
+              <sbb-checkbox [(ngModel)]="gtfsRouteTypeFilter.ferry">
+                {{
+                  "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-mode-ferry"
+                    | translate
+                }}
+              </sbb-checkbox>
+            </div>
+          </div>
+
+          <!-- Available Data Summary / Loading State -->
+          <div class="info-box">
+            <div class="info-box-title">
+              {{
+                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-info-title"
+                  | translate
+              }}
+            </div>
+            <div class="info-box-content">
+              • {{ gtfsAvailableAgencies.length }}
+              {{
+                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-info-agencies"
+                  | translate
+              }}<br />
+              • {{ gtfsAvailableCategories.length }}
+              {{
+                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-info-categories"
+                  | translate
+              }}<br />
+              • {{ gtfsAvailableRoutes.length }}
+              {{
+                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-info-lines"
+                  | translate
+              }}
+            </div>
+            <div class="info-box-footer">
+              {{
+                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-info-footer"
+                  | translate
+              }}
+            </div>
+          </div>
         </div>
-      </div>
-      
-      </div><!-- End Filter Selection Phase -->
-    </sbb-dialog-content>
-    
-    <!-- Dialog Actions -->
-    <sbb-dialog-actions class="sbb-dialog-actions sbb-dialog-actions-align-end">
-      <button sbb-button (click)="applyGtfsFiltersAndImport()">
-        {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-button-import' | translate }}
-      </button>
-      <button sbb-secondary-button (click)="closeGtfsFilterDialog()">
-        {{ 'app.view.editor-side-view.editor-tools-view-component.gtfs-button-cancel' | translate }}
-      </button>
-    </sbb-dialog-actions>
-    
+        <!-- End Filter Selection Phase -->
+      </sbb-dialog-content>
+
+      <!-- Dialog Actions -->
+      <sbb-dialog-actions class="sbb-dialog-actions sbb-dialog-actions-align-end">
+        <button sbb-button (click)="applyGtfsFiltersAndImport()">
+          {{
+            "app.view.editor-side-view.editor-tools-view-component.gtfs-button-import" | translate
+          }}
+        </button>
+        <button sbb-secondary-button (click)="closeGtfsFilterDialog()">
+          {{
+            "app.view.editor-side-view.editor-tools-view-component.gtfs-button-cancel" | translate
+          }}
+        </button>
+      </sbb-dialog-actions>
     </div>
   </div>
 </ng-container>
-

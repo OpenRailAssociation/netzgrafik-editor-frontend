@@ -13,6 +13,7 @@ The GTFS (General Transit Feed Specification) import feature allows you to impor
 ### 1. Obtain GTFS Data
 
 Download GTFS data in ZIP format from sources such as:
+
 - [Swiss GTFS 2026 Data](https://data.opentransportdata.swiss/dataset/timetable-2026-gtfs2020)
 - [GTFS Cookbook](https://opentransportdata.swiss/en/cookbook/timetable-cookbook/gtfs/)
 
@@ -51,6 +52,7 @@ The importer processes the following GTFS files:
 ### Coordinate Transformation
 
 GTFS uses WGS84 latitude/longitude coordinates, which are converted to canvas coordinates:
+
 - Center point: approximately Switzerland's geographic center (46.8°N, 8.2°E)
 - Scale factor: 15,000 (adjustable)
 - Y-axis is inverted for proper display
@@ -58,6 +60,7 @@ GTFS uses WGS84 latitude/longitude coordinates, which are converted to canvas co
 ### Trip Pattern Recognition
 
 The converter identifies trip patterns by:
+
 - Grouping trips with identical stop sequences
 - Selecting representative trips from each pattern
 - Limiting the number of imported patterns (default: 10 per route)
@@ -65,6 +68,7 @@ The converter identifies trip patterns by:
 ### Station Code Generation
 
 Station codes (BP) are generated from:
+
 - Original GTFS stop_id (if ≤ 8 characters)
 - Abbreviation from stop name (initials or truncated name)
 
@@ -154,6 +158,7 @@ Editor Display
 ### "Error importing GTFS data"
 
 Check the browser console for detailed error messages. Common issues:
+
 - Invalid ZIP file format
 - Missing required GTFS files (stops.txt, routes.txt, trips.txt, stop_times.txt)
 - Corrupted CSV data
@@ -161,6 +166,7 @@ Check the browser console for detailed error messages. Common issues:
 ### "No data imported"
 
 Ensure that:
+
 - The GTFS data contains trips with at least 3 stops
 - The ZIP file is properly formatted GTFS data
 - The files are encoded in UTF-8
@@ -168,12 +174,14 @@ Ensure that:
 ### "Nodes overlap or are positioned incorrectly"
 
 The coordinate transformation may need adjustment:
+
 - Manually reposition nodes after import
 - Consider adjusting SCALE_FACTOR in the converter service
 
 ## Future Enhancements
 
 Planned improvements:
+
 - UI controls for import options (max trips, filters, etc.)
 - Better pattern recognition (identify regular intervals)
 - Calendar-based service filtering
