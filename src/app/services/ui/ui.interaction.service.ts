@@ -1,6 +1,6 @@
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {EditorMode} from "../../view/editor-menu/editor-mode";
-import {Injectable, OnDestroy} from "@angular/core";
+import {EventEmitter, Injectable, OnDestroy} from "@angular/core";
 import {Stammdaten} from "../../models/stammdaten.model";
 import {TrainrunDialogParameter} from "../../view/dialogs/trainrun-and-section-dialog/trainrun-and-section-dialog.component";
 import {ThemeBase} from "../../view/themes/theme-base";
@@ -32,6 +32,7 @@ import {TravelTimeCreationEstimatorType} from "../../view/themes/editor-trainrun
 import {OrderingAlgorithm} from "../../data-structures/technical.data.structures";
 import {TrafficSide} from "src/app/data-structures/business.data.structures";
 import {DataService} from "../data/data.service";
+import {Operation, MetadataOperation} from "../../models/operation.model";
 
 export interface ViewboxProperties {
   currentViewBox: string;
@@ -103,6 +104,8 @@ export class UiInteractionService implements OnDestroy {
   moveNetzgrafikEditorViewFocalPointSubject = new Subject<Vec2D>();
   readonly moveNetzgrafikEditorViewFocalPointObservable =
     this.moveNetzgrafikEditorViewFocalPointSubject.asObservable();
+
+  readonly operation = new EventEmitter<Operation>();
 
   private activeTheme: ThemeBase = null;
   private activeStreckengrafikRenderingType: StreckengrafikRenderingType = null;
@@ -305,6 +308,10 @@ export class UiInteractionService implements OnDestroy {
 
   setActiveTrafficSideType(activeTrafficSideType: TrafficSide) {
     this.activeTrafficSideType = activeTrafficSideType;
+    this.dataService.setTrafficSide(activeTrafficSideType);
+    this.trainrunSectionService.updateText();
+    this.trainrunSectionService.trainrunSectionsUpdated();
+    this.operation.emit(new MetadataOperation({trafficSide: activeTrafficSideType}));
   }
 
   getActiveOrderingAlgorithm(): OrderingAlgorithm {

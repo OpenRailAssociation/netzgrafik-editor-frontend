@@ -93,6 +93,7 @@ describe("ResourceService", () => {
       trainrunService,
       netzgrafikColoringService,
       loadPerlenketteService,
+      dataService,
     );
 
     undoService = new UndoService(

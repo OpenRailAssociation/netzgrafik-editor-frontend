@@ -100,11 +100,19 @@ input.NumberOfStopsInputElement.IsActive {
 ::ng-deep .NodeLeftArrival {
   grid-column: 1/5;
   grid-row: 3;
+  &-right {
+    grid-column: 1/5;
+    grid-row: 1;
+  }
 }
 
 ::ng-deep .NodeLeftDeparture {
   grid-column: 2/6;
   grid-row: 1;
+  &-right {
+    grid-column: 2/6;
+    grid-row: 3;
+  }
 }
 
 ::ng-deep .NodeLeftLock {
@@ -116,6 +124,10 @@ input.NumberOfStopsInputElement.IsActive {
 ::ng-deep .NodeRightArrival {
   grid-column: 14/18;
   grid-row: 1;
+  &-right {
+    grid-column: 14/18;
+    grid-row: 3;
+  }
 }
 
 ::ng-deep .NodeRightLock {
@@ -127,6 +139,10 @@ input.NumberOfStopsInputElement.IsActive {
 ::ng-deep .NodeRightDeparture {
   grid-column: 13/17;
   grid-row: 3;
+  &-right {
+    grid-column: 13/17;
+    grid-row: 1;
+  }
 }
 
 ::ng-deep .LeftSymmetryToggle {
@@ -149,7 +165,8 @@ input.NumberOfStopsInputElement.IsActive {
   height: 24px;
 }
 
-::ng-deep .TravelTime {
+::ng-deep .TravelTime,
+::ng-deep .TravelTime-right {
   grid-column: 7/11;
   grid-row: 2;
 }
@@ -157,11 +174,19 @@ input.NumberOfStopsInputElement.IsActive {
 ::ng-deep .TopTravelTime {
   grid-column: 8/12;
   grid-row: 1;
+  &-right {
+    grid-column: 8/12;
+    grid-row: 3;
+  }
 }
 
 ::ng-deep .BottomTravelTime {
   grid-column: 7/11;
   grid-row: 3;
+  &-right {
+    grid-column: 7/11;
+    grid-row: 1;
+  }
 }
 
 ::ng-deep .TravelTimeLock {

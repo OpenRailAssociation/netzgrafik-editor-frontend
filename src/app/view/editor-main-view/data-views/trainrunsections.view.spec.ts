@@ -102,6 +102,7 @@ describe("TrainrunSection-View", () => {
       trainrunService,
       netzgrafikColoringService,
       loadPerlenketteService,
+      dataService,
     );
 
     undoService = new UndoService(

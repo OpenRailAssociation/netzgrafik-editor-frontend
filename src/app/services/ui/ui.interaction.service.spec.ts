@@ -96,6 +96,7 @@ describe("UiInteractionService", () => {
       trainrunService,
       netzgrafikColoringService,
       loadPerlenketteService,
+      dataService,
     );
 
     nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));

@@ -94,6 +94,7 @@ describe("Connections View", () => {
       trainrunService,
       netzgrafikColoringService,
       loadPerlenketteService,
+      dataService,
     );
 
     undoService = new UndoService(

@@ -101,6 +101,7 @@ describe("3d.Utils.tests", () => {
       trainrunService,
       netzgrafikColoringService,
       loadPerlenketteService,
+      dataService,
     );
 
     undoService = new UndoService(
