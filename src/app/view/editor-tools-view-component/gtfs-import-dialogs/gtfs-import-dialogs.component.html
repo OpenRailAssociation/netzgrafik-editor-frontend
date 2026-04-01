@@ -178,6 +178,24 @@
       </small>
     </div>
     
+    <!-- Time Sync Tolerance (for round-trip matching) -->
+    <div class="filter-group">
+      <sbb-form-field label="Time Sync Tolerance (±seconds)">
+        <input 
+          sbbInput 
+          type="number" 
+          min="0" 
+          max="300" 
+          step="10"
+          [(ngModel)]="gtfsTimeSyncTolerance"
+          (ngModelChange)="gtfsTimeSyncToleranceChange.emit($event)"
+          placeholder="150" />
+      </sbb-form-field>
+      <small class="filter-hint">
+        Trips with departure times within ±{{gtfsTimeSyncTolerance}}s are considered identical. Used for round-trip matching.
+      </small>
+    </div>
+    
     <!-- Transport Mode Filter (Horizontal Checkboxes) -->
     <div class="filter-group">
       <sbb-label>
