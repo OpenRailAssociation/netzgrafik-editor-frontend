@@ -111,10 +111,7 @@ export class GTFSParserService {
     trips: GTFSTrip[], 
     stopTimes: GTFSStopTime[]
   ): void {
-    console.log('  📊 Calculating route frequencies from stop_times (one direction only)...');
-    
-    // Group stop_times by route AND direction
-    const routeDirectionStopTimesMap = new Map<string, GTFSStopTime[]>();
+    console.log('  📊 Calculating route frequencies from ALL stations (histogram-based, one direction only)...');
     
     // Build trip to route+direction mapping
     const tripToRouteDirection = new Map<string, { routeId: string, directionId: string }>();
@@ -125,31 +122,39 @@ export class GTFSParserService {
       });
     }
     
-    // Group stop_times by route+direction
-    for (const st of stopTimes) {
-      const routeDir = tripToRouteDirection.get(st.trip_id);
-      if (!routeDir) continue;
-      
-      const key = `${routeDir.routeId}_${routeDir.directionId}`;
-      if (!routeDirectionStopTimesMap.has(key)) {
-        routeDirectionStopTimesMap.set(key, []);
-      }
-      routeDirectionStopTimesMap.get(key)!.push(st);
-    }
-    
     // Calculate frequency for each route (using only one direction)
     for (const route of routes) {
       // Try direction_id=0 first, then fall back to any available direction
-      let routeStopTimes = routeDirectionStopTimesMap.get(`${route.route_id}_0`);
+      const directionToUse = '0';
       
-      if (!routeStopTimes || routeStopTimes.length === 0) {
-        // Try direction_id=1
-        routeStopTimes = routeDirectionStopTimesMap.get(`${route.route_id}_1`);
+      // Group stop_times by route + direction + station
+      const stationDepartures = new Map<string, number[]>(); // stop_id -> [departure times in minutes]
+      
+      for (const st of stopTimes) {
+        const routeDir = tripToRouteDirection.get(st.trip_id);
+        if (!routeDir) continue;
+        if (routeDir.routeId !== route.route_id) continue;
+        
+        // Use only one direction (prefer '0', fallback to '1')
+        if (routeDir.directionId !== directionToUse && stationDepartures.size === 0) {
+          // If no data yet, accept any direction
+        } else if (routeDir.directionId !== directionToUse) {
+          continue; // Skip other directions once we have data
+        }
+        
+        const depTime = st.departure_time || st.arrival_time;
+        if (!depTime) continue;
+        
+        const depMinutes = GTFSParserService.timeToMinutes(depTime);
+        
+        if (!stationDepartures.has(st.stop_id)) {
+          stationDepartures.set(st.stop_id, []);
+        }
+        stationDepartures.get(st.stop_id)!.push(depMinutes);
       }
       
-      if (!routeStopTimes || routeStopTimes.length === 0) {
+      if (stationDepartures.size === 0) {
         route.frequency = GTFSParserService.normalizeFrequency(60); // Default 60 minutes
-        // Try to find a sample trip for this route
         const routeTrip = trips.find(t => t.route_id === route.route_id);
         if (routeTrip) {
           route.sample_trip_id = routeTrip.trip_id;
@@ -157,104 +162,141 @@ export class GTFSParserService {
         continue;
       }
       
-      // Get departure times from first stop of each trip (single direction only)
-      const tripFirstStops = new Map<string, number>();
-      for (const st of routeStopTimes) {
-        if (!tripFirstStops.has(st.trip_id)) {
-          const depTime = st.departure_time || st.arrival_time;
-          if (depTime) {
-            tripFirstStops.set(st.trip_id, GTFSParserService.timeToMinutes(depTime));
+      // For each station: sort departures and calculate intervals
+      const allRoundedFrequencies: number[] = [];
+      
+      for (const [stopId, departures] of stationDepartures.entries()) {
+        if (departures.length < 2) continue;
+        
+        // Sort departures chronologically
+        departures.sort((a, b) => a - b);
+        
+        // Calculate intervals between consecutive departures
+        for (let i = 1; i < departures.length; i++) {
+          const interval = departures[i] - departures[i - 1];
+          
+          // Round interval to standard frequency: 15, 20, 30, 60, 120
+          let roundedFreq: number;
+          if (interval <= 17) {
+            roundedFreq = 15;
+          } else if (interval <= 25) {
+            roundedFreq = 20;
+          } else if (interval <= 45) {
+            roundedFreq = 30;
+          } else if (interval <= 90) {
+            roundedFreq = 60;
+          } else if (interval <= 150) {
+            roundedFreq = 120;
+          } else {
+            // >150 min (e.g., 3h, 4h, 6h) -> default to 60
+            roundedFreq = 60;
           }
+          
+          allRoundedFrequencies.push(roundedFreq);
         }
       }
       
-      // Sort departure times
-      const tripDepartures = Array.from(tripFirstStops.entries()).sort((a, b) => a[1] - b[1]);
-      const departures = tripDepartures.map(td => td[1]);
-      
-      if (departures.length < 2) {
+      if (allRoundedFrequencies.length === 0) {
         route.frequency = GTFSParserService.normalizeFrequency(60);
-        // Set sample trip (just use first one if only one trip)
-        if (tripDepartures.length > 0) {
-          route.sample_trip_id = tripDepartures[0][0];
+        const routeTrip = trips.find(t => t.route_id === route.route_id);
+        if (routeTrip) {
+          route.sample_trip_id = routeTrip.trip_id;
         }
         continue;
       }
       
-      // Calculate intervals between departures
-      const intervals: number[] = [];
-      for (let i = 1; i < departures.length; i++) {
-        intervals.push(departures[i] - departures[i - 1]);
+      // Create histogram: count occurrences of each frequency
+      const histogram = new Map<number, number>();
+      for (const freq of allRoundedFrequencies) {
+        histogram.set(freq, (histogram.get(freq) || 0) + 1);
       }
       
-      // Find most common interval (rounded to standard values: 15, 20, 30, 60, 120)
-      const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-      
-      // Round to nearest standard frequency
-      let calculatedFreq: number;
-      if (avgInterval <= 17) {
-        calculatedFreq = 15;
-      } else if (avgInterval <= 25) {
-        calculatedFreq = 20;
-      } else if (avgInterval <= 45) {
-        calculatedFreq = 30;
-      } else if (avgInterval <= 90) {
-        calculatedFreq = 60;
-      } else if (avgInterval <= 150) {
-        calculatedFreq = 120;
-      } else {
-        // >150 minutes = 121 (120+, odd hours)
-        calculatedFreq = 121;
+      // Find most common frequency (mode)
+      let mostCommonFreq = 60; // default
+      let maxCount = 0;
+      for (const [freq, count] of histogram.entries()) {
+        if (count > maxCount) {
+          maxCount = count;
+          mostCommonFreq = freq;
+        }
       }
-      route.frequency = GTFSParserService.normalizeFrequency(calculatedFreq);
       
-      // Select representative trip based on frequency pattern
-      // For each frequency, pick trip that departs at the "correct" minute/hour pattern
+      // For 120 min frequency: check if even or odd hours
+      let finalFrequency = mostCommonFreq;
+      if (mostCommonFreq === 120) {
+        // Get all first departures to determine even/odd pattern
+        const firstDepartures: number[] = [];
+        for (const departures of stationDepartures.values()) {
+          if (departures.length > 0) {
+            firstDepartures.push(Math.min(...departures));
+          }
+        }
+        
+        if (firstDepartures.length > 0) {
+          // Check first departure hour
+          const firstDepMinutes = Math.min(...firstDepartures);
+          const firstHour = Math.floor(firstDepMinutes / 60);
+          
+          if (firstHour % 2 === 1) {
+            // Odd hours: use 120 but mark as offset (we'll use default freq metadata)
+            finalFrequency = 120; // Keep as 120, metadata will handle offset
+          }
+        }
+      }
+      
+      route.frequency = GTFSParserService.normalizeFrequency(finalFrequency);
+      
+      // Select representative trip: find trip that matches the frequency pattern
+      const allTripDepartures: Array<[string, number]> = [];
+      for (const st of stopTimes) {
+        const routeDir = tripToRouteDirection.get(st.trip_id);
+        if (!routeDir || routeDir.routeId !== route.route_id) continue;
+        if (routeDir.directionId !== directionToUse) continue;
+        
+        if (!allTripDepartures.find(td => td[0] === st.trip_id)) {
+          const depTime = st.departure_time || st.arrival_time;
+          if (depTime) {
+            allTripDepartures.push([st.trip_id, GTFSParserService.timeToMinutes(depTime)]);
+          }
+        }
+      }
+      
+      allTripDepartures.sort((a, b) => a[1] - b[1]);
+      
+      // Select trip based on frequency pattern
       let selectedTrip: string | undefined;
-      
-      for (const [tripId, depMinutes] of tripDepartures) {
+      for (const [tripId, depMinutes] of allTripDepartures) {
         const hour = Math.floor(depMinutes / 60);
         const minute = depMinutes % 60;
         
         let matches = false;
-        
         switch (route.frequency) {
           case 15:
-            // 4x/hour: :00, :15, :30, :45
             matches = (minute === 0 || minute === 15 || minute === 30 || minute === 45);
             break;
           case 20:
-            // 3x/hour: :00, :20, :40
             matches = (minute === 0 || minute === 20 || minute === 40);
             break;
           case 30:
-            // 2x/hour: :00, :30
             matches = (minute === 0 || minute === 30);
             break;
           case 60:
-            // 1x/hour: :00
             matches = (minute === 0);
             break;
           case 120:
-            // 120 min: even hours (00, 02, 04, ...)
-            matches = (minute === 0 && hour % 2 === 0);
-            break;
-          case 121:
-            // 120+ min: odd hours (01, 03, 05, ...)
-            matches = (minute === 0 && hour % 2 === 1);
+            matches = (minute === 0 && (hour % 2 === 0 || hour % 2 === 1)); // Accept both even/odd
             break;
           default:
-            matches = true; // Fallback: accept any trip
+            matches = true;
         }
         
         if (matches) {
           selectedTrip = tripId;
-          break; // Take first matching trip
+          break;
         }
       }
       
-      // Fallback: if no trip matches the pattern, use first trip
-      route.sample_trip_id = selectedTrip || tripDepartures[0][0];
+      route.sample_trip_id = selectedTrip || (allTripDepartures.length > 0 ? allTripDepartures[0][0] : undefined);
     }
     
     // Log frequency distribution
@@ -264,10 +306,9 @@ export class GTFSParserService {
       30: routes.filter(r => r.frequency === 30).length,
       60: routes.filter(r => r.frequency === 60).length,
       120: routes.filter(r => r.frequency === 120).length,
-      '120+': routes.filter(r => r.frequency === 121).length,
     };
     console.log('  ✓ Calculated frequencies for', routes.length, 'routes');
-    console.log('  📊 Frequency distribution:', freqDist);
+    console.log('  📊 Frequency distribution (histogram-based):', freqDist);
   }
 
   /**

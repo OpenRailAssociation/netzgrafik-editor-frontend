@@ -45,6 +45,10 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
   @Input() gtfsRouteTypeFilter: any;
   @Input() gtfsNodeFilter: any;
   
+  // Time sync tolerance for round-trip matching (in seconds)
+  @Input() gtfsTimeSyncTolerance = 150;
+  @Output() gtfsTimeSyncToleranceChange = new EventEmitter<number>();
+  
   // Events
   @Output() closeFilterDialog = new EventEmitter<void>();
   @Output() applyFilters = new EventEmitter<void>();

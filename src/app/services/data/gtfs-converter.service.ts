@@ -257,6 +257,7 @@ export class GTFSConverterService {
       onlyRegularService?: boolean;
       minStopsPerTrip?: number;
       existingMetadata?: MetadataDto;
+      labelCreator?: (labelText: string) => number; // Callback to create labels and return label ID
     } = {}
   ): NetzgrafikDto {
     const maxTripsPerRoute = options.maxTripsPerRoute || 10;
@@ -503,13 +504,32 @@ export class GTFSConverterService {
         trainrunName += ` (${tripShortName})`;
       }
       
+      // Create debug label showing GTFS route info
+      const labelIds: number[] = [];
+      if (options.labelCreator) {
+        // Get first and last stop names for the label
+        const firstStopId = pattern.stopSequence[0];
+        const lastStopId = pattern.stopSequence[pattern.stopSequence.length - 1];
+        const firstStop = gtfsData.stops.find(s => s.stop_id === firstStopId);
+        const lastStop = gtfsData.stops.find(s => s.stop_id === lastStopId);
+        const firstStopName = firstStop?.stop_name || firstStopId;
+        const lastStopName = lastStop?.stop_name || lastStopId;
+        
+        // Format: "IR15 → Genf → Luzern" or "IR15 → Luzern → Genf"
+        const debugLabel = `${routeName} → ${firstStopName} → ${lastStopName}`;
+        const labelId = options.labelCreator(debugLabel);
+        labelIds.push(labelId);
+        
+        console.log(`    🏷️  Created debug label: "${debugLabel}" (ID: ${labelId})`);
+      }
+      
       const trainrun: TrainrunDto = {
         id: trainrunId++,
         name: trainrunName,
         categoryId: categoryId,
         frequencyId: frequencyId,
         trainrunTimeCategoryId: defaultTimeCategoryId,
-        labelIds: [],
+        labelIds: labelIds,
         direction: Direction.ONE_WAY,
       };
       trainruns.push(trainrun);
@@ -618,11 +638,23 @@ export class GTFSConverterService {
         const arrivalTime = GTFSParserService.timeToMinutes(targetStop.arrival_time || targetStop.departure_time);
         const travelTime = this.calculateTravelTime(departureTime, arrivalTime);
         
-        // For NON-STOP stations: set arrival = departure time
-        // This triggers the 3rd-party import to set isNonStopTransit: true
-        const targetIsStop = targetGroup.isStop;
-        const targetArrivalTime = targetIsStop ? arrivalTime : arrivalTime;
-        const targetDepartureTime = targetIsStop ? arrivalTime : arrivalTime; // Same time for non-stop!
+        // Get node names for debug output
+        const sourceNode = nodes.find(n => n.id === sourceGroup.nodeId);
+        const targetNode = nodes.find(n => n.id === targetGroup.nodeId);
+        
+        // === STEP 1: ENFORCE SYMMETRY (60-x rule) ===
+        // Extract minutes ONLY (0-59) for forward direction from GTFS
+        const sourceDep_minute = departureTime % 60;    // Forward: source departure (e.g., :05)
+        const targetArr_minute = arrivalTime % 60;      // Forward: target arrival (e.g., :52)
+        
+        // Calculate backward (return) times using 60-x symmetry
+        const sourceArr_minute = (60 - sourceDep_minute) % 60;  // Backward: source arrival = 60-5 = :55
+        const targetDep_minute = (60 - targetArr_minute) % 60;  // Backward: target departure = 60-52 = :08
+        
+        console.log(`      🔄 Section ${sourceNode?.betriebspunktName} → ${targetNode?.betriebspunktName}:`);
+        console.log(`         Forward:  sourceDep :${sourceDep_minute.toString().padStart(2, '0')} → targetArr :${targetArr_minute.toString().padStart(2, '0')} (travel: ${travelTime} min)`);
+        console.log(`         Backward: sourceArr :${sourceArr_minute.toString().padStart(2, '0')} → targetDep :${targetDep_minute.toString().padStart(2, '0')} (travel: ${travelTime} min)`);
+        console.log(`         Symmetry Check: sourceDep(${sourceDep_minute}) + sourceArr(${sourceArr_minute}) = ${sourceDep_minute + sourceArr_minute}, targetArr(${targetArr_minute}) + targetDep(${targetDep_minute}) = ${targetArr_minute + targetDep_minute}`);
         
         const section: TrainrunSectionDto = {
           id: sectionId++,
@@ -632,12 +664,13 @@ export class GTFSConverterService {
           targetPortId: 0,
           sourceSymmetry: false,
           targetSymmetry: false,
-          sourceArrival: { time: departureTime % 60, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },
-          sourceDeparture: { time: departureTime % 60, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },
-          targetArrival: { time: targetArrivalTime % 60, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },
-          targetDeparture: { time: targetDepartureTime % 60, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },
-          travelTime: { time: travelTime, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },
-          backwardTravelTime: { time: travelTime, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },
+          // SYMMETRISCHE ZEITEN (60-x Regel für ONE_WAY):
+          sourceArrival: { time: sourceArr_minute, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },    // Backward: 60 - sourceDep
+          sourceDeparture: { time: sourceDep_minute, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },  // Forward: GTFS minute
+          targetArrival: { time: targetArr_minute, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },    // Forward: GTFS minute
+          targetDeparture: { time: targetDep_minute, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },  // Backward: 60 - targetArr
+          travelTime: { time: travelTime, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },             // FULL minutes from GTFS (can be > 60)
+          backwardTravelTime: { time: travelTime, consecutiveTime: 0, lock: false, warning: null, timeFormatter: null },     // Same as forward
           numberOfStops: 0, // No intermediate stops between consecutive stations in this model
           trainrunId: trainrun.id,
           resourceId: 0,
