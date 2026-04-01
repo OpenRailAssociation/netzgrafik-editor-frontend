@@ -20,10 +20,17 @@ import {
   TrainrunSectionText,
   TrainrunSectionTextPositions,
 } from "../../data-structures/technical.data.structures";
+import {TrafficSide} from "../../data-structures/business.data.structures";
 import {Node} from "../../models/node.model";
 import {Port} from "../../models/port.model";
 
 export class SimpleTrainrunSectionRouter {
+  private static trafficSideType: TrafficSide = "leftHand";
+
+  static setTrafficSideType(trafficSideType: TrafficSide) {
+    SimpleTrainrunSectionRouter.trafficSideType = trafficSideType || "leftHand";
+  }
+
   static isLineVertical(sourcePort: Port): boolean {
     return (
       sourcePort.getPositionAlignment() === PortAlignment.Top ||
@@ -370,33 +377,47 @@ export class SimpleTrainrunSectionRouter {
       }
     }
 
+    const invertTrafficSide = SimpleTrainrunSectionRouter.trafficSideType === "leftHand" ? 1 : -1;
+
     const sourceArrivalPos = Vec2D.add(
       Vec2D.add(
         s,
         Vec2D.scale(deltaS, TRAINRUN_SECTION_TIME_CENTER - TRAINRUN_SECTION_TIME_FAR_NODE),
       ),
-      Vec2D.scale(rDeltaS, TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM),
+      Vec2D.scale(
+        rDeltaS,
+        invertTrafficSide * (TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM),
+      ),
     );
     const sourceDeparturePos = Vec2D.add(
       Vec2D.add(
         s,
         Vec2D.scale(deltaS, TRAINRUN_SECTION_TIME_CENTER - TRAINRUN_SECTION_TIME_CLOSE_NODE),
       ),
-      Vec2D.scale(rDeltaS, -TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_TOP),
+      Vec2D.scale(
+        rDeltaS,
+        invertTrafficSide * (-TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_TOP),
+      ),
     );
     const targetArrivalPos = Vec2D.add(
       Vec2D.add(
         t,
         Vec2D.scale(deltaS, -(TRAINRUN_SECTION_TIME_CENTER - TRAINRUN_SECTION_TIME_FAR_NODE)),
       ),
-      Vec2D.scale(rDeltaS, -(TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM)),
+      Vec2D.scale(
+        rDeltaS,
+        invertTrafficSide * -(TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM),
+      ),
     );
     const targetDeparturePos = Vec2D.add(
       Vec2D.add(
         t,
         Vec2D.scale(deltaS, -(TRAINRUN_SECTION_TIME_CENTER - TRAINRUN_SECTION_TIME_CLOSE_NODE)),
       ),
-      Vec2D.scale(rDeltaS, -(-TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_TOP)),
+      Vec2D.scale(
+        rDeltaS,
+        invertTrafficSide * -(-TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_TOP),
+      ),
     );
     const trainrunSectionNamePos = Vec2D.add(
       Vec2D.scale(Vec2D.add(s1, t1), 0.5),

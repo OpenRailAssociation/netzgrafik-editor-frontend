@@ -305,6 +305,9 @@ export class UiInteractionService implements OnDestroy {
 
   setActiveTrafficSideType(activeTrafficSideType: TrafficSide) {
     this.activeTrafficSideType = activeTrafficSideType;
+    this.dataService.setTrafficSideType(activeTrafficSideType);
+    this.trainrunSectionService.updateText();
+    this.trainrunSectionService.trainrunSectionsUpdated();
   }
 
   getActiveOrderingAlgorithm(): OrderingAlgorithm {
