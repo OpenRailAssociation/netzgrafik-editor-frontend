@@ -13,6 +13,7 @@ import {VersionControlService} from "../../services/data/version-control.service
 import {
   Direction,
   HaltezeitFachCategories,
+  LabelRef,
   NetzgrafikDto,
   NodeDto,
   TrainrunCategoryHaltezeit,
@@ -93,6 +94,9 @@ export class EditorToolsViewComponent {
   // Warnings for empty filters
   public gtfsNoCategoriesWarning = false;
   public gtfsNoLinesWarning = false;
+
+  // Time sync tolerance for round-trip matching (in seconds)
+  public gtfsTimeSyncTolerance = 150; // ±150 seconds (2.5 minutes) default
 
   // GTFS Import Progress Overlay
   public gtfsImportOverlayVisible = false;
@@ -1343,6 +1347,11 @@ export class EditorToolsViewComponent {
           maxTripsPerRoute: 10,
           minStopsPerTrip: 3,
           existingMetadata: existingMetadata,
+          labelCreator: (labelText: string) => {
+            // Create label for debug/tracking purposes (shows GTFS route path)
+            const label = this.labelService.getOrCreateLabel(labelText, LabelRef.Trainrun);
+            return label.getId();
+          },
         });
         console.log('\n✅ Phase 2 complete! Data converted successfully.');
         this.gtfsImportPhases[2].status = 'completed';
