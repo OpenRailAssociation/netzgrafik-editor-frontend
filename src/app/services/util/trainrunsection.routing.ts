@@ -27,7 +27,7 @@ import {Port} from "../../models/port.model";
 export class SimpleTrainrunSectionRouter {
   private static trafficSideType: TrafficSide = "leftHand";
 
-  static setTrafficSideType(trafficSideType: TrafficSide) {
+  static setTrafficSideType(trafficSideType: TrafficSide | undefined) {
     SimpleTrainrunSectionRouter.trafficSideType = trafficSideType || "leftHand";
   }
 
@@ -325,6 +325,8 @@ export class SimpleTrainrunSectionRouter {
       Vec2D.getSouthVec2D(),
       -TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_TOP,
     );
+    
+    const invertTrafficSide = SimpleTrainrunSectionRouter.trafficSideType === "leftHand" ? 1 : -1;
 
     if (SimpleTrainrunSectionRouter.isLineVertical(sourcePort)) {
       if (t1.getY() < s1.getY()) {
@@ -332,12 +334,13 @@ export class SimpleTrainrunSectionRouter {
       }
       namePosOffsetDirection = Vec2D.scale(
         Vec2D.getWestVec2D(),
-        TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM,
+        invertTrafficSide * (TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM),
       );
       if (deltaSt.getX() < 0.0) {
         namePosOffsetDirection = Vec2D.scale(
           Vec2D.getEastVec2D(),
-          TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM,
+          invertTrafficSide *
+            (TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM),
         );
       }
       nameNumberOfStopsOffsetDirection = Vec2D.scale(
@@ -356,12 +359,13 @@ export class SimpleTrainrunSectionRouter {
       }
       namePosOffsetDirection = Vec2D.scale(
         Vec2D.getSouthVec2D(),
-        TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM,
+        invertTrafficSide * (TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM),
       );
       if (deltaSt.getX() < 0.0) {
         namePosOffsetDirection = Vec2D.scale(
           Vec2D.getNorthVec2D(),
-          TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM,
+          invertTrafficSide *
+            (TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM),
         );
       }
 
@@ -377,7 +381,6 @@ export class SimpleTrainrunSectionRouter {
       }
     }
 
-    const invertTrafficSide = SimpleTrainrunSectionRouter.trafficSideType === "leftHand" ? 1 : -1;
 
     const sourceArrivalPos = Vec2D.add(
       Vec2D.add(

@@ -81,7 +81,7 @@ export class DataService implements OnDestroy {
 
     this.netzgrafikDtoStore.netzgrafikDto = netzgrafikDto;
     SimpleTrainrunSectionRouter.setTrafficSideType(
-      this.netzgrafikDtoStore.netzgrafikDto.metadata.trafficSide || "leftHand",
+      this.netzgrafikDtoStore.netzgrafikDto.metadata.trafficSide,
     );
     this.resourceService.setResourceData(this.netzgrafikDtoStore.netzgrafikDto.resources);
     this.nodeService.setNodeData(this.netzgrafikDtoStore.netzgrafikDto.nodes);
@@ -190,7 +190,7 @@ export class DataService implements OnDestroy {
     const metadata = this.netzgrafikDtoStore.netzgrafikDto.metadata;
     metadata.netzgrafikColors = this.netzgrafikColoringService.getDtos();
     metadata.orderingAlgorithm = this.nodeService.getCurrentOrderingAlgorithm();
-    metadata.trafficSide = this.netzgrafikDtoStore.netzgrafikDto.metadata.trafficSide || "leftHand";
+    metadata.trafficSide = this.getTrafficSide();
 
     return {
       nodes: this.nodeService.getDtos(),
@@ -267,8 +267,8 @@ export class DataService implements OnDestroy {
     return this.netzgrafikDtoStore.netzgrafikDto.metadata.trafficSide || "leftHand";
   }
 
-  setTrafficSideType(trafficSideType: TrafficSide) {
-    this.netzgrafikDtoStore.netzgrafikDto.metadata.trafficSide = trafficSideType;
+  setTrafficSideType(trafficSideType: TrafficSide | undefined) {
+    this.netzgrafikDtoStore.netzgrafikDto.metadata.trafficSide = trafficSideType || "leftHand";
     SimpleTrainrunSectionRouter.setTrafficSideType(trafficSideType);
   }
 
