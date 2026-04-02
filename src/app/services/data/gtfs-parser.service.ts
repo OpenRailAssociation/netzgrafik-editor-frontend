@@ -574,18 +574,14 @@ export class GTFSParserService {
           );
           return matches;
         });
-
-        if (gtfsData.agencies.length > 0) {
-        }
       }
-    } 
+    }
 
     // Parse stops.txt
     const stopsFile = zipContent.file("stops.txt");
     if (stopsFile) {
       const stopsText = await stopsFile.async("text");
       gtfsData.stops = this.parseCSV<GTFSStop>(stopsText);
-    } else {
     }
 
     // Parse routes.txt
@@ -623,7 +619,6 @@ export class GTFSParserService {
         const desc = route.route_desc || "UNKNOWN";
         routeDescCounts.set(desc, (routeDescCounts.get(desc) || 0) + 1);
       });
-    } else {
     }
 
     // Parse trips.txt
@@ -643,7 +638,7 @@ export class GTFSParserService {
       }
 
       // Keep ALL trips - will select most frequent per route AFTER parsing stop_times
-    } 
+    }
 
     // Parse stop_times.txt using streaming approach (chunk-by-chunk to avoid memory issues)
     const stopTimesFile = zipContent.file("stop_times.txt");
@@ -713,17 +708,12 @@ export class GTFSParserService {
             filteredStopTimes.push(record as GTFSStopTime);
             keepCount++;
           }
-
-          // Log progress every 50MB
-          if ((offset / (1024 * 1024)) % 50 < chunkSize / (1024 * 1024)) {
-          }
         }
 
         gtfsData.stopTimes = filteredStopTimes;
       } catch (error: any) {
         gtfsData.stopTimes = [];
       }
-    } else {
     }
 
     // Parse calendar.txt (optional)
@@ -731,14 +721,15 @@ export class GTFSParserService {
     if (calendarFile) {
       const calendarText = await calendarFile.async("text");
       gtfsData.calendar = this.parseCSV<GTFSCalendar>(calendarText);
-    } 
+    }
 
     // Parse calendar_dates.txt (optional)
     const calendarDatesFile = zipContent.file("calendar_dates.txt");
     if (calendarDatesFile) {
       const calendarDatesText = await calendarDatesFile.async("text");
       gtfsData.calendarDates = this.parseCSV<GTFSCalendarDate>(calendarDatesText);
-    } 
+    }
+
     // Post-processing: Calculate frequencies and classify nodes
 
     if (gtfsData.stopTimes.length > 0) {
@@ -747,7 +738,6 @@ export class GTFSParserService {
 
       // Always classify nodes
       this.classifyNodes(gtfsData.stops, gtfsData.stopTimes, gtfsData.trips);
-    } else {
     }
 
     return gtfsData;
@@ -923,10 +913,6 @@ export class GTFSParserService {
       }
 
       totalPatternsByRoute += patternCounts.size;
-
-      // Debug: Show pattern analysis for this route
-      if (patternCounts.size > 1 || maxCount > 5) {
-      }
     }
 
     // Filter trips and stopTimes
