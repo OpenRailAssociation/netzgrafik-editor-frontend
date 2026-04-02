@@ -1,20 +1,13 @@
 <!-- GTFS Import Progress Overlay -->
 <ng-container *ngIf="gtfsImportOverlayVisible">
   <div class="overlay import-overlay">
-    <div class="dialog-container">
+    <div class="dialog-container dialog-container-large">
       <!-- Dialog Title -->
       <div sbb-dialog-title class="sbb-dialog-title">
         {{
-          "app.view.editor-side-view.editor-tools-view-component.gtfs-import-progress-title"
+          "app.view.editor-side-view.gtfs-import-dialogs.progress-title"
             | translate
         }}
-        <span class="header-count"
-          >{{ gtfsImportLogs.length }}
-          {{
-            "app.view.editor-side-view.editor-tools-view-component.gtfs-import-progress-entries"
-              | translate
-          }}</span
-        >
       </div>
 
       <!-- Dialog Content (scrollable) -->
@@ -23,58 +16,151 @@
         <div class="phase-overview">
           <div class="phase-title">
             {{
-              "app.view.editor-side-view.editor-tools-view-component.gtfs-import-progress-label"
+              "app.view.editor-side-view.gtfs-import-dialogs.progress-label"
                 | translate
             }}
           </div>
           <div class="phase-list">
             <div
               *ngFor="let phase of gtfsImportPhases"
-              class="phase-item"
-              [class.completed]="phase.status === 'completed'"
-              [class.running]="phase.status === 'running'"
-              [class.error]="phase.status === 'error'"
-              [class.pending]="phase.status === 'pending'"
+              class="phase-container"
             >
-              <!-- Status Icon -->
-              <div class="phase-icon" [ngClass]="phase.status">
-                <span *ngIf="phase.status === 'pending'">⏸️</span>
-                <span *ngIf="phase.status === 'running'">⏳</span>
-                <span *ngIf="phase.status === 'completed'">✅</span>
-                <span *ngIf="phase.status === 'error'">❌</span>
-              </div>
+              <!-- Main Phase Row -->
+              <div
+                class="phase-item"
+                [class.completed]="phase.status === 'completed'"
+                [class.running]="phase.status === 'running'"
+                [class.error]="phase.status === 'error'"
+                [class.pending]="phase.status === 'pending'"
+              >
+                <!-- Status Icon -->
+                <div class="phase-icon" [ngClass]="phase.status">
+                  <span *ngIf="phase.status === 'pending'">⏸️</span>
+                  <span *ngIf="phase.status === 'running'">⏳</span>
+                  <span *ngIf="phase.status === 'completed'">✅</span>
+                  <span *ngIf="phase.status === 'error'">❌</span>
+                </div>
 
-              <!-- Phase Label -->
-              <div class="phase-label" [ngClass]="phase.status">
-                {{ phase.labelKey | translate }}
-              </div>
+                <!-- Phase Label -->
+                <div class="phase-label" [ngClass]="phase.status">
+                  {{ phase.labelKey | translate }}
+                </div>
 
-              <!-- Loading Spinner for Running Phase -->
-              <div *ngIf="phase.status === 'running'" class="phase-spinner"></div>
+                <!-- Loading Spinner for Running Phase -->
+                <div *ngIf="phase.status === 'running'" class="phase-spinner"></div>
+              </div>
+              
+              <!-- Sub-phases row (full width below main phase) -->
+              <div *ngIf="phase.subPhases && phase.subPhases.length > 0" class="sub-phases">
+                <div *ngFor="let subPhase of phase.subPhases" class="sub-phase-item">
+                  <span class="sub-phase-icon">
+                    <span *ngIf="subPhase.status === 'completed'">✓</span>
+                    <span *ngIf="subPhase.status === 'running'">⏳</span>
+                    <span *ngIf="subPhase.status === 'pending'">○</span>
+                  </span>
+                  <span class="sub-phase-label">{{ subPhase.label }}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Log Container (scrollable) -->
-        <div id="gtfsImportLogContainer" class="log-container">
-          <div
-            *ngFor="let log of gtfsImportLogs"
-            class="log-entry"
-            [class.error]="log.includes('❌')"
-            [class.success]="log.includes('✅') || log.includes('✓')"
-            [class.warning]="log.includes('⚠️')"
-            [class.info]="log.includes('🔍') || log.includes('📊') || log.includes('🚆')"
-            [class.default]="
-              !log.includes('❌') &&
-              !log.includes('✅') &&
-              !log.includes('✓') &&
-              !log.includes('⚠️') &&
-              !log.includes('🔍') &&
-              !log.includes('📊') &&
-              !log.includes('🚆')
-            "
-          >
-            {{ log }}
+        <!-- Summary Tables (only visible when import is complete and summary data is available) -->
+        <div *ngIf="gtfsImportComplete && gtfsImportSummary" class="summary-section">
+          <h3 class="summary-title">
+            {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-title" | translate }}
+          </h3>
+          
+          <!-- Main Summary Table -->
+          <div class="summary-table-container">
+            <h4>
+              {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-overview" | translate }}
+            </h4>
+            <table sbb-table [dataSource]="summaryDataSource" class="summary-table">
+              <ng-container sbbColumnDef="metric">
+                <th sbb-header-cell *sbbHeaderCellDef>
+                  {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-metric" | translate }}
+                </th>
+                <td sbb-cell *sbbCellDef="let element">{{ element.metric }}</td>
+              </ng-container>
+              <ng-container sbbColumnDef="value">
+                <th sbb-header-cell *sbbHeaderCellDef>
+                  {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-value" | translate }}
+                </th>
+                <td sbb-cell *sbbCellDef="let element">{{ element.value }}</td>
+              </ng-container>
+              <tr sbb-header-row *sbbHeaderRowDef="summaryColumns"></tr>
+              <tr sbb-row *sbbRowDef="let row; columns: summaryColumns"></tr>
+            </table>
+          </div>
+
+          <!-- Category Breakdown Table -->
+          <div class="summary-table-container" *ngIf="categoryDataSource.data.length > 0">
+            <h4>
+              {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-by-category" | translate }}
+            </h4>
+            <table sbb-table [dataSource]="categoryDataSource" class="summary-table">
+              <ng-container sbbColumnDef="category">
+                <th sbb-header-cell *sbbHeaderCellDef>
+                  {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-category" | translate }}
+                </th>
+                <td sbb-cell *sbbCellDef="let element">{{ element.category }}</td>
+              </ng-container>
+              <ng-container sbbColumnDef="count">
+                <th sbb-header-cell *sbbHeaderCellDef>
+                  {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-count" | translate }}
+                </th>
+                <td sbb-cell *sbbCellDef="let element">{{ element.count }}</td>
+              </ng-container>
+              <tr sbb-header-row *sbbHeaderRowDef="categoryColumns"></tr>
+              <tr sbb-row *sbbRowDef="let row; columns: categoryColumns"></tr>
+            </table>
+          </div>
+
+          <!-- Frequency Breakdown Table -->
+          <div class="summary-table-container" *ngIf="frequencyDataSource.data.length > 0">
+            <h4>
+              {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-by-frequency" | translate }}
+            </h4>
+            <table sbb-table [dataSource]="frequencyDataSource" class="summary-table">
+              <ng-container sbbColumnDef="frequency">
+                <th sbb-header-cell *sbbHeaderCellDef>
+                  {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-frequency" | translate }}
+                </th>
+                <td sbb-cell *sbbCellDef="let element">{{ element.frequency }}</td>
+              </ng-container>
+              <ng-container sbbColumnDef="count">
+                <th sbb-header-cell *sbbHeaderCellDef>
+                  {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-count" | translate }}
+                </th>
+                <td sbb-cell *sbbCellDef="let element">{{ element.count }}</td>
+              </ng-container>
+              <tr sbb-header-row *sbbHeaderRowDef="frequencyColumns"></tr>
+              <tr sbb-row *sbbRowDef="let row; columns: frequencyColumns"></tr>
+            </table>
+          </div>
+
+          <!-- Label Breakdown Table -->
+          <div class="summary-table-container" *ngIf="labelDataSource.data.length > 0">
+            <h4>
+              {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-by-label" | translate }}
+            </h4>
+            <table sbb-table [dataSource]="labelDataSource" class="summary-table">
+              <ng-container sbbColumnDef="label">
+                <th sbb-header-cell *sbbHeaderCellDef>
+                  {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-status" | translate }}
+                </th>
+                <td sbb-cell *sbbCellDef="let element">{{ element.label }}</td>
+              </ng-container>
+              <ng-container sbbColumnDef="count">
+                <th sbb-header-cell *sbbHeaderCellDef>
+                  {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-count" | translate }}
+                </th>
+                <td sbb-cell *sbbCellDef="let element">{{ element.count }}</td>
+              </ng-container>
+              <tr sbb-header-row *sbbHeaderRowDef="labelColumns"></tr>
+              <tr sbb-row *sbbRowDef="let row; columns: labelColumns"></tr>
+            </table>
           </div>
         </div>
       </sbb-dialog-content>
@@ -96,7 +182,7 @@
     <div class="dialog-container filter-dialog">
       <!-- Dialog Title -->
       <div sbb-dialog-title class="sbb-dialog-title">
-        {{ "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-title" | translate }}
+        {{ "app.view.editor-side-view.gtfs-import-dialogs.filter-title" | translate }}
         <button
           class="sbb-dialog-title-close-button sbb-button-reset-frameless"
           aria-label="Close dialog"
@@ -115,7 +201,7 @@
           <div class="filter-group">
             <sbb-form-field
               [label]="
-                'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-agency-label'
+                'app.view.editor-side-view.gtfs-import-dialogs.filter-agency-label'
                   | translate
               "
             >
@@ -128,7 +214,7 @@
                 </sbb-chip>
                 <input
                   [placeholder]="
-                    'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-agency-placeholder'
+                    'app.view.editor-side-view.gtfs-import-dialogs.filter-agency-placeholder'
                       | translate
                   "
                   [formControl]="agencyInputCtrl"
@@ -147,7 +233,7 @@
             </sbb-form-field>
             <small class="filter-hint">
               {{
-                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-agency-hint"
+                "app.view.editor-side-view.gtfs-import-dialogs.filter-agency-hint"
                   | translate
               }}
             </small>
@@ -157,7 +243,7 @@
           <div class="filter-group">
             <sbb-form-field
               [label]="
-                'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-category-label'
+                'app.view.editor-side-view.gtfs-import-dialogs.filter-category-label'
                   | translate
               "
             >
@@ -170,7 +256,7 @@
                 </sbb-chip>
                 <input
                   [placeholder]="
-                    'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-category-placeholder'
+                    'app.view.editor-side-view.gtfs-import-dialogs.filter-category-placeholder'
                       | translate
                   "
                   [formControl]="categoryInputCtrl"
@@ -189,13 +275,13 @@
             </sbb-form-field>
             <small *ngIf="!gtfsNoCategoriesWarning" class="filter-hint">
               {{
-                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-category-hint"
+                "app.view.editor-side-view.gtfs-import-dialogs.filter-category-hint"
                   | translate
               }}
             </small>
             <small *ngIf="gtfsNoCategoriesWarning" class="filter-warning">
               {{
-                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-category-warning"
+                "app.view.editor-side-view.gtfs-import-dialogs.filter-category-warning"
                   | translate
               }}
             </small>
@@ -205,7 +291,7 @@
           <div class="filter-group">
             <sbb-form-field
               [label]="
-                'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-line-label'
+                'app.view.editor-side-view.gtfs-import-dialogs.filter-line-label'
                   | translate
               "
             >
@@ -215,7 +301,7 @@
                 </sbb-chip>
                 <input
                   [placeholder]="
-                    'app.view.editor-side-view.editor-tools-view-component.gtfs-filter-line-placeholder'
+                    'app.view.editor-side-view.gtfs-import-dialogs.filter-line-placeholder'
                       | translate
                   "
                   [formControl]="lineInputCtrl"
@@ -234,13 +320,13 @@
             </sbb-form-field>
             <small *ngIf="!gtfsNoLinesWarning" class="filter-hint">
               {{
-                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-line-hint"
+                "app.view.editor-side-view.gtfs-import-dialogs.filter-line-hint"
                   | translate
               }}
             </small>
             <small *ngIf="gtfsNoLinesWarning" class="filter-warning">
               {{
-                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-line-warning"
+                "app.view.editor-side-view.gtfs-import-dialogs.filter-line-warning"
                   | translate
               }}
             </small>
@@ -270,38 +356,38 @@
           <div class="filter-group">
             <sbb-label>
               {{
-                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-transport-modes"
+                "app.view.editor-side-view.gtfs-import-dialogs.filter-transport-modes"
                   | translate
               }}
             </sbb-label>
             <div class="sbb-checkbox-group-horizontal">
               <sbb-checkbox [(ngModel)]="gtfsRouteTypeFilter.rail">
                 {{
-                  "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-mode-rail"
+                  "app.view.editor-side-view.gtfs-import-dialogs.filter-mode-rail"
                     | translate
                 }}
               </sbb-checkbox>
               <sbb-checkbox [(ngModel)]="gtfsRouteTypeFilter.metro">
                 {{
-                  "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-mode-metro"
+                  "app.view.editor-side-view.gtfs-import-dialogs.filter-mode-metro"
                     | translate
                 }}
               </sbb-checkbox>
               <sbb-checkbox [(ngModel)]="gtfsRouteTypeFilter.tram">
                 {{
-                  "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-mode-tram"
+                  "app.view.editor-side-view.gtfs-import-dialogs.filter-mode-tram"
                     | translate
                 }}
               </sbb-checkbox>
               <sbb-checkbox [(ngModel)]="gtfsRouteTypeFilter.bus">
                 {{
-                  "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-mode-bus"
+                  "app.view.editor-side-view.gtfs-import-dialogs.filter-mode-bus"
                     | translate
                 }}
               </sbb-checkbox>
               <sbb-checkbox [(ngModel)]="gtfsRouteTypeFilter.ferry">
                 {{
-                  "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-mode-ferry"
+                  "app.view.editor-side-view.gtfs-import-dialogs.filter-mode-ferry"
                     | translate
                 }}
               </sbb-checkbox>
@@ -312,30 +398,30 @@
           <div class="info-box">
             <div class="info-box-title">
               {{
-                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-info-title"
+                "app.view.editor-side-view.gtfs-import-dialogs.filter-info-title"
                   | translate
               }}
             </div>
             <div class="info-box-content">
               • {{ gtfsAvailableAgencies.length }}
               {{
-                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-info-agencies"
+                "app.view.editor-side-view.gtfs-import-dialogs.filter-info-agencies"
                   | translate
               }}<br />
               • {{ gtfsAvailableCategories.length }}
               {{
-                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-info-categories"
+                "app.view.editor-side-view.gtfs-import-dialogs.filter-info-categories"
                   | translate
               }}<br />
               • {{ gtfsAvailableRoutes.length }}
               {{
-                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-info-lines"
+                "app.view.editor-side-view.gtfs-import-dialogs.filter-info-lines"
                   | translate
               }}
             </div>
             <div class="info-box-footer">
               {{
-                "app.view.editor-side-view.editor-tools-view-component.gtfs-filter-info-footer"
+                "app.view.editor-side-view.gtfs-import-dialogs.filter-info-footer"
                   | translate
               }}
             </div>
@@ -348,12 +434,12 @@
       <sbb-dialog-actions class="sbb-dialog-actions sbb-dialog-actions-align-end">
         <button sbb-button (click)="applyGtfsFiltersAndImport()">
           {{
-            "app.view.editor-side-view.editor-tools-view-component.gtfs-button-import" | translate
+            "app.view.editor-side-view.gtfs-import-dialogs.button-import" | translate
           }}
         </button>
         <button sbb-secondary-button (click)="closeGtfsFilterDialog()">
           {{
-            "app.view.editor-side-view.editor-tools-view-component.gtfs-button-cancel" | translate
+            "app.view.editor-side-view.gtfs-import-dialogs.button-cancel" | translate
           }}
         </button>
       </sbb-dialog-actions>

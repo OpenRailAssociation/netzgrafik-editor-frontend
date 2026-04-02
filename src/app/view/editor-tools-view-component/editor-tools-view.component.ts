@@ -1,5 +1,5 @@
 import {parse, ParseResult} from "papaparse";
-import {Component, ElementRef, ViewChild} from "@angular/core";
+import {Component, ElementRef, ViewChild, ChangeDetectorRef} from "@angular/core";
 import * as svg from "save-svg-as-png";
 import {DataService} from "../../services/data/data.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
@@ -99,33 +99,36 @@ export class EditorToolsViewComponent {
 
   // GTFS Import Progress Overlay
   public gtfsImportOverlayVisible = false;
-  public gtfsImportLogs: string[] = [];
-  private originalConsoleLog: any;
 
   // Import phase tracking
   public gtfsImportPhases = [
     {
       id: "parse",
-      labelKey: "app.view.editor-side-view.editor-tools-view-component.gtfs-import-phase-parsing",
+      labelKey: "app.view.editor-side-view.gtfs-import-dialogs.phase-parsing",
       status: "pending",
+      subPhases: [] as { label: string; status: string }[],
     },
     {
       id: "filter",
-      labelKey: "app.view.editor-side-view.editor-tools-view-component.gtfs-import-phase-filter",
+      labelKey: "app.view.editor-side-view.gtfs-import-dialogs.phase-filter",
       status: "pending",
+      subPhases: [] as { label: string; status: string }[],
     },
     {
       id: "convert",
-      labelKey: "app.view.editor-side-view.editor-tools-view-component.gtfs-import-phase-convert",
+      labelKey: "app.view.editor-side-view.gtfs-import-dialogs.phase-convert",
       status: "pending",
+      subPhases: [] as { label: string; status: string }[],
     },
     {
       id: "import",
-      labelKey: "app.view.editor-side-view.editor-tools-view-component.gtfs-import-phase-import",
+      labelKey: "app.view.editor-side-view.gtfs-import-dialogs.phase-import",
       status: "pending",
+      subPhases: [] as { label: string; status: string }[],
     },
   ];
   public gtfsImportComplete = false;
+  public gtfsImportSummary: any = null;
 
   // GTFS Node/Stop Filter (by classification)
   public gtfsNodeFilter = {
@@ -154,6 +157,7 @@ export class EditorToolsViewComponent {
     private resourceService: ResourceService,
     private gtfsParserService: GTFSParserService,
     private gtfsConverterService: GTFSConverterService,
+    private changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   getTodayString(): string {
@@ -1224,10 +1228,12 @@ export class EditorToolsViewComponent {
     // Close filter dialog, show progress overlay
     this.gtfsFilterDialogVisible = false;
     this.gtfsImportOverlayVisible = true;
-    this.gtfsImportLogs = [];
     this.gtfsImportComplete = false;
-    this.gtfsImportPhases.forEach((p) => (p.status = "pending"));
-    this.startCapturingConsoleLogs();
+    this.gtfsImportSummary = null;
+    this.gtfsImportPhases.forEach((p) => {
+      p.status = "pending";
+      p.subPhases = [];
+    });
 
     try {
       console.log("\n🚀 GTFS FULL IMPORT");
@@ -1237,6 +1243,14 @@ export class EditorToolsViewComponent {
 
       // PHASE 1: Full GTFS parse with filters
       this.gtfsImportPhases[0].status = "running";
+      this.gtfsImportPhases[0].subPhases = [
+        { label: "stops.txt", status: "running" },
+        { label: "routes.txt", status: "pending" },
+        { label: "trips.txt", status: "pending" },
+        { label: "stop_times.txt", status: "pending" },
+        { label: "calendar.txt", status: "pending" },
+      ];
+      this.changeDetectorRef.detectChanges(); // Force UI update
       console.log("\n📋 PHASE 1: Full GTFS parsing");
 
       // Convert transport mode filter to route_type numbers
@@ -1251,12 +1265,18 @@ export class EditorToolsViewComponent {
 
       console.log("Transport modes:", allowedRouteTypes);
 
-      // Full parse with agency filter (NO date filter)
-      let gtfsData = await this.gtfsParserService.parseGTFSZip(
+      // Full parse with agency filter (NO date filter) - NO SIMULATION
+      const gtfsData = await this.gtfsParserService.parseGTFSZip(
         this.gtfsFile,
         allowedRouteTypes,
         this.gtfsSelectedAgencies,
       );
+
+      // Now mark all parsing subphases as completed (after real parsing is done)
+      for (let i = 0; i < this.gtfsImportPhases[0].subPhases.length; i++) {
+        this.gtfsImportPhases[0].subPhases[i].status = "completed";
+      }
+      this.changeDetectorRef.detectChanges();
 
       console.log(
         "✅ Parsed:",
@@ -1271,6 +1291,7 @@ export class EditorToolsViewComponent {
       // Sample routes available in parsed data
 
       this.gtfsImportPhases[0].status = "completed";
+      this.changeDetectorRef.detectChanges(); // Force UI update
 
       this.logger.info(
         $localize`:@@app.view.editor-side-view.editor-tools-view-component.gtfs-converting:Converting GTFS to Netzgrafik format...`,
@@ -1278,6 +1299,12 @@ export class EditorToolsViewComponent {
 
       // PHASE 2: Apply category filter
       this.gtfsImportPhases[1].status = "running";
+      this.gtfsImportPhases[1].subPhases = [
+        { label: "Kategorie-Filter", status: "running" },
+        { label: "Linien-Filter", status: "pending" },
+        { label: "Knoten-Filter", status: "pending" },
+      ];
+      this.changeDetectorRef.detectChanges(); // Force UI update
       console.log("\n🔍 Applying category filter");
       if (this.gtfsSelectedCategories.length > 0) {
         const beforeFilter = gtfsData.routes.length;
@@ -1326,8 +1353,16 @@ export class EditorToolsViewComponent {
       } else {
         console.log("No category filter - keeping all");
       }
+      if (this.gtfsImportPhases[1].subPhases.length > 0) {
+        this.gtfsImportPhases[1].subPhases[0].status = "completed";
+        this.changeDetectorRef.detectChanges(); // Force UI update
+      }
 
       // Apply line filter
+      if (this.gtfsImportPhases[1].subPhases.length > 1) {
+        this.gtfsImportPhases[1].subPhases[1].status = "running";
+        this.changeDetectorRef.detectChanges(); // Force UI update
+      }
       console.log("\n🔍 Applying line filter");
       if (this.gtfsSelectedLines.length > 0) {
         console.log("Selected lines:", this.gtfsSelectedLines);
@@ -1362,8 +1397,16 @@ export class EditorToolsViewComponent {
       } else {
         console.log("No line filter - keeping all");
       }
+      if (this.gtfsImportPhases[1].subPhases.length > 1) {
+        this.gtfsImportPhases[1].subPhases[1].status = "completed";
+        this.changeDetectorRef.detectChanges(); // Force UI update
+      }
 
       // Continue with node classification filter and conversion
+      if (this.gtfsImportPhases[1].subPhases.length > 2) {
+        this.gtfsImportPhases[1].subPhases[2].status = "running";
+        this.changeDetectorRef.detectChanges(); // Force UI update
+      }
       console.log("\n🔍 Applying node filter");
       const activeNodeTypes = Object.keys(this.gtfsNodeFilter).filter(
         (key) => this.gtfsNodeFilter[key],
@@ -1379,10 +1422,22 @@ export class EditorToolsViewComponent {
       } else {
         console.log("All node types selected - keeping all");
       }
+      if (this.gtfsImportPhases[1].subPhases.length > 2) {
+        this.gtfsImportPhases[1].subPhases[2].status = "completed";
+        this.changeDetectorRef.detectChanges(); // Force UI update
+      }
       this.gtfsImportPhases[1].status = "completed";
 
       // Convert to Netzgrafik format
       this.gtfsImportPhases[2].status = "running";
+      this.changeDetectorRef.detectChanges(); // Force UI update
+      this.gtfsImportPhases[2].subPhases = [
+        { label: "Knoten erstellen", status: "running" },
+        { label: "Zugläufe konvertieren", status: "pending" },
+        { label: "Abschnitte generieren", status: "pending" },
+        { label: "Round-Trip Matching", status: "pending" },
+        { label: "Layout berechnen", status: "pending" },
+      ];
       console.log("\n📋 PHASE 2: Converting to Netzgrafik format");
 
       const existingNetzgrafik = this.dataService.getNetzgrafikDto();
@@ -1390,7 +1445,8 @@ export class EditorToolsViewComponent {
 
       let netzgrafikDto;
       try {
-        netzgrafikDto = this.gtfsConverterService.convertToNetzgrafik(gtfsData, {
+        // Convert to Netzgrafik - NO SIMULATION
+        netzgrafikDto = await this.gtfsConverterService.convertToNetzgrafik(gtfsData, {
           maxTripsPerRoute: 10,
           minStopsPerTrip: 3,
           existingMetadata: existingMetadata,
@@ -1401,17 +1457,27 @@ export class EditorToolsViewComponent {
             return label.getId();
           },
         });
+        
         console.log("\n✅ Phase 2 complete! Data converted successfully.");
+        
+        // Now mark all conversion subphases as completed (after real conversion is done)
+        for (let i = 0; i < this.gtfsImportPhases[2].subPhases.length; i++) {
+          this.gtfsImportPhases[2].subPhases[i].status = "completed";
+        }
+        this.changeDetectorRef.detectChanges();
+        
         this.gtfsImportPhases[2].status = "completed";
       } catch (convertError) {
         console.error("\n❌ Phase 2 FAILED!");
         console.error("Convert error:", convertError);
         this.gtfsImportPhases[2].status = "error";
+        this.changeDetectorRef.detectChanges(); // Force UI update
         throw convertError;
       }
 
       // Import into editor
       this.gtfsImportPhases[3].status = "running";
+      this.changeDetectorRef.detectChanges(); // Force UI update
       console.log("\n📋 PHASE 3: Importing into editor");
       console.log(
         "Importing",
@@ -1427,14 +1493,17 @@ export class EditorToolsViewComponent {
 
       console.log("\n✅ Import complete!");
       this.gtfsImportPhases[3].status = "completed";
+      this.changeDetectorRef.detectChanges(); // Force UI update
 
-      this.stopCapturingConsoleLogs();
+      // Generate summary
+      this.generateGtfsImportSummary(netzgrafikDto);
+
       this.gtfsImportComplete = true;
+      this.changeDetectorRef.detectChanges(); // Force UI update
       this.logger.info(
         $localize`:@@app.view.editor-side-view.editor-tools-view-component.gtfs-success:GTFS data imported successfully`,
       );
     } catch (error) {
-      this.stopCapturingConsoleLogs();
       console.error("\n❌ ERROR:", error);
       this.logger.error("GTFS import failed: " + (error?.message || String(error)));
       this.gtfsImportComplete = true; // Allow closing on error
@@ -1443,66 +1512,78 @@ export class EditorToolsViewComponent {
       if (runningPhase) {
         runningPhase.status = "error";
       }
+      this.changeDetectorRef.detectChanges(); // Force UI update
     }
   }
 
   closeGtfsImportOverlay(): void {
     this.gtfsImportOverlayVisible = false;
-    this.gtfsImportLogs = [];
     this.gtfsImportComplete = false;
+    this.gtfsImportSummary = null;
     // Reset phases
-    this.gtfsImportPhases.forEach((p) => (p.status = "pending"));
+    this.gtfsImportPhases.forEach((p) => {
+      p.status = "pending";
+      p.subPhases = [];
+    });
   }
 
-  private startCapturingConsoleLogs(): void {
-    // Save original console.log
-    this.originalConsoleLog = console.log;
+  private generateGtfsImportSummary(netzgrafikDto: any): void {
+    const trainruns = netzgrafikDto.trainruns || [];
+    const sections = netzgrafikDto.trainrunSections || [];
+    const nodes = netzgrafikDto.nodes || [];
+    const metadata = netzgrafikDto.metadata || {};
 
-    // Override console.log to capture messages
-    console.log = (...args: any[]) => {
-      // Convert arguments to string
-      const message = args
-        .map((arg) => {
-          if (typeof arg === "object") {
-            try {
-              return JSON.stringify(arg, null, 2);
-            } catch {
-              return String(arg);
-            }
+    // Count by direction
+    const roundTripCount = trainruns.filter((t: any) => t.direction === "round_trip").length;
+    const oneWayCount = trainruns.filter((t: any) => t.direction === "one_way").length;
+
+    // Count by category
+    const byCategory: { [key: string]: number } = {};
+    const categories = metadata.trainrunCategories || [];
+    trainruns.forEach((trainrun: any) => {
+      const category = categories.find((c: any) => c.id === trainrun.categoryId);
+      if (category) {
+        const catName = category.shortName || category.name;
+        byCategory[catName] = (byCategory[catName] || 0) + 1;
+      }
+    });
+
+    // Count by frequency
+    const byFrequency: { [key: string]: number } = {};
+    const frequencies = metadata.trainrunFrequencies || [];
+    trainruns.forEach((trainrun: any) => {
+      const freq = frequencies.find((f: any) => f.id === trainrun.frequencyId);
+      if (freq) {
+        const freqValue = freq.frequency.toString();
+        byFrequency[freqValue] = (byFrequency[freqValue] || 0) + 1;
+      }
+    });
+
+    // Count by label
+    const byLabel: { [key: string]: number } = {};
+    const labels = netzgrafikDto.labels || [];
+    trainruns.forEach((trainrun: any) => {
+      if (trainrun.labelIds && trainrun.labelIds.length > 0) {
+        trainrun.labelIds.forEach((labelId: number) => {
+          const label = labels.find((l: any) => l.id === labelId);
+          if (label) {
+            byLabel[label.label] = (byLabel[label.label] || 0) + 1;
           }
-          return String(arg);
-        })
-        .join(" ");
+        });
+      }
+    });
 
-      // Add to overlay logs
-      this.gtfsImportLogs.push(message);
-
-      // Also call original console.log (for browser console)
-      this.originalConsoleLog.apply(console, args);
-
-      // Auto-scroll to bottom (with small delay for DOM update)
-      setTimeout(() => {
-        // Check filter dialog log container first (during loading phase)
-        const filterLogContainer = document.getElementById("gtfsFilterDialogLogContainer");
-        if (filterLogContainer) {
-          filterLogContainer.scrollTop = filterLogContainer.scrollHeight;
-          return;
-        }
-
-        // Otherwise check import overlay log container (during import phase)
-        const logContainer = document.getElementById("gtfsImportLogContainer");
-        if (logContainer) {
-          logContainer.scrollTop = logContainer.scrollHeight;
-        }
-      }, 10);
+    this.gtfsImportSummary = {
+      nodes: nodes.length,
+      trainruns: trainruns.length,
+      sections: sections.length,
+      roundTripCount,
+      oneWayCount,
+      byCategory,
+      byFrequency,
+      byLabel,
     };
-  }
 
-  private stopCapturingConsoleLogs(): void {
-    // Restore original console.log
-    if (this.originalConsoleLog) {
-      console.log = this.originalConsoleLog;
-      this.originalConsoleLog = null;
-    }
+    console.log("📊 Import Summary:", this.gtfsImportSummary);
   }
 }

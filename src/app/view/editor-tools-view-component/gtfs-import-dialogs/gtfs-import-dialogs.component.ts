@@ -6,10 +6,13 @@ import {
   OnInit,
   OnChanges,
   SimpleChanges,
+  TemplateRef,
+  ViewChild,
 } from "@angular/core";
 import {FormControl} from "@angular/forms";
 import {Observable} from "rxjs";
 import {map, startWith} from "rxjs/operators";
+import {SbbTableDataSource} from "@sbb-esta/angular/table";
 
 @Component({
   selector: "app-gtfs-import-dialogs",
@@ -29,9 +32,23 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
 
   @Input() gtfsFilterDialogVisible = false;
   @Input() gtfsImportOverlayVisible = false;
-  @Input() gtfsImportLogs: string[] = [];
   @Input() gtfsImportPhases: any[] = [];
   @Input() gtfsImportComplete = false;
+
+  // Import summary data
+  @Input() gtfsImportSummary: any = null;
+  
+  // Data sources for summary tables
+  summaryDataSource: SbbTableDataSource<any> = new SbbTableDataSource([]);
+  categoryDataSource: SbbTableDataSource<any> = new SbbTableDataSource([]);
+  frequencyDataSource: SbbTableDataSource<any> = new SbbTableDataSource([]);
+  labelDataSource: SbbTableDataSource<any> = new SbbTableDataSource([]);
+  
+  // Column definitions for summary tables
+  summaryColumns: string[] = ["metric", "value"];
+  categoryColumns: string[] = ["category", "count"];
+  frequencyColumns: string[] = ["frequency", "count"];
+  labelColumns: string[] = ["label", "count"];
 
   // Available data from light parse
   @Input() gtfsAvailableAgencies: string[] = [];
@@ -84,6 +101,70 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
       changes["gtfsAvailableRoutes"]
     ) {
       this.setupFilteredLists();
+    }
+    
+    // Update summary tables when summary data changes
+    if (changes["gtfsImportSummary"] && this.gtfsImportSummary) {
+      this.updateSummaryTables();
+    }
+  }
+  
+  private updateSummaryTables(): void {
+    if (!this.gtfsImportSummary) {
+      return;
+    }
+    
+    // Main summary table
+    const summaryData = [
+      { 
+        metric: $localize`:@@app.view.editor-side-view.gtfs-import-dialogs.summary-nodes:Anzahl Knoten`, 
+        value: this.gtfsImportSummary.nodes || 0 
+      },
+      { 
+        metric: $localize`:@@app.view.editor-side-view.gtfs-import-dialogs.summary-trainruns:Anzahl Züge`, 
+        value: this.gtfsImportSummary.trainruns || 0 
+      },
+      { 
+        metric: $localize`:@@app.view.editor-side-view.gtfs-import-dialogs.summary-sections:Anzahl Abschnitte`, 
+        value: this.gtfsImportSummary.sections || 0 
+      },
+      { 
+        metric: $localize`:@@app.view.editor-side-view.gtfs-import-dialogs.summary-roundtrip:Anzahl Round-Trip Züge`, 
+        value: this.gtfsImportSummary.roundTripCount || 0 
+      },
+      { 
+        metric: $localize`:@@app.view.editor-side-view.gtfs-import-dialogs.summary-oneway:Anzahl One-Way Züge`, 
+        value: this.gtfsImportSummary.oneWayCount || 0 
+      },
+    ];
+    this.summaryDataSource = new SbbTableDataSource(summaryData);
+    
+    // Category summary table
+    if (this.gtfsImportSummary.byCategory) {
+      const categoryData = Object.entries(this.gtfsImportSummary.byCategory).map(([category, count]) => ({
+        category,
+        count
+      }));
+      this.categoryDataSource = new SbbTableDataSource(categoryData);
+    }
+    
+    // Frequency summary table
+    if (this.gtfsImportSummary.byFrequency) {
+      const minLabel = $localize`:@@app.view.editor-side-view.gtfs-import-dialogs.summary-minutes:min`;
+      const frequencyData = Object.entries(this.gtfsImportSummary.byFrequency).map(([frequency, count]) => ({
+        frequency: frequency + " " + minLabel,
+        count
+      }));
+      this.frequencyDataSource = new SbbTableDataSource(frequencyData);
+    }
+    
+    // Label summary table
+    if (this.gtfsImportSummary.byLabel) {
+      const labelData = Object.entries(this.gtfsImportSummary.byLabel).map(([label, count]) => ({
+        label,
+        count
+      }));
+      this.labelDataSource = new SbbTableDataSource(labelData);
     }
   }
 
