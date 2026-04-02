@@ -27,6 +27,8 @@ import {
   TrainrunSectionText,
   TrainrunSectionTextPositions,
 } from "../../data-structures/technical.data.structures";
+import {NetzgrafikDefault} from "../../sample-netzgrafik/netzgrafik.default";
+import {Node} from "../../models/node.model";
 
 /**
  * Interface for a trip pattern (group of trips with same stop sequence)
@@ -142,21 +144,29 @@ export class GTFSConverterService {
 
   /**
    * Map GTFS frequencies to Netzgrafik frequencies
+   * For 120-min frequency: creates/finds two entries (even and odd hours) using default metadata
    */
   private mapFrequencies(
     routes: GTFSRoute[],
     existingMetadata?: MetadataDto,
   ): {
     frequencies: TrainrunFrequency[];
-    frequencyMap: Map<number, number>;
+    frequencyMap: Map<string, number>; // Changed to string key: "freq" or "freq_offset"
   } {
-    const frequencies: TrainrunFrequency[] = existingMetadata?.trainrunFrequencies || [];
-    const frequencyMap = new Map<number, number>();
+    // If no existing frequencies, start with defaults from NetzgrafikDefault
+    const defaultNetzgrafik = NetzgrafikDefault.getDefaultNetzgrafik();
+    const frequencies: TrainrunFrequency[] =
+      existingMetadata?.trainrunFrequencies && existingMetadata.trainrunFrequencies.length > 0
+        ? [...existingMetadata.trainrunFrequencies]
+        : [...defaultNetzgrafik.metadata.trainrunFrequencies];
 
-    // Build existing frequency -> ID map
-    const existingFreqMap = new Map<number, number>();
+    const frequencyMap = new Map<string, number>();
+
+    // Build existing frequency+offset -> ID map
+    const existingFreqMap = new Map<string, number>();
     frequencies.forEach((freq) => {
-      existingFreqMap.set(freq.frequency, freq.id);
+      const key = freq.frequency === 120 ? `${freq.frequency}_${freq.offset}` : `${freq.frequency}`;
+      existingFreqMap.set(key, freq.id);
     });
 
     // Find highest existing ID
@@ -165,41 +175,39 @@ export class GTFSConverterService {
       this.frequencyIdCounter = maxId + 1;
     }
 
-    // Get all unique frequencies from routes
-    const uniqueFrequencies = new Set<number>();
-    const validFrequencies = [15, 20, 30, 60, 120, 121];
+    // Get all unique frequencies from routes and map to existing entries
     routes.forEach((route) => {
       if (route.frequency) {
-        // Validate frequency and normalize to 60 if invalid
-        if (!validFrequencies.includes(route.frequency)) {
+        // Validate frequency
+        if (![15, 20, 30, 60, 120].includes(route.frequency)) {
           console.warn(
             `  ⚠️  Invalid frequency ${route.frequency} in route ${route.route_id}, normalizing to 60`,
           );
           route.frequency = 60;
         }
-        uniqueFrequencies.add(route.frequency);
-      }
-    });
 
-    // Create or find frequency for each unique value
-    uniqueFrequencies.forEach((freq) => {
-      if (existingFreqMap.has(freq)) {
-        // Use existing frequency
-        frequencyMap.set(freq, existingFreqMap.get(freq)!);
-      } else {
-        // Create new frequency with JAHR000i format
-        const newId = 2026_0000 + this.frequencyIdCounter++;
-        const newFrequency: TrainrunFrequency = {
-          id: newId,
-          order: this.frequencyIdCounter - 1,
-          frequency: freq,
-          offset: 0,
-          name: freq + " min",
-          shortName: freq.toString(),
-          linePatternRef: freq.toString() as any,
-        };
-        frequencies.push(newFrequency);
-        frequencyMap.set(freq, newId);
+        // Build frequency key: for 120-min with offsetHour, use "120_0" or "120_60"
+        let freqKey: string;
+        if (route.frequency === 120 && route.offsetHour !== undefined) {
+          const offset = route.offsetHour === 0 ? 0 : 60;
+          freqKey = `120_${offset}`;
+        } else {
+          freqKey = route.frequency.toString();
+        }
+
+        // Find matching frequency entry
+        if (!frequencyMap.has(freqKey)) {
+          const matchingFreq = existingFreqMap.get(freqKey);
+          if (matchingFreq !== undefined) {
+            frequencyMap.set(freqKey, matchingFreq);
+          } else {
+            // Should not happen if defaults are complete - fallback to first entry
+            console.warn(`  ⚠️  No frequency found for ${freqKey}, using first available`);
+            if (frequencies.length > 0) {
+              frequencyMap.set(freqKey, frequencies[0].id);
+            }
+          }
+        }
       }
     });
 
@@ -364,19 +372,13 @@ export class GTFSConverterService {
       options.existingMetadata,
     );
 
-    // Create default time category if needed
-    const timeCategories: TrainrunTimeCategory[] = options.existingMetadata
-      ?.trainrunTimeCategories || [
-      {
-        id: 20260001,
-        order: 0,
-        name: "7/24",
-        shortName: "7/24",
-        dayTimeInterval: [],
-        weekday: [1, 2, 3, 4, 5, 6, 7],
-        linePatternRef: "7/24" as any,
-      },
-    ];
+    // Use default time categories from NetzgrafikDefault if none provided
+    const defaultNetzgrafik = NetzgrafikDefault.getDefaultNetzgrafik();
+    const timeCategories: TrainrunTimeCategory[] =
+      options.existingMetadata?.trainrunTimeCategories &&
+      options.existingMetadata.trainrunTimeCategories.length > 0
+        ? options.existingMetadata.trainrunTimeCategories
+        : defaultNetzgrafik.metadata.trainrunTimeCategories;
     const defaultTimeCategoryId = timeCategories[0].id;
 
     // Step 5: Create trainruns and trainrun sections
@@ -400,9 +402,14 @@ export class GTFSConverterService {
       // Get category and frequency IDs
       const routeDesc = route.route_desc || route.route_short_name || "Train";
       const categoryId = categoryMap.get(routeDesc) || categories[0]?.id || 1;
-      const frequencyId = route.frequency
-        ? frequencyMap.get(route.frequency) || frequencies[0]?.id || 1
-        : frequencies[0]?.id || 1;
+
+      // Get frequency ID: for 120-min with offsetHour, use correct offset
+      let frequencyKey = route.frequency ? route.frequency.toString() : "60";
+      if (route.frequency === 120 && route.offsetHour !== undefined) {
+        const offset = route.offsetHour === 0 ? 0 : 60;
+        frequencyKey = `120_${offset}`;
+      }
+      const frequencyId = frequencyMap.get(frequencyKey) || frequencies[0]?.id || 1;
 
       // Create trainrun with direction and destination in name
       const directionSuffix = pattern.directionId === "1" ? " ↩" : " →";
@@ -642,6 +649,7 @@ export class GTFSConverterService {
       trainrunToPattern,
       gtfsData,
       timeSyncTolerance,
+      nodes,
     );
 
     const roundTripCount = trainruns.filter((t) => t.direction === Direction.ROUND_TRIP).length;
@@ -774,6 +782,7 @@ export class GTFSConverterService {
     trainrunToPattern: Map<number, TripPattern>,
     gtfsData: GTFSData,
     timeSyncTolerance: number,
+    nodes: NodeDto[],
   ): Map<number, string> {
     const routeMap = new Map<string, GTFSRoute>();
     gtfsData.routes.forEach((r) => routeMap.set(r.route_id, r));
@@ -826,16 +835,58 @@ export class GTFSConverterService {
 
         if (failureReason === null) {
           // Success! Merge the trainruns
-          // Merge: Keep trainrun1, remove trainrun2
-          trainrun1.direction = Direction.ROUND_TRIP;
-          trainrun1.labelIds = [...trainrun1.labelIds, ...trainrun2.labelIds]; // Combine labels
+          // Determine which trainrun should be the main direction (NW → SE preferred)
+          const sections1 = trainrunSections.filter((s) => s.trainrunId === trainrun1.id);
+          const sections2 = trainrunSections.filter((s) => s.trainrunId === trainrun2.id);
+
+          let keepTrainrun1 = trainrun1;
+          let removeTrainrun2 = trainrun2;
+          let keepIndex = i;
+          let removeIndex = j;
+
+          // Compare first sections to determine preferred direction
+          if (sections1.length > 0 && sections2.length > 0) {
+            const section1 = sections1[0];
+            const section2 = sections2[0];
+
+            // Get node positions
+            const node1Source = nodes.find((n) => n.id === section1.sourceNodeId);
+            const node1Target = nodes.find((n) => n.id === section1.targetNodeId);
+            const node2Source = nodes.find((n) => n.id === section2.sourceNodeId);
+            const node2Target = nodes.find((n) => n.id === section2.targetNodeId);
+
+            if (node1Source && node1Target && node2Source && node2Target) {
+              // Calculate direction vectors
+              const dx1 = node1Target.positionX - node1Source.positionX;
+              const dy1 = node1Target.positionY - node1Source.positionY;
+              const dx2 = node2Target.positionX - node2Source.positionX;
+              const dy2 = node2Target.positionY - node2Source.positionY;
+
+              // Prefer direction with positive X (west→east) and positive Y (north→south)
+              // Score: +1 for eastward, +1 for southward
+              const score1 = (dx1 > 0 ? 1 : 0) + (dy1 > 0 ? 1 : 0);
+              const score2 = (dx2 > 0 ? 1 : 0) + (dy2 > 0 ? 1 : 0);
+
+              // If trainrun2 has better direction score, swap them
+              if (score2 > score1) {
+                keepTrainrun1 = trainrun2;
+                removeTrainrun2 = trainrun1;
+                keepIndex = j;
+                removeIndex = i;
+              }
+            }
+          }
+
+          // Merge: Keep preferred trainrun, remove other
+          keepTrainrun1.direction = Direction.ROUND_TRIP;
+          keepTrainrun1.labelIds = [...keepTrainrun1.labelIds, ...removeTrainrun2.labelIds]; // Combine labels
 
           // Mark both as successfully matched
-          matchingStatus.set(trainrun1.id, "✓ Round-Trip");
-          matchingStatus.set(trainrun2.id, "✓ Round-Trip (merged)");
+          matchingStatus.set(keepTrainrun1.id, "✓ Round-Trip");
+          matchingStatus.set(removeTrainrun2.id, "✓ Round-Trip (merged)");
 
-          // Mark trainrun2 for deletion
-          matched.add(j);
+          // Mark removed trainrun for deletion
+          matched.add(removeIndex);
           mergeCount++;
           foundMatch = true;
 
@@ -1126,7 +1177,7 @@ export class GTFSConverterService {
         resourceId: 0,
         perronkanten: 2,
         connectionTime: 4,
-        trainrunCategoryHaltezeiten: this.createDefaultHaltezeiten(),
+        trainrunCategoryHaltezeiten: Node.getDefaultHaltezeit(),
         symmetryAxis: 0,
         warnings: [],
         labelIds: [],
@@ -1231,7 +1282,7 @@ export class GTFSConverterService {
   /**
    * Create default Haltezeiten object
    */
-  private createDefaultHaltezeiten(): TrainrunCategoryHaltezeit {
+  private(): TrainrunCategoryHaltezeit {
     return {
       [HaltezeitFachCategories.IPV]: {haltezeit: 2, no_halt: false},
       [HaltezeitFachCategories.A]: {haltezeit: 2, no_halt: false},

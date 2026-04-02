@@ -40,6 +40,7 @@ export interface GTFSRoute {
   route_text_color?: string;
   // Enriched data for Netzgrafik
   frequency?: number; // Calculated frequency in minutes (15, 20, 30, 60, 120)
+  offsetHour?: number; // For 120-min frequency: 0 = even hours (0, 2, 4...), 1 = odd hours (1, 3, 5...)
   sample_trip_id?: string; // Representative trip for this route
   category_id?: number; // Mapped Netzgrafik category ID
 }
@@ -221,6 +222,8 @@ export class GTFSParserService {
 
       // For 120 min frequency: check if even or odd hours
       let finalFrequency = mostCommonFreq;
+      let offsetHour: number | undefined = undefined;
+
       if (mostCommonFreq === 120) {
         // Get all first departures to determine even/odd pattern
         const firstDepartures: number[] = [];
@@ -235,14 +238,16 @@ export class GTFSParserService {
           const firstDepMinutes = Math.min(...firstDepartures);
           const firstHour = Math.floor(firstDepMinutes / 60);
 
-          if (firstHour % 2 === 1) {
-            // Odd hours: use 120 but mark as offset (we'll use default freq metadata)
-            finalFrequency = 120; // Keep as 120, metadata will handle offset
-          }
+          // Store offset: 0 = even hours (0, 2, 4, 6...), 1 = odd hours (1, 3, 5, 7...)
+          offsetHour = firstHour % 2;
         }
+        finalFrequency = 120;
       }
 
       route.frequency = GTFSParserService.normalizeFrequency(finalFrequency);
+      if (offsetHour !== undefined) {
+        route.offsetHour = offsetHour;
+      }
 
       // Select representative trip: find trip that matches the frequency pattern
       const allTripDepartures: Array<[string, number]> = [];
@@ -864,8 +869,7 @@ export class GTFSParserService {
           else if (avgInterval <= 25) frequency = 20;
           else if (avgInterval <= 45) frequency = 30;
           else if (avgInterval <= 90) frequency = 60;
-          else if (avgInterval <= 150) frequency = 120;
-          else frequency = 121; // 120+
+          else frequency = 120; // >90 min -> 2h Takt (includes >150 min rare services)
         }
       }
       // Normalize frequency to ensure only valid values are used
@@ -948,13 +952,13 @@ export class GTFSParserService {
   }
 
   /**
-   * Normalize frequency to standard values: 15, 20, 30, 60, 120, 121
+   * Normalize frequency to standard values: 15, 20, 30, 60, 120
    * If frequency is not one of these values, default to 60
    * @param frequency Frequency value to normalize
-   * @returns Normalized frequency (15, 20, 30, 60, 120, or 121)
+   * @returns Normalized frequency (15, 20, 30, 60, or 120)
    */
   private static normalizeFrequency(frequency: number): number {
-    const validFrequencies = [15, 20, 30, 60, 120, 121];
+    const validFrequencies = [15, 20, 30, 60, 120];
     if (validFrequencies.includes(frequency)) {
       return frequency;
     }
