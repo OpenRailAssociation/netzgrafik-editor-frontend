@@ -594,8 +594,9 @@ export class GTFSParserService {
         const allowedAgencyIds = new Set(gtfsData.agencies.map((a) => a.agency_id));
         gtfsData.routes = gtfsData.routes.filter((route) => {
           // If route has no agency_id, include it (could be default agency)
-          if (!route.agency_id)
+          if (!route.agency_id) {
             return allowedAgencyIds.size === 0 || gtfsData.agencies.length === 0;
+          }
           return allowedAgencyIds.has(route.agency_id);
         });
       }
