@@ -349,7 +349,7 @@ export enum Direction {
 /**
  * Represents the traffic side, i.e. whether trains on a line are
  * generally operated according to left-hand or right-hand running
- * conventions in railway operations. This determines on which
- * track (left or right) trains are positioned and operated.
+ * conventions in railway operations. This determines on which side
+ * of the trainrun line text elements are displayed.
  */
 export type TrafficSide = "leftHand" | "rightHand";
