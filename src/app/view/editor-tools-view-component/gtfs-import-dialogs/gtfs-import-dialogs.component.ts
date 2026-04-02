@@ -15,7 +15,7 @@ import {map, startWith} from "rxjs/operators";
 import {SbbTableDataSource} from "@sbb-esta/angular/table";
 
 @Component({
-  selector: "app-gtfs-import-dialogs",
+  selector: "sbb-gtfs-import-dialogs",
   templateUrl: "./gtfs-import-dialogs.component.html",
   styleUrls: ["./gtfs-import-dialogs.component.scss"],
 })
