@@ -21,13 +21,13 @@ export interface GTFSNodeFilter {
 export interface GTFSImportPhase {
   id: string;
   labelKey: string;
-  status: 'pending' | 'running' | 'completed' | 'error';
+  status: "pending" | "running" | "completed" | "error";
   subPhases: GTFSSubPhase[];
 }
 
 export interface GTFSSubPhase {
   label: string;
-  status: 'pending' | 'running' | 'completed' | 'error';
+  status: "pending" | "running" | "completed" | "error";
 }
 
 export interface GTFSImportSummary {
@@ -45,35 +45,35 @@ export interface GTFSImportState {
   // File and data
   file: File | null;
   lightData: any | null;
-  
+
   // Available options
   availableAgencies: string[];
   availableCategories: string[];
   availableRoutes: string[];
-  
+
   // Selected filters
   selectedAgencies: string[];
   selectedCategories: string[];
   selectedLines: string[];
-  
+
   // Filtered lists (for autocomplete)
   filteredAgencies: string[];
   filteredCategories: string[];
   filteredLines: string[];
-  
+
   // Warnings
   noCategoriesWarning: boolean;
   noLinesWarning: boolean;
-  
+
   // UI state
   filterDialogVisible: boolean;
   importOverlayVisible: boolean;
   importComplete: boolean;
-  
+
   // Import progress
   importPhases: GTFSImportPhase[];
   importSummary: GTFSImportSummary | null;
-  
+
   // Filters
   routeTypeFilter: GTFSRouteTypeFilter;
   nodeFilter: GTFSNodeFilter;
@@ -82,27 +82,27 @@ export interface GTFSImportState {
 
 export const DEFAULT_GTFS_IMPORT_PHASES: GTFSImportPhase[] = [
   {
-    id: 'parse',
-    labelKey: 'app.view.editor-side-view.gtfs-import-dialogs.phase-parsing',
-    status: 'pending',
+    id: "parse",
+    labelKey: "app.view.editor-side-view.gtfs-import-dialogs.phase-parsing",
+    status: "pending",
     subPhases: [],
   },
   {
-    id: 'filter',
-    labelKey: 'app.view.editor-side-view.gtfs-import-dialogs.phase-filter',
-    status: 'pending',
+    id: "filter",
+    labelKey: "app.view.editor-side-view.gtfs-import-dialogs.phase-filter",
+    status: "pending",
     subPhases: [],
   },
   {
-    id: 'convert',
-    labelKey: 'app.view.editor-side-view.gtfs-import-dialogs.phase-convert',
-    status: 'pending',
+    id: "convert",
+    labelKey: "app.view.editor-side-view.gtfs-import-dialogs.phase-convert",
+    status: "pending",
     subPhases: [],
   },
   {
-    id: 'import',
-    labelKey: 'app.view.editor-side-view.gtfs-import-dialogs.phase-import',
-    status: 'pending',
+    id: "import",
+    labelKey: "app.view.editor-side-view.gtfs-import-dialogs.phase-import",
+    status: "pending",
     subPhases: [],
   },
 ];
