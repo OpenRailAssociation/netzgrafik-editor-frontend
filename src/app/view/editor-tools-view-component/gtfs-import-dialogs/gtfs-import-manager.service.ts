@@ -1,4 +1,4 @@
-import {Injectable, ChangeDetectorRef} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {GTFSParserService} from '../../../services/data/gtfs-parser.service';
 import {GTFSConverterService} from '../../../services/data/gtfs-converter.service';
@@ -350,7 +350,6 @@ export class GtfsImportManagerService {
    * Apply filters and start full GTFS import
    */
   async applyFiltersAndImport(
-    changeDetectorRef: ChangeDetectorRef,
     processNetzgrafikJSON: (dto: NetzgrafikDto) => void,
   ): Promise<void> {
     const state = this.getState();
@@ -372,24 +371,38 @@ export class GtfsImportManagerService {
 
       // PHASE 1: Full GTFS parse
       this.updatePhaseStatus(0, 'running', [
-        {label: 'stops.txt', status: 'running' as const},
+        {label: 'agency.txt', status: 'running' as const},
+        {label: 'stops.txt', status: 'pending' as const},
         {label: 'routes.txt', status: 'pending' as const},
         {label: 'trips.txt', status: 'pending' as const},
         {label: 'stop_times.txt', status: 'pending' as const},
         {label: 'calendar.txt', status: 'pending' as const},
       ]);
-      changeDetectorRef.detectChanges();
 
       const gtfsData = await this.gtfsParserService.parseGTFSZip(
         state.file,
         allowedRouteTypes,
         state.selectedAgencies,
+        (fileName: string) => {
+          // Find the sub-phase for the completed file
+          const state = this.getState();
+          const subPhases = state.importPhases[0].subPhases;
+          const currentIndex = subPhases.findIndex(sp => sp.label === fileName);
+          
+          if (currentIndex >= 0) {
+            // Mark current file as completed
+            this.updateSubPhaseStatus(0, currentIndex, 'completed');
+            
+            // Mark next file as running (if exists)
+            if (currentIndex + 1 < subPhases.length) {
+              this.updateSubPhaseStatus(0, currentIndex + 1, 'running');
+            }
+          }
+        }
       );
 
-      // Mark all parsing subphases as completed
-      this.markAllSubPhasesCompleted(0);
+      // All parsing subphases should be completed via callbacks
       this.updatePhaseStatus(0, 'completed');
-      changeDetectorRef.detectChanges();
 
       this.logger.info(
         $localize`:@@app.view.editor-side-view.editor-tools-view-component.gtfs-converting:Converting GTFS to Netzgrafik format...`,
@@ -401,7 +414,6 @@ export class GtfsImportManagerService {
         {label: 'Linien-Filter', status: 'pending' as const},
         {label: 'Knoten-Filter', status: 'pending' as const},
       ]);
-      changeDetectorRef.detectChanges();
 
       // Apply category filter
       if (state.selectedCategories.length > 0) {
@@ -429,11 +441,9 @@ export class GtfsImportManagerService {
         gtfsData.stopTimes = gtfsData.stopTimes.filter((st: any) => validTripIds.has(st.trip_id));
       }
       this.updateSubPhaseStatus(1, 0, 'completed');
-      changeDetectorRef.detectChanges();
 
       // Apply line filter
       this.updateSubPhaseStatus(1, 1, 'running');
-      changeDetectorRef.detectChanges();
       
       if (state.selectedLines.length > 0) {
         gtfsData.routes = gtfsData.routes.filter((route: any) => {
@@ -459,11 +469,9 @@ export class GtfsImportManagerService {
         );
       }
       this.updateSubPhaseStatus(1, 1, 'completed');
-      changeDetectorRef.detectChanges();
 
       // Apply node classification filter
       this.updateSubPhaseStatus(1, 2, 'running');
-      changeDetectorRef.detectChanges();
       
       const activeNodeTypes = Object.keys(state.nodeFilter).filter(
         (key) => state.nodeFilter[key as keyof typeof state.nodeFilter],
@@ -477,7 +485,6 @@ export class GtfsImportManagerService {
       }
       this.updateSubPhaseStatus(1, 2, 'completed');
       this.updatePhaseStatus(1, 'completed');
-      changeDetectorRef.detectChanges();
 
       // PHASE 3: Convert to Netzgrafik
       this.updatePhaseStatus(2, 'running', [
@@ -487,7 +494,6 @@ export class GtfsImportManagerService {
         {label: 'Round-Trip Matching', status: 'pending' as const},
         {label: 'Layout berechnen', status: 'pending' as const},
       ]);
-      changeDetectorRef.detectChanges();
 
       const existingNetzgrafik = this.dataService.getNetzgrafikDto();
       const existingMetadata = existingNetzgrafik?.metadata;
@@ -507,21 +513,17 @@ export class GtfsImportManagerService {
 
         this.markAllSubPhasesCompleted(2);
         this.updatePhaseStatus(2, 'completed');
-        changeDetectorRef.detectChanges();
       } catch (convertError) {
         this.updatePhaseStatus(2, 'error');
-        changeDetectorRef.detectChanges();
         throw convertError;
       }
 
       // PHASE 4: Import into editor
       this.updatePhaseStatus(3, 'running');
-      changeDetectorRef.detectChanges();
 
       processNetzgrafikJSON(netzgrafikDto);
 
       this.updatePhaseStatus(3, 'completed');
-      changeDetectorRef.detectChanges();
 
       // Generate summary
       const summary = this.generateImportSummary(netzgrafikDto);
@@ -529,7 +531,6 @@ export class GtfsImportManagerService {
         importSummary: summary,
         importComplete: true,
       });
-      changeDetectorRef.detectChanges();
 
       this.logger.info(
         $localize`:@@app.view.editor-side-view.editor-tools-view-component.gtfs-success:GTFS data imported successfully`,
@@ -545,7 +546,6 @@ export class GtfsImportManagerService {
       }
       
       this.updateState({importComplete: true});
-      changeDetectorRef.detectChanges();
     }
   }
 
