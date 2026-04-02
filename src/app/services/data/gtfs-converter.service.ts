@@ -67,8 +67,6 @@ export class GTFSConverterService {
     categories: TrainrunCategory[];
     categoryMap: Map<string, number>;
   } {
-    console.log("  📋 Mapping route categories...");
-
     const categories: TrainrunCategory[] = existingMetadata?.trainrunCategories || [];
     const categoryMap = new Map<string, number>();
 
@@ -97,13 +95,6 @@ export class GTFSConverterService {
       uniqueDescriptions.add(desc);
     });
 
-    console.log(
-      "  🔍 Found",
-      uniqueDescriptions.size,
-      "unique route descriptions:",
-      Array.from(uniqueDescriptions).slice(0, 10),
-    );
-
     // Create or find category for each unique description
     uniqueDescriptions.forEach((desc) => {
       const normalizedDesc = desc.toUpperCase();
@@ -113,17 +104,11 @@ export class GTFSConverterService {
       if (existingCategoryByShortName.has(shortDesc)) {
         const existingCategory = existingCategoryByShortName.get(shortDesc)!;
         categoryMap.set(desc, existingCategory.id);
-        console.log(
-          `    ✓ Reusing existing category by shortName: "${desc}" → "${existingCategory.name}" (ID: ${existingCategory.id})`,
-        );
       }
       // Priority 2: Match by full name
       else if (existingCategoryByName.has(normalizedDesc)) {
         const existingCategory = existingCategoryByName.get(normalizedDesc)!;
         categoryMap.set(desc, existingCategory.id);
-        console.log(
-          `    ✓ Reusing existing category by name: "${desc}" (ID: ${existingCategory.id})`,
-        );
       }
       // Create new category
       else {
@@ -143,9 +128,6 @@ export class GTFSConverterService {
         };
         categories.push(newCategory);
         categoryMap.set(desc, newId);
-        console.log(
-          `    ✓ Created new category: ${desc} (shortName: ${newCategory.shortName}, ID: ${newId})`,
-        );
       }
     });
 
@@ -155,7 +137,6 @@ export class GTFSConverterService {
       route.category_id = categoryMap.get(desc);
     });
 
-    console.log("  ✓ Mapped", routes.length, "routes to", categories.length, "categories");
     return {categories, categoryMap};
   }
 
@@ -169,7 +150,6 @@ export class GTFSConverterService {
     frequencies: TrainrunFrequency[];
     frequencyMap: Map<number, number>;
   } {
-    console.log("  ⏱️  Mapping frequencies...");
 
     const frequencies: TrainrunFrequency[] = existingMetadata?.trainrunFrequencies || [];
     const frequencyMap = new Map<number, number>();
@@ -202,11 +182,6 @@ export class GTFSConverterService {
       }
     });
 
-    console.log(
-      "  🔍 Found unique frequencies:",
-      Array.from(uniqueFrequencies).sort((a, b) => a - b),
-    );
-
     // Create or find frequency for each unique value
     uniqueFrequencies.forEach((freq) => {
       if (existingFreqMap.has(freq)) {
@@ -226,11 +201,9 @@ export class GTFSConverterService {
         };
         frequencies.push(newFrequency);
         frequencyMap.set(freq, newId);
-        console.log(`    ✓ Created new frequency: ${freq} min (ID: ${newId})`);
       }
     });
 
-    console.log("  ✓ Mapped to", frequencies.length, "frequencies");
     return {frequencies, frequencyMap};
   }
 
@@ -289,47 +262,19 @@ export class GTFSConverterService {
     const maxTripsPerRoute = options.maxTripsPerRoute || 10;
     const minStopsPerTrip = options.minStopsPerTrip || 3;
 
-    console.log("🔄 GTFS Converter: Starting conversion to Netzgrafik format...");
-    console.log("📊 Input data:", {
-      stops: gtfsData.stops.length,
-      routes: gtfsData.routes.length,
-      trips: gtfsData.trips.length,
-      stopTimes: gtfsData.stopTimes.length,
-    });
-    console.log("⚙️  Conversion options:", {maxTripsPerRoute, minStopsPerTrip});
-
-    // Step 1: Identify trip patterns (group trips with same stop sequence)
-    console.log("\n🔍 Step 1: Identifying trip patterns...");
+      // Step 1: Identify trip patterns (group trips with same stop sequence)
     const tripPatterns = this.identifyTripPatterns(gtfsData, minStopsPerTrip);
-    console.log(`  ✓ Identified ${tripPatterns.length} trip patterns`);
-    if (tripPatterns.length > 0) {
-      console.log(
-        "  First 3 patterns:",
-        tripPatterns.slice(0, 3).map((p) => ({
-          routeId: p.routeId,
-          stops: p.stopSequence.length,
-          trips: p.trips.length,
-        })),
-      );
-    }
 
     // Step 2: Select representative trips from each pattern
-    console.log("\n🎯 Step 2: Selecting representative patterns...");
     const selectedPatterns = tripPatterns; // Use ALL patterns instead of limiting
-    console.log(
-      `  ✓ Selected ${selectedPatterns.length} patterns for import (was limited to max: ${maxTripsPerRoute}, now using all)`,
-    );
+    
 
     // Step 3: Create nodes from stops used in selected patterns
-    console.log("\n🏢 Step 3: Extracting stops from selected patterns...");
     const usedStopIds = new Set<string>();
     selectedPatterns.forEach((pattern) => {
       pattern.stopSequence.forEach((stopId) => usedStopIds.add(stopId));
     });
-
-    console.log("  📋 Used stop IDs (stations):", usedStopIds.size, "unique IDs");
-    console.log("  📋 First 10:", Array.from(usedStopIds).slice(0, 10));
-
+  
     // The stopSequence contains parent_station IDs (from identifyTripPatterns)
     // Some of these parent_station IDs might NOT exist as actual stops in stops.txt
     // We need to create virtual parent stops for these cases
@@ -343,16 +288,9 @@ export class GTFSConverterService {
       }
     });
 
-    console.log(`  🔍 Found ${stopMap.size} existing stops in GTFS data`);
-
     // Second, create virtual parent stops for missing parent_station IDs
     const missingParentIds = Array.from(usedStopIds).filter((id) => !stopMap.has(id));
     if (missingParentIds.length > 0) {
-      console.log(
-        `  ⚠️  Found ${missingParentIds.length} parent_station IDs without stop entries - creating virtual stops`,
-      );
-      console.log("  📋 Missing parent IDs (first 10):", missingParentIds.slice(0, 10));
-
       missingParentIds.forEach((parentId) => {
         // Find all child platforms that reference this parent
         const children = gtfsData.stops.filter((s) => s.parent_station === parentId);
@@ -371,20 +309,13 @@ export class GTFSConverterService {
             parent_station: "", // No parent (is top-level)
           };
           stopMap.set(parentId, virtualParent);
-          console.log(
-            `    ✓ Created virtual parent: ${parentId} -> "${virtualParent.stop_name}" (from ${children.length} platforms)`,
-          );
-        } else {
-          console.warn(
-            `    ⚠️  Cannot create virtual parent for ${parentId} - no child platforms found`,
-          );
-        }
+
+        } 
       });
     }
 
     const nodes = this.createNodes(Array.from(stopMap.values()), gtfsData.stops);
-    console.log(`  ✓ Created ${nodes.length} nodes from ${stopMap.size} stations`);
-
+   
     // Center all node coordinates around (0,0)
     if (nodes.length > 0) {
       const sumX = nodes.reduce((sum, node) => sum + node.positionX, 0);
@@ -392,39 +323,14 @@ export class GTFSConverterService {
       const centerX = sumX / nodes.length;
       const centerY = sumY / nodes.length;
 
-      console.log(
-        `  📍 Centering ${nodes.length} nodes around (0,0) - offset: (${centerX.toFixed(2)}, ${centerY.toFixed(2)})`,
-      );
-
       nodes.forEach((node) => {
         node.positionX -= centerX;
         node.positionY -= centerY;
       });
 
-      console.log(
-        `  ✓ Nodes centered - range X: [${Math.min(...nodes.map((n) => n.positionX)).toFixed(0)}, ${Math.max(...nodes.map((n) => n.positionX)).toFixed(0)}], Y: [${Math.min(...nodes.map((n) => n.positionY)).toFixed(0)}, ${Math.max(...nodes.map((n) => n.positionY)).toFixed(0)}]`,
-      );
-    }
-
-    console.log("      nodes", nodes);
-
-    // List all unique nodes (stations/stops)
-    if (nodes.length > 0) {
-      console.log("\n  📍 Liste aller Knoten (unique Stationen auf den Routen):");
-      console.log("  " + "=".repeat(80));
-      nodes.forEach((node, index) => {
-        console.log(
-          `  ${(index + 1).toString().padStart(3, " ")}. ${node.betriebspunktName.padEnd(15)} | ${node.fullName}`,
-        );
-      });
-      console.log("  " + "=".repeat(80));
-      console.log(`  📊 Total: ${nodes.length} unique Stationen\n`);
-    } else {
-      console.warn("  ⚠️  No nodes created! Check if stations exist in GTFS data.");
     }
 
     // Step 4: Create node ID mapping (map GTFS stop_id to Netzgrafik node ID)
-    console.log("\n🗺️  Step 4: Creating node ID mapping...");
     const nodeIdMap = new Map<string, number>();
     const stopsArray = Array.from(stopMap.values());
 
@@ -455,11 +361,9 @@ export class GTFSConverterService {
       }
     });
 
-    console.log(`  ✓ Created mapping for ${nodeIdMap.size} stops (including platforms → stations)`);
-
+ 
     // Step 4.5: Map categories and frequencies
-    console.log("\n📋 Step 4.5: Mapping metadata...");
-    const {categories, categoryMap} = this.mapCategories(gtfsData.routes, options.existingMetadata);
+     const {categories, categoryMap} = this.mapCategories(gtfsData.routes, options.existingMetadata);
     const {frequencies, frequencyMap} = this.mapFrequencies(
       gtfsData.routes,
       options.existingMetadata,
@@ -481,7 +385,6 @@ export class GTFSConverterService {
     const defaultTimeCategoryId = timeCategories[0].id;
 
     // Step 5: Create trainruns and trainrun sections
-    console.log("\n🚆 Step 5: Creating trainruns and sections...");
     const trainruns: TrainrunDto[] = [];
     const trainrunSections: TrainrunSectionDto[] = [];
     const routeMap = new Map<string, GTFSRoute>();
@@ -492,36 +395,12 @@ export class GTFSConverterService {
 
     selectedPatterns.forEach((pattern, patternIndex) => {
       const route = routeMap.get(pattern.routeId);
-      if (!route) {
-        console.warn(`  ⚠️  Pattern ${patternIndex}: Route ${pattern.routeId} not found`);
-        return;
-      }
-
-      console.log(`  Processing pattern ${patternIndex + 1}/${selectedPatterns.length}...`);
 
       const representativeTrip = pattern.trips[0];
       const stopTimes = pattern.stopTimes.get(representativeTrip.trip_id);
       if (!stopTimes || stopTimes.length < 2) {
-        console.warn(`    ⚠️  Trip ${representativeTrip.trip_id}: Not enough stop times`);
         return;
       }
-
-      console.log(`    Route: ${route.route_short_name || route.route_long_name}`);
-      console.log(`    Direction: ${pattern.directionId} (0=outbound, 1=inbound)`);
-      console.log(`    Stops: ${stopTimes.length}`);
-
-      // DEBUG: Print raw GTFS route data
-      console.log(`    📋 RAW GTFS ROUTE DATA:`);
-      console.log(`       Route ID: ${route.route_id}`);
-      console.log(`       Route Short Name: ${route.route_short_name || "(none)"}`);
-      console.log(`       Route Long Name: ${route.route_long_name || "(none)"}`);
-      console.log(`       Route Desc: ${route.route_desc || "(none)"}`);
-      console.log(`       Route Type: ${route.route_type}`);
-      console.log(`       Route Color: ${route.route_color || "(none)"}`);
-      console.log(`       Agency ID: ${route.agency_id || "(none)"}`);
-      console.log(`       Frequency: ${route.frequency || "(calculated)"} min`);
-      console.log(`       Sample Trip ID: ${route.sample_trip_id || "(none)"}`);
-      console.log(`    ─────────────────────────────────────────────────────────────`);
 
       // Get category and frequency IDs
       const routeDesc = route.route_desc || route.route_short_name || "Train";
@@ -570,8 +449,6 @@ export class GTFSConverterService {
         const debugLabel = `${routeName} → ${firstStopName} → ${lastStopName}`;
         const labelId = options.labelCreator(debugLabel);
         labelIds.push(labelId);
-
-        console.log(`    🏷️  Created debug label: "${debugLabel}" (ID: ${labelId})`);
       }
 
       const trainrun: TrainrunDto = {
@@ -584,35 +461,7 @@ export class GTFSConverterService {
         direction: Direction.ONE_WAY,
       };
       trainruns.push(trainrun);
-      console.log(
-        `    ✓ Created trainrun #${trainrun.id}: ${trainrun.name} (category: ${routeDesc}, freq: ${route.frequency || "default"})`,
-      );
-
-      // DEBUG: Print raw GTFS trip data
-      console.log(`    📋 RAW GTFS TRIP DATA:`);
-      console.log(`       Trip ID: ${representativeTrip.trip_id}`);
-      console.log(`       Trip Headsign: ${representativeTrip.trip_headsign || "(none)"}`);
-      console.log(`       Trip Short Name: ${representativeTrip.trip_short_name || "(none)"}`);
-      console.log(`       Service ID: ${representativeTrip.service_id}`);
-      console.log(`       Block ID: ${representativeTrip.block_id || "(none)"}`);
-      console.log(`    📋 RAW STOP_TIMES (${stopTimes.length} stops - sorted by time):`);
-      stopTimes.forEach((st, idx) => {
-        const stop = gtfsData.stops.find((s) => s.stop_id === st.stop_id);
-        const stopName = stop ? stop.stop_name : st.stop_id;
-        const parentStation = stop?.parent_station
-          ? `(parent: ${stop.parent_station})`
-          : "(no parent)";
-        const pickup = st.pickup_type === "1" ? "🚫board" : "✅board";
-        const dropoff = st.drop_off_type === "1" ? "🚫alight" : "✅alight";
-        const arrTime = GTFSParserService.timeToMinutes(st.arrival_time);
-        const depTime = GTFSParserService.timeToMinutes(st.departure_time || st.arrival_time);
-        const times = `arr:${st.arrival_time} dep:${st.departure_time} (${arrTime}→${depTime}min)`;
-        console.log(
-          `       ${(idx + 1).toString().padStart(2, "0")}. seq:${st.stop_sequence.padStart(3, " ")} | ${stopName.padEnd(30)} | ${times.padEnd(40)} | ${pickup} ${dropoff} ${parentStation}`,
-        );
-      });
-      console.log(`    ─────────────────────────────────────────────────────────────`);
-
+      
       // Create trainrun sections
       // Process all stations in sequence, including non-stop (through) stations
       let sectionsCreated = 0;
@@ -657,12 +506,7 @@ export class GTFSConverterService {
         stationGroups.push(currentGroup);
       }
 
-      console.log(
-        `    Station groups: ${stationGroups.length} (${stationGroups.filter((g) => g.isStop).length} stops, ${stationGroups.filter((g) => !g.isStop).length} through)`,
-      );
-
       // DEBUG: Print stop sequence with station names
-      console.log(`    📍 STOP SEQUENCE for ${trainrunName}:`);
       stationGroups.forEach((group, idx) => {
         // Get node info
         const node = nodes.find((n) => n.id === group.nodeId);
@@ -689,12 +533,8 @@ export class GTFSConverterService {
               .toString()
               .padStart(2, "0")}:${(arrivalTime % 60).toString().padStart(2, "0")} (durch)`;
 
-        console.log(
-          `      ${(idx + 1).toString().padStart(2, " ")}. ${stopType} ${nodeName.padEnd(12)} ${timeStr} ${nodeFullName ? "| " + nodeFullName : ""}`,
-        );
       });
-      console.log(`    ─────────────────────────────────────────────────────────────`);
-
+   
       // Create sections between consecutive stations
       for (let i = 0; i < stationGroups.length - 1; i++) {
         const sourceGroup = stationGroups[i];
@@ -725,19 +565,6 @@ export class GTFSConverterService {
         // Calculate backward (return) times using 60-x symmetry
         const sourceArr_minute = (60 - sourceDep_minute) % 60; // Backward: source arrival = 60-5 = :55
         const targetDep_minute = (60 - targetArr_minute) % 60; // Backward: target departure = 60-52 = :08
-
-        console.log(
-          `      🔄 Section ${sourceNode?.betriebspunktName} → ${targetNode?.betriebspunktName}:`,
-        );
-        console.log(
-          `         Forward:  sourceDep :${sourceDep_minute.toString().padStart(2, "0")} → targetArr :${targetArr_minute.toString().padStart(2, "0")} (travel: ${travelTime} min)`,
-        );
-        console.log(
-          `         Backward: sourceArr :${sourceArr_minute.toString().padStart(2, "0")} → targetDep :${targetDep_minute.toString().padStart(2, "0")} (travel: ${travelTime} min)`,
-        );
-        console.log(
-          `         Symmetry Check: sourceDep(${sourceDep_minute}) + sourceArr(${sourceArr_minute}) = ${sourceDep_minute + sourceArr_minute}, targetArr(${targetArr_minute}) + targetDep(${targetDep_minute}) = ${targetArr_minute + targetDep_minute}`,
-        );
 
         const section: TrainrunSectionDto = {
           id: sectionId++,
@@ -800,40 +627,12 @@ export class GTFSConverterService {
         trainrunSections.push(section);
         sectionsCreated++;
       }
-
-      // DEBUG: Print created sections
-      console.log(`    🔗 CREATED SECTIONS (${sectionsCreated}):`);
-      const trainrunSectionsForThisRun = trainrunSections.filter(
-        (s) => s.trainrunId === trainrun.id,
-      );
-      trainrunSectionsForThisRun.forEach((section, idx) => {
-        const sourceNode = nodes.find((n) => n.id === section.sourceNodeId);
-        const targetNode = nodes.find((n) => n.id === section.targetNodeId);
-        const sourceName = sourceNode ? sourceNode.betriebspunktName : `#${section.sourceNodeId}`;
-        const targetName = targetNode ? targetNode.betriebspunktName : `#${section.targetNodeId}`;
-
-        const depTime = section.sourceDeparture.time; // minutes 0-59
-        const arrTime = section.targetArrival.time; // minutes 0-59
-        const isNonStop = section.targetArrival.time === section.targetDeparture.time;
-        const marker = isNonStop ? "→→" : "→";
-
-        console.log(
-          `      ${(idx + 1).toString().padStart(2, " ")}. ${sourceName.padEnd(12)} ${marker} ${targetName.padEnd(12)} (:${depTime.toString().padStart(2, "0")} → :${arrTime.toString().padStart(2, "0")}, ${section.travelTime.time}min)${isNonStop ? " [DURCH]" : ""}`,
-        );
-      });
-
-      console.log(`    ✓ Created ${sectionsCreated} sections for this trainrun`);
     });
 
-    console.log("\n✅ Step 5 complete!");
-    console.log(`  Created ${trainruns.length} trainruns (all ONE_WAY initially)`);
-    console.log(`  Created ${trainrunSections.length} sections`);
-
+ 
     // Step 5.1: Match and merge round-trip patterns
-    console.log("\n🔄 Step 5.1: Matching round-trip patterns...");
-    const timeSyncTolerance = options.timeSyncTolerance || 150; // seconds
-    console.log(`  ⚙️  Time sync tolerance: ±${timeSyncTolerance} seconds`);
-
+     const timeSyncTolerance = options.timeSyncTolerance || 150; // seconds
+  
     // Build trainrun -> pattern map
     const trainrunToPattern = new Map<number, TripPattern>();
     selectedPatterns.forEach((pattern, index) => {
@@ -854,26 +653,13 @@ export class GTFSConverterService {
 
     const roundTripCount = trainruns.filter((t) => t.direction === Direction.ROUND_TRIP).length;
     const oneWayCount = trainruns.filter((t) => t.direction === Direction.ONE_WAY).length;
-    console.log(`  ✓ Matching complete:`);
-    console.log(`    ${roundTripCount} ROUND_TRIP trainruns`);
-    console.log(`    ${oneWayCount} ONE_WAY trainruns`);
+   
 
     // Step 5.2: Create labels for round-trip matching status
-    console.log("\n🏷️  Step 5.2: Creating matching status labels...");
     const {labels, labelGroup} = this.createMatchingStatusLabels(trainruns, matchingStatus);
-    console.log(`  ✓ Created ${labels.length} status labels in group "${labelGroup.name}"`);
 
     // Step 5.5: Apply topology-preserving spring layout
-    console.log(
-      "\n🔧 Step 5.5: Applying topology-preserving spring layout (target: 500px edges)...",
-    );
     const edgeLengthBefore = this.calculateEdgeLengthRange(nodes, trainrunSections);
-    console.log(`  📏 BEFORE layout:`);
-    console.log(`     min edge: ${edgeLengthBefore.min.toFixed(1)}px`);
-    console.log(`     max edge: ${edgeLengthBefore.max.toFixed(1)}px`);
-    console.log(
-      `     avg edge: ${this.calculateAverageEdgeLength(nodes, trainrunSections).toFixed(1)}px`,
-    );
 
     // Initial proportional scaling to get into reasonable range
     const avgEdgeLength = this.calculateAverageEdgeLength(nodes, trainrunSections);
@@ -883,7 +669,7 @@ export class GTFSConverterService {
         node.positionX *= initialScale;
         node.positionY *= initialScale;
       });
-      console.log(`  📐 Initial scaling: ${initialScale.toFixed(3)}x`);
+      
     }
 
     // Apply spring layout with topology preservation
@@ -895,22 +681,13 @@ export class GTFSConverterService {
     });
 
     const edgeLengthAfter = this.calculateEdgeLengthRange(nodes, trainrunSections);
-    console.log(`  📏 AFTER layout:`);
-    console.log(`     min edge: ${edgeLengthAfter.min.toFixed(1)}px`);
-    console.log(`     max edge: ${edgeLengthAfter.max.toFixed(1)}px`);
-    console.log(
-      `     avg edge: ${this.calculateAverageEdgeLength(nodes, trainrunSections).toFixed(1)}px`,
-    );
+   
 
     const xCoords = nodes.map((n) => n.positionX);
     const yCoords = nodes.map((n) => n.positionY);
-    console.log(`  📐 Node coordinate ranges:`);
-    console.log(`     X: ${Math.min(...xCoords).toFixed(0)} to ${Math.max(...xCoords).toFixed(0)}`);
-    console.log(`     Y: ${Math.min(...yCoords).toFixed(0)} to ${Math.max(...yCoords).toFixed(0)}`);
-    console.log("  ✓ Topology-preserving layout complete");
-
+  
     // Step 6: Create metadata
-    console.log("\n📋 Step 6: Assembling metadata...");
+    
     const metadata: MetadataDto = {
       trainrunCategories: categories,
       trainrunFrequencies: frequencies,
@@ -922,13 +699,8 @@ export class GTFSConverterService {
         },
       },
     };
-    console.log("  ✓ Metadata assembled");
-    console.log("    Categories:", categories.length);
-    console.log("    Frequencies:", frequencies.length);
-    console.log("    Time categories:", timeCategories.length);
-
+   
     // Step 7: Create NetzgrafikDto
-    console.log("\n🎁 Step 7: Assembling final NetzgrafikDto...");
     const netzgrafikDto: NetzgrafikDto = {
       nodes: nodes,
       trainrunSections: trainrunSections,
@@ -942,16 +714,6 @@ export class GTFSConverterService {
         filterSettings: [],
       },
     };
-
-    console.log("\n✅ GTFS Conversion complete!");
-    console.log("📊 Final summary:", {
-      nodes: netzgrafikDto.nodes.length,
-      trainruns: netzgrafikDto.trainruns.length,
-      sections: netzgrafikDto.trainrunSections.length,
-      avgSectionsPerTrainrun: (
-        netzgrafikDto.trainrunSections.length / netzgrafikDto.trainruns.length
-      ).toFixed(1),
-    });
 
     return netzgrafikDto;
   }
@@ -1023,8 +785,6 @@ export class GTFSConverterService {
     gtfsData: GTFSData,
     timeSyncTolerance: number,
   ): Map<number, string> {
-    console.log("  🔍 Searching for round-trip patterns...");
-
     const routeMap = new Map<string, GTFSRoute>();
     gtfsData.routes.forEach((r) => routeMap.set(r.route_id, r));
 
@@ -1039,7 +799,6 @@ export class GTFSConverterService {
       const trainrun1 = trainruns[i];
       const pattern1 = trainrunToPattern.get(trainrun1.id);
       if (!pattern1) {
-        console.log(`  ⚠️  No pattern found for trainrun #${trainrun1.id}`);
         matchingStatus.set(trainrun1.id, "⊚ No pattern data");
         continue;
       }
@@ -1077,15 +836,6 @@ export class GTFSConverterService {
 
         if (failureReason === null) {
           // Success! Merge the trainruns
-          console.log(`  ✓ MATCH FOUND: Trainrun #${trainrun1.id} + #${trainrun2.id}`);
-          console.log(`    Route ID: ${route1.route_id}`);
-          console.log(
-            `    Pattern 1: ${pattern1.stopSequence[0]} → ${pattern1.stopSequence[pattern1.stopSequence.length - 1]} (dir: ${pattern1.directionId})`,
-          );
-          console.log(
-            `    Pattern 2: ${pattern2.stopSequence[0]} → ${pattern2.stopSequence[pattern2.stopSequence.length - 1]} (dir: ${pattern2.directionId})`,
-          );
-
           // Merge: Keep trainrun1, remove trainrun2
           trainrun1.direction = Direction.ROUND_TRIP;
           trainrun1.labelIds = [...trainrun1.labelIds, ...trainrun2.labelIds]; // Combine labels
@@ -1098,9 +848,6 @@ export class GTFSConverterService {
           matched.add(j);
           mergeCount++;
           foundMatch = true;
-
-          console.log(`    → Merged to ROUND_TRIP (trainrun #${trainrun1.id})`);
-          console.log(`    → Labels: ${trainrun1.labelIds.length} total`);
 
           break; // Found match for this trainrun, move to next
         }
@@ -1146,9 +893,7 @@ export class GTFSConverterService {
     const indicesToRemove = Array.from(matched).sort((a, b) => b - a);
     for (const index of indicesToRemove) {
       const removedTrainrun = trainruns[index];
-      console.log(`  🗑️  Removing trainrun #${removedTrainrun.id} (merged into round-trip)`);
-
-      // Remove trainrun
+     // Remove trainrun
       trainruns.splice(index, 1);
 
       // Remove associated sections
@@ -1161,8 +906,7 @@ export class GTFSConverterService {
       });
     }
 
-    console.log(`  ✓ Merged ${mergeCount} round-trip pairs`);
-
+   
     return matchingStatus;
   }
 
@@ -1184,44 +928,31 @@ export class GTFSConverterService {
     trainrunSections: TrainrunSectionDto[],
     timeSyncTolerance: number,
   ): string | null {
-    const debugLog = (msg: string) => console.log(`      ${msg}`);
-
-    debugLog(`Checking trainrun #${trainrun1.id} vs #${trainrun2.id}`);
-
     // 1. Same route_id
     if (pattern1.routeId !== pattern2.routeId) {
-      debugLog(`✗ Different route_id: "${pattern1.routeId}" vs "${pattern2.routeId}"`);
       return "✗ Different route";
     }
-    debugLog(`✓ Same route_id: "${pattern1.routeId}"`);
 
     // 2. Same category (route_desc)
     const category1 = route1.route_desc || route1.route_short_name || "";
     const category2 = route2.route_desc || route2.route_short_name || "";
     if (category1 !== category2) {
-      debugLog(`✗ Different category: "${category1}" vs "${category2}"`);
       return "✗ Different category";
     }
-    debugLog(`✓ Same category: "${category1}"`);
 
     // 3. Same frequency
     if (route1.frequency !== route2.frequency) {
-      debugLog(`✗ Different frequency: ${route1.frequency} vs ${route2.frequency}`);
       return "✗ Different frequency";
     }
-    debugLog(`✓ Same frequency: ${route1.frequency}`);
 
     // 4. Different direction_id
     if (pattern1.directionId === pattern2.directionId) {
-      debugLog(`✗ Same direction_id: ${pattern1.directionId}`);
       return "✗ Same direction";
     }
-    debugLog(`✓ Different direction_id: ${pattern1.directionId} vs ${pattern2.directionId}`);
 
     // 5. Reversed stopSequence
     const reversed2 = [...pattern2.stopSequence].reverse();
     if (pattern1.stopSequence.length !== reversed2.length) {
-      debugLog(`✗ Different path length: ${pattern1.stopSequence.length} vs ${reversed2.length}`);
       return "✗ Path mismatch";
     }
 
@@ -1234,23 +965,14 @@ export class GTFSConverterService {
     }
 
     if (pathMismatch >= 0) {
-      debugLog(`✗ Path mismatch at position ${pathMismatch}:`);
-      debugLog(
-        `  Pattern1: ${pattern1.stopSequence.slice(Math.max(0, pathMismatch - 1), pathMismatch + 2).join(" → ")}`,
-      );
-      debugLog(
-        `  Pattern2 (reversed): ${reversed2.slice(Math.max(0, pathMismatch - 1), pathMismatch + 2).join(" → ")}`,
-      );
       return "✗ Path mismatch";
     }
-    debugLog(`✓ Reversed path match (${pattern1.stopSequence.length} stops)`);
 
     // 6. Check time symmetry with tolerance
     const sections1 = trainrunSections.filter((s) => s.trainrunId === trainrun1.id);
     const sections2 = trainrunSections.filter((s) => s.trainrunId === trainrun2.id);
 
     if (sections1.length !== sections2.length) {
-      debugLog(`✗ Different section count: ${sections1.length} vs ${sections2.length}`);
       return "✗ Section count mismatch";
     }
 
@@ -1269,10 +991,6 @@ export class GTFSConverterService {
       );
 
       if (diffSource * 60 > timeSyncTolerance) {
-        debugLog(`✗ Time symmetry failed at section ${i}:`);
-        debugLog(
-          `  sourceDep1=${sourceDep1}, targetArr2=${targetArr2}, expected=${expectedArr2}, diff=${diffSource} min (tolerance=${timeSyncTolerance / 60} min)`,
-        );
         return "✗ Time symmetry failed";
       }
 
@@ -1286,14 +1004,9 @@ export class GTFSConverterService {
       );
 
       if (diffTarget * 60 > timeSyncTolerance) {
-        debugLog(`✗ Time symmetry failed at section ${i}:`);
-        debugLog(
-          `  targetArr1=${targetArr1}, sourceDep2=${sourceDep2}, expected=${expectedDep2}, diff=${diffTarget} min (tolerance=${timeSyncTolerance / 60} min)`,
-        );
         return "✗ Time symmetry failed";
       }
     }
-    debugLog(`✓ Time symmetry OK for all ${sections1.length} sections`);
 
     // All checks passed!
     return null;
@@ -1303,7 +1016,6 @@ export class GTFSConverterService {
    * Identify trip patterns by grouping trips with same stop sequence
    */
   private identifyTripPatterns(gtfsData: GTFSData, minStopsPerTrip: number): TripPattern[] {
-    console.log("  🔍 Analyzing trip patterns...");
     const patterns = new Map<string, TripPattern>();
 
     // Build stop_id -> station mapping (use parent_station if available)
@@ -1317,10 +1029,8 @@ export class GTFSConverterService {
         stopToStation.set(stop.stop_id, stop.stop_id);
       }
     });
-    console.log("    Built stop-to-station mapping for", stopToStation.size, "stops");
 
     // Group stop times by trip
-    console.log("    Grouping stop times by trip...");
     const stopTimesByTrip = new Map<string, GTFSStopTime[]>();
     gtfsData.stopTimes.forEach((stopTime) => {
       if (!stopTimesByTrip.has(stopTime.trip_id)) {
@@ -1347,13 +1057,9 @@ export class GTFSConverterService {
       });
 
       const afterSort = stopTimes.map((st) => `${st.stop_id}@${st.departure_time}`).join(" → ");
-      if (beforeSort !== afterSort) {
-        console.log(`    ⚠️  Reordered trip ${tripId} stops by time (was by sequence)`);
-      }
     });
 
     // Create patterns
-    console.log("    Identifying unique patterns...");
     let processedTrips = 0;
     let skippedTrips = 0;
     gtfsData.trips.forEach((trip) => {
@@ -1384,10 +1090,6 @@ export class GTFSConverterService {
       pattern.stopTimes.set(trip.trip_id, stopTimes);
     });
 
-    console.log(`    ✓ Processed ${processedTrips} trips`);
-    console.log(`    ✓ Identified ${patterns.size} unique patterns`);
-    console.log(`    ℹ️  Skipped ${skippedTrips} trips (< ${minStopsPerTrip} stops)`);
-
     return Array.from(patterns.values());
   }
 
@@ -1401,8 +1103,6 @@ export class GTFSConverterService {
     const stations = stationStops.filter(
       (stop) => stop.location_type === "1" || !stop.parent_station || stop.parent_station === "",
     );
-
-    console.log(`  ℹ️  Creating nodes from ${stations.length} station-level stops`);
 
     return stations.map((station, index) => {
       const coords = this.convertCoordinates(
@@ -1639,8 +1339,6 @@ export class GTFSConverterService {
       velocities.set(node.id, {vx: 0, vy: 0});
     });
 
-    console.log(`  🔄 Running ${iterations} spring iterations...`);
-
     for (let iter = 0; iter < iterations; iter++) {
       // Temperature decreases over time (simulated annealing)
       const temperature = (1 - iter / iterations) * dampingFactor;
@@ -1696,9 +1394,6 @@ export class GTFSConverterService {
       // Log progress
       if (iter % 25 === 0 || iter === iterations - 1) {
         const currentAvg = this.calculateAverageEdgeLength(nodes, sections);
-        console.log(
-          `     Iteration ${iter + 1}/${iterations}: avg edge = ${currentAvg.toFixed(1)}px`,
-        );
       }
     }
 
