@@ -111,10 +111,6 @@ export class GTFSParserService {
     trips: GTFSTrip[],
     stopTimes: GTFSStopTime[],
   ): void {
-    console.log(
-      "  📊 Calculating route frequencies from ALL stations (histogram-based, one direction only)...",
-    );
-
     // Build trip to route+direction mapping
     const tripToRouteDirection = new Map<string, {routeId: string; directionId: string}>();
     for (const trip of trips) {
@@ -310,8 +306,6 @@ export class GTFSParserService {
       60: routes.filter((r) => r.frequency === 60).length,
       120: routes.filter((r) => r.frequency === 120).length,
     };
-    console.log("  ✓ Calculated frequencies for", routes.length, "routes");
-    console.log("  📊 Frequency distribution (histogram-based):", freqDist);
   }
 
   /**
@@ -319,7 +313,6 @@ export class GTFSParserService {
    * New algorithm: Build undirected graph at STATION level (parent_station, makroskopisch)
    */
   private classifyNodes(stops: GTFSStop[], stopTimes: GTFSStopTime[], trips: GTFSTrip[]): void {
-    console.log("  🏛️  Classifying nodes based on topology (MAKROSKOPISCH - Station level)...");
 
     // Step 1: Build stop_id -> parent_station mapping (same as in identifyTripPatterns)
     const stopToStation = new Map<string, string>();
@@ -331,13 +324,11 @@ export class GTFSParserService {
         stopToStation.set(stop.stop_id, stop.stop_id);
       }
     });
-    console.log("  📍 Built stop-to-station mapping for", stopToStation.size, "stops");
 
     // Step 2: Filter to only station nodes (location_type = 1 or no parent_station)
     const stationStops = stops.filter(
       (s) => s.location_type === "1" || !s.parent_station || s.parent_station === "",
     );
-    console.log("  ℹ️  Found", stationStops.length, "station nodes (parent_station level)");
 
     // Step 3: Initialize node properties at STATION level (parent_station IDs)
     const nodeStartTag = new Set<string>(); // station_ids tagged as start
@@ -353,8 +344,6 @@ export class GTFSParserService {
       }
       tripStopTimes.get(st.trip_id)!.push(st);
     }
-
-    console.log("  🔄 Processing", tripStopTimes.size, "trips to build STATION-level graph...");
 
     // Step 5: Build graph at STATION level (map platform stop_ids to parent_station)
     for (const [tripId, sts] of tripStopTimes.entries()) {
@@ -407,14 +396,6 @@ export class GTFSParserService {
       }
     }
 
-    console.log("  ✓ Built undirected STATION-level graph with", nodeEdges.size, "nodes");
-    console.log("  📊 Graph stats:", {
-      startNodes: nodeStartTag.size,
-      endNodes: nodeEndTag.size,
-      actualStops: nodeIsStop.size,
-      totalEdges: Array.from(nodeEdges.values()).reduce((sum, edges) => sum + edges.size, 0) / 2, // divide by 2 for undirected
-    });
-
     // Step 6: Classify each station stop based on degree and properties
     for (const stop of stationStops) {
       const stationId = stop.stop_id; // This is a parent_station (station-level stop)
@@ -453,8 +434,6 @@ export class GTFSParserService {
       minor_stop: stationStops.filter((s) => s.node_type === "minor_stop").length,
     };
 
-    console.log("  ✓ Node classification (MAKROSKOPISCH):", typeCounts);
-
     // Debug: Show some examples
     const examples = {
       start: stationStops.filter((s) => s.node_type === "start").slice(0, 3),
@@ -462,16 +441,6 @@ export class GTFSParserService {
       junction: stationStops.filter((s) => s.node_type === "junction").slice(0, 3),
       major_stop: stationStops.filter((s) => s.node_type === "major_stop").slice(0, 3),
     };
-
-    console.log("  📋 Example classifications (Station-level):");
-    Object.entries(examples).forEach(([type, nodes]) => {
-      if (nodes.length > 0) {
-        console.log(
-          `    ${type}:`,
-          nodes.map((n) => `${n.stop_name} (degree: ${n.degree})`),
-        );
-      }
-    });
   }
 
   /**
@@ -489,8 +458,6 @@ export class GTFSParserService {
       }
       groupMap.get(key)!.push(trip);
     }
-
-    console.log("  📊 Found", groupMap.size, "unique route/direction/headsign combinations");
 
     // Select one representative trip per group
     const representatives: GTFSTrip[] = [];
@@ -517,12 +484,8 @@ export class GTFSParserService {
     agencies: GTFSAgency[];
     routes: GTFSRoute[];
   }> {
-    console.log("⚡ GTFS Light Parser: Quick scan for filter options");
-    console.log("📦 ZIP file size:", (file.size / 1024 / 1024).toFixed(2), "MB");
-
     const zip = new JSZip();
     const zipContent = await zip.loadAsync(file);
-    console.log("✅ ZIP opened");
 
     const result = {
       agencies: [] as GTFSAgency[],
@@ -530,21 +493,17 @@ export class GTFSParserService {
     };
 
     // Parse agency.txt only
-    console.log("🏢 Reading agency.txt...");
     const agencyFile = zipContent.file("agency.txt");
     if (agencyFile) {
       const agencyText = await agencyFile.async("text");
       result.agencies = this.parseCSV<GTFSAgency>(agencyText);
-      console.log("  ✓ Found", result.agencies.length, "agencies");
     }
 
     // Parse routes.txt only (for categories)
-    console.log("🚂 Reading routes.txt...");
     const routesFile = zipContent.file("routes.txt");
     if (routesFile) {
       const routesText = await routesFile.async("text");
       result.routes = this.parseCSV<GTFSRoute>(routesText);
-      console.log("  ✓ Found", result.routes.length, "routes");
 
       // Apply route type filter if specified
       if (allowedRouteTypes && allowedRouteTypes.length > 0) {
@@ -553,17 +512,9 @@ export class GTFSParserService {
           const routeType = parseInt(route.route_type?.toString() || "3", 10);
           return allowedRouteTypes.includes(routeType);
         });
-        console.log(
-          "  🔍 Filtered to",
-          result.routes.length,
-          "routes by type (removed",
-          beforeFilter - result.routes.length,
-          ")",
-        );
       }
     }
 
-    console.log("⚡ Light parse complete - ready for filter autocomplete");
     return result;
   }
 
@@ -591,18 +542,8 @@ export class GTFSParserService {
     allowedAgencies?: string[],
     progressCallback?: (fileName: string) => void,
   ): Promise<GTFSData> {
-    console.log("🗂️  GTFS Parser: Starting to parse ZIP file:", file.name);
-    console.log("📦 ZIP file size:", (file.size / 1024 / 1024).toFixed(2), "MB");
-    if (allowedRouteTypes && allowedRouteTypes.length > 0) {
-      console.log("🔍 Route type filter active:", allowedRouteTypes);
-    }
-    if (allowedAgencies && allowedAgencies.length > 0) {
-      console.log("🏢 Agency filter active:", allowedAgencies);
-    }
-
     const zip = new JSZip();
     const zipContent = await zip.loadAsync(file);
-    console.log("✅ ZIP file loaded successfully");
 
     const gtfsData: GTFSData = {
       agencies: [],
@@ -614,22 +555,13 @@ export class GTFSParserService {
     };
 
     // Parse agency.txt
-    console.log("🏢 Parsing agency.txt...");
     const agencyFile = zipContent.file("agency.txt");
     if (agencyFile) {
       const agencyText = await agencyFile.async("text");
       gtfsData.agencies = this.parseCSV<GTFSAgency>(agencyText);
-      console.log("  ✓ Parsed", gtfsData.agencies.length, "agencies");
 
       // Store all agencies before filtering
       gtfsData.allAgencies = [...gtfsData.agencies];
-
-      // Debug: Show all agency names
-      const uniqueAgencyNames = new Set(gtfsData.agencies.map((a) => a.agency_name));
-      console.log("  🔍 All agency names found:", Array.from(uniqueAgencyNames).slice(0, 20));
-      if (uniqueAgencyNames.size > 20) {
-        console.log("  ... and", uniqueAgencyNames.size - 20, "more");
-      }
 
       // Apply agency filter if specified
       if (allowedAgencies && allowedAgencies.length > 0) {
@@ -642,45 +574,25 @@ export class GTFSParserService {
           );
           return matches;
         });
-        console.log(
-          "  🏢 Filtered to",
-          gtfsData.agencies.length,
-          "agencies matching",
-          allowedAgencies.join(", "),
-          "(removed",
-          beforeFilter - gtfsData.agencies.length,
-          "agencies)",
-        );
 
         if (gtfsData.agencies.length > 0) {
-          console.log(
-            "  ✓ Kept agencies:",
-            gtfsData.agencies.slice(0, 5).map((a) => a.agency_name),
-          );
         }
       }
-    } else {
-      console.warn("  ⚠️  agency.txt not found in ZIP");
-    }
+    } 
 
     // Parse stops.txt
-    console.log("📍 Parsing stops.txt...");
     const stopsFile = zipContent.file("stops.txt");
     if (stopsFile) {
       const stopsText = await stopsFile.async("text");
       gtfsData.stops = this.parseCSV<GTFSStop>(stopsText);
-      console.log("  ✓ Parsed", gtfsData.stops.length, "stops");
     } else {
-      console.warn("  ⚠️  stops.txt not found in ZIP");
     }
 
     // Parse routes.txt
-    console.log("🚂 Parsing routes.txt...");
     const routesFile = zipContent.file("routes.txt");
     if (routesFile) {
       const routesText = await routesFile.async("text");
       gtfsData.routes = this.parseCSV<GTFSRoute>(routesText);
-      console.log("  ✓ Parsed", gtfsData.routes.length, "routes");
 
       // Apply agency filter if specified (filter by agency)
       if (allowedAgencies && allowedAgencies.length > 0) {
@@ -692,42 +604,17 @@ export class GTFSParserService {
             return allowedAgencyIds.size === 0 || gtfsData.agencies.length === 0;
           return allowedAgencyIds.has(route.agency_id);
         });
-        console.log(
-          "  🏢 Filtered to",
-          gtfsData.routes.length,
-          "routes by agency (removed",
-          beforeFilter - gtfsData.routes.length,
-          "routes)",
-        );
       }
 
       // Apply route type filter if specified
       if (allowedRouteTypes && allowedRouteTypes.length > 0) {
-        // Debug: Show unique route types
-        const uniqueRouteTypes = new Set(gtfsData.routes.map((r) => r.route_type));
-        console.log(
-          "  🔍 DEBUG: Unique route_type values found:",
-          Array.from(uniqueRouteTypes).sort(),
-        );
-
         const beforeFilter = gtfsData.routes.length;
         gtfsData.routes = gtfsData.routes.filter((route) => {
           const routeType = parseInt(route.route_type?.toString() || "3", 10);
           return allowedRouteTypes.includes(routeType);
         });
-        console.log(
-          "  🔍 Filtered to",
-          gtfsData.routes.length,
-          "routes by type (removed",
-          beforeFilter - gtfsData.routes.length,
-          "routes)",
-        );
 
-        if (gtfsData.routes.length === 0 && beforeFilter > 0) {
-          console.warn(
-            "  ⚠️  WARNING: All routes filtered out by route_type! You may need to include extended GTFS route_type values (100-117)",
-          );
-        }
+     
       }
 
       // Debug: Show route_desc distribution
@@ -736,21 +623,14 @@ export class GTFSParserService {
         const desc = route.route_desc || "UNKNOWN";
         routeDescCounts.set(desc, (routeDescCounts.get(desc) || 0) + 1);
       });
-      console.log(
-        "  📋 Route descriptions found:",
-        Array.from(routeDescCounts.entries()).slice(0, 10),
-      );
     } else {
-      console.warn("  ⚠️  routes.txt not found in ZIP");
     }
 
     // Parse trips.txt
-    console.log("🎫 Parsing trips.txt...");
     const tripsFile = zipContent.file("trips.txt");
     if (tripsFile) {
       const tripsText = await tripsFile.async("text");
       gtfsData.trips = this.parseCSV<GTFSTrip>(tripsText);
-      console.log("  ✓ Parsed", gtfsData.trips.length, "trips");
 
       // Filter trips by route filter if specified
       if (
@@ -760,31 +640,17 @@ export class GTFSParserService {
         const beforeFilter = gtfsData.trips.length;
         const allowedRouteIds = new Set(gtfsData.routes.map((r) => r.route_id));
         gtfsData.trips = gtfsData.trips.filter((trip) => allowedRouteIds.has(trip.route_id));
-        console.log(
-          "  🔍 Filtered to",
-          gtfsData.trips.length,
-          "trips (removed",
-          beforeFilter - gtfsData.trips.length,
-          "trips)",
-        );
       }
 
       // Keep ALL trips - will select most frequent per route AFTER parsing stop_times
-      console.log("  💡 Keeping all", gtfsData.trips.length, "trips");
-      console.log("  💡 Will select most frequent trip (8-16h) per route AFTER parsing stop_times");
-    } else {
-      console.warn("  ⚠️  trips.txt not found in ZIP");
-    }
+    } 
 
     // Parse stop_times.txt using streaming approach (chunk-by-chunk to avoid memory issues)
-    console.log("⏰ Parsing stop_times.txt...");
     const stopTimesFile = zipContent.file("stop_times.txt");
     gtfsData.stopTimes = []; // Initialize empty
 
     if (stopTimesFile) {
       try {
-        console.log("  ℹ️  Streaming stop_times for", gtfsData.trips.length, "trips");
-
         // Create Set of allowed trip IDs for fast lookup
         const allowedTripIds = new Set(gtfsData.trips.map((t) => t.trip_id));
 
@@ -792,9 +658,6 @@ export class GTFSParserService {
         const chunkSize = 10 * 1024 * 1024; // 10MB chunks
         const arrayBuffer = await stopTimesFile.async("arraybuffer");
         const totalSize = arrayBuffer.byteLength;
-
-        console.log("  📦 File size:", (totalSize / (1024 * 1024)).toFixed(2), "MB");
-        console.log("  🔄 Processing in", Math.ceil(totalSize / chunkSize), "chunks...");
 
         const decoder = new TextDecoder("utf-8");
         let leftover = "";
@@ -853,83 +716,39 @@ export class GTFSParserService {
 
           // Log progress every 50MB
           if ((offset / (1024 * 1024)) % 50 < chunkSize / (1024 * 1024)) {
-            console.log(
-              "  📍 Progress:",
-              ((offset / totalSize) * 100).toFixed(0) + "%",
-              "-",
-              keepCount,
-              "stop_times kept",
-            );
           }
         }
 
         gtfsData.stopTimes = filteredStopTimes;
-        console.log(
-          "  ✅ Streaming complete:",
-          keepCount,
-          "stop_times loaded from",
-          lineCount,
-          "lines",
-        );
       } catch (error: any) {
-        console.error("  ❌ Error parsing stop_times.txt:", error.message || error);
-        console.warn("  ⚠️  Skipping stop_times due to error");
         gtfsData.stopTimes = [];
       }
     } else {
-      console.warn("  ⚠️  stop_times.txt not found in ZIP");
     }
 
     // Parse calendar.txt (optional)
-    console.log("📅 Parsing calendar.txt (optional)...");
     const calendarFile = zipContent.file("calendar.txt");
     if (calendarFile) {
       const calendarText = await calendarFile.async("text");
       gtfsData.calendar = this.parseCSV<GTFSCalendar>(calendarText);
-      console.log("  ✓ Parsed", gtfsData.calendar.length, "calendar entries");
-    } else {
-      console.log("  ℹ️  calendar.txt not found (optional)");
-    }
+    } 
 
     // Parse calendar_dates.txt (optional)
-    console.log("📅 Parsing calendar_dates.txt (optional)...");
     const calendarDatesFile = zipContent.file("calendar_dates.txt");
     if (calendarDatesFile) {
       const calendarDatesText = await calendarDatesFile.async("text");
       gtfsData.calendarDates = this.parseCSV<GTFSCalendarDate>(calendarDatesText);
-      console.log("  ✓ Parsed", gtfsData.calendarDates.length, "calendar_dates entries");
-    } else {
-      console.log("  ℹ️  calendar_dates.txt not found (optional)");
-    }
-
+    } 
     // Post-processing: Calculate frequencies and classify nodes
-    console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("POST-PROCESSING: ANALYSIS & ENRICHMENT");
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
     if (gtfsData.stopTimes.length > 0) {
       // Select most frequent trip per route (8-16h window, includes frequency calculation)
-      console.log("📊 Analyzing trip patterns across all days...");
       this.selectMostFrequentTripPatterns(gtfsData);
-      console.log("  ℹ️  Frequencies calculated during pattern selection (8-16h window)");
 
       // Always classify nodes
       this.classifyNodes(gtfsData.stops, gtfsData.stopTimes, gtfsData.trips);
     } else {
-      console.warn(
-        "  ⚠️  Skipping frequency calculation and node classification (no stop_times data)",
-      );
     }
-
-    console.log("\n✅ GTFS parsing complete!");
-    console.log("📊 Summary:", {
-      agencies: gtfsData.agencies.length,
-      stops: gtfsData.stops.length,
-      routes: gtfsData.routes.length,
-      trips: gtfsData.trips.length,
-      stopTimes: gtfsData.stopTimes.length,
-      calendar: gtfsData.calendar?.length || 0,
-    });
 
     return gtfsData;
   }
@@ -941,9 +760,6 @@ export class GTFSParserService {
    * @param gtfsData GTFS data to filter in-place
    */
   private selectMostFrequentTripPatterns(gtfsData: GTFSData): void {
-    console.log("🔍 Selecting most frequent trip patterns per route (all days)...");
-    console.log("⏰ Time window: 08:00-16:00 (must start in this window)");
-
     const TIME_WINDOW_START = 8 * 60; // 08:00
     const TIME_WINDOW_END = 16 * 60; // 16:00
 
@@ -987,8 +803,6 @@ export class GTFSParserService {
       routeGroups.get(key)!.push(trip);
     }
 
-    console.log("  📊 Analyzing", routeGroups.size, "route+direction combinations");
-
     // For each group, find most frequent pattern AND calculate frequency
     const selectedTripIds = new Set<string>();
     let totalPatternsByRoute = 0;
@@ -1008,7 +822,6 @@ export class GTFSParserService {
 
       // If no trips in time window, skip this route
       if (tripsInWindow.length === 0) {
-        console.log(`  ⚠️  Route ${routeKey}: No trips in 8-16h window, skipping`);
         continue;
       }
 
@@ -1113,9 +926,6 @@ export class GTFSParserService {
 
       // Debug: Show pattern analysis for this route
       if (patternCounts.size > 1 || maxCount > 5) {
-        console.log(
-          `  📋 Route ${routeKey}: ${patternCounts.size} patterns, freq=${frequency}min (${maxCount} trips), selected trip @${GTFSParserService.minutesToTime(tripFirstDeparture.get(representativeTripId!) || 0)}`,
-        );
       }
     }
 
@@ -1124,26 +934,6 @@ export class GTFSParserService {
     gtfsData.trips = gtfsData.trips.filter((trip) => selectedTripIds.has(trip.trip_id));
     const beforeStopTimes = gtfsData.stopTimes.length;
     gtfsData.stopTimes = gtfsData.stopTimes.filter((st) => selectedTripIds.has(st.trip_id));
-
-    console.log("  ✅ Selected", totalTripsKept, "representative trips (one per route+direction)");
-    console.log(
-      "  📊 Removed",
-      beforeTrips - gtfsData.trips.length,
-      "trips and",
-      beforeStopTimes - gtfsData.stopTimes.length,
-      "stop_times",
-    );
-    console.log(
-      "  ⏰ Time window analysis:",
-      tripsInTimeWindow,
-      "trips in 8-16h,",
-      tripsOutsideWindow,
-      "outside",
-    );
-    console.log(
-      "  📈 Average patterns per route:",
-      (totalPatternsByRoute / routeGroups.size).toFixed(1),
-    );
   }
 
   /**
@@ -1194,7 +984,6 @@ export class GTFSParserService {
     if (validFrequencies.includes(frequency)) {
       return frequency;
     }
-    console.warn(`  ⚠️  Invalid frequency ${frequency} detected, defaulting to 60`);
     return 60;
   }
 
@@ -1214,8 +1003,6 @@ export class GTFSParserService {
     const targetDate = new Date(dateStr);
     const targetDateStr = dateStr.replace(/-/g, ""); // YYYYMMDD
     const dayOfWeek = targetDate.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-
-    console.log("  📅 Analyzing service for date:", dateStr, "(day of week:", dayOfWeek, ")");
 
     // Step 1: Check calendar.txt for regular services
     for (const cal of calendar) {
@@ -1242,24 +1029,18 @@ export class GTFSParserService {
       }
     }
 
-    console.log("  ✓ Found", serviceIds.size, "services from calendar.txt");
-
     // Step 2: Apply calendar_dates.txt exceptions
     for (const calDate of calendarDates) {
       if (calDate.date === targetDateStr) {
         if (calDate.exception_type === "1") {
           // Service added on this date
           serviceIds.add(calDate.service_id);
-          console.log("  ➕ Added service from exception:", calDate.service_id);
         } else if (calDate.exception_type === "2") {
           // Service removed on this date
           serviceIds.delete(calDate.service_id);
-          console.log("  ➖ Removed service from exception:", calDate.service_id);
         }
       }
     }
-
-    console.log("  ✓ Final service count after exceptions:", serviceIds.size);
 
     return serviceIds;
   }
