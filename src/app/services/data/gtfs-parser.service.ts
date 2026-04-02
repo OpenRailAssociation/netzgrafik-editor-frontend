@@ -568,6 +568,7 @@ export class GTFSParserService {
         });
       }
     }
+    progressCallback?.('agency.txt');
 
     // Parse stops.txt
     const stopsFile = zipContent.file("stops.txt");
@@ -575,6 +576,7 @@ export class GTFSParserService {
       const stopsText = await stopsFile.async("text");
       gtfsData.stops = this.parseCSV<GTFSStop>(stopsText);
     }
+    progressCallback?.('stops.txt');
 
     // Parse routes.txt
     const routesFile = zipContent.file("routes.txt");
@@ -603,6 +605,7 @@ export class GTFSParserService {
         });
       }
     }
+    progressCallback?.('routes.txt');
 
     // Parse trips.txt
     const tripsFile = zipContent.file("trips.txt");
@@ -622,6 +625,7 @@ export class GTFSParserService {
 
       // Keep ALL trips - will select most frequent per route AFTER parsing stop_times
     }
+    progressCallback?.('trips.txt');
 
     // Parse stop_times.txt using streaming approach (chunk-by-chunk to avoid memory issues)
     const stopTimesFile = zipContent.file("stop_times.txt");
@@ -698,6 +702,7 @@ export class GTFSParserService {
         gtfsData.stopTimes = [];
       }
     }
+    progressCallback?.('stop_times.txt');
 
     // Parse calendar.txt (optional)
     const calendarFile = zipContent.file("calendar.txt");
@@ -705,6 +710,7 @@ export class GTFSParserService {
       const calendarText = await calendarFile.async("text");
       gtfsData.calendar = this.parseCSV<GTFSCalendar>(calendarText);
     }
+    progressCallback?.('calendar.txt');
 
     // Parse calendar_dates.txt (optional)
     const calendarDatesFile = zipContent.file("calendar_dates.txt");

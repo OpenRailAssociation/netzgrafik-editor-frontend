@@ -32,6 +32,7 @@ import {NODE_TEXT_AREA_HEIGHT, RASTERING_BASIC_GRID_SIZE} from "../rastering/def
 import {ResourceService} from "../../services/data/resource.service";
 import {GTFSParserService} from "../../services/data/gtfs-parser.service";
 import {GTFSConverterService} from "../../services/data/gtfs-converter.service";
+import {GtfsImportManagerService} from "./gtfs-import-dialogs/gtfs-import-manager.service";
 
 interface ContainertoExportData {
   documentToExport: HTMLElement;
@@ -157,8 +158,33 @@ export class EditorToolsViewComponent {
     private resourceService: ResourceService,
     private gtfsParserService: GTFSParserService,
     private gtfsConverterService: GTFSConverterService,
+    private gtfsImportManagerService: GtfsImportManagerService,
     private changeDetectorRef: ChangeDetectorRef,
-  ) {}
+  ) {
+    // Subscribe to GTFS import state changes
+    this.gtfsImportManagerService.state$.subscribe(state => {
+      this.gtfsFilterDialogVisible = state.filterDialogVisible;
+      this.gtfsImportOverlayVisible = state.importOverlayVisible;
+      this.gtfsImportComplete = state.importComplete;
+      this.gtfsImportPhases = state.importPhases;
+      this.gtfsImportSummary = state.importSummary;
+      this.gtfsAvailableAgencies = state.availableAgencies;
+      this.gtfsAvailableCategories = state.availableCategories;
+      this.gtfsAvailableRoutes = state.availableRoutes;
+      this.gtfsSelectedAgencies = state.selectedAgencies;
+      this.gtfsSelectedCategories = state.selectedCategories;
+      this.gtfsSelectedLines = state.selectedLines;
+      this.gtfsFilteredAgencies = state.filteredAgencies;
+      this.gtfsFilteredCategories = state.filteredCategories;
+      this.gtfsFilteredLines = state.filteredLines;
+      this.gtfsNoCategoriesWarning = state.noCategoriesWarning;
+      this.gtfsNoLinesWarning = state.noLinesWarning;
+      this.gtfsRouteTypeFilter = state.routeTypeFilter;
+      this.gtfsNodeFilter = state.nodeFilter;
+      this.gtfsTimeSyncTolerance = state.timeSyncTolerance;
+      this.changeDetectorRef.detectChanges();
+    });
+  }
 
   getTodayString(): string {
     const today = new Date();
@@ -345,109 +371,9 @@ export class EditorToolsViewComponent {
       return;
     }
 
-
-    // Store file for later full parsing
-    this.gtfsFile = file;
-
-    // Reset state
-    this.gtfsParsedData = null;
-    this.gtfsAvailableAgencies = [];
-    this.gtfsAvailableCategories = [];
-    this.gtfsAvailableRoutes = [];
-    this.gtfsSelectedAgencies = [];
-    this.gtfsSelectedCategories = [];
-    this.gtfsSelectedLines = [];
-
     try {
-      // PHASE 1: LIGHT PARSE - Only read agencies and routes for filter autocomplete
-
-      // Convert transport mode filter to route_type numbers
-      const allowedRouteTypes: number[] = [];
-      if (this.gtfsRouteTypeFilter.tram) allowedRouteTypes.push(0);
-      if (this.gtfsRouteTypeFilter.metro) allowedRouteTypes.push(1);
-      if (this.gtfsRouteTypeFilter.rail) {
-        allowedRouteTypes.push(2, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 117);
-      }
-      if (this.gtfsRouteTypeFilter.bus) allowedRouteTypes.push(3);
-      if (this.gtfsRouteTypeFilter.ferry) allowedRouteTypes.push(4);
-
-
-      // Light parse - only agencies and routes
-      const lightData = await this.gtfsParserService.parseGTFSZipLight(file, allowedRouteTypes);
-
-      // Store light data for dynamic filtering
-      this.gtfsLightData = lightData;
-
-
-      // PHASE 2: Extract available filter values
-      this.gtfsAvailableAgencies = lightData.agencies
-        .map((a) => a.agency_name)
-        .filter((name, idx, arr) => arr.indexOf(name) === idx) // Unique
-        .sort();
-
-      // Extract categories from route_desc and route_short_name
-      const categorySet = new Set<string>();
-      lightData.routes.forEach((route) => {
-        // From route_desc (if present) - this is the primary source for categories
-        const desc = (route.route_desc || "").trim();
-        if (desc) {
-          categorySet.add(desc.toUpperCase());
-        } else {
-          // If route_desc is empty, extract category prefix from route_short_name
-          // E.g., "IR15" -> "IR", "S1" -> "S", "IC8" -> "IC"
-          const shortName = (route.route_short_name || "").trim();
-          if (shortName) {
-            // Extract leading letters (category prefix) before numbers
-            const match = shortName.match(/^[A-Za-z]+/);
-            if (match) {
-              categorySet.add(match[0].toUpperCase());
-            }
-          }
-        }
-      });
-      this.gtfsAvailableCategories = Array.from(categorySet).sort();
-
-      // Categories extracted from route_desc or route_short_name prefix
-
-      // Extract available route names (optional for future use)
-      this.gtfsAvailableRoutes = lightData.routes
-        .map((r) => r.route_short_name || r.route_long_name || "")
-        .filter((name, idx, arr) => name && arr.indexOf(name) === idx)
-        .sort();
-
-
-      // PHASE 3: Set smart defaults
-      // Default agency: Schweizerische Bundesbahnen SBB (prefer full name)
-      const sbbAgency =
-        this.gtfsAvailableAgencies.find(
-          (a) =>
-            a.toUpperCase().includes("SCHWEIZERISCHE") && a.toUpperCase().includes("BUNDESBAHNEN"),
-        ) || this.gtfsAvailableAgencies.find((a) => a.toUpperCase().includes("SBB"));
-      this.gtfsSelectedAgencies = sbbAgency ? [sbbAgency] : [];
-
-      // Default categories: EC, IC, IR, RE, S (if available)
-      const defaultCategories = ["EC", "IC", "IR", "RE", "S"];
-      this.gtfsSelectedCategories = defaultCategories.filter((cat) =>
-        this.gtfsAvailableCategories.includes(cat),
-      );
-
-      // Default line filter: empty (no lines selected by default = all lines)
-      this.gtfsSelectedLines = [];
-
-      // Initialize filtered lists for autocomplete
-      this.gtfsFilteredAgencies = [...this.gtfsAvailableAgencies];
-      this.gtfsFilteredCategories = [...this.gtfsAvailableCategories];
-      this.gtfsFilteredLines = [...this.gtfsAvailableRoutes];
-
-      // Update available filters based on selected agencies/categories (cascading)
-      this.updateAvailableFilters();
-
-
-      // Open filter dialog after successful light parse
-      this.gtfsFilterDialogVisible = true;
-
+      await this.gtfsImportManagerService.loadGTFSFile(file);
     } catch (error) {
-
       let userMessage = "";
       if (
         error?.message?.includes("Invalid string length") ||
@@ -1076,435 +1002,42 @@ export class EditorToolsViewComponent {
 
   // GTFS Filter Dialog Functions
   closeGtfsFilterDialog(): void {
-    this.gtfsFilterDialogVisible = false;
-    this.gtfsParsedData = null;
-    this.gtfsFile = null;
+    this.gtfsImportManagerService.closeFilterDialog();
   }
 
   addGtfsAgency(agency: string): void {
-    if (!this.gtfsSelectedAgencies.includes(agency)) {
-      this.gtfsSelectedAgencies.push(agency);
-    }
-    this.updateAvailableFilters();
+    this.gtfsImportManagerService.addAgency(agency);
   }
 
   removeGtfsAgency(agency: string): void {
-    this.gtfsSelectedAgencies = this.gtfsSelectedAgencies.filter((a) => a !== agency);
-    this.updateAvailableFilters();
+    this.gtfsImportManagerService.removeAgency(agency);
   }
 
   addGtfsCategory(category: string): void {
-    if (!this.gtfsSelectedCategories.includes(category)) {
-      this.gtfsSelectedCategories.push(category);
-    }
-    this.updateAvailableFilters();
+    this.gtfsImportManagerService.addCategory(category);
   }
 
   removeGtfsCategory(category: string): void {
-    this.gtfsSelectedCategories = this.gtfsSelectedCategories.filter((c) => c !== category);
-    this.updateAvailableFilters();
+    this.gtfsImportManagerService.removeCategory(category);
   }
 
   addGtfsLine(line: string): void {
-    if (!this.gtfsSelectedLines.includes(line)) {
-      this.gtfsSelectedLines.push(line);
-    }
+    this.gtfsImportManagerService.addLine(line);
   }
 
   removeGtfsLine(line: string): void {
-    this.gtfsSelectedLines = this.gtfsSelectedLines.filter((l) => l !== line);
+    this.gtfsImportManagerService.removeLine(line);
   }
 
-  // Update available filter options based on selected filters (cascading)
-  private updateAvailableFilters(): void {
-    if (!this.gtfsLightData) {
-      return;
-    }
 
-    // Start with all routes
-    let filteredRoutes = [...this.gtfsLightData.routes];
-
-    // Apply agency filter
-    if (this.gtfsSelectedAgencies.length > 0) {
-      const selectedAgencyIds = this.gtfsLightData.agencies
-        .filter((a) => this.gtfsSelectedAgencies.includes(a.agency_name))
-        .map((a) => a.agency_id);
-
-      filteredRoutes = filteredRoutes.filter((route) =>
-        selectedAgencyIds.includes(route.agency_id),
-      );
-    }
-
-    // Extract available categories from filtered routes
-    const categorySet = new Set<string>();
-    filteredRoutes.forEach((route) => {
-      const desc = (route.route_desc || "").trim();
-      if (desc) {
-        categorySet.add(desc.toUpperCase());
-      } else {
-        const shortName = (route.route_short_name || "").trim();
-        if (shortName) {
-          const match = shortName.match(/^[A-Za-z]+/);
-          if (match) {
-            categorySet.add(match[0].toUpperCase());
-          }
-        }
-      }
-    });
-    this.gtfsAvailableCategories = Array.from(categorySet).sort();
-    this.gtfsFilteredCategories = [...this.gtfsAvailableCategories];
-
-    // Apply category filter to routes
-    if (this.gtfsSelectedCategories.length > 0) {
-      filteredRoutes = filteredRoutes.filter((route) => {
-        const desc = (route.route_desc || "").toUpperCase();
-        const shortName = (route.route_short_name || "").toUpperCase();
-
-        return this.gtfsSelectedCategories.some((cat) => {
-          const catUpper = cat.toUpperCase();
-          if (desc.includes(catUpper)) {
-            return true;
-          }
-          const prefixMatch = shortName.match(/^[A-Za-z]+/);
-          if (prefixMatch && prefixMatch[0] === catUpper) {
-            return true;
-          }
-          return false;
-        });
-      });
-    }
-
-    // Extract available lines from filtered routes
-    this.gtfsAvailableRoutes = filteredRoutes
-      .map((r) => r.route_short_name || r.route_long_name || "")
-      .filter((name, idx, arr) => name && arr.indexOf(name) === idx)
-      .sort();
-    this.gtfsFilteredLines = [...this.gtfsAvailableRoutes];
-
-    // Remove selected items that are no longer available
-    this.gtfsSelectedCategories = this.gtfsSelectedCategories.filter((c) =>
-      this.gtfsAvailableCategories.includes(c),
-    );
-    this.gtfsSelectedLines = this.gtfsSelectedLines.filter((l) =>
-      this.gtfsAvailableRoutes.includes(l),
-    );
-
-    // Set warnings
-    this.gtfsNoCategoriesWarning = this.gtfsAvailableCategories.length === 0;
-    this.gtfsNoLinesWarning = this.gtfsAvailableRoutes.length === 0;
-  }
 
   async applyGtfsFiltersAndImport(): Promise<void> {
-    if (!this.gtfsFile) {
-      return;
-    }
-
-    // Close filter dialog, show progress overlay
-    this.gtfsFilterDialogVisible = false;
-    this.gtfsImportOverlayVisible = true;
-    this.gtfsImportComplete = false;
-    this.gtfsImportSummary = null;
-    this.gtfsImportPhases.forEach((p) => {
-      p.status = "pending";
-      p.subPhases = [];
-    });
-
-    try {
-
-      // PHASE 1: Full GTFS parse with filters
-      this.gtfsImportPhases[0].status = "running";
-      this.gtfsImportPhases[0].subPhases = [
-        { label: "stops.txt", status: "running" },
-        { label: "routes.txt", status: "pending" },
-        { label: "trips.txt", status: "pending" },
-        { label: "stop_times.txt", status: "pending" },
-        { label: "calendar.txt", status: "pending" },
-      ];
-      this.changeDetectorRef.detectChanges(); // Force UI update
-
-      // Convert transport mode filter to route_type numbers
-      const allowedRouteTypes: number[] = [];
-      if (this.gtfsRouteTypeFilter.tram) allowedRouteTypes.push(0);
-      if (this.gtfsRouteTypeFilter.metro) allowedRouteTypes.push(1);
-      if (this.gtfsRouteTypeFilter.rail) {
-        allowedRouteTypes.push(2, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 117);
-      }
-      if (this.gtfsRouteTypeFilter.bus) allowedRouteTypes.push(3);
-      if (this.gtfsRouteTypeFilter.ferry) allowedRouteTypes.push(4);
-
-
-      // Full parse with agency filter (NO date filter) - NO SIMULATION
-      const gtfsData = await this.gtfsParserService.parseGTFSZip(
-        this.gtfsFile,
-        allowedRouteTypes,
-        this.gtfsSelectedAgencies,
-      );
-
-      // Now mark all parsing subphases as completed (after real parsing is done)
-      for (let i = 0; i < this.gtfsImportPhases[0].subPhases.length; i++) {
-        this.gtfsImportPhases[0].subPhases[i].status = "completed";
-      }
-      this.changeDetectorRef.detectChanges();
-
-
-      // Sample routes available in parsed data
-
-      this.gtfsImportPhases[0].status = "completed";
-      this.changeDetectorRef.detectChanges(); // Force UI update
-
-      this.logger.info(
-        $localize`:@@app.view.editor-side-view.editor-tools-view-component.gtfs-converting:Converting GTFS to Netzgrafik format...`,
-      );
-
-      // PHASE 2: Apply category filter
-      this.gtfsImportPhases[1].status = "running";
-      this.gtfsImportPhases[1].subPhases = [
-        { label: "Kategorie-Filter", status: "running" },
-        { label: "Linien-Filter", status: "pending" },
-        { label: "Knoten-Filter", status: "pending" },
-      ];
-      this.changeDetectorRef.detectChanges(); // Force UI update
-      if (this.gtfsSelectedCategories.length > 0) {
-        const beforeFilter = gtfsData.routes.length;
-        gtfsData.routes = gtfsData.routes.filter((route) => {
-          const desc = (route.route_desc || "").toUpperCase();
-          const shortName = (route.route_short_name || "").toUpperCase();
-
-          // Check if any selected category matches:
-          // 1. route_desc (primary source)
-          // 2. OR the category prefix extracted from route_short_name (e.g., "IR" from "IR15")
-          const matches = this.gtfsSelectedCategories.some((cat) => {
-            const catUpper = cat.toUpperCase();
-
-            // Match if route_desc contains category
-            if (desc.includes(catUpper)) {
-              return true;
-            }
-
-            // Or match if route_short_name starts with the category prefix
-            // Extract category prefix from route_short_name (letters before numbers)
-            const prefixMatch = shortName.match(/^[A-Za-z]+/);
-            if (prefixMatch && prefixMatch[0] === catUpper) {
-              return true;
-            }
-
-            return false;
-          });
-
-          return matches;
-        });
-
- 
-        const validRouteIds = new Set(gtfsData.routes.map((r) => r.route_id));
-        const beforeTrips = gtfsData.trips.length;
-        gtfsData.trips = gtfsData.trips.filter((t) => validRouteIds.has(t.route_id));
-
-        const validTripIds = new Set(gtfsData.trips.map((t) => t.trip_id));
-        const beforeStopTimes = gtfsData.stopTimes.length;
-        gtfsData.stopTimes = gtfsData.stopTimes.filter((st) => validTripIds.has(st.trip_id));
-      } 
-      if (this.gtfsImportPhases[1].subPhases.length > 0) {
-        this.gtfsImportPhases[1].subPhases[0].status = "completed";
-        this.changeDetectorRef.detectChanges(); // Force UI update
-      }
-
-      // Apply line filter
-      if (this.gtfsImportPhases[1].subPhases.length > 1) {
-        this.gtfsImportPhases[1].subPhases[1].status = "running";
-        this.changeDetectorRef.detectChanges(); // Force UI update
-      }
-      if (this.gtfsSelectedLines.length > 0) {
-
-        const beforeFilter = gtfsData.routes.length;
-        gtfsData.routes = gtfsData.routes.filter((route) => {
-          const shortName = (route.route_short_name || "").toUpperCase();
-          return this.gtfsSelectedLines.some((line) => shortName === line.toUpperCase());
-        });
-
-        const validRouteIds = new Set(gtfsData.routes.map((r) => r.route_id));
-        const beforeTrips = gtfsData.trips.length;
-        gtfsData.trips = gtfsData.trips.filter((t) => validRouteIds.has(t.route_id));
-
-        const validTripIds = new Set(gtfsData.trips.map((t) => t.trip_id));
-        const beforeStopTimes = gtfsData.stopTimes.length;
-        gtfsData.stopTimes = gtfsData.stopTimes.filter((st) => validTripIds.has(st.trip_id));
-
-        const usedStopIds = new Set(gtfsData.stopTimes.map((st) => st.stop_id));
-        const usedStopIdsWithParents = new Set(usedStopIds);
-        gtfsData.stops.forEach((stop) => {
-          if (usedStopIds.has(stop.stop_id) && stop.parent_station) {
-            usedStopIdsWithParents.add(stop.parent_station);
-          }
-        });
-        const beforeStops = gtfsData.stops.length;
-        gtfsData.stops = gtfsData.stops.filter((stop) => usedStopIdsWithParents.has(stop.stop_id));
-      } 
-      if (this.gtfsImportPhases[1].subPhases.length > 1) {
-        this.gtfsImportPhases[1].subPhases[1].status = "completed";
-        this.changeDetectorRef.detectChanges(); // Force UI update
-      }
-
-      // Continue with node classification filter and conversion
-      if (this.gtfsImportPhases[1].subPhases.length > 2) {
-        this.gtfsImportPhases[1].subPhases[2].status = "running";
-        this.changeDetectorRef.detectChanges(); // Force UI update
-      }
-      const activeNodeTypes = Object.keys(this.gtfsNodeFilter).filter(
-        (key) => this.gtfsNodeFilter[key],
-      );
-
-      if (activeNodeTypes.length > 0 && activeNodeTypes.length < 5) {
-        const acceptedClassifications = new Set(activeNodeTypes);
-        const beforeFilter = gtfsData.stops.length;
-        gtfsData.stops = gtfsData.stops.filter(
-          (stop) => !stop.node_type || acceptedClassifications.has(stop.node_type),
-        );
-      } 
-      if (this.gtfsImportPhases[1].subPhases.length > 2) {
-        this.gtfsImportPhases[1].subPhases[2].status = "completed";
-        this.changeDetectorRef.detectChanges(); // Force UI update
-      }
-      this.gtfsImportPhases[1].status = "completed";
-
-      // Convert to Netzgrafik format
-      this.gtfsImportPhases[2].status = "running";
-      this.changeDetectorRef.detectChanges(); // Force UI update
-      this.gtfsImportPhases[2].subPhases = [
-        { label: "Knoten erstellen", status: "running" },
-        { label: "Zugläufe konvertieren", status: "pending" },
-        { label: "Abschnitte generieren", status: "pending" },
-        { label: "Round-Trip Matching", status: "pending" },
-        { label: "Layout berechnen", status: "pending" },
-      ];
-
-      const existingNetzgrafik = this.dataService.getNetzgrafikDto();
-      const existingMetadata = existingNetzgrafik?.metadata;
-
-      let netzgrafikDto;
-      try {
-        // Convert to Netzgrafik - NO SIMULATION
-        netzgrafikDto = await this.gtfsConverterService.convertToNetzgrafik(gtfsData, {
-          maxTripsPerRoute: 10,
-          minStopsPerTrip: 3,
-          existingMetadata: existingMetadata,
-          timeSyncTolerance: this.gtfsTimeSyncTolerance, // From UI input
-          labelCreator: (labelText: string) => {
-            // Create label for debug/tracking purposes (shows GTFS route path)
-            const label = this.labelService.getOrCreateLabel(labelText, LabelRef.Trainrun);
-            return label.getId();
-          },
-        });
-        
-        
-        // Now mark all conversion subphases as completed (after real conversion is done)
-        for (let i = 0; i < this.gtfsImportPhases[2].subPhases.length; i++) {
-          this.gtfsImportPhases[2].subPhases[i].status = "completed";
-        }
-        this.changeDetectorRef.detectChanges();
-        
-        this.gtfsImportPhases[2].status = "completed";
-      } catch (convertError) {
-        this.gtfsImportPhases[2].status = "error";
-        this.changeDetectorRef.detectChanges(); // Force UI update
-        throw convertError;
-      }
-
-      // Import into editor
-      this.gtfsImportPhases[3].status = "running";
-      this.changeDetectorRef.detectChanges(); // Force UI update
-
-      this.processNetzgrafikJSON(netzgrafikDto);
-
-      this.gtfsImportPhases[3].status = "completed";
-      this.changeDetectorRef.detectChanges(); // Force UI update
-
-      // Generate summary
-      this.generateGtfsImportSummary(netzgrafikDto);
-
-      this.gtfsImportComplete = true;
-      this.changeDetectorRef.detectChanges(); // Force UI update
-      this.logger.info(
-        $localize`:@@app.view.editor-side-view.editor-tools-view-component.gtfs-success:GTFS data imported successfully`,
-      );
-    } catch (error) {
-      this.logger.error("GTFS import failed: " + (error?.message || String(error)));
-      this.gtfsImportComplete = true; // Allow closing on error
-      // Mark current phase as error
-      const runningPhase = this.gtfsImportPhases.find((p) => p.status === "running");
-      if (runningPhase) {
-        runningPhase.status = "error";
-      }
-      this.changeDetectorRef.detectChanges(); // Force UI update
-    }
+    await this.gtfsImportManagerService.applyFiltersAndImport(
+      (netzgrafikDto) => this.processNetzgrafikJSON(netzgrafikDto)
+    );
   }
 
   closeGtfsImportOverlay(): void {
-    this.gtfsImportOverlayVisible = false;
-    this.gtfsImportComplete = false;
-    this.gtfsImportSummary = null;
-    // Reset phases
-    this.gtfsImportPhases.forEach((p) => {
-      p.status = "pending";
-      p.subPhases = [];
-    });
-  }
-
-  private generateGtfsImportSummary(netzgrafikDto: any): void {
-    const trainruns = netzgrafikDto.trainruns || [];
-    const sections = netzgrafikDto.trainrunSections || [];
-    const nodes = netzgrafikDto.nodes || [];
-    const metadata = netzgrafikDto.metadata || {};
-
-    // Count by direction
-    const roundTripCount = trainruns.filter((t: any) => t.direction === "round_trip").length;
-    const oneWayCount = trainruns.filter((t: any) => t.direction === "one_way").length;
-
-    // Count by category
-    const byCategory: { [key: string]: number } = {};
-    const categories = metadata.trainrunCategories || [];
-    trainruns.forEach((trainrun: any) => {
-      const category = categories.find((c: any) => c.id === trainrun.categoryId);
-      if (category) {
-        const catName = category.shortName || category.name;
-        byCategory[catName] = (byCategory[catName] || 0) + 1;
-      }
-    });
-
-    // Count by frequency
-    const byFrequency: { [key: string]: number } = {};
-    const frequencies = metadata.trainrunFrequencies || [];
-    trainruns.forEach((trainrun: any) => {
-      const freq = frequencies.find((f: any) => f.id === trainrun.frequencyId);
-      if (freq) {
-        const freqValue = freq.frequency.toString();
-        byFrequency[freqValue] = (byFrequency[freqValue] || 0) + 1;
-      }
-    });
-
-    // Count by label
-    const byLabel: { [key: string]: number } = {};
-    const labels = netzgrafikDto.labels || [];
-    trainruns.forEach((trainrun: any) => {
-      if (trainrun.labelIds && trainrun.labelIds.length > 0) {
-        trainrun.labelIds.forEach((labelId: number) => {
-          const label = labels.find((l: any) => l.id === labelId);
-          if (label) {
-            byLabel[label.label] = (byLabel[label.label] || 0) + 1;
-          }
-        });
-      }
-    });
-
-    this.gtfsImportSummary = {
-      nodes: nodes.length,
-      trainruns: trainruns.length,
-      sections: sections.length,
-      roundTripCount,
-      oneWayCount,
-      byCategory,
-      byFrequency,
-      byLabel,
-    };
-
+    this.gtfsImportManagerService.closeImportOverlay();
   }
 }
