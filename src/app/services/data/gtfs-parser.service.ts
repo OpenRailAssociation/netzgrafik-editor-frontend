@@ -433,14 +433,6 @@ export class GTFSParserService {
       major_stop: stationStops.filter((s) => s.node_type === "major_stop").length,
       minor_stop: stationStops.filter((s) => s.node_type === "minor_stop").length,
     };
-
-    // Debug: Show some examples
-    const examples = {
-      start: stationStops.filter((s) => s.node_type === "start").slice(0, 3),
-      end: stationStops.filter((s) => s.node_type === "end").slice(0, 3),
-      junction: stationStops.filter((s) => s.node_type === "junction").slice(0, 3),
-      major_stop: stationStops.filter((s) => s.node_type === "major_stop").slice(0, 3),
-    };
   }
 
   /**
@@ -609,16 +601,7 @@ export class GTFSParserService {
           const routeType = parseInt(route.route_type?.toString() || "3", 10);
           return allowedRouteTypes.includes(routeType);
         });
-
-     
       }
-
-      // Debug: Show route_desc distribution
-      const routeDescCounts = new Map<string, number>();
-      gtfsData.routes.forEach((route) => {
-        const desc = route.route_desc || "UNKNOWN";
-        routeDescCounts.set(desc, (routeDescCounts.get(desc) || 0) + 1);
-      });
     }
 
     // Parse trips.txt
