@@ -589,6 +589,7 @@ export class GTFSParserService {
     file: File,
     allowedRouteTypes?: number[],
     allowedAgencies?: string[],
+    progressCallback?: (fileName: string) => void,
   ): Promise<GTFSData> {
     console.log("🗂️  GTFS Parser: Starting to parse ZIP file:", file.name);
     console.log("📦 ZIP file size:", (file.size / 1024 / 1024).toFixed(2), "MB");
