@@ -108,25 +108,25 @@ export class EditorToolsViewComponent {
       id: "parse",
       labelKey: "app.view.editor-side-view.gtfs-import-dialogs.phase-parsing",
       status: "pending",
-      subPhases: [] as { label: string; status: string }[],
+      subPhases: [] as {label: string; status: string}[],
     },
     {
       id: "filter",
       labelKey: "app.view.editor-side-view.gtfs-import-dialogs.phase-filter",
       status: "pending",
-      subPhases: [] as { label: string; status: string }[],
+      subPhases: [] as {label: string; status: string}[],
     },
     {
       id: "convert",
       labelKey: "app.view.editor-side-view.gtfs-import-dialogs.phase-convert",
       status: "pending",
-      subPhases: [] as { label: string; status: string }[],
+      subPhases: [] as {label: string; status: string}[],
     },
     {
       id: "import",
       labelKey: "app.view.editor-side-view.gtfs-import-dialogs.phase-import",
       status: "pending",
-      subPhases: [] as { label: string; status: string }[],
+      subPhases: [] as {label: string; status: string}[],
     },
   ];
   public gtfsImportComplete = false;
@@ -163,7 +163,7 @@ export class EditorToolsViewComponent {
     private changeDetectorRef: ChangeDetectorRef,
   ) {
     // Subscribe to GTFS import state changes
-    this.gtfsImportManagerService.state$.subscribe(state => {
+    this.gtfsImportManagerService.state$.subscribe((state) => {
       this.gtfsFilterDialogVisible = state.filterDialogVisible;
       this.gtfsImportOverlayVisible = state.importOverlayVisible;
       this.gtfsImportComplete = state.importComplete;
@@ -1030,11 +1030,9 @@ export class EditorToolsViewComponent {
     this.gtfsImportManagerService.removeLine(line);
   }
 
-
-
   async applyGtfsFiltersAndImport(): Promise<void> {
-    await this.gtfsImportManagerService.applyFiltersAndImport(
-      (netzgrafikDto) => this.processNetzgrafikJSON(netzgrafikDto)
+    await this.gtfsImportManagerService.applyFiltersAndImport((netzgrafikDto) =>
+      this.processNetzgrafikJSON(netzgrafikDto),
     );
   }
 

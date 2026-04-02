@@ -1,11 +1,11 @@
-import {Injectable} from '@angular/core';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {GTFSParserService} from '../../../services/data/gtfs-parser.service';
-import {GTFSConverterService} from '../../../services/data/gtfs-converter.service';
-import {DataService} from '../../../services/data/data.service';
-import {LabelService} from '../../../services/data/label.service';
-import {LogService} from '../../../logger/log.service';
-import {LabelRef, NetzgrafikDto} from '../../../data-structures/business.data.structures';
+import {Injectable} from "@angular/core";
+import {BehaviorSubject, Observable} from "rxjs";
+import {GTFSParserService} from "../../../services/data/gtfs-parser.service";
+import {GTFSConverterService} from "../../../services/data/gtfs-converter.service";
+import {DataService} from "../../../services/data/data.service";
+import {LabelService} from "../../../services/data/label.service";
+import {LogService} from "../../../logger/log.service";
+import {LabelRef, NetzgrafikDto} from "../../../data-structures/business.data.structures";
 import {
   GTFSImportState,
   GTFSImportPhase,
@@ -15,7 +15,7 @@ import {
   DEFAULT_ROUTE_TYPE_FILTER,
   DEFAULT_NODE_FILTER,
   DEFAULT_TIME_SYNC_TOLERANCE,
-} from './gtfs-import.models';
+} from "./gtfs-import.models";
 
 /**
  * Service to manage GTFS import workflow including:
@@ -25,7 +25,7 @@ import {
  * - Progress tracking
  */
 @Injectable({
-  providedIn: 'root',
+  providedIn: "root",
 })
 export class GtfsImportManagerService {
   private stateSubject = new BehaviorSubject<GTFSImportState>(this.getInitialState());
@@ -81,7 +81,7 @@ export class GtfsImportManagerService {
   private convertRouteTypeFilterToNumbers(): number[] {
     const filter = this.getState().routeTypeFilter;
     const allowedRouteTypes: number[] = [];
-    
+
     if (filter.tram) allowedRouteTypes.push(0);
     if (filter.metro) allowedRouteTypes.push(1);
     if (filter.rail) {
@@ -89,7 +89,7 @@ export class GtfsImportManagerService {
     }
     if (filter.bus) allowedRouteTypes.push(3);
     if (filter.ferry) allowedRouteTypes.push(4);
-    
+
     return allowedRouteTypes;
   }
 
@@ -132,11 +132,11 @@ export class GtfsImportManagerService {
       // Extract categories from route_desc and route_short_name
       const categorySet = new Set<string>();
       lightData.routes.forEach((route: any) => {
-        const desc = (route.route_desc || '').trim();
+        const desc = (route.route_desc || "").trim();
         if (desc) {
           categorySet.add(desc.toUpperCase());
         } else {
-          const shortName = (route.route_short_name || '').trim();
+          const shortName = (route.route_short_name || "").trim();
           if (shortName) {
             const match = shortName.match(/^[A-Za-z]+/);
             if (match) {
@@ -149,7 +149,7 @@ export class GtfsImportManagerService {
 
       // Extract available route names
       const availableRoutes = lightData.routes
-        .map((r: any) => r.route_short_name || r.route_long_name || '')
+        .map((r: any) => r.route_short_name || r.route_long_name || "")
         .filter((name: string, idx: number, arr: string[]) => name && arr.indexOf(name) === idx)
         .sort();
 
@@ -157,10 +157,10 @@ export class GtfsImportManagerService {
       const sbbAgency =
         availableAgencies.find(
           (a: string) =>
-            a.toUpperCase().includes('SCHWEIZERISCHE') && a.toUpperCase().includes('BUNDESBAHNEN'),
-        ) || availableAgencies.find((a: string) => a.toUpperCase().includes('SBB'));
-      
-      const defaultCategories = ['EC', 'IC', 'IR', 'RE', 'S'];
+            a.toUpperCase().includes("SCHWEIZERISCHE") && a.toUpperCase().includes("BUNDESBAHNEN"),
+        ) || availableAgencies.find((a: string) => a.toUpperCase().includes("SBB"));
+
+      const defaultCategories = ["EC", "IC", "IR", "RE", "S"];
       const selectedCategories = defaultCategories.filter((cat) =>
         availableCategories.includes(cat),
       );
@@ -182,14 +182,14 @@ export class GtfsImportManagerService {
       // Update cascading filters
       this.updateAvailableFilters();
     } catch (error: any) {
-      let userMessage = '';
+      let userMessage = "";
       if (
-        error?.message?.includes('Invalid string length') ||
-        error?.message?.includes('out of memory')
+        error?.message?.includes("Invalid string length") ||
+        error?.message?.includes("out of memory")
       ) {
         userMessage =
-          'Die GTFS-Datei ist zu groß für den Browser-Speicher. ' +
-          'Bitte verwenden Sie eine kleinere GTFS-Datei oder filtern Sie die Daten vor dem Import.';
+          "Die GTFS-Datei ist zu groß für den Browser-Speicher. " +
+          "Bitte verwenden Sie eine kleinere GTFS-Datei oder filtern Sie die Daten vor dem Import.";
       } else {
         userMessage = error?.message || String(error);
       }
@@ -279,11 +279,11 @@ export class GtfsImportManagerService {
     // Extract available categories from filtered routes
     const categorySet = new Set<string>();
     filteredRoutes.forEach((route: any) => {
-      const desc = (route.route_desc || '').trim();
+      const desc = (route.route_desc || "").trim();
       if (desc) {
         categorySet.add(desc.toUpperCase());
       } else {
-        const shortName = (route.route_short_name || '').trim();
+        const shortName = (route.route_short_name || "").trim();
         if (shortName) {
           const match = shortName.match(/^[A-Za-z]+/);
           if (match) {
@@ -297,8 +297,8 @@ export class GtfsImportManagerService {
     // Apply category filter
     if (state.selectedCategories.length > 0) {
       filteredRoutes = filteredRoutes.filter((route: any) => {
-        const desc = (route.route_desc || '').toUpperCase();
-        const shortName = (route.route_short_name || '').toUpperCase();
+        const desc = (route.route_desc || "").toUpperCase();
+        const shortName = (route.route_short_name || "").toUpperCase();
 
         return state.selectedCategories.some((cat) => {
           const catUpper = cat.toUpperCase();
@@ -316,7 +316,7 @@ export class GtfsImportManagerService {
 
     // Extract available lines from filtered routes
     const availableRoutes = filteredRoutes
-      .map((r: any) => r.route_short_name || r.route_long_name || '')
+      .map((r: any) => r.route_short_name || r.route_long_name || "")
       .filter((name: string, idx: number, arr: string[]) => name && arr.indexOf(name) === idx)
       .sort();
 
@@ -349,9 +349,7 @@ export class GtfsImportManagerService {
   /**
    * Apply filters and start full GTFS import
    */
-  async applyFiltersAndImport(
-    processNetzgrafikJSON: (dto: NetzgrafikDto) => void,
-  ): Promise<void> {
+  async applyFiltersAndImport(processNetzgrafikJSON: (dto: NetzgrafikDto) => void): Promise<void> {
     const state = this.getState();
     if (!state.file) {
       return;
@@ -370,13 +368,13 @@ export class GtfsImportManagerService {
       const allowedRouteTypes = this.convertRouteTypeFilterToNumbers();
 
       // PHASE 1: Full GTFS parse
-      this.updatePhaseStatus(0, 'running', [
-        {label: 'agency.txt', status: 'running' as const},
-        {label: 'stops.txt', status: 'pending' as const},
-        {label: 'routes.txt', status: 'pending' as const},
-        {label: 'trips.txt', status: 'pending' as const},
-        {label: 'stop_times.txt', status: 'pending' as const},
-        {label: 'calendar.txt', status: 'pending' as const},
+      this.updatePhaseStatus(0, "running", [
+        {label: "agency.txt", status: "running" as const},
+        {label: "stops.txt", status: "pending" as const},
+        {label: "routes.txt", status: "pending" as const},
+        {label: "trips.txt", status: "pending" as const},
+        {label: "stop_times.txt", status: "pending" as const},
+        {label: "calendar.txt", status: "pending" as const},
       ]);
 
       const gtfsData = await this.gtfsParserService.parseGTFSZip(
@@ -387,39 +385,39 @@ export class GtfsImportManagerService {
           // Find the sub-phase for the completed file
           const state = this.getState();
           const subPhases = state.importPhases[0].subPhases;
-          const currentIndex = subPhases.findIndex(sp => sp.label === fileName);
-          
+          const currentIndex = subPhases.findIndex((sp) => sp.label === fileName);
+
           if (currentIndex >= 0) {
             // Mark current file as completed
-            this.updateSubPhaseStatus(0, currentIndex, 'completed');
-            
+            this.updateSubPhaseStatus(0, currentIndex, "completed");
+
             // Mark next file as running (if exists)
             if (currentIndex + 1 < subPhases.length) {
-              this.updateSubPhaseStatus(0, currentIndex + 1, 'running');
+              this.updateSubPhaseStatus(0, currentIndex + 1, "running");
             }
           }
-        }
+        },
       );
 
       // All parsing subphases should be completed via callbacks
-      this.updatePhaseStatus(0, 'completed');
+      this.updatePhaseStatus(0, "completed");
 
       this.logger.info(
         $localize`:@@app.view.editor-side-view.editor-tools-view-component.gtfs-converting:Converting GTFS to Netzgrafik format...`,
       );
 
       // PHASE 2: Apply filters
-      this.updatePhaseStatus(1, 'running', [
-        {label: 'Kategorie-Filter', status: 'running' as const},
-        {label: 'Linien-Filter', status: 'pending' as const},
-        {label: 'Knoten-Filter', status: 'pending' as const},
+      this.updatePhaseStatus(1, "running", [
+        {label: "Kategorie-Filter", status: "running" as const},
+        {label: "Linien-Filter", status: "pending" as const},
+        {label: "Knoten-Filter", status: "pending" as const},
       ]);
 
       // Apply category filter
       if (state.selectedCategories.length > 0) {
         gtfsData.routes = gtfsData.routes.filter((route: any) => {
-          const desc = (route.route_desc || '').toUpperCase();
-          const shortName = (route.route_short_name || '').toUpperCase();
+          const desc = (route.route_desc || "").toUpperCase();
+          const shortName = (route.route_short_name || "").toUpperCase();
 
           return state.selectedCategories.some((cat) => {
             const catUpper = cat.toUpperCase();
@@ -440,14 +438,14 @@ export class GtfsImportManagerService {
         const validTripIds = new Set(gtfsData.trips.map((t: any) => t.trip_id));
         gtfsData.stopTimes = gtfsData.stopTimes.filter((st: any) => validTripIds.has(st.trip_id));
       }
-      this.updateSubPhaseStatus(1, 0, 'completed');
+      this.updateSubPhaseStatus(1, 0, "completed");
 
       // Apply line filter
-      this.updateSubPhaseStatus(1, 1, 'running');
-      
+      this.updateSubPhaseStatus(1, 1, "running");
+
       if (state.selectedLines.length > 0) {
         gtfsData.routes = gtfsData.routes.filter((route: any) => {
-          const shortName = (route.route_short_name || '').toUpperCase();
+          const shortName = (route.route_short_name || "").toUpperCase();
           return state.selectedLines.some((line) => shortName === line.toUpperCase());
         });
 
@@ -468,11 +466,11 @@ export class GtfsImportManagerService {
           usedStopIdsWithParents.has(stop.stop_id),
         );
       }
-      this.updateSubPhaseStatus(1, 1, 'completed');
+      this.updateSubPhaseStatus(1, 1, "completed");
 
       // Apply node classification filter
-      this.updateSubPhaseStatus(1, 2, 'running');
-      
+      this.updateSubPhaseStatus(1, 2, "running");
+
       const activeNodeTypes = Object.keys(state.nodeFilter).filter(
         (key) => state.nodeFilter[key as keyof typeof state.nodeFilter],
       );
@@ -483,16 +481,16 @@ export class GtfsImportManagerService {
           (stop: any) => !stop.node_type || acceptedClassifications.has(stop.node_type),
         );
       }
-      this.updateSubPhaseStatus(1, 2, 'completed');
-      this.updatePhaseStatus(1, 'completed');
+      this.updateSubPhaseStatus(1, 2, "completed");
+      this.updatePhaseStatus(1, "completed");
 
       // PHASE 3: Convert to Netzgrafik
-      this.updatePhaseStatus(2, 'running', [
-        {label: 'Knoten erstellen', status: 'running' as const},
-        {label: 'Zugläufe konvertieren', status: 'pending' as const},
-        {label: 'Abschnitte generieren', status: 'pending' as const},
-        {label: 'Round-Trip Matching', status: 'pending' as const},
-        {label: 'Layout berechnen', status: 'pending' as const},
+      this.updatePhaseStatus(2, "running", [
+        {label: "Knoten erstellen", status: "running" as const},
+        {label: "Zugläufe konvertieren", status: "pending" as const},
+        {label: "Abschnitte generieren", status: "pending" as const},
+        {label: "Round-Trip Matching", status: "pending" as const},
+        {label: "Layout berechnen", status: "pending" as const},
       ]);
 
       const existingNetzgrafik = this.dataService.getNetzgrafikDto();
@@ -512,18 +510,18 @@ export class GtfsImportManagerService {
         });
 
         this.markAllSubPhasesCompleted(2);
-        this.updatePhaseStatus(2, 'completed');
+        this.updatePhaseStatus(2, "completed");
       } catch (convertError) {
-        this.updatePhaseStatus(2, 'error');
+        this.updatePhaseStatus(2, "error");
         throw convertError;
       }
 
       // PHASE 4: Import into editor
-      this.updatePhaseStatus(3, 'running');
+      this.updatePhaseStatus(3, "running");
 
       processNetzgrafikJSON(netzgrafikDto);
 
-      this.updatePhaseStatus(3, 'completed');
+      this.updatePhaseStatus(3, "completed");
 
       // Generate summary
       const summary = this.generateImportSummary(netzgrafikDto);
@@ -536,15 +534,15 @@ export class GtfsImportManagerService {
         $localize`:@@app.view.editor-side-view.editor-tools-view-component.gtfs-success:GTFS data imported successfully`,
       );
     } catch (error: any) {
-      this.logger.error('GTFS import failed: ' + (error?.message || String(error)));
-      
+      this.logger.error("GTFS import failed: " + (error?.message || String(error)));
+
       // Mark current phase as error
       const currentState = this.getState();
-      const runningPhaseIndex = currentState.importPhases.findIndex((p) => p.status === 'running');
+      const runningPhaseIndex = currentState.importPhases.findIndex((p) => p.status === "running");
       if (runningPhaseIndex >= 0) {
-        this.updatePhaseStatus(runningPhaseIndex, 'error');
+        this.updatePhaseStatus(runningPhaseIndex, "error");
       }
-      
+
       this.updateState({importComplete: true});
     }
   }
@@ -564,8 +562,8 @@ export class GtfsImportManagerService {
     const nodes = netzgrafikDto.nodes || [];
     const metadata: any = netzgrafikDto.metadata || {};
 
-    const roundTripCount = trainruns.filter((t: any) => t.direction === 'round_trip').length;
-    const oneWayCount = trainruns.filter((t: any) => t.direction === 'one_way').length;
+    const roundTripCount = trainruns.filter((t: any) => t.direction === "round_trip").length;
+    const oneWayCount = trainruns.filter((t: any) => t.direction === "one_way").length;
 
     const byCategory: Record<string, number> = {};
     const categories = metadata.trainrunCategories || [];
@@ -615,7 +613,7 @@ export class GtfsImportManagerService {
   // Helper methods for phase management
   private updatePhaseStatus(
     phaseIndex: number,
-    status: 'pending' | 'running' | 'completed' | 'error',
+    status: "pending" | "running" | "completed" | "error",
     subPhases?: GTFSSubPhase[],
   ): void {
     const state = this.getState();
@@ -631,7 +629,7 @@ export class GtfsImportManagerService {
   private updateSubPhaseStatus(
     phaseIndex: number,
     subPhaseIndex: number,
-    status: 'pending' | 'running' | 'completed' | 'error',
+    status: "pending" | "running" | "completed" | "error",
   ): void {
     const state = this.getState();
     const newPhases = [...state.importPhases];
@@ -649,7 +647,7 @@ export class GtfsImportManagerService {
     const newPhases = [...state.importPhases];
     newPhases[phaseIndex].subPhases = newPhases[phaseIndex].subPhases.map((sp) => ({
       ...sp,
-      status: 'completed' as const,
+      status: "completed" as const,
     }));
     this.updateState({importPhases: newPhases});
   }

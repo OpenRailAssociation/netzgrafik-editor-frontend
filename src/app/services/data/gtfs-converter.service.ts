@@ -150,7 +150,6 @@ export class GTFSConverterService {
     frequencies: TrainrunFrequency[];
     frequencyMap: Map<number, number>;
   } {
-
     const frequencies: TrainrunFrequency[] = existingMetadata?.trainrunFrequencies || [];
     const frequencyMap = new Map<number, number>();
 
@@ -262,19 +261,18 @@ export class GTFSConverterService {
     const maxTripsPerRoute = options.maxTripsPerRoute || 10;
     const minStopsPerTrip = options.minStopsPerTrip || 3;
 
-      // Step 1: Identify trip patterns (group trips with same stop sequence)
+    // Step 1: Identify trip patterns (group trips with same stop sequence)
     const tripPatterns = this.identifyTripPatterns(gtfsData, minStopsPerTrip);
 
     // Step 2: Select representative trips from each pattern
     const selectedPatterns = tripPatterns; // Use ALL patterns instead of limiting
-    
 
     // Step 3: Create nodes from stops used in selected patterns
     const usedStopIds = new Set<string>();
     selectedPatterns.forEach((pattern) => {
       pattern.stopSequence.forEach((stopId) => usedStopIds.add(stopId));
     });
-  
+
     // The stopSequence contains parent_station IDs (from identifyTripPatterns)
     // Some of these parent_station IDs might NOT exist as actual stops in stops.txt
     // We need to create virtual parent stops for these cases
@@ -309,13 +307,12 @@ export class GTFSConverterService {
             parent_station: "", // No parent (is top-level)
           };
           stopMap.set(parentId, virtualParent);
-
-        } 
+        }
       });
     }
 
     const nodes = this.createNodes(Array.from(stopMap.values()), gtfsData.stops);
-   
+
     // Center all node coordinates around (0,0)
     if (nodes.length > 0) {
       const sumX = nodes.reduce((sum, node) => sum + node.positionX, 0);
@@ -327,7 +324,6 @@ export class GTFSConverterService {
         node.positionX -= centerX;
         node.positionY -= centerY;
       });
-
     }
 
     // Step 4: Create node ID mapping (map GTFS stop_id to Netzgrafik node ID)
@@ -361,9 +357,8 @@ export class GTFSConverterService {
       }
     });
 
- 
     // Step 4.5: Map categories and frequencies
-     const {categories, categoryMap} = this.mapCategories(gtfsData.routes, options.existingMetadata);
+    const {categories, categoryMap} = this.mapCategories(gtfsData.routes, options.existingMetadata);
     const {frequencies, frequencyMap} = this.mapFrequencies(
       gtfsData.routes,
       options.existingMetadata,
@@ -461,7 +456,7 @@ export class GTFSConverterService {
         direction: Direction.ONE_WAY,
       };
       trainruns.push(trainrun);
-      
+
       // Create trainrun sections
       // Process all stations in sequence, including non-stop (through) stations
       let sectionsCreated = 0;
@@ -532,9 +527,8 @@ export class GTFSConverterService {
           : `${Math.floor(arrivalTime / 60)
               .toString()
               .padStart(2, "0")}:${(arrivalTime % 60).toString().padStart(2, "0")} (durch)`;
-
       });
-   
+
       // Create sections between consecutive stations
       for (let i = 0; i < stationGroups.length - 1; i++) {
         const sourceGroup = stationGroups[i];
@@ -629,10 +623,9 @@ export class GTFSConverterService {
       }
     });
 
- 
     // Step 5.1: Match and merge round-trip patterns
-     const timeSyncTolerance = options.timeSyncTolerance || 150; // seconds
-  
+    const timeSyncTolerance = options.timeSyncTolerance || 150; // seconds
+
     // Build trainrun -> pattern map
     const trainrunToPattern = new Map<number, TripPattern>();
     selectedPatterns.forEach((pattern, index) => {
@@ -653,7 +646,6 @@ export class GTFSConverterService {
 
     const roundTripCount = trainruns.filter((t) => t.direction === Direction.ROUND_TRIP).length;
     const oneWayCount = trainruns.filter((t) => t.direction === Direction.ONE_WAY).length;
-   
 
     // Step 5.2: Create labels for round-trip matching status
     const {labels, labelGroup} = this.createMatchingStatusLabels(trainruns, matchingStatus);
@@ -669,7 +661,6 @@ export class GTFSConverterService {
         node.positionX *= initialScale;
         node.positionY *= initialScale;
       });
-      
     }
 
     // Apply spring layout with topology preservation
@@ -681,13 +672,12 @@ export class GTFSConverterService {
     });
 
     const edgeLengthAfter = this.calculateEdgeLengthRange(nodes, trainrunSections);
-   
 
     const xCoords = nodes.map((n) => n.positionX);
     const yCoords = nodes.map((n) => n.positionY);
-  
+
     // Step 6: Create metadata
-    
+
     const metadata: MetadataDto = {
       trainrunCategories: categories,
       trainrunFrequencies: frequencies,
@@ -699,7 +689,7 @@ export class GTFSConverterService {
         },
       },
     };
-   
+
     // Step 7: Create NetzgrafikDto
     const netzgrafikDto: NetzgrafikDto = {
       nodes: nodes,
@@ -893,7 +883,7 @@ export class GTFSConverterService {
     const indicesToRemove = Array.from(matched).sort((a, b) => b - a);
     for (const index of indicesToRemove) {
       const removedTrainrun = trainruns[index];
-     // Remove trainrun
+      // Remove trainrun
       trainruns.splice(index, 1);
 
       // Remove associated sections
@@ -906,7 +896,6 @@ export class GTFSConverterService {
       });
     }
 
-   
     return matchingStatus;
   }
 
