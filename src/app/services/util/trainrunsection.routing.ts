@@ -430,12 +430,19 @@ export class SimpleTrainrunSectionRouter {
     const trainrunSectionTravelTimePos = isBackwardTravelTimeDisplayed
       ? Vec2D.add(
           Vec2D.scale(Vec2D.add(s1, t1), 0.5),
-          Vec2D.scale(rDeltaS, -TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_TOP),
+          Vec2D.scale(
+            rDeltaS,
+            invertTrafficSide *
+              (-TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_TOP),
+          ),
         )
       : trainrunSectionNamePos;
     const trainrunSectionBackwardTravelTimePos = Vec2D.add(
       Vec2D.scale(Vec2D.add(s1, t1), 0.5),
-      Vec2D.scale(rDeltaS, TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM),
+      Vec2D.scale(
+        rDeltaS,
+        invertTrafficSide * (TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_BOTTOM),
+      ),
     );
 
     const trainrunSectionNumberOfStopsPos = Vec2D.add(
