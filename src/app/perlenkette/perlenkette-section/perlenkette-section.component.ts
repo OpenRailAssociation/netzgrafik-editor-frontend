@@ -517,21 +517,42 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     return this.filterService.isFilterArrivalDepartureTimeEnabled();
   }
 
+  getTimeTransform(
+    element: "rightArrivalTime" | "rightDepartureTime" | "leftArrivalTime" | "leftDepartureTime",
+  ) {
+    const trafficSide = this.uiInteractionService.getActiveTrafficSideType();
+    const symetricOffset = this.trainrunSection.isSymmetric() ? 0 : 8;
+    if (element === "rightArrivalTime" || element === "rightDepartureTime") {
+      if (trafficSide === "rightHand") {
+        return element === "rightArrivalTime"
+          ? `translate(${116 - symetricOffset}, 178)`
+          : `translate(${116 - symetricOffset}, 32)`;
+      }
+      return element === "rightArrivalTime" ? "translate(149, 178)" : "translate(149, 32)";
+    } else {
+      if (trafficSide === "rightHand") {
+        return element === "leftArrivalTime" ? "translate(158, 18)" : "translate(166, 164)";
+      }
+      return element === "leftArrivalTime" ? "translate(124, 18)" : "translate(124, 164)";
+    }
+  }
+
   getTravelTimeTransform(element: "travelTime" | "bottomTravelTime") {
+    const trafficSide = this.uiInteractionService.getActiveTrafficSideType();
     if (element === "travelTime") {
       if (this.trainrunSection.isSymmetric()) {
         // default position
-        return "translate(121, 93)";
+        return trafficSide === "rightHand" ? "translate(155, 93)" : "translate(121, 93)";
       }
       // position swapped when asymmetric to match leftDepartureTime and rightArrivalTime that are always shown on the right side
       if (this.stationNumberArray.length > 5) {
         // move a bit more to the right when many stops are shown
         return "translate(165, 106)";
       }
-      return "translate(155, 106)";
+      return trafficSide === "rightHand" ? "translate(121, 106)" : "translate(155, 106)";
     } else {
       // position on the left side to match leftArrivalTime and rightDepartureTime that are always shown on the left side
-      return "translate(121, 93)";
+      return trafficSide === "rightHand" ? "translate(155, 93)" : "translate(121, 93)";
     }
   }
 
