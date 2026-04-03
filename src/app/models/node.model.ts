@@ -781,7 +781,11 @@ export class Node {
   }
 
   isEmpty(): boolean {
-    return this.getBetriebspunktName() === "" && this.getFullName() === "";
+    return (this.getBetriebspunktName() === "" || this.isDefaultBetriebspunktName()) && this.getFullName() === "";
+  }
+
+  isDefaultBetriebspunktName(): boolean {
+    return this.getBetriebspunktName() === `id${this.getId()}`;
   }
 
   isNonStop(trainrunSection: TrainrunSection): boolean {
