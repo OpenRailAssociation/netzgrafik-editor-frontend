@@ -273,6 +273,7 @@ export class NodeService implements OnDestroy {
     node.setFullName("");
     node.setPosition(positionX, positionY);
     node.setIsCollapsed(true);
+    node.setHaltezeit(Node.getDefaultHaltezeitForStop());
     const resource: Resource = this.resourceService.createAndGetResource();
     node.setResourceId(resource.getId());
     this.nodesStore.nodes.push(node);

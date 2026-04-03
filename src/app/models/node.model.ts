@@ -123,6 +123,16 @@ export class Node {
     };
   }
 
+  /**
+   * Like getDefaultHaltezeit() but with Uncategorized.no_halt=false, so that a freshly
+   * created intermediate stop node is never marked as a non-stop transit.
+   */
+  static getDefaultHaltezeitForStop(): TrainrunCategoryHaltezeit {
+    const haltezeit = Node.getDefaultHaltezeit();
+    haltezeit[HaltezeitFachCategories.Uncategorized].no_halt = false;
+    return haltezeit;
+  }
+
   static getDefaultPerronKanten(): number {
     return 5;
   }
