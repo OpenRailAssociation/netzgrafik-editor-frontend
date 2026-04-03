@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.11.0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.19...netzgrafik-frontend-v2.11.0) (2026-04-03)
+
+
+### Features
+
+* add port ordering algorithm to minimize crossings ([143a7a7](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/143a7a7daef9f2e63acd7820aa1fed157a41c40c))
+* **editor-main-view:** add asymmetric trainrun filter ([6335012](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/633501254965b6383716005a741495a43611d32c))
+* **editor-main-view:** add asymmetry arrow filter ([d31174d](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/d31174d07f61b938bd17f49fb064d011c46a9f7e))
+* **editor-main-view:** add backward travel time filter ([e7f7cee](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/e7f7cee4b31592a3f523fa450edf6eedb0800ad3))
+* **editor-main-view:** display backward travel time ([9775e66](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/9775e661e7cf486852e9de1ceb724b45968dddc0))
+* **editor-main-view:** introduce asymmetry arrow ([c820912](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/c820912f9f166334d9a1f2ac1279e783bef8cc7e))
+* integrate new port ordering into UI ([#635](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/635)) ([87cf7cb](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/87cf7cb9396eeb428e8ef818fbb01597ff26e5a1))
+* **models:** add helpers to Port and Transition ([a395aed](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/a395aed1edc845ded1cb6145a203c8ab7a07336d))
+* **perlenkette:** add asymmetry support ([f8cace1](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/f8cace14b67259a2c2d44673b2afb2bd4d1fb6cb))
+* **services:** add asymmetry support to propagateTrainrunSectionTime() ([37c1ee5](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/37c1ee5c1db8367380e0e42c0c646b0cc0fc9276))
+* **view:** add symmetry switches to section tab in trainrun dialog ([6a0cdff](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/6a0cdff55948bd18e8b58bf8e7f746dd18413e54))
+
+
+### Bug Fixes
+
+* **i18n:** fix missing symmetry translation identifier ([04982f9](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/04982f9d59f368c63807f7fd24dff16ae69f1430))
+* **operation:** emit trainrun update on time propagation ([01d40b8](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/01d40b86697bb4dc4ff047f7c1aeef12095ac2c7))
+* **service:** temporary fix for symmetry reset ([c54de5d](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/c54de5d18ec372e57a4bf9cd8a5b8257acb34382))
+* **streckengrafik:** fix turnaround time for asymmetric trainruns ([f9eb470](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/f9eb4704d7ea8a0a497f5fb4cf59ffad5e58651b))
+* use HashLocationStrategy for standalone mode ([e8a155a](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/e8a155ae22578f793f1b325048574c805e097af6))
+
 ## [2.10.19](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.18...netzgrafik-frontend-v2.10.19) (2026-03-11)
 
 
