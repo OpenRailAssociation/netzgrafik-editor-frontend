@@ -1099,6 +1099,7 @@ export class TrainrunSectionService implements OnDestroy {
     );
 
     this.replaceIntermediateStopWithNode(trainrunSection.getId(), newNode.getId(), 0);
+    this.operation.emit(new TrainrunOperation(OperationType.update, trainrunSection.getTrainrun()));
   }
 
   removeIntermediateStopOnTrainrunSection(initialTrainrunSection: TrainrunSection): boolean {
