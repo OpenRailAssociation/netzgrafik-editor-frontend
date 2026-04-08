@@ -108,6 +108,7 @@ import {I18nModule} from "./core/i18n/i18n.module";
 import {OriginDestinationComponent} from "./services/analytics/origin-destination/components/origin-destination.component";
 import {SbbToggleModule} from "@sbb-esta/angular/toggle";
 import {ToggleSwitchButtonComponent} from "./view/toggle-switch-button/toggle-switch-button.component";
+import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrunsection-tab/time-stepper/time-stepper.component";
 
 @NgModule({
   declarations: [
@@ -119,6 +120,7 @@ import {ToggleSwitchButtonComponent} from "./view/toggle-switch-button/toggle-sw
     TrainrunFilterTabComponent,
     TrainrunRoundtripTabComponent,
     TrainrunSectionTabComponent,
+    TimeStepperComponent,
     TrainrunSectionCardComponent,
     EditorNodeDetailViewComponent,
     EditorFilterViewComponent,
