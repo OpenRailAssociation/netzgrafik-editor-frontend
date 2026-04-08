@@ -155,7 +155,7 @@
       <div *ngIf="pathItem instanceof PerlenketteNode">
         <p class="alignleft" style="line-height: 10px">
           <span [class]="getSmallstationClassTag(pathItem)" (click)="goto(pathItem)">{{
-            pathItem.shortName
+            pathItem.shortName || "?"
           }}</span>
 
           <ng-container *ngIf="isLastNodeButNotVeryLast(pathItem)">
