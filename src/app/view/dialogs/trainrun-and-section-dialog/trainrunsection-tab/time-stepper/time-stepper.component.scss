@@ -1,0 +1,26 @@
+@import "../../../../rastering/definitions";
+:host {
+  display: contents;
+}
+
+.time-stepper-container {
+  display: flex;
+  border: 1px solid var(--sbb-menu-item-label);
+}
+
+.step-button {
+  width: 26px;
+  height: 30px;
+  border: 0px;
+  text-align: center;
+  padding-right: 1px;
+  padding-top: 1px;
+  margin: 3px;
+  background-color: var(--sbb-background-color);
+  outline: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: $COLOR_MUTED_SILVER;
+  }
+}
