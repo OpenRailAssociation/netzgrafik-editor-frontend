@@ -902,8 +902,8 @@ export class TrainrunService {
           : arrivalTime - oppositeNodeDepartureTime;
       accumulatedTime += travelTime;
 
-      const travelTimeOffset =
-        nextPair.trainrunSection.getTravelTime() - (nextPair.trainrunSection.getTravelTime() % 60);
+      const directedTravelTime = nextPair.getDirectedTrainrunSectionProxy().getTravelTime();
+      const travelTimeOffset = directedTravelTime - (directedTravelTime % 60);
       accumulatedTime += travelTimeOffset;
 
       nextPair.node.setArrivalConsecutiveTime(nextPair.trainrunSection, accumulatedTime);
