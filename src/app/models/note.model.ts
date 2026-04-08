@@ -1,5 +1,20 @@
+import DOMPurify from "dompurify";
 import {FreeFloatingTextDto} from "../data-structures/business.data.structures";
 import {DataMigration} from "../utils/data-migration";
+
+// TODO: drop once we upgrade to a newer TypeScript which ships Sanitizer types
+declare global {
+  class Sanitizer {
+    allowAttribute(name: string);
+    removeUnsafe();
+  }
+  interface HTMLElement {
+    setHTML(unsafeHTML: string, options?: {sanitizer: Sanitizer});
+  }
+  interface Window {
+    Sanitizer?: typeof Sanitizer;
+  }
+}
 
 export class Note {
   public static DEFAULT_NOTE_WIDTH = 192;
@@ -162,5 +177,23 @@ export class Note {
       textColor: this.textColor,
       labelIds: this.labelIds,
     };
+  }
+
+  getSanitizedText() {
+    if (window.Sanitizer) {
+      const sanitizer = new Sanitizer();
+      sanitizer.allowAttribute("style");
+      sanitizer.allowAttribute("target");
+      sanitizer.removeUnsafe();
+
+      const elt = document.createElement("div");
+      elt.setHTML(this.getText(), {sanitizer});
+      return elt.innerHTML;
+    } else {
+      // TODO: drop this fallback once Sanitizer support is widespread across
+      // browsers:
+      // https://developer.mozilla.org/en-US/docs/Web/API/HTML_Sanitizer_API
+      return DOMPurify.sanitize(this.getText(), {ADD_ATTR: ["target"]});
+    }
   }
 }

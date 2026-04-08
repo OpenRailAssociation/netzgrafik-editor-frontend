@@ -78,7 +78,7 @@ export class NotesView {
   static extractTextBasedWidth(n: Note): number {
     let maxLen = 0;
     const div = document.createElement("div");
-    div.innerHTML = n.getText().split("<br>").join("<br>\n").split("<p>").join("<p>\n");
+    div.innerHTML = n.getSanitizedText().split("<br>").join("<br>\n").split("<p>").join("<p>\n");
     div.textContent.split("\n", 9999).forEach((v) => {
       maxLen = Math.max(maxLen, v.length);
     });
@@ -306,7 +306,7 @@ export class NotesView {
       .attr(StaticDomTags.NOTE_ID, (n: NoteViewObject) => n.note.getId())
       .attr("x", NOTE_TEXT_LEFT_SPACING)
       .attr("y", 3 * TEXT_SIZE)
-      .html((n: NoteViewObject) => NotesView.convertText(n.note.getText()))
+      .html((n: NoteViewObject) => NotesView.convertText(n.note.getSanitizedText()))
       .on("mousedown", (n: NoteViewObject) => this.onNoteMousedown(n.note))
       .on("mouseout", (n: NoteViewObject) => this.onNoteMouseout(n.note, null))
       .on("mouseover", (n: NoteViewObject, i, a) => this.onNoteMouseover(n.note, a[i]));
