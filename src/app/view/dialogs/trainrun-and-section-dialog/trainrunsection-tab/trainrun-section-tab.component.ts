@@ -29,6 +29,7 @@ import {
 } from "../../../../services/data/trainrun-section-times.service";
 import {VersionControlService} from "../../../../services/data/version-control.service";
 import {ToggleSwitchButtonComponent} from "../../../toggle-switch-button/toggle-switch-button.component";
+import {TimeStepperComponent} from "./time-stepper/time-stepper.component";
 
 @Component({
   selector: "sbb-trainrunsection-tab",
@@ -40,17 +41,17 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   @Input()
   trainrunDialogParameter: TrainrunDialogParameter;
   @ViewChild("leftDepartureTimeInputElement")
-  leftDepartureTimeInputElement: ElementRef;
+  leftDepartureTimeInputElement: TimeStepperComponent;
   @ViewChild("leftArrivalTimeInputElement")
-  leftArrivalTimeInputElement: ElementRef;
+  leftArrivalTimeInputElement: TimeStepperComponent;
   @ViewChild("rightDepartureTimeInputElement")
-  rightDepartureTimeInputElement: ElementRef;
+  rightDepartureTimeInputElement: TimeStepperComponent;
   @ViewChild("rightArrivalTimeInputElement")
-  rightArrivalTimeInputElement: ElementRef;
+  rightArrivalTimeInputElement: TimeStepperComponent;
   @ViewChild("travelTimeInputElement")
-  travelTimeInputElement: ElementRef;
+  travelTimeInputElement: TimeStepperComponent;
   @ViewChild("bottomTravelTimeInputElement")
-  bottomTravelTimeInputElement: ElementRef;
+  bottomTravelTimeInputElement: TimeStepperComponent;
   @ViewChild("leftSymmetryToggle") leftSymmetryToggle: ToggleSwitchButtonComponent;
   @ViewChild("rightSymmetryToggle") rightSymmetryToggle: ToggleSwitchButtonComponent;
 
@@ -205,31 +206,24 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   setFocusToUIElement(focusElement: LeftAndRightElement) {
     switch (focusElement) {
       case LeftAndRightElement.LeftArrival:
-        this.setFocusAndSelectInputElement(this.leftArrivalTimeInputElement.nativeElement);
+        this.leftArrivalTimeInputElement.focusAndSelectInput();
         break;
       case LeftAndRightElement.LeftDeparture:
-        this.setFocusAndSelectInputElement(this.leftDepartureTimeInputElement.nativeElement);
+        this.leftDepartureTimeInputElement.focusAndSelectInput();
         break;
       case LeftAndRightElement.RightArrival:
-        this.setFocusAndSelectInputElement(this.rightArrivalTimeInputElement.nativeElement);
+        this.rightArrivalTimeInputElement.focusAndSelectInput();
         break;
       case LeftAndRightElement.RightDeparture:
-        this.setFocusAndSelectInputElement(this.rightDepartureTimeInputElement.nativeElement);
+        this.rightDepartureTimeInputElement.focusAndSelectInput();
         break;
       case LeftAndRightElement.TravelTime:
-        this.setFocusAndSelectInputElement(this.travelTimeInputElement.nativeElement);
+        this.travelTimeInputElement.focusAndSelectInput();
         break;
       case LeftAndRightElement.BottomTravelTime:
-        this.setFocusAndSelectInputElement(this.bottomTravelTimeInputElement.nativeElement);
+        this.bottomTravelTimeInputElement.focusAndSelectInput();
         break;
     }
-  }
-
-  setFocusAndSelectInputElement(element: HTMLInputElement) {
-    setTimeout(() => {
-      element.focus();
-      element.select();
-    }, 800);
   }
 
   getEdgeLineClassAttrString(layer: number) {
@@ -271,13 +265,11 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
 
   /* methods for tabbing */
   setFocusToBeginningOfLoop() {
-    this.leftDepartureTimeInputElement.nativeElement.focus();
-    this.leftDepartureTimeInputElement.nativeElement.select();
+    this.leftDepartureTimeInputElement.focusAndSelectInput();
   }
 
   setFocusToEndOfLoop() {
-    this.leftArrivalTimeInputElement.nativeElement.focus();
-    this.leftArrivalTimeInputElement.nativeElement.select();
+    this.leftArrivalTimeInputElement.focusAndSelectInput();
   }
 
   /* number of stops */
