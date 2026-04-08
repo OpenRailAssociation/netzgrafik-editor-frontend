@@ -149,7 +149,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     parameter.noteFormComponentModel = {
       id: note.getId(),
       noteTitle: note.getTitle(),
-      noteText: note.getText(),
+      noteText: note.getSanitizedText(),
       noteHeight: note.getHeight(),
       noteWidth: note.getWidth(),
       notePositionX: note.getPositionX(),
