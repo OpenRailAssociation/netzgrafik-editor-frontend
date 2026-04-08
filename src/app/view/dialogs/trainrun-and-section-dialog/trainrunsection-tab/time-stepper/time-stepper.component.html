@@ -1,0 +1,20 @@
+<ng-container *ngIf="isDisplayed">
+  <div [class]="containerClass" class="time-stepper-container">
+    <button tabindex="-1" mode="ghost" class="step-button" (click)="decrement.emit()">-</button>
+    <input
+      [tabindex]="tabIndex"
+      [id]="inputId"
+      [ngClass]="inputClass"
+      type="number"
+      sbbInput
+      spellcheck="false"
+      pattern="^[0-9.]*"
+      [min]="min"
+      minlength="1"
+      [(ngModel)]="value"
+      (change)="onValueChanged()"
+      #inputElement
+    />
+    <button tabindex="-1" mode="ghost" class="step-button" (click)="increment.emit()">+</button>
+  </div>
+</ng-container>
