@@ -471,6 +471,23 @@ sbb-dialog-actions {
       flex: 1 1 auto !important;
     }
   }
+
+  // Date input specific styling
+  input[type="date"] {
+    min-height: 48px;
+    font-size: 16px;
+    padding: 12px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .filter-label {
+    font-weight: 600;
+    color: var(--sbb-color-text, #000);
+    margin-bottom: 8px;
+    font-size: 14px;
+    display: block;
+  }
 }
 
 // Ensure proper spacing for hint text

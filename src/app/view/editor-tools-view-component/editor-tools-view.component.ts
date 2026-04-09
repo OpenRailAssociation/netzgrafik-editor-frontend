@@ -92,6 +92,9 @@ export class EditorToolsViewComponent {
   public gtfsSelectedLines: string[] = [];
   public gtfsFilteredLines: string[] = [];
 
+  // Selected operating day
+  public gtfsSelectedDate: string | null = null;
+
   // Warnings for empty filters
   public gtfsNoCategoriesWarning = false;
   public gtfsNoLinesWarning = false;
@@ -175,6 +178,7 @@ export class EditorToolsViewComponent {
       this.gtfsSelectedAgencies = state.selectedAgencies;
       this.gtfsSelectedCategories = state.selectedCategories;
       this.gtfsSelectedLines = state.selectedLines;
+      this.gtfsSelectedDate = state.selectedDate;
       this.gtfsFilteredAgencies = state.filteredAgencies;
       this.gtfsFilteredCategories = state.filteredCategories;
       this.gtfsFilteredLines = state.filteredLines;
@@ -960,7 +964,7 @@ export class EditorToolsViewComponent {
     });
   }
 
-  private processNetzgrafikJSON(netzgrafikDto: NetzgrafikDto) {
+  private async processNetzgrafikJSON(netzgrafikDto: NetzgrafikDto): Promise<void> {
     // prepare JSON import
     this.uiInteractionService.showNetzgrafik();
     this.uiInteractionService.closeNodeStammdaten();
@@ -1028,6 +1032,10 @@ export class EditorToolsViewComponent {
 
   removeGtfsLine(line: string): void {
     this.gtfsImportManagerService.removeLine(line);
+  }
+
+  setGtfsSelectedDate(date: string): void {
+    this.gtfsImportManagerService.setSelectedDate(date);
   }
 
   async applyGtfsFiltersAndImport(): Promise<void> {

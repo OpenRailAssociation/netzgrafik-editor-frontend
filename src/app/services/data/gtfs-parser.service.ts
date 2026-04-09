@@ -479,6 +479,7 @@ export class GTFSParserService {
   ): Promise<{
     agencies: GTFSAgency[];
     routes: GTFSRoute[];
+    serviceDateRange: { startDate: string; endDate: string } | null;
   }> {
     const zip = new JSZip();
     const zipContent = await zip.loadAsync(file);
@@ -486,6 +487,7 @@ export class GTFSParserService {
     const result = {
       agencies: [] as GTFSAgency[],
       routes: [] as GTFSRoute[],
+      serviceDateRange: null as { startDate: string; endDate: string } | null,
     };
 
     // Parse agency.txt only
@@ -508,6 +510,32 @@ export class GTFSParserService {
           const routeType = parseInt(route.route_type?.toString() || "3", 10);
           return allowedRouteTypes.includes(routeType);
         });
+      }
+    }
+
+    // Parse calendar.txt to get service date range
+    const calendarFile = zipContent.file("calendar.txt");
+    if (calendarFile) {
+      const calendarText = await calendarFile.async("text");
+      const calendarEntries = this.parseCSV<any>(calendarText);
+      
+      if (calendarEntries.length > 0) {
+        let minDate = calendarEntries[0].start_date;
+        let maxDate = calendarEntries[0].end_date;
+        
+        calendarEntries.forEach((entry: any) => {
+          if (entry.start_date && entry.start_date < minDate) {
+            minDate = entry.start_date;
+          }
+          if (entry.end_date && entry.end_date > maxDate) {
+            maxDate = entry.end_date;
+          }
+        });
+        
+        result.serviceDateRange = {
+          startDate: minDate,
+          endDate: maxDate,
+        };
       }
     }
 
@@ -744,8 +772,9 @@ export class GTFSParserService {
    * @param gtfsData GTFS data to filter in-place
    */
   private selectMostFrequentTripPatterns(gtfsData: GTFSData): void {
-    const TIME_WINDOW_START = 8 * 60; // 08:00
-    const TIME_WINDOW_END = 16 * 60; // 16:00
+    // ⚠️ TIME FILTER DISABLED: No longer restricting to 8-16h window
+    // const TIME_WINDOW_START = 8 * 60; // 08:00
+    // const TIME_WINDOW_END = 16 * 60; // 16:00
 
     // Build trip_id -> stop_sequence pattern mapping
     const tripPatterns = new Map<string, string>();
@@ -795,16 +824,11 @@ export class GTFSParserService {
     let tripsOutsideWindow = 0;
 
     for (const [routeKey, trips] of routeGroups.entries()) {
-      // Filter trips to time window (8-16h)
-      const tripsInWindow = trips.filter((trip) => {
-        const depTime = tripFirstDeparture.get(trip.trip_id);
-        return depTime !== undefined && depTime >= TIME_WINDOW_START && depTime < TIME_WINDOW_END;
-      });
+      // ⚠️ TIME FILTER REMOVED: Show all trips of the day, not just 8-16h
+      // Use ALL trips for pattern detection
+      const tripsInWindow = trips;
 
-      tripsInTimeWindow += tripsInWindow.length;
-      tripsOutsideWindow += trips.length - tripsInWindow.length;
-
-      // If no trips in time window, skip this route
+      // If no trips, skip this route
       if (tripsInWindow.length === 0) {
         continue;
       }

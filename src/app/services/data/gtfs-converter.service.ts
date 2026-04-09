@@ -384,6 +384,7 @@ export class GTFSConverterService {
     // Step 5: Create trainruns and trainrun sections
     const trainruns: TrainrunDto[] = [];
     const trainrunSections: TrainrunSectionDto[] = [];
+    const trainrunToTrips = new Map<number, string[]>(); // Map trainrun ID to trip IDs
     const routeMap = new Map<string, GTFSRoute>();
     gtfsData.routes.forEach((route) => routeMap.set(route.route_id, route));
 
@@ -463,6 +464,9 @@ export class GTFSConverterService {
         direction: Direction.ONE_WAY,
       };
       trainruns.push(trainrun);
+
+      // Store mapping: trainrun ID -> trip IDs (all trips in this pattern)
+      trainrunToTrips.set(trainrun.id, pattern.trips.map((t) => t.trip_id));
 
       // Create trainrun sections
       // Process all stations in sequence, including non-stop (through) stations
@@ -712,6 +716,9 @@ export class GTFSConverterService {
         filterSettings: [],
       },
     };
+
+    // Add trainrun-to-trips mapping as additional property (not part of standard NetzgrafikDto)
+    (netzgrafikDto as any).trainrunToTrips = trainrunToTrips;
 
     return netzgrafikDto;
   }
@@ -1131,6 +1138,44 @@ export class GTFSConverterService {
     });
 
     return Array.from(patterns.values());
+  }
+
+  /**
+   * Identify system paths (most frequently used paths) for each route+direction
+   * Returns a map of pattern key -> isSystemPath boolean
+   */
+  private identifySystemPaths(patterns: TripPattern[]): Map<string, boolean> {
+    const systemPaths = new Map<string, boolean>();
+
+    // Group patterns by route_id + direction_id
+    const patternsByRouteDirection = new Map<string, TripPattern[]>();
+    patterns.forEach((pattern) => {
+      const key = `${pattern.routeId}_${pattern.directionId}`;
+      if (!patternsByRouteDirection.has(key)) {
+        patternsByRouteDirection.set(key, []);
+      }
+      patternsByRouteDirection.get(key)!.push(pattern);
+    });
+
+    // For each route+direction group, identify the most frequent path
+    patternsByRouteDirection.forEach((groupPatterns, routeDirKey) => {
+      if (groupPatterns.length === 0) return;
+
+      // Sort by trip count (descending)
+      groupPatterns.sort((a, b) => b.trips.length - a.trips.length);
+
+      // The first pattern (most trips) is the system path
+      const systemPattern = groupPatterns[0];
+      const systemPatternKey = `${systemPattern.routeId}_${systemPattern.directionId}_${systemPattern.stopSequence.join("-")}`;
+
+      // Mark patterns
+      groupPatterns.forEach((pattern) => {
+        const patternKey = `${pattern.routeId}_${pattern.directionId}_${pattern.stopSequence.join("-")}`;
+        systemPaths.set(patternKey, patternKey === systemPatternKey);
+      });
+    });
+
+    return systemPaths;
   }
 
   /**
