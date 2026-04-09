@@ -314,7 +314,12 @@ export function reorderNodePorts(
 }
 
 function getNeighborsCount(node: Node): number {
-  return new Set(node.getPorts().map((p) => getPortOppositeExpandedNodeId(p, node.getId()))).size;
+  return new Set(
+    node
+      .getPorts()
+      .map((p) => getPortOppositeExpandedNodeId(p, node.getId()))
+      .filter((id) => id !== undefined),
+  ).size;
 }
 
 /**
