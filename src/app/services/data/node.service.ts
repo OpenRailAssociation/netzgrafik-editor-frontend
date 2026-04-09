@@ -1217,6 +1217,14 @@ export class NodeService implements OnDestroy {
         node.getConnectedTrainrunSections(),
         enforceUpdate,
       );
+      const trainruns = new Set<Trainrun>();
+      connectedTrainrunSections.forEach((trs) => trainruns.add(trs.getTrainrun()));
+      trainruns.forEach((t) => {
+        if (!this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(t.getId()).length) {
+          return;
+        }
+        this.operation.emit(new TrainrunOperation(OperationType.update, t));
+      });
     }
     this.resourceService.deleteResource(node.getResourceId(), enforceUpdate);
     this.nodesStore.nodes = this.nodesStore.nodes.filter((n) => n.getId() !== nodeId);
