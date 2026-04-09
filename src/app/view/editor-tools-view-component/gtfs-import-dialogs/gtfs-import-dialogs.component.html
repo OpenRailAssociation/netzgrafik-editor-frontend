@@ -155,6 +155,73 @@
               <tr sbb-row *sbbRowDef="let row; columns: labelColumns"></tr>
             </table>
           </div>
+
+          <!-- Trip Details Table -->
+          <div class="summary-table-container" *ngIf="tripsDataSource.data.length > 0">
+            <h4>
+              {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-trips-title" | translate }}
+            </h4>
+
+            <!-- Search filter -->
+            <sbb-form-field>
+              <input
+                sbbInput
+                [formControl]="tripsSearchFilter"
+                [placeholder]="'app.view.editor-side-view.gtfs-import-dialogs.summary-trips-search' | translate"
+              />
+            </sbb-form-field>
+
+            <table sbb-table [dataSource]="tripsDataSource" sbbSort #tripsSort="sbbSort" class="summary-table">
+              <ng-container sbbColumnDef="tripId">
+                <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header>
+                  {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-trip-id" | translate }}
+                </th>
+                <td sbb-cell *sbbCellDef="let element">{{ element.tripId }}</td>
+              </ng-container>
+
+              <ng-container sbbColumnDef="routeShortName">
+                <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header>
+                  {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-route-name" | translate }}
+                </th>
+                <td sbb-cell *sbbCellDef="let element">{{ element.routeShortName }}</td>
+              </ng-container>
+
+              <ng-container sbbColumnDef="tripHeadsign">
+                <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header>
+                  {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-headsign" | translate }}
+                </th>
+                <td sbb-cell *sbbCellDef="let element">{{ element.tripHeadsign }}</td>
+              </ng-container>
+
+              <ng-container sbbColumnDef="category">
+                <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header>
+                  {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-category" | translate }}
+                </th>
+                <td sbb-cell *sbbCellDef="let element">{{ element.category }}</td>
+              </ng-container>
+
+              <ng-container sbbColumnDef="frequency">
+                <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header>
+                  {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-frequency" | translate }}
+                </th>
+                <td sbb-cell *sbbCellDef="let element">{{ element.frequency }}</td>
+              </ng-container>
+
+              <ng-container sbbColumnDef="trainrunId">
+                <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header>
+                  {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-trainrun-id" | translate }}
+                </th>
+                <td sbb-cell *sbbCellDef="let element">
+                  {{ element.trainrunId !== null ? element.trainrunId : '-' }}
+                </td>
+              </ng-container>
+
+              <tr sbb-header-row *sbbHeaderRowDef="tripsColumns"></tr>
+              <tr sbb-row *sbbRowDef="let row; columns: tripsColumns"></tr>
+            </table>
+
+
+          </div>
         </div>
       </sbb-dialog-content>
 
@@ -190,6 +257,27 @@
       <sbb-dialog-content class="sbb-dialog-content sbb-scrollbar">
         <!-- Filter Selection -->
         <div class="filter-section">
+          <!-- Operating Day Filter (Required) - FIRST FILTER -->
+          <div class="filter-group">
+            <label class="filter-label">
+              {{ 'app.view.editor-side-view.gtfs-import-dialogs.filter-operating-day' | translate }}
+              <span style="color: red;">*</span>
+            </label>
+            <sbb-form-field>
+              <input
+                sbbInput
+                type="date"
+                [(ngModel)]="gtfsSelectedDate"
+                (ngModelChange)="onSelectedDateChange($event)"
+                required
+                style="width: 100%;"
+              />
+            </sbb-form-field>
+            <small class="filter-hint">
+              {{ 'app.view.editor-side-view.gtfs-import-dialogs.filter-operating-day-hint' | translate }}
+            </small>
+          </div>
+
           <!-- Agency Filter (Chip Input + Autocomplete) -->
           <div class="filter-group">
             <sbb-form-field

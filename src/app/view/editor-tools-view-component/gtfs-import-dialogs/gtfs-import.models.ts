@@ -30,6 +30,25 @@ export interface GTFSSubPhase {
   status: "pending" | "running" | "completed" | "error";
 }
 
+export interface TripDetail {
+  tripId: string;
+  routeShortName: string;
+  routeLongName: string;
+  tripHeadsign: string;
+  category: string;
+  frequency: string;
+  trainrunId: number | null;
+  direction: string;
+  startStation: string;
+  endStation: string;
+  startTime: string; // HH:MM format
+  endTime: string; // HH:MM format
+  stopCount: number;
+  isSystemPath: boolean;
+  pathVariant: string; // "System" | "Shortened-Start" | "Shortened-End" | "Other"
+  stopSequence: string[];
+}
+
 export interface GTFSImportSummary {
   nodes: number;
   trainruns: number;
@@ -39,6 +58,7 @@ export interface GTFSImportSummary {
   byCategory: Record<string, number>;
   byFrequency: Record<string, number>;
   byLabel: Record<string, number>;
+  tripDetails: TripDetail[];
 }
 
 export interface GTFSImportState {
@@ -55,6 +75,10 @@ export interface GTFSImportState {
   selectedAgencies: string[];
   selectedCategories: string[];
   selectedLines: string[];
+  selectedDate: string | null; // Operating day in YYYY-MM-DD format
+  
+  // Service date range from GTFS calendar
+  serviceDateRange: { startDate: string; endDate: string } | null;
 
   // Filtered lists (for autocomplete)
   filteredAgencies: string[];

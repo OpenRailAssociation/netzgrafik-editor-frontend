@@ -43,12 +43,14 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
   categoryDataSource: SbbTableDataSource<any> = new SbbTableDataSource([]);
   frequencyDataSource: SbbTableDataSource<any> = new SbbTableDataSource([]);
   labelDataSource: SbbTableDataSource<any> = new SbbTableDataSource([]);
+  tripsDataSource: SbbTableDataSource<any> = new SbbTableDataSource([]);
 
   // Column definitions for summary tables
   summaryColumns: string[] = ["metric", "value"];
   categoryColumns: string[] = ["category", "count"];
   frequencyColumns: string[] = ["frequency", "count"];
   labelColumns: string[] = ["label", "count"];
+  tripsColumns: string[] = ["tripId", "routeShortName", "tripHeadsign", "category", "frequency", "trainrunId"];
 
   // Available data from light parse
   @Input() gtfsAvailableAgencies: string[] = [];
@@ -59,6 +61,7 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
   @Input() gtfsSelectedAgencies: string[] = [];
   @Input() gtfsSelectedCategories: string[] = [];
   @Input() gtfsSelectedLines: string[] = [];
+  @Input() gtfsSelectedDate: string | null = null;
 
   // Note: Filtered lists are now computed as Observables (filteredAgencies$, etc.)
 
@@ -74,6 +77,8 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
   @Input() gtfsTimeSyncTolerance = 180;
   @Output() gtfsTimeSyncToleranceChange = new EventEmitter<number>();
 
+  @Output() setSelectedDate = new EventEmitter<string>();
+
   // Events
   @Output() closeFilterDialog = new EventEmitter<void>();
   @Output() applyFilters = new EventEmitter<void>();
@@ -88,9 +93,21 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
   @Output() addLine = new EventEmitter<string>();
   @Output() removeLine = new EventEmitter<string>();
 
+  // ViewChild for trips table pagination and sorting
+  @ViewChild('tripsPaginator') tripsPaginator: any;
+  @ViewChild('tripsSort') tripsSort: any;
+
+  // Search filter for trips table
+  tripsSearchFilter = new FormControl("");
+
   ngOnInit(): void {
     // Setup observable filtered lists for autocomplete
     this.setupFilteredLists();
+
+    // Setup trips table search filter
+    this.tripsSearchFilter.valueChanges.subscribe((filterValue) => {
+      this.tripsDataSource.filter = (filterValue || '').trim().toLowerCase();
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -170,6 +187,13 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
       }));
       this.labelDataSource = new SbbTableDataSource(labelData);
     }
+
+    // Trip details table
+    if (this.gtfsImportSummary.tripDetails) {
+      this.tripsDataSource = new SbbTableDataSource(this.gtfsImportSummary.tripDetails);
+      this.tripsDataSource.paginator = this.tripsPaginator;
+      this.tripsDataSource.sort = this.tripsSort;
+    }
   }
 
   private setupFilteredLists(): void {
@@ -246,5 +270,9 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
 
   onRemoveLine(line: string): void {
     this.removeLine.emit(line);
+  }
+
+  onSelectedDateChange(date: string): void {
+    this.setSelectedDate.emit(date);
   }
 }

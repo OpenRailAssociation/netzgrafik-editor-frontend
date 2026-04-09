@@ -221,6 +221,7 @@
   [gtfsSelectedAgencies]="gtfsSelectedAgencies"
   [gtfsSelectedCategories]="gtfsSelectedCategories"
   [gtfsSelectedLines]="gtfsSelectedLines"
+  [gtfsSelectedDate]="gtfsSelectedDate"
   [gtfsNoCategoriesWarning]="gtfsNoCategoriesWarning"
   [gtfsNoLinesWarning]="gtfsNoLinesWarning"
   [gtfsRouteTypeFilter]="gtfsRouteTypeFilter"
@@ -235,4 +236,5 @@
   (removeCategory)="removeGtfsCategory($event)"
   (addLine)="addGtfsLine($event)"
   (removeLine)="removeGtfsLine($event)"
+  (setSelectedDate)="setGtfsSelectedDate($event)"
 ></sbb-gtfs-import-dialogs>
