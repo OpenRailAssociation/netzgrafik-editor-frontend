@@ -258,7 +258,12 @@ export function reorderNodePorts(
 }
 
 function getNeighborsCount(node: Node): number {
-  return new Set(node.getPorts().map((p) => getPortOppositeExpandedNodeId(p, node.getId()))).size;
+  return new Set(
+    node
+      .getPorts()
+      .map((p) => getPortOppositeExpandedNodeId(p, node.getId()))
+      .filter((id) => id !== undefined),
+  ).size;
 }
 
 /**
@@ -291,6 +296,7 @@ function reorderComponentPorts(nodes: Node[], trainrunScores: Record<number, num
     for (const neighborId of new Set(
       node.getPorts().map((p) => getPortOppositeExpandedNodeId(p, nodeId)),
     )) {
+      if (neighborId === undefined || !nodeMap.has(neighborId)) continue;
       if (visited.has(neighborId)) continue;
 
       visited.add(neighborId);
