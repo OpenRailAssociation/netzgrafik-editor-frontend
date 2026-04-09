@@ -250,8 +250,8 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
         nodeBetriebspunktFullName: selectedNode.getFullName(),
         nodeConnectionTime: selectedNode.getConnectionTime(),
         nodeTrainrunCategoryHaltezeit: selectedNode.getTrainrunCategoryHaltezeit(),
-        nodeResourceId: resource.getId(),
-        nodeCapacity: resource.getCapacity(),
+        nodeResourceId: resource?.getId(),
+        nodeCapacity: resource?.getCapacity(),
         labels: this.labelService.getTextLabelsFromIds(selectedNode.getLabelIds()),
         isCollapsed: selectedNode.getIsCollapsed(),
       };
