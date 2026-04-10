@@ -3,7 +3,7 @@ import {NgModule, Injector, DoBootstrap} from "@angular/core";
 import {NgxEditorModule} from "ngx-editor";
 import {BrowserModule} from "@angular/platform-browser";
 import {createCustomElement} from "@angular/elements";
-import {HTTP_INTERCEPTORS, HttpClientModule} from "@angular/common/http";
+import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from "@angular/common/http";
 import {OAuthModule} from "angular-oauth2-oidc";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
@@ -187,6 +187,7 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     PathGridComponent,
     ToggleSwitchButtonComponent,
   ],
+  bootstrap: environment.customElement ? [] : [AppComponent],
   imports: [
     BrowserModule,
     FormsModule,
@@ -194,7 +195,6 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     BrowserAnimationsModule,
     DragDropModule,
     AppRoutingModule,
-    HttpClientModule,
     NgxEditorModule,
     NgxEditorModule.forRoot({
       locals: {
@@ -246,12 +246,12 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     SbbAutocompleteModule,
     I18nModule,
   ],
-  bootstrap: environment.customElement ? [] : [AppComponent],
   providers: [
     ...(environment.backendUrl
       ? [{provide: BASE_PATH, useValue: environment.backendUrl}]
       : [{provide: LocationStrategy, useClass: HashLocationStrategy}]),
     {provide: HTTP_INTERCEPTORS, useClass: HttpErrorInterceptor, multi: true},
+    provideHttpClient(withInterceptorsFromDi()),
   ],
 })
 export class AppModule implements DoBootstrap {
