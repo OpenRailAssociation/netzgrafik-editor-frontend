@@ -101,7 +101,7 @@ describe("TrainrunsectionHelper", () => {
 
   it("getLastSectionTravelTime -- 001", () => {
     const tt = TrainrunsectionHelper.getLastSectionTravelTime(10, 10, 0);
-    expect(tt).toBe(1);
+    expect(tt).toBe(0); // TrainrunSectionTimesService.onDirectTravelTimeChanged() now ensures travel time to be >= precision
   });
 
   it("getLastSectionTravelTime -- 002", () => {
@@ -111,7 +111,7 @@ describe("TrainrunsectionHelper", () => {
 
   it("getLastSectionTravelTime -- 003", () => {
     const tt = TrainrunsectionHelper.getLastSectionTravelTime(8, 10, 0);
-    expect(tt).toBe(1);
+    expect(tt).toBe(-2); // TrainrunSectionTimesService.onDirectTravelTimeChanged() now ensures travel time to be >= precision
   });
 
   it("getLastSectionTravelTime -- 004", () => {
