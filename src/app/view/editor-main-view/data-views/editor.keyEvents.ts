@@ -587,6 +587,7 @@ export class EditorKeyEvents {
         ts.getTargetNodeId(),
         ts.getSourceNodeId(),
         false,
+        false,
       );
       this.trainrunSectionService.reconnectTrainrunSection(
         ts.getTargetNodeId(),
