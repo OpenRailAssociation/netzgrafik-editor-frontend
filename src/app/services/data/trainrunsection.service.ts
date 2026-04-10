@@ -770,7 +770,7 @@ export class TrainrunSectionService implements OnDestroy {
       this.nodeService.connectionsUpdated();
       this.trainrunSectionsUpdated();
     }
-    if (this.getTrainrunSections().length) {
+    if (this.getAllTrainrunSectionsForTrainrun(trainrun.getId()).length) {
       this.operation.emit(
         new TrainrunUpdateOperation(trainrunSection.getTrainrun(), [
           "nodes",
