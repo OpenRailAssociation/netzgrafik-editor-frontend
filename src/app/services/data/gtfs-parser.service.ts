@@ -1,70 +1,46 @@
+
 import {Injectable} from "@angular/core";
 import {parse, ParseResult} from "papaparse";
-import * as JSZip from "jszip";
+import JSZip from "jszip";
 
-/**
- * GTFS Data Structures
- * Based on https://gtfs.org/schedule/reference/
- */
-
-export interface GTFSStop {
-  stop_id: string;
-  stop_name: string;
-  stop_lat: string;
-  stop_lon: string;
-  location_type?: string;
-  parent_station?: string;
-  platform_code?: string;
-  // Enriched data for Netzgrafik
-  node_type?: "start" | "end" | "junction" | "major_stop" | "minor_stop";
-  degree?: number;
-}
-
+// Fehlende GTFS-Interfaces (Minimalfelder, nach Bedarf erweiterbar)
 export interface GTFSAgency {
   agency_id: string;
   agency_name: string;
-  agency_url?: string;
-  agency_timezone?: string;
-  agency_lang?: string;
-  agency_phone?: string;
+  // ...
 }
-
 export interface GTFSRoute {
   route_id: string;
-  agency_id?: string;
   route_short_name: string;
-  route_long_name: string;
-  route_desc?: string; // Category description (e.g., "InterCity", "S-Bahn")
-  route_type: string;
-  route_color?: string;
-  route_text_color?: string;
-  // Enriched data for Netzgrafik
-  frequency?: number; // Calculated frequency in minutes (15, 20, 30, 60, 120)
-  offsetHour?: number; // For 120-min frequency: 0 = even hours (0, 2, 4...), 1 = odd hours (1, 3, 5...)
-  sample_trip_id?: string; // Representative trip for this route
-  category_id?: number; // Mapped Netzgrafik category ID
+  route_long_name?: string;
+  route_desc?: string;
+  agency_id?: string;
+  route_type?: string | number;
+  frequency?: number;
+  sample_trip_id?: string;
+  offsetHour?: number;
+  category_id?: string | number;
+  // ...
 }
-
 export interface GTFSTrip {
-  route_id: string;
-  service_id: string;
   trip_id: string;
-  trip_headsign?: string;
-  trip_short_name?: string;
+  route_id: string;
   direction_id?: string;
-  block_id?: string;
+  trip_headsign?: string;
+  service_id?: string;
+  trip_short_name?: string;
+  // ...
 }
-
 export interface GTFSStopTime {
   trip_id: string;
-  arrival_time: string;
-  departure_time: string;
   stop_id: string;
   stop_sequence: string;
+  arrival_time?: string;
+  departure_time?: string;
   pickup_type?: string;
   drop_off_type?: string;
+  // ...
 }
-
 export interface GTFSCalendar {
   service_id: string;
   monday: string;
@@ -76,6 +52,24 @@ export interface GTFSCalendar {
   sunday: string;
   start_date: string;
   end_date: string;
+  // ...
+}
+
+/**
+ * GTFS Data Structures
+ * Based on https://gtfs.org/schedule/reference/
+ */
+
+export interface GTFSStop {
+  stop_id: string;
+  stop_name?: string;
+  parent_station?: string;
+  location_type?: string | number;
+  degree?: number;
+  node_type?: string;
+  stop_lat?: string;
+  stop_lon?: string;
+  // ...
 }
 
 export interface GTFSCalendarDate {
@@ -481,7 +475,7 @@ export class GTFSParserService {
     routes: GTFSRoute[];
     serviceDateRange: { startDate: string; endDate: string } | null;
   }> {
-    const zip = new JSZip();
+    const zip = JSZip();
     const zipContent = await zip.loadAsync(file);
 
     const result = {
@@ -566,7 +560,7 @@ export class GTFSParserService {
     allowedAgencies?: string[],
     progressCallback?: (fileName: string) => void,
   ): Promise<GTFSData> {
-    const zip = new JSZip();
+    const zip = JSZip();
     const zipContent = await zip.loadAsync(file);
 
     const gtfsData: GTFSData = {
@@ -772,6 +766,18 @@ export class GTFSParserService {
    * @param gtfsData GTFS data to filter in-place
    */
   private selectMostFrequentTripPatterns(gtfsData: GTFSData): void {
+        function calcFreq(depTimes: number[]): number {
+          if (depTimes.length < 2) return 60;
+          const intervals = [];
+          for (let i = 1; i < depTimes.length; i++) intervals.push(depTimes[i] - depTimes[i-1]);
+          if (intervals.length === 0) return 60;
+          const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+          if (avg <= 17) return 15;
+          if (avg <= 25) return 20;
+          if (avg <= 45) return 30;
+          if (avg <= 90) return 60;
+          return 120;
+        }
     // ⚠️ TIME FILTER DISABLED: No longer restricting to 8-16h window
     // const TIME_WINDOW_START = 8 * 60; // 08:00
     // const TIME_WINDOW_END = 16 * 60; // 16:00
@@ -806,136 +812,187 @@ export class GTFSParserService {
       }
     }
 
-    // Group trips by route_id + direction_id
-    const routeGroups = new Map<string, GTFSTrip[]>();
-    for (const trip of gtfsData.trips) {
-      const key = `${trip.route_id}|${trip.direction_id || "0"}`;
-      if (!routeGroups.has(key)) {
-        routeGroups.set(key, []);
+    // Gruppiere Trips nach route_id, Richtung (direction_id) und Path (Stop-Folge)
+    // Falls direction_id fehlt, Richtung aus Path ableiten (A->B... vs B->A...)
+    const pathGroups = new Map<string, GTFSTrip[]>();
+    const tripPathMap = new Map<string, string>();
+    const tripDirMap = new Map<string, string>();
+    // Parent-Station-Map aufbauen
+    const stopIdToParent = new Map<string, string>();
+    if (gtfsData.stops) {
+      for (const stop of gtfsData.stops) {
+        stopIdToParent.set(stop.stop_id, stop.parent_station || stop.stop_id);
       }
-      routeGroups.get(key)!.push(trip);
+    }
+    for (const trip of gtfsData.trips) {
+      const stopTimes = gtfsData.stopTimes.filter(st => st.trip_id === trip.trip_id).sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence));
+      if (stopTimes.length === 0) continue;
+      const parentPathArr = stopTimes.map(st => stopIdToParent.get(st.stop_id) || st.stop_id);
+      const path = parentPathArr.join('-');
+      let dir = trip.direction_id;
+      if (dir == null || dir === undefined || dir === '') {
+        // Richtung aus Path ableiten: lexikographisch vergleichen
+        dir = parentPathArr[0] < parentPathArr[parentPathArr.length-1] ? '0' : '1';
+      }
+      tripDirMap.set(trip.trip_id, dir);
+      const key = `${trip.route_id}|${dir}|${path}`;
+      tripPathMap.set(trip.trip_id, path);
+      if (!pathGroups.has(key)) pathGroups.set(key, []);
+      pathGroups.get(key)!.push(trip);
     }
 
-    // For each group, find most frequent pattern AND calculate frequency
+
+    // Mapping für Hin- und Rückfahrt (symmetrisch, gleiche Frequenz)
     const selectedTripIds = new Set<string>();
-    let totalPatternsByRoute = 0;
-    let totalTripsKept = 0;
-    let tripsInTimeWindow = 0;
-    let tripsOutsideWindow = 0;
+    const usedGroupKeys = new Set<string>();
+    for (const [key, trips] of pathGroups.entries()) {
+      if (usedGroupKeys.has(key)) continue; // schon verarbeitet
+      // Key: route_id|dir|path
+      const [route_id, dir, path] = key.split('|');
+      // Gegenrichtung suchen (gleicher Path reversed, dir 0<->1)
+      const revDir = dir === '0' ? '1' : '0';
+      const revPath = path.split('-').reverse().join('-');
+      const revKey = `${route_id}|${revDir}|${revPath}`;
+      const tripsA = trips;
+      const tripsB = pathGroups.get(revKey) || [];
 
-    for (const [routeKey, trips] of routeGroups.entries()) {
-      // ⚠️ TIME FILTER REMOVED: Show all trips of the day, not just 8-16h
-      // Use ALL trips for pattern detection
-      const tripsInWindow = trips;
-
-      // If no trips, skip this route
-      if (tripsInWindow.length === 0) {
-        continue;
-      }
-
-      // Count pattern frequencies (only in time window)
-      const patternCounts = new Map<string, number>();
-      const patternExamples = new Map<string, string[]>(); // pattern -> array of trip_ids
-
-      for (const trip of tripsInWindow) {
-        const pattern = tripPatterns.get(trip.trip_id);
-        if (pattern) {
-          patternCounts.set(pattern, (patternCounts.get(pattern) || 0) + 1);
-          if (!patternExamples.has(pattern)) {
-            patternExamples.set(pattern, []);
-          }
-          patternExamples.get(pattern)!.push(trip.trip_id);
-        }
-      }
-
-      if (patternCounts.size === 0) continue;
-
-      // Find most frequent pattern
-      let maxCount = 0;
-      let mostFrequentPattern = "";
-      for (const [pattern, count] of patternCounts.entries()) {
-        if (count > maxCount) {
-          maxCount = count;
-          mostFrequentPattern = pattern;
-        }
-      }
-
-      // Get all trips with most frequent pattern
-      const representativeTrips = patternExamples.get(mostFrequentPattern) || [];
-
-      // Calculate frequency: Count how often this pattern appears (across all days)
-      // This represents the frequency over the entire GTFS validity period
-      const departureTimes = representativeTrips
-        .map((tid) => tripFirstDeparture.get(tid))
-        .filter((t) => t !== undefined)
-        .sort((a, b) => a! - b!);
-
-      let frequency = 60; // default
-      if (departureTimes.length >= 2) {
-        // Count unique departure times (same time = same takt)
-        const uniqueTimes = new Set(departureTimes);
-
-        // If many trips with same departure time → high frequency
-        // Average trips per unique time gives us frequency indicator
-        const tripsPerTime = representativeTrips.length / uniqueTimes.size;
-
-        // Calculate intervals between unique departure times
-        const uniqueTimesArray = Array.from(uniqueTimes).sort((a, b) => a - b);
-        const intervals: number[] = [];
-        for (let i = 1; i < uniqueTimesArray.length; i++) {
-          intervals.push(uniqueTimesArray[i] - uniqueTimesArray[i - 1]);
-        }
-
-        if (intervals.length > 0) {
-          const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-
-          // Round to standard frequencies
-          if (avgInterval <= 17) frequency = 15;
-          else if (avgInterval <= 25) frequency = 20;
-          else if (avgInterval <= 45) frequency = 30;
-          else if (avgInterval <= 90) frequency = 60;
-          else frequency = 120; // >90 min -> 2h Takt (includes >150 min rare services)
-        }
-      }
-      // Normalize frequency to ensure only valid values are used
-      frequency = GTFSParserService.normalizeFrequency(frequency);
-
-      // Select ONE representative trip (prefer one in middle of time window)
-      let representativeTripId = representativeTrips[0];
-      if (representativeTrips.length > 1) {
-        // Find trip closest to 12:00 (middle of day)
-        const midDay = 12 * 60;
-        let minDiff = Infinity;
-        for (const tid of representativeTrips) {
-          const depTime = tripFirstDeparture.get(tid);
-          if (depTime !== undefined) {
-            const diff = Math.abs(depTime - midDay);
-            if (diff < minDiff) {
-              minDiff = diff;
-              representativeTripId = tid;
+      // Übersicht aller Trips für diese Route+Path+Richtung
+      function tripList(trips: GTFSTrip[], directionLabel: string) {
+        // Sortiere Trips nach erster Abfahrtszeit
+        const sortedTrips = [...trips].sort((a, b) => {
+          const aTime = (() => {
+            const st = gtfsData.stopTimes.filter(st => st.trip_id === a.trip_id).sort((x, y) => parseInt(x.stop_sequence) - parseInt(y.stop_sequence));
+            return st.length ? GTFSParserService.timeToMinutes(st[0].departure_time || st[0].arrival_time || "00:00") : 0;
+          })();
+          const bTime = (() => {
+            const st = gtfsData.stopTimes.filter(st => st.trip_id === b.trip_id).sort((x, y) => parseInt(x.stop_sequence) - parseInt(y.stop_sequence));
+            return st.length ? GTFSParserService.timeToMinutes(st[0].departure_time || st[0].arrival_time || "00:00") : 0;
+          })();
+          return aTime - bTime;
+        });
+        return sortedTrips.map(trip => {
+          const stopTimes = gtfsData.stopTimes.filter(st => st.trip_id === trip.trip_id).sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence));
+          if (!stopTimes.length) return null;
+          const first = stopTimes[0];
+          const last = stopTimes[stopTimes.length-1];
+          const dep = first.departure_time ? first.departure_time.slice(0,5) : '--:--';
+          const startStop = gtfsData.stops?.find(s => s.stop_id === first.stop_id);
+          const endStop = gtfsData.stops?.find(s => s.stop_id === last.stop_id);
+          // Parent-Station-Namen für den Trip als Array
+          const parent_station_names = stopTimes.map(st => {
+            const stop = gtfsData.stops?.find(s => s.stop_id === st.stop_id);
+            if (!stop) return st.stop_id;
+            if (stop.parent_station) {
+              const parent = gtfsData.stops?.find(s => s.stop_id === stop.parent_station);
+              return parent?.stop_name || stop.parent_station;
             }
-          }
+            return stop.stop_name || stop.stop_id;
+          });
+          return {
+            trip_id: trip.trip_id,
+            direction: directionLabel,
+            departure: dep,
+            path: `${startStop?.stop_name || first.stop_id} → ${endStop?.stop_name || last.stop_id}`,
+            start: startStop?.stop_name || first.stop_id,
+            end: endStop?.stop_name || last.stop_id,
+            parent_station_names
+          };
+        }).filter(Boolean);
+      }
+      const forwardTrips = dir === '0' ? tripList(tripsA, 'forward') : tripList(tripsB, 'forward');
+      const backwardTrips = dir === '1' ? tripList(tripsA, 'backward') : tripList(tripsB, 'backward');
+
+      // Häufigster Trip (repräsentativer Trip) je Richtung
+      function getMostFrequentTrip(trips: GTFSTrip[]) {
+        if (!trips.length) return null;
+        // Annahme: mittlerer Trip ist repräsentativ
+        const trip = trips[Math.floor(trips.length/2)];
+        const stopTimes = gtfsData.stopTimes.filter(st => st.trip_id === trip.trip_id).sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence));
+        if (!stopTimes.length) return null;
+        const first = stopTimes[0];
+        const last = stopTimes[stopTimes.length-1];
+        const dep = first.departure_time ? first.departure_time.slice(0,5) : '--:--';
+        const arr = last.arrival_time ? last.arrival_time.slice(0,5) : '--:--';
+        const startStop = gtfsData.stops?.find(s => s.stop_id === first.stop_id);
+        const endStop = gtfsData.stops?.find(s => s.stop_id === last.stop_id);
+        return {
+          trip_id: trip.trip_id,
+          departure: dep,
+          arrival: arr,
+          path: `${startStop?.stop_name || first.stop_id} → ${endStop?.stop_name || last.stop_id}`,
+          start: startStop?.stop_name || first.stop_id,
+          end: endStop?.stop_name || last.stop_id
+        };
+      }
+      const mostFrequentForward = getMostFrequentTrip(tripsA);
+      const mostFrequentBackward = getMostFrequentTrip(tripsB);
+
+      // Frequenz für beide Richtungen
+      const depA = tripsA.map(t => tripFirstDeparture.get(t.trip_id)).filter(t => t !== undefined).sort((a, b) => a! - b!);
+      const depB = tripsB.map(t => tripFirstDeparture.get(t.trip_id)).filter(t => t !== undefined).sort((a, b) => a! - b!);
+      // calcFreq already defined above, do not redeclare
+      const freqA = GTFSParserService.normalizeFrequency(calcFreq(depA));
+      const freqB = GTFSParserService.normalizeFrequency(calcFreq(depB));
+
+      // Übersicht loggen
+      // eslint-disable-next-line no-console
+      console.info('[GTFS-Import] Trip-Übersicht:', {
+        route_id,
+        forwardTrips,
+        backwardTrips,
+        mostFrequentForward,
+        mostFrequentBackward,
+        freq_forward: freqA,
+        freq_backward: freqB
+      });
+
+      // Frequenz und Zeiten für beide Gruppen berechnen
+      function getDepTimes(trips: GTFSTrip[]): number[] {
+        return trips
+          .map(t => tripFirstDeparture.get(t.trip_id))
+          .filter(t => t !== undefined)
+          .sort((a, b) => a! - b!);
+      }
+      // duplicate calcFreq removed
+      // bereits oben deklariert: depA, depB, freqA, freqB
+
+      // Symmetrie-Toleranz (z.B. max 10min Differenz pro Zeitpaar)
+      function isSymmetric(timesA: number[], timesB: number[], tolerance = 10): boolean {
+        if (timesA.length !== timesB.length) return false;
+        for (let i = 0; i < timesA.length; i++) {
+          if (Math.abs(timesA[i] - timesB[i]) > tolerance) return false;
         }
+        return true;
       }
 
-      if (representativeTripId) {
-        selectedTripIds.add(representativeTripId);
-        totalTripsKept++;
-
-        // Store frequency in route (for later use)
-        const route = gtfsData.routes.find((r) => r.route_id === routeKey.split("|")[0]);
-        if (route && !route.frequency) {
-          route.frequency = GTFSParserService.normalizeFrequency(frequency);
-        }
+      if (tripsB.length > 0 && freqA === freqB && isSymmetric(depA, depB)) {
+        // Symmetrisch: als Hin- und Rückfahrt (ein Zugpaar)
+        // Einen repräsentativen Trip pro Richtung wählen (z.B. mittlerer)
+        const repA = tripsA[Math.floor(tripsA.length/2)];
+        const repB = tripsB[Math.floor(tripsB.length/2)];
+        selectedTripIds.add(repA.trip_id);
+        selectedTripIds.add(repB.trip_id);
+        // Frequenz im Route-Objekt speichern
+        const route = gtfsData.routes.find(r => r.route_id === route_id);
+        if (route && !route.frequency) route.frequency = freqA;
+        usedGroupKeys.add(key);
+        usedGroupKeys.add(revKey);
+      } else {
+        // eslint-disable-next-line no-console
+        // Trip- und Asymmetrie-Übersicht werden weiter oben geloggt
+        // Nicht symmetrisch oder keine Gegenrichtung: alle als one-way importieren
+        for (const t of tripsA) selectedTripIds.add(t.trip_id);
+        if (tripsB.length > 0) for (const t of tripsB) selectedTripIds.add(t.trip_id);
+        // Frequenz im Route-Objekt speichern
+        const route = gtfsData.routes.find(r => r.route_id === route_id);
+        if (route && !route.frequency) route.frequency = freqA;
+        usedGroupKeys.add(key);
+        if (tripsB.length > 0) usedGroupKeys.add(revKey);
       }
-
-      totalPatternsByRoute += patternCounts.size;
     }
 
     // Filter trips and stopTimes
-    const beforeTrips = gtfsData.trips.length;
     gtfsData.trips = gtfsData.trips.filter((trip) => selectedTripIds.has(trip.trip_id));
-    const beforeStopTimes = gtfsData.stopTimes.length;
     gtfsData.stopTimes = gtfsData.stopTimes.filter((st) => selectedTripIds.has(st.trip_id));
   }
 
@@ -948,7 +1005,7 @@ export class GTFSParserService {
     const result: ParseResult<T> = parse(text, {
       header: true,
       skipEmptyLines: true,
-      transformHeader: (header) => header.trim(),
+      transformHeader: (header: string) => header.trim(),
     });
     return result.data;
   }
