@@ -615,6 +615,7 @@ export class TrainrunSectionService implements OnDestroy {
     existingTrainrunSectionTargetNodeId: number,
     existingTrainrunSectionSourceNodeId: number,
     enforceUpdate = true,
+    emit = true,
   ) {
     // swap source and target
     if (
@@ -675,7 +676,11 @@ export class TrainrunSectionService implements OnDestroy {
       this.nodeService.transitionsUpdated();
       this.trainrunSectionsUpdated();
     }
-    this.operation.emit(new TrainrunOperation(OperationType.update, trainrunSection.getTrainrun()));
+    if (emit) {
+      this.operation.emit(
+        new TrainrunOperation(OperationType.update, trainrunSection.getTrainrun()),
+      );
+    }
   }
 
   deleteListOfTrainrunSections(trainrunSections: TrainrunSection[], enforceUpdate = true) {
@@ -724,6 +729,7 @@ export class TrainrunSectionService implements OnDestroy {
     trainrunSectionId: number,
     enforceUpdate = true,
     checkAllTransitions = false,
+    emit = true,
   ) {
     const trainrunSection = this.getTrainrunSectionFromId(trainrunSectionId);
     const trainrun = trainrunSection.getTrainrun();
@@ -758,7 +764,7 @@ export class TrainrunSectionService implements OnDestroy {
       this.nodeService.connectionsUpdated();
       this.trainrunSectionsUpdated();
     }
-    if (this.getAllTrainrunSectionsForTrainrun(trainrun.getId()).length) {
+    if (this.getAllTrainrunSectionsForTrainrun(trainrun.getId()).length && emit) {
       this.operation.emit(
         new TrainrunOperation(OperationType.update, trainrunSection.getTrainrun()),
       );
