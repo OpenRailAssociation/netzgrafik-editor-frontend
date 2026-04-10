@@ -20,10 +20,7 @@ export class I18nService {
       this.currentLanguage = language;
     }
 
-    const languageModule = await import(
-      /* webpackInclude: /(en|de|fr)\.mjs$/ */
-      `/node_modules/@angular/common/locales/${this.language}.mjs`
-    );
+    const languageModule = await import(`./locale.${this.language}.js`);
     registerLocaleData(languageModule.default);
 
     await this.loadTranslations();
@@ -46,10 +43,7 @@ export class I18nService {
   }
 
   async loadTranslations() {
-    const languageTranslationsModule = await import(
-      /* webpackInclude: /(en|de|fr)\.json$/ */
-      `src/assets/i18n/${this.language}.json`
-    );
+    const languageTranslationsModule = await import(`../../../assets/i18n/${this.language}.json`);
 
     this.translations = this.flattenTranslations(languageTranslationsModule.default);
     loadTranslations(this.translations);

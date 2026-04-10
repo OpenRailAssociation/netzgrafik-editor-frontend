@@ -15,28 +15,33 @@
       "prefix": "sbb",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/netzgrafik-frontend",
+            "outputPath": {
+              "base": "dist/netzgrafik-frontend"
+            },
             "index": "src/index.html",
-            "main": "src/main.ts",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": ["src/polyfills.ts"],
             "tsConfig": "tsconfig.app.json",
             "assets": ["src/assets"],
             "styles": ["src/styles.scss", "node_modules/@sbb-esta/angular/typography.css"],
             "scripts": [],
-            "vendorChunk": true,
             "extractLicenses": false,
             "outputHashing": "all",
-            "buildOptimizer": false,
             "sourceMap": true,
             "optimization": false,
             "namedChunks": true,
-            "allowedCommonJsDependencies": ["papaparse", "save-svg-as-png"]
+            "allowedCommonJsDependencies": ["papaparse", "save-svg-as-png"],
+            "browser": "src/main.ts",
+            "stylePreprocessorOptions": {
+              "includePaths": ["."]
+            }
           },
           "configurations": {
             "production": {
-              "outputPath": "dist",
+              "outputPath": {
+                "base": "dist"
+              },
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
@@ -47,8 +52,6 @@
               "sourceMap": false,
               "namedChunks": false,
               "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": true,
               "budgets": [
                 {
                   "type": "initial",
