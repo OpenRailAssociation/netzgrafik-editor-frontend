@@ -830,13 +830,9 @@ export class NodesView {
       endNode,
       previousSection,
       false,
+      false,
     );
-    this.editorView.reconnectTrainrunSection(
-      endNode,
-      nextSection.getTargetNode(),
-      nextSection,
-      true,
-    );
+    this.editorView.reconnectTrainrunSection(endNode, nextSection.getTargetNode(), nextSection);
 
     const connectedSections: TrainrunSection[] = draggedNode.getConnectedTrainrunSections();
     if (connectedSections.length === 0 && draggedNode.isEmpty()) {
@@ -887,8 +883,8 @@ export class NodesView {
       innerSection2.getTargetNodeId() !== nodeId
         ? innerSection2.getTargetNode()
         : innerSection2.getSourceNode();
-    this.editorView.reconnectTrainrunSection(startNode1, endNode, innerSection1, false);
-    this.editorView.reconnectTrainrunSection(startNode2, endNode, innerSection2, true);
+    this.editorView.reconnectTrainrunSection(startNode1, endNode, innerSection1, false, false);
+    this.editorView.reconnectTrainrunSection(startNode2, endNode, innerSection2);
 
     let trans = endNode.getTransition(outerSection2.getId());
     if (trans === undefined) {
