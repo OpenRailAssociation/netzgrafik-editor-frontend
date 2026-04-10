@@ -216,6 +216,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
         targetNode: Node,
         existingTrainrunSection: TrainrunSection,
         enforceUpdate = true,
+        emit: boolean = true,
       ) => {
         this.trainrunSectionService.reconnectTrainrunSection(
           sourceNode.getId(),
@@ -224,6 +225,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
           existingTrainrunSection.getTargetNodeId(),
           existingTrainrunSection.getSourceNodeId(),
           enforceUpdate,
+          emit,
         );
       },
     );

@@ -73,6 +73,7 @@ export class EditorView implements SVGMouseControllerObserver {
         targetNode: Node,
         existingTrainrunSection: TrainrunSection,
         enforceUpdate?: boolean,
+        emit?: boolean,
       ) => void)
     | null = null;
   deleteTrainrunSection: ((trainrunSection: TrainrunSection) => void) | null = null;
@@ -258,6 +259,7 @@ export class EditorView implements SVGMouseControllerObserver {
       targetNode: Node,
       existingTrainrunSection: TrainrunSection,
       enforceUpdate?: boolean,
+      emit?: boolean,
     ) => void,
   ) {
     this.reconnectTrainrunSection = callback;
