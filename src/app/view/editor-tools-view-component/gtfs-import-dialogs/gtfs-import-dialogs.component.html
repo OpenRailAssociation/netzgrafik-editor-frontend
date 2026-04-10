@@ -264,14 +264,19 @@
               <span style="color: red;">*</span>
             </label>
             <sbb-form-field>
-              <input
-                sbbInput
-                type="date"
-                [(ngModel)]="gtfsSelectedDate"
-                (ngModelChange)="onSelectedDateChange($event)"
-                required
-                style="width: 100%;"
-              />
+                <sbb-datepicker
+                   
+                >
+                <input
+                  sbbInput
+                  sbbDateInput
+                  type="text"
+                  [(ngModel)]="gtfsSelectedDate"
+                  (ngModelChange)="onSelectedDateChange($event)"
+                  required
+                  style="width: 33%;"
+                />
+              </sbb-datepicker>
             </sbb-form-field>
             <small class="filter-hint">
               {{ 'app.view.editor-side-view.gtfs-import-dialogs.filter-operating-day-hint' | translate }}

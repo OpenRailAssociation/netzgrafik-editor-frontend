@@ -493,6 +493,8 @@
           "deleteNodeDialog": "Should the node {$operationalPointShortName} ({$operationalPointName}) be definitely deleted?"
         },
         "gtfs-import-dialogs": {
+          "filter-operating-day": "Operating day (required)",
+          "filter-operating-day-hint": "Select the operating day for timetable evaluation. Only trips running on this day according to the calendar will be imported.",
           "filter-route-types": "Filter transport modes:",
           "route-type-rail": "Rail (intercity/regional trains)",
           "route-type-metro": "Metro/Subway",
