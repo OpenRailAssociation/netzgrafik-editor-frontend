@@ -434,7 +434,12 @@ export class NodeService implements OnDestroy {
     if (oppNodeTrainrunSection1.getId() === oppNodeTrainrunSection2.getId()) {
       return undefined;
     }
-    this.trainrunSectionService.deleteTrainrunSection(trainrunSection2.getId(), false);
+    this.trainrunSectionService.deleteTrainrunSection(
+      trainrunSection2.getId(),
+      false,
+      false,
+      false,
+    );
 
     // temporary store the source/target node information for updating the locks
     const isTargetNodeEqToNodeId = trainrunSection1.getTargetNodeId() === node.getId();
