@@ -472,6 +472,11 @@ export class TrainrunSectionTimesService {
   }
 
   private onDirectTravelTimeChanged(keys: LeftAndRightStructureKeys) {
+    this.timeStructure[keys.travelTime] = Math.max(
+      this.timeStructure[keys.travelTime],
+      1.0 / Math.pow(10, this.filterService.getTimeDisplayPrecision()),
+    );
+
     this.showWarningTwoLocks = false;
     this.roundAllTimes();
     this.removeOffsetAndBackTransformTimeStructure();
