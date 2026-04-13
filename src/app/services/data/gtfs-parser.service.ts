@@ -93,10 +93,12 @@ export class GTFSParserService {
    */
   public getRouteTripOverviewByAgency(gtfsData: GTFSData): any[] {
     // --- Erweiterung: Direction-Independent Path Grouping & Statistik ---
-    // 1. Trips nach Path (Haltefolge) gruppieren (direction-unabhängig)
+    // 1. Trips nach Path (Haltefolge) gruppieren (direction-unabhängig), aber nur aktive Trips am Betriebstag
+    const betriebstag = (gtfsData as any).betriebstag || new Date().toISOString().slice(0, 10);
     const pathToTrips: Map<string, GTFSTrip[]> = new Map();
     const tripIdToPathKey: Map<string, string> = new Map();
     for (const trip of gtfsData.trips) {
+      if (!tripIsActiveOnDate(trip, betriebstag)) continue;
       const stopTimes = gtfsData.stopTimes
         .filter((st: GTFSStopTime) => st.trip_id === trip.trip_id)
         .sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence));
@@ -161,14 +163,36 @@ export class GTFSParserService {
         }
       }
 
+      // Trips mit Abfahrtszeit und -ort anreichern
+      function enrichTrips(trips: GTFSTrip[]): any[] {
+        return trips
+          .map(trip => {
+            const stopTimes = gtfsData.stopTimes
+              .filter(st => st.trip_id === trip.trip_id)
+              .sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence));
+            const firstStopTime = stopTimes[0];
+            const stop = firstStopTime ? gtfsData.stops.find(s => s.stop_id === firstStopTime.stop_id) : undefined;
+            return {
+              ...trip,
+              departure_time: firstStopTime?.departure_time || firstStopTime?.arrival_time || null,
+              departure_location: stop?.stop_name || firstStopTime?.stop_id || null
+            };
+          })
+          .sort((a, b) => {
+            if (!a.departure_time && !b.departure_time) return 0;
+            if (!a.departure_time) return 1;
+            if (!b.departure_time) return -1;
+            return a.departure_time.localeCompare(b.departure_time);
+          });
+      }
       directionIndependentGroups.push({
         path: pathArr,
         reverse_path: pathArr.slice().reverse(),
         anzahl_trips_forward: trips_forward.length,
         anzahl_trips_backward: trips_backward.length,
         anzahl_trips_total: trips_forward.length + trips_backward.length,
-        trips_forward,
-        trips_backward,
+        trips_forward: enrichTrips(trips_forward),
+        trips_backward: enrichTrips(trips_backward),
         round_trip: hasRoundTrip,
         symmetry,
       });
@@ -262,8 +286,7 @@ export class GTFSParserService {
       return baseActive;
     }
 
-    // Betriebstag als Parameter (z.B. "2026-04-13"), Standard: heute
-    const betriebstag = (gtfsData as any).betriebstag || new Date().toISOString().slice(0, 10);
+    // Betriebstag wird im äußeren Scope deklariert und hier nicht erneut benötigt
     const agencyResult: Record<string, {agency: any; routen: any[]}> = {};
         // Vorberechnung: Map route_id -> Trips
         const agenciesById = new Map(gtfsData.agencies.map((a: GTFSAgency) => [a.agency_id, a]));
