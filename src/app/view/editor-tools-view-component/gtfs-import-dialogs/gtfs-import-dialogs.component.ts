@@ -50,7 +50,14 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
   categoryColumns: string[] = ["category", "count"];
   frequencyColumns: string[] = ["frequency", "count"];
   labelColumns: string[] = ["label", "count"];
-  tripsColumns: string[] = ["tripId", "routeShortName", "tripHeadsign", "category", "frequency", "trainrunId"];
+  tripsColumns: string[] = [
+    "tripId",
+    "routeShortName",
+    "tripHeadsign",
+    "category",
+    "frequency",
+    "trainrunId",
+  ];
 
   // Available data from light parse
   @Input() gtfsAvailableAgencies: string[] = [];
@@ -94,8 +101,8 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
   @Output() removeLine = new EventEmitter<string>();
 
   // ViewChild for trips table pagination and sorting
-  @ViewChild('tripsPaginator') tripsPaginator: any;
-  @ViewChild('tripsSort') tripsSort: any;
+  @ViewChild("tripsPaginator") tripsPaginator: any;
+  @ViewChild("tripsSort") tripsSort: any;
 
   // Search filter for trips table
   tripsSearchFilter = new FormControl("");
@@ -106,7 +113,7 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
 
     // Setup trips table search filter
     this.tripsSearchFilter.valueChanges.subscribe((filterValue) => {
-      this.tripsDataSource.filter = (filterValue || '').trim().toLowerCase();
+      this.tripsDataSource.filter = (filterValue || "").trim().toLowerCase();
     });
   }
 
