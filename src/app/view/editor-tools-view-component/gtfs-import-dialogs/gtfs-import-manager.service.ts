@@ -1,6 +1,3 @@
-  /**
-   * Update the progress (0-100) of a subphase in the importPhases state
-   */
 import {Injectable} from "@angular/core";
 import {BehaviorSubject, Observable} from "rxjs";
 import {GTFSParserService} from "../../../services/data/gtfs-parser.service";
@@ -420,8 +417,20 @@ export class GtfsImportManagerService {
         },
       );
 
+
       // All parsing subphases should be completed via callbacks
       this.updatePhaseStatus(0, "completed");
+
+      // Log: Anzahl agency, routes, trips, stopTimes, stops, calendar, calendarDates
+      console.info('[GTFS][Parsed]', {
+        agencies: gtfsData.agencies ? gtfsData.agencies.length : 0,
+        routes: gtfsData.routes ? gtfsData.routes.length : 0,
+        trips: gtfsData.trips ? gtfsData.trips.length : 0,
+        stopTimes: gtfsData.stopTimes ? gtfsData.stopTimes.length : 0,
+        stops: gtfsData.stops ? gtfsData.stops.length : 0,
+        calendar: gtfsData.calendar ? gtfsData.calendar.length : 0,
+        calendarDates: gtfsData.calendarDates ? gtfsData.calendarDates.length : 0
+      });
 
       this.logger.info(
         $localize`:@@app.view.editor-side-view.editor-tools-view-component.gtfs-converting:Converting GTFS to Netzgrafik format...`,
@@ -435,47 +444,24 @@ export class GtfsImportManagerService {
       ]);
 
 
-      // Apply category filter with progress
-      if (state.selectedCategories.length > 0) {
-        const total = gtfsData.routes.length;
-        let lastPercent = 0;
-        gtfsData.routes = gtfsData.routes.filter((route: any, idx: number) => {
-          const desc = (route.route_desc || "").toUpperCase();
-          const shortName = (route.route_short_name || "").toUpperCase();
 
-          // Fortschritt alle 10%
-          const percent = Math.floor((idx / total) * 100);
-          if (percent >= lastPercent + 10 || percent === 100) {
-            this.updateSubPhaseProgress(1, 0, percent);
-            lastPercent = percent;
-          }
-
-          return state.selectedCategories.some((cat) => {
-            const catUpper = cat.toUpperCase();
-            if (desc.includes(catUpper)) {
-              return true;
-            }
-            const prefixMatch = shortName.match(/^[A-Za-z]+/);
-            if (prefixMatch && prefixMatch[0] === catUpper) {
-              return true;
-            }
-            return false;
-          });
-        });
-        this.updateSubPhaseProgress(1, 0, 100);
-
-        const validRouteIds = new Set(gtfsData.routes.map((r: any) => r.route_id));
-        gtfsData.trips = gtfsData.trips.filter((t: any) => validRouteIds.has(t.route_id));
-
-        const validTripIds = new Set(gtfsData.trips.map((t: any) => t.trip_id));
-        gtfsData.stopTimes = gtfsData.stopTimes.filter((st: any) => validTripIds.has(st.trip_id));
-      }
+      // Apply category filter with progress (ausgelagert)
+      this.applyCategoryFilterWithProgress(gtfsData, state);
       this.updateSubPhaseStatus(1, 0, "completed");
+// ...existing code...
+
 
 
       // Apply line filter with progress
       this.updateSubPhaseStatus(1, 1, "running");
       if (state.selectedLines.length > 0) {
+        // Vorherige Anzahlen merken
+        const before = {
+          routes: gtfsData.routes.length,
+          trips: gtfsData.trips.length,
+          stopTimes: gtfsData.stopTimes.length,
+          stops: gtfsData.stops ? gtfsData.stops.length : 0
+        };
         const total = gtfsData.routes.length;
         let lastPercent = 0;
         gtfsData.routes = gtfsData.routes.filter((route: any, idx: number) => {
@@ -506,8 +492,27 @@ export class GtfsImportManagerService {
         gtfsData.stops = gtfsData.stops.filter((stop: any) =>
           usedStopIdsWithParents.has(stop.stop_id),
         );
+        // Nachher-Anzahlen
+        const after = {
+          routes: gtfsData.routes.length,
+          trips: gtfsData.trips.length,
+          stopTimes: gtfsData.stopTimes.length,
+          stops: gtfsData.stops ? gtfsData.stops.length : 0
+        };
+        // Log-Ausgabe
+        console.info('[Filter][Linie]', {
+          before,
+          after,
+          removed: {
+            routes: before.routes - after.routes,
+            trips: before.trips - after.trips,
+            stopTimes: before.stopTimes - after.stopTimes,
+            stops: before.stops - after.stops
+          }
+        });
       }
       this.updateSubPhaseStatus(1, 1, "completed");
+
 
       // Apply node classification filter with progress
       this.updateSubPhaseStatus(1, 2, "running");
@@ -515,6 +520,13 @@ export class GtfsImportManagerService {
         (key) => state.nodeFilter[key as keyof typeof state.nodeFilter],
       );
       if (activeNodeTypes.length > 0 && activeNodeTypes.length < 5) {
+        // Vorherige Anzahlen merken
+        const before = {
+          routes: gtfsData.routes.length,
+          trips: gtfsData.trips.length,
+          stopTimes: gtfsData.stopTimes.length,
+          stops: gtfsData.stops ? gtfsData.stops.length : 0
+        };
         const acceptedClassifications = new Set(activeNodeTypes);
         const total = gtfsData.stops.length;
 
@@ -528,6 +540,24 @@ export class GtfsImportManagerService {
           return !stop.node_type || acceptedClassifications.has(stop.node_type);
         });
         this.updateSubPhaseProgress(1, 2, 100);
+        // Nachher-Anzahlen
+        const after = {
+          routes: gtfsData.routes.length,
+          trips: gtfsData.trips.length,
+          stopTimes: gtfsData.stopTimes.length,
+          stops: gtfsData.stops ? gtfsData.stops.length : 0
+        };
+        // Log-Ausgabe
+        console.info('[Filter][Knoten]', {
+          before,
+          after,
+          removed: {
+            routes: before.routes - after.routes,
+            trips: before.trips - after.trips,
+            stopTimes: before.stopTimes - after.stopTimes,
+            stops: before.stops - after.stops
+          }
+        });
       }
       this.updateSubPhaseStatus(1, 2, "completed");
 
@@ -1016,6 +1046,7 @@ export class GtfsImportManagerService {
     }
   }
 
+
   private markAllSubPhasesCompleted(phaseIndex: number): void {
     const state = this.getState();
     const newPhases = [...state.importPhases];
@@ -1024,6 +1055,66 @@ export class GtfsImportManagerService {
       status: "completed" as const,
     }));
     this.updateState({importPhases: newPhases});
+  }
+
+  /**
+   * Filtert GTFS-Routen, Trips und StopTimes nach ausgewählten Kategorien mit Fortschrittsanzeige.
+   */
+  private applyCategoryFilterWithProgress(gtfsData: any, state: any): void {
+    if (!state.selectedCategories || state.selectedCategories.length === 0) return;
+    // Vorherige Anzahlen merken
+    const before = {
+      routes: gtfsData.routes.length,
+      trips: gtfsData.trips.length,
+      stopTimes: gtfsData.stopTimes.length,
+      stops: gtfsData.stops ? gtfsData.stops.length : 0
+    };
+    const total = gtfsData.routes.length;
+    let lastPercent = 0;
+    gtfsData.routes = gtfsData.routes.filter((route: any, idx: number) => {
+      const desc = (route.route_desc || "").toUpperCase();
+      const shortName = (route.route_short_name || "").toUpperCase();
+      // Fortschritt alle 10%
+      const percent = Math.floor((idx / total) * 100);
+      if (percent >= lastPercent + 10 || percent === 100) {
+        this.updateSubPhaseProgress(1, 0, percent);
+        lastPercent = percent;
+      }
+      return state.selectedCategories.some((cat: string) => {
+        const catUpper = cat.toUpperCase();
+        if (desc.includes(catUpper)) {
+          return true;
+        }
+        const prefixMatch = shortName.match(/^[A-Za-z]+/);
+        if (prefixMatch && prefixMatch[0] === catUpper) {
+          return true;
+        }
+        return false;
+      });
+    });
+    this.updateSubPhaseProgress(1, 0, 100);
+    const validRouteIds = new Set(gtfsData.routes.map((r: any) => r.route_id));
+    gtfsData.trips = gtfsData.trips.filter((t: any) => validRouteIds.has(t.route_id));
+    const validTripIds = new Set(gtfsData.trips.map((t: any) => t.trip_id));
+    gtfsData.stopTimes = gtfsData.stopTimes.filter((st: any) => validTripIds.has(st.trip_id));
+    // Nachher-Anzahlen
+    const after = {
+      routes: gtfsData.routes.length,
+      trips: gtfsData.trips.length,
+      stopTimes: gtfsData.stopTimes.length,
+      stops: gtfsData.stops ? gtfsData.stops.length : 0
+    };
+    // Log-Ausgabe
+    console.info('[Filter][Kategorie]', {
+      before,
+      after,
+      removed: {
+        routes: before.routes - after.routes,
+        trips: before.trips - after.trips,
+        stopTimes: before.stopTimes - after.stopTimes,
+        stops: before.stops - after.stops
+      }
+    });
   }
 
   // Setters for filters
