@@ -92,6 +92,141 @@ export class GTFSParserService {
    * und Zusatzobjekt mit Details zum meistfrequenten Trip je Richtung.
    */
   public getRouteTripOverviewByAgency(gtfsData: GTFSData): any[] {
+    // --- Erweiterung: Direction-Independent Path Grouping & Statistik ---
+    // 1. Trips nach Path (Haltefolge) gruppieren (direction-unabhängig)
+    const pathToTrips: Map<string, GTFSTrip[]> = new Map();
+    const tripIdToPathKey: Map<string, string> = new Map();
+    for (const trip of gtfsData.trips) {
+      const stopTimes = gtfsData.stopTimes
+        .filter((st: GTFSStopTime) => st.trip_id === trip.trip_id)
+        .sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence));
+      const parentNames = stopTimes
+        .map((st: GTFSStopTime) => {
+          const stop = gtfsData.stops.find((s: GTFSStop) => s.stop_id === st.stop_id);
+          if (stop?.parent_station) {
+            const parent = gtfsData.stops.find((s: GTFSStop) => s.stop_id === stop.parent_station);
+            return parent?.stop_name || stop.parent_station;
+          }
+          return stop?.stop_name || st.stop_id;
+        })
+        .map((x) => x ?? "");
+      const pathKey = parentNames.join("-");
+      if (!pathToTrips.has(pathKey)) pathToTrips.set(pathKey, []);
+      pathToTrips.get(pathKey)!.push(trip);
+      tripIdToPathKey.set(trip.trip_id, pathKey);
+    }
+
+    // 2. Reverse Path Matching: Finde für jeden Path das Reverse
+    const pathKeys = Array.from(pathToTrips.keys());
+    const matchedPaths: Set<string> = new Set();
+    const directionIndependentGroups: any[] = [];
+    for (const pathKey of pathKeys) {
+      if (matchedPaths.has(pathKey)) continue;
+      const tripsA = pathToTrips.get(pathKey)!;
+      const pathArr = pathKey.split("-");
+      const reversePathKey = [...pathArr].reverse().join("-");
+      const tripsB = pathToTrips.get(reversePathKey);
+      // Forward/Backward zuordnen
+      let trips_forward: GTFSTrip[] = tripsA;
+      let trips_backward: GTFSTrip[] = [];
+      let hasRoundTrip = false;
+      if (tripsB && reversePathKey !== pathKey) {
+        trips_backward = tripsB;
+        hasRoundTrip = true;
+        matchedPaths.add(reversePathKey);
+      }
+      matchedPaths.add(pathKey);
+
+      // Symmetrieprüfung: Abfahrts-/Ankunftszeiten vergleichen (Toleranz 5min)
+      let symmetry = false;
+      if (hasRoundTrip && trips_forward.length > 0 && trips_backward.length > 0) {
+        // Nimm mittleren Trip je Richtung als Repräsentant
+        const getDepArr = (trip: GTFSTrip) => {
+          const st = gtfsData.stopTimes
+            .filter((s) => s.trip_id === trip.trip_id)
+            .sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence));
+          return {
+            dep: st[0]?.departure_time || st[0]?.arrival_time,
+            arr: st[st.length - 1]?.arrival_time || st[st.length - 1]?.departure_time,
+          };
+        };
+        const tripF = trips_forward[Math.floor(trips_forward.length / 2)];
+        const tripB = trips_backward[Math.floor(trips_backward.length / 2)];
+        const f = getDepArr(tripF);
+        const b = getDepArr(tripB);
+        if (f.dep && b.arr) {
+          const fDepMin = GTFSParserService.timeToMinutes(f.dep);
+          const bArrMin = GTFSParserService.timeToMinutes(b.arr);
+          symmetry = Math.abs(fDepMin - bArrMin) <= 5;
+        }
+      }
+
+      directionIndependentGroups.push({
+        path: pathArr,
+        reverse_path: pathArr.slice().reverse(),
+        anzahl_trips_forward: trips_forward.length,
+        anzahl_trips_backward: trips_backward.length,
+        anzahl_trips_total: trips_forward.length + trips_backward.length,
+        trips_forward,
+        trips_backward,
+        round_trip: hasRoundTrip,
+        symmetry,
+      });
+    }
+
+    // Statistik-Array gruppiert nach agency und route (nur einmal deklariert und befüllt)
+    const agencyRouteGroups: Record<string, Record<string, any[]>> = {};
+    for (const group of directionIndependentGroups) {
+      let agency_id = "unknown", agency_name = "unknown", route_id = "unknown", from = "", to = "";
+      const exampleTrip = group.trips_forward[0] || group.trips_backward[0];
+      if (exampleTrip) {
+        const route = gtfsData.routes.find(r => r.route_id === exampleTrip.route_id);
+        if (route) {
+          route_id = route.route_id;
+          agency_id = route.agency_id || "unknown";
+          const agency = gtfsData.agencies.find(a => a.agency_id === agency_id);
+          if (agency) agency_name = agency.agency_name;
+        }
+      }
+      if (group.path && group.path.length > 0) {
+        from = group.path[0];
+        to = group.path[group.path.length - 1];
+      }
+      group.agency_id = agency_id;
+      group.agency_name = agency_name;
+      group.route_id = route_id;
+      group.from = from;
+      group.to = to;
+      group.summary = `Agency: ${agency_name} (ID: ${agency_id}), Route: ${route_id}, From: ${from}, To: ${to}, Trips: ${group.anzahl_trips_total}`;
+      if (!agencyRouteGroups[agency_id]) agencyRouteGroups[agency_id] = {};
+      if (!agencyRouteGroups[agency_id][route_id]) agencyRouteGroups[agency_id][route_id] = [];
+      agencyRouteGroups[agency_id][route_id].push(group);
+    }
+
+    // Menschlich lesbare Zusammenfassung für agency und route
+    let agencyRouteSummaries: Record<string, any> = {};
+    if (Object.keys(agencyRouteGroups).length > 0) {
+      agencyRouteSummaries = {};
+      for (const agencyId of Object.keys(agencyRouteGroups)) {
+        const agency = gtfsData.agencies.find(a => a.agency_id === agencyId);
+        const agencyName = agency ? agency.agency_name : agencyId;
+        agencyRouteSummaries[agencyId] = {
+          summary: `Agency: ${agencyName} (ID: ${agencyId})`,
+          routes: {}
+        };
+        for (const routeId of Object.keys(agencyRouteGroups[agencyId])) {
+          const firstGroup = agencyRouteGroups[agencyId][routeId][0];
+          const from = firstGroup ? firstGroup.from : '';
+          const to = firstGroup ? firstGroup.to : '';
+          agencyRouteSummaries[agencyId].routes[routeId] = {
+            summary: `Route: ${routeId}, From: ${from}, To: ${to}`,
+            groups: agencyRouteGroups[agencyId][routeId]
+          };
+        }
+      }
+      // eslint-disable-next-line no-console
+      console.info('[GTFS-Statistik][Direction-Independent-Groups][by agency/route][summaries]:', agencyRouteSummaries);
+    }
     // Hilfsfunktion: Prüft, ob ein Trip am Betriebstag fährt
     function tripIsActiveOnDate(trip: GTFSTrip, date: string): boolean {
       // date: YYYY-MM-DD
@@ -102,7 +237,7 @@ export class GTFSParserService {
       if (cal) {
         // Wochentag prüfen
         const weekday = new Date(date).getDay(); // 0=So, 1=Mo, ...
-        const weekdayMap = [
+        const weekdayMap: (keyof GTFSCalendar)[] = [
           "sunday",
           "monday",
           "tuesday",
@@ -111,7 +246,7 @@ export class GTFSParserService {
           "friday",
           "saturday",
         ];
-        const validWeek = cal[weekdayMap[weekday]] === "1";
+        const validWeek = (cal[weekdayMap[weekday] as keyof GTFSCalendar]) === "1";
         baseActive = validWeek && yyyymmdd >= cal.start_date && yyyymmdd <= cal.end_date;
       }
       // calendar_dates.txt
