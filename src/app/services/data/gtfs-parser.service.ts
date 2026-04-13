@@ -1255,8 +1255,7 @@ export class GTFSParserService {
       this.classifyNodes(gtfsData.stops, gtfsData.stopTimes, gtfsData.trips);
     }
 
-    // Logge die neue Übersicht nach dem Import/Filter
-    console.info("[GTFS-Import Übersicht]", this.getRouteTripOverviewByAgency(gtfsData));
+    // Übersicht-Log wird jetzt nach den Filtern im Import-Workflow ausgegeben
     return gtfsData;
   }
 
