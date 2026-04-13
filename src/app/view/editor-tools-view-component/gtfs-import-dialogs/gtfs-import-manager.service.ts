@@ -562,6 +562,10 @@ export class GtfsImportManagerService {
       this.updateSubPhaseStatus(1, 2, "completed");
 
 
+
+      // Übersicht nach allen Filtern ausgeben
+      console.info('[GTFS-Import Übersicht]', this.gtfsParserService.getRouteTripOverviewByAgency(gtfsData));
+
       const existingNetzgrafik = this.dataService.getNetzgrafikDto();
       const existingMetadata = existingNetzgrafik?.metadata;
 
