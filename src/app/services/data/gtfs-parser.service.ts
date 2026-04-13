@@ -130,20 +130,26 @@ export class GTFSParserService {
     // Betriebstag als Parameter (z.B. "2026-04-13"), Standard: heute
     const betriebstag = (gtfsData as any).betriebstag || new Date().toISOString().slice(0, 10);
     const agencyResult: Record<string, {agency: any; routen: any[]}> = {};
-    const agenciesById = new Map(gtfsData.agencies.map((a: GTFSAgency) => [a.agency_id, a]));
-    // Gruppiere Trips nach agency, route, direction
-    const grouped: Record<string, {forward: GTFSTrip[]; backward: GTFSTrip[]}> = {};
-    for (const route of gtfsData.routes) {
-      const agency = agenciesById.get(route.agency_id || "");
-      if (!agency) continue;
-      const key = `${agency.agency_id}|${route.route_id}`;
-      if (!grouped[key]) grouped[key] = {forward: [], backward: []};
-      const trips = gtfsData.trips.filter((t: GTFSTrip) => t.route_id === route.route_id);
-      for (const trip of trips) {
-        const dir = trip.direction_id === "1" ? "backward" : "forward";
-        grouped[key][dir].push(trip);
-      }
-    }
+        // Vorberechnung: Map route_id -> Trips
+        const agenciesById = new Map(gtfsData.agencies.map((a: GTFSAgency) => [a.agency_id, a]));
+        const routeToTrips: Record<string, GTFSTrip[]> = {};
+        for (const trip of gtfsData.trips) {
+          if (!routeToTrips[trip.route_id]) routeToTrips[trip.route_id] = [];
+          routeToTrips[trip.route_id].push(trip);
+        }
+        // Gruppiere Trips nach agency, route, direction
+        const grouped: Record<string, {forward: GTFSTrip[], backward: GTFSTrip[]}> = {};
+        for (const route of gtfsData.routes) {
+          const agency = agenciesById.get(route.agency_id || "");
+          if (!agency) continue;
+          const key = `${agency.agency_id}|${route.route_id}`;
+          if (!grouped[key]) grouped[key] = {forward: [], backward: []};
+          const trips = routeToTrips[route.route_id] || [];
+          for (const trip of trips) {
+            const dir = trip.direction_id === "1" ? "backward" : "forward";
+            grouped[key][dir].push(trip);
+          }
+        }
     // Helper: Details zum meistfrequenten Trip und Statistik aller Stopfolgen
     function getMostFrequentTrip(
       trips: GTFSTrip[],
@@ -718,7 +724,7 @@ export class GTFSParserService {
       } else if (isEnd) {
         stop.node_type = "end";
       } else if (degree === 2) {
-        // degree == 2 and at least one stop → minor node
+        // degree === 2 and at least one stop → minor node
         stop.node_type = hasStop ? "minor_stop" : "minor_stop";
       } else if (degree > 2) {
         // degree > 2 and at least one stop → major node
@@ -1010,11 +1016,7 @@ export class GTFSParserService {
 
             // Get trip_id (usually first column)
             const tripIdIndex = header.indexOf("trip_id");
-            const departureTimeIndex = header.indexOf("departure_time");
-            const arrivalTimeIndex = header.indexOf("arrival_time");
-
             if (tripIdIndex < 0 || tripIdIndex >= values.length) continue;
-
             const tripId = values[tripIdIndex].trim().replace(/['"]/g, "");
 
             // Quick filter: only process if trip_id matches
@@ -1028,7 +1030,12 @@ export class GTFSParserService {
 
             filteredStopTimes.push(record as GTFSStopTime);
             keepCount++;
+            if (keepCount % 100000 === 0) {
+              console.log(`[stop_times.txt] Parsed ${keepCount} records so far...`);
+            }
           }
+          // Fortschritt nach jedem Chunk anzeigen
+          console.log(`[stop_times.txt] Progress: ${Math.min(offset + chunkSize, totalSize)}/${totalSize} bytes (${Math.round(100 * Math.min(offset + chunkSize, totalSize) / totalSize)}%)`);
         }
 
         gtfsData.stopTimes = filteredStopTimes;
@@ -1144,7 +1151,7 @@ export class GTFSParserService {
       const parentPathArr = stopTimes.map((st) => stopIdToParent.get(st.stop_id) || st.stop_id);
       const path = parentPathArr.join("-");
       let dir = trip.direction_id;
-      if (dir == null || dir === undefined || dir === "") {
+      if (dir === null || dir === undefined || dir === "") {
         // Richtung aus Path ableiten: lexikographisch vergleichen
         dir = parentPathArr[0] < parentPathArr[parentPathArr.length - 1] ? "0" : "1";
       }

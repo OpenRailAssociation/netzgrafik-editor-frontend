@@ -1,3 +1,6 @@
+  /**
+   * Update the progress (0-100) of a subphase in the importPhases state
+   */
 import {Injectable} from "@angular/core";
 import {BehaviorSubject, Observable} from "rxjs";
 import {GTFSParserService} from "../../../services/data/gtfs-parser.service";
@@ -431,11 +434,21 @@ export class GtfsImportManagerService {
         {label: "Knoten-Filter", status: "pending" as const},
       ]);
 
-      // Apply category filter
+
+      // Apply category filter with progress
       if (state.selectedCategories.length > 0) {
-        gtfsData.routes = gtfsData.routes.filter((route: any) => {
+        const total = gtfsData.routes.length;
+        let lastPercent = 0;
+        gtfsData.routes = gtfsData.routes.filter((route: any, idx: number) => {
           const desc = (route.route_desc || "").toUpperCase();
           const shortName = (route.route_short_name || "").toUpperCase();
+
+          // Fortschritt alle 10%
+          const percent = Math.floor((idx / total) * 100);
+          if (percent >= lastPercent + 10 || percent === 100) {
+            this.updateSubPhaseProgress(1, 0, percent);
+            lastPercent = percent;
+          }
 
           return state.selectedCategories.some((cat) => {
             const catUpper = cat.toUpperCase();
@@ -449,6 +462,7 @@ export class GtfsImportManagerService {
             return false;
           });
         });
+        this.updateSubPhaseProgress(1, 0, 100);
 
         const validRouteIds = new Set(gtfsData.routes.map((r: any) => r.route_id));
         gtfsData.trips = gtfsData.trips.filter((t: any) => validRouteIds.has(t.route_id));
@@ -458,14 +472,23 @@ export class GtfsImportManagerService {
       }
       this.updateSubPhaseStatus(1, 0, "completed");
 
-      // Apply line filter
-      this.updateSubPhaseStatus(1, 1, "running");
 
+      // Apply line filter with progress
+      this.updateSubPhaseStatus(1, 1, "running");
       if (state.selectedLines.length > 0) {
-        gtfsData.routes = gtfsData.routes.filter((route: any) => {
+        const total = gtfsData.routes.length;
+        let lastPercent = 0;
+        gtfsData.routes = gtfsData.routes.filter((route: any, idx: number) => {
           const shortName = (route.route_short_name || "").toUpperCase();
+          // Fortschritt alle 10%
+          const percent = Math.floor((idx / total) * 100);
+          if (percent >= lastPercent + 10 || percent === 100) {
+            this.updateSubPhaseProgress(1, 1, percent);
+            lastPercent = percent;
+          }
           return state.selectedLines.some((line) => shortName === line.toUpperCase());
         });
+        this.updateSubPhaseProgress(1, 1, 100);
 
         const validRouteIds = new Set(gtfsData.routes.map((r: any) => r.route_id));
         gtfsData.trips = gtfsData.trips.filter((t: any) => validRouteIds.has(t.route_id));
@@ -486,30 +509,28 @@ export class GtfsImportManagerService {
       }
       this.updateSubPhaseStatus(1, 1, "completed");
 
-      // Apply node classification filter
+      // Apply node classification filter with progress
       this.updateSubPhaseStatus(1, 2, "running");
-
       const activeNodeTypes = Object.keys(state.nodeFilter).filter(
         (key) => state.nodeFilter[key as keyof typeof state.nodeFilter],
       );
-
       if (activeNodeTypes.length > 0 && activeNodeTypes.length < 5) {
         const acceptedClassifications = new Set(activeNodeTypes);
-        gtfsData.stops = gtfsData.stops.filter(
-          (stop: any) => !stop.node_type || acceptedClassifications.has(stop.node_type),
-        );
+        const total = gtfsData.stops.length;
+
+        let lastPercent = 0;
+        gtfsData.stops = gtfsData.stops.filter((stop: any, idx: number) => {
+          const percent = Math.floor((idx / total) * 100);
+          if (percent >= lastPercent + 10 || percent === 100) {
+            this.updateSubPhaseProgress(1, 2, percent);
+            lastPercent = percent;
+          }
+          return !stop.node_type || acceptedClassifications.has(stop.node_type);
+        });
+        this.updateSubPhaseProgress(1, 2, 100);
       }
       this.updateSubPhaseStatus(1, 2, "completed");
-      this.updatePhaseStatus(1, "completed");
 
-      // PHASE 3: Convert to Netzgrafik
-      this.updatePhaseStatus(2, "running", [
-        {label: "Knoten erstellen", status: "running" as const},
-        {label: "Zugläufe konvertieren", status: "pending" as const},
-        {label: "Abschnitte generieren", status: "pending" as const},
-        {label: "Round-Trip Matching", status: "pending" as const},
-        {label: "Layout berechnen", status: "pending" as const},
-      ]);
 
       const existingNetzgrafik = this.dataService.getNetzgrafikDto();
       const existingMetadata = existingNetzgrafik?.metadata;
@@ -1022,5 +1043,24 @@ export class GtfsImportManagerService {
 
   updateTimeSyncTolerance(value: number): void {
     this.updateState({timeSyncTolerance: value});
+  }
+
+  /**
+   * Update the progress (0-100) of a subphase in the importPhases state
+   */
+  updateSubPhaseProgress(phaseIdx: number, subIdx: number, progress: number) {
+    const state = this.getState();
+    const phases = [...state.importPhases];
+    if (
+      phases[phaseIdx] &&
+      phases[phaseIdx].subPhases &&
+      phases[phaseIdx].subPhases[subIdx]
+    ) {
+      phases[phaseIdx].subPhases[subIdx] = {
+        ...phases[phaseIdx].subPhases[subIdx],
+        progress,
+      };
+      this.updateState({importPhases: phases});
+    }
   }
 }
