@@ -166,7 +166,7 @@ export class GTFSParserService {
       // Trips mit Abfahrtszeit und -ort anreichern
       function enrichTrips(trips: GTFSTrip[]): any[] {
         return trips
-          .map(trip => {
+          .map((trip) => {
             const stopTimes = gtfsData.stopTimes
               .filter(st => st.trip_id === trip.trip_id)
               .sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence));
@@ -176,6 +176,22 @@ export class GTFSParserService {
               ...trip,
               departure_time: firstStopTime?.departure_time || firstStopTime?.arrival_time || null,
               departure_location: stop?.stop_name || firstStopTime?.stop_id || null
+            };
+          })
+          .map((trip) => {
+            const stopTimes = gtfsData.stopTimes
+              .filter((st) => st.trip_id === trip.trip_id)
+              .sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence));
+            const departure = stopTimes[0];
+            const arrival = stopTimes[stopTimes.length - 1];
+            return {
+              ...trip,
+              departure_time: departure?.departure_time || departure?.arrival_time,
+              departure_location:
+                gtfsData.stops.find((s) => s.stop_id === departure?.stop_id)?.stop_name || departure?.stop_id,
+              arrival_time: arrival?.arrival_time || arrival?.departure_time,
+              arrival_location:
+                gtfsData.stops.find((s) => s.stop_id === arrival?.stop_id)?.stop_name || arrival?.stop_id,
             };
           })
           .sort((a, b) => {
