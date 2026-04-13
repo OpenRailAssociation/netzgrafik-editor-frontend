@@ -91,7 +91,7 @@ export class GTFSParserService {
    * Erzeugt eine Übersicht pro agency/route mit allen Trips am Tag (forward/backward getrennt)
    * und Zusatzobjekt mit Details zum meistfrequenten Trip je Richtung.
    */
-  public getRouteTripOverviewByAgency(gtfsData: GTFSData): any[] {
+  public getRouteTripOverviewByAgency(gtfsData: GTFSData): Record<string, { summary: string, routes: Record<string, { summary: string, groups: any[] }> }> {
     // --- Erweiterung: Direction-Independent Path Grouping & Statistik ---
     // 1. Trips nach Path (Haltefolge) gruppieren (direction-unabhängig), aber nur aktive Trips am Betriebstag
     const betriebstag = (gtfsData as any).betriebstag || new Date().toISOString().slice(0, 10);
@@ -243,30 +243,26 @@ export class GTFSParserService {
       agencyRouteGroups[agency_id][route_id].push(group);
     }
 
-    // Menschlich lesbare Zusammenfassung für agency und route
-    let agencyRouteSummaries: Record<string, any> = {};
-    if (Object.keys(agencyRouteGroups).length > 0) {
-      agencyRouteSummaries = {};
-      for (const agencyId of Object.keys(agencyRouteGroups)) {
-        const agency = gtfsData.agencies.find(a => a.agency_id === agencyId);
-        const agencyName = agency ? agency.agency_name : agencyId;
-        agencyRouteSummaries[agencyId] = {
-          summary: `Agency: ${agencyName} (ID: ${agencyId})`,
-          routes: {}
+    // Hierarchie Agency -> Routes -> Groups als Objekt zurückgeben
+    const agencyRouteSummaries: Record<string, { summary: string, routes: Record<string, { summary: string, groups: any[] }> }> = {};
+    for (const agencyId of Object.keys(agencyRouteGroups)) {
+      const agency = gtfsData.agencies.find(a => a.agency_id === agencyId);
+      const agencyName = agency ? agency.agency_name : agencyId;
+      agencyRouteSummaries[agencyId] = {
+        summary: `Agency: ${agencyName} (ID: ${agencyId})`,
+        routes: {}
+      };
+      for (const routeId of Object.keys(agencyRouteGroups[agencyId])) {
+        const firstGroup = agencyRouteGroups[agencyId][routeId][0];
+        const from = firstGroup ? firstGroup.from : '';
+        const to = firstGroup ? firstGroup.to : '';
+        agencyRouteSummaries[agencyId].routes[routeId] = {
+          summary: `Route: ${routeId}, From: ${from}, To: ${to}`,
+          groups: agencyRouteGroups[agencyId][routeId]
         };
-        for (const routeId of Object.keys(agencyRouteGroups[agencyId])) {
-          const firstGroup = agencyRouteGroups[agencyId][routeId][0];
-          const from = firstGroup ? firstGroup.from : '';
-          const to = firstGroup ? firstGroup.to : '';
-          agencyRouteSummaries[agencyId].routes[routeId] = {
-            summary: `Route: ${routeId}, From: ${from}, To: ${to}`,
-            groups: agencyRouteGroups[agencyId][routeId]
-          };
-        }
       }
-      // eslint-disable-next-line no-console
-      console.info('[GTFS-Statistik][Direction-Independent-Groups][by agency/route][summaries]:', agencyRouteSummaries);
     }
+    return agencyRouteSummaries;
     // Hilfsfunktion: Prüft, ob ein Trip am Betriebstag fährt
     function tripIsActiveOnDate(trip: GTFSTrip, date: string): boolean {
       // date: YYYY-MM-DD
@@ -578,8 +574,23 @@ export class GTFSParserService {
       }
       agencyResult[agency_id].routen.push(routeObj);
     }
-    // (Nur noch eine Ausgabe im aufrufenden Code, nicht hier)
-    return Object.values(agencyResult);
+    // Agency->Route->Groups Hierarchie als Objekt zurückgeben
+    const result: Record<string, { summary: string, routes: Record<string, { summary: string, groups: any[] }> }> = {};
+    for (const agency_id of Object.keys(agencyResult)) {
+      const agency = agencyResult[agency_id].agency;
+      result[agency_id] = {
+        summary: `Agency: ${agency.agency_name || agency_id} (ID: ${agency_id})`,
+        routes: {}
+      };
+      for (const routeObj of agencyResult[agency_id].routen) {
+        const route_id = routeObj.route.route_id;
+        result[agency_id].routes[route_id] = {
+          summary: `Route: ${route_id}, From: ${routeObj.route.route_short_name || ''}, To: ${routeObj.route.route_long_name || ''}`,
+          groups: [routeObj]
+        };
+      }
+    }
+    return result;
   }
   /**
    * Parst ein GTFS-ZIP und filtert optional auf einen Betriebstag (YYYY-MM-DD)
