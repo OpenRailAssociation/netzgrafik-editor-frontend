@@ -28,6 +28,7 @@ export interface GTFSImportPhase {
 export interface GTFSSubPhase {
   label: string;
   status: "pending" | "running" | "completed" | "error";
+  progress?: number;
 }
 
 export interface TripDetail {

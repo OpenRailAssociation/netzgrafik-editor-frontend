@@ -50,6 +50,10 @@
                     <span *ngIf="subPhase.status === 'pending'">○</span>
                   </span>
                   <span class="sub-phase-label">{{ subPhase.label }}</span>
+                  <span *ngIf="subPhase.progress !== undefined && subPhase.status === 'running'" class="sub-phase-progress">
+                    <progress [value]="subPhase.progress" max="100"></progress>
+                    {{ subPhase.progress }}%
+                  </span>
                 </div>
               </div>
             </div>
