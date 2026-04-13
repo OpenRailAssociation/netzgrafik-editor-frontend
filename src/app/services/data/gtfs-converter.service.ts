@@ -466,7 +466,10 @@ export class GTFSConverterService {
       trainruns.push(trainrun);
 
       // Store mapping: trainrun ID -> trip IDs (all trips in this pattern)
-      trainrunToTrips.set(trainrun.id, pattern.trips.map((t) => t.trip_id));
+      trainrunToTrips.set(
+        trainrun.id,
+        pattern.trips.map((t) => t.trip_id),
+      );
 
       // Create trainrun sections
       // Process all stations in sequence, including non-stop (through) stations

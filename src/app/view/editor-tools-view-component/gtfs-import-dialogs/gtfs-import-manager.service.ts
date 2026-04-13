@@ -42,10 +42,12 @@ export class GtfsImportManagerService {
   private getInitialState(): GTFSImportState {
     // Set default date to today in YYYY-MM-DD format (for HTML date input)
     const today = new Date();
-    const defaultDate = 
-      today.getFullYear().toString() + '-' +
-      (today.getMonth() + 1).toString().padStart(2, '0') + '-' +
-      today.getDate().toString().padStart(2, '0');
+    const defaultDate =
+      today.getFullYear().toString() +
+      "-" +
+      (today.getMonth() + 1).toString().padStart(2, "0") +
+      "-" +
+      today.getDate().toString().padStart(2, "0");
 
     return {
       file: null,
@@ -573,9 +575,9 @@ export class GtfsImportManagerService {
   }
 
   private generateImportSummary(
-    netzgrafikDto: NetzgrafikDto, 
+    netzgrafikDto: NetzgrafikDto,
     gtfsData: any,
-    selectedDate: string | null
+    selectedDate: string | null,
   ): GTFSImportSummary {
     const trainruns = netzgrafikDto.trainruns || [];
     const sections = netzgrafikDto.trainrunSections || [];
@@ -642,7 +644,7 @@ export class GtfsImportManagerService {
   private generateTripDetails(
     gtfsData: any,
     selectedDate: string | null,
-    trainrunToTrips: Map<number, string[]>
+    trainrunToTrips: Map<number, string[]>,
   ): any[] {
     if (!selectedDate || !gtfsData) {
       return [];
@@ -652,12 +654,12 @@ export class GtfsImportManagerService {
     const activeServiceIds = this.getServiceIdsForDate(
       selectedDate,
       gtfsData.calendar || [],
-      gtfsData.calendarDates || []
+      gtfsData.calendarDates || [],
     );
 
     // Filter trips that are active on this date
     const activeTrips = (gtfsData.trips || []).filter((trip: any) =>
-      activeServiceIds.has(trip.service_id)
+      activeServiceIds.has(trip.service_id),
     );
 
     // Build route map for quick lookup
@@ -684,7 +686,7 @@ export class GtfsImportManagerService {
     // Build stop-to-parent-station mapping
     const stopToParent = new Map<string, string>();
     (gtfsData.stops || []).forEach((stop: any) => {
-      if (stop.parent_station && stop.parent_station !== '') {
+      if (stop.parent_station && stop.parent_station !== "") {
         stopToParent.set(stop.stop_id, stop.parent_station);
       } else {
         stopToParent.set(stop.stop_id, stop.stop_id);
@@ -695,108 +697,119 @@ export class GtfsImportManagerService {
     const systemPaths = this.identifySystemPathsForTrips(activeTrips, stopTimesMap, stopToParent);
 
     // Create trip details for ALL trips
-    const tripDetails = activeTrips.map((trip: any) => {
-      const route = routeMap.get(trip.route_id);
-      
-      // Sort stop times by stop_sequence (within a trip)
-      const stopTimes = (stopTimesMap.get(trip.trip_id) || []).sort(
-        (a: any, b: any) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence)
-      );
-      
-      if (stopTimes.length === 0) {
-        return null; // Skip trips without stop times
-      }
+    const tripDetails = activeTrips
+      .map((trip: any) => {
+        const route = routeMap.get(trip.route_id);
 
-      // Get first and last stops
-      const firstStopTime = stopTimes[0];
-      const lastStopTime = stopTimes[stopTimes.length - 1];
+        // Sort stop times by stop_sequence (within a trip)
+        const stopTimes = (stopTimesMap.get(trip.trip_id) || []).sort(
+          (a: any, b: any) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence),
+        );
 
-      const firstStop = stopMap.get(firstStopTime.stop_id);
-      const lastStop = stopMap.get(lastStopTime.stop_id);
+        if (stopTimes.length === 0) {
+          return null; // Skip trips without stop times
+        }
 
-      // Get parent station IDs for path comparison
-      const parentStopSequence = stopTimes.map((st: any) => 
-        stopToParent.get(st.stop_id) || st.stop_id
-      );
+        // Get first and last stops
+        const firstStopTime = stopTimes[0];
+        const lastStopTime = stopTimes[stopTimes.length - 1];
 
-      // Build stop sequence with names
-      const stopSequence = stopTimes.map((st: any) => {
-        const stop = stopMap.get(st.stop_id);
-        return stop?.stop_name || st.stop_id;
-      });
+        const firstStop = stopMap.get(firstStopTime.stop_id);
+        const lastStop = stopMap.get(lastStopTime.stop_id);
 
-      // Format times (HH:MM)
-      const formatTime = (timeStr: string) => {
-        if (!timeStr) return '-';
-        const parts = timeStr.split(':');
-        return `${parts[0]}:${parts[1]}`; // HH:MM
-      };
+        // Get parent station IDs for path comparison
+        const parentStopSequence = stopTimes.map(
+          (st: any) => stopToParent.get(st.stop_id) || st.stop_id,
+        );
 
-      const startTime = formatTime(firstStopTime.departure_time || firstStopTime.arrival_time);
-      const endTime = formatTime(lastStopTime.arrival_time || lastStopTime.departure_time);
+        // Build stop sequence with names
+        const stopSequence = stopTimes.map((st: any) => {
+          const stop = stopMap.get(st.stop_id);
+          return stop?.stop_name || st.stop_id;
+        });
 
-      const category = route?.route_desc || route?.route_short_name || '-';
-      const frequency = route?.frequency ? `${route.frequency} min` : '-';
+        // Format times (HH:MM)
+        const formatTime = (timeStr: string) => {
+          if (!timeStr) return "-";
+          const parts = timeStr.split(":");
+          return `${parts[0]}:${parts[1]}`; // HH:MM
+        };
 
-      // Check if this trip uses the system path
-      const pathKey = `${trip.route_id}_${trip.direction_id || '0'}_${parentStopSequence.join('-')}`;
-      const isSystemPath = systemPaths.has(pathKey) && systemPaths.get(pathKey);
+        const startTime = formatTime(firstStopTime.departure_time || firstStopTime.arrival_time);
+        const endTime = formatTime(lastStopTime.arrival_time || lastStopTime.departure_time);
 
-      // Determine path variant
-      let pathVariant = 'Other';
-      if (isSystemPath) {
-        pathVariant = 'System';
-      } else {
-        // Check if this is a shortened trip
-        const systemPathKey = this.findSystemPathKey(trip.route_id, trip.direction_id || '0', systemPaths);
-        if (systemPathKey) {
-          const systemStops = systemPathKey.split('_')[2].split('-');
-          const tripStops = parentStopSequence;
+        const category = route?.route_desc || route?.route_short_name || "-";
+        const frequency = route?.frequency ? `${route.frequency} min` : "-";
 
-          // Check if trip starts later (shortened at start)
-          if (systemStops.length > tripStops.length) {
-            const startsAt = systemStops.indexOf(tripStops[0]);
-            const endsAt = systemStops.indexOf(tripStops[tripStops.length - 1]);
+        // Check if this trip uses the system path
+        const pathKey = `${trip.route_id}_${trip.direction_id || "0"}_${parentStopSequence.join("-")}`;
+        const isSystemPath = systemPaths.has(pathKey) && systemPaths.get(pathKey);
 
-            if (startsAt > 0 && endsAt === systemStops.length - 1) {
-              pathVariant = 'Shortened-Start';
-            } else if (startsAt === 0 && endsAt < systemStops.length - 1) {
-              pathVariant = 'Shortened-End';
-            } else if (startsAt > 0 && endsAt < systemStops.length - 1) {
-              pathVariant = 'Shortened-Both';
+        // Determine path variant
+        let pathVariant = "Other";
+        if (isSystemPath) {
+          pathVariant = "System";
+        } else {
+          // Check if this is a shortened trip
+          const systemPathKey = this.findSystemPathKey(
+            trip.route_id,
+            trip.direction_id || "0",
+            systemPaths,
+          );
+          if (systemPathKey) {
+            const systemStops = systemPathKey.split("_")[2].split("-");
+            const tripStops = parentStopSequence;
+
+            // Check if trip starts later (shortened at start)
+            if (systemStops.length > tripStops.length) {
+              const startsAt = systemStops.indexOf(tripStops[0]);
+              const endsAt = systemStops.indexOf(tripStops[tripStops.length - 1]);
+
+              if (startsAt > 0 && endsAt === systemStops.length - 1) {
+                pathVariant = "Shortened-Start";
+              } else if (startsAt === 0 && endsAt < systemStops.length - 1) {
+                pathVariant = "Shortened-End";
+              } else if (startsAt > 0 && endsAt < systemStops.length - 1) {
+                pathVariant = "Shortened-Both";
+              }
             }
           }
         }
-      }
 
-      // Find trainrun ID for this trip
-      let trainrunId: number | null = null;
-      for (const [tId, tripIds] of trainrunToTrips.entries()) {
-        if (tripIds.includes(trip.trip_id)) {
-          trainrunId = tId;
-          break;
+        // Find trainrun ID for this trip
+        let trainrunId: number | null = null;
+        for (const [tId, tripIds] of trainrunToTrips.entries()) {
+          if (tripIds.includes(trip.trip_id)) {
+            trainrunId = tId;
+            break;
+          }
         }
-      }
 
-      return {
-        tripId: trip.trip_id,
-        routeShortName: route?.route_short_name || '-',
-        routeLongName: route?.route_long_name || '-',
-        tripHeadsign: trip.trip_headsign || '-',
-        category: category,
-        frequency: frequency,
-        trainrunId: trainrunId,
-        direction: trip.direction_id === '0' ? 'Outbound →' : trip.direction_id === '1' ? 'Inbound ↩' : '-',
-        startStation: firstStop?.stop_name || '-',
-        endStation: lastStop?.stop_name || '-',
-        startTime: startTime,
-        endTime: endTime,
-        stopCount: stopTimes.length,
-        isSystemPath: isSystemPath,
-        pathVariant: pathVariant,
-        stopSequence: stopSequence,
-      };
-    }).filter((detail: any) => detail !== null); // Remove null entries
+        return {
+          tripId: trip.trip_id,
+          routeShortName: route?.route_short_name || "-",
+          routeLongName: route?.route_long_name || "-",
+          tripHeadsign: trip.trip_headsign || "-",
+          category: category,
+          frequency: frequency,
+          trainrunId: trainrunId,
+          direction:
+            trip.direction_id === "0"
+              ? "Outbound →"
+              : trip.direction_id === "1"
+                ? "Inbound ↩"
+                : "-",
+          startStation: firstStop?.stop_name || "-",
+          endStation: lastStop?.stop_name || "-",
+          startTime: startTime,
+          endTime: endTime,
+          stopCount: stopTimes.length,
+          isSystemPath: isSystemPath,
+          pathVariant: pathVariant,
+          stopSequence: stopSequence,
+        };
+      })
+      .filter((detail: any) => detail !== null); // Remove null entries
 
     // Sort by route, direction, then start time
     tripDetails.sort((a: any, b: any) => {
@@ -818,24 +831,24 @@ export class GtfsImportManagerService {
   private identifySystemPathsForTrips(
     trips: any[],
     stopTimesMap: Map<string, any[]>,
-    stopToParent: Map<string, string>
+    stopToParent: Map<string, string>,
   ): Map<string, boolean> {
     // Group trips by route+direction and path
     const pathCounts = new Map<string, number>();
 
     trips.forEach((trip: any) => {
       const stopTimes = (stopTimesMap.get(trip.trip_id) || []).sort(
-        (a: any, b: any) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence)
+        (a: any, b: any) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence),
       );
 
       if (stopTimes.length === 0) return;
 
       // Get parent station sequence
-      const parentStopSequence = stopTimes.map((st: any) => 
-        stopToParent.get(st.stop_id) || st.stop_id
+      const parentStopSequence = stopTimes.map(
+        (st: any) => stopToParent.get(st.stop_id) || st.stop_id,
       );
 
-      const pathKey = `${trip.route_id}_${trip.direction_id || '0'}_${parentStopSequence.join('-')}`;
+      const pathKey = `${trip.route_id}_${trip.direction_id || "0"}_${parentStopSequence.join("-")}`;
       pathCounts.set(pathKey, (pathCounts.get(pathKey) || 0) + 1);
     });
 
@@ -844,7 +857,7 @@ export class GtfsImportManagerService {
     const systemPaths = new Map<string, boolean>();
 
     pathCounts.forEach((count, pathKey) => {
-      const parts = pathKey.split('_');
+      const parts = pathKey.split("_");
       const routeDir = `${parts[0]}_${parts[1]}`;
 
       if (!routeDirectionPaths.has(routeDir)) {
@@ -859,7 +872,7 @@ export class GtfsImportManagerService {
 
     // Mark system paths
     pathCounts.forEach((count, pathKey) => {
-      const parts = pathKey.split('_');
+      const parts = pathKey.split("_");
       const routeDir = `${parts[0]}_${parts[1]}`;
       const systemPath = routeDirectionPaths.get(routeDir);
       systemPaths.set(pathKey, pathKey === systemPath);
@@ -871,7 +884,11 @@ export class GtfsImportManagerService {
   /**
    * Find the system path key for a specific route+direction
    */
-  private findSystemPathKey(routeId: string, directionId: string, systemPaths: Map<string, boolean>): string | null {
+  private findSystemPathKey(
+    routeId: string,
+    directionId: string,
+    systemPaths: Map<string, boolean>,
+  ): string | null {
     const routeDir = `${routeId}_${directionId}_`;
     for (const [key, isSystem] of systemPaths.entries()) {
       if (key.startsWith(routeDir) && isSystem) {
@@ -887,11 +904,11 @@ export class GtfsImportManagerService {
   private getServiceIdsForDate(
     dateStr: string,
     calendar: any[],
-    calendarDates: any[]
+    calendarDates: any[],
   ): Set<string> {
     const serviceIds = new Set<string>();
     const targetDate = new Date(dateStr);
-    const targetDateStr = dateStr.replace(/-/g, ''); // YYYYMMDD
+    const targetDateStr = dateStr.replace(/-/g, ""); // YYYYMMDD
     const dayOfWeek = targetDate.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
 
     // Step 1: Check calendar.txt for regular services
@@ -905,13 +922,13 @@ export class GtfsImportManagerService {
       if (targetDate >= startDate && targetDate <= endDate) {
         // Check if service runs on this day of week
         const runsOnDay =
-          (dayOfWeek === 1 && cal.monday === '1') ||
-          (dayOfWeek === 2 && cal.tuesday === '1') ||
-          (dayOfWeek === 3 && cal.wednesday === '1') ||
-          (dayOfWeek === 4 && cal.thursday === '1') ||
-          (dayOfWeek === 5 && cal.friday === '1') ||
-          (dayOfWeek === 6 && cal.saturday === '1') ||
-          (dayOfWeek === 0 && cal.sunday === '1');
+          (dayOfWeek === 1 && cal.monday === "1") ||
+          (dayOfWeek === 2 && cal.tuesday === "1") ||
+          (dayOfWeek === 3 && cal.wednesday === "1") ||
+          (dayOfWeek === 4 && cal.thursday === "1") ||
+          (dayOfWeek === 5 && cal.friday === "1") ||
+          (dayOfWeek === 6 && cal.saturday === "1") ||
+          (dayOfWeek === 0 && cal.sunday === "1");
 
         if (runsOnDay) {
           serviceIds.add(cal.service_id);
@@ -922,10 +939,10 @@ export class GtfsImportManagerService {
     // Step 2: Apply calendar_dates.txt exceptions
     for (const calDate of calendarDates) {
       if (calDate.date === targetDateStr) {
-        if (calDate.exception_type === '1') {
+        if (calDate.exception_type === "1") {
           // Service added on this date
           serviceIds.add(calDate.service_id);
-        } else if (calDate.exception_type === '2') {
+        } else if (calDate.exception_type === "2") {
           // Service removed on this date
           serviceIds.delete(calDate.service_id);
         }

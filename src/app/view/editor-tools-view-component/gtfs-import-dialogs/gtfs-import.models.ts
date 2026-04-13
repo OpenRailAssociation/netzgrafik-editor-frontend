@@ -76,9 +76,9 @@ export interface GTFSImportState {
   selectedCategories: string[];
   selectedLines: string[];
   selectedDate: string | null; // Operating day in YYYY-MM-DD format
-  
+
   // Service date range from GTFS calendar
-  serviceDateRange: { startDate: string; endDate: string } | null;
+  serviceDateRange: {startDate: string; endDate: string} | null;
 
   // Filtered lists (for autocomplete)
   filteredAgencies: string[];

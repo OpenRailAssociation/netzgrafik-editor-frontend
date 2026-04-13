@@ -167,11 +167,19 @@
               <input
                 sbbInput
                 [formControl]="tripsSearchFilter"
-                [placeholder]="'app.view.editor-side-view.gtfs-import-dialogs.summary-trips-search' | translate"
+                [placeholder]="
+                  'app.view.editor-side-view.gtfs-import-dialogs.summary-trips-search' | translate
+                "
               />
             </sbb-form-field>
 
-            <table sbb-table [dataSource]="tripsDataSource" sbbSort #tripsSort="sbbSort" class="summary-table">
+            <table
+              sbb-table
+              [dataSource]="tripsDataSource"
+              sbbSort
+              #tripsSort="sbbSort"
+              class="summary-table"
+            >
               <ng-container sbbColumnDef="tripId">
                 <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header>
                   {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-trip-id" | translate }}
@@ -181,7 +189,9 @@
 
               <ng-container sbbColumnDef="routeShortName">
                 <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header>
-                  {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-route-name" | translate }}
+                  {{
+                    "app.view.editor-side-view.gtfs-import-dialogs.summary-route-name" | translate
+                  }}
                 </th>
                 <td sbb-cell *sbbCellDef="let element">{{ element.routeShortName }}</td>
               </ng-container>
@@ -202,25 +212,27 @@
 
               <ng-container sbbColumnDef="frequency">
                 <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header>
-                  {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-frequency" | translate }}
+                  {{
+                    "app.view.editor-side-view.gtfs-import-dialogs.summary-frequency" | translate
+                  }}
                 </th>
                 <td sbb-cell *sbbCellDef="let element">{{ element.frequency }}</td>
               </ng-container>
 
               <ng-container sbbColumnDef="trainrunId">
                 <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header>
-                  {{ "app.view.editor-side-view.gtfs-import-dialogs.summary-trainrun-id" | translate }}
+                  {{
+                    "app.view.editor-side-view.gtfs-import-dialogs.summary-trainrun-id" | translate
+                  }}
                 </th>
                 <td sbb-cell *sbbCellDef="let element">
-                  {{ element.trainrunId !== null ? element.trainrunId : '-' }}
+                  {{ element.trainrunId !== null ? element.trainrunId : "-" }}
                 </td>
               </ng-container>
 
               <tr sbb-header-row *sbbHeaderRowDef="tripsColumns"></tr>
               <tr sbb-row *sbbRowDef="let row; columns: tripsColumns"></tr>
             </table>
-
-
           </div>
         </div>
       </sbb-dialog-content>
@@ -260,13 +272,11 @@
           <!-- Operating Day Filter (Required) - FIRST FILTER -->
           <div class="filter-group">
             <label class="filter-label">
-              {{ 'app.view.editor-side-view.gtfs-import-dialogs.filter-operating-day' | translate }}
-              <span style="color: red;">*</span>
+              {{ "app.view.editor-side-view.gtfs-import-dialogs.filter-operating-day" | translate }}
+              <span style="color: red">*</span>
             </label>
             <sbb-form-field>
-                <sbb-datepicker
-                   
-                >
+              <sbb-datepicker>
                 <input
                   sbbInput
                   sbbDateInput
@@ -274,12 +284,15 @@
                   [(ngModel)]="gtfsSelectedDate"
                   (ngModelChange)="onSelectedDateChange($event)"
                   required
-                  style="width: 33%;"
+                  style="width: 33%"
                 />
               </sbb-datepicker>
             </sbb-form-field>
             <small class="filter-hint">
-              {{ 'app.view.editor-side-view.gtfs-import-dialogs.filter-operating-day-hint' | translate }}
+              {{
+                "app.view.editor-side-view.gtfs-import-dialogs.filter-operating-day-hint"
+                  | translate
+              }}
             </small>
           </div>
 
