@@ -970,6 +970,7 @@ export class TrainrunSectionService implements OnDestroy {
     trainrunSectionId: number,
     nodeId: number,
     noDurationStop = false,
+    isNonStop = false,
     enforceUpdate = true,
   ) {
     const trainrunSection1 = this.getTrainrunSectionFromId(trainrunSectionId);
@@ -1018,6 +1019,10 @@ export class TrainrunSectionService implements OnDestroy {
       trainrunSection1,
       trainrunSection2,
     );
+    const transitionIntermediate = nodeIntermediate.getTransition(trainrunSection1.getId());
+    if (!isNonStop && transitionIntermediate) {
+      transitionIntermediate.setIsNonStopTransit(false);
+    }
     this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection1.getId());
 
     const minHalteZeitFromNode = this.nodeService.getHaltezeit(
@@ -1117,7 +1122,7 @@ export class TrainrunSectionService implements OnDestroy {
       interpolatedPosition.getY(),
     );
 
-    this.replaceIntermediateStopWithNode(trainrunSection.getId(), newNode.getId(), true);
+    this.replaceIntermediateStopWithNode(trainrunSection.getId(), newNode.getId(), true, false);
     this.operation.emit(new TrainrunOperation(OperationType.update, trainrunSection.getTrainrun()));
   }
 

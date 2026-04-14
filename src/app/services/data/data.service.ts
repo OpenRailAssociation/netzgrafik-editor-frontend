@@ -138,7 +138,8 @@ export class DataService implements OnDestroy {
           this.trainrunSectionService.replaceIntermediateStopWithNode(
             currentSection.id,
             newNode.getId(),
-            undefined,
+            true,
+            false,
             false,
           );
 
