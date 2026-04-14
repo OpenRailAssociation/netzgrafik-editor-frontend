@@ -1032,6 +1032,8 @@ export class GtfsImportManagerService {
       ...(subPhases && {subPhases}),
     };
     this.updateState({importPhases: newPhases});
+    console.info('>> updatePhaseStatus', state.importPhases[phaseIndex].id, status);  
+
   }
 
   private updateSubPhaseStatus(
@@ -1048,6 +1050,9 @@ export class GtfsImportManagerService {
       };
       this.updateState({importPhases: newPhases});
     }
+    console.info('>> updateSubPhaseStatus', 
+      state.importPhases[phaseIndex].id, 
+      state.importPhases[phaseIndex].subPhases[subPhaseIndex].label, status);  
   }
 
 
