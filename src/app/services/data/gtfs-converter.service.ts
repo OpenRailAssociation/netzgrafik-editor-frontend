@@ -270,12 +270,15 @@ export class GTFSConverterService {
     const minStopsPerTrip = options.minStopsPerTrip || 3;
 
     // Step 1: Identify trip patterns (group trips with same stop sequence)
+    console.info("> 1.0 Identifying trip patterns...");
     const tripPatterns = this.identifyTripPatterns(gtfsData, minStopsPerTrip);
 
     // Step 2: Select representative trips from each pattern
+    console.info("> 2.0 Selecting representative trips...");
     const selectedPatterns = tripPatterns; // Use ALL patterns instead of limiting
 
     // Step 3: Create nodes from stops used in selected patterns
+    console.info("> 3.0 Creating nodes...");  
     const usedStopIds = new Set<string>();
     selectedPatterns.forEach((pattern) => {
       pattern.stopSequence.forEach((stopId) => usedStopIds.add(stopId));
@@ -284,7 +287,7 @@ export class GTFSConverterService {
     // The stopSequence contains parent_station IDs (from identifyTripPatterns)
     // Some of these parent_station IDs might NOT exist as actual stops in stops.txt
     // We need to create virtual parent stops for these cases
-
+    console.info("> 4.0 Stop ID mapping and virtual parent stop creation...");  
     const stopMap = new Map<string, GTFSStop>();
 
     // First, add all existing stops that match usedStopIds
@@ -295,6 +298,7 @@ export class GTFSConverterService {
     });
 
     // Second, create virtual parent stops for missing parent_station IDs
+     console.info("> 4.1 Creating virtual parent stops for missing parent_station IDs");
     const missingParentIds = Array.from(usedStopIds).filter((id) => !stopMap.has(id));
     if (missingParentIds.length > 0) {
       missingParentIds.forEach((parentId) => {
@@ -319,6 +323,7 @@ export class GTFSConverterService {
       });
     }
 
+    console.info(`> 4.2 Total nodes to create: ${stopMap.size}`);
     const nodes = this.createNodes(Array.from(stopMap.values()), gtfsData.stops);
 
     // Center all node coordinates around (0,0)
@@ -334,7 +339,8 @@ export class GTFSConverterService {
       });
     }
 
-    // Step 4: Create node ID mapping (map GTFS stop_id to Netzgrafik node ID)
+    // Step 5: Create node ID mapping (map GTFS stop_id to Netzgrafik node ID)
+    console.info("> 5.0 Mapping GTFS stops to node IDs...");  
     const nodeIdMap = new Map<string, number>();
     const stopsArray = Array.from(stopMap.values());
 
@@ -365,7 +371,8 @@ export class GTFSConverterService {
       }
     });
 
-    // Step 4.5: Map categories and frequencies
+    // Step 5.1: Map categories and frequencies
+    console.info("> 5.1 Mapping categories and frequencies...");
     const {categories, categoryMap} = this.mapCategories(gtfsData.routes, options.existingMetadata);
     const {frequencies, frequencyMap} = this.mapFrequencies(
       gtfsData.routes,
@@ -381,7 +388,8 @@ export class GTFSConverterService {
         : defaultNetzgrafik.metadata.trainrunTimeCategories;
     const defaultTimeCategoryId = timeCategories[0].id;
 
-    // Step 5: Create trainruns and trainrun sections
+    // Step 5.2: Create trainruns and trainrun sections
+    console.info("> 5.2 Creating trainruns and sections...");
     const trainruns: TrainrunDto[] = [];
     const trainrunSections: TrainrunSectionDto[] = [];
     const trainrunToTrips = new Map<number, string[]>(); // Map trainrun ID to trip IDs
