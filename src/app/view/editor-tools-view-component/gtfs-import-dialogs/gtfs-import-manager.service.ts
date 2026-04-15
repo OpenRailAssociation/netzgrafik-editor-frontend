@@ -399,6 +399,7 @@ export class GtfsImportManagerService {
         state.file,
         allowedRouteTypes,
         state.selectedAgencies,
+        state.selectedCategories.map((cat) => cat.toUpperCase()),
         (fileName: string) => {
           // Find the sub-phase for the completed file
           const state = this.getState();

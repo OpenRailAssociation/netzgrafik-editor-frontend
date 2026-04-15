@@ -1056,6 +1056,7 @@ export class GTFSParserService {
     file: File,
     allowedRouteTypes?: number[],
     allowedAgencies?: string[],
+    allowedCategories?: string[],
     progressCallback?: (fileName: string) => void,
   ): Promise<GTFSData> {
     const zip = JSZip();
@@ -1123,12 +1124,46 @@ export class GTFSParserService {
 
       // Apply route type filter if specified
       if (allowedRouteTypes && allowedRouteTypes.length > 0) {
-        const beforeFilter = gtfsData.routes.length;
         gtfsData.routes = gtfsData.routes.filter((route) => {
           const routeType = parseInt(route.route_type?.toString() || "3", 10);
           return allowedRouteTypes.includes(routeType);
         });
       }
+
+      // Apply category filter (route_desc) if specified
+      // Debug: Log vorhandene Kategorien und Filterwerte
+      // Logge alle route_desc-Werte vor dem Filtern (Rohdaten)
+      // Prüfe, welche Keys in den routes-Objekten vorhanden sind
+      if (gtfsData.routes.length > 0) {
+        const routeKeys = Object.keys(gtfsData.routes[0]);
+        console.info('[GTFS][Category-Filter][Debug][routes-keys]', routeKeys);
+        const allRawCategoryValues = gtfsData.routes.map(r => r.route_desc);
+        console.info('[GTFS][Category-Filter][Raw route_desc]', allRawCategoryValues);
+        if (!routeKeys.includes('route_desc')) {
+          console.warn('[GTFS][Category-Filter][Warn] Kein route_desc-Feld in routes gefunden! Kategorie-Filter wird übersprungen.');
+          console.info('[GTFS][Category-Filter][Info] Kategorie-Filter wurde übersprungen, alle Routen werden importiert.');
+          // Kategorie-Filter überspringen, alle Routen behalten
+          console.info('[GTFS][Category-Filter][Debug] Anzahl Routen nach Parsen (kein Filter):', gtfsData.routes.length);
+        } else {
+          // ...nur filtern, wenn route_desc existiert...
+          // (Der eigentliche Filtercode bleibt wie gehabt und wird nur ausgeführt, wenn route_desc existiert)
+          console.info('[GTFS][Category-Filter][Debug] Anzahl Routen vor Kategorie-Filter:', gtfsData.routes.length);
+          const allCategories = Array.from(new Set(gtfsData.routes.map(r => (r.route_desc || '').toUpperCase())));
+          console.info('[GTFS][Category-Filter][Debug]', {
+            allCategories,
+            allowedCategories
+          });
+          if (allowedCategories && allowedCategories.length > 0) {
+            gtfsData.routes = gtfsData.routes.filter((route) =>
+              allowedCategories.includes((route.route_desc || '').toUpperCase())
+            );
+          }
+        }
+      } else {
+        console.info('[GTFS][Category-Filter][Debug] Keine Routen vorhanden.');
+      }
+      // Nach dem (ggf. übersprungenen) Filter: Wie viele Routen sind noch da?
+      console.info('[GTFS][Category-Filter][Debug] Anzahl Routen nach Kategorie-Filter/Überspringen:', gtfsData.routes.length);
     }
     progressCallback?.("routes.txt");
 
