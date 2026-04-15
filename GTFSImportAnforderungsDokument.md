@@ -1,199 +1,83 @@
-...existing code...
 
-1. **Daten laden und entpacken:**
-  - Die GTFS-Daten werden als ZIP geladen und entpackt.
-  - Direkt nach dem Entpacken werden alle Agency (Unternehmen) extrahiert.
-  - Für die Filterung wird ein Mehrfachauswahl-Autocomplete-Chip-Input verwendet (UI-Element von angular.sbb.ch). Der Nutzer sieht alle Agency als auswählbare Chips.
+# GTFS-Import im Netzgrafik-Editor – Verbindliche Anforderung und Ablauf
 
-2. **Routen- und Routenbeschreibung-Filter:**
-  - Alle `route_type` werden extrahiert und als Chip-Filter angeboten (wie oben, angular.sbb.ch).
-  - Alle `route_desc` (sofern vorhanden) werden ebenfalls als Chip-Filter angeboten.
-  - Zusätzlich wird der Routenname (`route_name`) als dritter Chip-Filter bereitgestellt.
-  - Es gibt somit drei unabhängige Chip-Autocomplete-Filter (agency, route_type, route_desc/route_name).
+## 1. Ziel, Nutzen und technische Rahmenbedingungen
 
-3. **Verkehrstyp-Filter:**
-  - Verkehrstypen wie Bahn, Tram etc. werden als Checkboxen dargestellt (Default-Auswahl wie im PoC).
-  - Die Default-Auswahl und die Extraktion der Typen sind exakt wie im Proof-of-Concept umzusetzen und zu dokumentieren.
-
-4. **Betriebstag und Datumsbereich:**
-  - Ganz oben im UI wird der Betriebstag (relevanter Tag) ausgewählt.
-  - Auf derselben Zeile wird angezeigt, von wann bis wann Daten im Import vorliegen (Datumsbereich aus calendar extrahieren).
-
-5. **Filterpipeline beim Import:**
-  - Nach dem Import werden zuerst alle Agency gemäß Filter ausgewählt.
-  - Danach werden alle Routen gemäß den gesetzten Filtern gefiltert.
-  - Im Anschluss werden alle Trips gefiltert, die am gewählten Betriebstag verkehren.
-  - Nur diese Daten werden weiterverarbeitet.
-
-6. **Hierarchische Gruppierung und Pfadlogik:**
-  - Für jede Agency werden alle zugehörigen Routen gruppiert.
-  - Zu jeder Route werden die zugehörigen Trips zugeordnet.
-  - Innerhalb der Routen werden die Trips nach Richtung gruppiert. Falls keine Richtung existiert oder alle gleich sind, wird aus den parent_station_name-Folgen (Pfad) gruppiert.
-  - Es gibt einen Forward- und einen Backward-Path. Ein Master-Path wird gebildet, indem vorne oder hinten gekürzt wird. Alle Pfade werden gruppiert, Forward/Backward werden erkannt und hierarchisch sortiert: Agency → Route → Direction (Direction oder/und Path-Array) → Trips.
-  - Innerhalb jeder Gruppe werden die Trips nach Zeit sortiert.
-
-7. **Frequenzberechnung und Zuordnung:**
-  - Für jede Gruppe wird das Delta der Abfahrtszeiten (in Minuten) berechnet.
-  - Die kleinste Differenz wird ermittelt und geprüft, ob sie 15, 20, 30, 60, 120 ist.
-  - Wichtig: 120 bedeutet Fahrt zur geraden Stunde, 120+ zur ungeraden Stunde. Dies sind die möglichen Frequenzen. Die Abfahrtszeit in eine Richtung gibt dies vor (z.B. Abfahrt um 08:00 → 120, Abfahrt um 09:00 → 120+).
-  - Die Frequenzen werden aus den Netzgrafik-Metadaten (Default) entnommen und das Objekt mit der gefundenen Frequenz verknüpft.
-
-8. **Master-Path und Richtungserkennung:**
-  - Die Anzahl Trips pro Gruppe wird berechnet.
-  - Die Gruppe (Forward/Backward) mit den meisten Fahrten am Betriebstag wird als Master-Path definiert.
-  - Der Master-Path wird auf gleiche Frequenz für Forward/Backward geprüft. Existiert nur eine Richtung, ist es One-Way. Existieren beide, wird geprüft, ob die Minuten für alle Fahrten gleich sind pro Richtung und Ort (parent_station_name).
-  - Falls nicht, wird die Minute genommen, die am häufigsten vorkommt pro Ort und daraus der Master-Forward- und -Backward-Path mit minimalen Abfahrts- und Ankunftszeiten erstellt.
-  - Die Deltas werden als Fahrzeit berechnet.
-  - Es wird versucht, Forward- und Backward-Zeiten symmetrisch zu machen (Summe aus Ankunft Forward + Abfahrt Backward = 60 → symmetrisch, sonst nicht).
-  - Sind alle Zeiten symmetrisch, wird ein Round-Trip erstellt, sonst One-Way.
-  - Round-Trips werden zu einer Linie mit Standard-Netzgrafik-Trainrun und TrainrunSection transformiert, sonst One-Way.
-
-Alle Schritte sind exakt wie beschrieben umzusetzen. Die UI-Elemente, Filterlogik, Gruppierung und Frequenzberechnung müssen der obigen Vorgabe folgen. Abweichungen sind nur nach expliziter Rücksprache zulässig.
-
----
-
-
-
-# EPIC: GTFS-Import im Netzgrafik-Editor
-
-
-## Technische Rahmenbedingungen
-
-- Die gesamte Import-, Filter- und Mapping-Logik muss vollständig in TypeScript im Netzgrafik-Editor (Frontend) implementiert werden.
-- Es dürfen keine serverseitigen Filter- oder Mapping-Operationen erfolgen – alle Verarbeitungsschritte laufen im Browser.
-- Die Filterung der GTFS-Daten muss so performant und speichereffizient wie möglich erfolgen, um auch große Datenmengen (mehrere 100.000 Fahrten) mit minimalem Speicherverbrauch und maximaler Geschwindigkeit zu verarbeiten.
-- Es sind effiziente Datenstrukturen (z.B. Maps, Sets, Typed Arrays) und Algorithmen zu verwenden, um unnötige Iterationen und Kopien zu vermeiden.
-- Lazy Evaluation und Streaming-Ansätze sind zu bevorzugen, um Speicherbedarf gering zu halten.
+- Die gesamte Import-, Filter- und Mapping-Logik wird vollständig in TypeScript im Netzgrafik-Editor (Frontend) implementiert.
+- Keine serverseitigen Filter- oder Mapping-Operationen – alle Verarbeitungsschritte laufen im Browser.
+- Die Filterung der GTFS-Daten muss performant und speichereffizient erfolgen, auch für große Datenmengen (mehrere 100.000 Fahrten).
+- Effiziente Datenstrukturen (Maps, Sets, Typed Arrays) und Algorithmen sind zu verwenden, unnötige Iterationen und Kopien zu vermeiden.
+- Lazy Evaluation und Streaming-Ansätze sind zu bevorzugen.
 - Die UI muss so gestaltet sein, dass Filteroperationen sofortige Rückmeldung geben (keine langen Ladezeiten, keine Blockierung des Haupt-Threads).
 
+## 2. Verbindlicher Ablauf und UI-/Filterlogik
 
-## Ziel und Nutzen
+1. **Daten laden und entpacken:**
+   - Die GTFS-Daten werden als ZIP geladen und entpackt.
+   - Direkt nach dem Entpacken werden alle Agency (Unternehmen) extrahiert.
+   - Für die Filterung wird ein Mehrfachauswahl-Autocomplete-Chip-Input verwendet (UI-Element von angular.sbb.ch). Der Nutzer sieht alle Agency als auswählbare Chips.
 
-Der GTFS-Import ermöglicht es, standardisierte Fahrplandaten (GTFS) automatisiert in Netzgrafiken, Fahrten (Trainruns) und Fahrtenabschnitte (TrainrunSections) zu überführen. Damit werden Planungs-, Analyse- und Visualisierungsprozesse im ÖPNV und SPNV beschleunigt. Der Import bietet umfangreiche Filter, Validierung, Fehlerbehandlung und eine intuitive UI, sodass auch komplexe GTFS-Datensätze effizient verarbeitet werden können.
+2. **Routen- und Routenbeschreibung-Filter:**
+   - Alle `route_type` werden extrahiert und als Chip-Filter angeboten (wie oben, angular.sbb.ch).
+   - Alle `route_desc` (sofern vorhanden) werden ebenfalls als Chip-Filter angeboten.
+   - Zusätzlich wird der Routenname (`route_name`) als dritter Chip-Filter bereitgestellt.
+   - Es gibt somit drei unabhängige Chip-Autocomplete-Filter (agency, route_type, route_desc/route_name), alle mit angular.sbb.ch UI-Komponenten.
 
----
+3. **Verkehrstyp-Filter:**
+   - Verkehrstypen wie Bahn, Tram etc. werden als Checkboxen dargestellt.
+   - Die Default-Auswahl und die Extraktion der Typen sind exakt wie im Proof-of-Concept umzusetzen und zu dokumentieren. Die Default-Auswahl entspricht dem PoC.
 
+4. **Betriebstag und Datumsbereich:**
+   - Ganz oben im UI wird der Betriebstag (relevanter Tag) ausgewählt.
+   - Auf derselben Zeile wird angezeigt, von wann bis wann Daten im Import vorliegen (Datumsbereich aus calendar extrahieren).
 
-## Features, Stories und Tasks
+5. **Filterpipeline beim Import:**
+   - Nach dem Import werden zuerst alle Agency gemäß Filter ausgewählt.
+   - Danach werden alle Routen gemäß den gesetzten Filtern gefiltert.
+   - Im Anschluss werden alle Trips gefiltert, die am gewählten Betriebstag verkehren (gültig gem. GTFS-Spezifikation).
+   - Nur diese Daten werden weiterverarbeitet.
 
+6. **Hierarchische Gruppierung und Pfadlogik:**
+   - Für jede Agency werden alle zugehörigen Routen gruppiert.
+   - Zu jeder Route werden die zugehörigen Trips zugeordnet.
+   - Innerhalb der Routen werden die Trips nach Richtung gruppiert. Falls keine Richtung existiert oder alle gleich sind, wird aus den parent_station_name-Folgen (Pfad) gruppiert.
+   - Es gibt einen Forward- und einen Backward-Path. Ein Master-Path wird gebildet, indem vorne oder hinten gekürzt wird. Alle Pfade werden gruppiert, Forward/Backward werden erkannt und hierarchisch sortiert: Agency → Route → Direction (Direction oder/und Path-Array) → Trips.
+   - Innerhalb jeder Gruppe werden die Trips nach Zeit sortiert.
 
-### Feature 1: GTFS-Datei-Upload und Grundvalidierung
+7. **Frequenzberechnung und Zuordnung:**
+   - Für jede Gruppe wird das Delta der Abfahrtszeiten (in Minuten) berechnet.
+   - Die kleinste Differenz wird ermittelt und geprüft, ob sie 15, 20, 30, 60, 120 ist.
+   - Wichtig: 120 bedeutet Fahrt zur geraden Stunde, 120+ zur ungeraden Stunde. Dies sind die möglichen Frequenzen. Die Abfahrtszeit in eine Richtung gibt dies vor (z.B. Abfahrt um 08:00 → 120, Abfahrt um 09:00 → 120+).
+   - Die Frequenzen werden aus den Netzgrafik-Metadaten (Default) entnommen und das Objekt mit der gefundenen Frequenz verknüpft.
 
+8. **Master-Path und Richtungserkennung:**
+   - Die Anzahl Trips pro Gruppe wird berechnet.
+   - Die Gruppe (Forward/Backward) mit den meisten Fahrten am Betriebstag wird als Master-Path definiert.
+   - Der Master-Path wird auf gleiche Frequenz für Forward/Backward geprüft. Existiert nur eine Richtung, ist es One-Way. Existieren beide, wird geprüft, ob die Minuten für alle Fahrten gleich sind pro Richtung und Ort (parent_station_name).
+   - Falls nicht, wird die Minute genommen, die am häufigsten vorkommt pro Ort (parent_station_name) und daraus der Master-Forward- und -Backward-Path mit minimalen Abfahrts- und Ankunftszeiten erstellt.
+   - Die Deltas werden als Fahrzeit berechnet.
+   - Es wird versucht, Forward- und Backward-Zeiten symmetrisch zu machen (Summe aus Ankunft Forward + Abfahrt Backward = 60 → symmetrisch, sonst nicht).
+   - Sind alle Zeiten symmetrisch, wird ein Round-Trip erstellt, sonst One-Way.
+   - Round-Trips werden zu einer Linie mit Standard-Netzgrafik-Trainrun und TrainrunSection transformiert, sonst One-Way.
 
-**Story 1.1:** Als Nutzer möchte ich eine GTFS-Datei (ZIP oder Ordner) hochladen, damit ich Fahrplandaten importieren kann.
-    - **Task 1.1.1:** UI-Komponente für Datei-Upload implementieren (Drag&Drop, Dateiauswahl)
-    - **Task 1.1.2:** Backend-Endpoint für Dateiannahme bereitstellen
-    - **Task 1.1.3:** GTFS-Datei auf Vollständigkeit und Lesbarkeit prüfen (alle Pflichtdateien vorhanden?)
-    - **Task 1.1.4:** Fehlerhafte oder unvollständige Dateien mit klarer Fehlermeldung ablehnen
+9. **Symmetrie und Toleranz:**
+   - Für die Symmetrie-Bestimmung ist eine Toleranz (z.B. 180s/3min) zu berücksichtigen. Diese Toleranz kann und soll der Nutzer einstellen können.
+   - Symmetrie gilt als gegeben, wenn die Zeitdifferenzen innerhalb der Toleranz liegen.
 
+10. **Beispiel für die Logik:**
+   - Am Betriebstag X (gültig gem. GTFS) gibt es eine Zug-Agency SBB mit route_id=1 und Trips:
+     - B - C - D | Abfahrt um 04:50 in B
+     - A - B - C - D | Abfahrt um 05:20 in A, 06:20 in A, ... 22:20 in A
+     - A - B - C | Abfahrt um 23:30 in A
+   - Züge enden oder starten nicht immer am gleichen Ort. Hier ergibt sich ein Stundentakt, da das Delta 60 ist.
+   - Beispiel 2: Ein Zug fährt in X um 04:53, 05:20, 05:52, 06:21, 06:32 ... Es braucht eine Symmetrie- und Toleranzprüfung. Hier ergibt sich 30min, da alles innerhalb der Toleranz (180s/3min) ist.
 
-**Story 1.2:** Als Nutzer möchte ich eine Vorschau der enthaltenen Agenturen, Linien und Zeiträume sehen, um meine Auswahl zu treffen.
-    - **Task 1.2.1:** GTFS-Metadaten (agency, routes, calendar) nach Upload extrahieren
-    - **Task 1.2.2:** UI-Dialog zur Anzeige der wichtigsten Metadaten bereitstellen
+Alle Schritte und UI-Elemente sind exakt wie beschrieben umzusetzen. Die Filterlogik, Gruppierung, Frequenz- und Symmetrie-Berechnung sowie die Beispiele sind verbindlich. Abweichungen sind nur nach expliziter Rücksprache zulässig.
 
----
+## 3. Mapping, Fehlerquellen, Tests, Zusammenfassung
 
-
-### Feature 2: Filterung und Auswahl der Importdaten
-
-
-**Story 2.1:** Als Nutzer möchte ich nach Betriebstagen, Agenturen, Linien, Zeiträumen, Frequenzen, Kategorien, Symmetrie/Asymmetrie und One-Way/Round-Trip filtern können.
-    - **Task 2.1.1:** Filter-UI für alle genannten Filter implementieren (Checkboxen, Dropdowns, Datumsfelder)
-    - **Task 2.1.2:** Filterlogik im Backend implementieren (Trips/Routes nach Filterkriterien einschränken)
-    - **Task 2.1.3:** Validierung der Filterkombinationen (z.B. keine Daten bei zu engen Filtern)
-    - **Task 2.1.4:** UI-Feedback bei leeren oder widersprüchlichen Filtern
-
-
-**Story 2.2:** Als Nutzer möchte ich eine Vorschau der gefilterten Fahrten und Abschnitte sehen.
-    - **Task 2.2.1:** Nach Anwendung der Filter eine Liste der betroffenen Trips und deren Abschnitte anzeigen
-    - **Task 2.2.2:** UI-Komponente für die Vorschau implementieren (inkl. Fahrzeiten, Richtung, Symmetrie)
-
----
-
-
-### Feature 3: Mapping und Modell-Erzeugung
-
-
-**Story 3.1:** Als Entwickler möchte ich, dass jeder Trip zu einem Trainrun und jede Stop-Kombination zu einer TrainrunSection wird.
-    - **Task 3.1.1:** Mapping-Logik GTFS → Trainrun/TrainrunSection im Backend implementieren
-    - **Task 3.1.2:** Fehlerhafte oder unvollständige Trips/Abschnitte erkennen und markieren
-    - **Task 3.1.3:** UI-Feedback für fehlerhafte oder übersprungene Einträge
-
-
-
-**Story 3.2:** Als Nutzer möchte ich nachvollziehen können, wie die Frequenz einer Linie berechnet wurde.
-
-*Beschreibung*: 
-Der Nutzer soll im Netzgrafik-Editor transparent nachvollziehen können, wie sich die Frequenz (Takt) einer Linie ergibt. Die Frequenz ist ein zentrales Merkmal für die Angebotsdichte und wird im Editor sowohl angezeigt als auch für Filter und Visualisierung verwendet. Die Berechnung und Anzeige der Frequenz muss für den Nutzer verständlich und nachvollziehbar sein. Dabei sind auch Sonderfälle wie unregelmäßige Abstände oder Fahrten über Mitternacht zu berücksichtigen.
-
-  - **Task 3.2.1:** Frequenzberechnung nach spezifizierter Formel in TypeScript (Frontend) implementieren
-    - *Was wird gemacht?* 
-      Die Frequenz einer Linie wird im Frontend anhand der importierten GTFS-Daten berechnet oder übernommen. Im aktuellen PoC ist dies ein statischer Wert, der im `TrainrunFrequency`-Objekt als Minutenwert hinterlegt ist. Für die finale Lösung kann alternativ eine dynamische Berechnung implementiert werden, bei der die Differenz der Abfahrtszeiten aller Fahrten einer Linie im betrachteten Zeitraum ausgewertet und daraus der durchschnittliche Takt berechnet wird. Die Implementierung erfolgt in TypeScript, sodass die Berechnung direkt im Browser und ohne Backend-Logik stattfindet.
-
-  - **Task 3.2.2:** Frequenz im UI anzeigen, inkl. Tooltip mit Berechnungsgrundlage
-    - *Was wird gemacht?* 
-      Im User Interface wird die berechnete oder übernommene Frequenz für jede Linie und ggf. für einzelne Fahrten angezeigt. Zusätzlich wird ein Tooltip oder eine Info-Fläche bereitgestellt, die dem Nutzer die Berechnungsgrundlage (z.B. „Takt basiert auf durchschnittlichem Abstand der Abfahrten zwischen 6:00 und 20:00 Uhr“) erläutert. So kann der Nutzer die Herkunft und Aussagekraft des angezeigten Takts nachvollziehen.
-
-  - **Task 3.2.3:** Sonderfälle (unregelmäßige Abstände, Mitternacht, headway) korrekt behandeln
-    - *Was wird gemacht?* 
-      Die Implementierung muss auch Sonderfälle abdecken, z.B. wenn Fahrten nicht exakt im festen Takt fahren (unregelmäßige Abstände), wenn Fahrten über Mitternacht hinausgehen oder wenn im GTFS explizite Headway-Werte (Mindestabstände) hinterlegt sind. In diesen Fällen wird die Frequenzberechnung angepasst, etwa indem der größte Abstand als Takt verwendet oder ein Hinweis auf die Unregelmäßigkeit angezeigt wird. Ziel ist, dass die Frequenzanzeige immer eine realistische und für den Nutzer verständliche Information liefert.
-
-**Aktuelle Logik im PoC (Stand 2026):**
-
-Im Proof-of-Concept (PoC) wird die Frequenz eines Zuglaufs (`Trainrun`) über das zugehörige `TrainrunFrequency`-Objekt bestimmt. Die Frequenz ist dort als Minutenwert (`frequency: number`) hinterlegt und wird in der Methode `getFrequency()` der Klasse `Trainrun` einfach zurückgegeben. Beispiel (TypeScript):
-
-```typescript
-// src/app/models/trainrun.model.ts
-getFrequency(): number {
-  return this.trainrunFrequency.frequency;
-}
-```
-
-Die Frequenz ist somit ein statischer Wert, der beim Import oder der Bearbeitung gesetzt wird. Eine dynamische Berechnung (z.B. aus Abfahrtszeiten) findet im aktuellen PoC nicht statt. Für die finale Implementierung ist zu prüfen, ob eine dynamische Berechnung (z.B. aus den tatsächlichen Abfahrtszeiten der Trips) notwendig ist.
-
-**Story 3.3:** Als Nutzer möchte ich erkennen, ob eine Fahrt One-Way, Round-Trip, symmetrisch oder asymmetrisch ist.
-  - **Task 3.3.1:** Erkennungslogik für One-Way/Round-Trip und Symmetrie im Backend implementieren
-  - **Task 3.3.2:** UI-Visualisierung (Icons, Tags, Tooltips) für diese Attribute
-
----
-
-
-### Feature 4: Validierung, Fehlerbehandlung und Logging
-
-**Story 4.1:** Als Nutzer möchte ich Fehler und Konflikte vor dem Import erkennen und beheben können.
-  - **Task 4.1.1:** Validierungslogik für GTFS-Daten (Vollständigkeit, Konsistenz, Plausibilität)
-  - **Task 4.1.2:** UI-Anzeige aller Fehler, Warnungen und Hinweise
-  - **Task 4.1.3:** Option zum Überspringen/Beheben einzelner Fehler
-
-**Story 4.2:** Als Entwickler möchte ich alle Importaktionen und Fehler nachvollziehbar loggen.
-  - **Task 4.2.1:** Logging aller Aktionen, Fehler und Warnungen im Backend
-  - **Task 4.2.2:** Download/Anzeige der Logs im UI für Entwickler und Nutzer
-
----
-
-
-### Feature 5: Undo/Redo und Abschluss des Imports
-### Feature 6: Erzeugung und Behandlung von Knoten (Nodes) aus parent_station_name
-
-**Story 6.1:** Als Entwickler möchte ich, dass für jeden in den GTFS-Daten vorkommenden parent_station_name ein eindeutiger Knoten (Node) mit allen relevanten Attributen erzeugt wird.
-  - **Task 6.1.1:** Alle parent_station_name aus stop_times.txt und stops.txt extrahieren und eindeutige Knotenliste erzeugen.
-  - **Task 6.1.2:** Für jeden Knoten die Koordinaten (lat/lon) aus stops.txt übernehmen. Falls mehrere Stops denselben parent_station_name haben, Mittelwert der Koordinaten berechnen.
-  - **Task 6.1.3:** Weitere Attribute wie Name, ID, ggf. Typ (z.B. Bahnhof, Haltestelle) und Referenzen auf zugehörige Stops speichern.
-  - **Task 6.1.4:** Die erzeugten Knoten als Node-Objekte im Netzgrafik-Editor bereitstellen und für die Pfad- und Gruppierungslogik verwenden.
-  - **Task 6.1.5:** Sicherstellen, dass die Knoten konsistent und eindeutig sind, auch bei Namensvarianten oder Dubletten.
-
-*Beschreibung:*
-Im Importprozess werden alle in den GTFS-Daten vorkommenden parent_station_name aus stop_times.txt und stops.txt gesammelt. Für jeden eindeutigen Namen wird ein Node erzeugt. Die Koordinaten werden aus den zugehörigen Stops übernommen; bei mehreren Stops pro parent_station_name wird der Mittelwert gebildet. Jeder Node erhält alle relevanten Attribute (Name, ID, Typ, Referenzen). Diese Nodes bilden die Grundlage für die Pfadlogik, Gruppierung und Visualisierung im Netzgrafik-Editor. Die Eindeutigkeit und Konsistenz der Knoten ist sicherzustellen, insbesondere bei Namensvarianten oder mehrfach vergebenen Namen.
-
-**Story 5.1:** Als Nutzer möchte ich Importaktionen rückgängig machen oder wiederholen können.
-  - **Task 5.1.1:** Undo/Redo-Mechanismus für Importaktionen im Frontend implementieren
-  - **Task 5.1.2:** UI-Buttons und Statusanzeige für Undo/Redo
-
-**Story 5.2:** Als Nutzer möchte ich nach erfolgreichem Import eine Bestätigung und Zusammenfassung erhalten.
-  - **Task 5.2.1:** Abschlussdialog mit Zusammenfassung der importierten Daten
-  - **Task 5.2.2:** Option zum Download der Netzgrafik oder zum Start weiterer Aktionen
-
----
+### Mapping: GTFS → Trainrun und TrainrunSection
+...existing code...
 
 ## 3. Filtermöglichkeiten
 
@@ -430,3 +314,74 @@ Die Frequenz beschreibt, wie oft eine Fahrt (Trip) auf einer bestimmten Linie (R
 ## 12. Zusammenfassung
 
 Das GTFS-Import-Feature des Netzgrafik-Editors bietet eine umfassende, flexible und validierte Möglichkeit, Fahrplandaten aus GTFS-Feeds in Netzgrafiken zu überführen. Die Umsetzung umfasst Backend, Frontend, Tests und UI/UX und stellt sicher, dass alle relevanten Filter, Mappings und Validierungen abgedeckt sind. Das Entwicklerteam kann auf Basis dieses Dokuments die Implementierung ohne Rückfragen starten.
+
+
+
+...existing code...
+
+
+## Verbindliche Ablaufbeschreibung und UI-/Filterlogik (exakte Umsetzungsvorgabe)
+
+1. **Daten laden und entpacken:**
+  - Die GTFS-Daten werden als ZIP geladen und entpackt.
+  - Direkt nach dem Entpacken werden alle Agency (Unternehmen) extrahiert.
+  - Für die Filterung wird ein Mehrfachauswahl-Autocomplete-Chip-Input verwendet (UI-Element von angular.sbb.ch). Der Nutzer sieht alle Agency als auswählbare Chips.
+
+2. **Routen- und Routenbeschreibung-Filter:**
+  - Alle `route_type` werden extrahiert und als Chip-Filter angeboten (wie oben, angular.sbb.ch).
+  - Alle `route_desc` (sofern vorhanden) werden ebenfalls als Chip-Filter angeboten.
+  - Zusätzlich wird der Routenname (`route_name`) als dritter Chip-Filter bereitgestellt.
+  - Es gibt somit drei unabhängige Chip-Autocomplete-Filter (agency, route_type, route_desc/route_name), alle mit angular.sbb.ch UI-Komponenten.
+
+3. **Verkehrstyp-Filter:**
+  - Verkehrstypen wie Bahn, Tram etc. werden als Checkboxen dargestellt.
+  - Die Default-Auswahl und die Extraktion der Typen sind exakt wie im Proof-of-Concept umzusetzen und zu dokumentieren. Die Default-Auswahl entspricht dem PoC.
+
+4. **Betriebstag und Datumsbereich:**
+  - Ganz oben im UI wird der Betriebstag (relevanter Tag) ausgewählt.
+  - Auf derselben Zeile wird angezeigt, von wann bis wann Daten im Import vorliegen (Datumsbereich aus calendar extrahieren).
+
+5. **Filterpipeline beim Import:**
+  - Nach dem Import werden zuerst alle Agency gemäß Filter ausgewählt.
+  - Danach werden alle Routen gemäß den gesetzten Filtern gefiltert.
+  - Im Anschluss werden alle Trips gefiltert, die am gewählten Betriebstag verkehren (gültig gem. GTFS-Spezifikation).
+  - Nur diese Daten werden weiterverarbeitet.
+
+6. **Hierarchische Gruppierung und Pfadlogik:**
+  - Für jede Agency werden alle zugehörigen Routen gruppiert.
+  - Zu jeder Route werden die zugehörigen Trips zugeordnet.
+  - Innerhalb der Routen werden die Trips nach Richtung gruppiert. Falls keine Richtung existiert oder alle gleich sind, wird aus den parent_station_name-Folgen (Pfad) gruppiert.
+  - Es gibt einen Forward- und einen Backward-Path. Ein Master-Path wird gebildet, indem vorne oder hinten gekürzt wird. Alle Pfade werden gruppiert, Forward/Backward werden erkannt und hierarchisch sortiert: Agency → Route → Direction (Direction oder/und Path-Array) → Trips.
+  - Innerhalb jeder Gruppe werden die Trips nach Zeit sortiert.
+
+7. **Frequenzberechnung und Zuordnung:**
+  - Für jede Gruppe wird das Delta der Abfahrtszeiten (in Minuten) berechnet.
+  - Die kleinste Differenz wird ermittelt und geprüft, ob sie 15, 20, 30, 60, 120 ist.
+  - Wichtig: 120 bedeutet Fahrt zur geraden Stunde, 120+ zur ungeraden Stunde. Dies sind die möglichen Frequenzen. Die Abfahrtszeit in eine Richtung gibt dies vor (z.B. Abfahrt um 08:00 → 120, Abfahrt um 09:00 → 120+).
+  - Die Frequenzen werden aus den Netzgrafik-Metadaten (Default) entnommen und das Objekt mit der gefundenen Frequenz verknüpft.
+
+8. **Master-Path und Richtungserkennung:**
+  - Die Anzahl Trips pro Gruppe wird berechnet.
+  - Die Gruppe (Forward/Backward) mit den meisten Fahrten am Betriebstag wird als Master-Path definiert.
+  - Der Master-Path wird auf gleiche Frequenz für Forward/Backward geprüft. Existiert nur eine Richtung, ist es One-Way. Existieren beide, wird geprüft, ob die Minuten für alle Fahrten gleich sind pro Richtung und Ort (parent_station_name).
+  - Falls nicht, wird die Minute genommen, die am häufigsten vorkommt pro Ort (parent_station_name) und daraus der Master-Forward- und -Backward-Path mit minimalen Abfahrts- und Ankunftszeiten erstellt.
+  - Die Deltas werden als Fahrzeit berechnet.
+  - Es wird versucht, Forward- und Backward-Zeiten symmetrisch zu machen (Summe aus Ankunft Forward + Abfahrt Backward = 60 → symmetrisch, sonst nicht).
+  - Sind alle Zeiten symmetrisch, wird ein Round-Trip erstellt, sonst One-Way.
+  - Round-Trips werden zu einer Linie mit Standard-Netzgrafik-Trainrun und TrainrunSection transformiert, sonst One-Way.
+
+9. **Symmetrie und Toleranz:**
+  - Für die Symmetrie-Bestimmung ist eine Toleranz (z.B. 180s/3min) zu berücksichtigen. Diese Toleranz kann und soll der Nutzer einstellen können.
+  - Symmetrie gilt als gegeben, wenn die Zeitdifferenzen innerhalb der Toleranz liegen.
+
+10. **Beispiel für die Logik:**
+  - Am Betriebstag X (gültig gem. GTFS) gibt es eine Zug-Agency SBB mit route_id=1 und Trips:
+    - B - C - D | Abfahrt um 04:50 in B
+    - A - B - C - D | Abfahrt um 05:20 in A, 06:20 in A, ... 22:20 in A
+    - A - B - C | Abfahrt um 23:30 in A
+  - Züge enden oder starten nicht immer am gleichen Ort. Hier ergibt sich ein Stundentakt, da das Delta 60 ist.
+  - Beispiel 2: Ein Zug fährt in X um 04:53, 05:20, 05:52, 06:21, 06:32 ... Es braucht eine Symmetrie- und Toleranzprüfung. Hier ergibt sich 30min, da alles innerhalb der Toleranz (180s/3min) ist.
+
+Alle Schritte und UI-Elemente sind exakt wie beschrieben umzusetzen. Die Filterlogik, Gruppierung, Frequenz- und Symmetrie-Berechnung sowie die Beispiele sind verbindlich. Abweichungen sind nur nach expliziter Rücksprache zulässig.
+
+---
