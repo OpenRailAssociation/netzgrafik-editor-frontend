@@ -31,11 +31,13 @@
    - Ganz oben im UI wird der Betriebstag (relevanter Tag) ausgewählt.
    - Auf derselben Zeile wird angezeigt, von wann bis wann Daten im Import vorliegen (Datumsbereich aus calendar extrahieren).
 
+
 5. **Filterpipeline beim Import:**
-   - Nach dem Import werden zuerst alle Agency gemäß Filter ausgewählt.
-   - Danach werden alle Routen gemäß den gesetzten Filtern gefiltert.
-   - Im Anschluss werden alle Trips gefiltert, die am gewählten Betriebstag verkehren (gültig gem. GTFS-Spezifikation).
-   - Nur diese Daten werden weiterverarbeitet.
+  - Nach dem Import werden zuerst alle Agency gemäß Filter ausgewählt.
+  - Danach werden nur Routen weiterverarbeitet, die zu einer gefilterten Agency gehören und die gesetzten Routen-Filter (route_type, route_desc, route_name) erfüllen.
+  - Im Anschluss werden nur Trips weiterverarbeitet, die zu einer der gefilterten Routen gehören und am gewählten Betriebstag verkehren (gültig gem. GTFS-Spezifikation).
+  - Trips, die keiner gültigen Route zugeordnet sind, werden ausgeschlossen.
+  - Nur diese gefilterten Daten (Agency, Route, Trip) werden für die weitere Verarbeitung (Gruppierung, Mapping etc.) verwendet.
 
 6. **Hierarchische Gruppierung und Pfadlogik:**
    - Für jede Agency werden alle zugehörigen Routen gruppiert.
@@ -155,27 +157,22 @@ Die Frequenz beschreibt, wie oft eine Fahrt (Trip) auf einer bestimmten Linie (R
     	ext{Frequenz} = \frac{60}{\text{headway (in Minuten)}}
     \]
 
-### 5.4. Beispiele
+
+### 5.4. Beispiele (korrekt)
 
 **Beispiel 1: Regelmäßiger Takt**
-- 10 Fahrten zwischen 6:00 und 10:00 Uhr
-- Zeitspanne: 4 Stunden
-- Frequenz: 10 / 4 = 2,5 Fahrten pro Stunde
+- Abfahrten: 6:00, 7:00, 8:00, 9:00, 10:00
+- Zeitspanne: 4 Stunden (6:00 bis 10:00)
+- Anzahl Fahrten: 5
+- Takt: 60 Minuten
 
 **Beispiel 2: Unregelmäßige Abstände**
-- Abfahrten: 7:00, 7:10, 7:30, 8:00, 8:30, 9:00
-- Abstände: 10, 20, 30, 30, 30 Minuten
-- Medianabstand: 30 Minuten
-- Effektive Frequenz: 60 / 30 = 2 Fahrten pro Stunde
+- Abfahrten: 7:01, 7:30, 7:59, 8:30, 8:58, 9:30
+- Abstände: 29, 29, 31, 28, 32 Minuten - Toleranz 2 
+- Also alles i.O. da Abstände [28,32] -> Takt 30 - 2x pro Stunde
 
-**Beispiel 3: Über Mitternacht**
-- Abfahrten: 23:30, 00:30, 01:00
-- Zeitspanne: 1,5 Stunden (23:30 → 01:00)
-- Frequenz: 3 / 1,5 = 2 Fahrten pro Stunde
-
-**Beispiel 4: Frequenzfahrten (headway)**
-- headway = 15 Minuten
-- Frequenz: 60 / 15 = 4 Fahrten pro Stunde
+**Hinweis:**
+Headway-basierte Fahrten (frequencies.txt) werden im GTFS als Mindestabstand (headway_secs) angegeben. Die tatsächliche Frequenz ergibt sich aus der Anzahl der Fahrten pro Zeitspanne, nicht direkt aus dem Headway-Wert. Die Berechnung muss immer auf den realen Abfahrtszeiten basieren.
 
 ### 5.5. Hinweise zur Implementierung
 
