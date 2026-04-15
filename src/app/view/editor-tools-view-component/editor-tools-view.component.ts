@@ -311,7 +311,7 @@ export class EditorToolsViewComponent {
     const file = param.target.files[0];
     const reader = new FileReader();
     reader.onload = () => {
-      const finalResult: ParseResult = parse(reader.result.toString(), {
+      const finalResult: ParseResult<any> = parse(reader.result.toString(), {
         header: true,
       });
       this.stammdatenService.setStammdaten(finalResult.data);

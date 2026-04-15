@@ -1290,6 +1290,7 @@ export class GTFSParserService {
     const tripFirstDeparture = new Map<string, number>(); // trip_id -> first departure time in minutes
 
     // Build full patterns (sorted stop_ids) and extract first departure time
+    console.info("⚠️ Grouping stop_times by trip_id...", gtfsData.stopTimes.length); 
     const tripStopTimes = new Map<string, GTFSStopTime[]>();
     for (const st of gtfsData.stopTimes) {
       if (!tripStopTimes.has(st.trip_id)) {
@@ -1298,6 +1299,7 @@ export class GTFSParserService {
       tripStopTimes.get(st.trip_id)!.push(st);
     }
 
+    console.info("⚠️ Building trip patterns and extracting first departure times...", gtfsData.trips.length);  
     for (const [tripId, stopTimes] of tripStopTimes.entries()) {
       const sorted = stopTimes.sort(
         (a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence),
@@ -1321,12 +1323,14 @@ export class GTFSParserService {
     const tripPathMap = new Map<string, string>();
     const tripDirMap = new Map<string, string>();
     // Parent-Station-Map aufbauen
+    console.info("⚠️ Building stop_id to parent_station mapping...", gtfsData.stops?.length || 0); 
     const stopIdToParent = new Map<string, string>();
     if (gtfsData.stops) {
       for (const stop of gtfsData.stops) {
         stopIdToParent.set(stop.stop_id, stop.parent_station || stop.stop_id);
       }
     }
+    console.info("⚠️ Building trip patterns and grouping by route+direction+path...", gtfsData.trips.length);
     for (const trip of gtfsData.trips) {
       const stopTimes = gtfsData.stopTimes
         .filter((st) => st.trip_id === trip.trip_id)
@@ -1347,6 +1351,7 @@ export class GTFSParserService {
     }
 
     // Mapping für Hin- und Rückfahrt (symmetrisch, gleiche Frequenz)
+    console.info("⚠️ Matching forward and backward paths to identify bidirectional patterns...", pathGroups.size);
     const selectedTripIds = new Set<string>();
     const usedGroupKeys = new Set<string>();
     for (const [key, trips] of pathGroups.entries()) {
