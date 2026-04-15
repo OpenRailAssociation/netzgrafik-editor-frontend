@@ -45,6 +45,25 @@
 
   <sbb-expansion-panel [expanded]="false">
     <sbb-expansion-panel-header>{{
+      "app.view.editor-side-view.editor-tools-view-component.import" | translate
+    }}</sbb-expansion-panel-header>
+    <ng-container *ngIf="getVariantIsWritable()">
+      <button
+        (click)="onImportGTFSButton()"
+        [title]="
+          'app.view.editor-side-view.editor-tools-view-component.import-gtfs-data' | translate
+        "
+        class="TrainrunDialog EditorToolButton"
+      >
+        <sbb-icon svgIcon="document-plus-small"></sbb-icon>
+      </button>
+      <input hidden #gtfsFileInput type="file" accept=".zip" (change)="onLoadGTFS($event)" />
+      {{ "app.view.editor-side-view.editor-tools-view-component.import-gtfs-data" | translate }}
+    </ng-container>
+  </sbb-expansion-panel>
+
+  <sbb-expansion-panel [expanded]="false">
+    <sbb-expansion-panel-header>{{
       "app.view.editor-side-view.editor-tools-view-component.netzgrafik" | translate
     }}</sbb-expansion-panel-header>
     <button
@@ -188,3 +207,34 @@
     {{ "app.view.editor-side-view.editor-tools-view-component.export-base-data" | translate }}
   </sbb-expansion-panel>
 </sbb-accordion>
+
+<!-- GTFS Import Dialogs Component -->
+<sbb-gtfs-import-dialogs
+  [gtfsFilterDialogVisible]="gtfsFilterDialogVisible"
+  [gtfsImportOverlayVisible]="gtfsImportOverlayVisible"
+  [gtfsImportPhases]="gtfsImportPhases"
+  [gtfsImportComplete]="gtfsImportComplete"
+  [gtfsImportSummary]="gtfsImportSummary"
+  [gtfsAvailableAgencies]="gtfsAvailableAgencies"
+  [gtfsAvailableCategories]="gtfsAvailableCategories"
+  [gtfsAvailableRoutes]="gtfsAvailableRoutes"
+  [gtfsSelectedAgencies]="gtfsSelectedAgencies"
+  [gtfsSelectedCategories]="gtfsSelectedCategories"
+  [gtfsSelectedLines]="gtfsSelectedLines"
+  [gtfsSelectedDate]="gtfsSelectedDate"
+  [gtfsNoCategoriesWarning]="gtfsNoCategoriesWarning"
+  [gtfsNoLinesWarning]="gtfsNoLinesWarning"
+  [gtfsRouteTypeFilter]="gtfsRouteTypeFilter"
+  [(gtfsTimeSyncTolerance)]="gtfsTimeSyncTolerance"
+  [gtfsNodeFilter]="gtfsNodeFilter"
+  (closeFilterDialog)="closeGtfsFilterDialog()"
+  (applyFilters)="applyGtfsFiltersAndImport()"
+  (closeImportOverlay)="closeGtfsImportOverlay()"
+  (addAgency)="addGtfsAgency($event)"
+  (removeAgency)="removeGtfsAgency($event)"
+  (addCategory)="addGtfsCategory($event)"
+  (removeCategory)="removeGtfsCategory($event)"
+  (addLine)="addGtfsLine($event)"
+  (removeLine)="removeGtfsLine($event)"
+  (setSelectedDate)="setGtfsSelectedDate($event)"
+></sbb-gtfs-import-dialogs>

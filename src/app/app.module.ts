@@ -13,7 +13,9 @@ import {SbbBreadcrumbModule} from "@sbb-esta/angular/breadcrumb";
 import {SbbButtonModule} from "@sbb-esta/angular/button";
 import {SbbCheckboxModule} from "@sbb-esta/angular/checkbox";
 import {SbbChipsModule} from "@sbb-esta/angular/chips";
+import {SbbDatepickerModule} from "@sbb-esta/angular/datepicker";
 import {SbbDialogModule} from "@sbb-esta/angular/dialog";
+import {SbbFormFieldModule} from "@sbb-esta/angular/form-field";
 import {SbbFileSelectorModule} from "@sbb-esta/angular/file-selector";
 import {SbbHeaderLeanModule} from "@sbb-esta/angular/header-lean";
 import {SbbIconModule} from "@sbb-esta/angular/icon";
@@ -21,6 +23,7 @@ import {SbbInputModule} from "@sbb-esta/angular/input";
 import {SbbLoadingIndicatorModule} from "@sbb-esta/angular/loading-indicator";
 import {SbbMenuModule} from "@sbb-esta/angular/menu";
 import {SbbNotificationToastModule} from "@sbb-esta/angular/notification-toast";
+import {SbbPaginationModule} from "@sbb-esta/angular/pagination";
 import {SbbRadioButtonModule} from "@sbb-esta/angular/radio-button";
 import {SbbSelectModule} from "@sbb-esta/angular/select";
 import {SbbSidebarModule} from "@sbb-esta/angular/sidebar";
@@ -78,6 +81,7 @@ import {EditorEditToolsViewComponent} from "./view/editor-edit-tools-view-compon
 import {FilterableLabelFormComponent} from "./view/dialogs/filterable-labels-dialog/filterable-labels-form/filterable-label-form.component";
 import {FilterableLabelDialogComponent} from "./view/dialogs/filterable-labels-dialog/filterable-label-dialog.component";
 import {EditorToolsViewComponent} from "./view/editor-tools-view-component/editor-tools-view.component";
+import {GtfsImportDialogsComponent} from "./view/editor-tools-view-component/gtfs-import-dialogs/gtfs-import-dialogs.component";
 import {NoteDialogComponent} from "./view/dialogs/note-dialog/note-dialog.component";
 import {NoteFormComponent} from "./view/dialogs/note-dialog/note-form/note-form.component";
 import {HtmlEditorComponent} from "./view/dialogs/note-dialog/htmlEditor/html-editor.component";
@@ -159,6 +163,7 @@ import {ToggleSwitchButtonComponent} from "./view/toggle-switch-button/toggle-sw
     NoteEditElementComponent,
     NoteFormComponent,
     EditorToolsViewComponent,
+    GtfsImportDialogsComponent,
     HtmlEditorComponent,
     NoteFilterTabComponent,
     LabelDropListComponent,
@@ -242,6 +247,9 @@ import {ToggleSwitchButtonComponent} from "./view/toggle-switch-button/toggle-sw
     SbbTooltipModule,
     SbbBreadcrumbModule,
     SbbAutocompleteModule,
+    SbbDatepickerModule,
+    SbbFormFieldModule,
+    SbbPaginationModule,
     I18nModule,
   ],
   bootstrap: environment.customElement ? [] : [AppComponent],
