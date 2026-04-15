@@ -151,11 +151,7 @@ Die Frequenz beschreibt, wie oft eine Fahrt (Trip) auf einer bestimmten Linie (R
     \]
 - **Über Mitternacht:**
   - Wenn die erste Abfahrt z.B. 23:30 und die letzte 01:00 ist, wird die Zeitspanne als 1,5 Stunden berechnet (24h-Format beachten).
-- **Frequenzfahrten (headway):**
-  - Falls im GTFS headway-basierte Fahrten (frequencies.txt) vorhanden sind, wird die Frequenz direkt aus dem headway-Wert berechnet:
-    \[
-    	ext{Frequenz} = \frac{60}{\text{headway (in Minuten)}}
-    \]
+
 
 
 ### 5.4. Beispiele (korrekt)
@@ -171,8 +167,6 @@ Die Frequenz beschreibt, wie oft eine Fahrt (Trip) auf einer bestimmten Linie (R
 - Abstände: 29, 29, 31, 28, 32 Minuten - Toleranz 2 
 - Also alles i.O. da Abstände [28,32] -> Takt 30 - 2x pro Stunde
 
-**Hinweis:**
-Headway-basierte Fahrten (frequencies.txt) werden im GTFS als Mindestabstand (headway_secs) angegeben. Die tatsächliche Frequenz ergibt sich aus der Anzahl der Fahrten pro Zeitspanne, nicht direkt aus dem Headway-Wert. Die Berechnung muss immer auf den realen Abfahrtszeiten basieren.
 
 ### 5.5. Hinweise zur Implementierung
 
