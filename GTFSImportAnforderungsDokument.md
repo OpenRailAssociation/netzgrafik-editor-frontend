@@ -1,7 +1,20 @@
+### Feature 6: Erzeugung und Behandlung von Knoten (Nodes) aus parent_station_name
+
+**Story 6.1:** Als Entwickler möchte ich, dass für jeden in den GTFS-Daten vorkommenden parent_station_name ein eindeutiger Knoten (Node) mit allen relevanten Attributen erzeugt wird.
+  - **Task 6.1.1:** Alle parent_station_name aus stop_times.txt und stops.txt extrahieren und eindeutige Knotenliste erzeugen.
+  - **Task 6.1.2:** Für jeden Knoten die Koordinaten (lat/lon) aus stops.txt übernehmen. Falls mehrere Stops denselben parent_station_name haben, Mittelwert der Koordinaten berechnen.
+  - **Task 6.1.3:** Weitere Attribute wie Name, ID, ggf. Typ (z.B. Bahnhof, Haltestelle) und Referenzen auf zugehörige Stops speichern.
+  - **Task 6.1.4:** Die erzeugten Knoten als Node-Objekte im Netzgrafik-Editor bereitstellen und für die Pfad- und Gruppierungslogik verwenden.
+  - **Task 6.1.5:** Sicherstellen, dass die Knoten konsistent und eindeutig sind, auch bei Namensvarianten oder Dubletten.
+
+*Beschreibung:*
+Im Importprozess werden alle in den GTFS-Daten vorkommenden parent_station_name aus stop_times.txt und stops.txt gesammelt. Für jeden eindeutigen Namen wird ein Node erzeugt. Die Koordinaten werden aus den zugehörigen Stops übernommen; bei mehreren Stops pro parent_station_name wird der Mittelwert gebildet. Jeder Node erhält alle relevanten Attribute (Name, ID, Typ, Referenzen). Diese Nodes bilden die Grundlage für die Pfadlogik, Gruppierung und Visualisierung im Netzgrafik-Editor. Die Eindeutigkeit und Konsistenz der Knoten ist sicherzustellen, insbesondere bei Namensvarianten oder mehrfach vergebenen Namen.
 ---
+
 
 ## Algorithmus (Pseudocode) zur Umsetzung des GTFS-Imports
 
+```typescript
 // Datenstrukturen (TypeScript-ähnlich):
 interface GTFSAgency { id: string; name: string; }
 interface GTFSRoute { id: string; agencyId: string; type: string; desc?: string; name: string; }
@@ -71,6 +84,7 @@ function importGTFS(gtfsZip: File, filter: FilterState) {
 }
 
 // Hilfsfunktionen: unzipAndParseGTFS, getServiceIdsForDay, groupTrips, getFirstDeparture, getDepartureDeltas, matchFrequency
+```
 
 // Die Datenstrukturen und der Ablauf sind so gewählt, dass eine effiziente, nachvollziehbare und wartbare Umsetzung in TypeScript möglich ist.
 ---
@@ -114,7 +128,7 @@ Die folgenden Schritte beschreiben exakt, wie der GTFS-Import und die Filterung 
 7. **Frequenzberechnung und Zuordnung:**
   - Für jede Gruppe wird das Delta der Abfahrtszeiten (in Minuten) berechnet.
   - Die kleinste Differenz wird ermittelt und geprüft, ob sie 15, 20, 30, 60, 120 ist.
-  - Wichtig: 120 bedeutet Fahrt zur geraden Stunde, 120+ zur ungeraden Stunde. Dies sind die möglichen Frequenzen.
+  - Wichtig: 120 bedeutet Fahrt zur geraden Stunde, 120+ zur ungeraden Stunde. Dies sind die möglichen Frequenzen. Die Abfahrtszeit in eine Richtung gibt dies vor (z.B. Abfahrt um 08:00 → 120, Abfahrt um 09:00 → 120+).
   - Die Frequenzen werden aus den Netzgrafik-Metadaten (Default) entnommen und das Objekt mit der gefundenen Frequenz verknüpft.
 
 8. **Master-Path und Richtungserkennung:**
@@ -132,9 +146,12 @@ Alle Schritte sind exakt wie beschrieben umzusetzen. Die UI-Elemente, Filterlogi
 ---
 
 
+
 # EPIC: GTFS-Import im Netzgrafik-Editor
 
-**Technische Rahmenbedingungen:**
+
+## Technische Rahmenbedingungen
+
 - Die gesamte Import-, Filter- und Mapping-Logik muss vollständig in TypeScript im Netzgrafik-Editor (Frontend) implementiert werden.
 - Es dürfen keine serverseitigen Filter- oder Mapping-Operationen erfolgen – alle Verarbeitungsschritte laufen im Browser.
 - Die Filterung der GTFS-Daten muss so performant und speichereffizient wie möglich erfolgen, um auch große Datenmengen (mehrere 100.000 Fahrten) mit minimalem Speicherverbrauch und maximaler Geschwindigkeit zu verarbeiten.
@@ -142,47 +159,58 @@ Alle Schritte sind exakt wie beschrieben umzusetzen. Die UI-Elemente, Filterlogi
 - Lazy Evaluation und Streaming-Ansätze sind zu bevorzugen, um Speicherbedarf gering zu halten.
 - Die UI muss so gestaltet sein, dass Filteroperationen sofortige Rückmeldung geben (keine langen Ladezeiten, keine Blockierung des Haupt-Threads).
 
-## Ziel und Nutzen (EPIC-Beschreibung)
+
+## Ziel und Nutzen
+
 Der GTFS-Import ermöglicht es, standardisierte Fahrplandaten (GTFS) automatisiert in Netzgrafiken, Fahrten (Trainruns) und Fahrtenabschnitte (TrainrunSections) zu überführen. Damit werden Planungs-, Analyse- und Visualisierungsprozesse im ÖPNV und SPNV beschleunigt. Der Import bietet umfangreiche Filter, Validierung, Fehlerbehandlung und eine intuitive UI, sodass auch komplexe GTFS-Datensätze effizient verarbeitet werden können.
 
 ---
 
+
 ## Features, Stories und Tasks
+
 
 ### Feature 1: GTFS-Datei-Upload und Grundvalidierung
 
+
 **Story 1.1:** Als Nutzer möchte ich eine GTFS-Datei (ZIP oder Ordner) hochladen, damit ich Fahrplandaten importieren kann.
-  - **Task 1.1.1:** UI-Komponente für Datei-Upload implementieren (Drag&Drop, Dateiauswahl)
-  - **Task 1.1.2:** Backend-Endpoint für Dateiannahme bereitstellen
-  - **Task 1.1.3:** GTFS-Datei auf Vollständigkeit und Lesbarkeit prüfen (alle Pflichtdateien vorhanden?)
-  - **Task 1.1.4:** Fehlerhafte oder unvollständige Dateien mit klarer Fehlermeldung ablehnen
+    - **Task 1.1.1:** UI-Komponente für Datei-Upload implementieren (Drag&Drop, Dateiauswahl)
+    - **Task 1.1.2:** Backend-Endpoint für Dateiannahme bereitstellen
+    - **Task 1.1.3:** GTFS-Datei auf Vollständigkeit und Lesbarkeit prüfen (alle Pflichtdateien vorhanden?)
+    - **Task 1.1.4:** Fehlerhafte oder unvollständige Dateien mit klarer Fehlermeldung ablehnen
+
 
 **Story 1.2:** Als Nutzer möchte ich eine Vorschau der enthaltenen Agenturen, Linien und Zeiträume sehen, um meine Auswahl zu treffen.
-  - **Task 1.2.1:** GTFS-Metadaten (agency, routes, calendar) nach Upload extrahieren
-  - **Task 1.2.2:** UI-Dialog zur Anzeige der wichtigsten Metadaten bereitstellen
+    - **Task 1.2.1:** GTFS-Metadaten (agency, routes, calendar) nach Upload extrahieren
+    - **Task 1.2.2:** UI-Dialog zur Anzeige der wichtigsten Metadaten bereitstellen
 
 ---
+
 
 ### Feature 2: Filterung und Auswahl der Importdaten
 
+
 **Story 2.1:** Als Nutzer möchte ich nach Betriebstagen, Agenturen, Linien, Zeiträumen, Frequenzen, Kategorien, Symmetrie/Asymmetrie und One-Way/Round-Trip filtern können.
-  - **Task 2.1.1:** Filter-UI für alle genannten Filter implementieren (Checkboxen, Dropdowns, Datumsfelder)
-  - **Task 2.1.2:** Filterlogik im Backend implementieren (Trips/Routes nach Filterkriterien einschränken)
-  - **Task 2.1.3:** Validierung der Filterkombinationen (z.B. keine Daten bei zu engen Filtern)
-  - **Task 2.1.4:** UI-Feedback bei leeren oder widersprüchlichen Filtern
+    - **Task 2.1.1:** Filter-UI für alle genannten Filter implementieren (Checkboxen, Dropdowns, Datumsfelder)
+    - **Task 2.1.2:** Filterlogik im Backend implementieren (Trips/Routes nach Filterkriterien einschränken)
+    - **Task 2.1.3:** Validierung der Filterkombinationen (z.B. keine Daten bei zu engen Filtern)
+    - **Task 2.1.4:** UI-Feedback bei leeren oder widersprüchlichen Filtern
+
 
 **Story 2.2:** Als Nutzer möchte ich eine Vorschau der gefilterten Fahrten und Abschnitte sehen.
-  - **Task 2.2.1:** Nach Anwendung der Filter eine Liste der betroffenen Trips und deren Abschnitte anzeigen
-  - **Task 2.2.2:** UI-Komponente für die Vorschau implementieren (inkl. Fahrzeiten, Richtung, Symmetrie)
+    - **Task 2.2.1:** Nach Anwendung der Filter eine Liste der betroffenen Trips und deren Abschnitte anzeigen
+    - **Task 2.2.2:** UI-Komponente für die Vorschau implementieren (inkl. Fahrzeiten, Richtung, Symmetrie)
 
 ---
 
+
 ### Feature 3: Mapping und Modell-Erzeugung
 
+
 **Story 3.1:** Als Entwickler möchte ich, dass jeder Trip zu einem Trainrun und jede Stop-Kombination zu einer TrainrunSection wird.
-  - **Task 3.1.1:** Mapping-Logik GTFS → Trainrun/TrainrunSection im Backend implementieren
-  - **Task 3.1.2:** Fehlerhafte oder unvollständige Trips/Abschnitte erkennen und markieren
-  - **Task 3.1.3:** UI-Feedback für fehlerhafte oder übersprungene Einträge
+    - **Task 3.1.1:** Mapping-Logik GTFS → Trainrun/TrainrunSection im Backend implementieren
+    - **Task 3.1.2:** Fehlerhafte oder unvollständige Trips/Abschnitte erkennen und markieren
+    - **Task 3.1.3:** UI-Feedback für fehlerhafte oder übersprungene Einträge
 
 
 
@@ -222,6 +250,7 @@ Die Frequenz ist somit ein statischer Wert, der beim Import oder der Bearbeitung
 
 ---
 
+
 ### Feature 4: Validierung, Fehlerbehandlung und Logging
 
 **Story 4.1:** Als Nutzer möchte ich Fehler und Konflikte vor dem Import erkennen und beheben können.
@@ -235,7 +264,19 @@ Die Frequenz ist somit ein statischer Wert, der beim Import oder der Bearbeitung
 
 ---
 
+
 ### Feature 5: Undo/Redo und Abschluss des Imports
+### Feature 6: Erzeugung und Behandlung von Knoten (Nodes) aus parent_station_name
+
+**Story 6.1:** Als Entwickler möchte ich, dass für jeden in den GTFS-Daten vorkommenden parent_station_name ein eindeutiger Knoten (Node) mit allen relevanten Attributen erzeugt wird.
+  - **Task 6.1.1:** Alle parent_station_name aus stop_times.txt und stops.txt extrahieren und eindeutige Knotenliste erzeugen.
+  - **Task 6.1.2:** Für jeden Knoten die Koordinaten (lat/lon) aus stops.txt übernehmen. Falls mehrere Stops denselben parent_station_name haben, Mittelwert der Koordinaten berechnen.
+  - **Task 6.1.3:** Weitere Attribute wie Name, ID, ggf. Typ (z.B. Bahnhof, Haltestelle) und Referenzen auf zugehörige Stops speichern.
+  - **Task 6.1.4:** Die erzeugten Knoten als Node-Objekte im Netzgrafik-Editor bereitstellen und für die Pfad- und Gruppierungslogik verwenden.
+  - **Task 6.1.5:** Sicherstellen, dass die Knoten konsistent und eindeutig sind, auch bei Namensvarianten oder Dubletten.
+
+*Beschreibung:*
+Im Importprozess werden alle in den GTFS-Daten vorkommenden parent_station_name aus stop_times.txt und stops.txt gesammelt. Für jeden eindeutigen Namen wird ein Node erzeugt. Die Koordinaten werden aus den zugehörigen Stops übernommen; bei mehreren Stops pro parent_station_name wird der Mittelwert gebildet. Jeder Node erhält alle relevanten Attribute (Name, ID, Typ, Referenzen). Diese Nodes bilden die Grundlage für die Pfadlogik, Gruppierung und Visualisierung im Netzgrafik-Editor. Die Eindeutigkeit und Konsistenz der Knoten ist sicherzustellen, insbesondere bei Namensvarianten oder mehrfach vergebenen Namen.
 
 **Story 5.1:** Als Nutzer möchte ich Importaktionen rückgängig machen oder wiederholen können.
   - **Task 5.1.1:** Undo/Redo-Mechanismus für Importaktionen im Frontend implementieren
