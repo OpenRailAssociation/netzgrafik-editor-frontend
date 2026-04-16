@@ -1133,9 +1133,15 @@ export class TrainrunSectionsView {
         .classed(
           StaticDomTags.TAG_HIDDEN,
           (d: TrainrunSectionViewObject) =>
-            !this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
-            (!this.editorView.isFilterDirectionArrowsEnabled() ||
-              !this.filterTrainrunsectionAtNode(d.trainrunSection, arrowLocation === "BEGINNING")),
+            (!this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
+              (!this.editorView.isFilterDirectionArrowsEnabled() ||
+                !this.filterTrainrunsectionAtNode(
+                  d.trainrunSection,
+                  arrowLocation === "BEGINNING",
+                ))) ||
+            !this.editorView.isNodeVisible(
+              TrainrunSectionsView.getNode(d.trainrunSection, arrowLocation === "BEGINNING"),
+            ),
         )
         .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
         .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
