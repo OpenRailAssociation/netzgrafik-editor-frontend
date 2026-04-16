@@ -1093,6 +1093,7 @@ export class TrainrunSectionService implements OnDestroy {
     this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection1.getId());
 
     if (enforceUpdate) {
+      this.nodeService.initPortOrdering();
       this.nodeService.transitionsUpdated();
       this.nodeService.connectionsUpdated();
       this.trainrunSectionsUpdated();
