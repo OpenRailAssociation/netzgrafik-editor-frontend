@@ -97,7 +97,10 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
         this.data = parameter;
         const selectedTrainrunSection = this.trainrunSectionService.getSelectedTrainrunSection();
         this.selectedTrainrun = this.trainrunService.getSelectedTrainrun();
-        this.trainrunSectionHelper = new TrainrunsectionHelper(this.trainrunService);
+        this.trainrunSectionHelper = new TrainrunsectionHelper(
+          this.trainrunService,
+          this.trainrunSectionService,
+        );
 
         const nextStopLeftNode = this.trainrunSectionHelper.getNextStopLeftNode(
           selectedTrainrunSection,

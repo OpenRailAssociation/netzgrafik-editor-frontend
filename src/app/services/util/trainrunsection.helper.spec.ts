@@ -73,7 +73,7 @@ describe("TrainrunsectionHelper", () => {
       (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
     );
 
-    trainrunsectionHelper = new TrainrunsectionHelper(trainrunService);
+    trainrunsectionHelper = new TrainrunsectionHelper(trainrunService, trainrunSectionService);
   });
 
   it("Test load data", () => {
@@ -90,6 +90,7 @@ describe("TrainrunsectionHelper", () => {
       rightArrivalTime: 40,
       travelTime: 10,
       bottomTravelTime: 10,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     };
@@ -141,6 +142,7 @@ describe("TrainrunsectionHelper", () => {
       rightArrivalTime: 40,
       travelTime: 10,
       bottomTravelTime: 10,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     };
@@ -157,6 +159,7 @@ describe("TrainrunsectionHelper", () => {
       rightArrivalTime: 40,
       travelTime: 10,
       bottomTravelTime: 10,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     };
@@ -174,6 +177,7 @@ describe("TrainrunsectionHelper", () => {
       rightArrivalTime: 40,
       travelTime: 10,
       bottomTravelTime: 10,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     };
@@ -191,6 +195,7 @@ describe("TrainrunsectionHelper", () => {
       rightArrivalTime: 40,
       travelTime: 10,
       bottomTravelTime: 10,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     };
@@ -207,6 +212,7 @@ describe("TrainrunsectionHelper", () => {
       rightArrivalTime: 40,
       travelTime: 10,
       bottomTravelTime: 10,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     };
@@ -224,6 +230,7 @@ describe("TrainrunsectionHelper", () => {
       rightArrivalTime: 40,
       travelTime: 10,
       bottomTravelTime: 10,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     };
@@ -241,6 +248,7 @@ describe("TrainrunsectionHelper", () => {
       rightArrivalTime: 40,
       travelTime: 10,
       bottomTravelTime: 10,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     };
@@ -262,6 +270,7 @@ describe("TrainrunsectionHelper", () => {
       rightArrivalTime: 40,
       travelTime: 10,
       bottomTravelTime: 10,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     };
@@ -278,6 +287,7 @@ describe("TrainrunsectionHelper", () => {
       rightArrivalTime: 40,
       travelTime: 10,
       bottomTravelTime: 10,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     };
@@ -295,6 +305,7 @@ describe("TrainrunsectionHelper", () => {
       rightArrivalTime: 40,
       travelTime: 10,
       bottomTravelTime: 10,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     };
@@ -312,6 +323,7 @@ describe("TrainrunsectionHelper", () => {
       rightArrivalTime: 40,
       travelTime: 10,
       bottomTravelTime: 10,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     };
@@ -328,6 +340,7 @@ describe("TrainrunsectionHelper", () => {
       rightArrivalTime: 40,
       travelTime: 10,
       bottomTravelTime: 10,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     };
@@ -345,6 +358,7 @@ describe("TrainrunsectionHelper", () => {
       rightArrivalTime: 40,
       travelTime: 10,
       bottomTravelTime: 10,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     };

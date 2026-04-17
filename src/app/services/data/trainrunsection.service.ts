@@ -1653,11 +1653,15 @@ export class TrainrunSectionService implements OnDestroy {
     return numberOfCollapsedStops;
   }
 
-  getTrainrunSectionsGroupOrientedBasedOnPort(port: Port): TrainrunSection[] | undefined {
-    const section = port.getTrainrunSection();
+  getTrainrunSectionGroupForSection(section: TrainrunSection): TrainrunSection[] {
     const sections = this.getAllTrainrunSectionsForTrainrun(section.getTrainrun().getId());
     const groups = this.groupTrainrunSectionsIntoChains(sections);
     const group = groups.find((group) => group.some((trs) => trs.getId() === section.getId()));
+    return group ?? [section];
+  }
+
+  getTrainrunSectionsGroupOrientedBasedOnPort(port: Port): TrainrunSection[] | undefined {
+    const group = this.getTrainrunSectionGroupForSection(port.getTrainrunSection());
     if (group === undefined) return undefined;
     if (group[0].getSourcePortId() === port.getId()) {
       return group;
