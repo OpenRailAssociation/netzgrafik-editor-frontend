@@ -39,28 +39,25 @@ export class TrainrunsectionHelper {
       rightArrivalTime: 0,
       travelTime: 0,
       bottomTravelTime: 0,
+      stopTime: 0,
+      bottomStopTime: 0,
     };
   }
 
-  static getTravelTime(
+  static getLastSectionTravelTime(
     totalTravelTime: number,
     summedTravelTime: number,
-    travelTimeFactor: number,
-    trsTravelTime: number,
-    isRightNodeNonStopTransit: boolean,
     precision = TrainrunSectionService.TIME_PRECISION,
   ): number {
-    if (isRightNodeNonStopTransit) {
-      return Math.max(
-        MathUtils.round(trsTravelTime * travelTimeFactor, precision),
-        1.0 / Math.pow(10, precision),
-      );
-    } else {
-      return Math.max(
-        MathUtils.round(totalTravelTime - summedTravelTime, precision),
-        1.0 / Math.pow(10, precision),
-      );
-    }
+    return MathUtils.round(totalTravelTime - summedTravelTime, precision);
+  }
+
+  static getSectionDistributedTravelTime(
+    trsTravelTime: number,
+    travelTimeFactor: number,
+    precision = TrainrunSectionService.TIME_PRECISION,
+  ): number {
+    return MathUtils.round(trsTravelTime * travelTimeFactor, precision);
   }
 
   static getRightArrivalTime(
@@ -312,6 +309,8 @@ export class TrainrunsectionHelper {
       mappedTimeStructure.leftDepartureTime = timeStructure.rightDepartureTime;
       mappedTimeStructure.travelTime = timeStructure.bottomTravelTime;
       mappedTimeStructure.bottomTravelTime = timeStructure.travelTime;
+      mappedTimeStructure.stopTime = timeStructure.stopTime;
+      mappedTimeStructure.bottomStopTime = timeStructure.bottomStopTime;
       return mappedTimeStructure;
     }
     return timeStructure;
@@ -334,6 +333,8 @@ export class TrainrunsectionHelper {
         rightArrivalTime: section.getHeadArrival(),
         travelTime: section.getTravelTime(),
         bottomTravelTime: section.getReverseTravelTime(),
+        stopTime: 0,
+        bottomStopTime: 0,
       };
     }
 
@@ -364,6 +365,13 @@ export class TrainrunsectionHelper {
         : "sourceToTarget",
     );
 
+    const totalForwardDuration =
+      lastRightNode.getArrivalTime(rightTrainrunSection) -
+      lastLeftNode.getDepartureTime(leftTrainrunSection);
+    const totalBackwardDuration =
+      lastLeftNode.getArrivalTime(leftTrainrunSection) -
+      lastRightNode.getDepartureTime(rightTrainrunSection);
+
     return {
       leftDepartureTime: lastLeftNode.getDepartureTime(leftTrainrunSection),
       leftArrivalTime: lastLeftNode.getArrivalTime(leftTrainrunSection),
@@ -371,6 +379,8 @@ export class TrainrunsectionHelper {
       rightArrivalTime: lastRightNode.getArrivalTime(rightTrainrunSection),
       travelTime: cumulativeTravelTime,
       bottomTravelTime: cumulativeBottomTravelTime,
+      stopTime: MathUtils.mod60(totalForwardDuration - cumulativeTravelTime),
+      bottomStopTime: MathUtils.mod60(totalBackwardDuration - cumulativeBottomTravelTime),
     };
   }
 

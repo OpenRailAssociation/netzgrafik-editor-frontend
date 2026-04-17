@@ -22,6 +22,7 @@ import {DataMigration} from "../../utils/data-migration";
 import {FilterService} from "../ui/filter.service";
 import {NetzgrafikColoringService} from "./netzgrafikColoring.service";
 import {Trainrun} from "src/app/models/trainrun.model";
+import {Vec2D} from "src/app/utils/vec2D";
 
 export class NetzgrafikLoadedInfo {
   constructor(
@@ -30,9 +31,7 @@ export class NetzgrafikLoadedInfo {
   ) {}
 }
 
-@Injectable({
-  providedIn: "root",
-})
+@Injectable({providedIn: "root"})
 export class DataService implements OnDestroy {
   private netzgrafikDtoStore: {netzgrafikDto: NetzgrafikDto} = {
     netzgrafikDto: NetzgrafikDefault.getDefaultNetzgrafik(),
@@ -104,12 +103,51 @@ export class DataService implements OnDestroy {
       this.trainrunSectionService.enforceConsistentSectionDirection(trainrun.getId());
     });
 
+    this.replaceLegacyNumberOfStopsWithRealNodes(netzgrafikDto);
+    this.nodeService.initPortOrdering();
+
     // This must be done due of the bug fix - ensure that each resource object
     // is used in the Netzgrafik
     // https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/522
     this.ensureAllResourcesLinkedToNetzgrafikObjects();
 
     this.netzgrafikLoadedInfoSubject.next(new NetzgrafikLoadedInfo(false, preview));
+  }
+
+  replaceLegacyNumberOfStopsWithRealNodes(netzgrafikDto: NetzgrafikDto) {
+    for (const trainrunSection of netzgrafikDto.trainrunSections) {
+      let currentSection = trainrunSection;
+      for (let i = 0; i < trainrunSection.numberOfStops; i++) {
+        const oldTrainrunSection = this.trainrunSectionService.getTrainrunSectionFromId(
+          currentSection.id,
+        );
+        const sourceNode = oldTrainrunSection.getSourceNode();
+        const targetNode = oldTrainrunSection.getTargetNode();
+        const interpolatedPosition = new Vec2D(
+          sourceNode.getPositionX() + (targetNode.getPositionX() - sourceNode.getPositionX()) * 0.5,
+          sourceNode.getPositionY() + (targetNode.getPositionY() - sourceNode.getPositionY()) * 0.5,
+        );
+
+        const newNode = this.nodeService.addEmptyNode(
+          interpolatedPosition.getX(),
+          interpolatedPosition.getY(),
+        );
+
+        this.trainrunSectionService.getTrainrunSectionFromId(currentSection.id).setNumberOfStops(0);
+        const {existingTrainrunSection, newTrainrunSection} =
+          this.trainrunSectionService.replaceIntermediateStopWithNode(
+            currentSection.id,
+            newNode.getId(),
+            undefined,
+            false,
+          );
+
+        currentSection = newTrainrunSection.getDto();
+      }
+    }
+    this.nodeService.transitionsUpdated();
+    this.nodeService.connectionsUpdated();
+    this.trainrunSectionService.trainrunSectionsUpdated();
   }
 
   insertCopyNetzgrafikDto(netzgrafikDto: NetzgrafikDto, enforceUpdate = true) {
@@ -152,13 +190,12 @@ export class DataService implements OnDestroy {
     this.trainrunSectionService.initializeTrainrunSectionsWithReferencesToNodesAndTrainruns();
     this.nodeService.initializePortsWithReferencesToTrainrunSections();
     this.nodeService.initializeTransitionsWithReferencesToTrainrun();
-    this.nodeService.initPortOrdering();
-    this.trainrunSectionService.initializeTrainrunSectionRouting();
     this.nodeService.validateAllConnections();
     this.trainrunService.propagateInitialConsecutiveTimes();
     this.nodeService.nodesUpdated();
     this.nodeService.transitionsUpdated();
     this.nodeService.connectionsUpdated();
+    this.nodeService.initPortOrdering();
     this.trainrunSectionService.trainrunSectionsUpdated();
     this.noteService.notesUpdated();
     this.labelService.labelUpdated();

@@ -9,13 +9,18 @@ import {DragTransitionInfo, PreviewLineMode} from "./trainrunsection.previewline
 import {Vec2D} from "../../../utils/vec2D";
 import {TransitionViewObject} from "./transitionViewObject";
 import {LinePatternRefs} from "../../../data-structures/business.data.structures";
+import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
+import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
 
 export class TransitionsView {
   transitionsGroup;
   selectedTransitionsGroup;
   editorView: EditorView;
 
-  constructor(editorView: EditorView) {
+  constructor(
+    editorView: EditorView,
+    private trainrunSectionService: TrainrunSectionService,
+  ) {
     this.editorView = editorView;
   }
 
@@ -109,11 +114,17 @@ export class TransitionsView {
       )
       .attr(StaticDomTags.TRANSITION_TRAINRUNSECTION_ID1, (t: TransitionViewObject) => {
         const n: Node = editorView.getNodeFromTransition(t.transition);
-        return "" + n.getPort(t.transition.getPortId1()).getTrainrunSection().getId();
+        const tsvo = new TrainrunSectionViewObject(editorView, [
+          n.getPort(t.transition.getPortId1()).getTrainrunSection(),
+        ]);
+        return "" + tsvo.firstSection.getId();
       })
       .attr(StaticDomTags.TRANSITION_TRAINRUNSECTION_ID2, (t: TransitionViewObject) => {
         const n: Node = editorView.getNodeFromTransition(t.transition);
-        return "" + n.getPort(t.transition.getPortId2()).getTrainrunSection().getId();
+        const tsvo = new TrainrunSectionViewObject(editorView, [
+          n.getPort(t.transition.getPortId1()).getTrainrunSection(),
+        ]);
+        return "" + tsvo.lastSection.getId();
       })
       .classed(StaticDomTags.TAG_SELECTED, (t: TransitionViewObject) =>
         t.transition.getTrainrun().selected(),
@@ -177,6 +188,11 @@ export class TransitionsView {
     }
 
     const node = this.editorView.getNodeFromTransition(transition);
+
+    if (node.getIsCollapsed()) {
+      return false;
+    }
+
     if (!this.editorView.checkFilterNonStopNode(node)) {
       return false;
     }
@@ -316,14 +332,27 @@ export class TransitionsView {
       return;
     }
 
+    const allSections = this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      trainrun.getId(),
+    );
+    const groups = this.trainrunSectionService.groupTrainrunSectionsIntoChains(allSections);
     const port1 = node.getPort(transition.getPortId1());
     const port2 = node.getPort(transition.getPortId2());
     const trainrunSection1 = port1.getTrainrunSection();
     const trainrunSection2 = port2.getTrainrunSection();
+    const tsvo1 = new TrainrunSectionViewObject(
+      this.editorView,
+      groups.find((group) => group.some((trs) => trs.getId() === trainrunSection1.getId())),
+    );
+    const tsvo2 = new TrainrunSectionViewObject(
+      this.editorView,
+      groups.find((group) => group.some((trs) => trs.getId() === trainrunSection2.getId())),
+    );
+
     const position = Vec2D.scale(Vec2D.add(transition.getPath()[1], transition.getPath()[2]), 0.5);
 
     this.editorView.trainrunSectionPreviewLineView.startDragTransition(
-      new DragTransitionInfo(node, trainrunSection1, trainrunSection2, transition, true, domObj),
+      new DragTransitionInfo(node, tsvo1, tsvo2, transition, true, domObj),
       position,
     );
     this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
