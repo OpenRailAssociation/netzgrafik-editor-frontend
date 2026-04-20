@@ -23,3 +23,24 @@ updates:
       prefix: "chore(deps):"
     labels:
       - "dependencies"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 5
+    commit-message:
+      prefix: "chore(deps):"
+    labels:
+      - "dependencies"
+      - "area:ci"
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 5
+    commit-message:
+      prefix: "chore(deps):"
+    labels:
+      - "dependencies"
