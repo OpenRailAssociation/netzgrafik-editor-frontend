@@ -17,7 +17,7 @@ ADD --chmod=755 docker/99-ngssc.sh /docker-entrypoint.d/
 ADD docker/nginx-angular.conf /etc/nginx/conf.d/default.conf
 
 # copy built application from build stage
-COPY --from=build --chown=nginx:nginx --chmod=755 /build/dist/netzgrafik-frontend /usr/share/nginx/html
+COPY --from=build --chown=nginx:nginx --chmod=755 /build/dist /usr/share/nginx/html
 
 # Validate the nginx configuration
 RUN nginx -t
