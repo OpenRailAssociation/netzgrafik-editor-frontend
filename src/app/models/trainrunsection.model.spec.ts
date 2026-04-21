@@ -4,6 +4,23 @@ import {Trainrun} from "./trainrun.model";
 import {PortAlignment, TimeLockDto} from "../data-structures/technical.data.structures";
 import {Resource} from "./resource.model";
 import {Connection} from "./connection.model";
+import {
+  HaltezeitFachCategories,
+  TrainrunCategory,
+} from "../data-structures/business.data.structures";
+
+const TEST_TRAINRUN_CATEGORY: TrainrunCategory = {
+  id: 1,
+  order: 1,
+  name: "Test",
+  shortName: "T",
+  fachCategory: HaltezeitFachCategories.Uncategorized,
+  colorRef: "EC",
+  minimalTurnaroundTime: 0,
+  nodeHeadwayStop: 0,
+  nodeHeadwayNonStop: 0,
+  sectionHeadway: 0,
+};
 
 describe("TrainrunSection Model Test", () => {
   it("setSourceAndTargetNodeReference", () => {
@@ -511,6 +528,7 @@ describe("TrainrunSection Model Test", () => {
 
   it("getTransition with trainrunsection - 001", () => {
     const tr = new Trainrun();
+    tr.setTrainrunCategory(TEST_TRAINRUN_CATEGORY);
     const ts1 = new TrainrunSection();
     const node1 = new Node();
     const node2 = new Node();
@@ -550,6 +568,7 @@ describe("TrainrunSection Model Test", () => {
 
   it("isEndNode with trainrunsection - 001", () => {
     const tr = new Trainrun();
+    tr.setTrainrunCategory(TEST_TRAINRUN_CATEGORY);
     const ts1 = new TrainrunSection();
     const node1 = new Node();
     const node2 = new Node();
@@ -581,6 +600,7 @@ describe("TrainrunSection Model Test", () => {
 
   it("getStartTrainrunSection with trainrunsection - 001", () => {
     const tr = new Trainrun();
+    tr.setTrainrunCategory(TEST_TRAINRUN_CATEGORY);
     const ts1 = new TrainrunSection();
     const node1 = new Node();
     const node2 = new Node();
