@@ -3,6 +3,23 @@ import {Trainrun} from "../../models/trainrun.model";
 import {VisAVisPortPlacement} from "./node.port.placement";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
+import {
+  HaltezeitFachCategories,
+  TrainrunCategory,
+} from "../../data-structures/business.data.structures";
+
+const TEST_TRAINRUN_CATEGORY: TrainrunCategory = {
+  id: 1,
+  order: 1,
+  name: "Test",
+  shortName: "T",
+  fachCategory: HaltezeitFachCategories.Uncategorized,
+  colorRef: "EC",
+  minimalTurnaroundTime: 0,
+  nodeHeadwayStop: 0,
+  nodeHeadwayNonStop: 0,
+  sectionHeadway: 0,
+};
 
 const ALIGNMENTS_MAP = {
   top: PortAlignment.Top,
@@ -34,6 +51,7 @@ export function buildNetwork(def: {
 
   for (const path of def.trainruns) {
     const trainrun = new Trainrun();
+    trainrun.setTrainrunCategory(TEST_TRAINRUN_CATEGORY);
     trainrunIDs.push(trainrun.getId());
 
     for (let i = 0; i < path.length - 1; i++) {
