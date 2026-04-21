@@ -612,7 +612,7 @@ export class NodeService implements OnDestroy {
     return !checkPort1 || !checkPort2;
   }
 
-  addTransition(node: Node, trainrun: Trainrun, isNonStop = false) {
+  addTransition(node: Node, trainrun: Trainrun, isNonStop?: boolean) {
     const freePorts = node.getFreePortsForTrainrun(trainrun.getId());
     if (freePorts.length <= 1) {
       return;
@@ -636,19 +636,20 @@ export class NodeService implements OnDestroy {
     nodeId: number,
     trainrunSection1: TrainrunSection,
     trainrunSection2: TrainrunSection,
+    forceStop: boolean = false,
   ) {
     const node = this.getNodeFromId(nodeId);
     const port1 = node.getPortOfTrainrunSection(trainrunSection1.getId());
     const port2 = node.getPortOfTrainrunSection(trainrunSection2.getId());
-    node.addTransition(port1, port2, trainrunSection1.getTrainrun());
+    node.addTransition(port1, port2, trainrunSection1.getTrainrun(), forceStop ? false : undefined);
   }
 
   addTransitionToNodes(
     sourceNodeId: number,
     targetNodeId: number,
     trainrunSection: TrainrunSection,
-    sourceIsNonStop = false,
-    targetIsNonStop = false,
+    sourceIsNonStop?: boolean,
+    targetIsNonStop?: boolean,
   ) {
     const sourceNode = this.getNodeFromId(sourceNodeId);
     this.addTransition(sourceNode, trainrunSection.getTrainrun(), sourceIsNonStop);
