@@ -18,7 +18,7 @@
           "builder": "@angular-devkit/build-angular:application",
           "options": {
             "outputPath": {
-              "base": "dist/netzgrafik-frontend",
+              "base": "dist",
               "browser": ""
             },
             "index": "src/index.html",
@@ -40,9 +40,6 @@
           },
           "configurations": {
             "production": {
-              "outputPath": {
-                "base": "dist"
-              },
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",

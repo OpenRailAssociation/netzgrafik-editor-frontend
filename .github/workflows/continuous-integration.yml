@@ -76,7 +76,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build
-          path: dist/netzgrafik-frontend/
+          path: dist/
 
   build-standalone:
     runs-on: ubuntu-latest
@@ -92,7 +92,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-standalone
-          path: dist/netzgrafik-frontend/
+          path: dist/
 
   build-standalonedemo:
     runs-on: ubuntu-latest
@@ -108,7 +108,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-standalone-demo
-          path: dist/netzgrafik-frontend/
+          path: dist/
 
   deploy-preview:
     runs-on: ubuntu-latest
