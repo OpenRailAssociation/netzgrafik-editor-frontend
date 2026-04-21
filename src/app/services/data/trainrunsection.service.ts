@@ -1360,8 +1360,8 @@ export class TrainrunSectionService implements OnDestroy {
     sourceNode: Node,
     targetNode: Node,
     trainrunSection: TrainrunSection,
-    sourceIsNonStop = false,
-    targetIsNonStop = false,
+    sourceIsNonStop?: boolean,
+    targetIsNonStop?: boolean,
     enforceUpdate = true,
   ) {
     this.nodeService.addPortsToNodes(sourceNode.getId(), targetNode.getId(), trainrunSection);

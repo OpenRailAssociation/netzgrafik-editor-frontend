@@ -574,16 +574,18 @@ export class Node {
     port1: Port,
     port2: Port,
     trainrun: Trainrun,
-    isNonStop = false,
+    isNonStop?: boolean,
   ): Transition {
     const transition: Transition = new Transition();
     transition.setPort1Id(port1.getId());
     transition.setPort2Id(port2.getId());
-    transition.setIsNonStopTransit(
-      isNonStop
-        ? true
-        : this.trainrunCategoryHaltezeiten[trainrun.getTrainrunCategory().fachCategory].no_halt,
-    );
+    const defaultIsNonStop =
+      isNonStop === undefined
+        ? (this.trainrunCategoryHaltezeiten[trainrun.getTrainrunCategory().fachCategory]?.no_halt ??
+          false)
+        : isNonStop;
+
+    transition.setIsNonStopTransit(defaultIsNonStop);
     transition.setTrainrun(trainrun);
     this.computeTransitionRouting(transition);
     this.transitions.push(transition);
