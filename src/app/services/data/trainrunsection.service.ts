@@ -76,13 +76,14 @@ export class TrainrunSectionService implements OnDestroy {
   static computeArrivalAndDeparture(
     nodeArrival: number,
     trainrunSection: TrainrunSection,
-    nonStop: boolean,
     halteZeiten: TrainrunCategoryHaltezeit,
     precision: number = 10,
   ): DepartureAndArrivalTimes {
-    let haltezeit =
-      halteZeiten[trainrunSection.getTrainrun().getTrainrunCategory().fachCategory].haltezeit;
-    haltezeit = nonStop ? 0 : haltezeit;
+    let haltezeitObject =
+      halteZeiten[trainrunSection.getTrainrun().getTrainrunCategory().fachCategory];
+
+    console.log("computeArrivalAndDeparture", haltezeitObject);
+    const haltezeit = haltezeitObject.no_halt ? 0 : haltezeitObject.haltezeit;
     const fromDepartureTime = MathUtils.round((nodeArrival + haltezeit) % 60, precision);
     const fromArrivalTime = MathUtils.round(
       TrainrunsectionHelper.getSymmetricTime(fromDepartureTime),
@@ -147,10 +148,10 @@ export class TrainrunSectionService implements OnDestroy {
     if (previousTrainrunSection !== undefined) {
       const previousNodeArrival = nodeFrom.getArrivalTime(previousTrainrunSection);
       const halteZeit = nodeFrom.getTrainrunCategoryHaltezeit();
+
       const arrivalDepartureTimes = TrainrunSectionService.computeArrivalAndDeparture(
         previousNodeArrival,
         trainrunSection,
-        false,
         halteZeit,
         TrainrunSectionService.TIME_PRECISION,
       );
