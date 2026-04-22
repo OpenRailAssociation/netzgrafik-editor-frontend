@@ -114,7 +114,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-standalone
     steps:
-      - uses: OpenRailAssociation/web-deployment-action@v1
+      - uses: OpenRailAssociation/web-deployment-action@v1.2.0
         with:
           artifact_name: build-standalone
           condition_production: false # GitHub Pages is used for production
