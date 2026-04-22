@@ -716,7 +716,7 @@ export class TrainrunSectionService implements OnDestroy {
         false,
       );
     }
-
+    this.enforceConsistentSectionDirection(trainrunSection.getTrainrunId());
     this.trainrunService.propagateConsecutiveTimesForTrainrun(trainrunSection.getId());
 
     if (enforceUpdate) {

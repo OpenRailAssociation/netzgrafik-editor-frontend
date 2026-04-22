@@ -110,7 +110,7 @@ describe("Reconnect TrainrunSection Test", () => {
       trainrunSectionOfInterest4.getSourceNode(),
       trainrunSectionOfInterest4,
     );
-    expect(endNode4.getId()).toBe(7);
+    expect(endNode4.getId()).toBe(1);
 
     trainrunSectionService.reconnectTrainrunSection(
       7,
