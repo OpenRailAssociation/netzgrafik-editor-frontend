@@ -82,7 +82,6 @@ export class TrainrunSectionService implements OnDestroy {
     const haltezeitObject =
       halteZeiten[trainrunSection.getTrainrun().getTrainrunCategory().fachCategory];
 
-    console.log("computeArrivalAndDeparture", haltezeitObject);
     const haltezeit = haltezeitObject.no_halt ? 0 : haltezeitObject.haltezeit;
     const fromDepartureTime = MathUtils.round((nodeArrival + haltezeit) % 60, precision);
     const fromArrivalTime = MathUtils.round(
