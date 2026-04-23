@@ -169,7 +169,6 @@ describe("TrainrunSection Service Test", () => {
     let computedTimes = TrainrunSectionService.computeArrivalAndDeparture(
       2,
       trainrunSections[1],
-      false,
       nodes[1].getTrainrunCategoryHaltezeit(),
     );
     expect(computedTimes.nodeFromDepartureTime).toBe(4);
@@ -180,18 +179,16 @@ describe("TrainrunSection Service Test", () => {
     computedTimes = TrainrunSectionService.computeArrivalAndDeparture(
       2,
       trainrunSections[1],
-      true,
       nodes[1].getTrainrunCategoryHaltezeit(),
     );
-    expect(computedTimes.nodeFromDepartureTime).toBe(2);
-    expect(computedTimes.nodeFromArrivalTime).toBe(58);
-    expect(computedTimes.nodeToDepartureTime).toBe(48);
-    expect(computedTimes.nodeToArrivalTime).toBe(12);
+    expect(computedTimes.nodeFromDepartureTime).toBe(4);
+    expect(computedTimes.nodeFromArrivalTime).toBe(56);
+    expect(computedTimes.nodeToDepartureTime).toBe(46);
+    expect(computedTimes.nodeToArrivalTime).toBe(14);
 
     computedTimes = TrainrunSectionService.computeArrivalAndDeparture(
       56,
       trainrunSections[1],
-      false,
       nodes[1].getTrainrunCategoryHaltezeit(),
     );
     expect(computedTimes.nodeFromDepartureTime).toBe(58);
