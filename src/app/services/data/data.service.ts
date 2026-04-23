@@ -269,6 +269,7 @@ export class DataService implements OnDestroy {
 
   setTrafficSide(trafficSideType: TrafficSide) {
     this.netzgrafikDtoStore.netzgrafikDto.metadata.trafficSide = trafficSideType || "leftHand";
+    SimpleTrainrunSectionRouter.setTrafficSideType(trafficSideType);
   }
 
   getDirections(): Direction[] {
