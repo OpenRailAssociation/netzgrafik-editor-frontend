@@ -57,7 +57,8 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: "npm"
-      - run: npm clean-install
+      - run: npm install
+      - run: git diff
       - name: Check code formatting
         run: npx prettier --check .
       - run: npm run lint
