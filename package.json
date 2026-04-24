@@ -55,7 +55,6 @@
     "zone.js": "~0.14.10"
   },
   "optionalDependencies": {
-    "devtools-protocol": "*",
     "puppeteer": "^22.13.1"
   },
   "devDependencies": {
