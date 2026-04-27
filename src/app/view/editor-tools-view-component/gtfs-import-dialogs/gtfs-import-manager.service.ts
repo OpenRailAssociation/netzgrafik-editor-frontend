@@ -401,6 +401,7 @@ export class GtfsImportManagerService {
         state.selectedAgencies,
         state.selectedCategories.map((cat) => cat.toUpperCase()),
         (fileName: string) => {
+
           // Find the sub-phase for the completed file
           const state = this.getState();
           const subPhases = state.importPhases[0].subPhases;
@@ -416,6 +417,7 @@ export class GtfsImportManagerService {
             }
           }
         },
+        state.selectedDate, // Betriebstag: Nur Trips die an diesem Tag fahren
       );
 
 

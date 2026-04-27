@@ -646,7 +646,7 @@ export class GTFSConverterService {
     });
 
     // Step 5.1: Match and merge round-trip patterns
-    const timeSyncTolerance = options.timeSyncTolerance || 150; // seconds
+    const timeSyncTolerance = options.timeSyncTolerance ?? 180; // seconds (default matches DEFAULT_TIME_SYNC_TOLERANCE in gtfs-import.models.ts)
 
     // Build trainrun -> pattern map
     const trainrunToPattern = new Map<number, TripPattern>();
@@ -968,10 +968,6 @@ export class GTFSConverterService {
     return matchingStatus;
   }
 
-  /**
-   * Check if two patterns can be merged into a round-trip
-   * Returns null if patterns match, or a string describing the failure reason
-   */
   /**
    * Check if two patterns can be merged into a round-trip
    * Returns null if patterns match, or a string describing the failure reason

@@ -298,6 +298,13 @@
                   | translate
               }}
             </small>
+            <!-- Gültigkeitszeitraum aus calendar.txt -->
+            <small *ngIf="gtfsServiceDateRange" class="filter-hint" style="display:block; margin-top:4px;">
+              📅 Fahrplan gültig:
+              <strong>{{ gtfsServiceDateRange.startDate | date:'dd.MM.yyyy' }}</strong>
+              &ndash;
+              <strong>{{ gtfsServiceDateRange.endDate | date:'dd.MM.yyyy' }}</strong>
+            </small>
           </div>
 
           <!-- Agency Filter (Chip Input + Autocomplete) -->

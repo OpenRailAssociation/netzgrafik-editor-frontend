@@ -95,6 +95,9 @@ export class EditorToolsViewComponent {
   // Selected operating day
   public gtfsSelectedDate: string | null = null;
 
+  // Service date range from GTFS calendar (min/max gütlig)
+  public gtfsServiceDateRange: {startDate: string; endDate: string} | null = null;
+
   // Warnings for empty filters
   public gtfsNoCategoriesWarning = false;
   public gtfsNoLinesWarning = false;
@@ -179,6 +182,7 @@ export class EditorToolsViewComponent {
       this.gtfsSelectedCategories = state.selectedCategories;
       this.gtfsSelectedLines = state.selectedLines;
       this.gtfsSelectedDate = state.selectedDate;
+      this.gtfsServiceDateRange = state.serviceDateRange;
       this.gtfsFilteredAgencies = state.filteredAgencies;
       this.gtfsFilteredCategories = state.filteredCategories;
       this.gtfsFilteredLines = state.filteredLines;

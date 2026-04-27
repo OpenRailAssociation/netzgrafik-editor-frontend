@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   EventEmitter,
   Input,
@@ -80,6 +81,9 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
   @Input() gtfsRouteTypeFilter: any;
   @Input() gtfsNodeFilter: any;
 
+  // Service date range from GTFS calendar (min/max gültig)
+  @Input() gtfsServiceDateRange: {startDate: string; endDate: string} | null = null;
+
   // Time sync tolerance for round-trip matching (in seconds)
   @Input() gtfsTimeSyncTolerance = 180;
   @Output() gtfsTimeSyncToleranceChange = new EventEmitter<number>();
@@ -107,6 +111,8 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
   // Search filter for trips table
   tripsSearchFilter = new FormControl("");
 
+  constructor(private cdr: ChangeDetectorRef) {}
+
   ngOnInit(): void {
     // Setup observable filtered lists for autocomplete
     this.setupFilteredLists();
@@ -125,6 +131,15 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
       changes["gtfsAvailableRoutes"]
     ) {
       this.setupFilteredLists();
+    }
+
+    // Chips sofort neu zeichnen wenn sich die Selektion ändert
+    if (
+      changes["gtfsSelectedAgencies"] ||
+      changes["gtfsSelectedCategories"] ||
+      changes["gtfsSelectedLines"]
+    ) {
+      this.cdr.markForCheck();
     }
 
     // Update summary tables when summary data changes
@@ -248,11 +263,13 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
     if (value && !this.gtfsSelectedAgencies.includes(value)) {
       this.addAgency.emit(value);
       this.agencyInputCtrl.setValue("");
+      this.cdr.markForCheck();
     }
   }
 
   onRemoveAgency(agency: string): void {
     this.removeAgency.emit(agency);
+    this.cdr.markForCheck();
   }
 
   // Category handlers (optionSelected from autocomplete)
@@ -260,11 +277,13 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
     if (value && !this.gtfsSelectedCategories.includes(value)) {
       this.addCategory.emit(value);
       this.categoryInputCtrl.setValue("");
+      this.cdr.markForCheck();
     }
   }
 
   onRemoveCategory(category: string): void {
     this.removeCategory.emit(category);
+    this.cdr.markForCheck();
   }
 
   // Line handlers (optionSelected from autocomplete)
@@ -272,11 +291,13 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
     if (value && !this.gtfsSelectedLines.includes(value)) {
       this.addLine.emit(value);
       this.lineInputCtrl.setValue("");
+      this.cdr.markForCheck();
     }
   }
 
   onRemoveLine(line: string): void {
     this.removeLine.emit(line);
+    this.cdr.markForCheck();
   }
 
   onSelectedDateChange(date: string): void {
