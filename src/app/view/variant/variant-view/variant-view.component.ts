@@ -12,6 +12,7 @@ import {NavigationService} from "../../../services/ui/navigation.service";
   selector: "sbb-variant-view",
   templateUrl: "./variant-view.component.html",
   styleUrls: ["./variant-view.component.scss"],
+  standalone: false,
 })
 export class VariantViewComponent implements OnDestroy {
   private readonly destroyed = new Subject<void>();

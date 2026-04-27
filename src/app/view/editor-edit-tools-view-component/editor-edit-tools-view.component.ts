@@ -24,6 +24,7 @@ import {SbbRadioChange} from "@sbb-esta/angular/radio-button";
   selector: "sbb-editor-edit-tools-view-component",
   templateUrl: "./editor-edit-tools-view.component.html",
   styleUrls: ["./editor-edit-tools-view.component.scss"],
+  standalone: false,
 })
 export class EditorEditToolsViewComponent implements OnDestroy {
   @ViewChild("netzgrafikMergeFileInput", {static: false})

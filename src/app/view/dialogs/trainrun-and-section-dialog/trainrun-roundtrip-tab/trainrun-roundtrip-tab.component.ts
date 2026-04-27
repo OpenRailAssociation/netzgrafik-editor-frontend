@@ -22,6 +22,7 @@ import {Direction} from "src/app/data-structures/business.data.structures";
   selector: "sbb-trainrun-roundtrip-tab",
   templateUrl: "./trainrun-roundtrip-tab.component.html",
   styleUrls: ["./trainrun-roundtrip-tab.component.scss"],
+  standalone: false,
 })
 export class TrainrunRoundtripTabComponent implements OnInit, OnDestroy {
   @Output() trainrunDeleted = new EventEmitter<void>();

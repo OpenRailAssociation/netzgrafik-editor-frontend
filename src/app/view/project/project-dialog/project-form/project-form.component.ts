@@ -7,6 +7,7 @@ import {COMMA, ENTER} from "@angular/cdk/keycodes";
   selector: "sbb-project-form",
   templateUrl: "./project-form.component.html",
   styleUrls: ["./project-form.component.scss"],
+  standalone: false,
 })
 export class ProjectFormComponent implements OnInit {
   @Input() model!: FormModel<ProjectFormComponentModel>;

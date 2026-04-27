@@ -4,6 +4,7 @@ import {Component, ElementRef, EventEmitter, Input, Output, ViewChild} from "@an
   selector: "sbb-time-stepper",
   templateUrl: "./time-stepper.component.html",
   styleUrls: ["./time-stepper.component.scss"],
+  standalone: false,
 })
 export class TimeStepperComponent {
   @Input() isDisplayed = true;

@@ -9,6 +9,7 @@ import {filter} from "rxjs/operators";
   selector: "sbb-variant-dialog",
   templateUrl: "./variant-dialog.component.html",
   styleUrls: ["./variant-dialog.component.scss"],
+  standalone: false,
 })
 export class VariantDialogComponent {
   readonly formModel: FormModel<VariantFormComponentModel>;

@@ -33,6 +33,7 @@ export class ConfirmationDialogParameter {
   selector: "sbb-confirmation-dialog",
   templateUrl: "./confirmation-dialog.component.html",
   styleUrls: ["./confirmation-dialog.component.scss"],
+  standalone: false,
 })
 export class ConfirmationDialogComponent implements OnDestroy {
   @ViewChild("confirmationDialogTemplate", {static: true})

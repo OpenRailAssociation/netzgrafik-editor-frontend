@@ -25,6 +25,7 @@ import {
   templateUrl: "./time-slider.component.html",
   styleUrls: ["./time-slider.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class TimeSliderComponent implements OnInit, OnDestroy, UpdateCounterHandler {
   @Input()

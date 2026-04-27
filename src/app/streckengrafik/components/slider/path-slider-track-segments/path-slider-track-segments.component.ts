@@ -7,6 +7,7 @@ import {TrackSegments} from "../../../model/trackData";
   selector: "[sbb-path-slider-track-segments]",
   templateUrl: "./path-slider-track-segments.component.html",
   styleUrls: ["./path-slider-track-segments.component.scss"],
+  standalone: false,
 })
 export class PathSliderTrackSegmentsComponent {
   @Input()

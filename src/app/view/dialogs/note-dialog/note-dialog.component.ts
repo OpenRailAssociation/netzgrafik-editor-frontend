@@ -33,6 +33,7 @@ export class NoteDialogParameter {
   selector: "sbb-note-dialog",
   templateUrl: "./note-dialog.component.html",
   styleUrls: ["./note-dialog.component.scss"],
+  standalone: false,
 })
 export class NoteDialogComponent implements OnDestroy {
   @ViewChild("noteEditorTabsViewTemplate", {static: true})

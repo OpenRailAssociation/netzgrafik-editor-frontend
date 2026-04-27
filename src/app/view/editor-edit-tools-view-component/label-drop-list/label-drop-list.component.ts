@@ -18,6 +18,7 @@ import {NoteService} from "../../../services/data/note.service";
   selector: "sbb-label-drop-list-component",
   templateUrl: "./label-drop-list.component.html",
   styleUrls: ["./label-drop-list.component.scss"],
+  standalone: false,
 })
 export class LabelDropListComponent implements OnInit, OnDestroy {
   @Input() componentLabelRef: string;

@@ -64,6 +64,7 @@ type KeyOfTimeCoordinates = keyof (
   templateUrl: "./perlenkette-section.component.html",
   styleUrls: ["./perlenkette-section.component.scss"],
   providers: [TrainrunSectionTimesService],
+  standalone: false,
 })
 export class PerlenketteSectionComponent implements OnInit, AfterContentInit, OnDestroy {
   @Input() perlenketteSection: PerlenketteSection;

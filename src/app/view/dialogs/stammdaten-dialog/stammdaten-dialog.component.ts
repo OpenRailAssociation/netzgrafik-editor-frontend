@@ -12,6 +12,7 @@ import {Subject} from "rxjs";
   selector: "sbb-stammdaten-dialog",
   templateUrl: "./stammdaten-dialog.component.html",
   styleUrls: ["./stammdaten-dialog.component.scss"],
+  standalone: false,
 })
 export class StammdatenDialogComponent implements OnDestroy {
   @ViewChild("stammdatenTemplate", {static: true})

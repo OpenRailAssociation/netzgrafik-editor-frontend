@@ -12,6 +12,7 @@ import {
   selector: "sbb-navigation-bar",
   templateUrl: "./navigation-bar.component.html",
   styleUrls: ["./navigation-bar.component.scss"],
+  standalone: false,
 })
 export class NavigationBarComponent implements OnInit {
   currentDefinitions: BreadcrumbDefinition[] = [];

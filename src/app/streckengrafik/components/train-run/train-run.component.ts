@@ -9,6 +9,7 @@ import * as d3 from "d3";
   selector: "[sbb-train-run]",
   templateUrl: "./train-run.component.html",
   styleUrls: ["./train-run.component.scss"],
+  standalone: false,
 })
 export class TrainRunComponent {
   @Input()

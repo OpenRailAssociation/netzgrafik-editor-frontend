@@ -25,6 +25,7 @@ type ColorSetName = "red" | "blue" | "orange" | "gray";
   selector: "sbb-origin-destination",
   templateUrl: "./origin-destination.component.html",
   styleUrls: ["./origin-destination.component.scss"],
+  standalone: false,
 })
 export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("div") divRef: ElementRef;

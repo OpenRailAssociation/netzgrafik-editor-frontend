@@ -36,6 +36,7 @@ import {TimeStepperComponent} from "./time-stepper/time-stepper.component";
   templateUrl: "./trainrun-section-tab.component.html",
   styleUrls: ["./trainrun-section-tab.component.scss"],
   providers: [TrainrunSectionTimesService],
+  standalone: false,
 })
 export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   @Input()

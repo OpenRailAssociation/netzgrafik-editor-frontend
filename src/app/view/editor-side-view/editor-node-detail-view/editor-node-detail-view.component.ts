@@ -33,6 +33,7 @@ interface NodeProperties {
   selector: "sbb-editor-node-detail-view",
   templateUrl: "./editor-node-detail-view.component.html",
   styleUrls: ["./editor-node-detail-view.component.scss"],
+  standalone: false,
 })
 export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
   @Output()

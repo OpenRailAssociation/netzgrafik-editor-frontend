@@ -6,6 +6,7 @@ import {Observable} from "rxjs";
   selector: "sbb-slot",
   templateUrl: "./slot.component.html",
   styleUrls: ["./slot.component.scss"],
+  standalone: false,
 })
 export class SlotComponent {
   @Input() title?: string;

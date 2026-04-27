@@ -15,6 +15,7 @@ import {StaticDomTags} from "../../editor-main-view/data-views/static.dom.tags";
   selector: "sbb-filterable-label-filter-view",
   templateUrl: "./filterable-label-filter.component.html",
   styleUrls: ["./filterable-label-filter.component.scss"],
+  standalone: false,
 })
 export class FilterableLabelFilterComponent implements OnInit, OnDestroy {
   @Input() componentLabelRef: string;

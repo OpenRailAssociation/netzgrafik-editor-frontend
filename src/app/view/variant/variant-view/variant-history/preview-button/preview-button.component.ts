@@ -5,6 +5,7 @@ import {DOCUMENT} from "@angular/common";
   selector: "sbb-preview-button",
   templateUrl: "./preview-button.component.html",
   styleUrls: ["./preview-button.component.scss"],
+  standalone: false,
 })
 export class PreviewButtonComponent {
   @Output()

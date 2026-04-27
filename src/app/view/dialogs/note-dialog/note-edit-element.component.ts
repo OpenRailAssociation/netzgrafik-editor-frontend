@@ -9,6 +9,7 @@ import {Note} from "../../../models/note.model";
   selector: "sbb-note-edit-element",
   templateUrl: "./note-edit-element.component.html",
   styleUrls: ["./note-edit-element.component.scss"],
+  standalone: false,
 })
 export class NoteEditElementComponent implements OnInit, OnDestroy {
   @Input()

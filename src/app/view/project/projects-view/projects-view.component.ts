@@ -20,6 +20,7 @@ import {SlotAction} from "../../action-menu/action-menu/action-menu.component";
   templateUrl: "./projects-view.component.html",
   styleUrls: ["./projects-view.component.scss"],
   providers: [ProjectsViewService],
+  standalone: false,
 })
 export class ProjectsViewComponent implements OnDestroy {
   readonly projectSubject = new ReplaySubject<ProjectDto>(1);

@@ -21,6 +21,7 @@ import {NoteService} from "./services/data/note.service";
   selector: "sbb-root",
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.scss"],
+  standalone: false,
 })
 export class AppComponent implements OnInit {
   readonly disableBackend = environment.disableBackend;

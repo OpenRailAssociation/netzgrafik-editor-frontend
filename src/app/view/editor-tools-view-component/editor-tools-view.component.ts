@@ -40,6 +40,7 @@ interface ContainertoExportData {
   selector: "sbb-editor-tools-view-component",
   templateUrl: "./editor-tools-view.component.html",
   styleUrls: ["./editor-tools-view.component.scss"],
+  standalone: false,
 })
 export class EditorToolsViewComponent {
   @ViewChild("stammdatenFileInput", {static: false})

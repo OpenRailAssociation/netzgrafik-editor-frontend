@@ -16,6 +16,7 @@ import {SgPath} from "../../../model/streckengrafik-model/sg-path";
   selector: "[sbb-path-grid]",
   templateUrl: "./path-grid.component.html",
   styleUrls: ["./path-grid.component.scss"],
+  standalone: false,
 })
 export class PathGridComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input()

@@ -20,6 +20,7 @@ import {MathUtils} from "../../utils/math";
   selector: "sbb-perlenkette-node",
   templateUrl: "./perlenkette-node.component.html",
   styleUrls: ["./perlenkette-node.component.scss"],
+  standalone: false,
 })
 export class PerlenketteNodeComponent implements OnInit {
   @Input() perlenketteNode: PerlenketteNode;

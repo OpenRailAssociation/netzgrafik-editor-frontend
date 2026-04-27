@@ -8,6 +8,7 @@ import {UpdateCounterTriggerService} from "../../../services/util/update-counter
   selector: "sbb-drawing-background-mouse-listener",
   templateUrl: "./drawing-background-mouse-listener.component.html",
   styleUrls: ["./drawing-background-mouse-listener.component.scss"],
+  standalone: false,
 })
 export class DrawingBackgroundMouseListenerComponent {
   private isMouseMovingButtonDown = false;

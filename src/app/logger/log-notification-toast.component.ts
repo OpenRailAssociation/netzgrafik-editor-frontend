@@ -8,6 +8,7 @@ import {SbbNotificationToast} from "@sbb-esta/angular/notification-toast";
   selector: "sbb-log-notification-toast",
   templateUrl: "./log-notification-toast.component.html",
   styleUrls: ["./log-notification-toast.component.scss"],
+  standalone: false,
 })
 export class LogNotificationToastComponent extends LogPublisher {
   duration = 3000;

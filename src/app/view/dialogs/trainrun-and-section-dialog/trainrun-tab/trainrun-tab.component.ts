@@ -20,6 +20,7 @@ import {VersionControlService} from "../../../../services/data/version-control.s
   selector: "sbb-trainrun-tab",
   templateUrl: "./trainrun-tab.component.html",
   styleUrls: ["./trainrun-tab.component.scss"],
+  standalone: false,
 })
 export class TrainrunTabComponent implements OnDestroy {
   @Output() trainrunDeleted = new EventEmitter<void>();

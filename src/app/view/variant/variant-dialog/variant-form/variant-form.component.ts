@@ -6,6 +6,7 @@ import {Validators} from "@angular/forms";
   selector: "sbb-variant-form",
   templateUrl: "./variant-form.component.html",
   styleUrls: ["./variant-form.component.scss"],
+  standalone: false,
 })
 export class VariantFormComponent implements OnInit {
   @Input() model!: FormModel<VariantFormComponentModel>;

@@ -4,5 +4,6 @@ import {Component} from "@angular/core";
   selector: "sbb-card-grid",
   templateUrl: "./card-grid.component.html",
   styleUrls: ["./card-grid.component.scss"],
+  standalone: false,
 })
 export class CardGridComponent {}

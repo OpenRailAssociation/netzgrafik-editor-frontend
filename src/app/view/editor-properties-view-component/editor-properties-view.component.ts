@@ -12,6 +12,7 @@ import {TrafficSide} from "src/app/data-structures/business.data.structures";
   selector: "sbb-editor-properties-view-component",
   templateUrl: "./editor-properties-view.component.html",
   styleUrls: ["./editor-properties-view.component.scss"],
+  standalone: false,
 })
 export class EditorPropertiesViewComponent {
   static DEFAULT_DARK_BACKGROUNDCOLOR = "#050505";
