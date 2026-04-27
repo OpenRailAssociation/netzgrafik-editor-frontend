@@ -20,6 +20,7 @@ export enum FilterWindowType {
   selector: "sbb-filter-main-side-view",
   templateUrl: "./filter-main-side-view.component.html",
   styleUrls: ["./filter-main-side-view.component.scss"],
+  standalone: false,
 })
 export class FilterMainSideViewComponent implements OnInit, OnDestroy {
   @ViewChild("editor")

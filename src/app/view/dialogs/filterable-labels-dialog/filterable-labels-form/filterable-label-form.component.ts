@@ -6,6 +6,7 @@ import {Validators} from "@angular/forms";
   selector: "sbb-filterable-label-form",
   templateUrl: "./filterable-label-form.component.html",
   styleUrls: ["./filterable-label-form.component.scss"],
+  standalone: false,
 })
 export class FilterableLabelFormComponent implements OnInit {
   @Input() model!: FormModel<FilterableLabelsFormComponentModel>;

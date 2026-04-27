@@ -30,6 +30,7 @@ import * as d3 from "d3";
   templateUrl: "./trainrun-node.component.html",
   styleUrls: ["./trainrun-node.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class TrainRunNodeComponent implements OnInit, OnDestroy {
   @Input()

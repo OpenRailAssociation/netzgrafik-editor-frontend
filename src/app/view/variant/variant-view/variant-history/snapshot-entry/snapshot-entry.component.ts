@@ -6,6 +6,7 @@ import {DownloadVersionModel, VersionId} from "../model";
   selector: "sbb-snapshot-entry",
   templateUrl: "./snapshot-entry.component.html",
   styleUrls: ["./snapshot-entry.component.scss"],
+  standalone: false,
 })
 export class SnapshotEntryComponent {
   @Input() model: SnapshotEntryModel;

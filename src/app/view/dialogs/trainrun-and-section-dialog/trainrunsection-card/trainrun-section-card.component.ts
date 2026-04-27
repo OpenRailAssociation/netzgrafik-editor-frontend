@@ -19,6 +19,7 @@ import {TrainrunSectionsView} from "../../../editor-main-view/data-views/trainru
   templateUrl: "./trainrun-section-card.component.html",
   styleUrls: ["./trainrun-section-card.component.scss"],
   providers: [TrainrunSectionTimesService],
+  standalone: false,
 })
 export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() innerContentScaleFactor = "1.0";

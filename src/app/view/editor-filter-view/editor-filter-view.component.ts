@@ -19,6 +19,7 @@ import {VersionControlService} from "../../services/data/version-control.service
   selector: "sbb-editor-filter-view",
   templateUrl: "./editor-filter-view.component.html",
   styleUrls: ["./editor-filter-view.component.scss"],
+  standalone: false,
 })
 export class EditorFilterViewComponent implements OnInit, OnDestroy {
   filterAllEmptyNodes: boolean;

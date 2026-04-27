@@ -36,6 +36,7 @@ enum ShowTrainrunEditTab {
   selector: "sbb-perlenkette",
   templateUrl: "./perlenkette.component.html",
   styleUrls: ["./perlenkette.component.scss"],
+  standalone: false,
 })
 export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   perlenketteTrainrun: PerlenketteTrainrun;

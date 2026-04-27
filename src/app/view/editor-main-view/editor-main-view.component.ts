@@ -48,6 +48,7 @@ import {PositionTransformationService} from "../../services/util/position.transf
   selector: "sbb-editor-main-view",
   templateUrl: "./editor-main-view.component.html",
   styleUrls: ["./editor-main-view.component.scss"],
+  standalone: false,
 })
 export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
   /* MVC/MVVM structure:

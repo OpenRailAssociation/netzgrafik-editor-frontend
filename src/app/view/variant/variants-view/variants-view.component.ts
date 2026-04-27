@@ -28,6 +28,7 @@ import {NetzgrafikDto} from "../../../data-structures/business.data.structures";
   selector: "sbb-variants-view",
   templateUrl: "./variants-view.component.html",
   styleUrls: ["./variants-view.component.scss"],
+  standalone: false,
 })
 export class VariantsViewComponent implements OnDestroy {
   readonly projectSubject = new ReplaySubject<ProjectDto>(1);

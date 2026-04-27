@@ -29,6 +29,7 @@ import {environment} from "../../../environments/environment";
   selector: "sbb-editor-menu",
   templateUrl: "./editor-menu.component.html",
   styleUrls: ["./editor-menu.component.scss"],
+  standalone: false,
 })
 export class EditorMenuComponent implements OnInit, OnDestroy {
   readonly disableBackend = environment.disableBackend;

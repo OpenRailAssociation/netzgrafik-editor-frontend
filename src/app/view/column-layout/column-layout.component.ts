@@ -47,6 +47,7 @@ export enum LayoutMode {
   templateUrl: "./column-layout.component.html",
   styleUrls: ["./column-layout.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class ColumnLayoutComponent implements AfterViewInit {
   public LayoutModeEnum = LayoutMode;

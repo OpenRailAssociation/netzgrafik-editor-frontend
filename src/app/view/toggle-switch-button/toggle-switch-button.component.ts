@@ -4,6 +4,7 @@ import {Component, EventEmitter, Input, Output} from "@angular/core";
   selector: "sbb-toggle-switch-button",
   templateUrl: "./toggle-switch-button.component.html",
   styleUrls: ["./toggle-switch-button.component.scss"],
+  standalone: false,
 })
 export class ToggleSwitchButtonComponent {
   @Output() checkedChanged = new EventEmitter<boolean>();

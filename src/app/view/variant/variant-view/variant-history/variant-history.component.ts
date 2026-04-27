@@ -23,6 +23,7 @@ import {AutoSaveService} from "../../../../services/data/auto-save.service";
   selector: "sbb-variant-history",
   templateUrl: "./variant-history.component.html",
   styleUrls: ["./variant-history.component.scss"],
+  standalone: false,
 })
 export class VariantHistoryComponent implements OnChanges, OnDestroy {
   @Input() variant: VariantDto;

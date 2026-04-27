@@ -5,6 +5,7 @@ import {Observable} from "rxjs";
   selector: "sbb-action-menu",
   templateUrl: "./action-menu.component.html",
   styleUrls: ["./action-menu.component.scss"],
+  standalone: false,
 })
 export class ActionMenuComponent {
   @Input() actions?: Observable<SlotAction[]>;

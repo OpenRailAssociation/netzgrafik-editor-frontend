@@ -18,6 +18,7 @@ import {VersionControlService} from "../../../../services/data/version-control.s
   selector: "sbb-trainrun-filter-tab",
   templateUrl: "./trainrun-filter-tab.component.html",
   styleUrls: ["./trainrun-filter-tab.component.scss"],
+  standalone: false,
 })
 export class TrainrunFilterTabComponent implements OnInit, OnDestroy {
   @Output() trainrunDeleted = new EventEmitter<void>();

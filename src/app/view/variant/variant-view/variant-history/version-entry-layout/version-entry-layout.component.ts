@@ -5,6 +5,7 @@ import {LogService} from "../../../../../logger/log.service";
   selector: "sbb-version-entry-layout",
   templateUrl: "./version-entry-layout.component.html",
   styleUrls: ["./version-entry-layout.component.scss"],
+  standalone: false,
 })
 export class VersionEntryLayoutComponent {
   @Input() state?: "conflict" | "added";

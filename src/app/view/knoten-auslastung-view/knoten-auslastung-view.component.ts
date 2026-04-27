@@ -16,6 +16,7 @@ import {Subject} from "rxjs";
   selector: "sbb-knoten-auslastung-view",
   templateUrl: "./knoten-auslastung-view.component.html",
   styleUrls: ["./knoten-auslastung-view.component.scss"],
+  standalone: false,
 })
 export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
   private svgDrawingContext: any;

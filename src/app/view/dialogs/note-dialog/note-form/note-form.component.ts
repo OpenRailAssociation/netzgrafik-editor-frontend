@@ -5,6 +5,7 @@ import {FormModel} from "../../../../utils/form-model";
   selector: "sbb-note-form",
   templateUrl: "./note-form.component.html",
   styleUrls: ["./note-form.component.scss"],
+  standalone: false,
 })
 export class NoteFormComponent {
   @Input() model!: FormModel<NoteFormComponentModel>;

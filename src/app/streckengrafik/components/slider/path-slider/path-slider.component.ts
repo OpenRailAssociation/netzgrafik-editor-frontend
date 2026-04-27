@@ -14,6 +14,7 @@ import {Sg8RenderService} from "../../../services/sg-8-render.service";
   selector: "sbb-path-slider",
   templateUrl: "./path-slider.component.html",
   styleUrls: ["./path-slider.component.scss"],
+  standalone: false,
 })
 export class PathSliderComponent implements OnDestroy {
   @Input()

@@ -44,6 +44,7 @@ import {Sg4ToggleTrackOccupierService} from "../../services/sg-4-toggle-track-oc
   templateUrl: "./train-run-section.component.html",
   styleUrls: ["./train-run-section.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class TrainRunSectionComponent implements OnDestroy, UpdateCounterHandler {
   @Input()

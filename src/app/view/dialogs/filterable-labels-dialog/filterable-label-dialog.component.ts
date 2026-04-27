@@ -11,6 +11,7 @@ import {UiInteractionService} from "../../../services/ui/ui.interaction.service"
   selector: "sbb-filterable-label-dialog",
   templateUrl: "./filterable-label-dialog.component.html",
   styleUrls: ["./filterable-label-dialog.component.scss"],
+  standalone: false,
 })
 export class FilterableLabelDialogComponent implements OnDestroy {
   readonly formModel: FormModel<FilterableLabelsFormComponentModel>;
