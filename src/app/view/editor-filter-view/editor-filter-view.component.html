@@ -65,7 +65,7 @@
             (click)="onDirectionChanged(direction)"
             mode="ghost"
             [title]="getDirectionTooltip(direction)"
-            *ngFor="let direction of this.dataService.getDirections()"
+            *ngFor="let direction of dataService.getDirections()"
           >
             {{ makeDirectionButtonLabel(direction) }}
           </button>
@@ -346,7 +346,7 @@
   <button
     sbb-secondary-button
     class="sbb-mt-m"
-    [disabled]="!this.filterService.isAnyFilterActive()"
+    [disabled]="!filterService.isAnyFilterActive()"
     [title]="'app.view.editor-filter-view.reset-all-display-filters' | translate"
     (click)="onResetAllFilter()"
   >
