@@ -26,8 +26,8 @@
   <div class="NodeFilter">
     <ng-container
       *ngIf="
-        !this.filterService.isAnyFilterActive() &&
-        !this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
+        !filterService.isAnyFilterActive() &&
+        !filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
       "
     >
       <button
@@ -41,8 +41,8 @@
     </ng-container>
     <ng-container
       *ngIf="
-        !this.filterService.isAnyFilterActive() &&
-        this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
+        !filterService.isAnyFilterActive() &&
+        filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
       "
     >
       <button
@@ -62,8 +62,8 @@
 
     <ng-container
       *ngIf="
-        this.filterService.isAnyFilterActive() &&
-        !this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
+        filterService.isAnyFilterActive() &&
+        !filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
       "
     >
       <button
@@ -77,8 +77,8 @@
     </ng-container>
     <ng-container
       *ngIf="
-        this.filterService.isAnyFilterActive() &&
-        this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
+        filterService.isAnyFilterActive() &&
+        filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
       "
     >
       <button

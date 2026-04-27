@@ -39,8 +39,8 @@
 
     <ng-container
       *ngIf="
-        this.filterService.isAnyFilterActive() &&
-        !this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
+        filterService.isAnyFilterActive() &&
+        !filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
       "
     >
       <br />
