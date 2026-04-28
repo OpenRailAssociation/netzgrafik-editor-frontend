@@ -1,5 +1,5 @@
-@import "./../../view/rastering/definitions";
-@import "./../../view/editor-main-view/data-views/nodes.view";
+@use "./../../view/rastering/definitions" as *;
+@use "./../../view/editor-main-view/data-views/nodes.view";
 
 .node-container {
   position: relative;

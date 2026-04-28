@@ -1,4 +1,5 @@
-@import "../../../../rastering/definitions";
+@use "../../../../rastering/definitions" as *;
+
 :host {
   display: contents;
 }

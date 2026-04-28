@@ -1,7 +1,7 @@
-@import "./../../../view/editor-properties-view-component/editor-properties-view.component.scss";
-@import "./../../../view/editor-filter-view/editor-filter-view.component.scss";
-@import "./../../../view/dialogs/trainrun-and-section-dialog/trainrun-tab/trainrun-tab.component.scss";
-@import "./../../rastering/definitions";
+@use "./../../../view/editor-properties-view-component/editor-properties-view.component.scss";
+@use "./../../../view/editor-filter-view/editor-filter-view.component.scss";
+@use "./../../../view/dialogs/trainrun-and-section-dialog/trainrun-tab/trainrun-tab.component.scss";
+@use "./../../rastering/definitions" as *;
 
 .filterable-label-drop-container {
   width: 100%;

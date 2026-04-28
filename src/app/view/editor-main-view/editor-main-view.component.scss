@@ -1,11 +1,11 @@
-@import "../rastering/definitions";
-@import "data-views/nodes.view";
-@import "data-views/trainrunsections.view";
-@import "data-views/trainrunsection.previewline.view";
-@import "data-views/multiSelectRenderer";
-@import "data-views/transition.view";
-@import "data-views/connections.view";
-@import "data-views/note.view";
+@use "../rastering/definitions" as *;
+@use "data-views/nodes.view";
+@use "data-views/trainrunsections.view";
+@use "data-views/trainrunsection.previewline.view";
+@use "data-views/multiSelectRenderer";
+@use "data-views/transition.view";
+@use "data-views/connections.view";
+@use "data-views/note.view";
 
 ::ng-deep svg {
   cursor: default;

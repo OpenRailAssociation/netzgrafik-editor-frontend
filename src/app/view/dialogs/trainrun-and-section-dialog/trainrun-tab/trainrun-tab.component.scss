@@ -1,5 +1,5 @@
-@import "../../../rastering/definitions";
-@import "../../../../../variables";
+@use "../../../rastering/definitions" as *;
+@use "../../../../../variables" as *;
 
 ::ng-deep .sbb-tab-body-wrapper {
   background: var(--sbb-header-lean-background-color);

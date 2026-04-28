@@ -1,4 +1,4 @@
-@import "../../rastering/definitions";
+@use "../../rastering/definitions" as *;
 
 ::ng-deep rect.note_hover_root {
   stroke-width: 0px;
