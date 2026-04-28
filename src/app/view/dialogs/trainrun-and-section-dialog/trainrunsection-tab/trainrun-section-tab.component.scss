@@ -1,5 +1,5 @@
-@import "../../../rastering/definitions";
-@import "../../../editor-main-view/data-views/trainrunsections.view.edgeline";
+@use "../../../rastering/definitions" as *;
+@use "../../../editor-main-view/data-views/trainrunsections.view.edgeline";
 
 ::ng-deep .EditTrainrunSectionDialogHeaderSeparatorLeft {
   width: 40px;

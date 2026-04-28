@@ -1,6 +1,6 @@
-@import "../../../../variables";
-@import "../../rastering/definitions";
-@import "../../dialogs/trainrun-and-section-dialog/trainrun-tab/trainrun-tab.component";
+@use "../../../../variables" as *;
+@use "../../rastering/definitions" as *;
+@use "../../dialogs/trainrun-and-section-dialog/trainrun-tab/trainrun-tab.component";
 
 ::ng-deep button.TrainrunDialog.FilterableLabel {
   background-color: $COLOR_Default;

@@ -1,4 +1,4 @@
-@import "../rastering/definitions";
+@use "../rastering/definitions" as *;
 
 .toggle-switch-button-component {
   display: flex;

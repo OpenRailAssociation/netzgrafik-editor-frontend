@@ -1,5 +1,5 @@
-@import "../../rastering/definitions";
-@import "trainrunsections.view.edgeline";
+@use "../../rastering/definitions" as *;
+@use "trainrunsections.view.edgeline";
 
 /// TEXT fields
 ::ng-deep text.edge_text {

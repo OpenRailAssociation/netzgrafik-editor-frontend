@@ -1,4 +1,4 @@
-@import "src/app/view/editor-main-view/data-views/trainrunsections.view";
+@use "src/app/view/editor-main-view/data-views/trainrunsections.view";
 
 ::ng-deep g.AllTrainrunSections:hover path.edge_line {
   stroke-width: 3px;

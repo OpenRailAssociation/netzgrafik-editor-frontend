@@ -1,3 +1,3 @@
-@import "../../../variables";
-@import "./../../view/editor-filter-view/editor-filter-view.component.scss";
-@import "../rastering/definitions";
+@use "../../../variables" as *;
+@use "./../../view/editor-filter-view/editor-filter-view.component.scss";
+@use "../rastering/definitions" as *;
