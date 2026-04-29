@@ -125,6 +125,10 @@ export class NodesView {
 
     this.renderNodeObject(groupEnter);
 
+    this.nodeGroup
+      .selectAll(".fullname")
+      .call(this.cutLabelText);
+
     group.exit().remove();
   }
 
@@ -155,6 +159,28 @@ export class NodesView {
         this.makeNodeLODFull(groupEnter);
       }
     }
+  }
+
+  cutLabelText(text) {
+    text.each(function() {
+      const text = d3.select(this);
+      const chars = text.text().split("");
+
+      const ellipsis = text.text("").append("tspan").attr("class", "elip").text("...");
+      const width = parseFloat(text.attr("width")) - ellipsis.node().getComputedTextLength();
+      const wordLength = chars.length;
+
+      const tspan = text.insert("tspan", ":first-child").text(chars.join(""));
+
+      while (tspan.node().getComputedTextLength() > width && chars.length) {
+        chars.pop();
+        tspan.text(chars.join(""));
+      }
+
+      if (chars.length === wordLength) {
+        ellipsis.remove();
+      }
+    });
   }
 
   makeNodeLODFull(groupEnter: any) {
@@ -486,11 +512,12 @@ export class NodesView {
   private makeLabelText(groupEnter: any) {
     const added = groupEnter.append(StaticDomTags.NODE_LABELAREA_TEXT_SVG);
     added
-      .attr("class", StaticDomTags.NODE_LABELAREA_TEXT_CLASS)
+      .attr("class", `${StaticDomTags.NODE_LABELAREA_TEXT_CLASS}${this.editorView.displayNodesFullName() ? " fullname" : ""}`)
       .attr("data-testid", StaticDomTags.NODE_LABELAREA_TEXT_CLASS)
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("x", NODE_TEXT_LEFT_SPACING)
       .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - TEXT_SIZE / 2)
+      .attr("width", "70")
       .text((n: NodeViewObject) => this.editorView.displayNodesFullName() ? n.node.getFullName() : n.node.getBetriebspunktName())
       .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
