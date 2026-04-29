@@ -17,6 +17,9 @@ import {
   DEFAULT_TIME_SYNC_TOLERANCE,
 } from "./gtfs-import.models";
 
+const DEFAULT_SELECTED_LINES = ["IC21", "IC26", "IR27", "IR15", "S1", "S29", "RE24"];
+
+
 /**
  * Service to manage GTFS import workflow including:
  * - Light parsing for filter options
@@ -347,7 +350,7 @@ export class GtfsImportManagerService {
     let selectedLines = state.selectedLines.filter((l) => availableRoutes.includes(l));
     if (selectedLines.length === 0) {
       // No lines selected yet - try to auto-select default lines IR15 and RE24
-      const defaultLines = ['IR15', 'RE24'].filter((line) => availableRoutes.includes(line));
+      const defaultLines = DEFAULT_SELECTED_LINES.filter((line) => availableRoutes.includes(line));
       selectedLines = defaultLines.length > 0 ? defaultLines : [];
     }
 
