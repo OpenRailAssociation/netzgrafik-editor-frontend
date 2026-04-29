@@ -373,6 +373,7 @@
         "nodes": "Knoten",
         "display-nodes-without-visible-trainruns": "Knoten ohne (angezeigte) Zugfahrten anzeigen",
         "display-nodes-with-only-stopping-trainruns": "Knoten mit nur durchfahrenden Zugfahrten anzeigen",
+        "display-nodes-full-name": "Die vollen Namen der Knoten anzeigen",
         "notes": "Kommentare",
         "display-notes": "Kommentare anzeigen",
         "reset-display-filter": "Anzeigefilter zurücksetzen",

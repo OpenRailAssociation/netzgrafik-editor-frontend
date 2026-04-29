@@ -378,6 +378,7 @@
         "nodes": "Nodes",
         "display-nodes-without-visible-trainruns": "Display nodes without (visible) trainruns",
         "display-nodes-with-only-stopping-trainruns": "Display nodes with only stopping trainruns",
+        "display-nodes-full-name": "Display nodes full name",
         "notes": "Notes",
         "display-notes": "Display notes",
         "reset-display-filter": "Reset display filter",

@@ -310,6 +310,7 @@ export interface FilterSettingDto {
   filterSymmetry: boolean[]; // list of trainrun symmetry values (true/false) to filter out
   filterAllEmptyNodes: boolean; // flag to filter all empty nodes (hide/show)
   filterAllNonStopNodes: boolean; // flag to filter all only non-stop nodes (hide/show)
+  displayNodesFullName: boolean; // flag to display the nodes full name instead of the short name
   filterNotes: boolean; // flag to filter notes (hide/show)
   timeDisplayPrecision: number; // display time precision : default 2 numbers -> 0.1, 0.05
   isTemporaryDisableFilteringOfItemsInView: boolean; // flag to disable temporally all filering (show all)
