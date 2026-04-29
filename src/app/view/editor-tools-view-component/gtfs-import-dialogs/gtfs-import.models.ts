@@ -103,6 +103,9 @@ export interface GTFSImportState {
   routeTypeFilter: GTFSRouteTypeFilter;
   nodeFilter: GTFSNodeFilter;
   timeSyncTolerance: number;
+
+  // Topology consolidation (Q6)
+  enableTopologyConsolidation: boolean;
 }
 
 export const DEFAULT_GTFS_IMPORT_PHASES: GTFSImportPhase[] = [
@@ -149,3 +152,41 @@ export const DEFAULT_NODE_FILTER: GTFSNodeFilter = {
 };
 
 export const DEFAULT_TIME_SYNC_TOLERANCE = 180; // ±180 seconds (3 minutes)
+
+/**
+ * Topology Consolidation Models (T1–T6 phases)
+ */
+
+export interface TopologyNode {
+  id: string; // stop_id
+  name: string;
+  isAnchor: boolean; // Start/End or high-degree junction
+}
+
+export interface TopologyEdgeSegment {
+  fromNodeId: string;
+  toNodeId: string;
+  intermediateStopremarks: string[]; // Intermediate nodes in the backbone chain
+  travelTimeMinutes: number; // Average travel time for this segment
+  usageCount: number; // How many patterns use this edge
+  patternIds: string[]; // IDs of patterns using this edge
+}
+
+export interface PatternNodeOccurrence {
+  nodeId: string;
+  isStop: boolean; // true = halt, false = durchfahrt (pass-through)
+  arrivalMinute?: number; // Only if isStop
+  departureMinute?: number; // Only if isStop
+  interpolatedMinute?: number; // Only if !isStop
+}
+
+export interface PatternMapping {
+  patternId: string;
+  occurrences: PatternNodeOccurrence[]; // Mapped to backbone
+}
+
+export interface TopologyGraph {
+  nodes: TopologyNode[];
+  edges: TopologyEdgeSegment[];
+  patternMappings: PatternMapping[];
+}

@@ -8,12 +8,15 @@ import {
   OnChanges,
   SimpleChanges,
   TemplateRef,
+  ElementRef,
   ViewChild,
 } from "@angular/core";
 import {FormControl} from "@angular/forms";
 import {Observable} from "rxjs";
 import {map, startWith} from "rxjs/operators";
 import {SbbTableDataSource} from "@sbb-esta/angular/table";
+import {SbbChipInputEvent} from "@sbb-esta/angular/chips";
+import {COMMA, ENTER} from "@angular/cdk/keycodes";
 
 @Component({
   selector: "sbb-gtfs-import-dialogs",
@@ -21,6 +24,8 @@ import {SbbTableDataSource} from "@sbb-esta/angular/table";
   styleUrls: ["./gtfs-import-dialogs.component.scss"],
 })
 export class GtfsImportDialogsComponent implements OnInit, OnChanges {
+  readonly separatorKeysCodes = [ENTER, COMMA];
+
   // Form controls for autocomplete input filtering
   agencyInputCtrl = new FormControl("");
   categoryInputCtrl = new FormControl("");
@@ -88,6 +93,10 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
   @Input() gtfsTimeSyncTolerance = 180;
   @Output() gtfsTimeSyncToleranceChange = new EventEmitter<number>();
 
+  // Q6: Topology consolidation toggle
+  @Input() gtfsEnableTopologyConsolidation = true;
+  @Output() gtfsEnableTopologyConsolidationChange = new EventEmitter<boolean>();
+
   @Output() setSelectedDate = new EventEmitter<string>();
 
   // Events
@@ -107,6 +116,7 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
   // ViewChild for trips table pagination and sorting
   @ViewChild("tripsPaginator") tripsPaginator: any;
   @ViewChild("tripsSort") tripsSort: any;
+  @ViewChild("lineInputEl") lineInputElement?: ElementRef<HTMLInputElement>;
 
   // Search filter for trips table
   tripsSearchFilter = new FormControl("");
@@ -288,11 +298,24 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
 
   // Line handlers (optionSelected from autocomplete)
   onLineSelected(value: string): void {
-    if (value && !this.gtfsSelectedLines.includes(value)) {
-      this.addLine.emit(value);
-      this.lineInputCtrl.setValue("");
-      this.cdr.markForCheck();
-    }
+    this.tryAddLine(value);
+    this.resetLineInput();
+  }
+
+  onLineInputSubmit(event: KeyboardEvent): void {
+    event.preventDefault();
+    this.tryAddLine(this.lineInputCtrl.value || "");
+    this.resetLineInput();
+  }
+
+  onLineInputBlur(): void {
+    this.tryAddLine(this.lineInputCtrl.value || "");
+    this.resetLineInput();
+  }
+
+  onLineTokenEnd(chipInputEvent: SbbChipInputEvent): void {
+    this.tryAddLine(chipInputEvent.value || "");
+    this.resetLineInput(chipInputEvent);
   }
 
   onRemoveLine(line: string): void {
@@ -302,5 +325,25 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
 
   onSelectedDateChange(date: string): void {
     this.setSelectedDate.emit(date);
+  }
+
+  private tryAddLine(rawValue: string): void {
+    const value = (rawValue || "").trim();
+    if (!value) {
+      return;
+    }
+
+    if (!this.gtfsSelectedLines.includes(value)) {
+      this.addLine.emit(value);
+    }
+  }
+
+  private resetLineInput(chipInputEvent?: SbbChipInputEvent): void {
+    chipInputEvent?.chipInput?.clear();
+    this.lineInputCtrl.setValue("");
+    if (this.lineInputElement?.nativeElement) {
+      this.lineInputElement.nativeElement.value = "";
+    }
+    this.cdr.markForCheck();
   }
 }

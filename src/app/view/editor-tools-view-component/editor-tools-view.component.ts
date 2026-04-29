@@ -105,6 +105,9 @@ export class EditorToolsViewComponent {
   // Time sync tolerance for round-trip matching (in seconds)
   public gtfsTimeSyncTolerance = 180; // ±180 seconds (3 minutes) default
 
+  // Topology consolidation toggle
+  public gtfsEnableTopologyConsolidation = true;
+
   // GTFS Import Progress Overlay
   public gtfsImportOverlayVisible = false;
 
@@ -191,6 +194,7 @@ export class EditorToolsViewComponent {
       this.gtfsRouteTypeFilter = state.routeTypeFilter;
       this.gtfsNodeFilter = state.nodeFilter;
       this.gtfsTimeSyncTolerance = state.timeSyncTolerance;
+      this.gtfsEnableTopologyConsolidation = state.enableTopologyConsolidation;
       this.changeDetectorRef.detectChanges();
     });
   }
@@ -1040,6 +1044,14 @@ export class EditorToolsViewComponent {
 
   setGtfsSelectedDate(date: string): void {
     this.gtfsImportManagerService.setSelectedDate(date);
+  }
+
+  setGtfsTimeSyncTolerance(value: number): void {
+    this.gtfsImportManagerService.updateTimeSyncTolerance(value);
+  }
+
+  setGtfsEnableTopologyConsolidation(value: boolean): void {
+    this.gtfsImportManagerService.updateEnableTopologyConsolidation(value);
   }
 
   async applyGtfsFiltersAndImport(): Promise<void> {

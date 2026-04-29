@@ -395,17 +395,26 @@
                 'app.view.editor-side-view.gtfs-import-dialogs.filter-line-label' | translate
               "
             >
-              <sbb-chip-list>
-                <sbb-chip *ngFor="let line of gtfsSelectedLines" (removed)="onRemoveLine(line)">
+              <sbb-chip-list [value]="gtfsSelectedLines">
+                <sbb-chip
+                  *ngFor="let line of gtfsSelectedLines"
+                  [value]="line"
+                  (removed)="onRemoveLine(line)"
+                >
                   {{ line }}
                 </sbb-chip>
                 <input
+                  #lineInputEl
                   [placeholder]="
                     'app.view.editor-side-view.gtfs-import-dialogs.filter-line-placeholder'
                       | translate
                   "
                   [formControl]="lineInputCtrl"
+                  (keydown.enter)="onLineInputSubmit($event)"
+                  (blur)="onLineInputBlur()"
                   sbbChipInput
+                  [sbbChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                  (sbbChipInputTokenEnd)="onLineTokenEnd($event)"
                   [sbbAutocomplete]="lineAutocomplete"
                 />
               </sbb-chip-list>
@@ -443,6 +452,20 @@
             <small class="filter-hint">
               Trips with departure times within ±{{ gtfsTimeSyncTolerance }}s are considered
               identical. Used for round-trip matching.
+            </small>
+          </div>
+
+          <!-- Topology Consolidation Toggle -->
+          <div class="filter-group">
+            <sbb-checkbox
+              [(ngModel)]="gtfsEnableTopologyConsolidation"
+              (ngModelChange)="gtfsEnableTopologyConsolidationChange.emit($event)"
+            >
+              Topologie konsolidieren (empfohlen)
+            </sbb-checkbox>
+            <small class="filter-hint">
+              Legt Zugläufe auf gemeinsame Korridore und markiert nicht bediente Halte als
+              Durchfahrten.
             </small>
           </div>
 

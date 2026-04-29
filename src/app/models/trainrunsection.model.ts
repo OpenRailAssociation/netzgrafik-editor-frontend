@@ -569,27 +569,27 @@ export class TrainrunSection {
   }
 
   hasTravelTimeWarning(): boolean {
-    return this.travelTime.warning !== null;
+    return this.travelTime.warning != null;
   }
 
   hasBackwardTravelTimeWarning(): boolean {
-    return this.backwardTravelTime.warning !== null;
+    return this.backwardTravelTime.warning != null;
   }
 
   hasSourceDepartureWarning(): boolean {
-    return this.sourceDeparture.warning !== null;
+    return this.sourceDeparture.warning != null;
   }
 
   hasSourceArrivalWarning(): boolean {
-    return this.sourceArrival.warning !== null;
+    return this.sourceArrival.warning != null;
   }
 
   hasTargetDepartureWarning(): boolean {
-    return this.targetDeparture.warning !== null;
+    return this.targetDeparture.warning != null;
   }
 
   hasTargetArrivalWarning(): boolean {
-    return this.targetArrival.warning !== null;
+    return this.targetArrival.warning != null;
   }
 
   setTargetArrivalWarning(wargningTitle: string, warningDescription: string) {

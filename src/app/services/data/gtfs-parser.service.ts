@@ -96,6 +96,14 @@ export class GTFSParserService {
     // 1. Trips nach Path (Haltefolge) gruppieren (direction-unabhängig), aber nur aktive Trips am Betriebstag
     const betriebstag = (gtfsData as any).betriebstag || new Date().toISOString().slice(0, 10);
     const pathToTrips: Map<string, GTFSTrip[]> = new Map();
+    const toleranceSeconds = Number((gtfsData as any).timeSyncTolerance ?? 300);
+    const toleranceMinutes = Math.max(0, toleranceSeconds / 60);
+    const circularMinuteDistance = (aMin: number, bMin: number): number => {
+      const a = ((aMin % 60) + 60) % 60;
+      const b = ((bMin % 60) + 60) % 60;
+      const diff = Math.abs(a - b);
+      return Math.min(diff, 60 - diff);
+    };
     const tripIdToPathKey: Map<string, string> = new Map();
     for (const trip of gtfsData.trips) {
       if (!tripIsActiveOnDate(trip, betriebstag)) continue;
@@ -139,7 +147,7 @@ export class GTFSParserService {
       }
       matchedPaths.add(pathKey);
 
-      // Symmetrieprüfung: Abfahrts-/Ankunftszeiten vergleichen (Toleranz 5min)
+      // Symmetrieprüfung: Abfahrts-/Ankunftszeiten vergleichen (UI-Toleranz)
       let symmetry = false;
       if (hasRoundTrip && trips_forward.length > 0 && trips_backward.length > 0) {
         // Nimm mittleren Trip je Richtung als Repräsentant
@@ -159,7 +167,8 @@ export class GTFSParserService {
         if (f.dep && b.arr) {
           const fDepMin = GTFSParserService.timeToMinutes(f.dep);
           const bArrMin = GTFSParserService.timeToMinutes(b.arr);
-          symmetry = Math.abs(fDepMin - bArrMin) <= 5;
+          const expectedBackwardArr = (60 - (fDepMin % 60)) % 60;
+          symmetry = circularMinuteDistance(bArrMin, expectedBackwardArr) <= toleranceMinutes;
         }
       }
 
@@ -486,12 +495,13 @@ export class GTFSParserService {
           bStart = startStop?.stop_name || st[0]?.stop_id;
           bEnd = endStop?.stop_name || st[st.length - 1]?.stop_id;
         }
-        // Symmetrie: 60-x-Regel auf Minuten
+        // Symmetrie: 60-x-Regel auf Minuten mit UI-Toleranz
         let symmetry = null;
         if (fDep && bArr) {
           const fDepMin = GTFSParserService.timeToMinutes(fDep);
           const bArrMin = GTFSParserService.timeToMinutes(bArr);
-          symmetry = (fDepMin + bArrMin) % 60 === 0;
+          const expectedBackwardArr = (60 - (fDepMin % 60)) % 60;
+          symmetry = circularMinuteDistance(bArrMin, expectedBackwardArr) <= toleranceMinutes;
         }
         pairs.push({
           forward: {departure: fDep, arrival: fArr, start: fStart, end: fEnd, trip_id: f?.trip_id},
@@ -1059,6 +1069,7 @@ export class GTFSParserService {
     allowedCategories?: string[],
     progressCallback?: (fileName: string) => void,
     betriebstag?: string | null,
+    timeSyncTolerance?: number,
   ): Promise<GTFSData> {
     const zip = JSZip();
     const zipContent = await zip.loadAsync(file);
@@ -1073,6 +1084,9 @@ export class GTFSParserService {
     };
     // Betriebstag am gtfsData-Objekt speichern (wird von Overview-Funktionen verwendet)
     (gtfsData as any).betriebstag = betriebstag || null;
+    // Q2: make parser-side symmetry checks use UI tolerance (seconds)
+    (gtfsData as any).timeSyncTolerance =
+      typeof timeSyncTolerance === "number" ? timeSyncTolerance : 300;
 
     // Parse agency.txt
     const agencyFile = zipContent.file("agency.txt");
@@ -1086,14 +1100,29 @@ export class GTFSParserService {
       // Apply agency filter if specified
       if (allowedAgencies && allowedAgencies.length > 0) {
         const beforeFilter = gtfsData.agencies.length;
-        gtfsData.agencies = gtfsData.agencies.filter((agency) => {
-          // Check if agency name contains any of the allowed agency identifiers
-          const agencyName = agency.agency_name || "";
-          const matches = allowedAgencies.some((allowed) =>
-            agencyName.toUpperCase().includes(allowed.toUpperCase()),
-          );
-          return matches;
+        // Q1: Match via agency_id (technical), but allowedAgencies is agency names from UI
+        // Build a mapping from agency names to agency_ids
+        const nameToIdMap = new Map<string, string>();
+        gtfsData.agencies.forEach((agency) => {
+          if (agency.agency_name) {
+            nameToIdMap.set(agency.agency_name.toUpperCase(), agency.agency_id);
+          }
         });
+        
+        // Convert allowed agency names to allowed agency IDs
+        const allowedAgencyIds = new Set<string>();
+        allowedAgencies.forEach((agencyName) => {
+          const agencyId = nameToIdMap.get(agencyName.toUpperCase());
+          if (agencyId) {
+            allowedAgencyIds.add(agencyId);
+          }
+        });
+        
+        // Filter agencies by ID
+        gtfsData.agencies = gtfsData.agencies.filter((agency) =>
+          allowedAgencyIds.has(agency.agency_id),
+        );
+        console.info(`[GTFS][Agency-Filter] ${beforeFilter} → ${gtfsData.agencies.length}`);
       }
     }
     progressCallback?.("agency.txt");

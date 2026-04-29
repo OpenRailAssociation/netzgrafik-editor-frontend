@@ -73,6 +73,7 @@ export class GtfsImportManagerService {
       routeTypeFilter: {...DEFAULT_ROUTE_TYPE_FILTER},
       nodeFilter: {...DEFAULT_NODE_FILTER},
       timeSyncTolerance: DEFAULT_TIME_SYNC_TOLERANCE,
+      enableTopologyConsolidation: true, // Q6: Default enabled
     };
   }
 
@@ -342,7 +343,13 @@ export class GtfsImportManagerService {
     const selectedCategories = state.selectedCategories.filter((c) =>
       availableCategories.includes(c),
     );
-    const selectedLines = state.selectedLines.filter((l) => availableRoutes.includes(l));
+    // Auto-select IR15 and RE24 if available, otherwise use existing selection
+    let selectedLines = state.selectedLines.filter((l) => availableRoutes.includes(l));
+    if (selectedLines.length === 0) {
+      // No lines selected yet - try to auto-select default lines IR15 and RE24
+      const defaultLines = ['IR15', 'RE24'].filter((line) => availableRoutes.includes(line));
+      selectedLines = defaultLines.length > 0 ? defaultLines : [];
+    }
 
     this.updateState({
       availableCategories,
@@ -418,6 +425,7 @@ export class GtfsImportManagerService {
           }
         },
         state.selectedDate, // Betriebstag: Nur Trips die an diesem Tag fahren
+        state.timeSyncTolerance,
       );
 
 
@@ -579,6 +587,7 @@ export class GtfsImportManagerService {
           minStopsPerTrip: 3,
           existingMetadata: existingMetadata,
           timeSyncTolerance: state.timeSyncTolerance,
+          enableTopologyConsolidation: state.enableTopologyConsolidation,
           labelCreator: (labelText: string) => {
             const label = this.labelService.getOrCreateLabel(labelText, LabelRef.Trainrun);
             return label.getId();
@@ -1146,6 +1155,10 @@ export class GtfsImportManagerService {
 
   updateTimeSyncTolerance(value: number): void {
     this.updateState({timeSyncTolerance: value});
+  }
+
+  updateEnableTopologyConsolidation(value: boolean): void {
+    this.updateState({enableTopologyConsolidation: value});
   }
 
   /**
