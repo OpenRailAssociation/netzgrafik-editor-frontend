@@ -199,10 +199,10 @@ describe("Editor-DataView", () => {
     const node = nodeService.getNodeFromId(2);
 
     const cvo1 = new NodeViewObject(editorView, node, false);
-    expect(cvo1.key).toBe("#2@736_64_ZUE_6_5_96_124_false_2_false_true_false_0_false");
+    expect(cvo1.key).toBe("#2@736_64_ZUE_6_5_96_124_false_2_false_false_true_false_0_false");
 
     const cvo2 = new NodeViewObject(editorView, node, true);
-    expect(cvo2.key).toBe("#2@736_64_ZUE_6_5_96_124_false_2_true_true_false_0_false");
+    expect(cvo2.key).toBe("#2@736_64_ZUE_6_5_96_124_false_2_true_false_true_false_0_false");
   });
 
   it("NodeViewObject   - 001", () => {
