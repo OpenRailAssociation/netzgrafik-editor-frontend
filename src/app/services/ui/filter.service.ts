@@ -288,6 +288,20 @@ export class FilterService implements OnDestroy {
     this.filterChanged();
   }
 
+  isDisplayingNodesFullName(): boolean {
+    return this.activeFilterSetting.displayNodesFullName;
+  }
+
+  enableDisplayNodesFullName() {
+    this.activeFilterSetting.displayNodesFullName = true;
+    this.filterChanged();
+  }
+
+  disableDisplayNodesFullName() {
+    this.activeFilterSetting.displayNodesFullName = false;
+    this.filterChanged();
+  }
+
   filterTrainrunsection(trainrunSection: TrainrunSection): boolean {
     if (this.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       // disable filtering in view (render all objects)
@@ -840,7 +854,8 @@ export class FilterService implements OnDestroy {
       this.isFilterTrainrunNameEnabled() &&
       this.isFilterTravelTimeEnabled() &&
       this.isFilterBackwardTravelTimeEnabled() &&
-      this.isFilterShowNonStopTimeEnabled()
+      this.isFilterShowNonStopTimeEnabled() &&
+      !this.isDisplayingNodesFullName()
     );
   }
 
