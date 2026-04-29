@@ -397,6 +397,8 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       this.filterService.checkFilterNonStopNode(node),
     );
 
+    this.editorView.bindDisplayNodesFullName(() => this.filterService.isDisplayingNodesFullName());
+
     this.editorView.bindIsNodeVisible((node: Node) => this.filterService.isNodeVisible(node));
 
     this.editorView.bindIsJunctionNode((node: Node) => this.filterService.isJunctionNode(node));

@@ -219,6 +219,9 @@
       <sbb-checkbox [(ngModel)]="filterAllNonStopNodes" (change)="filterAllNonStopNodesChanged()"
         >{{ "app.view.editor-filter-view.display-nodes-with-only-stopping-trainruns" | translate }}
       </sbb-checkbox>
+      <sbb-checkbox [(ngModel)]="displayNodesFullName" (change)="displayNodesFullNameChanged()"
+        >{{ "app.view.editor-filter-view.display-nodes-full-name" | translate }}
+      </sbb-checkbox>
     </div>
 
     <br />

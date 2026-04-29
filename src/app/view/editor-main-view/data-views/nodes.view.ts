@@ -491,7 +491,7 @@ export class NodesView {
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("x", NODE_TEXT_LEFT_SPACING)
       .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - TEXT_SIZE / 2)
-      .text((n: NodeViewObject) => n.node.getBetriebspunktName())
+      .text((n: NodeViewObject) => this.editorView.displayNodesFullName() ? n.node.getFullName() : n.node.getBetriebspunktName())
       .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,

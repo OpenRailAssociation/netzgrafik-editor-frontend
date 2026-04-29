@@ -195,7 +195,7 @@
     {
       "id": 8,
       "betriebspunktName": "LTH",
-      "fullName": "Langenthal",
+      "fullName": "Langenthalazdzad",
       "positionX": 320,
       "positionY": 192,
       "ports": [],
@@ -469,7 +469,9 @@
         "colorDarkModeMuted": "#000000",
         "colorDarkModeRelated": "#767676"
       }
-    ]
+    ],
+    "orderingAlgorithm": 0,
+    "trafficSide": "leftHand"
   },
   "freeFloatingTexts": [],
   "labels": [],
