@@ -106,6 +106,7 @@ export interface GTFSImportState {
 
   // Topology consolidation (Q6)
   enableTopologyConsolidation: boolean;
+  topologyDetourPercent: number;
 }
 
 export const DEFAULT_GTFS_IMPORT_PHASES: GTFSImportPhase[] = [
@@ -152,6 +153,7 @@ export const DEFAULT_NODE_FILTER: GTFSNodeFilter = {
 };
 
 export const DEFAULT_TIME_SYNC_TOLERANCE = 180; // ±180 seconds (3 minutes)
+export const DEFAULT_TOPOLOGY_DETOUR_PERCENT = 25;
 
 /**
  * Topology Consolidation Models (T1–T6 phases)

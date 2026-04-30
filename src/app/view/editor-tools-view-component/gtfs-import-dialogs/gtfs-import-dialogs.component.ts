@@ -97,6 +97,10 @@ export class GtfsImportDialogsComponent implements OnInit, OnChanges {
   @Input() gtfsEnableTopologyConsolidation = true;
   @Output() gtfsEnableTopologyConsolidationChange = new EventEmitter<boolean>();
 
+  // Q6: Allowed detour for topology consolidation (% over direct section time)
+  @Input() gtfsTopologyDetourPercent = 25;
+  @Output() gtfsTopologyDetourPercentChange = new EventEmitter<number>();
+
   @Output() setSelectedDate = new EventEmitter<string>();
 
   // Events

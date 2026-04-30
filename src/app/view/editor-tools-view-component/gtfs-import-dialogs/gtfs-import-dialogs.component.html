@@ -463,9 +463,20 @@
             >
               Topologie konsolidieren (empfohlen)
             </sbb-checkbox>
+            <sbb-form-field label="Max. Umweg fuer Konsolidierung (+%)">
+              <input
+                sbbInput
+                type="number"
+                min="0"
+                max="500"
+                step="5"
+                [(ngModel)]="gtfsTopologyDetourPercent"
+                (ngModelChange)="gtfsTopologyDetourPercentChange.emit($event)"
+              />
+            </sbb-form-field>
             <small class="filter-hint">
-              Legt Zugläufe auf gemeinsame Korridore und markiert nicht bediente Halte als
-              Durchfahrten.
+              Legt Zugläufe auf gemeinsame Korridore. Alternative Pfade werden nur verwendet,
+              wenn sie maximal {{ gtfsTopologyDetourPercent }}% laenger als die Direktsektion sind.
             </small>
           </div>
 

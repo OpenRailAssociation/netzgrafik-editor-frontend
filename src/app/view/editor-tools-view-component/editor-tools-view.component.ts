@@ -1,5 +1,5 @@
 import {parse, ParseResult} from "papaparse";
-import {Component, ElementRef, ViewChild, ChangeDetectorRef} from "@angular/core";
+import {Component, ElementRef, ViewChild} from "@angular/core";
 import * as svg from "save-svg-as-png";
 import {DataService} from "../../services/data/data.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
@@ -107,6 +107,7 @@ export class EditorToolsViewComponent {
 
   // Topology consolidation toggle
   public gtfsEnableTopologyConsolidation = true;
+  public gtfsTopologyDetourPercent = 25;
 
   // GTFS Import Progress Overlay
   public gtfsImportOverlayVisible = false;
@@ -169,7 +170,6 @@ export class EditorToolsViewComponent {
     private gtfsParserService: GTFSParserService,
     private gtfsConverterService: GTFSConverterService,
     private gtfsImportManagerService: GtfsImportManagerService,
-    private changeDetectorRef: ChangeDetectorRef,
   ) {
     // Subscribe to GTFS import state changes
     this.gtfsImportManagerService.state$.subscribe((state) => {
@@ -195,7 +195,7 @@ export class EditorToolsViewComponent {
       this.gtfsNodeFilter = state.nodeFilter;
       this.gtfsTimeSyncTolerance = state.timeSyncTolerance;
       this.gtfsEnableTopologyConsolidation = state.enableTopologyConsolidation;
-      this.changeDetectorRef.detectChanges();
+      this.gtfsTopologyDetourPercent = state.topologyDetourPercent;
     });
   }
 
@@ -1052,6 +1052,10 @@ export class EditorToolsViewComponent {
 
   setGtfsEnableTopologyConsolidation(value: boolean): void {
     this.gtfsImportManagerService.updateEnableTopologyConsolidation(value);
+  }
+
+  setGtfsTopologyDetourPercent(value: number): void {
+    this.gtfsImportManagerService.updateTopologyDetourPercent(value);
   }
 
   async applyGtfsFiltersAndImport(): Promise<void> {

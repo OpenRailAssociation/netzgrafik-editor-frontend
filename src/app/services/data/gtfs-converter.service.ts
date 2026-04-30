@@ -52,12 +52,19 @@ export class GTFSConverterService {
   private readonly SWISS_CENTER_LAT = 46.8;
   private readonly SWISS_CENTER_LON = 8.2;
   private readonly SCALE_FACTOR = 15000; // Scale factor for coordinate transformation
+  private readonly ENABLE_VERBOSE_GTFS_LOGS = false;
 
   private categoryIdCounter = 1;
   private frequencyIdCounter = 1;
   private timeCategoryIdCounter = 1;
 
   constructor() {}
+
+  private verboseLog(...args: unknown[]): void {
+    if (this.ENABLE_VERBOSE_GTFS_LOGS) {
+      console.info(...args);
+    }
+  }
 
   /**
    * Map GTFS route_desc to TrainrunCategory, create new if needed
@@ -264,7 +271,8 @@ export class GTFSConverterService {
       existingMetadata?: MetadataDto;
       labelCreator?: (labelText: string) => number; // Callback to create labels and return label ID
       timeSyncTolerance?: number; // Tolerance in seconds for round-trip time matching (default: 150)
-      enableTopologyConsolidation?: boolean; // Q6: Enable topology consolidation (default: true)
+      enableTopologyConsolidation?: boolean; // Q6: Topology consolidation toggle from UI
+      topologyDetourPercent?: number; // Allowed detour (+%) for alternative path mapping
       mergeRoundTrips?: boolean; // Merge opposite directions into ROUND_TRIP (default: false when topology consolidation is enabled)
     } = {},
   ): NetzgrafikDto {
@@ -272,7 +280,7 @@ export class GTFSConverterService {
     const minStopsPerTrip = options.minStopsPerTrip || 3;
 
     // Step 1: Identify trip patterns (group trips with same stop sequence)
-    console.info("> 1.0 Identifying trip patterns...");
+    this.verboseLog("> 1.0 Identifying trip patterns...");
     const tripPatterns = this.identifyTripPatterns(gtfsData, minStopsPerTrip);
 
     // Step 1.5: Q6 — Optional topology consolidation (enable per default)
@@ -283,12 +291,19 @@ export class GTFSConverterService {
       timing: Map<string, {arrivalMin?: number; departureMin?: number; isPassThrough: boolean}>;
     }> | null = null;
     
-    const enableTopologyConsolidation = options.enableTopologyConsolidation !== false; // Default: true
+    const enableTopologyConsolidation = options.enableTopologyConsolidation !== false;
+    const topologyDetourPercent = Math.max(0, options.topologyDetourPercent ?? 25);
     if (enableTopologyConsolidation && tripPatterns.length > 1) {
       try {
-        const topologyResult = this.synthesizeTopologyGraph(tripPatterns, gtfsData);
+        const topologyResult = this.synthesizeTopologyGraph(
+          tripPatterns,
+          gtfsData,
+          topologyDetourPercent,
+        );
         enrichedPatternsWithTopology = topologyResult.enrichedPatterns;
-        console.info("> [Q6] Topology consolidation enabled");
+        console.info(
+          `> [Q6] Topology consolidation enabled (detour <= +${topologyDetourPercent}%)`,
+        );
       } catch (err) {
         console.warn("> [Q6] Topology consolidation failed, falling back to direct mapping", err);
         enrichedPatternsWithTopology = null;
@@ -296,11 +311,11 @@ export class GTFSConverterService {
     }
 
     // Step 2: Select representative trips from each pattern
-    console.info("> 2.0 Selecting representative trips...");
+    this.verboseLog("> 2.0 Selecting representative trips...");
     const selectedPatterns = tripPatterns; // Use ALL patterns instead of limiting
 
     // Step 3: Create nodes from stops used in selected patterns
-    console.info("> 3.0 Creating nodes...");  
+    this.verboseLog("> 3.0 Creating nodes...");
     const usedStopIds = new Set<string>();
     selectedPatterns.forEach((pattern) => {
       pattern.stopSequence.forEach((stopId) => usedStopIds.add(stopId));
@@ -309,7 +324,7 @@ export class GTFSConverterService {
     // The stopSequence contains parent_station IDs (from identifyTripPatterns)
     // Some of these parent_station IDs might NOT exist as actual stops in stops.txt
     // We need to create virtual parent stops for these cases
-    console.info("> 4.0 Stop ID mapping and virtual parent stop creation...");  
+    this.verboseLog("> 4.0 Stop ID mapping and virtual parent stop creation...");
     const stopMap = new Map<string, GTFSStop>();
 
     // First, add all existing stops that match usedStopIds
@@ -320,7 +335,7 @@ export class GTFSConverterService {
     });
 
     // Second, create virtual parent stops for missing parent_station IDs
-     console.info("> 4.1 Creating virtual parent stops for missing parent_station IDs");
+    this.verboseLog("> 4.1 Creating virtual parent stops for missing parent_station IDs");
     const missingParentIds = Array.from(usedStopIds).filter((id) => !stopMap.has(id));
     if (missingParentIds.length > 0) {
       missingParentIds.forEach((parentId) => {
@@ -346,7 +361,7 @@ export class GTFSConverterService {
       });
     }
 
-    console.info(`> 4.2 Total nodes to create: ${stopMap.size}`);
+    this.verboseLog(`> 4.2 Total nodes to create: ${stopMap.size}`);
     const nodes = this.createNodes(Array.from(stopMap.values()), gtfsData.stops);
 
     // Center all node coordinates around (0,0)
@@ -363,7 +378,7 @@ export class GTFSConverterService {
     }
 
     // Step 5: Create node ID mapping (map GTFS stop_id to Netzgrafik node ID)
-    console.info("> 5.0 Mapping GTFS stops to node IDs...");  
+    this.verboseLog("> 5.0 Mapping GTFS stops to node IDs...");
     const nodeIdMap = new Map<string, number>();
     const stopsArray = Array.from(stopMap.values());
 
@@ -395,7 +410,7 @@ export class GTFSConverterService {
     });
 
     // Step 5.1: Map categories and frequencies
-    console.info("> 5.1 Mapping categories and frequencies...");
+    this.verboseLog("> 5.1 Mapping categories and frequencies...");
     const {categories, categoryMap} = this.mapCategories(gtfsData.routes, options.existingMetadata);
     const {frequencies, frequencyMap} = this.mapFrequencies(
       gtfsData.routes,
@@ -412,10 +427,11 @@ export class GTFSConverterService {
     const defaultTimeCategoryId = timeCategories[0].id;
 
     // Step 5.2: Create trainruns and trainrun sections
-    console.info("> 5.2 Creating trainruns and sections...");
+    this.verboseLog("> 5.2 Creating trainruns and sections...");
     const trainruns: TrainrunDto[] = [];
     const trainrunSections: TrainrunSectionDto[] = [];
     const trainrunToTrips = new Map<number, string[]>(); // Map trainrun ID to trip IDs
+    const createdTrainrunToPattern = new Map<number, TripPattern>();
     
     // Q6: Build mapping from pattern to enriched topology info
     const patternToEnrichedInfo = new Map<
@@ -524,6 +540,7 @@ export class GTFSConverterService {
         direction: Direction.ONE_WAY,
       };
       trainruns.push(trainrun);
+      createdTrainrunToPattern.set(trainrun.id, pattern);
 
       // Store mapping: trainrun ID -> trip IDs (all trips in this pattern)
       trainrunToTrips.set(
@@ -652,7 +669,7 @@ export class GTFSConverterService {
               }
 
               const timingInfo = enrichedPattern.timing.get(intermediateStationId);
-              if (!timingInfo?.isPassThrough) {
+              if (!timingInfo) {
                 continue;
               }
 
@@ -662,7 +679,7 @@ export class GTFSConverterService {
               sectionGroups.push({
                 stationStopId: intermediateStationId,
                 nodeId: intermediateNodeId,
-                isStop: false,
+                isStop: !timingInfo.isPassThrough,
                 arrivalTimeMinutes: interpolatedMinute,
                 departureTimeMinutes: interpolatedMinute,
               });
@@ -770,22 +787,12 @@ export class GTFSConverterService {
     const mergeRoundTrips = options.mergeRoundTrips ?? true;
     const timeSyncTolerance = options.timeSyncTolerance ?? 180; // seconds (default matches DEFAULT_TIME_SYNC_TOLERANCE in gtfs-import.models.ts)
 
-    // Build trainrun -> pattern map
-    const trainrunToPattern = new Map<number, TripPattern>();
-    selectedPatterns.forEach((pattern, index) => {
-      // Trainrun IDs start at 1, and match pattern order
-      const trainrunId = index + 1;
-      if (trainruns.find((t) => t.id === trainrunId)) {
-        trainrunToPattern.set(trainrunId, pattern);
-      }
-    });
-
     let matchingStatus = new Map<number, string>();
     if (mergeRoundTrips) {
       matchingStatus = this.matchAndMergeRoundTrips(
         trainruns,
         trainrunSections,
-        trainrunToPattern,
+        createdTrainrunToPattern,
         gtfsData,
         timeSyncTolerance,
         nodes,
@@ -794,7 +801,7 @@ export class GTFSConverterService {
       trainruns.forEach((trainrun) => {
         matchingStatus.set(trainrun.id, "⊚ Round-trip merge disabled");
       });
-      console.info(
+      this.verboseLog(
         "> [GTFS] Round-trip merge disabled to preserve strict per-trip node ordering",
       );
     }
@@ -803,7 +810,7 @@ export class GTFSConverterService {
     const oneWayCount = trainruns.filter((t) => t.direction === Direction.ONE_WAY).length;
 
     // Step 5.1b: Log GTFS Path vs TrainrunSections comparison
-    console.info("\n========== [GTFS][PATH_vs_SECTIONS] COMPARISON ==========\n");
+    this.verboseLog("\n========== [GTFS][PATH_vs_SECTIONS] COMPARISON ==========\n");
     
     // Build map of sections per trainrun for analysis
     const sectionsByTrainrun = new Map<number, TrainrunSectionDto[]>();
@@ -825,7 +832,7 @@ export class GTFSConverterService {
       const routeName = route?.route_short_name || pattern.routeId;
       const sections = sectionsByTrainrun.get(trainrunId) || [];
       
-      console.info(`[GTFS][PATH_vs_SECTIONS] Route: ${routeName}`, {
+      this.verboseLog(`[GTFS][PATH_vs_SECTIONS] Route: ${routeName}`, {
         trainrunId,
         direction: trainrun.direction,
         pathLength: enrichedPattern?.nodeSequence?.length || 0,
@@ -1151,9 +1158,11 @@ export class GTFSConverterService {
     trainrunSections: TrainrunSectionDto[],
     timeSyncTolerance: number,
   ): string | null {
-    // 1. Same route_id
-    if (pattern1.routeId !== pattern2.routeId) {
-      return "✗ Different route";
+    // 1. Same line (prefer route_short_name, fallback to route_long_name)
+    const line1 = (route1.route_short_name || route1.route_long_name || "").trim().toUpperCase();
+    const line2 = (route2.route_short_name || route2.route_long_name || "").trim().toUpperCase();
+    if (line1 && line2 && line1 !== line2) {
+      return "✗ Different line";
     }
 
     // 2. Same category (route_desc)
@@ -1168,12 +1177,7 @@ export class GTFSConverterService {
       return "✗ Different frequency";
     }
 
-    // 4. Different direction_id
-    if (pattern1.directionId === pattern2.directionId) {
-      return "✗ Same direction";
-    }
-
-    // 5. Reversed stopSequence
+    // 4. Reversed stopSequence
     const reversed2 = [...pattern2.stopSequence].reverse();
     if (pattern1.stopSequence.length !== reversed2.length) {
       return "✗ Path mismatch";
@@ -1191,7 +1195,7 @@ export class GTFSConverterService {
       return "✗ Path mismatch";
     }
 
-    // 6. Check time symmetry with tolerance
+    // 5. Check time symmetry with tolerance
     const sections1 = trainrunSections.filter((s) => s.trainrunId === trainrun1.id);
     const sections2 = trainrunSections.filter((s) => s.trainrunId === trainrun2.id);
 
@@ -1281,7 +1285,20 @@ export class GTFSConverterService {
       }
 
       // Use parent_station IDs for stop sequence (map platforms to their parent stations)
-      const stopSequence = stopTimes.map((st) => stopToStation.get(st.stop_id) || st.stop_id);
+      // and collapse immediate duplicates (same station via multiple platform rows).
+      const stopSequenceRaw = stopTimes.map((st) => stopToStation.get(st.stop_id) || st.stop_id);
+      const stopSequence: string[] = [];
+      stopSequenceRaw.forEach((stationId) => {
+        if (stopSequence.length === 0 || stopSequence[stopSequence.length - 1] !== stationId) {
+          stopSequence.push(stationId);
+        }
+      });
+
+      if (stopSequence.length < minStopsPerTrip) {
+        skippedTrips++;
+        return;
+      }
+
       const directionId = trip.direction_id || "0";
       const patternKey = `${trip.route_id}_${directionId}_${stopSequence.join("-")}`;
 
@@ -1670,6 +1687,7 @@ export class GTFSConverterService {
   synthesizeTopologyGraph(
     patterns: TripPattern[],
     gtfsData: GTFSData,
+    topologyDetourPercent: number,
   ): {
     backboneNodes: Set<string>; // All nodes in synthesized backbone
     backboneEdges: Map<string, {from: string; to: string; travelTimeMinutes: number}>; // Edge key -> edge
@@ -1680,14 +1698,18 @@ export class GTFSConverterService {
       timing: Map<string, {arrivalMin?: number; departureMin?: number; isPassThrough: boolean}>; // stop_id -> timing
     }>;
   } {
-    console.info("> [T1-T6] Synthesizing consolidated topology...");
+    this.verboseLog("> [T1-T6] Synthesizing consolidated topology...");
+
+    // Build observed trainrun-like edges (source->target with measured travel times)
+    // from the same representative trips that are later converted into trainruns.
+    const observedTrainrunEdges = this.extractObservedTrainrunEdges(patterns, gtfsData);
 
     // Build directed precedence graph from all observed pattern edges.
     const {dag} = this.buildPrecedenceDAGAndAnchors(patterns, gtfsData);
-    const {backboneNodes, backboneEdges} = this.buildObservedBackboneGraph(patterns);
+    const {backboneNodes, backboneEdges} = this.buildObservedBackboneGraph(observedTrainrunEdges);
 
-    // T4: Calculate average travel times per edge
-    const edgeTravelTimes = this.calculateEdgeTravelTimes(patterns, gtfsData, backboneEdges);
+    // T4: Use minimum travel time per observed edge as requested basis-graph weight.
+    const edgeTravelTimes = this.calculateEdgeTravelTimes(observedTrainrunEdges, backboneEdges);
 
     // T5: For every pair of real halts, search a path in the graph and insert intermediate nodes.
     const enrichedPatterns = this.mapPatternsToBackbone(
@@ -1696,9 +1718,10 @@ export class GTFSConverterService {
       dag,
       backboneNodes,
       edgeTravelTimes,
+      topologyDetourPercent,
     );
 
-    console.info(
+    this.verboseLog(
       `> [T1-T6] Topology: ${backboneNodes.size} nodes, ${backboneEdges.size} edges, ${enrichedPatterns.length} patterns mapped`,
     );
 
@@ -1709,8 +1732,87 @@ export class GTFSConverterService {
     };
   }
 
-  private buildObservedBackboneGraph(
+  private extractObservedTrainrunEdges(
     patterns: TripPattern[],
+    gtfsData: GTFSData,
+  ): Array<{from: string; to: string; travelTimeMinutes: number}> {
+    const observedEdges: Array<{from: string; to: string; travelTimeMinutes: number}> = [];
+
+    const stopToStation = new Map<string, string>();
+    gtfsData.stops.forEach((stop) => {
+      stopToStation.set(
+        stop.stop_id,
+        stop.parent_station && stop.parent_station !== "" ? stop.parent_station : stop.stop_id,
+      );
+    });
+
+    patterns.forEach((pattern) => {
+      if (pattern.trips.length === 0) {
+        return;
+      }
+
+      const representativeTripId = pattern.trips[0].trip_id;
+      const rawStopTimes = pattern.stopTimes.get(representativeTripId);
+      if (!rawStopTimes || rawStopTimes.length < 2) {
+        return;
+      }
+
+      const stopTimes = [...rawStopTimes].sort(
+        (a, b) => parseInt(a.stop_sequence, 10) - parseInt(b.stop_sequence, 10),
+      );
+
+      const stationGroups: Array<{stationId: string; arrivalMin: number; departureMin: number}> = [];
+      let currentGroup: {stationId: string; arrivalMin: number; departureMin: number} | null = null;
+
+      stopTimes.forEach((stopTime) => {
+        const stationId = stopToStation.get(stopTime.stop_id) || stopTime.stop_id;
+        const arrivalMin = GTFSParserService.timeToMinutes(
+          stopTime.arrival_time || stopTime.departure_time || "00:00",
+        );
+        const departureMin = GTFSParserService.timeToMinutes(
+          stopTime.departure_time || stopTime.arrival_time || "00:00",
+        );
+
+        if (!currentGroup || currentGroup.stationId !== stationId) {
+          if (currentGroup) {
+            stationGroups.push(currentGroup);
+          }
+          currentGroup = {
+            stationId,
+            arrivalMin,
+            departureMin,
+          };
+        } else {
+          currentGroup.arrivalMin = Math.min(currentGroup.arrivalMin, arrivalMin);
+          currentGroup.departureMin = Math.max(currentGroup.departureMin, departureMin);
+        }
+      });
+
+      if (currentGroup) {
+        stationGroups.push(currentGroup);
+      }
+
+      for (let index = 0; index < stationGroups.length - 1; index++) {
+        const fromGroup = stationGroups[index];
+        const toGroup = stationGroups[index + 1];
+        const travelTimeMinutes = Math.max(
+          1,
+          this.calculateTravelTime(fromGroup.departureMin, toGroup.arrivalMin),
+        );
+
+        observedEdges.push({
+          from: fromGroup.stationId,
+          to: toGroup.stationId,
+          travelTimeMinutes,
+        });
+      }
+    });
+
+    return observedEdges;
+  }
+
+  private buildObservedBackboneGraph(
+    observedTrainrunEdges: Array<{from: string; to: string; travelTimeMinutes: number}>,
   ): {
     backboneNodes: Set<string>;
     backboneEdges: Map<string, {from: string; to: string; travelTimeMinutes: number}>;
@@ -1718,19 +1820,23 @@ export class GTFSConverterService {
     const backboneNodes = new Set<string>();
     const backboneEdges = new Map<string, {from: string; to: string; travelTimeMinutes: number}>();
 
-    patterns.forEach((pattern) => {
-      pattern.stopSequence.forEach((node) => backboneNodes.add(node));
-      for (let index = 0; index < pattern.stopSequence.length - 1; index++) {
-        const from = pattern.stopSequence[index];
-        const to = pattern.stopSequence[index + 1];
-        const edgeKey = `${from}→${to}`;
-        if (!backboneEdges.has(edgeKey)) {
-          backboneEdges.set(edgeKey, {from, to, travelTimeMinutes: 1});
-        }
+    observedTrainrunEdges.forEach((edge) => {
+      backboneNodes.add(edge.from);
+      backboneNodes.add(edge.to);
+      const edgeKey = `${edge.from}→${edge.to}`;
+
+      // Keep minimal observed travel time on each directed edge.
+      const existing = backboneEdges.get(edgeKey);
+      if (!existing || edge.travelTimeMinutes < existing.travelTimeMinutes) {
+        backboneEdges.set(edgeKey, {
+          from: edge.from,
+          to: edge.to,
+          travelTimeMinutes: edge.travelTimeMinutes,
+        });
       }
     });
 
-    console.info(
+    this.verboseLog(
       `> [T3] Observed graph built: ${backboneNodes.size} nodes, ${backboneEdges.size} edges`,
     );
 
@@ -1789,7 +1895,7 @@ export class GTFSConverterService {
       if (count >= threshold) anchors.add(node);
     });
 
-    console.info(`> [T2] Identified ${anchors.size} anchor nodes`);
+    this.verboseLog(`> [T2] Identified ${anchors.size} anchor nodes`);
 
     return {dag, anchors};
   }
@@ -1856,7 +1962,7 @@ export class GTFSConverterService {
       }
     }
 
-    console.info(
+    this.verboseLog(
       `> [T3] Synthesized backbone: ${backboneNodes.size} nodes, ${backboneEdges.size} edges`,
     );
 
@@ -1890,64 +1996,32 @@ export class GTFSConverterService {
   }
 
   /**
-   * T4: Calculate average travel times for each backbone edge
+   * T4: Calculate minimum travel times for each backbone edge
    */
   private calculateEdgeTravelTimes(
-    patterns: TripPattern[],
-    gtfsData: GTFSData,
+    observedTrainrunEdges: Array<{from: string; to: string; travelTimeMinutes: number}>,
     backboneEdges: Map<string, {from: string; to: string; travelTimeMinutes: number}>,
   ): Map<string, number> {
-    const travelTimes = new Map<string, number[]>();
+    const minTravelTimes = new Map<string, number>();
 
-    backboneEdges.forEach((_, edgeKey) => {
-      travelTimes.set(edgeKey, []);
-    });
-
-    // Collect travel times from patterns
-    patterns.forEach((pattern) => {
-      const stopTimesMap = pattern.stopTimes;
-      const seq = pattern.stopSequence;
-
-      // For simplicity, use first trip's stop times
-      if (pattern.trips.length > 0 && stopTimesMap.has(pattern.trips[0].trip_id)) {
-        const stopTimes = stopTimesMap.get(pattern.trips[0].trip_id)!;
-
-        for (let i = 0; i < seq.length - 1; i++) {
-          const fromStop = seq[i];
-          const toStop = seq[i + 1];
-          const edgeKey = `${fromStop}→${toStop}`;
-
-          // Find stop times for from and to
-          const fromSt = stopTimes.find((st) => st.stop_id === fromStop);
-          const toSt = stopTimes.find((st) => st.stop_id === toStop);
-
-          if (fromSt && toSt && fromSt.departure_time && toSt.arrival_time) {
-            const fromMin = GTFSParserService.timeToMinutes(fromSt.departure_time);
-            const toMin = GTFSParserService.timeToMinutes(toSt.arrival_time);
-            const travelMin = this.calculateTravelTime(fromMin, toMin);
-
-            if (travelTimes.has(edgeKey)) {
-              travelTimes.get(edgeKey)!.push(travelMin);
-            }
-          }
-        }
+    observedTrainrunEdges.forEach((edge) => {
+      const edgeKey = `${edge.from}→${edge.to}`;
+      const currentMin = minTravelTimes.get(edgeKey);
+      const nextMin = Math.max(1, edge.travelTimeMinutes);
+      if (currentMin === undefined || nextMin < currentMin) {
+        minTravelTimes.set(edgeKey, nextMin);
       }
     });
 
-    // Calculate averages and update backbone edges
+    // Apply minimum travel time map to backbone edges.
     const result = new Map<string, number>();
-    travelTimes.forEach((times, edgeKey) => {
-      if (times.length > 0) {
-        const avg = times.reduce((a, b) => a + b, 0) / times.length;
-        result.set(edgeKey, Math.round(avg));
-        // Update backbone edge
-        if (backboneEdges.has(edgeKey)) {
-          const edge = backboneEdges.get(edgeKey)!;
-          edge.travelTimeMinutes = Math.round(avg);
-        }
-      } else {
-        // Default: 1 minute minimum
-        result.set(edgeKey, 1);
+    backboneEdges.forEach((_, edgeKey) => {
+      const minTravel = Math.max(1, minTravelTimes.get(edgeKey) || 1);
+      result.set(edgeKey, minTravel);
+
+      if (backboneEdges.has(edgeKey)) {
+        const edge = backboneEdges.get(edgeKey)!;
+        edge.travelTimeMinutes = minTravel;
       }
     });
 
@@ -1963,20 +2037,50 @@ export class GTFSConverterService {
     dag: Map<string, Set<string>>,
     backboneNodes: Set<string>,
     edgeTravelTimes: Map<string, number>,
+    topologyDetourPercent: number,
   ): Array<{
     pattern: TripPattern;
     nodeSequence: string[];
     halts: Set<string>;
     timing: Map<string, {arrivalMin?: number; departureMin?: number; isPassThrough: boolean}>;
   }> {
+    void dag;
+
+    type StationGroup = {
+      stationId: string;
+      isStop: boolean;
+      arrivalMin: number;
+      departureMin: number;
+    };
+
+    type PatternContext = {
+      patternIndex: number;
+      pattern: TripPattern;
+      routeName: string;
+      representativeTripId: string;
+      stationGroups: StationGroup[];
+      effectiveHalts: StationGroup[];
+      actualHalts: Set<string>;
+    };
+
+    type OriginalSection = {
+      id: number;
+      patternIndex: number;
+      segmentIndex: number;
+      from: string;
+      to: string;
+      directTravelMin: number;
+      sourceDepartureMin: number;
+      targetArrivalMin: number;
+    };
+
     const result: Array<{
       pattern: TripPattern;
       nodeSequence: string[];
       halts: Set<string>;
       timing: Map<string, {arrivalMin?: number; departureMin?: number; isPassThrough: boolean}>;
     }> = [];
-    const edgeUsage = this.buildEdgeUsageCounts(patterns);
-    
+
     // Build station name mapping
     const stationIdToName = new Map<string, string>();
     gtfsData.stops.forEach((stop) => {
@@ -1986,37 +2090,43 @@ export class GTFSConverterService {
       }
     });
 
-    patterns.forEach((pattern) => {
+    // Build stop_id -> station_id mapping once.
+    const stopToStation = new Map<string, string>();
+    gtfsData.stops.forEach((stop) => {
+      stopToStation.set(
+        stop.stop_id,
+        stop.parent_station && stop.parent_station !== "" ? stop.parent_station : stop.stop_id,
+      );
+    });
+
+    const patternContexts: PatternContext[] = [];
+    const originalSections: OriginalSection[] = [];
+    const sectionKeyToId = new Map<string, number>();
+
+    // 1) Build the original section list from all patterns (source/target/traveltime).
+    let sectionIdCounter = 1;
+    patterns.forEach((pattern, patternIndex) => {
       const stopTimesMap = pattern.stopTimes;
       if (pattern.trips.length === 0 || !stopTimesMap.has(pattern.trips[0].trip_id)) {
-        result.push({
+        patternContexts.push({
+          patternIndex,
           pattern,
-          nodeSequence: pattern.stopSequence,
-          halts: new Set(pattern.stopSequence),
-          timing: new Map(),
+          routeName: pattern.routeId,
+          representativeTripId: "unknown-trip",
+          stationGroups: [],
+          effectiveHalts: [],
+          actualHalts: new Set<string>(),
         });
         return;
       }
 
-      const tripStopTimes = [...stopTimesMap.get(pattern.trips[0].trip_id)!].sort(
-        (a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence),
+      const representativeTripId = pattern.trips[0].trip_id;
+      const tripStopTimes = [...stopTimesMap.get(representativeTripId)!].sort(
+        (a, b) => parseInt(a.stop_sequence, 10) - parseInt(b.stop_sequence, 10),
       );
-      const stopToStation = new Map<string, string>();
-      gtfsData.stops.forEach((stop) => {
-        stopToStation.set(
-          stop.stop_id,
-          stop.parent_station && stop.parent_station !== "" ? stop.parent_station : stop.stop_id,
-        );
-      });
 
-      const stationGroups: Array<{
-        stationId: string;
-        isStop: boolean;
-        arrivalMin: number;
-        departureMin: number;
-      }> = [];
-
-      let currentGroup: (typeof stationGroups)[0] | null = null;
+      const stationGroups: StationGroup[] = [];
+      let currentGroup: StationGroup | null = null;
       tripStopTimes.forEach((stopTime) => {
         const stationId = stopToStation.get(stopTime.stop_id) || stopTime.stop_id;
         const isStop = stopTime.pickup_type !== "1" || stopTime.drop_off_type !== "1";
@@ -2053,10 +2163,164 @@ export class GTFSConverterService {
 
       const route = gtfsData.routes.find((r) => r.route_id === pattern.routeId);
       const routeName = route?.route_short_name || route?.route_long_name || pattern.routeId;
-      const representativeTripId = pattern.trips[0]?.trip_id || "unknown-trip";
+
+      patternContexts.push({
+        patternIndex,
+        pattern,
+        routeName,
+        representativeTripId,
+        stationGroups,
+        effectiveHalts,
+        actualHalts,
+      });
+
+      for (let haltIndex = 0; haltIndex < effectiveHalts.length - 1; haltIndex++) {
+        const sourceHalt = effectiveHalts[haltIndex];
+        const targetHalt = effectiveHalts[haltIndex + 1];
+        const directTravelMin = Math.max(
+          1,
+          this.calculateTravelTime(sourceHalt.departureMin, targetHalt.arrivalMin),
+        );
+
+        const section: OriginalSection = {
+          id: sectionIdCounter++,
+          patternIndex,
+          segmentIndex: haltIndex,
+          from: sourceHalt.stationId,
+          to: targetHalt.stationId,
+          directTravelMin,
+          sourceDepartureMin: sourceHalt.departureMin,
+          targetArrivalMin: targetHalt.arrivalMin,
+        };
+
+        originalSections.push(section);
+        sectionKeyToId.set(`${patternIndex}:${haltIndex}`, section.id);
+      }
+    });
+
+    // 2) Consolidate graph edges to min travel time per node pair.
+    // Prefer observed per-edge minima from topology extraction (T4), then
+    // fall back to section-derived minima when needed.
+    const minUndirectedWeights = new Map<string, number>();
+
+    edgeTravelTimes.forEach((travelTime, edgeKey) => {
+      const [from, to] = edgeKey.split("→");
+      if (!from || !to) {
+        return;
+      }
+      const weight = Math.max(1, travelTime || 1);
+      const undirectedKey = this.getUndirectedEdgeKey(from, to);
+      const existing = minUndirectedWeights.get(undirectedKey);
+      if (existing === undefined || weight < existing) {
+        minUndirectedWeights.set(undirectedKey, weight);
+      }
+    });
+
+    originalSections.forEach((section) => {
+      const edgeKey = this.getUndirectedEdgeKey(section.from, section.to);
+      const existing = minUndirectedWeights.get(edgeKey);
+      if (existing === undefined || section.directTravelMin < existing) {
+        minUndirectedWeights.set(edgeKey, section.directTravelMin);
+      }
+    });
+
+    const consolidatedEdgeTravelTimes = new Map<string, number>();
+    minUndirectedWeights.forEach((weight, edgeKey) => {
+      const [a, b] = edgeKey.split("↔");
+      if (!a || !b) {
+        return;
+      }
+      consolidatedEdgeTravelTimes.set(`${a}→${b}`, weight);
+      consolidatedEdgeTravelTimes.set(`${b}→${a}`, weight);
+    });
+
+    // 3) Sort original sections by travel time ascending.
+    const sortedSections = [...originalSections].sort((a, b) => a.directTravelMin - b.directTravelMin);
+
+    // 4) Iterate each original section exactly once (new sections are never reprocessed).
+    const doneSections = new Set<number>();
+    const replacementPathBySectionId = new Map<number, string[]>();
+    const consolidatedDetailsByPatternIndex = new Map<
+      number,
+      Array<{
+        from: string;
+        to: string;
+        directTravelMin: number;
+        pathTravelMin: number;
+        allowedTravelMin: number;
+        insertedNodes: number;
+        path: string[];
+      }>
+    >();
+
+    let totalSegmentsEvaluated = sortedSections.length;
+    let totalSegmentsConsolidated = 0;
+    let totalInsertedNodes = 0;
+
+    sortedSections.forEach((section) => {
+      if (doneSections.has(section.id)) {
+        return;
+      }
+      doneSections.add(section.id);
+
+      const excludedEdgeKeys = new Set<string>([
+        `${section.from}→${section.to}`,
+        `${section.to}→${section.from}`,
+      ]);
+
+      const alternativePath = this.findShortestPathByTravelTime(
+        section.from,
+        section.to,
+        consolidatedEdgeTravelTimes,
+        excludedEdgeKeys,
+      );
+
+      if (!alternativePath || alternativePath.length < 3) {
+        return;
+      }
+
+      const pathTravelMin = this.calculatePathTravelTime(alternativePath, consolidatedEdgeTravelTimes);
+      const allowedTravelMin = section.directTravelMin * (1 + topologyDetourPercent / 100);
+
+      if (pathTravelMin > allowedTravelMin) {
+        return;
+      }
+
+      replacementPathBySectionId.set(section.id, alternativePath);
+      totalSegmentsConsolidated++;
+      totalInsertedNodes += Math.max(0, alternativePath.length - 2);
+
+      if (!consolidatedDetailsByPatternIndex.has(section.patternIndex)) {
+        consolidatedDetailsByPatternIndex.set(section.patternIndex, []);
+      }
+      consolidatedDetailsByPatternIndex.get(section.patternIndex)!.push({
+        from: section.from,
+        to: section.to,
+        directTravelMin: section.directTravelMin,
+        pathTravelMin,
+        allowedTravelMin,
+        insertedNodes: Math.max(0, alternativePath.length - 2),
+        path: [...alternativePath],
+      });
+    });
+
+    // 5) Materialize merged sections into mapped node sequences and timing interpolation.
+    patternContexts.forEach((context) => {
+      const {patternIndex, pattern, routeName, representativeTripId, effectiveHalts, actualHalts} = context;
+
+      if (effectiveHalts.length === 0) {
+        result.push({
+          pattern,
+          nodeSequence: pattern.stopSequence,
+          halts: new Set(pattern.stopSequence),
+          timing: new Map(),
+        });
+        return;
+      }
 
       const mappedSequence: string[] = [];
       const timing = new Map<string, {arrivalMin?: number; departureMin?: number; isPassThrough: boolean}>();
+      const consolidatedSegments = consolidatedDetailsByPatternIndex.get(patternIndex) || [];
 
       if (effectiveHalts.length > 0) {
         const firstHalt = effectiveHalts[0];
@@ -2071,41 +2335,47 @@ export class GTFSConverterService {
       for (let haltIndex = 0; haltIndex < effectiveHalts.length - 1; haltIndex++) {
         const sourceHalt = effectiveHalts[haltIndex];
         const targetHalt = effectiveHalts[haltIndex + 1];
-        const preferredPath = this.findPreferredPathInDag(
-          dag,
-          sourceHalt.stationId,
-          targetHalt.stationId,
-          edgeUsage,
-          edgeTravelTimes,
+        const actualTotalTravelTime = Math.max(
+          1,
+          this.calculateTravelTime(sourceHalt.departureMin, targetHalt.arrivalMin),
         );
-        const path = preferredPath && preferredPath.length >= 2
-          ? preferredPath
-          : [sourceHalt.stationId, targetHalt.stationId];
+
+        const sectionId = sectionKeyToId.get(`${patternIndex}:${haltIndex}`);
+        const replacementPath = sectionId ? replacementPathBySectionId.get(sectionId) : null;
+        const path = replacementPath || [sourceHalt.stationId, targetHalt.stationId];
+
+        const pathTravelMin = this.calculatePathTravelTime(path, consolidatedEdgeTravelTimes);
+        const allowedTravelTime = actualTotalTravelTime * (1 + topologyDetourPercent / 100);
 
         const pathWithNames = path.map(id => `${id} (${stationIdToName.get(id) || id})`);
-        console.info("[GTFS][Topology][PathSelection]", {
+        this.verboseLog("[GTFS][Topology][PathSelection]", {
           routeId: pattern.routeId,
           routeName,
           tripId: representativeTripId,
           from: `${sourceHalt.stationId} (${stationIdToName.get(sourceHalt.stationId) || sourceHalt.stationId})`,
           to: `${targetHalt.stationId} (${stationIdToName.get(targetHalt.stationId) || targetHalt.stationId})`,
-          foundPath: Boolean(preferredPath && preferredPath.length >= 2),
+          foundPath: !!replacementPath,
+          preferredPathTravelTime: pathTravelMin,
+          directSectionTravelTime: actualTotalTravelTime,
+          allowedTravelTime,
           path: pathWithNames,
         });
 
         const segmentWeights: number[] = [];
         let totalWeight = 0;
         for (let pathIndex = 0; pathIndex < path.length - 1; pathIndex++) {
-          const edgeKey = `${path[pathIndex]}→${path[pathIndex + 1]}`;
-          const weight = Math.max(1, edgeTravelTimes.get(edgeKey) || 1);
+          const forwardKey = `${path[pathIndex]}→${path[pathIndex + 1]}`;
+          const backwardKey = `${path[pathIndex + 1]}→${path[pathIndex]}`;
+          const weight = Math.max(
+            1,
+            Math.min(
+              consolidatedEdgeTravelTimes.get(forwardKey) ?? Number.POSITIVE_INFINITY,
+              consolidatedEdgeTravelTimes.get(backwardKey) ?? Number.POSITIVE_INFINITY,
+            ),
+          );
           segmentWeights.push(weight);
           totalWeight += weight;
         }
-
-        const actualTotalTravelTime = Math.max(
-          1,
-          this.calculateTravelTime(sourceHalt.departureMin, targetHalt.arrivalMin),
-        );
 
         let cumulativeWeight = 0;
         for (let pathIndex = 1; pathIndex < path.length; pathIndex++) {
@@ -2127,14 +2397,14 @@ export class GTFSConverterService {
 
           const interpolatedMinute =
             sourceHalt.departureMin + Math.round((actualTotalTravelTime * cumulativeWeight) / totalWeight);
-          // Only mark as pass-through if this node is NOT an actual halt of this pattern.
-          // Backbone nodes that ARE halts (e.g. RE24 nodes on IR15 corridor) must stay
-          // isPassThrough=false so they are never inserted as fake intermediate sections.
-          if (backboneNodes.has(nodeId) && !actualHalts.has(nodeId)) {
+          // Keep timing for all intermediate backbone nodes so section splitting can
+          // materialize both pass-through and optional halt-based corridor mappings.
+          if (backboneNodes.has(nodeId)) {
+            const isPassThrough = !actualHalts.has(nodeId);
             timing.set(nodeId, {
               arrivalMin: interpolatedMinute,
               departureMin: interpolatedMinute,
-              isPassThrough: true,
+              isPassThrough,
             });
           }
         }
@@ -2147,8 +2417,29 @@ export class GTFSConverterService {
         timing,
       });
 
+      if (consolidatedSegments.length > 0) {
+        console.info("[GTFS][Topology][ConsolidationApplied]", {
+          routeId: pattern.routeId,
+          routeName,
+          tripId: representativeTripId,
+          evaluatedSegments: Math.max(0, effectiveHalts.length - 1),
+          consolidatedSegments: consolidatedSegments.length,
+          insertedNodes: consolidatedSegments.reduce((sum, seg) => sum + seg.insertedNodes, 0),
+          details: consolidatedSegments,
+        });
+      } else {
+        console.info("[GTFS][Topology][ConsolidationApplied]", {
+          routeId: pattern.routeId,
+          routeName,
+          tripId: representativeTripId,
+          evaluatedSegments: Math.max(0, effectiveHalts.length - 1),
+          consolidatedSegments: 0,
+          insertedNodes: 0,
+        });
+      }
+
       const mappedSequenceWithNames = mappedSequence.map(id => `${id} (${stationIdToName.get(id) || id})`);
-      console.info("[GTFS][Topology][MappedPattern]", {
+      this.verboseLog("[GTFS][Topology][MappedPattern]", {
         routeId: pattern.routeId,
         routeName,
         tripId: representativeTripId,
@@ -2158,10 +2449,19 @@ export class GTFSConverterService {
       });
     });
 
-    console.info(`> [T5] Mapped ${result.length} patterns to backbone`);
+    this.verboseLog(`> [T5] Mapped ${result.length} patterns to backbone`);
+    console.info("[GTFS][Topology][ConsolidationSummary]", {
+      evaluatedSegments: totalSegmentsEvaluated,
+      consolidatedSegments: totalSegmentsConsolidated,
+      insertedNodes: totalInsertedNodes,
+      consolidationRate:
+        totalSegmentsEvaluated > 0
+          ? `${Math.round((totalSegmentsConsolidated / totalSegmentsEvaluated) * 100)}%`
+          : "0%",
+    });
 
     // Final summary: complete path info for each route
-    console.info("\n========== [GTFS][TOPOLOGY][FINAL_SUMMARY] ==========\n");
+    this.verboseLog("\n========== [GTFS][TOPOLOGY][FINAL_SUMMARY] ==========\n");
     result.forEach((mappedPattern) => {
       const {pattern, nodeSequence, halts, timing} = mappedPattern;
       const route = gtfsData.routes.find((r) => r.route_id === pattern.routeId);
@@ -2183,7 +2483,7 @@ export class GTFSConverterService {
         };
       });
       
-      console.info(`[${routeName}] Complete Path:`, {
+      this.verboseLog(`[${routeName}] Complete Path:`, {
         routeId: pattern.routeId,
         routeName,
         tripId: pattern.trips[0]?.trip_id || "unknown",
@@ -2192,9 +2492,13 @@ export class GTFSConverterService {
         nodes: nodeDetails,
       });
     });
-    console.info("\n====================================================\n");
+    this.verboseLog("\n====================================================\n");
 
     return result;
+  }
+
+  private getUndirectedEdgeKey(a: string, b: string): string {
+    return a <= b ? `${a}↔${b}` : `${b}↔${a}`;
   }
 
   private findPreferredPathInDag(
@@ -2204,26 +2508,58 @@ export class GTFSConverterService {
     edgeUsage: Map<string, number>,
     edgeTravelTimes: Map<string, number>,
   ): string[] | null {
+    void dag;
+    void edgeUsage;
+
     if (sourceNodeId === targetNodeId) {
       return [sourceNodeId];
     }
 
+    const shortestPath = this.findShortestPathByTravelTime(
+      sourceNodeId,
+      targetNodeId,
+      edgeTravelTimes,
+    );
+    if (!shortestPath) {
+      return null;
+    }
+
+    // If shortest path already has intermediate nodes, it is a valid consolidation candidate.
+    if (shortestPath.length >= 3) {
+      return shortestPath;
+    }
+
+    // Otherwise, try best alternative path that does not use the direct edge.
+    const excludedEdgeKeys = new Set<string>([
+      `${sourceNodeId}→${targetNodeId}`,
+      `${targetNodeId}→${sourceNodeId}`,
+    ]);
+
+    const alternativePath = this.findShortestPathByTravelTime(
+      sourceNodeId,
+      targetNodeId,
+      edgeTravelTimes,
+      excludedEdgeKeys,
+    );
+
+    if (alternativePath && alternativePath.length >= 3) {
+      return alternativePath;
+    }
+
+    return shortestPath;
+  }
+
+  private findShortestPathByTravelTime(
+    sourceNodeId: string,
+    targetNodeId: string,
+    edgeTravelTimes: Map<string, number>,
+    excludedEdgeKeys: Set<string> = new Set<string>(),
+  ): string[] | null {
+    const adjacency = this.buildUndirectedMinTravelAdjacency(edgeTravelTimes, excludedEdgeKeys);
     const distances = new Map<string, number>();
     const hops = new Map<string, number>();
     const predecessor = new Map<string, string>();
     const queue = new Set<string>();
-
-    // If a direct edge exists between the segment halts and a multi-hop
-    // alternative exists, we block that direct skip edge for this search.
-    const directEdgeKey = `${sourceNodeId}→${targetNodeId}`;
-    const directEdgeAlternativeHopCount = this.findAlternativePathHopCount(
-      dag,
-      sourceNodeId,
-      targetNodeId,
-      directEdgeKey,
-      40,
-    );
-    const blockDirectEdge = directEdgeAlternativeHopCount !== null && directEdgeAlternativeHopCount >= 2;
 
     distances.set(sourceNodeId, 0);
     hops.set(sourceNodeId, 0);
@@ -2231,22 +2567,16 @@ export class GTFSConverterService {
 
     while (queue.size > 0) {
       let current: string | null = null;
-      let currentDistance = Number.POSITIVE_INFINITY;
-      let currentHops = Number.POSITIVE_INFINITY;
+      let bestDistance = Number.POSITIVE_INFINITY;
+      let bestHops = Number.POSITIVE_INFINITY;
 
       queue.forEach((candidate) => {
-        const candidateDistance = distances.get(candidate) ?? Number.POSITIVE_INFINITY;
-        const candidateHops = hops.get(candidate) ?? Number.POSITIVE_INFINITY;
-        if (
-          candidateDistance < currentDistance ||
-          (candidateDistance === currentDistance && candidateHops < currentHops) ||
-          (candidateDistance === currentDistance &&
-            candidateHops === currentHops &&
-            candidate.localeCompare(current || "") < 0)
-        ) {
+        const d = distances.get(candidate) ?? Number.POSITIVE_INFINITY;
+        const h = hops.get(candidate) ?? Number.POSITIVE_INFINITY;
+        if (d < bestDistance || (d === bestDistance && h < bestHops)) {
           current = candidate;
-          currentDistance = candidateDistance;
-          currentHops = candidateHops;
+          bestDistance = d;
+          bestHops = h;
         }
       });
 
@@ -2255,40 +2585,16 @@ export class GTFSConverterService {
       }
 
       queue.delete(current);
-
       if (current === targetNodeId) {
         break;
       }
 
-      const neighbors = Array.from(dag.get(current) || []).sort();
-      for (const neighbor of neighbors) {
-        const edgeKey = `${current}→${neighbor}`;
-
-        if (blockDirectEdge && edgeKey === directEdgeKey) {
-          continue;
-        }
-
-        const travelTime = Math.max(1, edgeTravelTimes.get(edgeKey) || 1);
-        const usage = Math.max(1, edgeUsage.get(edgeKey) || 0);
-
-        // Lower score = preferred edge. High-usage edges are favoured,
-        // which helps map express patterns onto shared, well-supported corridors.
-        let edgeCost = travelTime / usage;
-
-        // Heuristic: if there is an alternative path from current to neighbor
-        // that uses intermediate nodes, treat this direct edge as a skip edge
-        // and penalize it heavily so corridor paths are preferred when available.
-        const alternativeHopCount = this.findAlternativePathHopCount(dag, current, neighbor, edgeKey);
-
-        if (alternativeHopCount !== null && alternativeHopCount >= 2) {
-          // Heavy penalty: multiply by (alternativeHopCount - 1) to make
-          // long detours heavily preferred over short skips.
-          edgeCost += 100 + alternativeHopCount * 20;
-        }
-
-        const tentativeDistance = currentDistance + edgeCost;
-        const tentativeHops = currentHops + 1;
-
+      const neighbors = Array.from(adjacency.get(current)?.entries() || []).sort((a, b) =>
+        a[0].localeCompare(b[0]),
+      );
+      for (const [neighbor, weight] of neighbors) {
+        const tentativeDistance = bestDistance + weight;
+        const tentativeHops = bestHops + 1;
         const knownDistance = distances.get(neighbor) ?? Number.POSITIVE_INFINITY;
         const knownHops = hops.get(neighbor) ?? Number.POSITIVE_INFINITY;
 
@@ -2320,6 +2626,67 @@ export class GTFSConverterService {
     }
 
     return path.reverse();
+  }
+
+  private buildUndirectedMinTravelAdjacency(
+    edgeTravelTimes: Map<string, number>,
+    excludedEdgeKeys: Set<string> = new Set<string>(),
+  ): Map<string, Map<string, number>> {
+    const adjacency = new Map<string, Map<string, number>>();
+
+    const ensure = (nodeId: string) => {
+      if (!adjacency.has(nodeId)) {
+        adjacency.set(nodeId, new Map<string, number>());
+      }
+      return adjacency.get(nodeId)!;
+    };
+
+    edgeTravelTimes.forEach((travelTime, edgeKey) => {
+      if (excludedEdgeKeys.has(edgeKey)) {
+        return;
+      }
+
+      const parts = edgeKey.split("→");
+      if (parts.length !== 2) {
+        return;
+      }
+      const from = parts[0];
+      const to = parts[1];
+      const weight = Math.max(1, travelTime || 1);
+
+      const fromAdj = ensure(from);
+      const toAdj = ensure(to);
+
+      const currentForward = fromAdj.get(to);
+      if (currentForward === undefined || weight < currentForward) {
+        fromAdj.set(to, weight);
+      }
+
+      const currentBackward = toAdj.get(from);
+      if (currentBackward === undefined || weight < currentBackward) {
+        toAdj.set(from, weight);
+      }
+    });
+
+    return adjacency;
+  }
+
+  private calculatePathTravelTime(path: string[], edgeTravelTimes: Map<string, number>): number {
+    if (path.length < 2) {
+      return 0;
+    }
+
+    let total = 0;
+    for (let idx = 0; idx < path.length - 1; idx++) {
+      const from = path[idx];
+      const to = path[idx + 1];
+      const forward = edgeTravelTimes.get(`${from}→${to}`);
+      const backward = edgeTravelTimes.get(`${to}→${from}`);
+      const edgeWeight = Math.max(1, Math.min(forward ?? Number.POSITIVE_INFINITY, backward ?? Number.POSITIVE_INFINITY));
+      total += Number.isFinite(edgeWeight) ? edgeWeight : 1;
+    }
+
+    return total;
   }
 
   private findAlternativePathHopCount(
