@@ -65,7 +65,7 @@
     "@angular-eslint/eslint-plugin-template": "18.4.3",
     "@angular-eslint/schematics": "18.4.3",
     "@angular-eslint/template-parser": "18.4.3",
-    "@angular/cli": "^19.2.24",
+    "@angular/cli": "^21.2.8",
     "@angular/compiler-cli": "^19.2.21",
     "@angular/language-service": "^19.2.21",
     "@commitlint/types": "^20.3.1",
