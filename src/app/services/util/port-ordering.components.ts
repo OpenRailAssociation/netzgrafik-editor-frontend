@@ -1,9 +1,20 @@
 import {Port} from "../../models/port.model";
 import {Node} from "../../models/node.model";
 
-export function getPortOppositeNodeId(port: Port, nodeId: number): number {
-  const ts = port.getTrainrunSection();
-  return ts.getSourceNodeId() === nodeId ? ts.getTargetNodeId() : ts.getSourceNodeId();
+export function getPortOppositeExpandedNodeId(port: Port, nodeId: number): number {
+  return port.getOppositeExpandedNode(nodeId).getId();
+}
+
+export function getMatchingPortInOppositeNode(port: Port, nodeId: number): Port | undefined {
+  const trainrunId = port.getTrainrunSection().getTrainrunId();
+  const oppositeNode = port.getOppositeExpandedNode(nodeId);
+  return oppositeNode
+    .getPorts()
+    .find(
+      (p) =>
+        p.getTrainrunSection().getTrainrunId() === trainrunId &&
+        p.getOppositeExpandedNode(oppositeNode.getId()).getId() === nodeId,
+    );
 }
 
 /**
@@ -30,7 +41,7 @@ export function getConnectedComponents(nodes: Node[]): Node[][] {
       componentNodes.push(node);
 
       node.getPorts().forEach((port) => {
-        const neighborId = getPortOppositeNodeId(port, nodeId);
+        const neighborId = getPortOppositeExpandedNodeId(port, nodeId);
         if (!visited.has(neighborId) && nodeMap.has(neighborId)) {
           nodesToProcess.push(neighborId);
         }

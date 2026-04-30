@@ -59,3 +59,11 @@ export const TRAINRUN_SECTION_TEXT_AREA_HEIGHT = 20;
 export const EDITOR_MENU_HEIGHT = 60;
 
 export const SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS = 5;
+
+/*
+  Text rotation and path constants for trainrun sections
+ */
+export const ANGLE_UPSIDE_DOWN_THRESHOLD = 90;
+export const EDGE_CASE_THRESHOLD = 1;
+export const DEFAULT_ANGLE_VERTICAL = -90;
+export const DEFAULT_ANGLE_HORIZONTAL = 0;

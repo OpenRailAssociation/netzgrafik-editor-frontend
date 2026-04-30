@@ -1,51 +1,290 @@
+import {
+  TrainrunSectionText,
+  TrainrunSectionTextPositions,
+} from "../../../data-structures/technical.data.structures";
 import {TrainrunSection} from "../../../models/trainrunsection.model";
-import {TrainrunSectionText} from "../../../data-structures/technical.data.structures";
+import {SimpleTrainrunSectionRouter} from "../../../services/util/trainrunsection.routing";
+import {Vec2D} from "../../../utils/vec2D";
+import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 import {EditorView} from "./editor.view";
 import {TrainrunSectionsView} from "./trainrunsections.view";
+import {Node} from "src/app/models/node.model";
+import {SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS} from "../../rastering/definitions";
 
 export class TrainrunSectionViewObject {
+  readonly firstSection: TrainrunSection;
+  readonly lastSection: TrainrunSection;
   readonly key: string;
+  readonly path: Vec2D[];
+  readonly textPositions: TrainrunSectionTextPositions;
 
   constructor(
-    private editorView: EditorView,
-    readonly trainrunSection: TrainrunSection,
+    editorView: EditorView,
+    readonly trainrunSections: TrainrunSection[],
   ) {
-    this.key = TrainrunSectionViewObject.generateKey(editorView, trainrunSection);
+    this.firstSection = trainrunSections[0];
+    this.lastSection = trainrunSections.at(-1)!;
+    this.path = SimpleTrainrunSectionRouter.computePath(this.firstSection, this.lastSection);
+    this.textPositions = SimpleTrainrunSectionRouter.computeTextPositions(
+      this.path,
+      this.firstSection.getSourceNode().getPort(this.firstSection.getSourcePortId()),
+      !this.areTravelTimesEqual(),
+    );
+    this.key = this.generateKey(editorView, trainrunSections);
   }
 
-  static generateKey(editorView: EditorView, d: TrainrunSection): string {
+  getTrainrun() {
+    return this.firstSection.getTrainrun();
+  }
+
+  getNumberOfStops(): number {
+    // Count non-stop collapsed source nodes
+    // Note: in this context, all intermediate sections are collapsed
+    return this.trainrunSections
+      .slice(1) // skip first section
+      .filter((section) => !section.getSourceNode().isNonStop(section)).length;
+  }
+
+  firstSectionMatchesFirstOrLastSection(tsvo: TrainrunSectionViewObject): boolean {
+    return (
+      this.firstSection.getId() === tsvo.firstSection.getId() ||
+      this.firstSection.getId() === tsvo.lastSection.getId()
+    );
+  }
+
+  getCollapsedStopNodes(): Node[] {
+    return this.trainrunSections
+      .slice(1)
+      .filter((section) => !section.getSourceNode().isNonStop(section))
+      .map((section) => section.getSourceNode());
+  }
+
+  getCollapsedStopNodeFromStopIndex(stopIndex: number): Node {
+    return this.getCollapsedStopNodes()[stopIndex];
+  }
+
+  getCollapsedNodeToDrag(stopIndex: number): Node {
+    const numberOfCollapsedStops = this.getCollapsedStopNodes().length;
+    if (numberOfCollapsedStops >= SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS) {
+      return this.getCollapsedStopNodeFromStopIndex(numberOfCollapsedStops - 1);
+    }
+    return this.getCollapsedStopNodeFromStopIndex(stopIndex);
+  }
+
+  getTravelTime(): number {
+    if (this.trainrunSections.length === 1) {
+      return this.firstSection.getTravelTime();
+    }
+
+    return this.trainrunSections.reduce((sum, section, index) => {
+      let sectionTime = section.getTravelTime();
+
+      // Add stop time at intermediate nodes (all except the last section)
+      if (index < this.trainrunSections.length - 1) {
+        const nextSection = this.trainrunSections[index + 1];
+        const stopTime = Math.abs(
+          nextSection.getSourceDepartureConsecutiveTime() -
+            section.getTargetArrivalConsecutiveTime(),
+        );
+        sectionTime += stopTime;
+      }
+
+      return sum + sectionTime;
+    }, 0);
+  }
+
+  getBackwardTravelTime(): number {
+    if (this.trainrunSections.length === 1) {
+      return this.firstSection.getBackwardTravelTime();
+    }
+
+    return this.trainrunSections.reduce((sum, section, index) => {
+      let sectionTime = section.getBackwardTravelTime();
+
+      // Add stop time at intermediate nodes (all except the last section)
+      if (index < this.trainrunSections.length - 1) {
+        const nextSection = this.trainrunSections[index + 1];
+        const stopTime = Math.abs(
+          section.getTargetDepartureConsecutiveTime() -
+            nextSection.getSourceArrivalConsecutiveTime(),
+        );
+        sectionTime += stopTime;
+      }
+
+      return sum + sectionTime;
+    }, 0);
+  }
+
+  areTravelTimesEqual(): boolean {
+    return this.getTravelTime() === this.getBackwardTravelTime();
+  }
+
+  getExtremitySection(atSource: boolean): TrainrunSection {
+    return atSource ? this.firstSection : this.lastSection;
+  }
+
+  getExtremityNode(atSource: boolean): Node {
+    const trainrunSection = this.getExtremitySection(atSource);
+    return atSource ? trainrunSection.getSourceNode() : trainrunSection.getTargetNode();
+  }
+
+  getTextPositionX(textElement: TrainrunSectionText): number {
+    return this.textPositions[textElement].x;
+  }
+
+  getTextPositionY(textElement: TrainrunSectionText): number {
+    return this.textPositions[textElement].y;
+  }
+
+  getPositionAtSourceNode(): Vec2D {
+    return this.path[0];
+  }
+
+  getPositionAtTargetNode(): Vec2D {
+    return this.path[this.path.length - 1];
+  }
+
+  getPosition(atSource: boolean): Vec2D {
+    return atSource ? this.getPositionAtSourceNode() : this.getPositionAtTargetNode();
+  }
+
+  /**
+   * Given the id of a dragged node (which must be at one extremity of this TSVO),
+   * returns the four "links" that describe the drag anchor:
+   *
+   * Single-section TSVO (innerSection === outerSection):
+   *
+   *   outerNode ---[outerSection = innerSection]--- innerNode (= draggedNode)
+   *
+   * Multi-section TSVO:
+   *
+   *   outerNode ---[outerSection]--- ... ---[innerSection]--- innerNode (= draggedNode)
+   *
+   * Example with TSVO: A --[s1]-- B --[s2]-- C --[s3]-- D, dragging A:
+   *
+   *   outerNode=D, outerSection=s3, innerNode=A, innerSection=s1
+   *
+   * @throws Error if draggedNodeId is not an extremity of this TSVO
+   */
+  getExtremityLinks(draggedNodeId: number): {
+    outerNode: Node;
+    outerSection: TrainrunSection;
+    innerNode: Node;
+    innerSection: TrainrunSection;
+  } {
+    const touchesFirst = this.firstSection.isLinkedToNode(draggedNodeId);
+    const touchesLast = this.lastSection.isLinkedToNode(draggedNodeId);
+
+    // Single-section TSVO: innerSection === outerSection, determine which end is the dragged node
+    if (touchesFirst && touchesLast) {
+      const section = this.firstSection;
+      const isDraggedNodeAtSource = section.getSourceNode().getId() === draggedNodeId;
+
+      const sourceNode = section.getSourceNode();
+      const targetNode = section.getTargetNode();
+
+      return isDraggedNodeAtSource
+        ? {
+            outerNode: targetNode,
+            outerSection: section,
+            innerNode: sourceNode,
+            innerSection: section,
+          }
+        : {
+            outerNode: sourceNode,
+            outerSection: section,
+            innerNode: targetNode,
+            innerSection: section,
+          };
+    }
+    // Multi-section TSVO: dragged node is at the source extremity
+    if (touchesFirst && !touchesLast) {
+      return {
+        outerNode: this.lastSection.getTargetNode(),
+        outerSection: this.lastSection,
+        innerNode: this.firstSection.getSourceNode(),
+        innerSection: this.firstSection,
+      };
+    }
+    // Multi-section TSVO: dragged node is at the target extremity
+    if (touchesLast && !touchesFirst) {
+      return {
+        outerNode: this.firstSection.getSourceNode(),
+        outerSection: this.firstSection,
+        innerNode: this.lastSection.getTargetNode(),
+        innerSection: this.lastSection,
+      };
+    }
+    throw new Error(
+      `getExtremityLinks: draggedNodeId ${draggedNodeId} is not an extremity of this TSVO`,
+    );
+  }
+
+  // A "Tip" is the state of a trainrun section's end (source or target). This state is represented
+  // as a cropped line on the end's side and a node's name displayed next to it. A trainrun section's
+  // end is a Tip when the node on its side is collapsed or filtered.
+  // Note: in this function, we deal only with collapsed node, because the filtering system is a mess.
+  isTip(atSource: boolean): boolean {
+    if (atSource) {
+      return (
+        !this.firstSection.getSourceNode().getIsCollapsed() &&
+        this.lastSection.getTargetNode().getIsCollapsed()
+      );
+    } else {
+      return (
+        this.firstSection.getSourceNode().getIsCollapsed() &&
+        !this.lastSection.getTargetNode().getIsCollapsed()
+      );
+    }
+  }
+
+  isTargetRightOrBottom(): boolean {
+    const firstNode = this.firstSection.getSourceNode();
+    const lastNode = this.lastSection.getTargetNode();
+    return GeneralViewFunctions.getRightOrBottomNode(firstNode, lastNode) === lastNode;
+  }
+
+  private generateKey(editorView: EditorView, trainrunSections: TrainrunSection[]): string {
     const selectedTrainrun = editorView.getSelectedTrainrun();
     let connectedTrainIds = [];
     if (selectedTrainrun !== null) {
       connectedTrainIds = editorView.getConnectedTrainrunIds(selectedTrainrun);
     }
 
-    const isNonStopAtSource = d.getSourceNode().isNonStop(d);
-    const isNonStopAtTarget = d.getTargetNode().isNonStop(d);
-    const isMuted = TrainrunSectionsView.isMuted(d, selectedTrainrun, connectedTrainIds);
+    const isNonStopAtSource = TrainrunSectionsView.getNode(this.firstSection, true).isNonStop(
+      this.firstSection,
+    );
+    const isNonStopAtTarget = TrainrunSectionsView.getNode(this.lastSection, false).isNonStop(
+      this.lastSection,
+    );
+    const isMuted = TrainrunSectionsView.isMuted(
+      this.firstSection,
+      selectedTrainrun,
+      connectedTrainIds,
+    );
     const hiddenTagSource = TrainrunSectionsView.getHiddenTagForTime(
       editorView,
-      d,
+      this.firstSection,
       TrainrunSectionText.SourceDeparture,
     );
     const hiddenTagTarget = TrainrunSectionsView.getHiddenTagForTime(
       editorView,
-      d,
+      this.lastSection,
       TrainrunSectionText.TargetDeparture,
     );
     const hiddenTagTravelTime = TrainrunSectionsView.getHiddenTagForTime(
       editorView,
-      d,
+      this.firstSection,
       TrainrunSectionText.TrainrunSectionTravelTime,
     );
     const hiddenTagBackwardTravelTime = TrainrunSectionsView.getHiddenTagForTime(
       editorView,
-      d,
+      this.firstSection,
       TrainrunSectionText.TrainrunSectionBackwardTravelTime,
     );
     const hiddenTagTrainrunName = TrainrunSectionsView.getHiddenTagForTime(
       editorView,
-      d,
+      this.firstSection,
       TrainrunSectionText.TrainrunSectionName,
     );
     const hiddenTagDirectionArrows =
@@ -53,77 +292,84 @@ export class TrainrunSectionViewObject {
       !editorView.isFilterDirectionArrowsEnabled();
     const hiddenTagAsymmetryArrows = !editorView.isFilterAsymmetryArrowsEnabled();
     const cumulativeTravelTimeData = editorView.getCumulativeTravelTimeAndNodePath(
-      d,
+      this.firstSection,
       "sourceToTarget",
     );
     const activeTrafficSideType = editorView.getActiveTrafficSideType();
     const cumulativeTravelTime =
       cumulativeTravelTimeData[cumulativeTravelTimeData.length - 1].sumTravelTime;
-    const cumulativeBackwardTravelTime = editorView.getCumulativeTravelTime(d, "targetToSource");
+    const cumulativeBackwardTravelTime = editorView.getCumulativeTravelTime(
+      this.firstSection,
+      "targetToSource",
+    );
 
     let key =
       "#" +
-      d.getId() +
+      this.firstSection.getId() +
       "@" +
-      d.getTrainrun().getTitle() +
+      this.getTrainrun().getTitle() +
       "_" +
-      d.selected() +
+      trainrunSections.some((ts) => ts.selected()) +
       "_" +
-      d.getTrainrun().selected() +
+      this.getTrainrun().selected() +
       "_" +
-      d.getNumberOfStops() +
+      this.firstSection.getNumberOfStops() +
       "_" +
-      d.getTravelTime() +
+      this.getTravelTime() +
       "_" +
       cumulativeTravelTime +
       "_" +
-      d.getBackwardTravelTime() +
+      this.getBackwardTravelTime() +
       "_" +
       cumulativeBackwardTravelTime +
       "_" +
       editorView.getTimeDisplayPrecision() +
       "_" +
-      d.getTargetDeparture() +
+      this.lastSection.getTargetDeparture() +
       "_" +
-      d.getTargetArrival() +
+      this.lastSection.getTargetArrival() +
       "_" +
-      d.getSourceDeparture() +
+      this.firstSection.getSourceDeparture() +
       "_" +
-      d.getSourceArrival() +
+      this.firstSection.getSourceArrival() +
       "_" +
-      d.getTargetDepartureConsecutiveTime() +
+      this.lastSection.getTargetDepartureConsecutiveTime() +
       "_" +
-      d.getTargetArrivalConsecutiveTime() +
+      this.lastSection.getTargetArrivalConsecutiveTime() +
       "_" +
-      d.getSourceDepartureConsecutiveTime() +
+      this.firstSection.getSourceDepartureConsecutiveTime() +
       "_" +
-      d.getSourceArrivalConsecutiveTime() +
+      this.firstSection.getSourceArrivalConsecutiveTime() +
       "_" +
-      d.getNumberOfStops() +
+      this.firstSection.getNumberOfStops() +
       "_" +
-      d.getTrainrun().getTrainrunCategory().shortName +
+      this.firstSection.getSourceNode().getIsCollapsed() +
       "_" +
-      d.getTrainrun().getTrainrunFrequency().shortName +
+      this.lastSection.getTargetNode().getIsCollapsed() +
       "_" +
-      d.getTrainrun().getTrainrunTimeCategory().shortName +
+      this.getTrainrun().getTrainrunCategory().shortName +
       "_" +
-      d.getTrainrun().getTrainrunCategory().id +
+      this.getTrainrun().getTrainrunFrequency().shortName +
       "_" +
-      d.getTrainrun().getTrainrunFrequency().id +
+      this.getTrainrun().getTrainrunTimeCategory().shortName +
       "_" +
-      d.getTrainrun().getTrainrunTimeCategory().id +
+      this.getTrainrun().getTrainrunCategory().id +
       "_" +
-      d.getTrainrun().getTrainrunCategory().colorRef +
+      this.getTrainrun().getTrainrunFrequency().id +
       "_" +
-      d.getTrainrun().getTrainrunFrequency().linePatternRef +
+      this.getTrainrun().getTrainrunTimeCategory().id +
       "_" +
-      d.getTrainrun().getTrainrunTimeCategory().linePatternRef +
+      this.getTrainrun().getTrainrunCategory().colorRef +
       "_" +
-      d.getTrainrun().getTrainrunFrequency().frequency +
+      this.getTrainrun().getTrainrunFrequency().linePatternRef +
       "_" +
-      d.getTrainrun().getTrainrunFrequency().offset +
+      this.getTrainrun().getTrainrunTimeCategory().linePatternRef +
       "_" +
-      d.getTrainrun().getDirection() +
+      this.getTrainrun().getTrainrunFrequency().frequency +
+      "_" +
+      this.getTrainrun().getTrainrunFrequency().offset +
+      "_" +
+      this.getTrainrun().getDirection() +
       "_" +
       isNonStopAtSource +
       "_" +
@@ -151,17 +397,17 @@ export class TrainrunSectionViewObject {
       "_" +
       editorView.isFilterShowNonStopTimeEnabled() +
       "_" +
-      editorView.checkFilterNonStopNode(d.getSourceNode()) +
+      editorView.checkFilterNonStopNode(this.firstSection.getSourceNode()) +
       "_" +
-      editorView.checkFilterNonStopNode(d.getTargetNode()) +
+      editorView.checkFilterNonStopNode(this.lastSection.getTargetNode()) +
       "_" +
-      editorView.isJunctionNode(d.getSourceNode()) +
+      editorView.isJunctionNode(this.firstSection.getSourceNode()) +
       "_" +
-      editorView.isJunctionNode(d.getTargetNode()) +
+      editorView.isJunctionNode(this.lastSection.getTargetNode()) +
       "_" +
-      editorView.checkFilterNode(d.getSourceNode()) +
+      editorView.checkFilterNode(this.firstSection.getSourceNode()) +
       "_" +
-      editorView.checkFilterNode(d.getTargetNode()) +
+      editorView.checkFilterNode(this.lastSection.getTargetNode()) +
       "_" +
       editorView.isFilterDirectionArrowsEnabled() +
       "_" +
@@ -176,9 +422,10 @@ export class TrainrunSectionViewObject {
       key += "_" + editorView.checkFilterNode(data.node);
     });
 
-    d.getPath().forEach((p) => {
+    this.path.forEach((p) => {
       key += p.toString();
     });
+
     return key;
   }
 }
