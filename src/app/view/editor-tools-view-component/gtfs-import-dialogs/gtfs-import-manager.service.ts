@@ -16,6 +16,7 @@ import {
   DEFAULT_NODE_FILTER,
   DEFAULT_TIME_SYNC_TOLERANCE,
   DEFAULT_TOPOLOGY_DETOUR_PERCENT,
+  DEFAULT_TOPOLOGY_DETOUR_ABSOLUTE_MINUTES,
 } from "./gtfs-import.models";
 
 const DEFAULT_SELECTED_LINES = ["IC21", "IC26", "IR27", "IR15", "S1", "S29", "RE24"];
@@ -79,6 +80,7 @@ export class GtfsImportManagerService {
       timeSyncTolerance: DEFAULT_TIME_SYNC_TOLERANCE,
       enableTopologyConsolidation: true, // Q6: Default enabled
       topologyDetourPercent: DEFAULT_TOPOLOGY_DETOUR_PERCENT,
+      topologyDetourAbsoluteMinutes: DEFAULT_TOPOLOGY_DETOUR_ABSOLUTE_MINUTES,
     };
   }
 
@@ -555,6 +557,7 @@ export class GtfsImportManagerService {
           timeSyncTolerance: state.timeSyncTolerance,
           enableTopologyConsolidation: state.enableTopologyConsolidation,
           topologyDetourPercent: state.topologyDetourPercent,
+          topologyDetourAbsoluteMinutes: state.topologyDetourAbsoluteMinutes,
           labelCreator: (labelText: string) => {
             const label = this.labelService.getOrCreateLabel(labelText, LabelRef.Trainrun);
             return label.getId();
@@ -1115,6 +1118,11 @@ export class GtfsImportManagerService {
   updateTopologyDetourPercent(value: number): void {
     const sanitized = Math.max(0, Math.min(500, Number(value) || 0));
     this.updateState({topologyDetourPercent: sanitized});
+  }
+
+  updateTopologyDetourAbsoluteMinutes(value: number): void {
+    const sanitized = Math.max(0, Math.min(60, Number(value) || 0));
+    this.updateState({topologyDetourAbsoluteMinutes: sanitized});
   }
 
   /**

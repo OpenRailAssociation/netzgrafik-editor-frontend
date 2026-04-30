@@ -273,6 +273,7 @@ export class GTFSConverterService {
       timeSyncTolerance?: number; // Tolerance in seconds for round-trip time matching (default: 150)
       enableTopologyConsolidation?: boolean; // Q6: Topology consolidation toggle from UI
       topologyDetourPercent?: number; // Allowed detour (+%) for alternative path mapping
+      topologyDetourAbsoluteMinutes?: number; // Allowed detour (absolute minutes) for alternative path mapping
       mergeRoundTrips?: boolean; // Merge opposite directions into ROUND_TRIP (default: false when topology consolidation is enabled)
     } = {},
   ): NetzgrafikDto {
@@ -293,16 +294,18 @@ export class GTFSConverterService {
     
     const enableTopologyConsolidation = options.enableTopologyConsolidation !== false;
     const topologyDetourPercent = Math.max(0, options.topologyDetourPercent ?? 35);
+    const topologyDetourAbsoluteMinutes = Math.max(0, options.topologyDetourAbsoluteMinutes ?? 3);
     if (enableTopologyConsolidation && tripPatterns.length > 1) {
       try {
         const topologyResult = this.synthesizeTopologyGraph(
           tripPatterns,
           gtfsData,
           topologyDetourPercent,
+          topologyDetourAbsoluteMinutes,
         );
         enrichedPatternsWithTopology = topologyResult.enrichedPatterns;
         console.info(
-          `> [Q6] Topology consolidation enabled (detour <= +${topologyDetourPercent}%)`,
+          `> [Q6] Topology consolidation enabled (detour <= +${topologyDetourPercent}% OR +${topologyDetourAbsoluteMinutes}min)`,
         );
       } catch (err) {
         console.warn("> [Q6] Topology consolidation failed, falling back to direct mapping", err);
@@ -1455,11 +1458,15 @@ export class GTFSConverterService {
    * Calculate travel time in minutes
    */
   private calculateTravelTime(departureMinutes: number, arrivalMinutes: number): number {
-    let travelTime = arrivalMinutes - departureMinutes;
+    // Normalize to [0, 1439] to handle extended GTFS times like "25:10:00"
+    // which timeToMinutes() returns as values > 1440.
+    const dep = departureMinutes % (24 * 60);
+    const arr = arrivalMinutes % (24 * 60);
+    let travelTime = arr - dep;
     if (travelTime < 0) {
       travelTime += 24 * 60; // Handle midnight crossing
     }
-    return travelTime;
+    return Math.max(1, travelTime);
   }
 
   /**
@@ -1688,6 +1695,7 @@ export class GTFSConverterService {
     patterns: TripPattern[],
     gtfsData: GTFSData,
     topologyDetourPercent: number,
+    topologyDetourAbsoluteMinutes: number,
   ): {
     backboneNodes: Set<string>; // All nodes in synthesized backbone
     backboneEdges: Map<string, {from: string; to: string; travelTimeMinutes: number}>; // Edge key -> edge
@@ -1719,6 +1727,7 @@ export class GTFSConverterService {
       backboneNodes,
       edgeTravelTimes,
       topologyDetourPercent,
+      topologyDetourAbsoluteMinutes,
     );
 
     this.verboseLog(
@@ -2038,6 +2047,7 @@ export class GTFSConverterService {
     backboneNodes: Set<string>,
     edgeTravelTimes: Map<string, number>,
     topologyDetourPercent: number,
+    topologyDetourAbsoluteMinutes: number,
   ): Array<{
     pattern: TripPattern;
     nodeSequence: string[];
@@ -2297,11 +2307,16 @@ export class GTFSConverterService {
         excludedEdgeKeys,
       );
 
+      const pathTravelMin = alternativePath
+        ? this.calculatePathTravelTime(alternativePath, consolidatedEdgeTravelTimes)
+        : Infinity;
+
       const canConsolidate =
         alternativePath &&
         alternativePath.length >= 3 &&
-        this.calculatePathTravelTime(alternativePath, consolidatedEdgeTravelTimes) <=
-          representative.directTravelMin * (1 + topologyDetourPercent / 100);
+        pathTravelMin > representative.directTravelMin * 1.01 && // Must be a genuinely different path (not the base edge itself with rounding errors)
+        (pathTravelMin <= representative.directTravelMin * (1 + topologyDetourPercent / 100) ||
+         pathTravelMin <= representative.directTravelMin + topologyDetourAbsoluteMinutes);
 
       // Apply decision to ALL sections of this edge group
       sections.forEach((section) => {
@@ -2416,14 +2431,8 @@ export class GTFSConverterService {
         let totalWeight = 0;
         for (let pathIndex = 0; pathIndex < path.length - 1; pathIndex++) {
           const forwardKey = `${path[pathIndex]}→${path[pathIndex + 1]}`;
-          const backwardKey = `${path[pathIndex + 1]}→${path[pathIndex]}`;
-          const weight = Math.max(
-            1,
-            Math.min(
-              consolidatedEdgeTravelTimes.get(forwardKey) ?? Number.POSITIVE_INFINITY,
-              consolidatedEdgeTravelTimes.get(backwardKey) ?? Number.POSITIVE_INFINITY,
-            ),
-          );
+          // Use only forward direction (edges are directional)
+          const weight = Math.max(1, consolidatedEdgeTravelTimes.get(forwardKey) ?? 1);
           segmentWeights.push(weight);
           totalWeight += weight;
         }
@@ -2435,6 +2444,11 @@ export class GTFSConverterService {
 
           if (!mappedSequence.includes(nodeId)) {
             mappedSequence.push(nodeId);
+          }
+
+          // Skip if timing already exists for this node (prevents duplicate insertion)
+          if (timing.has(nodeId)) {
+            continue;
           }
 
           if (nodeId === targetHalt.stationId) {
@@ -2706,17 +2720,13 @@ export class GTFSConverterService {
       const weight = Math.max(1, travelTime || 1);
 
       const fromAdj = ensure(from);
-      const toAdj = ensure(to);
 
       const currentForward = fromAdj.get(to);
       if (currentForward === undefined || weight < currentForward) {
         fromAdj.set(to, weight);
       }
-
-      const currentBackward = toAdj.get(from);
-      if (currentBackward === undefined || weight < currentBackward) {
-        toAdj.set(from, weight);
-      }
+      // NOTE: Do NOT add reverse edges. GTFS routes are directional.
+      // Allowing backwards traversal creates cycles (A-B-C-B-A).
     });
 
     return adjacency;
@@ -2731,10 +2741,9 @@ export class GTFSConverterService {
     for (let idx = 0; idx < path.length - 1; idx++) {
       const from = path[idx];
       const to = path[idx + 1];
-      const forward = edgeTravelTimes.get(`${from}→${to}`);
-      const backward = edgeTravelTimes.get(`${to}→${from}`);
-      const edgeWeight = Math.max(1, Math.min(forward ?? Number.POSITIVE_INFINITY, backward ?? Number.POSITIVE_INFINITY));
-      total += Number.isFinite(edgeWeight) ? edgeWeight : 1;
+      // Use only forward direction (edges are directional, not bidirectional)
+      const weight = edgeTravelTimes.get(`${from}→${to}`) ?? 1;
+      total += Math.max(1, weight);
     }
 
     return total;

@@ -474,9 +474,20 @@
                 (ngModelChange)="gtfsTopologyDetourPercentChange.emit($event)"
               />
             </sbb-form-field>
+            <sbb-form-field label="Max. Umweg fuer Konsolidierung (Minuten)">
+              <input
+                sbbInput
+                type="number"
+                min="0"
+                max="60"
+                step="1"
+                [(ngModel)]="gtfsTopologyDetourAbsoluteMinutes"
+                (ngModelChange)="gtfsTopologyDetourAbsoluteMinutesChange.emit($event)"
+              />
+            </sbb-form-field>
             <small class="filter-hint">
               Legt Zugläufe auf gemeinsame Korridore. Alternative Pfade werden nur verwendet,
-              wenn sie maximal {{ gtfsTopologyDetourPercent }}% laenger als die Direktsektion sind.
+              wenn sie maximal {{ gtfsTopologyDetourPercent }}% oder {{ gtfsTopologyDetourAbsoluteMinutes }}min laenger als die Direktsektion sind.
             </small>
           </div>
 

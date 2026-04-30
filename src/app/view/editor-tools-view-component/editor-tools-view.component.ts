@@ -107,7 +107,8 @@ export class EditorToolsViewComponent {
 
   // Topology consolidation toggle
   public gtfsEnableTopologyConsolidation = true;
-  public gtfsTopologyDetourPercent = 25;
+  public gtfsTopologyDetourPercent = 35;
+  public gtfsTopologyDetourAbsoluteMinutes = 3;
 
   // GTFS Import Progress Overlay
   public gtfsImportOverlayVisible = false;
@@ -196,6 +197,7 @@ export class EditorToolsViewComponent {
       this.gtfsTimeSyncTolerance = state.timeSyncTolerance;
       this.gtfsEnableTopologyConsolidation = state.enableTopologyConsolidation;
       this.gtfsTopologyDetourPercent = state.topologyDetourPercent;
+      this.gtfsTopologyDetourAbsoluteMinutes = state.topologyDetourAbsoluteMinutes;
     });
   }
 
@@ -1056,6 +1058,10 @@ export class EditorToolsViewComponent {
 
   setGtfsTopologyDetourPercent(value: number): void {
     this.gtfsImportManagerService.updateTopologyDetourPercent(value);
+  }
+
+  setGtfsTopologyDetourAbsoluteMinutes(value: number): void {
+    this.gtfsImportManagerService.updateTopologyDetourAbsoluteMinutes(value);
   }
 
   async applyGtfsFiltersAndImport(): Promise<void> {
