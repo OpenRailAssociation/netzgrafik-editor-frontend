@@ -292,7 +292,7 @@ export class GTFSConverterService {
     }> | null = null;
     
     const enableTopologyConsolidation = options.enableTopologyConsolidation !== false;
-    const topologyDetourPercent = Math.max(0, options.topologyDetourPercent ?? 25);
+    const topologyDetourPercent = Math.max(0, options.topologyDetourPercent ?? 35);
     if (enableTopologyConsolidation && tripPatterns.length > 1) {
       try {
         const topologyResult = this.synthesizeTopologyGraph(
@@ -2234,10 +2234,26 @@ export class GTFSConverterService {
       consolidatedEdgeTravelTimes.set(`${b}→${a}`, weight);
     });
 
-    // 3) Sort original sections by travel time ascending.
-    const sortedSections = [...originalSections].sort((a, b) => a.directTravelMin - b.directTravelMin);
+    // 3) Group sections by edge (undirected)
+    const edgeToSections = new Map<string, OriginalSection[]>();
+    originalSections.forEach((section) => {
+      const edgeKey = this.getUndirectedEdgeKey(section.from, section.to);
+      if (!edgeToSections.has(edgeKey)) {
+        edgeToSections.set(edgeKey, []);
+      }
+      edgeToSections.get(edgeKey)!.push(section);
+    });
 
-    // 4) Iterate each original section exactly once (new sections are never reprocessed).
+    // 3b) Sort edge groups by min travel time of their sections
+    const sortedEdgeGroups = Array.from(edgeToSections.entries())
+      .map(([edgeKey, sections]) => ({
+        edgeKey,
+        sections,
+        minTravelMin: Math.min(...sections.map((s) => s.directTravelMin)),
+      }))
+      .sort((a, b) => a.minTravelMin - b.minTravelMin);
+
+    // 4) Iterate edge groups atomically: all sections of an edge consolidate together or not at all
     const doneSections = new Set<number>();
     const replacementPathBySectionId = new Map<number, string[]>();
     const consolidatedDetailsByPatternIndex = new Map<
@@ -2253,55 +2269,90 @@ export class GTFSConverterService {
       }>
     >();
 
-    let totalSegmentsEvaluated = sortedSections.length;
+    let totalSegmentsEvaluated = originalSections.length;
     let totalSegmentsConsolidated = 0;
     let totalInsertedNodes = 0;
 
-    sortedSections.forEach((section) => {
-      if (doneSections.has(section.id)) {
+    sortedEdgeGroups.forEach(({ edgeKey, sections }) => {
+      // Skip if all sections of this edge are already done
+      if (sections.every((s) => doneSections.has(s.id))) {
         return;
       }
-      doneSections.add(section.id);
 
+      // Use the section with lowest travel time as representative
+      const representative = sections.reduce((min, s) =>
+        s.directTravelMin < min.directTravelMin ? s : min,
+      );
+
+      // Exclude both directions of this edge
       const excludedEdgeKeys = new Set<string>([
-        `${section.from}→${section.to}`,
-        `${section.to}→${section.from}`,
+        `${representative.from}→${representative.to}`,
+        `${representative.to}→${representative.from}`,
       ]);
 
       const alternativePath = this.findShortestPathByTravelTime(
-        section.from,
-        section.to,
+        representative.from,
+        representative.to,
         consolidatedEdgeTravelTimes,
         excludedEdgeKeys,
       );
 
-      if (!alternativePath || alternativePath.length < 3) {
-        return;
-      }
+      const canConsolidate =
+        alternativePath &&
+        alternativePath.length >= 3 &&
+        this.calculatePathTravelTime(alternativePath, consolidatedEdgeTravelTimes) <=
+          representative.directTravelMin * (1 + topologyDetourPercent / 100);
 
-      const pathTravelMin = this.calculatePathTravelTime(alternativePath, consolidatedEdgeTravelTimes);
-      const allowedTravelMin = section.directTravelMin * (1 + topologyDetourPercent / 100);
+      // Apply decision to ALL sections of this edge group
+      sections.forEach((section) => {
+        if (doneSections.has(section.id)) {
+          return;
+        }
+        doneSections.add(section.id);
 
-      if (pathTravelMin > allowedTravelMin) {
-        return;
-      }
+        if (!canConsolidate) {
+          return;
+        }
 
-      replacementPathBySectionId.set(section.id, alternativePath);
-      totalSegmentsConsolidated++;
-      totalInsertedNodes += Math.max(0, alternativePath.length - 2);
+        // Determine path for this section
+        let pathForSection: string[];
+        if (section.from === representative.from && section.to === representative.to) {
+          // Same direction
+          pathForSection = alternativePath!;
+        } else if (section.from === representative.to && section.to === representative.from) {
+          // Reverse direction
+          pathForSection = [...alternativePath!].reverse();
+        } else {
+          // Different edge (shouldn't happen, but skip)
+          return;
+        }
 
-      if (!consolidatedDetailsByPatternIndex.has(section.patternIndex)) {
-        consolidatedDetailsByPatternIndex.set(section.patternIndex, []);
-      }
-      consolidatedDetailsByPatternIndex.get(section.patternIndex)!.push({
-        from: section.from,
-        to: section.to,
-        directTravelMin: section.directTravelMin,
-        pathTravelMin,
-        allowedTravelMin,
-        insertedNodes: Math.max(0, alternativePath.length - 2),
-        path: [...alternativePath],
+        replacementPathBySectionId.set(section.id, pathForSection);
+        totalSegmentsConsolidated++;
+        totalInsertedNodes += Math.max(0, pathForSection.length - 2);
+
+        const pathTravelMin = this.calculatePathTravelTime(pathForSection, consolidatedEdgeTravelTimes);
+        const allowedTravelMin = section.directTravelMin * (1 + topologyDetourPercent / 100);
+
+        if (!consolidatedDetailsByPatternIndex.has(section.patternIndex)) {
+          consolidatedDetailsByPatternIndex.set(section.patternIndex, []);
+        }
+        consolidatedDetailsByPatternIndex.get(section.patternIndex)!.push({
+          from: section.from,
+          to: section.to,
+          directTravelMin: section.directTravelMin,
+          pathTravelMin,
+          allowedTravelMin,
+          insertedNodes: Math.max(0, pathForSection.length - 2),
+          path: [...pathForSection],
+        });
       });
+
+      // Remove the edge from graph AFTER all sections are processed
+      if (canConsolidate) {
+        consolidatedEdgeTravelTimes.delete(`${representative.from}→${representative.to}`);
+        consolidatedEdgeTravelTimes.delete(`${representative.to}→${representative.from}`);
+      }
     });
 
     // 5) Materialize merged sections into mapped node sequences and timing interpolation.
