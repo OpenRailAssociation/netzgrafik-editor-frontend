@@ -554,6 +554,9 @@ export class GTFSConverterService {
       // Create trainrun sections
       // Process all stations in sequence, including non-stop (through) stations
       let sectionsCreated = 0;
+      const usedEdgeKeysForTrainrun = new Set<string>();
+      const visitedNodeIdsForTrainrun = new Set<number>();
+      let enrichedSequenceCursor = 0;
 
       // Group consecutive stops by station (parent_station)
       // Each group represents one station with potentially multiple platforms
@@ -618,6 +621,10 @@ export class GTFSConverterService {
         stationGroups.push(currentGroup);
       }
 
+      if (stationGroups.length > 0) {
+        visitedNodeIdsForTrainrun.add(stationGroups[0].nodeId);
+      }
+
       // DEBUG: Print stop sequence with station names
       stationGroups.forEach((group, idx) => {
         // Get node info
@@ -658,14 +665,39 @@ export class GTFSConverterService {
         }> = [sourceGroup];
 
         if (enrichedPattern && enrichedPattern.nodeSequence.length > 1) {
-          const startIdx = enrichedPattern.nodeSequence.indexOf(sourceGroup.stationStopId);
-          const endIdx = enrichedPattern.nodeSequence.indexOf(targetGroup.stationStopId);
+          const sequence = enrichedPattern.nodeSequence;
+          let startIdx = -1;
+          for (let idx = Math.max(0, enrichedSequenceCursor); idx < sequence.length; idx++) {
+            if (sequence[idx] === sourceGroup.stationStopId) {
+              startIdx = idx;
+              break;
+            }
+          }
+          if (startIdx < 0) {
+            for (let idx = 0; idx < sequence.length; idx++) {
+              if (sequence[idx] === sourceGroup.stationStopId) {
+                startIdx = idx;
+                break;
+              }
+            }
+          }
 
-          if (startIdx >= 0 && endIdx >= 0 && startIdx !== endIdx) {
-            const step = endIdx > startIdx ? 1 : -1;
+          let endIdx = -1;
+          if (startIdx >= 0) {
+            for (let idx = startIdx + 1; idx < sequence.length; idx++) {
+              if (sequence[idx] === targetGroup.stationStopId) {
+                endIdx = idx;
+                break;
+              }
+            }
+          }
+
+          if (startIdx >= 0 && endIdx > startIdx) {
+            const step = 1;
+            enrichedSequenceCursor = startIdx;
 
             for (let idx = startIdx + step; idx !== endIdx; idx += step) {
-              const intermediateStationId = enrichedPattern.nodeSequence[idx];
+              const intermediateStationId = sequence[idx];
               const intermediateNodeId = nodeIdMap.get(intermediateStationId);
               if (!intermediateNodeId) {
                 continue;
@@ -687,14 +719,33 @@ export class GTFSConverterService {
                 departureTimeMinutes: interpolatedMinute,
               });
             }
+
+            enrichedSequenceCursor = endIdx;
           }
         }
 
         sectionGroups.push(targetGroup);
 
+        // If the interpolated group path already contains loops, fall back to direct segment.
+        const sectionNodeIds = sectionGroups.map((g) => g.nodeId);
+        if (new Set(sectionNodeIds).size !== sectionNodeIds.length) {
+          sectionGroups.length = 0;
+          sectionGroups.push(sourceGroup, targetGroup);
+        }
+
         for (let segIdx = 0; segIdx < sectionGroups.length - 1; segIdx++) {
           const sourceSegmentGroup = sectionGroups[segIdx];
           const targetSegmentGroup = sectionGroups[segIdx + 1];
+
+          const edgeKey = `${sourceSegmentGroup.nodeId}→${targetSegmentGroup.nodeId}`;
+          if (usedEdgeKeysForTrainrun.has(edgeKey)) {
+            continue;
+          }
+
+          // Never revisit a node within one trainrun section chain.
+          if (visitedNodeIdsForTrainrun.has(targetSegmentGroup.nodeId)) {
+            continue;
+          }
 
           const departureTime = sourceSegmentGroup.departureTimeMinutes;
           const arrivalTime = targetSegmentGroup.arrivalTimeMinutes;
@@ -702,6 +753,8 @@ export class GTFSConverterService {
 
           // === STEP 1: ENFORCE SYMMETRY (60-x rule) ===
           // Extract minutes ONLY (0-59) for forward direction from GTFS
+          usedEdgeKeysForTrainrun.add(edgeKey);
+          visitedNodeIdsForTrainrun.add(targetSegmentGroup.nodeId);
           const sourceDep_minute = departureTime % 60; // Forward: source departure (e.g., :05)
           const targetArr_minute = arrivalTime % 60; // Forward: target arrival (e.g., :52)
 
@@ -2208,10 +2261,10 @@ export class GTFSConverterService {
       }
     });
 
-    // 2) Consolidate graph edges to min travel time per node pair.
+    // 2) Consolidate graph edges to min travel time per directed node pair.
     // Prefer observed per-edge minima from topology extraction (T4), then
     // fall back to section-derived minima when needed.
-    const minUndirectedWeights = new Map<string, number>();
+    const minDirectedWeights = new Map<string, number>();
 
     edgeTravelTimes.forEach((travelTime, edgeKey) => {
       const [from, to] = edgeKey.split("→");
@@ -2219,29 +2272,28 @@ export class GTFSConverterService {
         return;
       }
       const weight = Math.max(1, travelTime || 1);
-      const undirectedKey = this.getUndirectedEdgeKey(from, to);
-      const existing = minUndirectedWeights.get(undirectedKey);
+      const directedKey = `${from}→${to}`;
+      const existing = minDirectedWeights.get(directedKey);
       if (existing === undefined || weight < existing) {
-        minUndirectedWeights.set(undirectedKey, weight);
+        minDirectedWeights.set(directedKey, weight);
       }
     });
 
     originalSections.forEach((section) => {
-      const edgeKey = this.getUndirectedEdgeKey(section.from, section.to);
-      const existing = minUndirectedWeights.get(edgeKey);
+      const edgeKey = `${section.from}→${section.to}`;
+      const existing = minDirectedWeights.get(edgeKey);
       if (existing === undefined || section.directTravelMin < existing) {
-        minUndirectedWeights.set(edgeKey, section.directTravelMin);
+        minDirectedWeights.set(edgeKey, section.directTravelMin);
       }
     });
 
     const consolidatedEdgeTravelTimes = new Map<string, number>();
-    minUndirectedWeights.forEach((weight, edgeKey) => {
-      const [a, b] = edgeKey.split("↔");
-      if (!a || !b) {
+    minDirectedWeights.forEach((weight, edgeKey) => {
+      const [from, to] = edgeKey.split("→");
+      if (!from || !to) {
         return;
       }
-      consolidatedEdgeTravelTimes.set(`${a}→${b}`, weight);
-      consolidatedEdgeTravelTimes.set(`${b}→${a}`, weight);
+      consolidatedEdgeTravelTimes.set(`${from}→${to}`, weight);
     });
 
     // 3) Group sections by edge (undirected)
@@ -2311,9 +2363,12 @@ export class GTFSConverterService {
         ? this.calculatePathTravelTime(alternativePath, consolidatedEdgeTravelTimes)
         : Infinity;
 
+      const hasCycle = alternativePath ? new Set(alternativePath).size !== alternativePath.length : false;
+
       const canConsolidate =
         alternativePath &&
         alternativePath.length >= 3 &&
+        !hasCycle &&
         pathTravelMin > representative.directTravelMin * 1.01 && // Must be a genuinely different path (not the base edge itself with rounding errors)
         (pathTravelMin <= representative.directTravelMin * (1 + topologyDetourPercent / 100) ||
          pathTravelMin <= representative.directTravelMin + topologyDetourAbsoluteMinutes);
@@ -2372,7 +2427,7 @@ export class GTFSConverterService {
 
     // 5) Materialize merged sections into mapped node sequences and timing interpolation.
     patternContexts.forEach((context) => {
-      const {patternIndex, pattern, routeName, representativeTripId, effectiveHalts, actualHalts} = context;
+      const {patternIndex, pattern, routeName, representativeTripId, effectiveHalts, actualHalts, stationGroups} = context;
 
       if (effectiveHalts.length === 0) {
         result.push({
@@ -2385,12 +2440,15 @@ export class GTFSConverterService {
       }
 
       const mappedSequence: string[] = [];
+      const mappedNodeSet = new Set<string>();
+      const usedTrainEdges = new Set<string>();
       const timing = new Map<string, {arrivalMin?: number; departureMin?: number; isPassThrough: boolean}>();
       const consolidatedSegments = consolidatedDetailsByPatternIndex.get(patternIndex) || [];
 
       if (effectiveHalts.length > 0) {
         const firstHalt = effectiveHalts[0];
         mappedSequence.push(firstHalt.stationId);
+        mappedNodeSet.add(firstHalt.stationId);
         timing.set(firstHalt.stationId, {
           arrivalMin: firstHalt.arrivalMin,
           departureMin: firstHalt.departureMin,
@@ -2408,7 +2466,60 @@ export class GTFSConverterService {
 
         const sectionId = sectionKeyToId.get(`${patternIndex}:${haltIndex}`);
         const replacementPath = sectionId ? replacementPathBySectionId.get(sectionId) : null;
-        const path = replacementPath || [sourceHalt.stationId, targetHalt.stationId];
+        const directPath = [sourceHalt.stationId, targetHalt.stationId];
+
+        // Reject replacement paths that would create loops in this trainrun.
+        const canUseReplacementPath = (() => {
+          if (!replacementPath || replacementPath.length < 2) {
+            return false;
+          }
+          if (
+            replacementPath[0] !== sourceHalt.stationId ||
+            replacementPath[replacementPath.length - 1] !== targetHalt.stationId
+          ) {
+            return false;
+          }
+
+          if (new Set(replacementPath).size !== replacementPath.length) {
+            return false;
+          }
+
+          // Source is already present as current position; all following nodes must be new.
+          for (let idx = 1; idx < replacementPath.length; idx++) {
+            if (mappedNodeSet.has(replacementPath[idx])) {
+              return false;
+            }
+          }
+
+          for (let idx = 0; idx < replacementPath.length - 1; idx++) {
+            const edgeKey = `${replacementPath[idx]}→${replacementPath[idx + 1]}`;
+            if (usedTrainEdges.has(edgeKey)) {
+              return false;
+            }
+          }
+
+          // Reject if any intermediate node appears LATER in this pattern's station sequence
+          // (after targetHalt). This prevents wrong reorderings: if GTFS visits A→B→X,
+          // consolidating A→B via [A,X,B] would put X before B, creating a zigzag.
+          const targetHaltGroupIdx = stationGroups.findIndex(
+            (sg) => sg.stationId === targetHalt.stationId,
+          );
+          if (targetHaltGroupIdx >= 0) {
+            const remainingStationIds = new Set(
+              stationGroups.slice(targetHaltGroupIdx + 1).map((sg) => sg.stationId),
+            );
+            const intermediates = replacementPath.slice(1, -1);
+            for (const nodeId of intermediates) {
+              if (remainingStationIds.has(nodeId)) {
+                return false;
+              }
+            }
+          }
+
+          return true;
+        })();
+
+        const path = canUseReplacementPath ? replacementPath! : directPath;
 
         const pathTravelMin = this.calculatePathTravelTime(path, consolidatedEdgeTravelTimes);
         const allowedTravelTime = actualTotalTravelTime * (1 + topologyDetourPercent / 100);
@@ -2433,6 +2544,7 @@ export class GTFSConverterService {
           const forwardKey = `${path[pathIndex]}→${path[pathIndex + 1]}`;
           // Use only forward direction (edges are directional)
           const weight = Math.max(1, consolidatedEdgeTravelTimes.get(forwardKey) ?? 1);
+          usedTrainEdges.add(forwardKey);
           segmentWeights.push(weight);
           totalWeight += weight;
         }
@@ -2442,13 +2554,9 @@ export class GTFSConverterService {
           cumulativeWeight += segmentWeights[pathIndex - 1] || 1;
           const nodeId = path[pathIndex];
 
-          if (!mappedSequence.includes(nodeId)) {
+          if (!mappedNodeSet.has(nodeId)) {
             mappedSequence.push(nodeId);
-          }
-
-          // Skip if timing already exists for this node (prevents duplicate insertion)
-          if (timing.has(nodeId)) {
-            continue;
+            mappedNodeSet.add(nodeId);
           }
 
           if (nodeId === targetHalt.stationId) {
@@ -2457,6 +2565,11 @@ export class GTFSConverterService {
               departureMin: targetHalt.departureMin,
               isPassThrough: false,
             });
+            continue;
+          }
+
+          // Keep the first interpolated value for already-seen intermediate nodes.
+          if (timing.has(nodeId)) {
             continue;
           }
 
@@ -2681,16 +2794,26 @@ export class GTFSConverterService {
 
     const path: string[] = [targetNodeId];
     let cursor = targetNodeId;
+    const visitedInReconstruction = new Set<string>([targetNodeId]);
     while (cursor !== sourceNodeId) {
       const previous = predecessor.get(cursor);
       if (!previous) {
         return null;
       }
+      // Reject any path that revisits a node (no loops allowed for consolidation).
+      if (visitedInReconstruction.has(previous)) {
+        return null;
+      }
+      visitedInReconstruction.add(previous);
       path.push(previous);
       cursor = previous;
     }
 
-    return path.reverse();
+    const reversedPath = path.reverse();
+    if (new Set(reversedPath).size !== reversedPath.length) {
+      return null;
+    }
+    return reversedPath;
   }
 
   private buildUndirectedMinTravelAdjacency(
