@@ -1,86 +1,197 @@
 # GTFS Import: End-to-End Algorithm and Data Mapping
 
-## 1. Purpose and Scope
+## 1. Introduction to GTFS
 
-This document describes the complete GTFS import pipeline in Netzgrafik Editor. It is written for readers who have not seen the source code and need to understand precisely what happens to GTFS data from the moment a ZIP file is uploaded until the resulting Netzgrafik timetable appears on screen.
+General Transit Feed Specification (GTFS) is a standardized data format for public transport schedules and related network metadata. A GTFS feed is usually delivered as a ZIP archive that contains multiple CSV files. Together, these files describe agencies, routes, trips, stops, calendars, and timing sequences.
 
-The pipeline covers six ordered phases:
+GTFS matters because it gives transport systems a shared language. A schedule created in one country can be consumed by planners, routing engines, researchers, and visualization tools in another without custom adapters for each operator.
 
-| Phase | Chapter | Name |
-|-------|---------|------|
-| A | 4 | GTFS parsing and ZIP extraction |
-| B | 5 | Filtering, pattern grouping, and trainrun creation |
-| C | 6 | Round-trip detection and merge |
-| D | 7 | Topology consolidation |
-| E | 8 | Convergence loop |
-| F | 9–10 | Output, loading, and transition enforcement |
-
-All chapters are ordered by execution flow. Each chapter describes what data enters, what computation is performed, what data is produced, and what data is discarded and why.
-
-## 2. External GTFS References
-
-The implementation follows the GTFS Schedule specification. Two references are recommended:
+Two reference sources are especially relevant for this project:
 
 - **Swiss GTFS cookbook** (SBB / opentransportdata.swiss):
   https://opentransportdata.swiss/de/cookbook/timetable-cookbook/gtfs/
-  Explains feed conventions specific to Swiss rail data, including `parent_station` usage, `route_desc` category values, and calendar encoding.
+  This explains Swiss-specific feed conventions, including frequent `parent_station` usage, route category conventions, and operational calendar modeling.
 
 - **Official GTFS Schedule reference**:
   https://gtfs.org/documentation/schedule/reference/
-  Defines all field names, types, and semantics referenced in this document.
+  This defines all fields, datatypes, and expected semantics.
 
-Key GTFS concepts used throughout:
+### 1.1 Core Semantics: Files and Concepts
+
+The import process in Netzgrafik Editor primarily relies on these GTFS files:
+
+| File | Required | Semantic role |
+|------|----------|---------------|
+| `agency.txt` | yes | Operator identity and naming |
+| `routes.txt` | yes | Service lines and line categories/types |
+| `trips.txt` | yes | Concrete operational runs of routes |
+| `stop_times.txt` | yes | Ordered timing events within each trip |
+| `stops.txt` | yes | Stop hierarchy and geospatial position |
+| `calendar.txt` | optional | Base weekly service pattern with date range |
+| `calendar_dates.txt` | optional | Service overrides (add/remove for exact dates) |
+| `frequencies.txt` | optional in GTFS | Frequency-based service blocks (headway mode) |
+| `shapes.txt` | optional in GTFS | Geometric path of trips |
+
+Key terms used throughout this document:
 
 | GTFS term | Meaning in this document |
 |-----------|-------------------------|
 | `agency` | Transport operator (e.g., SBB) |
-| `route` | Named service line (e.g., IR15) |
-| `trip` | Single operational run of a route on a given day |
-| `stop` | Physical location; can be a platform or a parent station |
-| `parent_station` | Station grouping multiple platforms under one ID |
-| `stop_time` | Timed stop event: arrival, departure, pickup/drop-off type |
-| `service_id` | Calendar rule linking trips to operating days |
-| `direction_id` | `0` = outbound, `1` = inbound (feed-defined) |
+| `route` | Service line (e.g., IR15) |
+| `trip` | One operational run of a route |
+| `stop` | Physical location, platform, or parent station |
+| `parent_station` | Station grouping platform-level stops |
+| `stop_time` | Timed call at a stop including pickup/drop-off semantics |
+| `service_id` | Service calendar key used by trips |
+| `direction_id` | Feed-specific directional marker (`0`/`1`) |
 
-## 3. Input Files and Import Options
+### 1.2 Time Semantics in GTFS
 
-### 3.1 Required and Optional Input Files
+GTFS times are not plain wall-clock timestamps. They are service-day-relative values and can exceed 24 hours. For example, `25:30:00` means 01:30 on the next civil day, but still belongs to the same service day.
 
-The import reads a GTFS ZIP archive. The following files are used:
+This has direct implementation impact:
 
-| File | Required | Purpose |
-|------|----------|---------|
-| `agency.txt` | yes | Identifies operators; used for the agency filter |
-| `routes.txt` | yes | Defines service lines and their type/category |
-| `trips.txt` | yes | Links individual runs to routes and calendar rules |
-| `stop_times.txt` | yes | Provides the timed stop sequence for each trip |
-| `stops.txt` | yes | Provides station/platform locations and parent-station links |
-| `calendar.txt` | optional | Defines regular weekly service patterns with date range |
-| `calendar_dates.txt` | optional | Adds or removes service on specific calendar dates |
+- parsing must allow hour values greater than 23,
+- arithmetic must happen in absolute service-day minutes,
+- modulo logic for clock-face visualization must be applied only where intended,
+- rollover around midnight must not split one logical trip into two unrelated segments.
 
-If neither calendar file is present, all trips are considered active (no day filtering is possible).
+### 1.3 Why GTFS Is a Global Standard
 
-### 3.2 Import Options
+GTFS became globally dominant because it is:
 
-The import pipeline is controlled by a set of options passed at invocation time. The most important ones are:
+- simple to publish (flat files, low implementation barrier),
+- expressive enough for planning and passenger information,
+- supported by a large ecosystem (tools, validators, routing engines, map platforms),
+- stable over time while remaining extensible.
 
-| Option | Type | Default | Effect |
-|--------|------|---------|--------|
-| `allowedAgencies` | `string[]` | `[]` (all) | Filter by operator name |
-| `allowedRouteTypes` | `number[]` | `[2]` (Rail) | GTFS `route_type` allowlist |
-| `allowedCategories` | `string[]` | `[]` (all) | Filter by `route_desc` |
-| `betriebstag` | `YYYY-MM-DD` | null (all days) | Operating day filter |
-| `timeSyncTolerance` | seconds | `180` | Tolerance for round-trip time symmetry check |
-| `mergeRoundTrips` | boolean | `true` | Merge opposite-direction pairs into `ROUND_TRIP` |
-| `enableTopologyConsolidation` | boolean | `true` | Run topology consolidation after creation |
-| `topologyDetourPercent` | number | `35` | Max relative detour `xx%` allowed during consolidation |
-| `topologyDetourAbsoluteMinutes` | number | `3` | Max absolute detour `yy` min allowed during consolidation |
-| `topologyMinEdgeTravelTime` (A) | minutes | `1` | Lower bound on any edge travel time during consolidation |
-| `topologyMaxIterations` (n) | integer | `10` | Maximum consolidation passes |
+For a planning tool like Netzgrafik Editor, GTFS is the most practical interoperability substrate between timetable producers and timetable consumers.
 
-### 3.3 What the Options Control
+### 1.4 Interpretation Challenges
 
-The filtering options (agency, route type, category, operating day) reduce the raw GTFS data to the relevant subset before any conversion work begins. The consolidation options (detour thresholds, A, n) control the topology simplification pass that runs after all trainruns are created. The round-trip option controls whether the model uses bidirectional trainruns or keeps all services as one-way.
+Even with a standard, feeds are not always semantically identical. Common interpretation challenges include:
+
+- mixed stop hierarchy quality (platform-only feeds, partial parent stations),
+- category overloading in `route_desc`,
+- incomplete or irregular pickup/drop-off coding,
+- inconsistent calendar usage across operators,
+- trips with uncommon time patterns or sparse service,
+- optional files (`frequencies.txt`, `shapes.txt`) that may be absent.
+
+The following chapters describe how the current implementation resolves these ambiguities.
+
+## 2. Why GTFS Matters in Netzgrafik Editor
+
+GTFS integration is not just an import convenience. It is the foundation for reproducible and comparable timetable topology.
+
+### 2.1 Value for Different Audiences
+
+- **Software developers** get a deterministic ingestion path from standardized input to strongly-typed internal data.
+- **Long-term timetable planners** get a scalable baseline model of lines, stop structure, and cycle times that can be iterated and optimized.
+- **Interested public and stakeholders** get a transparent transformation from published timetable data to a visual network representation.
+
+### 2.2 What Breaks Without GTFS Integration
+
+Without GTFS support, the editor depends on manual graph construction or ad hoc custom imports. That creates:
+
+- higher modeling effort,
+- inconsistent naming and categorization,
+- lower reproducibility,
+- weaker traceability from visual output back to source timetable data,
+- harder collaboration between technical and operational teams.
+
+### 2.3 How GTFS Improves Netzgrafik Quality
+
+GTFS-based import improves quality by:
+
+- anchoring nodes and trainruns in externally maintained source data,
+- preserving operational structure (routes, trips, service days, stop hierarchy),
+- enabling objective checks (symmetry, cycle consistency, stop coverage),
+- reducing manual errors before visual editing starts.
+
+## 3. Goal of the Transformation
+
+The transformation goal is to convert a GTFS feed into a Netzgrafik model that is usable for analysis, visualization, and editing.
+
+In short: **GTFS -> typed import structures -> normalized trainrun graph -> materialized editor objects.**
+
+### 3.1 High-Level Data Flow
+
+```
+GTFS ZIP
+  -> CSV parsing and filtering
+  -> trip pattern grouping
+  -> node and trainrun creation
+  -> round-trip merge and topology consolidation
+  -> Netzgrafik DTO
+  -> editor materialization (ports, transitions, connections)
+```
+
+### 3.2 What Is Taken, Computed, Interpreted, and Discarded
+
+| Type | Examples in current implementation |
+|------|------------------------------------|
+| Directly transferred | agencies, routes, trips, stop sequences, stop hierarchy |
+| Computed | route frequencies, representative trips, node roles, symmetric section times, consolidation detour checks |
+| Interpreted | category mapping from `route_desc`, stop/pass-through semantics from pickup/drop-off flags, preferred canonical direction in round-trip merge |
+| Discarded or not materialized directly | per-trip duplicates inside a pattern, reverse trainrun after successful merge, non-selected stop-time rows, optional geometry details not needed for the timetable topology |
+
+### 3.3 Mapping Table (GTFS -> Netzgrafik)
+
+| GTFS source | Main target in Netzgrafik model | Notes |
+|-------------|----------------------------------|-------|
+| `stops.txt` + `parent_station` | `NodeDto` | Platforms collapse to station-level nodes |
+| `trips.txt` + grouped `stop_times.txt` | `TrainrunDto` | One representative trainrun per stop pattern |
+| consecutive stop pairs in `stop_times.txt` | `TrainrunSectionDto` | Travel time and symmetric minute model applied |
+| `routes.txt.route_desc` | `TrainrunCategory` | Reuse or create category mapping |
+| inferred route headway | `TrainrunFrequency` | 120-min offset handling supported |
+| GTFS stop/pass-through semantics | transition `isNonStopTransit` | Enforced after materialization |
+| `calendar.txt` + `calendar_dates.txt` | trip inclusion for target day | Service-day filtering during import |
+| `frequencies.txt` | currently limited / feed-dependent | See assumptions and limitations |
+| `shapes.txt` | currently not primary topology source | Visual topology is timetable-first |
+
+### 3.4 Technical Transformation Mechanics
+
+The implementation combines five technical operations:
+
+- **Parsing**: ZIP extraction plus CSV parsing, with chunked processing for very large `stop_times.txt`.
+- **Mapping**: file-level entities are linked across GTFS keys (`route_id`, `trip_id`, `service_id`, `stop_id`).
+- **Normalization**: platform-to-station collapse, canonical stop sequences, time normalization for symmetry logic.
+- **Aggregation**: many trips become one pattern-level trainrun, preserving traceability via metadata maps.
+- **Validation-oriented shaping**: round-trip checks and topology consolidation enforce a model that is internally consistent and visually usable.
+
+### 3.5 Time, Calendar, and Hierarchy Handling
+
+Important behavior in the current implementation context:
+
+- **Calendars**: `calendar.txt` and `calendar_dates.txt` are combined to resolve day-level trip activity.
+- **Times**: service-day times are converted to minutes; minute-within-hour symmetry is then used for section time encoding.
+- **Rollover**: times beyond 24:00 are interpreted as valid service-day times and remain part of one trip timeline.
+- **Stop hierarchy**: `parent_station` is used to map platform-level records to station-level modeling nodes.
+
+### 3.6 Routes, Trips, Shapes, and Delays
+
+- **Routes and trips** are core sources and directly drive pattern grouping and trainrun creation.
+- **Shapes** are optional GTFS geometry aids; the current pipeline focuses on timetable topology and section timing rather than exact polyline replay.
+- **Real-time delays** are generally GTFS-Realtime concerns, not static GTFS Schedule. They are not the primary input of this static import pipeline unless explicitly pre-merged into schedule-like data upstream.
+
+### 3.7 Assumptions, Limitations, and Improvement Areas
+
+Current assumptions and constraints include:
+
+- route categorization quality depends on feed consistency (`route_desc` conventions),
+- representative-trip selection is deterministic but heuristic,
+- one-way versus round-trip outcome depends on strict sequence and symmetry criteria,
+- optional GTFS files can be absent without blocking import, but this may reduce semantic richness.
+
+Potential improvements:
+
+- stronger explicit support for `frequencies.txt` headway blocks where feeds use frequency-based service modeling,
+- richer shape-aware layout support for corridor geometry,
+- expanded diagnostics for malformed calendar and stop hierarchy data,
+- configurable strategies for representative trip selection.
+
+The pipeline overview below describes execution in ordered algorithmic phases.
 
 ## 4. Phase A: GTFS Parsing and ZIP Extraction
 
