@@ -55,91 +55,323 @@ Trips are grouped by route and stop sequence into pattern candidates.
 Platform stops are mapped to parent station IDs (if available).
 If a required parent station does not exist as an explicit stop row, a virtual station node may be synthesized.
 
-## 5. Phase B: Node, Metadata, and Trainrun Creation
+## 5. Phase B: Filtering, Pattern Grouping, and Trainrun Creation
 
-### 5.1 Node Creation
+Before any Netzgrafik objects can be created, the raw GTFS data must be filtered down to only the relevant subset, then grouped into logical trip patterns from which one representative master trip is selected per pattern. The subsequent steps — node creation, category/frequency mapping, trainrun creation, and section creation — all operate on this reduced, pattern-indexed data.
 
-All GTFS stops that appear in at least one accepted trip pattern are collected into a working set. Only station-level nodes are created — platform rows (`location_type != 1`, with a `parent_station` reference) are collapsed to their parent station. If a `parent_station` ID is referenced by one or more platform rows but has no own row in `stops.txt`, a virtual station record is synthesised from the first child platform: the station name is taken from the child's `stop_name` with any platform suffix (`Gleis`, `Track`, `Platform`, `Quai`) stripped off, and coordinates are copied directly.
+### 5.0 Data Filtering Pipeline
 
-Coordinates are converted from WGS 84 latitude/longitude to a flat 2-D canvas using a fixed Swiss centre reference point (46.8° N / 8.2° E) and a scale factor, so that the resulting values approximate a geographically plausible map layout. After conversion, all node positions are translated so that their centroid lies at the canvas origin (0, 0).
+The GTFS feed is filtered in three sequential stages. Each stage reduces the working set further; subsequent stages only see what passes earlier stages.
 
-Every node is assigned a stable integer ID based on its index in the ordered station list. The resulting ID-to-station map is used by all subsequent steps to translate GTFS stop IDs — including platform IDs — into Netzgrafik node IDs.
+**Stage 1 — Agency filter.**
+All agencies in `agency.txt` are matched against a user-provided list of agency names (e.g., `"Schweizerische Bundesbahnen SBB"`). Matching is case-insensitive and keyed by `agency_name`. The result is a set of allowed `agency_id` values. Any agency not in this set is discarded. If no agency filter is specified, all agencies pass.
 
-### 5.2 Category Mapping
+**Stage 2 — Route type and route filter.**
+`routes.txt` is filtered by:
+- `route_type`: only routes whose integer type is in the allowed set pass (e.g., `2` = Rail). Default is Rail-only.
+- `agency_id`: only routes belonging to surviving agencies pass.
+- `route_desc` (optional category filter): if a category allowlist is provided, only routes whose `route_desc` matches (case-insensitive) are kept.
 
-All unique route descriptions present in the selected patterns are resolved against `TrainrunCategory` entries. The resolution follows a strict priority order:
+**Stage 3 — Trip filter.**
+`trips.txt` is filtered to only trips whose `route_id` is in the surviving route set. If a specific operating day (`Betriebstag`) is provided, an additional calendar check is applied: for each trip, its `service_id` is looked up in `calendar.txt` (weekday + date range check) and `calendar_dates.txt` (exception type 1 = added, type 2 = removed). A trip is kept only if it operates on the target day. `stop_times.txt` is then loaded and filtered to only the surviving trip IDs.
 
-1. Match by **short name** (first 10 characters of the route description, case-insensitive). If an existing category with that short name exists, it is reused.
-2. Match by **full name** (the complete route description string, case-insensitive). If an existing category with that name exists, it is reused.
-3. If neither lookup succeeds, a **new category** is created with a generated ID in the format `2026_000i` (where `i` is an incrementing counter starting after the highest existing category ID). The new entry receives the full description as its name, the first 10 characters as its short name, a colour reference derived from known keyword patterns (e.g., `IC` → `EC`, `IR` → `IR`, `S`/`S-Bahn` → `S`), and standard default values for headway and turnaround times.
+```
+agencies.txt  →  [agency filter]  →  allowed_agency_ids
+routes.txt    →  [type + agency + category filter]  →  allowed_routes
+trips.txt     →  [route filter + calendar/day filter]  →  allowed_trips
+stop_times.txt→  [trip filter]  →  working_stop_times
+```
 
-The resulting category is recorded in a lookup map keyed by route description; the same map is used when creating trainruns in step 5.4.
+### 5.1 Trip Pattern Grouping and Master Trip Selection
 
-### 5.3 Frequency Mapping
+After filtering, the remaining trips must be collapsed into **patterns** — groups of trips that share an identical stop sequence — so that the Netzgrafik receives one clean trainrun per service pattern rather than one per individual trip.
 
-The cycle time (headway) of each route pattern is mapped to a Netzgrafik `TrainrunFrequency` entry. If no custom metadata frequencies are provided, the default frequencies from `NetzgrafikDefault` are used as the starting pool.
+**Building the pattern key.**
+For each trip, its stop-times are sorted by `stop_sequence`. Each stop ID is mapped to its `parent_station` ID (if it has one), so that multiple platform rows at the same station are treated as one station. Consecutive duplicate station IDs are collapsed to a single entry. The resulting ordered list of station IDs forms the **stop sequence**. A pattern key is assembled as:
 
-Supported cycle times are `15`, `20`, `30`, `60`, and `120` minutes. Any value outside this set is normalised to `60` minutes with a warning. For the 120-minute interval, two variants exist to distinguish even-hour departures from odd-hour departures. They are keyed by strings `120_0` (offset 0 min, i.e., departures at :00 and :02 etc.) and `120_60` (offset 60 min, i.e., departures at :01, :03 etc.). All other intervals use a plain numeric key (e.g., `60`, `30`).
+```
+patternKey = route_id + "_" + direction_id + "_" + stationId1 + "-" + stationId2 + "..." + stationIdN
+```
 
-For each unique frequency key encountered across routes, the code looks up a matching entry in the frequency pool. If a match exists, the existing entry's ID is recorded and reused — no duplicate frequency object is created. If no match is found (which should not occur with a complete default set), the first available frequency is used as a fallback and a warning is logged.
+All trips that produce the same key are placed in the same pattern group.
 
-The resulting frequency key-to-ID map is consumed by trainrun creation in step 5.4.
+**Example:**
 
-### 5.4 Trainrun Creation
+Suppose route `IR15` has four trips on a Tuesday operating day:
 
-For each accepted trip pattern, exactly one `TrainrunDto` is created. The trainrun receives:
+| trip_id | stops (after platform→station mapping) | direction |
+|---------|----------------------------------------|-----------|
+| T1      | ZUE – WIN – OLT – BAS               | 0         |
+| T2      | ZUE – WIN – OLT – BAS               | 0         |
+| T3      | ZUE – WIN – OLT – BAS               | 0         |
+| T4      | ZUE – WIN – BAS  (skips OLT)        | 0         |
 
-- **category ID** resolved from the route description via the category map from step 5.2,
-- **frequency ID** resolved via the frequency map from step 5.3,
-- **time-category ID** taken from the first entry of the time-category pool (default or provided),
-- **direction** initially set to `ONE_WAY`; this may be changed to `ROUND_TRIP` in phase C,
-- **name** built from: (a) the `route_short_name` with its category prefix removed to avoid duplication (e.g., `IR15` used under category `IR` becomes `15`), followed by (b) ` → <headsign>` if a headsign is present, or a direction arrow suffix otherwise, and optionally (c) `(<trip_short_name>)` if a trip short name is present,
-- **debug label** (if a `labelCreator` callback is provided) formatted as `<routeName> → <firstStopName> → <lastStopName>` to allow later filtering and tracing.
+T1, T2, T3 share key `IR15_0_ZUE-WIN-OLT-BAS` → one pattern group with 3 trips.
+T4 has key `IR15_0_ZUE-WIN-BAS` → a separate pattern group with 1 trip.
 
-Additionally, the trainrun's ID is stored in a `trainrunToTrips` map together with all GTFS trip IDs that belong to this pattern. A parallel `initialStopNodeIdsByTrainrun` map records — for each trainrun — the set of node IDs that correspond to genuine GTFS stop events (boarding or alighting allowed), as opposed to pass-through events. Both maps are exported as additional properties on the output DTO and are later used for transition semantics enforcement.
+```mermaid
+graph LR
+  subgraph "Pattern IR15_0_ZUE-WIN-OLT-BAS (3 trips)"
+    T1 & T2 & T3
+  end
+  subgraph "Pattern IR15_0_ZUE-WIN-BAS (1 trip)"
+    T4
+  end
+```
 
-### 5.5 TrainrunSection Creation
+**Selecting the master (representative) trip.**
+For each pattern group, the first trip in the group (index 0 after insertion order) is used as the **representative trip**. Its stop-times provide the authoritative timing for all sections created from this pattern. All trips in the group are recorded in the `trainrunToTrips` map attached to the output DTO (for traceability), but only the representative trip's times appear in the Netzgrafik sections.
 
-Before sections are created, the ordered list of GTFS stop-times for the representative trip is grouped into **station groups**. Multiple consecutive platform rows that resolve to the same parent station ID are merged into one group. Within a group, the earliest arrival time is kept as the group arrival and the latest departure is kept as the group departure. A group is classified as a **stop** (`isStop = true`) if at least one of its constituent rows has `pickup_type != 1` or `drop_off_type != 1` (i.e., passengers may board or alight). If all rows have both types set to `1`, the group is a **pass-through** (`isStop = false`).
+> **Why the first trip?** The filtering and grouping guarantee that all trips in a group have an identical stop sequence. Any one of them would produce the same set of sections. The first trip is the simplest deterministic choice. Future improvements could select the median departure or a "cleanest timetable" representative, but the current heuristic is sufficient because the symmetry model normalises minute-within-hour times anyway.
 
-For each pair of consecutive station groups in the ordered sequence, one `TrainrunSectionDto` is created. The following values are computed and stored:
+### 5.2 Node Creation
 
-- **Travel time**: the difference in minutes between the source group's departure time and the target group's arrival time, with a lower bound of 1 minute.
-- **Symmetric minute times**: the forward direction uses the raw GTFS minute-within-the-hour values for source departure and target arrival. The return direction times are derived by the 60-x symmetry rule: `sourceArrival = (60 − sourceDeparture) mod 60` and `targetDeparture = (60 − targetArrival) mod 60`.
-- **`numberOfStops`**: set to `0` if both the source and target groups are stops; set to `1` if either group is a pass-through, indicating that the section contains a non-stopping intermediate behaviour.
-- **`trainrunId`**: the ID of the owning trainrun.
+Once the pattern set is fixed, all station IDs referenced in any pattern's stop sequence are collected. This is the **working node set** — no station outside it will appear in the output.
 
-A section is skipped if the target node has already been visited in the current trainrun (to prevent loops) or if the edge between source and target has already been used in the same trainrun. This ensures that every trainrun represents a simple, non-repeating path.
+Only station-level entries are turned into nodes. Platform rows (`location_type != 1` with a non-empty `parent_station`) are not directly turned into nodes; they are always accessed through their parent. If a `parent_station` ID appears in the working set but has no own row in `stops.txt` (i.e., the feed only contains platform rows and no explicit station entry), a **virtual station record** is synthesised:
+- name: the first child platform's `stop_name` with any trailing platform suffix stripped (regex: `\s+(Gleis|Track|Platform|Quai)\s+.*$`),
+- coordinates: copied from the first child platform.
+
+Coordinates are projected from WGS 84 to a flat canvas: the distance from Swiss centre (46.8° N / 8.2° E) is multiplied by a fixed scale factor (15,000) to produce pixel-like x/y values. After projection, all nodes are translated so that their centroid lies at canvas origin (0, 0).
+
+Each station is assigned an integer node ID equal to its 1-based index in the ordered station list. A `stopId → nodeId` lookup map is built, with all platform IDs of a station mapped to the same node ID as their parent.
+
+### 5.3 Category Mapping
+
+The set of unique `route_desc` values across all remaining routes defines the **category universe**. Each unique description is resolved against the existing `TrainrunCategory` pool in strict priority order:
+
+1. **Short name match**: the first 10 characters of the description are compared case-insensitively against the `shortName` field of existing categories. If a match is found, the existing category's ID is reused.
+2. **Full name match**: the full description string is compared case-insensitively against the `name` field of existing categories.
+3. **Create new**: if no match is found, a new category is created with ID `2026_000i` (counter continuing from the highest existing ID + 1). The colour reference is derived from keyword matching against known prefixes (`IC`/`ICE`/`TGV` → `EC`, `IR`/`InterRegio` → `IR`, `RE`/`RegionalExpress` → `RE`, `S`/`S-Bahn` → `S`, etc.); unrecognised descriptions default to `RE`.
+
+The result is a `description → categoryId` map consumed in step 5.5.
+
+### 5.4 Frequency Detection and Mapping
+
+Frequency is determined per route by analysing the departure intervals of its trips in **one direction only** (direction 0 preferred; direction 1 used as fallback if no direction-0 data exists). Using both directions would double-count and distort the interval histogram.
+
+**Algorithm (pseudo-code):**
+
+```
+for each route R:
+  collect all departure times across stops, direction=0 only
+  for each stop S that has ≥ 2 departures:
+    sort departures chronologically
+    for consecutive pair (depA, depB):
+      interval = depB - depA  (minutes)
+      snap interval to nearest standard value:
+        ≤ 17 min  → 15
+        ≤ 25 min  → 20
+        ≤ 45 min  → 30
+        ≤ 90 min  → 60
+        ≤ 150 min → 120
+        > 150 min → 60  (long-haul default)
+      append snapped value to histogram
+  mostCommonFrequency = mode of histogram  (ties: first encountered wins)
+  R.frequency = mostCommonFrequency
+```
+
+**120-minute offset detection.**
+When the mode is 120, the algorithm additionally determines whether the route departs on even hours (0, 2, 4 …) or odd hours (1, 3, 5 …). It takes the smallest first-departure time across all stops, extracts the hour, and stores `offsetHour = hour mod 2`. This produces frequency keys `120_0` (even-hour trains) and `120_60` (odd-hour trains), allowing two interleaved 2-hourly patterns to coexist in the Netzgrafik without collision.
+
+**Representative trip selection.**
+After the frequency is determined, one trip is selected as the sample trip for the route: the code scans all direction-0 departures sorted chronologically and picks the first one whose departure minute matches the standard grid for the detected frequency (e.g., `:00` for 60-min, `:00` or `:30` for 30-min). If no grid-aligned departure exists, the chronologically first departure is used.
+
+**Mapping to `TrainrunFrequency`.**
+The detected frequency key (`"15"`, `"30"`, `"60"`, `"120_0"`, etc.) is looked up in the `TrainrunFrequency` pool. If a matching entry exists, its ID is reused. A new entry is only created if the pool does not contain a matching entry (unusual with a complete default set).
+
+### 5.5 Trainrun Creation — All Patterns Start as ONE_WAY
+
+For each accepted trip pattern, exactly one `TrainrunDto` is created. At this stage, **every trainrun is unconditionally created with `direction = ONE_WAY`**, regardless of whether it is a forward or a backward trip in the GTFS feed. This is intentional: the Netzgrafik model does not distinguish directions at the trainrun level at creation time; the direction attribute is only upgraded to `ROUND_TRIP` in phase C if a valid matching reverse pattern is found.
+
+The trainrun receives:
+- **categoryId**: from the category map (step 5.3), keyed by `route_desc` of the pattern's route.
+- **frequencyId**: from the frequency map (step 5.4), keyed by frequency string (`"60"`, `"120_0"`, etc.).
+- **timeCategoryId**: taken from the first entry of the time-category pool.
+- **direction**: `ONE_WAY` (always at this stage).
+- **name**: constructed as `<routeNumber> → <headsign> (<tripShortName>)`. The category prefix is stripped from `route_short_name` to avoid duplication (e.g., category `IR` + route short name `IR15` → display name `15 → Basel`).
+- **debug label**: `<routeName> → <firstStopName> → <lastStopName>` for traceability in the filter panel.
+
+Two metadata maps are populated per trainrun:
+- `trainrunToTrips`: maps trainrun ID → list of all GTFS trip IDs in the pattern.
+- `initialStopNodeIdsByTrainrun`: maps trainrun ID → set of node IDs where passengers may board or alight (i.e., at least one stop-time row in the pattern had `pickup_type != 1` or `drop_off_type != 1`). This map is used later in phase E to enforce correct stop/non-stop transition semantics.
+
+### 5.6 TrainrunSection Creation
+
+For each pattern, the representative trip's stop-times are first consolidated into **station groups** (one group per unique parent-station in sequence order):
+
+```
+rawStopTimes = stopTimes[representativeTrip].sortBy(stop_sequence)
+
+for each stopTime in rawStopTimes:
+  stationId = parentStation(stopTime.stop_id)
+  if stationGroups is empty OR last group's stationId ≠ stationId:
+    push new group { stationId, nodeId, isStop=false, arrMin=+∞, depMin=-∞ }
+  group.arrMin   = min(group.arrMin,   toMinutes(stopTime.arrival_time))
+  group.depMin   = max(group.depMin,   toMinutes(stopTime.departure_time))
+  if stopTime.pickup_type ≠ "1" OR stopTime.drop_off_type ≠ "1":
+    group.isStop = true
+```
+
+A group with `isStop = false` means the train passes through the station without allowing boarding or alighting — for example, a through-run coded with `pickup_type=1, drop_off_type=1`.
+
+For each **consecutive pair** of station groups `(src, tgt)`, one `TrainrunSectionDto` is emitted:
+
+**Travel time:**
+```
+travelTime = max(1, tgt.arrMin - src.depMin)
+```
+
+**Symmetric times (60-x rule):**
+
+The Netzgrafik clock-face model requires that for a given section, the departure from the source and the arrival at the target are symmetric around the 30-minute mark within the hour. The GTFS departure and arrival minutes are used directly for the forward direction; the return direction is derived algebraically:
+
+```
+sourceDep  = src.depMin mod 60       // forward: GTFS value
+targetArr  = tgt.arrMin mod 60       // forward: GTFS value
+sourceArr  = (60 - sourceDep) mod 60 // return: 60-x symmetry
+targetDep  = (60 - targetArr) mod 60 // return: 60-x symmetry
+```
+
+**Example** — section Zürich HB → Winterthur (IR15, departure :05, arrival :26):
+
+| Field          | Value | Meaning                              |
+|----------------|-------|--------------------------------------|
+| `sourceDep`    | 5     | train leaves Zürich at :05           |
+| `targetArr`    | 26    | train arrives Winterthur at :26      |
+| `travelTime`   | 21    | 21 minutes                           |
+| `sourceArr`    | 55    | return train arrives Zürich at :55   |
+| `targetDep`    | 34    | return train leaves Winterthur at :34|
+
+This symmetry is what makes round-trip detection in phase C possible without any additional time data.
+
+**`numberOfStops`:**
+- `0` if both `src.isStop` and `tgt.isStop` are true (both ends allow boarding/alighting),
+- `1` if either end is a pass-through (indicating the section touches a non-stopping node).
+
+**Loop guard:**
+A section is silently skipped if:
+- the target node has already been visited in this trainrun (prevents loops), or
+- the directed edge `srcNodeId → tgtNodeId` has already been used in this trainrun (prevents duplicate edges).
+
+**Result after phase B** (example for IR15, direction 0):
+
+```mermaid
+graph LR
+  ZUE["Zürich HB\ndep :05"] -->|"21 min\n(ONE_WAY)"| WIN["Winterthur\narr :26 / dep :28"]
+  WIN -->|"31 min"| OLT["Olten\narr :59 / dep :01"]
+  OLT -->|"28 min"| BAS["Basel SBB\narr :29"]
+```
+
+All sections belong to one `TrainrunDto` with `direction = ONE_WAY`. An identical but reversed trainrun (direction 1, Basel → Zürich) has also been created at this point and is also `ONE_WAY`. Both exist independently until phase C.
 
 ## 6. Phase C: Round-Trip Detection and Merge
 
-After all one-way trainruns and their sections are created, the algorithm attempts to pair up opposite-direction counterparts and merge them into `ROUND_TRIP` trainruns. This step is optional and can be disabled via the `mergeRoundTrips` option.
+After all one-way trainruns and their sections are created, the algorithm attempts to pair up opposite-direction counterparts and merge them into `ROUND_TRIP` trainruns. This step is optional and controlled by the `mergeRoundTrips` option (default: enabled).
 
-### 6.1 Grouping and Candidate Selection
+The motivation is that Netzgrafik's symmetric clock-face model represents a line as a single bidirectional object. Having two separate `ONE_WAY` trainruns for the same line wastes display space and makes time-symmetry verification impossible. Phase C identifies and merges these pairs.
 
-All created trainruns are iterated in order. For each unmatched trainrun `T1`, every subsequent unmatched trainrun `T2` is tested as a candidate pair. A pair is accepted only if all of the following criteria are satisfied simultaneously:
+### 6.1 Matching Algorithm
 
-1. **Same line identifier**: `route_short_name` (or `route_long_name` as fallback) must match, case-insensitively.
-2. **Same category**: `route_desc` (or `route_short_name`) must match exactly.
-3. **Same frequency**: the resolved cycle time of both routes must be equal.
-4. **Reversed stop sequence**: the station sequence of `T2` must be the exact reverse of `T1`'s sequence. Any deviation — including a difference in length — disqualifies the pair.
-5. **Time symmetry**: for each corresponding section pair (section `i` of `T1` vs. reversed section `i` of `T2`), the minute-within-the-hour departure of `T1`'s source must match the arrival of `T2`'s target under the 60-x rule, within a configurable tolerance (default: 180 seconds = 3 minutes).
+The algorithm iterates all trainruns in order. For each unmatched trainrun `T1`, all subsequent unmatched trainruns `T2` are tested as candidates. A candidate pair is accepted only when **all five criteria** pass simultaneously:
 
-If any criterion fails, the pair is rejected and the next candidate is tested. The failure reason is recorded per trainrun for diagnostic purposes.
+**Criterion 1 — Same line name.**
+`route_short_name` of `T1`'s route must equal `route_short_name` of `T2`'s route (case-insensitive). `route_long_name` is used as fallback if `route_short_name` is absent. Two IR15 trips in opposite directions share the same `route_short_name = "IR15"`, so they pass. An IR15 and an IC5 do not.
 
-### 6.2 Data to Discard
+**Criterion 2 — Same category.**
+`route_desc` of both routes must match exactly (case-sensitive). This ensures that, for example, `"IR"` trains are not accidentally merged with `"IC"` trains that happen to share a route name in some feeds.
 
-When a valid pair `(T1, T2)` is found, one of the two trainruns is removed from the dataset. The algorithm determines the **preferred direction** based on geographic orientation of the first section: the trainrun whose first section points more towards east (positive Δx) and south (positive Δy) scores higher; the higher-scoring trainrun is kept. If both score equally, `T1` is kept.
+**Criterion 3 — Same frequency.**
+The resolved cycle time (`R.frequency`) of both routes must be identical. A 60-min train cannot be merged with a 30-min train even if they share the same name, because their Netzgrafik representations differ.
 
-The **removed trainrun** and **all its associated trainrun sections** are deleted from the working lists. Labels from the removed trainrun are appended to the surviving trainrun's label list so that no routing metadata is lost.
+**Criterion 4 — Reversed stop sequence.**
+The station sequence of `T2`'s pattern must be the **exact reverse** of `T1`'s pattern:
 
-The surviving trainrun's `direction` field is set to `ROUND_TRIP`, and its sections remain unchanged — they now represent both directions symmetrically by construction (due to the 60-x rule applied in step 5.5).
+```
+T1 stop sequence:  ZUE – WIN – OLT – BAS
+T2 stop sequence:  BAS – OLT – WIN – ZUE   ← exact reverse of T1 ✓
 
-### 6.3 Frequency Derivation from Trip Patterns
+T1 stop sequence:  ZUE – WIN – OLT – BAS
+T2 stop sequence:  BAS – WIN – ZUE          ← different length ✗
+```
 
-Frequency assignment takes place during route-level processing in phase A and is inherited through phases B and C without modification. The cycle time for each route is derived from the GTFS feed's `frequencies.txt` or inferred from the regular departure spacing of trips. Supported values (15, 20, 30, 60, 120 min) are mapped to Netzgrafik frequency entries in step 5.3. When a round-trip merge occurs, both paired patterns must share the same frequency — this is enforced as criterion 3 above. The merged `ROUND_TRIP` trainrun therefore retains the exact frequency of the surviving one-way pattern without recomputation.
+Length must also match. Any deviation — missing intermediate stop, extra stop, reordered stop — causes rejection.
 
-Topology consolidation is executed only after this phase completes, i.e., on the final set of trainruns and trainrun sections with their definitive `ONE_WAY` or `ROUND_TRIP` direction flags.
+**Criterion 5 — Time symmetry.**
+For each section index `i`, the pair `(section_i of T1, reversed section_i of T2)` must satisfy the 60-x symmetry rule within a configurable tolerance (default 180 seconds = 3 minutes):
+
+```
+for i in 0 .. sections.length - 1:
+  sec1 = T1.sections[i]
+  sec2 = T2.sections[reversed_index(i)]
+
+  expected_sec2_targetArr = (60 - sec1.sourceDep) mod 60
+  actual_sec2_targetArr   = sec2.targetArr
+
+  delta = circularDistance(actual, expected)  // handles :59 vs :01 wrap-around
+  if delta * 60 > toleranceSeconds → REJECT ("Time symmetry failed")
+```
+
+This check ensures that the two one-way trains actually form a symmetric clock-face timetable pair, not just two trains that happen to travel the same corridor in opposite directions at unrelated times.
+
+**Example** — IR15 Basel→Zürich section (reversed):
+
+| Field                   | T1 (ZUE→BAS) section 0 | T2 (BAS→ZUE) reversed section 0 | Check |
+|-------------------------|-------------------------|----------------------------------|-------|
+| `sourceDep`             | :05                     | `targetArr` = :55                | expected: (60-5)%60 = :55 ✓ |
+| `targetArr`             | :26                     | `sourceDep` = :34                | expected: (60-26)%60 = :34 ✓ |
+
+Both checks pass within tolerance → pair accepted.
+
+### 6.2 Preferred Direction and Discarded Data
+
+When a valid pair `(T1, T2)` is found, the algorithm chooses which trainrun to **keep** and which to **discard**. The criterion is geographic: for each candidate, the direction vector of its first section is computed:
+
+```
+Δx = targetNode.positionX - sourceNode.positionX
+Δy = targetNode.positionY - sourceNode.positionY
+score = (Δx > 0 ? 1 : 0) + (Δy > 0 ? 1 : 0)   // max = 2 (eastward + southward)
+```
+
+The trainrun with the higher score is **kept** as the canonical direction; the other is **discarded**. If scores are equal, `T1` (the earlier trainrun) is kept. The rationale is that Swiss rail maps conventionally orient from west/north to east/south; this heuristic aligns the displayed arrow direction with convention.
+
+**What is discarded:**
+- the removed trainrun object itself,
+- **all** `TrainrunSectionDto` objects whose `trainrunId` matches the removed trainrun.
+
+**What is preserved:**
+- the surviving trainrun's sections are kept unchanged,
+- all label IDs from the removed trainrun are appended to the surviving trainrun's `labelIds` list (so debug filter labels from both directions remain searchable),
+- the surviving trainrun's `direction` is updated from `ONE_WAY` to `ROUND_TRIP`.
+
+After the merge, the surviving trainrun's sections already encode both directions via the 60-x symmetric times computed in step 5.6. No additional data needs to be written.
+
+**Result after phase C** (example for IR15):
+
+```mermaid
+graph LR
+  ZUE["Zürich HB"] <-->|"21 min\n(ROUND_TRIP)"| WIN["Winterthur"]
+  WIN <-->|"31 min"| OLT["Olten"]
+  OLT <-->|"28 min"| BAS["Basel SBB"]
+```
+
+The `↔` arrows indicate `ROUND_TRIP`: both :05 departure from Zürich and :55 return arrival at Zürich are encoded in the same section, derived from the 60-x symmetric times.
+
+### 6.3 Unmatched Trainruns
+
+Trainruns for which no valid match is found remain as `ONE_WAY`. This happens when:
+- the reverse direction is filtered out (different agency, route type, or operating day),
+- the reverse pattern has a different stop sequence (e.g., asymmetric routing),
+- the time symmetry criterion fails beyond tolerance (e.g., irregular timetable or special service),
+- the route simply has no reverse counterpart in the feed.
+
+The failure reason is recorded per trainrun and emitted in the converter's console log for diagnostic purposes.
+
+### 6.4 Frequency in the Merged Output
+
+Frequency assignment is computed once in phase A (step 5.4) and attached to each route. It is not recomputed during or after the merge. The surviving `ROUND_TRIP` trainrun retains the frequency of the kept one-way pattern. Because criterion 3 of the matching algorithm enforces that both directions have the same frequency, the surviving value is always consistent.
+
+Topology consolidation is executed only after this phase completes, operating on the final set of trainruns and trainrun sections with their definitive `ONE_WAY` or `ROUND_TRIP` direction flags.
 
 ## 7. Phase D: Topology Consolidation (Post-Creation) 
 
