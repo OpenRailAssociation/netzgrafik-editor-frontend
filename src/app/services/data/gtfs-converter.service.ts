@@ -274,6 +274,8 @@ export class GTFSConverterService {
       enableTopologyConsolidation?: boolean; // Q6: Topology consolidation toggle from UI
       topologyDetourPercent?: number; // Allowed detour (+%) for alternative path mapping
       topologyDetourAbsoluteMinutes?: number; // Allowed detour (absolute minutes) for alternative path mapping
+      topologyMinEdgeTravelTime?: number; // Minimum edge travel time A used during consolidation
+      topologyMaxIterations?: number; // Maximum number of full consolidation passes
       mergeRoundTrips?: boolean; // Merge opposite directions into ROUND_TRIP (default: false when topology consolidation is enabled)
     } = {},
   ): NetzgrafikDto {
@@ -284,34 +286,11 @@ export class GTFSConverterService {
     this.verboseLog("> 1.0 Identifying trip patterns...");
     const tripPatterns = this.identifyTripPatterns(gtfsData, minStopsPerTrip);
 
-    // Step 1.5: Q6 — Optional topology consolidation (enable per default)
-    let enrichedPatternsWithTopology: Array<{
-      pattern: TripPattern;
-      nodeSequence: string[];
-      halts: Set<string>;
-      timing: Map<string, {arrivalMin?: number; departureMin?: number; isPassThrough: boolean}>;
-    }> | null = null;
-    
     const enableTopologyConsolidation = options.enableTopologyConsolidation !== false;
     const topologyDetourPercent = Math.max(0, options.topologyDetourPercent ?? 35);
     const topologyDetourAbsoluteMinutes = Math.max(0, options.topologyDetourAbsoluteMinutes ?? 3);
-    if (enableTopologyConsolidation && tripPatterns.length > 1) {
-      try {
-        const topologyResult = this.synthesizeTopologyGraph(
-          tripPatterns,
-          gtfsData,
-          topologyDetourPercent,
-          topologyDetourAbsoluteMinutes,
-        );
-        enrichedPatternsWithTopology = topologyResult.enrichedPatterns;
-        console.info(
-          `> [Q6] Topology consolidation enabled (detour <= +${topologyDetourPercent}% OR +${topologyDetourAbsoluteMinutes}min)`,
-        );
-      } catch (err) {
-        console.warn("> [Q6] Topology consolidation failed, falling back to direct mapping", err);
-        enrichedPatternsWithTopology = null;
-      }
-    }
+    const topologyMinEdgeTravelTime = Math.max(1, options.topologyMinEdgeTravelTime ?? 1);
+    const topologyMaxIterations = Math.max(1, options.topologyMaxIterations ?? 10);
 
     // Step 2: Select representative trips from each pattern
     this.verboseLog("> 2.0 Selecting representative trips...");
@@ -325,7 +304,6 @@ export class GTFSConverterService {
     });
 
     // The stopSequence contains parent_station IDs (from identifyTripPatterns)
-    // Some of these parent_station IDs might NOT exist as actual stops in stops.txt
     // We need to create virtual parent stops for these cases
     this.verboseLog("> 4.0 Stop ID mapping and virtual parent stop creation...");
     const stopMap = new Map<string, GTFSStop>();
@@ -338,7 +316,6 @@ export class GTFSConverterService {
     });
 
     // Second, create virtual parent stops for missing parent_station IDs
-    this.verboseLog("> 4.1 Creating virtual parent stops for missing parent_station IDs");
     const missingParentIds = Array.from(usedStopIds).filter((id) => !stopMap.has(id));
     if (missingParentIds.length > 0) {
       missingParentIds.forEach((parentId) => {
@@ -435,25 +412,6 @@ export class GTFSConverterService {
     const trainrunSections: TrainrunSectionDto[] = [];
     const trainrunToTrips = new Map<number, string[]>(); // Map trainrun ID to trip IDs
     const createdTrainrunToPattern = new Map<number, TripPattern>();
-    
-    // Q6: Build mapping from pattern to enriched topology info
-    const patternToEnrichedInfo = new Map<
-      number,
-      {
-        pattern: TripPattern;
-        nodeSequence: string[];
-        halts: Set<string>;
-        timing: Map<string, {arrivalMin?: number; departureMin?: number; isPassThrough: boolean}>;
-      }
-    >();
-    if (enrichedPatternsWithTopology) {
-      selectedPatterns.forEach((pattern, idx) => {
-        const enriched = enrichedPatternsWithTopology!.find((e) => e.pattern === pattern);
-        if (enriched) {
-          patternToEnrichedInfo.set(idx, enriched);
-        }
-      });
-    }
     
     const routeMap = new Map<string, GTFSRoute>();
     gtfsData.routes.forEach((route) => routeMap.set(route.route_id, route));
@@ -556,12 +514,9 @@ export class GTFSConverterService {
       let sectionsCreated = 0;
       const usedEdgeKeysForTrainrun = new Set<string>();
       const visitedNodeIdsForTrainrun = new Set<number>();
-      let enrichedSequenceCursor = 0;
 
       // Group consecutive stops by station (parent_station)
       // Each group represents one station with potentially multiple platforms
-      const enrichedPattern = patternToEnrichedInfo.get(patternIndex);
-
       const stationGroups: {
         stationStopId: string;
         nodeId: number;
@@ -663,66 +618,6 @@ export class GTFSConverterService {
           arrivalTimeMinutes: number;
           departureTimeMinutes: number;
         }> = [sourceGroup];
-
-        if (enrichedPattern && enrichedPattern.nodeSequence.length > 1) {
-          const sequence = enrichedPattern.nodeSequence;
-          let startIdx = -1;
-          for (let idx = Math.max(0, enrichedSequenceCursor); idx < sequence.length; idx++) {
-            if (sequence[idx] === sourceGroup.stationStopId) {
-              startIdx = idx;
-              break;
-            }
-          }
-          if (startIdx < 0) {
-            for (let idx = 0; idx < sequence.length; idx++) {
-              if (sequence[idx] === sourceGroup.stationStopId) {
-                startIdx = idx;
-                break;
-              }
-            }
-          }
-
-          let endIdx = -1;
-          if (startIdx >= 0) {
-            for (let idx = startIdx + 1; idx < sequence.length; idx++) {
-              if (sequence[idx] === targetGroup.stationStopId) {
-                endIdx = idx;
-                break;
-              }
-            }
-          }
-
-          if (startIdx >= 0 && endIdx > startIdx) {
-            const step = 1;
-            enrichedSequenceCursor = startIdx;
-
-            for (let idx = startIdx + step; idx !== endIdx; idx += step) {
-              const intermediateStationId = sequence[idx];
-              const intermediateNodeId = nodeIdMap.get(intermediateStationId);
-              if (!intermediateNodeId) {
-                continue;
-              }
-
-              const timingInfo = enrichedPattern.timing.get(intermediateStationId);
-              if (!timingInfo) {
-                continue;
-              }
-
-              const interpolatedMinute =
-                timingInfo.arrivalMin ?? timingInfo.departureMin ?? sourceGroup.departureTimeMinutes;
-
-              sectionGroups.push({
-                stationStopId: intermediateStationId,
-                nodeId: intermediateNodeId,
-                isStop: !timingInfo.isPassThrough,
-                arrivalTimeMinutes: interpolatedMinute,
-                departureTimeMinutes: interpolatedMinute,
-              });
-            }
-
-            enrichedSequenceCursor = endIdx;
-          }
-        }
 
         sectionGroups.push(targetGroup);
 
@@ -865,6 +760,23 @@ export class GTFSConverterService {
     const roundTripCount = trainruns.filter((t) => t.direction === Direction.ROUND_TRIP).length;
     const oneWayCount = trainruns.filter((t) => t.direction === Direction.ONE_WAY).length;
 
+    if (enableTopologyConsolidation && trainrunSections.length > 1) {
+      const consolidationResult = this.applyTopologyConsolidationToTrainrunSections(
+        trainrunSections,
+        nodes,
+        {
+          topologyDetourPercent,
+          topologyDetourAbsoluteMinutes,
+          topologyMinEdgeTravelTime,
+          topologyMaxIterations,
+        },
+      );
+      console.info(
+        `> [Q6] Topology consolidation enabled (detour <= +${topologyDetourPercent}% OR +${topologyDetourAbsoluteMinutes}min, min edge ${topologyMinEdgeTravelTime}min, max iterations ${topologyMaxIterations})`,
+      );
+      console.info("[GTFS][Topology][PostMergeConsolidation]", consolidationResult);
+    }
+
     // Step 5.1b: Log GTFS Path vs TrainrunSections comparison
     this.verboseLog("\n========== [GTFS][PATH_vs_SECTIONS] COMPARISON ==========\n");
     
@@ -883,7 +795,6 @@ export class GTFSConverterService {
       const trainrun = trainruns.find((t) => t.id === trainrunId);
       if (!trainrun) return;
 
-      const enrichedPattern = enrichedPatternsWithTopology ? enrichedPatternsWithTopology.find((e) => e.pattern === pattern) : null;
       const route = gtfsData.routes.find((r) => r.route_id === pattern.routeId);
       const routeName = route?.route_short_name || pattern.routeId;
       const sections = sectionsByTrainrun.get(trainrunId) || [];
@@ -891,14 +802,14 @@ export class GTFSConverterService {
       this.verboseLog(`[GTFS][PATH_vs_SECTIONS] Route: ${routeName}`, {
         trainrunId,
         direction: trainrun.direction,
-        pathLength: enrichedPattern?.nodeSequence?.length || 0,
-        pathNodes: enrichedPattern?.nodeSequence || [],
-        pathHalts: enrichedPattern?.halts ? Array.from(enrichedPattern.halts) : [],
+        pathLength: pattern.stopSequence.length,
+        pathNodes: pattern.stopSequence,
+        pathHalts: pattern.stopSequence,
         sectionCount: sections.length,
         sectionEdges: sections.map((s) => `${s.sourceNodeId}→${s.targetNodeId}`),
-        expectedEdgesFromPath: Math.max(0, (enrichedPattern?.nodeSequence?.length || 1) - 1),
+        expectedEdgesFromPath: Math.max(0, pattern.stopSequence.length - 1),
         actualEdgesFromSections: sections.length,
-        overhead: sections.length - Math.max(0, (enrichedPattern?.nodeSequence?.length || 1) - 1),
+        overhead: sections.length - Math.max(0, pattern.stopSequence.length - 1),
       });
     });
 
@@ -2870,6 +2781,588 @@ export class GTFSConverterService {
     }
 
     return total;
+  }
+
+  private applyTopologyConsolidationToTrainrunSections(
+    trainrunSections: TrainrunSectionDto[],
+    nodes: NodeDto[],
+    config: {
+      topologyDetourPercent: number;
+      topologyDetourAbsoluteMinutes: number;
+      topologyMinEdgeTravelTime: number;
+      topologyMaxIterations: number;
+    },
+  ): {
+    iterationsRun: number;
+    graphChanged: boolean;
+    consolidatedEdges: number;
+    replacedSections: number;
+    insertedSections: number;
+  } {
+    const {
+      topologyDetourPercent,
+      topologyDetourAbsoluteMinutes,
+      topologyMinEdgeTravelTime,
+      topologyMaxIterations,
+    } = config;
+
+    let nextSectionId = trainrunSections.reduce((maxId, section) => Math.max(maxId, section.id), 0) + 1;
+    let graphChanged = false;
+    let consolidatedEdges = 0;
+    let replacedSections = 0;
+    let insertedSections = 0;
+    let iterationsRun = 0;
+
+    for (let iteration = 1; iteration <= topologyMaxIterations; iteration++) {
+      iterationsRun = iteration;
+      let changedInIteration = false;
+      const edgeSnapshot = Array.from(
+        this.buildTopologyBasisGraph(trainrunSections, topologyMinEdgeTravelTime).values(),
+      )
+        .sort((left, right) => left.minTravelTime - right.minTravelTime || left.key.localeCompare(right.key))
+        .map((edge) => edge.key);
+
+      for (const edgeKey of edgeSnapshot) {
+        const currentGraph = this.buildTopologyBasisGraph(trainrunSections, topologyMinEdgeTravelTime);
+        const currentEdge = currentGraph.get(edgeKey);
+        if (!currentEdge || currentEdge.sectionIds.length === 0) {
+          continue;
+        }
+
+        const alternativePath = this.findShortestPathInBasisGraph(
+          currentEdge.nodeA,
+          currentEdge.nodeB,
+          currentGraph,
+          currentEdge.key,
+        );
+
+        if (!alternativePath) {
+          continue;
+        }
+
+        if (alternativePath.length === 2) {
+          console.error("[GTFS][Topology] Duplicate parallel edge detected in basis graph", {
+            edgeKey: currentEdge.key,
+            sourceNodeId: currentEdge.nodeA,
+            targetNodeId: currentEdge.nodeB,
+          });
+          continue;
+        }
+
+        if (alternativePath.length < 3) {
+          continue;
+        }
+
+        const alternativeTravelTime = this.calculateBasisGraphPathTravelTime(alternativePath, currentGraph);
+        if (!Number.isFinite(alternativeTravelTime)) {
+          continue;
+        }
+
+        const edgeSections = currentEdge.sectionIds
+          .map((sectionId) => trainrunSections.find((section) => section.id === sectionId))
+          .filter((section): section is TrainrunSectionDto => section !== undefined);
+
+        if (edgeSections.length !== currentEdge.sectionIds.length || edgeSections.length === 0) {
+          continue;
+        }
+
+        const segmentCount = alternativePath.length - 1;
+        const strictestSectionTravelTime = Math.min(
+          ...edgeSections.map((section) => Math.max(topologyMinEdgeTravelTime, section.travelTime.time)),
+        );
+        const allowedTravelTimeByPercent =
+          strictestSectionTravelTime * (1 + topologyDetourPercent / 100);
+        const allowedTravelTimeByAbsolute = strictestSectionTravelTime + topologyDetourAbsoluteMinutes;
+
+        if (
+          alternativeTravelTime > allowedTravelTimeByPercent &&
+          alternativeTravelTime > allowedTravelTimeByAbsolute
+        ) {
+          continue;
+        }
+
+        const replacements: Array<{
+          originalSectionId: number;
+          originalIndex: number;
+          newSections: TrainrunSectionDto[];
+        }> = [];
+        let canReplaceEdge = true;
+
+        for (const section of edgeSections) {
+          if (
+            section.travelTime.time < segmentCount * topologyMinEdgeTravelTime ||
+            section.backwardTravelTime.time < segmentCount * topologyMinEdgeTravelTime
+          ) {
+            canReplaceEdge = false;
+            break;
+          }
+
+          const orientedPath = this.orientBasisGraphPathForSection(section, alternativePath);
+          if (!orientedPath) {
+            canReplaceEdge = false;
+            break;
+          }
+
+          const originalIndex = trainrunSections.findIndex((candidate) => candidate.id === section.id);
+          if (
+            originalIndex < 0 ||
+            !this.isReplacementPathCompatibleWithTrainrunContext(
+              trainrunSections,
+              originalIndex,
+              section,
+              orientedPath,
+            )
+          ) {
+            canReplaceEdge = false;
+            break;
+          }
+
+          const pathWeights = this.getBasisGraphPathWeights(orientedPath, currentGraph);
+          if (pathWeights.length !== segmentCount) {
+            canReplaceEdge = false;
+            break;
+          }
+
+          const forwardDurations = this.allocateInterpolatedSegmentDurations(
+            section.travelTime.time,
+            pathWeights,
+            topologyMinEdgeTravelTime,
+          );
+          const backwardDurations = this.allocateInterpolatedSegmentDurations(
+            section.backwardTravelTime.time,
+            pathWeights,
+            topologyMinEdgeTravelTime,
+          );
+
+          if (!forwardDurations || !backwardDurations) {
+            canReplaceEdge = false;
+            break;
+          }
+
+          const newSections = this.createReplacementSectionsFromPath(
+            section,
+            orientedPath,
+            forwardDurations,
+            backwardDurations,
+            nextSectionId,
+          );
+          nextSectionId += newSections.length;
+
+          replacements.push({
+            originalSectionId: section.id,
+            originalIndex,
+            newSections,
+          });
+        }
+
+        if (!canReplaceEdge || replacements.length !== edgeSections.length) {
+          nextSectionId = trainrunSections.reduce((maxId, section) => Math.max(maxId, section.id), 0) + 1;
+          continue;
+        }
+
+        replacements
+          .sort((left, right) => right.originalIndex - left.originalIndex)
+          .forEach((replacement) => {
+            trainrunSections.splice(replacement.originalIndex, 1, ...replacement.newSections);
+          });
+
+        changedInIteration = true;
+        graphChanged = true;
+        consolidatedEdges++;
+        replacedSections += replacements.length;
+        insertedSections += replacements.reduce(
+          (sum, replacement) => sum + Math.max(0, replacement.newSections.length - 1),
+          0,
+        );
+      }
+
+      if (!changedInIteration) {
+        break;
+      }
+    }
+
+    return {
+      iterationsRun,
+      graphChanged,
+      consolidatedEdges,
+      replacedSections,
+      insertedSections,
+    };
+  }
+
+  private buildTopologyBasisGraph(
+    trainrunSections: TrainrunSectionDto[],
+    topologyMinEdgeTravelTime: number,
+  ): Map<
+    string,
+    {
+      key: string;
+      nodeA: number;
+      nodeB: number;
+      minTravelTime: number;
+      sectionIds: number[];
+    }
+  > {
+    const basisGraph = new Map<
+      string,
+      {
+        key: string;
+        nodeA: number;
+        nodeB: number;
+        minTravelTime: number;
+        sectionIds: number[];
+      }
+    >();
+
+    trainrunSections.forEach((section) => {
+      const nodeA = Math.min(section.sourceNodeId, section.targetNodeId);
+      const nodeB = Math.max(section.sourceNodeId, section.targetNodeId);
+      const key = `${nodeA}↔${nodeB}`;
+      const sectionTravelTime = Math.max(
+        topologyMinEdgeTravelTime,
+        Math.min(section.travelTime.time, section.backwardTravelTime.time),
+      );
+
+      if (!basisGraph.has(key)) {
+        basisGraph.set(key, {
+          key,
+          nodeA,
+          nodeB,
+          minTravelTime: sectionTravelTime,
+          sectionIds: [section.id],
+        });
+        return;
+      }
+
+      const edge = basisGraph.get(key)!;
+      edge.sectionIds.push(section.id);
+      edge.minTravelTime = Math.min(edge.minTravelTime, sectionTravelTime);
+    });
+
+    return basisGraph;
+  }
+
+  private findShortestPathInBasisGraph(
+    sourceNodeId: number,
+    targetNodeId: number,
+    basisGraph: Map<
+      string,
+      {
+        key: string;
+        nodeA: number;
+        nodeB: number;
+        minTravelTime: number;
+        sectionIds: number[];
+      }
+    >,
+    excludedEdgeKey: string,
+  ): number[] | null {
+    if (sourceNodeId === targetNodeId) {
+      return [sourceNodeId];
+    }
+
+    const adjacency = new Map<number, Map<number, number>>();
+    const ensureNode = (nodeId: number) => {
+      if (!adjacency.has(nodeId)) {
+        adjacency.set(nodeId, new Map<number, number>());
+      }
+      return adjacency.get(nodeId)!;
+    };
+
+    basisGraph.forEach((edge) => {
+      if (edge.key === excludedEdgeKey) {
+        return;
+      }
+      ensureNode(edge.nodeA).set(edge.nodeB, edge.minTravelTime);
+      ensureNode(edge.nodeB).set(edge.nodeA, edge.minTravelTime);
+    });
+
+    const distances = new Map<number, number>();
+    const predecessor = new Map<number, number>();
+    const hops = new Map<number, number>();
+    const queue = new Set<number>([sourceNodeId]);
+
+    distances.set(sourceNodeId, 0);
+    hops.set(sourceNodeId, 0);
+
+    while (queue.size > 0) {
+      let currentNode: number | null = null;
+      let bestDistance = Number.POSITIVE_INFINITY;
+      let bestHops = Number.POSITIVE_INFINITY;
+
+      queue.forEach((candidate) => {
+        const candidateDistance = distances.get(candidate) ?? Number.POSITIVE_INFINITY;
+        const candidateHops = hops.get(candidate) ?? Number.POSITIVE_INFINITY;
+        if (
+          candidateDistance < bestDistance ||
+          (candidateDistance === bestDistance && candidateHops < bestHops)
+        ) {
+          currentNode = candidate;
+          bestDistance = candidateDistance;
+          bestHops = candidateHops;
+        }
+      });
+
+      if (currentNode === null) {
+        break;
+      }
+
+      queue.delete(currentNode);
+      if (currentNode === targetNodeId) {
+        break;
+      }
+
+      const neighbors = Array.from(adjacency.get(currentNode)?.entries() || []).sort(
+        (left, right) => left[0] - right[0],
+      );
+      for (const [neighborNodeId, weight] of neighbors) {
+        const nextDistance = bestDistance + weight;
+        const nextHops = bestHops + 1;
+        const knownDistance = distances.get(neighborNodeId) ?? Number.POSITIVE_INFINITY;
+        const knownHops = hops.get(neighborNodeId) ?? Number.POSITIVE_INFINITY;
+
+        if (nextDistance < knownDistance || (nextDistance === knownDistance && nextHops < knownHops)) {
+          distances.set(neighborNodeId, nextDistance);
+          hops.set(neighborNodeId, nextHops);
+          predecessor.set(neighborNodeId, currentNode);
+          queue.add(neighborNodeId);
+        }
+      }
+    }
+
+    if (!predecessor.has(targetNodeId)) {
+      return null;
+    }
+
+    const path: number[] = [targetNodeId];
+    let cursor = targetNodeId;
+    const visitedNodes = new Set<number>([targetNodeId]);
+    while (cursor !== sourceNodeId) {
+      const previousNode = predecessor.get(cursor);
+      if (previousNode === undefined || visitedNodes.has(previousNode)) {
+        return null;
+      }
+      visitedNodes.add(previousNode);
+      path.push(previousNode);
+      cursor = previousNode;
+    }
+
+    return path.reverse();
+  }
+
+  private calculateBasisGraphPathTravelTime(
+    path: number[],
+    basisGraph: Map<
+      string,
+      {
+        key: string;
+        nodeA: number;
+        nodeB: number;
+        minTravelTime: number;
+        sectionIds: number[];
+      }
+    >,
+  ): number {
+    let total = 0;
+    for (let index = 0; index < path.length - 1; index++) {
+      const edge = this.getBasisGraphEdge(path[index], path[index + 1], basisGraph);
+      if (!edge) {
+        return Number.POSITIVE_INFINITY;
+      }
+      total += edge.minTravelTime;
+    }
+    return total;
+  }
+
+  private getBasisGraphPathWeights(
+    path: number[],
+    basisGraph: Map<
+      string,
+      {
+        key: string;
+        nodeA: number;
+        nodeB: number;
+        minTravelTime: number;
+        sectionIds: number[];
+      }
+    >,
+  ): number[] {
+    const weights: number[] = [];
+    for (let index = 0; index < path.length - 1; index++) {
+      const edge = this.getBasisGraphEdge(path[index], path[index + 1], basisGraph);
+      if (!edge) {
+        return [];
+      }
+      weights.push(edge.minTravelTime);
+    }
+    return weights;
+  }
+
+  private getBasisGraphEdge(
+    fromNodeId: number,
+    toNodeId: number,
+    basisGraph: Map<
+      string,
+      {
+        key: string;
+        nodeA: number;
+        nodeB: number;
+        minTravelTime: number;
+        sectionIds: number[];
+      }
+    >,
+  ):
+    | {
+        key: string;
+        nodeA: number;
+        nodeB: number;
+        minTravelTime: number;
+        sectionIds: number[];
+      }
+    | undefined {
+    const nodeA = Math.min(fromNodeId, toNodeId);
+    const nodeB = Math.max(fromNodeId, toNodeId);
+    return basisGraph.get(`${nodeA}↔${nodeB}`);
+  }
+
+  private orientBasisGraphPathForSection(
+    section: TrainrunSectionDto,
+    path: number[],
+  ): number[] | null {
+    if (path[0] === section.sourceNodeId && path[path.length - 1] === section.targetNodeId) {
+      return [...path];
+    }
+    if (path[0] === section.targetNodeId && path[path.length - 1] === section.sourceNodeId) {
+      return [...path].reverse();
+    }
+    return null;
+  }
+
+  private isReplacementPathCompatibleWithTrainrunContext(
+    trainrunSections: TrainrunSectionDto[],
+    originalIndex: number,
+    originalSection: TrainrunSectionDto,
+    path: number[],
+  ): boolean {
+    const intermediateNodeIds = path.slice(1, -1);
+    if (intermediateNodeIds.length === 0) {
+      return true;
+    }
+
+    const usedNodeIdsInTrainrun = new Set<number>();
+    trainrunSections.forEach((section, index) => {
+      if (index === originalIndex || section.trainrunId !== originalSection.trainrunId) {
+        return;
+      }
+
+      usedNodeIdsInTrainrun.add(section.sourceNodeId);
+      usedNodeIdsInTrainrun.add(section.targetNodeId);
+    });
+
+    return intermediateNodeIds.every((nodeId) => !usedNodeIdsInTrainrun.has(nodeId));
+  }
+
+  private allocateInterpolatedSegmentDurations(
+    totalTravelTime: number,
+    pathWeights: number[],
+    minimumSegmentTravelTime: number,
+  ): number[] | null {
+    if (pathWeights.length === 0) {
+      return null;
+    }
+
+    const segmentCount = pathWeights.length;
+    const minimumTotalTravelTime = segmentCount * minimumSegmentTravelTime;
+    if (totalTravelTime < minimumTotalTravelTime) {
+      return null;
+    }
+
+    const extraTravelTime = totalTravelTime - minimumTotalTravelTime;
+    const totalWeight = pathWeights.reduce((sum, weight) => sum + weight, 0);
+    const durations = pathWeights.map(() => minimumSegmentTravelTime);
+    const remainders: Array<{index: number; remainder: number}> = [];
+
+    let assignedExtraTravelTime = 0;
+    pathWeights.forEach((weight, index) => {
+      const proportionalShare = totalWeight > 0 ? (extraTravelTime * weight) / totalWeight : 0;
+      const extraPart = Math.floor(proportionalShare);
+      durations[index] += extraPart;
+      assignedExtraTravelTime += extraPart;
+      remainders.push({index, remainder: proportionalShare - extraPart});
+    });
+
+    let remainingTravelTime = extraTravelTime - assignedExtraTravelTime;
+    remainders.sort((left, right) => right.remainder - left.remainder || left.index - right.index);
+    for (let remainderIndex = 0; remainderIndex < remainders.length && remainingTravelTime > 0; remainderIndex++) {
+      durations[remainders[remainderIndex].index] += 1;
+      remainingTravelTime--;
+    }
+
+    return durations;
+  }
+
+  private createReplacementSectionsFromPath(
+    originalSection: TrainrunSectionDto,
+    path: number[],
+    forwardDurations: number[],
+    backwardDurations: number[],
+    nextSectionId: number,
+  ): TrainrunSectionDto[] {
+    const newSections: TrainrunSectionDto[] = [];
+    let forwardElapsed = 0;
+
+    for (let index = 0; index < path.length - 1; index++) {
+      const segmentTravelTime = forwardDurations[index];
+      const segmentBackwardTravelTime = backwardDurations[index];
+      const sourceDepartureMinute = (originalSection.sourceDeparture.time + forwardElapsed) % 60;
+      const targetArrivalMinute = (sourceDepartureMinute + segmentTravelTime) % 60;
+      forwardElapsed += segmentTravelTime;
+
+      newSections.push({
+        id: nextSectionId + index,
+        sourceNodeId: path[index],
+        sourcePortId: 0,
+        targetNodeId: path[index + 1],
+        targetPortId: 0,
+        sourceSymmetry: originalSection.sourceSymmetry,
+        targetSymmetry: originalSection.targetSymmetry,
+        sourceArrival: {
+          ...originalSection.sourceArrival,
+          time: (60 - sourceDepartureMinute) % 60,
+        },
+        sourceDeparture: {
+          ...originalSection.sourceDeparture,
+          time: sourceDepartureMinute,
+        },
+        targetArrival: {
+          ...originalSection.targetArrival,
+          time: targetArrivalMinute,
+        },
+        targetDeparture: {
+          ...originalSection.targetDeparture,
+          time: (60 - targetArrivalMinute) % 60,
+        },
+        travelTime: {
+          ...originalSection.travelTime,
+          time: segmentTravelTime,
+        },
+        backwardTravelTime: {
+          ...originalSection.backwardTravelTime,
+          time: segmentBackwardTravelTime,
+        },
+        numberOfStops: 1,
+        trainrunId: originalSection.trainrunId,
+        resourceId: originalSection.resourceId,
+        specificTrainrunSectionFrequencyId: originalSection.specificTrainrunSectionFrequencyId,
+        path: {
+          path: [],
+          textPositions: this.createDefaultTextPositions(),
+        },
+        warnings: [...originalSection.warnings],
+      });
+    }
+
+    return newSections;
   }
 
   private findAlternativePathHopCount(
