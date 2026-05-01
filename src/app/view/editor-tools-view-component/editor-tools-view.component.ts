@@ -13,6 +13,7 @@ import {VersionControlService} from "../../services/data/version-control.service
 import {
   Direction,
   HaltezeitFachCategories,
+  LabelRef,
   NetzgrafikDto,
   NodeDto,
   TrainrunCategoryHaltezeit,
@@ -29,6 +30,9 @@ import {OriginDestinationService} from "src/app/services/analytics/origin-destin
 import {EditorMode} from "../editor-menu/editor-mode";
 import {NODE_TEXT_AREA_HEIGHT, RASTERING_BASIC_GRID_SIZE} from "../rastering/definitions";
 import {ResourceService} from "../../services/data/resource.service";
+import {GTFSParserService} from "../../services/data/gtfs-parser.service";
+import {GTFSConverterService} from "../../services/data/gtfs-converter.service";
+import {GtfsImportManagerService} from "./gtfs-import-dialogs/gtfs-import-manager.service";
 
 interface ContainertoExportData {
   documentToExport: HTMLElement;
@@ -47,9 +51,106 @@ export class EditorToolsViewComponent {
   stammdatenFileInput: ElementRef;
   @ViewChild("netgrafikJsonFileInput", {static: false})
   netgrafikJsonFileInput: ElementRef;
+  @ViewChild("gtfsFileInput", {static: false})
+  gtfsFileInput: ElementRef;
 
   public isDeletable$ = this.versionControlService.variant$.pipe(map((v) => v?.isDeletable));
   public isWritable$ = this.versionControlService.variant$.pipe(map((v) => v?.isWritable));
+
+  // GTFS Route Type Filter (GTFS route_type values)
+  public gtfsRouteTypeFilter = {
+    tram: false, // 0 - Tram, Streetcar, Light rail
+    metro: false, // 1 - Subway, Metro
+    rail: true, // 2 - Rail (intercity, regional)
+    bus: false, // 3 - Bus
+    ferry: false, // 4 - Ferry
+  };
+
+  // Available values extracted from parsed GTFS data
+  public gtfsAvailableAgencies: string[] = [];
+  public gtfsAvailableRoutes: string[] = [];
+
+  // Store light data for dynamic filtering
+  private gtfsLightData: any = null;
+
+  // GTFS Filter Dialog
+  public gtfsFilterDialogVisible = false;
+  public gtfsParsedData: any = null; // Holds parsed GTFS data before filtering
+  public gtfsDataIsLoading = false; // Loading state for dialog
+  private gtfsFile: File | null = null; // Store file for later full parse
+
+  // Agency filter (chip input with autocomplete)
+  public gtfsSelectedAgencies: string[] = [];
+  public gtfsFilteredAgencies: string[] = [];
+
+  // Category filter (chip input with autocomplete)
+  public gtfsSelectedCategories: string[] = [];
+  public gtfsFilteredCategories: string[] = [];
+  public gtfsAvailableCategories: string[] = [];
+
+  // Line filter (chip input with autocomplete)
+  public gtfsSelectedLines: string[] = [];
+  public gtfsFilteredLines: string[] = [];
+
+  // Selected operating day
+  public gtfsSelectedDate: string | null = null;
+
+  // Service date range from GTFS calendar (min/max gütlig)
+  public gtfsServiceDateRange: {startDate: string; endDate: string} | null = null;
+
+  // Warnings for empty filters
+  public gtfsNoCategoriesWarning = false;
+  public gtfsNoLinesWarning = false;
+
+  // Time sync tolerance for round-trip matching (in seconds)
+  public gtfsTimeSyncTolerance = 180; // ±180 seconds (3 minutes) default
+
+  // Topology consolidation toggle
+  public gtfsEnableTopologyConsolidation = true;
+  public gtfsTopologyDetourPercent = 35;
+  public gtfsTopologyDetourAbsoluteMinutes = 3;
+
+  // GTFS Import Progress Overlay
+  public gtfsImportOverlayVisible = false;
+
+  // Import phase tracking
+  public gtfsImportPhases = [
+    {
+      id: "parse",
+      labelKey: "app.view.editor-side-view.gtfs-import-dialogs.phase-parsing",
+      status: "pending",
+      subPhases: [] as {label: string; status: string}[],
+    },
+    {
+      id: "filter",
+      labelKey: "app.view.editor-side-view.gtfs-import-dialogs.phase-filter",
+      status: "pending",
+      subPhases: [] as {label: string; status: string}[],
+    },
+    {
+      id: "convert",
+      labelKey: "app.view.editor-side-view.gtfs-import-dialogs.phase-convert",
+      status: "pending",
+      subPhases: [] as {label: string; status: string}[],
+    },
+    {
+      id: "import",
+      labelKey: "app.view.editor-side-view.gtfs-import-dialogs.phase-import",
+      status: "pending",
+      subPhases: [] as {label: string; status: string}[],
+    },
+  ];
+  public gtfsImportComplete = false;
+  public gtfsImportSummary: any = null;
+
+  // GTFS Node/Stop Filter (by classification)
+  public gtfsNodeFilter = {
+    start: true, // Start nodes (trip origins)
+    end: true, // End nodes (trip destinations)
+    junction: true, // Junction nodes (branching, no stop)
+    major_stop: true, // Major stops (multiple routes)
+    minor_stop: true, // Minor stops (degree 2, single route) - NOW ENABLED BY DEFAULT!
+  };
 
   constructor(
     private dataService: DataService,
@@ -67,7 +168,46 @@ export class EditorToolsViewComponent {
     private levelOfDetailService: LevelOfDetailService,
     private originDestinationService: OriginDestinationService,
     private resourceService: ResourceService,
-  ) {}
+    private gtfsParserService: GTFSParserService,
+    private gtfsConverterService: GTFSConverterService,
+    private gtfsImportManagerService: GtfsImportManagerService,
+  ) {
+    // Subscribe to GTFS import state changes
+    this.gtfsImportManagerService.state$.subscribe((state) => {
+      this.gtfsFilterDialogVisible = state.filterDialogVisible;
+      this.gtfsImportOverlayVisible = state.importOverlayVisible;
+      this.gtfsImportComplete = state.importComplete;
+      this.gtfsImportPhases = state.importPhases;
+      this.gtfsImportSummary = state.importSummary;
+      this.gtfsAvailableAgencies = state.availableAgencies;
+      this.gtfsAvailableCategories = state.availableCategories;
+      this.gtfsAvailableRoutes = state.availableRoutes;
+      this.gtfsSelectedAgencies = state.selectedAgencies;
+      this.gtfsSelectedCategories = state.selectedCategories;
+      this.gtfsSelectedLines = state.selectedLines;
+      this.gtfsSelectedDate = state.selectedDate;
+      this.gtfsServiceDateRange = state.serviceDateRange;
+      this.gtfsFilteredAgencies = state.filteredAgencies;
+      this.gtfsFilteredCategories = state.filteredCategories;
+      this.gtfsFilteredLines = state.filteredLines;
+      this.gtfsNoCategoriesWarning = state.noCategoriesWarning;
+      this.gtfsNoLinesWarning = state.noLinesWarning;
+      this.gtfsRouteTypeFilter = state.routeTypeFilter;
+      this.gtfsNodeFilter = state.nodeFilter;
+      this.gtfsTimeSyncTolerance = state.timeSyncTolerance;
+      this.gtfsEnableTopologyConsolidation = state.enableTopologyConsolidation;
+      this.gtfsTopologyDetourPercent = state.topologyDetourPercent;
+      this.gtfsTopologyDetourAbsoluteMinutes = state.topologyDetourAbsoluteMinutes;
+    });
+  }
+
+  getTodayString(): string {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
 
   onLoadButton() {
     this.netgrafikJsonFileInput.nativeElement.click();
@@ -181,7 +321,7 @@ export class EditorToolsViewComponent {
     const file = param.target.files[0];
     const reader = new FileReader();
     reader.onload = () => {
-      const finalResult: ParseResult = parse(reader.result.toString(), {
+      const finalResult: ParseResult<any> = parse(reader.result.toString(), {
         header: true,
       });
       this.stammdatenService.setStammdaten(finalResult.data);
@@ -234,6 +374,40 @@ export class EditorToolsViewComponent {
       document.body.removeChild(a);
     }
     window.URL.revokeObjectURL(url);
+  }
+
+  onImportGTFSButton() {
+    this.gtfsFileInput.nativeElement.click();
+  }
+
+  async onLoadGTFS(event: any) {
+    const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
+
+    try {
+      await this.gtfsImportManagerService.loadGTFSFile(file);
+    } catch (error) {
+      let userMessage = "";
+      if (
+        error?.message?.includes("Invalid string length") ||
+        error?.message?.includes("out of memory")
+      ) {
+        userMessage =
+          "Die GTFS-Datei ist zu groß für den Browser-Speicher. " +
+          "Bitte verwenden Sie eine kleinere GTFS-Datei oder filtern Sie die Daten vor dem Import.";
+      } else {
+        userMessage = error?.message || String(error);
+      }
+
+      this.logger.error(
+        $localize`:@@app.view.editor-side-view.editor-tools-view-component.gtfs-error:Error scanning GTFS data: ${userMessage}`,
+      );
+    }
+
+    // Reset input to allow importing same file again
+    event.target.value = null;
   }
 
   getVariantIsWritable() {
@@ -652,9 +826,17 @@ export class EditorToolsViewComponent {
 
         const timeOfCirculation =
           travelTime + waitingTimeOnEndStation + travelTime + waitingTimeOnStartStation;
+
+        // Remove category prefix from trainrun name for export
+        const categoryPrefix = trainrun.getTrainrunCategory().shortName.trim();
+        let trainrunName = trainrun.getTitle().trim();
+        if (trainrunName.toUpperCase().startsWith(categoryPrefix.toUpperCase())) {
+          trainrunName = trainrunName.substring(categoryPrefix.length).trim();
+        }
+
         const row: string[] = [];
-        row.push(trainrun.getTrainrunCategory().shortName.trim());
-        row.push(trainrun.getTitle().trim());
+        row.push(categoryPrefix);
+        row.push(trainrunName);
         row.push(startBetriebspunktName.trim());
         row.push(endBetriebspunktName.trim());
         row.push("Verkehrt: " + trainrun.getTrainrunTimeCategory().shortName.trim());
@@ -752,23 +934,33 @@ export class EditorToolsViewComponent {
     // (Step 2) Import nodes and trainrunSectiosn by trainrun inseration (copy => create)
     this.dataService.insertCopyNetzgrafikDto(netzgrafikDto, false);
 
+    const gtfsInitialStopNodeIdsByTrainrun = (netzgrafikDto as any)
+      .gtfsInitialStopNodeIdsByTrainrun as Map<number, number[]> | undefined;
+
     // step(3) Check whether a transitions object was given when not
     //         departureTime - arrivatelTime == 0 => non-stop
-    this.nodeService.getNodes().forEach((n) => {
-      n.getTransitions().forEach((trans) => {
-        const p1 = n.getPort(trans.getPortId1());
-        const p2 = n.getPort(trans.getPortId2());
-        let arrivalTime = p1.getTrainrunSection().getTargetArrival();
-        if (p1.getTrainrunSection().getSourceNodeId() === n.getId()) {
-          arrivalTime = p1.getTrainrunSection().getSourceArrival();
-        }
-        let departureTime = p2.getTrainrunSection().getTargetDeparture();
-        if (p2.getTrainrunSection().getSourceNodeId() === n.getId()) {
-          departureTime = p2.getTrainrunSection().getSourceDeparture();
-        }
-        trans.setIsNonStopTransit(arrivalTime - departureTime === 0);
+    if (gtfsInitialStopNodeIdsByTrainrun && gtfsInitialStopNodeIdsByTrainrun.size > 0) {
+      this.nodeService.applyGtfsInitialStopNodeIdsByTrainrun(gtfsInitialStopNodeIdsByTrainrun);
+    } else {
+      this.nodeService.getNodes().forEach((n) => {
+        n.getTransitions().forEach((trans) => {
+          const p1 = n.getPort(trans.getPortId1());
+          const p2 = n.getPort(trans.getPortId2());
+          let arrivalTime = p1.getTrainrunSection().getTargetArrival();
+          if (p1.getTrainrunSection().getSourceNodeId() === n.getId()) {
+            arrivalTime = p1.getTrainrunSection().getSourceArrival();
+          }
+          let departureTime = p2.getTrainrunSection().getTargetDeparture();
+          if (p2.getTrainrunSection().getSourceNodeId() === n.getId()) {
+            departureTime = p2.getTrainrunSection().getSourceDeparture();
+          }
+          trans.setIsNonStopTransit(arrivalTime - departureTime === 0);
+        });
       });
+      this.nodeService.transitionsUpdated();
+    }
 
+    this.nodeService.getNodes().forEach((n) => {
       const res = this.resourceService.createAndGetResource(false);
       n.setResourceId(res.getId());
     });
@@ -792,7 +984,7 @@ export class EditorToolsViewComponent {
     });
   }
 
-  private processNetzgrafikJSON(netzgrafikDto: NetzgrafikDto) {
+  private async processNetzgrafikJSON(netzgrafikDto: NetzgrafikDto): Promise<void> {
     // prepare JSON import
     this.uiInteractionService.showNetzgrafik();
     this.uiInteractionService.closeNodeStammdaten();
@@ -831,5 +1023,64 @@ export class EditorToolsViewComponent {
       default:
         return $localize`:@@app.view.editor-side-view.editor-tools-view-component.netzgrafikFile:netzgrafik`;
     }
+  }
+
+  // GTFS Filter Dialog Functions
+  closeGtfsFilterDialog(): void {
+    this.gtfsImportManagerService.closeFilterDialog();
+  }
+
+  addGtfsAgency(agency: string): void {
+    this.gtfsImportManagerService.addAgency(agency);
+  }
+
+  removeGtfsAgency(agency: string): void {
+    this.gtfsImportManagerService.removeAgency(agency);
+  }
+
+  addGtfsCategory(category: string): void {
+    this.gtfsImportManagerService.addCategory(category);
+  }
+
+  removeGtfsCategory(category: string): void {
+    this.gtfsImportManagerService.removeCategory(category);
+  }
+
+  addGtfsLine(line: string): void {
+    this.gtfsImportManagerService.addLine(line);
+  }
+
+  removeGtfsLine(line: string): void {
+    this.gtfsImportManagerService.removeLine(line);
+  }
+
+  setGtfsSelectedDate(date: string): void {
+    this.gtfsImportManagerService.setSelectedDate(date);
+  }
+
+  setGtfsTimeSyncTolerance(value: number): void {
+    this.gtfsImportManagerService.updateTimeSyncTolerance(value);
+  }
+
+  setGtfsEnableTopologyConsolidation(value: boolean): void {
+    this.gtfsImportManagerService.updateEnableTopologyConsolidation(value);
+  }
+
+  setGtfsTopologyDetourPercent(value: number): void {
+    this.gtfsImportManagerService.updateTopologyDetourPercent(value);
+  }
+
+  setGtfsTopologyDetourAbsoluteMinutes(value: number): void {
+    this.gtfsImportManagerService.updateTopologyDetourAbsoluteMinutes(value);
+  }
+
+  async applyGtfsFiltersAndImport(): Promise<void> {
+    await this.gtfsImportManagerService.applyFiltersAndImport((netzgrafikDto) =>
+      this.processNetzgrafikJSON(netzgrafikDto),
+    );
+  }
+
+  closeGtfsImportOverlay(): void {
+    this.gtfsImportManagerService.closeImportOverlay();
   }
 }
