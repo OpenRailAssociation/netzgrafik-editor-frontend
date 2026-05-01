@@ -1,197 +1,253 @@
-# GTFS Import Feature
+# GTFS Import: End-to-End Algorithm and Data Mapping
 
-## Overview
+## 1. Purpose and Scope
 
-The GTFS (General Transit Feed Specification) import feature allows you to import public transit timetable data directly into the Netzgrafik-Editor. This feature is particularly useful for:
+This document describes the GTFS import workflow in Netzgrafik Editor, including:
 
-- Importing Swiss public transport data from [Open Transport Data](https://opentransportdata.swiss/)
-- Converting GTFS schedules into visual network graphics
-- Creating regular timetable patterns from real-world transit data
+- parsing and conversion from GTFS to Netzgrafik,
+- mapping of categories, frequencies, and trainrun metadata,
+- post-creation topology consolidation,
+- non-stop vs. stop transition semantics,
+- and iterative convergence behavior.
 
-## How to Use
+The chapters are ordered exactly by execution flow.
 
-### 1. Obtain GTFS Data
+## 2. External GTFS References
 
-Download GTFS data in ZIP format from sources such as:
+The implementation assumes a standard GTFS feed structure and terminology.
 
-- [Swiss GTFS 2026 Data](https://data.opentransportdata.swiss/dataset/timetable-2026-gtfs2020)
-- [GTFS Cookbook](https://opentransportdata.swiss/en/cookbook/timetable-cookbook/gtfs/)
+Recommended references:
 
-### 2. Import GTFS Data
+- https://opentransportdata.swiss/de/cookbook/timetable-cookbook/gtfs/
+- https://gtfs.org/documentation/schedule/reference/
 
-1. Open the Netzgrafik-Editor
-2. Navigate to the tools panel (right side)
-3. Expand the "GTFS" section
-4. Click the "Import GTFS data" button
-5. Select the GTFS ZIP file from your computer
-6. Wait for the import process to complete
+## 3. Input and Import Preconditions
 
-### 3. Import Process
+Expected GTFS input files:
 
-The import process consists of three main steps:
+- `stops.txt`
+- `routes.txt`
+- `trips.txt`
+- `stop_times.txt`
+- optional calendar files (`calendar.txt`, `calendar_dates.txt`)
 
-1. **Parsing** - The ZIP file is extracted and GTFS CSV files are parsed
-2. **Converting** - GTFS data is converted to Netzgrafik format:
-   - Stops → Nodes (stations)
-   - Trips → Trainruns
-   - Stop times → Trainrun sections
-3. **Importing** - The converted data is loaded into the editor
+Import options include (among others):
 
-## GTFS Files Used
+- topology consolidation enabled/disabled,
+- allowed detour by percentage (`xx%`),
+- allowed detour by absolute minutes (`yy`),
+- minimum edge travel time `A` (default `1`),
+- maximum consolidation iterations `n` (default `10`),
+- optional round-trip merge.
 
-The importer processes the following GTFS files:
+## 4. Phase A: GTFS Parsing and Pattern Preparation
 
-- **stops.txt** - Station/stop information (location, name)
-- **routes.txt** - Transit route information (line names, types)
-- **trips.txt** - Individual trip instances
-- **stop_times.txt** - Timing information for each stop on each trip
-- **calendar.txt** (optional) - Service schedule patterns
+### 4.1 Parse Feed Data
 
-## Conversion Details
+GTFS CSV tables are parsed and normalized into in-memory structures.
 
-### Coordinate Transformation
+### 4.2 Build Trip Patterns
 
-GTFS uses WGS84 latitude/longitude coordinates, which are converted to canvas coordinates:
+Trips are grouped by route and stop sequence into pattern candidates.
 
-- Center point: approximately Switzerland's geographic center (46.8°N, 8.2°E)
-- Scale factor: 15,000 (adjustable)
-- Y-axis is inverted for proper display
+### 4.3 Normalize Stop-to-Station Mapping
 
-### Trip Pattern Recognition
+Platform stops are mapped to parent station IDs (if available).
+If a required parent station does not exist as an explicit stop row, a virtual station node may be synthesized.
 
-The converter identifies trip patterns by:
+## 5. Phase B: Node, Metadata, and Trainrun Creation
 
-- Grouping trips with identical stop sequences
-- Selecting representative trips from each pattern
-- Limiting the number of imported patterns (default: 10 per route)
+### 5.1 Node Creation
 
-### Station Code Generation
+All stations used by selected patterns are converted into Netzgrafik nodes.
+Coordinates are transformed and centered.
 
-Station codes (BP) are generated from:
+### 5.2 Category Mapping
 
-- Original GTFS stop_id (if ≤ 8 characters)
-- Abbreviation from stop name (initials or truncated name)
+Route descriptors are mapped to `TrainrunCategory` entries.
 
-### Time Handling
+Rules:
 
-- GTFS times (HH:MM:SS) are converted to minutes since midnight
-- Only the minute portion (0-59) is stored in Netzgrafik format
-- Travel times are calculated between consecutive stops
+- try matching existing category by short name,
+- then by full name,
+- otherwise create a new category.
 
-## Import Options
+### 5.3 Frequency Mapping
 
-The following options can be configured in the code (future UI controls planned):
+GTFS frequencies are mapped to Netzgrafik frequency objects.
 
-- **maxTripsPerRoute** (default: 10) - Maximum number of trip patterns to import per route
-- **minStopsPerTrip** (default: 3) - Minimum stops required for a trip to be imported
-- **onlyRegularService** (future) - Filter for regular weekday services only
+Important behavior:
 
-## Known Limitations
+- supported intervals are normalized to known values,
+- for 120-minute operation, offset variants are mapped via key format like `120_0` and `120_60`,
+- existing metadata frequencies are reused whenever possible.
 
-1. **Simplified Data Model**
-   - The Netzgrafik model is optimized for periodic timetables
-   - Not all GTFS details (calendars, exceptions, etc.) are preserved
+### 5.4 Trainrun Creation
 
-2. **Coordinate Approximation**
-   - Geographic coordinates are simplified to 2D canvas positions
-   - Manual adjustment of node positions may be needed for optimal visualization
+For each selected pattern:
 
-3. **Pattern Selection**
-   - Only a subset of trips are imported (to avoid overwhelming the editor)
-   - Manual review and selection of relevant patterns is recommended
+- one trainrun is created,
+- route/category/frequency/time-category IDs are assigned,
+- naming is derived from route/headsign/trip short name,
+- direction starts as `ONE_WAY`.
 
-4. **No Round-trip Detection**
-   - Imported trainruns are marked as ONE_WAY
-   - Round trips must be manually configured
+### 5.5 TrainrunSection Creation
 
-## Next Steps After Import
+For each adjacent station group pair, one trainrun section is generated.
+Sections include:
 
-After importing GTFS data:
+- source/target node,
+- symmetric minute-level times,
+- travel time and backward travel time,
+- stop/pass-through indicator (`numberOfStops`),
+- section ownership (`trainrunId`).
 
-1. **Review Station Positions** - Adjust node positions for better visualization
-2. **Configure Haltezeiten** - Set appropriate stop times for each station category
-3. **Add Transitions** - Define passenger connections within stations
-4. **Add Connections** - Define transfers between different trainruns
-5. **Filter Data** - Use labels and filters to focus on specific routes or regions
-6. **Create Symmetry** - Adjust times to create symmetric timetable patterns if desired
+## 6. Phase C: Round-Trip Detection and Merge
 
-## Technical Architecture
+If enabled, opposite-direction candidates are checked and merged into `ROUND_TRIP` where valid.
+After merge:
 
-### Services
+- removed trainruns and their sections are deleted,
+- surviving trainrun direction is set to `ROUND_TRIP`.
 
-- **GTFSParserService** (`gtfs-parser.service.ts`)
-  - Parses GTFS ZIP files using JSZip
-  - Extracts and parses CSV files using PapaParse
-  - Provides interfaces for GTFS data structures
+Topology consolidation is executed only after this stage, i.e. on final trainruns/trainrun sections.
 
-- **GTFSConverterService** (`gtfs-converter.service.ts`)
-  - Converts GTFS data to Netzgrafik format
-  - Handles coordinate transformation
-  - Identifies trip patterns
-  - Generates station codes
+## 7. Phase D: Topology Consolidation (Post-Creation)
 
-### Data Flow
+### 7.1 Activation Condition
 
-```
-GTFS ZIP File
-    ↓
-GTFSParserService.parseGTFSZip()
-    ↓
-GTFSData (stops, routes, trips, stop_times)
-    ↓
-GTFSConverterService.convertToNetzgrafik()
-    ↓
-NetzgrafikDto (nodes, trainruns, trainrunSections)
-    ↓
-DataService.loadNetzgrafikDto()
-    ↓
-Editor Display
-```
+Topology consolidation runs only if explicitly enabled.
 
-## Dependencies
+### 7.2 Detour Criteria
 
-- **jszip** - ZIP file parsing
-- **papaparse** - CSV parsing (already used in the project)
+An edge replacement is allowed only if the alternative path travel time satisfies at least one criterion:
 
-## Troubleshooting
+$$
+T_{alt} \le (1 + xx\%) \cdot T_{section}
+$$
 
-### "Error importing GTFS data"
+or
 
-Check the browser console for detailed error messages. Common issues:
+$$
+T_{alt} \le T_{section} + yy
+$$
 
-- Invalid ZIP file format
-- Missing required GTFS files (stops.txt, routes.txt, trips.txt, stop_times.txt)
-- Corrupted CSV data
+And the alternative path must contain more than one edge.
 
-### "No data imported"
+### 7.3 Build Basis Graph $G(V,E)$
 
-Ensure that:
+The basis graph is built from already-created trainrun sections:
 
-- The GTFS data contains trips with at least 3 stops
-- The ZIP file is properly formatted GTFS data
-- The files are encoded in UTF-8
+- vertices $V$: all section endpoint nodes,
+- edges $E$: undirected node pairs,
+- edge payload: list of all attached trainrun sections (`1:m` possible),
+- edge weight: minimum travel time over attached sections, constrained by $A$:
 
-### "Nodes overlap or are positioned incorrectly"
+$$
+w(e) = \max\left(A, \min(T_{section})\right)
+$$
 
-The coordinate transformation may need adjustment:
+Default: $A = 1$.
 
-- Manually reposition nodes after import
-- Consider adjusting SCALE_FACTOR in the converter service
+### 7.4 Edge Ordering
 
-## Future Enhancements
+All edges are sorted ascending by weight.
 
-Planned improvements:
+### 7.5 Alternative Path Search per Edge
 
-- UI controls for import options (max trips, filters, etc.)
-- Better pattern recognition (identify regular intervals)
-- Calendar-based service filtering
-- Round-trip detection
-- Improved coordinate projection for different geographic regions
-- Support for asymmetric timetables
-- Direct API integration with Open Transport Data
+For each edge $e = (n_1, n_2)$:
 
-## References
+- temporarily exclude edge $e$,
+- compute shortest path from $n_1$ to $n_2$ on the remaining undirected graph,
+- if no path: skip,
+- if one-edge path: log error (indicates duplicate parallel edge condition), skip,
+- if path violates detour constraints: skip.
 
-- [GTFS Specification](https://gtfs.org/schedule/reference/)
-- [Open Transport Data Switzerland](https://opentransportdata.swiss/)
-- [Netzgrafik-Editor Documentation](../README.md)
+### 7.6 Section Replacement
+
+If eligible:
+
+- all trainrun sections attached to edge $e$ are replaced atomically,
+- direct section $(n_1, n_2)$ becomes a chain along the alternative path,
+- one new trainrun section is created per replacement path edge,
+- durations are interpolated proportionally using cumulative path weights,
+- each new segment respects minimum travel time $A$.
+
+### 7.7 Transition and Stop Semantics
+
+Target semantics:
+
+- original GTFS-defined stops must remain stops,
+- intermediate nodes inserted by consolidation are pass-through/non-stop.
+
+Runtime enforcement strategy:
+
+- an initial GTFS stop-node map per trainrun is persisted through import,
+- after 3rd-party transition materialization, transitions are forced using that map,
+- at a GTFS stop node: `isNonStopTransit = false`,
+- otherwise: `isNonStopTransit = true`.
+
+## 8. Convergence Loop
+
+After one full edge pass, if any replacement changed the basis graph, run another pass.
+
+Stop conditions:
+
+- no changes in a full pass (fixed point), or
+- max iteration count reached.
+
+Default max iterations:
+
+$$
+n = 10
+$$
+
+## 9. Logical Safety Constraints
+
+### 9.1 Trainrun-Context Node Reuse Guard
+
+A candidate alternative path is rejected for a specific trainrun if newly inserted intermediate nodes already appear elsewhere in the same trainrun.
+
+This prevents loops and backtracking patterns such as:
+
+`A -> B -> C -> B -> D`.
+
+### 9.2 Linearity Constraint
+
+After replacement, the affected trainrun must remain a simple linear path without reusing previously visited intermediate nodes.
+
+### 9.3 Optional Edge-Reuse Constraint
+
+Optional stricter policy: also reject replacements that reuse an edge already used elsewhere in the same trainrun.
+
+## 10. Output and Loading Path
+
+### 10.1 Exported DTO
+
+The converter outputs a Netzgrafik DTO containing:
+
+- nodes,
+- trainruns,
+- trainrun sections,
+- metadata,
+- labels and filter data,
+- additional import metadata (e.g., trainrun-to-trips and GTFS stop-node map).
+
+### 10.2 3rd-Party Materialization
+
+During 3rd-party loading/import, ports/transitions/connections are materialized.
+After this materialization, GTFS stop-node enforcement is applied to transition non-stop flags.
+
+## 11. Practical Validation Checklist
+
+When validating a feed import, verify:
+
+1. no zig-zag regressions introduced by consolidation,
+2. GTFS stop nodes are stop transitions,
+3. inserted consolidation corridor nodes are non-stop,
+4. no trainrun-level node reuse violations,
+5. convergence reached within configured max iterations.
+
+## 12. Summary
+
+The GTFS import pipeline first creates full trainruns/trainrun sections, then performs optional post-creation topology consolidation on an undirected basis graph with strict safety guards, iterative convergence, and stop/non-stop behavior enforcement aligned with original GTFS stop semantics.

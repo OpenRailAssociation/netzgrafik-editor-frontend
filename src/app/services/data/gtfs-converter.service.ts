@@ -411,6 +411,7 @@ export class GTFSConverterService {
     const trainruns: TrainrunDto[] = [];
     const trainrunSections: TrainrunSectionDto[] = [];
     const trainrunToTrips = new Map<number, string[]>(); // Map trainrun ID to trip IDs
+    const initialStopNodeIdsByTrainrun = new Map<number, Set<number>>();
     const createdTrainrunToPattern = new Map<number, TripPattern>();
     
     const routeMap = new Map<string, GTFSRoute>();
@@ -579,6 +580,13 @@ export class GTFSConverterService {
       if (stationGroups.length > 0) {
         visitedNodeIdsForTrainrun.add(stationGroups[0].nodeId);
       }
+
+      initialStopNodeIdsByTrainrun.set(
+        trainrun.id,
+        new Set(
+          stationGroups.filter((group) => group.isStop).map((group) => group.nodeId),
+        ),
+      );
 
       // DEBUG: Print stop sequence with station names
       stationGroups.forEach((group, idx) => {
@@ -760,6 +768,13 @@ export class GTFSConverterService {
     const roundTripCount = trainruns.filter((t) => t.direction === Direction.ROUND_TRIP).length;
     const oneWayCount = trainruns.filter((t) => t.direction === Direction.ONE_WAY).length;
 
+    const finalTrainrunIds = new Set(trainruns.map((trainrun) => trainrun.id));
+    Array.from(initialStopNodeIdsByTrainrun.keys()).forEach((trainrunIdKey) => {
+      if (!finalTrainrunIds.has(trainrunIdKey)) {
+        initialStopNodeIdsByTrainrun.delete(trainrunIdKey);
+      }
+    });
+
     if (enableTopologyConsolidation && trainrunSections.length > 1) {
       const consolidationResult = this.applyTopologyConsolidationToTrainrunSections(
         trainrunSections,
@@ -873,6 +888,12 @@ export class GTFSConverterService {
 
     // Add trainrun-to-trips mapping as additional property (not part of standard NetzgrafikDto)
     (netzgrafikDto as any).trainrunToTrips = trainrunToTrips;
+    (netzgrafikDto as any).gtfsInitialStopNodeIdsByTrainrun = new Map(
+      Array.from(initialStopNodeIdsByTrainrun.entries()).map(([trainrunIdKey, nodeIds]) => [
+        trainrunIdKey,
+        Array.from(nodeIds),
+      ]),
+    );
 
     return netzgrafikDto;
   }

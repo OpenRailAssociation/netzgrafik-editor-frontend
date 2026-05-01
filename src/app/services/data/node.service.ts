@@ -178,6 +178,29 @@ export class NodeService implements OnDestroy {
     });
   }
 
+  applyGtfsInitialStopNodeIdsByTrainrun(stopNodeIdsByTrainrun: Map<number, number[]>) {
+    const normalizedStopNodeIdsByTrainrun = new Map<number, Set<number>>();
+    stopNodeIdsByTrainrun.forEach((nodeIds, trainrunId) => {
+      normalizedStopNodeIdsByTrainrun.set(trainrunId, new Set(nodeIds));
+    });
+
+    this.nodesStore.nodes.forEach((node) => {
+      node.getTransitions().forEach((transition) => {
+        const trainrun = transition.getTrainrun();
+        if (!trainrun) {
+          return;
+        }
+
+        const stopNodeIds = normalizedStopNodeIdsByTrainrun.get(trainrun.getId()) || new Set<number>();
+        const isGtfsStop = stopNodeIds.has(node.getId());
+        transition.setIsNonStopTransit(!isGtfsStop);
+      });
+    });
+
+    this.nodesUpdated();
+    this.transitionsUpdated();
+  }
+
   initPortOrdering(portOrderingType?: OrderingAlgorithm) {
     if (portOrderingType !== undefined) {
       this.currentOrderingAlgorithm = portOrderingType;

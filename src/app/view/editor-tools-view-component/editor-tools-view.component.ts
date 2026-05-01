@@ -934,23 +934,33 @@ export class EditorToolsViewComponent {
     // (Step 2) Import nodes and trainrunSectiosn by trainrun inseration (copy => create)
     this.dataService.insertCopyNetzgrafikDto(netzgrafikDto, false);
 
+    const gtfsInitialStopNodeIdsByTrainrun = (netzgrafikDto as any)
+      .gtfsInitialStopNodeIdsByTrainrun as Map<number, number[]> | undefined;
+
     // step(3) Check whether a transitions object was given when not
     //         departureTime - arrivatelTime == 0 => non-stop
-    this.nodeService.getNodes().forEach((n) => {
-      n.getTransitions().forEach((trans) => {
-        const p1 = n.getPort(trans.getPortId1());
-        const p2 = n.getPort(trans.getPortId2());
-        let arrivalTime = p1.getTrainrunSection().getTargetArrival();
-        if (p1.getTrainrunSection().getSourceNodeId() === n.getId()) {
-          arrivalTime = p1.getTrainrunSection().getSourceArrival();
-        }
-        let departureTime = p2.getTrainrunSection().getTargetDeparture();
-        if (p2.getTrainrunSection().getSourceNodeId() === n.getId()) {
-          departureTime = p2.getTrainrunSection().getSourceDeparture();
-        }
-        trans.setIsNonStopTransit(arrivalTime - departureTime === 0);
+    if (gtfsInitialStopNodeIdsByTrainrun && gtfsInitialStopNodeIdsByTrainrun.size > 0) {
+      this.nodeService.applyGtfsInitialStopNodeIdsByTrainrun(gtfsInitialStopNodeIdsByTrainrun);
+    } else {
+      this.nodeService.getNodes().forEach((n) => {
+        n.getTransitions().forEach((trans) => {
+          const p1 = n.getPort(trans.getPortId1());
+          const p2 = n.getPort(trans.getPortId2());
+          let arrivalTime = p1.getTrainrunSection().getTargetArrival();
+          if (p1.getTrainrunSection().getSourceNodeId() === n.getId()) {
+            arrivalTime = p1.getTrainrunSection().getSourceArrival();
+          }
+          let departureTime = p2.getTrainrunSection().getTargetDeparture();
+          if (p2.getTrainrunSection().getSourceNodeId() === n.getId()) {
+            departureTime = p2.getTrainrunSection().getSourceDeparture();
+          }
+          trans.setIsNonStopTransit(arrivalTime - departureTime === 0);
+        });
       });
+      this.nodeService.transitionsUpdated();
+    }
 
+    this.nodeService.getNodes().forEach((n) => {
       const res = this.resourceService.createAndGetResource(false);
       n.setResourceId(res.getId());
     });
