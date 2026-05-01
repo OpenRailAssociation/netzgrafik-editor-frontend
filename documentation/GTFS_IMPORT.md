@@ -2,58 +2,183 @@
 
 ## 1. Purpose and Scope
 
-This document describes the GTFS import workflow in Netzgrafik Editor, including:
+This document describes the complete GTFS import pipeline in Netzgrafik Editor. It is written for readers who have not seen the source code and need to understand precisely what happens to GTFS data from the moment a ZIP file is uploaded until the resulting Netzgrafik timetable appears on screen.
 
-- parsing and conversion from GTFS to Netzgrafik,
-- mapping of categories, frequencies, and trainrun metadata,
-- post-creation topology consolidation,
-- non-stop vs. stop transition semantics,
-- and iterative convergence behavior.
+The pipeline covers six ordered phases:
 
-The chapters are ordered exactly by execution flow.
+| Phase | Chapter | Name |
+|-------|---------|------|
+| A | 4 | GTFS parsing and ZIP extraction |
+| B | 5 | Filtering, pattern grouping, and trainrun creation |
+| C | 6 | Round-trip detection and merge |
+| D | 7 | Topology consolidation |
+| E | 8 | Convergence loop |
+| F | 9–10 | Output, loading, and transition enforcement |
+
+All chapters are ordered by execution flow. Each chapter describes what data enters, what computation is performed, what data is produced, and what data is discarded and why.
 
 ## 2. External GTFS References
 
-The implementation assumes a standard GTFS feed structure and terminology.
+The implementation follows the GTFS Schedule specification. Two references are recommended:
 
-Recommended references:
+- **Swiss GTFS cookbook** (SBB / opentransportdata.swiss):
+  https://opentransportdata.swiss/de/cookbook/timetable-cookbook/gtfs/
+  Explains feed conventions specific to Swiss rail data, including `parent_station` usage, `route_desc` category values, and calendar encoding.
 
-- https://opentransportdata.swiss/de/cookbook/timetable-cookbook/gtfs/
-- https://gtfs.org/documentation/schedule/reference/
+- **Official GTFS Schedule reference**:
+  https://gtfs.org/documentation/schedule/reference/
+  Defines all field names, types, and semantics referenced in this document.
 
-## 3. Input and Import Preconditions
+Key GTFS concepts used throughout:
 
-Expected GTFS input files:
+| GTFS term | Meaning in this document |
+|-----------|-------------------------|
+| `agency` | Transport operator (e.g., SBB) |
+| `route` | Named service line (e.g., IR15) |
+| `trip` | Single operational run of a route on a given day |
+| `stop` | Physical location; can be a platform or a parent station |
+| `parent_station` | Station grouping multiple platforms under one ID |
+| `stop_time` | Timed stop event: arrival, departure, pickup/drop-off type |
+| `service_id` | Calendar rule linking trips to operating days |
+| `direction_id` | `0` = outbound, `1` = inbound (feed-defined) |
 
-- `stops.txt`
-- `routes.txt`
-- `trips.txt`
-- `stop_times.txt`
-- optional calendar files (`calendar.txt`, `calendar_dates.txt`)
+## 3. Input Files and Import Options
 
-Import options include (among others):
+### 3.1 Required and Optional Input Files
 
-- topology consolidation enabled/disabled,
-- allowed detour by percentage (`xx%`),
-- allowed detour by absolute minutes (`yy`),
-- minimum edge travel time `A` (default `1`),
-- maximum consolidation iterations `n` (default `10`),
-- optional round-trip merge.
+The import reads a GTFS ZIP archive. The following files are used:
 
-## 4. Phase A: GTFS Parsing and Pattern Preparation
+| File | Required | Purpose |
+|------|----------|---------|
+| `agency.txt` | yes | Identifies operators; used for the agency filter |
+| `routes.txt` | yes | Defines service lines and their type/category |
+| `trips.txt` | yes | Links individual runs to routes and calendar rules |
+| `stop_times.txt` | yes | Provides the timed stop sequence for each trip |
+| `stops.txt` | yes | Provides station/platform locations and parent-station links |
+| `calendar.txt` | optional | Defines regular weekly service patterns with date range |
+| `calendar_dates.txt` | optional | Adds or removes service on specific calendar dates |
 
-### 4.1 Parse Feed Data
+If neither calendar file is present, all trips are considered active (no day filtering is possible).
 
-GTFS CSV tables are parsed and normalized into in-memory structures.
+### 3.2 Import Options
 
-### 4.2 Build Trip Patterns
+The import pipeline is controlled by a set of options passed at invocation time. The most important ones are:
 
-Trips are grouped by route and stop sequence into pattern candidates.
+| Option | Type | Default | Effect |
+|--------|------|---------|--------|
+| `allowedAgencies` | `string[]` | `[]` (all) | Filter by operator name |
+| `allowedRouteTypes` | `number[]` | `[2]` (Rail) | GTFS `route_type` allowlist |
+| `allowedCategories` | `string[]` | `[]` (all) | Filter by `route_desc` |
+| `betriebstag` | `YYYY-MM-DD` | null (all days) | Operating day filter |
+| `timeSyncTolerance` | seconds | `180` | Tolerance for round-trip time symmetry check |
+| `mergeRoundTrips` | boolean | `true` | Merge opposite-direction pairs into `ROUND_TRIP` |
+| `enableTopologyConsolidation` | boolean | `true` | Run topology consolidation after creation |
+| `topologyDetourPercent` | number | `35` | Max relative detour `xx%` allowed during consolidation |
+| `topologyDetourAbsoluteMinutes` | number | `3` | Max absolute detour `yy` min allowed during consolidation |
+| `topologyMinEdgeTravelTime` (A) | minutes | `1` | Lower bound on any edge travel time during consolidation |
+| `topologyMaxIterations` (n) | integer | `10` | Maximum consolidation passes |
 
-### 4.3 Normalize Stop-to-Station Mapping
+### 3.3 What the Options Control
 
-Platform stops are mapped to parent station IDs (if available).
-If a required parent station does not exist as an explicit stop row, a virtual station node may be synthesized.
+The filtering options (agency, route type, category, operating day) reduce the raw GTFS data to the relevant subset before any conversion work begins. The consolidation options (detour thresholds, A, n) control the topology simplification pass that runs after all trainruns are created. The round-trip option controls whether the model uses bidirectional trainruns or keeps all services as one-way.
+
+## 4. Phase A: GTFS Parsing and ZIP Extraction
+
+Phase A reads the ZIP archive, parses CSV tables into typed in-memory structures, and classifies all stops by their network role. This phase does not yet create any Netzgrafik objects; it only prepares the data structures consumed by phase B.
+
+### 4.1 ZIP Extraction and CSV Parsing
+
+The ZIP archive is opened in memory using JSZip. Each GTFS file is read as a UTF-8 text blob. For small files (`agency.txt`, `routes.txt`, `trips.txt`, `stops.txt`, `calendar.txt`, `calendar_dates.txt`), the full text is parsed in one pass using PapaParse, which handles quoted fields, BOM markers, and CRLF line endings. For `stop_times.txt` — which can reach hundreds of megabytes in national feeds — a **streaming chunk parser** is used:
+
+```
+open stop_times.txt as ArrayBuffer
+for each 10 MB chunk:
+  decode UTF-8, prepend any leftover from previous chunk
+  split into lines
+  for each line:
+    if line.trip_id is in allowedTripIds → keep
+    else → discard
+  carry incomplete last line to next chunk
+```
+
+This avoids loading the full file into a single string, which would exceed the V8 string length limit for large national feeds. Only stop-times belonging to already-filtered trip IDs are kept, so memory usage scales with the filtered trip count rather than the full feed size.
+
+### 4.2 Stop Classification
+
+After all files are parsed, each station-level stop is classified by its role in the network topology. This classification is used by the UI filter panel to let users select which node types to import (start/end nodes, major stops, minor stops, junctions).
+
+The algorithm builds an **undirected adjacency graph** at station level — platforms are collapsed to their `parent_station` before any edge is added:
+
+```
+for each trip T:
+  stationSequence = T.stopTimes.map(st => parentStation(st.stop_id))
+  deduplicate consecutive identical stations
+  for each adjacent pair (prev, curr) in stationSequence:
+    if prev ≠ curr:
+      add undirected edge (prev, curr)
+  tag stationSequence[0]   as START
+  tag stationSequence[last] as END
+  for each st in T.stopTimes:
+    if st.pickup_type ≠ '1' AND st.drop_off_type ≠ '1':
+      tag parentStation(st.stop_id) as HAS_STOP
+```
+
+Once all trips are processed, each station is classified by degree (number of distinct neighbours) and tags:
+
+| Condition | Classification |
+|-----------|---------------|
+| tagged START | `start` |
+| tagged END | `end` |
+| degree = 2 | `minor_stop` |
+| degree > 2 AND tagged HAS_STOP | `major_stop` |
+| degree > 2 AND NOT tagged HAS_STOP | `junction` |
+| degree < 2 (isolated) | `minor_stop` (fallback) |
+
+Start/end classification takes precedence. A station that is both a start and an end (i.e., a stub terminus) is classified as `start`.
+
+**Example** — simplified Swiss IR network fragment:
+
+```mermaid
+graph LR
+  GVA["Genf\n(start)"] --- LAU["Lausanne\n(major_stop, deg 3)"]
+  LAU --- BER["Bern\n(major_stop, deg 3)"]
+  LAU --- FRI["Fribourg\n(minor_stop, deg 2)"]
+  FRI --- BER
+  BER --- OLT["Olten\n(major_stop, deg 3)"]
+  OLT --- BAS["Basel\n(end)"]
+  OLT --- ZUE["Zürich\n(major_stop, deg 3)"]
+  ZUE --- WIN["Winterthur\n(minor_stop, deg 2)"]
+  WIN --- SGA["St.Gallen\n(end)"]
+```
+
+### 4.3 Frequency Pre-Computation
+
+Before phase B begins, the cycle time (headway) is computed for every route. This is done once in phase A so that the result is available during trainrun creation in phase B.
+
+The algorithm analyses departure intervals in **one direction only** (direction `0` is preferred; direction `1` is used if no direction-0 data is present). The reason for using a single direction is that looking at both directions would mix outbound and inbound departures at shared stops, producing artificial half-headway values.
+
+```
+for each route R:
+  collect departures at each stop, direction=0 only
+  for each stop with ≥ 2 departures:
+    sort departures
+    compute intervals between consecutive departures
+    snap each interval to nearest standard value:
+      ≤ 17 → 15 min
+      ≤ 25 → 20 min
+      ≤ 45 → 30 min
+      ≤ 90 → 60 min
+      ≤ 150 → 120 min
+      > 150 → 60 min (long-haul / sparse service default)
+    add snapped value to histogram
+  R.frequency = mode of histogram
+  if R.frequency == 120:
+    R.offsetHour = firstDepartureHour mod 2  // 0 = even, 1 = odd
+```
+
+For the 120-minute case, the `offsetHour` value distinguishes even-hour trains (frequency key `120_0`) from odd-hour trains (key `120_60`). This matters because both may operate on the same corridor and must be kept as separate Netzgrafik frequency entries.
+
+A representative sample trip is also selected per route: the first chronologically ordered trip whose departure minute aligns with the detected grid (e.g., `:00` for 60-min, `:00` or `:30` for 30-min). This trip is later used for section timing.
 
 ## 5. Phase B: Filtering, Pattern Grouping, and Trainrun Creation
 
@@ -373,157 +498,398 @@ Frequency assignment is computed once in phase A (step 5.4) and attached to each
 
 Topology consolidation is executed only after this phase completes, operating on the final set of trainruns and trainrun sections with their definitive `ONE_WAY` or `ROUND_TRIP` direction flags.
 
-## 7. Phase D: Topology Consolidation (Post-Creation) 
+## 7. Phase D: Topology Consolidation (Post-Creation)
 
-Once all trains have been created, meaning trainruns with their `n` trainrun sections, and once it is known whether a train is `ONE_WAY` or `ROUND_TRIP`, topology consolidation is executed as a follow-up step. This consolidation runs only when explicitly enabled. If enabled, the global detour limits are applied for alternative-path mapping: the alternative connection may be at most `(1 + xx%) * travelTime` of the replaced section, or at most `travelTime + yy` minutes. In addition, an edge is replaced only if the found alternative path contains more than one edge.
+Topology consolidation is the most algorithmically complex phase of the pipeline. Its purpose is to remove **redundant direct connections** between station pairs and reroute the affected trainruns through the shared corridor that already connects those stations via other trains. The result is a cleaner, more consistent Netzgrafik where each physical track segment is represented by exactly one edge rather than duplicated across multiple trainruns.
 
-The basis is an undirected graph built from already-created trainrun sections. For each trainrun section, `sourceNode` and `targetNode` are read; all appearing nodes form vertex set `V`, and all connections form edge set `E`. Each edge stores the list of attached trainrun sections, since `1:m` sections can belong to one edge. Edge weight is the minimum travel time over attached sections, constrained by lower bound `A`. This defines the basis graph `G(V,E)`.
+This phase runs only after phases B and C are complete, i.e., after all trainruns and their sections exist and all round-trip merges have been performed. It runs only when `enableTopologyConsolidation = true`.
 
-Consolidation starts by sorting all edges ascending by weight. Then edges are processed one by one. For an edge `e` between `n1` and `n2`, an alternative path from `n1` to `n2` is searched while temporarily excluding `e`. This is the shortest path without `e`. If no path is found, nothing happens. If path travel time exceeds the allowed threshold, nothing happens. If the path has only one edge, an error is logged, because that indicates an invalid parallel duplicate connection between the same node pair.
+### 7.1 Motivation and Example
 
-If all criteria are met, all trainrun sections attached to edge `e` are replaced atomically: the direct connection between `n1` and `n2` is replaced by the alternative edge chain. One new trainrun section is created per path edge. Travel times of these new sections are interpolated proportionally based on cumulative minimum path travel time and the original section travel time. Each segment must be at least `A` minutes, with default `A = 1`, configurable via import options.
+Consider two trainruns that both serve the Zürich–Basel corridor:
 
-After successful replacement, the old edge is removed from the basis graph, new sections are attached to affected edge lists, and minimum edge weights are recomputed. A change flag marks that the graph changed in this round. After one full pass over all edges, the next pass starts. This repeats until no further changes occur or maximum iterations are reached. The default starting value is `n = 10` full passes.
+- **IR35**: Zürich → Zürich Flughafen → … → Basel (long route, direct GTFS section ZUE→BAS encoded as one section with 55 min)
+- **IR15**: Zürich → Winterthur → Olten → Basel (sectioned step by step)
 
-Additional safety rules prevent invalid remappings: an alternative path may be used for a specific trainrun only if its newly inserted intermediate nodes do not already appear elsewhere in the same trainrun. This prevents loops and backtracking such as `A -> B -> C -> B -> D`. After replacement, the affected trainrun must still be a simple linear path without reusing already visited intermediate nodes. Optionally, replacements can also be forbidden when they reuse edges already used elsewhere in the same trainrun.
+After phase B, the basis graph contains a direct edge `ZUE—BAS` with weight 55 min (from IR35) alongside the indirect path `ZUE—WIN—OLT—BAS` with total weight 21+31+28 = 80 min. The direct edge is longer than the alternative (55 min vs 80 min), so no consolidation occurs. But if the direct edge is, say, 75 min with a 35% detour allowance, the alternative at 80 min would still pass: 75 × 1.35 = 101 min > 80 min → eligible.
 
-For transition semantics, the target behavior is: GTFS-defined stops stay stop transitions, while consolidation-inserted intermediate nodes are non-stop passages. Note the boolean semantics: `isNonStopTransit = false` means stop, and `isNonStopTransit = true` means non-stop. Therefore, after 3rd-party transition materialization, GTFS stop nodes are explicitly enforced as stop per trainrun, and all other nodes on the route are marked non-stop.
+When eligible, the consolidation replaces IR35's direct `ZUE→BAS` section with three new sections that follow the shared corridor: `ZUE→WIN→OLT→BAS`.
 
-### 7.1 Activation Condition
+### 7.2 Building the Basis Graph
 
-Topology consolidation runs only if explicitly enabled.
+The basis graph $G(V, E)$ is constructed directly from the trainrun sections that exist after phases B and C:
 
-### 7.2 Detour Criteria
+```
+V = { all unique nodeIds appearing as sourceNodeId or targetNodeId in any section }
+E = {}
 
-An edge replacement is allowed only if the alternative path travel time satisfies at least one criterion:
+for each TrainrunSection S:
+  edgeKey = undirectedKey(S.sourceNodeId, S.targetNodeId)
+  if edgeKey not in E:
+    E[edgeKey] = { n1: min(src,tgt), n2: max(src,tgt), sections: [], minWeight: +∞ }
+  E[edgeKey].sections.push(S)
+  E[edgeKey].minWeight = max(A, min(E[edgeKey].minWeight, S.travelTime))
+```
 
-$$
-T_{alt} \le (1 + xx\%) \cdot T_{section}
-$$
-
-or
-
-$$
-T_{alt} \le T_{section} + yy
-$$
-
-And the alternative path must contain more than one edge.
-
-### 7.3 Build Basis Graph $G(V,E)$
-
-The basis graph is built from already-created trainrun sections:
-
-- vertices $V$: all section endpoint nodes,
-- edges $E$: undirected node pairs,
-- edge payload: list of all attached trainrun sections (`1:m` possible),
-- edge weight: minimum travel time over attached sections, constrained by $A$:
+The graph is **undirected**: an edge `(n1, n2)` covers sections in both directions. Edge weight is:
 
 $$
-w(e) = \max\left(A, \min(T_{section})\right)
+w(e) = \max\!\left(A,\ \min_{S \in e}\left(S.\text{travelTime}\right)\right)
 $$
 
-Default: $A = 1$.
+The lower bound $A$ (default 1 minute) prevents zero-weight edges that would confuse the shortest-path algorithm and produce meaningless interpolated segments.
 
-### 7.4 Edge Ordering
+One edge can carry **multiple sections** (1:m): if two trainruns independently connect the same node pair, both their sections are attached to the same edge. A replacement affects all of them atomically.
 
-All edges are sorted ascending by weight.
+### 7.3 Edge Ordering
 
-### 7.5 Alternative Path Search per Edge
+All edges are sorted by weight in ascending order before processing begins:
+
+```
+sortedEdges = E.values().sortBy(e => e.minWeight)   // ascending
+```
+
+Processing the lightest edges first is a deliberate heuristic: short direct connections are the most likely candidates for removal (they are the ones a longer detour path is most likely to exist for), and replacing them first simplifies the graph for subsequent passes.
+
+### 7.4 Alternative Path Search
 
 For each edge $e = (n_1, n_2)$:
 
-- temporarily exclude edge $e$,
-- compute shortest path from $n_1$ to $n_2$ on the remaining undirected graph,
-- if no path: skip,
-- if one-edge path: log error (indicates duplicate parallel edge condition), skip,
-- if path violates detour constraints: skip.
+1. **Temporarily remove** $e$ from the graph.
+2. **Run Dijkstra** (or equivalent shortest-path) from $n_1$ to $n_2$ on the remaining undirected graph, summing edge `minWeight` values.
+3. **Restore** $e$ to the graph.
+4. **Evaluate** the found path (if any) against the detour criteria.
 
-### 7.6 Section Replacement
-
-If eligible:
-
-- all trainrun sections attached to edge $e$ are replaced atomically,
-- direct section $(n_1, n_2)$ becomes a chain along the alternative path,
-- one new trainrun section is created per replacement path edge,
-- durations are interpolated proportionally using cumulative path weights,
-- each new segment respects minimum travel time $A$.
-
-### 7.7 Transition and Stop Semantics
-
-Target semantics:
-
-- original GTFS-defined stops must remain stops,
-- intermediate nodes inserted by consolidation are pass-through/non-stop.
-
-Runtime enforcement strategy:
-
-- an initial GTFS stop-node map per trainrun is persisted through import,
-- after 3rd-party transition materialization, transitions are forced using that map,
-- at a GTFS stop node: `isNonStopTransit = false`,
-- otherwise: `isNonStopTransit = true`.
-
-## 8. Convergence Loop
-
-After one full edge pass, if any replacement changed the basis graph, run another pass.
-
-Stop conditions:
-
-- no changes in a full pass (fixed point), or
-- max iteration count reached.
-
-Default max iterations:
+The detour criteria are **disjunctive** — the path is eligible if it satisfies **either**:
 
 $$
-n = 10
+T_{alt} \le \left(1 + \frac{xx}{100}\right) \cdot T_e \qquad \text{(relative threshold)}
 $$
+
+$$
+T_{alt} \le T_e + yy \qquad \text{(absolute threshold)}
+$$
+
+where $T_e$ is the weight of the edge being considered and $T_{alt}$ is the total weight of the alternative path.
+
+Additionally, the alternative path must contain **more than one edge**. A one-edge alternative would mean a parallel duplicate connection between the same node pair, which indicates a data error in the feed and is logged as a warning.
+
+**Example** — detour evaluation:
+
+| Edge | $T_e$ | Alternative path | $T_{alt}$ | 35% threshold | +3 min threshold | Eligible? |
+|------|--------|-----------------|-----------|---------------|-----------------|-----------|
+| ZUE–OLT direct | 45 min | ZUE–WIN–OLT | 52 min | 45×1.35=60.75 ✓ | 45+3=48 ✗ | **yes** (relative passes) |
+| ZUE–BAS direct | 55 min | ZUE–WIN–OLT–BAS | 80 min | 55×1.35=74.25 ✗ | 55+3=58 ✗ | **no** |
+
+### 7.5 Trainrun-Context Safety Check
+
+Even when a path passes the detour criteria, it may still be rejected for a specific trainrun. A replacement is **invalid for a given trainrun** if any intermediate node on the alternative path already appears elsewhere in that trainrun's section chain.
+
+```
+for each trainrun T attached to sections on edge e:
+  intermediateNodes = alternativePath.nodes excluding endpoints (n1, n2)
+  existingNodes = all nodeIds already used in T's sections
+  if intermediateNodes ∩ existingNodes ≠ ∅:
+    reject replacement for T
+```
+
+This prevents backtracking and loop patterns. For example, if trainrun T already visits node B as an intermediate node, then rerouting one of its sections through B again would produce the invalid sequence `A → B → C → B → D`.
+
+```mermaid
+graph LR
+  A --> B --> C --> D
+  style B fill:#f96,stroke:#333
+```
+
+If node B is already in T's chain, the path `A → B → D` as a replacement for `A → D` is rejected for T.
+
+If the safety check rejects the replacement for **all** trainruns on the edge, the entire edge is skipped. If it rejects only some trainruns, the replacement is applied only to the allowed ones; the section for the rejected trainrun remains a direct connection.
+
+### 7.6 Atomic Section Replacement
+
+When an edge $e = (n_1, n_2)$ with sections $S_1, \ldots, S_k$ is eligible for replacement:
+
+```
+alternativePath = [n1, m1, m2, ..., mk, n2]   // intermediate nodes m1..mk
+pathEdges       = [(n1,m1), (m1,m2), ..., (mk,n2)]
+totalPathWeight = sum of minWeight of each path edge
+
+for each section Si on edge e (that passed the safety check):
+  remove Si from trainrunSections
+  for each (src, tgt) in pathEdges:
+    segmentWeight = w(src, tgt)
+    // proportional interpolation:
+    segmentTime = max(A, round(Si.travelTime * segmentWeight / totalPathWeight))
+    create new TrainrunSectionDto {
+      sourceNodeId: src,
+      targetNodeId: tgt,
+      travelTime: segmentTime,
+      backwardTravelTime: segmentTime,
+      trainrunId: Si.trainrunId,
+      // symmetric times: derived from interpolated position within the hour
+      sourceDep, targetArr: interpolated from Si's original times
+    }
+```
+
+**Proportional time interpolation** distributes the original section's travel time across the new sub-segments in proportion to their edge weights:
+
+$$
+T_{\text{segment}} = \max\!\left(A,\ \text{round}\!\left(T_{\text{original}} \cdot \frac{w(\text{segment})}{\sum w(\text{path})}\right)\right)
+$$
+
+This ensures that the total travel time over the replacement path equals (or closely approximates) the original section travel time, and that no segment is shorter than the minimum $A$.
+
+**Example** — replacing ZUE→OLT (45 min direct) via ZUE–WIN–OLT (path weights 21 and 31, total 52):
+
+| Segment | Path weight | Proportional time | After max(A=1) |
+|---------|------------|-------------------|----------------|
+| ZUE→WIN | 21 min     | 45 × 21/52 = 18.2 → 18 min | 18 min |
+| WIN→OLT | 31 min     | 45 × 31/52 = 26.8 → 27 min | 27 min |
+| **Total** | | **45 min** | |
+
+After replacement:
+- The old direct sections on edge `ZUE—OLT` are removed from `trainrunSections`.
+- Two new sections are added per affected trainrun.
+- The edge `ZUE—OLT` is removed from the basis graph.
+- The edges `ZUE—WIN` and `WIN—OLT` gain the new sections in their section lists, and their `minWeight` values are recomputed.
+- A `changed = true` flag is set to trigger another full pass.
+
+### 7.7 Stop and Non-Stop Transition Semantics
+
+When topology consolidation inserts intermediate nodes (e.g., Winterthur between Zürich and Olten for a trainrun that originally had no Winterthur stop), those nodes must be marked as **non-stop passages** for the affected trainrun, not as stops.
+
+The semantics in Netzgrafik are encoded in the `isNonStopTransit` flag of each `Transition` object (created during the 3rd-party materialization in phase F):
+
+- `isNonStopTransit = false` → the train stops here (passengers board/alight),
+- `isNonStopTransit = true` → the train passes through without stopping.
+
+To distinguish original GTFS stops from consolidation-inserted nodes, the `initialStopNodeIdsByTrainrun` map built in phase B (step 5.5) is persisted through the entire pipeline. After phase F materialises the transitions, the node service iterates all transitions and enforces:
+
+```
+for each trainrun T:
+  stopNodes = initialStopNodeIdsByTrainrun.get(T.id)  // original GTFS stops
+  for each transition Tr on T at node N:
+    Tr.isNonStopTransit = !stopNodes.has(N.id)
+    // true  → pass-through (inserted by consolidation or already non-stop in GTFS)
+    // false → stop (original GTFS boarding/alighting event)
+```
+
+## 8. Phase E: Convergence Loop
+
+A single pass over all edges (as described in chapter 7) may not be sufficient to fully consolidate the graph. When a replacement is performed, the basis graph changes: an edge is removed, new sections are added, and edge weights may shift. These changes can make previously ineligible edges eligible in a subsequent pass.
+
+The convergence loop repeats the full edge-processing pass until either the graph stops changing or the maximum number of iterations is reached.
+
+### 8.1 Loop Structure
+
+```
+changed = true
+iteration = 0
+
+while changed AND iteration < n:
+  changed = false
+  iteration++
+
+  sortedEdges = basisGraph.edges.sortBy(minWeight)  // re-sort each pass
+
+  for each edge e in sortedEdges:
+    altPath = shortestPath(basisGraph excluding e, e.n1, e.n2)
+    if altPath is eligible (detour + safety checks):
+      replaceEdge(e, altPath)
+      changed = true   // trigger another pass
+
+// termination:
+// - fixed point reached (changed == false after full pass), OR
+// - iteration == n
+```
+
+The graph is re-sorted at the start of every pass because replacements change edge weights. A previously heavy edge may become lighter (or disappear entirely) after a replacement, and the sort order ensures the lightest candidates are always considered first within each pass.
+
+### 8.2 Termination Conditions
+
+| Condition | Meaning |
+|-----------|---------|
+| `changed == false` after a full pass | Fixed point: no more eligible replacements exist. This is the ideal termination. |
+| `iteration == n` | Safety cap reached. The graph may still contain consolidatable edges, but further passes are stopped to bound runtime. Increase `n` if needed. |
+
+The default maximum $n = 10$ passes is sufficient for most national rail feeds. For very dense urban networks with many overlapping corridors, a higher value may be needed.
+
+### 8.3 Convergence Guarantee
+
+There is no formal guarantee of convergence before the iteration cap. However, in practice the loop converges quickly because:
+- Each successful replacement removes one edge from the graph, strictly reducing the number of edges.
+- The detour constraints become harder to satisfy as the graph becomes sparser (fewer alternative paths exist).
+- The trainrun-context safety check prevents replacements that would cause any trainrun to revisit a node, bounding the combinatorial search space.
+
+### 8.4 What Happens If the Cap Is Hit
+
+If the loop terminates due to the iteration cap rather than a fixed point, the output is still valid: all replacements that were performed are consistent and safe. The only consequence is that some consolidatable direct edges may remain in the basis graph and therefore in the output Netzgrafik. The console log records the final iteration count and whether a fixed point was reached.
 
 ## 9. Logical Safety Constraints
 
-### 9.1 Trainrun-Context Node Reuse Guard
+The safety constraints in this chapter are enforced within each iteration of the convergence loop. They are not optional — they are always active whenever consolidation is enabled — and they guarantee that no replacement can produce an invalid trainrun.
 
-A candidate alternative path is rejected for a specific trainrun if newly inserted intermediate nodes already appear elsewhere in the same trainrun.
+### 9.1 Trainrun-Context Node Reuse Guard (Critical)
 
-This prevents loops and backtracking patterns such as:
+This is the most important safety constraint. A candidate alternative path is **rejected for a specific trainrun** `T` if any intermediate node on the path (i.e., any node other than the two endpoints $n_1$ and $n_2$) already appears in `T`'s existing section chain.
 
-`A -> B -> C -> B -> D`.
+**Why this matters:**
+
+Consider a trainrun `T` whose existing sections form the chain `A → B → C → D`. Now suppose an edge `A—D` is being considered for consolidation, and the alternative path is `A → B → D`. Node `B` is already in `T`'s chain. Accepting this replacement would produce:
+
+```
+A → B → C → D    (existing sections)
+    ↓ replace A→D direct with A→B→D:
+A → B → D  AND  A → B → C → D   ← node B used twice
+```
+
+This is invalid. The guard rejects the replacement for `T`, leaving `T`'s direct `A→D` section intact.
+
+```mermaid
+graph LR
+  A -->|"original"| B --> C --> D
+  A -.->|"direct section\n(to be replaced?)"| D
+  B -.->|"alternative path\nrejected: B already in chain"| D
+  style B fill:#f96,stroke:#c33
+```
+
+The guard is applied **per trainrun**, not per edge. If three trainruns share edge `A—D` but only one of them already visits `B`, then:
+- The two safe trainruns get their sections replaced (via the alternative path).
+- The unsafe trainrun keeps its direct `A—D` section.
+- The edge `A—D` is removed from the basis graph if all sections are replaced, or kept if some sections remain.
 
 ### 9.2 Linearity Constraint
 
-After replacement, the affected trainrun must remain a simple linear path without reusing previously visited intermediate nodes.
+After every replacement, the affected trainrun must form a **simple path** — a sequence of sections with no repeated nodes. This is automatically satisfied by the node reuse guard (9.1) plus the section creation guard from phase B (step 5.6), which already prevents loops during initial section creation.
 
-### 9.3 Optional Edge-Reuse Constraint
+### 9.3 Minimum Edge Travel Time Constraint
 
-Optional stricter policy: also reject replacements that reuse an edge already used elsewhere in the same trainrun.
+No replacement segment may have a travel time below the minimum $A$ (default 1 minute). This is enforced during proportional interpolation (see chapter 7.6):
 
-## 10. Output and Loading Path
+$$
+T_{\text{segment}} = \max(A,\ \text{interpolated value})
+$$
 
-### 10.1 Exported DTO
+If a proportional interpolation would produce a 0-minute segment (e.g., because the source edge weight is 0), the minimum $A$ is used instead. This guarantees that all sections in the output have a positive, non-zero travel time.
 
-The converter outputs a Netzgrafik DTO containing:
+## 10. Output, Loading, and Transition Enforcement
 
-- nodes,
-- trainruns,
-- trainrun sections,
-- metadata,
-- labels and filter data,
-- additional import metadata (e.g., trainrun-to-trips and GTFS stop-node map).
+### 10.1 Exported DTO Structure
+
+After all phases complete, the converter assembles a `NetzgrafikDto` containing all Netzgrafik objects:
+
+| Field | Content |
+|-------|---------|
+| `nodes` | One `NodeDto` per station with position, name, and port stubs |
+| `trainruns` | One `TrainrunDto` per surviving pattern with category, frequency, direction |
+| `trainrunSections` | One `TrainrunSectionDto` per section with symmetric times, travel time, `numberOfStops` |
+| `metadata` | `TrainrunCategory[]`, `TrainrunFrequency[]`, `TrainrunTimeCategory[]`, colour palette |
+| `resources` | Empty array (not used for GTFS imports) |
+| `freeFloatingTexts` | Empty array |
+| `labels` | Debug labels for each trainrun showing round-trip match status |
+| `labelGroups` | One label group for all GTFS import labels |
+| `filterData` | Empty filter settings |
+
+Two additional maps are attached as non-standard properties on the DTO (they are not part of the official `NetzgrafikDto` interface but are read by the loading path):
+
+| Property | Type | Content |
+|----------|------|---------|
+| `trainrunToTrips` | `Map<trainrunId, tripId[]>` | All GTFS trip IDs belonging to each trainrun, for traceability |
+| `gtfsInitialStopNodeIdsByTrainrun` | `Map<trainrunId, nodeId[]>` | Node IDs of original GTFS stops per trainrun, for transition enforcement |
 
 ### 10.2 3rd-Party Materialization
 
-During 3rd-party loading/import, ports/transitions/connections are materialized.
-After this materialization, GTFS stop-node enforcement is applied to transition non-stop flags.
+The raw DTO does not yet contain `Port`, `Transition`, or `Connection` objects. These are created during **3rd-party materialisation**, which runs in the editor when the DTO is loaded via the import path. The materialisation logic reads sections and nodes, infers which nodes share trainruns, creates ports at each node for each arriving/departing trainrun, and creates transition objects linking ports of the same trainrun within a node.
+
+This step happens **after** the converter returns — i.e., it is not part of the converter itself. That is why transition semantics cannot be applied inside the converter; the `Transition` objects simply do not exist yet at that point.
+
+### 10.3 GTFS Stop-Map Enforcement (Transition Semantics)
+
+Immediately after 3rd-party materialisation completes, the `gtfsInitialStopNodeIdsByTrainrun` map is applied to set the `isNonStopTransit` flag on every newly created `Transition` object:
+
+```
+if dto.gtfsInitialStopNodeIdsByTrainrun is present:
+  for each trainrun T:
+    stopNodeIds = gtfsInitialStopNodeIdsByTrainrun.get(T.id)
+    for each node N that T passes through:
+      transition = T.transitionAt(N)
+      if transition exists:
+        transition.isNonStopTransit = !stopNodeIds.includes(N.id)
+        // false → stop (original GTFS boarding/alighting event)
+        // true  → pass-through (no boarding/alighting, or inserted by consolidation)
+else:
+  // fallback: use heuristic based on arrival/departure time presence
+```
+
+This two-step process (create in materialisation, configure immediately after) is necessary because the editor's data services are responsible for managing `Transition` objects, and the converter has no access to those services at conversion time.
+
+### 10.4 Spring Layout
+
+After all sections are created and before the DTO is returned, a **topology-preserving spring layout** algorithm repositions all nodes to improve visual readability:
+
+```
+scale nodes to approximate target edge length of 500px
+apply 100 iterations of spring relaxation:
+  for each node:
+    force = sum of spring forces from connected nodes (ideal: 500px apart)
+    position += force * springStrength * dampingFactor
+```
+
+The initial coordinate projection (phase B step 5.2) provides a geographically meaningful starting layout; the spring algorithm then adjusts positions to reduce edge crossings and produce more uniform edge lengths while preserving the approximate geographic topology.
 
 ## 11. Practical Validation Checklist
 
-When validating a feed import, verify:
+When validating a GTFS feed import, work through the following checks in order. Each check targets a specific phase and can be used to isolate where a problem originates.
 
-1. no zig-zag regressions introduced by consolidation,
-2. GTFS stop nodes are stop transitions,
-3. inserted consolidation corridor nodes are non-stop,
-4. no trainrun-level node reuse violations,
-5. convergence reached within configured max iterations.
+| # | Check | Expected result | Phase responsible |
+|---|-------|----------------|-------------------|
+| 1 | All expected routes/operators appear | Correct count of trainruns in output | Phase A (filter) |
+| 2 | Node count is plausible | No duplicate nodes for the same station; virtual stations synthesised correctly | Phase B §5.2 |
+| 3 | Category names are correct | No unnamed or mis-coloured categories | Phase B §5.3 |
+| 4 | Frequencies are detected correctly | 60-min routes show 60 min; no routes defaulted to 60 incorrectly | Phase A §4.3 |
+| 5 | All expected trainruns are `ROUND_TRIP` | Symmetric lines merged; one-way-only services remain `ONE_WAY` | Phase C |
+| 6 | No zig-zag backtracking in consolidated routes | A trainrun never visits the same node twice | Phase D §9.1 |
+| 7 | GTFS stop nodes are stop transitions | `isNonStopTransit = false` at original boarding/alighting stations | Phase F §10.3 |
+| 8 | Consolidation-inserted intermediate nodes are non-stop | `isNonStopTransit = true` at nodes not in the original GTFS stop list | Phase F §10.3 |
+| 9 | Convergence reached within configured iterations | Console log shows fixed-point termination, not cap termination | Phase E §8.4 |
+| 10 | No section has travel time = 0 | All sections have `travelTime ≥ A` | Phase D §9.3 |
+
+For systematic debugging, the converter emits detailed console output including:
+- per-phase item counts,
+- round-trip match status per trainrun (success / failure reason),
+- consolidation statistics (replacements per pass, edges removed, iterations used).
 
 ## 12. Summary
 
-The GTFS import pipeline first creates full trainruns/trainrun sections, then performs optional post-creation topology consolidation on an undirected basis graph with strict safety guards, iterative convergence, and stop/non-stop behavior enforcement aligned with original GTFS stop semantics.
+The GTFS import pipeline operates in six ordered phases:
+
+```
+ZIP file
+  │
+  ▼
+[A] Parse CSV files, filter by agency/type/day, classify nodes, compute frequencies
+  │
+  ▼
+[B] Group trips into patterns, select master trips, create nodes / categories /
+    frequencies / trainruns (all ONE_WAY) / trainrun sections (60-x symmetric times)
+  │
+  ▼
+[C] Match ONE_WAY pairs by 5 criteria → merge into ROUND_TRIP, discard reverse
+  │
+  ▼
+[D] Build undirected basis graph, sort edges by weight, find shortest detour paths,
+    apply atomic section replacement with proportional time interpolation
+  │
+  ▼
+[E] Repeat phase D until fixed point or max iterations reached
+  │
+  ▼
+[F] Assemble NetzgrafikDto → 3rd-party materialisation creates ports/transitions
+    → GTFS stop-map enforces isNonStopTransit per trainrun per node
+  │
+  ▼
+Netzgrafik ready for display and editing
+```
+
+The design deliberately separates **topology simplification** (phase D/E) from **object creation** (phase B), and **transition semantics** (phase F) from both. This means each phase can be reasoned about independently, tested in isolation, and disabled without affecting the other phases.
 
