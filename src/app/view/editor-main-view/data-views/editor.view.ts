@@ -106,6 +106,7 @@ export class EditorView implements SVGMouseControllerObserver {
   filterTrainrun = null;
   checkFilterNode = null;
   checkFilterNonStopNode = null;
+  displayNodesFullName = null;
   isNodeVisible = null;
   isJunctionNode = null;
   filterNode = null;
@@ -339,6 +340,10 @@ export class EditorView implements SVGMouseControllerObserver {
 
   bindCheckFilterNonStopNode(callback) {
     this.checkFilterNonStopNode = callback;
+  }
+
+  bindDisplayNodesFullName(callback) {
+    this.displayNodesFullName = callback;
   }
 
   bindIsNodeVisible(callback) {

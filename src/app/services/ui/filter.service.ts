@@ -285,6 +285,20 @@ export class FilterService implements OnDestroy {
     this.filterChanged();
   }
 
+  isDisplayingNodesFullName(): boolean {
+    return this.activeFilterSetting.displayNodesFullName;
+  }
+
+  enableDisplayNodesFullName() {
+    this.activeFilterSetting.displayNodesFullName = true;
+    this.filterChanged();
+  }
+
+  disableDisplayNodesFullName() {
+    this.activeFilterSetting.displayNodesFullName = false;
+    this.filterChanged();
+  }
+
   filterTrainrunsection(trainrunSection: TrainrunSection): boolean {
     if (this.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       // disable filtering in view (render all objects)

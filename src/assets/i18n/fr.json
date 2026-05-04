@@ -378,6 +378,7 @@
         "nodes": "Noeuds",
         "display-nodes-without-visible-trainruns": "Afficher les noeuds sans trajets de train (visibles)",
         "display-nodes-with-only-stopping-trainruns": "Afficher les noeuds où les trains s'arrêtent",
+        "display-nodes-full-name": "Afficher les noms complets des noeuds",
         "notes": "Notes",
         "display-notes": "Afficher les notes",
         "reset-display-filter": "Réinitialiser l'affichage des filtres",

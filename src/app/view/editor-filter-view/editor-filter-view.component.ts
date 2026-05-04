@@ -25,6 +25,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   filterAllEmptyNodes: boolean;
   filterNotes: boolean;
   filterAllNonStopNodes: boolean;
+  displayNodesFullName: boolean;
   filterDirectionArrows: boolean;
   filterAsymmetryArrows: boolean;
   filterArrivalDepartureTime: boolean;
@@ -79,6 +80,7 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     this.filterConnections = this.filterService.isFilterConnectionsEnabled();
     this.filterNotes = !this.filterService.isFilterNotesEnabled();
     this.filterAllNonStopNodes = !this.filterService.isFilteringAllNonStopNodes();
+    this.displayNodesFullName = this.filterService.isDisplayingNodesFullName();
     this.filterAllEmptyNodes = !this.filterService.isFilteringAllEmptyNodes();
     this.timeDisplayPrecision = this.filterService.getTimeDisplayPrecision();
   }
@@ -203,6 +205,14 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
       this.filterService.enableFilterAllNonStopNodes();
     } else {
       this.filterService.disableFilterAllNonStopNodes();
+    }
+  }
+
+  displayNodesFullNameChanged() {
+    if (this.displayNodesFullName) {
+      this.filterService.enableDisplayNodesFullName();
+    } else {
+      this.filterService.disableDisplayNodesFullName();
     }
   }
 
@@ -496,8 +506,10 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   onResetNodeFilter() {
     this.filterService.disableFilterAllEmptyNodes();
     this.filterService.disableFilterAllNonStopNodes();
+    this.filterService.disableDisplayNodesFullName();
     this.filterAllEmptyNodes = !this.filterService.isFilteringAllEmptyNodes();
     this.filterAllNonStopNodes = !this.filterService.isFilteringAllNonStopNodes();
+    this.displayNodesFullName = this.filterService.isDisplayingNodesFullName();
   }
 
   onResetNoteFilter() {

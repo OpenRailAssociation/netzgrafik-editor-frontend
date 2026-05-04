@@ -34,6 +34,7 @@ export class FilterSetting {
   public filterSymmetry: boolean[];
   public filterAllEmptyNodes;
   public filterAllNonStopNodes;
+  public displayNodesFullName: boolean;
   public filterNotes;
   public timeDisplayPrecision;
   public isTemporaryDisableFilteringOfItemsInView;
@@ -62,6 +63,7 @@ export class FilterSetting {
       filterSymmetry,
       filterAllEmptyNodes,
       filterAllNonStopNodes,
+      displayNodesFullName,
       filterNotes,
       timeDisplayPrecision,
       isTemporaryDisableFilteringOfItemsInView,
@@ -88,6 +90,7 @@ export class FilterSetting {
       filterSymmetry: null,
       filterAllEmptyNodes: false,
       filterAllNonStopNodes: false,
+      displayNodesFullName: false,
       filterNotes: false,
       timeDisplayPrecision: 1,
       isTemporaryDisableFilteringOfItemsInView: false,
@@ -115,6 +118,7 @@ export class FilterSetting {
     this.filterSymmetry = filterSymmetry ?? [true, false];
     this.filterAllEmptyNodes = filterAllEmptyNodes;
     this.filterAllNonStopNodes = filterAllNonStopNodes;
+    this.displayNodesFullName = displayNodesFullName;
     this.filterNotes = filterNotes;
     this.timeDisplayPrecision = timeDisplayPrecision;
     this.isTemporaryDisableFilteringOfItemsInView = isTemporaryDisableFilteringOfItemsInView;
@@ -191,6 +195,7 @@ export class FilterSetting {
       this.filterSymmetry.length === 2 &&
       this.filterAllEmptyNodes === false &&
       this.filterAllNonStopNodes === false &&
+      this.displayNodesFullName === false &&
       this.filterNotes === false &&
       this.timeDisplayPrecision === 1 &&
       this.isTemporaryDisableFilteringOfItemsInView === false &&
@@ -221,6 +226,7 @@ export class FilterSetting {
       filterSymmetry: this.filterSymmetry,
       filterAllEmptyNodes: this.filterAllEmptyNodes,
       filterAllNonStopNodes: this.filterAllNonStopNodes,
+      displayNodesFullName: this.displayNodesFullName,
       filterNotes: this.filterNotes,
       timeDisplayPrecision: this.timeDisplayPrecision,
       isTemporaryDisableFilteringOfItemsInView: this.isTemporaryDisableFilteringOfItemsInView,
