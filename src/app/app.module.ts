@@ -156,7 +156,6 @@ import {GlobalNodesManagementComponent} from "./view/editor-edit-tools-view-comp
     NavigationBarComponent,
     EditorPropertiesViewComponent,
     EditorEditToolsViewComponent,
-    GlobalNodesManagementComponent,
     FilterableLabelDialogComponent,
     FilterableLabelFormComponent,
     NoteDialogComponent,
@@ -188,6 +187,7 @@ import {GlobalNodesManagementComponent} from "./view/editor-edit-tools-view-comp
     TrainRunSectionStopsComponentComponent,
     PathGridComponent,
     ToggleSwitchButtonComponent,
+    GlobalNodesManagementComponent,
   ],
   bootstrap: environment.customElement ? [] : [AppComponent],
   imports: [

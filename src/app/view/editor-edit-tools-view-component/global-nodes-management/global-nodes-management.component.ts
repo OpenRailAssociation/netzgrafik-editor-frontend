@@ -18,6 +18,7 @@ function normalizeStr(str: string): string {
   selector: "sbb-global-nodes-management",
   templateUrl: "./global-nodes-management.component.html",
   styleUrl: "./global-nodes-management.component.scss",
+  standalone: false,
 })
 export class GlobalNodesManagementComponent {
   query: string;
