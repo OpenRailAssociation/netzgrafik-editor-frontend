@@ -576,7 +576,6 @@ export class TrainrunSection {
   }
 
   hasBackwardTravelTimeWarning(): boolean {
-    console.log(this.backwardTravelTime);
     return this.backwardTravelTime.warning !== null;
   }
 
