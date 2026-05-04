@@ -191,7 +191,8 @@ export class NodeService implements OnDestroy {
           return;
         }
 
-        const stopNodeIds = normalizedStopNodeIdsByTrainrun.get(trainrun.getId()) || new Set<number>();
+        const stopNodeIds =
+          normalizedStopNodeIdsByTrainrun.get(trainrun.getId()) || new Set<number>();
         const isGtfsStop = stopNodeIds.has(node.getId());
         transition.setIsNonStopTransit(!isGtfsStop);
       });

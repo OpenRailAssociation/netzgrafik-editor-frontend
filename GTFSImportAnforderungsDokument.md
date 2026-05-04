@@ -1,4 +1,3 @@
-
 # GTFS-Import im Netzgrafik-Editor – Verbindliche Anforderung und Ablauf
 
 ## 1. Ziel, Nutzen und technische Rahmenbedingungen
@@ -31,13 +30,13 @@
    - Ganz oben im UI wird der Betriebstag (relevanter Tag) ausgewählt.
    - Auf derselben Zeile wird angezeigt, von wann bis wann Daten im Import vorliegen (Datumsbereich aus calendar extrahieren).
 
-
 5. **Filterpipeline beim Import:**
-  - Nach dem Import werden zuerst alle Agency gemäß Filter ausgewählt.
-  - Danach werden nur Routen weiterverarbeitet, die zu einer gefilterten Agency gehören und die gesetzten Routen-Filter (route_type, route_desc, route_name) erfüllen.
-  - Im Anschluss werden nur Trips weiterverarbeitet, die zu einer der gefilterten Routen gehören und am gewählten Betriebstag verkehren (gültig gem. GTFS-Spezifikation).
-  - Trips, die keiner gültigen Route zugeordnet sind, werden ausgeschlossen.
-  - Nur diese gefilterten Daten (Agency, Route, Trip) werden für die weitere Verarbeitung (Gruppierung, Mapping etc.) verwendet.
+
+- Nach dem Import werden zuerst alle Agency gemäß Filter ausgewählt.
+- Danach werden nur Routen weiterverarbeitet, die zu einer gefilterten Agency gehören und die gesetzten Routen-Filter (route_type, route_desc, route_name) erfüllen.
+- Im Anschluss werden nur Trips weiterverarbeitet, die zu einer der gefilterten Routen gehören und am gewählten Betriebstag verkehren (gültig gem. GTFS-Spezifikation).
+- Trips, die keiner gültigen Route zugeordnet sind, werden ausgeschlossen.
+- Nur diese gefilterten Daten (Agency, Route, Trip) werden für die weitere Verarbeitung (Gruppierung, Mapping etc.) verwendet.
 
 6. **Hierarchische Gruppierung und Pfadlogik:**
    - Für jede Agency werden alle zugehörigen Routen gruppiert.
@@ -67,18 +66,20 @@
    - Symmetrie gilt als gegeben, wenn die Zeitdifferenzen innerhalb der Toleranz liegen.
 
 10. **Beispiel für die Logik:**
-   - Am Betriebstag X (gültig gem. GTFS) gibt es eine Zug-Agency SBB mit route_id=1 und Trips:
-     - B - C - D | Abfahrt um 04:50 in B
-     - A - B - C - D | Abfahrt um 05:20 in A, 06:20 in A, ... 22:20 in A
-     - A - B - C | Abfahrt um 23:30 in A
-   - Züge enden oder starten nicht immer am gleichen Ort. Hier ergibt sich ein Stundentakt, da das Delta 60 ist.
-   - Beispiel 2: Ein Zug fährt in X um 04:53, 05:20, 05:52, 06:21, 06:32 ... Es braucht eine Symmetrie- und Toleranzprüfung. Hier ergibt sich 30min, da alles innerhalb der Toleranz (180s/3min) ist.
+
+- Am Betriebstag X (gültig gem. GTFS) gibt es eine Zug-Agency SBB mit route_id=1 und Trips:
+  - B - C - D | Abfahrt um 04:50 in B
+  - A - B - C - D | Abfahrt um 05:20 in A, 06:20 in A, ... 22:20 in A
+  - A - B - C | Abfahrt um 23:30 in A
+- Züge enden oder starten nicht immer am gleichen Ort. Hier ergibt sich ein Stundentakt, da das Delta 60 ist.
+- Beispiel 2: Ein Zug fährt in X um 04:53, 05:20, 05:52, 06:21, 06:32 ... Es braucht eine Symmetrie- und Toleranzprüfung. Hier ergibt sich 30min, da alles innerhalb der Toleranz (180s/3min) ist.
 
 Alle Schritte und UI-Elemente sind exakt wie beschrieben umzusetzen. Die Filterlogik, Gruppierung, Frequenz- und Symmetrie-Berechnung sowie die Beispiele sind verbindlich. Abweichungen sind nur nach expliziter Rücksprache zulässig.
 
 ## 3. Mapping, Fehlerquellen, Tests, Zusammenfassung
 
 ### Mapping: GTFS → Trainrun und TrainrunSection
+
 ...existing code...
 
 ## 3. Filtermöglichkeiten
@@ -110,7 +111,6 @@ Ein Trip (trips.txt) gehört zu einer Route (routes.txt), wird von einer Agency 
 
 ---
 
-
 ## 5. Frequenzberechnung (detailliert)
 
 Die Frequenz beschreibt, wie oft eine Fahrt (Trip) auf einer bestimmten Linie (Route) oder einem Abschnitt (TrainrunSection) innerhalb eines definierten Zeitraums stattfindet. Sie ist ein zentrales Maß für die Angebotsdichte im Fahrplan.
@@ -118,10 +118,11 @@ Die Frequenz beschreibt, wie oft eine Fahrt (Trip) auf einer bestimmten Linie (R
 ### 5.1. Grundformel
 
 \[
-	ext{Frequenz} = \frac{\text{Anzahl der Fahrten}}{\text{Zeitspanne (in Stunden)}}
+ext{Frequenz} = \frac{\text{Anzahl der Fahrten}}{\text{Zeitspanne (in Stunden)}}
 \]
 
 **Begriffe:**
+
 - Anzahl der Fahrten: Alle relevanten Trips im gewählten Zeitraum und Filter.
 - Zeitspanne: Differenz zwischen frühester und spätester Abfahrtszeit am Startpunkt.
 
@@ -143,35 +144,34 @@ Die Frequenz beschreibt, wie oft eine Fahrt (Trip) auf einer bestimmten Linie (R
 - **Unregelmäßige Abstände:**
   - Wenn die Abstände zwischen den Fahrten stark schwanken, kann zusätzlich der Median oder Modus der Abfahrtsintervalle berechnet werden:
     \[
-    	ext{Medianabstand} = \text{Median}(t_{i+1} - t_i)
+    ext{Medianabstand} = \text{Median}(t\_{i+1} - t_i)
     \]
   - Die "effektive Frequenz" ist dann der Kehrwert des Medianabstands:
     \[
-    	ext{Effektive Frequenz} = \frac{60}{\text{Medianabstand (in Minuten)}}
+    ext{Effektive Frequenz} = \frac{60}{\text{Medianabstand (in Minuten)}}
     \]
 - **Über Mitternacht:**
   - Wenn die erste Abfahrt z.B. 23:30 und die letzte 01:00 ist, wird die Zeitspanne als 1,5 Stunden berechnet (24h-Format beachten).
 
-
-
 ### 5.4. Beispiele (korrekt)
 
 **Beispiel 1: Regelmäßiger Takt**
+
 - Abfahrten: 6:00, 7:00, 8:00, 9:00, 10:00
 - Zeitspanne: 4 Stunden (6:00 bis 10:00)
 - Anzahl Fahrten: 5
 - Takt: 60 Minuten
 
 **Beispiel 2: Unregelmäßige Abstände**
-- Abfahrten: 7:01, 7:30, 7:59, 8:30, 8:58, 9:30
-- Abstände: 29, 29, 31, 28, 32 Minuten - Toleranz 2 
-- Also alles i.O. da Abstände [28,32] -> Takt 30 - 2x pro Stunde
 
+- Abfahrten: 7:01, 7:30, 7:59, 8:30, 8:58, 9:30
+- Abstände: 29, 29, 31, 28, 32 Minuten - Toleranz 2
+- Also alles i.O. da Abstände [28,32] -> Takt 30 - 2x pro Stunde
 
 ### 5.5. Hinweise zur Implementierung
 
 - Alle Zeitangaben müssen in Minuten oder Sekunden seit Mitternacht umgerechnet werden, um Differenzen korrekt zu berechnen.
-- Bei Zeitspannen über Mitternacht: Wenn späteste Abfahrt < früheste Abfahrt, dann Zeitspanne = (24*60 - früheste) + späteste (in Minuten).
+- Bei Zeitspannen über Mitternacht: Wenn späteste Abfahrt < früheste Abfahrt, dann Zeitspanne = (24\*60 - früheste) + späteste (in Minuten).
 - Bei sehr wenigen Fahrten (z.B. nur 1), Frequenz als "n/a" oder 0 ausgeben.
 - Frequenz immer im UI anzeigen, ggf. mit Tooltip zur Berechnungsgrundlage.
 
@@ -215,10 +215,10 @@ Die Frequenz beschreibt, wie oft eine Fahrt (Trip) auf einer bestimmten Linie (R
 
 ## 7. One-Way und Round-Trip
 
-- **Erkennung:**  
+- **Erkennung:**
   - `direction_id` in trips.txt (0 = Hin, 1 = Rückfahrt)
   - Round-Trip: Trip-Paare mit identischer Route, aber entgegengesetzter Richtung und passenden Zeiten.
-- **Verarbeitung:**  
+- **Verarbeitung:**
   - Im UI als zusammengehörige Fahrten anzeigen.
   - Im Modell als verknüpfte Trainruns speichern.
 
@@ -228,9 +228,9 @@ Die Frequenz beschreibt, wie oft eine Fahrt (Trip) auf einer bestimmten Linie (R
 
 - **Symmetrisch:** Hin- und Rückfahrt verlaufen auf identischer Strecke mit spiegelbildlichen Zeiten.
 - **Asymmetrisch:** Unterschiede in Strecke oder Zeiten.
-- **Erkennung:**  
+- **Erkennung:**
   - Vergleich der Stop-Sequenzen und Zeitabstände zwischen Hin- und Rückfahrt.
-- **UI:**  
+- **UI:**
   - Symmetrische Fahrten mit Symbol/Tag kennzeichnen.
   - Asymmetrische Fahrten gesondert markieren.
 
@@ -275,13 +275,13 @@ Die Frequenz beschreibt, wie oft eine Fahrt (Trip) auf einer bestimmten Linie (R
   - Inkonsistente oder fehlende Daten in GTFS
   - Zeitüberschneidungen, Lücken, fehlerhafte Stop-Sequenzen
   - Nicht unterstützte GTFS-Features (z.B. Frequenzfahrten, shapes.txt)
-- **Validierung:**  
+- **Validierung:**
   - Vor dem Import: Vollständigkeit, Konsistenz, Plausibilität
   - Nach dem Import: Mapping- und Modellintegrität
-- **Logging:**  
+- **Logging:**
   - Alle Importaktionen, Fehler, Warnungen
   - Detaillierte Logs für Entwickler und Nutzer
-- **UI-Feedback:**  
+- **UI-Feedback:**
   - Klare Fehlermeldungen, Warnungen, Hinweise
   - Fortschrittsanzeige beim Import
   - Undo/Redo-Optionen
@@ -306,72 +306,79 @@ Die Frequenz beschreibt, wie oft eine Fahrt (Trip) auf einer bestimmten Linie (R
 
 Das GTFS-Import-Feature des Netzgrafik-Editors bietet eine umfassende, flexible und validierte Möglichkeit, Fahrplandaten aus GTFS-Feeds in Netzgrafiken zu überführen. Die Umsetzung umfasst Backend, Frontend, Tests und UI/UX und stellt sicher, dass alle relevanten Filter, Mappings und Validierungen abgedeckt sind. Das Entwicklerteam kann auf Basis dieses Dokuments die Implementierung ohne Rückfragen starten.
 
-
-
 ...existing code...
-
 
 ## Verbindliche Ablaufbeschreibung und UI-/Filterlogik (exakte Umsetzungsvorgabe)
 
 1. **Daten laden und entpacken:**
-  - Die GTFS-Daten werden als ZIP geladen und entpackt.
-  - Direkt nach dem Entpacken werden alle Agency (Unternehmen) extrahiert.
-  - Für die Filterung wird ein Mehrfachauswahl-Autocomplete-Chip-Input verwendet (UI-Element von angular.sbb.ch). Der Nutzer sieht alle Agency als auswählbare Chips.
+
+- Die GTFS-Daten werden als ZIP geladen und entpackt.
+- Direkt nach dem Entpacken werden alle Agency (Unternehmen) extrahiert.
+- Für die Filterung wird ein Mehrfachauswahl-Autocomplete-Chip-Input verwendet (UI-Element von angular.sbb.ch). Der Nutzer sieht alle Agency als auswählbare Chips.
 
 2. **Routen- und Routenbeschreibung-Filter:**
-  - Alle `route_type` werden extrahiert und als Chip-Filter angeboten (wie oben, angular.sbb.ch).
-  - Alle `route_desc` (sofern vorhanden) werden ebenfalls als Chip-Filter angeboten.
-  - Zusätzlich wird der Routenname (`route_name`) als dritter Chip-Filter bereitgestellt.
-  - Es gibt somit drei unabhängige Chip-Autocomplete-Filter (agency, route_type, route_desc/route_name), alle mit angular.sbb.ch UI-Komponenten.
+
+- Alle `route_type` werden extrahiert und als Chip-Filter angeboten (wie oben, angular.sbb.ch).
+- Alle `route_desc` (sofern vorhanden) werden ebenfalls als Chip-Filter angeboten.
+- Zusätzlich wird der Routenname (`route_name`) als dritter Chip-Filter bereitgestellt.
+- Es gibt somit drei unabhängige Chip-Autocomplete-Filter (agency, route_type, route_desc/route_name), alle mit angular.sbb.ch UI-Komponenten.
 
 3. **Verkehrstyp-Filter:**
-  - Verkehrstypen wie Bahn, Tram etc. werden als Checkboxen dargestellt.
-  - Die Default-Auswahl und die Extraktion der Typen sind exakt wie im Proof-of-Concept umzusetzen und zu dokumentieren. Die Default-Auswahl entspricht dem PoC.
+
+- Verkehrstypen wie Bahn, Tram etc. werden als Checkboxen dargestellt.
+- Die Default-Auswahl und die Extraktion der Typen sind exakt wie im Proof-of-Concept umzusetzen und zu dokumentieren. Die Default-Auswahl entspricht dem PoC.
 
 4. **Betriebstag und Datumsbereich:**
-  - Ganz oben im UI wird der Betriebstag (relevanter Tag) ausgewählt.
-  - Auf derselben Zeile wird angezeigt, von wann bis wann Daten im Import vorliegen (Datumsbereich aus calendar extrahieren).
+
+- Ganz oben im UI wird der Betriebstag (relevanter Tag) ausgewählt.
+- Auf derselben Zeile wird angezeigt, von wann bis wann Daten im Import vorliegen (Datumsbereich aus calendar extrahieren).
 
 5. **Filterpipeline beim Import:**
-  - Nach dem Import werden zuerst alle Agency gemäß Filter ausgewählt.
-  - Danach werden alle Routen gemäß den gesetzten Filtern gefiltert.
-  - Im Anschluss werden alle Trips gefiltert, die am gewählten Betriebstag verkehren (gültig gem. GTFS-Spezifikation).
-  - Nur diese Daten werden weiterverarbeitet.
+
+- Nach dem Import werden zuerst alle Agency gemäß Filter ausgewählt.
+- Danach werden alle Routen gemäß den gesetzten Filtern gefiltert.
+- Im Anschluss werden alle Trips gefiltert, die am gewählten Betriebstag verkehren (gültig gem. GTFS-Spezifikation).
+- Nur diese Daten werden weiterverarbeitet.
 
 6. **Hierarchische Gruppierung und Pfadlogik:**
-  - Für jede Agency werden alle zugehörigen Routen gruppiert.
-  - Zu jeder Route werden die zugehörigen Trips zugeordnet.
-  - Innerhalb der Routen werden die Trips nach Richtung gruppiert. Falls keine Richtung existiert oder alle gleich sind, wird aus den parent_station_name-Folgen (Pfad) gruppiert.
-  - Es gibt einen Forward- und einen Backward-Path. Ein Master-Path wird gebildet, indem vorne oder hinten gekürzt wird. Alle Pfade werden gruppiert, Forward/Backward werden erkannt und hierarchisch sortiert: Agency → Route → Direction (Direction oder/und Path-Array) → Trips.
-  - Innerhalb jeder Gruppe werden die Trips nach Zeit sortiert.
+
+- Für jede Agency werden alle zugehörigen Routen gruppiert.
+- Zu jeder Route werden die zugehörigen Trips zugeordnet.
+- Innerhalb der Routen werden die Trips nach Richtung gruppiert. Falls keine Richtung existiert oder alle gleich sind, wird aus den parent_station_name-Folgen (Pfad) gruppiert.
+- Es gibt einen Forward- und einen Backward-Path. Ein Master-Path wird gebildet, indem vorne oder hinten gekürzt wird. Alle Pfade werden gruppiert, Forward/Backward werden erkannt und hierarchisch sortiert: Agency → Route → Direction (Direction oder/und Path-Array) → Trips.
+- Innerhalb jeder Gruppe werden die Trips nach Zeit sortiert.
 
 7. **Frequenzberechnung und Zuordnung:**
-  - Für jede Gruppe wird das Delta der Abfahrtszeiten (in Minuten) berechnet.
-  - Die kleinste Differenz wird ermittelt und geprüft, ob sie 15, 20, 30, 60, 120 ist.
-  - Wichtig: 120 bedeutet Fahrt zur geraden Stunde, 120+ zur ungeraden Stunde. Dies sind die möglichen Frequenzen. Die Abfahrtszeit in eine Richtung gibt dies vor (z.B. Abfahrt um 08:00 → 120, Abfahrt um 09:00 → 120+).
-  - Die Frequenzen werden aus den Netzgrafik-Metadaten (Default) entnommen und das Objekt mit der gefundenen Frequenz verknüpft.
+
+- Für jede Gruppe wird das Delta der Abfahrtszeiten (in Minuten) berechnet.
+- Die kleinste Differenz wird ermittelt und geprüft, ob sie 15, 20, 30, 60, 120 ist.
+- Wichtig: 120 bedeutet Fahrt zur geraden Stunde, 120+ zur ungeraden Stunde. Dies sind die möglichen Frequenzen. Die Abfahrtszeit in eine Richtung gibt dies vor (z.B. Abfahrt um 08:00 → 120, Abfahrt um 09:00 → 120+).
+- Die Frequenzen werden aus den Netzgrafik-Metadaten (Default) entnommen und das Objekt mit der gefundenen Frequenz verknüpft.
 
 8. **Master-Path und Richtungserkennung:**
-  - Die Anzahl Trips pro Gruppe wird berechnet.
-  - Die Gruppe (Forward/Backward) mit den meisten Fahrten am Betriebstag wird als Master-Path definiert.
-  - Der Master-Path wird auf gleiche Frequenz für Forward/Backward geprüft. Existiert nur eine Richtung, ist es One-Way. Existieren beide, wird geprüft, ob die Minuten für alle Fahrten gleich sind pro Richtung und Ort (parent_station_name).
-  - Falls nicht, wird die Minute genommen, die am häufigsten vorkommt pro Ort (parent_station_name) und daraus der Master-Forward- und -Backward-Path mit minimalen Abfahrts- und Ankunftszeiten erstellt.
-  - Die Deltas werden als Fahrzeit berechnet.
-  - Es wird versucht, Forward- und Backward-Zeiten symmetrisch zu machen (Summe aus Ankunft Forward + Abfahrt Backward = 60 → symmetrisch, sonst nicht).
-  - Sind alle Zeiten symmetrisch, wird ein Round-Trip erstellt, sonst One-Way.
-  - Round-Trips werden zu einer Linie mit Standard-Netzgrafik-Trainrun und TrainrunSection transformiert, sonst One-Way.
+
+- Die Anzahl Trips pro Gruppe wird berechnet.
+- Die Gruppe (Forward/Backward) mit den meisten Fahrten am Betriebstag wird als Master-Path definiert.
+- Der Master-Path wird auf gleiche Frequenz für Forward/Backward geprüft. Existiert nur eine Richtung, ist es One-Way. Existieren beide, wird geprüft, ob die Minuten für alle Fahrten gleich sind pro Richtung und Ort (parent_station_name).
+- Falls nicht, wird die Minute genommen, die am häufigsten vorkommt pro Ort (parent_station_name) und daraus der Master-Forward- und -Backward-Path mit minimalen Abfahrts- und Ankunftszeiten erstellt.
+- Die Deltas werden als Fahrzeit berechnet.
+- Es wird versucht, Forward- und Backward-Zeiten symmetrisch zu machen (Summe aus Ankunft Forward + Abfahrt Backward = 60 → symmetrisch, sonst nicht).
+- Sind alle Zeiten symmetrisch, wird ein Round-Trip erstellt, sonst One-Way.
+- Round-Trips werden zu einer Linie mit Standard-Netzgrafik-Trainrun und TrainrunSection transformiert, sonst One-Way.
 
 9. **Symmetrie und Toleranz:**
-  - Für die Symmetrie-Bestimmung ist eine Toleranz (z.B. 180s/3min) zu berücksichtigen. Diese Toleranz kann und soll der Nutzer einstellen können.
-  - Symmetrie gilt als gegeben, wenn die Zeitdifferenzen innerhalb der Toleranz liegen.
+
+- Für die Symmetrie-Bestimmung ist eine Toleranz (z.B. 180s/3min) zu berücksichtigen. Diese Toleranz kann und soll der Nutzer einstellen können.
+- Symmetrie gilt als gegeben, wenn die Zeitdifferenzen innerhalb der Toleranz liegen.
 
 10. **Beispiel für die Logik:**
-  - Am Betriebstag X (gültig gem. GTFS) gibt es eine Zug-Agency SBB mit route_id=1 und Trips:
-    - B - C - D | Abfahrt um 04:50 in B
-    - A - B - C - D | Abfahrt um 05:20 in A, 06:20 in A, ... 22:20 in A
-    - A - B - C | Abfahrt um 23:30 in A
-  - Züge enden oder starten nicht immer am gleichen Ort. Hier ergibt sich ein Stundentakt, da das Delta 60 ist.
-  - Beispiel 2: Ein Zug fährt in X um 04:53, 05:20, 05:52, 06:21, 06:32 ... Es braucht eine Symmetrie- und Toleranzprüfung. Hier ergibt sich 30min, da alles innerhalb der Toleranz (180s/3min) ist.
+
+- Am Betriebstag X (gültig gem. GTFS) gibt es eine Zug-Agency SBB mit route_id=1 und Trips:
+  - B - C - D | Abfahrt um 04:50 in B
+  - A - B - C - D | Abfahrt um 05:20 in A, 06:20 in A, ... 22:20 in A
+  - A - B - C | Abfahrt um 23:30 in A
+- Züge enden oder starten nicht immer am gleichen Ort. Hier ergibt sich ein Stundentakt, da das Delta 60 ist.
+- Beispiel 2: Ein Zug fährt in X um 04:53, 05:20, 05:52, 06:21, 06:32 ... Es braucht eine Symmetrie- und Toleranzprüfung. Hier ergibt sich 30min, da alles innerhalb der Toleranz (180s/3min) ist.
 
 Alle Schritte und UI-Elemente sind exakt wie beschrieben umzusetzen. Die Filterlogik, Gruppierung, Frequenz- und Symmetrie-Berechnung sowie die Beispiele sind verbindlich. Abweichungen sind nur nach expliziter Rücksprache zulässig.
 

@@ -18,12 +18,16 @@ describe("GTFSConverterService topology consolidation", () => {
       createSection(5, 4, 1, 5, 11),
     ];
 
-    const result = (service as any).applyTopologyConsolidationToTrainrunSections(trainrunSections, [], {
-      topologyDetourPercent: 50,
-      topologyDetourAbsoluteMinutes: 0,
-      topologyMinEdgeTravelTime: 1,
-      topologyMaxIterations: 10,
-    });
+    const result = (service as any).applyTopologyConsolidationToTrainrunSections(
+      trainrunSections,
+      [],
+      {
+        topologyDetourPercent: 50,
+        topologyDetourAbsoluteMinutes: 0,
+        topologyMinEdgeTravelTime: 1,
+        topologyMaxIterations: 10,
+      },
+    );
 
     expect(result.graphChanged).toBeTrue();
     expect(result.consolidatedEdges).toBe(1);
@@ -57,12 +61,16 @@ describe("GTFSConverterService topology consolidation", () => {
       createSection(4, 1, 4, 5, 10),
     ];
 
-    const result = (service as any).applyTopologyConsolidationToTrainrunSections(trainrunSections, [], {
-      topologyDetourPercent: 200,
-      topologyDetourAbsoluteMinutes: 10,
-      topologyMinEdgeTravelTime: 2,
-      topologyMaxIterations: 10,
-    });
+    const result = (service as any).applyTopologyConsolidationToTrainrunSections(
+      trainrunSections,
+      [],
+      {
+        topologyDetourPercent: 200,
+        topologyDetourAbsoluteMinutes: 10,
+        topologyMinEdgeTravelTime: 2,
+        topologyMaxIterations: 10,
+      },
+    );
 
     expect(result.graphChanged).toBeFalse();
     expect(result.consolidatedEdges).toBe(0);
@@ -80,12 +88,16 @@ describe("GTFSConverterService topology consolidation", () => {
       createSection(5, 5, 4, 1, 31),
     ];
 
-    const result = (service as any).applyTopologyConsolidationToTrainrunSections(trainrunSections, [], {
-      topologyDetourPercent: 100,
-      topologyDetourAbsoluteMinutes: 0,
-      topologyMinEdgeTravelTime: 1,
-      topologyMaxIterations: 10,
-    });
+    const result = (service as any).applyTopologyConsolidationToTrainrunSections(
+      trainrunSections,
+      [],
+      {
+        topologyDetourPercent: 100,
+        topologyDetourAbsoluteMinutes: 0,
+        topologyMinEdgeTravelTime: 1,
+        topologyMaxIterations: 10,
+      },
+    );
 
     expect(result.graphChanged).toBeFalse();
     expect(result.consolidatedEdges).toBe(0);

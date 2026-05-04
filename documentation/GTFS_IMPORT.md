@@ -20,30 +20,30 @@ Two reference sources are especially relevant for this project:
 
 The import process in Netzgrafik Editor primarily relies on these GTFS files:
 
-| File | Required | Semantic role |
-|------|----------|---------------|
-| `agency.txt` | yes | Operator identity and naming |
-| `routes.txt` | yes | Service lines and line categories/types |
-| `trips.txt` | yes | Concrete operational runs of routes |
-| `stop_times.txt` | yes | Ordered timing events within each trip |
-| `stops.txt` | yes | Stop hierarchy and geospatial position |
-| `calendar.txt` | optional | Base weekly service pattern with date range |
-| `calendar_dates.txt` | optional | Service overrides (add/remove for exact dates) |
-| `frequencies.txt` | optional in GTFS | Frequency-based service blocks (headway mode) |
-| `shapes.txt` | optional in GTFS | Geometric path of trips |
+| File                 | Required         | Semantic role                                  |
+| -------------------- | ---------------- | ---------------------------------------------- |
+| `agency.txt`         | yes              | Operator identity and naming                   |
+| `routes.txt`         | yes              | Service lines and line categories/types        |
+| `trips.txt`          | yes              | Concrete operational runs of routes            |
+| `stop_times.txt`     | yes              | Ordered timing events within each trip         |
+| `stops.txt`          | yes              | Stop hierarchy and geospatial position         |
+| `calendar.txt`       | optional         | Base weekly service pattern with date range    |
+| `calendar_dates.txt` | optional         | Service overrides (add/remove for exact dates) |
+| `frequencies.txt`    | optional in GTFS | Frequency-based service blocks (headway mode)  |
+| `shapes.txt`         | optional in GTFS | Geometric path of trips                        |
 
 Key terms used throughout this document:
 
-| GTFS term | Meaning in this document |
-|-----------|-------------------------|
-| `agency` | Transport operator (e.g., SBB) |
-| `route` | Service line (e.g., IR15) |
-| `trip` | One operational run of a route |
-| `stop` | Physical location, platform, or parent station |
-| `parent_station` | Station grouping platform-level stops |
-| `stop_time` | Timed call at a stop including pickup/drop-off semantics |
-| `service_id` | Service calendar key used by trips |
-| `direction_id` | Feed-specific directional marker (`0`/`1`) |
+| GTFS term        | Meaning in this document                                 |
+| ---------------- | -------------------------------------------------------- |
+| `agency`         | Transport operator (e.g., SBB)                           |
+| `route`          | Service line (e.g., IR15)                                |
+| `trip`           | One operational run of a route                           |
+| `stop`           | Physical location, platform, or parent station           |
+| `parent_station` | Station grouping platform-level stops                    |
+| `stop_time`      | Timed call at a stop including pickup/drop-off semantics |
+| `service_id`     | Service calendar key used by trips                       |
+| `direction_id`   | Feed-specific directional marker (`0`/`1`)               |
 
 ### 1.2 Time Semantics in GTFS
 
@@ -129,26 +129,26 @@ GTFS ZIP
 
 ### 3.2 What Is Taken, Computed, Interpreted, and Discarded
 
-| Type | Examples in current implementation |
-|------|------------------------------------|
-| Directly transferred | agencies, routes, trips, stop sequences, stop hierarchy |
-| Computed | route frequencies, representative trips, node roles, symmetric section times, consolidation detour checks |
-| Interpreted | category mapping from `route_desc`, stop/pass-through semantics from pickup/drop-off flags, preferred canonical direction in round-trip merge |
+| Type                                   | Examples in current implementation                                                                                                                                          |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Directly transferred                   | agencies, routes, trips, stop sequences, stop hierarchy                                                                                                                     |
+| Computed                               | route frequencies, representative trips, node roles, symmetric section times, consolidation detour checks                                                                   |
+| Interpreted                            | category mapping from `route_desc`, stop/pass-through semantics from pickup/drop-off flags, preferred canonical direction in round-trip merge                               |
 | Discarded or not materialized directly | per-trip duplicates inside a pattern, reverse trainrun after successful merge, non-selected stop-time rows, optional geometry details not needed for the timetable topology |
 
 ### 3.3 Mapping Table (GTFS -> Netzgrafik)
 
-| GTFS source | Main target in Netzgrafik model | Notes |
-|-------------|----------------------------------|-------|
-| `stops.txt` + `parent_station` | `NodeDto` | Platforms collapse to station-level nodes |
-| `trips.txt` + grouped `stop_times.txt` | `TrainrunDto` | One representative trainrun per stop pattern |
-| consecutive stop pairs in `stop_times.txt` | `TrainrunSectionDto` | Travel time and symmetric minute model applied |
-| `routes.txt.route_desc` | `TrainrunCategory` | Reuse or create category mapping |
-| inferred route headway | `TrainrunFrequency` | 120-min offset handling supported |
-| GTFS stop/pass-through semantics | transition `isNonStopTransit` | Enforced after materialization |
-| `calendar.txt` + `calendar_dates.txt` | trip inclusion for target day | Service-day filtering during import |
-| `frequencies.txt` | currently limited / feed-dependent | See assumptions and limitations |
-| `shapes.txt` | currently not primary topology source | Visual topology is timetable-first |
+| GTFS source                                | Main target in Netzgrafik model       | Notes                                          |
+| ------------------------------------------ | ------------------------------------- | ---------------------------------------------- |
+| `stops.txt` + `parent_station`             | `NodeDto`                             | Platforms collapse to station-level nodes      |
+| `trips.txt` + grouped `stop_times.txt`     | `TrainrunDto`                         | One representative trainrun per stop pattern   |
+| consecutive stop pairs in `stop_times.txt` | `TrainrunSectionDto`                  | Travel time and symmetric minute model applied |
+| `routes.txt.route_desc`                    | `TrainrunCategory`                    | Reuse or create category mapping               |
+| inferred route headway                     | `TrainrunFrequency`                   | 120-min offset handling supported              |
+| GTFS stop/pass-through semantics           | transition `isNonStopTransit`         | Enforced after materialization                 |
+| `calendar.txt` + `calendar_dates.txt`      | trip inclusion for target day         | Service-day filtering during import            |
+| `frequencies.txt`                          | currently limited / feed-dependent    | See assumptions and limitations                |
+| `shapes.txt`                               | currently not primary topology source | Visual topology is timetable-first             |
 
 ### 3.4 Technical Transformation Mechanics
 
@@ -236,14 +236,14 @@ for each trip T:
 
 Once all trips are processed, each station is classified by degree (number of distinct neighbours) and tags:
 
-| Condition | Classification |
-|-----------|---------------|
-| tagged START | `start` |
-| tagged END | `end` |
-| degree = 2 | `minor_stop` |
-| degree > 2 AND tagged HAS_STOP | `major_stop` |
-| degree > 2 AND NOT tagged HAS_STOP | `junction` |
-| degree < 2 (isolated) | `minor_stop` (fallback) |
+| Condition                          | Classification          |
+| ---------------------------------- | ----------------------- |
+| tagged START                       | `start`                 |
+| tagged END                         | `end`                   |
+| degree = 2                         | `minor_stop`            |
+| degree > 2 AND tagged HAS_STOP     | `major_stop`            |
+| degree > 2 AND NOT tagged HAS_STOP | `junction`              |
+| degree < 2 (isolated)              | `minor_stop` (fallback) |
 
 Start/end classification takes precedence. A station that is both a start and an end (i.e., a stub terminus) is classified as `start`.
 
@@ -304,6 +304,7 @@ All agencies in `agency.txt` are matched against a user-provided list of agency 
 
 **Stage 2 — Route type and route filter.**
 `routes.txt` is filtered by:
+
 - `route_type`: only routes whose integer type is in the allowed set pass (e.g., `2` = Rail). Default is Rail-only.
 - `agency_id`: only routes belonging to surviving agencies pass.
 - `route_desc` (optional category filter): if a category allowlist is provided, only routes whose `route_desc` matches (case-insensitive) are kept.
@@ -336,11 +337,11 @@ All trips that produce the same key are placed in the same pattern group.
 Suppose route `IR15` has four trips on a Tuesday operating day:
 
 | trip_id | stops (after platform→station mapping) | direction |
-|---------|----------------------------------------|-----------|
-| T1      | ZUE – WIN – OLT – BAS               | 0         |
-| T2      | ZUE – WIN – OLT – BAS               | 0         |
-| T3      | ZUE – WIN – OLT – BAS               | 0         |
-| T4      | ZUE – WIN – BAS  (skips OLT)        | 0         |
+| ------- | -------------------------------------- | --------- |
+| T1      | ZUE – WIN – OLT – BAS                  | 0         |
+| T2      | ZUE – WIN – OLT – BAS                  | 0         |
+| T3      | ZUE – WIN – OLT – BAS                  | 0         |
+| T4      | ZUE – WIN – BAS (skips OLT)            | 0         |
 
 T1, T2, T3 share key `IR15_0_ZUE-WIN-OLT-BAS` → one pattern group with 3 trips.
 T4 has key `IR15_0_ZUE-WIN-BAS` → a separate pattern group with 1 trip.
@@ -365,6 +366,7 @@ For each pattern group, the first trip in the group (index 0 after insertion ord
 Once the pattern set is fixed, all station IDs referenced in any pattern's stop sequence are collected. This is the **working node set** — no station outside it will appear in the output.
 
 Only station-level entries are turned into nodes. Platform rows (`location_type != 1` with a non-empty `parent_station`) are not directly turned into nodes; they are always accessed through their parent. If a `parent_station` ID appears in the working set but has no own row in `stops.txt` (i.e., the feed only contains platform rows and no explicit station entry), a **virtual station record** is synthesised:
+
 - name: the first child platform's `stop_name` with any trailing platform suffix stripped (regex: `\s+(Gleis|Track|Platform|Quai)\s+.*$`),
 - coordinates: copied from the first child platform.
 
@@ -421,6 +423,7 @@ The detected frequency key (`"15"`, `"30"`, `"60"`, `"120_0"`, etc.) is looked u
 For each accepted trip pattern, exactly one `TrainrunDto` is created. At this stage, **every trainrun is unconditionally created with `direction = ONE_WAY`**, regardless of whether it is a forward or a backward trip in the GTFS feed. This is intentional: the Netzgrafik model does not distinguish directions at the trainrun level at creation time; the direction attribute is only upgraded to `ROUND_TRIP` in phase C if a valid matching reverse pattern is found.
 
 The trainrun receives:
+
 - **categoryId**: from the category map (step 5.3), keyed by `route_desc` of the pattern's route.
 - **frequencyId**: from the frequency map (step 5.4), keyed by frequency string (`"60"`, `"120_0"`, etc.).
 - **timeCategoryId**: taken from the first entry of the time-category pool.
@@ -429,6 +432,7 @@ The trainrun receives:
 - **debug label**: `<routeName> → <firstStopName> → <lastStopName>` for traceability in the filter panel.
 
 Two metadata maps are populated per trainrun:
+
 - `trainrunToTrips`: maps trainrun ID → list of all GTFS trip IDs in the pattern.
 - `initialStopNodeIdsByTrainrun`: maps trainrun ID → set of node IDs where passengers may board or alight (i.e., at least one stop-time row in the pattern had `pickup_type != 1` or `drop_off_type != 1`). This map is used later in phase E to enforce correct stop/non-stop transition semantics.
 
@@ -454,6 +458,7 @@ A group with `isStop = false` means the train passes through the station without
 For each **consecutive pair** of station groups `(src, tgt)`, one `TrainrunSectionDto` is emitted:
 
 **Travel time:**
+
 ```
 travelTime = max(1, tgt.arrMin - src.depMin)
 ```
@@ -471,22 +476,24 @@ targetDep  = (60 - targetArr) mod 60 // return: 60-x symmetry
 
 **Example** — section Zürich HB → Winterthur (IR15, departure :05, arrival :26):
 
-| Field          | Value | Meaning                              |
-|----------------|-------|--------------------------------------|
-| `sourceDep`    | 5     | train leaves Zürich at :05           |
-| `targetArr`    | 26    | train arrives Winterthur at :26      |
-| `travelTime`   | 21    | 21 minutes                           |
-| `sourceArr`    | 55    | return train arrives Zürich at :55   |
-| `targetDep`    | 34    | return train leaves Winterthur at :34|
+| Field        | Value | Meaning                               |
+| ------------ | ----- | ------------------------------------- |
+| `sourceDep`  | 5     | train leaves Zürich at :05            |
+| `targetArr`  | 26    | train arrives Winterthur at :26       |
+| `travelTime` | 21    | 21 minutes                            |
+| `sourceArr`  | 55    | return train arrives Zürich at :55    |
+| `targetDep`  | 34    | return train leaves Winterthur at :34 |
 
 This symmetry is what makes round-trip detection in phase C possible without any additional time data.
 
 **`numberOfStops`:**
+
 - `0` if both `src.isStop` and `tgt.isStop` are true (both ends allow boarding/alighting),
 - `1` if either end is a pass-through (indicating the section touches a non-stopping node).
 
 **Loop guard:**
 A section is silently skipped if:
+
 - the target node has already been visited in this trainrun (prevents loops), or
 - the directed edge `srcNodeId → tgtNodeId` has already been used in this trainrun (prevents duplicate edges).
 
@@ -552,10 +559,10 @@ This check ensures that the two one-way trains actually form a symmetric clock-f
 
 **Example** — IR15 Basel→Zürich section (reversed):
 
-| Field                   | T1 (ZUE→BAS) section 0 | T2 (BAS→ZUE) reversed section 0 | Check |
-|-------------------------|-------------------------|----------------------------------|-------|
-| `sourceDep`             | :05                     | `targetArr` = :55                | expected: (60-5)%60 = :55 ✓ |
-| `targetArr`             | :26                     | `sourceDep` = :34                | expected: (60-26)%60 = :34 ✓ |
+| Field       | T1 (ZUE→BAS) section 0 | T2 (BAS→ZUE) reversed section 0 | Check                        |
+| ----------- | ---------------------- | ------------------------------- | ---------------------------- |
+| `sourceDep` | :05                    | `targetArr` = :55               | expected: (60-5)%60 = :55 ✓  |
+| `targetArr` | :26                    | `sourceDep` = :34               | expected: (60-26)%60 = :34 ✓ |
 
 Both checks pass within tolerance → pair accepted.
 
@@ -572,10 +579,12 @@ score = (Δx > 0 ? 1 : 0) + (Δy > 0 ? 1 : 0)   // max = 2 (eastward + southward
 The trainrun with the higher score is **kept** as the canonical direction; the other is **discarded**. If scores are equal, `T1` (the earlier trainrun) is kept. The rationale is that Swiss rail maps conventionally orient from west/north to east/south; this heuristic aligns the displayed arrow direction with convention.
 
 **What is discarded:**
+
 - the removed trainrun object itself,
 - **all** `TrainrunSectionDto` objects whose `trainrunId` matches the removed trainrun.
 
 **What is preserved:**
+
 - the surviving trainrun's sections are kept unchanged,
 - all label IDs from the removed trainrun are appended to the surviving trainrun's `labelIds` list (so debug filter labels from both directions remain searchable),
 - the surviving trainrun's `direction` is updated from `ONE_WAY` to `ROUND_TRIP`.
@@ -596,6 +605,7 @@ The `↔` arrows indicate `ROUND_TRIP`: both :05 departure from Zürich and :55 
 ### 6.3 Unmatched Trainruns
 
 Trainruns for which no valid match is found remain as `ONE_WAY`. This happens when:
+
 - the reverse direction is filtered out (different agency, route type, or operating day),
 - the reverse pattern has a different stop sequence (e.g., asymmetric routing),
 - the time symmetry criterion fails beyond tolerance (e.g., irregular timetable or special service),
@@ -687,10 +697,10 @@ Additionally, the alternative path must contain **more than one edge**. A one-ed
 
 **Example** — detour evaluation:
 
-| Edge | $T_e$ | Alternative path | $T_{alt}$ | 35% threshold | +3 min threshold | Eligible? |
-|------|--------|-----------------|-----------|---------------|-----------------|-----------|
-| ZUE–OLT direct | 45 min | ZUE–WIN–OLT | 52 min | 45×1.35=60.75 ✓ | 45+3=48 ✗ | **yes** (relative passes) |
-| ZUE–BAS direct | 55 min | ZUE–WIN–OLT–BAS | 80 min | 55×1.35=74.25 ✗ | 55+3=58 ✗ | **no** |
+| Edge           | $T_e$  | Alternative path | $T_{alt}$ | 35% threshold   | +3 min threshold | Eligible?                 |
+| -------------- | ------ | ---------------- | --------- | --------------- | ---------------- | ------------------------- |
+| ZUE–OLT direct | 45 min | ZUE–WIN–OLT      | 52 min    | 45×1.35=60.75 ✓ | 45+3=48 ✗        | **yes** (relative passes) |
+| ZUE–BAS direct | 55 min | ZUE–WIN–OLT–BAS  | 80 min    | 55×1.35=74.25 ✗ | 55+3=58 ✗        | **no**                    |
 
 ### 7.5 Trainrun-Context Safety Check
 
@@ -752,13 +762,14 @@ This ensures that the total travel time over the replacement path equals (or clo
 
 **Example** — replacing ZUE→OLT (45 min direct) via ZUE–WIN–OLT (path weights 21 and 31, total 52):
 
-| Segment | Path weight | Proportional time | After max(A=1) |
-|---------|------------|-------------------|----------------|
-| ZUE→WIN | 21 min     | 45 × 21/52 = 18.2 → 18 min | 18 min |
-| WIN→OLT | 31 min     | 45 × 31/52 = 26.8 → 27 min | 27 min |
-| **Total** | | **45 min** | |
+| Segment   | Path weight | Proportional time          | After max(A=1) |
+| --------- | ----------- | -------------------------- | -------------- |
+| ZUE→WIN   | 21 min      | 45 × 21/52 = 18.2 → 18 min | 18 min         |
+| WIN→OLT   | 31 min      | 45 × 31/52 = 26.8 → 27 min | 27 min         |
+| **Total** |             | **45 min**                 |                |
 
 After replacement:
+
 - The old direct sections on edge `ZUE—OLT` are removed from `trainrunSections`.
 - Two new sections are added per affected trainrun.
 - The edge `ZUE—OLT` is removed from the basis graph.
@@ -818,16 +829,17 @@ The graph is re-sorted at the start of every pass because replacements change ed
 
 ### 8.2 Termination Conditions
 
-| Condition | Meaning |
-|-----------|---------|
-| `changed == false` after a full pass | Fixed point: no more eligible replacements exist. This is the ideal termination. |
-| `iteration == n` | Safety cap reached. The graph may still contain consolidatable edges, but further passes are stopped to bound runtime. Increase `n` if needed. |
+| Condition                            | Meaning                                                                                                                                        |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `changed == false` after a full pass | Fixed point: no more eligible replacements exist. This is the ideal termination.                                                               |
+| `iteration == n`                     | Safety cap reached. The graph may still contain consolidatable edges, but further passes are stopped to bound runtime. Increase `n` if needed. |
 
 The default maximum $n = 10$ passes is sufficient for most national rail feeds. For very dense urban networks with many overlapping corridors, a higher value may be needed.
 
 ### 8.3 Convergence Guarantee
 
 There is no formal guarantee of convergence before the iteration cap. However, in practice the loop converges quickly because:
+
 - Each successful replacement removes one edge from the graph, strictly reducing the number of edges.
 - The detour constraints become harder to satisfy as the graph becomes sparser (fewer alternative paths exist).
 - The trainrun-context safety check prevents replacements that would cause any trainrun to revisit a node, bounding the combinatorial search space.
@@ -865,6 +877,7 @@ graph LR
 ```
 
 The guard is applied **per trainrun**, not per edge. If three trainruns share edge `A—D` but only one of them already visits `B`, then:
+
 - The two safe trainruns get their sections replaced (via the alternative path).
 - The unsafe trainrun keeps its direct `A—D` section.
 - The edge `A—D` is removed from the basis graph if all sections are replaced, or kept if some sections remain.
@@ -889,23 +902,23 @@ If a proportional interpolation would produce a 0-minute segment (e.g., because 
 
 After all phases complete, the converter assembles a `NetzgrafikDto` containing all Netzgrafik objects:
 
-| Field | Content |
-|-------|---------|
-| `nodes` | One `NodeDto` per station with position, name, and port stubs |
-| `trainruns` | One `TrainrunDto` per surviving pattern with category, frequency, direction |
-| `trainrunSections` | One `TrainrunSectionDto` per section with symmetric times, travel time, `numberOfStops` |
-| `metadata` | `TrainrunCategory[]`, `TrainrunFrequency[]`, `TrainrunTimeCategory[]`, colour palette |
-| `resources` | Empty array (not used for GTFS imports) |
-| `freeFloatingTexts` | Empty array |
-| `labels` | Debug labels for each trainrun showing round-trip match status |
-| `labelGroups` | One label group for all GTFS import labels |
-| `filterData` | Empty filter settings |
+| Field               | Content                                                                                 |
+| ------------------- | --------------------------------------------------------------------------------------- |
+| `nodes`             | One `NodeDto` per station with position, name, and port stubs                           |
+| `trainruns`         | One `TrainrunDto` per surviving pattern with category, frequency, direction             |
+| `trainrunSections`  | One `TrainrunSectionDto` per section with symmetric times, travel time, `numberOfStops` |
+| `metadata`          | `TrainrunCategory[]`, `TrainrunFrequency[]`, `TrainrunTimeCategory[]`, colour palette   |
+| `resources`         | Empty array (not used for GTFS imports)                                                 |
+| `freeFloatingTexts` | Empty array                                                                             |
+| `labels`            | Debug labels for each trainrun showing round-trip match status                          |
+| `labelGroups`       | One label group for all GTFS import labels                                              |
+| `filterData`        | Empty filter settings                                                                   |
 
 Two additional maps are attached as non-standard properties on the DTO (they are not part of the official `NetzgrafikDto` interface but are read by the loading path):
 
-| Property | Type | Content |
-|----------|------|---------|
-| `trainrunToTrips` | `Map<trainrunId, tripId[]>` | All GTFS trip IDs belonging to each trainrun, for traceability |
+| Property                           | Type                        | Content                                                                  |
+| ---------------------------------- | --------------------------- | ------------------------------------------------------------------------ |
+| `trainrunToTrips`                  | `Map<trainrunId, tripId[]>` | All GTFS trip IDs belonging to each trainrun, for traceability           |
 | `gtfsInitialStopNodeIdsByTrainrun` | `Map<trainrunId, nodeId[]>` | Node IDs of original GTFS stops per trainrun, for transition enforcement |
 
 ### 10.2 3rd-Party Materialization
@@ -952,20 +965,21 @@ The initial coordinate projection (phase B step 5.2) provides a geographically m
 
 When validating a GTFS feed import, work through the following checks in order. Each check targets a specific phase and can be used to isolate where a problem originates.
 
-| # | Check | Expected result | Phase responsible |
-|---|-------|----------------|-------------------|
-| 1 | All expected routes/operators appear | Correct count of trainruns in output | Phase A (filter) |
-| 2 | Node count is plausible | No duplicate nodes for the same station; virtual stations synthesised correctly | Phase B §5.2 |
-| 3 | Category names are correct | No unnamed or mis-coloured categories | Phase B §5.3 |
-| 4 | Frequencies are detected correctly | 60-min routes show 60 min; no routes defaulted to 60 incorrectly | Phase A §4.3 |
-| 5 | All expected trainruns are `ROUND_TRIP` | Symmetric lines merged; one-way-only services remain `ONE_WAY` | Phase C |
-| 6 | No zig-zag backtracking in consolidated routes | A trainrun never visits the same node twice | Phase D §9.1 |
-| 7 | GTFS stop nodes are stop transitions | `isNonStopTransit = false` at original boarding/alighting stations | Phase F §10.3 |
-| 8 | Consolidation-inserted intermediate nodes are non-stop | `isNonStopTransit = true` at nodes not in the original GTFS stop list | Phase F §10.3 |
-| 9 | Convergence reached within configured iterations | Console log shows fixed-point termination, not cap termination | Phase E §8.4 |
-| 10 | No section has travel time = 0 | All sections have `travelTime ≥ A` | Phase D §9.3 |
+| #   | Check                                                  | Expected result                                                                 | Phase responsible |
+| --- | ------------------------------------------------------ | ------------------------------------------------------------------------------- | ----------------- |
+| 1   | All expected routes/operators appear                   | Correct count of trainruns in output                                            | Phase A (filter)  |
+| 2   | Node count is plausible                                | No duplicate nodes for the same station; virtual stations synthesised correctly | Phase B §5.2      |
+| 3   | Category names are correct                             | No unnamed or mis-coloured categories                                           | Phase B §5.3      |
+| 4   | Frequencies are detected correctly                     | 60-min routes show 60 min; no routes defaulted to 60 incorrectly                | Phase A §4.3      |
+| 5   | All expected trainruns are `ROUND_TRIP`                | Symmetric lines merged; one-way-only services remain `ONE_WAY`                  | Phase C           |
+| 6   | No zig-zag backtracking in consolidated routes         | A trainrun never visits the same node twice                                     | Phase D §9.1      |
+| 7   | GTFS stop nodes are stop transitions                   | `isNonStopTransit = false` at original boarding/alighting stations              | Phase F §10.3     |
+| 8   | Consolidation-inserted intermediate nodes are non-stop | `isNonStopTransit = true` at nodes not in the original GTFS stop list           | Phase F §10.3     |
+| 9   | Convergence reached within configured iterations       | Console log shows fixed-point termination, not cap termination                  | Phase E §8.4      |
+| 10  | No section has travel time = 0                         | All sections have `travelTime ≥ A`                                              | Phase D §9.3      |
 
 For systematic debugging, the converter emits detailed console output including:
+
 - per-phase item counts,
 - round-trip match status per trainrun (success / failure reason),
 - consolidation statistics (replacements per pass, edges removed, iterations used).
@@ -1003,4 +1017,3 @@ Netzgrafik ready for display and editing
 ```
 
 The design deliberately separates **topology simplification** (phase D/E) from **object creation** (phase B), and **transition semantics** (phase F) from both. This means each phase can be reasoned about independently, tested in isolation, and disabled without affecting the other phases.
-

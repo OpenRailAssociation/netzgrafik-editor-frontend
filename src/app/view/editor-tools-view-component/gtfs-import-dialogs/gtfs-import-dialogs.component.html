@@ -50,7 +50,10 @@
                     <span *ngIf="subPhase.status === 'pending'">○</span>
                   </span>
                   <span class="sub-phase-label">{{ subPhase.label }}</span>
-                  <span *ngIf="subPhase.progress !== undefined && subPhase.status === 'running'" class="sub-phase-progress">
+                  <span
+                    *ngIf="subPhase.progress !== undefined && subPhase.status === 'running'"
+                    class="sub-phase-progress"
+                  >
                     <progress [value]="subPhase.progress" max="100"></progress>
                     {{ subPhase.progress }}%
                   </span>
@@ -299,11 +302,15 @@
               }}
             </small>
             <!-- Gültigkeitszeitraum aus calendar.txt -->
-            <small *ngIf="gtfsServiceDateRange" class="filter-hint" style="display:block; margin-top:4px;">
+            <small
+              *ngIf="gtfsServiceDateRange"
+              class="filter-hint"
+              style="display: block; margin-top: 4px"
+            >
               📅 Fahrplan gültig:
-              <strong>{{ gtfsServiceDateRange.startDate | date:'dd.MM.yyyy' }}</strong>
+              <strong>{{ gtfsServiceDateRange.startDate | date: "dd.MM.yyyy" }}</strong>
               &ndash;
-              <strong>{{ gtfsServiceDateRange.endDate | date:'dd.MM.yyyy' }}</strong>
+              <strong>{{ gtfsServiceDateRange.endDate | date: "dd.MM.yyyy" }}</strong>
             </small>
           </div>
 
@@ -486,8 +493,9 @@
               />
             </sbb-form-field>
             <small class="filter-hint">
-              Legt Zugläufe auf gemeinsame Korridore. Alternative Pfade werden nur verwendet,
-              wenn sie maximal {{ gtfsTopologyDetourPercent }}% oder {{ gtfsTopologyDetourAbsoluteMinutes }}min laenger als die Direktsektion sind.
+              Legt Zugläufe auf gemeinsame Korridore. Alternative Pfade werden nur verwendet, wenn
+              sie maximal {{ gtfsTopologyDetourPercent }}% oder
+              {{ gtfsTopologyDetourAbsoluteMinutes }}min laenger als die Direktsektion sind.
             </small>
           </div>
 

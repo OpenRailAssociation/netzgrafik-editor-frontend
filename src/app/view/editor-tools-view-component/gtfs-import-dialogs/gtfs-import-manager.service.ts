@@ -21,7 +21,6 @@ import {
 
 const DEFAULT_SELECTED_LINES = ["IC21", "IC26", "IR27", "IR15", "S1", "S29", "RE24"];
 
-
 /**
  * Service to manage GTFS import workflow including:
  * - Light parsing for filter options
@@ -415,7 +414,6 @@ export class GtfsImportManagerService {
         state.selectedAgencies,
         state.selectedCategories.map((cat) => cat.toUpperCase()),
         (fileName: string) => {
-
           // Find the sub-phase for the completed file
           const state = this.getState();
           const subPhases = state.importPhases[0].subPhases;
@@ -435,7 +433,6 @@ export class GtfsImportManagerService {
         state.timeSyncTolerance,
       );
 
-
       // All parsing subphases should be completed via callbacks
       this.updatePhaseStatus(0, "completed");
       this.logger.info(
@@ -449,14 +446,10 @@ export class GtfsImportManagerService {
         {label: "Knoten-Filter", status: "pending" as const},
       ]);
 
-
-
       // Apply category filter with progress (ausgelagert)
       this.applyCategoryFilterWithProgress(gtfsData, state);
       this.updateSubPhaseStatus(1, 0, "completed");
-// ...existing code...
-
-
+      // ...existing code...
 
       // Apply line filter with progress
       this.updateSubPhaseStatus(1, 1, "running");
@@ -466,7 +459,7 @@ export class GtfsImportManagerService {
           routes: gtfsData.routes.length,
           trips: gtfsData.trips.length,
           stopTimes: gtfsData.stopTimes.length,
-          stops: gtfsData.stops ? gtfsData.stops.length : 0
+          stops: gtfsData.stops ? gtfsData.stops.length : 0,
         };
         const total = gtfsData.routes.length;
         let lastPercent = 0;
@@ -503,11 +496,10 @@ export class GtfsImportManagerService {
           routes: gtfsData.routes.length,
           trips: gtfsData.trips.length,
           stopTimes: gtfsData.stopTimes.length,
-          stops: gtfsData.stops ? gtfsData.stops.length : 0
+          stops: gtfsData.stops ? gtfsData.stops.length : 0,
         };
       }
       this.updateSubPhaseStatus(1, 1, "completed");
-
 
       // Apply node classification filter with progress
       this.updateSubPhaseStatus(1, 2, "running");
@@ -520,7 +512,7 @@ export class GtfsImportManagerService {
           routes: gtfsData.routes.length,
           trips: gtfsData.trips.length,
           stopTimes: gtfsData.stopTimes.length,
-          stops: gtfsData.stops ? gtfsData.stops.length : 0
+          stops: gtfsData.stops ? gtfsData.stops.length : 0,
         };
         const acceptedClassifications = new Set(activeNodeTypes);
         const total = gtfsData.stops.length;
@@ -540,7 +532,7 @@ export class GtfsImportManagerService {
           routes: gtfsData.routes.length,
           trips: gtfsData.trips.length,
           stopTimes: gtfsData.stopTimes.length,
-          stops: gtfsData.stops ? gtfsData.stops.length : 0
+          stops: gtfsData.stops ? gtfsData.stops.length : 0,
         };
       }
       this.updateSubPhaseStatus(1, 2, "completed");
@@ -1032,7 +1024,6 @@ export class GtfsImportManagerService {
     }
   }
 
-
   private markAllSubPhasesCompleted(phaseIndex: number): void {
     const state = this.getState();
     const newPhases = [...state.importPhases];
@@ -1053,7 +1044,7 @@ export class GtfsImportManagerService {
       routes: gtfsData.routes.length,
       trips: gtfsData.trips.length,
       stopTimes: gtfsData.stopTimes.length,
-      stops: gtfsData.stops ? gtfsData.stops.length : 0
+      stops: gtfsData.stops ? gtfsData.stops.length : 0,
     };
     const total = gtfsData.routes.length;
     let lastPercent = 0;
@@ -1088,7 +1079,7 @@ export class GtfsImportManagerService {
       routes: gtfsData.routes.length,
       trips: gtfsData.trips.length,
       stopTimes: gtfsData.stopTimes.length,
-      stops: gtfsData.stops ? gtfsData.stops.length : 0
+      stops: gtfsData.stops ? gtfsData.stops.length : 0,
     };
   }
 
@@ -1131,11 +1122,7 @@ export class GtfsImportManagerService {
   updateSubPhaseProgress(phaseIdx: number, subIdx: number, progress: number) {
     const state = this.getState();
     const phases = [...state.importPhases];
-    if (
-      phases[phaseIdx] &&
-      phases[phaseIdx].subPhases &&
-      phases[phaseIdx].subPhases[subIdx]
-    ) {
+    if (phases[phaseIdx] && phases[phaseIdx].subPhases && phases[phaseIdx].subPhases[subIdx]) {
       phases[phaseIdx].subPhases[subIdx] = {
         ...phases[phaseIdx].subPhases[subIdx],
         progress,

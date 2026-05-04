@@ -81,7 +81,9 @@ describe("NodeService GTFS stop map", () => {
       });
     });
 
-    const trainrunEntry = Array.from(nodesByTrainrunId.entries()).find(([, trainrunNodes]) => trainrunNodes.length >= 2);
+    const trainrunEntry = Array.from(nodesByTrainrunId.entries()).find(
+      ([, trainrunNodes]) => trainrunNodes.length >= 2,
+    );
     expect(trainrunEntry).toBeDefined();
 
     const [trainrunId, trainrunNodes] = trainrunEntry!;
@@ -95,11 +97,17 @@ describe("NodeService GTFS stop map", () => {
 
     nodeService.applyGtfsInitialStopNodeIdsByTrainrun(new Map([[trainrunId, [stopNodeId]]]));
 
-    expect(getTransitionForTrainrun(nodeWithTransition, trainrunId)?.getIsNonStopTransit()).toBeFalse();
-    expect(getTransitionForTrainrun(otherNodeWithSameTrainrun, trainrunId)?.getIsNonStopTransit()).toBeTrue();
+    expect(
+      getTransitionForTrainrun(nodeWithTransition, trainrunId)?.getIsNonStopTransit(),
+    ).toBeFalse();
+    expect(
+      getTransitionForTrainrun(otherNodeWithSameTrainrun, trainrunId)?.getIsNonStopTransit(),
+    ).toBeTrue();
   });
 });
 
 function getTransitionForTrainrun(node: Node, trainrunId: number) {
-  return node.getTransitions().find((transition) => transition.getTrainrun().getId() === trainrunId);
+  return node
+    .getTransitions()
+    .find((transition) => transition.getTrainrun().getId() === trainrunId);
 }
