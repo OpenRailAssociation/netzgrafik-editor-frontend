@@ -49,7 +49,7 @@ export class StammdatenService {
 
   static addZazValue(zaz: number, time: number): number {
     if (time !== 0) {
-      return MathUtils.roundAndForceValueGreaterEqualOne(time + zaz);
+      return MathUtils.roundAndForceValueGreaterEqualOne(10 * (time + zaz)) / 10;
     } else {
       return time;
     }
@@ -95,23 +95,23 @@ export class StammdatenService {
         stammdatenBP.BP,
         {
           [HaltezeitFachCategories.IPV]: {
-            haltezeit: MathUtils.roundAndForceValueGreaterEqualOne(haltezeitIPV),
+            haltezeit: MathUtils.roundAndForceValueGreaterEqualOne(10 * haltezeitIPV) / 10.0,
             no_halt: haltezeitIPV === 0,
           },
           [HaltezeitFachCategories.A]: {
-            haltezeit: MathUtils.roundAndForceValueGreaterEqualOne(haltezeitA),
+            haltezeit: MathUtils.roundAndForceValueGreaterEqualOne(10 * haltezeitA) / 10.0,
             no_halt: haltezeitA === 0,
           },
           [HaltezeitFachCategories.B]: {
-            haltezeit: MathUtils.roundAndForceValueGreaterEqualOne(haltezeitB),
+            haltezeit: MathUtils.roundAndForceValueGreaterEqualOne(10 * haltezeitB) / 10.0,
             no_halt: haltezeitB === 0,
           },
           [HaltezeitFachCategories.C]: {
-            haltezeit: MathUtils.roundAndForceValueGreaterEqualOne(haltezeitC),
+            haltezeit: MathUtils.roundAndForceValueGreaterEqualOne(10 * haltezeitC) / 10.0,
             no_halt: haltezeitC === 0,
           },
           [HaltezeitFachCategories.D]: {
-            haltezeit: MathUtils.roundAndForceValueGreaterEqualOne(haltezeitD),
+            haltezeit: MathUtils.roundAndForceValueGreaterEqualOne(10 * haltezeitD) / 10.0,
             no_halt: haltezeitD === 0,
           },
           [HaltezeitFachCategories.Uncategorized]: {
