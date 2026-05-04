@@ -96,8 +96,8 @@ describe("NodeService Test", () => {
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.IPV].haltezeit).toBe(2.2);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.A].haltezeit).toBe(2.2);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.B].haltezeit).toBe(2.2);
-    expect(aa.getHaltezeiten()[HaltezeitFachCategories.C].haltezeit).toBe(.1);
-    expect(aa.getHaltezeiten()[HaltezeitFachCategories.D].haltezeit).toBe(.1);
+    expect(aa.getHaltezeiten()[HaltezeitFachCategories.C].haltezeit).toBe(0.1);
+    expect(aa.getHaltezeiten()[HaltezeitFachCategories.D].haltezeit).toBe(0.1);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.Uncategorized].haltezeit).toBe(0);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.IPV].no_halt).toBe(false);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.A].no_halt).toBe(false);
