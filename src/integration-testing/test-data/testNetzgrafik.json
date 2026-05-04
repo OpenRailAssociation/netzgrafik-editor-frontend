@@ -157,7 +157,6 @@
         "time": 10,
         "consecutiveTime": 0,
         "lock": true,
-        "warning": null,
         "timeFormatter": null
       },
       "sourceDeparture": {

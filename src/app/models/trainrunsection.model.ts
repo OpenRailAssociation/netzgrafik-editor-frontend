@@ -162,6 +162,9 @@ export class TrainrunSection {
     this.isSelected = false;
     this.numberOfStops = numberOfStops;
 
+    // convert/ensure warning elements exits
+    this.migrateTimeWarnings();
+
     this.convertPathToVec2D();
 
     if (TrainrunSection.currentId < this.id) {
@@ -573,6 +576,7 @@ export class TrainrunSection {
   }
 
   hasBackwardTravelTimeWarning(): boolean {
+    console.log(this.backwardTravelTime);
     return this.backwardTravelTime.warning !== null;
   }
 
@@ -877,5 +881,29 @@ export class TrainrunSection {
       })),
       textPositions: this.path.textPositions,
     };
+  }
+
+  private migrateTimeWarnings() {
+    // elder Netzgrafik can have an empty warning field which was optional but should no longer be optional
+    // we can not change the warning filed to be non-optional because otherwise old Netzgrafik files
+    // would not be loadable anymore, so we need to migrate the old empty warning field to null
+    if (!this.sourceArrival.warning) {
+      this.sourceArrival.warning = null;
+    }
+    if (!this.sourceDeparture.warning) {
+      this.sourceDeparture.warning = null;
+    }
+    if (!this.targetArrival.warning) {
+      this.targetArrival.warning = null;
+    }
+    if (!this.targetDeparture.warning) {
+      this.targetDeparture.warning = null;
+    }
+    if (!this.travelTime.warning) {
+      this.travelTime.warning = null;
+    }
+    if (!this.backwardTravelTime.warning) {
+      this.backwardTravelTime.warning = null;
+    }
   }
 }
