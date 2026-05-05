@@ -214,10 +214,46 @@ describe("StreckengrafikModelTests", () => {
   });
 
   it("Streckengrafik-Model - Test - TrainrunItem  - 002", () => {
-    const node0 = new PathNode(0, 0, 9, "AA", 10, new TrackData(2), false, undefined, false, false);
-    const node1 = new PathNode(0, 0, 9, "BB", 10, new TrackData(2), false, undefined, false, false);
+    const node0 = new PathNode(
+      0,
+      0,
+      9,
+      "AA",
+      "AAaa",
+      10,
+      new TrackData(2),
+      false,
+      undefined,
+      false,
+      false,
+    );
+    const node1 = new PathNode(
+      0,
+      0,
+      9,
+      "BB",
+      "BBbb",
+      10,
+      new TrackData(2),
+      false,
+      undefined,
+      false,
+      false,
+    );
 
-    const node2 = new PathNode(1, 2, 9, "CC", 10, new TrackData(1), true, undefined, false, false);
+    const node2 = new PathNode(
+      1,
+      2,
+      9,
+      "CC",
+      "CCcc",
+      10,
+      new TrackData(1),
+      true,
+      undefined,
+      false,
+      false,
+    );
 
     const item0: TrainrunItem = new TrainrunItem(
       1,
@@ -312,7 +348,19 @@ describe("StreckengrafikModelTests", () => {
   });
 
   it("Streckengrafik-Model - Test - TrainrunItem  - 003", () => {
-    const node0 = new PathNode(0, 0, 9, "AA", 10, new TrackData(2), false, undefined, false, true);
+    const node0 = new PathNode(
+      0,
+      0,
+      9,
+      "AA",
+      "AAaa",
+      10,
+      new TrackData(2),
+      false,
+      undefined,
+      false,
+      true,
+    );
     expect(node0.xPath()).toBe(60);
     expect(node0.getPathSection()).toBe(undefined);
   });

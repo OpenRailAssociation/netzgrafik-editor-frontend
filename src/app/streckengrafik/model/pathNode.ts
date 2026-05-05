@@ -12,6 +12,7 @@ export class PathNode implements PathItem {
     public arrivalTime: number,
     public nodeId: number,
     public nodeShortName: string,
+    public nodeFullName: string,
     public index: number,
     public trackData: TrackData,
     public backward = false,
@@ -83,6 +84,7 @@ export class PathNode implements PathItem {
       this.arrivalTime === pathNode.arrivalTime &&
       this.nodeId === pathNode.nodeId &&
       this.nodeShortName === pathNode.nodeShortName &&
+      this.nodeFullName === pathNode.nodeFullName &&
       this.trackData === pathNode.trackData &&
       this.backward === pathNode.backward &&
       this.haltezeit === pathNode.haltezeit &&
@@ -101,6 +103,7 @@ export class PathNode implements PathItem {
       this.arrivalTime,
       this.nodeId,
       this.nodeShortName,
+      this.nodeFullName,
       this.index,
       this.trackData,
       this.backward,
