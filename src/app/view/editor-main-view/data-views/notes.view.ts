@@ -232,6 +232,7 @@ export class NotesView {
       .attr("height", (n: NoteViewObject) => NotesView.extractTextBasedHeight(n.note) + 40)
       .attr("x", -20)
       .attr("y", -20)
+      .classed("note-root-hidden", true)
       .classed(
         StaticDomTags.TAG_MULTI_SELECTED,
         (n: NoteViewObject) =>

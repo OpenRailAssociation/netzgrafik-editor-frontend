@@ -16,6 +16,17 @@
   cursor: pointer;
 }
 
+::ng-deep rect.note_root.note-root-hidden {
+  stroke: none;
+  fill: none;
+}
+
+::ng-deep rect.note_root.note-root-hidden.hover {
+  stroke-width: 1px;
+  stroke: $NODE_COLOR;
+  fill: $COLOR_BACKGROUND;
+}
+
 ::ng-deep path.note_hover_drag_root {
   fill: $NODE_COLOR;
   rx: $NODE_ROUND_EDGE_SIZE;
