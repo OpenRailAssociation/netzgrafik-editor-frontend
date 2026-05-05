@@ -213,6 +213,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   shouldDisplayAsymmetryArrow(arrowLocation: "top" | "bottom"): boolean {
+    if (!this.trainrunSection.getTrainrun().isRoundTrip()) return false;
     if (this.getLeftToRightDirection(arrowLocation) === "sourceToTarget") {
       return !this.trainrunSection.isSourceSymmetricOrTimesSymmetric();
     } else {
