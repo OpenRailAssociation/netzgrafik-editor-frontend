@@ -11,6 +11,7 @@ export class SgPathNode implements SgPath {
     public index: number,
     public nodeId: number,
     public nodeShortName: string,
+    public nodeFullName: string,
     public departureTime: number,
     public arrivalTime: number,
     public departureTrainrunSectionId: number,

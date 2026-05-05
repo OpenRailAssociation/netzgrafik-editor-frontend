@@ -19,7 +19,7 @@
                 </ng-container>
               </ng-container>
               <text [class]="getNodeTextClassTag(path)" x="0" y="15" (click)="doClick(path)">
-                {{ getNodeShortName(path) }}
+                {{ getNodeName(path) }}
               </text>
             </ng-container>
             <ng-container *ngIf="isTrackOccupier(path)">
@@ -36,7 +36,7 @@
                 class="TrackOccupierShown"
                 (click)="doClick(path)"
               >
-                {{ getNodeShortName(path) }}
+                {{ getNodeName(path) }}
               </text>
               <ng-container *ngIf="!isStartOrEndNode(path) || path.index !== 0">
                 <line class="VerticalNodeLine TrackOccupier" x1="0" y1="0" x2="0" y2="40" />
