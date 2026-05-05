@@ -194,7 +194,11 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
         d3
           .axisBottom<number>(x)
           .tickSize(0)
-          .tickFormat((d) => this.nodeService.getNodeFromId(d).getBetriebspunktName()),
+          .tickFormat((d) =>
+            this.filterService.isDisplayingNodesFullName()
+              ? this.nodeService.getNodeFromId(d).getFullName()
+              : this.nodeService.getNodeFromId(d).getBetriebspunktName(),
+          ),
       )
       .style("user-select", "none")
       .call((g) =>
@@ -223,7 +227,11 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
         d3
           .axisLeft<number>(y)
           .tickSize(0)
-          .tickFormat((d) => this.nodeService.getNodeFromId(d).getBetriebspunktName()),
+          .tickFormat((d) =>
+            this.filterService.isDisplayingNodesFullName()
+              ? this.nodeService.getNodeFromId(d).getFullName()
+              : this.nodeService.getNodeFromId(d).getBetriebspunktName(),
+          ),
       )
       .style("user-select", "none")
       .call((g) => g.selectAll("text").attr("data-origin-label", (d: string) => d))
