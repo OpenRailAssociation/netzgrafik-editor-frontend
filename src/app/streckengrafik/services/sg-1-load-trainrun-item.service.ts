@@ -259,8 +259,17 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
   }
 
   private makePathElement(nodeId1: number, nodeId2: number, travelTime: number) {
-    const n1 = new PathNode(0, 0, nodeId1, undefined, 0, undefined, false);
-    const n2 = new PathNode(travelTime, travelTime, nodeId2, undefined, 1, undefined, false);
+    const n1 = new PathNode(0, 0, nodeId1, undefined, undefined, 0, undefined, false);
+    const n2 = new PathNode(
+      travelTime,
+      travelTime,
+      nodeId2,
+      undefined,
+      undefined,
+      1,
+      undefined,
+      false,
+    );
     const node1 = this.nodeService.getNodeFromId(n1.nodeId);
     n1.nodeShortName = node1.getBetriebspunktName();
     const node2 = this.nodeService.getNodeFromId(n2.nodeId);
@@ -464,6 +473,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
           this.getTurnaroundStartNodeForward(fromNode, trainrunSection, trainrun),
           fromNode.getId(),
           fromNode.getBetriebspunktName(),
+          fromNode.getFullName(),
           index++,
           new TrackData(1), //forward track 1
           false,
@@ -495,6 +505,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         toNode.getArrivalConsecutiveTime(trainrunSection),
         toNode.getId(),
         toNode.getBetriebspunktName(),
+        toNode.getFullName(),
         index++,
         new TrackData(1), // forward
         false,
@@ -531,6 +542,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
             this.getTurnaroundStartNodeBackward(fromNode, trainrunSection, trainrun),
             fromNode.getId(),
             fromNode.getBetriebspunktName(),
+            fromNode.getFullName(),
             index-- - 1,
             new TrackData(2), // backward
             true,
@@ -561,6 +573,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
           toNode.getArrivalConsecutiveTime(trainrunSection),
           toNode.getId(),
           toNode.getBetriebspunktName(),
+          toNode.getFullName(),
           index-- - 1,
           new TrackData(2), // backward
           true,

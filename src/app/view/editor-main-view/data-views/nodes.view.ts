@@ -125,9 +125,6 @@ export class NodesView {
 
     this.renderNodeObject(groupEnter);
 
-    // adjust node name if it exceeds the label area
-    this.nodeGroup.selectAll(".node_name_text").call(this.adjustTextWithEllipsis);
-
     group.exit().remove();
   }
 
@@ -160,7 +157,7 @@ export class NodesView {
     }
   }
 
-  adjustTextWithEllipsis(text) {
+  adjustTextWithEllipsis(text: d3.Selection<SVGTextElement, unknown, HTMLElement, any>) {
     text.each(function () {
       const text = d3.select(this);
       const chars = text.text().split("");
@@ -522,6 +519,7 @@ export class NodesView {
           ? n.node.getFullName()
           : n.node.getBetriebspunktName(),
       )
+      .call(this.adjustTextWithEllipsis) // adjust node name if it exceeds the label area
       .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,
