@@ -1,4 +1,12 @@
-import {Component, EventEmitter, Input, OnInit, Output} from "@angular/core";
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  AfterViewInit,
+  ElementRef,
+} from "@angular/core";
 import {PerlenketteNode} from "../model/perlenketteNode";
 import {NodeService} from "../../services/data/node.service";
 import {PerlenketteTrainrun} from "../model/perlenketteTrainrun";
@@ -22,7 +30,7 @@ import {MathUtils} from "../../utils/math";
   styleUrls: ["./perlenkette-node.component.scss"],
   standalone: false,
 })
-export class PerlenketteNodeComponent implements OnInit {
+export class PerlenketteNodeComponent implements OnInit, AfterViewInit {
   @Input() perlenketteNode: PerlenketteNode;
   @Input() perlenketteTrainrun: PerlenketteTrainrun;
   @Input() isTopNode = false;
@@ -33,9 +41,19 @@ export class PerlenketteNodeComponent implements OnInit {
   heightConnectionSurplus: number;
   isExpanded = true;
 
-  surplus = 20;
+  readonly surplus = 20;
+
+  // Width of node
+  readonly MIN_NODE_WITH_CONNECTIONS_WIDTH = 192;
+  readonly MAX_NODE_WITH_CONNECTIONS_WIDTH = 320;
+
+  // Max width of node name (truncated with an ellipsis if exceeded)
+  readonly MAX_NODE_NAME_WIDTH = 76;
+  readonly MAX_NODE_WITH_CONNECTIONS_NAME_WIDTH = 300;
+  readonly MAX_NODE_CONNECTION_WIDTH = 90;
 
   constructor(
+    private elementRef: ElementRef,
     public nodeService: NodeService,
     public trainrunService: TrainrunService,
     readonly filterService: FilterService,
@@ -46,6 +64,12 @@ export class PerlenketteNodeComponent implements OnInit {
   ngOnInit() {
     this.isExpanded = true;
     this.calculateHeightConnectionSurplus();
+  }
+
+  ngAfterViewInit() {
+    // Adjust node name if it exceeds the label area
+    this.adjustNodeNameWithEllipsis();
+    this.adjustTerminalStationWithEllipsis();
   }
 
   getVariantIsWritable(): boolean {
@@ -327,9 +351,12 @@ export class PerlenketteNodeComponent implements OnInit {
     });
 
     if (maxTrainrunNameLen < 5) {
-      return 192;
+      return this.MIN_NODE_WITH_CONNECTIONS_WIDTH;
     }
-    return Math.min(192.0 * Math.min(1.8125, 1.0 + (maxTrainrunNameLen - 5) / 12), 320);
+    return Math.min(
+      this.MIN_NODE_WITH_CONNECTIONS_WIDTH * Math.min(1.8125, 1.0 + (maxTrainrunNameLen - 5) / 12),
+      this.MAX_NODE_WITH_CONNECTIONS_WIDTH,
+    );
   }
 
   getTrainrunNameFieldPosition(): number {
@@ -362,5 +389,42 @@ export class PerlenketteNodeComponent implements OnInit {
       return;
     }
     this.nodeService.selectConnection(connection.id);
+  }
+
+  getNodeName(): string {
+    return this.filterService.isDisplayingNodesFullName()
+      ? this.perlenketteNode.fullName
+      : this.perlenketteNode.shortName;
+  }
+
+  private truncateTextWithEllipsis(textElement: SVGTextElement, maxWidth: number) {
+    if (textElement.getComputedTextLength() <= maxWidth) {
+      return;
+    }
+    let truncatedText = textElement.textContent;
+    textElement.textContent = truncatedText + "…";
+    while (textElement.getComputedTextLength() > maxWidth && truncatedText.length) {
+      truncatedText = truncatedText.slice(0, -1);
+      textElement.textContent = truncatedText + "…";
+    }
+  }
+
+  private adjustNodeNameWithEllipsis() {
+    this.elementRef.nativeElement
+      .querySelectorAll(".node_text")
+      .forEach((textElement: SVGTextElement) => {
+        const availableWidth = this.hasConnections()
+          ? this.MAX_NODE_WITH_CONNECTIONS_NAME_WIDTH
+          : this.MAX_NODE_NAME_WIDTH;
+        this.truncateTextWithEllipsis(textElement, availableWidth);
+      });
+  }
+
+  private adjustTerminalStationWithEllipsis() {
+    this.elementRef.nativeElement
+      .querySelectorAll(".edge_text.station")
+      .forEach((textElement: SVGTextElement) =>
+        this.truncateTextWithEllipsis(textElement, this.MAX_NODE_CONNECTION_WIDTH),
+      );
   }
 }

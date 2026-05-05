@@ -20,7 +20,7 @@
       width="94px"
       height="28px"
     />
-    <text x="8" y="55" class="node_text">{{ perlenketteNode.shortName }}</text>
+    <text x="8" y="55" class="node_text">{{ getNodeName() }}</text>
     <text x="88" y="55" text-anchor="end" class="node_connection_time">
       {{ perlenketteNode.connectionTime }}
     </text>
@@ -260,7 +260,7 @@
       </ng-container>
 
       <text x="8" [attr.y]="55 + heightConnectionSurplus" class="node_text">
-        {{ perlenketteNode.shortName }}
+        {{ getNodeName() }}
       </text>
       <text
         [attr.x]="getTimeFieldPos()"
