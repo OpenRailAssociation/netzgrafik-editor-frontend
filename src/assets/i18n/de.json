@@ -256,7 +256,7 @@
             "name": "Name"
           }
         },
-        "stammdaten-dialog": {
+        "basedata-dialog": {
           "base-data": "Stammdaten",
           "operationalPoint": "Betriebspunkt",
           "ipv-stop-time": "Haltezeit IPV",
@@ -264,12 +264,18 @@
           "b-stop-time": "Haltezeit B",
           "c-stop-time": "Haltezeit C",
           "d-stop-time": "Haltezeit D",
+          "stop-flag-ipv": "Halt IPV",
+          "stop-flag-a": "Halt A",
+          "stop-flag-b": "Halt B",
+          "stop-flag-c": "Halt C",
+          "stop-flag-d": "Halt D",
           "zaz": "ZAZ",
           "connection-time": "Anschlusszeit",
           "region": "Region",
           "category": "Kategorie",
           "filterable-labels": "Filterbare Labels",
           "position": "Position",
+          "create": "Erstellen",
           "close": "Schliessen"
         },
         "trainrun-and-section-dialog": {

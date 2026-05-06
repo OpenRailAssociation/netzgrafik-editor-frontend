@@ -11,8 +11,8 @@ import {NetzgrafikDefault} from "../../sample-netzgrafik/netzgrafik.default";
 import {NodeService} from "./node.service";
 import {TrainrunSectionService} from "./trainrunsection.service";
 import {TrainrunService} from "./trainrun.service";
-import {StammdatenService} from "./stammdaten.service";
-import {Stammdaten} from "../../models/stammdaten.model";
+import {BaseDataService} from "./basedata.service";
+import {BaseData} from "../../models/basedata.model";
 import {ResourceService} from "./resource.service";
 import {BehaviorSubject, combineLatest, Observable, Subject} from "rxjs";
 import {debounceTime, map, skip, takeUntil} from "rxjs/operators";
@@ -52,7 +52,7 @@ export class DataService implements OnDestroy {
     private nodeService: NodeService,
     private trainrunSectionService: TrainrunSectionService,
     private trainrunService: TrainrunService,
-    private stammdatenService: StammdatenService,
+    private baseDataService: BaseDataService,
     private noteService: NoteService,
     private labelService: LabelService,
     private labelGroupService: LabelGroupService,
@@ -62,10 +62,10 @@ export class DataService implements OnDestroy {
     this.trainrunService.setDataService(this);
     this.nodeService.setDataService(this);
     this.filterService.setDataService(this);
-    this.stammdatenService.stammdatenObservable
+    this.baseDataService.baseDataObservable
       .pipe(takeUntil(this.destroyed))
-      .subscribe((stammdaten: Stammdaten[]) => {
-        this.nodeService.setNodePropertiesFromStammdaten(stammdaten);
+      .subscribe((baseData: BaseData[]) => {
+        this.nodeService.setNodePropertiesFromBaseData(baseData);
       });
   }
 
@@ -276,10 +276,10 @@ export class DataService implements OnDestroy {
     return Object.values(Direction);
   }
 
-  getBPStammdaten(betriebspunktName: string): Stammdaten {
-    return this.stammdatenService.getBPStammdaten(betriebspunktName);
+  getStationCodeBaseData(stationCode: string): BaseData {
+    return this.baseDataService.getStationCodeBaseData(stationCode);
   }
-
+ 
   /**
    * Returns an observable that emits if the current NetzgrafikDto in the editor is modified by the user.
    *
@@ -290,7 +290,7 @@ export class DataService implements OnDestroy {
       this.nodeService.nodes,
       this.trainrunSectionService.trainrunSections,
       this.trainrunService.trainruns,
-      this.stammdatenService.stammdatenObservable,
+      this.baseDataService.baseDataObservable,
       this.resourceService.resourceObservable,
       this.noteService.notes,
       this.labelService.labels,

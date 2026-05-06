@@ -170,7 +170,7 @@ export class EditorEditToolsViewComponent implements OnDestroy {
   }
 
   onLoadNetzgrafikToMergeAsACopy(param) {
-    this.uiInteractionService.closeNodeStammdaten();
+    this.uiInteractionService.closeNodeBaseDataDialog();
     this.uiInteractionService.closePerlenkette();
     this.loadNetzgrafik(param, (netzgrafikDto) =>
       this.dataService.insertCopyNetzgrafikDto(netzgrafikDto),
@@ -178,7 +178,7 @@ export class EditorEditToolsViewComponent implements OnDestroy {
   }
 
   onLoadNetzgrafikToMerge(param) {
-    this.uiInteractionService.closeNodeStammdaten();
+    this.uiInteractionService.closeNodeBaseDataDialog();
     this.uiInteractionService.closePerlenkette();
     this.loadNetzgrafik(param, (netzgrafikDto) =>
       this.dataService.mergeNetzgrafikDto(netzgrafikDto),

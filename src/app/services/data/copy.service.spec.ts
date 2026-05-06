@@ -3,7 +3,7 @@ import {NodeService} from "../data/node.service";
 import {ResourceService} from "../data/resource.service";
 import {TrainrunService} from "../data/trainrun.service";
 import {TrainrunSectionService} from "../data/trainrunsection.service";
-import {StammdatenService} from "../data/stammdaten.service";
+import {BaseDataService} from "../data/basedata.service";
 import {NoteService} from "../data/note.service";
 import {Node} from "../../models/node.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
@@ -26,7 +26,7 @@ describe("CopyService", () => {
   let resourceService: ResourceService;
   let trainrunService: TrainrunService;
   let trainrunSectionService: TrainrunSectionService;
-  let stammdatenService: StammdatenService;
+  let baseDataService: BaseDataService;
   let noteService: NoteService;
   let nodes: Node[] = null;
   let trainrunSections: TrainrunSection[] = null;
@@ -42,7 +42,7 @@ describe("CopyService", () => {
   let undoService: UndoService = null;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -66,7 +66,7 @@ describe("CopyService", () => {
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,
@@ -89,7 +89,7 @@ describe("CopyService", () => {
       filterService,
       nodeService,
       noteService,
-      stammdatenService,
+      baseDataService,
       trainrunSectionService,
       trainrunService,
       netzgrafikColoringService,

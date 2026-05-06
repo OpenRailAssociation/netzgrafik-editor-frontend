@@ -263,20 +263,20 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     );
 
     this.editorView.bindShowNodeInformation(async (node: Node) => {
-      this.uiInteractionService.updateNodeStammdaten();
+      this.uiInteractionService.updateNodeBaseData();
       await new Promise((f) => setTimeout(f, 50));
       const selectedNode = this.nodeService.getSelectedNode();
       if (selectedNode !== null) {
         if (selectedNode.getId() === node.getId()) {
           this.nodeService.unselectAllNodes();
-          this.uiInteractionService.closeNodeStammdaten();
+          this.uiInteractionService.closeNodeBaseDataDialog();
         } else {
           this.nodeService.setSingleNodeAsSelected(node.getId());
-          this.uiInteractionService.showNodeStammdaten();
+          this.uiInteractionService.showNodeBaseDataDialog();
         }
       } else {
         this.nodeService.setSingleNodeAsSelected(node.getId());
-        this.uiInteractionService.showNodeStammdaten();
+        this.uiInteractionService.showNodeBaseDataDialog();
       }
     });
 

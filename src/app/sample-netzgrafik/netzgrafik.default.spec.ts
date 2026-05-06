@@ -9,7 +9,7 @@ import {NetzgrafikColoringService} from "../services/data/netzgrafikColoring.ser
 import {NodeService} from "../services/data/node.service";
 import {NoteService} from "../services/data/note.service";
 import {ResourceService} from "../services/data/resource.service";
-import {StammdatenService} from "../services/data/stammdaten.service";
+import {BaseDataService} from "../services/data/basedata.service";
 import {TrainrunService} from "../services/data/trainrun.service";
 import {TrainrunSectionService} from "../services/data/trainrunsection.service";
 import {FilterService} from "../services/ui/filter.service";
@@ -20,7 +20,7 @@ describe("NetzgrafikDefault", () => {
   let resourceService: ResourceService;
   let trainrunService: TrainrunService;
   let trainrunSectionService: TrainrunSectionService;
-  let stammdatenService: StammdatenService;
+  let baseDataService: BaseDataService;
   let noteService: NoteService;
   let logService: LogService = null;
   let logPublishersService: LogPublishersService = null;
@@ -30,7 +30,7 @@ describe("NetzgrafikDefault", () => {
   let netzgrafikColoringService: NetzgrafikColoringService = null;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -54,7 +54,7 @@ describe("NetzgrafikDefault", () => {
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,

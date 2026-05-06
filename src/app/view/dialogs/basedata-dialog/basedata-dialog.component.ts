@@ -3,34 +3,40 @@ import {TrainrunSectionService} from "../../../services/data/trainrunsection.ser
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {SbbDialog, SbbDialogConfig} from "@sbb-esta/angular/dialog";
 import {SbbTableDataSource} from "@sbb-esta/angular/table";
-import {Stammdaten} from "../../../models/stammdaten.model";
+import {BaseData} from "../../../models/basedata.model";
 import {HaltezeitFachCategories} from "../../../data-structures/business.data.structures";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
 
 @Component({
-  selector: "sbb-stammdaten-dialog",
-  templateUrl: "./stammdaten-dialog.component.html",
-  styleUrls: ["./stammdaten-dialog.component.scss"],
+  selector: "sbb-base-data-dialog",
+  templateUrl: "./basedata-dialog.component.html",
+  styleUrls: ["./basedata-dialog.component.scss"],
   standalone: false,
 })
-export class StammdatenDialogComponent implements OnDestroy {
-  @ViewChild("stammdatenTemplate", {static: true})
-  stammdatenTemplate: TemplateRef<any>;
-  public stammdaten = [];
+export class BaseDataDialogComponent implements OnDestroy {
+  @ViewChild("baseDataTemplate", {static: true})
+  baseDataTemplate: TemplateRef<any>;
+  public baseData = [];
   displayedColumns: string[] = [
     "betriebspunkt",
     "haltezeit_I_P_V",
+    "stopFlag_I_P_V",
     "haltezeit_A",
+    "stopFlag_A",
     "haltezeit_B",
+    "stopFlag_B",
     "haltezeit_C",
+    "stopFlag_C",
     "haltezeit_D",
+    "stopFlag_D",
     "zaz",
     "connection_time",
     "region",
     "kategorie",
     "filterableLabels",
     "pos",
+    "create",
   ];
   dataSource: SbbTableDataSource<any>;
   private destroyed = new Subject<void>();
@@ -40,10 +46,10 @@ export class StammdatenDialogComponent implements OnDestroy {
     private trainrunSectionService: TrainrunSectionService,
     private uiInteractionService: UiInteractionService,
   ) {
-    this.uiInteractionService.stammdatenEditDialog
+    this.uiInteractionService.baseDataEditDialog
       .pipe(takeUntil(this.destroyed))
-      .subscribe((stammdaten) => {
-        this.openDialog(stammdaten);
+      .subscribe((baseData) => {
+        this.openDialog(baseData);
       });
   }
 
@@ -66,29 +72,35 @@ export class StammdatenDialogComponent implements OnDestroy {
     this.destroyed.complete();
   }
 
-  openDialog(stammdaten: Stammdaten[]) {
-    this.stammdaten = stammdaten;
+  openDialog(baseData: BaseData[]) {
+    this.baseData = baseData;
 
-    const stammdatenConverted = [];
-    this.stammdaten.forEach((std) => {
-      stammdatenConverted.push({
-        betriebspunkt: std.getBP(),
+    const baseDataConverted = [];
+    this.baseData.forEach((std) => {
+      baseDataConverted.push({
+        betriebspunkt: std.getStationCode(),
         [HaltezeitFachCategories.IPV]: std.getHaltezeiten()[HaltezeitFachCategories.IPV],
+        stopFlagIPV: std.getHaltezeiten()[HaltezeitFachCategories.IPV].no_halt ? 0 : 1,
         [HaltezeitFachCategories.A]: std.getHaltezeiten()[HaltezeitFachCategories.A],
+        stopFlagA: std.getHaltezeiten()[HaltezeitFachCategories.A].no_halt ? 0 : 1,
         [HaltezeitFachCategories.B]: std.getHaltezeiten()[HaltezeitFachCategories.B],
+        stopFlagB: std.getHaltezeiten()[HaltezeitFachCategories.B].no_halt ? 0 : 1,
         [HaltezeitFachCategories.C]: std.getHaltezeiten()[HaltezeitFachCategories.C],
+        stopFlagC: std.getHaltezeiten()[HaltezeitFachCategories.C].no_halt ? 0 : 1,
         [HaltezeitFachCategories.D]: std.getHaltezeiten()[HaltezeitFachCategories.D],
+        stopFlagD: std.getHaltezeiten()[HaltezeitFachCategories.D].no_halt ? 0 : 1,
         connection_time: std.getConnectionTime(),
-        zaz: std.getZAZ(),
+        zaz: std.getBufferTime(),
         region: std.getRegions(),
-        filterableLabels: std.getFilterableLabels(),
-        kategorie: std.getKategorien(),
+        filterableLabels: std.getLabels(),
+        kategorie: std.getCategories(),
         pos: std.getPosition(),
+        create: std.getCreate(),
       });
     });
 
-    this.dataSource = new SbbTableDataSource(stammdatenConverted);
-    const dialogConfig = StammdatenDialogComponent.getDialogConfig();
-    const dialogRef = this.dialog.open(this.stammdatenTemplate, dialogConfig);
+    this.dataSource = new SbbTableDataSource(baseDataConverted);
+    const dialogConfig = BaseDataDialogComponent.getDialogConfig();
+    const dialogRef = this.dialog.open(this.baseDataTemplate, dialogConfig);
   }
 }

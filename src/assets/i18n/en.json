@@ -256,7 +256,7 @@
             "name": "Name"
           }
         },
-        "stammdaten-dialog": {
+        "basedata-dialog": {
           "base-data": "Base data",
           "operationalPoint": "Operational point",
           "ipv-stop-time": "IPV stop time",
@@ -264,12 +264,18 @@
           "b-stop-time": "B stop time",
           "c-stop-time": "C stop time",
           "d-stop-time": "D stop time",
+          "stop-flag-ipv": "Stop IPV",
+          "stop-flag-a": "Stop A",
+          "stop-flag-b": "Stop B",
+          "stop-flag-c": "Stop C",
+          "stop-flag-d": "Stop D",
           "zaz": "ZAZ",
           "connection-time": "Connection time",
           "region": "Region",
           "category": "Category",
           "filterable-labels": "Filterable labels",
           "position": "Position",
+          "create": "Create",
           "close": "Close"
         },
         "trainrun-and-section-dialog": {

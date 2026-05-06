@@ -1,13 +1,13 @@
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {EditorMode} from "../../view/editor-menu/editor-mode";
 import {EventEmitter, Injectable, OnDestroy} from "@angular/core";
-import {Stammdaten} from "../../models/stammdaten.model";
+import {BaseData} from "../../models/basedata.model";
 import {TrainrunDialogParameter} from "../../view/dialogs/trainrun-and-section-dialog/trainrun-and-section-dialog.component";
 import {ThemeBase} from "../../view/themes/theme-base";
 import {ConfirmationDialogParameter} from "../../view/dialogs/confirmation-dialog/confirmation-dialog.component";
 import {FilterService} from "./filter.service";
 import {NodeService} from "../data/node.service";
-import {StammdatenService} from "../data/stammdaten.service";
+import {BaseDataService} from "../data/basedata.service";
 import {InformSelectedTrainrunClick, TrainrunSectionService} from "../data/trainrunsection.service";
 import {Vec2D} from "../../utils/vec2D";
 import {FilterWindowType} from "../../view/filter-main-side-view/filter-main-side-view.component";
@@ -49,11 +49,13 @@ export interface ViewboxProperties {
   providedIn: "root",
 })
 export class UiInteractionService implements OnDestroy {
-  updateNodeStammdatenSubject = new Subject<void>();
-  readonly updateNodeStammdatenWindow = this.updateNodeStammdatenSubject.asObservable();
+  updateNodeBaseDataSubject = new Subject<void>();
+  readonly updateNodeBaseDataWindow = this.updateNodeBaseDataSubject.asObservable();
+  readonly updateNodeStammdatenWindow = this.updateNodeBaseDataWindow;
 
-  showNodeStammdatenSubject = new Subject<boolean>();
-  readonly nodeStammdatenWindow = this.showNodeStammdatenSubject.asObservable();
+  showNodeBaseDataSubject = new Subject<boolean>();
+  readonly nodeBaseDataWindow = this.showNodeBaseDataSubject.asObservable();
+  readonly nodeStammdatenWindow = this.nodeBaseDataWindow;
 
   showFilterSubject = new Subject<FilterWindowType | null>();
   readonly filterWindow = this.showFilterSubject.asObservable();
@@ -77,8 +79,9 @@ export class UiInteractionService implements OnDestroy {
   showConfirmationDiagramDialogSubject = new Subject<ConfirmationDialogParameter>();
   readonly confirmationDiagramDialog = this.showConfirmationDiagramDialogSubject.asObservable();
 
-  showStammdatenEditDialogSubject = new Subject<Stammdaten[]>();
-  readonly stammdatenEditDialog = this.showStammdatenEditDialogSubject.asObservable();
+  showBaseDataEditDialogSubject = new Subject<BaseData[]>();
+  readonly baseDataEditDialog = this.showBaseDataEditDialogSubject.asObservable();
+  readonly stammdatenEditDialog = this.baseDataEditDialog;
 
   zoomInSubject = new Subject<Vec2D>();
   readonly zoomInObservable = this.zoomInSubject.asObservable();
@@ -123,7 +126,7 @@ export class UiInteractionService implements OnDestroy {
     private filterService: FilterService,
     private nodeService: NodeService,
     private noteService: NoteService,
-    private stammdatenService: StammdatenService,
+    private baseDataService: BaseDataService,
     private trainrunSectionService: TrainrunSectionService,
     private trainrunService: TrainrunService,
     private netzgrafikColoringService: NetzgrafikColoringService,
@@ -168,11 +171,11 @@ export class UiInteractionService implements OnDestroy {
         this.oldSelectedTrainrunId = null;
       });
 
-    this.stammdatenService.stammdatenObservable
+    this.baseDataService.baseDataObservable
       .pipe(takeUntil(this.destroyed))
-      .subscribe((stammdaten: Stammdaten[]) => {
-        this.updateNodeStammdaten();
-        this.showStammdatenEditDialog(stammdaten);
+      .subscribe((baseData: BaseData[]) => {
+        this.updateNodeBaseData();
+        this.showBaseDataEditDialog(baseData);
       });
     this.filterWindow.pipe(takeUntil(this.destroyed)).subscribe((type: FilterWindowType | null) => {
       this.filterWindowType = type;
@@ -329,17 +332,47 @@ export class UiInteractionService implements OnDestroy {
     this.trainrunSectionService.trainrunSectionsUpdated();
   }
 
+  updateNodeBaseData() {
+    this.updateNodeBaseDataSubject.next();
+  }
+
+  // Backward-compatible alias used by existing callers.
   updateNodeStammdaten() {
-    this.updateNodeStammdatenSubject.next();
+    this.updateNodeBaseData();
   }
 
+  showNodeBaseData() {
+    this.updateNodeBaseDataSubject.next();
+    this.showNodeBaseDataSubject.next(true);
+  }
+
+  // Backward-compatible alias used by existing callers.
+  showNodeBaseDataDialog() {
+    this.showNodeBaseData();
+  }
+
+  closeNodeBaseData() {
+    this.showNodeBaseDataSubject.next(false);
+  }
+
+  // Backward-compatible alias used by existing callers.
   showNodeStammdaten() {
-    this.updateNodeStammdatenSubject.next();
-    this.showNodeStammdatenSubject.next(true);
+    this.showNodeBaseData();
   }
 
+  // Backward-compatible alias used by existing callers.
   closeNodeStammdaten() {
-    this.showNodeStammdatenSubject.next(false);
+    this.closeNodeBaseData();
+  }
+
+  // Backward-compatible alias used by existing callers.
+  closeBaseData() {
+    this.closeNodeBaseData();
+  }
+
+  // Backward-compatible alias used by existing callers.
+  closeNodeBaseDataDialog() {
+    this.closeNodeBaseData();
   }
 
   showNetzgrafik() {
@@ -414,8 +447,13 @@ export class UiInteractionService implements OnDestroy {
     return confirmationDiagramParameter.dialogFeedback;
   }
 
-  showStammdatenEditDialog(stammdaten: Stammdaten[]) {
-    this.showStammdatenEditDialogSubject.next(stammdaten);
+  showBaseDataEditDialog(baseData: BaseData[]) {
+    this.showBaseDataEditDialogSubject.next(baseData);
+  }
+
+  // Backward-compatible alias used by existing callers.
+  showStammdatenEditDialog(baseData: BaseData[]) {
+    this.showBaseDataEditDialog(baseData);
   }
 
   zoomIn(zoomCenter: Vec2D) {

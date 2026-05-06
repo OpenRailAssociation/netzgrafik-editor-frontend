@@ -1,13 +1,13 @@
-<ng-template #stammdatenTemplate>
+<ng-template #baseDataTemplate>
   <div>
     <div sbbDialogTitle>
-      <b>{{ "app.view.dialogs.stammdaten-dialog.base-data" | translate }}</b>
+      <b>{{ "app.view.dialogs.basedata-dialog.base-data" | translate }}</b>
     </div>
     <div sbbDialogContent>
       <table sbb-table [dataSource]="dataSource">
         <ng-container sbbColumnDef="betriebspunkt">
           <th sbb-header-cell *sbbHeaderCellDef>
-            {{ "app.view.dialogs.stammdaten-dialog.operationalPoint" | translate }}
+            {{ "app.view.dialogs.basedata-dialog.operationalPoint" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
             {{ element.betriebspunkt }}
@@ -15,7 +15,7 @@
         </ng-container>
         <ng-container sbbColumnDef="haltezeit_I_P_V">
           <th sbb-header-cell *sbbHeaderCellDef>
-            {{ "app.view.dialogs.stammdaten-dialog.ipv-stop-time" | translate }}
+            {{ "app.view.dialogs.basedata-dialog.ipv-stop-time" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="!element['HaltezeitIPV'].no_halt; else noHalt">
@@ -24,9 +24,17 @@
             <ng-template #noHalt> — </ng-template>
           </td>
         </ng-container>
+        <ng-container sbbColumnDef="stopFlag_I_P_V">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.stop-flag-ipv" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            {{ element.stopFlagIPV === 1 ? "☑" : "☐" }}
+          </td>
+        </ng-container>
         <ng-container sbbColumnDef="haltezeit_A">
           <th sbb-header-cell *sbbHeaderCellDef>
-            {{ "app.view.dialogs.stammdaten-dialog.a-stop-time" | translate }}
+            {{ "app.view.dialogs.basedata-dialog.a-stop-time" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="!element['HaltezeitA'].no_halt; else noHalt">
@@ -35,9 +43,17 @@
             <ng-template #noHalt> — </ng-template>
           </td>
         </ng-container>
+        <ng-container sbbColumnDef="stopFlag_A">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.stop-flag-a" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            {{ element.stopFlagA === 1 ? "☑" : "☐" }}
+          </td>
+        </ng-container>
         <ng-container sbbColumnDef="haltezeit_B">
           <th sbb-header-cell *sbbHeaderCellDef>
-            {{ "app.view.dialogs.stammdaten-dialog.b-stop-time" | translate }}
+            {{ "app.view.dialogs.basedata-dialog.b-stop-time" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="!element['HaltezeitB'].no_halt; else noHalt">
@@ -46,9 +62,17 @@
             <ng-template #noHalt> — </ng-template>
           </td>
         </ng-container>
+        <ng-container sbbColumnDef="stopFlag_B">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.stop-flag-b" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            {{ element.stopFlagB === 1 ? "☑" : "☐" }}
+          </td>
+        </ng-container>
         <ng-container sbbColumnDef="haltezeit_C">
           <th sbb-header-cell *sbbHeaderCellDef>
-            {{ "app.view.dialogs.stammdaten-dialog.c-stop-time" | translate }}
+            {{ "app.view.dialogs.basedata-dialog.c-stop-time" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="!element['HaltezeitC'].no_halt; else noHalt">
@@ -57,9 +81,17 @@
             <ng-template #noHalt> — </ng-template>
           </td>
         </ng-container>
+        <ng-container sbbColumnDef="stopFlag_C">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.stop-flag-c" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            {{ element.stopFlagC === 1 ? "☑" : "☐" }}
+          </td>
+        </ng-container>
         <ng-container sbbColumnDef="haltezeit_D">
           <th sbb-header-cell *sbbHeaderCellDef>
-            {{ "app.view.dialogs.stammdaten-dialog.d-stop-time" | translate }}
+            {{ "app.view.dialogs.basedata-dialog.d-stop-time" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="!element['HaltezeitD'].no_halt; else noHalt">
@@ -68,9 +100,17 @@
             <ng-template #noHalt> — </ng-template>
           </td>
         </ng-container>
+        <ng-container sbbColumnDef="stopFlag_D">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.stop-flag-d" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            {{ element.stopFlagD === 1 ? "☑" : "☐" }}
+          </td>
+        </ng-container>
         <ng-container sbbColumnDef="zaz">
           <th sbb-header-cell *sbbHeaderCellDef>
-            {{ "app.view.dialogs.stammdaten-dialog.zaz" | translate }}
+            {{ "app.view.dialogs.basedata-dialog.zaz" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="element.zaz !== 0; else noZAZ">
@@ -81,7 +121,7 @@
         </ng-container>
         <ng-container sbbColumnDef="connection_time">
           <th sbb-header-cell *sbbHeaderCellDef>
-            {{ "app.view.dialogs.stammdaten-dialog.connection-time" | translate }}
+            {{ "app.view.dialogs.basedata-dialog.connection-time" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="element.connection_time !== 0; else noHalt">
@@ -92,7 +132,7 @@
         </ng-container>
         <ng-container sbbColumnDef="region">
           <th sbb-header-cell *sbbHeaderCellDef>
-            {{ "app.view.dialogs.stammdaten-dialog.region" | translate }}
+            {{ "app.view.dialogs.basedata-dialog.region" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="element.region !== ''; else noRegion">
@@ -103,7 +143,7 @@
         </ng-container>
         <ng-container sbbColumnDef="kategorie">
           <th sbb-header-cell *sbbHeaderCellDef>
-            {{ "app.view.dialogs.stammdaten-dialog.category" | translate }}
+            {{ "app.view.dialogs.basedata-dialog.category" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="element.kategorie !== ''; else noKategorie">
@@ -114,7 +154,7 @@
         </ng-container>
         <ng-container sbbColumnDef="filterableLabels">
           <th sbb-header-cell *sbbHeaderCellDef>
-            {{ "app.view.dialogs.stammdaten-dialog.filterable-labels" | translate }}
+            {{ "app.view.dialogs.basedata-dialog.filterable-labels" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="element.filterableLabels.length !== 0; else noLabels">
@@ -125,7 +165,7 @@
         </ng-container>
         <ng-container sbbColumnDef="pos">
           <th sbb-header-cell *sbbHeaderCellDef>
-            {{ "app.view.dialogs.stammdaten-dialog.position" | translate }}
+            {{ "app.view.dialogs.basedata-dialog.position" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
             <div *ngIf="element.pos !== undefined; else noPos">
@@ -135,6 +175,14 @@
             <ng-template #noPos> — </ng-template>
           </td>
         </ng-container>
+        <ng-container sbbColumnDef="create">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.create" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            {{ element.create === 1 ? "☑" : "☐" }}
+          </td>
+        </ng-container>
 
         <tr sbb-header-row *sbbHeaderRowDef="displayedColumns"></tr>
         <tr sbb-row *sbbRowDef="let row; columns: displayedColumns"></tr>
@@ -142,7 +190,7 @@
     </div>
     <div sbbDialogActions>
       <button sbb-alt-button sbbDialogClose [sbbDialogClose]="false">
-        {{ "app.view.dialogs.stammdaten-dialog.close" | translate }}
+        {{ "app.view.dialogs.basedata-dialog.close" | translate }}
       </button>
     </div>
   </div>

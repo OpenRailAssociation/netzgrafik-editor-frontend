@@ -256,7 +256,7 @@
             "name": "Nom"
           }
         },
-        "stammdaten-dialog": {
+        "basedata-dialog": {
           "base-data": "Données de base",
           "operationalPoint": "Point opérationnel",
           "ipv-stop-time": "Temps d'arrêt IPV",
@@ -264,12 +264,18 @@
           "b-stop-time": "Temps d'arrêt B",
           "c-stop-time": "Temps d'arrêt C",
           "d-stop-time": "Temps d'arrêt D",
+          "stop-flag-ipv": "Arrêt IPV",
+          "stop-flag-a": "Arrêt A",
+          "stop-flag-b": "Arrêt B",
+          "stop-flag-c": "Arrêt C",
+          "stop-flag-d": "Arrêt D",
           "zaz": "ZAZ",
           "connection-time": "Temps de correspondance",
           "region": "Région",
           "category": "Catégorie",
           "filterable-labels": "Labels filtrables",
           "position": "Position",
+          "create": "Créer",
           "close": "Fermer"
         },
         "trainrun-and-section-dialog": {
