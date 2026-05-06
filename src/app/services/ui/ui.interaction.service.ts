@@ -51,11 +51,9 @@ export interface ViewboxProperties {
 export class UiInteractionService implements OnDestroy {
   updateNodeBaseDataSubject = new Subject<void>();
   readonly updateNodeBaseDataWindow = this.updateNodeBaseDataSubject.asObservable();
-  readonly updateNodeStammdatenWindow = this.updateNodeBaseDataWindow;
 
   showNodeBaseDataSubject = new Subject<boolean>();
   readonly nodeBaseDataWindow = this.showNodeBaseDataSubject.asObservable();
-  readonly nodeStammdatenWindow = this.nodeBaseDataWindow;
 
   showFilterSubject = new Subject<FilterWindowType | null>();
   readonly filterWindow = this.showFilterSubject.asObservable();
@@ -336,42 +334,17 @@ export class UiInteractionService implements OnDestroy {
     this.updateNodeBaseDataSubject.next();
   }
 
-  // Backward-compatible alias used by existing callers.
-  updateNodeStammdaten() {
-    this.updateNodeBaseData();
-  }
-
   showNodeBaseData() {
     this.updateNodeBaseDataSubject.next();
     this.showNodeBaseDataSubject.next(true);
-  }
-
-  // Backward-compatible alias used by existing callers.
-  showNodeBaseDataDialog() {
-    this.showNodeBaseData();
   }
 
   closeNodeBaseData() {
     this.showNodeBaseDataSubject.next(false);
   }
 
-  // Backward-compatible alias used by existing callers.
-  showNodeStammdaten() {
-    this.showNodeBaseData();
-  }
-
-  // Backward-compatible alias used by existing callers.
-  closeNodeStammdaten() {
-    this.closeNodeBaseData();
-  }
-
-  // Backward-compatible alias used by existing callers.
+  // Backward-compatible alias used by older callers.
   closeBaseData() {
-    this.closeNodeBaseData();
-  }
-
-  // Backward-compatible alias used by existing callers.
-  closeNodeBaseDataDialog() {
     this.closeNodeBaseData();
   }
 
@@ -449,11 +422,6 @@ export class UiInteractionService implements OnDestroy {
 
   showBaseDataEditDialog(baseData: BaseData[]) {
     this.showBaseDataEditDialogSubject.next(baseData);
-  }
-
-  // Backward-compatible alias used by existing callers.
-  showStammdatenEditDialog(baseData: BaseData[]) {
-    this.showBaseDataEditDialog(baseData);
   }
 
   zoomIn(zoomCenter: Vec2D) {

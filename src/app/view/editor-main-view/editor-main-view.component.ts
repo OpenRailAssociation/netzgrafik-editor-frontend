@@ -269,14 +269,14 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       if (selectedNode !== null) {
         if (selectedNode.getId() === node.getId()) {
           this.nodeService.unselectAllNodes();
-          this.uiInteractionService.closeNodeBaseDataDialog();
+          this.uiInteractionService.closeNodeBaseData();
         } else {
           this.nodeService.setSingleNodeAsSelected(node.getId());
-          this.uiInteractionService.showNodeBaseDataDialog();
+          this.uiInteractionService.showNodeBaseData();
         }
       } else {
         this.nodeService.setSingleNodeAsSelected(node.getId());
-        this.uiInteractionService.showNodeBaseDataDialog();
+        this.uiInteractionService.showNodeBaseData();
       }
     });
 

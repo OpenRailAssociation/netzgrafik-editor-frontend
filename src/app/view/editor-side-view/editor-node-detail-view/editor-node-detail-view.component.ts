@@ -71,7 +71,7 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.uiInteractionService.updateNodeStammdatenWindow
+    this.uiInteractionService.updateNodeBaseDataWindow
       .pipe(takeUntil(this.destroyed))
       .subscribe(() => {
         this.updateNodeLabelsAutoCompleteOptions();
@@ -91,7 +91,7 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
 
   onBetriebspunktNameChanged(event: any) {
     this.nodeService.changeNodeBetriebspunktName(this.nodeProperties.nodeId, event.target.value);
-    this.uiInteractionService.updateNodeStammdaten();
+    this.uiInteractionService.updateNodeBaseData();
   }
 
   onFullNameChanged(event: any) {

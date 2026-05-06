@@ -191,7 +191,7 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
       this.trainrunSectionService.unselectAllTrainrunSections();
     } else {
       editorMode = EditorMode.MultiNodeMoving;
-      this.uiInteractionService.closeNodeBaseDataDialog();
+      this.uiInteractionService.closeNodeBaseData();
     }
     this.uiInteractionService.setEditorMode(editorMode);
   }
@@ -272,7 +272,7 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
       this.uiInteractionService.setEditorMode(EditorMode.NetzgrafikEditing);
       this.zoomFactor = this.mainZoomFactor;
     } else {
-      this.uiInteractionService.closeNodeBaseDataDialog();
+      this.uiInteractionService.closeNodeBaseData();
       this.mainZoomFactor = this.zoomFactor;
       this.uiInteractionService.showOriginDestination();
       this.uiInteractionService.setEditorMode(EditorMode.OriginDestination);
@@ -310,7 +310,7 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
     let editorMode = this.uiInteractionService.getEditorMode();
     if (editorMode !== EditorMode.Analytics) {
       editorMode = EditorMode.Analytics;
-      this.uiInteractionService.closeNodeBaseDataDialog();
+      this.uiInteractionService.closeNodeBaseData();
       this.uiInteractionService.closePerlenkette();
       this.uiInteractionService.showNetzgrafik();
       this.uiInteractionService.setEditorMode(editorMode);
