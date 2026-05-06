@@ -70,7 +70,7 @@ export class EditorToolsViewComponent {
   ) {}
 
   onLoadButton() {
-    this.netgrafikJsonFileInput.nativeElement.click();
+    this.netzgrafikJsonFileInput.nativeElement.click();
   }
 
   onLoad(param) {
@@ -177,6 +177,11 @@ export class EditorToolsViewComponent {
     this.baseDataFileInput.nativeElement.click();
   }
 
+  // Backward-compatible alias used by older template bindings.
+  onLoadStammdatenButton() {
+    this.onLoadBaseDataButton();
+  }
+
   onLoadBaseData(param) {
     const file = param.target.files[0];
     const reader = new FileReader();
@@ -193,12 +198,22 @@ export class EditorToolsViewComponent {
     param.target.value = null;
   }
 
+  // Backward-compatible alias used by older template bindings.
+  onLoadStammdaten(param) {
+    this.onLoadBaseData(param);
+  }
+
   onExportBaseData() {
     const filename =
       $localize`:@@app.view.editor-side-view.editor-tools-view-component.baseDataFile:baseData` +
       ".csv";
     const csvData = this.convertToBaseDataCSV();
     this.onExport(filename, csvData);
+  }
+
+  // Backward-compatible alias used by older template bindings.
+  onExportStammdaten() {
+    this.onExportBaseData();
   }
 
   onExportZuglauf() {

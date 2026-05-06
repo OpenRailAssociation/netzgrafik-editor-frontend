@@ -279,7 +279,7 @@ export class DataService implements OnDestroy {
   getStationCodeBaseData(stationCode: string): BaseData {
     return this.baseDataService.getStationCodeBaseData(stationCode);
   }
- 
+
   /**
    * Returns an observable that emits if the current NetzgrafikDto in the editor is modified by the user.
    *
