@@ -22,7 +22,8 @@
       },
       "symmetryAxis": 0,
       "warnings": null,
-      "labelIds": []
+      "labelIds": [],
+      "isCollapsed": false
     },
     {
       "id": 1,
@@ -46,7 +47,8 @@
       },
       "symmetryAxis": null,
       "warnings": null,
-      "labelIds": []
+      "labelIds": [],
+      "isCollapsed": false
     },
     {
       "id": 2,
@@ -70,7 +72,8 @@
       },
       "symmetryAxis": null,
       "warnings": null,
-      "labelIds": []
+      "labelIds": [],
+      "isCollapsed": false
     },
     {
       "id": 3,
@@ -94,7 +97,8 @@
       },
       "symmetryAxis": null,
       "warnings": null,
-      "labelIds": []
+      "labelIds": [],
+      "isCollapsed": false
     },
     {
       "id": 4,
@@ -118,7 +122,8 @@
       },
       "symmetryAxis": null,
       "warnings": null,
-      "labelIds": []
+      "labelIds": [],
+      "isCollapsed": false
     },
     {
       "id": 5,
@@ -142,7 +147,8 @@
       },
       "symmetryAxis": null,
       "warnings": null,
-      "labelIds": []
+      "labelIds": [],
+      "isCollapsed": false
     },
     {
       "id": 6,
@@ -166,7 +172,8 @@
       },
       "symmetryAxis": null,
       "warnings": null,
-      "labelIds": []
+      "labelIds": [],
+      "isCollapsed": false
     },
     {
       "id": 7,
@@ -190,7 +197,8 @@
       },
       "symmetryAxis": null,
       "warnings": null,
-      "labelIds": []
+      "labelIds": [],
+      "isCollapsed": false
     },
     {
       "id": 8,
@@ -214,7 +222,8 @@
       },
       "symmetryAxis": null,
       "warnings": null,
-      "labelIds": []
+      "labelIds": [],
+      "isCollapsed": false
     },
     {
       "id": 9,
@@ -238,7 +247,8 @@
       },
       "symmetryAxis": null,
       "warnings": null,
-      "labelIds": []
+      "labelIds": [],
+      "isCollapsed": false
     },
     {
       "id": 10,
@@ -262,7 +272,8 @@
       },
       "symmetryAxis": null,
       "warnings": null,
-      "labelIds": []
+      "labelIds": [],
+      "isCollapsed": false
     }
   ],
   "trainrunSections": [],

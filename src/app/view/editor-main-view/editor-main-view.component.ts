@@ -206,6 +206,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
         targetNode: Node,
         existingTrainrunSection: TrainrunSection,
         enforceUpdate = true,
+        emit: boolean = true,
       ) => {
         this.trainrunSectionService.reconnectTrainrunSection(
           sourceNode.getId(),
@@ -214,11 +215,12 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
           existingTrainrunSection.getTargetNodeId(),
           existingTrainrunSection.getSourceNodeId(),
           enforceUpdate,
+          emit,
         );
       },
     );
     this.editorView.bindDeleteTrainrunSection((trainrunSection: TrainrunSection) =>
-      this.trainrunSectionService.deleteTrainrunSection(trainrunSection.getId()),
+      this.trainrunSectionService.deleteTrainrunSection(trainrunSection.getId(), true, true),
     );
     this.editorView.bindSetTrainrunSectionAsSelected((trainrunSection: TrainrunSection) => {
       this.trainrunService.setTrainrunAsSelected(trainrunSection.getTrainrun().getId());
@@ -424,13 +426,8 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
 
     this.editorView.bindIsFilterNotesEnabled(() => this.filterService.isFilterNotesEnabled());
 
-    this.editorView.bindReplaceIntermediateStopWithNode(
-      (trainsectionId: number, stopIndex: number, nodeId: number) =>
-        this.trainrunSectionService.replaceIntermediateStopWithNode(
-          trainsectionId,
-          stopIndex,
-          nodeId,
-        ),
+    this.editorView.bindReplaceIntermediateStopWithNode((trainsectionId: number, nodeId: number) =>
+      this.trainrunSectionService.replaceIntermediateStopWithNode(trainsectionId, nodeId),
     );
 
     this.editorView.bindGetTimeDisplayPrecision(() => this.filterService.getTimeDisplayPrecision());

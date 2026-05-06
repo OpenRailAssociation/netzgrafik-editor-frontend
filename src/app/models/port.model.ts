@@ -1,6 +1,11 @@
 import {PortAlignment, PortDto} from "../data-structures/technical.data.structures";
 import {TrainrunSection} from "./trainrunsection.model";
 import {Vec2D} from "../utils/vec2D";
+import {
+  BackwardExpandedStopIterator,
+  ExpandedTrainrunIterator,
+  TrainrunIterator,
+} from "../services/util/trainrun.iterator";
 
 export class Port {
   private static currentId = 0;
@@ -67,16 +72,23 @@ export class Port {
     return this.trainrunSection;
   }
 
-  getOppositeNode(fromNodeId: number) {
+  getOppositeExpandedNode(fromNodeId: number) {
     const trainrunSection = this.getTrainrunSection();
-    return trainrunSection.getSourceNodeId() === fromNodeId
-      ? trainrunSection.getTargetNode()
-      : trainrunSection.getSourceNode();
+    const isFromSourceNode = trainrunSection.getSourceNodeId() === fromNodeId;
+
+    const iterator = isFromSourceNode
+      ? new ExpandedTrainrunIterator(null, trainrunSection.getSourceNode(), trainrunSection)
+      : new BackwardExpandedStopIterator(null, trainrunSection.getTargetNode(), trainrunSection);
+    while (iterator.hasNext()) {
+      iterator.next();
+    }
+
+    return iterator.current().node;
   }
 
-  getOppositeNodePosition(fromNodeId: number): Vec2D {
-    const oppositeNode = this.getOppositeNode(fromNodeId);
-    return new Vec2D(oppositeNode.getPositionX(), oppositeNode.getPositionY());
+  getOppositeExpandedNodePosition(fromNodeId: number): Vec2D {
+    const node = this.getOppositeExpandedNode(fromNodeId);
+    return new Vec2D(node.getPositionX(), node.getPositionY());
   }
 
   getDto(): PortDto {
