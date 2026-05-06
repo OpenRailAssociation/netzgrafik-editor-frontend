@@ -65,7 +65,12 @@ export class TrainrunSectionViewObject {
 
   getCollapsedNodeToDrag(stopIndex: number): Node {
     const numberOfCollapsedStops = this.getCollapsedStopNodes().length;
-    if (numberOfCollapsedStops >= SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS) {
+    const lineOrientationVector = Vec2D.sub(this.path[2], this.path[1]);
+    const maxNumberOfStops = Math.min(
+      SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS,
+      Vec2D.norm(lineOrientationVector) / 20,
+    );
+    if (numberOfCollapsedStops > maxNumberOfStops) {
       return this.getCollapsedStopNodeFromStopIndex(numberOfCollapsedStops - 1);
     }
     return this.getCollapsedStopNodeFromStopIndex(stopIndex);
