@@ -78,9 +78,9 @@ describe("NodeService Test", () => {
       "DwellTime_IPV;StopFlag_IPV;DwellTime_A;StopFlag_A;DwellTime_B;StopFlag_B;" +
       "DwellTime_C;StopFlag_C;DwellTime_D;StopFlag_D;" +
       "BufferTime;TransferTime;Labels;XCoord;YCoord;Create\n" +
-      "AD;Aadorf;4;Ost; ;0; ;0; ;0; ;0; ;0;;;;;;;\n" +
+      "AD;Aadorf;4;Ost; ;0; ;0; ;0; ;0; ;0;0;0;;0;0;0\n" +
       "AA;Aarau;2;Mitte;2;1;2;1;2;1;0;0;0;0;0.2;4;SBB;-209.4991625;-427.021373;1\n" +
-      "ABE;Aarberg;4;Mitte; ;0; ;0; ;0; ;0; ;0;;;;;;;\n";
+      "ABE;Aarberg;4;Mitte; ;0; ;0; ;0; ;0; ;0;0;0;;0;0;0\n";
 
     const finalResult: ParseResult = parse(baseDataCSV, {header: true, delimiter: ";"});
     baseDataService.setBaseData(finalResult.data);
