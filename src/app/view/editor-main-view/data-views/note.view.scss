@@ -8,11 +8,13 @@
   cursor: move;
 }
 
-::ng-deep rect.note_root {
+::ng-deep rect.note_hover_root.hover {
   stroke-width: 1px;
-  stroke: $NODE_COLOR;
-  fill: $COLOR_BACKGROUND;
-  rx: $NODE_ROUND_EDGE_SIZE;
+}
+
+::ng-deep rect.note_root {
+  stroke: none;
+  fill: none;
   cursor: pointer;
 }
 
