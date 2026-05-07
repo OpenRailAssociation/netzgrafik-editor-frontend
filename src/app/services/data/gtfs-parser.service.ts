@@ -227,7 +227,7 @@ export class GTFSParserService {
         trips_forward: enrichTrips(trips_forward),
         trips_backward: enrichTrips(trips_backward),
         round_trip: hasRoundTrip,
-        symmetry
+        symmetry,
       });
     }
 
