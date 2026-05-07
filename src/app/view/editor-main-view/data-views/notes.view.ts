@@ -441,9 +441,6 @@ export class NotesView {
     d3.selectAll(StaticDomTags.NOTE_HOVER_DRAG_AREA_DOM_REF)
       .filter((n: NoteViewObject) => n.note.getId() === note.getId())
       .classed(StaticDomTags.TAG_MUTED, true);
-    d3.selectAll(StaticDomTags.NOTE_HOVER_ROOT_DOM_REF)
-      .filter((n: NoteViewObject) => n.note.getId() === note.getId())
-      .classed(StaticDomTags.TAG_HOVER, true);
     d3.selectAll(StaticDomTags.NOTE_ROOT_DOM_REF)
       .filter((n: NoteViewObject) => n.note.getId() === note.getId())
       .classed(StaticDomTags.TAG_HOVER, true);
@@ -453,9 +450,6 @@ export class NotesView {
     d3.selectAll(StaticDomTags.NOTE_HOVER_DRAG_AREA_DOM_REF)
       .filter((n: NoteViewObject) => n.note.getId() === note.getId())
       .classed(StaticDomTags.TAG_MUTED, false);
-    d3.selectAll(StaticDomTags.NOTE_HOVER_ROOT_DOM_REF)
-      .filter((n: NoteViewObject) => n.note.getId() === note.getId())
-      .classed(StaticDomTags.TAG_HOVER, false);
     d3.selectAll(StaticDomTags.NOTE_ROOT_DOM_REF)
       .filter((n: NoteViewObject) => n.note.getId() === note.getId())
       .classed(StaticDomTags.TAG_HOVER, false);
