@@ -8,10 +8,6 @@
   cursor: move;
 }
 
-::ng-deep rect.note_hover_root.hover {
-  stroke-width: 1px;
-}
-
 ::ng-deep rect.note_root {
   stroke: none;
   fill: none;
