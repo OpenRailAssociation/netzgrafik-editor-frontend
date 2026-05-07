@@ -1,6 +1,6 @@
 StationCode;StationName;Category;Region;DwellTime_IPV;StopFlag_IPV;DwellTime_A;StopFlag_A;DwellTime_B;StopFlag_B;DwellTime_C;StopFlag_C;DwellTime_D;StopFlag_D;BufferTime;TransferTime;Labels;XCoord;YCoord;Create
 AD;Aadorf;4;Ost;;0;;0;;0;;0;;0;;;;;;
-AA;Aarau;2;Mitte;2;1;2;1;2;1;2;1;2;1;0.2;4;SBB;-209.4991625;-427.021373;JA
+AA;Aarau;2;Mitte;2;1;2;1;2;1;2;1;2;1;0.2;4;SBB;-209.4991625;-427.021373;1
 ABE;Aarberg;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 ABO;Aarburg-Oftringen;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 AAT;Aathal;4;Ost;;0;;0;;0;;0;;0;;;;;;
@@ -8,7 +8,7 @@ AEF;Aefligen;5;Mitte;;0;;0;;0;;0;;0;;;;;;
 AE;Aesch;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 AF;Affoltern am Albis;3;Ost;;0;;0;;0;;0;;0;;;;;;
 AGY;Agy;4;Ouest;;0;;0;;0;;0;;0;;;;;;
-AIG;Aigle;3;Ouest;1.5;1;1.5;1;1.5;1;1.5;1;1.5;1;0.7;4;SBB,Kanton TI,;240;430;JA
+AIG;Aigle;3;Ouest;1.5;1;1.5;1;1.5;1;1.5;1;1.5;1;0.7;4;SBB,Kanton TI,;240;430;1
 AI;Airolo;4;Sud;;0;;0;;0;;0;;0;;;;;;
 ALL;Allaman;4;Ouest;;0;;0;;0;;0;;0;;3;;;;
 AL;Altdorf;3;Sud;1.5;1;1.5;1;1.5;1;1.5;1;1.5;1;0.4;4;;;;
@@ -25,7 +25,7 @@ ARBS;Arbon Seemoosriet;5;Ost;;0;;0;;0;;0;;0;;;;;;
 ARD;Ardon;4;Ouest;;0;;0;;0;;0;;0;;;;;;
 ARN;Arnegg;4;Ost;;0;;0;;0;;0;;0;;;;;;
 AX;Arnex;5;Ouest;;0;;0;;0;;0;;0;;;;;;
-GD;Arth-Goldau;2;Sud;2;1;2;1;2;1;2;1;2;1;;4;;951.9866035;758.834056;JA
+GD;Arth-Goldau;2;Sud;2;1;2;1;2;1;2;1;2;1;;4;;951.9866035;758.834056;1
 AUSG;Au SG;4;Ost;;0;;0;;0;;0;;0;;;;;;
 AU;Au ZH;4;Ost;;0;;0;;0;;0;;0;;;;;;
 AB;Ausserberg;5;Mitte;;0;;0;;0;;0;;0;;;;;;
@@ -44,7 +44,7 @@ BLGK;Baldegg Kloster;5;Mitte;;0;;0;;0;;0;;0;;;;;;
 BAL;Balerna;4;Sud;;0;;0;;0;;0;;0;;;;;;
 BLL;Ballwil;5;Mitte;;0;;0;;0;;0;;0;;;;;;
 BRG;Bargen;5;Mitte;;0;;0;;0;;0;;0;;;;;;
-BS;Basel SBB;1;Mitte;3;1;3;1;3;1;3;1;3;1;;5;;-1271.852641;-968.343583;JA
+BS;Basel SBB;1;Mitte;3;1;3;1;3;1;3;1;3;1;;5;;-1271.852641;-968.343583;1
 BSDH;Basel SBB Dreispitz Haltestelle;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 BSMR;Basel Morgartenring;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 BSC;Bassecourt;4;Ouest;;0;;0;;0;;0;;0;;;;;;
@@ -57,14 +57,14 @@ BELP;Bellinzona Piazza Indipedenza;4;Sud;;0;;0;;0;;0;;0;;;;;;
 BF;Belfaux CFF;4;Ouest;;0;;0;;0;;0;;0;;;;;;
 BFV;Belfaux-Village;5;Ouest;;0;;0;;0;;0;;0;;;;;;
 BELL;Bellach;4;Mitte;;0;;0;;0;;0;;0;;;;;;
-BEL;Bellinzona;2;Sud;2;1;2;1;2;1;2;1;2;1;;4;;2121.053433;3728.103892;JA
+BEL;Bellinzona;2;Sud;2;1;2;1;2;1;2;1;2;1;;4;;2121.053433;3728.103892;1
 BP;Bahnhof;3;Mitte;;0;;0;;0;;0;;0;;;;;;
 BPST;Belp Steinbach;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 BNK;Benken;5;Ost;;0;;0;;0;;0;;0;;;;;;
 BNZ;Benzenschwil;5;Mitte;;0;;0;;0;;0;;0;;;;;;
 BERG;Berg;HaV;Ost;;0;;0;;0;;0;;0;;;;;;
 BER;Berlingen;HaV;Ost;;0;;0;;0;;0;;0;;;;;;
-BN;Bern;1+;Mitte;4;1;4;1;4;1;4;1;4;1;;4;;-1616.653981;1128.642;JA
+BN;Bern;1+;Mitte;4;1;4;1;4;1;4;1;4;1;;4;;-1616.653981;1128.642;1
 BNAH;Bern Europaplatz;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 BNB;Bern Brünnen;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 BNBZ;Bern Bümpliz Nord;4;Mitte;;0;;0;;0;;0;;0;;;;;;
@@ -81,7 +81,7 @@ BIB;Biberbrugg;4;Ost;;0;;0;;0;;0;;0;;;;;;
 BIGG;Biberegg;HaV;Ost;;0;;0;;0;;0;;0;;;;;;
 BIST;Biberist Ost;5;Mitte;;0;;0;;0;;0;;0;;;;;;
 BIM;Biel Mett;4;Mitte;;0;;0;;0;;0;;0;;;;;;
-BI;Biel/Bienne;1+;Ouest;4;1;4;1;4;1;4;1;4;1;;4;;-2069.904095;483.3526565;JA
+BI;Biel/Bienne;1+;Ouest;4;1;4;1;4;1;4;1;4;1;;4;;-2069.904095;483.3526565;1
 BIBD;Biel/Bienne Bözingerfeld;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 BIGE;Bigenthal;HaV;Mitte;;0;;0;;0;;0;;0;;;;;;
 BIG;Biglen;4;Mitte;;0;;0;;0;;0;;0;;;;;;
@@ -107,7 +107,7 @@ BOW;Bowil;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 BRA;Brassus, Le;4;Ouest;;0;;0;;0;;0;;0;;;;;;
 BK;Brenzikofen;HaV;Mitte;;0;;0;;0;;0;;0;;;;;;
 BRT;Bretonnières;5;Ouest;;0;;0;;0;;0;;0;;;;;;
-BR;Brig;2;Ouest;2;1;2;1;2;1;2;1;2;1;;4;;-329.3652;3328.39752;JA
+BR;Brig;2;Ouest;2;1;2;1;2;1;2;1;2;1;;4;;-329.3652;3328.39752;1
 BRIT;Brittnau-Wikon;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 BRO;Bronschofen;HaV;Ost;;0;;0;;0;;0;;0;;;;;;
 BROA;Bronschofen AMP;HaV;Ost;;0;;0;;0;;0;;0;;;;;;
@@ -121,7 +121,7 @@ BU;Buchs SG;3;Ost;1.5;1;1.5;1;1.5;1;1.5;1;1.5;1;;4;;;;
 BUD;Buchs-Dällikon;3;Ost;;0;;0;;0;;0;;0;;;;;;
 BUC;Buckten;5;Mitte;;0;;0;;0;;0;;0;;;;;;
 BX;Buix;5;Ouest;;0;;0;;0;;0;;0;;;;;;
-BUE;Bülach;2;Ost;2;1;2;1;2;1;2;1;2;1;;4;;898.8887195;-904.009981;JA
+BUE;Bülach;2;Ost;2;1;2;1;2;1;2;1;2;1;;4;;898.8887195;-904.009981;1
 BUER;Büren an der Aare;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 BDF;Burgdorf;3;Mitte;1.5;1;1.5;1;1.5;1;1.5;1;1.5;1;;4;;;;
 BDFB;Burgdorf Buchmatt;HaV;Mitte;;0;;0;;0;;0;;0;;;;;;
@@ -159,8 +159,8 @@ CHE;Chénens;5;Ouest;;0;;0;;0;;0;;0;;;;;;
 CHX;Chexbrs-Village;4;Ouest;;0;;0;;0;;0;;0;;;;;;
 CHS;Cheyres;5;Ouest;;0;;0;;0;;0;;0;;;;;;
 CLME;Che-le-Maître-Ecoles;HaV;Ouest;;0;;0;;0;;0;;0;;;;;;
-CHI;Chiasso;2;Sud;2;1;2;1;2;1;2;1;2;1;;7;;2150.55564;5000;JA
-CH;Chur;2;Ost;2;1;2;1;2;1;2;1;2;1;;4;;3235.226062;1397.129247;JA
+CHI;Chiasso;2;Sud;2;1;2;1;2;1;2;1;2;1;;7;;2150.55564;5000;1
+CH;Chur;2;Ost;2;1;2;1;2;1;2;1;2;1;;4;;3235.226062;1397.129247;1
 CL;Clarens;4;Ouest;;0;;0;;0;;0;;0;;;;;;
 CBY;Collombey;4;Ouest;;0;;0;;0;;0;;0;;;;;;
 CMA;Colmegna;5;Sud;;0;;0;;0;;0;;0;;;;;;
@@ -284,7 +284,7 @@ FF;Frauenfeld;3;Ost;1.5;1;1.5;1;1.5;1;1.5;1;1.5;1;;5;;;;
 FRB;Freienbach SBB;4;Ost;;0;;0;;0;;0;;0;;;;;;
 FRBS;Freienbach SOB;4;Ost;;0;;0;;0;;0;;0;;;;;;
 FRE;Frenkendorf-Füllinsdorf;4;Mitte;;0;;0;;0;;0;;0;;;;;;
-FRI;Fribourg/Freiburg;2;Ouest;2;1;2;1;2;1;2;1;2;1;;4;;-2286.192724;1637.608378;JA
+FRI;Fribourg/Freiburg;2;Ouest;2;1;2;1;2;1;2;1;2;1;;4;;-2286.192724;1637.608378;1
 FRPO;Fribourg/Freiburg Poya;4;Ouest;;0;;0;;0;;0;;0;;;;;;
 FCK;Frick;4;Mitte;;0;;0;;0;;0;;0;;3;;;;
 FRIN;Frinvillier-Taubenloch;5;Ouest;;0;;0;;0;;0;;0;;;;;;
@@ -296,8 +296,8 @@ GAE;Gänsbrunnen;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 GAS;Gasel;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 GELF;Gelfingen;5;Mitte;;0;;0;;0;;0;;0;;;;;;
 GKD;Gelterkinden;4;Mitte;1.5;1;1.5;1;1.5;1;1.5;1;1.5;1;;3;;;;
-GE;Genève incl. Les Grottes;2;Ouest;2;1;2;1;2;1;2;1;2;1;;4;;-4663.358198;3689.447021;JA
-GEAP;Genève-Aèroport;2;Ouest;2;1;2;1;2;1;2;1;2;1;;;;-4733.658091;3610.022432;JA
+GE;Genève incl. Les Grottes;2;Ouest;2;1;2;1;2;1;2;1;2;1;;4;;-4663.358198;3689.447021;1
+GEAP;Genève-Aèroport;2;Ouest;2;1;2;1;2;1;2;1;2;1;;;;-4733.658091;3610.022432;1
 GEV;Genève-Eaux-Vives;3;Ouest;;0;;0;;0;;0;;0;;;;;;
 GESE;Genève-Sécheron;4;Ouest;;0;;0;;0;;0;;0;;;;;;
 GEC;Geneveys-sur-Coffrane, Les;5;Ouest;;0;;0;;0;;0;;0;;;;;;
@@ -382,7 +382,7 @@ IL;Illnau;4;Ost;;0;;0;;0;;0;;0;;;;;;
 IMHO;Im Holz;HaV;Mitte;;0;;0;;0;;0;;0;;;;;;
 IM;Immensee;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 INS;Ins;4;Mitte;;0;;0;;0;;0;;0;;;;;;
-IO;Interlaken Ost;2;Mitte;2;1;2;1;2;1;2;1;2;1;;5;;-656.2338255;2058.391723;JA
+IO;Interlaken Ost;2;Mitte;2;1;2;1;2;1;2;1;2;1;;5;;-656.2338255;2058.391723;1
 IW;Interlaken West;3;Mitte;1.5;1;1.5;1;1.5;1;1.5;1;1.5;1;;3;;;;
 IS;Iselle di Trasquera;4;Ouest;;0;;0;;0;;0;;0;;;;;;
 ISL;Islikon;4;Ost;;0;;0;;0;;0;;0;;;;;;
@@ -437,7 +437,7 @@ LL;Lalden;HaV;Mitte;;0;;0;;0;;0;;0;;;;;;
 LAM;Lamone-Cadempino;4;Sud;;0;;0;;0;;0;;0;;;;;;
 LAPP;Lancy-Pont-Rouge;3;Ouest;;0;;0;;0;;0;;0;;;;;;
 LD;Landeron, Le;4;Ouest;;0;;0;;0;;0;;0;;;;;;
-LQ;Landquart;2;Ost;2;1;2;1;2;1;2;1;2;1;;4;;3283.056782;995.1229965;JA
+LQ;Landquart;2;Ost;2;1;2;1;2;1;2;1;2;1;;4;;3283.056782;995.1229965;1
 LDS;Landschlacht;HaV;Ost;;0;;0;;0;;0;;0;;;;;;
 LADO;Langendorf;5;Mitte;;0;;0;;0;;0;;0;;;;;;
 LTH;Langenthal;3;Mitte;;0;;0;;0;;0;;0;;4;;;;
@@ -450,7 +450,7 @@ LF;Läufelfingen;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 LFN;Laufen;3;Mitte;1.5;1;1.5;1;1.5;1;1.5;1;1.5;1;;3;;;;
 LFG;Laufenburg;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 LPN;Laupen;4;Mitte;;0;;0;;0;;0;;0;;;;;;
-LS;Lausanne;1+;Ouest;4;1;4;1;4;1;4;1;4;1;;5;;-3509.270818;2631.691703;JA
+LS;Lausanne;1+;Ouest;4;1;4;1;4;1;4;1;4;1;;5;;-3509.270818;2631.691703;1
 LSN;Lausen;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 LAV;Lavorgo;4;Sud;;0;;0;;0;;0;;0;;;;;;
 LECH;Léchelles;5;Ouest;;0;;0;;0;;0;;0;;;;;;
@@ -477,14 +477,14 @@ LOT;Lotstetten;4;Ost;;0;;0;;0;;0;;0;;;;;;
 LOTZ;Lotzwil;5;Mitte;;0;;0;;0;;0;;0;;;;;;
 LUC;Lucens;4;Ouest;;0;;0;;0;;0;;0;;;;;;
 LU;Luchsingen-Hätzingen;5;Ost;;0;;0;;0;;0;;0;;;;;;
-LG;Lugano;2;Sud;2;1;2;1;2;1;2;1;2;1;;4;;1939.473284;4397.116645;JA
+LG;Lugano;2;Sud;2;1;2;1;2;1;2;1;2;1;;4;;1939.473284;4397.116645;1
 LGP;Lugano-Paradiso;4;Sud;;0;;0;;0;;0;;0;;;;;;
 LUPF;Lupfig;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 LUT;Luterbavh-Attisholz;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 LUET;Lütisburg;5;Ost;;0;;0;;0;;0;;0;;;;;;
 LTY;Lutry;4;Ouest;;0;;0;;0;;0;;0;;;;;;
 LUGO;Lützelflüh-Goldbach;5;Mitte;;0;;0;;0;;0;;0;;;;;;
-LZ;Luzern;1;Mitte;3;1;3;1;3;1;3;1;3;1;;4;;398.447252;762.110596;JA
+LZ;Luzern;1;Mitte;3;1;3;1;3;1;3;1;3;1;;4;;398.447252;762.110596;1
 LZVH;Luzern Verkehrshaus;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 LY;Lyss;4;Ouest;;0;;0;;0;;0;;0;;4;;;;
 LYGR;Lyss Grien;5;Ouest;;0;;0;;0;;0;;0;;;;;;
@@ -604,7 +604,7 @@ OWT;Oberwinterthur;4;Ost;;0;;0;;0;;0;;0;;;;;;
 OEN;Oensingen;3;Mitte;1.5;1;1.5;1;1.5;1;1.5;1;1.5;1;;3;;;;
 OEND;Oensingen Dorf;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 OE;Oey-Diemtigen;4;Mitte;;0;;0;;0;;0;;0;;;;;;
-OL;Olten;2;Mitte;2;1;2;1;2;1;2;1;2;1;;5;;-538.742579;-286.602732;JA
+OL;Olten;2;Mitte;2;1;2;1;2;1;2;1;2;1;;5;;-538.742579;-286.602732;1
 OLH;Olten Hammer;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 OP;Opfikon;3;Ost;;0;;0;;0;;0;;0;;;;;;
 OPP;Oppikon;HaV;Ost;;0;;0;;0;;0;;0;;;;;;
@@ -769,7 +769,7 @@ SV;Sonvilier;4;Ouest;;0;;0;;0;;0;;0;;;;;;
 SOR;Sorvilier;5;Ouest;;0;;0;;0;;0;;0;;;;;;
 SP;Spiez;3;Mitte;1.5;1;1.5;1;1.5;1;1.5;1;1.5;1;;4;;;;
 STER;St. Erhard-Knutwil;4;Mitte;;0;;0;;0;;0;;0;;;;;;
-SG;St. Gallen;2;Ost;2;1;2;1;2;1;2;1;2;1;;5;;2818.572081;-589.3046175;JA
+SG;St. Gallen;2;Ost;2;1;2;1;2;1;2;1;2;1;;5;;2818.572081;-589.3046175;1
 SGBR;St. Gallen Bruggen;4;Ost;;0;;0;;0;;0;;0;;;;;;
 SGHA;St. Gallen Haggen;4;Ost;;0;;0;;0;;0;;0;;;;;;
 SGF;St. Gallen St. Fiden;4;Ost;;0;;0;;0;;0;;0;;;;;;
@@ -825,7 +825,7 @@ TLH;Thalheim-Altikon;4;Ost;;0;;0;;0;;0;;0;;;;;;
 TW;Thalwil;3;Ost;;0;;0;;0;;0;;0;;3;;;;
 THO;Thörishaus;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 THOD;Thörishaus Dorf;4;Mitte;;0;;0;;0;;0;;0;;;;;;
-TH;Thun;2;Mitte;2;1;2;1;2;1;2;1;2;1;;4;;-1173.572842;1807.484374;JA
+TH;Thun;2;Mitte;2;1;2;1;2;1;2;1;2;1;;4;;-1173.572842;1807.484374;1
 THU;Thurnen;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 TOA;Tobel-Affeltrangen;HaV;Ost;;0;;0;;0;;0;;0;;;;;;
 TO;Toffen;4;Mitte;;0;;0;;0;;0;;0;;;;;;
@@ -871,7 +871,7 @@ VIL;Villeneuve;4;Ouest;;0;;0;;0;;0;;0;;;;;;
 VT;Villeret;4;Ouest;;0;;0;;0;;0;;0;;;;;;
 VTE;Villette VD;5;Ouest;;0;;0;;0;;0;;0;;;;;;
 VIO;Vionnaz;5;Ouest;;0;;0;;0;;0;;0;;;;;;
-VI;Visp;2;Ouest;2;1;2;1;2;1;2;1;2;1;;4;;-578.900898;3418.974947;JA
+VI;Visp;2;Ouest;2;1;2;1;2;1;2;1;2;1;;4;;-578.900898;3418.974947;1
 VOU;Vouvry;4;Ouest;;0;;0;;0;;0;;0;;;;;;
 VU;Vufflens-la-Ville;4;Ouest;;0;;0;;0;;0;;0;;;;;;
 WBB;Wabern bei Bern;4;Mitte;;0;;0;;0;;0;;0;;;;;;
@@ -897,7 +897,7 @@ WE;Wettingen;3;Ost;1.5;1;1.5;1;1.5;1;1.5;1;1.5;1;;;;;;
 WZ;Wetzikon;3;Ost;;0;;0;;0;;0;;0;;4;;;;
 WCH;Wichtrach;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 WD;Wiesendangen;4;Ost;;0;;0;;0;;0;;0;;;;;;
-WIL;Wil;2;Ost;2;1;2;1;2;1;2;1;2;1;;4;;2060.435379;-709.0873575;JA
+WIL;Wil;2;Ost;2;1;2;1;2;1;2;1;2;1;;4;;2060.435379;-709.0873575;1
 WILA;Wila;4;Ost;;0;;0;;0;;0;;0;;;;;;
 WI;Wildegg;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 WILN;Wilen bei Wollerau;HaV;Ost;;0;;0;;0;;0;;0;;;;;;
@@ -905,7 +905,7 @@ WR;Wiler;5;Mitte;;0;;0;;0;;0;;0;;;;;;
 WSAU;Willisau;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 WM;Wimmis;5;Mitte;;0;;0;;0;;0;;0;;;;;;
 WIN;Winkel am Zürichsee;4;Ost;;0;;0;;0;;0;;0;;;;;;
-W;Winterthur;2;Ost;2;1;2;1;2;1;2;1;2;1;;4;;1330.339474;-828.050963;JA
+W;Winterthur;2;Ost;2;1;2;1;2;1;2;1;2;1;;4;;1330.339474;-828.050963;1
 WGR;Winterthur Grüze;4;Ost;;0;;0;;0;;0;;0;;;;;;
 WHE;Winterthur Hegi;4;Ost;;0;;0;;0;;0;;0;;;;;;
 WSEE;Winterthur Seen;4;Ost;;0;;0;;0;;0;;0;;;;;;
@@ -934,7 +934,7 @@ ZF;Zofingen;3;Mitte;1.5;1;1.5;1;1.5;1;1.5;1;1.5;1;;5;;;;
 ZO;Zollbrück;5;Mitte;;0;;0;;0;;0;;0;;;;;;
 ZOL;Zollikofen;4;Mitte;;0;;0;;0;;0;;0;;;;;;
 ZK;Zollikon;3;Ost;;0;;0;;0;;0;;0;;;;;;
-ZG;Zug;2;Ost;2;1;2;1;2;1;2;1;2;1;;4;;866.6159235;323.4007965;JA
+ZG;Zug;2;Ost;2;1;2;1;2;1;2;1;2;1;;4;;866.6159235;323.4007965;1
 ZGCA;Zug Casino;4;Ost;;0;;0;;0;;0;;0;;;;;;
 KMUE;Zug Chollermüli;4;Ost;;0;;0;;0;;0;;0;;;;;;
 ZGFR;Zug Fridbach;4;Ost;;0;;0;;0;;0;;0;;;;;;
@@ -944,9 +944,9 @@ ZGSE;Zug Schutzengel;4;Ost;;0;;0;;0;;0;;0;;;;;;
 ZAF;Zürich Affoltern;3;Ost;;0;;0;;0;;0;;0;;;;;;
 ZAS;Zürich Altstetten;3;Ost;1.5;1;1.5;1;1.5;1;1.5;1;1.5;1;;4;;;;
 ZEN;Zürich Enge;3;Ost;;0;;0;;0;;0;;0;;4;;;;
-ZFH;Zürich Flughafen;2;Ost;3;1;3;1;3;1;3;1;3;1;;4;;962.4904855;-647.2111605;JA
+ZFH;Zürich Flughafen;2;Ost;3;1;3;1;3;1;3;1;3;1;;4;;962.4904855;-647.2111605;1
 ZHDB;Zürich Hardbrücke;3;Ost;;0;;0;;0;;0;;0;;3;;;;
-ZUE;Zürich HB Halle (3-18);1+;Ost;4;1;4;1;4;1;4;1;4;1;;7;;914.994672;-393.562859;JA
+ZUE;Zürich HB Halle (3-18);1+;Ost;4;1;4;1;4;1;4;1;4;1;;7;;914.994672;-393.562859;1
 ZLOE;Zürich Löwenstrasse;1+;Ost;4;1;4;1;4;1;4;1;4;1;;3;;;;
 ZMUS;Zürich Museumsstrasse;1+;Ost;4;1;4;1;4;1;4;1;4;1;;3;;;;
 ZOER;Zürich Oerlikon;3;Ost;1.5;1;1.5;1;1.5;1;1.5;1;1.5;1;;4;;;;
