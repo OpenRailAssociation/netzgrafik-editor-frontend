@@ -78,3 +78,9 @@ input[type="number"]::-webkit-inner-spin-button {
   transform: translate(10px, 1px);
   width: 95%;
 }
+
+::ng-deep .sbb-selection-container-checked { 
+  svg polyline {
+    stroke-width: 2px;
+  } 
+}
