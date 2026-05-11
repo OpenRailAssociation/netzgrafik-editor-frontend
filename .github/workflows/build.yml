@@ -109,6 +109,22 @@ jobs:
           name: build-standalone-demo
           path: dist/
 
+  deploy-github-pages:
+    if: github.event_name == 'push'
+    needs: build-standalonedemo
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v5
+        with:
+          artifact_name: build-standalone-demo
+
   deploy-preview:
     runs-on: ubuntu-latest
     needs: build-standalone
