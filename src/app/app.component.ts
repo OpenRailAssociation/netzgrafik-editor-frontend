@@ -107,5 +107,6 @@ export class AppComponent implements OnInit {
     this.positionTransformationService.operation,
     this.labelService.operation,
     this.noteService.operation,
+    this.uiInteractionService.operation,
   );
 }
