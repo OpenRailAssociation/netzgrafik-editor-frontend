@@ -60,10 +60,7 @@ jobs:
 
   release-npm-package:
     needs: release-please
-    #  Workflow step temporarily disabled - it might be removed later on  or we have to fix the publishing final step
-    #  If the packages are still on github release published whe don't neet the npmjs.org anymore
-    if: false
-    # if: ${{ needs.release-please.outputs.release_created }}
+    if: ${{ needs.release-please.outputs.release_created }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
