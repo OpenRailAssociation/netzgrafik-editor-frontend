@@ -63,15 +63,15 @@ sbb-loading-indicator {
   }
 }
 
-// firefox fix
-::ng-deep input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+// firefox and chrome based browsers fix
+::ng-deep input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
 }
 
-::ng-deep input[type="number"] {
-  -moz-appearance: textfield;
+::ng-deep input[type="number"]::-webkit-outer-spin-button,
+::ng-deep input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none; /* Webkit-Browser */
+  margin: 0;
 }
 
 .sbb-select.language-selector-menu {
