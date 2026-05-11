@@ -20,7 +20,7 @@
     "local-test": "ng test --watch --code-coverage",
     "extract-i18n": "ng extract-i18n"
   },
-  "name": "netzgrafik-frontend",
+  "name": "@openrail/netzgrafik-editor-frontend",
   "version": "2.10.19",
   "repository": {
     "type": "git",
