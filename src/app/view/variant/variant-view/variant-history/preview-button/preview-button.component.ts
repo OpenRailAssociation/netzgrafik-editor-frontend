@@ -1,5 +1,12 @@
-import {Component, ElementRef, EventEmitter, Inject, Output, ViewChild} from "@angular/core";
-import {DOCUMENT} from "@angular/common";
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  Inject,
+  Output,
+  ViewChild,
+  DOCUMENT,
+} from "@angular/core";
 
 @Component({
   selector: "sbb-preview-button",
