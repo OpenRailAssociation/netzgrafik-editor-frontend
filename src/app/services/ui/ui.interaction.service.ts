@@ -110,7 +110,6 @@ export class UiInteractionService implements OnDestroy {
   private activeTheme: ThemeBase = null;
   private activeStreckengrafikRenderingType: StreckengrafikRenderingType = null;
   private activeTravelTimeCreationEstimatorType: TravelTimeCreationEstimatorType = null;
-  private activeTrafficSideType: TrafficSide = "leftHand";
   private editorMode: EditorMode = EditorMode.NetzgrafikEditing;
   private isMultiSelectedNodesCorridor = false;
 
@@ -303,11 +302,10 @@ export class UiInteractionService implements OnDestroy {
   }
 
   getActiveTrafficSideType(): TrafficSide {
-    return this.activeTrafficSideType || this.dataService.getTrafficSide();
+    return this.dataService.getTrafficSide();
   }
 
   setActiveTrafficSideType(activeTrafficSideType: TrafficSide) {
-    this.activeTrafficSideType = activeTrafficSideType;
     this.dataService.setTrafficSide(activeTrafficSideType);
     this.trainrunSectionService.updateText();
     this.trainrunSectionService.trainrunSectionsUpdated();
