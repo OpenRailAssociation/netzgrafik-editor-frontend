@@ -770,7 +770,6 @@ export class TrainrunSection {
     this.path.textPositions = SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(
       this.pathVec2D,
       this.sourceNode.getPort(this.sourcePortId),
-      !this.areTravelTimesEqual(),
     );
   }
 
