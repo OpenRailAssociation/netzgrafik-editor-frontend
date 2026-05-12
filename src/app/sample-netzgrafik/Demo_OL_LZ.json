@@ -2486,7 +2486,9 @@
         "dayTimeInterval": []
       }
     ],
-    "analyticsSettings": {"originDestinationSettings": {"connectionPenalty": 5}}
+    "analyticsSettings": {"originDestinationSettings": {"connectionPenalty": 5}},
+    "orderingAlgorithm": 0,
+    "trafficSide": "leftHand"
   },
   "freeFloatingTexts": [],
   "labels": [
