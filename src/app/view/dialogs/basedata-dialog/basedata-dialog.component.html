@@ -5,107 +5,137 @@
     </div>
     <div sbbDialogContent>
       <table sbb-table [dataSource]="dataSource">
-        <ng-container sbbColumnDef="betriebspunkt">
+        <ng-container sbbColumnDef="stationCode">
           <th sbb-header-cell *sbbHeaderCellDef>
-            {{ "app.view.dialogs.basedata-dialog.operationalPoint" | translate }}
+            StationCode
           </th>
           <td sbb-cell *sbbCellDef="let element">
-            {{ element.betriebspunkt }}
+            {{ element.stationCode }}
           </td>
         </ng-container>
-        <ng-container sbbColumnDef="haltezeit_I_P_V">
+        <ng-container sbbColumnDef="stationName">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            StationName
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            {{ element.stationName }}
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="category">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.category" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            <div *ngIf="element.category.length > 0; else noCategory">
+              {{ element.category }}
+            </div>
+            <ng-template #noCategory> — </ng-template>
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="region">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.region" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            <div *ngIf="element.region.length > 0; else noRegion">
+              {{ element.region }}
+            </div>
+            <ng-template #noRegion> — </ng-template>
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="minimumStopTime_I_P_V">
           <th sbb-header-cell *sbbHeaderCellDef>
             {{ "app.view.dialogs.basedata-dialog.ipv-stop-time" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
-            <div *ngIf="!element['HaltezeitIPV'].no_halt; else noHalt">
-              {{ element["HaltezeitIPV"].haltezeit }}
+            <div *ngIf="element.minimumStopTimeIPV.haltezeit !== 0; else noTime">
+              {{ element.minimumStopTimeIPV.haltezeit }}
             </div>
-            <ng-template #noHalt> — </ng-template>
+            <ng-template #noTime> — </ng-template>
           </td>
         </ng-container>
-        <ng-container sbbColumnDef="stopFlag_I_P_V">
+        <ng-container sbbColumnDef="passingThroughStation_I_P_V">
           <th sbb-header-cell *sbbHeaderCellDef>
             {{ "app.view.dialogs.basedata-dialog.stop-flag-ipv" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
-            {{ element.stopFlagIPV === 1 ? "☑" : "☐" }}
+            {{ element.passingThroughStationIPV === 1 ? "☑" : "☐" }}
           </td>
         </ng-container>
-        <ng-container sbbColumnDef="haltezeit_A">
+        <ng-container sbbColumnDef="minimumStopTime_A">
           <th sbb-header-cell *sbbHeaderCellDef>
             {{ "app.view.dialogs.basedata-dialog.a-stop-time" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
-            <div *ngIf="!element['HaltezeitA'].no_halt; else noHalt">
-              {{ element["HaltezeitA"].haltezeit }}
+            <div *ngIf="element.minimumStopTimeA.haltezeit !== 0; else noTime">
+              {{ element.minimumStopTimeA.haltezeit }}
             </div>
-            <ng-template #noHalt> — </ng-template>
+            <ng-template #noTime> — </ng-template>
           </td>
         </ng-container>
-        <ng-container sbbColumnDef="stopFlag_A">
+        <ng-container sbbColumnDef="passingThroughStation_A">
           <th sbb-header-cell *sbbHeaderCellDef>
             {{ "app.view.dialogs.basedata-dialog.stop-flag-a" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
-            {{ element.stopFlagA === 1 ? "☑" : "☐" }}
+            {{ element.passingThroughStationA === 1 ? "☑" : "☐" }}
           </td>
         </ng-container>
-        <ng-container sbbColumnDef="haltezeit_B">
+        <ng-container sbbColumnDef="minimumStopTime_B">
           <th sbb-header-cell *sbbHeaderCellDef>
             {{ "app.view.dialogs.basedata-dialog.b-stop-time" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
-            <div *ngIf="!element['HaltezeitB'].no_halt; else noHalt">
-              {{ element["HaltezeitB"].haltezeit }}
+            <div *ngIf="element.minimumStopTimeB.haltezeit !== 0; else noTime">
+              {{ element.minimumStopTimeB.haltezeit }}
             </div>
-            <ng-template #noHalt> — </ng-template>
+            <ng-template #noTime> — </ng-template>
           </td>
         </ng-container>
-        <ng-container sbbColumnDef="stopFlag_B">
+        <ng-container sbbColumnDef="passingThroughStation_B">
           <th sbb-header-cell *sbbHeaderCellDef>
             {{ "app.view.dialogs.basedata-dialog.stop-flag-b" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
-            {{ element.stopFlagB === 1 ? "☑" : "☐" }}
+            {{ element.passingThroughStationB === 1 ? "☑" : "☐" }}
           </td>
         </ng-container>
-        <ng-container sbbColumnDef="haltezeit_C">
+        <ng-container sbbColumnDef="minimumStopTime_C">
           <th sbb-header-cell *sbbHeaderCellDef>
             {{ "app.view.dialogs.basedata-dialog.c-stop-time" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
-            <div *ngIf="!element['HaltezeitC'].no_halt; else noHalt">
-              {{ element["HaltezeitC"].haltezeit }}
+            <div *ngIf="element.minimumStopTimeC.haltezeit !== 0; else noTime">
+              {{ element.minimumStopTimeC.haltezeit }}
             </div>
-            <ng-template #noHalt> — </ng-template>
+            <ng-template #noTime> — </ng-template>
           </td>
         </ng-container>
-        <ng-container sbbColumnDef="stopFlag_C">
+        <ng-container sbbColumnDef="passingThroughStation_C">
           <th sbb-header-cell *sbbHeaderCellDef>
             {{ "app.view.dialogs.basedata-dialog.stop-flag-c" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
-            {{ element.stopFlagC === 1 ? "☑" : "☐" }}
+            {{ element.passingThroughStationC === 1 ? "☑" : "☐" }}
           </td>
         </ng-container>
-        <ng-container sbbColumnDef="haltezeit_D">
+        <ng-container sbbColumnDef="minimumStopTime_D">
           <th sbb-header-cell *sbbHeaderCellDef>
             {{ "app.view.dialogs.basedata-dialog.d-stop-time" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
-            <div *ngIf="!element['HaltezeitD'].no_halt; else noHalt">
-              {{ element["HaltezeitD"].haltezeit }}
+            <div *ngIf="element.minimumStopTimeD.haltezeit !== 0; else noTime">
+              {{ element.minimumStopTimeD.haltezeit }}
             </div>
-            <ng-template #noHalt> — </ng-template>
+            <ng-template #noTime> — </ng-template>
           </td>
         </ng-container>
-        <ng-container sbbColumnDef="stopFlag_D">
+        <ng-container sbbColumnDef="passingThroughStation_D">
           <th sbb-header-cell *sbbHeaderCellDef>
             {{ "app.view.dialogs.basedata-dialog.stop-flag-d" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
-            {{ element.stopFlagD === 1 ? "☑" : "☐" }}
+            {{ element.passingThroughStationD === 1 ? "☑" : "☐" }}
           </td>
         </ng-container>
         <ng-container sbbColumnDef="zaz">
@@ -119,37 +149,15 @@
             <ng-template #noZAZ> — </ng-template>
           </td>
         </ng-container>
-        <ng-container sbbColumnDef="connection_time">
+        <ng-container sbbColumnDef="connectionTime">
           <th sbb-header-cell *sbbHeaderCellDef>
             {{ "app.view.dialogs.basedata-dialog.connection-time" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
-            <div *ngIf="element.connection_time !== 0; else noHalt">
-              {{ element.connection_time }}
+            <div *ngIf="element.connectionTime !== 0; else noHalt">
+              {{ element.connectionTime }}
             </div>
             <ng-template #noHalt> — </ng-template>
-          </td>
-        </ng-container>
-        <ng-container sbbColumnDef="region">
-          <th sbb-header-cell *sbbHeaderCellDef>
-            {{ "app.view.dialogs.basedata-dialog.region" | translate }}
-          </th>
-          <td sbb-cell *sbbCellDef="let element">
-            <div *ngIf="element.region !== ''; else noRegion">
-              {{ element.region }}
-            </div>
-            <ng-template #noRegion> — </ng-template>
-          </td>
-        </ng-container>
-        <ng-container sbbColumnDef="kategorie">
-          <th sbb-header-cell *sbbHeaderCellDef>
-            {{ "app.view.dialogs.basedata-dialog.category" | translate }}
-          </th>
-          <td sbb-cell *sbbCellDef="let element">
-            <div *ngIf="element.kategorie !== ''; else noKategorie">
-              {{ element.kategorie }}
-            </div>
-            <ng-template #noKategorie> — </ng-template>
           </td>
         </ng-container>
         <ng-container sbbColumnDef="filterableLabels">

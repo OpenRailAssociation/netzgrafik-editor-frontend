@@ -270,18 +270,18 @@ export class EditorToolsViewComponent {
       "StationName",
       "Category",
       "Region",
-      "DwellTime_IPV",
-      "StopFlag_IPV",
-      "DwellTime_A",
-      "StopFlag_A",
-      "DwellTime_B",
-      "StopFlag_B",
-      "DwellTime_C",
-      "StopFlag_C",
-      "DwellTime_D",
-      "StopFlag_D",
-      "BufferTime",
-      "TransferTime",
+      "MinimumStopTime_IPV",
+      "PassingThroughStation_IPV",
+      "MinimumStopTime_A",
+      "PassingThroughStation_A",
+      "MinimumStopTime_B",
+      "PassingThroughStation_B",
+      "MinimumStopTime_C",
+      "PassingThroughStation_C",
+      "MinimumStopTime_D",
+      "PassingThroughStation_D",
+      "ZAZ (Train dispatching time)",
+      "ConnectionTime",
       "Labels",
       "XCoord",
       "YCoord",
@@ -295,16 +295,17 @@ export class EditorToolsViewComponent {
       const baseData = this.baseDataService.getStationCodeBaseData(
         nodeElement.getBetriebspunktName(),
       );
-      const zaz = baseData !== null ? baseData.getBufferTime() : 0;
+      const trainDispatchingTime = baseData !== null ? baseData.getBufferTime() : 0;
       const erstellen = baseData !== null ? baseData.getCreate() : 1;
       const kategorien = baseData !== null ? baseData.getCategories() : [];
       const regions = baseData !== null ? baseData.getRegions() : [];
 
-      const getNoHalt = (cat: HaltezeitFachCategories): boolean =>
+      const getPassingThroughStation = (cat: HaltezeitFachCategories): boolean =>
         trainrunCategoryHaltezeit[cat].no_halt;
-      const getDwellTime = (cat: HaltezeitFachCategories): number =>
-        getNoHalt(cat) ? 0 : trainrunCategoryHaltezeit[cat].haltezeit - zaz;
-      const getStopFlag = (cat: HaltezeitFachCategories): number => (getNoHalt(cat) ? 0 : 1);
+      const getMinimumStopTime = (cat: HaltezeitFachCategories): number =>
+        getPassingThroughStation(cat) ? 0 : trainrunCategoryHaltezeit[cat].haltezeit - trainDispatchingTime;
+      const getPassingThroughStationFlag = (cat: HaltezeitFachCategories): number =>
+        getPassingThroughStation(cat) ? 1 : 0;
 
       const labels = nodeElement
         .getLabelIds()
@@ -320,17 +321,17 @@ export class EditorToolsViewComponent {
         nodeElement.getFullName(),
         kategorien.join(","),
         regions.join(","),
-        "" + getDwellTime(HaltezeitFachCategories.IPV),
-        "" + getStopFlag(HaltezeitFachCategories.IPV),
-        "" + getDwellTime(HaltezeitFachCategories.A),
-        "" + getStopFlag(HaltezeitFachCategories.A),
-        "" + getDwellTime(HaltezeitFachCategories.B),
-        "" + getStopFlag(HaltezeitFachCategories.B),
-        "" + getDwellTime(HaltezeitFachCategories.C),
-        "" + getStopFlag(HaltezeitFachCategories.C),
-        "" + getDwellTime(HaltezeitFachCategories.D),
-        "" + getStopFlag(HaltezeitFachCategories.D),
-        "" + zaz,
+        "" + getMinimumStopTime(HaltezeitFachCategories.IPV),
+        "" + getPassingThroughStationFlag(HaltezeitFachCategories.IPV),
+        "" + getMinimumStopTime(HaltezeitFachCategories.A),
+        "" + getPassingThroughStationFlag(HaltezeitFachCategories.A),
+        "" + getMinimumStopTime(HaltezeitFachCategories.B),
+        "" + getPassingThroughStationFlag(HaltezeitFachCategories.B),
+        "" + getMinimumStopTime(HaltezeitFachCategories.C),
+        "" + getPassingThroughStationFlag(HaltezeitFachCategories.C),
+        "" + getMinimumStopTime(HaltezeitFachCategories.D),
+        "" + getPassingThroughStationFlag(HaltezeitFachCategories.D),
+        "" + trainDispatchingTime,
         "" + nodeElement.getConnectionTime(),
         '"' + labels + '"',
         "" + nodeElement.getPositionX(),

@@ -75,12 +75,12 @@ describe("NodeService Test", () => {
 
     const baseDataCSV =
       "StationCode;StationName;Category;Region;" +
-      "DwellTime_IPV;StopFlag_IPV;DwellTime_A;StopFlag_A;DwellTime_B;StopFlag_B;" +
-      "DwellTime_C;StopFlag_C;DwellTime_D;StopFlag_D;" +
-      "BufferTime;TransferTime;Labels;XCoord;YCoord;Create\n" +
-      "AD;Aadorf;4;Ost; ;0; ;0; ;0; ;0; ;0;0;0;;0;0;0\n" +
-      "AA;Aarau;2;Mitte;2;1;2;1;2;1;0;0;0;0;0.2;4;SBB;-209.4991625;-427.021373;1\n" +
-      "ABE;Aarberg;4;Mitte; ;0; ;0; ;0; ;0; ;0;0;0;;0;0;0\n";
+      "MinimumStopTime_IPV;PassingThroughStation_IPV;MinimumStopTime_A;PassingThroughStation_A;MinimumStopTime_B;PassingThroughStation_B;" +
+      "MinimumStopTime_C;PassingThroughStation_C;MinimumStopTime_D;PassingThroughStation_D;" +
+      "ZAZ (Train dispatching time);ConnectionTime;Labels;XCoord;YCoord;Create\n" +
+      "AD;Aadorf;4;Ost; ;1; ;1; ;1; ;1; ;1;0;0;;0;0;0\n" +
+      "AA;Aarau;2;Mitte;2;0;2;0;2;0;0;1;0;1;0.2;4;SBB;-209.4991625;-427.021373;1\n" +
+      "ABE;Aarberg;4;Mitte; ;1; ;1; ;1; ;1; ;1;0;0;;0;0;0\n";
 
     const finalResult: ParseResult = parse(baseDataCSV, {header: true, delimiter: ";"});
     baseDataService.setBaseData(finalResult.data);
@@ -107,5 +107,22 @@ describe("NodeService Test", () => {
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.C].no_halt).toBe(true);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.D].no_halt).toBe(true);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.Uncategorized].no_halt).toBe(true);
+  });
+
+  it("accepts legacy base data csv headers", () => {
+    const legacyBaseDataCSV =
+      "StationCode;StationName;Category;Region;" +
+      "DwellTime_IPV;StopFlag_IPV;DwellTime_A;StopFlag_A;DwellTime_B;StopFlag_B;" +
+      "DwellTime_C;StopFlag_C;DwellTime_D;StopFlag_D;" +
+      "BufferTime;TransferTime;Labels;XCoord;YCoord;Create\n" +
+      "AA;Aarau;2;Mitte;2;1;2;1;2;1;0;0;0;0;0.2;4;SBB;-209.4991625;-427.021373;1\n";
+
+    const finalResult: ParseResult = parse(legacyBaseDataCSV, {header: true, delimiter: ";"});
+    baseDataService.setBaseData(finalResult.data);
+
+    const aa = baseDataService.getStationCodeBaseData("AA");
+    expect(aa.getHaltezeiten()[HaltezeitFachCategories.IPV].no_halt).toBe(false);
+    expect(aa.getHaltezeiten()[HaltezeitFachCategories.C].no_halt).toBe(true);
+    expect(aa.getConnectionTime()).toBe(4);
   });
 });
