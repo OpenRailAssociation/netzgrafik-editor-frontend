@@ -9,6 +9,7 @@ import {Vec2D} from "../../utils/vec2D";
 type CsvColumnGroup = {
   canonicalName: string;
   legacyName?: string;
+  optional?: boolean;
 };
 
 @Injectable({
@@ -26,15 +27,15 @@ export class BaseDataService {
     {canonicalName: "Category"},
     {canonicalName: "Region"},
     {canonicalName: "MinimumStopTime_IPV", legacyName: "DwellTime_IPV"},
-    {canonicalName: "PassingThroughStation_IPV", legacyName: "StopFlag_IPV"},
+    {canonicalName: "PassingThroughStation_IPV", legacyName: "StopFlag_IPV", optional: true},
     {canonicalName: "MinimumStopTime_A", legacyName: "DwellTime_A"},
-    {canonicalName: "PassingThroughStation_A", legacyName: "StopFlag_A"},
+    {canonicalName: "PassingThroughStation_A", legacyName: "StopFlag_A", optional: true},
     {canonicalName: "MinimumStopTime_B", legacyName: "DwellTime_B"},
-    {canonicalName: "PassingThroughStation_B", legacyName: "StopFlag_B"},
+    {canonicalName: "PassingThroughStation_B", legacyName: "StopFlag_B", optional: true},
     {canonicalName: "MinimumStopTime_C", legacyName: "DwellTime_C"},
-    {canonicalName: "PassingThroughStation_C", legacyName: "StopFlag_C"},
+    {canonicalName: "PassingThroughStation_C", legacyName: "StopFlag_C", optional: true},
     {canonicalName: "MinimumStopTime_D", legacyName: "DwellTime_D"},
-    {canonicalName: "PassingThroughStation_D", legacyName: "StopFlag_D"},
+    {canonicalName: "PassingThroughStation_D", legacyName: "StopFlag_D", optional: true},
     {canonicalName: "ZAZ (Train dispatching time)", legacyName: "BufferTime"},
     {canonicalName: "ConnectionTime", legacyName: "TransferTime"},
     {canonicalName: "Labels"},
@@ -94,7 +95,11 @@ export class BaseDataService {
     if (row[canonicalName] !== undefined) {
       return BaseDataService.parseTimeAsFloat(row[canonicalName]) === 1;
     }
-    return BaseDataService.parseTimeAsFloat(row[legacyName]) !== 1;
+    if (row[legacyName] !== undefined) {
+      return BaseDataService.parseTimeAsFloat(row[legacyName]) !== 1;
+    }
+    // Missing PassingThroughStation/StopFlag means regular stop.
+    return false;
   }
 
   static validateCsvColumns(rows: any[]): void {
@@ -103,7 +108,8 @@ export class BaseDataService {
     }
     const headers = Object.keys(rows[0]);
     const missing = BaseDataService.REQUIRED_CSV_COLUMN_GROUPS.filter(
-      ({canonicalName, legacyName}) =>
+      ({canonicalName, legacyName, optional}) =>
+        !optional &&
         !headers.includes(canonicalName) &&
         (legacyName === undefined || !headers.includes(legacyName)),
     ).map(({canonicalName}) => canonicalName);

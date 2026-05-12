@@ -125,4 +125,26 @@ describe("NodeService Test", () => {
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.C].no_halt).toBe(true);
     expect(aa.getConnectionTime()).toBe(4);
   });
+
+  it("defaults to halt when PassingThroughStation columns are missing", () => {
+    const baseDataWithoutPassingThroughStationCSV =
+      "StationCode;StationName;Category;Region;" +
+      "MinimumStopTime_IPV;MinimumStopTime_A;MinimumStopTime_B;" +
+      "MinimumStopTime_C;MinimumStopTime_D;" +
+      "ZAZ (Train dispatching time);ConnectionTime;Labels;XCoord;YCoord;Create\n" +
+      "AA;Aarau;2;Mitte;2;2;2;0;0;0.2;4;SBB;-209.4991625;-427.021373;1\n";
+
+    const finalResult: ParseResult = parse(baseDataWithoutPassingThroughStationCSV, {
+      header: true,
+      delimiter: ";",
+    });
+    baseDataService.setBaseData(finalResult.data);
+
+    const aa = baseDataService.getStationCodeBaseData("AA");
+    expect(aa.getHaltezeiten()[HaltezeitFachCategories.IPV].no_halt).toBe(false);
+    expect(aa.getHaltezeiten()[HaltezeitFachCategories.A].no_halt).toBe(false);
+    expect(aa.getHaltezeiten()[HaltezeitFachCategories.B].no_halt).toBe(false);
+    expect(aa.getHaltezeiten()[HaltezeitFachCategories.C].no_halt).toBe(false);
+    expect(aa.getHaltezeiten()[HaltezeitFachCategories.D].no_halt).toBe(false);
+  });
 });
