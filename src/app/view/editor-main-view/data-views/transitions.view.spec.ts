@@ -147,6 +147,7 @@ describe("Transitions-View", () => {
       uiInteractionService,
       noteService,
       undefined,
+      dataService,
       undoService,
       copyService,
       logService,

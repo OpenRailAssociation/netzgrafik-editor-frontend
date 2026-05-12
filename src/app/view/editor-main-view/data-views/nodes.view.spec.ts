@@ -147,6 +147,7 @@ describe("Nodes-View", () => {
       uiInteractionService,
       noteService,
       undefined,
+      dataService,
       undoService,
       copyService,
       logService,
