@@ -6,17 +6,13 @@
     <div sbbDialogContent>
       <table sbb-table [dataSource]="dataSource">
         <ng-container sbbColumnDef="stationCode">
-          <th sbb-header-cell *sbbHeaderCellDef>
-            StationCode
-          </th>
+          <th sbb-header-cell *sbbHeaderCellDef>StationCode</th>
           <td sbb-cell *sbbCellDef="let element">
             {{ element.stationCode }}
           </td>
         </ng-container>
         <ng-container sbbColumnDef="stationName">
-          <th sbb-header-cell *sbbHeaderCellDef>
-            StationName
-          </th>
+          <th sbb-header-cell *sbbHeaderCellDef>StationName</th>
           <td sbb-cell *sbbCellDef="let element">
             {{ element.stationName }}
           </td>

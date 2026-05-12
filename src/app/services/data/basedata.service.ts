@@ -90,11 +90,7 @@ export class BaseDataService {
     return legacyName !== undefined ? row[legacyName] : undefined;
   }
 
-  private static parseNoHaltFromCsv(
-    row: any,
-    canonicalName: string,
-    legacyName: string,
-  ): boolean {
+  private static parseNoHaltFromCsv(row: any, canonicalName: string, legacyName: string): boolean {
     if (row[canonicalName] !== undefined) {
       return BaseDataService.parseTimeAsFloat(row[canonicalName]) === 1;
     }

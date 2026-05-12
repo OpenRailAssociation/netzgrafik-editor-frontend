@@ -303,7 +303,9 @@ export class EditorToolsViewComponent {
       const getPassingThroughStation = (cat: HaltezeitFachCategories): boolean =>
         trainrunCategoryHaltezeit[cat].no_halt;
       const getMinimumStopTime = (cat: HaltezeitFachCategories): number =>
-        getPassingThroughStation(cat) ? 0 : trainrunCategoryHaltezeit[cat].haltezeit - trainDispatchingTime;
+        getPassingThroughStation(cat)
+          ? 0
+          : trainrunCategoryHaltezeit[cat].haltezeit - trainDispatchingTime;
       const getPassingThroughStationFlag = (cat: HaltezeitFachCategories): number =>
         getPassingThroughStation(cat) ? 1 : 0;
 
