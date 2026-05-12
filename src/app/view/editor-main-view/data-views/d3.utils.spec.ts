@@ -147,6 +147,7 @@ describe("3d.Utils.tests", () => {
       uiInteractionService,
       noteService,
       undefined,
+      dataService,
       undoService,
       copyService,
       logService,

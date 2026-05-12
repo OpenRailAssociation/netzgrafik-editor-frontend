@@ -147,6 +147,7 @@ describe("Notes-View", () => {
       uiInteractionService,
       noteService,
       undefined,
+      dataService,
       undoService,
       copyService,
       logService,

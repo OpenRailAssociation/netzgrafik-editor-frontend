@@ -152,6 +152,7 @@ describe("Editor-DataView", () => {
       uiInteractionService,
       noteService,
       undefined,
+      dataService,
       undoService,
       copyService,
       logService,

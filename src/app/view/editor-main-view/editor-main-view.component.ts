@@ -34,6 +34,7 @@ import {NoteDialogParameter, NoteDialogType} from "../dialogs/note-dialog/note-d
 import {AnalyticsService} from "../../services/analytics/analytics.service";
 import {Note} from "../../models/note.model";
 import {LogService} from "../../logger/log.service";
+import {DataService} from "../../services/data/data.service";
 import {UndoService} from "../../services/data/undo.service";
 import {CopyService} from "../../services/data/copy.service";
 import {StreckengrafikDrawingContext} from "../../streckengrafik/model/util/streckengrafik.drawing.context";
@@ -72,6 +73,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     private uiInteractionService: UiInteractionService,
     private noteService: NoteService,
     private analyticsService: AnalyticsService,
+    private dataService: DataService,
     private undoService: UndoService,
     private copyService: CopyService,
     private logService: LogService,
@@ -552,5 +554,20 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe(() => {
       this.handleVariantChanged();
     });
+
+    this.dataService
+      .getNetzgrafikLoadedInfo()
+      .pipe(takeUntil(this.destroyed))
+      .subscribe((info) => {
+        if (!info.load) return;
+
+        // When starting to load a new graph, clear any existing graph to avoid
+        // clashes between old and new model objects
+        this.editorView.nodesView.displayNodes([]);
+        this.editorView.transitionsView.displayTransitions([]);
+        this.editorView.connectionsView.displayConnections([]);
+        this.editorView.trainrunSectionsView.displayTrainrunSection([]);
+        this.editorView.notesView.displayNotes([]);
+      });
   }
 }
