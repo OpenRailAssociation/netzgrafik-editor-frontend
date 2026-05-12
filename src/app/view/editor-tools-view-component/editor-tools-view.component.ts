@@ -774,7 +774,7 @@ export class EditorToolsViewComponent {
   private processNetzgrafikJSON(netzgrafikDto: NetzgrafikDto) {
     // prepare JSON import
     this.uiInteractionService.showNetzgrafik();
-    this.uiInteractionService.closeBaseData();
+    this.uiInteractionService.closeNodeBaseData();
     this.uiInteractionService.closePerlenkette();
     this.uiInteractionService.resetEditorMode();
     this.nodeService.unselectAllNodes();

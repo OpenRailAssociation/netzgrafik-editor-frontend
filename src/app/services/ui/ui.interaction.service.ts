@@ -343,11 +343,6 @@ export class UiInteractionService implements OnDestroy {
     this.showNodeBaseDataSubject.next(false);
   }
 
-  // Backward-compatible alias used by older callers.
-  closeBaseData() {
-    this.closeNodeBaseData();
-  }
-
   showNetzgrafik() {
     this.showStreckengrafikSubject.next(MainViewMode.Netzgrafik);
   }
