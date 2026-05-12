@@ -31,7 +31,12 @@ so that the layout comes directly from the import.
 |   Description    |              id               |              full name               | category label | region label  | minimum stop time for IPV category (minutes) | 1 = pass-through, 0 = stop | minimum stop time for A category (minutes) | 1 = pass-through, 0 = stop | minimum stop time for B category (minutes) | 1 = pass-through, 0 = stop | minimum stop time for C category (minutes) | 1 = pass-through, 0 = stop | minimum stop time for D category (minutes) | 1 = pass-through, 0 = stop | ZAZ (train dispatching time) | min. connection time - Default: 2 | comma-separated filterable labels | horizontal position | vertical position | if 1 missing nodes gets created, otherwise just updated (ID) |
 | More information | unique identifier (non-empty) | full name of the station (non-empty) | empty allowed  | empty allowed |                empty allowed                 |       empty allowed        |               empty allowed                |       empty allowed        |               empty allowed                |       empty allowed        |               empty allowed                |       empty allowed        |               empty allowed                |       empty allowed        |        empty allowed         |           empty allowed           |           empty allowed           |    empty allowed    |   empty allowed   |                        empty allowed                         |
 
-**Validation:** The importer rejects CSV files with missing or unknown columns. All 20 columns listed above must be present in this exact order.
+**Validation:** The importer rejects CSV files with unknown columns.
+Missing required columns are rejected.
+The five PassingThroughStation columns are optional:
+PassingThroughStation_IPV, PassingThroughStation_A, PassingThroughStation_B,
+PassingThroughStation_C, PassingThroughStation_D.
+If one of these optional columns is missing, the default is stop (halt) for that category.
 
 **category label:** If the node gets created or updated the category labels get added as filterable
 label. The label template is "Kategorie:" + value. Comma-separated values allow adding more than
@@ -41,7 +46,9 @@ one category label.
 label. The label template is "Region:" + value. Comma-separated values allow adding more than one
 region label.
 
-**PassingThroughStation:** Must be numeric booleans — `1` = pass-through, `0` = stop.
+**PassingThroughStation:** Optional numeric boolean columns — `1` = pass-through, `0` = stop.
+If a PassingThroughStation value/column is missing, it is treated as `0` (stop).
+Legacy StopFlag columns are still accepted for import.
 
 **Labels:** Comma-separated list, e.g. `"SBB,Kanton TI"`.
 
