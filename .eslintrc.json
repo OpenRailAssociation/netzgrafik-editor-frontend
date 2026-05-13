@@ -37,7 +37,6 @@
         "@angular-eslint/prefer-standalone": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/explicit-module-boundary-types": "off",
-        "@typescript-eslint/member-delimiter-style": "error",
         "@typescript-eslint/no-empty-function": [
           "off",
           {
@@ -58,15 +57,6 @@
             "args": "all"
           }
         ],
-        "@typescript-eslint/quotes": [
-          "error",
-          "double",
-          {
-            "avoidEscape": true,
-            "allowTemplateLiterals": false
-          }
-        ],
-        "@typescript-eslint/semi": ["error"],
         "deprecation/deprecation": "warn",
         "consistent-return": "error",
         "eqeqeq": "error",
