@@ -258,6 +258,8 @@
         },
         "basedata-dialog": {
           "base-data": "Données de base",
+          "stationCode": "Code de gare",
+          "stationName": "Nom de gare",
           "operationalPoint": "Point opérationnel",
           "ipv-stop-time": "Temps d'arrêt minimal IPV",
           "a-stop-time": "Temps d'arrêt minimal A",
@@ -521,6 +523,7 @@
           "export-trainruns-as-csv-excel": "Dans Excel : Données -> txt/CSV -> Importer ... nom de fichier",
           "export-origin-destination": "Exporter origine-destination",
           "export-origin-destination-as-csv": "Exporter origine-destination au format CSV",
+          "import-basedata-legacy-info": "Données de base héritées importées - veuillez consulter la documentation et mettre à jour vos fichiers de données de base pour assurer que les versions futures continuent à supporter l'importation de données",
           "base-data": "Données de base",
           "import-base-data": "Importer les données de base",
           "help-csv-data": "Aide: CSV - Données",
