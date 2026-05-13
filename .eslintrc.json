@@ -16,7 +16,6 @@
         "plugin:rxjs/recommended",
         "prettier"
       ],
-      "plugins": ["deprecation"],
       "rules": {
         "@angular-eslint/directive-selector": [
           "error",
@@ -57,7 +56,7 @@
             "args": "all"
           }
         ],
-        "deprecation/deprecation": "warn",
+        "@typescript-eslint/no-deprecated": "warn",
         "consistent-return": "error",
         "eqeqeq": "error",
         "no-unneeded-ternary": "error",
