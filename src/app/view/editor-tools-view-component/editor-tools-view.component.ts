@@ -29,6 +29,7 @@ import {OriginDestinationService} from "src/app/services/analytics/origin-destin
 import {EditorMode} from "../editor-menu/editor-mode";
 import {NODE_TEXT_AREA_HEIGHT, RASTERING_BASIC_GRID_SIZE} from "../rastering/definitions";
 import {ResourceService} from "../../services/data/resource.service";
+import {MathUtils} from "src/app/utils/math";
 
 interface ContainertoExportData {
   documentToExport: HTMLElement;
@@ -312,7 +313,7 @@ export class EditorToolsViewComponent {
       const getMinimumStopTime = (cat: HaltezeitFachCategories): number =>
         getPassingThroughStation(cat)
           ? 0
-          : trainrunCategoryHaltezeit[cat].haltezeit - trainDispatchingTime;
+          : MathUtils.round(trainrunCategoryHaltezeit[cat].haltezeit - trainDispatchingTime, 2);
       const getPassingThroughStationFlag = (cat: HaltezeitFachCategories): number =>
         getPassingThroughStation(cat) ? 1 : 0;
 
