@@ -545,7 +545,7 @@
           "yes": "OUI",
           "netzgrafikFile": "reticulaire",
           "spaceTimeChartFile": "graphiqueEspaceTemps",
-          "baseDataFile": "baseData",
+          "baseDataFile": "basedaten",
           "trainrunFile": "trains",
           "originDestinationFile": "origineDestination",
           "trainCategory": "Catégorie du train",

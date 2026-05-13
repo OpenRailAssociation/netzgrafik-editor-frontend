@@ -545,7 +545,7 @@
           "yes": "YES",
           "netzgrafikFile": "networkGraphic",
           "spaceTimeChartFile": "spaceTimeChart",
-          "baseDataFile": "baseData",
+          "baseDataFile": "basedaten",
           "trainrunFile": "trainrun",
           "originDestinationFile": "originDestination",
           "trainCategory": "Train category",

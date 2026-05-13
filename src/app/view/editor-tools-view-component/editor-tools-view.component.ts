@@ -202,7 +202,7 @@ export class EditorToolsViewComponent {
 
   onExportBaseData() {
     const filename =
-      $localize`:@@app.view.editor-side-view.editor-tools-view-component.baseDataFile:baseData` +
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.baseDataFile:basedaten` +
       ".csv";
     const csvData = this.convertToBaseDataCSV();
     this.onExport(filename, csvData);
