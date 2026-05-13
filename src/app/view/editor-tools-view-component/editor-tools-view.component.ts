@@ -187,9 +187,9 @@ export class EditorToolsViewComponent {
       });
       this.baseDataService.setBaseData(finalResult.data);
       if (this.baseDataService.didLastImportUseLegacyColumns()) {
-        // ------------------------- 
+        // -------------------------
         // legacy base data imported
-        // ------------------------- 
+        // -------------------------
         const msg = $localize`:@@app.view.editor-side-view.editor-tools-view-component.import-basedata-legacy-info:Legacy base data imported - please have a look into the documentation and update your stammdaten files to ensure that future version still supports the data import`;
         this.logger.info(msg);
       }
