@@ -1,5 +1,48 @@
 # Changelog
 
+## [2.11.0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.19...netzgrafik-frontend-v2.11.0) (2026-05-13)
+
+
+### Features
+
+* add port ordering algorithm to minimize crossings ([143a7a7](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/143a7a7daef9f2e63acd7820aa1fed157a41c40c))
+* **editor-main-view:** add asymmetric trainrun filter ([6335012](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/633501254965b6383716005a741495a43611d32c))
+* **editor-main-view:** add asymmetry arrow filter ([d31174d](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/d31174d07f61b938bd17f49fb064d011c46a9f7e))
+* **editor-main-view:** add backward travel time filter ([e7f7cee](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/e7f7cee4b31592a3f523fa450edf6eedb0800ad3))
+* **editor-main-view:** display backward travel time ([9775e66](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/9775e661e7cf486852e9de1ceb724b45968dddc0))
+* **editor-main-view:** introduce asymmetry arrow ([c820912](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/c820912f9f166334d9a1f2ac1279e783bef8cc7e))
+* integrate new port ordering into UI ([#635](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/635)) ([87cf7cb](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/87cf7cb9396eeb428e8ef818fbb01597ff26e5a1))
+* **models:** add helpers to Port and Transition ([a395aed](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/a395aed1edc845ded1cb6145a203c8ab7a07336d))
+* **perlenkette:** add asymmetry support ([f8cace1](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/f8cace14b67259a2c2d44673b2afb2bd4d1fb6cb))
+* **services:** add asymmetry support to propagateTrainrunSectionTime() ([37c1ee5](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/37c1ee5c1db8367380e0e42c0c646b0cc0fc9276))
+* **traffic-side:** add traffic side configuration in editor properties ([0287cc7](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/0287cc7833fe93a48e28d55fbf48a0efcc883bdb))
+* **traffic-side:** update netzgrafik dto ([efca965](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/efca965a1b29bc8f49ed1fd1a385d2e7e416efb9))
+* **traffic-side:** update traffic side in views ([336c4bc](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/336c4bcb22f78261bb58562db45afb9e643b7d73))
+* **view:** add symmetry switches to section tab in trainrun dialog ([6a0cdff](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/6a0cdff55948bd18e8b58bf8e7f746dd18413e54))
+* **view:** hide note borders when no mouse over ([7609754](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/7609754f2bbe114417e6acc432a5004aff884bd4))
+
+
+### Bug Fixes
+
+* address XSS vulnerability with note text ([27ba35c](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/27ba35c2d7b1238ebca275e64ad92d889889afd2))
+* drop extraneous "browser" directory in dist/ ([abd6127](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/abd6127903a7038d13b8ba5f7ffed8fd289d830d))
+* drop favicon from standalone index.html ([d25f281](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/d25f281ef70a5b9260414b24940ecf344c44f3b7))
+* fix metadata operation ([232f2a1](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/232f2a14f5a5f14ab0289432e7cc4466d38148fe))
+* fix traffic side in editor view ([6ac83d6](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/6ac83d6a464e39ca8549570dd15b657446728f28))
+* **i18n:** fix missing symmetry translation identifier ([04982f9](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/04982f9d59f368c63807f7fd24dff16ae69f1430))
+* implemented in such a way the ux expert proposed ([#991](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/991)) ([0cc1c9d](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/0cc1c9dad055b00eb7a7d77babfe8dfe2bd40ade))
+* **json-files:** missing asymmetry, port-ordering and traffic-side migrations ([7d94c0a](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/7d94c0a372b4f9ba988554940527670bb02d4b47))
+* **operation:** emit trainrun update on time propagation ([01d40b8](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/01d40b86697bb4dc4ff047f7c1aeef12095ac2c7))
+* **perlenkette:** do not display asymmetry arrow when trainrun is one-way ([23fdd95](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/23fdd954ad4ad3e83a90657efa80188ed3ecb22a))
+* Reported issue fixed due of wrong halteZeit (stopping time logic) ([#949](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/949)) ([758dfd4](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/758dfd48e5430f160a320c6b774264f01d4d6d65))
+* **service:** fix travelTimeOffset for asymmetric trainruns ([7d35c86](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/7d35c86abe55ee982fcbcd10856ac6639d4d478b))
+* **service:** temporary fix for symmetry reset ([c54de5d](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/c54de5d18ec372e57a4bf9cd8a5b8257acb34382))
+* spin-buttons issue resolved ([#996](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/996)) ([2a1da54](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/2a1da541ef78c34d2756896b439c441bb5e15a27))
+* **streckengrafik:** fix turnaround time for asymmetric trainruns ([f9eb470](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/f9eb4704d7ea8a0a497f5fb4cf59ffad5e58651b))
+* **traffic side:** fix unwanted overwrite ([f12257d](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/f12257d0c4988603f2567e597d17b6746273a931))
+* use HashLocationStrategy for standalone mode ([e8a155a](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/e8a155ae22578f793f1b325048574c805e097af6))
+* **view:** hide one-way arrow around hidden nodes ([731f030](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/731f0303e70e3777ad27f8659fe0d6cee9dba6b7))
+
 ## [2.10.19](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-frontend-v2.10.18...netzgrafik-frontend-v2.10.19) (2026-03-11)
 
 
