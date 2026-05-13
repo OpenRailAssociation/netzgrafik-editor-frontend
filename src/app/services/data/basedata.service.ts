@@ -12,6 +12,99 @@ type CsvColumnGroup = {
   optional?: boolean;
 };
 
+const CSV_COLUMNS: Record<string, CsvColumnGroup> = {
+  StationCode: {
+    canonicalName: "StationCode",
+    legacyName: "BP",
+  },
+  StationName: {
+    canonicalName: "StationName",
+    legacyName: "Bahnhof",
+  },
+  Category: {
+    canonicalName: "Category",
+    legacyName: "Kategorie",
+    optional: true,
+  },
+  Region: {
+    canonicalName: "Region",
+    legacyName: "Region",
+  },
+  MinimumStopTime_IPV: {
+    canonicalName: "MinimumStopTime_IPV",
+    legacyName: "Fahrgastwechselzeit_IPV",
+  },
+  PassingThroughStation_IPV: {
+    canonicalName: "PassingThroughStation_IPV",
+    legacyName: "StopFlag_IPV",
+    optional: true,
+  },
+  MinimumStopTime_A: {
+    canonicalName: "MinimumStopTime_A",
+    legacyName: "Fahrgastwechselzeit_A",
+  },
+  PassingThroughStation_A: {
+    canonicalName: "PassingThroughStation_A",
+    legacyName: "StopFlag_A",
+    optional: true,
+  },
+  MinimumStopTime_B: {
+    canonicalName: "MinimumStopTime_B",
+    legacyName: "Fahrgastwechselzeit_B",
+  },
+  PassingThroughStation_B: {
+    canonicalName: "PassingThroughStation_B",
+    legacyName: "StopFlag_B",
+    optional: true,
+  },
+  MinimumStopTime_C: {
+    canonicalName: "MinimumStopTime_C",
+    legacyName: "Fahrgastwechselzeit_C",
+  },
+  PassingThroughStation_C: {
+    canonicalName: "PassingThroughStation_C",
+    legacyName: "StopFlag_C",
+    optional: true,
+  },
+  MinimumStopTime_D: {
+    canonicalName: "MinimumStopTime_D",
+    legacyName: "Fahrgastwechselzeit_D",
+  },
+  PassingThroughStation_D: {
+    canonicalName: "PassingThroughStation_D",
+    legacyName: "StopFlag_D",
+    optional: true,
+  },
+  ZAZ_TrainDispatchingTime: {
+    canonicalName: "ZAZ (Train dispatching time)",
+    legacyName: "ZAZ",
+  },
+  ConnectionTime: {
+    canonicalName: "ConnectionTime",
+    legacyName: "Umsteigezeit",
+  },
+  Labels: {
+    canonicalName: "Labels",
+    legacyName: "Labels",
+    optional: true,
+  },
+  XCoord: {
+    canonicalName: "XCoord",
+    legacyName: "X",
+    optional: true,
+  },
+  YCoord: {
+    canonicalName: "YCoord",
+    legacyName: "Y",
+    optional: true,
+  },
+  Create: {
+    canonicalName: "Create",
+    legacyName: "Erstellen",
+    optional: true,
+  },
+};
+
 @Injectable({
   providedIn: "root",
 })
@@ -21,28 +114,8 @@ export class BaseDataService {
   readonly baseDataObservable = this.baseDataSubject.asObservable();
   baseDataStore: {baseData: BaseData[]} = {baseData: []}; // store the data in memory
 
-  private static readonly REQUIRED_CSV_COLUMN_GROUPS: ReadonlyArray<CsvColumnGroup> = [
-    {canonicalName: "StationCode"},
-    {canonicalName: "StationName"},
-    {canonicalName: "Category"},
-    {canonicalName: "Region"},
-    {canonicalName: "MinimumStopTime_IPV", legacyName: "DwellTime_IPV"},
-    {canonicalName: "PassingThroughStation_IPV", legacyName: "StopFlag_IPV", optional: true},
-    {canonicalName: "MinimumStopTime_A", legacyName: "DwellTime_A"},
-    {canonicalName: "PassingThroughStation_A", legacyName: "StopFlag_A", optional: true},
-    {canonicalName: "MinimumStopTime_B", legacyName: "DwellTime_B"},
-    {canonicalName: "PassingThroughStation_B", legacyName: "StopFlag_B", optional: true},
-    {canonicalName: "MinimumStopTime_C", legacyName: "DwellTime_C"},
-    {canonicalName: "PassingThroughStation_C", legacyName: "StopFlag_C", optional: true},
-    {canonicalName: "MinimumStopTime_D", legacyName: "DwellTime_D"},
-    {canonicalName: "PassingThroughStation_D", legacyName: "StopFlag_D", optional: true},
-    {canonicalName: "ZAZ (Train dispatching time)", legacyName: "BufferTime"},
-    {canonicalName: "ConnectionTime", legacyName: "TransferTime"},
-    {canonicalName: "Labels"},
-    {canonicalName: "XCoord"},
-    {canonicalName: "YCoord"},
-    {canonicalName: "Create"},
-  ];
+  private static readonly REQUIRED_CSV_COLUMN_GROUPS: ReadonlyArray<CsvColumnGroup> =
+    Object.values(CSV_COLUMNS);
 
   static parseStringArray(inLabels: string): string[] {
     if (inLabels === undefined) {
@@ -91,12 +164,22 @@ export class BaseDataService {
     return legacyName !== undefined ? row[legacyName] : undefined;
   }
 
-  private static parseNoHaltFromCsv(row: any, canonicalName: string, legacyName: string): boolean {
-    if (row[canonicalName] !== undefined) {
-      return BaseDataService.parseTimeAsFloat(row[canonicalName]) === 1;
+  private static getCsvValueWithAliases(row: any, column: CsvColumnGroup): any {
+    if (row[column.canonicalName] !== undefined) {
+      return row[column.canonicalName];
     }
-    if (row[legacyName] !== undefined) {
-      return BaseDataService.parseTimeAsFloat(row[legacyName]) !== 1;
+    if (column.legacyName && row[column.legacyName] !== undefined) {
+      return row[column.legacyName];
+    }
+    return undefined;
+  }
+
+  private static parseNoHaltFromCsvWithAliases(row: any, column: CsvColumnGroup): boolean {
+    if (row[column.canonicalName] !== undefined) {
+      return BaseDataService.parseTimeAsFloat(row[column.canonicalName]) === 1;
+    }
+    if (column.legacyName && row[column.legacyName] !== undefined) {
+      return BaseDataService.parseTimeAsFloat(row[column.legacyName]) !== 1;
     }
     // Missing PassingThroughStation/StopFlag means regular stop.
     return false;
@@ -131,84 +214,87 @@ export class BaseDataService {
     BaseDataService.validateCsvColumns(baseDataDto);
     this.baseDataStore.baseData = baseDataDto.map((row) => {
       const trainDispatchingTime = BaseDataService.parseTimeAsFloat(
-        BaseDataService.getCsvValue(row, "ZAZ (Train dispatching time)", "BufferTime"),
+        BaseDataService.getCsvValueWithAliases(row, CSV_COLUMNS.ZAZ_TrainDispatchingTime),
       );
       const haltezeitIPV = BaseDataService.addZazValue(
         trainDispatchingTime,
         BaseDataService.parseTimeAsFloat(
-          BaseDataService.getCsvValue(row, "MinimumStopTime_IPV", "DwellTime_IPV"),
+          BaseDataService.getCsvValueWithAliases(row, CSV_COLUMNS.MinimumStopTime_IPV),
         ),
       );
       const haltezeitA = BaseDataService.addZazValue(
         trainDispatchingTime,
         BaseDataService.parseTimeAsFloat(
-          BaseDataService.getCsvValue(row, "MinimumStopTime_A", "DwellTime_A"),
+          BaseDataService.getCsvValueWithAliases(row, CSV_COLUMNS.MinimumStopTime_A),
         ),
       );
       const haltezeitB = BaseDataService.addZazValue(
         trainDispatchingTime,
         BaseDataService.parseTimeAsFloat(
-          BaseDataService.getCsvValue(row, "MinimumStopTime_B", "DwellTime_B"),
+          BaseDataService.getCsvValueWithAliases(row, CSV_COLUMNS.MinimumStopTime_B),
         ),
       );
       const haltezeitC = BaseDataService.addZazValue(
         trainDispatchingTime,
         BaseDataService.parseTimeAsFloat(
-          BaseDataService.getCsvValue(row, "MinimumStopTime_C", "DwellTime_C"),
+          BaseDataService.getCsvValueWithAliases(row, CSV_COLUMNS.MinimumStopTime_C),
         ),
       );
       const haltezeitD = BaseDataService.addZazValue(
         trainDispatchingTime,
         BaseDataService.parseTimeAsFloat(
-          BaseDataService.getCsvValue(row, "MinimumStopTime_D", "DwellTime_D"),
+          BaseDataService.getCsvValueWithAliases(row, CSV_COLUMNS.MinimumStopTime_D),
         ),
       );
 
       // PassingThroughStation: 1 = pass-through (no_halt = true), 0 = stop.
       // Legacy StopFlag imports remain supported with their original inverse semantics.
-      const no_halt_IPV = BaseDataService.parseNoHaltFromCsv(
+      const no_halt_IPV = BaseDataService.parseNoHaltFromCsvWithAliases(
         row,
-        "PassingThroughStation_IPV",
-        "StopFlag_IPV",
+        CSV_COLUMNS.PassingThroughStation_IPV,
       );
-      const no_halt_A = BaseDataService.parseNoHaltFromCsv(
+      const no_halt_A = BaseDataService.parseNoHaltFromCsvWithAliases(
         row,
-        "PassingThroughStation_A",
-        "StopFlag_A",
+        CSV_COLUMNS.PassingThroughStation_A,
       );
-      const no_halt_B = BaseDataService.parseNoHaltFromCsv(
+      const no_halt_B = BaseDataService.parseNoHaltFromCsvWithAliases(
         row,
-        "PassingThroughStation_B",
-        "StopFlag_B",
+        CSV_COLUMNS.PassingThroughStation_B,
       );
-      const no_halt_C = BaseDataService.parseNoHaltFromCsv(
+      const no_halt_C = BaseDataService.parseNoHaltFromCsvWithAliases(
         row,
-        "PassingThroughStation_C",
-        "StopFlag_C",
+        CSV_COLUMNS.PassingThroughStation_C,
       );
-      const no_halt_D = BaseDataService.parseNoHaltFromCsv(
+      const no_halt_D = BaseDataService.parseNoHaltFromCsvWithAliases(
         row,
-        "PassingThroughStation_D",
-        "StopFlag_D",
+        CSV_COLUMNS.PassingThroughStation_D,
       );
 
       const connectionTime = BaseDataService.parseTimeAsFloat(
-        BaseDataService.getCsvValue(row, "ConnectionTime", "TransferTime"),
+        BaseDataService.getCsvValueWithAliases(row, CSV_COLUMNS.ConnectionTime),
       );
-      const regions: string[] = BaseDataService.parseStringArray(row.Region);
-      const filterableLabels: string[] = BaseDataService.parseStringArray(row.Labels);
-      const kategorien: string[] = BaseDataService.parseStringArray(row.Category);
-      const bahnhof: string = row.StationName;
-      const create: number = BaseDataService.parseTimeAsFloat(row.Create);
-      const posX: string = row.XCoord;
-      const posY: string = row.YCoord;
+      const regions: string[] = BaseDataService.parseStringArray(
+        BaseDataService.getCsvValueWithAliases(row, CSV_COLUMNS.Region),
+      );
+      const filterableLabels: string[] = BaseDataService.parseStringArray(
+        BaseDataService.getCsvValueWithAliases(row, CSV_COLUMNS.Labels),
+      );
+      const kategorien: string[] = BaseDataService.parseStringArray(
+        BaseDataService.getCsvValueWithAliases(row, CSV_COLUMNS.Category),
+      );
+      const bahnhof: string = BaseDataService.getCsvValueWithAliases(row, CSV_COLUMNS.StationName);
+      const create: number = BaseDataService.parseTimeAsFloat(
+        BaseDataService.getCsvValueWithAliases(row, CSV_COLUMNS.Create),
+      );
+      const posX: string = BaseDataService.getCsvValueWithAliases(row, CSV_COLUMNS.XCoord);
+      const posY: string = BaseDataService.getCsvValueWithAliases(row, CSV_COLUMNS.YCoord);
       let position: Vec2D;
       if (posX !== undefined && posY !== undefined && posX !== "" && posY !== "") {
         position = new Vec2D(+posX, +posY);
       }
 
       return new BaseData(
-        row.StationCode,
+        BaseDataService.getCsvValueWithAliases(row, CSV_COLUMNS.StationCode),
         {
           [HaltezeitFachCategories.IPV]: {
             haltezeit: MathUtils.roundAndForceValueGreaterEqualOne(10 * haltezeitIPV) / 10.0,

@@ -112,9 +112,9 @@ describe("NodeService Test", () => {
   it("accepts legacy base data csv headers", () => {
     const legacyBaseDataCSV =
       "StationCode;StationName;Category;Region;" +
-      "DwellTime_IPV;StopFlag_IPV;DwellTime_A;StopFlag_A;DwellTime_B;StopFlag_B;" +
-      "DwellTime_C;StopFlag_C;DwellTime_D;StopFlag_D;" +
-      "BufferTime;TransferTime;Labels;XCoord;YCoord;Create\n" +
+      "Fahrgastwechselzeit_IPV;StopFlag_IPV;Fahrgastwechselzeit_A;StopFlag_A;Fahrgastwechselzeit_B;StopFlag_B;" +
+      "Fahrgastwechselzeit_C;StopFlag_C;Fahrgastwechselzeit_D;StopFlag_D;" +
+      "ZAZ;Umsteigezeit;Labels;XCoord;YCoord;Create\n" +
       "AA;Aarau;2;Mitte;2;1;2;1;2;1;0;0;0;0;0.2;4;SBB;-209.4991625;-427.021373;1\n";
 
     const finalResult: ParseResult = parse(legacyBaseDataCSV, {header: true, delimiter: ";"});
