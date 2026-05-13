@@ -19,7 +19,7 @@ export class BaseDataDialogComponent implements OnDestroy {
   baseDataTemplate: TemplateRef<any>;
   public baseData = [];
   displayedColumns: string[] = [
-    "stationCode",
+    "betriebspunktName",
     "stationName",
     "category",
     "region",
@@ -79,7 +79,7 @@ export class BaseDataDialogComponent implements OnDestroy {
     const baseDataConverted = [];
     this.baseData.forEach((std) => {
       baseDataConverted.push({
-        stationCode: std.getStationCode(),
+        betriebspunktName: std.getBetriebspunktName(),
         stationName: std.getStationName(),
         category: std.getCategories(),
         region: std.getRegions(),

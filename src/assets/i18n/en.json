@@ -258,9 +258,8 @@
         },
         "basedata-dialog": {
           "base-data": "Base data",
-          "stationCode": "Station code",
+          "betriebspunktName": "Operational point",
           "stationName": "Station name",
-          "operationalPoint": "Operational point",
           "ipv-stop-time": "Minimum stop time IPV",
           "a-stop-time": "Minimum stop time A",
           "b-stop-time": "Minimum stop time B",

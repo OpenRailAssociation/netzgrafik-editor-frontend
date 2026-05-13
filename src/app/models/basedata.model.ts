@@ -2,7 +2,7 @@ import {TrainrunCategoryHaltezeit} from "../data-structures/business.data.struct
 import {Vec2D} from "../utils/vec2D";
 
 export class BaseData {
-  private stationCode: string;
+  private betriebspunktName: string;
   private haltezeiten: TrainrunCategoryHaltezeit;
   private bufferTime: number;
   private connectionTime: number; // aka Umsteigezeit
@@ -14,7 +14,7 @@ export class BaseData {
   private create: number;
 
   constructor(
-    stationCode: string,
+    betriebspunktName: string,
     haltezeiten: TrainrunCategoryHaltezeit,
     bufferTime: number,
     connectionTime: number,
@@ -25,7 +25,7 @@ export class BaseData {
     position: Vec2D,
     create: number,
   ) {
-    this.stationCode = stationCode;
+    this.betriebspunktName = betriebspunktName;
     this.haltezeiten = haltezeiten;
     this.bufferTime = bufferTime;
     this.connectionTime = connectionTime;
@@ -61,8 +61,8 @@ export class BaseData {
     return this.regions;
   }
 
-  getStationCode(): string {
-    return this.stationCode;
+  getBetriebspunktName(): string {
+    return this.betriebspunktName;
   }
 
   getHaltezeiten(): TrainrunCategoryHaltezeit {

@@ -299,7 +299,7 @@ export class EditorToolsViewComponent {
     this.nodeService.getNodes().forEach((nodeElement) => {
       const trainrunCategoryHaltezeit: TrainrunCategoryHaltezeit =
         nodeElement.getTrainrunCategoryHaltezeit();
-      const baseData = this.baseDataService.getStationCodeBaseData(
+      const baseData = this.baseDataService.getBaseDataByBetriebspunktName(
         nodeElement.getBetriebspunktName(),
       );
       const trainDispatchingTime = baseData !== null ? baseData.getBufferTime() : 0;

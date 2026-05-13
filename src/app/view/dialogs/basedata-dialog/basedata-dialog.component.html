@@ -5,12 +5,12 @@
     </div>
     <div sbbDialogContent>
       <table sbb-table [dataSource]="dataSource">
-        <ng-container sbbColumnDef="stationCode">
+        <ng-container sbbColumnDef="betriebspunktName">
           <th sbb-header-cell *sbbHeaderCellDef>
-            {{ "app.view.dialogs.basedata-dialog.stationCode" | translate }}
+            {{ "app.view.dialogs.basedata-dialog.betriebspunktName" | translate }}
           </th>
           <td sbb-cell *sbbCellDef="let element">
-            {{ element.stationCode }}
+            {{ element.betriebspunktName }}
           </td>
         </ng-container>
         <ng-container sbbColumnDef="stationName">

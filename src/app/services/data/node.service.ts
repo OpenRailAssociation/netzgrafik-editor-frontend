@@ -254,7 +254,7 @@ export class NodeService implements OnDestroy {
     node.setResourceId(resource.getId());
     node.setPosition(alignedPosition.getX(), alignedPosition.getY());
     node.select();
-    const baseData = this.dataService.getStationCodeBaseData(node.getBetriebspunktName());
+    const baseData = this.dataService.getBetriebspunktNameBaseData(node.getBetriebspunktName());
     if (baseData !== null) {
       node.setHaltezeit(baseData.getHaltezeiten());
       node.setConnectionTime(baseData.getConnectionTime());
@@ -890,7 +890,7 @@ export class NodeService implements OnDestroy {
   changeNodeBetriebspunktName(nodeId: number, name: string) {
     const node = this.getNodeFromId(nodeId);
     node.setBetriebspunktName(name);
-    const baseData = this.dataService.getStationCodeBaseData(node.getBetriebspunktName());
+    const baseData = this.dataService.getBetriebspunktNameBaseData(node.getBetriebspunktName());
     if (baseData !== null) {
       node.setHaltezeit(baseData.getHaltezeiten());
       node.setConnectionTime(baseData.getConnectionTime());
@@ -989,7 +989,7 @@ export class NodeService implements OnDestroy {
         if (stdDaten.getCreate() === 1) {
           if (
             this.nodesStore.nodes.find(
-              (node) => node.getBetriebspunktName() === stdDaten.getStationCode(),
+              (node) => node.getBetriebspunktName() === stdDaten.getBetriebspunktName(),
             ) === undefined
           ) {
             const pos = stdDaten.getPosition();
@@ -1006,7 +1006,7 @@ export class NodeService implements OnDestroy {
               this.addNodeWithPosition(
                 pos.getX(),
                 pos.getY(),
-                stdDaten.getStationCode(),
+                stdDaten.getBetriebspunktName(),
                 stdDaten.getStationName(),
                 labelIds,
               );
@@ -1018,7 +1018,7 @@ export class NodeService implements OnDestroy {
 
     this.nodesStore.nodes.forEach((node) => {
       const bpBaseData = baseData.find(
-        (std) => std.getStationCode() === node.getBetriebspunktName(),
+        (std) => std.getBetriebspunktName() === node.getBetriebspunktName(),
       );
       if (bpBaseData !== undefined) {
         node.setHaltezeit(bpBaseData.getHaltezeiten());

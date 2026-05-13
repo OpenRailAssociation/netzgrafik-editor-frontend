@@ -258,9 +258,8 @@
         },
         "basedata-dialog": {
           "base-data": "Données de base",
-          "stationCode": "Code de gare",
+          "betriebspunktName": "Point opérationnel",
           "stationName": "Nom de gare",
-          "operationalPoint": "Point opérationnel",
           "ipv-stop-time": "Temps d'arrêt minimal IPV",
           "a-stop-time": "Temps d'arrêt minimal A",
           "b-stop-time": "Temps d'arrêt minimal B",

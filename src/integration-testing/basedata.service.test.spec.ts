@@ -84,7 +84,7 @@ describe("NodeService Test", () => {
 
     const finalResult: ParseResult = parse(baseDataCSV, {header: true, delimiter: ";"});
     baseDataService.setBaseData(finalResult.data);
-    const aa = baseDataService.getStationCodeBaseData("AA");
+    const aa = baseDataService.getBaseDataByBetriebspunktName("AA");
     expect(aa.getRegions()[0]).toBe("Mitte");
     expect(aa.getCategories()[0]).toBe("2");
     expect(aa.getCreate()).toBe(1);
@@ -94,7 +94,7 @@ describe("NodeService Test", () => {
     expect(aa.getLabels().includes("SBB")).toBe(true);
     expect(aa.getConnectionTime()).toBe(4);
     expect(aa.getStationName()).toBe("Aarau");
-    expect(aa.getStationCode()).toBe("AA");
+    expect(aa.getBetriebspunktName()).toBe("AA");
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.IPV].haltezeit).toBe(2.2);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.A].haltezeit).toBe(2.2);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.B].haltezeit).toBe(2.2);
@@ -120,7 +120,7 @@ describe("NodeService Test", () => {
     const finalResult: ParseResult = parse(legacyBaseDataCSV, {header: true, delimiter: ";"});
     baseDataService.setBaseData(finalResult.data);
 
-    const aa = baseDataService.getStationCodeBaseData("AA");
+    const aa = baseDataService.getBaseDataByBetriebspunktName("AA");
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.IPV].no_halt).toBe(false);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.C].no_halt).toBe(true);
     expect(aa.getConnectionTime()).toBe(4);
@@ -140,7 +140,7 @@ describe("NodeService Test", () => {
     });
     baseDataService.setBaseData(finalResult.data);
 
-    const aa = baseDataService.getStationCodeBaseData("AA");
+    const aa = baseDataService.getBaseDataByBetriebspunktName("AA");
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.IPV].no_halt).toBe(false);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.A].no_halt).toBe(false);
     expect(aa.getHaltezeiten()[HaltezeitFachCategories.B].no_halt).toBe(false);

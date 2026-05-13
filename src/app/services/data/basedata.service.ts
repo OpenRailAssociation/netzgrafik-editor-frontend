@@ -287,10 +287,10 @@ export class BaseDataService {
       const filterableLabels: string[] = BaseDataService.parseStringArray(
         this.getCsvValueWithAliases(row, CSV_COLUMNS.Labels),
       );
-      const kategorien: string[] = BaseDataService.parseStringArray(
+      const categories: string[] = BaseDataService.parseStringArray(
         this.getCsvValueWithAliases(row, CSV_COLUMNS.Category),
       );
-      const bahnhof: string = this.getCsvValueWithAliases(row, CSV_COLUMNS.StationName);
+      const stationName: string = this.getCsvValueWithAliases(row, CSV_COLUMNS.StationName);
       const create: number = BaseDataService.parseTimeAsFloat(
         this.getCsvValueWithAliases(row, CSV_COLUMNS.Create),
       );
@@ -333,8 +333,8 @@ export class BaseDataService {
         connectionTime === 0 ? Node.getDefaultConnectionTime() : connectionTime,
         regions,
         filterableLabels,
-        kategorien,
-        bahnhof,
+        categories,
+        stationName,
         position,
         create,
       );
@@ -343,8 +343,10 @@ export class BaseDataService {
     this.baseDataSubject.next(Object.assign({}, this.baseDataStore).baseData);
   }
 
-  getStationCodeBaseData(bpName: string): BaseData {
-    const baseData = this.baseDataStore.baseData.find((std) => std.getStationCode() === bpName);
+  getBaseDataByBetriebspunktName(bpName: string): BaseData {
+    const baseData = this.baseDataStore.baseData.find(
+      (std) => std.getBetriebspunktName() === bpName,
+    );
     if (baseData === undefined) {
       return null;
     }

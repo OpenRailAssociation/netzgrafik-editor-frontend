@@ -276,8 +276,8 @@ export class DataService implements OnDestroy {
     return Object.values(Direction);
   }
 
-  getStationCodeBaseData(stationCode: string): BaseData {
-    return this.baseDataService.getStationCodeBaseData(stationCode);
+  getBetriebspunktNameBaseData(betriebspunktName: string): BaseData {
+    return this.baseDataService.getBaseDataByBetriebspunktName(betriebspunktName);
   }
 
   /**

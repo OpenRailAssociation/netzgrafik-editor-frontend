@@ -258,9 +258,8 @@
         },
         "basedata-dialog": {
           "base-data": "Stammdaten",
-          "stationCode": "Bahnhofscode",
+          "betriebspunktName": "Betriebspunkt",
           "stationName": "Bahnhofname",
-          "operationalPoint": "Betriebspunkt",
           "ipv-stop-time": "Mindesthaltezeit IPV",
           "a-stop-time": "Mindesthaltezeit A",
           "b-stop-time": "Mindesthaltezeit B",
