@@ -79,13 +79,13 @@ sbb-loading-indicator {
   width: 95%;
 }
 
-::ng-deep .sbb-selection-checked .sbb-selection-container {
+::ng-deep .sbb-checkbox .sbb-selection-container {
   border-width: 2px;
   border-radius: 3px;
-}
 
-::ng-deep .sbb-selection-container-checked {
-  svg polyline {
-    stroke-width: 2px;
+  &-checked {
+    svg polyline {
+      stroke-width: 2px;
+    }
   }
 }
