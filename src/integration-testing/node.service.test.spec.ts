@@ -623,7 +623,6 @@ describe("NodeService Test", () => {
     expect(connections.length).toBe(1);
   });
 
-
   it("add connection test : one-way case 1", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
@@ -632,7 +631,7 @@ describe("NodeService Test", () => {
     t1.getTrainrun().setDirection(Direction.ONE_WAY);
 
     nodeService.addConnectionToNode(1, 0, 2);
-    nodeService.addConnectionToNode(1, 2, 0); 
+    nodeService.addConnectionToNode(1, 2, 0);
 
     const node1 = nodeService.getNodeFromId(1);
     const connections = node1.getConnections();
@@ -647,7 +646,7 @@ describe("NodeService Test", () => {
     t2.getTrainrun().setDirection(Direction.ONE_WAY);
 
     nodeService.addConnectionToNode(1, 0, 2);
-    nodeService.addConnectionToNode(1, 2, 0); 
+    nodeService.addConnectionToNode(1, 2, 0);
 
     const node1 = nodeService.getNodeFromId(1);
     const connections = node1.getConnections();
@@ -659,19 +658,17 @@ describe("NodeService Test", () => {
     expect(trainrunSections.length).toBe(8);
 
     const t1 = trainrunSectionService.getTrainrunSectionFromId(0);
-    t1.getTrainrun().setDirection(Direction.ONE_WAY); 
+    t1.getTrainrun().setDirection(Direction.ONE_WAY);
     const t2 = trainrunSectionService.getTrainrunSectionFromId(2);
     t2.getTrainrun().setDirection(Direction.ONE_WAY);
 
     nodeService.addConnectionToNode(1, 0, 2);
-    nodeService.addConnectionToNode(1, 2, 0); 
+    nodeService.addConnectionToNode(1, 2, 0);
 
     const node1 = nodeService.getNodeFromId(1);
     const connections = node1.getConnections();
     expect(connections.length).toBe(1);
   });
-
-
 
   it("connection test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());

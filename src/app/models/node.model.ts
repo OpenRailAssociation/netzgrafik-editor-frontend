@@ -857,6 +857,26 @@ export class Node {
     return connectedTrainrunIds;
   }
 
+  isConnectionFeasible(portFrom: Port, portTo: Port): boolean {
+    // check for one-way trainruns whether a connection from port to to port is feasible
+    // returns true if feasible otherwise false. if both trainruns are roundtrips, the
+    // method returns true, because in roundtrips the direction of the trainrun is
+    // not relevant for the connection feasibility
+    if (!portFrom.getTrainrunSection().getTrainrun().isRoundTrip()) {
+      if (portFrom.getTrainrunSection().getSourceNodeId() === this.getId()) {
+        return false; // Can't connect from source node
+      }
+    }
+
+    if (!portTo.getTrainrunSection().getTrainrun().isRoundTrip()) {
+      if (portTo.getTrainrunSection().getTargetNodeId() === this.getId()) {
+        return false; // Can't connect to target node
+      }
+    }
+
+    return true;
+  }
+
   getDto(): NodeDto {
     return {
       id: this.id,
