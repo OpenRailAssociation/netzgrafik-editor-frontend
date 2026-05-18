@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.11.1](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.11.0...netzgrafik-editor-frontend-v2.11.1) (2026-05-18)
+
+
+### Bug Fixes
+
+* **ci:** switch to actions/upload-pages-artifact for GitHub Pages ([c222d06](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/c222d06749e4e08a177290f5555485eaa53455cd))
+
 ## [2.11.0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.10.19...netzgrafik-editor-frontend-v2.11.0) (2026-05-18)
 
 
