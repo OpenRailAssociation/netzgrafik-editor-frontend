@@ -705,7 +705,6 @@ export class NodeService implements OnDestroy {
 
     if (portFrom !== undefined && portTo !== undefined) {
       if (!node.isConnectionFeasible(portFrom, portTo)) {
-        this.connectionsUpdated();
         return;
       }
 
