@@ -134,7 +134,7 @@
             "main": "src/test.ts",
             "polyfills": ["zone.js", "@angular/localize/init"],
             "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.js",
+            "karmaConfig": "karma.conf.cjs",
             "assets": ["src/assets"],
             "styles": ["src/styles.scss", "node_modules/@sbb-esta/angular/typography.css"],
             "scripts": []
