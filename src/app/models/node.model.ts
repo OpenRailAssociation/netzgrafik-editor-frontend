@@ -858,6 +858,12 @@ export class Node {
   }
 
   isConnectionFeasible(portFrom: Port, portTo: Port): boolean {
+    if (
+      portFrom.getTrainrunSection().getTrainrunId() === portTo.getTrainrunSection().getTrainrunId()
+    ) {
+      return false; // Can't connect two ports of the same trainrun
+    }
+
     // check for one-way trainruns whether a connection from port to to port is feasible
     // returns true if feasible otherwise false. if both trainruns are roundtrips, the
     // method returns true, because in roundtrips the direction of the trainrun is

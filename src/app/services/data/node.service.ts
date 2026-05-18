@@ -703,12 +703,12 @@ export class NodeService implements OnDestroy {
     const portFrom = node.getPortOfTrainrunSection(trainrunSectionFromId);
     const portTo = node.getPortOfTrainrunSection(trainrunSectionToId);
 
-    if (!node.isConnectionFeasible(portFrom, portTo)) {
-      this.connectionsUpdated();
-      return;
-    }
-
     if (portFrom !== undefined && portTo !== undefined) {
+      if (!node.isConnectionFeasible(portFrom, portTo)) {
+        this.connectionsUpdated();
+        return;
+      }
+
       const conFound = node
         .getConnections()
         .find(
