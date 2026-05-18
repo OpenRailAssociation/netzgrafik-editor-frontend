@@ -702,6 +702,21 @@ export class NodeService implements OnDestroy {
     const node = this.getNodeFromId(nodeId);
     const portFrom = node.getPortOfTrainrunSection(trainrunSectionFromId);
     const portTo = node.getPortOfTrainrunSection(trainrunSectionToId);
+
+    if (!portFrom.getTrainrunSection().getTrainrun().isRoundTrip()) { 
+      // special case 1 - one-way can only have connections in the feasbile direction
+      if (portFrom.getTrainrunSection().getSourceNodeId() === nodeId) { 
+        return;
+      }
+    }
+
+    if (!portTo.getTrainrunSection().getTrainrun().isRoundTrip()) { 
+      // special case 2 - one-way can only have connections in the feasbile direction
+      if (portTo.getTrainrunSection().getTargetNodeId() === nodeId) { 
+        return;
+      }
+    }
+
     if (portFrom !== undefined && portTo !== undefined) {
       const conFound = node
         .getConnections()

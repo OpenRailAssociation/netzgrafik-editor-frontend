@@ -15,7 +15,7 @@ import {NetzgrafikUnitTestingTransition} from "./netzgrafik.unit.testing.transit
 import {NoteService} from "../app/services/data/note.service";
 import {LabelService} from "../app/services/data/label.service";
 import {LabelGroupService} from "../app/services/data/labelgroup.service";
-import {LabelRef} from "../app/data-structures/business.data.structures";
+import {Direction, LabelRef} from "../app/data-structures/business.data.structures";
 import {FilterService} from "../app/services/ui/filter.service";
 import {NetzgrafikColoringService} from "../app/services/data/netzgrafikColoring.service";
 
@@ -622,6 +622,56 @@ describe("NodeService Test", () => {
     const connections = node1.getConnections();
     expect(connections.length).toBe(1);
   });
+
+
+  it("add connection test : one-way case 1", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    expect(trainrunSections.length).toBe(8);
+
+    const t1 = trainrunSectionService.getTrainrunSectionFromId(0);
+    t1.getTrainrun().setDirection(Direction.ONE_WAY);
+
+    nodeService.addConnectionToNode(1, 0, 2);
+    nodeService.addConnectionToNode(1, 2, 0); 
+
+    const node1 = nodeService.getNodeFromId(1);
+    const connections = node1.getConnections();
+    expect(connections.length).toBe(1);
+  });
+
+  it("add connection test : one-way case 2", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    expect(trainrunSections.length).toBe(8);
+
+    const t2 = trainrunSectionService.getTrainrunSectionFromId(2);
+    t2.getTrainrun().setDirection(Direction.ONE_WAY);
+
+    nodeService.addConnectionToNode(1, 0, 2);
+    nodeService.addConnectionToNode(1, 2, 0); 
+
+    const node1 = nodeService.getNodeFromId(1);
+    const connections = node1.getConnections();
+    expect(connections.length).toBe(1);
+  });
+
+  it("add connection test : one-way case 3", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    expect(trainrunSections.length).toBe(8);
+
+    const t1 = trainrunSectionService.getTrainrunSectionFromId(0);
+    t1.getTrainrun().setDirection(Direction.ONE_WAY); 
+    const t2 = trainrunSectionService.getTrainrunSectionFromId(2);
+    t2.getTrainrun().setDirection(Direction.ONE_WAY);
+
+    nodeService.addConnectionToNode(1, 0, 2);
+    nodeService.addConnectionToNode(1, 2, 0); 
+
+    const node1 = nodeService.getNodeFromId(1);
+    const connections = node1.getConnections();
+    expect(connections.length).toBe(1);
+  });
+
+
 
   it("connection test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
