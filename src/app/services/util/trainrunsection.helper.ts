@@ -343,14 +343,26 @@ export class TrainrunsectionHelper {
     const lastLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
     const lastRightNode = this.getNextStopRightNode(trainrunSection, orderedNodes);
 
-    const leftTrainrunSection =
+    let leftTrainrunSection =
       lastLeftNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
         ? bothLastNonStopTrainrunSections.lastNonStopTrainrunSection1
         : bothLastNonStopTrainrunSections.lastNonStopTrainrunSection2;
-    const rightTrainrunSection =
+    let rightTrainrunSection =
       lastRightNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
         ? bothLastNonStopTrainrunSections.lastNonStopTrainrunSection1
         : bothLastNonStopTrainrunSections.lastNonStopTrainrunSection2;
+
+    if (lastLeftNode.getId() === lastRightNode.getId()) {
+      // special case : when start and end node are equal and no non-stop node in between,
+      // the last non-stop trainrun section is the same for both sides, so we need to determine
+      // the left and right section based on the order of the nodes
+      leftTrainrunSection = this.trainrunService.getFirstNonStopTrainrunSection(trainrunSection);
+      rightTrainrunSection = this.trainrunService.getLastNonStopTrainrunSection(
+        leftTrainrunSection.getSourceNode(),
+        leftTrainrunSection,
+      );
+    }
+
     const cumulativeTravelTime = this.trainrunService.getCumulativeTravelTime(
       trainrunSection,
       lastLeftNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
