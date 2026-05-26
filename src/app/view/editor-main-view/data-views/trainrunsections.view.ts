@@ -137,7 +137,7 @@ export class TrainrunSectionsView {
       .innerRadius(0)
       .startAngle(-Math.PI / 2 + rotate)
       .endAngle(Math.PI / 2 + rotate);
-    return arcGenerator();
+    return arcGenerator(undefined);
   }
 
   static getPosition(trainrunSection: TrainrunSection, atSource: boolean): Vec2D {
