@@ -64,6 +64,7 @@
     "@commitlint/types": "^21.0.1",
     "@eslint/js": "^9.39.4",
     "@openapitools/openapi-generator-cli": "^2.34.0",
+    "@types/d3": "^5.16.0",
     "@types/jasmine": "~6.0.0",
     "@types/jasminewd2": "~2.0.13",
     "@types/node": "^24.12.3",
