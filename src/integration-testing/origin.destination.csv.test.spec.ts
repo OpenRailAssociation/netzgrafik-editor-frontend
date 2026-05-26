@@ -7,7 +7,7 @@ import {NetzgrafikColoringService} from "src/app/services/data/netzgrafikColorin
 import {NodeService} from "src/app/services/data/node.service";
 import {NoteService} from "src/app/services/data/note.service";
 import {ResourceService} from "src/app/services/data/resource.service";
-import {StammdatenService} from "src/app/services/data/stammdaten.service";
+import {BaseDataService} from "src/app/services/data/basedata.service";
 import {TrainrunService} from "src/app/services/data/trainrun.service";
 import {TrainrunSectionService} from "src/app/services/data/trainrunsection.service";
 import {FilterService} from "src/app/services/ui/filter.service";
@@ -32,7 +32,7 @@ describe("Origin Destination CSV Test", () => {
   let labelGroupService: LabelGroupService = null;
   let filterService: FilterService = null;
   let trainrunSectionService: TrainrunSectionService = null;
-  let stammdatenService: StammdatenService = null;
+  let baseDataService: BaseDataService = null;
   let noteService: NoteService = null;
   let netzgrafikColoringService: NetzgrafikColoringService = null;
 
@@ -53,7 +53,7 @@ describe("Origin Destination CSV Test", () => {
       labelService,
       filterService,
     );
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     noteService = new NoteService(logService, labelService, filterService);
     netzgrafikColoringService = new NetzgrafikColoringService(logService);
     dataService = new DataService(
@@ -61,7 +61,7 @@ describe("Origin Destination CSV Test", () => {
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,

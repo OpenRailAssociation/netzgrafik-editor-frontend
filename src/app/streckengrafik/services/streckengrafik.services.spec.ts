@@ -1,5 +1,5 @@
 import {DataService} from "../../services/data/data.service";
-import {StammdatenService} from "../../services/data/stammdaten.service";
+import {BaseDataService} from "../../services/data/basedata.service";
 import {NetzgrafikUnitTesting} from "../../../integration-testing/netzgrafik.unit.testing";
 import {NodeService} from "../../services/data/node.service";
 import {ResourceService} from "../../services/data/resource.service";
@@ -39,7 +39,7 @@ describe("StreckengrafikServicesTests", () => {
   let resourceService: ResourceService;
   let trainrunService: TrainrunService;
   let trainrunSectionService: TrainrunSectionService;
-  let stammdatenService: StammdatenService;
+  let baseDataService: BaseDataService;
   let noteService: NoteService;
   let nodes: Node[] = null;
   let trainrunSections: TrainrunSection[] = null;
@@ -63,7 +63,7 @@ describe("StreckengrafikServicesTests", () => {
   let sgStopService: SgStopService;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -87,7 +87,7 @@ describe("StreckengrafikServicesTests", () => {
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,
@@ -113,7 +113,7 @@ describe("StreckengrafikServicesTests", () => {
       filterService,
       nodeService,
       noteService,
-      stammdatenService,
+      baseDataService,
       trainrunSectionService,
       trainrunService,
       netzgrafikColoringService,

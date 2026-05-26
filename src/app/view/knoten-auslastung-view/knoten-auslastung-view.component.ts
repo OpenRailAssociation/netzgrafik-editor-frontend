@@ -100,7 +100,7 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
   }
 
   private subscribeViewToServices() {
-    this.uiInteractionService.updateNodeStammdatenWindow
+    this.uiInteractionService.updateNodeBaseDataWindow
       .pipe(takeUntil(this.destroyed))
       .subscribe(() => {
         this.update();

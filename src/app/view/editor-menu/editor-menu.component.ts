@@ -3,7 +3,7 @@ import {TrainrunService} from "../../services/data/trainrun.service";
 import {NodeService} from "../../services/data/node.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {UiInteractionService} from "../../services/ui/ui.interaction.service";
-import {StammdatenService} from "../../services/data/stammdaten.service";
+import {BaseDataService} from "../../services/data/basedata.service";
 import {FilterService} from "../../services/ui/filter.service";
 import {DataService} from "../../services/data/data.service";
 import {Vec2D} from "../../utils/vec2D";
@@ -55,7 +55,7 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
     private trainrunSectionService: TrainrunSectionService,
     private isTrainrunSelectedService: IsTrainrunSelectedService,
     private uiInteractionService: UiInteractionService,
-    private stammdatenService: StammdatenService,
+    private baseDataService: BaseDataService,
     private logger: LogService,
     private versionControlService: VersionControlService,
     private analyticsService: AnalyticsService,
@@ -191,7 +191,7 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
       this.trainrunSectionService.unselectAllTrainrunSections();
     } else {
       editorMode = EditorMode.MultiNodeMoving;
-      this.uiInteractionService.closeNodeStammdaten();
+      this.uiInteractionService.closeNodeBaseData();
     }
     this.uiInteractionService.setEditorMode(editorMode);
   }
@@ -272,7 +272,7 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
       this.uiInteractionService.setEditorMode(EditorMode.NetzgrafikEditing);
       this.zoomFactor = this.mainZoomFactor;
     } else {
-      this.uiInteractionService.closeNodeStammdaten();
+      this.uiInteractionService.closeNodeBaseData();
       this.mainZoomFactor = this.zoomFactor;
       this.uiInteractionService.showOriginDestination();
       this.uiInteractionService.setEditorMode(EditorMode.OriginDestination);
@@ -310,7 +310,7 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
     let editorMode = this.uiInteractionService.getEditorMode();
     if (editorMode !== EditorMode.Analytics) {
       editorMode = EditorMode.Analytics;
-      this.uiInteractionService.closeNodeStammdaten();
+      this.uiInteractionService.closeNodeBaseData();
       this.uiInteractionService.closePerlenkette();
       this.uiInteractionService.showNetzgrafik();
       this.uiInteractionService.setEditorMode(editorMode);

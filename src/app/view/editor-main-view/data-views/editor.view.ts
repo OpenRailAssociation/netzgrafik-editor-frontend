@@ -588,12 +588,12 @@ export class EditorView implements SVGMouseControllerObserver {
       ) {
         this.uiInteractionService.setEditorMode(EditorMode.NetzgrafikEditing);
         this.addNode(mousePosition.getX(), mousePosition.getY());
-        this.uiInteractionService.showNodeStammdaten();
+        this.uiInteractionService.showNodeBaseData();
       } else if (this.isAnyTrainSelected()) {
         this.unselectAllTrainruns();
       } else {
         this.nodeService.unselectAllNodes();
-        this.uiInteractionService.closeNodeStammdaten();
+        this.uiInteractionService.closeNodeBaseData();
       }
       if (
         d3.event.button === 0 &&

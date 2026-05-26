@@ -14,7 +14,7 @@ import {BehaviorSubject, Subject} from "rxjs";
 import {TrainrunService} from "./trainrun.service";
 import {TrainrunSectionService} from "./trainrunsection.service";
 import {Trainrun} from "../../models/trainrun.model";
-import {Stammdaten} from "../../models/stammdaten.model";
+import {BaseData} from "../../models/basedata.model";
 import {TransitionValidator} from "../util/transition.validator";
 import {DataService} from "./data.service";
 import {Transition} from "../../models/transition.model";
@@ -254,10 +254,10 @@ export class NodeService implements OnDestroy {
     node.setResourceId(resource.getId());
     node.setPosition(alignedPosition.getX(), alignedPosition.getY());
     node.select();
-    const stammdaten = this.dataService.getBPStammdaten(node.getBetriebspunktName());
-    if (stammdaten !== null) {
-      node.setHaltezeit(stammdaten.getHaltezeiten());
-      node.setConnectionTime(stammdaten.getConnectionTime());
+    const baseData = this.dataService.getBetriebspunktNameBaseData(node.getBetriebspunktName());
+    if (baseData !== null) {
+      node.setHaltezeit(baseData.getHaltezeiten());
+      node.setConnectionTime(baseData.getConnectionTime());
     }
     if (betriebspunktName !== undefined) {
       node.setBetriebspunktName(betriebspunktName);
@@ -890,10 +890,10 @@ export class NodeService implements OnDestroy {
   changeNodeBetriebspunktName(nodeId: number, name: string) {
     const node = this.getNodeFromId(nodeId);
     node.setBetriebspunktName(name);
-    const stammdaten = this.dataService.getBPStammdaten(node.getBetriebspunktName());
-    if (stammdaten !== null) {
-      node.setHaltezeit(stammdaten.getHaltezeiten());
-      node.setConnectionTime(stammdaten.getConnectionTime());
+    const baseData = this.dataService.getBetriebspunktNameBaseData(node.getBetriebspunktName());
+    if (baseData !== null) {
+      node.setHaltezeit(baseData.getHaltezeiten());
+      node.setConnectionTime(baseData.getConnectionTime());
     }
     this.nodesUpdated();
     this.operation.emit(new NodeOperation(OperationType.update, node));
@@ -983,19 +983,19 @@ export class NodeService implements OnDestroy {
     });
   }
 
-  setNodePropertiesFromStammdaten(stammdaten: Stammdaten[]) {
-    stammdaten.forEach((stdDaten) => {
-      if (stdDaten.getErstellen() !== undefined) {
-        if (stdDaten.getErstellen().trim().toLowerCase() === "ja") {
+  setNodePropertiesFromBaseData(baseData: BaseData[]) {
+    baseData.forEach((stdDaten) => {
+      if (stdDaten.getCreate() !== undefined) {
+        if (stdDaten.getCreate() === 1) {
           if (
             this.nodesStore.nodes.find(
-              (node) => node.getBetriebspunktName() === stdDaten.getBP(),
+              (node) => node.getBetriebspunktName() === stdDaten.getBetriebspunktName(),
             ) === undefined
           ) {
             const pos = stdDaten.getPosition();
             if (pos !== undefined) {
               const labelIds: number[] = [];
-              stdDaten.getFilterableLabels().forEach((strLabel) => {
+              stdDaten.getLabels().forEach((strLabel) => {
                 labelIds.push(this.labelService.getOrCreateLabel(strLabel, LabelRef.Node).getId());
               });
               labelIds.push(
@@ -1006,8 +1006,8 @@ export class NodeService implements OnDestroy {
               this.addNodeWithPosition(
                 pos.getX(),
                 pos.getY(),
-                stdDaten.getBP(),
-                stdDaten.getBahnhof(),
+                stdDaten.getBetriebspunktName(),
+                stdDaten.getStationName(),
                 labelIds,
               );
             }
@@ -1017,21 +1017,23 @@ export class NodeService implements OnDestroy {
     });
 
     this.nodesStore.nodes.forEach((node) => {
-      const bpStammdaten = stammdaten.find((std) => std.getBP() === node.getBetriebspunktName());
-      if (bpStammdaten !== undefined) {
-        node.setHaltezeit(bpStammdaten.getHaltezeiten());
-        node.setConnectionTime(bpStammdaten.getConnectionTime());
+      const bpBaseData = baseData.find(
+        (std) => std.getBetriebspunktName() === node.getBetriebspunktName(),
+      );
+      if (bpBaseData !== undefined) {
+        node.setHaltezeit(bpBaseData.getHaltezeiten());
+        node.setConnectionTime(bpBaseData.getConnectionTime());
 
         const labels = node.getLabelIds();
-        bpStammdaten.getFilterableLabels().forEach((label) => {
+        bpBaseData.getLabels().forEach((label) => {
           labels.push(this.labelService.getOrCreateLabel(label, LabelRef.Node).getId());
         });
-        bpStammdaten.getRegions().forEach((region) => {
+        bpBaseData.getRegions().forEach((region) => {
           labels.push(
             this.labelService.getOrCreateLabel("Region: " + region.trim(), LabelRef.Node).getId(),
           );
         });
-        bpStammdaten.getKategorien().forEach((kategorie) => {
+        bpBaseData.getCategories().forEach((kategorie) => {
           labels.push(
             this.labelService
               .getOrCreateLabel("Kategorie: " + kategorie.trim(), LabelRef.Node)

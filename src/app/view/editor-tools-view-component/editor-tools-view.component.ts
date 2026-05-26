@@ -7,7 +7,7 @@ import {NodeService} from "../../services/data/node.service";
 import {FilterService} from "../../services/ui/filter.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {UiInteractionService} from "../../services/ui/ui.interaction.service";
-import {StammdatenService} from "../../services/data/stammdaten.service";
+import {BaseDataService} from "../../services/data/basedata.service";
 import {LogService} from "../../logger/log.service";
 import {VersionControlService} from "../../services/data/version-control.service";
 import {
@@ -29,6 +29,7 @@ import {OriginDestinationService} from "src/app/services/analytics/origin-destin
 import {EditorMode} from "../editor-menu/editor-mode";
 import {NODE_TEXT_AREA_HEIGHT, RASTERING_BASIC_GRID_SIZE} from "../rastering/definitions";
 import {ResourceService} from "../../services/data/resource.service";
+import {MathUtils} from "src/app/utils/math";
 
 interface ContainertoExportData {
   documentToExport: HTMLElement;
@@ -43,10 +44,10 @@ interface ContainertoExportData {
   standalone: false,
 })
 export class EditorToolsViewComponent {
-  @ViewChild("stammdatenFileInput", {static: false})
-  stammdatenFileInput: ElementRef;
-  @ViewChild("netgrafikJsonFileInput", {static: false})
-  netgrafikJsonFileInput: ElementRef;
+  @ViewChild("baseDataFileInput", {static: false})
+  baseDataFileInput: ElementRef;
+  @ViewChild("netzgrafikJsonFileInput", {static: false})
+  netzgrafikJsonFileInput: ElementRef;
 
   public isDeletable$ = this.versionControlService.variant$.pipe(map((v) => v?.isDeletable));
   public isWritable$ = this.versionControlService.variant$.pipe(map((v) => v?.isWritable));
@@ -58,7 +59,7 @@ export class EditorToolsViewComponent {
     public filterService: FilterService,
     private trainrunSectionService: TrainrunSectionService,
     private uiInteractionService: UiInteractionService,
-    private stammdatenService: StammdatenService,
+    private baseDataService: BaseDataService,
     private labelService: LabelService,
     private logger: LogService,
     private versionControlService: VersionControlService,
@@ -70,7 +71,7 @@ export class EditorToolsViewComponent {
   ) {}
 
   onLoadButton() {
-    this.netgrafikJsonFileInput.nativeElement.click();
+    this.netzgrafikJsonFileInput.nativeElement.click();
   }
 
   onLoad(param) {
@@ -173,18 +174,26 @@ export class EditorToolsViewComponent {
     this.levelOfDetailService.enableLevelOfDetailRendering();
   }
 
-  onLoadStammdatenButton() {
-    this.stammdatenFileInput.nativeElement.click();
+  onLoadBaseDataButton() {
+    this.baseDataFileInput.nativeElement.click();
   }
 
-  onLoadStammdaten(param) {
+  onLoadBaseData(param) {
     const file = param.target.files[0];
     const reader = new FileReader();
     reader.onload = () => {
       const finalResult: ParseResult = parse(reader.result.toString(), {
         header: true,
+        delimiter: ";",
       });
-      this.stammdatenService.setStammdaten(finalResult.data);
+      this.baseDataService.setBaseData(finalResult.data);
+      if (this.baseDataService.didLastImportUseLegacyColumns()) {
+        // -------------------------
+        // legacy base data imported
+        // -------------------------
+        const msg = $localize`:@@app.view.editor-side-view.editor-tools-view-component.import-basedata-legacy-info:Legacy base data imported - please have a look into the documentation and update your stammdaten files to ensure that future version still supports the data import`;
+        this.logger.info(msg);
+      }
     };
     reader.readAsText(file);
 
@@ -192,11 +201,11 @@ export class EditorToolsViewComponent {
     param.target.value = null;
   }
 
-  onExportStammdaten() {
+  onExportBaseData() {
     const filename =
-      $localize`:@@app.view.editor-side-view.editor-tools-view-component.baseDataFile:baseData` +
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.baseDataFile:basedaten` +
       ".csv";
-    const csvData = this.convertToStammdatenCSV();
+    const csvData = this.convertToBaseDataCSV();
     this.onExport(filename, csvData);
   }
 
@@ -263,104 +272,82 @@ export class EditorToolsViewComponent {
     return contentData.join("\n");
   }
 
-  private convertToStammdatenCSV(): string {
-    const comma = ",";
-
-    const headers: string[] = [];
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.bp:BP`);
-    headers.push(
-      $localize`:@@app.view.editor-side-view.editor-tools-view-component.station:Station`,
-    );
-    headers.push(
-      $localize`:@@app.view.editor-side-view.editor-tools-view-component.category:category`,
-    );
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.region:Region`);
-    headers.push(
-      $localize`:@@app.view.editor-side-view.editor-tools-view-component.passengerConnectionTimeIPV:passengerConnectionTimeIPV`,
-    );
-    headers.push(
-      $localize`:@@app.view.editor-side-view.editor-tools-view-component.passengerConnectionTimeA:Passenger_connection_time_A`,
-    );
-    headers.push(
-      $localize`:@@app.view.editor-side-view.editor-tools-view-component.passengerConnectionTimeB:Passenger_connection_time_B`,
-    );
-    headers.push(
-      $localize`:@@app.view.editor-side-view.editor-tools-view-component.passengerConnectionTimeC:Passenger_connection_time_C`,
-    );
-    headers.push(
-      $localize`:@@app.view.editor-side-view.editor-tools-view-component.passengerConnectionTimeD:Passenger_connection_time_D`,
-    );
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.ZAZ:ZAZ`);
-    headers.push(
-      $localize`:@@app.view.editor-side-view.editor-tools-view-component.transferTime:Transfer_time`,
-    );
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.labels:Labels`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.X:X`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.Y:Y`);
-    headers.push($localize`:@@app.view.editor-side-view.editor-tools-view-component.create:Create`);
+  private convertToBaseDataCSV(): string {
+    const headers: string[] = [
+      "StationCode",
+      "StationName",
+      "Category",
+      "Region",
+      "MinimumStopTime_IPV",
+      "PassingThroughStation_IPV",
+      "MinimumStopTime_A",
+      "PassingThroughStation_A",
+      "MinimumStopTime_B",
+      "PassingThroughStation_B",
+      "MinimumStopTime_C",
+      "PassingThroughStation_C",
+      "MinimumStopTime_D",
+      "PassingThroughStation_D",
+      "ZAZ (Train dispatching time)",
+      "ConnectionTime",
+      "Labels",
+      "XCoord",
+      "YCoord",
+      "Create",
+    ];
 
     const rows: string[][] = [];
     this.nodeService.getNodes().forEach((nodeElement) => {
       const trainrunCategoryHaltezeit: TrainrunCategoryHaltezeit =
         nodeElement.getTrainrunCategoryHaltezeit();
-      const stammdaten = this.stammdatenService.getBPStammdaten(nodeElement.getBetriebspunktName());
-      const zaz = stammdaten !== null ? stammdaten.getZAZ() : 0;
-      const erstellen = stammdaten !== null ? stammdaten.getErstellen() : "JA";
-      const kategorien = stammdaten !== null ? stammdaten.getKategorien() : [];
-      const regions = stammdaten !== null ? stammdaten.getRegions() : [];
+      const baseData = this.baseDataService.getBaseDataByBetriebspunktName(
+        nodeElement.getBetriebspunktName(),
+      );
+      const trainDispatchingTime = baseData !== null ? baseData.getBufferTime() : 0;
+      const erstellen = baseData !== null ? baseData.getCreate() : 1;
+      const kategorien = baseData !== null ? baseData.getCategories() : [];
+      const regions = baseData !== null ? baseData.getRegions() : [];
 
-      const row: string[] = [];
-      row.push(nodeElement.getBetriebspunktName());
-      row.push(nodeElement.getFullName());
-      row.push(kategorien.map((kat) => "" + kat).join(comma));
-      row.push(regions.map((reg) => "" + reg).join(comma));
-      row.push(
-        "" +
-          (trainrunCategoryHaltezeit[HaltezeitFachCategories.IPV].no_halt
-            ? 0
-            : trainrunCategoryHaltezeit[HaltezeitFachCategories.IPV].haltezeit - zaz),
-      );
-      row.push(
-        "" +
-          (trainrunCategoryHaltezeit[HaltezeitFachCategories.A].no_halt
-            ? 0
-            : trainrunCategoryHaltezeit[HaltezeitFachCategories.A].haltezeit - zaz),
-      );
-      row.push(
-        "" +
-          (trainrunCategoryHaltezeit[HaltezeitFachCategories.B].no_halt
-            ? 0
-            : trainrunCategoryHaltezeit[HaltezeitFachCategories.B].haltezeit - zaz),
-      );
-      row.push(
-        "" +
-          (trainrunCategoryHaltezeit[HaltezeitFachCategories.C].no_halt
-            ? 0
-            : trainrunCategoryHaltezeit[HaltezeitFachCategories.C].haltezeit - zaz),
-      );
-      row.push(
-        "" +
-          (trainrunCategoryHaltezeit[HaltezeitFachCategories.D].no_halt
-            ? 0
-            : trainrunCategoryHaltezeit[HaltezeitFachCategories.D].haltezeit - zaz),
-      );
-      row.push("" + zaz);
-      row.push("" + nodeElement.getConnectionTime());
-      row.push(
-        nodeElement
-          .getLabelIds()
-          .map((labelID) => {
-            const labelOfInterest = this.labelService.getLabelFromId(labelID);
-            if (labelOfInterest !== undefined) {
-              return labelOfInterest.getLabel();
-            }
-            return "";
-          })
-          .join(comma),
-      );
-      row.push("" + nodeElement.getPositionX());
-      row.push("" + nodeElement.getPositionY());
-      row.push(erstellen);
+      const getPassingThroughStation = (cat: HaltezeitFachCategories): boolean =>
+        trainrunCategoryHaltezeit[cat].no_halt;
+      const getMinimumStopTime = (cat: HaltezeitFachCategories): number =>
+        getPassingThroughStation(cat)
+          ? 0
+          : MathUtils.round(trainrunCategoryHaltezeit[cat].haltezeit - trainDispatchingTime, 2);
+      const getPassingThroughStationFlag = (cat: HaltezeitFachCategories): number =>
+        getPassingThroughStation(cat) ? 1 : 0;
+
+      const labels = nodeElement
+        .getLabelIds()
+        .map((labelID) => {
+          const labelOfInterest = this.labelService.getLabelFromId(labelID);
+          return labelOfInterest !== undefined ? labelOfInterest.getLabel() : "";
+        })
+        .filter((s) => s !== "")
+        .join(",");
+
+      const row: string[] = [
+        nodeElement.getBetriebspunktName(),
+        nodeElement.getFullName(),
+        kategorien.join(","),
+        regions.join(","),
+        "" + getMinimumStopTime(HaltezeitFachCategories.IPV),
+        "" + getPassingThroughStationFlag(HaltezeitFachCategories.IPV),
+        "" + getMinimumStopTime(HaltezeitFachCategories.A),
+        "" + getPassingThroughStationFlag(HaltezeitFachCategories.A),
+        "" + getMinimumStopTime(HaltezeitFachCategories.B),
+        "" + getPassingThroughStationFlag(HaltezeitFachCategories.B),
+        "" + getMinimumStopTime(HaltezeitFachCategories.C),
+        "" + getPassingThroughStationFlag(HaltezeitFachCategories.C),
+        "" + getMinimumStopTime(HaltezeitFachCategories.D),
+        "" + getPassingThroughStationFlag(HaltezeitFachCategories.D),
+        "" + trainDispatchingTime,
+        "" + nodeElement.getConnectionTime(),
+        '"' + labels + '"',
+        "" + nodeElement.getPositionX(),
+        "" + nodeElement.getPositionY(),
+        "" + erstellen,
+      ];
       rows.push(row);
     });
     return this.buildCSVString(headers, rows);
@@ -795,7 +782,7 @@ export class EditorToolsViewComponent {
   private processNetzgrafikJSON(netzgrafikDto: NetzgrafikDto) {
     // prepare JSON import
     this.uiInteractionService.showNetzgrafik();
-    this.uiInteractionService.closeNodeStammdaten();
+    this.uiInteractionService.closeNodeBaseData();
     this.uiInteractionService.closePerlenkette();
     this.uiInteractionService.resetEditorMode();
     this.nodeService.unselectAllNodes();

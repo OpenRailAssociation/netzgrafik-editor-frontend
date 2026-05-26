@@ -70,7 +70,7 @@
       >
         <sbb-icon svgIcon="upload-small"></sbb-icon>
       </button>
-      <input hidden #netgrafikJsonFileInput type="file" accept=".json" (change)="onLoad($event)" />
+      <input hidden #netzgrafikJsonFileInput type="file" accept=".json" (change)="onLoad($event)" />
       {{
         "app.view.editor-side-view.editor-tools-view-component.import-netzgrafik-as-json"
           | translate
@@ -154,7 +154,7 @@
     }}</sbb-expansion-panel-header>
     <ng-container *ngIf="getVariantIsWritable()">
       <button
-        (click)="onLoadStammdatenButton()"
+        (click)="onLoadBaseDataButton()"
         [title]="
           'app.view.editor-side-view.editor-tools-view-component.import-base-data' | translate
         "
@@ -171,15 +171,15 @@
       >
       <input
         hidden
-        #stammdatenFileInput
+        #baseDataFileInput
         type="file"
         accept=".csv"
-        (change)="onLoadStammdaten($event)"
+        (change)="onLoadBaseData($event)"
       />
       <br />
     </ng-container>
     <button
-      (click)="onExportStammdaten()"
+      (click)="onExportBaseData()"
       [title]="'app.view.editor-side-view.editor-tools-view-component.export-base-data' | translate"
       class="TrainrunDialog EditorToolButton"
     >
