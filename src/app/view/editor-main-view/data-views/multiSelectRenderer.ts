@@ -5,7 +5,7 @@ import {Vec2D} from "../../../utils/vec2D";
 export class MultiSelectRenderer {
   private isBoxDrawing = false;
 
-  static setGroup(nodeGroup: d3.Selector) {
+  static setGroup(nodeGroup: d3.Selection<SVGElement, undefined, HTMLElement, undefined>) {
     nodeGroup
       .append(StaticDomTags.PREVIEW_MULTISELECT_ROOT_BOX_SVG)
       .attr("class", StaticDomTags.PREVIEW_MULTISELECT_ROOT_BOX_CLASS);

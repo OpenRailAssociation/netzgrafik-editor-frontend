@@ -38,7 +38,7 @@ export class NodesView {
     this.dragPreviousMousePosition = new Vec2D();
   }
 
-  setGroup(nodeGroup: d3.Selector) {
+  setGroup(nodeGroup: d3.Selection<SVGElement, undefined, HTMLElement, undefined>) {
     this.nodeGroup = nodeGroup;
     this.nodeGroup.attr("class", "NodesView");
   }

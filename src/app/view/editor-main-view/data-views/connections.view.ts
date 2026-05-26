@@ -123,7 +123,7 @@ export class ConnectionsView {
     return false;
   }
 
-  createConnectionCurve(drawingGroup: d3.selector) {
+  createConnectionCurve(drawingGroup: d3.Selection<SVGElement, undefined, HTMLElement, undefined>) {
     drawingGroup
       .append(StaticDomTags.CONNECTION_LINE_SVG)
       .attr("class", StaticDomTags.CONNECTION_LINE_CLASS)
@@ -148,7 +148,10 @@ export class ConnectionsView {
       );
   }
 
-  createConnectionSinglePin(drawingGroup: d3.selector, pinPos: Vec2D) {
+  createConnectionSinglePin(
+    drawingGroup: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    pinPos: Vec2D,
+  ) {
     const draggable = d3
       .drag()
       .on("start", (cv: ConnectionsViewObject, i, a) =>
@@ -190,7 +193,7 @@ export class ConnectionsView {
       );
   }
 
-  createConnectionPins(drawingGroup: d3.selector) {
+  createConnectionPins(drawingGroup: d3.Selection<SVGElement, undefined, HTMLElement, undefined>) {
     const selectedTrainrun = this.editorView.getSelectedTrainrun();
 
     drawingGroup.each((c: ConnectionsViewObject, i, a) => {

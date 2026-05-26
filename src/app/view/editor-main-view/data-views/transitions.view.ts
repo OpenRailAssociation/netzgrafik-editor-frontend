@@ -82,7 +82,7 @@ export class TransitionsView {
   }
 
   static createTransitionLineLayer(
-    grpEnter: d3.selector,
+    grpEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
     classRef: string,
     levelFreqFilter: LinePatternRefs[],
     selectedTrainrun: Trainrun,
@@ -121,7 +121,11 @@ export class TransitionsView {
       .attr("d", (t: TransitionViewObject) => D3Utils.getPathAsSVGString(t.transition.getPath()));
   }
 
-  createNonStopToggle(grpEnter: d3.selector, selectedTrainrun: Trainrun, connectedTrainIds: any) {
+  createNonStopToggle(
+    grpEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    selectedTrainrun: Trainrun,
+    connectedTrainIds: any,
+  ) {
     if (!this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable()) {
       return;
     }
