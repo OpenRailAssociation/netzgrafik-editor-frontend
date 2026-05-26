@@ -22,6 +22,7 @@ import {NodeViewObject} from "./nodeViewObject";
 import {ConnectionsView} from "./connections.view";
 import {EditorMode} from "../../editor-menu/editor-mode";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
+
 export class NodesView {
   dragPreviousMousePosition: Vec2D;
   nodeGroup;
