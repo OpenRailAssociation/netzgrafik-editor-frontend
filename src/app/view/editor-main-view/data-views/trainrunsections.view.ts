@@ -1777,7 +1777,7 @@ export class TrainrunSectionsView {
   ) {
     groupEnter.each((t: TrainrunSectionViewObject, i, a) => {
       const grp = d3
-        .select(a[i])
+        .select<SVGGElement, undefined>(a[i])
         .append(StaticDomTags.EDGE_LINE_STOPS_GROUP_SVG)
         .attr("class", StaticDomTags.EDGE_LINE_STOPS_GROUP_CLASS);
       this.createIntermediateStops(grp, t.trainrunSection, selectedTrainrun, connectedTrainIds);

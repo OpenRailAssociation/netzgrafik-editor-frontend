@@ -116,7 +116,9 @@ export class D3Utils {
   }
 
   static updateTrainrunSectionPreviewLine(startPos: Vec2D) {
-    const mousePos = d3.mouse(d3.select(StaticDomTags.PREVIEW_LINE_DOM_REF).node());
+    const mousePos = d3.mouse(
+      d3.select<SVGPathElement, undefined>(StaticDomTags.PREVIEW_LINE_DOM_REF).node(),
+    );
     const mousePosVec: Vec2D = new Vec2D(mousePos[0], mousePos[1]);
     const fromPos: Vec2D = Vec2D.add(
       startPos,
@@ -136,7 +138,9 @@ export class D3Utils {
   }
 
   static updateIntermediateStopOrTransitionPreviewLine(startPos: Vec2D, endPos: Vec2D) {
-    const mousePos = d3.mouse(d3.select(StaticDomTags.PREVIEW_LINE_DOM_REF).node());
+    const mousePos = d3.mouse(
+      d3.select<SVGPathElement, undefined>(StaticDomTags.PREVIEW_LINE_DOM_REF).node(),
+    );
     const mousePosVec: Vec2D = new Vec2D(mousePos[0], mousePos[1]);
     const fromPos: Vec2D = Vec2D.add(
       startPos,
@@ -164,7 +168,9 @@ export class D3Utils {
   }
 
   static updateConnectionPreviewLine(startPos: Vec2D, canCombineTwoTrainrunsFlag: boolean) {
-    const mousePos = d3.mouse(d3.select(StaticDomTags.PREVIEW_CONNECTION_LINE_DOM_REF).node());
+    const mousePos = d3.mouse(
+      d3.select<SVGPathElement, undefined>(StaticDomTags.PREVIEW_CONNECTION_LINE_DOM_REF).node(),
+    );
     const mousePosVec: Vec2D = new Vec2D(mousePos[0], mousePos[1]);
     const fromPos: Vec2D = Vec2D.add(
       startPos,
