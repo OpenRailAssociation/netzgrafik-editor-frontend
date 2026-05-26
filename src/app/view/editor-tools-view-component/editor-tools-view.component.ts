@@ -1,4 +1,4 @@
-import {parse, ParseResult} from "papaparse";
+import {parse} from "papaparse";
 import {Component, ElementRef, ViewChild} from "@angular/core";
 import * as svg from "save-svg-as-png";
 import {DataService} from "../../services/data/data.service";
@@ -182,7 +182,7 @@ export class EditorToolsViewComponent {
     const file = param.target.files[0];
     const reader = new FileReader();
     reader.onload = () => {
-      const finalResult: ParseResult = parse(reader.result.toString(), {
+      const finalResult = parse(reader.result.toString(), {
         header: true,
         delimiter: ";",
       });
