@@ -30,107 +30,107 @@ export class ThemeGray extends ThemeBase {
 
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_NORMAL: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(normal),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(normal),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_NORMAL_FOCUS: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(focus),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(focus),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_NORMAL_MUTED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_NORMAL_RELATED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(related),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(related),
 
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_EC: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(normal),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(normal),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_EC_FOCUS: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(focus),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(focus),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_EC_MUTED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_EC_RELATED:" +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(related),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(related),
 
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_IC: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(normal),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(normal),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_IC_FOCUS: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(focus),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(focus),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_IC_MUTED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_IC_RELATED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(related),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(related),
 
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_IR:" +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(normal),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(normal),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_IR_FOCUS: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(focus),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(focus),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_IR_MUTED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_IR_RELATED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(related),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(related),
 
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_RE: " +
-        d3.scaleLinear().domain([0, 100]).range(["#bbbbbb", "#000000"])(normal),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#bbbbbb", "#000000"])(normal),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_RE_FOCUS:" +
-        d3.scaleLinear().domain([0, 100]).range(["#bbbbbb", "#000000"])(focus),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#bbbbbb", "#000000"])(focus),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_RE_MUTED:" +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_RE_RELATED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#bbbbbb", "#000000"])(related),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#bbbbbb", "#000000"])(related),
 
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_S: " +
-        d3.scaleLinear().domain([0, 100]).range(["#aaaaaa", "#000000"])(normal),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#aaaaaa", "#000000"])(normal),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_S_FOCUS: " +
-        d3.scaleLinear().domain([0, 100]).range(["#aaaaaa", "#000000"])(focus),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#aaaaaa", "#000000"])(focus),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_S_MUTED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_S_RELATED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#aaaaaa", "#000000"])(related),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#aaaaaa", "#000000"])(related),
 
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_GEX:" +
-        d3.scaleLinear().domain([0, 100]).range(["#999999", "#000000"])(normal),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#999999", "#000000"])(normal),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_GEX_FOCUS: " +
-        d3.scaleLinear().domain([0, 100]).range(["#999999", "#000000"])(focus),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#999999", "#000000"])(focus),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_GEX_MUTED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_GEX_RELATED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#999999", "#000000"])(related),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#999999", "#000000"])(related),
 
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_G: " +
-        d3.scaleLinear().domain([0, 100]).range(["#777777", "#000000"])(normal),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#777777", "#000000"])(normal),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_G_FOCUS: " +
-        d3.scaleLinear().domain([0, 100]).range(["#777777", "#000000"])(focus),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#777777", "#000000"])(focus),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_G_MUTED:" +
-        d3.scaleLinear().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#dddddd", "#000000"])(muted),
       StaticDomTags.PREFIX_COLOR_VARIABLE +
         "_G_RELATED: " +
-        d3.scaleLinear().domain([0, 100]).range(["#777777", "#000000"])(related),
+        d3.scaleLinear<string>().domain([0, 100]).range(["#777777", "#000000"])(related),
 
       "COLOR_GRAYEDOUT: white",
       "COLOR_TRANSITION_GRAYEDOUT: whitesmoke",
