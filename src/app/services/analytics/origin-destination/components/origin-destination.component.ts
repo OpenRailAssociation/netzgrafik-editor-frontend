@@ -163,10 +163,9 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
 
     // Build X scales and axis (destinations):
     const x = d3
-      .scaleBand()
+      .scaleBand<number>()
       .range([0, width])
       .domain(nodeNames.map((n) => n.id))
-
       .padding(0.05);
 
     graphContentGroup
@@ -175,7 +174,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .attr("transform", "translate(0, -20)")
       .call(
         d3
-          .axisBottom(x)
+          .axisBottom<number>(x)
           .tickSize(0)
           .tickFormat((d) => this.nodeService.getNodeFromId(d).getBetriebspunktName()),
       )
@@ -195,7 +194,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
 
     // Build Y scales and axis (origins):
     const y = d3
-      .scaleBand()
+      .scaleBand<number>()
       .range([height, 0])
       .domain(nodeNames.map((n) => n.id).reverse())
       .padding(0.05);
@@ -204,7 +203,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .style("pointer-events", "none")
       .call(
         d3
-          .axisLeft(y)
+          .axisLeft<number>(y)
           .tickSize(0)
           .tickFormat((d) => this.nodeService.getNodeFromId(d).getBetriebspunktName()),
       )
