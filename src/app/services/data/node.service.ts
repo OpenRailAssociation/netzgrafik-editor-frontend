@@ -283,6 +283,10 @@ export class NodeService implements OnDestroy {
     this.filterService.clearDeletetFilterNodeLabels(deletetLabelIds);
     this.deleteNodeWithoutUpdate(nodeId, enforceUpdate);
     if (enforceUpdate) {
+      this.initPortOrdering();
+      this.trainrunSectionService.trainrunSectionsUpdated();
+      this.connectionsUpdated();
+      this.transitionsUpdated();
       this.nodesUpdated();
     }
     this.operation.emit(new NodeOperation(OperationType.delete, node));
