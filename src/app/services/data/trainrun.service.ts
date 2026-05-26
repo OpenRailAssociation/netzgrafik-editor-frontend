@@ -534,8 +534,9 @@ export class TrainrunService {
     );
     this.setTrainrunAsSelected(copiedtrainrun.getId(), false);
     if (enforceUpdate) {
+      this.nodeService.initPortOrdering();
+      this.nodeService.connectionsUpdated();
       this.nodeService.transitionsUpdated();
-      this.nodeService.nodesUpdated();
       this.trainrunsUpdated();
     }
     this.operation.emit(new TrainrunOperation(OperationType.create, copiedtrainrun));
