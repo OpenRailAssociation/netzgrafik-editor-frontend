@@ -831,6 +831,7 @@ export class TrainrunSectionService implements OnDestroy {
     });
     if (lastTrs !== undefined) {
       this.deleteTrainrunSectionAndCleanupNodes(lastTrs, false);
+      this.nodeService.initPortOrdering();
       this.nodeService.transitionsUpdated();
       this.nodeService.connectionsUpdated();
       this.trainrunService.trainrunsUpdated();
