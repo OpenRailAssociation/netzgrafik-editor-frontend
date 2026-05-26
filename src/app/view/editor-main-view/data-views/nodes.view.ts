@@ -748,7 +748,7 @@ export class NodesView {
     }
 
     if (existingTrainrunSection === null) {
-      const sourceObj = d3.select(
+      const sourceObj = d3.select<SVGRectElement, undefined>(
         StaticDomTags.NODE_DOCKABLE_DOM_REF + '[id="' + startNode.getId() + '"]',
       );
       const sourceRect: DOMRect = sourceObj.node().getBoundingClientRect();
@@ -761,7 +761,7 @@ export class NodesView {
         endNode.getPositionX() + endNode.getNodeWidth() / 2,
         endNode.getPositionY() + endNode.getNodeHeight() / 2,
       );
-      const targetObj = d3.select(
+      const targetObj = d3.select<SVGRectElement, undefined>(
         StaticDomTags.NODE_DOCKABLE_DOM_REF + '[id="' + endNode.getId() + '"]',
       );
       if (targetObj.node() !== null) {

@@ -65,7 +65,7 @@ export class SVGMouseController {
 
   init(viewboxProperties: ViewboxProperties) {
     this.viewboxProperties = viewboxProperties;
-    const element = d3.select("html").node();
+    const element = d3.select<HTMLElement, undefined>("html").node();
     const rectHtml = element.getBoundingClientRect();
     const height = rectHtml.height;
     const width = rectHtml.width;

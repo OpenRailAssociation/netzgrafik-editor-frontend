@@ -154,7 +154,9 @@ export class TrainrunSectionPreviewLineView {
       return;
     }
     this.mode = PreviewLineMode.DragNewTrainrunSection;
-    const mousePosition = d3.mouse(d3.select(StaticDomTags.PREVIEW_LINE_ROOT_DOM_REF).node());
+    const mousePosition = d3.mouse(
+      d3.select<SVGGElement, undefined>(StaticDomTags.PREVIEW_LINE_ROOT_DOM_REF).node(),
+    );
     const startPosition = new Vec2D(mousePosition[0], mousePosition[1]);
     const startNode: Node = this.nodeService.getNodeFromId(nodeId);
     this.startPreviewLineAtPosition(startNode, startPosition);
