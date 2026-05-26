@@ -902,10 +902,6 @@ export class NodesView {
             if (obj.attr(StaticDomTags.EDGE_NODE_ID) === "" + node.getId()) {
               if (obj.attr(StaticDomTags.EDGE_ID) !== "" + ts.getId()) {
                 if (obj.attr(StaticDomTags.EDGE_LINE_LINE_ID) !== "" + ts.getTrainrunId()) {
-                  // general case: only allow connection if the trainrun section belongs
-                  //  to a different trainrun than the dragged trainrun section
-                  obj.classed(StaticDomTags.EDGE_LINE_PIN_CONNECTION, hover);
-
                   // special cases for one-way trainrun sections: only allow connections in the feasible direction
                   const portFrom = node.getPortOfTrainrunSection(ts.getId());
                   const trID = obj.attr(StaticDomTags.EDGE_ID);
