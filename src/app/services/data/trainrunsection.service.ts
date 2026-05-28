@@ -1343,7 +1343,7 @@ export class TrainrunSectionService implements OnDestroy {
     const trainrunId = trainrunMap.get(trainrunSection.trainrunId);
     const trainrun = this.trainrunService.getTrainrunFromId(trainrunId);
 
-    const newTrainrunSection: TrainrunSection = new TrainrunSection();
+    const newTrainrunSection: TrainrunSection = new TrainrunSection(trainrunSection);
     newTrainrunSection.setTrainrun(trainrun);
 
     const sourceNodeId = nodeMap.get(trainrunSection.sourceNodeId);
@@ -1352,15 +1352,6 @@ export class TrainrunSectionService implements OnDestroy {
     const targetNode = this.nodeService.getNodeFromId(targetNodeId);
     newTrainrunSection.setSourceAndTargetNodeReference(sourceNode, targetNode);
 
-    newTrainrunSection.setSourceSymmetry(trainrunSection.sourceSymmetry);
-    newTrainrunSection.setTargetSymmetry(trainrunSection.targetSymmetry);
-    newTrainrunSection.setSourceArrivalDto(trainrunSection.sourceArrival);
-    newTrainrunSection.setTargetArrivalDto(trainrunSection.targetArrival);
-    newTrainrunSection.setSourceDepartureDto(trainrunSection.sourceDeparture);
-    newTrainrunSection.setTargetDepartureDto(trainrunSection.targetDeparture);
-    newTrainrunSection.setTravelTimeDto(trainrunSection.travelTime);
-    newTrainrunSection.setBackwardTravelTimeDto(trainrunSection.backwardTravelTime);
-    newTrainrunSection.setNumberOfStops(trainrunSection.numberOfStops);
     this.trainrunSectionsStore.trainrunSections.push(newTrainrunSection);
     const sourceIsNonStop = this.getIsNonStop(
       trainrunSection.sourceNodeId,
