@@ -795,6 +795,7 @@ export class TrainrunSectionService implements OnDestroy {
         );
       });
     if (enforceUpdate) {
+      this.nodeService.initPortOrdering();
       this.nodeService.transitionsUpdated();
       this.nodeService.connectionsUpdated();
       this.trainrunSectionsUpdated();
