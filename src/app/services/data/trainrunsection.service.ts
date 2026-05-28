@@ -636,7 +636,10 @@ export class TrainrunSectionService implements OnDestroy {
     // Ensure consistent section direction considering the previous ones
     this.enforceConsistentSectionDirection(trainrunSection.getTrainrunId());
 
-    //this.trainrunSectionsUpdated();
+    this.nodeService.initPortOrdering();
+    this.nodeService.connectionsUpdated();
+    this.nodeService.transitionsUpdated();
+    this.trainrunSectionsUpdated();
     this.trainrunService.trainrunsUpdated();
 
     if (initialTrainrunsLength !== this.trainrunService.trainrunsStore.trainruns.length) {
