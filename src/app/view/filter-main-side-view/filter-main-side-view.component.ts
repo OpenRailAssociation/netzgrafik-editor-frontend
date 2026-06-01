@@ -72,7 +72,7 @@ export class FilterMainSideViewComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.uiInteractionService.nodeStammdatenWindow
+    this.uiInteractionService.nodeBaseDataWindow
       .pipe(takeUntil(this.destroyed))
       .subscribe((open: boolean) => {
         if (open) {

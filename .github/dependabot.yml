@@ -23,6 +23,7 @@ updates:
       prefix: "chore(deps):"
     labels:
       - "dependencies"
+    open-pull-requests-limit: 100
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -34,6 +35,7 @@ updates:
     labels:
       - "dependencies"
       - "area:ci"
+    open-pull-requests-limit: 100
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
@@ -44,3 +46,4 @@ updates:
       prefix: "chore(deps):"
     labels:
       - "dependencies"
+    open-pull-requests-limit: 100

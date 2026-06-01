@@ -3,7 +3,7 @@ import {NodeService} from "../../../services/data/node.service";
 import {ResourceService} from "../../../services/data/resource.service";
 import {TrainrunService} from "../../../services/data/trainrun.service";
 import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
-import {StammdatenService} from "../../../services/data/stammdaten.service";
+import {BaseDataService} from "../../../services/data/basedata.service";
 import {NoteService} from "../../../services/data/note.service";
 import {Node} from "../../../models/node.model";
 import {TrainrunSection} from "../../../models/trainrunsection.model";
@@ -32,7 +32,7 @@ describe("3d.Utils.tests", () => {
   let resourceService: ResourceService;
   let trainrunService: TrainrunService;
   let trainrunSectionService: TrainrunSectionService;
-  let stammdatenService: StammdatenService;
+  let baseDataService: BaseDataService;
   let noteService: NoteService;
   let nodes: Node[] = null;
   let trainrunSections: TrainrunSection[] = null;
@@ -49,7 +49,7 @@ describe("3d.Utils.tests", () => {
   let editorView: EditorView = null;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -73,7 +73,7 @@ describe("3d.Utils.tests", () => {
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,
@@ -96,7 +96,7 @@ describe("3d.Utils.tests", () => {
       filterService,
       nodeService,
       noteService,
-      stammdatenService,
+      baseDataService,
       trainrunSectionService,
       trainrunService,
       netzgrafikColoringService,
@@ -147,6 +147,7 @@ describe("3d.Utils.tests", () => {
       uiInteractionService,
       noteService,
       undefined,
+      dataService,
       undoService,
       copyService,
       logService,

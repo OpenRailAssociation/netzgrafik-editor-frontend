@@ -203,7 +203,7 @@ export class EditorKeyEvents {
     this.nodeService.deleteNodeUndockTransitions(nodeId, false, false);
 
     if (wasSelected) {
-      this.uiInteractionService.closeNodeStammdaten();
+      this.uiInteractionService.closeNodeBaseData();
     }
   }
 
@@ -770,7 +770,7 @@ export class EditorKeyEvents {
     this.netzgrafikElementsUpdated();
 
     if (selectedNodeDeleted) {
-      this.uiInteractionService.closeNodeStammdaten();
+      this.uiInteractionService.closeNodeBaseData();
     }
   }
 
@@ -784,7 +784,7 @@ export class EditorKeyEvents {
     });
 
     if (selectedNodeDeleted) {
-      this.uiInteractionService.closeNodeStammdaten();
+      this.uiInteractionService.closeNodeBaseData();
     }
   }
 
@@ -847,7 +847,7 @@ export class EditorKeyEvents {
       const selNodeDelete = this.nodeService.isNodeSelected(hoveredNodeId);
       this.nodeService.deleteNode(hoveredNodeId);
       if (selNodeDelete) {
-        this.uiInteractionService.closeNodeStammdaten();
+        this.uiInteractionService.closeNodeBaseData();
       }
       return true;
     }

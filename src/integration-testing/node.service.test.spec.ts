@@ -1,7 +1,7 @@
 import {NodeService} from "../app/services/data/node.service";
 import {TrainrunService} from "../app/services/data/trainrun.service";
 import {TrainrunSectionService} from "../app/services/data/trainrunsection.service";
-import {StammdatenService} from "../app/services/data/stammdaten.service";
+import {BaseDataService} from "../app/services/data/basedata.service";
 import {DataService} from "../app/services/data/data.service";
 import {Node} from "../app/models/node.model";
 import {TrainrunSection} from "../app/models/trainrunsection.model";
@@ -15,7 +15,7 @@ import {NetzgrafikUnitTestingTransition} from "./netzgrafik.unit.testing.transit
 import {NoteService} from "../app/services/data/note.service";
 import {LabelService} from "../app/services/data/label.service";
 import {LabelGroupService} from "../app/services/data/labelgroup.service";
-import {LabelRef} from "../app/data-structures/business.data.structures";
+import {Direction, LabelRef} from "../app/data-structures/business.data.structures";
 import {FilterService} from "../app/services/ui/filter.service";
 import {NetzgrafikColoringService} from "../app/services/data/netzgrafikColoring.service";
 
@@ -28,7 +28,7 @@ describe("NodeService Test", () => {
   let resourceService: ResourceService = null;
   let trainrunService: TrainrunService = null;
   let trainrunSectionService: TrainrunSectionService = null;
-  let stammdatenService: StammdatenService = null;
+  let baseDataService: BaseDataService = null;
   let noteService: NoteService = null;
   let logService: LogService = null;
   let logPublishersService: LogPublishersService = null;
@@ -38,7 +38,7 @@ describe("NodeService Test", () => {
   let netzgrafikColoringService: NetzgrafikColoringService = null;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -62,7 +62,7 @@ describe("NodeService Test", () => {
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,
@@ -618,6 +618,53 @@ describe("NodeService Test", () => {
     expect(trainrunSections.length).toBe(8);
 
     nodeService.addConnectionToNode(1, 0, 2);
+    const node1 = nodeService.getNodeFromId(1);
+    const connections = node1.getConnections();
+    expect(connections.length).toBe(1);
+  });
+
+  it("add connection test : one-way case 1", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    expect(trainrunSections.length).toBe(8);
+
+    const t1 = trainrunSectionService.getTrainrunSectionFromId(0);
+    t1.getTrainrun().setDirection(Direction.ONE_WAY);
+
+    nodeService.addConnectionToNode(1, 0, 2);
+    nodeService.addConnectionToNode(1, 2, 0);
+
+    const node1 = nodeService.getNodeFromId(1);
+    const connections = node1.getConnections();
+    expect(connections.length).toBe(1);
+  });
+
+  it("add connection test : one-way case 2", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    expect(trainrunSections.length).toBe(8);
+
+    const t2 = trainrunSectionService.getTrainrunSectionFromId(2);
+    t2.getTrainrun().setDirection(Direction.ONE_WAY);
+
+    nodeService.addConnectionToNode(1, 0, 2);
+    nodeService.addConnectionToNode(1, 2, 0);
+
+    const node1 = nodeService.getNodeFromId(1);
+    const connections = node1.getConnections();
+    expect(connections.length).toBe(1);
+  });
+
+  it("add connection test : one-way case 3", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    expect(trainrunSections.length).toBe(8);
+
+    const t1 = trainrunSectionService.getTrainrunSectionFromId(0);
+    t1.getTrainrun().setDirection(Direction.ONE_WAY);
+    const t2 = trainrunSectionService.getTrainrunSectionFromId(2);
+    t2.getTrainrun().setDirection(Direction.ONE_WAY);
+
+    nodeService.addConnectionToNode(1, 0, 2);
+    nodeService.addConnectionToNode(1, 2, 0);
+
     const node1 = nodeService.getNodeFromId(1);
     const connections = node1.getConnections();
     expect(connections.length).toBe(1);

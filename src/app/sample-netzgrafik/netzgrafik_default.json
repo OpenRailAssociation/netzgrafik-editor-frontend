@@ -469,7 +469,9 @@
         "colorDarkModeMuted": "#000000",
         "colorDarkModeRelated": "#767676"
       }
-    ]
+    ],
+    "orderingAlgorithm": 0,
+    "trafficSide": "leftHand"
   },
   "freeFloatingTexts": [],
   "labels": [],

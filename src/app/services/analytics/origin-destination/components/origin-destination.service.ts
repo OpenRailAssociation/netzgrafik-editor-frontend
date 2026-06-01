@@ -60,7 +60,7 @@ export class OriginDestinationService {
     // TODO: ideally this would be 24 hours, but performance is a concern.
     // One idea to optimize would be to consider the minimum time window before the schedule repeats (LCM).
     // Draft here: https://colab.research.google.com/drive/1Z1r2uU2pgffWxCbG_wt2zoLStZKzWleE#scrollTo=F6vOevK6znee
-    const timeLimit = 16 * 60;
+    const timeLimit = 24 * 60;
 
     const metadata = this.dataService.getNetzgrafikDto().metadata;
     // The cost to add for each connection.
@@ -85,8 +85,8 @@ export class OriginDestinationService {
     const res = new Map<string, [number, number]>();
     odNodes.forEach((origin) => {
       computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
-        (value, key) => {
-          res.set([origin.getId(), key].join(","), value);
+        ([cost, connections, _trainrunSectionIds], key) => {
+          res.set([origin.getId(), key].join(","), [cost, connections]);
         },
       );
     });

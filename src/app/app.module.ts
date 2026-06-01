@@ -41,7 +41,7 @@ import {EditorNodeDetailViewComponent} from "./view/editor-side-view/editor-node
 import {EditorFilterViewComponent} from "./view/editor-filter-view/editor-filter-view.component";
 import {EditorMenuComponent} from "./view/editor-menu/editor-menu.component";
 import {EditorSideViewComponent} from "./view/editor-side-view/editor-side-view.component";
-import {StammdatenDialogComponent} from "./view/dialogs/stammdaten-dialog/stammdaten-dialog.component";
+import {BaseDataDialogComponent} from "./view/dialogs/basedata-dialog/basedata-dialog.component";
 import {TrainrunAndSectionDialogComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrun-and-section-dialog.component";
 import {ConfirmationDialogComponent} from "./view/dialogs/confirmation-dialog/confirmation-dialog.component";
 import {FilterMainSideViewComponent} from "./view/filter-main-side-view/filter-main-side-view.component";
@@ -124,7 +124,7 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     TrainrunSectionCardComponent,
     EditorNodeDetailViewComponent,
     EditorFilterViewComponent,
-    StammdatenDialogComponent,
+    BaseDataDialogComponent,
     EditorMenuComponent,
     EditorSideViewComponent,
     TrainrunAndSectionDialogComponent,

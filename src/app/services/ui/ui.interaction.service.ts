@@ -1,13 +1,13 @@
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {EditorMode} from "../../view/editor-menu/editor-mode";
 import {EventEmitter, Injectable, OnDestroy} from "@angular/core";
-import {Stammdaten} from "../../models/stammdaten.model";
+import {BaseData} from "../../models/basedata.model";
 import {TrainrunDialogParameter} from "../../view/dialogs/trainrun-and-section-dialog/trainrun-and-section-dialog.component";
 import {ThemeBase} from "../../view/themes/theme-base";
 import {ConfirmationDialogParameter} from "../../view/dialogs/confirmation-dialog/confirmation-dialog.component";
 import {FilterService} from "./filter.service";
 import {NodeService} from "../data/node.service";
-import {StammdatenService} from "../data/stammdaten.service";
+import {BaseDataService} from "../data/basedata.service";
 import {InformSelectedTrainrunClick, TrainrunSectionService} from "../data/trainrunsection.service";
 import {Vec2D} from "../../utils/vec2D";
 import {FilterWindowType} from "../../view/filter-main-side-view/filter-main-side-view.component";
@@ -49,11 +49,11 @@ export interface ViewboxProperties {
   providedIn: "root",
 })
 export class UiInteractionService implements OnDestroy {
-  updateNodeStammdatenSubject = new Subject<void>();
-  readonly updateNodeStammdatenWindow = this.updateNodeStammdatenSubject.asObservable();
+  updateNodeBaseDataSubject = new Subject<void>();
+  readonly updateNodeBaseDataWindow = this.updateNodeBaseDataSubject.asObservable();
 
-  showNodeStammdatenSubject = new Subject<boolean>();
-  readonly nodeStammdatenWindow = this.showNodeStammdatenSubject.asObservable();
+  showNodeBaseDataSubject = new Subject<boolean>();
+  readonly nodeBaseDataWindow = this.showNodeBaseDataSubject.asObservable();
 
   showFilterSubject = new Subject<FilterWindowType | null>();
   readonly filterWindow = this.showFilterSubject.asObservable();
@@ -77,8 +77,9 @@ export class UiInteractionService implements OnDestroy {
   showConfirmationDiagramDialogSubject = new Subject<ConfirmationDialogParameter>();
   readonly confirmationDiagramDialog = this.showConfirmationDiagramDialogSubject.asObservable();
 
-  showStammdatenEditDialogSubject = new Subject<Stammdaten[]>();
-  readonly stammdatenEditDialog = this.showStammdatenEditDialogSubject.asObservable();
+  showBaseDataEditDialogSubject = new Subject<BaseData[]>();
+  readonly baseDataEditDialog = this.showBaseDataEditDialogSubject.asObservable();
+  readonly stammdatenEditDialog = this.baseDataEditDialog;
 
   zoomInSubject = new Subject<Vec2D>();
   readonly zoomInObservable = this.zoomInSubject.asObservable();
@@ -110,7 +111,6 @@ export class UiInteractionService implements OnDestroy {
   private activeTheme: ThemeBase = null;
   private activeStreckengrafikRenderingType: StreckengrafikRenderingType = null;
   private activeTravelTimeCreationEstimatorType: TravelTimeCreationEstimatorType = null;
-  private activeTrafficSideType: TrafficSide = "leftHand";
   private editorMode: EditorMode = EditorMode.NetzgrafikEditing;
   private isMultiSelectedNodesCorridor = false;
 
@@ -123,7 +123,7 @@ export class UiInteractionService implements OnDestroy {
     private filterService: FilterService,
     private nodeService: NodeService,
     private noteService: NoteService,
-    private stammdatenService: StammdatenService,
+    private baseDataService: BaseDataService,
     private trainrunSectionService: TrainrunSectionService,
     private trainrunService: TrainrunService,
     private netzgrafikColoringService: NetzgrafikColoringService,
@@ -168,11 +168,11 @@ export class UiInteractionService implements OnDestroy {
         this.oldSelectedTrainrunId = null;
       });
 
-    this.stammdatenService.stammdatenObservable
+    this.baseDataService.baseDataObservable
       .pipe(takeUntil(this.destroyed))
-      .subscribe((stammdaten: Stammdaten[]) => {
-        this.updateNodeStammdaten();
-        this.showStammdatenEditDialog(stammdaten);
+      .subscribe((baseData: BaseData[]) => {
+        this.updateNodeBaseData();
+        this.showBaseDataEditDialog(baseData);
       });
     this.filterWindow.pipe(takeUntil(this.destroyed)).subscribe((type: FilterWindowType | null) => {
       this.filterWindowType = type;
@@ -303,11 +303,10 @@ export class UiInteractionService implements OnDestroy {
   }
 
   getActiveTrafficSideType(): TrafficSide {
-    return this.activeTrafficSideType || this.dataService.getTrafficSide();
+    return this.dataService.getTrafficSide();
   }
 
   setActiveTrafficSideType(activeTrafficSideType: TrafficSide) {
-    this.activeTrafficSideType = activeTrafficSideType;
     this.dataService.setTrafficSide(activeTrafficSideType);
     this.trainrunSectionService.updateText();
     this.trainrunSectionService.trainrunSectionsUpdated();
@@ -329,17 +328,17 @@ export class UiInteractionService implements OnDestroy {
     this.trainrunSectionService.trainrunSectionsUpdated();
   }
 
-  updateNodeStammdaten() {
-    this.updateNodeStammdatenSubject.next();
+  updateNodeBaseData() {
+    this.updateNodeBaseDataSubject.next();
   }
 
-  showNodeStammdaten() {
-    this.updateNodeStammdatenSubject.next();
-    this.showNodeStammdatenSubject.next(true);
+  showNodeBaseData() {
+    this.updateNodeBaseDataSubject.next();
+    this.showNodeBaseDataSubject.next(true);
   }
 
-  closeNodeStammdaten() {
-    this.showNodeStammdatenSubject.next(false);
+  closeNodeBaseData() {
+    this.showNodeBaseDataSubject.next(false);
   }
 
   showNetzgrafik() {
@@ -414,8 +413,8 @@ export class UiInteractionService implements OnDestroy {
     return confirmationDiagramParameter.dialogFeedback;
   }
 
-  showStammdatenEditDialog(stammdaten: Stammdaten[]) {
-    this.showStammdatenEditDialogSubject.next(stammdaten);
+  showBaseDataEditDialog(baseData: BaseData[]) {
+    this.showBaseDataEditDialogSubject.next(baseData);
   }
 
   zoomIn(zoomCenter: Vec2D) {

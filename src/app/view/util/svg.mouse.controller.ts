@@ -74,11 +74,13 @@ export class SVGMouseController {
 
     this.svgDrawingContext = d3.select("#" + this.svgName);
     this.svgDrawingContext
-      .attr("oncontextmenu", "return false;")
       .attr("x", rectHtml.x)
       .attr("y", rectHtml.y)
       .attr("height", height)
-      .attr("width", width);
+      .attr("width", width)
+      .on("contextmenu", () => {
+        d3.event.preventDefault();
+      });
 
     if (this.svgDrawingContext.node() === null) {
       return undefined;

@@ -152,6 +152,13 @@ The user manual can be found here [USERMANUAL.md](documentation/USERMANUAL.md)
 
 ( [Sample Netzgrafik](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/src/app/sample-netzgrafik/Demo_Netzgrafik_Fernverkehr_2024.json) - [How to Import JSON](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL_JSON.md) )
 
+## Packages
+
+Netzgrafik-Editor is published:
+
+- [As a Docker image](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/pkgs/container/netzgrafik-editor-frontend), for use in a Docker environment
+- [As a NPM package](https://www.npmjs.com/package/@openrail/netzgrafik-editor-frontend), for integration in another webapp
+
 ## Setup Local Demo Environment with Docker Compose
 
 Use [extern: netzgrafik-editor-docker-compose](https://github.com/flatland-association/netzgrafik-editor-docker-compose) for a one-line setup based

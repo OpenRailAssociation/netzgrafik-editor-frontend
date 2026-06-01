@@ -3,7 +3,7 @@ import {NodeService} from "../data/node.service";
 import {ResourceService} from "../data/resource.service";
 import {TrainrunService} from "../data/trainrun.service";
 import {TrainrunSectionService} from "../data/trainrunsection.service";
-import {StammdatenService} from "../data/stammdaten.service";
+import {BaseDataService} from "../data/basedata.service";
 import {NoteService} from "../data/note.service";
 import {Node} from "../../models/node.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
@@ -12,7 +12,7 @@ import {LogPublishersService} from "../../logger/log.publishers.service";
 import {LabelGroupService} from "../data/labelgroup.service";
 import {LabelService} from "../data/label.service";
 import {NetzgrafikUnitTesting} from "../../../integration-testing/netzgrafik.unit.testing";
-import {FilterService} from "../ui/filter.service";
+import {FilterService} from "./filter.service";
 import {AnalyticsService} from "../analytics/analytics.service";
 import {NetzgrafikColoringService} from "../data/netzgrafikColoring.service";
 import {FilterSetting} from "../../models/filterSettings.model";
@@ -23,7 +23,7 @@ describe("FilterService", () => {
   let resourceService: ResourceService;
   let trainrunService: TrainrunService;
   let trainrunSectionService: TrainrunSectionService;
-  let stammdatenService: StammdatenService;
+  let baseDataService: BaseDataService;
   let noteService: NoteService;
   let nodes: Node[] = null;
   let trainrunSections: TrainrunSection[] = null;
@@ -37,7 +37,7 @@ describe("FilterService", () => {
   let gotFilterChangedSignal = false;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -61,7 +61,7 @@ describe("FilterService", () => {
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,
@@ -69,12 +69,7 @@ describe("FilterService", () => {
       netzgrafikColoringService,
     );
     nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
-    analyticsService = new AnalyticsService(
-      nodeService,
-      trainrunSectionService,
-      trainrunService,
-      filterService,
-    );
+    analyticsService = new AnalyticsService(nodeService, trainrunSectionService, trainrunService);
 
     nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
     trainrunSectionService.trainrunSections.subscribe(

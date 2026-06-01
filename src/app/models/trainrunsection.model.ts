@@ -78,7 +78,10 @@ export class TrainrunSection {
       trainrunId,
       resourceId,
       specificTrainrunSectionFrequencyId,
-      path,
+      path = {
+        path: [],
+        textPositions: {...EMPTY_TEXT_POSITIONS},
+      },
       warnings,
     }: TrainrunSectionDto = {
       id: TrainrunSection.incrementId(),

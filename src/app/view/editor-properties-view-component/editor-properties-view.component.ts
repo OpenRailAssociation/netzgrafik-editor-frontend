@@ -205,7 +205,6 @@ export class EditorPropertiesViewComponent {
       .map((v) => parseInt(v, 10));
     document.body.removeChild(a);
     if (colors.length >= 3) {
-      // eslint-disable-next-line no-bitwise
       return (
         "#" +
         ((1 << 24) + (colors[0] << 16) + (colors[1] << 8) + colors[2]).toString(16).substring(1)
