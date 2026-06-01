@@ -5,8 +5,6 @@
     "start:local": "ng serve --configuration=local",
     "start:standalone": "ng serve --configuration=standalone",
     "start:standalonedemo": "ng serve --configuration=standalonedemo",
-    "e2e:browserstack": "ng e2e -c browserstack",
-    "e2e:puppeteer": "ng e2e -c puppeteer",
     "build": "ng run netzgrafik-frontend:ngsscbuild",
     "build:standalone": "ng build --configuration=standalone",
     "build:standalonedemo": "ng build --configuration=standalonedemo",
@@ -15,7 +13,6 @@
     "format:check": "prettier --check .",
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
-    "e2e": "ng e2e",
     "generate:api": "openapi-generator-cli generate",
     "local-test": "ng test --watch --code-coverage",
     "extract-i18n": "ng extract-i18n"
