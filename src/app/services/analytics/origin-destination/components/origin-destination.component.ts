@@ -12,6 +12,8 @@ import {Vec2D} from "src/app/utils/vec2D";
 import {UndoService} from "src/app/services/data/undo.service";
 import {FilterService} from "../../../ui/filter.service";
 import {NodeService} from "../../../data/node.service";
+import {TrainrunService} from "../../../data/trainrun.service";
+import {TrainrunSectionService} from "../../../data/trainrunsection.service";
 
 type FieldName = "totalCost" | "travelTime" | "transfers";
 type ColorSetName = "red" | "blue" | "orange" | "gray";
@@ -38,6 +40,8 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
     private undoService: UndoService,
     private filterService: FilterService,
     private nodeService: NodeService,
+    private trainrunService: TrainrunService,
+    private trainrunSectionService: TrainrunSectionService,
   ) {}
 
   private matrixData: OriginDestination[] = [];
@@ -110,6 +114,20 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       } else {
         this.renderView();
       }
+    });
+
+    // trainrun change should only reload and redraw
+    this.trainrunService.trainruns.pipe(takeUntil(this.destroyed$)).subscribe(() => {
+      this.loadMatrixData();
+      d3.select("#main-origin-destination-container").remove();
+      this.renderView();
+    });
+
+    // trainrunSection change should only reload and redraw
+    this.trainrunSectionService.trainrunSections.pipe(takeUntil(this.destroyed$)).subscribe(() => {
+      this.loadMatrixData();
+      d3.select("#main-origin-destination-container").remove();
+      this.renderView();
     });
   }
 
