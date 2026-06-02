@@ -32,7 +32,7 @@
     "@angular/cdk": "^19.2.19",
     "@angular/common": "^19.2.21",
     "@angular/compiler": "^19.2.21",
-    "@angular/core": "^19.2.21",
+    "@angular/core": "^21.2.15",
     "@angular/elements": "^19.2.21",
     "@angular/forms": "^19.2.21",
     "@angular/localize": "^19.2.21",
