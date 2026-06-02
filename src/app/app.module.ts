@@ -6,7 +6,6 @@ import {createCustomElement} from "@angular/elements";
 import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from "@angular/common/http";
 import {OAuthModule} from "angular-oauth2-oidc";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {SbbAccordionModule} from "@sbb-esta/angular/accordion";
 import {SbbAutocompleteModule} from "@sbb-esta/angular/autocomplete";
 import {SbbBreadcrumbModule} from "@sbb-esta/angular/breadcrumb";
@@ -192,7 +191,6 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     BrowserModule,
     FormsModule,
     ReactiveFormsModule,
-    BrowserAnimationsModule,
     DragDropModule,
     AppRoutingModule,
     NgxEditorModule,
