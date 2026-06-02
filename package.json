@@ -36,7 +36,7 @@
     "@angular/elements": "^19.2.21",
     "@angular/forms": "^19.2.21",
     "@angular/localize": "^19.2.21",
-    "@angular/platform-browser": "^19.2.21",
+    "@angular/platform-browser": "^21.2.15",
     "@angular/platform-browser-dynamic": "^19.2.21",
     "@angular/router": "^19.2.21",
     "@sbb-esta/angular": "^19.1.6",
