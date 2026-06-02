@@ -34,7 +34,7 @@
     "@angular/compiler": "^19.2.21",
     "@angular/core": "^19.2.21",
     "@angular/elements": "^19.2.21",
-    "@angular/forms": "^19.2.21",
+    "@angular/forms": "^21.2.15",
     "@angular/localize": "^19.2.21",
     "@angular/platform-browser": "^19.2.21",
     "@angular/platform-browser-dynamic": "^19.2.21",
