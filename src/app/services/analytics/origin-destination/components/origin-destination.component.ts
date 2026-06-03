@@ -2,7 +2,7 @@ import {OriginDestination, OriginDestinationService} from "./origin-destination.
 import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import * as d3 from "d3";
 
-import {Subject, takeUntil} from "rxjs";
+import {Subject, takeUntil, merge} from "rxjs";
 import {
   SVGMouseController,
   SVGMouseControllerObserver,
@@ -105,30 +105,22 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .pipe(takeUntil(this.destroyed$))
       .subscribe((zoomCenter: Vec2D) => this.controller.zoomReset(zoomCenter));
 
-    // filter changes should only reload and redraw
-    this.filterService.filter.pipe(takeUntil(this.destroyed$)).subscribe(() => {
-      this.loadMatrixData();
-      d3.select("#main-origin-destination-container").remove();
-      if (this.controller) {
-        this.renderView(this.controller.getViewboxProperties());
-      } else {
-        this.renderView();
-      }
-    });
-
-    // trainrun change should only reload and redraw
-    this.trainrunService.trainruns.pipe(takeUntil(this.destroyed$)).subscribe(() => {
-      this.loadMatrixData();
-      d3.select("#main-origin-destination-container").remove();
-      this.renderView();
-    });
-
-    // trainrunSection change should only reload and redraw
-    this.trainrunSectionService.trainrunSections.pipe(takeUntil(this.destroyed$)).subscribe(() => {
-      this.loadMatrixData();
-      d3.select("#main-origin-destination-container").remove();
-      this.renderView();
-    });
+    // filter / trainrun / trainrunSection changes should reload and redraw
+    merge(
+      this.filterService.filter,
+      this.trainrunService.trainruns,
+      this.trainrunSectionService.trainrunSections,
+    )
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe(() => {
+        this.loadMatrixData();
+        d3.select("#main-origin-destination-container").remove();
+        if (this.controller) {
+          this.renderView(this.controller.getViewboxProperties());
+        } else {
+          this.renderView();
+        }
+      });
   }
 
   ngAfterViewInit(): void {
