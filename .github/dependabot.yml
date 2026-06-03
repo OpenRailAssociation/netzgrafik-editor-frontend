@@ -10,8 +10,6 @@ updates:
       angular:
         patterns:
           - "@angular/*"
-          - "@angular-devkit/*"
-          - "@angular-eslint/*"
       typescript-eslint:
         patterns:
           - "@typescript-eslint/*"
