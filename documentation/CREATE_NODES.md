@@ -103,7 +103,7 @@ If you want to move a node process as follows:
 
 #### Multi-select nodes
 
-When you use the `left mouse button` pressed and drag a box - you can select multiple nodes. Once you have them selected you can drag (move) the nodes like a single one but now as a group.
+When you use the `right mouse button` pressed and drag a box - you can select multiple nodes. Once you have them selected you can drag (move) the nodes like a single one but now as a group.
 
 [chrome-capture-2025-11-21.webm](https://github.com/user-attachments/assets/9ddc0104-4e11-4b09-bfcc-e3197f793de6)
 
