@@ -61,7 +61,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
     return odList.filter((od) => od["found"]).map((od) => od[field]);
   }
 
-  private renderView() {
+  private renderView(viewboxProperties?: ViewboxProperties): void {
     if (!this.isReadyToRender) {
       return;
     }
@@ -80,7 +80,11 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       this.createSvgMouseControllerObserver(),
       this.undoService,
     );
-    this.controller.init(this.createInitialViewboxProperties(nodeNames.length));
+    if (viewboxProperties) {
+      this.controller.init(viewboxProperties);
+    } else {
+      this.controller.init(this.createInitialViewboxProperties(nodeNames.length));
+    }
   }
 
   // Compute the matrix (expensive) and render the default view.
@@ -101,7 +105,11 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
     this.filterService.filter.pipe(takeUntil(this.destroyed$)).subscribe(() => {
       this.loadMatrixData();
       d3.select("#main-origin-destination-container").remove();
-      this.renderView();
+      if (this.controller) {
+        this.renderView(this.controller.getViewboxProperties());
+      } else {
+        this.renderView();
+      }
     });
   }
 
@@ -434,14 +442,14 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
   onChangePalette(name: ColorSetName) {
     this.colorSetName = name;
     d3.select("#main-origin-destination-container").remove();
-    this.renderView();
+    this.renderView(this.controller.getViewboxProperties());
   }
 
   // Update color field and re-render the view.
   onChangeColorBy(field: FieldName) {
     this.colorBy = field;
     d3.select("#main-origin-destination-container").remove();
-    this.renderView();
+    this.renderView(this.controller.getViewboxProperties());
   }
 
   // Update display field and re-render the view.
@@ -449,6 +457,6 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
     // TODO: why is that needed?
     this.displayBy = field;
     d3.select("#main-origin-destination-container").remove();
-    this.renderView();
+    this.renderView(this.controller.getViewboxProperties());
   }
 }
