@@ -2,7 +2,7 @@ import {OriginDestination, OriginDestinationService} from "./origin-destination.
 import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import * as d3 from "d3";
 
-import {Subject, takeUntil} from "rxjs";
+import {Subject, takeUntil, merge} from "rxjs";
 import {
   SVGMouseController,
   SVGMouseControllerObserver,
@@ -12,6 +12,8 @@ import {Vec2D} from "src/app/utils/vec2D";
 import {UndoService} from "src/app/services/data/undo.service";
 import {FilterService} from "../../../ui/filter.service";
 import {NodeService} from "../../../data/node.service";
+import {TrainrunService} from "../../../data/trainrun.service";
+import {TrainrunSectionService} from "../../../data/trainrunsection.service";
 
 type FieldName = "totalCost" | "travelTime" | "transfers";
 type ColorSetName = "red" | "blue" | "orange" | "gray";
@@ -38,6 +40,8 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
     private undoService: UndoService,
     private filterService: FilterService,
     private nodeService: NodeService,
+    private trainrunService: TrainrunService,
+    private trainrunSectionService: TrainrunSectionService,
   ) {}
 
   private matrixData: OriginDestination[] = [];
@@ -101,16 +105,22 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .pipe(takeUntil(this.destroyed$))
       .subscribe((zoomCenter: Vec2D) => this.controller.zoomReset(zoomCenter));
 
-    // filter changes should only reload and redraw
-    this.filterService.filter.pipe(takeUntil(this.destroyed$)).subscribe(() => {
-      this.loadMatrixData();
-      d3.select("#main-origin-destination-container").remove();
-      if (this.controller) {
-        this.renderView(this.controller.getViewboxProperties());
-      } else {
-        this.renderView();
-      }
-    });
+    // filter / trainrun / trainrunSection changes should reload and redraw
+    merge(
+      this.filterService.filter,
+      this.trainrunService.trainruns,
+      this.trainrunSectionService.trainrunSections,
+    )
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe(() => {
+        this.loadMatrixData();
+        d3.select("#main-origin-destination-container").remove();
+        if (this.controller) {
+          this.renderView(this.controller.getViewboxProperties());
+        } else {
+          this.renderView();
+        }
+      });
   }
 
   ngAfterViewInit(): void {
