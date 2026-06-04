@@ -230,6 +230,7 @@ export class TrainrunService {
 
     this.nodeService.reorderPortsOnNodesForTrainrun(trainrun, false);
     this.propagateTrainrunInitialConsecutiveTimes(trainrun);
+    this.nodeService.initPortOrdering();
     this.trainrunsUpdated();
     this.operation.emit(new TrainrunOperation(OperationType.update, trainrun));
     return freqOffset;
@@ -242,6 +243,7 @@ export class TrainrunService {
     }
     this.getTrainrunFromId(trainrun.getId()).setTrainrunCategory(category);
     this.nodeService.reorderPortsOnNodesForTrainrun(trainrun, false);
+    this.nodeService.initPortOrdering();
     this.trainrunsUpdated();
     this.operation.emit(new TrainrunOperation(OperationType.update, trainrun));
   }
@@ -254,6 +256,7 @@ export class TrainrunService {
 
     this.getTrainrunFromId(trainrun.getId()).setTrainrunTimeCategory(timeCategory);
     this.nodeService.reorderPortsOnNodesForTrainrun(trainrun, false);
+    this.nodeService.initPortOrdering();
     this.trainrunsUpdated();
     this.operation.emit(new TrainrunOperation(OperationType.update, trainrun));
   }
@@ -261,6 +264,7 @@ export class TrainrunService {
   updateTrainrunTitle(trainrun: Trainrun, title: string) {
     this.getTrainrunFromId(trainrun.getId()).setTitle(title);
     this.nodeService.reorderPortsOnNodesForTrainrun(trainrun, false);
+    this.nodeService.initPortOrdering();
     this.trainrunsUpdated();
     this.operation.emit(new TrainrunOperation(OperationType.update, trainrun));
   }
