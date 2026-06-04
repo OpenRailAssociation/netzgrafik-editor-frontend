@@ -33,6 +33,7 @@ export class NotesView {
 
   static convertText(strToConvert: string): string {
     return strToConvert
+      .replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;")
       .trim()
       .split("::marker")
       .join("")
