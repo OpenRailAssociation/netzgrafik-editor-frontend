@@ -55,68 +55,32 @@ Die für unseren Import wichtigsten Dateien sind:
 
 `stop_times.txt` ist die mit Abstand grösste Datei. Sie enthält für jeden Trip die genaue Reihenfolge der angefahrenen Halte mit den dazugehörigen Ankunfts- und Abfahrtszeiten. Wenn ein Trip zehn Halte hat, gibt es in dieser Datei zehn Zeilen für diesen Trip. Bei einem nationalen Feed mit hunderttausend Trips und durchschnittlich fünfzehn Halten pro Trip sind das eineinhalb Millionen Zeilen. Jede Zeile enthält `trip_id`, `arrival_time`, `departure_time`, `stop_id`, `stop_sequence` (die Reihenfolge), `pickup_type` und `drop_off_type` (ob ein- und ausgestiegen werden darf).
 
-`stops.txt` enthält die Halte selbst. Wichtig zu wissen: Im GTFS-Modell ist ein "Halt" oft nicht ein Bahnhof, sondern ein einzelner Bahnsteig oder ein einzelnes Gleis. Ein grosser Bahnhof wie Zürich HB hat in einem typischen Schweizer Feed dutzende von "Stops# GTFS-Import im Netzgrafik-Editor
-## Vollständige Architektur- und Implementierungsdokumentation
-
-> **Zweck dieses Dokuments:** Diese Dokumentation beschreibt das aktuelle GTFS-Import-Feature so vollständig und verständlich, dass es als Grundlage für eine vollständige Neuentwicklung von Grund auf dienen kann. Jedes Kapitel folgt der gleichen Struktur: **Übersicht → Details → Algorithmus → Heuristik → Datenflussdiagramm**. Wo immer möglich werden konkrete Beispiele aus dem Schweizer Bahnbetrieb verwendet, damit die Logik nicht abstrakt bleibt.
-
-> **Lesehinweis:** Das Dokument ist bewusst in Prosa geschrieben. Stichpunktlisten werden nur dort verwendet, wo sie wirklich helfen. Wer dieses Dokument liest, soll danach in der Lage sein, das Feature ohne Rückfragen neu zu bauen.
-
----
-
-## Inhaltsverzeichnis
-
-1. [Gesamtüberblick und Architektur](#1-gesamtüberblick-und-architektur)
-2. [Komponentenzusammenspiel](#2-komponentenzusammenspiel)
-3. [Phase A – Daten laden und Light-Parse](#3-phase-a--daten-laden-und-light-parse)
-4. [Phase B – Filterung und Datenreduktion](#4-phase-b--filterung-und-datenreduktion)
-5. [Phase C – Pattern-Gruppierung und Master-Trip](#5-phase-c--pattern-gruppierung-und-master-trip)
-6. [Phase D – Frequenzberechnung (Heuristik)](#6-phase-d--frequenzberechnung-heuristik)
-7. [Phase E – Knoten-Erstellung und Graph-Aufbau](#7-phase-e--knoten-erstellung-und-graph-aufbau)
-8. [Phase F – Kategorie-Mapping (Heuristik)](#8-phase-f--kategorie-mapping-heuristik)
-9. [Phase G – Trainrun- und Section-Erstellung (Symmetrie)](#9-phase-g--trainrun--und-section-erstellung-symmetrie)
-10. [Phase H – Round-Trip-Erkennung (One-Way vs. Symmetrie)](#10-phase-h--round-trip-erkennung-one-way-vs-symmetrie)
-11. [Phase I – Topologie-Konsolidierung (Heuristik)](#11-phase-i--topologie-konsolidierung-heuristik)
-12. [Phase J – Spring-Layout und finales DTO](#12-phase-j--spring-layout-und-finales-dto)
-13. [Phase K – Editor-Integration und Transitions](#13-phase-k--editor-integration-und-transitions)
-14. [Datenmapping GTFS → Netzgrafik](#14-datenmapping-gtfs--netzgrafik)
-15. [Glossar und Abkürzungen](#15-glossar-und-abkürzungen)
-
----
-
-# 1. Gesamtüberblick und Architektur
-
-## 1.1 Übersicht
-
-Der GTFS-Import lädt eine standardisierte ZIP-Datei (General Transit Feed Specification), extrahiert daraus Fahrplandaten und transformiert sie schrittweise in das interne Netzgrafik-Editor-Format. Der gesamte Prozess läuft **vollständig im Browser**, also als reines Frontend-Feature in TypeScript. Es gibt keine Server-Seite, keinen API-Endpunkt, keine Backend-Datenbank, die irgendwelche Vorverarbeitungen übernimmt. Alles, was geschieht – das Entpacken der ZIP-Datei, das Parsen der CSV-Tabellen, das Filtern, die Heuristiken zur Frequenzbestimmung, die Erkennung von Hin- und Rückfahrten, die Topologie-Vereinfachung und das Layout-Computing – passiert auf dem Computer des Benutzers, im selben JavaScript-Kontext, in dem auch der Editor läuft.
-
-Diese architektonische Entscheidung hat tiefgreifende Konsequenzen. Erstens muss die gesamte Pipeline mit dem Speicher und der Rechenleistung eines durchschnittlichen Browser-Tabs auskommen. Eine Schweizer GTFS-Datei enthält je nach Periode und Anbieter mehrere hunderttausend Trips und mehrere Millionen Stop-Times-Einträge. Die `stop_times.txt` allein kann mehrere hundert Megabyte gross werden. Ein naives Einlesen der gesamten Datei in einen einzigen JavaScript-String würde sofort an die V8-Engine-Grenze für maximale Stringlängen stossen und einen `Invalid string length`-Fehler werfen. Aus diesem Grund wird `stop_times.txt` chunk-basiert gestreamt: Die Datei wird in Blöcken von zehn Megabyte gelesen, jeder Block wird sofort nach erlaubten Trip-IDs gefiltert, und nur die relevanten Zeilen werden im Speicher behalten. Der Rest wird verworfen, bevor der nächste Chunk gelesen wird. Dadurch skaliert der Speicherverbrauch nicht mit der Grösse der Eingabedatei, sondern mit der Grösse des durch die Filter eingegrenzten Subsets.
-
-Zweitens bedeutet die reine Frontend-Implementierung, dass die Benutzeroberfläche während rechenintensiver Phasen reagibel bleiben muss. Asynchrone Verarbeitung, Promises und gelegentliche `await`-Pausen sorgen dafür, dass der Browser-Hauptthread nicht blockiert wird und die Fortschrittsanzeige flüssig aktualisiert werden kann.
-
-Drittens erlaubt diese Architektur eine vollständige Datenhoheit: Die GTFS-Datei verlässt nie den Browser des Benutzers. Es werden keine Daten hochgeladen, keine Tracking-Calls gemacht, keine Cookies gesetzt. Das ist insbesondere für sensitive Fahrplandaten wichtig, die noch nicht öffentlich freigegeben sind.
-
-Der Prozess selbst ist in mehrere voneinander unabhängige Phasen unterteilt. Jede Phase hat eine klar definierte Eingabe, eine klar definierte Ausgabe und eine klar abgegrenzte Verantwortung. Die Phasen können einzeln getestet, ausgetauscht oder deaktiviert werden, ohne dass die anderen Phasen davon betroffen sind. Das ist insbesondere für die Topologie-Konsolidierung wichtig, die als heuristisches und potenziell fehlerträchtiges Feature optional zugeschaltet werden kann.
-
-## 1.2 Details – Was ist GTFS überhaupt?
-
-Bevor wir in die Implementierung einsteigen, lohnt sich ein kurzer Blick auf das Format, mit dem wir es zu tun haben. GTFS steht für *General Transit Feed Specification* und ist ein von Google ursprünglich für Google Maps entwickelter, mittlerweile international standardisierter Datenaustauschstandard für Fahrplandaten im öffentlichen Verkehr. Ein GTFS-Feed ist ein einfaches ZIP-Archiv, das eine handvoll CSV-Dateien enthält. Jede dieser Dateien beschreibt einen Aspekt des Fahrplans, und alle Dateien zusammen ergeben ein vollständiges Bild der angebotenen Verbindungen.
-
-Die für unseren Import wichtigsten Dateien sind:
-
-`agency.txt` enthält die Verkehrsunternehmen. Bei einem Schweizer Feed sind das beispielsweise die Schweizerischen Bundesbahnen, die BLS, die SOB, aber auch kleinere Anbieter wie Privatbahnen und Postauto-Linien. Jede Agency hat eine eindeutige `agency_id` und einen `agency_name`. Im Filterdialog wählt der Benutzer typischerweise nur eine oder wenige Agencies aus, um die Datenmenge überschaubar zu halten.
-
-`routes.txt` enthält die Linien. Eine Linie ist ein abstraktes Konzept: Die IR15 ist eine Linie, die täglich mehrfach verkehrt. Jede Linie hat eine `route_id`, einen `route_short_name` (zum Beispiel "IR15"), einen `route_long_name` (zum Beispiel "Genève – Luzern"), eine optionale `route_desc` (oft die Kategorie wie "IR" oder "InterRegio"), eine `agency_id`, die auf die zuständige Agency verweist, und einen `route_type`, der den Verkehrsmittelmodus codiert (2 für Bahn, 3 für Bus, 0 für Tram, etc.).
-
-`trips.txt` enthält die konkreten Fahrten. Während eine Linie ein abstraktes Konzept ist, ist ein Trip eine spezifische einzelne Fahrt: Der IR15 um 08:02 Uhr von Genf nach Luzern an einem Dienstag ist ein Trip. Der IR15 um 09:02 Uhr ist ein anderer Trip, auch wenn er dieselbe Strecke befährt. Jeder Trip hat eine `trip_id`, eine `route_id`, eine `service_id`, die auf den Kalender verweist, eine `direction_id` (0 oder 1, oft als Hin- und Rückrichtung interpretiert), einen `trip_headsign` (das Fahrtziel, wie es auf der Anzeigetafel steht) und einen optionalen `trip_short_name`.
-
-`stop_times.txt` ist die mit Abstand grösste Datei. Sie enthält für jeden Trip die genaue Reihenfolge der angefahrenen Halte mit den dazugehörigen Ankunfts- und Abfahrtszeiten. Wenn ein Trip zehn Halte hat, gibt es in dieser Datei zehn Zeilen für diesen Trip. Bei einem nationalen Feed mit hunderttausend Trips und durchschnittlich fünfzehn Halten pro Trip sind das eineinhalb Millionen Zeilen. Jede Zeile enthält `trip_id`, `arrival_time`, `departure_time`, `stop_id`, `stop_sequence` (die Reihenfolge), `pickup_type` und `drop_off_type` (ob ein- und ausgestiegen werden darf).
-
 `stops.txt` enthält die Halte selbst. Wichtig zu wissen: Im GTFS-Modell ist ein "Halt" oft nicht ein Bahnhof, sondern ein einzelner Bahnsteig oder ein einzelnes Gleis. Ein grosser Bahnhof wie Zürich HB hat in einem typischen Schweizer Feed dutzende von "Stops
 
-EINGABE: GTFS-ZIP-Datei (vom Anwender ausgewählt) AUSGABE: NetzgrafikDto, im Editor materialisiert
+## 1.3 Algorithmus
 
-SCHRITT 1: ZIP-Datei mit JSZip entpacken SCHRITT 2: Light-Parse (nur agency.txt + routes.txt) für Filter-Dialog SCHRITT 3: Anwender wählt Filter (Agency, Kategorie, Linie, Betriebstag) SCHRITT 4: Full-Parse mit aktiven Filtern, stop_times.txt streamen SCHRITT 5: Filter-Pipeline (Agency → Route → Trip → Day) anwenden SCHRITT 6: Trips zu Patterns gruppieren (gleiche Stop-Sequenz = gleiches Pattern) SCHRITT 7: Frequenz pro Route bestimmen (Heuristik mit Histogramm) SCHRITT 8: Knoten aus Stations erstellen, Plattformen zu Stations kollabieren SCHRITT 9: Kategorien aus route_desc ableiten (Substring-Heuristik) SCHRITT 10: Pro Pattern einen Trainrun (initial ONE_WAY) und Sections erzeugen SCHRITT 11: Round-Trip-Pärchen identifizieren und zu ROUND_TRIP zusammenführen SCHRITT 12: Topologie-Konsolidierung (optional, Korridor-Vereinfachung) SCHRITT 13: Spring-Layout für visuelles Resultat SCHRITT 14: NetzgrafikDto zusammenbauen, an Editor übergeben SCHRITT 15: Editor erzeugt Ports/Transitions, setzt isNonStopTransit-Flags
+Der gesamte Importprozess lässt sich als Folge von 15 Schritten zusammenfassen, die in den nachfolgenden Kapiteln im Detail beschrieben werden:
+
+```text
+EINGABE:  GTFS-ZIP-Datei (vom Anwender ausgewählt)
+AUSGABE:  NetzgrafikDto, im Editor materialisiert
+
+SCHRITT 1:  ZIP-Datei mit JSZip entpacken
+SCHRITT 2:  Light-Parse (nur agency.txt + routes.txt) für Filter-Dialog
+SCHRITT 3:  Anwender wählt Filter (Agency, Kategorie, Linie, Betriebstag)
+SCHRITT 4:  Full-Parse mit aktiven Filtern, stop_times.txt streamen
+SCHRITT 5:  Filter-Pipeline (Agency → Route → Trip → Day) anwenden
+SCHRITT 6:  Trips zu Patterns gruppieren (gleiche Stop-Sequenz = gleiches Pattern)
+SCHRITT 7:  Frequenz pro Route bestimmen (Heuristik mit Histogramm)
+SCHRITT 8:  Knoten aus Stations erstellen, Plattformen zu Stations kollabieren
+SCHRITT 9:  Kategorien aus route_desc ableiten (Substring-Heuristik)
+SCHRITT 10: Pro Pattern einen Trainrun (initial ONE_WAY) und Sections erzeugen
+SCHRITT 11: Round-Trip-Pärchen identifizieren und zu ROUND_TRIP zusammenführen
+SCHRITT 12: Topologie-Konsolidierung (optional, Korridor-Vereinfachung)
+SCHRITT 13: Spring-Layout für visuelles Resultat
+SCHRITT 14: NetzgrafikDto zusammenbauen, an Editor übergeben
+SCHRITT 15: Editor erzeugt Ports/Transitions, setzt isNonStopTransit-Flags
+```
 
 
 Wichtig zu betonen ist, dass diese Schritte nicht alle in einer einzigen Funktion stattfinden. Sie verteilen sich über mehrere Services, die in Kapitel 2 im Detail beschrieben werden. Die Schritte 1 bis 4 finden im **GTFSParserService** statt, die Schritte 5 bis 13 im **GTFSConverterService**, und Schritt 15 wird vom Editor selbst während der Materialisierung erledigt. Der **GtfsImportManagerService** orchestriert das Ganze, hält den Zustand und sorgt dafür, dass die UI über den Fortschritt informiert wird.
@@ -128,50 +92,6 @@ An mehreren Stellen des Imports trifft der Algorithmus Entscheidungen, die nicht
 Die **Frequenz-Erkennung** versucht, aus den Abfahrtsabständen aufeinanderfolgender Trips einer Linie eine sinnvolle Taktfrequenz zu ermitteln. Statt den genauen Mittelwert oder Median zu nehmen, snappt der Algorithmus die ermittelten Intervalle auf die im Editor verfügbaren Standardwerte (15, 20, 30, 60 oder 120 Minuten) und nimmt anschliessend den häufigsten Wert. Diese Snapping-Logik glättet kleine Fahrplanunregelmässigkeiten weg und passt das Ergebnis an die Editor-Realität an, in der nur diese fünf Frequenzwerte unterstützt werden.
 
 Die **Kategorie-Zuordnung** versucht, aus dem `route_desc`-Feld der GTFS-Linie auf die Editor-Kategorie (IR, IC, RE, S, etc.) zu schliessen. Wenn der Feed `route_desc = "InterRegio"` enthält, soll das im Editor als Kategorie "IR" landen. Die Heuristik dafür basiert auf einem zweistufigen Matching: Zuerst wird auf Kurznamen-Übereinstimmung geprüft (die ersten zehn Zeichen der Beschreibung, case-insensitive), dann auf vollen Namen. Wird kein Match gefunden, wird eine neue Kategorie angelegt, deren Farbe durch Substring-Matching gegen ein Wörterbuch bekannter Linienkürzel bestimmt wird ("IR" → blau wie InterRegio, "S" → grün wie S-Bahn, "RE" → rot wie RegionalExpress, etc.).
-
-Die **Round-Trip-Erkennung** versucht, zu jeder Hinrichtung einer Linie die passende Rückrichtung zu finden und beide zu einem bidirektionalen Trainrun zu verschmelzen. Voraussetzung ist, dass beide denselben Linienkurznamen, dieselbe Kategorie, dieselbe Frequenz und exakt umgekehrte Stop-Sequenzen haben. Zusätzlich müssen die Zeiten symmetrisch sein: Wenn der Hinzug um Minute :05 abfährt, muss der Rückzug um Minute :55 ankommen (60-x-Regel, dazu mehr in Kapitel 9 und 10). Ein Toleranzwert in Sekunden (Standardwert 180 Sekunden, also drei Minuten) erlaubt kleine Abweichungen, die aus realen Fahrplanrundungen entstehen.
-
-Die **Topologie-Konsolidierung** versucht, parallele oder redundante Direktverbindungen zwischen Knotenpaaren zu erkennen und durch gemeinsame Korridore zu ersetzen. Wenn zum Beispiel sowohl der IR15 als auch der IR35 von Zürich nach Basel fahren, der IR15 aber als Direktverbindung Zürich–Basel codiert ist, während der IR35 die Zwischenhalte Zürich–Winterthur–Olten–Basel hat, dann kann es sinnvoll sein, den IR15 ebenfalls über diese drei Sections zu führen, statt eine eigene Direktkante Zürich–Basel zu zeichnen. Die Heuristik dafür ist eine Detour-Schwelle: Der Umweg über den Korridor darf maximal X Prozent oder Y Minuten länger sein als die Direktverbindung. Diese Konsolidierung ist optional und wird in Kapitel 11 ausführlich beschrieben.
-
-Die **Knoten-Klassifikation** schliesslich teilt jede Station basierend auf ihrer Rolle im Netzwerk in fünf Kategorien ein: `start` (Station ist Endpunkt mindestens eines Trips), `end` (analog), `junction` (Station hat hohen Grad und wird durchfahren), `major_stop` (Station hat hohen Grad und mindestens ein Trip hält dort) oder `minor_stop` (alles übrige). Diese Klassifikation wird im UI-Filterdialog angeboten, damit der Benutzer entscheiden kann, ob er zum Beispiel nur die Hauptbahnhöfe importieren möchte oder auch alle Durchfahrtsbahnhöfe.
-
-## 1.5 Datenflussdiagramm
-
-Das folgende Diagramm zeigt den Gesamtfluss der Daten durch die einzelnen Phasen, von der ZIP-Eingabe bis zum fertig materialisierten Editor-Zustand. Die einzelnen Komponenten und ihre Verantwortlichkeiten werden in Kapitel 2 detailliert beschrieben.
-
-```mermaid
-graph TD
-    Z[GTFS-ZIP-Datei]
-    Z --> P1[GTFSParserService<br/>parseGTFSZipLight]
-    P1 --> LD[lightData<br/>agencies + routes]
-    LD --> M1[GtfsImportManagerService<br/>State befüllen]
-    M1 --> UI1[GtfsImportDialogsComponent<br/>Filter-Dialog]
-    UI1 --> US[User-Auswahl<br/>Agencies, Kategorien,<br/>Linien, Betriebstag]
-    US --> P2[GTFSParserService<br/>parseGTFSZip mit Filter]
-    P2 --> GD[GTFSData<br/>vollständig + reduziert]
-    GD --> C1[GTFSConverterService<br/>convertToNetzgrafik]
-    
-    C1 --> S1[Pattern-Gruppierung]
-    S1 --> S2[Frequenz-Heuristik]
-    S2 --> S3[Knoten-Erstellung]
-    S3 --> S4[Kategorie-Mapping]
-    S4 --> S5[Trainrun + Section]
-    S5 --> S6[Round-Trip-Merge]
-    S6 --> S7[Topologie-<br/>Konsolidierung]
-    S7 --> S8[Spring-Layout]
-    S8 --> ND[NetzgrafikDto]
-    
-    ND --> DS[DataService<br/>loadNetzgrafikDto]
-    DS --> ED[Editor:<br/>Ports + Transitions<br/>materialisieren]
-    ED --> ST[Stop-Map<br/>isNonStopTransit setzen]
-    ST --> NG[Fertige Netzgrafik]
-    
-    UI1 -.Progress-Updates.-> M1
-    M1 -.Phase-Status.-> UI2[Progress-Overlay]
-    NG -.Summary.-> UI3[Summary-Tabellen]
-```
-
-, S, etc.) zu schliessen. Wenn der Feed `route_desc = "InterRegio"` enthält, soll das im Editor als Kategorie "IR" landen. Die Heuristik dafür basiert auf einem zweistufigen Matching: Zuerst wird auf Kurznamen-Übereinstimmung geprüft (die ersten zehn Zeichen der Beschreibung, case-insensitive), dann auf vollen Namen. Wird kein Match gefunden, wird eine neue Kategorie angelegt, deren Farbe durch Substring-Matching gegen ein Wörterbuch bekannter Linienkürzel bestimmt wird ("IR" → blau wie InterRegio, "S" → grün wie S-Bahn, "RE" → rot wie RegionalExpress, etc.).
 
 Die **Round-Trip-Erkennung** versucht, zu jeder Hinrichtung einer Linie die passende Rückrichtung zu finden und beide zu einem bidirektionalen Trainrun zu verschmelzen. Voraussetzung ist, dass beide denselben Linienkurznamen, dieselbe Kategorie, dieselbe Frequenz und exakt umgekehrte Stop-Sequenzen haben. Zusätzlich müssen die Zeiten symmetrisch sein: Wenn der Hinzug um Minute :05 abfährt, muss der Rückzug um Minute :55 ankommen (60-x-Regel, dazu mehr in Kapitel 9 und 10). Ein Toleranzwert in Sekunden (Standardwert 180 Sekunden, also drei Minuten) erlaubt kleine Abweichungen, die aus realen Fahrplanrundungen entstehen.
 
@@ -270,7 +190,7 @@ Die Komponente kommuniziert ausschliesslich via Inputs und Outputs mit dem Manag
 Die fünfte und letzte Komponente sind die TypeScript-Interfaces und -Defaults, die in `gtfs-import.models.ts` definiert sind. Sie umfassen die Filtertypen (`GTFSRouteTypeFilter`, `GTFSNodeFilter`), die Phasen-Strukturen (`GTFSImportPhase`, `GTFSSubPhase`), die Trip-Detail-Struktur für die Summary, die State-Schnittstelle (`GTFSImportState`), die Standardwerte für Filter und Toleranzen sowie die Topologie-Konsolidierungsmodelle (`TopologyNode`, `TopologyEdgeSegment`, `PatternMapping`, `TopologyGraph`).
 
 Diese Modelle sind reine Typdefinitionen ohne Logik. Sie dienen als Vertrag zwischen den Services und der UI und sorgen dafür, dass die TypeScript-Compiler-Prüfung beim Übergeben von Daten zwischen den Schichten greift. Insbesondere die `GTFSImportState`-Schnittstelle ist umfangreich und enthält sämtliche Felder, die der Manager im BehaviorSubject hält — von der hochgeladenen Datei über die Filterauswahl bis hin zu den UI-Sichtbarkeitsflags und den Topologie-Konfigurationsparametern.
-
+ 
 ## 2.3 Algorithmus
 
 Der typische End-to-End-Ablauf einer Importsession aus Sicht der Komponenten sieht folgendermassen aus. Wichtig: Dieser Ablauf beschreibt nur das Zusammenspiel der Komponenten; die fachliche Logik in den einzelnen Phasen wird in den späteren Kapiteln detailliert.
@@ -279,17 +199,18 @@ Der Benutzer klickt im Editor auf den GTFS-Import-Knopf. Daraufhin öffnet sich 
 
 Der Manager extrahiert aus diesem Light-Parse die verfügbaren Agency-Namen, die in den Routes vorkommenden Kategorien (aus `route_desc` oder, falls leer, aus dem Buchstabenpräfix von `route_short_name`) und die Liste aller Linienkurznamen. Anschliessend setzt er den Light-Parse-Datumsbereich, schlägt sinnvolle Defaults vor (typischerweise die SBB als ausgewählte Agency und die Standardkategorien EC/IC/IR/RE/S, sofern verfügbar) und macht den Filter-Dialog sichtbar.
 
-Die GtfsImportDialogsComponent ist via Input an den State gebunden und rendert nun den Filter-Dialog. Der Benutzer wählt seine Filter, gibt Toleranzwerte ein und klickt auf "Importieren". Die Komponente sendet das `applyFilters`-Event nach oben.
+Die `GtfsImportDialogsComponent` ist via Input an den State gebunden und rendert nun den Filter-Dialog. Der Benutzer wählt seine Filter, gibt Toleranzwerte ein und klickt auf "Importieren". Die Komponente sendet das `applyFilters`-Event nach oben.
 
 Der aufrufende Container ruft nun `GtfsImportManagerService.applyFiltersAndImport()`. Diese Methode schaltet die UI von Filter-Dialog auf Progress-Overlay um, setzt alle Phasen auf "pending" und beginnt dann mit der ersten Phase: dem Full-Parse. Sie ruft `GTFSParserService.parseGTFSZip()` mit den Filterparametern auf. Der Parser arbeitet jetzt deutlich mehr: Er liest erneut die kleinen Dateien, dazu `trips.txt` und `stops.txt`, wertet `calendar.txt` und `calendar_dates.txt` für den gewählten Tag aus, und streamt schliesslich `stop_times.txt` chunkweise. Bei jedem fertigen CSV-File wird ein Callback aufgerufen, mit dem der Manager die entsprechende Sub-Phase auf "completed" setzen und die nächste auf "running" stellen kann. Dadurch sieht der Benutzer im UI live, wie sich der Parse-Fortschritt entwickelt.
 
 Sobald der Parse abgeschlossen ist, wendet der Manager noch zusätzliche Filter an, die im Parser nicht stattfinden — namentlich die Linien-Filter (falls der Benutzer im Dialog explizit Linien-Kurznamen ausgewählt hat) und der Knoten-Klassifikations-Filter (falls nicht alle Knotentypen aktiviert sind). Diese Filter werden mit Fortschrittsanzeige (Phase 2 im Overlay) ausgeführt: Bei jedem 10-Prozent-Schritt wird der Fortschrittsbalken in der entsprechenden Sub-Phase aktualisiert.
 
-Anschliessend wird `GTFSConverterService.convertToNetzgrafik()` aufgerufen, mit den gefilterten Daten und den Optionen aus dem State. Der Converter führt seine zwölf-Schritte-Pipeline aus und gibt am Ende ein NetzgrafikDto zurück. Während dieser Phase ist die UI auf "running" für die Convert-Phase gestellt; allerdings gibt es hier keinen feingranularen Fortschritt, weil der Converter intern keine Callbacks aufruft.
+Anschliessend wird `GTFSConverterService.convertToNetzgrafik()` aufgerufen, mit den gefilterten Daten und den Optionen aus dem State. Der Converter führt seine zwölf-Schritte-Pipeline aus und gibt am Ende ein `NetzgrafikDto` zurück. Während dieser Phase ist die UI auf "running" für die Convert-Phase gestellt; allerdings gibt es hier keinen feingranularen Fortschritt, weil der Converter intern keine Callbacks aufruft.
 
-Das fertige NetzgrafikDto wird dann via `processNetzgrafikJSON()` an den DataService übergeben, der es in den Editor lädt. Beim Laden findet die Editor-Materialisierung statt: Aus den leeren Port- und Transition-Listen der Knoten werden konkrete Port- und Transition-Objekte erzeugt, basierend auf den Sections, die durch jeden Knoten verlaufen. Direkt im Anschluss wird die Stop-Map aus dem DTO ausgelesen und auf jede neu erzeugte Transition angewendet, um die `isNonStopTransit`-Flags korrekt zu setzen.
+Das fertige `NetzgrafikDto` wird dann via `processNetzgrafikJSON()` an den DataService übergeben, der es in den Editor lädt. Beim Laden findet die Editor-Materialisierung statt: Aus den leeren Port- und Transition-Listen der Knoten werden konkrete Port- und Transition-Objekte erzeugt, basierend auf den Sections, die durch jeden Knoten verlaufen. Direkt im Anschluss wird die Stop-Map aus dem DTO ausgelesen und auf jede neu erzeugte Transition angewendet, um die `isNonStopTransit`-Flags korrekt zu setzen.
 
 Schliesslich generiert der Manager die Import-Zusammenfassung. Dazu zählt er die Knoten, Trainruns und Sections im DTO, ermittelt die Round-Trip- und One-Way-Anzahlen, gruppiert nach Kategorie, Frequenz und Label und erstellt die detaillierte Trip-Liste für die Summary-Tabelle. Diese Zusammenfassung wird in den State geschrieben und automatisch von der UI gerendert.
+
 
 ## 2.4 Heuristik
 
@@ -383,35 +304,63 @@ Das Ergebnis sind drei Arrays von typisierten Objekten: `agencies: GTFSAgency[]`
 Eine zusätzliche Aufgabe des Light-Parse ist das Bestimmen des Datumsbereichs. Aus der `calendar.txt` wird das früheste `start_date` und das späteste `end_date` über alle Service-Einträge ermittelt. Das Ergebnis wird in einem `serviceDateRange`-Objekt gespeichert und im Filter-Dialog angezeigt, damit der Benutzer weiss, in welchem Zeitfenster er einen Betriebstag wählen kann.
 
 Eine letzte Aufgabe besteht darin, bereits hier einen ersten Filter anzuwenden — den Verkehrsmittel-Modus-Filter (Bahn, Bus, Tram etc.). Die `routes.txt` enthält für jede Route ein `route_type`-Feld mit einer numerischen Codierung (2 = Bahn, 3 = Bus, 0 = Tram, 4 = Fähre etc.), und der Benutzer hat im UI Checkboxen aktiviert oder deaktiviert. Routen mit einem nicht erlaubten `route_type` werden bereits beim Light-Parse aussortiert, damit die Filterauswahl sauber ist und der Benutzer im Dialog nur die wirklich relevanten Linien und Kategorien sieht.
-
+ 
 ## 3.3 Algorithmus
 
 Pseudocode-Ablauf des Light-Parse:
-EINGABE: File-Instanz (ZIP), erlaubte route_types (Liste von Zahlen) AUSGABE: lightData = { agencies, routes, calendar, serviceDateRange }
 
-zipFile = await JSZip.loadAsync(file)
+```text
+EINGABE:  File-Instanz (ZIP), erlaubte route_types (Liste von Zahlen)
+AUSGABE:  lightData = { agencies, routes, calendar, serviceDateRange }
 
-agencyText = await zipFile.file(“agency.txt”).async(“text”) routeText = await zipFile.file(“routes.txt”).async(“text”) calText = await zipFile.file(“calendar.txt”)?.async(“text”) ?? null
+1. ZIP-Struktur laden
+   zipFile = await JSZip.loadAsync(file)
 
-agencies = PapaParse(agencyText) routesAll = PapaParse(routeText) calendar = calText ? PapaParse(calText) : []
+2. Relevante Dateien als Text auslesen
+   agencyText  = await zipFile.file("agency.txt").async("text")
+   routeText   = await zipFile.file("routes.txt").async("text")
+   calText     = await zipFile.file("calendar.txt")?.async("text") ?? null
 
-routes = routesAll.filter(r => allowedRouteTypes.includes(parseInt(r.route_type)) )
+3. CSV-Parsing mit PapaParse
+   agencies   = PapaParse(agencyText)
+   routesAll  = PapaParse(routeText)
+   calendar   = calText ? PapaParse(calText) : []
 
-serviceDateRange = calendar.length > 0 ? { startDate: min(calendar.map(c => c.start_date)), endDate: max(calendar.map(c => c.end_date)) } : null
+4. Erste Filterung: route_type
+   routes = routesAll.filter(r =>
+     allowedRouteTypes.includes(parseInt(r.route_type))
+   )
+
+5. Datumsbereich aus calendar.txt
+   serviceDateRange = calendar.length > 0
+     ? {
+         startDate: min(calendar.map(c => c.start_date)),
+         endDate:   max(calendar.map(c => c.end_date))
+       }
+     : null
 
 RETURN { agencies, routes, calendar, serviceDateRange }
-
+```
 
 Im Manager-Service wird das Ergebnis dann weiterverarbeitet, um die Filteroptionen für die UI aufzubauen:
 
+```text
 agencyNames = unique(lightData.agencies.map(a => a.agency_name)).sorted()
 
-categories = unique(lightData.routes.flatMap(r => { desc = r.route_desc.trim() if (desc) return [desc.toUpperCase()] prefix = r.route_short_name.match(/^[A-Za-z]+/) return prefix ? [prefix[0].toUpperCase()] : [] })).sorted()
+categories  = unique(lightData.routes.flatMap(r => {
+  desc = r.route_desc.trim()
+  if (desc) return [desc.toUpperCase()]
+  prefix = r.route_short_name.match(/^[A-Za-z]+/)
+  return prefix ? [prefix[0].toUpperCase()] : []
+})).sorted()
 
-lineNames = unique(lightData.routes.map(r => r.route_short_name || r.route_long_name )).filter(nonEmpty).sorted()
-
+lineNames   = unique(lightData.routes.map(r =>
+  r.route_short_name || r.route_long_name
+)).filter(nonEmpty).sorted()
+```
 
 Diese drei Listen werden anschliessend in den State geschrieben und steuern damit die Autocomplete-Vorschläge in den drei Chip-Listen des Filter-Dialogs.
+
 
 ## 3.4 Heuristik
 
@@ -425,7 +374,7 @@ Bei den Linien wiederum gibt es eine vordefinierte Liste mit einigen prominenten
 
 ## 3.5 Datenflussdiagramm
 
- ```mermaid
+```mermaid
 graph TD
     File[File-Instanz<br/>ZIP-Datei]
     File --> JSZip[JSZip.loadAsync]
@@ -467,28 +416,28 @@ graph TD
     SDR --> UI[Filter-Dialog<br/>Datepicker mit Range]
 ```
 
-4. Phase B — Filterung und Datenreduktion
-4.1 Übersicht
+# 4. Phase B — Filterung und Datenreduktion
+## 4.1 Übersicht
 Sobald der Benutzer im Filter-Dialog seine Auswahl getroffen hat, beginnt die eigentliche Hauptarbeit. Die Filterung ist nicht ein einzelner Schritt, sondern eine Pipeline aus mehreren aufeinander aufbauenden Stufen. Jede Stufe reduziert die Datenmenge weiter, und jede Stufe baut auf den Ergebnissen der vorherigen auf. Das ist deshalb wichtig, weil die einzelnen GTFS-Dateien über Fremdschlüssel (Trip-IDs, Route-IDs, Service-IDs, Stop-IDs) miteinander verbunden sind. Wenn man eine Datei zu früh oder zu aggressiv filtert, ohne die Folgewirkungen auf die anderen Dateien zu berücksichtigen, entstehen Inkonsistenzen.
 
 Die Filterpipeline folgt dem natürlichen Verschachtelungsprinzip der GTFS-Daten: Eine Trip gehört zu einer Route, eine Route gehört zu einer Agency, eine Trip verkehrt an bestimmten Tagen (definiert durch eine Service-ID, die wiederum auf den Calendar verweist), und eine Trip besteht aus Stop-Times, die auf Stops verweisen. Wenn wir die Agency oben filtern, fallen automatisch viele Routen und Trips weg. Wenn wir den Betriebstag setzen, fallen weitere Trips weg. Und wenn wir am Schluss noch nach Linien filtern, bleiben nur die wenigen relevanten übrig. Erst dann werden die zugehörigen Stop-Times geladen.
 
 Diese Reihenfolge ist nicht zufällig. Sie minimiert den Speicherverbrauch in jeder Phase. Die stop_times.txt ist mit Abstand die grösste Datei; sie wird erst dann gelesen, wenn die Liste der relevanten Trip-IDs auf wenige Hundert oder Tausend zusammengeschrumpft ist. Der Streaming-Parser hält dann nur die paar Megabytes der relevanten Zeilen im Speicher, statt mehrerer hundert Megabyte aller Zeilen.
 
-4.2 Details
+## 4.2 Details
 Die Filterpipeline besteht aus vier Stufen, die in dieser Reihenfolge ausgeführt werden:
 
-4.2.1 Stufe 1 — Agency-Filter
+### 4.2.1 Stufe 1 — Agency-Filter
 Die Liste der ausgewählten Agency-Namen aus dem State wird genommen. Im Parser werden alle Agency-Einträge aus agency.txt gegen diese Liste abgeglichen, und nur diejenigen, deren agency_name exakt in der Auswahlliste vorkommt (case-insensitive), werden behalten. Die agency_id-Werte der überlebenden Agencies werden in einem Set gesammelt — diese Liste ist die Eingabe für die nächste Stufe. Wenn der Benutzer keine Agencies ausgewählt hat (was eigentlich nicht vorkommen sollte, weil der Default-Wert eine Agency setzt), werden alle Agencies durchgelassen.
 
-4.2.2 Stufe 2 — Routen-Filter
+### 4.2.2 Stufe 2 — Routen-Filter
 Die routes.txt wird mehrfach gefiltert: Erstens nach route_type, der schon im Light-Parse berücksichtigt wurde. Zweitens nach agency_id — nur Routen, deren agency_id im Set aus Stufe 1 vorkommt, werden behalten. Drittens, falls der Benutzer Kategorien ausgewählt hat, nach route_desc (oder dem Buchstabenpräfix von route_short_name, falls route_desc leer ist). Hier wird ähnlich gearbeitet wie im Light-Parse zur Kategorie-Extraktion: Zunächst wird route_desc.toUpperCase() mit der Liste der ausgewählten Kategorien verglichen; falls keine Übereinstimmung, wird das Buchstabenpräfix von route_short_name extrahiert und gegen die Auswahlliste abgeglichen.
 
 Eine vierte, indirekte Stufe ist der Linien-Filter. Dieser wird allerdings nicht im Parser ausgeführt, sondern später im Manager-Service. Der Grund dafür ist, dass der Linien-Filter eine Sub-Phase im Filter-Phasen-Schema des UIs ist und mit Fortschrittsbalken dargestellt werden soll. Im Parser wäre er einfach Teil des Routen-Filters. Im Manager wird er als separate Sub-Phase mit eigenem Progress-Indicator behandelt.
 
 Die route_id-Werte aller überlebenden Routen werden in einem Set gesammelt. Dieses Set ist die Eingabe für die nächste Stufe.
 
-4.2.3 Stufe 3 — Trip- und Calendar-Filter
+### 4.2.3 Stufe 3 — Trip- und Calendar-Filter
 Die trips.txt wird gefiltert: Nur Trips mit einer route_id aus dem Set der überlebenden Routen werden behalten. Wenn der Benutzer einen Betriebstag gewählt hat (was praktisch immer der Fall ist), kommt zusätzlich die Calendar-Auswertung zum Tragen.
 
 Die Calendar-Auswertung funktioniert in zwei Schritten. Zuerst wird aus dem Wochentag des gewählten Datums (zum Beispiel “Dienstag”) und dem Datumsbereich aus calendar.txt ermittelt, welche Service-IDs an diesem Wochentag potenziell verkehren. Ein Service-Eintrag mit tuesday = "1" und einem start_date-Wert vor dem gewählten Datum und einem end_date-Wert nach dem gewählten Datum verkehrt an diesem Dienstag. Diese Service-IDs werden in einem Set gesammelt.
@@ -497,12 +446,12 @@ Dann wird calendar_dates.txt ausgewertet. Für jeden Eintrag, dessen date mit de
 
 Anschliessend werden die Trips noch einmal gefiltert: Nur Trips, deren service_id in dieser finalen Service-ID-Menge enthalten ist, werden behalten. Die trip_id-Werte der überlebenden Trips werden in einem Set gesammelt — dieses Set ist die Eingabe für die nächste und letzte Stufe.
 
-4.2.4 Stufe 4 — Stop-Times-Streaming und Stop-Filter
+### 4.2.4 Stufe 4 — Stop-Times-Streaming und Stop-Filter
 Jetzt kommt der Performance-kritische Teil. Die stop_times.txt wird als ArrayBuffer geöffnet und in Chunks von zehn Megabyte gelesen. Jeder Chunk wird als UTF-8-Text dekodiert, an den eventuellen Rest des vorherigen Chunks geklebt, in Zeilen aufgesplittet, und jede Zeile wird mit einem schnellen, manuellen CSV-Parser zerlegt (PapaParse hat hier zu viel Overhead). Für jede Zeile wird die trip_id extrahiert und gegen das Set der überlebenden Trip-IDs aus Stufe 3 abgeglichen. Nur Zeilen mit zugelassener trip_id werden in das stopTimes-Array übernommen, alle anderen Zeilen werden sofort verworfen. Eine eventuell unvollständige letzte Zeile am Chunk-Ende wird als “Rest” gespeichert und an den Anfang des nächsten Chunks geklebt.
 
 Sobald stop_times.txt vollständig durchlaufen ist, wird die stop_id-Menge aller überlebenden Stop-Times gesammelt. Anschliessend wird stops.txt gefiltert: Nur Stops, deren stop_id in dieser Menge vorkommt oder die als parent_station einer überlebenden Stop-Id referenziert werden, werden behalten. Diese zweite Bedingung ist wichtig, damit die Stationshierarchie nicht zerbricht: Wenn eine Plattform “Zürich HB Gleis 7” überlebt, muss auch der Stations-Eintrag “Zürich HB” überleben, weil er als parent_station der Plattform referenziert wird.
 
-4.2.5 Zusätzliche Filter im Manager
+### 4.2.5 Zusätzliche Filter im Manager
 Nach dem eigentlichen Parser gibt es im Manager-Service noch zwei nachgelagerte Filterstufen, die beide mit Fortschrittsbalken im UI dargestellt werden.
 
 Der Linien-Filter wird angewendet, falls der Benutzer im Filter-Dialog explizit Linien-Kurznamen ausgewählt hat. Dieser Filter ist konzeptionell identisch mit Stufe 2, aber er wird hier ausgeführt, weil er als eigene UI-Phase dargestellt werden soll. Die routes.txt wird durchgegangen, jede Route mit einem nicht ausgewählten route_short_name wird verworfen, und die abhängigen Trips, Stop-Times und Stops werden entsprechend bereinigt.
@@ -512,39 +461,95 @@ Der Knoten-Klassifikations-Filter ist optional und wird nur angewendet, wenn der
 Der Parser klassifiziert jeden überlebenden Stop nach seinem topologischen Verhalten: Wenn der Stop in mindestens einem Trip als erster Halt vorkommt, bekommt er das Flag `start`; wenn er in mindestens einem Trip als letzter Halt vorkommt, das Flag `end`; wenn er in vielen Trips durchfahren wird (hoher Knotengrad), das Flag `junction`; wenn er in mindestens einem Trip als Halt mit `pickup_type != "1"` oder `drop_off_type != "1"` vorkommt und einen mittleren Grad hat, das Flag `major_stop`; ansonsten `minor_stop`. Der Knoten-Klassifikations-Filter behält dann nur diejenigen Stops, deren Klassifikation in der Auswahl des Benutzers ist.
 
 ## 4.3 Algorithmus
-EINGABE: GTFSData (vollständig nach Light-Parse + Full-Parse) selectedAgencies, selectedCategories, selectedLines, selectedDate nodeFilter (start/end/junction/major/minor) AUSGABE: GTFSData (gefiltert)
+
+```text
+EINGABE:  GTFSData (vollständig nach Light-Parse + Full-Parse),
+          selectedAgencies, selectedCategories, selectedLines, selectedDate,
+          nodeFilter (start/end/junction/major/minor)
+AUSGABE:  GTFSData (gefiltert)
 
 PIPELINE:
 
-Agency-Filter agencyIdSet = ids of agencies whose name in selectedAgencies gtfsData.agencies = filter where agency_id in agencyIdSet
+1. Agency-Filter
+   agencyIdSet         = ids of agencies whose name in selectedAgencies
+   gtfsData.agencies   = filter where agency_id in agencyIdSet
 
-Routen-Filter (route_type schon im Light-Parse) gtfsData.routes = filter where agency_id in agencyIdSet AND (route_desc.upper() in selectedCategories OR shortNamePrefix.upper() in selectedCategories) routeIdSet = ids of surviving routes
+2. Routen-Filter (route_type schon im Light-Parse)
+   gtfsData.routes = filter where
+     agency_id in agencyIdSet
+     AND (route_desc.upper() in selectedCategories
+          OR shortNamePrefix.upper() in selectedCategories)
+   routeIdSet = ids of surviving routes
 
-Trip-Filter activeServiceIds = computeActiveServiceIds(selectedDate, calendar, calendarDates) gtfsData.trips = filter where route_id in routeIdSet AND service_id in activeServiceIds tripIdSet = ids of surviving trips
+3. Trip-Filter
+   activeServiceIds = computeActiveServiceIds(selectedDate, calendar, calendarDates)
+   gtfsData.trips   = filter where
+     route_id   in routeIdSet
+     AND service_id in activeServiceIds
+   tripIdSet = ids of surviving trips
 
-Stop-Times-Filter (Streaming) for each chunk in stop_times.txt: for each line in chunk: if line.trip_id in tripIdSet: gtfsData.stopTimes.push(parsed line)
+4. Stop-Times-Filter (Streaming)
+   for each chunk in stop_times.txt:
+     for each line in chunk:
+       if line.trip_id in tripIdSet:
+         gtfsData.stopTimes.push(parsed line)
 
-stopIdSet = ids of stops referenced in stopTimes
+   stopIdSet = ids of stops referenced in stopTimes
 
-Stops-Filter gtfsData.stops = filter where stop_id in stopIdSet OR stop_id is parent_station of any stop in stopIdSet
+5. Stops-Filter
+   gtfsData.stops = filter where
+     stop_id in stopIdSet
+     OR stop_id is parent_station of any stop in stopIdSet
 
-Linien-Filter (im Manager, mit Progress) if selectedLines.length > 0: gtfsData.routes = filter where route_short_name.upper() in selectedLines gtfsData.trips = filter cascade gtfsData.stopTimes = filter cascade gtfsData.stops = filter cascade
+6. Linien-Filter (im Manager, mit Progress)
+   if selectedLines.length > 0:
+     gtfsData.routes    = filter where route_short_name.upper() in selectedLines
+     gtfsData.trips     = filter cascade
+     gtfsData.stopTimes = filter cascade
+     gtfsData.stops     = filter cascade
 
-Knoten-Klassifikations-Filter (im Manager, mit Progress) if not all node types selected: for each stop: classify stop based on topology gtfsData.stops = filter where classification in nodeFilter
-
+7. Knoten-Klassifikations-Filter (im Manager, mit Progress)
+   if not all node types selected:
+     for each stop:
+       classify stop based on topology
+     gtfsData.stops = filter where classification in nodeFilter
+```
 
 Die Berechnung `computeActiveServiceIds` aus Schritt 3 verdient eine eigene Darstellung:
-EINGABE: selectedDate (YYYY-MM-DD), calendar, calendarDates AUSGABE: Set<string> aktiver Service-IDs
 
-targetDate = parseDate(selectedDate) targetDateStr = selectedDate ohne Bindestriche (YYYYMMDD) dayOfWeek = targetDate.getDay() // 0=So, 1=Mo, …, 6=Sa
+```text
+EINGABE:  selectedDate (YYYY-MM-DD), calendar, calendarDates
+AUSGABE:  Set<string> aktiver Service-IDs
 
-activeIds = neue leere Menge
+1. Datums-Vorbereitung
+   targetDate    = parseDate(selectedDate)
+   targetDateStr = selectedDate ohne Bindestriche (YYYYMMDD)
+   dayOfWeek     = targetDate.getDay()    // 0=So, 1=Mo, ..., 6=Sa
 
-for each cal in calendar: if targetDate >= cal.start_date AND targetDate <= cal.end_date: if (dayOfWeek 1 AND cal.monday “1”) OR (dayOfWeek 2 AND cal.tuesday “1”) OR … (analog für die anderen Wochentage): activeIds.add(cal.service_id)
+   activeIds = neue leere Menge
 
-for each calDate in calendarDates: if calDate.date == targetDateStr: if calDate.exception_type == “1”: activeIds.add(calDate.service_id) else if calDate.exception_type == “2”: activeIds.delete(calDate.service_id)
+2. Reguläre Service-Einträge aus calendar.txt
+   for each cal in calendar:
+     if targetDate >= cal.start_date AND targetDate <= cal.end_date:
+       if (dayOfWeek == 1 AND cal.monday    == "1")
+          OR (dayOfWeek == 2 AND cal.tuesday   == "1")
+          OR (dayOfWeek == 3 AND cal.wednesday == "1")
+          OR (dayOfWeek == 4 AND cal.thursday  == "1")
+          OR (dayOfWeek == 5 AND cal.friday    == "1")
+          OR (dayOfWeek == 6 AND cal.saturday  == "1")
+          OR (dayOfWeek == 0 AND cal.sunday    == "1"):
+         activeIds.add(cal.service_id)
 
-return activeIds
+3. Ausnahmen aus calendar_dates.txt
+   for each calDate in calendarDates:
+     if calDate.date == targetDateStr:
+       if calDate.exception_type == "1":
+         activeIds.add(calDate.service_id)        // zusätzlich aktiv
+       else if calDate.exception_type == "2":
+         activeIds.delete(calDate.service_id)     // ausgesetzt
+
+RETURN activeIds
+```
 
 
 ## 4.4 Heuristik
@@ -611,15 +616,15 @@ graph TD
     StopsFinal --> Final
 
 ```
-5. Phase C — Pattern-Gruppierung und Master-Trip
-5.1 Übersicht
+# 5. Phase C — Pattern-Gruppierung und Master-Trip
+## 5.1 Übersicht
 Nach der Filterpipeline liegt eine reduzierte Menge von Trips vor, von denen jeder eine spezifische Fahrt mit konkreten Abfahrtszeiten ist. Aus dieser Menge sollen jetzt Trainruns gemacht werden — also abstrahierte Linien, die im Editor visualisiert werden. Eine Linie wie der IR15 verkehrt typischerweise alle 60 Minuten von Genf nach Luzern. Im GTFS-Feed sind das ungefähr siebzehn einzelne Trips pro Tag, je nach Periode auch mehr. Im Editor wollen wir daraus einen einzigen Trainrun machen, der die Linie repräsentiert, mit einer Frequenz von 60 Minuten und einer einheitlichen Fahrzeit pro Section.
 
 Das Vorgehen dafür ist die Pattern-Gruppierung. Ein Pattern ist eine Gruppe von Trips, die alle dieselbe Linie befahren, dieselbe Richtung haben und dieselbe Stop-Sequenz aufweisen. Wenn der Vormittags-IR15 von Genf nach Luzern dieselben elf Stationen anfährt wie der Mittags-IR15 und der Abend-IR15, dann sind diese drei Trips in einem gemeinsamen Pattern. Ein vierter IR15, der zum Beispiel nur bis Bern fährt (verkürzte Variante), gehört in ein anderes Pattern, weil seine Stop-Sequenz anders ist.
 
 Aus jedem Pattern wird im späteren Verlauf ein Trainrun erzeugt. Die individuellen Trips innerhalb des Patterns werden dann auf den Master-Trip kollabiert — den repräsentativen Trip, dessen Fahrzeiten exemplarisch als Section-Fahrzeiten verwendet werden. Die anderen Trips dienen nur noch zur Frequenzbestimmung (siehe Kapitel 6).
 
-5.2 Details
+## 5.2 Details
 Die Gruppierung erfolgt über einen Pattern-Schlüssel, der drei Bestandteile vereint: die route_id, die direction_id und die normalisierte Stop-Sequenz als Bindestrich-getrennten String. Zwei Trips landen genau dann im selben Pattern, wenn ihre Pattern-Schlüssel identisch sind.
 
 Die Stop-Sequenz wird vor dem Schlüsselbau normalisiert. Konkret bedeutet das: Die einzelnen Plattform-IDs aus den Stop-Times werden zunächst auf ihre `parent_station`-IDs zurückgeführt. Damit wird verhindert, dass ein Trip, der in Zürich HB auf Gleis 7 hält, einem anderen Pattern zugeordnet wird als ein Trip, der in Zürich HB auf Gleis 12 hält. Beide Trips halten ja im selben Bahnhof; die Plattformwahl ist aus Netzgrafik-Sicht irrelevant. Die Plattform-zu-Station-Zuordnung erfolgt über das `parent_station`-Feld der `stops.txt`. Ein Stop ohne `parent_station` wird als seine eigene Station behandelt.
@@ -633,36 +638,77 @@ Sobald die Patterns gebildet sind, wird aus jedem Pattern ein **Master-Trip** au
 Innerhalb eines Patterns werden alle Stop-Times des Master-Trips nach `stop_sequence` sortiert. Das ist wichtig, weil die GTFS-Spezifikation nicht garantiert, dass die Zeilen in `stop_times.txt` in der korrekten Reihenfolge stehen — manche Anbieter sortieren sie chronologisch nach `arrival_time`, andere nach `stop_sequence`, andere gar nicht. Eine explizite Sortierung nach `stop_sequence` ist deshalb obligatorisch.
 
 Die so gewonnenen, sortierten Stop-Times des Master-Trips dienen später als Vorlage für die Erzeugung der TrainrunSections (siehe Kapitel 9). Die anderen Trips im Pattern werden im weiteren Verlauf nicht mehr für die Section-Erzeugung verwendet — sie tragen nur noch zur Frequenzbestimmung und zur Trip-Detail-Tabelle in der Summary bei.
-
 ## 5.3 Algorithmus
-EINGABE: GTFSData (gefiltert), minStopsPerTrip AUSGABE: TripPattern[] (Liste von Pattern-Objekten)
 
-DATENSTRUKTUR TripPattern: { routeId: string directionId: “0” | “1” stopSequence: string[] // Stations-IDs, normalisiert, dedupliziert trips: GTFSTrip[] // alle Trips in diesem Pattern stopTimes: Map // pro Trip die sortierten Halte }
+```text
+EINGABE:  GTFSData (gefiltert), minStopsPerTrip
+AUSGABE:  TripPattern[] (Liste von Pattern-Objekten)
+
+DATENSTRUKTUR TripPattern:
+  {
+    routeId:       string
+    directionId:   "0" | "1"
+    stopSequence:  string[]            // Stations-IDs, normalisiert, dedupliziert
+    trips:         GTFSTrip[]          // alle Trips in diesem Pattern
+    stopTimes:     Map<tripId, StopTime[]>  // pro Trip die sortierten Halte
+  }
 
 ALGORITHMUS:
 
-Aufbau der stop_id → station_id Mapping (aus parent_station) stopToStation = neue Map for each stop in gtfsData.stops: stopToStation.set( stop.stop_id, stop.parent_station != “” ? stop.parent_station : stop.stop_id )
+1. Aufbau der stop_id -> station_id Mapping (aus parent_station)
+   stopToStation = neue Map
+   for each stop in gtfsData.stops:
+     stopToStation.set(
+       stop.stop_id,
+       stop.parent_station != "" ? stop.parent_station : stop.stop_id
+     )
 
-Gruppierung der Stop-Times pro Trip stopTimesByTrip = neue Map for each st in gtfsData.stopTimes: stopTimesByTrip.append(st.trip_id, st)
+2. Gruppierung der Stop-Times pro Trip
+   stopTimesByTrip = neue Map
+   for each st in gtfsData.stopTimes:
+     stopTimesByTrip.append(st.trip_id, st)
 
-Sortierung pro Trip nach stop_sequence for each (tripId, sts) in stopTimesByTrip: sts.sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence))
+3. Sortierung pro Trip nach stop_sequence
+   for each (tripId, sts) in stopTimesByTrip:
+     sts.sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence))
 
-Pattern-Bildung patterns = neue Map
+4. Pattern-Bildung
+   patterns = neue Map
 
-for each trip in gtfsData.trips: sts = stopTimesByTrip.get(trip.trip_id) if sts is null oder sts.length < minStopsPerTrip: skip
+   for each trip in gtfsData.trips:
+     sts = stopTimesByTrip.get(trip.trip_id)
+     if sts is null OR sts.length < minStopsPerTrip:
+       skip
 
-// Stations-Sequenz aufbauen, Duplikate konsolidieren rawSeq = sts.map(st => stopToStation.get(st.stop_id) || st.stop_id) seq = [] for each stationId in rawSeq: if seq.length == 0 oder seq.last() != stationId: seq.push(stationId)
+     // Stations-Sequenz aufbauen, Duplikate konsolidieren
+     rawSeq = sts.map(st => stopToStation.get(st.stop_id) || st.stop_id)
+     seq = []
+     for each stationId in rawSeq:
+       if seq.length == 0 OR seq.last() != stationId:
+         seq.push(stationId)
 
-if seq.length < minStopsPerTrip: skip
+     if seq.length < minStopsPerTrip:
+       skip
 
-directionId = trip.direction_id || “0” patternKey = trip.route_id + “” + directionId + “” + seq.join(“-“)
+     directionId = trip.direction_id || "0"
+     patternKey  = trip.route_id + "_" + directionId + "_" + seq.join("-")
 
-if not patterns.has(patternKey): patterns.set(patternKey, { routeId: trip.route_id, directionId: directionId, stopSequence: seq, trips: [], stopTimes: neue Map })
+     if not patterns.has(patternKey):
+       patterns.set(patternKey, {
+         routeId:      trip.route_id,
+         directionId:  directionId,
+         stopSequence: seq,
+         trips:        [],
+         stopTimes:    neue Map
+       })
 
-pattern = patterns.get(patternKey) pattern.trips.push(trip) pattern.stopTimes.set(trip.trip_id, sts)
+     pattern = patterns.get(patternKey)
+     pattern.trips.push(trip)
+     pattern.stopTimes.set(trip.trip_id, sts)
 
-Rückgabe als Array RETURN Array.from(patterns.values())
-
+5. Rückgabe als Array
+   RETURN Array.from(patterns.values())
+```
 
 ## 5.4 Heuristik
 
@@ -724,135 +770,183 @@ graph TD
     Result --> Master[Master-Trip:<br/>erster Trip im Pattern<br/>= reprasentativer Trip]
 ```
 
-  6. Phase D — Frequenzberechnung (Heuristik)
-6.1 Übersicht
+    # 6. Phase D — Frequenzberechnung (Heuristik)
+
+## 6.1 Übersicht
+
 Sobald die Patterns gebildet sind, muss zu jedem zugehörigen Trainrun eine Frequenz zugeordnet werden. Eine Frequenz ist im Editor-Modell ein diskreter Wert aus einer fest vorgegebenen Liste: 15, 20, 30, 60 oder 120 Minuten. Andere Werte sind nicht erlaubt — die Editor-Logik hat keine Vorstellung davon, was eine 17-Minuten-Frequenz bedeuten würde, weil die gesamte Visualisierung auf der Annahme einer regelmässigen Stundenbasis aufbaut.
 
 Aus den GTFS-Daten muss also eine diskretisierte Frequenz bestimmt werden, die möglichst gut zur tatsächlichen Taktung der Linie passt. Die Aufgabe ist nicht ganz trivial, weil reale Fahrpläne selten perfekt im Takt fahren. Eine Linie kann nominell einen 30-Minuten-Takt haben, aber in den Daten erscheinen Abstände von 28, 30, 31, 30, 32 Minuten — wegen Anschlussabstimmung an Knotenbahnhöfen, Dispatcher-Entscheidungen oder einfach unterschiedlicher Modellierung in den Quelldaten. Die Heuristik muss diese kleinen Abweichungen wegglätten und auf den nächstgelegenen Standardwert snappen.
 
-Eine zweite Komplikation ist die 120-Minuten-Frequenz. Im Editor wird zwischen “120 Minuten gerade” (Abfahrten zu vollen Stunden wie 06:00, 08:00, 10:00) und “120 Minuten ungerade” (Abfahrten zu ungeraden Stunden wie 07:00, 09:00, 11:00) unterschieden. Diese Unterscheidung ist nötig, damit zwei sich ergänzende 2-Stunden-Linien (eine gerade, eine ungerade) auf der Netzgrafik richtig abgebildet werden können — ihre Abfahrten dürfen nicht aufeinander fallen. Bei der Frequenzbestimmung muss also nicht nur der Wert “120” erkannt werden, sondern auch, in welche der beiden Schichten die Linie gehört.
+Eine zweite Komplikation ist die 120-Minuten-Frequenz. Im Editor wird zwischen "120 Minuten gerade" (Abfahrten zu vollen Stunden wie 06:00, 08:00, 10:00) und "120 Minuten ungerade" (Abfahrten zu ungeraden Stunden wie 07:00, 09:00, 11:00) unterschieden. Diese Unterscheidung ist nötig, damit zwei sich ergänzende 2-Stunden-Linien (eine gerade, eine ungerade) auf der Netzgrafik richtig abgebildet werden können — ihre Abfahrten dürfen nicht aufeinander fallen. Bei der Frequenzbestimmung muss also nicht nur der Wert "120" erkannt werden, sondern auch, in welche der beiden Schichten die Linie gehört.
 
-6.2 Details
+## 6.2 Details
+
 Die Frequenzbestimmung erfolgt pro Route, nicht pro Pattern. Das ist bewusst gewählt: Wenn eine Linie aus mehreren Patterns besteht (etwa weil sie verschiedene Fahrtmuster hat), sollen alle Patterns dieselbe Frequenz erhalten. Die Frequenz ist eine Eigenschaft der Linie als Ganzes, nicht des einzelnen Fahrtmusters.
 
-Im aktuellen Code findet die Frequenzbestimmung im Parser statt, bevor der Converter überhaupt zum Zug kommt. Pro Route werden alle ihr zugeordneten Trips betrachtet, und aus den Abfahrtszeiten am Start-Stop wird die Frequenz heuristisch ermittelt. Das Ergebnis wird in das route.frequency-Feld geschrieben — ein vom GTFS-Standard nicht vorgesehenes Feld, das aber als Erweiterung im internen GTFSRoute-Modell vorhanden ist.
+Im aktuellen Code findet die Frequenzbestimmung im Parser statt, bevor der Converter überhaupt zum Zug kommt. Pro Route werden alle ihr zugeordneten Trips betrachtet, und aus den Abfahrtszeiten am Start-Stop wird die Frequenz heuristisch ermittelt. Das Ergebnis wird in das `route.frequency`-Feld geschrieben — ein vom GTFS-Standard nicht vorgesehenes Feld, das aber als Erweiterung im internen `GTFSRoute`-Modell vorhanden ist.
 
-Die Bestimmung läuft in mehreren Schritten ab. Zuerst werden alle Trips einer Route gesammelt, und für jeden Trip wird die Abfahrtszeit am ersten Halt extrahiert (genauer: die departure_time des Stop-Times-Eintrags mit dem kleinsten stop_sequence). Diese Abfahrtszeiten werden in Minuten seit Mitternacht umgerechnet, damit sie als reine Zahlen verglichen werden können. GTFS erlaubt Zeitangaben jenseits von 24:00 Uhr (etwa 25:30 für eine Fahrt, die nach Mitternacht um 01:30 endet, aber zum Vortagsservice gehört) — diese werden auf den Bereich [0, 1440] modulo gerechnet, weil für die Frequenzbestimmung nur die intra-day-Abstände relevant sind.
+Die Bestimmung läuft in mehreren Schritten ab. Zuerst werden alle Trips einer Route gesammelt, und für jeden Trip wird die Abfahrtszeit am ersten Halt extrahiert (genauer: die `departure_time` des Stop-Times-Eintrags mit dem kleinsten `stop_sequence`). Diese Abfahrtszeiten werden in Minuten seit Mitternacht umgerechnet, damit sie als reine Zahlen verglichen werden können. GTFS erlaubt Zeitangaben jenseits von 24:00 Uhr (etwa 25:30 für eine Fahrt, die nach Mitternacht um 01:30 endet, aber zum Vortagsservice gehört) — diese werden auf den Bereich [0, 1440] modulo gerechnet, weil für die Frequenzbestimmung nur die intra-day-Abstände relevant sind.
 
 Die Abfahrtszeiten werden anschliessend aufsteigend sortiert. Aus der sortierten Liste werden alle aufeinanderfolgenden Differenzen gebildet — das sind die Intervalle zwischen aufeinanderfolgenden Abfahrten derselben Linie. Wenn zwischen 06:00 und 07:00 abgefahren wird, ist das Intervall 60 Minuten. Wenn als nächstes 07:30 folgt, kommt ein 30-Minuten-Intervall hinzu. Aus all diesen Intervallen wird ein Histogramm gebildet: Wie oft kommt jedes Intervall vor?
 
-Vor dem Histogramm-Aufbau wird jedes Intervall auf den nächstgelegenen Standardwert gesnappt. Die Standardwerte sind {15, 20, 30, 60, 120}. Das Snapping erfolgt mit einer Toleranzschwelle: Liegt ein Intervall innerhalb von ±N% (oder einer absoluten Schwelle in Minuten) eines Standardwerts, wird es auf diesen gerundet. Sonst wird es als “Unbekannt” markiert und nicht ins Histogramm aufgenommen. Die genauen Toleranzwerte sind im Code als Konstanten festgelegt.
+Vor dem Histogramm-Aufbau wird jedes Intervall auf den nächstgelegenen Standardwert gesnappt. Die Standardwerte sind {15, 20, 30, 60, 120}. Das Snapping erfolgt mit einer Toleranzschwelle: Liegt ein Intervall innerhalb von ±N% (oder einer absoluten Schwelle in Minuten) eines Standardwerts, wird es auf diesen gerundet. Sonst wird es als "Unbekannt" markiert und nicht ins Histogramm aufgenommen. Die genauen Toleranzwerte sind im Code als Konstanten festgelegt.
 
-Aus dem Histogramm wird der Modus bestimmt — also der häufigste Wert. Wenn 50 Intervalle einer Linie als “60” gesnappt werden und 10 als “120”, dann ist der Modus 60, und der Linie wird die 60-Minuten-Frequenz zugeordnet. Bei Gleichstand entscheidet der kleinere Wert (kürzerer Takt = mehr Fahrten, was meistens das gewünschte Verhalten widerspiegelt).
+Aus dem Histogramm wird der Modus bestimmt — also der häufigste Wert. Wenn 50 Intervalle einer Linie als "60" gesnappt werden und 10 als "120", dann ist der Modus 60, und der Linie wird die 60-Minuten-Frequenz zugeordnet. Bei Gleichstand entscheidet der kleinere Wert (kürzerer Takt = mehr Fahrten, was meistens das gewünschte Verhalten widerspiegelt).
 
-Wird der ermittelte Modus 120, gibt es einen Zusatzschritt: die Schichtbestimmung. Es wird geprüft, ob die meisten Abfahrten zu geraden oder zu ungeraden Stunden stattfinden. Konkret wird für jede Abfahrt der Stundenanteil der Abfahrtszeit modulo 2 berechnet. Liegt das Ergebnis bei 0, ist die Abfahrt zu einer geraden Stunde; bei 1, zu einer ungeraden. Der Modus dieser Werte ergibt die Schicht: “120_0” für gerade Stunden, “120_60” für ungerade Stunden. Diese Schichtangabe wird im Frequenz-Schlüssel codiert und beim Mapping auf die Editor-Frequenz-Definitionen verwendet.
+Wird der ermittelte Modus 120, gibt es einen Zusatzschritt: die Schichtbestimmung. Es wird geprüft, ob die meisten Abfahrten zu geraden oder zu ungeraden Stunden stattfinden. Konkret wird für jede Abfahrt der Stundenanteil der Abfahrtszeit modulo 2 berechnet. Liegt das Ergebnis bei 0, ist die Abfahrt zu einer geraden Stunde; bei 1, zu einer ungeraden. Der Modus dieser Werte ergibt die Schicht: "120_0" für gerade Stunden, "120_60" für ungerade Stunden. Diese Schichtangabe wird im Frequenz-Schlüssel codiert und beim Mapping auf die Editor-Frequenz-Definitionen verwendet.
 
-Im Editor sind die Standardfrequenzen mit ihren Offsets vordefiniert. Die “120_0”-Frequenz hat den Offset 0 (Abfahrt zur vollen geraden Stunde), die “120_60” hat den Offset 60 (Abfahrt zur vollen ungeraden Stunde). Bei den anderen Frequenzen (15, 20, 30, 60) gibt es keinen Offset-Unterschied, weil ihre Periode kleiner als eine Stunde ist und sie sich automatisch in den Stundenraster einfügen.
+Im Editor sind die Standardfrequenzen mit ihren Offsets vordefiniert. Die "120_0"-Frequenz hat den Offset 0 (Abfahrt zur vollen geraden Stunde), die "120_60" hat den Offset 60 (Abfahrt zur vollen ungeraden Stunde). Bei den anderen Frequenzen (15, 20, 30, 60) gibt es keinen Offset-Unterschied, weil ihre Periode kleiner als eine Stunde ist und sie sich automatisch in den Stundenraster einfügen.
 
-6.3 Algorithmus
+## 6.3 Algorithmus
 
-
+```text
 EINGABE:  Liste der Trips einer Route, allowedFrequencies = {15, 20, 30, 60, 120}
 AUSGABE:  frequency: number, optional offsetHour: 0 | 1
 
 1. Abfahrtszeiten extrahieren
    departureTimes = []
    for each trip in trips:
-   firstStopTime = stopTimesByTrip.get(trip.trip_id).sortedByStopSequence().
-
-first()
-       depMinutes = parseToMinutes(firstStopTime.departure_time) % (24 * 60)
-       departureTimes.push(depMinutes)
+     firstStopTime = stopTimesByTrip.get(trip.trip_id).sortedByStopSequence().first()
+     depMinutes = parseToMinutes(firstStopTime.departure_time) % (24 * 60)
+     departureTimes.push(depMinutes)
 
 2. Sortieren aufsteigend
    departureTimes.sort()
 
 3. Wenn weniger als 2 Trips: Frequenz nicht bestimmbar
    if departureTimes.length < 2:
-   return { frequency: 60, offsetHour: undefined }  // Default-Fallback
+     return { frequency: 60, offsetHour: undefined }  // Default-Fallback
 
 4. Intervalle berechnen
    intervals = []
    for i from 1 to departureTimes.length - 1:
-   intervals.push(departureTimes[i] - departureTimes[i-1])
+     intervals.push(departureTimes[i] - departureTimes[i-1])
 
 5. Snapping auf Standardwerte
    histogram = neue Map<number, number>
    for each interval in intervals:
-   nearest = findNearestStandardFrequency(interval, allowedFrequencies, tolerance)
-   if nearest != null:
-   histogram[nearest] = (histogram[nearest] || 0) + 1
+     nearest = findNearestStandardFrequency(interval, allowedFrequencies, tolerance)
+     if nearest != null:
+       histogram[nearest] = (histogram[nearest] || 0) + 1
 
 6. Modus bestimmen
    if histogram leer:
-   return { frequency: 60, offsetHour: undefined }  // Default-Fallback
+     return { frequency: 60, offsetHour: undefined }  // Default-Fallback
 
    bestFrequency = key of histogram with max value
    (Bei Gleichstand: kleinerer Wert)
 
 7. Spezialfall 120-Minuten: Schicht bestimmen
    if bestFrequency == 120:
-   evenCount = 0
-   oddCount = 0
-   for each depMinutes in departureTimes:
-   hour = floor(depMinutes / 60)
-   if hour % 2 == 0:
-   evenCount++
-   else:
-   oddCount++
+     evenCount = 0
+     oddCount = 0
+     for each depMinutes in departureTimes:
+       hour = floor(depMinutes / 60)
+       if hour % 2 == 0:
+         evenCount++
+       else:
+         oddCount++
 
-   offsetHour = (evenCount >= oddCount) ? 0 : 1
+     offsetHour = (evenCount >= oddCount) ? 0 : 1
    else:
-   offsetHour = undefined
+     offsetHour = undefined
 
 8. RETURN { frequency: bestFrequency, offsetHour }
-Die Hilfsfunktion findNearestStandardFrequency arbeitet so:
+```
 
+Die Hilfsfunktion `findNearestStandardFrequency` arbeitet so:
+
+```text
 EINGABE:  interval (Minuten), allowedFrequencies = [15, 20, 30, 60, 120], tolerance
 AUSGABE:  passender Standardwert oder null
 
 1. for each f in allowedFrequencies:
-   if abs(interval - f) <= tolerance:
-   return f
+     if abs(interval - f) <= tolerance:
+       return f
 2. return null
+```
 
 Die Toleranz ist im Code als kleine, feste Schwelle implementiert (typischerweise drei bis fünf Minuten), kann aber in einer Neuentwicklung auch dynamisch in Abhängigkeit vom Standardwert berechnet werden — etwa als Prozentsatz des Standardwerts (zum Beispiel 10 Prozent). Damit hätten kleinere Frequenzen eine kleinere absolute Toleranz und grössere Frequenzen eine grössere — was sinnvoller ist, weil ein 5-Minuten-Fehler bei einer 15-Minuten-Frequenz schwerer wiegt als bei einer 120-Minuten-Frequenz.
 
-6.4 Heuristik
+## 6.4 Heuristik
+
 Die Frequenzbestimmung ist eine der heikelsten Heuristiken der gesamten Pipeline, weil sie auf relativ wenig Information beruhen muss und gleichzeitig auf einen sehr engen Wertebereich abbilden soll. Die wichtigsten Designentscheidungen sind:
 
-Modus statt Mittelwert oder Median. Der Modus ist robuster gegen einzelne Ausreisser als der Mittelwert. Wenn eine Linie 30 Trips im 60-Minuten-Takt hat und einen einzigen Verstärkertrip mit 30 Minuten Abstand zum Nachfolger, würde der Mittelwert leicht unter 60 fallen. Der Modus bleibt aber stabil bei 60, weil die Mehrheit der Intervalle dort liegt. Der Median wäre hier ebenfalls stabil, hat aber den Nachteil, dass er bei wenigen Datenpunkten zu zwei Werten führen kann (Median zwischen zwei Werten), was eine zusätzliche Tiebreaker-Logik erfordert.
+**Modus statt Mittelwert oder Median.** Der Modus ist robuster gegen einzelne Ausreisser als der Mittelwert. Wenn eine Linie 30 Trips im 60-Minuten-Takt hat und einen einzigen Verstärkertrip mit 30 Minuten Abstand zum Nachfolger, würde der Mittelwert leicht unter 60 fallen. Der Modus bleibt aber stabil bei 60, weil die Mehrheit der Intervalle dort liegt. Der Median wäre hier ebenfalls stabil, hat aber den Nachteil, dass er bei wenigen Datenpunkten zu zwei Werten führen kann (Median zwischen zwei Werten), was eine zusätzliche Tiebreaker-Logik erfordert.
 
-Snapping vor dem Histogramm. Würde man das Histogramm mit den rohen Intervallen aufbauen, hätten reale Fahrpläne mit ihren kleinen Abweichungen für jeden minutennahen Wert einen eigenen Histogramm-Eintrag. Aus Werten wie 28, 30, 31, 29, 30, 32 würden sechs separate Einträge entstehen, alle mit Häufigkeit 1. Das Snapping fasst diese als “30” zusammen und ergibt einen klaren Modus.
+**Snapping vor dem Histogramm.** Würde man das Histogramm mit den rohen Intervallen aufbauen, hätten reale Fahrpläne mit ihren kleinen Abweichungen für jeden minutennahen Wert einen eigenen Histogramm-Eintrag. Aus Werten wie 28, 30, 31, 29, 30, 32 würden sechs separate Einträge entstehen, alle mit Häufigkeit 1. Das Snapping fasst diese als "30" zusammen und ergibt einen klaren Modus.
 
-Toleranz-basiertes Verwerfen. Intervalle, die nicht in die Toleranzschwelle passen (etwa 45 Minuten oder 90 Minuten), werden gar nicht ins Histogramm aufgenommen. Das ist eine bewusste Entscheidung: Man will lieber das Risiko eingehen, dass eine ungewöhnliche Linie keine Frequenz bekommt, als dass eine Standard-Linie eine falsche Frequenz erhält. Wenn die Linie wirklich einen ungewöhnlichen Takt hat (zum Beispiel Bedarfsverkehr), ist das ohnehin kein Fall, der sich gut im Editor abbilden lässt.
+**Toleranz-basiertes Verwerfen.** Intervalle, die nicht in die Toleranzschwelle passen (etwa 45 Minuten oder 90 Minuten), werden gar nicht ins Histogramm aufgenommen. Das ist eine bewusste Entscheidung: Man will lieber das Risiko eingehen, dass eine ungewöhnliche Linie keine Frequenz bekommt, als dass eine Standard-Linie eine falsche Frequenz erhält. Wenn die Linie wirklich einen ungewöhnlichen Takt hat (zum Beispiel Bedarfsverkehr), ist das ohnehin kein Fall, der sich gut im Editor abbilden lässt.
 
-Gerade/Ungerade-Erkennung nur bei 120 Minuten. Bei Frequenzen unter 60 Minuten ist die Schichtfrage trivial, weil sich die Linie ohnehin mehrfach pro Stunde wiederholt. Bei 60 Minuten ist sie irrelevant, weil jede Stunde eine Abfahrt enthält. Erst bei 120 Minuten oder grösser wird die Stundenparität zum Unterscheidungskriterium. Im Editor sind nur 120 als Sonderfall behandelt; eine 240-Minuten-Frequenz mit vier möglichen Schichten gibt es nicht.
+**Gerade/Ungerade-Erkennung nur bei 120 Minuten.** Bei Frequenzen unter 60 Minuten ist die Schichtfrage trivial, weil sich die Linie ohnehin mehrfach pro Stunde wiederholt. Bei 60 Minuten ist sie irrelevant, weil jede Stunde eine Abfahrt enthält. Erst bei 120 Minuten oder grösser wird die Stundenparität zum Unterscheidungskriterium. Im Editor sind nur 120 als Sonderfall behandelt; eine 240-Minuten-Frequenz mit vier möglichen Schichten gibt es nicht.
 
-Behandlung von Gleichstand. Wenn zwei Frequenzen gleich häufig im Histogramm vertreten sind, wird die kleinere bevorzugt. Diese Wahl ist heuristisch und basiert auf der Annahme, dass eine Linie mit gemischtem Takt (etwa 30 und 60 Minuten) im Editor besser als 30-Minuten-Linie dargestellt wird, wo die Hälfte der erwarteten Fahrten “fehlt”, als als 60-Minuten-Linie, wo die Hälfte der Fahrten “zusätzlich” eingefügt sein müsste. Beides ist nicht ideal, aber die kleinere Frequenz erlaubt im Editor mehr Flexibilität.
+**Behandlung von Gleichstand.** Wenn zwei Frequenzen gleich häufig im Histogramm vertreten sind, wird die kleinere bevorzugt. Diese Wahl ist heuristisch und basiert auf der Annahme, dass eine Linie mit gemischtem Takt (etwa 30 und 60 Minuten) im Editor besser als 30-Minuten-Linie dargestellt wird, wo die Hälfte der erwarteten Fahrten "fehlt", als als 60-Minuten-Linie, wo die Hälfte der Fahrten "zusätzlich" eingefügt sein müsste. Beides ist nicht ideal, aber die kleinere Frequenz erlaubt im Editor mehr Flexibilität.
 
-Längste gemeinsame Sub-Sequenz (nicht implementiert). Wie in Kapitel 5 angesprochen, fordert die Anforderungsspezifikation eine Verfeinerung, bei der die Frequenz nicht aus allen Trips einer Route, sondern aus dem gemeinsamen Kernkorridor der Trips bestimmt wird. Das wird besonders wichtig, wenn eine Linie aus zeitlich versetzten Mustern besteht. Ein konkretes Beispiel aus der Anforderungsspezifikation soll das verdeutlichen:
+**Längste gemeinsame Sub-Sequenz (nicht implementiert).** Wie in Kapitel 5 angesprochen, fordert die Anforderungsspezifikation eine Verfeinerung, bei der die Frequenz nicht aus allen Trips einer Route, sondern aus dem gemeinsamen Kernkorridor der Trips bestimmt wird. Das wird besonders wichtig, wenn eine Linie aus zeitlich versetzten Mustern besteht. Ein konkretes Beispiel aus der Anforderungsspezifikation soll das verdeutlichen:
 
 Eine Linie verkehrt nominell von A bis H. In den realen GTFS-Daten gibt es drei Patterns:
 
-Pattern P1 (A–F): nur am frühen Morgen, drei Trips zwischen 04:30 und 06:30
-Pattern P2 (C–H): nur am späten Abend, vier Trips zwischen 21:00 und 23:00
-Pattern P3 (C–F): tagsüber, sechzehn Trips zwischen 07:00 und 20:00, sauber im 60-Minuten-Takt
+- Pattern P1 (A–F): nur am frühen Morgen, drei Trips zwischen 04:30 und 06:30
+- Pattern P2 (C–H): nur am späten Abend, vier Trips zwischen 21:00 und 23:00
+- Pattern P3 (C–F): tagsüber, sechzehn Trips zwischen 07:00 und 20:00, sauber im 60-Minuten-Takt
+
 Wenn man die Frequenz aus allen Trips zusammen bestimmen würde, hätte man Abfahrten zu sehr unterschiedlichen Stunden (von 04:30 bis 23:00) und die Intervalle wären chaotisch — viele 60er, aber auch einige sehr lange Lücken (zwischen P1 und P3, zwischen P3 und P2). Der Modus wäre möglicherweise zwar 60, aber das Vertrauen in diese Bestimmung wäre niedrig.
 
-Die intelligentere Heuristik: Identifiziere C–F als gemeinsamen Sub-Korridor aller drei Patterns. Bestimme die Frequenz nur aus den 16 Trips von P3, die diesen Korridor sauber bedienen. Resultat: 60-Minuten-Takt mit hohem Vertrauen. Trage diesen Takt dann auf den gesamten Linienverlauf A–H aus und stelle die fehlenden Stunden im A–C-Abschnitt und im F–H-Abschnitt als “ausgedünnt” dar (im Editor: weniger Trips als die Frequenz erwarten lässt, was visuell als unvollständig erkennbar ist).
+Die intelligentere Heuristik: Identifiziere C–F als gemeinsamen Sub-Korridor aller drei Patterns. Bestimme die Frequenz nur aus den 16 Trips von P3, die diesen Korridor sauber bedienen. Resultat: 60-Minuten-Takt mit hohem Vertrauen. Trage diesen Takt dann auf den gesamten Linienverlauf A–H aus und stelle die fehlenden Stunden im A–C-Abschnitt und im F–H-Abschnitt als "ausgedünnt" dar (im Editor: weniger Trips als die Frequenz erwarten lässt, was visuell als unvollständig erkennbar ist).
 
 Diese Verfeinerung erfordert zusätzliche Schritte: das Erkennen der längsten gemeinsamen Sub-Sequenz aller Patterns einer Linie, das Einschränken der Frequenzberechnung auf Trips, die diese Sub-Sequenz vollständig befahren, und das anschliessende Ausdehnen der Frequenz auf die volle Linienlänge. Im aktuellen Code ist das nicht implementiert; jedes Pattern bekommt seine Frequenz aus seinen eigenen Trips. Bei Linien, die aus einem dominanten Pattern bestehen, funktioniert das gut. Bei aufgesplitteten Linien wie im obigen Beispiel kann es zu mehreren Trainruns mit unterschiedlichen Frequenzen führen, die eigentlich eine einzige Linie sind.
 
-Mindest-Datenbasis. Eine Linie mit nur einem einzigen Trip kann keine Frequenz haben — es fehlt das Intervall. Die Heuristik fällt in diesem Fall auf den Default 60 Minuten zurück. Das ist nicht ideal, aber praktikabel: Ein Trainrun ohne zugewiesene Frequenz lässt sich im Editor nicht sinnvoll darstellen, weil sich die ganze Visualisierung um den Frequenz-Begriff dreht. Eine bessere Lösung wäre, solche Linien als “Einzelfahrt” zu kennzeichnen (vielleicht durch eine spezielle Pseudo-Frequenz “irregular”), aber das ist im aktuellen Editor-Modell nicht vorgesehen.
+**Mindest-Datenbasis.** Eine Linie mit nur einem einzigen Trip kann keine Frequenz haben — es fehlt das Intervall. Die Heuristik fällt in diesem Fall auf den Default 60 Minuten zurück. Das ist nicht ideal, aber praktikabel: Ein Trainrun ohne zugewiesene Frequenz lässt sich im Editor nicht sinnvoll darstellen, weil sich die ganze Visualisierung um den Frequenz-Begriff dreht. Eine bessere Lösung wäre, solche Linien als "Einzelfahrt" zu kennzeichnen (vielleicht durch eine spezielle Pseudo-Frequenz "irregular"), aber das ist im aktuellen Editor-Modell nicht vorgesehen.
 
-7. Phase E — Knoten-Erstellung und Graph-Aufbau
-7.1 Übersicht
+## 6.5 Datenflussdiagramm
+
+```mermaid
+graph TD
+    Trips[Trips einer Route]
+    Trips --> Extract[Pro Trip:<br/>departure_time<br/>am ersten Halt]
+    Extract --> Mod[Modulo 1440<br/>auf 24h-Tag]
+    Mod --> Sort[Aufsteigend sortieren]
+    
+    Sort --> Check{>= 2 Trips?}
+    Check -->|nein| Default[Default 60 Min<br/>kein offsetHour]
+    Check -->|ja| Diff[Aufeinanderfolgende<br/>Differenzen bilden]
+    
+    Diff --> Snap[Snapping auf<br/>15/20/30/60/120<br/>mit Toleranz]
+    Snap --> InTol{Innerhalb<br/>Toleranz?}
+    InTol -->|nein| Discard[Verwerfen]
+    InTol -->|ja| Hist[Histogramm-Eintrag<br/>++]
+    
+    Hist --> Mode[Modus bestimmen<br/>haeufigster Wert]
+    Mode --> Tie{Gleichstand?}
+    Tie -->|ja| Smaller[Kleineren Wert waehlen]
+    Tie -->|nein| Best[bestFrequency]
+    Smaller --> Best
+    
+    Best --> Is120{Frequenz<br/>== 120?}
+    Is120 -->|nein| Done[frequency<br/>offsetHour = undefined]
+    Is120 -->|ja| Shift[Schicht bestimmen:<br/>Stunden modulo 2<br/>even vs odd]
+    
+    Shift --> EvenOdd{evenCount<br/>>= oddCount?}
+    EvenOdd -->|ja| Off0[offsetHour = 0<br/>120_0 gerade Stunden]
+    EvenOdd -->|nein| Off1[offsetHour = 1<br/>120_60 ungerade Stunden]
+    
+    Off0 --> Result[frequency, offsetHour]
+    Off1 --> Result
+    Done --> Result
+    Default --> Result
+    
+    Result --> Annotate[route.frequency<br/>route.offsetHour<br/>annotieren]
+```
+
+
+# 7. Phase E — Knoten-Erstellung und Graph-Aufbau
+## 7.1 Übersicht
 Mit den Patterns und ihren Stop-Sequenzen liegt nun fest, welche Stationen im Editor als Knoten dargestellt werden müssen. Aus diesen Stations-Stops müssen NodeDto-Objekte erzeugt werden — vollständige Knoten mit Position, Name, leeren Port- und Transition-Listen und einigen Default-Eigenschaften. Diese Phase ist konzeptionell einfach, hat aber zwei nicht-triviale Sub-Aufgaben: die Plattform-zu-Station-Konsolidierung und die Koordinatentransformation von WGS84-Geokoordinaten in das interne Canvas-Koordinatensystem des Editors.
 
 Das Ergebnis dieser Phase ist eine Liste von NodeDto-Objekten, die in der späteren Pipeline als Endpunkte für die TrainrunSections dienen. Jeder Node bekommt eine eindeutige numerische ID, die in den Sections referenziert wird. Eine zusätzliche Datenstruktur, die nodeIdMap, hält die Zuordnung von GTFS-Stop-IDs (sowohl Stations als auch Plattformen) auf diese numerischen Node-IDs bereit.
 
-7.2 Details
+## 7.2 Details
 Die Knoten-Erstellung beginnt mit der Bestimmung der verwendeten Stop-IDs. Aus allen ausgewählten Patterns werden die Stops ihrer stopSequence-Arrays in einem Set gesammelt. Diese Stops sind, dank der Normalisierung in der Pattern-Phase, bereits Stations-IDs (Plattformen wurden auf ihre parent_station reduziert). Die Menge dieser IDs ist die Liste der Stations, für die Knoten erzeugt werden sollen.
 
 Anschliessend wird für jede dieser IDs der zugehörige Stations-Eintrag aus stops.txt gesucht. Hier kann es passieren, dass dieser Eintrag fehlt — etwa wenn eine Plattform in den Stop-Times referenziert wird, ihr parent_station-Wert in stops.txt aber keinen separaten Stationseintrag hat. In diesem Fall greift ein Fallback: Aus den Plattformen, die diese fehlende Station als Parent referenzieren, wird ein virtueller Stations-Eintrag synthetisiert. Sein Name wird aus dem Plattformnamen abgeleitet, indem typische Plattform-Suffixe entfernt werden — Reguläre Ausdrücke wie /\s+(Gleis|Track|Platform|Quai)\s+.*$/i werden auf den Plattformnamen angewendet, um Stücke wie “Gleis 7” oder “Track 2” wegzuschneiden. Die Koordinaten werden von der ersten gefundenen Plattform übernommen. So entsteht ein vollwertiger virtueller Stations-Eintrag, der genau wie ein echter behandelt wird.
@@ -872,127 +966,128 @@ Die Skalierungskonstante 15000 ist empirisch gewählt: Sie liefert für die Schw
 Nachdem alle Knoten erzeugt sind, wird die gesamte Knotenwolke zentriert: Der Schwerpunkt aller Knoten (arithmetisches Mittel der Positionen) wird auf den Ursprung verschoben. So ist gewährleistet, dass die Netzgrafik im Editor nicht irgendwo abseits des sichtbaren Bereichs landet, sondern um den Nullpunkt zentriert ist.
 
 Zusätzlich wird die nodeIdMap aufgebaut. Diese Map ordnet GTFS-Stop-IDs auf Editor-Node-IDs zu. Sie enthält Einträge für jede Stations-Stop-ID (mit der zugehörigen Node-ID) und auch für jede Plattform-ID, deren Eltern-Station in den Knoten enthalten ist (wieder auf dieselbe Node-ID gemappt). Das ist später wichtig, wenn die Section-Erzeugung auf die Stop-Times zugreift und für eine Plattform-ID den passenden Knoten finden muss.
+## 7.3 Algorithmus
 
-7.3 Algorithmus
-
-
+```text
 EINGABE:  patterns, gtfsData.stops
 AUSGABE:  nodes (NodeDto[]), nodeIdMap (Map<stopId, nodeId>)
 
 1. usedStopIds aus allen patterns sammeln
    usedStopIds = neue Menge
    for each pattern in patterns:
-   for each stopId in pattern.stopSequence:
-   usedStopIds.add(stopId)
+     for each stopId in pattern.stopSequence:
+       usedStopIds.add(stopId)
 
 2. stopMap aufbauen: zuerst echte Stops, dann virtuelle für fehlende Parents
    stopMap = neue Map<stopId, GTFSStop>
    for each stop in gtfsData.stops:
-   if stop.stop_id in usedStopIds:
-   stopMap.set(stop.stop_id, stop)
+     if stop.stop_id in usedStopIds:
+       stopMap.set(stop.stop_id, stop)
 
    missingParentIds = [id for id in usedStopIds if not stopMap.has(id)]
    for each parentId in missingParentIds:
-   children = gtfsData.stops.filter(s => s.parent_station == parentId)
-   if children.length > 0:
-   firstChild = children[0]
-   nameOhneSuffix = firstChild.stop_name.replace(/\s+(Gleis|Track|Platform|Quai)\s+.*$/i, "")
-   virtualParent = {
-   stop_id: parentId,
-   stop_name: nameOhneSuffix,
-   stop_lat: firstChild.stop_lat,
-   stop_lon: firstChild.stop_lon,
-   location_type: "1",
-   parent_station: ""
-   }
-   stopMap.set(parentId, virtualParent)
+     children = gtfsData.stops.filter(s => s.parent_station == parentId)
+     if children.length > 0:
+       firstChild = children[0]
+       nameOhneSuffix = firstChild.stop_name.replace(/\s+(Gleis|Track|Platform|Quai)\s+.*$/i, "")
+       virtualParent = {
+         stop_id: parentId,
+         stop_name: nameOhneSuffix,
+         stop_lat: firstChild.stop_lat,
+         stop_lon: firstChild.stop_lon,
+         location_type: "1",
+         parent_station: ""
+       }
+       stopMap.set(parentId, virtualParent)
 
 3. Stations-Filterung
    stations = stopMap.values().filter(stop =>
-   stop.location_type == "1"
-   OR stop.parent_station == ""
+     stop.location_type == "1"
+     OR stop.parent_station == ""
    )
 
 4. Knoten erzeugen
    nodes = []
    for each station, index in stations:
-   coords = convertCoordinates(parseFloat(station.stop_lat), parseFloat(station.stop_lon))
-   platforms = gtfsData.stops.filter(s => s.parent_station == station.stop_id AND s.stop_id != station.stop_id)
-   fullName = platforms.length > 0
-   ? station.stop_name + " -> #Platform (" + platforms.length + ")"
-   : station.stop_name
-   betriebspunktName = station.stop_name.length <= 50
-   ? station.stop_name
-   : station.stop_name.substring(0, 50)
+     coords = convertCoordinates(parseFloat(station.stop_lat), parseFloat(station.stop_lon))
+     platforms = gtfsData.stops.filter(s => s.parent_station == station.stop_id AND s.stop_id != station.stop_id)
+     fullName = platforms.length > 0
+       ? station.stop_name + " -> #Platform (" + platforms.length + ")"
+       : station.stop_name
+     betriebspunktName = station.stop_name.length <= 50
+       ? station.stop_name
+       : station.stop_name.substring(0, 50)
 
-   nodes.push({
-   id: index + 1,
-   betriebspunktName: betriebspunktName,
-   fullName: fullName,
-   positionX: coords.x,
-   positionY: coords.y,
-   ports: [],
-   transitions: [],
-   connections: [],
-   resourceId: 0,
-   perronkanten: 2,
-   connectionTime: 4,
-   trainrunCategoryHaltezeiten: getDefaultHaltezeit(),
-   symmetryAxis: 0,
-   warnings: [],
-   labelIds: []
-   })
+     nodes.push({
+       id: index + 1,
+       betriebspunktName: betriebspunktName,
+       fullName: fullName,
+       positionX: coords.x,
+       positionY: coords.y,
+       ports: [],
+       transitions: [],
+       connections: [],
+       resourceId: 0,
+       perronkanten: 2,
+       connectionTime: 4,
+       trainrunCategoryHaltezeiten: getDefaultHaltezeit(),
+       symmetryAxis: 0,
+       warnings: [],
+       labelIds: []
+     })
 
 5. Schwerpunkt zentrieren
    centerX = mean(nodes.map(n => n.positionX))
    centerY = mean(nodes.map(n => n.positionY))
    for each node in nodes:
-   node.positionX -= centerX
-   node.
-
-positionY -= centerY
+     node.positionX -= centerX
+     node.positionY -= centerY
 
 6. nodeIdMap aufbauen
    nodeIdMap = neue Map<stopId, nodeId>
 
    // Erst die Stations selbst
    for each station, index in stations:
-   nodeIdMap.set(station.stop_id, index + 1)
+     nodeIdMap.set(station.stop_id, index + 1)
 
    // Dann alle Plattformen, die zu diesen Stations gehören
    for each stop in gtfsData.stops:
-   if stop.parent_station != "":
-   parentNodeId = nodeIdMap.get(stop.parent_station)
-   if parentNodeId:
-   nodeIdMap.set(stop.stop_id, parentNodeId)
+     if stop.parent_station != "":
+       parentNodeId = nodeIdMap.get(stop.parent_station)
+       if parentNodeId:
+         nodeIdMap.set(stop.stop_id, parentNodeId)
 
 7. RETURN { nodes, nodeIdMap }
+```
 
-Die Hilfsfunktion convertCoordinates ist eine einfache Skalierung relativ zum Schweizer Zentrum
+Die Hilfsfunktion `convertCoordinates` ist eine einfache Skalierung relativ zum Schweizer Zentrum:
 
-
+```text
 EINGABE:  lat, lon (WGS84-Dezimalgrad)
 AUSGABE:  { x, y } in Editor-Canvas-Koordinaten
 
 x = (lon - 8.2) * 15000
 y = -(lat - 46.8) * 15000
 RETURN { x, y }
+```
 
+## 7.4 Heuristik
 
-7.4 Heuristik
 Die Knoten-Phase enthält weniger heuristische Entscheidungen als die anderen Phasen, aber einige Designentscheidungen sind erwähnenswert:
 
-Plattform-zu-Station-Konsolidierung ist die wichtigste konzeptionelle Heuristik. GTFS modelliert Bahnhöfe als Aggregat aus mehreren einzelnen Plattformen, weil viele Anwendungen (Routing, Anzeigetafeln) gleisgenaue Information benötigen. Die Netzgrafik dagegen interessiert sich nur für den Bahnhof als Ganzes — die Wahl des Gleises ist visuell nicht relevant und würde die Darstellung unübersichtlich machen. Die Konsolidierung über parent_station ist die direkteste Lösung. Ihre einzige Schwäche: Wenn ein Feed seine Plattformen nicht konsequent über parent_station mit Stationen verbindet, fragmentiert die Konsolidierung. Glücklicherweise ist das bei modernen Schweizer und europäischen Feeds praktisch nie ein Problem.
+**Plattform-zu-Station-Konsolidierung** ist die wichtigste konzeptionelle Heuristik. GTFS modelliert Bahnhöfe als Aggregat aus mehreren einzelnen Plattformen, weil viele Anwendungen (Routing, Anzeigetafeln) gleisgenaue Information benötigen. Die Netzgrafik dagegen interessiert sich nur für den Bahnhof als Ganzes — die Wahl des Gleises ist visuell nicht relevant und würde die Darstellung unübersichtlich machen. Die Konsolidierung über `parent_station` ist die direkteste Lösung. Ihre einzige Schwäche: Wenn ein Feed seine Plattformen nicht konsequent über `parent_station` mit Stationen verbindet, fragmentiert die Konsolidierung. Glücklicherweise ist das bei modernen Schweizer und europäischen Feeds praktisch nie ein Problem.
 
-Virtuelle Stations-Erzeugung ist eine pragmatische Reaktion auf unvollständige Feeds. Manche kleinere Anbieter listen nur ihre Plattformen in stops.txt und referenzieren übergeordnete Stationsnamen über parent_station-Strings, ohne die Stationen selbst als eigene Einträge anzulegen. Das ist gegen die GTFS-Spezifikation, kommt aber in der Praxis vor. Statt diese Feeds abzulehnen, synthetisiert der Importer die fehlenden Stationen aus den Plattform-Daten. Das Risiko: Wenn die Plattform-Namen nicht dem Schema “Stationsname Gleis X” folgen, kann die Suffix-Entfernung fehlschlagen und ein unschöner Stationsname entstehen. In diesem Fall wäre eine manuelle Nachbearbeitung im Editor nötig. In der Praxis funktioniert die Heuristik aber gut, weil die meisten Feeds dem Schema folgen.
+**Virtuelle Stations-Erzeugung** ist eine pragmatische Reaktion auf unvollständige Feeds. Manche kleinere Anbieter listen nur ihre Plattformen in `stops.txt` und referenzieren übergeordnete Stationsnamen über `parent_station`-Strings, ohne die Stationen selbst als eigene Einträge anzulegen. Das ist gegen die GTFS-Spezifikation, kommt aber in der Praxis vor. Statt diese Feeds abzulehnen, synthetisiert der Importer die fehlenden Stationen aus den Plattform-Daten. Das Risiko: Wenn die Plattform-Namen nicht dem Schema "Stationsname Gleis X" folgen, kann die Suffix-Entfernung fehlschlagen und ein unschöner Stationsname entstehen. In diesem Fall wäre eine manuelle Nachbearbeitung im Editor nötig. In der Praxis funktioniert die Heuristik aber gut, weil die meisten Feeds dem Schema folgen.
 
-Lineare Koordinatentransformation ist mathematisch nicht ganz korrekt — eigentlich müsste man eine Mercator-ähnliche Projektion verwenden, weil bei höheren Breiten Längengrade weniger Distanz pro Grad bedeuten als bei niedrigeren. Die einfache lineare Transformation ist bei der Grösse der Schweiz (etwa 1.4° Längen- und 0.7° Breitengrad-Spanne) ausreichend genau, weil die geometrische Verzerrung im einstelligen Prozentbereich bleibt. Bei einem Import grösserer Räume — etwa Europa — würde die Verzerrung sichtbar. Eine Neuentwicklung könnte hier eine echte Mercator-Transformation einsetzen, was den Code nur unwesentlich komplizierter macht.
+**Lineare Koordinatentransformation** ist mathematisch nicht ganz korrekt — eigentlich müsste man eine Mercator-ähnliche Projektion verwenden, weil bei höheren Breiten Längengrade weniger Distanz pro Grad bedeuten als bei niedrigeren. Die einfache lineare Transformation ist bei der Grösse der Schweiz (etwa 1.4° Längen- und 0.7° Breitengrad-Spanne) ausreichend genau, weil die geometrische Verzerrung im einstelligen Prozentbereich bleibt. Bei einem Import grösserer Räume — etwa Europa — würde die Verzerrung sichtbar. Eine Neuentwicklung könnte hier eine echte Mercator-Transformation einsetzen, was den Code nur unwesentlich komplizierter macht.
 
-Skalierungskonstante 15000 ist empirisch gewählt. Sie liefert für die Schweiz Knoten-Abstände, die im Editor visuell sinnvoll sind: Gross genug, damit die Knotenbeschriftungen lesbar sind; klein genug, damit die ganze Netzgrafik in den sichtbaren Bereich passt. Bei anderen geografischen Räumen oder bei sehr dichten Stationsnetzen (etwa der Pariser Metro) wäre eine andere Konstante besser. Eine adaptive Skalierung — basierend auf dem geografischen Range der importierten Stops — wäre eine sinnvolle Erweiterung. Im aktuellen Code findet ohnehin nach der Initialtransformation noch ein Spring-Layout statt, das die Knotenposition nochmals optimiert (siehe Kapitel 12), so dass die exakte Initialskala weniger kritisch ist.
+**Skalierungskonstante 15000** ist empirisch gewählt. Sie liefert für die Schweiz Knoten-Abstände, die im Editor visuell sinnvoll sind: Gross genug, damit die Knotenbeschriftungen lesbar sind; klein genug, damit die ganze Netzgrafik in den sichtbaren Bereich passt. Bei anderen geografischen Räumen oder bei sehr dichten Stationsnetzen (etwa der Pariser Metro) wäre eine andere Konstante besser. Eine adaptive Skalierung — basierend auf dem geografischen Range der importierten Stops — wäre eine sinnvolle Erweiterung. Im aktuellen Code findet ohnehin nach der Initialtransformation noch ein Spring-Layout statt, das die Knotenposition nochmals optimiert (siehe Kapitel 12), so dass die exakte Initialskala weniger kritisch ist.
 
-Schwerpunkt-Zentrierung ist nicht nur kosmetisch, sondern auch praktisch wichtig: Der Editor speichert die Knoten-Positionen absolut, und ein Importergebnis, das weit ausserhalb des Ursprungs liegt, würde beim Öffnen leer wirken (man müsste erst hinscrollen). Durch die Zentrierung sind die Knoten garantiert um die Mitte des Canvas verteilt.
+**Schwerpunkt-Zentrierung** ist nicht nur kosmetisch, sondern auch praktisch wichtig: Der Editor speichert die Knoten-Positionen absolut, und ein Importergebnis, das weit ausserhalb des Ursprungs liegt, würde beim Öffnen leer wirken (man müsste erst hinscrollen). Durch die Zentrierung sind die Knoten garantiert um die Mitte des Canvas verteilt.
 
-Default-Werte für Knoten-Eigenschaften wie perronkanten: 2, connectionTime: 4 und die Default-Haltezeit-Tabelle sind vom Editor vorgegebene Standardwerte für Schweizer Knoten. Sie sind nicht aus den GTFS-Daten ableitbar (GTFS hat diese Konzepte schlicht nicht) und müssen deshalb fest gesetzt werden. In einer Neuentwicklung könnten diese Defaults konfigurierbar gemacht werden, sodass sich der Importer an unterschiedliche regionale Editor-Konventionen anpassen lässt
+**Default-Werte für Knoten-Eigenschaften** wie `perronkanten: 2`, `connectionTime: 4` und die Default-Haltezeit-Tabelle sind vom Editor vorgegebene Standardwerte für Schweizer Knoten. Sie sind nicht aus den GTFS-Daten ableitbar (GTFS hat diese Konzepte schlicht nicht) und müssen deshalb fest gesetzt werden. In einer Neuentwicklung könnten diese Defaults konfigurierbar gemacht werden, sodass sich der Importer an unterschiedliche regionale Editor-Konventionen anpassen lässt.
+
+## 7.5 Datenflussdiagramm
 
 ```mermaid
 graph TD
@@ -1035,78 +1130,139 @@ graph TD
     Center --> FinalNodes[finale nodes]
     AddPlatforms --> FinalMap[finale nodeIdMap]
 ```
-
+ 
 # 8. Phase F — Kategorie-Mapping (Heuristik)
+
 ## 8.1 Übersicht
-Im Netzgrafik-Editor hat jeder Trainrun eine Kategorie, die seinen Liniencharakter beschreibt: IR für InterRegio, IC für InterCity, S für S-Bahn, RE für RegionalExpress, EC für EuroCity und so weiter. Diese Kategorien sind im Editor als Metadaten-Objekte (TrainrunCategory) modelliert, mit Eigenschaften wie Name, Kurzname, Farbreferenz, Mindestumlaufzeit, Knoten-Headway und Section-Headway. Die Kategorie eines Trainruns bestimmt seine Farbe in der Visualisierung, sein Verhalten bei Konflikten und seine Default-Haltezeiten an Knoten.
 
-In den GTFS-Daten gibt es keine direkte Entsprechung. Das Feld, das am ehesten dem Kategorie-Konzept entspricht, ist route_desc — eine optionale Beschreibung der Linie, die manche Anbieter mit Werten wie “InterRegio” oder “RE” füllen, andere lassen sie leer. Daraus muss die Heuristik eine Editor-Kategorie ableiten, gegebenenfalls eine bestehende wiederverwenden oder eine neue anlegen.
+Im Netzgrafik-Editor hat jeder Trainrun eine Kategorie, die seinen Liniencharakter beschreibt: IR für InterRegio, IC für InterCity, S für S-Bahn, RE für RegionalExpress, EC für EuroCity und so weiter. Diese Kategorien sind im Editor als Metadaten-Objekte (`TrainrunCategory`) modelliert, mit Eigenschaften wie Name, Kurzname, Farbreferenz, Mindestumlaufzeit, Knoten-Headway und Section-Headway. Die Kategorie eines Trainruns bestimmt seine Farbe in der Visualisierung, sein Verhalten bei Konflikten und seine Default-Haltezeiten an Knoten.
 
-Die Phase ist also eine Brücke zwischen einem freien Textfeld und einer strukturierten Editor-Entität. Das Mapping muss tolerant gegenüber Schreibvariationen sein, sich an existierende Kategorien des Editors anpassen können (damit ein Import nicht jedes Mal Duplikate anlegt) und im Fehlerfall sinnvolle Default-Farben für neue Kategorien wählen.
-
-8.2 Details
-Die Kategorie-Erkennung beginnt damit, dass alle Routen durchgegangen werden und für jede Route ein Kategoriestring abgeleitet wird. Die Priorität ist klar: Zuerst wird route_desc verwendet, sofern nicht leer; sonst route_short_name; sonst der Default-Wert “Train”. Die so gewonnene Kategoriebeschreibung wird in einem Set gesammelt — am Ende hat man die Liste aller eindeutigen Kategorien, die im Feed vorkommen.
-
-Für jede dieser Kategoriebeschreibungen wird nun versucht, eine bestehende Editor-Kategorie zu finden. Das geschieht in zwei Stufen, beide case-insensitive:
-
-Stufe 1: Match nach Kurznamen. Die ersten zehn Zeichen der Kategoriebeschreibung werden gross geschrieben und gegen die Kurznamen aller existierenden TrainrunCategory-Einträge im existingMetadata verglichen. Wenn der Editor bereits eine Kategorie mit shortName = "IR" hat und im GTFS-Feed eine Beschreibung “IR” vorkommt, gibt es einen Treffer. Das ist der Standardfall für Wiederverwendung: Bei einem zweiten Import in dieselbe Netzgrafik werden die existierenden Kategorien aus dem ersten 8. Phase F — Kategorie-Mapping (Heuristik)
-8.1 Übersicht
-Im Netzgrafik-Editor hat jeder Trainrun eine Kategorie, die seinen Liniencharakter beschreibt: IR für InterRegio, IC für InterCity, S für S-Bahn, RE für RegionalExpress, EC für EuroCity und so weiter. Diese Kategorien sind im Editor als Metadaten-Objekte (TrainrunCategory) modelliert, mit Eigenschaften wie Name, Kurzname, Farbreferenz, Mindestumlaufzeit, Knoten-Headway und Section-Headway. Die Kategorie eines Trainruns bestimmt seine Farbe in der Visualisierung, sein Verhalten bei Konflikten und seine Default-Haltezeiten an Knoten.
-
-In den GTFS-Daten gibt es keine direkte Entsprechung. Das Feld, das am ehesten dem Kategorie-Konzept entspricht, ist route_desc — eine optionale Beschreibung der Linie, die manche Anbieter mit Werten wie “InterRegio” oder “RE” füllen, andere lassen sie leer. Daraus muss die Heuristik eine Editor-Kategorie ableiten, gegebenenfalls eine bestehende wiederverwenden oder eine neue anlegen.
+In den GTFS-Daten gibt es keine direkte Entsprechung. Das Feld, das am ehesten dem Kategorie-Konzept entspricht, ist `route_desc` — eine optionale Beschreibung der Linie, die manche Anbieter mit Werten wie "InterRegio" oder "RE" füllen, andere lassen sie leer. Daraus muss die Heuristik eine Editor-Kategorie ableiten, gegebenenfalls eine bestehende wiederverwenden oder eine neue anlegen.
 
 Die Phase ist also eine Brücke zwischen einem freien Textfeld und einer strukturierten Editor-Entität. Das Mapping muss tolerant gegenüber Schreibvariationen sein, sich an existierende Kategorien des Editors anpassen können (damit ein Import nicht jedes Mal Duplikate anlegt) und im Fehlerfall sinnvolle Default-Farben für neue Kategorien wählen.
 
-8.2 Details
-Die Kategorie-Erkennung beginnt damit, dass alle Routen durchgegangen werden und für jede Route ein Kategoriestring abgeleitet wird. Die Priorität ist klar: Zuerst wird route_desc verwendet, sofern nicht leer; sonst route_short_name; sonst der Default-Wert “Train”. Die so gewonnene Kategoriebeschreibung wird in einem Set gesammelt — am Ende hat man die Liste aller eindeutigen Kategorien, die im Feed vorkommen.
+## 8.2 Details
+
+Die Kategorie-Erkennung beginnt damit, dass alle Routen durchgegangen werden und für jede Route ein Kategoriestring abgeleitet wird. Die Priorität ist klar: Zuerst wird `route_desc` verwendet, sofern nicht leer; sonst `route_short_name`; sonst der Default-Wert "Train". Die so gewonnene Kategoriebeschreibung wird in einem Set gesammelt — am Ende hat man die Liste aller eindeutigen Kategorien, die im Feed vorkommen.
 
 Für jede dieser Kategoriebeschreibungen wird nun versucht, eine bestehende Editor-Kategorie zu finden. Das geschieht in zwei Stufen, beide case-insensitive:
 
-Stufe 1: Match nach Kurznamen. Die ersten zehn Zeichen der Kategoriebeschreibung werden gross geschrieben und gegen die Kurznamen aller existierenden TrainrunCategory-Einträge im existingMetadata verglichen. Wenn der Editor bereits eine Kategorie mit shortName = "IR" hat und im GTFS-Feed eine Beschreibung “IR” vorkommt, gibt es einen Treffer. Das ist der Standardfall für Wiederverwendung: Bei einem zweiten Import in dieselbe Netzgrafik werden die existierenden Kategorien aus dem ersten
+**Stufe 1: Match nach Kurznamen.** Die ersten zehn Zeichen der Kategoriebeschreibung werden gross geschrieben und gegen die Kurznamen aller existierenden `TrainrunCategory`-Einträge im `existingMetadata` verglichen. Wenn der Editor bereits eine Kategorie mit `shortName = "IR"` hat und im GTFS-Feed eine Beschreibung "IR" vorkommt, gibt es einen Treffer. Das ist der Standardfall für Wiederverwendung: Bei einem zweiten Import in dieselbe Netzgrafik werden die existierenden Kategorien aus dem ersten Import wiederverwendet, statt Duplikate anzulegen.
 
-EINGABE: routes (GTFSRoute[]), existingMetadata (optional) AUSGABE: categories (TrainrunCategory[]), categoryMap (Map)
+**Stufe 2: Match nach vollem Namen.** Falls Stufe 1 nichts gefunden hat, wird die vollständige Kategoriebeschreibung (gross geschrieben) gegen die `name`-Felder der existierenden Kategorien verglichen. Damit werden auch Fälle abgedeckt, in denen der Feed den vollen Namen (etwa "InterRegio") verwendet, der Editor aber nur den Kurznamen ("IR") als `shortName` führt.
 
-Initialisierung categories = existingMetadata?.trainrunCategories || [] categoryMap = neue Map existingByShortName = Map aller categories[i].shortName.upper() -> categories[i] existingByName = Map aller categories[i].name.upper() -> categories[i] categoryIdCounter = max(categories.map(c => c.id)) + 1
+Findet keine der beiden Stufen einen Treffer, wird eine neue Kategorie angelegt. Ihre ID folgt dem Schema `2026_xxxx`, wobei der numerische Teil aus einem fortlaufenden Zähler stammt (initialisiert auf `max(existingIds) + 1`). Der Name übernimmt die GTFS-Beschreibung direkt, der Kurzname ist die ersten zehn Zeichen davon. Die Farbreferenz wird durch eine Substring-basierte Heuristik ermittelt (siehe `getCategoryColor` im Algorithmus). Die operativen Eigenschaften — Mindestumlaufzeit, Headways, Fachkategorie — werden auf Default-Werte gesetzt (4 Minuten Umlaufzeit, 2 Minuten Headways, IPV als Fachkategorie).
 
-Eindeutige Kategoriebeschreibungen sammeln uniqueDescriptions = neue Menge for each route in routes: desc = route.route_desc || route.route_short_name || “Train” uniqueDescriptions.add(desc)
+Sobald die Kategorienliste vollständig ist, wird jede Route mit der ID ihrer Kategorie annotiert (in einem zusätzlichen `category_id`-Feld, das nicht Teil des GTFS-Standards ist, sondern als interne Erweiterung des `GTFSRoute`-Modells dient). Diese Annotation wird später in Phase G beim Trainrun-Build ausgelesen.
 
-Pro Beschreibung: existierende Kategorie suchen oder neue anlegen for each desc in uniqueDescriptions: normalizedDesc = desc.toUpperCase() shortDesc = desc.substring(0, 10).toUpperCase()
+## 8.3 Algorithmus
 
-if existingByShortName.has(shortDesc): // Stufe 1: Treffer ueber Kurzname categoryMap.set(desc, existingByShortName.get(shortDesc).id)
+```text
+EINGABE:  routes (GTFSRoute[]), existingMetadata (optional)
+AUSGABE:  categories (TrainrunCategory[]), categoryMap (Map)
 
-else if existingByName.has(normalizedDesc): // Stufe 2: Treffer ueber vollen Namen categoryMap.set(desc, existingByName.get(normalizedDesc).id)
+1. Initialisierung
+   categories = existingMetadata?.trainrunCategories || []
+   categoryMap = neue Map
+   existingByShortName = Map aller categories[i].shortName.upper() -> categories[i]
+   existingByName = Map aller categories[i].name.upper() -> categories[i]
+   categoryIdCounter = max(categories.map(c => c.id)) + 1
 
-else: // Neue Kategorie newId = 2026_0000 + categoryIdCounter categoryIdCounter += 1
+2. Eindeutige Kategoriebeschreibungen sammeln
+   uniqueDescriptions = neue Menge
+   for each route in routes:
+     desc = route.route_desc || route.route_short_name || "Train"
+     uniqueDescriptions.add(desc)
 
-newCategory = { id: newId, order: categoryIdCounter - 1, name: desc, shortName: desc.substring(0, 10), colorRef: getCategoryColor(desc), fachCategory: HaltezeitFachCategories.IPV, minimalTurnaroundTime: 4, nodeHeadwayStop: 2, nodeHeadwayNonStop: 2, sectionHeadway: 2 } categories.push(newCategory) categoryMap.set(desc, newId)
+3. Pro Beschreibung: existierende Kategorie suchen oder neue anlegen
+   for each desc in uniqueDescriptions:
+     normalizedDesc = desc.toUpperCase()
+     shortDesc = desc.substring(0, 10).toUpperCase()
 
-Routen mit Kategorie-IDs anreichern for each route in routes: desc = route.route_desc || route.route_short_name || “Train” route.category_id = categoryMap.get(desc)
+     if existingByShortName.has(shortDesc):
+       // Stufe 1: Treffer ueber Kurzname
+       categoryMap.set(desc, existingByShortName.get(shortDesc).id)
+
+     else if existingByName.has(normalizedDesc):
+       // Stufe 2: Treffer ueber vollen Namen
+       categoryMap.set(desc, existingByName.get(normalizedDesc).id)
+
+     else:
+       // Neue Kategorie
+       newId = 2026_0000 + categoryIdCounter
+       categoryIdCounter += 1
+
+       newCategory = {
+         id: newId,
+         order: categoryIdCounter - 1,
+         name: desc,
+         shortName: desc.substring(0, 10),
+         colorRef: getCategoryColor(desc),
+         fachCategory: HaltezeitFachCategories.IPV,
+         minimalTurnaroundTime: 4,
+         nodeHeadwayStop: 2,
+         nodeHeadwayNonStop: 2,
+         sectionHeadway: 2
+       }
+       categories.push(newCategory)
+       categoryMap.set(desc, newId)
+
+4. Routen mit Kategorie-IDs anreichern
+   for each route in routes:
+     desc = route.route_desc || route.route_short_name || "Train"
+     route.category_id = categoryMap.get(desc)
 
 RETURN { categories, categoryMap }
-
+```
 
 Die Hilfsfunktion `getCategoryColor`:
 
-EINGABE: categoryName: string AUSGABE: colorRef: string
+```text
+EINGABE:  categoryName: string
+AUSGABE:  colorRef: string
 
-name = categoryName.toUpperCase() colorMap = { “IC”: “EC”, “INTERCITY”: “EC”, “EC”: “EC”, “IR”: “IR”, “INTERREGIO”: “IR”, “RE”: “RE”, “REGIONALEXPRESS”: “RE”, “R”: “R”, “REGIONAL”: “R”, “S”: “S”, “S-BAHN”: “S”, “SBAHN”: “S”, “PE”: “PE”, “NIGHTJET”: “NJ”, “TGV”: “EC”, “ICE”: “EC” }
+name = categoryName.toUpperCase()
+colorMap = {
+  "INTERCITY":       "EC",
+  "INTERREGIO":      "IR",
+  "REGIONALEXPRESS": "RE",
+  "REGIONAL":        "R",
+  "NIGHTJET":        "NJ",
+  "S-BAHN":          "S",
+  "SBAHN":           "S",
+  "ICE":             "EC",
+  "TGV":             "EC",
+  "EC":              "EC",
+  "IC":              "EC",
+  "IR":              "IR",
+  "RE":              "RE",
+  "PE":              "PE",
+  "R":               "R",
+  "S":               "S"
+}
 
-for each (key, color) in colorMap: if name.contains(key): return color
+// Wichtig: Schluessel nach Laenge absteigend pruefen,
+// damit "INTERREGIO" nicht versehentlich auf "IR" matcht
+sortedKeys = colorMap.keys().sortedByLengthDescending()
 
-return “RE” // Default-Farbe
+for each key in sortedKeys:
+  if name.contains(key):
+    return colorMap[key]
 
+return "RE"  // Default-Farbe
+```
 
 ## 8.4 Heuristik
 
 **Mehrstufiges Matching.** Die zweistufige Suche (zuerst Kurzname, dann voller Name) ist eine pragmatische Annäherung an die Vielfalt der GTFS-Feeds. Manche Anbieter füllen `route_desc` mit dem Kurznamen ("IR"), andere mit dem vollen Namen ("InterRegio"), wieder andere mit gemischten Werten ("IR (InterRegio)"). Die zweistufige Logik fängt die ersten beiden Fälle ab; den dritten Fall müsste man durch zusätzliche Normalisierung (Klammerinhalte ignorieren, Spaces normalisieren) behandeln, was im aktuellen Code nicht gemacht wird.
 
-**Sub-String-Farbheuristik.** Die Farbzuordnung über Substring-Matching ist anfällig für falsche Treffer. Eine Kategorie "RE" ist im Substring-Sinne in "REGIONALEXPRESS" enthalten — aber auch "R" ist in "RE" enthalten. Die Reihenfolge der Schlüsselprüfung in der `colorMap` ist deshalb wichtig: Längere Schlüssel müssten vor kürzeren stehen, damit "REGIONALEXPRESS" nicht versehentlich auf "R" gemappt wird. Im aktuellen Code ist diese Sortierung nicht garantiert, weil JavaScript Object-Keys eine Reihenfolge haben, die zwar in modernen Engines stabil ist, aber nicht semantisch korrekt sortiert nach Stringlänge. Eine Neuentwicklung sollte die Schlüssel explizit nach absteigender Länge sortieren oder ein Array von Tupeln statt eines Objects verwenden.
+**Sub-String-Farbheuristik.** Die Farbzuordnung über Substring-Matching ist anfällig für falsche Treffer. Eine Kategorie "RE" ist im Substring-Sinne in "REGIONALEXPRESS" enthalten — aber auch "R" ist in "RE" enthalten. Die Reihenfolge der Schlüsselprüfung in der `colorMap` ist deshalb wichtig: Längere Schlüssel müssen vor kürzeren stehen, damit "REGIONALEXPRESS" nicht versehentlich auf "R" gemappt wird. Im aktuellen Code ist diese Sortierung nicht garantiert, weil JavaScript Object-Keys eine Reihenfolge haben, die zwar in modernen Engines stabil ist, aber nicht semantisch korrekt sortiert nach Stringlänge. Eine Neuentwicklung sollte die Schlüssel explizit nach absteigender Länge sortieren oder ein Array von Tupeln statt eines Objects verwenden.
 
 **Default "RE" als Fallback.** Die Wahl von "RE" als Standardfarbe für unbekannte Kategorien ist eine Verlegenheit. Im Schweizer Kontext ist sie vertretbar, weil die meisten unbekannten Kategorien irgendwie regional sind. Bei einem Import aus anderen Regionen — etwa Deutschland mit ihren ICE/EC/IC-Kategorien — wäre möglicherweise eine andere Farbe sinnvoller. Eine flexiblere Lösung würde die Default-Farbe konfigurierbar machen oder aus dem Kategorie-Histogramm des Feeds ableiten (welche Farbe ist am häufigsten? Diese als Default).
 
 **ID-Schema 2026_xxxx.** Die Kodierung des Importjahres in der ID ist eine Tradition aus den Editor-Anfängen und dient mehr der visuellen Erkennbarkeit (Entwickler sehen sofort, dass eine ID `20260023` aus einem Import von 2026 stammt) als der technischen Funktion. Eine Neuentwicklung könnte hier sauberer mit reinen Sequenz-IDs arbeiten und die Importherkunft in einem separaten Feld festhalten.
 
-**Idempotenz.** Die Tatsache, dass der Importer bestehende Kategorien wiederver wendet, ist eine bewusste Designentscheidung. Sie ermöglicht inkrementelle Importe: Der Anwender kann zuerst die Schweizer Daten importieren, die Netzgrafik manuell verfeinern, dann eine zweite GTFS-Datei mit ergänzenden Daten (z.B. internationale Linien) importieren, ohne dass die Kategorien-Liste explodiert. Voraussetzung ist, dass die existierende Metadaten-Struktur korrekt vom Editor übergeben wird — passiert das nicht, fängt der Importer bei null an und erzeugt parallele Kategorie-Hierarchien.
+**Idempotenz.** Die Tatsache, dass der Importer bestehende Kategorien wiederverwendet, ist eine bewusste Designentscheidung. Sie ermöglicht inkrementelle Importe: Der Anwender kann zuerst die Schweizer Daten importieren, die Netzgrafik manuell verfeinern, dann eine zweite GTFS-Datei mit ergänzenden Daten (z.B. internationale Linien) importieren, ohne dass die Kategorien-Liste explodiert. Voraussetzung ist, dass die existierende Metadaten-Struktur korrekt vom Editor übergeben wird — passiert das nicht, fängt der Importer bei null an und erzeugt parallele Kategorie-Hierarchien.
 
 **Operative Default-Werte.** Die fest gesetzten Werte für Mindestumlaufzeit, Headways usw. sind eine Vereinfachung. In der Realität haben verschiedene Linien-Kategorien sehr unterschiedliche operative Anforderungen: Eine S-Bahn hat einen kürzeren Headway als ein InterCity. Diese Differenzierung wird hier ignoriert, weil GTFS keinerlei Information dazu liefert. Der Anwender muss diese Werte später im Editor manuell anpassen, falls sie wichtig sind. Eine intelligente Heuristik könnte die Headways anhand der berechneten Frequenz schätzen — wenn eine Linie alle 15 Minuten fährt, müssen ihre Headways unter 15 Minuten liegen.
 
@@ -1149,18 +1305,18 @@ graph TD
     CategoryMap --> Annotate
     
     Annotate --> Final[Routen mit Kategorie<br/>zugeordnet]
-
 ```
 
-9. Phase G — Trainrun- und Section-Erstellung (Symmetrie)
-9.1 Übersicht
+
+# 9. Phase G — Trainrun- und Section-Erstellung (Symmetrie)
+## 9.1 Übersicht
 Mit den vorhergehenden Phasen sind alle Vorarbeiten erledigt: Die Patterns sind gebildet, jede Route hat eine Frequenz, jeder Stop ist als Knoten verfügbar, jede Route hat eine Kategorie. Jetzt geht es an die eigentliche Materialisierung der Linien als Editor-Objekte. Aus jedem Pattern wird ein Trainrun erzeugt, und aus den Stop-Times des Master-Trips dieses Patterns werden die zugehörigen TrainrunSections abgeleitet.
 
 Die zentrale Komplikation in dieser Phase ist die Symmetrieanpassung. Im Editor sind die Sections nicht mit absoluten Uhrzeiten gespeichert, sondern mit Minutenwerten innerhalb eines Stundenrasters. Eine Section trägt vier Zahlen: sourceDeparture, sourceArrival, targetDeparture, targetArrival — alle im Bereich [0, 59]. Diese Zahlen werden nach einer 60-x-Regel organisiert: Wenn der Trainrun in eine Richtung um Minute 5 abfährt, muss er in der Gegenrichtung um Minute 55 ankommen. Diese 60-x-Symmetrie ist der visuelle Anker der Netzgrafik — alle Trainruns einer Frequenzfamilie können auf einem gemeinsamen Stundenraster dargestellt werden, und symmetrische Verhältnisse zwischen Hin- und Rückrichtung machen die Grafik lesbar.
 
 Aus den GTFS-Daten kommen aber rohe Uhrzeiten wie 08:02, 08:15, 08:23 usw. Diese müssen in das 60-x-Schema übersetzt werden. Bei einer 60-Minuten-Frequenz ist das einfach: Man rechnet die Abfahrtszeiten modulo 60 und hat seine Minutenwerte. Bei einer 30-Minuten-Frequenz wird es schon komplexer, weil zwei aufeinanderfolgende Trips dieselben Minutenwerte (ihren ersten Trip um :02 und :32 macht beide Male Minute 2) liefern. Bei kleineren Frequenzen ähnlich. Die Heuristik wählt einen repräsentativen Trip pro Pattern (den Master-Trip aus Kapitel 5) und nimmt dessen Minutenwerte als kanonische Section-Zeiten.
 
-9.2 Details
+## 9.2 Details
 Die Trainrun-Erstellung läuft in einer Schleife über alle Patterns. Pro Pattern wird zuerst ein TrainrunDto erzeugt, dann werden die Sections gebaut, dann werden die Sections über ein Source-Target-Verkettungsverfahren miteinander verknüpft.
 
 Die TrainrunDto-Erzeugung ist relativ einfach. Es werden die Eigenschaften aus dem Pattern und der zugehörigen Route übernommen: Die Kategorie-ID kommt aus der Route, die Frequenz-ID ebenfalls (wurde in Phase D bzw. F bestimmt), die Zeitkategorie wird auf den Default “7/24” gesetzt (im Editor als trainrunTimeCategoryId = 0 codiert), der Linienname wird aus route_short_name (oder Fallback route_long_name) übernommen, der Trainrun-Name wird aus dem Pattern-Namen erzeugt (etwa “IR15 Genève → Luzern”). Die Richtung wird initial auf ONE_WAY gesetzt — das Round-Trip-Merging passiert erst in Phase H, danach werden manche Trainruns auf ROUND_TRIP umgestellt.
@@ -1190,48 +1346,125 @@ Während dieser Schleife wird eine zweite Datenstruktur aufgebaut: die `trainrun
 Eine dritte Datenstruktur ist die `gtfsInitialStopNodeIdsByTrainrun`-Map. Sie ordnet jedem Trainrun die Knoten-IDs der ursprünglichen GTFS-Stops zu (also genau die Stops, die im Pattern als Halte definiert waren). Diese Information ist wichtig für die spätere Stop-Map-Enforcement: Wenn die Topologie-Konsolidierung neue Knoten zum Trainrun-Verlauf hinzufügt, muss der Editor unterscheiden können, welche Knoten ursprüngliche Halte sind (mit `isNonStopTransit = false`) und welche durch die Konsolidierung als Durchfahrtsknoten eingefügt wurden (mit `isNonStopTransit = true`). Diese Map liefert genau diese Information.
 
 ## 9.3 Algorithmus
-EINGABE: patterns, routes (mit Kategorie-ID und Frequenz-ID), nodes, nodeIdMap AUSGABE: trainruns (TrainrunDto[]), sections (TrainrunSectionDto[]), trainrunToTrips, gtfsInitialStopNodeIdsByTrainrun
 
-INITIALISIERUNG: trainruns = existingMetadata?.trainruns || [] sections = [] trainrunIdCounter = max(trainruns.map(t => t.id)) + 1 sectionIdCounter = 0 trainrunToTrips = neue Map gtfsInitialStopNodeIdsByTrainrun = neue Map
+```text
+EINGABE:  patterns,
+          routes (mit Kategorie-ID und Frequenz-ID),
+          nodes,
+          nodeIdMap
+AUSGABE:  trainruns (TrainrunDto[]),
+          sections (TrainrunSectionDto[]),
+          trainrunToTrips,
+          gtfsInitialStopNodeIdsByTrainrun
+
+INITIALISIERUNG:
+  trainruns        = existingMetadata?.trainruns || []
+  sections         = []
+  trainrunIdCounter = max(trainruns.map(t => t.id)) + 1
+  sectionIdCounter  = 0
+  trainrunToTrips                 = neue Map
+  gtfsInitialStopNodeIdsByTrainrun = neue Map
 
 FUER JEDES PATTERN:
 
-Trainrun erzeugen route = routes.find(r => r.route_id == pattern.routeId) trainrunId = trainrunIdCounter++ trainrun = { id: trainrunId, name: route.route_short_name || route.route_long_name || “?”, categoryId: route.category_id, frequencyId: getFrequencyIdForRoute(route), trainrunTimeCategoryId: 0, labelIds: [], trainrunFrequencyOffset: route.offsetHour || 0, masterId: -1, tdtTrainrunFrequenz: route.frequency || 60, tdtTrainrunTimeCategory: 0, ttdTrainrunCategory: route.category_id, direction: TrainrunDirection.ONE_WAY } trainruns.push(trainrun)
+  1. Trainrun erzeugen
+     route       = routes.find(r => r.route_id == pattern.routeId)
+     trainrunId  = trainrunIdCounter++
 
-masterTrip = pattern.trips[0] trainrunToTrips.set(trainrunId, pattern.trips.map(t => t.trip_id))
+     trainrun = {
+       id:                       trainrunId,
+       name:                     route.route_short_name || route.route_long_name || "?",
+       categoryId:               route.category_id,
+       frequencyId:              getFrequencyIdForRoute(route),
+       trainrunTimeCategoryId:   0,
+       labelIds:                 [],
+       trainrunFrequencyOffset:  route.offsetHour || 0,
+       masterId:                 -1,
+       tdtTrainrunFrequenz:      route.frequency || 60,
+       tdtTrainrunTimeCategory:  0,
+       ttdTrainrunCategory:      route.category_id,
+       direction:                TrainrunDirection.ONE_WAY
+     }
+     trainruns.push(trainrun)
 
-Stop-Times des Master-Trips holen, sortiert stopTimes = pattern.stopTimes.get(masterTrip.trip_id) stopTimes.sort by stop_sequence
+     masterTrip = pattern.trips[0]
+     trainrunToTrips.set(trainrunId, pattern.trips.map(t => t.trip_id))
 
-Initiale Stop-Node-IDs ermitteln initialStopNodeIds = [] for each stopTime in stopTimes: nodeId = nodeIdMap.get(stopTime.stop_id) if nodeId not null: initialStopNodeIds.push(nodeId) gtfsInitialStopNodeIdsByTrainrun.set(trainrunId, initialStopNodeIds)
+  2. Stop-Times des Master-Trips holen, sortiert
+     stopTimes = pattern.stopTimes.get(masterTrip.trip_id)
+     stopTimes.sort by stop_sequence
 
-Sections aus aufeinanderfolgenden Paaren erzeugen for i from 0 to stopTimes.length - 2: sourceStop = stopTimes[i] targetStop = stopTimes[i+1]
+  3. Initiale Stop-Node-IDs ermitteln
+     initialStopNodeIds = []
+     for each stopTime in stopTimes:
+       nodeId = nodeIdMap.get(stopTime.stop_id)
+       if nodeId not null:
+         initialStopNodeIds.push(nodeId)
+     gtfsInitialStopNodeIdsByTrainrun.set(trainrunId, initialStopNodeIds)
 
-sourceNodeId = nodeIdMap.get(sourceStop.stop_id) targetNodeId = nodeIdMap.get(targetStop.stop_id)
+  4. Sections aus aufeinanderfolgenden Paaren erzeugen
+     for i from 0 to stopTimes.length - 2:
+       sourceStop = stopTimes[i]
+       targetStop = stopTimes[i + 1]
 
-if sourceNodeId null OR targetNodeId null: skip dieses Paar
+       sourceNodeId = nodeIdMap.get(sourceStop.stop_id)
+       targetNodeId = nodeIdMap.get(targetStop.stop_id)
 
-if sourceNodeId == targetNodeId: skip (selber Knoten, keine Section noetig)
+       if sourceNodeId == null OR targetNodeId == null:
+         skip dieses Paar
 
-srcDepTotalMin = parseToMinutes(sourceStop.departure_time) tgtArrTotalMin = parseToMinutes(targetStop.arrival_time)
+       if sourceNodeId == targetNodeId:
+         skip   // selber Knoten, keine Section noetig
 
-travelTime = tgtArrTotalMin - srcDepTotalMin if travelTime < 0: travelTime += 24 * 60 // Tageswechsel
+       srcDepTotalMin = parseToMinutes(sourceStop.departure_time)
+       tgtArrTotalMin = parseToMinutes(targetStop.arrival_time)
 
-sourceDeparture = srcDepTotalMin % 60 targetArrival = tgtArrTotalMin % 60 sourceArrival = (60 - sourceDeparture) % 60 targetDeparture = (60 - targetArrival) % 60
+       travelTime = tgtArrTotalMin - srcDepTotalMin
+       if travelTime < 0:
+         travelTime += 24 * 60     // Tageswechsel
 
-section = { id: sectionIdCounter++, trainrunId: trainrunId, sourceNodeId: sourceNodeId, sourceArrival: sourceArrival, sourceDeparture: sourceDeparture, targetNodeId: targetNodeId, targetArrival: targetArrival, targetDeparture: targetDeparture, travelTime: travelTime, numberOfStops: 0, pi: { x: midX, y: midY }, pf: { x: midX, y: midY }, … }
+       sourceDeparture = srcDepTotalMin % 60
+       targetArrival   = tgtArrTotalMin % 60
+       sourceArrival   = (60 - sourceDeparture) % 60
+       targetDeparture = (60 - targetArrival) % 60
 
-sections.push(section)
+       section = {
+         id:              sectionIdCounter++,
+         trainrunId:      trainrunId,
+         sourceNodeId:    sourceNodeId,
+         sourceArrival:   sourceArrival,
+         sourceDeparture: sourceDeparture,
+         targetNodeId:    targetNodeId,
+         targetArrival:   targetArrival,
+         targetDeparture: targetDeparture,
+         travelTime:      travelTime,
+         numberOfStops:   0,
+         pi: { x: midX, y: midY },
+         pf: { x: midX, y: midY },
+         ...
+       }
 
-RUECKGABE: { trainruns, sections, trainrunToTrips, gtfsInitialStopNodeIdsByTrainrun }
+       sections.push(section)
 
+RUECKGABE:
+  { trainruns, sections, trainrunToTrips, gtfsInitialStopNodeIdsByTrainrun }
+```
 
 Die Hilfsfunktion `parseToMinutes`:
 
-EINGABE: timeStr (Format “HH:MM:SS”) AUSGABE: Minuten seit Mitternacht
+```text
+EINGABE:  timeStr (Format "HH:MM:SS")
+AUSGABE:  Minuten seit Mitternacht
 
-parts = timeStr.split(“:”) hours = parseInt(parts[0]) minutes = parseInt(parts[1]) RETURN hours * 60 + minutes
+parts   = timeStr.split(":")
+hours   = parseInt(parts[0])
+minutes = parseInt(parts[1])
 
-Beachte: GTFS erlaubt Stundenwerte über 23 (zum Beispiel "25:30:00" für eine Fahrt, die nach Mitternacht um 01:30 endet, aber zum Vortagsservice gehört). `parseToMinutes` rechnet diese Werte korrekt um, weil `hours` einfach die Zahl multipliziert wird. Der Wert kann also über 1440 hinausgehen, was beim Modulo später korrekt behandelt wird.
+RETURN hours * 60 + minutes
+```
+
+Beachte: GTFS erlaubt Stundenwerte über 23 (zum Beispiel `"25:30:00"` für eine Fahrt, die nach Mitternacht um 01:30 endet, aber zum Vortagsservice gehört). `parseToMinutes` rechnet diese Werte korrekt um, weil `hours` einfach mit 60 multipliziert wird. Der Wert kann also über 1440 hinausgehen, was beim Modulo später korrekt behandelt wird.
+
 
 ## 9.4 Heuristik
 
@@ -1288,15 +1521,15 @@ graph TD
     Master --> TripsMap[trainrunToTrips<br/>trainrunId zu trip_ids]
     Initial --> InitMap[gtfsInitialStopNodeIdsByTrainrun]
 ```
-10. Phase H — Round-Trip-Erkennung (One-Way vs. Symmetrie)
-10.1 Übersicht
+# 10. Phase H — Round-Trip-Erkennung (One-Way vs. Symmetrie)
+## 10.1 Übersicht
 Nach der Trainrun-Erstellung in Phase G existieren alle Linien zunächst als ONE_WAY-Trainruns. Eine S-Bahn-Linie, die im realen Fahrplan in beide Richtungen verkehrt, ist im aktuellen Stand also durch zwei separate Trainruns repräsentiert: einen für die Hinrichtung (zum Beispiel Pattern P1 mit direction_id = "0" und Stop-Sequenz A→B→C→D) und einen für die Rückrichtung (Pattern P2 mit direction_id = "1" und Stop-Sequenz D→C→B→A). Im Editor sieht das aus wie zwei parallele, voneinander unabhängige Linien, was die Visualisierung unnötig verkompliziert und nicht der Linienlogik entspricht, die sich der Anwender vorstellt.
 
 Phase H sucht deshalb nach Round-Trip-Pärchen: Trainrun-Paaren, die sich als Hin- und Rückfahrt derselben Linie qualifizieren. Wenn ein Pärchen gefunden wird, werden die beiden ONE_WAY-Trainruns zu einem einzigen ROUND_TRIP-Trainrun verschmolzen. Die Sections der Rückfahrt werden gelöscht (sie sind durch die Symmetriewerte der Hin-Sections implizit abgedeckt), der Hin-Trainrun wird auf direction = ROUND_TRIP umgestellt, und sein Name wird ggf. angepasst, sodass er beide Endpunkte enthält (“Genève → Luzern” wird zu “Genève ↔ Luzern” oder ähnlich).
 
 Die Erkennung beruht auf einem Fünf-Kriterien-Test: Zwei ONE_WAY-Trainruns sind ein Round-Trip-Pärchen, wenn alle fünf Kriterien gleichzeitig erfüllt sind. Diese Kriterien sind streng — die Heuristik bevorzugt False Negatives (echtes Pärchen wird nicht erkannt, beide bleiben ONE_WAY) gegenüber False Positives (zwei ähnliche, aber nicht zusammengehörige Linien werden fälschlicherweise verschmolzen). Letzteres wäre datenkorrupt und schwer rückgängig zu machen.
 
-10.2 Details
+## 10.2 Details
 Der Fünf-Kriterien-Test prüft folgende Bedingungen:
 
 Kriterium 1: Identischer Linien-Kurzname. Beide Trainruns müssen denselben Wert in ihrem name-Feld haben. Eine IR15 ist nur mit einer anderen IR15 zusammenführbar, nicht mit einer IR35. Diese Bedingung ist die strikteste und schliesst die meisten unsinnigen Pärchen sofort aus.
@@ -1328,56 +1561,103 @@ Die `gtfsInitialStopNodeIdsByTrainrun`-Map wird ähnlich gehandhabt: Der Master 
 Eine wichtige Eigenschaft des Round-Trip-Mergings ist, dass es **trainrun-paarweise und nicht transitiv** arbeitet. Wenn drei Patterns potenziell zueinander passen würden — was praktisch nicht vorkommt, weil die Pattern-Definition ja schon strikt nach `direction_id` trennt — würden nur die ersten beiden zu einem Pärchen verschmolzen, das dritte bliebe ONE_WAY. Diese Beschränkung ist natürlich kein Problem, weil eine Linie real nur eine Hin- und eine Rückrichtung hat.
 
 Eine zweite wichtige Eigenschaft: Das Merging passiert **vor** der Topologie-Konsolidierung. Das ist Absicht, weil die Konsolidierung Sections ändert oder ersetzt, was die Symmetrie-Eigenschaft brechen würde. Würde die Konsolidierung vorher laufen, könnten Round-Trip-Pärchen unerkannt bleiben, weil ihre Sections sich nach der Konsolidierung unterscheiden, obwohl sie ursprünglich symmetrisch waren.
+ 
 
 ## 10.3 Algorithmus
-EINGABE: trainruns, sections, trainrunToTrips, gtfsInitialStopNodeIdsByTrainrun, timeSyncTolerance (in Sekunden, default 180) AUSGABE: trainruns gefiltert, sections gefiltert (Slaves entfernt, Master umgestellt)
 
-ONE_WAY-Trainruns mit ihren Sections gruppieren trainrunSections = neue Map for each section in sections: trainrunSections.append(section.trainrunId, section)
+```text
+EINGABE:  trainruns, sections, trainrunToTrips, gtfsInitialStopNodeIdsByTrainrun,
+          timeSyncTolerance (in Sekunden, default 180)
+AUSGABE:  trainruns gefiltert, sections gefiltert (Slaves entfernt, Master umgestellt)
 
-Kandidatenliste: alle ONE_WAY-Trainruns mit mindestens 2 Sections candidates = trainruns.filter(t => t.direction == ONE_WAY AND trainrunSections.get(t.id).length >= 2 )
+1. ONE_WAY-Trainruns mit ihren Sections gruppieren
+   trainrunSections = neue Map
+   for each section in sections:
+     trainrunSections.append(section.trainrunId, section)
 
-Pro Kandidat: Suche passenden Partner processed = neue Menge mergedPairs = []
+2. Kandidatenliste: alle ONE_WAY-Trainruns mit mindestens 2 Sections
+   candidates = trainruns.filter(t =>
+     t.direction == ONE_WAY
+     AND trainrunSections.get(t.id).length >= 2
+   )
 
-for each tA in candidates: if processed.has(tA.id): continue
+3. Pro Kandidat: Suche passenden Partner
+   processed = neue Menge
+   mergedPairs = []
 
-for each tB in candidates: if tA.id == tB.id OR processed.has(tB.id): continue
+   for each tA in candidates:
+     if processed.has(tA.id): continue
 
-if isRoundTripPair(tA, tB, trainrunSections, timeSyncTolerance): master = tA.id < tB.id ? tA : tB slave = tA.id < tB.id ? tB : tA mergedPairs.push({ master, slave }) processed.add(tA.id) processed.add(tB.id) break
+     for each tB in candidates:
+       if tA.id == tB.id OR processed.has(tB.id): continue
 
-Pro Paar: Verschmelzung for each (master, slave) in mergedPairs: master.direction = ROUND_TRIP
+       if isRoundTripPair(tA, tB, trainrunSections, timeSyncTolerance):
+         master = tA.id < tB.id ? tA : tB
+         slave  = tA.id < tB.id ? tB : tA
+         mergedPairs.push({ master, slave })
+         processed.add(tA.id)
+         processed.add(tB.id)
+         break
 
-masterTrips = trainrunToTrips.get(master.id) slaveTrips = trainrunToTrips.get(slave.id) trainrunToTrips.set(master.id, masterTrips.concat(slaveTrips)) trainrunToTrips.delete(slave.id)
+4. Pro Paar: Verschmelzung
+   for each (master, slave) in mergedPairs:
+     master.direction = ROUND_TRIP
 
-sections = sections.filter(s => s.trainrunId != slave.id) trainruns = trainruns.filter(t => t.id != slave.id)
+     masterTrips = trainrunToTrips.get(master.id)
+     slaveTrips  = trainrunToTrips.get(slave.id)
+     trainrunToTrips.set(master.id, masterTrips.concat(slaveTrips))
+     trainrunToTrips.delete(slave.id)
+
+     sections  = sections.filter(s => s.trainrunId != slave.id)
+     trainruns = trainruns.filter(t => t.id != slave.id)
 
 RETURN { trainruns, sections, trainrunToTrips, gtfsInitialStopNodeIdsByTrainrun }
-
+```
 
 Die Hilfsfunktion `isRoundTripPair`:
 
-EINGABE: tA, tB (Trainruns), trainrunSections (Map), tolerance (Sekunden) AUSGABE: boolean
+```text
+EINGABE:  tA, tB (Trainruns), trainrunSections (Map), tolerance (Sekunden)
+AUSGABE:  boolean
 
-Kriterium 1: gleicher Name if tA.name != tB.name: return false
+1. Kriterium 1: gleicher Name
+   if tA.name != tB.name: return false
 
-Kriterium 2: gleiche Kategorie if tA.categoryId != tB.categoryId: return false
+2. Kriterium 2: gleiche Kategorie
+   if tA.categoryId != tB.categoryId: return false
 
-Kriterium 3: gleiche Frequenz if tA.frequencyId != tB.frequencyId: return false
+3. Kriterium 3: gleiche Frequenz
+   if tA.frequencyId != tB.frequencyId: return false
 
-Kriterium 4: umgekehrte Stop-Sequenzen sectionsA = trainrunSections.get(tA.id) sortiert nach Reihenfolge sectionsB = trainrunSections.get(tB.id) sortiert nach Reihenfolge
+4. Kriterium 4: umgekehrte Stop-Sequenzen
+   sectionsA = trainrunSections.get(tA.id) sortiert nach Reihenfolge
+   sectionsB = trainrunSections.get(tB.id) sortiert nach Reihenfolge
 
-if sectionsA.length != sectionsB.length: return false
+   if sectionsA.length != sectionsB.length: return false
 
-for i from 0 to sectionsA.length - 1: sA = sectionsA[i] sB = sectionsB[sectionsA.length - 1 - i] if sA.sourceNodeId != sB.targetNodeId OR sA.targetNodeId != sB.sourceNodeId: return false
+   for i from 0 to sectionsA.length - 1:
+     sA = sectionsA[i]
+     sB = sectionsB[sectionsA.length - 1 - i]
+     if sA.sourceNodeId != sB.targetNodeId
+        OR sA.targetNodeId != sB.sourceNodeId:
+       return false
 
-Kriterium 5: symmetrische Zeiten innerhalb Toleranz toleranceMin = tolerance / 60
+5. Kriterium 5: symmetrische Zeiten innerhalb Toleranz
+   toleranceMin = tolerance / 60
 
-for i from 0 to sectionsA.length - 1: sA = sectionsA[i] sB = sectionsB[sectionsA.length - 1 - i]
+   for i from 0 to sectionsA.length - 1:
+     sA = sectionsA[i]
+     sB = sectionsB[sectionsA.length - 1 - i]
 
-expectedSrcDepB = (60 - sA.targetArrival) % 60 expectedTgtArrB = (60 - sA.sourceDeparture) % 60
+     expectedSrcDepB = (60 - sA.targetArrival) % 60
+     expectedTgtArrB = (60 - sA.sourceDeparture) % 60
 
-if abs(sB.sourceDeparture - expectedSrcDepB) > toleranceMin: return false if abs(sB.targetArrival - expectedTgtArrB) > toleranceMin: return false
+     if abs(sB.sourceDeparture - expectedSrcDepB) > toleranceMin: return false
+     if abs(sB.targetArrival   - expectedTgtArrB) > toleranceMin: return false
 
 RETURN true
+```
+
 
 ## 10.4 Heuristik
 
@@ -1429,8 +1709,8 @@ graph TD
     Merge --> Output[trainruns + sections<br/>nach Round-Trip-Merge]
 ```
 
-11. Phase I — Topologie-Konsolidierung (Heuristik)
-11.1 Übersicht
+# 11. Phase I — Topologie-Konsolidierung (Heuristik)
+## 11.1 Übersicht
 Die Topologie-Konsolidierung ist die komplexeste und gleichzeitig optionalste Phase des Imports. Sie versucht, parallele und redundante Direktverbindungen zwischen Knotenpaaren zu erkennen und durch gemeinsame Korridore zu ersetzen. Das Ergebnis ist eine deutlich übersichtlichere Netzgrafik, in der parallel verlaufende Linien tatsächlich auch visuell parallel laufen — auf denselben Sections — statt als getrennte Direktverbindungen über die ganze Karte gestreut zu sein.
 
 Ein konkretes Beispiel verdeutlicht das Problem. Stell dir vor, im GTFS-Feed sind drei Linien enthalten, die von Zürich nach Basel verkehren:
@@ -1442,7 +1722,7 @@ Nach den vorhergehenden Phasen sind das drei separate Trainruns mit insgesamt se
 
 Die Topologie-Konsolidierung versucht genau das: Sie erkennt, dass alle drei Linien einen gemeinsamen Korridor Zürich→Aarau→Olten→Basel benutzen, und ersetzt die abweichenden Sections so, dass alle drei Linien auf diesem Korridor verlaufen. Der IC1 bekommt dabei zusätzliche Durchfahrtsknoten an Aarau und Olten — markiert mit isNonStopTransit = true, damit er dort nicht hält. Der IR15 bekommt einen Durchfahrtsknoten an Aarau. Der IR35 behält seine ursprünglichen Halte. Visuell läuft jetzt alles auf denselben drei Sections, mit unterschiedlichen Halt-/Durchfahrt-Mustern pro Linie.
 
-11.2 Details
+## 11.2 Details
 Die Konsolidierung läuft als Iteratives Schleifen-Verfahren. In jeder Iteration wird eine einzelne Section einer Linie identifiziert, die durch eine längere Sequenz aus existierenden Sections anderer Linien ersetzt werden kann. Die Section wird ersetzt, alle anderen Linien bleiben unverändert. Im nächsten Schleifendurchgang wird die nächste ersetzbare Section gesucht. Die Schleife terminiert, wenn entweder keine ersetzbare Section mehr gefunden wird oder eine maximale Anzahl Iterationen (Default 50) erreicht ist.
 
 Eine Section einer Linie wird ersetzbar, wenn folgende Bedingungen alle erfüllt sind:
@@ -1491,61 +1771,142 @@ Die Summe der neuen Section-Fahrzeiten ergibt aber nicht die Original-Fahrzeit, 
 Viertens wird die `gtfsInitialStopNodeIdsByTrainrun`-Map nicht verändert — die ursprünglichen Halte des Trainruns bleiben dieselben. Was sich ändert, ist die Liste der Knoten, die der Trainrun durchfährt. Die neu hinzugekommenen Zwischenknoten (im Beispiel: Olten beim IC1) sind nicht in der Liste der ursprünglichen Halte enthalten. Diese Diskrepanz ist genau die Information, die später beim Stop-Map-Enforcement (siehe Kapitel 13) verwendet wird, um `isNonStopTransit = true` für die Durchfahrtsknoten zu setzen.
 
 Sobald die Section-Ersetzung abgeschlossen ist, wird die Edge-Map aktualisiert (oder einfach neu aufgebaut), und die Schleife geht in die nächste Iteration. Beim nächsten Durchlauf wird die nächste ersetzbare Section gesucht und behandelt — bis keine mehr gefunden wird oder die Iterationsobergrenze erreicht ist.
-
+ 
 ## 11.3 Algorithmus
-EINGABE: trainruns, sections, options.topologyDetourPercent (35), options.topologyDetourAbsoluteMinutes (3), options.maxIterations (50) AUSGABE: trainruns, sections (mit konsolidierter Topologie)
 
-Schleifen-Initialisierung iteration = 0 changed = true
+```text
+EINGABE:  trainruns, sections,
+          options.topologyDetourPercent (35),
+          options.topologyDetourAbsoluteMinutes (3),
+          options.maxIterations (50)
+AUSGABE:  trainruns, sections (mit konsolidierter Topologie)
 
-Iteration while changed AND iteration < maxIterations: changed = false edgeMap = buildEdgeMap(sections)
+1. Schleifen-Initialisierung
+   iteration = 0
+   changed   = true
 
-for each trainrun in trainruns: trainrunSections = sections.filter(s => s.trainrunId == trainrun.id) trainrunNodeIds = collectNodeIds(trainrunSections)
+2. Iteration
+   while changed AND iteration < maxIterations:
+     changed = false
+     edgeMap = buildEdgeMap(sections)
 
-for each section in trainrunSections: if section.numberOfStops > 0: continue // schon konsolidiert
+     for each trainrun in trainruns:
+       trainrunSections = sections.filter(s => s.trainrunId == trainrun.id)
+       trainrunNodeIds  = collectNodeIds(trainrunSections)
 
-alternativePath = findAlternativePath( section.sourceNodeId, section.targetNodeId, edgeMap, trainrunNodeIds, // verbotene Knoten section.travelTime, options.topologyDetourPercent, options.topologyDetourAbsoluteMinutes )
+       for each section in trainrunSections:
+         if section.numberOfStops > 0: continue   // schon konsolidiert
 
-if alternativePath != null: replaceSectionWithPath( section, alternativePath, sections, trainrun ) changed = true break // im Trainrun erneut beginnen
+         alternativePath = findAlternativePath(
+           section.sourceNodeId,
+           section.targetNodeId,
+           edgeMap,
+           trainrunNodeIds,                       // verbotene Knoten
+           section.travelTime,
+           options.topologyDetourPercent,
+           options.topologyDetourAbsoluteMinutes
+         )
 
-if changed: break // Schleife neu starten
+         if alternativePath != null:
+           replaceSectionWithPath(section, alternativePath, sections, trainrun)
+           changed = true
+           break    // im Trainrun erneut beginnen
 
-iteration += 1
+       if changed: break    // Schleife neu starten
+
+     iteration += 1
 
 RETURN { trainruns, sections }
+```
 
 Die Hilfsfunktion `buildEdgeMap`:
 
-EINGABE: sections AUSGABE: edgeMap: Map
+```text
+EINGABE:  sections
+AUSGABE:  edgeMap: Map<unorderedNodePair, sections>
 
-edgeMap = neue Map for each section in sections: key = unorderedPair(section.sourceNodeId, section.targetNodeId) edgeMap.append(key, section) RETURN edgeMap
+edgeMap = neue Map
+for each section in sections:
+  key = unorderedPair(section.sourceNodeId, section.targetNodeId)
+  edgeMap.append(key, section)
+
+RETURN edgeMap
+```
 
 Die Hilfsfunktion `findAlternativePath` (Breitensuche):
 
-EINGABE: source, target, edgeMap, forbiddenNodes, directTime, maxPercent, maxAbsoluteMinutes AUSGABE: Pfad als Liste von Sections oder null
+```text
+EINGABE:  source, target, edgeMap, forbiddenNodes,
+          directTime, maxPercent, maxAbsoluteMinutes
+AUSGABE:  Pfad als Liste von Sections oder null
 
-queue = [{ node: source, path: [], totalTime: 0 }] visited = neue Menge visited.add(source)
+queue   = [{ node: source, path: [], totalTime: 0 }]
+visited = neue Menge
+visited.add(source)
 
-while queue nicht leer: { node: current, path, totalTime } = queue.shift()
+while queue nicht leer:
+  { node: current, path, totalTime } = queue.shift()
 
-if current == target AND path.length >= 2: // Pfadlänge mindestens 2 = mindestens ein Zwischenknoten detour = totalTime - directTime detourPercent = (detour / directTime) * 100 if detour <= maxAbsoluteMinutes OR detourPercent <= maxPercent: RETURN path continue
+  if current == target AND path.length >= 2:
+    // Pfadlänge mindestens 2 = mindestens ein Zwischenknoten
+    detour        = totalTime - directTime
+    detourPercent = (detour / directTime) * 100
+    if detour <= maxAbsoluteMinutes OR detourPercent <= maxPercent:
+      RETURN path
+    continue
 
-for each section in adjacentEdges(current, edgeMap): nextNode = otherEnd(section, current) if visited.has(nextNode): continue if forbiddenNodes.contains(nextNode) AND nextNode != target: continue visited.add(nextNode) queue.push({ node: nextNode, path: path + [section], totalTime: totalTime + section.travelTime })
+  for each section in adjacentEdges(current, edgeMap):
+    nextNode = otherEnd(section, current)
+    if visited.has(nextNode): continue
+    if forbiddenNodes.contains(nextNode) AND nextNode != target: continue
+
+    visited.add(nextNode)
+    queue.push({
+      node:      nextNode,
+      path:      path + [section],
+      totalTime: totalTime + section.travelTime
+    })
 
 RETURN null
-
+```
 
 Die Hilfsfunktion `replaceSectionWithPath`:
 
+```text
+EINGABE:  oldSection, pathSections, sections, trainrun
+AUSGABE:  sections (modifiziert)
 
-EINGABE: oldSection, pathSections, sections, trainrun AUSGABE: sections (modifiziert)
+1. Alte Section entfernen
+   sections = sections.filter(s => s.id != oldSection.id)
 
-Alte Section entfernen sections = sections.filter(s => s.id != oldSection.id)
+2. Neue Sections erzeugen
+   pathTotalTime    = sum(pathSections.map(s => s.travelTime))
+   currentDeparture = oldSection.sourceDeparture
+   accumulatedTime  = 0
 
-Neue Sections erzeugen pathTotalTime = sum(pathSections.map(s => s.travelTime)) currentDeparture = oldSection.sourceDeparture accumulatedTime = 0
+   for each step in pathSections:
+     newSection = {
+       id:           nextSectionId++,
+       trainrunId:   trainrun.id,
+       sourceNodeId: step.sourceNodeId,   // je nach Richtung anpassen
+       targetNodeId: step.targetNodeId,
 
-for each step in pathSections: newSection = { id: nextSectionId++, trainrunId: trainrun.id, sourceNodeId: step.sourceNodeId or step.targetNodeId, // je nach Richtung targetNodeId: step.targetNodeId or step.sourceNodeId, travelTime: step.travelTime, sourceDeparture: (currentDeparture + accumulatedTime) % 60, targetArrival: (currentDeparture + accumulatedTime + step.travelTime) % 60, sourceArrival: (60 - sourceDeparture) % 60, targetDeparture: (60 - targetArrival) % 60, numberOfStops: 0, pi: { x: 0, y: 0 }, pf: { x: 0, y: 0 } }
+       travelTime:      step.travelTime,
+       sourceDeparture: (currentDeparture + accumulatedTime) % 60,
+       targetArrival:   (currentDeparture + accumulatedTime + step.travelTime) % 60,
+       sourceArrival:   (60 - sourceDeparture) % 60,
+       targetDeparture: (60 - targetArrival) % 60,
 
-accumulatedTime += step.travelTime sections.push(newSection)
+       numberOfStops: 0,
+       pi: { x: 0, y: 0 },
+       pf: { x: 0, y: 0 }
+     }
+
+     accumulatedTime += step.travelTime
+     sections.push(newSection)
+
+RETURN sections
+```
 
 
 ## 11.4 Heuristik
@@ -1565,7 +1926,7 @@ accumulatedTime += step.travelTime sections.push(newSection)
 **Verteilung der Symmetriewerte.** Die Verteilung der Section-Zeiten beim Ersetzen ist eine Heuristik mit subtilen Effekten. Würde man jede neue Section mit ihrer eigenen, vom Korridor übernommenen `travelTime` versehen, ergäbe die Summe aller neuen Sections die Pfad-Zeit (also gegebenenfalls länger als die Direktzeit). Das wäre realistischer, aber visuell unschöner: Der Trainrun würde nach der Konsolidierung anders aussehen als vorher. Stattdessen wird die Direktzeit auf die neuen Sections verteilt, sodass die Gesamtfahrzeit gleich bleibt — was visuell Konsistenz bewahrt, aber technisch eine kleine Manipulation der Section-Zeiten bedeutet. Diese Designwahl bewahrt die 60-x-Symmetrie und ist deshalb für die Editor-Visualisierung wichtiger als die exakte Treue zur originalen Korridor-Zeit.
 
 **Optionalität.** Die Topologie-Konsolidierung ist im UI als Toggle exponiert. Bei deaktiviertem Toggle wird die Phase übersprungen, und der Trainrun-Graph bleibt mit allen seinen Direktverbindungen und Parallelitäten erhalten. Diese Option ist wichtig, weil die Konsolidierung als heuristisches Feature in Edge-Cases unerwünschte Effekte haben kann (etwa wenn eine Linie eigentlich tatsächlich eine Direktverbindung ohne Zwischenhalte sein soll, aber durch die Konsolidierung Zwischenknoten bekommt). Der Anwender kann dann ohne Konsolidierung importieren und das Ergebnis prüfen.
-
+ 
 ## 11.5 Datenflussdiagramm
 
 ```mermaid
@@ -1605,57 +1966,9 @@ graph TD
     Term -->|ja| Out[Konsolidierte<br/>trainruns + sections]
 ```
 
-unterschiedliche Endpunkte haben), kann der Konsolidierungsalgorithmus den Endbahnhof nicht als Zwischenknoten in einer anderen Linie verwenden. In der Regel ist das das gewünschte Verhalten — die Linie soll am Endbahnhof tatsächlich enden — aber in Edge-Cases (etwa Wendezüge, die in einer Linie ankommen und in einer anderen weiterfahren) kann es zu suboptimalen Konsolidierungen führen.
 
-**Maximale Iterationsobergrenze.** Die Schranke von 50 Iterationen ist defensiv und in der Praxis selten erreicht. Bei typischen Schweizer Tagesimporten konvergiert die Schleife nach 5 bis 15 Iterationen. Die Schranke schützt vor pathologischen Fällen, in denen die Heuristik zwischen zwei Konfigurationen oszilliert — was theoretisch möglich ist, wenn das Ersetzen einer Section neue Pfade aufdeckt, die wiederum andere Sections ersetzbar machen, deren Ersetzung wieder die ursprüngliche Section ersetzbar machen würde, und so weiter. In der Praxis sind solche Zyklen extrem selten, weil das Ersetzen einer Section deren `numberOfStops`-Wert von 0 auf einen positiven Wert erhöht (durch die neuen Sections wird die ursprüngliche Section "länger"), und dies dient als Sperre gegen erneute Konsolidierung.
-
-**Konservative Wahl der Schwellen.** Die Default-Werte 35% und 3 Minuten sind so gewählt, dass sie typische Schweizer Kurzkorridore zuverlässig erkennen, ohne unsinnige Konsolidierungen zu verursachen. Bei einer Lockerung der Schwellen (etwa 50% und 10 Minuten) würden mehr Linien konsolidiert, aber auch mehr fragwürdige Konsolidierungen. Bei einer Verschärfung (etwa 15% und 1 Minute) würde die Konsolidierung sehr selten greifen und die Netzgrafik bliebe unaufgeräumter. Das UI exponiert beide Schwellen als einstellbare Felder, sodass der Anwender ein Gefühl dafür entwickeln kann, was für seine Daten geeignet ist.
-
-**Reihenfolge der Trainruns.** Der Algorithmus durchläuft die Trainruns in der Reihenfolge ihrer IDs. Das hat Auswirkungen auf das Ergebnis, weil eine frühe Konsolidierung Pfade aufdecken kann, die für spätere Trainruns ebenfalls nutzbar sind. Wenn die Reihenfolge zufällig wäre, würden potenziell andere Konsolidierungen entstehen. Im aktuellen Code ist diese Reihenfolge deterministisch und reproduzierbar, was für Tests und Debugging wertvoll ist. Eine raffiniertere Variante könnte die Trainruns nach einer Heuristik sortieren (etwa: erst die mit den meisten Sections, weil sie das meiste Konsolidierungspotenzial bieten), was möglicherweise bessere Endergebnisse liefert. Im aktuellen Code ist das nicht implementiert.
-
-**Verteilung der Symmetriewerte.** Die Verteilung der Section-Zeiten beim Ersetzen ist eine Heuristik mit subtilen Effekten. Würde man jede neue Section mit ihrer eigenen, vom Korridor übernommenen `travelTime` versehen, ergäbe die Summe aller neuen Sections die Pfad-Zeit (also gegebenenfalls länger als die Direktzeit). Das wäre realistischer, aber visuell unschöner: Der Trainrun würde nach der Konsolidierung anders aussehen als vorher. Stattdessen wird die Direktzeit auf die neuen Sections verteilt, sodass die Gesamtfahrzeit gleich bleibt — was visuell Konsistenz bewahrt, aber technisch eine kleine Manipulation der Section-Zeiten bedeutet. Diese Designwahl bewahrt die 60-x-Symmetrie und ist deshalb für die Editor-Visualisierung wichtiger als die exakte Treue zur originalen Korridor-Zeit.
-
-**Optionalität.** Die Topologie-Konsolidierung ist im UI als Toggle exponiert. Bei deaktiviertem Toggle wird die Phase übersprungen, und der Trainrun-Graph bleibt mit allen seinen Direktverbindungen und Parallelitäten erhalten. Diese Option ist wichtig, weil die Konsolidierung als heuristisches Feature in Edge-Cases unerwünschte Effekte haben kann (etwa wenn eine Linie eigentlich tatsächlich eine Direktverbindung ohne Zwischenhalte sein soll, aber durch die Konsolidierung Zwischenknoten bekommt). Der Anwender kann dann ohne Konsolidierung importieren und das Ergebnis prüfen.
-
-## 11.5 Datenflussdiagramm
-
-```mermaid
-graph TD
-    Input[trainruns + sections<br/>nach Round-Trip-Merge]
-    Config[Config:<br/>maxIterations 50,<br/>detour 35%,<br/>absolut 3 min]
-    
-    Input --> Loop[Iterationsschleife<br/>i = 0 bis maxIterations]
-    Config --> Loop
-    
-    Loop --> EM[Edge-Map aufbauen<br/>nodePair -> sections]
-    
-    EM --> TLoop[Pro Trainrun:]
-    TLoop --> SLoop[Pro Section des Trainruns:]
-    
-    SLoop --> Skip{numberOfStops == 0?}
-    Skip -->|nein| NextS[naechste Section]
-    Skip -->|ja| Search[BFS:<br/>findAlternativePath<br/>von source zu target<br/>mit verbotenen Knoten]
-    
-    Search --> Found{Pfad gefunden?}
-    Found -->|nein| NextS
-    Found -->|ja| Detour{Detour innerhalb<br/>Schwellen?}
-    
-    Detour -->|nein| NextS
-    Detour -->|ja| Replace[Section ersetzen:<br/>1 alte raus,<br/>n neue rein,<br/>Symmetriewerte<br/>proportional verteilen]
-    
-    Replace --> Changed[changed = true]
-    Changed --> Restart[break aus innerer Loop,<br/>Edge-Map neu aufbauen]
-    Restart --> Loop
-    
-    NextS --> SLoop
-    SLoop --> NoChange{Trainrun<br/>komplett?}
-    NoChange --> TLoop
-    
-    TLoop --> Term{changed == false<br/>oder maxIterations?}
-    Term -->|nein| Loop
-    Term -->|ja| Out[Konsolidierte<br/>trainruns + sections]
-12. Phase J — Spring-Layout und finales DTO
-12.1 Übersicht
+# 12. Phase J — Spring-Layout und finales DTO
+## 12.1 Übersicht
 Nach der Topologie-Konsolidierung sind alle Trainruns und Sections fertig. Die Knotenpositionen, die in Phase E aus den geografischen Koordinaten abgeleitet wurden, repräsentieren die Realtopografie der Schweiz. Für eine Netzgrafik-Darstellung ist das oft suboptimal: Bahnhöfe, die geografisch dicht beieinander liegen, würden sich auf der Karte überlappen, während wenig genutzte Verbindungen riesige leere Räume durchqueren. Die Netzgrafik soll aber primär die topologischen Beziehungen abbilden — Knoten dort visuell platzieren, wo es für die Lesbarkeit der Linien sinnvoll ist, nicht wo sie tatsächlich liegen.
 
 Phase J führt deshalb ein Spring-Embedded-Layout durch. Das ist eine etablierte Technik aus der Graph-Visualisierung, die einen Graphen so anordnet, dass Knoten, die durch viele Edges verbunden sind, nahe beieinander platziert werden, während weniger verbundene Knoten weiter auseinanderrücken. Das Verfahren simuliert physikalische Federkräfte zwischen den Knoten und konvergiert nach mehreren Iterationen zu einer stabilen Konfiguration.
@@ -1664,7 +1977,7 @@ Im aktuellen Code wird das Spring-Layout aber nur als Verfeinerung der bereits g
 
 Nach dem Spring-Layout wird das finale NetzgrafikDto zusammengebaut. Dieses DTO ist die zentrale Datenstruktur, die der Editor erwartet: Es enthält die Knoten, die Trainruns, die Sections, die Metadaten, die Labels, die Filter-Konfiguration und einige weitere Felder. Aus dieser Struktur wird beim Laden in den Editor das vollständige Netzgrafik-Modell aufgebaut.
 
-12.2 Details
+## 12.2 Details
 Das Spring-Layout verwendet einen einfachen kraftbasierten Algorithmus mit zwei Kraftarten: Anziehende Kräfte zwischen verbundenen Knoten (durch Sections) und abstossende Kräfte zwischen allen Knoten (unabhängig von Verbindungen). Die anziehende Kraft ist proportional zum Abstand der Knoten — je weiter sie auseinander sind, desto stärker werden sie zueinander gezogen. Die abstossende Kraft ist umgekehrt proportional zum Quadrat des Abstands — je näher sie sind, desto stärker stossen sie sich ab. Das Gleichgewicht zwischen beiden Kräften ergibt die finale Position.
 
 In jedem Iterationsschritt werden für jeden Knoten beide Kraftbeiträge addiert und auf die Knotenposition angewendet. Eine zusätzliche Dämpfung verlangsamt die Bewegung, damit das System konvergiert statt zu oszillieren. Nach typischerweise 50 bis 200 Iterationen ist eine stabile Konfiguration erreicht.
@@ -1691,23 +2004,64 @@ Eine wichtige Eigenschaft des DTOs ist seine **Selbstkonsistenz**. Alle Referenz
 Eine letzte Aufgabe in dieser Phase ist die Erzeugung der **Round-Trip-Labels**. Wenn der Anwender im Editor später nach Round-Trip-Status filtern möchte, braucht es entsprechende Label-Objekte. Der Manager-Service erzeugt zwei Labels: "ROUND_TRIP" und "ONE_WAY". Diese werden mit fortlaufenden Label-IDs in die `labels`-Liste geschrieben und in einer einzigen Label-Gruppe (etwa "Trainrun-Status") gruppiert. Anschliessend wird jedem Trainrun die entsprechende Label-ID in sein `labelIds`-Array gepusht, je nach `direction`. Im Editor erscheinen diese Labels dann als Filteroptionen, mit denen sich Round-Trip- und One-Way-Linien einzeln ein- und ausblenden lassen.
 
 ## 12.3 Algorithmus
-EINGABE: nodes, trainruns, sections, metadata, labelCreator (Callback) AUSGABE: netzgrafikDto
 
-Spring-Layout for iteration from 1 to springIterations: forces = computeForces(nodes, sections) for each node in nodes: node.positionX += forces[node.id].x * damping node.positionY += forces[node.id].y * damping
+```text
+EINGABE:  nodes, trainruns, sections, metadata, labelCreator (Callback)
+AUSGABE:  netzgrafikDto
 
-updateSectionMidpoints(sections, nodes)
+1. Spring-Layout
+   for iteration from 1 to springIterations:
+     forces = computeForces(nodes, sections)
+     for each node in nodes:
+       node.positionX += forces[node.id].x * damping
+       node.positionY += forces[node.id].y * damping
 
-Labels erzeugen labels = [] roundTripLabelId = labelCreator(“ROUND_TRIP”) oneWayLabelId = labelCreator(“ONE_WAY”) labels.push({ id: roundTripLabelId, label: “ROUND_TRIP”, labelGroupId: 1 }) labels.push({ id: oneWayLabelId, label: “ONE_WAY”, labelGroupId: 1 })
+   updateSectionMidpoints(sections, nodes)
 
-labelGroups = [{ id: 1, name: “Trainrun-Status”, labelRef: LabelRef.Trainrun }]
+2. Labels erzeugen
+   labels = []
+   roundTripLabelId = labelCreator("ROUND_TRIP")
+   oneWayLabelId    = labelCreator("ONE_WAY")
+   labels.push({ id: roundTripLabelId, label: "ROUND_TRIP", labelGroupId: 1 })
+   labels.push({ id: oneWayLabelId,    label: "ONE_WAY",    labelGroupId: 1 })
 
-Trainruns mit Labels annotieren for each trainrun in trainruns: if trainrun.direction == ROUND_TRIP: trainrun.labelIds.push(roundTripLabelId) else: trainrun.labelIds.push(oneWayLabelId)
+   labelGroups = [{
+     id:       1,
+     name:     "Trainrun-Status",
+     labelRef: LabelRef.Trainrun
+   }]
 
-NetzgrafikDto zusammensetzen netzgrafikDto = { nodes: nodes, trainruns: trainruns, trainrunSections: sections, resources: [{ id: 0, capacity: 2 }], metadata: { trainrunCategories: metadata.categories, trainrunFrequencies: metadata.frequencies, trainrunTimeCategories: getDefaultTimeCategories(), netzgrafikColors: getDefaultColors() }, labels: labels, labelGroups: labelGroups, filterData: getDefaultFilterData(), freeFloatingTexts: [] }
+3. Trainruns mit Labels annotieren
+   for each trainrun in trainruns:
+     if trainrun.direction == ROUND_TRIP:
+       trainrun.labelIds.push(roundTripLabelId)
+     else:
+       trainrun.labelIds.push(oneWayLabelId)
 
-Interne Maps anhaengen (nicht Teil der offiziellen Schnittstelle) netzgrafikDto.trainrunToTrips = trainrunToTrips netzgrafikDto.gtfsInitialStopNodeIdsByTrainrun = gtfsInitialStopNodeIdsByTrainrun
+4. NetzgrafikDto zusammensetzen
+   netzgrafikDto = {
+     nodes:            nodes,
+     trainruns:        trainruns,
+     trainrunSections: sections,
+     resources:        [{ id: 0, capacity: 2 }],
+     metadata: {
+       trainrunCategories:     metadata.categories,
+       trainrunFrequencies:    metadata.frequencies,
+       trainrunTimeCategories: getDefaultTimeCategories(),
+       netzgrafikColors:       getDefaultColors()
+     },
+     labels:            labels,
+     labelGroups:       labelGroups,
+     filterData:        getDefaultFilterData(),
+     freeFloatingTexts: []
+   }
+
+5. Interne Maps anhängen (nicht Teil der offiziellen Schnittstelle)
+   netzgrafikDto.trainrunToTrips                 = trainrunToTrips
+   netzgrafikDto.gtfsInitialStopNodeIdsByTrainrun = gtfsInitialStopNodeIdsByTrainrun
 
 RETURN netzgrafikDto
+```
 
 
 ## 12.4 Heuristik
@@ -1748,8 +2102,8 @@ graph TD
     Maps --> DTO[NetzgrafikDto<br/>vollstaendig]
 ```
 
-13. Phase K — Editor-Integration und Transitions
-13.1 Übersicht
+# 13. Phase K — Editor-Integration und Transitions
+## 13.1 Übersicht
 Mit dem fertig zusammengebauten NetzgrafikDto ist die eigentliche Importpipeline abgeschlossen. Was jetzt noch passiert, ist nicht mehr Teil des Importers im engeren Sinne, sondern wird vom Editor selbst übernommen, sobald das DTO an ihn übergeben wird. Diese Editor-Integration umfasst zwei zentrale Aufgaben: Die Materialisierung der Editor-Modell-Instanzen aus den DTO-Daten, und das Stop-Map-Enforcement, mit dem die Halt-/Durchfahrt-Information aus den GTFS-Originaldaten korrekt auf die durch Topologie-Konsolidierung möglicherweise erweiterten Knotenlisten der Trainruns übertragen wird.
 
 Die Materialisierung erfolgt über den `DataService` des Editors. Dieser Service hat eine Methode `loadNetzgrafikDto(dto)`, die das gesamte Editor-Modell aus dem übergebenen DTO neu aufbaut. Dabei werden Trainrun-Modellinstanzen, Section-Modellinstanzen und Node-Modellinstanzen erzeugt; die Verbindungen zwischen ihnen werden über Ports und Transitions hergestellt, die der Editor selbst aus den Section-Definitionen ableitet.
@@ -1781,27 +2135,40 @@ Für jeden Knoten in der aktuellen Liste wird geprüft, ob er auch in der Origin
 Konkret wird das umgesetzt, indem für jede Transition des Trainruns am Knoten `n` geprüft wird, ob `n` in der Original-Stop-Liste vorkommt. Falls nicht, wird das `isNonStopTransit`-Flag der Transition auf `true` gesetzt.
 
 Das Resultat ist, dass jeder Trainrun nach der Editor-Integration genau die Halt-Markierungen trägt, die er auch im realen GTFS-Fahrplan hatte — auch wenn er durch die Konsolidierung mehr Knoten passiert. Das ist die finale visuelle Wahrheit des Imports.
-
+ 
 ## 13.3 Algorithmus
-EINGABE: netzgrafikDto (mit gtfsInitialStopNodeIdsByTrainrun) AUSGABE: Editor-Modell vollstaendig materialisiert
 
-DataService.loadNetzgrafikDto(netzgrafikDto)
+```text
+EINGABE:  netzgrafikDto (mit gtfsInitialStopNodeIdsByTrainrun)
+AUSGABE:  Editor-Modell vollständig materialisiert
 
-Alle Nodes als Modellinstanzen anlegen
-Alle Trainruns als Modellinstanzen anlegen
-Alle Sections als Modellinstanzen anlegen
-Pro Section: Ports an Source-/Target-Knoten erzeugen
-Pro Knoten: Transitions zwischen Ports desselben Trainruns ableiten
-isNonStopTransit auf Default false setzen
-Stop-Map-Enforcement stopMap = netzgrafikDto.gtfsInitialStopNodeIdsByTrainrun
+1. DataService.loadNetzgrafikDto(netzgrafikDto)
 
-for each trainrun in trainruns: originalStopNodeIds = stopMap.get(trainrun.id) || []
+   - Alle Nodes als Modellinstanzen anlegen
+   - Alle Trainruns als Modellinstanzen anlegen
+   - Alle Sections als Modellinstanzen anlegen
+   - Pro Section: Ports an Source-/Target-Knoten erzeugen
+   - Pro Knoten: Transitions zwischen Ports desselben Trainruns ableiten
+   - isNonStopTransit auf Default false setzen
 
-currentSections = sections.filter(s => s.trainrunId == trainrun.id) currentNodeIds = collectAllNodeIds(currentSections)
+2. Stop-Map-Enforcement
+   stopMap = netzgrafikDto.gtfsInitialStopNodeIdsByTrainrun
 
-for each nodeId in currentNodeIds: if nodeId not in originalStopNodeIds: transition = findTransition(trainrun, nodeId) if transition: transition.isNonStopTransit = true
+   for each trainrun in trainruns:
+     originalStopNodeIds = stopMap.get(trainrun.id) || []
 
-3 Editor rendert die Netzgrafik
+     currentSections = sections.filter(s => s.trainrunId == trainrun.id)
+     currentNodeIds  = collectAllNodeIds(currentSections)
+
+     for each nodeId in currentNodeIds:
+       if nodeId not in originalStopNodeIds:
+         transition = findTransition(trainrun, nodeId)
+         if transition:
+           transition.isNonStopTransit = true
+
+3. Editor rendert die Netzgrafik
+```
+
 
 ## 13.4 Heuristik
 
@@ -1846,10 +2213,10 @@ graph TD
     Final --> Render[Editor rendert Netzgrafik]
 ```
 
-14. Datenmapping GTFS → Netzgrafik
+# 14. Datenmapping GTFS → Netzgrafik
 Dieses Kapitel fasst alle Datenmappings zwischen GTFS- und Netzgrafik-Modell zusammen, die in den vorhergehenden Phasen verteilt beschrieben wurden. Es dient als Nachschlagewerk für die Implementierung und zeigt im Detail, welches GTFS-Feld in welches Netzgrafik-Feld fliesst und welche Heuristik dazwischen liegt.
 
-14.1 Knoten (NodeDto)
+## 14.1 Knoten (NodeDto)
 Netzgrafik-Feld	Quelle aus GTFS	Heuristik / Transformation
 id	(synthetisch)	Fortlaufender Zähler beginnend bei 1
 betriebspunktName	stops.stop_name	Auf 50 Zeichen gekürzt
@@ -1870,7 +2237,7 @@ Plattformen aus GTFS (Stops mit parent_station != "") werden nicht zu eigenen Kn
 
 Wenn ein Eltern-Stationseintrag in stops.txt fehlt, wird er virtuell synthetisiert: Name aus dem ersten Plattformnamen mit entferntem Suffix (“Gleis X”, “Track X”, etc.), Koordinaten von der ersten Plattform übernommen.
 
-14.2 Linien (TrainrunDto)
+## 14.2 Linien (TrainrunDto)
 Netzgrafik-Feld	Quelle aus GTFS	Heuristik / Transformation
 id	(synthetisch)	Fortlaufender Zähler ab max(existingTrainruns) + 1
 name	routes.route_short_name (Fallback route_long_name)	Direkt übernommen
@@ -1882,7 +2249,7 @@ trainrunFrequencyOffset	aus 120-Minuten-Schicht	0 für gerade Stunden, 1 für un
 direction	direction_id + Round-Trip-Heuristik	Initial ONE_WAY, durch Pärchen-Test zu ROUND_TRIP konsolidiert
 Eine GTFS-Route wird nicht direkt zu einem Trainrun. Vielmehr werden ihre Trips in Patterns gruppiert, und aus jedem Pattern wird ein eigener Trainrun. Bei korrekt strukturierten Schweizer Feeds entspricht eine Route meist einem oder zwei Patterns (Hin- und Rückrichtung), so dass die Anzahl Trainruns ungefähr der doppelten Anzahl Routes entspricht — bevor das Round-Trip-Merging die Pärchen wieder zusammenführt.
 
-14.3 Sections (TrainrunSectionDto)
+## 14.3 Sections (TrainrunSectionDto)
 Netzgrafik-Feld	Quelle aus GTFS	Heuristik / Transformation
 id	(synthetisch)	Fortlaufender Zähler
 trainrunId	(synthetisch)	Verweist auf den Pattern-Trainrun
@@ -1899,7 +2266,7 @@ Sections werden aus den Stop-Times des Master-Trips des jeweiligen Patterns erze
 
 Bei der Topologie-Konsolidierung werden Sections nachträglich ersetzt: Eine Direkt-Section A→D kann durch eine Sequenz A→B→C→D von neuen Sections ersetzt werden, deren Symmetriewerte proportional aus der ursprünglichen Direktzeit verteilt werden, sodass die Summe gleich bleibt.
 
-14.4 Kategorien (TrainrunCategory in metadata)
+## 14.4 Kategorien (TrainrunCategory in metadata)
 Netzgrafik-Feld	Quelle aus GTFS	Heuristik / Transformation
 id	(synthetisch)	Bei neuer Kategorie: 2026_0000 + counter
 order	(synthetisch)	Fortlaufend
@@ -1913,7 +2280,7 @@ nodeHeadwayNonStop	(Default)	2 Minuten
 sectionHeadway	(Default)	2 Minuten
 Existierende Kategorien aus dem existingMetadata werden wiederverwendet, sobald entweder ihr shortName oder ihr name mit der GTFS-Beschreibung matcht (case-insensitive).
 
-14.5 Frequenzen (TrainrunFrequency in metadata)
+## 14.5 Frequenzen (TrainrunFrequency in metadata)
 Frequenzen werden nicht aus dem GTFS-Feed neu erzeugt — sie kommen aus den Default-Werten des Editors oder aus dem existingMetadata. Die Heuristik bestimmt nur, welche dieser bestehenden Frequenzen einem Trainrun zugewiesen wird.
 
 Frequenz-Schlüssel	Editor-Frequency-ID	Bedeutung
@@ -1925,7 +2292,7 @@ Frequenz-Schlüssel	Editor-Frequency-ID	Bedeutung
 120_60	(Editor-Default)	1 Abfahrt zu jeder ungeraden Stunde
 Die Bestimmung erfolgt durch Modus-Histogramm der Trip-Intervalle einer Route, mit Snapping auf die Standardwerte unter Toleranz.
 
-14.6 Labels und Filter
+## 14.6 Labels und Filter
 Beim Import werden zwei dedizierte Labels angelegt:
 
 Label	Trainrun-Zuordnung
@@ -1933,7 +2300,7 @@ ROUND_TRIP	Trainruns mit direction = ROUND_TRIP
 ONE_WAY	Trainruns mit direction = ONE_WAY
 Diese erscheinen im Editor als Filter-Optionen, mit denen die jeweiligen Linien einzeln aus- und eingeblendet werden können. Sie werden in einer einzigen Label-Gruppe (labelGroupId = 1, Name “Trainrun-Status”, Referenz LabelRef.Trainrun) zusammengefasst.
 
-14.7 Stop-Map (Halt vs. Durchfahrt)
+## 14.7 Stop-Map (Halt vs. Durchfahrt)
 Diese Information ist nicht Teil des offiziellen NetzgrafikDto-Schemas, sondern wird über die Map gtfsInitialStopNodeIdsByTrainrun als Anhang am DTO mitgeliefert und vom Editor nach der Materialisierung ausgewertet.
 
 Quelle	Bedeutung
@@ -2191,10 +2558,5 @@ Mit diesen Punkten als Leitlinie und der vorhergehenden Phasen-Beschreibung als 
 
 Wir wünschen viel Erfolg.
  
-
-
-
-
-
 
 
