@@ -100,9 +100,10 @@ export class GlobalNodesManagementComponent {
       .showConfirmationDiagramDialog(confirmationDialogParameter)
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
-          this.matchingNodes.forEach((node) => {
-            node.setIsCollapsed(newIsCollapsed);
-          });
+          this.matchingNodes.forEach((node) =>
+            this.nodeService.changeIsCollapsed(node.getId(), newIsCollapsed, false),
+          );
+          this.nodeService.initPortOrdering();
           this.dataService.triggerViewUpdate();
         }
       });
