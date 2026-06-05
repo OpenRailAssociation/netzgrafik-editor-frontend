@@ -119,8 +119,9 @@ export class D3Utils {
       .classed(StaticDomTags.TAG_HOVER, false);
   }
 
-  static updateTrainrunSectionPreviewLine(startPos: Vec2D) {
-    const mousePos = d3.mouse(
+  static updateTrainrunSectionPreviewLine(event: MouseEvent, startPos: Vec2D) {
+    const mousePos = d3.pointer(
+      event,
       d3.select<SVGPathElement, undefined>(StaticDomTags.PREVIEW_LINE_DOM_REF).node(),
     );
     const mousePosVec: Vec2D = new Vec2D(mousePos[0], mousePos[1]);
@@ -141,8 +142,13 @@ export class D3Utils {
     );
   }
 
-  static updateIntermediateStopOrTransitionPreviewLine(startPos: Vec2D, endPos: Vec2D) {
-    const mousePos = d3.mouse(
+  static updateIntermediateStopOrTransitionPreviewLine(
+    event: MouseEvent,
+    startPos: Vec2D,
+    endPos: Vec2D,
+  ) {
+    const mousePos = d3.pointer(
+      event,
       d3.select<SVGPathElement, undefined>(StaticDomTags.PREVIEW_LINE_DOM_REF).node(),
     );
     const mousePosVec: Vec2D = new Vec2D(mousePos[0], mousePos[1]);
@@ -171,8 +177,13 @@ export class D3Utils {
     );
   }
 
-  static updateConnectionPreviewLine(startPos: Vec2D, canCombineTwoTrainrunsFlag: boolean) {
-    const mousePos = d3.mouse(
+  static updateConnectionPreviewLine(
+    event: MouseEvent,
+    startPos: Vec2D,
+    canCombineTwoTrainrunsFlag: boolean,
+  ) {
+    const mousePos = d3.pointer(
+      event,
       d3.select<SVGPathElement, undefined>(StaticDomTags.PREVIEW_CONNECTION_LINE_DOM_REF).node(),
     );
     const mousePosVec: Vec2D = new Vec2D(mousePos[0], mousePos[1]);
@@ -192,7 +203,7 @@ export class D3Utils {
     if (canCombineTwoTrainrunsFlag) {
       d3.selectAll(StaticDomTags.PREVIEW_CONNECTION_LINE_DOM_REF).classed(
         StaticDomTags.TAG_CTRLKEY,
-        d3.event.ctrlKey,
+        event.ctrlKey,
       );
     }
   }
@@ -918,5 +929,15 @@ export class D3Utils {
     return (
       prefix + (hours < 10 ? "0" + hours : hours) + ":" + (minutes < 10 ? "0" + minutes : minutes)
     );
+  }
+
+  static getMouseEventCurrentTarget(event: MouseEvent): SVGElement {
+    // Event is generic and isn't necessarily tied to the DOM. Unfortunately,
+    // MouseEvent doesn't narrow down currentTarget. We need to manually check
+    // its type.
+    if (!(event.currentTarget instanceof SVGElement)) {
+      throw new Error("Mouse event's current target is not an SVG element");
+    }
+    return event.currentTarget;
   }
 }

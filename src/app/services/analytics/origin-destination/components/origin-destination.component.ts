@@ -272,7 +272,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
 
     const nodeNameMap = new Map(nodeNames.map((n) => [n.id, n.fullName]));
 
-    const mousemove = function (d: OriginDestination) {
+    const mousemove = function (event: MouseEvent, d: OriginDestination) {
       let details = "";
       if (d.found) {
         details += "<br><hr> ";
@@ -286,11 +286,11 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
           ${nodeNameMap.get(d.destinationId)} (<b>${d.destination}</b>)
           ${details}`,
         )
-        .style("left", `${d3.event.offsetX + 64}px`)
-        .style("top", `${d3.event.offsetY + 64 < 0 ? 0 : d3.event.offsetY + 64}px`);
+        .style("left", `${event.offsetX + 64}px`)
+        .style("top", `${event.offsetY + 64 < 0 ? 0 : event.offsetY + 64}px`);
     };
 
-    const mouseleave = function (_d: OriginDestination) {
+    const mouseleave = function (_event: MouseEvent, _d: OriginDestination) {
       tooltip.style("opacity", 0);
       d3.select(this)
         .style("stroke", "none")

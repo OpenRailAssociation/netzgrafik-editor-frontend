@@ -61,27 +61,27 @@ export class EditorKeyEvents {
   activateMousekeyDownHandler(editorMode: EditorMode) {
     this.editorMode = editorMode;
 
-    d3.select("body").on("keyup", () => {
-      if (this.ignoreKeyEvent(d3.event)) {
+    d3.select("body").on("keyup", (event: KeyboardEvent) => {
+      if (this.ignoreKeyEvent(event)) {
         return;
       }
-      this.forwardCtrlKeyInformation();
+      this.forwardCtrlKeyInformation(event);
     });
 
-    d3.select("body").on("keydown", () => {
-      if (this.ignoreKeyEvent(d3.event)) {
+    d3.select("body").on("keydown", (event: KeyboardEvent) => {
+      if (this.ignoreKeyEvent(event)) {
         return;
       }
 
-      this.forwardCtrlKeyInformation();
+      this.forwardCtrlKeyInformation(event);
 
       if (this.trainrunSectionPreviewLineView.getMode() !== PreviewLineMode.NotDragging) {
-        d3.event.preventDefault();
+        event.preventDefault();
         return;
       }
 
-      const keycode = d3.event.code;
-      const ctrlKey = d3.event.ctrlKey;
+      const keycode = event.code;
+      const ctrlKey = event.ctrlKey;
       switch (keycode) {
         case "Delete":
           this.onKeyPressedDelete();
@@ -91,7 +91,7 @@ export class EditorKeyEvents {
           break;
         case "Escape":
           if (this.onKeyPressedEscape()) {
-            d3.event.preventDefault();
+            event.preventDefault();
           }
           break;
         case "KeyS":
@@ -100,59 +100,59 @@ export class EditorKeyEvents {
         case "KeyA":
           if (ctrlKey) {
             if (this.onSelectAll()) {
-              d3.event.preventDefault();
+              event.preventDefault();
             }
           }
           break;
         case "KeyC":
           if (ctrlKey) {
             if (this.onCopyAllVisibleElementsToCopyCache()) {
-              d3.event.preventDefault();
+              event.preventDefault();
             }
           }
           break;
         case "KeyV":
           if (ctrlKey) {
             if (this.onInsertAllVisibleElementsFromCopyCache()) {
-              d3.event.preventDefault();
+              event.preventDefault();
             }
           }
           break;
         case "KeyZ":
           if (ctrlKey) {
             if (this.onRevertLastChange()) {
-              d3.event.preventDefault();
+              event.preventDefault();
             }
           }
           break;
         case "KeyY":
           if (ctrlKey) {
             if (this.onRevertLastChange()) {
-              d3.event.preventDefault();
+              event.preventDefault();
             }
           }
           break;
         case "KeyD":
           if (ctrlKey) {
             this.onDuplicate();
-            d3.event.preventDefault();
+            event.preventDefault();
           }
           break;
         case "ArrowLeft":
           this.onArrowLeft();
-          d3.event.preventDefault();
+          event.preventDefault();
           break;
         case "ArrowUp":
           this.onArrowUp();
-          d3.event.preventDefault();
+          event.preventDefault();
           break;
         case "ArrowRight":
           this.onArrowRight();
-          d3.event.preventDefault();
+          event.preventDefault();
           break;
         case "ArrowDown":
           this.onArrowDown();
-          d3.event.preventDefault();
+          event.preventDefault();
           break;
 
         default:
@@ -337,9 +337,9 @@ export class EditorKeyEvents {
     this.trainrunSectionService.trainrunSectionsUpdated();
   }
 
-  private forwardCtrlKeyInformation() {
+  private forwardCtrlKeyInformation(event: KeyboardEvent) {
     const ctrlButtonState =
-      d3.event.ctrlKey && this.trainrunSectionPreviewLineView.canCombineTwoTrainruns();
+      event.ctrlKey && this.trainrunSectionPreviewLineView.canCombineTwoTrainruns();
 
     const obj1 = d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF);
     obj1.each(function () {
