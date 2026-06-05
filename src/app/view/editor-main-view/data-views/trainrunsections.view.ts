@@ -1171,14 +1171,14 @@ export class TrainrunSectionsView {
           TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
         )
         .classed(StaticDomTags.TAG_EVENT_DISABLED, !enableEvents)
-        .on("mouseup", (d: TrainrunSectionViewObject, i, a) => {
-          this.onTrainrunDirectionArrowMouseUp(d.trainrunSection, a[i]);
+        .on("mouseup", (event: MouseEvent, d: TrainrunSectionViewObject) => {
+          this.onTrainrunDirectionArrowMouseUp(event, d.trainrunSection);
         })
-        .on("mouseover", (d: TrainrunSectionViewObject, i, a) => {
-          this.onTrainrunSectionMouseoverPath(d.trainrunSection, a[i]);
+        .on("mouseover", (event: MouseEvent, d: TrainrunSectionViewObject) => {
+          this.onTrainrunSectionMouseoverPath(event, d.trainrunSection);
         })
-        .on("mouseout", (d: TrainrunSectionViewObject, i, a) => {
-          this.onTrainrunSectionMouseoutPath(d.trainrunSection, a[i]);
+        .on("mouseout", (event: MouseEvent, d: TrainrunSectionViewObject) => {
+          this.onTrainrunSectionMouseoutPath(event, d.trainrunSection);
         });
     });
   }
@@ -1246,14 +1246,14 @@ export class TrainrunSectionsView {
           TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
         )
         .classed(StaticDomTags.TAG_EVENT_DISABLED, !enableEvents)
-        .on("mouseup", (d: TrainrunSectionViewObject, i, a) => {
-          this.onTrainrunAsymmetryArrowMouseUp(d.trainrunSection, a[i]);
+        .on("mouseup", (event: MouseEvent, d: TrainrunSectionViewObject) => {
+          this.onTrainrunAsymmetryArrowMouseUp(event, d.trainrunSection);
         })
-        .on("mouseover", (d: TrainrunSectionViewObject, i, a) => {
-          this.onTrainrunSectionMouseoverPath(d.trainrunSection, a[i]);
+        .on("mouseover", (event: MouseEvent, d: TrainrunSectionViewObject) => {
+          this.onTrainrunSectionMouseoverPath(event, d.trainrunSection);
         })
-        .on("mouseout", (d: TrainrunSectionViewObject, i, a) => {
-          this.onTrainrunSectionMouseoutPath(d.trainrunSection, a[i]);
+        .on("mouseout", (event: MouseEvent, d: TrainrunSectionViewObject) => {
+          this.onTrainrunSectionMouseoutPath(event, d.trainrunSection);
         });
     });
   }
@@ -1296,19 +1296,19 @@ export class TrainrunSectionsView {
 
     if (!this.editorView.isElementDragging()) {
       trainrunSectionElements
-        .on("mouseup", (d: TrainrunSectionViewObject, i, a) => {
+        .on("mouseup", (event: MouseEvent, d: TrainrunSectionViewObject) => {
           if (enableEvents) {
-            this.onTrainrunSectionMouseUp(d.trainrunSection, a[i]);
+            this.onTrainrunSectionMouseUp(event, d.trainrunSection);
           }
         })
-        .on("mouseover", (d: TrainrunSectionViewObject, i, a) => {
+        .on("mouseover", (event: MouseEvent, d: TrainrunSectionViewObject) => {
           if (enableEvents) {
-            this.onTrainrunSectionMouseoverPath(d.trainrunSection, a[i]);
+            this.onTrainrunSectionMouseoverPath(event, d.trainrunSection);
           }
         })
-        .on("mouseout", (d: TrainrunSectionViewObject, i, a) => {
+        .on("mouseout", (event: MouseEvent, d: TrainrunSectionViewObject) => {
           if (enableEvents) {
-            this.onTrainrunSectionMouseoutPath(d.trainrunSection, a[i]);
+            this.onTrainrunSectionMouseoutPath(event, d.trainrunSection);
           }
         });
     }
@@ -1473,19 +1473,19 @@ export class TrainrunSectionsView {
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
         d.trainrunSection.getTrainrun().selected(),
       )
-      .on("mouseover", (d: TrainrunSectionViewObject, i, a) =>
+      .on("mouseover", (event: MouseEvent, d: TrainrunSectionViewObject) =>
         this.onTrainrunSectionMouseoverPin(
+          event,
           TrainrunSectionsView.getNode(d.trainrunSection, atSource),
-          a[i],
         ),
       )
-      .on("mouseout", (d: TrainrunSectionViewObject, i, a) =>
-        this.onTrainrunSectionMouseoutPin(d.trainrunSection, a[i], atSource),
+      .on("mouseout", (event: MouseEvent, d: TrainrunSectionViewObject) =>
+        this.onTrainrunSectionMouseoutPin(event, d.trainrunSection, atSource),
       )
-      .on("mousedown", () => this.onTrainrunSectionMousedownPin())
-      .on("mousemove", () => this.onTrainrunSectionMousemovePin())
-      .on("mouseup", (d: TrainrunSectionViewObject) =>
-        this.onTrainrunSectionMouseupPin(d.trainrunSection, atSource),
+      .on("mousedown", (event: MouseEvent) => event.stopPropagation())
+      .on("mousemove", (event: MouseEvent) => event.stopPropagation())
+      .on("mouseup", (event: MouseEvent, d: TrainrunSectionViewObject) =>
+        this.onTrainrunSectionMouseupPin(event, d.trainrunSection, atSource),
       );
   }
 
@@ -1573,19 +1573,19 @@ export class TrainrunSectionsView {
       .attr("style", (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.getTrainrunSectionValueHtmlStyle(d.trainrunSection, textElement),
       )
-      .on("mouseover", (d: TrainrunSectionViewObject, i, a) => {
+      .on("mouseover", (event: MouseEvent, d: TrainrunSectionViewObject) => {
         if (enableEvents) {
-          this.onTrainrunSectionTextMouseover(d.trainrunSection, a[i]);
+          this.onTrainrunSectionTextMouseover(event, d.trainrunSection);
         }
       })
-      .on("mouseout", (d: TrainrunSectionViewObject, i, a) => {
+      .on("mouseout", (event: MouseEvent, d: TrainrunSectionViewObject) => {
         if (enableEvents) {
-          this.onTrainrunSectionTextMouseout(d.trainrunSection, a[i]);
+          this.onTrainrunSectionTextMouseout(event, d.trainrunSection);
         }
       })
-      .on("mouseup", (d: TrainrunSectionViewObject, i, a) => {
+      .on("mouseup", (event: MouseEvent, d: TrainrunSectionViewObject) => {
         if (enableEvents) {
-          this.onTrainrunSectionElementClicked(d.trainrunSection, a[i], textElement);
+          this.onTrainrunSectionElementClicked(event, d.trainrunSection, textElement);
         }
       });
 
@@ -1719,8 +1719,8 @@ export class TrainrunSectionsView {
       .classed(StaticDomTags.TAG_SELECTED, () =>
         TrainrunSectionsView.isSectionSelected(trainrunSection),
       )
-      .on("mouseup", (t: TrainrunSectionViewObject, i, a) =>
-        this.onIntermediateStopMouseUp(t.trainrunSection, a[i]),
+      .on("mouseup", (event: MouseEvent, t: TrainrunSectionViewObject) =>
+        this.onIntermediateStopMouseUp(event, t.trainrunSection),
       );
   }
 
@@ -1886,45 +1886,49 @@ export class TrainrunSectionsView {
     D3Utils.bringTrainrunSectionToFront();
   }
 
-  onTrainrunSectionTextMouseover(trainrunSection: TrainrunSection, domObj: SVGElement) {
+  onTrainrunSectionTextMouseover(event: MouseEvent, trainrunSection: TrainrunSection) {
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
+      const domObj = D3Utils.getMouseEventCurrentTarget(event);
       d3.select(domObj).classed(StaticDomTags.TAG_HOVER, true);
     }
   }
 
   onIntermediateStopMouseOut(
+    event: MouseEvent,
     trainrunSection: TrainrunSection,
     stopIndex: number,
     position: Vec2D,
-    domObj: SVGElement,
   ) {
-    d3.event.stopPropagation();
-    if (d3.event.buttons === 0) {
+    event.stopPropagation();
+    if (event.buttons === 0) {
+      const domObj = D3Utils.getMouseEventCurrentTarget(event);
       d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
     }
   }
 
   onIntermediateStopMouseOver(
+    event: MouseEvent,
     trainrunSection: TrainrunSection,
     stopIndex: number,
     position: Vec2D,
-    domObj: SVGElement,
   ) {
-    d3.event.stopPropagation();
+    event.stopPropagation();
+    const domObj = D3Utils.getMouseEventCurrentTarget(event);
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, true);
   }
 
   onIntermediateStopMouseDown(
+    event: MouseEvent,
     trainrunSection: TrainrunSection,
     stopIndex: number,
     position: Vec2D,
-    domObj: SVGElement,
   ) {
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
-      d3.event.stopPropagation();
+      event.stopPropagation();
       return;
     }
 
+    const domObj = D3Utils.getMouseEventCurrentTarget(event);
     if (!d3.select(domObj).classed(StaticDomTags.TAG_SELECTED)) {
       d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
       return;
@@ -1934,13 +1938,13 @@ export class TrainrunSectionsView {
       position,
     );
 
-    this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
+    this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(event);
   }
 
-  onIntermediateStopMouseUp(trainrunSection: TrainrunSection, domObj: SVGElement) {
-    d3.event.stopPropagation();
+  onIntermediateStopMouseUp(event: MouseEvent, trainrunSection: TrainrunSection) {
+    event.stopPropagation();
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
-      this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
+      this.handleMultiNodeMovingTrainrunSectionMouseUp(event, trainrunSection);
       return;
     }
     D3Utils.removeGrayout(trainrunSection);
@@ -1948,22 +1952,24 @@ export class TrainrunSectionsView {
     this.editorView.setTrainrunAsSelected(trainrunSection.getTrainrun());
   }
 
-  onTrainrunSectionTextMouseout(trainrunSection: TrainrunSection, domObj: SVGElement) {
+  onTrainrunSectionTextMouseout(event: MouseEvent, trainrunSection: TrainrunSection) {
+    const domObj = D3Utils.getMouseEventCurrentTarget(event);
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
   }
 
   onTrainrunSectionElementClicked(
+    event: MouseEvent,
     trainrunSection: TrainrunSection,
-    domObj: SVGElement,
     textElement: TrainrunSectionText,
   ) {
-    d3.event.stopPropagation();
+    event.stopPropagation();
 
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
-      this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
+      this.handleMultiNodeMovingTrainrunSectionMouseUp(event, trainrunSection);
       return;
     }
 
+    const domObj = D3Utils.getMouseEventCurrentTarget(event);
     const rect: DOMRect = d3.select(domObj).node().getBoundingClientRect();
     const clickPosition = new Vec2D(rect.x + rect.width / 2, rect.y + rect.height / 2);
 
@@ -1978,12 +1984,13 @@ export class TrainrunSectionsView {
     );
   }
 
-  onTrainrunDirectionArrowMouseUp(trainrunSection: TrainrunSection, domObj: SVGElement) {
-    d3.event.stopPropagation();
+  onTrainrunDirectionArrowMouseUp(event: MouseEvent, trainrunSection: TrainrunSection) {
+    event.stopPropagation();
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
-      this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
+      this.handleMultiNodeMovingTrainrunSectionMouseUp(event, trainrunSection);
       return;
     }
+    const domObj = D3Utils.getMouseEventCurrentTarget(event);
     const rect: DOMRect = d3.select(domObj).node().getBoundingClientRect();
     const clickPosition = new Vec2D(rect.x + rect.width / 2, rect.y + rect.height / 2);
 
@@ -1993,8 +2000,9 @@ export class TrainrunSectionsView {
     this.editorView.showTrainrunOneWayInformation(trainrunSection, clickPosition);
   }
 
-  onTrainrunAsymmetryArrowMouseUp(trainrunSection: TrainrunSection, domObj: SVGElement) {
-    d3.event.stopPropagation();
+  onTrainrunAsymmetryArrowMouseUp(event: MouseEvent, trainrunSection: TrainrunSection) {
+    event.stopPropagation();
+    const domObj = D3Utils.getMouseEventCurrentTarget(event);
     const rect: DOMRect = d3.select(domObj).node().getBoundingClientRect();
     const clickPosition = new Vec2D(rect.x + rect.width / 2, rect.y + rect.height / 2);
 
@@ -2004,8 +2012,8 @@ export class TrainrunSectionsView {
     this.editorView.showTrainrunSectionInformation(trainrunSection, clickPosition);
   }
 
-  handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection: TrainrunSection) {
-    if (d3.event.button === 2 || (d3.event.shiftKey && d3.event.button === 0)) {
+  handleMultiNodeMovingTrainrunSectionMouseUp(event: MouseEvent, trainrunSection: TrainrunSection) {
+    if (event.button === 2 || (event.shiftKey && event.button === 0)) {
       // Right mouse button released → do not deselect,
       // otherwise multi‑selection will not work correctly.
       this.editorView.onEndMultiSelect();
@@ -2041,48 +2049,50 @@ export class TrainrunSectionsView {
     this.editorView.clickSelectedTrainrunSection(param);
   }
 
-  onTrainrunSectionMouseUp(trainrunSection: TrainrunSection, domObj: SVGElement) {
-    d3.event.stopPropagation();
+  onTrainrunSectionMouseUp(event: MouseEvent, trainrunSection: TrainrunSection) {
+    event.stopPropagation();
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
-      this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
+      this.handleMultiNodeMovingTrainrunSectionMouseUp(event, trainrunSection);
       return;
     }
     this.handleDefaultTrainrunSectionMouseUp(trainrunSection);
   }
 
-  onTrainrunSectionMouseoverPath(trainrunSection: TrainrunSection, domObj: SVGElement) {
+  onTrainrunSectionMouseoverPath(event: MouseEvent, trainrunSection: TrainrunSection) {
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
       D3Utils.hoverTrainrunSection(
         trainrunSection,
         this.editorView.getSelectedTrainrun() !== null,
-        domObj,
+        D3Utils.getMouseEventCurrentTarget(event),
       );
     }
   }
 
-  onTrainrunSectionMouseoutPath(trainrunSection: TrainrunSection, domObj: SVGElement) {
+  onTrainrunSectionMouseoutPath(event: MouseEvent, trainrunSection: TrainrunSection) {
     D3Utils.unhoverTrainrunSection(trainrunSection);
   }
 
-  onTrainrunSectionMouseoverPin(node: Node, domObj: SVGElement) {
+  onTrainrunSectionMouseoverPin(event: MouseEvent, node: Node) {
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
-      this.editorView.nodesView.unhoverNode(node, null);
+      this.editorView.nodesView.unhoverNode(event, node);
     } else {
-      this.editorView.nodesView.hoverNode(node, null);
+      this.editorView.nodesView.hoverNode(event, node);
     }
+    const domObj = D3Utils.getMouseEventCurrentTarget(event);
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, true);
   }
 
   onTrainrunSectionMouseoutPin(
+    event: MouseEvent,
     trainrunSection: TrainrunSection,
-    domObj: SVGElement,
     atSource: boolean,
   ) {
+    const domObj = D3Utils.getMouseEventCurrentTarget(event);
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
     if (this.editorView.trainrunSectionPreviewLineView.getMode() !== PreviewLineMode.NotDragging) {
       return;
     }
-    if (d3.event.buttons === 0) {
+    if (event.buttons === 0) {
       return;
     }
     const obj = d3
@@ -2107,7 +2117,10 @@ export class TrainrunSectionsView {
         trainrunSection.getId(),
       ) !== undefined;
 
-    this.editorView.trainrunSectionPreviewLineView.updatePreviewLineCombineTrainruns(hasTrans);
+    this.editorView.trainrunSectionPreviewLineView.updatePreviewLineCombineTrainruns(
+      event,
+      hasTrans,
+    );
 
     d3.selectAll(StaticDomTags.CONNECTION_LINE_PIN_DOM_REF).classed(
       StaticDomTags.CONNECTION_TAG_ONGOING_DRAGGING,
@@ -2115,17 +2128,13 @@ export class TrainrunSectionsView {
     );
   }
 
-  onTrainrunSectionMousedownPin() {
-    d3.event.stopPropagation();
-  }
-
-  onTrainrunSectionMousemovePin() {
-    d3.event.stopPropagation();
-  }
-
-  onTrainrunSectionMouseupPin(trainrunSection: TrainrunSection, atSource: boolean) {
+  onTrainrunSectionMouseupPin(
+    event: MouseEvent,
+    trainrunSection: TrainrunSection,
+    atSource: boolean,
+  ) {
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
-      this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
+      this.handleMultiNodeMovingTrainrunSectionMouseUp(event, trainrunSection);
       return;
     }
     d3.selectAll(StaticDomTags.CONNECTION_LINE_PIN_DOM_REF).classed(
@@ -2133,6 +2142,7 @@ export class TrainrunSectionsView {
       false,
     );
     this.createNewTrainrunSectionAfterPinDropped(
+      event,
       TrainrunSectionsView.getNode(trainrunSection, atSource),
       trainrunSection,
     );
@@ -2722,21 +2732,25 @@ export class TrainrunSectionsView {
         TrainrunSectionsView.isSectionSelected(t.trainrunSection),
       )
       .classed(StaticDomTags.EDGE_LINE_STOPS_FILL, () => !collapsedStops)
-      .on("mouseover", (t: TrainrunSectionViewObject, i, a) =>
-        this.onIntermediateStopMouseOver(t.trainrunSection, stopIndex, position, a[i]),
+      .on("mouseover", (event: MouseEvent, t: TrainrunSectionViewObject) =>
+        this.onIntermediateStopMouseOver(event, t.trainrunSection, stopIndex, position),
       )
-      .on("mouseout", (t: TrainrunSectionViewObject, i, a) =>
-        this.onIntermediateStopMouseOut(t.trainrunSection, stopIndex, position, a[i]),
+      .on("mouseout", (event: MouseEvent, t: TrainrunSectionViewObject) =>
+        this.onIntermediateStopMouseOut(event, t.trainrunSection, stopIndex, position),
       )
-      .on("mousedown", (t: TrainrunSectionViewObject, i, a) =>
-        this.onIntermediateStopMouseDown(t.trainrunSection, stopIndex, position, a[i]),
+      .on("mousedown", (event: MouseEvent, t: TrainrunSectionViewObject) =>
+        this.onIntermediateStopMouseDown(event, t.trainrunSection, stopIndex, position),
       )
-      .on("mouseup", (t: TrainrunSectionViewObject, i, a) =>
-        this.onIntermediateStopMouseUp(t.trainrunSection, a[i]),
+      .on("mouseup", (event: MouseEvent, t: TrainrunSectionViewObject) =>
+        this.onIntermediateStopMouseUp(event, t.trainrunSection),
       );
   }
 
-  private createNewTrainrunSectionAfterPinDropped(endNode: any, trainrunSection: TrainrunSection) {
+  private createNewTrainrunSectionAfterPinDropped(
+    event: MouseEvent,
+    endNode: any,
+    trainrunSection: TrainrunSection,
+  ) {
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
       return;
     }
@@ -2753,14 +2767,14 @@ export class TrainrunSectionsView {
       return;
     }
 
-    d3.event.stopPropagation();
+    event.stopPropagation();
     const trainrunSectionFrom =
       this.editorView.trainrunSectionPreviewLineView.getExistingTrainrunSection();
     if (trainrunSectionFrom !== null) {
       if (trainrunSectionFrom.getTrainrunId() !== trainrunSection.getTrainrunId()) {
         const canCombine = this.editorView.trainrunSectionPreviewLineView.canCombineTwoTrainruns();
         this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
-        if (d3.event.ctrlKey && canCombine) {
+        if (event.ctrlKey && canCombine) {
           const n: Node = endNode;
           this.editorView.combineTwoTrainruns(
             endNode,

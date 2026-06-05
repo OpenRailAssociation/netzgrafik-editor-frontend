@@ -595,8 +595,8 @@ export class EditorView implements SVGMouseControllerObserver {
     MultiSelectRenderer.setGroup(this.rootContainer);
   }
 
-  onEarlyReturnFromMousemove(): boolean {
-    return this.trainrunSectionPreviewLineView.updatePreviewLine();
+  onEarlyReturnFromMousemove(event: MouseEvent): boolean {
+    return this.trainrunSectionPreviewLineView.updatePreviewLine(event);
   }
 
   onStartMultiSelect() {
@@ -708,15 +708,19 @@ export class EditorView implements SVGMouseControllerObserver {
     }
   }
 
-  onGraphContainerMouseup(mousePosition: Vec2D, onPanning: boolean) {
+  onGraphContainerMouseup(event: MouseEvent, mousePosition: Vec2D, onPanning: boolean) {
     if (this.isMultiSelectOn) {
       return;
     }
     if (!this.trainrunSectionPreviewLineView.isDragging() && !onPanning) {
+      const domObj = event.target;
+      if (!(domObj instanceof SVGElement)) {
+        throw new Error("Mouse event's target is not an SVG element");
+      }
       if (
-        d3.event.button === 0 &&
+        event.button === 0 &&
         this.editorMode === EditorMode.TopologyEditing &&
-        d3.select(d3.event.target).attr("id") === EditorView.svgName
+        d3.select(domObj).attr("id") === EditorView.svgName
       ) {
         this.uiInteractionService.setEditorMode(EditorMode.NetzgrafikEditing);
         this.addNode(mousePosition.getX(), mousePosition.getY());
@@ -728,9 +732,9 @@ export class EditorView implements SVGMouseControllerObserver {
         this.uiInteractionService.closeNodeBaseData();
       }
       if (
-        d3.event.button === 0 &&
+        event.button === 0 &&
         this.editorMode === EditorMode.MultiNodeMoving &&
-        d3.select(d3.event.target).attr("id") === EditorView.svgName
+        d3.select(domObj).attr("id") === EditorView.svgName
       ) {
         this.unselectAllNodes();
         this.unselectAllNotes();
@@ -738,13 +742,13 @@ export class EditorView implements SVGMouseControllerObserver {
         this.uiInteractionService.setEditorMode(EditorMode.NetzgrafikEditing);
       }
       if (
-        d3.event.button === 0 &&
+        event.button === 0 &&
         this.editorMode === EditorMode.NoteEditing &&
-        d3.select(d3.event.target).attr("id") === EditorView.svgName
+        d3.select(domObj).attr("id") === EditorView.svgName
       ) {
         const clickPosition = new Vec2D(
-          d3.event.pageX + Note.DEFAULT_NOTE_WIDTH / 2,
-          d3.event.pageY + Note.DEFAULT_NOTE_HEIGHT / 2,
+          event.pageX + Note.DEFAULT_NOTE_WIDTH / 2,
+          event.pageY + Note.DEFAULT_NOTE_HEIGHT / 2,
         );
         this.addNote(mousePosition, clickPosition);
         this.uiInteractionService.setEditorMode(EditorMode.NetzgrafikEditing);
