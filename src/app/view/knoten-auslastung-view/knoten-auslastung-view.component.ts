@@ -85,8 +85,8 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.svgDrawingContext = d3
       .select<SVGElement, undefined>("#knotenAuslastungContainer")
-      .on("contextmenu", () => {
-        d3.event.preventDefault();
+      .on("contextmenu", (event: MouseEvent) => {
+        event.preventDefault();
       });
 
     this.init();

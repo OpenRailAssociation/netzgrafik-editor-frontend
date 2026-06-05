@@ -154,15 +154,15 @@ export class TransitionsView {
       .classed(StaticDomTags.TRANSITION_IS_NONSTOP, (t: TransitionViewObject) =>
         t.transition.getIsNonStopTransit(),
       )
-      .on("mousemove", (t: TransitionViewObject, i, a) => this.onTransitionMousemove(a[i]))
-      .on("mouseover", (t: TransitionViewObject, i, a) =>
-        this.onTransitionMouseover(t.transition.getTrainrun(), a[i], t.transition),
+      .on("mousemove", (event: MouseEvent) => event.preventDefault())
+      .on("mouseover", (event: MouseEvent, t: TransitionViewObject) =>
+        this.onTransitionMouseover(event, t.transition.getTrainrun(), t.transition),
       )
-      .on("mouseup", (t: TransitionViewObject, i, a) =>
-        this.onTransitionMouseup(t.transition.getTrainrun(), a[i], t.transition),
+      .on("mouseup", (event: MouseEvent, t: TransitionViewObject) =>
+        this.onTransitionMouseup(event, t.transition.getTrainrun(), t.transition),
       )
-      .on("mouseout", (t: TransitionViewObject, i, a) =>
-        this.onTransitionButtonOut(t.transition.getTrainrun(), a[i], t.transition),
+      .on("mouseout", (event: MouseEvent, t: TransitionViewObject) =>
+        this.onTransitionButtonOut(event, t.transition.getTrainrun(), t.transition),
       );
   }
 
@@ -275,8 +275,8 @@ export class TransitionsView {
     transitionsGroup.exit().remove();
   }
 
-  onTransitionMouseup(trainrun: Trainrun, domObj: SVGElement, transition: Transition) {
-    d3.event.stopPropagation();
+  onTransitionMouseup(event: MouseEvent, trainrun: Trainrun, transition: Transition) {
+    event.stopPropagation();
     const node: Node = this.editorView.getNodeFromTransition(transition);
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
       const port1 = node.getPort(transition.getPortId1());
@@ -285,7 +285,7 @@ export class TransitionsView {
         port1.getTrainrunSection().getTrainrun().selected() ||
         port2.getTrainrunSection().getTrainrun().selected()
       ) {
-        if (d3.event.ctrlKey) {
+        if (event.ctrlKey) {
           this.editorView.splitTrainrunIntoTwoParts(transition);
           return;
         }
@@ -293,7 +293,7 @@ export class TransitionsView {
       }
       return;
     }
-    this.editorView.nodesView.handleMouseUpEvent(node);
+    this.editorView.nodesView.handleMouseUpEvent(event, node);
 
     D3Utils.removeGrayoutTransition(transition);
     D3Utils.removeGrayoutTrainrunSectionPin();
@@ -301,18 +301,19 @@ export class TransitionsView {
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
   }
 
-  onTransitionButtonOut(trainrun: Trainrun, domObj: SVGElement, transition: Transition) {
+  onTransitionButtonOut(event: MouseEvent, trainrun: Trainrun, transition: Transition) {
+    const domObj = event.currentTarget as Element;
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
 
     const node: Node = this.editorView.getNodeFromTransition(transition);
-    this.editorView.nodesView.unhoverNodeDockable(node, null);
+    this.editorView.nodesView.unhoverNodeDockable(event, node);
 
     if (this.editorView.trainrunSectionPreviewLineView.getMode() !== PreviewLineMode.NotDragging) {
       return;
     }
-    d3.event.stopPropagation();
+    event.stopPropagation();
 
-    if (d3.event.buttons !== 1) {
+    if (event.buttons !== 1) {
       return;
     }
     if (!d3.select(domObj).classed(StaticDomTags.TAG_SELECTED)) {
@@ -330,14 +331,10 @@ export class TransitionsView {
       new DragTransitionInfo(node, trainrunSection1, trainrunSection2, transition, true, domObj),
       position,
     );
-    this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
+    this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(event);
   }
 
-  onTransitionMousemove(domObj: SVGElement) {
-    d3.event.stopPropagation();
-  }
-
-  onTransitionMouseover(trainrun: Trainrun, domObj: SVGElement, transition: Transition) {
+  onTransitionMouseover(event: MouseEvent, trainrun: Trainrun, transition: Transition) {
     const node: Node = this.editorView.getNodeFromTransition(transition);
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
       const port1 = node.getPort(transition.getPortId1());
@@ -346,9 +343,9 @@ export class TransitionsView {
         port1.getTrainrunSection().getTrainrun().selected() ||
         port2.getTrainrunSection().getTrainrun().selected()
       ) {
-        d3.select(domObj).classed(StaticDomTags.TAG_HOVER, true);
+        d3.select(event.currentTarget as Element).classed(StaticDomTags.TAG_HOVER, true);
       }
     }
-    this.editorView.nodesView.hoverNodeDockable(node, null);
+    this.editorView.nodesView.hoverNodeDockable(event, node);
   }
 }
