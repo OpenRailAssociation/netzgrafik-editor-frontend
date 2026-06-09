@@ -189,6 +189,10 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     this.uiInteractionService.setActiveOrderingAlgorithm(event.value);
   }
 
+  onAutomaticNodeLayout() {
+    console.log("onAutomaticNodeLayout: call automatic node layouting --- IMPLENT LOGIC HERE ---");
+  }
+
   onAlignElementsLeft() {
     this.positionTransformationService.alignSelectedElementsToLeftBorder();
   }

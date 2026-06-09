@@ -332,6 +332,7 @@
         "add-netzgrafik-as-copy": "Ajouter un réticulaire en tant que copie",
         "merge-netzgrafik-tooltip": "Fusionner les réticulaires (trajets de train, noeuds, notes)",
         "merge-netzgrafik": "Fusionner un réticulaire",
+        "node-auto-layouting-titel": "Automatique de la disposition des noeuds",
         "align-elements-netzgrafik-title": "Aligner plusieurs objets (noeuds)",
         "align-elements-left": "Aligner à gauche",
         "align-elements-right": "Aligner à droite",
