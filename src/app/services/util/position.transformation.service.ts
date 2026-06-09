@@ -286,4 +286,36 @@ export class PositionTransformationService {
 
     this.updateRendering();
   }
+
+  callRobustAutomaticNodeLayouting() {
+    // TODO: implement the call of the robust automatic node layouting algorithm here and update the rendering afterwards
+    console.log(
+      "callRobustAutomaticNodeLayouting: call robust automatic node layouting --- Implement your callback logic here ---",
+    );
+    this.nodeService.getNodes().forEach((n) => {
+      // Example: Randomly move nodes (replace with actual layouting logic)
+      const newX = n.getPositionX() + (Math.random() - 0.5) * 100;
+      const newY = n.getPositionY() + (Math.random() - 0.5) * 100;
+      n.setPosition(newX, newY);
+      console.log(`Node ${n.getId()} moved to (${newX}, ${newY})`); // Debug log for new positions
+
+      n.getPorts().forEach((p) => {
+        console.log(
+          `Port ${p.getId()} of Node ${n.getId()} at position (${n.getPositionX()}, ${n.getPositionY()})`,
+        ); // Debug log for port positions
+        console.log(
+          p.getOppositeNode(n.getId())?.getId()
+            ? `Connected to Node ${p.getOppositeNode(n.getId())?.getId()}`
+            : "No opposite node",
+        ); // Debug log for opposite node
+      });
+    });
+
+    // Update if necessary after layouting
+    this.nodeService.nodesUpdated();
+    this.nodeService.transitionsUpdated();
+    this.nodeService.connectionsUpdated();
+    this.trainrunSectionService.trainrunSectionsUpdated();
+    this.updateRendering();
+  }
 }

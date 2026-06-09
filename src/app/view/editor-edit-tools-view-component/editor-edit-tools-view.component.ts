@@ -190,7 +190,10 @@ export class EditorEditToolsViewComponent implements OnDestroy {
   }
 
   onAutomaticNodeLayout() {
-    console.log("onAutomaticNodeLayout: call automatic node layouting --- IMPLENT LOGIC HERE ---");
+    console.log(
+      "onAutomaticNodeLayout: call automatic node layouting --- Implement your callback logic here ---",
+    );
+    this.positionTransformationService.callRobustAutomaticNodeLayouting();
   }
 
   onAlignElementsLeft() {
