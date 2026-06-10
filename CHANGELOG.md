@@ -1,5 +1,29 @@
 # Changelog
 
+## [2.12.0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.11.1...netzgrafik-editor-frontend-v2.12.0) (2026-06-10)
+
+
+### Features
+
+* add strict Content-Security-Policy for standalone mode ([ea5611f](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/ea5611fb9d0e51f4235bb8e08db140a65e9ab936))
+
+
+### Bug Fixes
+
+* **editor-main-view:** clear all objects when loading new DTO ([0e1265c](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/0e1265c15b03fe953319df39a533dd425463302f))
+* Ensure that only correct/valid (feasible) connections gets added ([#1025](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1025)) ([3914bf6](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/3914bf661f7890146bac41358353583100fffeea))
+* **model:** initialize potential missing TrainrunSection.path ([03279fe](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/03279fee25eef01a28bb3f597691fa096f34c4c0))
+* Origin-destination-view reset (init) fixed when filter, color , value changed ([#1113](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1113)) ([0646eb7](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/0646eb7d5aa62191834cdf9cc76183d5535d4c50))
+* **service:** correctly instantiate TrainrunSection when coming from 3rd party ([a177ad4](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/a177ad4137d534adb614b8a487a844e88890c48e))
+* **service:** missing initPortOrdering after node deletion ([1696825](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/16968258c3d8c0731911bfbdf72f9c70e169f592))
+* **service:** missing initPortOrdering after trainrun deletion ([3c1b288](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/3c1b2880d5c3362bc6e3f36beacc4dc0eeb67a55))
+* **service:** missing initPortOrdering after trainrun duplication ([3a71747](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/3a717475042cc8b8c53bb011d58cc3bcec1e0ab1))
+* **service:** missing initPortOrdering after trainrunSection creation ([ca42cff](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/ca42cffc903867a5d688b4517c837776c2fba1ae))
+* **service:** missing initPortOrdering after trainrunSection deletion ([00edded](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/00edded6e4ff5860e1b246602e32818043fb1e23))
+* special case added (handled) ([#1033](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1033)) ([a7ef5bf](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/a7ef5bf6c1f622d3299126160d2ef683c3c5b95d))
+* trainrun and trainrunSection (eg. times) update trigger redraw ([#1114](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1114)) ([0106848](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/0106848f5c9152663b0fba0890b94a894ace2ef1))
+* **view:** don't use attr() to set js executing attributes ([0b61263](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/0b61263dcb8e254613320bf1698a5e586c91a08f))
+
 ## [2.11.1](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.11.0...netzgrafik-editor-frontend-v2.11.1) (2026-05-18)
 
 
