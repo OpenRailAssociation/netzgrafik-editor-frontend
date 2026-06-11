@@ -37,6 +37,8 @@ export class NodeViewObject {
       "_" +
       isNodeStopNode +
       "_" +
+      editorView.displayNodesFullName() +
+      "_" +
       editorView.isJunctionNode(n) +
       "_" +
       editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() +

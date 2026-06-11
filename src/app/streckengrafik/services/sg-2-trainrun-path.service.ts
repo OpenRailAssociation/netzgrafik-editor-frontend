@@ -99,6 +99,7 @@ export class Sg2TrainrunPathService implements OnDestroy {
           index,
           pathNode.nodeId,
           pathNode.nodeShortName,
+          pathNode.nodeFullName,
           pathNode.arrivalTime,
           pathNode.departureTime,
           undefined,
