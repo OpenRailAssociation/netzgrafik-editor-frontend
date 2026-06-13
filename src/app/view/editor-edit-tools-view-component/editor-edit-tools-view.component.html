@@ -156,6 +156,25 @@
     </sbb-radio-group>
   </sbb-expansion-panel>
 
+  <sbb-expansion-panel>
+    <sbb-expansion-panel-header>
+      <label>
+        {{ "app.view.editor-edit-tools-view-component.node-auto-layouting-title" | translate }}
+      </label>
+    </sbb-expansion-panel-header>
+    <br />
+    <button
+      (click)="onAutomaticNodeLayout()"
+      [title]="
+        'app.view.editor-edit-tools-view-component.call-robust-auto-layout-algorithm' | translate
+      "
+      class="TrainrunDialog EditorToolButton"
+    >
+      <sbb-icon svgIcon="checkpoints-small"></sbb-icon>
+    </button>
+    {{ "app.view.editor-edit-tools-view-component.call-robust-auto-layout-algorithm" | translate }}
+  </sbb-expansion-panel>
+
   <sbb-expansion-panel *ngIf="getAreMultiObjectSelected()" [expanded]="getAreMultiObjectSelected()">
     <sbb-expansion-panel-header>
       <label style="color: #ec0000">
