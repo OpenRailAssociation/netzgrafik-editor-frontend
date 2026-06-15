@@ -291,14 +291,14 @@ export class PositionTransformationService {
     console.log("Running Spring Layout…");
 
     const nodes = this.nodeService.getNodes();
-    const edges: Array<{ source: any; target: any }> = [];
+    const edges: Array<{source: any; target: any}> = [];
 
     // Build edge list from ports
     nodes.forEach((n) => {
       n.getPorts().forEach((p) => {
         const opp = p.getOppositeNode(n.getId());
         if (opp) {
-          edges.push({ source: n, target: opp });
+          edges.push({source: n, target: opp});
         }
       });
     });
@@ -311,13 +311,13 @@ export class PositionTransformationService {
     const DAMPING = 0.85;
 
     // Initialize velocities (FIX: number keys instead of string)
-    const velocity = new Map<number, { x: number; y: number }>();
-    nodes.forEach((n) => velocity.set(n.getId(), { x: 0, y: 0 }));
+    const velocity = new Map<number, {x: number; y: number}>();
+    nodes.forEach((n) => velocity.set(n.getId(), {x: 0, y: 0}));
 
     for (let iter = 0; iter < ITERATIONS; iter++) {
       // Forces per node
-      const forces = new Map<number, { x: number; y: number }>();
-      nodes.forEach((n) => forces.set(n.getId(), { x: 0, y: 0 }));
+      const forces = new Map<number, {x: number; y: number}>();
+      nodes.forEach((n) => forces.set(n.getId(), {x: 0, y: 0}));
 
       // --- REPULSION (Coulomb) ---
       for (let i = 0; i < nodes.length; i++) {
@@ -379,9 +379,8 @@ export class PositionTransformationService {
     // Trigger rendering updates
     this.nodeService.nodesUpdated();
     this.nodeService.transitionsUpdated();
-      this.nodeService.connectionsUpdated();
+    this.nodeService.connectionsUpdated();
     this.trainrunSectionService.trainrunSectionsUpdated();
     this.updateRendering();
   }
-
 }
