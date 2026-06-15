@@ -3,6 +3,7 @@ import {Trainrun} from "./trainrun.model";
 import {Label} from "./label.model";
 import {Note} from "./note.model";
 import {
+  FilterSettingDto,
   FreeFloatingTextDto,
   LabelDto,
   NodeDto,
@@ -22,6 +23,7 @@ enum OperationObjectType {
   label = "label",
   note = "note",
   metadata = "metadata",
+  filterSetting = "filterSetting",
 }
 
 type MetadataDto = {
@@ -83,6 +85,15 @@ class MetadataOperation extends Operation {
   }
 }
 
+class FilterSettingOperation extends Operation {
+  readonly filterSetting: FilterSettingDto;
+
+  constructor(filterSetting: FilterSettingDto) {
+    super(OperationType.update, OperationObjectType.filterSetting);
+    this.filterSetting = filterSetting;
+  }
+}
+
 export {
   OperationType,
   Operation,
@@ -91,4 +102,5 @@ export {
   LabelOperation,
   NoteOperation,
   MetadataOperation,
+  FilterSettingOperation,
 };

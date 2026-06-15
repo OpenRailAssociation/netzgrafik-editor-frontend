@@ -1,4 +1,4 @@
-import {Injectable, OnDestroy} from "@angular/core";
+import {EventEmitter, Injectable, OnDestroy} from "@angular/core";
 import {
   FilterDataDto,
   LabelRef,
@@ -19,6 +19,7 @@ import {Port} from "../../models/port.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {Note} from "../../models/note.model";
 import {FilterSetting} from "../../models/filterSettings.model";
+import {FilterSettingOperation, Operation} from "src/app/models/operation.model";
 
 @Injectable({
   providedIn: "root",
@@ -34,6 +35,8 @@ export class FilterService implements OnDestroy {
   private activeFilterSetting: FilterSetting = null;
   private destroyed = new Subject<void>();
   private dataService: DataService;
+
+  readonly operation = new EventEmitter<Operation>();
 
   constructor(
     private labelService: LabelService,
@@ -529,6 +532,7 @@ export class FilterService implements OnDestroy {
       this.activeFilterSetting.isTemporaryDisableFilteringOfItemsInView = false;
     }
     this.filterSubject.next();
+    this.operation.emit(new FilterSettingOperation(this.activeFilterSetting));
   }
 
   isFilterDirectionArrowsEnabled(): boolean {

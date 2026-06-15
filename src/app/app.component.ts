@@ -16,6 +16,7 @@ import {PositionTransformationService} from "./services/util/position.transforma
 import {NetzgrafikDefault} from "./sample-netzgrafik/netzgrafik.default";
 import {UiInteractionService} from "./services/ui/ui.interaction.service";
 import {NoteService} from "./services/data/note.service";
+import {FilterService} from "./services/ui/filter.service";
 
 @Component({
   selector: "sbb-root",
@@ -58,6 +59,7 @@ export class AppComponent implements OnInit {
     private labelService: LabelService,
     private i18nService: I18nService,
     private noteService: NoteService,
+    private filterService: FilterService,
   ) {
     if (!this.disableBackend) {
       this.authenticated = authService.initialized;
@@ -108,5 +110,6 @@ export class AppComponent implements OnInit {
     this.labelService.operation,
     this.noteService.operation,
     this.uiInteractionService.operation,
+    this.filterService.operation,
   );
 }
