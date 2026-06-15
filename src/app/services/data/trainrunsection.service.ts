@@ -1045,7 +1045,9 @@ export class TrainrunSectionService implements OnDestroy {
     const travelTime = Math.max(trainrunSection1.getTravelTime() - halteZeit, 2);
     const halfTravelTime = Math.floor(travelTime / 2);
     trainrunSection1.setTravelTime(Math.max(1, travelTime - halfTravelTime));
+    trainrunSection1.setBackwardTravelTime(Math.max(1, travelTime - halfTravelTime));
     trainrunSection2.setTravelTime(Math.max(1, halfTravelTime));
+    trainrunSection2.setBackwardTravelTime(Math.max(1, halfTravelTime));
 
     trainrunSection1.setTargetArrival(
       TrainrunSectionService.boundMinutesToOneHour(
