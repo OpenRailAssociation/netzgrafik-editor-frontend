@@ -326,6 +326,7 @@ export class UiInteractionService implements OnDestroy {
     this.nodeService.transitionsUpdated();
     this.nodeService.connectionsUpdated();
     this.trainrunSectionService.trainrunSectionsUpdated();
+    this.operation.emit(new MetadataOperation({orderingAlgorithm}));
   }
 
   updateNodeBaseData() {
