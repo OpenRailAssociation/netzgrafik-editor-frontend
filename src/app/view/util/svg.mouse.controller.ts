@@ -332,7 +332,7 @@ export class SVGMouseController {
   }
 
   private onMouseDownZoom() {
-    const d = d3.select(d3.event.srcElement);
+    const d = d3.select(d3.event.target);
     if (d.attr("id") !== "graphContainer") {
       return;
     }
@@ -362,7 +362,7 @@ export class SVGMouseController {
   }
 
   private onDblclick() {
-    const d = d3.select(d3.event.srcElement);
+    const d = d3.select(d3.event.target);
     if (d.attr("id") !== "graphContainer") {
       return;
     }
