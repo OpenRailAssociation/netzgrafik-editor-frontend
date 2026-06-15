@@ -456,25 +456,9 @@ export class NodeService implements OnDestroy {
     node.setArrivalTime(trainrunSection1, trainrunSection2.getTargetArrival());
     node.setDepartureTime(trainrunSection1, trainrunSection2.getTargetDeparture());
 
-    // forward transition time
-    const depTime = node.getDepartureConsecutiveTime(trainrunSection2);
-    const arrTime = node.getArrivalConsecutiveTime(trainrunSection1);
-    const transitionTravelTime = depTime - arrTime;
-    // backward transition time
-    const depTimeBackward = node.getDepartureConsecutiveTime(trainrunSection1);
-    const arrTimeBackward = node.getArrivalConsecutiveTime(trainrunSection2);
-    const transitionTravelTimeBackward = depTimeBackward - arrTimeBackward;
-
-    // update the travel time
-    const travelTime =
-      trainrunSection1.getTravelTime() + trainrunSection2.getTravelTime() + transitionTravelTime;
-    trainrunSection1.setTravelTime(travelTime);
-    // update the backward travel time (asymmetric travel time)
-    const travelTimeBackward =
-      trainrunSection1.getBackwardTravelTime() +
-      trainrunSection2.getBackwardTravelTime() +
-      transitionTravelTimeBackward;
-    trainrunSection1.setBackwardTravelTime(travelTimeBackward);
+    // update the travel time of the trainrun section 1 with the transition travel time
+    // (undock) and the travel time of the trainrun section 2 (fusion)
+    this.updateTravelTimeAfterUndockTransition(node, trainrunSection1, trainrunSection2);
 
     // update the number of stops
     trainrunSection1.setNumberOfStops(
@@ -525,6 +509,32 @@ export class NodeService implements OnDestroy {
     }
 
     return trainrunSection1;
+  }
+
+  private updateTravelTimeAfterUndockTransition(
+    transitionAncherNode: Node,
+     updateTrainrunSection: TrainrunSection, 
+     secondTrainrunSectionToFuse: TrainrunSection)
+  {
+    // forward transition time
+    const depTime = transitionAncherNode.getDepartureConsecutiveTime(secondTrainrunSectionToFuse);
+    const arrTime = transitionAncherNode.getArrivalConsecutiveTime(updateTrainrunSection);
+    const transitionTravelTime = depTime - arrTime;
+    // backward transition time
+    const depTimeBackward = transitionAncherNode.getDepartureConsecutiveTime(updateTrainrunSection);
+    const arrTimeBackward = transitionAncherNode.getArrivalConsecutiveTime(secondTrainrunSectionToFuse);
+    const transitionTravelTimeBackward = depTimeBackward - arrTimeBackward;
+
+    // update the travel time
+    const travelTime =
+      updateTrainrunSection.getTravelTime() + secondTrainrunSectionToFuse.getTravelTime() + transitionTravelTime;
+    updateTrainrunSection.setTravelTime(travelTime);
+    // update the backward travel time (asymmetric travel time)
+    const travelTimeBackward =
+      updateTrainrunSection.getBackwardTravelTime() +
+      secondTrainrunSectionToFuse.getBackwardTravelTime() +
+      transitionTravelTimeBackward;
+    updateTrainrunSection.setBackwardTravelTime(travelTimeBackward);
   }
 
   addPortsToNodes(sourceNodeId: number, targetNodeId: number, trainrunSection: TrainrunSection) {
