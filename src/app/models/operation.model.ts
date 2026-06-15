@@ -10,6 +10,7 @@ import {
   TrafficSide,
   TrainrunDto,
 } from "../data-structures/business.data.structures";
+import {OrderingAlgorithm} from "../data-structures/technical.data.structures";
 
 enum OperationType {
   create = "create",
@@ -27,6 +28,7 @@ enum OperationObjectType {
 }
 
 type MetadataDto = {
+  orderingAlgorithm?: OrderingAlgorithm;
   trafficSide?: TrafficSide;
 };
 
