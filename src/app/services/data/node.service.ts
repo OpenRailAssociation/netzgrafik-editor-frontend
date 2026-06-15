@@ -424,10 +424,7 @@ export class NodeService implements OnDestroy {
     const oppNodeTrainrunSection1 = node.getOppositeNode(trainrunSection1);
     const oppNodeTrainrunSection2 = node.getOppositeNode(trainrunSection2);
 
-    const depTime = node.getDepartureConsecutiveTime(trainrunSection2);
-    const arrTime = node.getArrivalConsecutiveTime(trainrunSection1);
-    const transitionTravelTime = depTime - arrTime;
-
+   
     const transition1: Transition = oppNodeTrainrunSection1.getTransition(trainrunSection1.getId());
     const nonStop1 = transition1 !== undefined ? transition1.getIsNonStopTransit() : false;
     const transition2: Transition = oppNodeTrainrunSection2.getTransition(trainrunSection2.getId());
@@ -459,10 +456,25 @@ export class NodeService implements OnDestroy {
     node.setArrivalTime(trainrunSection1, trainrunSection2.getTargetArrival());
     node.setDepartureTime(trainrunSection1, trainrunSection2.getTargetDeparture());
 
+    // forward transition time
+    const depTime = node.getDepartureConsecutiveTime(trainrunSection2);
+    const arrTime = node.getArrivalConsecutiveTime(trainrunSection1);
+    const transitionTravelTime = depTime - arrTime;
+    // backward transition time
+    const depTimeBackward = node.getDepartureConsecutiveTime(trainrunSection1);
+    const arrTimeBackward = node.getArrivalConsecutiveTime(trainrunSection2);
+    const transitionTravelTimeBackward = depTimeBackward - arrTimeBackward;
+
     // update the travel time
     const travelTime =
       trainrunSection1.getTravelTime() + trainrunSection2.getTravelTime() + transitionTravelTime;
     trainrunSection1.setTravelTime(travelTime);
+    // update the backward travel time (asymmetric travel time)
+    const travelTimeBackward =
+      trainrunSection1.getBackwardTravelTime() +
+      trainrunSection2.getBackwardTravelTime() +
+      transitionTravelTimeBackward;
+    trainrunSection1.setBackwardTravelTime(travelTimeBackward);
 
     // update the number of stops
     trainrunSection1.setNumberOfStops(
