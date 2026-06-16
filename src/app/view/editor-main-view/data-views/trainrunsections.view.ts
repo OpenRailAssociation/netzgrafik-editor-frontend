@@ -174,43 +174,29 @@ export class TrainrunSectionsView {
     if (!TrainrunSectionsView.hasWarning(trainrunSection, textElement)) {
       return "";
     }
+
+    const formatWarning = (warning: {title?: string; description?: string} | null | undefined) => {
+      if (!warning) {
+        return "";
+      }
+      const title = warning.title || "Warning";
+      const description = warning.description || "";
+      return description ? `${title}: ${description}` : title;
+    };
+
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
-        return (
-          trainrunSection.getSourceDepartureWarning().title +
-          ": " +
-          trainrunSection.getSourceDepartureWarning().description
-        );
+        return formatWarning(trainrunSection.getSourceDepartureWarning());
       case TrainrunSectionText.SourceArrival:
-        return (
-          trainrunSection.getSourceArrivalWarning().title +
-          ": " +
-          trainrunSection.getSourceArrivalWarning().description
-        );
+        return formatWarning(trainrunSection.getSourceArrivalWarning());
       case TrainrunSectionText.TargetDeparture:
-        return (
-          trainrunSection.getTargetDepartureWarning().title +
-          ": " +
-          trainrunSection.getTargetDepartureWarning().description
-        );
+        return formatWarning(trainrunSection.getTargetDepartureWarning());
       case TrainrunSectionText.TargetArrival:
-        return (
-          trainrunSection.getTargetArrivalWarning().title +
-          ": " +
-          trainrunSection.getTargetArrivalWarning().description
-        );
+        return formatWarning(trainrunSection.getTargetArrivalWarning());
       case TrainrunSectionText.TrainrunSectionTravelTime:
-        return (
-          trainrunSection.getTravelTimeWarning().title +
-          ": " +
-          trainrunSection.getTravelTimeWarning().description
-        );
+        return formatWarning(trainrunSection.getTravelTimeWarning());
       case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
-        return (
-          trainrunSection.getBackwardTravelTimeWarning().title +
-          ": " +
-          trainrunSection.getBackwardTravelTimeWarning().description
-        );
+        return formatWarning(trainrunSection.getBackwardTravelTimeWarning());
       case TrainrunSectionText.TrainrunSectionName:
       default:
         return "";

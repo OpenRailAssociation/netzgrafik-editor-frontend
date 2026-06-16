@@ -6,6 +6,8 @@
       http-equiv="Content-Security-Policy"
       content="
         default-src 'self';
+        worker-src 'self' blob:;
+        child-src 'self' blob:;
         frame-src 'none';
         object-src 'none';
         connect-src 'self' https://icons.app.sbb.ch;
