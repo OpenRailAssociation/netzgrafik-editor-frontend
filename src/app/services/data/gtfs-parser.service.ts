@@ -425,7 +425,6 @@ export class GTFSParserService {
       }
       // Debug-Ausgabe
       if (pathDebugArr.length > 0) {
-        // eslint-disable-next-line no-console
         console.info(
           `[GTFS-Statistik] Route ${directionLabel} (route_id: ${route_id ?? "unknown"}):`,
           pathDebugArr,
@@ -1511,12 +1510,13 @@ export class GTFSParserService {
       const tripsReadMs = performance.now() - tripsReadStartMs;
 
       if (tripsText) {
-        if (LOG_GTFS_PERF_KPI)
+        if (LOG_GTFS_PERF_KPI) {
           console.info(
             `[GTFS][trips][Timing] readZipEntryText: ${Math.round(tripsReadMs)}ms, ` +
               `textMB=${Math.round((tripsText.length / 1024 / 1024) * 10) / 10}, ` +
               `${this.getMemoryInfo()}`,
           );
+        }
 
         const tripsParseStartMs = performance.now();
         gtfsData.trips = this.parseCSV<GTFSTrip>(tripsText);
@@ -1599,12 +1599,13 @@ export class GTFSParserService {
       }
 
       const tripsTotalMs = performance.now() - tripsTotalStartMs;
-      if (LOG_GTFS_PERF_KPI)
+      if (LOG_GTFS_PERF_KPI) {
         console.info(
           `[GTFS][trips][Timing] trips.txt total: ${Math.round(tripsTotalMs)}ms ` +
             `= ${Math.round((tripsTotalMs / 1000) * 10) / 10}s, ` +
             `finalTrips=${gtfsData.trips.length}, ${this.getMemoryInfo()}`,
         );
+      }
 
       progressCallback?.("trips.txt");
 
@@ -1971,27 +1972,30 @@ export class GTFSParserService {
         const patternStartMs = performance.now();
         this.selectMostFrequentTripPatterns(gtfsData);
         const patternMs = performance.now() - patternStartMs;
-        if (LOG_GTFS_PERF_KPI)
+        if (LOG_GTFS_PERF_KPI) {
           console.info(
             `[GTFS][Timing] selectMostFrequentTripPatterns: ${Math.round(patternMs)}ms ` +
               `= ${Math.round((patternMs / 1000) * 10) / 10}s`,
           );
+        }
 
         const classifyStartMs = performance.now();
         this.classifyNodes(gtfsData.stops, gtfsData.stopTimes, gtfsData.trips);
         const classifyMs = performance.now() - classifyStartMs;
-        if (LOG_GTFS_PERF_KPI)
+        if (LOG_GTFS_PERF_KPI) {
           console.info(
             `[GTFS][Timing] classifyNodes: ${Math.round(classifyMs)}ms ` +
               `= ${Math.round((classifyMs / 1000) * 10) / 10}s`,
           );
+        }
 
         const postProcessingMs = performance.now() - postProcessingStartMs;
-        if (LOG_GTFS_PERF_KPI)
+        if (LOG_GTFS_PERF_KPI) {
           console.info(
             `[GTFS][Timing] Post-processing total: ${Math.round(postProcessingMs)}ms ` +
               `= ${Math.round((postProcessingMs / 1000) * 10) / 10}s`,
           );
+        }
       }
 
       const totalImportMs = performance.now() - totalImportStartMs;
@@ -2179,13 +2183,14 @@ export class GTFSParserService {
       const repDep = tripFirstDeparture.get(repTrip.trip_id);
       const repDepStr = repDep !== undefined ? GTFSParserService.minutesToTime(repDep) : "?";
       const bestPath = tripParentPath.get(bestTrips[0].trip_id) ?? [];
-      if (LOG_GTFS_PATTERN_DEBUG)
+      if (LOG_GTFS_PATTERN_DEBUG) {
         console.info(
           `[GTFS][Pattern] ${route_id} dir=${routeDirKey.substring(sep + 2)}:` +
             ` path_len=${bestPathLength}, groups=${groups.size}, best_trips=${bestTripCount},` +
             ` freq=${frequency}min, rep=${repTrip.trip_id} @${repDepStr}` +
             ` [${bestPath[0]} → ${bestPath[bestPath.length - 1]}]`,
         );
+      }
     }
 
     // ── Step 9: Trips und StopTimes auf Repräsentanten reduzieren ────────────
