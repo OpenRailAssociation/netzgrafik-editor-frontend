@@ -513,7 +513,11 @@ export class NodesView {
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("x", NODE_TEXT_LEFT_SPACING)
       .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - TEXT_SIZE / 2)
-      .attr("width", "74")
+      .attr(
+        "width",
+        (n: NodeViewObject) =>
+          n.node.getNodeWidth() - (Math.floor(n.node.getConnectionTime() / 10) + 1) * TEXT_SIZE,
+      )
       .text((n: NodeViewObject) =>
         this.editorView.displayNodesFullName()
           ? n.node.getFullName()
