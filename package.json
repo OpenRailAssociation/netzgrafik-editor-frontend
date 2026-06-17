@@ -6,7 +6,7 @@
     "start:standalone": "ng serve --configuration=standalone",
     "start:standalonedemo": "ng serve --configuration=standalonedemo",
     "build": "ng run netzgrafik-frontend:ngsscbuild",
-    "build:standalone": "ng build --configuration=standalone",
+    "build:standalone": "ng build --configuration=standalone && tsc --project tsconfig.defs.json",
     "build:standalonedemo": "ng build --configuration=standalonedemo",
     "test": "ng test -c ci",
     "format": "prettier --write .",
@@ -27,6 +27,7 @@
   "files": [
     "dist/*"
   ],
+  "types": "dist/types/types.d.ts",
   "dependencies": {
     "@angular/animations": "^19.2.25",
     "@angular/cdk": "^19.2.19",
