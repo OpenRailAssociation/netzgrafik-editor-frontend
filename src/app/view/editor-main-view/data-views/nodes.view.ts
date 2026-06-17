@@ -516,7 +516,7 @@ export class NodesView {
       .attr(
         "width",
         (n: NodeViewObject) =>
-          n.node.getNodeWidth() - (Math.floor(n.node.getConnectionTime() / 10) + 1) * TEXT_SIZE,
+          n.node.getNodeWidth() - Math.floor(Math.log(n.node.getConnectionTime() ?? 1)) * TEXT_SIZE,
       )
       .text((n: NodeViewObject) =>
         this.editorView.displayNodesFullName()
