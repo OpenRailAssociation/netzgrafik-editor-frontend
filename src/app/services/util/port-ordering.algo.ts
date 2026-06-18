@@ -2,7 +2,8 @@ import {Node} from "../../models/node.model";
 import {Port} from "../../models/port.model";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {Transition} from "../../models/transition.model";
-import {countAllCrossings} from "./port-ordering.crossings";
+import {countAllCrossings, countCrossingsInNode} from "./port-ordering.crossings";
+import {countAllSeparations} from "./port-ordering.separations";
 import {getConnectedComponents, getPortOppositeNodeId} from "./port-ordering.components";
 import {
   ALIGNMENTS_CLOCKWISE_ORDER,
@@ -15,9 +16,11 @@ import {
  * This function orders all ports in all nodes to minimize crossings. It first calls
  * getConnectedComponents, and then optimizeComponentPorts on each connected component.
  */
-export function optimizePorts(nodes: Node[]): void {
+export function optimizePorts(nodes: Node[], clutterWeights?: Partial<ClutterWeights>): void {
   const components = getConnectedComponents(nodes);
-  components.forEach((componentNodes) => optimizeComponentPorts(componentNodes));
+  components.forEach((componentNodes) =>
+    optimizeComponentPorts(componentNodes, {}, clutterWeights),
+  );
 }
 
 type OptimizeComponentPortsOptions = {
@@ -27,6 +30,24 @@ type OptimizeComponentPortsOptions = {
 const DEFAULT_OPTIMIZE_COMPONENT_PORTS_OPTIONS: OptimizeComponentPortsOptions = {
   maxRuns: 50,
   maxNewCandidates: 10,
+};
+
+/**
+ * Weights applied to the four clutter components the optimizer minimizes. The clutter is their
+ * weighted sum, so callers tune the trade-off between minimizing crossings and keeping parallel
+ * bundles together.
+ */
+export type ClutterWeights = {
+  crossingsWithin: number;
+  crossingsBetween: number;
+  separationsWithin: number;
+  separationsBetween: number;
+};
+const DEFAULT_CLUTTER_WEIGHTS: ClutterWeights = {
+  crossingsWithin: 1,
+  crossingsBetween: 1,
+  separationsWithin: 0,
+  separationsBetween: 0,
 };
 
 /**
@@ -70,8 +91,10 @@ const DEFAULT_OPTIMIZE_COMPONENT_PORTS_OPTIONS: OptimizeComponentPortsOptions = 
 function optimizeComponentPorts(
   nodes: Node[],
   parameters: Partial<OptimizeComponentPortsOptions> = {},
+  clutterWeights: Partial<ClutterWeights> = {},
 ): void {
   const {maxRuns, maxNewCandidates} = {...DEFAULT_OPTIMIZE_COMPONENT_PORTS_OPTIONS, ...parameters};
+  const weights = {...DEFAULT_CLUTTER_WEIGHTS, ...clutterWeights};
 
   // Preserves insertion order while removing duplicates
   const toUnique = (arr: number[]): number[] => {
@@ -107,7 +130,7 @@ function optimizeComponentPorts(
   );
 
   let runs = 0;
-  let bestCrossings = Infinity;
+  let bestClutter = Infinity;
   let bestCandidate: number[] = [];
   const candidates = [initialTrainrunsOrder];
 
@@ -116,10 +139,17 @@ function optimizeComponentPorts(
 
     reorderComponentPorts(nodes, trainrunsToScore(candidate));
     const {crossings, groupCrossings} = countAllCrossings(nodes);
+    const crossingsWithin = nodes.reduce((sum, node) => sum + countCrossingsInNode(node), 0);
+    const {within: separationsWithin, between: separationsBetween} = countAllSeparations(nodes);
+    const clutter =
+      crossingsWithin * weights.crossingsWithin +
+      (crossings - crossingsWithin) * weights.crossingsBetween +
+      separationsWithin * weights.separationsWithin +
+      separationsBetween * weights.separationsBetween;
 
-    if (crossings < bestCrossings) {
+    if (clutter < bestClutter) {
       bestCandidate = candidate;
-      bestCrossings = crossings;
+      bestClutter = clutter;
 
       // Generate new candidates from worst crossings (reversed so worst is tried last/first-popped)
       const newCandidates = groupCrossings.slice(0, maxNewCandidates).toReversed();
