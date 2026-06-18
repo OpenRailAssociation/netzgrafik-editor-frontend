@@ -294,9 +294,34 @@ export class PositionTransformationService {
     const edges: Array<{source: any; target: any}> = [];
 
     // Build edge list from ports
+    // 
+    //                          . --------. 
+    //                          |         |
+    //  --- trainrunSection ----o         |
+    //  --- trainrunSection ----o  NODE A |
+    //  --- trainrunSection ----o--- t ---o----- trainrunSection ---- 
+    //                          |         |
+    //                          '---------' 
+    //  o : port with reference to trainrunSection
+    //  t : transition with reference to trainrunSection
+
     nodes.forEach((n) => {
       n.getPorts().forEach((p) => {
         const opp = p.getOppositeNode(n.getId());
+        
+        const transition = n.getTransitionFromPortId(p.getId());
+        const trainrun = transition?.getTrainrun();
+        const trainrunSection = p.getTrainrunSection();
+        
+        console.log(
+          "node:", n, 
+          "OppNode:", opp, 
+          "Port:", p, 
+          "Transition:", transition, 
+          "TrainrunSection:", trainrunSection, 
+          "Trainrun:", trainrun
+        );
+
         if (opp) {
           edges.push({source: n, target: opp});
         }
