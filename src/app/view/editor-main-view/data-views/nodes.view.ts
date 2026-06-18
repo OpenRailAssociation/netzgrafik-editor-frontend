@@ -513,11 +513,7 @@ export class NodesView {
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("x", NODE_TEXT_LEFT_SPACING)
       .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - TEXT_SIZE / 2)
-      .attr(
-        "width",
-        (n: NodeViewObject) =>
-          n.node.getNodeWidth() - Math.floor(Math.log(n.node.getConnectionTime() ?? 1)) * TEXT_SIZE,
-      )
+      .attr("width", (n: NodeViewObject) => this.getNodeLabelTextWidth(n.node))
       .text((n: NodeViewObject) =>
         this.editorView.displayNodesFullName()
           ? n.node.getFullName()
@@ -968,5 +964,16 @@ export class NodesView {
         false,
       );
     }
+  }
+
+  private getNodeLabelTextWidth(node: Node): number {
+    const connectionTime = node.getConnectionTime();
+    const connectionTimeTextWidth =
+      (connectionTime === null
+        ? 0
+        : connectionTime < 10
+          ? 1
+          : 0.5 + Math.floor(Math.log10(connectionTime))) * TEXT_SIZE;
+    return node.getNodeWidth() - connectionTimeTextWidth - NODE_TEXT_LEFT_SPACING;
   }
 }
