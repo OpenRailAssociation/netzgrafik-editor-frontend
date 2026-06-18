@@ -1,5 +1,5 @@
 import {reorderNodePorts, optimizePorts} from "./port-ordering.algo";
-import {countCrossingsInNode} from "./port-ordering.crossings";
+import {countAllCrossings, countCrossingsInNode} from "./port-ordering.crossings";
 import {buildNetwork, getTrainrunIDsOnSide} from "./port-ordering.test-helpers";
 
 describe("port-ordering", () => {
@@ -174,6 +174,68 @@ describe("port-ordering", () => {
 
       expect(countCrossingsInNode(nodesMap.get("B1"))).toBe(0);
       expect(countCrossingsInNode(nodesMap.get("B2"))).toBe(0);
+    });
+  });
+
+  describe("Regression #1140", () => {
+    // Accurate reproduction: This case mimics the exact infrastructure
+    // described in the ticket.
+    describe("Accurate test case", () => {
+      it("should not produce crossings, in the issue reticular", () => {
+        const {nodesArray} = buildNetwork({
+          nodes: {
+            BOTTOM_LEFT: {x: -100, y: 100},
+            TOP_LEFT: {x: -100, y: -100},
+            LEFT: {x: -100, y: 0},
+            MIDDLE: {x: 0, y: 0},
+            RIGHT: {x: 100, y: 0},
+            EXTRA_RIGHT: {x: 200, y: 0},
+          },
+          trainruns: [
+            // Two parallel paths, on the bottom branch:
+            ["BOTTOM_LEFT", "LEFT", "MIDDLE", "RIGHT", "EXTRA_RIGHT"],
+            ["EXTRA_RIGHT", "RIGHT", "MIDDLE", "LEFT", "BOTTOM_LEFT"],
+            // Three parallel paths, on the top branch:
+            ["TOP_LEFT", "LEFT", "MIDDLE", "RIGHT", "EXTRA_RIGHT"],
+            ["TOP_LEFT", "LEFT", "MIDDLE", "RIGHT", "EXTRA_RIGHT"],
+            ["EXTRA_RIGHT", "RIGHT", "MIDDLE", "LEFT", "TOP_LEFT"],
+          ],
+        });
+
+        optimizePorts(nodesArray);
+
+        const {crossings, groupCrossings} = countAllCrossings(nodesArray);
+        expect(crossings).toBe(0);
+        expect(groupCrossings).toEqual([]);
+      });
+    });
+  });
+
+  // Minimal reproduction: two parallel trains turning a 90° corner at HUB,
+  // whose downstream neighbor (MID) is a pass-through continuing to END.
+  // Tested in the 4 corner orientations.
+  describe("Minimal test case", () => {
+    const corners = [
+      {name: "top > right (NE)", arm: {x: 0, y: -100}, mid: {x: 100, y: 0}, end: {x: 200, y: 0}},
+      {name: "right > bottom (SE)", arm: {x: 100, y: 0}, mid: {x: 0, y: 100}, end: {x: 0, y: 200}},
+      {name: "bottom > left (SW)", arm: {x: 0, y: 100}, mid: {x: -100, y: 0}, end: {x: -200, y: 0}},
+      {name: "left > top (NW)", arm: {x: -100, y: 0}, mid: {x: 0, y: -100}, end: {x: 0, y: -200}},
+    ];
+
+    corners.forEach(({name, arm, mid, end}) => {
+      it(`should not produce crossings (${name})`, () => {
+        const {nodesArray} = buildNetwork({
+          nodes: {ARM: arm, HUB: {x: 0, y: 0}, MID: mid, END: end},
+          trainruns: [
+            ["ARM", "HUB", "MID", "END"],
+            ["ARM", "HUB", "MID", "END"],
+          ],
+        });
+
+        optimizePorts(nodesArray);
+
+        expect(countAllCrossings(nodesArray).crossings).toBe(0);
+      });
     });
   });
 });
