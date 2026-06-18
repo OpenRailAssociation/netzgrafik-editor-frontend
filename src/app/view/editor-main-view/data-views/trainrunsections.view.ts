@@ -1670,7 +1670,7 @@ export class TrainrunSectionsView {
         const trainrunSection = d.getExtremitySection(atSource);
         return TrainrunSectionsView.hasWarning(trainrunSection, textElement);
       })
-      .classed(StaticDomTags.TAG_EVENT_DISABLED, true)
+      .classed(StaticDomTags.TAG_EVENT_DISABLED, false)
       .classed(StaticDomTags.TAG_START_TEXT_ANCHOR, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.enforceStartTextAnchor(d, atSource),
       )
@@ -1680,7 +1680,12 @@ export class TrainrunSectionsView {
           this.editorView,
           atSource,
         ),
-      );
+      )
+      .on("mouseup", (event: MouseEvent, d: TrainrunSectionViewObject) => {
+        event.stopPropagation();
+        const node = d.getExtremityNode(!atSource);
+        this.editorView.showNodeInformation!(node);
+      });
   }
 
   createNumberOfStopsTextElement(
