@@ -167,9 +167,23 @@ export function reorderNodePorts(
     portTransitions.set(t.getPortId2(), t);
   });
 
+  // Start with sides facing an already-ordered neighbor, so this node follows
+  // that neighbor (case 4a) instead of locking to its own opposite side
+  // (case 2):
+  const facesOrderedNeighbor = (alignment: PortAlignment) =>
+    ports.some(
+      (port) =>
+        port.getPositionAlignment() === alignment &&
+        orderedNodeIDs.has(port.getOppositeNode(node.getId()).getId()),
+    );
+  const processingOrder = [
+    ...ALIGNMENTS_CLOCKWISE_ORDER.filter(facesOrderedNeighbor),
+    ...ALIGNMENTS_CLOCKWISE_ORDER.filter((alignment) => !facesOrderedNeighbor(alignment)),
+  ];
+
   // For each side, order ports by transitions groups:
   const orderedSides = new Set<PortAlignment>();
-  ALIGNMENTS_CLOCKWISE_ORDER.forEach((alignment) => {
+  processingOrder.forEach((alignment) => {
     const sidePorts = ports.filter((port) => port.getPositionAlignment() === alignment);
 
     sidePorts.sort((a, b) => {
