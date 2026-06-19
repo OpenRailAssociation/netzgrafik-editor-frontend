@@ -29,31 +29,31 @@ export class LogService {
     this.publishers.push(logPublisher);
   }
 
-  debug(msg: string, ...optionalParams: any[]) {
+  debug(msg: string, ...optionalParams: unknown[]) {
     this.writeToLog(msg, LogLevel.Debug, optionalParams);
   }
 
-  info(msg: string, ...optionalParams: any[]) {
+  info(msg: string, ...optionalParams: unknown[]) {
     this.writeToLog(msg, LogLevel.Info, optionalParams);
   }
 
-  warn(msg: string, ...optionalParams: any[]) {
+  warn(msg: string, ...optionalParams: unknown[]) {
     this.writeToLog(msg, LogLevel.Warn, optionalParams);
   }
 
-  error(msg: string, ...optionalParams: any[]) {
+  error(msg: string, ...optionalParams: unknown[]) {
     this.writeToLog(msg, LogLevel.Error, optionalParams);
   }
 
-  fatal(msg: string, ...optionalParams: any[]) {
+  fatal(msg: string, ...optionalParams: unknown[]) {
     this.writeToLog(msg, LogLevel.Fatal, optionalParams);
   }
 
-  log(msg: string, ...optionalParams: any[]) {
+  log(msg: string, ...optionalParams: unknown[]) {
     this.writeToLog(msg, LogLevel.All, optionalParams);
   }
 
-  private writeToLog(msg: string, level: LogLevel, params: any[]) {
+  private writeToLog(msg: string, level: LogLevel, params: unknown[]) {
     if (this.shouldLog(level)) {
       const entry: LogEntry = new LogEntry();
       entry.message = msg;
@@ -81,7 +81,7 @@ export class LogEntry {
   entryDate: Date = new Date();
   message = "";
   level: LogLevel = LogLevel.Debug;
-  extraInfo: any[] = [];
+  extraInfo: unknown[] = [];
   logWithDate = true;
 
   buildLogString(): string {
@@ -100,7 +100,7 @@ export class LogEntry {
     return ret;
   }
 
-  private formatParams(params: any[]): string {
+  private formatParams(params: unknown[]): string {
     let ret: string = params.join(",");
 
     // Is there at least one object in the array?
