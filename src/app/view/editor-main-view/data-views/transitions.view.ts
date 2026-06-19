@@ -22,7 +22,7 @@ export class TransitionsView {
   static isMuted(
     trainrun: Trainrun,
     selectedTrainrun: Trainrun,
-    connectedTrainrunIds: any,
+    connectedTrainrunIds: number[],
   ): boolean {
     if (
       connectedTrainrunIds !== undefined &&
@@ -42,7 +42,7 @@ export class TransitionsView {
   static createTrainrunClassAttribute(
     trainrun: Trainrun,
     selectedTrainrun: Trainrun,
-    connectedTrainrunIds: any,
+    connectedTrainrunIds: number[],
   ): string {
     let classAttribute =
       StaticDomTags.TRANSITION_LINE_CLASS +
@@ -66,7 +66,7 @@ export class TransitionsView {
     editorView: EditorView,
     inputTransitions: Transition[],
     selectedTrainrun: Trainrun,
-    connectedTrainrunIds: any[],
+    connectedTrainrunIds: number[],
   ): TransitionViewObject[] {
     const viewTransitionViewObjects: TransitionViewObject[] = [];
     inputTransitions.forEach((transition: Transition) => {
@@ -86,7 +86,7 @@ export class TransitionsView {
     classRef: string,
     levelFreqFilter: LinePatternRefs[],
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
     editorView: EditorView,
   ) {
     grpEnter
@@ -124,7 +124,7 @@ export class TransitionsView {
   createNonStopToggle(
     grpEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
   ) {
     if (!this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable()) {
       return;
@@ -208,7 +208,7 @@ export class TransitionsView {
   createTransitions(
     inputTransitions: Transition[],
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any[],
+    connectedTrainIds: number[],
     selectedFlagFilter: boolean,
   ) {
     const transitions = inputTransitions.filter(
