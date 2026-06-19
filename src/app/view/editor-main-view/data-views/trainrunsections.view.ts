@@ -68,7 +68,7 @@ export class TrainrunSectionsView {
   static isMuted(
     trainrunSection: TrainrunSection,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
   ): boolean {
     if (
       connectedTrainIds !== undefined &&
@@ -87,7 +87,7 @@ export class TrainrunSectionsView {
   static createTrainrunSectionFrequencyClassAttribute(
     trainrunSection: TrainrunSection,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
   ): string {
     let classAttribute =
       StaticDomTags.makeClassTag(
@@ -402,7 +402,7 @@ export class TrainrunSectionsView {
     trainrunSection: TrainrunSection,
     textElement: TrainrunSectionText,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
   ): string | undefined {
     const colorRef = TrainrunSectionsView.mapFormatterColorRefToColorRefClassTag(
       TrainrunSectionsView.getFormattedDisplayTextColorRef(trainrunSection, textElement),
@@ -985,7 +985,7 @@ export class TrainrunSectionsView {
     groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
     lineTextElement: TrainrunSectionText,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
   ) {
     const atSource =
       lineTextElement === TrainrunSectionText.SourceArrival ||
@@ -1109,7 +1109,7 @@ export class TrainrunSectionsView {
   createDirectionArrows(
     groupLinesEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
     enableEvents = true,
   ) {
     (["BEGINNING", "ENDING"] as const).forEach((arrowLocation) => {
@@ -1170,7 +1170,7 @@ export class TrainrunSectionsView {
   createAsymmetryArrows(
     groupLinesEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
     enableEvents = true,
   ) {
     (["BEGINNING", "ENDING"] as const).forEach((arrowLocation) => {
@@ -1247,7 +1247,7 @@ export class TrainrunSectionsView {
     classRef,
     levelFreqFilter: LinePatternRefs[],
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
     enableEvents = true,
   ) {
     const trainrunSectionElements = groupEnter
@@ -1301,7 +1301,7 @@ export class TrainrunSectionsView {
   createTrainrunsectionSemicircleAtNode(
     groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
     atSource: boolean,
   ) {
     groupEnter
@@ -1367,7 +1367,7 @@ export class TrainrunSectionsView {
   createTrainrunsectionSemicircles(
     groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
   ) {
     if (this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       return;
@@ -1392,7 +1392,7 @@ export class TrainrunSectionsView {
   createPinOnTrainrunsection(
     groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
     atSource: boolean,
   ) {
     if (!this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable()) {
@@ -1476,7 +1476,7 @@ export class TrainrunSectionsView {
   private createInternTrainrunSectionElementFilteringWarningElements(
     groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
     textElement: TrainrunSectionText,
     enableEvents = true,
     hasWarning = true,
@@ -1583,7 +1583,7 @@ export class TrainrunSectionsView {
   createTrainrunSectionElement(
     groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
     textElement: TrainrunSectionText,
     enableEvents = true,
   ) {
@@ -1611,7 +1611,7 @@ export class TrainrunSectionsView {
   createTrainrunSectionGotoInfoElement(
     groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
     atSource: boolean,
   ) {
     const textElement = TrainrunSectionText.TrainrunSectionName;
@@ -1667,7 +1667,7 @@ export class TrainrunSectionsView {
     groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
     trainrunSection: TrainrunSection,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
     numberOfStops: number,
   ) {
     groupEnter
@@ -1712,7 +1712,7 @@ export class TrainrunSectionsView {
     groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
     trainrunSection: TrainrunSection,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
   ) {
     const numberOfStops = trainrunSection.getNumberOfStops();
     const path = trainrunSection.getPath();
@@ -1773,7 +1773,7 @@ export class TrainrunSectionsView {
   createAllIntermediateStops(
     groupEnter: d3.Selection<SVGGElement, undefined, HTMLElement, undefined>,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
   ) {
     groupEnter.each((t: TrainrunSectionViewObject, i, a) => {
       const grp = d3
@@ -2334,7 +2334,7 @@ export class TrainrunSectionsView {
   private oneNodeHiddenTrainrunSectionsRendering(
     inGroupLines,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any[],
+    connectedTrainIds: number[],
     inGroupLabels,
   ) {
     const groupLines = inGroupLines.filter(
@@ -2459,7 +2459,7 @@ export class TrainrunSectionsView {
   private defaultTrainrunSectionsRendering(
     inGroupLines,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any[],
+    connectedTrainIds: number[],
     inGroupLabels,
   ) {
     const groupLines = inGroupLines.filter((d: TrainrunSectionViewObject) =>
@@ -2621,7 +2621,7 @@ export class TrainrunSectionsView {
   make4LayerTrainrunSectionLines(
     groupLines: any,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any[],
+    connectedTrainIds: number[],
     inGroupLabels,
     enableEvents: boolean,
   ) {
@@ -2666,7 +2666,7 @@ export class TrainrunSectionsView {
     drawNumberOfStops,
     groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
     numberOfStops: number,
     collapsedStops: boolean,
   ) {
