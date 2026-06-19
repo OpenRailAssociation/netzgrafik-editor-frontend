@@ -968,12 +968,14 @@ export class NodesView {
 
   private getNodeLabelTextWidth(node: Node): number {
     const connectionTime = node.getConnectionTime();
-    const connectionTimeTextWidth =
-      (connectionTime === null
-        ? 0
-        : connectionTime < 10
-          ? 1
-          : 0.5 + Math.floor(Math.log10(connectionTime))) * TEXT_SIZE;
+    let width = 0;
+    if (connectionTime !== null) {
+      width += 1;
+      if (connectionTime >= 10) {
+        width += Math.floor(Math.log10(connectionTime));
+      }
+    }
+    const connectionTimeTextWidth = width * TEXT_SIZE;
     return node.getNodeWidth() - connectionTimeTextWidth - NODE_TEXT_LEFT_SPACING;
   }
 }
