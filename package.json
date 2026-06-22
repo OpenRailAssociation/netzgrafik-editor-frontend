@@ -60,7 +60,7 @@
     "@angular/language-service": "^19.2.25",
     "@commitlint/types": "^21.0.1",
     "@eslint/js": "^9.39.4",
-    "@openapitools/openapi-generator-cli": "^2.35.0",
+    "@openapitools/openapi-generator-cli": "^2.38.0",
     "@types/d3": "^5.16.0",
     "@types/jasmine": "~6.0.0",
     "@types/jasminewd2": "~2.0.13",
