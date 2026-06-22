@@ -18,11 +18,13 @@ import {ALIGNMENTS_CLOCKWISE_ORDER} from "./port-ordering.helpers";
 const areAdjacent = (a: Port, b: Port): boolean =>
   Math.abs(a.getPositionIndex() - b.getPositionIndex()) === 1;
 
+const trainrunIdOf = (port: Port): number => port.getTrainrunSection().getTrainrunId();
+
 /**
- * Counts separations within a single node: pairs of transitions running between the same two sides
- * that are adjacent on one of those sides but not the other.
+ * Within a single node, returns the trainrun-ID pairs whose transitions run between the same two
+ * sides but are adjacent on only one of them (a bundle split apart by something wedged between).
  */
-export function countSeparationsWithinNode(node: Node): number {
+export function getSeparationPairsWithinNode(node: Node): [number, number][] {
   // Each transition spanning two distinct sides, as a map: side -> its port on that side.
   const transitions = node
     .getTransitions()
@@ -36,7 +38,7 @@ export function countSeparationsWithinNode(node: Node): number {
     })
     .filter((sides) => sides.size === 2);
 
-  let separations = 0;
+  const pairs: [number, number][] = [];
   for (let i = 0; i < transitions.length - 1; i++) {
     for (let j = i + 1; j < transitions.length; j++) {
       const a = transitions[i];
@@ -48,20 +50,20 @@ export function countSeparationsWithinNode(node: Node): number {
         areAdjacent(a.get(sides[0]), b.get(sides[0])) !==
         areAdjacent(a.get(sides[1]), b.get(sides[1]))
       ) {
-        separations++;
+        pairs.push([trainrunIdOf(a.get(sides[0])), trainrunIdOf(b.get(sides[0]))]);
       }
     }
   }
-  return separations;
+  return pairs;
 }
 
 /**
- * Counts separations on links incident to `node`: pairs of sections leaving toward the same
- * opposite node, adjacent at this end of the link but not the other (or vice versa).
+ * On links incident to `node`, returns the trainrun-ID pairs leaving toward the same opposite node,
+ * adjacent at this end of the link but not the other (or vice versa).
  */
-export function countSeparationsBetweenNodes(node: Node): number {
+export function getSeparationPairsBetweenNodes(node: Node): [number, number][] {
   const nodeId = node.getId();
-  let separations = 0;
+  const pairs: [number, number][] = [];
 
   ALIGNMENTS_CLOCKWISE_ORDER.forEach((alignment) => {
     const sidePorts = node.getPorts().filter((p) => p.getPositionAlignment() === alignment);
@@ -83,12 +85,22 @@ export function countSeparationsBetweenNodes(node: Node): number {
         );
         if (!aOpposite || !bOpposite) continue;
 
-        if (areAdjacent(a, b) !== areAdjacent(aOpposite, bOpposite)) separations++;
+        if (areAdjacent(a, b) !== areAdjacent(aOpposite, bOpposite)) {
+          pairs.push([trainrunIdOf(a), trainrunIdOf(b)]);
+        }
       }
     }
   });
 
-  return separations;
+  return pairs;
+}
+
+export function countSeparationsWithinNode(node: Node): number {
+  return getSeparationPairsWithinNode(node).length;
+}
+
+export function countSeparationsBetweenNodes(node: Node): number {
+  return getSeparationPairsBetweenNodes(node).length;
 }
 
 /**
