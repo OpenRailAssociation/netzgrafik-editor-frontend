@@ -298,3 +298,26 @@ export function countAllCrossings(nodes: Node[]): CrossingsInfo {
 
   return {crossings, groupCrossings: groupCrossings.toSorted((a, b) => b.crossings - a.crossings)};
 }
+
+/**
+ * By default, `reorderNodePorts` minimizes crossings *within* each node before considering the order
+ * of neighbors, so it never trades a within-node crossing for fewer between-node crossings. To allow
+ * that trade-off, a node can be flipped to "between-first" ordering (it follows its neighbors even at
+ * the cost of an internal crossing).
+ *
+ * This function picks the nodes worth flipping: those most involved in between-node crossings and not
+ * already flipped, largest-first, capped to `maxCount`. The optimizer then generates a candidate per
+ * returned node and lets the clutter weights decide whether the trade-off is worth it.
+ */
+export function getBetweenFirstCandidates(
+  nodes: Node[],
+  alreadyFlipped: Set<number>,
+  maxCount: number,
+): number[] {
+  return nodes
+    .map((node) => ({id: node.getId(), crossings: countBetweenCrossingsAroundNode(node).crossings}))
+    .filter(({id, crossings}) => crossings > 0 && !alreadyFlipped.has(id))
+    .sort((a, b) => b.crossings - a.crossings)
+    .slice(0, maxCount)
+    .map(({id}) => id);
+}

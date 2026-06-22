@@ -4,6 +4,7 @@ import {
   countBetweenCrossingsAroundNode,
   countCrossingsInNode,
   countCrossingsBetweenSides,
+  getBetweenFirstCandidates,
   groupContiguous,
 } from "./port-ordering.crossings";
 
@@ -240,6 +241,40 @@ describe("countBetweenCrossingsAroundNode", () => {
       crossings: 0,
       groupCrossings: [],
     });
+  });
+});
+
+describe("getBetweenFirstCandidates", () => {
+  it("returns no candidate when there is no between-node crossing", () => {
+    const {nodesMap, nodesArray, trainrunIDs} = buildNetwork({
+      nodes: {A: {x: 0}, B: {x: 100}},
+      trainruns: [
+        ["A", "B"],
+        ["A", "B"],
+      ],
+    });
+    setPortOrder(nodesMap.get("A"), "right", trainrunIDs);
+    setPortOrder(nodesMap.get("B"), "left", trainrunIDs);
+
+    expect(getBetweenFirstCandidates(nodesArray, new Set(), 10)).toEqual([]);
+  });
+
+  it("returns the node involved in between-node crossings", () => {
+    // A
+    //   >- B
+    // C
+    const {nodesMap, nodesArray, trainrunIDs} = buildNetwork({
+      nodes: {A: {x: 0, y: -100}, B: {x: 200, y: 0}, C: {x: 0, y: 100}},
+      trainruns: [
+        ["A", "B"],
+        ["C", "B"],
+      ],
+    });
+    setPortOrder(nodesMap.get("B"), "left", trainrunIDs.toReversed());
+
+    expect(getBetweenFirstCandidates(nodesArray, new Set(), 10)).toEqual([
+      nodesMap.get("B").getId(),
+    ]);
   });
 });
 
