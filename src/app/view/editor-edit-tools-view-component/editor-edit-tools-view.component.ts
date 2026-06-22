@@ -46,7 +46,12 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     {
       name: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwareOrdering:Crossing aware`,
       title: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwareOrderingTooltip:Minimizes crossings of trainruns within the nodes.`,
-      orderingAlgorithm: OrderingAlgorithm.CrossingAware,
+      orderingAlgorithm: OrderingAlgorithm.ClutterAware,
+    },
+    {
+      name: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwarePushOrdering:Crossing aware (push crossings into nodes)`,
+      title: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwarePushOrderingTooltip:Minimizes crossings of trainruns, moving them into the nodes to keep parallel trainruns bundled.`,
+      orderingAlgorithm: OrderingAlgorithm.ClutterAwarePushCrossings,
     },
   ];
   activeOrderingAlgorithm: OrderingAlgorithm = null;

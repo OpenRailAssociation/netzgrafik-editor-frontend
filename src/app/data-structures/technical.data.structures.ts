@@ -69,7 +69,8 @@ export enum PortAlignment {
  */
 export enum OrderingAlgorithm {
   Alphabetical, // Order by train category name (default)
-  CrossingAware, // Minimize crossings using global propagation
+  ClutterAware, // Minimize visual clutter, keeping parallel trainruns bundled within nodes
+  ClutterAwarePushCrossings, // Minimize visual clutter, pushing crossings into the nodes
 }
 
 /**
