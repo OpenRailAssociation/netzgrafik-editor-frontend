@@ -18,11 +18,13 @@ import {ALIGNMENTS_CLOCKWISE_ORDER} from "./port-ordering.helpers";
 const areAdjacent = (a: Port, b: Port): boolean =>
   Math.abs(a.getPositionIndex() - b.getPositionIndex()) === 1;
 
+const trainrunIdOf = (port: Port): number => port.getTrainrunSection().getTrainrunId();
+
 /**
- * Counts separations within a single node: pairs of transitions running between the same two sides
- * that are adjacent on one of those sides but not the other.
+ * Within a single node, returns the trainrun-ID pairs whose transitions run between the same two
+ * sides but are adjacent on only one of them (a bundle split apart by something wedged between).
  */
-export function countSeparationsWithinNode(node: Node): number {
+export function getSeparationPairsWithinNode(node: Node): [number, number][] {
   // Each transition spanning two distinct sides, as a map: side -> its port on that side.
   const transitions = node
     .getTransitions()
@@ -36,7 +38,7 @@ export function countSeparationsWithinNode(node: Node): number {
     })
     .filter((sides) => sides.size === 2);
 
-  let separations = 0;
+  const pairs: [number, number][] = [];
   for (let i = 0; i < transitions.length - 1; i++) {
     for (let j = i + 1; j < transitions.length; j++) {
       const a = transitions[i];
@@ -48,20 +50,20 @@ export function countSeparationsWithinNode(node: Node): number {
         areAdjacent(a.get(sides[0]), b.get(sides[0])) !==
         areAdjacent(a.get(sides[1]), b.get(sides[1]))
       ) {
-        separations++;
+        pairs.push([trainrunIdOf(a.get(sides[0])), trainrunIdOf(b.get(sides[0]))]);
       }
     }
   }
-  return separations;
+  return pairs;
 }
 
 /**
- * Counts separations on links incident to `node`: pairs of sections leaving toward the same
- * opposite node, adjacent at this end of the link but not the other (or vice versa).
+ * On links incident to `node`, returns the trainrun-ID pairs leaving toward the same opposite node,
+ * adjacent at this end of the link but not the other (or vice versa).
  */
-export function countSeparationsBetweenNodes(node: Node): number {
+export function getSeparationPairsBetweenNodes(node: Node): [number, number][] {
   const nodeId = node.getId();
-  let separations = 0;
+  const pairs: [number, number][] = [];
 
   ALIGNMENTS_CLOCKWISE_ORDER.forEach((alignment) => {
     const sidePorts = node.getPorts().filter((p) => p.getPositionAlignment() === alignment);
@@ -83,12 +85,22 @@ export function countSeparationsBetweenNodes(node: Node): number {
         );
         if (!aOpposite || !bOpposite) continue;
 
-        if (areAdjacent(a, b) !== areAdjacent(aOpposite, bOpposite)) separations++;
+        if (areAdjacent(a, b) !== areAdjacent(aOpposite, bOpposite)) {
+          pairs.push([trainrunIdOf(a), trainrunIdOf(b)]);
+        }
       }
     }
   });
 
-  return separations;
+  return pairs;
+}
+
+export function countSeparationsWithinNode(node: Node): number {
+  return getSeparationPairsWithinNode(node).length;
+}
+
+export function countSeparationsBetweenNodes(node: Node): number {
+  return getSeparationPairsBetweenNodes(node).length;
 }
 
 /**
@@ -104,4 +116,57 @@ export function countAllSeparations(nodes: Node[]): {within: number; between: nu
     between += countSeparationsBetweenNodes(node);
   });
   return {within, between: between / 2};
+}
+
+// Unions separated pairs into connected bundles of trainruns that "want" to stay together, returned
+// largest-first (only bundles of 2+ trainruns).
+function groupSeparatedTrainruns(pairs: [number, number][]): number[][] {
+  const parent = new Map<number, number>();
+  const find = (x: number): number => {
+    if (!parent.has(x)) parent.set(x, x);
+    let root = x;
+    while (parent.get(root) !== root) root = parent.get(root);
+    parent.set(x, root);
+    return root;
+  };
+  pairs.forEach(([a, b]) => parent.set(find(a), find(b)));
+
+  const groups = new Map<number, number[]>();
+  [...parent.keys()].forEach((id) => {
+    const root = find(id);
+    if (!groups.has(root)) groups.set(root, []);
+    groups.get(root).push(id);
+  });
+  return [...groups.values()].filter((g) => g.length > 1).sort((a, b) => b.length - a.length);
+}
+
+// Moves all `bundle` trainruns next to each other (keeping their relative order), at the slot of
+// the bundle's first member in `order`. Everything else keeps its relative order:
+function pullTogether(order: number[], bundle: Set<number>): number[] {
+  const firstIndex = order.findIndex((id) => bundle.has(id));
+  if (firstIndex === -1) return order;
+  const bundled = order.filter((id) => bundle.has(id));
+  const rest = order.filter((id) => !bundle.has(id));
+  rest.splice(firstIndex, 0, ...bundled);
+  return rest;
+}
+
+/**
+ * Generates new trainrun-ordering candidates aimed at reducing separations: it finds the largest
+ * separated bundles and, for each, returns `currentOrder` with that bundle pulled contiguous.
+ * Candidates are returned largest-bundle-first.
+ */
+export function getSeparationCandidates(
+  nodes: Node[],
+  currentOrder: number[],
+  kinds: {within: boolean; between: boolean},
+): number[][] {
+  const pairs: [number, number][] = [];
+  nodes.forEach((node) => {
+    if (kinds.within) pairs.push(...getSeparationPairsWithinNode(node));
+    if (kinds.between) pairs.push(...getSeparationPairsBetweenNodes(node));
+  });
+  return groupSeparatedTrainruns(pairs).map((bundle) =>
+    pullTogether(currentOrder, new Set(bundle)),
+  );
 }
