@@ -322,6 +322,20 @@ export class UiInteractionService implements OnDestroy {
       orderingAlgorithm = OrderingAlgorithm.Alphabetical;
     }
     this.nodeService.initPortOrdering(orderingAlgorithm);
+    this.refreshAfterOrdering(orderingAlgorithm);
+  }
+
+  getActiveClutterBias(): {separationBias: number; withinBias: number} {
+    return this.nodeService.getClutterBias();
+  }
+
+  setActiveClutterBias(separationBias: number, withinBias: number) {
+    this.nodeService.setClutterBias(separationBias, withinBias);
+    this.nodeService.initPortOrdering();
+    this.refreshAfterOrdering(this.nodeService.getCurrentOrderingAlgorithm());
+  }
+
+  private refreshAfterOrdering(orderingAlgorithm: OrderingAlgorithm) {
     this.nodeService.nodesUpdated();
     this.nodeService.transitionsUpdated();
     this.nodeService.connectionsUpdated();

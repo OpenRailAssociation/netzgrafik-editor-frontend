@@ -30,7 +30,7 @@ import {MathUtils} from "../../utils/math";
 import {LabelService} from "./label.service";
 import {FilterService} from "../ui/filter.service";
 import {ConnectionDto, OrderingAlgorithm} from "../../data-structures/technical.data.structures";
-import {optimizePorts} from "../util/port-ordering.algo";
+import {ClutterWeights, optimizePorts} from "../util/port-ordering.algo";
 import {TrainrunSectionValidator} from "../util/trainrunsection.validator";
 import {
   NodeOperation,
@@ -57,6 +57,9 @@ export class NodeService implements OnDestroy {
   private dataService: DataService = null;
   private destroyed = new Subject<void>();
   private currentOrderingAlgorithm: OrderingAlgorithm = OrderingAlgorithm.Alphabetical;
+  // Clutter-aware biases, both in [0, 1] (see getClutterWeights). Persisted in MetadataDto.
+  private separationBias = 0.5;
+  private withinBias = 0.5;
 
   constructor(
     private logger: LogService,
@@ -199,8 +202,8 @@ export class NodeService implements OnDestroy {
     });
 
     // Second pass: reorder ports and update routing
-    if (this.currentOrderingAlgorithm === OrderingAlgorithm.CrossingAware) {
-      optimizePorts(this.nodesStore.nodes);
+    if (this.usesOptimizePorts()) {
+      optimizePorts(this.nodesStore.nodes, this.getClutterWeights());
       this.nodesStore.nodes.forEach((node) => {
         node.updateTransitionsRouting();
         node.updateConnectionsRouting();
@@ -1132,8 +1135,40 @@ export class NodeService implements OnDestroy {
     return this.currentOrderingAlgorithm;
   }
 
+  private usesOptimizePorts(): boolean {
+    return this.currentOrderingAlgorithm === OrderingAlgorithm.ClutterAware;
+  }
+
+  private getClutterWeights(): Partial<ClutterWeights> | undefined {
+    if (this.currentOrderingAlgorithm !== OrderingAlgorithm.ClutterAware) return undefined;
+    const crossingBias = 1 - this.separationBias;
+    const betweenBias = 1 - this.withinBias;
+    const epsilon = 0.01;
+
+    return {
+      // We add a minimal value to all weights, because reducing any noise should always help a bit:
+      crossingsWithin: epsilon + crossingBias * this.withinBias,
+      crossingsBetween: epsilon + crossingBias * betweenBias,
+      separationsWithin: epsilon + this.separationBias * this.withinBias,
+      separationsBetween: epsilon + this.separationBias * betweenBias,
+    };
+  }
+
+  getClutterBias(): {separationBias: number; withinBias: number} {
+    return {separationBias: this.separationBias, withinBias: this.withinBias};
+  }
+
+  setClutterBias(separationBias: number, withinBias: number) {
+    this.separationBias = separationBias;
+    this.withinBias = withinBias;
+  }
+
   setOrderingAlgorithm(portOrderingType: OrderingAlgorithm) {
-    this.currentOrderingAlgorithm = portOrderingType;
+    // Any non-alphabetical legacy value (the former crossing/separation modes) maps to ClutterAware.
+    this.currentOrderingAlgorithm =
+      portOrderingType === OrderingAlgorithm.Alphabetical
+        ? OrderingAlgorithm.Alphabetical
+        : OrderingAlgorithm.ClutterAware;
   }
 
   getNodes(): Node[] {
@@ -1217,8 +1252,8 @@ export class NodeService implements OnDestroy {
       });
 
       // Reorder ports and update routing
-      if (this.currentOrderingAlgorithm === OrderingAlgorithm.CrossingAware) {
-        optimizePorts(this.nodesStore.nodes);
+      if (this.usesOptimizePorts()) {
+        optimizePorts(this.nodesStore.nodes, this.getClutterWeights());
         this.nodesStore.nodes.forEach((n) => {
           n.updateTransitionsRouting();
           n.updateConnectionsRouting();

@@ -69,8 +69,26 @@ export enum PortAlignment {
  */
 export enum OrderingAlgorithm {
   Alphabetical, // Order by train category name (default)
-  CrossingAware, // Minimize crossings using global propagation
+  ClutterAware, // Minimize visual clutter
 }
+
+/**
+ * Parameters each ordering algorithm accepts. Add a mode's entry here to give it parameters; modes
+ * absent from this map take none.
+ */
+export interface OrderingAlgorithmParameters {
+  [OrderingAlgorithm.ClutterAware]: {separationBias: number; withinBias: number};
+}
+
+/**
+ * The persisted ordering choice: an algorithm tied to its own (optional) parameters. The mapping
+ * makes invalid combinations (e.g. Alphabetical with clutter parameters) unrepresentable.
+ */
+export type OrderingDto = {
+  [V in OrderingAlgorithm]: V extends keyof OrderingAlgorithmParameters
+    ? {orderingAlgorithm: V; orderingAlgorithmParameters?: OrderingAlgorithmParameters[V]}
+    : {orderingAlgorithm?: V; orderingAlgorithmParameters?: never};
+}[OrderingAlgorithm];
 
 /**
  * Represents a general warning object widely used in different objects. E.g. TrainrunSection times.

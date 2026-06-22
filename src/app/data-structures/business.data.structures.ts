@@ -4,7 +4,7 @@ add's additional functionality */
 import {
   ColorRefType,
   ConnectionDto,
-  OrderingAlgorithm,
+  OrderingDto,
   PathDto,
   PortDto,
   TimeLockDto,
@@ -267,15 +267,14 @@ export interface AnalyticsSettingsDto {
 /**
  * Groups Meta data in exported JSON / internal data structure (global properties for a project)
  */
-export interface MetadataDto {
+export type MetadataDto = {
   trainrunCategories: TrainrunCategory[];
   trainrunFrequencies: TrainrunFrequency[];
   trainrunTimeCategories: TrainrunTimeCategory[];
   netzgrafikColors: NetzgrafikColorDto[];
   analyticsSettings: AnalyticsSettingsDto;
-  orderingAlgorithm?: OrderingAlgorithm;
   trafficSide?: TrafficSide;
-}
+} & OrderingDto;
 
 /**
  * Represents an abstructuion for resource magement. Resource alignemend - Net yet implemented
