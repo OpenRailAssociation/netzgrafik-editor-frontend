@@ -45,6 +45,7 @@ abstract class Operation {
 class TrainrunOperation extends Operation {
   readonly trainrun: TrainrunDto;
 
+  /** @internal */
   constructor(operationType: OperationType, trainrun: Trainrun) {
     super(operationType, OperationObjectType.trainrun);
     this.trainrun = trainrun.getDto();
@@ -54,6 +55,7 @@ class TrainrunOperation extends Operation {
 class NodeOperation extends Operation {
   readonly node: NodeDto;
 
+  /** @internal */
   constructor(operationType: OperationType, node: Node) {
     super(operationType, OperationObjectType.node);
     this.node = node.getDto();
@@ -63,6 +65,7 @@ class NodeOperation extends Operation {
 class LabelOperation extends Operation {
   readonly label: LabelDto;
 
+  /** @internal */
   constructor(operationType: OperationType, label: Label) {
     super(operationType, OperationObjectType.label);
     this.label = label.getDto();
@@ -72,6 +75,7 @@ class LabelOperation extends Operation {
 class NoteOperation extends Operation {
   readonly note: FreeFloatingTextDto;
 
+  /** @internal */
   constructor(operationType: OperationType, note: Note) {
     super(operationType, OperationObjectType.note);
     this.note = note.getDto();
@@ -81,6 +85,7 @@ class NoteOperation extends Operation {
 class MetadataOperation extends Operation {
   readonly metadata: MetadataDto;
 
+  /** @internal */
   constructor(metadata: MetadataDto) {
     super(OperationType.update, OperationObjectType.metadata);
     this.metadata = metadata;
@@ -90,6 +95,7 @@ class MetadataOperation extends Operation {
 class FilterSettingOperation extends Operation {
   readonly filterSetting: FilterSettingDto;
 
+  /** @internal */
   constructor(filterSetting: FilterSettingDto) {
     super(OperationType.update, OperationObjectType.filterSetting);
     this.filterSetting = filterSetting;
