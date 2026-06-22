@@ -157,9 +157,14 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       noteWidth: note.getWidth(),
       notePositionX: note.getPositionX(),
       notePositionY: note.getPositionY(),
-      saveNoteCallback: (noteId, noteTitle, noteText, noteHeight, noteWidth) =>
-        this.noteService.editNote(noteId, noteTitle, noteText, noteHeight, noteWidth),
-      deleteNoteCallback: (noteId) => this.noteService.deleteNote(noteId),
+      saveNoteCallback: (
+        noteId: number,
+        noteTitle: string,
+        noteText: string,
+        noteHeight: number,
+        noteWidth: number,
+      ) => this.noteService.editNote(noteId, noteTitle, noteText, noteHeight, noteWidth),
+      deleteNoteCallback: (noteId: number) => this.noteService.deleteNote(noteId),
       updateNoteCallback: () => this.noteService.notesUpdated(),
     };
     this.uiInteractionService.showNoteDialogSubject.next(parameter);
@@ -439,15 +444,15 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
 
     this.editorView.bindGetTimeDisplayPrecision(() => this.filterService.getTimeDisplayPrecision());
 
-    this.editorView.bindSetTimeDisplayPrecision((precision) =>
+    this.editorView.bindSetTimeDisplayPrecision((precision: number) =>
       this.filterService.setTimeDisplayPrecision(precision),
     );
 
-    this.editorView.bindSelectNode((nodeId, enforceUpdate = true) =>
+    this.editorView.bindSelectNode((nodeId: number, enforceUpdate = true) =>
       this.nodeService.selectNode(nodeId, enforceUpdate),
     );
 
-    this.editorView.bindUnselectNode((nodeId, enforceUpdate = true) =>
+    this.editorView.bindUnselectNode((nodeId: number, enforceUpdate = true) =>
       this.nodeService.unselectNode(nodeId, enforceUpdate),
     );
 
@@ -455,11 +460,11 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       this.nodeService.unselectAllNodes(enforceUpdate),
     );
 
-    this.editorView.bindIsNodeSelected((nodeId) => this.nodeService.isNodeSelected(nodeId));
+    this.editorView.bindIsNodeSelected((nodeId: number) => this.nodeService.isNodeSelected(nodeId));
 
-    this.editorView.bindSelectNote((noteId) => this.noteService.selectNote(noteId));
+    this.editorView.bindSelectNote((noteId: number) => this.noteService.selectNote(noteId));
 
-    this.editorView.bindUnselectNote((noteId) => this.noteService.unselectNote(noteId));
+    this.editorView.bindUnselectNote((noteId: number) => this.noteService.unselectNote(noteId));
 
     this.editorView.bindUnselectAllNotes(() => this.noteService.unselectAllNotes());
 
@@ -467,7 +472,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       this.trainrunSectionService.unselectAllTrainrunSections(),
     );
 
-    this.editorView.bindIsNoteSelected((noteId) => this.noteService.isNoteSelected(noteId));
+    this.editorView.bindIsNoteSelected((noteId: number) => this.noteService.isNoteSelected(noteId));
 
     this.editorView.bindAddNote((position: Vec2D, clickPosition: Vec2D) => {
       const newNote = this.noteService.addNote(position);

@@ -677,7 +677,11 @@ export class TrainrunSectionsView {
   }
 
   static calcInternalVirtualSectionTimeForHiddenJunctions(
-    cumulativeTravelTimeData,
+    cumulativeTravelTimeData: {
+      node: Node;
+      sumTravelTime: number;
+      trainrunSection: TrainrunSection;
+    }[],
     startNode: Node,
     nextNode: Node,
     editorView: EditorView,
@@ -715,7 +719,11 @@ export class TrainrunSectionsView {
   }
 
   static calcVirtualSectionTimeForHiddenJunctions(
-    cumulativeTravelTimeData: [],
+    cumulativeTravelTimeData: {
+      node: Node;
+      sumTravelTime: number;
+      trainrunSection: TrainrunSection;
+    }[],
     startNode: Node,
     nextNode: Node,
     editorView: EditorView,
