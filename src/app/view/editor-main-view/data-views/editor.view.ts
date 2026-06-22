@@ -14,9 +14,17 @@ import {D3Utils} from "./d3.utils";
 import {NotesView} from "./notes.view";
 import {NodeService} from "../../../services/data/node.service";
 import {FilterService} from "../../../services/ui/filter.service";
+import {Connection} from "../../../models/connection.model";
 import {Node} from "../../../models/node.model";
 import {Note} from "../../../models/note.model";
-import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
+import {Port} from "../../../models/port.model";
+import {Trainrun} from "../../../models/trainrun.model";
+import {TrainrunSection} from "../../../models/trainrunsection.model";
+import {Transition} from "../../../models/transition.model";
+import {
+  InformSelectedTrainrunClick,
+  TrainrunSectionService,
+} from "../../../services/data/trainrunsection.service";
 import {TrainrunService} from "../../../services/data/trainrun.service";
 import {LogService} from "../../../logger/log.service";
 import {NoteService} from "../../../services/data/note.service";
@@ -30,7 +38,12 @@ import {StreckengrafikDrawingContext} from "../../../streckengrafik/model/util/s
 import {LevelOfDetail, LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {VersionControlService} from "../../../services/data/version-control.service";
-import {TrafficSide} from "../../../data-structures/business.data.structures";
+import {
+  TrafficSide,
+  TrainrunCategory,
+  TrainrunFrequency,
+} from "../../../data-structures/business.data.structures";
+import {TrainrunSectionText} from "../../../data-structures/technical.data.structures";
 
 export class EditorView implements SVGMouseControllerObserver {
   static svgName = "graphContainer";
@@ -48,76 +61,125 @@ export class EditorView implements SVGMouseControllerObserver {
   notesView: NotesView;
   isMultiSelectOn = false;
 
-  addNode = null;
-  getNodePathToEnd = null;
-  addTrainrunSectionWithSourceTarget = null;
-  reconnectTrainrunSection = null;
-  deleteTrainrunSection = null;
-  undockTransition = null;
-  addConnectionToNode = null;
-  removeConnectionFromNode = null;
-  moveSelectedNodes = null;
-  moveSelectedNotes = null;
-  showNodeInformation = null;
-  showTrainrunInformation = null;
-  showTrainrunSectionInformation = null;
-  showTrainrunOneWayInformation = null;
-  setTrainrunAsSelected = null;
-  clickSelectedTrainrunSection = null;
-  setTrainrunSectionAsSelected = null;
-  getSelectedTrainrun = null;
-  getCumulativeTravelTime = null;
-  getCumulativeTravelTimeAndNodePath = null;
-  unselectAllTrainruns = null;
-  unselectTrainrunSection = null;
-  isAnyTrainSelected = null;
-  getConnectedTrainrunIds = null;
-  toggleNonStop = null;
-  getNodeFromTransition = null;
-  splitTrainrunIntoTwoParts = null;
-  combineTwoTrainruns = null;
-  getNodeFromConnection = null;
-  isFilterTravelTimeEnabled = null;
-  isFilterBackwardTravelTimeEnabled = null;
-  isFilterTrainrunNameEnabled = null;
-  isFilterDirectionArrowsEnabled = null;
-  isFilterAsymmetryArrowsEnabled = null;
-  isFilterArrivalDepartureTimeEnabled = null;
-  isFilterShowNonStopTimeEnabled = null;
-  isFilterTrainrunCategoryEnabled = null;
-  isFilterConnectionsEnabled = null;
-  isFilterTrainrunFrequencyEnabled = null;
-  isFilterNotesEnabled = null;
-  replaceIntermediateStopWithNode = null;
-  getTimeDisplayPrecision = null;
-  setTimeDisplayPrecision = null;
-  selectNode = null;
-  unselectNode = null;
-  unselectAllNodes = null;
-  isNodeSelected = null;
-  selectNote = null;
-  unselectNote = null;
-  unselectAllNotes = null;
-  unselectAllTrainrunSections = null;
-  isNoteSelected = null;
-  addNote = null;
-  editNote = null;
-  getNoteLayerIndex = null;
-  filterTrainrun = null;
-  checkFilterNode = null;
-  checkFilterNonStopNode = null;
-  displayNodesFullName = null;
-  isNodeVisible = null;
-  isJunctionNode = null;
-  filterNode = null;
-  filterNote = null;
-  filterTrainrunsection = null;
-  isTemporaryDisableFilteringOfItemsInViewEnabled = null;
-  moveNote = null;
-  calculateShortestDistanceNodesFromStartingNode = null;
-  calculateShortestDistanceNodesFromStartingTrainrunSection = null;
-  pauseUndoRecording = null;
-  startUndoRecording = null;
+  addNode: ((positionX: number, positionY: number) => Node) | null = null;
+  getNodePathToEnd: ((node: Node, trainrunSection: TrainrunSection) => Node[]) | null = null;
+  addTrainrunSectionWithSourceTarget:
+    | ((sourceNode: Node, targetNode: Node, position: Vec2D) => void)
+    | null = null;
+  reconnectTrainrunSection:
+    | ((
+        sourceNode: Node,
+        targetNode: Node,
+        existingTrainrunSection: TrainrunSection,
+        enforceUpdate?: boolean,
+      ) => void)
+    | null = null;
+  deleteTrainrunSection: ((trainrunSection: TrainrunSection) => void) | null = null;
+  undockTransition: ((nodeId: number, transitionId: number) => TrainrunSection | undefined) | null =
+    null;
+  addConnectionToNode:
+    | ((
+        node: Node,
+        trainrunSectionFrom: TrainrunSection,
+        trainrunSectionTo: TrainrunSection,
+      ) => void)
+    | null = null;
+  removeConnectionFromNode: ((connection: Connection, node: Node) => void) | null = null;
+  moveSelectedNodes:
+    | ((deltaPositionX: number, deltaPositionY: number, round: number, dragEnd: boolean) => void)
+    | null = null;
+  moveSelectedNotes:
+    | ((deltaPositionX: number, deltaPositionY: number, round: number, dragEnd: boolean) => void)
+    | null = null;
+  showNodeInformation: ((node: Node) => void) | null = null;
+  showTrainrunInformation: ((trainrunSection: TrainrunSection, position: Vec2D) => void) | null =
+    null;
+  showTrainrunSectionInformation:
+    | ((
+        trainrunSection: TrainrunSection,
+        position: Vec2D,
+        trainrunSectionText?: TrainrunSectionText,
+      ) => void)
+    | null = null;
+  showTrainrunOneWayInformation:
+    | ((trainrunSection: TrainrunSection, position: Vec2D) => void)
+    | null = null;
+  setTrainrunAsSelected: ((trainrun: Trainrun) => void) | null = null;
+  clickSelectedTrainrunSection:
+    | ((informSelectedTrainrunClick: InformSelectedTrainrunClick) => void)
+    | null = null;
+  setTrainrunSectionAsSelected: ((trainrunSection: TrainrunSection) => void) | null = null;
+  getSelectedTrainrun: (() => Trainrun) | null = null;
+  getCumulativeTravelTime:
+    | ((trainrunSection: TrainrunSection, direction: "sourceToTarget" | "targetToSource") => number)
+    | null = null;
+  getCumulativeTravelTimeAndNodePath:
+    | ((
+        trainrunSection: TrainrunSection,
+        direction: "sourceToTarget" | "targetToSource",
+      ) => {
+        node: Node;
+        sumTravelTime: number;
+        trainrunSection: TrainrunSection;
+      }[])
+    | null = null;
+  unselectAllTrainruns: (() => void) | null = null;
+  unselectTrainrunSection: ((trainrunSectionId: number) => void) | null = null;
+  isAnyTrainSelected: (() => boolean) | null = null;
+  getConnectedTrainrunIds: ((trainrun: Trainrun) => number[]) | null = null;
+  toggleNonStop: ((node: Node, t: Transition) => void) | null = null;
+  getNodeFromTransition: ((t: Transition) => Node) | null = null;
+  splitTrainrunIntoTwoParts: ((t: Transition) => void) | null = null;
+  combineTwoTrainruns: ((n: Node, port1: Port, port2: Port) => void) | null = null;
+  getNodeFromConnection: ((c: Connection) => Node) | null = null;
+  isFilterTravelTimeEnabled: (() => boolean) | null = null;
+  isFilterBackwardTravelTimeEnabled: (() => boolean) | null = null;
+  isFilterTrainrunNameEnabled: (() => boolean) | null = null;
+  isFilterDirectionArrowsEnabled: (() => boolean) | null = null;
+  isFilterAsymmetryArrowsEnabled: (() => boolean) | null = null;
+  isFilterArrivalDepartureTimeEnabled: (() => boolean) | null = null;
+  isFilterShowNonStopTimeEnabled: (() => boolean) | null = null;
+  isFilterTrainrunCategoryEnabled: ((trainrunCatgory: TrainrunCategory) => boolean) | null = null;
+  isFilterConnectionsEnabled: (() => boolean) | null = null;
+  isFilterTrainrunFrequencyEnabled: ((trainrunFrequency: TrainrunFrequency) => boolean) | null =
+    null;
+  isFilterNotesEnabled: (() => boolean) | null = null;
+  replaceIntermediateStopWithNode:
+    | ((trainsectionId: number, stopIndex: number, nodeId: number) => void)
+    | null = null;
+  getTimeDisplayPrecision: (() => number) | null = null;
+  setTimeDisplayPrecision: ((precision: number) => void) | null = null;
+  selectNode: ((nodeId: number, enforceUpdate?: boolean) => void) | null = null;
+  unselectNode: ((nodeId: number, enforceUpdate?: boolean) => void) | null = null;
+  unselectAllNodes: ((enforceUpdate?: boolean) => void) | null = null;
+  isNodeSelected: ((nodeId: number) => boolean) | null = null;
+  selectNote: ((noteId: number) => void) | null = null;
+  unselectNote: ((noteId: number) => void) | null = null;
+  unselectAllNotes: (() => void) | null = null;
+  unselectAllTrainrunSections: (() => void) | null = null;
+  isNoteSelected: ((noteId: number) => boolean) | null = null;
+  addNote: ((position: Vec2D, clickPosition: Vec2D) => void) | null = null;
+  editNote: ((inputNoteId: number, clickPosition: Vec2D) => void) | null = null;
+  getNoteLayerIndex: ((noteId: number) => number) | null = null;
+  filterTrainrun: ((trainrun: Trainrun) => boolean) | null = null;
+  checkFilterNode: ((node: Node) => boolean) | null = null;
+  checkFilterNonStopNode: ((node: Node) => boolean) | null = null;
+  displayNodesFullName: (() => boolean) | null = null;
+  isNodeVisible: ((node: Node) => boolean) | null = null;
+  isJunctionNode: ((node: Node) => boolean) | null = null;
+  filterNode: ((node: Node) => boolean) | null = null;
+  filterNote: ((note: Note) => boolean) | null = null;
+  filterTrainrunsection: ((trainrunSection: TrainrunSection) => boolean) | null = null;
+  isTemporaryDisableFilteringOfItemsInViewEnabled: (() => boolean) | null = null;
+  moveNote:
+    | ((inputNoteId: number, newPosition: Vec2D, round: number, dragEnd: boolean) => void)
+    | null = null;
+  calculateShortestDistanceNodesFromStartingNode: ((departureNodeId: number) => void) | null = null;
+  calculateShortestDistanceNodesFromStartingTrainrunSection:
+    | ((trainrunSectionId: number, departureNodeId: number) => void)
+    | null = null;
+  pauseUndoRecording: (() => void) | null = null;
+  startUndoRecording: (() => void) | null = null;
 
   private elementDragging = false;
 
@@ -170,55 +232,94 @@ export class EditorView implements SVGMouseControllerObserver {
     this.svgMouseController.destroy();
   }
 
-  bindAddNode(callback) {
+  bindAddNode(callback: (positionX: number, positionY: number) => Node) {
     this.addNode = callback;
   }
 
-  bindGetNodePathToEnd(callback) {
+  bindGetNodePathToEnd(callback: (node: Node, trainrunSection: TrainrunSection) => Node[]) {
     this.getNodePathToEnd = callback;
   }
 
-  bindAddTrainrunSectionWithSourceTarget(callback) {
+  bindAddTrainrunSectionWithSourceTarget(
+    callback: (sourceNode: Node, targetNode: Node, position: Vec2D) => void,
+  ) {
     this.addTrainrunSectionWithSourceTarget = callback;
   }
 
-  bindReconnectTrainrunSection(callback) {
+  bindReconnectTrainrunSection(
+    callback: (
+      sourceNode: Node,
+      targetNode: Node,
+      existingTrainrunSection: TrainrunSection,
+      enforceUpdate?: boolean,
+    ) => void,
+  ) {
     this.reconnectTrainrunSection = callback;
   }
 
-  bindDeleteTrainrunSection(callback) {
+  bindDeleteTrainrunSection(callback: (trainrunSection: TrainrunSection) => void) {
     this.deleteTrainrunSection = callback;
   }
 
-  bindUndockTransition(callback) {
+  bindUndockTransition(
+    callback: (nodeId: number, transitionId: number) => TrainrunSection | undefined,
+  ) {
     this.undockTransition = callback;
   }
 
-  bindAddConnectionToNode(callback) {
+  bindAddConnectionToNode(
+    callback: (
+      node: Node,
+      trainrunSectionFrom: TrainrunSection,
+      trainrunSectionTo: TrainrunSection,
+    ) => void,
+  ) {
     this.addConnectionToNode = callback;
   }
 
-  bindRemoveConnectionFromNode(callback) {
+  bindRemoveConnectionFromNode(callback: (connection: Connection, node: Node) => void) {
     this.removeConnectionFromNode = callback;
   }
 
-  bindMoveSelectedNodes(callback) {
+  bindMoveSelectedNodes(
+    callback: (
+      deltaPositionX: number,
+      deltaPositionY: number,
+      round: number,
+      dragEnd: boolean,
+    ) => void,
+  ) {
     this.moveSelectedNodes = callback;
   }
 
-  bindMoveSelectedNotes(callback) {
+  bindMoveSelectedNotes(
+    callback: (
+      deltaPositionX: number,
+      deltaPositionY: number,
+      round: number,
+      dragEnd: boolean,
+    ) => void,
+  ) {
     this.moveSelectedNotes = callback;
   }
 
-  bindShowNodeInformation(callback) {
+  bindShowNodeInformation(callback: (node: Node) => void) {
     this.showNodeInformation = callback;
   }
 
-  bindShowTrainrunInformation(callback) {
+  bindShowTrainrunInformation(
+    callback: (trainrunSection: TrainrunSection, position: Vec2D) => void,
+  ) {
     this.showTrainrunInformation = callback;
   }
 
-  bindShowTrainrunSectionInformation(callback) {
+  bindShowTrainrunSectionInformation(
+    callback: (
+      trainrunSection: TrainrunSection,
+      position: Vec2D,
+      trainrunSectionText?: TrainrunSectionText,
+    ) => void,
+  ) {
     this.showTrainrunSectionInformation = callback;
   }
 
@@ -226,231 +327,257 @@ export class EditorView implements SVGMouseControllerObserver {
     return this.uiInteractionService.getActiveTrafficSideType();
   }
 
-  bindShowTrainrunOneWayInformation(callback) {
+  bindShowTrainrunOneWayInformation(
+    callback: (trainrunSection: TrainrunSection, position: Vec2D) => void,
+  ) {
     this.showTrainrunOneWayInformation = callback;
   }
 
-  bindSetTrainrunAsSelected(callback) {
+  bindSetTrainrunAsSelected(callback: (trainrun: Trainrun) => void) {
     this.setTrainrunAsSelected = callback;
   }
 
-  bindClickSelectedTrainrunSection(callback) {
+  bindClickSelectedTrainrunSection(
+    callback: (informSelectedTrainrunClick: InformSelectedTrainrunClick) => void,
+  ) {
     this.clickSelectedTrainrunSection = callback;
   }
 
-  bindSetTrainrunSectionAsSelected(callback) {
+  bindSetTrainrunSectionAsSelected(callback: (trainrunSection: TrainrunSection) => void) {
     this.setTrainrunSectionAsSelected = callback;
   }
 
-  bindGetSelectedTrainrun(callback) {
+  bindGetSelectedTrainrun(callback: () => Trainrun) {
     this.getSelectedTrainrun = callback;
   }
 
-  bindGetCumulativeTravelTime(callback) {
+  bindGetCumulativeTravelTime(
+    callback: (
+      trainrunSection: TrainrunSection,
+      direction: "sourceToTarget" | "targetToSource",
+    ) => number,
+  ) {
     this.getCumulativeTravelTime = callback;
   }
 
-  bindGetCumulativeTravelTimeAndNodePath(callback) {
+  bindGetCumulativeTravelTimeAndNodePath(
+    callback: (
+      trainrunSection: TrainrunSection,
+      direction: "sourceToTarget" | "targetToSource",
+    ) => {
+      node: Node;
+      sumTravelTime: number;
+      trainrunSection: TrainrunSection;
+    }[],
+  ) {
     this.getCumulativeTravelTimeAndNodePath = callback;
   }
 
-  bindUnselectAllTrainruns(callback) {
+  bindUnselectAllTrainruns(callback: () => void) {
     this.unselectAllTrainruns = callback;
   }
 
-  bindUnselectTrainrunSection(callback) {
+  bindUnselectTrainrunSection(callback: (trainrunSectionId: number) => void) {
     this.unselectTrainrunSection = callback;
   }
 
-  bindIsAnyTrainSelected(callback) {
+  bindIsAnyTrainSelected(callback: () => boolean) {
     this.isAnyTrainSelected = callback;
   }
 
-  bindGetConnectedTrainrunIds(callback) {
+  bindGetConnectedTrainrunIds(callback: (trainrun: Trainrun) => number[]) {
     this.getConnectedTrainrunIds = callback;
   }
 
-  bindToggleNonStop(callback) {
+  bindToggleNonStop(callback: (node: Node, t: Transition) => void) {
     this.toggleNonStop = callback;
   }
 
-  bindGetNodeFromTransition(callback) {
+  bindGetNodeFromTransition(callback: (t: Transition) => Node) {
     this.getNodeFromTransition = callback;
   }
 
-  bindSplitTrainrunIntoTwoParts(callback) {
+  bindSplitTrainrunIntoTwoParts(callback: (t: Transition) => void) {
     this.splitTrainrunIntoTwoParts = callback;
   }
 
-  bindCombineTwoTrainruns(callback) {
+  bindCombineTwoTrainruns(callback: (n: Node, port1: Port, port2: Port) => void) {
     this.combineTwoTrainruns = callback;
   }
 
-  bindGetNodeFromConnection(callback) {
+  bindGetNodeFromConnection(callback: (c: Connection) => Node) {
     this.getNodeFromConnection = callback;
   }
 
-  bindIsFilterTravelTimeEnabled(callback) {
+  bindIsFilterTravelTimeEnabled(callback: () => boolean) {
     this.isFilterTravelTimeEnabled = callback;
   }
 
-  bindIsFilterBackwardTravelTimeEnabled(callback) {
+  bindIsFilterBackwardTravelTimeEnabled(callback: () => boolean) {
     this.isFilterBackwardTravelTimeEnabled = callback;
   }
 
-  bindIsfilterTrainrunNameEnabled(callback) {
+  bindIsfilterTrainrunNameEnabled(callback: () => boolean) {
     this.isFilterTrainrunNameEnabled = callback;
   }
 
-  bindIsFilterDirectionArrowsEnabled(callback) {
+  bindIsFilterDirectionArrowsEnabled(callback: () => boolean) {
     this.isFilterDirectionArrowsEnabled = callback;
   }
 
-  bindIsFilterAsymmetryArrowsEnabled(callback) {
+  bindIsFilterAsymmetryArrowsEnabled(callback: () => boolean) {
     this.isFilterAsymmetryArrowsEnabled = callback;
   }
 
-  bindIsfilterArrivalDepartureTimeEnabled(callback) {
+  bindIsfilterArrivalDepartureTimeEnabled(callback: () => boolean) {
     this.isFilterArrivalDepartureTimeEnabled = callback;
   }
 
-  bindIsFilterShowNonStopTimeEnabled(callback) {
+  bindIsFilterShowNonStopTimeEnabled(callback: () => boolean) {
     this.isFilterShowNonStopTimeEnabled = callback;
   }
 
-  bindIsfilterTrainrunCategoryEnabled(callback) {
+  bindIsfilterTrainrunCategoryEnabled(callback: (trainrunCatgory: TrainrunCategory) => boolean) {
     this.isFilterTrainrunCategoryEnabled = callback;
   }
 
-  bindIsTemporaryDisableFilteringOfItemsInViewEnabled(callback) {
+  bindIsTemporaryDisableFilteringOfItemsInViewEnabled(callback: () => boolean) {
     this.isTemporaryDisableFilteringOfItemsInViewEnabled = callback;
   }
 
-  bindCheckFilterNode(callback) {
+  bindCheckFilterNode(callback: (node: Node) => boolean) {
     this.checkFilterNode = callback;
   }
 
-  bindFilterNode(callback) {
+  bindFilterNode(callback: (node: Node) => boolean) {
     this.filterNode = callback;
   }
 
-  bindFilterNote(callback) {
+  bindFilterNote(callback: (note: Note) => boolean) {
     this.filterNote = callback;
   }
 
-  bindCheckFilterNonStopNode(callback) {
+  bindCheckFilterNonStopNode(callback: (node: Node) => boolean) {
     this.checkFilterNonStopNode = callback;
   }
 
-  bindDisplayNodesFullName(callback) {
+  bindDisplayNodesFullName(callback: () => boolean) {
     this.displayNodesFullName = callback;
   }
 
-  bindIsNodeVisible(callback) {
+  bindIsNodeVisible(callback: (node: Node) => boolean) {
     this.isNodeVisible = callback;
   }
 
-  bindIsJunctionNode(callback) {
+  bindIsJunctionNode(callback: (node: Node) => boolean) {
     this.isJunctionNode = callback;
   }
 
-  bindFilterTrainrunsection(callback) {
+  bindFilterTrainrunsection(callback: (trainrunSection: TrainrunSection) => boolean) {
     this.filterTrainrunsection = callback;
   }
 
-  bindFilterTrainrun(callback) {
+  bindFilterTrainrun(callback: (trainrun: Trainrun) => boolean) {
     this.filterTrainrun = callback;
   }
 
-  bindIsFilterTrainrunFrequencyEnabled(callback) {
+  bindIsFilterTrainrunFrequencyEnabled(
+    callback: (trainrunFrequency: TrainrunFrequency) => boolean,
+  ) {
     this.isFilterTrainrunFrequencyEnabled = callback;
   }
 
-  bindIsFilterNotesEnabled(callback) {
+  bindIsFilterNotesEnabled(callback: () => boolean) {
     this.isFilterNotesEnabled = callback;
   }
 
-  bindIsfilterConnectionsEnabled(callback) {
+  bindIsfilterConnectionsEnabled(callback: () => boolean) {
     this.isFilterConnectionsEnabled = callback;
   }
 
-  bindReplaceIntermediateStopWithNode(callback) {
+  bindReplaceIntermediateStopWithNode(
+    callback: (trainsectionId: number, stopIndex: number, nodeId: number) => void,
+  ) {
     this.replaceIntermediateStopWithNode = callback;
   }
 
-  bindGetTimeDisplayPrecision(callback) {
+  bindGetTimeDisplayPrecision(callback: () => number) {
     this.getTimeDisplayPrecision = callback;
   }
 
-  bindSetTimeDisplayPrecision(callback) {
+  bindSetTimeDisplayPrecision(callback: (precision: number) => void) {
     this.setTimeDisplayPrecision = callback;
   }
 
-  bindSelectNode(callback) {
+  bindSelectNode(callback: (nodeId: number, enforceUpdate?: boolean) => void) {
     this.selectNode = callback;
   }
 
-  bindSelectNote(callback) {
+  bindSelectNote(callback: (noteId: number) => void) {
     this.selectNote = callback;
   }
 
-  bindUnselectNode(callback) {
+  bindUnselectNode(callback: (nodeId: number, enforceUpdate?: boolean) => void) {
     this.unselectNode = callback;
   }
 
-  bindUnselectNote(callback) {
+  bindUnselectNote(callback: (noteId: number) => void) {
     this.unselectNote = callback;
   }
 
-  bindUnselectAllNodes(callback) {
+  bindUnselectAllNodes(callback: (enforceUpdate?: boolean) => void) {
     this.unselectAllNodes = callback;
   }
 
-  bindUnselectAllNotes(callback) {
+  bindUnselectAllNotes(callback: () => void) {
     this.unselectAllNotes = callback;
   }
 
-  bindUnselectAllTrainrunSections(callback) {
+  bindUnselectAllTrainrunSections(callback: () => void) {
     this.unselectAllTrainrunSections = callback;
   }
 
-  bindIsNodeSelected(callback) {
+  bindIsNodeSelected(callback: (nodeId: number) => boolean) {
     this.isNodeSelected = callback;
   }
 
-  bindIsNoteSelected(callback) {
+  bindIsNoteSelected(callback: (noteId: number) => boolean) {
     this.isNoteSelected = callback;
   }
 
-  bindAddNote(callback) {
+  bindAddNote(callback: (position: Vec2D, clickPosition: Vec2D) => void) {
     this.addNote = callback;
   }
 
-  bindEditNote(callback) {
+  bindEditNote(callback: (inputNoteId: number, clickPosition: Vec2D) => void) {
     this.editNote = callback;
   }
 
-  bindMoveNote(callback) {
+  bindMoveNote(
+    callback: (inputNoteId: number, newPosition: Vec2D, round: number, dragEnd: boolean) => void,
+  ) {
     this.moveNote = callback;
   }
 
-  bindGetNoteLayerIndex(callback) {
+  bindGetNoteLayerIndex(callback: (noteId: number) => number) {
     this.getNoteLayerIndex = callback;
   }
 
-  bindCalculateShortestDistanceNodesFromStartingNode(callback) {
+  bindCalculateShortestDistanceNodesFromStartingNode(callback: (departureNodeId: number) => void) {
     this.calculateShortestDistanceNodesFromStartingNode = callback;
   }
 
-  bindCalculateShortestDistanceNodesFromStartingTrainrunSection(callback) {
+  bindCalculateShortestDistanceNodesFromStartingTrainrunSection(
+    callback: (trainrunSectionId: number, departureNodeId: number) => void,
+  ) {
     this.calculateShortestDistanceNodesFromStartingTrainrunSection = callback;
   }
 
-  bindPauseUndoRecording(callback) {
+  bindPauseUndoRecording(callback: () => void) {
     this.pauseUndoRecording = callback;
   }
 
-  bindStartUndoRecording(callback) {
+  bindStartUndoRecording(callback: () => void) {
     this.startUndoRecording = callback;
   }
 
