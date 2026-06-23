@@ -318,8 +318,8 @@ export class PositionTransformationService {
       );
       const direction = srcDir === tgtDir ? srcDir : `${srcDir}/${tgtDir}`;
       const key = [srcNodeObj.getBetriebspunktName(), tgtNodeObj.getBetriebspunktName()]
-            .sort()
-            .join(" – ");
+        .sort()
+        .join(" – ");
 
       const deficit = MIN_SECTION_LENGTH_PX - length;
       const steps = Math.max(Math.ceil(deficit / (2 * RASTERING_BASIC_GRID_SIZE)), 1);
@@ -413,16 +413,18 @@ export class PositionTransformationService {
       if (!isHorizontal && direction !== "vertical") {
         continue;
       }
-      if ((srcCenter <= center) === (tgtCenter <= center)) {
+      if (srcCenter <= center === tgtCenter <= center) {
         continue;
       }
 
       const currentLength = Vec2D.norm(Vec2D.sub(tgt, src));
-      const allowable = Math.floor(
-        (currentLength - minLength) / 2 / RASTERING_BASIC_GRID_SIZE,
-      ) * RASTERING_BASIC_GRID_SIZE;
+      const allowable =
+        Math.floor((currentLength - minLength) / 2 / RASTERING_BASIC_GRID_SIZE) *
+        RASTERING_BASIC_GRID_SIZE;
       if (allowable < maxDelta) {
-        console.log(`  [limit] edge ${edgeKey} (${Math.round(currentLength)}px) constrains delta to ${allowable}px`);
+        console.log(
+          `  [limit] edge ${edgeKey} (${Math.round(currentLength)}px) constrains delta to ${allowable}px`,
+        );
       }
       maxDelta = Math.min(maxDelta, allowable);
     }
