@@ -17,6 +17,7 @@ import {LabelGroupService} from "../../services/data/labelgroup.service";
 import {LabelGroup} from "../../models/labelGroup.model";
 import {VersionControlService} from "../../services/data/version-control.service";
 import {PositionTransformationService} from "../../services/util/position.transformation.service";
+import {AutoLayoutService} from "../../services/util/auto-layout.service";
 import {OrderingAlgorithm} from "../../data-structures/technical.data.structures";
 import {SbbRadioChange} from "@sbb-esta/angular/radio-button";
 
@@ -64,6 +65,7 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     private uiInteractionService: UiInteractionService,
     private versionControlService: VersionControlService,
     private positionTransformationService: PositionTransformationService,
+    private autoLayoutService: AutoLayoutService,
   ) {
     this.nodeLabelGroups = this.labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Node);
     this.trainrunLabelGroups = this.labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Trainrun);
@@ -193,7 +195,7 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     console.log(
       "onAutomaticNodeLayout: call automatic node layouting --- Implement your callback logic here ---",
     );
-    this.positionTransformationService.callRobustAutomaticNodeLayouting();
+    this.autoLayoutService.callRobustAutomaticNodeLayouting();
   }
 
   onAlignElementsLeft() {
