@@ -3,6 +3,7 @@ import {Node} from "../../models/node.model";
 import {NodeService} from "../data/node.service";
 import {TrainrunSectionService} from "../data/trainrunsection.service";
 import {ViewportCullService} from "../ui/viewport.cull.service";
+import {Rectangle, removeOverlaps} from "webcola";
 
 @Injectable({
   providedIn: "root",
@@ -27,125 +28,30 @@ export class AutoLayoutService {
     this.viewportCullService.onViewportChangeUpdateRendering(true);
   }
 
-  callRobustAutomaticNodeLayouting() {
-    console.log("Running Spring Layout…");
+  applyAutoSpacing(minSpacing: number) {
+    const selectedNodeIds = new Set(this.nodeService.getSelectedNodes().map(n => n.getId()));
+    const rectangleByNodeId = new Map<number, Rectangle>;
 
-    const nodes = this.nodeService.getNodes();
-    const edges: Array<{source: Node; target: Node}> = [];
-
-    // Build edge list from ports
-    //
-    //                          . --------.
-    //                          |         |
-    //  --- trainrunSection ----o         |
-    //  --- trainrunSection ----o  NODE A |
-    //  --- trainrunSection ----o--- t ---o----- trainrunSection ----
-    //                          |         |
-    //                          '---------'
-    //  o : port with reference to trainrunSection
-    //  t : transition with reference to trainrunSection
-
-    nodes.forEach((n) => {
-      n.getPorts().forEach((p) => {
-        const opp = p.getOppositeNode(n.getId());
-
-        const transition = n.getTransitionFromPortId(p.getId());
-        const trainrun = transition?.getTrainrun();
-        const trainrunSection = p.getTrainrunSection();
-
-        console.log(
-          "node:",
-          n,
-          "OppNode:",
-          opp,
-          "Port:",
-          p,
-          "Transition:",
-          transition,
-          "TrainrunSection:",
-          trainrunSection,
-          "Trainrun:",
-          trainrun,
-        );
-
-        if (opp) {
-          edges.push({source: n, target: opp});
-        }
-      });
+    this.nodeService.getNodes().forEach((node) => {
+      const margin = selectedNodeIds.has(node.getId()) ? minSpacing / 2 : 0;
+      const rectangle = new Rectangle(
+        node.getPositionX() - margin,
+        node.getPositionX() + node.getNodeWidth() + margin,
+        node.getPositionY() - margin,
+        node.getPositionY() + node.getNodeHeight() + margin
+      );
+      rectangleByNodeId.set(node.getId(), rectangle);
     });
 
-    // Spring layout parameters
-    const ITERATIONS = 200;
-    const SPRING_LENGTH = 150;
-    const SPRING_STRENGTH = 0.01;
-    const REPULSION = 50000;
-    const DAMPING = 0.85;
+    removeOverlaps(Array.from(rectangleByNodeId.values()));
 
-    // Initialize velocities (FIX: number keys instead of string)
-    const velocity = new Map<number, {x: number; y: number}>();
-    nodes.forEach((n) => velocity.set(n.getId(), {x: 0, y: 0}));
-
-    for (let iter = 0; iter < ITERATIONS; iter++) {
-      // Forces per node
-      const forces = new Map<number, {x: number; y: number}>();
-      nodes.forEach((n) => forces.set(n.getId(), {x: 0, y: 0}));
-
-      // --- REPULSION (Coulomb) ---
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const a = nodes[i];
-          const b = nodes[j];
-
-          const dx = a.getPositionX() - b.getPositionX();
-          const dy = a.getPositionY() - b.getPositionY();
-          const distSq = dx * dx + dy * dy || 0.01;
-          const force = REPULSION / distSq;
-
-          const fx = (dx / Math.sqrt(distSq)) * force;
-          const fy = (dy / Math.sqrt(distSq)) * force;
-
-          forces.get(a.getId())!.x += fx;
-          forces.get(a.getId())!.y += fy;
-          forces.get(b.getId())!.x -= fx;
-          forces.get(b.getId())!.y -= fy;
-        }
-      }
-
-      // --- SPRINGS (Hooke) ---
-      edges.forEach((e) => {
-        const a = e.source;
-        const b = e.target;
-
-        const dx = b.getPositionX() - a.getPositionX();
-        const dy = b.getPositionY() - a.getPositionY();
-        const dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
-
-        const displacement = dist - SPRING_LENGTH;
-        const force = SPRING_STRENGTH * displacement;
-
-        const fx = (dx / dist) * force;
-        const fy = (dy / dist) * force;
-
-        forces.get(a.getId())!.x += fx;
-        forces.get(a.getId())!.y += fy;
-        forces.get(b.getId())!.x -= fx;
-        forces.get(b.getId())!.y -= fy;
-      });
-
-      // --- UPDATE POSITIONS ---
-      nodes.forEach((n) => {
-        const f = forces.get(n.getId())!;
-        const v = velocity.get(n.getId())!;
-
-        // Apply damping
-        v.x = (v.x + f.x) * DAMPING;
-        v.y = (v.y + f.y) * DAMPING;
-
-        n.setPosition(n.getPositionX() + v.x, n.getPositionY() + v.y);
-      });
-    }
-
-    console.log("Spring Layout finished.");
+    rectangleByNodeId.forEach((rectangle, nodeId) => {
+      const node = this.nodeService.getNodeFromId(nodeId);
+      node.setPosition(
+        rectangle.cx() - node.getNodeWidth() / 2,
+        rectangle.cy() - node.getNodeHeight() / 2
+      );
+    });
 
     // Trigger rendering updates
     this.nodeService.nodesUpdated();

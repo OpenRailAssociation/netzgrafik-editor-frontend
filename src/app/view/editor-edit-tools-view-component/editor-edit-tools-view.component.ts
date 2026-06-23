@@ -51,6 +51,7 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     },
   ];
   activeOrderingAlgorithm: OrderingAlgorithm = null;
+  minSpacing: number = 200;
 
   constructor(
     private dataService: DataService,
@@ -191,11 +192,8 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     this.uiInteractionService.setActiveOrderingAlgorithm(event.value);
   }
 
-  onAutomaticNodeLayout() {
-    console.log(
-      "onAutomaticNodeLayout: call automatic node layouting --- Implement your callback logic here ---",
-    );
-    this.autoLayoutService.callRobustAutomaticNodeLayouting();
+  onAutoSpacing() {
+    this.autoLayoutService.applyAutoSpacing(this.minSpacing);
   }
 
   onAlignElementsLeft() {

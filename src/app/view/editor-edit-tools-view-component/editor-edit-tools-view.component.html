@@ -159,20 +159,32 @@
   <sbb-expansion-panel>
     <sbb-expansion-panel-header>
       <label>
-        {{ "app.view.editor-edit-tools-view-component.node-auto-layouting-title" | translate }}
+        {{ "app.view.editor-edit-tools-view-component.node-auto-spacing-title" | translate }}
       </label>
     </sbb-expansion-panel-header>
+
+    <sbb-form-field
+      [label]="'app.view.editor-edit-tools-view-component.node-auto-spacing-margin' | translate"
+    >
+      <input
+        sbbInput
+        type="number"
+        pattern="^[.0-9]*"
+        [(ngModel)]="minSpacing"
+      />
+    </sbb-form-field>
+
     <br />
     <button
-      (click)="onAutomaticNodeLayout()"
+      (click)="onAutoSpacing()"
       [title]="
-        'app.view.editor-edit-tools-view-component.call-robust-auto-layout-algorithm' | translate
+        'app.view.editor-edit-tools-view-component.call-node-auto-spacing' | translate
       "
       class="TrainrunDialog EditorToolButton"
     >
       <sbb-icon svgIcon="checkpoints-small"></sbb-icon>
     </button>
-    {{ "app.view.editor-edit-tools-view-component.call-robust-auto-layout-algorithm" | translate }}
+    {{ "app.view.editor-edit-tools-view-component.call-node-auto-spacing" | translate }}
   </sbb-expansion-panel>
 
   <sbb-expansion-panel *ngIf="getAreMultiObjectSelected()" [expanded]="getAreMultiObjectSelected()">
