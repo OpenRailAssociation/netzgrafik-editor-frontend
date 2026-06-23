@@ -12,6 +12,7 @@ import {Note} from "../../models/note.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {RASTERING_BASIC_GRID_SIZE} from "../../view/rastering/definitions";
+import { NUMPAD_EIGHT } from "@angular/cdk/keycodes";
 
 @Injectable({
   providedIn: "root",
@@ -298,6 +299,18 @@ export class PositionTransformationService {
     sign = 1,
     maxShrink = false,
   ): void {
+    const nodesToNeighborNodes: Map<number, Set<number>> = new Map();
+    this.nodeService.getNodes().forEach((n) => {
+      const neighbors: Set<number> = new Set();
+      n.getPorts().forEach((p) => {
+        const trainrunSection = p.getTrainrunSection();
+        if (trainrunSection) {
+          const neighborNode = p.getOppositeNode(n.getId());
+          neighbors.add(neighborNode.getId());
+        }
+      });
+      nodesToNeighborNodes.set(n.getId(), neighbors);
+    });
     const MIN_SECTION_LENGTH_PX = 200;
 
     const toDirection = (a: PortAlignment) =>
@@ -334,6 +347,10 @@ export class PositionTransformationService {
       const centerX = (src.getX() + tgt.getX()) / 2;
       const centerY = (src.getY() + tgt.getY()) / 2;
 
+      const srcNodeComponent = this.getComponent(srcNodeObj, tgtNodeObj, nodesToNeighborNodes);
+      const sectionSplitsComponents = !srcNodeComponent.has(tgtNodeObj.getId());
+      const tgtNodeComponent = sectionSplitsComponents ? this.getComponent(tgtNodeObj, srcNodeObj, nodesToNeighborNodes) : undefined;
+
       if (sign < 0) {
         delta = this.limitDeltaForMinEdgeLength(
           delta,
@@ -341,6 +358,7 @@ export class PositionTransformationService {
           centerX,
           centerY,
           MIN_SECTION_LENGTH_PX,
+          sectionSplitsComponents ? [section] : this.trainrunSectionService.getTrainrunSections(),
         );
         if (delta <= 0) {
           console.log(`  [skip] ${key}: cannot shrink without violating minimum edge length`);
@@ -349,9 +367,18 @@ export class PositionTransformationService {
       }
 
       if (direction === "horizontal") {
+        const srcNodeFactor = (srcNodeObj.getPositionX() + srcNodeObj.getNodeWidth() / 2) <= centerX ? -1 : 1;
         this.nodeService.getNodes().forEach((node: Node) => {
           const nodeCenterX = node.getPositionX() + node.getNodeWidth() / 2;
-          const dx = (nodeCenterX <= centerX ? -1 : 1) * sign * delta;
+          var factor = nodeCenterX <= centerX ? -1 : 1;
+          if (sectionSplitsComponents && srcNodeComponent.has(node.getId())) {
+            factor = srcNodeFactor;
+          } else if (sectionSplitsComponents && tgtNodeComponent?.has(node.getId())) {
+            factor = -srcNodeFactor;
+          } else if (sectionSplitsComponents && !srcNodeComponent.has(node.getId()) && !tgtNodeComponent?.has(node.getId())) {
+            factor = 0;
+          }
+          const dx = factor * sign * delta;
           this.nodeService.changeNodePositionWithoutUpdate(
             node.getId(),
             node.getPositionX() + dx,
@@ -361,9 +388,18 @@ export class PositionTransformationService {
           );
         });
       } else if (direction === "vertical") {
+        const srcNodeFactor = (srcNodeObj.getPositionY() + srcNodeObj.getNodeHeight() / 2) <= centerY ? -1 : 1;
         this.nodeService.getNodes().forEach((node: Node) => {
           const nodeCenterY = node.getPositionY() + node.getNodeHeight() / 2;
-          const dy = (nodeCenterY <= centerY ? -1 : 1) * sign * delta;
+          var factor = nodeCenterY <= centerY ? -1 : 1;
+          if (sectionSplitsComponents && srcNodeComponent.has(node.getId())) {
+            factor = srcNodeFactor;
+          } else if (sectionSplitsComponents && tgtNodeComponent?.has(node.getId())) {
+            factor = -srcNodeFactor;
+          } else if (sectionSplitsComponents && !srcNodeComponent.has(node.getId()) && !tgtNodeComponent?.has(node.getId())) {
+            factor = 0;
+          }
+          const dy = factor * sign * delta;
           this.nodeService.changeNodePositionWithoutUpdate(
             node.getId(),
             node.getPositionX(),
@@ -393,8 +429,8 @@ export class PositionTransformationService {
     centerX: number,
     centerY: number,
     minLength: number,
+    allSections: TrainrunSection[],
   ): number {
-    const allSections = this.trainrunSectionService.getTrainrunSections();
     let maxDelta = delta;
 
     for (const section of allSections) {
@@ -436,5 +472,29 @@ export class PositionTransformationService {
     }
 
     return maxDelta;
+  }
+
+  private getComponent(node: Node, otherNode: Node, nodesToNeighborNodes: Map<number, Set<number>>): Set<number> {
+    const visited: Set<number> = new Set();
+    const stack: number[] = [node.getId()];
+
+    while (stack.length > 0) {
+      const currentNodeId = stack.pop();
+      if (currentNodeId === undefined || visited.has(currentNodeId)) {
+        continue;
+      }
+      visited.add(currentNodeId);
+      const neighbors = nodesToNeighborNodes.get(currentNodeId);
+      if (neighbors) {
+        neighbors.forEach((neighborId) => {
+          if (!visited.has(neighborId) 
+            && !(currentNodeId === node.getId() && neighborId === otherNode.getId())) {
+            stack.push(neighborId);
+          }
+        });
+      }
+    }
+
+    return visited;
   }
 }
