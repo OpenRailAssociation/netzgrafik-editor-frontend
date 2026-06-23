@@ -1201,7 +1201,7 @@ export class NodeService implements OnDestroy {
     this.nodesStore.nodes = this.nodesStore.nodes.filter((n) => n.getId() !== nodeId);
   }
 
-  private changeNodePositionWithoutUpdate(
+  changeNodePositionWithoutUpdate(
     nodeId: number,
     newPositionX: number,
     newPositionY: number,
