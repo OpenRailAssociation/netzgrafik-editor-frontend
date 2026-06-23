@@ -142,7 +142,11 @@ export class EditorKeyEvents {
           }
           break;
         case "KeyI":
-          this.positionTransformationService.stretchShortSections(this.trainrunSectionService.getTrainrunSections());
+          if (shiftKey) {
+            this.positionTransformationService.stretchShortSections(this.trainrunSectionService.getTrainrunSections(), false, -1);
+          } else {
+            this.positionTransformationService.stretchShortSections(this.trainrunSectionService.getTrainrunSections());
+          }
           break;
         case "KeyE":
           if (shiftKey) {
