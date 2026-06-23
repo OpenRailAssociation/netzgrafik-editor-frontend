@@ -4,8 +4,8 @@ import {PortAlignment} from "../../data-structures/technical.data.structures";
 
 const FONT = "16px Arial";
 const VERTICAL_ADDITION = 2;
-const MARGIN_CONSTANT = 50;
-const MULTIPLICATION_FACTOR_DUE_TO_ALIGNMENT = 2;
+const MARGIN_CONSTANT = 100;
+const MULTIPLICATION_FACTOR_DUE_TO_ALIGNMENT = 1.9;
 
 @Injectable({
   providedIn: "root",
