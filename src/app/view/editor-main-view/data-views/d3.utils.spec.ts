@@ -132,13 +132,13 @@ describe("3d.Utils.tests", () => {
     );
 
     const positionTransformationService = new PositionTransformationService(
-          trainrunSectionService,
-          trainrunService,
-          nodeService,
-          noteService,
-          uiInteractionService,
-          viewportCullService,
-        );
+      trainrunSectionService,
+      trainrunService,
+      nodeService,
+      noteService,
+      uiInteractionService,
+      viewportCullService,
+    );
 
     const controller = new EditorMainViewComponent(
       nodeService,
