@@ -9,6 +9,7 @@ import {ViewportCullService} from "../ui/viewport.cull.service";
 import {NodeOperation, Operation, OperationType} from "src/app/models/operation.model";
 import {Note} from "../../models/note.model";
 import { TrainrunSection } from "src/app/models/trainrunsection.model";
+import { max } from "d3";
 
 @Injectable({
   providedIn: "root",
@@ -289,48 +290,66 @@ export class PositionTransformationService {
   }
 
   callRobustAutomaticNodeLayouting() {
-    var smallestSection: TrainrunSection | undefined = undefined;
-    var smallestSectionNorm: number = Number.MAX_VALUE;
-    
-    const sections = this.trainrunSectionService.getTrainrunSections();
-    sections.forEach((trainrunSection) => {
-        const sourcePosition = trainrunSection.getPositionAtSourceNode();
-        const targetPosition = trainrunSection.getPositionAtTargetNode();
-        const norm = Vec2D.norm(Vec2D.sub(targetPosition,sourcePosition));
+    var maxIterations = 100;
+    while (maxIterations-- > 0) {
+      var smallestSection: TrainrunSection | undefined = undefined;
+      var smallestSectionNorm: number = Number.MAX_VALUE;
+      
+      const sections = this.trainrunSectionService.getTrainrunSections();
+      sections.forEach((trainrunSection) => {
+          const sourcePosition = trainrunSection.getPositionAtSourceNode();
+          const targetPosition = trainrunSection.getPositionAtTargetNode();
+          const norm = Vec2D.norm(Vec2D.sub(targetPosition, sourcePosition));
 
-        if (norm < 250 && norm < smallestSectionNorm) {
-          smallestSection = trainrunSection;
-          smallestSectionNorm = norm;
-        }
-    });
+          if (norm < 250 && norm < smallestSectionNorm) {
+            smallestSection = trainrunSection;
+            smallestSectionNorm = norm;
+          }
+      });
 
-    console.log("Smallest section: ", smallestSection, "norm", smallestSectionNorm);
-    if (!smallestSection) {
-      console.log("No small sections, all is well in the world!");
-      return;
-    }
-
-    const sourcePosition = smallestSection.getPositionAtSourceNode();
-    const targetPosition = smallestSection.getPositionAtTargetNode();
-    const direction = Vec2D.sub(targetPosition,sourcePosition);
-    const norm = Vec2D.norm(direction);
-
-    const midX = (smallestSection.getSourceNode().getPositionX() + smallestSection.getTargetNode().getPositionX()) / 2.0;
-    const midY = (smallestSection.getSourceNode().getPositionY() + smallestSection.getTargetNode().getPositionY()) / 2.0;
-    const centerPosition = new Vec2D(midX, midY);
-
-    const translationVector = Vec2D.scale(Vec2D.normalize(direction), (251 - norm));
-
-    this.nodeService.getNodes().forEach((n) => {
-      const x = n.getPositionX();
-      const y = n.getPositionY();
-      const pos = new Vec2D(x, y);
-      const vectorFromCenter = Vec2D.sub(pos, centerPosition);
-
-      if (Vec2D.dotProduct(vectorFromCenter, direction) > 0) {
-        n.setPosition(n.getPositionX() + translationVector.getX(), n.getPositionY() + translationVector.getY());
+      if (!smallestSection) {
+        console.log("No small sections, all is well in the world!");
+        break;
       }
-    });
+      console.log("Smallest section: ", smallestSection, "norm", smallestSectionNorm);
+
+      const sourcePosition = (<TrainrunSection>smallestSection).getPositionAtSourceNode();
+      const targetPosition = (<TrainrunSection>smallestSection).getPositionAtTargetNode();
+      
+      const direction = Vec2D.sub(targetPosition, sourcePosition);
+      const norm = Vec2D.norm(direction);
+      const sourceNode = (<TrainrunSection>smallestSection).getSourceNode();
+      const targetNode = (<TrainrunSection>smallestSection).getTargetNode();
+      const centerSource = new Vec2D(
+        sourceNode.getPositionX() + sourceNode.getNodeWidth() / 2.0,
+        sourceNode.getPositionY() + sourceNode.getNodeHeight() / 2.0);
+      const centerTarget = new Vec2D(
+        targetNode.getPositionX() + targetNode.getNodeWidth() / 2.0,
+        targetNode.getPositionY() + targetNode.getNodeHeight() / 2.0);
+      const centerPosition = Vec2D.calculateCentroidOfPoints([centerSource, centerTarget]);
+      const translationVector = Vec2D.scale(Vec2D.normalize(direction), (251 - norm));
+
+      this.nodeService.getNodes().forEach((n) => {
+        const x = n.getPositionX() + n.getNodeWidth() / 2.0;
+        const y = n.getPositionY() + n.getNodeHeight() / 2.0;
+        const pos = new Vec2D(x, y);
+        const vectorFromCenter = Vec2D.sub(pos, centerPosition);
+
+        if (Vec2D.dotProduct(vectorFromCenter, direction) > 0) {
+          n.setPosition(n.getPositionX() + translationVector.getX(), n.getPositionY() + translationVector.getY());
+        }
+      });
+      
+      this.nodeService.initPortOrdering();
+      this.trainrunSectionService.getTrainrunSections().forEach((ts) => {
+        ts.routeEdgeAndPlaceText();
+      });
+    }
+    if (maxIterations <= 0) {
+      console.log("Max iterations reached, layouting might not be optimal!");
+    } else {
+      console.log("Iterations left, ", maxIterations);
+    }
 
     this.nodeService.nodesUpdated();
     this.trainrunSectionService.trainrunSectionsUpdated();
