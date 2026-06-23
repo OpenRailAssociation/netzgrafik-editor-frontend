@@ -300,14 +300,21 @@ export class PositionTransformationService {
     maxShrink = false,
   ): void {
     const nodesToNeighborNodes: Map<number, Set<number>> = new Map();
+    const nodePairToSections: Map<string, TrainrunSection[]> = new Map();
     this.nodeService.getNodes().forEach((n) => {
       const neighbors: Set<number> = new Set();
+      const sectionsByNeighborNode: Map<number, TrainrunSection[]> = new Map();
       n.getPorts().forEach((p) => {
         const trainrunSection = p.getTrainrunSection();
         if (trainrunSection) {
           const neighborNode = p.getOppositeNode(n.getId());
           neighbors.add(neighborNode.getId());
+          sectionsByNeighborNode.get(neighborNode.getId())?.push(trainrunSection) ||  sectionsByNeighborNode.set(neighborNode.getId(), [trainrunSection]);
         }
+      });
+      sectionsByNeighborNode.forEach((sections, neighborNodeId) => {
+        const nodePairKey = [n.getId(), neighborNodeId].sort().join("-");
+        nodePairToSections.set(nodePairKey, sections);
       });
       nodesToNeighborNodes.set(n.getId(), neighbors);
     });
@@ -352,13 +359,15 @@ export class PositionTransformationService {
       const tgtNodeComponent = sectionSplitsComponents ? this.getComponent(tgtNodeObj, srcNodeObj, nodesToNeighborNodes) : undefined;
 
       if (sign < 0) {
+        const nodePairKey = [section.getSourceNodeId(), section.getTargetNodeId()].sort().join("-");
+        const sections = nodePairToSections.get(nodePairKey)!;
         delta = this.limitDeltaForMinEdgeLength(
           delta,
           direction,
           centerX,
           centerY,
           MIN_SECTION_LENGTH_PX,
-          sectionSplitsComponents ? [section] : this.trainrunSectionService.getTrainrunSections(),
+          sectionSplitsComponents ? sections : this.trainrunSectionService.getTrainrunSections(),
         );
         if (delta <= 0) {
           console.log(`  [skip] ${key}: cannot shrink without violating minimum edge length`);
