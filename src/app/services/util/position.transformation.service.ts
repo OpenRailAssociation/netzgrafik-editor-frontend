@@ -8,6 +8,7 @@ import {Node} from "../../models/node.model";
 import {ViewportCullService} from "../ui/viewport.cull.service";
 import {NodeOperation, Operation, OperationType} from "src/app/models/operation.model";
 import {Note} from "../../models/note.model";
+import ElkConstructor from "elkjs/lib/elk.bundled.js";
 
 @Injectable({
   providedIn: "root",
@@ -287,100 +288,85 @@ export class PositionTransformationService {
     this.updateRendering();
   }
 
+  toElkGraph(nodes: Node[]): any {
+    const elkNodes = nodes.map((n) => ({
+      id: n.getId().toString(),
+      width: n.getNodeWidth(),
+      height: n.getNodeHeight(),
+    }));
+
+    const elkEdges = this.trainrunSectionService.getTrainrunSections().map((ts) => ({
+      id: ts.getId().toString(),
+      source: ts.getSourceNodeId().toString(),
+      target: ts.getTargetNodeId().toString(),
+    }));
+
+    const elkPorts = nodes.flatMap((n) =>
+      n.getPorts().map((p) => ({
+        id: `${n.getId()}-${p.getId()}`,
+        parent: n.getId().toString(),
+      })),
+    );
+
+    return {
+      id: "root",
+      children: elkNodes,
+      edges: elkEdges,
+      // ports: elkPorts,
+    };
+  }
+
+  updateNodePositionsFromElkLayout(elkLayout: any, nodes: Node[]) {
+    const elkNodes = elkLayout.children;
+    elkNodes.forEach((elkNode: any) => {
+      const nodeId = parseInt(elkNode.id, 10);
+      const node = nodes.find((n) => n.getId() === nodeId);
+      if (node) {
+        node.setPosition(elkNode.x, elkNode.y);
+        this.operation.emit(new NodeOperation(OperationType.update, node));
+      }
+    });
+  }
+
   callRobustAutomaticNodeLayouting() {
-    console.log("Running Spring Layout…");
+    console.log("Running Layout…");
 
     const nodes = this.nodeService.getNodes();
-    const edges: Array<{source: any; target: any}> = [];
 
-    // Build edge list from ports
-    nodes.forEach((n) => {
-      n.getPorts().forEach((p) => {
-        const opp = p.getOppositeNode(n.getId());
-        if (opp) {
-          edges.push({source: n, target: opp});
-        }
-      });
+    console.log((new ElkConstructor()).knownLayoutAlgorithms());
+
+    const graph = this.toElkGraph(nodes);
+
+    console.log(graph);
+
+    const elk = new ElkConstructor({
+      defaultLayoutOptions: {
+        "elk.algorithm": "stress",
+        "org.eclipse.elk.stress.desiredEdgeLength": "500",
+        "org.eclipse.elk.stress.epsilon": "10e-3",
+        // "elk.algorithm": "layered",
+        // "elk.direction": "RIGHT",
+        // "elk.layered.spacing.nodeNodeBetweenLayers": "50",
+        // "elk.layered.spacing.nodeNode": "50",
+        // "elk.layered.spacing.edgeEdgeBetweenLayers": "50",
+        // "elk.layered.spacing.edgeEdge": "50",
+        // "elk.layered.spacing.nodeNodeSameLayer": "50",
+        // "elk.layered.spacing.edgeEdgeSameLayer": "50",
+      },
     });
 
-    // Spring layout parameters
-    const ITERATIONS = 200;
-    const SPRING_LENGTH = 150;
-    const SPRING_STRENGTH = 0.01;
-    const REPULSION = 50000;
-    const DAMPING = 0.85;
+    elk.layout(graph)
+      .then((layout) => {
+        console.log("Layout finished.");
 
-    // Initialize velocities (FIX: number keys instead of string)
-    const velocity = new Map<number, {x: number; y: number}>();
-    nodes.forEach((n) => velocity.set(n.getId(), {x: 0, y: 0}));
-
-    for (let iter = 0; iter < ITERATIONS; iter++) {
-      // Forces per node
-      const forces = new Map<number, {x: number; y: number}>();
-      nodes.forEach((n) => forces.set(n.getId(), {x: 0, y: 0}));
-
-      // --- REPULSION (Coulomb) ---
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const a = nodes[i];
-          const b = nodes[j];
-
-          const dx = a.getPositionX() - b.getPositionX();
-          const dy = a.getPositionY() - b.getPositionY();
-          const distSq = dx * dx + dy * dy || 0.01;
-          const force = REPULSION / distSq;
-
-          const fx = (dx / Math.sqrt(distSq)) * force;
-          const fy = (dy / Math.sqrt(distSq)) * force;
-
-          forces.get(a.getId())!.x += fx;
-          forces.get(a.getId())!.y += fy;
-          forces.get(b.getId())!.x -= fx;
-          forces.get(b.getId())!.y -= fy;
-        }
-      }
-
-      // --- SPRINGS (Hooke) ---
-      edges.forEach((e) => {
-        const a = e.source;
-        const b = e.target;
-
-        const dx = b.getPositionX() - a.getPositionX();
-        const dy = b.getPositionY() - a.getPositionY();
-        const dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
-
-        const displacement = dist - SPRING_LENGTH;
-        const force = SPRING_STRENGTH * displacement;
-
-        const fx = (dx / dist) * force;
-        const fy = (dy / dist) * force;
-
-        forces.get(a.getId())!.x += fx;
-        forces.get(a.getId())!.y += fy;
-        forces.get(b.getId())!.x -= fx;
-        forces.get(b.getId())!.y -= fy;
-      });
-
-      // --- UPDATE POSITIONS ---
-      nodes.forEach((n) => {
-        const f = forces.get(n.getId())!;
-        const v = velocity.get(n.getId())!;
-
-        // Apply damping
-        v.x = (v.x + f.x) * DAMPING;
-        v.y = (v.y + f.y) * DAMPING;
-
-        n.setPosition(n.getPositionX() + v.x, n.getPositionY() + v.y);
-      });
-    }
-
-    console.log("Spring Layout finished.");
-
-    // Trigger rendering updates
-    this.nodeService.nodesUpdated();
-    this.nodeService.transitionsUpdated();
-    this.nodeService.connectionsUpdated();
-    this.trainrunSectionService.trainrunSectionsUpdated();
-    this.updateRendering();
+        this.updateNodePositionsFromElkLayout(layout, nodes);
+        
+        this.nodeService.nodesUpdated();
+        this.nodeService.transitionsUpdated();
+        this.nodeService.connectionsUpdated();
+        this.trainrunSectionService.trainrunSectionsUpdated();
+        this.updateRendering();
+      })
+      .catch(console.error);
   }
 }
