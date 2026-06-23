@@ -59,6 +59,10 @@ export class Vec2D {
     return Vec2D.scale(a, 1.0 / n);
   }
 
+  static dotProduct(a: Vec2D, b: Vec2D): number {
+    return a.getX() * b.getX() + a.getY() * b.getY();
+  }
+
   static calculateCentroidOfPoints(points: Vec2D[]): Vec2D {
     let x = 0;
     let y = 0;
