@@ -33,6 +33,7 @@ import {OrderingAlgorithm} from "../../data-structures/technical.data.structures
 import {TrafficSide} from "src/app/data-structures/business.data.structures";
 import {DataService} from "../data/data.service";
 import {Operation, MetadataOperation} from "../../models/operation.model";
+import {Node} from "../../models/node.model";
 
 export interface ViewboxProperties {
   currentViewBox: string;
@@ -365,6 +366,36 @@ export class UiInteractionService implements OnDestroy {
     );
     this.moveNetzgrafikEditorFocalViewPoint(center);
   }
+
+  findClosestNodeToViewCenter(nodes: Node[]): Node | null {
+    const bb = this.nodeService.getNetzgrafikBoundingBox();
+    const center = new Vec2D(
+      (bb.minCoordX + bb.maxCoordX) / 2.0,
+      (bb.minCoordY + bb.maxCoordY) / 2.0,
+    );
+    // const centerX = viewboxProperties.panZoomLeft + viewboxProperties.panZoomWidth / 2;
+    // const centerY = viewboxProperties.panZoomTop + viewboxProperties.panZoomHeight / 2;
+    // const center = new Vec2D(centerX, centerY);
+    let minDistanceNodeToCenter = Number.MAX_VALUE;
+    let closestNodeToCenter: Node | null = null;
+    nodes.forEach((n) => {
+      const distToCenter = Vec2D.norm(
+        Vec2D.sub(new Vec2D(n.getPositionX(), n.getPositionY()), center),
+      );
+      if (distToCenter < minDistanceNodeToCenter) {
+        minDistanceNodeToCenter = distToCenter;
+        closestNodeToCenter = n;
+      }
+    });
+    return closestNodeToCenter;
+  }
+
+  gotoNode(node: Node, offset: Vec2D = new Vec2D(0, 0)) {
+    const x = node.getPositionX() + node.getNodeWidth() / 2.0 + offset.getX();
+    const y = node.getPositionY() + node.getNodeHeight() / 2.0 + offset.getY();
+    this.moveNetzgrafikEditorFocalViewPoint(new Vec2D(x, y));
+  }
+
   showOrCloseFilter(type: FilterWindowType) {
     if (this.isFilterWindowType(type)) {
       this.closeFilter();

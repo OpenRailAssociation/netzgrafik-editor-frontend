@@ -19,6 +19,8 @@ import {VersionControlService} from "../../services/data/version-control.service
 import {PositionTransformationService} from "../../services/util/position.transformation.service";
 import {OrderingAlgorithm} from "../../data-structures/technical.data.structures";
 import {SbbRadioChange} from "@sbb-esta/angular/radio-button";
+import {EditorView} from "../editor-main-view/data-views/editor.view";
+import { Vec2D } from "src/app/utils/vec2D";
 
 @Component({
   selector: "sbb-editor-edit-tools-view-component",
@@ -193,6 +195,9 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     console.log(
       "onAutomaticNodeLayout: call automatic node layouting --- Implement your callback logic here ---",
     );
+    const viewboxProperties = this.uiInteractionService.getViewboxProperties(EditorView.svgName);
+    console.log("onAutomaticNodeLayout: viewboxProperties", viewboxProperties);
+
     this.positionTransformationService.callRobustAutomaticNodeLayouting();
   }
 

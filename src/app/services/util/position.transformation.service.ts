@@ -1,6 +1,6 @@
 import {EventEmitter, Injectable} from "@angular/core";
 import {TrainrunSectionService} from "../data/trainrunsection.service";
-import {UiInteractionService} from "../ui/ui.interaction.service";
+import {UiInteractionService, ViewboxProperties} from "../ui/ui.interaction.service";
 import {NodeService} from "../data/node.service";
 import {NoteService} from "../data/note.service";
 import {Vec2D} from "../../utils/vec2D";
@@ -293,6 +293,8 @@ export class PositionTransformationService {
       id: n.getId().toString(),
       width: n.getNodeWidth(),
       height: n.getNodeHeight(),
+      x: n.getPositionX(),
+      y: n.getPositionY(),
     }));
 
     const elkEdges = this.trainrunSectionService.getTrainrunSections().map((ts) => ({
@@ -333,7 +335,7 @@ export class PositionTransformationService {
 
     const nodes = this.nodeService.getNodes();
 
-    console.log((new ElkConstructor()).knownLayoutAlgorithms());
+    console.log(new ElkConstructor().knownLayoutAlgorithms());
 
     const graph = this.toElkGraph(nodes);
 
@@ -341,31 +343,27 @@ export class PositionTransformationService {
 
     const elk = new ElkConstructor({
       defaultLayoutOptions: {
-        "elk.algorithm": "stress",
-        "org.eclipse.elk.stress.desiredEdgeLength": "500",
-        "org.eclipse.elk.stress.epsilon": "10e-3",
-        // "elk.algorithm": "layered",
-        // "elk.direction": "RIGHT",
-        // "elk.layered.spacing.nodeNodeBetweenLayers": "50",
-        // "elk.layered.spacing.nodeNode": "50",
-        // "elk.layered.spacing.edgeEdgeBetweenLayers": "50",
-        // "elk.layered.spacing.edgeEdge": "50",
-        // "elk.layered.spacing.nodeNodeSameLayer": "50",
-        // "elk.layered.spacing.edgeEdgeSameLayer": "50",
+        "elk.algorithm": "sporeOverlap",
+        "elk.spacing.nodeNode": "450",
       },
     });
 
-    elk.layout(graph)
+    elk
+      .layout(graph)
       .then((layout) => {
         console.log("Layout finished.");
 
         this.updateNodePositionsFromElkLayout(layout, nodes);
-        
+
         this.nodeService.nodesUpdated();
         this.nodeService.transitionsUpdated();
         this.nodeService.connectionsUpdated();
         this.trainrunSectionService.trainrunSectionsUpdated();
         this.updateRendering();
+        const closestNodeToCenter = this.uiInteractionService.findClosestNodeToViewCenter(nodes);
+        if (closestNodeToCenter !== null) {
+          this.uiInteractionService.gotoNode(closestNodeToCenter);
+        }
       })
       .catch(console.error);
   }
