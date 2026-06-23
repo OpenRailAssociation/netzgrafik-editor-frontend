@@ -750,7 +750,14 @@ export class TrainrunSectionsView {
     return info;
   }
 
-  static filterVirtualTravelTime(startNode: Node, info) {
+  static filterVirtualTravelTime(
+    startNode: Node,
+    info: {
+      virtualTravelTime: number | undefined;
+      endNode: Node;
+      isBreak: boolean;
+    },
+  ) {
     if (startNode.getPositionX() > info.endNode.getPositionX()) {
       info.virtualTravelTime = undefined;
       return info;
@@ -1809,7 +1816,7 @@ export class TrainrunSectionsView {
 
   displayTrainrunSection(trainrunSections: TrainrunSection[]) {
     const selectedTrainrun: Trainrun = this.editorView.getSelectedTrainrun();
-    let connectedTrainIds = [];
+    let connectedTrainIds: number[] = [];
     if (selectedTrainrun !== null) {
       connectedTrainIds = this.editorView.getConnectedTrainrunIds(selectedTrainrun);
     }
@@ -2199,7 +2206,7 @@ export class TrainrunSectionsView {
   private transformPathAddExtraElementForPortAlignmentBottom(
     node: Node,
     ts: TrainrunSection,
-    element,
+    element: Vec2D,
     transformedPath: Vec2D[],
   ): Vec2D[] {
     const port = node.getPortOfTrainrunSection(ts.getId());
@@ -2671,7 +2678,7 @@ export class TrainrunSectionsView {
     startPosition: Vec2D,
     lineOrientationVector: Vec2D,
     stopIndex: number,
-    drawNumberOfStops,
+    drawNumberOfStops: number,
     groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
