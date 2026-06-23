@@ -248,4 +248,74 @@ describe("port-ordering", () => {
       });
     });
   });
+
+  // The ticket reports two distinct crossings.
+  // The following tests each represent one crossing from the ticket, in a
+  // minimal reticular:
+  describe("Regression #1159", () => {
+    describe("Crossing n°1", () => {
+      const nodes = {
+        LEFT: {x: -1000, y: 0},
+        MID: {x: -500, y: 0},
+        CORNER: {x: 0, y: 0},
+        DOWN_MID: {x: 0, y: 500},
+        HUB: {x: 0, y: 1000},
+        HUB_LEFT: {x: -500, y: 1000},
+        HUB_END: {x: 0, y: 1500},
+      };
+
+      it("is crossing-free", () => {
+        const {nodesArray} = buildNetwork({
+          nodes,
+          trainruns: [
+            ["HUB_LEFT", "HUB"],
+            ["HUB", "DOWN_MID", "CORNER", "MID", "LEFT"],
+            ["LEFT", "MID", "CORNER"],
+            ["LEFT", "MID", "CORNER", "DOWN_MID", "HUB", "HUB_END"],
+          ],
+        });
+
+        optimizePorts(nodesArray);
+
+        const {crossings, groupCrossings} = countAllCrossings(nodesArray);
+        expect(crossings).toBe(0);
+        expect(groupCrossings).toEqual([]);
+      });
+    });
+
+    // This test seems to be order-dependant right now, so here are two cases:
+    // one with an order that breaks, one with an order that does not
+    describe("Crossing n°2", () => {
+      const nodes = {
+        LEFT: {x: -500, y: 0},
+        MID: {x: -250, y: 0},
+        FORK: {x: 0, y: 0},
+        RIGHT_TOP: {x: 250, y: -200},
+        RIGHT_BOTTOM: {x: 250, y: 200},
+      };
+      const toBottom = ["LEFT", "MID", "FORK", "RIGHT_BOTTOM"];
+      const toTop = ["MID", "FORK", "RIGHT_TOP"];
+      const forkToTop = ["FORK", "RIGHT_TOP"];
+      const terminating = ["LEFT", "MID", "FORK"];
+
+      // Same network, varying only the position of the terminating trainrun
+      // (LEFT -> FORK) in the declaration order.
+      const orders = {
+        last: [toBottom, toTop, forkToTop, terminating],
+        early: [toBottom, terminating, toTop, forkToTop],
+      };
+
+      Object.entries(orders).forEach(([name, trainruns]) => {
+        it(`is crossing-free with terminating trainrun declared ${name}`, () => {
+          const {nodesArray} = buildNetwork({nodes, trainruns});
+
+          optimizePorts(nodesArray);
+
+          const {crossings, groupCrossings} = countAllCrossings(nodesArray);
+          expect(crossings).toBe(0);
+          expect(groupCrossings).toEqual([]);
+        });
+      });
+    });
+  });
 });
