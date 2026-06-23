@@ -143,16 +143,30 @@ export class EditorKeyEvents {
           break;
         case "KeyI":
           if (shiftKey) {
-            this.positionTransformationService.stretchShortSections(this.trainrunSectionService.getTrainrunSections(), false, -1);
+            this.positionTransformationService.stretchShortSections(
+              this.trainrunSectionService.getTrainrunSections(),
+              false,
+              -1,
+            );
           } else {
-            this.positionTransformationService.stretchShortSections(this.trainrunSectionService.getTrainrunSections());
+            this.positionTransformationService.stretchShortSections(
+              this.trainrunSectionService.getTrainrunSections(),
+            );
           }
           break;
         case "KeyE":
           if (shiftKey) {
-            this.positionTransformationService.stretchShortSections(this.getSelectedTrainrunSections(), false, -1);
+            this.positionTransformationService.stretchShortSections(
+              this.getSelectedTrainrunSections(),
+              false,
+              -1,
+            );
           } else {
-            this.positionTransformationService.stretchShortSections(this.getSelectedTrainrunSections(), false, 1);
+            this.positionTransformationService.stretchShortSections(
+              this.getSelectedTrainrunSections(),
+              false,
+              1,
+            );
           }
           break;
         case "ArrowLeft":
@@ -177,7 +191,6 @@ export class EditorKeyEvents {
       }
     });
   }
-
 
   private onKeySPressed() {
     if (this.splitSelectedTrainrunSectionsWithNewNode()) {
