@@ -1,6 +1,6 @@
 import {EventEmitter, Injectable} from "@angular/core";
 import {TrainrunSectionService} from "../data/trainrunsection.service";
-import {UiInteractionService, ViewboxProperties} from "../ui/ui.interaction.service";
+import {UiInteractionService} from "../ui/ui.interaction.service";
 import {NodeService} from "../data/node.service";
 import {NoteService} from "../data/note.service";
 import {Vec2D} from "../../utils/vec2D";
@@ -8,7 +8,6 @@ import {Node} from "../../models/node.model";
 import {ViewportCullService} from "../ui/viewport.cull.service";
 import {NodeOperation, Operation, OperationType} from "src/app/models/operation.model";
 import {Note} from "../../models/note.model";
-import ElkConstructor from "elkjs/lib/elk.bundled.js";
 
 @Injectable({
   providedIn: "root",
@@ -286,85 +285,5 @@ export class PositionTransformationService {
     }
 
     this.updateRendering();
-  }
-
-  toElkGraph(nodes: Node[]): any {
-    const elkNodes = nodes.map((n) => ({
-      id: n.getId().toString(),
-      width: n.getNodeWidth(),
-      height: n.getNodeHeight(),
-      x: n.getPositionX(),
-      y: n.getPositionY(),
-    }));
-
-    const elkEdges = this.trainrunSectionService.getTrainrunSections().map((ts) => ({
-      id: ts.getId().toString(),
-      source: ts.getSourceNodeId().toString(),
-      target: ts.getTargetNodeId().toString(),
-    }));
-
-    const elkPorts = nodes.flatMap((n) =>
-      n.getPorts().map((p) => ({
-        id: `${n.getId()}-${p.getId()}`,
-        parent: n.getId().toString(),
-      })),
-    );
-
-    return {
-      id: "root",
-      children: elkNodes,
-      edges: elkEdges,
-      // ports: elkPorts,
-    };
-  }
-
-  updateNodePositionsFromElkLayout(elkLayout: any, nodes: Node[]) {
-    const elkNodes = elkLayout.children;
-    elkNodes.forEach((elkNode: any) => {
-      const nodeId = parseInt(elkNode.id, 10);
-      const node = nodes.find((n) => n.getId() === nodeId);
-      if (node) {
-        node.setPosition(elkNode.x, elkNode.y);
-        this.operation.emit(new NodeOperation(OperationType.update, node));
-      }
-    });
-  }
-
-  callRobustAutomaticNodeLayouting() {
-    console.log("Running Layout…");
-
-    const nodes = this.nodeService.getNodes();
-
-    console.log(new ElkConstructor().knownLayoutAlgorithms());
-
-    const graph = this.toElkGraph(nodes);
-
-    console.log(graph);
-
-    const elk = new ElkConstructor({
-      defaultLayoutOptions: {
-        "elk.algorithm": "sporeOverlap",
-        "elk.spacing.nodeNode": "450",
-      },
-    });
-
-    elk
-      .layout(graph)
-      .then((layout) => {
-        console.log("Layout finished.");
-
-        this.updateNodePositionsFromElkLayout(layout, nodes);
-
-        this.nodeService.nodesUpdated();
-        this.nodeService.transitionsUpdated();
-        this.nodeService.connectionsUpdated();
-        this.trainrunSectionService.trainrunSectionsUpdated();
-        this.updateRendering();
-        const closestNodeToCenter = this.uiInteractionService.findClosestNodeToViewCenter(nodes);
-        if (closestNodeToCenter !== null) {
-          this.uiInteractionService.gotoNode(closestNodeToCenter);
-        }
-      })
-      .catch(console.error);
   }
 }
