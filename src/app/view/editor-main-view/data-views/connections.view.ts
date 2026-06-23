@@ -11,7 +11,7 @@ import {ConnectionsViewObject} from "./connectionViewObject";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
 
 export class ConnectionsView {
-  connectionsGroup;
+  connectionsGroup: d3.Selection<SVGElement, undefined, Element, undefined>;
   editorView: EditorView;
 
   constructor(editorView: EditorView) {
@@ -66,7 +66,7 @@ export class ConnectionsView {
     return ts.getPositionAtTargetNode();
   }
 
-  setGroup(connectionsGroup) {
+  setGroup(connectionsGroup: d3.Selection<SVGElement, undefined, Element, undefined>) {
     this.connectionsGroup = connectionsGroup;
     this.connectionsGroup.attr("class", "ConnectionsView");
   }
@@ -123,7 +123,9 @@ export class ConnectionsView {
     return false;
   }
 
-  createConnectionCurve(drawingGroup: d3.Selection<SVGElement, undefined, HTMLElement, undefined>) {
+  createConnectionCurve(
+    drawingGroup: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
+  ) {
     drawingGroup
       .append(StaticDomTags.CONNECTION_LINE_SVG)
       .attr("class", StaticDomTags.CONNECTION_LINE_CLASS)
@@ -149,11 +151,11 @@ export class ConnectionsView {
   }
 
   createConnectionSinglePin(
-    drawingGroup: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    drawingGroup: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
     pinPos: Vec2D,
   ) {
     const draggable = d3
-      .drag()
+      .drag<SVGElement, ConnectionsViewObject>()
       .on("start", (cv: ConnectionsViewObject, i, a) =>
         this.onConnectionPinDragStart(cv.connection, a[i]),
       )
@@ -193,7 +195,9 @@ export class ConnectionsView {
       );
   }
 
-  createConnectionPins(drawingGroup: d3.Selection<SVGElement, undefined, HTMLElement, undefined>) {
+  createConnectionPins(
+    drawingGroup: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
+  ) {
     const selectedTrainrun = this.editorView.getSelectedTrainrun();
 
     drawingGroup.each((c: ConnectionsViewObject, i, a) => {
@@ -278,7 +282,9 @@ export class ConnectionsView {
     ).raise();
   }
 
-  renderConnectionObject(groupEnter: any) {
+  renderConnectionObject(
+    groupEnter: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
+  ) {
     switch (this.editorView.getLevelOfDetail()) {
       case LevelOfDetail.LEVEL3: {
         //statements;
@@ -307,55 +313,65 @@ export class ConnectionsView {
     }
   }
 
-  makeConnectionLODFull(groupEnter: any) {
+  makeConnectionLODFull(
+    groupEnter: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
+  ) {
     this.createConnectionCurve(groupEnter);
     this.createConnectionPins(groupEnter);
   }
 
-  makeConnectionLOD3(groupEnter: any) {
+  makeConnectionLOD3(
+    groupEnter: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
+  ) {
     this.createConnectionCurve(groupEnter);
     this.createConnectionPins(groupEnter);
   }
 
-  makeConnectionLOD2(groupEnter: any) {
+  makeConnectionLOD2(
+    groupEnter: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
+  ) {
     this.createConnectionCurve(groupEnter);
   }
 
-  makeConnectionLOD1(groupEnter: any) {
+  makeConnectionLOD1(
+    groupEnter: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
+  ) {
     this.createConnectionCurve(groupEnter);
   }
 
-  makeConnectionLOD0(groupEnter: any) {}
+  makeConnectionLOD0(
+    groupEnter: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
+  ) {}
 
-  onConnectionMouseup(connection: Connection, domObj: any, node: Node) {
+  onConnectionMouseup(connection: Connection, domObj: SVGElement, node: Node) {
     d3.event.stopPropagation();
     this.editorView.nodesView.handleMouseUpEvent(node);
   }
 
-  onConnectionMouseover(connection: Connection, domObj: any, node: Node) {
+  onConnectionMouseover(connection: Connection, domObj: SVGElement, node: Node) {
     this.editorView.nodesView.hoverNodeDockable(node, null);
   }
 
-  onConnectionMouseout(connection: Connection, domObj: any, node: Node) {
+  onConnectionMouseout(connection: Connection, domObj: SVGElement, node: Node) {
     this.editorView.nodesView.unhoverNodeDockable(node, null);
   }
 
-  onConnectionPinMouseover(connection: Connection, domObj: any, node: Node) {
+  onConnectionPinMouseover(connection: Connection, domObj: SVGElement, node: Node) {
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, true);
     this.editorView.nodesView.hoverNodeDockable(node, null);
   }
 
-  onConnectionPinMouseout(connection: Connection, domObj: any, node: Node) {
+  onConnectionPinMouseout(connection: Connection, domObj: SVGElement, node: Node) {
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
     this.editorView.nodesView.unhoverNodeDockable(node, null);
   }
 
-  onConnectionPinDragStart(connection: Connection, domObj: any) {
+  onConnectionPinDragStart(connection: Connection, domObj: SVGElement) {
     d3.select(domObj).classed(StaticDomTags.CONNECTION_PIN_DRAGGING, true);
     D3Utils.disableTrainrunSectionForEventHandling();
   }
 
-  onConnectionPinDragged(connection: Connection, domObj: any) {
+  onConnectionPinDragged(connection: Connection, domObj: SVGElement) {
     d3.select(domObj).classed(StaticDomTags.CONNECTION_PIN_DRAGGING, true);
     const currentMousePosition = this.editorView.svgMouseController.getCurrentMousePosition();
     const obj = d3.select(domObj);
@@ -363,7 +379,7 @@ export class ConnectionsView {
     obj.attr("cy", currentMousePosition.getY());
   }
 
-  onConnectionPinDragEnd(connection: Connection, domObj: any, node: Node) {
+  onConnectionPinDragEnd(connection: Connection, domObj: SVGElement, node: Node) {
     D3Utils.resetTrainrunSectionForEventHandling();
     d3.select(domObj).classed(StaticDomTags.CONNECTION_PIN_DRAGGING, false);
     if (this.editorView.nodesView.isNodeHovered(node)) {
@@ -377,7 +393,7 @@ export class ConnectionsView {
     this.setUnderlyingTrainrunAsSelected(connection, domObj, node);
   }
 
-  private setUnderlyingTrainrunAsSelected(connection: Connection, domObj: any, node: Node) {
+  private setUnderlyingTrainrunAsSelected(connection: Connection, domObj: SVGElement, node: Node) {
     const trainrunID = d3.select(domObj).attr(StaticDomTags.CONNECTION_TRAINRUN_ID);
     const trainrunPort1 = ConnectionsView.getTrainrunSectionPort1(connection, node).getTrainrun();
     const trainrunPort2 = ConnectionsView.getTrainrunSectionPort2(connection, node).getTrainrun();

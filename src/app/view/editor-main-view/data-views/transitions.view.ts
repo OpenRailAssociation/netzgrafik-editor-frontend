@@ -11,8 +11,8 @@ import {TransitionViewObject} from "./transitionViewObject";
 import {LinePatternRefs} from "../../../data-structures/business.data.structures";
 
 export class TransitionsView {
-  transitionsGroup;
-  selectedTransitionsGroup;
+  transitionsGroup: d3.Selection<SVGElement, undefined, Element, undefined>;
+  selectedTransitionsGroup: d3.Selection<SVGElement, undefined, Element, undefined>;
   editorView: EditorView;
 
   constructor(editorView: EditorView) {
@@ -82,7 +82,7 @@ export class TransitionsView {
   }
 
   static createTransitionLineLayer(
-    grpEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    grpEnter: d3.Selection<SVGElement, TransitionViewObject, Element, undefined>,
     classRef: string,
     levelFreqFilter: LinePatternRefs[],
     selectedTrainrun: Trainrun,
@@ -122,7 +122,7 @@ export class TransitionsView {
   }
 
   createNonStopToggle(
-    grpEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    grpEnter: d3.Selection<SVGElement, TransitionViewObject, Element, undefined>,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
   ) {
@@ -166,7 +166,7 @@ export class TransitionsView {
       );
   }
 
-  setGroup(transitionsGroup) {
+  setGroup(transitionsGroup: d3.Selection<SVGElement, undefined, Element, undefined>) {
     transitionsGroup.attr("class", "TransitionsView");
     this.transitionsGroup = transitionsGroup.append(StaticDomTags.GROUP_SVG);
     this.transitionsGroup.attr("class", "transitions");
@@ -275,7 +275,7 @@ export class TransitionsView {
     transitionsGroup.exit().remove();
   }
 
-  onTransitionMouseup(trainrun: Trainrun, domObj: any, transition: Transition) {
+  onTransitionMouseup(trainrun: Trainrun, domObj: SVGElement, transition: Transition) {
     d3.event.stopPropagation();
     const node: Node = this.editorView.getNodeFromTransition(transition);
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
@@ -301,7 +301,7 @@ export class TransitionsView {
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
   }
 
-  onTransitionButtonOut(trainrun: Trainrun, domObj: any, transition: Transition) {
+  onTransitionButtonOut(trainrun: Trainrun, domObj: SVGElement, transition: Transition) {
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
 
     const node: Node = this.editorView.getNodeFromTransition(transition);
@@ -333,11 +333,11 @@ export class TransitionsView {
     this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
   }
 
-  onTransitionMousemove(domObj: any) {
+  onTransitionMousemove(domObj: SVGElement) {
     d3.event.stopPropagation();
   }
 
-  onTransitionMouseover(trainrun: Trainrun, domObj: any, transition: Transition) {
+  onTransitionMouseover(trainrun: Trainrun, domObj: SVGElement, transition: Transition) {
     const node: Node = this.editorView.getNodeFromTransition(transition);
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
       const port1 = node.getPort(transition.getPortId1());
