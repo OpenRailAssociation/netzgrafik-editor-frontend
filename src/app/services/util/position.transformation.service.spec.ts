@@ -19,6 +19,7 @@ import {NetzgrafikUnitTesting} from "../../../integration-testing/netzgrafik.uni
 import {ViewportCullService} from "../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "./position.transformation.service";
 import {Vec2D} from "../../utils/vec2D";
+import {TrainrunDistanceService} from "./trainrun-distance.service";
 
 describe("PositionTransformationService", () => {
   let dataService: DataService;
@@ -103,6 +104,8 @@ describe("PositionTransformationService", () => {
       trainrunSectionService,
     );
 
+    const trainrunDistanceService = new TrainrunDistanceService();
+
     positionTransformationService = new PositionTransformationService(
       trainrunSectionService,
       trainrunService,
@@ -110,6 +113,7 @@ describe("PositionTransformationService", () => {
       noteService,
       uiInteractionService,
       viewportCullService,
+      trainrunDistanceService,
     );
   });
 
