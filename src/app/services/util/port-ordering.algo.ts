@@ -1,4 +1,5 @@
 import {Node} from "../../models/node.model";
+import {Port} from "../../models/port.model";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {Transition} from "../../models/transition.model";
 import {countAllCrossings} from "./port-ordering.crossings";
@@ -186,7 +187,7 @@ export function reorderNodePorts(
   processingOrder.forEach((alignment) => {
     const sidePorts = ports.filter((port) => port.getPositionAlignment() === alignment);
 
-    sidePorts.sort((a, b) => {
+    const compare = (a: Port, b: Port) => {
       const aTransition = portTransitions.get(a.getId());
       const bTransition = portTransitions.get(b.getId());
 
@@ -262,10 +263,23 @@ export function reorderNodePorts(
 
         return (aScore - bScore) * swap;
       }
+    };
+
+    // Transitions are ordered by geometry, free ends only by a tie-break score. Mixing both scales
+    // in a single sort can contradict itself and flip two transitions (which would cross inside the
+    // node), so we sort each kind separately, then insert the free end into the ordered transition
+    const hasTransition = (p: Port) => portTransitions.has(p.getId());
+    const transitionPorts = sidePorts.filter(hasTransition).sort(compare);
+    const freeEndPorts = sidePorts.filter((p) => !hasTransition(p)).sort(compare);
+
+    // Insert each free end before the first transition it should precede (or last if there is none)
+    freeEndPorts.forEach((freeEnd) => {
+      const at = transitionPorts.findIndex((p) => compare(freeEnd, p) < 0);
+      transitionPorts.splice(at === -1 ? transitionPorts.length : at, 0, freeEnd);
     });
 
-    // Apply new order:
-    sidePorts.forEach((port, i) => port.setPositionIndex(i));
+    // Apply new order
+    transitionPorts.forEach((port, i) => port.setPositionIndex(i));
 
     orderedSides.add(alignment);
   });
