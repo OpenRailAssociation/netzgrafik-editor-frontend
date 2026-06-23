@@ -323,11 +323,27 @@ export class PositionTransformationService {
 
       const deficit = MIN_SECTION_LENGTH_PX - length;
       const steps = Math.max(Math.ceil(deficit / (2 * RASTERING_BASIC_GRID_SIZE)), 1);
-      const delta = steps * RASTERING_BASIC_GRID_SIZE;
+      let delta = steps * RASTERING_BASIC_GRID_SIZE;
+
+      const centerX = (src.getX() + tgt.getX()) / 2;
+      const centerY = (src.getY() + tgt.getY()) / 2;
+
+      if (sign < 0) {
+        delta = this.limitDeltaForMinEdgeLength(
+          delta,
+          direction,
+          centerX,
+          centerY,
+          MIN_SECTION_LENGTH_PX,
+        );
+        if (delta <= 0) {
+          console.log(`  [skip] ${key}: cannot shrink without violating minimum edge length`);
+          return;
+        }
+      }
 
       if (direction === "horizontal") {
         this.nodeService.getNodes().forEach((node: Node) => {
-          const centerX = (src.getX() + tgt.getX()) / 2;
           const nodeCenterX = node.getPositionX() + node.getNodeWidth() / 2;
           const dx = (nodeCenterX <= centerX ? -1 : 1) * sign * delta;
           this.nodeService.changeNodePositionWithoutUpdate(
@@ -340,7 +356,6 @@ export class PositionTransformationService {
         });
       } else if (direction === "vertical") {
         this.nodeService.getNodes().forEach((node: Node) => {
-          const centerY = (src.getY() + tgt.getY()) / 2;
           const nodeCenterY = node.getPositionY() + node.getNodeHeight() / 2;
           const dy = (nodeCenterY <= centerY ? -1 : 1) * sign * delta;
           this.nodeService.changeNodePositionWithoutUpdate(
@@ -357,12 +372,61 @@ export class PositionTransformationService {
       }
 
       const action = sign >= 0 ? "stretched" : "shrunk";
-      console.log(`  [${action}] ${key} (${length}px, ${direction})`);
+      console.log(`  [${action}] ${key} (${Math.round(length)}px, ${direction})`);
     });
 
     this.nodeService.nodesUpdated();
     this.nodeService.transitionsUpdated();
     this.trainrunService.trainrunsUpdated();
     this.trainrunSectionService.trainrunSectionsUpdated();
+  }
+
+  private limitDeltaForMinEdgeLength(
+    delta: number,
+    direction: string,
+    centerX: number,
+    centerY: number,
+    minLength: number,
+  ): number {
+    const allSections = this.trainrunSectionService.getTrainrunSections();
+    let maxDelta = delta;
+
+    for (const section of allSections) {
+      if (section.isPathInvalid()) {
+        continue;
+      }
+      const src = section.getPositionAtSourceNode();
+      const tgt = section.getPositionAtTargetNode();
+      const srcNode = section.getSourceNode();
+      const tgtNode = section.getTargetNode();
+      const edgeKey = `${srcNode.getBetriebspunktName()} – ${tgtNode.getBetriebspunktName()}`;
+
+      const isHorizontal = direction === "horizontal";
+      const srcCenter = isHorizontal
+        ? srcNode.getPositionX() + srcNode.getNodeWidth() / 2
+        : srcNode.getPositionY() + srcNode.getNodeHeight() / 2;
+      const tgtCenter = isHorizontal
+        ? tgtNode.getPositionX() + tgtNode.getNodeWidth() / 2
+        : tgtNode.getPositionY() + tgtNode.getNodeHeight() / 2;
+      const center = isHorizontal ? centerX : centerY;
+
+      if (!isHorizontal && direction !== "vertical") {
+        continue;
+      }
+      if ((srcCenter <= center) === (tgtCenter <= center)) {
+        continue;
+      }
+
+      const currentLength = Vec2D.norm(Vec2D.sub(tgt, src));
+      const allowable = Math.floor(
+        (currentLength - minLength) / 2 / RASTERING_BASIC_GRID_SIZE,
+      ) * RASTERING_BASIC_GRID_SIZE;
+      if (allowable < maxDelta) {
+        console.log(`  [limit] edge ${edgeKey} (${Math.round(currentLength)}px) constrains delta to ${allowable}px`);
+      }
+      maxDelta = Math.min(maxDelta, allowable);
+    }
+
+    return maxDelta;
   }
 }
