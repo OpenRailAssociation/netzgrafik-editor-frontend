@@ -26,6 +26,7 @@ import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {Trainrun} from "../../../models/trainrun.model";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
 import {Vec2D} from "../../../utils/vec2D";
+import {PortAlignment} from "../../../data-structures/technical.data.structures";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
 import {NoteViewObject} from "./noteViewObject";
 import {NodeViewObject} from "./nodeViewObject";
@@ -82,6 +83,7 @@ export class EditorKeyEvents {
 
       const keycode = event.code;
       const ctrlKey = event.ctrlKey;
+      const shiftKey = event.shiftKey;
       switch (keycode) {
         case "Delete":
           this.onKeyPressedDelete();
@@ -133,9 +135,20 @@ export class EditorKeyEvents {
           }
           break;
         case "KeyD":
+          console.log("KeyD pressed");
           if (ctrlKey) {
             this.onDuplicate();
             event.preventDefault();
+          }
+          break;
+        case "KeyI":
+          this.stretchShortSections(this.trainrunSectionService.getTrainrunSections());
+          break;
+        case "KeyE":
+          if (shiftKey) {
+            this.stretchShortSections(this.getSelectedTrainrunSections(), false, -1);
+          } else {
+            this.stretchShortSections(this.getSelectedTrainrunSections(), false, 1);
           }
           break;
         case "ArrowLeft":
@@ -159,6 +172,102 @@ export class EditorKeyEvents {
           break;
       }
     });
+  }
+
+  private stretchShortSections(sections: TrainrunSection[], onlyShort = true, sign = 1): void {
+    const MIN_SECTION_LENGTH_PX = 200;
+    const groups = new Map<
+      string,
+      {
+        trains: string[];
+        length: number;
+        direction: string;
+        centerX: number;
+        centerY: number;
+      }
+    >();
+
+    const toDirection = (a: PortAlignment) =>
+      a === PortAlignment.Left || a === PortAlignment.Right ? "horizontal" : "vertical";
+
+    sections.forEach((section: TrainrunSection) => {
+      if (section.isPathInvalid()) {
+        return;
+      }
+      const src = section.getPositionAtSourceNode();
+      const tgt = section.getPositionAtTargetNode();
+      const length = Vec2D.norm(Vec2D.sub(tgt, src));
+      if (onlyShort && length >= MIN_SECTION_LENGTH_PX) {
+        return;
+      }
+      const srcNodeObj = section.getSourceNode();
+      const tgtNodeObj = section.getTargetNode();
+      const srcDir = toDirection(
+        srcNodeObj.getPort(section.getSourcePortId()).getPositionAlignment(),
+      );
+      const tgtDir = toDirection(
+        tgtNodeObj.getPort(section.getTargetPortId()).getPositionAlignment(),
+      );
+      const direction = srcDir === tgtDir ? srcDir : `${srcDir}/${tgtDir}`;
+      const key = [srcNodeObj.getBetriebspunktName(), tgtNodeObj.getBetriebspunktName()]
+        .sort()
+        .join(" – ");
+      if (!groups.has(key)) {
+        groups.set(key, {
+          trains: [],
+          length: Math.round(length),
+          direction,
+          centerX: (src.getX() + tgt.getX()) / 2,
+          centerY: (src.getY() + tgt.getY()) / 2,
+        });
+      }
+      groups.get(key).trains.push(section.getTrainrun().getTitle());
+    });
+
+    if (groups.size === 0) {
+      console.log("[KeyI/E] No matching sections found.");
+      return;
+    }
+
+    groups.forEach(({trains, length, direction, centerX, centerY}, key) => {
+      const deficit = MIN_SECTION_LENGTH_PX - length;
+      const steps = Math.max(Math.ceil(deficit / (2 * RASTERING_BASIC_GRID_SIZE)), 1);
+      const delta = steps * RASTERING_BASIC_GRID_SIZE;
+
+      if (direction === "horizontal") {
+        this.nodeService.getNodes().forEach((node: Node) => {
+          const nodeCenterX = node.getPositionX() + node.getNodeWidth() / 2;
+          const dx = (nodeCenterX <= centerX ? -1 : 1) * sign * delta;
+          this.nodeService.changeNodePositionWithoutUpdate(
+            node.getId(),
+            node.getPositionX() + dx,
+            node.getPositionY(),
+            true,
+            false,
+          );
+        });
+      } else if (direction === "vertical") {
+        this.nodeService.getNodes().forEach((node: Node) => {
+          const nodeCenterY = node.getPositionY() + node.getNodeHeight() / 2;
+          const dy = (nodeCenterY <= centerY ? -1 : 1) * sign * delta;
+          this.nodeService.changeNodePositionWithoutUpdate(
+            node.getId(),
+            node.getPositionX(),
+            node.getPositionY() + dy,
+            true,
+            false,
+          );
+        });
+      } else {
+        console.log(`  [skip] ${key}: mixed port directions (${direction})`);
+        return;
+      }
+
+      const action = sign >= 0 ? "stretched" : "shrunk";
+      console.log(`  [${action}] ${key} (${length}px, ${direction}): ${trains.join(", ")}`);
+    });
+
+    this.servicesUpdate();
   }
 
   private onKeySPressed() {
