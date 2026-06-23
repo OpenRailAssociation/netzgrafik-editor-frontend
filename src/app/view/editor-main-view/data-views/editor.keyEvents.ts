@@ -147,6 +147,7 @@ export class EditorKeyEvents {
               this.trainrunSectionService.getTrainrunSections(),
               false,
               -1,
+              true,
             );
           } else {
             this.positionTransformationService.stretchShortSections(
