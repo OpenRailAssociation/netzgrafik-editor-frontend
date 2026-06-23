@@ -294,16 +294,6 @@ export class PositionTransformationService {
 
   stretchShortSections(sections: TrainrunSection[], onlyShort = true, sign = 1): void {
     const MIN_SECTION_LENGTH_PX = 200;
-    const groups = new Map<
-      string,
-      {
-        trains: string[];
-        length: number;
-        direction: string;
-        centerX: number;
-        centerY: number;
-      }
-    >();
 
     const toDirection = (a: PortAlignment) =>
       a === PortAlignment.Left || a === PortAlignment.Right ? "horizontal" : "vertical";
@@ -328,32 +318,16 @@ export class PositionTransformationService {
       );
       const direction = srcDir === tgtDir ? srcDir : `${srcDir}/${tgtDir}`;
       const key = [srcNodeObj.getBetriebspunktName(), tgtNodeObj.getBetriebspunktName()]
-        .sort()
-        .join(" – ");
-      if (!groups.has(key)) {
-        groups.set(key, {
-          trains: [],
-          length: Math.round(length),
-          direction,
-          centerX: (src.getX() + tgt.getX()) / 2,
-          centerY: (src.getY() + tgt.getY()) / 2,
-        });
-      }
-      groups.get(key).trains.push(section.getTrainrun().getTitle());
-    });
+            .sort()
+            .join(" – ");
 
-    if (groups.size === 0) {
-      console.log("[KeyI/E] No matching sections found.");
-      return;
-    }
-
-    groups.forEach(({trains, length, direction, centerX, centerY}, key) => {
       const deficit = MIN_SECTION_LENGTH_PX - length;
       const steps = Math.max(Math.ceil(deficit / (2 * RASTERING_BASIC_GRID_SIZE)), 1);
       const delta = steps * RASTERING_BASIC_GRID_SIZE;
 
       if (direction === "horizontal") {
         this.nodeService.getNodes().forEach((node: Node) => {
+          const centerX = (src.getX() + tgt.getX()) / 2;
           const nodeCenterX = node.getPositionX() + node.getNodeWidth() / 2;
           const dx = (nodeCenterX <= centerX ? -1 : 1) * sign * delta;
           this.nodeService.changeNodePositionWithoutUpdate(
@@ -366,6 +340,7 @@ export class PositionTransformationService {
         });
       } else if (direction === "vertical") {
         this.nodeService.getNodes().forEach((node: Node) => {
+          const centerY = (src.getY() + tgt.getY()) / 2;
           const nodeCenterY = node.getPositionY() + node.getNodeHeight() / 2;
           const dy = (nodeCenterY <= centerY ? -1 : 1) * sign * delta;
           this.nodeService.changeNodePositionWithoutUpdate(
@@ -382,7 +357,7 @@ export class PositionTransformationService {
       }
 
       const action = sign >= 0 ? "stretched" : "shrunk";
-      console.log(`  [${action}] ${key} (${length}px, ${direction}): ${trains.join(", ")}`);
+      console.log(`  [${action}] ${key} (${length}px, ${direction})`);
     });
 
     this.nodeService.nodesUpdated();
