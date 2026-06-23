@@ -60,15 +60,13 @@ export class TrainrunSectionPreviewLineView {
     private versionControlService: VersionControlService,
   ) {}
 
-  static setGroup(nodeGroup: d3.Selection<SVGElement, undefined, HTMLElement, undefined>) {
+  static setGroup(nodeGroup: d3.Selection<SVGElement, undefined, Element, undefined>) {
     nodeGroup
       .append(StaticDomTags.PREVIEW_LINE_ROOT_SVG)
       .attr("class", StaticDomTags.PREVIEW_LINE_ROOT_CLASS);
   }
 
-  static setConnectionGroup(
-    nodeGroup: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
-  ) {
+  static setConnectionGroup(nodeGroup: d3.Selection<SVGElement, undefined, Element, undefined>) {
     nodeGroup
       .append(StaticDomTags.PREVIEW_CONNECTION_LINE_ROOT_SVG)
       .attr("class", StaticDomTags.PREVIEW_CONNECTION_LINE_ROOT_CLASS);

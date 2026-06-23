@@ -32,7 +32,7 @@ import {LinePatternRefs} from "../../../data-structures/business.data.structures
 import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helper";
 
 export class TrainrunSectionsView {
-  trainrunSectionGroup;
+  trainrunSectionGroup: d3.Selection<SVGElement, undefined, Element, undefined>;
 
   constructor(private editorView: EditorView) {}
 
@@ -989,7 +989,7 @@ export class TrainrunSectionsView {
     }
   }
 
-  setGroup(trainrunSectionGroup: d3.Selection<SVGElement, undefined, HTMLElement, undefined>) {
+  setGroup(trainrunSectionGroup: d3.Selection<SVGElement, undefined, Element, undefined>) {
     trainrunSectionGroup.attr("class", "TrainrunSectionsView");
     this.trainrunSectionGroup = trainrunSectionGroup
       .append(StaticDomTags.GROUP_SVG)
@@ -997,7 +997,7 @@ export class TrainrunSectionsView {
   }
 
   createTrainrunSectionTextBackgrounds(
-    groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    groupEnter: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
     lineTextElement: TrainrunSectionText,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
@@ -1122,7 +1122,7 @@ export class TrainrunSectionsView {
    * @param enableEvents - Optional flag to enable or disable mouse event handlers on the arrows. Defaults to true.
    */
   createDirectionArrows(
-    groupLinesEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    groupLinesEnter: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
     enableEvents = true,
@@ -1183,7 +1183,7 @@ export class TrainrunSectionsView {
   }
 
   createAsymmetryArrows(
-    groupLinesEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    groupLinesEnter: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
     enableEvents = true,
@@ -1258,7 +1258,7 @@ export class TrainrunSectionsView {
   }
 
   createTrainrunSection(
-    groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    groupEnter: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
     classRef,
     levelFreqFilter: LinePatternRefs[],
     selectedTrainrun: Trainrun,
@@ -1314,7 +1314,7 @@ export class TrainrunSectionsView {
   }
 
   createTrainrunsectionSemicircleAtNode(
-    groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    groupEnter: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
     atSource: boolean,
@@ -1380,7 +1380,7 @@ export class TrainrunSectionsView {
   }
 
   createTrainrunsectionSemicircles(
-    groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    groupEnter: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
   ) {
@@ -1405,7 +1405,7 @@ export class TrainrunSectionsView {
   }
 
   createPinOnTrainrunsection(
-    groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    groupEnter: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
     atSource: boolean,
@@ -1489,7 +1489,7 @@ export class TrainrunSectionsView {
   }
 
   private createInternTrainrunSectionElementFilteringWarningElements(
-    groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    groupEnter: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
     textElement: TrainrunSectionText,
@@ -1596,7 +1596,7 @@ export class TrainrunSectionsView {
   }
 
   createTrainrunSectionElement(
-    groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    groupEnter: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
     textElement: TrainrunSectionText,
@@ -1624,7 +1624,7 @@ export class TrainrunSectionsView {
   }
 
   createTrainrunSectionGotoInfoElement(
-    groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    groupEnter: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
     atSource: boolean,
@@ -1679,7 +1679,7 @@ export class TrainrunSectionsView {
   }
 
   createNumberOfStopsTextElement(
-    groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    groupEnter: d3.Selection<SVGElement, undefined, Element, undefined>,
     trainrunSection: TrainrunSection,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
@@ -1724,7 +1724,7 @@ export class TrainrunSectionsView {
   }
 
   createIntermediateStops(
-    groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    groupEnter: d3.Selection<SVGElement, undefined, Element, undefined>,
     trainrunSection: TrainrunSection,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
@@ -1786,7 +1786,7 @@ export class TrainrunSectionsView {
   }
 
   createAllIntermediateStops(
-    groupEnter: d3.Selection<SVGGElement, undefined, HTMLElement, undefined>,
+    groupEnter: d3.Selection<SVGGElement, TrainrunSectionViewObject, Element, undefined>,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
   ) {
@@ -1885,7 +1885,7 @@ export class TrainrunSectionsView {
     D3Utils.bringTrainrunSectionToFront();
   }
 
-  onTrainrunSectionTextMouseover(trainrunSection: TrainrunSection, domObj: any) {
+  onTrainrunSectionTextMouseover(trainrunSection: TrainrunSection, domObj: SVGElement) {
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
       d3.select(domObj).classed(StaticDomTags.TAG_HOVER, true);
     }
@@ -1895,7 +1895,7 @@ export class TrainrunSectionsView {
     trainrunSection: TrainrunSection,
     stopIndex: number,
     position: Vec2D,
-    domObj: any,
+    domObj: SVGElement,
   ) {
     d3.event.stopPropagation();
     if (d3.event.buttons === 0) {
@@ -1907,7 +1907,7 @@ export class TrainrunSectionsView {
     trainrunSection: TrainrunSection,
     stopIndex: number,
     position: Vec2D,
-    domObj: any,
+    domObj: SVGElement,
   ) {
     d3.event.stopPropagation();
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, true);
@@ -1917,7 +1917,7 @@ export class TrainrunSectionsView {
     trainrunSection: TrainrunSection,
     stopIndex: number,
     position: Vec2D,
-    domObj: any,
+    domObj: SVGElement,
   ) {
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
       d3.event.stopPropagation();
@@ -1936,7 +1936,7 @@ export class TrainrunSectionsView {
     this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
   }
 
-  onIntermediateStopMouseUp(trainrunSection: TrainrunSection, domObj: any) {
+  onIntermediateStopMouseUp(trainrunSection: TrainrunSection, domObj: SVGElement) {
     d3.event.stopPropagation();
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
       this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
@@ -1947,13 +1947,13 @@ export class TrainrunSectionsView {
     this.editorView.setTrainrunAsSelected(trainrunSection.getTrainrun());
   }
 
-  onTrainrunSectionTextMouseout(trainrunSection: TrainrunSection, domObj: any) {
+  onTrainrunSectionTextMouseout(trainrunSection: TrainrunSection, domObj: SVGElement) {
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
   }
 
   onTrainrunSectionElementClicked(
     trainrunSection: TrainrunSection,
-    domObj: any,
+    domObj: SVGElement,
     textElement: TrainrunSectionText,
   ) {
     d3.event.stopPropagation();
@@ -1977,7 +1977,7 @@ export class TrainrunSectionsView {
     );
   }
 
-  onTrainrunDirectionArrowMouseUp(trainrunSection: TrainrunSection, domObj: any) {
+  onTrainrunDirectionArrowMouseUp(trainrunSection: TrainrunSection, domObj: SVGElement) {
     d3.event.stopPropagation();
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
       this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
@@ -1992,7 +1992,7 @@ export class TrainrunSectionsView {
     this.editorView.showTrainrunOneWayInformation(trainrunSection, clickPosition);
   }
 
-  onTrainrunAsymmetryArrowMouseUp(trainrunSection: TrainrunSection, domObj: any) {
+  onTrainrunAsymmetryArrowMouseUp(trainrunSection: TrainrunSection, domObj: SVGElement) {
     d3.event.stopPropagation();
     const rect: DOMRect = d3.select(domObj).node().getBoundingClientRect();
     const clickPosition = new Vec2D(rect.x + rect.width / 2, rect.y + rect.height / 2);
@@ -2040,7 +2040,7 @@ export class TrainrunSectionsView {
     this.editorView.clickSelectedTrainrunSection(param);
   }
 
-  onTrainrunSectionMouseUp(trainrunSection: TrainrunSection, domObj: any) {
+  onTrainrunSectionMouseUp(trainrunSection: TrainrunSection, domObj: SVGElement) {
     d3.event.stopPropagation();
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
       this.handleMultiNodeMovingTrainrunSectionMouseUp(trainrunSection);
@@ -2049,7 +2049,7 @@ export class TrainrunSectionsView {
     this.handleDefaultTrainrunSectionMouseUp(trainrunSection);
   }
 
-  onTrainrunSectionMouseoverPath(trainrunSection: TrainrunSection, domObj: any) {
+  onTrainrunSectionMouseoverPath(trainrunSection: TrainrunSection, domObj: SVGElement) {
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
       D3Utils.hoverTrainrunSection(
         trainrunSection,
@@ -2059,11 +2059,11 @@ export class TrainrunSectionsView {
     }
   }
 
-  onTrainrunSectionMouseoutPath(trainrunSection: TrainrunSection, domObj: any) {
+  onTrainrunSectionMouseoutPath(trainrunSection: TrainrunSection, domObj: SVGElement) {
     D3Utils.unhoverTrainrunSection(trainrunSection);
   }
 
-  onTrainrunSectionMouseoverPin(node: Node, domObj: any) {
+  onTrainrunSectionMouseoverPin(node: Node, domObj: SVGElement) {
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
       this.editorView.nodesView.unhoverNode(node, null);
     } else {
@@ -2072,7 +2072,11 @@ export class TrainrunSectionsView {
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, true);
   }
 
-  onTrainrunSectionMouseoutPin(trainrunSection: TrainrunSection, domObj: any, atSource: boolean) {
+  onTrainrunSectionMouseoutPin(
+    trainrunSection: TrainrunSection,
+    domObj: SVGElement,
+    atSource: boolean,
+  ) {
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
     if (this.editorView.trainrunSectionPreviewLineView.getMode() !== PreviewLineMode.NotDragging) {
       return;
@@ -2347,10 +2351,10 @@ export class TrainrunSectionsView {
   }
 
   private oneNodeHiddenTrainrunSectionsRendering(
-    inGroupLines,
+    inGroupLines: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
-    inGroupLabels,
+    inGroupLabels: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
   ) {
     const groupLines = inGroupLines.filter(
       (d: TrainrunSectionViewObject) =>
@@ -2472,10 +2476,10 @@ export class TrainrunSectionsView {
   }
 
   private defaultTrainrunSectionsRendering(
-    inGroupLines,
+    inGroupLines: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
-    inGroupLabels,
+    inGroupLabels: d3.Selection<SVGGElement, TrainrunSectionViewObject, Element, undefined>,
   ) {
     const groupLines = inGroupLines.filter((d: TrainrunSectionViewObject) =>
       this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.trainrunSection),
@@ -2634,10 +2638,10 @@ export class TrainrunSectionsView {
   }
 
   make4LayerTrainrunSectionLines(
-    groupLines: any,
+    groupLines: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
-    inGroupLabels,
+    inGroupLabels: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
     enableEvents: boolean,
   ) {
     this.createTrainrunSection(
@@ -2679,7 +2683,7 @@ export class TrainrunSectionsView {
     lineOrientationVector: Vec2D,
     stopIndex: number,
     drawNumberOfStops: number,
-    groupEnter: d3.Selection<SVGElement, undefined, HTMLElement, undefined>,
+    groupEnter: d3.Selection<SVGElement, undefined, Element, undefined>,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
     numberOfStops: number,

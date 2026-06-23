@@ -41,7 +41,11 @@ export class D3Utils {
     ).raise();
   }
 
-  static hoverTrainrunSection(trainrunSection: TrainrunSection, bringToFront = true, domObj: any) {
+  static hoverTrainrunSection(
+    trainrunSection: TrainrunSection,
+    bringToFront = true,
+    domObj: SVGElement,
+  ) {
     d3.selectAll(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>

@@ -19,7 +19,7 @@ import {Subject} from "rxjs";
   standalone: false,
 })
 export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
-  private svgDrawingContext: any;
+  private svgDrawingContext: d3.Selection<SVGElement, undefined, Element, undefined>;
   private knotenAuslastungDataPreparation: KnotenAuslastungDataPreparation;
   private destroyed = new Subject<void>();
 
@@ -83,9 +83,11 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.svgDrawingContext = d3.select("#knotenAuslastungContainer").on("contextmenu", () => {
-      d3.event.preventDefault();
-    });
+    this.svgDrawingContext = d3
+      .select<SVGElement, undefined>("#knotenAuslastungContainer")
+      .on("contextmenu", () => {
+        d3.event.preventDefault();
+      });
 
     this.init();
   }
