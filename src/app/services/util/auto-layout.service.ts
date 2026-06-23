@@ -73,7 +73,7 @@ export class AutoLayoutService {
     });
   }
 
-  callRobustAutomaticNodeLayouting() {
+  runAutomaticLayoutingForImports() {
     console.log("Running Layout…");
 
     const nodes = this.nodeService.getNodes();

@@ -21,7 +21,7 @@ import {AutoLayoutService} from "../../services/util/auto-layout.service";
 import {OrderingAlgorithm} from "../../data-structures/technical.data.structures";
 import {SbbRadioChange} from "@sbb-esta/angular/radio-button";
 import {EditorView} from "../editor-main-view/data-views/editor.view";
-import { Vec2D } from "src/app/utils/vec2D";
+import {Vec2D} from "src/app/utils/vec2D";
 
 @Component({
   selector: "sbb-editor-edit-tools-view-component",
@@ -197,7 +197,7 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     console.log(
       "onAutomaticNodeLayout: call automatic node layouting --- Implement your callback logic here ---",
     );
-    this.autoLayoutService.callRobustAutomaticNodeLayouting();
+    this.autoLayoutService.runAutomaticLayoutingForImports();
   }
 
   onAlignElementsLeft() {
