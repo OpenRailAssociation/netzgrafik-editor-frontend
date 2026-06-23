@@ -209,32 +209,42 @@ describe("port-ordering", () => {
         expect(groupCrossings).toEqual([]);
       });
     });
-  });
 
-  // Minimal reproduction: two parallel trains turning a 90° corner at HUB,
-  // whose downstream neighbor (MID) is a pass-through continuing to END.
-  // Tested in the 4 corner orientations.
-  describe("Minimal test case", () => {
-    const corners = [
-      {name: "top > right (NE)", arm: {x: 0, y: -100}, mid: {x: 100, y: 0}, end: {x: 200, y: 0}},
-      {name: "right > bottom (SE)", arm: {x: 100, y: 0}, mid: {x: 0, y: 100}, end: {x: 0, y: 200}},
-      {name: "bottom > left (SW)", arm: {x: 0, y: 100}, mid: {x: -100, y: 0}, end: {x: -200, y: 0}},
-      {name: "left > top (NW)", arm: {x: -100, y: 0}, mid: {x: 0, y: -100}, end: {x: 0, y: -200}},
-    ];
+    // Minimal reproduction: two parallel trains turning a 90° corner at HUB,
+    // whose downstream neighbor (MID) is a pass-through continuing to END.
+    // Tested in the 4 corner orientations.
+    describe("Minimal test case", () => {
+      const corners = [
+        {name: "top > right (NE)", arm: {x: 0, y: -100}, mid: {x: 100, y: 0}, end: {x: 200, y: 0}},
+        {
+          name: "right > bottom (SE)",
+          arm: {x: 100, y: 0},
+          mid: {x: 0, y: 100},
+          end: {x: 0, y: 200},
+        },
+        {
+          name: "bottom > left (SW)",
+          arm: {x: 0, y: 100},
+          mid: {x: -100, y: 0},
+          end: {x: -200, y: 0},
+        },
+        {name: "left > top (NW)", arm: {x: -100, y: 0}, mid: {x: 0, y: -100}, end: {x: 0, y: -200}},
+      ];
 
-    corners.forEach(({name, arm, mid, end}) => {
-      it(`should not produce crossings (${name})`, () => {
-        const {nodesArray} = buildNetwork({
-          nodes: {ARM: arm, HUB: {x: 0, y: 0}, MID: mid, END: end},
-          trainruns: [
-            ["ARM", "HUB", "MID", "END"],
-            ["ARM", "HUB", "MID", "END"],
-          ],
+      corners.forEach(({name, arm, mid, end}) => {
+        it(`should not produce crossings (${name})`, () => {
+          const {nodesArray} = buildNetwork({
+            nodes: {ARM: arm, HUB: {x: 0, y: 0}, MID: mid, END: end},
+            trainruns: [
+              ["ARM", "HUB", "MID", "END"],
+              ["ARM", "HUB", "MID", "END"],
+            ],
+          });
+
+          optimizePorts(nodesArray);
+
+          expect(countAllCrossings(nodesArray).crossings).toBe(0);
         });
-
-        optimizePorts(nodesArray);
-
-        expect(countAllCrossings(nodesArray).crossings).toBe(0);
       });
     });
   });
