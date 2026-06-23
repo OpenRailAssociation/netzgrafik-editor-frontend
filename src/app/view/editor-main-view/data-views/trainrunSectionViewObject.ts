@@ -15,7 +15,7 @@ export class TrainrunSectionViewObject {
 
   static generateKey(editorView: EditorView, d: TrainrunSection): string {
     const selectedTrainrun = editorView.getSelectedTrainrun();
-    let connectedTrainIds = [];
+    let connectedTrainIds: number[] = [];
     if (selectedTrainrun !== null) {
       connectedTrainIds = editorView.getConnectedTrainrunIds(selectedTrainrun);
     }
