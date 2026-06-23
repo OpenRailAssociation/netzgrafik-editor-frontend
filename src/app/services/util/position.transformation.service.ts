@@ -292,7 +292,12 @@ export class PositionTransformationService {
     this.updateRendering();
   }
 
-  stretchShortSections(sections: TrainrunSection[], onlyShort = true, sign = 1): void {
+  stretchShortSections(
+    sections: TrainrunSection[],
+    onlyShort = true,
+    sign = 1,
+    maxShrink = false,
+  ): void {
     const MIN_SECTION_LENGTH_PX = 200;
 
     const toDirection = (a: PortAlignment) =>
@@ -323,7 +328,8 @@ export class PositionTransformationService {
 
       const deficit = MIN_SECTION_LENGTH_PX - length;
       const steps = Math.max(Math.ceil(deficit / (2 * RASTERING_BASIC_GRID_SIZE)), 1);
-      let delta = steps * RASTERING_BASIC_GRID_SIZE;
+      let delta =
+        sign < 0 && maxShrink ? Number.MAX_SAFE_INTEGER : steps * RASTERING_BASIC_GRID_SIZE;
 
       const centerX = (src.getX() + tgt.getX()) / 2;
       const centerY = (src.getY() + tgt.getY()) / 2;
