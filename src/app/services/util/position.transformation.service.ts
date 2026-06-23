@@ -14,6 +14,9 @@ import ElkConstructor from "elkjs/lib/elk.bundled.js";
   providedIn: "root",
 })
 export class PositionTransformationService {
+  private static readonly PROCRUSTES_EPSILON = 1e-9;
+  private static readonly MIRROR_ELK_Y_AXIS = true;
+
   constructor(
     private readonly trainrunSectionService: TrainrunSectionService,
     private readonly nodeService: NodeService,
@@ -32,7 +35,7 @@ export class PositionTransformationService {
       zoomCenter,
       windowViewboxPropertiesMapKey,
     );
-    const focalNode: Node = this.getFocalNode(scaleCenterCoordinates);
+    const focalNode: Node | undefined = this.getFocalNode(scaleCenterCoordinates);
 
     this.nodeService.getNodes().forEach((n, index) => {
       let newPos = new Vec2D(
@@ -80,7 +83,7 @@ export class PositionTransformationService {
     return scaleCenterCoordinates;
   }
 
-  private getFocalNode(scaleCenterCoordinates: Vec2D): Node {
+  private getFocalNode(scaleCenterCoordinates: Vec2D): Node | undefined {
     // get the node under the mouse cursor and update the scaleCenter
     const focalNode = this.nodeService
       .getNodes()
@@ -105,7 +108,7 @@ export class PositionTransformationService {
       zoomCenter,
       windowViewboxPropertiesMapKey,
     );
-    const focalNode: Node = this.getFocalNode(scaleCenterCoordinates);
+    const focalNode: Node | undefined = this.getFocalNode(scaleCenterCoordinates);
 
     if (!focalNode) {
       /*
@@ -199,7 +202,7 @@ export class PositionTransformationService {
   alignSelectedElementsToLeftBorder() {
     const nodes: Node[] = this.nodeService.getSelectedNodes();
 
-    let leftX = undefined;
+    let leftX: number | undefined = undefined;
     nodes.forEach((n) => {
       const pos = n.getPositionX();
       if (leftX === undefined) {
@@ -210,8 +213,9 @@ export class PositionTransformationService {
     });
 
     if (leftX !== undefined) {
+      const finalLeftX = leftX;
       nodes.forEach((n) => {
-        n.setPosition(leftX, n.getPositionY());
+        n.setPosition(finalLeftX, n.getPositionY());
         this.operation.emit(new NodeOperation(OperationType.update, n));
       });
     }
@@ -222,7 +226,7 @@ export class PositionTransformationService {
   alignSelectedElementsToRightBorder() {
     const nodes: Node[] = this.nodeService.getSelectedNodes();
 
-    let rightX = undefined;
+    let rightX: number | undefined = undefined;
     nodes.forEach((n) => {
       const pos = n.getPositionX() + n.getNodeWidth();
       if (rightX === undefined) {
@@ -233,8 +237,9 @@ export class PositionTransformationService {
     });
 
     if (rightX !== undefined) {
+      const finalRightX = rightX;
       nodes.forEach((n) => {
-        n.setPosition(rightX - n.getNodeWidth(), n.getPositionY());
+        n.setPosition(finalRightX - n.getNodeWidth(), n.getPositionY());
         this.operation.emit(new NodeOperation(OperationType.update, n));
       });
     }
@@ -245,7 +250,7 @@ export class PositionTransformationService {
   alignSelectedElementsToTopBorder() {
     const nodes: Node[] = this.nodeService.getSelectedNodes();
 
-    let topY = undefined;
+    let topY: number | undefined = undefined;
     nodes.forEach((n) => {
       const pos = n.getPositionY();
       if (topY === undefined) {
@@ -256,8 +261,9 @@ export class PositionTransformationService {
     });
 
     if (topY !== undefined) {
+      const finalTopY = topY;
       nodes.forEach((n) => {
-        n.setPosition(n.getPositionX(), topY);
+        n.setPosition(n.getPositionX(), finalTopY);
         this.operation.emit(new NodeOperation(OperationType.update, n));
       });
     }
@@ -268,7 +274,7 @@ export class PositionTransformationService {
   alignSelectedElementsToBottomBorder() {
     const nodes: Node[] = this.nodeService.getSelectedNodes();
 
-    let bottomY = undefined;
+    let bottomY: number | undefined = undefined;
     nodes.forEach((n) => {
       const pos = n.getPositionY() + n.getNodeHeight();
       if (bottomY === undefined) {
@@ -279,8 +285,9 @@ export class PositionTransformationService {
     });
 
     if (bottomY !== undefined) {
+      const finalBottomY = bottomY;
       nodes.forEach((n) => {
-        n.setPosition(n.getPositionX(), bottomY - n.getNodeHeight());
+        n.setPosition(n.getPositionX(), finalBottomY - n.getNodeHeight());
         this.operation.emit(new NodeOperation(OperationType.update, n));
       });
     }
@@ -318,14 +325,155 @@ export class PositionTransformationService {
 
   updateNodePositionsFromElkLayout(elkLayout: any, nodes: Node[]) {
     const elkNodes = elkLayout.children;
+    const originalNodeCenters = new Map<number, Vec2D>(
+      nodes.map((n) => [
+        n.getId(),
+        new Vec2D(
+          n.getPositionX() + n.getNodeWidth() / 2.0,
+          n.getPositionY() + n.getNodeHeight() / 2.0,
+        ),
+      ]),
+    );
+
+    const nodesById = new Map<number, Node>(nodes.map((n) => [n.getId(), n]));
+    const sourceCenters: Vec2D[] = [];
+    const targetCenters: Vec2D[] = [];
+
     elkNodes.forEach((elkNode: any) => {
       const nodeId = parseInt(elkNode.id, 10);
-      const node = nodes.find((n) => n.getId() === nodeId);
-      if (node) {
-        node.setPosition(elkNode.x, elkNode.y);
-        this.operation.emit(new NodeOperation(OperationType.update, node));
+      const node = nodesById.get(nodeId);
+      const originalCenter = originalNodeCenters.get(nodeId);
+      if (!node || !originalCenter) {
+        return;
       }
+
+      sourceCenters.push(
+        this.getElkSourceCenter(elkNode, node),
+      );
+      targetCenters.push(originalCenter);
     });
+
+    const transform = this.computeProcrustesTransform(sourceCenters, targetCenters);
+
+    elkNodes.forEach((elkNode: any) => {
+      const nodeId = parseInt(elkNode.id, 10);
+      const node = nodesById.get(nodeId);
+      if (!node) {
+        return;
+      }
+
+      const sourceCenter = this.getElkSourceCenter(elkNode, node);
+
+      const transformedCenter = transform
+        ? this.applyProcrustesTransform(sourceCenter, transform)
+        : sourceCenter;
+
+      node.setPosition(
+        transformedCenter.getX() - node.getNodeWidth() / 2.0,
+        transformedCenter.getY() - node.getNodeHeight() / 2.0,
+      );
+      this.operation.emit(new NodeOperation(OperationType.update, node));
+    });
+  }
+
+  private getElkSourceCenter(elkNode: any, node: Node): Vec2D {
+    const x = elkNode.x + node.getNodeWidth() / 2.0;
+    const y = elkNode.y + node.getNodeHeight() / 2.0;
+
+    return new Vec2D(
+      x,
+      PositionTransformationService.MIRROR_ELK_Y_AXIS ? -y : y,
+    );
+  }
+
+  private computeProcrustesTransform(source: Vec2D[], target: Vec2D[]) {
+    if (source.length !== target.length || source.length === 0) {
+      return null;
+    }
+
+    const sourceCenter = this.computeCentroid(source);
+    const targetCenter = this.computeCentroid(target);
+
+    let h11 = 0;
+    let h12 = 0;
+    let h21 = 0;
+    let h22 = 0;
+    let sourceVariance = 0;
+
+    source.forEach((s, i) => {
+      const t = target[i];
+      const sx = s.getX() - sourceCenter.getX();
+      const sy = s.getY() - sourceCenter.getY();
+      const tx = t.getX() - targetCenter.getX();
+      const ty = t.getY() - targetCenter.getY();
+
+      h11 += sx * tx;
+      h12 += sx * ty;
+      h21 += sy * tx;
+      h22 += sy * ty;
+      sourceVariance += sx * sx + sy * sy;
+    });
+
+    if (sourceVariance < PositionTransformationService.PROCRUSTES_EPSILON) {
+      return {
+        scale: 1,
+        cosTheta: 1,
+        sinTheta: 0,
+        translationX: targetCenter.getX() - sourceCenter.getX(),
+        translationY: targetCenter.getY() - sourceCenter.getY(),
+      };
+    }
+
+    const theta = Math.atan2(h12 - h21, h11 + h22);
+    const cosTheta = Math.cos(theta);
+    const sinTheta = Math.sin(theta);
+
+    const traceRotated =
+      cosTheta * (h11 + h22) +
+      sinTheta * (h12 - h21);
+    const scale = traceRotated / sourceVariance;
+
+    const rotatedSourceCenterX =
+      scale * (cosTheta * sourceCenter.getX() - sinTheta * sourceCenter.getY());
+    const rotatedSourceCenterY =
+      scale * (sinTheta * sourceCenter.getX() + cosTheta * sourceCenter.getY());
+
+    return {
+      scale,
+      cosTheta,
+      sinTheta,
+      translationX: targetCenter.getX() - rotatedSourceCenterX,
+      translationY: targetCenter.getY() - rotatedSourceCenterY,
+    };
+  }
+
+  private applyProcrustesTransform(
+    point: Vec2D,
+    transform: {
+      scale: number;
+      cosTheta: number;
+      sinTheta: number;
+      translationX: number;
+      translationY: number;
+    },
+  ): Vec2D {
+    const x = point.getX();
+    const y = point.getY();
+
+    return new Vec2D(
+      transform.scale * (transform.cosTheta * x - transform.sinTheta * y) +
+        transform.translationX,
+      transform.scale * (transform.sinTheta * x + transform.cosTheta * y) +
+        transform.translationY,
+    );
+  }
+
+  private computeCentroid(points: Vec2D[]): Vec2D {
+    const sum = points.reduce(
+      (acc, p) => ({x: acc.x + p.getX(), y: acc.y + p.getY()}),
+      {x: 0, y: 0},
+    );
+    return new Vec2D(sum.x / points.length, sum.y / points.length);
   }
 
   callRobustAutomaticNodeLayouting() {
