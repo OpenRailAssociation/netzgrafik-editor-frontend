@@ -117,6 +117,16 @@ describe("UiInteractionService", () => {
     expect(uiInteractionService.getEditorMode()).toBe(EditorMode.NetzgrafikEditing);
   });
 
+  it("findClosestNodeToViewCenter", () => {
+    nodeService.deleteAllVisibleNodes();
+    const n1 = nodeService.addNodeWithPosition(100, 100, "Node1", "Node1", [], true);
+    const n2 = nodeService.addNodeWithPosition(200, 200, "Node2", "Node2", [], true);
+    const n3 = nodeService.addNodeWithPosition(300, 300, "Node3", "Node3", [], true);
+    const viewboxProperties = uiInteractionService.getViewboxProperties(EditorView.svgName);
+    uiInteractionService.setViewboxProperties(EditorView.svgName, viewboxProperties);
+    expect(uiInteractionService.findClosestNodeToViewCenter(nodes)?.getId()).toBe(n2.getId());
+  });
+
   it("createTheme", () => {
     uiInteractionService.createTheme(
       ThemeRegistration.ThemeDefaultUx,
