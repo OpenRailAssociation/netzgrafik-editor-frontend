@@ -34,6 +34,7 @@ import {OrderingAlgorithm} from "../../data-structures/technical.data.structures
 import {TrafficSide} from "src/app/data-structures/business.data.structures";
 import {DataService} from "../data/data.service";
 import {Operation, MetadataOperation} from "../../models/operation.model";
+import {EditorView} from "src/app/view/editor-main-view/data-views/editor.view";
 
 export interface ViewboxProperties {
   currentViewBox: string;
@@ -369,23 +370,26 @@ export class UiInteractionService implements OnDestroy {
   }
 
   findClosestNodeToViewCenter(nodes: Node[]): Node | null {
-    const bb = this.nodeService.getNetzgrafikBoundingBox();
+    const vb = this.getViewboxProperties(EditorView.svgName);
+    // Compute center of the current viewBox
     const center = new Vec2D(
-      (bb.minCoordX + bb.maxCoordX) / 2.0,
-      (bb.minCoordY + bb.maxCoordY) / 2.0,
+      vb.panZoomLeft + vb.panZoomWidth / 2,
+      vb.panZoomTop + vb.panZoomHeight / 2,
     );
-    let minDistanceNodeToCenter = Number.MAX_VALUE;
-    let closestNodeToCenter: Node | null = null;
-    nodes.forEach((n) => {
-      const distToCenter = Vec2D.norm(
-        Vec2D.sub(new Vec2D(n.getPositionX(), n.getPositionY()), center),
-      );
-      if (distToCenter < minDistanceNodeToCenter) {
-        minDistanceNodeToCenter = distToCenter;
-        closestNodeToCenter = n;
+
+    let minDistance = Number.MAX_VALUE;
+    let closest: Node | null = null;
+
+    for (const n of nodes) {
+      const nodePos = new Vec2D(n.getPositionX(), n.getPositionY());
+      const dist = Vec2D.norm(Vec2D.sub(nodePos, center));
+
+      if (dist < minDistance) {
+        minDistance = dist;
+        closest = n;
       }
-    });
-    return closestNodeToCenter;
+    }
+    return closest;
   }
 
   gotoNode(node: Node, offset: Vec2D = new Vec2D(0, 0)) {
