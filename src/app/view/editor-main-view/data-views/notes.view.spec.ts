@@ -24,6 +24,7 @@ import {NetzgrafikUnitTesting} from "../../../../integration-testing/netzgrafik.
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
+import {TrainrunDistanceService} from "../../../services/util/trainrun-distance.service";
 
 describe("Notes-View", () => {
   let dataService: DataService;
@@ -131,6 +132,8 @@ describe("Notes-View", () => {
       trainrunSectionService,
     );
 
+    const trainrunDistanceService = new TrainrunDistanceService();
+
     const positionTransformationService = new PositionTransformationService(
       trainrunSectionService,
       trainrunService,
@@ -138,6 +141,7 @@ describe("Notes-View", () => {
       noteService,
       uiInteractionService,
       viewportCullService,
+      trainrunDistanceService,
     );
 
     const controller = new EditorMainViewComponent(

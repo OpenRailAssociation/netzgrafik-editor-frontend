@@ -25,6 +25,7 @@ import {Vec2D} from "../../../utils/vec2D";
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
+import {TrainrunDistanceService} from "../../../services/util/trainrun-distance.service";
 
 describe("3d.Utils.tests", () => {
   let dataService: DataService;
@@ -131,6 +132,8 @@ describe("3d.Utils.tests", () => {
       trainrunSectionService,
     );
 
+    const trainrunDistanceService = new TrainrunDistanceService();
+
     const positionTransformationService = new PositionTransformationService(
       trainrunSectionService,
       trainrunService,
@@ -138,6 +141,7 @@ describe("3d.Utils.tests", () => {
       noteService,
       uiInteractionService,
       viewportCullService,
+      trainrunDistanceService,
     );
 
     const controller = new EditorMainViewComponent(

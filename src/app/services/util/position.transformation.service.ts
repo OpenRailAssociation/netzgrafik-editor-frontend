@@ -12,6 +12,7 @@ import {Note} from "../../models/note.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {RASTERING_BASIC_GRID_SIZE} from "../../view/rastering/definitions";
+import {TrainrunDistanceService} from "./trainrun-distance.service";
 
 @Injectable({
   providedIn: "root",
@@ -24,6 +25,7 @@ export class PositionTransformationService {
     private readonly noteService: NoteService,
     private readonly uiInteractionService: UiInteractionService,
     private readonly viewportCullService: ViewportCullService,
+    private readonly trainrunDistanceService: TrainrunDistanceService,
   ) {}
   readonly operation = new EventEmitter<Operation>();
 
@@ -297,20 +299,20 @@ export class PositionTransformationService {
     runGlobally = true,
     sign = 1,
   ): void {
-    const MIN_SECTION_LENGTH_PX = 200;
-
     const toDirection = (a: PortAlignment) =>
       a === PortAlignment.Left || a === PortAlignment.Right ? "horizontal" : "vertical";
 
     const processed = !(runGlobally && sign >= 0) ? new Set<string>() : null;
     sections.forEach((section: TrainrunSection) => {
+      const minSectionLengthPx = this.trainrunDistanceService.getMinSectionLengthInPx(section);
+
       if (section.isPathInvalid()) {
         return;
       }
       const src = section.getPositionAtSourceNode();
       const tgt = section.getPositionAtTargetNode();
       const length = Vec2D.norm(Vec2D.sub(tgt, src));
-      if (runGlobally && sign >= 0 && length >= MIN_SECTION_LENGTH_PX) {
+      if (runGlobally && sign >= 0 && length >= minSectionLengthPx) {
         return;
       }
       const srcNodeObj = section.getSourceNode();
@@ -331,7 +333,7 @@ export class PositionTransformationService {
       }
       processed?.add(key);
 
-      const deficit = MIN_SECTION_LENGTH_PX - length;
+      const deficit = minSectionLengthPx - length;
       const steps = Math.max(Math.ceil(deficit / (2 * RASTERING_BASIC_GRID_SIZE)), 1);
       let delta =
         sign < 0 && runGlobally ? Number.MAX_SAFE_INTEGER : steps * RASTERING_BASIC_GRID_SIZE;
@@ -345,7 +347,7 @@ export class PositionTransformationService {
           direction,
           centerX,
           centerY,
-          MIN_SECTION_LENGTH_PX,
+          minSectionLengthPx,
         );
         if (delta <= 0) {
           console.log(`  [skip] ${key}: cannot shrink without violating minimum edge length`);

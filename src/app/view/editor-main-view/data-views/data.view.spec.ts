@@ -29,6 +29,7 @@ import {StaticDomTags} from "./static.dom.tags";
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
+import {TrainrunDistanceService} from "../../../services/util/trainrun-distance.service";
 
 describe("Editor-DataView", () => {
   let dataService: DataService;
@@ -136,6 +137,8 @@ describe("Editor-DataView", () => {
 
     const levelOfDetailService = new LevelOfDetailService(uiInteractionService);
 
+    const trainrunDistanceService = new TrainrunDistanceService();
+
     const positionTransformationService = new PositionTransformationService(
       trainrunSectionService,
       trainrunService,
@@ -143,6 +146,7 @@ describe("Editor-DataView", () => {
       noteService,
       uiInteractionService,
       viewportCullService,
+      trainrunDistanceService,
     );
 
     const controller = new EditorMainViewComponent(
