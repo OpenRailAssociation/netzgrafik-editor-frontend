@@ -303,6 +303,7 @@ export class PositionTransformationService {
     const toDirection = (a: PortAlignment) =>
       a === PortAlignment.Left || a === PortAlignment.Right ? "horizontal" : "vertical";
 
+    const processed = new Set<string>();
     sections.forEach((section: TrainrunSection) => {
       if (section.isPathInvalid()) {
         return;
@@ -325,6 +326,11 @@ export class PositionTransformationService {
       const key = [srcNodeObj.getBetriebspunktName(), tgtNodeObj.getBetriebspunktName()]
         .sort()
         .join(" – ");
+
+      if (processed.has(key)) {
+        return;
+      }
+      processed.add(key);
 
       const deficit = MIN_SECTION_LENGTH_PX - length;
       const steps = Math.max(Math.ceil(deficit / (2 * RASTERING_BASIC_GRID_SIZE)), 1);
