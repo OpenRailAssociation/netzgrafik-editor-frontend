@@ -24,6 +24,7 @@ import {NodesView} from "./nodes.view";
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
+import {AutoLayoutService} from "../../../services/util/auto-layout.service";
 
 describe("Nodes-View", () => {
   let dataService: DataService;
@@ -140,6 +141,15 @@ describe("Nodes-View", () => {
       viewportCullService,
     );
 
+    const autoLayoutService = new AutoLayoutService(
+      nodeService,
+      trainrunService,
+      uiInteractionService,
+      noteService,
+      trainrunSectionService,
+      viewportCullService,
+    );
+
     const controller = new EditorMainViewComponent(
       nodeService,
       trainrunSectionService,
@@ -156,6 +166,7 @@ describe("Nodes-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      autoLayoutService,
     );
 
     new EditorView(
@@ -173,6 +184,7 @@ describe("Nodes-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      autoLayoutService,
     );
 
     controller.bindViewToServices();

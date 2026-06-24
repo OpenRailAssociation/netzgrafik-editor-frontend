@@ -44,6 +44,7 @@ import {LevelOfDetailService} from "../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../services/ui/viewport.cull.service";
 import {VersionControlService} from "../../services/data/version-control.service";
 import {PositionTransformationService} from "../../services/util/position.transformation.service";
+import {AutoLayoutService} from "../../services/util/auto-layout.service";
 
 @Component({
   selector: "sbb-editor-main-view",
@@ -81,6 +82,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     private levelOfDetailService: LevelOfDetailService,
     private versionControlService: VersionControlService,
     private positionTransformationService: PositionTransformationService,
+    private autoLayoutService: AutoLayoutService,
   ) {
     this.editorView = new EditorView(
       this,
@@ -97,6 +99,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       levelOfDetailService,
       versionControlService,
       positionTransformationService,
+      autoLayoutService,
     );
     this.uiInteractionService.zoomInObservable
       .pipe(takeUntil(this.destroyed))
