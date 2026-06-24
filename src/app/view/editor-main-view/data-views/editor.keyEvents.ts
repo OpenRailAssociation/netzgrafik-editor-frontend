@@ -145,13 +145,14 @@ export class EditorKeyEvents {
           if (shiftKey) {
             this.positionTransformationService.stretchShortSections(
               this.trainrunSectionService.getTrainrunSections(),
-              false,
-              -1,
               true,
+              -1,
             );
           } else {
             this.positionTransformationService.stretchShortSections(
               this.trainrunSectionService.getTrainrunSections(),
+              true,
+              1,
             );
           }
           break;
