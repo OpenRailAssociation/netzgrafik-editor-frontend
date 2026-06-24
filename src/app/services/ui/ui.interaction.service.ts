@@ -27,6 +27,7 @@ import {NetzgrafikColoringService} from "../data/netzgrafikColoring.service";
 import {MainViewMode} from "../../view/filter-main-side-view/main-view-mode";
 import {TrainrunService} from "../data/trainrun.service";
 import {Trainrun} from "../../models/trainrun.model";
+import {Node} from "../../models/node.model";
 import {LoadPerlenketteService} from "../../perlenkette/service/load-perlenkette.service";
 import {TravelTimeCreationEstimatorType} from "../../view/themes/editor-trainrun-traveltime-creator-type";
 import {OrderingAlgorithm} from "../../data-structures/technical.data.structures";
@@ -366,6 +367,33 @@ export class UiInteractionService implements OnDestroy {
     );
     this.moveNetzgrafikEditorFocalViewPoint(center);
   }
+
+  findClosestNodeToViewCenter(nodes: Node[]): Node | null {
+    const bb = this.nodeService.getNetzgrafikBoundingBox();
+    const center = new Vec2D(
+      (bb.minCoordX + bb.maxCoordX) / 2.0,
+      (bb.minCoordY + bb.maxCoordY) / 2.0,
+    );
+    let minDistanceNodeToCenter = Number.MAX_VALUE;
+    let closestNodeToCenter: Node | null = null;
+    nodes.forEach((n) => {
+      const distToCenter = Vec2D.norm(
+        Vec2D.sub(new Vec2D(n.getPositionX(), n.getPositionY()), center),
+      );
+      if (distToCenter < minDistanceNodeToCenter) {
+        minDistanceNodeToCenter = distToCenter;
+        closestNodeToCenter = n;
+      }
+    });
+    return closestNodeToCenter;
+  }
+
+  gotoNode(node: Node, offset: Vec2D = new Vec2D(0, 0)) {
+    const x = node.getPositionX() + node.getNodeWidth() / 2.0 + offset.getX();
+    const y = node.getPositionY() + node.getNodeHeight() / 2.0 + offset.getY();
+    this.moveNetzgrafikEditorFocalViewPoint(new Vec2D(x, y));
+  }
+
   showOrCloseFilter(type: FilterWindowType) {
     if (this.isFilterWindowType(type)) {
       this.closeFilter();
