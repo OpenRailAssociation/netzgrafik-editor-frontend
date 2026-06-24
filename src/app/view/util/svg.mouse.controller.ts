@@ -6,22 +6,14 @@ import {UndoService} from "../../services/data/undo.service";
 
 export interface SVGMouseControllerObserver {
   onEarlyReturnFromMousemove(): boolean;
-
-  onGraphContainerMouseup(mousePosition: Vec2D, onPaning: boolean);
-
-  zoomFactorChanged(newZoomFactor: number);
-
-  onViewboxChanged(viewboxProperties: ViewboxProperties);
-
-  onStartMultiSelect();
-
-  updateMultiSelect(topLeft: Vec2D, bottomRight: Vec2D);
-
-  onEndMultiSelect();
-
-  onScaleNetzgrafik(factor: number, scaleCenter: Vec2D);
-
-  onCtrlKeyChanged(state: boolean);
+  onGraphContainerMouseup(mousePosition: Vec2D, onPaning: boolean): void;
+  zoomFactorChanged(newZoomFactor: number): void;
+  onViewboxChanged(viewboxProperties: ViewboxProperties): void;
+  onStartMultiSelect(): void;
+  updateMultiSelect(topLeft: Vec2D, bottomRight: Vec2D): void;
+  onEndMultiSelect(): void;
+  onScaleNetzgrafik(factor: number, scaleCenter: Vec2D): void;
+  onCtrlKeyChanged(state: boolean): void;
 }
 
 export class SVGMouseController {
