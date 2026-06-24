@@ -157,18 +157,21 @@ export class EditorKeyEvents {
           }
           break;
         case "KeyE":
-          if (shiftKey) {
-            this.positionTransformationService.stretchShortSections(
-              this.getSelectedTrainrunSections(),
-              false,
-              -1,
-            );
-          } else {
-            this.positionTransformationService.stretchShortSections(
-              this.getSelectedTrainrunSections(),
-              false,
-              1,
-            );
+          {
+            const sectionsForE = this.getSectionsForLocalOperation();
+            if (shiftKey) {
+              this.positionTransformationService.stretchShortSections(
+                sectionsForE,
+                false,
+                -1,
+              );
+            } else {
+              this.positionTransformationService.stretchShortSections(
+                sectionsForE,
+                false,
+                1,
+              );
+            }
           }
           break;
         case "ArrowLeft":
@@ -264,6 +267,21 @@ export class EditorKeyEvents {
 
   private getSelectedTrainrunSections(): TrainrunSection[] {
     return this.trainrunSectionService.getAllSelectedTrainrunSections() ?? [];
+  }
+
+  private getSectionsForLocalOperation(): TrainrunSection[] {
+    const selectedSections = this.getSelectedTrainrunSections();
+    if (selectedSections.length > 0) {
+      return selectedSections;
+    }
+    const selectedNodes = this.nodeService.getSelectedNodes();
+    if (selectedNodes.length < 2) {
+      return [];
+    }
+    const nodeIds = new Set(selectedNodes.map((n) => n.getId()));
+    return this.trainrunSectionService.getTrainrunSections().filter(
+      (ts) => nodeIds.has(ts.getSourceNode().getId()) && nodeIds.has(ts.getTargetNode().getId()),
+    );
   }
 
   private groupSectionsByNodePairs(sections: TrainrunSection[]): Map<string, TrainrunSection[]> {
