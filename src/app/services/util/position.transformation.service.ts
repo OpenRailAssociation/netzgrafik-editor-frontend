@@ -12,6 +12,9 @@ import {Note} from "../../models/note.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {RASTERING_BASIC_GRID_SIZE} from "../../view/rastering/definitions";
+import {Port} from "../../models/port.model";
+
+export const MIN_SECTION_LENGTH_PX = 250;
 
 @Injectable({
   providedIn: "root",
@@ -292,104 +295,146 @@ export class PositionTransformationService {
     this.updateRendering();
   }
 
-  stretchShortSections(
-    sections: TrainrunSection[],
-    runGlobally = true,
-    sign = 1,
-  ): void {
-    const MIN_SECTION_LENGTH_PX = 200;
+  stretchShortSections(sections: TrainrunSection[], runGlobally = true, sign = 1): void {
+    const processed = runGlobally && sign >= 0 ? new Set<string>() : null;
 
-    const toDirection = (a: PortAlignment) =>
-      a === PortAlignment.Left || a === PortAlignment.Right ? "horizontal" : "vertical";
-
-    const processed = !(runGlobally && sign >= 0) ? new Set<string>() : null;
-    sections.forEach((section: TrainrunSection) => {
-      if (section.isPathInvalid()) {
-        return;
-      }
-      const src = section.getPositionAtSourceNode();
-      const tgt = section.getPositionAtTargetNode();
-      const length = Vec2D.norm(Vec2D.sub(tgt, src));
-      if (runGlobally && sign >= 0 && length >= MIN_SECTION_LENGTH_PX) {
-        return;
-      }
-      const srcNodeObj = section.getSourceNode();
-      const tgtNodeObj = section.getTargetNode();
-      const srcDir = toDirection(
-        srcNodeObj.getPort(section.getSourcePortId()).getPositionAlignment(),
-      );
-      const tgtDir = toDirection(
-        tgtNodeObj.getPort(section.getTargetPortId()).getPositionAlignment(),
-      );
-      const direction = srcDir === tgtDir ? srcDir : `${srcDir}/${tgtDir}`;
-      const key = [srcNodeObj.getBetriebspunktName(), tgtNodeObj.getBetriebspunktName()]
-        .sort()
-        .join(" – ");
-
-      if (processed?.has(key)) {
-        return;
-      }
-      processed?.add(key);
-
-      const deficit = MIN_SECTION_LENGTH_PX - length;
-      const steps = Math.max(Math.ceil(deficit / (2 * RASTERING_BASIC_GRID_SIZE)), 1);
-      let delta =
-        sign < 0 && runGlobally ? Number.MAX_SAFE_INTEGER : steps * RASTERING_BASIC_GRID_SIZE;
-
-      const centerX = (src.getX() + tgt.getX()) / 2;
-      const centerY = (src.getY() + tgt.getY()) / 2;
-
-      if (sign < 0) {
-        delta = this.limitDeltaForMinEdgeLength(
-          delta,
-          direction,
-          centerX,
-          centerY,
-          MIN_SECTION_LENGTH_PX,
-        );
-        if (delta <= 0) {
-          console.log(`  [skip] ${key}: cannot shrink without violating minimum edge length`);
-          return;
-        }
-      }
-
-      if (direction === "horizontal") {
-        this.nodeService.getNodes().forEach((node: Node) => {
-          const nodeCenterX = node.getPositionX() + node.getNodeWidth() / 2;
-          const dx = (nodeCenterX <= centerX ? -1 : 1) * sign * delta;
-          this.nodeService.changeNodePositionWithoutUpdate(
-            node.getId(),
-            node.getPositionX() + dx,
-            node.getPositionY(),
-            true,
-            false,
-          );
-        });
-      } else if (direction === "vertical") {
-        this.nodeService.getNodes().forEach((node: Node) => {
-          const nodeCenterY = node.getPositionY() + node.getNodeHeight() / 2;
-          const dy = (nodeCenterY <= centerY ? -1 : 1) * sign * delta;
-          this.nodeService.changeNodePositionWithoutUpdate(
-            node.getId(),
-            node.getPositionX(),
-            node.getPositionY() + dy,
-            true,
-            false,
-          );
-        });
-      } else {
-        console.log(`  [skip] ${key}: mixed port directions (${direction})`);
-        return;
-      }
-
-      const action = sign >= 0 ? "stretched" : "shrunk";
-      console.log(`  [${action}] ${key} (${Math.round(length)}px, ${direction})`);
-    });
+    for (const section of sections) {
+      this.processSection(section, processed, runGlobally, sign);
+    }
 
     this.nodeService.nodesUpdated();
     this.nodeService.transitionsUpdated();
     this.trainrunService.trainrunsUpdated();
     this.trainrunSectionService.trainrunSectionsUpdated();
+  }
+
+  private processSection(
+    section: TrainrunSection,
+    processed: Set<string> | null,
+    runGlobally: boolean,
+    sign: number,
+  ): void {
+    if (section.isPathInvalid()) return;
+
+    const length = this.getSectionLength(section);
+    if (runGlobally && sign >= 0 && length >= MIN_SECTION_LENGTH_PX) return;
+
+    const key = this.getSectionKey(section);
+    if (processed?.has(key)) return;
+    processed?.add(key);
+
+    const direction = this.getDirection(section);
+    if (!direction) {
+      console.log(`  [skip] ${key}: mixed port directions`);
+      return;
+    }
+
+    const delta = this.computeDelta(section, direction, length, sign, runGlobally);
+    if (delta <= 0) {
+      console.log(`  [skip] ${key}: cannot shrink without violating minimum edge length`);
+      return;
+    }
+
+    this.applyShift(section, direction, delta, sign);
+
+    const action = sign >= 0 ? "stretched" : "shrunk";
+    console.log(`  [${action}] ${key} (${Math.round(length)}px, ${direction})`);
+  }
+
+  private getSectionLength(section: TrainrunSection): number {
+    const src = section.getPositionAtSourceNode();
+    const tgt = section.getPositionAtTargetNode();
+    return Vec2D.norm(Vec2D.sub(tgt, src));
+  }
+
+  private getSectionKey(section: TrainrunSection): string {
+    const src = section.getSourceNode().getBetriebspunktName();
+    const tgt = section.getTargetNode().getBetriebspunktName();
+    return [src, tgt].sort().join(" – ");
+  }
+
+  private getDirection(section: TrainrunSection): "horizontal" | "vertical" | null {
+    const srcNode = section.getSourceNode();
+    const tgtNode = section.getTargetNode();
+
+    const srcDir = this.portToDirection(srcNode.getPort(section.getSourcePortId()));
+    const tgtDir = this.portToDirection(tgtNode.getPort(section.getTargetPortId()));
+
+    return srcDir === tgtDir ? srcDir : null;
+  }
+
+  private portToDirection(port: Port): "horizontal" | "vertical" {
+    const a = port.getPositionAlignment();
+    return a === PortAlignment.Left || a === PortAlignment.Right ? "horizontal" : "vertical";
+  }
+
+  private computeDelta(
+    section: TrainrunSection,
+    direction: "horizontal" | "vertical",
+    length: number,
+    sign: number,
+    runGlobally: boolean,
+  ): number {
+    const deficit = MIN_SECTION_LENGTH_PX - length;
+    const steps = Math.max(Math.ceil(deficit / (2 * RASTERING_BASIC_GRID_SIZE)), 1);
+    let delta = steps * RASTERING_BASIC_GRID_SIZE;
+
+    if (sign < 0 && runGlobally) {
+      delta = this.limitShrinkDelta(section, direction, delta);
+    }
+
+    return delta;
+  }
+
+  private applyShift(
+    section: TrainrunSection,
+    direction: "horizontal" | "vertical",
+    delta: number,
+    sign: number,
+  ): void {
+    const src = section.getPositionAtSourceNode();
+    const tgt = section.getPositionAtTargetNode();
+
+    const centerX = (src.getX() + tgt.getX()) / 2;
+    const centerY = (src.getY() + tgt.getY()) / 2;
+
+    for (const node of this.nodeService.getNodes()) {
+      if (direction === "horizontal") {
+        const nodeCenterX = node.getPositionX() + node.getNodeWidth() / 2;
+        const dx = (nodeCenterX <= centerX ? -1 : 1) * sign * delta;
+        this.nodeService.changeNodePositionWithoutUpdate(
+          node.getId(),
+          node.getPositionX() + dx,
+          node.getPositionY(),
+          true,
+          false,
+        );
+      } else {
+        const nodeCenterY = node.getPositionY() + node.getNodeHeight() / 2;
+        const dy = (nodeCenterY <= centerY ? -1 : 1) * sign * delta;
+        this.nodeService.changeNodePositionWithoutUpdate(
+          node.getId(),
+          node.getPositionX(),
+          node.getPositionY() + dy,
+          true,
+          false,
+        );
+      }
+    }
+  }
+
+  private limitShrinkDelta(
+    section: TrainrunSection,
+    direction: "horizontal" | "vertical",
+    delta: number,
+  ): number {
+    return this.limitDeltaForMinEdgeLength(
+      delta,
+      direction,
+      section.getPositionAtSourceNode().getX(),
+      section.getPositionAtSourceNode().getY(),
+      MIN_SECTION_LENGTH_PX,
+    );
   }
 
   private limitDeltaForMinEdgeLength(

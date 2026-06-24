@@ -160,17 +160,9 @@ export class EditorKeyEvents {
           {
             const sectionsForE = this.getSectionsForLocalOperation();
             if (shiftKey) {
-              this.positionTransformationService.stretchShortSections(
-                sectionsForE,
-                false,
-                -1,
-              );
+              this.positionTransformationService.stretchShortSections(sectionsForE, false, -1);
             } else {
-              this.positionTransformationService.stretchShortSections(
-                sectionsForE,
-                false,
-                1,
-              );
+              this.positionTransformationService.stretchShortSections(sectionsForE, false, 1);
             }
           }
           break;
@@ -279,9 +271,11 @@ export class EditorKeyEvents {
       return [];
     }
     const nodeIds = new Set(selectedNodes.map((n) => n.getId()));
-    return this.trainrunSectionService.getTrainrunSections().filter(
-      (ts) => nodeIds.has(ts.getSourceNode().getId()) && nodeIds.has(ts.getTargetNode().getId()),
-    );
+    return this.trainrunSectionService
+      .getTrainrunSections()
+      .filter(
+        (ts) => nodeIds.has(ts.getSourceNode().getId()) && nodeIds.has(ts.getTargetNode().getId()),
+      );
   }
 
   private groupSectionsByNodePairs(sections: TrainrunSection[]): Map<string, TrainrunSection[]> {
