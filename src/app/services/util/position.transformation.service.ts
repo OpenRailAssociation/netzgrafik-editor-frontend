@@ -294,16 +294,15 @@ export class PositionTransformationService {
 
   stretchShortSections(
     sections: TrainrunSection[],
-    onlyShort = true,
+    runGlobally = true,
     sign = 1,
-    maxShrink = false,
   ): void {
     const MIN_SECTION_LENGTH_PX = 200;
 
     const toDirection = (a: PortAlignment) =>
       a === PortAlignment.Left || a === PortAlignment.Right ? "horizontal" : "vertical";
 
-    const processed = new Set<string>();
+    const processed = !(runGlobally && sign >= 0) ? new Set<string>() : null;
     sections.forEach((section: TrainrunSection) => {
       if (section.isPathInvalid()) {
         return;
@@ -311,7 +310,7 @@ export class PositionTransformationService {
       const src = section.getPositionAtSourceNode();
       const tgt = section.getPositionAtTargetNode();
       const length = Vec2D.norm(Vec2D.sub(tgt, src));
-      if (onlyShort && length >= MIN_SECTION_LENGTH_PX) {
+      if (runGlobally && sign >= 0 && length >= MIN_SECTION_LENGTH_PX) {
         return;
       }
       const srcNodeObj = section.getSourceNode();
@@ -327,15 +326,15 @@ export class PositionTransformationService {
         .sort()
         .join(" – ");
 
-      if (processed.has(key)) {
+      if (processed?.has(key)) {
         return;
       }
-      processed.add(key);
+      processed?.add(key);
 
       const deficit = MIN_SECTION_LENGTH_PX - length;
       const steps = Math.max(Math.ceil(deficit / (2 * RASTERING_BASIC_GRID_SIZE)), 1);
       let delta =
-        sign < 0 && maxShrink ? Number.MAX_SAFE_INTEGER : steps * RASTERING_BASIC_GRID_SIZE;
+        sign < 0 && runGlobally ? Number.MAX_SAFE_INTEGER : steps * RASTERING_BASIC_GRID_SIZE;
 
       const centerX = (src.getX() + tgt.getX()) / 2;
       const centerY = (src.getY() + tgt.getY()) / 2;
