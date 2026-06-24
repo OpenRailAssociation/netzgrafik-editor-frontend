@@ -194,9 +194,6 @@ export class EditorEditToolsViewComponent implements OnDestroy {
   }
 
   onAutomaticNodeLayout() {
-    console.log(
-      "onAutomaticNodeLayout: call automatic node layouting --- Implement your callback logic here ---",
-    );
     this.autoLayoutService.runAutomaticLayoutingForImports();
   }
 

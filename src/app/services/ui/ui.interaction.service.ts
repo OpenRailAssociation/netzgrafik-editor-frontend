@@ -373,9 +373,6 @@ export class UiInteractionService implements OnDestroy {
       (bb.minCoordX + bb.maxCoordX) / 2.0,
       (bb.minCoordY + bb.maxCoordY) / 2.0,
     );
-    // const centerX = viewboxProperties.panZoomLeft + viewboxProperties.panZoomWidth / 2;
-    // const centerY = viewboxProperties.panZoomTop + viewboxProperties.panZoomHeight / 2;
-    // const center = new Vec2D(centerX, centerY);
     let minDistanceNodeToCenter = Number.MAX_VALUE;
     let closestNodeToCenter: Node | null = null;
     nodes.forEach((n) => {
