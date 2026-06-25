@@ -43,6 +43,46 @@ export class AutoLayoutService {
     private readonly viewportCullService: ViewportCullService,
   ) {}
 
+  private getSectionsForLocalOperation(): TrainrunSection[] {
+    const selectedSections = this.trainrunSectionService.getSelectedTrainrunSections();
+    if (selectedSections.length > 0) {
+      return selectedSections;
+    }
+    const selectedNodes = this.nodeService.getSelectedNodes();
+    if (selectedNodes.length < 2) {
+      return [];
+    }
+    const nodeIds = new Set(selectedNodes.map((n) => n.getId()));
+    return this.trainrunSectionService
+      .getTrainrunSections()
+      .filter(
+        (ts) => nodeIds.has(ts.getSourceNode().getId()) && nodeIds.has(ts.getTargetNode().getId()),
+      );
+  }
+
+  /**
+   * Optimize Layout
+   * - local optimization, if selection exists (trainrun sections or nodes)
+   * - global optimization, if no selection exists
+   * - Shift = inverted direction
+   */
+  optimizeLayout(inverse: boolean): void {
+    const direction = inverse ? -1 : 1;
+
+    // 1) get local sections
+    const localSections = this.getSectionsForLocalOperation();
+
+    if (localSections.length > 0) {
+      // local optimization
+      this.stretchShortSections(localSections, false, direction);
+      return;
+    }
+
+    // 2) No selection → global optimization
+    const allSections = this.trainrunSectionService.getTrainrunSections();
+    this.stretchShortSections(allSections, true, direction);
+  }
+
   stretchShortSections(sections: TrainrunSection[], runGlobally = true, sign = 1): void {
     const anchorNode = this.findCurrentViewAnchorNode();
     const processedKeys = this.createProcessedKeySet(runGlobally, sign);

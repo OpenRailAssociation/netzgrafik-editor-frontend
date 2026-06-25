@@ -217,6 +217,10 @@ export class TrainrunSectionService implements OnDestroy {
     this.trainrunSectionsUpdated();
   }
 
+  getSelectedTrainrunSections(): TrainrunSection[] {
+    return this.getAllSelectedTrainrunSections() ?? [];
+  }
+
   getSelectedTrainrunSection(): TrainrunSection {
     const selectedTrainrunSection = this.trainrunSectionsStore.trainrunSections.find((tr) =>
       tr.selected(),
