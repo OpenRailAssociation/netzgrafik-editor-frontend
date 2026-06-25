@@ -154,6 +154,35 @@
         {{ option.name }}
       </sbb-radio-button>
     </sbb-radio-group>
+
+    <br />
+    <sbb-label>{{
+      "app.view.editor-edit-tools-view-component.optimization-netzgrafik-title" | translate
+    }}</sbb-label>
+    <br />
+    <button
+      (click)="onOptimizeLayout()"
+      [title]="
+        'app.view.editor-edit-tools-view-component.optimization-netzgrafik-tooltip' | translate
+      "
+      class="TrainrunDialog EditorToolButton"
+    >
+      <sbb-icon svgIcon="magic-wand-small"></sbb-icon>
+    </button>
+    {{ "app.view.editor-edit-tools-view-component.optimize-layout" | translate }}
+    <br />
+    <button
+      (click)="onInverseOptimizeLayout()"
+      [title]="
+        'app.view.editor-edit-tools-view-component.inverse_optimization-netzgrafik-tooltip'
+          | translate
+      "
+      class="TrainrunDialog EditorToolButton"
+    >
+      <sbb-icon svgIcon="magic-wand-small"></sbb-icon>
+    </button>
+    {{ "app.view.editor-edit-tools-view-component.inverse_optimization-netzgrafik" | translate }}
+    <br />
   </sbb-expansion-panel>
 
   <sbb-expansion-panel *ngIf="getAreMultiObjectSelected()" [expanded]="getAreMultiObjectSelected()">

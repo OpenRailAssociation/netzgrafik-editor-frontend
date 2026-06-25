@@ -61,29 +61,6 @@ export class EditorKeyEvents {
     return document.body !== event.target;
   }
 
-  /**
-   * L = Optimize Layout
-   * - local optimization, if selection exists
-   * - global optimization, if no selection exists
-   * - Shift = inverted direction
-   */
-  private onOptimizeLayoutPressed(shiftKey: boolean): void {
-    const direction = shiftKey ? -1 : 1;
-
-    // 1) get local sections
-    const localSections = this.getSectionsForLocalOperation();
-
-    if (localSections.length > 0) {
-      // local optimization
-      this.autoLayoutService.stretchShortSections(localSections, false, direction);
-      return;
-    }
-
-    // 2) No selection → global optimization
-    const allSections = this.trainrunSectionService.getTrainrunSections();
-    this.autoLayoutService.stretchShortSections(allSections, true, direction);
-  }
-
   activateMousekeyDownHandler(editorMode: EditorMode) {
     this.editorMode = editorMode;
 
@@ -167,8 +144,8 @@ export class EditorKeyEvents {
           }
           break;
         case "KeyL":
-          this.onOptimizeLayoutPressed(shiftKey);
-          d3.event.preventDefault();
+          this.autoLayoutService.optimizeLayout(shiftKey);
+          event.preventDefault();
           break;
         case "ArrowLeft":
           this.onArrowLeft();
@@ -244,7 +221,7 @@ export class EditorKeyEvents {
       return false;
     }
 
-    const selectedSections = this.getSelectedTrainrunSections();
+    const selectedSections = this.trainrunSectionService.getSelectedTrainrunSections();
     if (selectedSections.length === 0) {
       return false;
     }
@@ -259,27 +236,6 @@ export class EditorKeyEvents {
 
   private isMultiNodeMovingMode(): boolean {
     return this.uiInteractionService.getEditorMode() === EditorMode.MultiNodeMoving;
-  }
-
-  private getSelectedTrainrunSections(): TrainrunSection[] {
-    return this.trainrunSectionService.getAllSelectedTrainrunSections() ?? [];
-  }
-
-  private getSectionsForLocalOperation(): TrainrunSection[] {
-    const selectedSections = this.getSelectedTrainrunSections();
-    if (selectedSections.length > 0) {
-      return selectedSections;
-    }
-    const selectedNodes = this.nodeService.getSelectedNodes();
-    if (selectedNodes.length < 2) {
-      return [];
-    }
-    const nodeIds = new Set(selectedNodes.map((n) => n.getId()));
-    return this.trainrunSectionService
-      .getTrainrunSections()
-      .filter(
-        (ts) => nodeIds.has(ts.getSourceNode().getId()) && nodeIds.has(ts.getTargetNode().getId()),
-      );
   }
 
   private groupSectionsByNodePairs(sections: TrainrunSection[]): Map<string, TrainrunSection[]> {
