@@ -134,7 +134,7 @@ export class AutoLayoutService {
       nodes.forEach((n) => n.setPosition(n.getPositionX(), 2 * newCy - n.getPositionY()));
   }
 
-  private removeOverlaps(nodes: Node[], padding = 10): void {
+  private removeOverlaps(nodes: Node[], padding = 40): void {
     // Precompute constant half-dimensions (node sizes never change during layout)
     const halfW = nodes.map((n) => n.getNodeWidth() / 2);
     const halfH = nodes.map((n) => n.getNodeHeight() / 2);
@@ -214,7 +214,7 @@ export class AutoLayoutService {
         "elk.algorithm": "stress",
         "org.eclipse.elk.stress.desiredEdgeLength": desiredEdgeLength.toString(),
         "org.eclipse.elk.stress.epsilon": "1e-4",
-        "org.eclipse.elk.stress.iterationLimit": "600",
+        "org.eclipse.elk.stress.iterationLimit": "1000",
       },
     });
 
@@ -225,7 +225,7 @@ export class AutoLayoutService {
 
         this.updateNodePositionsFromElkLayout(layout, nodes);
         this.correctAxisFlips(nodes, originalPositions);
-        this.removeOverlaps(nodes, 40);
+        this.removeOverlaps(nodes, 250);
 
         this.nodeService.nodesUpdated();
         this.nodeService.transitionsUpdated();
