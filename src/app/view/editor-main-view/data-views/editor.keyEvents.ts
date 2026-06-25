@@ -61,6 +61,29 @@ export class EditorKeyEvents {
     return document.body !== event.target;
   }
 
+ /**
+   * L = Optimize Layout  
+   * - local optimization, if selection exists
+   * - global optimization, if no selection exists
+   * - Shift = inverted direction
+   */
+  private onOptimizeLayoutPressed(shiftKey: boolean): void {
+    const direction = shiftKey ? -1 : 1;
+
+    // 1) get local sections
+    const localSections = this.getSectionsForLocalOperation();
+
+    if (localSections.length > 0) {
+      // local optimization
+      this.autoLayoutService.stretchShortSections(localSections, false, direction);
+      return;
+    }
+
+    // 2) No selection → global optimization
+    const allSections = this.trainrunSectionService.getTrainrunSections();
+    this.autoLayoutService.stretchShortSections(allSections, true, direction);
+  }
+
   activateMousekeyDownHandler(editorMode: EditorMode) {
     this.editorMode = editorMode;
 
@@ -143,30 +166,9 @@ export class EditorKeyEvents {
             d3.event.preventDefault();
           }
           break;
-        case "KeyI":
-          if (shiftKey) {
-            this.autoLayoutService.stretchShortSections(
-              this.trainrunSectionService.getTrainrunSections(),
-              true,
-              -1,
-            );
-          } else {
-            this.autoLayoutService.stretchShortSections(
-              this.trainrunSectionService.getTrainrunSections(),
-              true,
-              1,
-            );
-          }
-          break;
-        case "KeyE":
-          {
-            const sectionsForE = this.getSectionsForLocalOperation();
-            if (shiftKey) {
-              this.autoLayoutService.stretchShortSections(sectionsForE, false, -1);
-            } else {
-              this.autoLayoutService.stretchShortSections(sectionsForE, false, 1);
-            }
-          }
+        case "KeyL":
+          this.onOptimizeLayoutPressed(shiftKey);
+          d3.event.preventDefault();
           break;
         case "ArrowLeft":
           this.onArrowLeft();
