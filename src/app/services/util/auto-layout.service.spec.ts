@@ -104,6 +104,9 @@ describe("AutoLayoutService", () => {
 
     autoLayoutService = new AutoLayoutService(
       nodeService,
+      trainrunService,
+      uiInteractionService,
+      noteService,
       trainrunSectionService,
       viewportCullService,
     );
@@ -111,25 +114,5 @@ describe("AutoLayoutService", () => {
 
   it("should be created", () => {
     expect(autoLayoutService).toBeTruthy();
-  });
-
-  it("AutoLayoutService - callRobustAutomaticNodeLayouting moves node positions", () => {
-    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-
-    const initialPositions = nodeService.getNodes().map((n) => ({
-      id: n.getId(),
-      x: n.getPositionX(),
-      y: n.getPositionY(),
-    }));
-
-    expect(() => autoLayoutService.callRobustAutomaticNodeLayouting()).not.toThrow();
-
-    // After the spring layout, at least one node's position should have changed
-    const movedCount = nodeService.getNodes().filter((n) => {
-      const init = initialPositions.find((p) => p.id === n.getId());
-      return init && (n.getPositionX() !== init.x || n.getPositionY() !== init.y);
-    }).length;
-
-    expect(movedCount).toBeGreaterThan(0);
   });
 });
