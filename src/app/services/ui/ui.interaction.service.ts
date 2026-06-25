@@ -382,8 +382,10 @@ export class UiInteractionService implements OnDestroy {
     let offset: Vec2D = new Vec2D(0, 0);
 
     for (const n of nodes) {
-      const nodePos = new Vec2D(n.getPositionX() + n.getNodeWidth() / 2.0, 
-      n.getPositionY() + n.getNodeHeight() / 2.0);
+      const nodePos = new Vec2D(
+        n.getPositionX() + n.getNodeWidth() / 2.0,
+        n.getPositionY() + n.getNodeHeight() / 2.0,
+      );
       const dist = Vec2D.norm(Vec2D.sub(nodePos, center));
 
       if (dist < minDistance) {
@@ -393,9 +395,13 @@ export class UiInteractionService implements OnDestroy {
     }
 
     if (closest) {
-      offset = Vec2D.sub(center, new Vec2D(
-        closest.getPositionX() + closest.getNodeWidth() / 2.0,
-        closest.getPositionY() + closest.getNodeHeight() / 2.0));
+      offset = Vec2D.sub(
+        center,
+        new Vec2D(
+          closest.getPositionX() + closest.getNodeWidth() / 2.0,
+          closest.getPositionY() + closest.getNodeHeight() / 2.0,
+        ),
+      );
     }
 
     return {node: closest, offset: offset};
