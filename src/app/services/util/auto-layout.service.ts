@@ -11,6 +11,13 @@ import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {RASTERING_BASIC_GRID_SIZE} from "../../view/rastering/definitions";
 import {Vec2D} from "src/app/utils/vec2D";
 
+// This auto-layout service was introduce at www.hack4rail.org 2026 at vienna hackathon.
+// It is a simple implementation of a layout optimization algorithm that stretches or shrinks
+// trainrun sections to improve the overall layout of the diagram.
+// The algorithm works by analyzing the selected trainrun sections or nodes and adjusting
+// their positions based on their lengths and directions. The service also ensures that
+// the minimum section length is maintained and that the layout remains visually appealing.
+
 type LayoutDirection = "horizontal" | "vertical";
 
 interface PointLike {
