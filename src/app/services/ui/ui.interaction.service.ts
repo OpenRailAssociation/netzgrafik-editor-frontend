@@ -369,7 +369,7 @@ export class UiInteractionService implements OnDestroy {
     this.moveNetzgrafikEditorFocalViewPoint(center);
   }
 
-  findClosestNodeToViewCenter(nodes: Node[]): Node | null {
+  findClosestNodeToViewCenter(nodes: Node[]): Node | undefined {
     const vb = this.getViewboxProperties(EditorView.svgName);
     // Compute center of the current viewBox
     const center = new Vec2D(
@@ -378,7 +378,7 @@ export class UiInteractionService implements OnDestroy {
     );
 
     let minDistance = Number.MAX_VALUE;
-    let closest: Node | null = null;
+    let closest: Node | undefined = undefined;
 
     for (const n of nodes) {
       const nodePos = new Vec2D(n.getPositionX(), n.getPositionY());
