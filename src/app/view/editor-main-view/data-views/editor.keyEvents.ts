@@ -61,8 +61,8 @@ export class EditorKeyEvents {
     return document.body !== event.target;
   }
 
- /**
-   * L = Optimize Layout  
+  /**
+   * L = Optimize Layout
    * - local optimization, if selection exists
    * - global optimization, if no selection exists
    * - Shift = inverted direction
