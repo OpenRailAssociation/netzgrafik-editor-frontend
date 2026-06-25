@@ -63,6 +63,7 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
   public nextStopRightNodeName: string;
 
   public data = null;
+  public isDialogClosing = false;
 
   private dialogRef = null;
   private dialogConfig = null;
@@ -155,6 +156,7 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
 
   openDialog(parameter: TrainrunDialogParameter) {
     this.trainrunDialogParameter = parameter;
+    this.isDialogClosing = false;
     this.dialogConfig = TrainrunAndSectionDialogComponent.getDialogConfig(
       parameter,
       this.dataService.getTrainrunFrequencies(),
@@ -163,6 +165,12 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
       this.trainrunAndSectionEditorTabsViewTemplate,
       this.dialogConfig,
     );
+    this.dialogRef
+      .beforeClosed()
+      .pipe(takeUntil(this.destroyed))
+      .subscribe(() => {
+        this.isDialogClosing = true;
+      });
     this.dialogPos = {
       bottom: parseInt(this.dialogConfig.position.top, 10) + parseInt(this.dialogConfig.height, 10),
       left: parseInt(this.dialogConfig.position.left, 10),
