@@ -214,7 +214,7 @@ export class EditorView implements SVGMouseControllerObserver {
       this.trainrunService,
       this.uiInteractionService,
       this.noteService,
-      this.trainrunSectionService,
+      trainrunSectionService,
       this.viewportCullService,
     );
     this.editorKeyEvents = new EditorKeyEvents(
