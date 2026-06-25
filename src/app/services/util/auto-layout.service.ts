@@ -11,6 +11,8 @@ import {ViewportCullService} from "../ui/viewport.cull.service";
 // Falls diese Imports bei dir anders liegen: Pfad aus der alten Datei übernehmen.
 import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {RASTERING_BASIC_GRID_SIZE} from "../../view/rastering/definitions";
+import {nodes} from "node_modules/ngx-editor/lib/schema";
+import {Vec2D} from "src/app/utils/vec2D";
 
 type LayoutDirection = "horizontal" | "vertical";
 
@@ -52,6 +54,13 @@ export class AutoLayoutService {
   }
 
   stretchShortSections(sections: TrainrunSection[], runGlobally = true, sign = 1): void {
+    // store closest node to view center before layouting,  so that we can reset the view
+    // to it after layouting
+    const closestNode = this.uiInteractionService.findClosestNodeToViewCenter(
+      this.nodeService.getNodes(),
+    );
+
+    // start stretching/shrinking sections
     const processedSectionKeys = runGlobally && sign >= 0 ? undefined : new Set<string>();
 
     for (const section of sections) {
@@ -99,6 +108,10 @@ export class AutoLayoutService {
       console.log(`  [${action}] ${info.key} (${Math.round(info.lengthPx)}px, ${info.direction})`);
     }
 
+    if (closestNode) {
+      // reset the old view (center) to the closest node, so that the user can see the changes
+      this.uiInteractionService.gotoNode(closestNode, new Vec2D(0, 0));
+    }
     this.updateRendering();
   }
 
