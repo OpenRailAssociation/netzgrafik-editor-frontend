@@ -51,7 +51,7 @@
     "rxjs": "^7.8.2",
     "save-svg-as-png": "^1.4.17",
     "tslib": "^2.5.3",
-    "zone.js": "~0.15.1"
+    "zone.js": "~0.16.2"
   },
   "devDependencies": {
     "@angular-devkit/architect": "^0.1902.24",
