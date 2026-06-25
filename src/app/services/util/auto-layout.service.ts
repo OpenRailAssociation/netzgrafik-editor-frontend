@@ -89,16 +89,16 @@ export class AutoLayoutService {
     this.logAction(info, sign);
   }
 
-  private findCurrentViewAnchorNode(): Node | undefined {
+  private findCurrentViewAnchorNode(): {node: Node | undefined; offset: Vec2D} {
     return this.uiInteractionService.findClosestNodeToViewCenter(this.nodeService.getNodes());
   }
 
-  private restoreViewAnchorNode(anchorNode: Node | undefined): void {
-    if (!anchorNode) {
+  private restoreViewAnchorNode(anchorNode: {node: Node | undefined; offset: Vec2D}): void {
+    if (!anchorNode.node) {
       return;
     }
 
-    this.uiInteractionService.gotoNode(anchorNode, new Vec2D(0, 0));
+    this.uiInteractionService.gotoNode(anchorNode.node, anchorNode.offset);
   }
 
   private createProcessedKeySet(runGlobally: boolean, sign: number): Set<string> | undefined {

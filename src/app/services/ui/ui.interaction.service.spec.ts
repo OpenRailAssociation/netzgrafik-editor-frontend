@@ -124,7 +124,7 @@ describe("UiInteractionService", () => {
     const n3 = nodeService.addNodeWithPosition(300, 300, "Node3", "Node3", [], true);
     const viewboxProperties = uiInteractionService.getViewboxProperties(EditorView.svgName);
     uiInteractionService.setViewboxProperties(EditorView.svgName, viewboxProperties);
-    expect(uiInteractionService.findClosestNodeToViewCenter(nodes)?.getId()).toBe(n1.getId());
+    expect(uiInteractionService.findClosestNodeToViewCenter(nodes)?.node?.getId()).toBe(n1.getId());
   });
 
   it("createTheme", () => {
