@@ -867,7 +867,8 @@ export class TrainrunSectionsView {
       startNode = trainrunSection.getTargetNode();
     }
     const nodePath = editorView.getNodePathToEnd(startNode, trainrunSection);
-    return nodePath.slice(-1)[0].getBetriebspunktName();
+    const node = nodePath.slice(-1)[0];
+    return editorView.displayNodesFullName() ? node.getFullName() : node.getBetriebspunktName();
   }
 
   private static mapFormatterColorRefToColorRefClassTag(colorRef: ColorRefType) {

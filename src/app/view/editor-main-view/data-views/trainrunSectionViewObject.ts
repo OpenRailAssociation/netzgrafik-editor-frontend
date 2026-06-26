@@ -165,6 +165,8 @@ export class TrainrunSectionViewObject {
       "_" +
       editorView.isFilterDirectionArrowsEnabled() +
       "_" +
+      editorView.displayNodesFullName() +
+      "_" +
       editorView.getLevelOfDetail() +
       "_" +
       editorView.trainrunSectionPreviewLineView.getVariantIsWritable();
