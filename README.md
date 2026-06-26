@@ -266,20 +266,18 @@ npm run format
 ### Testing
 
 ```sh
-
-### Testing
-
-```
-
-# just run the test once
-
+# just run all tests once
 npm run test
 
-# or run the test in the browser
+# re-run tests when a file changes
+npm run test -- --watch
 
+# run tests in a Chrome browser window
 npm run test -- --browsers Chrome
 
-````
+# run tests with Chromium instead of Chrome
+npm run test -- --browsers ChromiumHeadless
+```
 
 ## Backend API code generation
 
@@ -298,7 +296,7 @@ The new API Service files can be generated using the following command:
 
 ```shell
 npm run generate:api
-````
+```
 
 ## Documentation
 
