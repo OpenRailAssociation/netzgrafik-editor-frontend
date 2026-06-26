@@ -5,6 +5,7 @@ import {TrainrunService} from "../data/trainrun.service";
 import {TrainrunSectionService} from "../data/trainrunsection.service";
 import {BaseDataService} from "../data/basedata.service";
 import {NoteService} from "../data/note.service";
+import {DirectedTrainrunSectionProxy} from "../util/trainrun.iterator";
 import {Node} from "../../models/node.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {LogService} from "../../logger/log.service";
@@ -482,6 +483,93 @@ describe("TrainrunSectionTimesService", () => {
       const updatedTimeStructure = trainrunSectionTimesService.getTimeStructure();
       expect(updatedTimeStructure.travelTime).toEqual(127);
     });
+  });
+
+  // Regression test for https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1141
+  it("toggle symmetry on non-stop node", () => {
+    // IC1 has two sections, grab 'em
+    const leftSection = trainrunSectionService.getTrainrunSectionFromId(0);
+    const rightSection = trainrunSectionService.getTrainrunSectionFromId(1);
+    // Fetch all relevant nodes: BN, OL, ZUE
+    const leftNode = nodeService.getNodeFromId(0);
+    const middleNode = nodeService.getNodeFromId(1);
+    const rightNode = nodeService.getNodeFromId(2);
+
+    const leftDirectedSection = new DirectedTrainrunSectionProxy(leftSection, "sourceToTarget");
+    const rightDirectedSection = new DirectedTrainrunSectionProxy(rightSection, "sourceToTarget");
+
+    // Mark the transition between these two sections as non-stop
+    const port = middleNode
+      .getPorts()
+      .find((port) => port.getTrainrunSectionId() === leftSection.getId())!;
+    const transition = middleNode.getTransitions().find((t) => t.getPortId1() === port.getId())!;
+    nodeService.toggleNonStop(middleNode.getId(), transition.getId());
+
+    // Disable symmetry on both sides of the middle node
+    leftSection.setTargetSymmetry(false);
+    rightSection.setSourceSymmetry(false);
+
+    // Initialize times
+    trainrunSectionService.setTimeStructureToSingleTrainrunSection(leftDirectedSection, {
+      leftDepartureTime: 40,
+      travelTime: 29,
+      rightArrivalTime: 9,
+      rightDepartureTime: 52,
+      bottomTravelTime: 88,
+      leftArrivalTime: 20,
+    });
+    trainrunSectionService.setTimeStructureToSingleTrainrunSection(rightDirectedSection, {
+      leftDepartureTime: 9,
+      travelTime: 43,
+      rightArrivalTime: 52,
+      rightDepartureTime: 8,
+      bottomTravelTime: 44,
+      leftArrivalTime: 52,
+    });
+
+    // Check consecutive times
+    expect(leftSection.getSourceDepartureConsecutiveTime()).toBe(40);
+    expect(leftSection.getTargetArrivalConsecutiveTime()).toBe(69);
+    expect(leftSection.getTargetDepartureConsecutiveTime()).toBe(112);
+    expect(leftSection.getSourceArrivalConsecutiveTime()).toBe(200);
+    expect(rightSection.getSourceDepartureConsecutiveTime()).toBe(69);
+    expect(rightSection.getTargetArrivalConsecutiveTime()).toBe(112);
+    expect(rightSection.getTargetDepartureConsecutiveTime()).toBe(68);
+    expect(rightSection.getSourceArrivalConsecutiveTime()).toBe(112);
+
+    // Re-enable symmetry for the left section
+    trainrunSectionTimesService.setNodesOrdered([leftNode, middleNode]);
+    trainrunSectionTimesService.setTrainrunSection(leftSection);
+    trainrunSectionTimesService.onRightNodeSymmetryToggle(true);
+
+    // Re-enable symmetry for the right section
+    trainrunSectionTimesService.setNodesOrdered([middleNode, rightNode]);
+    trainrunSectionTimesService.setTrainrunSection(rightSection);
+    trainrunSectionTimesService.onLeftNodeSymmetryToggle(true);
+
+    // Check times displayed to the user
+    expect(leftSection.getSourceDeparture()).toBe(40);
+    expect(leftSection.getTravelTime()).toBe(29);
+    expect(leftSection.getTargetArrival()).toBe(9);
+    expect(leftSection.getTargetDeparture()).toBe(51);
+    expect(leftSection.getBackwardTravelTime()).toBe(29);
+    expect(leftSection.getSourceArrival()).toBe(20);
+    expect(rightSection.getSourceDeparture()).toBe(9);
+    expect(rightSection.getTravelTime()).toBe(43);
+    expect(rightSection.getTargetArrival()).toBe(52);
+    expect(rightSection.getTargetDeparture()).toBe(8);
+    expect(rightSection.getBackwardTravelTime()).toBe(43);
+    expect(rightSection.getSourceArrival()).toBe(51);
+
+    // Check consecutive times
+    expect(leftSection.getSourceDepartureConsecutiveTime()).toBe(40);
+    expect(leftSection.getTargetArrivalConsecutiveTime()).toBe(69);
+    expect(leftSection.getTargetDepartureConsecutiveTime()).toBe(111);
+    expect(leftSection.getSourceArrivalConsecutiveTime()).toBe(140);
+    expect(rightSection.getSourceDepartureConsecutiveTime()).toBe(69);
+    expect(rightSection.getTargetArrivalConsecutiveTime()).toBe(112);
+    expect(rightSection.getTargetDepartureConsecutiveTime()).toBe(68);
+    expect(rightSection.getSourceArrivalConsecutiveTime()).toBe(111);
   });
 
   it("Test getTimeButtonPlusStep", () => {

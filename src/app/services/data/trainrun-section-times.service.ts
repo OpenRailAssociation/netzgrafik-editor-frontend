@@ -489,19 +489,17 @@ export class TrainrunSectionTimesService {
           this.timeStructure[keys.headArrivalTime],
         );
       }
-      if (!this.symmetryStructure.leftSymmetry || !this.symmetryStructure.rightSymmetry) {
-        if (!this.lockStructure[keys.tailLock]) {
-          this.timeStructure[keys.tailArrivalTime] = MathUtils.mod60(
-            this.timeStructure[keys.headDepartureTime] + this.timeStructure[keys.reverseTravelTime],
-          );
-        } else if (!this.lockStructure.travelTimeLock) {
-          this.updateTravelTimeMinutes(
-            keys.reverseTravelTime,
-            this.timeStructure[keys.tailArrivalTime] - this.timeStructure[keys.headDepartureTime],
-          );
-        } else {
-          this.showWarningTwoLocks = true;
-        }
+      if (!this.lockStructure[keys.tailLock]) {
+        this.timeStructure[keys.tailArrivalTime] = MathUtils.mod60(
+          this.timeStructure[keys.headDepartureTime] + this.timeStructure[keys.reverseTravelTime],
+        );
+      } else if (!this.lockStructure.travelTimeLock) {
+        this.updateTravelTimeMinutes(
+          keys.reverseTravelTime,
+          this.timeStructure[keys.tailArrivalTime] - this.timeStructure[keys.headDepartureTime],
+        );
+      } else {
+        this.showWarningTwoLocks = true;
       }
     } else if (!this.lockStructure[keys.tailLock]) {
       this.timeStructure[keys.tailDepartureTime] = MathUtils.mod60(
@@ -598,21 +596,7 @@ export class TrainrunSectionTimesService {
     leftSection.setTailSymmetry(leftSymmetry);
     rightSection.setHeadSymmetry(rightSymmetry);
 
-    const isSourceToTarget = leftSection.direction === "sourceToTarget";
-    const sourceToTargetKeys = isSourceToTarget
-      ? leftToRightStructureKeys
-      : rightToLeftStructureKeys;
-    const targetToSourceKeys = isSourceToTarget
-      ? rightToLeftStructureKeys
-      : leftToRightStructureKeys;
-
-    if (leftSymmetry && rightSymmetry) {
-      this.onDirectTravelTimeChanged(sourceToTargetKeys);
-    } else if (leftSymmetry) {
-      this.onDirectTravelTimeChanged(isSourceToTarget ? targetToSourceKeys : sourceToTargetKeys);
-    } else if (rightSymmetry) {
-      this.onDirectTravelTimeChanged(isSourceToTarget ? sourceToTargetKeys : targetToSourceKeys);
-    }
+    this.onDirectTravelTimeChanged(leftToRightStructureKeys);
 
     TrainrunSectionValidator.validateOneSection(leftSection.trainrunSection);
     TrainrunSectionValidator.validateOneSection(rightSection.trainrunSection);
