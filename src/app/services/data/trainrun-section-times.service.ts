@@ -596,21 +596,7 @@ export class TrainrunSectionTimesService {
     leftSection.setTailSymmetry(leftSymmetry);
     rightSection.setHeadSymmetry(rightSymmetry);
 
-    const isSourceToTarget = leftSection.direction === "sourceToTarget";
-    const sourceToTargetKeys = isSourceToTarget
-      ? leftToRightStructureKeys
-      : rightToLeftStructureKeys;
-    const targetToSourceKeys = isSourceToTarget
-      ? rightToLeftStructureKeys
-      : leftToRightStructureKeys;
-
-    if (leftSymmetry && rightSymmetry) {
-      this.onDirectTravelTimeChanged(sourceToTargetKeys);
-    } else if (leftSymmetry) {
-      this.onDirectTravelTimeChanged(isSourceToTarget ? targetToSourceKeys : sourceToTargetKeys);
-    } else if (rightSymmetry) {
-      this.onDirectTravelTimeChanged(isSourceToTarget ? sourceToTargetKeys : targetToSourceKeys);
-    }
+    this.onDirectTravelTimeChanged(leftToRightStructureKeys);
 
     TrainrunSectionValidator.validateOneSection(leftSection.trainrunSection);
     TrainrunSectionValidator.validateOneSection(rightSection.trainrunSection);
