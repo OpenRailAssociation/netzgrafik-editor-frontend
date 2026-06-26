@@ -5,8 +5,8 @@ import {ViewboxProperties} from "../../services/ui/ui.interaction.service";
 import {UndoService} from "../../services/data/undo.service";
 
 export interface SVGMouseControllerObserver {
-  onEarlyReturnFromMousemove(): boolean;
-  onGraphContainerMouseup(mousePosition: Vec2D, onPaning: boolean): void;
+  onEarlyReturnFromMousemove(event: MouseEvent): boolean;
+  onGraphContainerMouseup(event: MouseEvent, mousePosition: Vec2D, onPaning: boolean): void;
   zoomFactorChanged(newZoomFactor: number): void;
   onViewboxChanged(viewboxProperties: ViewboxProperties): void;
   onStartMultiSelect(): void;
@@ -70,8 +70,8 @@ export class SVGMouseController {
       .attr("y", rectHtml.y)
       .attr("height", height)
       .attr("width", width)
-      .on("contextmenu", () => {
-        d3.event.preventDefault();
+      .on("contextmenu", (event) => {
+        event.preventDefault();
       });
 
     if (this.svgDrawingContext.node() === null) {
@@ -176,11 +176,11 @@ export class SVGMouseController {
     this.svgMouseControllerObserver.zoomFactorChanged(this.viewboxProperties.zoomFactor);
   }
 
-  getCurrentMousePosition(): Vec2D {
+  getCurrentMousePosition(event: MouseEvent): Vec2D {
     if (this.cachedSvgDrawingContextNode === null) {
       this.cachedSvgDrawingContextNode = this.svgDrawingContext.node();
     }
-    const point = d3.mouse(this.cachedSvgDrawingContextNode);
+    const point = d3.pointer(event, this.cachedSvgDrawingContextNode);
     return new Vec2D(point[0], point[1]);
   }
 
@@ -213,58 +213,55 @@ export class SVGMouseController {
 
   private registerCallbacks() {
     this.svgDrawingContext
-      .on("mousedown", () => this.onGraphContainerMousedown())
-      .on("mousemove", () => this.onGraphContainerMousemove())
-      .on("mouseup", () => this.onGraphContainerMouseup())
-      .on("dblclick", () => this.onDblclick())
-      .on("wheel", () => this.onWheel());
+      .on("mousedown", (event) => this.onGraphContainerMousedown(event))
+      .on("mousemove", (event) => this.onGraphContainerMousemove(event))
+      .on("mouseup", (event) => this.onGraphContainerMouseup(event))
+      .on("dblclick", (event) => this.onDblclick(event))
+      .on("wheel", (event) => this.onWheel(event));
   }
 
-  private onGraphContainerMousedown() {
+  private onGraphContainerMousedown(event: MouseEvent) {
     // reset to initial value (start panning)
-    if (
-      d3.event.shiftKey ||
-      (d3.event.buttons === 2 && this.lastMouseEventTimeStamp === undefined)
-    ) {
-      this.previousMultiSelectShiftPosition = this.getCurrentMousePosition();
+    if (event.shiftKey || (event.buttons === 2 && this.lastMouseEventTimeStamp === undefined)) {
+      this.previousMultiSelectShiftPosition = this.getCurrentMousePosition(event);
       this.temporaryDisableUndoServicePushCurrentVersion();
       this.svgMouseControllerObserver.onStartMultiSelect();
     } else {
       this.previousPanMousePosition = null;
     }
 
-    this.onMouseDownZoom();
+    this.onMouseDownZoom(event);
 
-    d3.event.stopPropagation();
+    event.stopPropagation();
   }
 
-  private onGraphContainerMousemove() {
+  private onGraphContainerMousemove(event: MouseEvent) {
     this.lastMouseEventTimeStamp = undefined;
 
-    this.mouseMoveMousePosition = this.getCurrentMousePosition();
-    if (this.svgMouseControllerObserver.onEarlyReturnFromMousemove()) {
+    this.mouseMoveMousePosition = this.getCurrentMousePosition(event);
+    if (this.svgMouseControllerObserver.onEarlyReturnFromMousemove(event)) {
       return;
     }
 
-    if (d3.event.buttons > 0) {
+    if (event.buttons > 0) {
       if (this.previousMultiSelectShiftPosition === null) {
         if (this.onPanning) {
-          this.panDrawingContext();
-        } else if (d3.event.button === 0) {
+          this.panDrawingContext(event);
+        } else if (event.button === 0) {
           if (this.previousPanMousePosition !== null) {
             const delta = Vec2D.norm(
-              Vec2D.sub(this.previousPanMousePosition, this.getCurrentMousePosition()),
+              Vec2D.sub(this.previousPanMousePosition, this.getCurrentMousePosition(event)),
             );
             if (delta > 2) {
               // only start panning if the mouse cursor has moved more than 2 pixel (initial move check)
               this.onPanning = true;
             }
           }
-          this.previousPanMousePosition = this.getCurrentMousePosition();
+          this.previousPanMousePosition = this.getCurrentMousePosition(event);
         }
       } else {
-        if (d3.event.shiftKey || d3.event.buttons === 2) {
-          const curPos = this.getCurrentMousePosition();
+        if (event.shiftKey || event.buttons === 2) {
+          const curPos = this.getCurrentMousePosition(event);
           const topLef = new Vec2D(
             Math.min(this.previousMultiSelectShiftPosition.getX(), curPos.getX()),
             Math.min(this.previousMultiSelectShiftPosition.getY(), curPos.getY()),
@@ -287,12 +284,13 @@ export class SVGMouseController {
       }
     }
 
-    d3.event.stopPropagation();
+    event.stopPropagation();
   }
 
-  private onGraphContainerMouseup() {
+  private onGraphContainerMouseup(event: MouseEvent) {
     this.svgMouseControllerObserver.onGraphContainerMouseup(
-      this.getCurrentMousePosition(),
+      event,
+      this.getCurrentMousePosition(event),
       this.onPanning,
     );
     this.onPanning = false;
@@ -300,49 +298,49 @@ export class SVGMouseController {
       this.svgMouseControllerObserver.onEndMultiSelect();
       this.previousMultiSelectShiftPosition = null;
     }
-    d3.event.stopPropagation();
+    event.stopPropagation();
   }
 
-  private onWheel() {
+  private onWheel(event: WheelEvent) {
     const zoomCenter: Vec2D = new Vec2D(
-      d3.event.offsetX / this.viewboxProperties.origWidth,
-      d3.event.offsetY / this.viewboxProperties.origHeight,
+      event.offsetX / this.viewboxProperties.origWidth,
+      event.offsetY / this.viewboxProperties.origHeight,
     );
 
-    // We can't use d3.event.ctrlKey because it'll be set to true during
+    // We can't use event.ctrlKey because it'll be set to true during
     // pinch-to-zoom touchpad gestures. Use keydown/keyup event listeners instead.
     if (!this.ctrlKeyPressed) {
       // mouse wheel
-      if (d3.event.deltaY > 0) {
+      if (event.deltaY > 0) {
         this.zoomOut(zoomCenter);
       } else {
         this.zoomIn(zoomCenter);
       }
     } else {
       // ctrl and mouse wheel
-      if (d3.event.deltaY > 0) {
+      if (event.deltaY > 0) {
         this.scaleOut(zoomCenter);
       } else {
         this.scaleIn(zoomCenter);
       }
     }
 
-    d3.event.preventDefault();
-    d3.event.stopPropagation();
+    event.preventDefault();
+    event.stopPropagation();
   }
 
-  private onMouseDownZoom() {
-    const d = d3.select(d3.event.srcElement);
+  private onMouseDownZoom(event: MouseEvent) {
+    const d = d3.select(event.target as Element);
     if (d.attr("id") !== "graphContainer") {
       return;
     }
-    if (d3.event.buttons !== 2) {
+    if (event.buttons !== 2) {
       this.lastMouseEventTimeStamp = undefined;
       return;
     }
 
     const lastTimeStamp = this.lastMouseEventTimeStamp;
-    this.lastMouseEventTimeStamp = d3.event.timeStamp;
+    this.lastMouseEventTimeStamp = event.timeStamp;
     if (lastTimeStamp === undefined) {
       return;
     }
@@ -353,26 +351,26 @@ export class SVGMouseController {
     this.lastMouseEventTimeStamp = undefined;
 
     const zoomCenter: Vec2D = new Vec2D(
-      d3.event.offsetX / this.viewboxProperties.origWidth,
-      d3.event.offsetY / this.viewboxProperties.origHeight,
+      event.offsetX / this.viewboxProperties.origWidth,
+      event.offsetY / this.viewboxProperties.origHeight,
     );
     this.zoomOut(zoomCenter, 0.25);
-    d3.event.preventDefault();
-    d3.event.stopPropagation();
+    event.preventDefault();
+    event.stopPropagation();
   }
 
-  private onDblclick() {
-    const d = d3.select(d3.event.srcElement);
+  private onDblclick(event: MouseEvent) {
+    const d = d3.select(event.target as Element);
     if (d.attr("id") !== "graphContainer") {
       return;
     }
     const zoomCenter: Vec2D = new Vec2D(
-      d3.event.offsetX / this.viewboxProperties.origWidth,
-      d3.event.offsetY / this.viewboxProperties.origHeight,
+      event.offsetX / this.viewboxProperties.origWidth,
+      event.offsetY / this.viewboxProperties.origHeight,
     );
     this.zoomIn(zoomCenter, 0.25);
-    d3.event.preventDefault();
-    d3.event.stopPropagation();
+    event.preventDefault();
+    event.stopPropagation();
   }
 
   private updateZoomCenter(zoomCenter: Vec2D) {
@@ -397,13 +395,16 @@ export class SVGMouseController {
     this.setViewbox();
   }
 
-  private panDrawingContext() {
+  private panDrawingContext(event: MouseEvent) {
     if (this.viewboxIsFixed) {
       return;
     }
 
     if (this.previousPanMousePosition !== null) {
-      const delta: Vec2D = Vec2D.sub(this.previousPanMousePosition, this.getCurrentMousePosition());
+      const delta: Vec2D = Vec2D.sub(
+        this.previousPanMousePosition,
+        this.getCurrentMousePosition(event),
+      );
 
       this.viewboxProperties.panZoomLeft += delta.getX();
       this.viewboxProperties.panZoomTop += delta.getY();
@@ -411,7 +412,7 @@ export class SVGMouseController {
       this.setViewbox();
     }
 
-    this.previousPanMousePosition = this.getCurrentMousePosition();
+    this.previousPanMousePosition = this.getCurrentMousePosition(event);
   }
 
   private makeViewboxString(): string {

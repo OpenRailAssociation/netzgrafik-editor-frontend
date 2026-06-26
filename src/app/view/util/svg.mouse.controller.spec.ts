@@ -3,11 +3,11 @@ import {Vec2D} from "../../utils/vec2D";
 import {ViewboxProperties} from "../../services/ui/ui.interaction.service";
 
 class DummySVGMouseControllerObserver implements SVGMouseControllerObserver {
-  onEarlyReturnFromMousemove(): boolean {
+  onEarlyReturnFromMousemove(event: MouseEvent): boolean {
     return true;
   }
 
-  onGraphContainerMouseup(mousePosition: Vec2D, onPaning: boolean) {}
+  onGraphContainerMouseup(event: MouseEvent, mousePosition: Vec2D, onPaning: boolean) {}
 
   zoomFactorChanged(newZoomFactor: number) {}
 
