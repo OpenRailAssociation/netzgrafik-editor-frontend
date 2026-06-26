@@ -1,5 +1,40 @@
 # Changelog
 
+## [2.12.0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.11.1...netzgrafik-editor-frontend-v2.12.0) (2026-06-26)
+
+
+### Features
+
+* add strict Content-Security-Policy for standalone mode ([ea5611f](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/ea5611fb9d0e51f4235bb8e08db140a65e9ab936))
+* **service:** emit on filterChanged() ([41b4416](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/41b441639839992879e8735fd76c901e592def10))
+* **service:** emit operation when OrderingAlgorithm changed ([d0e0bac](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/d0e0bac44ac22abe8b433b518eb8319a381528c3))
+* ship type definitions in NPM package ([b49d217](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/b49d21771e8e2625981df04859fa98c119a0cccd))
+* **view:** enable full name display instead of short name in editor-main-view ([36ba033](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/36ba0336d376ef5af88b9674024f259ae658f82f))
+* **view:** enable full name display instead of short name in perlenkette ([2d7a897](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/2d7a8977ca29ddd41e7c757bfbaed99b4ad19393))
+* **view:** enable full name display instead of short name in streckengrafik ([f3e2311](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/f3e2311a07d89f3eb9144ec0a19d9cde724e1e5d))
+* **view:** enable full name display instead of short name od-matrix ([4cc9018](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/4cc9018965b2ee32bda58ddd9430f1e9f06b7cd1))
+
+
+### Bug Fixes
+
+* **editor-main-view:** clear all objects when loading new DTO ([0e1265c](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/0e1265c15b03fe953319df39a533dd425463302f))
+* Ensure that only correct/valid (feasible) connections gets added ([#1025](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1025)) ([3914bf6](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/3914bf661f7890146bac41358353583100fffeea))
+* **model:** initialize potential missing TrainrunSection.path ([03279fe](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/03279fee25eef01a28bb3f597691fa096f34c4c0))
+* orders ports facing ordered neighbors first ([33c2418](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/33c2418b9418952179226f1838761a56a0518818))
+* Origin-destination-view reset (init) fixed when filter, color , value changed ([#1113](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1113)) ([0646eb7](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/0646eb7d5aa62191834cdf9cc76183d5535d4c50))
+* **service:** correctly instantiate TrainrunSection when coming from 3rd party ([a177ad4](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/a177ad4137d534adb614b8a487a844e88890c48e))
+* **service:** drag transition travel times ([a7e75f5](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/a7e75f5b9f30d95740a356abb3eb202beb02e72f))
+* **service:** missing  in trainrun updates ([d0b57af](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/d0b57af2464ad79f2cb802437687fc9afa3df934))
+* **service:** missing initPortOrdering after node deletion ([1696825](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/16968258c3d8c0731911bfbdf72f9c70e169f592))
+* **service:** missing initPortOrdering after trainrun deletion ([3c1b288](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/3c1b2880d5c3362bc6e3f36beacc4dc0eeb67a55))
+* **service:** missing initPortOrdering after trainrun duplication ([3a71747](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/3a717475042cc8b8c53bb011d58cc3bcec1e0ab1))
+* **service:** missing initPortOrdering after trainrunSection creation ([ca42cff](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/ca42cffc903867a5d688b4517c837776c2fba1ae))
+* **service:** missing initPortOrdering after trainrunSection deletion ([00edded](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/00edded6e4ff5860e1b246602e32818043fb1e23))
+* **service:** wrong travelTime and backwardTravelTime positions (overlapping) ([2d4793a](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/2d4793adf5207c1182986b422491901b2767c7f6))
+* special case added (handled) ([#1033](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1033)) ([a7ef5bf](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/a7ef5bf6c1f622d3299126160d2ef683c3c5b95d))
+* trainrun and trainrunSection (eg. times) update trigger redraw ([#1114](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1114)) ([0106848](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/0106848f5c9152663b0fba0890b94a894ace2ef1))
+* **view:** don't use attr() to set js executing attributes ([0b61263](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/0b61263dcb8e254613320bf1698a5e586c91a08f))
+
 ## [2.11.1](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.11.0...netzgrafik-editor-frontend-v2.11.1) (2026-05-18)
 
 
