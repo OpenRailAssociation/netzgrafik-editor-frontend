@@ -596,20 +596,15 @@ export class TrainrunSectionTimesService {
     leftSection.setTailSymmetry(leftSymmetry);
     rightSection.setHeadSymmetry(rightSymmetry);
 
-    const isSourceToTarget = leftSection.direction === "sourceToTarget";
-    const sourceToTargetKeys = isSourceToTarget
-      ? leftToRightStructureKeys
-      : rightToLeftStructureKeys;
-    const targetToSourceKeys = isSourceToTarget
-      ? rightToLeftStructureKeys
-      : leftToRightStructureKeys;
-
-    if (leftSymmetry && rightSymmetry) {
-      this.onDirectTravelTimeChanged(sourceToTargetKeys);
-    } else if (leftSymmetry) {
-      this.onDirectTravelTimeChanged(isSourceToTarget ? targetToSourceKeys : sourceToTargetKeys);
-    } else if (rightSymmetry) {
-      this.onDirectTravelTimeChanged(isSourceToTarget ? sourceToTargetKeys : targetToSourceKeys);
+    // Asymmetry stops time propagation: if the right side is asymmetric and
+    // times are propagated left-to-right, time propagation will stop at the
+    // right arrival time and will not update the bottom half. We need to
+    // propagate time starting from the asymmetric side towards the symmetric
+    // side.
+    if (rightSymmetry) {
+      this.onDirectTravelTimeChanged(leftToRightStructureKeys);
+    } else {
+      this.onDirectTravelTimeChanged(rightToLeftStructureKeys);
     }
 
     TrainrunSectionValidator.validateOneSection(leftSection.trainrunSection);
