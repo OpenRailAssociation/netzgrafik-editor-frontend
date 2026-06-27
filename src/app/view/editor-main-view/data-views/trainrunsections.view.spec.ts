@@ -136,7 +136,6 @@ describe("TrainrunSection-View", () => {
 
     const positionTransformationService = new PositionTransformationService(
       trainrunSectionService,
-      trainrunService,
       nodeService,
       noteService,
       uiInteractionService,

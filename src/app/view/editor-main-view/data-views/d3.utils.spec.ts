@@ -134,7 +134,6 @@ describe("3d.Utils.tests", () => {
 
     const positionTransformationService = new PositionTransformationService(
       trainrunSectionService,
-      trainrunService,
       nodeService,
       noteService,
       uiInteractionService,
