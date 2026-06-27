@@ -44,6 +44,7 @@ import {
   TrainrunFrequency,
 } from "../../../data-structures/business.data.structures";
 import {TrainrunSectionText} from "../../../data-structures/technical.data.structures";
+import {AutoLayoutService} from "../../../services/util/auto-layout.service";
 
 export class EditorView implements SVGMouseControllerObserver {
   static svgName = "graphContainer";
@@ -198,6 +199,7 @@ export class EditorView implements SVGMouseControllerObserver {
     private levelOfDetailService: LevelOfDetailService,
     private versionControlService: VersionControlService,
     private positionTransformationService: PositionTransformationService,
+    private autoLayoutService: AutoLayoutService,
   ) {
     this.controller = controller;
     this.svgMouseController = new SVGMouseController(EditorView.svgName, this, undoService);
@@ -212,6 +214,12 @@ export class EditorView implements SVGMouseControllerObserver {
     );
     this.multiSelectRenderer = new MultiSelectRenderer();
     this.notesView = new NotesView(this);
+    this.autoLayoutService = new AutoLayoutService(
+      this.nodeService,
+      this.uiInteractionService,
+      trainrunSectionService,
+      this.viewportCullService,
+    );
     this.editorKeyEvents = new EditorKeyEvents(
       nodeService,
       trainrunService,
@@ -225,6 +233,7 @@ export class EditorView implements SVGMouseControllerObserver {
       this.svgMouseController,
       this.trainrunSectionPreviewLineView,
       this.positionTransformationService,
+      this.autoLayoutService,
     );
   }
 

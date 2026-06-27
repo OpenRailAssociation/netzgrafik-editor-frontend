@@ -29,6 +29,7 @@ import {StaticDomTags} from "./static.dom.tags";
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
+import {AutoLayoutService} from "../../../services/util/auto-layout.service";
 
 describe("Editor-DataView", () => {
   let dataService: DataService;
@@ -144,6 +145,13 @@ describe("Editor-DataView", () => {
       viewportCullService,
     );
 
+    const autoLayoutService = new AutoLayoutService(
+      nodeService,
+      uiInteractionService,
+      trainrunSectionService,
+      viewportCullService,
+    );
+
     const controller = new EditorMainViewComponent(
       nodeService,
       trainrunSectionService,
@@ -160,6 +168,7 @@ describe("Editor-DataView", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      autoLayoutService,
     );
 
     new EditorView(
@@ -177,6 +186,7 @@ describe("Editor-DataView", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      autoLayoutService,
     );
 
     controller.bindViewToServices();

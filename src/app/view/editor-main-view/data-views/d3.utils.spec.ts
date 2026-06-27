@@ -25,6 +25,7 @@ import {Vec2D} from "../../../utils/vec2D";
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
+import {AutoLayoutService} from "../../../services/util/auto-layout.service";
 
 describe("3d.Utils.tests", () => {
   let dataService: DataService;
@@ -139,6 +140,13 @@ describe("3d.Utils.tests", () => {
       viewportCullService,
     );
 
+    const autoLayoutService = new AutoLayoutService(
+      nodeService,
+      uiInteractionService,
+      trainrunSectionService,
+      viewportCullService,
+    );
+
     const controller = new EditorMainViewComponent(
       nodeService,
       trainrunSectionService,
@@ -155,6 +163,7 @@ describe("3d.Utils.tests", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      autoLayoutService,
     );
 
     new EditorView(
@@ -172,6 +181,7 @@ describe("3d.Utils.tests", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      autoLayoutService,
     );
     controller.bindViewToServices();
     editorView = controller.editorView;
