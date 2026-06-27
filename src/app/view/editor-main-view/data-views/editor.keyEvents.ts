@@ -137,7 +137,6 @@ export class EditorKeyEvents {
           }
           break;
         case "KeyD":
-          console.log("KeyD pressed");
           if (ctrlKey) {
             this.onDuplicate();
             event.preventDefault();
@@ -221,7 +220,7 @@ export class EditorKeyEvents {
       return false;
     }
 
-    const selectedSections = this.trainrunSectionService.getSelectedTrainrunSections();
+    const selectedSections = this.trainrunSectionService.getAllSelectedTrainrunSections();
     if (selectedSections.length === 0) {
       return false;
     }
