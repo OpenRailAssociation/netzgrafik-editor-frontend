@@ -37,6 +37,7 @@ interface SectionInfo {
 })
 export class AutoLayoutService {
   private static readonly MIN_SECTION_LENGTH_PX = 200;
+  private static readonly MIN_NODE_DISTANCE_PX = 20;
 
   constructor(
     private readonly nodeService: NodeService,
@@ -83,6 +84,62 @@ export class AutoLayoutService {
     // 2) No selection → global optimization
     const allSections = this.trainrunSectionService.getTrainrunSections();
     this.adjustSectionLengths(allSections, true, direction);
+  }
+
+  removeNodeOverlaps(): void {
+    const anchorNode = this.findCurrentViewAnchorNode();
+    const nodes = this.nodeService.getNodes();
+    const grid = RASTERING_BASIC_GRID_SIZE;
+
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const a = nodes[i];
+        const b = nodes[j];
+        const overlap = this.getOverlap(a, b);
+        if (!overlap) {
+          continue;
+        }
+        const direction: LayoutDirection =
+          overlap.overlapX <= overlap.overlapY ? "horizontal" : "vertical";
+        const delta =
+          Math.ceil((direction === "horizontal" ? overlap.overlapX : overlap.overlapY) / 2 / grid) *
+          grid;
+        const centerX = (this.getNodeCenterX(a) + this.getNodeCenterX(b)) / 2;
+        const centerY = (this.getNodeCenterY(a) + this.getNodeCenterY(b)) / 2;
+
+        this.moveNodesAroundSection(
+          {
+            direction,
+            centerX,
+            centerY,
+            key: "",
+            label: "",
+            span: 0,
+          },
+          1,
+          delta,
+        );
+      }
+    }
+
+    this.restoreViewAnchorNode(anchorNode);
+    this.updateRendering();
+  }
+
+  private getOverlap(a: Node, b: Node): {overlapX: number; overlapY: number} | null {
+    const gap = AutoLayoutService.MIN_NODE_DISTANCE_PX;
+    const aRight = a.getPositionX() + a.getNodeWidth() + gap;
+    const bRight = b.getPositionX() + b.getNodeWidth() + gap;
+    const aBottom = a.getPositionY() + a.getNodeHeight() + gap;
+    const bBottom = b.getPositionY() + b.getNodeHeight() + gap;
+
+    const overlapX = Math.min(aRight, bRight) - Math.max(a.getPositionX(), b.getPositionX());
+    const overlapY = Math.min(aBottom, bBottom) - Math.max(a.getPositionY(), b.getPositionY());
+
+    if (overlapX > 0 && overlapY > 0) {
+      return {overlapX, overlapY};
+    }
+    return null;
   }
 
   adjustSectionLengths(sections: TrainrunSection[], runGlobally = true, sign = 1): void {
