@@ -1,8 +1,6 @@
 import {Injectable} from "@angular/core";
 import {Node} from "../../models/node.model";
 import {NodeService} from "../data/node.service";
-import {NoteService} from "../data/note.service";
-import {TrainrunService} from "../data/trainrun.service";
 import {UiInteractionService} from "../ui/ui.interaction.service";
 import {TrainrunSectionService} from "../data/trainrunsection.service";
 import {TrainrunSection} from "../../models/trainrunsection.model";
@@ -43,9 +41,7 @@ export class AutoLayoutService {
 
   constructor(
     private readonly nodeService: NodeService,
-    private readonly trainrunService: TrainrunService,
     private readonly uiInteractionService: UiInteractionService,
-    private readonly noteService: NoteService,
     private readonly trainrunSectionService: TrainrunSectionService,
     private readonly viewportCullService: ViewportCullService,
   ) {}
@@ -81,16 +77,16 @@ export class AutoLayoutService {
 
     if (localSections.length > 0) {
       // local optimization
-      this.stretchShortSections(localSections, false, direction);
+      this.adjustSectionLengths(localSections, false, direction);
       return;
     }
 
     // 2) No selection → global optimization
     const allSections = this.trainrunSectionService.getTrainrunSections();
-    this.stretchShortSections(allSections, true, direction);
+    this.adjustSectionLengths(allSections, true, direction);
   }
 
-  stretchShortSections(sections: TrainrunSection[], runGlobally = true, sign = 1): void {
+  adjustSectionLengths(sections: TrainrunSection[], runGlobally = true, sign = 1): void {
     const anchorNode = this.findCurrentViewAnchorNode();
     const processedKeys = this.createProcessedKeySet(runGlobally, sign);
 

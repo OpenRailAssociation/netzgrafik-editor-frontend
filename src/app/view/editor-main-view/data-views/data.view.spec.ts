@@ -148,9 +148,7 @@ describe("Editor-DataView", () => {
 
     const autoLayoutService = new AutoLayoutService(
       nodeService,
-      trainrunService,
       uiInteractionService,
-      noteService,
       trainrunSectionService,
       viewportCullService,
     );
