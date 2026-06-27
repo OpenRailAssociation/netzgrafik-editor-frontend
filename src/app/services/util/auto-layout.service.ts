@@ -51,7 +51,7 @@ export class AutoLayoutService {
   ) {}
 
   private getSectionsForLocalOperation(): TrainrunSection[] {
-    const selectedSections = this.trainrunSectionService.getSelectedTrainrunSections();
+    const selectedSections = this.trainrunSectionService.getAllSelectedTrainrunSections();
     if (selectedSections.length > 0) {
       return selectedSections;
     }
