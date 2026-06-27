@@ -475,7 +475,7 @@ export class AutoLayoutService {
   private logAction(info: SectionInfo, sign: number): void {
     const action = sign >= 0 ? "stretched" : "shrunk";
 
-    console.log(`  [${action}] ${info.label} (${Math.round(info.length)}px, ${info.direction})`);
+    console.debug(`  [${action}] ${info.label} (${Math.round(info.length)}px, ${info.direction})`);
   }
 
   private logMixedDirection(info: SectionInfo): void {
@@ -485,13 +485,13 @@ export class AutoLayoutService {
   }
 
   private logSkip(key: string, reason: string): void {
-    console.log(`  [skip] ${key}: ${reason}`);
+    console.debug(`  [skip] ${key}: ${reason}`);
   }
 
   private logDeltaLimit(section: TrainrunSection, allowedDelta: number): void {
     const label = this.getSectionLabel(section.getSourceNode(), section.getTargetNode());
     const length = Math.round(this.getSectionLength(section));
 
-    console.log(`  [limit] edge ${label} (${length}px) constrains delta to ${allowedDelta}px`);
+    console.debug(`  [limit] edge ${label} (${length}px) constrains delta to ${allowedDelta}px`);
   }
 }
