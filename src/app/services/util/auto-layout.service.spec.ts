@@ -108,9 +108,7 @@ describe("AutoLayoutService", () => {
 
     autoLayoutService = new AutoLayoutService(
       nodeService,
-      trainrunService,
       uiInteractionService,
-      noteService,
       trainrunSectionService,
       viewportCullService,
     );
@@ -128,7 +126,7 @@ describe("AutoLayoutService", () => {
 
     prepareLayoutTest([sourceNode, targetNode], [section]);
 
-    autoLayoutService.stretchShortSections([section], true, 1);
+    autoLayoutService.adjustSectionLengths([section], true, 1);
 
     const moveCalls = getMoveCalls();
 
@@ -155,7 +153,7 @@ describe("AutoLayoutService", () => {
 
     prepareLayoutTest([sourceNode, targetNode], [section]);
 
-    autoLayoutService.stretchShortSections([section], true, 1);
+    autoLayoutService.adjustSectionLengths([section], true, 1);
 
     expect(nodeService.changeNodePositionWithoutUpdate).not.toHaveBeenCalled();
     expect(section.routeEdgeAndPlaceText).toHaveBeenCalled();
@@ -170,7 +168,7 @@ describe("AutoLayoutService", () => {
 
     prepareLayoutTest([sourceNode, targetNode], [section]);
 
-    autoLayoutService.stretchShortSections([section], false, -1);
+    autoLayoutService.adjustSectionLengths([section], false, -1);
 
     expect(nodeService.changeNodePositionWithoutUpdate).not.toHaveBeenCalled();
   });

@@ -143,9 +143,7 @@ describe("Notes-View", () => {
 
     const autoLayoutService = new AutoLayoutService(
       nodeService,
-      trainrunService,
       uiInteractionService,
-      noteService,
       trainrunSectionService,
       viewportCullService,
     );

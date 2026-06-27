@@ -143,9 +143,7 @@ describe("3d.Utils.tests", () => {
 
     const autoLayoutService = new AutoLayoutService(
       nodeService,
-      trainrunService,
       uiInteractionService,
-      noteService,
       trainrunSectionService,
       viewportCullService,
     );

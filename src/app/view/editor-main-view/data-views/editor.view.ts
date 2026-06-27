@@ -211,9 +211,7 @@ export class EditorView implements SVGMouseControllerObserver {
     this.notesView = new NotesView(this);
     this.autoLayoutService = new AutoLayoutService(
       this.nodeService,
-      this.trainrunService,
       this.uiInteractionService,
-      this.noteService,
       trainrunSectionService,
       this.viewportCullService,
     );
