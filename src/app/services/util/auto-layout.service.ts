@@ -26,12 +26,10 @@ interface PointLike {
 interface SectionInfo {
   key: string;
   label: string;
-  length: number;
+  span: number;
   centerX: number;
   centerY: number;
-  sourceDirection: LayoutDirection;
-  targetDirection: LayoutDirection;
-  direction?: LayoutDirection;
+  direction: LayoutDirection;
 }
 
 @Injectable({
@@ -117,11 +115,6 @@ export class AutoLayoutService {
 
     this.markAsProcessed(info, processedKeys);
 
-    if (!info.direction) {
-      this.logMixedDirection(info);
-      return;
-    }
-
     const delta = this.calculateDelta(info, runGlobally, sign);
 
     if (delta <= 0) {
@@ -174,7 +167,7 @@ export class AutoLayoutService {
     runGlobally: boolean,
     sign: number,
   ): boolean {
-    return runGlobally && sign >= 0 && info.length >= AutoLayoutService.MIN_SECTION_LENGTH_PX;
+    return runGlobally && sign >= 0 && info.span >= AutoLayoutService.MIN_SECTION_LENGTH_PX;
   }
 
   private markAsProcessed(info: SectionInfo, processedKeys: Set<string> | undefined): void {
@@ -188,18 +181,15 @@ export class AutoLayoutService {
     const sourceNode = section.getSourceNode();
     const targetNode = section.getTargetNode();
 
-    const sourceDirection = this.getSourceDirection(section);
-    const targetDirection = this.getTargetDirection(section);
+    const direction = this.getSourceDirection(section);
 
     return {
       key: this.getSectionKey(sourceNode, targetNode),
       label: this.getSectionLabel(sourceNode, targetNode),
-      length: this.getDistance(source, target),
+      span: this.getSectionSpan(source, target, direction),
       centerX: this.getCenterX(source, target),
       centerY: this.getCenterY(source, target),
-      sourceDirection,
-      targetDirection,
-      direction: this.getCommonDirection(sourceDirection, targetDirection),
+      direction,
     };
   }
 
@@ -210,30 +200,12 @@ export class AutoLayoutService {
     return this.getPortDirection(sourcePort.getPositionAlignment());
   }
 
-  private getTargetDirection(section: TrainrunSection): LayoutDirection {
-    const targetNode = section.getTargetNode();
-    const targetPort = targetNode.getPort(section.getTargetPortId());
-
-    return this.getPortDirection(targetPort.getPositionAlignment());
-  }
-
   private getPortDirection(alignment: PortAlignment): LayoutDirection {
     if (alignment === PortAlignment.Left || alignment === PortAlignment.Right) {
       return "horizontal";
     }
 
     return "vertical";
-  }
-
-  private getCommonDirection(
-    sourceDirection: LayoutDirection,
-    targetDirection: LayoutDirection,
-  ): LayoutDirection | undefined {
-    if (sourceDirection !== targetDirection) {
-      return undefined;
-    }
-
-    return sourceDirection;
   }
 
   private getSectionKey(sourceNode: Node, targetNode: Node): string {
@@ -247,11 +219,11 @@ export class AutoLayoutService {
       .join(" – ");
   }
 
-  private getDistance(source: PointLike, target: PointLike): number {
-    const dx = target.getX() - source.getX();
-    const dy = target.getY() - source.getY();
-
-    return Math.hypot(dx, dy);
+  private getSectionSpan(source: PointLike, target: PointLike, direction: LayoutDirection): number {
+    if (direction === "horizontal") {
+      return Math.abs(target.getX() - source.getX());
+    }
+    return Math.abs(target.getY() - source.getY());
   }
 
   private getCenterX(source: PointLike, target: PointLike): number {
@@ -263,9 +235,9 @@ export class AutoLayoutService {
   }
 
   private calculateDelta(info: SectionInfo, runGlobally: boolean, sign: number): number {
-    const wantedDelta = this.calculateWantedDelta(info.length, runGlobally, sign);
+    const wantedDelta = this.calculateWantedDelta(info.span, runGlobally, sign);
 
-    if (sign >= 0 || !info.direction) {
+    if (sign >= 0) {
       return wantedDelta;
     }
 
@@ -295,10 +267,6 @@ export class AutoLayoutService {
   }
 
   private moveNodesAroundSection(info: SectionInfo, sign: number, delta: number): void {
-    if (!info.direction) {
-      return;
-    }
-
     const signedDelta = sign * delta;
 
     for (const node of this.nodeService.getNodes()) {
@@ -383,10 +351,10 @@ export class AutoLayoutService {
       return currentDelta;
     }
 
-    const allowedDelta = this.getAllowedShrinkDelta(section);
+    const allowedDelta = this.getAllowedShrinkDelta(section, direction);
 
     if (allowedDelta < currentDelta) {
-      this.logDeltaLimit(section, allowedDelta);
+      this.logDeltaLimit(section, direction, allowedDelta);
     }
 
     return Math.min(currentDelta, allowedDelta);
@@ -445,16 +413,16 @@ export class AutoLayoutService {
     return node.getPositionY() + node.getNodeHeight() / 2;
   }
 
-  private getAllowedShrinkDelta(section: TrainrunSection): number {
-    const length = this.getSectionLength(section);
+  private getAllowedShrinkDelta(section: TrainrunSection, direction: LayoutDirection): number {
+    const span = this.getSectionSpan(
+      section.getPositionAtSourceNode(),
+      section.getPositionAtTargetNode(),
+      direction,
+    );
     const minLength = AutoLayoutService.MIN_SECTION_LENGTH_PX;
     const grid = RASTERING_BASIC_GRID_SIZE;
 
-    return Math.floor((length - minLength) / 2 / grid) * grid;
-  }
-
-  private getSectionLength(section: TrainrunSection): number {
-    return this.getDistance(section.getPositionAtSourceNode(), section.getPositionAtTargetNode());
+    return Math.floor((span - minLength) / 2 / grid) * grid;
   }
 
   private updateRendering(): void {
@@ -475,23 +443,27 @@ export class AutoLayoutService {
   private logAction(info: SectionInfo, sign: number): void {
     const action = sign >= 0 ? "stretched" : "shrunk";
 
-    console.debug(`  [${action}] ${info.label} (${Math.round(info.length)}px, ${info.direction})`);
-  }
-
-  private logMixedDirection(info: SectionInfo): void {
-    const directionLabel = `${info.sourceDirection}/${info.targetDirection}`;
-
-    this.logSkip(info.label, `mixed port directions (${directionLabel})`);
+    console.debug(`  [${action}] ${info.label} (${Math.round(info.span)}px, ${info.direction})`);
   }
 
   private logSkip(key: string, reason: string): void {
     console.debug(`  [skip] ${key}: ${reason}`);
   }
 
-  private logDeltaLimit(section: TrainrunSection, allowedDelta: number): void {
+  private logDeltaLimit(
+    section: TrainrunSection,
+    direction: LayoutDirection,
+    allowedDelta: number,
+  ): void {
     const label = this.getSectionLabel(section.getSourceNode(), section.getTargetNode());
-    const length = Math.round(this.getSectionLength(section));
+    const span = Math.round(
+      this.getSectionSpan(
+        section.getPositionAtSourceNode(),
+        section.getPositionAtTargetNode(),
+        direction,
+      ),
+    );
 
-    console.debug(`  [limit] edge ${label} (${length}px) constrains delta to ${allowedDelta}px`);
+    console.debug(`  [limit] edge ${label} (${span}px) constrains delta to ${allowedDelta}px`);
   }
 }
