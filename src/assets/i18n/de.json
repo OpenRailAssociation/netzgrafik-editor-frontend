@@ -342,6 +342,8 @@
         "optimize-layout": "Strecke die Netzgrafik",
         "inverse_optimization-netzgrafik-tooltip": "Komprimiere Netzgrafik soweit, dass keine Kante unnötigerweise länger als die minimale Kantelänge ist.",
         "inverse_optimization-netzgrafik": "Komprimiere die Netzgrafik",
+        "remove-node-overlaps-tooltip": "Entferne überlappende Knoten, indem sie auseinandergeschoben werden.",
+        "remove-node-overlaps": "Knotenüberlappungen entfernen",
         "node-optimization-title": "Netzgrafik - Knotenoptimierung",
         "alphabeticalOrdering": "Alphabetisch",
         "alphabeticalOrderingTooltip": "Ports anhand der Zugkategorien alphabetisch anordnen.",

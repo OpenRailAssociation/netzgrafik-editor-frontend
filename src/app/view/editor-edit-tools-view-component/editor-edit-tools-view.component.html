@@ -183,6 +183,17 @@
     </button>
     {{ "app.view.editor-edit-tools-view-component.inverse_optimization-netzgrafik" | translate }}
     <br />
+    <button
+      (click)="onRemoveNodeOverlaps()"
+      [title]="
+        'app.view.editor-edit-tools-view-component.remove-node-overlaps-tooltip' | translate
+      "
+      class="TrainrunDialog EditorToolButton"
+    >
+      <sbb-icon svgIcon="layers-small"></sbb-icon>
+    </button>
+    {{ "app.view.editor-edit-tools-view-component.remove-node-overlaps" | translate }}
+    <br />
   </sbb-expansion-panel>
 
   <sbb-expansion-panel *ngIf="getAreMultiObjectSelected()" [expanded]="getAreMultiObjectSelected()">

@@ -342,6 +342,8 @@
         "optimize-layout": "Étirez le netzgrafik",
         "inverse_optimization-netzgrafik-tooltip": "Compressez le netzgrafik de sorte qu'aucun bord ne soit inutilement plus long que la longueur minimale des bords.",
         "inverse_optimization-netzgrafik": "Compressez le netzgrafik",
+        "remove-node-overlaps-tooltip": "Supprimez les chevauchements de nœuds en les écartant.",
+        "remove-node-overlaps": "Supprimer les chevauchements",
         "node-optimization-title": "Réticulaire - Optimisation des noeuds",
         "alphabeticalOrdering": "Alphabétique",
         "alphabeticalOrderingTooltip": "Ordonne les ports par ordre alphabétique des catégories de train.",

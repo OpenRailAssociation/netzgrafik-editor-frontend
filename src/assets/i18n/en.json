@@ -342,6 +342,8 @@
         "optimize-layout": "Stretch the netzgrafik",
         "inverse_optimization-netzgrafik-tooltip": "Compress the netzgrafik so that no edge is unnecessarily longer than the minimum edge length.",
         "inverse_optimization-netzgrafik": "Compress the netzgrafik",
+        "remove-node-overlaps-tooltip": "Remove overlapping nodes by pushing them apart.",
+        "remove-node-overlaps": "Remove node overlaps",
         "node-optimization-title": "Netzgrafik - Node optimization",
         "alphabeticalOrdering": "Alphabetical",
         "alphabeticalOrderingTooltip": "Order ports alphabetically by train categories.",
