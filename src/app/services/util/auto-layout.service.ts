@@ -192,7 +192,7 @@ export class AutoLayoutService {
     const targetDirection = this.getTargetDirection(section);
 
     return {
-      key: this.serializeSectionId(sourceNode, targetNode),
+      key: this.getSectionKey(sourceNode, targetNode),
       label: this.getSectionLabel(sourceNode, targetNode),
       length: this.getDistance(source, target),
       centerX: this.getCenterX(source, target),
@@ -236,7 +236,7 @@ export class AutoLayoutService {
     return sourceDirection;
   }
 
-  private serializeSectionId(sourceNode: Node, targetNode: Node): string {
+  private getSectionKey(sourceNode: Node, targetNode: Node): string {
     const ids = [sourceNode.getId(), targetNode.getId()].sort((a, b) => a - b);
     return `${ids[0]}:${ids[1]}`;
   }
