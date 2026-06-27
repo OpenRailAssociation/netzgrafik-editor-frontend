@@ -25,6 +25,7 @@ interface PointLike {
 
 interface SectionInfo {
   key: string;
+  label: string;
   length: number;
   centerX: number;
   centerY: number;
@@ -124,7 +125,7 @@ export class AutoLayoutService {
     const delta = this.calculateDelta(info, runGlobally, sign);
 
     if (delta <= 0) {
-      this.logSkip(info.key, "cannot shrink without violating minimum edge length");
+      this.logSkip(info.label, "cannot shrink without violating minimum edge length");
       return;
     }
 
@@ -191,7 +192,8 @@ export class AutoLayoutService {
     const targetDirection = this.getTargetDirection(section);
 
     return {
-      key: this.getSectionKey(sourceNode, targetNode),
+      key: this.serializeSectionId(sourceNode, targetNode),
+      label: this.getSectionLabel(sourceNode, targetNode),
       length: this.getDistance(source, target),
       centerX: this.getCenterX(source, target),
       centerY: this.getCenterY(source, target),
@@ -234,7 +236,12 @@ export class AutoLayoutService {
     return sourceDirection;
   }
 
-  private getSectionKey(sourceNode: Node, targetNode: Node): string {
+  private serializeSectionId(sourceNode: Node, targetNode: Node): string {
+    const ids = [sourceNode.getId(), targetNode.getId()].sort((a, b) => a - b);
+    return `${ids[0]}:${ids[1]}`;
+  }
+
+  private getSectionLabel(sourceNode: Node, targetNode: Node): string {
     return [sourceNode.getBetriebspunktName(), targetNode.getBetriebspunktName()]
       .sort()
       .join(" – ");
@@ -468,13 +475,13 @@ export class AutoLayoutService {
   private logAction(info: SectionInfo, sign: number): void {
     const action = sign >= 0 ? "stretched" : "shrunk";
 
-    console.log(`  [${action}] ${info.key} (${Math.round(info.length)}px, ${info.direction})`);
+    console.log(`  [${action}] ${info.label} (${Math.round(info.length)}px, ${info.direction})`);
   }
 
   private logMixedDirection(info: SectionInfo): void {
     const directionLabel = `${info.sourceDirection}/${info.targetDirection}`;
 
-    this.logSkip(info.key, `mixed port directions (${directionLabel})`);
+    this.logSkip(info.label, `mixed port directions (${directionLabel})`);
   }
 
   private logSkip(key: string, reason: string): void {
@@ -482,9 +489,9 @@ export class AutoLayoutService {
   }
 
   private logDeltaLimit(section: TrainrunSection, allowedDelta: number): void {
-    const key = this.getSectionKey(section.getSourceNode(), section.getTargetNode());
+    const label = this.getSectionLabel(section.getSourceNode(), section.getTargetNode());
     const length = Math.round(this.getSectionLength(section));
 
-    console.log(`  [limit] edge ${key} (${length}px) constrains delta to ${allowedDelta}px`);
+    console.log(`  [limit] edge ${label} (${length}px) constrains delta to ${allowedDelta}px`);
   }
 }
