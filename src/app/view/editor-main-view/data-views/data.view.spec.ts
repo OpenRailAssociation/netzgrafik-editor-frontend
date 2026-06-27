@@ -139,7 +139,6 @@ describe("Editor-DataView", () => {
 
     const positionTransformationService = new PositionTransformationService(
       trainrunSectionService,
-      trainrunService,
       nodeService,
       noteService,
       uiInteractionService,
