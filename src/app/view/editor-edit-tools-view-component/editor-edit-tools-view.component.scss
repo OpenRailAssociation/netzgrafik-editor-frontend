@@ -79,3 +79,51 @@
   background: var(--sbb-expansion-panel-background-color);
   color: lightgray;
 }
+
+.clutter-sliders {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+  color: $COLOR_Default;
+}
+
+.clutter-slider {
+  display: flex;
+  flex-direction: column;
+  $clutterSliderBackgroundColor: #8d8d8d;
+
+  input[type="range"] {
+    width: 100%;
+    appearance: none;
+    height: 4px;
+    background: lightgray;
+    border-radius: 2px;
+    margin: 2px 0;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: $clutterSliderBackgroundColor;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border: none;
+    border-radius: 50%;
+    background: $clutterSliderBackgroundColor;
+  }
+}
+
+.clutter-slider-title {
+  font-size: 12px;
+}
+
+.clutter-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-style: italic;
+}

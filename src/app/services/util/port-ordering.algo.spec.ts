@@ -209,32 +209,112 @@ describe("port-ordering", () => {
         expect(groupCrossings).toEqual([]);
       });
     });
+
+    // Minimal reproduction: two parallel trains turning a 90° corner at HUB,
+    // whose downstream neighbor (MID) is a pass-through continuing to END.
+    // Tested in the 4 corner orientations.
+    describe("Minimal test case", () => {
+      const corners = [
+        {name: "top > right (NE)", arm: {x: 0, y: -100}, mid: {x: 100, y: 0}, end: {x: 200, y: 0}},
+        {
+          name: "right > bottom (SE)",
+          arm: {x: 100, y: 0},
+          mid: {x: 0, y: 100},
+          end: {x: 0, y: 200},
+        },
+        {
+          name: "bottom > left (SW)",
+          arm: {x: 0, y: 100},
+          mid: {x: -100, y: 0},
+          end: {x: -200, y: 0},
+        },
+        {name: "left > top (NW)", arm: {x: -100, y: 0}, mid: {x: 0, y: -100}, end: {x: 0, y: -200}},
+      ];
+
+      corners.forEach(({name, arm, mid, end}) => {
+        it(`should not produce crossings (${name})`, () => {
+          const {nodesArray} = buildNetwork({
+            nodes: {ARM: arm, HUB: {x: 0, y: 0}, MID: mid, END: end},
+            trainruns: [
+              ["ARM", "HUB", "MID", "END"],
+              ["ARM", "HUB", "MID", "END"],
+            ],
+          });
+
+          optimizePorts(nodesArray);
+
+          expect(countAllCrossings(nodesArray).crossings).toBe(0);
+        });
+      });
+    });
   });
 
-  // Minimal reproduction: two parallel trains turning a 90° corner at HUB,
-  // whose downstream neighbor (MID) is a pass-through continuing to END.
-  // Tested in the 4 corner orientations.
-  describe("Minimal test case", () => {
-    const corners = [
-      {name: "top > right (NE)", arm: {x: 0, y: -100}, mid: {x: 100, y: 0}, end: {x: 200, y: 0}},
-      {name: "right > bottom (SE)", arm: {x: 100, y: 0}, mid: {x: 0, y: 100}, end: {x: 0, y: 200}},
-      {name: "bottom > left (SW)", arm: {x: 0, y: 100}, mid: {x: -100, y: 0}, end: {x: -200, y: 0}},
-      {name: "left > top (NW)", arm: {x: -100, y: 0}, mid: {x: 0, y: -100}, end: {x: 0, y: -200}},
-    ];
+  // The ticket reports two distinct crossings.
+  // The following tests each represent one crossing from the ticket, in a
+  // minimal reticular:
+  describe("Regression #1159", () => {
+    describe("Crossing n°1", () => {
+      const nodes = {
+        LEFT: {x: -1000, y: 0},
+        MID: {x: -500, y: 0},
+        CORNER: {x: 0, y: 0},
+        DOWN_MID: {x: 0, y: 500},
+        HUB: {x: 0, y: 1000},
+        HUB_LEFT: {x: -500, y: 1000},
+        HUB_END: {x: 0, y: 1500},
+      };
 
-    corners.forEach(({name, arm, mid, end}) => {
-      it(`should not produce crossings (${name})`, () => {
+      it("is crossing-free", () => {
         const {nodesArray} = buildNetwork({
-          nodes: {ARM: arm, HUB: {x: 0, y: 0}, MID: mid, END: end},
+          nodes,
           trainruns: [
-            ["ARM", "HUB", "MID", "END"],
-            ["ARM", "HUB", "MID", "END"],
+            ["HUB_LEFT", "HUB"],
+            ["HUB", "DOWN_MID", "CORNER", "MID", "LEFT"],
+            ["LEFT", "MID", "CORNER"],
+            ["LEFT", "MID", "CORNER", "DOWN_MID", "HUB", "HUB_END"],
           ],
         });
 
         optimizePorts(nodesArray);
 
-        expect(countAllCrossings(nodesArray).crossings).toBe(0);
+        const {crossings, groupCrossings} = countAllCrossings(nodesArray);
+        expect(crossings).toBe(0);
+        expect(groupCrossings).toEqual([]);
+      });
+    });
+
+    // This test seems to be order-dependant right now, so here are two cases:
+    // one with an order that breaks, one with an order that does not
+    describe("Crossing n°2", () => {
+      const nodes = {
+        LEFT: {x: -500, y: 0},
+        MID: {x: -250, y: 0},
+        FORK: {x: 0, y: 0},
+        RIGHT_TOP: {x: 250, y: -200},
+        RIGHT_BOTTOM: {x: 250, y: 200},
+      };
+      const toBottom = ["LEFT", "MID", "FORK", "RIGHT_BOTTOM"];
+      const toTop = ["MID", "FORK", "RIGHT_TOP"];
+      const forkToTop = ["FORK", "RIGHT_TOP"];
+      const terminating = ["LEFT", "MID", "FORK"];
+
+      // Same network, varying only the position of the terminating trainrun
+      // (LEFT -> FORK) in the declaration order.
+      const orders = {
+        last: [toBottom, toTop, forkToTop, terminating],
+        early: [toBottom, terminating, toTop, forkToTop],
+      };
+
+      Object.entries(orders).forEach(([name, trainruns]) => {
+        it(`is crossing-free with terminating trainrun declared ${name}`, () => {
+          const {nodesArray} = buildNetwork({nodes, trainruns});
+
+          optimizePorts(nodesArray);
+
+          const {crossings, groupCrossings} = countAllCrossings(nodesArray);
+          expect(crossings).toBe(0);
+          expect(groupCrossings).toEqual([]);
+        });
       });
     });
   });

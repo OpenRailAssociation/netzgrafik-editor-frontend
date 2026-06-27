@@ -1,7 +1,13 @@
 import {Node} from "../../models/node.model";
+import {Port} from "../../models/port.model";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {Transition} from "../../models/transition.model";
-import {countAllCrossings} from "./port-ordering.crossings";
+import {
+  countAllCrossings,
+  countCrossingsInNode,
+  getBetweenFirstCandidates,
+} from "./port-ordering.crossings";
+import {countAllSeparations, getSeparationCandidates} from "./port-ordering.separations";
 import {getConnectedComponents, getPortOppositeNodeId} from "./port-ordering.components";
 import {
   ALIGNMENTS_CLOCKWISE_ORDER,
@@ -14,9 +20,11 @@ import {
  * This function orders all ports in all nodes to minimize crossings. It first calls
  * getConnectedComponents, and then optimizeComponentPorts on each connected component.
  */
-export function optimizePorts(nodes: Node[]): void {
+export function optimizePorts(nodes: Node[], clutterWeights?: Partial<ClutterWeights>): void {
   const components = getConnectedComponents(nodes);
-  components.forEach((componentNodes) => optimizeComponentPorts(componentNodes));
+  components.forEach((componentNodes) =>
+    optimizeComponentPorts(componentNodes, {}, clutterWeights),
+  );
 }
 
 type OptimizeComponentPortsOptions = {
@@ -26,6 +34,34 @@ type OptimizeComponentPortsOptions = {
 const DEFAULT_OPTIMIZE_COMPONENT_PORTS_OPTIONS: OptimizeComponentPortsOptions = {
   maxRuns: 50,
   maxNewCandidates: 10,
+};
+
+/**
+ * A candidate is composed of:
+ * - a trainrun ordering
+ * - a set of nodes ordered "between-first"
+ *
+ * Each "between-first" node will have their ports reordered focusing on preserving order from
+ * outside, rather than minimizing internal crossings first (see reorderNodePorts).
+ */
+type Candidate = {order: number[]; betweenFirst: Set<number>};
+
+/**
+ * Weights applied to the four clutter components the optimizer minimizes. The clutter is their
+ * weighted sum, so callers tune the trade-off between minimizing crossings and keeping parallel
+ * bundles together.
+ */
+export type ClutterWeights = {
+  crossingsWithin: number;
+  crossingsBetween: number;
+  separationsWithin: number;
+  separationsBetween: number;
+};
+const DEFAULT_CLUTTER_WEIGHTS: ClutterWeights = {
+  crossingsWithin: 1,
+  crossingsBetween: 1,
+  separationsWithin: 0,
+  separationsBetween: 0,
 };
 
 /**
@@ -69,8 +105,10 @@ const DEFAULT_OPTIMIZE_COMPONENT_PORTS_OPTIONS: OptimizeComponentPortsOptions = 
 function optimizeComponentPorts(
   nodes: Node[],
   parameters: Partial<OptimizeComponentPortsOptions> = {},
+  clutterWeights: Partial<ClutterWeights> = {},
 ): void {
   const {maxRuns, maxNewCandidates} = {...DEFAULT_OPTIMIZE_COMPONENT_PORTS_OPTIONS, ...parameters};
+  const weights = {...DEFAULT_CLUTTER_WEIGHTS, ...clutterWeights};
 
   // Preserves insertion order while removing duplicates
   const toUnique = (arr: number[]): number[] => {
@@ -93,7 +131,7 @@ function optimizeComponentPorts(
   };
 
   // Permutes trainrun ordering by replacing group positions with flattened group order.
-  // Example: trainruns=[1,2,3,4], groups=[[3,4],[1,2]] → [3,4,1,2]
+  // Example: trainruns=[1,2,3,4], groups=[[3,4],[1,2]] -> [3,4,1,2]
   const reorderGroups = (trainruns: number[], groups: number[][]): number[] => {
     const reorderedIDs = toUnique(groups.flat());
     const set = new Set(reorderedIDs);
@@ -106,30 +144,58 @@ function optimizeComponentPorts(
   );
 
   let runs = 0;
-  let bestCrossings = Infinity;
-  let bestCandidate: number[] = [];
-  const candidates = [initialTrainrunsOrder];
+  let bestClutter = Infinity;
+  let bestCandidate: Candidate = {order: [], betweenFirst: new Set()};
+  const candidates: Candidate[] = [{order: initialTrainrunsOrder, betweenFirst: new Set()}];
 
   while (runs++ <= maxRuns && candidates.length > 0) {
     const candidate = candidates.pop();
 
-    reorderComponentPorts(nodes, trainrunsToScore(candidate));
+    reorderComponentPorts(nodes, trainrunsToScore(candidate.order), candidate.betweenFirst);
     const {crossings, groupCrossings} = countAllCrossings(nodes);
+    const crossingsWithin = nodes.reduce((sum, node) => sum + countCrossingsInNode(node), 0);
+    const {within: separationsWithin, between: separationsBetween} = countAllSeparations(nodes);
+    const clutter =
+      crossingsWithin * weights.crossingsWithin +
+      (crossings - crossingsWithin) * weights.crossingsBetween +
+      separationsWithin * weights.separationsWithin +
+      separationsBetween * weights.separationsBetween;
 
-    if (crossings < bestCrossings) {
+    if (clutter < bestClutter) {
       bestCandidate = candidate;
-      bestCrossings = crossings;
+      bestClutter = clutter;
 
       // Generate new candidates from worst crossings (reversed so worst is tried last/first-popped)
       const newCandidates = groupCrossings.slice(0, maxNewCandidates).toReversed();
       newCandidates.forEach((groupCrossing) => {
-        candidates.push(reorderGroups(candidate, groupCrossing.groups));
+        candidates.push({
+          order: reorderGroups(candidate.order, groupCrossing.groups),
+          betweenFirst: candidate.betweenFirst,
+        });
       });
+
+      // Generate candidates that pull the largest separated bundles back together (only when their
+      // weight is non-zero, so default crossings-only behavior is preserved exactly).
+      if (weights.separationsWithin > 0 || weights.separationsBetween > 0) {
+        getSeparationCandidates(nodes, candidate.order, {
+          within: weights.separationsWithin > 0,
+          between: weights.separationsBetween > 0,
+        })
+          .slice(0, maxNewCandidates)
+          .forEach((order) => candidates.push({order, betweenFirst: candidate.betweenFirst}));
+      }
+
+      getBetweenFirstCandidates(nodes, candidate.betweenFirst, maxNewCandidates).forEach((id) =>
+        candidates.push({
+          order: candidate.order,
+          betweenFirst: new Set([...candidate.betweenFirst, id]),
+        }),
+      );
     }
   }
 
   // Re-apply best result (last iteration may have been worse)
-  reorderComponentPorts(nodes, trainrunsToScore(bestCandidate));
+  reorderComponentPorts(nodes, trainrunsToScore(bestCandidate.order), bestCandidate.betweenFirst);
 }
 
 /**
@@ -151,11 +217,16 @@ function optimizeComponentPorts(
  *
  * - Finally, if some trainrunScores input has been given:
  *   4b. Order using the trainrunScores tie-breaker
+ *
+ * When `betweenFirst` is true, the between-node discriminators (3, 4a) are consulted before the
+ * within-node ones (1, 2): the node follows its neighbors even if that creates a within-node
+ * crossing. This lets callers trade within-node crossings for fewer between-node crossings.
  */
 export function reorderNodePorts(
   node: Node,
   orderedNodeIDs = new Set<number>(),
   trainrunScores: Record<number, number> = {},
+  betweenFirst = false,
 ) {
   const transitions = node.getTransitions();
   const ports = node.getPorts();
@@ -186,35 +257,36 @@ export function reorderNodePorts(
   processingOrder.forEach((alignment) => {
     const sidePorts = ports.filter((port) => port.getPositionAlignment() === alignment);
 
-    sidePorts.sort((a, b) => {
+    // Within-node discriminators (cases 1 & 2): null when undecided.
+    const withinCmp = (a: Port, b: Port): number | null => {
       const aTransition = portTransitions.get(a.getId());
       const bTransition = portTransitions.get(b.getId());
+      if (!aTransition || !bTransition) return null;
 
-      if (aTransition && bTransition) {
-        const aOppositePort = node.getPort(aTransition.getOppositePort(a.getId()));
-        const bOppositePort = node.getPort(bTransition.getOppositePort(b.getId()));
+      const aOppositePort = node.getPort(aTransition.getOppositePort(a.getId()));
+      const bOppositePort = node.getPort(bTransition.getOppositePort(b.getId()));
+      const aOppositeAlignment = aOppositePort.getPositionAlignment();
+      const bOppositeAlignment = bOppositePort.getPositionAlignment();
 
-        const aOppositeAlignment = aOppositePort.getPositionAlignment();
-        const bOppositeAlignment = bOppositePort.getPositionAlignment();
-
-        if (aOppositeAlignment !== bOppositeAlignment) {
-          // Case 1
-          return (
-            getOppositeAlignmentScore(alignment, aOppositeAlignment) -
-            getOppositeAlignmentScore(alignment, bOppositeAlignment)
-          );
-        }
-
-        if (orderedSides.has(aOppositeAlignment)) {
-          const aScoreOppositeSide = aOppositePort.getPositionIndex();
-          const bScoreOppositeSide = bOppositePort.getPositionIndex();
-          const swap = isElbowSwapped(alignment, aOppositeAlignment);
-
-          // Case 2
-          return (aScoreOppositeSide - bScoreOppositeSide) * (swap ? -1 : 1);
-        }
+      if (aOppositeAlignment !== bOppositeAlignment) {
+        // Case 1
+        return (
+          getOppositeAlignmentScore(alignment, aOppositeAlignment) -
+          getOppositeAlignmentScore(alignment, bOppositeAlignment)
+        );
       }
+      if (orderedSides.has(aOppositeAlignment)) {
+        // Case 2
+        const swap = isElbowSwapped(alignment, aOppositeAlignment);
+        return (
+          (aOppositePort.getPositionIndex() - bOppositePort.getPositionIndex()) * (swap ? -1 : 1)
+        );
+      }
+      return null;
+    };
 
+    // Between-node discriminators (cases 3 & 4a): null when undecided.
+    const betweenCmp = (a: Port, b: Port): number | null => {
       const aOppositeNode = a.getOppositeNode(node.getId());
       const bOppositeNode = b.getOppositeNode(node.getId());
 
@@ -224,9 +296,8 @@ export function reorderNodePorts(
           ? aOppositeNode.getPositionX() - bOppositeNode.getPositionX()
           : aOppositeNode.getPositionY() - bOppositeNode.getPositionY();
       }
-
-      // Case 4a
       if (orderedNodeIDs.has(aOppositeNode.getId())) {
+        // Case 4a
         const oppositeNodePorts = aOppositeNode.getPorts();
         const aPortInOppositeNode = oppositeNodePorts.find(
           (port) => port.getTrainrunSectionId() === a.getTrainrunSectionId(),
@@ -237,35 +308,60 @@ export function reorderNodePorts(
         if (!aPortInOppositeNode || !bPortInOppositeNode) return 0;
         return aPortInOppositeNode.getPositionIndex() - bPortInOppositeNode.getPositionIndex();
       }
+      return null;
+    };
 
-      // Case 4b
-      else {
-        const aTrainrunId = a.getTrainrunSection().getTrainrunId();
-        const bTrainrunId = b.getTrainrunSection().getTrainrunId();
-        const aScore = trainrunScores[aTrainrunId] ?? aTrainrunId;
-        const bScore = trainrunScores[bTrainrunId] ?? bTrainrunId;
+    // Case 4b: trainrunScores tie-breaker, always decisive.
+    const tieBreakerCmp = (a: Port, b: Port): number => {
+      const aTransition = portTransitions.get(a.getId());
+      const aTrainrunId = a.getTrainrunSection().getTrainrunId();
+      const bTrainrunId = b.getTrainrunSection().getTrainrunId();
+      const aScore = trainrunScores[aTrainrunId] ?? aTrainrunId;
+      const bScore = trainrunScores[bTrainrunId] ?? bTrainrunId;
 
-        let swap = 1;
-        if (aTransition) {
-          const aOppositePort = node.getPort(aTransition.getOppositePort(a.getId()));
-          if (aOppositePort.getPositionAlignment() === alignment) {
-            const otherEnd = aOppositePort.getOppositeNode(node.getId());
-            const currentPos = isHorizontalAlignment(alignment)
-              ? aOppositeNode.getPositionX()
-              : aOppositeNode.getPositionY();
-            const otherPos = isHorizontalAlignment(alignment)
-              ? otherEnd.getPositionX()
-              : otherEnd.getPositionY();
-            if (currentPos > otherPos) swap = -1;
-          }
+      let swap = 1;
+      if (aTransition) {
+        const aOppositePort = node.getPort(aTransition.getOppositePort(a.getId()));
+        if (aOppositePort.getPositionAlignment() === alignment) {
+          const aOppositeNode = a.getOppositeNode(node.getId());
+          const otherEnd = aOppositePort.getOppositeNode(node.getId());
+          const currentPos = isHorizontalAlignment(alignment)
+            ? aOppositeNode.getPositionX()
+            : aOppositeNode.getPositionY();
+          const otherPos = isHorizontalAlignment(alignment)
+            ? otherEnd.getPositionX()
+            : otherEnd.getPositionY();
+          if (currentPos > otherPos) swap = -1;
         }
-
-        return (aScore - bScore) * swap;
       }
+      return (aScore - bScore) * swap;
+    };
+
+    // betweenFirst consults between-node cases before within-node ones.
+    const orderedCmps = betweenFirst ? [betweenCmp, withinCmp] : [withinCmp, betweenCmp];
+    const compare = (a: Port, b: Port): number => {
+      for (const cmp of orderedCmps) {
+        const result = cmp(a, b);
+        if (result !== null) return result;
+      }
+      return tieBreakerCmp(a, b);
+    };
+
+    // Transitions are ordered by geometry, free ends only by a tie-break score. Mixing both scales
+    // in a single sort can contradict itself and flip two transitions (which would cross inside the
+    // node), so we sort each kind separately, then insert the free end into the ordered transitions.
+    const hasTransition = (p: Port) => portTransitions.has(p.getId());
+    const transitionPorts = sidePorts.filter(hasTransition).sort(compare);
+    const freeEndPorts = sidePorts.filter((p) => !hasTransition(p)).sort(compare);
+
+    // Insert each free end before the first transition it should precede (or last if there is none)
+    freeEndPorts.forEach((freeEnd) => {
+      const at = transitionPorts.findIndex((p) => compare(freeEnd, p) < 0);
+      transitionPorts.splice(at === -1 ? transitionPorts.length : at, 0, freeEnd);
     });
 
-    // Apply new order:
-    sidePorts.forEach((port, i) => port.setPositionIndex(i));
+    // Apply new order
+    transitionPorts.forEach((port, i) => port.setPositionIndex(i));
 
     orderedSides.add(alignment);
   });
@@ -280,7 +376,11 @@ function getNeighborsCount(node: Node): number {
  * exactly how ports are ordered in a single node (where the logic actually is), check
  * reorderNodePorts.
  */
-function reorderComponentPorts(nodes: Node[], trainrunScores: Record<number, number> = {}): void {
+function reorderComponentPorts(
+  nodes: Node[],
+  trainrunScores: Record<number, number> = {},
+  betweenFirstNodeIDs = new Set<number>(),
+): void {
   const nodesWithPorts = nodes.filter((n) => n.getPorts().length > 0);
   if (nodesWithPorts.length === 0) return;
 
@@ -294,7 +394,7 @@ function reorderComponentPorts(nodes: Node[], trainrunScores: Record<number, num
   });
   const queue: number[] = [root.getId()];
 
-  reorderNodePorts(root, visited, trainrunScores);
+  reorderNodePorts(root, visited, trainrunScores, betweenFirstNodeIDs.has(root.getId()));
   visited.add(root.getId());
 
   // BFS traversal
@@ -309,7 +409,12 @@ function reorderComponentPorts(nodes: Node[], trainrunScores: Record<number, num
 
       visited.add(neighborId);
       queue.push(neighborId);
-      reorderNodePorts(nodeMap.get(neighborId), visited, trainrunScores);
+      reorderNodePorts(
+        nodeMap.get(neighborId),
+        visited,
+        trainrunScores,
+        betweenFirstNodeIDs.has(neighborId),
+      );
     }
   }
 

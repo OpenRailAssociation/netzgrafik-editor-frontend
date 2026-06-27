@@ -7,7 +7,7 @@ import {TrainrunSectionService} from "../../services/data/trainrunsection.servic
 import {EditorMode} from "../editor-menu/editor-mode";
 import {LogService} from "../../logger/log.service";
 import {FilterService} from "../../services/ui/filter.service";
-import {takeUntil} from "rxjs/operators";
+import {debounceTime, takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
 import {TrainrunService} from "../../services/data/trainrun.service";
 import {NoteService} from "../../services/data/note.service";
@@ -44,12 +44,24 @@ export class EditorEditToolsViewComponent implements OnDestroy {
       orderingAlgorithm: OrderingAlgorithm.Alphabetical,
     },
     {
-      name: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwareOrdering:Crossing aware`,
-      title: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwareOrderingTooltip:Minimizes crossings of trainruns within the nodes.`,
-      orderingAlgorithm: OrderingAlgorithm.CrossingAware,
+      name: $localize`:@@app.view.editor-edit-tools-view-component.clutterAwareOrdering:Clutter-aware`,
+      title: $localize`:@@app.view.editor-edit-tools-view-component.clutterAwareOrderingTooltip:Minimizes a tunable mix of crossings and separations, within and between nodes.`,
+      orderingAlgorithm: OrderingAlgorithm.ClutterAware,
     },
   ];
   activeOrderingAlgorithm: OrderingAlgorithm = null;
+
+  separationBias = 0.5;
+  withinBias = 0.5;
+  readonly clutterSliderLabels = {
+    minimize: $localize`:@@app.view.editor-edit-tools-view-component.clutterMinimize:What to minimize`,
+    crossings: $localize`:@@app.view.editor-edit-tools-view-component.clutterCrossings:Crossings`,
+    separations: $localize`:@@app.view.editor-edit-tools-view-component.clutterSeparations:Separations`,
+    where: $localize`:@@app.view.editor-edit-tools-view-component.clutterWhere:Where to minimize`,
+    within: $localize`:@@app.view.editor-edit-tools-view-component.clutterWithin:Within nodes`,
+    between: $localize`:@@app.view.editor-edit-tools-view-component.clutterBetween:Between nodes`,
+  };
+  private clutterSlidersChanged = new Subject<void>();
 
   constructor(
     private dataService: DataService,
@@ -83,9 +95,31 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     });
 
     this.activeOrderingAlgorithm = this.uiInteractionService.getActiveOrderingAlgorithm();
+    this.syncClutterBias();
     this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe(() => {
       this.activeOrderingAlgorithm = this.uiInteractionService.getActiveOrderingAlgorithm();
+      this.syncClutterBias();
     });
+
+    this.clutterSlidersChanged
+      .pipe(debounceTime(200), takeUntil(this.destroyed))
+      .subscribe(() =>
+        this.uiInteractionService.setActiveClutterBias(this.separationBias, this.withinBias),
+      );
+  }
+
+  private syncClutterBias() {
+    const {separationBias, withinBias} = this.uiInteractionService.getActiveClutterBias();
+    this.separationBias = separationBias;
+    this.withinBias = withinBias;
+  }
+
+  get showClutterSliders(): boolean {
+    return this.activeOrderingAlgorithm === OrderingAlgorithm.ClutterAware;
+  }
+
+  onClutterSliderChange() {
+    this.clutterSlidersChanged.next();
   }
 
   ngOnDestroy(): void {

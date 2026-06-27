@@ -1,8 +1,10 @@
 import {buildNetwork, setPortOrder} from "./port-ordering.test-helpers";
 import {
   countAllCrossings,
+  countBetweenCrossingsAroundNode,
   countCrossingsInNode,
   countCrossingsBetweenSides,
+  getBetweenFirstCandidates,
   groupContiguous,
 } from "./port-ordering.crossings";
 
@@ -195,6 +197,84 @@ describe("countAllCrossings", () => {
       expect(result.crossings).toBe(4);
       expect(result.groupCrossings[0]?.crossings).toBe(4);
     });
+  });
+});
+
+describe("countBetweenCrossingsAroundNode", () => {
+  it("halves a direct crossing, attributing it to each shared endpoint", () => {
+    // Two parallel A-B sections, inverted at B: a direct crossing (same opposite node).
+    const {nodesMap, trainrunIDs} = buildNetwork({
+      nodes: {A: {x: 0}, B: {x: 100}},
+      trainruns: [
+        ["A", "B"],
+        ["A", "B"],
+      ],
+    });
+    setPortOrder(nodesMap.get("A"), "right", trainrunIDs);
+    setPortOrder(nodesMap.get("B"), "left", trainrunIDs.toReversed());
+
+    // The single crossing is shared, so each of its two endpoints carries half of it.
+    expect(countBetweenCrossingsAroundNode(nodesMap.get("A")).crossings).toBe(0.5);
+    expect(countBetweenCrossingsAroundNode(nodesMap.get("B")).crossings).toBe(0.5);
+  });
+
+  it("counts an indirect crossing in full at the shared node, and zero at the leaves", () => {
+    // A
+    //   >- B    (A and C both reach B; reversing B's left crosses them)
+    // C
+    const {nodesMap, trainrunIDs} = buildNetwork({
+      nodes: {A: {x: 0, y: 0}, B: {x: 500, y: 50}, C: {x: 0, y: 100}},
+      trainruns: [
+        ["A", "B"],
+        ["C", "B"],
+      ],
+    });
+    setPortOrder(nodesMap.get("B"), "left", trainrunIDs.toReversed());
+
+    // Different opposite nodes (A vs C) => indirect crossing, not halved, only at B.
+    expect(countBetweenCrossingsAroundNode(nodesMap.get("B")).crossings).toBe(1);
+    expect(countBetweenCrossingsAroundNode(nodesMap.get("A"))).toEqual({
+      crossings: 0,
+      groupCrossings: [],
+    });
+    expect(countBetweenCrossingsAroundNode(nodesMap.get("C"))).toEqual({
+      crossings: 0,
+      groupCrossings: [],
+    });
+  });
+});
+
+describe("getBetweenFirstCandidates", () => {
+  it("returns no candidate when there is no between-node crossing", () => {
+    const {nodesMap, nodesArray, trainrunIDs} = buildNetwork({
+      nodes: {A: {x: 0}, B: {x: 100}},
+      trainruns: [
+        ["A", "B"],
+        ["A", "B"],
+      ],
+    });
+    setPortOrder(nodesMap.get("A"), "right", trainrunIDs);
+    setPortOrder(nodesMap.get("B"), "left", trainrunIDs);
+
+    expect(getBetweenFirstCandidates(nodesArray, new Set(), 10)).toEqual([]);
+  });
+
+  it("returns the node involved in between-node crossings", () => {
+    // A
+    //   >- B
+    // C
+    const {nodesMap, nodesArray, trainrunIDs} = buildNetwork({
+      nodes: {A: {x: 0, y: -100}, B: {x: 200, y: 0}, C: {x: 0, y: 100}},
+      trainruns: [
+        ["A", "B"],
+        ["C", "B"],
+      ],
+    });
+    setPortOrder(nodesMap.get("B"), "left", trainrunIDs.toReversed());
+
+    expect(getBetweenFirstCandidates(nodesArray, new Set(), 10)).toEqual([
+      nodesMap.get("B").getId(),
+    ]);
   });
 });
 

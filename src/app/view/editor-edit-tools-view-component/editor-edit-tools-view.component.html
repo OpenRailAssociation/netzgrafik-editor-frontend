@@ -154,6 +154,39 @@
         {{ option.name }}
       </sbb-radio-button>
     </sbb-radio-group>
+
+    <div class="clutter-sliders" *ngIf="showClutterSliders">
+      <div class="clutter-slider">
+        <span class="clutter-slider-title">{{ clutterSliderLabels.minimize }}</span>
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.1"
+          [(ngModel)]="separationBias"
+          (input)="onClutterSliderChange()"
+        />
+        <div class="clutter-slider-labels">
+          <span>{{ clutterSliderLabels.crossings }}</span>
+          <span>{{ clutterSliderLabels.separations }}</span>
+        </div>
+      </div>
+      <div class="clutter-slider">
+        <span class="clutter-slider-title">{{ clutterSliderLabels.where }}</span>
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.1"
+          [(ngModel)]="withinBias"
+          (input)="onClutterSliderChange()"
+        />
+        <div class="clutter-slider-labels">
+          <span>{{ clutterSliderLabels.between }}</span>
+          <span>{{ clutterSliderLabels.within }}</span>
+        </div>
+      </div>
+    </div>
   </sbb-expansion-panel>
 
   <sbb-expansion-panel *ngIf="getAreMultiObjectSelected()" [expanded]="getAreMultiObjectSelected()">
