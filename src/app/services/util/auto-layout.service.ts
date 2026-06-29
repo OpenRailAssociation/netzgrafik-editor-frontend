@@ -3,6 +3,7 @@ import {Node} from "../../models/node.model";
 import {NodeService} from "../data/node.service";
 import {UiInteractionService} from "../ui/ui.interaction.service";
 import {TrainrunSectionService} from "../data/trainrunsection.service";
+import {TrainrunService} from "../data/trainrun.service";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {ViewportCullService} from "../ui/viewport.cull.service";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
@@ -41,25 +42,47 @@ export class AutoLayoutService {
   constructor(
     private readonly nodeService: NodeService,
     private readonly uiInteractionService: UiInteractionService,
+    private readonly trainrunService: TrainrunService,
     private readonly trainrunSectionService: TrainrunSectionService,
     private readonly viewportCullService: ViewportCullService,
   ) {}
 
   private getSectionsForLocalOperation(): TrainrunSection[] {
+    // --- State I ---------------------------------------------------------
+    // If one or more sections are selected (multi-sections between A and B),
+    // and no train run is selected, then operate only on these selected sections.
     const selectedSections = this.trainrunSectionService.getAllSelectedTrainrunSections();
-    if (selectedSections.length > 0) {
+    const selectedTrainrun = this.trainrunService.getSelectedTrainrun();
+
+    if (selectedSections.length > 0 && !selectedTrainrun) {
       return selectedSections;
     }
+
+    // --- State II --------------------------------------------------------
+    // If two or more nodes are selected, operate on all sections between these nodes.
     const selectedNodes = this.nodeService.getSelectedNodes();
-    if (selectedNodes.length < 2) {
-      return [];
+    if (selectedNodes.length >= 2) {
+      const nodeIds = new Set(selectedNodes.map((n) => n.getId()));
+
+      return this.trainrunSectionService
+        .getTrainrunSections()
+        .filter(
+          (ts) =>
+            nodeIds.has(ts.getSourceNode().getId()) && nodeIds.has(ts.getTargetNode().getId()),
+        );
     }
-    const nodeIds = new Set(selectedNodes.map((n) => n.getId()));
-    return this.trainrunSectionService
-      .getTrainrunSections()
-      .filter(
-        (ts) => nodeIds.has(ts.getSourceNode().getId()) && nodeIds.has(ts.getTargetNode().getId()),
+
+    // --- State III -------------------------------------------------------
+    // If a train run is selected, operate on all sections of the selected train run.
+    if (selectedTrainrun) {
+      return this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+        selectedTrainrun.getId(),
       );
+    }
+
+    // --- State IV -------------------------------------------------------
+    // All other cases: operate on the entire graph (all sections).
+    return [];
   }
 
   /**

@@ -217,6 +217,7 @@ export class EditorView implements SVGMouseControllerObserver {
     this.autoLayoutService = new AutoLayoutService(
       this.nodeService,
       this.uiInteractionService,
+      trainrunService,
       trainrunSectionService,
       this.viewportCullService,
     );
