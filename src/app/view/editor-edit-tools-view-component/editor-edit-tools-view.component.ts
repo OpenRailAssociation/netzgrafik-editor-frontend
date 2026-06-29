@@ -211,6 +211,10 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     this.autoLayoutService.optimizeLayout(true);
   }
 
+  onRemoveNodeOverlaps() {
+    this.autoLayoutService.removeNodeOverlaps();
+  }
+
   onOptimizeLayout() {
     this.autoLayoutService.optimizeLayout(false);
   }
