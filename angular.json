@@ -137,7 +137,8 @@
             "karmaConfig": "karma.conf.cjs",
             "assets": ["src/assets"],
             "styles": ["src/styles.scss", "node_modules/@sbb-esta/angular/typography.css"],
-            "scripts": []
+            "scripts": [],
+            "exclude": ["src/benchmarks/**"]
           },
           "configurations": {
             "ci": {
@@ -147,6 +148,14 @@
               "progress": false,
               "watch": false,
               "reporters": ["dots", "sonarqube"]
+            },
+            "benchmark": {
+              "browsers": "ChromeHeadless",
+              "codeCoverage": false,
+              "watch": false,
+              "karmaConfig": "karma.benchmark.cjs",
+              "include": ["src/benchmarks/**/*.spec.ts"],
+              "exclude": []
             }
           }
         },
