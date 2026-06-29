@@ -59,7 +59,7 @@
     "@angular/cli": "^19.2.27",
     "@angular/compiler-cli": "^19.2.21",
     "@angular/language-service": "^19.2.25",
-    "@commitlint/types": "^21.0.1",
+    "@commitlint/types": "^21.1.0",
     "@eslint/js": "^9.39.4",
     "@openapitools/openapi-generator-cli": "^2.38.0",
     "@types/d3": "^5.16.0",
