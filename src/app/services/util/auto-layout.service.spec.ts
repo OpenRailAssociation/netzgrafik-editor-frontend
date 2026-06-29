@@ -109,6 +109,7 @@ describe("AutoLayoutService", () => {
     autoLayoutService = new AutoLayoutService(
       nodeService,
       uiInteractionService,
+      trainrunService,
       trainrunSectionService,
       viewportCullService,
     );
