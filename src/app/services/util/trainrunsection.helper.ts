@@ -42,6 +42,7 @@ export class TrainrunsectionHelper {
       rightArrivalTime: 0,
       travelTime: 0,
       bottomTravelTime: 0,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     };
@@ -312,6 +313,7 @@ export class TrainrunsectionHelper {
       mappedTimeStructure.leftDepartureTime = timeStructure.rightDepartureTime;
       mappedTimeStructure.travelTime = timeStructure.bottomTravelTime;
       mappedTimeStructure.bottomTravelTime = timeStructure.travelTime;
+      mappedTimeStructure.numberOfStops = timeStructure.numberOfStops;
       mappedTimeStructure.stopTime = timeStructure.stopTime;
       mappedTimeStructure.bottomStopTime = timeStructure.bottomStopTime;
       return mappedTimeStructure;
@@ -336,6 +338,7 @@ export class TrainrunsectionHelper {
         rightArrivalTime: section.getHeadArrival(),
         travelTime: section.getTravelTime(),
         bottomTravelTime: section.getReverseTravelTime(),
+        numberOfStops: 0,
         stopTime: 0,
         bottomStopTime: 0,
       };
@@ -394,6 +397,8 @@ export class TrainrunsectionHelper {
       rightArrivalTime: lastRightNode.getArrivalTime(rightTrainrunSection),
       travelTime: cumulativeTravelTime,
       bottomTravelTime: cumulativeBottomTravelTime,
+      numberOfStops:
+        this.trainrunSectionService.getTrainrunSectionGroupForSection(trainrunSection).length - 1,
       stopTime: MathUtils.mod60(totalForwardDuration - cumulativeTravelTime),
       bottomStopTime: MathUtils.mod60(totalBackwardDuration - cumulativeBottomTravelTime),
     };

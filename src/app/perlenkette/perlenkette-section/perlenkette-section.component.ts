@@ -759,21 +759,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     this.handleSwitchSection("stops");
   }
 
-  /* number of stops */
-  onInputNbrStopsElementButtonMinus(event: MouseEvent) {
-    event.stopPropagation();
-    // TODO: to reimplement later
-  }
-
-  onInputNbrStopsChanged() {
-    // TODO: to reimplement later
-  }
-
-  onInputNbrStopsElementButtonPlus(event: MouseEvent) {
-    event.stopPropagation();
-    // TODO: to reimplement later
-  }
-
   onEdgeLineClick() {
     const fromNode = this.perlenketteSection.toNode;
     const toNode = this.perlenketteSection.fromNode;
