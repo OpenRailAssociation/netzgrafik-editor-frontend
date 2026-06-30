@@ -12,14 +12,14 @@
       <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
       <!-- Direction arrows (one way trainrun) -->
       <path
-        *ngIf="shouldDisplayDirectionArrow()"
+        *ngIf="shouldDisplayDirectionArrow('top')"
         [class]="getEdgeLineArrowClass()"
         d="M-4,-5L2,0L-4,5Z"
         [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
         [attr.hidden]="isDirectionArrowHidden() ? '' : null"
       ></path>
       <path
-        *ngIf="shouldDisplayDirectionArrow()"
+        *ngIf="shouldDisplayDirectionArrow('bottom')"
         [class]="getEdgeLineArrowClass()"
         d="M-4,-5L2,0L-4,5Z"
         [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
@@ -264,14 +264,14 @@
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
           <!-- Direction arrows (one way trainrun) -->
           <path
-            *ngIf="shouldDisplayDirectionArrow()"
+            *ngIf="shouldDisplayDirectionArrow('top')"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
             [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
             [attr.hidden]="isDirectionArrowHidden() ? '' : null"
           ></path>
           <path
-            *ngIf="shouldDisplayDirectionArrow()"
+            *ngIf="shouldDisplayDirectionArrow('bottom')"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
             [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
@@ -411,7 +411,7 @@
 
             <sbb-toggle-switch-button
               class="LeftSymmetryToggle"
-              *ngIf="trainrunSection.getTrainrun().isRoundTrip()"
+              *ngIf="trainrun.isRoundTrip()"
               [checked]="!trainrunSectionTimesService.getSymmetryStructure().leftSymmetry"
               (checkedChanged)="onLeftNodeSymmetryToggle(!$event)"
               #leftSymmetryToggle
@@ -651,7 +651,7 @@
             </div>
             <sbb-toggle-switch-button
               class="RightSymmetryToggle"
-              *ngIf="trainrunSection.getTrainrun().isRoundTrip()"
+              *ngIf="trainrun.isRoundTrip()"
               [checked]="!trainrunSectionTimesService.getSymmetryStructure().rightSymmetry"
               (checkedChanged)="onRightNodeSymmetryToggle(!$event)"
               #rightSymmetryToggle
@@ -662,12 +662,7 @@
         </foreignObject>
       </svg>
 
-      <svg
-        width="45px"
-        [style.transform]="
-          trainrunSection.getTrainrun().isRoundTrip() ? 'translateX(30px)' : 'none'
-        "
-      >
+      <svg width="45px" [style.transform]="trainrun.isRoundTrip() ? 'translateX(30px)' : 'none'">
         <foreignObject height="192px" width="45px">
           <div class="propagationButtonContainer">
             <button
@@ -722,14 +717,14 @@
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
           <!-- Direction arrows (one way trainrun) -->
           <path
-            *ngIf="shouldDisplayDirectionArrow()"
+            *ngIf="shouldDisplayDirectionArrow('top')"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
             [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
             [attr.hidden]="isDirectionArrowHidden() ? '' : null"
           ></path>
           <path
-            *ngIf="shouldDisplayDirectionArrow()"
+            *ngIf="shouldDisplayDirectionArrow('bottom')"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
             [attr.transform]="getDirectionArrowTranslateAndRotate(145)"

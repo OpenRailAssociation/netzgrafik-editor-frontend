@@ -5,6 +5,9 @@ import {TrainrunSectionService} from "src/app/services/data/trainrunsection.serv
 import {TrainrunSection} from "src/app/models/trainrunsection.model";
 
 export class PerlenketteSection implements PerlenketteItem {
+  section: TrainrunSection | undefined;
+  group: TrainrunSection[];
+
   constructor(
     public trainrunSectionId: number,
     public travelTime: number,
@@ -16,6 +19,11 @@ export class PerlenketteSection implements PerlenketteItem {
     public lastTrainrunPartSection: boolean = false,
     private trainrunSectionService: TrainrunSectionService,
   ) {
+    this.section = this.trainrunSectionService.getTrainrunSectionFromId(this.trainrunSectionId);
+    this.group = this.section
+      ? this.trainrunSectionService.getTrainrunSectionGroupForSection(this.section)
+      : [];
+    this.numberOfStops = this.group.length - 1;
   }
 
   isFristTrainrunPartSection(): boolean {
@@ -44,5 +52,10 @@ export class PerlenketteSection implements PerlenketteItem {
 
   getPerlenketteSection(): PerlenketteSection {
     return this;
+  }
+
+  isFirstSectionOfCollapsedChain(): boolean {
+    if (this.section === undefined) return false;
+    return this.section.getId() === this.group[0].getId();
   }
 }
