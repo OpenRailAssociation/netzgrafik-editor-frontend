@@ -208,6 +208,11 @@
   ry: $NODE_ROUND_EDGE_SIZE;
 }
 
+::ng-deep g.root_container_edges:hover rect.edge_text_background {
+  fill-opacity: 0;
+  stroke-opacity: 0;
+}
+
 ::ng-deep text.edge_text.no_event {
   pointer-events: none;
 }
