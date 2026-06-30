@@ -1,5 +1,5 @@
 import {buildNetwork} from "./port-ordering.test-helpers";
-import {getComponents, getConnectedComponents, SidesComponent} from "./port-ordering.components";
+import {getComponents, SidesComponent} from "./port-ordering.components";
 
 // Maps components to a canonical, order-independent form: each component as a sorted list of node
 // names, the whole list sorted, so assertions don't depend on traversal order.
@@ -7,44 +7,6 @@ const asNames = (components: SidesComponent[]): string[][] =>
   components
     .map((c) => [...new Set(c.map(({node}) => node.getBetriebspunktName()))].sort())
     .sort((a, b) => a.join().localeCompare(b.join()));
-
-describe("getConnectedComponents", () => {
-  it("should return single component for connected graph", () => {
-    const {nodesArray} = buildNetwork({
-      nodes: {A: {x: 0}, B: {x: 100}, C: {x: 200}},
-      trainruns: [
-        ["A", "B", "C"],
-        ["A", "B", "C"],
-      ],
-    });
-
-    const components = getConnectedComponents(nodesArray);
-
-    expect(components.length).toBe(1);
-    expect(components[0].length).toBe(3);
-  });
-
-  it("should return multiple components for disconnected graphs", () => {
-    const {nodesArray} = buildNetwork({
-      nodes: {
-        A1: {x: 0, y: 0},
-        B1: {x: 100, y: 0},
-        A2: {x: 0, y: 200},
-        B2: {x: 100, y: 200},
-      },
-      trainruns: [
-        ["A1", "B1"],
-        ["A2", "B2"],
-      ],
-    });
-
-    const components = getConnectedComponents(nodesArray);
-
-    expect(components.length).toBe(2);
-    expect(components[0].length).toBe(2);
-    expect(components[1].length).toBe(2);
-  });
-});
 
 describe("getComponents", () => {
   it("returns nothing for a single trainrun (no ports to order)", () => {
