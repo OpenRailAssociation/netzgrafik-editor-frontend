@@ -49,21 +49,21 @@ export class D3Utils {
     d3.selectAll(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
-          d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
+          d !== undefined && d.getTrainrun().getId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, true);
 
     d3.selectAll(StaticDomTags.EDGE_LINE_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
-          d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
+          d !== undefined && d.getTrainrun().getId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, true);
 
     d3.selectAll(StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
-          d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
+          d !== undefined && d.getTrainrun().getId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, true);
 
@@ -94,20 +94,20 @@ export class D3Utils {
     d3.selectAll(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
-          d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
+          d !== undefined && d.firstSection.getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, false);
     d3.selectAll(StaticDomTags.EDGE_LINE_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
-          d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
+          d !== undefined && d.firstSection.getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, false);
 
     d3.selectAll(StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
-          d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
+          d !== undefined && d.firstSection.getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, false);
 
@@ -273,7 +273,7 @@ export class D3Utils {
     return v;
   }
 
-  static doGrayoutTrainrunSectionPin(trainrunSection: TrainrunSection, node: Node) {
+  static doGrayoutTrainrunSectionPin(tsvo: TrainrunSectionViewObject, node: Node) {
     // Performance ISSUE : TODO - this special effect hast to be overworked. It's really slow!
     /*
     d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF)
@@ -351,13 +351,13 @@ export class D3Utils {
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);
   }
 
-  static doGrayout(trainrunSection: TrainrunSection, grayoutEdgeLinePinNode: Node = undefined) {
+  static doGrayout(tsvo: TrainrunSectionViewObject, grayoutEdgeLinePinNode: Node = undefined) {
     d3.selectAll(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
       .filter((d: TrainrunSectionViewObject) => {
         if (d === undefined) {
           return false;
         }
-        return d.trainrunSection.getId() === trainrunSection.getId();
+        return d.firstSectionMatchesFirstOrLastSection(tsvo);
       })
       .classed(StaticDomTags.TAG_SELECTED, false)
       .classed(StaticDomTags.TAG_HOVER, false)
@@ -369,7 +369,7 @@ export class D3Utils {
         if (d === undefined) {
           return false;
         }
-        return d.trainrunSection.getId() === trainrunSection.getId();
+        return d.firstSectionMatchesFirstOrLastSection(tsvo);
       })
       .classed(StaticDomTags.TAG_SELECTED, false)
       .classed(StaticDomTags.TAG_HOVER, false)
@@ -381,7 +381,7 @@ export class D3Utils {
         if (d === undefined) {
           return false;
         }
-        return d.trainrunSection.getId() === trainrunSection.getId();
+        return d.firstSectionMatchesFirstOrLastSection(tsvo);
       })
       .classed(StaticDomTags.TAG_SELECTED, false)
       .classed(StaticDomTags.TAG_HOVER, false)
@@ -393,7 +393,7 @@ export class D3Utils {
         if (d === undefined) {
           return false;
         }
-        return d.trainrunSection.getId() === trainrunSection.getId();
+        return d.firstSectionMatchesFirstOrLastSection(tsvo);
       })
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, true);
 
@@ -404,8 +404,9 @@ export class D3Utils {
             return false;
           }
           return (
-            d.trainrunSection.getId() === trainrunSection.getId() &&
-            d.trainrunSection.getSourceNodeId() === grayoutEdgeLinePinNode.getId()
+            (d.firstSection.getId() === tsvo.firstSection.getId() ||
+              d.firstSection.getId() === tsvo.lastSection.getId()) &&
+            d.firstSection.getSourceNodeId() === grayoutEdgeLinePinNode.getId()
           );
         })
         .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, true);
@@ -415,21 +416,22 @@ export class D3Utils {
             return false;
           }
           return (
-            d.trainrunSection.getId() === trainrunSection.getId() &&
-            d.trainrunSection.getTargetNodeId() === grayoutEdgeLinePinNode.getId()
+            (d.firstSection.getId() === tsvo.firstSection.getId() ||
+              d.firstSection.getId() === tsvo.lastSection.getId()) &&
+            d.firstSection.getTargetNodeId() === grayoutEdgeLinePinNode.getId()
           );
         })
         .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, true);
     }
   }
 
-  static removeGrayout(trainrunSection: TrainrunSection, grayoutEdgeLinePinNode: Node = undefined) {
+  static removeGrayout(tsvo: TrainrunSectionViewObject, grayoutEdgeLinePinNode: Node = undefined) {
     d3.selectAll(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
       .filter((d: TrainrunSectionViewObject) => {
         if (d === undefined) {
           return false;
         }
-        return d.trainrunSection.getId() === trainrunSection.getId();
+        return d.firstSectionMatchesFirstOrLastSection(tsvo);
       })
       .classed(StaticDomTags.TAG_SELECTED, true)
       .classed(StaticDomTags.TAG_HOVER, false)
@@ -441,7 +443,7 @@ export class D3Utils {
         if (d === undefined) {
           return false;
         }
-        return d.trainrunSection.getId() === trainrunSection.getId();
+        return d.firstSectionMatchesFirstOrLastSection(tsvo);
       })
       .classed(StaticDomTags.TAG_SELECTED, true)
       .classed(StaticDomTags.TAG_HOVER, false)
@@ -453,7 +455,7 @@ export class D3Utils {
         if (d === undefined) {
           return false;
         }
-        return d.trainrunSection.getId() === trainrunSection.getId();
+        return d.firstSectionMatchesFirstOrLastSection(tsvo);
       })
       .classed(StaticDomTags.TAG_SELECTED, true)
       .classed(StaticDomTags.TAG_HOVER, false)
@@ -465,7 +467,7 @@ export class D3Utils {
         if (d === undefined) {
           return false;
         }
-        return d.trainrunSection.getId() === trainrunSection.getId();
+        return d.firstSectionMatchesFirstOrLastSection(tsvo);
       })
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);
 
@@ -476,8 +478,8 @@ export class D3Utils {
             return false;
           }
           return (
-            d.trainrunSection.getId() === trainrunSection.getId() &&
-            d.trainrunSection.getSourceNodeId() === grayoutEdgeLinePinNode.getId()
+            d.firstSectionMatchesFirstOrLastSection(tsvo) &&
+            d.firstSection.getSourceNodeId() === grayoutEdgeLinePinNode.getId()
           );
         })
         .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);
@@ -487,8 +489,9 @@ export class D3Utils {
             return false;
           }
           return (
-            d.trainrunSection.getId() === trainrunSection.getId() &&
-            d.trainrunSection.getTargetNodeId() === grayoutEdgeLinePinNode.getId()
+            (d.firstSection.getId() === tsvo.firstSection.getId() ||
+              d.firstSection.getId() === tsvo.lastSection.getId()) &&
+            d.firstSection.getTargetNodeId() === grayoutEdgeLinePinNode.getId()
           );
         })
         .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);

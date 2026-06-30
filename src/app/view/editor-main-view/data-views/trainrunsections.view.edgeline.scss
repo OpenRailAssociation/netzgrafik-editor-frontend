@@ -142,6 +142,7 @@
   r: $TRAINRUN_SECTION_STOP_RADIUS;
   fill: $COLOR_BACKGROUND;
   stroke-width: 1px;
+  cursor: pointer;
 }
 
 ::ng-deep path.edge_line_stop_arcs.hover {
