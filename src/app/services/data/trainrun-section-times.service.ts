@@ -150,7 +150,10 @@ export class TrainrunSectionTimesService {
     private filterService: FilterService,
     private loadPerlenketteService: LoadPerlenketteService,
   ) {
-    this.trainrunSectionHelper = new TrainrunsectionHelper(this.trainrunService);
+    this.trainrunSectionHelper = new TrainrunsectionHelper(
+      this.trainrunService,
+      this.trainrunSectionService,
+    );
   }
 
   public setTrainrunSection(trainrunSection: TrainrunSection) {

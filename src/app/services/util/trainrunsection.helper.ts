@@ -23,7 +23,10 @@ export enum LeftAndRightElement {
 }
 
 export class TrainrunsectionHelper {
-  constructor(private trainrunService: TrainrunService) {}
+  constructor(
+    private trainrunService: TrainrunService,
+    private trainrunSectionService: TrainrunSectionService,
+  ) {}
 
   static getSymmetricTime(time: number) {
     return time === 0 ? 0 : 60 - time;

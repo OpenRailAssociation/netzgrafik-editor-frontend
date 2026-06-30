@@ -121,7 +121,10 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     public trainrunSectionTimesService: TrainrunSectionTimesService,
     private versionControlService: VersionControlService,
   ) {
-    this.trainrunSectionHelper = new TrainrunsectionHelper(this.trainrunService);
+    this.trainrunSectionHelper = new TrainrunsectionHelper(
+      this.trainrunService,
+      this.trainrunSectionService,
+    );
 
     this.trainrunSectionTimesService.setOffset(0);
     this.trainrunService.trainruns.pipe(takeUntil(this.destroyed)).subscribe(() => {

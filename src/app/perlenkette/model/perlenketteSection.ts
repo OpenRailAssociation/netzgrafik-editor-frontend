@@ -1,6 +1,8 @@
 import {PerlenketteItem} from "./perlenketteItem";
 import {PerlenketteNode} from "./perlenketteNode";
 import {Node} from "../../models/node.model";
+import {TrainrunSectionService} from "src/app/services/data/trainrunsection.service";
+import {TrainrunSection} from "src/app/models/trainrunsection.model";
 
 export class PerlenketteSection implements PerlenketteItem {
   constructor(
@@ -12,7 +14,9 @@ export class PerlenketteSection implements PerlenketteItem {
     public isBeingEdited: boolean = false,
     public fristTrainrunPartSection: boolean = false,
     public lastTrainrunPartSection: boolean = false,
-  ) {}
+    private trainrunSectionService: TrainrunSectionService,
+  ) {
+  }
 
   isFristTrainrunPartSection(): boolean {
     return this.fristTrainrunPartSection;
