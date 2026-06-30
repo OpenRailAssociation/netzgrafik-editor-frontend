@@ -3,7 +3,7 @@ import {Port} from "../../models/port.model";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {Transition} from "../../models/transition.model";
 import {countAllCrossings} from "./port-ordering.crossings";
-import {getConnectedComponents, getPortOppositeNodeId} from "./port-ordering.components";
+import {getComponents, getPortOppositeNodeId} from "./port-ordering.components";
 import {
   ALIGNMENTS_CLOCKWISE_ORDER,
   getOppositeAlignmentScore,
@@ -12,12 +12,40 @@ import {
 } from "./port-ordering.helpers";
 
 /**
+ * Creates a view of a node exposing only one component's ports and transitions, so the optimizer
+ * reorders and counts within a single component, without disturbing a shared node's other sides.
+ * The ports stay the same objects, so reordering them still mutates the real network. Everything
+ * else (id, position, ...) is delegated to the real node.
+ */
+function getScopedNode(node: Node, sides: Set<PortAlignment>): Node {
+  const ports = node.getPorts().filter((p) => sides.has(p.getPositionAlignment()));
+  const portIds = new Set(ports.map((p) => p.getId()));
+  const transitions = node
+    .getTransitions()
+    .filter((t) => portIds.has(t.getPortId1()) && portIds.has(t.getPortId2()));
+  const view: Node = Object.create(node);
+  view.getPorts = () => ports;
+  view.getTransitions = () => transitions;
+  view.getPort = (id: number) => ports.find((p) => p.getId() === id);
+  return view;
+}
+
+/**
  * This function orders all ports in all nodes to minimize crossings. It first calls
- * getConnectedComponents, and then optimizeComponentPorts on each connected component.
+ * getComponents, then runs optimizeComponentPorts on each component, scoped to its own ports so
+ * that nodes shared between components (a junction crossed by two independent reticulars for
+ * instance) have each side optimized by its owning component only.
  */
 export function optimizePorts(nodes: Node[]): void {
-  const components = getConnectedComponents(nodes);
-  components.forEach((componentNodes) => optimizeComponentPorts(componentNodes));
+  getComponents(nodes).forEach((component) => {
+    const sidesByNode = new Map<Node, Set<PortAlignment>>();
+    component.forEach(({node, side}) => {
+      const sides = sidesByNode.get(node);
+      if (sides) sides.add(side);
+      else sidesByNode.set(node, new Set([side]));
+    });
+    optimizeComponentPorts([...sidesByNode].map(([node, sides]) => getScopedNode(node, sides)));
+  });
 }
 
 type OptimizeComponentPortsOptions = {
@@ -319,17 +347,13 @@ function reorderComponentPorts(nodes: Node[], trainrunScores: Record<number, num
     for (const neighborId of new Set(
       node.getPorts().map((p) => getPortOppositeNodeId(p, nodeId)),
     )) {
-      if (visited.has(neighborId)) continue;
+      // A port can lead outside the component (e.g. a single-trainrun bridge whose far end belongs
+      // to another reticular), so here we only follow neighbors that are part of this component:
+      if (visited.has(neighborId) || !nodeMap.has(neighborId)) continue;
 
       visited.add(neighborId);
       queue.push(neighborId);
       reorderNodePorts(nodeMap.get(neighborId), visited, trainrunScores);
     }
-  }
-
-  if (visited.size !== nodesWithPorts.length) {
-    throw new Error(
-      `Input is not a connected component: reached ${visited.size}/${nodesWithPorts.length} nodes`,
-    );
   }
 }
