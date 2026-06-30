@@ -175,6 +175,52 @@ describe("port-ordering", () => {
       expect(countCrossingsInNode(nodesMap.get("B1"))).toBe(0);
       expect(countCrossingsInNode(nodesMap.get("B2"))).toBe(0);
     });
+
+    it("optimizes a junction shared by two independent reticulars", () => {
+      // A vertical reticular (TA/TB -CENTER- BA/BB) and a horizontal one
+      // (LA/LB -CENTER- RA/RB) meet at CENTER but never share a side, so
+      // each owns a different pair of CENTER's sides:
+      //       TA  TB
+      //        |  |
+      // LA --        -- RA
+      //       CENTER
+      // LB --        -- RB
+      //        |  |
+      //       BA  BB
+      const {
+        nodesMap,
+        nodesArray,
+        trainrunIDs: [v0, v1, h0, h1],
+      } = buildNetwork({
+        nodes: {
+          CENTER: {x: 0, y: 0},
+          TA: {x: -50, y: -100},
+          TB: {x: 50, y: -100},
+          BA: {x: -50, y: 100},
+          BB: {x: 50, y: 100},
+          LA: {x: -100, y: -50},
+          RA: {x: 100, y: -50},
+          LB: {x: -100, y: 50},
+          RB: {x: 100, y: 50},
+        },
+        trainruns: [
+          ["TA", "CENTER", "BA"],
+          ["TB", "CENTER", "BB"],
+          ["LA", "CENTER", "RA"],
+          ["LB", "CENTER", "RB"],
+        ],
+      });
+
+      optimizePorts(nodesArray);
+
+      // The only crossings we should end up with are the 4 unavoidable crossings within the center
+      // node:
+      expect(countAllCrossings(nodesArray).crossings).toBe(4);
+      expect(getTrainrunIDsOnSide(nodesMap.get("CENTER"), "top")).toEqual([v0, v1]);
+      expect(getTrainrunIDsOnSide(nodesMap.get("CENTER"), "bottom")).toEqual([v0, v1]);
+      expect(getTrainrunIDsOnSide(nodesMap.get("CENTER"), "left")).toEqual([h0, h1]);
+      expect(getTrainrunIDsOnSide(nodesMap.get("CENTER"), "right")).toEqual([h0, h1]);
+    });
   });
 
   describe("Regression #1140", () => {
