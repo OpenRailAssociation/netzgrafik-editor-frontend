@@ -864,7 +864,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     return atSource ? trainrunSection.getSourceNode() : trainrunSection.getTargetNode();
   }
 
-  private isExtremityCollapsed(location: "top" | "bottom"): boolean {
+  isExtremityCollapsed(location: "top" | "bottom"): boolean {
     return location === "top"
       ? this.firstSection.getSourceNode().getIsCollapsed()
       : this.lastSection.getTargetNode().getIsCollapsed();
@@ -872,5 +872,11 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
 
   isTip(): boolean {
     return this.isExtremityCollapsed("top") || this.isExtremityCollapsed("bottom");
+  }
+
+  getEdgeLinePath(): string {
+    if (this.isExtremityCollapsed("top")) return "M137,130V192";
+    if (this.isExtremityCollapsed("bottom")) return "M137,0V62";
+    return "M137,0V192";
   }
 }
