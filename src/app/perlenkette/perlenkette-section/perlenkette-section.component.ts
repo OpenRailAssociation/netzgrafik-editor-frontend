@@ -38,19 +38,19 @@ import {Node} from "src/app/models/node.model";
 
 const timeCoordinates = {
   leftHand: {
-    leftDepartureTime: {x: 124, y: 164},
-    leftArrivalTime: {x: 124, y: 18},
-    rightDepartureTime: {x: 149, y: 32},
-    rightArrivalTime: {x: 149, y: 178},
+    leftDepartureTime: {x: 152, y: 32},
+    leftArrivalTime: {x: 118, y: 18},
+    rightDepartureTime: {x: 118, y: 164},
+    rightArrivalTime: {x: 152, y: 178},
     travelTime: {x: 121, y: 93},
     travelTimeAsymmetry: {x: 155, y: 93},
     bottomTravelTime: {x: 121, y: 100},
   },
   rightHand: {
-    leftDepartureTime: {x: 166, y: 164},
-    leftArrivalTime: {x: 166, y: 18},
-    rightDepartureTime: {x: 108, y: 32},
-    rightArrivalTime: {x: 108, y: 178},
+    leftDepartureTime: {x: 118, y: 32},
+    leftArrivalTime: {x: 152, y: 18},
+    rightDepartureTime: {x: 152, y: 164},
+    rightArrivalTime: {x: 118, y: 178},
     travelTime: {x: 155, y: 93},
     travelTimeAsymmetry: {x: 121, y: 93},
     bottomTravelTime: {x: 155, y: 100},
