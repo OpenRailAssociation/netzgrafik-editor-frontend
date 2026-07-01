@@ -141,12 +141,11 @@ export class AutoLayoutService {
     const delta = this.calculateDelta(info, runGlobally, sign);
 
     if (delta <= 0) {
-      this.logSkip(info.label, "cannot shrink without violating minimum edge length");
+      // cannot shrink without violating minimum edge length
       return;
     }
 
     this.moveNodesAroundSection(info, sign, delta);
-    this.logAction(info, sign);
   }
 
   private findCurrentViewAnchorNode(): {node: Node | undefined; offset: Vec2D} {
@@ -375,11 +374,6 @@ export class AutoLayoutService {
     }
 
     const allowedDelta = this.getAllowedShrinkDelta(section, direction);
-
-    if (allowedDelta < currentDelta) {
-      this.logDeltaLimit(section, direction, allowedDelta);
-    }
-
     return Math.min(currentDelta, allowedDelta);
   }
 
@@ -461,32 +455,5 @@ export class AutoLayoutService {
       // Do not call updateTransitionsAndConnections() here.
       // It would re-apply spatial port ordering and undo initPortOrdering().
     }
-  }
-
-  private logAction(info: SectionInfo, sign: number): void {
-    const action = sign >= 0 ? "stretched" : "shrunk";
-
-    console.debug(`  [${action}] ${info.label} (${Math.round(info.span)}px, ${info.direction})`);
-  }
-
-  private logSkip(key: string, reason: string): void {
-    console.debug(`  [skip] ${key}: ${reason}`);
-  }
-
-  private logDeltaLimit(
-    section: TrainrunSection,
-    direction: LayoutDirection,
-    allowedDelta: number,
-  ): void {
-    const label = this.getSectionLabel(section.getSourceNode(), section.getTargetNode());
-    const span = Math.round(
-      this.getSectionSpan(
-        section.getPositionAtSourceNode(),
-        section.getPositionAtTargetNode(),
-        direction,
-      ),
-    );
-
-    console.debug(`  [limit] edge ${label} (${span}px) constrains delta to ${allowedDelta}px`);
   }
 }
