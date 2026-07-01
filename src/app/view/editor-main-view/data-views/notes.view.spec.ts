@@ -24,6 +24,7 @@ import {NetzgrafikUnitTesting} from "../../../../integration-testing/netzgrafik.
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
+import {AutoLayoutService} from "../../../services/util/auto-layout.service";
 
 describe("Notes-View", () => {
   let dataService: DataService;
@@ -139,6 +140,14 @@ describe("Notes-View", () => {
       viewportCullService,
     );
 
+    const autoLayoutService = new AutoLayoutService(
+      nodeService,
+      uiInteractionService,
+      trainrunService,
+      trainrunSectionService,
+      viewportCullService,
+    );
+
     const controller = new EditorMainViewComponent(
       nodeService,
       trainrunSectionService,
@@ -155,6 +164,7 @@ describe("Notes-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      autoLayoutService,
     );
 
     new EditorView(
@@ -172,6 +182,7 @@ describe("Notes-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      autoLayoutService,
     );
     controller.bindViewToServices();
     editorView = controller.editorView;
