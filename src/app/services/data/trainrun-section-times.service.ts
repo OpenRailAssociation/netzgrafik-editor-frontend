@@ -17,6 +17,7 @@ export interface LeftAndRightTimeStructure {
   rightArrivalTime: number;
   travelTime: number;
   bottomTravelTime: number;
+  numberOfStops: number;
   stopTime: number;
   bottomStopTime: number;
 }
@@ -117,6 +118,7 @@ export class TrainrunSectionTimesService {
     rightArrivalTime: 0,
     travelTime: 0,
     bottomTravelTime: 0,
+    numberOfStops: 0,
     stopTime: 0,
     bottomStopTime: 0,
   };
@@ -150,7 +152,10 @@ export class TrainrunSectionTimesService {
     private filterService: FilterService,
     private loadPerlenketteService: LoadPerlenketteService,
   ) {
-    this.trainrunSectionHelper = new TrainrunsectionHelper(this.trainrunService);
+    this.trainrunSectionHelper = new TrainrunsectionHelper(
+      this.trainrunService,
+      this.trainrunSectionService,
+    );
   }
 
   public setTrainrunSection(trainrunSection: TrainrunSection) {
@@ -683,6 +688,41 @@ export class TrainrunSectionTimesService {
       nextStopLeftNodeId,
     );
     this.loadPerlenketteService.render();
+  }
+
+  /* Number of intermediate stops */
+  onNumberOfStopsChanged(newNumberOfStops: number) {
+    this.setOutsideWarning(null);
+    const stopsNbDiff = Math.max(0, newNumberOfStops) - this.timeStructure.numberOfStops;
+    if (stopsNbDiff === 0) return;
+    if (stopsNbDiff > 0) {
+      for (let i = 0; i < stopsNbDiff; i++) {
+        this.trainrunSectionService.addIntermediateStopOnTrainrunSection(
+          this.selectedTrainrunSection,
+        );
+        this.timeStructure.numberOfStops += 1;
+      }
+      this.setHighlightTravelTimeElement(false);
+    } else {
+      for (let i = 0; i < Math.abs(stopsNbDiff); i++) {
+        const success = this.trainrunSectionService.removeIntermediateStopOnTrainrunSection(
+          this.selectedTrainrunSection,
+        );
+        if (success) this.timeStructure.numberOfStops -= 1;
+        else {
+          this.setOutsideWarning("cannot-delete-not-empty-node");
+          break;
+        }
+      }
+    }
+  }
+
+  onInputNumberOfStopsElementButtonPlus() {
+    this.onNumberOfStopsChanged(this.timeStructure.numberOfStops + 1);
+  }
+
+  onInputNumberOfStopsElementButtonMinus() {
+    this.onNumberOfStopsChanged(this.timeStructure.numberOfStops - 1);
   }
 
   applyOffsetAndTransformTimeStructure() {

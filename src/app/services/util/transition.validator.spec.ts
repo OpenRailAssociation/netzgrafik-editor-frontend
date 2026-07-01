@@ -74,7 +74,7 @@ describe("TransitionValidator", () => {
       (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
     );
 
-    trainrunsectionHelper = new TrainrunsectionHelper(trainrunService);
+    trainrunsectionHelper = new TrainrunsectionHelper(trainrunService, trainrunSectionService);
   });
 
   it("Test load data", () => {
