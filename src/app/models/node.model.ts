@@ -620,11 +620,11 @@ export class Node {
     return this.getTransitionFromId(transitionId).getIsNonStopTransit();
   }
 
-  removePort(trainrunSection: TrainrunSection) { 
+  removePort(trainrunSection: TrainrunSection) {
     if (this.getId() === trainrunSection.getSourceNodeId()) {
       this.ports = this.ports.filter((port) => port.getId() !== trainrunSection.getSourcePortId());
     }
-    if (this.getId() === trainrunSection.getTargetNodeId()) { 
+    if (this.getId() === trainrunSection.getTargetNodeId()) {
       this.ports = this.ports.filter((port) => port.getId() !== trainrunSection.getTargetPortId());
     }
   }
