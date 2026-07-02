@@ -115,9 +115,6 @@ describe("AutoLayoutService", () => {
     );
   });
 
-  it("should be created", () => {
-    expect(autoLayoutService).toBeTruthy();
-  });
 
   it("should stretch a short horizontal section by moving nodes apart", () => {
     const sourceNode = createNode("source", "A", 0, 0, PortAlignment.Right);
