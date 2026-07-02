@@ -240,7 +240,7 @@ describe("AutoLayoutService", () => {
   function getMoveCallForNode(
     calls: Array<[string, number, number, boolean, boolean]>,
     nodeId: string,
-  ): [string, number, number, boolean, boolean] {
+  ): [string, number, number, boolean, boolean] | undefined {
     return calls.find((call) => call[0] === nodeId);
   }
 });
