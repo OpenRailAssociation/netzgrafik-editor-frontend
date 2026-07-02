@@ -47,6 +47,29 @@ export class AutoLayoutService {
     private readonly viewportCullService: ViewportCullService,
   ) {}
 
+  /**
+   * Optimize Layout
+   * - local optimization, if selection exists (trainrun sections or nodes)
+   * - global optimization, if no selection exists
+   * - Shift = inverted direction
+   */
+  optimizeLayout(inverse: boolean): void {
+    const direction = inverse ? -1 : 1;
+
+    // 1) get local sections
+    const localSections = this.getSectionsForLocalOperation();
+
+    if (localSections.length > 0) {
+      // local optimization
+      this.adjustSectionLengths(localSections, false, direction);
+      return;
+    }
+
+    // 2) No selection → global optimization
+    const allSections = this.trainrunSectionService.getTrainrunSections();
+    this.adjustSectionLengths(allSections, true, direction);
+  }
+
   private getSectionsForLocalOperation(): TrainrunSection[] {
     // --- State I ---------------------------------------------------------
     // If one or more sections are selected (multi-sections between A and B),
@@ -85,29 +108,6 @@ export class AutoLayoutService {
     return [];
   }
 
-  /**
-   * Optimize Layout
-   * - local optimization, if selection exists (trainrun sections or nodes)
-   * - global optimization, if no selection exists
-   * - Shift = inverted direction
-   */
-  optimizeLayout(inverse: boolean): void {
-    const direction = inverse ? -1 : 1;
-
-    // 1) get local sections
-    const localSections = this.getSectionsForLocalOperation();
-
-    if (localSections.length > 0) {
-      // local optimization
-      this.adjustSectionLengths(localSections, false, direction);
-      return;
-    }
-
-    // 2) No selection → global optimization
-    const allSections = this.trainrunSectionService.getTrainrunSections();
-    this.adjustSectionLengths(allSections, true, direction);
-  }
-
   adjustSectionLengths(sections: TrainrunSection[], runGlobally = true, sign = 1): void {
     const anchorNode = this.findCurrentViewAnchorNode();
     const processedKeys = this.createProcessedKeySet(runGlobally, sign);
@@ -118,6 +118,18 @@ export class AutoLayoutService {
 
     this.restoreViewAnchorNode(anchorNode);
     this.updateRendering();
+  }
+
+  private findCurrentViewAnchorNode(): {node: Node | undefined; offset: Vec2D} {
+    return this.uiInteractionService.findClosestNodeToViewCenter(this.nodeService.getNodes());
+  }
+
+  private createProcessedKeySet(runGlobally: boolean, sign: number): Set<string> | undefined {
+    if (runGlobally && sign >= 0) {
+      return undefined;
+    }
+
+    return new Set<string>();
   }
 
   private processSection(
@@ -146,54 +158,6 @@ export class AutoLayoutService {
     }
 
     this.moveNodesAroundSection(info, sign, delta);
-  }
-
-  private findCurrentViewAnchorNode(): {node: Node | undefined; offset: Vec2D} {
-    return this.uiInteractionService.findClosestNodeToViewCenter(this.nodeService.getNodes());
-  }
-
-  private restoreViewAnchorNode(anchorNode: {node: Node | undefined; offset: Vec2D}): void {
-    if (!anchorNode.node) {
-      return;
-    }
-
-    this.uiInteractionService.gotoNode(anchorNode.node, anchorNode.offset);
-  }
-
-  private createProcessedKeySet(runGlobally: boolean, sign: number): Set<string> | undefined {
-    if (runGlobally && sign >= 0) {
-      return undefined;
-    }
-
-    return new Set<string>();
-  }
-
-  private shouldSkipSection(
-    info: SectionInfo,
-    processedKeys: Set<string> | undefined,
-    runGlobally: boolean,
-    sign: number,
-  ): boolean {
-    return (
-      this.wasAlreadyProcessed(info, processedKeys) ||
-      this.isLongEnoughForGlobalStretch(info, runGlobally, sign)
-    );
-  }
-
-  private wasAlreadyProcessed(info: SectionInfo, processedKeys: Set<string> | undefined): boolean {
-    return processedKeys?.has(info.key) === true;
-  }
-
-  private isLongEnoughForGlobalStretch(
-    info: SectionInfo,
-    runGlobally: boolean,
-    sign: number,
-  ): boolean {
-    return runGlobally && sign >= 0 && info.span >= AutoLayoutService.MIN_SECTION_LENGTH_PX;
-  }
-
-  private markAsProcessed(info: SectionInfo, processedKeys: Set<string> | undefined): void {
-    processedKeys?.add(info.key);
   }
 
   private getSectionInfo(section: TrainrunSection): SectionInfo {
@@ -256,6 +220,34 @@ export class AutoLayoutService {
     return (source.getY() + target.getY()) / 2;
   }
 
+  private shouldSkipSection(
+    info: SectionInfo,
+    processedKeys: Set<string> | undefined,
+    runGlobally: boolean,
+    sign: number,
+  ): boolean {
+    return (
+      this.wasAlreadyProcessed(info, processedKeys) ||
+      this.isLongEnoughForGlobalStretch(info, runGlobally, sign)
+    );
+  }
+
+  private wasAlreadyProcessed(info: SectionInfo, processedKeys: Set<string> | undefined): boolean {
+    return processedKeys?.has(info.key) === true;
+  }
+
+  private isLongEnoughForGlobalStretch(
+    info: SectionInfo,
+    runGlobally: boolean,
+    sign: number,
+  ): boolean {
+    return runGlobally && sign >= 0 && info.span >= AutoLayoutService.MIN_SECTION_LENGTH_PX;
+  }
+
+  private markAsProcessed(info: SectionInfo, processedKeys: Set<string> | undefined): void {
+    processedKeys?.add(info.key);
+  }
+
   private calculateDelta(info: SectionInfo, runGlobally: boolean, sign: number): number {
     const wantedDelta = this.calculateWantedDelta(info.span, runGlobally, sign);
 
@@ -279,6 +271,21 @@ export class AutoLayoutService {
     const steps = this.calculateGridSteps(deficit);
 
     return steps * RASTERING_BASIC_GRID_SIZE;
+  }
+
+  private limitShrinkDelta(
+    delta: number,
+    direction: LayoutDirection,
+    centerX: number,
+    centerY: number,
+  ): number {
+    let limitedDelta = delta;
+
+    for (const section of this.trainrunSectionService.getTrainrunSections()) {
+      limitedDelta = this.limitDeltaBySection(section, limitedDelta, direction, centerX, centerY);
+    }
+
+    return limitedDelta;
   }
 
   private calculateGridSteps(deficit: number): number {
@@ -339,23 +346,30 @@ export class AutoLayoutService {
     return signedDelta;
   }
 
+  private getNodeCenterX(node: Node): number {
+    return node.getPositionX() + node.getNodeWidth() / 2;
+  }
+
+  private getNodeCenterY(node: Node): number {
+    return node.getPositionY() + node.getNodeHeight() / 2;
+  }
+
   private moveNode(node: Node, x: number, y: number): void {
     this.nodeService.changeNodePositionWithoutUpdate(node.getId(), x, y, true, false);
   }
 
-  private limitShrinkDelta(
-    delta: number,
-    direction: LayoutDirection,
-    centerX: number,
-    centerY: number,
-  ): number {
-    let limitedDelta = delta;
-
-    for (const section of this.trainrunSectionService.getTrainrunSections()) {
-      limitedDelta = this.limitDeltaBySection(section, limitedDelta, direction, centerX, centerY);
+  private restoreViewAnchorNode(anchorNode: {node: Node | undefined; offset: Vec2D}): void {
+    if (!anchorNode.node) {
+      return;
     }
 
-    return limitedDelta;
+    this.uiInteractionService.gotoNode(anchorNode.node, anchorNode.offset);
+  }
+
+  private updateRendering(): void {
+    this.nodeService.initPortOrdering();
+    this.routeAllSections();
+    this.viewportCullService.onViewportChangeUpdateRendering(true);
   }
 
   private limitDeltaBySection(
@@ -422,14 +436,6 @@ export class AutoLayoutService {
     return this.getNodeCenterY(node);
   }
 
-  private getNodeCenterX(node: Node): number {
-    return node.getPositionX() + node.getNodeWidth() / 2;
-  }
-
-  private getNodeCenterY(node: Node): number {
-    return node.getPositionY() + node.getNodeHeight() / 2;
-  }
-
   private getAllowedShrinkDelta(section: TrainrunSection, direction: LayoutDirection): number {
     const span = this.getSectionSpan(
       section.getPositionAtSourceNode(),
@@ -440,12 +446,6 @@ export class AutoLayoutService {
     const grid = RASTERING_BASIC_GRID_SIZE;
 
     return Math.floor((span - minLength) / 2 / grid) * grid;
-  }
-
-  private updateRendering(): void {
-    this.nodeService.initPortOrdering();
-    this.routeAllSections();
-    this.viewportCullService.onViewportChangeUpdateRendering(true);
   }
 
   private routeAllSections(): void {

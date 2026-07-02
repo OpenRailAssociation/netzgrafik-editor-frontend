@@ -115,7 +115,6 @@ describe("AutoLayoutService", () => {
     );
   });
 
-
   it("should stretch a short horizontal section by moving nodes apart", () => {
     const sourceNode = createNode("source", "A", 0, 0, PortAlignment.Right);
     const targetNode = createNode("target", "B", 100, 0, PortAlignment.Left);
