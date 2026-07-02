@@ -159,7 +159,7 @@ details [VisAVisPortPlacement.placePortsOnSourceAndTargetNode(srcNode, targetNod
 
 ##### Ports sorting
 
-Ports on each side of a node are sorted to control how edges are visually ordered. Two modes are available,
+Ports on each side of a node are sorted to control how edges are visually ordered. Three modes are available,
 selectable via radio buttons in the editor tools panel:
 
 - **Alphabetical** (default): Ports are sorted by train category name. See
@@ -167,6 +167,8 @@ selectable via radio buttons in the editor tools panel:
   [CREATE_NODES chapter](../CREATE_NODES.md#MultipleTrainruns) for details.
 - **Crossing aware**: Ports are reordered to minimize edge crossings using global propagation. See
   [CROSSING_AWARE_ORDERING.md](CROSSING_AWARE_ORDERING.md) for a full description of the algorithm.
+- **Crossing aware (push crossings into nodes)**: Same algorithm, weighted to resolve crossings inside the
+  nodes rather than between them, keeping parallel trainruns bundled along the sections.
 
 ##### Pre-computed paths
 
