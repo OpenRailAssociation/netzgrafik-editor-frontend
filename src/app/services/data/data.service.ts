@@ -365,8 +365,7 @@ export class DataService implements OnDestroy {
       (trainrun) =>
         netzgrafikDto.trainrunSections.find((trs) => trs.trainrunId === trainrun.id) !== undefined,
     );
-
-    console.log(netzgrafikDto);
+ 
     if (errornousTrainrunSections.length > 0) {
       const message = $localize`:@@app.services.data.data-service.deleted-trainrun-sections:Deleted ${errornousTrainrunSections.length} trainrun sections with identical source and target nodes. This was caused by a bug in an older version of the editor. Please check your Netzgrafik for correctness.`;
       this.logger.error(message);
