@@ -57,10 +57,7 @@ describe("DataService", () => {
       trainrunId: orphanTrainrunId,
     });
 
-    DataMigration.ensureAllTrainrunSectionsHaveDiffertSourceAndTargetNodes(
-      dto,
-      logger as any,
-    );
+    DataMigration.ensureAllTrainrunSectionsHaveDiffertSourceAndTargetNodes(dto, logger as any);
 
     expect(dto.trainrunSections.some((section) => section.id === invalidSectionId)).toBeFalse();
     expect(node.ports.some((port) => port.id === invalidPortId1)).toBeFalse();

@@ -5,7 +5,7 @@ import {
   Direction,
   TrainrunFrequency,
   TrainrunTimeCategory,
-  TrafficSide, 
+  TrafficSide,
 } from "../../data-structures/business.data.structures";
 import {NetzgrafikDefault} from "../../sample-netzgrafik/netzgrafik.default";
 import {NodeService} from "./node.service";
