@@ -73,6 +73,9 @@
         },
         "version-control": {
           "new-name-comment": "New name: {$PH}"
+        },
+        "data-service": {
+          "deleted-trainrun-sections": "Deleted {$PH} trainrun sections with identical source and target nodes. This was caused by a bug in an older version of the editor. Please check your netzgrafik for correctness."
         }
       },
       "ui": {
