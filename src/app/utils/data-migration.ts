@@ -115,18 +115,20 @@ export class DataMigration {
     netzgrafikDto: NetzgrafikDto,
     logger?: LogService,
   ) {
-    // Ensures that all trainrun sections have different source and target nodes - when not 
+    // Ensures that all trainrun sections have different source and target nodes - when not
     // remove the trainrun section and all related node links (ports and transitions).
     // This is important to maintain correct relationships between trainrun sections and nodes
     // and to avoid errors. Corrupted data can be generated when using an older version of the Netzgrafik Editor
     // where this fix had not yet been deployed:
     // https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/851
-    const errornousTrainrunSections: TrainrunSectionDto[] = [];
-    netzgrafikDto.trainrunSections.forEach((trs) => {
-      if (trs.sourceNodeId === trs.targetNodeId) {
-        errornousTrainrunSections.push(trs);
-      }
-    });
+    const errornousTrainrunSections: TrainrunSectionDto[] = netzgrafikDto.trainrunSections.filter(
+      (trs) => trs.sourceNodeId === trs.targetNodeId,
+    );
+
+    if (errornousTrainrunSections.length === 0) {
+      // early exit - no errornous trainrun sections found - nothing to do
+      return;
+    }
 
     // delete all errornous trainrun sections with identical source and target nodes
     errornousTrainrunSections.forEach((trs) => {
