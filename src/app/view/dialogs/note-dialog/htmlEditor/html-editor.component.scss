@@ -36,6 +36,25 @@
     background: var(--sbb-header-lean-background-color);
     color: var(--NODE_TEXT_FOCUS);
   }
+
+  // Theme the link popup for dark mode. ngx-editor defaults its popup
+  // background to white and leaves inputs unstyled, so in dark mode the
+  // popup and its URL field render white-on-white (see issue #752).
+  .NgxEditor__Popup {
+    --ngx-editor-popup-bg-color: var(--sbb-header-lean-background-color);
+    color: var(--NODE_TEXT_FOCUS);
+
+    .NgxEditor__Popup--Label {
+      color: var(--NODE_TEXT_FOCUS);
+    }
+
+    input[type="text"],
+    input[type="url"] {
+      background: var(--sbb-header-lean-background-color);
+      color: var(--NODE_TEXT_FOCUS);
+      border: 1px solid var(--sbb-header-lean-border-bottom-color);
+    }
+  }
 }
 
 ::ng-deep div.ngx-html-editor-color-buttons {
