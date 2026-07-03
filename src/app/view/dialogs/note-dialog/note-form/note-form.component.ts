@@ -10,7 +10,7 @@ import {FormModel} from "../../../../utils/form-model";
 export class NoteFormComponent {
   @Input() model!: FormModel<NoteFormComponentModel>;
 
-  onKeydown(event) {
+  onKeydown(event: KeyboardEvent) {
     if (event.key === "Enter") {
       this.onUpdate();
     }

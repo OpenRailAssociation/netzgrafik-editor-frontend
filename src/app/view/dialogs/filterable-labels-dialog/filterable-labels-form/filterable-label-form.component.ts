@@ -15,7 +15,7 @@ export class FilterableLabelFormComponent implements OnInit {
     this.model.registerValidator("name", Validators.required);
   }
 
-  onKeydown(event) {
+  onKeydown(event: KeyboardEvent) {
     if (event.key === "Enter") {
       event.preventDefault();
       this.onUpdate();

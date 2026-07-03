@@ -125,7 +125,7 @@ export class HtmlEditorComponent implements OnInit, OnDestroy {
     this.editor.destroy();
   }
 
-  onKeydown(event) {
+  onKeydown(event: KeyboardEvent) {
     if (event.key === "Enter") {
       this.onUpdate();
     }
