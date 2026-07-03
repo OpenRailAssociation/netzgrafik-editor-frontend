@@ -389,7 +389,7 @@ export class TrainrunSectionsView {
     }
   }
 
-  static getTrainrunSectionTimeElementOddOffsetTag(time, trainrun): string {
+  static getTrainrunSectionTimeElementOddOffsetTag(time: number, trainrun: Trainrun): string {
     if (trainrun.getFrequency() > 60) {
       if (Math.floor(time / 60) % 2 === 1) {
         return " " + StaticDomTags.EDGE_LINE_TEXT_ODD_FREQUENCY;

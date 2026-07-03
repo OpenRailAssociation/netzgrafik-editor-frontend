@@ -151,14 +151,14 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
         trainrunSection.getTargetNodeId() === n.getId()
           ? trainrunSection.getTargetDepartureConsecutiveTime()
           : trainrunSection.getSourceDepartureConsecutiveTime(),
-        trainrunSection,
+        trainrunSection.getTrainrun(),
       );
     }
     return TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
       trainrunSection.getTargetNodeId() === n.getId()
         ? trainrunSection.getTargetArrivalConsecutiveTime()
         : trainrunSection.getSourceArrivalConsecutiveTime(),
-      trainrunSection,
+      trainrunSection.getTrainrun(),
     );
   }
 
