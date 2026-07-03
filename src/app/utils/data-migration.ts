@@ -115,9 +115,12 @@ export class DataMigration {
     netzgrafikDto: NetzgrafikDto,
     logger?: LogService,
   ) {
-    // Ensures that all trainrun sections have different source and target nodes. This function is important
-    // to maintain the relationship between the trainrun section and the nodes correctly and to
-    // avoid errors.
+    // Ensures that all trainrun sections have different source and target nodes - when not 
+    // remove the trainrun section and all related node links (ports and transitions).
+    // This is important to maintain correct relationships between trainrun sections and nodes
+    // and to avoid errors. Corrupted data can be generated when using an older version of the Netzgrafik Editor
+    // where this fix had not yet been deployed:
+    // https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/851
     const errornousTrainrunSections: TrainrunSectionDto[] = [];
     netzgrafikDto.trainrunSections.forEach((trs) => {
       if (trs.sourceNodeId === trs.targetNodeId) {
