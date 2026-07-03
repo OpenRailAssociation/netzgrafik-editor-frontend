@@ -1169,10 +1169,10 @@ export class NodeService implements OnDestroy {
   }
 
   getNetzgrafikBoundingBox() {
-    let minX;
-    let maxX;
-    let minY;
-    let maxY;
+    let minX: number | undefined;
+    let maxX: number | undefined;
+    let minY: number | undefined;
+    let maxY: number | undefined;
     this.nodesStore.nodes.forEach((n) => {
       minX = minX === undefined ? n.getPositionX() : Math.min(minX, n.getPositionX());
       maxX =
