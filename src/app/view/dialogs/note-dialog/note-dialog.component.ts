@@ -1,5 +1,10 @@
 import {Component, OnDestroy, TemplateRef, ViewChild} from "@angular/core";
-import {SbbDialog, SbbDialogConfig, SbbDialogPosition} from "@sbb-esta/angular/dialog";
+import {
+  SbbDialog,
+  SbbDialogConfig,
+  SbbDialogPosition,
+  type SbbDialogRef,
+} from "@sbb-esta/angular/dialog";
 import {Vec2D} from "../../../utils/vec2D";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {GeneralViewFunctions} from "../../util/generalViewFunctions";
@@ -39,13 +44,13 @@ export class NoteDialogComponent implements OnDestroy {
   @ViewChild("noteEditorTabsViewTemplate", {static: true})
   noteEditorTabsViewTemplate: TemplateRef<any>;
 
-  public data = null;
+  public data: NoteDialogParameter = null;
 
   private destroyed = new Subject<void>();
 
-  private dialogRef = null;
-  private dialogConfig = null;
-  private dialogPos = null;
+  private dialogRef: SbbDialogRef<unknown, unknown> = null;
+  private dialogConfig: SbbDialogConfig = null;
+  private dialogPos: Record<"top" | "bottom" | "left" | "right", number> = null;
   private dialogMovementLastPosition: Vec2D = undefined;
 
   constructor(
