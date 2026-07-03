@@ -45,7 +45,13 @@ export interface NoteFormComponentModel {
   noteWidth: number;
   notePositionX: number;
   notePositionY: number;
-  saveNoteCallback;
-  deleteNoteCallback;
-  updateNoteCallback?;
+  saveNoteCallback: (
+    noteId: number,
+    noteTitle: string,
+    noteText: string,
+    noteHeight: number,
+    noteWidth: number,
+  ) => void;
+  deleteNoteCallback: (noteId: number) => void;
+  updateNoteCallback: () => void;
 }
