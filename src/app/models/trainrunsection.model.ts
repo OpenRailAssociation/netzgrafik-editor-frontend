@@ -227,8 +227,8 @@ export class TrainrunSection {
     };
 
     let formattedText = time.timeFormatter.stylePattern;
-    for (const pattern in patterns) {
-      formattedText = formattedText.replace(pattern, patterns[pattern]);
+    for (const [pattern, repl] of Object.entries(patterns)) {
+      formattedText = formattedText.replace(pattern, repl);
     }
 
     return formattedText;
