@@ -36,7 +36,7 @@ export class PathSection implements PathItem {
     return this.isFilteredDepartureNode || this.isFilteredArrivalNode;
   }
 
-  zommedXPath(xZoom): number {
+  zommedXPath(xZoom: number): number {
     if (this.xPathFix()) {
       return this.xPath();
     }
