@@ -178,7 +178,7 @@ export class TrainrunSectionPreviewLineView {
     D3Utils.disableTrainrunSectionForEventHandling();
   }
 
-  updatePreviewLineCombineTrainruns(transitionInvolved) {
+  updatePreviewLineCombineTrainruns(transitionInvolved: boolean) {
     this.canCombineTwoTrainrunsFlag = !transitionInvolved;
     this.updatePreviewLine();
   }

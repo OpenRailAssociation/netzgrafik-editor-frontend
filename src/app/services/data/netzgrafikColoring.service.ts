@@ -269,7 +269,7 @@ export class NetzgrafikColoringService {
     });
   }
 
-  setDarkMode(darkMode) {
+  setDarkMode(darkMode: boolean) {
     this.isDarkMode = darkMode;
     this.generateColors();
 

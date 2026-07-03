@@ -196,7 +196,7 @@ export class EditorPropertiesViewComponent {
     this.activeColorTheme = this.uiInteractionService.getActiveTheme();
   }
 
-  private getHexColor(colorStr): string {
+  private getHexColor(colorStr: string): string {
     const a = document.createElement("div");
     a.style.color = colorStr;
     const colors = window

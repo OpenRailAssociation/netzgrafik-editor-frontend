@@ -170,7 +170,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   }
 
   private updatePerlenkette(perlenketteTrainrun: PerlenketteTrainrun) {
-    let originalPathItems;
+    let originalPathItems: PerlenketteItem[] | null = null;
     if (this.perlenketteTrainrun) {
       originalPathItems = this.perlenketteTrainrun.pathItems;
 

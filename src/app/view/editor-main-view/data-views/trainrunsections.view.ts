@@ -1260,7 +1260,7 @@ export class TrainrunSectionsView {
 
   createTrainrunSection(
     groupEnter: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
-    classRef,
+    classRef: string,
     levelFreqFilter: LinePatternRefs[],
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
