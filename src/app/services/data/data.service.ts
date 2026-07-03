@@ -82,10 +82,7 @@ export class DataService implements OnDestroy {
     // Loading an elder Version Netzgrafik can have errournous data due of a bug which was in the
     // past. It's now fixed see https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/851
     // but the data can be still in the stored Netzgrafik. So we need to check and fix this issue here.
-    DataMigration.ensureAllTrainrunSectionsHaveDiffertSourceAndTargetNodes(
-      netzgrafikDto,
-      this.logger,
-    );
+    DataMigration.sanitizeTrainrunSectionsWithSameSourceAndTargetNodes(netzgrafikDto, this.logger);
     DataMigration.migrateNetzgrafikDto(netzgrafikDto);
 
     this.netzgrafikDtoStore.netzgrafikDto = netzgrafikDto;

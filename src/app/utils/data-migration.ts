@@ -111,7 +111,7 @@ export class DataMigration {
     });
   }
 
-  static ensureAllTrainrunSectionsHaveDiffertSourceAndTargetNodes(
+  static sanitizeTrainrunSectionsWithSameSourceAndTargetNodes(
     netzgrafikDto: NetzgrafikDto,
     logger?: LogService,
   ) {
