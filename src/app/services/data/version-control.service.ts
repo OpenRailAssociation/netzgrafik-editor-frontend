@@ -183,7 +183,7 @@ export class VersionControlService implements OnDestroy {
   }
 
   deleteVariant(): Observable<void> {
-    return this.variantsBackendService.deleteVariant(this.variant.id).pipe(map(() => null));
+    return this.variantsBackendService.deleteVariant(this.variant.id).pipe(map((): void => null));
   }
 
   getAndClearVarianteChangedSignal(): boolean {

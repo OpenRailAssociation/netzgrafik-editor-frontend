@@ -298,7 +298,7 @@ export class DataService implements OnDestroy {
       this.filterService.filterSetting,
     ]).pipe(
       skip(1),
-      map(() => null),
+      map((): void => null),
       debounceTime(changeTimeout),
     );
   }
