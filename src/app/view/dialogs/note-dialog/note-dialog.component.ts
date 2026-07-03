@@ -40,14 +40,8 @@ export class NoteDialogComponent implements OnDestroy {
   noteEditorTabsViewTemplate: TemplateRef<any>;
 
   public data = null;
-  public noteId: number;
-  public noteTitle: string;
-  public noteText: string;
 
   private destroyed = new Subject<void>();
-  private deleteNoteCallback = null;
-  private saveNoteCallback = null;
-  private updateNoteCallback = null;
 
   private dialogRef = null;
   private dialogConfig = null;
@@ -60,14 +54,6 @@ export class NoteDialogComponent implements OnDestroy {
   ) {
     this.uiInteractionService.noteDialog.pipe(takeUntil(this.destroyed)).subscribe((parameter) => {
       this.data = parameter;
-
-      this.noteText = this.data.noteText;
-      this.noteId = this.data.id;
-      this.noteTitle = this.data.noteTitle;
-      this.deleteNoteCallback = this.data.deleteNoteCallback;
-      this.saveNoteCallback = this.data.saveNoteCallback;
-      this.updateNoteCallback = this.data.updateNoteCallback;
-
       this.openDialog(parameter);
     });
   }
