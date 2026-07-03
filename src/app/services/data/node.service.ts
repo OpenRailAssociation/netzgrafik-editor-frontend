@@ -1118,7 +1118,7 @@ export class NodeService implements OnDestroy {
   }
 
   transitionsUpdated() {
-    let transitions = [];
+    let transitions: Transition[] = [];
     this.nodesStore.nodes.forEach((node) => {
       transitions = transitions.concat(node.getTransitions());
     });
@@ -1127,7 +1127,7 @@ export class NodeService implements OnDestroy {
   }
 
   connectionsUpdated() {
-    let connections = [];
+    let connections: Connection[] = [];
     this.nodesStore.nodes.forEach((node) => {
       connections = connections.concat(node.getConnections());
     });
@@ -1157,7 +1157,7 @@ export class NodeService implements OnDestroy {
   }
 
   getAllNodeLabels(): string[] {
-    let nodeLabels = [];
+    let nodeLabels: string[] = [];
     this.getNodes().forEach((n) =>
       this.labelService
         .getTextLabelsFromIds(n.getLabelIds())

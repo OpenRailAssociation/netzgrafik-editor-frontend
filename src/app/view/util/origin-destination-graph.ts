@@ -146,7 +146,7 @@ export const computeNeighbors = (edges: Edge[]): Map<Vertex, [Vertex, number][]>
 // Given a graph (adjacency list), return the vertices in topological order.
 // Note: sorting vertices by time would be enough for our use case.
 export const topoSort = (graph: Map<Vertex, [Vertex, number][]>): Vertex[] => {
-  const res = [];
+  const res: Vertex[] = [];
   const visited = new Set<Vertex>();
   for (const node of graph.keys()) {
     if (!visited.has(node)) {
@@ -266,7 +266,7 @@ const buildSectionEdges = (
   timeLimit: number,
   sectionExpansion: Map<number, number[]>,
 ): [Edge[], Map<number, number>] => {
-  const edges = [];
+  const edges: Edge[] = [];
   const its = trainrunService.getRootIterators();
   const tsSuccessor = new Map<number, number>();
   trainruns.forEach((trainrun) => {
@@ -309,7 +309,7 @@ const buildSectionEdgesFromIterator = (
   tsSuccessor: Map<number, number>,
   sectionExpansion: Map<number, number[]>,
 ): Edge[] => {
-  const edges = [];
+  const edges: Edge[] = [];
   let nonStopV1Time = -1;
   let nonStopV1Node = -1;
   let nonStopV1TsId = -1;
@@ -391,7 +391,7 @@ const buildConvenienceEdges = (
   verticesDepartureByTrainrunByNode: Map<number, Map<string, Vertex[]>>,
   verticesArrivalByTrainrunByNode: Map<number, Map<string, Vertex[]>>,
 ): Edge[] => {
-  const edges = [];
+  const edges: Edge[] = [];
   nodes.forEach((node) => {
     const nodeId = node.getId();
     // We add a single start and end vertex for each node, so we can compute shortest paths more easily.
@@ -433,7 +433,7 @@ const buildConnectionEdges = (
   tsSuccessor.forEach((v, k) => {
     tsPredecessor.set(v, k);
   });
-  const edges = [];
+  const edges: Edge[] = [];
   nodes.forEach((node) => {
     const departuresByTrainrun = verticesDepartureByTrainrunByNode.get(node.getId());
     const arrivalsByTrainrun = verticesArrivalByTrainrunByNode.get(node.getId());

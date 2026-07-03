@@ -132,7 +132,7 @@ export class LabelDropListComponent implements OnInit, OnDestroy {
         this.labelService.labelUpdated();
         return;
       }
-      const labelIds = [];
+      const labelIds: number[] = [];
       labels.forEach((el: Label) => {
         if (el.getId() !== movedLabelObject.getId()) {
           if (el.getId() === neighborLabel.getId()) {

@@ -189,7 +189,7 @@ export class TransitionsView {
 
   displayTransitions(inputTransitions: Transition[]) {
     const selectedTrainrun: Trainrun = this.editorView.getSelectedTrainrun();
-    let connectedTrainIds = [];
+    let connectedTrainIds: number[] = [];
     if (selectedTrainrun !== null) {
       connectedTrainIds = this.editorView.getConnectedTrainrunIds(selectedTrainrun);
     }
