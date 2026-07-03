@@ -8,6 +8,7 @@ import {
   OnDestroy,
   ViewChild,
 } from "@angular/core";
+import type {SbbRadioChange} from "@sbb-esta/angular/radio-button";
 import {Subject} from "rxjs";
 import {LoadPerlenketteService} from "./service/load-perlenkette.service";
 import {PerlenketteTrainrun} from "./model/perlenketteTrainrun";
@@ -109,7 +110,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     this.svgPoint = new Vec2D(0, -64);
   }
 
-  onSbbToggleChange(event) {
+  onSbbToggleChange(event: SbbRadioChange) {
     this.sbbToogleValue = event.value;
   }
 
