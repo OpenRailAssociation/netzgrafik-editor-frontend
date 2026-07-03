@@ -198,7 +198,7 @@ export class PositionTransformationService {
   alignSelectedElementsToLeftBorder() {
     const nodes: Node[] = this.nodeService.getSelectedNodes();
 
-    let leftX = undefined;
+    let leftX: number | undefined = undefined;
     nodes.forEach((n) => {
       const pos = n.getPositionX();
       if (leftX === undefined) {
@@ -221,7 +221,7 @@ export class PositionTransformationService {
   alignSelectedElementsToRightBorder() {
     const nodes: Node[] = this.nodeService.getSelectedNodes();
 
-    let rightX = undefined;
+    let rightX: number | undefined = undefined;
     nodes.forEach((n) => {
       const pos = n.getPositionX() + n.getNodeWidth();
       if (rightX === undefined) {
@@ -244,7 +244,7 @@ export class PositionTransformationService {
   alignSelectedElementsToTopBorder() {
     const nodes: Node[] = this.nodeService.getSelectedNodes();
 
-    let topY = undefined;
+    let topY: number | undefined = undefined;
     nodes.forEach((n) => {
       const pos = n.getPositionY();
       if (topY === undefined) {
@@ -267,7 +267,7 @@ export class PositionTransformationService {
   alignSelectedElementsToBottomBorder() {
     const nodes: Node[] = this.nodeService.getSelectedNodes();
 
-    let bottomY = undefined;
+    let bottomY: number | undefined = undefined;
     nodes.forEach((n) => {
       const pos = n.getPositionY() + n.getNodeHeight();
       if (bottomY === undefined) {
