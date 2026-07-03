@@ -224,7 +224,7 @@ export class TrainrunSectionTimesService {
     return MathUtils.round(1 + val - Math.ceil(val), precision);
   }
 
-  private enforceNonNegativeTime(keyValue: string) {
+  private enforceNonNegativeTime(keyValue: keyof LeftAndRightTimeStructure) {
     // ensure non-negative time values for "keyValue"
     this.timeStructure[keyValue] = MathUtils.mod60(this.timeStructure[keyValue]);
   }
