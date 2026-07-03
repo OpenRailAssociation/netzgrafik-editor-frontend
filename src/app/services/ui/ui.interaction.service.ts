@@ -116,7 +116,7 @@ export class UiInteractionService implements OnDestroy {
 
   private windowViewboxPropertiesMap: {[key: string]: ViewboxProperties} = {};
   private destroyed = new Subject<void>();
-  private filterWindowType = null;
+  private filterWindowType: FilterWindowType | null = null;
   private oldSelectedTrainrunId: number = null;
 
   constructor(
@@ -192,7 +192,7 @@ export class UiInteractionService implements OnDestroy {
     return viewboxProperties;
   }
 
-  getDefaultViewProperties() {
+  getDefaultViewProperties(): ViewboxProperties {
     return {
       currentViewBox: null,
       panZoomTop: 0,

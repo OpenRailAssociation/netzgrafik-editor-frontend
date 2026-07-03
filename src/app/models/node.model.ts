@@ -523,7 +523,7 @@ export class Node {
     return this.transitions;
   }
 
-  getTransitionFromPortId(portId) {
+  getTransitionFromPortId(portId: number) {
     return this.transitions.find(
       (t: Transition) => t.getPortId1() === portId || t.getPortId2() === portId,
     );

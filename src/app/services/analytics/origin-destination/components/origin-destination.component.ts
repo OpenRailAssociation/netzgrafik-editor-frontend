@@ -290,7 +290,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
         .style("top", `${d3.event.offsetY + 64 < 0 ? 0 : d3.event.offsetY + 64}px`);
     };
 
-    const mouseleave = function (_d) {
+    const mouseleave = function (_d: OriginDestination) {
       tooltip.style("opacity", 0);
       d3.select(this)
         .style("stroke", "none")
