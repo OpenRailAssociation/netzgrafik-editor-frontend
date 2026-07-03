@@ -485,6 +485,39 @@ describe("TrainrunSectionTimesService", () => {
     });
   });
 
+  it("re-enable symmetry on left node", () => {
+    const ts = trainrunSectionService.getTrainrunSectionFromId(1);
+    trainrunSectionTimesService.setTrainrunSection(ts);
+
+    // Disable symmetry on both sides
+    trainrunSectionTimesService.onLeftNodeSymmetryToggle(false);
+    trainrunSectionTimesService.onRightNodeSymmetryToggle(false);
+
+    // Change bottom travel time, left arrival time should get updated and
+    // loose its symmetry
+    const timeStructure = trainrunSectionTimesService.getTimeStructure();
+    const originalTimeStructure = {...timeStructure};
+    timeStructure.bottomTravelTime = 15;
+    trainrunSectionTimesService.onBottomTravelTimeChanged();
+    expect(trainrunSectionTimesService.getTimeStructure()).toEqual({
+      ...originalTimeStructure,
+      bottomTravelTime: 15,
+      leftDepartureTime: 12,
+      leftArrivalTime: 53,
+    });
+
+    // Enable symmetry on the left, left arrival time should get updated to be
+    // symmetrical again
+    trainrunSectionTimesService.onLeftNodeSymmetryToggle(true);
+    expect(trainrunSectionTimesService.getTimeStructure()).toEqual({
+      ...originalTimeStructure,
+      bottomTravelTime: 15,
+      leftDepartureTime: 7,
+      leftArrivalTime: 53,
+      rightArrivalTime: 17,
+    });
+  });
+
   // Regression test for https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1141
   it("toggle symmetry on non-stop node", () => {
     // IC1 has two sections, grab 'em
