@@ -127,7 +127,7 @@ export class BaseDataService {
       return [];
     }
     const splittedLabels = labels.split(",", 99999);
-    const trimmed = [];
+    const trimmed: string[] = [];
     splittedLabels.forEach((s) => {
       const t = s.trim();
       if (t !== "") {

@@ -285,7 +285,7 @@ export class TrainrunService {
   }
 
   getAllTrainrunLabels(): string[] {
-    let trainrunLabels = [];
+    let trainrunLabels: string[] = [];
     this.getTrainruns().forEach((t) =>
       this.labelService
         .getTextLabelsFromIds(t.getLabelIds())

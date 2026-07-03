@@ -91,7 +91,7 @@ export class OriginDestinationService {
       );
     });
 
-    const rows = [];
+    const rows: OriginDestination[] = [];
     odNodes.sort((a, b) => a.getBetriebspunktName().localeCompare(b.getBetriebspunktName()));
     odNodes.forEach((origin) => {
       odNodes.forEach((destination) => {
@@ -107,6 +107,9 @@ export class OriginDestinationService {
             originId: origin.getId(),
             destinationId: destination.getId(),
             found: false,
+            travelTime: undefined,
+            transfers: undefined,
+            totalCost: undefined,
           });
           return;
         }
