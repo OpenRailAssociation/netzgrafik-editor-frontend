@@ -147,6 +147,8 @@ export enum LabelRef {
   Note = "Note",
 }
 
+export type LabelRefDto = `${LabelRef}`;
+
 /**
  * Represents a filterable Label
  */
@@ -218,6 +220,8 @@ export enum HaltezeitFachCategories {
   Uncategorized = "HaltezeitUncategorized",
 }
 
+export type HaltezeitFachCategoriesDto = `${HaltezeitFachCategories}`;
+
 /**
  * Reprensents the LinePatterns how to render the elements (lines). The encoding is implemented
  * in SCSS. The line pattern is standardize in timetable planning.  Mapping.
@@ -232,6 +236,8 @@ export enum LinePatternRefs {
   TimeCatHVZ = "HVZ", // . : . : ; unique indentifier
   TimeZeitweise = "ZEITWEISE", // : - : - ; unique indentifier
 }
+
+export type LinePatternRefsDto = `${LinePatternRefs}`;
 
 /**
  * Represents the overwriteable Haltetimes (stop-times) - default - attached to each node.
@@ -346,6 +352,8 @@ export enum Direction {
   ROUND_TRIP = "round_trip",
   ONE_WAY = "one_way",
 }
+
+export type DirectionDto = `${Direction}`;
 
 /**
  * Represents the traffic side, i.e. whether trains on a line are
