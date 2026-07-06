@@ -116,7 +116,11 @@ export class AutoLayoutService {
       this.processSection(section, processedKeys, runGlobally, sign);
     }
 
+    // enforce port odering after layout optimization to ensure consistent routing of trainrun sections
+    this.nodeService.initPortOrdering(this.nodeService.getCurrentOrderingAlgorithm());
+    // restore the view to the anchor node to maintain user context after layout changes
     this.restoreViewAnchorNode(anchorNode);
+    // enforce update the rendering
     this.updateRendering();
   }
 
@@ -355,7 +359,9 @@ export class AutoLayoutService {
   }
 
   private moveNode(node: Node, x: number, y: number): void {
-    this.nodeService.changeNodePositionWithoutUpdate(node.getId(), x, y, true, false);
+    // Handle the node movement similar to node tracking
+    // without triggering unnecessary updates or reordering of ports.
+    this.nodeService.changeNodePositionWithoutUpdate(node.getId(), x, y, false, false);
   }
 
   private restoreViewAnchorNode(anchorNode: {node: Node | undefined; offset: Vec2D}): void {
