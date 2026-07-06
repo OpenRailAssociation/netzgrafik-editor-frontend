@@ -843,14 +843,12 @@ export class NodesView {
       this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
       return;
     }
-    if (
-      !(
-        dragTransitionInfo.trainrunSection1.getSourceNodeId() !== endNode.getId() &&
-        dragTransitionInfo.trainrunSection1.getTargetNodeId() !== endNode.getId() &&
-        dragTransitionInfo.trainrunSection2.getSourceNodeId() !== endNode.getId() &&
-        dragTransitionInfo.trainrunSection2.getTargetNodeId() !== endNode.getId()
-      )
-    ) {
+    if (!(
+      dragTransitionInfo.trainrunSection1.getSourceNodeId() !== endNode.getId() &&
+      dragTransitionInfo.trainrunSection1.getTargetNodeId() !== endNode.getId() &&
+      dragTransitionInfo.trainrunSection2.getSourceNodeId() !== endNode.getId() &&
+      dragTransitionInfo.trainrunSection2.getTargetNodeId() !== endNode.getId()
+    )) {
       this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
       D3Utils.removeGrayout(dragTransitionInfo.trainrunSection1);
       D3Utils.removeGrayout(dragTransitionInfo.trainrunSection2);

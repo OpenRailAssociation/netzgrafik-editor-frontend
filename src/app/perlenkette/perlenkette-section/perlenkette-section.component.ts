@@ -56,8 +56,7 @@ const timeCoordinates = {
 };
 
 type KeyOfTimeCoordinates = keyof (
-  | typeof timeCoordinates.leftHand
-  | typeof timeCoordinates.rightHand
+  typeof timeCoordinates.leftHand | typeof timeCoordinates.rightHand
 );
 @Component({
   selector: "sbb-perlenkette-section",

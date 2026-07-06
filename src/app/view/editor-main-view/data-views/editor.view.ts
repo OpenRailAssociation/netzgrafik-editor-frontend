@@ -64,8 +64,7 @@ export class EditorView implements SVGMouseControllerObserver {
   addNode: ((positionX: number, positionY: number) => Node) | null = null;
   getNodePathToEnd: ((node: Node, trainrunSection: TrainrunSection) => Node[]) | null = null;
   addTrainrunSectionWithSourceTarget:
-    | ((sourceNode: Node, targetNode: Node, position: Vec2D) => void)
-    | null = null;
+    ((sourceNode: Node, targetNode: Node, position: Vec2D) => void) | null = null;
   reconnectTrainrunSection:
     | ((
         sourceNode: Node,
@@ -102,12 +101,10 @@ export class EditorView implements SVGMouseControllerObserver {
       ) => void)
     | null = null;
   showTrainrunOneWayInformation:
-    | ((trainrunSection: TrainrunSection, position: Vec2D) => void)
-    | null = null;
+    ((trainrunSection: TrainrunSection, position: Vec2D) => void) | null = null;
   setTrainrunAsSelected: ((trainrun: Trainrun) => void) | null = null;
   clickSelectedTrainrunSection:
-    | ((informSelectedTrainrunClick: InformSelectedTrainrunClick) => void)
-    | null = null;
+    ((informSelectedTrainrunClick: InformSelectedTrainrunClick) => void) | null = null;
   setTrainrunSectionAsSelected: ((trainrunSection: TrainrunSection) => void) | null = null;
   getSelectedTrainrun: (() => Trainrun) | null = null;
   getCumulativeTravelTime:
@@ -145,8 +142,7 @@ export class EditorView implements SVGMouseControllerObserver {
     null;
   isFilterNotesEnabled: (() => boolean) | null = null;
   replaceIntermediateStopWithNode:
-    | ((trainsectionId: number, stopIndex: number, nodeId: number) => void)
-    | null = null;
+    ((trainsectionId: number, stopIndex: number, nodeId: number) => void) | null = null;
   getTimeDisplayPrecision: (() => number) | null = null;
   setTimeDisplayPrecision: ((precision: number) => void) | null = null;
   selectNode: ((nodeId: number, enforceUpdate?: boolean) => void) | null = null;
@@ -172,12 +168,11 @@ export class EditorView implements SVGMouseControllerObserver {
   filterTrainrunsection: ((trainrunSection: TrainrunSection) => boolean) | null = null;
   isTemporaryDisableFilteringOfItemsInViewEnabled: (() => boolean) | null = null;
   moveNote:
-    | ((inputNoteId: number, newPosition: Vec2D, round: number, dragEnd: boolean) => void)
-    | null = null;
+    ((inputNoteId: number, newPosition: Vec2D, round: number, dragEnd: boolean) => void) | null =
+    null;
   calculateShortestDistanceNodesFromStartingNode: ((departureNodeId: number) => void) | null = null;
   calculateShortestDistanceNodesFromStartingTrainrunSection:
-    | ((trainrunSectionId: number, departureNodeId: number) => void)
-    | null = null;
+    ((trainrunSectionId: number, departureNodeId: number) => void) | null = null;
   pauseUndoRecording: (() => void) | null = null;
   startUndoRecording: (() => void) | null = null;
 
