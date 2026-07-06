@@ -418,7 +418,7 @@ export class NotesView {
   }
 
   onNoteMouseout(note: Note, domObj: SVGElement) {
-    this.unhoverNote(note, domObj);
+    this.unhoverNote(note);
   }
 
   onNoteMouseover(note: Note, domObj: SVGElement) {
@@ -432,7 +432,7 @@ export class NotesView {
     ) {
       return;
     }
-    this.hoverNote(note, domObj);
+    this.hoverNote(note);
   }
 
   onNoteMouseoverDragButton(note: Note, domObj: SVGElement) {
@@ -449,7 +449,7 @@ export class NotesView {
     this.onNoteMouseout(note, domObj);
   }
 
-  hoverNote(note: Note, domObj: SVGElement) {
+  hoverNote(note: Note) {
     d3.selectAll(StaticDomTags.NOTE_HOVER_DRAG_AREA_DOM_REF)
       .filter((n: NoteViewObject) => n.note.getId() === note.getId())
       .classed(StaticDomTags.TAG_MUTED, true);
@@ -458,7 +458,7 @@ export class NotesView {
       .classed(StaticDomTags.TAG_HOVER, true);
   }
 
-  unhoverNote(note: Note, domObj: SVGElement) {
+  unhoverNote(note: Note) {
     d3.selectAll(StaticDomTags.NOTE_HOVER_DRAG_AREA_DOM_REF)
       .filter((n: NoteViewObject) => n.note.getId() === note.getId())
       .classed(StaticDomTags.TAG_MUTED, false);
