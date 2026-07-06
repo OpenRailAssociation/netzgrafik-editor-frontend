@@ -138,7 +138,7 @@ export class AutoLayoutService {
     return new Set<string>();
   }
 
-  private getSectionLabelLength(section: TrainrunSection): number {
+  private getTrainrunCategoryAndTitleCharLength(section: TrainrunSection): number {
     const trainrunTitleLength = section.getTrainrun().getTitle().length;
     const trainrunCategoryLength = section.getTrainrun().getCategoryShortName().length;
     const charCount = trainrunTitleLength + trainrunCategoryLength;
@@ -256,7 +256,8 @@ export class AutoLayoutService {
     sign: number,
   ): boolean {
     const minLength =
-      AutoLayoutService.MIN_SECTION_LENGTH_PX + this.getSectionLabelLength(info.section);
+      AutoLayoutService.MIN_SECTION_LENGTH_PX +
+      this.getTrainrunCategoryAndTitleCharLength(info.section);
     console.log(
       `isLongEnoughForGlobalStretch -> checking section ${info.label} with span ${info.span} against minLength ${minLength}`,
     );
@@ -287,7 +288,8 @@ export class AutoLayoutService {
 
   private calculateGridDelta(info: SectionInfo): number {
     const minLength =
-      AutoLayoutService.MIN_SECTION_LENGTH_PX + this.getSectionLabelLength(info.section);
+      AutoLayoutService.MIN_SECTION_LENGTH_PX +
+      this.getTrainrunCategoryAndTitleCharLength(info.section);
     const deficit = minLength - info.span;
 
     console.log(
@@ -470,7 +472,8 @@ export class AutoLayoutService {
       section.getPositionAtTargetNode(),
       direction,
     );
-    const minLength = AutoLayoutService.MIN_SECTION_LENGTH_PX + this.getSectionLabelLength(section);
+    const minLength =
+      AutoLayoutService.MIN_SECTION_LENGTH_PX + this.getTrainrunCategoryAndTitleCharLength(section);
     const grid = RASTERING_BASIC_GRID_SIZE;
 
     return Math.floor((span - minLength) / 2 / grid) * grid;
