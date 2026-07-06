@@ -1,0 +1,20 @@
+.dark-mode .note-popup {
+  background-color: #2e2e2e;
+  color: #ffffff;
+}
+
+.dark-mode .note-popup input,
+.dark-mode .note-popup textarea {
+  background-color: #3a3a3a;
+  color: #ffffff;
+  border: 1px solid #5a5a5a;
+}
+
+.dark-mode .note-popup input::placeholder,
+.dark-mode .note-popup textarea::placeholder {
+  color: #aaaaaa;
+}
+
+.dark-mode .note-popup a {
+  color: #66b3ff;
+}
