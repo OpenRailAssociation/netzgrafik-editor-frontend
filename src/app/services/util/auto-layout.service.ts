@@ -31,6 +31,7 @@ interface SectionInfo {
   centerX: number;
   centerY: number;
   direction: LayoutDirection;
+  section: TrainrunSection;
 }
 
 @Injectable({
@@ -38,6 +39,7 @@ interface SectionInfo {
 })
 export class AutoLayoutService {
   private static readonly MIN_SECTION_LENGTH_PX = 200;
+  private static readonly MIN_CHAR_LENGTH_PX = 20;
 
   constructor(
     private readonly nodeService: NodeService,
@@ -136,6 +138,13 @@ export class AutoLayoutService {
     return new Set<string>();
   }
 
+  private getSectionLabelLength(section: TrainrunSection): number {
+    const trainrunTitleLength = section.getTrainrun().getTitle().length;
+    const trainrunCategoryLength = section.getTrainrun().getCategoryShortName().length;
+    const charCount = trainrunTitleLength + trainrunCategoryLength;
+    return AutoLayoutService.MIN_CHAR_LENGTH_PX * charCount;
+  }
+
   private processSection(
     section: TrainrunSection,
     processedKeys: Set<string> | undefined,
@@ -180,6 +189,7 @@ export class AutoLayoutService {
       centerX: this.getCenterX(source, target),
       centerY: this.getCenterY(source, target),
       direction,
+      section,
     };
   }
 
@@ -245,7 +255,12 @@ export class AutoLayoutService {
     runGlobally: boolean,
     sign: number,
   ): boolean {
-    return runGlobally && sign >= 0 && info.span >= AutoLayoutService.MIN_SECTION_LENGTH_PX;
+    const minLength =
+      AutoLayoutService.MIN_SECTION_LENGTH_PX + this.getSectionLabelLength(info.section);
+    console.log(
+      `isLongEnoughForGlobalStretch -> checking section ${info.label} with span ${info.span} against minLength ${minLength}`,
+    );
+    return runGlobally && sign >= 0 && info.span >= minLength;
   }
 
   private markAsProcessed(info: SectionInfo, processedKeys: Set<string> | undefined): void {
@@ -253,7 +268,7 @@ export class AutoLayoutService {
   }
 
   private calculateDelta(info: SectionInfo, runGlobally: boolean, sign: number): number {
-    const wantedDelta = this.calculateWantedDelta(info.span, runGlobally, sign);
+    const wantedDelta = this.calculateWantedDelta(info, runGlobally, sign);
 
     if (sign >= 0) {
       return wantedDelta;
@@ -262,16 +277,23 @@ export class AutoLayoutService {
     return this.limitShrinkDelta(wantedDelta, info.direction, info.centerX, info.centerY);
   }
 
-  private calculateWantedDelta(length: number, runGlobally: boolean, sign: number): number {
+  private calculateWantedDelta(info: SectionInfo, runGlobally: boolean, sign: number): number {
     if (sign < 0 && runGlobally) {
       return Number.MAX_SAFE_INTEGER;
     }
 
-    return this.calculateGridDelta(length);
+    return this.calculateGridDelta(info);
   }
 
-  private calculateGridDelta(length: number): number {
-    const deficit = AutoLayoutService.MIN_SECTION_LENGTH_PX - length;
+  private calculateGridDelta(info: SectionInfo): number {
+    const minLength =
+      AutoLayoutService.MIN_SECTION_LENGTH_PX + this.getSectionLabelLength(info.section);
+    const deficit = minLength - info.span;
+
+    console.log(
+      `calculateGridDelta -> section ${info.label} has span ${info.span}, minLength ${minLength}, deficit ${deficit}`,
+    );
+
     const steps = this.calculateGridSteps(deficit);
 
     return steps * RASTERING_BASIC_GRID_SIZE;
@@ -448,7 +470,7 @@ export class AutoLayoutService {
       section.getPositionAtTargetNode(),
       direction,
     );
-    const minLength = AutoLayoutService.MIN_SECTION_LENGTH_PX;
+    const minLength = AutoLayoutService.MIN_SECTION_LENGTH_PX + this.getSectionLabelLength(section);
     const grid = RASTERING_BASIC_GRID_SIZE;
 
     return Math.floor((span - minLength) / 2 / grid) * grid;
