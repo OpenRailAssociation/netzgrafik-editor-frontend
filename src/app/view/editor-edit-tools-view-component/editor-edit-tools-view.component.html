@@ -154,11 +154,13 @@
         {{ option.name }}
       </sbb-radio-button>
     </sbb-radio-group>
-
-    <br />
-    <sbb-label>{{
-      "app.view.editor-edit-tools-view-component.optimization-netzgrafik-title" | translate
-    }}</sbb-label>
+  </sbb-expansion-panel>
+  <sbb-expansion-panel [expanded]="false" [disabled]="!getVariantIsWritable()">
+    <sbb-expansion-panel-header>
+      {{
+        "app.view.editor-edit-tools-view-component.node-optimization-disposition-title" | translate
+      }}
+    </sbb-expansion-panel-header>
     <br />
     <button
       (click)="onOptimizeLayout()"
