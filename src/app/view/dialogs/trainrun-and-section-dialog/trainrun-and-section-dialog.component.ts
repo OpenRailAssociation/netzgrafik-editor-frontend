@@ -1,5 +1,10 @@
 import {Component, OnDestroy, TemplateRef, ViewChild} from "@angular/core";
-import {SbbDialog, SbbDialogConfig, SbbDialogPosition} from "@sbb-esta/angular/dialog";
+import {
+  SbbDialog,
+  SbbDialogRef,
+  SbbDialogConfig,
+  SbbDialogPosition,
+} from "@sbb-esta/angular/dialog";
 import {Vec2D} from "../../../utils/vec2D";
 import {Trainrun} from "../../../models/trainrun.model";
 import {TrainrunService} from "../../../services/data/trainrun.service";
@@ -62,11 +67,11 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
   public nextStopLeftNodeName: string;
   public nextStopRightNodeName: string;
 
-  public data = null;
+  public data: TrainrunDialogParameter = null;
 
-  private dialogRef = null;
-  private dialogConfig = null;
-  private dialogPos = null;
+  private dialogRef: SbbDialogRef<unknown, unknown> = null;
+  private dialogConfig: SbbDialogConfig = null;
+  private dialogPos: Record<"top" | "bottom" | "left" | "right", number> = null;
   private dialogMovementLastPosition: Vec2D = undefined;
   private trainrunSectionHelper: TrainrunsectionHelper;
   trainrunDialogParameter: TrainrunDialogParameter = undefined;
