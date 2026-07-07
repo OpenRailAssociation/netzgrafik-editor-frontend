@@ -381,6 +381,7 @@ export class UiInteractionService implements OnDestroy {
     let closest: Node | undefined = undefined;
     let offset: Vec2D = new Vec2D(0, 0);
 
+    // Search for the node closest to the center of the viewBox
     for (const n of nodes) {
       const nodePos = new Vec2D(
         n.getPositionX() + n.getNodeWidth() / 2.0,
@@ -408,6 +409,7 @@ export class UiInteractionService implements OnDestroy {
   }
 
   gotoNode(node: Node, offset: Vec2D = new Vec2D(0, 0)) {
+    // Move the view to the center of the node, applying an optional offset
     const x = node.getPositionX() + node.getNodeWidth() / 2.0 + offset.getX();
     const y = node.getPositionY() + node.getNodeHeight() / 2.0 + offset.getY();
     this.moveNetzgrafikEditorFocalViewPoint(new Vec2D(x, y));
