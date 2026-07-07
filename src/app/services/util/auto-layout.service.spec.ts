@@ -219,6 +219,10 @@ describe("AutoLayoutService", () => {
       getTargetPortId: () => "target-port",
       getPositionAtSourceNode: () => sourcePosition,
       getPositionAtTargetNode: () => targetPosition,
+      getTrainrun: () => ({
+        getTitle: () => "15",
+        getCategoryShortName: () => "IR",
+      }),
       routeEdgeAndPlaceText: jasmine.createSpy("routeEdgeAndPlaceText"),
     } as unknown as TrainrunSection;
   }

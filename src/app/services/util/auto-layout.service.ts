@@ -258,9 +258,6 @@ export class AutoLayoutService {
     const minLength =
       AutoLayoutService.MIN_SECTION_LENGTH_PX +
       this.getTrainrunCategoryAndTitleCharLength(info.section);
-    console.log(
-      `isLongEnoughForGlobalStretch -> checking section ${info.label} with span ${info.span} against minLength ${minLength}`,
-    );
     return runGlobally && sign >= 0 && info.span >= minLength;
   }
 
@@ -291,13 +288,7 @@ export class AutoLayoutService {
       AutoLayoutService.MIN_SECTION_LENGTH_PX +
       this.getTrainrunCategoryAndTitleCharLength(info.section);
     const deficit = minLength - info.span;
-
-    console.log(
-      `calculateGridDelta -> section ${info.label} has span ${info.span}, minLength ${minLength}, deficit ${deficit}`,
-    );
-
     const steps = this.calculateGridSteps(deficit);
-
     return steps * RASTERING_BASIC_GRID_SIZE;
   }
 
