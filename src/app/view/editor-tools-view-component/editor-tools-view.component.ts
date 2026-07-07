@@ -701,7 +701,7 @@ export class EditorToolsViewComponent {
 
     const matrixData = this.originDestinationService.originDestinationData();
 
-    const rows = [];
+    const rows: string[][] = [];
     matrixData.forEach((d) => {
       if (!d.found) {
         rows.push([d.origin, d.destination, "", "", ""]);

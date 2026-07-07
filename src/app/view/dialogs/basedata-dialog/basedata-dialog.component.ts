@@ -17,7 +17,7 @@ import {Subject} from "rxjs";
 export class BaseDataDialogComponent implements OnDestroy {
   @ViewChild("baseDataTemplate", {static: true})
   baseDataTemplate: TemplateRef<any>;
-  public baseData = [];
+  public baseData: BaseData[] = [];
   displayedColumns: string[] = [
     "betriebspunktName",
     "stationName",
@@ -76,7 +76,7 @@ export class BaseDataDialogComponent implements OnDestroy {
   openDialog(baseData: BaseData[]) {
     this.baseData = baseData;
 
-    const baseDataConverted = [];
+    const baseDataConverted: Record<string, unknown>[] = [];
     this.baseData.forEach((std) => {
       baseDataConverted.push({
         betriebspunktName: std.getBetriebspunktName(),
