@@ -11,6 +11,7 @@ import {FilterService} from "../../../services/ui/filter.service";
 import {LabelRef} from "../../../data-structures/business.data.structures";
 import {LabelGroup} from "../../../models/labelGroup.model";
 import {FilterableLabelDialogComponent} from "../../dialogs/filterable-labels-dialog/filterable-label-dialog.component";
+import type {FilterableLabelsFormComponentModel} from "../../dialogs/filterable-labels-dialog/filterable-labels-form/filterable-label-form.component";
 import {Label} from "../../../models/label.model";
 import {NoteService} from "../../../services/data/note.service";
 
@@ -82,7 +83,7 @@ export class LabelDropListComponent implements OnInit, OnDestroy {
 
   onLabelClicked(labelId: number) {
     const labelObject = this.labelService.getLabelFromId(labelId);
-    const callbackObject = {
+    const callbackObject: FilterableLabelsFormComponentModel = {
       name: labelObject.getLabel(),
       dialogTitle:
         labelObject.getLabelRef() === LabelRef.Trainrun
