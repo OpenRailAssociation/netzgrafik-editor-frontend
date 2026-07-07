@@ -145,7 +145,7 @@ export class HtmlEditorComponent implements OnInit, OnDestroy {
     this.onUpdate();
   }
 
-  setActiveColor(colorStr): boolean {
+  setActiveColor(colorStr: string): boolean {
     return true;
   }
 
