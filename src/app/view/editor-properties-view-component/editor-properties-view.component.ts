@@ -146,7 +146,7 @@ export class EditorPropertiesViewComponent {
     this.activeTrafficSideType = event.value;
   }
 
-  colorPicked(value) {
+  colorPicked(value: string) {
     this.onUpdateColorTheme(
       new SbbRadioChange(null, this.uiInteractionService.getActiveTheme().themeRegistration),
     );
