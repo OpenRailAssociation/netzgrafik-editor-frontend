@@ -213,7 +213,9 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
     }
   }
 
-  private convertDialogPos(dialogPos: SbbDialogPosition): SbbDialogPosition {
+  private convertDialogPos(
+    dialogPos: Record<"top" | "bottom" | "left" | "right", number>,
+  ): SbbDialogPosition {
     return {
       bottom: dialogPos.bottom + "px",
       left: dialogPos.left + "px",
