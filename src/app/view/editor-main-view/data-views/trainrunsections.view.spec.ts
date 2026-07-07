@@ -310,14 +310,14 @@ describe("TrainrunSection-View", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(4);
     const str = TrainrunSectionsView.createSemicircle(ts, new Vec2D(100, 25));
-    expect(str).toBe("M2.4492935982947064e-16,-4A4,4,0,1,1,2.4492935982947064e-16,4L0,0Z");
+    expect(str).toBe("M0,-4A4,4,0,1,1,0,4L0,0Z");
   });
 
   it("TrainrunSectionsView.createSemicircle - 002", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(4);
     const str = TrainrunSectionsView.createSemicircle(ts, ts.getPath()[3]);
-    expect(str).toBe("M-7.347880794884119e-16,4A4,4,0,1,1,2.4492935982947064e-16,-4L0,0Z");
+    expect(str).toBe("M0,4A4,4,0,1,1,0,-4L0,0Z");
   });
 
   it("TrainrunSectionsView.getPosition - 001", () => {
