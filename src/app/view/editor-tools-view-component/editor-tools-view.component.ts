@@ -74,8 +74,13 @@ export class EditorToolsViewComponent {
     this.netzgrafikJsonFileInput.nativeElement.click();
   }
 
-  onLoad(param) {
-    const file = param.target.files[0];
+  onLoad(event: Event) {
+    const fileInput = event.target;
+    if (!(fileInput instanceof HTMLInputElement)) {
+      throw new Error("Event target is not a file input");
+    }
+
+    const file = fileInput.files[0];
     const reader = new FileReader();
     reader.onload = () => {
       let netzgrafikDto: any;
@@ -110,7 +115,7 @@ export class EditorToolsViewComponent {
     reader.readAsText(file);
 
     // set the event target value to null in order to be able to load the same file multiple times after one another
-    param.target.value = null;
+    fileInput.value = null;
   }
 
   onSave() {
@@ -178,8 +183,13 @@ export class EditorToolsViewComponent {
     this.baseDataFileInput.nativeElement.click();
   }
 
-  onLoadBaseData(param) {
-    const file = param.target.files[0];
+  onLoadBaseData(event: Event) {
+    const fileInput = event.target;
+    if (!(fileInput instanceof HTMLInputElement)) {
+      throw new Error("Event target is not a file input");
+    }
+
+    const file = fileInput.files[0];
     const reader = new FileReader();
     reader.onload = () => {
       const finalResult = parse(reader.result.toString(), {
@@ -198,7 +208,7 @@ export class EditorToolsViewComponent {
     reader.readAsText(file);
 
     // set the event target value to null in order to be able to load the same file multiple times after one another
-    param.target.value = null;
+    fileInput.value = null;
   }
 
   onExportBaseData() {

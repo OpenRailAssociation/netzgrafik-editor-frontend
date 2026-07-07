@@ -11,7 +11,7 @@ import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
 import {TrainrunService} from "../../services/data/trainrun.service";
 import {NoteService} from "../../services/data/note.service";
-import {LabelRef} from "../../data-structures/business.data.structures";
+import {LabelRef, NetzgrafikDto} from "../../data-structures/business.data.structures";
 import {LabelService} from "../../services/data/label.service";
 import {LabelGroupService} from "../../services/data/labelgroup.service";
 import {LabelGroup} from "../../models/labelGroup.model";
@@ -169,18 +169,18 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     this.netzgrafikMergeFileInput.nativeElement.click();
   }
 
-  onLoadNetzgrafikToMergeAsACopy(param) {
+  onLoadNetzgrafikToMergeAsACopy(event: Event) {
     this.uiInteractionService.closeNodeBaseData();
     this.uiInteractionService.closePerlenkette();
-    this.loadNetzgrafik(param, (netzgrafikDto) =>
+    this.loadNetzgrafik(event, (netzgrafikDto) =>
       this.dataService.insertCopyNetzgrafikDto(netzgrafikDto),
     );
   }
 
-  onLoadNetzgrafikToMerge(param) {
+  onLoadNetzgrafikToMerge(event: Event) {
     this.uiInteractionService.closeNodeBaseData();
     this.uiInteractionService.closePerlenkette();
-    this.loadNetzgrafik(param, (netzgrafikDto) =>
+    this.loadNetzgrafik(event, (netzgrafikDto) =>
       this.dataService.mergeNetzgrafikDto(netzgrafikDto),
     );
   }
@@ -205,8 +205,13 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     this.positionTransformationService.alignSelectedElementsToBottomBorder();
   }
 
-  private loadNetzgrafik(param, callback) {
-    const file = param.target.files[0];
+  private loadNetzgrafik(event: Event, callback: (dto: NetzgrafikDto) => void) {
+    const fileInput = event.target;
+    if (!(fileInput instanceof HTMLInputElement)) {
+      throw new Error("Event target is not a file input");
+    }
+
+    const file = fileInput.files[0];
     const reader = new FileReader();
     reader.onload = () => {
       const netzgrafikDto = JSON.parse(reader.result.toString());
@@ -224,7 +229,7 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     reader.readAsText(file);
 
     // set the event target value to null in order to be able to load the same file multiple times after one another
-    param.target.value = null;
+    fileInput.value = null;
   }
 
   private setEditModeToNetzgrafikEditing() {
