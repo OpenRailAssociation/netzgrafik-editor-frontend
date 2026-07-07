@@ -220,7 +220,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
       return n1.getPositionX() - n2.getPositionX();
     });
 
-    let corridor = [];
+    let corridor: Node[] = [];
     sortedNode.forEach((n1) => {
       sortedNode.forEach((n2) => {
         const p = graph.getPath(n1.getId(), n2.getId());
@@ -244,7 +244,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     graph: MultiSelectNodeGraph,
     nodes: Node[],
     endStartingVertices: number[],
-  ): number[] {
+  ): Node[] {
     const n1 = nodes.find((n) => n.getId() === endStartingVertices[0]);
     const n2 = nodes.find((n) => n.getId() === endStartingVertices[1]);
     const startEndNodes = [n1, n2];
@@ -890,9 +890,9 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
   }
 
   isTrainRunWayDirectionBackward(
-    trainrun,
-    startForwardNode,
-    startBackwardNode,
+    trainrun: Trainrun,
+    startForwardNode: Node,
+    startBackwardNode: Node,
     selectedForwardTrainrunSectionGroups: TrainrunSectionGroup[],
   ): {
     check: boolean;
@@ -945,25 +945,23 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     this.render();
   }
 
-  private betriebspunktNamePaths(trainrunSectionGroups) {
-    const paths = [];
+  private betriebspunktNamePaths(trainrunSectionGroups: TrainrunSectionGroup[]) {
+    const paths: string[] = [];
     trainrunSectionGroups.forEach((trainrunSectionGroup) => {
-      if (trainrunSectionGroup.trainrunSectionWhitheNodes) {
-        if (trainrunSectionGroup.trainrunSectionWhitheNodes.fromNode) {
-          paths.push(
-            trainrunSectionGroup.trainrunSectionWhitheNodes.fromNode.getBetriebspunktName(),
-          );
+      if (trainrunSectionGroup.trainrunSectionWithNodes) {
+        if (trainrunSectionGroup.trainrunSectionWithNodes.fromNode) {
+          paths.push(trainrunSectionGroup.trainrunSectionWithNodes.fromNode.getBetriebspunktName());
         }
-        if (trainrunSectionGroup.trainrunSectionWhitheNodes.toNode) {
-          paths.push(trainrunSectionGroup.trainrunSectionWhitheNodes.toNode.getBetriebspunktName());
+        if (trainrunSectionGroup.trainrunSectionWithNodes.toNode) {
+          paths.push(trainrunSectionGroup.trainrunSectionWithNodes.toNode.getBetriebspunktName());
         }
       }
     });
     return paths;
   }
 
-  private removeNoMatchinNodeName(selectedPaths, paths) {
-    const returnPaths = [];
+  private removeNoMatchinNodeName(selectedPaths: string[], paths: string[]) {
+    const returnPaths: string[] = [];
     paths.forEach((path) => {
       let isInPaths = false;
       selectedPaths.forEach((selectedPath) => {
@@ -978,7 +976,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     return returnPaths;
   }
 
-  private addStartEnde(paths) {
+  private addStartEnde(paths: string[]) {
     const returnPaths = [];
     returnPaths.push("#St#");
     paths.forEach((path) => {
@@ -988,7 +986,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     return returnPaths;
   }
 
-  private ratePath(selectedPaths, paths) {
+  private ratePath(selectedPaths: string[], paths: string[]) {
     let returnValue = 0;
     for (let pathSize = paths.length; pathSize > 0; pathSize--) {
       const selectedPathCombos = this.pathCombination(selectedPaths, pathSize);
@@ -1006,7 +1004,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     return returnValue;
   }
 
-  private pathCombination(paths, size) {
+  private pathCombination(paths: string[], size: number) {
     const returnValues = [];
     for (let i = 0; i < paths.length; i++) {
       if (i + size <= paths.length) {
