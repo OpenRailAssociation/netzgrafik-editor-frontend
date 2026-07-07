@@ -20,8 +20,8 @@ export class SVGMouseController {
   private static ZOOM_FACTOR_PERCENT = 10;
   private viewboxProperties: ViewboxProperties;
 
-  private svgDrawingContext: d3.Selection<SVGElement, undefined, Element, undefined>;
-  private cachedSvgDrawingContextNode = null;
+  private svgDrawingContext: d3.Selection<SVGSVGElement, undefined, Element, undefined>;
+  private cachedSvgDrawingContextNode: SVGSVGElement | null = null;
   private previousPanMousePosition: Vec2D = null;
   private previousMultiSelectShiftPosition: Vec2D = null;
   private mouseMoveMousePosition: Vec2D = null;
