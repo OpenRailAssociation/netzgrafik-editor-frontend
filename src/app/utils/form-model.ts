@@ -9,9 +9,9 @@ export class FormModel<T> {
 
   constructor(orig: T) {
     this.keys = Object.getOwnPropertyNames(orig);
-    this.keys.forEach(
-      (propertyName) => (this.controls[propertyName] = new UntypedFormControl(orig[propertyName])),
-    );
+    for (const [propertyName, propertyValue] of Object.entries(orig)) {
+      this.controls[propertyName] = new UntypedFormControl(propertyValue);
+    }
     this.form = new UntypedFormGroup(this.controls);
   }
 
