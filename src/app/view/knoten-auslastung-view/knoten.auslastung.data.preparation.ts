@@ -11,8 +11,23 @@ export class KnotenAuslastungDataPreparation {
   static MAX_NR_TRACKS = 50;
 
   private nbrUsedOfTrackFound = -1;
-  private nodeDatas = [];
-  private resourceDatas = [];
+  private nodeDatas: {
+    trainrunSection: TrainrunSection;
+    name: string;
+    tooltip: string;
+    color: number;
+    startAngle: number;
+    endAngle: number;
+    innerRadius: number;
+    outerRadius: number;
+  }[] = [];
+  private resourceDatas: {
+    startAngle: number;
+    endAngle: number;
+    innerRadius: number;
+    outerRadius: number;
+    capacityLimitReached: boolean;
+  }[] = [];
   private matrix: number[][];
 
   constructor(
