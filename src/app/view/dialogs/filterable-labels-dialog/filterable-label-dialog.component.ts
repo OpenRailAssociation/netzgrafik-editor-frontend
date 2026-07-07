@@ -17,11 +17,14 @@ export class FilterableLabelDialogComponent implements OnDestroy {
   readonly formModel: FormModel<FilterableLabelsFormComponentModel>;
   public dialogTitle: string = "";
   private destroyed = new Subject<void>();
-  private deleteLabelCallback = null;
-  private transferLabelCallback = null;
-  private saveLabelCallback = null;
+  private deleteLabelCallback: ((originalLabel: string) => void) | null = null;
+  private transferLabelCallback: ((originalLabel: string) => void) | null = null;
+  private saveLabelCallback: ((originalLabel: string, newLabel: string) => void) | null = null;
   private originalLabel: string;
-  private currentDialog = null;
+  private currentDialog: SbbDialogRef<
+    FilterableLabelDialogComponent,
+    FilterableLabelsFormComponentModel
+  > = null;
 
   constructor(
     private uiInteractionService: UiInteractionService,
