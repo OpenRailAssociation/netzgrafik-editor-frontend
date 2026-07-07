@@ -28,6 +28,15 @@
     "dist/*"
   ],
   "types": "dist/types/types.d.ts",
+  "exports": {
+    "./index.html": {
+      "default": "./dist/index.html"
+    },
+    ".": {
+      "types": "./dist/types/types.d.ts",
+      "default": "./dist/out-tsc/types.js"
+    }
+  },
   "dependencies": {
     "@angular/animations": "^19.2.25",
     "@angular/cdk": "^19.2.19",
