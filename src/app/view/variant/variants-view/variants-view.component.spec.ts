@@ -1,4 +1,6 @@
 import {ComponentFixture, TestBed} from "@angular/core/testing";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
+import {SbbTextareaModule} from "@sbb-esta/angular/textarea";
 
 import {VariantsViewComponent} from "./variants-view.component";
 import {SbbDialogModule} from "@sbb-esta/angular/dialog";
@@ -60,7 +62,7 @@ describe("VariantsViewComponent", () => {
 
     await TestBed.configureTestingModule({
       declarations: [VariantsViewComponent],
-      imports: [SbbDialogModule, I18nModule],
+      imports: [I18nModule, FormsModule, ReactiveFormsModule, SbbDialogModule, SbbTextareaModule],
       providers: [
         {provide: ActivatedRoute, useValue: activatedRoute},
         {provide: NavigationService, useValue: {}},
