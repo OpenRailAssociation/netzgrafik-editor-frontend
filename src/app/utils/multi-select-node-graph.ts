@@ -4,7 +4,7 @@ import {TrainrunSection} from "../models/trainrunsection.model";
 import {Node} from "../models/node.model";
 
 export class MultiSelectNodeGraph {
-  private adjList = new Map();
+  private adjList: Map<number, number[]> = new Map();
 
   constructor(
     readonly nodeService: NodeService,
@@ -13,15 +13,15 @@ export class MultiSelectNodeGraph {
     this.adjList = new Map();
   }
 
-  addVertex(v) {
+  addVertex(v: number) {
     this.adjList.set(v, []);
   }
 
-  addEdge(v, e) {
+  addEdge(v: number, e: number) {
     this.adjList.get(v).push(e);
   }
 
-  createAdjList(edgeList) {
+  createAdjList(edgeList: [number, number, number][]) {
     edgeList.forEach((edge) => {
       this.addVertex(edge[0]);
       this.addVertex(edge[1]);
@@ -33,7 +33,7 @@ export class MultiSelectNodeGraph {
     });
   }
 
-  vertexDegree(v): number {
+  vertexDegree(v: number): number {
     return this.adjList.get(v).length;
   }
 
@@ -47,7 +47,12 @@ export class MultiSelectNodeGraph {
     return startPathVertices;
   }
 
-  getPath(start, end, visited = {}, retPath = []) {
+  getPath(
+    start: number,
+    end: number,
+    visited: Record<number, boolean> = {},
+    retPath: Node[] = [],
+  ): {path: Node[]; end: boolean} {
     retPath.push(this.nodeService.getNodeFromId(start));
     // base condition
     if (start === end) {
@@ -70,8 +75,8 @@ export class MultiSelectNodeGraph {
     return {path: retPath, end: false};
   }
 
-  convertNetzgrafikSubNodesToGraph(nodes: Node[]): any[] {
-    const edgeList = [];
+  convertNetzgrafikSubNodesToGraph(nodes: Node[]) {
+    const edgeList: [number, number, number][] = [];
 
     // retrieve edges
     nodes.forEach((node1) => {
@@ -108,7 +113,7 @@ export class MultiSelectNodeGraph {
 
     // insert all edges (graph)
     this.createAdjList(edgeList);
-    const ret = [];
+    const ret: {from: number; to: number; meanTravelTime: number}[] = [];
     edgeList.forEach((e) => {
       ret.push({
         from: e[0],
