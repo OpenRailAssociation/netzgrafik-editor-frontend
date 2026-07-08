@@ -101,6 +101,20 @@ export class AppComponent implements OnInit {
     this.uiInteractionService.closeTrainrunDialog();
   }
 
+  @Input()
+  get activeFilterSettingId(): number {
+    return this.filterService.getActiveFilterSettingId();
+  }
+
+  set activeFilterSettingId(id: number) {
+    const filterSetting = this.filterService.getFilterSettingFromId(id);
+    if (filterSetting) {
+      this.filterService.setActiveFilterSetting(filterSetting);
+    } else {
+      throw new Error(`FilterSetting with id ${id} not found`);
+    }
+  }
+
   @Output()
   operation: Observable<Operation> = merge(
     this.trainrunService.operation,
