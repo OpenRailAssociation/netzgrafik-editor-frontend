@@ -803,7 +803,7 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonMinus"
-                  (click)="onInputNbrStopsElementButtonMinus($event)"
+                  (click)="trainrunSectionTimesService.onInputNumberOfStopsElementButtonMinus()"
                 >
                   -
                 </button>
@@ -817,8 +817,12 @@
                   sbbInput
                   spellcheck="false"
                   pattern="^[0-9]*"
-                  [(ngModel)]="numberOfStops"
-                  (change)="onInputNbrStopsChanged()"
+                  [(ngModel)]="trainrunSectionTimesService.getTimeStructure().numberOfStops"
+                  (change)="
+                    trainrunSectionTimesService.onNumberOfStopsChanged(
+                      trainrunSectionTimesService.getTimeStructure().numberOfStops
+                    )
+                  "
                 />
               </div>
               <div class="nodePlus">
@@ -826,7 +830,7 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonPlus"
-                  (click)="onInputNbrStopsElementButtonPlus($event)"
+                  (click)="trainrunSectionTimesService.onInputNumberOfStopsElementButtonPlus()"
                 >
                   +
                 </button>
