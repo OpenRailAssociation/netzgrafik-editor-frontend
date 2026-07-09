@@ -944,4 +944,10 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   isTip(): boolean {
     return this.isExtremityCollapsed("top") || this.isExtremityCollapsed("bottom");
   }
+
+  getEdgeLinePath(): string {
+    if (this.isExtremityCollapsed("top")) return "M137,130V192";
+    if (this.isExtremityCollapsed("bottom")) return "M137,0V62";
+    return "M137,0V192";
+  }
 }
