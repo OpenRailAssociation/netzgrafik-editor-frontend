@@ -118,7 +118,7 @@ export class AutoLayoutService {
       this.processSection(section, processedKeys, runGlobally, sign);
     }
 
-    // enforce port odering after layout optimization to ensure consistent routing of trainrun sections
+    // enforce port ordering after layout optimization to ensure consistent routing of trainrun sections
     this.nodeService.initPortOrdering(this.nodeService.getCurrentOrderingAlgorithm());
     // restore the view to the anchor node to maintain user context after layout changes
     this.restoreViewAnchorNode(anchorNode);
