@@ -3,7 +3,7 @@ import {PerlenketteSection} from "./perlenketteSection";
 
 describe("PerlenketteModelTests", () => {
   it("Perlenkette-Model - Test - PerlenketteNode - 001", () => {
-    const node = new PerlenketteNode(0, "BN", "Berm", 10, [], undefined, false, true);
+    const node = new PerlenketteNode(0, "BN", "Berm", 10, [], undefined, false, true, false);
 
     expect(node.isFristTrainrunPartNode()).toBe(false);
     expect(node.isLastTrainrunPartNode()).toBe(true);

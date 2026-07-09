@@ -14,6 +14,7 @@ export class PerlenketteNode implements PerlenketteItem {
     public transition: Transition,
     public fristTrainrunPartNode: boolean,
     public lastTrainrunPartNode: boolean,
+    readonly isCollapsed: boolean,
   ) {}
 
   isFristTrainrunPartNode(): boolean {
@@ -89,6 +90,10 @@ export class PerlenketteNode implements PerlenketteItem {
     ).sort((a: PerlenketteConnection, b: PerlenketteConnection) => {
       return this.sortLevel0BeginningStations(a, b, perlenketteTrainrun);
     });
+  }
+
+  getIsCollapsed(): boolean {
+    return this.isCollapsed;
   }
 
   private sortLevel0BeginningStations(
