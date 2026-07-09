@@ -36,25 +36,24 @@ import {TrafficSide} from "src/app/data-structures/business.data.structures";
 
 const timeCoordinates = {
   leftHand: {
-    leftDepartureTime: {x: 124, y: 164},
+    leftDepartureTime: {x: 149, y: 32},
     leftArrivalTime: {x: 124, y: 18},
-    rightDepartureTime: {x: 149, y: 32},
+    rightDepartureTime: {x: 124, y: 164},
     rightArrivalTime: {x: 149, y: 178},
     travelTime: {x: 121, y: 93},
-    travelTimeAsymmetry: {x: 155, y: 93},
-    bottomTravelTime: {x: 121, y: 100},
+    travelTimeAsymmetry: {x: 155, y: 105},
+    bottomTravelTime: {x: 121, y: 86},
   },
   rightHand: {
-    leftDepartureTime: {x: 166, y: 164},
-    leftArrivalTime: {x: 166, y: 18},
-    rightDepartureTime: {x: 108, y: 32},
-    rightArrivalTime: {x: 108, y: 178},
+    leftDepartureTime: {x: 124, y: 32},
+    leftArrivalTime: {x: 149, y: 18},
+    rightDepartureTime: {x: 149, y: 164},
+    rightArrivalTime: {x: 124, y: 178},
     travelTime: {x: 155, y: 93},
-    travelTimeAsymmetry: {x: 121, y: 93},
-    bottomTravelTime: {x: 155, y: 100},
+    travelTimeAsymmetry: {x: 121, y: 105},
+    bottomTravelTime: {x: 155, y: 86},
   },
 };
-
 type KeyOfTimeCoordinates = keyof (
   typeof timeCoordinates.leftHand | typeof timeCoordinates.rightHand
 );
@@ -859,5 +858,14 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     } else {
       return direction === "sourceToTarget" ? "targetToSource" : "sourceToTarget";
     }
+  }
+
+  getTextAnchorForTimeElement(element: KeyOfTimeCoordinates): "anchor_start" | "anchor_end" {
+    const isLeftHandTraffic = this.trafficSide === "leftHand";
+
+    if (element === "leftDepartureTime" || element === "rightArrivalTime") {
+      return isLeftHandTraffic ? "anchor_start" : "anchor_end";
+    }
+    return isLeftHandTraffic ? "anchor_end" : "anchor_start";
   }
 }

@@ -74,7 +74,7 @@
               (click)="switchSectionView($event, 'stops')"
               x="0"
               y="0"
-              class="edge_text TrainrunSectionNumberOfStops end_text"
+              class="edge_text TrainrunSectionNumberOfStops"
               style="font-size: 12px"
               [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
             >
@@ -166,9 +166,12 @@
         <text
           x="0"
           y="0"
-          class="edge_text end_text leftArrivalTime"
+          class="edge_text leftArrivalTime"
           [ngClass]="
-            'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef + getLeftArrivalTimeClassTag()
+            'UI_DIALOG ColorRef_' +
+            perlenketteTrainrun.colorRef +
+            getLeftArrivalTimeClassTag() +
+            getTextAnchorForTimeElement('leftArrivalTime')
           "
           (click)="switchSectionView($event, 'leftArrivalTime')"
         >
@@ -176,16 +179,19 @@
         </text>
       </g>
       <g
-        [attr.transform]="getTimeTransform('rightDepartureTime')"
+        [attr.transform]="getTimeTransform('leftDepartureTime')"
         *ngIf="showArrivalAndDepartureTime() && isRightSideDisplayed()"
       >
         <text
           (click)="switchSectionView($event, 'leftDepartureTime')"
           x="0"
           y="0"
-          class="edge_text start_text leftDepartureTime"
+          class="edge_text leftDepartureTime"
           [ngClass]="
-            'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef + getLeftDepartureTimeClassTag()
+            'UI_DIALOG ColorRef_' +
+            perlenketteTrainrun.colorRef +
+            getLeftDepartureTimeClassTag() +
+            getTextAnchorForTimeElement('leftDepartureTime')
           "
         >
           {{ getLeftDepartureTime() }}
@@ -196,7 +202,7 @@
           <text
             x="0"
             y="0"
-            class="edge_text start_text travelTime"
+            class="edge_text travelTime"
             [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
             (click)="switchSectionView($event, 'travelTime')"
           >
@@ -209,7 +215,7 @@
           <text
             x="0"
             y="0"
-            class="edge_text start_text bottomTravelTime"
+            class="edge_text bottomTravelTime"
             [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
             (click)="switchSectionView($event, 'bottomTravelTime')"
           >
@@ -218,15 +224,18 @@
         </g>
       </g>
       <g
-        [attr.transform]="getTimeTransform('leftDepartureTime')"
+        [attr.transform]="getTimeTransform('rightDepartureTime')"
         *ngIf="showArrivalAndDepartureTime() && isLeftSideDisplayed()"
       >
         <text
           x="0"
           y="0"
-          class="edge_text end_text rightDepartureTime"
+          class="edge_text rightDepartureTime"
           [ngClass]="
-            'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef + getRightDepartureTimeClassTag()
+            'UI_DIALOG ColorRef_' +
+            perlenketteTrainrun.colorRef +
+            getRightDepartureTimeClassTag() +
+            getTextAnchorForTimeElement('rightDepartureTime')
           "
           (click)="switchSectionView($event, 'rightDepartureTime')"
         >
@@ -240,9 +249,12 @@
         <text
           x="0"
           y="0"
-          class="edge_text start_text rightArrivalTime"
+          class="edge_text rightArrivalTime"
           [ngClass]="
-            'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef + getRightArrivalTimeClassTag()
+            'UI_DIALOG ColorRef_' +
+            perlenketteTrainrun.colorRef +
+            getRightArrivalTimeClassTag() +
+            getTextAnchorForTimeElement('rightArrivalTime')
           "
           (click)="switchSectionView($event, 'rightArrivalTime')"
         >
@@ -785,7 +797,7 @@
                   x="0"
                   y="0"
                   style="fill: var(--COLOR_Edit); font-size: 16px"
-                  class="edge_text TrainrunSectionNumberOfStops end_text"
+                  class="edge_text TrainrunSectionNumberOfStops"
                   [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
                 >
                   {{ stationNumberArray.length }}

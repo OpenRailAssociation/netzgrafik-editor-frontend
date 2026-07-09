@@ -15,14 +15,12 @@ svg {
   pointer-events: none;
 }
 
-.start_text {
+.anchor_start {
   text-anchor: start !important;
-  cursor: pointer;
 }
 
-.end_text {
+.anchor_end {
   text-anchor: end !important;
-  cursor: pointer;
 }
 
 svg text.edge_text:hover {
