@@ -56,7 +56,6 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   public leftBetriebspunkt: string[] = ["", ""];
   public rightBetriebspunkt: string[] = ["", ""];
   public tagNbrStopInput = false;
-  public numberOfStopsInput: number;
   public frequency: number;
   public frequencyLinePattern: LinePatternRefs;
   public categoryShortName: string;
@@ -156,7 +155,6 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     this.numberOfStops = this.trainrunSectionService.getNumberOfCollapsedStops(
       this.selectedTrainrunSection,
     );
-    this.numberOfStopsInput = this.numberOfStops;
     this.trainrunSectionTimesService.applyOffsetAndTransformTimeStructure();
 
     this.leftBetriebspunkt = this.trainrunSectionHelper.getLeftBetriebspunkt(
@@ -272,46 +270,6 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
 
   setFocusToEndOfLoop() {
     this.leftArrivalTimeInputElement.focusAndSelectInput();
-  }
-
-  /* number of stops */
-  onNumberOfStopsChanged(newNumberOfStops: number) {
-    this.trainrunSectionTimesService.setOutsideWarning(null);
-    const stopsNbDiff = Math.max(0, newNumberOfStops) - this.numberOfStops;
-    if (stopsNbDiff === 0) return;
-    if (stopsNbDiff > 0) {
-      for (let i = 0; i < stopsNbDiff; i++) {
-        this.trainrunSectionService.addIntermediateStopOnTrainrunSection(
-          this.selectedTrainrunSection,
-        );
-        this.numberOfStops += 1;
-      }
-      this.trainrunSectionTimesService.setHighlightTravelTimeElement(false);
-    } else {
-      for (let i = 0; i < Math.abs(stopsNbDiff); i++) {
-        const success = this.trainrunSectionService.removeIntermediateStopOnTrainrunSection(
-          this.selectedTrainrunSection,
-        );
-        if (success) this.numberOfStops -= 1;
-        else {
-          this.trainrunSectionTimesService.setOutsideWarning("cannot-delete-not-empty-node");
-          break;
-        }
-      }
-    }
-    this.numberOfStopsInput = this.numberOfStops;
-  }
-
-  onNumberOfStopsInputChanged() {
-    this.onNumberOfStopsChanged(this.numberOfStopsInput);
-  }
-
-  onInputNumberOfStopsElementButtonPlus() {
-    this.onNumberOfStopsChanged(this.numberOfStops + 1);
-  }
-
-  onInputNumberOfStopsElementButtonMinus() {
-    this.onNumberOfStopsChanged(this.numberOfStops - 1);
   }
 
   onMouseEnterNbrStopInput() {
