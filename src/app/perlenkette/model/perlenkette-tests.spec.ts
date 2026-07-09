@@ -14,7 +14,18 @@ describe("PerlenketteModelTests", () => {
   });
 
   it("Perlenkette-Model - Test - PerlenketteSection - 001", () => {
-    const section = new PerlenketteSection(0, 10, undefined, undefined, 0, false, false, true);
+    const section = new PerlenketteSection(
+      0,
+      10,
+      undefined,
+      undefined,
+      0,
+      false,
+      false,
+      true,
+      undefined,
+      [],
+    );
 
     expect(section.isFristTrainrunPartSection()).toBe(false);
     expect(section.isLastTrainrunPartSection()).toBe(true);
