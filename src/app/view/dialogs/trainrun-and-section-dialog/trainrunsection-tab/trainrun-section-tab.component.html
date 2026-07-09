@@ -20,7 +20,7 @@
                 tabindex="-1"
                 id="NumberOfStopsInputElementMinus"
                 class="NumberOfStopsInputButtonPlusMinus"
-                (click)="onInputNumberOfStopsElementButtonMinus()"
+                (click)="trainrunSectionTimesService.onInputNumberOfStopsElementButtonMinus()"
                 (mouseenter)="onMouseEnterNbrStopInput()"
                 (mouseleave)="onMouseOutNbrStopInput()"
                 value="-"
@@ -37,8 +37,12 @@
                 maxlength="2"
                 spellcheck="false"
                 pattern="^[0-9.]*"
-                [(ngModel)]="numberOfStopsInput"
-                (change)="onNumberOfStopsInputChanged()"
+                [(ngModel)]="trainrunSectionTimesService.getTimeStructure().numberOfStops"
+                (change)="
+                  trainrunSectionTimesService.onNumberOfStopsChanged(
+                    trainrunSectionTimesService.getTimeStructure().numberOfStops
+                  )
+                "
                 (mouseenter)="onMouseEnterNbrStopInput()"
                 (mouseleave)="onMouseOutNbrStopInput()"
               />
@@ -47,7 +51,7 @@
                 tabindex="-1"
                 id="NumberOfStopsInputElementPlus"
                 class="NumberOfStopsInputButtonPlusMinus"
-                (click)="onInputNumberOfStopsElementButtonPlus()"
+                (click)="trainrunSectionTimesService.onInputNumberOfStopsElementButtonPlus()"
                 (mouseenter)="onMouseEnterNbrStopInput()"
                 (mouseleave)="onMouseOutNbrStopInput()"
                 value="+"
