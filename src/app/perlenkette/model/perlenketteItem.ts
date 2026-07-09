@@ -11,4 +11,6 @@ export interface PerlenketteItem {
   getPerlenketteSection(): PerlenketteSection;
 
   getIsCollapsed(): boolean;
+
+  isFirstSectionOfCollapsedChain(): boolean;
 }

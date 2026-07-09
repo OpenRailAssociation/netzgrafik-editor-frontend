@@ -96,6 +96,10 @@ export class PerlenketteNode implements PerlenketteItem {
     return this.isCollapsed;
   }
 
+  isFirstSectionOfCollapsedChain(): boolean {
+    return false;
+  }
+
   private sortLevel0BeginningStations(
     a: PerlenketteConnection,
     b: PerlenketteConnection,
