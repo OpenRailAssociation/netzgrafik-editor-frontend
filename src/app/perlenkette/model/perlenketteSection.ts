@@ -41,4 +41,8 @@ export class PerlenketteSection implements PerlenketteItem {
   getPerlenketteSection(): PerlenketteSection {
     return this;
   }
+
+  getIsCollapsed(): boolean {
+    return false;
+  }
 }

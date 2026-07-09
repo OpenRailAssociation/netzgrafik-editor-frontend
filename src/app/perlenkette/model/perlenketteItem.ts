@@ -9,4 +9,6 @@ export interface PerlenketteItem {
   isPerlenketteSection(): boolean;
 
   getPerlenketteSection(): PerlenketteSection;
+
+  getIsCollapsed(): boolean;
 }
