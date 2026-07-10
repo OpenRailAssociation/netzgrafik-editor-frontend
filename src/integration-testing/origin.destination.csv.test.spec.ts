@@ -1,6 +1,6 @@
 import {LogPublishersService} from "src/app/logger/log.publishers.service";
 import {LogService} from "src/app/logger/log.service";
-import {DataService} from "src/app/services/data/data.service";
+import {DataService, DEFAULT_CONNECTION_PENALTY} from "src/app/services/data/data.service";
 import {LabelService} from "src/app/services/data/label.service";
 import {LabelGroupService} from "src/app/services/data/labelgroup.service";
 import {NetzgrafikColoringService} from "src/app/services/data/netzgrafikColoring.service";
@@ -79,7 +79,7 @@ describe("Origin Destination CSV Test", () => {
     const nodes = nodeService.getNodes();
     const odNodes = nodeService.getSelectedNodes();
     const trainruns = trainrunService.getTrainruns();
-    const connectionPenalty = 5;
+    const connectionPenalty = DEFAULT_CONNECTION_PENALTY;
     const timeLimit = 60 * 10;
 
     const start = new Date().getTime();
@@ -130,7 +130,7 @@ describe("Origin Destination CSV Test", () => {
     const nodes = nodeService.getNodes();
     const odNodes = nodeService.getSelectedNodes();
     const trainruns = trainrunService.getTrainruns();
-    const connectionPenalty = 5;
+    const connectionPenalty = DEFAULT_CONNECTION_PENALTY;
     const timeLimit = 60 * 10;
 
     const start = new Date().getTime();
@@ -187,7 +187,7 @@ describe("Origin Destination CSV Test", () => {
     const nodes = nodeService.getNodes();
     const odNodes = nodeService.getSelectedNodes();
     const trainruns = trainrunService.getTrainruns();
-    const connectionPenalty = 5;
+    const connectionPenalty = DEFAULT_CONNECTION_PENALTY;
     const timeLimit = 60 * 10;
 
     const start = new Date().getTime();
@@ -242,7 +242,7 @@ describe("Origin Destination CSV Test", () => {
     const nodes = nodeService.getNodes();
     const odNodes = nodeService.getSelectedNodes();
     const trainruns = trainrunService.getTrainruns();
-    const connectionPenalty = 5;
+    const connectionPenalty = DEFAULT_CONNECTION_PENALTY;
     const timeLimit = 60 * 10;
 
     const [edges, tsSuccessor] = buildEdges(
@@ -436,7 +436,7 @@ describe("Origin Destination CSV Test", () => {
     const nodes = nodeService.getNodes();
     const odNodes = nodeService.getSelectedNodes();
     const trainruns = trainrunService.getTrainruns();
-    const connectionPenalty = 5;
+    const connectionPenalty = DEFAULT_CONNECTION_PENALTY;
     const timeLimit = 60 * 10;
 
     const [edges, tsSuccessor] = buildEdges(
