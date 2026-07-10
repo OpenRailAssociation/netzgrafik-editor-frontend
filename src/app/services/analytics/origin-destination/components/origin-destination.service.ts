@@ -62,10 +62,9 @@ export class OriginDestinationService {
     // Draft here: https://colab.research.google.com/drive/1Z1r2uU2pgffWxCbG_wt2zoLStZKzWleE#scrollTo=F6vOevK6znee
     const timeLimit = 24 * 60;
 
-    const metadata = this.dataService.getNetzgrafikDto().metadata;
     // The cost to add for each connection.
     const connectionPenalty =
-      metadata.analyticsSettings.originDestinationSettings.connectionPenalty;
+      this.dataService.getAnalyticsSettings().originDestinationSettings.connectionPenalty;
     const nodes = this.nodeService.getNodes();
     const odNodes = this.getODOutputNodes();
     const trainruns = this.trainrunService.getVisibleTrainruns();

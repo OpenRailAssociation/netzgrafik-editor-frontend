@@ -272,7 +272,7 @@ export interface MetadataDto {
   trainrunFrequencies: TrainrunFrequency[];
   trainrunTimeCategories: TrainrunTimeCategory[];
   netzgrafikColors: NetzgrafikColorDto[];
-  analyticsSettings: AnalyticsSettingsDto;
+  analyticsSettings?: AnalyticsSettingsDto;
   orderingAlgorithm?: OrderingAlgorithm;
   trafficSide?: TrafficSide;
 }

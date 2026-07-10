@@ -6,6 +6,7 @@ import {
   TrainrunFrequency,
   TrainrunTimeCategory,
   TrafficSide,
+  AnalyticsSettingsDto,
 } from "../../data-structures/business.data.structures";
 import {NetzgrafikDefault} from "../../sample-netzgrafik/netzgrafik.default";
 import {NodeService} from "./node.service";
@@ -32,6 +33,7 @@ export class NetzgrafikLoadedInfo {
   ) {}
 }
 
+export const DEFAULT_CONNECTION_PENALTY = 5;
 @Injectable({
   providedIn: "root",
 })
@@ -189,6 +191,7 @@ export class DataService implements OnDestroy {
   getNetzgrafikDto(): NetzgrafikDto {
     const metadata = this.netzgrafikDtoStore.netzgrafikDto.metadata;
     metadata.netzgrafikColors = this.netzgrafikColoringService.getDtos();
+    metadata.analyticsSettings = this.getAnalyticsSettings();
     metadata.orderingAlgorithm = this.nodeService.getCurrentOrderingAlgorithm();
     metadata.trafficSide = this.getTrafficSide();
 
@@ -261,6 +264,18 @@ export class DataService implements OnDestroy {
 
   getTrainrunTimeCategories(): TrainrunTimeCategory[] {
     return this.netzgrafikDtoStore.netzgrafikDto.metadata.trainrunTimeCategories;
+  }
+
+  getAnalyticsSettings(): AnalyticsSettingsDto {
+    return (
+      this.netzgrafikDtoStore.netzgrafikDto.metadata.analyticsSettings || {
+        originDestinationSettings: {connectionPenalty: DEFAULT_CONNECTION_PENALTY},
+      }
+    );
+  }
+
+  setAnalyticsSettings(analyticsSettings: AnalyticsSettingsDto) {
+    this.netzgrafikDtoStore.netzgrafikDto.metadata.analyticsSettings = analyticsSettings;
   }
 
   getTrafficSide(): TrafficSide {
