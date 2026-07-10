@@ -342,6 +342,8 @@
         "alphabeticalOrderingTooltip": "Ports anhand der Zugkategorien alphabetisch anordnen.",
         "crossingAwareOrdering": "Kreuzungsbewusst",
         "crossingAwareOrderingTooltip": "Minimiert Kreuzungen von Zugfahrten innerhalb der Knoten.",
+        "crossingAwarePushOrdering": "Kreuzungsbewusst (Kreuzungen in die Knoten verschieben)",
+        "crossingAwarePushOrderingTooltip": "Minimiert Kreuzungen von Zugfahrten und verschiebt sie in die Knoten, damit parallele Zugfahrten gebündelt bleiben.",
         "delete": "Löschen",
         "on-clear-delete-all-non-visible-elements": "Sollen alle nicht sichtbare Elemente aus der Netzgrafik definitiv gelöscht werden?",
         "on-clear-delete-all-visible-elements": "Sollen alle sichtbare Elemente aus der Netzgrafik definitiv gelöscht werden?",

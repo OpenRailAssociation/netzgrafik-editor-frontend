@@ -15,7 +15,8 @@
     "lint:fix": "ng lint --fix",
     "generate:api": "openapi-generator-cli generate",
     "local-test": "ng test --watch --code-coverage",
-    "extract-i18n": "ng extract-i18n"
+    "extract-i18n": "ng extract-i18n",
+    "benchmark": "ng test -c benchmark"
   },
   "name": "@openrail/netzgrafik-editor-frontend",
   "version": "2.11.1",

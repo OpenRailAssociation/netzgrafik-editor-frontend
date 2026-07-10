@@ -30,7 +30,7 @@ import {MathUtils} from "../../utils/math";
 import {LabelService} from "./label.service";
 import {FilterService} from "../ui/filter.service";
 import {ConnectionDto, OrderingAlgorithm} from "../../data-structures/technical.data.structures";
-import {optimizePorts} from "../util/port-ordering.algo";
+import {ClutterWeights, optimizePorts} from "../util/port-ordering.algo";
 import {TrainrunSectionValidator} from "../util/trainrunsection.validator";
 import {
   NodeOperation,
@@ -199,8 +199,8 @@ export class NodeService implements OnDestroy {
     });
 
     // Second pass: reorder ports and update routing
-    if (this.currentOrderingAlgorithm === OrderingAlgorithm.CrossingAware) {
-      optimizePorts(this.nodesStore.nodes);
+    if (this.usesOptimizePorts()) {
+      optimizePorts(this.nodesStore.nodes, this.getClutterWeights());
       this.nodesStore.nodes.forEach((node) => {
         node.updateTransitionsRouting();
         node.updateConnectionsRouting();
@@ -1140,8 +1140,30 @@ export class NodeService implements OnDestroy {
     return this.currentOrderingAlgorithm;
   }
 
+  private usesOptimizePorts(): boolean {
+    return this.currentOrderingAlgorithm !== OrderingAlgorithm.Alphabetical;
+  }
+
+  private getClutterWeights(): Partial<ClutterWeights> | undefined {
+    if (!this.usesOptimizePorts()) return undefined;
+
+    const minWeight = 0.2;
+    const pushCrossings =
+      this.currentOrderingAlgorithm === OrderingAlgorithm.ClutterAwarePushCrossings;
+
+    // Boost the separations we keep low: between nodes when pushing crossings in, else within nodes.
+    return {
+      crossingsWithin: minWeight,
+      crossingsBetween: minWeight,
+      separationsWithin: minWeight + (pushCrossings ? 0 : 1),
+      separationsBetween: minWeight + (pushCrossings ? 1 : 0),
+    };
+  }
+
   setOrderingAlgorithm(portOrderingType: OrderingAlgorithm) {
-    this.currentOrderingAlgorithm = portOrderingType;
+    // Any unknown legacy value (the former crossing/separation modes) maps to ClutterAware.
+    this.currentOrderingAlgorithm =
+      portOrderingType in OrderingAlgorithm ? portOrderingType : OrderingAlgorithm.ClutterAware;
   }
 
   getNodes(): Node[] {
@@ -1225,8 +1247,8 @@ export class NodeService implements OnDestroy {
       });
 
       // Reorder ports and update routing
-      if (this.currentOrderingAlgorithm === OrderingAlgorithm.CrossingAware) {
-        optimizePorts(this.nodesStore.nodes);
+      if (this.usesOptimizePorts()) {
+        optimizePorts(this.nodesStore.nodes, this.getClutterWeights());
         this.nodesStore.nodes.forEach((n) => {
           n.updateTransitionsRouting();
           n.updateConnectionsRouting();

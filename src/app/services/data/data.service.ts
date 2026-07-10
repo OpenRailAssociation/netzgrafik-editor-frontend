@@ -1,5 +1,6 @@
 import {Injectable, OnDestroy} from "@angular/core";
 import {
+  MetadataDto,
   NetzgrafikDto,
   TrainrunCategory,
   Direction,
@@ -96,10 +97,9 @@ export class DataService implements OnDestroy {
     this.netzgrafikColoringService.setNetzgrafikColors(
       this.netzgrafikDtoStore.netzgrafikDto.metadata.netzgrafikColors,
     );
-    if (this.netzgrafikDtoStore.netzgrafikDto.metadata.orderingAlgorithm !== undefined) {
-      this.nodeService.setOrderingAlgorithm(
-        this.netzgrafikDtoStore.netzgrafikDto.metadata.orderingAlgorithm,
-      );
+    const metadata = this.netzgrafikDtoStore.netzgrafikDto.metadata;
+    if (metadata.orderingAlgorithm !== undefined) {
+      this.nodeService.setOrderingAlgorithm(metadata.orderingAlgorithm);
     }
 
     this.initializeDataServices();
@@ -187,10 +187,17 @@ export class DataService implements OnDestroy {
   }
 
   getNetzgrafikDto(): NetzgrafikDto {
-    const metadata = this.netzgrafikDtoStore.netzgrafikDto.metadata;
-    metadata.netzgrafikColors = this.netzgrafikColoringService.getDtos();
-    metadata.orderingAlgorithm = this.nodeService.getCurrentOrderingAlgorithm();
-    metadata.trafficSide = this.getTrafficSide();
+    const previous = this.netzgrafikDtoStore.netzgrafikDto.metadata;
+    const metadata: MetadataDto = {
+      trainrunCategories: previous.trainrunCategories,
+      trainrunFrequencies: previous.trainrunFrequencies,
+      trainrunTimeCategories: previous.trainrunTimeCategories,
+      analyticsSettings: previous.analyticsSettings,
+      netzgrafikColors: this.netzgrafikColoringService.getDtos(),
+      orderingAlgorithm: this.nodeService.getCurrentOrderingAlgorithm(),
+      trafficSide: this.getTrafficSide(),
+    };
+    this.netzgrafikDtoStore.netzgrafikDto.metadata = metadata;
 
     return {
       nodes: this.nodeService.getDtos(),

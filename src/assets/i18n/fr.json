@@ -342,6 +342,8 @@
         "alphabeticalOrderingTooltip": "Ordonne les ports par ordre alphabétique des catégories de train.",
         "crossingAwareOrdering": "Réduction des croisements",
         "crossingAwareOrderingTooltip": "Minimise les croisements des trajets à l'intérieur des noeuds.",
+        "crossingAwarePushOrdering": "Réduction des croisements (concentrés dans les noeuds)",
+        "crossingAwarePushOrderingTooltip": "Minimise les croisements des trajets en les concentrant dans les noeuds pour garder les trajets parallèles groupés.",
         "delete": "Supprimer",
         "on-clear-delete-all-non-visible-elements": "Tous les éléments non visibles doivent-ils être définitivement supprimés du réticulaire ?",
         "on-clear-delete-all-visible-elements": "Tous les éléments visibles doivent-ils être définitivement supprimés du réticulaire ?",
