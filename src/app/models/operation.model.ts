@@ -32,7 +32,7 @@ type MetadataDto = {
   trafficSide?: TrafficSide;
 };
 
-abstract class Operation {
+abstract class BaseOperation {
   readonly type: OperationType;
   readonly objectType: OperationObjectType;
 
@@ -43,7 +43,7 @@ abstract class Operation {
   }
 }
 
-class TrainrunOperation extends Operation {
+class TrainrunOperation extends BaseOperation {
   readonly trainrun: TrainrunDto;
 
   /** @internal */
@@ -53,7 +53,7 @@ class TrainrunOperation extends Operation {
   }
 }
 
-class NodeOperation extends Operation {
+class NodeOperation extends BaseOperation {
   readonly node: NodeDto;
 
   /** @internal */
@@ -63,7 +63,7 @@ class NodeOperation extends Operation {
   }
 }
 
-class LabelOperation extends Operation {
+class LabelOperation extends BaseOperation {
   readonly label: LabelDto;
 
   /** @internal */
@@ -73,7 +73,7 @@ class LabelOperation extends Operation {
   }
 }
 
-class NoteOperation extends Operation {
+class NoteOperation extends BaseOperation {
   readonly note: FreeFloatingTextDto;
 
   /** @internal */
@@ -83,7 +83,7 @@ class NoteOperation extends Operation {
   }
 }
 
-class MetadataOperation extends Operation {
+class MetadataOperation extends BaseOperation {
   readonly metadata: MetadataDto;
 
   /** @internal */
@@ -93,7 +93,7 @@ class MetadataOperation extends Operation {
   }
 }
 
-class FilterSettingOperation extends Operation {
+class FilterSettingOperation extends BaseOperation {
   readonly filterSetting: FilterSettingDto;
 
   /** @internal */
@@ -102,6 +102,14 @@ class FilterSettingOperation extends Operation {
     this.filterSetting = filterSetting;
   }
 }
+
+type Operation =
+  | TrainrunOperation
+  | NodeOperation
+  | LabelOperation
+  | NoteOperation
+  | MetadataOperation
+  | FilterSettingOperation;
 
 export {
   OperationType,
