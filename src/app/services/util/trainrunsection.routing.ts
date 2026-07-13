@@ -23,6 +23,7 @@ import {
 import {TrafficSide} from "../../data-structures/business.data.structures";
 import {Node} from "../../models/node.model";
 import {Port} from "../../models/port.model";
+import {TrainrunsectionHelper} from "./trainrunsection.helper";
 
 export class SimpleTrainrunSectionRouter {
   private static trafficSideType: TrafficSide = "leftHand";
@@ -445,15 +446,33 @@ export class SimpleTrainrunSectionRouter {
       nameNumberOfStopsOffsetDirection,
     );
 
+    let travelTimePosition = trainrunSectionTravelTimePos;
+    let backwardTravelTimePosition = trainrunSectionBackwardTravelTimePos;
+
+    // Trainrun section name element is always positoned above the section line.
+    // If both travel time and backward travel time are equal, only one of them is displayed.
+    // This makes sure that, in this case, the travel time is displayed next to the trainrun section name.
+    const section = sourcePort.getTrainrunSection();
+    const targetIsLeftOfSource = t1.getX() < s1.getX();
+    const targetIsVerticallyAlignedWithSource = t1.getX() === s1.getX();
+    const targetIsBelowSource = t1.getY() > s1.getY();
+
+    const targetIsLeftOrBottom =
+      targetIsLeftOfSource || (targetIsVerticallyAlignedWithSource && targetIsBelowSource);
+    if (section.areTravelTimesEqual() && targetIsLeftOrBottom) {
+      travelTimePosition = trainrunSectionBackwardTravelTimePos;
+      backwardTravelTimePosition = trainrunSectionTravelTimePos;
+    }
+
     return {
       [TrainrunSectionText.SourceArrival]: sourceArrivalPos.toPointDto(),
       [TrainrunSectionText.SourceDeparture]: sourceDeparturePos.toPointDto(),
       [TrainrunSectionText.TargetArrival]: targetArrivalPos.toPointDto(),
       [TrainrunSectionText.TargetDeparture]: targetDeparturePos.toPointDto(),
       [TrainrunSectionText.TrainrunSectionName]: trainrunSectionNamePos.toPointDto(),
-      [TrainrunSectionText.TrainrunSectionTravelTime]: trainrunSectionTravelTimePos.toPointDto(),
+      [TrainrunSectionText.TrainrunSectionTravelTime]: travelTimePosition.toPointDto(),
       [TrainrunSectionText.TrainrunSectionBackwardTravelTime]:
-        trainrunSectionBackwardTravelTimePos.toPointDto(),
+        backwardTravelTimePosition.toPointDto(),
       [TrainrunSectionText.TrainrunSectionNumberOfStops]:
         trainrunSectionNumberOfStopsPos.toPointDto(),
     };
