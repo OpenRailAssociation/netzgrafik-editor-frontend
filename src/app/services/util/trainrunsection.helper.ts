@@ -293,30 +293,6 @@ export class TrainrunsectionHelper {
     return undefined;
   }
 
-  mapLeftAndRightTimes(
-    trainrunSection: TrainrunSection,
-    orderedNodes: Node[],
-    timeStructure: LeftAndRightTimeStructure,
-  ): LeftAndRightTimeStructure {
-    const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
-    const leftNode = GeneralViewFunctions.getLeftOrTopNode(
-      bothLastNonStopNodes.lastNonStopNode1,
-      bothLastNonStopNodes.lastNonStopNode2,
-    );
-    const localLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
-    if (leftNode.getId() !== localLeftNode.getId()) {
-      const mappedTimeStructure = TrainrunsectionHelper.getDefaultTimeStructure(timeStructure);
-      mappedTimeStructure.rightArrivalTime = timeStructure.leftArrivalTime;
-      mappedTimeStructure.leftArrivalTime = timeStructure.rightArrivalTime;
-      mappedTimeStructure.rightDepartureTime = timeStructure.leftDepartureTime;
-      mappedTimeStructure.leftDepartureTime = timeStructure.rightDepartureTime;
-      mappedTimeStructure.travelTime = timeStructure.bottomTravelTime;
-      mappedTimeStructure.bottomTravelTime = timeStructure.travelTime;
-      return mappedTimeStructure;
-    }
-    return timeStructure;
-  }
-
   getLeftAndRightTimes(
     trainrunSection: TrainrunSection,
     orderedNodes: Node[],

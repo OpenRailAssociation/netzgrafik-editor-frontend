@@ -762,11 +762,7 @@ export class TrainrunSectionTimesService {
     }
 
     this.trainrunSectionService.setTimeStructureToTrainrunSections(
-      this.trainrunSectionHelper.mapLeftAndRightTimes(
-        this.selectedTrainrunSection,
-        this.nodesOrdered,
-        this.timeStructure,
-      ),
+      this.timeStructure,
       this.selectedTrainrunSection,
       this.filterService.getTimeDisplayPrecision(),
     );
