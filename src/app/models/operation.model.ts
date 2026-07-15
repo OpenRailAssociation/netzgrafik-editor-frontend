@@ -32,18 +32,18 @@ type MetadataDto = {
   trafficSide?: TrafficSide;
 };
 
-abstract class BaseOperation {
+abstract class BaseOperation<O extends OperationObjectType> {
   readonly type: OperationType;
-  readonly objectType: OperationObjectType;
+  readonly objectType: O;
 
   /** @internal */
-  constructor(type: OperationType, objectType: OperationObjectType) {
+  constructor(type: OperationType, objectType: O) {
     this.type = type;
     this.objectType = objectType;
   }
 }
 
-class TrainrunOperation extends BaseOperation {
+class TrainrunOperation extends BaseOperation<OperationObjectType.trainrun> {
   readonly trainrun: TrainrunDto;
 
   /** @internal */
@@ -53,7 +53,7 @@ class TrainrunOperation extends BaseOperation {
   }
 }
 
-class NodeOperation extends BaseOperation {
+class NodeOperation extends BaseOperation<OperationObjectType.node> {
   readonly node: NodeDto;
 
   /** @internal */
@@ -63,7 +63,7 @@ class NodeOperation extends BaseOperation {
   }
 }
 
-class LabelOperation extends BaseOperation {
+class LabelOperation extends BaseOperation<OperationObjectType.label> {
   readonly label: LabelDto;
 
   /** @internal */
@@ -73,7 +73,7 @@ class LabelOperation extends BaseOperation {
   }
 }
 
-class NoteOperation extends BaseOperation {
+class NoteOperation extends BaseOperation<OperationObjectType.note> {
   readonly note: FreeFloatingTextDto;
 
   /** @internal */
@@ -83,7 +83,7 @@ class NoteOperation extends BaseOperation {
   }
 }
 
-class MetadataOperation extends BaseOperation {
+class MetadataOperation extends BaseOperation<OperationObjectType.metadata> {
   readonly metadata: MetadataDto;
 
   /** @internal */
@@ -93,7 +93,7 @@ class MetadataOperation extends BaseOperation {
   }
 }
 
-class FilterSettingOperation extends BaseOperation {
+class FilterSettingOperation extends BaseOperation<OperationObjectType.filterSetting> {
   readonly filterSetting: FilterSettingDto;
 
   /** @internal */
