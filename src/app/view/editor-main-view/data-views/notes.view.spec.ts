@@ -186,4 +186,9 @@ describe("Notes-View", () => {
     const txt0 = NotesView.convertText("qwertz");
     expect(txt0).toBe("qwertz");
   });
+
+  it("NotesView.convertText preserves tab spacing", () => {
+    const txt0 = NotesView.convertText("left\tright");
+    expect(txt0).toBe("left&nbsp;&nbsp;&nbsp;&nbsp;right");
+  });
 });
