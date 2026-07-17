@@ -59,19 +59,17 @@
     </g>
     <g>
       <!-- Intermediary stops (numberOfStops) -->
-      <ng-container *ngIf="!isTip() && stationNumberArray.length <= 5">
+      <ng-container *ngIf="!isTip() && numberOfStops <= 5">
         <circle
-          *ngFor="let stationNumber of stationNumberArray"
+          *ngFor="let stopIndex of getStopIndices()"
           cx="137px"
-          [attr.cy]="
-            192 / 4 + ((192 - 8) / (perlenketteSection.numberOfStops + 1)) * 0.5 * stationNumber + 4
-          "
+          [attr.cy]="192 / 4 + ((192 - 8) / (numberOfStops + 1)) * 0.5 * stopIndex + 4"
           [ngClass]="[getPathClassTag()]"
           class="edge_line_stops fill PerlenketteStopElement"
           (click)="clickStopElement()"
         ></circle>
       </ng-container>
-      <ng-container *ngIf="!isTip() && stationNumberArray.length > 5">
+      <ng-container *ngIf="!isTip() && numberOfStops > 5">
         <circle
           cx="137px"
           [attr.cy]="(192 - 8) / 2 + 4"
@@ -94,7 +92,7 @@
               style="font-size: 12px"
               [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
             >
-              {{ stationNumberArray.length }}
+              {{ numberOfStops }}
             </text>
           </g>
         </g>
@@ -772,21 +770,17 @@
           ></path>
         </g>
         <g>
-          <ng-container *ngIf="!isTip() && stationNumberArray.length <= 5">
+          <ng-container *ngIf="!isTip() && numberOfStops <= 5">
             <circle
-              *ngFor="let stationNumber of stationNumberArray"
+              *ngFor="let stopIndex of getStopIndices()"
               cx="137px"
-              [attr.cy]="
-                192 / 4 +
-                ((192 - 8) / (perlenketteSection.numberOfStops + 1)) * 0.5 * stationNumber +
-                4
-              "
+              [attr.cy]="192 / 4 + ((192 - 8) / (numberOfStops + 1)) * 0.5 * stopIndex + 4"
               [ngClass]="[getPathClassTag()]"
               style="fill: var(--COLOR_Edit)"
               class="edge_line_stops fill PerlenketteStopElement"
             ></circle>
           </ng-container>
-          <ng-container *ngIf="!isTip() && stationNumberArray.length > 5">
+          <ng-container *ngIf="!isTip() && numberOfStops > 5">
             <circle
               cx="137px"
               [attr.cy]="(192 - 8) / 2 + 4"
@@ -808,7 +802,7 @@
                   class="edge_text TrainrunSectionNumberOfStops end_text"
                   [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
                 >
-                  {{ stationNumberArray.length }}
+                  {{ numberOfStops }}
                 </text>
               </g>
             </g>

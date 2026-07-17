@@ -95,12 +95,10 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
 
   private static timeEditor = true;
 
-  stationNumberArray: number[];
+  public numberOfStops = 0;
   private firstSection: TrainrunSection | undefined;
   private lastSection: TrainrunSection | undefined;
   public trainrun: Trainrun | undefined;
-
-  public numberOfStops: number;
 
   private destroyed$ = new Subject<void>();
 
@@ -118,10 +116,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
 
   ngOnInit() {
     this.trafficSide = this.uiInteractionService.getActiveTrafficSideType();
-    this.numberOfStops = this.perlenketteSection.numberOfStops;
-    this.stationNumberArray = Array(this.perlenketteSection.numberOfStops)
-      .fill(1)
-      .map((x, i) => i + 1);
+    this.numberOfStops = 0;
     if (!this.perlenketteSection.section) return;
     const group = this.trainrunSectionService.getTrainrunSectionGroupForSection(
       this.perlenketteSection.section,
@@ -135,6 +130,11 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
       this.perlenketteSection.toNode,
     ]);
     this.trainrunSectionTimesService.setTrainrunSection(this.firstSection);
+    this.numberOfStops = this.trainrunSectionTimesService.getTimeStructure().numberOfStops;
+  }
+
+  getStopIndices(): number[] {
+    return Array.from({length: this.numberOfStops}, (_, i) => i + 1);
   }
 
   ngAfterContentInit() {
@@ -656,8 +656,8 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   getTravelTimeLockTransform() {
-    if (this.stationNumberArray.length > 0) {
-      if (this.stationNumberArray.length <= 5) {
+    if (this.numberOfStops > 0) {
+      if (this.numberOfStops <= 5) {
         // move a bit to the right when some stops are shown
         return this.areEndSectionsSymmetric() ? "translate(142, 82)" : "translate(159, 82)";
       } else {
