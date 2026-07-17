@@ -154,10 +154,6 @@ export class LoadPerlenketteService implements OnDestroy {
           const node = currentTrainrunSectionNodePair.node;
           const group =
             this.trainrunSectionService.getTrainrunSectionGroupForSection(trainrunSection);
-          const nonStopSections = group.filter(
-            (section) => !section.getTargetNode().isNonStop(section),
-          );
-          const numberOfStops = nonStopSections.length ? nonStopSections.length - 1 : 0;
           // Section X
           perlenketteItem.push(
             new PerlenketteSection(
@@ -165,7 +161,6 @@ export class LoadPerlenketteService implements OnDestroy {
               trainrunSection.getTravelTime(),
               lastNode,
               node,
-              numberOfStops,
               false,
               firstSection,
               false,
