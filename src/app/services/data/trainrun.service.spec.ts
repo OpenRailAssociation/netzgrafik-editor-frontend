@@ -80,6 +80,17 @@ describe("TrainrunService", () => {
     expect(t.getTrainrunFrequency().frequency).toBe(30);
   });
 
+  it("TrainrunSection warning no longer optional: auto migration test", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const ts = trainrunSectionService.getTrainrunSectionFromId(0);
+    expect(ts.hasSourceArrivalWarning()).toBe(false);
+    expect(ts.hasSourceDepartureWarning()).toBe(false);
+    expect(ts.hasTargetArrivalWarning()).toBe(false);
+    expect(ts.hasTargetDepartureWarning()).toBe(false);
+    expect(ts.hasTravelTimeWarning()).toBe(false);
+    expect(ts.hasBackwardTravelTimeWarning()).toBe(false);
+  });
+
   it("trainrunService.updateTrainrunFrequency - 002", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(1);
