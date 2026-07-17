@@ -363,18 +363,19 @@ export class TrainrunsectionHelper {
       lastLeftNode.getArrivalTime(leftTrainrunSection) -
       lastRightNode.getDepartureTime(rightTrainrunSection);
 
-    return {
+    const group = this.trainrunSectionService.getTrainrunSectionGroupForSection(trainrunSection);
+    const timeStructure = {
       leftDepartureTime: lastLeftNode.getDepartureTime(leftTrainrunSection),
       leftArrivalTime: lastLeftNode.getArrivalTime(leftTrainrunSection),
       rightDepartureTime: lastRightNode.getDepartureTime(rightTrainrunSection),
       rightArrivalTime: lastRightNode.getArrivalTime(rightTrainrunSection),
       travelTime: cumulativeTravelTime,
       bottomTravelTime: cumulativeBottomTravelTime,
-      numberOfStops:
-        this.trainrunSectionService.getTrainrunSectionGroupForSection(trainrunSection).length - 1,
+      numberOfStops: TrainrunsectionHelper.getStopSectionsFromGroup(group).length,
       stopTime: MathUtils.mod60(totalForwardDuration - cumulativeTravelTime),
       bottomStopTime: MathUtils.mod60(totalBackwardDuration - cumulativeBottomTravelTime),
     };
+    return timeStructure;
   }
 
   getLeftAndRightSymmetries(trainrunSection: TrainrunSection, orderedNodes: Node[]) {
@@ -444,4 +445,13 @@ export class TrainrunsectionHelper {
 
     return GeneralViewFunctions.getRightOrBottomNode(sourceNode, targetNode) === targetNode;
   }
+
+  static getStopSectionsFromGroup(trainrunSections: TrainrunSection[]): TrainrunSection[] {
+    // Count non-stop collapsed source nodes
+    // Note: in this context, all intermediate sections are collapsed
+    return trainrunSections
+      .slice(1) // skip first section
+      .filter((section) => !section.getSourceNode().isNonStop(section));
+  }
+
 }

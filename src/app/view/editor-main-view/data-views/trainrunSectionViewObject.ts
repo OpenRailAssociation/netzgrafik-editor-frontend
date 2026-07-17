@@ -37,11 +37,7 @@ export class TrainrunSectionViewObject {
   }
 
   getNumberOfStops(): number {
-    // Count non-stop collapsed source nodes
-    // Note: in this context, all intermediate sections are collapsed
-    return this.trainrunSections
-      .slice(1) // skip first section
-      .filter((section) => !section.getSourceNode().isNonStop(section)).length;
+    return TrainrunsectionHelper.getStopSectionsFromGroup(this.trainrunSections).length;
   }
 
   firstSectionMatchesFirstOrLastSection(tsvo: TrainrunSectionViewObject): boolean {
@@ -52,10 +48,9 @@ export class TrainrunSectionViewObject {
   }
 
   getCollapsedStopNodes(): Node[] {
-    return this.trainrunSections
-      .slice(1)
-      .filter((section) => !section.getSourceNode().isNonStop(section))
-      .map((section) => section.getSourceNode());
+    return TrainrunsectionHelper.getStopSectionsFromGroup(this.trainrunSections).map((section) =>
+      section.getSourceNode(),
+    );
   }
 
   getCollapsedStopNodeFromStopIndex(stopIndex: number): Node {
