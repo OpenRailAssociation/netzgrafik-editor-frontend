@@ -10,6 +10,7 @@ import {EditorView} from "./editor.view";
 import {TrainrunSectionsView} from "./trainrunsections.view";
 import {Node} from "src/app/models/node.model";
 import {SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS} from "../../rastering/definitions";
+import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helper";
 
 export class TrainrunSectionViewObject {
   readonly firstSection: TrainrunSection;
@@ -37,11 +38,7 @@ export class TrainrunSectionViewObject {
   }
 
   getNumberOfStops(): number {
-    // Count non-stop collapsed source nodes
-    // Note: in this context, all intermediate sections are collapsed
-    return this.trainrunSections
-      .slice(1) // skip first section
-      .filter((section) => !section.getSourceNode().isNonStop(section)).length;
+    return TrainrunsectionHelper.getStopSectionsFromGroup(this.trainrunSections).length;
   }
 
   firstSectionMatchesFirstOrLastSection(tsvo: TrainrunSectionViewObject): boolean {
@@ -52,10 +49,9 @@ export class TrainrunSectionViewObject {
   }
 
   getCollapsedStopNodes(): Node[] {
-    return this.trainrunSections
-      .slice(1)
-      .filter((section) => !section.getSourceNode().isNonStop(section))
-      .map((section) => section.getSourceNode());
+    return TrainrunsectionHelper.getStopSectionsFromGroup(this.trainrunSections).map((section) =>
+      section.getSourceNode(),
+    );
   }
 
   getCollapsedStopNodeFromStopIndex(stopIndex: number): Node {
