@@ -19,7 +19,6 @@ describe("PerlenketteModelTests", () => {
       10,
       undefined,
       undefined,
-      0,
       false,
       false,
       true,

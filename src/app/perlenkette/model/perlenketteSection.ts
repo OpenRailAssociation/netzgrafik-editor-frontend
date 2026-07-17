@@ -9,7 +9,6 @@ export class PerlenketteSection implements PerlenketteItem {
     public travelTime: number,
     public fromNode: Node,
     public toNode: Node,
-    public numberOfStops: number,
     public isBeingEdited: boolean = false,
     public fristTrainrunPartSection: boolean = false,
     public lastTrainrunPartSection: boolean = false,
