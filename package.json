@@ -53,7 +53,7 @@
     "angular-oauth2-oidc": "^19.0.0",
     "angular-server-side-configuration": "^19.0.1",
     "d3": "^7.9.0",
-    "dompurify": "^3.4.11",
+    "dompurify": "^3.4.12",
     "extract-i18n": "^1.0.0",
     "ngx-editor": "^18.0.0",
     "papaparse": "^5.5.4",
@@ -89,7 +89,7 @@
     "karma-jasmine": "^5.1.0",
     "karma-jasmine-html-reporter": "^2.2.0",
     "karma-sonarqube-reporter": "^1.4.0",
-    "prettier": "^3.9.4",
+    "prettier": "^3.9.5",
     "ts-node": "~10.9.2",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.63.0"
