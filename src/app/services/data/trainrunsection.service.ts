@@ -961,8 +961,6 @@ export class TrainrunSectionService implements OnDestroy {
   }
 
   trainrunSectionsUpdated() {
-    // This will be removed once path and text considerations are moved to the view layer.
-    this.getSelectedTrainrunSection()?.routeEdgeAndPlaceText();
     this.trainrunSectionsSubject.next(
       Object.assign({}, this.trainrunSectionsStore).trainrunSections,
     );
