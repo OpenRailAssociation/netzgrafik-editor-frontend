@@ -73,6 +73,9 @@
         },
         "version-control": {
           "new-name-comment": "Nouveau nom : {$PH}"
+        },
+        "data-service": {
+          "deleted-trainrun-sections": "{$PH} sections de trainrun avec des nœuds source et cible identiques ont été supprimées. Cela a été causé par un bug dans une ancienne version de l'éditeur. Veuillez vérifier l'exactitude de votre netzgrafik."
         }
       },
       "ui": {
