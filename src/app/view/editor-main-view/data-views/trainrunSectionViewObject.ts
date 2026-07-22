@@ -10,6 +10,7 @@ import {EditorView} from "./editor.view";
 import {TrainrunSectionsView} from "./trainrunsections.view";
 import {Node} from "src/app/models/node.model";
 import {SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS} from "../../rastering/definitions";
+import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helper";
 
 export class TrainrunSectionViewObject {
   readonly firstSection: TrainrunSection;
@@ -70,6 +71,7 @@ export class TrainrunSectionViewObject {
     return this.getCollapsedStopNodeFromStopIndex(stopIndex);
   }
 
+  // refacto
   getTravelTime(): number {
     if (this.trainrunSections.length === 1) {
       return this.firstSection.getTravelTime();
@@ -92,6 +94,7 @@ export class TrainrunSectionViewObject {
     }, 0);
   }
 
+  // refacto
   getBackwardTravelTime(): number {
     if (this.trainrunSections.length === 1) {
       return this.firstSection.getBackwardTravelTime();

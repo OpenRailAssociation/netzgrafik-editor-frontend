@@ -204,6 +204,11 @@ export class TrainrunSectionTimesService {
 
   public setNodesOrdered(nodesOrdered: Node[]) {
     this.nodesOrdered = nodesOrdered;
+    // this.nodesOrdered = this.trainrunSectionService
+    //   .getTrainrunSectionsGroupOrientedBasedOnPort(
+    //     nodesOrdered[0].getPort(this.selectedTrainrunSection.getSourcePortId()),
+    //   )
+    //   ?.map((section) => section.getSourceNode());
   }
 
   public getLockStructure(): LeftAndRightLockStructure {
