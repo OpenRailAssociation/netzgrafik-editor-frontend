@@ -4,7 +4,8 @@
     "declaration": true,
     "declarationDir": "dist/types",
     "typeRoots": [],
-    "stripInternal": true
+    "stripInternal": true,
+    "rewriteRelativeImportExtensions": true
   },
   "files": [],
   "include": ["src/types.ts"]
