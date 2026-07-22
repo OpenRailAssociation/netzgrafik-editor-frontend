@@ -25,7 +25,9 @@ import {PreviewLineMode, TrainrunSectionPreviewLineView} from "./trainrunsection
 import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {Trainrun} from "../../../models/trainrun.model";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
+import {AutoLayoutService} from "../../../services/util/auto-layout.service";
 import {Vec2D} from "../../../utils/vec2D";
+import {PortAlignment} from "../../../data-structures/technical.data.structures";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
 import {NoteViewObject} from "./noteViewObject";
 import {NodeViewObject} from "./nodeViewObject";
@@ -46,6 +48,7 @@ export class EditorKeyEvents {
     private svgMouseController: SVGMouseController,
     private trainrunSectionPreviewLineView: TrainrunSectionPreviewLineView,
     private positionTransformationService: PositionTransformationService,
+    private autoLayoutService: AutoLayoutService,
   ) {
     this.activateMousekeyDownHandler(EditorMode.NetzgrafikEditing);
   }
@@ -82,6 +85,7 @@ export class EditorKeyEvents {
 
       const keycode = event.code;
       const ctrlKey = event.ctrlKey;
+      const shiftKey = event.shiftKey;
       switch (keycode) {
         case "Delete":
           this.onKeyPressedDelete();
@@ -137,6 +141,10 @@ export class EditorKeyEvents {
             this.onDuplicate();
             event.preventDefault();
           }
+          break;
+        case "KeyL":
+          this.autoLayoutService.optimizeLayout(shiftKey);
+          event.preventDefault();
           break;
         case "ArrowLeft":
           this.onArrowLeft();
@@ -212,7 +220,7 @@ export class EditorKeyEvents {
       return false;
     }
 
-    const selectedSections = this.getSelectedTrainrunSections();
+    const selectedSections = this.trainrunSectionService.getAllSelectedTrainrunSections();
     if (selectedSections.length === 0) {
       return false;
     }
@@ -227,10 +235,6 @@ export class EditorKeyEvents {
 
   private isMultiNodeMovingMode(): boolean {
     return this.uiInteractionService.getEditorMode() === EditorMode.MultiNodeMoving;
-  }
-
-  private getSelectedTrainrunSections(): TrainrunSection[] {
-    return this.trainrunSectionService.getAllSelectedTrainrunSections() ?? [];
   }
 
   private groupSectionsByNodePairs(sections: TrainrunSection[]): Map<string, TrainrunSection[]> {

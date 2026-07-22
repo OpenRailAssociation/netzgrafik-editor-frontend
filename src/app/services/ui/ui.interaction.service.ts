@@ -27,12 +27,14 @@ import {NetzgrafikColoringService} from "../data/netzgrafikColoring.service";
 import {MainViewMode} from "../../view/filter-main-side-view/main-view-mode";
 import {TrainrunService} from "../data/trainrun.service";
 import {Trainrun} from "../../models/trainrun.model";
+import {Node} from "../../models/node.model";
 import {LoadPerlenketteService} from "../../perlenkette/service/load-perlenkette.service";
 import {TravelTimeCreationEstimatorType} from "../../view/themes/editor-trainrun-traveltime-creator-type";
 import {OrderingAlgorithm} from "../../data-structures/technical.data.structures";
 import {TrafficSide} from "src/app/data-structures/business.data.structures";
 import {DataService} from "../data/data.service";
 import {Operation, MetadataOperation} from "../../models/operation.model";
+import {EditorView} from "src/app/view/editor-main-view/data-views/editor.view";
 
 export interface ViewboxProperties {
   currentViewBox: string;
@@ -366,6 +368,53 @@ export class UiInteractionService implements OnDestroy {
     );
     this.moveNetzgrafikEditorFocalViewPoint(center);
   }
+
+  findClosestNodeToViewCenter(nodes: Node[]): {node: Node | undefined; offset: Vec2D} {
+    const vb = this.getViewboxProperties(EditorView.svgName);
+    // Compute center of the current viewBox
+    const center = new Vec2D(
+      vb.panZoomLeft + vb.panZoomWidth / 2,
+      vb.panZoomTop + vb.panZoomHeight / 2,
+    );
+
+    let minDistance = Number.MAX_VALUE;
+    let closest: Node | undefined = undefined;
+    let offset: Vec2D = new Vec2D(0, 0);
+
+    // Search for the node closest to the center of the viewBox
+    for (const n of nodes) {
+      const nodePos = new Vec2D(
+        n.getPositionX() + n.getNodeWidth() / 2.0,
+        n.getPositionY() + n.getNodeHeight() / 2.0,
+      );
+      const dist = Vec2D.norm(Vec2D.sub(nodePos, center));
+
+      if (dist < minDistance) {
+        minDistance = dist;
+        closest = n;
+      }
+    }
+
+    if (closest) {
+      offset = Vec2D.sub(
+        center,
+        new Vec2D(
+          closest.getPositionX() + closest.getNodeWidth() / 2.0,
+          closest.getPositionY() + closest.getNodeHeight() / 2.0,
+        ),
+      );
+    }
+
+    return {node: closest, offset: offset};
+  }
+
+  gotoNode(node: Node, offset: Vec2D = new Vec2D(0, 0)) {
+    // Move the center of the view to the center of the node, applying an optional offset
+    const x = node.getPositionX() + node.getNodeWidth() / 2.0 + offset.getX();
+    const y = node.getPositionY() + node.getNodeHeight() / 2.0 + offset.getY();
+    this.moveNetzgrafikEditorFocalViewPoint(new Vec2D(x, y));
+  }
+
   showOrCloseFilter(type: FilterWindowType) {
     if (this.isFilterWindowType(type)) {
       this.closeFilter();

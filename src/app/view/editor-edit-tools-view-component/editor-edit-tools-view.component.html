@@ -155,6 +155,37 @@
       </sbb-radio-button>
     </sbb-radio-group>
   </sbb-expansion-panel>
+  <sbb-expansion-panel [expanded]="false" [disabled]="!getVariantIsWritable()">
+    <sbb-expansion-panel-header>
+      {{
+        "app.view.editor-edit-tools-view-component.node-optimization-disposition-title" | translate
+      }}
+    </sbb-expansion-panel-header>
+    <br />
+    <button
+      (click)="onOptimizeLayout()"
+      [title]="
+        'app.view.editor-edit-tools-view-component.optimization-netzgrafik-tooltip' | translate
+      "
+      class="TrainrunDialog EditorToolButton"
+    >
+      <sbb-icon svgIcon="arrow-start-right-small"></sbb-icon>
+    </button>
+    {{ "app.view.editor-edit-tools-view-component.optimize-layout" | translate }}
+    <br />
+    <button
+      (click)="onInverseOptimizeLayout()"
+      [title]="
+        'app.view.editor-edit-tools-view-component.inverse_optimization-netzgrafik-tooltip'
+          | translate
+      "
+      class="TrainrunDialog EditorToolButton"
+    >
+      <sbb-icon svgIcon="arrow-end-right-small"></sbb-icon>
+    </button>
+    {{ "app.view.editor-edit-tools-view-component.inverse_optimization-netzgrafik" | translate }}
+    <br />
+  </sbb-expansion-panel>
 
   <sbb-expansion-panel *ngIf="getAreMultiObjectSelected()" [expanded]="getAreMultiObjectSelected()">
     <sbb-expansion-panel-header>
