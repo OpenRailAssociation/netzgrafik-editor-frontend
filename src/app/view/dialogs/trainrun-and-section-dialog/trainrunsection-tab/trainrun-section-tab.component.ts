@@ -128,6 +128,8 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
       this.updateAllValues();
     });
     this.trainrunSectionService.trainrunSections.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      // This will be removed once path and text considerations are moved to the view layer.
+      this.selectedTrainrunSection?.routeEdgeAndPlaceText();
       if (
         this.selectedTrainrunSection !== this.trainrunSectionService.getSelectedTrainrunSection()
       ) {
