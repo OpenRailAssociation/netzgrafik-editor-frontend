@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import {EventEmitter, Injectable} from "@angular/core";
 import {Node} from "../../models/node.model";
 import {NodeService} from "../data/node.service";
 import {UiInteractionService} from "../ui/ui.interaction.service";
@@ -9,6 +9,7 @@ import {ViewportCullService} from "../ui/viewport.cull.service";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {RASTERING_BASIC_GRID_SIZE} from "../../view/rastering/definitions";
 import {Vec2D} from "src/app/utils/vec2D";
+import {NodeOperation, Operation, OperationType} from "src/app/models/operation.model";
 
 // This auto-layout service was introduced at www.hack4rail.org 2026 at the Vienna hackathon.
 // It is a simple implementation of a layout optimization algorithm that stretches or shrinks
@@ -41,6 +42,8 @@ export class AutoLayoutService {
   private static readonly MIN_SECTION_LENGTH_PX = 200;
   private static readonly MIN_CHAR_LENGTH_PX = 20;
 
+  readonly operation = new EventEmitter<Operation>();
+
   constructor(
     private readonly nodeService: NodeService,
     private readonly uiInteractionService: UiInteractionService,
@@ -70,6 +73,9 @@ export class AutoLayoutService {
     // 2) No selection → global optimization
     const allSections = this.trainrunSectionService.getTrainrunSections();
     this.adjustSectionLengths(allSections, true, direction);
+    this.nodeService
+      .getNodes()
+      .forEach((node) => this.operation.emit(new NodeOperation(OperationType.update, node)));
   }
 
   private getSectionsForLocalOperation(): TrainrunSection[] {
