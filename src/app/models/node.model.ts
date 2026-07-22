@@ -34,12 +34,12 @@ export class Node {
   private ports: Port[];
   private transitions: Transition[];
   private connections: Connection[];
-  private resourceId: number;
+  private resourceId: number | null;
   private perronkanten: number;
   private connectionTime: number;
   private trainrunCategoryHaltezeiten: TrainrunCategoryHaltezeit;
-  private symmetryAxis: number;
-  private warnings: WarningDto[];
+  private symmetryAxis: number | null;
+  private warnings: WarningDto[] | null;
   private isSelected: boolean;
   private labelIds: number[];
 
@@ -219,7 +219,7 @@ export class Node {
     return this.id;
   }
 
-  getResourceId(): number {
+  getResourceId(): number | null {
     return this.resourceId;
   }
 
@@ -307,7 +307,11 @@ export class Node {
   }
 
   getPort(portId: number): Port {
-    return this.ports.find((p) => p.getId() === portId);
+    const port = this.ports.find((p) => p.getId() === portId);
+    if (port === undefined) {
+      throw new Error(`Port with id ${portId} not found on node ${this.id}`);
+    }
+    return port;
   }
 
   getNextFreePinPositionIndex(alignment: PortAlignment): number {
@@ -352,7 +356,7 @@ export class Node {
     return undefined;
   }
 
-  getTransition(trainrunSectionId: number): Transition {
+  getTransition(trainrunSectionId: number): Transition | undefined {
     return this.getTransitions().find((trans: Transition) => {
       const port = this.getPortOfTrainrunSection(trainrunSectionId);
       if (port === undefined) {
@@ -362,7 +366,7 @@ export class Node {
     });
   }
 
-  getNextTrainrunSection(trainrunSection: TrainrunSection): TrainrunSection {
+  getNextTrainrunSection(trainrunSection: TrainrunSection): TrainrunSection | undefined {
     let transition = this.getTransitions().find((trans: Transition) => {
       const t = this.getPortOfTrainrunSection(trainrunSection.getId());
       if (t === undefined) {
@@ -388,7 +392,7 @@ export class Node {
     return undefined;
   }
 
-  getPreviousTrainrunSection(trainrunSection: TrainrunSection): TrainrunSection {
+  getPreviousTrainrunSection(trainrunSection: TrainrunSection): TrainrunSection | undefined {
     let transition = this.getTransitions().find((trans: Transition) => {
       const t = this.getPortOfTrainrunSection(trainrunSection.getId());
       if (t === undefined) {
@@ -427,7 +431,7 @@ export class Node {
     );
   }
 
-  getExtremityTrainrunSection(trainrunId: number, returnForwardStartNode = true): TrainrunSection {
+  getExtremityTrainrunSection(trainrunId: number, returnForwardStartNode = true): TrainrunSection | undefined {
     const portsForTrainrun = this.ports.filter(
       (port) => port.getTrainrunSection().getTrainrunId() === trainrunId,
     );
@@ -530,11 +534,19 @@ export class Node {
   }
 
   getTransitionFromId(transitionId: number): Transition {
-    return this.transitions.find((t: Transition) => t.getId() === transitionId);
+    const trans = this.transitions.find((t: Transition) => t.getId() === transitionId);
+    if (trans === undefined) {
+      throw new Error(`Transition with id ${transitionId} not found on node ${this.id}`);
+    }
+    return trans;
   }
 
   getConnectionFromId(connectionId: number): Connection {
-    return this.connections.find((c: Connection) => c.getId() === connectionId);
+    const connection = this.connections.find((c: Connection) => c.getId() === connectionId);
+    if (connection === undefined) {
+      throw new Error(`Connection with id ${connectionId} not found on node ${this.id}`);
+    }
+    return connection;
   }
 
   getConnections(): Connection[] {
@@ -555,7 +567,11 @@ export class Node {
   }
 
   getPortOfTrainrunSection(trainrunSectionId: number): Port {
-    return this.ports.find((port) => port.getTrainrunSectionId() === trainrunSectionId);
+    const port = this.ports.find((port) => port.getTrainrunSectionId() === trainrunSectionId);
+    if (port === undefined) {
+      throw new Error(`Port with trainrunSectionId ${trainrunSectionId} not found on node ${this.id}`);
+    }
+    return port;
   }
 
   addTransitionAndComputeRouting(
@@ -801,9 +817,15 @@ export class Node {
   }
 
   getTrainrunSection(trainrun: Trainrun): TrainrunSection {
-    return this.ports
-      .find((port) => port.getTrainrunSection().getTrainrunId() === trainrun.getId())
-      .getTrainrunSection();
+    const port = this.ports.find(
+      (port) => port.getTrainrunSection().getTrainrunId() === trainrun.getId(),
+    );
+    if (port === undefined) {
+      throw new Error(
+        `TrainrunSection for Trainrun with id ${trainrun.getId()} not found on node ${this.id}`,
+      );
+    }
+    return port.getTrainrunSection();
   }
 
   getEndingTrainrunSection(trainrun: Trainrun): TrainrunSection {

@@ -49,10 +49,10 @@ export class TrainrunSection {
 
   private trainrunId: number;
   private resourceId: number;
-  private specificTrainrunSectionFrequencyId: number;
+  private specificTrainrunSectionFrequencyId: number | null;
   private path: PathDto;
   private pathVec2D: Vec2D[];
-  private warnings: WarningDto[];
+  private warnings: WarningDto[] | null;
 
   private sourceNode: Node;
   private targetNode: Node;
@@ -176,35 +176,35 @@ export class TrainrunSection {
     return ++TrainrunSection.currentId;
   }
 
-  private static getDisplayTextWidth(time: TimeLockDto): number {
+  private static getDisplayTextWidth(time: TimeLockDto): number | undefined {
     if (!time.timeFormatter?.textWidth) {
       return undefined;
     }
     return time.timeFormatter.textWidth;
   }
 
-  private static getDisplayHtmlStyle(time: TimeLockDto): string {
+  private static getDisplayHtmlStyle(time: TimeLockDto): string | undefined {
     if (!time.timeFormatter?.htmlStyle) {
       return undefined;
     }
     return time.timeFormatter.htmlStyle;
   }
 
-  private static getDisplayColorRef(time: TimeLockDto): ColorRefType {
+  private static getDisplayColorRef(time: TimeLockDto): ColorRefType | undefined {
     if (!time.timeFormatter?.colorRef) {
       return undefined;
     }
     return time.timeFormatter.colorRef;
   }
 
-  private static formatDisplayText(time: TimeLockDto, offset: number): string {
+  private static formatDisplayText(time: TimeLockDto, offset: number): string | undefined {
     if (!time?.timeFormatter?.stylePattern) {
       return undefined;
     }
 
-    const consecutiveTimeDate = new Date(null);
+    const consecutiveTimeDate = new Date(0);
     consecutiveTimeDate.setSeconds((time.consecutiveTime + offset) * 60);
-    const timeDate = new Date(null);
+    const timeDate = new Date(0);
     timeDate.setSeconds(((time.time + offset + 24 * 60) % 60) * 60);
 
     const patterns = {
@@ -389,99 +389,99 @@ export class TrainrunSection {
     return this.targetArrival.time;
   }
 
-  getTravelTimeFormattedDisplayText(offset = 0): string {
+  getTravelTimeFormattedDisplayText(offset = 0): string | undefined {
     return TrainrunSection.formatDisplayText(this.travelTime, offset);
   }
 
-  getBackwardTravelTimeFormattedDisplayText(offset = 0): string {
+  getBackwardTravelTimeFormattedDisplayText(offset = 0): string | undefined {
     return TrainrunSection.formatDisplayText(this.backwardTravelTime, offset);
   }
 
-  getSourceDepartureFormattedDisplayText(offset = 0): string {
+  getSourceDepartureFormattedDisplayText(offset = 0): string | undefined {
     return TrainrunSection.formatDisplayText(this.sourceDeparture, offset);
   }
 
-  getSourceArrivalFormattedDisplayText(offset = 0): string {
+  getSourceArrivalFormattedDisplayText(offset = 0): string | undefined {
     return TrainrunSection.formatDisplayText(this.sourceArrival, offset);
   }
 
-  getTargetDepartureFormattedDisplayText(offset = 0): string {
+  getTargetDepartureFormattedDisplayText(offset = 0): string | undefined {
     return TrainrunSection.formatDisplayText(this.targetDeparture, offset);
   }
 
-  getTargetArrivalFormattedDisplayText(offset = 0): string {
+  getTargetArrivalFormattedDisplayText(offset = 0): string | undefined {
     return TrainrunSection.formatDisplayText(this.targetArrival, offset);
   }
 
-  getTravelTimeFormattedDisplayTextWidth(): number {
+  getTravelTimeFormattedDisplayTextWidth(): number | undefined {
     return TrainrunSection.getDisplayTextWidth(this.travelTime);
   }
 
-  getBackwardTravelTimeFormattedDisplayTextWidth(): number {
+  getBackwardTravelTimeFormattedDisplayTextWidth(): number | undefined {
     return TrainrunSection.getDisplayTextWidth(this.backwardTravelTime);
   }
 
-  getSourceDepartureFormattedDisplayTextWidth(): number {
+  getSourceDepartureFormattedDisplayTextWidth(): number | undefined {
     return TrainrunSection.getDisplayTextWidth(this.sourceDeparture);
   }
 
-  getSourceArrivalFormattedDisplayTextWidth(): number {
+  getSourceArrivalFormattedDisplayTextWidth(): number | undefined {
     return TrainrunSection.getDisplayTextWidth(this.sourceArrival);
   }
 
-  getTargetDepartureFormattedDisplayTextWidth(): number {
+  getTargetDepartureFormattedDisplayTextWidth(): number | undefined {
     return TrainrunSection.getDisplayTextWidth(this.targetDeparture);
   }
 
-  getTargetArrivalFormattedDisplayTextWidth(): number {
+  getTargetArrivalFormattedDisplayTextWidth(): number | undefined {
     return TrainrunSection.getDisplayTextWidth(this.targetArrival);
   }
 
-  getTravelTimeFormattedDisplayHtmlStyle(): string {
+  getTravelTimeFormattedDisplayHtmlStyle(): string | undefined {
     return TrainrunSection.getDisplayHtmlStyle(this.travelTime);
   }
 
-  getBackwardTravelTimeFormattedDisplayHtmlStyle(): string {
+  getBackwardTravelTimeFormattedDisplayHtmlStyle(): string | undefined {
     return TrainrunSection.getDisplayHtmlStyle(this.backwardTravelTime);
   }
 
-  getSourceDepartureFormattedDisplayHtmlStyle(): string {
+  getSourceDepartureFormattedDisplayHtmlStyle(): string | undefined {
     return TrainrunSection.getDisplayHtmlStyle(this.sourceDeparture);
   }
 
-  getSourceArrivalFormattedDisplayHtmlStyle(): string {
+  getSourceArrivalFormattedDisplayHtmlStyle(): string | undefined {
     return TrainrunSection.getDisplayHtmlStyle(this.sourceArrival);
   }
 
-  getTargetDepartureFormattedDisplayHtmlStyle(): string {
+  getTargetDepartureFormattedDisplayHtmlStyle(): string | undefined {
     return TrainrunSection.getDisplayHtmlStyle(this.targetDeparture);
   }
 
-  getTargetArrivalFormattedDisplayHtmlStyle(): string {
+  getTargetArrivalFormattedDisplayHtmlStyle(): string | undefined {
     return TrainrunSection.getDisplayHtmlStyle(this.targetArrival);
   }
 
-  getTravelTimeFormatterColorRef(): ColorRefType {
+  getTravelTimeFormatterColorRef(): ColorRefType | undefined {
     return TrainrunSection.getDisplayColorRef(this.travelTime);
   }
 
-  getBackwardTravelTimeFormatterColorRef(): ColorRefType {
+  getBackwardTravelTimeFormatterColorRef(): ColorRefType | undefined {
     return TrainrunSection.getDisplayColorRef(this.backwardTravelTime);
   }
 
-  getSourceDepartureFormatterColorRef(): ColorRefType {
+  getSourceDepartureFormatterColorRef(): ColorRefType | undefined {
     return TrainrunSection.getDisplayColorRef(this.sourceDeparture);
   }
 
-  getSourceArrivalFormatterColorRef(): ColorRefType {
+  getSourceArrivalFormatterColorRef(): ColorRefType | undefined {
     return TrainrunSection.getDisplayColorRef(this.sourceArrival);
   }
 
-  getTargetDepartureFormatterColorRef(): ColorRefType {
+  getTargetDepartureFormatterColorRef(): ColorRefType | undefined {
     return TrainrunSection.getDisplayColorRef(this.targetDeparture);
   }
 
-  getTargetArrivalFormatterColorRef(): ColorRefType {
+  getTargetArrivalFormatterColorRef(): ColorRefType | undefined {
     return TrainrunSection.getDisplayColorRef(this.targetArrival);
   }
 

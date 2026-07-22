@@ -9,7 +9,7 @@ export class Connection {
   private port2Id: number;
 
   private path: Vec2D[];
-  private warning: WarningDto = null;
+  private warning: WarningDto | null = null;
 
   private isSelected = false;
 
