@@ -26,6 +26,8 @@ import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
 import {AutoLayoutService} from "../../../services/util/auto-layout.service";
+import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
+import {SimpleTrainrunSectionRouter} from "src/app/services/util/trainrunsection.routing";
 
 describe("3d.Utils.tests", () => {
   let dataService: DataService;
@@ -191,7 +193,7 @@ describe("3d.Utils.tests", () => {
   it("NotesView.convertText", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const txt0 = D3Utils.getPathAsSVGString(
-      trainrunSectionService.getTrainrunSectionFromId(1).getPath(),
+      SimpleTrainrunSectionRouter.computePath(trainrunSectionService.getTrainrunSectionFromId(1)),
     );
     expect(txt0).toBe("M418,48L482,48L670,80L734,80");
   });
@@ -199,7 +201,7 @@ describe("3d.Utils.tests", () => {
   it("NotesView.getBezierCurveAsSVGString", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const txt0 = D3Utils.getBezierCurveAsSVGString(
-      trainrunSectionService.getTrainrunSectionFromId(1).getPath(),
+      SimpleTrainrunSectionRouter.computePath(trainrunSectionService.getTrainrunSectionFromId(1)),
     );
     expect(txt0).toBe("M 418 48C 482 48, 670 80, 734,80");
   });

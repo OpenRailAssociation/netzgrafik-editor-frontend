@@ -29,6 +29,13 @@
     </sbb-accordion>
   </sbb-expansion-panel>
 
+  <sbb-expansion-panel [expanded]="false" [hideToggle]="false" [disabled]="!getVariantIsWritable()">
+    <sbb-expansion-panel-header>{{
+      "app.view.editor-edit-tools-view-component.nodes" | translate
+    }}</sbb-expansion-panel-header>
+    <sbb-global-nodes-management />
+  </sbb-expansion-panel>
+
   <sbb-expansion-panel
     [expanded]="getVariantIsWritable() && !getAreMultiObjectSelected()"
     [disabled]="!getVariantIsWritable()"

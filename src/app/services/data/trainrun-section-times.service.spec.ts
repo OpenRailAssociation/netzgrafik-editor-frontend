@@ -102,6 +102,8 @@ describe("TrainrunSectionTimesService", () => {
           rightArrivalTime: 22,
           travelTime: 10,
           bottomTravelTime: 10,
+          stopTime: 0,
+          bottomStopTime: 0,
         },
       },
       {
@@ -114,6 +116,8 @@ describe("TrainrunSectionTimesService", () => {
           rightArrivalTime: 0,
           travelTime: 10,
           bottomTravelTime: 10,
+          stopTime: 0,
+          bottomStopTime: 0,
         },
       },
       {
@@ -126,6 +130,8 @@ describe("TrainrunSectionTimesService", () => {
           rightArrivalTime: 49,
           travelTime: 49,
           bottomTravelTime: 49,
+          stopTime: 0,
+          bottomStopTime: 0,
         },
       },
     ];
@@ -149,6 +155,8 @@ describe("TrainrunSectionTimesService", () => {
       rightArrivalTime: 22,
       travelTime: 10,
       bottomTravelTime: 10,
+      stopTime: 0,
+      bottomStopTime: 0,
     };
 
     const onChanged = {
@@ -550,6 +558,8 @@ describe("TrainrunSectionTimesService", () => {
       rightDepartureTime: 52,
       bottomTravelTime: 88,
       leftArrivalTime: 20,
+      stopTime: 0,
+      bottomStopTime: 0,
     });
     trainrunSectionService.setTimeStructureToSingleTrainrunSection(rightDirectedSection, {
       leftDepartureTime: 9,
@@ -558,6 +568,8 @@ describe("TrainrunSectionTimesService", () => {
       rightDepartureTime: 8,
       bottomTravelTime: 44,
       leftArrivalTime: 52,
+      stopTime: 0,
+      bottomStopTime: 0,
     });
 
     // Check consecutive times

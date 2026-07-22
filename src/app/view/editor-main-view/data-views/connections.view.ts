@@ -8,6 +8,7 @@ import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {DEFAULT_PIN_RADIUS} from "../../rastering/definitions";
 import {Vec2D} from "../../../utils/vec2D";
 import {ConnectionsViewObject} from "./connectionViewObject";
+import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
 
 type ConnectionDragEvent = d3.D3DragEvent<SVGElement, ConnectionsViewObject, unknown>;
@@ -62,11 +63,13 @@ export class ConnectionsView {
     return port2.getTrainrunSection();
   }
 
-  static getConnectionPinPosition(ts: TrainrunSection, node: Node): Vec2D {
+  getConnectionPinPosition(ts: TrainrunSection, node: Node): Vec2D {
+    const viewObject = new TrainrunSectionViewObject(this.editorView, [ts]);
+
     if (node.getId() === ts.getSourceNodeId()) {
-      return ts.getPositionAtSourceNode();
+      return viewObject.getPositionAtSourceNode();
     }
-    return ts.getPositionAtTargetNode();
+    return viewObject.getPositionAtTargetNode();
   }
 
   setGroup(connectionsGroup: d3.Selection<SVGElement, undefined, Element, undefined>) {
@@ -209,14 +212,14 @@ export class ConnectionsView {
       if (ConnectionsView.displayConnection(c.connection, c.node)) {
         if (ConnectionsView.displayConnectionPinPort2(c.connection, c.node)) {
           if (selectedTrainrun === null || selectedTrainrun.getId() === ts2.getTrainrunId()) {
-            const pinPos = ConnectionsView.getConnectionPinPosition(ts1, c.node);
+            const pinPos = this.getConnectionPinPosition(ts1, c.node);
             this.createConnectionSinglePin(d3.select(a[i]), pinPos);
           }
         }
 
         if (ConnectionsView.displayConnectionPinPort1(c.connection, c.node)) {
           if (selectedTrainrun === null || selectedTrainrun.getId() === ts1.getTrainrunId()) {
-            const pinPos = ConnectionsView.getConnectionPinPosition(ts2, c.node);
+            const pinPos = this.getConnectionPinPosition(ts2, c.node);
             this.createConnectionSinglePin(d3.select(a[i]), pinPos);
           }
         }
@@ -250,6 +253,12 @@ export class ConnectionsView {
     }
 
     const node: Node = this.editorView.getNodeFromConnection(con);
+
+    // filter if node is collapsed - do not show connections for collapsed nodes
+    if (node.getIsCollapsed()) {
+      return false;
+    }
+
     const trainrunSection1: TrainrunSection = node.getPort(con.getPortId1()).getTrainrunSection();
     const trainrunSection2: TrainrunSection = node.getPort(con.getPortId2()).getTrainrunSection();
     const filterTrainrun1 = this.editorView.filterTrainrun(trainrunSection1.getTrainrun());
