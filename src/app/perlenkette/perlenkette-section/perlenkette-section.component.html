@@ -6,20 +6,36 @@
   <!--- START - RENDER SVG (default) --->
   <svg *ngIf="isBeingEdited() === 'Rendering'" width="274px" viewBox="70 0 137 192">
     <g class="edge Lines" (click)="onEdgeLineClick()">
-      <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_0"></path>
-      <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_1"></path>
-      <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_2"></path>
-      <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
+      <path
+        [attr.d]="getEdgeLinePath()"
+        [ngClass]="[getPathClassTag()]"
+        class="edge_line layer_0"
+      ></path>
+      <path
+        [attr.d]="getEdgeLinePath()"
+        [ngClass]="[getPathClassTag()]"
+        class="edge_line layer_1"
+      ></path>
+      <path
+        [attr.d]="getEdgeLinePath()"
+        [ngClass]="[getPathClassTag()]"
+        class="edge_line layer_2"
+      ></path>
+      <path
+        [attr.d]="getEdgeLinePath()"
+        [ngClass]="[getPathClassTag()]"
+        class="edge_line layer_3"
+      ></path>
       <!-- Direction arrows (one way trainrun) -->
       <path
-        *ngIf="shouldDisplayDirectionArrow()"
+        *ngIf="shouldDisplayDirectionArrow('top')"
         [class]="getEdgeLineArrowClass()"
         d="M-4,-5L2,0L-4,5Z"
         [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
         [attr.hidden]="isDirectionArrowHidden() ? '' : null"
       ></path>
       <path
-        *ngIf="shouldDisplayDirectionArrow()"
+        *ngIf="shouldDisplayDirectionArrow('bottom')"
         [class]="getEdgeLineArrowClass()"
         d="M-4,-5L2,0L-4,5Z"
         [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
@@ -43,19 +59,17 @@
     </g>
     <g>
       <!-- Intermediary stops (numberOfStops) -->
-      <ng-container *ngIf="stationNumberArray.length <= 5">
+      <ng-container *ngIf="!isTip() && numberOfStops <= 5">
         <circle
-          *ngFor="let stationNumber of stationNumberArray"
+          *ngFor="let stopIndex of getStopIndices()"
           cx="137px"
-          [attr.cy]="
-            192 / 4 + ((192 - 8) / (perlenketteSection.numberOfStops + 1)) * 0.5 * stationNumber + 4
-          "
+          [attr.cy]="192 / 4 + ((192 - 8) / (numberOfStops + 1)) * 0.5 * stopIndex + 4"
           [ngClass]="[getPathClassTag()]"
           class="edge_line_stops fill PerlenketteStopElement"
           (click)="clickStopElement()"
         ></circle>
       </ng-container>
-      <ng-container *ngIf="stationNumberArray.length > 5">
+      <ng-container *ngIf="!isTip() && numberOfStops > 5">
         <circle
           cx="137px"
           [attr.cy]="(192 - 8) / 2 + 4"
@@ -78,7 +92,7 @@
               style="font-size: 12px"
               [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
             >
-              {{ stationNumberArray.length }}
+              {{ numberOfStops }}
             </text>
           </g>
         </g>
@@ -87,7 +101,7 @@
     <g>
       <g
         transform="translate(137, 0)"
-        *ngIf="!showArrivalAndDepartureTime() && showStopArcStart() && isRightSideDisplayed()"
+        *ngIf="!showArrivalAndDepartureTime() && showStopArcStart() && !isExtremityCollapsed('top')"
       >
         <path
           d="M4,0A4,4,0,1,1,-4,4.898587196589413e-16L0,0Z"
@@ -95,7 +109,12 @@
           class="edge_line_stop_arcs fill"
         />
       </g>
-      <g transform="translate(137, 192)" *ngIf="!showArrivalAndDepartureTime() && showStopArcEnd()">
+      <g
+        transform="translate(137, 192)"
+        *ngIf="
+          !showArrivalAndDepartureTime() && showStopArcEnd() && !isExtremityCollapsed('bottom')
+        "
+      >
         <path
           d="M-4,-4.898587196589413e-16A4,4,0,1,1,4,0L0,0Z"
           [ngClass]="[getPathClassTag()]"
@@ -161,7 +180,7 @@
 
       <g
         [attr.transform]="getTimeTransform('leftArrivalTime')"
-        *ngIf="showLeftArrivalTime() && isLeftSideDisplayed()"
+        *ngIf="showArrivalAndDepartureTime() && showLeftArrivalTime() && isLeftSideDisplayed()"
       >
         <text
           x="0"
@@ -170,23 +189,25 @@
           [ngClass]="
             'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef + getLeftArrivalTimeClassTag()
           "
-          (click)="switchSectionView($event, 'leftArrivalTime')"
+          [style.cursor]="!isTip() ? 'pointer' : 'default'"
+          (click)="!isTip() && switchSectionView($event, 'leftArrivalTime')"
         >
           {{ getLeftArrivalTime() }}
         </text>
       </g>
       <g
-        [attr.transform]="getTimeTransform('rightDepartureTime')"
-        *ngIf="showArrivalAndDepartureTime() && isRightSideDisplayed()"
+        [attr.transform]="getTimeTransform('leftDepartureTime')"
+        *ngIf="showArrivalAndDepartureTime() && showLeftDepartureTime() && isRightSideDisplayed()"
       >
         <text
-          (click)="switchSectionView($event, 'leftDepartureTime')"
           x="0"
           y="0"
           class="edge_text start_text leftDepartureTime"
           [ngClass]="
             'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef + getLeftDepartureTimeClassTag()
           "
+          [style.cursor]="!isTip() ? 'pointer' : 'default'"
+          (click)="!isTip() && switchSectionView($event, 'leftDepartureTime')"
         >
           {{ getLeftDepartureTime() }}
         </text>
@@ -218,8 +239,8 @@
         </g>
       </g>
       <g
-        [attr.transform]="getTimeTransform('leftDepartureTime')"
-        *ngIf="showArrivalAndDepartureTime() && isLeftSideDisplayed()"
+        [attr.transform]="getTimeTransform('rightDepartureTime')"
+        *ngIf="showArrivalAndDepartureTime() && showRightDepartureTime() && isLeftSideDisplayed()"
       >
         <text
           x="0"
@@ -228,14 +249,15 @@
           [ngClass]="
             'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef + getRightDepartureTimeClassTag()
           "
-          (click)="switchSectionView($event, 'rightDepartureTime')"
+          [style.cursor]="!isTip() ? 'pointer' : 'default'"
+          (click)="!isTip() && switchSectionView($event, 'rightDepartureTime')"
         >
           {{ getRightDepartureTime() }}
         </text>
       </g>
       <g
         [attr.transform]="getTimeTransform('rightArrivalTime')"
-        *ngIf="showRightArrivalTime() && isRightSideDisplayed()"
+        *ngIf="showArrivalAndDepartureTime() && showRightArrivalTime() && isRightSideDisplayed()"
       >
         <text
           x="0"
@@ -244,7 +266,8 @@
           [ngClass]="
             'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef + getRightArrivalTimeClassTag()
           "
-          (click)="switchSectionView($event, 'rightArrivalTime')"
+          [style.cursor]="!isTip() ? 'pointer' : 'default'"
+          (click)="!isTip() && switchSectionView($event, 'rightArrivalTime')"
         >
           {{ getRightArrivalTime() }}
         </text>
@@ -264,14 +287,14 @@
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
           <!-- Direction arrows (one way trainrun) -->
           <path
-            *ngIf="shouldDisplayDirectionArrow()"
+            *ngIf="shouldDisplayDirectionArrow('top')"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
             [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
             [attr.hidden]="isDirectionArrowHidden() ? '' : null"
           ></path>
           <path
-            *ngIf="shouldDisplayDirectionArrow()"
+            *ngIf="shouldDisplayDirectionArrow('bottom')"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
             [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
@@ -411,7 +434,7 @@
 
             <sbb-toggle-switch-button
               class="LeftSymmetryToggle"
-              *ngIf="trainrunSection.getTrainrun().isRoundTrip()"
+              *ngIf="trainrun.isRoundTrip()"
               [checked]="!trainrunSectionTimesService.getSymmetryStructure().leftSymmetry"
               (checkedChanged)="onLeftNodeSymmetryToggle(!$event)"
               #leftSymmetryToggle
@@ -651,7 +674,7 @@
             </div>
             <sbb-toggle-switch-button
               class="RightSymmetryToggle"
-              *ngIf="trainrunSection.getTrainrun().isRoundTrip()"
+              *ngIf="trainrun.isRoundTrip()"
               [checked]="!trainrunSectionTimesService.getSymmetryStructure().rightSymmetry"
               (checkedChanged)="onRightNodeSymmetryToggle(!$event)"
               #rightSymmetryToggle
@@ -662,12 +685,7 @@
         </foreignObject>
       </svg>
 
-      <svg
-        width="45px"
-        [style.transform]="
-          trainrunSection.getTrainrun().isRoundTrip() ? 'translateX(30px)' : 'none'
-        "
-      >
+      <svg width="45px" [style.transform]="trainrun.isRoundTrip() ? 'translateX(30px)' : 'none'">
         <foreignObject height="192px" width="45px">
           <div class="propagationButtonContainer">
             <button
@@ -722,14 +740,14 @@
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
           <!-- Direction arrows (one way trainrun) -->
           <path
-            *ngIf="shouldDisplayDirectionArrow()"
+            *ngIf="shouldDisplayDirectionArrow('top')"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
             [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
             [attr.hidden]="isDirectionArrowHidden() ? '' : null"
           ></path>
           <path
-            *ngIf="shouldDisplayDirectionArrow()"
+            *ngIf="shouldDisplayDirectionArrow('bottom')"
             [class]="getEdgeLineArrowClass()"
             d="M-4,-5L2,0L-4,5Z"
             [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
@@ -752,21 +770,17 @@
           ></path>
         </g>
         <g>
-          <ng-container *ngIf="stationNumberArray.length <= 5">
+          <ng-container *ngIf="!isTip() && numberOfStops <= 5">
             <circle
-              *ngFor="let stationNumber of stationNumberArray"
+              *ngFor="let stopIndex of getStopIndices()"
               cx="137px"
-              [attr.cy]="
-                192 / 4 +
-                ((192 - 8) / (perlenketteSection.numberOfStops + 1)) * 0.5 * stationNumber +
-                4
-              "
+              [attr.cy]="192 / 4 + ((192 - 8) / (numberOfStops + 1)) * 0.5 * stopIndex + 4"
               [ngClass]="[getPathClassTag()]"
               style="fill: var(--COLOR_Edit)"
               class="edge_line_stops fill PerlenketteStopElement"
             ></circle>
           </ng-container>
-          <ng-container *ngIf="stationNumberArray.length > 5">
+          <ng-container *ngIf="!isTip() && numberOfStops > 5">
             <circle
               cx="137px"
               [attr.cy]="(192 - 8) / 2 + 4"
@@ -788,7 +802,7 @@
                   class="edge_text TrainrunSectionNumberOfStops end_text"
                   [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
                 >
-                  {{ stationNumberArray.length }}
+                  {{ numberOfStops }}
                 </text>
               </g>
             </g>
@@ -803,7 +817,7 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonMinus"
-                  (click)="onInputNbrStopsElementButtonMinus($event)"
+                  (click)="trainrunSectionTimesService.onInputNumberOfStopsElementButtonMinus()"
                 >
                   -
                 </button>
@@ -817,8 +831,12 @@
                   sbbInput
                   spellcheck="false"
                   pattern="^[0-9]*"
-                  [(ngModel)]="numberOfStops"
-                  (change)="onInputNbrStopsChanged()"
+                  [(ngModel)]="trainrunSectionTimesService.getTimeStructure().numberOfStops"
+                  (change)="
+                    trainrunSectionTimesService.onNumberOfStopsChanged(
+                      trainrunSectionTimesService.getTimeStructure().numberOfStops
+                    )
+                  "
                 />
               </div>
               <div class="nodePlus">
@@ -826,7 +844,7 @@
                   tabindex="-1"
                   mode="ghost"
                   class="ButtonPlus"
-                  (click)="onInputNbrStopsElementButtonPlus($event)"
+                  (click)="trainrunSectionTimesService.onInputNumberOfStopsElementButtonPlus()"
                 >
                   +
                 </button>

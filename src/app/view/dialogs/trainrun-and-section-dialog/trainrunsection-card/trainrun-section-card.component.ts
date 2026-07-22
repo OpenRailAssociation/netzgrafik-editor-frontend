@@ -209,7 +209,7 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
 
   getTrainrunTimeStructure(): Omit<
     LeftAndRightTimeStructure,
-    "travelTime" | "bottomTravelTime" | "stopTime" | "bottomStopTime"
+    "travelTime" | "bottomTravelTime" | "numberOfStops" | "stopTime" | "bottomStopTime"
   > {
     const selectedTrainrun = this.trainrunService.getSelectedTrainrun();
     if (!selectedTrainrun) {
