@@ -921,12 +921,14 @@ export class NodeService implements OnDestroy {
       node.setConnectionTime(baseData.getConnectionTime());
     }
     this.nodesUpdated();
+    this.trainrunSectionService.trainrunSectionsUpdated();
     this.operation.emit(new NodeOperation(OperationType.update, node));
   }
 
   changeNodeFullName(nodeId: number, name: string) {
     this.getNodeFromId(nodeId).setFullName(name);
     this.nodesUpdated();
+    this.trainrunSectionService.trainrunSectionsUpdated();
     this.operation.emit(new NodeOperation(OperationType.update, this.getNodeFromId(nodeId)));
   }
 
