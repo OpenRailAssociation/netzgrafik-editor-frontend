@@ -347,6 +347,14 @@ export class TrainrunSectionViewObject {
       "_" +
       this.firstSection.getNumberOfStops() +
       "_" +
+      this.firstSection.getSourceNode().getBetriebspunktName() +
+      "_" +
+      this.firstSection.getSourceNode().getFullName() +
+      "_" +
+      this.lastSection.getTargetNode().getBetriebspunktName() +
+      "_" +
+      this.lastSection.getTargetNode().getFullName() +
+      "_" +
       this.firstSection.getSourceNode().getIsCollapsed() +
       "_" +
       this.lastSection.getTargetNode().getIsCollapsed() +
