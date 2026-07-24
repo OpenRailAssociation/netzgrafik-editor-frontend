@@ -177,39 +177,39 @@ export class TrainrunSectionsView {
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
         return (
-          trainrunSection.getSourceDepartureWarning().title +
+          trainrunSection.getSourceDepartureWarning()?.title +
           ": " +
-          trainrunSection.getSourceDepartureWarning().description
+          trainrunSection.getSourceDepartureWarning()?.description
         );
       case TrainrunSectionText.SourceArrival:
         return (
-          trainrunSection.getSourceArrivalWarning().title +
+          trainrunSection.getSourceArrivalWarning()?.title +
           ": " +
-          trainrunSection.getSourceArrivalWarning().description
+          trainrunSection.getSourceArrivalWarning()?.description
         );
       case TrainrunSectionText.TargetDeparture:
         return (
-          trainrunSection.getTargetDepartureWarning().title +
+          trainrunSection.getTargetDepartureWarning()?.title +
           ": " +
-          trainrunSection.getTargetDepartureWarning().description
+          trainrunSection.getTargetDepartureWarning()?.description
         );
       case TrainrunSectionText.TargetArrival:
         return (
-          trainrunSection.getTargetArrivalWarning().title +
+          trainrunSection.getTargetArrivalWarning()?.title +
           ": " +
-          trainrunSection.getTargetArrivalWarning().description
+          trainrunSection.getTargetArrivalWarning()?.description
         );
       case TrainrunSectionText.TrainrunSectionTravelTime:
         return (
-          trainrunSection.getTravelTimeWarning().title +
+          trainrunSection.getTravelTimeWarning()?.title +
           ": " +
-          trainrunSection.getTravelTimeWarning().description
+          trainrunSection.getTravelTimeWarning()?.description
         );
       case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
         return (
-          trainrunSection.getBackwardTravelTimeWarning().title +
+          trainrunSection.getBackwardTravelTimeWarning()?.title +
           ": " +
-          trainrunSection.getBackwardTravelTimeWarning().description
+          trainrunSection.getBackwardTravelTimeWarning()?.description
         );
       case TrainrunSectionText.TrainrunSectionName:
       default:
