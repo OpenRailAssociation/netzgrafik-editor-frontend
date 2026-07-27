@@ -202,9 +202,9 @@ export class TrainrunSection {
       return undefined;
     }
 
-    const consecutiveTimeDate = new Date(null);
+    const consecutiveTimeDate = new Date(0);
     consecutiveTimeDate.setSeconds((time.consecutiveTime + offset) * 60);
-    const timeDate = new Date(null);
+    const timeDate = new Date(0);
     timeDate.setSeconds(((time.time + offset + 24 * 60) % 60) * 60);
 
     const patterns = {
