@@ -14,6 +14,7 @@ import {
   ColorRefType,
   PortAlignment,
   TrainrunSectionText,
+  WarningDto,
 } from "../../../data-structures/technical.data.structures";
 import {StaticDomTags} from "./static.dom.tags";
 import {TrainrunSection} from "../../../models/trainrunsection.model";
@@ -170,50 +171,29 @@ export class TrainrunSectionsView {
     }
   }
 
-  static getWarning(trainrunSection: TrainrunSection, textElement: TrainrunSectionText): string {
+  static getWarning(
+    trainrunSection: TrainrunSection,
+    textElement: TrainrunSectionText,
+  ): WarningDto | undefined {
     if (!TrainrunSectionsView.hasWarning(trainrunSection, textElement)) {
-      return "";
+      return undefined;
     }
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
-        return (
-          trainrunSection.getSourceDepartureWarning().title +
-          ": " +
-          trainrunSection.getSourceDepartureWarning().description
-        );
+        return trainrunSection.getSourceDepartureWarning();
       case TrainrunSectionText.SourceArrival:
-        return (
-          trainrunSection.getSourceArrivalWarning().title +
-          ": " +
-          trainrunSection.getSourceArrivalWarning().description
-        );
+        return trainrunSection.getSourceArrivalWarning();
       case TrainrunSectionText.TargetDeparture:
-        return (
-          trainrunSection.getTargetDepartureWarning().title +
-          ": " +
-          trainrunSection.getTargetDepartureWarning().description
-        );
+        return trainrunSection.getTargetDepartureWarning();
       case TrainrunSectionText.TargetArrival:
-        return (
-          trainrunSection.getTargetArrivalWarning().title +
-          ": " +
-          trainrunSection.getTargetArrivalWarning().description
-        );
+        return trainrunSection.getTargetArrivalWarning();
       case TrainrunSectionText.TrainrunSectionTravelTime:
-        return (
-          trainrunSection.getTravelTimeWarning().title +
-          ": " +
-          trainrunSection.getTravelTimeWarning().description
-        );
+        return trainrunSection.getTravelTimeWarning();
       case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
-        return (
-          trainrunSection.getBackwardTravelTimeWarning().title +
-          ": " +
-          trainrunSection.getBackwardTravelTimeWarning().description
-        );
+        return trainrunSection.getBackwardTravelTimeWarning();
       case TrainrunSectionText.TrainrunSectionName:
       default:
-        return "";
+        return undefined;
     }
   }
 
@@ -1591,7 +1571,11 @@ export class TrainrunSectionsView {
 
     if (hasWarning) {
       renderingObjects.append("svg:title").text((d: TrainrunSectionViewObject) => {
-        return TrainrunSectionsView.getWarning(d.trainrunSection, textElement);
+        const warning = TrainrunSectionsView.getWarning(d.trainrunSection, textElement);
+        if (!warning) {
+          return "";
+        }
+        return warning.title + ": " + warning.description;
       });
     }
   }
