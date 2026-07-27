@@ -643,11 +643,20 @@ export class TrainrunService {
       );
 
       // filter all still visited trainrun sections
-      alltrainrunsections = alltrainrunsections.filter(
+      const remainingTrainrunSections = alltrainrunsections.filter(
         (ts) =>
           propDataForward.visitedTrainrunSections.indexOf(ts) === -1 &&
           propDataBackward.visitedTrainrunSections.indexOf(ts) === -1,
       );
+
+      // Ensure forward progress: if we hit an infinite loop in
+      // TrainrunIterator, then we stop iterating leaving some sections
+      // unvisited. If we haven't visited new sections, bail out.
+      if (alltrainrunsections.length === remainingTrainrunSections.length) {
+        break;
+      }
+
+      alltrainrunsections = remainingTrainrunSections;
     }
   }
 
