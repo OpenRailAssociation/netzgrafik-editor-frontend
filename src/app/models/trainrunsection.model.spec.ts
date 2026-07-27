@@ -34,7 +34,6 @@ describe("TrainrunSection Model Test", () => {
         title: "test warning",
         description: "just for test",
       },
-      timeFormatter: null,
     };
     const ts = new TrainrunSection();
     ts.setSourceDepartureDto(timeLockDto);
@@ -55,7 +54,6 @@ describe("TrainrunSection Model Test", () => {
         title: "test warning",
         description: "just for test",
       },
-      timeFormatter: null,
     };
     const ts = new TrainrunSection();
     ts.setSourceArrivalDto(timeLockDto);
@@ -76,7 +74,6 @@ describe("TrainrunSection Model Test", () => {
         title: "test warning",
         description: "just for test",
       },
-      timeFormatter: null,
     };
     const ts = new TrainrunSection();
     ts.setTargetDepartureDto(timeLockDto);
@@ -97,7 +94,6 @@ describe("TrainrunSection Model Test", () => {
         title: "test warning",
         description: "just for test",
       },
-      timeFormatter: null,
     };
     const ts = new TrainrunSection();
     ts.setTargetArrivalDto(timeLockDto);
@@ -118,7 +114,6 @@ describe("TrainrunSection Model Test", () => {
         title: "test warning",
         description: "just for test",
       },
-      timeFormatter: null,
     };
     const ts = new TrainrunSection();
     ts.setTravelTimeDto(timeLockDto);
@@ -135,7 +130,7 @@ describe("TrainrunSection Model Test", () => {
     ts.setTargetArrivalWarning("C", "D");
     ts.setSourceDepartureWarning("E", "F");
     ts.setSourceArrivalWarning("G", "H");
-    ts.setTravelTimeWarning(undefined, null);
+    ts.setTravelTimeWarning("", "");
     expect(ts.hasTargetDepartureWarning()).toBe(true);
     expect(ts.hasTargetArrivalWarning()).toBe(true);
     expect(ts.hasSourceDepartureWarning()).toBe(true);

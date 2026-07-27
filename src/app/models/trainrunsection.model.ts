@@ -95,43 +95,31 @@ export class TrainrunSection {
         time: 0,
         consecutiveTime: 0,
         lock: false,
-        warning: null,
-        timeFormatter: null,
       },
       sourceArrival: {
         time: 0,
         consecutiveTime: 60,
         lock: false,
-        warning: null,
-        timeFormatter: null,
       },
       targetDeparture: {
         time: 59,
         consecutiveTime: 59,
         lock: false,
-        warning: null,
-        timeFormatter: null,
       },
       targetArrival: {
         time: 1,
         consecutiveTime: 1,
         lock: false,
-        warning: null,
-        timeFormatter: null,
       },
       travelTime: {
         time: 1,
         consecutiveTime: 1,
         lock: true,
-        warning: null,
-        timeFormatter: null,
       },
       backwardTravelTime: {
         time: 1,
         consecutiveTime: 1,
         lock: true,
-        warning: null,
-        timeFormatter: null,
       },
       trainrunId: 0,
       resourceId: 0,
@@ -141,7 +129,7 @@ export class TrainrunSection {
         path: [],
         textPositions: {...EMPTY_TEXT_POSITIONS},
       },
-      warnings: null,
+      warnings: [],
     },
   ) {
     this.id = id;
@@ -572,27 +560,27 @@ export class TrainrunSection {
   }
 
   hasTravelTimeWarning(): boolean {
-    return this.travelTime.warning !== null;
+    return Boolean(this.travelTime.warning);
   }
 
   hasBackwardTravelTimeWarning(): boolean {
-    return this.backwardTravelTime.warning !== null;
+    return Boolean(this.backwardTravelTime.warning);
   }
 
   hasSourceDepartureWarning(): boolean {
-    return this.sourceDeparture.warning !== null;
+    return Boolean(this.sourceDeparture.warning);
   }
 
   hasSourceArrivalWarning(): boolean {
-    return this.sourceArrival.warning !== null;
+    return Boolean(this.sourceArrival.warning);
   }
 
   hasTargetDepartureWarning(): boolean {
-    return this.targetDeparture.warning !== null;
+    return Boolean(this.targetDeparture.warning);
   }
 
   hasTargetArrivalWarning(): boolean {
-    return this.targetArrival.warning !== null;
+    return Boolean(this.targetArrival.warning);
   }
 
   setTargetArrivalWarning(wargningTitle: string, warningDescription: string) {
@@ -661,28 +649,28 @@ export class TrainrunSection {
     return this.backwardTravelTime.warning;
   }
 
-  resetTargetArrivalWarning() {
-    this.targetArrival.warning = null;
+  resetTargetArrivalWarning(): void {
+    this.targetArrival.warning = undefined;
   }
 
-  resetSourceArrivalWarning() {
-    this.sourceArrival.warning = null;
+  resetSourceArrivalWarning(): void {
+    this.sourceArrival.warning = undefined;
   }
 
-  resetTargetDepartureWarning() {
-    this.targetDeparture.warning = null;
+  resetTargetDepartureWarning(): void {
+    this.targetDeparture.warning = undefined;
   }
 
-  resetSourceDepartureWarning() {
-    this.sourceDeparture.warning = null;
+  resetSourceDepartureWarning(): void {
+    this.sourceDeparture.warning = undefined;
   }
 
-  resetTravelTimeWarning() {
-    this.travelTime.warning = null;
+  resetTravelTimeWarning(): void {
+    this.travelTime.warning = undefined;
   }
 
-  resetBackwardTravelTimeWarning() {
-    this.backwardTravelTime.warning = null;
+  resetBackwardTravelTimeWarning(): void {
+    this.backwardTravelTime.warning = undefined;
   }
 
   getTrainrunId(): number {
