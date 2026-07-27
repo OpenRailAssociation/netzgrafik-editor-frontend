@@ -251,7 +251,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .attr("class", "tooltip");
 
     // Three function that change the tooltip when user hover / move / leave a cell
-    const mouseover = function (d: OriginDestination) {
+    const mouseover = function (event: MouseEvent, d: OriginDestination) {
       if (d.found) {
         tooltip.style("opacity", 1);
         d3.select(this).style("stroke", "black").style("stroke-width", "2px").style("opacity", 1);
