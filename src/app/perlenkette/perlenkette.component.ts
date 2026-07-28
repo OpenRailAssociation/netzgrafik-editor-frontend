@@ -344,17 +344,12 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
 
   private getGotoCurrentY(pathItem: PerlenketteItem) {
     let currentY = 0;
-    let next = true;
-    this.perlenketteRenderingElementsHeight.forEach((pItem, idx) => {
-      const el = pItem[0];
-      const height = pItem[1];
+    for (const [el, height] of this.perlenketteRenderingElementsHeight) {
       if (el === pathItem) {
-        next = false;
+        break;
       }
-      if (next) {
-        currentY += height;
-      }
-    });
+      currentY += height;
+    }
     return currentY;
   }
 
