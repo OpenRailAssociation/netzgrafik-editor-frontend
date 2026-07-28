@@ -240,19 +240,10 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   getClosestPerlenketteItem(): PerlenketteNode {
     let retEl: PerlenketteNode = this.perlenketteRenderingElementsHeight.keys()[0];
     let currentY = 0;
-    this.perlenketteRenderingElementsHeight.forEach((pItem, idx) => {
-      const el = pItem[0];
-      const height = pItem[1];
+    this.perlenketteRenderingElementsHeight.forEach(([el, height]) => {
       const offY = this.svgPoint.getY() + this.contentHeight / 4;
-      if (el.isPerlenketteNode()) {
-        if (currentY < Math.max(0, offY) + height) {
-          if (retEl === undefined || currentY < Math.max(0, offY)) {
-            retEl = el.getPerlenketteNode();
-          }
-          if (Math.max(0, offY) - currentY < Math.max(0, offY) + height - currentY) {
-            retEl = el.getPerlenketteNode();
-          }
-        }
+      if (el.isPerlenketteNode() && currentY < Math.max(0, offY) + height) {
+        retEl = el.getPerlenketteNode();
       }
       currentY += height;
     });
