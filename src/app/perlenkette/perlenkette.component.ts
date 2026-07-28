@@ -275,9 +275,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   signalHeightChanged(height: number, pathItem: PerlenketteItem) {
     this.perlenketteRenderingElementsHeight.push([pathItem, height]);
     this.renderedElementsHeight = 0;
-    this.perlenketteRenderingElementsHeight.forEach((pItem, idx) => {
-      const el = pItem[0];
-      const height = pItem[1];
+    this.perlenketteRenderingElementsHeight.forEach(([_, height]) => {
       this.renderedElementsHeight += height;
     });
   }
