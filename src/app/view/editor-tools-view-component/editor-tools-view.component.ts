@@ -1,6 +1,6 @@
 import {parse} from "papaparse";
 import {Component, ElementRef, ViewChild} from "@angular/core";
-import * as svg from "save-svg-as-png";
+import {SvgExportOptions, svgAsDataUri, saveSvgAsPng} from "save-svg-as-png";
 import {DataService} from "../../services/data/data.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
 import {NodeService} from "../../services/data/node.service";
@@ -33,7 +33,7 @@ import {MathUtils} from "src/app/utils/math";
 
 interface ContainertoExportData {
   documentToExport: HTMLElement;
-  exportParameter: any;
+  exportParameter: SvgExportOptions;
   essentialProps: string[];
 }
 
@@ -149,9 +149,8 @@ export class EditorToolsViewComponent {
     const scaleToTargetWidth = 2000 / containerInfo.exportParameter.width;
     containerInfo.exportParameter.scale = scaleToTargetWidth;
 
-    svg
-      .svgAsDataUri(containerInfo.documentToExport, containerInfo.exportParameter)
-      .then((uri: string) => {
+    svgAsDataUri(containerInfo.documentToExport, containerInfo.exportParameter).then(
+      (uri: string) => {
         const a = document.createElement("a");
         document.body.appendChild(a);
         a.href = uri;
@@ -160,7 +159,8 @@ export class EditorToolsViewComponent {
         URL.revokeObjectURL(a.href);
         a.remove();
         this.levelOfDetailService.enableLevelOfDetailRendering();
-      });
+      },
+    );
   }
 
   onExportContainerAsPNG() {
@@ -172,7 +172,7 @@ export class EditorToolsViewComponent {
     const containerInfo = this.getContainerToExport();
     this.prepareStyleForExport(containerInfo);
 
-    svg.saveSvgAsPng(
+    saveSvgAsPng(
       containerInfo.documentToExport,
       this.getFilenameToExport() + ".png",
       containerInfo.exportParameter,
