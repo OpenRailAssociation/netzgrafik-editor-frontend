@@ -252,7 +252,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .attr("class", "tooltip");
 
     // Three function that change the tooltip when user hover / move / leave a cell
-    const mouseover = function (event: MouseEvent, d: OriginDestination) {
+    const mouseover = (event: MouseEvent, d: OriginDestination) => {
       if (d.found) {
         tooltip.style("opacity", 1);
         d3.select(D3Utils.getMouseEventCurrentTarget(event))
@@ -276,7 +276,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
 
     const nodeNameMap = new Map(nodeNames.map((n) => [n.id, n.fullName]));
 
-    const mousemove = function (event: MouseEvent, d: OriginDestination) {
+    const mousemove = (event: MouseEvent, d: OriginDestination) => {
       let details = "";
       if (d.found) {
         details += "<br><hr> ";
@@ -294,7 +294,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
         .style("top", `${event.offsetY + 64 < 0 ? 0 : event.offsetY + 64}px`);
     };
 
-    const mouseleave = function (event: MouseEvent, _d: OriginDestination) {
+    const mouseleave = (event: MouseEvent, _d: OriginDestination) => {
       tooltip.style("opacity", 0);
       d3.select(D3Utils.getMouseEventCurrentTarget(event))
         .style("stroke", "none")
@@ -318,7 +318,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .attr("x", (d: OriginDestination) => {
         return x(d.destinationId);
       })
-      .attr("y", function (d: OriginDestination) {
+      .attr("y", (d: OriginDestination) => {
         return y(d.originId);
       })
       .attr("rx", 4)
@@ -346,7 +346,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .attr("x", (d: OriginDestination) => {
         return x(d.destinationId) + x.bandwidth() / 2;
       })
-      .attr("y", function (d: OriginDestination) {
+      .attr("y", (d: OriginDestination) => {
         return y(d.originId) + y.bandwidth() / 2;
       })
       .text((d: OriginDestination) => this.getCellText(d))
