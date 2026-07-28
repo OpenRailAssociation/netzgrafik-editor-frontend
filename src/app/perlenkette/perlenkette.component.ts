@@ -397,30 +397,8 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     event.stopImmediatePropagation();
     const delta = Math.min(64, Math.max(-64, event.deltaY));
     const currentEl: PerlenketteNode = this.getClosestPerlenketteItem();
-    if (delta > 0) {
-      let newPos = 0;
-      this.perlenketteRenderingElementsHeight.forEach((pItem, idx) => {
-        const el = pItem[0];
-        const height = pItem[1];
-        newPos += height;
-        if (el.isPerlenketteNode()) {
-          if (el === currentEl) {
-            this.updateSvgPointY(el, this.svgPoint.getY() + delta);
-          }
-        }
-      });
-    } else {
-      let newPos = 0;
-      this.perlenketteRenderingElementsHeight.forEach((pItem, idx) => {
-        const el = pItem[0];
-        const height = pItem[1];
-        newPos += height;
-        if (el.isPerlenketteNode()) {
-          if (el === currentEl) {
-            this.updateSvgPointY(el, this.svgPoint.getY() + delta);
-          }
-        }
-      });
+    if (currentEl !== undefined) {
+      this.updateSvgPointY(currentEl, this.svgPoint.getY() + delta);
     }
   }
 
