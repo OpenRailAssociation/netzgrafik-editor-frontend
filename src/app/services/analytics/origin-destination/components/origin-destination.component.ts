@@ -294,17 +294,17 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
         .style("top", `${event.offsetY + 64 < 0 ? 0 : event.offsetY + 64}px`);
     };
 
-    const mouseleave = (event: MouseEvent, _d: OriginDestination) => {
+    const mouseleave = (event: MouseEvent, d: OriginDestination) => {
       tooltip.style("opacity", 0);
       d3.select(D3Utils.getMouseEventCurrentTarget(event))
         .style("stroke", "none")
         .style("opacity", (d: OriginDestination) => (d.originId === d.destinationId ? 0 : 0.8));
 
       // Remove boldness from the axis labels
-      d3.selectAll(`[data-origin-label="${_d.originId}"]`)
+      d3.selectAll(`[data-origin-label="${d.originId}"]`)
         .style("font-weight", null)
         .style("font-size", null);
-      d3.selectAll(`[data-destination-label="${_d.destinationId}"]`)
+      d3.selectAll(`[data-destination-label="${d.destinationId}"]`)
         .style("font-weight", null)
         .style("font-size", null);
     };
