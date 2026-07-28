@@ -61,7 +61,7 @@ export class TrainrunDialogParameter {
 })
 export class TrainrunAndSectionDialogComponent implements OnDestroy {
   @ViewChild("trainrunAndSectionEditorTabsViewTemplate", {static: true})
-  trainrunAndSectionEditorTabsViewTemplate: TemplateRef<any>;
+  trainrunAndSectionEditorTabsViewTemplate: TemplateRef<void>;
 
   public selectedTrainrun: Trainrun;
   public nextStopLeftNodeName: string;

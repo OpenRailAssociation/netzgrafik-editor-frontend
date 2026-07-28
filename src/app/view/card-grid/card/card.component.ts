@@ -16,7 +16,7 @@ export class CardComponent {
   subtitle?: string;
 
   @Input()
-  route?: string | any[];
+  route?: string | (string | number)[];
 
   @Input()
   icon?: string;
@@ -27,7 +27,7 @@ export class CardComponent {
   @Input()
   actions?: Observable<SlotAction[]>;
 
-  openLink(route: string | any[]) {
+  openLink(route: string | (string | number)[]) {
     const element: HTMLElement = document.getElementById(
       this.getCardComponentRouterLinkId(route),
     ) as HTMLElement;
@@ -40,7 +40,7 @@ export class CardComponent {
     event$.stopPropagation();
   }
 
-  getCardComponentRouterLinkId(route: string | any[]): string {
+  getCardComponentRouterLinkId(route: string | (string | number)[]): string {
     if (typeof route === "string") {
       return "CardComponentRouterLink_s_" + route;
     }

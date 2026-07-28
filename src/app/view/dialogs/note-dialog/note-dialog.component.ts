@@ -42,7 +42,7 @@ export class NoteDialogParameter {
 })
 export class NoteDialogComponent implements OnDestroy {
   @ViewChild("noteEditorTabsViewTemplate", {static: true})
-  noteEditorTabsViewTemplate: TemplateRef<any>;
+  noteEditorTabsViewTemplate: TemplateRef<void>;
 
   public data: NoteDialogParameter = null;
 

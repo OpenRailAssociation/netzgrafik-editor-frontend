@@ -2748,7 +2748,7 @@ export class TrainrunSectionsView {
 
   private createNewTrainrunSectionAfterPinDropped(
     event: MouseEvent,
-    endNode: any,
+    endNode: Node,
     trainrunSection: TrainrunSection,
   ) {
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
@@ -2761,7 +2761,7 @@ export class TrainrunSectionsView {
       return;
     }
 
-    const startNode: any = this.editorView.trainrunSectionPreviewLineView.getStartNode();
+    const startNode = this.editorView.trainrunSectionPreviewLineView.getStartNode();
     if (startNode === endNode) {
       this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
       return;

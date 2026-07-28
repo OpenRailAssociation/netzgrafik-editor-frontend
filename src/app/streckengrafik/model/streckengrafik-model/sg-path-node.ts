@@ -17,7 +17,7 @@ export class SgPathNode implements SgPath {
     public departureTrainrunSectionId: number,
     public arrivalTrainrunSectionId: number,
     public trackData: TrackData,
-    public filter,
+    public filter: boolean,
     public trackOccupier = false,
     public xZoom: number = 0,
     public startPosition: number = 0,

@@ -86,7 +86,7 @@ export class EditorToolsViewComponent {
       let netzgrafikDto: any;
       try {
         netzgrafikDto = JSON.parse(reader.result.toString());
-      } catch (err: any) {
+      } catch {
         const msg = $localize`:@@app.view.editor-side-view.editor-tools-view-component.import-netzgrafik-error:JSON error`;
         this.logger.error(msg);
         return;
@@ -149,16 +149,18 @@ export class EditorToolsViewComponent {
     const scaleToTargetWidth = 2000 / containerInfo.exportParameter.width;
     containerInfo.exportParameter.scale = scaleToTargetWidth;
 
-    svg.svgAsDataUri(containerInfo.documentToExport, containerInfo.exportParameter).then((uri) => {
-      const a = document.createElement("a");
-      document.body.appendChild(a);
-      a.href = uri;
-      a.download = this.getFilenameToExport() + ".svg";
-      a.click();
-      URL.revokeObjectURL(a.href);
-      a.remove();
-      this.levelOfDetailService.enableLevelOfDetailRendering();
-    });
+    svg
+      .svgAsDataUri(containerInfo.documentToExport, containerInfo.exportParameter)
+      .then((uri: string) => {
+        const a = document.createElement("a");
+        document.body.appendChild(a);
+        a.href = uri;
+        a.download = this.getFilenameToExport() + ".svg";
+        a.click();
+        URL.revokeObjectURL(a.href);
+        a.remove();
+        this.levelOfDetailService.enableLevelOfDetailRendering();
+      });
   }
 
   onExportContainerAsPNG() {
@@ -192,7 +194,7 @@ export class EditorToolsViewComponent {
     const file = fileInput.files[0];
     const reader = new FileReader();
     reader.onload = () => {
-      const finalResult = parse(reader.result.toString(), {
+      const finalResult = parse<Record<string, string>>(reader.result.toString(), {
         header: true,
         delimiter: ";",
       });

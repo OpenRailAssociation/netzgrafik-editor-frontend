@@ -37,7 +37,7 @@ export class ConfirmationDialogParameter {
 })
 export class ConfirmationDialogComponent implements OnDestroy {
   @ViewChild("confirmationDialogTemplate", {static: true})
-  confirmationDialogTemplate: TemplateRef<any>;
+  confirmationDialogTemplate: TemplateRef<void>;
 
   public dialogTitle: string;
   public dialogContent: string;

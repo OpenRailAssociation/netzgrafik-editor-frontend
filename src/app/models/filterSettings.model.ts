@@ -21,24 +21,24 @@ export class FilterSetting {
   public filterTrainrunLabels: number[];
   public filterDirectionArrows: boolean;
   public filterAsymmetryArrows: boolean;
-  public filterArrivalDepartureTime;
-  public filterTravelTime;
+  public filterArrivalDepartureTime: boolean;
+  public filterTravelTime: boolean;
   public filterBackwardTravelTime: boolean;
-  public filterTrainrunName;
-  public filterConnections;
-  public filterShowNonStopTime;
+  public filterTrainrunName: boolean;
+  public filterConnections: boolean;
+  public filterShowNonStopTime: boolean;
   public filterTrainrunCategory: TrainrunCategory[];
   public filterTrainrunFrequency: TrainrunFrequency[];
   public filterTrainrunTimeCategory: TrainrunTimeCategory[];
   public filterDirection: Direction[];
   public filterSymmetry: boolean[];
-  public filterAllEmptyNodes;
-  public filterAllNonStopNodes;
+  public filterAllEmptyNodes: boolean;
+  public filterAllNonStopNodes: boolean;
   public displayNodesFullName: boolean;
-  public filterNotes;
-  public timeDisplayPrecision;
-  public isTemporaryDisableFilteringOfItemsInView;
-  public temporaryEmptyAndNonStopFilteringSwitchedOff;
+  public filterNotes: boolean;
+  public timeDisplayPrecision: number;
+  public isTemporaryDisableFilteringOfItemsInView: boolean;
+  public temporaryEmptyAndNonStopFilteringSwitchedOff: boolean;
 
   constructor(
     {
@@ -147,7 +147,7 @@ export class FilterSetting {
   areFilteringAttributesEqual(fs: FilterSetting): boolean {
     const self = this.getDto();
     let eq = true;
-    Object.keys(self).forEach((key) => {
+    (Object.keys(self) as (keyof FilterSettingDto)[]).forEach((key) => {
       if (key !== FilterSetting.isTemporaryDisableFilteringOfItemsInViewAttribute) {
         if (JSON.stringify(this[key]) !== JSON.stringify(fs[key])) {
           eq = false;
@@ -158,14 +158,10 @@ export class FilterSetting {
   }
 
   copyFilteringAttributes(fs: FilterSetting) {
-    Object.keys(this).forEach((key) => {
+    (Object.keys(this) as (keyof FilterSettingDto)[]).forEach((key) => {
       if (this[key] !== fs[key]) {
         if (key !== FilterSetting.isTemporaryDisableFilteringOfItemsInViewAttribute) {
-          if (Array.isArray(fs[key])) {
-            this[key] = Object.assign([], fs[key]);
-          } else {
-            this[key] = fs[key];
-          }
+          Object.assign(this, {[key]: Array.isArray(fs[key]) ? [...fs[key]] : fs[key]});
         }
       }
     });

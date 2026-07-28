@@ -106,7 +106,7 @@ export class Sg6TrackService implements OnDestroy {
     /*
     This method collects all trainrun sections and maps them into the sectionsOfInterest-Map to get fast access
      */
-    const sectionsOfInterest = new Map<string, any[]>();
+    const sectionsOfInterest = new Map<string, {item: SgTrainrunItem; trainrun: SgTrainrun}[]>();
     trainrunItems.forEach((ts) => {
       ts.sgTrainrunItems.forEach((trainrunItem: SgTrainrunItem) => {
         if (trainrunItem.isSection()) {
@@ -137,7 +137,9 @@ export class Sg6TrackService implements OnDestroy {
     return {key: sectionKey, node1: node1, node2: node2};
   }
 
-  private getDistanceGridResolutionInfo(sectionData: any[]) {
+  private getDistanceGridResolutionInfo(
+    sectionData: {item: SgTrainrunItem; trainrun: SgTrainrun}[],
+  ) {
     let nDistanceCells = 1;
     sectionData.forEach((d) => {
       const item: SgTrainrunItem = d.item;
@@ -150,9 +152,9 @@ export class Sg6TrackService implements OnDestroy {
   private mergeDistanceCellGridResoultionToBigSegment(
     tracksMatrix: number[],
     nDistanceCells: number,
-  ): any[] {
+  ): [number, number, number][] {
     // unroll the data to segments
-    const tracks: any[] = [];
+    const tracks: [number, number, number][] = [];
     let nbrTracks: number = undefined;
     let from = 0.0;
     for (let distCellIdx = 0; distCellIdx < nDistanceCells; distCellIdx++) {
@@ -169,7 +171,7 @@ export class Sg6TrackService implements OnDestroy {
     }
 
     // compress the number of sections
-    const compactTracks: any[] = [];
+    const compactTracks: [number, number, number][] = [];
     let start = 0;
     let end = 0;
     let value = tracks[0][2];
@@ -187,11 +189,11 @@ export class Sg6TrackService implements OnDestroy {
   }
 
   private extractSectionTracks(
-    sectionsOfInterest: Map<string, any[]>,
+    sectionsOfInterest: Map<string, {item: SgTrainrunItem; trainrun: SgTrainrun}[]>,
     distRes = 15, // Res 4s
     timeRes = 15, // Res 4s
   ) {
-    const sectionsTracks = new Map<string, number[]>();
+    const sectionsTracks = new Map<string, [number, number, number][]>();
     for (const keyNodeId of sectionsOfInterest.keys()) {
       // ------------------------------------------------------------------------------------------------------------------
       // step 1 -> get trainrun data (aligned to section)
@@ -833,7 +835,7 @@ export class Sg6TrackService implements OnDestroy {
 
   private makeTrackSymmetric(
     nodeTracksMap: Map<number, PathNodeNeighbour[]>,
-    separateForwardBackwardTracks,
+    separateForwardBackwardTracks: boolean,
   ) {
     if (!separateForwardBackwardTracks) {
       return;
@@ -927,7 +929,7 @@ export class Sg6TrackService implements OnDestroy {
 
   private updateTracksForAllPathNodes(
     nodeTracksMap: Map<number, PathNodeNeighbour[]>,
-    separateForwardBackwardTracks,
+    separateForwardBackwardTracks: boolean,
   ) {
     for (const keyNodeId of nodeTracksMap.keys()) {
       const tracks = nodeTracksMap.get(keyNodeId);
@@ -1039,7 +1041,7 @@ export class Sg6TrackService implements OnDestroy {
 
   private mapTrackToTop(
     trainrunItems: SgTrainrun[],
-    sectionTrackMap: Map<string, number[]>,
+    sectionTrackMap: Map<string, [number, number, number][]>,
     separateForwardBackwardTracks: boolean,
   ) {
     const maxTrackMap = new Map<string, TrackData>();
@@ -1141,7 +1143,11 @@ export class Sg6TrackService implements OnDestroy {
     });
   }
 
-  private convertTrackSegments(trackSegements: number[], backward: boolean, initMaxTracks: number) {
+  private convertTrackSegments(
+    trackSegements: [number, number, number][],
+    backward: boolean,
+    initMaxTracks: number,
+  ) {
     const convertedTrackSegments: TrackSegments[] = [];
     let maxTracks = initMaxTracks;
     trackSegements.forEach((trackSeg) => {

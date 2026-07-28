@@ -16,7 +16,7 @@ import {Subject} from "rxjs";
 })
 export class BaseDataDialogComponent implements OnDestroy {
   @ViewChild("baseDataTemplate", {static: true})
-  baseDataTemplate: TemplateRef<any>;
+  baseDataTemplate: TemplateRef<void>;
   public baseData: BaseData[] = [];
   displayedColumns: string[] = [
     "betriebspunktName",

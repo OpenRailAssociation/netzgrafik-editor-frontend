@@ -158,7 +158,10 @@ export class BaseDataService {
     }
   }
 
-  private getCsvValueWithAliases(row: any, column: CsvColumnGroup): any {
+  private getCsvValueWithAliases(
+    row: Record<string, string>,
+    column: CsvColumnGroup,
+  ): string | undefined {
     if (row[column.canonicalName] !== undefined) {
       return row[column.canonicalName];
     }
@@ -169,7 +172,10 @@ export class BaseDataService {
     return undefined;
   }
 
-  private parseNoHaltFromCsvWithAliases(row: any, column: CsvColumnGroup): boolean {
+  private parseNoHaltFromCsvWithAliases(
+    row: Record<string, string>,
+    column: CsvColumnGroup,
+  ): boolean {
     if (row[column.canonicalName] !== undefined) {
       return BaseDataService.parseTimeAsFloat(row[column.canonicalName]) === 1;
     }
@@ -185,7 +191,7 @@ export class BaseDataService {
     return this.importUsedLegacyColumns;
   }
 
-  static validateCsvColumns(rows: any[]): void {
+  static validateCsvColumns(rows: Record<string, string>[]): void {
     if (rows.length === 0) {
       return;
     }
@@ -210,7 +216,7 @@ export class BaseDataService {
     }
   }
 
-  setBaseData(baseDataDto) {
+  setBaseData(baseDataDto: Record<string, string>[]) {
     this.importUsedLegacyColumns = false;
     BaseDataService.validateCsvColumns(baseDataDto);
     this.baseDataStore.baseData = baseDataDto.map((row) => {

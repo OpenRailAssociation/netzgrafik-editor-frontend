@@ -82,7 +82,7 @@ describe("NodeService Test", () => {
       "AA;Aarau;2;Mitte;2;0;2;0;2;0;0;1;0;1;0.2;4;SBB;-209.4991625;-427.021373;1\n" +
       "ABE;Aarberg;4;Mitte; ;1; ;1; ;1; ;1; ;1;0;0;;0;0;0\n";
 
-    const finalResult = parse(baseDataCSV, {header: true, delimiter: ";"});
+    const finalResult = parse<Record<string, string>>(baseDataCSV, {header: true, delimiter: ";"});
     baseDataService.setBaseData(finalResult.data);
     const aa = baseDataService.getBaseDataByBetriebspunktName("AA");
     expect(aa.getRegions()[0]).toBe("Mitte");
@@ -117,7 +117,10 @@ describe("NodeService Test", () => {
       "ZAZ;Umsteigezeit;Labels;XCoord;YCoord;Create\n" +
       "AA;Aarau;2;Mitte;2;1;2;1;2;1;0;0;0;0;0.2;4;SBB;-209.4991625;-427.021373;1\n";
 
-    const finalResult = parse(legacyBaseDataCSV, {header: true, delimiter: ";"});
+    const finalResult = parse<Record<string, string>>(legacyBaseDataCSV, {
+      header: true,
+      delimiter: ";",
+    });
     baseDataService.setBaseData(finalResult.data);
 
     const aa = baseDataService.getBaseDataByBetriebspunktName("AA");
@@ -134,7 +137,7 @@ describe("NodeService Test", () => {
       "ZAZ (Train dispatching time);ConnectionTime;Labels;XCoord;YCoord;Create\n" +
       "AA;Aarau;2;Mitte;2;2;2;0;0;0.2;4;SBB;-209.4991625;-427.021373;1\n";
 
-    const finalResult = parse(baseDataWithoutPassingThroughStationCSV, {
+    const finalResult = parse<Record<string, string>>(baseDataWithoutPassingThroughStationCSV, {
       header: true,
       delimiter: ";",
     });

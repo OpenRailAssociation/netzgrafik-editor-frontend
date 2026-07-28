@@ -141,16 +141,18 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
     const origins = this.matrixData.map((d) => d.originId);
     const destinations = this.matrixData.map((d) => d.destinationId);
     const uniqueOriginsDestinations = [...new Set([...origins, ...destinations])];
-    const diagonalData: OriginDestination[] = uniqueOriginsDestinations.map((nodeId) => ({
-      origin: this.nodeService.getNodeFromId(nodeId).getBetriebspunktName(),
-      destination: this.nodeService.getNodeFromId(nodeId).getBetriebspunktName(),
-      originId: nodeId,
-      destinationId: nodeId,
-      totalCost: undefined,
-      travelTime: undefined,
-      transfers: undefined,
-      found: false,
-    }));
+    const diagonalData: OriginDestination[] = uniqueOriginsDestinations.map(
+      (nodeId): OriginDestination => ({
+        origin: this.nodeService.getNodeFromId(nodeId).getBetriebspunktName(),
+        destination: this.nodeService.getNodeFromId(nodeId).getBetriebspunktName(),
+        originId: nodeId,
+        destinationId: nodeId,
+        totalCost: undefined,
+        travelTime: undefined,
+        transfers: undefined,
+        found: false,
+      }),
+    );
     this.matrixData = [...this.matrixData, ...diagonalData];
   }
 

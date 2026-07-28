@@ -19,15 +19,15 @@ export class NavigationService {
     this.router.navigate(this.getRouteToVariants(projectId));
   }
 
-  getRouteToEditor(projectId: number, variantId: number): any[] {
+  getRouteToEditor(projectId: number, variantId: number): (string | number)[] {
     return ["/projects", projectId, "variants", variantId];
   }
 
-  getRouteToVariants(projectId: number): any[] {
+  getRouteToVariants(projectId: number): (string | number)[] {
     return ["/projects", projectId];
   }
 
-  getRouteToProjects(): any[] {
+  getRouteToProjects(): string[] {
     return ["/"];
   }
 }
