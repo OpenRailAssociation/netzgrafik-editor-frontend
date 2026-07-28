@@ -158,13 +158,6 @@ export class BaseDataService {
     }
   }
 
-  private static getCsvValue(row: any, canonicalName: string, legacyName?: string): any {
-    if (row[canonicalName] !== undefined) {
-      return row[canonicalName];
-    }
-    return legacyName !== undefined ? row[legacyName] : undefined;
-  }
-
   private getCsvValueWithAliases(row: any, column: CsvColumnGroup): any {
     if (row[column.canonicalName] !== undefined) {
       return row[column.canonicalName];
