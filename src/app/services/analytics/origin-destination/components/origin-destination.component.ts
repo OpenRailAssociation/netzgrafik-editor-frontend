@@ -14,6 +14,7 @@ import {FilterService} from "../../../ui/filter.service";
 import {NodeService} from "../../../data/node.service";
 import {TrainrunService} from "../../../data/trainrun.service";
 import {TrainrunSectionService} from "../../../data/trainrunsection.service";
+import {D3Utils} from "src/app/view/editor-main-view/data-views/d3.utils";
 
 type FieldName = "totalCost" | "travelTime" | "transfers";
 type ColorSetName = "red" | "blue" | "orange" | "gray";
@@ -254,7 +255,10 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
     const mouseover = function (event: MouseEvent, d: OriginDestination) {
       if (d.found) {
         tooltip.style("opacity", 1);
-        d3.select(this).style("stroke", "black").style("stroke-width", "2px").style("opacity", 1);
+        d3.select(D3Utils.getMouseEventCurrentTarget(event))
+          .style("stroke", "black")
+          .style("stroke-width", "2px")
+          .style("opacity", 1);
       }
 
       // Highlight axis labels in bold when hovering over a cell
@@ -290,9 +294,9 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
         .style("top", `${event.offsetY + 64 < 0 ? 0 : event.offsetY + 64}px`);
     };
 
-    const mouseleave = function (_event: MouseEvent, _d: OriginDestination) {
+    const mouseleave = function (event: MouseEvent, _d: OriginDestination) {
       tooltip.style("opacity", 0);
-      d3.select(this)
+      d3.select(D3Utils.getMouseEventCurrentTarget(event))
         .style("stroke", "none")
         .style("opacity", (d: OriginDestination) => (d.originId === d.destinationId ? 0 : 0.8));
 
