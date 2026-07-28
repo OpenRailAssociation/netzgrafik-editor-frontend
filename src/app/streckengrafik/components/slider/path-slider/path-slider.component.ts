@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, ViewChild} from "@angular/core";
+import {Component, Input, OnDestroy} from "@angular/core";
 import {Subject} from "rxjs";
 import {ResizeChangeInfo} from "../../../model/util/resizeChangeInfo";
 import {ViewBoxChangeInfo} from "../../../model/util/viewBoxChangeInfo";
@@ -23,9 +23,6 @@ export class PathSliderComponent implements OnDestroy {
 
   @Input()
   showRailTrackSlider = true;
-
-  @ViewChild("svg")
-  svgRef: any;
 
   viewBox: string;
 
