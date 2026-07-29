@@ -56,7 +56,7 @@ describe("TrainrunSectionTimesService", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
@@ -421,8 +421,8 @@ describe("TrainrunSectionTimesService", () => {
         rightAsymmetry,
       };
       const optionsDesc = Object.entries(options)
-        .filter(([option, enabled]) => enabled)
-        .map(([option, enabled]) => `with ${option}`)
+        .filter(([_, enabled]) => enabled)
+        .map(([option]) => `with ${option}`)
         .join(" ");
       it(`set ${key} to ${value} ${optionsDesc}`, () => {
         const ts = trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
@@ -439,7 +439,6 @@ describe("TrainrunSectionTimesService", () => {
 
         // Apply the symmetry update, if any
         if (leftAsymmetry || rightAsymmetry) {
-          const symmetryStructure = trainrunSectionTimesService.getSymmetryStructure();
           trainrunSectionTimesService.onLeftNodeSymmetryToggle(!leftAsymmetry);
           trainrunSectionTimesService.onRightNodeSymmetryToggle(!rightAsymmetry);
         }

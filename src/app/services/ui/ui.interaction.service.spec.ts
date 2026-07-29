@@ -61,7 +61,7 @@ describe("UiInteractionService", () => {
     );
     noteService = new NoteService(logService, labelService, filterService);
     analyticsService = new AnalyticsService(nodeService, trainrunSectionService, trainrunService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
@@ -120,8 +120,8 @@ describe("UiInteractionService", () => {
   it("findClosestNodeToViewCenter", () => {
     nodeService.deleteAllVisibleNodes();
     const n1 = nodeService.addNodeWithPosition(100, 100, "Node1", "Node1", [], true);
-    const n2 = nodeService.addNodeWithPosition(200, 200, "Node2", "Node2", [], true);
-    const n3 = nodeService.addNodeWithPosition(300, 300, "Node3", "Node3", [], true);
+    nodeService.addNodeWithPosition(200, 200, "Node2", "Node2", [], true);
+    nodeService.addNodeWithPosition(300, 300, "Node3", "Node3", [], true);
     const viewboxProperties = uiInteractionService.getViewboxProperties(EditorView.svgName);
     uiInteractionService.setViewboxProperties(EditorView.svgName, viewboxProperties);
     expect(uiInteractionService.findClosestNodeToViewCenter(nodes)?.node?.getId()).toBe(n1.getId());

@@ -67,7 +67,7 @@ describe("Transitions-View", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
@@ -191,13 +191,12 @@ describe("Transitions-View", () => {
 
   it("transitionsView constructor test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const transitionsView = new TransitionsView(editorView);
+    new TransitionsView(editorView);
   });
 
   it("TransitionsView.isMuted - 001", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const t = trainrunService.getTrainrunFromId(2);
-    const s = trainrunService.getTrainrunFromId(1);
     const v1 = TransitionsView.isMuted(t, null, undefined);
     expect(v1).toBe(false);
   });
@@ -229,7 +228,6 @@ describe("Transitions-View", () => {
   it("TransitionsView.createTrainrunClassAttribute - 001", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const t = trainrunService.getTrainrunFromId(2);
-    const s = trainrunService.getTrainrunFromId(1);
     const v1 = TransitionsView.createTrainrunClassAttribute(t, null, undefined);
     expect(v1).toBe("transition_line Freq_20 ColorRef_S LinePatternRef_7/24");
   });

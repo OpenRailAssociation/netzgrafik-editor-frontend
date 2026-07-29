@@ -55,7 +55,7 @@ describe("TransitionValidator", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
@@ -229,7 +229,6 @@ describe("TransitionValidator", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts1 = trainrunSectionService.getTrainrunSectionFromId(4);
     const ts2 = trainrunSectionService.getTrainrunSectionFromId(5);
-    const trainrun = trainrunService.getSelectedOrNewTrainrun();
     trainrunSectionService.createTrainrunSection(ts1.getSourceNodeId(), ts1.getTargetNodeId());
     const ts = trainrunSectionService.getSelectedTrainrunSection();
     trainrunSectionService.createTrainrunSection(ts2.getTargetNodeId(), ts.getSourceNodeId());
@@ -290,7 +289,6 @@ describe("TransitionValidator", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts1 = trainrunSectionService.getTrainrunSectionFromId(4);
     const ts2 = trainrunSectionService.getTrainrunSectionFromId(5);
-    const trainrun = trainrunService.getSelectedOrNewTrainrun();
     trainrunSectionService.createTrainrunSection(ts1.getTargetNodeId(), ts1.getSourceNodeId());
     const ts = trainrunSectionService.getSelectedTrainrunSection();
     trainrunSectionService.createTrainrunSection(ts.getSourceNodeId(), ts2.getTargetNodeId());
@@ -339,7 +337,6 @@ describe("TransitionValidator", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts1 = trainrunSectionService.getTrainrunSectionFromId(4);
     const ts2 = trainrunSectionService.getTrainrunSectionFromId(5);
-    const trainrun = trainrunService.getSelectedOrNewTrainrun();
     trainrunSectionService.createTrainrunSection(ts1.getTargetNodeId(), ts1.getSourceNodeId());
     trainrunSectionService.createTrainrunSection(ts2.getTargetNodeId(), ts2.getSourceNodeId());
     const ts = trainrunSectionService.getSelectedTrainrunSection();

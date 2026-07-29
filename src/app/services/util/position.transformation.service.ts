@@ -33,7 +33,7 @@ export class PositionTransformationService {
     );
     const focalNode: Node = this.getFocalNode(scaleCenterCoordinates);
 
-    this.nodeService.getNodes().forEach((n, index) => {
+    this.nodeService.getNodes().forEach((n) => {
       let newPos = new Vec2D(
         (n.getPositionX() - scaleCenterCoordinates.getX()) * factor + scaleCenterCoordinates.getX(),
         (n.getPositionY() - scaleCenterCoordinates.getY()) * factor + scaleCenterCoordinates.getY(),
@@ -49,7 +49,7 @@ export class PositionTransformationService {
       n.setPosition(newPos.getX(), newPos.getY());
     });
 
-    this.noteService.getNotes().forEach((n, index) => {
+    this.noteService.getNotes().forEach((n) => {
       let newPos = new Vec2D(
         (n.getPositionX() - scaleCenterCoordinates.getX()) * factor + scaleCenterCoordinates.getX(),
         (n.getPositionY() - scaleCenterCoordinates.getY()) * factor + scaleCenterCoordinates.getY(),
@@ -126,7 +126,7 @@ export class PositionTransformationService {
       scaleCenterCoordinates.setData(centerOfMass.getX(), centerOfMass.getY());
     }
 
-    nodes.forEach((n, index) => {
+    nodes.forEach((n) => {
       let newPos = new Vec2D(
         (n.getPositionX() + n.getNodeWidth() / 2.0 - scaleCenterCoordinates.getX()) * factor +
           scaleCenterCoordinates.getX() -
@@ -147,7 +147,7 @@ export class PositionTransformationService {
       n.setPosition(newPos.getX(), newPos.getY());
     });
 
-    notes.forEach((n, index) => {
+    notes.forEach((n) => {
       const newPos = new Vec2D(
         (n.getPositionX() + n.getWidth() / 2.0 - scaleCenterCoordinates.getX()) * factor +
           scaleCenterCoordinates.getX() -

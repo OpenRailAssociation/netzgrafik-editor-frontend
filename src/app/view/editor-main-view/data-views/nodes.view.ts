@@ -371,7 +371,7 @@ export class NodesView {
       .attr("class", StaticDomTags.NODE_HOVER_DRAG_AREA_BACKGROUND_CLASS)
       .classed(StaticDomTags.TAG_SELECTED, (n: NodeViewObject) => n.node.selected())
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
-      .attr("transform", (n: NodeViewObject) => "translate(-32.5,1)")
+      .attr("transform", () => "translate(-32.5,1)")
       .attr("width", 28)
       .attr("height", 28)
       .attr("x", 2)
@@ -996,7 +996,7 @@ export class NodesView {
     newPosition.setData(newPosition.getX(), newPosition.getY());
 
     this.editorView.moveSelectedNodes(newPosition.getX(), newPosition.getY(), round, dragEnd);
-    this.editorView.moveSelectedNotes(newPosition.getX(), newPosition.getY(), round, dragEnd);
+    this.editorView.moveSelectedNotes(newPosition.getX(), newPosition.getY(), round);
 
     // update the drag mouse position (previous for next dragging step)
     this.dragPreviousMousePosition = currentMousePosition;

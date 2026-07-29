@@ -51,7 +51,7 @@ describe("NodeService Test", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
@@ -179,7 +179,6 @@ describe("NodeService Test", () => {
     noteService.unselectAllNotes();
     const newNote = noteService.addNote(new Vec2D(100, 1000), "Fun", "nice");
     noteService.setLabels(newNote.getId(), ["Spass"]);
-    const noteLabels = labelService.getTextLabelsFromIds(newNote.getLabelIds());
     expect(noteService.getNoteFromId(3).getId()).toBe(3);
     filterService.setFilterNoteLabels([0]);
     noteService.deleteAllNonVisibleNotes();

@@ -118,7 +118,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     this.numberOfStops = this.perlenketteSection.numberOfStops;
     this.stationNumberArray = Array(this.perlenketteSection.numberOfStops)
       .fill(1)
-      .map((x, i) => i + 1);
+      .map((_, i) => i + 1);
     this.trainrunSection = this.trainrunSectionService.getTrainrunSectionFromId(
       this.perlenketteSection.trainrunSectionId,
     );

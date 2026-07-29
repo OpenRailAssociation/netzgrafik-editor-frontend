@@ -185,11 +185,11 @@ export class PerlenketteNodeComponent implements OnInit, AfterViewInit {
     return topLen + 0.5;
   }
 
-  getTextTerminalStation(connection: PerlenketteConnection, connectionGrpKey: number, pos: number) {
+  getTextTerminalStation(connection: PerlenketteConnection, pos: number) {
     return pos === 0 ? connection.terminalStationBackward : connection.terminalStation;
   }
 
-  getTextNameOrTime(connection: PerlenketteConnection, connectionGrpKey: number, pos: number) {
+  getTextNameOrTime(connection: PerlenketteConnection, pos: number) {
     return pos === 0
       ? connection.categoryShortName + "" + connection.title
       : "" +
@@ -234,11 +234,7 @@ export class PerlenketteNodeComponent implements OnInit, AfterViewInit {
     );
   }
 
-  getTextNameOrTimeClassTag(
-    connection: PerlenketteConnection,
-    connectionGrpKey: number,
-    pos: number,
-  ): string {
+  getTextNameOrTimeClassTag(connection: PerlenketteConnection, pos: number): string {
     let retVal = this.getColoringClassTag(connection);
     if (pos !== 0 && this.isNonStopTransition(connection)) {
       retVal = retVal + " " + StaticDomTags.TAG_WARNING;
@@ -247,11 +243,7 @@ export class PerlenketteNodeComponent implements OnInit, AfterViewInit {
     return pos === 0 ? retVal + " TrainrunName" : retVal + " RemainingTime";
   }
 
-  getTextTerminalStationlassTag(
-    connection: PerlenketteConnection,
-    connectionGrpKey: number,
-    pos: number,
-  ): string {
+  getTextTerminalStationlassTag(connection: PerlenketteConnection, pos: number): string {
     const retVal = this.getColoringClassTag(connection);
     return pos === 0 ? retVal + " FROM" : retVal + " TO";
   }

@@ -1157,8 +1157,8 @@ export class TrainrunSectionsView {
         .on("mouseover", (event: MouseEvent, d: TrainrunSectionViewObject) => {
           this.onTrainrunSectionMouseoverPath(event, d.trainrunSection);
         })
-        .on("mouseout", (event: MouseEvent, d: TrainrunSectionViewObject) => {
-          this.onTrainrunSectionMouseoutPath(event, d.trainrunSection);
+        .on("mouseout", (_, d: TrainrunSectionViewObject) => {
+          this.onTrainrunSectionMouseoutPath(d.trainrunSection);
         });
     });
   }
@@ -1232,8 +1232,8 @@ export class TrainrunSectionsView {
         .on("mouseover", (event: MouseEvent, d: TrainrunSectionViewObject) => {
           this.onTrainrunSectionMouseoverPath(event, d.trainrunSection);
         })
-        .on("mouseout", (event: MouseEvent, d: TrainrunSectionViewObject) => {
-          this.onTrainrunSectionMouseoutPath(event, d.trainrunSection);
+        .on("mouseout", (_, d: TrainrunSectionViewObject) => {
+          this.onTrainrunSectionMouseoutPath(d.trainrunSection);
         });
     });
   }
@@ -1286,9 +1286,9 @@ export class TrainrunSectionsView {
             this.onTrainrunSectionMouseoverPath(event, d.trainrunSection);
           }
         })
-        .on("mouseout", (event: MouseEvent, d: TrainrunSectionViewObject) => {
+        .on("mouseout", (_, d: TrainrunSectionViewObject) => {
           if (enableEvents) {
-            this.onTrainrunSectionMouseoutPath(event, d.trainrunSection);
+            this.onTrainrunSectionMouseoutPath(d.trainrunSection);
           }
         });
     }
@@ -1553,14 +1553,14 @@ export class TrainrunSectionsView {
       .attr("style", (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.getTrainrunSectionValueHtmlStyle(d.trainrunSection, textElement),
       )
-      .on("mouseover", (event: MouseEvent, d: TrainrunSectionViewObject) => {
+      .on("mouseover", (event: MouseEvent) => {
         if (enableEvents) {
-          this.onTrainrunSectionTextMouseover(event, d.trainrunSection);
+          this.onTrainrunSectionTextMouseover(event);
         }
       })
-      .on("mouseout", (event: MouseEvent, d: TrainrunSectionViewObject) => {
+      .on("mouseout", (event: MouseEvent) => {
         if (enableEvents) {
-          this.onTrainrunSectionTextMouseout(event, d.trainrunSection);
+          this.onTrainrunSectionTextMouseout(event);
         }
       })
       .on("mouseup", (event: MouseEvent, d: TrainrunSectionViewObject) => {
@@ -1870,19 +1870,14 @@ export class TrainrunSectionsView {
     D3Utils.bringTrainrunSectionToFront();
   }
 
-  onTrainrunSectionTextMouseover(event: MouseEvent, trainrunSection: TrainrunSection) {
+  onTrainrunSectionTextMouseover(event: MouseEvent) {
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
       const domObj = D3Utils.getMouseEventCurrentTarget(event);
       d3.select(domObj).classed(StaticDomTags.TAG_HOVER, true);
     }
   }
 
-  onIntermediateStopMouseOut(
-    event: MouseEvent,
-    trainrunSection: TrainrunSection,
-    stopIndex: number,
-    position: Vec2D,
-  ) {
+  onIntermediateStopMouseOut(event: MouseEvent) {
     event.stopPropagation();
     if (event.buttons === 0) {
       const domObj = D3Utils.getMouseEventCurrentTarget(event);
@@ -1890,12 +1885,7 @@ export class TrainrunSectionsView {
     }
   }
 
-  onIntermediateStopMouseOver(
-    event: MouseEvent,
-    trainrunSection: TrainrunSection,
-    stopIndex: number,
-    position: Vec2D,
-  ) {
+  onIntermediateStopMouseOver(event: MouseEvent) {
     event.stopPropagation();
     const domObj = D3Utils.getMouseEventCurrentTarget(event);
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, true);
@@ -1936,7 +1926,7 @@ export class TrainrunSectionsView {
     this.editorView.setTrainrunAsSelected(trainrunSection.getTrainrun());
   }
 
-  onTrainrunSectionTextMouseout(event: MouseEvent, trainrunSection: TrainrunSection) {
+  onTrainrunSectionTextMouseout(event: MouseEvent) {
     const domObj = D3Utils.getMouseEventCurrentTarget(event);
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
   }
@@ -1958,7 +1948,7 @@ export class TrainrunSectionsView {
     const clickPosition = new Vec2D(rect.x + rect.width / 2, rect.y + rect.height / 2);
 
     if (this.editorView.editorMode === EditorMode.Analytics) {
-      this.onTrainrunSectionElementClickedAnalytics(trainrunSection, textElement, clickPosition);
+      this.onTrainrunSectionElementClickedAnalytics(trainrunSection, textElement);
       return;
     }
     this.onTrainrunSectionElementClickedNetzgrafikEditing(
@@ -2052,7 +2042,7 @@ export class TrainrunSectionsView {
     }
   }
 
-  onTrainrunSectionMouseoutPath(event: MouseEvent, trainrunSection: TrainrunSection) {
+  onTrainrunSectionMouseoutPath(trainrunSection: TrainrunSection) {
     D3Utils.unhoverTrainrunSection(trainrunSection);
   }
 
@@ -2136,18 +2126,14 @@ export class TrainrunSectionsView {
   private onTrainrunSectionElementClickedAnalytics(
     trainrunSection: TrainrunSection,
     textElement: TrainrunSectionText,
-    clickPos: Vec2D,
   ) {
     let node: Node;
-    let minute: number;
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
         node = trainrunSection.getSourceNode();
-        minute = trainrunSection.getSourceDeparture();
         break;
       case TrainrunSectionText.TargetDeparture:
         node = trainrunSection.getTargetNode();
-        minute = trainrunSection.getTargetDeparture();
         break;
     }
     this.editorView.unselectAllNodes();
@@ -2323,7 +2309,6 @@ export class TrainrunSectionsView {
 
     if (!this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       if (ts.getSourceNode().isNonStopNode()) {
-        const node = ts.getSourceNode().getOppositeNode(ts);
         retPath = this.transformPathIfSourceNodeFilteredDueNonStopNodesFiltering(ts, retPath);
       }
       if (ts.getTargetNode().isNonStopNode()) {
@@ -2356,13 +2341,7 @@ export class TrainrunSectionsView {
         !this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.trainrunSection),
     );
 
-    this.make4LayerTrainrunSectionLines(
-      groupLines,
-      selectedTrainrun,
-      connectedTrainIds,
-      inGroupLabels,
-      false,
-    );
+    this.make4LayerTrainrunSectionLines(groupLines, selectedTrainrun, connectedTrainIds, false);
 
     if (!this.editorView.isElementDragging()) {
       this.createDirectionArrows(groupLines, selectedTrainrun, connectedTrainIds, false);
@@ -2480,13 +2459,7 @@ export class TrainrunSectionsView {
       this.filterOutAllTrainrunSectionWithHiddenNodeConnection(d.trainrunSection),
     );
 
-    this.make4LayerTrainrunSectionLines(
-      groupLines,
-      selectedTrainrun,
-      connectedTrainIds,
-      inGroupLabels,
-      true,
-    );
+    this.make4LayerTrainrunSectionLines(groupLines, selectedTrainrun, connectedTrainIds, true);
 
     if (!this.editorView.isElementDragging()) {
       this.createDirectionArrows(groupLines, selectedTrainrun, connectedTrainIds, true);
@@ -2636,7 +2609,6 @@ export class TrainrunSectionsView {
     groupLines: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
-    inGroupLabels: d3.Selection<SVGElement, TrainrunSectionViewObject, Element, undefined>,
     enableEvents: boolean,
   ) {
     this.createTrainrunSection(
@@ -2716,12 +2688,8 @@ export class TrainrunSectionsView {
         TrainrunSectionsView.isSectionSelected(t.trainrunSection),
       )
       .classed(StaticDomTags.EDGE_LINE_STOPS_FILL, () => !collapsedStops)
-      .on("mouseover", (event: MouseEvent, t: TrainrunSectionViewObject) =>
-        this.onIntermediateStopMouseOver(event, t.trainrunSection, stopIndex, position),
-      )
-      .on("mouseout", (event: MouseEvent, t: TrainrunSectionViewObject) =>
-        this.onIntermediateStopMouseOut(event, t.trainrunSection, stopIndex, position),
-      )
+      .on("mouseover", (event: MouseEvent) => this.onIntermediateStopMouseOver(event))
+      .on("mouseout", (event: MouseEvent) => this.onIntermediateStopMouseOut(event))
       .on("mousedown", (event: MouseEvent, t: TrainrunSectionViewObject) =>
         this.onIntermediateStopMouseDown(event, t.trainrunSection, stopIndex, position),
       )

@@ -138,7 +138,7 @@ class BreadcrumbsDefinitionsHandler {
 
   getParams(urlHandler: UrlHandler): Param[] {
     return urlHandler.splittedUrl
-      .filter((value, index) => this.parameterPointers.find((pointer) => pointer === index))
+      .filter((_, index) => this.parameterPointers.find((pointer) => pointer === index))
       .map((value) => new Param(value));
   }
 }

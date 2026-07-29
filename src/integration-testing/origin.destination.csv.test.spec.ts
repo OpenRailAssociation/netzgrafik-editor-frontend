@@ -55,7 +55,7 @@ describe("Origin Destination CSV Test", () => {
     );
     baseDataService = new BaseDataService();
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
@@ -301,10 +301,10 @@ describe("Origin Destination CSV Test", () => {
 
     expect(topoVertices).toHaveSize(4);
     edges.forEach((edge) => {
-      const v1Index = topoVertices.findIndex((value, index, obj) => {
+      const v1Index = topoVertices.findIndex((value) => {
         return value === edge.v1;
       });
-      const v2Index = topoVertices.findIndex((value, index, obj) => {
+      const v2Index = topoVertices.findIndex((value) => {
         return value === edge.v2;
       });
       expect(v1Index).toBeLessThan(v2Index);
@@ -361,10 +361,10 @@ describe("Origin Destination CSV Test", () => {
     const topoVertices = topoSort(neighbors);
     expect(topoVertices).toHaveSize(11);
     edges.forEach((edge) => {
-      const v1Index = topoVertices.findIndex((value, index, obj) => {
+      const v1Index = topoVertices.findIndex((value) => {
         return value === edge.v1;
       });
-      const v2Index = topoVertices.findIndex((value, index, obj) => {
+      const v2Index = topoVertices.findIndex((value) => {
         return value === edge.v2;
       });
       expect(v1Index).toBeLessThan(v2Index);

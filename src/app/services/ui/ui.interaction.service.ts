@@ -26,7 +26,6 @@ import {StreckengrafikRenderingType} from "../../view/themes/streckengrafik-rend
 import {NetzgrafikColoringService} from "../data/netzgrafikColoring.service";
 import {MainViewMode} from "../../view/filter-main-side-view/main-view-mode";
 import {TrainrunService} from "../data/trainrun.service";
-import {Trainrun} from "../../models/trainrun.model";
 import {Node} from "../../models/node.model";
 import {LoadPerlenketteService} from "../../perlenkette/service/load-perlenkette.service";
 import {TravelTimeCreationEstimatorType} from "../../view/themes/editor-trainrun-traveltime-creator-type";
@@ -136,7 +135,7 @@ export class UiInteractionService implements OnDestroy {
     this.loadActiveTheme();
 
     // listen for browser setting update
-    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (event) => {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
       this.activeTheme = null;
       this.loadActiveTheme();
     });
@@ -158,17 +157,15 @@ export class UiInteractionService implements OnDestroy {
         this.showPerlenkette(informSelectedTrainrunClick);
       });
 
-    this.trainrunService.trainruns
-      .pipe(takeUntil(this.destroyed))
-      .subscribe((trainrun: Trainrun[]) => {
-        const st = trainrunService.getSelectedTrainrun();
-        if (st !== null) {
-          this.oldSelectedTrainrunId = st.getId();
-          return;
-        }
-        this.closePerlenkette();
-        this.oldSelectedTrainrunId = null;
-      });
+    this.trainrunService.trainruns.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      const st = trainrunService.getSelectedTrainrun();
+      if (st !== null) {
+        this.oldSelectedTrainrunId = st.getId();
+        return;
+      }
+      this.closePerlenkette();
+      this.oldSelectedTrainrunId = null;
+    });
 
     this.baseDataService.baseDataObservable
       .pipe(takeUntil(this.destroyed))

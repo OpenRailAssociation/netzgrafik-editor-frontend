@@ -103,6 +103,6 @@ export class BaseDataDialogComponent implements OnDestroy {
 
     this.dataSource = new SbbTableDataSource(baseDataConverted);
     const dialogConfig = BaseDataDialogComponent.getDialogConfig();
-    const dialogRef = this.dialog.open(this.baseDataTemplate, dialogConfig);
+    this.dialog.open(this.baseDataTemplate, dialogConfig);
   }
 }

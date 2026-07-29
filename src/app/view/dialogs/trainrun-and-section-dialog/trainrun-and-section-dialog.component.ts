@@ -175,7 +175,7 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
     };
   }
 
-  onMouseUp(event: MouseEvent) {
+  onMouseUp() {
     this.dialogMovementLastPosition = undefined;
   }
 

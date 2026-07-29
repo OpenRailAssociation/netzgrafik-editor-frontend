@@ -31,7 +31,7 @@
         [name]="'app.view.editor-properties-view-component.background-color' | translate"
         style="width: 242px; min-height: 37px"
         [(ngModel)]="activeBackgroundColor"
-        (change)="colorPicked($event)"
+        (change)="colorPicked()"
       />
       &nbsp;
       <button
@@ -82,7 +82,7 @@
         [name]="'app.view.editor-properties-view-component.background-color' | translate"
         style="width: 242px; min-height: 37px; vertical-align: middle"
         [(ngModel)]="activeDarkBackgroundColor"
-        (change)="colorPicked($event)"
+        (change)="colorPicked()"
       />
       &nbsp;
       <button

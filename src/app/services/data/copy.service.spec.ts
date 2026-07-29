@@ -60,7 +60,7 @@ describe("CopyService", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
@@ -188,7 +188,7 @@ describe("CopyService", () => {
     nodeService.selectNode(2);
     noteService.selectNote(3);
 
-    const copiedNetzgrafik = copyService.copyCurrentVisibleNetzgrafik();
+    copyService.copyCurrentVisibleNetzgrafik();
     uiInteractionService.setEditorMode(EditorMode.NetzgrafikEditing);
     nodeService.deleteAllVisibleNodes();
     noteService.deleteAllVisibleNotes();

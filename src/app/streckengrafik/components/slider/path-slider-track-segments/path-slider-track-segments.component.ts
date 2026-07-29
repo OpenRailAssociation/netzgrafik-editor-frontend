@@ -64,7 +64,7 @@ export class PathSliderTrackSegmentsComponent {
     }
 
     const retData: {x1: number; x2: number; y1: number; y2: number; nbr: number; d: string}[] = [];
-    ps.trackData.sectionTrackSegments.forEach((sts: TrackSegments, index: number) => {
+    ps.trackData.sectionTrackSegments.forEach((sts: TrackSegments) => {
       const startAt = Math.max(0.0, sts.startPos * this.path.zoomedXPath());
       const endAt = Math.min(sts.endPos * this.path.zoomedXPath(), this.path.zoomedXPath());
       let y1 = this.zeroPoint;

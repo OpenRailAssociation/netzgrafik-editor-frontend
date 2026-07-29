@@ -252,7 +252,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     if (event.buttons > 0) {
       let currentY = this.svgPoint.getY();
       currentY -= event.movementY;
-      this.updateSvgPointY(undefined, currentY);
+      this.updateSvgPointY(currentY);
     }
     event.stopPropagation();
   }
@@ -351,7 +351,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
 
   goto(pathItem: PerlenketteItem) {
     const currentY = this.getGotoCurrentY(pathItem);
-    this.updateSvgPointY(pathItem, currentY - this.contentHeight / 4);
+    this.updateSvgPointY(currentY - this.contentHeight / 4);
     const offset = new Vec2D(this.contentWidth / 2, 0);
     this.moveNetzgrafikEditorFocalViewPoint(pathItem, offset);
   }
@@ -371,7 +371,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
       });
       const delta = pItemHeight !== undefined ? pItemHeight[1] : 0;
       const currentY = this.getGotoCurrentY(pathItem) + delta;
-      this.updateSvgPointY(pathItem, currentY - this.contentHeight / 4);
+      this.updateSvgPointY(currentY - this.contentHeight / 4);
     }
   }
 
@@ -396,11 +396,11 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     const delta = Math.min(64, Math.max(-64, event.deltaY));
     const currentEl: PerlenketteNode = this.getClosestPerlenketteItem();
     if (currentEl !== undefined) {
-      this.updateSvgPointY(currentEl, this.svgPoint.getY() + delta);
+      this.updateSvgPointY(this.svgPoint.getY() + delta);
     }
   }
 
-  private updateSvgPointY(pathItem: PerlenketteItem, y: number) {
+  private updateSvgPointY(y: number) {
     this.svgPoint.setY(
       Math.max(-this.contentHeight / 4, Math.min(this.renderedElementsHeight - 48, y)),
     );

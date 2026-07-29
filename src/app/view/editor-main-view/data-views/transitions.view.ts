@@ -156,13 +156,13 @@ export class TransitionsView {
       )
       .on("mousemove", (event: MouseEvent) => event.preventDefault())
       .on("mouseover", (event: MouseEvent, t: TransitionViewObject) =>
-        this.onTransitionMouseover(event, t.transition.getTrainrun(), t.transition),
+        this.onTransitionMouseover(event, t.transition),
       )
       .on("mouseup", (event: MouseEvent, t: TransitionViewObject) =>
-        this.onTransitionMouseup(event, t.transition.getTrainrun(), t.transition),
+        this.onTransitionMouseup(event, t.transition),
       )
       .on("mouseout", (event: MouseEvent, t: TransitionViewObject) =>
-        this.onTransitionButtonOut(event, t.transition.getTrainrun(), t.transition),
+        this.onTransitionButtonOut(event, t.transition),
       );
   }
 
@@ -275,7 +275,7 @@ export class TransitionsView {
     transitionsGroup.exit().remove();
   }
 
-  onTransitionMouseup(event: MouseEvent, trainrun: Trainrun, transition: Transition) {
+  onTransitionMouseup(event: MouseEvent, transition: Transition) {
     event.stopPropagation();
     const node: Node = this.editorView.getNodeFromTransition(transition);
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
@@ -301,7 +301,7 @@ export class TransitionsView {
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
   }
 
-  onTransitionButtonOut(event: MouseEvent, trainrun: Trainrun, transition: Transition) {
+  onTransitionButtonOut(event: MouseEvent, transition: Transition) {
     const domObj = D3Utils.getMouseEventCurrentTarget(event);
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
 
@@ -334,7 +334,7 @@ export class TransitionsView {
     this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(event);
   }
 
-  onTransitionMouseover(event: MouseEvent, trainrun: Trainrun, transition: Transition) {
+  onTransitionMouseover(event: MouseEvent, transition: Transition) {
     const node: Node = this.editorView.getNodeFromTransition(transition);
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
       const port1 = node.getPort(transition.getPortId1());

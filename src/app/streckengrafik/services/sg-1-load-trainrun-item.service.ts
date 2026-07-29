@@ -148,7 +148,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         // not support current trains with partial cancellations.
         const ts: TrainrunSection = this.trainrunSectionService
           .getAllTrainrunSectionsForTrainrun(selectedTrainrun.getId())
-          .find((ts) => true);
+          .find(() => true);
         const loadeddata = this.loadTrainrunItem(ts, true);
         this.cachedTrainrunItems = loadeddata.trainrunItem;
       }
@@ -193,7 +193,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         : this.createLongestPathFromNodes(graph, nodes);
 
     // convert corridor to path elements
-    corridor.forEach((n, idx, nodArray) => {
+    corridor.forEach((_, idx, nodArray) => {
       if (idx > 0) {
         const e = edgeLists.find(
           (e) =>
@@ -657,12 +657,11 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
           // this part of code supports partial cancellations, e.g., trainrun runs from
           // A - B - C [ partial canceled ] D - E
           while (alltrainrunsections.length > 0) {
-            const ts: TrainrunSection = alltrainrunsections.find((ts) => true);
+            const ts: TrainrunSection = alltrainrunsections.find(() => true);
             const loadeddata = this.loadTrainrunItem(ts, false);
 
             // correct projections directions
             this.sortTrainrunItemAndRotateAlongTemplatePath(
-              trainrun,
               loadeddata.trainrunItem,
               templateTrainrunItem,
             );
@@ -680,7 +679,6 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
   }
 
   sortTrainrunItemAndRotateAlongTemplatePath(
-    trainrun: Trainrun,
     trainrunItem: TrainrunItem,
     templateTrainrunItem: TrainrunItem,
   ) {
@@ -690,7 +688,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
      There is sill an issue in the CODE - if the trainrun passes the second time a node, the in-/out
      branching edge will not all be rendered!
      */
-    this.classifyPathItem(trainrun, trainrunItem, templateTrainrunItem);
+    this.classifyPathItem(trainrunItem, templateTrainrunItem);
 
     const indicesForward: number[] = [];
     const indicesBackward: number[] = [];
@@ -793,7 +791,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     swapIndF = swapIndF.filter((v, i, a) => a.indexOf(v) === i);
     swapIndB = swapIndB.filter((v, i, a) => a.indexOf(v) === i);
 
-    swapIndF.forEach((v, index) => {
+    swapIndF.forEach((_, index) => {
       if (swapIndF[index] >= 0) {
         if (index === 0) {
           if (
@@ -829,11 +827,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     });
   }
 
-  classifyPathItem(
-    trainrun: Trainrun,
-    trainrunItem: TrainrunItem,
-    templateTrainrunItem: TrainrunItem,
-  ) {
+  classifyPathItem(trainrunItem: TrainrunItem, templateTrainrunItem: TrainrunItem) {
     trainrunItem.pathItems.forEach((item: PathItem) => {
       if (item.isSection()) {
         const section = item.getPathSection();

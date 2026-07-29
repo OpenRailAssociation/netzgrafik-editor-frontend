@@ -51,7 +51,7 @@ describe("TrainrunService", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
@@ -166,8 +166,6 @@ describe("TrainrunService", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(1);
     const t = ts.getTrainrun();
-    const n1 = nodeService.getNodeFromId(ts.getSourceNodeId());
-    const n2 = nodeService.getNodeFromId(ts.getTargetNodeId());
     const copied = trainrunService.duplicateTrainrunAndSections(t.getId());
     const ts1 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(t.getId());
     const ts2 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(copied.getId());
@@ -182,8 +180,6 @@ describe("TrainrunService", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(1);
     const t = ts.getTrainrun();
-    const n1 = nodeService.getNodeFromId(ts.getSourceNodeId());
-    const n2 = nodeService.getNodeFromId(ts.getTargetNodeId());
     const labelsList = ["a", "e", "25", "04", "78"];
     trainrunService.setLabels(t.getId(), labelsList);
     labelsList.forEach((label, index) => {
@@ -316,21 +312,13 @@ describe("TrainrunService", () => {
 
     trainrunSectionService.deleteTrainrunSection(4);
 
-    const ts5: TrainrunSection = trainrunSectionService.getTrainrunSectionFromId(5);
     const ts7: TrainrunSection = trainrunSectionService.getTrainrunSectionFromId(7);
     trainrunService.setTrainrunAsSelected(ts7.getId());
-    const ts7a = trainrunSectionService.createTrainrunSection(0, 1);
-    const ts7b = trainrunSectionService.createTrainrunSection(1, 3);
+    trainrunSectionService.createTrainrunSection(0, 1);
+    trainrunSectionService.createTrainrunSection(1, 3);
     trainrunService.unselectAllTrainruns();
 
     const node2: Node = nodeService.getNodeFromId(2);
-
-    const trainrunSections5 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(
-      ts5.getTrainrunId(),
-    );
-    const trainrunSections7 = trainrunSectionService.getAllTrainrunSectionsForTrainrun(
-      ts7.getTrainrunId(),
-    );
 
     trainrunService.combineTwoTrainruns(
       node2,

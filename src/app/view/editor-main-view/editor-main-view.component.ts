@@ -188,8 +188,8 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     );
 
     this.editorView.bindMoveSelectedNotes(
-      (deltaPositionX: number, deltaPositionY: number, round: number, dragEnd: boolean) =>
-        this.noteService.moveSelectedNotes(deltaPositionX, deltaPositionY, round, dragEnd),
+      (deltaPositionX: number, deltaPositionY: number, round: number) =>
+        this.noteService.moveSelectedNotes(deltaPositionX, deltaPositionY, round),
     );
 
     this.editorView.bindAddTrainrunSectionWithSourceTarget(

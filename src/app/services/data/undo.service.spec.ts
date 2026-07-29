@@ -55,7 +55,7 @@ describe("UndoService", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
@@ -284,7 +284,7 @@ describe("UndoService", () => {
     noteService.getNotes().forEach((note: Note) => {
       notePos.push(new Vec2D(note.getPositionX(), note.getPositionY()));
     });
-    noteService.moveSelectedNotes(10, 8, 1, false);
+    noteService.moveSelectedNotes(10, 8, 1);
     noteService.getNotes().forEach((note: Note, index: number) => {
       if (index < 2) {
         expect(notePos[index].getX() + 10).toBe(note.getPositionX());
@@ -295,7 +295,7 @@ describe("UndoService", () => {
       }
     });
 
-    noteService.moveSelectedNotes(2, 5, 1, true);
+    noteService.moveSelectedNotes(2, 5, 1);
 
     noteService.getNotes().forEach((note: Note, index: number) => {
       if (index < 2) {

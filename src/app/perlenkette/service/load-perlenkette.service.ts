@@ -38,21 +38,19 @@ export class LoadPerlenketteService implements OnDestroy {
       this.render();
     });
 
-    this.trainrunSectionService.trainrunSections
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((trainrunsSection) => {
-        this.render();
-      });
-
-    this.nodeService.transitions.pipe(takeUntil(this.destroyed$)).subscribe((transition) => {
+    this.trainrunSectionService.trainrunSections.pipe(takeUntil(this.destroyed$)).subscribe(() => {
       this.render();
     });
 
-    this.nodeService.nodes.pipe(takeUntil(this.destroyed$)).subscribe((node) => {
+    this.nodeService.transitions.pipe(takeUntil(this.destroyed$)).subscribe(() => {
       this.render();
     });
 
-    this.nodeService.connections.pipe(takeUntil(this.destroyed$)).subscribe((connection) => {
+    this.nodeService.nodes.pipe(takeUntil(this.destroyed$)).subscribe(() => {
+      this.render();
+    });
+
+    this.nodeService.connections.pipe(takeUntil(this.destroyed$)).subscribe(() => {
       this.render();
     });
   }

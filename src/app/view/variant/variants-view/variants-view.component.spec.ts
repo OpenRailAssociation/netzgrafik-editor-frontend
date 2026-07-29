@@ -8,7 +8,6 @@ import {
   ProjectControllerBackendService,
   ProjectDto,
   VariantControllerBackendService,
-  VariantCreateDto,
   VersionControllerBackendService,
 } from "../../../api/generated";
 import {of} from "rxjs";
@@ -32,7 +31,7 @@ describe("VariantsViewComponent", () => {
 
   beforeEach(async () => {
     projectControllerBackendService = {
-      getProject: (projectId: number) => {
+      getProject: () => {
         const project: ProjectDto = {
           id: 10,
           name: "",
@@ -57,7 +56,7 @@ describe("VariantsViewComponent", () => {
       }),
     };
     variantControllerBackendService = {
-      createVariant: (projectId: number, variantCreateDto: VariantCreateDto) => of(10 as any),
+      createVariant: () => of(10 as any),
     };
 
     await TestBed.configureTestingModule({

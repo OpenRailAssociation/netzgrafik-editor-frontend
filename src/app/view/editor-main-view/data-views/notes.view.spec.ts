@@ -67,7 +67,7 @@ describe("Notes-View", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
@@ -190,7 +190,7 @@ describe("Notes-View", () => {
 
   it("notesView constructor test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const notesView = new NotesView(editorView);
+    new NotesView(editorView);
   });
 
   it("NotesView.convertText", () => {

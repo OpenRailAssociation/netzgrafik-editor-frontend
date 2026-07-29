@@ -3,7 +3,6 @@ import {BehaviorSubject} from "rxjs";
 import {NetzgrafikColorDto, TrainrunCategory} from "../../data-structures/business.data.structures";
 import {StaticDomTags} from "../../view/editor-main-view/data-views/static.dom.tags";
 import {NetzgrafikColor} from "../../models/netzgrafikColor.model";
-import {LogService} from "../../logger/log.service";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {ColorRefType} from "../../data-structures/technical.data.structures";
 
@@ -21,7 +20,7 @@ export class NetzgrafikColoringService {
   private isDarkMode = false;
   private generatedStyleSheets: CSSStyleSheet[];
 
-  constructor(private logService: LogService) {
+  constructor() {
     this.generateColors();
   }
 
@@ -364,7 +363,6 @@ export class NetzgrafikColoringService {
   generateGlobalStyles(
     trainrunCategories: TrainrunCategory[],
     trainrunSections: TrainrunSection[],
-    verbose = false,
   ) {
     // collect all used colorRefs
     const colorRefs = this.collectColorRefs(trainrunCategories, trainrunSections);

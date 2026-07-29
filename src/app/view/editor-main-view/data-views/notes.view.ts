@@ -29,7 +29,7 @@ export class NotesView {
   constructor(private editorView: EditorView) {
     this.draggable = d3
       .drag<SVGElement, NoteViewObject>()
-      .on("start", (event: NoteDragEvent, n: NoteViewObject) => this.onNoteDragStart(event, n.note))
+      .on("start", (event: NoteDragEvent) => this.onNoteDragStart(event))
       .on("drag", (event: NoteDragEvent, n: NoteViewObject) => this.onNoteDragged(event, n.note))
       .on("end", (event: NoteDragEvent, n: NoteViewObject) => this.onNoteDragEnd(event, n.note));
     this.dragPreviousMousePosition = new Vec2D();
@@ -225,10 +225,8 @@ export class NotesView {
 
     added
       .call(this.draggable)
-      .on("mouseout", (event: MouseEvent, n: NoteViewObject) => this.onNoteMouseout(event, n.note))
-      .on("mouseover", (event: MouseEvent, n: NoteViewObject) =>
-        this.onNoteMouseover(event, n.note),
-      );
+      .on("mouseout", (_, n: NoteViewObject) => this.onNoteMouseout(n.note))
+      .on("mouseover", (_, n: NoteViewObject) => this.onNoteMouseover(n.note));
   }
 
   private makeNoteRoot(groupEnter: d3.Selection<SVGElement, NoteViewObject, Element, undefined>) {
@@ -249,10 +247,8 @@ export class NotesView {
         this.onNoteMousedown(event, n.note),
       )
       .on("mouseup", (event: MouseEvent, n: NoteViewObject) => this.onNoteMouseup(event, n.note))
-      .on("mouseout", (event: MouseEvent, n: NoteViewObject) => this.onNoteMouseout(event, n.note))
-      .on("mouseover", (event: MouseEvent, n: NoteViewObject) =>
-        this.onNoteMouseover(event, n.note),
-      );
+      .on("mouseout", (_, n: NoteViewObject) => this.onNoteMouseout(n.note))
+      .on("mouseover", (_, n: NoteViewObject) => this.onNoteMouseover(n.note));
   }
 
   private makeNoteTitleArea(
@@ -275,10 +271,8 @@ export class NotesView {
         this.onNoteMousedown(event, n.note),
       )
       .on("mouseup", (event: MouseEvent, n: NoteViewObject) => this.onNoteMouseup(event, n.note))
-      .on("mouseout", (event: MouseEvent, n: NoteViewObject) => this.onNoteMouseout(event, n.note))
-      .on("mouseover", (event: MouseEvent, n: NoteViewObject) =>
-        this.onNoteMouseover(event, n.note),
-      );
+      .on("mouseout", (_, n: NoteViewObject) => this.onNoteMouseout(n.note))
+      .on("mouseover", (_, n: NoteViewObject) => this.onNoteMouseover(n.note));
   }
 
   private makeNoteTextArea(
@@ -304,10 +298,8 @@ export class NotesView {
         this.onNoteMousedown(event, n.note),
       )
       .on("mouseup", (event: MouseEvent, n: NoteViewObject) => this.onNoteMouseup(event, n.note))
-      .on("mouseout", (event: MouseEvent, n: NoteViewObject) => this.onNoteMouseout(event, n.note))
-      .on("mouseover", (event: MouseEvent, n: NoteViewObject) =>
-        this.onNoteMouseover(event, n.note),
-      );
+      .on("mouseout", (_, n: NoteViewObject) => this.onNoteMouseout(n.note))
+      .on("mouseover", (_, n: NoteViewObject) => this.onNoteMouseover(n.note));
   }
 
   private makeNoteTitleAreaText(
@@ -323,10 +315,8 @@ export class NotesView {
       .on("mousedown", (event: MouseEvent, n: NoteViewObject) =>
         this.onNoteMousedown(event, n.note),
       )
-      .on("mouseout", (event: MouseEvent, n: NoteViewObject) => this.onNoteMouseout(event, n.note))
-      .on("mouseover", (event: MouseEvent, n: NoteViewObject) =>
-        this.onNoteMouseover(event, n.note),
-      );
+      .on("mouseout", (_, n: NoteViewObject) => this.onNoteMouseout(n.note))
+      .on("mouseover", (_, n: NoteViewObject) => this.onNoteMouseover(n.note));
   }
 
   private makeNoteText(groupEnter: d3.Selection<SVGElement, NoteViewObject, Element, undefined>) {
@@ -340,10 +330,8 @@ export class NotesView {
       .on("mousedown", (event: MouseEvent, n: NoteViewObject) =>
         this.onNoteMousedown(event, n.note),
       )
-      .on("mouseout", (event: MouseEvent, n: NoteViewObject) => this.onNoteMouseout(event, n.note))
-      .on("mouseover", (event: MouseEvent, n: NoteViewObject) =>
-        this.onNoteMouseover(event, n.note),
-      );
+      .on("mouseout", (_, n: NoteViewObject) => this.onNoteMouseout(n.note))
+      .on("mouseover", (_, n: NoteViewObject) => this.onNoteMouseover(n.note));
   }
 
   private makeNoteDragAreaBackground(
@@ -355,7 +343,7 @@ export class NotesView {
       .attr("class", StaticDomTags.NOTE_HOVER_DRAG_AREA_BACKGROUND_CLASS)
       .classed(StaticDomTags.TAG_SELECTED, (n: NoteViewObject) => n.note.selected())
       .attr(StaticDomTags.NOTE_ID, (n: NoteViewObject) => n.note.getId())
-      .attr("transform", (n: NoteViewObject) => "translate(-50,-20)")
+      .attr("transform", () => "translate(-50,-20)")
       .attr("width", 28)
       .attr("height", 28)
       .attr("x", 0)
@@ -366,12 +354,8 @@ export class NotesView {
     }
 
     added
-      .on("mouseout", (event: MouseEvent, n: NoteViewObject) =>
-        this.onNoteMouseoutDragButton(event, n.note),
-      )
-      .on("mouseover", (event: MouseEvent, n: NoteViewObject) =>
-        this.onNoteMouseoverDragButton(event, n.note),
-      )
+      .on("mouseout", (_, n: NoteViewObject) => this.onNoteMouseoutDragButton(n.note))
+      .on("mouseover", (_, n: NoteViewObject) => this.onNoteMouseoverDragButton(n.note))
       .call(this.draggable);
   }
 
@@ -395,13 +379,9 @@ export class NotesView {
           "3.5-3.5.353-.354-.353-.354-3.5-3.5-.707.708L19.043 11H12V3.967l2.997 " +
           "3.029.711-.704-3.853-3.894Z",
       )
-      .attr("transform", (n: NoteViewObject) => "translate(-45,-15),scale(1.0)")
-      .on("mouseout", (event: MouseEvent, n: NoteViewObject) =>
-        this.onNoteMouseoutDragButton(event, n.note),
-      )
-      .on("mouseover", (event: MouseEvent, n: NoteViewObject) =>
-        this.onNoteMouseoverDragButton(event, n.note),
-      )
+      .attr("transform", () => "translate(-45,-15),scale(1.0)")
+      .on("mouseout", (_, n: NoteViewObject) => this.onNoteMouseoutDragButton(n.note))
+      .on("mouseover", (_, n: NoteViewObject) => this.onNoteMouseoverDragButton(n.note))
       .call(this.draggable);
   }
 
@@ -452,11 +432,11 @@ export class NotesView {
     this.editorView.editNote(note.getId(), clickPosition);
   }
 
-  onNoteMouseout(event: MouseEvent, note: Note) {
+  onNoteMouseout(note: Note) {
     this.unhoverNote(note);
   }
 
-  onNoteMouseover(event: MouseEvent, note: Note) {
+  onNoteMouseover(note: Note) {
     if (this.editorView.trainrunSectionPreviewLineView.getMode() !== PreviewLineMode.NotDragging) {
       return;
     }
@@ -470,18 +450,18 @@ export class NotesView {
     this.hoverNote(note);
   }
 
-  onNoteMouseoverDragButton(event: MouseEvent, note: Note) {
-    this.onNoteMouseover(event, note);
+  onNoteMouseoverDragButton(note: Note) {
+    this.onNoteMouseover(note);
     d3.selectAll(StaticDomTags.NOTE_HOVER_DRAG_AREA_DOM_REF)
       .filter((n: NoteViewObject) => n.note.getId() === note.getId())
       .classed(StaticDomTags.TAG_HOVER, true);
   }
 
-  onNoteMouseoutDragButton(event: MouseEvent, note: Note) {
+  onNoteMouseoutDragButton(note: Note) {
     d3.selectAll(StaticDomTags.NOTE_HOVER_DRAG_AREA_DOM_REF)
       .filter((n: NoteViewObject) => n.note.getId() === note.getId())
       .classed(StaticDomTags.TAG_HOVER, false);
-    this.onNoteMouseout(event, note);
+    this.onNoteMouseout(note);
   }
 
   hoverNote(note: Note) {
@@ -502,7 +482,7 @@ export class NotesView {
       .classed(StaticDomTags.TAG_HOVER, false);
   }
 
-  onNoteDragStart(event: NoteDragEvent, note: Note) {
+  onNoteDragStart(event: NoteDragEvent) {
     const domObj = D3Utils.getMouseEventCurrentTarget(event.sourceEvent);
     this.dragDomObj = domObj;
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, true);
@@ -537,7 +517,7 @@ export class NotesView {
 
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
       this.editorView.moveSelectedNodes(newPosition.getX(), newPosition.getY(), round, dragEnd);
-      this.editorView.moveSelectedNotes(newPosition.getX(), newPosition.getY(), round, dragEnd);
+      this.editorView.moveSelectedNotes(newPosition.getX(), newPosition.getY(), round);
     } else {
       this.editorView.moveNote(noteId, newPosition, round, dragEnd);
     }

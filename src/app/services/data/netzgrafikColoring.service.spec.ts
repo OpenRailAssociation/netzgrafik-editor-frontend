@@ -59,7 +59,7 @@ describe("NetzgraphikColoringService", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
@@ -119,9 +119,8 @@ describe("NetzgraphikColoringService", () => {
 
   it("test NetzgrafikColor.createDefaultColorForNotExistingColors", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const loadedNetzgrafik = dataService.getNetzgrafikDto();
     netzgrafikColoringService.generateColors();
-    const styles = netzgrafikColoringService.generateGlobalStyles(
+    netzgrafikColoringService.generateGlobalStyles(
       dataService.getTrainrunCategories(),
       trainrunSectionService.getTrainrunSections(),
     );
@@ -143,7 +142,6 @@ describe("NetzgraphikColoringService", () => {
 
   it("test NetzgrafikColor.generateColors", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const loadedNetzgrafik = dataService.getNetzgrafikDto();
 
     netzgrafikColoringService.createDefaultColorForNotExistingColors("Adrian");
     netzgrafikColoringService.generateColors();
@@ -153,7 +151,6 @@ describe("NetzgraphikColoringService", () => {
 
   it("test NetzgrafikColor.changeColorRef", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const loadedNetzgrafik = dataService.getNetzgrafikDto();
 
     netzgrafikColoringService.createDefaultColorForNotExistingColors("Adrian");
     const v1 = netzgrafikColoringService.getNetzgrafikColor("Adrian");

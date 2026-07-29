@@ -143,13 +143,13 @@ export class ConnectionsView {
       )
       .classed(StaticDomTags.TAG_SELECTED, (c: ConnectionsViewObject) => c.connection.selected())
       .on("mouseover", (event: MouseEvent, c: ConnectionsViewObject) =>
-        this.onConnectionMouseover(event, c.connection, c.node),
+        this.onConnectionMouseover(event, c.node),
       )
       .on("mouseout", (event: MouseEvent, c: ConnectionsViewObject) =>
-        this.onConnectionMouseout(event, c.connection, c.node),
+        this.onConnectionMouseout(event, c.node),
       )
       .on("mouseup", (event: MouseEvent, c: ConnectionsViewObject) =>
-        this.onConnectionMouseup(event, c.connection, c.node),
+        this.onConnectionMouseup(event, c.node),
       );
   }
 
@@ -159,14 +159,10 @@ export class ConnectionsView {
   ) {
     const draggable = d3
       .drag<SVGElement, ConnectionsViewObject>()
-      .on("start", (event: ConnectionDragEvent, cv: ConnectionsViewObject) =>
-        this.onConnectionPinDragStart(event, cv.connection),
-      )
-      .on("drag", (event: ConnectionDragEvent, cv: ConnectionsViewObject) =>
-        this.onConnectionPinDragged(event, cv.connection),
-      )
-      .on("end", (event: ConnectionDragEvent, cv: ConnectionsViewObject) =>
-        this.onConnectionPinDragEnd(event, cv.connection, cv.node),
+      .on("start", (event: ConnectionDragEvent) => this.onConnectionPinDragStart(event))
+      .on("drag", (event: ConnectionDragEvent) => this.onConnectionPinDragged(event))
+      .on("end", (_, cv: ConnectionsViewObject) =>
+        this.onConnectionPinDragEnd(cv.connection, cv.node),
       );
 
     drawingGroup
@@ -184,13 +180,13 @@ export class ConnectionsView {
       )
       .classed(StaticDomTags.TAG_SELECTED, (c: ConnectionsViewObject) => c.connection.selected())
       .on("mouseover", (event: MouseEvent, cv: ConnectionsViewObject) =>
-        this.onConnectionPinMouseover(event, cv.connection, cv.node),
+        this.onConnectionPinMouseover(event, cv.node),
       )
       .on("mouseout", (event: MouseEvent, cv: ConnectionsViewObject) =>
-        this.onConnectionPinMouseout(event, cv.connection, cv.node),
+        this.onConnectionPinMouseout(event, cv.node),
       )
       .on("mouseup", (event: MouseEvent, cv: ConnectionsViewObject) =>
-        this.onConnectionMouseup(event, cv.connection, cv.node),
+        this.onConnectionMouseup(event, cv.node),
       )
       .call(draggable)
       .classed(StaticDomTags.TAG_WARNING, (cv: ConnectionsViewObject) =>
@@ -306,7 +302,7 @@ export class ConnectionsView {
       }
       case LevelOfDetail.LEVEL0: {
         //statements;
-        this.makeConnectionLOD0(groupEnter);
+        this.makeConnectionLOD0();
         break;
       }
       default: {
@@ -342,41 +338,39 @@ export class ConnectionsView {
     this.createConnectionCurve(groupEnter);
   }
 
-  makeConnectionLOD0(
-    groupEnter: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
-  ) {}
+  makeConnectionLOD0() {}
 
-  onConnectionMouseup(event: MouseEvent, connection: Connection, node: Node) {
+  onConnectionMouseup(event: MouseEvent, node: Node) {
     event.stopPropagation();
     this.editorView.nodesView.handleMouseUpEvent(event, node);
   }
 
-  onConnectionMouseover(event: MouseEvent, connection: Connection, node: Node) {
+  onConnectionMouseover(event: MouseEvent, node: Node) {
     this.editorView.nodesView.hoverNodeDockable(event, node);
   }
 
-  onConnectionMouseout(event: MouseEvent, connection: Connection, node: Node) {
+  onConnectionMouseout(event: MouseEvent, node: Node) {
     this.editorView.nodesView.unhoverNodeDockable(event, node);
   }
 
-  onConnectionPinMouseover(event: MouseEvent, connection: Connection, node: Node) {
+  onConnectionPinMouseover(event: MouseEvent, node: Node) {
     d3.select(D3Utils.getMouseEventCurrentTarget(event)).classed(StaticDomTags.TAG_HOVER, true);
     this.editorView.nodesView.hoverNodeDockable(event, node);
   }
 
-  onConnectionPinMouseout(event: MouseEvent, connection: Connection, node: Node) {
+  onConnectionPinMouseout(event: MouseEvent, node: Node) {
     d3.select(D3Utils.getMouseEventCurrentTarget(event)).classed(StaticDomTags.TAG_HOVER, false);
     this.editorView.nodesView.unhoverNodeDockable(event, node);
   }
 
-  onConnectionPinDragStart(event: ConnectionDragEvent, connection: Connection) {
+  onConnectionPinDragStart(event: ConnectionDragEvent) {
     const domObj = D3Utils.getMouseEventCurrentTarget(event.sourceEvent);
     this.dragDomObj = domObj;
     d3.select(domObj).classed(StaticDomTags.CONNECTION_PIN_DRAGGING, true);
     D3Utils.disableTrainrunSectionForEventHandling();
   }
 
-  onConnectionPinDragged(event: ConnectionDragEvent, connection: Connection) {
+  onConnectionPinDragged(event: ConnectionDragEvent) {
     const obj = d3.select(this.dragDomObj);
     obj.classed(StaticDomTags.CONNECTION_PIN_DRAGGING, true);
     const currentMousePosition = this.editorView.svgMouseController.getCurrentMousePosition(
@@ -386,7 +380,7 @@ export class ConnectionsView {
     obj.attr("cy", currentMousePosition.getY());
   }
 
-  onConnectionPinDragEnd(event: ConnectionDragEvent, connection: Connection, node: Node) {
+  onConnectionPinDragEnd(connection: Connection, node: Node) {
     D3Utils.resetTrainrunSectionForEventHandling();
     const domObj = this.dragDomObj;
     this.dragDomObj = null;

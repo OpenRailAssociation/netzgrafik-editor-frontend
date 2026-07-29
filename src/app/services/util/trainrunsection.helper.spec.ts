@@ -54,7 +54,7 @@ describe("TrainrunsectionHelper", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
@@ -364,7 +364,6 @@ describe("TrainrunsectionHelper", () => {
   it("getSourceLock - 001", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(1);
-    const nodes = trainrunService.getBothEndNodesWithTrainrunId(ts.getTrainrunId());
     const d = trainrunsectionHelper.getSourceLock(
       {
         leftLock: true,
@@ -379,7 +378,6 @@ describe("TrainrunsectionHelper", () => {
   it("getTargetLock - 001", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(1);
-    const nodes = trainrunService.getBothEndNodesWithTrainrunId(ts.getTrainrunId());
 
     const d = trainrunsectionHelper.getTargetLock(
       {

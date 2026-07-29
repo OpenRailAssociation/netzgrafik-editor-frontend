@@ -133,7 +133,7 @@ export class PathGridComponent implements OnInit, OnDestroy, AfterViewInit {
     return trackIdx < nodeTracks.length ? nodeTracks[trackIdx] : pathNode.trackData;
   }
 
-  getTrackLabel(path: SgPath, gridTrackPos: number): string {
+  getTrackLabel(gridTrackPos: number): string {
     const trackNbr = Math.round(1 + (gridTrackPos - this.trackWidth) / this.trackWidth);
     return "" + trackNbr;
   }

@@ -312,24 +312,14 @@ export class NoteService {
     return this.notesStore.notes.map((note) => note.getDto());
   }
 
-  moveSelectedNotes(
-    deltaPositionX: number,
-    deltaPositionY: number,
-    round: number,
-    dragEnd: boolean,
-  ) {
+  moveSelectedNotes(deltaPositionX: number, deltaPositionY: number, round: number) {
     const notesToUpdate = this.getSelectedNotes();
     notesToUpdate.forEach((note) => {
       const newPosition = NoteService.alginNoteToRaster(
         new Vec2D(note.getPositionX() + deltaPositionX, note.getPositionY() + deltaPositionY),
         round,
       );
-      this.changeNotePositionWithoutUpdate(
-        note.getId(),
-        newPosition.getX(),
-        newPosition.getY(),
-        dragEnd,
-      );
+      this.changeNotePositionWithoutUpdate(note.getId(), newPosition.getX(), newPosition.getY());
       this.operation.emit(new NoteOperation(OperationType.update, note));
     });
     this.notesUpdated();
@@ -343,7 +333,6 @@ export class NoteService {
     nodeId: number,
     newPositionX: number,
     newPositionY: number,
-    dragEnd: boolean,
   ) {
     const note = this.getNoteFromId(nodeId);
     if (note !== undefined) {

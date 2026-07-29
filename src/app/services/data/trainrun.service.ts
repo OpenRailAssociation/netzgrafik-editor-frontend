@@ -200,7 +200,6 @@ export class TrainrunService {
     frequency: TrainrunFrequency,
     offset: number,
   ): number {
-    const oldFreq = trainrun.getFrequency();
     const newFreq = frequency.frequency;
 
     const freqOffset = (frequency.offset + offset) % newFreq;
@@ -364,7 +363,7 @@ export class TrainrunService {
     const port1 = node.getPort(portId1);
     const port2 = node.getPort(portId2);
     const trainrunSection2 = port2.getTrainrunSection();
-    const newTrainrun = this.duplicateTrainrun(trainrunSection2.getTrainrunId(), false, "-2");
+    const newTrainrun = this.duplicateTrainrun(trainrunSection2.getTrainrunId(), "-2");
 
     trainrunSection2.setTrainrun(newTrainrun);
     const iterator = this.getIterator(node, trainrunSection2);
@@ -513,7 +512,7 @@ export class TrainrunService {
     this.nodeService.transitionsUpdated();
   }
 
-  duplicateTrainrun(trainrunId: number, enforceUpdate = true, postfix = " COPY"): Trainrun {
+  duplicateTrainrun(trainrunId: number, postfix = " COPY"): Trainrun {
     const trainrun = this.getTrainrunFromId(trainrunId);
     const copiedtrainrun = new Trainrun();
     copiedtrainrun.setTrainrunCategory(trainrun.getTrainrunCategory());
@@ -531,7 +530,7 @@ export class TrainrunService {
     enforceUpdate = true,
     postfix = " COPY",
   ): Trainrun {
-    const copiedtrainrun = this.duplicateTrainrun(trainrunId, enforceUpdate, postfix);
+    const copiedtrainrun = this.duplicateTrainrun(trainrunId, postfix);
     this.trainrunSectionService.copyAllTrainrunSectionsForTrainrun(
       trainrunId,
       copiedtrainrun.getId(),

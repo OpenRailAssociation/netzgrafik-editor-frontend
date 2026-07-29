@@ -214,7 +214,7 @@ export class VariantsViewComponent implements OnDestroy {
         filter((confirmed) => confirmed),
         takeUntil(this.destroyed),
       )
-      .subscribe((project) => {
+      .subscribe(() => {
         this.versionControlService.archiveVariantWithId(variantToEdit.id).subscribe(() => {
           this.projectService
             .getProject(variantToEdit.projectId)
@@ -235,7 +235,7 @@ export class VariantsViewComponent implements OnDestroy {
         filter((confirmed) => confirmed),
         takeUntil(this.destroyed),
       )
-      .subscribe((project) => {
+      .subscribe(() => {
         this.versionControlService.unarchiveVariantWithId(variantToEdit.id).subscribe(() => {
           this.projectService
             .getProject(variantToEdit.projectId)

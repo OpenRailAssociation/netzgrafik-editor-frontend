@@ -55,7 +55,7 @@ describe("FilterService", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
@@ -373,7 +373,7 @@ describe("FilterService", () => {
     const defaultFilterSettings = filterService.getActiveFilterSetting();
     const copiedFS = defaultFilterSettings.copy();
     copiedFS.id = copiedFS.id + 10;
-    const fs = new FilterSetting(copiedFS.getDto());
+    new FilterSetting(copiedFS.getDto());
     expect(new FilterSetting().id).toBe(copiedFS.id + 1);
   });
 

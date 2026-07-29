@@ -56,7 +56,7 @@ describe("NodeService Test", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
@@ -115,9 +115,6 @@ describe("NodeService Test", () => {
 
     const betriebspunktName = "TT";
     const fullName = "TTest";
-    const labelIds = labelService
-      .getLabelsFromLabelRef(LabelRef.Node)
-      .map((label) => label.getId());
 
     nodeService.addNodeWithPosition(0, 0, betriebspunktName, fullName);
     expect(nodes.length).toBe(6);
@@ -713,8 +710,6 @@ describe("NodeService Test", () => {
     nodeZUE.getConnections().forEach((connection) => {
       expect(connection.getPortId2()).toBe(9);
       connection.resetWarning();
-      const trainrunSection1 = nodeZUE.getPort(connection.getPortId1()).getTrainrunSection();
-      const trainrunSection2 = nodeZUE.getPort(connection.getPortId2()).getTrainrunSection();
 
       if (connection.getId() === 2) {
         const port = nodeZUE.getPort(connection.getPortId2());

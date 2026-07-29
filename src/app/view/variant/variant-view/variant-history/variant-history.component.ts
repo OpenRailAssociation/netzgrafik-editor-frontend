@@ -1,4 +1,4 @@
-import {Component, Input, OnChanges, OnDestroy, SimpleChanges} from "@angular/core";
+import {Component, Input, OnChanges, OnDestroy} from "@angular/core";
 import {DownloadVersionModel, VersionId} from "./model";
 import {VersionControlService} from "../../../../services/data/version-control.service";
 import {
@@ -55,7 +55,7 @@ export class VariantHistoryComponent implements OnChanges, OnDestroy {
     this.destroyed.complete();
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
+  ngOnChanges(): void {
     this.versionEntries = this.groupVersionsByReleaseNumber([...this.variant.versions].reverse());
   }
 

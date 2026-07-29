@@ -94,12 +94,12 @@ export const buildEdges = (
 
   // Sorting is useful to find relevant connections later.
   verticesDepartureByTrainrunByNode.forEach((verticesDepartureByTrainrun) => {
-    verticesDepartureByTrainrun.forEach((departures, trainrunId) => {
+    verticesDepartureByTrainrun.forEach((departures) => {
       departures.sort((a, b) => a.time - b.time);
     });
   });
   verticesArrivalByTrainrunByNode.forEach((verticesArrivalByTrainrun) => {
-    verticesArrivalByTrainrun.forEach((arrivals, trainrunId) => {
+    verticesArrivalByTrainrun.forEach((arrivals) => {
       arrivals.sort((a, b) => a.time - b.time);
     });
   });
@@ -402,7 +402,7 @@ const buildConvenienceEdges = (
     edges.push(edge);
     const departuresByTrainrun = verticesDepartureByTrainrunByNode.get(nodeId);
     if (departuresByTrainrun !== undefined) {
-      departuresByTrainrun.forEach((departures, trainrunId) => {
+      departuresByTrainrun.forEach((departures) => {
         departures.forEach((departure) => {
           const edge = new Edge(srcVertex, departure, 0);
           edges.push(edge);
@@ -411,7 +411,7 @@ const buildConvenienceEdges = (
     }
     const arrivalsByTrainrun = verticesArrivalByTrainrunByNode.get(nodeId);
     if (arrivalsByTrainrun !== undefined) {
-      arrivalsByTrainrun.forEach((arrivals, trainrunId) => {
+      arrivalsByTrainrun.forEach((arrivals) => {
         arrivals.forEach((arrival) => {
           const edge = new Edge(arrival, tgtVertex, 0);
           edges.push(edge);
@@ -484,7 +484,7 @@ const depthFirstSearch = (
   visited.add(key);
   const neighbors = graph.get(key);
   if (neighbors !== undefined) {
-    neighbors.forEach(([neighbor, weight]) => {
+    neighbors.forEach(([neighbor, _weight]) => {
       if (!visited.has(neighbor)) {
         depthFirstSearch(graph, neighbor, visited, res);
       }

@@ -67,7 +67,7 @@ describe("Nodes-View", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
@@ -192,6 +192,6 @@ describe("Nodes-View", () => {
   it("nodesView construction test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const nodesView = new NodesView(editorView);
-    const data = nodesView.createViewNodeDataObjects(nodeService.getNodes());
+    nodesView.createViewNodeDataObjects(nodeService.getNodes());
   });
 });

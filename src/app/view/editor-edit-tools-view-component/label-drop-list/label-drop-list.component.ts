@@ -91,7 +91,7 @@ export class LabelDropListComponent implements OnInit, OnDestroy {
           : labelObject.getLabelRef() === LabelRef.Note
             ? $localize`:@@app.view.editor-edit-tools-view-component.label-drop-list.notes:Notes`
             : $localize`:@@app.view.editor-edit-tools-view-component.label-drop-list.nodes:Nodes`,
-      saveLabelCallback: (refLabel, updatedLabel) =>
+      saveLabelCallback: (updatedLabel) =>
         this.labelService.updateLabel(labelObject.getId(), updatedLabel),
       deleteLabelCallback: (refLabel) => {
         if (labelObject.getLabelRef() === LabelRef.Trainrun) {
@@ -114,7 +114,7 @@ export class LabelDropListComponent implements OnInit, OnDestroy {
     FilterableLabelDialogComponent.open(this.dialog, callbackObject);
   }
 
-  dropLabelElement(event: CdkDragDrop<Label[]>, labelId: number, grpId: number) {
+  dropLabelElement(event: CdkDragDrop<Label[]>, grpId: number) {
     if (event.previousContainer === event.container) {
       return;
     } else {

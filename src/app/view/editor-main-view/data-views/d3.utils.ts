@@ -284,7 +284,7 @@ export class D3Utils {
     return v;
   }
 
-  static doGrayoutTrainrunSectionPin(trainrunSection: TrainrunSection, node: Node) {
+  static doGrayoutTrainrunSectionPin(_trainrunSection: TrainrunSection, _node: Node) {
     // Performance ISSUE : TODO - this special effect hast to be overworked. It's really slow!
     /*
     d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF)

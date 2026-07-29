@@ -19,7 +19,7 @@ export class FilterableLabelDialogComponent implements OnDestroy {
   private destroyed = new Subject<void>();
   private deleteLabelCallback: ((originalLabel: string) => void) | null = null;
   private transferLabelCallback: ((originalLabel: string) => void) | null = null;
-  private saveLabelCallback: ((originalLabel: string, newLabel: string) => void) | null = null;
+  private saveLabelCallback: ((newLabel: string) => void) | null = null;
   private originalLabel: string;
   private currentDialog: SbbDialogRef<
     FilterableLabelDialogComponent,
@@ -105,7 +105,7 @@ export class FilterableLabelDialogComponent implements OnDestroy {
   private updateLabel() {
     this.formModel.tryGetValid();
     const labelValue: string = this.formModel.getControl("name").value;
-    this.saveLabelCallback(this.originalLabel, labelValue);
+    this.saveLabelCallback(labelValue);
     this.originalLabel = labelValue;
   }
 }

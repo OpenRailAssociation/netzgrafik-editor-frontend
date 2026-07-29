@@ -89,8 +89,7 @@ export class EditorView implements SVGMouseControllerObserver {
     | ((deltaPositionX: number, deltaPositionY: number, round: number, dragEnd: boolean) => void)
     | null = null;
   moveSelectedNotes:
-    | ((deltaPositionX: number, deltaPositionY: number, round: number, dragEnd: boolean) => void)
-    | null = null;
+    ((deltaPositionX: number, deltaPositionY: number, round: number) => void) | null = null;
   showNodeInformation: ((node: Node) => void) | null = null;
   showTrainrunInformation: ((trainrunSection: TrainrunSection, position: Vec2D) => void) | null =
     null;
@@ -298,12 +297,7 @@ export class EditorView implements SVGMouseControllerObserver {
   }
 
   bindMoveSelectedNotes(
-    callback: (
-      deltaPositionX: number,
-      deltaPositionY: number,
-      round: number,
-      dragEnd: boolean,
-    ) => void,
+    callback: (deltaPositionX: number, deltaPositionY: number, round: number) => void,
   ) {
     this.moveSelectedNotes = callback;
   }

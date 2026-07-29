@@ -200,7 +200,7 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
       .append("title")
       .html((d) => d.tooltip);
 
-    const groupText = rootDataGroup
+    rootDataGroup
       .enter()
       .append(StaticDomTags.GROUP_SVG)
       .attr("class", StaticDomTags.KNOTENAUSLASTUNG_DATA_GROUP)

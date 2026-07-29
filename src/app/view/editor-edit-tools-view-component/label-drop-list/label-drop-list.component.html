@@ -20,9 +20,7 @@
                 cdkDropList
                 cdkDropListOrientation="horizontal"
                 [cdkDropListData]="[labelObject]"
-                (cdkDropListDropped)="
-                  dropLabelElement($event, labelObject.getId(), labelGrp.getId())
-                "
+                (cdkDropListDropped)="dropLabelElement($event, labelGrp.getId())"
               >
                 <button
                   class="TrainrunDialog EditorToolButton NodeLabel"
@@ -41,7 +39,7 @@
                 cdkDropList
                 cdkDropListSortingDisabled="true"
                 [cdkDropListData]="labelService.getLabelsFromLabelGroupId(labelGrp.getId())"
-                (cdkDropListDropped)="dropLabelElement($event, -1, labelGrp.getId())"
+                (cdkDropListDropped)="dropLabelElement($event, labelGrp.getId())"
               ></div>
             </ng-container>
           </div>

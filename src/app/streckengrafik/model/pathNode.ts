@@ -38,7 +38,7 @@ export class PathNode implements PathItem {
     return true;
   }
 
-  zommedXPath(xZoom: number) {
+  zommedXPath() {
     return this.xPath();
   }
 

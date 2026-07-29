@@ -224,7 +224,7 @@ export class NodeService implements OnDestroy {
     });
   }
 
-  duplicateNode(nodeId: number, enforceUpdate = true): Node {
+  duplicateNode(nodeId: number): Node {
     const node = this.getNodeFromId(nodeId);
     const newNode = this.addNodeWithPosition(
       node.getPositionX(),
@@ -606,11 +606,7 @@ export class NodeService implements OnDestroy {
     );
   }
 
-  checkExistsNoCycleTrainrunAfterFreePortsConnecting(
-    node: Node,
-    port1: Port,
-    port2: Port,
-  ): boolean {
+  checkExistsNoCycleTrainrunAfterFreePortsConnecting(port1: Port, port2: Port): boolean {
     const checkPort1 = this.trainrunService.isStartEqualsEndNode(
       port1.getTrainrunSection().getId(),
     );
@@ -625,22 +621,14 @@ export class NodeService implements OnDestroy {
     if (freePorts.length <= 1) {
       return;
     }
-    if (this.checkExistsNoCycleTrainrunAfterFreePortsConnecting(node, freePorts[0], freePorts[1])) {
+    if (this.checkExistsNoCycleTrainrunAfterFreePortsConnecting(freePorts[0], freePorts[1])) {
       node.addTransitionAndComputeRouting(freePorts[0], freePorts[1], trainrun, isNonStop);
     } else {
       if (freePorts.length === 3) {
-        if (
-          this.checkExistsNoCycleTrainrunAfterFreePortsConnecting(node, freePorts[0], freePorts[2])
-        ) {
+        if (this.checkExistsNoCycleTrainrunAfterFreePortsConnecting(freePorts[0], freePorts[2])) {
           node.addTransitionAndComputeRouting(freePorts[0], freePorts[2], trainrun, isNonStop);
         } else {
-          if (
-            this.checkExistsNoCycleTrainrunAfterFreePortsConnecting(
-              node,
-              freePorts[1],
-              freePorts[2],
-            )
-          ) {
+          if (this.checkExistsNoCycleTrainrunAfterFreePortsConnecting(freePorts[1], freePorts[2])) {
             node.addTransitionAndComputeRouting(freePorts[1], freePorts[2], trainrun, isNonStop);
           }
         }

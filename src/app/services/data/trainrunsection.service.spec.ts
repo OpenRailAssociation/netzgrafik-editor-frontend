@@ -51,7 +51,7 @@ describe("TrainrunSectionService", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
@@ -90,7 +90,6 @@ describe("TrainrunSectionService", () => {
 
   it("TrainrunSectionService.setTrainrunSectionAsSelected", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const ts = trainrunSectionService.getTrainrunSectionFromId(1);
     expect(trainrunSectionService.getSelectedTrainrunSection()).toBe(null);
     trainrunSectionService.setTrainrunSectionAsSelected(0);
     expect(trainrunSectionService.getSelectedTrainrunSection().getId()).toBe(0);
@@ -133,9 +132,9 @@ describe("TrainrunSectionService", () => {
     const nodeD = nodeService.addNodeWithPosition(0, 3, "D");
     const nodeE = nodeService.addNodeWithPosition(0, 4, "E");
     const tsAB = trainrunSectionService.createTrainrunSection(nodeA.getId(), nodeB.getId());
-    const tsBC = trainrunSectionService.createTrainrunSection(nodeB.getId(), nodeC.getId());
-    const tsCD = trainrunSectionService.createTrainrunSection(nodeC.getId(), nodeD.getId());
-    const tsDE = trainrunSectionService.createTrainrunSection(nodeD.getId(), nodeE.getId());
+    trainrunSectionService.createTrainrunSection(nodeB.getId(), nodeC.getId());
+    trainrunSectionService.createTrainrunSection(nodeC.getId(), nodeD.getId());
+    trainrunSectionService.createTrainrunSection(nodeD.getId(), nodeE.getId());
     const tsEA = trainrunSectionService.createTrainrunSection(nodeE.getId(), nodeA.getId());
 
     expect(nodeA.getTransitions().length).toBe(0);

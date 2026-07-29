@@ -59,7 +59,7 @@ describe("ResourceService", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
@@ -119,7 +119,6 @@ describe("ResourceService", () => {
 
   it("test - resource and node 1:1 link", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const loadedNetzgrafik = dataService.getNetzgrafikDto();
     const allNodeResourceIds: number[] = [];
     nodeService.getNodes().forEach((n) => {
       const res = resourceService.getResource(n.getResourceId());
@@ -148,7 +147,6 @@ describe("ResourceService", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const nodeOfInterest = nodeService.getNodes()[1];
     nodeService.deleteNode(nodeOfInterest.getId());
-    const res = resourceService.getResource(nodeOfInterest.getResourceId());
     expect(nodeService.getNodes().length).toBe(resourceService.getResources().length);
   });
 });
