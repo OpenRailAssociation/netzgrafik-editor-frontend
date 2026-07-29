@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import {AfterViewInit, Component, Input, OnDestroy} from "@angular/core";
+import {AfterViewInit, Component, OnDestroy} from "@angular/core";
 import {NodeService} from "../../services/data/node.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {TrainrunService} from "../../services/data/trainrun.service";

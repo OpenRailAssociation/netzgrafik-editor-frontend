@@ -23,7 +23,6 @@ import {
 import {TrafficSide} from "../../data-structures/business.data.structures";
 import {Node} from "../../models/node.model";
 import {Port} from "../../models/port.model";
-import {TrainrunsectionHelper} from "./trainrunsection.helper";
 
 export class SimpleTrainrunSectionRouter {
   private static trafficSideType: TrafficSide = "leftHand";

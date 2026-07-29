@@ -1,7 +1,6 @@
 import {AfterViewInit, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
 import {TrainrunSectionService} from "../../../../services/data/trainrunsection.service";
 import {TrainrunService} from "../../../../services/data/trainrun.service";
-import {TrainrunsectionHelper} from "../../../../services/util/trainrunsection.helper";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
 import {Node} from "../../../../models/node.model";

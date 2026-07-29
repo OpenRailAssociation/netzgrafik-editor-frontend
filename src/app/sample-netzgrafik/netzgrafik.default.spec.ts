@@ -1,4 +1,3 @@
-import netzgrafikDefaultJson from "./netzgrafik_default.json";
 import {NetzgrafikDefault} from "./netzgrafik.default";
 import {DataService} from "../services/data/data.service";
 import {LogPublishersService} from "../logger/log.publishers.service";

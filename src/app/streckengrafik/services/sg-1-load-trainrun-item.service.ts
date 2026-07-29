@@ -22,7 +22,6 @@ import {NodeService} from "../../services/data/node.service";
 import {TrainrunBranchType} from "../model/enum/trainrun-branch-type-type";
 import {MultiSelectNodeGraph} from "../../utils/multi-select-node-graph";
 import {Direction} from "src/app/data-structures/business.data.structures";
-import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helper";
 
 @Injectable({
   providedIn: "root",

@@ -19,11 +19,7 @@ import {LogService} from "../../logger/log.service";
 import {Transition} from "../../models/transition.model";
 import {takeUntil} from "rxjs/operators";
 import {FilterService} from "../ui/filter.service";
-import {
-  DirectedTrainrunSectionProxy,
-  TrainrunSectionNodePair,
-  TrainrunIterator,
-} from "../util/trainrun.iterator";
+import {DirectedTrainrunSectionProxy, TrainrunIterator} from "../util/trainrun.iterator";
 import {Operation, OperationType, TrainrunOperation} from "../../models/operation.model";
 
 interface DepartureAndArrivalTimes {

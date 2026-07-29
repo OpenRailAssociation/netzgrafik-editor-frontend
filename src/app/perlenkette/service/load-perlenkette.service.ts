@@ -15,7 +15,6 @@ import {Node} from "../../models/node.model";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {NodeService} from "../../services/data/node.service";
 import {FilterService} from "../../services/ui/filter.service";
-import {TrainrunSection} from "../../models/trainrunsection.model";
 
 @Injectable({
   providedIn: "root",

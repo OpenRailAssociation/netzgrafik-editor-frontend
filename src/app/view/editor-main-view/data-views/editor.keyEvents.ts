@@ -27,7 +27,6 @@ import {Trainrun} from "../../../models/trainrun.model";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
 import {AutoLayoutService} from "../../../services/util/auto-layout.service";
 import {Vec2D} from "../../../utils/vec2D";
-import {PortAlignment} from "../../../data-structures/technical.data.structures";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
 import {NoteViewObject} from "./noteViewObject";
 import {NodeViewObject} from "./nodeViewObject";

@@ -16,7 +16,6 @@ import {
   NetzgrafikDto,
   NodeDto,
   TrainrunCategoryHaltezeit,
-  TrainrunSectionDto,
 } from "../../data-structures/business.data.structures";
 import {downloadBlob} from "../util/download-utils";
 import {map} from "rxjs/operators";

@@ -5,7 +5,6 @@ import {debounceTime, filter, map, mergeMap, startWith, takeUntil} from "rxjs/op
 import {
   ProjectControllerBackendService,
   ProjectDto,
-  ProjectSummaryDto,
   VariantControllerBackendService,
   VariantSummaryDto,
   VersionControllerBackendService,

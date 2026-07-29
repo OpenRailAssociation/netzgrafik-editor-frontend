@@ -13,7 +13,7 @@ import {TrainrunBranchType} from "../../model/enum/trainrun-branch-type-type";
 import {Vec2D} from "../../../utils/vec2D";
 import {takeUntil} from "rxjs/operators";
 import {TimeSliderService} from "../../services/time-slider.service";
-import {interval, Subject, take} from "rxjs";
+import {Subject} from "rxjs";
 import {TrainrunSectionText} from "../../../data-structures/technical.data.structures";
 import {
   TrainrunDialogParameter,

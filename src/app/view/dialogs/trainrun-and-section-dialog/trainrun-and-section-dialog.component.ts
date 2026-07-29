@@ -13,7 +13,6 @@ import {TrainrunSectionService} from "../../../services/data/trainrunsection.ser
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 import {TrainrunsectionHelper} from "../../../services/util/trainrunsection.helper";
-import {Node} from "../../../models/node.model";
 import {Subject} from "rxjs";
 import {takeUntil} from "rxjs/operators";
 import {DataService} from "../../../services/data/data.service";

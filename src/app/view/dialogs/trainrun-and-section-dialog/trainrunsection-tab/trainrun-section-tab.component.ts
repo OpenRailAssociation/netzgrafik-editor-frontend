@@ -2,7 +2,6 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
-  ElementRef,
   Input,
   OnDestroy,
   ViewChild,
@@ -22,11 +21,7 @@ import {Subject} from "rxjs";
 import {LinePatternRefs} from "../../../../data-structures/business.data.structures";
 import {StaticDomTags} from "../../../editor-main-view/data-views/static.dom.tags";
 import {ColorRefType} from "../../../../data-structures/technical.data.structures";
-import {
-  TrainrunSectionTimesService,
-  LeftAndRightLockStructure,
-  LeftAndRightTimeStructure,
-} from "../../../../services/data/trainrun-section-times.service";
+import {TrainrunSectionTimesService} from "../../../../services/data/trainrun-section-times.service";
 import {VersionControlService} from "../../../../services/data/version-control.service";
 import {ToggleSwitchButtonComponent} from "../../../toggle-switch-button/toggle-switch-button.component";
 import {TimeStepperComponent} from "./time-stepper/time-stepper.component";
