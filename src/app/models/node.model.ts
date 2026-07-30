@@ -36,7 +36,7 @@ export class Node {
   private connections: Connection[];
   private resourceId: number;
   private perronkanten: number;
-  private connectionTime: number;
+  private connectionTime: number | null;
   private trainrunCategoryHaltezeiten: TrainrunCategoryHaltezeit;
   private symmetryAxis: number;
   private warnings: WarningDto[];
@@ -243,11 +243,11 @@ export class Node {
     this.fullName = name;
   }
 
-  getConnectionTime(): number {
+  getConnectionTime(): number | null {
     return this.connectionTime;
   }
 
-  setConnectionTime(connectionTime: number) {
+  setConnectionTime(connectionTime: number | null) {
     this.connectionTime = connectionTime;
   }
 

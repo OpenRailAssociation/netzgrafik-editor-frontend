@@ -22,7 +22,7 @@ interface NodeProperties {
   nodeId: number;
   nodeBetriebspunktName: string;
   nodeBetriebspunktFullName: string;
-  nodeConnectionTime: number;
+  nodeConnectionTime: number | null;
   nodeTrainrunCategoryHaltezeit: TrainrunCategoryHaltezeit;
   nodeResourceId: number;
   nodeCapacity: number;

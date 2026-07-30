@@ -921,7 +921,7 @@ export class NodeService implements OnDestroy {
     this.operation.emit(new NodeOperation(OperationType.update, this.getNodeFromId(nodeId)));
   }
 
-  changeConnectionTime(nodeId: number, connectionTime: number) {
+  changeConnectionTime(nodeId: number, connectionTime: number | null) {
     this.getNodeFromId(nodeId).setConnectionTime(connectionTime);
     this.nodesUpdated();
     this.operation.emit(new NodeOperation(OperationType.update, this.getNodeFromId(nodeId)));

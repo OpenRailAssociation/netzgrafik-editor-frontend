@@ -184,7 +184,7 @@ export interface NodeDto {
 
   resourceId: number; // reference to the algined (resource - not yet implemented)
   perronkanten: number; // number of tracks where train can stop
-  connectionTime: number; // aka Umsteigezeit - time used to change train in minutes
+  connectionTime: number | null; // aka Umsteigezeit - time used to change train in minutes
   trainrunCategoryHaltezeiten: TrainrunCategoryHaltezeit; // user can over-write the halte times
   symmetryAxis: number; // deprecate ???
   warnings: WarningDto[]; // business logic failures - warnings storage
