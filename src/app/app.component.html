@@ -43,6 +43,16 @@
     </button>
   </sbb-menu>
 </sbb-header-lean>
+<sbb-select
+  *ngIf="disableBackend"
+  (selectionChange)="language = $event.value"
+  [value]="currentLanguage"
+  class="language-selector language-selector-standalone noprint"
+>
+  <sbb-option value="en">🇬🇧 English</sbb-option>
+  <sbb-option value="de">🇩🇪 Deutsch</sbb-option>
+  <sbb-option value="fr">🇫🇷 Français</sbb-option>
+</sbb-select>
 <ng-container *ngIf="!disableBackend">
   <sbb-navigation-bar class="noprint"></sbb-navigation-bar>
 </ng-container>
