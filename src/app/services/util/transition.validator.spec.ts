@@ -14,7 +14,6 @@ import {LabelService} from "../data/label.service";
 import {NetzgrafikUnitTesting} from "../../../integration-testing/netzgrafik.unit.testing";
 import {FilterService} from "../ui/filter.service";
 import {NetzgrafikColoringService} from "../data/netzgrafikColoring.service";
-import {TrainrunsectionHelper} from "./trainrunsection.helper";
 import {TransitionValidator} from "./transition.validator";
 import {Transition} from "../../models/transition.model";
 
@@ -34,7 +33,6 @@ describe("TransitionValidator", () => {
   let labelService: LabelService = null;
   let filterService: FilterService = null;
   let netzgrafikColoringService: NetzgrafikColoringService = null;
-  let trainrunsectionHelper: TrainrunsectionHelper = null;
 
   beforeEach(() => {
     baseDataService = new BaseDataService();
@@ -73,8 +71,6 @@ describe("TransitionValidator", () => {
     trainrunSectionService.trainrunSections.subscribe(
       (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
     );
-
-    trainrunsectionHelper = new TrainrunsectionHelper(trainrunService);
   });
 
   it("Test load data", () => {

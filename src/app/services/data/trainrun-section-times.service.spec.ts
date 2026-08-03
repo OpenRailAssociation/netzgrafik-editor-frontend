@@ -6,8 +6,6 @@ import {TrainrunSectionService} from "../data/trainrunsection.service";
 import {BaseDataService} from "../data/basedata.service";
 import {NoteService} from "../data/note.service";
 import {DirectedTrainrunSectionProxy} from "../util/trainrun.iterator";
-import {Node} from "../../models/node.model";
-import {TrainrunSection} from "../../models/trainrunsection.model";
 import {LogService} from "../../logger/log.service";
 import {LogPublishersService} from "../../logger/log.publishers.service";
 import {LabelGroupService} from "../data/labelgroup.service";
@@ -26,8 +24,6 @@ describe("TrainrunSectionTimesService", () => {
   let trainrunSectionService: TrainrunSectionService;
   let baseDataService: BaseDataService;
   let noteService: NoteService;
-  let nodes: Node[];
-  let trainrunSections: TrainrunSection[];
   let logService: LogService;
   let logPublishersService: LogPublishersService;
   let labelGroupService: LabelGroupService;
@@ -80,11 +76,6 @@ describe("TrainrunSectionTimesService", () => {
       trainrunSectionService,
       filterService,
       loadPerlenketteService,
-    );
-
-    nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
-    trainrunSectionService.trainrunSections.subscribe(
-      (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
     );
 
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());

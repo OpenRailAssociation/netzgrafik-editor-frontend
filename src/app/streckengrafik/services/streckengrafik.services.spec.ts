@@ -49,7 +49,6 @@ describe("StreckengrafikServicesTests", () => {
   let labelService: LabelService = null;
   let filterService: FilterService = null;
   let netzgrafikColoringService: NetzgrafikColoringService = null;
-  let gotFilterChangedSignal = false;
 
   let sg5FilterService: Sg5FilterService;
   let sg6TrackService: Sg6TrackService;
@@ -100,7 +99,6 @@ describe("StreckengrafikServicesTests", () => {
     trainrunSectionService.trainrunSections.subscribe(
       (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
     );
-    filterService.filter.subscribe(() => (gotFilterChangedSignal = true));
 
     loadPerlenketteService = new LoadPerlenketteService(
       trainrunService,

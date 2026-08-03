@@ -23,8 +23,6 @@ describe("TrainrunService", () => {
   let trainrunSectionService: TrainrunSectionService;
   let baseDataService: BaseDataService;
   let noteService: NoteService;
-  let nodes: Node[] = null;
-  let trainrunSections: TrainrunSection[] = null;
   let logService: LogService = null;
   let logPublishersService: LogPublishersService = null;
   let labelGroupService: LabelGroupService = null;
@@ -63,11 +61,6 @@ describe("TrainrunService", () => {
       labelGroupService,
       filterService,
       netzgrafikColoringService,
-    );
-
-    nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
-    trainrunSectionService.trainrunSections.subscribe(
-      (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
     );
   });
 

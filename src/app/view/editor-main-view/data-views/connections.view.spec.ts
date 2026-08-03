@@ -5,18 +5,12 @@ import {TrainrunService} from "../../../services/data/trainrun.service";
 import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
 import {BaseDataService} from "../../../services/data/basedata.service";
 import {NoteService} from "../../../services/data/note.service";
-import {Node} from "../../../models/node.model";
-import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {LabelGroupService} from "../../../services/data/labelgroup.service";
 import {LabelService} from "../../../services/data/label.service";
 import {NetzgrafikColoringService} from "../../../services/data/netzgrafikColoring.service";
-import {UndoService} from "../../../services/data/undo.service";
-import {CopyService} from "../../../services/data/copy.service";
 import {LogService} from "../../../logger/log.service";
 import {LogPublishersService} from "../../../logger/log.publishers.service";
 import {FilterService} from "../../../services/ui/filter.service";
-import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
-import {LoadPerlenketteService} from "../../../perlenkette/service/load-perlenkette.service";
 import {NetzgrafikUnitTesting} from "../../../../integration-testing/netzgrafik.unit.testing";
 import {ConnectionsView} from "./connections.view";
 
@@ -28,18 +22,12 @@ describe("Connections View", () => {
   let trainrunSectionService: TrainrunSectionService;
   let baseDataService: BaseDataService;
   let noteService: NoteService;
-  let nodes: Node[] = null;
-  let trainrunSections: TrainrunSection[] = null;
   let logService: LogService = null;
   let logPublishersService: LogPublishersService = null;
   let labelGroupService: LabelGroupService = null;
   let labelService: LabelService = null;
   let filterService: FilterService = null;
   let netzgrafikColoringService: NetzgrafikColoringService = null;
-  let copyService: CopyService = null;
-  let uiInteractionService: UiInteractionService = null;
-  let loadPerlenketteService: LoadPerlenketteService = null;
-  let undoService: UndoService = null;
 
   beforeEach(() => {
     baseDataService = new BaseDataService();
@@ -72,48 +60,6 @@ describe("Connections View", () => {
       labelGroupService,
       filterService,
       netzgrafikColoringService,
-    );
-    nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
-    trainrunSectionService.trainrunSections.subscribe(
-      (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
-    );
-
-    loadPerlenketteService = new LoadPerlenketteService(
-      trainrunService,
-      trainrunSectionService,
-      nodeService,
-      filterService,
-    );
-
-    uiInteractionService = new UiInteractionService(
-      filterService,
-      nodeService,
-      noteService,
-      baseDataService,
-      trainrunSectionService,
-      trainrunService,
-      netzgrafikColoringService,
-      loadPerlenketteService,
-      dataService,
-    );
-
-    undoService = new UndoService(
-      dataService,
-      nodeService,
-      noteService,
-      trainrunService,
-      filterService,
-    );
-
-    copyService = new CopyService(
-      dataService,
-      trainrunService,
-      trainrunSectionService,
-      nodeService,
-      noteService,
-      filterService,
-      uiInteractionService,
-      undoService,
     );
   });
 
