@@ -194,7 +194,7 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
           ),
       )
       .attr("d", arc)
-      .on("mousedown", (d) =>
+      .on("mousedown", (_, d) =>
         this.trainrunService.setTrainrunAsSelected(d.trainrunSection.getTrainrunId()),
       )
       .append("title")
@@ -242,7 +242,7 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
       .attr("x", 0)
       .attr("y", 0)
       .attr("text-anchor", "middle")
-      .on("mousedown", (d) =>
+      .on("mousedown", (_, d) =>
         this.trainrunService.setTrainrunAsSelected(d.trainrunSection.getTrainrunId()),
       )
       .append("title")
