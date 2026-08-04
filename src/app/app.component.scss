@@ -74,23 +74,6 @@ sbb-loading-indicator {
   margin: 0;
 }
 
-.sbb-select.language-selector-menu {
-  transform: translate(10px, 1px);
-  width: 95%;
-}
-
-.sbb-select.language-selector-standalone {
-  position: fixed;
-  top: 0;
-  right: 160px; // clear of the fixed logo/icon at the far right of the header
-  z-index: 1001; // above sbb-header-lean's own z-index of 1000
-  height: 54px; // match sbb-header-lean's height so it's vertically centered in it
-  width: auto;
-  min-width: 8rem;
-  display: flex;
-  align-items: center;
-}
-
 ::ng-deep .sbb-checkbox .sbb-selection-container {
   border-width: 2px;
   border-radius: 3px;
