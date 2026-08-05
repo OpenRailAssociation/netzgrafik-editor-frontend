@@ -44,7 +44,8 @@ export class TrainrunSectionService implements OnDestroy {
   trainrunSectionsStore: {trainrunSections: TrainrunSection[]} = {
     trainrunSections: [],
   }; // store the data in memory
-  private trainrunSectionsByTrainrunId = new Map<number, TrainrunSection[]>();
+  // Secondary lookup index: keep in sync with store updates (load/rebuild, add/insert, delete).
+  private sectionLookupByTrainrunId = new Map<number, TrainrunSection[]>();
 
   readonly operation = new EventEmitter<Operation>();
 
@@ -226,35 +227,35 @@ export class TrainrunSectionService implements OnDestroy {
   }
 
   private rebuildTrainrunSectionsByTrainrunId(allSections: TrainrunSection[]) {
-    this.trainrunSectionsByTrainrunId.clear();
+    this.sectionLookupByTrainrunId.clear();
     for (const section of allSections) {
       const id = section.getTrainrunId();
-      if (!this.trainrunSectionsByTrainrunId.has(id)) {
-        this.trainrunSectionsByTrainrunId.set(id, []);
+      if (!this.sectionLookupByTrainrunId.has(id)) {
+        this.sectionLookupByTrainrunId.set(id, []);
       }
-      this.trainrunSectionsByTrainrunId.get(id)!.push(section);
+      this.sectionLookupByTrainrunId.get(id)!.push(section);
     }
   }
 
   private addTrainrunSectionToTrainrunMap(section: TrainrunSection) {
     const trainrunId = section.getTrainrunId();
-    if (!this.trainrunSectionsByTrainrunId.has(trainrunId)) {
-      this.trainrunSectionsByTrainrunId.set(trainrunId, []);
+    if (!this.sectionLookupByTrainrunId.has(trainrunId)) {
+      this.sectionLookupByTrainrunId.set(trainrunId, []);
     }
-    this.trainrunSectionsByTrainrunId.get(trainrunId)!.push(section);
+    this.sectionLookupByTrainrunId.get(trainrunId)!.push(section);
   }
 
   private removeTrainrunSectionFromTrainrunMap(section: TrainrunSection) {
     const trainrunId = section.getTrainrunId();
-    const sections = this.trainrunSectionsByTrainrunId.get(trainrunId);
+    const sections = this.sectionLookupByTrainrunId.get(trainrunId);
     if (!sections) {
       return;
     }
     const filteredSections = sections.filter((entry) => entry.getId() !== section.getId());
     if (filteredSections.length === 0) {
-      this.trainrunSectionsByTrainrunId.delete(trainrunId);
+      this.sectionLookupByTrainrunId.delete(trainrunId);
     } else {
-      this.trainrunSectionsByTrainrunId.set(trainrunId, filteredSections);
+      this.sectionLookupByTrainrunId.set(trainrunId, filteredSections);
     }
   }
 
@@ -850,7 +851,7 @@ export class TrainrunSectionService implements OnDestroy {
   }
 
   getAllTrainrunSectionsForTrainrun(trainrunID: number): TrainrunSection[] {
-    const trainrunSections = this.trainrunSectionsByTrainrunId.get(trainrunID);
+    const trainrunSections = this.sectionLookupByTrainrunId.get(trainrunID);
     if (trainrunSections === undefined) {
       return [];
     }
