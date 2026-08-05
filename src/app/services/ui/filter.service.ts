@@ -347,16 +347,22 @@ export class FilterService implements OnDestroy {
   }
 
   isJunctionNode(node: Node): boolean {
-    const oppNodes: number[] = [];
-    node.getPorts().forEach((p) => {
-      if (this.filterTrainrun(p.getTrainrunSection().getTrainrun())) {
-        const oppNode = node.getOppositeNode(p.getTrainrunSection());
-        if (oppNodes.find((n) => n === oppNode.getId()) === undefined) {
-          oppNodes.push(oppNode.getId());
-        }
-      }
-    });
-    return oppNodes.length > 2;
+    const oppNodes = new Set<number>();
+
+    for (const p of node.getPorts()) {
+      const section = p.getTrainrunSection();
+      const trainrun = section.getTrainrun();
+
+      if (!this.filterTrainrun(trainrun)) continue;
+
+      const oppNode = node.getOppositeNode(section);
+      if (oppNode === undefined) continue;
+
+      oppNodes.add(oppNode.getId());
+      if (oppNodes.size > 2) return true; // Early exit
+    }
+
+    return false;
   }
 
   isNodeVisible(node: Node) {
