@@ -6,7 +6,7 @@ import {NoteService} from "../data/note.service";
 import {Vec2D} from "../../utils/vec2D";
 import {Node} from "../../models/node.model";
 import {ViewportCullService} from "../ui/viewport.cull.service";
-import {NodeOperation, Operation, OperationType} from "src/app/models/operation.model";
+import {NodeOperation, NoteOperation, Operation, OperationType} from "src/app/models/operation.model";
 import {Note} from "../../models/note.model";
 
 @Injectable({
@@ -47,6 +47,7 @@ export class PositionTransformationService {
         newPos = Vec2D.sub(newPos, delta);
       }
       n.setPosition(newPos.getX(), newPos.getY());
+      this.operation.emit(new NodeOperation(OperationType.update, n));
     });
 
     this.noteService.getNotes().forEach((n) => {
@@ -63,6 +64,7 @@ export class PositionTransformationService {
         newPos = Vec2D.sub(newPos, delta);
       }
       n.setPosition(newPos.getX(), newPos.getY());
+      this.operation.emit(new NoteOperation(OperationType.update, n));
     });
   }
 
@@ -145,6 +147,7 @@ export class PositionTransformationService {
       }
 
       n.setPosition(newPos.getX(), newPos.getY());
+      this.operation.emit(new NodeOperation(OperationType.update, n));
     });
 
     notes.forEach((n) => {
@@ -157,6 +160,7 @@ export class PositionTransformationService {
           n.getHeight() / 2.0,
       );
       n.setPosition(newPos.getX(), newPos.getY());
+      this.operation.emit(new NoteOperation(OperationType.update, n));
     });
   }
 
