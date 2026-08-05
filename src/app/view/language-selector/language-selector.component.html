@@ -1,0 +1,10 @@
+<sbb-select
+  (selectionChange)="onSelectionChange($event.value)"
+  [value]="currentLanguage"
+  class="language-selector"
+  [ngClass]="variantClass"
+>
+  <sbb-option value="en">🇬🇧 English</sbb-option>
+  <sbb-option value="de">🇩🇪 Deutsch</sbb-option>
+  <sbb-option value="fr">🇫🇷 Français</sbb-option>
+</sbb-select>
