@@ -135,6 +135,53 @@ export class TrainrunSectionService implements OnDestroy {
     this.destroyed.complete();
   }
 
+  
+  private rebuildTrainrunSectionsByTrainrunId(allSections: TrainrunSection[]) {
+    this.sectionLookupByTrainrunId.clear();
+    for (const section of allSections) {
+      const id = section.getTrainrunId();
+      if (!this.sectionLookupByTrainrunId.has(id)) {
+        this.sectionLookupByTrainrunId.set(id, []);
+      }
+      this.sectionLookupByTrainrunId.get(id)!.push(section);
+    }
+  }
+
+  private addTrainrunSectionToTrainrunMap(section: TrainrunSection) {
+    const trainrunId = section.getTrainrunId();
+    if (!this.sectionLookupByTrainrunId.has(trainrunId)) {
+      this.sectionLookupByTrainrunId.set(trainrunId, []);
+    }
+    this.sectionLookupByTrainrunId.get(trainrunId)!.push(section);
+  }
+
+  private removeTrainrunSectionFromTrainrunMap(section: TrainrunSection) {
+    const trainrunId = section.getTrainrunId();
+    const sections = this.sectionLookupByTrainrunId.get(trainrunId);
+    if (!sections) {
+      return;
+    }
+    const filteredSections = sections.filter((entry) => entry.getId() !== section.getId());
+    if (filteredSections.length === 0) {
+      this.sectionLookupByTrainrunId.delete(trainrunId);
+    } else {
+      this.sectionLookupByTrainrunId.set(trainrunId, filteredSections);
+    }
+  }
+  
+  private addTrainrunSectionToStore(trainrunSection: TrainrunSection) { 
+    this.trainrunSectionsStore.trainrunSections.push(trainrunSection);
+    this.addTrainrunSectionToTrainrunMap(trainrunSection);
+  }
+
+  private removeTrainrunSectionFromStore(trainrunSection: TrainrunSection) {
+    this.removeTrainrunSectionFromTrainrunMap(trainrunSection);
+    this.trainrunSectionsStore.trainrunSections =
+      this.trainrunSectionsStore.trainrunSections.filter(
+        (e) => e.getId() !== trainrunSection.getId(),
+      );
+  }
+
   propagateTimesForNewTrainrunSection(trainrunSection: TrainrunSection) {
     let nodeFrom = trainrunSection.getSourceNode();
     let previousTrainrunSection = nodeFrom.getNextTrainrunSection(trainrunSection);
@@ -223,39 +270,6 @@ export class TrainrunSectionService implements OnDestroy {
       return selectedTrainrunSection;
     } else {
       return null;
-    }
-  }
-
-  private rebuildTrainrunSectionsByTrainrunId(allSections: TrainrunSection[]) {
-    this.sectionLookupByTrainrunId.clear();
-    for (const section of allSections) {
-      const id = section.getTrainrunId();
-      if (!this.sectionLookupByTrainrunId.has(id)) {
-        this.sectionLookupByTrainrunId.set(id, []);
-      }
-      this.sectionLookupByTrainrunId.get(id)!.push(section);
-    }
-  }
-
-  private addTrainrunSectionToTrainrunMap(section: TrainrunSection) {
-    const trainrunId = section.getTrainrunId();
-    if (!this.sectionLookupByTrainrunId.has(trainrunId)) {
-      this.sectionLookupByTrainrunId.set(trainrunId, []);
-    }
-    this.sectionLookupByTrainrunId.get(trainrunId)!.push(section);
-  }
-
-  private removeTrainrunSectionFromTrainrunMap(section: TrainrunSection) {
-    const trainrunId = section.getTrainrunId();
-    const sections = this.sectionLookupByTrainrunId.get(trainrunId);
-    if (!sections) {
-      return;
-    }
-    const filteredSections = sections.filter((entry) => entry.getId() !== section.getId());
-    if (filteredSections.length === 0) {
-      this.sectionLookupByTrainrunId.delete(trainrunId);
-    } else {
-      this.sectionLookupByTrainrunId.set(trainrunId, filteredSections);
     }
   }
 
@@ -658,8 +672,7 @@ export class TrainrunSectionService implements OnDestroy {
     const targetNode = this.nodeService.getNodeFromId(targetNodeId);
 
     trainrunSection.setSourceAndTargetNodeReference(sourceNode, targetNode);
-    this.trainrunSectionsStore.trainrunSections.push(trainrunSection);
-    this.addTrainrunSectionToTrainrunMap(trainrunSection);
+    this.addTrainrunSectionToStore(trainrunSection);
 
     this.handleNodeAndTrainrunSectionDetails(sourceNode, targetNode, trainrunSection);
 
@@ -1187,8 +1200,7 @@ export class TrainrunSectionService implements OnDestroy {
       JSON.parse(JSON.stringify(existingTrainrunSection.getTargetDepartureDto())),
     );
     trainrunSection.setNumberOfStops(existingTrainrunSection.getNumberOfStops());
-    this.trainrunSectionsStore.trainrunSections.push(trainrunSection);
-    this.addTrainrunSectionToTrainrunMap(trainrunSection);
+    this.addTrainrunSectionToStore(trainrunSection);
     return trainrunSection;
   }
 
@@ -1234,11 +1246,8 @@ export class TrainrunSectionService implements OnDestroy {
       this.nodeService.transitionsUpdated();
       this.nodeService.connectionsUpdated();
     }
-    this.removeTrainrunSectionFromTrainrunMap(trainrunSection);
-    this.trainrunSectionsStore.trainrunSections =
-      this.trainrunSectionsStore.trainrunSections.filter(
-        (e) => e.getId() !== trainrunSection.getId(),
-      );
+    this.removeTrainrunSectionFromStore(trainrunSection);
+    
     this.reRouteAffectedTrainrunSections(
       trainrunSection.getSourceNodeId(),
       trainrunSection.getTargetNodeId(),
@@ -1392,8 +1401,8 @@ export class TrainrunSectionService implements OnDestroy {
     const targetNode = this.nodeService.getNodeFromId(targetNodeId);
     newTrainrunSection.setSourceAndTargetNodeReference(sourceNode, targetNode);
 
-    this.trainrunSectionsStore.trainrunSections.push(newTrainrunSection);
-    this.addTrainrunSectionToTrainrunMap(newTrainrunSection);
+    this.addTrainrunSectionToStore(newTrainrunSection);
+
     const sourceIsNonStop = this.getIsNonStop(
       trainrunSection.sourceNodeId,
       trainrunSection.sourcePortId,
