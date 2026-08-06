@@ -643,7 +643,7 @@ export class TrainrunSectionService implements OnDestroy {
     const trainrunSection: TrainrunSection = new TrainrunSection();
     const initialTrainrunsLength = this.trainrunService.trainrunsStore.trainruns.length;
 
-    trainrunSection.setTrainrun(this.trainrunService.getSelectedOrNewTrainrun());
+    this.updateTrainrunReference(trainrunSection, this.trainrunService.getSelectedOrNewTrainrun());
 
     if (retrieveTravelTimeFromEdge) {
       const travelTime = this.retrieveTravelTime(
@@ -1165,7 +1165,10 @@ export class TrainrunSectionService implements OnDestroy {
     newTrainrunId: number,
   ): TrainrunSection {
     const trainrunSection: TrainrunSection = new TrainrunSection();
-    trainrunSection.setTrainrun(this.trainrunService.getTrainrunFromId(newTrainrunId));
+    this.updateTrainrunReference(
+      trainrunSection,
+      this.trainrunService.getTrainrunFromId(newTrainrunId),
+    );
     trainrunSection.setTravelTimeDto(
       JSON.parse(JSON.stringify(existingTrainrunSection.getTravelTimeDto())),
     );
@@ -1380,7 +1383,7 @@ export class TrainrunSectionService implements OnDestroy {
     const trainrun = this.trainrunService.getTrainrunFromId(trainrunId);
 
     const newTrainrunSection: TrainrunSection = new TrainrunSection(trainrunSection);
-    newTrainrunSection.setTrainrun(trainrun);
+    this.updateTrainrunReference(newTrainrunSection, trainrun);
 
     const sourceNodeId = nodeMap.get(trainrunSection.sourceNodeId);
     const sourceNode = this.nodeService.getNodeFromId(sourceNodeId);
