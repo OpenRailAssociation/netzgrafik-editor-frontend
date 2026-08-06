@@ -26,6 +26,8 @@ export class Trainrun {
   private labelIds: number[];
   private direction: Direction;
 
+  private symmetric: boolean = true;
+
   constructor(
     {
       id,
@@ -175,5 +177,13 @@ export class Trainrun {
       labelIds: this.labelIds,
       direction: this.direction,
     };
+  }
+
+  isSymmetric(): boolean {
+    return this.symmetric;
+  }
+
+  setSymmetric(isSymmetric: boolean): void {
+    this.symmetric = isSymmetric;
   }
 }

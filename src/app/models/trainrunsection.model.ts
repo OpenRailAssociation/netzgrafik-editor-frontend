@@ -254,10 +254,16 @@ export class TrainrunSection {
 
   setSourceSymmetry(sourceSymmetry: boolean) {
     this.sourceSymmetry = sourceSymmetry;
+    if (!sourceSymmetry) {
+      this.trainrun.setSymmetric(false);
+    }
   }
 
   setTargetSymmetry(targetSymmetry: boolean) {
     this.targetSymmetry = targetSymmetry;
+    if (!targetSymmetry) {
+      this.trainrun.setSymmetric(false);
+    }
   }
 
   resetSymmetry() {
