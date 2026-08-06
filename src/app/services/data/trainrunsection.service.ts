@@ -138,11 +138,7 @@ export class TrainrunSectionService implements OnDestroy {
   private rebuildSectionIndex() {
     this.sectionLookupByTrainrunId.clear();
     for (const section of this.trainrunSectionsStore.trainrunSections) {
-      const id = section.getTrainrunId();
-      if (!this.sectionLookupByTrainrunId.has(id)) {
-        this.sectionLookupByTrainrunId.set(id, []);
-      }
-      this.sectionLookupByTrainrunId.get(id)!.push(section);
+      this.addSectionToIndex(section);
     }
   }
 
