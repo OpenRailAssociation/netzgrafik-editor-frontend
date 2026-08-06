@@ -46,6 +46,8 @@ export function buildNetwork(def: {
       const ts = new TrainrunSection();
       ts.setSourceNode(sourceNode);
       ts.setTargetNode(targetNode);
+      // just update the trainrun reference in this helper function, because this is only used in test and we dont
+      // want to use the fully trainrunsectuion functionality here, which would require a lot of other services to be initialized
       ts.setTrainrun(trainrun);
 
       // Create ports with trainrun section
