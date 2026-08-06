@@ -247,10 +247,9 @@ export class TrainrunSection {
     this.setTargetNode(targetNode);
   }
 
-
   setTrainrun(trainrun: Trainrun) {
     // Do not call directly. Use TrainrunSectionService.updateTrainrunReference()
-    // so the section lookup index stays in sync. 
+    // so the section lookup index stays in sync.
     this.trainrun = trainrun;
     this.trainrunId = trainrun.getId();
   }

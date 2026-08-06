@@ -142,6 +142,7 @@ export default defineConfig([
     files: [
       "src/app/services/data/trainrunsection.service.ts",
       "src/app/services/util/port-ordering.test-helpers.ts",
+      "src/app/models/trainrunsection.model.spec.ts",
     ],
     rules: {
       "local/no-direct-trainrunsection-settrainrun": "off",
