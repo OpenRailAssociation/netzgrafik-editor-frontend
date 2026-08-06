@@ -43,12 +43,9 @@ export function buildNetwork(def: {
         VisAVisPortPlacement.placePortsOnSourceAndTargetNode(sourceNode, targetNode);
 
       // Create trainrun section first (needed by addPort)
-      const ts = new TrainrunSection();
+      const ts = new TrainrunSection(trainrun);
       ts.setSourceNode(sourceNode);
       ts.setTargetNode(targetNode);
-      // just update the trainrun reference in this helper function, because this is only used in test and we dont
-      // want to use the fully trainrunsectuion functionality here, which would require a lot of other services to be initialized
-      ts.setTrainrun(trainrun);
 
       // Create ports with trainrun section
       const sourcePortId = sourceNode.addPort(sourcePortPlacement, ts);

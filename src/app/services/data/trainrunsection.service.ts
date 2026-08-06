@@ -164,7 +164,7 @@ export class TrainrunSectionService implements OnDestroy {
   }
 
   updateTrainrunReference(trainrunSection: TrainrunSection, newTrainrun: Trainrun) {
-    trainrunSection.setTrainrun(newTrainrun);
+    trainrunSection.updateTrainrunReference(newTrainrun);
     this.rebuildSectionIndex();
   }
 
@@ -640,10 +640,10 @@ export class TrainrunSectionService implements OnDestroy {
     targetNodeId: number,
     retrieveTravelTimeFromEdge: boolean = false,
   ): TrainrunSection {
-    const trainrunSection: TrainrunSection = new TrainrunSection();
+    const trainrunSection: TrainrunSection = new TrainrunSection(
+      this.trainrunService.getSelectedOrNewTrainrun(),
+    );
     const initialTrainrunsLength = this.trainrunService.trainrunsStore.trainruns.length;
-
-    this.updateTrainrunReference(trainrunSection, this.trainrunService.getSelectedOrNewTrainrun());
 
     if (retrieveTravelTimeFromEdge) {
       const travelTime = this.retrieveTravelTime(
@@ -1164,9 +1164,7 @@ export class TrainrunSectionService implements OnDestroy {
     existingTrainrunSection: TrainrunSection,
     newTrainrunId: number,
   ): TrainrunSection {
-    const trainrunSection: TrainrunSection = new TrainrunSection();
-    this.updateTrainrunReference(
-      trainrunSection,
+    const trainrunSection: TrainrunSection = new TrainrunSection(
       this.trainrunService.getTrainrunFromId(newTrainrunId),
     );
     trainrunSection.setTravelTimeDto(

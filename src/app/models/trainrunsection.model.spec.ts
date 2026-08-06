@@ -18,9 +18,8 @@ describe("TrainrunSection Model Test", () => {
   });
 
   it("setTrainrun", () => {
-    const ts = new TrainrunSection();
     const trainrun = new Trainrun();
-    ts.setTrainrun(trainrun);
+    const ts = new TrainrunSection(trainrun);
     expect(ts.getTrainrunId()).toBe(trainrun.getId());
     expect(ts.getTrainrun().getId()).toBe(trainrun.getId());
   });
@@ -506,15 +505,13 @@ describe("TrainrunSection Model Test", () => {
 
   it("getTransition with trainrunsection - 001", () => {
     const tr = new Trainrun();
-    const ts1 = new TrainrunSection();
+    const ts1 = new TrainrunSection(tr);
     const node1 = new Node();
     const node2 = new Node();
     const node3 = new Node();
     ts1.setSourceAndTargetNodeReference(node1, node2);
-    const ts2 = new TrainrunSection();
+    const ts2 = new TrainrunSection(tr);
     ts2.setSourceAndTargetNodeReference(node2, node3);
-    ts1.setTrainrun(tr);
-    ts2.setTrainrun(tr);
 
     const port1 = node2.addPort(PortAlignment.Left, ts1);
     const port2 = node2.addPort(PortAlignment.Right, ts2);
@@ -545,15 +542,13 @@ describe("TrainrunSection Model Test", () => {
 
   it("isEndNode with trainrunsection - 001", () => {
     const tr = new Trainrun();
-    const ts1 = new TrainrunSection();
+    const ts1 = new TrainrunSection(tr);
     const node1 = new Node();
     const node2 = new Node();
     const node3 = new Node();
     ts1.setSourceAndTargetNodeReference(node1, node2);
-    const ts2 = new TrainrunSection();
+    const ts2 = new TrainrunSection(tr);
     ts2.setSourceAndTargetNodeReference(node2, node3);
-    ts1.setTrainrun(tr);
-    ts2.setTrainrun(tr);
 
     const port1 = node2.addPort(PortAlignment.Left, ts1);
     const port2 = node2.addPort(PortAlignment.Right, ts2);
@@ -576,15 +571,13 @@ describe("TrainrunSection Model Test", () => {
 
   it("getStartTrainrunSection with trainrunsection - 001", () => {
     const tr = new Trainrun();
-    const ts1 = new TrainrunSection();
+    const ts1 = new TrainrunSection(tr);
     const node1 = new Node();
     const node2 = new Node();
     const node3 = new Node();
     ts1.setSourceAndTargetNodeReference(node1, node2);
-    const ts2 = new TrainrunSection();
+    const ts2 = new TrainrunSection(tr);
     ts2.setSourceAndTargetNodeReference(node2, node3);
-    ts1.setTrainrun(tr);
-    ts2.setTrainrun(tr);
 
     const port1 = node2.addPort(PortAlignment.Left, ts1);
     const port2 = node2.addPort(PortAlignment.Right, ts2);

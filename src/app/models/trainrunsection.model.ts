@@ -59,8 +59,64 @@ export class TrainrunSection {
   private trainrun: Trainrun;
   private isSelected: boolean;
 
-  constructor(
-    {
+  private readonly trainrunSectionDto: TrainrunSectionDto = {
+    id: TrainrunSection.incrementId(),
+    sourceNodeId: 0,
+    sourcePortId: 0,
+    targetNodeId: 0,
+    targetPortId: 0,
+    sourceSymmetry: true,
+    targetSymmetry: true,
+    sourceDeparture: {
+      time: 0,
+      consecutiveTime: 0,
+      lock: false,
+    },
+    sourceArrival: {
+      time: 0,
+      consecutiveTime: 60,
+      lock: false,
+    },
+    targetDeparture: {
+      time: 59,
+      consecutiveTime: 59,
+      lock: false,
+    },
+    targetArrival: {
+      time: 1,
+      consecutiveTime: 1,
+      lock: false,
+    },
+    travelTime: {
+      time: 1,
+      consecutiveTime: 1,
+      lock: true,
+    },
+    backwardTravelTime: {
+      time: 1,
+      consecutiveTime: 1,
+      lock: true,
+    },
+    trainrunId: 0,
+    resourceId: 0,
+    specificTrainrunSectionFrequencyId: null,
+    numberOfStops: 0,
+    path: {
+      path: [],
+      textPositions: {...EMPTY_TEXT_POSITIONS},
+    },
+    warnings: [],
+  };
+
+  // The empty constructor does not make sense; this could be removed.
+  constructor();
+  constructor(trainrun: Trainrun);
+  constructor(trainrunSectionDto: TrainrunSectionDto);
+  constructor(inputParameter: Trainrun | TrainrunSectionDto = this.trainrunSectionDto) {
+    const isTrainrunInput = inputParameter instanceof Trainrun;
+    const inputTrainrun = isTrainrunInput ? inputParameter : new Trainrun();
+
+    const {
       id,
       sourceNodeId,
       sourcePortId,
@@ -83,55 +139,10 @@ export class TrainrunSection {
         textPositions: {...EMPTY_TEXT_POSITIONS},
       },
       warnings,
-    }: TrainrunSectionDto = {
-      id: TrainrunSection.incrementId(),
-      sourceNodeId: 0,
-      sourcePortId: 0,
-      targetNodeId: 0,
-      targetPortId: 0,
-      sourceSymmetry: true,
-      targetSymmetry: true,
-      sourceDeparture: {
-        time: 0,
-        consecutiveTime: 0,
-        lock: false,
-      },
-      sourceArrival: {
-        time: 0,
-        consecutiveTime: 60,
-        lock: false,
-      },
-      targetDeparture: {
-        time: 59,
-        consecutiveTime: 59,
-        lock: false,
-      },
-      targetArrival: {
-        time: 1,
-        consecutiveTime: 1,
-        lock: false,
-      },
-      travelTime: {
-        time: 1,
-        consecutiveTime: 1,
-        lock: true,
-      },
-      backwardTravelTime: {
-        time: 1,
-        consecutiveTime: 1,
-        lock: true,
-      },
-      trainrunId: 0,
-      resourceId: 0,
-      specificTrainrunSectionFrequencyId: null,
-      numberOfStops: 0,
-      path: {
-        path: [],
-        textPositions: {...EMPTY_TEXT_POSITIONS},
-      },
-      warnings: [],
-    },
-  ) {
+    }: TrainrunSectionDto = isTrainrunInput
+      ? {...this.trainrunSectionDto, trainrunId: inputTrainrun.getId()}
+      : inputParameter;
+
     this.id = id;
     this.sourceNodeId = sourceNodeId;
     this.sourcePortId = sourcePortId;
@@ -152,6 +163,7 @@ export class TrainrunSection {
     this.warnings = warnings;
     this.isSelected = false;
     this.numberOfStops = numberOfStops;
+    this.initializeTrainrun(inputTrainrun);
 
     this.convertPathToVec2D();
 
@@ -247,11 +259,14 @@ export class TrainrunSection {
     this.setTargetNode(targetNode);
   }
 
-  setTrainrun(trainrun: Trainrun) {
-    // Do not call directly. Use TrainrunSectionService.updateTrainrunReference()
-    // so the section lookup index stays in sync.
+  updateTrainrunReference(trainrun: Trainrun) {
     this.trainrun = trainrun;
     this.trainrunId = trainrun.getId();
+  }
+
+  private initializeTrainrun(trainrun: Trainrun) {
+    // Constructor-only initializer. For runtime updates use updateTrainrunReference().
+    this.updateTrainrunReference(trainrun);
   }
 
   setSourceSymmetry(sourceSymmetry: boolean) {
