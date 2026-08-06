@@ -9,7 +9,7 @@ import {SimpleTrainrunSectionRouter} from "../../../services/util/trainrunsectio
 import {NodeService} from "../../../services/data/node.service";
 import {FilterService} from "../../../services/ui/filter.service";
 import {VersionControlService} from "../../../services/data/version-control.service";
-import {TrainrunSectionService} from "src/app/services/data/trainrunsection.service";
+import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
 
 export enum PreviewLineMode {
   NotDragging,
