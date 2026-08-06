@@ -248,7 +248,7 @@ export class TrainrunSection {
   }
 
   setTrainrun(trainrun: Trainrun) {
-    // Don't use this methode - you should use the TrainrunSectionService.updateTrainrunReference() method instead, 
+    // Don't use this methode - you should use the TrainrunSectionService.updateTrainrunReference() method instead,
     // to keep the index up to date (when using nevertheless this method, the index may be out of date and will cause problems)
     // see TrainrunsectionService.updateTrainrunReference() for more details
     this.trainrun = trainrun;
