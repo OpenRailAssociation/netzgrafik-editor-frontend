@@ -206,7 +206,10 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
     this.trainrunService.updateDirection(selectedTrainrun, Direction.ONE_WAY);
   }
 
-  getTrainrunTimeStructure(): Omit<LeftAndRightTimeStructure, "travelTime" | "bottomTravelTime"> {
+  getTrainrunTimeStructure(): Omit<
+    LeftAndRightTimeStructure,
+    "travelTime" | "bottomTravelTime" | "stopTime" | "bottomStopTime"
+  > {
     const selectedTrainrun = this.trainrunService.getSelectedTrainrun();
     if (!selectedTrainrun) {
       return undefined;
