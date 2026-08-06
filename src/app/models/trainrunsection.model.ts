@@ -247,10 +247,10 @@ export class TrainrunSection {
     this.setTargetNode(targetNode);
   }
 
+
   setTrainrun(trainrun: Trainrun) {
-    // Don't use this methode - you should use the TrainrunSectionService.updateTrainrunReference() method instead,
-    // to keep the index up to date (when using nevertheless this method, the index may be out of date and will cause problems)
-    // see TrainrunsectionService.updateTrainrunReference() for more details
+    // Do not call directly. Use TrainrunSectionService.updateTrainrunReference()
+    // so the section lookup index stays in sync. 
     this.trainrun = trainrun;
     this.trainrunId = trainrun.getId();
   }
