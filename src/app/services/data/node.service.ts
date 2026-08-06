@@ -1276,7 +1276,10 @@ export class NodeService implements OnDestroy {
   private updateNodePortPositions(node: Node) {
     if (node.getIsCollapsed()) return;
     node.getPorts().forEach((port) => {
-      const group = this.trainrunSectionService.getTrainrunSectionsGroupOrientedBasedOnPort(port);
+      const group = this.trainrunSectionService.getTrainrunSectionsGroupOrientedBasedOnPort(
+        port,
+        false,
+      );
       const oppositeExpandedNode = this.getOppositeExpandedNode(group[0], node);
       const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
         node,

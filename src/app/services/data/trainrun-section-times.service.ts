@@ -663,7 +663,7 @@ export class TrainrunSectionTimesService {
   /* Buttons in Footer */
   onPropagateTimeLeft(trainrunSection: TrainrunSection) {
     const nextStopRightNodeId = this.trainrunSectionHelper
-      .getNextStopRightNode(trainrunSection, this.nodesOrdered)
+      .getAdjacentRightNode(trainrunSection, this.nodesOrdered)
       .getId();
     this.trainrunSectionService.propagateTimeAlongTrainrun(
       trainrunSection.getId(),
@@ -674,7 +674,7 @@ export class TrainrunSectionTimesService {
 
   onPropagateTimeRight(trainrunSection: TrainrunSection) {
     const nextStopLeftNodeId = this.trainrunSectionHelper
-      .getNextStopLeftNode(trainrunSection, this.nodesOrdered)
+      .getAdjacentLeftNode(trainrunSection, this.nodesOrdered)
       .getId();
     this.trainrunSectionService.propagateTimeAlongTrainrun(
       trainrunSection.getId(),

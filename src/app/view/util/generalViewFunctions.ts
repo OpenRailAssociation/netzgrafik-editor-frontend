@@ -88,7 +88,11 @@ export class GeneralViewFunctions {
     }
   }
 
-  static getLeftNodeAccordingToOrder(nodesOrdered: Node[], node1: Node, node2: Node): Node {
+  static getLeftNodeAccordingToOrder(
+    nodesOrdered: Node[],
+    node1: Node,
+    node2: Node,
+  ): Node | undefined {
     for (const node of nodesOrdered) {
       if (node.getId() === node1.getId()) {
         return node1;
@@ -99,9 +103,12 @@ export class GeneralViewFunctions {
     return undefined;
   }
 
-  static getRightNodeAccordingToOrder(nodesOrdered: Node[], node1: Node, node2: Node): Node {
-    const copyNodesOrdered = Object.assign([], nodesOrdered);
-    for (const node of copyNodesOrdered.reverse()) {
+  static getRightNodeAccordingToOrder(
+    nodesOrdered: Node[],
+    node1: Node,
+    node2: Node,
+  ): Node | undefined {
+    for (const node of nodesOrdered.toReversed()) {
       if (node.getId() === node1.getId()) {
         return node1;
       } else if (node.getId() === node2.getId()) {

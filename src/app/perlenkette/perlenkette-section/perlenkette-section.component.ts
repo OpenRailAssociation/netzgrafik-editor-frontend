@@ -121,6 +121,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     if (!this.perlenketteSection.section) return;
     const group = this.trainrunSectionService.getTrainrunSectionGroupForSection(
       this.perlenketteSection.section,
+      false,
     );
     if (group.length === 0) return;
     this.firstSection = group[0];

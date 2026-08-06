@@ -25,6 +25,7 @@ import {
   TrainrunIterator,
   ExpandedTrainrunIterator,
   BackwardNextExpandedIterator,
+  TrainrunSectionNodePair,
 } from "../util/trainrun.iterator";
 import {LogService} from "../../logger/log.service";
 import {LabelService} from "./label.service";
@@ -690,37 +691,43 @@ export class TrainrunService {
     return path;
   }
 
-  getLastNonStopNode(node: Node, trainrunSection: TrainrunSection): Node {
+  getNextExpandedStopPair(node: Node, trainrunSection: TrainrunSection): TrainrunSectionNodePair {
     const iterator = this.getNextExpandedStopIterator(node, trainrunSection);
     while (iterator.hasNext()) {
       iterator.next();
     }
-    return iterator.current().node;
+    return iterator.current();
   }
 
-  getBothLastNonStopNodes(trainrunSection: TrainrunSection) {
+  getAdjacentExpandedStopPairs(trainrunSection: TrainrunSection): {
+    sourcePair: TrainrunSectionNodePair;
+    targetPair: TrainrunSectionNodePair;
+  } {
     const sourceNode = trainrunSection.getSourceNode();
     const targetNode = trainrunSection.getTargetNode();
     return {
-      lastNonStopNode1: this.getLastNonStopNode(sourceNode, trainrunSection),
-      lastNonStopNode2: this.getLastNonStopNode(targetNode, trainrunSection),
+      sourcePair: this.getNextExpandedStopPair(sourceNode, trainrunSection),
+      targetPair: this.getNextExpandedStopPair(targetNode, trainrunSection),
     };
   }
 
-  getLastNonStopTrainrunSection(node: Node, trainrunSection: TrainrunSection): TrainrunSection {
-    const iterator = this.getNextExpandedStopIterator(node, trainrunSection);
+  getNextExpandedPair(node: Node, trainrunSection: TrainrunSection): TrainrunSectionNodePair {
+    const iterator = this.getNextExpandedIterator(node, trainrunSection);
     while (iterator.hasNext()) {
       iterator.next();
     }
-    return iterator.current().trainrunSection;
+    return iterator.current();
   }
 
-  getBothLastNonStopTrainrunSections(trainrunSection: TrainrunSection) {
+  getAdjacentExpandedPairs(trainrunSection: TrainrunSection): {
+    sourcePair: TrainrunSectionNodePair;
+    targetPair: TrainrunSectionNodePair;
+  } {
     const sourceNode = trainrunSection.getSourceNode();
     const targetNode = trainrunSection.getTargetNode();
     return {
-      lastNonStopTrainrunSection1: this.getLastNonStopTrainrunSection(sourceNode, trainrunSection),
-      lastNonStopTrainrunSection2: this.getLastNonStopTrainrunSection(targetNode, trainrunSection),
+      sourcePair: this.getNextExpandedPair(sourceNode, trainrunSection),
+      targetPair: this.getNextExpandedPair(targetNode, trainrunSection),
     };
   }
 

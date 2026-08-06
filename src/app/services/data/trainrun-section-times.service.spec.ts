@@ -552,6 +552,7 @@ describe("TrainrunSectionTimesService", () => {
       rightDepartureTime: 52,
       bottomTravelTime: 88,
       leftArrivalTime: 20,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     });
@@ -562,6 +563,7 @@ describe("TrainrunSectionTimesService", () => {
       rightDepartureTime: 8,
       bottomTravelTime: 44,
       leftArrivalTime: 52,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     });

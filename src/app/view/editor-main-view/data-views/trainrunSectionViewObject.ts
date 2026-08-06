@@ -72,47 +72,11 @@ export class TrainrunSectionViewObject {
   }
 
   getTravelTime(): number {
-    if (this.trainrunSections.length === 1) {
-      return this.firstSection.getTravelTime();
-    }
-
-    return this.trainrunSections.reduce((sum, section, index) => {
-      let sectionTime = section.getTravelTime();
-
-      // Add stop time at intermediate nodes (all except the last section)
-      if (index < this.trainrunSections.length - 1) {
-        const nextSection = this.trainrunSections[index + 1];
-        const stopTime = Math.abs(
-          nextSection.getSourceDepartureConsecutiveTime() -
-            section.getTargetArrivalConsecutiveTime(),
-        );
-        sectionTime += stopTime;
-      }
-
-      return sum + sectionTime;
-    }, 0);
+    return TrainrunsectionHelper.getTravelTimeForSectionGroup(this.trainrunSections);
   }
 
   getBackwardTravelTime(): number {
-    if (this.trainrunSections.length === 1) {
-      return this.firstSection.getBackwardTravelTime();
-    }
-
-    return this.trainrunSections.reduce((sum, section, index) => {
-      let sectionTime = section.getBackwardTravelTime();
-
-      // Add stop time at intermediate nodes (all except the last section)
-      if (index < this.trainrunSections.length - 1) {
-        const nextSection = this.trainrunSections[index + 1];
-        const stopTime = Math.abs(
-          section.getTargetDepartureConsecutiveTime() -
-            nextSection.getSourceArrivalConsecutiveTime(),
-        );
-        sectionTime += stopTime;
-      }
-
-      return sum + sectionTime;
-    }, 0);
+    return TrainrunsectionHelper.getBackwardTravelTimeForSectionGroup(this.trainrunSections);
   }
 
   areTravelTimesEqual(): boolean {

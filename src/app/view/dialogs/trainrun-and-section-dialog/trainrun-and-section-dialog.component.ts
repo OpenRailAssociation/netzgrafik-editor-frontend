@@ -107,11 +107,11 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
           this.trainrunSectionService,
         );
 
-        const nextStopLeftNode = this.trainrunSectionHelper.getNextStopLeftNode(
+        const nextStopLeftNode = this.trainrunSectionHelper.getAdjacentLeftNode(
           selectedTrainrunSection,
           [],
         );
-        const nextStopRightNode = this.trainrunSectionHelper.getNextStopRightNode(
+        const nextStopRightNode = this.trainrunSectionHelper.getAdjacentRightNode(
           selectedTrainrunSection,
           [],
         );
