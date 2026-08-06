@@ -25,6 +25,7 @@ import {FilterService} from "../ui/filter.service";
 import {NetzgrafikColoringService} from "./netzgrafikColoring.service";
 import {Trainrun} from "src/app/models/trainrun.model";
 import {SimpleTrainrunSectionRouter} from "../util/trainrunsection.routing";
+import {LogService} from "../../logger/log.service";
 
 export class NetzgrafikLoadedInfo {
   constructor(
@@ -60,6 +61,7 @@ export class DataService implements OnDestroy {
     private labelGroupService: LabelGroupService,
     private filterService: FilterService,
     private netzgrafikColoringService: NetzgrafikColoringService,
+    private logger?: LogService,
   ) {
     this.trainrunService.setDataService(this);
     this.nodeService.setDataService(this);
@@ -79,6 +81,10 @@ export class DataService implements OnDestroy {
   loadNetzgrafikDto(netzgrafikDto: NetzgrafikDto, preview = false) {
     this.netzgrafikLoadedInfoSubject.next(new NetzgrafikLoadedInfo(true, preview));
 
+    // Loading an elder Version Netzgrafik can have errournous data due of a bug which was in the
+    // past. It's now fixed see https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/851
+    // but the data can be still in the stored Netzgrafik. So we need to check and fix this issue here.
+    DataMigration.sanitizeTrainrunSectionsWithSameSourceAndTargetNodes(netzgrafikDto, this.logger);
     DataMigration.migrateNetzgrafikDto(netzgrafikDto);
 
     this.netzgrafikDtoStore.netzgrafikDto = netzgrafikDto;
@@ -104,6 +110,8 @@ export class DataService implements OnDestroy {
       );
     }
 
+    // Initialize the data services to ensure that all references between nodes,
+    // trainrun sections, and trainruns are correctly set up.
     this.initializeDataServices();
 
     // Ensure that all trainrun sections have a consistent chain direction

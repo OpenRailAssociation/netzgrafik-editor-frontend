@@ -73,6 +73,9 @@
         },
         "version-control": {
           "new-name-comment": "Neuer Name: {$name}"
+        },
+        "data-service": {
+          "deleted-trainrun-sections": "{$PH} Zuglaufabschnitte mit identischem Start- und Zielknoten wurden gelöscht. Dies wurde durch einen Fehler in einer älteren Version des Editors verursacht. Bitte prüfen Sie Ihre Netzgrafik auf Korrektheit."
         }
       },
       "ui": {
