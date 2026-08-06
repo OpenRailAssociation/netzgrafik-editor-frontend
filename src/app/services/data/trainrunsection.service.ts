@@ -134,10 +134,11 @@ export class TrainrunSectionService implements OnDestroy {
     this.destroyed.next();
     this.destroyed.complete();
   }
+ 
 
-  private rebuildSectionIndex(allSections: TrainrunSection[]) {
+  private rebuildSectionIndex() {
     this.sectionLookupByTrainrunId.clear();
-    for (const section of allSections) {
+    for (const section of this.trainrunSectionsStore.trainrunSections) {
       const id = section.getTrainrunId();
       if (!this.sectionLookupByTrainrunId.has(id)) {
         this.sectionLookupByTrainrunId.set(id, []);
@@ -154,37 +155,22 @@ export class TrainrunSectionService implements OnDestroy {
     this.sectionLookupByTrainrunId.get(trainrunId)!.push(section);
   }
 
-  private removeSectionFromIndex(section: TrainrunSection) {
-    const trainrunId = section.getTrainrunId();
-    const sections = this.sectionLookupByTrainrunId.get(trainrunId);
-    if (!sections) {
-      return;
-    }
-    const filteredSections = sections.filter((entry) => entry.getId() !== section.getId());
-    if (filteredSections.length === 0) {
-      this.sectionLookupByTrainrunId.delete(trainrunId);
-    } else {
-      this.sectionLookupByTrainrunId.set(trainrunId, filteredSections);
-    }
-  }
-
   private addSection(trainrunSection: TrainrunSection) {
     this.trainrunSectionsStore.trainrunSections.push(trainrunSection);
     this.addSectionToIndex(trainrunSection);
   }
 
   private removeSection(trainrunSection: TrainrunSection) {
-    this.removeSectionFromIndex(trainrunSection);
     this.trainrunSectionsStore.trainrunSections =
       this.trainrunSectionsStore.trainrunSections.filter(
         (e) => e.getId() !== trainrunSection.getId(),
       );
+    this.rebuildSectionIndex();
   }
 
   updateTrainrunReference(trainrunSection: TrainrunSection, newTrainrun: Trainrun) {
-    this.removeSectionFromIndex(trainrunSection);
     trainrunSection.setTrainrun(newTrainrun);
-    this.addSectionToIndex(trainrunSection);
+    this.rebuildSectionIndex();
   }
 
   propagateTimesForNewTrainrunSection(trainrunSection: TrainrunSection) {
@@ -282,7 +268,7 @@ export class TrainrunSectionService implements OnDestroy {
     this.trainrunSectionsStore.trainrunSections = trainrunSections.map(
       (trainrunSectionDto) => new TrainrunSection(trainrunSectionDto),
     );
-    this.rebuildSectionIndex(this.trainrunSectionsStore.trainrunSections);
+    this.rebuildSectionIndex();
 
     this.trainrunSectionsStore.trainrunSections.forEach((trainrunSection) => {
       TrainrunSectionValidator.validateOneSection(trainrunSection);
