@@ -134,7 +134,6 @@ export class TrainrunSectionService implements OnDestroy {
     this.destroyed.next();
     this.destroyed.complete();
   }
- 
 
   private rebuildSectionIndex() {
     this.sectionLookupByTrainrunId.clear();
