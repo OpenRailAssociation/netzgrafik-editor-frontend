@@ -181,22 +181,22 @@ describe("UndoService", () => {
       filterService,
     );
     expect(trainrunService.isAnyTrainrunSelected()).toBe(false);
-    const preChangedTrainrunSection = trainrunService.getLastNonStopTrainrunSection(
+    const preChangedTrainrunSection = trainrunService.getNextExpandedStopPair(
       nodeService.getNodeFromId(0),
       trainrunSectionService.getTrainrunSectionFromId(0),
-    );
+    ).trainrunSection;
 
     undoService.reset(0);
     undoService.pushCurrentVersion(true);
-    const changedTrainrunSection = trainrunService.getLastNonStopTrainrunSection(
+    const changedTrainrunSection = trainrunService.getNextExpandedStopPair(
       nodeService.getNodeFromId(0),
       trainrunSectionService.getTrainrunSectionFromId(0),
-    );
+    ).trainrunSection;
     undoService.undo();
-    const postTrainrunSection = trainrunService.getLastNonStopTrainrunSection(
+    const postTrainrunSection = trainrunService.getNextExpandedStopPair(
       nodeService.getNodeFromId(0),
       trainrunSectionService.getTrainrunSectionFromId(0),
-    );
+    ).trainrunSection;
 
     expect(preChangedTrainrunSection.getId() === preChangedTrainrunSection.getId()).toBe(true);
     expect(postTrainrunSection.getId() === changedTrainrunSection.getId()).toBe(true);

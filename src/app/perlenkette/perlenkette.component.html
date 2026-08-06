@@ -152,10 +152,10 @@
 
     <!--- Station List (navigation) --->
     <ng-container *ngFor="let pathItem of perlenketteTrainrun.pathItems">
-      <div *ngIf="pathItem.isPerlenketteNode()">
+      <div *ngIf="pathItem.isPerlenketteNode() && !pathItem.getIsCollapsed()">
         <p class="alignleft" style="line-height: 10px">
           <span [class]="getSmallstationClassTag(pathItem)" (click)="goto(pathItem)">{{
-            pathItem.getPerlenketteNode().shortName ? pathItem.getPerlenketteNode().shortName : "?"
+            pathItem.getPerlenketteNode().shortName
           }}</span>
 
           <ng-container *ngIf="isLastNodeButNotVeryLast(pathItem)">
@@ -184,7 +184,7 @@
         <div class="drawing-container" #drawingContainer>
           <ng-container *ngFor="let pathItem of perlenketteTrainrun.pathItems; index as idx">
             <sbb-perlenkette-node
-              *ngIf="pathItem.isPerlenketteNode()"
+              *ngIf="pathItem.isPerlenketteNode() && !pathItem.getIsCollapsed()"
               [perlenketteTrainrun]="perlenketteTrainrun"
               (signalIsBeingEdited)="signalIsBeingEdited($event)"
               (signalHeightChanged)="signalHeightChanged($event, pathItem)"
@@ -198,7 +198,7 @@
               style="height: 16px"
             ></div>
             <sbb-perlenkette-section
-              *ngIf="pathItem.isPerlenketteSection()"
+              *ngIf="pathItem.isPerlenketteSection() && pathItem.isFirstSectionOfCollapsedChain()"
               [perlenketteSection]="pathItem.getPerlenketteSection()"
               [perlenketteTrainrun]="perlenketteTrainrun"
               (signalIsBeingEdited)="signalIsBeingEdited($event)"

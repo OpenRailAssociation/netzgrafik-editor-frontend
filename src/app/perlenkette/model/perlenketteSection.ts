@@ -1,6 +1,7 @@
 import {PerlenketteItem} from "./perlenketteItem";
 import {PerlenketteNode} from "./perlenketteNode";
 import {Node} from "../../models/node.model";
+import {TrainrunSection} from "src/app/models/trainrunsection.model";
 
 export class PerlenketteSection implements PerlenketteItem {
   constructor(
@@ -8,10 +9,11 @@ export class PerlenketteSection implements PerlenketteItem {
     public travelTime: number,
     public fromNode: Node,
     public toNode: Node,
-    public numberOfStops: number,
     public isBeingEdited: boolean = false,
     public fristTrainrunPartSection: boolean = false,
     public lastTrainrunPartSection: boolean = false,
+    public section: TrainrunSection | undefined,
+    public group: TrainrunSection[] = [],
   ) {}
 
   isFristTrainrunPartSection(): boolean {
@@ -40,5 +42,10 @@ export class PerlenketteSection implements PerlenketteItem {
 
   getPerlenketteSection(): PerlenketteSection {
     return this;
+  }
+
+  isFirstSectionOfCollapsedChain(): boolean {
+    if (this.section === undefined || !this.group.length) return false;
+    return this.section.getId() === this.group[0].getId();
   }
 }
