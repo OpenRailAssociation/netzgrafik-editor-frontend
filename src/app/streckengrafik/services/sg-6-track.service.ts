@@ -132,7 +132,7 @@ export class Sg6TrackService implements OnDestroy {
     return nDistanceCells;
   }
 
-  private mergeDistanceCellGridResoultionToBigSegment(
+  private mergeDistanceCellGridResolutionToBigSegment(
     tracksMatrix: number[],
     nDistanceCells: number,
   ): [number, number, number][] {
@@ -245,7 +245,7 @@ export class Sg6TrackService implements OnDestroy {
       // ------------------------------------------------------------------------------------------------------------------
       sectionsTracks.set(
         keyNodeId,
-        this.mergeDistanceCellGridResoultionToBigSegment(tracksMatrix, nDistanceCells),
+        this.mergeDistanceCellGridResolutionToBigSegment(tracksMatrix, nDistanceCells),
       );
     }
     return sectionsTracks;
@@ -1005,10 +1005,10 @@ export class Sg6TrackService implements OnDestroy {
           const ps = pathItem.getTrainrunSection();
           if (ps.trainrunBranchType === TrainrunBranchType.Trainrun) {
             const sectionKey = this.getSectionKey(ps);
-            const trackSegements = sectionTrackMap.get(sectionKey.key);
-            if (trackSegements !== undefined) {
+            const trackSegments = sectionTrackMap.get(sectionKey.key);
+            if (trackSegments !== undefined) {
               const convertedTrackSegments: TrackSegments[] = this.convertTrackSegments(
-                trackSegements,
+                trackSegments,
                 false,
                 1,
               );
@@ -1082,17 +1082,17 @@ export class Sg6TrackService implements OnDestroy {
   }
 
   private convertTrackSegments(
-    trackSegements: [number, number, number][],
+    trackSegments: [number, number, number][],
     backward: boolean,
     initMaxTracks: number,
   ) {
     const convertedTrackSegments: TrackSegments[] = [];
     let maxTracks = initMaxTracks;
-    trackSegements.forEach((trackSeg) => {
+    trackSegments.forEach((trackSeg) => {
       maxTracks = Math.max(trackSeg[2], maxTracks);
     });
 
-    trackSegements.forEach((trackSeg) => {
+    trackSegments.forEach((trackSeg) => {
       convertedTrackSegments.push(
         new TrackSegments(trackSeg[0], trackSeg[1], maxTracks, trackSeg[2], backward),
       );

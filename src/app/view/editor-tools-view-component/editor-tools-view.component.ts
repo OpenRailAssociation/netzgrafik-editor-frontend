@@ -547,7 +547,7 @@ export class EditorToolsViewComponent {
       $localize`:@@app.view.editor-side-view.editor-tools-view-component.trafficPeriod:Traffic period`,
     );
     headers.push(
-      $localize`:@@app.view.editor-side-view.editor-tools-view-component.frequence:Frequence`,
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.frequency:Frequency`,
     );
     headers.push(
       $localize`:@@app.view.editor-side-view.editor-tools-view-component.departureMinuteAtStart:Minute of departure at start node`,

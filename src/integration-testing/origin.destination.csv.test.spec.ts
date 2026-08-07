@@ -179,7 +179,7 @@ describe("Origin Destination CSV Test", () => {
     expect(end - start).toBeLessThan(100);
   });
 
-  it("trainruns with different frequences", () => {
+  it("trainruns with different frequencies", () => {
     // select nodes [11..14]
     for (let i = 11; i <= 14; i++) {
       nodeService.selectNode(i);

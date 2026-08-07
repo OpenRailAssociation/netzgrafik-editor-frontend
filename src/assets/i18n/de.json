@@ -559,7 +559,7 @@
           "startStation": "Startbahnhof",
           "destinationStation": "Zielbahnhof",
           "trafficPeriod": "Verkehrsperiode",
-          "frequence": "Takt",
+          "frequency": "Takt",
           "departureMinuteAtStart": "Abfahrtsminute am Start Knoten",
           "travelTimeStartDestination": "Fahrzeit Start-Ziel",
           "arrivalMinuteAtDestination": "Ankuntsminute am Ziel Knoten",

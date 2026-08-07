@@ -559,7 +559,7 @@
           "startStation": "Gare d'origine",
           "destinationStation": "Gare de destination",
           "trafficPeriod": "Période de circulation",
-          "frequence": "Fréquence",
+          "frequency": "Fréquence",
           "departureMinuteAtStart": "Minute de départ au noeud de départ",
           "travelTimeStartDestination": "Temps de parcours origine-destination",
           "arrivalMinuteAtDestination": "Minute d'arrivée au noeud de destination",

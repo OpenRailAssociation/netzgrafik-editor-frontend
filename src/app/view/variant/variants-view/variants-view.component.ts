@@ -303,7 +303,7 @@ export class VariantsViewComponent implements OnDestroy {
     this.uiInteractionService
       .showConfirmationDiagramDialog(
         new ConfirmationDialogParameter(
-          $localize`:@@app.view.variant.variants-view.delete-project.title:Delete projekt`,
+          $localize`:@@app.view.variant.variants-view.delete-project.title:Delete project`,
           $localize`:@@app.view.variant.variants-view.delete-project.content:Do you want to permanently delete the project and all the variants it contains? This action cannot be undone.`,
         ),
       )

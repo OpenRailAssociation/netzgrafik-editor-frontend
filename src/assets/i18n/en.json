@@ -365,7 +365,7 @@
         "filter": "Filter",
         "general": "General",
         "category": "Category",
-        "frequency": "Frequence",
+        "frequency": "Frequency",
         "time-category": "Time category",
         "display-all-trainruns": "Display all trainruns",
         "reset-trainrun-filter": "Reset trainrun filter",
@@ -559,7 +559,7 @@
           "startStation": "Start station",
           "destinationStation": "Destination station",
           "trafficPeriod": "Traffic period",
-          "frequence": "Frequence",
+          "frequency": "Frequency",
           "departureMinuteAtStart": "Minute of departure at start node",
           "travelTimeStartDestination": "Travel time start-destination",
           "arrivalMinuteAtDestination": "Arrival minute at destination node",
@@ -699,7 +699,7 @@
           },
           "undo-archiving": "Undo archiving",
           "delete-project": {
-            "title": "Delete projekt",
+            "title": "Delete project",
             "content": "Do you want to permanently delete the project and all the variants it contains? This action cannot be undone."
           },
           "archive": "Archive",
