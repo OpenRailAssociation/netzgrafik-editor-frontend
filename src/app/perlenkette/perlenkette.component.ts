@@ -60,7 +60,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
 
   public showTrainrunEditTab: ShowTrainrunEditTab = ShowTrainrunEditTab.sbb_trainrun_tab;
 
-  sbbToogleValue = ShowTrainrunEditTab.sbb_trainrun_tab;
+  sbbToggleValue = ShowTrainrunEditTab.sbb_trainrun_tab;
 
   constructor(
     private readonly loadPerlenketteService: LoadPerlenketteService,
@@ -109,15 +109,15 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   }
 
   onSbbToggleChange(event: SbbRadioChange) {
-    this.sbbToogleValue = event.value;
+    this.sbbToggleValue = event.value;
   }
 
-  isSbbToogleRoundtrip(): boolean {
-    return this.sbbToogleValue === ShowTrainrunEditTab.sbb_trainrun_roundtrip_tab;
+  isSbbToggleRoundtrip(): boolean {
+    return this.sbbToggleValue === ShowTrainrunEditTab.sbb_trainrun_roundtrip_tab;
   }
 
-  isSbbToogleGeneral(): boolean {
-    return this.sbbToogleValue === ShowTrainrunEditTab.sbb_trainrun_tab;
+  isSbbToggleGeneral(): boolean {
+    return this.sbbToggleValue === ShowTrainrunEditTab.sbb_trainrun_tab;
   }
 
   showTrainrunEditor(): boolean {
@@ -159,7 +159,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
         pItemSection.getPerlenketteSection().trainrunSectionId,
       );
     }
-    // toogle
+    // toggle
     if (this.showTrainrunEditTab === ShowTrainrunEditTab.sbb_trainrun_tab) {
       this.showTrainrunEditTab = ShowTrainrunEditTab.sbb_trainrun_roundtrip_tab;
     } else {

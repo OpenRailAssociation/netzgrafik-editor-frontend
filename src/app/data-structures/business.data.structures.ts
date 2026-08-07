@@ -18,8 +18,8 @@ import {
  */
 export interface FreeFloatingTextDto {
   id: number; // unique identifier
-  x: number; // user defined position (cooridination y)
-  y: number; // user defined position (cooridination y)
+  x: number; // user defined position (coordinate x)
+  y: number; // user defined position (coordinate y)
   width: number; // automatically calculated dimension (height)
   height: number; // automatically calculated dimension (height)
   title: string; // user defined title (human-readable)
@@ -97,7 +97,7 @@ export interface TrainrunTimeCategory {
  * Represents a time interval element. It decaleres the interval [from , to]
  */
 export interface TimeInterval {
-  from: number; // in minutes since midnight, start from, inclueded
+  from: number; // in minutes since midnight, start from, included
   to: number; //  in minutes since midnight, end to, included
 }
 
@@ -109,7 +109,7 @@ export interface TimeInterval {
  * the train leaves the source node and arrives at the target nodes or vice-versa. Important to
  * understand that the time gets automatically updated when changed such as the periodic interval
  * timetable is satisfied. Thus, if source departure time gets changed to 6, the source arrival time
- * gets recalulated 60 - 6 = 54.
+ * gets recalculated 60 - 6 = 54.
  */
 export interface TrainrunSectionDto {
   id: number; // unique identifier
@@ -120,8 +120,8 @@ export interface TrainrunSectionDto {
 
   sourceSymmetry: boolean; // binds sourceDeparture and sourceArrival times
   targetSymmetry: boolean; // binds targetDeparture and targetArrival times
-  sourceArrival: TimeLockDto; // declares the soruce arrival time
-  sourceDeparture: TimeLockDto; // declares the soruce departure time
+  sourceArrival: TimeLockDto; // declares the source arrival time
+  sourceDeparture: TimeLockDto; // declares the source departure time
   targetArrival: TimeLockDto; // declares the target arrival time
   targetDeparture: TimeLockDto; // declares the target departure time
   travelTime: TimeLockDto; // declares the travel time (forward direction)
@@ -130,7 +130,7 @@ export interface TrainrunSectionDto {
   numberOfStops: number; // number of stops - not declared in detail (no node attached)
 
   trainrunId: number; // reference to the trainrun (main object)
-  resourceId: number; // reference to the algined (resource - not yet implemented)
+  resourceId: number; // reference to the aligned (resource - not yet implemented)
 
   specificTrainrunSectionFrequencyId: number | null; // Default 0 - deprecate???
   path: PathDto; // cached - precomputed path for rendering
@@ -151,19 +151,19 @@ export enum LabelRef {
  * Represents a filterable Label
  */
 export interface LabelDto {
-  id: number; // unique indentifier
+  id: number; // unique identifier
   label: string; // name of the label
   labelGroupId: number; // reference to the labelgroup
   labelRef: LabelRef; // label ref - declares the label group - used for double check - deprecate???
 }
 
 /**
- * Represents a filterable LabelGroup - in general one group per LabelRef are avaible, but user can
+ * Represents a filterable LabelGroup - in general one group per LabelRef are available, but user can
  * add more and algine labels to the right groups (right means = LabelRef must correspond to the
  * LabelRef in the Label)
  */
 export interface LabelGroupDto {
-  id: number; // unique indentifier
+  id: number; // unique identifier
   name: string; // label group name
   labelRef: LabelRef; // all labels in the group must have this label (shortings)
 }
@@ -172,7 +172,7 @@ export interface LabelGroupDto {
  * Represents the main element for the node.
  */
 export interface NodeDto {
-  id: number; // unique indentifier
+  id: number; // unique identifier
   betriebspunktName: string; // BNWD -> 2-4 char name -> uniqueness (business id) !!!-
   fullName: string; // full name of the trainrun eg. BN => Bern Wankdorf
   positionX: number; // coordinate X
@@ -182,7 +182,7 @@ export interface NodeDto {
   transitions: TransitionDto[]; // all tranisitons aligned to the node
   connections: ConnectionDto[]; // all connections aligned to the node
 
-  resourceId: number; // reference to the algined (resource - not yet implemented)
+  resourceId: number; // reference to the aligned (resource - not yet implemented)
   perronkanten: number; // number of tracks where train can stop
   connectionTime: number | null; // aka Umsteigezeit - time used to change train in minutes
   trainrunCategoryHaltezeiten: TrainrunCategoryHaltezeit; // user can over-write the halte times
@@ -196,7 +196,7 @@ export interface NodeDto {
  * Represents the main element for the trainrun.
  */
 export interface TrainrunDto {
-  id: number; // unique indentifier
+  id: number; // unique identifier
   name: string; // name of the trainrun
   categoryId: number; // reference to the trainrun category
   frequencyId: number; // reference to the trainrun frequency
@@ -223,14 +223,14 @@ export enum HaltezeitFachCategories {
  * in SCSS. The line pattern is standardize in timetable planning.  Mapping.
  */
 export enum LinePatternRefs {
-  Freq120 = "120", // -.-.-.  ; unique indentifier
-  Freq60 = "60", // ----- ; unique indentifier
-  Freq30 = "30", // ==== ; unique indentifier
-  Freq20 = "20", // three lines  ; unique indentifier
-  Freq15 = "15", // four lines ; unique indentifier
-  TimeCat7_24 = "7/24", // . . . ; unique indentifier
-  TimeCatHVZ = "HVZ", // . : . : ; unique indentifier
-  TimeZeitweise = "ZEITWEISE", // : - : - ; unique indentifier
+  Freq120 = "120", // -.-.-.  ; unique identifier
+  Freq60 = "60", // ----- ; unique identifier
+  Freq30 = "30", // ==== ; unique identifier
+  Freq20 = "20", // three lines  ; unique identifier
+  Freq15 = "15", // four lines ; unique identifier
+  TimeCat7_24 = "7/24", // . . . ; unique identifier
+  TimeCatHVZ = "HVZ", // . : . : ; unique identifier
+  TimeZeitweise = "ZEITWEISE", // : - : - ; unique identifier
 }
 
 /**
@@ -248,7 +248,7 @@ export interface TrainrunCategoryHaltezeit {
 
 /**
  * Declares the minimal Haltezeit (stop time) and policy whether there is for this product a
- * stop by default planed or not (at certain Node)
+ * stop by default planned or not (at certain Node)
  */
 export interface Haltezeit {
   haltezeit: number; // in minutes
@@ -281,7 +281,7 @@ export interface MetadataDto {
  * Represents an abstructuion for resource magement. Resource alignemend - Net yet implemented
  */
 export interface ResourceDto {
-  id: number; // unique indentifier
+  id: number; // unique identifier
   capacity: number; // maximal train allowed on the resource at time
 }
 
@@ -289,7 +289,7 @@ export interface ResourceDto {
  * Represents the filter settings, which can be stored.
  */
 export interface FilterSettingDto {
-  id: number; // unique indentifier
+  id: number; // unique identifier
   name: string; // name
   description: string; // description
   filterNodeLabels: number[]; // labels to filter out (labels only of type - LabelRef: node)
@@ -305,7 +305,7 @@ export interface FilterSettingDto {
   filterShowNonStopTime: boolean; // flag for non-stop time filtering (hide/show)
   filterTrainrunCategory: TrainrunCategory[]; // list of category to filter out
   filterTrainrunFrequency: TrainrunFrequency[]; // list of frequency to filter out
-  filterTrainrunTimeCategory: TrainrunTimeCategory[]; // list of time categroy to filter out
+  filterTrainrunTimeCategory: TrainrunTimeCategory[]; // list of time category to filter out
   filterDirection: Direction[]; // list of trainrun direction to filter out
   filterSymmetry: boolean[]; // list of trainrun symmetry values (true/false) to filter out
   filterAllEmptyNodes: boolean; // flag to filter all empty nodes (hide/show)

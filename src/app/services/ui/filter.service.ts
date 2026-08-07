@@ -321,7 +321,7 @@ export class FilterService implements OnDestroy {
       return true;
     }
 
-    /* Impelement user defined filtering */
+    /* Implement user defined filtering */
     return (
       this.checkFilterNode(node) &&
       this.checkFilterNonStopNode(node) &&
@@ -391,7 +391,7 @@ export class FilterService implements OnDestroy {
       // disable filtering in view (render all objects)
       return true;
     }
-    /* Impelement user defined filtering */
+    /* Implement user defined filtering */
     const filterTrainrunSection = this.checkFilterTrainrunLabels(trainrun.getLabelIds());
     const trainrunSections = this.dataService.getTrainrunSectionsByTrainrunId(trainrun.getId());
     const hasAsymmetricalSection = trainrunSections.some(
@@ -413,7 +413,7 @@ export class FilterService implements OnDestroy {
       return true;
     }
 
-    /* Impelement user defined filtering */
+    /* Implement user defined filtering */
     const filter = this.checkFilterNoteLabels(note.getLabelIds());
     return !this.isFilterNotesEnabled() && filter;
   }

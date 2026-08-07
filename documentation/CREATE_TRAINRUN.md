@@ -24,7 +24,7 @@ the window or press `ESC` to close the dialog window.
 
 [29-01-2024-005-start-creating_trainrun.webm](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/assets/2674075/bc23f079-3aa6-4725-af6f-da4a53627ca3)
 
-For more details have a look into [create and modifiy trainrun](CREATE_TRAINRUN.md).
+For more details have a look into [create and modify trainrun](CREATE_TRAINRUN.md).
 
 #### Create new trainrun section - step by step
 
@@ -112,7 +112,7 @@ and dock to the new intermediate stop node in between.
 To delete a trainrun section, process as follows:
 
 - Click the trainrun to modify (select the trainrun)
-- Move with the mouse pointer to one of the two pins (cricle) where the trainrun section is aligned
+- Move with the mouse pointer to one of the two pins (circle) where the trainrun section is aligned
   to the node
 - Press `left mouse button` and drag the pin (trainrun section). Instead of reassign to another or
   same node, just release it outside the node
@@ -126,7 +126,7 @@ To switch a train from a stop to a non-stop at a node, follow these steps:
 - Access trainrun transitions: Locate the hexagon button within the node representation. This button
   signifies trainrun transitions (stop/non-stop).
 
-[2024-01-25-Toogle_Stop_NonStop_trainrun_at_node.webm](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/assets/2674075/8a72350c-ed19-4395-8183-c33dfe824c5a)
+[2024-01-25-Toggle_Stop_NonStop_trainrun_at_node.webm](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/assets/2674075/8a72350c-ed19-4395-8183-c33dfe824c5a)
 
 ### Split / Combine two trainruns and merge Netzgrafik
 
@@ -161,7 +161,7 @@ This time is used for node‑track occupancy.
 ![image](https://github.com/user-attachments/assets/d87b842c-7696-4e81-aa78-75cc966b5306)
 _Example Netzgrafik with missing sections (See the cargo trainrun GTwo_Part_trainrun)_
 
-When creating a trainrun, the trairnun path should connect all nodes from start to destination using trainrun sections.
+When creating a trainrun, the trainrun path should connect all nodes from start to destination using trainrun sections.
 However, it can happen during the creation that not all trainrun sections have been drawn in the meantime.
 Gaps may occur along the trainrun path where at least one trainrun section is missing.
 These “holes” usually occur if the trainrun path has not yet been drawn completely or correctly.
@@ -169,7 +169,7 @@ For example, a trainrun path could look like this with a "hole" in the middle,
 
 A - B - C ---- (missing section) ---- E - F - G
 
-The trainrun section between C and E is missing here. However, these gaps can also occur if a partial cancelation is made for a trainrun.
+The trainrun section between C and E is missing here. However, these gaps can also occur if a partial cancellation is made for a trainrun.
 
 ![image](https://github.com/user-attachments/assets/5d1ef657-e421-41ff-ae57-622eee82f295)
 _Graphical timetable._
