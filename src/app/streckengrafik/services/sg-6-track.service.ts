@@ -787,8 +787,7 @@ export class Sg6TrackService implements OnDestroy {
       pn.trackNbr = trackItr;
       pn.mainTrackIdx = mainTrackIdx;
       pn.pathNodes.forEach((sgTN) => {
-        const curTrack = this.getTrackNumber(pn.trackNbr);
-        sgTN.trackData.track = 1 + curTrack;
+        sgTN.trackData.track = 1 + pn.trackNbr;
       });
       prevPn = pn;
       trackItr++;
@@ -852,7 +851,7 @@ export class Sg6TrackService implements OnDestroy {
     if (nodeTracks === undefined) {
       nodeNeighbors.pathNodes.push(node);
       nodeTracksMap.set(node.nodeId, [nodeNeighbors]);
-      return this.getTrackNumber(nodeNeighbors.trackNbr);
+      return nodeNeighbors.trackNbr;
     }
 
     // find track
@@ -864,7 +863,7 @@ export class Sg6TrackService implements OnDestroy {
       nodeNeighbors.mainTrackIdx = foundTracks === undefined ? 0 : this.createNewTrack(foundTracks);
       nodeNeighbors.pathNodes.push(node);
       nodeTracks.push(nodeNeighbors);
-      return this.getTrackNumber(nodeNeighbors.trackNbr);
+      return nodeNeighbors.trackNbr;
     }
 
     const trackData = foundTracks[trackIdx];
@@ -874,7 +873,7 @@ export class Sg6TrackService implements OnDestroy {
       trackData.nodeId2 = nodeNeighbors.nodeId2;
     }
     trackData.pathNodes.push(node);
-    return this.getTrackNumber(trackData.trackNbr);
+    return trackData.trackNbr;
   }
 
   private updateTracksForAllPathNodes(nodeTracksMap: Map<number, PathNodeNeighbour[]>) {
@@ -882,7 +881,7 @@ export class Sg6TrackService implements OnDestroy {
       const tracks = nodeTracksMap.get(keyNodeId);
       const nodeTracks: TrackData[] = [];
       tracks.forEach((pn: PathNodeNeighbour) => {
-        const track1 = new TrackData(this.getTrackNumber(pn.trackNbr), pn.nodeId1, pn.nodeId2);
+        const track1 = new TrackData(pn.trackNbr, pn.nodeId1, pn.nodeId2);
         track1.setTrackGrp(pn.trackNbr);
         nodeTracks.push(track1);
       });
@@ -894,10 +893,6 @@ export class Sg6TrackService implements OnDestroy {
         });
       });
     }
-  }
-
-  private getTrackNumber(track: number): number {
-    return track;
   }
 
   private getConnectNeighbourNodeTracks(
