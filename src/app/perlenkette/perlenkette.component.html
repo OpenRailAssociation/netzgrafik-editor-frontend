@@ -129,14 +129,14 @@
 
       <div style="transform: translateX(4px)">
         <p class="trainRunEditor">
-          <ng-container *ngIf="isSbbToogleGeneral()">
+          <ng-container *ngIf="isSbbToggleGeneral()">
             <sbb-trainrun-tab
               class="TrainrunTabTrainrunEditor"
               [toolbarVisible]="false"
               [isIntegratedComponent]="true"
             ></sbb-trainrun-tab>
           </ng-container>
-          <ng-container *ngIf="isSbbToogleRoundtrip()">
+          <ng-container *ngIf="isSbbToggleRoundtrip()">
             <sbb-trainrun-roundtrip-tab
               class="TrainrunTabTrainrunEditor"
               [toolbarVisible]="false"
