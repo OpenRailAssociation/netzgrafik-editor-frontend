@@ -212,7 +212,7 @@ export class Sg6TrackService implements OnDestroy {
             ? ts.getTrainrun().getTrainrunCategory().sectionHeadway
             : this.minimumHeadwayTime;
 
-        // iterate cell-by-cell foward
+        // iterate cell-by-cell forward
         for (let distCellIdx = 0; distCellIdx < nDistanceCells; distCellIdx++) {
           // unroll frequency to get the trains - generated out of the "template" train
           for (
@@ -230,7 +230,7 @@ export class Sg6TrackService implements OnDestroy {
                 freqLoop;
               timeCellIdx = bandOffset + Math.round(timeRes * timeCellIdx);
 
-              // ensure if the idx is to small or to big (avoid crash / expection)
+              // ensure if the idx is to small or to big (avoid crash / exception)
               if (timeCellIdx >= 0 && timeCellIdx < nTimeCells) {
                 dataMatrix[idx][timeCellIdx]++;
                 tracksMatrix[idx] = Math.max(tracksMatrix[idx], dataMatrix[idx][timeCellIdx]);
@@ -366,7 +366,7 @@ export class Sg6TrackService implements OnDestroy {
     const turnaroundTime = forwardNode.departureTime - forwardNode.arrivalTime;
     const deltaTurnaroundTime = trainrun.frequency - turnaroundTime;
     if (deltaTurnaroundTime > 0 && deltaTurnaroundTime < minimumHeadwayTime) {
-      // special case - when the turnaround time is too small - enforce a second train ond a
+      // special case - when the turnaround time is too small - enforce a second train on a
       // second track
       // tag / mark for further processing
       let estimateFreqOffset =

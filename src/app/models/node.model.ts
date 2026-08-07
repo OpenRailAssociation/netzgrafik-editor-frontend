@@ -864,7 +864,7 @@ export class Node {
       return false; // Can't connect two ports of the same trainrun
     }
 
-    // check for one-way trainruns whether a connection from port to to port is feasible
+    // check for one-way trainruns whether a connection from port to port is feasible
     // returns true if feasible otherwise false. if both trainruns are roundtrips, the
     // method returns true, because in roundtrips the direction of the trainrun is
     // not relevant for the connection feasibility
