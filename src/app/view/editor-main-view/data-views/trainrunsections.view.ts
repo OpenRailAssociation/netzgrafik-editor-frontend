@@ -1684,25 +1684,25 @@ export class TrainrunSectionsView {
           " " +
           TrainrunSectionText[TrainrunSectionText.TrainrunSectionNumberOfStops],
       )
-      .attr(StaticDomTags.EDGE_ID, () => trainrunSection.getId())
-      .attr(StaticDomTags.EDGE_LINE_LINE_ID, () => trainrunSection.getTrainrunId())
+      .attr(StaticDomTags.EDGE_ID, trainrunSection.getId())
+      .attr(StaticDomTags.EDGE_LINE_LINE_ID, trainrunSection.getTrainrunId())
       .attr(StaticDomTags.EDGE_LINE_TEXT_INDEX, TrainrunSectionText.TrainrunSectionNumberOfStops)
       .attr("numberOfStops", numberOfStops)
       .attr("x", 0.0)
       .attr("y", 0.0)
-      .attr("transform", () =>
+      .attr(
+        "transform",
         TrainrunSectionsView.translateAndRotateText(
           trainrunSection,
           TrainrunSectionText.TrainrunSectionNumberOfStops,
         ),
       )
       .text(numberOfStops)
-      .classed(StaticDomTags.TAG_MUTED, () =>
+      .classed(
+        StaticDomTags.TAG_MUTED,
         TrainrunSectionsView.isMuted(trainrunSection, selectedTrainrun, connectedTrainIds),
       )
-      .classed(StaticDomTags.TAG_SELECTED, () =>
-        TrainrunSectionsView.isSectionSelected(trainrunSection),
-      )
+      .classed(StaticDomTags.TAG_SELECTED, TrainrunSectionsView.isSectionSelected(trainrunSection))
       .on("mouseup", (event: MouseEvent, t: TrainrunSectionViewObject) =>
         this.onIntermediateStopMouseUp(event, t.trainrunSection),
       );
@@ -2687,7 +2687,7 @@ export class TrainrunSectionsView {
       .classed(StaticDomTags.TAG_SELECTED, (t: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isSectionSelected(t.trainrunSection),
       )
-      .classed(StaticDomTags.EDGE_LINE_STOPS_FILL, () => !collapsedStops)
+      .classed(StaticDomTags.EDGE_LINE_STOPS_FILL, !collapsedStops)
       .on("mouseover", (event: MouseEvent) => this.onIntermediateStopMouseOver(event))
       .on("mouseout", (event: MouseEvent) => this.onIntermediateStopMouseOut(event))
       .on("mousedown", (event: MouseEvent, t: TrainrunSectionViewObject) =>

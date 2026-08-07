@@ -342,7 +342,7 @@ export class NodesView {
       .attr("class", StaticDomTags.NODE_LABELAREA_CLASS)
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("width", (n: NodeViewObject) => n.node.getNodeWidth())
-      .attr("height", () => NODE_TEXT_AREA_HEIGHT)
+      .attr("height", NODE_TEXT_AREA_HEIGHT)
       .attr("x", 0)
       .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT)
       .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
@@ -371,7 +371,7 @@ export class NodesView {
       .attr("class", StaticDomTags.NODE_HOVER_DRAG_AREA_BACKGROUND_CLASS)
       .classed(StaticDomTags.TAG_SELECTED, (n: NodeViewObject) => n.node.selected())
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
-      .attr("transform", () => "translate(-32.5,1)")
+      .attr("transform", "translate(-32.5,1)")
       .attr("width", 28)
       .attr("height", 28)
       .attr("x", 2)
@@ -536,7 +536,7 @@ export class NodesView {
       .attr("class", StaticDomTags.NODE_ANALYTICSAREA_CLASS)
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("width", (n: NodeViewObject) => n.node.getNodeWidth())
-      .attr("height", () => NODE_ANALYTICS_AREA_HEIGHT)
+      .attr("height", NODE_ANALYTICS_AREA_HEIGHT)
       .attr("x", 0)
       .attr(
         "y",
