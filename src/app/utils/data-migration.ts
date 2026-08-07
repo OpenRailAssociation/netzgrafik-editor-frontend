@@ -49,7 +49,7 @@ export class DataMigration {
 
   static migrateNetzgrafikDto(netzgrafikDto: NetzgrafikDto) {
     // Change of data structure requires this migration step: separation of coloring / line pattern
-    const checkFirstElement = netzgrafikDto.metadata.trainrunTimeCategories.find(() => true);
+    const checkFirstElement = netzgrafikDto.metadata.trainrunTimeCategories.at(0);
     if (checkFirstElement !== undefined && checkFirstElement.linePatternRef === undefined) {
       netzgrafikDto.metadata.trainrunCategories =
         NetzgrafikDefault.getDefaultNetzgrafik().metadata.trainrunCategories;
@@ -58,7 +58,7 @@ export class DataMigration {
       netzgrafikDto.metadata.trainrunTimeCategories =
         NetzgrafikDefault.getDefaultNetzgrafik().metadata.trainrunTimeCategories;
     }
-    const checkFirstFrequencyElement = netzgrafikDto.metadata.trainrunFrequencies.find(() => true);
+    const checkFirstFrequencyElement = netzgrafikDto.metadata.trainrunFrequencies.at(0);
     if (
       checkFirstFrequencyElement !== undefined &&
       checkFirstFrequencyElement.offset === undefined

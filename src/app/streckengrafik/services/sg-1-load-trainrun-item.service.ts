@@ -148,7 +148,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         // not support current trains with partial cancellations.
         const ts: TrainrunSection = this.trainrunSectionService
           .getAllTrainrunSectionsForTrainrun(selectedTrainrun.getId())
-          .find(() => true);
+          .at(0);
         const loadeddata = this.loadTrainrunItem(ts, true);
         this.cachedTrainrunItems = loadeddata.trainrunItem;
       }

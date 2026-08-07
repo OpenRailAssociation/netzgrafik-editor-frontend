@@ -231,7 +231,7 @@ export class DataService implements OnDestroy {
       (trainrunCategory) => trainrunCategory.id === categoryId,
     );
     if (found === undefined) {
-      return this.netzgrafikDtoStore.netzgrafikDto.metadata.trainrunCategories.find(() => true);
+      return this.netzgrafikDtoStore.netzgrafikDto.metadata.trainrunCategories.at(0);
     }
     return found;
   }
@@ -241,7 +241,7 @@ export class DataService implements OnDestroy {
       (trainrunFrequency) => trainrunFrequency.id === frequencyId,
     );
     if (found === undefined) {
-      return this.netzgrafikDtoStore.netzgrafikDto.metadata.trainrunFrequencies.find(() => true);
+      return this.netzgrafikDtoStore.netzgrafikDto.metadata.trainrunFrequencies.at(0);
     }
     return found;
   }
@@ -251,7 +251,7 @@ export class DataService implements OnDestroy {
       (trainrunTimeCategory) => trainrunTimeCategory.id === timeCategoryId,
     );
     if (found === undefined) {
-      return this.netzgrafikDtoStore.netzgrafikDto.metadata.trainrunTimeCategories.find(() => true);
+      return this.netzgrafikDtoStore.netzgrafikDto.metadata.trainrunTimeCategories.at(0);
     }
     return found;
   }
