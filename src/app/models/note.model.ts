@@ -7,6 +7,20 @@ import {DataMigration} from "../utils/data-migration";
 // (removed from WHATWG spec). Replace entire branch with DOMPurify.
 // See: https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1257
 
+// TODO: drop once we upgrade to a newer TypeScript which ships Sanitizer types
+declare global {
+  class Sanitizer {
+    allowAttribute(name: string): void;
+    removeUnsafe(): void;
+  }
+  interface HTMLElement {
+    setHTML(unsafeHTML: string, options?: {sanitizer: Sanitizer}): void;
+  }
+  interface Window {
+    Sanitizer?: typeof Sanitizer;
+  }
+}
+
 export class Note {
   public static DEFAULT_NOTE_WIDTH = 192;
   public static DEFAULT_NOTE_HEIGHT = 64;
