@@ -178,8 +178,7 @@ export class Note {
       sanitizer.removeUnsafe();
 
       const elt = document.createElement("div");
-
-      (elt as any).setHTML(this.getText(), {sanitizer});
+      elt.setHTML(this.getText(), {sanitizer});
       return elt.innerHTML;
     } else {
       // TODO: drop this fallback once Sanitizer support is widespread across
