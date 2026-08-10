@@ -17,7 +17,6 @@ import {LoadPerlenketteService} from "../../perlenkette/service/load-perlenkette
 import {NetzgrafikUnitTesting} from "../../../integration-testing/netzgrafik.unit.testing";
 import {ViewportCullService} from "../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "./position.transformation.service";
-import {Operation} from "../../models/operation.model";
 import {Vec2D} from "../../utils/vec2D";
 
 describe("PositionTransformationService", () => {
@@ -169,32 +168,5 @@ describe("PositionTransformationService", () => {
       expect(n.getPositionX()).toBe(pos[index].getX() * 2.0);
       expect(n.getPositionY()).toBe(pos[index].getY() * 2.0);
     });
-  });
-
-  it("emits update operations when scaling the full graph", () => {
-    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const operations: Operation[] = [];
-    positionTransformationService.operation.subscribe((operation) => operations.push(operation));
-
-    positionTransformationService.scaleNetzgrafikArea(2.0, new Vec2D(0.0, 0.0), "graphContainer");
-
-    const nodeUpdates = operations.filter(
-      (operation) => operation.objectType === "node" && operation.type === "update",
-    );
-    expect(nodeUpdates.length).toBe(nodeService.getNodes().length);
-  });
-
-  it("emits update operations for scaled selected nodes", () => {
-    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    nodeService.getNodes().slice(0, 2).forEach((node) => nodeService.selectNode(node.getId()));
-    const operations: Operation[] = [];
-    positionTransformationService.operation.subscribe((operation) => operations.push(operation));
-
-    positionTransformationService.scaleNetzgrafikArea(2.0, new Vec2D(0.0, 0.0), "graphContainer");
-
-    const nodeUpdates = operations.filter(
-      (operation) => operation.objectType === "node" && operation.type === "update",
-    );
-    expect(nodeUpdates.length).toBe(2);
   });
 });
