@@ -3,6 +3,9 @@ import {FreeFloatingTextDto} from "../data-structures/business.data.structures";
 import {DataMigration} from "../utils/data-migration";
 
 // Sanitizer, HTMLElement.setHTML and Window.Sanitizer are now part of lib.dom.d.ts (TypeScript 6.0+)
+// TODO #1257: The window.Sanitizer branch in getSanitizedText() uses the non-standard setHTML() API
+// (removed from WHATWG spec). Replace entire branch with DOMPurify.
+// See: https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1257
 
 export class Note {
   public static DEFAULT_NOTE_WIDTH = 192;
