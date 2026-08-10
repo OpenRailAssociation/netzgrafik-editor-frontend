@@ -1,4 +1,12 @@
-import {AfterViewInit, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 import {Subject} from "rxjs";
 import {ResizeChangeInfo} from "../../../model/util/resizeChangeInfo";
 import {ViewBoxChangeInfo} from "../../../model/util/viewBoxChangeInfo";
@@ -16,6 +24,7 @@ import {SgPath} from "../../../model/streckengrafik-model/sg-path";
   selector: "[sbb-path-grid]",
   templateUrl: "./path-grid.component.html",
   styleUrls: ["./path-grid.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class PathGridComponent implements OnInit, OnDestroy, AfterViewInit {

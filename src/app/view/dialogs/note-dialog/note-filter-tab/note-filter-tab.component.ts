@@ -6,6 +6,7 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import {DataService} from "../../../../services/data/data.service";
 import {LabelService} from "../../../../services/data/label.service";
@@ -23,6 +24,7 @@ import {COMMA, ENTER} from "@angular/cdk/keycodes";
   selector: "sbb-note-filter-tab",
   templateUrl: "./note-filter-tab.component.html",
   styleUrls: ["./note-filter-tab.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class NoteFilterTabComponent implements OnInit, OnDestroy {

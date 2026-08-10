@@ -9,6 +9,7 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import {interval, Subject} from "rxjs";
 import {takeUntil} from "rxjs/operators";
@@ -27,6 +28,7 @@ import {StreckengrafikDrawingContext} from "../model/util/streckengrafik.drawing
   selector: "sbb-streckengrafik",
   templateUrl: "./streckengrafik.component.html",
   styleUrls: ["./streckengrafik.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class StreckengrafikComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -209,7 +211,7 @@ export class StreckengrafikComponent implements OnInit, OnDestroy, AfterViewInit
     return tag;
   }
 
-  @HostListener("window:resize", ["$event"])
+  @HostListener("window:resize")
   onResize(): void {
     this.updateContentSize();
   }

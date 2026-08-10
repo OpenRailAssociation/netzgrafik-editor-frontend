@@ -1,4 +1,4 @@
-import {Component, Input} from "@angular/core";
+import {Component, Input, ChangeDetectionStrategy} from "@angular/core";
 import {SlotAction} from "../../action-menu/action-menu/action-menu.component";
 import {Observable} from "rxjs";
 
@@ -6,6 +6,7 @@ import {Observable} from "rxjs";
   selector: "sbb-slot",
   templateUrl: "./slot.component.html",
   styleUrls: ["./slot.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class SlotComponent {

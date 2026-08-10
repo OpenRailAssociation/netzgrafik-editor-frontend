@@ -1,52 +1,60 @@
-<div *ngIf="hasNoFilterableLabels()">
-  <sbb-label class="sbb-mt-m">{{
-    "app.view.editor-filter-view.filterable-label-filter.no-labels-available" | translate
-  }}</sbb-label>
-</div>
-<ng-container *ngIf="!hasNoFilterableLabels()">
+@if (hasNoFilterableLabels()) {
+  <div>
+    <sbb-label class="sbb-mt-m">{{
+      "app.view.editor-filter-view.filterable-label-filter.no-labels-available" | translate
+    }}</sbb-label>
+  </div>
+}
+@if (!hasNoFilterableLabels()) {
   <div class="sbb-filter-chip-group-main">
-    <ng-container *ngFor="let nodeLabelGrp of filterableLabelGroups">
+    @for (nodeLabelGrp of filterableLabelGroups; track nodeLabelGrp) {
       <div class="sbb-filter-chip-new-group-main"></div>
       <div class="sbb-filter-chip-group-operator">
-        <ng-container *ngIf="isFilterFunctionOrEnabled(nodeLabelGrp)">
+        @if (isFilterFunctionOrEnabled(nodeLabelGrp)) {
           <button
             class="TrainrunDialog FilterableLabel LogicalOperator"
             (click)="enableLogicalFilterOperatorAnd(nodeLabelGrp)"
           >
             {{ "app.view.editor-filter-view.filterable-label-filter.or" | translate }}
           </button>
-        </ng-container>
-        <ng-container *ngIf="!isFilterFunctionOrEnabled(nodeLabelGrp)">
+        }
+        @if (!isFilterFunctionOrEnabled(nodeLabelGrp)) {
           <button
             class="TrainrunDialog FilterableLabel LogicalOperator"
             (click)="enableLogicalFilterOperatorOr(nodeLabelGrp)"
           >
             {{ "app.view.editor-filter-view.filterable-label-filter.and" | translate }}
           </button>
-        </ng-container>
+        }
       </div>
       <div class="sbb-filter-chip-group-labels">
-        <button
-          [class]="getLabelClassname(labelObject)"
-          (click)="onFilterableLabelChanged(labelObject)"
-          mode="ghost"
-          [title]="getLabelTooltip(labelObject)"
-          *ngFor="let labelObject of labelService.getLabelsFromLabelGroupId(nodeLabelGrp.getId())"
-        >
-          {{ labelObject.getLabel() }}
-        </button>
+        @for (
+          labelObject of labelService.getLabelsFromLabelGroupId(nodeLabelGrp.getId());
+          track labelObject
+        ) {
+          <button
+            [class]="getLabelClassname(labelObject)"
+            (click)="onFilterableLabelChanged(labelObject)"
+            mode="ghost"
+            [title]="getLabelTooltip(labelObject)"
+          >
+            {{ labelObject.getLabel() }}
+          </button>
+        }
       </div>
-    </ng-container>
+    }
   </div>
-</ng-container>
-<div *ngIf="!hasNoFilterableLabels()">
-  <button
-    sbb-secondary-button
-    class="sbb-mt-m"
-    [disabled]="isFilteringLabels()"
-    [title]="'app.view.editor-filter-view.filterable-label-filter.show-all' | translate"
-    (click)="OnResetFilterableLabels()"
-  >
-    {{ "app.view.editor-filter-view.filterable-label-filter.reset-filter" | translate }}
-  </button>
-</div>
+}
+@if (!hasNoFilterableLabels()) {
+  <div>
+    <button
+      sbb-secondary-button
+      class="sbb-mt-m"
+      [disabled]="isFilteringLabels()"
+      [title]="'app.view.editor-filter-view.filterable-label-filter.show-all' | translate"
+      (click)="OnResetFilterableLabels()"
+    >
+      {{ "app.view.editor-filter-view.filterable-label-filter.reset-filter" | translate }}
+    </button>
+  </div>
+}

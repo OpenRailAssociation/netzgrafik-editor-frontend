@@ -10,10 +10,12 @@
     (checkedChanged)="onIsOneWayChanged($event)"
   >
   </sbb-toggle-switch-button>
-  <sbb-trainrunsection-card *ngIf="isOneWay" [innerContentScaleFactor]="innerContentScaleFactor">
-  </sbb-trainrunsection-card>
+  @if (isOneWay) {
+    <sbb-trainrunsection-card [innerContentScaleFactor]="innerContentScaleFactor">
+    </sbb-trainrunsection-card>
+  }
 </div>
-<ng-container *ngIf="toolbarVisible">
+@if (toolbarVisible) {
   <div sbbDialogActions [class]="getContentFooterClassTag()">
     <button
       class="FunctionButton"
@@ -36,4 +38,4 @@
       <sbb-icon svgIcon="trash-medium" aria-hidden="false"></sbb-icon>
     </button>
   </div>
-</ng-container>
+}

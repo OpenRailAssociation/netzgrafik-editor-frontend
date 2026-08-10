@@ -5,6 +5,7 @@ import {
   HostListener,
   OnDestroy,
   ViewChild,
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import {Node} from "../../models/node.model";
 import {Trainrun} from "../../models/trainrun.model";
@@ -50,6 +51,7 @@ import {AutoLayoutService} from "../../services/util/auto-layout.service";
   selector: "sbb-editor-main-view",
   templateUrl: "./editor-main-view.component.html",
   styleUrls: ["./editor-main-view.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
@@ -118,7 +120,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       .subscribe((center: Vec2D) => this.moveNetzgrafikEditorViewFocalPoint(center));
   }
 
-  @HostListener("window:resize", ["$event"])
+  @HostListener("window:resize")
   getScreenSize() {
     this.editorView.svgMouseController.resize(window.innerWidth, window.innerHeight);
     StreckengrafikDrawingContext.updateDrawingContainerData();

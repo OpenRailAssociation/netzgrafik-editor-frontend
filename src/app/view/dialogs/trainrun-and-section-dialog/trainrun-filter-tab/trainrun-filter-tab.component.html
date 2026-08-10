@@ -4,9 +4,11 @@
     [label]="'app.view.dialogs.trainrun-and-section-dialog.trainrun-filter-tab.labels' | translate"
   >
     <sbb-chip-list [value]="trainrunLabels" (focusout)="onLabelsFocusout()">
-      <sbb-chip *ngFor="let element of trainrunLabels" [value]="element" (removed)="remove($event)">
-        {{ element }}
-      </sbb-chip>
+      @for (element of trainrunLabels; track element) {
+        <sbb-chip [value]="element" (removed)="remove($event)">
+          {{ element }}
+        </sbb-chip>
+      }
       <input
         id="trainrunLabelsInput"
         [placeholder]="
@@ -20,9 +22,9 @@
       />
     </sbb-chip-list>
     <sbb-autocomplete #trainrunLabelsAutoComplete="sbbAutocomplete">
-      <sbb-option *ngFor="let option of trainrunLabelsAutoCompleteOptions" [value]="option">{{
-        option
-      }}</sbb-option>
+      @for (option of trainrunLabelsAutoCompleteOptions; track option) {
+        <sbb-option [value]="option">{{ option }}</sbb-option>
+      }
     </sbb-autocomplete>
   </sbb-form-field>
 </div>

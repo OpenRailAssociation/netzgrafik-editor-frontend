@@ -6,28 +6,34 @@
   (filterClosed)="filterClosed()"
 >
   <div filter class="col-padding">
-    <sbb-variant-view *ngIf="showVariantInfo"></sbb-variant-view>
-    <sbb-editor-filter-view *ngIf="showEditorFilter"></sbb-editor-filter-view>
-    <sbb-editor-edit-tools-view-component
-      *ngIf="showEditorEditTools"
-    ></sbb-editor-edit-tools-view-component>
-    <sbb-editor-tools-view-component *ngIf="showEditorTools"></sbb-editor-tools-view-component>
-    <sbb-editor-properties-view-component
-      *ngIf="showEditorProperties"
-    ></sbb-editor-properties-view-component>
+    @if (showVariantInfo) {
+      <sbb-variant-view></sbb-variant-view>
+    }
+    @if (showEditorFilter) {
+      <sbb-editor-filter-view></sbb-editor-filter-view>
+    }
+    @if (showEditorEditTools) {
+      <sbb-editor-edit-tools-view-component></sbb-editor-edit-tools-view-component>
+    }
+    @if (showEditorTools) {
+      <sbb-editor-tools-view-component></sbb-editor-tools-view-component>
+    }
+    @if (showEditorProperties) {
+      <sbb-editor-properties-view-component></sbb-editor-properties-view-component>
+    }
   </div>
 
   <div main class="sbb-editor-wrapper">
     <div id="main-drawing-container-root" style="width: 98%; height: 100%">
-      <ng-container *ngIf="isMainView()">
+      @if (isMainView()) {
         <sbb-editor-main-view></sbb-editor-main-view>
-      </ng-container>
-      <ng-container *ngIf="isStreckengrafik()">
+      }
+      @if (isStreckengrafik()) {
         <sbb-streckengrafik [style]="correctZoomFactor()"></sbb-streckengrafik>
-      </ng-container>
-      <ng-container *ngIf="isOriginDestination()">
+      }
+      @if (isOriginDestination()) {
         <sbb-origin-destination></sbb-origin-destination>
-      </ng-container>
+      }
 
       <sbb-editor-menu style="width: 0"></sbb-editor-menu>
 
@@ -40,10 +46,13 @@
   </div>
 
   <div aside class="col-padding">
-    <sbb-editor-side-view *ngIf="showDetail" (closeSideView)="asideClosed()"></sbb-editor-side-view>
-    <sbb-perlenkette
-      *ngIf="showPerlenkette"
-      [sidebarElementHeight]="filterMainSideViewElement.nativeElement.offsetHeight"
-    ></sbb-perlenkette>
+    @if (showDetail) {
+      <sbb-editor-side-view (closeSideView)="asideClosed()"></sbb-editor-side-view>
+    }
+    @if (showPerlenkette) {
+      <sbb-perlenkette
+        [sidebarElementHeight]="filterMainSideViewElement.nativeElement.offsetHeight"
+      ></sbb-perlenkette>
+    }
   </div>
 </sbb-column-layout>

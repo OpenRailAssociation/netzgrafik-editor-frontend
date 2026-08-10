@@ -3,86 +3,96 @@
 <sbb-accordion [multi]="true">
   <sbb-expansion-panel [expanded]="true">
     <sbb-expansion-panel-header>
-      <ng-container *ngIf="isTrainrunFilteringActive()">
+      @if (isTrainrunFilteringActive()) {
         {{ "app.view.editor-filter-view.general" | translate }}
-      </ng-container>
-      <ng-container *ngIf="!isTrainrunFilteringActive()">
+      }
+      @if (!isTrainrunFilteringActive()) {
         <label style="color: red">{{ "app.view.editor-filter-view.general" | translate }}</label>
-      </ng-container>
+      }
     </sbb-expansion-panel-header>
 
     <sbb-label>{{ "app.view.editor-filter-view.category" | translate }}</sbb-label>
     <div class="sbb-trainrun-chip-group">
-      <button
-        [class]="getCategoryClassname(trainrunCategory)"
-        (click)="onCategoryChanged(trainrunCategory)"
-        mode="ghost"
-        [title]="getCategoryTooltip(trainrunCategory)"
-        *ngFor="let trainrunCategory of dataService.getTrainrunCategories()"
-      >
-        {{ makeCategoryButtonLabel(trainrunCategory) }}
-      </button>
+      @for (trainrunCategory of dataService.getTrainrunCategories(); track trainrunCategory) {
+        <button
+          [class]="getCategoryClassname(trainrunCategory)"
+          (click)="onCategoryChanged(trainrunCategory)"
+          mode="ghost"
+          [title]="getCategoryTooltip(trainrunCategory)"
+        >
+          {{ makeCategoryButtonLabel(trainrunCategory) }}
+        </button>
+      }
     </div>
 
     <sbb-label class="sbb-mt-m">{{
       "app.view.editor-filter-view.frequency" | translate
     }}</sbb-label>
     <div class="sbb-trainrun-chip-group">
-      <button
-        [class]="getFrequencyClassname(trainrunFrequency)"
-        (click)="onFrequencyChanged(trainrunFrequency)"
-        mode="ghost"
-        [title]="getFrequencyTooltip(trainrunFrequency)"
-        *ngFor="let trainrunFrequency of dataService.getTrainrunFrequencies()"
-      >
-        {{ makeFrequencyButtonLabel(trainrunFrequency) }}
-      </button>
+      @for (trainrunFrequency of dataService.getTrainrunFrequencies(); track trainrunFrequency) {
+        <button
+          [class]="getFrequencyClassname(trainrunFrequency)"
+          (click)="onFrequencyChanged(trainrunFrequency)"
+          mode="ghost"
+          [title]="getFrequencyTooltip(trainrunFrequency)"
+        >
+          {{ makeFrequencyButtonLabel(trainrunFrequency) }}
+        </button>
+      }
     </div>
 
     <sbb-label class="sbb-mt-m">{{
       "app.view.editor-filter-view.time-category" | translate
     }}</sbb-label>
     <div class="sbb-trainrun-chip-group">
-      <button
-        [class]="getTimeCategoryClassname(trainrunTimeCategory)"
-        (click)="onTimeCategoryChanged(trainrunTimeCategory)"
-        mode="ghost"
-        [title]="getTimeCategoryTooltip(trainrunTimeCategory)"
-        *ngFor="let trainrunTimeCategory of dataService.getTrainrunTimeCategories()"
-      >
-        {{ makeTimeCategoryButtonLabel(trainrunTimeCategory) }}
-      </button>
+      @for (
+        trainrunTimeCategory of dataService.getTrainrunTimeCategories();
+        track trainrunTimeCategory
+      ) {
+        <button
+          [class]="getTimeCategoryClassname(trainrunTimeCategory)"
+          (click)="onTimeCategoryChanged(trainrunTimeCategory)"
+          mode="ghost"
+          [title]="getTimeCategoryTooltip(trainrunTimeCategory)"
+        >
+          {{ makeTimeCategoryButtonLabel(trainrunTimeCategory) }}
+        </button>
+      }
     </div>
 
-    <div *ngIf="hasOneWayTrainruns() || isAsymmetryActive()">
-      <sbb-label class="sbb-mt-m">{{
-        "app.view.editor-filter-view.symmetry" | translate
-      }}</sbb-label>
-      <div class="sbb-trainrun-chip-group">
-        <ng-container *ngIf="hasOneWayTrainruns()">
-          <button
-            [class]="getDirectionClassname(direction)"
-            (click)="onDirectionChanged(direction)"
-            mode="ghost"
-            [title]="getDirectionTooltip(direction)"
-            *ngFor="let direction of dataService.getDirections()"
-          >
-            {{ makeDirectionButtonLabel(direction) }}
-          </button>
-        </ng-container>
-        <ng-container *ngIf="isAsymmetryActive()">
-          <button
-            *ngFor="let symmetry of [true, false]"
-            [class]="getSymmetryClassname(symmetry)"
-            (click)="onSymmetryChanged(symmetry)"
-            mode="ghost"
-            [title]="getSymmetryTooltip(symmetry)"
-          >
-            {{ makeSymmetryButtonLabel(symmetry) }}
-          </button>
-        </ng-container>
+    @if (hasOneWayTrainruns() || isAsymmetryActive()) {
+      <div>
+        <sbb-label class="sbb-mt-m">{{
+          "app.view.editor-filter-view.symmetry" | translate
+        }}</sbb-label>
+        <div class="sbb-trainrun-chip-group">
+          @if (hasOneWayTrainruns()) {
+            @for (direction of dataService.getDirections(); track direction) {
+              <button
+                [class]="getDirectionClassname(direction)"
+                (click)="onDirectionChanged(direction)"
+                mode="ghost"
+                [title]="getDirectionTooltip(direction)"
+              >
+                {{ makeDirectionButtonLabel(direction) }}
+              </button>
+            }
+          }
+          @if (isAsymmetryActive()) {
+            @for (symmetry of [true, false]; track symmetry) {
+              <button
+                [class]="getSymmetryClassname(symmetry)"
+                (click)="onSymmetryChanged(symmetry)"
+                mode="ghost"
+                [title]="getSymmetryTooltip(symmetry)"
+              >
+                {{ makeSymmetryButtonLabel(symmetry) }}
+              </button>
+            }
+          }
+        </div>
       </div>
-    </div>
+    }
 
     <button
       sbb-secondary-button
@@ -97,14 +107,14 @@
 
   <sbb-expansion-panel [expanded]="hasFilteringTrainrunLabels">
     <sbb-expansion-panel-header>
-      <ng-container *ngIf="!isFilteringTrainrunLabels()">
+      @if (!isFilteringTrainrunLabels()) {
         {{ "app.view.editor-filter-view.filterable-labels-trainruns" | translate }}
-      </ng-container>
-      <ng-container *ngIf="isFilteringTrainrunLabels()">
+      }
+      @if (isFilteringTrainrunLabels()) {
         <label style="color: red">{{
           "app.view.editor-filter-view.filterable-labels-trainruns" | translate
         }}</label>
-      </ng-container>
+      }
     </sbb-expansion-panel-header>
 
     <sbb-filterable-label-filter-view
@@ -114,14 +124,14 @@
 
   <sbb-expansion-panel [expanded]="hasFilteringNodeLabels">
     <sbb-expansion-panel-header>
-      <ng-container *ngIf="!isFilteringNodeLabels()">
+      @if (!isFilteringNodeLabels()) {
         {{ "app.view.editor-filter-view.filterable-labels-nodes" | translate }}
-      </ng-container>
-      <ng-container *ngIf="isFilteringNodeLabels()">
+      }
+      @if (isFilteringNodeLabels()) {
         <label style="color: red">{{
           "app.view.editor-filter-view.filterable-labels-nodes" | translate
         }}</label>
-      </ng-container>
+      }
     </sbb-expansion-panel-header>
 
     <sbb-filterable-label-filter-view
@@ -131,14 +141,14 @@
 
   <sbb-expansion-panel [expanded]="hasFilteringNoteLabels">
     <sbb-expansion-panel-header>
-      <ng-container *ngIf="!isFilteringNoteLabels()">
+      @if (!isFilteringNoteLabels()) {
         {{ "app.view.editor-filter-view.filterable-labels-notes" | translate }}
-      </ng-container>
-      <ng-container *ngIf="isFilteringNoteLabels()">
+      }
+      @if (isFilteringNoteLabels()) {
         <label style="color: red">{{
           "app.view.editor-filter-view.filterable-labels-notes" | translate
         }}</label>
-      </ng-container>
+      }
     </sbb-expansion-panel-header>
 
     <sbb-filterable-label-filter-view
@@ -148,12 +158,12 @@
 
   <sbb-expansion-panel [expanded]="false">
     <sbb-expansion-panel-header>
-      <ng-container *ngIf="isDisplayFilteringActive()">{{
-        "app.view.editor-filter-view.display" | translate
-      }}</ng-container>
-      <ng-container *ngIf="!isDisplayFilteringActive()">
+      @if (isDisplayFilteringActive()) {
+        {{ "app.view.editor-filter-view.display" | translate }}
+      }
+      @if (!isDisplayFilteringActive()) {
         <label style="color: red">{{ "app.view.editor-filter-view.display" | translate }}</label>
-      </ng-container>
+      }
     </sbb-expansion-panel-header>
 
     <sbb-form-field [label]="'app.view.editor-filter-view.decimal-displayed' | translate">
@@ -243,14 +253,14 @@
     </button>
   </sbb-expansion-panel>
 
-  <ng-container *ngIf="versionControlService.getVariantIsWritable()">
+  @if (versionControlService.getVariantIsWritable()) {
     <sbb-expansion-panel [expanded]="false">
       <sbb-expansion-panel-header>
         {{ "app.view.editor-filter-view.saved-filters" | translate }}
       </sbb-expansion-panel-header>
       <div class="sbb-filtersetting-chip-group">
-        <ng-container *ngFor="let filterSetting of filterService.getFilterSettings()">
-          <ng-container *ngIf="!isActiveEditFilterSetting(filterSetting)">
+        @for (filterSetting of filterService.getFilterSettings(); track filterSetting) {
+          @if (!isActiveEditFilterSetting(filterSetting)) {
             <button
               [class]="getFilterSettingClassname(filterSetting)"
               (click)="onFilterSettingChanged(filterSetting)"
@@ -259,13 +269,12 @@
             >
               {{ makeFilterSettingButtonLabel(filterSetting) | translate }}
             </button>
-
             <button
               [class]="getFilterSettingClassname(filterSetting, true)"
               (click)="onEditFilterSetting(filterSetting)"
               [disabled]="!checkIsFilterSettingActive(filterSetting)"
             >
-              <ng-container *ngIf="checkIsFilterSettingActive(filterSetting)">
+              @if (checkIsFilterSettingActive(filterSetting)) {
                 <sbb-icon
                   svgIcon="pen-medium"
                   height="13px"
@@ -274,8 +283,8 @@
                   style="transform: translate(-4px, 2px)"
                 >
                 </sbb-icon>
-              </ng-container>
-              <ng-container *ngIf="!checkIsFilterSettingActive(filterSetting)">
+              }
+              @if (!checkIsFilterSettingActive(filterSetting)) {
                 <sbb-icon
                   svgIcon="pen-medium"
                   style="color: lightgray"
@@ -285,11 +294,10 @@
                   style="transform: translate(-4px, 2px)"
                 >
                 </sbb-icon>
-              </ng-container>
+              }
             </button>
-          </ng-container>
-
-          <ng-container *ngIf="isActiveEditFilterSetting(filterSetting)">
+          }
+          @if (isActiveEditFilterSetting(filterSetting)) {
             <input
               tabindex="-1"
               id="ActiveFilterNameElement"
@@ -298,7 +306,6 @@
               spellcheck="false"
               [(ngModel)]="activeFilterName"
             />
-
             <button
               [class]="getFilterSettingClassname(filterSetting, true)"
               (click)="onEditFilterSettingSave(filterSetting)"
@@ -312,8 +319,7 @@
               >
               </sbb-icon>
             </button>
-          </ng-container>
-
+          }
           <button
             [class]="getFilterSettingClassname(filterSetting, true)"
             (click)="onDeleteFilterSetting(filterSetting)"
@@ -328,7 +334,7 @@
             </sbb-icon>
           </button>
           <br />
-        </ng-container>
+        }
         <button
           [class]="getFilterSettingAddButtonClassname()"
           (click)="onSaveAsNewFilterSetting()"
@@ -342,7 +348,7 @@
         </button>
       </div>
     </sbb-expansion-panel>
-  </ng-container>
+  }
 </sbb-accordion>
 
 <div style="transform: translate(24px, 10px)">

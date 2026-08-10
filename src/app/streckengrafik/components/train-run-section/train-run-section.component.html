@@ -1,29 +1,26 @@
-<ng-container *ngIf="scaledPath(); let scaledPath">
-  <ng-container *ngIf="!clipData">
-    <ng-container *ngIf="delayedRendering">
+@if (scaledPath(); as scaledPath) {
+  @if (!clipData) {
+    @if (delayedRendering) {
       <svg:path
         [class]="getClassTag('hoverarea')"
         [attr.d]="sectionPath(scaledPath)"
         (mouseup)="onEdgeLineClick($event)"
       />
-
-      <ng-container *ngIf="showHeadwayBand()">
+      @if (showHeadwayBand()) {
         <svg:path
           [class]="getClassTag('edge_line headway_band bandarea ')"
           [attr.d]="sectionBandPath(scaledPath)"
           (mouseup)="onEdgeLineClick($event)"
         />
-      </ng-container>
-    </ng-container>
-
+      }
+    }
     <svg:path
       [class]="getClassTag('edge_line')"
       [attr.d]="sectionPath(scaledPath)"
       (mouseup)="onEdgeLineClick($event)"
     />
-
-    <ng-container *ngIf="delayedRendering">
-      <ng-container *ngIf="showDeparture()">
+    @if (delayedRendering) {
+      @if (showDeparture()) {
         <svg:g [attr.transform]="getDepartureTextTransformation(scaledPath)">
           <svg:text
             [class]="getDepartureClassTag('edge_text DepartureTime')"
@@ -35,9 +32,8 @@
             {{ getDepartureText() }}
           </svg:text>
         </svg:g>
-      </ng-container>
-
-      <ng-container *ngIf="showArrival()">
+      }
+      @if (showArrival()) {
         <svg:g [attr.transform]="getArrivalTextTransformation(scaledPath)">
           <svg:text
             [class]="getArrivalClassTag('edge_text ArrivalTime')"
@@ -49,9 +45,8 @@
             {{ getArrivalText() }}
           </svg:text>
         </svg:g>
-      </ng-container>
-
-      <ng-container *ngIf="showText()">
+      }
+      @if (showText()) {
         <svg:g [attr.transform]="getTextTransform()">
           <svg:g [attr.transform]="getTextLabelTransformation(scaledPath)">
             <svg:text
@@ -64,9 +59,8 @@
             </svg:text>
           </svg:g>
         </svg:g>
-      </ng-container>
-
-      <ng-container *ngIf="showTrainRunSectionStops && hasStops()">
+      }
+      @if (showTrainRunSectionStops && hasStops()) {
         <svg:g
           sbb-train-run-section-stops-component
           [scaledPath]="scaledPath"
@@ -74,7 +68,7 @@
           [trainrunItem]="trainrunItem"
           [freqOffset]="freqOffset"
         ></svg:g>
-      </ng-container>
-    </ng-container>
-  </ng-container>
-</ng-container>
+      }
+    }
+  }
+}

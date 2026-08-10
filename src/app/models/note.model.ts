@@ -2,19 +2,7 @@ import DOMPurify from "dompurify";
 import {FreeFloatingTextDto} from "../data-structures/business.data.structures";
 import {DataMigration} from "../utils/data-migration";
 
-// TODO: drop once we upgrade to a newer TypeScript which ships Sanitizer types
-declare global {
-  class Sanitizer {
-    allowAttribute(name: string): void;
-    removeUnsafe(): void;
-  }
-  interface HTMLElement {
-    setHTML(unsafeHTML: string, options?: {sanitizer: Sanitizer}): void;
-  }
-  interface Window {
-    Sanitizer?: typeof Sanitizer;
-  }
-}
+// Sanitizer, HTMLElement.setHTML and Window.Sanitizer are now part of lib.dom.d.ts (TypeScript 6.0+)
 
 export class Note {
   public static DEFAULT_NOTE_WIDTH = 192;
@@ -187,7 +175,8 @@ export class Note {
       sanitizer.removeUnsafe();
 
       const elt = document.createElement("div");
-      elt.setHTML(this.getText(), {sanitizer});
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (elt as any).setHTML(this.getText(), {sanitizer});
       return elt.innerHTML;
     } else {
       // TODO: drop this fallback once Sanitizer support is widespread across

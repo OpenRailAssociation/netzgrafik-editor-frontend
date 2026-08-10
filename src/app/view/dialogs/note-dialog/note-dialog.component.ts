@@ -1,4 +1,4 @@
-import {Component, OnDestroy, TemplateRef, ViewChild} from "@angular/core";
+import {Component, OnDestroy, TemplateRef, ViewChild, ChangeDetectionStrategy} from "@angular/core";
 import {
   SbbDialog,
   SbbDialogConfig,
@@ -38,6 +38,7 @@ export class NoteDialogParameter {
   selector: "sbb-note-dialog",
   templateUrl: "./note-dialog.component.html",
   styleUrls: ["./note-dialog.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class NoteDialogComponent implements OnDestroy {

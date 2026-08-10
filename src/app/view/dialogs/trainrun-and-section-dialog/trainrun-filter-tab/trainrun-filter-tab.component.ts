@@ -1,4 +1,12 @@
-import {ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output} from "@angular/core";
+import {
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  OnDestroy,
+  OnInit,
+  Output,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 import {Trainrun} from "../../../../models/trainrun.model";
 import {TrainrunService} from "../../../../services/data/trainrun.service";
 import {TrainrunSectionService} from "../../../../services/data/trainrunsection.service";
@@ -18,6 +26,7 @@ import {VersionControlService} from "../../../../services/data/version-control.s
   selector: "sbb-trainrun-filter-tab",
   templateUrl: "./trainrun-filter-tab.component.html",
   styleUrls: ["./trainrun-filter-tab.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class TrainrunFilterTabComponent implements OnInit, OnDestroy {

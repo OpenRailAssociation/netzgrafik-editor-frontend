@@ -96,54 +96,58 @@
             </svg>
           </div>
 
-          <sbb-time-stepper
-            *ngIf="isBottomTrainrunSectionInfoDisplayed"
-            [containerClass]="getTrafficSideClass('NodeLeftArrival')"
-            inputId="NodeLeftArrivalTimeInputElement"
-            inputClass="InputElement lastInput"
-            [tabIndex]="6"
-            [(value)]="trainrunSectionTimesService.getTimeStructure().leftArrivalTime"
-            (changed)="trainrunSectionTimesService.onNodeLeftArrivalTimeChanged()"
-            (decrement)="trainrunSectionTimesService.onNodeLeftArrivalTimeButtonMinus()"
-            (increment)="trainrunSectionTimesService.onNodeLeftArrivalTimeButtonPlus()"
-            #leftArrivalTimeInputElement
-          ></sbb-time-stepper>
-          <sbb-time-stepper
-            *ngIf="isTopTrainrunSectionInfoDisplayed"
-            [containerClass]="getTrafficSideClass('NodeLeftDeparture')"
-            inputId="NodeLeftDepartureTimeInputElement"
-            inputClass="InputElement firstInput"
-            [tabIndex]="2"
-            [(value)]="trainrunSectionTimesService.getTimeStructure().leftDepartureTime"
-            (changed)="trainrunSectionTimesService.onNodeLeftDepartureTimeChanged()"
-            (decrement)="trainrunSectionTimesService.onNodeLeftDepartureTimeButtonMinus()"
-            (increment)="trainrunSectionTimesService.onNodeLeftDepartureTimeButtonPlus()"
-            #leftDepartureTimeInputElement
-          ></sbb-time-stepper>
-          <sbb-time-stepper
-            *ngIf="isTopTrainrunSectionInfoDisplayed"
-            [containerClass]="getTrafficSideClass('NodeRightArrival')"
-            inputId="NodeRightArrivalTimeInputElement"
-            inputClass="InputElement"
-            [tabIndex]="4"
-            [(value)]="trainrunSectionTimesService.getTimeStructure().rightArrivalTime"
-            (changed)="trainrunSectionTimesService.onNodeRightArrivalTimeChanged()"
-            (decrement)="trainrunSectionTimesService.onNodeRightArrivalTimeButtonMinus()"
-            (increment)="trainrunSectionTimesService.onNodeRightArrivalTimeButtonPlus()"
-            #rightArrivalTimeInputElement
-          ></sbb-time-stepper>
-          <sbb-time-stepper
-            *ngIf="isBottomTrainrunSectionInfoDisplayed"
-            [containerClass]="getTrafficSideClass('NodeRightDeparture')"
-            inputId="NodeRightDepartureTimeInputElement"
-            inputClass="InputElement"
-            [tabIndex]="5"
-            [(value)]="trainrunSectionTimesService.getTimeStructure().rightDepartureTime"
-            (changed)="trainrunSectionTimesService.onNodeRightDepartureTimeChanged()"
-            (decrement)="trainrunSectionTimesService.onNodeRightDepartureTimeButtonMinus()"
-            (increment)="trainrunSectionTimesService.onNodeRightDepartureTimeButtonPlus()"
-            #rightDepartureTimeInputElement
-          ></sbb-time-stepper>
+          @if (isBottomTrainrunSectionInfoDisplayed) {
+            <sbb-time-stepper
+              [containerClass]="getTrafficSideClass('NodeLeftArrival')"
+              inputId="NodeLeftArrivalTimeInputElement"
+              inputClass="InputElement lastInput"
+              [tabIndex]="6"
+              [(value)]="trainrunSectionTimesService.getTimeStructure().leftArrivalTime"
+              (changed)="trainrunSectionTimesService.onNodeLeftArrivalTimeChanged()"
+              (decrement)="trainrunSectionTimesService.onNodeLeftArrivalTimeButtonMinus()"
+              (increment)="trainrunSectionTimesService.onNodeLeftArrivalTimeButtonPlus()"
+              #leftArrivalTimeInputElement
+            ></sbb-time-stepper>
+          }
+          @if (isTopTrainrunSectionInfoDisplayed) {
+            <sbb-time-stepper
+              [containerClass]="getTrafficSideClass('NodeLeftDeparture')"
+              inputId="NodeLeftDepartureTimeInputElement"
+              inputClass="InputElement firstInput"
+              [tabIndex]="2"
+              [(value)]="trainrunSectionTimesService.getTimeStructure().leftDepartureTime"
+              (changed)="trainrunSectionTimesService.onNodeLeftDepartureTimeChanged()"
+              (decrement)="trainrunSectionTimesService.onNodeLeftDepartureTimeButtonMinus()"
+              (increment)="trainrunSectionTimesService.onNodeLeftDepartureTimeButtonPlus()"
+              #leftDepartureTimeInputElement
+            ></sbb-time-stepper>
+          }
+          @if (isTopTrainrunSectionInfoDisplayed) {
+            <sbb-time-stepper
+              [containerClass]="getTrafficSideClass('NodeRightArrival')"
+              inputId="NodeRightArrivalTimeInputElement"
+              inputClass="InputElement"
+              [tabIndex]="4"
+              [(value)]="trainrunSectionTimesService.getTimeStructure().rightArrivalTime"
+              (changed)="trainrunSectionTimesService.onNodeRightArrivalTimeChanged()"
+              (decrement)="trainrunSectionTimesService.onNodeRightArrivalTimeButtonMinus()"
+              (increment)="trainrunSectionTimesService.onNodeRightArrivalTimeButtonPlus()"
+              #rightArrivalTimeInputElement
+            ></sbb-time-stepper>
+          }
+          @if (isBottomTrainrunSectionInfoDisplayed) {
+            <sbb-time-stepper
+              [containerClass]="getTrafficSideClass('NodeRightDeparture')"
+              inputId="NodeRightDepartureTimeInputElement"
+              inputClass="InputElement"
+              [tabIndex]="5"
+              [(value)]="trainrunSectionTimesService.getTimeStructure().rightDepartureTime"
+              (changed)="trainrunSectionTimesService.onNodeRightDepartureTimeChanged()"
+              (decrement)="trainrunSectionTimesService.onNodeRightDepartureTimeButtonMinus()"
+              (increment)="trainrunSectionTimesService.onNodeRightDepartureTimeButtonPlus()"
+              #rightDepartureTimeInputElement
+            ></sbb-time-stepper>
+          }
           <sbb-time-stepper
             [containerClass]="getTrafficSideClass(getTravelTimeCssClass('TravelTime'))"
             inputId="TravelTimeTimeInputElement"
@@ -160,24 +164,25 @@
             (increment)="trainrunSectionTimesService.onTravelTimeButtonPlus()"
             #travelTimeInputElement
           ></sbb-time-stepper>
-          <sbb-time-stepper
-            *ngIf="isBottomTravelTimeDisplayed"
-            [containerClass]="getTrafficSideClass('BottomTravelTime')"
-            inputId="BottomTravelTimeTimeInputElement"
-            [inputClass]="{
-              InputTravelTimeElement:
-                !trainrunSectionTimesService.getHighlightBottomTravelTimeElement(),
-              InputTravelTimeElementHighlighted:
-                trainrunSectionTimesService.getHighlightBottomTravelTimeElement(),
-            }"
-            [tabIndex]="3"
-            [(value)]="trainrunSectionTimesService.getTimeStructure().bottomTravelTime"
-            [min]="0.0001"
-            (changed)="trainrunSectionTimesService.onBottomTravelTimeChanged()"
-            (decrement)="trainrunSectionTimesService.onBottomTravelTimeButtonMinus()"
-            (increment)="trainrunSectionTimesService.onBottomTravelTimeButtonPlus()"
-            #bottomTravelTimeInputElement
-          ></sbb-time-stepper>
+          @if (isBottomTravelTimeDisplayed) {
+            <sbb-time-stepper
+              [containerClass]="getTrafficSideClass('BottomTravelTime')"
+              inputId="BottomTravelTimeTimeInputElement"
+              [inputClass]="{
+                InputTravelTimeElement:
+                  !trainrunSectionTimesService.getHighlightBottomTravelTimeElement(),
+                InputTravelTimeElementHighlighted:
+                  trainrunSectionTimesService.getHighlightBottomTravelTimeElement(),
+              }"
+              [tabIndex]="3"
+              [(value)]="trainrunSectionTimesService.getTimeStructure().bottomTravelTime"
+              [min]="0.0001"
+              (changed)="trainrunSectionTimesService.onBottomTravelTimeChanged()"
+              (decrement)="trainrunSectionTimesService.onBottomTravelTimeButtonMinus()"
+              (increment)="trainrunSectionTimesService.onBottomTravelTimeButtonPlus()"
+              #bottomTravelTimeInputElement
+            ></sbb-time-stepper>
+          }
 
           <div
             class="focusguard"
@@ -192,86 +197,100 @@
             (focus)="setFocusToBeginningOfLoop()"
           ></div>
 
-          <sbb-toggle-switch-button
-            class="LeftSymmetryToggle"
-            *ngIf="isRoundTrip()"
-            [checked]="!trainrunSectionTimesService.getSymmetryStructure().leftSymmetry"
-            (checkedChanged)="trainrunSectionTimesService.onLeftNodeSymmetryToggle(!$event)"
-            #leftSymmetryToggle
-          ></sbb-toggle-switch-button>
-          <sbb-toggle-switch-button
-            class="RightSymmetryToggle"
-            *ngIf="isRoundTrip()"
-            [checked]="!trainrunSectionTimesService.getSymmetryStructure().rightSymmetry"
-            (checkedChanged)="trainrunSectionTimesService.onRightNodeSymmetryToggle(!$event)"
-            #rightSymmetryToggle
-          ></sbb-toggle-switch-button>
+          @if (isRoundTrip()) {
+            <sbb-toggle-switch-button
+              class="LeftSymmetryToggle"
+              [checked]="!trainrunSectionTimesService.getSymmetryStructure().leftSymmetry"
+              (checkedChanged)="trainrunSectionTimesService.onLeftNodeSymmetryToggle(!$event)"
+              #leftSymmetryToggle
+            ></sbb-toggle-switch-button>
+          }
+          @if (isRoundTrip()) {
+            <sbb-toggle-switch-button
+              class="RightSymmetryToggle"
+              [checked]="!trainrunSectionTimesService.getSymmetryStructure().rightSymmetry"
+              (checkedChanged)="trainrunSectionTimesService.onRightNodeSymmetryToggle(!$event)"
+              #rightSymmetryToggle
+            ></sbb-toggle-switch-button>
+          }
 
           <div [ngClass]="getTravelTimeCssClass('TravelTimeLock')">
-            <div *ngIf="trainrunSectionTimesService.getLockStructure().travelTimeLock === false">
-              <sbb-icon
-                svgIcon="lock-open-medium"
-                height="25px"
-                width="25px"
-                aria-hidden="false"
-                (click)="trainrunSectionTimesService.onButtonTravelTimeLock()"
-              >
-              </sbb-icon>
-            </div>
-            <div *ngIf="trainrunSectionTimesService.getLockStructure().travelTimeLock === true">
-              <sbb-icon
-                svgIcon="lock-closed-medium"
-                height="25px"
-                width="25px"
-                aria-hidden="false"
-                (click)="trainrunSectionTimesService.onButtonTravelTimeLock()"
-              >
-              </sbb-icon>
-            </div>
+            @if (trainrunSectionTimesService.getLockStructure().travelTimeLock === false) {
+              <div>
+                <sbb-icon
+                  svgIcon="lock-open-medium"
+                  height="25px"
+                  width="25px"
+                  aria-hidden="false"
+                  (click)="trainrunSectionTimesService.onButtonTravelTimeLock()"
+                >
+                </sbb-icon>
+              </div>
+            }
+            @if (trainrunSectionTimesService.getLockStructure().travelTimeLock === true) {
+              <div>
+                <sbb-icon
+                  svgIcon="lock-closed-medium"
+                  height="25px"
+                  width="25px"
+                  aria-hidden="false"
+                  (click)="trainrunSectionTimesService.onButtonTravelTimeLock()"
+                >
+                </sbb-icon>
+              </div>
+            }
           </div>
           <div class="NodeLeftLock">
-            <div *ngIf="trainrunSectionTimesService.getLockStructure().leftLock === false">
-              <sbb-icon
-                svgIcon="lock-open-medium"
-                height="25px"
-                width="25px"
-                aria-hidden="false"
-                (click)="trainrunSectionTimesService.onButtonNodeLeftLock()"
-              >
-              </sbb-icon>
-            </div>
-            <div *ngIf="trainrunSectionTimesService.getLockStructure().leftLock === true">
-              <sbb-icon
-                svgIcon="lock-closed-medium"
-                height="25px"
-                width="25px"
-                aria-hidden="false"
-                (click)="trainrunSectionTimesService.onButtonNodeLeftLock()"
-              >
-              </sbb-icon>
-            </div>
+            @if (trainrunSectionTimesService.getLockStructure().leftLock === false) {
+              <div>
+                <sbb-icon
+                  svgIcon="lock-open-medium"
+                  height="25px"
+                  width="25px"
+                  aria-hidden="false"
+                  (click)="trainrunSectionTimesService.onButtonNodeLeftLock()"
+                >
+                </sbb-icon>
+              </div>
+            }
+            @if (trainrunSectionTimesService.getLockStructure().leftLock === true) {
+              <div>
+                <sbb-icon
+                  svgIcon="lock-closed-medium"
+                  height="25px"
+                  width="25px"
+                  aria-hidden="false"
+                  (click)="trainrunSectionTimesService.onButtonNodeLeftLock()"
+                >
+                </sbb-icon>
+              </div>
+            }
           </div>
           <div class="NodeRightLock">
-            <div *ngIf="trainrunSectionTimesService.getLockStructure().rightLock === false">
-              <sbb-icon
-                svgIcon="lock-open-medium"
-                height="25px"
-                width="25px"
-                aria-hidden="false"
-                (click)="trainrunSectionTimesService.onButtonNodeRightLock()"
-              >
-              </sbb-icon>
-            </div>
-            <div *ngIf="trainrunSectionTimesService.getLockStructure().rightLock === true">
-              <sbb-icon
-                svgIcon="lock-closed-medium"
-                height="25px"
-                width="25px"
-                aria-hidden="false"
-                (click)="trainrunSectionTimesService.onButtonNodeRightLock()"
-              >
-              </sbb-icon>
-            </div>
+            @if (trainrunSectionTimesService.getLockStructure().rightLock === false) {
+              <div>
+                <sbb-icon
+                  svgIcon="lock-open-medium"
+                  height="25px"
+                  width="25px"
+                  aria-hidden="false"
+                  (click)="trainrunSectionTimesService.onButtonNodeRightLock()"
+                >
+                </sbb-icon>
+              </div>
+            }
+            @if (trainrunSectionTimesService.getLockStructure().rightLock === true) {
+              <div>
+                <sbb-icon
+                  svgIcon="lock-closed-medium"
+                  height="25px"
+                  width="25px"
+                  aria-hidden="false"
+                  (click)="trainrunSectionTimesService.onButtonNodeRightLock()"
+                >
+                </sbb-icon>
+              </div>
+            }
           </div>
         </div>
       </td>
@@ -279,16 +298,14 @@
   </table>
 </div>
 <div sbbDialogActions [class]="getContentFooterClassTag()">
-  <button
-    class="warning"
-    *ngIf="trainrunSectionTimesService.getShowWarningTwoLocks() === true"
-    disabled
-  >
-    {{
-      "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.warningTwoLocks"
-        | translate
-    }}
-  </button>
+  @if (trainrunSectionTimesService.getShowWarningTwoLocks() === true) {
+    <button class="warning" disabled>
+      {{
+        "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.warningTwoLocks"
+          | translate
+      }}
+    </button>
+  }
   <button
     class="FunctionButton"
     tabindex="-1"

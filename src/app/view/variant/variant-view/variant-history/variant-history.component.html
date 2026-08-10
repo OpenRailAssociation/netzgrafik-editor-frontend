@@ -1,18 +1,20 @@
 <div>
-  <div *ngFor="let entry of versionEntries" class="versions-stack">
-    <sbb-version-entries
-      [isWritable]="variant.isWritable"
-      [model]="entry"
-      [lastAddedVersion]="lastAddedVersion"
-      [publishDisabled]="publishDisabled | async"
-      (display)="onDisplay($event)"
-      (restore)="onRestore($event)"
-      (dropChanges)="onDropChangesClicked()"
-      (ignoreConflict)="onIgnoreConflict()"
-      (saveAsNewVariant)="onSaveAsNewVariant($event)"
-      (publish)="onPublishClicked($event)"
-      (download)="onDownload($event)"
-    >
-    </sbb-version-entries>
-  </div>
+  @for (entry of versionEntries; track entry) {
+    <div class="versions-stack">
+      <sbb-version-entries
+        [isWritable]="variant.isWritable"
+        [model]="entry"
+        [lastAddedVersion]="lastAddedVersion"
+        [publishDisabled]="publishDisabled | async"
+        (display)="onDisplay($event)"
+        (restore)="onRestore($event)"
+        (dropChanges)="onDropChangesClicked()"
+        (ignoreConflict)="onIgnoreConflict()"
+        (saveAsNewVariant)="onSaveAsNewVariant($event)"
+        (publish)="onPublishClicked($event)"
+        (download)="onDownload($event)"
+      >
+      </sbb-version-entries>
+    </div>
+  }
 </div>

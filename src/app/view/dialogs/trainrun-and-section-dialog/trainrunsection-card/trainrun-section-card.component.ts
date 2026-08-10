@@ -1,4 +1,12 @@
-import {AfterViewInit, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 import {TrainrunSectionService} from "../../../../services/data/trainrunsection.service";
 import {TrainrunService} from "../../../../services/data/trainrun.service";
 import {takeUntil} from "rxjs/operators";
@@ -18,6 +26,7 @@ import {TrainrunSectionsView} from "../../../editor-main-view/data-views/trainru
   templateUrl: "./trainrun-section-card.component.html",
   styleUrls: ["./trainrun-section-card.component.scss"],
   providers: [TrainrunSectionTimesService],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDestroy {

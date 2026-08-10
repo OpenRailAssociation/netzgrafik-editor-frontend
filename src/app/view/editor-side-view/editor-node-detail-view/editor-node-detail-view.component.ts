@@ -1,4 +1,12 @@
-import {ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output} from "@angular/core";
+import {
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  OnDestroy,
+  OnInit,
+  Output,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {NodeService} from "../../../services/data/node.service";
 import {
@@ -33,6 +41,7 @@ interface NodeProperties {
   selector: "sbb-editor-node-detail-view",
   templateUrl: "./editor-node-detail-view.component.html",
   styleUrls: ["./editor-node-detail-view.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {

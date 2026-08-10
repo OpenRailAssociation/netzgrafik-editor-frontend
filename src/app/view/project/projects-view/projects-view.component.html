@@ -17,21 +17,20 @@
   </div>
 
   <sbb-card-grid>
-    <sbb-card
-      *ngIf="!showArchiveControl.value"
-      icon="plus-medium"
-      (iconClick)="onAddProjectClicked()"
-    ></sbb-card>
-    <sbb-card
-      *ngFor="let project of projectService.filteredProjects | async"
-      [title]="
-        project.name +
-        (project.isArchived ? ' ' + ('app.view.project.projects-view.archived' | translate) : '')
-      "
-      [route]="['/projects', project.id]"
-      [actions]="getProjectDataActions(project)"
-    >
-    </sbb-card>
+    @if (!showArchiveControl.value) {
+      <sbb-card icon="plus-medium" (iconClick)="onAddProjectClicked()"></sbb-card>
+    }
+    @for (project of projectService.filteredProjects | async; track project) {
+      <sbb-card
+        [title]="
+          project.name +
+          (project.isArchived ? ' ' + ('app.view.project.projects-view.archived' | translate) : '')
+        "
+        [route]="['/projects', project.id]"
+        [actions]="getProjectDataActions(project)"
+      >
+      </sbb-card>
+    }
   </sbb-card-grid>
 
   <div style="min-height: 32px"></div>

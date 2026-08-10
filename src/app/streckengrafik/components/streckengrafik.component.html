@@ -26,7 +26,7 @@
         </div>
         <div class="head_3 background">
           <div class="noprint">
-            <ng-container *ngIf="!allPathNodeClosed()">
+            @if (!allPathNodeClosed()) {
               <button
                 type="button"
                 height="16px"
@@ -42,8 +42,8 @@
                   aria-hidden="false"
                 ></sbb-icon>
               </button>
-            </ng-container>
-            <ng-container *ngIf="allPathNodeClosed()">
+            }
+            @if (allPathNodeClosed()) {
               <button
                 type="button"
                 height="16px"
@@ -59,14 +59,14 @@
                   aria-hidden="false"
                 ></sbb-icon>
               </button>
-            </ng-container>
+            }
           </div>
         </div>
         <div class="head_4 background"></div>
 
         <!---   new line  --->
         <div class="main_1 background">
-          <ng-container *ngIf="showTimeSlider()">
+          @if (showTimeSlider()) {
             <sbb-time-slider
               margin="1px"
               [horizontal]="false"
@@ -76,7 +76,7 @@
               [sliderTextPos]="32"
             >
             </sbb-time-slider>
-          </ng-container>
+          }
         </div>
 
         <div class="main_2 background mainDrawingArea">
@@ -98,16 +98,16 @@
             </svg>
           </sbb-drawing-background-mouse-listener>
 
-          <ng-container *ngIf="getIsLoading()">
+          @if (getIsLoading()) {
             <sbb-loading-indicator
               mode="fullbox"
               aria-label="Loading, please wait"
             ></sbb-loading-indicator>
-          </ng-container>
+          }
         </div>
 
         <div class="main_3 background">
-          <ng-container *ngIf="showTimeSlider()">
+          @if (showTimeSlider()) {
             <sbb-time-slider
               [horizontal]="false"
               [disableText]="false"
@@ -117,7 +117,7 @@
               [sliderTextPos]="32"
             >
             </sbb-time-slider>
-          </ng-container>
+          }
         </div>
         <div class="main_4 background"></div>
 
@@ -170,7 +170,7 @@
               4h
             </button>
 
-            <ng-container *ngIf="disabledDisplayTools">
+            @if (disabledDisplayTools) {
               <button
                 type="button"
                 class="SimpleButton Empty"
@@ -181,9 +181,9 @@
               >
                 &#8942;
               </button>
-            </ng-container>
+            }
           </p>
-          <ng-container *ngIf="!disabledDisplayTools">
+          @if (!disabledDisplayTools) {
             <p>
               <button
                 type="button"
@@ -200,7 +200,6 @@
               >
                 {{ getTimeButtonText() }}
               </button>
-
               <button
                 type="button"
                 [class]="getStreckengrafikNameNotFocusNorEnabledButtonClassTag('SimpleButton Name')"
@@ -216,7 +215,6 @@
               >
                 {{ getNameButtonText() }}
               </button>
-
               <button
                 type="button"
                 [class]="getHeadwayVisibleButtonClassTag('SimpleButton HeadwayBand')"
@@ -228,7 +226,6 @@
               >
                 {{ getHeadwayBandButtonText() }}
               </button>
-
               <button
                 type="button"
                 [class]="getRailTrackSliderVisibleButtonClassTag('SimpleButton RailTrackSlider')"
@@ -240,7 +237,6 @@
               >
                 {{ getRailTrackSliderButtonText() }}
               </button>
-
               <button
                 type="button"
                 class="SimpleButton Empty"
@@ -253,7 +249,7 @@
                 &#x2715;
               </button>
             </p>
-          </ng-container>
+          }
         </div>
         <div class="footer_3 background"></div>
         <div class="footer_4 background"></div>

@@ -1,4 +1,4 @@
-import {Component} from "@angular/core";
+import {Component, ChangeDetectionStrategy} from "@angular/core";
 import {ActivatedRoute} from "@angular/router";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
@@ -7,6 +7,7 @@ import {map} from "rxjs/operators";
   selector: "sbb-error-view",
   templateUrl: "./error-view.component.html",
   styleUrls: ["./error-view.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class ErrorViewComponent {

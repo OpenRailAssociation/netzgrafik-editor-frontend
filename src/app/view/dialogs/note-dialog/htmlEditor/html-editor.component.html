@@ -10,7 +10,7 @@
     >
       <sbb-icon svgIcon="trash-small"></sbb-icon>
     </button>
-    <ng-container *ngFor="let color of colorPresets">
+    @for (color of colorPresets; track color) {
       <button
         class="NgxEditor__Color ngx-html-editor-color {{ setClassedTag(color) }}"
         (click)="onColor(color)"
@@ -20,7 +20,7 @@
       >
         {{ getColorButtonText(color) }}
       </button>
-    </ng-container>
+    }
   </div>
 
   <ngx-editor
@@ -31,7 +31,9 @@
     (focusout)="onUpdate()"
     (keydown)="onKeydown($event)"
   ></ngx-editor>
-  <sbb-error *ngIf="model.getControl('noteText').errors?.required">{{
-    "app.view.dialogs.note-dialog.html-editor.mandatory-field" | translate
-  }}</sbb-error>
+  @if (model.getControl("noteText").errors?.required) {
+    <sbb-error>{{
+      "app.view.dialogs.note-dialog.html-editor.mandatory-field" | translate
+    }}</sbb-error>
+  }
 </div>

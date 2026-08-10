@@ -5,6 +5,7 @@ import {
   Input,
   OnDestroy,
   ViewChild,
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import {TrainrunSectionService} from "../../../../services/data/trainrunsection.service";
 import {TrainrunSection} from "../../../../models/trainrunsection.model";
@@ -31,6 +32,7 @@ import {TimeStepperComponent} from "./time-stepper/time-stepper.component";
   templateUrl: "./trainrun-section-tab.component.html",
   styleUrls: ["./trainrun-section-tab.component.scss"],
   providers: [TrainrunSectionTimesService],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {

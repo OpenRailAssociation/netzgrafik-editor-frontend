@@ -1,9 +1,10 @@
-import {Component} from "@angular/core";
+import {Component, ChangeDetectionStrategy} from "@angular/core";
 
 @Component({
   selector: "sbb-slots-view",
   templateUrl: "./slots-view.component.html",
   styleUrls: ["./slots-view.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class SlotsViewComponent {}

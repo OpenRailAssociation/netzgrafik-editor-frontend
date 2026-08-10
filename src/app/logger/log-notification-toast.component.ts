@@ -1,4 +1,4 @@
-import {Component} from "@angular/core";
+import {Component, ChangeDetectionStrategy} from "@angular/core";
 import {Observable, of} from "rxjs";
 import {LogEntry, LogLevel, LogService} from "./log.service";
 import {LogPublisher} from "./log.publishers";
@@ -8,6 +8,7 @@ import {SbbNotificationToast} from "@sbb-esta/angular/notification-toast";
   selector: "sbb-log-notification-toast",
   templateUrl: "./log-notification-toast.component.html",
   styleUrls: ["./log-notification-toast.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class LogNotificationToastComponent extends LogPublisher {

@@ -1,4 +1,4 @@
-import {Component, Input} from "@angular/core";
+import {Component, Input, ChangeDetectionStrategy} from "@angular/core";
 import {Observable} from "rxjs";
 import {Sg8RenderService} from "../../services/sg-8-render.service";
 import {SgTrainrun} from "../../model/streckengrafik-model/sg-trainrun";
@@ -9,6 +9,7 @@ import * as d3 from "d3";
   selector: "[sbb-train-run]",
   templateUrl: "./train-run.component.html",
   styleUrls: ["./train-run.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class TrainRunComponent {

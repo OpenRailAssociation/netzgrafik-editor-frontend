@@ -1,10 +1,10 @@
 <div sbbDialogTitle>
-  <ng-container *ngIf="isNewVariant">{{
-    "app.view.variant.variant-dialog.create-variant" | translate
-  }}</ng-container>
-  <ng-container *ngIf="!isNewVariant">{{
-    "app.view.variant.variant-dialog.edit-variant" | translate
-  }}</ng-container>
+  @if (isNewVariant) {
+    {{ "app.view.variant.variant-dialog.create-variant" | translate }}
+  }
+  @if (!isNewVariant) {
+    {{ "app.view.variant.variant-dialog.edit-variant" | translate }}
+  }
 </div>
 <div sbbDialogContent>
   <sbb-variant-form [model]="formModel"></sbb-variant-form>

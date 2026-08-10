@@ -1,33 +1,34 @@
 <div class="content" [ngClass]="getEntryStyle()">
-  <div class="message" *ngIf="message">
-    {{ message }}
-  </div>
-  <hr *ngIf="message" />
+  @if (message) {
+    <div class="message">
+      {{ message }}
+    </div>
+  }
+  @if (message) {
+    <hr />
+  }
 
   <div class="info-fields">
-    <div class="info-field title-field" *ngIf="getTitle(); let title">
-      {{ title }}
-    </div>
-    <div
-      class="info-field title-field user-id"
-      *ngIf="getUserId(); let userId"
-      [attr.title]="getUserId()"
-      (click)="copyUserId()"
-    >
-      {{ userId }}
-    </div>
+    @if (getTitle(); as title) {
+      <div class="info-field title-field">
+        {{ title }}
+      </div>
+    }
+    @if (getUserId(); as userId) {
+      <div class="info-field title-field user-id" [attr.title]="getUserId()" (click)="copyUserId()">
+        {{ userId }}
+      </div>
+    }
     <div class="info-field date-field">
       <div>
         {{ dateField | date: "dd.MM.yyyy HH:mm" }}
       </div>
     </div>
-    <div
-      class="info-field comment-field"
-      *ngIf="commentField && commentField !== ''"
-      (click)="copyComment()"
-    >
-      <br />
-      «{{ commentField }}»
-    </div>
+    @if (commentField && commentField !== "") {
+      <div class="info-field comment-field" (click)="copyComment()">
+        <br />
+        «{{ commentField }}»
+      </div>
+    }
   </div>
 </div>

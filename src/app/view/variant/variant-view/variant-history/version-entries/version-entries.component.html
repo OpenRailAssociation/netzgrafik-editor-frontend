@@ -1,17 +1,18 @@
 <div class="versions-stack">
-  <sbb-released-entry
-    *ngIf="releasedEntry"
-    [model]="releasedEntry"
-    [isWritable]="isWritable"
-    (display)="display.emit($event)"
-    (restore)="restore.emit($event)"
-    (dropChanges)="dropChanges.emit()"
-    (ignoreConflict)="ignoreConflict.emit()"
-    (saveAsNewVariant)="saveAsNewVariant.emit($event)"
-    (download)="download.emit($event)"
-  ></sbb-released-entry>
+  @if (releasedEntry) {
+    <sbb-released-entry
+      [model]="releasedEntry"
+      [isWritable]="isWritable"
+      (display)="display.emit($event)"
+      (restore)="restore.emit($event)"
+      (dropChanges)="dropChanges.emit()"
+      (ignoreConflict)="ignoreConflict.emit()"
+      (saveAsNewVariant)="saveAsNewVariant.emit($event)"
+      (download)="download.emit($event)"
+    ></sbb-released-entry>
+  }
 
-  <ng-container *ngIf="publishEntry && isWritable">
+  @if (publishEntry && isWritable) {
     <sbb-publish-entry
       [model]="publishEntry"
       [publishDisabled]="publishDisabled"
@@ -20,25 +21,32 @@
     >
     </sbb-publish-entry>
     <hr />
-  </ng-container>
+  }
 
-  <sbb-snapshot-entry
-    *ngFor="let snapshotEntry of snapshotEntries"
-    [model]="snapshotEntry"
-    [isWritable]="isWritable"
-    (display)="display.emit($event)"
-    (restore)="restore.emit($event)"
-    (saveAsNewVariant)="saveAsNewVariant.emit($event)"
-    (download)="download.emit($event)"
-  ></sbb-snapshot-entry>
+  @for (snapshotEntry of snapshotEntries; track snapshotEntry) {
+    <sbb-snapshot-entry
+      [model]="snapshotEntry"
+      [isWritable]="isWritable"
+      (display)="display.emit($event)"
+      (restore)="restore.emit($event)"
+      (saveAsNewVariant)="saveAsNewVariant.emit($event)"
+      (download)="download.emit($event)"
+    ></sbb-snapshot-entry>
+  }
 
-  <div *ngIf="canShowMoreSnapshots() || canHideSnapshots()" class="show-more-entry">
-    <a *ngIf="canShowMoreSnapshots()" (click)="onShowMoreSnapshots()">
-      <sbb-icon svgIcon="chevron-down-small"></sbb-icon>
-    </a>
-    <a *ngIf="canHideSnapshots()" (click)="onShowLessSnapshots()">
-      <sbb-icon svgIcon="chevron-up-small"></sbb-icon>
-    </a>
-  </div>
+  @if (canShowMoreSnapshots() || canHideSnapshots()) {
+    <div class="show-more-entry">
+      @if (canShowMoreSnapshots()) {
+        <a (click)="onShowMoreSnapshots()">
+          <sbb-icon svgIcon="chevron-down-small"></sbb-icon>
+        </a>
+      }
+      @if (canHideSnapshots()) {
+        <a (click)="onShowLessSnapshots()">
+          <sbb-icon svgIcon="chevron-up-small"></sbb-icon>
+        </a>
+      }
+    </div>
+  }
   <hr />
 </div>

@@ -1,35 +1,33 @@
 <div class="editorMenuGripLayout">
-  <div class="NodeNetzgrafikVariante" *ngIf="!disableBackend">
-    <div class="LabelNetzgrafik">
-      <div class="LabelNetzgrafikVariante" title="{{ label$ | async }}">
-        {{ label$ | async }}
-      </div>
-      <div class="LabelNetzgrafikVarianteSaveStatus">
-        <ng-container *ngIf="isWritable$ | async; else readonly">
-          <ng-container *ngIf="modified$ | async; else saved">
-            <span>{{ "app.view.editor-menu.save-changes" | translate }}</span>
-            <sbb-icon svgIcon="arrows-circle-small" class="spinning"></sbb-icon>
-          </ng-container>
-          <ng-template #saved>
-            <span>{{ "app.view.editor-menu.changes-saved" | translate }}</span>
-            <sbb-icon svgIcon="circle-tick-small"></sbb-icon>
-          </ng-template>
-        </ng-container>
-        <ng-template #readonly>
-          <span>{{ "app.view.editor-menu.read-mode" | translate }}</span>
-          <sbb-icon svgIcon="binoculars-small"></sbb-icon>
-        </ng-template>
+  @if (!disableBackend) {
+    <div class="NodeNetzgrafikVariante">
+      <div class="LabelNetzgrafik">
+        <div class="LabelNetzgrafikVariante" title="{{ label$ | async }}">
+          {{ label$ | async }}
+        </div>
+        <div class="LabelNetzgrafikVarianteSaveStatus">
+          @if (isWritable$ | async) {
+            @if (modified$ | async) {
+              <span>{{ "app.view.editor-menu.save-changes" | translate }}</span>
+              <sbb-icon svgIcon="arrows-circle-small" class="spinning"></sbb-icon>
+            } @else {
+              <span>{{ "app.view.editor-menu.changes-saved" | translate }}</span>
+              <sbb-icon svgIcon="circle-tick-small"></sbb-icon>
+            }
+          } @else {
+            <span>{{ "app.view.editor-menu.read-mode" | translate }}</span>
+            <sbb-icon svgIcon="binoculars-small"></sbb-icon>
+          }
+        </div>
       </div>
     </div>
-  </div>
+  }
 
   <div class="NodeFilter">
-    <ng-container
-      *ngIf="
-        !filterService.isAnyFilterActive() &&
-        !filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
-      "
-    >
+    @if (
+      !filterService.isAnyFilterActive() &&
+      !filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
+    ) {
       <button
         mode="icon"
         class="ButtonFilter"
@@ -38,13 +36,11 @@
       >
         <sbb-icon svgIcon="filter-medium" height="25px" width="25px" aria-hidden="false"></sbb-icon>
       </button>
-    </ng-container>
-    <ng-container
-      *ngIf="
-        !filterService.isAnyFilterActive() &&
-        filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
-      "
-    >
+    }
+    @if (
+      !filterService.isAnyFilterActive() &&
+      filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
+    ) {
       <button
         mode="icon"
         class="ButtonFilter"
@@ -58,14 +54,12 @@
           aria-hidden="false"
         ></sbb-icon>
       </button>
-    </ng-container>
+    }
 
-    <ng-container
-      *ngIf="
-        filterService.isAnyFilterActive() &&
-        !filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
-      "
-    >
+    @if (
+      filterService.isAnyFilterActive() &&
+      !filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
+    ) {
       <button
         mode="icon"
         class="ButtonFilter ButtonFilterActive"
@@ -74,13 +68,11 @@
       >
         <sbb-icon svgIcon="filter-medium" height="25px" width="25px" aria-hidden="false"></sbb-icon>
       </button>
-    </ng-container>
-    <ng-container
-      *ngIf="
-        filterService.isAnyFilterActive() &&
-        filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
-      "
-    >
+    }
+    @if (
+      filterService.isAnyFilterActive() &&
+      filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
+    ) {
       <button
         mode="icon"
         class="ButtonFilter ButtonFilterActive"
@@ -94,7 +86,7 @@
           aria-hidden="false"
         ></sbb-icon>
       </button>
-    </ng-container>
+    }
   </div>
 
   <div class="NodeZoomOut">
@@ -122,7 +114,7 @@
   </div>
 
   <div class="NodeTopologieEditor" [class.isStreckengrafikEditing]="isStreckengrafikEditing()">
-    <ng-container *ngIf="!isTopologyEditing()">
+    @if (!isTopologyEditing()) {
       <button
         mode="icon"
         class="ButtonTopologieEditor NetzgrafikEditing"
@@ -140,8 +132,8 @@
           aria-hidden="false"
         ></sbb-icon>
       </button>
-    </ng-container>
-    <ng-container *ngIf="isTopologyEditing()">
+    }
+    @if (isTopologyEditing()) {
       <button
         mode="icon"
         class="ButtonTopologieEditor TopologyEditing"
@@ -157,11 +149,11 @@
           aria-hidden="false"
         ></sbb-icon>
       </button>
-    </ng-container>
+    }
   </div>
 
   <div class="MultiNodeMoving" [class.isStreckengrafikEditing]="isStreckengrafikEditing()">
-    <ng-container *ngIf="!isMultiNodeMoving()">
+    @if (!isMultiNodeMoving()) {
       <button
         mode="icon"
         class="ButtonMultiNodeMoving NetzgrafikEditing"
@@ -183,8 +175,8 @@
           />
         </svg>
       </button>
-    </ng-container>
-    <ng-container *ngIf="isMultiNodeMoving()">
+    }
+    @if (isMultiNodeMoving()) {
       <button
         mode="icon"
         class="ButtonMultiNodeMoving MultiNodeMoving"
@@ -206,11 +198,11 @@
           />
         </svg>
       </button>
-    </ng-container>
+    }
   </div>
 
   <div class="NoteEditor" [class.isStreckengrafikEditing]="isStreckengrafikEditing()">
-    <ng-container *ngIf="!isNoteEditing()">
+    @if (!isNoteEditing()) {
       <button
         mode="icon"
         class="ButtonNoteEditor NetzgrafikEditing"
@@ -227,8 +219,8 @@
           aria-hidden="false"
         ></sbb-icon>
       </button>
-    </ng-container>
-    <ng-container *ngIf="isNoteEditing()">
+    }
+    @if (isNoteEditing()) {
       <button
         mode="icon"
         class="ButtonNoteEditor NoteEditing"
@@ -244,14 +236,14 @@
           aria-hidden="false"
         ></sbb-icon>
       </button>
-    </ng-container>
+    }
   </div>
 
   <div
     class="AnalyticsShortestPathVisualisation"
     [class.isStreckengrafikEditing]="isStreckengrafikEditing()"
   >
-    <ng-container *ngIf="!isAnalytics()">
+    @if (!isAnalytics()) {
       <button
         mode="icon"
         class="ButtonAnalytics"
@@ -267,8 +259,8 @@
           aria-hidden="false"
         ></sbb-icon>
       </button>
-    </ng-container>
-    <ng-container *ngIf="isAnalytics()">
+    }
+    @if (isAnalytics()) {
       <button
         mode="icon"
         class="ButtonAnalytics ButtonAnalyticsActive"
@@ -284,7 +276,7 @@
           aria-hidden="false"
         ></sbb-icon>
       </button>
-    </ng-container>
+    }
   </div>
 
   <div class="OriginDestination">
@@ -342,7 +334,7 @@
   </div>
 
   <div class="NodeStreckengrafik">
-    <ng-container *ngIf="!isStreckengrafikEditing()">
+    @if (!isStreckengrafikEditing()) {
       <button
         mode="icon"
         class="ButtonStreckengrafikEditor NetzgrafikEditing"
@@ -358,8 +350,8 @@
           aria-hidden="false"
         ></sbb-icon>
       </button>
-    </ng-container>
-    <ng-container *ngIf="isStreckengrafikEditing()">
+    }
+    @if (isStreckengrafikEditing()) {
       <button
         mode="icon"
         class="ButtonStreckengrafikEditor StreckengrafikEditing"
@@ -373,6 +365,6 @@
           aria-hidden="false"
         ></sbb-icon>
       </button>
-    </ng-container>
+    }
   </div>
 </div>

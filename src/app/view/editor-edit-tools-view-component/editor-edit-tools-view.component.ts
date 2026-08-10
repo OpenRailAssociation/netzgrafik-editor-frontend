@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnDestroy, ViewChild} from "@angular/core";
+import {Component, ElementRef, OnDestroy, ViewChild, ChangeDetectionStrategy} from "@angular/core";
 import {DataService} from "../../services/data/data.service";
 import {UiInteractionService} from "../../services/ui/ui.interaction.service";
 import {ConfirmationDialogParameter} from "../dialogs/confirmation-dialog/confirmation-dialog.component";
@@ -25,6 +25,7 @@ import {SbbRadioChange} from "@sbb-esta/angular/radio-button";
   selector: "sbb-editor-edit-tools-view-component",
   templateUrl: "./editor-edit-tools-view.component.html",
   styleUrls: ["./editor-edit-tools-view.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class EditorEditToolsViewComponent implements OnDestroy {

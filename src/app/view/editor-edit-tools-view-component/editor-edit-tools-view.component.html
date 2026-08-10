@@ -37,12 +37,10 @@
       "app.view.editor-edit-tools-view-component.delete-netzgrafik-title" | translate
     }}</sbb-expansion-panel-header>
 
-    <ng-container
-      *ngIf="
-        filterService.isAnyFilterActive() &&
-        !filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
-      "
-    >
+    @if (
+      filterService.isAnyFilterActive() &&
+      !filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()
+    ) {
       <br />
       <sbb-label>{{
         "app.view.editor-edit-tools-view-component.non-visible-elements" | translate
@@ -60,7 +58,7 @@
       </button>
       {{ "app.view.editor-edit-tools-view-component.delete-all-non-visible-elements" | translate }}
       <br />
-    </ng-container>
+    }
     <br />
     <sbb-label>{{
       "app.view.editor-edit-tools-view-component.visible-elements" | translate
@@ -145,14 +143,15 @@
       {{ "app.view.editor-edit-tools-view-component.node-optimization-title" | translate }}
     </sbb-expansion-panel-header>
     <sbb-radio-group [(ngModel)]="activeOrderingAlgorithm" class="sbb-radio-group-vertical">
-      <sbb-radio-button
-        *ngFor="let option of orderingAlgorithmOptions"
-        [value]="option.orderingAlgorithm"
-        [title]="option.title"
-        (change)="onUpdateOrderingAlgorithm($event)"
-      >
-        {{ option.name }}
-      </sbb-radio-button>
+      @for (option of orderingAlgorithmOptions; track option) {
+        <sbb-radio-button
+          [value]="option.orderingAlgorithm"
+          [title]="option.title"
+          (change)="onUpdateOrderingAlgorithm($event)"
+        >
+          {{ option.name }}
+        </sbb-radio-button>
+      }
     </sbb-radio-group>
   </sbb-expansion-panel>
   <sbb-expansion-panel [expanded]="false" [disabled]="!getVariantIsWritable()">
@@ -187,52 +186,51 @@
     <br />
   </sbb-expansion-panel>
 
-  <sbb-expansion-panel *ngIf="getAreMultiObjectSelected()" [expanded]="getAreMultiObjectSelected()">
-    <sbb-expansion-panel-header>
-      <label style="color: #ec0000">
-        {{
-          "app.view.editor-edit-tools-view-component.align-elements-netzgrafik-title" | translate
-        }}
-      </label>
-    </sbb-expansion-panel-header>
-    <br />
-    <button
-      (click)="onAlignElementsLeft()"
-      [title]="'app.view.editor-edit-tools-view-component.align-elements-left' | translate"
-      class="TrainrunDialog EditorToolButton"
-    >
-      <sbb-icon svgIcon="arrow-left-small"></sbb-icon>
-    </button>
-    {{ "app.view.editor-edit-tools-view-component.align-elements-left" | translate }}
-
-    <br />
-    <button
-      (click)="onAlignElementsRight()"
-      [title]="'app.view.editor-edit-tools-view-component.align-elements-right' | translate"
-      class="TrainrunDialog EditorToolButton"
-    >
-      <sbb-icon svgIcon="arrow-right-small"></sbb-icon>
-    </button>
-    {{ "app.view.editor-edit-tools-view-component.align-elements-right" | translate }}
-
-    <br />
-    <button
-      (click)="onAlignElementsTop()"
-      [title]="'app.view.editor-edit-tools-view-component.align-elements-top' | translate"
-      class="TrainrunDialog EditorToolButton"
-    >
-      <sbb-icon svgIcon="arrow-up-small"></sbb-icon>
-    </button>
-    {{ "app.view.editor-edit-tools-view-component.align-elements-top" | translate }}
-
-    <br />
-    <button
-      (click)="onAlignElementsBottom()"
-      [title]="'app.view.editor-edit-tools-view-component.align-elements-bottom' | translate"
-      class="TrainrunDialog EditorToolButton"
-    >
-      <sbb-icon svgIcon="arrow-down-small"></sbb-icon>
-    </button>
-    {{ "app.view.editor-edit-tools-view-component.align-elements-bottom" | translate }}
-  </sbb-expansion-panel>
+  @if (getAreMultiObjectSelected()) {
+    <sbb-expansion-panel [expanded]="getAreMultiObjectSelected()">
+      <sbb-expansion-panel-header>
+        <label style="color: #ec0000">
+          {{
+            "app.view.editor-edit-tools-view-component.align-elements-netzgrafik-title" | translate
+          }}
+        </label>
+      </sbb-expansion-panel-header>
+      <br />
+      <button
+        (click)="onAlignElementsLeft()"
+        [title]="'app.view.editor-edit-tools-view-component.align-elements-left' | translate"
+        class="TrainrunDialog EditorToolButton"
+      >
+        <sbb-icon svgIcon="arrow-left-small"></sbb-icon>
+      </button>
+      {{ "app.view.editor-edit-tools-view-component.align-elements-left" | translate }}
+      <br />
+      <button
+        (click)="onAlignElementsRight()"
+        [title]="'app.view.editor-edit-tools-view-component.align-elements-right' | translate"
+        class="TrainrunDialog EditorToolButton"
+      >
+        <sbb-icon svgIcon="arrow-right-small"></sbb-icon>
+      </button>
+      {{ "app.view.editor-edit-tools-view-component.align-elements-right" | translate }}
+      <br />
+      <button
+        (click)="onAlignElementsTop()"
+        [title]="'app.view.editor-edit-tools-view-component.align-elements-top' | translate"
+        class="TrainrunDialog EditorToolButton"
+      >
+        <sbb-icon svgIcon="arrow-up-small"></sbb-icon>
+      </button>
+      {{ "app.view.editor-edit-tools-view-component.align-elements-top" | translate }}
+      <br />
+      <button
+        (click)="onAlignElementsBottom()"
+        [title]="'app.view.editor-edit-tools-view-component.align-elements-bottom' | translate"
+        class="TrainrunDialog EditorToolButton"
+      >
+        <sbb-icon svgIcon="arrow-down-small"></sbb-icon>
+      </button>
+      {{ "app.view.editor-edit-tools-view-component.align-elements-bottom" | translate }}
+    </sbb-expansion-panel>
+  }
 </sbb-accordion>

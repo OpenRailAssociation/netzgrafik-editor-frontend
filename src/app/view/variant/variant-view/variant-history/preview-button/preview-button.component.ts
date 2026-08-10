@@ -1,10 +1,19 @@
-import {Component, ElementRef, EventEmitter, Inject, Output, ViewChild} from "@angular/core";
-import {DOCUMENT} from "@angular/common";
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  Inject,
+  Output,
+  ViewChild,
+  DOCUMENT,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 
 @Component({
   selector: "sbb-preview-button",
   templateUrl: "./preview-button.component.html",
   styleUrls: ["./preview-button.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class PreviewButtonComponent {

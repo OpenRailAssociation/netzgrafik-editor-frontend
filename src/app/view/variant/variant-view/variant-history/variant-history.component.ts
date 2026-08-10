@@ -1,4 +1,4 @@
-import {Component, Input, OnChanges, OnDestroy} from "@angular/core";
+import {Component, Input, OnChanges, OnDestroy, ChangeDetectionStrategy} from "@angular/core";
 import {DownloadVersionModel, VersionId} from "./model";
 import {VersionControlService} from "../../../../services/data/version-control.service";
 import {
@@ -23,6 +23,7 @@ import {AutoSaveService} from "../../../../services/data/auto-save.service";
   selector: "sbb-variant-history",
   templateUrl: "./variant-history.component.html",
   styleUrls: ["./variant-history.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class VariantHistoryComponent implements OnChanges, OnDestroy {

@@ -1,5 +1,13 @@
 import {OriginDestination, OriginDestinationService} from "./origin-destination.service";
-import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 import * as d3 from "d3";
 
 import {Subject, takeUntil, merge} from "rxjs";
@@ -28,6 +36,7 @@ type ColorSetName = "red" | "blue" | "orange" | "gray";
   selector: "sbb-origin-destination",
   templateUrl: "./origin-destination.component.html",
   styleUrls: ["./origin-destination.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDestroy {

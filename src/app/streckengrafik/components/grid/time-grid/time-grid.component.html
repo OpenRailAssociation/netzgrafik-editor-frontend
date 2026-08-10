@@ -1,28 +1,31 @@
 <!---- HORIZONTAL ---->
-<ng-container *ngIf="delayedRendering">
-  <ng-container *ngIf="horizontal">
-    <svg:g *ngFor="let time of timesTicks">
-      <line
-        x1="-1000000"
-        [attr.y1]="time * getScaleFactor() - 1"
-        x2="1000000"
-        [attr.y2]="time * getScaleFactor() - 1"
-        [class]="getTimeGridClassTag(time)"
-      />
-    </svg:g>
-  </ng-container>
-
+@if (delayedRendering) {
+  @if (horizontal) {
+    @for (time of timesTicks; track time) {
+      <svg:g>
+        <line
+          x1="-1000000"
+          [attr.y1]="time * getScaleFactor() - 1"
+          x2="1000000"
+          [attr.y2]="time * getScaleFactor() - 1"
+          [class]="getTimeGridClassTag(time)"
+        />
+      </svg:g>
+    }
+  }
   <!---- VERTICAL ---->
-  <ng-container *ngIf="!horizontal">
-    <svg:g *ngFor="let time of timesTicks">
-      <line
-        [attr.x1]="time * getScaleFactor() - 1"
-        y1="-1000000"
-        [attr.x2]="time * getScaleFactor() - 1"
-        y2="1000000"
-        [class]="getTimeGridClassTag(time)"
-        shape-rendering="crispEdges"
-      />
-    </svg:g>
-  </ng-container>
-</ng-container>
+  @if (!horizontal) {
+    @for (time of timesTicks; track time) {
+      <svg:g>
+        <line
+          [attr.x1]="time * getScaleFactor() - 1"
+          y1="-1000000"
+          [attr.x2]="time * getScaleFactor() - 1"
+          y2="1000000"
+          [class]="getTimeGridClassTag(time)"
+          shape-rendering="crispEdges"
+        />
+      </svg:g>
+    }
+  }
+}

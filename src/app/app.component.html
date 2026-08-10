@@ -12,18 +12,14 @@
       {{ "app.user-manual" | translate }}
     </a>
   </sbb-app-chooser-section>
-  <sbb-header-environment class="noprint" *ngIf="environmentLabel">{{
-    environmentLabel
-  }}</sbb-header-environment>
-  <sbb-usermenu
-    class="noprint"
-    [menu]="menu"
-    *ngIf="authenticated | async"
-    [userName]="email"
-    [displayName]="userName"
-  >
-    <sbb-icon svgIcon="user-small" *sbbIcon></sbb-icon>
-  </sbb-usermenu>
+  @if (environmentLabel) {
+    <sbb-header-environment class="noprint">{{ environmentLabel }}</sbb-header-environment>
+  }
+  @if (authenticated | async) {
+    <sbb-usermenu class="noprint" [menu]="menu" [userName]="email" [displayName]="userName">
+      <sbb-icon svgIcon="user-small" *sbbIcon></sbb-icon>
+    </sbb-usermenu>
+  }
   <sbb-menu #menu="sbbMenu">
     <sbb-select
       (selectionChange)="language = $event.value"
@@ -43,16 +39,17 @@
     </button>
   </sbb-menu>
 </sbb-header-lean>
-<ng-container *ngIf="!disableBackend">
+@if (!disableBackend) {
   <sbb-navigation-bar class="noprint"></sbb-navigation-bar>
-</ng-container>
-<router-outlet *ngIf="authenticated | async; else loading"></router-outlet>
-<ng-template #loading>
-  <ng-container *ngIf="!disableBackend">
+}
+@if (authenticated | async) {
+  <router-outlet></router-outlet>
+} @else {
+  @if (!disableBackend) {
     <sbb-loading-indicator mode="big"></sbb-loading-indicator>
     <div class="login-message">{{ "app.login" | translate }}</div>
-  </ng-container>
-  <ng-container *ngIf="disableBackend">
+  }
+  @if (disableBackend) {
     <sbb-netzgrafik-editor></sbb-netzgrafik-editor>
-  </ng-container>
-</ng-template>
+  }
+}
