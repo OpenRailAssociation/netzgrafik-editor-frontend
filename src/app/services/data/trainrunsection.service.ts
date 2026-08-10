@@ -1,4 +1,4 @@
-import {TrainrunSection} from "../../models/trainrunsection.model";
+import {TrainrunSection, _TRAINRUN_UPDATE_TOKEN} from "../../models/trainrunsection.model";
 import {
   NodeDto,
   TrainrunCategoryHaltezeit,
@@ -164,7 +164,7 @@ export class TrainrunSectionService implements OnDestroy {
   }
 
   updateTrainrunReference(trainrunSection: TrainrunSection, newTrainrun: Trainrun) {
-    trainrunSection.setTrainrun(newTrainrun);
+    trainrunSection.setTrainrun(newTrainrun, _TRAINRUN_UPDATE_TOKEN);
     this.rebuildSectionIndex();
   }
 

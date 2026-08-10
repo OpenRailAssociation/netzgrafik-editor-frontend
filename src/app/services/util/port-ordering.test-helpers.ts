@@ -1,7 +1,7 @@
 import {Node} from "../../models/node.model";
 import {Trainrun} from "../../models/trainrun.model";
 import {VisAVisPortPlacement} from "./node.port.placement";
-import {TrainrunSection} from "../../models/trainrunsection.model";
+import {TrainrunSection, _TRAINRUN_UPDATE_TOKEN} from "../../models/trainrunsection.model";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
 
 const ALIGNMENTS_MAP = {
@@ -48,7 +48,7 @@ export function buildNetwork(def: {
       ts.setTargetNode(targetNode);
       // just update the trainrun reference in this helper function, because this is only used in test and we dont
       // want to use the fully trainrunsectuion functionality here, which would require a lot of other services to be initialized
-      ts.setTrainrun(trainrun);
+      ts.setTrainrun(trainrun, _TRAINRUN_UPDATE_TOKEN);
 
       // Create ports with trainrun section
       const sourcePortId = sourceNode.addPort(sourcePortPlacement, ts);
