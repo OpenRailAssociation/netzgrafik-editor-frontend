@@ -175,7 +175,7 @@ export class Note {
       sanitizer.removeUnsafe();
 
       const elt = document.createElement("div");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       (elt as any).setHTML(this.getText(), {sanitizer});
       return elt.innerHTML;
     } else {
