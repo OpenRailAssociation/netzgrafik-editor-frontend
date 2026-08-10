@@ -78,10 +78,7 @@
     >
       <sbb-chip-list [value]="nodeProperties.labels" (focusout)="onLabelsFocusout()">
         @for (element of nodeProperties.labels; track element) {
-          <sbb-chip
-            [value]="element"
-            (removed)="remove($event)"
-          >
+          <sbb-chip [value]="element" (removed)="remove($event)">
             {{ element }}
           </sbb-chip>
         }
@@ -121,7 +118,7 @@
           {{ "app.view.editor-side-view.editor-node-detail-view.ipv" | translate }}
         </td>
         <td class="sbb-table-column-m">
-          @if (!nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitIPV'].no_halt) {
+          @if (!nodeProperties.nodeTrainrunCategoryHaltezeit["HaltezeitIPV"].no_halt) {
             <div>
               <input
                 sbbInput
@@ -147,7 +144,7 @@
       <tr>
         <td>{{ "app.view.editor-side-view.editor-node-detail-view.a" | translate }}</td>
         <td class="sbb-table-column-m">
-          @if (!nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitA'].no_halt) {
+          @if (!nodeProperties.nodeTrainrunCategoryHaltezeit["HaltezeitA"].no_halt) {
             <div>
               <input
                 sbbInput
@@ -173,7 +170,7 @@
       <tr>
         <td>{{ "app.view.editor-side-view.editor-node-detail-view.b" | translate }}</td>
         <td class="sbb-table-column-m">
-          @if (!nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitB'].no_halt) {
+          @if (!nodeProperties.nodeTrainrunCategoryHaltezeit["HaltezeitB"].no_halt) {
             <div>
               <input
                 sbbInput
@@ -199,7 +196,7 @@
       <tr>
         <td>{{ "app.view.editor-side-view.editor-node-detail-view.c" | translate }}</td>
         <td class="sbb-table-column-m">
-          @if (!nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitC'].no_halt) {
+          @if (!nodeProperties.nodeTrainrunCategoryHaltezeit["HaltezeitC"].no_halt) {
             <div>
               <input
                 sbbInput
@@ -225,7 +222,7 @@
       <tr>
         <td>{{ "app.view.editor-side-view.editor-node-detail-view.d" | translate }}</td>
         <td class="sbb-table-column-m">
-          @if (!nodeProperties.nodeTrainrunCategoryHaltezeit['HaltezeitD'].no_halt) {
+          @if (!nodeProperties.nodeTrainrunCategoryHaltezeit["HaltezeitD"].no_halt) {
             <div>
               <input
                 sbbInput
@@ -252,34 +249,36 @@
   </sbb-expansion-panel>
   @if (!disableBackend) {
     <sbb-expansion-panel [expanded]="false">
-    <sbb-expansion-panel-header>{{
-      "app.view.editor-side-view.editor-node-detail-view.links" | translate
-    }}</sbb-expansion-panel-header>
-    <ul>
-      <li>
-        <a
-          sbb-link
-          target="_blank"
-          href="https://data.sbb.ch/explore/embed/dataset/perronkante/table/?q={{
-            nodeProperties.nodeBetriebspunktName
-          }}"
-        >
-          {{ "app.view.editor-side-view.editor-node-detail-view.platform-information" | translate }}
-        </a>
-      </li>
-      <li>
-        <a
-          sbb-link
-          target="_blank"
-          href="https://data.sbb.ch/explore/dataset/perronoberflache/table/?refine.bps={{
-            nodeProperties.nodeBetriebspunktName
-          }}&sort=-p_lange"
-        >
-          {{ "app.view.editor-side-view.editor-node-detail-view.platform-length" | translate }}
-        </a>
-      </li>
-    </ul>
-  </sbb-expansion-panel>
+      <sbb-expansion-panel-header>{{
+        "app.view.editor-side-view.editor-node-detail-view.links" | translate
+      }}</sbb-expansion-panel-header>
+      <ul>
+        <li>
+          <a
+            sbb-link
+            target="_blank"
+            href="https://data.sbb.ch/explore/embed/dataset/perronkante/table/?q={{
+              nodeProperties.nodeBetriebspunktName
+            }}"
+          >
+            {{
+              "app.view.editor-side-view.editor-node-detail-view.platform-information" | translate
+            }}
+          </a>
+        </li>
+        <li>
+          <a
+            sbb-link
+            target="_blank"
+            href="https://data.sbb.ch/explore/dataset/perronoberflache/table/?refine.bps={{
+              nodeProperties.nodeBetriebspunktName
+            }}&sort=-p_lange"
+          >
+            {{ "app.view.editor-side-view.editor-node-detail-view.platform-length" | translate }}
+          </a>
+        </li>
+      </ul>
+    </sbb-expansion-panel>
   }
   @if (versionControlService.getVariantIsWritable()) {
     <button
