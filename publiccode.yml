@@ -39,7 +39,7 @@ legal:
 
 maintenance:
   type: "contract"
-  
+
 localisation:
   localisationReady: true
   availableLanguages:
