@@ -50,7 +50,7 @@
     "@angular/platform-browser-dynamic": "^22.1.1",
     "@angular/router": "^22.1.1",
     "@sbb-esta/angular": "^22.0.2",
-    "angular-oauth2-oidc": "^19.0.0",
+    "angular-oauth2-oidc": "^22.0.2",
     "angular-server-side-configuration": "^22.0.2",
     "d3": "^7.9.0",
     "dompurify": "^3.4.13",
