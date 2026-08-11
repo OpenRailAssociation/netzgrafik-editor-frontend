@@ -1,5 +1,5 @@
-@import "../../rastering/definitions";
-@import "trainrunsections.view.edgeline";
+@use "../../rastering/definitions" as *;
+@use "trainrunsections.view.edgeline";
 
 /// TEXT fields
 ::ng-deep text.edge_text {
@@ -34,6 +34,11 @@
 }
 
 ::ng-deep text.edge_text.TrainrunSectionTravelTime {
+  text-anchor: start;
+  text-align: left;
+}
+
+::ng-deep text.edge_text.TrainrunSectionBackwardTravelTime {
   text-anchor: start;
   text-align: left;
 }
@@ -89,18 +94,6 @@
   stroke: $COLOR_Edit;
   fill: white;
   r: $PIN_RADIUS_HOVER;
-}
-
-::ng-deep circle.edge_line_pin.is_not_end_node.ctrlKey {
-  stroke: none;
-  fill: none;
-  r: $PIN_RADIUS_HIDDEN;
-  cursor: pointer;
-}
-
-::ng-deep circle.edge_line_pin.is_end_node.ctrlKey {
-  stroke: $COLOR_Edit;
-  cursor: cell;
 }
 
 ::ng-deep circle.edge_line_pin.connection_pin {
@@ -299,4 +292,16 @@
 ::ng-deep path.edge_line_arrow.hidden {
   pointer-events: none;
   opacity: 0.01;
+}
+
+::ng-deep circle.edge_line_pin.is_not_end_node.ctrlKey {
+  stroke: none;
+  fill: none;
+  r: $PIN_RADIUS_HIDDEN;
+  cursor: pointer;
+}
+
+::ng-deep circle.edge_line_pin.is_end_node.ctrlKey {
+  stroke: $COLOR_Edit;
+  cursor: cell;
 }

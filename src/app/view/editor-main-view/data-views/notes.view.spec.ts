@@ -3,10 +3,8 @@ import {NodeService} from "../../../services/data/node.service";
 import {ResourceService} from "../../../services/data/resource.service";
 import {TrainrunService} from "../../../services/data/trainrun.service";
 import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
-import {StammdatenService} from "../../../services/data/stammdaten.service";
+import {BaseDataService} from "../../../services/data/basedata.service";
 import {NoteService} from "../../../services/data/note.service";
-import {Node} from "../../../models/node.model";
-import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {LabelGroupService} from "../../../services/data/labelgroup.service";
 import {LabelService} from "../../../services/data/label.service";
 import {NetzgrafikColoringService} from "../../../services/data/netzgrafikColoring.service";
@@ -24,6 +22,7 @@ import {NetzgrafikUnitTesting} from "../../../../integration-testing/netzgrafik.
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
+import {AutoLayoutService} from "../../../services/util/auto-layout.service";
 
 describe("Notes-View", () => {
   let dataService: DataService;
@@ -31,10 +30,8 @@ describe("Notes-View", () => {
   let resourceService: ResourceService;
   let trainrunService: TrainrunService;
   let trainrunSectionService: TrainrunSectionService;
-  let stammdatenService: StammdatenService;
+  let baseDataService: BaseDataService;
   let noteService: NoteService;
-  let nodes: Node[] = null;
-  let trainrunSections: TrainrunSection[] = null;
   let logService: LogService = null;
   let logPublishersService: LogPublishersService = null;
   let labelGroupService: LabelGroupService = null;
@@ -48,7 +45,7 @@ describe("Notes-View", () => {
   let editorView: EditorView = null;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -66,22 +63,18 @@ describe("Notes-View", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,
       filterService,
       netzgrafikColoringService,
-    );
-    nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
-    trainrunSectionService.trainrunSections.subscribe(
-      (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
     );
 
     loadPerlenketteService = new LoadPerlenketteService(
@@ -95,11 +88,12 @@ describe("Notes-View", () => {
       filterService,
       nodeService,
       noteService,
-      stammdatenService,
+      baseDataService,
       trainrunSectionService,
       trainrunService,
       netzgrafikColoringService,
       loadPerlenketteService,
+      dataService,
     );
 
     undoService = new UndoService(
@@ -138,6 +132,14 @@ describe("Notes-View", () => {
       viewportCullService,
     );
 
+    const autoLayoutService = new AutoLayoutService(
+      nodeService,
+      uiInteractionService,
+      trainrunService,
+      trainrunSectionService,
+      viewportCullService,
+    );
+
     const controller = new EditorMainViewComponent(
       nodeService,
       trainrunSectionService,
@@ -146,6 +148,7 @@ describe("Notes-View", () => {
       uiInteractionService,
       noteService,
       undefined,
+      dataService,
       undoService,
       copyService,
       logService,
@@ -153,6 +156,7 @@ describe("Notes-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      autoLayoutService,
     );
 
     new EditorView(
@@ -170,6 +174,7 @@ describe("Notes-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      autoLayoutService,
     );
     controller.bindViewToServices();
     editorView = controller.editorView;
@@ -177,7 +182,7 @@ describe("Notes-View", () => {
 
   it("notesView constructor test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const notesView = new NotesView(editorView);
+    new NotesView(editorView);
   });
 
   it("NotesView.convertText", () => {

@@ -1,13 +1,13 @@
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {EditorMode} from "../../view/editor-menu/editor-mode";
-import {Injectable, OnDestroy} from "@angular/core";
-import {Stammdaten} from "../../models/stammdaten.model";
+import {EventEmitter, Injectable, OnDestroy} from "@angular/core";
+import {BaseData} from "../../models/basedata.model";
 import {TrainrunDialogParameter} from "../../view/dialogs/trainrun-and-section-dialog/trainrun-and-section-dialog.component";
 import {ThemeBase} from "../../view/themes/theme-base";
 import {ConfirmationDialogParameter} from "../../view/dialogs/confirmation-dialog/confirmation-dialog.component";
 import {FilterService} from "./filter.service";
 import {NodeService} from "../data/node.service";
-import {StammdatenService} from "../data/stammdaten.service";
+import {BaseDataService} from "../data/basedata.service";
 import {InformSelectedTrainrunClick, TrainrunSectionService} from "../data/trainrunsection.service";
 import {Vec2D} from "../../utils/vec2D";
 import {FilterWindowType} from "../../view/filter-main-side-view/filter-main-side-view.component";
@@ -26,9 +26,14 @@ import {StreckengrafikRenderingType} from "../../view/themes/streckengrafik-rend
 import {NetzgrafikColoringService} from "../data/netzgrafikColoring.service";
 import {MainViewMode} from "../../view/filter-main-side-view/main-view-mode";
 import {TrainrunService} from "../data/trainrun.service";
-import {Trainrun} from "../../models/trainrun.model";
+import {Node} from "../../models/node.model";
 import {LoadPerlenketteService} from "../../perlenkette/service/load-perlenkette.service";
 import {TravelTimeCreationEstimatorType} from "../../view/themes/editor-trainrun-traveltime-creator-type";
+import {OrderingAlgorithm} from "../../data-structures/technical.data.structures";
+import {TrafficSide} from "src/app/data-structures/business.data.structures";
+import {DataService} from "../data/data.service";
+import {Operation, MetadataOperation} from "../../models/operation.model";
+import {EditorView} from "src/app/view/editor-main-view/data-views/editor.view";
 
 export interface ViewboxProperties {
   currentViewBox: string;
@@ -45,11 +50,11 @@ export interface ViewboxProperties {
   providedIn: "root",
 })
 export class UiInteractionService implements OnDestroy {
-  updateNodeStammdatenSubject = new Subject<void>();
-  readonly updateNodeStammdatenWindow = this.updateNodeStammdatenSubject.asObservable();
+  updateNodeBaseDataSubject = new Subject<void>();
+  readonly updateNodeBaseDataWindow = this.updateNodeBaseDataSubject.asObservable();
 
-  showNodeStammdatenSubject = new Subject<boolean>();
-  readonly nodeStammdatenWindow = this.showNodeStammdatenSubject.asObservable();
+  showNodeBaseDataSubject = new Subject<boolean>();
+  readonly nodeBaseDataWindow = this.showNodeBaseDataSubject.asObservable();
 
   showFilterSubject = new Subject<FilterWindowType | null>();
   readonly filterWindow = this.showFilterSubject.asObservable();
@@ -73,8 +78,9 @@ export class UiInteractionService implements OnDestroy {
   showConfirmationDiagramDialogSubject = new Subject<ConfirmationDialogParameter>();
   readonly confirmationDiagramDialog = this.showConfirmationDiagramDialogSubject.asObservable();
 
-  showStammdatenEditDialogSubject = new Subject<Stammdaten[]>();
-  readonly stammdatenEditDialog = this.showStammdatenEditDialogSubject.asObservable();
+  showBaseDataEditDialogSubject = new Subject<BaseData[]>();
+  readonly baseDataEditDialog = this.showBaseDataEditDialogSubject.asObservable();
+  readonly stammdatenEditDialog = this.baseDataEditDialog;
 
   zoomInSubject = new Subject<Vec2D>();
   readonly zoomInObservable = this.zoomInSubject.asObservable();
@@ -101,6 +107,8 @@ export class UiInteractionService implements OnDestroy {
   readonly moveNetzgrafikEditorViewFocalPointObservable =
     this.moveNetzgrafikEditorViewFocalPointSubject.asObservable();
 
+  readonly operation = new EventEmitter<Operation>();
+
   private activeTheme: ThemeBase = null;
   private activeStreckengrafikRenderingType: StreckengrafikRenderingType = null;
   private activeTravelTimeCreationEstimatorType: TravelTimeCreationEstimatorType = null;
@@ -109,24 +117,25 @@ export class UiInteractionService implements OnDestroy {
 
   private windowViewboxPropertiesMap: {[key: string]: ViewboxProperties} = {};
   private destroyed = new Subject<void>();
-  private filterWindowType = null;
+  private filterWindowType: FilterWindowType | null = null;
   private oldSelectedTrainrunId: number = null;
 
   constructor(
     private filterService: FilterService,
     private nodeService: NodeService,
     private noteService: NoteService,
-    private stammdatenService: StammdatenService,
+    private baseDataService: BaseDataService,
     private trainrunSectionService: TrainrunSectionService,
     private trainrunService: TrainrunService,
     private netzgrafikColoringService: NetzgrafikColoringService,
     private loadPerlenketteService: LoadPerlenketteService,
+    private dataService: DataService,
   ) {
     this.activeTheme = null;
     this.loadActiveTheme();
 
     // listen for browser setting update
-    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (event) => {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
       this.activeTheme = null;
       this.loadActiveTheme();
     });
@@ -148,23 +157,21 @@ export class UiInteractionService implements OnDestroy {
         this.showPerlenkette(informSelectedTrainrunClick);
       });
 
-    this.trainrunService.trainruns
-      .pipe(takeUntil(this.destroyed))
-      .subscribe((trainrun: Trainrun[]) => {
-        const st = trainrunService.getSelectedTrainrun();
-        if (st !== null) {
-          this.oldSelectedTrainrunId = st.getId();
-          return;
-        }
-        this.closePerlenkette();
-        this.oldSelectedTrainrunId = null;
-      });
+    this.trainrunService.trainruns.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      const st = trainrunService.getSelectedTrainrun();
+      if (st !== null) {
+        this.oldSelectedTrainrunId = st.getId();
+        return;
+      }
+      this.closePerlenkette();
+      this.oldSelectedTrainrunId = null;
+    });
 
-    this.stammdatenService.stammdatenObservable
+    this.baseDataService.baseDataObservable
       .pipe(takeUntil(this.destroyed))
-      .subscribe((stammdaten: Stammdaten[]) => {
-        this.updateNodeStammdaten();
-        this.showStammdatenEditDialog(stammdaten);
+      .subscribe((baseData: BaseData[]) => {
+        this.updateNodeBaseData();
+        this.showBaseDataEditDialog(baseData);
       });
     this.filterWindow.pipe(takeUntil(this.destroyed)).subscribe((type: FilterWindowType | null) => {
       this.filterWindowType = type;
@@ -184,7 +191,7 @@ export class UiInteractionService implements OnDestroy {
     return viewboxProperties;
   }
 
-  getDefaultViewProperties() {
+  getDefaultViewProperties(): ViewboxProperties {
     return {
       currentViewBox: null,
       panZoomTop: 0,
@@ -294,17 +301,44 @@ export class UiInteractionService implements OnDestroy {
     this.saveUserSettingToLocalStorage();
   }
 
-  updateNodeStammdaten() {
-    this.updateNodeStammdatenSubject.next();
+  getActiveTrafficSideType(): TrafficSide {
+    return this.dataService.getTrafficSide();
   }
 
-  showNodeStammdaten() {
-    this.updateNodeStammdatenSubject.next();
-    this.showNodeStammdatenSubject.next(true);
+  setActiveTrafficSideType(activeTrafficSideType: TrafficSide) {
+    this.dataService.setTrafficSide(activeTrafficSideType);
+    this.trainrunSectionService.updateText();
+    this.trainrunSectionService.trainrunSectionsUpdated();
+    this.operation.emit(new MetadataOperation({trafficSide: activeTrafficSideType}));
   }
 
-  closeNodeStammdaten() {
-    this.showNodeStammdatenSubject.next(false);
+  getActiveOrderingAlgorithm(): OrderingAlgorithm {
+    return this.nodeService.getCurrentOrderingAlgorithm();
+  }
+
+  setActiveOrderingAlgorithm(orderingAlgorithm: OrderingAlgorithm) {
+    if (orderingAlgorithm === undefined) {
+      orderingAlgorithm = OrderingAlgorithm.Alphabetical;
+    }
+    this.nodeService.initPortOrdering(orderingAlgorithm);
+    this.nodeService.nodesUpdated();
+    this.nodeService.transitionsUpdated();
+    this.nodeService.connectionsUpdated();
+    this.trainrunSectionService.trainrunSectionsUpdated();
+    this.operation.emit(new MetadataOperation({orderingAlgorithm}));
+  }
+
+  updateNodeBaseData() {
+    this.updateNodeBaseDataSubject.next();
+  }
+
+  showNodeBaseData() {
+    this.updateNodeBaseDataSubject.next();
+    this.showNodeBaseDataSubject.next(true);
+  }
+
+  closeNodeBaseData() {
+    this.showNodeBaseDataSubject.next(false);
   }
 
   showNetzgrafik() {
@@ -331,6 +365,53 @@ export class UiInteractionService implements OnDestroy {
     );
     this.moveNetzgrafikEditorFocalViewPoint(center);
   }
+
+  findClosestNodeToViewCenter(nodes: Node[]): {node: Node | undefined; offset: Vec2D} {
+    const vb = this.getViewboxProperties(EditorView.svgName);
+    // Compute center of the current viewBox
+    const center = new Vec2D(
+      vb.panZoomLeft + vb.panZoomWidth / 2,
+      vb.panZoomTop + vb.panZoomHeight / 2,
+    );
+
+    let minDistance = Number.MAX_VALUE;
+    let closest: Node | undefined = undefined;
+    let offset: Vec2D = new Vec2D(0, 0);
+
+    // Search for the node closest to the center of the viewBox
+    for (const n of nodes) {
+      const nodePos = new Vec2D(
+        n.getPositionX() + n.getNodeWidth() / 2.0,
+        n.getPositionY() + n.getNodeHeight() / 2.0,
+      );
+      const dist = Vec2D.norm(Vec2D.sub(nodePos, center));
+
+      if (dist < minDistance) {
+        minDistance = dist;
+        closest = n;
+      }
+    }
+
+    if (closest) {
+      offset = Vec2D.sub(
+        center,
+        new Vec2D(
+          closest.getPositionX() + closest.getNodeWidth() / 2.0,
+          closest.getPositionY() + closest.getNodeHeight() / 2.0,
+        ),
+      );
+    }
+
+    return {node: closest, offset: offset};
+  }
+
+  gotoNode(node: Node, offset: Vec2D = new Vec2D(0, 0)) {
+    // Move the center of the view to the center of the node, applying an optional offset
+    const x = node.getPositionX() + node.getNodeWidth() / 2.0 + offset.getX();
+    const y = node.getPositionY() + node.getNodeHeight() / 2.0 + offset.getY();
+    this.moveNetzgrafikEditorFocalViewPoint(new Vec2D(x, y));
+  }
+
   showOrCloseFilter(type: FilterWindowType) {
     if (this.isFilterWindowType(type)) {
       this.closeFilter();
@@ -379,8 +460,8 @@ export class UiInteractionService implements OnDestroy {
     return confirmationDiagramParameter.dialogFeedback;
   }
 
-  showStammdatenEditDialog(stammdaten: Stammdaten[]) {
-    this.showStammdatenEditDialogSubject.next(stammdaten);
+  showBaseDataEditDialog(baseData: BaseData[]) {
+    this.showBaseDataEditDialogSubject.next(baseData);
   }
 
   zoomIn(zoomCenter: Vec2D) {

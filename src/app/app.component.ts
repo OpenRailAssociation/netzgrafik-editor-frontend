@@ -16,11 +16,14 @@ import {PositionTransformationService} from "./services/util/position.transforma
 import {NetzgrafikDefault} from "./sample-netzgrafik/netzgrafik.default";
 import {UiInteractionService} from "./services/ui/ui.interaction.service";
 import {NoteService} from "./services/data/note.service";
+import {FilterService} from "./services/ui/filter.service";
+import {AutoLayoutService} from "./services/util/auto-layout.service";
 
 @Component({
   selector: "sbb-root",
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.scss"],
+  standalone: false,
 })
 export class AppComponent implements OnInit {
   readonly disableBackend = environment.disableBackend;
@@ -57,6 +60,8 @@ export class AppComponent implements OnInit {
     private labelService: LabelService,
     private i18nService: I18nService,
     private noteService: NoteService,
+    private filterService: FilterService,
+    private autoLayoutService: AutoLayoutService,
   ) {
     if (!this.disableBackend) {
       this.authenticated = authService.initialized;
@@ -98,6 +103,20 @@ export class AppComponent implements OnInit {
     this.uiInteractionService.closeTrainrunDialog();
   }
 
+  @Input()
+  get activeFilterSettingId(): number {
+    return this.filterService.getActiveFilterSettingId();
+  }
+
+  set activeFilterSettingId(id: number) {
+    const filterSetting = this.filterService.getFilterSettingFromId(id);
+    if (filterSetting) {
+      this.filterService.setActiveFilterSetting(filterSetting);
+    } else {
+      throw new Error(`FilterSetting with id ${id} not found`);
+    }
+  }
+
   @Output()
   operation: Observable<Operation> = merge(
     this.trainrunService.operation,
@@ -106,5 +125,8 @@ export class AppComponent implements OnInit {
     this.positionTransformationService.operation,
     this.labelService.operation,
     this.noteService.operation,
+    this.uiInteractionService.operation,
+    this.filterService.operation,
+    this.autoLayoutService.operation,
   );
 }

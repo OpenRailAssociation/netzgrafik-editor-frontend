@@ -1,4 +1,5 @@
 import {ComponentFixture, TestBed} from "@angular/core/testing";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 
 import {ProjectsViewComponent} from "./projects-view.component";
 import {of} from "rxjs";
@@ -22,7 +23,7 @@ describe("ProjectsViewComponent", () => {
 
     await TestBed.configureTestingModule({
       declarations: [ProjectsViewComponent],
-      imports: [SbbDialogModule, I18nModule],
+      imports: [I18nModule, FormsModule, ReactiveFormsModule, SbbDialogModule],
       providers: [
         {provide: ProjectsViewService, useValue: projectViewService},
         {

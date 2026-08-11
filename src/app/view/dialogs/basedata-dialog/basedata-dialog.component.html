@@ -1,0 +1,205 @@
+<ng-template #baseDataTemplate>
+  <div>
+    <div sbbDialogTitle>
+      <b>{{ "app.view.dialogs.basedata-dialog.base-data" | translate }}</b>
+    </div>
+    <div sbbDialogContent>
+      <table sbb-table [dataSource]="dataSource">
+        <ng-container sbbColumnDef="betriebspunktName">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.betriebspunktName" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            {{ element.betriebspunktName }}
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="stationName">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.stationName" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            {{ element.stationName }}
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="category">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.category" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            <div *ngIf="element.category.length > 0; else noCategory">
+              {{ element.category }}
+            </div>
+            <ng-template #noCategory> — </ng-template>
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="region">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.region" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            <div *ngIf="element.region.length > 0; else noRegion">
+              {{ element.region }}
+            </div>
+            <ng-template #noRegion> — </ng-template>
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="minimumStopTime_I_P_V">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.ipv-stop-time" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            <div *ngIf="element.minimumStopTimeIPV.haltezeit !== 0; else noTime">
+              {{ element.minimumStopTimeIPV.haltezeit }}
+            </div>
+            <ng-template #noTime> — </ng-template>
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="passingThroughStation_I_P_V">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.stop-flag-ipv" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            {{ element.passingThroughStationIPV === 1 ? "☑" : "☐" }}
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="minimumStopTime_A">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.a-stop-time" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            <div *ngIf="element.minimumStopTimeA.haltezeit !== 0; else noTime">
+              {{ element.minimumStopTimeA.haltezeit }}
+            </div>
+            <ng-template #noTime> — </ng-template>
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="passingThroughStation_A">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.stop-flag-a" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            {{ element.passingThroughStationA === 1 ? "☑" : "☐" }}
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="minimumStopTime_B">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.b-stop-time" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            <div *ngIf="element.minimumStopTimeB.haltezeit !== 0; else noTime">
+              {{ element.minimumStopTimeB.haltezeit }}
+            </div>
+            <ng-template #noTime> — </ng-template>
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="passingThroughStation_B">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.stop-flag-b" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            {{ element.passingThroughStationB === 1 ? "☑" : "☐" }}
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="minimumStopTime_C">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.c-stop-time" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            <div *ngIf="element.minimumStopTimeC.haltezeit !== 0; else noTime">
+              {{ element.minimumStopTimeC.haltezeit }}
+            </div>
+            <ng-template #noTime> — </ng-template>
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="passingThroughStation_C">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.stop-flag-c" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            {{ element.passingThroughStationC === 1 ? "☑" : "☐" }}
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="minimumStopTime_D">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.d-stop-time" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            <div *ngIf="element.minimumStopTimeD.haltezeit !== 0; else noTime">
+              {{ element.minimumStopTimeD.haltezeit }}
+            </div>
+            <ng-template #noTime> — </ng-template>
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="passingThroughStation_D">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.stop-flag-d" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            {{ element.passingThroughStationD === 1 ? "☑" : "☐" }}
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="zaz">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.zaz" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            <div *ngIf="element.zaz !== 0; else noZAZ">
+              {{ element.zaz }}
+            </div>
+            <ng-template #noZAZ> — </ng-template>
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="connectionTime">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.connection-time" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            <div *ngIf="element.connectionTime !== 0; else noHalt">
+              {{ element.connectionTime }}
+            </div>
+            <ng-template #noHalt> — </ng-template>
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="filterableLabels">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.filterable-labels" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            <div *ngIf="element.filterableLabels.length !== 0; else noLabels">
+              {{ element.filterableLabels }}
+            </div>
+            <ng-template #noLabels> — </ng-template>
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="pos">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.position" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            <div *ngIf="element.pos !== undefined; else noPos">
+              {{ element.pos.getX() }} <br />
+              {{ element.pos.getY() }}
+            </div>
+            <ng-template #noPos> — </ng-template>
+          </td>
+        </ng-container>
+        <ng-container sbbColumnDef="create">
+          <th sbb-header-cell *sbbHeaderCellDef>
+            {{ "app.view.dialogs.basedata-dialog.create" | translate }}
+          </th>
+          <td sbb-cell *sbbCellDef="let element">
+            {{ element.create === 1 ? "☑" : "☐" }}
+          </td>
+        </ng-container>
+
+        <tr sbb-header-row *sbbHeaderRowDef="displayedColumns"></tr>
+        <tr sbb-row *sbbRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </div>
+    <div sbbDialogActions>
+      <button sbb-alt-button sbbDialogClose [sbbDialogClose]="false">
+        {{ "app.view.dialogs.basedata-dialog.close" | translate }}
+      </button>
+    </div>
+  </div>
+</ng-template>

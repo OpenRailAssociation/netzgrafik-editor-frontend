@@ -24,7 +24,7 @@ export interface SgPath {
 
   xPathFix(): boolean;
 
-  zoomedXPath();
+  zoomedXPath(): number;
 
   travelTime(): number;
 }

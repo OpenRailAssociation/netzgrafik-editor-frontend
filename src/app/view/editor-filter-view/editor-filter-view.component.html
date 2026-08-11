@@ -54,20 +54,33 @@
       </button>
     </div>
 
-    <div *ngIf="hasOneWayTrainruns()">
+    <div *ngIf="hasOneWayTrainruns() || isAsymmetryActive()">
       <sbb-label class="sbb-mt-m">{{
         "app.view.editor-filter-view.symmetry" | translate
       }}</sbb-label>
       <div class="sbb-trainrun-chip-group">
-        <button
-          [class]="getDirectionClassname(direction)"
-          (click)="onDirectionChanged(direction)"
-          mode="ghost"
-          [title]="getDirectionTooltip(direction)"
-          *ngFor="let direction of this.dataService.getDirections()"
-        >
-          {{ makeDirectionButtonLabel(direction) }}
-        </button>
+        <ng-container *ngIf="hasOneWayTrainruns()">
+          <button
+            [class]="getDirectionClassname(direction)"
+            (click)="onDirectionChanged(direction)"
+            mode="ghost"
+            [title]="getDirectionTooltip(direction)"
+            *ngFor="let direction of dataService.getDirections()"
+          >
+            {{ makeDirectionButtonLabel(direction) }}
+          </button>
+        </ng-container>
+        <ng-container *ngIf="isAsymmetryActive()">
+          <button
+            *ngFor="let symmetry of [true, false]"
+            [class]="getSymmetryClassname(symmetry)"
+            (click)="onSymmetryChanged(symmetry)"
+            mode="ghost"
+            [title]="getSymmetryTooltip(symmetry)"
+          >
+            {{ makeSymmetryButtonLabel(symmetry) }}
+          </button>
+        </ng-container>
       </div>
     </div>
 
@@ -158,6 +171,14 @@
       <sbb-checkbox [(ngModel)]="filterDirectionArrows" (change)="filterDirectionArrowsChanged()"
         >{{ "app.view.editor-filter-view.display-direction-arrows" | translate }}
       </sbb-checkbox>
+      <sbb-checkbox [(ngModel)]="filterAsymmetryArrows" (change)="filterAsymmetryArrowsChanged()"
+        >{{ "app.view.editor-filter-view.display-asymmetry-arrows" | translate }}
+      </sbb-checkbox>
+      <sbb-checkbox
+        [(ngModel)]="filterBackwardTravelTime"
+        (change)="filterBackwardTravelTimeChanged()"
+        >{{ "app.view.editor-filter-view.display-backward-travel-times" | translate }}
+      </sbb-checkbox>
     </div>
 
     <br />
@@ -197,6 +218,9 @@
       </sbb-checkbox>
       <sbb-checkbox [(ngModel)]="filterAllNonStopNodes" (change)="filterAllNonStopNodesChanged()"
         >{{ "app.view.editor-filter-view.display-nodes-with-only-stopping-trainruns" | translate }}
+      </sbb-checkbox>
+      <sbb-checkbox [(ngModel)]="displayNodesFullName" (change)="displayNodesFullNameChanged()"
+        >{{ "app.view.editor-filter-view.display-nodes-full-name" | translate }}
       </sbb-checkbox>
     </div>
 
@@ -325,7 +349,7 @@
   <button
     sbb-secondary-button
     class="sbb-mt-m"
-    [disabled]="!this.filterService.isAnyFilterActive()"
+    [disabled]="!filterService.isAnyFilterActive()"
     [title]="'app.view.editor-filter-view.reset-all-display-filters' | translate"
     (click)="onResetAllFilter()"
   >

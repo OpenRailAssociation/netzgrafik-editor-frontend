@@ -6,11 +6,13 @@ import {ThemeBase} from "../themes/theme-base";
 import {ThemeRegistration} from "../themes/theme-registration";
 import {StreckengrafikRenderingType} from "../themes/streckengrafik-rendering-type";
 import {TravelTimeCreationEstimatorType} from "../themes/editor-trainrun-traveltime-creator-type";
+import {TrafficSide} from "src/app/data-structures/business.data.structures";
 
 @Component({
   selector: "sbb-editor-properties-view-component",
   templateUrl: "./editor-properties-view.component.html",
   styleUrls: ["./editor-properties-view.component.scss"],
+  standalone: false,
 })
 export class EditorPropertiesViewComponent {
   static DEFAULT_DARK_BACKGROUNDCOLOR = "#050505";
@@ -84,6 +86,20 @@ export class EditorPropertiesViewComponent {
   ];
   activeTravelTimeCreationEstimatorType: TravelTimeCreationEstimatorType = null;
 
+  trafficSideTypeOptions = [
+    {
+      name: $localize`:@@app.left:Left`,
+      title: $localize`:@@app.view.editor-properties-view-component.leftTrafficSideTooltip:Trains are operated according to left-hand running conventions.`,
+      trafficSide: "leftHand" as const,
+    },
+    {
+      name: $localize`:@@app.right:Right`,
+      title: $localize`:@@app.view.editor-properties-view-component.rightTrafficSideTooltip:Trains are operated according to right-hand running conventions.`,
+      trafficSide: "rightHand" as const,
+    },
+  ];
+  activeTrafficSideType: TrafficSide = null;
+
   activeDarkBackgroundColor = EditorPropertiesViewComponent.DEFAULT_DARK_BACKGROUNDCOLOR;
   activeBackgroundColor = EditorPropertiesViewComponent.DEFAULT_BACKGROUNDCOLOR;
 
@@ -97,7 +113,7 @@ export class EditorPropertiesViewComponent {
       this.uiInteractionService.getActiveStreckengrafikRenderingType();
     this.activeTravelTimeCreationEstimatorType =
       this.uiInteractionService.getActiveTravelTimeCreationEstimatorType();
-
+    this.activeTrafficSideType = this.uiInteractionService.getActiveTrafficSideType();
     if (activeTheme.isDark) {
       this.activeDarkBackgroundColor = this.getHexColor(activeTheme.backgroundColor);
     } else {
@@ -125,7 +141,12 @@ export class EditorPropertiesViewComponent {
     this.uiInteractionService.setActiveTravelTimeCreationEstimatorType(event.value);
   }
 
-  colorPicked(value) {
+  onUpdateTrafficSideType(event: SbbRadioChange) {
+    this.uiInteractionService.setActiveTrafficSideType(event.value);
+    this.activeTrafficSideType = event.value;
+  }
+
+  colorPicked() {
     this.onUpdateColorTheme(
       new SbbRadioChange(null, this.uiInteractionService.getActiveTheme().themeRegistration),
     );
@@ -175,7 +196,7 @@ export class EditorPropertiesViewComponent {
     this.activeColorTheme = this.uiInteractionService.getActiveTheme();
   }
 
-  private getHexColor(colorStr): string {
+  private getHexColor(colorStr: string): string {
     const a = document.createElement("div");
     a.style.color = colorStr;
     const colors = window
@@ -184,7 +205,6 @@ export class EditorPropertiesViewComponent {
       .map((v) => parseInt(v, 10));
     document.body.removeChild(a);
     if (colors.length >= 3) {
-      // eslint-disable-next-line no-bitwise
       return (
         "#" +
         ((1 << 24) + (colors[0] << 16) + (colors[1] << 8) + colors[2]).toString(16).substring(1)

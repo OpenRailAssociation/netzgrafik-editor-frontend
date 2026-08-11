@@ -63,18 +63,29 @@ sbb-loading-indicator {
   }
 }
 
-// firefox fix
-::ng-deep input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+// firefox and chrome based browsers fix
+::ng-deep input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
 }
 
-::ng-deep input[type="number"] {
-  -moz-appearance: textfield;
+::ng-deep input[type="number"]::-webkit-outer-spin-button,
+::ng-deep input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none; /* Webkit-Browser */
+  margin: 0;
 }
 
 .sbb-select.language-selector-menu {
   transform: translate(10px, 1px);
   width: 95%;
+}
+
+::ng-deep .sbb-checkbox .sbb-selection-container {
+  border-width: 2px;
+  border-radius: 3px;
+
+  &-checked {
+    svg polyline {
+      stroke-width: 2px;
+    }
+  }
 }

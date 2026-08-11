@@ -1,3 +1,7 @@
+@use "sass:color";
+@use "sass:list";
+@use "sass:string";
+
 @use "@sbb-esta/angular" as sbb;
 
 /**
@@ -81,14 +85,14 @@ $colorMetanav: $colorBlack60; // duplicate from sacl
 
 // Context Colors
 $cdColorError: sbb.$sbbColorError;
-$cdColorError20: mix(sbb.$sbbColorError, sbb.$sbbColorWhite, 20%);
-$cdColorError10: mix(sbb.$sbbColorError, sbb.$sbbColorWhite, 10%);
+$cdColorError20: color.mix(sbb.$sbbColorError, sbb.$sbbColorWhite, 20%);
+$cdColorError10: color.mix(sbb.$sbbColorError, sbb.$sbbColorWhite, 10%);
 $cdColorWarning: sbb.$sbbColorPeach;
-$cdColorWarning20: mix(sbb.$sbbColorPeach, sbb.$sbbColorWhite, 20%);
-$cdColorWarning10: mix(sbb.$sbbColorPeach, sbb.$sbbColorWhite, 10%);
+$cdColorWarning20: color.mix(sbb.$sbbColorPeach, sbb.$sbbColorWhite, 20%);
+$cdColorWarning10: color.mix(sbb.$sbbColorPeach, sbb.$sbbColorWhite, 10%);
 $cdColorSuccess: sbb.$sbbColorGreen;
-$cdColorSuccess20: mix(sbb.$sbbColorGreen, sbb.$sbbColorWhite, 20%);
-$cdColorSuccess10: mix(sbb.$sbbColorGreen, sbb.$sbbColorWhite, 10%);
+$cdColorSuccess20: color.mix(sbb.$sbbColorGreen, sbb.$sbbColorWhite, 20%);
+$cdColorSuccess10: color.mix(sbb.$sbbColorGreen, sbb.$sbbColorWhite, 10%);
 
 $colorBgLight: $colorMilk;
 $colorTextMuted: $colorBlack60;
@@ -114,7 +118,11 @@ $borderRadius: 2px;
 @function transitionMultipleProperties($duration, $timing, $properties...) {
   $transitions: ();
   @each $property in $properties {
-    $transitions: append($transitions, unquote("#{$property} #{$duration} #{$timing}"), "comma");
+    $transitions: list.append(
+      $transitions,
+      string.unquote("#{$property} #{$duration} #{$timing}"),
+      "comma"
+    );
   }
   @return $transitions;
 }

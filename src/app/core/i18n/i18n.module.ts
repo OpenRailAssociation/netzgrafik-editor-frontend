@@ -1,4 +1,4 @@
-import {NgModule, APP_INITIALIZER, LOCALE_ID} from "@angular/core";
+import {NgModule, LOCALE_ID, inject, provideAppInitializer} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {TranslatePipe} from "./translate.pipe";
 import {I18nService} from "./i18n.service";
@@ -8,13 +8,13 @@ import {I18nService} from "./i18n.service";
   imports: [CommonModule],
   providers: [
     I18nService,
-    {
-      // Load locale data at app start-up
-      provide: APP_INITIALIZER,
-      useFactory: (i18nService: I18nService) => () => i18nService.setLanguage(),
-      deps: [I18nService],
-      multi: true,
-    },
+    provideAppInitializer(() => {
+      const initializerFn = (
+        (i18nService: I18nService) => () =>
+          i18nService.setLanguage()
+      )(inject(I18nService));
+      return initializerFn();
+    }),
     {
       // Set the runtime locale for the app
       provide: LOCALE_ID,

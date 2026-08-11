@@ -2,7 +2,7 @@ import {OriginDestination, OriginDestinationService} from "./origin-destination.
 import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import * as d3 from "d3";
 
-import {Subject, takeUntil} from "rxjs";
+import {Subject, takeUntil, merge} from "rxjs";
 import {
   SVGMouseController,
   SVGMouseControllerObserver,
@@ -12,6 +12,9 @@ import {Vec2D} from "src/app/utils/vec2D";
 import {UndoService} from "src/app/services/data/undo.service";
 import {FilterService} from "../../../ui/filter.service";
 import {NodeService} from "../../../data/node.service";
+import {TrainrunService} from "../../../data/trainrun.service";
+import {TrainrunSectionService} from "../../../data/trainrunsection.service";
+import {D3Utils} from "src/app/view/editor-main-view/data-views/d3.utils";
 
 type FieldName = "totalCost" | "travelTime" | "transfers";
 type ColorSetName = "red" | "blue" | "orange" | "gray";
@@ -25,6 +28,7 @@ type ColorSetName = "red" | "blue" | "orange" | "gray";
   selector: "sbb-origin-destination",
   templateUrl: "./origin-destination.component.html",
   styleUrls: ["./origin-destination.component.scss"],
+  standalone: false,
 })
 export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("div") divRef: ElementRef;
@@ -37,6 +41,8 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
     private undoService: UndoService,
     private filterService: FilterService,
     private nodeService: NodeService,
+    private trainrunService: TrainrunService,
+    private trainrunSectionService: TrainrunSectionService,
   ) {}
 
   private matrixData: OriginDestination[] = [];
@@ -60,7 +66,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
     return odList.filter((od) => od["found"]).map((od) => od[field]);
   }
 
-  private renderView() {
+  private renderView(viewboxProperties?: ViewboxProperties): void {
     if (!this.isReadyToRender) {
       return;
     }
@@ -79,7 +85,11 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       this.createSvgMouseControllerObserver(),
       this.undoService,
     );
-    this.controller.init(this.createInitialViewboxProperties(nodeNames.length));
+    if (viewboxProperties) {
+      this.controller.init(viewboxProperties);
+    } else {
+      this.controller.init(this.createInitialViewboxProperties(nodeNames.length));
+    }
   }
 
   // Compute the matrix (expensive) and render the default view.
@@ -96,12 +106,22 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .pipe(takeUntil(this.destroyed$))
       .subscribe((zoomCenter: Vec2D) => this.controller.zoomReset(zoomCenter));
 
-    // filter changes should only reload and redraw
-    this.filterService.filter.pipe(takeUntil(this.destroyed$)).subscribe(() => {
-      this.loadMatrixData();
-      d3.select("#main-origin-destination-container").remove();
-      this.renderView();
-    });
+    // filter / trainrun / trainrunSection changes should reload and redraw
+    merge(
+      this.filterService.filter,
+      this.trainrunService.trainruns,
+      this.trainrunSectionService.trainrunSections,
+    )
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe(() => {
+        this.loadMatrixData();
+        d3.select("#main-origin-destination-container").remove();
+        if (this.controller) {
+          this.renderView(this.controller.getViewboxProperties());
+        } else {
+          this.renderView();
+        }
+      });
   }
 
   ngAfterViewInit(): void {
@@ -122,16 +142,18 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
     const origins = this.matrixData.map((d) => d.originId);
     const destinations = this.matrixData.map((d) => d.destinationId);
     const uniqueOriginsDestinations = [...new Set([...origins, ...destinations])];
-    const diagonalData: OriginDestination[] = uniqueOriginsDestinations.map((nodeId) => ({
-      origin: this.nodeService.getNodeFromId(nodeId).getBetriebspunktName(),
-      destination: this.nodeService.getNodeFromId(nodeId).getBetriebspunktName(),
-      originId: nodeId,
-      destinationId: nodeId,
-      totalCost: undefined,
-      travelTime: undefined,
-      transfers: undefined,
-      found: false,
-    }));
+    const diagonalData: OriginDestination[] = uniqueOriginsDestinations.map(
+      (nodeId): OriginDestination => ({
+        origin: this.nodeService.getNodeFromId(nodeId).getBetriebspunktName(),
+        destination: this.nodeService.getNodeFromId(nodeId).getBetriebspunktName(),
+        originId: nodeId,
+        destinationId: nodeId,
+        totalCost: undefined,
+        travelTime: undefined,
+        transfers: undefined,
+        found: false,
+      }),
+    );
     this.matrixData = [...this.matrixData, ...diagonalData];
   }
 
@@ -160,12 +182,11 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .attr("id", "zoom-group")
       .attr("transform", `translate(${offsetX}, ${offsetY})`);
 
-    // Build X scales and axis:
+    // Build X scales and axis (destinations):
     const x = d3
-      .scaleBand()
+      .scaleBand<number>()
       .range([0, width])
       .domain(nodeNames.map((n) => n.id))
-
       .padding(0.05);
 
     graphContentGroup
@@ -174,15 +195,19 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .attr("transform", "translate(0, -20)")
       .call(
         d3
-          .axisBottom(x)
+          .axisBottom<number>(x)
           .tickSize(0)
-          .tickFormat((d) => this.nodeService.getNodeFromId(d).getBetriebspunktName()),
+          .tickFormat((d) =>
+            this.filterService.isDisplayingNodesFullName()
+              ? this.nodeService.getNodeFromId(d).getFullName()
+              : this.nodeService.getNodeFromId(d).getBetriebspunktName(),
+          ),
       )
       .style("user-select", "none")
       .call((g) =>
         g
           .selectAll("text")
-          .attr("data-origin-label", (d: string) => d)
+          .attr("data-destination-label", (d: string) => d)
           .style("text-anchor", "start")
           .attr("dx", "-0.8em")
           .attr("dy", "0.4em")
@@ -192,9 +217,9 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .select(".domain")
       .remove();
 
-    // Build Y scales and axis:
+    // Build Y scales and axis (origins):
     const y = d3
-      .scaleBand()
+      .scaleBand<number>()
       .range([height, 0])
       .domain(nodeNames.map((n) => n.id).reverse())
       .padding(0.05);
@@ -203,12 +228,16 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .style("pointer-events", "none")
       .call(
         d3
-          .axisLeft(y)
+          .axisLeft<number>(y)
           .tickSize(0)
-          .tickFormat((d) => this.nodeService.getNodeFromId(d).getBetriebspunktName()),
+          .tickFormat((d) =>
+            this.filterService.isDisplayingNodesFullName()
+              ? this.nodeService.getNodeFromId(d).getFullName()
+              : this.nodeService.getNodeFromId(d).getBetriebspunktName(),
+          ),
       )
       .style("user-select", "none")
-      .call((g) => g.selectAll("text").attr("data-destination-label", (d: string) => d))
+      .call((g) => g.selectAll("text").attr("data-origin-label", (d: string) => d))
       .select(".domain")
       .remove();
 
@@ -225,10 +254,13 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .attr("class", "tooltip");
 
     // Three function that change the tooltip when user hover / move / leave a cell
-    const mouseover = function (d: OriginDestination) {
+    const mouseover = (event: MouseEvent, d: OriginDestination) => {
       if (d.found) {
         tooltip.style("opacity", 1);
-        d3.select(this).style("stroke", "black").style("stroke-width", "2px").style("opacity", 1);
+        d3.select(D3Utils.getMouseEventCurrentTarget(event))
+          .style("stroke", "black")
+          .style("stroke-width", "2px")
+          .style("opacity", 1);
       }
 
       // Highlight axis labels in bold when hovering over a cell
@@ -246,7 +278,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
 
     const nodeNameMap = new Map(nodeNames.map((n) => [n.id, n.fullName]));
 
-    const mousemove = function (d: OriginDestination) {
+    const mousemove = (event: MouseEvent, d: OriginDestination) => {
       let details = "";
       if (d.found) {
         details += "<br><hr> ";
@@ -260,21 +292,21 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
           ${nodeNameMap.get(d.destinationId)} (<b>${d.destination}</b>)
           ${details}`,
         )
-        .style("left", `${d3.event.offsetX + 64}px`)
-        .style("top", `${d3.event.offsetY + 64 < 0 ? 0 : d3.event.offsetY + 64}px`);
+        .style("left", `${event.offsetX + 64}px`)
+        .style("top", `${event.offsetY + 64 < 0 ? 0 : event.offsetY + 64}px`);
     };
 
-    const mouseleave = function (_d) {
+    const mouseleave = (event: MouseEvent, d: OriginDestination) => {
       tooltip.style("opacity", 0);
-      d3.select(this)
+      d3.select(D3Utils.getMouseEventCurrentTarget(event))
         .style("stroke", "none")
         .style("opacity", (d: OriginDestination) => (d.originId === d.destinationId ? 0 : 0.8));
 
       // Remove boldness from the axis labels
-      d3.selectAll(`[data-origin-label="${_d.originId}"]`)
+      d3.selectAll(`[data-origin-label="${d.originId}"]`)
         .style("font-weight", null)
         .style("font-size", null);
-      d3.selectAll(`[data-destination-label="${_d.destinationId}"]`)
+      d3.selectAll(`[data-destination-label="${d.destinationId}"]`)
         .style("font-weight", null)
         .style("font-size", null);
     };
@@ -286,10 +318,10 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .enter()
       .append("rect")
       .attr("x", (d: OriginDestination) => {
-        return x(d.originId);
+        return x(d.destinationId);
       })
-      .attr("y", function (d: OriginDestination) {
-        return y(d.destinationId);
+      .attr("y", (d: OriginDestination) => {
+        return y(d.originId);
       })
       .attr("rx", 4)
       .attr("ry", 4)
@@ -314,10 +346,10 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .append("text")
       .style("pointer-events", "none")
       .attr("x", (d: OriginDestination) => {
-        return x(d.originId) + x.bandwidth() / 2;
+        return x(d.destinationId) + x.bandwidth() / 2;
       })
-      .attr("y", function (d: OriginDestination) {
-        return y(d.destinationId) + y.bandwidth() / 2;
+      .attr("y", (d: OriginDestination) => {
+        return y(d.originId) + y.bandwidth() / 2;
       })
       .text((d: OriginDestination) => this.getCellText(d))
       .style("text-anchor", "middle")
@@ -434,14 +466,14 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
   onChangePalette(name: ColorSetName) {
     this.colorSetName = name;
     d3.select("#main-origin-destination-container").remove();
-    this.renderView();
+    this.renderView(this.controller.getViewboxProperties());
   }
 
   // Update color field and re-render the view.
   onChangeColorBy(field: FieldName) {
     this.colorBy = field;
     d3.select("#main-origin-destination-container").remove();
-    this.renderView();
+    this.renderView(this.controller.getViewboxProperties());
   }
 
   // Update display field and re-render the view.
@@ -449,6 +481,6 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
     // TODO: why is that needed?
     this.displayBy = field;
     d3.select("#main-origin-destination-container").remove();
-    this.renderView();
+    this.renderView(this.controller.getViewboxProperties());
   }
 }

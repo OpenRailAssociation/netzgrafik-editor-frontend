@@ -4,6 +4,7 @@ import {Component, EventEmitter, Input, Output} from "@angular/core";
   selector: "sbb-history-entry",
   templateUrl: "./history-entry.component.html",
   styleUrls: ["./history-entry.component.scss"],
+  standalone: false,
 })
 export class HistoryEntryComponent {
   @Input() version?: string;

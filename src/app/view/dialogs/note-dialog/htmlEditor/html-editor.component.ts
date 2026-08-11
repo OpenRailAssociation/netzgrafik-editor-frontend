@@ -11,6 +11,7 @@ import {StaticDomTags} from "../../../editor-main-view/data-views/static.dom.tag
   selector: "sbb-html-editor",
   templateUrl: "./html-editor.component.html",
   styleUrls: ["./html-editor.component.scss"],
+  standalone: false,
 })
 export class HtmlEditorComponent implements OnInit, OnDestroy {
   @Input() model!: FormModel<NoteFormComponentModel>;
@@ -124,7 +125,7 @@ export class HtmlEditorComponent implements OnInit, OnDestroy {
     this.editor.destroy();
   }
 
-  onKeydown(event) {
+  onKeydown(event: KeyboardEvent) {
     if (event.key === "Enter") {
       this.onUpdate();
     }
@@ -144,7 +145,7 @@ export class HtmlEditorComponent implements OnInit, OnDestroy {
     this.onUpdate();
   }
 
-  setActiveColor(colorStr): boolean {
+  setActiveColor(): boolean {
     return true;
   }
 

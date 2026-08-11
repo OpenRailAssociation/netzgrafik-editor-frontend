@@ -6,6 +6,7 @@ import {UntypedFormControl} from "@angular/forms";
   selector: "sbb-publish-entry",
   templateUrl: "./publish-entry.component.html",
   styleUrls: ["./publish-entry.component.scss"],
+  standalone: false,
 })
 export class PublishEntryComponent {
   @Input() model: PublishEntryModel;

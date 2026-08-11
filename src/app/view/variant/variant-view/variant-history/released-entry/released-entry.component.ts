@@ -7,6 +7,7 @@ import {UserId} from "../version-entry-layout/version-entry-layout.component";
   selector: "sbb-released-entry",
   templateUrl: "./released-entry.component.html",
   styleUrls: ["./released-entry.component.scss"],
+  standalone: false,
 })
 export class ReleasedEntryComponent {
   @Input() model: ReleasedEntryModel;

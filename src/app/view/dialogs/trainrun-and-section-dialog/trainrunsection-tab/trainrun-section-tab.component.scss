@@ -1,5 +1,5 @@
-@import "../../../rastering/definitions";
-@import "../../../editor-main-view/data-views/trainrunsections.view.edgeline";
+@use "../../../rastering/definitions" as *;
+@use "../../../editor-main-view/data-views/trainrunsections.view.edgeline";
 
 ::ng-deep .EditTrainrunSectionDialogHeaderSeparatorLeft {
   width: 40px;
@@ -100,49 +100,19 @@ input.NumberOfStopsInputElement.IsActive {
 ::ng-deep .NodeLeftArrival {
   grid-column: 1/5;
   grid-row: 3;
-}
-
-::ng-deep div.NodeLeftArrival {
-  border: 1px solid var(--sbb-menu-item-label);
-}
-
-::ng-deep .NodeLeftArrivalMinus {
-  grid-column: 1;
-  grid-row: 3;
-}
-
-::ng-deep .NodeLeftArrivalTime {
-  grid-column: 2 / span 2;
-  grid-row: 3;
-}
-
-::ng-deep .NodeLeftArrivalPlus {
-  grid-column: 4;
-  grid-row: 3;
+  &-right {
+    grid-column: 1/5;
+    grid-row: 1;
+  }
 }
 
 ::ng-deep .NodeLeftDeparture {
   grid-column: 2/6;
   grid-row: 1;
-}
-
-::ng-deep div.NodeLeftDeparture {
-  border: 1px solid var(--sbb-menu-item-label);
-}
-
-::ng-deep .NodeLeftDepartureMinus {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-::ng-deep .NodeLeftDepartureTime {
-  grid-column: 3 / span 2;
-  grid-row: 1;
-}
-
-::ng-deep .NodeLeftDeparturePlus {
-  grid-column: 5;
-  grid-row: 1;
+  &-right {
+    grid-column: 2/6;
+    grid-row: 3;
+  }
 }
 
 ::ng-deep .NodeLeftLock {
@@ -154,25 +124,10 @@ input.NumberOfStopsInputElement.IsActive {
 ::ng-deep .NodeRightArrival {
   grid-column: 14/18;
   grid-row: 1;
-}
-
-::ng-deep div.NodeRightArrival {
-  border: 1px solid var(--sbb-menu-item-label);
-}
-
-::ng-deep .NodeRightArrivalMinus {
-  grid-column: 14;
-  grid-row: 1;
-}
-
-::ng-deep .NodeRightArrivalTime {
-  grid-column: 15 / span 2;
-  grid-row: 1;
-}
-
-::ng-deep .NodeRightArrivalPlus {
-  grid-column: 17;
-  grid-row: 1;
+  &-right {
+    grid-column: 14/18;
+    grid-row: 3;
+  }
 }
 
 ::ng-deep .NodeRightLock {
@@ -184,53 +139,64 @@ input.NumberOfStopsInputElement.IsActive {
 ::ng-deep .NodeRightDeparture {
   grid-column: 13/17;
   grid-row: 3;
+  &-right {
+    grid-column: 13/17;
+    grid-row: 1;
+  }
 }
 
-::ng-deep div.NodeRightDeparture {
-  border: 1px solid var(--sbb-menu-item-label);
+::ng-deep .LeftSymmetryToggle {
+  grid-column: 3;
+  grid-row: 2;
+  margin-top: 7px;
+  margin-left: 5px;
+  position: relative;
+  width: 50px;
+  height: 24px;
 }
 
-::ng-deep .NodeRightDepartureMinus {
-  grid-column: 13;
-  grid-row: 3;
+::ng-deep .RightSymmetryToggle {
+  grid-column: 15;
+  grid-row: 2;
+  margin-top: 7px;
+  margin-left: 5px;
+  position: relative;
+  width: 50px;
+  height: 24px;
 }
 
-::ng-deep .NodeRightDepartureTime {
-  grid-column: 14 / span 2;
-  grid-row: 3;
-}
-
-::ng-deep .NodeRightDeparturePlus {
-  grid-column: 16;
-  grid-row: 3;
-}
-
-::ng-deep .TravelTime {
+::ng-deep .TravelTime,
+::ng-deep .TravelTime-right {
   grid-column: 7/11;
   grid-row: 2;
 }
 
-::ng-deep div.TravelTime {
-  border: 1px solid var(--sbb-menu-item-label);
+::ng-deep .TopTravelTime {
+  grid-column: 8/12;
+  grid-row: 1;
+  &-right {
+    grid-column: 8/12;
+    grid-row: 3;
+  }
 }
 
-::ng-deep .TravelTimeMinus {
-  grid-column: 7;
-  grid-row: 2;
-}
-
-::ng-deep .TravelTimeTime {
-  grid-column: 8 / span 2;
-  grid-row: 2;
-}
-
-::ng-deep .TravelTimePlus {
-  grid-column: 10;
-  grid-row: 2;
+::ng-deep .BottomTravelTime {
+  grid-column: 7/11;
+  grid-row: 3;
+  &-right {
+    grid-column: 7/11;
+    grid-row: 1;
+  }
 }
 
 ::ng-deep .TravelTimeLock {
   grid-column: 11;
+  grid-row: 2;
+  background: var(--sbb-header-lean-background-color);
+}
+
+::ng-deep .TopTravelTimeLock {
+  grid-column: 9;
   grid-row: 2;
   background: var(--sbb-header-lean-background-color);
 }
@@ -249,7 +215,9 @@ input.NumberOfStopsInputElement.IsActive {
   shape-rendering: geometricPrecision;
 }
 
-::ng-deep input.InputElement {
+::ng-deep input.InputElement,
+::ng-deep input.InputTravelTimeElement,
+::ng-deep input.InputTravelTimeElementHighlighted {
   padding: 6px;
   width: 64px;
   height: 32px;
@@ -263,26 +231,11 @@ input.NumberOfStopsInputElement.IsActive {
   color: lightgray;
 }
 
-::ng-deep input.InputTravelTimeElement {
-  padding: 6px;
-  width: 63px;
-  height: 30px;
-  border: 0px solid var(--sbb-background-color);
-  text-align: center;
-  margin: 1px;
-}
-
 ::ng-deep input.InputTravelTimeElement:read-only {
   color: lightgray;
 }
 
 ::ng-deep input.InputTravelTimeElementHighlighted {
-  padding: 6px;
-  width: 63px;
-  height: 30px;
-  border: 0px solid var(--sbb-background-color);
-  text-align: center;
-  margin: 1px;
   background: $COLOR_Edit;
   color: white;
 }

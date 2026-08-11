@@ -4,15 +4,29 @@ import {Node} from "../../models/node.model";
 import {ResourceService} from "../../services/data/resource.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
-import {Direction} from "src/app/data-structures/business.data.structures";
 
 export class KnotenAuslastungDataPreparation {
   static MAX_NR_MINUTES = 60;
   static MAX_NR_TRACKS = 50;
 
   private nbrUsedOfTrackFound = -1;
-  private nodeDatas = [];
-  private resourceDatas = [];
+  private nodeDatas: {
+    trainrunSection: TrainrunSection;
+    name: string;
+    tooltip: string;
+    color: number;
+    startAngle: number;
+    endAngle: number;
+    innerRadius: number;
+    outerRadius: number;
+  }[] = [];
+  private resourceDatas: {
+    startAngle: number;
+    endAngle: number;
+    innerRadius: number;
+    outerRadius: number;
+    capacityLimitReached: boolean;
+  }[] = [];
   private matrix: number[][];
 
   constructor(

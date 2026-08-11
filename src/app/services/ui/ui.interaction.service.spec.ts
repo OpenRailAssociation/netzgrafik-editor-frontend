@@ -3,16 +3,14 @@ import {NodeService} from "../data/node.service";
 import {ResourceService} from "../data/resource.service";
 import {TrainrunService} from "../data/trainrun.service";
 import {TrainrunSectionService} from "../data/trainrunsection.service";
-import {StammdatenService} from "../data/stammdaten.service";
+import {BaseDataService} from "../data/basedata.service";
 import {NoteService} from "../data/note.service";
 import {Node} from "../../models/node.model";
-import {TrainrunSection} from "../../models/trainrunsection.model";
 import {LogService} from "../../logger/log.service";
 import {LogPublishersService} from "../../logger/log.publishers.service";
 import {LabelGroupService} from "../data/labelgroup.service";
 import {LabelService} from "../data/label.service";
 import {FilterService} from "./filter.service";
-import {AnalyticsService} from "../analytics/analytics.service";
 import {UiInteractionService} from "./ui.interaction.service";
 import {EditorView} from "../../view/editor-main-view/data-views/editor.view";
 import {EditorMode} from "../../view/editor-menu/editor-mode";
@@ -27,22 +25,20 @@ describe("UiInteractionService", () => {
   let resourceService: ResourceService;
   let trainrunService: TrainrunService;
   let trainrunSectionService: TrainrunSectionService;
-  let stammdatenService: StammdatenService;
+  let baseDataService: BaseDataService;
   let noteService: NoteService;
   let nodes: Node[] = null;
-  let trainrunSections: TrainrunSection[] = null;
   let logService: LogService = null;
   let logPublishersService: LogPublishersService = null;
   let labelGroupService: LabelGroupService = null;
   let labelService: LabelService = null;
-  let analyticsService: AnalyticsService = null;
   let filterService: FilterService = null;
   let uiInteractionService: UiInteractionService = null;
   let netzgrafikColoringService: NetzgrafikColoringService = null;
   let loadPerlenketteService: LoadPerlenketteService = null;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -60,19 +56,13 @@ describe("UiInteractionService", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    analyticsService = new AnalyticsService(
-      nodeService,
-      trainrunSectionService,
-      trainrunService,
-      filterService,
-    );
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,
@@ -91,17 +81,15 @@ describe("UiInteractionService", () => {
       filterService,
       nodeService,
       noteService,
-      stammdatenService,
+      baseDataService,
       trainrunSectionService,
       trainrunService,
       netzgrafikColoringService,
       loadPerlenketteService,
+      dataService,
     );
 
     nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
-    trainrunSectionService.trainrunSections.subscribe(
-      (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
-    );
   });
 
   it("checkFilterNodeLabels", () => {
@@ -119,6 +107,16 @@ describe("UiInteractionService", () => {
     expect(uiInteractionService.getEditorMode()).toBe(EditorMode.Analytics);
     uiInteractionService.setEditorMode(EditorMode.NetzgrafikEditing);
     expect(uiInteractionService.getEditorMode()).toBe(EditorMode.NetzgrafikEditing);
+  });
+
+  it("findClosestNodeToViewCenter", () => {
+    nodeService.deleteAllVisibleNodes();
+    const n1 = nodeService.addNodeWithPosition(100, 100, "Node1", "Node1", [], true);
+    nodeService.addNodeWithPosition(200, 200, "Node2", "Node2", [], true);
+    nodeService.addNodeWithPosition(300, 300, "Node3", "Node3", [], true);
+    const viewboxProperties = uiInteractionService.getViewboxProperties(EditorView.svgName);
+    uiInteractionService.setViewboxProperties(EditorView.svgName, viewboxProperties);
+    expect(uiInteractionService.findClosestNodeToViewCenter(nodes)?.node?.getId()).toBe(n1.getId());
   });
 
   it("createTheme", () => {

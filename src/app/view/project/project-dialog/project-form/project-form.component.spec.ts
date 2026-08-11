@@ -1,4 +1,7 @@
 import {ComponentFixture, TestBed} from "@angular/core/testing";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
+import {SbbChipsModule} from "@sbb-esta/angular/chips";
+import {SbbTextareaModule} from "@sbb-esta/angular/textarea";
 
 import {
   ProjectFormComponent,
@@ -17,7 +20,7 @@ describe("ProjectFormComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [ProjectFormComponent],
-      imports: [I18nModule],
+      imports: [I18nModule, FormsModule, ReactiveFormsModule, SbbChipsModule, SbbTextareaModule],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
   });

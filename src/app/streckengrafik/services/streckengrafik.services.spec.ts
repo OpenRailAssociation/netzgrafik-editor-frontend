@@ -1,5 +1,5 @@
 import {DataService} from "../../services/data/data.service";
-import {StammdatenService} from "../../services/data/stammdaten.service";
+import {BaseDataService} from "../../services/data/basedata.service";
 import {NetzgrafikUnitTesting} from "../../../integration-testing/netzgrafik.unit.testing";
 import {NodeService} from "../../services/data/node.service";
 import {ResourceService} from "../../services/data/resource.service";
@@ -39,7 +39,7 @@ describe("StreckengrafikServicesTests", () => {
   let resourceService: ResourceService;
   let trainrunService: TrainrunService;
   let trainrunSectionService: TrainrunSectionService;
-  let stammdatenService: StammdatenService;
+  let baseDataService: BaseDataService;
   let noteService: NoteService;
   let nodes: Node[] = null;
   let trainrunSections: TrainrunSection[] = null;
@@ -49,7 +49,6 @@ describe("StreckengrafikServicesTests", () => {
   let labelService: LabelService = null;
   let filterService: FilterService = null;
   let netzgrafikColoringService: NetzgrafikColoringService = null;
-  let gotFilterChangedSignal = false;
 
   let sg5FilterService: Sg5FilterService;
   let sg6TrackService: Sg6TrackService;
@@ -63,7 +62,7 @@ describe("StreckengrafikServicesTests", () => {
   let sgStopService: SgStopService;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -81,13 +80,13 @@ describe("StreckengrafikServicesTests", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,
@@ -100,7 +99,6 @@ describe("StreckengrafikServicesTests", () => {
     trainrunSectionService.trainrunSections.subscribe(
       (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
     );
-    filterService.filter.subscribe(() => (gotFilterChangedSignal = true));
 
     loadPerlenketteService = new LoadPerlenketteService(
       trainrunService,
@@ -113,11 +111,12 @@ describe("StreckengrafikServicesTests", () => {
       filterService,
       nodeService,
       noteService,
-      stammdatenService,
+      baseDataService,
       trainrunSectionService,
       trainrunService,
       netzgrafikColoringService,
       loadPerlenketteService,
+      dataService,
     );
 
     isTrainrunSelectedService = new IsTrainrunSelectedService(trainrunService);
@@ -480,6 +479,7 @@ describe("StreckengrafikServicesTests", () => {
       pathSection.arrivalTime,
       fromNode.getId(),
       fromNode.getBetriebspunktName(),
+      fromNode.getFullName(),
       1,
       new TrackData(1),
       false,
@@ -489,6 +489,7 @@ describe("StreckengrafikServicesTests", () => {
       pathSection.arrivalTime,
       toNode.getId(),
       toNode.getBetriebspunktName(),
+      toNode.getFullName(),
       1,
       new TrackData(1),
       false,

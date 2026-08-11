@@ -19,6 +19,7 @@ import {
   selector: "[sbb-train-run-item]",
   templateUrl: "./train-run-item.component.html",
   styleUrls: ["./train-run-item.component.scss"],
+  standalone: false,
 })
 export class TrainRunItemComponent implements OnInit, OnDestroy, UpdateCounterHandler {
   @Input()

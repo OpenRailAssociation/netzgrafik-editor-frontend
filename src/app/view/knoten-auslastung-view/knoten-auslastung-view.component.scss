@@ -1,4 +1,4 @@
-@import "../rastering/definitions";
+@use "../rastering/definitions" as *;
 
 ::ng-deep path.KnotenAuslastungResourceGroup {
   stroke: none;

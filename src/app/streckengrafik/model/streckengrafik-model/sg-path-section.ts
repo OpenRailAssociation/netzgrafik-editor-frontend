@@ -17,7 +17,7 @@ export class SgPathSection implements SgPath {
     public departureNodeShortName: string,
     public arrivalNodeShortName: string,
     public trackData: TrackData,
-    public filter,
+    public filter: boolean,
     public trackOccupier = false,
     public xZoom: number = 0,
     public startPosition: number = 0,

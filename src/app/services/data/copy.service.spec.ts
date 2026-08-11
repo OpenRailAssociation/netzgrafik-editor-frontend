@@ -3,10 +3,8 @@ import {NodeService} from "../data/node.service";
 import {ResourceService} from "../data/resource.service";
 import {TrainrunService} from "../data/trainrun.service";
 import {TrainrunSectionService} from "../data/trainrunsection.service";
-import {StammdatenService} from "../data/stammdaten.service";
+import {BaseDataService} from "../data/basedata.service";
 import {NoteService} from "../data/note.service";
-import {Node} from "../../models/node.model";
-import {TrainrunSection} from "../../models/trainrunsection.model";
 import {LogService} from "../../logger/log.service";
 import {LogPublishersService} from "../../logger/log.publishers.service";
 import {LabelGroupService} from "../data/labelgroup.service";
@@ -26,10 +24,8 @@ describe("CopyService", () => {
   let resourceService: ResourceService;
   let trainrunService: TrainrunService;
   let trainrunSectionService: TrainrunSectionService;
-  let stammdatenService: StammdatenService;
+  let baseDataService: BaseDataService;
   let noteService: NoteService;
-  let nodes: Node[] = null;
-  let trainrunSections: TrainrunSection[] = null;
   let logService: LogService = null;
   let logPublishersService: LogPublishersService = null;
   let labelGroupService: LabelGroupService = null;
@@ -42,7 +38,7 @@ describe("CopyService", () => {
   let undoService: UndoService = null;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -60,22 +56,18 @@ describe("CopyService", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,
       filterService,
       netzgrafikColoringService,
-    );
-    nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
-    trainrunSectionService.trainrunSections.subscribe(
-      (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
     );
 
     loadPerlenketteService = new LoadPerlenketteService(
@@ -89,11 +81,12 @@ describe("CopyService", () => {
       filterService,
       nodeService,
       noteService,
-      stammdatenService,
+      baseDataService,
       trainrunSectionService,
       trainrunService,
       netzgrafikColoringService,
       loadPerlenketteService,
+      dataService,
     );
 
     undoService = new UndoService(
@@ -187,7 +180,7 @@ describe("CopyService", () => {
     nodeService.selectNode(2);
     noteService.selectNote(3);
 
-    const copiedNetzgrafik = copyService.copyCurrentVisibleNetzgrafik();
+    copyService.copyCurrentVisibleNetzgrafik();
     uiInteractionService.setEditorMode(EditorMode.NetzgrafikEditing);
     nodeService.deleteAllVisibleNodes();
     noteService.deleteAllVisibleNotes();

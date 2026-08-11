@@ -26,6 +26,7 @@ export enum IconSidebarMode {
   selector: "sbb-netzgrafik-editor",
   templateUrl: "./netzgrafik-application.component.html",
   styleUrls: ["./netzgrafik-application.component.scss"],
+  standalone: false,
 })
 export class NetzgrafikApplicationComponent {
   mode = IconSidebarMode.NONE;

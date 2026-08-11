@@ -7,21 +7,21 @@ class DummySVGMouseControllerObserver implements SVGMouseControllerObserver {
     return true;
   }
 
-  onGraphContainerMouseup(mousePosition: Vec2D, onPaning: boolean) {}
+  onGraphContainerMouseup() {}
 
-  zoomFactorChanged(newZoomFactor: number) {}
+  zoomFactorChanged() {}
 
-  onViewboxChanged(viewboxProperties: ViewboxProperties) {}
+  onViewboxChanged() {}
 
   onStartMultiSelect() {}
 
-  updateMultiSelect(topLeft: Vec2D, bottomRight: Vec2D) {}
+  updateMultiSelect() {}
 
   onEndMultiSelect() {}
 
-  onScaleNetzgrafik(factor: number, scaleCenter: Vec2D) {}
+  onScaleNetzgrafik() {}
 
-  onCtrlKeyChanged(state: boolean) {}
+  onCtrlKeyChanged() {}
 }
 
 describe("general view functions", () => {

@@ -86,7 +86,7 @@ Filtering nodes with filterable labels
 
 </details>
 
-#### Modifiy filterable labels
+#### Modify filterable labels
 
 [2024-1-25-Filtering-Modify_Labelgroups_003.webm](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/assets/2674075/d9fd62d5-3233-425c-8489-d80c7fe6f558)
 

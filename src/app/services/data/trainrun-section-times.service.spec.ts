@@ -3,10 +3,9 @@ import {NodeService} from "../data/node.service";
 import {ResourceService} from "../data/resource.service";
 import {TrainrunService} from "../data/trainrun.service";
 import {TrainrunSectionService} from "../data/trainrunsection.service";
-import {StammdatenService} from "../data/stammdaten.service";
+import {BaseDataService} from "../data/basedata.service";
 import {NoteService} from "../data/note.service";
-import {Node} from "../../models/node.model";
-import {TrainrunSection} from "../../models/trainrunsection.model";
+import {DirectedTrainrunSectionProxy} from "../util/trainrun.iterator";
 import {LogService} from "../../logger/log.service";
 import {LogPublishersService} from "../../logger/log.publishers.service";
 import {LabelGroupService} from "../data/labelgroup.service";
@@ -23,10 +22,8 @@ describe("TrainrunSectionTimesService", () => {
   let resourceService: ResourceService;
   let trainrunService: TrainrunService;
   let trainrunSectionService: TrainrunSectionService;
-  let stammdatenService: StammdatenService;
+  let baseDataService: BaseDataService;
   let noteService: NoteService;
-  let nodes: Node[];
-  let trainrunSections: TrainrunSection[];
   let logService: LogService;
   let logPublishersService: LogPublishersService;
   let labelGroupService: LabelGroupService;
@@ -37,7 +34,7 @@ describe("TrainrunSectionTimesService", () => {
   let trainrunSectionTimesService: TrainrunSectionTimesService;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -55,13 +52,13 @@ describe("TrainrunSectionTimesService", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,
@@ -81,11 +78,6 @@ describe("TrainrunSectionTimesService", () => {
       loadPerlenketteService,
     );
 
-    nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
-    trainrunSectionService.trainrunSections.subscribe(
-      (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
-    );
-
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
   });
 
@@ -100,6 +92,7 @@ describe("TrainrunSectionTimesService", () => {
           rightDepartureTime: 38,
           rightArrivalTime: 22,
           travelTime: 10,
+          bottomTravelTime: 10,
         },
       },
       {
@@ -111,6 +104,7 @@ describe("TrainrunSectionTimesService", () => {
           rightDepartureTime: 0,
           rightArrivalTime: 0,
           travelTime: 10,
+          bottomTravelTime: 10,
         },
       },
       {
@@ -122,6 +116,7 @@ describe("TrainrunSectionTimesService", () => {
           rightDepartureTime: 11,
           rightArrivalTime: 49,
           travelTime: 49,
+          bottomTravelTime: 49,
         },
       },
     ];
@@ -144,6 +139,7 @@ describe("TrainrunSectionTimesService", () => {
       rightDepartureTime: 38,
       rightArrivalTime: 22,
       travelTime: 10,
+      bottomTravelTime: 10,
     };
 
     const onChanged = {
@@ -207,6 +203,7 @@ describe("TrainrunSectionTimesService", () => {
           rightDepartureTime: 28,
           rightArrivalTime: 32,
           travelTime: 20,
+          bottomTravelTime: 20,
         },
       },
       {
@@ -218,6 +215,7 @@ describe("TrainrunSectionTimesService", () => {
           leftDepartureTime: 15,
           leftArrivalTime: 45,
           travelTime: 7,
+          bottomTravelTime: 7,
         },
       },
       {
@@ -229,6 +227,7 @@ describe("TrainrunSectionTimesService", () => {
           leftDepartureTime: 14,
           leftArrivalTime: 46,
           travelTime: 8,
+          bottomTravelTime: 8,
         },
       },
       {
@@ -240,8 +239,10 @@ describe("TrainrunSectionTimesService", () => {
           leftDepartureTime: 2,
           leftArrivalTime: 58,
           travelTime: 20,
+          bottomTravelTime: 20,
         },
       },
+
       // negative times tests
       {
         key: "leftDepartureTime" as const,
@@ -287,20 +288,150 @@ describe("TrainrunSectionTimesService", () => {
           rightArrivalTime: 3,
         },
       },
+
+      // asymmetric tests
+      {
+        leftAsymmetry: true,
+        key: "leftDepartureTime" as const,
+        value: 15,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          leftArrivalTime: 45,
+          rightDepartureTime: 35,
+          rightArrivalTime: 25,
+        },
+      },
+      {
+        leftAsymmetry: true,
+        leftLock: true,
+        key: "leftDepartureTime" as const,
+        value: 15,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          rightDepartureTime: 35,
+          rightArrivalTime: 25,
+          bottomTravelTime: 13,
+        },
+      },
+      {
+        rightLock: true,
+        leftAsymmetry: true,
+        key: "leftDepartureTime" as const,
+        value: 15,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          travelTime: 7,
+        },
+      },
+      {
+        leftAsymmetry: true,
+        rightAsymmetry: true,
+        key: "leftDepartureTime" as const,
+        value: 15,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 15,
+          rightArrivalTime: 25,
+        },
+      },
+      {
+        rightAsymmetry: true,
+        key: "travelTime" as const,
+        value: 20,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          rightArrivalTime: 32,
+          travelTime: 20,
+        },
+      },
+      {
+        leftAsymmetry: true,
+        rightLock: true,
+        key: "travelTime" as const,
+        value: 20,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 2,
+          travelTime: 20,
+        },
+      },
+      {
+        rightAsymmetry: true,
+        key: "rightArrivalTime" as const,
+        value: 3,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 53,
+          leftArrivalTime: 7,
+          rightDepartureTime: 57,
+          rightArrivalTime: 3,
+        },
+      },
+      {
+        rightLock: true,
+        rightAsymmetry: true,
+        key: "rightArrivalTime" as const,
+        value: 3,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 53,
+          leftArrivalTime: 7,
+          rightArrivalTime: 3,
+          bottomTravelTime: 29,
+        },
+      },
+      {
+        leftAsymmetry: true,
+        rightAsymmetry: true,
+        key: "rightArrivalTime" as const,
+        value: 3,
+        expectedTimeStructure: {
+          ...originalTimeStructure,
+          leftDepartureTime: 53,
+          rightArrivalTime: 3,
+        },
+      },
     ];
 
-    for (const {rightLock, key, value, expectedTimeStructure} of testCases) {
-      const rightLockDesc = rightLock ? "with rightLock" : "";
-      it(`set ${key} to ${value} ${rightLockDesc}`, () => {
+    for (const {
+      leftLock,
+      rightLock,
+      leftAsymmetry,
+      rightAsymmetry,
+      key,
+      value,
+      expectedTimeStructure,
+    } of testCases) {
+      const options = {
+        leftLock,
+        rightLock,
+        leftAsymmetry,
+        rightAsymmetry,
+      };
+      const optionsDesc = Object.entries(options)
+        .filter(([_, enabled]) => enabled)
+        .map(([option]) => `with ${option}`)
+        .join(" ");
+      it(`set ${key} to ${value} ${optionsDesc}`, () => {
         const ts = trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
         trainrunSectionTimesService.setTrainrunSection(ts);
 
         // Apply the lock update, if any
-        if (rightLock) {
+        if (leftLock || rightLock) {
           const lockStructure = trainrunSectionTimesService.getLockStructure();
           lockStructure.travelTimeLock = false;
-          lockStructure.rightLock = true;
+          lockStructure.leftLock = leftLock;
+          lockStructure.rightLock = rightLock;
           trainrunSectionTimesService.updateTrainrunSectionTimeLock();
+        }
+
+        // Apply the symmetry update, if any
+        if (leftAsymmetry || rightAsymmetry) {
+          trainrunSectionTimesService.onLeftNodeSymmetryToggle(!leftAsymmetry);
+          trainrunSectionTimesService.onRightNodeSymmetryToggle(!rightAsymmetry);
         }
 
         // Apply the time update
@@ -342,5 +473,155 @@ describe("TrainrunSectionTimesService", () => {
       const updatedTimeStructure = trainrunSectionTimesService.getTimeStructure();
       expect(updatedTimeStructure.travelTime).toEqual(127);
     });
+  });
+
+  it("re-enable symmetry on left node", () => {
+    const ts = trainrunSectionService.getTrainrunSectionFromId(1);
+    trainrunSectionTimesService.setTrainrunSection(ts);
+
+    // Disable symmetry on both sides
+    trainrunSectionTimesService.onLeftNodeSymmetryToggle(false);
+    trainrunSectionTimesService.onRightNodeSymmetryToggle(false);
+
+    // Change bottom travel time, left arrival time should get updated and
+    // loose its symmetry
+    const timeStructure = trainrunSectionTimesService.getTimeStructure();
+    const originalTimeStructure = {...timeStructure};
+    timeStructure.bottomTravelTime = 15;
+    trainrunSectionTimesService.onBottomTravelTimeChanged();
+    expect(trainrunSectionTimesService.getTimeStructure()).toEqual({
+      ...originalTimeStructure,
+      bottomTravelTime: 15,
+      leftDepartureTime: 12,
+      leftArrivalTime: 53,
+    });
+
+    // Enable symmetry on the left, left arrival time should get updated to be
+    // symmetrical again
+    trainrunSectionTimesService.onLeftNodeSymmetryToggle(true);
+    expect(trainrunSectionTimesService.getTimeStructure()).toEqual({
+      ...originalTimeStructure,
+      bottomTravelTime: 15,
+      leftDepartureTime: 7,
+      leftArrivalTime: 53,
+      rightArrivalTime: 17,
+    });
+  });
+
+  // Regression test for https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1141
+  it("toggle symmetry on non-stop node", () => {
+    // IC1 has two sections, grab 'em
+    const leftSection = trainrunSectionService.getTrainrunSectionFromId(0);
+    const rightSection = trainrunSectionService.getTrainrunSectionFromId(1);
+    // Fetch all relevant nodes: BN, OL, ZUE
+    const leftNode = nodeService.getNodeFromId(0);
+    const middleNode = nodeService.getNodeFromId(1);
+    const rightNode = nodeService.getNodeFromId(2);
+
+    const leftDirectedSection = new DirectedTrainrunSectionProxy(leftSection, "sourceToTarget");
+    const rightDirectedSection = new DirectedTrainrunSectionProxy(rightSection, "sourceToTarget");
+
+    // Mark the transition between these two sections as non-stop
+    const port = middleNode
+      .getPorts()
+      .find((port) => port.getTrainrunSectionId() === leftSection.getId())!;
+    const transition = middleNode.getTransitions().find((t) => t.getPortId1() === port.getId())!;
+    nodeService.toggleNonStop(middleNode.getId(), transition.getId());
+
+    // Disable symmetry on both sides of the middle node
+    leftSection.setTargetSymmetry(false);
+    rightSection.setSourceSymmetry(false);
+
+    // Initialize times
+    trainrunSectionService.setTimeStructureToSingleTrainrunSection(leftDirectedSection, {
+      leftDepartureTime: 40,
+      travelTime: 29,
+      rightArrivalTime: 9,
+      rightDepartureTime: 52,
+      bottomTravelTime: 88,
+      leftArrivalTime: 20,
+    });
+    trainrunSectionService.setTimeStructureToSingleTrainrunSection(rightDirectedSection, {
+      leftDepartureTime: 9,
+      travelTime: 43,
+      rightArrivalTime: 52,
+      rightDepartureTime: 8,
+      bottomTravelTime: 44,
+      leftArrivalTime: 52,
+    });
+
+    // Check consecutive times
+    expect(leftSection.getSourceDepartureConsecutiveTime()).toBe(40);
+    expect(leftSection.getTargetArrivalConsecutiveTime()).toBe(69);
+    expect(leftSection.getTargetDepartureConsecutiveTime()).toBe(112);
+    expect(leftSection.getSourceArrivalConsecutiveTime()).toBe(200);
+    expect(rightSection.getSourceDepartureConsecutiveTime()).toBe(69);
+    expect(rightSection.getTargetArrivalConsecutiveTime()).toBe(112);
+    expect(rightSection.getTargetDepartureConsecutiveTime()).toBe(68);
+    expect(rightSection.getSourceArrivalConsecutiveTime()).toBe(112);
+
+    // Re-enable symmetry for the left section
+    trainrunSectionTimesService.setNodesOrdered([leftNode, middleNode]);
+    trainrunSectionTimesService.setTrainrunSection(leftSection);
+    trainrunSectionTimesService.onRightNodeSymmetryToggle(true);
+
+    // Re-enable symmetry for the right section
+    trainrunSectionTimesService.setNodesOrdered([middleNode, rightNode]);
+    trainrunSectionTimesService.setTrainrunSection(rightSection);
+    trainrunSectionTimesService.onLeftNodeSymmetryToggle(true);
+
+    // Check times displayed to the user
+    expect(leftSection.getSourceDeparture()).toBe(40);
+    expect(leftSection.getTravelTime()).toBe(29);
+    expect(leftSection.getTargetArrival()).toBe(9);
+    expect(leftSection.getTargetDeparture()).toBe(51);
+    expect(leftSection.getBackwardTravelTime()).toBe(29);
+    expect(leftSection.getSourceArrival()).toBe(20);
+    expect(rightSection.getSourceDeparture()).toBe(9);
+    expect(rightSection.getTravelTime()).toBe(43);
+    expect(rightSection.getTargetArrival()).toBe(52);
+    expect(rightSection.getTargetDeparture()).toBe(8);
+    expect(rightSection.getBackwardTravelTime()).toBe(43);
+    expect(rightSection.getSourceArrival()).toBe(51);
+
+    // Check consecutive times
+    expect(leftSection.getSourceDepartureConsecutiveTime()).toBe(40);
+    expect(leftSection.getTargetArrivalConsecutiveTime()).toBe(69);
+    expect(leftSection.getTargetDepartureConsecutiveTime()).toBe(111);
+    expect(leftSection.getSourceArrivalConsecutiveTime()).toBe(140);
+    expect(rightSection.getSourceDepartureConsecutiveTime()).toBe(69);
+    expect(rightSection.getTargetArrivalConsecutiveTime()).toBe(112);
+    expect(rightSection.getTargetDepartureConsecutiveTime()).toBe(68);
+    expect(rightSection.getSourceArrivalConsecutiveTime()).toBe(111);
+  });
+
+  it("Test getTimeButtonPlusStep", () => {
+    expect(0.4).toBe(trainrunSectionTimesService.getTimeButtonPlusStep(0.6));
+    expect(0.6).toBe(trainrunSectionTimesService.getTimeButtonPlusStep(0.4));
+    expect(1.0).toBe(trainrunSectionTimesService.getTimeButtonPlusStep(1.0));
+    expect(1.0).toBe(trainrunSectionTimesService.getTimeButtonPlusStep(2.0));
+
+    let inputVal = 5.6;
+    inputVal = inputVal + trainrunSectionTimesService.getTimeButtonPlusStep(inputVal);
+    expect(inputVal).toBe(6);
+    inputVal = inputVal + trainrunSectionTimesService.getTimeButtonPlusStep(inputVal);
+    expect(inputVal).toBe(7);
+    inputVal = inputVal + trainrunSectionTimesService.getTimeButtonPlusStep(inputVal);
+    expect(inputVal).toBe(8);
+  });
+
+  it("Test getTimeButtonMinusStep", () => {
+    expect(0.4).toBe(trainrunSectionTimesService.getTimeButtonMinusStep(0.4));
+    expect(0.6).toBe(trainrunSectionTimesService.getTimeButtonMinusStep(0.6));
+    expect(1.0).toBe(trainrunSectionTimesService.getTimeButtonMinusStep(1.0));
+    expect(1.0).toBe(trainrunSectionTimesService.getTimeButtonMinusStep(2.0));
+
+    let inputVal = 5.6;
+    inputVal = inputVal - trainrunSectionTimesService.getTimeButtonMinusStep(inputVal);
+    expect(inputVal).toBe(5);
+    inputVal = inputVal - trainrunSectionTimesService.getTimeButtonMinusStep(inputVal);
+    expect(inputVal).toBe(4);
+    inputVal = inputVal - trainrunSectionTimesService.getTimeButtonMinusStep(inputVal);
+    expect(inputVal).toBe(3);
   });
 });

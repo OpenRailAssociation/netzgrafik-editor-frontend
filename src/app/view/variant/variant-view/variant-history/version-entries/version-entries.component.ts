@@ -9,6 +9,7 @@ import {SnapshotEntryModel} from "../snapshot-entry/snapshot-entry.component";
   selector: "sbb-version-entries",
   templateUrl: "./version-entries.component.html",
   styleUrls: ["./version-entries.component.scss"],
+  standalone: false,
 })
 export class VersionEntriesComponent implements OnInit {
   private static SHOW_MORE_JUNK_SIZE = 3;

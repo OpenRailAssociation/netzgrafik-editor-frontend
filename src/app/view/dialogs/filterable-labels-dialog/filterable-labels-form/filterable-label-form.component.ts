@@ -6,6 +6,7 @@ import {Validators} from "@angular/forms";
   selector: "sbb-filterable-label-form",
   templateUrl: "./filterable-label-form.component.html",
   styleUrls: ["./filterable-label-form.component.scss"],
+  standalone: false,
 })
 export class FilterableLabelFormComponent implements OnInit {
   @Input() model!: FormModel<FilterableLabelsFormComponentModel>;
@@ -14,7 +15,7 @@ export class FilterableLabelFormComponent implements OnInit {
     this.model.registerValidator("name", Validators.required);
   }
 
-  onKeydown(event) {
+  onKeydown(event: KeyboardEvent) {
     if (event.key === "Enter") {
       event.preventDefault();
       this.onUpdate();
@@ -30,8 +31,8 @@ export class FilterableLabelFormComponent implements OnInit {
 export interface FilterableLabelsFormComponentModel {
   name: string;
   dialogTitle: string;
-  saveLabelCallback;
-  deleteLabelCallback;
-  transferLabelCallback;
-  updateLabelCallback?;
+  saveLabelCallback: (newLabel: string) => void;
+  deleteLabelCallback: (originalLabel: string) => void;
+  transferLabelCallback: (originalLabel: string) => void;
+  updateLabelCallback?: (value: string) => void;
 }

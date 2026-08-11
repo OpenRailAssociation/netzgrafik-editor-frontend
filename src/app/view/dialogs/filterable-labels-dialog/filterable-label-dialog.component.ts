@@ -11,16 +11,20 @@ import {UiInteractionService} from "../../../services/ui/ui.interaction.service"
   selector: "sbb-filterable-label-dialog",
   templateUrl: "./filterable-label-dialog.component.html",
   styleUrls: ["./filterable-label-dialog.component.scss"],
+  standalone: false,
 })
 export class FilterableLabelDialogComponent implements OnDestroy {
   readonly formModel: FormModel<FilterableLabelsFormComponentModel>;
   public dialogTitle: string = "";
   private destroyed = new Subject<void>();
-  private deleteLabelCallback = null;
-  private transferLabelCallback = null;
-  private saveLabelCallback = null;
+  private deleteLabelCallback: ((originalLabel: string) => void) | null = null;
+  private transferLabelCallback: ((originalLabel: string) => void) | null = null;
+  private saveLabelCallback: ((newLabel: string) => void) | null = null;
   private originalLabel: string;
-  private currentDialog = null;
+  private currentDialog: SbbDialogRef<
+    FilterableLabelDialogComponent,
+    FilterableLabelsFormComponentModel
+  > = null;
 
   constructor(
     private uiInteractionService: UiInteractionService,
@@ -101,7 +105,7 @@ export class FilterableLabelDialogComponent implements OnDestroy {
   private updateLabel() {
     this.formModel.tryGetValid();
     const labelValue: string = this.formModel.getControl("name").value;
-    this.saveLabelCallback(this.originalLabel, labelValue);
+    this.saveLabelCallback(labelValue);
     this.originalLabel = labelValue;
   }
 }

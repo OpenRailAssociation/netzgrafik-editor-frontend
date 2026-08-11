@@ -16,7 +16,7 @@
         (click)="onColor(color)"
         [title]="getColorTitle(color)"
         [style]="getColorStyle(color)"
-        [ngClass]="{'NgxEditor__Color--Active': setActiveColor(color)}"
+        [ngClass]="{'NgxEditor__Color--Active': setActiveColor()}"
       >
         {{ getColorButtonText(color) }}
       </button>

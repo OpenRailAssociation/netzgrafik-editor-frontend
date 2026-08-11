@@ -19,6 +19,8 @@
     "logger": {
       "title": "Title"
     },
+    "left": "Left",
+    "right": "Right",
     "models": {
       "node": {
         "shortNameDefault": "NEW",
@@ -68,6 +70,9 @@
             "title": "Intermediate stop replacement",
             "description": "Intermediate stop replacement led to inconsistencies in the allocation of times!"
           }
+        },
+        "version-control": {
+          "new-name-comment": "New name: {$PH}"
         }
       },
       "ui": {
@@ -96,8 +101,8 @@
             "description": "Source arrival time cannot be reached"
           },
           "travel-time-less-than-1": {
-            "title": "Travel Time less than 1",
-            "description": "Travel time must be greater than or equal to 1"
+            "title": "Travel Time less than {$minimumTravelTime}",
+            "description": "Travel time must be greater than or equal to {$minimumTravelTime}"
           }
         },
         "transition-validator": {
@@ -251,20 +256,27 @@
             "name": "Name"
           }
         },
-        "stammdaten-dialog": {
+        "basedata-dialog": {
           "base-data": "Base data",
-          "operationalPoint": "Operational point",
-          "ipv-stop-time": "IPV stop time",
-          "a-stop-time": "A stop time",
-          "b-stop-time": "B stop time",
-          "c-stop-time": "C stop time",
-          "d-stop-time": "D stop time",
-          "zaz": "ZAZ",
+          "betriebspunktName": "Operational point",
+          "stationName": "Station name",
+          "ipv-stop-time": "Minimum stop time IPV",
+          "a-stop-time": "Minimum stop time A",
+          "b-stop-time": "Minimum stop time B",
+          "c-stop-time": "Minimum stop time C",
+          "d-stop-time": "Minimum stop time D",
+          "stop-flag-ipv": "Passing through station IPV",
+          "stop-flag-a": "Passing through station A",
+          "stop-flag-b": "Passing through station B",
+          "stop-flag-c": "Passing through station C",
+          "stop-flag-d": "Passing through station D",
+          "zaz": "ZAZ (Train dispatching time)",
           "connection-time": "Connection time",
           "region": "Region",
           "category": "Category",
           "filterable-labels": "Filterable labels",
           "position": "Position",
+          "create": "Create",
           "close": "Close"
         },
         "trainrun-and-section-dialog": {
@@ -325,6 +337,16 @@
         "align-elements-right": "Align right",
         "align-elements-top": "Align top",
         "align-elements-bottom": "Align bottom",
+        "node-optimization-disposition-title": "Netzgrafik - Node positions",
+        "optimization-netzgrafik-tooltip": "Stretch the netzgrafik so that no edge is shorter than the minimum edge length of the trainruns.",
+        "optimize-layout": "Stretch the netzgrafik",
+        "inverse_optimization-netzgrafik-tooltip": "Compress the netzgrafik so that no edge is unnecessarily longer than the minimum edge length.",
+        "inverse_optimization-netzgrafik": "Compress the netzgrafik",
+        "node-optimization-title": "Netzgrafik - Node port ordering algorithm",
+        "alphabeticalOrdering": "Alphabetical",
+        "alphabeticalOrderingTooltip": "Order ports alphabetically by train categories.",
+        "crossingAwareOrdering": "Crossing aware",
+        "crossingAwareOrderingTooltip": "Minimizes crossings of trainruns within the nodes.",
         "delete": "Delete",
         "on-clear-delete-all-non-visible-elements": "Should all non-visible elements be permanently deleted from the netzgrafik?",
         "on-clear-delete-all-visible-elements": "Should all visible elements be permanently deleted from the netzgrafik?",
@@ -343,7 +365,7 @@
         "filter": "Filter",
         "general": "General",
         "category": "Category",
-        "frequency": "Frequence",
+        "frequency": "Frequency",
         "time-category": "Time category",
         "display-all-trainruns": "Display all trainruns",
         "reset-trainrun-filter": "Reset trainrun filter",
@@ -355,6 +377,8 @@
         "round-trips": "round trips",
         "one-ways": "one-ways",
         "display-direction-arrows": "Display trainrun direction arrows",
+        "display-asymmetry-arrows": "Display trainrun section asymmetry arrows at nodes",
+        "display-backward-travel-times": "Display backward travel times (asymmetry)",
         "times": "Times",
         "decimal-displayed": "Number of decimal place displayed",
         "display-arrival-departure-times": "Display departure and arrival times",
@@ -366,6 +390,7 @@
         "nodes": "Nodes",
         "display-nodes-without-visible-trainruns": "Display nodes without (visible) trainruns",
         "display-nodes-with-only-stopping-trainruns": "Display nodes with only stopping trainruns",
+        "display-nodes-full-name": "Display nodes full name",
         "notes": "Notes",
         "display-notes": "Display notes",
         "reset-display-filter": "Reset display filter",
@@ -383,6 +408,12 @@
         "symmetry": "Symmetry",
         "show-direction": "Show {$direction}",
         "hide-direction": "Hide {$direction}",
+        "show-symmetric-trainruns": "Show symmetric trainruns",
+        "hide-symmetric-trainruns": "Hide symmetric trainruns",
+        "show-asymmetric-trainruns": "Show asymmetric trainruns",
+        "hide-asymmetric-trainruns": "Hide asymmetric trainruns",
+        "symmetric-short": "Sym.",
+        "asymmetric-short": "Asym.",
         "filterable-label-filter": {
           "no-labels-available": "No labels available",
           "or": "Or",
@@ -443,7 +474,10 @@
         "fixed": "Constant 1min",
         "fixedTooltip": "Adopts the travel time with a constant 1min (default).",
         "retrieveFromEdge": "Section travel time",
-        "retrieveFromEdgeTooltip": "Takes over the max. travel time on the same section of all trains of the same category, otherwise max. travel time of all trains, otherwise 1 min."
+        "retrieveFromEdgeTooltip": "Takes over the max. travel time on the same section of all trains of the same category, otherwise max. travel time of all trains, otherwise 1 min.",
+        "trafficSide": "Traffic side",
+        "leftTrafficSideTooltip": "Trains are operated according to left-hand running conventions.",
+        "rightTrafficSideTooltip": "Trains are operated according to right-hand running conventions."
       },
       "editor-side-view": {
         "editor-node-detail-view": {
@@ -494,6 +528,7 @@
           "export-trainruns-as-csv-excel": "In Excel: Data -> From Text/CSV -> Import ... filename",
           "export-origin-destination": "Export origin-destination",
           "export-origin-destination-as-csv": "Export origin-destination as CSV",
+          "import-basedata-legacy-info": "Legacy base data imported - please have a look into the documentation and update your stammdaten files to ensure that future version still supports the data import",
           "base-data": "Base data",
           "import-base-data": "Import base data",
           "help-csv-data": "Help: CSV - Data",
@@ -516,7 +551,7 @@
           "yes": "YES",
           "netzgrafikFile": "networkGraphic",
           "spaceTimeChartFile": "spaceTimeChart",
-          "baseDataFile": "baseData",
+          "baseDataFile": "basedaten",
           "trainrunFile": "trainrun",
           "originDestinationFile": "originDestination",
           "trainCategory": "Train category",
@@ -524,7 +559,7 @@
           "startStation": "Start station",
           "destinationStation": "Destination station",
           "trafficPeriod": "Traffic period",
-          "frequence": "Frequence",
+          "frequency": "Frequency",
           "departureMinuteAtStart": "Minute of departure at start node",
           "travelTimeStartDestination": "Travel time start-destination",
           "arrivalMinuteAtDestination": "Arrival minute at destination node",
@@ -664,7 +699,7 @@
           },
           "undo-archiving": "Undo archiving",
           "delete-project": {
-            "title": "Delete projekt",
+            "title": "Delete project",
             "content": "Do you want to permanently delete the project and all the variants it contains? This action cannot be undone."
           },
           "archive": "Archive",
@@ -680,7 +715,8 @@
             "title": "Archive variant",
             "content": "Would you like to undo the archiving of the project?"
           },
-          "error-unexpected-data": "Unexpected data: No snapshot and no released version."
+          "error-unexpected-data": "Unexpected data: No snapshot and no released version.",
+          "new-name-comment": "New name: {$PH}"
         }
       }
     }

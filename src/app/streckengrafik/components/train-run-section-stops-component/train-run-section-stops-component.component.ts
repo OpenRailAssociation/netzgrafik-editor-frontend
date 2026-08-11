@@ -11,6 +11,7 @@ import {ScaledPath} from "../train-run-section/train-run-section.component";
   selector: "[sbb-train-run-section-stops-component]",
   templateUrl: "./train-run-section-stops-component.component.html",
   styleUrls: ["./train-run-section-stops-component.component.scss"],
+  standalone: false,
 })
 export class TrainRunSectionStopsComponentComponent {
   @Input()

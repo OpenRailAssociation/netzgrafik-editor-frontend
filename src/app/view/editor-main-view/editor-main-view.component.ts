@@ -34,6 +34,7 @@ import {NoteDialogParameter, NoteDialogType} from "../dialogs/note-dialog/note-d
 import {AnalyticsService} from "../../services/analytics/analytics.service";
 import {Note} from "../../models/note.model";
 import {LogService} from "../../logger/log.service";
+import {DataService} from "../../services/data/data.service";
 import {UndoService} from "../../services/data/undo.service";
 import {CopyService} from "../../services/data/copy.service";
 import {StreckengrafikDrawingContext} from "../../streckengrafik/model/util/streckengrafik.drawing.context";
@@ -43,11 +44,13 @@ import {LevelOfDetailService} from "../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../services/ui/viewport.cull.service";
 import {VersionControlService} from "../../services/data/version-control.service";
 import {PositionTransformationService} from "../../services/util/position.transformation.service";
+import {AutoLayoutService} from "../../services/util/auto-layout.service";
 
 @Component({
   selector: "sbb-editor-main-view",
   templateUrl: "./editor-main-view.component.html",
   styleUrls: ["./editor-main-view.component.scss"],
+  standalone: false,
 })
 export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
   /* MVC/MVVM structure:
@@ -71,6 +74,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     private uiInteractionService: UiInteractionService,
     private noteService: NoteService,
     private analyticsService: AnalyticsService,
+    private dataService: DataService,
     private undoService: UndoService,
     private copyService: CopyService,
     private logService: LogService,
@@ -78,6 +82,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     private levelOfDetailService: LevelOfDetailService,
     private versionControlService: VersionControlService,
     private positionTransformationService: PositionTransformationService,
+    private autoLayoutService: AutoLayoutService,
   ) {
     this.editorView = new EditorView(
       this,
@@ -94,6 +99,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       levelOfDetailService,
       versionControlService,
       positionTransformationService,
+      autoLayoutService,
     );
     this.uiInteractionService.zoomInObservable
       .pipe(takeUntil(this.destroyed))
@@ -149,14 +155,19 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     parameter.noteFormComponentModel = {
       id: note.getId(),
       noteTitle: note.getTitle(),
-      noteText: note.getText(),
+      noteText: note.getSanitizedText(),
       noteHeight: note.getHeight(),
       noteWidth: note.getWidth(),
       notePositionX: note.getPositionX(),
       notePositionY: note.getPositionY(),
-      saveNoteCallback: (noteId, noteTitle, noteText, noteHeight, noteWidth) =>
-        this.noteService.editNote(noteId, noteTitle, noteText, noteHeight, noteWidth),
-      deleteNoteCallback: (noteId) => this.noteService.deleteNote(noteId),
+      saveNoteCallback: (
+        noteId: number,
+        noteTitle: string,
+        noteText: string,
+        noteHeight: number,
+        noteWidth: number,
+      ) => this.noteService.editNote(noteId, noteTitle, noteText, noteHeight, noteWidth),
+      deleteNoteCallback: (noteId: number) => this.noteService.deleteNote(noteId),
       updateNoteCallback: () => this.noteService.notesUpdated(),
     };
     this.uiInteractionService.showNoteDialogSubject.next(parameter);
@@ -177,8 +188,8 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     );
 
     this.editorView.bindMoveSelectedNotes(
-      (deltaPositionX: number, deltaPositionY: number, round: number, dragEnd: boolean) =>
-        this.noteService.moveSelectedNotes(deltaPositionX, deltaPositionY, round, dragEnd),
+      (deltaPositionX: number, deltaPositionY: number, round: number) =>
+        this.noteService.moveSelectedNotes(deltaPositionX, deltaPositionY, round),
     );
 
     this.editorView.bindAddTrainrunSectionWithSourceTarget(
@@ -237,12 +248,14 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
 
     this.editorView.bindGetSelectedTrainrun(() => this.trainrunService.getSelectedTrainrun());
 
-    this.editorView.bindGetCumulativeTravelTime((trainrunSection: TrainrunSection) =>
-      this.trainrunService.getCumulativeTravelTime(trainrunSection),
+    this.editorView.bindGetCumulativeTravelTime(
+      (trainrunSection: TrainrunSection, direction: "sourceToTarget" | "targetToSource") =>
+        this.trainrunService.getCumulativeTravelTime(trainrunSection, direction),
     );
 
-    this.editorView.bindGetCumulativeTravelTimeAndNodePath((trainrunSection: TrainrunSection) =>
-      this.trainrunService.getCumulativeTravelTimeAndNodePath(trainrunSection),
+    this.editorView.bindGetCumulativeTravelTimeAndNodePath(
+      (trainrunSection: TrainrunSection, direction: "sourceToTarget" | "targetToSource") =>
+        this.trainrunService.getCumulativeTravelTimeAndNodePath(trainrunSection, direction),
     );
 
     this.editorView.bindAddConnectionToNode(
@@ -260,20 +273,20 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     );
 
     this.editorView.bindShowNodeInformation(async (node: Node) => {
-      this.uiInteractionService.updateNodeStammdaten();
+      this.uiInteractionService.updateNodeBaseData();
       await new Promise((f) => setTimeout(f, 50));
       const selectedNode = this.nodeService.getSelectedNode();
       if (selectedNode !== null) {
         if (selectedNode.getId() === node.getId()) {
           this.nodeService.unselectAllNodes();
-          this.uiInteractionService.closeNodeStammdaten();
+          this.uiInteractionService.closeNodeBaseData();
         } else {
           this.nodeService.setSingleNodeAsSelected(node.getId());
-          this.uiInteractionService.showNodeStammdaten();
+          this.uiInteractionService.showNodeBaseData();
         }
       } else {
         this.nodeService.setSingleNodeAsSelected(node.getId());
-        this.uiInteractionService.showNodeStammdaten();
+        this.uiInteractionService.showNodeBaseData();
       }
     });
 
@@ -290,7 +303,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       (
         trainrunSection: TrainrunSection,
         position: Vec2D,
-        trainrunSectionText: TrainrunSectionText,
+        trainrunSectionText?: TrainrunSectionText,
       ) => {
         this.trainrunService.setTrainrunAsSelected(trainrunSection.getTrainrun().getId());
         this.trainrunSectionService.setTrainrunSectionAsSelected(trainrunSection.getId());
@@ -298,7 +311,9 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
           TrainrunDialogType.TRAINRUN_SECTION_DIALOG,
           position,
         );
-        parameter.setTrainrunSectionText(trainrunSectionText);
+        if (trainrunSectionText !== undefined) {
+          parameter.setTrainrunSectionText(trainrunSectionText);
+        }
         this.uiInteractionService.showTrainrunDialog(parameter);
       },
     );
@@ -352,12 +367,20 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       this.filterService.isFilterTravelTimeEnabled(),
     );
 
+    this.editorView.bindIsFilterBackwardTravelTimeEnabled(() =>
+      this.filterService.isFilterBackwardTravelTimeEnabled(),
+    );
+
     this.editorView.bindIsfilterTrainrunNameEnabled(() =>
       this.filterService.isFilterTrainrunNameEnabled(),
     );
 
     this.editorView.bindIsFilterDirectionArrowsEnabled(() =>
       this.filterService.isFilterDirectionArrowsEnabled(),
+    );
+
+    this.editorView.bindIsFilterAsymmetryArrowsEnabled(() =>
+      this.filterService.isFilterAsymmetryArrowsEnabled(),
     );
 
     this.editorView.bindIsfilterArrivalDepartureTimeEnabled(() =>
@@ -384,6 +407,8 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     this.editorView.bindCheckFilterNonStopNode((node: Node) =>
       this.filterService.checkFilterNonStopNode(node),
     );
+
+    this.editorView.bindDisplayNodesFullName(() => this.filterService.isDisplayingNodesFullName());
 
     this.editorView.bindIsNodeVisible((node: Node) => this.filterService.isNodeVisible(node));
 
@@ -422,15 +447,15 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
 
     this.editorView.bindGetTimeDisplayPrecision(() => this.filterService.getTimeDisplayPrecision());
 
-    this.editorView.bindSetTimeDisplayPrecision((precision) =>
+    this.editorView.bindSetTimeDisplayPrecision((precision: number) =>
       this.filterService.setTimeDisplayPrecision(precision),
     );
 
-    this.editorView.bindSelectNode((nodeId, enforceUpdate = true) =>
+    this.editorView.bindSelectNode((nodeId: number, enforceUpdate = true) =>
       this.nodeService.selectNode(nodeId, enforceUpdate),
     );
 
-    this.editorView.bindUnselectNode((nodeId, enforceUpdate = true) =>
+    this.editorView.bindUnselectNode((nodeId: number, enforceUpdate = true) =>
       this.nodeService.unselectNode(nodeId, enforceUpdate),
     );
 
@@ -438,11 +463,11 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       this.nodeService.unselectAllNodes(enforceUpdate),
     );
 
-    this.editorView.bindIsNodeSelected((nodeId) => this.nodeService.isNodeSelected(nodeId));
+    this.editorView.bindIsNodeSelected((nodeId: number) => this.nodeService.isNodeSelected(nodeId));
 
-    this.editorView.bindSelectNote((noteId) => this.noteService.selectNote(noteId));
+    this.editorView.bindSelectNote((noteId: number) => this.noteService.selectNote(noteId));
 
-    this.editorView.bindUnselectNote((noteId) => this.noteService.unselectNote(noteId));
+    this.editorView.bindUnselectNote((noteId: number) => this.noteService.unselectNote(noteId));
 
     this.editorView.bindUnselectAllNotes(() => this.noteService.unselectAllNotes());
 
@@ -450,7 +475,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       this.trainrunSectionService.unselectAllTrainrunSections(),
     );
 
-    this.editorView.bindIsNoteSelected((noteId) => this.noteService.isNoteSelected(noteId));
+    this.editorView.bindIsNoteSelected((noteId: number) => this.noteService.isNoteSelected(noteId));
 
     this.editorView.bindAddNote((position: Vec2D, clickPosition: Vec2D) => {
       const newNote = this.noteService.addNote(position);
@@ -539,5 +564,20 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe(() => {
       this.handleVariantChanged();
     });
+
+    this.dataService
+      .getNetzgrafikLoadedInfo()
+      .pipe(takeUntil(this.destroyed))
+      .subscribe((info) => {
+        if (!info.load) return;
+
+        // When starting to load a new graph, clear any existing graph to avoid
+        // clashes between old and new model objects
+        this.editorView.nodesView.displayNodes([]);
+        this.editorView.transitionsView.displayTransitions([]);
+        this.editorView.connectionsView.displayConnections([]);
+        this.editorView.trainrunSectionsView.displayTrainrunSection([]);
+        this.editorView.notesView.displayNotes([]);
+      });
   }
 }

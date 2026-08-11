@@ -12,6 +12,7 @@ import {
   selector: "sbb-navigation-bar",
   templateUrl: "./navigation-bar.component.html",
   styleUrls: ["./navigation-bar.component.scss"],
+  standalone: false,
 })
 export class NavigationBarComponent implements OnInit {
   currentDefinitions: BreadcrumbDefinition[] = [];
@@ -137,7 +138,7 @@ class BreadcrumbsDefinitionsHandler {
 
   getParams(urlHandler: UrlHandler): Param[] {
     return urlHandler.splittedUrl
-      .filter((value, index) => this.parameterPointers.find((pointer) => pointer === index))
+      .filter((_, index) => this.parameterPointers.find((pointer) => pointer === index))
       .map((value) => new Param(value));
   }
 }

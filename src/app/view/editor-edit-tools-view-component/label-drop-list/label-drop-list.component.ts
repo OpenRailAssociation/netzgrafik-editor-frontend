@@ -11,6 +11,7 @@ import {FilterService} from "../../../services/ui/filter.service";
 import {LabelRef} from "../../../data-structures/business.data.structures";
 import {LabelGroup} from "../../../models/labelGroup.model";
 import {FilterableLabelDialogComponent} from "../../dialogs/filterable-labels-dialog/filterable-label-dialog.component";
+import type {FilterableLabelsFormComponentModel} from "../../dialogs/filterable-labels-dialog/filterable-labels-form/filterable-label-form.component";
 import {Label} from "../../../models/label.model";
 import {NoteService} from "../../../services/data/note.service";
 
@@ -18,6 +19,7 @@ import {NoteService} from "../../../services/data/note.service";
   selector: "sbb-label-drop-list-component",
   templateUrl: "./label-drop-list.component.html",
   styleUrls: ["./label-drop-list.component.scss"],
+  standalone: false,
 })
 export class LabelDropListComponent implements OnInit, OnDestroy {
   @Input() componentLabelRef: string;
@@ -81,7 +83,7 @@ export class LabelDropListComponent implements OnInit, OnDestroy {
 
   onLabelClicked(labelId: number) {
     const labelObject = this.labelService.getLabelFromId(labelId);
-    const callbackObject = {
+    const callbackObject: FilterableLabelsFormComponentModel = {
       name: labelObject.getLabel(),
       dialogTitle:
         labelObject.getLabelRef() === LabelRef.Trainrun
@@ -89,7 +91,7 @@ export class LabelDropListComponent implements OnInit, OnDestroy {
           : labelObject.getLabelRef() === LabelRef.Note
             ? $localize`:@@app.view.editor-edit-tools-view-component.label-drop-list.notes:Notes`
             : $localize`:@@app.view.editor-edit-tools-view-component.label-drop-list.nodes:Nodes`,
-      saveLabelCallback: (refLabel, updatedLabel) =>
+      saveLabelCallback: (updatedLabel) =>
         this.labelService.updateLabel(labelObject.getId(), updatedLabel),
       deleteLabelCallback: (refLabel) => {
         if (labelObject.getLabelRef() === LabelRef.Trainrun) {
@@ -112,7 +114,7 @@ export class LabelDropListComponent implements OnInit, OnDestroy {
     FilterableLabelDialogComponent.open(this.dialog, callbackObject);
   }
 
-  dropLabelElement(event: CdkDragDrop<Label[]>, labelId: number, grpId: number) {
+  dropLabelElement(event: CdkDragDrop<Label[]>, grpId: number) {
     if (event.previousContainer === event.container) {
       return;
     } else {
@@ -131,7 +133,7 @@ export class LabelDropListComponent implements OnInit, OnDestroy {
         this.labelService.labelUpdated();
         return;
       }
-      const labelIds = [];
+      const labelIds: number[] = [];
       labels.forEach((el: Label) => {
         if (el.getId() !== movedLabelObject.getId()) {
           if (el.getId() === neighborLabel.getId()) {

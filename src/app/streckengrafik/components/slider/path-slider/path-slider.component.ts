@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, ViewChild} from "@angular/core";
+import {Component, Input, OnDestroy} from "@angular/core";
 import {Subject} from "rxjs";
 import {ResizeChangeInfo} from "../../../model/util/resizeChangeInfo";
 import {ViewBoxChangeInfo} from "../../../model/util/viewBoxChangeInfo";
@@ -9,11 +9,13 @@ import {SgSelectedTrainrun} from "../../../model/streckengrafik-model/sg-selecte
 import {SgPath} from "../../../model/streckengrafik-model/sg-path";
 import {Sg4ToggleTrackOccupierService} from "../../../services/sg-4-toggle-track-occupier.service";
 import {Sg8RenderService} from "../../../services/sg-8-render.service";
+import {FilterService} from "src/app/services/ui/filter.service";
 
 @Component({
   selector: "sbb-path-slider",
   templateUrl: "./path-slider.component.html",
   styleUrls: ["./path-slider.component.scss"],
+  standalone: false,
 })
 export class PathSliderComponent implements OnDestroy {
   @Input()
@@ -21,9 +23,6 @@ export class PathSliderComponent implements OnDestroy {
 
   @Input()
   showRailTrackSlider = true;
-
-  @ViewChild("svg")
-  svgRef: any;
 
   viewBox: string;
 
@@ -43,6 +42,7 @@ export class PathSliderComponent implements OnDestroy {
     private readonly viewBoxService: ViewBoxService,
     private readonly sg4ToggleTrackOccupierService: Sg4ToggleTrackOccupierService,
     private readonly sg8RenderService: Sg8RenderService,
+    private readonly filterService: FilterService,
   ) {
     this.sg8RenderService
       .getSgSelectedTrainrun()
@@ -128,9 +128,11 @@ export class PathSliderComponent implements OnDestroy {
     return path.isSection();
   }
 
-  getNodeShortName(path: SgPath) {
+  getNodeName(path: SgPath) {
     if (path.isNode()) {
-      return path.getPathNode().nodeShortName;
+      return this.filterService.isDisplayingNodesFullName()
+        ? path.getPathNode().nodeFullName
+        : path.getPathNode().nodeShortName;
     }
     return "";
   }

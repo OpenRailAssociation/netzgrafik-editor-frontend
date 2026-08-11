@@ -1,5 +1,10 @@
 import {Component, OnDestroy, TemplateRef, ViewChild} from "@angular/core";
-import {SbbDialog, SbbDialogConfig, SbbDialogPosition} from "@sbb-esta/angular/dialog";
+import {
+  SbbDialog,
+  SbbDialogConfig,
+  SbbDialogPosition,
+  type SbbDialogRef,
+} from "@sbb-esta/angular/dialog";
 import {Vec2D} from "../../../utils/vec2D";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {GeneralViewFunctions} from "../../util/generalViewFunctions";
@@ -33,24 +38,19 @@ export class NoteDialogParameter {
   selector: "sbb-note-dialog",
   templateUrl: "./note-dialog.component.html",
   styleUrls: ["./note-dialog.component.scss"],
+  standalone: false,
 })
 export class NoteDialogComponent implements OnDestroy {
   @ViewChild("noteEditorTabsViewTemplate", {static: true})
-  noteEditorTabsViewTemplate: TemplateRef<any>;
+  noteEditorTabsViewTemplate: TemplateRef<void>;
 
-  public data = null;
-  public noteId: number;
-  public noteTitle: string;
-  public noteText: string;
+  public data: NoteDialogParameter = null;
 
   private destroyed = new Subject<void>();
-  private deleteNoteCallback = null;
-  private saveNoteCallback = null;
-  private updateNoteCallback = null;
 
-  private dialogRef = null;
-  private dialogConfig = null;
-  private dialogPos = null;
+  private dialogRef: SbbDialogRef<unknown, unknown> = null;
+  private dialogConfig: SbbDialogConfig = null;
+  private dialogPos: Record<"top" | "bottom" | "left" | "right", number> = null;
   private dialogMovementLastPosition: Vec2D = undefined;
 
   constructor(
@@ -59,14 +59,6 @@ export class NoteDialogComponent implements OnDestroy {
   ) {
     this.uiInteractionService.noteDialog.pipe(takeUntil(this.destroyed)).subscribe((parameter) => {
       this.data = parameter;
-
-      this.noteText = this.data.noteText;
-      this.noteId = this.data.id;
-      this.noteTitle = this.data.noteTitle;
-      this.deleteNoteCallback = this.data.deleteNoteCallback;
-      this.saveNoteCallback = this.data.saveNoteCallback;
-      this.updateNoteCallback = this.data.updateNoteCallback;
-
       this.openDialog(parameter);
     });
   }
@@ -114,7 +106,7 @@ export class NoteDialogComponent implements OnDestroy {
     };
   }
 
-  onMouseUp(event: MouseEvent) {
+  onMouseUp() {
     this.dialogMovementLastPosition = undefined;
   }
 
@@ -149,7 +141,9 @@ export class NoteDialogComponent implements OnDestroy {
     }
   }
 
-  private convertDialogPos(dialogPos: SbbDialogPosition): SbbDialogPosition {
+  private convertDialogPos(
+    dialogPos: Record<"top" | "bottom" | "left" | "right", number>,
+  ): SbbDialogPosition {
     return {
       bottom: dialogPos.bottom + "px",
       left: dialogPos.left + "px",

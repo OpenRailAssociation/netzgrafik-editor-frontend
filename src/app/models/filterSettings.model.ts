@@ -19,22 +19,26 @@ export class FilterSetting {
   public filterNodeLabels: number[];
   public filterNoteLabels: number[];
   public filterTrainrunLabels: number[];
-  public filterDirectionArrows;
-  public filterArrivalDepartureTime;
-  public filterTravelTime;
-  public filterTrainrunName;
-  public filterConnections;
-  public filterShowNonStopTime;
+  public filterDirectionArrows: boolean;
+  public filterAsymmetryArrows: boolean;
+  public filterArrivalDepartureTime: boolean;
+  public filterTravelTime: boolean;
+  public filterBackwardTravelTime: boolean;
+  public filterTrainrunName: boolean;
+  public filterConnections: boolean;
+  public filterShowNonStopTime: boolean;
   public filterTrainrunCategory: TrainrunCategory[];
   public filterTrainrunFrequency: TrainrunFrequency[];
   public filterTrainrunTimeCategory: TrainrunTimeCategory[];
   public filterDirection: Direction[];
-  public filterAllEmptyNodes;
-  public filterAllNonStopNodes;
-  public filterNotes;
-  public timeDisplayPrecision;
-  public isTemporaryDisableFilteringOfItemsInView;
-  public temporaryEmptyAndNonStopFilteringSwitchedOff;
+  public filterSymmetry: boolean[];
+  public filterAllEmptyNodes: boolean;
+  public filterAllNonStopNodes: boolean;
+  public displayNodesFullName: boolean;
+  public filterNotes: boolean;
+  public timeDisplayPrecision: number;
+  public isTemporaryDisableFilteringOfItemsInView: boolean;
+  public temporaryEmptyAndNonStopFilteringSwitchedOff: boolean;
 
   constructor(
     {
@@ -44,18 +48,22 @@ export class FilterSetting {
       filterNodeLabels,
       filterNoteLabels,
       filterTrainrunLabels,
-      filterDirectionArrows: filterDirectionArrows,
+      filterDirectionArrows,
+      filterAsymmetryArrows,
       filterArrivalDepartureTime,
       filterTravelTime,
+      filterBackwardTravelTime,
       filterTrainrunName,
       filterConnections,
       filterShowNonStopTime,
       filterTrainrunCategory,
       filterTrainrunFrequency,
       filterTrainrunTimeCategory,
-      filterDirection: filterDirection,
+      filterDirection,
+      filterSymmetry,
       filterAllEmptyNodes,
       filterAllNonStopNodes,
+      displayNodesFullName,
       filterNotes,
       timeDisplayPrecision,
       isTemporaryDisableFilteringOfItemsInView,
@@ -68,8 +76,10 @@ export class FilterSetting {
       filterNoteLabels: [],
       filterTrainrunLabels: [],
       filterDirectionArrows: true,
+      filterAsymmetryArrows: true,
       filterArrivalDepartureTime: true,
       filterTravelTime: true,
+      filterBackwardTravelTime: true,
       filterTrainrunName: true,
       filterConnections: true,
       filterShowNonStopTime: true,
@@ -77,8 +87,10 @@ export class FilterSetting {
       filterTrainrunFrequency: null,
       filterTrainrunTimeCategory: null,
       filterDirection: null,
+      filterSymmetry: null,
       filterAllEmptyNodes: false,
       filterAllNonStopNodes: false,
+      displayNodesFullName: false,
       filterNotes: false,
       timeDisplayPrecision: 1,
       isTemporaryDisableFilteringOfItemsInView: false,
@@ -92,8 +104,10 @@ export class FilterSetting {
     this.filterNoteLabels = filterNoteLabels;
     this.filterTrainrunLabels = filterTrainrunLabels;
     this.filterDirectionArrows = filterDirectionArrows;
+    this.filterAsymmetryArrows = filterAsymmetryArrows;
     this.filterArrivalDepartureTime = filterArrivalDepartureTime;
     this.filterTravelTime = filterTravelTime;
+    this.filterBackwardTravelTime = filterBackwardTravelTime;
     this.filterTrainrunName = filterTrainrunName;
     this.filterConnections = filterConnections;
     this.filterShowNonStopTime = filterShowNonStopTime;
@@ -101,8 +115,10 @@ export class FilterSetting {
     this.filterTrainrunFrequency = filterTrainrunFrequency;
     this.filterTrainrunTimeCategory = filterTrainrunTimeCategory;
     this.filterDirection = filterDirection;
+    this.filterSymmetry = filterSymmetry ?? [true, false];
     this.filterAllEmptyNodes = filterAllEmptyNodes;
     this.filterAllNonStopNodes = filterAllNonStopNodes;
+    this.displayNodesFullName = displayNodesFullName;
     this.filterNotes = filterNotes;
     this.timeDisplayPrecision = timeDisplayPrecision;
     this.isTemporaryDisableFilteringOfItemsInView = isTemporaryDisableFilteringOfItemsInView;
@@ -131,7 +147,7 @@ export class FilterSetting {
   areFilteringAttributesEqual(fs: FilterSetting): boolean {
     const self = this.getDto();
     let eq = true;
-    Object.keys(self).forEach((key) => {
+    (Object.keys(self) as (keyof FilterSettingDto)[]).forEach((key) => {
       if (key !== FilterSetting.isTemporaryDisableFilteringOfItemsInViewAttribute) {
         if (JSON.stringify(this[key]) !== JSON.stringify(fs[key])) {
           eq = false;
@@ -142,14 +158,10 @@ export class FilterSetting {
   }
 
   copyFilteringAttributes(fs: FilterSetting) {
-    Object.keys(this).forEach((key) => {
+    (Object.keys(this) as (keyof FilterSettingDto)[]).forEach((key) => {
       if (this[key] !== fs[key]) {
         if (key !== FilterSetting.isTemporaryDisableFilteringOfItemsInViewAttribute) {
-          if (Array.isArray(fs[key])) {
-            this[key] = Object.assign([], fs[key]);
-          } else {
-            this[key] = fs[key];
-          }
+          Object.assign(this, {[key]: Array.isArray(fs[key]) ? [...fs[key]] : fs[key]});
         }
       }
     });
@@ -165,8 +177,10 @@ export class FilterSetting {
       this.filterNoteLabels.length === 0 &&
       this.filterTrainrunLabels.length === 0 &&
       this.filterDirectionArrows === true &&
+      this.filterAsymmetryArrows === true &&
       this.filterArrivalDepartureTime === true &&
       this.filterTravelTime === true &&
+      this.filterBackwardTravelTime === true &&
       this.filterTrainrunName === true &&
       this.filterConnections === true &&
       this.filterShowNonStopTime === true &&
@@ -174,8 +188,10 @@ export class FilterSetting {
       this.filterTrainrunFrequency.length === frainrunFrequenciesLength &&
       this.filterTrainrunTimeCategory.length === trainrunTimeCategoryLength &&
       this.filterDirection.length === Object.values(Direction).length &&
+      this.filterSymmetry.length === 2 &&
       this.filterAllEmptyNodes === false &&
       this.filterAllNonStopNodes === false &&
+      this.displayNodesFullName === false &&
       this.filterNotes === false &&
       this.timeDisplayPrecision === 1 &&
       this.isTemporaryDisableFilteringOfItemsInView === false &&
@@ -192,8 +208,10 @@ export class FilterSetting {
       filterNoteLabels: this.filterNoteLabels,
       filterTrainrunLabels: this.filterTrainrunLabels,
       filterDirectionArrows: this.filterDirectionArrows,
+      filterAsymmetryArrows: this.filterAsymmetryArrows,
       filterArrivalDepartureTime: this.filterArrivalDepartureTime,
       filterTravelTime: this.filterTravelTime,
+      filterBackwardTravelTime: this.filterBackwardTravelTime,
       filterTrainrunName: this.filterTrainrunName,
       filterConnections: this.filterConnections,
       filterShowNonStopTime: this.filterShowNonStopTime,
@@ -201,8 +219,10 @@ export class FilterSetting {
       filterTrainrunFrequency: this.filterTrainrunFrequency,
       filterTrainrunTimeCategory: this.filterTrainrunTimeCategory,
       filterDirection: this.filterDirection,
+      filterSymmetry: this.filterSymmetry,
       filterAllEmptyNodes: this.filterAllEmptyNodes,
       filterAllNonStopNodes: this.filterAllNonStopNodes,
+      displayNodesFullName: this.displayNodesFullName,
       filterNotes: this.filterNotes,
       timeDisplayPrecision: this.timeDisplayPrecision,
       isTemporaryDisableFilteringOfItemsInView: this.isTemporaryDisableFilteringOfItemsInView,

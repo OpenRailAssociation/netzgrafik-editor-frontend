@@ -8,6 +8,7 @@ import {
   OnDestroy,
   ViewChild,
 } from "@angular/core";
+import type {SbbRadioChange} from "@sbb-esta/angular/radio-button";
 import {Subject} from "rxjs";
 import {LoadPerlenketteService} from "./service/load-perlenkette.service";
 import {PerlenketteTrainrun} from "./model/perlenketteTrainrun";
@@ -22,8 +23,6 @@ import {NodeService} from "../services/data/node.service";
 import {takeUntil} from "rxjs/operators";
 import {PerlenketteConnection} from "./model/perlenketteConnection";
 import {VersionControlService} from "../services/data/version-control.service";
-import {Direction} from "../data-structures/business.data.structures";
-import {TrainrunsectionHelper} from "../services/util/trainrunsection.helper";
 import {TrainrunSectionService} from "../services/data/trainrunsection.service";
 import {TrainrunService} from "../services/data/trainrun.service";
 
@@ -36,6 +35,7 @@ enum ShowTrainrunEditTab {
   selector: "sbb-perlenkette",
   templateUrl: "./perlenkette.component.html",
   styleUrls: ["./perlenkette.component.scss"],
+  standalone: false,
 })
 export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   perlenketteTrainrun: PerlenketteTrainrun;
@@ -60,7 +60,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
 
   public showTrainrunEditTab: ShowTrainrunEditTab = ShowTrainrunEditTab.sbb_trainrun_tab;
 
-  sbbToogleValue = ShowTrainrunEditTab.sbb_trainrun_tab;
+  sbbToggleValue = ShowTrainrunEditTab.sbb_trainrun_tab;
 
   constructor(
     private readonly loadPerlenketteService: LoadPerlenketteService,
@@ -108,16 +108,16 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     this.svgPoint = new Vec2D(0, -64);
   }
 
-  onSbbToggleChange(event) {
-    this.sbbToogleValue = event.value;
+  onSbbToggleChange(event: SbbRadioChange) {
+    this.sbbToggleValue = event.value;
   }
 
-  isSbbToogleRoundtrip(): boolean {
-    return this.sbbToogleValue === ShowTrainrunEditTab.sbb_trainrun_roundtrip_tab;
+  isSbbToggleRoundtrip(): boolean {
+    return this.sbbToggleValue === ShowTrainrunEditTab.sbb_trainrun_roundtrip_tab;
   }
 
-  isSbbToogleGeneral(): boolean {
-    return this.sbbToogleValue === ShowTrainrunEditTab.sbb_trainrun_tab;
+  isSbbToggleGeneral(): boolean {
+    return this.sbbToggleValue === ShowTrainrunEditTab.sbb_trainrun_tab;
   }
 
   showTrainrunEditor(): boolean {
@@ -159,7 +159,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
         pItemSection.getPerlenketteSection().trainrunSectionId,
       );
     }
-    // toogle
+    // toggle
     if (this.showTrainrunEditTab === ShowTrainrunEditTab.sbb_trainrun_tab) {
       this.showTrainrunEditTab = ShowTrainrunEditTab.sbb_trainrun_roundtrip_tab;
     } else {
@@ -168,7 +168,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   }
 
   private updatePerlenkette(perlenketteTrainrun: PerlenketteTrainrun) {
-    let originalPathItems;
+    let originalPathItems: PerlenketteItem[] | null = null;
     if (this.perlenketteTrainrun) {
       originalPathItems = this.perlenketteTrainrun.pathItems;
 
@@ -235,22 +235,13 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     return ret;
   }
 
-  getClosestPerlenketteItem(): PerlenketteNode {
-    let retEl: PerlenketteNode = this.perlenketteRenderingElementsHeight.keys()[0];
+  getClosestPerlenketteItem(): PerlenketteNode | undefined {
+    let retEl: PerlenketteNode | undefined = undefined;
     let currentY = 0;
-    this.perlenketteRenderingElementsHeight.forEach((pItem, idx) => {
-      const el = pItem[0];
-      const height = pItem[1];
+    this.perlenketteRenderingElementsHeight.forEach(([el, height]) => {
       const offY = this.svgPoint.getY() + this.contentHeight / 4;
-      if (el.isPerlenketteNode()) {
-        if (currentY < Math.max(0, offY) + height) {
-          if (retEl === undefined || currentY < Math.max(0, offY)) {
-            retEl = el.getPerlenketteNode();
-          }
-          if (Math.max(0, offY) - currentY < Math.max(0, offY) + height - currentY) {
-            retEl = el.getPerlenketteNode();
-          }
-        }
+      if (el.isPerlenketteNode() && currentY < Math.max(0, offY) + height) {
+        retEl = el.getPerlenketteNode();
       }
       currentY += height;
     });
@@ -261,7 +252,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     if (event.buttons > 0) {
       let currentY = this.svgPoint.getY();
       currentY -= event.movementY;
-      this.updateSvgPointY(undefined, currentY);
+      this.updateSvgPointY(currentY);
     }
     event.stopPropagation();
   }
@@ -282,9 +273,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   signalHeightChanged(height: number, pathItem: PerlenketteItem) {
     this.perlenketteRenderingElementsHeight.push([pathItem, height]);
     this.renderedElementsHeight = 0;
-    this.perlenketteRenderingElementsHeight.forEach((pItem, idx) => {
-      const el = pItem[0];
-      const height = pItem[1];
+    this.perlenketteRenderingElementsHeight.forEach(([_, height]) => {
       this.renderedElementsHeight += height;
     });
   }
@@ -351,23 +340,18 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
 
   private getGotoCurrentY(pathItem: PerlenketteItem) {
     let currentY = 0;
-    let next = true;
-    this.perlenketteRenderingElementsHeight.forEach((pItem, idx) => {
-      const el = pItem[0];
-      const height = pItem[1];
+    for (const [el, height] of this.perlenketteRenderingElementsHeight) {
       if (el === pathItem) {
-        next = false;
+        break;
       }
-      if (next) {
-        currentY += height;
-      }
-    });
+      currentY += height;
+    }
     return currentY;
   }
 
   goto(pathItem: PerlenketteItem) {
     const currentY = this.getGotoCurrentY(pathItem);
-    this.updateSvgPointY(pathItem, currentY - this.contentHeight / 4);
+    this.updateSvgPointY(currentY - this.contentHeight / 4);
     const offset = new Vec2D(this.contentWidth / 2, 0);
     this.moveNetzgrafikEditorFocalViewPoint(pathItem, offset);
   }
@@ -387,7 +371,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
       });
       const delta = pItemHeight !== undefined ? pItemHeight[1] : 0;
       const currentY = this.getGotoCurrentY(pathItem) + delta;
-      this.updateSvgPointY(pathItem, currentY - this.contentHeight / 4);
+      this.updateSvgPointY(currentY - this.contentHeight / 4);
     }
   }
 
@@ -411,34 +395,12 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     event.stopImmediatePropagation();
     const delta = Math.min(64, Math.max(-64, event.deltaY));
     const currentEl: PerlenketteNode = this.getClosestPerlenketteItem();
-    if (delta > 0) {
-      let newPos = 0;
-      this.perlenketteRenderingElementsHeight.forEach((pItem, idx) => {
-        const el = pItem[0];
-        const height = pItem[1];
-        newPos += height;
-        if (el.isPerlenketteNode()) {
-          if (el === currentEl) {
-            this.updateSvgPointY(el, this.svgPoint.getY() + delta);
-          }
-        }
-      });
-    } else {
-      let newPos = 0;
-      this.perlenketteRenderingElementsHeight.forEach((pItem, idx) => {
-        const el = pItem[0];
-        const height = pItem[1];
-        newPos += height;
-        if (el.isPerlenketteNode()) {
-          if (el === currentEl) {
-            this.updateSvgPointY(el, this.svgPoint.getY() + delta);
-          }
-        }
-      });
+    if (currentEl !== undefined) {
+      this.updateSvgPointY(this.svgPoint.getY() + delta);
     }
   }
 
-  private updateSvgPointY(pathItem: PerlenketteItem, y: number) {
+  private updateSvgPointY(y: number) {
     this.svgPoint.setY(
       Math.max(-this.contentHeight / 4, Math.min(this.renderedElementsHeight - 48, y)),
     );

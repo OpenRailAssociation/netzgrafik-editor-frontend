@@ -1,5 +1,10 @@
 import {Component, OnDestroy, TemplateRef, ViewChild} from "@angular/core";
-import {SbbDialog, SbbDialogConfig, SbbDialogPosition} from "@sbb-esta/angular/dialog";
+import {
+  SbbDialog,
+  SbbDialogRef,
+  SbbDialogConfig,
+  SbbDialogPosition,
+} from "@sbb-esta/angular/dialog";
 import {Vec2D} from "../../../utils/vec2D";
 import {Trainrun} from "../../../models/trainrun.model";
 import {TrainrunService} from "../../../services/data/trainrun.service";
@@ -8,7 +13,6 @@ import {TrainrunSectionService} from "../../../services/data/trainrunsection.ser
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 import {TrainrunsectionHelper} from "../../../services/util/trainrunsection.helper";
-import {Node} from "../../../models/node.model";
 import {Subject} from "rxjs";
 import {takeUntil} from "rxjs/operators";
 import {DataService} from "../../../services/data/data.service";
@@ -24,7 +28,7 @@ export enum TrainrunDialogType {
 export class TrainrunDialogParameter {
   public type: TrainrunDialogType;
   public position: Vec2D;
-  public trainrunSectionText: TrainrunSectionText;
+  public trainrunSectionText?: TrainrunSectionText;
   public offset: number;
   public forward: boolean;
 
@@ -52,20 +56,21 @@ export class TrainrunDialogParameter {
   selector: "sbb-trainrun-and-section-dialog",
   templateUrl: "./trainrun-and-section-dialog.component.html",
   styleUrls: ["./trainrun-and-section-dialog.component.scss"],
+  standalone: false,
 })
 export class TrainrunAndSectionDialogComponent implements OnDestroy {
   @ViewChild("trainrunAndSectionEditorTabsViewTemplate", {static: true})
-  trainrunAndSectionEditorTabsViewTemplate: TemplateRef<any>;
+  trainrunAndSectionEditorTabsViewTemplate: TemplateRef<void>;
 
   public selectedTrainrun: Trainrun;
   public nextStopLeftNodeName: string;
   public nextStopRightNodeName: string;
 
-  public data = null;
+  public data: TrainrunDialogParameter = null;
 
-  private dialogRef = null;
-  private dialogConfig = null;
-  private dialogPos = null;
+  private dialogRef: SbbDialogRef<unknown, unknown> = null;
+  private dialogConfig: SbbDialogConfig = null;
+  private dialogPos: Record<"top" | "bottom" | "left" | "right", number> = null;
   private dialogMovementLastPosition: Vec2D = undefined;
   private trainrunSectionHelper: TrainrunsectionHelper;
   trainrunDialogParameter: TrainrunDialogParameter = undefined;
@@ -170,7 +175,7 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
     };
   }
 
-  onMouseUp(event: MouseEvent) {
+  onMouseUp() {
     this.dialogMovementLastPosition = undefined;
   }
 
@@ -212,7 +217,9 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
     }
   }
 
-  private convertDialogPos(dialogPos: SbbDialogPosition): SbbDialogPosition {
+  private convertDialogPos(
+    dialogPos: Record<"top" | "bottom" | "left" | "right", number>,
+  ): SbbDialogPosition {
     return {
       bottom: dialogPos.bottom + "px",
       left: dialogPos.left + "px",

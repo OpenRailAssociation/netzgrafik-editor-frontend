@@ -19,6 +19,8 @@
     "logger": {
       "title": "Titre"
     },
+    "left": "Gauche",
+    "right": "Droite",
     "models": {
       "node": {
         "shortNameDefault": "NEW",
@@ -68,6 +70,9 @@
             "title": "Remplacement des arrêts intermédiaires",
             "description": "Le remplacement des arrêts intermédiaires a entraîné des incohérences dans l'attribution des temps !"
           }
+        },
+        "version-control": {
+          "new-name-comment": "Nouveau nom : {$PH}"
         }
       },
       "ui": {
@@ -96,8 +101,8 @@
             "description": "L'heure d'arrivée à l'origine ne peut être atteinte"
           },
           "travel-time-less-than-1": {
-            "title": "Temps de trajet inférieur à 1",
-            "description": "Le temps de trajet doit être supérieur ou égal à 1"
+            "title": "Temps de trajet inférieur à {$minimumTravelTime}",
+            "description": "Le temps de trajet doit être supérieur ou égal à {$minimumTravelTime}"
           }
         },
         "transition-validator": {
@@ -251,20 +256,27 @@
             "name": "Nom"
           }
         },
-        "stammdaten-dialog": {
+        "basedata-dialog": {
           "base-data": "Données de base",
-          "operationalPoint": "Point opérationnel",
-          "ipv-stop-time": "Temps d'arrêt IPV",
-          "a-stop-time": "Temps d'arrêt A",
-          "b-stop-time": "Temps d'arrêt B",
-          "c-stop-time": "Temps d'arrêt C",
-          "d-stop-time": "Temps d'arrêt D",
-          "zaz": "ZAZ",
+          "betriebspunktName": "Point opérationnel",
+          "stationName": "Nom de gare",
+          "ipv-stop-time": "Temps d'arrêt minimal IPV",
+          "a-stop-time": "Temps d'arrêt minimal A",
+          "b-stop-time": "Temps d'arrêt minimal B",
+          "c-stop-time": "Temps d'arrêt minimal C",
+          "d-stop-time": "Temps d'arrêt minimal D",
+          "stop-flag-ipv": "Arrêt à la gare IPV",
+          "stop-flag-a": "Arrêt à la gare A",
+          "stop-flag-b": "Arrêt à la gare B",
+          "stop-flag-c": "Arrêt à la gare C",
+          "stop-flag-d": "Arrêt à la gare D",
+          "zaz": "ZAZ (temps de régulation)",
           "connection-time": "Temps de correspondance",
           "region": "Région",
           "category": "Catégorie",
           "filterable-labels": "Labels filtrables",
           "position": "Position",
+          "create": "Créer",
           "close": "Fermer"
         },
         "trainrun-and-section-dialog": {
@@ -325,6 +337,16 @@
         "align-elements-right": "Aligner à droite",
         "align-elements-top": "Aligner le haut",
         "align-elements-bottom": "Aligner le bas",
+        "node-optimization-disposition-title": "Réticulaire - Positions des noeuds",
+        "optimization-netzgrafik-tooltip": "Étirez le netzgrafik de sorte qu'aucun bord ne soit plus court que la longueur minimale des bords des trajets de train.",
+        "optimize-layout": "Étirez le netzgrafik",
+        "inverse_optimization-netzgrafik-tooltip": "Compressez le netzgrafik de sorte qu'aucun bord ne soit inutilement plus long que la longueur minimale des bords.",
+        "inverse_optimization-netzgrafik": "Compressez le netzgrafik",
+        "node-optimization-title": "Réticulaire - Algorithme de tri des ports des noeuds",
+        "alphabeticalOrdering": "Alphabétique",
+        "alphabeticalOrderingTooltip": "Ordonne les ports par ordre alphabétique des catégories de train.",
+        "crossingAwareOrdering": "Réduction des croisements",
+        "crossingAwareOrderingTooltip": "Minimise les croisements des trajets à l'intérieur des noeuds.",
         "delete": "Supprimer",
         "on-clear-delete-all-non-visible-elements": "Tous les éléments non visibles doivent-ils être définitivement supprimés du réticulaire ?",
         "on-clear-delete-all-visible-elements": "Tous les éléments visibles doivent-ils être définitivement supprimés du réticulaire ?",
@@ -355,6 +377,8 @@
         "round-trips": "aller-retours",
         "one-ways": "allers simples",
         "display-direction-arrows": "Afficher les flèches de direction des trains",
+        "display-asymmetry-arrows": "Afficher les flèches d'asymétrie au niveau des noeuds des trains",
+        "display-backward-travel-times": "Afficher les temps de parcours retour (asymétrie)",
         "times": "Temps",
         "decimal-displayed": "Nombre de décimales affichées",
         "display-arrival-departure-times": "Afficher les heures de départ et d'arrivée",
@@ -366,6 +390,7 @@
         "nodes": "Noeuds",
         "display-nodes-without-visible-trainruns": "Afficher les noeuds sans trajets de train (visibles)",
         "display-nodes-with-only-stopping-trainruns": "Afficher les noeuds où les trains s'arrêtent",
+        "display-nodes-full-name": "Afficher les noms complets des noeuds",
         "notes": "Notes",
         "display-notes": "Afficher les notes",
         "reset-display-filter": "Réinitialiser l'affichage des filtres",
@@ -383,6 +408,12 @@
         "symmetry": "Symétrie",
         "show-direction": "Afficher les {$direction}",
         "hide-direction": "Masquer les {$direction}",
+        "show-symmetric-trainruns": "Afficher les trains symétriques",
+        "hide-symmetric-trainruns": "Masquer les trains symétriques",
+        "show-asymmetric-trainruns": "Afficher les trains asymétriques",
+        "hide-asymmetric-trainruns": "Masquer les trains asymétriques",
+        "symmetric-short": "Sym.",
+        "asymmetric-short": "Asym.",
         "filterable-label-filter": {
           "no-labels-available": "Aucun label disponible",
           "or": "Ou",
@@ -443,7 +474,10 @@
         "fixed": "Constante 1min",
         "fixedTooltip": "Adopte le temps de parcours avec une constante de 1min (par défaut).",
         "retrieveFromEdge": "Temps de parcours de la section",
-        "retrieveFromEdgeTooltip": "Reprend le temps de parcours maximal sur le même tronçon de tous les trains de la même catégorie, sinon le temps de parcours maximal de tous les trains, sinon 1 min."
+        "retrieveFromEdgeTooltip": "Reprend le temps de parcours maximal sur le même tronçon de tous les trains de la même catégorie, sinon le temps de parcours maximal de tous les trains, sinon 1 min.",
+        "trafficSide": "Sens de circulation",
+        "leftTrafficSideTooltip": "Les trains sont affichés selon les conventions de circulation à gauche.",
+        "rightTrafficSideTooltip": "Les trains sont affichés selon les conventions de circulation à droite."
       },
       "editor-side-view": {
         "editor-node-detail-view": {
@@ -494,6 +528,7 @@
           "export-trainruns-as-csv-excel": "Dans Excel : Données -> txt/CSV -> Importer ... nom de fichier",
           "export-origin-destination": "Exporter origine-destination",
           "export-origin-destination-as-csv": "Exporter origine-destination au format CSV",
+          "import-basedata-legacy-info": "Données de base héritées importées - veuillez consulter la documentation et mettre à jour vos fichiers de données de base pour assurer que les versions futures continuent à supporter l'importation de données",
           "base-data": "Données de base",
           "import-base-data": "Importer les données de base",
           "help-csv-data": "Aide: CSV - Données",
@@ -516,7 +551,7 @@
           "yes": "OUI",
           "netzgrafikFile": "reticulaire",
           "spaceTimeChartFile": "graphiqueEspaceTemps",
-          "baseDataFile": "baseData",
+          "baseDataFile": "basedaten",
           "trainrunFile": "trains",
           "originDestinationFile": "origineDestination",
           "trainCategory": "Catégorie du train",
@@ -524,7 +559,7 @@
           "startStation": "Gare d'origine",
           "destinationStation": "Gare de destination",
           "trafficPeriod": "Période de circulation",
-          "frequence": "Fréquence",
+          "frequency": "Fréquence",
           "departureMinuteAtStart": "Minute de départ au noeud de départ",
           "travelTimeStartDestination": "Temps de parcours origine-destination",
           "arrivalMinuteAtDestination": "Minute d'arrivée au noeud de destination",
@@ -680,7 +715,8 @@
             "title": "Archiver la variante",
             "content": "Voulez-vous annuler l'archivage du projet ?"
           },
-          "error-unexpected-data": "Données inattendues : Pas de snapshot ni de version publiée."
+          "error-unexpected-data": "Données inattendues : Pas de snapshot ni de version publiée.",
+          "new-name-comment": "Nouveau nom : {$PH}"
         }
       }
     }

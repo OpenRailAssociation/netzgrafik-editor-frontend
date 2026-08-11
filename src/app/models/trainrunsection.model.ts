@@ -1,4 +1,5 @@
 import {LinePatternRefs, TrainrunSectionDto} from "../data-structures/business.data.structures";
+import {TrainrunSectionTextPositions} from "../data-structures/technical.data.structures";
 import {Node} from "./node.model";
 import {Trainrun} from "./trainrun.model";
 import {Vec2D} from "../utils/vec2D";
@@ -12,6 +13,18 @@ import {
 } from "../data-structures/technical.data.structures";
 import {TrainrunSectionValidator} from "../services/util/trainrunsection.validator";
 import {formatDate} from "@angular/common";
+import {TrainrunsectionHelper} from "../services/util/trainrunsection.helper";
+
+const EMPTY_TEXT_POSITIONS: TrainrunSectionTextPositions = {
+  [TrainrunSectionText.SourceArrival]: {x: 0, y: 0},
+  [TrainrunSectionText.SourceDeparture]: {x: 0, y: 0},
+  [TrainrunSectionText.TargetArrival]: {x: 0, y: 0},
+  [TrainrunSectionText.TargetDeparture]: {x: 0, y: 0},
+  [TrainrunSectionText.TrainrunSectionName]: {x: 0, y: 0},
+  [TrainrunSectionText.TrainrunSectionTravelTime]: {x: 0, y: 0},
+  [TrainrunSectionText.TrainrunSectionBackwardTravelTime]: {x: 0, y: 0},
+  [TrainrunSectionText.TrainrunSectionNumberOfStops]: {x: 0, y: 0},
+};
 
 export class TrainrunSection {
   private static currentId = 0;
@@ -23,11 +36,15 @@ export class TrainrunSection {
   private targetNodeId: number;
   private targetPortId: number;
 
+  private sourceSymmetry: boolean;
+  private targetSymmetry: boolean;
   private sourceArrival: TimeLockDto;
   private sourceDeparture: TimeLockDto;
   private targetArrival: TimeLockDto;
   private targetDeparture: TimeLockDto;
   private travelTime: TimeLockDto;
+  private backwardTravelTime: TimeLockDto;
+
   private numberOfStops: number;
 
   private trainrunId: number;
@@ -49,16 +66,22 @@ export class TrainrunSection {
       sourcePortId,
       targetNodeId,
       targetPortId,
+      sourceSymmetry = true, // older DTO files don't have this field
+      targetSymmetry = true, // older DTO files don't have this field
       sourceDeparture,
       sourceArrival,
       targetDeparture,
       targetArrival,
       travelTime,
+      backwardTravelTime = {...travelTime}, // older DTO files don't have this field
       numberOfStops,
       trainrunId,
       resourceId,
       specificTrainrunSectionFrequencyId,
-      path,
+      path = {
+        path: [],
+        textPositions: {...EMPTY_TEXT_POSITIONS},
+      },
       warnings,
     }: TrainrunSectionDto = {
       id: TrainrunSection.incrementId(),
@@ -66,40 +89,37 @@ export class TrainrunSection {
       sourcePortId: 0,
       targetNodeId: 0,
       targetPortId: 0,
+      sourceSymmetry: true,
+      targetSymmetry: true,
       sourceDeparture: {
         time: 0,
         consecutiveTime: 0,
         lock: false,
-        warning: null,
-        timeFormatter: null,
       },
       sourceArrival: {
         time: 0,
         consecutiveTime: 60,
         lock: false,
-        warning: null,
-        timeFormatter: null,
       },
       targetDeparture: {
         time: 59,
         consecutiveTime: 59,
         lock: false,
-        warning: null,
-        timeFormatter: null,
       },
       targetArrival: {
         time: 1,
         consecutiveTime: 1,
         lock: false,
-        warning: null,
-        timeFormatter: null,
       },
       travelTime: {
         time: 1,
         consecutiveTime: 1,
         lock: true,
-        warning: null,
-        timeFormatter: null,
+      },
+      backwardTravelTime: {
+        time: 1,
+        consecutiveTime: 1,
+        lock: true,
       },
       trainrunId: 0,
       resourceId: 0,
@@ -107,17 +127,9 @@ export class TrainrunSection {
       numberOfStops: 0,
       path: {
         path: [],
-        textPositions: {
-          [TrainrunSectionText.SourceArrival]: {x: 0, y: 0},
-          [TrainrunSectionText.SourceDeparture]: {x: 0, y: 0},
-          [TrainrunSectionText.TargetArrival]: {x: 0, y: 0},
-          [TrainrunSectionText.TargetDeparture]: {x: 0, y: 0},
-          [TrainrunSectionText.TrainrunSectionName]: {x: 0, y: 0},
-          [TrainrunSectionText.TrainrunSectionTravelTime]: {x: 0, y: 0},
-          [TrainrunSectionText.TrainrunSectionNumberOfStops]: {x: 0, y: 0},
-        },
+        textPositions: {...EMPTY_TEXT_POSITIONS},
       },
-      warnings: null,
+      warnings: [],
     },
   ) {
     this.id = id;
@@ -125,11 +137,14 @@ export class TrainrunSection {
     this.sourcePortId = sourcePortId;
     this.targetNodeId = targetNodeId;
     this.targetPortId = targetPortId;
+    this.sourceSymmetry = sourceSymmetry;
+    this.targetSymmetry = targetSymmetry;
     this.sourceDeparture = sourceDeparture;
     this.sourceArrival = sourceArrival;
     this.targetDeparture = targetDeparture;
     this.targetArrival = targetArrival;
     this.travelTime = travelTime;
+    this.backwardTravelTime = backwardTravelTime;
     this.trainrunId = trainrunId;
     this.resourceId = resourceId;
     this.specificTrainrunSectionFrequencyId = specificTrainrunSectionFrequencyId;
@@ -149,35 +164,35 @@ export class TrainrunSection {
     return ++TrainrunSection.currentId;
   }
 
-  private static getDisplayTextWidth(time: TimeLockDto): number {
+  private static getDisplayTextWidth(time: TimeLockDto): number | undefined {
     if (!time.timeFormatter?.textWidth) {
       return undefined;
     }
     return time.timeFormatter.textWidth;
   }
 
-  private static getDisplayHtmlStyle(time: TimeLockDto): string {
+  private static getDisplayHtmlStyle(time: TimeLockDto): string | undefined {
     if (!time.timeFormatter?.htmlStyle) {
       return undefined;
     }
     return time.timeFormatter.htmlStyle;
   }
 
-  private static getDisplayColorRef(time: TimeLockDto): ColorRefType {
+  private static getDisplayColorRef(time: TimeLockDto): ColorRefType | undefined {
     if (!time.timeFormatter?.colorRef) {
       return undefined;
     }
     return time.timeFormatter.colorRef;
   }
 
-  private static formatDisplayText(time: TimeLockDto, offset: number): string {
+  private static formatDisplayText(time: TimeLockDto, offset: number): string | undefined {
     if (!time?.timeFormatter?.stylePattern) {
       return undefined;
     }
 
-    const consecutiveTimeDate = new Date(null);
+    const consecutiveTimeDate = new Date(0);
     consecutiveTimeDate.setSeconds((time.consecutiveTime + offset) * 60);
-    const timeDate = new Date(null);
+    const timeDate = new Date(0);
     timeDate.setSeconds(((time.time + offset + 24 * 60) % 60) * 60);
 
     const patterns = {
@@ -200,8 +215,8 @@ export class TrainrunSection {
     };
 
     let formattedText = time.timeFormatter.stylePattern;
-    for (const pattern in patterns) {
-      formattedText = formattedText.replace(pattern, patterns[pattern]);
+    for (const [pattern, repl] of Object.entries(patterns)) {
+      formattedText = formattedText.replace(pattern, repl);
     }
 
     return formattedText;
@@ -237,6 +252,24 @@ export class TrainrunSection {
     this.trainrunId = trainrun.getId();
   }
 
+  setSourceSymmetry(sourceSymmetry: boolean) {
+    this.sourceSymmetry = sourceSymmetry;
+  }
+
+  setTargetSymmetry(targetSymmetry: boolean) {
+    this.targetSymmetry = targetSymmetry;
+  }
+
+  resetSymmetry() {
+    this.sourceSymmetry = true;
+    this.targetSymmetry = true;
+  }
+
+  setAsymmetry() {
+    this.sourceSymmetry = false;
+    this.targetSymmetry = false;
+  }
+
   setSourceArrivalDto(sourceArrivalDto: TimeLockDto) {
     this.sourceArrival = sourceArrivalDto;
   }
@@ -255,6 +288,41 @@ export class TrainrunSection {
 
   setTravelTimeDto(travelTimeDto: TimeLockDto) {
     this.travelTime = travelTimeDto;
+  }
+
+  setBackwardTravelTimeDto(backwardTravelTimeDto: TimeLockDto) {
+    this.backwardTravelTime = backwardTravelTimeDto;
+  }
+
+  getSourceSymmetry(): boolean {
+    return this.sourceSymmetry;
+  }
+
+  getTargetSymmetry(): boolean {
+    return this.targetSymmetry;
+  }
+
+  isSymmetric(): boolean {
+    return this.sourceSymmetry && this.targetSymmetry;
+  }
+
+  isSourceSymmetricOrTimesSymmetric(): boolean {
+    return (
+      this.sourceSymmetry ||
+      TrainrunsectionHelper.getSymmetricTime(this.sourceDeparture.time) === this.sourceArrival.time
+    );
+  }
+
+  isTargetSymmetricOrTimesSymmetric(): boolean {
+    return (
+      this.targetSymmetry ||
+      TrainrunsectionHelper.getSymmetricTime(this.targetDeparture.time) === this.targetArrival.time
+    );
+  }
+
+  areTravelTimesEqual(): boolean {
+    // indirectly checks this.isSymmetric() as well, because if not symmetric, travel times must be different
+    return this.travelTime.time === this.backwardTravelTime.time;
   }
 
   getSourceArrivalDto(): TimeLockDto {
@@ -277,12 +345,20 @@ export class TrainrunSection {
     return this.travelTime;
   }
 
+  getBackwardTravelTimeDto(): TimeLockDto {
+    return this.backwardTravelTime;
+  }
+
   getId(): number {
     return this.id;
   }
 
   getTravelTime(): number {
     return this.travelTime.time;
+  }
+
+  getBackwardTravelTime(): number {
+    return this.backwardTravelTime.time;
   }
 
   getSourceDeparture(): number {
@@ -301,83 +377,99 @@ export class TrainrunSection {
     return this.targetArrival.time;
   }
 
-  getTravelTimeFormattedDisplayText(offset = 0): string {
+  getTravelTimeFormattedDisplayText(offset = 0): string | undefined {
     return TrainrunSection.formatDisplayText(this.travelTime, offset);
   }
 
-  getSourceDepartureFormattedDisplayText(offset = 0): string {
+  getBackwardTravelTimeFormattedDisplayText(offset = 0): string | undefined {
+    return TrainrunSection.formatDisplayText(this.backwardTravelTime, offset);
+  }
+
+  getSourceDepartureFormattedDisplayText(offset = 0): string | undefined {
     return TrainrunSection.formatDisplayText(this.sourceDeparture, offset);
   }
 
-  getSourceArrivalFormattedDisplayText(offset = 0): string {
+  getSourceArrivalFormattedDisplayText(offset = 0): string | undefined {
     return TrainrunSection.formatDisplayText(this.sourceArrival, offset);
   }
 
-  getTargetDepartureFormattedDisplayText(offset = 0): string {
+  getTargetDepartureFormattedDisplayText(offset = 0): string | undefined {
     return TrainrunSection.formatDisplayText(this.targetDeparture, offset);
   }
 
-  getTargetArrivalFormattedDisplayText(offset = 0): string {
+  getTargetArrivalFormattedDisplayText(offset = 0): string | undefined {
     return TrainrunSection.formatDisplayText(this.targetArrival, offset);
   }
 
-  getTravelTimeFormattedDisplayTextWidth(): number {
+  getTravelTimeFormattedDisplayTextWidth(): number | undefined {
     return TrainrunSection.getDisplayTextWidth(this.travelTime);
   }
 
-  getSourceDepartureFormattedDisplayTextWidth(): number {
+  getBackwardTravelTimeFormattedDisplayTextWidth(): number | undefined {
+    return TrainrunSection.getDisplayTextWidth(this.backwardTravelTime);
+  }
+
+  getSourceDepartureFormattedDisplayTextWidth(): number | undefined {
     return TrainrunSection.getDisplayTextWidth(this.sourceDeparture);
   }
 
-  getSourceArrivalFormattedDisplayTextWidth(): number {
+  getSourceArrivalFormattedDisplayTextWidth(): number | undefined {
     return TrainrunSection.getDisplayTextWidth(this.sourceArrival);
   }
 
-  getTargetDepartureFormattedDisplayTextWidth(): number {
+  getTargetDepartureFormattedDisplayTextWidth(): number | undefined {
     return TrainrunSection.getDisplayTextWidth(this.targetDeparture);
   }
 
-  getTargetArrivalFormattedDisplayTextWidth(): number {
+  getTargetArrivalFormattedDisplayTextWidth(): number | undefined {
     return TrainrunSection.getDisplayTextWidth(this.targetArrival);
   }
 
-  getTravelTimeFormattedDisplayHtmlStyle(): string {
+  getTravelTimeFormattedDisplayHtmlStyle(): string | undefined {
     return TrainrunSection.getDisplayHtmlStyle(this.travelTime);
   }
 
-  getSourceDepartureFormattedDisplayHtmlStyle(): string {
+  getBackwardTravelTimeFormattedDisplayHtmlStyle(): string | undefined {
+    return TrainrunSection.getDisplayHtmlStyle(this.backwardTravelTime);
+  }
+
+  getSourceDepartureFormattedDisplayHtmlStyle(): string | undefined {
     return TrainrunSection.getDisplayHtmlStyle(this.sourceDeparture);
   }
 
-  getSourceArrivalFormattedDisplayHtmlStyle(): string {
+  getSourceArrivalFormattedDisplayHtmlStyle(): string | undefined {
     return TrainrunSection.getDisplayHtmlStyle(this.sourceArrival);
   }
 
-  getTargetDepartureFormattedDisplayHtmlStyle(): string {
+  getTargetDepartureFormattedDisplayHtmlStyle(): string | undefined {
     return TrainrunSection.getDisplayHtmlStyle(this.targetDeparture);
   }
 
-  getTargetArrivalFormattedDisplayHtmlStyle(): string {
+  getTargetArrivalFormattedDisplayHtmlStyle(): string | undefined {
     return TrainrunSection.getDisplayHtmlStyle(this.targetArrival);
   }
 
-  getTravelTimeFormatterColorRef(): ColorRefType {
+  getTravelTimeFormatterColorRef(): ColorRefType | undefined {
     return TrainrunSection.getDisplayColorRef(this.travelTime);
   }
 
-  getSourceDepartureFormatterColorRef(): ColorRefType {
+  getBackwardTravelTimeFormatterColorRef(): ColorRefType | undefined {
+    return TrainrunSection.getDisplayColorRef(this.backwardTravelTime);
+  }
+
+  getSourceDepartureFormatterColorRef(): ColorRefType | undefined {
     return TrainrunSection.getDisplayColorRef(this.sourceDeparture);
   }
 
-  getSourceArrivalFormatterColorRef(): ColorRefType {
+  getSourceArrivalFormatterColorRef(): ColorRefType | undefined {
     return TrainrunSection.getDisplayColorRef(this.sourceArrival);
   }
 
-  getTargetDepartureFormatterColorRef(): ColorRefType {
+  getTargetDepartureFormatterColorRef(): ColorRefType | undefined {
     return TrainrunSection.getDisplayColorRef(this.targetDeparture);
   }
 
-  getTargetArrivalFormatterColorRef(): ColorRefType {
+  getTargetArrivalFormatterColorRef(): ColorRefType | undefined {
     return TrainrunSection.getDisplayColorRef(this.targetArrival);
   }
 
@@ -387,7 +479,12 @@ export class TrainrunSection {
 
   setTravelTime(time: number) {
     this.travelTime.time = time;
-    TrainrunSectionValidator.validateTravelTime(this);
+    TrainrunSectionValidator.validateTravelTime(this, 1); // TODO: I don't think this should be done here
+  }
+
+  setBackwardTravelTime(time: number) {
+    this.backwardTravelTime.time = time;
+    TrainrunSectionValidator.validateBackwardTravelTime(this, 1);
   }
 
   setSourceDeparture(time: number) {
@@ -414,6 +511,10 @@ export class TrainrunSection {
     return this.travelTime.lock;
   }
 
+  getBackwardTravelTimeLock(): boolean {
+    return this.backwardTravelTime.lock;
+  }
+
   getSourceDepartureLock(): boolean {
     return this.sourceDeparture.lock;
   }
@@ -432,6 +533,10 @@ export class TrainrunSection {
 
   setTravelTimeLock(lock: boolean) {
     this.travelTime.lock = lock;
+  }
+
+  setBackwardTravelTimeLock(lock: boolean) {
+    this.backwardTravelTime.lock = lock;
   }
 
   setSourceDepartureLock(lock: boolean) {
@@ -455,23 +560,27 @@ export class TrainrunSection {
   }
 
   hasTravelTimeWarning(): boolean {
-    return this.travelTime.warning !== null;
+    return Boolean(this.travelTime.warning);
+  }
+
+  hasBackwardTravelTimeWarning(): boolean {
+    return Boolean(this.backwardTravelTime.warning);
   }
 
   hasSourceDepartureWarning(): boolean {
-    return this.sourceDeparture.warning !== null;
+    return Boolean(this.sourceDeparture.warning);
   }
 
   hasSourceArrivalWarning(): boolean {
-    return this.sourceArrival.warning !== null;
+    return Boolean(this.sourceArrival.warning);
   }
 
   hasTargetDepartureWarning(): boolean {
-    return this.targetDeparture.warning !== null;
+    return Boolean(this.targetDeparture.warning);
   }
 
   hasTargetArrivalWarning(): boolean {
-    return this.targetArrival.warning !== null;
+    return Boolean(this.targetArrival.warning);
   }
 
   setTargetArrivalWarning(wargningTitle: string, warningDescription: string) {
@@ -509,44 +618,59 @@ export class TrainrunSection {
     };
   }
 
-  getTargetArrivalWarning() {
+  setBackwardTravelTimeWarning(warningTitle: string, warningDescription: string) {
+    this.backwardTravelTime.warning = {
+      title: warningTitle,
+      description: warningDescription,
+    };
+  }
+
+  getTargetArrivalWarning(): WarningDto | undefined {
     return this.targetArrival.warning;
   }
 
-  getSourceArrivalWarning() {
+  getSourceArrivalWarning(): WarningDto | undefined {
     return this.sourceArrival.warning;
   }
 
-  getTargetDepartureWarning() {
+  getTargetDepartureWarning(): WarningDto | undefined {
     return this.targetDeparture.warning;
   }
 
-  getSourceDepartureWarning() {
+  getSourceDepartureWarning(): WarningDto | undefined {
     return this.sourceDeparture.warning;
   }
 
-  getTravelTimeWarning() {
+  getTravelTimeWarning(): WarningDto | undefined {
     return this.travelTime.warning;
   }
 
-  resetTargetArrivalWarning() {
-    this.targetArrival.warning = null;
+  getBackwardTravelTimeWarning(): WarningDto | undefined {
+    return this.backwardTravelTime.warning;
   }
 
-  resetSourceArrivalWarning() {
-    this.sourceArrival.warning = null;
+  resetTargetArrivalWarning(): void {
+    this.targetArrival.warning = undefined;
   }
 
-  resetTargetDepartureWarning() {
-    this.targetDeparture.warning = null;
+  resetSourceArrivalWarning(): void {
+    this.sourceArrival.warning = undefined;
   }
 
-  resetSourceDepartureWarning() {
-    this.sourceDeparture.warning = null;
+  resetTargetDepartureWarning(): void {
+    this.targetDeparture.warning = undefined;
   }
 
-  resetTravelTimeWarning() {
-    this.travelTime.warning = null;
+  resetSourceDepartureWarning(): void {
+    this.sourceDeparture.warning = undefined;
+  }
+
+  resetTravelTimeWarning(): void {
+    this.travelTime.warning = undefined;
+  }
+
+  resetBackwardTravelTimeWarning(): void {
+    this.backwardTravelTime.warning = undefined;
   }
 
   getTrainrunId(): number {
@@ -617,8 +741,13 @@ export class TrainrunSection {
     return this.pathVec2D;
   }
 
-  isPathEmpty(): boolean {
-    return this.pathVec2D.length === 0;
+  isPathInvalid(): boolean {
+    if (this.pathVec2D.length === 0 || !this.path || !this.path.textPositions) {
+      return true;
+    }
+
+    // Check if all required TrainrunSectionText enum values have corresponding textPositions
+    return Object.keys(EMPTY_TEXT_POSITIONS).some((key) => !(key in this.path.textPositions));
   }
 
   routeEdgeAndPlaceText() {
@@ -651,12 +780,15 @@ export class TrainrunSection {
       sourcePortId: this.sourcePortId,
       targetNodeId: this.targetNodeId,
       targetPortId: this.targetPortId,
-      travelTime: this.travelTime,
 
+      sourceSymmetry: this.sourceSymmetry,
+      targetSymmetry: this.targetSymmetry,
       sourceDeparture: this.sourceDeparture,
       sourceArrival: this.sourceArrival,
       targetDeparture: this.targetDeparture,
       targetArrival: this.targetArrival,
+      travelTime: this.travelTime,
+      backwardTravelTime: this.backwardTravelTime,
 
       numberOfStops: this.numberOfStops,
 

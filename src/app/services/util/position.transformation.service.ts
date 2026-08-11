@@ -33,7 +33,7 @@ export class PositionTransformationService {
     );
     const focalNode: Node = this.getFocalNode(scaleCenterCoordinates);
 
-    this.nodeService.getNodes().forEach((n, index) => {
+    this.nodeService.getNodes().forEach((n) => {
       let newPos = new Vec2D(
         (n.getPositionX() - scaleCenterCoordinates.getX()) * factor + scaleCenterCoordinates.getX(),
         (n.getPositionY() - scaleCenterCoordinates.getY()) * factor + scaleCenterCoordinates.getY(),
@@ -49,7 +49,7 @@ export class PositionTransformationService {
       n.setPosition(newPos.getX(), newPos.getY());
     });
 
-    this.noteService.getNotes().forEach((n, index) => {
+    this.noteService.getNotes().forEach((n) => {
       let newPos = new Vec2D(
         (n.getPositionX() - scaleCenterCoordinates.getX()) * factor + scaleCenterCoordinates.getX(),
         (n.getPositionY() - scaleCenterCoordinates.getY()) * factor + scaleCenterCoordinates.getY(),
@@ -126,7 +126,7 @@ export class PositionTransformationService {
       scaleCenterCoordinates.setData(centerOfMass.getX(), centerOfMass.getY());
     }
 
-    nodes.forEach((n, index) => {
+    nodes.forEach((n) => {
       let newPos = new Vec2D(
         (n.getPositionX() + n.getNodeWidth() / 2.0 - scaleCenterCoordinates.getX()) * factor +
           scaleCenterCoordinates.getX() -
@@ -147,7 +147,7 @@ export class PositionTransformationService {
       n.setPosition(newPos.getX(), newPos.getY());
     });
 
-    notes.forEach((n, index) => {
+    notes.forEach((n) => {
       const newPos = new Vec2D(
         (n.getPositionX() + n.getWidth() / 2.0 - scaleCenterCoordinates.getX()) * factor +
           scaleCenterCoordinates.getX() -
@@ -165,7 +165,9 @@ export class PositionTransformationService {
 
     this.trainrunSectionService.getTrainrunSections().forEach((ts) => {
       ts.routeEdgeAndPlaceText();
-      ts.getSourceNode().updateTransitionsAndConnections();
+      // Note: don't call updateTransitionsAndConnections() here as it would
+      // re-apply spatial port ordering, undoing the optimized ordering from
+      // initPortOrdering().
     });
 
     this.viewportCullService.onViewportChangeUpdateRendering(true);
@@ -196,7 +198,7 @@ export class PositionTransformationService {
   alignSelectedElementsToLeftBorder() {
     const nodes: Node[] = this.nodeService.getSelectedNodes();
 
-    let leftX = undefined;
+    let leftX: number | undefined = undefined;
     nodes.forEach((n) => {
       const pos = n.getPositionX();
       if (leftX === undefined) {
@@ -219,7 +221,7 @@ export class PositionTransformationService {
   alignSelectedElementsToRightBorder() {
     const nodes: Node[] = this.nodeService.getSelectedNodes();
 
-    let rightX = undefined;
+    let rightX: number | undefined = undefined;
     nodes.forEach((n) => {
       const pos = n.getPositionX() + n.getNodeWidth();
       if (rightX === undefined) {
@@ -242,7 +244,7 @@ export class PositionTransformationService {
   alignSelectedElementsToTopBorder() {
     const nodes: Node[] = this.nodeService.getSelectedNodes();
 
-    let topY = undefined;
+    let topY: number | undefined = undefined;
     nodes.forEach((n) => {
       const pos = n.getPositionY();
       if (topY === undefined) {
@@ -265,7 +267,7 @@ export class PositionTransformationService {
   alignSelectedElementsToBottomBorder() {
     const nodes: Node[] = this.nodeService.getSelectedNodes();
 
-    let bottomY = undefined;
+    let bottomY: number | undefined = undefined;
     nodes.forEach((n) => {
       const pos = n.getPositionY() + n.getNodeHeight();
       if (bottomY === undefined) {

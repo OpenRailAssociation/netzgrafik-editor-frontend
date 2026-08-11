@@ -3,10 +3,9 @@ import {NodeService} from "../../services/data/node.service";
 import {ResourceService} from "../../services/data/resource.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
-import {StammdatenService} from "../../services/data/stammdaten.service";
+import {BaseDataService} from "../../services/data/basedata.service";
 import {NoteService} from "../../services/data/note.service";
 import {Node} from "../../models/node.model";
-import {TrainrunSection} from "../../models/trainrunsection.model";
 import {LabelGroupService} from "../../services/data/labelgroup.service";
 import {LabelService} from "../data/label.service";
 import {NetzgrafikColoringService} from "../../services/data/netzgrafikColoring.service";
@@ -26,10 +25,8 @@ describe("PositionTransformationService", () => {
   let resourceService: ResourceService;
   let trainrunService: TrainrunService;
   let trainrunSectionService: TrainrunSectionService;
-  let stammdatenService: StammdatenService;
+  let baseDataService: BaseDataService;
   let noteService: NoteService;
-  let nodes: Node[] = null;
-  let trainrunSections: TrainrunSection[] = null;
   let logService: LogService = null;
   let logPublishersService: LogPublishersService = null;
   let labelGroupService: LabelGroupService = null;
@@ -41,7 +38,7 @@ describe("PositionTransformationService", () => {
   let positionTransformationService: PositionTransformationService = null;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -59,22 +56,18 @@ describe("PositionTransformationService", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,
       filterService,
       netzgrafikColoringService,
-    );
-    nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
-    trainrunSectionService.trainrunSections.subscribe(
-      (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
     );
 
     loadPerlenketteService = new LoadPerlenketteService(
@@ -88,11 +81,12 @@ describe("PositionTransformationService", () => {
       filterService,
       nodeService,
       noteService,
-      stammdatenService,
+      baseDataService,
       trainrunSectionService,
       trainrunService,
       netzgrafikColoringService,
       loadPerlenketteService,
+      dataService,
     );
 
     const viewportCullService = new ViewportCullService(

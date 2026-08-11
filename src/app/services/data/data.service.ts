@@ -5,13 +5,15 @@ import {
   Direction,
   TrainrunFrequency,
   TrainrunTimeCategory,
+  TrafficSide,
+  AnalyticsSettingsDto,
 } from "../../data-structures/business.data.structures";
 import {NetzgrafikDefault} from "../../sample-netzgrafik/netzgrafik.default";
 import {NodeService} from "./node.service";
 import {TrainrunSectionService} from "./trainrunsection.service";
 import {TrainrunService} from "./trainrun.service";
-import {StammdatenService} from "./stammdaten.service";
-import {Stammdaten} from "../../models/stammdaten.model";
+import {BaseDataService} from "./basedata.service";
+import {BaseData} from "../../models/basedata.model";
 import {ResourceService} from "./resource.service";
 import {BehaviorSubject, combineLatest, Observable, Subject} from "rxjs";
 import {debounceTime, map, skip, takeUntil} from "rxjs/operators";
@@ -22,6 +24,7 @@ import {DataMigration} from "../../utils/data-migration";
 import {FilterService} from "../ui/filter.service";
 import {NetzgrafikColoringService} from "./netzgrafikColoring.service";
 import {Trainrun} from "src/app/models/trainrun.model";
+import {SimpleTrainrunSectionRouter} from "../util/trainrunsection.routing";
 
 export class NetzgrafikLoadedInfo {
   constructor(
@@ -30,6 +33,7 @@ export class NetzgrafikLoadedInfo {
   ) {}
 }
 
+export const DEFAULT_CONNECTION_PENALTY = 5;
 @Injectable({
   providedIn: "root",
 })
@@ -50,7 +54,7 @@ export class DataService implements OnDestroy {
     private nodeService: NodeService,
     private trainrunSectionService: TrainrunSectionService,
     private trainrunService: TrainrunService,
-    private stammdatenService: StammdatenService,
+    private baseDataService: BaseDataService,
     private noteService: NoteService,
     private labelService: LabelService,
     private labelGroupService: LabelGroupService,
@@ -60,10 +64,10 @@ export class DataService implements OnDestroy {
     this.trainrunService.setDataService(this);
     this.nodeService.setDataService(this);
     this.filterService.setDataService(this);
-    this.stammdatenService.stammdatenObservable
+    this.baseDataService.baseDataObservable
       .pipe(takeUntil(this.destroyed))
-      .subscribe((stammdaten: Stammdaten[]) => {
-        this.nodeService.setNodePropertiesFromStammdaten(stammdaten);
+      .subscribe((baseData: BaseData[]) => {
+        this.nodeService.setNodePropertiesFromBaseData(baseData);
       });
   }
 
@@ -78,6 +82,9 @@ export class DataService implements OnDestroy {
     DataMigration.migrateNetzgrafikDto(netzgrafikDto);
 
     this.netzgrafikDtoStore.netzgrafikDto = netzgrafikDto;
+    SimpleTrainrunSectionRouter.setTrafficSideType(
+      this.netzgrafikDtoStore.netzgrafikDto.metadata.trafficSide,
+    );
     this.resourceService.setResourceData(this.netzgrafikDtoStore.netzgrafikDto.resources);
     this.nodeService.setNodeData(this.netzgrafikDtoStore.netzgrafikDto.nodes);
     this.trainrunSectionService.setTrainrunSectionsDataAndValidate(
@@ -91,6 +98,11 @@ export class DataService implements OnDestroy {
     this.netzgrafikColoringService.setNetzgrafikColors(
       this.netzgrafikDtoStore.netzgrafikDto.metadata.netzgrafikColors,
     );
+    if (this.netzgrafikDtoStore.netzgrafikDto.metadata.orderingAlgorithm !== undefined) {
+      this.nodeService.setOrderingAlgorithm(
+        this.netzgrafikDtoStore.netzgrafikDto.metadata.orderingAlgorithm,
+      );
+    }
 
     this.initializeDataServices();
 
@@ -179,6 +191,9 @@ export class DataService implements OnDestroy {
   getNetzgrafikDto(): NetzgrafikDto {
     const metadata = this.netzgrafikDtoStore.netzgrafikDto.metadata;
     metadata.netzgrafikColors = this.netzgrafikColoringService.getDtos();
+    metadata.analyticsSettings = this.getAnalyticsSettings();
+    metadata.orderingAlgorithm = this.nodeService.getCurrentOrderingAlgorithm();
+    metadata.trafficSide = this.getTrafficSide();
 
     return {
       nodes: this.nodeService.getDtos(),
@@ -197,12 +212,20 @@ export class DataService implements OnDestroy {
     return this.trainrunService.getTrainruns();
   }
 
+  getTrainrunSections() {
+    return this.trainrunSectionService.getTrainrunSections();
+  }
+
+  getTrainrunSectionsByTrainrunId(trainrunId: number) {
+    return this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(trainrunId);
+  }
+
   getTrainrunCategory(categoryId: number): TrainrunCategory {
     const found = this.netzgrafikDtoStore.netzgrafikDto.metadata.trainrunCategories.find(
       (trainrunCategory) => trainrunCategory.id === categoryId,
     );
     if (found === undefined) {
-      return this.netzgrafikDtoStore.netzgrafikDto.metadata.trainrunCategories.find((freq) => true);
+      return this.netzgrafikDtoStore.netzgrafikDto.metadata.trainrunCategories.find(() => true);
     }
     return found;
   }
@@ -212,9 +235,7 @@ export class DataService implements OnDestroy {
       (trainrunFrequency) => trainrunFrequency.id === frequencyId,
     );
     if (found === undefined) {
-      return this.netzgrafikDtoStore.netzgrafikDto.metadata.trainrunFrequencies.find(
-        (freq) => true,
-      );
+      return this.netzgrafikDtoStore.netzgrafikDto.metadata.trainrunFrequencies.find(() => true);
     }
     return found;
   }
@@ -224,9 +245,7 @@ export class DataService implements OnDestroy {
       (trainrunTimeCategory) => trainrunTimeCategory.id === timeCategoryId,
     );
     if (found === undefined) {
-      return this.netzgrafikDtoStore.netzgrafikDto.metadata.trainrunTimeCategories.find(
-        (freq) => true,
-      );
+      return this.netzgrafikDtoStore.netzgrafikDto.metadata.trainrunTimeCategories.find(() => true);
     }
     return found;
   }
@@ -243,12 +262,33 @@ export class DataService implements OnDestroy {
     return this.netzgrafikDtoStore.netzgrafikDto.metadata.trainrunTimeCategories;
   }
 
+  getAnalyticsSettings(): AnalyticsSettingsDto {
+    return (
+      this.netzgrafikDtoStore.netzgrafikDto.metadata.analyticsSettings || {
+        originDestinationSettings: {connectionPenalty: DEFAULT_CONNECTION_PENALTY},
+      }
+    );
+  }
+
+  setAnalyticsSettings(analyticsSettings: AnalyticsSettingsDto) {
+    this.netzgrafikDtoStore.netzgrafikDto.metadata.analyticsSettings = analyticsSettings;
+  }
+
+  getTrafficSide(): TrafficSide {
+    return this.netzgrafikDtoStore.netzgrafikDto.metadata.trafficSide || "leftHand";
+  }
+
+  setTrafficSide(trafficSideType: TrafficSide) {
+    this.netzgrafikDtoStore.netzgrafikDto.metadata.trafficSide = trafficSideType || "leftHand";
+    SimpleTrainrunSectionRouter.setTrafficSideType(trafficSideType);
+  }
+
   getDirections(): Direction[] {
     return Object.values(Direction);
   }
 
-  getBPStammdaten(betriebspunktName: string): Stammdaten {
-    return this.stammdatenService.getBPStammdaten(betriebspunktName);
+  getBetriebspunktNameBaseData(betriebspunktName: string): BaseData {
+    return this.baseDataService.getBaseDataByBetriebspunktName(betriebspunktName);
   }
 
   /**
@@ -261,7 +301,7 @@ export class DataService implements OnDestroy {
       this.nodeService.nodes,
       this.trainrunSectionService.trainrunSections,
       this.trainrunService.trainruns,
-      this.stammdatenService.stammdatenObservable,
+      this.baseDataService.baseDataObservable,
       this.resourceService.resourceObservable,
       this.noteService.notes,
       this.labelService.labels,
@@ -269,7 +309,7 @@ export class DataService implements OnDestroy {
       this.filterService.filterSetting,
     ]).pipe(
       skip(1),
-      map(() => null),
+      map((): void => null),
       debounceTime(changeTimeout),
     );
   }

@@ -1,8 +1,9 @@
+import {HashLocationStrategy, LocationStrategy} from "@angular/common";
 import {NgModule, Injector, DoBootstrap} from "@angular/core";
 import {NgxEditorModule} from "ngx-editor";
 import {BrowserModule} from "@angular/platform-browser";
 import {createCustomElement} from "@angular/elements";
-import {HTTP_INTERCEPTORS, HttpClientModule} from "@angular/common/http";
+import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from "@angular/common/http";
 import {OAuthModule} from "angular-oauth2-oidc";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
@@ -40,7 +41,7 @@ import {EditorNodeDetailViewComponent} from "./view/editor-side-view/editor-node
 import {EditorFilterViewComponent} from "./view/editor-filter-view/editor-filter-view.component";
 import {EditorMenuComponent} from "./view/editor-menu/editor-menu.component";
 import {EditorSideViewComponent} from "./view/editor-side-view/editor-side-view.component";
-import {StammdatenDialogComponent} from "./view/dialogs/stammdaten-dialog/stammdaten-dialog.component";
+import {BaseDataDialogComponent} from "./view/dialogs/basedata-dialog/basedata-dialog.component";
 import {TrainrunAndSectionDialogComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrun-and-section-dialog.component";
 import {ConfirmationDialogComponent} from "./view/dialogs/confirmation-dialog/confirmation-dialog.component";
 import {FilterMainSideViewComponent} from "./view/filter-main-side-view/filter-main-side-view.component";
@@ -107,6 +108,7 @@ import {I18nModule} from "./core/i18n/i18n.module";
 import {OriginDestinationComponent} from "./services/analytics/origin-destination/components/origin-destination.component";
 import {SbbToggleModule} from "@sbb-esta/angular/toggle";
 import {ToggleSwitchButtonComponent} from "./view/toggle-switch-button/toggle-switch-button.component";
+import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrunsection-tab/time-stepper/time-stepper.component";
 
 @NgModule({
   declarations: [
@@ -118,10 +120,11 @@ import {ToggleSwitchButtonComponent} from "./view/toggle-switch-button/toggle-sw
     TrainrunFilterTabComponent,
     TrainrunRoundtripTabComponent,
     TrainrunSectionTabComponent,
+    TimeStepperComponent,
     TrainrunSectionCardComponent,
     EditorNodeDetailViewComponent,
     EditorFilterViewComponent,
-    StammdatenDialogComponent,
+    BaseDataDialogComponent,
     EditorMenuComponent,
     EditorSideViewComponent,
     TrainrunAndSectionDialogComponent,
@@ -184,6 +187,7 @@ import {ToggleSwitchButtonComponent} from "./view/toggle-switch-button/toggle-sw
     PathGridComponent,
     ToggleSwitchButtonComponent,
   ],
+  bootstrap: environment.customElement ? [] : [AppComponent],
   imports: [
     BrowserModule,
     FormsModule,
@@ -191,7 +195,6 @@ import {ToggleSwitchButtonComponent} from "./view/toggle-switch-button/toggle-sw
     BrowserAnimationsModule,
     DragDropModule,
     AppRoutingModule,
-    HttpClientModule,
     NgxEditorModule,
     NgxEditorModule.forRoot({
       locals: {
@@ -243,10 +246,12 @@ import {ToggleSwitchButtonComponent} from "./view/toggle-switch-button/toggle-sw
     SbbAutocompleteModule,
     I18nModule,
   ],
-  bootstrap: environment.customElement ? [] : [AppComponent],
   providers: [
-    ...(environment.backendUrl ? [{provide: BASE_PATH, useValue: environment.backendUrl}] : []),
+    ...(environment.backendUrl
+      ? [{provide: BASE_PATH, useValue: environment.backendUrl}]
+      : [{provide: LocationStrategy, useClass: HashLocationStrategy}]),
     {provide: HTTP_INTERCEPTORS, useClass: HttpErrorInterceptor, multi: true},
+    provideHttpClient(withInterceptorsFromDi()),
   ],
 })
 export class AppModule implements DoBootstrap {

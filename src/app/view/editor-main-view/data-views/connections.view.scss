@@ -1,4 +1,4 @@
-@import "../../rastering/definitions";
+@use "../../rastering/definitions" as *;
 
 ::ng-deep path.connection_line {
   fill: none;
@@ -67,4 +67,11 @@
 
 ::ng-deep circle.connection_line_pin.connection_ongoing_dragging {
   pointer-events: none;
+}
+
+::ng-deep circle.connection_line_pin.ctrlKey {
+  stroke: none;
+  fill: none;
+  r: $PIN_RADIUS_HIDDEN;
+  cursor: pointer;
 }

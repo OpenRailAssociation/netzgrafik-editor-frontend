@@ -23,28 +23,34 @@ import {ConnectionsView} from "./connections.view";
 import {EditorMode} from "../../editor-menu/editor-mode";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
 
+type NodeDragEvent = d3.D3DragEvent<SVGElement, NodeViewObject, unknown>;
+
 export class NodesView {
   dragPreviousMousePosition: Vec2D;
-  nodeGroup;
-  draggable: any;
+  nodeGroup: d3.Selection<SVGElement, undefined, Element, undefined>;
+  draggable: d3.DragBehavior<SVGElement, NodeViewObject, unknown>;
+  dragDomObj: SVGElement | null = null;
   private LevelOfDetails: LevelOfDetail;
 
   constructor(private editorView: EditorView) {
     this.draggable = d3
-      .drag()
-      .on("start", (n: NodeViewObject, i, a) => this.onNodeDragStart(n.node, a[i]))
-      .on("drag", (n: NodeViewObject) => this.onNodeDragged(n.node))
-      .on("end", (n: NodeViewObject, i, a) => this.onNodeDragEnd(n.node, a[i]));
+      .drag<SVGElement, NodeViewObject>()
+      .on("start", (event: NodeDragEvent, n: NodeViewObject) => this.onNodeDragStart(event, n.node))
+      .on("drag", (event: NodeDragEvent, n: NodeViewObject) => this.onNodeDragged(event, n.node))
+      .on("end", (event: NodeDragEvent, n: NodeViewObject) => this.onNodeDragEnd(event, n.node));
     this.dragPreviousMousePosition = new Vec2D();
   }
 
-  setGroup(nodeGroup: d3.Selector) {
+  setGroup(nodeGroup: d3.Selection<SVGElement, undefined, Element, undefined>) {
     this.nodeGroup = nodeGroup;
     this.nodeGroup.attr("class", "NodesView");
   }
 
-  onNodeDragStart(node: Node, domObj: any) {
+  onNodeDragStart(event: NodeDragEvent, _node: Node) {
     D3Utils.enableFastRenderingUpdate();
+
+    const domObj = D3Utils.getMouseEventCurrentTarget(event.sourceEvent);
+    this.dragDomObj = domObj;
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, true);
     d3.select(domObj).classed(StaticDomTags.TAG_DRAGGING, true);
 
@@ -54,24 +60,31 @@ export class NodesView {
       this.editorView.unselectAllNotes();
     }
 
-    this.dragPreviousMousePosition = this.editorView.svgMouseController.getCurrentMousePosition();
+    this.dragPreviousMousePosition = this.editorView.svgMouseController.getCurrentMousePosition(
+      event.sourceEvent,
+    );
     this.editorView.pauseUndoRecording();
   }
 
-  onNodeDragged(node: Node) {
+  onNodeDragged(event: NodeDragEvent, node: Node) {
     this.editorView.enableElementDragging();
-    this.doDrag(node.getId());
+    this.doDrag(event, node.getId());
     this.editorView.disableElementDragging();
   }
 
-  onNodeDragEnd(node: Node, domObj: any) {
+  onNodeDragEnd(event: NodeDragEvent, node: Node) {
     D3Utils.disableFastRenderingUpdate();
 
     this.editorView.startUndoRecording();
 
+    // Unfortunately event.sourceEvent.currentTarget doesn't give us access to
+    // the SVG element being dragged here unfortunately, so we need to save it
+    const domObj = this.dragDomObj;
+    this.dragDomObj = null;
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
     d3.select(domObj).classed(StaticDomTags.TAG_DRAGGING, false);
-    this.doDrag(node.getId(), NODE_POSITION_BASIC_RASTER, true);
+
+    this.doDrag(event, node.getId(), NODE_POSITION_BASIC_RASTER, true);
 
     // add the delta mouse position to node's current location/position
     if (this.editorView.editorMode !== EditorMode.MultiNodeMoving) {
@@ -128,7 +141,7 @@ export class NodesView {
     group.exit().remove();
   }
 
-  renderNodeObject(groupEnter: any) {
+  renderNodeObject(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
     switch (this.editorView.getLevelOfDetail()) {
       case LevelOfDetail.LEVEL3: {
         //statements;
@@ -157,7 +170,29 @@ export class NodesView {
     }
   }
 
-  makeNodeLODFull(groupEnter: any) {
+  adjustTextWithEllipsis(text: d3.Selection<SVGTextElement, unknown, Element, unknown>) {
+    text.each(function () {
+      const text = d3.select(this);
+      const chars = text.text().split("");
+
+      const ellipsis = text.text("").append("tspan").attr("class", "elip").text("…");
+      const width = parseFloat(text.attr("width")) - ellipsis.node().getComputedTextLength();
+      const wordLength = chars.length;
+
+      const tspan = text.insert("tspan", ":first-child").text(chars.join(""));
+
+      while (tspan.node().getComputedTextLength() > width && chars.length) {
+        chars.pop();
+        tspan.text(chars.join(""));
+      }
+
+      if (chars.length === wordLength) {
+        ellipsis.remove();
+      }
+    });
+  }
+
+  makeNodeLODFull(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
     this.makeNodeHoverRoot(groupEnter);
     this.makeNodeRoot(groupEnter);
     this.makeBackground(groupEnter);
@@ -174,7 +209,7 @@ export class NodesView {
     this.makeLabelConnectionText(groupEnter);
   }
 
-  makeNodeLODLevel3(groupEnter: any) {
+  makeNodeLODLevel3(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
     this.makeNodeHoverRoot(groupEnter);
     this.makeNodeRoot(groupEnter);
     this.makeBackground(groupEnter);
@@ -187,7 +222,7 @@ export class NodesView {
     this.makeLabelConnectionText(groupEnter);
   }
 
-  makeNodeLODLevel2(groupEnter: any) {
+  makeNodeLODLevel2(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
     this.makeNodeHoverRoot(groupEnter);
     this.makeNodeRoot(groupEnter);
     this.makeBackground(groupEnter);
@@ -198,7 +233,7 @@ export class NodesView {
     this.makeLabelConnectionText(groupEnter);
   }
 
-  makeNodeLODLevel1(groupEnter: any) {
+  makeNodeLODLevel1(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
     this.makeNodeHoverRoot(groupEnter);
     this.makeBackground(groupEnter);
     this.makeNodeDockable(groupEnter);
@@ -206,13 +241,15 @@ export class NodesView {
     this.makeLabelText(groupEnter);
   }
 
-  makeNodeLODLevel0(groupEnter: any) {
+  makeNodeLODLevel0(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
     this.makeNodeHoverRoot(groupEnter);
     this.makeNodeDockable(groupEnter);
     this.makeAnalyticsArea(groupEnter);
   }
 
-  private makeNodeHoverRoot(groupEnter: any) {
+  private makeNodeHoverRoot(
+    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+  ) {
     groupEnter
       .append(StaticDomTags.NODE_HOVER_ROOT_SVG)
       .attr("class", StaticDomTags.NODE_HOVER_ROOT_CLASS)
@@ -226,14 +263,22 @@ export class NodesView {
         StaticDomTags.NODE_HAS_CONNECTIONS,
         (n: NodeViewObject) => n.node.getConnections().length > 0,
       )
-      .on("mouseover", (n: NodeViewObject) => this.onHoverNodeMouseover(n.node))
-      .on("mouseout", (n: NodeViewObject) => this.onHoverNodeMouseout(n.node))
-      .on("mousedown", (n: NodeViewObject) => this.onNodeMousedown(n.node))
-      .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node))
-      .on("dblclick", (n: NodeViewObject) => this.onNodeDetailsClicked(n.node));
+      .on("mouseover", (event: MouseEvent, n: NodeViewObject) =>
+        this.onHoverNodeMouseover(event, n.node),
+      )
+      .on("mouseout", (event: MouseEvent, n: NodeViewObject) =>
+        this.onHoverNodeMouseout(event, n.node),
+      )
+      .on("mousedown", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeMousedown(event, n.node),
+      )
+      .on("mouseup", (event: MouseEvent, n: NodeViewObject) => this.onNodeMouseup(event, n.node))
+      .on("dblclick", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeDetailsClicked(event, n.node),
+      );
   }
 
-  private makeNodeRoot(groupEnter: any) {
+  private makeNodeRoot(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
     groupEnter
       .append(StaticDomTags.NODE_ROOT_SVG)
       .attr("class", StaticDomTags.NODE_ROOT_CLASS)
@@ -247,14 +292,22 @@ export class NodesView {
         StaticDomTags.NODE_HAS_CONNECTIONS,
         (n: NodeViewObject) => n.node.getConnections().length > 0,
       )
-      .on("mouseover", (n: NodeViewObject) => this.onHoverNodeMouseover(n.node))
-      .on("mouseout", (n: NodeViewObject) => this.onHoverNodeMouseout(n.node))
-      .on("mousedown", (n: NodeViewObject) => this.onNodeMousedown(n.node))
-      .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node))
-      .on("dblclick", (n: NodeViewObject) => this.onNodeDetailsClicked(n.node));
+      .on("mouseover", (event: MouseEvent, n: NodeViewObject) =>
+        this.onHoverNodeMouseover(event, n.node),
+      )
+      .on("mouseout", (event: MouseEvent, n: NodeViewObject) =>
+        this.onHoverNodeMouseout(event, n.node),
+      )
+      .on("mousedown", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeMousedown(event, n.node),
+      )
+      .on("mouseup", (event: MouseEvent, n: NodeViewObject) => this.onNodeMouseup(event, n.node))
+      .on("dblclick", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeDetailsClicked(event, n.node),
+      );
   }
 
-  private makeBackground(groupEnter: any) {
+  private makeBackground(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
     groupEnter
       .append(StaticDomTags.NODE_BACKGROUND_SVG)
       .attr("class", StaticDomTags.NODE_BACKGROUND_CLASS)
@@ -268,14 +321,22 @@ export class NodesView {
         StaticDomTags.NODE_HAS_CONNECTIONS,
         (n: NodeViewObject) => n.node.getConnections().length > 0,
       )
-      .on("mouseover", (n: NodeViewObject) => this.onHoverNodeMouseover(n.node))
-      .on("mouseout", (n: NodeViewObject) => this.onHoverNodeMouseout(n.node))
-      .on("mousedown", (n: NodeViewObject) => this.onNodeMousedown(n.node))
-      .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node))
-      .on("dblclick", (n: NodeViewObject) => this.onNodeDetailsClicked(n.node));
+      .on("mouseover", (event: MouseEvent, n: NodeViewObject) =>
+        this.onHoverNodeMouseover(event, n.node),
+      )
+      .on("mouseout", (event: MouseEvent, n: NodeViewObject) =>
+        this.onHoverNodeMouseout(event, n.node),
+      )
+      .on("mousedown", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeMousedown(event, n.node),
+      )
+      .on("mouseup", (event: MouseEvent, n: NodeViewObject) => this.onNodeMouseup(event, n.node))
+      .on("dblclick", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeDetailsClicked(event, n.node),
+      );
   }
 
-  private makeLabelArea(groupEnter: any) {
+  private makeLabelArea(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
     groupEnter
       .append(StaticDomTags.NODE_LABELAREA_SVG)
       .attr("class", StaticDomTags.NODE_LABELAREA_CLASS)
@@ -289,20 +350,28 @@ export class NodesView {
         StaticDomTags.NODE_HAS_CONNECTIONS,
         (n: NodeViewObject) => n.node.getConnections().length > 0,
       )
-      .on("mouseover", (n: NodeViewObject) => this.onNodeLabelAreaMouseover(n.node, null))
-      .on("mouseout", (n: NodeViewObject) => this.onNodeMouseout(n.node, null))
-      .on("mousedown", (n: NodeViewObject) => this.onNodeMousedown(n.node))
-      .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node))
-      .on("dblclick", (n: NodeViewObject) => this.onNodeDetailsClicked(n.node));
+      .on("mouseover", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeLabelAreaMouseover(event, n.node),
+      )
+      .on("mouseout", (event: MouseEvent, n: NodeViewObject) => this.onNodeMouseout(event, n.node))
+      .on("mousedown", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeMousedown(event, n.node),
+      )
+      .on("mouseup", (event: MouseEvent, n: NodeViewObject) => this.onNodeMouseup(event, n.node))
+      .on("dblclick", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeDetailsClicked(event, n.node),
+      );
   }
 
-  private makeHoverDragBackground(groupEnter: any) {
+  private makeHoverDragBackground(
+    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+  ) {
     const added = groupEnter.append(StaticDomTags.NODE_HOVER_DRAG_AREA_BACKGROUND_SVG);
     added
       .attr("class", StaticDomTags.NODE_HOVER_DRAG_AREA_BACKGROUND_CLASS)
       .classed(StaticDomTags.TAG_SELECTED, (n: NodeViewObject) => n.node.selected())
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
-      .attr("transform", (n: NodeViewObject) => "translate(-32.5,1)")
+      .attr("transform", () => "translate(-32.5,1)")
       .attr("width", 28)
       .attr("height", 28)
       .attr("x", 2)
@@ -317,13 +386,19 @@ export class NodesView {
     }
 
     added
-      .on("mouseover", (n: NodeViewObject, i, a) => this.onNodeMouseoverDragButton(n.node, a[i]))
-      .on("mouseout", (n: NodeViewObject, i, a) => this.onNodeMouseoutDragButton(n.node, a[i]))
-      .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node))
-      .on("dblclick", (n: NodeViewObject) => this.onNodeDblClick(n.node));
+      .on("mouseover", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeMouseoverDragButton(event, n.node),
+      )
+      .on("mouseout", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeMouseoutDragButton(event, n.node),
+      )
+      .on("mouseup", (event: MouseEvent, n: NodeViewObject) => this.onNodeMouseup(event, n.node))
+      .on("dblclick", (_event: MouseEvent, n: NodeViewObject) => this.onNodeDblClick(n.node));
   }
 
-  private makeHoverDragRoot(groupEnter: any) {
+  private makeHoverDragRoot(
+    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+  ) {
     if (!this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable()) {
       return;
     }
@@ -347,13 +422,19 @@ export class NodesView {
           "translate(-28," + (n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT + 4) + "),scale(1.0)",
       )
       .call(this.draggable)
-      .on("mouseover", (n: NodeViewObject, i, a) => this.onNodeMouseoverDragButton(n.node, a[i]))
-      .on("mouseout", (n: NodeViewObject, i, a) => this.onNodeMouseoutDragButton(n.node, a[i]))
-      .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node))
-      .on("dblclick", (n: NodeViewObject) => this.onNodeDblClick(n.node));
+      .on("mouseover", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeMouseoverDragButton(event, n.node),
+      )
+      .on("mouseout", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeMouseoutDragButton(event, n.node),
+      )
+      .on("mouseup", (event: MouseEvent, n: NodeViewObject) => this.onNodeMouseup(event, n.node))
+      .on("dblclick", (_event: MouseEvent, n: NodeViewObject) => this.onNodeDblClick(n.node));
   }
 
-  private makeEditButtonBackground(groupEnter: any) {
+  private makeEditButtonBackground(
+    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+  ) {
     groupEnter
       .append(StaticDomTags.NODE_EDIT_AREA_BACKGROUND_SVG)
       .attr("class", StaticDomTags.NODE_EDIT_AREA_BACKGROUND_CLASS)
@@ -363,13 +444,19 @@ export class NodesView {
       .attr("height", 28)
       .attr("x", 2)
       .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT)
-      .on("mouseover", (n: NodeViewObject, i, a) => this.onNodeMouseoverEditButton(n.node, a[i]))
-      .on("mouseout", (n: NodeViewObject, i, a) => this.onNodeMouseoutEditButton(n.node, a[i]))
-      .on("mousedown", (n: NodeViewObject) => this.onNodeDetailsClicked(n.node))
-      .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node));
+      .on("mouseover", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeMouseoverEditButton(event, n.node),
+      )
+      .on("mouseout", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeMouseoutEditButton(event, n.node),
+      )
+      .on("mousedown", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeDetailsClicked(event, n.node),
+      )
+      .on("mouseup", (event: MouseEvent, n: NodeViewObject) => this.onNodeMouseup(event, n.node));
   }
 
-  private makeEditButton(groupEnter: any) {
+  private makeEditButton(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
     groupEnter
       .append(StaticDomTags.NODE_EDIT_AREA_SVG)
       .attr("class", StaticDomTags.NODE_EDIT_AREA_CLASS)
@@ -393,13 +480,21 @@ export class NodesView {
           (n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT + 2) +
           "),scale(0.7)",
       )
-      .on("mouseover", (n: NodeViewObject, i, a) => this.onNodeMouseoverEditButton(n.node, a[i]))
-      .on("mouseout", (n: NodeViewObject, i, a) => this.onNodeMouseoutEditButton(n.node, a[i]))
-      .on("mousedown", (n: NodeViewObject) => this.onNodeDetailsClicked(n.node))
-      .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node));
+      .on("mouseover", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeMouseoverEditButton(event, n.node),
+      )
+      .on("mouseout", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeMouseoutEditButton(event, n.node),
+      )
+      .on("mousedown", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeDetailsClicked(event, n.node),
+      )
+      .on("mouseup", (event: MouseEvent, n: NodeViewObject) => this.onNodeMouseup(event, n.node));
   }
 
-  private makeNodeDockable(groupEnter: any) {
+  private makeNodeDockable(
+    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+  ) {
     groupEnter
       .append(StaticDomTags.NODE_DOCKABLE_SVG)
       .attr("class", StaticDomTags.NODE_DOCKABLE_CLASS)
@@ -418,14 +513,24 @@ export class NodesView {
         (n: NodeViewObject) =>
           n.node.selected() && this.editorView.editorMode === EditorMode.MultiNodeMoving,
       )
-      .on("mouseover", (n: NodeViewObject, i, a) => this.onNodeDockableMouseover(n.node, a[i]))
-      .on("mouseout", (n: NodeViewObject, i, a) => this.onNodeDockableMouseout(n.node, a[i]))
-      .on("mousedown", (n: NodeViewObject) => this.onNodeMousedown(n.node))
-      .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node))
-      .on("dblclick", (n: NodeViewObject) => this.onNodeDetailsClicked(n.node));
+      .on("mouseover", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeDockableMouseover(event, n.node),
+      )
+      .on("mouseout", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeDockableMouseout(event, n.node),
+      )
+      .on("mousedown", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeMousedown(event, n.node),
+      )
+      .on("mouseup", (event: MouseEvent, n: NodeViewObject) => this.onNodeMouseup(event, n.node))
+      .on("dblclick", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeDetailsClicked(event, n.node),
+      );
   }
 
-  private makeAnalyticsArea(groupEnter: any) {
+  private makeAnalyticsArea(
+    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+  ) {
     groupEnter
       .append(StaticDomTags.NODE_ANALYTICSAREA_SVG)
       .attr("class", StaticDomTags.NODE_ANALYTICSAREA_CLASS)
@@ -444,14 +549,22 @@ export class NodesView {
         StaticDomTags.NODE_HAS_CONNECTIONS,
         (n: NodeViewObject) => n.node.getConnections().length > 0,
       )
-      .on("mouseover", (n: NodeViewObject) => this.onNodeMouseover(n.node, null))
-      .on("mousemove", (n: NodeViewObject) => this.onNodeMousemove(n.node, null))
-      .on("mouseout", (n: NodeViewObject) => this.onNodeMouseout(n.node, null))
-      .on("mousedown", (n: NodeViewObject) => this.onNodeMousedown(n.node))
-      .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node));
+      .on("mouseover", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeMouseover(event, n.node),
+      )
+      .on("mousemove", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeMousemove(event, n.node),
+      )
+      .on("mouseout", (event: MouseEvent, n: NodeViewObject) => this.onNodeMouseout(event, n.node))
+      .on("mousedown", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeMousedown(event, n.node),
+      )
+      .on("mouseup", (event: MouseEvent, n: NodeViewObject) => this.onNodeMouseup(event, n.node));
   }
 
-  private makeAnalyticsTextLeftArea(groupEnter: any) {
+  private makeAnalyticsTextLeftArea(
+    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+  ) {
     groupEnter
       .append(StaticDomTags.NODE_ANALYTICSAREA_TEXT_LEFT_SVG)
       .attr("class", StaticDomTags.NODE_ANALYTICSAREA_TEXT_LEFT_CLASS)
@@ -467,7 +580,9 @@ export class NodesView {
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId());
   }
 
-  private makeAnalyticsTextRightArea(groupEnter: any) {
+  private makeAnalyticsTextRightArea(
+    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+  ) {
     groupEnter
       .append(StaticDomTags.NODE_ANALYTICSAREA_TEXT_RIGHT_SVG)
       .attr("class", StaticDomTags.NODE_ANALYTICSAREA_TEXT_RIGHT_CLASS)
@@ -483,15 +598,21 @@ export class NodesView {
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId());
   }
 
-  private makeLabelText(groupEnter: any) {
+  private makeLabelText(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
     const added = groupEnter.append(StaticDomTags.NODE_LABELAREA_TEXT_SVG);
     added
-      .attr("class", StaticDomTags.NODE_LABELAREA_TEXT_CLASS)
+      .attr("class", `${StaticDomTags.NODE_LABELAREA_TEXT_CLASS} node_name_text`)
       .attr("data-testid", StaticDomTags.NODE_LABELAREA_TEXT_CLASS)
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("x", NODE_TEXT_LEFT_SPACING)
       .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - TEXT_SIZE / 2)
-      .text((n: NodeViewObject) => n.node.getBetriebspunktName())
+      .attr("width", (n: NodeViewObject) => this.getNodeLabelTextWidth(n.node))
+      .text((n: NodeViewObject) =>
+        this.editorView.displayNodesFullName()
+          ? n.node.getFullName()
+          : n.node.getBetriebspunktName(),
+      )
+      .call(this.adjustTextWithEllipsis) // adjust node name if it exceeds the label area
       .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,
@@ -508,13 +629,19 @@ export class NodesView {
 
     added
       .call(this.draggable)
-      .on("mouseover", (n: NodeViewObject, i, a) => this.onNodeLabelAreaMouseover(n.node, a[i]))
-      .on("mouseout", (n: NodeViewObject, i, a) => this.onNodeMouseout(n.node, a[i]))
-      .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node))
-      .on("dblclick", (n: NodeViewObject) => this.onNodeDblClick(n.node));
+      .on("mouseover", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeLabelAreaMouseover(event, n.node, {raise: true}),
+      )
+      .on("mouseout", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeMouseout(event, n.node, {raise: true}),
+      )
+      .on("mouseup", (event: MouseEvent, n: NodeViewObject) => this.onNodeMouseup(event, n.node))
+      .on("dblclick", (_event: MouseEvent, n: NodeViewObject) => this.onNodeDblClick(n.node));
   }
 
-  private makeLabelConnectionText(groupEnter: any) {
+  private makeLabelConnectionText(
+    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+  ) {
     groupEnter
       .append(StaticDomTags.NODE_CONNECTIONTIME_TEXT_SVG)
       .attr("class", StaticDomTags.NODE_CONNECTIONTIME_TEXT_CLASS)
@@ -527,43 +654,47 @@ export class NodesView {
         StaticDomTags.NODE_HAS_CONNECTIONS,
         (n: NodeViewObject) => n.node.getConnections().length > 0,
       )
-      .on("mouseover", (n: NodeViewObject) => this.onNodeLabelAreaMouseover(n.node, null))
-      .on("mouseout", (n: NodeViewObject) => this.onNodeMouseout(n.node, null))
-      .on("mousedown", (n: NodeViewObject) => this.onNodeDetailsClicked(n.node))
-      .on("mouseup", (n: NodeViewObject) => this.onNodeMouseup(n.node));
+      .on("mouseover", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeLabelAreaMouseover(event, n.node),
+      )
+      .on("mouseout", (event: MouseEvent, n: NodeViewObject) => this.onNodeMouseout(event, n.node))
+      .on("mousedown", (event: MouseEvent, n: NodeViewObject) =>
+        this.onNodeDetailsClicked(event, n.node),
+      )
+      .on("mouseup", (event: MouseEvent, n: NodeViewObject) => this.onNodeMouseup(event, n.node));
   }
 
-  onNodeDetailsClicked(node: Node) {
-    d3.event.stopPropagation();
+  onNodeDetailsClicked(event: MouseEvent, node: Node) {
+    event.stopPropagation();
     this.editorView.showNodeInformation(node);
   }
 
-  onNodeDockableMouseover(node: Node, domObj: any) {
-    this.hoverNodeDockable(node, domObj);
+  onNodeDockableMouseover(event: MouseEvent, node: Node) {
+    this.hoverNodeDockable(event, node, {raise: true});
   }
 
-  onNodeDockableMouseout(node: Node, domObj: any) {
-    this.unhoverNodeDockable(node, domObj);
+  onNodeDockableMouseout(event: MouseEvent, node: Node) {
+    this.unhoverNodeDockable(event, node, {raise: true});
   }
 
-  hoverPinsAsConnectionDroppable(node: Node) {
-    this.highlightPinsAsConnectionDroppable(node, true);
+  hoverPinsAsConnectionDroppable(event: MouseEvent, node: Node) {
+    this.highlightPinsAsConnectionDroppable(event, node, true);
   }
 
-  unhoverPinsAsConnectionDroppable(node: Node) {
-    this.highlightPinsAsConnectionDroppable(node, false);
+  unhoverPinsAsConnectionDroppable(event: MouseEvent, node: Node) {
+    this.highlightPinsAsConnectionDroppable(event, node, false);
   }
 
-  onNodeMouseover(node: Node, domObj: any) {
-    this.hoverNode(node, domObj);
+  onNodeMouseover(event: MouseEvent, node: Node) {
+    this.hoverNode(event, node);
   }
 
-  onNodeMousemove(node: Node, domObj: any) {
-    this.hoverPinsAsConnectionDroppable(node);
+  onNodeMousemove(event: MouseEvent, node: Node) {
+    this.hoverPinsAsConnectionDroppable(event, node);
   }
 
-  onNodeLabelAreaMouseover(node: Node, domObj: any) {
-    this.hoverNode(node, domObj);
+  onNodeLabelAreaMouseover(event: MouseEvent, node: Node, options?: {raise?: boolean}) {
+    this.hoverNode(event, node, options);
     d3.selectAll(StaticDomTags.NODE_HOVER_DRAG_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_MUTED, true);
@@ -572,49 +703,49 @@ export class NodesView {
       .classed(StaticDomTags.TAG_MUTED, true);
   }
 
-  onNodeMouseout(node: Node, domObj: any) {
-    this.unhoverNode(node, domObj);
+  onNodeMouseout(event: MouseEvent, node: Node, options?: {raise?: boolean}) {
+    this.unhoverNode(event, node, options);
   }
 
-  onNodeMouseoverEditButton(node: Node, domObj: any) {
-    this.hoverNode(node, domObj);
+  onNodeMouseoverEditButton(event: MouseEvent, node: Node) {
+    this.hoverNode(event, node, {raise: true});
     d3.selectAll(StaticDomTags.NODE_EDIT_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, true);
   }
 
-  onNodeMouseoutEditButton(node: Node, domObj: any) {
+  onNodeMouseoutEditButton(event: MouseEvent, node: Node) {
     d3.selectAll(StaticDomTags.NODE_EDIT_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, false);
-    this.unhoverNode(node, domObj);
+    this.unhoverNode(event, node, {raise: true});
   }
 
-  onNodeMouseoverDragButton(node: Node, domObj: any) {
-    this.hoverNode(node, domObj);
+  onNodeMouseoverDragButton(event: MouseEvent, node: Node) {
+    this.hoverNode(event, node, {raise: true});
     d3.selectAll(StaticDomTags.NODE_HOVER_DRAG_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, true);
   }
 
-  onNodeMouseoutDragButton(node: Node, domObj: any) {
+  onNodeMouseoutDragButton(event: MouseEvent, node: Node) {
     d3.selectAll(StaticDomTags.NODE_HOVER_DRAG_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, false);
-    this.unhoverNode(node, domObj);
+    this.unhoverNode(event, node, {raise: true});
   }
 
-  onHoverNodeMouseover(node: Node) {
-    this.hoverNode(node, null);
+  onHoverNodeMouseover(event: MouseEvent, node: Node) {
+    this.hoverNode(event, node);
   }
 
-  onHoverNodeMouseout(node: Node) {
-    this.unhoverNode(node, null);
+  onHoverNodeMouseout(event: MouseEvent, node: Node) {
+    this.unhoverNode(event, node);
   }
 
-  onNodeMousedown(node: Node) {
+  onNodeMousedown(event: MouseEvent, node: Node) {
     if (this.editorView.editorMode === EditorMode.NetzgrafikEditing) {
-      this.editorView.trainrunSectionPreviewLineView.startPreviewLine(node.getId());
+      this.editorView.trainrunSectionPreviewLineView.startPreviewLine(event, node.getId());
       return;
     }
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
@@ -631,9 +762,9 @@ export class NodesView {
     }
   }
 
-  onNodeMouseup(endNode: Node) {
-    d3.event.stopPropagation();
-    this.handleMouseUpEvent(endNode);
+  onNodeMouseup(event: MouseEvent, endNode: Node) {
+    event.stopPropagation();
+    this.handleMouseUpEvent(event, endNode);
   }
 
   onNodeDblClick(node: Node) {
@@ -643,7 +774,7 @@ export class NodesView {
     this.editorView.showNodeInformation(node);
   }
 
-  handleMouseUpEvent(endNode: Node) {
+  handleMouseUpEvent(event: MouseEvent, endNode: Node) {
     // user started in the empty area
     d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF).classed(
       StaticDomTags.EDGE_LINE_PIN_CONNECTION,
@@ -667,7 +798,7 @@ export class NodesView {
         this.createNewTrainrunSection(startNode, endNode);
       }
     }
-    d3.event.stopPropagation();
+    event.stopPropagation();
   }
 
   isNodeHovered(node: Node): boolean {
@@ -677,19 +808,21 @@ export class NodesView {
       .classed(StaticDomTags.TAG_HOVER);
   }
 
-  hoverNode(node: Node, domObj: any) {
-    if (domObj !== null) {
+  hoverNode(event: MouseEvent, node: Node, {raise}: {raise?: boolean} = {}) {
+    if (raise) {
+      const domObj = D3Utils.getMouseEventCurrentTarget(event);
       d3.select(domObj).raise().classed(StaticDomTags.TAG_HOVER, true);
     }
     d3.selectAll(StaticDomTags.NODE_ROOT_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, true);
 
-    this.hoverPinsAsConnectionDroppable(node);
+    this.hoverPinsAsConnectionDroppable(event, node);
   }
 
-  unhoverNode(node: Node, domObj: any) {
-    if (domObj !== null) {
+  unhoverNode(event: MouseEvent, node: Node, {raise}: {raise?: boolean} = {}) {
+    if (raise) {
+      const domObj = D3Utils.getMouseEventCurrentTarget(event);
       d3.select(domObj).raise().classed(StaticDomTags.TAG_HOVER, false);
     }
     d3.selectAll(StaticDomTags.NODE_ROOT_DOM_REF)
@@ -702,21 +835,21 @@ export class NodesView {
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_MUTED, false);
 
-    this.unhoverPinsAsConnectionDroppable(node);
+    this.unhoverPinsAsConnectionDroppable(event, node);
   }
 
-  hoverNodeDockable(node: Node, domObj: any) {
+  hoverNodeDockable(event: MouseEvent, node: Node, options?: {raise?: boolean}) {
     d3.selectAll(StaticDomTags.NODE_DOCKABLE_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, true);
-    this.hoverNode(node, domObj);
+    this.hoverNode(event, node, options);
   }
 
-  unhoverNodeDockable(node: Node, domObj: any) {
+  unhoverNodeDockable(event: MouseEvent, node: Node, options?: {raise?: boolean}) {
     d3.selectAll(StaticDomTags.NODE_DOCKABLE_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, false);
-    this.unhoverNode(node, domObj);
+    this.unhoverNode(event, node, options);
   }
 
   createNewTrainrunSection(startNode: Node, endNode: Node) {
@@ -748,7 +881,7 @@ export class NodesView {
     }
 
     if (existingTrainrunSection === null) {
-      const sourceObj = d3.select(
+      const sourceObj = d3.select<SVGRectElement, undefined>(
         StaticDomTags.NODE_DOCKABLE_DOM_REF + '[id="' + startNode.getId() + '"]',
       );
       const sourceRect: DOMRect = sourceObj.node().getBoundingClientRect();
@@ -761,7 +894,7 @@ export class NodesView {
         endNode.getPositionX() + endNode.getNodeWidth() / 2,
         endNode.getPositionY() + endNode.getNodeHeight() / 2,
       );
-      const targetObj = d3.select(
+      const targetObj = d3.select<SVGRectElement, undefined>(
         StaticDomTags.NODE_DOCKABLE_DOM_REF + '[id="' + endNode.getId() + '"]',
       );
       if (targetObj.node() !== null) {
@@ -797,14 +930,12 @@ export class NodesView {
       this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
       return;
     }
-    if (
-      !(
-        dragTransitionInfo.trainrunSection1.getSourceNodeId() !== endNode.getId() &&
-        dragTransitionInfo.trainrunSection1.getTargetNodeId() !== endNode.getId() &&
-        dragTransitionInfo.trainrunSection2.getSourceNodeId() !== endNode.getId() &&
-        dragTransitionInfo.trainrunSection2.getTargetNodeId() !== endNode.getId()
-      )
-    ) {
+    if (!(
+      dragTransitionInfo.trainrunSection1.getSourceNodeId() !== endNode.getId() &&
+      dragTransitionInfo.trainrunSection1.getTargetNodeId() !== endNode.getId() &&
+      dragTransitionInfo.trainrunSection2.getSourceNodeId() !== endNode.getId() &&
+      dragTransitionInfo.trainrunSection2.getTargetNodeId() !== endNode.getId()
+    )) {
       this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
       D3Utils.removeGrayout(dragTransitionInfo.trainrunSection1);
       D3Utils.removeGrayout(dragTransitionInfo.trainrunSection2);
@@ -850,7 +981,7 @@ export class NodesView {
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
   }
 
-  private doDrag(nodeId: number, round = 1, dragEnd = false) {
+  private doDrag(event: NodeDragEvent, nodeId: number, round = 1, dragEnd = false) {
     if (this.editorView.editorMode === EditorMode.Analytics) {
       return;
     }
@@ -858,18 +989,20 @@ export class NodesView {
     if (!dragEnd) {
       this.editorView.selectNode(nodeId, false);
     }
-    const currentMousePosition = this.editorView.svgMouseController.getCurrentMousePosition();
+    const currentMousePosition = this.editorView.svgMouseController.getCurrentMousePosition(
+      event.sourceEvent,
+    );
     const newPosition: Vec2D = Vec2D.sub(currentMousePosition, this.dragPreviousMousePosition);
     newPosition.setData(newPosition.getX(), newPosition.getY());
 
     this.editorView.moveSelectedNodes(newPosition.getX(), newPosition.getY(), round, dragEnd);
-    this.editorView.moveSelectedNotes(newPosition.getX(), newPosition.getY(), round, dragEnd);
+    this.editorView.moveSelectedNotes(newPosition.getX(), newPosition.getY(), round);
 
     // update the drag mouse position (previous for next dragging step)
     this.dragPreviousMousePosition = currentMousePosition;
   }
 
-  private highlightPinsAsConnectionDroppable(node: Node, hover: boolean) {
+  private highlightPinsAsConnectionDroppable(event: MouseEvent, node: Node, hover: boolean) {
     if (this.editorView.trainrunSectionPreviewLineView.getMode() !== PreviewLineMode.NotDragging) {
       const dragTransitionInfo: DragTransitionInfo =
         this.editorView.trainrunSectionPreviewLineView.getDragTransitionInfo();
@@ -883,7 +1016,7 @@ export class NodesView {
           D3Utils.doGrayout(dragTransitionInfo.trainrunSection1, node);
           D3Utils.doGrayout(dragTransitionInfo.trainrunSection2, node);
         }
-        this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
+        this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(event);
         return;
       }
 
@@ -903,7 +1036,17 @@ export class NodesView {
             if (obj.attr(StaticDomTags.EDGE_NODE_ID) === "" + node.getId()) {
               if (obj.attr(StaticDomTags.EDGE_ID) !== "" + ts.getId()) {
                 if (obj.attr(StaticDomTags.EDGE_LINE_LINE_ID) !== "" + ts.getTrainrunId()) {
-                  obj.classed(StaticDomTags.EDGE_LINE_PIN_CONNECTION, hover);
+                  // special cases for one-way trainrun sections: only allow connections in the feasible direction
+                  const portFrom = node.getPortOfTrainrunSection(ts.getId());
+                  const trID = obj.attr(StaticDomTags.EDGE_ID);
+                  const portTo = node
+                    .getPorts()
+                    .find((p) => "" + p.getTrainrunSectionId() === trID);
+
+                  obj.classed(
+                    StaticDomTags.EDGE_LINE_PIN_CONNECTION,
+                    node.isConnectionFeasible(portFrom, portTo) && hover,
+                  );
                 }
               }
             } // the current element
@@ -926,5 +1069,15 @@ export class NodesView {
         false,
       );
     }
+  }
+
+  private getNodeLabelTextWidth(node: Node): number {
+    const connectionTime = node.getConnectionTime();
+    let width = 0;
+    if (connectionTime !== null) {
+      width = connectionTime === 0 ? 1 : Math.floor(Math.log10(connectionTime)) + 1;
+    }
+    const connectionTimeTextWidth = width * TEXT_SIZE;
+    return node.getNodeWidth() - connectionTimeTextWidth - NODE_TEXT_LEFT_SPACING;
   }
 }

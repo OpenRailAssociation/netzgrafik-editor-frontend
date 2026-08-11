@@ -1,4 +1,4 @@
-@import "../rastering/definitions";
+@use "../rastering/definitions" as *;
 
 $EDITOR_MENU_BUTTON_SIZE: 60px;
 $EDITOR_MENU_BIG_BUTTON_WIDTH: 120px;

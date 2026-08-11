@@ -3,10 +3,8 @@ import {NodeService} from "../../../services/data/node.service";
 import {ResourceService} from "../../../services/data/resource.service";
 import {TrainrunService} from "../../../services/data/trainrun.service";
 import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
-import {StammdatenService} from "../../../services/data/stammdaten.service";
+import {BaseDataService} from "../../../services/data/basedata.service";
 import {NoteService} from "../../../services/data/note.service";
-import {Node} from "../../../models/node.model";
-import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {LabelGroupService} from "../../../services/data/labelgroup.service";
 import {LabelService} from "../../../services/data/label.service";
 import {NetzgrafikColoringService} from "../../../services/data/netzgrafikColoring.service";
@@ -26,6 +24,7 @@ import {Vec2D} from "../../../utils/vec2D";
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
+import {AutoLayoutService} from "src/app/services/util/auto-layout.service";
 
 describe("TrainrunSection-View", () => {
   let dataService: DataService;
@@ -33,10 +32,8 @@ describe("TrainrunSection-View", () => {
   let resourceService: ResourceService;
   let trainrunService: TrainrunService;
   let trainrunSectionService: TrainrunSectionService;
-  let stammdatenService: StammdatenService;
+  let baseDataService: BaseDataService;
   let noteService: NoteService;
-  let nodes: Node[] = null;
-  let trainrunSections: TrainrunSection[] = null;
   let logService: LogService = null;
   let logPublishersService: LogPublishersService = null;
   let labelGroupService: LabelGroupService = null;
@@ -50,7 +47,7 @@ describe("TrainrunSection-View", () => {
   let editorView: EditorView = null;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -68,22 +65,18 @@ describe("TrainrunSection-View", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,
       filterService,
       netzgrafikColoringService,
-    );
-    nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
-    trainrunSectionService.trainrunSections.subscribe(
-      (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
     );
 
     loadPerlenketteService = new LoadPerlenketteService(
@@ -97,11 +90,12 @@ describe("TrainrunSection-View", () => {
       filterService,
       nodeService,
       noteService,
-      stammdatenService,
+      baseDataService,
       trainrunSectionService,
       trainrunService,
       netzgrafikColoringService,
       loadPerlenketteService,
+      dataService,
     );
 
     undoService = new UndoService(
@@ -140,6 +134,14 @@ describe("TrainrunSection-View", () => {
       viewportCullService,
     );
 
+    const autoLayoutService = new AutoLayoutService(
+      nodeService,
+      uiInteractionService,
+      trainrunService,
+      trainrunSectionService,
+      viewportCullService,
+    );
+
     const controller = new EditorMainViewComponent(
       nodeService,
       trainrunSectionService,
@@ -148,6 +150,7 @@ describe("TrainrunSection-View", () => {
       uiInteractionService,
       noteService,
       undefined,
+      dataService,
       undoService,
       copyService,
       logService,
@@ -155,6 +158,7 @@ describe("TrainrunSection-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      autoLayoutService,
     );
 
     new EditorView(
@@ -172,6 +176,7 @@ describe("TrainrunSection-View", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      autoLayoutService,
     );
 
     controller.bindViewToServices();
@@ -308,14 +313,14 @@ describe("TrainrunSection-View", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(4);
     const str = TrainrunSectionsView.createSemicircle(ts, new Vec2D(100, 25));
-    expect(str).toBe("M2.4492935982947064e-16,-4A4,4,0,1,1,2.4492935982947064e-16,4L0,0Z");
+    expect(str).toBe("M0,-4A4,4,0,1,1,0,4L0,0Z");
   });
 
   it("TrainrunSectionsView.createSemicircle - 002", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts = trainrunSectionService.getTrainrunSectionFromId(4);
     const str = TrainrunSectionsView.createSemicircle(ts, ts.getPath()[3]);
-    expect(str).toBe("M-7.347880794884119e-16,4A4,4,0,1,1,2.4492935982947064e-16,-4L0,0Z");
+    expect(str).toBe("M0,4A4,4,0,1,1,0,-4L0,0Z");
   });
 
   it("TrainrunSectionsView.getPosition - 001", () => {
@@ -1241,48 +1246,56 @@ describe("TrainrunSection-View", () => {
     const v0 = TrainrunSectionsView.extractTravelTime(
       trainrunSectionService.getTrainrunSectionFromId(0),
       editorView,
+      "sourceToTarget",
     );
     expect(v0).toBe("10'");
 
     const v1 = TrainrunSectionsView.extractTravelTime(
       trainrunSectionService.getTrainrunSectionFromId(1),
       editorView,
+      "sourceToTarget",
     );
     expect(v1).toBe("10'");
 
     const v2 = TrainrunSectionsView.extractTravelTime(
       trainrunSectionService.getTrainrunSectionFromId(2),
       editorView,
+      "sourceToTarget",
     );
     expect(v2).toBe("20'");
 
     const v3 = TrainrunSectionsView.extractTravelTime(
       trainrunSectionService.getTrainrunSectionFromId(3),
       editorView,
+      "sourceToTarget",
     );
     expect(v3).toBe("49' (39')");
 
     const v4 = TrainrunSectionsView.extractTravelTime(
       trainrunSectionService.getTrainrunSectionFromId(4),
       editorView,
+      "sourceToTarget",
     );
     expect(v4).toBe("49' (10')");
 
     const v5 = TrainrunSectionsView.extractTravelTime(
       trainrunSectionService.getTrainrunSectionFromId(5),
       editorView,
+      "sourceToTarget",
     );
     expect(v5).toBe("51'");
 
     const v6 = TrainrunSectionsView.extractTravelTime(
       trainrunSectionService.getTrainrunSectionFromId(6),
       editorView,
+      "sourceToTarget",
     );
     expect(v6).toBe("10'");
 
     const v7 = TrainrunSectionsView.extractTravelTime(
       trainrunSectionService.getTrainrunSectionFromId(7),
       editorView,
+      "sourceToTarget",
     );
     expect(v7).toBe("10'");
   });
@@ -1296,7 +1309,7 @@ describe("TrainrunSection-View", () => {
     const t2 = n2.getTransition(ts.getId());
     t1.setIsNonStopTransit(true);
     t2.setIsNonStopTransit(true);
-    const v0 = TrainrunSectionsView.extractTravelTime(ts, editorView);
+    const v0 = TrainrunSectionsView.extractTravelTime(ts, editorView, "sourceToTarget");
     expect(v0).toBe("(10')");
   });
 

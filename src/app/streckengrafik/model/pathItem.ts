@@ -15,7 +15,7 @@ export interface PathItem {
 
   xPathFix(): boolean;
 
-  zommedXPath(xZoom): number;
+  zommedXPath(xZoom: number): number;
 
   key(): string;
 

@@ -23,6 +23,7 @@ import {COMMA, ENTER} from "@angular/cdk/keycodes";
   selector: "sbb-note-filter-tab",
   templateUrl: "./note-filter-tab.component.html",
   styleUrls: ["./note-filter-tab.component.scss"],
+  standalone: false,
 })
 export class NoteFilterTabComponent implements OnInit, OnDestroy {
   @Input() noteDialogParameter: NoteDialogParameter;

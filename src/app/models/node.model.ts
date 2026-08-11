@@ -14,7 +14,11 @@ import {TrainrunSection} from "./trainrunsection.model";
 import {Transition} from "./transition.model";
 import {SimpleTrainrunSectionRouter} from "../services/util/trainrunsection.routing";
 import {Trainrun} from "./trainrun.model";
-import {PortAlignment, WarningDto} from "../data-structures/technical.data.structures";
+import {
+  PortAlignment,
+  OrderingAlgorithm,
+  WarningDto,
+} from "../data-structures/technical.data.structures";
 import {Connection} from "./connection.model";
 import {ConnectionValidator} from "../services/util/connection.validator";
 import {VisAVisPortPlacement} from "../services/util/node.port.placement";
@@ -32,7 +36,7 @@ export class Node {
   private connections: Connection[];
   private resourceId: number;
   private perronkanten: number;
-  private connectionTime: number;
+  private connectionTime: number | null;
   private trainrunCategoryHaltezeiten: TrainrunCategoryHaltezeit;
   private symmetryAxis: number;
   private warnings: WarningDto[];
@@ -239,11 +243,11 @@ export class Node {
     this.fullName = name;
   }
 
-  getConnectionTime(): number {
+  getConnectionTime(): number | null {
     return this.connectionTime;
   }
 
-  setConnectionTime(connectionTime: number) {
+  setConnectionTime(connectionTime: number | null) {
     this.connectionTime = connectionTime;
   }
 
@@ -451,8 +455,10 @@ export class Node {
     return portsWithNoTransition[1].getTrainrunSection();
   }
 
-  reorderAllPorts() {
-    this.sortPorts();
+  reorderAllPorts(orderingType: OrderingAlgorithm = OrderingAlgorithm.Alphabetical) {
+    if (orderingType === OrderingAlgorithm.Alphabetical) {
+      this.sortPorts();
+    }
     this.resetPositionIndex(PortAlignment.Top);
     this.resetPositionIndex(PortAlignment.Bottom);
     this.resetPositionIndex(PortAlignment.Left);
@@ -517,7 +523,7 @@ export class Node {
     return this.transitions;
   }
 
-  getTransitionFromPortId(portId) {
+  getTransitionFromPortId(portId: number) {
     return this.transitions.find(
       (t: Transition) => t.getPortId1() === portId || t.getPortId2() === portId,
     );
@@ -581,8 +587,10 @@ export class Node {
     this.connections.push(connection);
   }
 
-  updateTransitionsAndConnections() {
-    this.reorderAllPorts();
+  updateTransitionsAndConnections(
+    orderingType: OrderingAlgorithm = OrderingAlgorithm.Alphabetical,
+  ) {
+    this.reorderAllPorts(orderingType);
     this.updateTransitionsRouting();
     this.updateConnectionsRouting();
   }
@@ -600,13 +608,16 @@ export class Node {
     });
   }
 
-  toggleNonStop(transitionid: number) {
-    this.getTransitionFromId(transitionid).toggleIsNonStopTransit();
-    this.updateTransitionsAndConnections();
+  toggleNonStop(
+    transitionId: number,
+    orderingType: OrderingAlgorithm = OrderingAlgorithm.Alphabetical,
+  ) {
+    this.getTransitionFromId(transitionId).toggleIsNonStopTransit();
+    this.updateTransitionsAndConnections(orderingType);
   }
 
-  getIsNonStop(transitionid: number): boolean {
-    return this.getTransitionFromId(transitionid).getIsNonStopTransit();
+  getIsNonStop(transitionId: number): boolean {
+    return this.getTransitionFromId(transitionId).getIsNonStopTransit();
   }
 
   removePort(trainrunSection: TrainrunSection) {
@@ -647,10 +658,14 @@ export class Node {
     );
   }
 
-  addPortWithRespectToOppositeNode(oppositeNode: Node, trainrunSection: TrainrunSection) {
+  addPortWithRespectToOppositeNode(
+    oppositeNode: Node,
+    trainrunSection: TrainrunSection,
+    orderingType: OrderingAlgorithm = OrderingAlgorithm.Alphabetical,
+  ) {
     const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(this, oppositeNode);
     const portId = this.addPort(portAlignments.sourcePortPlacement, trainrunSection);
-    this.updateTransitionsAndConnections();
+    this.updateTransitionsAndConnections(orderingType);
     if (this.getId() === trainrunSection.getSourceNodeId()) {
       trainrunSection.setSourcePortId(portId);
     } else {
@@ -658,11 +673,15 @@ export class Node {
     }
   }
 
-  reAlignPortWithRespectToOppositeNode(oppositeNode: Node, trainrunSection: TrainrunSection) {
+  reAlignPortWithRespectToOppositeNode(
+    oppositeNode: Node,
+    trainrunSection: TrainrunSection,
+    orderingType: OrderingAlgorithm = OrderingAlgorithm.Alphabetical,
+  ) {
     const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(this, oppositeNode);
     const port = this.getPortOfTrainrunSection(trainrunSection.getId());
     port.setPositionAlignment(portAlignments.sourcePortPlacement);
-    this.updateTransitionsAndConnections();
+    this.updateTransitionsAndConnections(orderingType);
   }
 
   getConnectedTrainrunSections(): TrainrunSection[] {
@@ -787,6 +806,16 @@ export class Node {
       .getTrainrunSection();
   }
 
+  getEndingTrainrunSection(trainrun: Trainrun): TrainrunSection {
+    return this.ports
+      .find(
+        (port) =>
+          port.getTrainrunSection().getTrainrunId() === trainrun.getId() &&
+          this.isEndNode(port.getTrainrunSection()),
+      )
+      .getTrainrunSection();
+  }
+
   getPorts(): Port[] {
     return this.ports;
   }
@@ -795,8 +824,8 @@ export class Node {
     return this.trainrunCategoryHaltezeiten;
   }
 
-  getTrainrunSections(transitionid: number) {
-    const transition = this.getTransitionFromId(transitionid);
+  getTrainrunSections(transitionId: number) {
+    const transition = this.getTransitionFromId(transitionId);
     const portId1 = transition.getPortId1();
     const portId2 = transition.getPortId2();
     const port1 = this.getPort(portId1);
@@ -826,6 +855,32 @@ export class Node {
       }
     });
     return connectedTrainrunIds;
+  }
+
+  isConnectionFeasible(portFrom: Port, portTo: Port): boolean {
+    if (
+      portFrom.getTrainrunSection().getTrainrunId() === portTo.getTrainrunSection().getTrainrunId()
+    ) {
+      return false; // Can't connect two ports of the same trainrun
+    }
+
+    // check for one-way trainruns whether a connection from port to port is feasible
+    // returns true if feasible otherwise false. if both trainruns are roundtrips, the
+    // method returns true, because in roundtrips the direction of the trainrun is
+    // not relevant for the connection feasibility
+    if (!portFrom.getTrainrunSection().getTrainrun().isRoundTrip()) {
+      if (portFrom.getTrainrunSection().getSourceNodeId() === this.getId()) {
+        return false; // Can't connect from source node
+      }
+    }
+
+    if (!portTo.getTrainrunSection().getTrainrun().isRoundTrip()) {
+      if (portTo.getTrainrunSection().getTargetNodeId() === this.getId()) {
+        return false; // Can't connect to target node
+      }
+    }
+
+    return true;
   }
 
   getDto(): NodeDto {

@@ -13,7 +13,7 @@ import {TrainrunBranchType} from "../../model/enum/trainrun-branch-type-type";
 import {Vec2D} from "../../../utils/vec2D";
 import {takeUntil} from "rxjs/operators";
 import {TimeSliderService} from "../../services/time-slider.service";
-import {interval, Subject, take} from "rxjs";
+import {Subject} from "rxjs";
 import {TrainrunSectionText} from "../../../data-structures/technical.data.structures";
 import {
   TrainrunDialogParameter,
@@ -44,6 +44,7 @@ import {Sg4ToggleTrackOccupierService} from "../../services/sg-4-toggle-track-oc
   templateUrl: "./train-run-section.component.html",
   styleUrls: ["./train-run-section.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class TrainRunSectionComponent implements OnDestroy, UpdateCounterHandler {
   @Input()

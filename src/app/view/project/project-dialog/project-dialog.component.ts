@@ -9,6 +9,7 @@ import {filter} from "rxjs/operators";
   selector: "sbb-project-dialog",
   templateUrl: "./project-dialog.component.html",
   styleUrls: ["./project-dialog.component.scss"],
+  standalone: false,
 })
 export class ProjectDialogComponent {
   readonly formModel: FormModel<ProjectFormComponentModel>;

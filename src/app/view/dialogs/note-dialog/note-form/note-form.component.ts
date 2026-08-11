@@ -5,11 +5,12 @@ import {FormModel} from "../../../../utils/form-model";
   selector: "sbb-note-form",
   templateUrl: "./note-form.component.html",
   styleUrls: ["./note-form.component.scss"],
+  standalone: false,
 })
 export class NoteFormComponent {
   @Input() model!: FormModel<NoteFormComponentModel>;
 
-  onKeydown(event) {
+  onKeydown(event: KeyboardEvent) {
     if (event.key === "Enter") {
       this.onUpdate();
     }
@@ -44,7 +45,13 @@ export interface NoteFormComponentModel {
   noteWidth: number;
   notePositionX: number;
   notePositionY: number;
-  saveNoteCallback;
-  deleteNoteCallback;
-  updateNoteCallback?;
+  saveNoteCallback: (
+    noteId: number,
+    noteTitle: string,
+    noteText: string,
+    noteHeight: number,
+    noteWidth: number,
+  ) => void;
+  deleteNoteCallback: (noteId: number) => void;
+  updateNoteCallback: () => void;
 }

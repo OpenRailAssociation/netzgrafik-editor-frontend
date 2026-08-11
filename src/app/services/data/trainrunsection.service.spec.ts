@@ -3,7 +3,7 @@ import {NodeService} from "../data/node.service";
 import {ResourceService} from "../data/resource.service";
 import {TrainrunService} from "../data/trainrun.service";
 import {TrainrunSectionService} from "../data/trainrunsection.service";
-import {StammdatenService} from "../data/stammdaten.service";
+import {BaseDataService} from "../data/basedata.service";
 import {NoteService} from "../data/note.service";
 import {Node} from "../../models/node.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
@@ -21,7 +21,7 @@ describe("TrainrunSectionService", () => {
   let resourceService: ResourceService;
   let trainrunService: TrainrunService;
   let trainrunSectionService: TrainrunSectionService;
-  let stammdatenService: StammdatenService;
+  let baseDataService: BaseDataService;
   let noteService: NoteService;
   let nodes: Node[] = null;
   let trainrunSections: TrainrunSection[] = null;
@@ -33,7 +33,7 @@ describe("TrainrunSectionService", () => {
   let netzgrafikColoringService: NetzgrafikColoringService = null;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -51,13 +51,13 @@ describe("TrainrunSectionService", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,
@@ -90,7 +90,6 @@ describe("TrainrunSectionService", () => {
 
   it("TrainrunSectionService.setTrainrunSectionAsSelected", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const ts = trainrunSectionService.getTrainrunSectionFromId(1);
     expect(trainrunSectionService.getSelectedTrainrunSection()).toBe(null);
     trainrunSectionService.setTrainrunSectionAsSelected(0);
     expect(trainrunSectionService.getSelectedTrainrunSection().getId()).toBe(0);
@@ -133,9 +132,9 @@ describe("TrainrunSectionService", () => {
     const nodeD = nodeService.addNodeWithPosition(0, 3, "D");
     const nodeE = nodeService.addNodeWithPosition(0, 4, "E");
     const tsAB = trainrunSectionService.createTrainrunSection(nodeA.getId(), nodeB.getId());
-    const tsBC = trainrunSectionService.createTrainrunSection(nodeB.getId(), nodeC.getId());
-    const tsCD = trainrunSectionService.createTrainrunSection(nodeC.getId(), nodeD.getId());
-    const tsDE = trainrunSectionService.createTrainrunSection(nodeD.getId(), nodeE.getId());
+    trainrunSectionService.createTrainrunSection(nodeB.getId(), nodeC.getId());
+    trainrunSectionService.createTrainrunSection(nodeC.getId(), nodeD.getId());
+    trainrunSectionService.createTrainrunSection(nodeD.getId(), nodeE.getId());
     const tsEA = trainrunSectionService.createTrainrunSection(nodeE.getId(), nodeA.getId());
 
     expect(nodeA.getTransitions().length).toBe(0);
@@ -162,5 +161,111 @@ describe("TrainrunSectionService", () => {
     const transA_AB2 = nodeA.getTransition(tsAB.getId());
     const transA_EA2 = nodeA.getTransition(tsEA.getId());
     expect(transA_AB2.getId()).toBe(transA_EA2.getId());
+  });
+
+  describe("setTimeStructureToTrainrunSections", () => {
+    const testCases = [
+      {
+        name: "single section, source on the left",
+        id: 1,
+        timeStructure: {
+          leftDepartureTime: 45,
+          rightArrivalTime: 55,
+          rightDepartureTime: 30,
+          leftArrivalTime: 45,
+          travelTime: 10,
+          bottomTravelTime: 15,
+        },
+        expectedTrainrunSectionTimes: [
+          {
+            id: 1,
+            sourceDeparture: 45,
+            targetArrival: 55,
+            targetDeparture: 30,
+            sourceArrival: 45,
+            travelTime: 10,
+            backwardTravelTime: 15,
+          },
+        ],
+      },
+      {
+        name: "single section, source on the right",
+        id: 7,
+        timeStructure: {
+          leftDepartureTime: 45,
+          rightArrivalTime: 55,
+          rightDepartureTime: 30,
+          leftArrivalTime: 45,
+          travelTime: 10,
+          bottomTravelTime: 15,
+        },
+        expectedTrainrunSectionTimes: [
+          {
+            id: 7,
+            sourceDeparture: 30,
+            targetArrival: 45,
+            targetDeparture: 45,
+            sourceArrival: 55,
+            travelTime: 15,
+            backwardTravelTime: 10,
+          },
+        ],
+      },
+      {
+        name: "multiple sections, source on the left",
+        id: 4,
+        timeStructure: {
+          leftDepartureTime: 45,
+          rightArrivalTime: 55,
+          rightDepartureTime: 30,
+          leftArrivalTime: 45,
+          travelTime: 10,
+          bottomTravelTime: 15,
+        },
+        expectedTrainrunSectionTimes: [
+          {
+            id: 3,
+            sourceDeparture: 45,
+            targetArrival: 53,
+            targetDeparture: 33,
+            sourceArrival: 45,
+            travelTime: 8,
+            backwardTravelTime: 12,
+          },
+          {
+            id: 4,
+            sourceDeparture: 53,
+            targetArrival: 55,
+            targetDeparture: 30,
+            sourceArrival: 33,
+            travelTime: 2,
+            backwardTravelTime: 3,
+          },
+        ],
+      },
+    ];
+
+    for (const {name, id, timeStructure, expectedTrainrunSectionTimes} of testCases) {
+      it(`${name} (section ${id})`, () => {
+        dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+
+        const ts = trainrunSectionService.getTrainrunSectionFromId(id);
+        trainrunSectionService.setTimeStructureToTrainrunSections(timeStructure, ts);
+
+        for (const {id, ...expectedTimes} of expectedTrainrunSectionTimes) {
+          const ts = trainrunSectionService.getTrainrunSectionFromId(id);
+          expect({
+            sourceDeparture: ts.getSourceDeparture(),
+            targetDeparture: ts.getTargetDeparture(),
+            sourceArrival: ts.getSourceArrival(),
+            targetArrival: ts.getTargetArrival(),
+            travelTime: ts.getTravelTime(),
+            backwardTravelTime: ts.getBackwardTravelTime(),
+          })
+            .withContext(`trainrun section ${id}`)
+            .toEqual(expectedTimes);
+        }
+      });
+    }
   });
 });

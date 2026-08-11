@@ -11,8 +11,8 @@ import {TransitionViewObject} from "./transitionViewObject";
 import {LinePatternRefs} from "../../../data-structures/business.data.structures";
 
 export class TransitionsView {
-  transitionsGroup;
-  selectedTransitionsGroup;
+  transitionsGroup: d3.Selection<SVGElement, undefined, Element, undefined>;
+  selectedTransitionsGroup: d3.Selection<SVGElement, undefined, Element, undefined>;
   editorView: EditorView;
 
   constructor(editorView: EditorView) {
@@ -22,7 +22,7 @@ export class TransitionsView {
   static isMuted(
     trainrun: Trainrun,
     selectedTrainrun: Trainrun,
-    connectedTrainrunIds: any,
+    connectedTrainrunIds: number[],
   ): boolean {
     if (
       connectedTrainrunIds !== undefined &&
@@ -42,7 +42,7 @@ export class TransitionsView {
   static createTrainrunClassAttribute(
     trainrun: Trainrun,
     selectedTrainrun: Trainrun,
-    connectedTrainrunIds: any,
+    connectedTrainrunIds: number[],
   ): string {
     let classAttribute =
       StaticDomTags.TRANSITION_LINE_CLASS +
@@ -66,7 +66,7 @@ export class TransitionsView {
     editorView: EditorView,
     inputTransitions: Transition[],
     selectedTrainrun: Trainrun,
-    connectedTrainrunIds: any[],
+    connectedTrainrunIds: number[],
   ): TransitionViewObject[] {
     const viewTransitionViewObjects: TransitionViewObject[] = [];
     inputTransitions.forEach((transition: Transition) => {
@@ -82,11 +82,11 @@ export class TransitionsView {
   }
 
   static createTransitionLineLayer(
-    grpEnter: d3.selector,
+    grpEnter: d3.Selection<SVGElement, TransitionViewObject, Element, undefined>,
     classRef: string,
     levelFreqFilter: LinePatternRefs[],
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any,
+    connectedTrainIds: number[],
     editorView: EditorView,
   ) {
     grpEnter
@@ -121,7 +121,11 @@ export class TransitionsView {
       .attr("d", (t: TransitionViewObject) => D3Utils.getPathAsSVGString(t.transition.getPath()));
   }
 
-  createNonStopToggle(grpEnter: d3.selector, selectedTrainrun: Trainrun, connectedTrainIds: any) {
+  createNonStopToggle(
+    grpEnter: d3.Selection<SVGElement, TransitionViewObject, Element, undefined>,
+    selectedTrainrun: Trainrun,
+    connectedTrainIds: number[],
+  ) {
     if (!this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable()) {
       return;
     }
@@ -150,19 +154,19 @@ export class TransitionsView {
       .classed(StaticDomTags.TRANSITION_IS_NONSTOP, (t: TransitionViewObject) =>
         t.transition.getIsNonStopTransit(),
       )
-      .on("mousemove", (t: TransitionViewObject, i, a) => this.onTransitionMousemove(a[i]))
-      .on("mouseover", (t: TransitionViewObject, i, a) =>
-        this.onTransitionMouseover(t.transition.getTrainrun(), a[i], t.transition),
+      .on("mousemove", (event: MouseEvent) => event.preventDefault())
+      .on("mouseover", (event: MouseEvent, t: TransitionViewObject) =>
+        this.onTransitionMouseover(event, t.transition),
       )
-      .on("mouseup", (t: TransitionViewObject, i, a) =>
-        this.onTransitionMouseup(t.transition.getTrainrun(), a[i], t.transition),
+      .on("mouseup", (event: MouseEvent, t: TransitionViewObject) =>
+        this.onTransitionMouseup(event, t.transition),
       )
-      .on("mouseout", (t: TransitionViewObject, i, a) =>
-        this.onTransitionButtonOut(t.transition.getTrainrun(), a[i], t.transition),
+      .on("mouseout", (event: MouseEvent, t: TransitionViewObject) =>
+        this.onTransitionButtonOut(event, t.transition),
       );
   }
 
-  setGroup(transitionsGroup) {
+  setGroup(transitionsGroup: d3.Selection<SVGElement, undefined, Element, undefined>) {
     transitionsGroup.attr("class", "TransitionsView");
     this.transitionsGroup = transitionsGroup.append(StaticDomTags.GROUP_SVG);
     this.transitionsGroup.attr("class", "transitions");
@@ -185,7 +189,7 @@ export class TransitionsView {
 
   displayTransitions(inputTransitions: Transition[]) {
     const selectedTrainrun: Trainrun = this.editorView.getSelectedTrainrun();
-    let connectedTrainIds = [];
+    let connectedTrainIds: number[] = [];
     if (selectedTrainrun !== null) {
       connectedTrainIds = this.editorView.getConnectedTrainrunIds(selectedTrainrun);
     }
@@ -204,7 +208,7 @@ export class TransitionsView {
   createTransitions(
     inputTransitions: Transition[],
     selectedTrainrun: Trainrun,
-    connectedTrainIds: any[],
+    connectedTrainIds: number[],
     selectedFlagFilter: boolean,
   ) {
     const transitions = inputTransitions.filter(
@@ -271,8 +275,8 @@ export class TransitionsView {
     transitionsGroup.exit().remove();
   }
 
-  onTransitionMouseup(trainrun: Trainrun, domObj: any, transition: Transition) {
-    d3.event.stopPropagation();
+  onTransitionMouseup(event: MouseEvent, transition: Transition) {
+    event.stopPropagation();
     const node: Node = this.editorView.getNodeFromTransition(transition);
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
       const port1 = node.getPort(transition.getPortId1());
@@ -281,7 +285,7 @@ export class TransitionsView {
         port1.getTrainrunSection().getTrainrun().selected() ||
         port2.getTrainrunSection().getTrainrun().selected()
       ) {
-        if (d3.event.ctrlKey) {
+        if (event.ctrlKey) {
           this.editorView.splitTrainrunIntoTwoParts(transition);
           return;
         }
@@ -289,7 +293,7 @@ export class TransitionsView {
       }
       return;
     }
-    this.editorView.nodesView.handleMouseUpEvent(node);
+    this.editorView.nodesView.handleMouseUpEvent(event, node);
 
     D3Utils.removeGrayoutTransition(transition);
     D3Utils.removeGrayoutTrainrunSectionPin();
@@ -297,18 +301,19 @@ export class TransitionsView {
     this.editorView.trainrunSectionPreviewLineView.stopPreviewLine();
   }
 
-  onTransitionButtonOut(trainrun: Trainrun, domObj: any, transition: Transition) {
+  onTransitionButtonOut(event: MouseEvent, transition: Transition) {
+    const domObj = D3Utils.getMouseEventCurrentTarget(event);
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
 
     const node: Node = this.editorView.getNodeFromTransition(transition);
-    this.editorView.nodesView.unhoverNodeDockable(node, null);
+    this.editorView.nodesView.unhoverNodeDockable(event, node);
 
     if (this.editorView.trainrunSectionPreviewLineView.getMode() !== PreviewLineMode.NotDragging) {
       return;
     }
-    d3.event.stopPropagation();
+    event.stopPropagation();
 
-    if (d3.event.buttons !== 1) {
+    if (event.buttons !== 1) {
       return;
     }
     if (!d3.select(domObj).classed(StaticDomTags.TAG_SELECTED)) {
@@ -326,14 +331,10 @@ export class TransitionsView {
       new DragTransitionInfo(node, trainrunSection1, trainrunSection2, transition, true, domObj),
       position,
     );
-    this.editorView.trainrunSectionPreviewLineView.updatePreviewLine();
+    this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(event);
   }
 
-  onTransitionMousemove(domObj: any) {
-    d3.event.stopPropagation();
-  }
-
-  onTransitionMouseover(trainrun: Trainrun, domObj: any, transition: Transition) {
+  onTransitionMouseover(event: MouseEvent, transition: Transition) {
     const node: Node = this.editorView.getNodeFromTransition(transition);
     if (this.editorView.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging) {
       const port1 = node.getPort(transition.getPortId1());
@@ -342,9 +343,10 @@ export class TransitionsView {
         port1.getTrainrunSection().getTrainrun().selected() ||
         port2.getTrainrunSection().getTrainrun().selected()
       ) {
+        const domObj = D3Utils.getMouseEventCurrentTarget(event);
         d3.select(domObj).classed(StaticDomTags.TAG_HOVER, true);
       }
     }
-    this.editorView.nodesView.hoverNodeDockable(node, null);
+    this.editorView.nodesView.hoverNodeDockable(event, node);
   }
 }

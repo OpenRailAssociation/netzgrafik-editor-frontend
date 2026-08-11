@@ -1,4 +1,6 @@
 import {ComponentFixture, TestBed} from "@angular/core/testing";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
+import {SbbTextareaModule} from "@sbb-esta/angular/textarea";
 
 import {VariantsViewComponent} from "./variants-view.component";
 import {SbbDialogModule} from "@sbb-esta/angular/dialog";
@@ -6,7 +8,7 @@ import {
   ProjectControllerBackendService,
   ProjectDto,
   VariantControllerBackendService,
-  VariantCreateDto,
+  VersionControllerBackendService,
 } from "../../../api/generated";
 import {of} from "rxjs";
 import {ActivatedRoute} from "@angular/router";
@@ -14,6 +16,7 @@ import {NavigationService} from "../../../services/ui/navigation.service";
 import {VersionControlService} from "../../../services/data/version-control.service";
 import {I18nModule} from "../../../core/i18n/i18n.module";
 import {CUSTOM_ELEMENTS_SCHEMA} from "@angular/core";
+import {DataService} from "../../../services/data/data.service";
 
 describe("VariantsViewComponent", () => {
   let component: VariantsViewComponent;
@@ -23,10 +26,12 @@ describe("VariantsViewComponent", () => {
   let variantControllerBackendService: Partial<VariantControllerBackendService>;
   let activatedRoute: Partial<ActivatedRoute>;
   let versionControlService: Partial<VersionControlService>;
+  let versionControllerBackendService: Partial<VersionControllerBackendService>;
+  let dataService: Partial<DataService>;
 
   beforeEach(async () => {
     projectControllerBackendService = {
-      getProject: (projectId: number) => {
+      getProject: () => {
         const project: ProjectDto = {
           id: 10,
           name: "",
@@ -51,12 +56,12 @@ describe("VariantsViewComponent", () => {
       }),
     };
     variantControllerBackendService = {
-      createVariant: (projectId: number, variantCreateDto: VariantCreateDto) => of(10 as any),
+      createVariant: () => of(10 as any),
     };
 
     await TestBed.configureTestingModule({
       declarations: [VariantsViewComponent],
-      imports: [SbbDialogModule, I18nModule],
+      imports: [I18nModule, FormsModule, ReactiveFormsModule, SbbDialogModule, SbbTextareaModule],
       providers: [
         {provide: ActivatedRoute, useValue: activatedRoute},
         {provide: NavigationService, useValue: {}},
@@ -69,6 +74,8 @@ describe("VariantsViewComponent", () => {
           useValue: variantControllerBackendService,
         },
         {provide: VersionControlService, useValue: versionControlService},
+        {provide: VersionControllerBackendService, useValue: versionControllerBackendService},
+        {provide: DataService, useValue: dataService},
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();

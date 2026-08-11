@@ -10,7 +10,7 @@ export class GeneralViewFunctions {
       The SVG (netzgrafik) rendering area has its own local coordinate system and can be different
       to the real screen visible coordinates.
      */
-    const element = d3.select("html").node();
+    const element = d3.select<HTMLElement, undefined>("html").node();
     const rectHtml = element.getBoundingClientRect();
 
     return GeneralViewFunctions.calcDialogTopLeftScreenCoordinateClientRectInfo(

@@ -1,0 +1,359 @@
+import {Node} from "../../models/node.model";
+import {Port} from "../../models/port.model";
+import {PortAlignment} from "../../data-structures/technical.data.structures";
+import {Transition} from "../../models/transition.model";
+import {countAllCrossings} from "./port-ordering.crossings";
+import {getComponents, getPortOppositeNodeId} from "./port-ordering.components";
+import {
+  ALIGNMENTS_CLOCKWISE_ORDER,
+  getOppositeAlignmentScore,
+  isElbowSwapped,
+  isHorizontalAlignment,
+} from "./port-ordering.helpers";
+
+/**
+ * Creates a view of a node exposing only one component's ports and transitions, so the optimizer
+ * reorders and counts within a single component, without disturbing a shared node's other sides.
+ * The ports stay the same objects, so reordering them still mutates the real network. Everything
+ * else (id, position, ...) is delegated to the real node.
+ */
+function getScopedNode(node: Node, sides: Set<PortAlignment>): Node {
+  const ports = node.getPorts().filter((p) => sides.has(p.getPositionAlignment()));
+  const portIds = new Set(ports.map((p) => p.getId()));
+  const transitions = node
+    .getTransitions()
+    .filter((t) => portIds.has(t.getPortId1()) && portIds.has(t.getPortId2()));
+  const view: Node = Object.create(node);
+  view.getPorts = () => ports;
+  view.getTransitions = () => transitions;
+  view.getPort = (id: number) => ports.find((p) => p.getId() === id);
+  return view;
+}
+
+/**
+ * This function orders all ports in all nodes to minimize crossings. It first calls
+ * getComponents, then runs optimizeComponentPorts on each component, scoped to its own ports so
+ * that nodes shared between components (a junction crossed by two independent reticulars for
+ * instance) have each side optimized by its owning component only.
+ */
+export function optimizePorts(nodes: Node[]): void {
+  getComponents(nodes).forEach((component) => {
+    const sidesByNode = new Map<Node, Set<PortAlignment>>();
+    component.forEach(({node, side}) => {
+      const sides = sidesByNode.get(node);
+      if (sides) sides.add(side);
+      else sidesByNode.set(node, new Set([side]));
+    });
+    optimizeComponentPorts([...sidesByNode].map(([node, sides]) => getScopedNode(node, sides)));
+  });
+}
+
+type OptimizeComponentPortsOptions = {
+  maxRuns: number;
+  maxNewCandidates: number;
+};
+const DEFAULT_OPTIMIZE_COMPONENT_PORTS_OPTIONS: OptimizeComponentPortsOptions = {
+  maxRuns: 50,
+  maxNewCandidates: 10,
+};
+
+/**
+ * This function tries to optimize port ordering across all nodes to minimize edge crossings.
+ *
+ * ## Strategy: Greedy search with crossing-guided candidate generation
+ *
+ * The core insight is that `reorderComponentPorts` uses a trainrun ordering as a tie-breaker when
+ * two ports can't be distinguished by geometry alone. By trying different trainrun orderings, we
+ * can explore different port arrangements, and find one with fewer crossings.
+ *
+ * ## Algorithm
+ *
+ * 1. Start with the initial trainrun order (from node transitions)
+ * 2. For each candidate trainrun ordering:
+ *    - Apply it via `reorderComponentPorts` (uses ordering as tie-breaker)
+ *    - Count resulting crossings with `countAllCrossings`
+ *    - If crossings improved, generate new candidates from detected group-crossings
+ * 3. Repeat until no improvement or `maxRuns` reached
+ * 4. Re-apply the best candidate found
+ *
+ * ## Candidate generation
+ *
+ * When crossings are detected, `countAllCrossings` returns `groupCrossings`: contiguous groups of
+ * trainruns that cross each other. By permuting these groups in the trainrun ordering, we generate
+ * new candidates that might reduce those specific crossings.
+ *
+ * Example: if trainruns [1,2] cross [3,4], we try reordering to [3,4,1,2].
+ *
+ * ## Limitations
+ *
+ * - This is a heuristic, not guaranteed to find the global optimum
+ * - Uses depth-first search (stack), so may miss better solutions on other branches
+ * - Stops early if no improvement, even if unexplored candidates remain
+ *
+ * ## Parameters
+ *
+ * - `maxRuns`: Maximum iterations to prevent infinite loops (default: 50)
+ * - `maxNewCandidates`: Max new candidates per improvement (default: 10), limits branching factor
+ */
+function optimizeComponentPorts(
+  nodes: Node[],
+  parameters: Partial<OptimizeComponentPortsOptions> = {},
+): void {
+  const {maxRuns, maxNewCandidates} = {...DEFAULT_OPTIMIZE_COMPONENT_PORTS_OPTIONS, ...parameters};
+
+  // Preserves insertion order while removing duplicates
+  const toUnique = (arr: number[]): number[] => {
+    const result: number[] = [];
+    const set = new Set<number>();
+    arr.forEach((n) => {
+      if (!set.has(n)) {
+        set.add(n);
+        result.push(n);
+      }
+    });
+    return result;
+  };
+
+  // Converts trainrun ID array to score map (index = priority)
+  const trainrunsToScore = (trainruns: number[]): Record<number, number> => {
+    const scores: Record<number, number> = {};
+    trainruns.forEach((id, index) => (scores[id] = index));
+    return scores;
+  };
+
+  // Permutes trainrun ordering by replacing group positions with flattened group order.
+  // Example: trainruns=[1,2,3,4], groups=[[3,4],[1,2]] → [3,4,1,2]
+  const reorderGroups = (trainruns: number[], groups: number[][]): number[] => {
+    const reorderedIDs = toUnique(groups.flat());
+    const set = new Set(reorderedIDs);
+    let j = 0;
+    return trainruns.map((v) => (set.has(v) ? reorderedIDs[j++] : v));
+  };
+
+  const initialTrainrunsOrder = toUnique(
+    nodes.flatMap((node) => node.getTransitions().map((t) => t.getTrainrun().getId())),
+  );
+
+  let runs = 0;
+  let bestCrossings = Infinity;
+  let bestCandidate: number[] = [];
+  const candidates = [initialTrainrunsOrder];
+
+  while (runs++ <= maxRuns && candidates.length > 0) {
+    const candidate = candidates.pop();
+
+    reorderComponentPorts(nodes, trainrunsToScore(candidate));
+    const {crossings, groupCrossings} = countAllCrossings(nodes);
+
+    if (crossings < bestCrossings) {
+      bestCandidate = candidate;
+      bestCrossings = crossings;
+
+      // Generate new candidates from worst crossings (reversed so worst is tried last/first-popped)
+      const newCandidates = groupCrossings.slice(0, maxNewCandidates).toReversed();
+      newCandidates.forEach((groupCrossing) => {
+        candidates.push(reorderGroups(candidate, groupCrossing.groups));
+      });
+    }
+  }
+
+  // Re-apply best result (last iteration may have been worse)
+  reorderComponentPorts(nodes, trainrunsToScore(bestCandidate));
+}
+
+/**
+ * This function sorts all ports in a given node, in a way that minimizes crossings as much as
+ * possible. The strategy is described in detail within the function itself.
+ *
+ * The strategy to sort the ports on each side of the node is, for a pair of ports, to find the
+ * first discriminating factor in the following list, and return accordingly:
+ *
+ * - If both ports have a transition in the node:
+ *   1. Opposite port alignment within node
+ *   2. Order of port on opposite side within node, if opposite side has already been ordered
+ *
+ * - If opposite nodes are different:
+ *   3. Opposite node, sorted by position
+ *
+ * - If the other node has been ordered already (i.e. if it's in orderedNodeIDs):
+ *   4a. Order of port in opposite node
+ *
+ * - Finally, if some trainrunScores input has been given:
+ *   4b. Order using the trainrunScores tie-breaker
+ */
+export function reorderNodePorts(
+  node: Node,
+  orderedNodeIDs = new Set<number>(),
+  trainrunScores: Record<number, number> = {},
+) {
+  const transitions = node.getTransitions();
+  const ports = node.getPorts();
+
+  // Index all port transitions:
+  const portTransitions = new Map<number, Transition>();
+  transitions.forEach((t) => {
+    portTransitions.set(t.getPortId1(), t);
+    portTransitions.set(t.getPortId2(), t);
+  });
+
+  // Start with sides facing an already-ordered neighbor, so this node follows
+  // that neighbor (case 4a) instead of locking to its own opposite side
+  // (case 2):
+  const facesOrderedNeighbor = (alignment: PortAlignment) =>
+    ports.some(
+      (port) =>
+        port.getPositionAlignment() === alignment &&
+        orderedNodeIDs.has(port.getOppositeNode(node.getId()).getId()),
+    );
+  const processingOrder = [
+    ...ALIGNMENTS_CLOCKWISE_ORDER.filter(facesOrderedNeighbor),
+    ...ALIGNMENTS_CLOCKWISE_ORDER.filter((alignment) => !facesOrderedNeighbor(alignment)),
+  ];
+
+  // For each side, order ports by transitions groups:
+  const orderedSides = new Set<PortAlignment>();
+  processingOrder.forEach((alignment) => {
+    const sidePorts = ports.filter((port) => port.getPositionAlignment() === alignment);
+
+    const compare = (a: Port, b: Port) => {
+      const aTransition = portTransitions.get(a.getId());
+      const bTransition = portTransitions.get(b.getId());
+
+      if (aTransition && bTransition) {
+        const aOppositePort = node.getPort(aTransition.getOppositePort(a.getId()));
+        const bOppositePort = node.getPort(bTransition.getOppositePort(b.getId()));
+
+        const aOppositeAlignment = aOppositePort.getPositionAlignment();
+        const bOppositeAlignment = bOppositePort.getPositionAlignment();
+
+        if (aOppositeAlignment !== bOppositeAlignment) {
+          // Case 1
+          return (
+            getOppositeAlignmentScore(alignment, aOppositeAlignment) -
+            getOppositeAlignmentScore(alignment, bOppositeAlignment)
+          );
+        }
+
+        if (orderedSides.has(aOppositeAlignment)) {
+          const aScoreOppositeSide = aOppositePort.getPositionIndex();
+          const bScoreOppositeSide = bOppositePort.getPositionIndex();
+          const swap = isElbowSwapped(alignment, aOppositeAlignment);
+
+          // Case 2
+          return (aScoreOppositeSide - bScoreOppositeSide) * (swap ? -1 : 1);
+        }
+      }
+
+      const aOppositeNode = a.getOppositeNode(node.getId());
+      const bOppositeNode = b.getOppositeNode(node.getId());
+
+      if (aOppositeNode !== bOppositeNode) {
+        // Case 3
+        return isHorizontalAlignment(alignment)
+          ? aOppositeNode.getPositionX() - bOppositeNode.getPositionX()
+          : aOppositeNode.getPositionY() - bOppositeNode.getPositionY();
+      }
+
+      // Case 4a
+      if (orderedNodeIDs.has(aOppositeNode.getId())) {
+        const oppositeNodePorts = aOppositeNode.getPorts();
+        const aPortInOppositeNode = oppositeNodePorts.find(
+          (port) => port.getTrainrunSectionId() === a.getTrainrunSectionId(),
+        );
+        const bPortInOppositeNode = oppositeNodePorts.find(
+          (port) => port.getTrainrunSectionId() === b.getTrainrunSectionId(),
+        );
+        if (!aPortInOppositeNode || !bPortInOppositeNode) return 0;
+        return aPortInOppositeNode.getPositionIndex() - bPortInOppositeNode.getPositionIndex();
+      }
+
+      // Case 4b
+      else {
+        const aTrainrunId = a.getTrainrunSection().getTrainrunId();
+        const bTrainrunId = b.getTrainrunSection().getTrainrunId();
+        const aScore = trainrunScores[aTrainrunId] ?? aTrainrunId;
+        const bScore = trainrunScores[bTrainrunId] ?? bTrainrunId;
+
+        let swap = 1;
+        if (aTransition) {
+          const aOppositePort = node.getPort(aTransition.getOppositePort(a.getId()));
+          if (aOppositePort.getPositionAlignment() === alignment) {
+            const otherEnd = aOppositePort.getOppositeNode(node.getId());
+            const currentPos = isHorizontalAlignment(alignment)
+              ? aOppositeNode.getPositionX()
+              : aOppositeNode.getPositionY();
+            const otherPos = isHorizontalAlignment(alignment)
+              ? otherEnd.getPositionX()
+              : otherEnd.getPositionY();
+            if (currentPos > otherPos) swap = -1;
+          }
+        }
+
+        return (aScore - bScore) * swap;
+      }
+    };
+
+    // Transitions are ordered by geometry, free ends only by a tie-break score. Mixing both scales
+    // in a single sort can contradict itself and flip two transitions (which would cross inside the
+    // node), so we sort each kind separately, then insert the free end into the ordered transition
+    const hasTransition = (p: Port) => portTransitions.has(p.getId());
+    const transitionPorts = sidePorts.filter(hasTransition).sort(compare);
+    const freeEndPorts = sidePorts.filter((p) => !hasTransition(p)).sort(compare);
+
+    // Insert each free end before the first transition it should precede (or last if there is none)
+    freeEndPorts.forEach((freeEnd) => {
+      const at = transitionPorts.findIndex((p) => compare(freeEnd, p) < 0);
+      transitionPorts.splice(at === -1 ? transitionPorts.length : at, 0, freeEnd);
+    });
+
+    // Apply new order
+    transitionPorts.forEach((port, i) => port.setPositionIndex(i));
+
+    orderedSides.add(alignment);
+  });
+}
+
+function getNeighborsCount(node: Node): number {
+  return new Set(node.getPorts().map((p) => getPortOppositeNodeId(p, node.getId()))).size;
+}
+
+/**
+ * This function orders all ports across all nodes using BFS traversal from a root node. To see
+ * exactly how ports are ordered in a single node (where the logic actually is), check
+ * reorderNodePorts.
+ */
+function reorderComponentPorts(nodes: Node[], trainrunScores: Record<number, number> = {}): void {
+  const nodesWithPorts = nodes.filter((n) => n.getPorts().length > 0);
+  if (nodesWithPorts.length === 0) return;
+
+  const nodeMap = new Map(nodesWithPorts.map((n) => [n.getId(), n]));
+  const visited = new Set<number>();
+  const root = nodesWithPorts.reduce((best, n) => {
+    const bestNeighbors = getNeighborsCount(best);
+    const nNeighbors = getNeighborsCount(n);
+    if (nNeighbors !== bestNeighbors) return nNeighbors > bestNeighbors ? n : best;
+    return n.getPorts().length > best.getPorts().length ? n : best;
+  });
+  const queue: number[] = [root.getId()];
+
+  reorderNodePorts(root, visited, trainrunScores);
+  visited.add(root.getId());
+
+  // BFS traversal
+  while (queue.length > 0) {
+    const nodeId = queue.shift()!;
+    const node = nodeMap.get(nodeId)!;
+
+    for (const neighborId of new Set(
+      node.getPorts().map((p) => getPortOppositeNodeId(p, nodeId)),
+    )) {
+      // A port can lead outside the component (e.g. a single-trainrun bridge whose far end belongs
+      // to another reticular), so here we only follow neighbors that are part of this component:
+      if (visited.has(neighborId) || !nodeMap.has(neighborId)) continue;
+
+      visited.add(neighborId);
+      queue.push(neighborId);
+      reorderNodePorts(nodeMap.get(neighborId), visited, trainrunScores);
+    }
+  }
+}

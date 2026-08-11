@@ -153,41 +153,14 @@
       "sourcePortId": 0,
       "targetNodeId": 1,
       "targetPortId": 1,
-      "travelTime": {
-        "time": 10,
-        "consecutiveTime": 0,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "sourceDeparture": {
-        "time": 0,
-        "consecutiveTime": 0,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "sourceArrival": {
-        "time": 0,
-        "consecutiveTime": 60,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "targetDeparture": {
-        "time": 50,
-        "consecutiveTime": 50,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "targetArrival": {
-        "time": 10,
-        "consecutiveTime": 10,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
+      "sourceDeparture": {"lock": false, "time": 0, "consecutiveTime": 0},
+      "sourceArrival": {"lock": false, "time": 0, "consecutiveTime": 60},
+      "targetDeparture": {"lock": false, "time": 50, "consecutiveTime": 50},
+      "targetArrival": {"lock": false, "time": 10, "consecutiveTime": 10},
+      "travelTime": {"lock": true, "time": 10, "consecutiveTime": 0},
+      "backwardTravelTime": {"lock": true, "time": 10, "consecutiveTime": 0},
       "numberOfStops": 0,
       "trainrunId": 0,
       "resourceId": 0,
@@ -206,10 +179,11 @@
           "3": {"x": 272, "y": 60},
           "4": {"x": 224, "y": 36},
           "5": {"x": 224, "y": 36},
-          "6": {"x": 224, "y": 60}
+          "6": {"x": 224, "y": 60},
+          "7": {"x": 224, "y": 60}
         }
       },
-      "warnings": null
+      "warnings": []
     },
     {
       "id": 1,
@@ -217,41 +191,14 @@
       "sourcePortId": 2,
       "targetNodeId": 2,
       "targetPortId": 3,
-      "travelTime": {
-        "time": 10,
-        "consecutiveTime": 0,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "sourceDeparture": {
-        "time": 12,
-        "consecutiveTime": 12,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "sourceArrival": {
-        "time": 48,
-        "consecutiveTime": 48,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "targetDeparture": {
-        "time": 38,
-        "consecutiveTime": 38,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "targetArrival": {
-        "time": 22,
-        "consecutiveTime": 22,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
+      "sourceDeparture": {"lock": false, "time": 12, "consecutiveTime": 12},
+      "sourceArrival": {"lock": false, "time": 48, "consecutiveTime": 48},
+      "targetDeparture": {"lock": false, "time": 38, "consecutiveTime": 38},
+      "targetArrival": {"lock": false, "time": 22, "consecutiveTime": 22},
+      "travelTime": {"lock": true, "time": 10, "consecutiveTime": 0},
+      "backwardTravelTime": {"lock": true, "time": 10, "consecutiveTime": 0},
       "numberOfStops": 0,
       "trainrunId": 0,
       "resourceId": 0,
@@ -270,10 +217,11 @@
           "3": {"x": 688, "y": 92},
           "4": {"x": 576, "y": 52},
           "5": {"x": 576, "y": 52},
-          "6": {"x": 576, "y": 76}
+          "6": {"x": 576, "y": 76},
+          "7": {"x": 576, "y": 76}
         }
       },
-      "warnings": null
+      "warnings": []
     },
     {
       "id": 2,
@@ -281,41 +229,14 @@
       "sourcePortId": 4,
       "targetNodeId": 2,
       "targetPortId": 5,
-      "travelTime": {
-        "time": 20,
-        "consecutiveTime": 0,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "sourceDeparture": {
-        "time": 15,
-        "consecutiveTime": 15,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "sourceArrival": {
-        "time": 45,
-        "consecutiveTime": 45,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "targetDeparture": {
-        "time": 25,
-        "consecutiveTime": 25,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "targetArrival": {
-        "time": 35,
-        "consecutiveTime": 35,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
+      "sourceDeparture": {"lock": false, "time": 15, "consecutiveTime": 15},
+      "sourceArrival": {"lock": false, "time": 45, "consecutiveTime": 45},
+      "targetDeparture": {"lock": false, "time": 25, "consecutiveTime": 25},
+      "targetArrival": {"lock": false, "time": 35, "consecutiveTime": 35},
+      "travelTime": {"lock": true, "time": 20, "consecutiveTime": 0},
+      "backwardTravelTime": {"lock": true, "time": 20, "consecutiveTime": 0},
       "numberOfStops": 0,
       "trainrunId": 1,
       "resourceId": 0,
@@ -334,10 +255,11 @@
           "3": {"x": 688, "y": 124},
           "4": {"x": 576, "y": 84},
           "5": {"x": 576, "y": 84},
-          "6": {"x": 576, "y": 108}
+          "6": {"x": 576, "y": 108},
+          "7": {"x": 576, "y": 108}
         }
       },
-      "warnings": null
+      "warnings": []
     },
     {
       "id": 3,
@@ -345,41 +267,14 @@
       "sourcePortId": 6,
       "targetNodeId": 1,
       "targetPortId": 7,
-      "travelTime": {
-        "time": 39,
-        "consecutiveTime": 10,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "sourceDeparture": {
-        "time": 0,
-        "consecutiveTime": 0,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "sourceArrival": {
-        "time": 0,
-        "consecutiveTime": 180,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "targetDeparture": {
-        "time": 21,
-        "consecutiveTime": 141,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "targetArrival": {
-        "time": 39,
-        "consecutiveTime": 39,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
+      "sourceDeparture": {"lock": false, "time": 0, "consecutiveTime": 0},
+      "sourceArrival": {"lock": false, "time": 0, "consecutiveTime": 180},
+      "targetDeparture": {"lock": false, "time": 21, "consecutiveTime": 141},
+      "targetArrival": {"lock": false, "time": 39, "consecutiveTime": 39},
+      "travelTime": {"lock": true, "time": 39, "consecutiveTime": 10},
+      "backwardTravelTime": {"lock": true, "time": 39, "consecutiveTime": 10},
       "numberOfStops": 0,
       "trainrunId": 2,
       "resourceId": 0,
@@ -398,10 +293,11 @@
           "3": {"x": 272, "y": 92},
           "4": {"x": 224, "y": 68},
           "5": {"x": 224, "y": 68},
-          "6": {"x": 224, "y": 92}
+          "6": {"x": 224, "y": 92},
+          "7": {"x": 224, "y": 92}
         }
       },
-      "warnings": null
+      "warnings": []
     },
     {
       "id": 4,
@@ -409,41 +305,14 @@
       "sourcePortId": 8,
       "targetNodeId": 2,
       "targetPortId": 9,
-      "travelTime": {
-        "time": 10,
-        "consecutiveTime": 10,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "sourceDeparture": {
-        "time": 39,
-        "consecutiveTime": 39,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "sourceArrival": {
-        "time": 21,
-        "consecutiveTime": 141,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "targetDeparture": {
-        "time": 11,
-        "consecutiveTime": 131,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "targetArrival": {
-        "time": 49,
-        "consecutiveTime": 49,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
+      "sourceDeparture": {"lock": false, "time": 39, "consecutiveTime": 39},
+      "sourceArrival": {"lock": false, "time": 21, "consecutiveTime": 141},
+      "targetDeparture": {"lock": false, "time": 11, "consecutiveTime": 131},
+      "targetArrival": {"lock": false, "time": 49, "consecutiveTime": 49},
+      "travelTime": {"lock": true, "time": 10, "consecutiveTime": 10},
+      "backwardTravelTime": {"lock": true, "time": 10, "consecutiveTime": 10},
       "numberOfStops": 0,
       "trainrunId": 2,
       "resourceId": 0,
@@ -462,10 +331,11 @@
           "3": {"x": 688, "y": 156},
           "4": {"x": 576, "y": 116},
           "5": {"x": 576, "y": 116},
-          "6": {"x": 576, "y": 140}
+          "6": {"x": 576, "y": 140},
+          "7": {"x": 576, "y": 140}
         }
       },
-      "warnings": null
+      "warnings": []
     },
     {
       "id": 5,
@@ -473,41 +343,14 @@
       "sourcePortId": 10,
       "targetNodeId": 3,
       "targetPortId": 11,
-      "travelTime": {
-        "time": 51,
-        "consecutiveTime": 10,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "sourceDeparture": {
-        "time": 50,
-        "consecutiveTime": 50,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "sourceArrival": {
-        "time": 10,
-        "consecutiveTime": 130,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "targetDeparture": {
-        "time": 19,
-        "consecutiveTime": 79,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "targetArrival": {
-        "time": 41,
-        "consecutiveTime": 101,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
+      "sourceDeparture": {"lock": false, "time": 50, "consecutiveTime": 50},
+      "sourceArrival": {"lock": false, "time": 10, "consecutiveTime": 130},
+      "targetDeparture": {"lock": false, "time": 19, "consecutiveTime": 79},
+      "targetArrival": {"lock": false, "time": 41, "consecutiveTime": 101},
+      "travelTime": {"lock": true, "time": 51, "consecutiveTime": 10},
+      "backwardTravelTime": {"lock": true, "time": 51, "consecutiveTime": 10},
       "numberOfStops": 0,
       "trainrunId": 2,
       "resourceId": 0,
@@ -526,10 +369,11 @@
           "3": {"x": 1136, "y": 92},
           "4": {"x": 1008, "y": 68},
           "5": {"x": 1008, "y": 68},
-          "6": {"x": 1008, "y": 92}
+          "6": {"x": 1008, "y": 92},
+          "7": {"x": 1008, "y": 92}
         }
       },
-      "warnings": null
+      "warnings": []
     },
     {
       "id": 6,
@@ -537,41 +381,14 @@
       "sourcePortId": 12,
       "targetNodeId": 2,
       "targetPortId": 13,
-      "travelTime": {
-        "time": 10,
-        "consecutiveTime": 10,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "sourceDeparture": {
-        "time": 55,
-        "consecutiveTime": 115,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "sourceArrival": {
-        "time": 5,
-        "consecutiveTime": 65,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "targetDeparture": {
-        "time": 55,
-        "consecutiveTime": 55,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "targetArrival": {
-        "time": 5,
-        "consecutiveTime": 125,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
+      "sourceDeparture": {"lock": false, "time": 55, "consecutiveTime": 115},
+      "sourceArrival": {"lock": false, "time": 5, "consecutiveTime": 65},
+      "targetDeparture": {"lock": false, "time": 55, "consecutiveTime": 55},
+      "targetArrival": {"lock": false, "time": 5, "consecutiveTime": 125},
+      "travelTime": {"lock": true, "time": 10, "consecutiveTime": 10},
+      "backwardTravelTime": {"lock": true, "time": 10, "consecutiveTime": 10},
       "numberOfStops": 0,
       "trainrunId": 3,
       "resourceId": 0,
@@ -590,10 +407,11 @@
           "3": {"x": 880, "y": 100},
           "4": {"x": 944, "y": 180},
           "5": {"x": 944, "y": 180},
-          "6": {"x": 944, "y": 204}
+          "6": {"x": 944, "y": 204},
+          "7": {"x": 944, "y": 204}
         }
       },
-      "warnings": null
+      "warnings": []
     },
     {
       "id": 7,
@@ -601,41 +419,14 @@
       "sourcePortId": 14,
       "targetNodeId": 2,
       "targetPortId": 15,
-      "travelTime": {
-        "time": 10,
-        "consecutiveTime": 10,
-        "lock": true,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "sourceDeparture": {
-        "time": 0,
-        "consecutiveTime": 120,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "sourceArrival": {
-        "time": 0,
-        "consecutiveTime": 60,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "targetDeparture": {
-        "time": 50,
-        "consecutiveTime": 50,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
-      "targetArrival": {
-        "time": 10,
-        "consecutiveTime": 130,
-        "lock": false,
-        "warning": null,
-        "timeFormatter": null
-      },
+      "sourceSymmetry": true,
+      "targetSymmetry": true,
+      "sourceDeparture": {"lock": false, "time": 0, "consecutiveTime": 120},
+      "sourceArrival": {"lock": false, "time": 0, "consecutiveTime": 60},
+      "targetDeparture": {"lock": false, "time": 50, "consecutiveTime": 50},
+      "targetArrival": {"lock": false, "time": 10, "consecutiveTime": 130},
+      "travelTime": {"lock": true, "time": 10, "consecutiveTime": 10},
+      "backwardTravelTime": {"lock": true, "time": 10, "consecutiveTime": 10},
       "numberOfStops": 0,
       "trainrunId": 4,
       "resourceId": 0,
@@ -654,10 +445,11 @@
           "3": {"x": 880, "y": 132},
           "4": {"x": 944, "y": 212},
           "5": {"x": 944, "y": 212},
-          "6": {"x": 944, "y": 236}
+          "6": {"x": 944, "y": 236},
+          "7": {"x": 944, "y": 236}
         }
       },
-      "warnings": null
+      "warnings": []
     }
   ],
   "trainruns": [
@@ -894,7 +686,9 @@
         "colorDarkModeMuted": "#000000",
         "colorDarkModeRelated": "#767676"
       }
-    ]
+    ],
+    "orderingAlgorithm": 0,
+    "trafficSide": "leftHand"
   },
   "freeFloatingTexts": [
     {

@@ -2,13 +2,15 @@ import {Injectable} from "@angular/core";
 import {registerLocaleData} from "@angular/common";
 import {loadTranslations} from "@angular/localize";
 
+type NestedTranslations = {[key: string]: string | NestedTranslations};
+
 @Injectable({
   providedIn: "root",
 })
 export class I18nService {
   readonly allowedLanguages = ["en", "fr", "de"];
   private currentLanguage: string = this.getLanguageFromStorage() || this.detectNavigatorLanguage();
-  translations: any = {};
+  translations: Record<string, string> = {};
 
   get language(): string {
     return this.currentLanguage;
@@ -20,10 +22,7 @@ export class I18nService {
       this.currentLanguage = language;
     }
 
-    const languageModule = await import(
-      /* webpackInclude: /(en|de|fr)\.mjs$/ */
-      `/node_modules/@angular/common/locales/${this.language}.mjs`
-    );
+    const languageModule = await import(`./locale.${this.language}.js`);
     registerLocaleData(languageModule.default);
 
     await this.loadTranslations();
@@ -46,10 +45,7 @@ export class I18nService {
   }
 
   async loadTranslations() {
-    const languageTranslationsModule = await import(
-      /* webpackInclude: /(en|de|fr)\.json$/ */
-      `src/assets/i18n/${this.language}.json`
-    );
+    const languageTranslationsModule = await import(`../../../assets/i18n/${this.language}.json`);
 
     this.translations = this.flattenTranslations(languageTranslationsModule.default);
     loadTranslations(this.translations);
@@ -69,10 +65,10 @@ export class I18nService {
   //   "app.models...": ...,
   //   "app.models...": ...
   // }
-  private flattenTranslations(translations: any): any {
-    const flattenedTranslations = {};
+  private flattenTranslations(translations: NestedTranslations): Record<string, string> {
+    const flattenedTranslations: Record<string, string> = {};
 
-    function flatten(obj, prefix = "") {
+    function flatten(obj: NestedTranslations, prefix = "") {
       for (const key in obj) {
         if (typeof obj[key] === "string") {
           flattenedTranslations[prefix + key] = obj[key];
@@ -87,7 +83,7 @@ export class I18nService {
   }
 
   // Used for the pipe and allowing parameters
-  translate(key: string, params?: any): string {
+  translate(key: string, params?: Record<string, string>): string {
     let translation = this.translations[key] || key;
 
     if (params) {

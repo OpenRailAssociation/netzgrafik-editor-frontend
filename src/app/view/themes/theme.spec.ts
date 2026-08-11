@@ -48,7 +48,6 @@ describe("Theme Tests", () => {
   });
 
   it("check...Colors_keys() ", () => {
-    const nbrColorEntries = 46;
     const keys: string[] = [];
     ThemeDefaultUx.getThemeDefaultUxColors().forEach((str: string) => keys.push(str.split(":")[0]));
 

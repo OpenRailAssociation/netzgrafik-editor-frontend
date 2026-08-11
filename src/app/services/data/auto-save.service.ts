@@ -24,7 +24,7 @@ export class AutoSaveService implements OnDestroy {
     this.autosaveTrigger$ = this.modifiedSubject.pipe(
       filter((modified) => modified),
       debounceTime(AutoSaveService.AUTOSAVE_TIMEOUT),
-      map(() => null),
+      map((): void => null),
     );
   }
 

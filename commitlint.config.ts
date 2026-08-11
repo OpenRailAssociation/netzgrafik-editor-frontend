@@ -3,6 +3,7 @@ import {RuleConfigSeverity} from "@commitlint/types";
 
 const Configuration: UserConfig = {
   extends: ["@commitlint/config-conventional"],
+  defaultIgnores: false,
   rules: {
     "type-enum": [
       RuleConfigSeverity.Error,

@@ -1,4 +1,4 @@
-@import "../../rastering/definitions";
+@use "../../rastering/definitions" as *;
 
 ::ng-deep rect.multi_select_box_root {
   stroke: $COLOR_Edit;

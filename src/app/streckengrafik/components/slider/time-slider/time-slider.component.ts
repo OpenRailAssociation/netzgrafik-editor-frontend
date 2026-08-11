@@ -25,6 +25,7 @@ import {
   templateUrl: "./time-slider.component.html",
   styleUrls: ["./time-slider.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class TimeSliderComponent implements OnInit, OnDestroy, UpdateCounterHandler {
   @Input()
@@ -114,7 +115,6 @@ export class TimeSliderComponent implements OnInit, OnDestroy, UpdateCounterHand
       .getTimelineChangeObservable()
       .pipe(takeUntil(this.destroyed$))
       .subscribe((timeLinePos: number) => {
-        const changed = this.timelineChangeInfo !== timeLinePos;
         this.timelineChangeInfo = timeLinePos;
         if (!this.delayedRendering) {
           this.updateCounterCallback();
@@ -157,7 +157,7 @@ export class TimeSliderComponent implements OnInit, OnDestroy, UpdateCounterHand
   }
 
   @HostListener("mouseup", ["$event"])
-  public onMouseUp(event: MouseEvent) {
+  public onMouseUp() {
     if (this.lastMouseMoveButtons !== 0) {
       this.timeSliderService.stopHandleZoomPanning();
     }

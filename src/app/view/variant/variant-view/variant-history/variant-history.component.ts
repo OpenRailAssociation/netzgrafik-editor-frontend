@@ -1,4 +1,4 @@
-import {Component, Input, OnChanges, OnDestroy, SimpleChanges} from "@angular/core";
+import {Component, Input, OnChanges, OnDestroy} from "@angular/core";
 import {DownloadVersionModel, VersionId} from "./model";
 import {VersionControlService} from "../../../../services/data/version-control.service";
 import {
@@ -23,6 +23,7 @@ import {AutoSaveService} from "../../../../services/data/auto-save.service";
   selector: "sbb-variant-history",
   templateUrl: "./variant-history.component.html",
   styleUrls: ["./variant-history.component.scss"],
+  standalone: false,
 })
 export class VariantHistoryComponent implements OnChanges, OnDestroy {
   @Input() variant: VariantDto;
@@ -54,7 +55,7 @@ export class VariantHistoryComponent implements OnChanges, OnDestroy {
     this.destroyed.complete();
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
+  ngOnChanges(): void {
     this.versionEntries = this.groupVersionsByReleaseNumber([...this.variant.versions].reverse());
   }
 

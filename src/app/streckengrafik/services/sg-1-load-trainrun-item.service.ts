@@ -22,7 +22,6 @@ import {NodeService} from "../../services/data/node.service";
 import {TrainrunBranchType} from "../model/enum/trainrun-branch-type-type";
 import {MultiSelectNodeGraph} from "../../utils/multi-select-node-graph";
 import {Direction} from "src/app/data-structures/business.data.structures";
-import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helper";
 
 @Injectable({
   providedIn: "root",
@@ -149,7 +148,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         // not support current trains with partial cancellations.
         const ts: TrainrunSection = this.trainrunSectionService
           .getAllTrainrunSectionsForTrainrun(selectedTrainrun.getId())
-          .find((ts) => true);
+          .find(() => true);
         const loadeddata = this.loadTrainrunItem(ts, true);
         this.cachedTrainrunItems = loadeddata.trainrunItem;
       }
@@ -194,7 +193,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         : this.createLongestPathFromNodes(graph, nodes);
 
     // convert corridor to path elements
-    corridor.forEach((n, idx, nodArray) => {
+    corridor.forEach((_, idx, nodArray) => {
       if (idx > 0) {
         const e = edgeLists.find(
           (e) =>
@@ -220,7 +219,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
       return n1.getPositionX() - n2.getPositionX();
     });
 
-    let corridor = [];
+    let corridor: Node[] = [];
     sortedNode.forEach((n1) => {
       sortedNode.forEach((n2) => {
         const p = graph.getPath(n1.getId(), n2.getId());
@@ -244,7 +243,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     graph: MultiSelectNodeGraph,
     nodes: Node[],
     endStartingVertices: number[],
-  ): number[] {
+  ): Node[] {
     const n1 = nodes.find((n) => n.getId() === endStartingVertices[0]);
     const n2 = nodes.find((n) => n.getId() === endStartingVertices[1]);
     const startEndNodes = [n1, n2];
@@ -259,8 +258,17 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
   }
 
   private makePathElement(nodeId1: number, nodeId2: number, travelTime: number) {
-    const n1 = new PathNode(0, 0, nodeId1, undefined, 0, undefined, false);
-    const n2 = new PathNode(travelTime, travelTime, nodeId2, undefined, 1, undefined, false);
+    const n1 = new PathNode(0, 0, nodeId1, undefined, undefined, 0, undefined, false);
+    const n2 = new PathNode(
+      travelTime,
+      travelTime,
+      nodeId2,
+      undefined,
+      undefined,
+      1,
+      undefined,
+      false,
+    );
     const node1 = this.nodeService.getNodeFromId(n1.nodeId);
     n1.nodeShortName = node1.getBetriebspunktName();
     const node2 = this.nodeService.getNodeFromId(n2.nodeId);
@@ -307,7 +315,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     const depTime = fromNode.getDepartureConsecutiveTime(trainrunSection);
 
     let wendeTime =
-      (Math.max(trainrun.getFrequency(), 60) - 2 * fromNode.getArrivalTime(trainrunSection)) %
+      (fromNode.getDepartureTime(trainrunSection) - fromNode.getArrivalTime(trainrunSection)) %
       trainrun.getFrequency();
     if (wendeTime < 0) {
       wendeTime += trainrun.getFrequency();
@@ -326,7 +334,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     const arrTime = toNode.getArrivalConsecutiveTime(trainrunSection);
 
     let wendeTime =
-      (Math.max(trainrun.getFrequency(), 60) - 2 * toNode.getArrivalTime(trainrunSection)) %
+      (toNode.getDepartureTime(trainrunSection) - toNode.getArrivalTime(trainrunSection)) %
       trainrun.getFrequency();
     if (wendeTime < 0) {
       wendeTime += trainrun.getFrequency();
@@ -464,6 +472,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
           this.getTurnaroundStartNodeForward(fromNode, trainrunSection, trainrun),
           fromNode.getId(),
           fromNode.getBetriebspunktName(),
+          fromNode.getFullName(),
           index++,
           new TrackData(1), //forward track 1
           false,
@@ -495,6 +504,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         toNode.getArrivalConsecutiveTime(trainrunSection),
         toNode.getId(),
         toNode.getBetriebspunktName(),
+        toNode.getFullName(),
         index++,
         new TrackData(1), // forward
         false,
@@ -531,6 +541,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
             this.getTurnaroundStartNodeBackward(fromNode, trainrunSection, trainrun),
             fromNode.getId(),
             fromNode.getBetriebspunktName(),
+            fromNode.getFullName(),
             index-- - 1,
             new TrackData(2), // backward
             true,
@@ -561,6 +572,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
           toNode.getArrivalConsecutiveTime(trainrunSection),
           toNode.getId(),
           toNode.getBetriebspunktName(),
+          toNode.getFullName(),
           index-- - 1,
           new TrackData(2), // backward
           true,
@@ -645,12 +657,11 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
           // this part of code supports partial cancellations, e.g., trainrun runs from
           // A - B - C [ partial canceled ] D - E
           while (alltrainrunsections.length > 0) {
-            const ts: TrainrunSection = alltrainrunsections.find((ts) => true);
+            const ts: TrainrunSection = alltrainrunsections.find(() => true);
             const loadeddata = this.loadTrainrunItem(ts, false);
 
             // correct projections directions
             this.sortTrainrunItemAndRotateAlongTemplatePath(
-              trainrun,
               loadeddata.trainrunItem,
               templateTrainrunItem,
             );
@@ -668,7 +679,6 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
   }
 
   sortTrainrunItemAndRotateAlongTemplatePath(
-    trainrun: Trainrun,
     trainrunItem: TrainrunItem,
     templateTrainrunItem: TrainrunItem,
   ) {
@@ -678,7 +688,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
      There is sill an issue in the CODE - if the trainrun passes the second time a node, the in-/out
      branching edge will not all be rendered!
      */
-    this.classifyPathItem(trainrun, trainrunItem, templateTrainrunItem);
+    this.classifyPathItem(trainrunItem, templateTrainrunItem);
 
     const indicesForward: number[] = [];
     const indicesBackward: number[] = [];
@@ -781,7 +791,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     swapIndF = swapIndF.filter((v, i, a) => a.indexOf(v) === i);
     swapIndB = swapIndB.filter((v, i, a) => a.indexOf(v) === i);
 
-    swapIndF.forEach((v, index) => {
+    swapIndF.forEach((_, index) => {
       if (swapIndF[index] >= 0) {
         if (index === 0) {
           if (
@@ -817,11 +827,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     });
   }
 
-  classifyPathItem(
-    trainrun: Trainrun,
-    trainrunItem: TrainrunItem,
-    templateTrainrunItem: TrainrunItem,
-  ) {
+  classifyPathItem(trainrunItem: TrainrunItem, templateTrainrunItem: TrainrunItem) {
     trainrunItem.pathItems.forEach((item: PathItem) => {
       if (item.isSection()) {
         const section = item.getPathSection();
@@ -877,9 +883,9 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
   }
 
   isTrainRunWayDirectionBackward(
-    trainrun,
-    startForwardNode,
-    startBackwardNode,
+    trainrun: Trainrun,
+    startForwardNode: Node,
+    startBackwardNode: Node,
     selectedForwardTrainrunSectionGroups: TrainrunSectionGroup[],
   ): {
     check: boolean;
@@ -932,25 +938,23 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     this.render();
   }
 
-  private betriebspunktNamePaths(trainrunSectionGroups) {
-    const paths = [];
+  private betriebspunktNamePaths(trainrunSectionGroups: TrainrunSectionGroup[]) {
+    const paths: string[] = [];
     trainrunSectionGroups.forEach((trainrunSectionGroup) => {
-      if (trainrunSectionGroup.trainrunSectionWhitheNodes) {
-        if (trainrunSectionGroup.trainrunSectionWhitheNodes.fromNode) {
-          paths.push(
-            trainrunSectionGroup.trainrunSectionWhitheNodes.fromNode.getBetriebspunktName(),
-          );
+      if (trainrunSectionGroup.trainrunSectionWithNodes) {
+        if (trainrunSectionGroup.trainrunSectionWithNodes.fromNode) {
+          paths.push(trainrunSectionGroup.trainrunSectionWithNodes.fromNode.getBetriebspunktName());
         }
-        if (trainrunSectionGroup.trainrunSectionWhitheNodes.toNode) {
-          paths.push(trainrunSectionGroup.trainrunSectionWhitheNodes.toNode.getBetriebspunktName());
+        if (trainrunSectionGroup.trainrunSectionWithNodes.toNode) {
+          paths.push(trainrunSectionGroup.trainrunSectionWithNodes.toNode.getBetriebspunktName());
         }
       }
     });
     return paths;
   }
 
-  private removeNoMatchinNodeName(selectedPaths, paths) {
-    const returnPaths = [];
+  private removeNoMatchinNodeName(selectedPaths: string[], paths: string[]) {
+    const returnPaths: string[] = [];
     paths.forEach((path) => {
       let isInPaths = false;
       selectedPaths.forEach((selectedPath) => {
@@ -965,7 +969,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     return returnPaths;
   }
 
-  private addStartEnde(paths) {
+  private addStartEnde(paths: string[]) {
     const returnPaths = [];
     returnPaths.push("#St#");
     paths.forEach((path) => {
@@ -975,7 +979,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     return returnPaths;
   }
 
-  private ratePath(selectedPaths, paths) {
+  private ratePath(selectedPaths: string[], paths: string[]) {
     let returnValue = 0;
     for (let pathSize = paths.length; pathSize > 0; pathSize--) {
       const selectedPathCombos = this.pathCombination(selectedPaths, pathSize);
@@ -993,7 +997,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     return returnValue;
   }
 
-  private pathCombination(paths, size) {
+  private pathCombination(paths: string[], size: number) {
     const returnValues = [];
     for (let i = 0; i < paths.length; i++) {
       if (i + size <= paths.length) {

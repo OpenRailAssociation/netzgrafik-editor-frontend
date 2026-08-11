@@ -1,7 +1,7 @@
 import {NodeService} from "../app/services/data/node.service";
 import {TrainrunService} from "../app/services/data/trainrun.service";
 import {TrainrunSectionService} from "../app/services/data/trainrunsection.service";
-import {StammdatenService} from "../app/services/data/stammdaten.service";
+import {BaseDataService} from "../app/services/data/basedata.service";
 import {DataService} from "../app/services/data/data.service";
 import {Node} from "../app/models/node.model";
 import {TrainrunSection} from "../app/models/trainrunsection.model";
@@ -26,7 +26,7 @@ describe("TrainrunSection Service Test", () => {
   let resourceService: ResourceService = null;
   let trainrunService: TrainrunService = null;
   let trainrunSectionService: TrainrunSectionService = null;
-  let stammdatenService: StammdatenService = null;
+  let baseDataService: BaseDataService = null;
   let noteService: NoteService = null;
   let logService: LogService = null;
   let logPublishersService: LogPublishersService = null;
@@ -36,7 +36,7 @@ describe("TrainrunSection Service Test", () => {
   let netzgrafikColoringService: NetzgrafikColoringService = null;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -54,13 +54,13 @@ describe("TrainrunSection Service Test", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,
@@ -169,7 +169,6 @@ describe("TrainrunSection Service Test", () => {
     let computedTimes = TrainrunSectionService.computeArrivalAndDeparture(
       2,
       trainrunSections[1],
-      false,
       nodes[1].getTrainrunCategoryHaltezeit(),
     );
     expect(computedTimes.nodeFromDepartureTime).toBe(4);
@@ -180,18 +179,16 @@ describe("TrainrunSection Service Test", () => {
     computedTimes = TrainrunSectionService.computeArrivalAndDeparture(
       2,
       trainrunSections[1],
-      true,
       nodes[1].getTrainrunCategoryHaltezeit(),
     );
-    expect(computedTimes.nodeFromDepartureTime).toBe(2);
-    expect(computedTimes.nodeFromArrivalTime).toBe(58);
-    expect(computedTimes.nodeToDepartureTime).toBe(48);
-    expect(computedTimes.nodeToArrivalTime).toBe(12);
+    expect(computedTimes.nodeFromDepartureTime).toBe(4);
+    expect(computedTimes.nodeFromArrivalTime).toBe(56);
+    expect(computedTimes.nodeToDepartureTime).toBe(46);
+    expect(computedTimes.nodeToArrivalTime).toBe(14);
 
     computedTimes = TrainrunSectionService.computeArrivalAndDeparture(
       56,
       trainrunSections[1],
-      false,
       nodes[1].getTrainrunCategoryHaltezeit(),
     );
     expect(computedTimes.nodeFromDepartureTime).toBe(58);
@@ -203,7 +200,7 @@ describe("TrainrunSection Service Test", () => {
   it("update trainrunSection time test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 
-    trainrunSectionService.updateTrainrunSectionTime(0, 58, 2, 12, 48, 10);
+    trainrunSectionService.updateTrainrunSectionTime(0, 58, 2, 12, 48, 10, 10);
 
     const trainrunSection = trainrunSectionService.getTrainrunSectionFromId(0);
     expect(trainrunSection.getSourceArrival()).toBe(58);
@@ -215,7 +212,7 @@ describe("TrainrunSection Service Test", () => {
   it("propagate time test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 
-    trainrunSectionService.updateTrainrunSectionTime(0, 58, 2, 12, 48, 10);
+    trainrunSectionService.updateTrainrunSectionTime(0, 58, 2, 12, 48, 10, 10);
     trainrunSectionService.propagateTimeAlongTrainrun(0, 0);
     trainrunSectionService.propagateTimeAlongTrainrun(0, 1);
 
@@ -312,6 +309,7 @@ describe("TrainrunSection Service Test", () => {
     const startNode = trainrunService.getLeftOrTopNodeWithTrainrunId(2);
     const trainrunSection = startNode.getExtremityTrainrunSection(2);
     trainrunSection.setTravelTime(123);
+    trainrunSection.setBackwardTravelTime(123);
     trainrunService.propagateInitialConsecutiveTimes();
     const startTrainrunSection = startNode.getExtremityTrainrunSection(2);
 
@@ -327,6 +325,39 @@ describe("TrainrunSection Service Test", () => {
     expect(nextTrainrunSection.getSourceArrivalConsecutiveTime()).toBe(261);
     expect(nextTrainrunSection.getTargetDepartureConsecutiveTime()).toBe(251);
     expect(nextTrainrunSection.getTargetArrivalConsecutiveTime()).toBe(169);
+  });
+
+  it("check consecutive time : asymmetric travel time 60min overflow", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    expect(trainrunSections.length).toBe(8);
+
+    const allTrainrunSections = trainrunSectionService.getTrainrunSections();
+    allTrainrunSections.forEach((trs) => {
+      trs.setSourceDepartureConsecutiveTime(undefined);
+      trs.setSourceArrivalConsecutiveTime(undefined);
+      trs.setTargetDepartureConsecutiveTime(undefined);
+      trs.setTargetArrivalConsecutiveTime(undefined);
+    });
+    const startNode = trainrunService.getLeftOrTopNodeWithTrainrunId(2);
+    const trainrunSection = startNode.getExtremityTrainrunSection(2);
+    trainrunSection.setAsymmetry();
+    trainrunSection.setTravelTime(75);
+    trainrunSection.setBackwardTravelTime(50);
+    trainrunService.propagateInitialConsecutiveTimes();
+    const startTrainrunSection = startNode.getExtremityTrainrunSection(2);
+
+    expect(startTrainrunSection.getSourceDepartureConsecutiveTime()).toBe(0);
+    expect(startTrainrunSection.getSourceArrivalConsecutiveTime()).toBe(240);
+    expect(startTrainrunSection.getTargetDepartureConsecutiveTime()).toBe(201);
+    expect(startTrainrunSection.getTargetArrivalConsecutiveTime()).toBe(99);
+
+    const nextTrainrunSection = startNode
+      .getOppositeNode(startTrainrunSection)
+      .getNextTrainrunSection(startTrainrunSection);
+    expect(nextTrainrunSection.getSourceDepartureConsecutiveTime()).toBe(99);
+    expect(nextTrainrunSection.getSourceArrivalConsecutiveTime()).toBe(201);
+    expect(nextTrainrunSection.getTargetDepartureConsecutiveTime()).toBe(191);
+    expect(nextTrainrunSection.getTargetArrivalConsecutiveTime()).toBe(109);
   });
 
   it("path router check", () => {

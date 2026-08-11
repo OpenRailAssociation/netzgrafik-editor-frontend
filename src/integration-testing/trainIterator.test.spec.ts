@@ -1,7 +1,7 @@
 import {NodeService} from "../app/services/data/node.service";
 import {TrainrunService} from "../app/services/data/trainrun.service";
 import {TrainrunSectionService} from "../app/services/data/trainrunsection.service";
-import {StammdatenService} from "../app/services/data/stammdaten.service";
+import {BaseDataService} from "../app/services/data/basedata.service";
 import {DataService} from "../app/services/data/data.service";
 import {ResourceService} from "../app/services/data/resource.service";
 import {LogService} from "../app/logger/log.service";
@@ -20,7 +20,7 @@ describe("TrainrunSection Service Test", () => {
   let resourceService: ResourceService = null;
   let trainrunService: TrainrunService = null;
   let trainrunSectionService: TrainrunSectionService = null;
-  let stammdatenService: StammdatenService = null;
+  let baseDataService: BaseDataService = null;
   let noteService: NoteService = null;
   let logService: LogService = null;
   let logPublishersService: LogPublishersService = null;
@@ -30,7 +30,7 @@ describe("TrainrunSection Service Test", () => {
   let netzgrafikColoringService: NetzgrafikColoringService = null;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -48,13 +48,13 @@ describe("TrainrunSection Service Test", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,

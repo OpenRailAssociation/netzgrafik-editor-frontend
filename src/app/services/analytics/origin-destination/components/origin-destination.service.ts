@@ -60,12 +60,11 @@ export class OriginDestinationService {
     // TODO: ideally this would be 24 hours, but performance is a concern.
     // One idea to optimize would be to consider the minimum time window before the schedule repeats (LCM).
     // Draft here: https://colab.research.google.com/drive/1Z1r2uU2pgffWxCbG_wt2zoLStZKzWleE#scrollTo=F6vOevK6znee
-    const timeLimit = 16 * 60;
+    const timeLimit = 24 * 60;
 
-    const metadata = this.dataService.getNetzgrafikDto().metadata;
     // The cost to add for each connection.
     const connectionPenalty =
-      metadata.analyticsSettings.originDestinationSettings.connectionPenalty;
+      this.dataService.getAnalyticsSettings().originDestinationSettings.connectionPenalty;
     const nodes = this.nodeService.getNodes();
     const odNodes = this.getODOutputNodes();
     const trainruns = this.trainrunService.getVisibleTrainruns();
@@ -85,13 +84,13 @@ export class OriginDestinationService {
     const res = new Map<string, [number, number]>();
     odNodes.forEach((origin) => {
       computeShortestPaths(origin.getId(), neighbors, vertices, tsSuccessor).forEach(
-        (value, key) => {
-          res.set([origin.getId(), key].join(","), value);
+        ([cost, connections, _trainrunSectionIds], key) => {
+          res.set([origin.getId(), key].join(","), [cost, connections]);
         },
       );
     });
 
-    const rows = [];
+    const rows: OriginDestination[] = [];
     odNodes.sort((a, b) => a.getBetriebspunktName().localeCompare(b.getBetriebspunktName()));
     odNodes.forEach((origin) => {
       odNodes.forEach((destination) => {
@@ -107,6 +106,9 @@ export class OriginDestinationService {
             originId: origin.getId(),
             destinationId: destination.getId(),
             found: false,
+            travelTime: undefined,
+            transfers: undefined,
+            totalCost: undefined,
           });
           return;
         }

@@ -62,13 +62,9 @@ body:
   - type: checkboxes
     id: definition-of-ready
     attributes:
-      label: Definition of Ready
+      label: Definition of Ready (to check once the design document is ready)
       options:
         - label: Mock-ups are complete and validated (PO/UX-UI)
-          required: true
         - label: ACs are clear and have been reviewed by another refiner (PO/UX-UI)
-          required: true
         - label: Implementation plan has been written and validated by another maintainer (Technical)
-          required: true
         - label: Validated by Adrian (General)
-          required: true

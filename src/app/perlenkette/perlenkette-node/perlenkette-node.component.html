@@ -20,7 +20,7 @@
       width="94px"
       height="28px"
     />
-    <text x="8" y="55" class="node_text">{{ perlenketteNode.shortName }}</text>
+    <text x="8" y="55" class="node_text">{{ getNodeName() }}</text>
     <text x="88" y="55" text-anchor="end" class="node_connection_time">
       {{ perlenketteNode.connectionTime }}
     </text>
@@ -37,7 +37,7 @@
           (click)="toggleNonStop()"
           style="cursor: pointer; stroke-dasharray: none"
           [class]="
-            'edge_line non_stop_toogle ' + getNonStopClassTag() + ' ' + getColoringClassTag()
+            'edge_line non_stop_toggle ' + getNonStopClassTag() + ' ' + getColoringClassTag()
           "
         ></path>
       </svg>
@@ -125,9 +125,9 @@
               class="edge_text station start layer0"
               style="stroke-width: 6px"
               (click)="selectConnection(connection)"
-              [ngClass]="[getTextNameOrTimeClassTag(connection, connectionGrpKey, 0)]"
+              [ngClass]="[getTextNameOrTimeClassTag(connection, 0)]"
             >
-              {{ getTextNameOrTime(connection, connectionGrpKey, 0) }}
+              {{ getTextNameOrTime(connection, 0) }}
             </text>
             <text
               [attr.x]="getTrainrunNameFieldPosition()"
@@ -135,9 +135,9 @@
               dominant-baseline="text-after-edge"
               class="edge_text station start"
               (click)="selectConnection(connection)"
-              [ngClass]="[getTextNameOrTimeClassTag(connection, connectionGrpKey, 0)]"
+              [ngClass]="[getTextNameOrTimeClassTag(connection, 0)]"
             >
-              {{ getTextNameOrTime(connection, connectionGrpKey, 0) }}
+              {{ getTextNameOrTime(connection, 0) }}
             </text>
 
             <text
@@ -149,9 +149,9 @@
               class="edge_text station end layer0"
               (click)="selectConnection(connection)"
               style="stroke-width: 6px"
-              [ngClass]="[getTextNameOrTimeClassTag(connection, connectionGrpKey, 1)]"
+              [ngClass]="[getTextNameOrTimeClassTag(connection, 1)]"
             >
-              {{ getTextNameOrTime(connection, connectionGrpKey, 1) }}
+              {{ getTextNameOrTime(connection, 1) }}
             </text>
             <text
               *ngIf="filterService.isFilterArrivalDepartureTimeEnabled()"
@@ -161,9 +161,9 @@
               dominant-baseline="text-after-edge"
               class="edge_text station end"
               (click)="selectConnection(connection)"
-              [ngClass]="[getTextNameOrTimeClassTag(connection, connectionGrpKey, 1)]"
+              [ngClass]="[getTextNameOrTimeClassTag(connection, 1)]"
             >
-              {{ getTextNameOrTime(connection, connectionGrpKey, 1) }}
+              {{ getTextNameOrTime(connection, 1) }}
             </text>
 
             <text
@@ -173,9 +173,9 @@
               class="edge_text end station layer0"
               (click)="selectConnection(connection)"
               style="stroke-width: 6px"
-              [ngClass]="[getTextTerminalStationlassTag(connection, connectionGrpKey, 0)]"
+              [ngClass]="[getTextTerminalStationlassTag(connection, 0)]"
             >
-              {{ getTextTerminalStation(connection, connectionGrpKey, 0) }}
+              {{ getTextTerminalStation(connection, 0) }}
             </text>
             <text
               [attr.x]="getFromStationNameFieldPosition()"
@@ -183,9 +183,9 @@
               dominant-baseline="text-after-edge"
               class="edge_text end station"
               (click)="selectConnection(connection)"
-              [ngClass]="[getTextTerminalStationlassTag(connection, connectionGrpKey, 0)]"
+              [ngClass]="[getTextTerminalStationlassTag(connection, 0)]"
             >
-              {{ getTextTerminalStation(connection, connectionGrpKey, 0) }}
+              {{ getTextTerminalStation(connection, 0) }}
             </text>
 
             <text
@@ -196,9 +196,9 @@
               class="edge_text start station layer0"
               (click)="selectConnection(connection)"
               style="stroke-width: 6px"
-              [ngClass]="[getTextTerminalStationlassTag(connection, connectionGrpKey, 1)]"
+              [ngClass]="[getTextTerminalStationlassTag(connection, 1)]"
             >
-              {{ getTextTerminalStation(connection, connectionGrpKey, 1) }}
+              {{ getTextTerminalStation(connection, 1) }}
             </text>
             <text
               [attr.x]="getToStationNameFieldPosition()"
@@ -207,9 +207,9 @@
               dominant-baseline="text-after-edge"
               class="edge_text start station"
               (click)="selectConnection(connection)"
-              [ngClass]="[getTextTerminalStationlassTag(connection, connectionGrpKey, 1)]"
+              [ngClass]="[getTextTerminalStationlassTag(connection, 1)]"
             >
-              {{ getTextTerminalStation(connection, connectionGrpKey, 1) }}
+              {{ getTextTerminalStation(connection, 1) }}
             </text>
           </g>
         </ng-container>
@@ -260,7 +260,7 @@
       </ng-container>
 
       <text x="8" [attr.y]="55 + heightConnectionSurplus" class="node_text">
-        {{ perlenketteNode.shortName }}
+        {{ getNodeName() }}
       </text>
       <text
         [attr.x]="getTimeFieldPos()"

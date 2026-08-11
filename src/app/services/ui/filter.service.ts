@@ -1,4 +1,4 @@
-import {Injectable, OnDestroy} from "@angular/core";
+import {EventEmitter, Injectable, OnDestroy} from "@angular/core";
 import {
   FilterDataDto,
   LabelRef,
@@ -19,6 +19,7 @@ import {Port} from "../../models/port.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {Note} from "../../models/note.model";
 import {FilterSetting} from "../../models/filterSettings.model";
+import {FilterSettingOperation, Operation} from "src/app/models/operation.model";
 
 @Injectable({
   providedIn: "root",
@@ -34,6 +35,8 @@ export class FilterService implements OnDestroy {
   private activeFilterSetting: FilterSetting = null;
   private destroyed = new Subject<void>();
   private dataService: DataService;
+
+  readonly operation = new EventEmitter<Operation>();
 
   constructor(
     private labelService: LabelService,
@@ -285,6 +288,20 @@ export class FilterService implements OnDestroy {
     this.filterChanged();
   }
 
+  isDisplayingNodesFullName(): boolean {
+    return this.activeFilterSetting.displayNodesFullName;
+  }
+
+  enableDisplayNodesFullName() {
+    this.activeFilterSetting.displayNodesFullName = true;
+    this.filterChanged();
+  }
+
+  disableDisplayNodesFullName() {
+    this.activeFilterSetting.displayNodesFullName = false;
+    this.filterChanged();
+  }
+
   filterTrainrunsection(trainrunSection: TrainrunSection): boolean {
     if (this.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       // disable filtering in view (render all objects)
@@ -304,7 +321,7 @@ export class FilterService implements OnDestroy {
       return true;
     }
 
-    /* Impelement user defined filtering */
+    /* Implement user defined filtering */
     return (
       this.checkFilterNode(node) &&
       this.checkFilterNonStopNode(node) &&
@@ -330,16 +347,22 @@ export class FilterService implements OnDestroy {
   }
 
   isJunctionNode(node: Node): boolean {
-    const oppNodes: number[] = [];
-    node.getPorts().forEach((p) => {
-      if (this.filterTrainrun(p.getTrainrunSection().getTrainrun())) {
-        const oppNode = node.getOppositeNode(p.getTrainrunSection());
-        if (oppNodes.find((n) => n === oppNode.getId()) === undefined) {
-          oppNodes.push(oppNode.getId());
-        }
-      }
-    });
-    return oppNodes.length > 2;
+    const oppNodes = new Set<number>();
+
+    for (const p of node.getPorts()) {
+      const section = p.getTrainrunSection();
+      const trainrun = section.getTrainrun();
+
+      if (!this.filterTrainrun(trainrun)) continue;
+
+      const oppNode = node.getOppositeNode(section);
+      if (oppNode === undefined) continue;
+
+      oppNodes.add(oppNode.getId());
+      if (oppNodes.size > 2) return true; // Early exit
+    }
+
+    return false;
   }
 
   isNodeVisible(node: Node) {
@@ -368,14 +391,19 @@ export class FilterService implements OnDestroy {
       // disable filtering in view (render all objects)
       return true;
     }
-    /* Impelement user defined filtering */
+    /* Implement user defined filtering */
     const filterTrainrunSection = this.checkFilterTrainrunLabels(trainrun.getLabelIds());
+    const trainrunSections = this.dataService.getTrainrunSectionsByTrainrunId(trainrun.getId());
+    const hasAsymmetricalSection = trainrunSections.some(
+      (trainrunSection: TrainrunSection) => !trainrunSection.isSymmetric(),
+    );
     return (
       filterTrainrunSection &&
       this.isFilterTrainrunFrequencyEnabled(trainrun.getTrainrunFrequency()) &&
       this.isFilterTrainrunCategoryEnabled(trainrun.getTrainrunCategory()) &&
       this.isFilterTrainrunTimeCategoryEnabled(trainrun.getTrainrunTimeCategory()) &&
-      this.isFilterDirectionEnabled(trainrun.getDirection())
+      this.isFilterDirectionEnabled(trainrun.getDirection()) &&
+      this.isFilterSymmetryEnabled(!hasAsymmetricalSection)
     );
   }
 
@@ -385,7 +413,7 @@ export class FilterService implements OnDestroy {
       return true;
     }
 
-    /* Impelement user defined filtering */
+    /* Implement user defined filtering */
     const filter = this.checkFilterNoteLabels(note.getLabelIds());
     return !this.isFilterNotesEnabled() && filter;
   }
@@ -524,6 +552,7 @@ export class FilterService implements OnDestroy {
       this.activeFilterSetting.isTemporaryDisableFilteringOfItemsInView = false;
     }
     this.filterSubject.next();
+    this.operation.emit(new FilterSettingOperation(this.activeFilterSetting));
   }
 
   isFilterDirectionArrowsEnabled(): boolean {
@@ -537,6 +566,20 @@ export class FilterService implements OnDestroy {
 
   disableFilterDirectionArrows() {
     this.activeFilterSetting.filterDirectionArrows = false;
+    this.filterChanged();
+  }
+
+  isFilterAsymmetryArrowsEnabled(): boolean {
+    return this.activeFilterSetting.filterAsymmetryArrows;
+  }
+
+  enableFilterAsymmetryArrows() {
+    this.activeFilterSetting.filterAsymmetryArrows = true;
+    this.filterChanged();
+  }
+
+  disableFilterAsymmetryArrows() {
+    this.activeFilterSetting.filterAsymmetryArrows = false;
     this.filterChanged();
   }
 
@@ -579,6 +622,20 @@ export class FilterService implements OnDestroy {
 
   disableFilterTravelTime() {
     this.activeFilterSetting.filterTravelTime = false;
+    this.filterChanged();
+  }
+
+  isFilterBackwardTravelTimeEnabled(): boolean {
+    return this.activeFilterSetting.filterBackwardTravelTime;
+  }
+
+  enableFilterBackwardTravelTime() {
+    this.activeFilterSetting.filterBackwardTravelTime = true;
+    this.filterChanged();
+  }
+
+  disableFilterBackwardTravelTime() {
+    this.activeFilterSetting.filterBackwardTravelTime = false;
     this.filterChanged();
   }
 
@@ -713,6 +770,29 @@ export class FilterService implements OnDestroy {
     this.filterChanged();
   }
 
+  isFilterSymmetryEnabled(symmetry: boolean): boolean {
+    return this.activeFilterSetting.filterSymmetry.includes(symmetry);
+  }
+
+  enableFilterSymmetry(symmetry: boolean) {
+    if (!this.activeFilterSetting.filterSymmetry.includes(symmetry)) {
+      this.activeFilterSetting.filterSymmetry.push(symmetry);
+      this.filterChanged();
+    }
+  }
+
+  disableFilterSymmetry(symmetry: boolean) {
+    this.activeFilterSetting.filterSymmetry = this.activeFilterSetting.filterSymmetry.filter(
+      (sym) => sym !== symmetry,
+    );
+    this.filterChanged();
+  }
+
+  resetFilterSymmetry() {
+    this.activeFilterSetting.filterSymmetry = [true, false];
+    this.filterChanged();
+  }
+
   isAnyFilterActive(): boolean {
     return (
       !this.isDisplayFilteringActive() ||
@@ -756,6 +836,13 @@ export class FilterService implements OnDestroy {
         return;
       }
     });
+    [true, false].forEach((symmetry: boolean) => {
+      const isFilter = this.isFilterSymmetryEnabled(symmetry);
+      if (!isFilter) {
+        isActive = false;
+        return;
+      }
+    });
     return isActive;
   }
 
@@ -767,11 +854,14 @@ export class FilterService implements OnDestroy {
     return (
       !this.isFilterNotesEnabled() &&
       this.isFilterDirectionArrowsEnabled() &&
+      this.isFilterAsymmetryArrowsEnabled() &&
       this.isFilterArrivalDepartureTimeEnabled() &&
       this.isFilterConnectionsEnabled() &&
       this.isFilterTrainrunNameEnabled() &&
       this.isFilterTravelTimeEnabled() &&
-      this.isFilterShowNonStopTimeEnabled()
+      this.isFilterBackwardTravelTimeEnabled() &&
+      this.isFilterShowNonStopTimeEnabled() &&
+      !this.isDisplayingNodesFullName()
     );
   }
 

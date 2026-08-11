@@ -19,15 +19,19 @@ import {VersionControlService} from "../../services/data/version-control.service
   selector: "sbb-editor-filter-view",
   templateUrl: "./editor-filter-view.component.html",
   styleUrls: ["./editor-filter-view.component.scss"],
+  standalone: false,
 })
 export class EditorFilterViewComponent implements OnInit, OnDestroy {
   filterAllEmptyNodes: boolean;
   filterNotes: boolean;
   filterAllNonStopNodes: boolean;
+  displayNodesFullName: boolean;
   filterDirectionArrows: boolean;
+  filterAsymmetryArrows: boolean;
   filterArrivalDepartureTime: boolean;
   filterShowNonStopTime: boolean;
   filterTravelTime: boolean;
+  filterBackwardTravelTime: boolean;
   filterTrainrunName: boolean;
   filterConnections: boolean;
   timeDisplayPrecision: number;
@@ -67,13 +71,16 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
 
   updateFilterData() {
     this.filterDirectionArrows = this.filterService.isFilterDirectionArrowsEnabled();
+    this.filterAsymmetryArrows = this.filterService.isFilterAsymmetryArrowsEnabled();
     this.filterArrivalDepartureTime = this.filterService.isFilterArrivalDepartureTimeEnabled();
     this.filterShowNonStopTime = this.filterService.isFilterShowNonStopTimeEnabled();
     this.filterTravelTime = this.filterService.isFilterTravelTimeEnabled();
+    this.filterBackwardTravelTime = this.filterService.isFilterBackwardTravelTimeEnabled();
     this.filterTrainrunName = this.filterService.isFilterTrainrunNameEnabled();
     this.filterConnections = this.filterService.isFilterConnectionsEnabled();
     this.filterNotes = !this.filterService.isFilterNotesEnabled();
     this.filterAllNonStopNodes = !this.filterService.isFilteringAllNonStopNodes();
+    this.displayNodesFullName = this.filterService.isDisplayingNodesFullName();
     this.filterAllEmptyNodes = !this.filterService.isFilteringAllEmptyNodes();
     this.timeDisplayPrecision = this.filterService.getTimeDisplayPrecision();
   }
@@ -201,11 +208,27 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     }
   }
 
+  displayNodesFullNameChanged() {
+    if (this.displayNodesFullName) {
+      this.filterService.enableDisplayNodesFullName();
+    } else {
+      this.filterService.disableDisplayNodesFullName();
+    }
+  }
+
   filterDirectionArrowsChanged() {
     if (this.filterDirectionArrows) {
       this.filterService.enableFilterDirectionArrows();
     } else {
       this.filterService.disableFilterDirectionArrows();
+    }
+  }
+
+  filterAsymmetryArrowsChanged() {
+    if (this.filterAsymmetryArrows) {
+      this.filterService.enableFilterAsymmetryArrows();
+    } else {
+      this.filterService.disableFilterAsymmetryArrows();
     }
   }
 
@@ -228,8 +251,18 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   filterTravelTimeChanged() {
     if (this.filterTravelTime) {
       this.filterService.enableFilterTravelTime();
+      this.filterService.enableFilterBackwardTravelTime();
     } else {
       this.filterService.disableFilterTravelTime();
+      this.filterService.disableFilterBackwardTravelTime();
+    }
+  }
+
+  filterBackwardTravelTimeChanged() {
+    if (this.filterBackwardTravelTime) {
+      this.filterService.enableFilterBackwardTravelTime();
+    } else {
+      this.filterService.disableFilterBackwardTravelTime();
     }
   }
 
@@ -292,9 +325,23 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     return "TrainrunDialog Direction ";
   }
 
+  getSymmetryClassname(symmetry: boolean): string {
+    if (this.filterService.isFilterSymmetryEnabled(symmetry)) {
+      return "TrainrunDialog Symmetry " + StaticDomTags.TAG_SELECTED;
+    }
+    return "TrainrunDialog Symmetry ";
+  }
+
   hasOneWayTrainruns(): boolean {
     for (const trainrun of this.dataService.getTrainruns()) {
       if (!trainrun.isRoundTrip()) return true;
+    }
+    return false;
+  }
+
+  isAsymmetryActive(): boolean {
+    for (const section of this.dataService.getTrainrunSections()) {
+      if (!section.isSymmetric()) return true;
     }
     return false;
   }
@@ -334,6 +381,17 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     return $localize`:@@app.view.editor-filter-view.hide-direction:Hide ${directionTranslation}:direction:`;
   }
 
+  getSymmetryTooltip(symmetry: boolean): string {
+    if (!this.filterService.isFilterSymmetryEnabled(symmetry)) {
+      return symmetry
+        ? $localize`:@@app.view.editor-filter-view.show-symmetric-trainruns:Show symmetric trainruns`
+        : $localize`:@@app.view.editor-filter-view.show-asymmetric-trainruns:Show asymmetric trainruns`;
+    }
+    return symmetry
+      ? $localize`:@@app.view.editor-filter-view.hide-symmetric-trainruns:Hide symmetric trainruns`
+      : $localize`:@@app.view.editor-filter-view.hide-asymmetric-trainruns:Hide asymmetric trainruns`;
+  }
+
   makeCategoryButtonLabel(trainrunCategory: TrainrunCategory): string {
     const label = trainrunCategory.shortName.toUpperCase();
     if (label.length > 4) {
@@ -358,6 +416,14 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     }
   }
 
+  makeSymmetryButtonLabel(symmetry: boolean): string {
+    if (symmetry) {
+      return $localize`:@@app.view.editor-filter-view.symmetric-short:Sym.`;
+    } else {
+      return $localize`:@@app.view.editor-filter-view.asymmetric-short:Asym.`;
+    }
+  }
+
   onCategoryChanged(trainrunCategory: TrainrunCategory) {
     if (!this.filterService.isFilterTrainrunCategoryEnabled(trainrunCategory)) {
       this.filterService.enableFilterTrainrunCategory(trainrunCategory);
@@ -379,6 +445,14 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
       this.filterService.enableFilterDirection(direction);
     } else {
       this.filterService.disableFilterDirection(direction);
+    }
+  }
+
+  onSymmetryChanged(symmetry: boolean) {
+    if (!this.filterService.isFilterSymmetryEnabled(symmetry)) {
+      this.filterService.enableFilterSymmetry(symmetry);
+    } else {
+      this.filterService.disableFilterSymmetry(symmetry);
     }
   }
 
@@ -426,13 +500,16 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     this.filterService.resetFilterTrainrunFrequency();
     this.filterService.resetFilterTrainrunTimeCategory();
     this.filterService.resetFilterDirection();
+    this.filterService.resetFilterSymmetry();
   }
 
   onResetNodeFilter() {
     this.filterService.disableFilterAllEmptyNodes();
     this.filterService.disableFilterAllNonStopNodes();
+    this.filterService.disableDisplayNodesFullName();
     this.filterAllEmptyNodes = !this.filterService.isFilteringAllEmptyNodes();
     this.filterAllNonStopNodes = !this.filterService.isFilteringAllNonStopNodes();
+    this.displayNodesFullName = this.filterService.isDisplayingNodesFullName();
   }
 
   onResetNoteFilter() {
@@ -444,14 +521,18 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
     this.onResetNodeFilter();
     this.onResetNoteFilter();
     this.filterService.enableFilterDirectionArrows();
+    this.filterService.enableFilterAsymmetryArrows();
     this.filterService.enableFilterArrivalDepartureTime();
     this.filterService.enableFilterTravelTime();
+    this.filterService.enableFilterBackwardTravelTime();
     this.filterService.enableFilterTrainrunName();
     this.filterService.enableFilterShowNonStopTime();
     this.filterService.enableFilterConnections();
     this.filterDirectionArrows = this.filterService.isFilterDirectionArrowsEnabled();
+    this.filterAsymmetryArrows = this.filterService.isFilterAsymmetryArrowsEnabled();
     this.filterArrivalDepartureTime = this.filterService.isFilterArrivalDepartureTimeEnabled();
     this.filterTravelTime = this.filterService.isFilterTravelTimeEnabled();
+    this.filterBackwardTravelTime = this.filterService.isFilterBackwardTravelTimeEnabled();
     this.filterTrainrunName = this.filterService.isFilterTrainrunNameEnabled();
     this.filterConnections = this.filterService.isFilterConnectionsEnabled();
     this.filterShowNonStopTime = this.filterService.isFilterShowNonStopTimeEnabled();

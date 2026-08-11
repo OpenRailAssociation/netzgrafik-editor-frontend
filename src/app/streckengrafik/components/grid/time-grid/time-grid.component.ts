@@ -24,6 +24,7 @@ import {
   templateUrl: "./time-grid.component.html",
   styleUrls: ["./time-grid.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class TimeGridComponent implements OnInit, OnDestroy, UpdateCounterHandler {
   @Input() horizontal = true;

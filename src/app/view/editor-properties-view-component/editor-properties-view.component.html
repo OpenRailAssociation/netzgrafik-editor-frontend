@@ -31,7 +31,7 @@
         [name]="'app.view.editor-properties-view-component.background-color' | translate"
         style="width: 242px; min-height: 37px"
         [(ngModel)]="activeBackgroundColor"
-        (change)="colorPicked($event)"
+        (change)="colorPicked()"
       />
       &nbsp;
       <button
@@ -82,7 +82,7 @@
         [name]="'app.view.editor-properties-view-component.background-color' | translate"
         style="width: 242px; min-height: 37px; vertical-align: middle"
         [(ngModel)]="activeDarkBackgroundColor"
-        (change)="colorPicked($event)"
+        (change)="colorPicked()"
       />
       &nbsp;
       <button
@@ -129,6 +129,24 @@
         [value]="option.travelTimeCreationEstimatorType"
         [title]="option.title"
         (change)="onUpdateTravelTimeCreationEstimatorType($event)"
+      >
+        {{ option.name }}
+      </sbb-radio-button>
+    </sbb-radio-group>
+  </sbb-expansion-panel>
+
+  <sbb-expansion-panel [expanded]="true">
+    <sbb-expansion-panel-header>{{
+      "app.view.editor-properties-view-component.trafficSide" | translate
+    }}</sbb-expansion-panel-header>
+    <sbb-label>{{ "app.view.editor-properties-view-component.trafficSide" | translate }}</sbb-label>
+    <br />
+    <sbb-radio-group [(ngModel)]="activeTrafficSideType" class="sbb-radio-group-vertical">
+      <sbb-radio-button
+        *ngFor="let option of trafficSideTypeOptions"
+        [value]="option.trafficSide"
+        [title]="option.title"
+        (change)="onUpdateTrafficSideType($event)"
       >
         {{ option.name }}
       </sbb-radio-button>

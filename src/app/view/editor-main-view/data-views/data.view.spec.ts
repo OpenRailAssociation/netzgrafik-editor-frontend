@@ -3,10 +3,8 @@ import {NodeService} from "../../../services/data/node.service";
 import {ResourceService} from "../../../services/data/resource.service";
 import {TrainrunService} from "../../../services/data/trainrun.service";
 import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
-import {StammdatenService} from "../../../services/data/stammdaten.service";
+import {BaseDataService} from "../../../services/data/basedata.service";
 import {NoteService} from "../../../services/data/note.service";
-import {Node} from "../../../models/node.model";
-import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {LabelGroupService} from "../../../services/data/labelgroup.service";
 import {LabelService} from "../../../services/data/label.service";
 import {NetzgrafikColoringService} from "../../../services/data/netzgrafikColoring.service";
@@ -29,6 +27,7 @@ import {StaticDomTags} from "./static.dom.tags";
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
+import {AutoLayoutService} from "../../../services/util/auto-layout.service";
 
 describe("Editor-DataView", () => {
   let dataService: DataService;
@@ -36,10 +35,8 @@ describe("Editor-DataView", () => {
   let resourceService: ResourceService;
   let trainrunService: TrainrunService;
   let trainrunSectionService: TrainrunSectionService;
-  let stammdatenService: StammdatenService;
+  let baseDataService: BaseDataService;
   let noteService: NoteService;
-  let nodes: Node[] = null;
-  let trainrunSections: TrainrunSection[] = null;
   let logService: LogService = null;
   let logPublishersService: LogPublishersService = null;
   let labelGroupService: LabelGroupService = null;
@@ -53,7 +50,7 @@ describe("Editor-DataView", () => {
   let editorView: EditorView = null;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -71,22 +68,18 @@ describe("Editor-DataView", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,
       filterService,
       netzgrafikColoringService,
-    );
-    nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
-    trainrunSectionService.trainrunSections.subscribe(
-      (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
     );
 
     loadPerlenketteService = new LoadPerlenketteService(
@@ -100,11 +93,12 @@ describe("Editor-DataView", () => {
       filterService,
       nodeService,
       noteService,
-      stammdatenService,
+      baseDataService,
       trainrunSectionService,
       trainrunService,
       netzgrafikColoringService,
       loadPerlenketteService,
+      dataService,
     );
 
     undoService = new UndoService(
@@ -143,6 +137,14 @@ describe("Editor-DataView", () => {
       viewportCullService,
     );
 
+    const autoLayoutService = new AutoLayoutService(
+      nodeService,
+      uiInteractionService,
+      trainrunService,
+      trainrunSectionService,
+      viewportCullService,
+    );
+
     const controller = new EditorMainViewComponent(
       nodeService,
       trainrunSectionService,
@@ -151,6 +153,7 @@ describe("Editor-DataView", () => {
       uiInteractionService,
       noteService,
       undefined,
+      dataService,
       undoService,
       copyService,
       logService,
@@ -158,6 +161,7 @@ describe("Editor-DataView", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      autoLayoutService,
     );
 
     new EditorView(
@@ -175,6 +179,7 @@ describe("Editor-DataView", () => {
       levelOfDetailService,
       undefined,
       positionTransformationService,
+      autoLayoutService,
     );
 
     controller.bindViewToServices();
@@ -197,10 +202,10 @@ describe("Editor-DataView", () => {
     const node = nodeService.getNodeFromId(2);
 
     const cvo1 = new NodeViewObject(editorView, node, false);
-    expect(cvo1.key).toBe("#2@736_64_ZUE_6_5_96_124_false_2_false_true_false_0_false");
+    expect(cvo1.key).toBe("#2@736_64_ZUE_6_5_96_124_false_2_false_false_true_false_0_false");
 
     const cvo2 = new NodeViewObject(editorView, node, true);
-    expect(cvo2.key).toBe("#2@736_64_ZUE_6_5_96_124_false_2_true_true_false_0_false");
+    expect(cvo2.key).toBe("#2@736_64_ZUE_6_5_96_124_false_2_true_false_true_false_0_false");
   });
 
   it("NodeViewObject   - 001", () => {
@@ -217,7 +222,7 @@ describe("Editor-DataView", () => {
     const ts = trainrunSectionService.getTrainrunSectionFromId(3);
     const cvo1 = new TrainrunSectionViewObject(editorView, ts);
     expect(cvo1.key).toBe(
-      "#3@1234_false_false_0_39_49_1_21_39_0_0_141_39_0_180_0_S_20_7/24_4_1_0_S_20_7/24_20_0_round_trip_false_true_false_false_false_false_false_false_false_true_true_true_false_false_true_true_true_0_false_2_true_true_true_1_false_true_true_0_false_true_true(130,80)(194,80)(254,80)(318,80)",
+      "#3@1234_false_false_0_39_49_39_49_1_21_39_0_0_141_39_0_180_0_S_20_7/24_4_1_0_S_20_7/24_20_0_round_trip_false_true_false_false_false_false_true_false_false_false_leftHand_false_true_true_true_false_false_true_true_true_false_0_false_2_true_true_true_1_false_true_true_0_false_true_true(130,80)(194,80)(254,80)(318,80)",
     );
   });
 

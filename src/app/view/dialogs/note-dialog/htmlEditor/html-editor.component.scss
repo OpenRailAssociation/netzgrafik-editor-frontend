@@ -1,5 +1,5 @@
 @use "@sbb-esta/angular" as sbb;
-@import "../../../rastering/definitions";
+@use "../../../rastering/definitions" as *;
 
 ::ng-deep .ngx-html-editor {
   border: 2px solid rgba(0, 0, 0, 0.2);

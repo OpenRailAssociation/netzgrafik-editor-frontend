@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "dist/types",
+    "typeRoots": [],
+    "stripInternal": true,
+    "rewriteRelativeImportExtensions": true
+  },
+  "files": [],
+  "include": ["src/types.ts"]
+}

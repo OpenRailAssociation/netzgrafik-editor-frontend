@@ -22,7 +22,7 @@ interface NodeProperties {
   nodeId: number;
   nodeBetriebspunktName: string;
   nodeBetriebspunktFullName: string;
-  nodeConnectionTime: number;
+  nodeConnectionTime: number | null;
   nodeTrainrunCategoryHaltezeit: TrainrunCategoryHaltezeit;
   nodeResourceId: number;
   nodeCapacity: number;
@@ -33,6 +33,7 @@ interface NodeProperties {
   selector: "sbb-editor-node-detail-view",
   templateUrl: "./editor-node-detail-view.component.html",
   styleUrls: ["./editor-node-detail-view.component.scss"],
+  standalone: false,
 })
 export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
   @Output()
@@ -70,7 +71,7 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.uiInteractionService.updateNodeStammdatenWindow
+    this.uiInteractionService.updateNodeBaseDataWindow
       .pipe(takeUntil(this.destroyed))
       .subscribe(() => {
         this.updateNodeLabelsAutoCompleteOptions();
@@ -90,7 +91,7 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
 
   onBetriebspunktNameChanged(event: any) {
     this.nodeService.changeNodeBetriebspunktName(this.nodeProperties.nodeId, event.target.value);
-    this.uiInteractionService.updateNodeStammdaten();
+    this.uiInteractionService.updateNodeBaseData();
   }
 
   onFullNameChanged(event: any) {

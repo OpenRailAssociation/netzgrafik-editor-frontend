@@ -4,7 +4,7 @@
 <summary>
 Netzgrafik-Editor – designed to make better decisions.
 </summary>
- 
+
 <br>
 The product vision is to accelerate the planning and sizing of transport systems by creating an intuitive and powerful platform that uses smart projections and analyses. This will enable timetable variations or service options to be created, compared, and optimized very easily, with maximum support for the human planner during their creative process. The goal is to ensure that decisions can be made based on data-driven insights, to guarantee a smooth mobility for the future that is fast, efficient, and goal-oriented.
 <br><br>
@@ -136,6 +136,8 @@ The openness of the project encourages innovation, expertise from different sect
 improvements to optimize the
 planning processes.
 
+Feel free to join our [Matrix room](https://matrix.to/#/#nge:osrd.fr) if you want to chat with other Netzgrafik-Editor developers.
+
 ## Roadmap
 
 Get an insight into the plan and future [ROADMAP.md](ROADMAP.md).
@@ -148,7 +150,14 @@ The user manual can be found here [USERMANUAL.md](documentation/USERMANUAL.md)
 
 [Extern: nge.flatland.cloud](https://nge.flatland.cloud) - powered by [Flatland Association](https://www.flatland-association.org/)
 
-( [Sample Netzgrafik](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/src/app/sample-netzgrafik/Demo_Netzgrafik_Fernverkehr_2024.json) - [How to Import JSON](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/DATA_MODEL_JSON.md) )
+( [Sample Netzgrafik](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/src/app/sample-netzgrafik/Demo_Netzgrafik_Fernverkehr_2024.json) - [How to Import JSON](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL_JSON.md) )
+
+## Packages
+
+Netzgrafik-Editor is published:
+
+- [As a Docker image](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/pkgs/container/netzgrafik-editor-frontend), for use in a Docker environment
+- [As a NPM package](https://www.npmjs.com/package/@openrail/netzgrafik-editor-frontend), for integration in another webapp
 
 ## Setup Local Demo Environment with Docker Compose
 
@@ -231,12 +240,12 @@ npm run lint:fix
 Since we use Prettier as formatter, you can freely setup you favorite IDE to support you in the way. For example, if you use VSCode, follow these steps:
 
 - install the [Prettier extension](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
-- (optionnal: install Prettier via npm `npm install --global prettier`)
+- (optional: install Prettier via npm `npm install --global prettier`)
 - now, if you try left-click and select "Format Document", you'll be able to format manually using Prettier
 
 Nice to have: Format on Save
 
-- you can enable this functionnality by opening VSCode "Settings" and activate "Editor: Format on Save" (this way, your code will be formatted each time your file is saved)
+- you can enable this functionality by opening VSCode "Settings" and activate "Editor: Format on Save" (this way, your code will be formatted each time your file is saved)
 - alternatively, you can just add these lines in `settings.json` (open using `Cmd` + `shift` + `p` and search "Open User Settings (JSON)")
 
 ```json
@@ -257,20 +266,18 @@ npm run format
 ### Testing
 
 ```sh
-
-### Testing
-
-```
-
-# just run the test once
-
+# just run all tests once
 npm run test
 
-# or run the test in the browser
+# re-run tests when a file changes
+npm run test -- --watch
 
+# run tests in a Chrome browser window
 npm run test -- --browsers Chrome
 
-````
+# run tests with Chromium instead of Chrome
+npm run test -- --browsers ChromiumHeadless
+```
 
 ## Backend API code generation
 
@@ -289,13 +296,13 @@ The new API Service files can be generated using the following command:
 
 ```shell
 npm run generate:api
-````
+```
 
 ## Documentation
 
 Please consider the following information:
 
-- [DATA MODEL](./documentation/DATA_MODEL.md)
+- [DATA MODEL](./documentation/technical/DATA_MODEL.md)
 
 - [CODING_STANDARDS.md](CODING_STANDARDS.md)
 - [CONTRIBUTING.md](CONTRIBUTING.md)

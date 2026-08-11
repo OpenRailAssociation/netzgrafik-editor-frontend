@@ -7,6 +7,7 @@ import {map} from "rxjs/operators";
   selector: "sbb-error-view",
   templateUrl: "./error-view.component.html",
   styleUrls: ["./error-view.component.scss"],
+  standalone: false,
 })
 export class ErrorViewComponent {
   constructor(private activatedRoute: ActivatedRoute) {}

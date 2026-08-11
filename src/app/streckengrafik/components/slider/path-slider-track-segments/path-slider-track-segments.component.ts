@@ -7,6 +7,7 @@ import {TrackSegments} from "../../../model/trackData";
   selector: "[sbb-path-slider-track-segments]",
   templateUrl: "./path-slider-track-segments.component.html",
   styleUrls: ["./path-slider-track-segments.component.scss"],
+  standalone: false,
 })
 export class PathSliderTrackSegmentsComponent {
   @Input()
@@ -32,7 +33,7 @@ export class PathSliderTrackSegmentsComponent {
       const nbrTracks = minTracks ? sts.minNbrTracks : sts.nbrTracks;
       if (nbrTracks <= maxNbrTracks2show) {
         for (let i = 0; i < nbrTracks; i++) {
-          const p = this.zeroPoint + this.makePositionSymmetric(i, sts.nbrTracks) * 3;
+          const p = this.zeroPoint + this.makePositionSymmetric(i) * 3;
           const d: string =
             "" +
             (index !== 0 ? " M " + startAt + "," + this.zeroPoint + " L " : " M ") +
@@ -62,8 +63,8 @@ export class PathSliderTrackSegmentsComponent {
       return [];
     }
 
-    const retData = [];
-    ps.trackData.sectionTrackSegments.forEach((sts: TrackSegments, index: number) => {
+    const retData: {x1: number; x2: number; y1: number; y2: number; nbr: number; d: string}[] = [];
+    ps.trackData.sectionTrackSegments.forEach((sts: TrackSegments) => {
       const startAt = Math.max(0.0, sts.startPos * this.path.zoomedXPath());
       const endAt = Math.min(sts.endPos * this.path.zoomedXPath(), this.path.zoomedXPath());
       let y1 = this.zeroPoint;
@@ -71,7 +72,7 @@ export class PathSliderTrackSegmentsComponent {
       const nbrTracks = minTracks ? sts.minNbrTracks : sts.nbrTracks;
       if (nbrTracks > maxNbrTracks2show) {
         for (let i = 0; i < sts.nbrTracks; i++) {
-          const p = this.zeroPoint + this.makePositionSymmetric(i, sts.nbrTracks) * 3;
+          const p = this.zeroPoint + this.makePositionSymmetric(i) * 3;
           y1 = Math.min(y1, p);
           y2 = Math.max(y2, p);
         }
@@ -113,7 +114,7 @@ export class PathSliderTrackSegmentsComponent {
     return retData;
   }
 
-  private makePositionSymmetric(mainTrackIdx: number, nbrTracks): number {
+  private makePositionSymmetric(mainTrackIdx: number): number {
     if (mainTrackIdx === 0) {
       return 1;
     }

@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import {AfterViewInit, Component, Input, OnDestroy} from "@angular/core";
+import {AfterViewInit, Component, OnDestroy} from "@angular/core";
 import {NodeService} from "../../services/data/node.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
@@ -16,9 +16,10 @@ import {Subject} from "rxjs";
   selector: "sbb-knoten-auslastung-view",
   templateUrl: "./knoten-auslastung-view.component.html",
   styleUrls: ["./knoten-auslastung-view.component.scss"],
+  standalone: false,
 })
 export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
-  private svgDrawingContext: any;
+  private svgDrawingContext: d3.Selection<SVGElement, undefined, Element, undefined>;
   private knotenAuslastungDataPreparation: KnotenAuslastungDataPreparation;
   private destroyed = new Subject<void>();
 
@@ -83,8 +84,10 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.svgDrawingContext = d3
-      .select("#knotenAuslastungContainer")
-      .attr("oncontextmenu", "return false;");
+      .select<SVGElement, undefined>("#knotenAuslastungContainer")
+      .on("contextmenu", (event: MouseEvent) => {
+        event.preventDefault();
+      });
 
     this.init();
   }
@@ -99,7 +102,7 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
   }
 
   private subscribeViewToServices() {
-    this.uiInteractionService.updateNodeStammdatenWindow
+    this.uiInteractionService.updateNodeBaseDataWindow
       .pipe(takeUntil(this.destroyed))
       .subscribe(() => {
         this.update();
@@ -191,13 +194,13 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
           ),
       )
       .attr("d", arc)
-      .on("mousedown", (d) =>
+      .on("mousedown", (_, d) =>
         this.trainrunService.setTrainrunAsSelected(d.trainrunSection.getTrainrunId()),
       )
       .append("title")
       .html((d) => d.tooltip);
 
-    const groupText = rootDataGroup
+    rootDataGroup
       .enter()
       .append(StaticDomTags.GROUP_SVG)
       .attr("class", StaticDomTags.KNOTENAUSLASTUNG_DATA_GROUP)
@@ -239,7 +242,7 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
       .attr("x", 0)
       .attr("y", 0)
       .attr("text-anchor", "middle")
-      .on("mousedown", (d) =>
+      .on("mousedown", (_, d) =>
         this.trainrunService.setTrainrunAsSelected(d.trainrunSection.getTrainrunId()),
       )
       .append("title")

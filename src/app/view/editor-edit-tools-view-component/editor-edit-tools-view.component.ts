@@ -11,17 +11,21 @@ import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
 import {TrainrunService} from "../../services/data/trainrun.service";
 import {NoteService} from "../../services/data/note.service";
-import {LabelRef} from "../../data-structures/business.data.structures";
+import {LabelRef, NetzgrafikDto} from "../../data-structures/business.data.structures";
 import {LabelService} from "../../services/data/label.service";
 import {LabelGroupService} from "../../services/data/labelgroup.service";
 import {LabelGroup} from "../../models/labelGroup.model";
 import {VersionControlService} from "../../services/data/version-control.service";
 import {PositionTransformationService} from "../../services/util/position.transformation.service";
+import {AutoLayoutService} from "../../services/util/auto-layout.service";
+import {OrderingAlgorithm} from "../../data-structures/technical.data.structures";
+import {SbbRadioChange} from "@sbb-esta/angular/radio-button";
 
 @Component({
   selector: "sbb-editor-edit-tools-view-component",
   templateUrl: "./editor-edit-tools-view.component.html",
   styleUrls: ["./editor-edit-tools-view.component.scss"],
+  standalone: false,
 })
 export class EditorEditToolsViewComponent implements OnDestroy {
   @ViewChild("netzgrafikMergeFileInput", {static: false})
@@ -33,6 +37,20 @@ export class EditorEditToolsViewComponent implements OnDestroy {
   public nodeLabelGroups: LabelGroup[];
   public trainrunLabelGroups: LabelGroup[];
   private destroyed = new Subject<void>();
+
+  orderingAlgorithmOptions = [
+    {
+      name: $localize`:@@app.view.editor-edit-tools-view-component.alphabeticalOrdering:Alphabetical`,
+      title: $localize`:@@app.view.editor-edit-tools-view-component.alphabeticalOrderingTooltip:Order ports alphabetically by train categories.`,
+      orderingAlgorithm: OrderingAlgorithm.Alphabetical,
+    },
+    {
+      name: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwareOrdering:Crossing aware`,
+      title: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwareOrderingTooltip:Minimizes crossings of trainruns within the nodes.`,
+      orderingAlgorithm: OrderingAlgorithm.CrossingAware,
+    },
+  ];
+  activeOrderingAlgorithm: OrderingAlgorithm = null;
 
   constructor(
     private dataService: DataService,
@@ -47,6 +65,7 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     private uiInteractionService: UiInteractionService,
     private versionControlService: VersionControlService,
     private positionTransformationService: PositionTransformationService,
+    private autoLayoutService: AutoLayoutService,
   ) {
     this.nodeLabelGroups = this.labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Node);
     this.trainrunLabelGroups = this.labelGroupService.getLabelGroupsFromLabelRef(LabelRef.Trainrun);
@@ -63,6 +82,11 @@ export class EditorEditToolsViewComponent implements OnDestroy {
       this.trainrunLabelGroups = this.labelGroupService.getLabelGroupsFromLabelRef(
         LabelRef.Trainrun,
       );
+    });
+
+    this.activeOrderingAlgorithm = this.uiInteractionService.getActiveOrderingAlgorithm();
+    this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.activeOrderingAlgorithm = this.uiInteractionService.getActiveOrderingAlgorithm();
     });
   }
 
@@ -147,20 +171,24 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     this.netzgrafikMergeFileInput.nativeElement.click();
   }
 
-  onLoadNetzgrafikToMergeAsACopy(param) {
-    this.uiInteractionService.closeNodeStammdaten();
+  onLoadNetzgrafikToMergeAsACopy(event: Event) {
+    this.uiInteractionService.closeNodeBaseData();
     this.uiInteractionService.closePerlenkette();
-    this.loadNetzgrafik(param, (netzgrafikDto) =>
+    this.loadNetzgrafik(event, (netzgrafikDto) =>
       this.dataService.insertCopyNetzgrafikDto(netzgrafikDto),
     );
   }
 
-  onLoadNetzgrafikToMerge(param) {
-    this.uiInteractionService.closeNodeStammdaten();
+  onLoadNetzgrafikToMerge(event: Event) {
+    this.uiInteractionService.closeNodeBaseData();
     this.uiInteractionService.closePerlenkette();
-    this.loadNetzgrafik(param, (netzgrafikDto) =>
+    this.loadNetzgrafik(event, (netzgrafikDto) =>
       this.dataService.mergeNetzgrafikDto(netzgrafikDto),
     );
+  }
+
+  onUpdateOrderingAlgorithm(event: SbbRadioChange) {
+    this.uiInteractionService.setActiveOrderingAlgorithm(event.value);
   }
 
   onAlignElementsLeft() {
@@ -179,8 +207,21 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     this.positionTransformationService.alignSelectedElementsToBottomBorder();
   }
 
-  private loadNetzgrafik(param, callback) {
-    const file = param.target.files[0];
+  onInverseOptimizeLayout() {
+    this.autoLayoutService.optimizeLayout(true);
+  }
+
+  onOptimizeLayout() {
+    this.autoLayoutService.optimizeLayout(false);
+  }
+
+  private loadNetzgrafik(event: Event, callback: (dto: NetzgrafikDto) => void) {
+    const fileInput = event.target;
+    if (!(fileInput instanceof HTMLInputElement)) {
+      throw new Error("Event target is not a file input");
+    }
+
+    const file = fileInput.files[0];
     const reader = new FileReader();
     reader.onload = () => {
       const netzgrafikDto = JSON.parse(reader.result.toString());
@@ -198,7 +239,7 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     reader.readAsText(file);
 
     // set the event target value to null in order to be able to load the same file multiple times after one another
-    param.target.value = null;
+    fileInput.value = null;
   }
 
   private setEditModeToNetzgrafikEditing() {

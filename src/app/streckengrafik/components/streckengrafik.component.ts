@@ -27,6 +27,7 @@ import {StreckengrafikDrawingContext} from "../model/util/streckengrafik.drawing
   selector: "sbb-streckengrafik",
   templateUrl: "./streckengrafik.component.html",
   styleUrls: ["./streckengrafik.component.scss"],
+  standalone: false,
 })
 export class StreckengrafikComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild("svg") svgRef: ElementRef;

@@ -15,28 +15,31 @@
       "prefix": "sbb",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/netzgrafik-frontend",
+            "outputPath": {
+              "base": "dist",
+              "browser": ""
+            },
             "index": "src/index.html",
-            "main": "src/main.ts",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": ["zone.js", "@angular/localize/init"],
             "tsConfig": "tsconfig.app.json",
-            "assets": ["src/favicon.ico", "src/assets"],
+            "assets": ["src/assets"],
             "styles": ["src/styles.scss", "node_modules/@sbb-esta/angular/typography.css"],
             "scripts": [],
-            "vendorChunk": true,
             "extractLicenses": false,
             "outputHashing": "all",
-            "buildOptimizer": false,
             "sourceMap": true,
             "optimization": false,
             "namedChunks": true,
-            "allowedCommonJsDependencies": ["papaparse", "save-svg-as-png"]
+            "allowedCommonJsDependencies": ["papaparse", "save-svg-as-png"],
+            "browser": "src/main.ts",
+            "stylePreprocessorOptions": {
+              "includePaths": ["."]
+            }
           },
           "configurations": {
             "production": {
-              "outputPath": "dist",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
@@ -47,8 +50,6 @@
               "sourceMap": false,
               "namedChunks": false,
               "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": true,
               "budgets": [
                 {
                   "type": "initial",
@@ -74,6 +75,7 @@
             },
             "standalone": {
               "outputHashing": "none",
+              "index": "src/environments/standalone/index.html",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
@@ -83,6 +85,7 @@
             },
             "standalonedemo": {
               "outputHashing": "none",
+              "index": "src/environments/standalone/index.html",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
@@ -129,10 +132,10 @@
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
             "main": "src/test.ts",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": ["zone.js", "@angular/localize/init"],
             "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.js",
-            "assets": ["src/favicon.ico", "src/assets"],
+            "karmaConfig": "karma.conf.cjs",
+            "assets": ["src/assets"],
             "styles": ["src/styles.scss", "node_modules/@sbb-esta/angular/typography.css"],
             "scripts": []
           },
@@ -151,24 +154,6 @@
           "builder": "@angular-eslint/builder:lint",
           "options": {
             "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
-          }
-        },
-        "e2e": {
-          "builder": "@angular-devkit/build-angular:protractor",
-          "options": {
-            "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "netzgrafik-frontend:serve"
-          },
-          "configurations": {
-            "production": {
-              "devServerTarget": "netzgrafik-frontend:serve:production"
-            },
-            "puppeteer": {
-              "protractorConfig": "e2e/protractor.puppeteer.conf.js"
-            },
-            "browserstack": {
-              "protractorConfig": "e2e/protractor.browserstack.conf.js"
-            }
           }
         },
         "ngsscbuild": {

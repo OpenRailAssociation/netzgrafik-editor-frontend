@@ -3,7 +3,7 @@ import {NodeService} from "../data/node.service";
 import {ResourceService} from "../data/resource.service";
 import {TrainrunService} from "../data/trainrun.service";
 import {TrainrunSectionService} from "../data/trainrunsection.service";
-import {StammdatenService} from "../data/stammdaten.service";
+import {BaseDataService} from "../data/basedata.service";
 import {NoteService} from "../data/note.service";
 import {Node} from "../../models/node.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
@@ -14,7 +14,6 @@ import {LabelService} from "../data/label.service";
 import {NetzgrafikUnitTesting} from "../../../integration-testing/netzgrafik.unit.testing";
 import {FilterService} from "../ui/filter.service";
 import {NetzgrafikColoringService} from "../data/netzgrafikColoring.service";
-import {TrainrunsectionHelper} from "./trainrunsection.helper";
 import {TransitionValidator} from "./transition.validator";
 import {Transition} from "../../models/transition.model";
 
@@ -24,7 +23,7 @@ describe("TransitionValidator", () => {
   let resourceService: ResourceService;
   let trainrunService: TrainrunService;
   let trainrunSectionService: TrainrunSectionService;
-  let stammdatenService: StammdatenService;
+  let baseDataService: BaseDataService;
   let noteService: NoteService;
   let nodes: Node[] = null;
   let trainrunSections: TrainrunSection[] = null;
@@ -34,10 +33,9 @@ describe("TransitionValidator", () => {
   let labelService: LabelService = null;
   let filterService: FilterService = null;
   let netzgrafikColoringService: NetzgrafikColoringService = null;
-  let trainrunsectionHelper: TrainrunsectionHelper = null;
 
   beforeEach(() => {
-    stammdatenService = new StammdatenService();
+    baseDataService = new BaseDataService();
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
@@ -55,13 +53,13 @@ describe("TransitionValidator", () => {
       filterService,
     );
     noteService = new NoteService(logService, labelService, filterService);
-    netzgrafikColoringService = new NetzgrafikColoringService(logService);
+    netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
       nodeService,
       trainrunSectionService,
       trainrunService,
-      stammdatenService,
+      baseDataService,
       noteService,
       labelService,
       labelGroupService,
@@ -73,8 +71,6 @@ describe("TransitionValidator", () => {
     trainrunSectionService.trainrunSections.subscribe(
       (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
     );
-
-    trainrunsectionHelper = new TrainrunsectionHelper(trainrunService);
   });
 
   it("Test load data", () => {
@@ -229,7 +225,6 @@ describe("TransitionValidator", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts1 = trainrunSectionService.getTrainrunSectionFromId(4);
     const ts2 = trainrunSectionService.getTrainrunSectionFromId(5);
-    const trainrun = trainrunService.getSelectedOrNewTrainrun();
     trainrunSectionService.createTrainrunSection(ts1.getSourceNodeId(), ts1.getTargetNodeId());
     const ts = trainrunSectionService.getSelectedTrainrunSection();
     trainrunSectionService.createTrainrunSection(ts2.getTargetNodeId(), ts.getSourceNodeId());
@@ -290,7 +285,6 @@ describe("TransitionValidator", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts1 = trainrunSectionService.getTrainrunSectionFromId(4);
     const ts2 = trainrunSectionService.getTrainrunSectionFromId(5);
-    const trainrun = trainrunService.getSelectedOrNewTrainrun();
     trainrunSectionService.createTrainrunSection(ts1.getTargetNodeId(), ts1.getSourceNodeId());
     const ts = trainrunSectionService.getSelectedTrainrunSection();
     trainrunSectionService.createTrainrunSection(ts.getSourceNodeId(), ts2.getTargetNodeId());
@@ -339,7 +333,6 @@ describe("TransitionValidator", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const ts1 = trainrunSectionService.getTrainrunSectionFromId(4);
     const ts2 = trainrunSectionService.getTrainrunSectionFromId(5);
-    const trainrun = trainrunService.getSelectedOrNewTrainrun();
     trainrunSectionService.createTrainrunSection(ts1.getTargetNodeId(), ts1.getSourceNodeId());
     trainrunSectionService.createTrainrunSection(ts2.getTargetNodeId(), ts2.getSourceNodeId());
     const ts = trainrunSectionService.getSelectedTrainrunSection();

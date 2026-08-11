@@ -19,6 +19,8 @@
     "logger": {
       "title": "Titel"
     },
+    "left": "Links",
+    "right": "Rechts",
     "models": {
       "node": {
         "shortNameDefault": "NEW",
@@ -68,6 +70,9 @@
             "title": "Zwischenhalteumwandlung",
             "description": "Zwischenhalteumwandlung führte bei der Vergabe der Zeiten zu inkonsistenzen!"
           }
+        },
+        "version-control": {
+          "new-name-comment": "Neuer Name: {$name}"
         }
       },
       "ui": {
@@ -96,8 +101,8 @@
             "description": "Quellankunftszeit kann nicht erreicht werden"
           },
           "travel-time-less-than-1": {
-            "title": "Reisezeit weniger als 1",
-            "description": "Die Reisezeit muss größer oder gleich 1 sein."
+            "title": "Reisezeit weniger als {$minimumTravelTime}",
+            "description": "Die Reisezeit muss größer oder gleich {$minimumTravelTime} sein."
           }
         },
         "transition-validator": {
@@ -251,20 +256,27 @@
             "name": "Name"
           }
         },
-        "stammdaten-dialog": {
+        "basedata-dialog": {
           "base-data": "Stammdaten",
-          "operationalPoint": "Betriebspunkt",
-          "ipv-stop-time": "Haltezeit IPV",
-          "a-stop-time": "Haltezeit A",
-          "b-stop-time": "Haltezeit B",
-          "c-stop-time": "Haltezeit C",
-          "d-stop-time": "Haltezeit D",
-          "zaz": "ZAZ",
+          "betriebspunktName": "Betriebspunkt",
+          "stationName": "Bahnhofname",
+          "ipv-stop-time": "Mindesthaltezeit IPV",
+          "a-stop-time": "Mindesthaltezeit A",
+          "b-stop-time": "Mindesthaltezeit B",
+          "c-stop-time": "Mindesthaltezeit C",
+          "d-stop-time": "Mindesthaltezeit D",
+          "stop-flag-ipv": "Durchfahrt am Bahnhof IPV",
+          "stop-flag-a": "Durchfahrt am Bahnhof A",
+          "stop-flag-b": "Durchfahrt am Bahnhof B",
+          "stop-flag-c": "Durchfahrt am Bahnhof C",
+          "stop-flag-d": "Durchfahrt am Bahnhof D",
+          "zaz": "ZAZ (Disposition)",
           "connection-time": "Anschlusszeit",
           "region": "Region",
           "category": "Kategorie",
           "filterable-labels": "Filterbare Labels",
           "position": "Position",
+          "create": "Erstellen",
           "close": "Schliessen"
         },
         "trainrun-and-section-dialog": {
@@ -325,6 +337,16 @@
         "align-elements-right": "Rechtsbündig ausrichten",
         "align-elements-top": "Oben ausrichten",
         "align-elements-bottom": "Unten ausrichten",
+        "node-optimization-disposition-title": "Netzgrafik - Knotenpositionen",
+        "optimization-netzgrafik-tooltip": "Strecke die Netzgrafik, so dass keine Kante kürzer als die minimale Kantenlänge der Zugfahrten ist.",
+        "optimize-layout": "Strecke die Netzgrafik",
+        "inverse_optimization-netzgrafik-tooltip": "Komprimiere Netzgrafik soweit, dass keine Kante unnötigerweise länger als die minimale Kantelänge ist.",
+        "inverse_optimization-netzgrafik": "Komprimiere die Netzgrafik",
+        "node-optimization-title": "Netzgrafik - Algorithmus zur Sortierung der Ports der Knoten",
+        "alphabeticalOrdering": "Alphabetisch",
+        "alphabeticalOrderingTooltip": "Ports anhand der Zugkategorien alphabetisch anordnen.",
+        "crossingAwareOrdering": "Kreuzungsbewusst",
+        "crossingAwareOrderingTooltip": "Minimiert Kreuzungen von Zugfahrten innerhalb der Knoten.",
         "delete": "Löschen",
         "on-clear-delete-all-non-visible-elements": "Sollen alle nicht sichtbare Elemente aus der Netzgrafik definitiv gelöscht werden?",
         "on-clear-delete-all-visible-elements": "Sollen alle sichtbare Elemente aus der Netzgrafik definitiv gelöscht werden?",
@@ -355,6 +377,8 @@
         "round-trips": "Rundreisen",
         "one-ways": "Einzelfahrten",
         "display-direction-arrows": "Zugfahrt-Richtungs-Pfeile anzeigen",
+        "display-asymmetry-arrows": "Zugfahrt-Knoten-Asymmetrie-Pfeile anzeigen",
+        "display-backward-travel-times": "Rückwärtsfahrzeiten anzeigen (Asymmetrie)",
         "times": "Zeiten",
         "decimal-displayed": "Anzahl Nachkommastellenanzeigen",
         "display-arrival-departure-times": "Abfahrt- und Ankuftszeiten anzeigen",
@@ -366,6 +390,7 @@
         "nodes": "Knoten",
         "display-nodes-without-visible-trainruns": "Knoten ohne (angezeigte) Zugfahrten anzeigen",
         "display-nodes-with-only-stopping-trainruns": "Knoten mit nur durchfahrenden Zugfahrten anzeigen",
+        "display-nodes-full-name": "Die vollen Namen der Knoten anzeigen",
         "notes": "Kommentare",
         "display-notes": "Kommentare anzeigen",
         "reset-display-filter": "Anzeigefilter zurücksetzen",
@@ -383,6 +408,12 @@
         "symmetry": "Symmetrie",
         "show-direction": "{$direction} einblenden",
         "hide-direction": "{$direction} ausblenden",
+        "show-symmetric-trainruns": "Symmetrische Zugfahrten einblenden",
+        "hide-symmetric-trainruns": "Symmetrische Zugfahrten ausblenden",
+        "show-asymmetric-trainruns": "Asymmetrische Zugfahrten einblenden",
+        "hide-asymmetric-trainruns": "Asymmetrische Zugfahrten ausblenden",
+        "symmetric-short": "Sym.",
+        "asymmetric-short": "Asym.",
         "filterable-label-filter": {
           "no-labels-available": "Keine Labels vorhanden",
           "or": "Oder",
@@ -398,7 +429,7 @@
         "changes-saved": "Änderungen gespeichert",
         "read-mode": "Lese-Modus",
         "show-hide-filter": "Filter ein-/ausblenden",
-        "zoom-out": "Herauszoomer",
+        "zoom-out": "Herauszoomen",
         "zoom-in": "Hereinzoomen",
         "topology-editor-disabled": "Topologie Editor deaktiviert",
         "topology-editor-enabled": "Topologie Editor aktiviert",
@@ -443,7 +474,10 @@
         "fixed": "Konstant 1min.",
         "fixedTooltip": "Übernimmt die Fahrzeit mit konstant 1min (Default).",
         "retrieveFromEdge": "Abschnittsfahrzeit",
-        "retrieveFromEdgeTooltip": "Übernimmt die max. Fahrzeit auf dem selben Abschnitt aller Züge gleicher Kategorie, sonst max. Fahrzeit aller Züge, sonst 1 Min."
+        "retrieveFromEdgeTooltip": "Übernimmt die max. Fahrzeit auf dem selben Abschnitt aller Züge gleicher Kategorie, sonst max. Fahrzeit aller Züge, sonst 1 Min.",
+        "trafficSide": "Verkehrsseite",
+        "leftTrafficSideTooltip": "Die Züge verkehren nach den Regeln für Linksverkehr.",
+        "rightTrafficSideTooltip": "Die Züge verkehren nach den Regeln für Rechtsverkehr."
       },
       "editor-side-view": {
         "editor-node-detail-view": {
@@ -494,6 +528,7 @@
           "export-trainruns-as-csv-excel": "In Excel: Daten -> Aus Text/CSV -> Filename ... importieren",
           "export-origin-destination": "Export origin-destination",
           "export-origin-destination-as-csv": "Export origin-destination as CSV",
+          "import-basedata-legacy-info": "Veraltetes Stammdatenformat importiert - bitte beachten Sie die Dokumentation und aktualisieren Sie Ihre Stammdatendateien, um sicherzustellen, dass zukünftige Versionen den Datenimport weiterhin unterstützen",
           "base-data": "Stammdaten",
           "import-base-data": "Stammdaten importieren",
           "help-csv-data": "Hilfe: CSV - Datei",
@@ -516,7 +551,7 @@
           "yes": "JA",
           "netzgrafikFile": "netzgrafik",
           "spaceTimeChartFile": "streckengrafik",
-          "baseDataFile": "stammdaten",
+          "baseDataFile": "basedaten",
           "trainrunFile": "zuglauf",
           "originDestinationFile": "originDestination",
           "trainCategory": "Zugkategorie",
@@ -524,7 +559,7 @@
           "startStation": "Startbahnhof",
           "destinationStation": "Zielbahnhof",
           "trafficPeriod": "Verkehrsperiode",
-          "frequence": "Takt",
+          "frequency": "Takt",
           "departureMinuteAtStart": "Abfahrtsminute am Start Knoten",
           "travelTimeStartDestination": "Fahrzeit Start-Ziel",
           "arrivalMinuteAtDestination": "Ankuntsminute am Ziel Knoten",
@@ -680,7 +715,8 @@
             "title": "Archivierung rückgängig machen",
             "content": "Möchten Sie die Archivierung des Projekts rückgängig machen?"
           },
-          "error-unexpected-data": "Unerwartete Daten: Kein Snapshot und keine freigegebene Version."
+          "error-unexpected-data": "Unerwartete Daten: Kein Snapshot und keine freigegebene Version.",
+          "new-name-comment": "Neuer Name: {$PH}"
         }
       }
     }

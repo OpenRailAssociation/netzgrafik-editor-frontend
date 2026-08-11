@@ -53,7 +53,8 @@
     }
 
     &.sbb-table-column-m {
-      max-width: 80px;
+      max-width: 85px;
+      min-height: 85px;
 
       input {
         max-width: 100%;

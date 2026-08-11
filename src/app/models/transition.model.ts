@@ -67,6 +67,10 @@ export class Transition {
     return this.port2Id;
   }
 
+  getOppositePort(portId: number): number {
+    return portId === this.port1Id ? this.port2Id : this.port1Id;
+  }
+
   getTrainrun(): Trainrun {
     return this.trainrun;
   }

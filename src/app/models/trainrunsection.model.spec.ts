@@ -34,7 +34,6 @@ describe("TrainrunSection Model Test", () => {
         title: "test warning",
         description: "just for test",
       },
-      timeFormatter: null,
     };
     const ts = new TrainrunSection();
     ts.setSourceDepartureDto(timeLockDto);
@@ -55,7 +54,6 @@ describe("TrainrunSection Model Test", () => {
         title: "test warning",
         description: "just for test",
       },
-      timeFormatter: null,
     };
     const ts = new TrainrunSection();
     ts.setSourceArrivalDto(timeLockDto);
@@ -76,7 +74,6 @@ describe("TrainrunSection Model Test", () => {
         title: "test warning",
         description: "just for test",
       },
-      timeFormatter: null,
     };
     const ts = new TrainrunSection();
     ts.setTargetDepartureDto(timeLockDto);
@@ -97,7 +94,6 @@ describe("TrainrunSection Model Test", () => {
         title: "test warning",
         description: "just for test",
       },
-      timeFormatter: null,
     };
     const ts = new TrainrunSection();
     ts.setTargetArrivalDto(timeLockDto);
@@ -118,7 +114,6 @@ describe("TrainrunSection Model Test", () => {
         title: "test warning",
         description: "just for test",
       },
-      timeFormatter: null,
     };
     const ts = new TrainrunSection();
     ts.setTravelTimeDto(timeLockDto);
@@ -135,7 +130,7 @@ describe("TrainrunSection Model Test", () => {
     ts.setTargetArrivalWarning("C", "D");
     ts.setSourceDepartureWarning("E", "F");
     ts.setSourceArrivalWarning("G", "H");
-    ts.setTravelTimeWarning(undefined, null);
+    ts.setTravelTimeWarning("", "");
     expect(ts.hasTargetDepartureWarning()).toBe(true);
     expect(ts.hasTargetArrivalWarning()).toBe(true);
     expect(ts.hasSourceDepartureWarning()).toBe(true);
@@ -159,11 +154,13 @@ describe("TrainrunSection Model Test", () => {
     ts.setSourceDepartureLock(false);
     ts.setSourceArrivalLock(false);
     ts.setTravelTimeLock(false);
+    ts.setBackwardTravelTimeLock(false);
     expect(ts.getTargetDepartureLock()).toBe(false);
     expect(ts.getTargetArrivalLock()).toBe(false);
     expect(ts.getSourceDepartureLock()).toBe(false);
     expect(ts.getSourceArrivalLock()).toBe(false);
     expect(ts.getTravelTimeLock()).toBe(false);
+    expect(ts.getBackwardTravelTimeLock()).toBe(false);
   });
 
   it("set...lock - 1", () => {
@@ -174,11 +171,13 @@ describe("TrainrunSection Model Test", () => {
     ts.setSourceArrivalLock(false);
     ts.setTravelTimeLock(false);
     ts.setTargetDepartureLock(true);
+    ts.setBackwardTravelTimeLock(false);
     expect(ts.getTargetDepartureLock()).toBe(true);
     expect(ts.getTargetArrivalLock()).toBe(false);
     expect(ts.getSourceDepartureLock()).toBe(false);
     expect(ts.getSourceArrivalLock()).toBe(false);
     expect(ts.getTravelTimeLock()).toBe(false);
+    expect(ts.getBackwardTravelTimeLock()).toBe(false);
   });
 
   it("set...lock - 2", () => {
@@ -189,11 +188,13 @@ describe("TrainrunSection Model Test", () => {
     ts.setSourceArrivalLock(false);
     ts.setTravelTimeLock(false);
     ts.setTargetArrivalLock(true);
+    ts.setBackwardTravelTimeLock(false);
     expect(ts.getTargetDepartureLock()).toBe(false);
     expect(ts.getTargetArrivalLock()).toBe(true);
     expect(ts.getSourceDepartureLock()).toBe(false);
     expect(ts.getSourceArrivalLock()).toBe(false);
     expect(ts.getTravelTimeLock()).toBe(false);
+    expect(ts.getBackwardTravelTimeLock()).toBe(false);
   });
 
   it("set...lock - 3", () => {
@@ -203,12 +204,14 @@ describe("TrainrunSection Model Test", () => {
     ts.setSourceDepartureLock(false);
     ts.setSourceArrivalLock(false);
     ts.setTravelTimeLock(false);
+    ts.setBackwardTravelTimeLock(false);
     ts.setSourceDepartureLock(true);
     expect(ts.getTargetDepartureLock()).toBe(false);
     expect(ts.getTargetArrivalLock()).toBe(false);
     expect(ts.getSourceDepartureLock()).toBe(true);
     expect(ts.getSourceArrivalLock()).toBe(false);
     expect(ts.getTravelTimeLock()).toBe(false);
+    expect(ts.getBackwardTravelTimeLock()).toBe(false);
   });
 
   it("set...lock - 4", () => {
@@ -219,11 +222,13 @@ describe("TrainrunSection Model Test", () => {
     ts.setSourceArrivalLock(false);
     ts.setTravelTimeLock(false);
     ts.setSourceArrivalLock(true);
+    ts.setBackwardTravelTimeLock(false);
     expect(ts.getTargetDepartureLock()).toBe(false);
     expect(ts.getTargetArrivalLock()).toBe(false);
     expect(ts.getSourceDepartureLock()).toBe(false);
     expect(ts.getSourceArrivalLock()).toBe(true);
     expect(ts.getTravelTimeLock()).toBe(false);
+    expect(ts.getBackwardTravelTimeLock()).toBe(false);
   });
 
   it("set...lock - 5", () => {
@@ -233,12 +238,15 @@ describe("TrainrunSection Model Test", () => {
     ts.setSourceDepartureLock(false);
     ts.setSourceArrivalLock(false);
     ts.setTravelTimeLock(false);
+    ts.setBackwardTravelTimeLock(false);
     ts.setTravelTimeLock(true);
+    ts.setBackwardTravelTimeLock(true);
     expect(ts.getTargetDepartureLock()).toBe(false);
     expect(ts.getTargetArrivalLock()).toBe(false);
     expect(ts.getSourceDepartureLock()).toBe(false);
     expect(ts.getSourceArrivalLock()).toBe(false);
     expect(ts.getTravelTimeLock()).toBe(true);
+    expect(ts.getBackwardTravelTimeLock()).toBe(true);
   });
 
   it("select", () => {

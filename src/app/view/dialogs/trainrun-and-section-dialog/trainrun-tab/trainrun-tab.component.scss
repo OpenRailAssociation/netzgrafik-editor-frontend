@@ -1,5 +1,5 @@
-@import "../../../rastering/definitions";
-@import "../../../../../variables";
+@use "../../../rastering/definitions" as *;
+@use "../../../../../variables" as *;
 
 ::ng-deep .sbb-tab-body-wrapper {
   background: var(--sbb-header-lean-background-color);
@@ -105,6 +105,20 @@
 }
 
 ::ng-deep button.Direction.selected {
+  color: white;
+  background-color: $COLOR_Default;
+  border-color: transparent;
+  opacity: 1;
+}
+
+::ng-deep button.Symmetry {
+  color: var(--NODE_TEXT_FOCUS);
+  background-color: var(--NODE_COLOR_BACKGROUND);
+  border-color: transparent;
+  opacity: 1;
+}
+
+::ng-deep button.Symmetry.selected {
   color: white;
   background-color: $COLOR_Default;
   border-color: transparent;

@@ -23,6 +23,7 @@ export enum TrainrunSectionText {
   TargetDeparture,
   TrainrunSectionName,
   TrainrunSectionTravelTime,
+  TrainrunSectionBackwardTravelTime,
   TrainrunSectionNumberOfStops,
 }
 
@@ -38,11 +39,12 @@ export interface TrainrunSectionTextPositions {
   [TrainrunSectionText.TargetDeparture]: PointDto;
   [TrainrunSectionText.TrainrunSectionName]: PointDto;
   [TrainrunSectionText.TrainrunSectionTravelTime]: PointDto;
+  [TrainrunSectionText.TrainrunSectionBackwardTravelTime]: PointDto;
   [TrainrunSectionText.TrainrunSectionNumberOfStops]: PointDto;
 }
 
 /**
- * Represents a cachable object, which gets recalculated after each position update of the
+ * Represents a cacheable object, which gets recalculated after each position update of the
  * trainrunsection start and end points ( Nodes ). This recalculation is quite expensive therefore
  * during drawing/update the rendering system just reused the information from this
  * interface/object.
@@ -63,8 +65,16 @@ export enum PortAlignment {
 }
 
 /**
+ * Represents the port ordering algorithm to use when arranging ports on nodes.
+ */
+export enum OrderingAlgorithm {
+  Alphabetical, // Order by train category name (default)
+  CrossingAware, // Minimize crossings using global propagation
+}
+
+/**
  * Represents a general warning object widely used in different objects. E.g. TrainrunSection times.
- * The WarningDto is used to build a storeable warning object with human description.
+ * The WarningDto is used to build a storable warning object with human description.
  */
 export interface WarningDto {
   title: string;
@@ -72,8 +82,8 @@ export interface WarningDto {
 }
 
 /**
- * Represents a special object which transforms numberic time data (number) into string and
- * formats the display. It can be used for user specific formating and changing rendering style
+ * Represents a special object which transforms numeric time data (number) into string and
+ * formats the display. It can be used for user specific formatting and changing rendering style
  * through html load. The TimeFormatter is optional in TimeLockDto.
  */
 export interface TimeFormatter {
@@ -101,8 +111,8 @@ export interface TimeLockDto {
   time: number; // minutes [0..60]
   consecutiveTime: number; // automatically updated after any data changes in the application
   lock: boolean; // used to stop the time propagation (forward/backward)
-  warning: WarningDto; // warning - if business logic detects an issue -> set human-readable warning
-  timeFormatter: TimeFormatter; // undefined or object - optional
+  warning?: WarningDto; // warning - if business logic detects an issue -> set human-readable warning
+  timeFormatter?: TimeFormatter; // undefined or object - optional
 }
 
 /**

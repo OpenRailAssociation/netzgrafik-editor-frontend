@@ -8,9 +8,6 @@ export class ConnectionValidator {
     const portId1 = connection.getPortId1();
     const portId2 = connection.getPortId2();
 
-    const port1 = node.getPort(portId1);
-    const port2 = node.getPort(portId2);
-
     const transitions = node
       .getTransitions()
       .filter(
