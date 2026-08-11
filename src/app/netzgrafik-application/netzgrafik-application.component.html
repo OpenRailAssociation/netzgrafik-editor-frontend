@@ -1,20 +1,21 @@
 <sbb-icon-sidebar-container [class]="getSidebarClassTag()">
   <sbb-icon-sidebar [(expanded)]="expanded">
     <!--<a sbbIconSidebarItem label="Varianten" (click)="onVariantenClicked()" class="sbb-active">-->
-    <a
-      *ngIf="!disableBackend"
-      sbbIconSidebarItem
-      [label]="'app.netzgrafik-application.variants' | translate"
-      [class]="getVariantsActivatedTag()"
-      (click)="onVariantenClicked()"
-    >
-      <sbb-icon *ngIf="getVariantIsWritable()" svgIcon="document-standard-small"></sbb-icon>
-      <sbb-icon
-        *ngIf="!getVariantIsWritable()"
-        svgIcon="folder-lock-small"
-        style="color: #c60018"
-      ></sbb-icon>
-    </a>
+    @if (!disableBackend) {
+      <a
+        sbbIconSidebarItem
+        [label]="'app.netzgrafik-application.variants' | translate"
+        [class]="getVariantsActivatedTag()"
+        (click)="onVariantenClicked()"
+      >
+        @if (getVariantIsWritable()) {
+          <sbb-icon svgIcon="document-standard-small"></sbb-icon>
+        }
+        @if (!getVariantIsWritable()) {
+          <sbb-icon svgIcon="folder-lock-small" style="color: #c60018"></sbb-icon>
+        }
+      </a>
+    }
     <a
       sbbIconSidebarItem
       [label]="'app.netzgrafik-application.filter' | translate"

@@ -9,7 +9,7 @@
         'px;'
       "
     >
-      <ng-container *ngIf="!getShowAllLockStates()">
+      @if (!getShowAllLockStates()) {
         <sbb-icon
           class="ToggleAllEyesButton"
           svgIcon="eye-disabled-small"
@@ -17,8 +17,8 @@
           (mouseup)="toggleShowAllLockStates()"
           [title]="'app.perlenkette.show-only-closed-locks' | translate"
         ></sbb-icon>
-      </ng-container>
-      <ng-container *ngIf="getShowAllLockStates()">
+      }
+      @if (getShowAllLockStates()) {
         <sbb-icon
           class="ToggleAllEyesButton"
           svgIcon="eye-small"
@@ -26,7 +26,7 @@
           (mouseup)="toggleShowAllLockStates()"
           [title]="'app.perlenkette.show-all-locks' | translate"
         ></sbb-icon>
-      </ng-container>
+      }
     </div>
   </div>
 
@@ -38,13 +38,12 @@
           (click)="trainrunNameClicked($event)"
           [attr.style]="'width:' + (contentWidth - 90) + 'px;float: left;'"
         >
-          <ng-container *ngIf="showTrainrunName()">
+          @if (showTrainrunName()) {
             <p class="alignleft trainname" (click)="trainrunNameClicked($event)">
               <span class="trainname"
                 >{{ perlenketteTrainrun.categoryShortName }}{{ perlenketteTrainrun.title }}</span
               >
             </p>
-
             <span class="trainrun-od alignright" (click)="trainrunNameClicked($event)">
               <span
                 class="station"
@@ -70,9 +69,9 @@
                 >{{ perlenketteTrainrun.pathItems.at(-1).getPerlenketteNode().fullName }}</span
               >
             </span>
-          </ng-container>
+          }
 
-          <ng-container *ngIf="!showTrainrunName()">
+          @if (!showTrainrunName()) {
             <span class="trainrun-od alignleft">
               <span class="station" (click)="scrollFirst($event)">{{
                 perlenketteTrainrun.pathItems.at(0).getPerlenketteNode().fullName
@@ -91,20 +90,20 @@
                 perlenketteTrainrun.pathItems.at(-1).getPerlenketteNode().fullName
               }}</span>
             </span>
-          </ng-container>
+          }
         </div>
         &nbsp;
-        <ng-container *ngIf="!showTrainrunEditor()">
+        @if (!showTrainrunEditor()) {
           <sbb-icon svgIcon="chevron-down-medium" (click)="trainrunNameClicked($event)"></sbb-icon>
-        </ng-container>
-        <ng-container *ngIf="showTrainrunEditor()">
+        }
+        @if (showTrainrunEditor()) {
           <sbb-icon svgIcon="chevron-up-medium" (click)="trainrunNameClicked($event)"></sbb-icon>
-        </ng-container>
+        }
       </div>
     </div>
 
     <!--- Trainrun Editor --->
-    <ng-container *ngIf="showTrainrunEditor()">
+    @if (showTrainrunEditor()) {
       <p class="trainRunEditor"></p>
       <div style="transform: translateX(4px); width: 66%">
         <sbb-toggle aria-label="" (change)="onSbbToggleChange($event)">
@@ -124,46 +123,45 @@
           </sbb-toggle-option>
         </sbb-toggle>
       </div>
-
       <div style="width: 100%; height: 4px"></div>
-
       <div style="transform: translateX(4px)">
         <p class="trainRunEditor">
-          <ng-container *ngIf="isSbbToggleGeneral()">
+          @if (isSbbToggleGeneral()) {
             <sbb-trainrun-tab
               class="TrainrunTabTrainrunEditor"
               [toolbarVisible]="false"
               [isIntegratedComponent]="true"
             ></sbb-trainrun-tab>
-          </ng-container>
-          <ng-container *ngIf="isSbbToggleRoundtrip()">
+          }
+          @if (isSbbToggleRoundtrip()) {
             <sbb-trainrun-roundtrip-tab
               class="TrainrunTabTrainrunEditor"
               [toolbarVisible]="false"
               [isIntegratedComponent]="true"
               [minHeightPx]="'20px'"
             ></sbb-trainrun-roundtrip-tab>
-          </ng-container>
+          }
         </p>
       </div>
       <p class="trainRunEditor"></p>
       <div class="sepdiv"></div>
-    </ng-container>
+    }
 
     <!--- Station List (navigation) --->
-    <ng-container *ngFor="let pathItem of perlenketteTrainrun.pathItems">
-      <div *ngIf="pathItem.isPerlenketteNode()">
-        <p class="alignleft" style="line-height: 10px">
-          <span [class]="getSmallstationClassTag(pathItem)" (click)="goto(pathItem)">{{
-            pathItem.getPerlenketteNode().shortName
-          }}</span>
-
-          <ng-container *ngIf="isLastNodeButNotVeryLast(pathItem)">
-            <span [class]="getSmallstationClassTag(pathItem)"> &#x2022; </span>
-          </ng-container>
-        </p>
-      </div>
-    </ng-container>
+    @for (pathItem of perlenketteTrainrun.pathItems; track pathItem) {
+      @if (pathItem.isPerlenketteNode()) {
+        <div>
+          <p class="alignleft" style="line-height: 10px">
+            <span [class]="getSmallstationClassTag(pathItem)" (click)="goto(pathItem)">{{
+              pathItem.getPerlenketteNode().shortName
+            }}</span>
+            @if (isLastNodeButNotVeryLast(pathItem)) {
+              <span [class]="getSmallstationClassTag(pathItem)"> &#x2022; </span>
+            }
+          </p>
+        </div>
+      }
+    }
 
     <div class="sepdiv"></div>
   </div>
@@ -182,34 +180,35 @@
         [attr.width]="contentWidth"
       >
         <div class="drawing-container" #drawingContainer>
-          <ng-container *ngFor="let pathItem of perlenketteTrainrun.pathItems; index as idx">
-            <sbb-perlenkette-node
-              *ngIf="pathItem.isPerlenketteNode()"
-              [perlenketteTrainrun]="perlenketteTrainrun"
-              (signalIsBeingEdited)="signalIsBeingEdited($event)"
-              (signalHeightChanged)="signalHeightChanged($event, pathItem)"
-              [perlenketteNode]="pathItem.getPerlenketteNode()"
-              [isTopNode]="idx === 0"
-              [isBottomNode]="idx === perlenketteTrainrun.pathItems.length - 1"
-            >
-            </sbb-perlenkette-node>
-            <div
-              *ngIf="doSplitTrainrun(perlenketteTrainrun.pathItems, idx)"
-              style="height: 16px"
-            ></div>
-            <sbb-perlenkette-section
-              *ngIf="pathItem.isPerlenketteSection()"
-              [perlenketteSection]="pathItem.getPerlenketteSection()"
-              [perlenketteTrainrun]="perlenketteTrainrun"
-              (signalIsBeingEdited)="signalIsBeingEdited($event)"
-              (signalHeightChanged)="signalHeightChanged($event, pathItem)"
-              [showAllLockStates]="getShowAllLockStates()"
-              [notificationIsBeingEdited]="getSignalAllChildrenIsBeingEditedObservable()"
-              [isFirstSection]="isFirstSection(pathItem)"
-              [isLastSection]="isLastSection(pathItem)"
-            >
-            </sbb-perlenkette-section>
-          </ng-container>
+          @for (pathItem of perlenketteTrainrun.pathItems; track pathItem; let idx = $index) {
+            @if (pathItem.isPerlenketteNode()) {
+              <sbb-perlenkette-node
+                [perlenketteTrainrun]="perlenketteTrainrun"
+                (signalIsBeingEdited)="signalIsBeingEdited($event)"
+                (signalHeightChanged)="signalHeightChanged($event, pathItem)"
+                [perlenketteNode]="pathItem.getPerlenketteNode()"
+                [isTopNode]="idx === 0"
+                [isBottomNode]="idx === perlenketteTrainrun.pathItems.length - 1"
+              >
+              </sbb-perlenkette-node>
+            }
+            @if (doSplitTrainrun(perlenketteTrainrun.pathItems, idx)) {
+              <div style="height: 16px"></div>
+            }
+            @if (pathItem.isPerlenketteSection()) {
+              <sbb-perlenkette-section
+                [perlenketteSection]="pathItem.getPerlenketteSection()"
+                [perlenketteTrainrun]="perlenketteTrainrun"
+                (signalIsBeingEdited)="signalIsBeingEdited($event)"
+                (signalHeightChanged)="signalHeightChanged($event, pathItem)"
+                [showAllLockStates]="getShowAllLockStates()"
+                [notificationIsBeingEdited]="getSignalAllChildrenIsBeingEditedObservable()"
+                [isFirstSection]="isFirstSection(pathItem)"
+                [isLastSection]="isLastSection(pathItem)"
+              >
+              </sbb-perlenkette-section>
+            }
+          }
         </div>
       </foreignObject>
     </svg>

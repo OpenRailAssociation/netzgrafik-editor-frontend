@@ -1,17 +1,29 @@
-<div *ngIf="title" [class.card]="true" (click)="openLink(route)">
-  <div *ngIf="title" class="title">
-    {{ title }}
-    <div style="float: right" (click)="stopPropagation($event)">
-      <sbb-action-menu [actions]="actions"></sbb-action-menu>
-    </div>
+@if (title) {
+  <div [class.card]="true" (click)="openLink(route)">
+    @if (title) {
+      <div class="title">
+        {{ title }}
+        <div style="float: right" (click)="stopPropagation($event)">
+          <sbb-action-menu [actions]="actions"></sbb-action-menu>
+        </div>
+      </div>
+    }
+    @if (subtitle) {
+      <div class="subtitle">
+        {{ subtitle }}
+      </div>
+    }
+    @if (route) {
+      <a [attr.id]="getCardComponentRouterLinkId(route)" sbb-link [routerLink]="route">
+        {{ "app.view.card-grid.card.open" | translate }}
+      </a>
+    }
   </div>
-  <div *ngIf="subtitle" class="subtitle">
-    {{ subtitle }}
+}
+@if (icon) {
+  <div [class.card]="true" [class.icon]="icon" (click)="icon && iconClick.emit()">
+    @if (icon) {
+      <sbb-icon [svgIcon]="icon"></sbb-icon>
+    }
   </div>
-  <a [attr.id]="getCardComponentRouterLinkId(route)" *ngIf="route" sbb-link [routerLink]="route">
-    {{ "app.view.card-grid.card.open" | translate }}
-  </a>
-</div>
-<div *ngIf="icon" [class.card]="true" [class.icon]="icon" (click)="icon && iconClick.emit()">
-  <sbb-icon *ngIf="icon" [svgIcon]="icon"></sbb-icon>
-</div>
+}

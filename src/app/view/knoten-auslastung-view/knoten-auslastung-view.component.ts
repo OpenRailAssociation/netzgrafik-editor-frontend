@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import {AfterViewInit, Component, OnDestroy} from "@angular/core";
+import {AfterViewInit, Component, OnDestroy, ChangeDetectionStrategy} from "@angular/core";
 import {NodeService} from "../../services/data/node.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
@@ -16,6 +16,7 @@ import {Subject} from "rxjs";
   selector: "sbb-knoten-auslastung-view",
   templateUrl: "./knoten-auslastung-view.component.html",
   styleUrls: ["./knoten-auslastung-view.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {

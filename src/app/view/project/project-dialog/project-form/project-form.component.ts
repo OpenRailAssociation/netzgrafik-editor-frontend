@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from "@angular/core";
+import {Component, Input, OnInit, ChangeDetectionStrategy} from "@angular/core";
 import {UntypedFormControl, Validators} from "@angular/forms";
 import {FormModel} from "../../../../utils/form-model";
 import {COMMA, ENTER} from "@angular/cdk/keycodes";
@@ -7,6 +7,7 @@ import {COMMA, ENTER} from "@angular/cdk/keycodes";
   selector: "sbb-project-form",
   templateUrl: "./project-form.component.html",
   styleUrls: ["./project-form.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class ProjectFormComponent implements OnInit {

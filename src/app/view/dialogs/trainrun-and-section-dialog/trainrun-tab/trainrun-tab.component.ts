@@ -1,4 +1,11 @@
-import {Component, EventEmitter, Input, OnDestroy, Output} from "@angular/core";
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  Output,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 import {
   TrainrunCategory,
   TrainrunFrequency,
@@ -20,6 +27,7 @@ import {VersionControlService} from "../../../../services/data/version-control.s
   selector: "sbb-trainrun-tab",
   templateUrl: "./trainrun-tab.component.html",
   styleUrls: ["./trainrun-tab.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class TrainrunTabComponent implements OnDestroy {

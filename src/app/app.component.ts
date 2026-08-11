@@ -1,4 +1,4 @@
-import {Component, Input, Output, OnInit} from "@angular/core";
+import {Component, Input, Output, OnInit, ChangeDetectionStrategy} from "@angular/core";
 import {AuthService} from "./services/auth/auth.service";
 import {TrainrunService} from "./services/data/trainrun.service";
 import {TrainrunSectionService} from "./services/data/trainrunsection.service";
@@ -23,6 +23,7 @@ import {AutoLayoutService} from "./services/util/auto-layout.service";
   selector: "sbb-root",
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class AppComponent implements OnInit {

@@ -1,4 +1,4 @@
-<ng-container *ngIf="isDisplayed">
+@if (isDisplayed) {
   <div [class]="containerClass" class="time-stepper-container">
     <button tabindex="-1" mode="ghost" class="step-button" (click)="decrement.emit()">-</button>
     <input
@@ -17,4 +17,4 @@
     />
     <button tabindex="-1" mode="ghost" class="step-button" (click)="increment.emit()">+</button>
   </div>
-</ng-container>
+}

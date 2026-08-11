@@ -1,35 +1,45 @@
 <svg:g class="AllTrainrunSections">
-  <ng-container *ngFor="let offset of offsets">
-    <ng-container *ngFor="let trainrunItem of trainrun.sgTrainrunItems">
-      <ng-container *ngIf="isElementNotFrustumCulled(trainrunItem, offset, yZoom)">
-        <svg:g
-          [attr.id]="getId(trainrun, trainrunItem)"
-          (mouseover)="bringToFront(trainrun, trainrunItem, $event)"
-        >
-          <svg:g [attr.transform]="'translate(0.0,' + offset * yZoom + ')'">
-            <svg:g [attr.transform]="'translate(' + getTranslate(trainrunItem) + ',0.0)'">
-              <ng-container *ngIf="showSection(trainrunItem)">
-                <svg:g
-                  sbb-train-run-section
-                  [freqOffset]="offset"
-                  [trainrunItem]="trainrunItem"
-                  [trainrun]="trainrun"
-                ></svg:g>
-              </ng-container>
-              <ng-container *ngIf="showNode(trainrunItem)">
-                <svg:g
-                  sbb-trainrun-node
-                  [offset]="offset"
-                  [frequency]="trainrun.frequency"
-                  [sgTrainrunItem]="trainrunItem"
-                  [trainrun]="trainrun"
-                  [trackOccupier]="trainrunItem.getPathNode().trackOccupier"
-                ></svg:g>
-              </ng-container>
-            </svg:g>
-          </svg:g>
-        </svg:g>
-      </ng-container>
+  @for (offset of offsets; track offset) {
+    <ng-container>
+      @for (trainrunItem of trainrun.sgTrainrunItems; track trainrunItem) {
+        <ng-container>
+          @if (isElementNotFrustumCulled(trainrunItem, offset, yZoom)) {
+            <ng-container>
+              <svg:g
+                [attr.id]="getId(trainrun, trainrunItem)"
+                (mouseover)="bringToFront(trainrun, trainrunItem, $event)"
+              >
+                <svg:g [attr.transform]="'translate(0.0,' + offset * yZoom + ')'">
+                  <svg:g [attr.transform]="'translate(' + getTranslate(trainrunItem) + ',0.0)'">
+                    @if (showSection(trainrunItem)) {
+                      <ng-container>
+                        <svg:g
+                          sbb-train-run-section
+                          [freqOffset]="offset"
+                          [trainrunItem]="trainrunItem"
+                          [trainrun]="trainrun"
+                        ></svg:g>
+                      </ng-container>
+                    }
+                    @if (showNode(trainrunItem)) {
+                      <ng-container>
+                        <svg:g
+                          sbb-trainrun-node
+                          [offset]="offset"
+                          [frequency]="trainrun.frequency"
+                          [sgTrainrunItem]="trainrunItem"
+                          [trainrun]="trainrun"
+                          [trackOccupier]="trainrunItem.getPathNode().trackOccupier"
+                        ></svg:g>
+                      </ng-container>
+                    }
+                  </svg:g>
+                </svg:g>
+              </svg:g>
+            </ng-container>
+          }
+        </ng-container>
+      }
     </ng-container>
-  </ng-container>
+  }
 </svg:g>

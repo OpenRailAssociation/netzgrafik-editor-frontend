@@ -21,15 +21,16 @@
     "app.view.dialogs.trainrun-and-section-dialog.trainrun-tab.category" | translate
   }}</sbb-label>
   <div class="sbb-trainrun-chip-group">
-    <button
-      [class]="getCategoryClassname(trainrunCategory)"
-      (click)="onCategoryChanged(trainrunCategory)"
-      mode="ghost"
-      [title]="trainrunCategory.name"
-      *ngFor="let trainrunCategory of dataService.getTrainrunCategories()"
-    >
-      {{ makeButtonLabel(trainrunCategory.shortName.toUpperCase()) }}
-    </button>
+    @for (trainrunCategory of dataService.getTrainrunCategories(); track trainrunCategory) {
+      <button
+        [class]="getCategoryClassname(trainrunCategory)"
+        (click)="onCategoryChanged(trainrunCategory)"
+        mode="ghost"
+        [title]="trainrunCategory.name"
+      >
+        {{ makeButtonLabel(trainrunCategory.shortName.toUpperCase()) }}
+      </button>
+    }
   </div>
   <div class="row">
     <div class="column" style="float: left; width: auto">
@@ -37,16 +38,17 @@
         "app.view.dialogs.trainrun-and-section-dialog.trainrun-tab.frequency" | translate
       }}</sbb-label>
       <div class="sbb-trainrun-chip-group">
-        <button
-          [class]="getFrequencyClassname(trainrunFrequency)"
-          (click)="onFrequencyChanged(trainrunFrequency)"
-          mode="ghost"
-          [title]="trainrunFrequency.name"
-          *ngFor="let trainrunFrequency of dataService.getTrainrunFrequencies()"
-          [attr.data-testid]="'frequency-' + trainrunFrequency.frequency"
-        >
-          {{ makeButtonLabel(trainrunFrequency.shortName) }}
-        </button>
+        @for (trainrunFrequency of dataService.getTrainrunFrequencies(); track trainrunFrequency) {
+          <button
+            [class]="getFrequencyClassname(trainrunFrequency)"
+            (click)="onFrequencyChanged(trainrunFrequency)"
+            mode="ghost"
+            [title]="trainrunFrequency.name"
+            [attr.data-testid]="'frequency-' + trainrunFrequency.frequency"
+          >
+            {{ makeButtonLabel(trainrunFrequency.shortName) }}
+          </button>
+        }
       </div>
     </div>
     <div class="column" style="float: left; width: 150px">
@@ -54,20 +56,24 @@
         "app.view.dialogs.trainrun-and-section-dialog.trainrun-tab.verkehrt" | translate
       }}</sbb-label>
       <div class="sbb-trainrun-chip-group">
-        <button
-          [class]="getTimeCategoryClassname(trainrunTimeCategory)"
-          (click)="onTimeCategoryChanged(trainrunTimeCategory)"
-          mode="ghost"
-          [title]="trainrunTimeCategory.name"
-          *ngFor="let trainrunTimeCategory of dataService.getTrainrunTimeCategories()"
-        >
-          {{ makeButtonLabel(trainrunTimeCategory.shortName) }}
-        </button>
+        @for (
+          trainrunTimeCategory of dataService.getTrainrunTimeCategories();
+          track trainrunTimeCategory
+        ) {
+          <button
+            [class]="getTimeCategoryClassname(trainrunTimeCategory)"
+            (click)="onTimeCategoryChanged(trainrunTimeCategory)"
+            mode="ghost"
+            [title]="trainrunTimeCategory.name"
+          >
+            {{ makeButtonLabel(trainrunTimeCategory.shortName) }}
+          </button>
+        }
       </div>
     </div>
   </div>
 </div>
-<ng-container *ngIf="toolbarVisible">
+@if (toolbarVisible) {
   <div sbbDialogActions [class]="getContentFooterClassTag()">
     <button
       class="FunctionButton"
@@ -90,4 +96,4 @@
       <sbb-icon svgIcon="trash-medium" aria-hidden="false"></sbb-icon>
     </button>
   </div>
-</ng-container>
+}

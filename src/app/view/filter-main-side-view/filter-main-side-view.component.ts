@@ -1,4 +1,11 @@
-import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 import {LayoutMode} from "../column-layout/column-layout.component";
 import {EditorMainViewComponent} from "../editor-main-view/editor-main-view.component";
 import {DataService} from "../../services/data/data.service";
@@ -20,6 +27,7 @@ export enum FilterWindowType {
   selector: "sbb-filter-main-side-view",
   templateUrl: "./filter-main-side-view.component.html",
   styleUrls: ["./filter-main-side-view.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class FilterMainSideViewComponent implements OnInit, OnDestroy {

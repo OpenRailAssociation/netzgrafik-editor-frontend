@@ -1,5 +1,5 @@
-<ng-container *ngIf="drawLine && delayedRendering">
-  <ng-container *ngIf="horizontal">
+@if (drawLine && delayedRendering) {
+  @if (horizontal) {
     <svg:g [attr.transform]="'matrix(1.00,0.00,0.00,1.00,' + (transformTime() - 1) + ',0.00)'">
       <svg:g
         [attr.transform]="
@@ -7,29 +7,26 @@
         "
       >
         <svg:rect [attr.x]="5" [attr.y]="-13" width="32" height="12" />
-
         <svg:text transform="rotate(90)" [attr.x]="3" [attr.y]="0">
           {{ getTimeText() }}
         </svg:text>
       </svg:g>
       <svg:path class="TimeLine" [attr.d]="linePath"></svg:path>
     </svg:g>
-  </ng-container>
-  <ng-container *ngIf="!horizontal">
+  }
+  @if (!horizontal) {
     <svg:g [attr.transform]="'matrix(1.00,0.00,0.00,1.00,0.00,' + (transformTime() - 1) + ')'">
       <svg:path class="TimeLine" [attr.d]="linePath"></svg:path>
-
       <svg:g
         [attr.transform]="
           'matrix(1.00,0.00,0.00,1.00,' + textPosition.getX() + ',' + getTimeLinePos() + ')'
         "
       >
         <svg:rect [attr.x]="-4" [attr.y]="-9.5" width="38" height="18" />
-
         <svg:text [attr.x]="0" [attr.y]="3.5">
           {{ getTimeText() }}
         </svg:text>
       </svg:g>
     </svg:g>
-  </ng-container>
-</ng-container>
+  }
+}

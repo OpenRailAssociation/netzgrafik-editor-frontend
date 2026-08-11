@@ -1,79 +1,84 @@
-<div *ngIf="hasNoFilterableLabels()">
-  <sbb-label class="sbb-mt-m"
-    >&nbsp;&nbsp;&nbsp;&nbsp;{{
-      "app.view.editor-edit-tools-view-component.label-drop-list.no-labels-available" | translate
-    }}
-  </sbb-label>
-</div>
-<div *ngIf="!hasNoFilterableLabels()">
-  <div cdkDropListGroup>
-    <div class="filterable-label-drop-container">
-      <div *ngFor="let labelGrp of labelGroups">
-        <div class="filterable-label-labelgroup-block">
-          <div class="filterable-label-labelgroup-drop-list">
-            <ng-container
-              *ngIf="labelService.getLabelsFromLabelGroupId(labelGrp.getId()).length > 0"
-            >
-              <div
-                class="filterable-label-labelgroup-single-element-drop-list"
-                *ngFor="let labelObject of labelService.getLabelsFromLabelGroupId(labelGrp.getId())"
-                cdkDropList
-                cdkDropListOrientation="horizontal"
-                [cdkDropListData]="[labelObject]"
-                (cdkDropListDropped)="dropLabelElement($event, labelGrp.getId())"
-              >
-                <button
-                  class="TrainrunDialog EditorToolButton NodeLabel"
-                  cdkDrag
-                  (click)="onLabelClicked(labelObject.getId())"
-                >
-                  {{ labelObject.getLabel() }}
-                </button>
+@if (hasNoFilterableLabels()) {
+  <div>
+    <sbb-label class="sbb-mt-m"
+      >&nbsp;&nbsp;&nbsp;&nbsp;{{
+        "app.view.editor-edit-tools-view-component.label-drop-list.no-labels-available" | translate
+      }}
+    </sbb-label>
+  </div>
+}
+@if (!hasNoFilterableLabels()) {
+  <div>
+    <div cdkDropListGroup>
+      <div class="filterable-label-drop-container">
+        @for (labelGrp of labelGroups; track labelGrp) {
+          <div>
+            <div class="filterable-label-labelgroup-block">
+              <div class="filterable-label-labelgroup-drop-list">
+                @if (labelService.getLabelsFromLabelGroupId(labelGrp.getId()).length > 0) {
+                  @for (
+                    labelObject of labelService.getLabelsFromLabelGroupId(labelGrp.getId());
+                    track labelObject
+                  ) {
+                    <div
+                      class="filterable-label-labelgroup-single-element-drop-list"
+                      cdkDropList
+                      cdkDropListOrientation="horizontal"
+                      [cdkDropListData]="[labelObject]"
+                      (cdkDropListDropped)="dropLabelElement($event, labelGrp.getId())"
+                    >
+                      <button
+                        class="TrainrunDialog EditorToolButton NodeLabel"
+                        cdkDrag
+                        (click)="onLabelClicked(labelObject.getId())"
+                      >
+                        {{ labelObject.getLabel() }}
+                      </button>
+                    </div>
+                  }
+                }
+                @if (labelService.getLabelsFromLabelGroupId(labelGrp.getId()).length === 0) {
+                  <div
+                    class="filterable-label-labelgroup-empty-drop-list"
+                    cdkDropList
+                    cdkDropListSortingDisabled="true"
+                    [cdkDropListData]="labelService.getLabelsFromLabelGroupId(labelGrp.getId())"
+                    (cdkDropListDropped)="dropLabelElement($event, labelGrp.getId())"
+                  ></div>
+                }
               </div>
-            </ng-container>
-            <ng-container
-              *ngIf="labelService.getLabelsFromLabelGroupId(labelGrp.getId()).length === 0"
-            >
-              <div
-                class="filterable-label-labelgroup-empty-drop-list"
-                cdkDropList
-                cdkDropListSortingDisabled="true"
-                [cdkDropListData]="labelService.getLabelsFromLabelGroupId(labelGrp.getId())"
-                (cdkDropListDropped)="dropLabelElement($event, labelGrp.getId())"
-              ></div>
-            </ng-container>
+              @if (isDefaultLabelGroup(labelGrp.getId())) {
+                <div class="filterable-label-labelgroup-delete">
+                  <button
+                    class="filterable-label-grp-delete-add-button-button"
+                    (click)="onRemoveLabelGroup(labelGrp.getId())"
+                    [title]="
+                      'app.view.editor-edit-tools-view-component.label-drop-list.delete-group'
+                        | translate
+                    "
+                  >
+                    <sbb-icon class="LabelAddGroupButton" svgIcon="circle-minus-small"></sbb-icon>
+                  </button>
+                </div>
+              }
+              @if (!isDefaultLabelGroup(labelGrp.getId())) {
+                <div class="filterable-label-labelgroup-delete">
+                  <button
+                    class="filterable-label-grp-delete-add-button-button"
+                    (click)="onCreateNewLabelGroup(labelGrp.getId())"
+                    [title]="
+                      'app.view.editor-edit-tools-view-component.label-drop-list.add-new-group'
+                        | translate
+                    "
+                  >
+                    <sbb-icon class="LabelAddGroupButton" svgIcon="circle-plus-small"></sbb-icon>
+                  </button>
+                </div>
+              }
+            </div>
           </div>
-          <div
-            class="filterable-label-labelgroup-delete"
-            *ngIf="isDefaultLabelGroup(labelGrp.getId())"
-          >
-            <button
-              class="filterable-label-grp-delete-add-button-button"
-              (click)="onRemoveLabelGroup(labelGrp.getId())"
-              [title]="
-                'app.view.editor-edit-tools-view-component.label-drop-list.delete-group' | translate
-              "
-            >
-              <sbb-icon class="LabelAddGroupButton" svgIcon="circle-minus-small"></sbb-icon>
-            </button>
-          </div>
-          <div
-            class="filterable-label-labelgroup-delete"
-            *ngIf="!isDefaultLabelGroup(labelGrp.getId())"
-          >
-            <button
-              class="filterable-label-grp-delete-add-button-button"
-              (click)="onCreateNewLabelGroup(labelGrp.getId())"
-              [title]="
-                'app.view.editor-edit-tools-view-component.label-drop-list.add-new-group'
-                  | translate
-              "
-            >
-              <sbb-icon class="LabelAddGroupButton" svgIcon="circle-plus-small"></sbb-icon>
-            </button>
-          </div>
-        </div>
+        }
       </div>
     </div>
   </div>
-</div>
+}

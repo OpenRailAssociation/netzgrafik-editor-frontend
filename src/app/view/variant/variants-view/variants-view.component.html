@@ -1,67 +1,63 @@
-<sbb-page-layout *ngIf="projectSubject.asObservable() | async as proj">
-  <div class="header">
-    <h1>
-      {{ proj.name + " " }}
-      <ng-container *ngIf="proj.isArchived">{{
-        "app.view.variant.variants-view.archived" | translate
-      }}</ng-container>
-    </h1>
-  </div>
-
-  <sbb-slots-view>
-    <sbb-slot [title]="'app.view.variant.variants-view.variants' | translate">
-      <div class="actions">
-        <input
-          [formControl]="searchControl"
-          class="search"
-          type="text"
-          sbbInput
-          [placeholder]="'app.view.variant.variants-view.search-variants' | translate"
-        />
-        <sbb-toggle-switch-button
-          [labelTrue]="'app.view.variant.variants-view.show-archive' | translate"
-          [checked]="showArchiveControl.getRawValue()"
-          (checkedChanged)="showArchiveControl.setValue($event)"
-        />
-      </div>
-
-      <sbb-card-grid>
-        <sbb-card
-          *ngIf="!showArchiveControl.value && proj.isWritable"
-          class="newVariant"
-          icon="plus-medium"
-          (iconClick)="onAddVariantClicked()"
-        >
-        </sbb-card>
-        <sbb-card
-          *ngFor="let variant of variants | async"
-          [title]="getTitleCurrentVersion(variant)"
-          [subtitle]="getChangedAtCurrentVersion(variant) | date: 'dd.MM.yyyy HH:mm'"
-          [route]="navigationService.getRouteToEditor(variant.projectId, variant.id)"
-          [actions]="getVariantDataActions(variant)"
-        >
-        </sbb-card>
-      </sbb-card-grid>
-    </sbb-slot>
-    <sbb-slot
-      [title]="'app.view.variant.variants-view.project-description' | translate"
-      [actions]="projectDataActions"
-    >
-      <div class="project-data">
-        <div style="height: 32px"></div>
-        <div style="font-weight: bold; vertical-align: bottom; height: 32px">
-          {{ proj.summary }}
+@if (projectSubject.asObservable() | async; as proj) {
+  <sbb-page-layout>
+    <div class="header">
+      <h1>
+        {{ proj.name + " " }}
+        @if (proj.isArchived) {
+          {{ "app.view.variant.variants-view.archived" | translate }}
+        }
+      </h1>
+    </div>
+    <sbb-slots-view>
+      <sbb-slot [title]="'app.view.variant.variants-view.variants' | translate">
+        <div class="actions">
+          <input
+            [formControl]="searchControl"
+            class="search"
+            type="text"
+            sbbInput
+            [placeholder]="'app.view.variant.variants-view.search-variants' | translate"
+          />
+          <sbb-toggle-switch-button
+            [labelTrue]="'app.view.variant.variants-view.show-archive' | translate"
+            [checked]="showArchiveControl.getRawValue()"
+            (checkedChanged)="showArchiveControl.setValue($event)"
+          />
         </div>
-        <sbb-textarea
-          [(ngModel)]="proj.description"
-          disabled
-          style="background: none; border: white; padding: 0"
-        ></sbb-textarea>
-      </div>
-    </sbb-slot>
-  </sbb-slots-view>
-
-  <div style="min-height: 32px"></div>
-
-  <sbb-confirmation-dialog></sbb-confirmation-dialog>
-</sbb-page-layout>
+        <sbb-card-grid>
+          @if (!showArchiveControl.value && proj.isWritable) {
+            <sbb-card class="newVariant" icon="plus-medium" (iconClick)="onAddVariantClicked()">
+            </sbb-card>
+          }
+          @for (variant of variants | async; track variant) {
+            <sbb-card
+              [title]="getTitleCurrentVersion(variant)"
+              [subtitle]="getChangedAtCurrentVersion(variant) | date: 'dd.MM.yyyy HH:mm'"
+              [route]="navigationService.getRouteToEditor(variant.projectId, variant.id)"
+              [actions]="getVariantDataActions(variant)"
+            >
+            </sbb-card>
+          }
+        </sbb-card-grid>
+      </sbb-slot>
+      <sbb-slot
+        [title]="'app.view.variant.variants-view.project-description' | translate"
+        [actions]="projectDataActions"
+      >
+        <div class="project-data">
+          <div style="height: 32px"></div>
+          <div style="font-weight: bold; vertical-align: bottom; height: 32px">
+            {{ proj.summary }}
+          </div>
+          <sbb-textarea
+            [(ngModel)]="proj.description"
+            disabled
+            style="background: none; border: white; padding: 0"
+          ></sbb-textarea>
+        </div>
+      </sbb-slot>
+    </sbb-slots-view>
+    <div style="min-height: 32px"></div>
+    <sbb-confirmation-dialog></sbb-confirmation-dialog>
+  </sbb-page-layout>
+}

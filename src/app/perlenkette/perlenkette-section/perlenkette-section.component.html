@@ -4,269 +4,285 @@
   [class.readonly]="!getVariantIsWritable()"
 >
   <!--- START - RENDER SVG (default) --->
-  <svg *ngIf="isBeingEdited() === 'Rendering'" width="274px" viewBox="70 0 137 192">
-    <g class="edge Lines" (click)="onEdgeLineClick()">
-      <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_0"></path>
-      <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_1"></path>
-      <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_2"></path>
-      <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
-      <!-- Direction arrows (one way trainrun) -->
-      <path
-        *ngIf="shouldDisplayDirectionArrow()"
-        [class]="getEdgeLineArrowClass()"
-        d="M-4,-5L2,0L-4,5Z"
-        [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
-        [attr.hidden]="isDirectionArrowHidden() ? '' : null"
-      ></path>
-      <path
-        *ngIf="shouldDisplayDirectionArrow()"
-        [class]="getEdgeLineArrowClass()"
-        d="M-4,-5L2,0L-4,5Z"
-        [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
-        [attr.hidden]="isDirectionArrowHidden() ? '' : null"
-      ></path>
-      <!-- Asymmetry arrows (asymmetric trainrun)-->
-      <path
-        *ngIf="shouldDisplayAsymmetryArrow('top')"
-        [class]="getEdgeLineArrowClass()"
-        d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
-        [attr.transform]="getAsymmetryArrowTranslate(24)"
-        [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
-      ></path>
-      <path
-        *ngIf="shouldDisplayAsymmetryArrow('bottom')"
-        [class]="getEdgeLineArrowClass()"
-        d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
-        [attr.transform]="getAsymmetryArrowTranslate(169)"
-        [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
-      ></path>
-    </g>
-    <g>
-      <!-- Intermediary stops (numberOfStops) -->
-      <ng-container *ngIf="stationNumberArray.length <= 5">
-        <circle
-          *ngFor="let stationNumber of stationNumberArray"
-          cx="137px"
-          [attr.cy]="
-            192 / 4 + ((192 - 8) / (perlenketteSection.numberOfStops + 1)) * 0.5 * stationNumber + 4
-          "
-          [ngClass]="[getPathClassTag()]"
-          class="edge_line_stops fill PerlenketteStopElement"
-          (click)="clickStopElement()"
-        ></circle>
-      </ng-container>
-      <ng-container *ngIf="stationNumberArray.length > 5">
-        <circle
-          cx="137px"
-          [attr.cy]="(192 - 8) / 2 + 4"
-          r="4px"
-          [ngClass]="[
-            'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef,
-            'Freq_' + perlenketteTrainrun.frequency,
-            'LinePatternRef_7/24',
-          ]"
-          class="edge_line_stops PerlenketteFill5 PerlenketteStopElement"
-          (click)="clickStopElement()"
-        ></circle>
-        <g transform="translate(151, 96)">
-          <g transform="rotate(-90)">
+  @if (isBeingEdited() === "Rendering") {
+    <svg width="274px" viewBox="70 0 137 192">
+      <g class="edge Lines" (click)="onEdgeLineClick()">
+        <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_0"></path>
+        <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_1"></path>
+        <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_2"></path>
+        <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
+        <!-- Direction arrows (one way trainrun) -->
+        @if (shouldDisplayDirectionArrow()) {
+          <path
+            [class]="getEdgeLineArrowClass()"
+            d="M-4,-5L2,0L-4,5Z"
+            [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
+            [attr.hidden]="isDirectionArrowHidden() ? '' : null"
+          ></path>
+        }
+        @if (shouldDisplayDirectionArrow()) {
+          <path
+            [class]="getEdgeLineArrowClass()"
+            d="M-4,-5L2,0L-4,5Z"
+            [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
+            [attr.hidden]="isDirectionArrowHidden() ? '' : null"
+          ></path>
+        }
+        <!-- Asymmetry arrows (asymmetric trainrun)-->
+        @if (shouldDisplayAsymmetryArrow("top")) {
+          <path
+            [class]="getEdgeLineArrowClass()"
+            d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
+            [attr.transform]="getAsymmetryArrowTranslate(24)"
+            [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
+          ></path>
+        }
+        @if (shouldDisplayAsymmetryArrow("bottom")) {
+          <path
+            [class]="getEdgeLineArrowClass()"
+            d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
+            [attr.transform]="getAsymmetryArrowTranslate(169)"
+            [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
+          ></path>
+        }
+      </g>
+      <g>
+        <!-- Intermediary stops (numberOfStops) -->
+        @if (stationNumberArray.length <= 5) {
+          <ng-container>
+            @for (stationNumber of stationNumberArray; track stationNumber) {
+              <circle
+                cx="137px"
+                [attr.cy]="
+                  192 / 4 +
+                  ((192 - 8) / (perlenketteSection.numberOfStops + 1)) * 0.5 * stationNumber +
+                  4
+                "
+                [ngClass]="[getPathClassTag()]"
+                class="edge_line_stops fill PerlenketteStopElement"
+                (click)="clickStopElement()"
+              ></circle>
+            }
+          </ng-container>
+        }
+        @if (stationNumberArray.length > 5) {
+          <ng-container>
+            <circle
+              cx="137px"
+              [attr.cy]="(192 - 8) / 2 + 4"
+              r="4px"
+              [ngClass]="[
+                'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef,
+                'Freq_' + perlenketteTrainrun.frequency,
+                'LinePatternRef_7/24',
+              ]"
+              class="edge_line_stops PerlenketteFill5 PerlenketteStopElement"
+              (click)="clickStopElement()"
+            ></circle>
+            <g transform="translate(151, 96)">
+              <g transform="rotate(-90)">
+                <text
+                  (click)="switchSectionView($event, 'stops')"
+                  x="0"
+                  y="0"
+                  class="edge_text TrainrunSectionNumberOfStops"
+                  style="font-size: 12px"
+                  [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
+                >
+                  {{ stationNumberArray.length }}
+                </text>
+              </g>
+            </g>
+          </ng-container>
+        }
+      </g>
+      <g>
+        @if (!showArrivalAndDepartureTime() && showStopArcStart() && isRightSideDisplayed()) {
+          <g transform="translate(137, 0)">
+            <path
+              d="M4,0A4,4,0,1,1,-4,4.898587196589413e-16L0,0Z"
+              [ngClass]="[getPathClassTag()]"
+              class="edge_line_stop_arcs fill"
+            />
+          </g>
+        }
+        @if (!showArrivalAndDepartureTime() && showStopArcEnd()) {
+          <g transform="translate(137, 192)">
+            <path
+              d="M-4,-4.898587196589413e-16A4,4,0,1,1,4,0L0,0Z"
+              [ngClass]="[getPathClassTag()]"
+              class="edge_line_stop_arcs fill"
+            />
+          </g>
+        }
+        @if (showArrivalAndDepartureTime() && showLeftLock()) {
+          <g transform="translate(125, 8)">
+            <rect
+              x="6"
+              y="1"
+              width="12"
+              height="22"
+              class="lock-icon-background"
+              (click)="switchSectionViewToggleLock($event, 'leftDepartureTime')"
+            ></rect>
+            <path
+              [attr.d]="getLockSvgPath(trainrunSectionTimesService.getLockStructure().leftLock)"
+              [ngClass]="[getPathClassTag(true)]"
+              class="edge_line"
+              style="stroke-width: 1px; cursor: pointer"
+              (click)="switchSectionViewToggleLock($event, 'leftDepartureTime')"
+            />
+          </g>
+        }
+        @if (showTravelTime() && showTravelTimeLock()) {
+          <g [attr.transform]="getTravelTimeLockTransform()">
+            <rect
+              x="6"
+              y="1"
+              width="12"
+              height="22"
+              class="lock-icon-background"
+              (click)="switchSectionViewToggleLock($event, 'travelTime')"
+            ></rect>
+            <path
+              [attr.d]="
+                getLockSvgPath(trainrunSectionTimesService.getLockStructure().travelTimeLock)
+              "
+              [ngClass]="[getPathClassTag(true)]"
+              class="edge_line"
+              style="stroke-width: 1px; cursor: pointer"
+              (click)="switchSectionViewToggleLock($event, 'travelTime')"
+            />
+          </g>
+        }
+        @if (showArrivalAndDepartureTime() && showRightLock()) {
+          <g transform="translate(125, 152)">
+            <rect
+              x="6"
+              y="1"
+              width="12"
+              height="22"
+              class="lock-icon-background"
+              (click)="switchSectionViewToggleLock($event, 'rightDepartureTime')"
+            ></rect>
+            <path
+              [attr.d]="getLockSvgPath(trainrunSectionTimesService.getLockStructure().rightLock)"
+              [ngClass]="[getPathClassTag(true)]"
+              class="edge_line"
+              style="stroke-width: 1px; cursor: pointer"
+              (click)="switchSectionViewToggleLock($event, 'rightDepartureTime')"
+            />
+          </g>
+        }
+        @if (showLeftArrivalTime() && isLeftSideDisplayed()) {
+          <g [attr.transform]="getTimeTransform('leftArrivalTime')">
             <text
-              (click)="switchSectionView($event, 'stops')"
               x="0"
               y="0"
-              class="edge_text TrainrunSectionNumberOfStops"
-              style="font-size: 12px"
-              [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
+              class="edge_text leftArrivalTime"
+              [ngClass]="
+                'UI_DIALOG ColorRef_' +
+                perlenketteTrainrun.colorRef +
+                getLeftArrivalTimeClassTag() +
+                getTextAnchorForTimeElement('leftArrivalTime')
+              "
+              (click)="switchSectionView($event, 'leftArrivalTime')"
             >
-              {{ stationNumberArray.length }}
+              {{ getLeftArrivalTime() }}
             </text>
           </g>
-        </g>
-      </ng-container>
-    </g>
-    <g>
-      <g
-        transform="translate(137, 0)"
-        *ngIf="!showArrivalAndDepartureTime() && showStopArcStart() && isRightSideDisplayed()"
-      >
-        <path
-          d="M4,0A4,4,0,1,1,-4,4.898587196589413e-16L0,0Z"
-          [ngClass]="[getPathClassTag()]"
-          class="edge_line_stop_arcs fill"
-        />
+        }
+        @if (showArrivalAndDepartureTime() && isRightSideDisplayed()) {
+          <g [attr.transform]="getTimeTransform('leftDepartureTime')">
+            <text
+              (click)="switchSectionView($event, 'leftDepartureTime')"
+              x="0"
+              y="0"
+              class="edge_text leftDepartureTime"
+              [ngClass]="
+                'UI_DIALOG ColorRef_' +
+                perlenketteTrainrun.colorRef +
+                getLeftDepartureTimeClassTag() +
+                getTextAnchorForTimeElement('leftDepartureTime')
+              "
+            >
+              {{ getLeftDepartureTime() }}
+            </text>
+          </g>
+        }
+        @if (showTravelTime()) {
+          <g [attr.transform]="getTimeTransform('travelTime')">
+            <g transform="rotate(-90)">
+              <text
+                x="0"
+                y="0"
+                class="edge_text travelTime"
+                [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
+                (click)="switchSectionView($event, 'travelTime')"
+              >
+                {{ getTravelTime() }}
+              </text>
+            </g>
+          </g>
+        }
+        @if (showBottomTravelTime()) {
+          <g [attr.transform]="getTimeTransform('bottomTravelTime')">
+            <g transform="rotate(-90)">
+              <text
+                x="0"
+                y="0"
+                class="edge_text bottomTravelTime"
+                [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
+                (click)="switchSectionView($event, 'bottomTravelTime')"
+              >
+                {{ getBottomTravelTime() }}
+              </text>
+            </g>
+          </g>
+        }
+        @if (showArrivalAndDepartureTime() && isLeftSideDisplayed()) {
+          <g [attr.transform]="getTimeTransform('rightDepartureTime')">
+            <text
+              x="0"
+              y="0"
+              class="edge_text rightDepartureTime"
+              [ngClass]="
+                'UI_DIALOG ColorRef_' +
+                perlenketteTrainrun.colorRef +
+                getRightDepartureTimeClassTag() +
+                getTextAnchorForTimeElement('rightDepartureTime')
+              "
+              (click)="switchSectionView($event, 'rightDepartureTime')"
+            >
+              {{ getRightDepartureTime() }}
+            </text>
+          </g>
+        }
+        @if (showRightArrivalTime() && isRightSideDisplayed()) {
+          <g [attr.transform]="getTimeTransform('rightArrivalTime')">
+            <text
+              x="0"
+              y="0"
+              class="edge_text rightArrivalTime"
+              [ngClass]="
+                'UI_DIALOG ColorRef_' +
+                perlenketteTrainrun.colorRef +
+                getRightArrivalTimeClassTag() +
+                getTextAnchorForTimeElement('rightArrivalTime')
+              "
+              (click)="switchSectionView($event, 'rightArrivalTime')"
+            >
+              {{ getRightArrivalTime() }}
+            </text>
+          </g>
+        }
       </g>
-      <g transform="translate(137, 192)" *ngIf="!showArrivalAndDepartureTime() && showStopArcEnd()">
-        <path
-          d="M-4,-4.898587196589413e-16A4,4,0,1,1,4,0L0,0Z"
-          [ngClass]="[getPathClassTag()]"
-          class="edge_line_stop_arcs fill"
-        />
-      </g>
-
-      <g transform="translate(125, 8)" *ngIf="showArrivalAndDepartureTime() && showLeftLock()">
-        <rect
-          x="6"
-          y="1"
-          width="12"
-          height="22"
-          class="lock-icon-background"
-          (click)="switchSectionViewToggleLock($event, 'leftDepartureTime')"
-        ></rect>
-        <path
-          [attr.d]="getLockSvgPath(trainrunSectionTimesService.getLockStructure().leftLock)"
-          [ngClass]="[getPathClassTag(true)]"
-          class="edge_line"
-          style="stroke-width: 1px; cursor: pointer"
-          (click)="switchSectionViewToggleLock($event, 'leftDepartureTime')"
-        />
-      </g>
-      <g
-        [attr.transform]="getTravelTimeLockTransform()"
-        *ngIf="showTravelTime() && showTravelTimeLock()"
-      >
-        <rect
-          x="6"
-          y="1"
-          width="12"
-          height="22"
-          class="lock-icon-background"
-          (click)="switchSectionViewToggleLock($event, 'travelTime')"
-        ></rect>
-        <path
-          [attr.d]="getLockSvgPath(trainrunSectionTimesService.getLockStructure().travelTimeLock)"
-          [ngClass]="[getPathClassTag(true)]"
-          class="edge_line"
-          style="stroke-width: 1px; cursor: pointer"
-          (click)="switchSectionViewToggleLock($event, 'travelTime')"
-        />
-      </g>
-
-      <g transform="translate(125, 152)" *ngIf="showArrivalAndDepartureTime() && showRightLock()">
-        <rect
-          x="6"
-          y="1"
-          width="12"
-          height="22"
-          class="lock-icon-background"
-          (click)="switchSectionViewToggleLock($event, 'rightDepartureTime')"
-        ></rect>
-        <path
-          [attr.d]="getLockSvgPath(trainrunSectionTimesService.getLockStructure().rightLock)"
-          [ngClass]="[getPathClassTag(true)]"
-          class="edge_line"
-          style="stroke-width: 1px; cursor: pointer"
-          (click)="switchSectionViewToggleLock($event, 'rightDepartureTime')"
-        />
-      </g>
-
-      <g
-        [attr.transform]="getTimeTransform('leftArrivalTime')"
-        *ngIf="showLeftArrivalTime() && isLeftSideDisplayed()"
-      >
-        <text
-          x="0"
-          y="0"
-          class="edge_text leftArrivalTime"
-          [ngClass]="
-            'UI_DIALOG ColorRef_' +
-            perlenketteTrainrun.colorRef +
-            getLeftArrivalTimeClassTag() +
-            getTextAnchorForTimeElement('leftArrivalTime')
-          "
-          (click)="switchSectionView($event, 'leftArrivalTime')"
-        >
-          {{ getLeftArrivalTime() }}
-        </text>
-      </g>
-      <g
-        [attr.transform]="getTimeTransform('leftDepartureTime')"
-        *ngIf="showArrivalAndDepartureTime() && isRightSideDisplayed()"
-      >
-        <text
-          (click)="switchSectionView($event, 'leftDepartureTime')"
-          x="0"
-          y="0"
-          class="edge_text leftDepartureTime"
-          [ngClass]="
-            'UI_DIALOG ColorRef_' +
-            perlenketteTrainrun.colorRef +
-            getLeftDepartureTimeClassTag() +
-            getTextAnchorForTimeElement('leftDepartureTime')
-          "
-        >
-          {{ getLeftDepartureTime() }}
-        </text>
-      </g>
-      <g [attr.transform]="getTimeTransform('travelTime')" *ngIf="showTravelTime()">
-        <g transform="rotate(-90)">
-          <text
-            x="0"
-            y="0"
-            class="edge_text travelTime"
-            [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
-            (click)="switchSectionView($event, 'travelTime')"
-          >
-            {{ getTravelTime() }}
-          </text>
-        </g>
-      </g>
-      <g [attr.transform]="getTimeTransform('bottomTravelTime')" *ngIf="showBottomTravelTime()">
-        <g transform="rotate(-90)">
-          <text
-            x="0"
-            y="0"
-            class="edge_text bottomTravelTime"
-            [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
-            (click)="switchSectionView($event, 'bottomTravelTime')"
-          >
-            {{ getBottomTravelTime() }}
-          </text>
-        </g>
-      </g>
-      <g
-        [attr.transform]="getTimeTransform('rightDepartureTime')"
-        *ngIf="showArrivalAndDepartureTime() && isLeftSideDisplayed()"
-      >
-        <text
-          x="0"
-          y="0"
-          class="edge_text rightDepartureTime"
-          [ngClass]="
-            'UI_DIALOG ColorRef_' +
-            perlenketteTrainrun.colorRef +
-            getRightDepartureTimeClassTag() +
-            getTextAnchorForTimeElement('rightDepartureTime')
-          "
-          (click)="switchSectionView($event, 'rightDepartureTime')"
-        >
-          {{ getRightDepartureTime() }}
-        </text>
-      </g>
-      <g
-        [attr.transform]="getTimeTransform('rightArrivalTime')"
-        *ngIf="showRightArrivalTime() && isRightSideDisplayed()"
-      >
-        <text
-          x="0"
-          y="0"
-          class="edge_text rightArrivalTime"
-          [ngClass]="
-            'UI_DIALOG ColorRef_' +
-            perlenketteTrainrun.colorRef +
-            getRightArrivalTimeClassTag() +
-            getTextAnchorForTimeElement('rightArrivalTime')
-          "
-          (click)="switchSectionView($event, 'rightArrivalTime')"
-        >
-          {{ getRightArrivalTime() }}
-        </text>
-      </g>
-    </g>
-  </svg>
+    </svg>
+  }
   <!--- END - RENDER SVG (default) --->
 
   <!--- START - TIME EDITION --->
-  <ng-container *ngIf="isBeingEdited() === 'TimeEditor'">
+  @if (isBeingEdited() === "TimeEditor") {
     <div class="editingContainer" (click)="switchSectionView($event, 'editingContainer')">
       <svg width="274px" viewBox="70 0 137 192">
         <g class="edge Lines" (click)="onEdgeLineClick()">
@@ -275,405 +291,400 @@
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_2"></path>
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
           <!-- Direction arrows (one way trainrun) -->
-          <path
-            *ngIf="shouldDisplayDirectionArrow()"
-            [class]="getEdgeLineArrowClass()"
-            d="M-4,-5L2,0L-4,5Z"
-            [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
-            [attr.hidden]="isDirectionArrowHidden() ? '' : null"
-          ></path>
-          <path
-            *ngIf="shouldDisplayDirectionArrow()"
-            [class]="getEdgeLineArrowClass()"
-            d="M-4,-5L2,0L-4,5Z"
-            [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
-            [attr.hidden]="isDirectionArrowHidden() ? '' : null"
-          ></path>
+          @if (shouldDisplayDirectionArrow()) {
+            <path
+              [class]="getEdgeLineArrowClass()"
+              d="M-4,-5L2,0L-4,5Z"
+              [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
+              [attr.hidden]="isDirectionArrowHidden() ? '' : null"
+            ></path>
+          }
+          @if (shouldDisplayDirectionArrow()) {
+            <path
+              [class]="getEdgeLineArrowClass()"
+              d="M-4,-5L2,0L-4,5Z"
+              [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
+              [attr.hidden]="isDirectionArrowHidden() ? '' : null"
+            ></path>
+          }
           <!-- Asymmetry arrows (asymmetric trainrun)-->
-          <path
-            *ngIf="shouldDisplayAsymmetryArrow('top')"
-            [class]="getEdgeLineArrowClass()"
-            d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
-            [attr.transform]="getAsymmetryArrowTranslate(24)"
-            [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
-          ></path>
-          <path
-            *ngIf="shouldDisplayAsymmetryArrow('bottom')"
-            [class]="getEdgeLineArrowClass()"
-            d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
-            [attr.transform]="getAsymmetryArrowTranslate(169)"
-            [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
-          ></path>
+          @if (shouldDisplayAsymmetryArrow("top")) {
+            <path
+              [class]="getEdgeLineArrowClass()"
+              d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
+              [attr.transform]="getAsymmetryArrowTranslate(24)"
+              [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
+            ></path>
+          }
+          @if (shouldDisplayAsymmetryArrow("bottom")) {
+            <path
+              [class]="getEdgeLineArrowClass()"
+              d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
+              [attr.transform]="getAsymmetryArrowTranslate(169)"
+              [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
+            ></path>
+          }
         </g>
         <foreignObject height="192px" width="290px" x="25">
           <div class="mainGridLayout">
-            <div
-              class="nodeBorderContainer nodeBorderContainerTopLeft"
-              *ngIf="showLeftArrivalTime() && isLeftSideDisplayed()"
-            >
-              <div class="nodeMinus">
-                <button
-                  tabindex="-1"
-                  mode="ghost"
-                  class="ButtonMinus"
-                  (click)="onNodeLeftArrivalTimeButtonMinus($event)"
-                >
-                  -
-                </button>
+            @if (showLeftArrivalTime() && isLeftSideDisplayed()) {
+              <div class="nodeBorderContainer nodeBorderContainerTopLeft">
+                <div class="nodeMinus">
+                  <button
+                    tabindex="-1"
+                    mode="ghost"
+                    class="ButtonMinus"
+                    (click)="onNodeLeftArrivalTimeButtonMinus($event)"
+                  >
+                    -
+                  </button>
+                </div>
+                <div class="nodeTime" (click)="stopPropagation($event)">
+                  <input
+                    #leftArrivalTime
+                    tabindex="2"
+                    class="InputElement firstInput"
+                    type="number"
+                    sbbInput
+                    spellcheck="false"
+                    pattern="^[0-9]*"
+                    [(ngModel)]="trainrunSectionTimesService.getTimeStructure().leftArrivalTime"
+                    (change)="onNodeLeftArrivalTimeChanged()"
+                  />
+                </div>
+                <div class="nodePlus">
+                  <button
+                    tabindex="-1"
+                    mode="ghost"
+                    class="ButtonPlus"
+                    (click)="onNodeLeftArrivalTimeButtonPlus($event)"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
-              <div class="nodeTime" (click)="stopPropagation($event)">
-                <input
-                  #leftArrivalTime
-                  tabindex="2"
-                  class="InputElement firstInput"
-                  type="number"
-                  sbbInput
-                  spellcheck="false"
-                  pattern="^[0-9]*"
-                  [(ngModel)]="trainrunSectionTimesService.getTimeStructure().leftArrivalTime"
-                  (change)="onNodeLeftArrivalTimeChanged()"
-                />
-              </div>
-              <div class="nodePlus">
-                <button
-                  tabindex="-1"
-                  mode="ghost"
-                  class="ButtonPlus"
-                  (click)="onNodeLeftArrivalTimeButtonPlus($event)"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            <div
-              [class]="getNodeLeftLockClassTag()"
-              *ngIf="
-                trainrunSectionTimesService.getLockStructure().leftLock === true ||
-                showArrivalAndDepartureTime()
-              "
-            >
-              <div
-                *ngIf="
+            }
+            @if (
+              trainrunSectionTimesService.getLockStructure().leftLock === true ||
+              showArrivalAndDepartureTime()
+            ) {
+              <div [class]="getNodeLeftLockClassTag()">
+                @if (
                   trainrunSectionTimesService.getLockStructure().leftLock === false &&
                   showArrivalAndDepartureTime()
-                "
+                ) {
+                  <div>
+                    <sbb-icon
+                      svgIcon="lock-open-medium"
+                      height="25px"
+                      width="25px"
+                      aria-hidden="false"
+                      (click)="onButtonNodeLeftLock($event)"
+                      title="Ab-/Ankunftszeit 'lock'"
+                    >
+                    </sbb-icon>
+                  </div>
+                }
+                @if (trainrunSectionTimesService.getLockStructure().leftLock === true) {
+                  <div>
+                    <sbb-icon
+                      svgIcon="lock-closed-medium"
+                      height="25px"
+                      width="25px"
+                      aria-hidden="false"
+                      (click)="onButtonNodeLeftLock($event)"
+                      title="Ab-/Ankunftszeit 'lock' entfernen"
+                    >
+                    </sbb-icon>
+                  </div>
+                }
+              </div>
+            }
+            @if (showArrivalAndDepartureTime() && isRightSideDisplayed()) {
+              <div class="nodeBorderContainer nodeBorderContainerTopRight">
+                <div class="nodeMinus">
+                  <button
+                    tabindex="-1"
+                    mode="ghost"
+                    class="ButtonMinus"
+                    (click)="onNodeLeftDepartureTimeButtonMinus($event)"
+                  >
+                    -
+                  </button>
+                </div>
+                <div class="nodeTime" (click)="stopPropagation($event)">
+                  <input
+                    #leftDepartureTime
+                    tabindex="2"
+                    class="InputElement firstInput"
+                    type="number"
+                    sbbInput
+                    spellcheck="false"
+                    pattern="^[0-9]*"
+                    [(ngModel)]="trainrunSectionTimesService.getTimeStructure().leftDepartureTime"
+                    (change)="onNodeLeftDepartureTimeChanged()"
+                  />
+                </div>
+                <div class="nodePlus">
+                  <button
+                    tabindex="-1"
+                    mode="ghost"
+                    class="ButtonPlus"
+                    (click)="onNodeLeftDepartureTimeButtonPlus($event)"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            }
+            @if (trainrunSection.getTrainrun().isRoundTrip()) {
+              <sbb-toggle-switch-button
+                class="LeftSymmetryToggle"
+                [checked]="!trainrunSectionTimesService.getSymmetryStructure().leftSymmetry"
+                (checkedChanged)="onLeftNodeSymmetryToggle(!$event)"
+                #leftSymmetryToggle
+                (click)="stopPropagation($event)"
               >
-                <sbb-icon
-                  svgIcon="lock-open-medium"
-                  height="25px"
-                  width="25px"
-                  aria-hidden="false"
-                  (click)="onButtonNodeLeftLock($event)"
-                  title="Ab-/Ankunftszeit 'lock'"
-                >
-                </sbb-icon>
-              </div>
-              <div *ngIf="trainrunSectionTimesService.getLockStructure().leftLock === true">
-                <sbb-icon
-                  svgIcon="lock-closed-medium"
-                  height="25px"
-                  width="25px"
-                  aria-hidden="false"
-                  (click)="onButtonNodeLeftLock($event)"
-                  title="Ab-/Ankunftszeit 'lock' entfernen"
-                >
-                </sbb-icon>
-              </div>
-            </div>
-
-            <div
-              class="nodeBorderContainer nodeBorderContainerTopRight"
-              *ngIf="showArrivalAndDepartureTime() && isRightSideDisplayed()"
-            >
-              <div class="nodeMinus">
-                <button
-                  tabindex="-1"
-                  mode="ghost"
-                  class="ButtonMinus"
-                  (click)="onNodeLeftDepartureTimeButtonMinus($event)"
-                >
-                  -
-                </button>
-              </div>
-              <div class="nodeTime" (click)="stopPropagation($event)">
-                <input
-                  #leftDepartureTime
-                  tabindex="2"
-                  class="InputElement firstInput"
-                  type="number"
-                  sbbInput
-                  spellcheck="false"
-                  pattern="^[0-9]*"
-                  [(ngModel)]="trainrunSectionTimesService.getTimeStructure().leftDepartureTime"
-                  (change)="onNodeLeftDepartureTimeChanged()"
-                />
-              </div>
-              <div class="nodePlus">
-                <button
-                  tabindex="-1"
-                  mode="ghost"
-                  class="ButtonPlus"
-                  (click)="onNodeLeftDepartureTimeButtonPlus($event)"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            <sbb-toggle-switch-button
-              class="LeftSymmetryToggle"
-              *ngIf="trainrunSection.getTrainrun().isRoundTrip()"
-              [checked]="!trainrunSectionTimesService.getSymmetryStructure().leftSymmetry"
-              (checkedChanged)="onLeftNodeSymmetryToggle(!$event)"
-              #leftSymmetryToggle
-              (click)="stopPropagation($event)"
-            >
-            </sbb-toggle-switch-button>
-
-            <div
-              [class]="getTravelTimeLockClassTag()"
-              *ngIf="
-                trainrunSectionTimesService.getLockStructure().travelTimeLock === true ||
-                showTravelTime()
-              "
-            >
-              <div
-                *ngIf="
+              </sbb-toggle-switch-button>
+            }
+            @if (
+              trainrunSectionTimesService.getLockStructure().travelTimeLock === true ||
+              showTravelTime()
+            ) {
+              <div [class]="getTravelTimeLockClassTag()">
+                @if (
                   trainrunSectionTimesService.getLockStructure().travelTimeLock === false &&
                   showTravelTime()
+                ) {
+                  <div>
+                    <sbb-icon
+                      svgIcon="lock-open-medium"
+                      height="25px"
+                      width="25px"
+                      aria-hidden="false"
+                      (click)="onButtonTravelTimeLock($event)"
+                      title="Fahrzeit 'lock'"
+                    >
+                    </sbb-icon>
+                  </div>
+                }
+                @if (trainrunSectionTimesService.getLockStructure().travelTimeLock === true) {
+                  <div>
+                    <sbb-icon
+                      svgIcon="lock-closed-medium"
+                      height="25px"
+                      width="25px"
+                      aria-hidden="false"
+                      (click)="onButtonTravelTimeLock($event)"
+                      title="Fahrzeit 'lock' entfernen"
+                    >
+                    </sbb-icon>
+                  </div>
+                }
+              </div>
+            }
+            @if (showTravelTime()) {
+              <div
+                [ngClass]="
+                  'nodeBorderContainer nodeBorderContainerCenter' +
+                  getNodeBorderContainerClassSuffix()
                 "
               >
-                <sbb-icon
-                  svgIcon="lock-open-medium"
-                  height="25px"
-                  width="25px"
-                  aria-hidden="false"
-                  (click)="onButtonTravelTimeLock($event)"
-                  title="Fahrzeit 'lock'"
-                >
-                </sbb-icon>
+                <div class="nodeMinus">
+                  <button
+                    tabindex="-1"
+                    mode="ghost"
+                    class="ButtonMinus"
+                    (click)="onTravelTimeButtonMinus($event)"
+                  >
+                    -
+                  </button>
+                </div>
+                <div class="nodeTime" (click)="stopPropagation($event)">
+                  <input
+                    #travelTime
+                    tabindex="2"
+                    class="InputElement firstInput"
+                    type="number"
+                    sbbInput
+                    spellcheck="false"
+                    pattern="^[0-9]*"
+                    [(ngModel)]="trainrunSectionTimesService.getTimeStructure().travelTime"
+                    (change)="onTravelTimeChanged()"
+                  />
+                </div>
+                <div class="nodePlus">
+                  <button
+                    tabindex="-1"
+                    mode="ghost"
+                    class="ButtonPlus"
+                    (click)="onTravelTimeButtonPlus($event)"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
-              <div *ngIf="trainrunSectionTimesService.getLockStructure().travelTimeLock === true">
-                <sbb-icon
-                  svgIcon="lock-closed-medium"
-                  height="25px"
-                  width="25px"
-                  aria-hidden="false"
-                  (click)="onButtonTravelTimeLock($event)"
-                  title="Fahrzeit 'lock' entfernen"
-                >
-                </sbb-icon>
+            }
+            @if (showBottomTravelTime()) {
+              <div class="nodeBorderContainer nodeBorderContainerCenterLeft">
+                <div class="nodeMinus">
+                  <button
+                    tabindex="-1"
+                    mode="ghost"
+                    class="ButtonMinus"
+                    (click)="onBottomTravelTimeButtonMinus($event)"
+                  >
+                    -
+                  </button>
+                </div>
+                <div class="nodeTime" (click)="stopPropagation($event)">
+                  <input
+                    #bottomTravelTime
+                    tabindex="2"
+                    class="InputElement firstInput"
+                    type="number"
+                    sbbInput
+                    spellcheck="false"
+                    pattern="^[0-9]*"
+                    [(ngModel)]="trainrunSectionTimesService.getTimeStructure().bottomTravelTime"
+                    (change)="onBottomTravelTimeChanged()"
+                  />
+                </div>
+                <div class="nodePlus">
+                  <button
+                    tabindex="-1"
+                    mode="ghost"
+                    class="ButtonPlus"
+                    (click)="onBottomTravelTimeButtonPlus($event)"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
-            </div>
-
-            <div
-              [ngClass]="
-                'nodeBorderContainer nodeBorderContainerCenter' +
-                getNodeBorderContainerClassSuffix()
-              "
-              *ngIf="showTravelTime()"
-            >
-              <div class="nodeMinus">
-                <button
-                  tabindex="-1"
-                  mode="ghost"
-                  class="ButtonMinus"
-                  (click)="onTravelTimeButtonMinus($event)"
-                >
-                  -
-                </button>
+            }
+            @if (showArrivalAndDepartureTime() && isLeftSideDisplayed()) {
+              <div class="nodeBorderContainer nodeBorderContainerBottomLeft">
+                <div class="nodeMinus">
+                  <button
+                    tabindex="-1"
+                    mode="ghost"
+                    class="ButtonMinus"
+                    (click)="onNodeRightDepartureTimeButtonMinus($event)"
+                  >
+                    -
+                  </button>
+                </div>
+                <div class="nodeTime" (click)="stopPropagation($event)">
+                  <input
+                    #rightDepartureTime
+                    tabindex="2"
+                    class="InputElement firstInput"
+                    type="number"
+                    sbbInput
+                    spellcheck="false"
+                    pattern="^[0-9]*"
+                    [(ngModel)]="trainrunSectionTimesService.getTimeStructure().rightDepartureTime"
+                    (change)="onNodeRightDepartureTimeChanged()"
+                  />
+                </div>
+                <div class="nodePlus">
+                  <button
+                    tabindex="-1"
+                    mode="ghost"
+                    class="ButtonPlus"
+                    (click)="onNodeRightDepartureTimeButtonPlus($event)"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
-              <div class="nodeTime" (click)="stopPropagation($event)">
-                <input
-                  #travelTime
-                  tabindex="2"
-                  class="InputElement firstInput"
-                  type="number"
-                  sbbInput
-                  spellcheck="false"
-                  pattern="^[0-9]*"
-                  [(ngModel)]="trainrunSectionTimesService.getTimeStructure().travelTime"
-                  (change)="onTravelTimeChanged()"
-                />
-              </div>
-              <div class="nodePlus">
-                <button
-                  tabindex="-1"
-                  mode="ghost"
-                  class="ButtonPlus"
-                  (click)="onTravelTimeButtonPlus($event)"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            <div
-              class="nodeBorderContainer nodeBorderContainerCenterLeft"
-              *ngIf="showBottomTravelTime()"
-            >
-              <div class="nodeMinus">
-                <button
-                  tabindex="-1"
-                  mode="ghost"
-                  class="ButtonMinus"
-                  (click)="onBottomTravelTimeButtonMinus($event)"
-                >
-                  -
-                </button>
-              </div>
-              <div class="nodeTime" (click)="stopPropagation($event)">
-                <input
-                  #bottomTravelTime
-                  tabindex="2"
-                  class="InputElement firstInput"
-                  type="number"
-                  sbbInput
-                  spellcheck="false"
-                  pattern="^[0-9]*"
-                  [(ngModel)]="trainrunSectionTimesService.getTimeStructure().bottomTravelTime"
-                  (change)="onBottomTravelTimeChanged()"
-                />
-              </div>
-              <div class="nodePlus">
-                <button
-                  tabindex="-1"
-                  mode="ghost"
-                  class="ButtonPlus"
-                  (click)="onBottomTravelTimeButtonPlus($event)"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            <div
-              class="nodeBorderContainer nodeBorderContainerBottomLeft"
-              *ngIf="showArrivalAndDepartureTime() && isLeftSideDisplayed()"
-            >
-              <div class="nodeMinus">
-                <button
-                  tabindex="-1"
-                  mode="ghost"
-                  class="ButtonMinus"
-                  (click)="onNodeRightDepartureTimeButtonMinus($event)"
-                >
-                  -
-                </button>
-              </div>
-              <div class="nodeTime" (click)="stopPropagation($event)">
-                <input
-                  #rightDepartureTime
-                  tabindex="2"
-                  class="InputElement firstInput"
-                  type="number"
-                  sbbInput
-                  spellcheck="false"
-                  pattern="^[0-9]*"
-                  [(ngModel)]="trainrunSectionTimesService.getTimeStructure().rightDepartureTime"
-                  (change)="onNodeRightDepartureTimeChanged()"
-                />
-              </div>
-              <div class="nodePlus">
-                <button
-                  tabindex="-1"
-                  mode="ghost"
-                  class="ButtonPlus"
-                  (click)="onNodeRightDepartureTimeButtonPlus($event)"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            <div
-              [class]="getNodeRightLockClassTag()"
-              *ngIf="
-                trainrunSectionTimesService.getLockStructure().rightLock === true ||
-                showArrivalAndDepartureTime()
-              "
-            >
-              <div
-                *ngIf="
+            }
+            @if (
+              trainrunSectionTimesService.getLockStructure().rightLock === true ||
+              showArrivalAndDepartureTime()
+            ) {
+              <div [class]="getNodeRightLockClassTag()">
+                @if (
                   trainrunSectionTimesService.getLockStructure().rightLock === false &&
                   showArrivalAndDepartureTime()
-                "
+                ) {
+                  <div>
+                    <sbb-icon
+                      svgIcon="lock-open-medium"
+                      height="25px"
+                      width="25px"
+                      aria-hidden="false"
+                      (click)="onButtonNodeRightLock($event)"
+                      title="Ab-/Ankunftszeit 'lock'"
+                    >
+                    </sbb-icon>
+                  </div>
+                }
+                @if (trainrunSectionTimesService.getLockStructure().rightLock === true) {
+                  <div>
+                    <sbb-icon
+                      svgIcon="lock-closed-medium"
+                      height="25px"
+                      width="25px"
+                      aria-hidden="false"
+                      (click)="onButtonNodeRightLock($event)"
+                      title="Ab-/Ankunftszeit 'lock' entfernen"
+                    >
+                    </sbb-icon>
+                  </div>
+                }
+              </div>
+            }
+            @if (showRightArrivalTime() && isRightSideDisplayed()) {
+              <div class="nodeBorderContainer nodeBorderContainerBottomRight">
+                <div class="nodeMinus">
+                  <button
+                    tabindex="-1"
+                    mode="ghost"
+                    class="ButtonMinus"
+                    (click)="onNodeRightArrivalTimeButtonMinus($event)"
+                  >
+                    -
+                  </button>
+                </div>
+                <div class="nodeTime" (click)="stopPropagation($event)">
+                  <input
+                    #rightArrivalTime
+                    tabindex="2"
+                    class="InputElement firstInput"
+                    type="number"
+                    sbbInput
+                    spellcheck="false"
+                    pattern="^[0-9]*"
+                    [(ngModel)]="trainrunSectionTimesService.getTimeStructure().rightArrivalTime"
+                    (change)="onNodeRightArrivalTimeChanged()"
+                  />
+                </div>
+                <div class="nodePlus">
+                  <button
+                    tabindex="-1"
+                    mode="ghost"
+                    class="ButtonPlus"
+                    (click)="onNodeRightArrivalTimeButtonPlus($event)"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            }
+            @if (trainrunSection.getTrainrun().isRoundTrip()) {
+              <sbb-toggle-switch-button
+                class="RightSymmetryToggle"
+                [checked]="!trainrunSectionTimesService.getSymmetryStructure().rightSymmetry"
+                (checkedChanged)="onRightNodeSymmetryToggle(!$event)"
+                #rightSymmetryToggle
+                (click)="stopPropagation($event)"
               >
-                <sbb-icon
-                  svgIcon="lock-open-medium"
-                  height="25px"
-                  width="25px"
-                  aria-hidden="false"
-                  (click)="onButtonNodeRightLock($event)"
-                  title="Ab-/Ankunftszeit 'lock'"
-                >
-                </sbb-icon>
-              </div>
-              <div *ngIf="trainrunSectionTimesService.getLockStructure().rightLock === true">
-                <sbb-icon
-                  svgIcon="lock-closed-medium"
-                  height="25px"
-                  width="25px"
-                  aria-hidden="false"
-                  (click)="onButtonNodeRightLock($event)"
-                  title="Ab-/Ankunftszeit 'lock' entfernen"
-                >
-                </sbb-icon>
-              </div>
-            </div>
-
-            <div
-              class="nodeBorderContainer nodeBorderContainerBottomRight"
-              *ngIf="showRightArrivalTime() && isRightSideDisplayed()"
-            >
-              <div class="nodeMinus">
-                <button
-                  tabindex="-1"
-                  mode="ghost"
-                  class="ButtonMinus"
-                  (click)="onNodeRightArrivalTimeButtonMinus($event)"
-                >
-                  -
-                </button>
-              </div>
-              <div class="nodeTime" (click)="stopPropagation($event)">
-                <input
-                  #rightArrivalTime
-                  tabindex="2"
-                  class="InputElement firstInput"
-                  type="number"
-                  sbbInput
-                  spellcheck="false"
-                  pattern="^[0-9]*"
-                  [(ngModel)]="trainrunSectionTimesService.getTimeStructure().rightArrivalTime"
-                  (change)="onNodeRightArrivalTimeChanged()"
-                />
-              </div>
-              <div class="nodePlus">
-                <button
-                  tabindex="-1"
-                  mode="ghost"
-                  class="ButtonPlus"
-                  (click)="onNodeRightArrivalTimeButtonPlus($event)"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-            <sbb-toggle-switch-button
-              class="RightSymmetryToggle"
-              *ngIf="trainrunSection.getTrainrun().isRoundTrip()"
-              [checked]="!trainrunSectionTimesService.getSymmetryStructure().rightSymmetry"
-              (checkedChanged)="onRightNodeSymmetryToggle(!$event)"
-              #rightSymmetryToggle
-              (click)="stopPropagation($event)"
-            >
-            </sbb-toggle-switch-button>
+              </sbb-toggle-switch-button>
+            }
           </div>
         </foreignObject>
       </svg>
-
       <svg
         width="45px"
         [style.transform]="
@@ -720,11 +731,11 @@
         </foreignObject>
       </svg>
     </div>
-  </ng-container>
+  }
   <!--- END - TIME EDITION --->
 
   <!--- START - STOPS EDITION --->
-  <ng-container *ngIf="isBeingEdited() === 'StopsEditor'">
+  @if (isBeingEdited() === "StopsEditor") {
     <div class="editingContainer" (click)="switchSectionView($event, 'editingContainer')">
       <svg width="274px" viewBox="70 0 137 192">
         <g class="edge Lines" (click)="onEdgeLineClick()">
@@ -733,80 +744,88 @@
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_2"></path>
           <path d="M137,0V192" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
           <!-- Direction arrows (one way trainrun) -->
-          <path
-            *ngIf="shouldDisplayDirectionArrow()"
-            [class]="getEdgeLineArrowClass()"
-            d="M-4,-5L2,0L-4,5Z"
-            [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
-            [attr.hidden]="isDirectionArrowHidden() ? '' : null"
-          ></path>
-          <path
-            *ngIf="shouldDisplayDirectionArrow()"
-            [class]="getEdgeLineArrowClass()"
-            d="M-4,-5L2,0L-4,5Z"
-            [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
-            [attr.hidden]="isDirectionArrowHidden() ? '' : null"
-          ></path>
+          @if (shouldDisplayDirectionArrow()) {
+            <path
+              [class]="getEdgeLineArrowClass()"
+              d="M-4,-5L2,0L-4,5Z"
+              [attr.transform]="getDirectionArrowTranslateAndRotate(45)"
+              [attr.hidden]="isDirectionArrowHidden() ? '' : null"
+            ></path>
+          }
+          @if (shouldDisplayDirectionArrow()) {
+            <path
+              [class]="getEdgeLineArrowClass()"
+              d="M-4,-5L2,0L-4,5Z"
+              [attr.transform]="getDirectionArrowTranslateAndRotate(145)"
+              [attr.hidden]="isDirectionArrowHidden() ? '' : null"
+            ></path>
+          }
           <!-- Asymmetry arrows (asymmetric trainrun)-->
-          <path
-            *ngIf="shouldDisplayAsymmetryArrow('top')"
-            [class]="getEdgeLineArrowClass()"
-            d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
-            [attr.transform]="getAsymmetryArrowTranslate(24)"
-            [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
-          ></path>
-          <path
-            *ngIf="shouldDisplayAsymmetryArrow('bottom')"
-            [class]="getEdgeLineArrowClass()"
-            d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
-            [attr.transform]="getAsymmetryArrowTranslate(169)"
-            [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
-          ></path>
+          @if (shouldDisplayAsymmetryArrow("top")) {
+            <path
+              [class]="getEdgeLineArrowClass()"
+              d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
+              [attr.transform]="getAsymmetryArrowTranslate(24)"
+              [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
+            ></path>
+          }
+          @if (shouldDisplayAsymmetryArrow("bottom")) {
+            <path
+              [class]="getEdgeLineArrowClass()"
+              d="M-1,-6 V0 H-8 L1,6 V0 H8 Z"
+              [attr.transform]="getAsymmetryArrowTranslate(169)"
+              [attr.hidden]="!filterService.isFilterAsymmetryArrowsEnabled() ? '' : null"
+            ></path>
+          }
         </g>
         <g>
-          <ng-container *ngIf="stationNumberArray.length <= 5">
-            <circle
-              *ngFor="let stationNumber of stationNumberArray"
-              cx="137px"
-              [attr.cy]="
-                192 / 4 +
-                ((192 - 8) / (perlenketteSection.numberOfStops + 1)) * 0.5 * stationNumber +
-                4
-              "
-              [ngClass]="[getPathClassTag()]"
-              style="fill: var(--COLOR_Edit)"
-              class="edge_line_stops fill PerlenketteStopElement"
-            ></circle>
-          </ng-container>
-          <ng-container *ngIf="stationNumberArray.length > 5">
-            <circle
-              cx="137px"
-              [attr.cy]="(192 - 8) / 2 + 4"
-              r="4px"
-              style="stroke: var(--COLOR_Edit); stroke-width: 2px"
-              [ngClass]="[
-                'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef,
-                'Freq_' + perlenketteTrainrun.frequency,
-                'LinePatternRef_7/24',
-              ]"
-              class="edge_line_stops PerlenketteFill5 PerlenketteStopElement"
-            ></circle>
-            <g transform="translate(151, 96)">
-              <g transform="rotate(-90)">
-                <text
-                  x="0"
-                  y="0"
-                  style="fill: var(--COLOR_Edit); font-size: 16px"
-                  class="edge_text TrainrunSectionNumberOfStops"
-                  [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
-                >
-                  {{ stationNumberArray.length }}
-                </text>
+          @if (stationNumberArray.length <= 5) {
+            <ng-container>
+              @for (stationNumber of stationNumberArray; track stationNumber) {
+                <circle
+                  cx="137px"
+                  [attr.cy]="
+                    192 / 4 +
+                    ((192 - 8) / (perlenketteSection.numberOfStops + 1)) * 0.5 * stationNumber +
+                    4
+                  "
+                  [ngClass]="[getPathClassTag()]"
+                  style="fill: var(--COLOR_Edit)"
+                  class="edge_line_stops fill PerlenketteStopElement"
+                ></circle>
+              }
+            </ng-container>
+          }
+          @if (stationNumberArray.length > 5) {
+            <ng-container>
+              <circle
+                cx="137px"
+                [attr.cy]="(192 - 8) / 2 + 4"
+                r="4px"
+                style="stroke: var(--COLOR_Edit); stroke-width: 2px"
+                [ngClass]="[
+                  'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef,
+                  'Freq_' + perlenketteTrainrun.frequency,
+                  'LinePatternRef_7/24',
+                ]"
+                class="edge_line_stops PerlenketteFill5 PerlenketteStopElement"
+              ></circle>
+              <g transform="translate(151, 96)">
+                <g transform="rotate(-90)">
+                  <text
+                    x="0"
+                    y="0"
+                    style="fill: var(--COLOR_Edit); font-size: 16px"
+                    class="edge_text TrainrunSectionNumberOfStops"
+                    [ngClass]="'UI_DIALOG ColorRef_' + perlenketteTrainrun.colorRef"
+                  >
+                    {{ stationNumberArray.length }}
+                  </text>
+                </g>
               </g>
-            </g>
-          </ng-container>
+            </ng-container>
+          }
         </g>
-
         <foreignObject height="192px" width="224px" x="25">
           <div class="mainGridLayout">
             <div class="nodeBorderContainer nodeBorderContainerCenterStops">
@@ -848,6 +867,6 @@
         </foreignObject>
       </svg>
     </div>
-  </ng-container>
+  }
   <!--- END - STOPS EDITION --->
 </div>

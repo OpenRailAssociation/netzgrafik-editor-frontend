@@ -8,14 +8,15 @@
     <ng-content select="[filter]"></ng-content>
     <div [class.cd-curtain]="curtain"></div>
   </div>
-  <div
-    id="cd-layout-close-filter"
-    *ngIf="showFilterClose"
-    [ngClass]="{hide: hideFilter()}"
-    (click)="filterClosed?.emit(true)"
-  >
-    <sbb-icon svgIcon="cross-small" aria-hidden="false"></sbb-icon>
-  </div>
+  @if (showFilterClose) {
+    <div
+      id="cd-layout-close-filter"
+      [ngClass]="{hide: hideFilter()}"
+      (click)="filterClosed?.emit(true)"
+    >
+      <sbb-icon svgIcon="cross-small" aria-hidden="false"></sbb-icon>
+    </div>
+  }
 
   <div id="cd-layout-main" class="cd-layout-panel">
     <div class="cd-layout-main-content-wrapper">
@@ -37,13 +38,14 @@
   >
     <ng-content select="[aside]"></ng-content>
   </div>
-  <div
-    id="cd-layout-close-aside"
-    *ngIf="showAsideClose"
-    [ngClass]="{hide: hideAside()}"
-    (click)="asideClosed?.emit(true)"
-    data-testid="close-aside-button"
-  >
-    <sbb-icon svgIcon="cross-small" aria-hidden="false"></sbb-icon>
-  </div>
+  @if (showAsideClose) {
+    <div
+      id="cd-layout-close-aside"
+      [ngClass]="{hide: hideAside()}"
+      (click)="asideClosed?.emit(true)"
+      data-testid="close-aside-button"
+    >
+      <sbb-icon svgIcon="cross-small" aria-hidden="false"></sbb-icon>
+    </div>
+  }
 </div>

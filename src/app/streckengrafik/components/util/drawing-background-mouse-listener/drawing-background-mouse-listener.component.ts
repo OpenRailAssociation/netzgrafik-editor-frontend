@@ -1,4 +1,4 @@
-import {Component, HostListener} from "@angular/core";
+import {Component, HostListener, ChangeDetectionStrategy} from "@angular/core";
 import {DrawingBackgroundMouseListenerService} from "../../../services/util/drawingBackgroundMouseListener.service";
 import {TrainrunService} from "../../../../services/data/trainrun.service";
 import {Sg8RenderService} from "../../../services/sg-8-render.service";
@@ -8,6 +8,7 @@ import {UpdateCounterTriggerService} from "../../../services/util/update-counter
   selector: "sbb-drawing-background-mouse-listener",
   templateUrl: "./drawing-background-mouse-listener.component.html",
   styleUrls: ["./drawing-background-mouse-listener.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class DrawingBackgroundMouseListenerComponent {

@@ -1,9 +1,10 @@
-import {Component, EventEmitter, Input, Output} from "@angular/core";
+import {Component, EventEmitter, Input, Output, ChangeDetectionStrategy} from "@angular/core";
 
 @Component({
   selector: "sbb-toggle-switch-button",
   templateUrl: "./toggle-switch-button.component.html",
   styleUrls: ["./toggle-switch-button.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class ToggleSwitchButtonComponent {

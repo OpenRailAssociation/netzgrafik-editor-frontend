@@ -1,4 +1,4 @@
-import {Component} from "@angular/core";
+import {Component, ChangeDetectionStrategy} from "@angular/core";
 import {DataService} from "../../services/data/data.service";
 import {UiInteractionService} from "../../services/ui/ui.interaction.service";
 import {SbbRadioChange} from "@sbb-esta/angular/radio-button";
@@ -12,6 +12,7 @@ import {TrafficSide} from "src/app/data-structures/business.data.structures";
   selector: "sbb-editor-properties-view-component",
   templateUrl: "./editor-properties-view.component.html",
   styleUrls: ["./editor-properties-view.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class EditorPropertiesViewComponent {

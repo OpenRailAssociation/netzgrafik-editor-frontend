@@ -6,6 +6,7 @@ import {
   Output,
   AfterViewInit,
   ElementRef,
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import {PerlenketteNode} from "../model/perlenketteNode";
 import {NodeService} from "../../services/data/node.service";
@@ -28,6 +29,7 @@ import {MathUtils} from "../../utils/math";
   selector: "sbb-perlenkette-node",
   templateUrl: "./perlenkette-node.component.html",
   styleUrls: ["./perlenkette-node.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class PerlenketteNodeComponent implements OnInit, AfterViewInit {

@@ -9,9 +9,11 @@
       [formControl]="model.getControl('name')"
       [placeholder]="'app.view.project.project-dialog.project-form.name' | translate"
     />
-    <sbb-error *ngIf="model.getControl('name').errors?.required">{{
-      "app.view.project.project-dialog.project-form.mandatory-field" | translate
-    }}</sbb-error>
+    @if (model.getControl("name").errors?.required) {
+      <sbb-error>{{
+        "app.view.project.project-dialog.project-form.mandatory-field" | translate
+      }}</sbb-error>
+    }
   </sbb-form-field>
   <sbb-form-field
     [label]="'app.view.project.project-dialog.project-form.summary' | translate"
@@ -48,9 +50,9 @@
       [formControl]="model.getControl('writeUsers')"
       (focusout)="onLabelsFocusoutWrite()"
     >
-      <sbb-chip *ngFor="let element of model.getControl('writeUsers').value" [value]="element"
-        >{{ element }}
-      </sbb-chip>
+      @for (element of model.getControl("writeUsers").value; track element) {
+        <sbb-chip [value]="element">{{ element }} </sbb-chip>
+      }
       <input
         id="userWriteInput"
         [placeholder]="
@@ -60,10 +62,12 @@
         [sbbChipInputSeparatorKeyCodes]="separatorKeysCodes"
       />
     </sbb-chip-list>
-    <sbb-error *ngIf="model.getControl('writeUsers').errors?.invalidUserIdAsEmails">
-      {{ "app.view.project.project-dialog.project-form.invalid-values" | translate }}:
-      {{ model.getControl("writeUsers").errors?.invalidUserIdAsEmails }}
-    </sbb-error>
+    @if (model.getControl("writeUsers").errors?.invalidUserIdAsEmails) {
+      <sbb-error>
+        {{ "app.view.project.project-dialog.project-form.invalid-values" | translate }}:
+        {{ model.getControl("writeUsers").errors?.invalidUserIdAsEmails }}
+      </sbb-error>
+    }
   </sbb-form-field>
   <sbb-form-field class="sbb-form-field-long">
     <sbb-label>
@@ -74,9 +78,11 @@
       [formControl]="model.getControl('readUsers')"
       (focusout)="onLabelsFocusoutRead()"
     >
-      <sbb-chip *ngFor="let element of model.getControl('readUsers').value" [value]="element">
-        {{ element }}
-      </sbb-chip>
+      @for (element of model.getControl("readUsers").value; track element) {
+        <sbb-chip [value]="element">
+          {{ element }}
+        </sbb-chip>
+      }
       <input
         id="userReadeInput"
         [placeholder]="
@@ -86,9 +92,11 @@
         [sbbChipInputSeparatorKeyCodes]="separatorKeysCodes"
       />
     </sbb-chip-list>
-    <sbb-error *ngIf="model.getControl('readUsers').errors?.invalidUserIdAsEmails">
-      {{ "app.view.project.project-dialog.project-form.invalid-values" | translate }}:
-      {{ model.getControl("readUsers").errors?.invalidUserIdAsEmails }}
-    </sbb-error>
+    @if (model.getControl("readUsers").errors?.invalidUserIdAsEmails) {
+      <sbb-error>
+        {{ "app.view.project.project-dialog.project-form.invalid-values" | translate }}:
+        {{ model.getControl("readUsers").errors?.invalidUserIdAsEmails }}
+      </sbb-error>
+    }
   </sbb-form-field>
 </div>

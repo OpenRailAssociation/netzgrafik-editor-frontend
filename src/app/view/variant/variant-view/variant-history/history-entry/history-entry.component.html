@@ -1,69 +1,51 @@
 <div class="entry">
   <div class="version-container">
-    <ng-container *ngIf="version">
+    @if (version) {
       {{ version }}
-    </ng-container>
+    }
   </div>
 
   <div class="content">
     <ng-content></ng-content>
   </div>
 
-  <div class="preview" *ngIf="preview.observers.length > 0">
-    <sbb-preview-button (active)="preview.emit($event)"></sbb-preview-button>
-  </div>
+  @if (preview.observers.length > 0) {
+    <div class="preview">
+      <sbb-preview-button (active)="preview.emit($event)"></sbb-preview-button>
+    </div>
+  }
 
   <button [sbbContextmenuTriggerFor]="menu"></button>
   <sbb-menu #menu="sbbMenu">
     <!--
-      It seems that there is a bug in the ESTA component library: When the buttons from a context menu are
-      defined in a loop, then the click-handlers are not called on a click. As workaround, the buttons are defined
-      not in a loop, but are added/removed with ngIf. With this solution, the described issue does not occur.
-      -->
-    <button
-      *ngIf="getAction(0); let action"
-      type="button"
-      sbb-menu-item
-      [disabled]="action.disabled"
-      (click)="action.onClick()"
-    >
-      <sbb-icon [svgIcon]="action.icon"></sbb-icon>{{ action.name }}
-    </button>
-    <button
-      *ngIf="getAction(1); let action"
-      type="button"
-      sbb-menu-item
-      [disabled]="action.disabled"
-      (click)="action.onClick()"
-    >
-      <sbb-icon [svgIcon]="action.icon"></sbb-icon>{{ action.name }}
-    </button>
-    <button
-      *ngIf="getAction(2); let action"
-      type="button"
-      sbb-menu-item
-      [disabled]="action.disabled"
-      (click)="action.onClick()"
-    >
-      <sbb-icon [svgIcon]="action.icon"></sbb-icon>{{ action.name }}
-    </button>
-    <button
-      *ngIf="getAction(3); let action"
-      type="button"
-      sbb-menu-item
-      [disabled]="action.disabled"
-      (click)="action.onClick()"
-    >
-      <sbb-icon [svgIcon]="action.icon"></sbb-icon>{{ action.name }}
-    </button>
-    <button
-      *ngIf="getAction(4); let action"
-      type="button"
-      sbb-menu-item
-      [disabled]="action.disabled"
-      (click)="action.onClick()"
-    >
-      <sbb-icon [svgIcon]="action.icon"></sbb-icon>{{ action.name }}
-    </button>
+    It seems that there is a bug in the ESTA component library: When the buttons from a context menu are
+    defined in a loop, then the click-handlers are not called on a click. As workaround, the buttons are defined
+    not in a loop, but are added/removed with ngIf. With this solution, the described issue does not occur.
+    -->
+    @if (getAction(0); as action) {
+      <button type="button" sbb-menu-item [disabled]="action.disabled" (click)="action.onClick()">
+        <sbb-icon [svgIcon]="action.icon"></sbb-icon>{{ action.name }}
+      </button>
+    }
+    @if (getAction(1); as action) {
+      <button type="button" sbb-menu-item [disabled]="action.disabled" (click)="action.onClick()">
+        <sbb-icon [svgIcon]="action.icon"></sbb-icon>{{ action.name }}
+      </button>
+    }
+    @if (getAction(2); as action) {
+      <button type="button" sbb-menu-item [disabled]="action.disabled" (click)="action.onClick()">
+        <sbb-icon [svgIcon]="action.icon"></sbb-icon>{{ action.name }}
+      </button>
+    }
+    @if (getAction(3); as action) {
+      <button type="button" sbb-menu-item [disabled]="action.disabled" (click)="action.onClick()">
+        <sbb-icon [svgIcon]="action.icon"></sbb-icon>{{ action.name }}
+      </button>
+    }
+    @if (getAction(4); as action) {
+      <button type="button" sbb-menu-item [disabled]="action.disabled" (click)="action.onClick()">
+        <sbb-icon [svgIcon]="action.icon"></sbb-icon>{{ action.name }}
+      </button>
+    }
   </sbb-menu>
 </div>

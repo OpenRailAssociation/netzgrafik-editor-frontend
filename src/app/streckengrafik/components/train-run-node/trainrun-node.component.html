@@ -1,38 +1,42 @@
-<ng-container *ngIf="unusedForTurnaround()">
-  <ng-container *ngIf="isTrackOccupier()">
-    <ng-container *ngIf="checkUnrollAllowed()">
+@if (unusedForTurnaround()) {
+  @if (isTrackOccupier()) {
+    @if (checkUnrollAllowed()) {
       <svg:path
         [attr.id]="getId()"
         (mouseover)="bringToFront($event)"
         [class]="getClassTag('edge_line TransitLine TrackOccupier')"
         [attr.d]="nodePath()"
       />
-    </ng-container>
-  </ng-container>
-  <ng-container *ngIf="!isTrackOccupier()">
-    <ng-container *ngIf="isStreckenTrainrunSegment()">
+    }
+  }
+  @if (!isTrackOccupier()) {
+    @if (isStreckenTrainrunSegment()) {
       <svg:path
         [class]="getClassTag('edge_line isStreckenTrainrunSegment')"
         [attr.d]="nodePath()"
       />
-    </ng-container>
-  </ng-container>
-  <svg:g *ngIf="isTrackOccupier()">
-    <ng-container *ngIf="checkUnrollAllowed()">
-      <svg:path
-        [attr.id]="getId()"
-        (mouseover)="bringToFront($event)"
-        [class]="getClassTag('edge_line Gleisbelegung')"
-        [attr.d]="pathGleisbelegung()"
-        (mouseup)="onEdgeLineClick($event)"
-      />
-      <svg:path
-        [attr.id]="getId()"
-        (mouseover)="bringToFront($event)"
-        [class]="getClassTag('edge_line Gleisbelegung HeadwayReservation')"
-        [attr.d]="pathHeadwayReservation()"
-        (mouseup)="onEdgeLineClick($event)"
-      />
-    </ng-container>
-  </svg:g>
-</ng-container>
+    }
+  }
+  @if (isTrackOccupier()) {
+    <svg:g>
+      @if (checkUnrollAllowed()) {
+        <ng-container>
+          <svg:path
+            [attr.id]="getId()"
+            (mouseover)="bringToFront($event)"
+            [class]="getClassTag('edge_line Gleisbelegung')"
+            [attr.d]="pathGleisbelegung()"
+            (mouseup)="onEdgeLineClick($event)"
+          />
+          <svg:path
+            [attr.id]="getId()"
+            (mouseover)="bringToFront($event)"
+            [class]="getClassTag('edge_line Gleisbelegung HeadwayReservation')"
+            [attr.d]="pathHeadwayReservation()"
+            (mouseup)="onEdgeLineClick($event)"
+          />
+        </ng-container>
+      }
+    </svg:g>
+  }
+}

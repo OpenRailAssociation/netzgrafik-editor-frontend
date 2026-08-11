@@ -3,48 +3,50 @@
   (click)="disableSectionView($event)"
   [class.readonly]="!getVariantIsWritable()"
 >
-  <svg display="block" width="96px" height="64px" overflow="visible" *ngIf="!hasConnections()">
-    <rect
-      [ngClass]="'main_rect' + getNodeClassTag()"
-      x="0"
-      y="0"
-      rx="4px"
-      width="96px"
-      height="64px"
-    />
-    <rect
-      [ngClass]="'title_rect' + getNodeClassTag()"
-      x="1"
-      y="35"
-      ry="3px"
-      width="94px"
-      height="28px"
-    />
-    <text x="8" y="55" class="node_text">{{ getNodeName() }}</text>
-    <text x="88" y="55" text-anchor="end" class="node_connection_time">
-      {{ perlenketteNode.connectionTime }}
-    </text>
+  @if (!hasConnections()) {
+    <svg display="block" width="96px" height="64px" overflow="visible">
+      <rect
+        [ngClass]="'main_rect' + getNodeClassTag()"
+        x="0"
+        y="0"
+        rx="4px"
+        width="96px"
+        height="64px"
+      />
+      <rect
+        [ngClass]="'title_rect' + getNodeClassTag()"
+        x="1"
+        y="35"
+        ry="3px"
+        width="94px"
+        height="28px"
+      />
+      <text x="8" y="55" class="node_text">{{ getNodeName() }}</text>
+      <text x="88" y="55" text-anchor="end" class="node_connection_time">
+        {{ perlenketteNode.connectionTime }}
+      </text>
+      @if (hasTransition()) {
+        <ng-container>
+          <svg display="block" width="96px" height="64px" viewBox="-44 12 91 40">
+            <path d="M0,0V36" [ngClass]="[getPathClassTag()]" class="edge_line layer_0"></path>
+            <path d="M0,0V36" [ngClass]="[getPathClassTag()]" class="edge_line layer_1"></path>
+            <path d="M0,0V36" [ngClass]="[getPathClassTag()]" class="edge_line layer_2"></path>
+            <path d="M0,0V36" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
+            <path
+              [attr.d]="createPolygon(0, 18)"
+              (click)="toggleNonStop()"
+              style="cursor: pointer; stroke-dasharray: none"
+              [class]="
+                'edge_line non_stop_toggle ' + getNonStopClassTag() + ' ' + getColoringClassTag()
+              "
+            ></path>
+          </svg>
+        </ng-container>
+      }
+    </svg>
+  }
 
-    <ng-container *ngIf="hasTransition()">
-      <svg display="block" width="96px" height="64px" viewBox="-44 12 91 40">
-        <path d="M0,0V36" [ngClass]="[getPathClassTag()]" class="edge_line layer_0"></path>
-        <path d="M0,0V36" [ngClass]="[getPathClassTag()]" class="edge_line layer_1"></path>
-        <path d="M0,0V36" [ngClass]="[getPathClassTag()]" class="edge_line layer_2"></path>
-        <path d="M0,0V36" [ngClass]="[getPathClassTag()]" class="edge_line layer_3"></path>
-
-        <path
-          [attr.d]="createPolygon(0, 18)"
-          (click)="toggleNonStop()"
-          style="cursor: pointer; stroke-dasharray: none"
-          [class]="
-            'edge_line non_stop_toggle ' + getNonStopClassTag() + ' ' + getColoringClassTag()
-          "
-        ></path>
-      </svg>
-    </ng-container>
-  </svg>
-
-  <ng-container *ngIf="hasConnections()">
+  @if (hasConnections()) {
     <svg
       display="block"
       class="connection-node"
@@ -69,196 +71,192 @@
         height="28px"
         (click)="expandConnections()"
       />
-
-      <ng-container *ngIf="isExpanded">
-        <ng-container
-          *ngFor="
-            let connectionGrpKey of perlenketteNode.getConnectionOrderGroup(perlenketteTrainrun)
-          "
-        >
-          <g
-            [attr.transform]="getInitialExpanedTranform()"
-            *ngFor="
-              let connection of perlenketteNode.getConnections(
-                perlenketteTrainrun,
-                connectionGrpKey
-              );
-              let connectionIndex = index
-            "
-          >
-            <g
-              [attr.transform]="
-                getConnectedTrainEdgeLineTransform(
-                  getTrainEdgeLineStartPos(),
-                  12 + transformIndex(connectionIndex, connectionGrpKey) * surplus
-                )
-              "
-              (click)="selectConnection(connection)"
-              style="cursor: pointer"
-            >
-              <path
-                [attr.d]="getConnectedTrainEdgeLine(0, 0, getTrainEdgeLineWidth())"
-                [ngClass]="[getPathClassTag(connection)]"
-                class="edge_line layer_0"
-              ></path>
-              <path
-                [attr.d]="getConnectedTrainEdgeLine(0, 0, getTrainEdgeLineWidth())"
-                [ngClass]="[getPathClassTag(connection)]"
-                class="edge_line layer_1"
-              ></path>
-              <path
-                [attr.d]="getConnectedTrainEdgeLine(0, 0, getTrainEdgeLineWidth())"
-                [ngClass]="[getPathClassTag(connection)]"
-                class="edge_line layer_2"
-              ></path>
-              <path
-                [attr.d]="getConnectedTrainEdgeLine(0, 0, getTrainEdgeLineWidth())"
-                [ngClass]="[getPathClassTag(connection)]"
-                class="edge_line layer_3"
-              ></path>
-            </g>
-
-            <text
-              [attr.x]="getTrainrunNameFieldPosition()"
-              [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
-              dominant-baseline="text-after-edge"
-              class="edge_text station start layer0"
-              style="stroke-width: 6px"
-              (click)="selectConnection(connection)"
-              [ngClass]="[getTextNameOrTimeClassTag(connection, 0)]"
-            >
-              {{ getTextNameOrTime(connection, 0) }}
-            </text>
-            <text
-              [attr.x]="getTrainrunNameFieldPosition()"
-              [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
-              dominant-baseline="text-after-edge"
-              class="edge_text station start"
-              (click)="selectConnection(connection)"
-              [ngClass]="[getTextNameOrTimeClassTag(connection, 0)]"
-            >
-              {{ getTextNameOrTime(connection, 0) }}
-            </text>
-
-            <text
-              *ngIf="filterService.isFilterArrivalDepartureTimeEnabled()"
-              [attr.x]="getTimeFieldPos()"
-              [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
-              text-anchor="end"
-              dominant-baseline="text-after-edge"
-              class="edge_text station end layer0"
-              (click)="selectConnection(connection)"
-              style="stroke-width: 6px"
-              [ngClass]="[getTextNameOrTimeClassTag(connection, 1)]"
-            >
-              {{ getTextNameOrTime(connection, 1) }}
-            </text>
-            <text
-              *ngIf="filterService.isFilterArrivalDepartureTimeEnabled()"
-              [attr.x]="getTimeFieldPos()"
-              [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
-              text-anchor="end"
-              dominant-baseline="text-after-edge"
-              class="edge_text station end"
-              (click)="selectConnection(connection)"
-              [ngClass]="[getTextNameOrTimeClassTag(connection, 1)]"
-            >
-              {{ getTextNameOrTime(connection, 1) }}
-            </text>
-
-            <text
-              [attr.x]="getFromStationNameFieldPosition()"
-              [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
-              dominant-baseline="text-after-edge"
-              class="edge_text end station layer0"
-              (click)="selectConnection(connection)"
-              style="stroke-width: 6px"
-              [ngClass]="[getTextTerminalStationlassTag(connection, 0)]"
-            >
-              {{ getTextTerminalStation(connection, 0) }}
-            </text>
-            <text
-              [attr.x]="getFromStationNameFieldPosition()"
-              [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
-              dominant-baseline="text-after-edge"
-              class="edge_text end station"
-              (click)="selectConnection(connection)"
-              [ngClass]="[getTextTerminalStationlassTag(connection, 0)]"
-            >
-              {{ getTextTerminalStation(connection, 0) }}
-            </text>
-
-            <text
-              [attr.x]="getToStationNameFieldPosition()"
-              [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
-              text-anchor="start"
-              dominant-baseline="text-after-edge"
-              class="edge_text start station layer0"
-              (click)="selectConnection(connection)"
-              style="stroke-width: 6px"
-              [ngClass]="[getTextTerminalStationlassTag(connection, 1)]"
-            >
-              {{ getTextTerminalStation(connection, 1) }}
-            </text>
-            <text
-              [attr.x]="getToStationNameFieldPosition()"
-              [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
-              text-anchor="start"
-              dominant-baseline="text-after-edge"
-              class="edge_text start station"
-              (click)="selectConnection(connection)"
-              [ngClass]="[getTextTerminalStationlassTag(connection, 1)]"
-            >
-              {{ getTextTerminalStation(connection, 1) }}
-            </text>
-          </g>
-        </ng-container>
-
-        <ng-container
-          *ngIf="
+      @if (isExpanded) {
+        <ng-container>
+          @for (
+            connectionGrpKey of perlenketteNode.getConnectionOrderGroup(perlenketteTrainrun);
+            track connectionGrpKey
+          ) {
+            <ng-container>
+              @for (
+                connection of perlenketteNode.getConnections(perlenketteTrainrun, connectionGrpKey);
+                track connection;
+                let connectionIndex = $index
+              ) {
+                <g [attr.transform]="getInitialExpanedTranform()">
+                  <g
+                    [attr.transform]="
+                      getConnectedTrainEdgeLineTransform(
+                        getTrainEdgeLineStartPos(),
+                        12 + transformIndex(connectionIndex, connectionGrpKey) * surplus
+                      )
+                    "
+                    (click)="selectConnection(connection)"
+                    style="cursor: pointer"
+                  >
+                    <path
+                      [attr.d]="getConnectedTrainEdgeLine(0, 0, getTrainEdgeLineWidth())"
+                      [ngClass]="[getPathClassTag(connection)]"
+                      class="edge_line layer_0"
+                    ></path>
+                    <path
+                      [attr.d]="getConnectedTrainEdgeLine(0, 0, getTrainEdgeLineWidth())"
+                      [ngClass]="[getPathClassTag(connection)]"
+                      class="edge_line layer_1"
+                    ></path>
+                    <path
+                      [attr.d]="getConnectedTrainEdgeLine(0, 0, getTrainEdgeLineWidth())"
+                      [ngClass]="[getPathClassTag(connection)]"
+                      class="edge_line layer_2"
+                    ></path>
+                    <path
+                      [attr.d]="getConnectedTrainEdgeLine(0, 0, getTrainEdgeLineWidth())"
+                      [ngClass]="[getPathClassTag(connection)]"
+                      class="edge_line layer_3"
+                    ></path>
+                  </g>
+                  <text
+                    [attr.x]="getTrainrunNameFieldPosition()"
+                    [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
+                    dominant-baseline="text-after-edge"
+                    class="edge_text station start layer0"
+                    style="stroke-width: 6px"
+                    (click)="selectConnection(connection)"
+                    [ngClass]="[getTextNameOrTimeClassTag(connection, 0)]"
+                  >
+                    {{ getTextNameOrTime(connection, 0) }}
+                  </text>
+                  <text
+                    [attr.x]="getTrainrunNameFieldPosition()"
+                    [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
+                    dominant-baseline="text-after-edge"
+                    class="edge_text station start"
+                    (click)="selectConnection(connection)"
+                    [ngClass]="[getTextNameOrTimeClassTag(connection, 0)]"
+                  >
+                    {{ getTextNameOrTime(connection, 0) }}
+                  </text>
+                  @if (filterService.isFilterArrivalDepartureTimeEnabled()) {
+                    <text
+                      [attr.x]="getTimeFieldPos()"
+                      [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
+                      text-anchor="end"
+                      dominant-baseline="text-after-edge"
+                      class="edge_text station end layer0"
+                      (click)="selectConnection(connection)"
+                      style="stroke-width: 6px"
+                      [ngClass]="[getTextNameOrTimeClassTag(connection, 1)]"
+                    >
+                      {{ getTextNameOrTime(connection, 1) }}
+                    </text>
+                  }
+                  @if (filterService.isFilterArrivalDepartureTimeEnabled()) {
+                    <text
+                      [attr.x]="getTimeFieldPos()"
+                      [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
+                      text-anchor="end"
+                      dominant-baseline="text-after-edge"
+                      class="edge_text station end"
+                      (click)="selectConnection(connection)"
+                      [ngClass]="[getTextNameOrTimeClassTag(connection, 1)]"
+                    >
+                      {{ getTextNameOrTime(connection, 1) }}
+                    </text>
+                  }
+                  <text
+                    [attr.x]="getFromStationNameFieldPosition()"
+                    [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
+                    dominant-baseline="text-after-edge"
+                    class="edge_text end station layer0"
+                    (click)="selectConnection(connection)"
+                    style="stroke-width: 6px"
+                    [ngClass]="[getTextTerminalStationlassTag(connection, 0)]"
+                  >
+                    {{ getTextTerminalStation(connection, 0) }}
+                  </text>
+                  <text
+                    [attr.x]="getFromStationNameFieldPosition()"
+                    [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
+                    dominant-baseline="text-after-edge"
+                    class="edge_text end station"
+                    (click)="selectConnection(connection)"
+                    [ngClass]="[getTextTerminalStationlassTag(connection, 0)]"
+                  >
+                    {{ getTextTerminalStation(connection, 0) }}
+                  </text>
+                  <text
+                    [attr.x]="getToStationNameFieldPosition()"
+                    [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
+                    text-anchor="start"
+                    dominant-baseline="text-after-edge"
+                    class="edge_text start station layer0"
+                    (click)="selectConnection(connection)"
+                    style="stroke-width: 6px"
+                    [ngClass]="[getTextTerminalStationlassTag(connection, 1)]"
+                  >
+                    {{ getTextTerminalStation(connection, 1) }}
+                  </text>
+                  <text
+                    [attr.x]="getToStationNameFieldPosition()"
+                    [attr.y]="20 + transformIndex(connectionIndex, connectionGrpKey) * surplus"
+                    text-anchor="start"
+                    dominant-baseline="text-after-edge"
+                    class="edge_text start station"
+                    (click)="selectConnection(connection)"
+                    [ngClass]="[getTextTerminalStationlassTag(connection, 1)]"
+                  >
+                    {{ getTextTerminalStation(connection, 1) }}
+                  </text>
+                </g>
+              }
+            </ng-container>
+          }
+          @if (
             !perlenketteNode.isTopNode(perlenketteTrainrun) &&
             !perlenketteNode.isBottomNode(perlenketteTrainrun)
-          "
-        >
-          <g [attr.transform]="getInitialExpanedTranform()">
-            <path
-              [attr.d]="
-                getConnectedTrainEdgeLine(
-                  getTrainrunNameFieldPosition(),
-                  1 + getConnectionsSize(0, getSepLinePos()) * surplus,
-                  getExpandedNodeWith() - 2 * getTrainrunNameFieldPosition()
-                )
-              "
-              class="SepConnectionLine"
-            ></path>
-          </g>
+          ) {
+            <ng-container>
+              <g [attr.transform]="getInitialExpanedTranform()">
+                <path
+                  [attr.d]="
+                    getConnectedTrainEdgeLine(
+                      getTrainrunNameFieldPosition(),
+                      1 + getConnectionsSize(0, getSepLinePos()) * surplus,
+                      getExpandedNodeWith() - 2 * getTrainrunNameFieldPosition()
+                    )
+                  "
+                  class="SepConnectionLine"
+                ></path>
+              </g>
+            </ng-container>
+          }
         </ng-container>
-      </ng-container>
-
-      <ng-container *ngIf="!isExpanded">
-        <text
-          [attr.x]="getExpandedNodeWith() / 2"
-          [attr.y]="20"
-          font-size="14px"
-          style="filter: hue-rotate(340deg) brightness(0.8); text-anchor: middle"
-          stroke-width="0.25px"
-          fill="var(--COLOR_Warning)"
-        >
-          {{ getConnectionIssue() }}
-        </text>
-        <text
-          [attr.x]="getExpandedNodeWith() / 2"
-          [attr.y]="20 + surplus"
-          font-size="14px"
-          style="text-anchor: middle"
-          stroke="var(--COLOR_Focus)"
-          stroke-width="0.25px"
-          fill="var(--COLOR_Default)"
-        >
-          {{ getFittingConnections() }}
-        </text>
-      </ng-container>
-
+      }
+      @if (!isExpanded) {
+        <ng-container>
+          <text
+            [attr.x]="getExpandedNodeWith() / 2"
+            [attr.y]="20"
+            font-size="14px"
+            style="filter: hue-rotate(340deg) brightness(0.8); text-anchor: middle"
+            stroke-width="0.25px"
+            fill="var(--COLOR_Warning)"
+          >
+            {{ getConnectionIssue() }}
+          </text>
+          <text
+            [attr.x]="getExpandedNodeWith() / 2"
+            [attr.y]="20 + surplus"
+            font-size="14px"
+            style="text-anchor: middle"
+            stroke="var(--COLOR_Focus)"
+            stroke-width="0.25px"
+            fill="var(--COLOR_Default)"
+          >
+            {{ getFittingConnections() }}
+          </text>
+        </ng-container>
+      }
       <text x="8" [attr.y]="55 + heightConnectionSurplus" class="node_text">
         {{ getNodeName() }}
       </text>
@@ -271,28 +269,29 @@
         {{ perlenketteNode.connectionTime }}
       </text>
     </svg>
-
-    <sbb-icon
-      *ngIf="!isExpanded"
-      svgIcon="chevron-down-small"
-      class="sbb-icon-fit"
-      [attr.style]="
-        'transform: translate(-1.5px, 0px);width: 24px;height: 24px;left: ' +
-        (getExpandedNodeWith() / 2 - 12) +
-        'px;bottom: 2px;'
-      "
-      (click)="expandConnections()"
-    ></sbb-icon>
-    <sbb-icon
-      *ngIf="isExpanded"
-      svgIcon="chevron-up-small"
-      class="sbb-icon-fit"
-      [attr.style]="
-        'transform: translate(-1.5px, 0px);width: 24px;height: 24px;left: ' +
-        (getExpandedNodeWith() / 2 - 12) +
-        'px;bottom: 2px;'
-      "
-      (click)="expandConnections()"
-    ></sbb-icon>
-  </ng-container>
+    @if (!isExpanded) {
+      <sbb-icon
+        svgIcon="chevron-down-small"
+        class="sbb-icon-fit"
+        [attr.style]="
+          'transform: translate(-1.5px, 0px);width: 24px;height: 24px;left: ' +
+          (getExpandedNodeWith() / 2 - 12) +
+          'px;bottom: 2px;'
+        "
+        (click)="expandConnections()"
+      ></sbb-icon>
+    }
+    @if (isExpanded) {
+      <sbb-icon
+        svgIcon="chevron-up-small"
+        class="sbb-icon-fit"
+        [attr.style]="
+          'transform: translate(-1.5px, 0px);width: 24px;height: 24px;left: ' +
+          (getExpandedNodeWith() / 2 - 12) +
+          'px;bottom: 2px;'
+        "
+        (click)="expandConnections()"
+      ></sbb-icon>
+    }
+  }
 </div>

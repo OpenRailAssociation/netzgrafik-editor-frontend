@@ -10,17 +10,15 @@
       [(ngModel)]="activeColorTheme.themeRegistration"
       class="sbb-radio-group-vertical"
     >
-      <sbb-radio-button
-        *ngFor="let option of colorThemeOptions"
-        [value]="option.themeRegistration"
-        (change)="onUpdateColorTheme($event)"
-      >
-        {{ option.name }}
-      </sbb-radio-button>
+      @for (option of colorThemeOptions; track option) {
+        <sbb-radio-button [value]="option.themeRegistration" (change)="onUpdateColorTheme($event)">
+          {{ option.name }}
+        </sbb-radio-button>
+      }
     </sbb-radio-group>
 
     <br />
-    <ng-container *ngIf="!isActiveColorThemeDark()">
+    @if (!isActiveColorThemeDark()) {
       <sbb-label>{{
         "app.view.editor-properties-view-component.background-color" | translate
       }}</sbb-label>
@@ -69,8 +67,8 @@
       >
         <sbb-icon svgIcon="trash-small"></sbb-icon>
       </button>
-    </ng-container>
-    <ng-container *ngIf="isActiveColorThemeDark()">
+    }
+    @if (isActiveColorThemeDark()) {
       <sbb-label>{{
         "app.view.editor-properties-view-component.background-color-black" | translate
       }}</sbb-label>
@@ -96,9 +94,9 @@
       >
         <sbb-icon svgIcon="trash-small"></sbb-icon>
       </button>
-    </ng-container>
+    }
     <br />
-    <ng-container *ngIf="isLocalStoredColorTheme()">
+    @if (isLocalStoredColorTheme()) {
       <button
         sbb-secondary-button
         class="sbb-mt-m"
@@ -109,7 +107,7 @@
       >
         {{ "app.view.editor-properties-view-component.defaultBrowserColorTheme" | translate }}
       </button>
-    </ng-container>
+    }
   </sbb-expansion-panel>
 
   <sbb-expansion-panel [expanded]="true">
@@ -124,14 +122,15 @@
       [(ngModel)]="activeTravelTimeCreationEstimatorType"
       class="sbb-radio-group-vertical"
     >
-      <sbb-radio-button
-        *ngFor="let option of travelTimeCreationEstimatorTypeOptions"
-        [value]="option.travelTimeCreationEstimatorType"
-        [title]="option.title"
-        (change)="onUpdateTravelTimeCreationEstimatorType($event)"
-      >
-        {{ option.name }}
-      </sbb-radio-button>
+      @for (option of travelTimeCreationEstimatorTypeOptions; track option) {
+        <sbb-radio-button
+          [value]="option.travelTimeCreationEstimatorType"
+          [title]="option.title"
+          (change)="onUpdateTravelTimeCreationEstimatorType($event)"
+        >
+          {{ option.name }}
+        </sbb-radio-button>
+      }
     </sbb-radio-group>
   </sbb-expansion-panel>
 
@@ -142,14 +141,15 @@
     <sbb-label>{{ "app.view.editor-properties-view-component.trafficSide" | translate }}</sbb-label>
     <br />
     <sbb-radio-group [(ngModel)]="activeTrafficSideType" class="sbb-radio-group-vertical">
-      <sbb-radio-button
-        *ngFor="let option of trafficSideTypeOptions"
-        [value]="option.trafficSide"
-        [title]="option.title"
-        (change)="onUpdateTrafficSideType($event)"
-      >
-        {{ option.name }}
-      </sbb-radio-button>
+      @for (option of trafficSideTypeOptions; track option) {
+        <sbb-radio-button
+          [value]="option.trafficSide"
+          [title]="option.title"
+          (change)="onUpdateTrafficSideType($event)"
+        >
+          {{ option.name }}
+        </sbb-radio-button>
+      }
     </sbb-radio-group>
   </sbb-expansion-panel>
 
@@ -165,14 +165,15 @@
       [(ngModel)]="activeStreckengrafikRenderingType"
       class="sbb-radio-group-vertical"
     >
-      <sbb-radio-button
-        *ngFor="let option of streckengrafikRenderingTypeOptions"
-        [value]="option.streckengrafikRenderingType"
-        [title]="option.title"
-        (change)="onUpdateStreckengrafikRenderingType($event)"
-      >
-        {{ option.name }}
-      </sbb-radio-button>
+      @for (option of streckengrafikRenderingTypeOptions; track option) {
+        <sbb-radio-button
+          [value]="option.streckengrafikRenderingType"
+          [title]="option.title"
+          (change)="onUpdateStreckengrafikRenderingType($event)"
+        >
+          {{ option.name }}
+        </sbb-radio-button>
+      }
     </sbb-radio-group>
   </sbb-expansion-panel>
 </sbb-accordion>

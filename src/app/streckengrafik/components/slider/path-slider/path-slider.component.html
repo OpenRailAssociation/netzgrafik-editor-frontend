@@ -5,69 +5,105 @@
     xmlns="http://www.w3.org/2000/svg"
   >
     <g>
-      <g *ngFor="let path of getSelectedTrainrunPaths()">
-        <g [attr.transform]="'translate(' + getTranslateX(path) + ',' + 0 + ')'">
-          <g *ngIf="isPathNode(path)">
-            <ng-container *ngIf="!isTrackOccupier(path)">
-              <ng-container *ngIf="!isStartOrEndNode(path)">
-                <ng-container *ngIf="showRailTrackSlider">
-                  <line class="VerticalNodeLine NoTrackOccupier" x1="0" y1="18" x2="0" y2="40" />
-                </ng-container>
-                <ng-container *ngIf="!showRailTrackSlider">
-                  <line class="VerticalNodeLine NoTrackOccupier" x1="0" y1="28" x2="0" y2="40" />
-                </ng-container>
+      @for (path of getSelectedTrainrunPaths(); track path) {
+        <g>
+          <g [attr.transform]="'translate(' + getTranslateX(path) + ',' + 0 + ')'">
+            @if (isPathNode(path)) {
+              <g>
+                @if (!isTrackOccupier(path)) {
+                  <ng-container>
+                    @if (!isStartOrEndNode(path)) {
+                      <ng-container>
+                        @if (showRailTrackSlider) {
+                          <ng-container>
+                            <line
+                              class="VerticalNodeLine NoTrackOccupier"
+                              x1="0"
+                              y1="18"
+                              x2="0"
+                              y2="40"
+                            />
+                          </ng-container>
+                        }
+                        @if (!showRailTrackSlider) {
+                          <ng-container>
+                            <line
+                              class="VerticalNodeLine NoTrackOccupier"
+                              x1="0"
+                              y1="28"
+                              x2="0"
+                              y2="40"
+                            />
+                          </ng-container>
+                        }
+                      </ng-container>
+                    }
+                    <text [class]="getNodeTextClassTag(path)" x="0" y="15" (click)="doClick(path)">
+                      {{ getNodeName(path) }}
+                    </text>
+                  </ng-container>
+                }
+                @if (isTrackOccupier(path)) {
+                  <ng-container>
+                    <rect
+                      class="TrackOccupierShown"
+                      [attr.x]="-1"
+                      y="0"
+                      [attr.width]="nodeWidth(path) + 2"
+                      height="39"
+                    />
+                    <text
+                      [attr.x]="nodeWidth(path) / 2"
+                      y="15"
+                      class="TrackOccupierShown"
+                      (click)="doClick(path)"
+                    >
+                      {{ getNodeName(path) }}
+                    </text>
+                    @if (!isStartOrEndNode(path) || path.index !== 0) {
+                      <ng-container>
+                        <line class="VerticalNodeLine TrackOccupier" x1="0" y1="0" x2="0" y2="40" />
+                      </ng-container>
+                    }
+                    @if (!isStartOrEndNode(path) || path.index === 0) {
+                      <ng-container>
+                        <line
+                          class="VerticalNodeLine TrackOccupier"
+                          [attr.x1]="nodeWidth(path) - 1"
+                          y1="0"
+                          [attr.x2]="nodeWidth(path) - 1"
+                          y2="40"
+                        />
+                      </ng-container>
+                    }
+                  </ng-container>
+                }
+              </g>
+            }
+            @if (showRailTrackSlider) {
+              <ng-container>
+                @if (isPathSection(path)) {
+                  <g>
+                    <g sbb-path-slider-track-segments [path]="path" [horizontal]="horizontal"></g>
+                  </g>
+                }
               </ng-container>
-              <text [class]="getNodeTextClassTag(path)" x="0" y="15" (click)="doClick(path)">
-                {{ getNodeName(path) }}
-              </text>
-            </ng-container>
-            <ng-container *ngIf="isTrackOccupier(path)">
-              <rect
-                class="TrackOccupierShown"
-                [attr.x]="-1"
-                y="0"
-                [attr.width]="nodeWidth(path) + 2"
-                height="39"
-              />
-              <text
-                [attr.x]="nodeWidth(path) / 2"
-                y="15"
-                class="TrackOccupierShown"
-                (click)="doClick(path)"
-              >
-                {{ getNodeName(path) }}
-              </text>
-              <ng-container *ngIf="!isStartOrEndNode(path) || path.index !== 0">
-                <line class="VerticalNodeLine TrackOccupier" x1="0" y1="0" x2="0" y2="40" />
-              </ng-container>
-              <ng-container *ngIf="!isStartOrEndNode(path) || path.index === 0">
+            }
+            @if (isPathSection(path)) {
+              <g>
                 <line
-                  class="VerticalNodeLine TrackOccupier"
-                  [attr.x1]="nodeWidth(path) - 1"
-                  y1="0"
-                  [attr.x2]="nodeWidth(path) - 1"
+                  style="stroke-width: 0.5px; stroke: var(--NODE_TEXT_FOCUS)"
+                  [attr.x1]="0"
+                  y1="40"
+                  [attr.x2]="sectionWidth(path)"
                   y2="40"
                 />
-              </ng-container>
-            </ng-container>
-          </g>
-          <ng-container *ngIf="showRailTrackSlider">
-            <g *ngIf="isPathSection(path)">
-              <g sbb-path-slider-track-segments [path]="path" [horizontal]="horizontal"></g>
-            </g>
-          </ng-container>
-          <g *ngIf="isPathSection(path)">
-            <line
-              style="stroke-width: 0.5px; stroke: var(--NODE_TEXT_FOCUS)"
-              [attr.x1]="0"
-              y1="40"
-              [attr.x2]="sectionWidth(path)"
-              y2="40"
-            />
-            />
+                />
+              </g>
+            }
           </g>
         </g>
-      </g>
+      }
     </g>
 
     <g sbb-path-grid [renderTrackLabels]="true"></g>

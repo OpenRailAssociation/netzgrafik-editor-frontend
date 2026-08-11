@@ -1,9 +1,18 @@
-import {Component, ElementRef, EventEmitter, Input, Output, ViewChild} from "@angular/core";
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  Output,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 
 @Component({
   selector: "sbb-time-stepper",
   templateUrl: "./time-stepper.component.html",
   styleUrls: ["./time-stepper.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class TimeStepperComponent {
