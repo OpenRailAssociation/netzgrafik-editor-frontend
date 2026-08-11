@@ -211,7 +211,7 @@ export class StreckengrafikComponent implements OnInit, OnDestroy, AfterViewInit
     return tag;
   }
 
-  @HostListener("window:resize", ["$event"])
+  @HostListener("window:resize")
   onResize(): void {
     this.updateContentSize();
   }
