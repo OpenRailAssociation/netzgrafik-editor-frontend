@@ -1,5 +1,5 @@
 # publiccode.yml for Netzgrafik-Editor Frontend
-publiccodeYmlVersion: "0.1"
+publiccodeYmlVersion: "0.5"
 
 name: "Netzgrafik-Editor Frontend"
 url: "https://github.com/OpenRailAssociation/netzgrafik-editor-frontend"
@@ -36,6 +36,16 @@ description:
 
 legal:
   license: "Apache-2.0"
+
+maintenance:
+  type: "contract"
+  
+localisation:
+  localisationReady: true
+  availableLanguages:
+    - de
+    - en
+    - fr
 
 maintenance:
   type: community
