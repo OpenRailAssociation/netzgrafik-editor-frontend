@@ -128,22 +128,10 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
     this.destroyed.complete();
   }
 
-  search() {
-    if (this.searchControl.value instanceof Trainrun) {
-      this.searchResults = [this.searchControl.value];
-      this.trainrunService.setTrainrunAsSelected(this.searchResults[0].getId());
-      this.orderedNodeEntries = this.updateOrderedNodeEntries();
-      return;
-    }
-
-    this.searchResults = this.filterTrainruns(this.searchControl.value).sort((a, b) =>
-      this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
-    );
-
+  onSearch() {
+    this.search();
     if (this.searchResults.length === 1) {
-      const trainrun = this.searchResults[0];
-      this.trainrunService.setTrainrunAsSelected(trainrun.getId());
-      this.orderedNodeEntries = this.updateOrderedNodeEntries();
+      this.onSearchResultClick(this.searchControl.value as Trainrun);
     }
   }
 
@@ -194,6 +182,25 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
     const betriebspunktName = node.getBetriebspunktName() ?? "";
     const fullName = node.getFullName() ?? "";
     return `${betriebspunktName} (${fullName})`;
+  }
+
+  private search() {
+    if (this.searchControl.value instanceof Trainrun) {
+      this.searchResults = [this.searchControl.value];
+      this.trainrunService.setTrainrunAsSelected(this.searchResults[0].getId());
+      this.orderedNodeEntries = this.updateOrderedNodeEntries();
+      return;
+    }
+
+    this.searchResults = this.filterTrainruns(this.searchControl.value).sort((a, b) =>
+      this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
+    );
+
+    if (this.searchResults.length === 1) {
+      const trainrun = this.searchResults[0];
+      this.trainrunService.setTrainrunAsSelected(trainrun.getId());
+      this.orderedNodeEntries = this.updateOrderedNodeEntries();
+    }
   }
 
   private filterTrainruns(value: string | Trainrun | null): Trainrun[] {
