@@ -1,4 +1,15 @@
-import {Component, ChangeDetectionStrategy, HostListener, OnDestroy, OnInit} from "@angular/core";
+import {
+  Component,
+  EventEmitter,
+  HostListener,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output,
+  SimpleChanges,
+} from "@angular/core";
+import {FilterService} from "../../../services/ui/filter.service";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
@@ -12,11 +23,13 @@ import {Vec2D} from "../../../utils/vec2D";
   selector: "sbb-editor-node-search-view-component",
   templateUrl: "./editor-node-search-view-component.html",
   styleUrls: ["./editor-node-search-view-component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
+export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChanges {
   private static readonly FILTER_PANEL_ID = "cd-layout-filter";
+
+  @Input() resetSignal = 0;
+  @Output() isEmptyChange = new EventEmitter<boolean>();
 
   searchControl = new FormControl<string | Node | null>("");
   searchResults: Node[] = [];
@@ -26,21 +39,32 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
   private destroyed = new Subject<void>();
   allSearchableNodes: Node[] = [];
   filteredNodes: Node[] = [];
-  isSearchResultsDragging = false;
-  private searchResultsElement: HTMLElement | null = null;
-  private searchResultsDragStartY = 0;
-  private searchResultsDragStartScrollTop = 0;
+  isDraggingResults = false;
+
+  private dragStartY = 0;
+  private dragStartScrollTop = 0;
+  private activeResultsList: HTMLElement | null = null;
 
   constructor(
     private uiInteractionService: UiInteractionService,
     private nodeService: NodeService,
+    private filterService: FilterService,
   ) {
     this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe((nodes: Node[]) => {
-      this.allSearchableNodes = nodes;
+      this.allSearchableNodes = nodes.filter((node) => this.filterService.filterNode(node));
       this.updateFilteredNodes(this.searchControl.value);
     });
 
-    this.allSearchableNodes = this.nodeService.getNodes();
+    this.filterService.filter.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.allSearchableNodes = this.nodeService
+        .getNodes()
+        .filter((node) => this.filterService.filterNode(node));
+      this.updateFilteredNodes(this.searchControl.value);
+    });
+
+    this.allSearchableNodes = this.nodeService
+      .getNodes()
+      .filter((node) => this.filterService.filterNode(node));
     this.updateFilteredNodes(this.searchControl.value);
   }
 
@@ -58,15 +82,58 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
 
     this.searchControl.valueChanges.pipe(takeUntil(this.destroyed)).subscribe((value) => {
       this.updateFilteredNodes(value);
+      this.emitIsEmptyState();
     });
+
+    this.emitIsEmptyState();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes["resetSignal"] && !changes["resetSignal"].firstChange) {
+      this.clearSearch();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.stopDragScroll();
+    this.destroyed.next();
+    this.destroyed.complete();
+  }
+
+  onResultListMouseDown(event: MouseEvent, listElement: HTMLElement): void {
+    if (event.button !== 0) {
+      return;
+    }
+
+    // Dragging is enabled only if the list can actually scroll.
+    if (listElement.scrollHeight <= listElement.clientHeight) {
+      return;
+    }
+
+    this.isDraggingResults = true;
+    this.activeResultsList = listElement;
+    this.dragStartY = event.clientY;
+    this.dragStartScrollTop = listElement.scrollTop;
+    event.preventDefault();
+  }
+
+  @HostListener("document:mousemove", ["$event"])
+  onDocumentMouseMove(event: MouseEvent): void {
+    if (!this.isDraggingResults || !this.activeResultsList) {
+      return;
+    }
+
+    const deltaY = event.clientY - this.dragStartY;
+    this.activeResultsList.scrollTop = this.dragStartScrollTop + deltaY;
+  }
+
+  @HostListener("document:mouseup")
+  onDocumentMouseUp(): void {
+    this.stopDragScroll();
   }
 
   get isNetzgrafikMode(): boolean {
     return this.mainViewMode === MainViewMode.Netzgrafik;
-  }
-  ngOnDestroy(): void {
-    this.destroyed.next();
-    this.destroyed.complete();
   }
 
   search() {
@@ -88,45 +155,6 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
       EditorNodeSearchViewComponent.FILTER_PANEL_ID,
     );
     this.uiInteractionService.gotoNode(node, offset);
-  }
-
-  canResetSearch(): boolean {
-    return this.searchResults.length > 0 || this.getSearchTerm(this.searchControl.value) !== "";
-  }
-
-  resetSearch(): void {
-    this.searchResults = [];
-    this.onSearchResultsMouseUp();
-    this.searchControl.setValue("");
-  }
-
-  onSearchResultsMouseDown(event: MouseEvent): void {
-    if (event.button !== 0 || (event.target as HTMLElement).closest(".smallstation") !== null) {
-      return;
-    }
-
-    this.searchResultsElement = event.currentTarget as HTMLElement;
-    this.searchResultsDragStartY = event.clientY;
-    this.searchResultsDragStartScrollTop = this.searchResultsElement.scrollTop;
-    this.isSearchResultsDragging = true;
-    event.preventDefault();
-  }
-
-  @HostListener("document:mousemove", ["$event"])
-  onSearchResultsMouseMove(event: MouseEvent): void {
-    if (!this.isSearchResultsDragging || this.searchResultsElement === null) {
-      return;
-    }
-
-    this.searchResultsElement.scrollTop =
-      this.searchResultsDragStartScrollTop + (event.clientY - this.searchResultsDragStartY);
-    event.preventDefault();
-  }
-
-  @HostListener("document:mouseup")
-  onSearchResultsMouseUp(): void {
-    this.isSearchResultsDragging = false;
-    this.searchResultsElement = null;
   }
 
   getNodeSearchValue(node: Node): string {
@@ -205,5 +233,24 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
     const element = document.getElementById(elementId);
     const offsetXPx = element?.getBoundingClientRect().right ?? 0;
     return this.uiInteractionService.getNetzgrafikOffsetFromScreenPx(offsetXPx, 0);
+  }
+
+  private clearSearch(): void {
+    this.stopDragScroll();
+    this.searchControl.setValue("");
+    this.searchResults = [];
+    this.updateFilteredNodes(this.searchControl.value);
+    this.emitIsEmptyState();
+  }
+
+  private emitIsEmptyState(): void {
+    const value = this.searchControl.value;
+    const isEmpty = value === null || (typeof value === "string" && value.trim() === "");
+    this.isEmptyChange.emit(isEmpty);
+  }
+
+  private stopDragScroll(): void {
+    this.isDraggingResults = false;
+    this.activeResultsList = null;
   }
 }

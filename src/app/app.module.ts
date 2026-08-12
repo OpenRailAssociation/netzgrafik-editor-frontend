@@ -48,6 +48,7 @@ import {EditorNodeDetailViewComponent} from "./view/editor-side-view/editor-node
 import {EditorFilterViewComponent} from "./view/editor-filter-view/editor-filter-view.component";
 import {EditorSearchViewComponent} from "./view/editor-search-view/editor-search-view-component";
 import {EditorNodeSearchViewComponent} from "./view/editor-search-view/editor-node-search-view-component/editor-node-search-view-component";
+import {EditorTrainrunSearchViewComponent} from "./view/editor-search-view/editor-trainrun-search-view-component/editor-trainrun-search-view-component";
 import {EditorMenuComponent} from "./view/editor-menu/editor-menu.component";
 import {EditorSideViewComponent} from "./view/editor-side-view/editor-side-view.component";
 import {BaseDataDialogComponent} from "./view/dialogs/basedata-dialog/basedata-dialog.component";
@@ -136,6 +137,7 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     EditorFilterViewComponent,
     EditorSearchViewComponent,
     EditorNodeSearchViewComponent,
+    EditorTrainrunSearchViewComponent,
     BaseDataDialogComponent,
     EditorMenuComponent,
     EditorSideViewComponent,
