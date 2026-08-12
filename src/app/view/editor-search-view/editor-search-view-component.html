@@ -6,38 +6,6 @@
       >{{ "app.view.editor-search-view-component.goto" | translate }}</sbb-expansion-panel-header
     >
 
-    <sbb-search
-      (search)="search()"
-      aria-label="{{ 'app.view.editor-search-view-component.search-node' | translate }}"
-    >
-      <input
-        sbbInput
-        [placeholder]="'app.view.editor-search-view-component.search-node' | translate"
-        [formControl]="searchControl"
-        [sbbAutocomplete]="auto"
-      />
-    </sbb-search>
-    <sbb-autocomplete #auto="sbbAutocomplete" [displayWith]="displayNode">
-      @for (option of filteredNodes; track option) {
-      <sbb-option [value]="option">{{ transformNodeName(option) }}</sbb-option>
-      }
-    </sbb-autocomplete>
-
-    @if (searchResults.length > 1) {
-    <div class="search-results-list">
-      @for (node of searchResults; track node) {
-      <br />
-      <p class="alignleft" style="line-height: 10px">
-        <span
-          class="smallstation"
-          [title]="transformNodeName(node)"
-          (click)="onSearchResultClick(node)"
-        >
-          {{ getNodeSearchValue(node) }}
-        </span>
-      </p>
-      }
-    </div>
-    }
+    <sbb-editor-node-search-view-component></sbb-editor-node-search-view-component>
   </sbb-expansion-panel>
 </sbb-accordion>
