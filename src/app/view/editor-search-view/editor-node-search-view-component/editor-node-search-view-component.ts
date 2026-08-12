@@ -1,4 +1,13 @@
-import {Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from "@angular/core";
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output,
+  SimpleChanges,
+} from "@angular/core";
 import {FilterService} from "../../../services/ui/filter.service";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {takeUntil} from "rxjs/operators";

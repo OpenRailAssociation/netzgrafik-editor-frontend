@@ -19,16 +19,15 @@
     ></sbb-editor-trainrun-search-view-component>
 
     <div style="transform: translate(24px, 10px)">
-    <button
+      <button
         sbb-secondary-button
         class="sbb-mt-m"
-      [disabled]="allSearchFieldsEmpty()"
+        [disabled]="allSearchFieldsEmpty()"
         [title]="'app.view.editor-search-view-component.clear-all-search-fields' | translate"
         (click)="onResetAllSearchFields()"
-    >
+      >
         {{ "app.view.editor-search-view-component.clear-all-search-fields" | translate }}
-    </button>
+      </button>
     </div>
-
   </sbb-expansion-panel>
 </sbb-accordion>
