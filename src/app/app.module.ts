@@ -45,6 +45,7 @@ import {TrainrunSectionTabComponent} from "./view/dialogs/trainrun-and-section-d
 import {TrainrunSectionCardComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrunsection-card/trainrun-section-card.component";
 import {EditorNodeDetailViewComponent} from "./view/editor-side-view/editor-node-detail-view/editor-node-detail-view.component";
 import {EditorFilterViewComponent} from "./view/editor-filter-view/editor-filter-view.component";
+import {EditorSearchViewComponent} from "./view/editor-search-view/editor-search-view-component";
 import {EditorMenuComponent} from "./view/editor-menu/editor-menu.component";
 import {EditorSideViewComponent} from "./view/editor-side-view/editor-side-view.component";
 import {BaseDataDialogComponent} from "./view/dialogs/basedata-dialog/basedata-dialog.component";
@@ -131,6 +132,7 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     TrainrunSectionCardComponent,
     EditorNodeDetailViewComponent,
     EditorFilterViewComponent,
+    EditorSearchViewComponent,
     BaseDataDialogComponent,
     EditorMenuComponent,
     EditorSideViewComponent,
