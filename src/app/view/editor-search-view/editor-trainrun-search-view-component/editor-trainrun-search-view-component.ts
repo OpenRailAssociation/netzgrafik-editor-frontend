@@ -53,6 +53,9 @@ export class EditorTrainrunSearchViewComponent {
           this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
         );
         this.orderedNodeEntries = this.updateOrderedNodeEntries();
+        if (!this.trainrunService.getSelectedTrainrun()) {
+          this.searchControl.setValue(null);
+        }
       });
 
     this.trainrunSectionService.trainrunSections.pipe(takeUntil(this.destroyed)).subscribe(() => {
@@ -60,7 +63,6 @@ export class EditorTrainrunSearchViewComponent {
       this.filteredTrainruns = this.filterTrainruns(this.searchControl.value).sort((a, b) =>
         this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
       );
-      console.log("EVENT");
       this.orderedNodeEntries = this.updateOrderedNodeEntries();
     });
 
