@@ -36,6 +36,11 @@ export class EditorNodeSearchViewComponent {
         this.getNodeSearchValue(a).localeCompare(this.getNodeSearchValue(b)),
       );
     });
+
+    this.allSearchableNodes = this.nodeService.getNodes();
+    this.filteredNodes = this.filterNodes(this.searchControl.value).sort((a, b) =>
+      this.getNodeSearchValue(a).localeCompare(this.getNodeSearchValue(b)),
+    );
   }
 
   ngOnInit(): void {
@@ -154,7 +159,7 @@ export class EditorNodeSearchViewComponent {
     );
   }
 
-  getNetzgrafikOffsetForElementRightEdge(elementId: string): Vec2D {
+  private getNetzgrafikOffsetForElementRightEdge(elementId: string): Vec2D {
     const element = document.getElementById(elementId);
     const offsetXPx = element?.getBoundingClientRect().right ?? 0;
     return this.uiInteractionService.getNetzgrafikOffsetFromScreenPx(offsetXPx, 0);
