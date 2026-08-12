@@ -427,7 +427,8 @@
       "editor-search-view-component": {
         "search": "Suchen",
         "goto": "Gehe zu",
-        "search-node": "Suche nach Knoten"
+        "search-node": "Suche nach Knoten",
+        "search-trainrun": "Suche nach Zugfahrten"
       },
       "editor-menu": {
         "save-changes": "Speichere Änderungen",

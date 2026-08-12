@@ -1,0 +1,35 @@
+<sbb-search
+  (search)="search()"
+  aria-label="{{ 'app.view.editor-search-view-component.search-trainrun' | translate }}"
+>
+  <input
+    sbbInput
+    [placeholder]="'app.view.editor-search-view-component.search-trainrun' | translate"
+    [formControl]="searchControl"
+    [sbbAutocomplete]="auto"
+  />
+</sbb-search>
+<sbb-autocomplete #auto="sbbAutocomplete" [displayWith]="displayTrainrun">
+  @for (option of filteredTrainruns; track option) {
+  <sbb-option [value]="option">{{ transformTrainrunName(option) }}</sbb-option>
+  }
+</sbb-autocomplete>
+
+@if (searchResults.length === 1 && orderedNodeEntries.length > 0) {
+<div class="search-results-list">
+  @for (entry of orderedNodeEntries; track entry.node.getId()) {
+  <br />
+  <p class="alignleft" style="line-height: 10px">
+    <span
+      class="smallstation"
+      [title]="transformNodeName(entry.node)"
+      (click)="onOrderedNodeClick(entry.node)"
+    >
+      {{ transformNodeName(entry.node) }}
+    </span>
+  </p>
+  @if (entry.hasGapAfter) {
+  <br />
+  } }
+</div>
+}
