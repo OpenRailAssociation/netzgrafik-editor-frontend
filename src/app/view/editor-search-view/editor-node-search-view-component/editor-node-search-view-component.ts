@@ -1,4 +1,5 @@
 import {Component, inject} from "@angular/core";
+import {FilterService} from "../../../services/ui/filter.service";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
@@ -29,15 +30,27 @@ export class EditorNodeSearchViewComponent {
   constructor(
     private uiInteractionService: UiInteractionService,
     private nodeService: NodeService,
+    private filterService: FilterService,
   ) {
     this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe((nodes: Node[]) => {
-      this.allSearchableNodes = nodes;
+      this.allSearchableNodes = nodes.filter((node) => this.filterService.filterNode(node));
       this.filteredNodes = this.filterNodes(this.searchControl.value).sort((a, b) =>
         this.getNodeSearchValue(a).localeCompare(this.getNodeSearchValue(b)),
       );
     });
 
-    this.allSearchableNodes = this.nodeService.getNodes();
+    this.filterService.filter.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.allSearchableNodes = this.nodeService
+        .getNodes()
+        .filter((node) => this.filterService.filterNode(node));
+      this.filteredNodes = this.filterNodes(this.searchControl.value).sort((a, b) =>
+        this.getNodeSearchValue(a).localeCompare(this.getNodeSearchValue(b)),
+      );
+    });
+
+    this.allSearchableNodes = this.nodeService
+      .getNodes()
+      .filter((node) => this.filterService.filterNode(node));
     this.filteredNodes = this.filterNodes(this.searchControl.value).sort((a, b) =>
       this.getNodeSearchValue(a).localeCompare(this.getNodeSearchValue(b)),
     );

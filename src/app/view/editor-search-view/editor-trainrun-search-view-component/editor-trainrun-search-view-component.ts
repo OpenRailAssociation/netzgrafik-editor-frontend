@@ -1,4 +1,5 @@
 import {Component} from "@angular/core";
+import {FilterService} from "../../../services/ui/filter.service";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
 import {Trainrun} from "../../../models/trainrun.model";
@@ -37,8 +38,11 @@ export class EditorTrainrunSearchViewComponent {
     private trainrunSectionService: TrainrunSectionService,
     private uiInteractionService: UiInteractionService,
     private loadPerlenketteService: LoadPerlenketteService,
+    private filterService: FilterService,
   ) {
-    this.allSearchableTrainruns = this.trainrunService.getTrainruns();
+    this.allSearchableTrainruns = this.trainrunService
+      .getTrainruns()
+      .filter((trainrun) => this.filterService.filterTrainrun(trainrun));
     this.filteredTrainruns = this.filterTrainruns(this.searchControl.value).sort((a, b) =>
       this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
     );
@@ -48,7 +52,9 @@ export class EditorTrainrunSearchViewComponent {
     this.trainrunService.trainruns
       .pipe(takeUntil(this.destroyed))
       .subscribe((trainruns: Trainrun[]) => {
-        this.allSearchableTrainruns = trainruns;
+        this.allSearchableTrainruns = trainruns.filter((trainrun) =>
+          this.filterService.filterTrainrun(trainrun),
+        );
         this.filteredTrainruns = this.filterTrainruns(this.searchControl.value).sort((a, b) =>
           this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
         );
@@ -59,7 +65,19 @@ export class EditorTrainrunSearchViewComponent {
       });
 
     this.trainrunSectionService.trainrunSections.pipe(takeUntil(this.destroyed)).subscribe(() => {
-      this.allSearchableTrainruns = this.trainrunService.getTrainruns();
+      this.allSearchableTrainruns = this.trainrunService
+        .getTrainruns()
+        .filter((trainrun) => this.filterService.filterTrainrun(trainrun));
+      this.filteredTrainruns = this.filterTrainruns(this.searchControl.value).sort((a, b) =>
+        this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
+      );
+      this.orderedNodeEntries = this.updateOrderedNodeEntries();
+    });
+
+    this.filterService.filter.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.allSearchableTrainruns = this.trainrunService
+        .getTrainruns()
+        .filter((trainrun) => this.filterService.filterTrainrun(trainrun));
       this.filteredTrainruns = this.filterTrainruns(this.searchControl.value).sort((a, b) =>
         this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
       );
