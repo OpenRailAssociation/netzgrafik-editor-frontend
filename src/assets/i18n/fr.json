@@ -424,6 +424,11 @@
           "hide": "masquer"
         }
       },
+      "editor-search-view-component": {
+        "search": "Rechercher",
+        "goto": "Aller à",
+        "node": "Noeud"
+      },
       "editor-menu": {
         "save-changes": "Enregistrer les modifications",
         "changes-saved": "Modifications enregistrées",
