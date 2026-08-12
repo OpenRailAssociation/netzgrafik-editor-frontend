@@ -22,6 +22,7 @@ import {SbbLoadingIndicatorModule} from "@sbb-esta/angular/loading-indicator";
 import {SbbMenuModule} from "@sbb-esta/angular/menu";
 import {SbbNotificationToastModule} from "@sbb-esta/angular/notification-toast";
 import {SbbRadioButtonModule} from "@sbb-esta/angular/radio-button";
+import {SbbSearchModule} from "@sbb-esta/angular/search";
 import {SbbSelectModule} from "@sbb-esta/angular/select";
 import {SbbSidebarModule} from "@sbb-esta/angular/sidebar";
 import {SbbTableModule} from "@sbb-esta/angular/table";
@@ -237,6 +238,7 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     SbbUsermenuModule,
     SbbButtonModule,
     SbbInputModule,
+    SbbSearchModule,
     SbbFileSelectorModule,
     SbbMenuModule,
     SbbSidebarModule,

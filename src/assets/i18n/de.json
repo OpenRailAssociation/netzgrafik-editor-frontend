@@ -427,7 +427,7 @@
       "editor-search-view-component": {
         "search": "Suchen",
         "goto": "Gehe zu",
-        "node": "Knoten"
+        "search-node": "Suche nach Knoten"
       },
       "editor-menu": {
         "save-changes": "Speichere Änderungen",

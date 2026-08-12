@@ -427,7 +427,7 @@
       "editor-search-view-component": {
         "search": "Rechercher",
         "goto": "Aller à",
-        "node": "Noeud"
+        "search-node": "Rechercher un noeud"
       },
       "editor-menu": {
         "save-changes": "Enregistrer les modifications",
