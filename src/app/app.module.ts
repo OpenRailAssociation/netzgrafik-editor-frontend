@@ -192,6 +192,8 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     BrowserModule,
     FormsModule,
     ReactiveFormsModule,
+    // TODO: migrate away from BrowserAnimationsModule
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     BrowserAnimationsModule,
     DragDropModule,
     AppRoutingModule,

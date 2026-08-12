@@ -39,7 +39,9 @@ export default defineConfig([
           style: "kebab-case",
         },
       ],
+      // TODO: enable all recommended @angular-eslint rules
       "@angular-eslint/prefer-standalone": "off",
+      "@angular-eslint/prefer-inject": "off",
       "@typescript-eslint/no-non-null-assertion": "off",
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "@typescript-eslint/no-empty-function": [
