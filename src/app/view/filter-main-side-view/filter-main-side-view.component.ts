@@ -18,6 +18,7 @@ import {NodeService} from "../../services/data/node.service";
 export enum FilterWindowType {
   VARIANT_INFO = "variant-info",
   EDITOR_FILTER = "editor-filter",
+  SEARCH = "search",
   PROPERTIES = "properties",
   EDIT_TOOLS = "edit-tools",
   TOOLS = "tools",
@@ -55,6 +56,10 @@ export class FilterMainSideViewComponent implements OnInit, OnDestroy {
 
   get showEditorFilter(): boolean {
     return this.type === FilterWindowType.EDITOR_FILTER;
+  }
+
+  get showEditorSearch(): boolean {
+    return this.type === FilterWindowType.SEARCH;
   }
 
   get showEditorEditTools(): boolean {

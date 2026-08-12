@@ -426,6 +426,11 @@
           "hide": "hide"
         }
       },
+      "editor-search-view-component": {
+        "search": "Search",
+        "goto": "Goto",
+        "node": "Node"
+      },
       "editor-menu": {
         "save-changes": "Save changes",
         "changes-saved": "Changes saved",

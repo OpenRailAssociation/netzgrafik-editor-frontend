@@ -426,6 +426,11 @@
           "hide": "ausblenden"
         }
       },
+      "editor-search-view-component": {
+        "search": "Suchen",
+        "goto": "Gehe zu",
+        "node": "Knoten"
+      },
       "editor-menu": {
         "save-changes": "Speichere Änderungen",
         "changes-saved": "Änderungen gespeichert",
