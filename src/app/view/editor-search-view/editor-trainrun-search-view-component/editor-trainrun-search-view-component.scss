@@ -4,9 +4,10 @@
 
 .search-results-list {
   margin-top: 0.5rem;
-  max-height: 400px;
+  max-height: 405px;
   overflow-y: auto;
   overflow-x: hidden;
+  padding-top: 4px;
 }
 
 .search-results-list.dragging {
@@ -33,15 +34,17 @@
   display: flex;
   justify-content: center;
   margin-left: 0;
-  height: 10px;
+  height: 4px;
   transform: translateY(-5px);
 }
 
 span.smallstation {
   cursor: pointer;
-  font-size: 12px;
-  border: 3px solid var(--sbb-color-background);
-  font-weight: lighter;
+  color: var(--sbb-form-input-color);
+  font-size: var(--sbb-font-size);
+  border: 5px solid none;
+  margin-left: 4px;
+  font-weight: light;
   user-select: none;
 }
 
@@ -62,9 +65,10 @@ span.smallstation:hover {
 
 .connector {
   display: inline-block;
-  width: 1px;
-  height: 10px;
+  width: 2px;
+  height: 32px;
   background: var(--sbb-color-granite);
+  transform: translateY(-8px);
 }
 
 .timeline-gap {
