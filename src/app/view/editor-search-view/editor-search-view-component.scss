@@ -4,6 +4,9 @@
 
 .search-results-list {
   margin-top: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .alignleft {

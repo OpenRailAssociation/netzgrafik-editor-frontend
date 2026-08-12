@@ -32,7 +32,9 @@ export class EditorSearchViewComponent {
   ) {
     this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe((nodes: Node[]) => {
       this.allSearchableNodes = nodes;
-      this.filteredNodes = this.filterNodes(this.searchControl.value);
+      this.filteredNodes = this.filterNodes(this.searchControl.value).sort((a, b) =>
+        this.getNodeSearchValue(a).localeCompare(this.getNodeSearchValue(b)),
+      );
     });
   }
 
@@ -49,7 +51,9 @@ export class EditorSearchViewComponent {
       });
 
     this.searchControl.valueChanges.pipe(takeUntil(this.destroyed)).subscribe((value) => {
-      this.filteredNodes = this.filterNodes(value);
+      this.filteredNodes = this.filterNodes(value).sort((a, b) =>
+        this.getNodeSearchValue(a).localeCompare(this.getNodeSearchValue(b)),
+      );
     });
   }
 
@@ -68,7 +72,9 @@ export class EditorSearchViewComponent {
       return;
     }
 
-    this.searchResults = this.filterNodes(this.searchControl.value).slice(0, 10);
+    this.searchResults = this.filterNodes(this.searchControl.value).sort((a, b) =>
+      this.getNodeSearchValue(a).localeCompare(this.getNodeSearchValue(b)),
+    );
 
     if (this.searchResults.length === 1) {
       this.onSearchResultClick(this.searchResults[0]);
