@@ -428,6 +428,11 @@
         "search": "Suchen",
         "goto": "Gehe zu",
         "search-node": "Suche nach Knoten",
+        "navigate": "Navigieren",
+        "select-node": "Knoten auswählen",
+        "search-trainrun": "Suche nach Zugfahrten",
+        "select-trainrun": "Zugfahrt auswählen",
+        "clear-all-search-fields": "Alle Suchfelder zurücksetzen",
         "reset": "Suche zurücksetzen"
       },
       "editor-menu": {

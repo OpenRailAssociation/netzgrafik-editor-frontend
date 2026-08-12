@@ -6,17 +6,35 @@
       >{{ "app.view.editor-search-view-component.goto" | translate }}</sbb-expansion-panel-header
     >
 
-    <sbb-editor-node-search-view-component #nodeSearch></sbb-editor-node-search-view-component>
+    <sbb-label>{{ "app.view.editor-search-view-component.select-node" | translate }}</sbb-label>
+    <sbb-editor-node-search-view-component
+      [resetSignal]="resetSignal"
+      (isEmptyChange)="onNodeSearchEmptyChange($event)"
+    ></sbb-editor-node-search-view-component>
+  </sbb-expansion-panel>
 
-    <button
-      sbb-secondary-button
-      class="sbb-mt-m"
-      type="button"
-      [disabled]="!nodeSearch.canResetSearch()"
-      [title]="'app.view.editor-search-view-component.reset' | translate"
-      (click)="nodeSearch.resetSearch()"
+  <sbb-expansion-panel [expanded]="true">
+    <sbb-expansion-panel-header
+      >{{ "app.view.editor-search-view-component.navigate" | translate
+      }}</sbb-expansion-panel-header
     >
-      {{ "app.view.editor-search-view-component.reset" | translate }}
-    </button>
+
+    <sbb-label>{{ "app.view.editor-search-view-component.select-trainrun" | translate }}</sbb-label>
+    <sbb-editor-trainrun-search-view-component
+      [resetSignal]="resetSignal"
+      (isEmptyChange)="onTrainrunSearchEmptyChange($event)"
+    ></sbb-editor-trainrun-search-view-component>
   </sbb-expansion-panel>
 </sbb-accordion>
+
+<div style="transform: translate(24px, 10px)">
+  <button
+    sbb-secondary-button
+    class="sbb-mt-m"
+    [disabled]="allSearchFieldsEmpty()"
+    [title]="'app.view.editor-search-view-component.clear-all-search-fields' | translate"
+    (click)="onResetAllSearchFields()"
+  >
+    {{ "app.view.editor-search-view-component.clear-all-search-fields" | translate }}
+  </button>
+</div>

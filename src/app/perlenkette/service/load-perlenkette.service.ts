@@ -16,6 +16,11 @@ import {TrainrunSectionService} from "../../services/data/trainrunsection.servic
 import {NodeService} from "../../services/data/node.service";
 import {FilterService} from "../../services/ui/filter.service";
 
+export interface OrderedTrainrunNodeEntry {
+  node: Node;
+  hasGapAfter: boolean;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -73,6 +78,29 @@ export class LoadPerlenketteService implements OnDestroy {
 
   getPerlenketteData(): Observable<PerlenketteTrainrun> {
     return this.perlenketteTrainrun$;
+  }
+
+  public getOrderedNodesForTrainrun(trainrun: Trainrun): Node[] {
+    return this.getPerlenketteItem(trainrun)
+      .filter((item) => item.isPerlenketteNode())
+      .map((item) => this.nodeService.getNodeFromId(item.getPerlenketteNode().nodeId))
+      .filter((node): node is Node => node !== undefined);
+  }
+
+  public getOrderedNodeEntriesForTrainrun(trainrun: Trainrun): OrderedTrainrunNodeEntry[] {
+    const nodeItems = this.getPerlenketteItem(trainrun).filter((item) => item.isPerlenketteNode());
+
+    return nodeItems
+      .map((item, index) => {
+        const perlenketteNode = item.getPerlenketteNode();
+        const node = this.nodeService.getNodeFromId(perlenketteNode.nodeId);
+
+        return {
+          node,
+          hasGapAfter: perlenketteNode.isLastTrainrunPartNode() && index < nodeItems.length - 1,
+        };
+      })
+      .filter((entry): entry is OrderedTrainrunNodeEntry => entry.node !== undefined);
   }
 
   getSelectedTrainrun(): Trainrun {

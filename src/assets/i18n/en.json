@@ -428,6 +428,11 @@
         "search": "Search",
         "goto": "Goto",
         "search-node": "Search node",
+        "navigate": "Navigate",
+        "select-node": "Select node",
+        "search-trainrun": "Search trainrun",
+        "select-trainrun": "Select trainrun",
+        "clear-all-search-fields": "Reset all search fields",
         "reset": "Reset search"
       },
       "editor-menu": {
