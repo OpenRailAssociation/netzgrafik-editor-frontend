@@ -427,6 +427,7 @@
       "editor-search-view-component": {
         "search": "Rechercher",
         "goto": "Aller à",
+        "navigate": "Naviguer",
         "search-node": "Rechercher un noeud",
         "select-node": "Sélectionner un noeud",
         "search-trainrun": "Rechercher un trajet de train",

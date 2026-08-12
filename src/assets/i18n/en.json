@@ -427,6 +427,7 @@
       "editor-search-view-component": {
         "search": "Search",
         "goto": "Goto",
+        "navigate": "Navigate",
         "search-node": "Search node",
         "select-node": "Select node",
         "search-trainrun": "Search trainrun",
