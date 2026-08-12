@@ -18,8 +18,7 @@
 @if (searchResults.length > 1) {
 <div class="search-results-list">
   @for (node of searchResults; track node) {
-  <br />
-  <p class="alignleft" style="line-height: 10px">
+  <div class="search-result-item">
     <span
       class="smallstation"
       [title]="transformNodeName(node)"
@@ -27,7 +26,7 @@
     >
       {{ getNodeSearchValue(node) }}
     </span>
-  </p>
+  </div>
   }
 </div>
 }
