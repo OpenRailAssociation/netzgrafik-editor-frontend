@@ -466,7 +466,7 @@ export class TrainrunSectionsView {
   }
 
   static extractTrainrunName(trainrunSection: TrainrunSection): string {
-    return `${trainrunSection.getTrainrun().getCategoryShortName()} ${trainrunSection
+    return `${trainrunSection.getTrainrun().getCategoryShortName()}${trainrunSection
       .getTrainrun()
       .getTitle()}`;
   }
