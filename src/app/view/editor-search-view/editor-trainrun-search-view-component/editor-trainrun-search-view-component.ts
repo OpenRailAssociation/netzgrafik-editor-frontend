@@ -1,6 +1,7 @@
 import {
   Component,
   EventEmitter,
+  HostListener,
   Input,
   OnChanges,
   OnDestroy,
@@ -44,6 +45,11 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
   private destroyed = new Subject<void>();
   allSearchableTrainruns: Trainrun[] = [];
   filteredTrainruns: Trainrun[] = [];
+  isDraggingResults = false;
+
+  private dragStartY = 0;
+  private dragStartScrollTop = 0;
+  private activeResultsList: HTMLElement | null = null;
 
   constructor(
     private trainrunService: TrainrunService,
@@ -124,8 +130,41 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
   }
 
   ngOnDestroy(): void {
+    this.stopDragScroll();
     this.destroyed.next();
     this.destroyed.complete();
+  }
+
+  onResultListMouseDown(event: MouseEvent, listElement: HTMLElement): void {
+    if (event.button !== 0) {
+      return;
+    }
+
+    // Dragging is enabled only if the list can actually scroll.
+    if (listElement.scrollHeight <= listElement.clientHeight) {
+      return;
+    }
+
+    this.isDraggingResults = true;
+    this.activeResultsList = listElement;
+    this.dragStartY = event.clientY;
+    this.dragStartScrollTop = listElement.scrollTop;
+    event.preventDefault();
+  }
+
+  @HostListener("document:mousemove", ["$event"])
+  onDocumentMouseMove(event: MouseEvent): void {
+    if (!this.isDraggingResults || !this.activeResultsList) {
+      return;
+    }
+
+    const deltaY = event.clientY - this.dragStartY;
+    this.activeResultsList.scrollTop = this.dragStartScrollTop + deltaY;
+  }
+
+  @HostListener("document:mouseup")
+  onDocumentMouseUp(): void {
+    this.stopDragScroll();
   }
 
   onSearch() {
@@ -267,5 +306,10 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
     const value = this.searchControl.value;
     const isEmpty = value === null || (typeof value === "string" && value.trim() === "");
     this.isEmptyChange.emit(isEmpty);
+  }
+
+  private stopDragScroll(): void {
+    this.isDraggingResults = false;
+    this.activeResultsList = null;
   }
 }

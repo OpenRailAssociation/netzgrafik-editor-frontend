@@ -9,6 +9,10 @@
   overflow-x: hidden;
 }
 
+.search-results-list.dragging {
+  user-select: none;
+}
+
 .timeline-row {
   display: flex;
   align-items: center;

@@ -9,6 +9,10 @@
   overflow-x: hidden;
 }
 
+.search-results-list.dragging {
+  user-select: none;
+}
+
 .search-result-item {
   line-height: 1.15;
   margin: 2px 0;
