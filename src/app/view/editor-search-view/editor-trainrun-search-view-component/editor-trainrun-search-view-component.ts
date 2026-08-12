@@ -73,6 +73,17 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
         this.orderedNodeEntries = this.updateOrderedNodeEntries();
         if (!this.trainrunService.getSelectedTrainrun()) {
           this.searchControl.setValue(null);
+        } else {
+          const currentValue = this.searchControl.value;
+          if (currentValue instanceof Trainrun) {
+            if (this.trainrunService.getSelectedTrainrun().getId() !== currentValue.getId()) {
+              this.searchControl.setValue(this.trainrunService.getSelectedTrainrun());
+              this.search();
+            }
+          } else {
+            this.searchControl.setValue(this.trainrunService.getSelectedTrainrun());
+            this.search();
+          }
         }
       });
 
@@ -120,17 +131,12 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
   search() {
     if (this.searchControl.value instanceof Trainrun) {
       this.searchResults = [this.searchControl.value];
-      this.onSearchResultClick(this.searchControl.value);
       return;
     }
 
     this.searchResults = this.filterTrainruns(this.searchControl.value).sort((a, b) =>
       this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
     );
-
-    if (this.searchResults.length === 1) {
-      this.onSearchResultClick(this.searchResults[0]);
-    }
   }
 
   onSearchResultClick(trainrun: Trainrun): void {
