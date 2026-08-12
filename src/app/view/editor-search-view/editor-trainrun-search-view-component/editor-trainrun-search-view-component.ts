@@ -1,4 +1,4 @@
-import {Component} from "@angular/core";
+import {Component, OnDestroy, OnInit} from "@angular/core";
 import {FilterService} from "../../../services/ui/filter.service";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
@@ -20,7 +20,7 @@ import {Vec2D} from "../../../utils/vec2D";
   styleUrls: ["./editor-trainrun-search-view-component.scss"],
   standalone: false,
 })
-export class EditorTrainrunSearchViewComponent {
+export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
   private static readonly FILTER_PANEL_ID = "cd-layout-filter";
 
   searchControl = new FormControl<string | Trainrun | null>("");

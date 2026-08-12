@@ -1,4 +1,4 @@
-import {Component, inject} from "@angular/core";
+import {Component, OnInit, OnDestroy} from "@angular/core";
 import {FilterService} from "../../../services/ui/filter.service";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {takeUntil} from "rxjs/operators";
@@ -15,7 +15,7 @@ import {Vec2D} from "../../../utils/vec2D";
   styleUrls: ["./editor-node-search-view-component.scss"],
   standalone: false,
 })
-export class EditorNodeSearchViewComponent {
+export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
   private static readonly FILTER_PANEL_ID = "cd-layout-filter";
 
   searchControl = new FormControl<string | Node | null>("");
@@ -75,12 +75,13 @@ export class EditorNodeSearchViewComponent {
     });
   }
 
-  get isNetzgrafikMode(): boolean {
-    return this.mainViewMode === MainViewMode.Netzgrafik;
-  }
   ngOnDestroy(): void {
     this.destroyed.next();
     this.destroyed.complete();
+  }
+
+  get isNetzgrafikMode(): boolean {
+    return this.mainViewMode === MainViewMode.Netzgrafik;
   }
 
   search() {
