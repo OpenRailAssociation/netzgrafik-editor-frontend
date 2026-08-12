@@ -429,7 +429,8 @@
       "editor-search-view-component": {
         "search": "Suchen",
         "goto": "Gehe zu",
-        "node": "Knoten"
+        "search-node": "Suche nach Knoten",
+        "reset": "Suche zurücksetzen"
       },
       "editor-menu": {
         "save-changes": "Speichere Änderungen",

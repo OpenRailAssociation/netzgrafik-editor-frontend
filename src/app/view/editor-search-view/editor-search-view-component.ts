@@ -1,5 +1,4 @@
 import {Component} from "@angular/core";
-import {UiInteractionService} from "../../services/ui/ui.interaction.service";
 
 @Component({
   selector: "sbb-editor-search-view-component",
@@ -8,5 +7,5 @@ import {UiInteractionService} from "../../services/ui/ui.interaction.service";
   standalone: false,
 })
 export class EditorSearchViewComponent {
-  constructor(private uiInteractionService: UiInteractionService) {}
+  constructor() {}
 }

@@ -1,0 +1,38 @@
+<sbb-search
+  (search)="search()"
+  aria-label="{{ 'app.view.editor-search-view-component.search-node' | translate }}"
+>
+  <input
+    sbbInput
+    [placeholder]="'app.view.editor-search-view-component.search-node' | translate"
+    [formControl]="searchControl"
+    [sbbAutocomplete]="auto"
+  />
+</sbb-search>
+<sbb-autocomplete #auto="sbbAutocomplete" [displayWith]="displayNode">
+  <sbb-option *ngFor="let option of filteredNodes" [value]="option">
+    {{ transformNodeName(option) }}
+  </sbb-option>
+</sbb-autocomplete>
+
+@if (searchResults.length > 1) {
+<div
+  class="search-results-list"
+  [class.search-results-overflow]="searchResults.length > 8"
+  [class.search-results-dragging]="isSearchResultsDragging"
+  (mousedown)="onSearchResultsMouseDown($event)"
+>
+  @for (node of searchResults; track node) {
+  <br />
+  <p class="alignleft" style="line-height: 10px">
+    <span
+      class="smallstation"
+      [title]="transformNodeName(node)"
+      (click)="onSearchResultClick(node)"
+    >
+      {{ getNodeSearchValue(node) }}
+    </span>
+  </p>
+  }
+</div>
+}
