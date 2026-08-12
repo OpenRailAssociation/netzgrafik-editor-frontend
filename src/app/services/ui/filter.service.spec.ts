@@ -15,6 +15,7 @@ import {NetzgrafikUnitTesting} from "../../../integration-testing/netzgrafik.uni
 import {FilterService} from "./filter.service";
 import {NetzgrafikColoringService} from "../data/netzgrafikColoring.service";
 import {FilterSetting} from "../../models/filterSettings.model";
+import {Direction} from "../../data-structures/business.data.structures";
 
 describe("FilterService", () => {
   let dataService: DataService;
@@ -447,5 +448,35 @@ describe("FilterService", () => {
     expect(filterService.getFilterSettings().length).toBe(1);
     filterService.deleteFilterSetting(filterService.getFilterSettings()[0].id);
     expect(filterService.getFilterSettings().length).toBe(0);
+  });
+
+  it("filterTrainrun respects direction filter - ONE_WAY hidden", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const ts = trainrunSectionService.getTrainrunSectionFromId(1);
+    const t = ts.getTrainrun();
+    t.setDirection(Direction.ONE_WAY);
+
+    filterService.disableFilterDirection(Direction.ONE_WAY);
+    expect(filterService.filterTrainrun(t)).toBe(false);
+  });
+
+  it("filterTrainrun respects direction filter - ONE_WAY visible", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const ts = trainrunSectionService.getTrainrunSectionFromId(1);
+    const t = ts.getTrainrun();
+    t.setDirection(Direction.ONE_WAY);
+
+    filterService.enableFilterDirection(Direction.ONE_WAY);
+    expect(filterService.filterTrainrun(t)).toBe(true);
+  });
+
+  it("resetFilterDirection enables all directions", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    filterService.disableFilterDirection(Direction.ONE_WAY);
+    filterService.disableFilterDirection(Direction.ROUND_TRIP);
+
+    filterService.resetFilterDirection();
+    expect(filterService.isFilterDirectionEnabled(Direction.ONE_WAY)).toBe(true);
+    expect(filterService.isFilterDirectionEnabled(Direction.ROUND_TRIP)).toBe(true);
   });
 });
