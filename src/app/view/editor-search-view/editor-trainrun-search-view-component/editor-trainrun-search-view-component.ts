@@ -145,7 +145,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
       const category = trainrun.getCategoryShortName() ?? "";
       const title = trainrun.getTitle() ?? "";
 
-      return `${category} ${title}`.trim();
+      return `${category}${title}`.trim();
     }
 
     return "";

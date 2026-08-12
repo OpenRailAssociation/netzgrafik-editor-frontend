@@ -428,7 +428,9 @@
         "search": "Suchen",
         "goto": "Gehe zu",
         "search-node": "Suche nach Knoten",
-        "search-trainrun": "Suche nach Zugfahrten"
+        "select-node": "Knoten auswählen",
+        "search-trainrun": "Suche nach Zugfahrten",
+        "select-trainrun": "Zugfahrt auswählen"
       },
       "editor-menu": {
         "save-changes": "Speichere Änderungen",

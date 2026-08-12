@@ -428,7 +428,9 @@
         "search": "Search",
         "goto": "Goto",
         "search-node": "Search node",
-        "search-trainrun": "Search trainrun"
+        "select-node": "Select node",
+        "search-trainrun": "Search trainrun",
+        "select-trainrun": "Select trainrun"
       },
       "editor-menu": {
         "save-changes": "Save changes",
