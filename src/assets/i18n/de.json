@@ -430,7 +430,8 @@
         "search-node": "Suche nach Knoten",
         "select-node": "Knoten auswählen",
         "search-trainrun": "Suche nach Zugfahrten",
-        "select-trainrun": "Zugfahrt auswählen"
+        "select-trainrun": "Zugfahrt auswählen",
+        "clear-all-search-fields": "Alle Suchfelder zurücksetzen"
       },
       "editor-menu": {
         "save-changes": "Speichere Änderungen",

@@ -430,7 +430,8 @@
         "search-node": "Search node",
         "select-node": "Select node",
         "search-trainrun": "Search trainrun",
-        "select-trainrun": "Select trainrun"
+        "select-trainrun": "Select trainrun",
+        "clear-all-search-fields": "Reset all search fields"
       },
       "editor-menu": {
         "save-changes": "Save changes",

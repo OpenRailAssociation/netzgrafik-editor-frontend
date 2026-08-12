@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from "@angular/core";
+import {Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from "@angular/core";
 import {FilterService} from "../../../services/ui/filter.service";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
@@ -20,8 +20,11 @@ import {Vec2D} from "../../../utils/vec2D";
   styleUrls: ["./editor-trainrun-search-view-component.scss"],
   standalone: false,
 })
-export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
+export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnChanges {
   private static readonly FILTER_PANEL_ID = "cd-layout-filter";
+
+  @Input() resetSignal = 0;
+  @Output() isEmptyChange = new EventEmitter<boolean>();
 
   searchControl = new FormControl<string | Trainrun | null>("");
   searchResults: Trainrun[] = [];
@@ -88,7 +91,16 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
       this.filteredTrainruns = this.filterTrainruns(value).sort((a, b) =>
         this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
       );
+      this.emitIsEmptyState();
     });
+
+    this.emitIsEmptyState();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes["resetSignal"] && !changes["resetSignal"].firstChange) {
+      this.clearSearch();
+    }
   }
 
   ngOnDestroy(): void {
@@ -208,5 +220,22 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     const element = document.getElementById(elementId);
     const offsetXPx = element?.getBoundingClientRect().right ?? 0;
     return this.uiInteractionService.getNetzgrafikOffsetFromScreenPx(offsetXPx, 0);
+  }
+
+  private clearSearch(): void {
+    this.searchControl.setValue("");
+    this.searchResults = [];
+    this.orderedNodeEntries = [];
+    this.trainrunService.unselectAllTrainruns();
+    this.filteredTrainruns = this.filterTrainruns(this.searchControl.value).sort((a, b) =>
+      this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
+    );
+    this.emitIsEmptyState();
+  }
+
+  private emitIsEmptyState(): void {
+    const value = this.searchControl.value;
+    const isEmpty = value === null || (typeof value === "string" && value.trim() === "");
+    this.isEmptyChange.emit(isEmpty);
   }
 }

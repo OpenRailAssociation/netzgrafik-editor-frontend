@@ -1,4 +1,4 @@
-import {Component, OnInit, OnDestroy} from "@angular/core";
+import {Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from "@angular/core";
 import {FilterService} from "../../../services/ui/filter.service";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {takeUntil} from "rxjs/operators";
@@ -15,8 +15,11 @@ import {Vec2D} from "../../../utils/vec2D";
   styleUrls: ["./editor-node-search-view-component.scss"],
   standalone: false,
 })
-export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
+export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChanges {
   private static readonly FILTER_PANEL_ID = "cd-layout-filter";
+
+  @Input() resetSignal = 0;
+  @Output() isEmptyChange = new EventEmitter<boolean>();
 
   searchControl = new FormControl<string | Node | null>("");
   searchResults: Node[] = [];
@@ -72,7 +75,16 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
       this.filteredNodes = this.filterNodes(value).sort((a, b) =>
         this.getNodeSearchValue(a).localeCompare(this.getNodeSearchValue(b)),
       );
+      this.emitIsEmptyState();
     });
+
+    this.emitIsEmptyState();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes["resetSignal"] && !changes["resetSignal"].firstChange) {
+      this.clearSearch();
+    }
   }
 
   ngOnDestroy(): void {
@@ -177,5 +189,20 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
     const element = document.getElementById(elementId);
     const offsetXPx = element?.getBoundingClientRect().right ?? 0;
     return this.uiInteractionService.getNetzgrafikOffsetFromScreenPx(offsetXPx, 0);
+  }
+
+  private clearSearch(): void {
+    this.searchControl.setValue("");
+    this.searchResults = [];
+    this.filteredNodes = this.filterNodes(this.searchControl.value).sort((a, b) =>
+      this.getNodeSearchValue(a).localeCompare(this.getNodeSearchValue(b)),
+    );
+    this.emitIsEmptyState();
+  }
+
+  private emitIsEmptyState(): void {
+    const value = this.searchControl.value;
+    const isEmpty = value === null || (typeof value === "string" && value.trim() === "");
+    this.isEmptyChange.emit(isEmpty);
   }
 }

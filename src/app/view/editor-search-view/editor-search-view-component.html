@@ -7,9 +7,28 @@
     >
 
     <sbb-label>{{ "app.view.editor-search-view-component.select-node" | translate }}</sbb-label>
-    <sbb-editor-node-search-view-component></sbb-editor-node-search-view-component>
+    <sbb-editor-node-search-view-component
+      [resetSignal]="resetSignal"
+      (isEmptyChange)="onNodeSearchEmptyChange($event)"
+    ></sbb-editor-node-search-view-component>
     <br />
     <sbb-label>{{ "app.view.editor-search-view-component.select-trainrun" | translate }}</sbb-label>
-    <sbb-editor-trainrun-search-view-component></sbb-editor-trainrun-search-view-component>
+    <sbb-editor-trainrun-search-view-component
+      [resetSignal]="resetSignal"
+      (isEmptyChange)="onTrainrunSearchEmptyChange($event)"
+    ></sbb-editor-trainrun-search-view-component>
+
+    <div style="transform: translate(24px, 10px)">
+    <button
+        sbb-secondary-button
+        class="sbb-mt-m"
+      [disabled]="allSearchFieldsEmpty()"
+        [title]="'app.view.editor-search-view-component.clear-all-search-fields' | translate"
+        (click)="onResetAllSearchFields()"
+    >
+        {{ "app.view.editor-search-view-component.clear-all-search-fields" | translate }}
+    </button>
+    </div>
+
   </sbb-expansion-panel>
 </sbb-accordion>
