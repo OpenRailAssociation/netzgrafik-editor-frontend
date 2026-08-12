@@ -3,24 +3,24 @@
 @use "../rastering/definitions" as *;
 
 .search-results-list {
-	margin-top: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .alignleft {
-	float: left;
-	width: 100%;
-	margin: 0;
+  float: left;
+  width: 100%;
+  margin: 0;
 }
 
 span.smallstation {
-	cursor: pointer;
-	font-size: 12px;
-	border: 3px solid var(--sbb-color-background);
-	font-weight: lighter;
-	user-select: none;
+  cursor: pointer;
+  font-size: 12px;
+  border: 3px solid var(--sbb-color-background);
+  font-weight: lighter;
+  user-select: none;
 }
 
 span.smallstation:hover {
-	font-weight: bolder;
-	color: var(--COLOR_Edit);
+  font-weight: bolder;
+  color: var(--COLOR_Edit);
 }

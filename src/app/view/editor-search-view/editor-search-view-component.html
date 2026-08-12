@@ -6,7 +6,10 @@
       >{{ "app.view.editor-search-view-component.goto" | translate }}</sbb-expansion-panel-header
     >
 
-    <sbb-search (search)="search()" aria-label="{{ 'app.view.editor-search-view-component.search-node' | translate }}">
+    <sbb-search
+      (search)="search()"
+      aria-label="{{ 'app.view.editor-search-view-component.search-node' | translate }}"
+    >
       <input
         sbbInput
         [placeholder]="'app.view.editor-search-view-component.search' | translate"
@@ -23,9 +26,13 @@
     @if (searchResults.length > 1) {
     <div class="search-results-list">
       @for (node of searchResults; track node) {
-      <br>
-        <p class="alignleft" style="line-height: 10px">
-        <span class="smallstation" [title]="transformNodeName(node)" (click)="onSearchResultClick(node)">
+      <br />
+      <p class="alignleft" style="line-height: 10px">
+        <span
+          class="smallstation"
+          [title]="transformNodeName(node)"
+          (click)="onSearchResultClick(node)"
+        >
           {{ getNodeSearchValue(node) }}
         </span>
       </p>

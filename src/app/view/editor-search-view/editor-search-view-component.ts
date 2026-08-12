@@ -1,5 +1,5 @@
 import {Component, inject} from "@angular/core";
-import {UiInteractionService} from "../../services/ui/ui.interaction.service"; 
+import {UiInteractionService} from "../../services/ui/ui.interaction.service";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
 import {MainViewMode} from "./../filter-main-side-view/main-view-mode";
@@ -77,12 +77,9 @@ export class EditorSearchViewComponent {
 
   onSearchResultClick(node: Node): void {
     const offset = this.getNetzgrafikOffsetForElementRightEdge(
-        EditorSearchViewComponent.FILTER_PANEL_ID,
-      )
-    this.uiInteractionService.gotoNode(
-      node,
-      offset,
+      EditorSearchViewComponent.FILTER_PANEL_ID,
     );
+    this.uiInteractionService.gotoNode(node, offset);
   }
 
   getNodeSearchValue(node: Node): string {
@@ -151,9 +148,9 @@ export class EditorSearchViewComponent {
     );
   }
 
-   getNetzgrafikOffsetForElementRightEdge(elementId: string): Vec2D {
-      const element = document.getElementById(elementId);
-      const offsetXPx = element?.getBoundingClientRect().right ?? 0;
-        return this.uiInteractionService.getNetzgrafikOffsetFromScreenPx(offsetXPx, 0);
-    }
+  getNetzgrafikOffsetForElementRightEdge(elementId: string): Vec2D {
+    const element = document.getElementById(elementId);
+    const offsetXPx = element?.getBoundingClientRect().right ?? 0;
+    return this.uiInteractionService.getNetzgrafikOffsetFromScreenPx(offsetXPx, 0);
+  }
 }
