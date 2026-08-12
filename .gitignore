@@ -47,3 +47,4 @@ src/environments/*.tmp
 # direnv
 .envrc
 .direnv
+config.bat

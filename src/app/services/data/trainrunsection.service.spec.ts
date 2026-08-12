@@ -14,7 +14,6 @@ import {LabelService} from "./label.service";
 import {NetzgrafikUnitTesting} from "../../../integration-testing/netzgrafik.unit.testing";
 import {FilterService} from "../ui/filter.service";
 import {NetzgrafikColoringService} from "../data/netzgrafikColoring.service";
-import {Direction} from "../../data-structures/business.data.structures";
 
 describe("TrainrunSectionService", () => {
   let dataService: DataService;

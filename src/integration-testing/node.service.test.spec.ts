@@ -673,7 +673,7 @@ describe("NodeService Test", () => {
     t1.getTrainrun().setDirection(Direction.ONE_WAY);
 
     // ts0 is BN -> OL. For one-way, connecting from source node (BN) should be forbidden
-    nodeService.addConnectionToNode(0, 1, 2);
+    nodeService.addConnectionToNode(0, 0, 3);
     const node0 = nodeService.getNodeFromId(0);
     expect(node0.getConnections().length).toBe(0);
   });
