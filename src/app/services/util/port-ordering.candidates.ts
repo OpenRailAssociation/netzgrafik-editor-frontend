@@ -12,20 +12,6 @@ export const getStatsEntry = (stats: CandidateStats, source: string) =>
   (stats[source] = stats[source] ?? {tried: 0, improved: 0, gain: 0, deduped: 0});
 
 /**
- * Resequences the bundle's members to `referenceOrder`, but leaves each in its current slot
- * (repairs crossings without gathering the bundle).
- *
- * Example:
- * order [x, A, y, B, z, C], referenceOrder [C, B, A]
- * -> [x, C, y, B, z, A]
- */
-function arrangeBundleInPlace(order: number[], referenceOrder: number[]): number[] {
-  const members = new Set(referenceOrder);
-  let j = 0;
-  return order.map((trainrunId) => (members.has(trainrunId) ? referenceOrder[j++] : trainrunId));
-}
-
-/**
  * Gathers the bundle's members into one contiguous block, laid out in `referenceOrder` (repairs
  * separation and crossings at once). The block starts at the members' first slot, or ends at their
  * last slot when `atLast` is set.
@@ -120,14 +106,14 @@ const CANDIDATE_GENERATORS: {
     build: ({order, members}) => arrangeBundleTogether(order, members),
   },
   {
-    source: "in-place-reversed",
-    kind: "crossing",
-    build: ({order, reversed}) => arrangeBundleInPlace(order, reversed),
+    source: "gather-at-last",
+    kind: "separation",
+    build: ({order, members}) => arrangeBundleTogether(order, members, true),
   },
   {
-    source: "in-place-normal",
+    source: "segment-reversal",
     kind: "crossing",
-    build: ({order, reference}) => arrangeBundleInPlace(order, reference),
+    build: ({order, reference}) => arrangeBundleSegmentReversed(order, reference),
   },
   {
     source: "together-reversed",
