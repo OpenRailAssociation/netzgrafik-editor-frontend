@@ -14,7 +14,10 @@ import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
 import {Trainrun} from "../../../models/trainrun.model";
 import {TrainrunService} from "../../../services/data/trainrun.service";
-import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
+import {
+  InformSelectedTrainrunClick,
+  TrainrunSectionService,
+} from "../../../services/data/trainrunsection.service";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {FormControl} from "@angular/forms";
 import {
@@ -22,6 +25,7 @@ import {
   OrderedTrainrunNodeEntry,
 } from "../../../perlenkette/service/load-perlenkette.service";
 import {Node} from "../../../models/node.model";
+import {NodeService} from "../../../services/data/node.service";
 import {Vec2D} from "../../../utils/vec2D";
 
 @Component({
@@ -57,6 +61,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
     private uiInteractionService: UiInteractionService,
     private loadPerlenketteService: LoadPerlenketteService,
     private filterService: FilterService,
+    private nodeService: NodeService,
   ) {
     this.allSearchableTrainruns = this.trainrunService
       .getTrainruns()
@@ -177,25 +182,53 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
   onSearchResultClick(trainrun: Trainrun): void {
     this.trainrunService.setTrainrunAsSelected(trainrun.getId());
     this.orderedNodeEntries = this.updateOrderedNodeEntries();
-    const firstNode = this.orderedNodeEntries.at(0)?.node;
-    if (firstNode) {
-      const offset = this.getNetzgrafikOffsetForElementRightEdge(
-        EditorTrainrunSearchViewComponent.FILTER_PANEL_ID,
-      );
-      this.uiInteractionService.gotoNode(firstNode, offset);
+    if (this.orderedNodeEntries.length === 0) {
+      return;
+    }
+    const firstEntry = this.orderedNodeEntries.at(0);
+    if (firstEntry) {
+      this.onOrderedNodeClick(firstEntry);
     }
   }
 
   updateOrderedNodeEntries() {
     if (this.trainrunService.getSelectedTrainrun()) {
-      return this.loadPerlenketteService.getOrderedNodeEntriesForTrainrun(
+      const data = this.loadPerlenketteService.getOrderedNodeEntriesForTrainrun(
         this.trainrunService.getSelectedTrainrun(),
       );
+      console.log("Ordered Node Entries for Trainrun:", data);
+      return data;
     }
     return [];
   }
 
-  onOrderedNodeClick(node: Node): void {
+  private gotoTrainrunSection(sectionId: number): void {
+    const ts = this.trainrunService.getSelectedTrainrun();
+    const trainrunSection = this.trainrunSectionService.getTrainrunSectionFromId(sectionId);
+    if (!trainrunSection) {
+      return;
+    }
+
+    if (ts.getId() !== trainrunSection.getTrainrunId()) {
+      this.trainrunService.setTrainrunAsSelected(trainrunSection.getTrainrunId());
+    }
+    const param: InformSelectedTrainrunClick = {
+      trainrunSectionId: trainrunSection.getId(),
+      open: false,
+    };
+    this.trainrunSectionService.clickSelectedTrainrunSection(param);
+  }
+
+  onOrderedNodeClick(entry: OrderedTrainrunNodeEntry): void {
+    const node = this.nodeService.getNodeFromId(entry.nodeId);
+    if (!node) {
+      return;
+    }
+
+    if (entry.trainrunSectionId !== undefined) {
+      this.gotoTrainrunSection(entry.trainrunSectionId);
+    }
+
     const offset = this.getNetzgrafikOffsetForElementRightEdge(
       EditorTrainrunSearchViewComponent.FILTER_PANEL_ID,
     );
@@ -221,6 +254,14 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
     const betriebspunktName = node.getBetriebspunktName() ?? "";
     const fullName = node.getFullName() ?? "";
     return `${betriebspunktName} (${fullName})`;
+  }
+
+  transformNodeEntryName(entry: OrderedTrainrunNodeEntry): string {
+    const node = this.nodeService.getNodeFromId(entry.nodeId);
+    if (!node) {
+      return `${entry.nodeId}`;
+    }
+    return this.transformNodeName(node);
   }
 
   private search() {
