@@ -1,5 +1,37 @@
 import {buildNetwork, setPortOrder} from "./port-ordering.test-helpers";
-import {getCandidates} from "./port-ordering.candidates";
+import {
+  arrangeBundleSegmentReversed,
+  arrangeBundleTogether,
+  getCandidates,
+} from "./port-ordering.candidates";
+
+describe("arrangeBundleTogether", () => {
+  it("gathers the bundle at its first slot, keeping the current relative order", () => {
+    expect(arrangeBundleTogether([9, 1, 8, 2, 7, 3], new Set([1, 2, 3]))).toEqual([
+      9, 1, 2, 3, 8, 7,
+    ]);
+  });
+
+  it("gathers the bundle at its last slot when atLast is set", () => {
+    expect(arrangeBundleTogether([9, 1, 8, 2, 7, 3], new Set([1, 2, 3]), true)).toEqual([
+      9, 8, 7, 1, 2, 3,
+    ]);
+  });
+});
+
+describe("arrangeBundleSegmentReversed", () => {
+  it("reverses the members between the first and last misplaced ones", () => {
+    expect(arrangeBundleSegmentReversed([9, 3, 8, 2, 1], [1, 2, 3])).toEqual([9, 1, 8, 2, 3]);
+  });
+
+  it("leaves well-placed members outside the reversed window untouched", () => {
+    expect(arrangeBundleSegmentReversed([9, 2, 1, 3], [1, 2, 3])).toEqual([9, 1, 2, 3]);
+  });
+
+  it("keeps the order intact when the bundle is already well ordered", () => {
+    expect(arrangeBundleSegmentReversed([9, 1, 8, 2, 7, 3], [1, 2, 3])).toEqual([9, 1, 8, 2, 7, 3]);
+  });
+});
 
 describe("getCandidates", () => {
   it("returns no candidates when the network is clean", () => {

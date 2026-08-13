@@ -26,37 +26,79 @@ function arrangeBundleInPlace(order: number[], referenceOrder: number[]): number
 }
 
 /**
- * Gathers the bundle's members into one contiguous block at their first slot, keeping their current
- * relative order (repairs separation only, leaving crossings untouched).
- *
- * Example:
- * order [x, A, y, B, z, C], members {A, B, C}
- * -> [x, A, B, C, y, z]
- */
-function arrangeBundleTogether(order: number[], members: Set<number>): number[] {
-  const firstIndex = order.findIndex((trainrunId) => members.has(trainrunId));
-  if (firstIndex === -1) return order;
-  const block = order.filter((trainrunId) => members.has(trainrunId));
-  const rest = order.filter((trainrunId) => !members.has(trainrunId));
-  rest.splice(firstIndex, 0, ...block);
-  return rest;
-}
-
-/**
- * Gathers the bundle's members into one contiguous block at their first slot, laid out in
- * `referenceOrder` (repairs separation and crossings at once).
+ * Gathers the bundle's members into one contiguous block, laid out in `referenceOrder` (repairs
+ * separation and crossings at once). The block starts at the members' first slot, or ends at their
+ * last slot when `atLast` is set.
  *
  * Example:
  * order [x, A, y, B, z, C], referenceOrder [C, B, A]
- * -> [x, C, B, A, y, z]
+ * -> [x, C, B, A, y, z] ([x, y, z, C, B, A] with atLast)
  */
-function arrangeBundleTogetherInOrder(order: number[], referenceOrder: number[]): number[] {
+function arrangeBundleTogetherInOrder(
+  order: number[],
+  referenceOrder: number[],
+  atLast = false,
+): number[] {
   const members = new Set(referenceOrder);
   const firstIndex = order.findIndex((trainrunId) => members.has(trainrunId));
   if (firstIndex === -1) return order;
   const rest = order.filter((trainrunId) => !members.has(trainrunId));
-  rest.splice(firstIndex, 0, ...referenceOrder);
+  const at = atLast
+    ? order.findLastIndex((trainrunId) => members.has(trainrunId)) - referenceOrder.length + 1
+    : firstIndex;
+  rest.splice(at, 0, ...referenceOrder);
   return rest;
+}
+
+/**
+ * Gathers the bundle's members into one contiguous block, keeping their current relative order
+ * (repairs separation only, leaving crossings untouched). The block starts at the members' first
+ * slot, or ends at their last slot when `atLast` is set.
+ *
+ * Example:
+ * order [x, A, y, B, z, C], members {A, B, C}
+ * -> [x, A, B, C, y, z] ([x, y, z, A, B, C] with atLast)
+ */
+export function arrangeBundleTogether(
+  order: number[],
+  members: Set<number>,
+  atLast = false,
+): number[] {
+  const block = order.filter((trainrunId) => members.has(trainrunId));
+  if (block.length === 0) return order;
+  const rest = order.filter((trainrunId) => !members.has(trainrunId));
+  const at = atLast
+    ? order.findLastIndex((trainrunId) => members.has(trainrunId)) - block.length + 1
+    : order.findIndex((trainrunId) => members.has(trainrunId));
+  rest.splice(at, 0, ...block);
+  return rest;
+}
+
+/**
+ * Reverses the members occupying the slots between the first and last misplaced members (relative
+ * to `referenceOrder`), leaving well-placed members outside that window and all non-members alone.
+ * It flips the current sequence rather than repainting it, so the result only matches
+ * `referenceOrder` when the misplaced window was exactly reversed.
+ *
+ * Example:
+ * order [x, A, C, y, D, B], referenceOrder [A, B, C, D]
+ * -> [x, A, B, y, D, C] (A well-placed and untouched, the [C, D, B] window flipped to [B, D, C])
+ */
+export function arrangeBundleSegmentReversed(order: number[], referenceOrder: number[]): number[] {
+  const members = new Set(referenceOrder);
+  const slots: number[] = [];
+  order.forEach((id, i) => {
+    if (members.has(id)) slots.push(i);
+  });
+  const sequence = slots.map((i) => order[i]);
+  const misplaced = sequence.flatMap((id, i) => (id !== referenceOrder[i] ? [i] : []));
+  if (misplaced.length === 0) return order;
+
+  const from = misplaced[0];
+  const to = misplaced[misplaced.length - 1];
+  const result = [...order];
+  for (let i = from; i <= to; i++) result[slots[i]] = sequence[to - (i - from)];
+  return result;
 }
 
 type GeneratorKind = "separation" | "crossing" | "both";
