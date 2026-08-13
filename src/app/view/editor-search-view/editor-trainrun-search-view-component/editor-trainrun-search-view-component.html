@@ -22,17 +22,17 @@
   [class.dragging]="isDraggingResults"
   (mousedown)="onResultListMouseDown($event, trainrunResultsList)"
 >
-  @for (entry of orderedNodeEntries; track entry.node.getId(); let last = $last) {
+  @for (entry of orderedNodeEntries; track $index; let last = $last) {
   <div class="timeline-row">
     <div class="timeline-marker-column">
       <span class="pearl"></span>
     </div>
     <span
       class="smallstation"
-      [title]="transformNodeName(entry.node)"
-      (click)="onOrderedNodeClick(entry.node)"
+      [title]="transformNodeEntryName(entry)"
+      (click)="onOrderedNodeClick(entry)"
     >
-      {{ transformNodeName(entry.node) }}
+      {{ transformNodeEntryName(entry) }}
     </span>
   </div>
 
