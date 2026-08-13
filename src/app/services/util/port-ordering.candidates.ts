@@ -1,7 +1,15 @@
 import {Node} from "../../models/node.model";
 import {getBundleReferenceOrder, getClutterBundles} from "./port-ordering.bundles";
 
-export type Candidate = {order: number[]; betweenFirst: Set<number>};
+export type Candidate = {order: number[]; betweenFirst: Set<number>; source?: string};
+
+export type CandidateStats = Record<
+  string,
+  {tried: number; improved: number; gain: number; deduped: number}
+>;
+
+export const getStatsEntry = (stats: CandidateStats, source: string) =>
+  (stats[source] = stats[source] ?? {tried: 0, improved: 0, gain: 0, deduped: 0});
 
 /**
  * Resequences the bundle's members to `referenceOrder`, but leaves each in its current slot
@@ -51,17 +59,51 @@ function arrangeBundleTogetherInOrder(order: number[], referenceOrder: number[])
   return rest;
 }
 
+type GeneratorKind = "separation" | "crossing" | "both";
+type BundleContext = {
+  order: number[];
+  members: Set<number>;
+  reference: number[];
+  reversed: number[];
+};
+
+const CANDIDATE_GENERATORS: {
+  source: string;
+  kind: GeneratorKind;
+  build: (context: BundleContext) => number[];
+}[] = [
+  {
+    source: "gather-at-first",
+    kind: "separation",
+    build: ({order, members}) => arrangeBundleTogether(order, members),
+  },
+  {
+    source: "in-place-reversed",
+    kind: "crossing",
+    build: ({order, reversed}) => arrangeBundleInPlace(order, reversed),
+  },
+  {
+    source: "in-place-normal",
+    kind: "crossing",
+    build: ({order, reference}) => arrangeBundleInPlace(order, reference),
+  },
+  {
+    source: "together-reversed",
+    kind: "both",
+    build: ({order, reversed}) => arrangeBundleTogetherInOrder(order, reversed),
+  },
+  {
+    source: "together-normal",
+    kind: "both",
+    build: ({order, reference}) => arrangeBundleTogetherInOrder(order, reference),
+  },
+];
+
 /**
- * Identifies most-broken bundles, and emits for each of them a set of candidates.
- *
- * For each bundle, it emits ten reorderings:
- * - separation-repair
- * - crossing-repair (normal order + reversed)
- * - both-at-once (normal order + reversed)
- * - each the above, with the nodes where the bundle breaks flagged as `betweenFirst`
- *
- * The candidates are returned with the ones supposed to be the more effective last. The two option
- * flags prioritizeSeparation and prioritizeWithin determine what the more effective orders are.
+ * Emits, for each most-broken bundle, one candidate per generator (see CANDIDATE_GENERATORS), in
+ * two variants: plain, and with the bundle's broken nodes flagged as `betweenFirst`. Duplicate
+ * orders keep only the highest-priority one. Supposedly better candidates come last (the search
+ * explores from the end), as steered by the prioritizeSeparation and prioritizeWithin flags.
  */
 export function getCandidates(
   nodes: Node[],
@@ -70,7 +112,13 @@ export function getCandidates(
     maxBundles = 4,
     prioritizeSeparation = false,
     prioritizeWithin = false,
-  }: {maxBundles?: number; prioritizeSeparation?: boolean; prioritizeWithin?: boolean} = {},
+    stats,
+  }: {
+    maxBundles?: number;
+    prioritizeSeparation?: boolean;
+    prioritizeWithin?: boolean;
+    stats?: CandidateStats;
+  } = {},
 ): Candidate[] {
   const bundles = getClutterBundles(nodes)
     .sort((a, b) => b.brokenAt.size - a.brokenAt.size || b.trainruns.size - a.trainruns.size)
@@ -78,30 +126,49 @@ export function getCandidates(
 
   const orderedTrainruns = new Set(base.order);
   const candidates: Candidate[] = [];
+  const ranks: Record<GeneratorKind, number> = {
+    both: 2,
+    separation: prioritizeSeparation ? 1 : 0,
+    crossing: prioritizeSeparation ? 0 : 1,
+  };
 
   bundles.reverse().forEach(({trainruns, brokenAt}) => {
-    const referenceOrder = getBundleReferenceOrder(nodes, trainruns, base.order).filter((id) =>
+    const reference = getBundleReferenceOrder(nodes, trainruns, base.order).filter((id) =>
       orderedTrainruns.has(id),
     );
-    if (referenceOrder.length < 2) return;
-    const reversedOrder = [...referenceOrder].reverse();
+    if (reference.length < 2) return;
+    const context: BundleContext = {
+      order: base.order,
+      members: trainruns,
+      reference,
+      reversed: [...reference].reverse(),
+    };
     const betweenFirstWithBroken = new Set([...base.betweenFirst, ...brokenAt]);
 
-    const separationRepair = [arrangeBundleTogether(base.order, trainruns)];
-    const crossingRepair = [
-      arrangeBundleInPlace(base.order, reversedOrder),
-      arrangeBundleInPlace(base.order, referenceOrder),
-    ];
-    const bothRepair = [
-      arrangeBundleTogetherInOrder(base.order, reversedOrder),
-      arrangeBundleTogetherInOrder(base.order, referenceOrder),
-    ];
+    const allOrders = CANDIDATE_GENERATORS.map(({source, kind, build}) => ({
+      source,
+      kind,
+      order: build(context),
+    })).sort((a, b) => ranks[a.kind] - ranks[b.kind]);
 
-    // both-at-once (fixes crossings and separations together) is always explored first, and the
-    // prioritizeSeparation flag decides which single-purpose repair the search tries next.
-    const orders = prioritizeSeparation
-      ? [...crossingRepair, ...separationRepair, ...bothRepair]
-      : [...separationRepair, ...crossingRepair, ...bothRepair];
+    // Deduplicate orders:
+    const seen = new Set<string>();
+    const orders = [...allOrders]
+      .reverse()
+      .filter(({source, order}) => {
+        const key = order.join(",");
+        if (seen.has(key)) {
+          // Both variants of the dropped generator (plain and betweenFirst) are never emitted:
+          if (stats) {
+            getStatsEntry(stats, source).deduped++;
+            getStatsEntry(stats, `${source} (betweenFirst)`).deduped++;
+          }
+          return false;
+        }
+        seen.add(key);
+        return true;
+      })
+      .reverse();
 
     // prioritizeWithin explores plain candidates first, otherwise the between-first ones (which
     // make broken nodes follow their neighbors)
@@ -109,8 +176,14 @@ export function getCandidates(
       ? [betweenFirstWithBroken, base.betweenFirst]
       : [base.betweenFirst, betweenFirstWithBroken];
 
-    orders.forEach((order) => {
-      betweenVariants.forEach((betweenFirst) => candidates.push({order, betweenFirst}));
+    orders.forEach(({source, order}) => {
+      betweenVariants.forEach((betweenFirst) =>
+        candidates.push({
+          order,
+          betweenFirst,
+          source: betweenFirst === betweenFirstWithBroken ? `${source} (betweenFirst)` : source,
+        }),
+      );
     });
   });
 

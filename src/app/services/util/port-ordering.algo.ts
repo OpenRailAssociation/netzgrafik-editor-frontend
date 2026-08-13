@@ -4,7 +4,7 @@ import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {Transition} from "../../models/transition.model";
 import {countAllCrossings, countCrossingsInNode} from "./port-ordering.crossings";
 import {countAllSeparations} from "./port-ordering.separations";
-import {Candidate, getCandidates} from "./port-ordering.candidates";
+import {Candidate, CandidateStats, getCandidates, getStatsEntry} from "./port-ordering.candidates";
 import {getComponents, getPortOppositeNodeId} from "./port-ordering.components";
 import {
   ALIGNMENTS_CLOCKWISE_ORDER,
@@ -60,6 +60,7 @@ export function optimizePorts(
 
 type OptimizeComponentPortsOptions = {
   maxRuns: number;
+  stats?: CandidateStats;
 };
 const DEFAULT_OPTIMIZE_COMPONENT_PORTS_OPTIONS: OptimizeComponentPortsOptions = {
   maxRuns: 500,
@@ -125,7 +126,7 @@ function optimizeComponentPorts(
   parameters: Partial<OptimizeComponentPortsOptions> = {},
   clutterWeights: Partial<ClutterWeights> = {},
 ): void {
-  const {maxRuns} = {...DEFAULT_OPTIMIZE_COMPONENT_PORTS_OPTIONS, ...parameters};
+  const {maxRuns, stats} = {...DEFAULT_OPTIMIZE_COMPONENT_PORTS_OPTIONS, ...parameters};
   const {
     crossingsWithin: crossingsWithinWeight,
     crossingsBetween: crossingsBetweenWeight,
@@ -178,11 +179,21 @@ function optimizeComponentPorts(
       separationsWithin * separationsWithinWeight +
       separationsBetween * separationsBetweenWeight;
 
+    if (stats) {
+      const entry = getStatsEntry(stats, candidate.source ?? "initial");
+      entry.tried++;
+      if (clutter < bestClutter) {
+        entry.improved++;
+        if (bestClutter !== Infinity) entry.gain += bestClutter - clutter;
+      }
+    }
+
     if (clutter < bestClutter) {
       bestCandidate = candidate;
       bestClutter = clutter;
       candidates = candidates.concat(
         getCandidates(nodes, candidate, {
+          stats,
           prioritizeSeparation:
             separationsWithinWeight + separationsBetweenWeight >
             crossingsWithinWeight + crossingsBetweenWeight,

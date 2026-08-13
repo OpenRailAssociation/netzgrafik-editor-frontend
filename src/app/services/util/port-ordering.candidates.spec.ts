@@ -16,7 +16,7 @@ describe("getCandidates", () => {
     expect(getCandidates(nodesArray, {order: trainrunIDs, betweenFirst: new Set()})).toEqual([]);
   });
 
-  it("emits the ten reorderings of a single broken bundle", () => {
+  it("emits the deduplicated reorderings of a single broken bundle", () => {
     // T0,T1 run A-B in parallel
     // T2 ends at B wedged between them -> bundle {T0,T1}, broken at A & B
     const {
@@ -38,16 +38,14 @@ describe("getCandidates", () => {
     const candidates = getCandidates(nodesArray, {order: [t0, t2, t1], betweenFirst: new Set()});
 
     expect(candidates).toEqual([
-      {order: [t0, t1, t2], betweenFirst: new Set()}, // separation repair
-      {order: [t0, t1, t2], betweenFirst: broken},
-      {order: [t1, t2, t0], betweenFirst: new Set()}, // crossing repair (reversed)
-      {order: [t1, t2, t0], betweenFirst: broken},
-      {order: [t0, t2, t1], betweenFirst: new Set()}, // crossing repair (normal)
-      {order: [t0, t2, t1], betweenFirst: broken},
-      {order: [t1, t0, t2], betweenFirst: new Set()}, // both at once (reversed)
-      {order: [t1, t0, t2], betweenFirst: broken},
-      {order: [t0, t1, t2], betweenFirst: new Set()}, // both at once (normal)
-      {order: [t0, t1, t2], betweenFirst: broken},
+      {order: [t1, t2, t0], betweenFirst: new Set(), source: "in-place-reversed"},
+      {order: [t1, t2, t0], betweenFirst: broken, source: "in-place-reversed (betweenFirst)"},
+      {order: [t0, t2, t1], betweenFirst: new Set(), source: "in-place-normal"},
+      {order: [t0, t2, t1], betweenFirst: broken, source: "in-place-normal (betweenFirst)"},
+      {order: [t1, t0, t2], betweenFirst: new Set(), source: "together-reversed"},
+      {order: [t1, t0, t2], betweenFirst: broken, source: "together-reversed (betweenFirst)"},
+      {order: [t0, t1, t2], betweenFirst: new Set(), source: "together-normal"},
+      {order: [t0, t1, t2], betweenFirst: broken, source: "together-normal (betweenFirst)"},
     ]);
   });
 
@@ -77,16 +75,14 @@ describe("getCandidates", () => {
     // prioritizeSeparation -> crossing repair before separation repair
     // prioritizeWithin -> between-first variant before the plain one
     expect(candidates).toEqual([
-      {order: [t1, t2, t0], betweenFirst: broken}, // crossing repair (reversed)
-      {order: [t1, t2, t0], betweenFirst: new Set()},
-      {order: [t0, t2, t1], betweenFirst: broken}, // crossing repair (normal)
-      {order: [t0, t2, t1], betweenFirst: new Set()},
-      {order: [t0, t1, t2], betweenFirst: broken}, // separation repair
-      {order: [t0, t1, t2], betweenFirst: new Set()},
-      {order: [t1, t0, t2], betweenFirst: broken}, // both at once (reversed)
-      {order: [t1, t0, t2], betweenFirst: new Set()},
-      {order: [t0, t1, t2], betweenFirst: broken}, // both at once (normal)
-      {order: [t0, t1, t2], betweenFirst: new Set()},
+      {order: [t1, t2, t0], betweenFirst: broken, source: "in-place-reversed (betweenFirst)"},
+      {order: [t1, t2, t0], betweenFirst: new Set(), source: "in-place-reversed"},
+      {order: [t0, t2, t1], betweenFirst: broken, source: "in-place-normal (betweenFirst)"},
+      {order: [t0, t2, t1], betweenFirst: new Set(), source: "in-place-normal"},
+      {order: [t1, t0, t2], betweenFirst: broken, source: "together-reversed (betweenFirst)"},
+      {order: [t1, t0, t2], betweenFirst: new Set(), source: "together-reversed"},
+      {order: [t0, t1, t2], betweenFirst: broken, source: "together-normal (betweenFirst)"},
+      {order: [t0, t1, t2], betweenFirst: new Set(), source: "together-normal"},
     ]);
   });
 });
