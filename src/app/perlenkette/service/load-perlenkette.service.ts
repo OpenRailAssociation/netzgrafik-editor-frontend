@@ -87,11 +87,11 @@ export class LoadPerlenketteService implements OnDestroy {
 
     allItems.forEach((item, index) => {
       if (item.isPerlenketteNode()) {
-        const perlenketteNode = item.getPerlenketteNode();
-        const node = this.nodeService.getNodeFromId(perlenketteNode.nodeId);
-        if (!node) {
+        if (!item.isPerlenketteNode()) {
           return;
         }
+        const perlenketteNode = item.getPerlenketteNode();
+        const node = this.nodeService.getNodeFromId(perlenketteNode.nodeId);
         const incomingSectionId =
           index > 0 && allItems[index - 1].isPerlenketteSection()
             ? allItems[index - 1].getPerlenketteSection().trainrunSectionId
@@ -101,7 +101,7 @@ export class LoadPerlenketteService implements OnDestroy {
             ? allItems[index + 1].getPerlenketteSection().trainrunSectionId
             : undefined;
         const hasMoreNodesAfter =
-          index < allItems.length - 1 ? allItems[index + 1].isPerlenketteSection() : false;
+          index < allItems.length - 1 ? allItems[index + 1].isPerlenketteNode() : false;
 
         entries.push({
           nodeId: node.getId(),
