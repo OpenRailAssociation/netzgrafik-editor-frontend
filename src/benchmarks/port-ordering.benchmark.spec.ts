@@ -27,10 +27,12 @@ import {Node} from "../app/models/node.model";
 
 import demoStandaloneGithub from "../app/sample-netzgrafik/netzgrafik_demo_standalone_github.json";
 import demoOlLz from "../app/sample-netzgrafik/Demo_OL_LZ.json";
+import benchmarkCase1 from "../app/sample-netzgrafik/netzgrafik_benchmark_case_1.json";
 
 const DATASETS: {name: string; dto: unknown}[] = [
   {name: "demo_standalone_github", dto: demoStandaloneGithub},
   {name: "Demo_OL_LZ", dto: demoOlLz},
+  {name: "Benchmark case 1", dto: benchmarkCase1},
 ];
 
 // Weight setups to compare, each steering the optimizer toward a different clutter trade-off:
