@@ -1,7 +1,12 @@
 import {Node} from "../../models/node.model";
 import {getBundleReferenceOrder, getClutterBundles} from "./port-ordering.bundles";
 
-export type Candidate = {order: number[]; betweenFirst: Set<number>; source?: string};
+export type Candidate = {
+  order: number[];
+  betweenFirst: Set<number>;
+  root: number;
+  source?: string;
+};
 
 export type CandidateStats = Record<
   string,
@@ -209,6 +214,7 @@ export function getCandidates(
         candidates.push({
           order,
           betweenFirst,
+          root: base.root,
           source: betweenFirst === betweenFirstWithBroken ? `${source} (betweenFirst)` : source,
         }),
       );

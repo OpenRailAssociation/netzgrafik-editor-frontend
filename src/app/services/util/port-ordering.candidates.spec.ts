@@ -45,7 +45,13 @@ describe("getCandidates", () => {
     setPortOrder(nodesMap.get("B"), "left", trainrunIDs);
     setPortOrder(nodesMap.get("B"), "right", trainrunIDs);
 
-    expect(getCandidates(nodesArray, {order: trainrunIDs, betweenFirst: new Set()})).toEqual([]);
+    expect(
+      getCandidates(nodesArray, {
+        order: trainrunIDs,
+        betweenFirst: new Set(),
+        root: nodesMap.get("B").getId(),
+      }),
+    ).toEqual([]);
   });
 
   it("emits the deduplicated reorderings of a single broken bundle", () => {
@@ -67,17 +73,22 @@ describe("getCandidates", () => {
     setPortOrder(nodesMap.get("B"), "left", [t0, t2, t1]);
 
     const broken = new Set([nodesMap.get("A").getId(), nodesMap.get("B").getId()]);
-    const candidates = getCandidates(nodesArray, {order: [t0, t2, t1], betweenFirst: new Set()});
+    const root = nodesMap.get("B").getId();
+    const candidates = getCandidates(nodesArray, {
+      order: [t0, t2, t1],
+      betweenFirst: new Set(),
+      root,
+    });
 
     expect(candidates).toEqual([
-      {order: [t2, t0, t1], betweenFirst: new Set(), source: "gather-at-last"},
-      {order: [t2, t0, t1], betweenFirst: broken, source: "gather-at-last (betweenFirst)"},
-      {order: [t0, t2, t1], betweenFirst: new Set(), source: "segment-reversal"},
-      {order: [t0, t2, t1], betweenFirst: broken, source: "segment-reversal (betweenFirst)"},
-      {order: [t1, t0, t2], betweenFirst: new Set(), source: "together-reversed"},
-      {order: [t1, t0, t2], betweenFirst: broken, source: "together-reversed (betweenFirst)"},
-      {order: [t0, t1, t2], betweenFirst: new Set(), source: "together-normal"},
-      {order: [t0, t1, t2], betweenFirst: broken, source: "together-normal (betweenFirst)"},
+      {order: [t2, t0, t1], betweenFirst: new Set(), root, source: "gather-at-last"},
+      {order: [t2, t0, t1], betweenFirst: broken, root, source: "gather-at-last (betweenFirst)"},
+      {order: [t0, t2, t1], betweenFirst: new Set(), root, source: "segment-reversal"},
+      {order: [t0, t2, t1], betweenFirst: broken, root, source: "segment-reversal (betweenFirst)"},
+      {order: [t1, t0, t2], betweenFirst: new Set(), root, source: "together-reversed"},
+      {order: [t1, t0, t2], betweenFirst: broken, root, source: "together-reversed (betweenFirst)"},
+      {order: [t0, t1, t2], betweenFirst: new Set(), root, source: "together-normal"},
+      {order: [t0, t1, t2], betweenFirst: broken, root, source: "together-normal (betweenFirst)"},
     ]);
   });
 
@@ -98,23 +109,24 @@ describe("getCandidates", () => {
     setPortOrder(nodesMap.get("B"), "left", [t0, t2, t1]);
 
     const broken = new Set([nodesMap.get("A").getId(), nodesMap.get("B").getId()]);
+    const root = nodesMap.get("B").getId();
     const candidates = getCandidates(
       nodesArray,
-      {order: [t0, t2, t1], betweenFirst: new Set()},
+      {order: [t0, t2, t1], betweenFirst: new Set(), root},
       {prioritizeSeparation: true, prioritizeWithin: true},
     );
 
     // prioritizeSeparation -> crossing repair before separation repair
     // prioritizeWithin -> between-first variant before the plain one
     expect(candidates).toEqual([
-      {order: [t0, t2, t1], betweenFirst: broken, source: "segment-reversal (betweenFirst)"},
-      {order: [t0, t2, t1], betweenFirst: new Set(), source: "segment-reversal"},
-      {order: [t2, t0, t1], betweenFirst: broken, source: "gather-at-last (betweenFirst)"},
-      {order: [t2, t0, t1], betweenFirst: new Set(), source: "gather-at-last"},
-      {order: [t1, t0, t2], betweenFirst: broken, source: "together-reversed (betweenFirst)"},
-      {order: [t1, t0, t2], betweenFirst: new Set(), source: "together-reversed"},
-      {order: [t0, t1, t2], betweenFirst: broken, source: "together-normal (betweenFirst)"},
-      {order: [t0, t1, t2], betweenFirst: new Set(), source: "together-normal"},
+      {order: [t0, t2, t1], betweenFirst: broken, root, source: "segment-reversal (betweenFirst)"},
+      {order: [t0, t2, t1], betweenFirst: new Set(), root, source: "segment-reversal"},
+      {order: [t2, t0, t1], betweenFirst: broken, root, source: "gather-at-last (betweenFirst)"},
+      {order: [t2, t0, t1], betweenFirst: new Set(), root, source: "gather-at-last"},
+      {order: [t1, t0, t2], betweenFirst: broken, root, source: "together-reversed (betweenFirst)"},
+      {order: [t1, t0, t2], betweenFirst: new Set(), root, source: "together-reversed"},
+      {order: [t0, t1, t2], betweenFirst: broken, root, source: "together-normal (betweenFirst)"},
+      {order: [t0, t1, t2], betweenFirst: new Set(), root, source: "together-normal"},
     ]);
   });
 });

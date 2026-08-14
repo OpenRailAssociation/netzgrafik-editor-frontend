@@ -96,7 +96,7 @@ const DEFAULT_CLUTTER_WEIGHTS: ClutterWeights = {
  * ## Algorithm
  *
  * 1. Start with the initial trainrun order (from node transitions)
- * 2. For each candidate (a trainrun ordering + a between-first node set):
+ * 2. For each candidate (a trainrun ordering + a between-first node set + a BFS root):
  *    - Apply it via `reorderComponentPorts` (uses ordering as tie-breaker)
  *    - Measure the resulting clutter (weighted crossings + separations)
  *    - If it improved, generate new candidates via `getCandidates`
@@ -161,15 +161,30 @@ function optimizeComponentPorts(
     nodes.flatMap((node) => node.getTransitions().map((t) => t.getTrainrun().getId())),
   );
 
+  const defaultRoot = nodes
+    .filter((n) => n.getPorts().length > 0)
+    .sort(
+      (a, b) =>
+        getNeighborsCount(b) - getNeighborsCount(a) || b.getPorts().length - a.getPorts().length,
+    )[0];
+  if (!defaultRoot) return;
+
   let runs = 0;
   let bestClutter = Infinity;
-  let bestCandidate: Candidate = {order: [], betweenFirst: new Set()};
-  let candidates: Candidate[] = [{order: initialTrainrunsOrder, betweenFirst: new Set()}];
+  let bestCandidate: Candidate = {order: [], betweenFirst: new Set(), root: defaultRoot.getId()};
+  let candidates: Candidate[] = [
+    {order: initialTrainrunsOrder, betweenFirst: new Set(), root: defaultRoot.getId()},
+  ];
 
   while (runs++ <= maxRuns && candidates.length > 0) {
     const candidate = candidates.pop();
 
-    reorderComponentPorts(nodes, trainrunsToScore(candidate.order), candidate.betweenFirst);
+    reorderComponentPorts(
+      nodes,
+      trainrunsToScore(candidate.order),
+      candidate.betweenFirst,
+      candidate.root,
+    );
     const {crossings} = countAllCrossings(nodes);
     const crossingsWithin = nodes.reduce((sum, node) => sum + countCrossingsInNode(node), 0);
     const {within: separationsWithin, between: separationsBetween} = countAllSeparations(nodes);
@@ -206,7 +221,12 @@ function optimizeComponentPorts(
   }
 
   // Re-apply best result (last iteration may have been worse)
-  reorderComponentPorts(nodes, trainrunsToScore(bestCandidate.order), bestCandidate.betweenFirst);
+  reorderComponentPorts(
+    nodes,
+    trainrunsToScore(bestCandidate.order),
+    bestCandidate.betweenFirst,
+    bestCandidate.root,
+  );
 }
 
 /**
@@ -389,20 +409,16 @@ function getNeighborsCount(node: Node): number {
  */
 function reorderComponentPorts(
   nodes: Node[],
-  trainrunScores: Record<number, number> = {},
-  betweenFirstNodeIDs = new Set<number>(),
+  trainrunScores: Record<number, number>,
+  betweenFirstNodeIDs: Set<number>,
+  rootId: number,
 ): void {
   const nodesWithPorts = nodes.filter((n) => n.getPorts().length > 0);
   if (nodesWithPorts.length === 0) return;
 
   const nodeMap = new Map(nodesWithPorts.map((n) => [n.getId(), n]));
   const visited = new Set<number>();
-  const root = nodesWithPorts.reduce((best, n) => {
-    const bestNeighbors = getNeighborsCount(best);
-    const nNeighbors = getNeighborsCount(n);
-    if (nNeighbors !== bestNeighbors) return nNeighbors > bestNeighbors ? n : best;
-    return n.getPorts().length > best.getPorts().length ? n : best;
-  });
+  const root = nodeMap.get(rootId)!;
   const queue: number[] = [root.getId()];
 
   reorderNodePorts(root, visited, trainrunScores, betweenFirstNodeIDs.has(root.getId()));
