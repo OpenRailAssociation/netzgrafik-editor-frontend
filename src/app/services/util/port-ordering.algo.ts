@@ -60,10 +60,12 @@ export function optimizePorts(
 
 type OptimizeComponentPortsOptions = {
   maxRuns: number;
+  roots: number;
   stats?: CandidateStats;
 };
 const DEFAULT_OPTIMIZE_COMPONENT_PORTS_OPTIONS: OptimizeComponentPortsOptions = {
   maxRuns: 500,
+  roots: 3,
 };
 
 /**
@@ -95,7 +97,8 @@ const DEFAULT_CLUTTER_WEIGHTS: ClutterWeights = {
  *
  * ## Algorithm
  *
- * 1. Start with the initial trainrun order (from node transitions)
+ * 1. Start with the initial trainrun order (from node transitions), seeded once per top-ranked
+ *    BFS root (see `roots`), since the root changes how orders propagate through the network
  * 2. For each candidate (a trainrun ordering + a between-first node set + a BFS root):
  *    - Apply it via `reorderComponentPorts` (uses ordering as tie-breaker)
  *    - Measure the resulting clutter (weighted crossings + separations)
@@ -120,13 +123,15 @@ const DEFAULT_CLUTTER_WEIGHTS: ClutterWeights = {
  * ## Parameters
  *
  * - `maxRuns`: Maximum iterations to prevent infinite loops
+ * - `roots`: How many top-ranked BFS roots to seed the search with (candidates generated from an
+ *   improving candidate inherit its root)
  */
 function optimizeComponentPorts(
   nodes: Node[],
   parameters: Partial<OptimizeComponentPortsOptions> = {},
   clutterWeights: Partial<ClutterWeights> = {},
 ): void {
-  const {maxRuns, stats} = {...DEFAULT_OPTIMIZE_COMPONENT_PORTS_OPTIONS, ...parameters};
+  const {maxRuns, roots, stats} = {...DEFAULT_OPTIMIZE_COMPONENT_PORTS_OPTIONS, ...parameters};
   const {
     crossingsWithin: crossingsWithinWeight,
     crossingsBetween: crossingsBetweenWeight,
@@ -161,20 +166,26 @@ function optimizeComponentPorts(
     nodes.flatMap((node) => node.getTransitions().map((t) => t.getTrainrun().getId())),
   );
 
-  const defaultRoot = nodes
+  const rankedRoots = nodes
     .filter((n) => n.getPorts().length > 0)
     .sort(
       (a, b) =>
         getNeighborsCount(b) - getNeighborsCount(a) || b.getPorts().length - a.getPorts().length,
-    )[0];
-  if (!defaultRoot) return;
+    );
+  if (rankedRoots.length === 0) return;
 
   let runs = 0;
   let bestClutter = Infinity;
-  let bestCandidate: Candidate = {order: [], betweenFirst: new Set(), root: defaultRoot.getId()};
-  let candidates: Candidate[] = [
-    {order: initialTrainrunsOrder, betweenFirst: new Set(), root: defaultRoot.getId()},
-  ];
+  let bestCandidate: Candidate = {order: [], betweenFirst: new Set(), root: rankedRoots[0].getId()};
+  let candidates: Candidate[] = rankedRoots
+    .slice(0, roots)
+    .reverse()
+    .map((root) => ({
+      order: initialTrainrunsOrder,
+      betweenFirst: new Set<number>(),
+      root: root.getId(),
+      source: root === rankedRoots[0] ? undefined : "initial (alt-root)",
+    }));
 
   while (runs++ <= maxRuns && candidates.length > 0) {
     const candidate = candidates.pop();
