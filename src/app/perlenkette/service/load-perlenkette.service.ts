@@ -100,14 +100,14 @@ export class LoadPerlenketteService implements OnDestroy {
           index < allItems.length - 1 && allItems[index + 1].isPerlenketteSection()
             ? allItems[index + 1].getPerlenketteSection().trainrunSectionId
             : undefined;
+        const hasMoreNodesAfter =
+          index < allItems.length - 1 ? allItems[index + 1].isPerlenketteSection() : false;
 
-        const hasMoreNodesAfter = allItems
-          .slice(index + 1)
-          .some((followingItem) => followingItem.isPerlenketteNode());
         entries.push({
           nodeId: node.getId(),
           // First node in a part has no incoming section, so use outgoing section.
           trainrunSectionId: incomingSectionId ?? outgoingSectionId,
+          // if two nodes are next to eaach other make a gap after or as well if last node
           hasGapAfter: perlenketteNode.isLastTrainrunPartNode() && hasMoreNodesAfter,
         });
       }
