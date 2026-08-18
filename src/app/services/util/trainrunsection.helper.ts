@@ -453,4 +453,48 @@ export class TrainrunsectionHelper {
       .slice(1) // skip first section
       .filter((section) => !section.getSourceNode().isNonStop(section));
   }
+
+  static getTravelTimeForSectionGroup(trainrunSections: TrainrunSection[]): number {
+    if (trainrunSections.length === 1) {
+      return trainrunSections[0].getTravelTime();
+    }
+
+    return trainrunSections.reduce((sum, section, index) => {
+      let sectionTime = section.getTravelTime();
+
+      // Add stop time at intermediate nodes (all except the last section)
+      if (index < trainrunSections.length - 1) {
+        const nextSection = trainrunSections[index + 1];
+        const stopTime = Math.abs(
+          nextSection.getSourceDepartureConsecutiveTime() -
+            section.getTargetArrivalConsecutiveTime(),
+        );
+        sectionTime += stopTime;
+      }
+
+      return sum + sectionTime;
+    }, 0);
+  }
+
+  static getBackwardTravelTimeForSectionGroup(trainrunSections: TrainrunSection[]): number {
+    if (trainrunSections.length === 1) {
+      return trainrunSections[0].getBackwardTravelTime();
+    }
+
+    return trainrunSections.reduce((sum, section, index) => {
+      let sectionTime = section.getBackwardTravelTime();
+
+      // Add stop time at intermediate nodes (all except the last section)
+      if (index < trainrunSections.length - 1) {
+        const nextSection = trainrunSections[index + 1];
+        const stopTime = Math.abs(
+          section.getTargetDepartureConsecutiveTime() -
+            nextSection.getSourceArrivalConsecutiveTime(),
+        );
+        sectionTime += stopTime;
+      }
+
+      return sum + sectionTime;
+    }, 0);
+  }
 }
