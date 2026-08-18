@@ -6,7 +6,12 @@ import {NoteService} from "../data/note.service";
 import {Vec2D} from "../../utils/vec2D";
 import {Node} from "../../models/node.model";
 import {ViewportCullService} from "../ui/viewport.cull.service";
-import {NodeOperation, Operation, OperationType} from "src/app/models/operation.model";
+import {
+  NodeOperation,
+  NoteOperation,
+  Operation,
+  OperationType,
+} from "src/app/models/operation.model";
 import {Note} from "../../models/note.model";
 
 @Injectable({
@@ -174,11 +179,14 @@ export class PositionTransformationService {
   }
 
   scaleNetzgrafikArea(factor: number, zoomCenter: Vec2D, windowViewboxPropertiesMapKey: string) {
-    const nodes: Node[] = this.nodeService.getSelectedNodes();
+    let nodes: Node[] = this.nodeService.getSelectedNodes();
+    let notes: Note[];
     if (nodes.length < 2) {
+      nodes = this.nodeService.getNodes();
+      notes = this.noteService.getNotes();
       this.scaleFullNetzgrafikArea(factor, zoomCenter, windowViewboxPropertiesMapKey);
     } else {
-      let notes: Note[] = this.noteService.getSelectedNotes();
+      notes = this.noteService.getSelectedNotes();
       if (notes.length === 0) {
         notes = this.noteService.getNotes();
       }
@@ -191,6 +199,9 @@ export class PositionTransformationService {
         windowViewboxPropertiesMapKey,
       );
     }
+
+    nodes.forEach((node) => this.operation.emit(new NodeOperation(OperationType.update, node)));
+    notes.forEach((note) => this.operation.emit(new NoteOperation(OperationType.update, note)));
 
     this.updateRendering();
   }
