@@ -24,7 +24,7 @@ export class HttpErrorInterceptor implements HttpInterceptor {
         if (error.error instanceof ErrorEvent) {
           this.logService.error(`Client failed to make request: ${error.error.message}`);
         } else {
-          this.logService.error(`Backend error: ${error.status} ${error.statusText}`);
+          this.logService.error(`Backend error: ${error.status}`);
           switch (error.status) {
             case 401:
               this.router.navigateByUrl("/401");
