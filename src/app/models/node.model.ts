@@ -621,11 +621,12 @@ export class Node {
   }
 
   removePort(trainrunSection: TrainrunSection) {
-    let portId = trainrunSection.getSourcePortId();
-    if (this.getId() === trainrunSection.getTargetNodeId()) {
-      portId = trainrunSection.getTargetPortId();
+    if (this.getId() === trainrunSection.getSourceNodeId()) {
+      this.ports = this.ports.filter((port) => port.getId() !== trainrunSection.getSourcePortId());
     }
-    this.ports = this.ports.filter((port) => port.getId() !== portId);
+    if (this.getId() === trainrunSection.getTargetNodeId()) {
+      this.ports = this.ports.filter((port) => port.getId() !== trainrunSection.getTargetPortId());
+    }
   }
 
   removeTransition(trainrunSection: TrainrunSection) {
