@@ -1,0 +1,23 @@
+// Used when this component is placed inside sbb-header-lean's user menu
+// (normal, non-standalone mode).
+.sbb-select.language-selector-menu {
+  transform: translate(10px, 1px);
+  width: 95%;
+}
+
+// Used when this component is placed directly in standalone mode, overlaid
+// on top of the fixed-position header (sbb-header-lean is position:fixed,
+// and the rest of the app's layout - icon sidebar, canvas - is itself
+// fixed-positioned assuming a constant header height, so this needs to be
+// positioned the same way rather than taking up normal document flow space).
+.sbb-select.language-selector-standalone {
+  position: fixed;
+  top: 7px; // inverted vertically within sbb-header-lean
+  right: 135px; // close to the SBB logo
+  z-index: 1001; // above sbb-header-lean's own z-index of 1000
+  height: 40px; // smaller height than sbb-header-lean's
+  display: flex;
+  align-items: center;
+  width: auto;
+  min-width: 8rem;
+}
