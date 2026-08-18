@@ -667,6 +667,17 @@ describe("NodeService Test", () => {
     expect(connections.length).toBe(1);
   });
 
+  it("add connection test : one-way case 4 - reverse direction forbidden", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const t1 = trainrunSectionService.getTrainrunSectionFromId(0);
+    t1.getTrainrun().setDirection(Direction.ONE_WAY);
+
+    // ts0 is BN -> OL. For one-way, connecting from source node (BN) should be forbidden
+    nodeService.addConnectionToNode(0, 0, 3);
+    const node0 = nodeService.getNodeFromId(0);
+    expect(node0.getConnections().length).toBe(0);
+  });
+
   it("connection test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);

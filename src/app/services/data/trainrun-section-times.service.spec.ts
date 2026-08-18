@@ -15,6 +15,7 @@ import {FilterService} from "../ui/filter.service";
 import {NetzgrafikColoringService} from "../data/netzgrafikColoring.service";
 import {TrainrunSectionTimesService} from "./trainrun-section-times.service";
 import {LoadPerlenketteService} from "../../perlenkette/service/load-perlenkette.service";
+import {Direction} from "../../data-structures/business.data.structures";
 
 describe("TrainrunSectionTimesService", () => {
   let dataService: DataService;
@@ -623,5 +624,17 @@ describe("TrainrunSectionTimesService", () => {
     expect(inputVal).toBe(4);
     inputVal = inputVal - trainrunSectionTimesService.getTimeButtonMinusStep(inputVal);
     expect(inputVal).toBe(3);
+  });
+
+  describe("one-way trainrun time structure", () => {
+    it("one-way: getTimeStructure maps left to tail and right to head", () => {
+      dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+      const ts = trainrunSectionService.getTrainrunSectionFromId(1);
+      ts.getTrainrun().setDirection(Direction.ONE_WAY);
+      trainrunSectionTimesService.setTrainrunSection(ts);
+      const timeStructure = trainrunSectionTimesService.getTimeStructure();
+      expect(timeStructure.leftDepartureTime).toBe(ts.getSourceDeparture());
+      expect(timeStructure.rightArrivalTime).toBe(ts.getTargetArrival());
+    });
   });
 });

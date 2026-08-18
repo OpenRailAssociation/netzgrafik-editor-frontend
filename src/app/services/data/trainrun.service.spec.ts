@@ -14,6 +14,7 @@ import {LabelService} from "./label.service";
 import {NetzgrafikUnitTesting} from "../../../integration-testing/netzgrafik.unit.testing";
 import {FilterService} from "../ui/filter.service";
 import {NetzgrafikColoringService} from "../data/netzgrafikColoring.service";
+import {Direction} from "../../data-structures/business.data.structures";
 
 describe("TrainrunService", () => {
   let dataService: DataService;
@@ -359,5 +360,59 @@ describe("TrainrunService", () => {
     // trainrun 4: 4 -> 2
     // root: 4
     expect(iterators.get(4).current().trainrunSection.getSourceNodeId()).toBe(4);
+  });
+
+  it("updateDirection - round_trip to one_way", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const ts = trainrunSectionService.getTrainrunSectionFromId(1);
+    const t = ts.getTrainrun();
+    expect(t.isRoundTrip()).toBe(true);
+
+    trainrunService.updateDirection(t, Direction.ONE_WAY);
+    expect(t.isRoundTrip()).toBe(false);
+    expect(t.getDirection()).toBe(Direction.ONE_WAY);
+  });
+
+  it("updateDirection - one_way to round_trip", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const ts = trainrunSectionService.getTrainrunSectionFromId(1);
+    const t = ts.getTrainrun();
+    t.setDirection(Direction.ONE_WAY);
+    expect(t.isRoundTrip()).toBe(false);
+
+    trainrunService.updateDirection(t, Direction.ROUND_TRIP);
+    expect(t.isRoundTrip()).toBe(true);
+    expect(t.getDirection()).toBe(Direction.ROUND_TRIP);
+  });
+
+  it("duplicateTrainrun preserves direction", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const ts = trainrunSectionService.getTrainrunSectionFromId(1);
+    const t = ts.getTrainrun();
+    t.setDirection(Direction.ONE_WAY);
+
+    const copied = trainrunService.duplicateTrainrun(t.getId());
+    expect(copied.getDirection()).toBe(Direction.ONE_WAY);
+    expect(copied.isRoundTrip()).toBe(false);
+  });
+
+  it("getSbbArrowForTrainrunDirection - one_way right", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const ts = trainrunSectionService.getTrainrunSectionFromId(1);
+    const t = ts.getTrainrun();
+    t.setDirection(Direction.ONE_WAY);
+    trainrunService.setTrainrunAsSelected(t.getId());
+
+    expect(trainrunService.getSbbArrowForTrainrunDirection()).toBe("arrow-right-medium");
+  });
+
+  it("getSbbArrowForTrainrunDirection - one_way left", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const ts = trainrunSectionService.getTrainrunSectionFromId(7);
+    const t = ts.getTrainrun();
+    t.setDirection(Direction.ONE_WAY);
+    trainrunService.setTrainrunAsSelected(t.getId());
+
+    expect(trainrunService.getSbbArrowForTrainrunDirection()).toBe("arrow-left-medium");
   });
 });
