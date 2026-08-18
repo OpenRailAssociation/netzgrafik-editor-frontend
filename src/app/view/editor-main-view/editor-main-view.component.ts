@@ -118,7 +118,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       .subscribe((center: Vec2D) => this.moveNetzgrafikEditorViewFocalPoint(center));
   }
 
-  @HostListener("window:resize", ["$event"])
+  @HostListener("window:resize", [])
   getScreenSize() {
     this.editorView.svgMouseController.resize(window.innerWidth, window.innerHeight);
     StreckengrafikDrawingContext.updateDrawingContainerData();
