@@ -75,7 +75,7 @@
     "@types/jasminewd2": "~2.0.13",
     "@types/node": "^26.2.0",
     "@types/papaparse": "^5.3.2",
-    "angular-eslint": "^20.7.0",
+    "angular-eslint": "^21.4.0",
     "browserstack-local": "^1.5.12",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",

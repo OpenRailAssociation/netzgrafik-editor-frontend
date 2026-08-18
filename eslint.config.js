@@ -79,6 +79,8 @@ export default defineConfig([
     extends: [...angular.configs.templateRecommended],
     rules: {
       "@typescript-eslint/ban-ts-comment": "off",
+      // TODO: enable all recommended @angular-eslint rules
+      "@angular-eslint/template/prefer-control-flow": "off",
     },
   },
 ]);
