@@ -109,6 +109,16 @@ jobs:
           name: build-standalone-demo
           path: dist/
 
+  build-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Build
+        uses: docker/build-push-action@v7
+        with:
+          push: false
+
   deploy-github-pages:
     if: github.event_name == 'push'
     needs: build-standalonedemo
