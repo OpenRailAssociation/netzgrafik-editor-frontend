@@ -497,4 +497,30 @@ export class TrainrunsectionHelper {
       return sum + sectionTime;
     }, 0);
   }
+
+  private getDirection(trainrunSection: TrainrunSection, orderedNodes: Node[]) {
+    let direction: "sourceToTarget" | "targetToSource";
+    if (orderedNodes.length > 0) {
+      direction =
+        orderedNodes[0].getId() === trainrunSection.getSourceNode().getId()
+          ? "sourceToTarget"
+          : "targetToSource";
+    } else {
+      const lastLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
+      const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
+      direction =
+        lastLeftNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
+          ? "targetToSource"
+          : "sourceToTarget";
+    }
+    return direction;
+  }
+
+  private getDirectedTrainrunSectionProxiesGroup(
+    trainrunSection: TrainrunSection,
+    direction: "sourceToTarget" | "targetToSource",
+  ) {
+    const group = this.trainrunSectionService.getTrainrunSectionGroupForSection(trainrunSection);
+    return group.map((section) => new DirectedTrainrunSectionProxy(section, direction));
+  }
 }
