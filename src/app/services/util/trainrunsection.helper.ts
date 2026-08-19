@@ -498,6 +498,50 @@ export class TrainrunsectionHelper {
     }, 0);
   }
 
+  private getTravelTimeForProxiesGroup(
+    proxies: DirectedTrainrunSectionProxy[],
+    includeStopTime: boolean = false,
+  ): number {
+    if (proxies.length === 1) return proxies[0].getTravelTime();
+
+    return proxies.reduce((sum, proxy, index) => {
+      let proxyTime = proxy.getTravelTime();
+
+      // Add stop time at intermediate nodes (all except the last proxy)
+      if (includeStopTime && index < proxies.length - 1) {
+        const nextProxy = proxies[index + 1];
+        const stopTime = Math.abs(
+          nextProxy.getTailDepartureConsecutive() - proxy.getHeadArrivalConsecutive(),
+        );
+        proxyTime += stopTime;
+      }
+
+      return sum + proxyTime;
+    }, 0);
+  }
+
+  private getReverseTravelTimeForProxiesGroup(
+    proxies: DirectedTrainrunSectionProxy[],
+    includeStopTime: boolean = false,
+  ): number {
+    if (proxies.length === 1) return proxies[0].getReverseTravelTime();
+
+    return proxies.reduce((sum, proxy, index) => {
+      let proxyTime = proxy.getReverseTravelTime();
+
+      // Add stop time at intermediate nodes (all except the last proxy)
+      if (includeStopTime && index < proxies.length - 1) {
+        const nextProxy = proxies[index + 1];
+        const stopTime = Math.abs(
+          proxy.getHeadDepartureConsecutive() - nextProxy.getTailArrivalConsecutive(),
+        );
+        proxyTime += stopTime;
+      }
+
+      return sum + proxyTime;
+    }, 0);
+  }
+
   private getDirection(trainrunSection: TrainrunSection, orderedNodes: Node[]) {
     let direction: "sourceToTarget" | "targetToSource";
     if (orderedNodes.length > 0) {
