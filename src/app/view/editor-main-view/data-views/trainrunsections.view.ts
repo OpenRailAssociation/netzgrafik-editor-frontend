@@ -1821,8 +1821,10 @@ export class TrainrunSectionsView {
   ): TrainrunSectionViewObject[] {
     const viewTrainrunSectionDataObjects: TrainrunSectionViewObject[] = [];
 
-    const sectionGroups =
-      this.trainrunSectionService.groupTrainrunSectionsIntoChains(inputTrainrunSections);
+    const sectionGroups = this.trainrunSectionService.groupTrainrunSectionsIntoChains(
+      inputTrainrunSections,
+      false,
+    );
 
     sectionGroups.forEach((sections) => {
       const viewObject = new TrainrunSectionViewObject(editorView, sections);

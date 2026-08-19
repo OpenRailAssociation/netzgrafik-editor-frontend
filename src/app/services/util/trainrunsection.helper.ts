@@ -363,7 +363,10 @@ export class TrainrunsectionHelper {
       lastLeftNode.getArrivalTime(leftTrainrunSection) -
       lastRightNode.getDepartureTime(rightTrainrunSection);
 
-    const group = this.trainrunSectionService.getTrainrunSectionGroupForSection(trainrunSection);
+    const group = this.trainrunSectionService.getTrainrunSectionGroupForSection(
+      trainrunSection,
+      false,
+    );
     const timeStructure = {
       leftDepartureTime: lastLeftNode.getDepartureTime(leftTrainrunSection),
       leftArrivalTime: lastLeftNode.getArrivalTime(leftTrainrunSection),
@@ -574,7 +577,10 @@ export class TrainrunsectionHelper {
     trainrunSection: TrainrunSection,
     direction: "sourceToTarget" | "targetToSource",
   ) {
-    const group = this.trainrunSectionService.getTrainrunSectionGroupForSection(trainrunSection);
+    const group = this.trainrunSectionService.getTrainrunSectionGroupForSection(
+      trainrunSection,
+      false,
+    );
     return group.map((section) => new DirectedTrainrunSectionProxy(section, direction));
   }
 }
