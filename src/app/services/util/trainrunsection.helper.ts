@@ -64,23 +64,6 @@ export class TrainrunsectionHelper {
     return MathUtils.round(trsTravelTime * travelTimeFactor, precision);
   }
 
-  static getRightArrivalTime(
-    timeStructure: LeftAndRightTimeStructure,
-    precision = TrainrunSectionService.TIME_PRECISION,
-  ): number {
-    return MathUtils.round(
-      (timeStructure.leftDepartureTime + (timeStructure.travelTime % 60)) % 60,
-      precision,
-    );
-  }
-
-  static getRightDepartureTime(
-    timeStructure: LeftAndRightTimeStructure,
-    precision = TrainrunSectionService.TIME_PRECISION,
-  ): number {
-    return MathUtils.round(this.getSymmetricTime(timeStructure.rightArrivalTime), precision);
-  }
-
   getLeftBetriebspunkt(trainrunSection: TrainrunSection, orderedNodes: Node[]): string[] {
     const nextStopLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
     return [nextStopLeftNode.getBetriebspunktName(), "(" + nextStopLeftNode.getFullName() + ")"];
