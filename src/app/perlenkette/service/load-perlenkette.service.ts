@@ -87,9 +87,6 @@ export class LoadPerlenketteService implements OnDestroy {
 
     allItems.forEach((item, index) => {
       if (item.isPerlenketteNode()) {
-        if (!item.isPerlenketteNode()) {
-          return;
-        }
         const perlenketteNode = item.getPerlenketteNode();
         const node = this.nodeService.getNodeFromId(perlenketteNode.nodeId);
         const incomingSectionId =
