@@ -152,8 +152,10 @@ export class LoadPerlenketteService implements OnDestroy {
         for (const currentTrainrunSectionNodePair of iterator) {
           const trainrunSection = currentTrainrunSectionNodePair.trainrunSection;
           const node = currentTrainrunSectionNodePair.node;
-          const group =
-            this.trainrunSectionService.getTrainrunSectionGroupForSection(trainrunSection);
+          const group = this.trainrunSectionService.getTrainrunSectionGroupForSection(
+            trainrunSection,
+            false,
+          );
           // Section X
           perlenketteItem.push(
             new PerlenketteSection(
