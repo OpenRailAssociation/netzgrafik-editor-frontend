@@ -454,6 +454,16 @@ export class TrainrunsectionHelper {
       .filter((section) => !section.getSourceNode().isNonStop(section));
   }
 
+  private getStopSectionsFromProxiesGroup(
+    proxies: DirectedTrainrunSectionProxy[],
+  ): DirectedTrainrunSectionProxy[] {
+    // Count non-stop collapsed tail nodes
+    // Note: in this context, all intermediate sections are collapsed
+    return proxies
+      .slice(1) // skip first
+      .filter((proxy) => !proxy.getTailNode().isNonStop(proxy.trainrunSection));
+  }
+
   static getTravelTimeForSectionGroup(trainrunSections: TrainrunSection[]): number {
     if (trainrunSections.length === 1) {
       return trainrunSections[0].getTravelTime();
