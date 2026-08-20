@@ -479,7 +479,12 @@
         "retrieveFromEdgeTooltip": "Takes over the max. travel time on the same section of all trains of the same category, otherwise max. travel time of all trains, otherwise 1 min.",
         "trafficSide": "Traffic side",
         "leftTrafficSideTooltip": "Trains are operated according to left-hand running conventions.",
-        "rightTrafficSideTooltip": "Trains are operated according to right-hand running conventions."
+        "rightTrafficSideTooltip": "Trains are operated according to right-hand running conventions.",
+        "sectionRendering": "Section rendering",
+        "obliqueSections": "Oblique",
+        "obliqueSectionsTooltip": "Sections are drawn as straight lines between nodes (default).",
+        "orthogonalSections": "Right angles",
+        "orthogonalSectionsTooltip": "Sections are drawn with horizontal and vertical segments only."
       },
       "editor-side-view": {
         "editor-node-detail-view": {

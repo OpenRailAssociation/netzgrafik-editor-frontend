@@ -155,6 +155,28 @@
 
   <sbb-expansion-panel [expanded]="true">
     <sbb-expansion-panel-header>{{
+      "app.view.editor-properties-view-component.sectionRendering" | translate
+    }}</sbb-expansion-panel-header>
+    <sbb-label>{{
+      "app.view.editor-properties-view-component.sectionRendering" | translate
+    }}</sbb-label>
+    <br />
+    <sbb-radio-group [(ngModel)]="activeSectionRenderingStyle" class="sbb-radio-group-vertical">
+      <sbb-radio-button
+        *ngFor="let style of sectionRenderingStyles"
+        [value]="style"
+        [title]="
+          'app.view.editor-properties-view-component.' + style + 'SectionsTooltip' | translate
+        "
+        (change)="onUpdateSectionRenderingStyle($event)"
+      >
+        {{ "app.view.editor-properties-view-component." + style + "Sections" | translate }}
+      </sbb-radio-button>
+    </sbb-radio-group>
+  </sbb-expansion-panel>
+
+  <sbb-expansion-panel [expanded]="true">
+    <sbb-expansion-panel-header>{{
       "app.view.editor-properties-view-component.graphicTimetable" | translate
     }}</sbb-expansion-panel-header>
     <sbb-label>{{
