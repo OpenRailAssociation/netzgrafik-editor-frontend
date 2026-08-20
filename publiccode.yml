@@ -4,8 +4,8 @@ publiccodeYmlVersion: "0.5"
 name: "Netzgrafik-Editor Frontend"
 url: "https://github.com/OpenRailAssociation/netzgrafik-editor-frontend"
 landingURL: "https://openrailassociation.github.io/netzgrafik-editor-frontend/"
-softwareVersion: "v2.10.14"
-releaseDate: "2026-01-30"
+softwareVersion: "v2.11.1"
+releaseDate: "2026-05-18"
 
 platforms:
   - web
