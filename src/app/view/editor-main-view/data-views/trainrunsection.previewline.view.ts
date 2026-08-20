@@ -9,6 +9,7 @@ import {SimpleTrainrunSectionRouter} from "../../../services/util/trainrunsectio
 import {NodeService} from "../../../services/data/node.service";
 import {FilterService} from "../../../services/ui/filter.service";
 import {VersionControlService} from "../../../services/data/version-control.service";
+import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
 
 export enum PreviewLineMode {
   NotDragging,
@@ -58,6 +59,7 @@ export class TrainrunSectionPreviewLineView {
     private nodeService: NodeService,
     private filterService: FilterService,
     private versionControlService: VersionControlService,
+    private trainrunSectionService: TrainrunSectionService,
   ) {}
 
   static setGroup(nodeGroup: d3.Selection<SVGElement, undefined, Element, undefined>) {
@@ -94,7 +96,10 @@ export class TrainrunSectionPreviewLineView {
   setExistingTrainrunSection(trainrunSection: TrainrunSection) {
     this.mode = PreviewLineMode.DragExistingTrainrunSection;
     this.existingTrainrunSection = new TrainrunSection(trainrunSection.getDto());
-    this.existingTrainrunSection.setTrainrun(trainrunSection.getTrainrun());
+    this.trainrunSectionService.updateTrainrunReference(
+      this.existingTrainrunSection,
+      trainrunSection.getTrainrun(),
+    );
   }
 
   startDragIntermediateStop(

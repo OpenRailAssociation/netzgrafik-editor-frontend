@@ -1,7 +1,7 @@
 import {Node} from "../../models/node.model";
 import {Trainrun} from "../../models/trainrun.model";
 import {VisAVisPortPlacement} from "./node.port.placement";
-import {TrainrunSection} from "../../models/trainrunsection.model";
+import {TrainrunSection, _TRAINRUN_UPDATE_TOKEN} from "../../models/trainrunsection.model";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
 
 const ALIGNMENTS_MAP = {
@@ -46,7 +46,7 @@ export function buildNetwork(def: {
       const ts = new TrainrunSection();
       ts.setSourceNode(sourceNode);
       ts.setTargetNode(targetNode);
-      ts.setTrainrun(trainrun);
+      ts.setTrainrun(trainrun, _TRAINRUN_UPDATE_TOKEN);
 
       // Create ports with trainrun section
       const sourcePortId = sourceNode.addPort(sourcePortPlacement, ts);
