@@ -195,25 +195,6 @@ export class SimpleTrainrunSectionRouter {
     return diff !== 0 ? diff : BEZIER_CONTROL_SAME_ALIGNMENT_DIFFERENCE;
   }
 
-  static routeTrainrunSection(
-    sourceNode: Node,
-    sourcePort: Port,
-    targetNode: Node,
-    targetPort: Port,
-  ): Vec2D[] {
-    const s = SimpleTrainrunSectionRouter.getPortPositionForTrainrunSectionRouting(
-      sourceNode,
-      sourcePort,
-    );
-    const t = SimpleTrainrunSectionRouter.getPortPositionForTrainrunSectionRouting(
-      targetNode,
-      targetPort,
-    );
-    const s1 = SimpleTrainrunSectionRouter.getSimpleTrainrunSectionFirstPoint(s, sourcePort);
-    const t1 = SimpleTrainrunSectionRouter.getSimpleTrainrunSectionFirstPoint(t, targetPort);
-    return [s, s1, t1, t];
-  }
-
   static routeTransition(node: Node, port1: Port, port2: Port): Vec2D[] {
     const s = SimpleTrainrunSectionRouter.getPortPositionForTransitionAndConnectionRouting(
       node,

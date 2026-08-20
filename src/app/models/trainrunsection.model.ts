@@ -4,6 +4,7 @@ import {Node} from "./node.model";
 import {Trainrun} from "./trainrun.model";
 import {Vec2D} from "../utils/vec2D";
 import {SimpleTrainrunSectionRouter} from "../services/util/trainrunsection.routing";
+import {getModelSectionPath} from "../services/util/section-shape";
 import {
   ColorRefType,
   PathDto,
@@ -751,12 +752,7 @@ export class TrainrunSection {
   }
 
   routeEdgeAndPlaceText() {
-    this.pathVec2D = SimpleTrainrunSectionRouter.routeTrainrunSection(
-      this.sourceNode,
-      this.sourceNode.getPort(this.sourcePortId),
-      this.targetNode,
-      this.targetNode.getPort(this.targetPortId),
-    );
+    this.pathVec2D = getModelSectionPath(this);
 
     this.path.textPositions = SimpleTrainrunSectionRouter.placeTextOnTrainrunSection(
       this.pathVec2D,

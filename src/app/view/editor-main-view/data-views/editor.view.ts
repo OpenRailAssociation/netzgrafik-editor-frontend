@@ -45,6 +45,7 @@ import {
 } from "../../../data-structures/business.data.structures";
 import {TrainrunSectionText} from "../../../data-structures/technical.data.structures";
 import {AutoLayoutService} from "../../../services/util/auto-layout.service";
+import {SectionRenderingStyle} from "../../../services/util/section-shape";
 
 export class EditorView implements SVGMouseControllerObserver {
   static svgName = "graphContainer";
@@ -324,6 +325,10 @@ export class EditorView implements SVGMouseControllerObserver {
 
   getActiveTrafficSideType(): TrafficSide {
     return this.uiInteractionService.getActiveTrafficSideType();
+  }
+
+  getSectionRenderingStyle(): SectionRenderingStyle {
+    return this.uiInteractionService.getActiveSectionRenderingStyle();
   }
 
   bindShowTrainrunOneWayInformation(

@@ -69,6 +69,11 @@ export class Vec2D {
     return new Vec2D(x, y);
   }
 
+  /** Removes consecutive duplicate points */
+  static dedupe(points: Vec2D[]): Vec2D[] {
+    return points.filter((p, i) => i === 0 || !Vec2D.equal(p, points[i - 1]));
+  }
+
   public toString(): string {
     return "(" + this.getX() + "," + this.getY() + ")";
   }

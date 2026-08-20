@@ -260,16 +260,6 @@ export class D3Utils {
       .classed(StaticDomTags.NODE_HIGHLIGHT, false);
   }
 
-  static getPathAsSVGString(pathVec2D: Vec2D[]) {
-    let sep = "M";
-    let svgPathString = "";
-    pathVec2D.forEach((p) => {
-      svgPathString += sep + p.getX() + "," + p.getY();
-      sep = "L";
-    });
-    return svgPathString;
-  }
-
   static getBezierCurveAsSVGString(pathVec2D: Vec2D[]) {
     const start: Vec2D = pathVec2D[0];
     const controlPointStart: Vec2D = pathVec2D[1];

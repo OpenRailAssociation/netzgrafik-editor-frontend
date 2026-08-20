@@ -9,6 +9,7 @@ import {DragTransitionInfo, PreviewLineMode} from "./trainrunsection.previewline
 import {Vec2D} from "../../../utils/vec2D";
 import {TransitionViewObject} from "./transitionViewObject";
 import {LinePatternRefs} from "../../../data-structures/business.data.structures";
+import {buildPathString} from "../../../services/util/svg";
 
 export class TransitionsView {
   transitionsGroup: d3.Selection<SVGElement, undefined, Element, undefined>;
@@ -118,7 +119,7 @@ export class TransitionsView {
       .classed(StaticDomTags.TAG_SELECTED, (t: TransitionViewObject) =>
         t.transition.getTrainrun().selected(),
       )
-      .attr("d", (t: TransitionViewObject) => D3Utils.getPathAsSVGString(t.transition.getPath()));
+      .attr("d", (t: TransitionViewObject) => buildPathString(t.transition.getPath(), 0));
   }
 
   createNonStopToggle(
