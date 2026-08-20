@@ -5,7 +5,11 @@ import {Transition} from "../../models/transition.model";
 import {countAllCrossings, countCrossingsInNode} from "./port-ordering.crossings";
 import {countAllSeparations} from "./port-ordering.separations";
 import {Candidate, getCandidates} from "./port-ordering.candidates";
-import {getComponents, getPortOppositeExpandedNodeId} from "./port-ordering.components";
+import {
+  getComponents,
+  getMatchingPortInOppositeNode,
+  getPortOppositeExpandedNodeId,
+} from "./port-ordering.components";
 import {
   ALIGNMENTS_CLOCKWISE_ORDER,
   getOppositeAlignmentScore,
@@ -298,13 +302,8 @@ export function reorderNodePorts(
       }
       if (orderedNodeIDs.has(aOppositeNode.getId())) {
         // Case 4a
-        const oppositeNodePorts = aOppositeNode.getPorts();
-        const aPortInOppositeNode = oppositeNodePorts.find(
-          (port) => port.getTrainrunSectionId() === a.getTrainrunSectionId(),
-        );
-        const bPortInOppositeNode = oppositeNodePorts.find(
-          (port) => port.getTrainrunSectionId() === b.getTrainrunSectionId(),
-        );
+        const aPortInOppositeNode = getMatchingPortInOppositeNode(a, node.getId());
+        const bPortInOppositeNode = getMatchingPortInOppositeNode(b, node.getId());
         if (!aPortInOppositeNode || !bPortInOppositeNode) return 0;
         return aPortInOppositeNode.getPositionIndex() - bPortInOppositeNode.getPositionIndex();
       }
