@@ -147,6 +147,12 @@ export class TrainrunSectionViewObject {
       "_" +
       activeTrafficSideType +
       "_" +
+      editorView.getSectionRenderingStyle() +
+      "_" +
+      d.getSourceNode().getPorts().length +
+      "_" +
+      d.getTargetNode().getPorts().length +
+      "_" +
       editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() +
       "_" +
       editorView.isFilterShowNonStopTimeEnabled() +

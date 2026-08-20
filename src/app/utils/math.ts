@@ -12,4 +12,8 @@ export class MathUtils {
   static mod60(value: number): number {
     return ((value % 60) + 60) % 60;
   }
+
+  static clamp(value: number, a: number, b: number): number {
+    return Math.min(Math.max(value, Math.min(a, b)), Math.max(a, b));
+  }
 }

@@ -286,6 +286,7 @@ export class SimpleTrainrunSectionRouter {
   static placeTextOnTrainrunSection(
     lineWayPoints: Vec2D[],
     sourcePort: Port,
+    verticalOverride?: boolean,
   ): TrainrunSectionTextPositions {
     const s = lineWayPoints[0];
     const s1 = lineWayPoints[1];
@@ -308,7 +309,12 @@ export class SimpleTrainrunSectionRouter {
 
     const invertTrafficSide = SimpleTrainrunSectionRouter.trafficSideType === "leftHand" ? 1 : -1;
 
-    if (SimpleTrainrunSectionRouter.isLineVertical(sourcePort)) {
+    const isVertical =
+      verticalOverride !== undefined
+        ? verticalOverride
+        : SimpleTrainrunSectionRouter.isLineVertical(sourcePort);
+
+    if (isVertical) {
       if (t1.getY() < s1.getY()) {
         deltaSt = Vec2D.normalize(Vec2D.sub(t1, s1));
       }

@@ -2,9 +2,11 @@ import {Vec2D} from "../../utils/vec2D";
 import {TrainrunSectionText} from "../../data-structures/technical.data.structures";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {ObliqueSectionShape} from "./section-shape.oblique";
+import {OrthogonalSectionShape} from "./section-shape.orthogonal";
 
 const SECTION_SHAPES_REGISTRY = {
   oblique: ObliqueSectionShape,
+  orthogonal: OrthogonalSectionShape,
 } as const;
 
 export type SectionRenderingStyle = keyof typeof SECTION_SHAPES_REGISTRY;
