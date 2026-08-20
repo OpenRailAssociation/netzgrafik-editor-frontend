@@ -7,6 +7,7 @@ import {ThemeRegistration} from "../themes/theme-registration";
 import {StreckengrafikRenderingType} from "../themes/streckengrafik-rendering-type";
 import {TravelTimeCreationEstimatorType} from "../themes/editor-trainrun-traveltime-creator-type";
 import {TrafficSide} from "src/app/data-structures/business.data.structures";
+import {SECTION_SHAPES, SectionRenderingStyle} from "../../services/util/section-shape";
 
 @Component({
   selector: "sbb-editor-properties-view-component",
@@ -100,6 +101,9 @@ export class EditorPropertiesViewComponent {
   ];
   activeTrafficSideType: TrafficSide = null;
 
+  sectionRenderingStyles = SECTION_SHAPES;
+  activeSectionRenderingStyle: SectionRenderingStyle = null;
+
   activeDarkBackgroundColor = EditorPropertiesViewComponent.DEFAULT_DARK_BACKGROUNDCOLOR;
   activeBackgroundColor = EditorPropertiesViewComponent.DEFAULT_BACKGROUNDCOLOR;
 
@@ -114,6 +118,7 @@ export class EditorPropertiesViewComponent {
     this.activeTravelTimeCreationEstimatorType =
       this.uiInteractionService.getActiveTravelTimeCreationEstimatorType();
     this.activeTrafficSideType = this.uiInteractionService.getActiveTrafficSideType();
+    this.activeSectionRenderingStyle = this.uiInteractionService.getActiveSectionRenderingStyle();
     if (activeTheme.isDark) {
       this.activeDarkBackgroundColor = this.getHexColor(activeTheme.backgroundColor);
     } else {
@@ -144,6 +149,11 @@ export class EditorPropertiesViewComponent {
   onUpdateTrafficSideType(event: SbbRadioChange) {
     this.uiInteractionService.setActiveTrafficSideType(event.value);
     this.activeTrafficSideType = event.value;
+  }
+
+  onUpdateSectionRenderingStyle(event: SbbRadioChange) {
+    this.uiInteractionService.setActiveSectionRenderingStyle(event.value);
+    this.activeSectionRenderingStyle = event.value;
   }
 
   colorPicked() {

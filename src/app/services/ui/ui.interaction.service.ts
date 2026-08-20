@@ -31,6 +31,7 @@ import {LoadPerlenketteService} from "../../perlenkette/service/load-perlenkette
 import {TravelTimeCreationEstimatorType} from "../../view/themes/editor-trainrun-traveltime-creator-type";
 import {OrderingAlgorithm} from "../../data-structures/technical.data.structures";
 import {TrafficSide} from "src/app/data-structures/business.data.structures";
+import {DEFAULT_SECTION_SHAPE, SectionRenderingStyle} from "../util/section-shape";
 import {DataService} from "../data/data.service";
 import {Operation, MetadataOperation} from "../../models/operation.model";
 import {EditorView} from "src/app/view/editor-main-view/data-views/editor.view";
@@ -112,6 +113,7 @@ export class UiInteractionService implements OnDestroy {
   private activeTheme: ThemeBase = null;
   private activeStreckengrafikRenderingType: StreckengrafikRenderingType = null;
   private activeTravelTimeCreationEstimatorType: TravelTimeCreationEstimatorType = null;
+  private activeSectionRenderingStyle: SectionRenderingStyle = DEFAULT_SECTION_SHAPE;
   private editorMode: EditorMode = EditorMode.NetzgrafikEditing;
   private isMultiSelectedNodesCorridor = false;
 
@@ -299,6 +301,16 @@ export class UiInteractionService implements OnDestroy {
     }
     this.activeTravelTimeCreationEstimatorType = activeTravelTimeCreationEstimatorType;
     this.saveUserSettingToLocalStorage();
+  }
+
+  getActiveSectionRenderingStyle(): SectionRenderingStyle {
+    return this.activeSectionRenderingStyle;
+  }
+
+  setActiveSectionRenderingStyle(sectionRenderingStyle: SectionRenderingStyle) {
+    this.activeSectionRenderingStyle = sectionRenderingStyle;
+    this.saveUserSettingToLocalStorage();
+    this.trainrunSectionService.trainrunSectionsUpdated();
   }
 
   getActiveTrafficSideType(): TrafficSide {
@@ -533,6 +545,9 @@ export class UiInteractionService implements OnDestroy {
         return;
       }
       const localStoredInfo = JSON.parse(serializedState);
+      this.setActiveSectionRenderingStyle(
+        localStoredInfo.sectionRenderingStyle ?? DEFAULT_SECTION_SHAPE,
+      );
       const activeTheme = localStoredInfo.activeTheme;
       this.createTheme(
         activeTheme.themeRegistration,
@@ -556,6 +571,7 @@ export class UiInteractionService implements OnDestroy {
           activeTheme: this.getActiveTheme(),
           streckengrafikRenderingType: this.getActiveStreckengrafikRenderingType(),
           travelTimeCreationEstimatorType: this.getActiveTravelTimeCreationEstimatorType(),
+          sectionRenderingStyle: this.getActiveSectionRenderingStyle(),
         }),
       );
     } catch (err) {

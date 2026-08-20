@@ -479,7 +479,12 @@
         "retrieveFromEdgeTooltip": "Reprend le temps de parcours maximal sur le même tronçon de tous les trains de la même catégorie, sinon le temps de parcours maximal de tous les trains, sinon 1 min.",
         "trafficSide": "Sens de circulation",
         "leftTrafficSideTooltip": "Les trains sont affichés selon les conventions de circulation à gauche.",
-        "rightTrafficSideTooltip": "Les trains sont affichés selon les conventions de circulation à droite."
+        "rightTrafficSideTooltip": "Les trains sont affichés selon les conventions de circulation à droite.",
+        "sectionRendering": "Tracé des sections",
+        "obliqueSections": "Oblique",
+        "obliqueSectionsTooltip": "Les sections sont tracées en lignes droites entre les nœuds (par défaut).",
+        "orthogonalSections": "Angles droits",
+        "orthogonalSectionsTooltip": "Les sections sont tracées uniquement avec des segments horizontaux et verticaux."
       },
       "editor-side-view": {
         "editor-node-detail-view": {
