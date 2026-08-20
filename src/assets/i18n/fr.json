@@ -426,6 +426,16 @@
           "hide": "masquer"
         }
       },
+      "editor-search-view-component": {
+        "search": "Rechercher",
+        "goto": "Aller à",
+        "navigate": "Naviguer",
+        "search-node": "Rechercher un noeud",
+        "select-node": "Sélectionner un noeud",
+        "search-trainrun": "Rechercher un trajet de train",
+        "select-trainrun": "Sélectionner un trajet de train",
+        "clear-all-search-fields": "Effacer tous les champs de recherche"
+      },
       "editor-menu": {
         "save-changes": "Enregistrer les modifications",
         "changes-saved": "Modifications enregistrées",

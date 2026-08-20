@@ -1,0 +1,37 @@
+<sbb-search
+  (search)="search()"
+  aria-label="{{ 'app.view.editor-search-view-component.select-node' | translate }}"
+>
+  <input
+    sbbInput
+    [placeholder]="'app.view.editor-search-view-component.search-node' | translate"
+    [formControl]="searchControl"
+    [sbbAutocomplete]="auto"
+  />
+</sbb-search>
+<sbb-autocomplete #auto="sbbAutocomplete" [displayWith]="displayNode">
+  @for (option of filteredNodes; track option) {
+  <sbb-option [value]="option">{{ transformNodeName(option) }}</sbb-option>
+  }
+</sbb-autocomplete>
+
+@if (searchResults.length > 1) {
+<div
+  #nodeResultsList
+  class="search-results-list"
+  [class.dragging]="isDraggingResults"
+  (mousedown)="onResultListMouseDown($event, nodeResultsList)"
+>
+  @for (node of searchResults; track node) {
+  <div class="search-result-item">
+    <span
+      class="smallstation"
+      [title]="transformNodeName(node)"
+      (click)="onSearchResultClick(node)"
+    >
+      {{ getNodeSearchValue(node) }}
+    </span>
+  </div>
+  }
+</div>
+}

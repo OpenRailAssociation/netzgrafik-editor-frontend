@@ -426,6 +426,16 @@
           "hide": "ausblenden"
         }
       },
+      "editor-search-view-component": {
+        "search": "Suchen",
+        "goto": "Gehe zu",
+        "navigate": "Navigieren",
+        "search-node": "Suche nach Knoten",
+        "select-node": "Knoten auswählen",
+        "search-trainrun": "Suche nach Zugfahrten",
+        "select-trainrun": "Zugfahrt auswählen",
+        "clear-all-search-fields": "Alle Suchfelder zurücksetzen"
+      },
       "editor-menu": {
         "save-changes": "Speichere Änderungen",
         "changes-saved": "Änderungen gespeichert",

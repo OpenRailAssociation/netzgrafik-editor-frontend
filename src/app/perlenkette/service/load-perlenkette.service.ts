@@ -16,6 +16,12 @@ import {TrainrunSectionService} from "../../services/data/trainrunsection.servic
 import {NodeService} from "../../services/data/node.service";
 import {FilterService} from "../../services/ui/filter.service";
 
+export interface OrderedTrainrunNodeEntry {
+  nodeId: number;
+  trainrunSectionId?: number;
+  hasGapAfter: boolean;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -73,6 +79,37 @@ export class LoadPerlenketteService implements OnDestroy {
 
   getPerlenketteData(): Observable<PerlenketteTrainrun> {
     return this.perlenketteTrainrun$;
+  }
+
+  public getOrderedNodeEntriesForTrainrun(trainrun: Trainrun): OrderedTrainrunNodeEntry[] {
+    const allItems = this.getPerlenketteItem(trainrun);
+    const entries: OrderedTrainrunNodeEntry[] = [];
+
+    allItems.forEach((item, index) => {
+      if (item.isPerlenketteNode()) {
+        const perlenketteNode = item.getPerlenketteNode();
+        const node = this.nodeService.getNodeFromId(perlenketteNode.nodeId);
+        const incomingSectionId =
+          index > 0 && allItems[index - 1].isPerlenketteSection()
+            ? allItems[index - 1].getPerlenketteSection().trainrunSectionId
+            : undefined;
+        const outgoingSectionId =
+          index < allItems.length - 1 && allItems[index + 1].isPerlenketteSection()
+            ? allItems[index + 1].getPerlenketteSection().trainrunSectionId
+            : undefined;
+        const hasMoreNodesAfter =
+          index < allItems.length - 1 ? allItems[index + 1].isPerlenketteNode() : false;
+
+        entries.push({
+          nodeId: node.getId(),
+          // First node in a part has no incoming section, so use outgoing section.
+          trainrunSectionId: incomingSectionId ?? outgoingSectionId,
+          // if two nodes are next to eaach other make a gap after or as well if last node
+          hasGapAfter: perlenketteNode.isLastTrainrunPartNode() && hasMoreNodesAfter,
+        });
+      }
+    });
+    return entries;
   }
 
   getSelectedTrainrun(): Trainrun {

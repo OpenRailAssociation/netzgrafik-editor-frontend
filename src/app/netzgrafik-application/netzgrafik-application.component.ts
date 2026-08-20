@@ -84,6 +84,10 @@ export class NetzgrafikApplicationComponent {
     this.uiInteractionService.showOrCloseFilter(FilterWindowType.EDITOR_FILTER);
   }
 
+  onSearchClicked() {
+    this.uiInteractionService.showOrCloseFilter(FilterWindowType.SEARCH);
+  }
+
   onEditToolClicked() {
     this.uiInteractionService.showOrCloseFilter(FilterWindowType.EDIT_TOOLS);
   }
@@ -107,6 +111,11 @@ export class NetzgrafikApplicationComponent {
     return this.sanitizer.bypassSecurityTrustStyle("");
   }
 
+  getSearchStyle() {
+    // TODO: Implement logic to determine if search is active and return appropriate style
+    return this.sanitizer.bypassSecurityTrustStyle("");
+  }
+
   getEditStyle() {
     if (this.uiInteractionService.getEditorMode() === EditorMode.MultiNodeMoving) {
       if (this.nodeService.getSelectedNodes().length > 0) {
@@ -118,6 +127,10 @@ export class NetzgrafikApplicationComponent {
 
   getFilterActivatedTag() {
     return this.getActivatedTag(FilterWindowType.EDITOR_FILTER);
+  }
+
+  getSearchActivatedTag() {
+    return this.getActivatedTag(FilterWindowType.SEARCH);
   }
 
   getPropertiesActivatedTag() {

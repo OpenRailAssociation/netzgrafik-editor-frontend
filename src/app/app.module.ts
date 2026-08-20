@@ -22,6 +22,7 @@ import {SbbLoadingIndicatorModule} from "@sbb-esta/angular/loading-indicator";
 import {SbbMenuModule} from "@sbb-esta/angular/menu";
 import {SbbNotificationToastModule} from "@sbb-esta/angular/notification-toast";
 import {SbbRadioButtonModule} from "@sbb-esta/angular/radio-button";
+import {SbbSearchModule} from "@sbb-esta/angular/search";
 import {SbbSelectModule} from "@sbb-esta/angular/select";
 import {SbbSidebarModule} from "@sbb-esta/angular/sidebar";
 import {SbbTableModule} from "@sbb-esta/angular/table";
@@ -40,6 +41,9 @@ import {TrainrunSectionTabComponent} from "./view/dialogs/trainrun-and-section-d
 import {TrainrunSectionCardComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrunsection-card/trainrun-section-card.component";
 import {EditorNodeDetailViewComponent} from "./view/editor-side-view/editor-node-detail-view/editor-node-detail-view.component";
 import {EditorFilterViewComponent} from "./view/editor-filter-view/editor-filter-view.component";
+import {EditorSearchViewComponent} from "./view/editor-search-view/editor-search-view-component";
+import {EditorNodeSearchViewComponent} from "./view/editor-search-view/editor-node-search-view-component/editor-node-search-view-component";
+import {EditorTrainrunSearchViewComponent} from "./view/editor-search-view/editor-trainrun-search-view-component/editor-trainrun-search-view-component";
 import {EditorMenuComponent} from "./view/editor-menu/editor-menu.component";
 import {EditorSideViewComponent} from "./view/editor-side-view/editor-side-view.component";
 import {BaseDataDialogComponent} from "./view/dialogs/basedata-dialog/basedata-dialog.component";
@@ -126,6 +130,9 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     TrainrunSectionCardComponent,
     EditorNodeDetailViewComponent,
     EditorFilterViewComponent,
+    EditorSearchViewComponent,
+    EditorNodeSearchViewComponent,
+    EditorTrainrunSearchViewComponent,
     BaseDataDialogComponent,
     EditorMenuComponent,
     EditorSideViewComponent,
@@ -239,6 +246,7 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     SbbUsermenuModule,
     SbbButtonModule,
     SbbInputModule,
+    SbbSearchModule,
     SbbFileSelectorModule,
     SbbMenuModule,
     SbbSidebarModule,
