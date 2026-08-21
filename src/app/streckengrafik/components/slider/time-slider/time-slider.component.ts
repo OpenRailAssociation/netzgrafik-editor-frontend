@@ -156,7 +156,7 @@ export class TimeSliderComponent implements OnInit, OnDestroy, UpdateCounterHand
     return;
   }
 
-  @HostListener("mouseup", ["$event"])
+  @HostListener("mouseup", [])
   public onMouseUp() {
     if (this.lastMouseMoveButtons !== 0) {
       this.timeSliderService.stopHandleZoomPanning();
