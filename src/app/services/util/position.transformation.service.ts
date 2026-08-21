@@ -1,4 +1,6 @@
 import {EventEmitter, Injectable} from "@angular/core";
+import {Subject} from "rxjs";
+import {debounceTime} from "rxjs/operators";
 import {TrainrunSectionService} from "../data/trainrunsection.service";
 import {UiInteractionService} from "../ui/ui.interaction.service";
 import {NodeService} from "../data/node.service";
@@ -6,8 +8,15 @@ import {NoteService} from "../data/note.service";
 import {Vec2D} from "../../utils/vec2D";
 import {Node} from "../../models/node.model";
 import {ViewportCullService} from "../ui/viewport.cull.service";
-import {NodeOperation, Operation, OperationType} from "src/app/models/operation.model";
+import {
+  NodeOperation,
+  NoteOperation,
+  Operation,
+  OperationType,
+} from "src/app/models/operation.model";
 import {Note} from "../../models/note.model";
+
+const SCALE_NETZGRAFIK_OPERATION_DEBOUNCE = 1000;
 
 @Injectable({
   providedIn: "root",
@@ -19,8 +28,16 @@ export class PositionTransformationService {
     private readonly noteService: NoteService,
     private readonly uiInteractionService: UiInteractionService,
     private readonly viewportCullService: ViewportCullService,
-  ) {}
+  ) {
+    this.scaleNetzgrafikSubject
+      .pipe(debounceTime(SCALE_NETZGRAFIK_OPERATION_DEBOUNCE))
+      .subscribe(() => this.emitScaleNetzgrafikOperations());
+  }
   readonly operation = new EventEmitter<Operation>();
+
+  private readonly modifiedByScaleNetzgrafikNodes = new Map<number, Node>();
+  private readonly modifiedByScaleNetzgrafikNotes = new Map<number, Note>();
+  private readonly scaleNetzgrafikSubject = new Subject<void>();
 
   private scaleFullNetzgrafikArea(
     factor: number,
@@ -47,6 +64,7 @@ export class PositionTransformationService {
         newPos = Vec2D.sub(newPos, delta);
       }
       n.setPosition(newPos.getX(), newPos.getY());
+      this.modifiedByScaleNetzgrafikNodes.set(n.getId(), n);
     });
 
     this.noteService.getNotes().forEach((n) => {
@@ -63,6 +81,7 @@ export class PositionTransformationService {
         newPos = Vec2D.sub(newPos, delta);
       }
       n.setPosition(newPos.getX(), newPos.getY());
+      this.modifiedByScaleNetzgrafikNotes.set(n.getId(), n);
     });
   }
 
@@ -145,6 +164,7 @@ export class PositionTransformationService {
       }
 
       n.setPosition(newPos.getX(), newPos.getY());
+      this.modifiedByScaleNetzgrafikNodes.set(n.getId(), n);
     });
 
     notes.forEach((n) => {
@@ -157,6 +177,7 @@ export class PositionTransformationService {
           n.getHeight() / 2.0,
       );
       n.setPosition(newPos.getX(), newPos.getY());
+      this.modifiedByScaleNetzgrafikNotes.set(n.getId(), n);
     });
   }
 
@@ -193,6 +214,19 @@ export class PositionTransformationService {
     }
 
     this.updateRendering();
+    this.scaleNetzgrafikSubject.next();
+  }
+
+  private emitScaleNetzgrafikOperations() {
+    this.modifiedByScaleNetzgrafikNodes.forEach((n) => {
+      this.operation.emit(new NodeOperation(OperationType.update, n));
+    });
+    this.modifiedByScaleNetzgrafikNodes.clear();
+
+    this.modifiedByScaleNetzgrafikNotes.forEach((n) => {
+      this.operation.emit(new NoteOperation(OperationType.update, n));
+    });
+    this.modifiedByScaleNetzgrafikNotes.clear();
   }
 
   alignSelectedElementsToLeftBorder() {
