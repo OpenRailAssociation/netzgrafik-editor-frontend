@@ -30,6 +30,8 @@ import {Vec2D} from "../../../utils/vec2D";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
 import {NoteViewObject} from "./noteViewObject";
 import {NodeViewObject} from "./nodeViewObject";
+import {EditorView} from "./editor.view";
+import {SimpleTrainrunSectionRouter} from "src/app/services/util/trainrunsection.routing";
 
 export class EditorKeyEvents {
   private editorMode: EditorMode;
@@ -48,6 +50,7 @@ export class EditorKeyEvents {
     private trainrunSectionPreviewLineView: TrainrunSectionPreviewLineView,
     private positionTransformationService: PositionTransformationService,
     private autoLayoutService: AutoLayoutService,
+    private editorView: EditorView,
   ) {
     this.activateMousekeyDownHandler(EditorMode.NetzgrafikEditing);
   }
@@ -264,11 +267,7 @@ export class EditorKeyEvents {
 
       sections.forEach((ts) => {
         ts.setNumberOfStops(ts.getNumberOfStops() + 1);
-        this.trainrunSectionService.replaceIntermediateStopWithNode(
-          ts.getId(),
-          Math.ceil(ts.getNumberOfStops() / 2) - 1,
-          node.getId(),
-        );
+        this.trainrunSectionService.replaceIntermediateStopWithNode(ts.getId(), node.getId());
       });
 
       this.trainrunSectionService.unselectAllTrainrunSections();
@@ -287,7 +286,7 @@ export class EditorKeyEvents {
     const trg = anchor.getTargetNode();
 
     sections.forEach((ts) => {
-      const p = ts.getPath();
+      const p = SimpleTrainrunSectionRouter.computePath(ts);
       const delta = Vec2D.sub(p[3], p[0]);
 
       if (delta.getX() === 0) {
@@ -372,8 +371,8 @@ export class EditorKeyEvents {
           }
           return false;
         }
-        if (tsvo.trainrunSection.getTrainrun().selected()) {
-          selectedTrainrunSectionId = tsvo.trainrunSection.getTrainrunId();
+        if (tsvo.firstSection.getTrainrun().selected()) {
+          selectedTrainrunSectionId = tsvo.firstSection.getTrainrunId();
         }
         return false;
       },
@@ -547,7 +546,7 @@ export class EditorKeyEvents {
         if (ts.getSourceNode().selected() && ts.getTargetNode().selected()) {
           newTrainrunSectionToModify.push(ts);
         } else {
-          this.trainrunSectionService.deleteTrainrunSection(ts.getId(), false);
+          this.trainrunSectionService.deleteTrainrunSection(ts.getId(), false, true);
         }
       });
     });
@@ -587,6 +586,7 @@ export class EditorKeyEvents {
         ts.getId(),
         ts.getTargetNodeId(),
         ts.getSourceNodeId(),
+        false,
         false,
       );
       this.trainrunSectionService.reconnectTrainrunSection(
@@ -755,7 +755,7 @@ export class EditorKeyEvents {
     });
     visibleTrainrunSections = visibleTrainrunSections.filter((v, i, a) => a.indexOf(v) === i);
     visibleTrainrunSections.forEach((trainrunSectionId: number) => {
-      this.trainrunSectionService.deleteTrainrunSection(trainrunSectionId, false);
+      this.trainrunSectionService.deleteTrainrunSection(trainrunSectionId, false, true);
     });
 
     let selectedNodeDeleted = false;

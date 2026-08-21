@@ -163,13 +163,6 @@ export class PositionTransformationService {
   private updateRendering() {
     this.nodeService.initPortOrdering();
 
-    this.trainrunSectionService.getTrainrunSections().forEach((ts) => {
-      ts.routeEdgeAndPlaceText();
-      // Note: don't call updateTransitionsAndConnections() here as it would
-      // re-apply spatial port ordering, undoing the optimized ordering from
-      // initPortOrdering().
-    });
-
     this.viewportCullService.onViewportChangeUpdateRendering(true);
   }
 

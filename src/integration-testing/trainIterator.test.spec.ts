@@ -7,7 +7,7 @@ import {ResourceService} from "../app/services/data/resource.service";
 import {LogService} from "../app/logger/log.service";
 import {LogPublishersService} from "../app/logger/log.publishers.service";
 import {NetzgrafikUnitTesting} from "./netzgrafik.unit.testing";
-import {NonStopTrainrunIterator, TrainrunIterator} from "../app/services/util/trainrun.iterator";
+import {NextExpandedStopIterator, TrainrunIterator} from "../app/services/util/trainrun.iterator";
 import {NoteService} from "../app/services/data/note.service";
 import {LabelGroupService} from "../app/services/data/labelgroup.service";
 import {LabelService} from "../app/services/data/label.service";
@@ -146,7 +146,7 @@ describe("TrainrunSection Service Test", () => {
 
     const iteratorNodeIds = [1, 2];
 
-    const itr = new NonStopTrainrunIterator(
+    const itr = new NextExpandedStopIterator(
       logService,
       node2,
       node2.getTrainrunSection(startingTrainrunSection.getTrainrun()),
