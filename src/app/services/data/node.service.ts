@@ -1222,6 +1222,7 @@ export class NodeService implements OnDestroy {
       this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
         trainrunSection.getTrainrunId(),
       ),
+      false,
     );
     // keep only the groups which contain the given trainrun section
     const filteredGroup = groups.find(
