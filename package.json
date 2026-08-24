@@ -53,7 +53,7 @@
     "angular-oauth2-oidc": "^21.0.3",
     "angular-server-side-configuration": "^21.0.4",
     "d3": "^7.9.0",
-    "dompurify": "^3.4.13",
+    "dompurify": "^3.4.14",
     "extract-i18n": "^1.0.0",
     "ngx-editor": "^18.0.0",
     "papaparse": "^5.5.4",
