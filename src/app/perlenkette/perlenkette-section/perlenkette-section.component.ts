@@ -8,6 +8,7 @@ import {
   OnInit,
   Output,
   ViewChild,
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import {PerlenketteSection} from "../model/perlenketteSection";
 import {PerlenketteTrainrun} from "../model/perlenketteTrainrun";
@@ -62,6 +63,7 @@ type KeyOfTimeCoordinates = keyof (
   templateUrl: "./perlenkette-section.component.html",
   styleUrls: ["./perlenkette-section.component.scss"],
   providers: [TrainrunSectionTimesService],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class PerlenketteSectionComponent implements OnInit, AfterContentInit, OnDestroy {

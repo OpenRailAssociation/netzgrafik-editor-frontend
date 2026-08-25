@@ -1,4 +1,12 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from "@angular/core";
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 import {FormModel} from "../../../utils/form-model";
 import {NoteFormComponentModel} from "./note-form/note-form.component";
 import {Subject} from "rxjs";
@@ -9,6 +17,7 @@ import {Note} from "../../../models/note.model";
   selector: "sbb-note-edit-element",
   templateUrl: "./note-edit-element.component.html",
   styleUrls: ["./note-edit-element.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class NoteEditElementComponent implements OnInit, OnDestroy {

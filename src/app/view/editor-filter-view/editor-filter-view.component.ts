@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from "@angular/core";
+import {Component, OnDestroy, OnInit, ChangeDetectionStrategy} from "@angular/core";
 import {FilterService} from "../../services/ui/filter.service";
 import {
   TrainrunCategory,
@@ -19,6 +19,7 @@ import {VersionControlService} from "../../services/data/version-control.service
   selector: "sbb-editor-filter-view",
   templateUrl: "./editor-filter-view.component.html",
   styleUrls: ["./editor-filter-view.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class EditorFilterViewComponent implements OnInit, OnDestroy {

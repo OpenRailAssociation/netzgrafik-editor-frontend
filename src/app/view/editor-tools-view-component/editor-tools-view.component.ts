@@ -1,5 +1,5 @@
 import {parse} from "papaparse";
-import {Component, ElementRef, ViewChild} from "@angular/core";
+import {Component, ElementRef, ViewChild, ChangeDetectionStrategy} from "@angular/core";
 import {SvgExportOptions, svgAsDataUri, saveSvgAsPng} from "save-svg-as-png";
 import {DataService} from "../../services/data/data.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
@@ -39,6 +39,7 @@ interface ContainertoExportData {
   selector: "sbb-editor-tools-view-component",
   templateUrl: "./editor-tools-view.component.html",
   styleUrls: ["./editor-tools-view.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class EditorToolsViewComponent {

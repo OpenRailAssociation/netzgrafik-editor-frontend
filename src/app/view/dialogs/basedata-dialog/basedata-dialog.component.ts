@@ -1,4 +1,4 @@
-import {Component, OnDestroy, TemplateRef, ViewChild} from "@angular/core";
+import {Component, OnDestroy, TemplateRef, ViewChild, ChangeDetectionStrategy} from "@angular/core";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {SbbDialog, SbbDialogConfig} from "@sbb-esta/angular/dialog";
 import {SbbTableDataSource} from "@sbb-esta/angular/table";
@@ -11,6 +11,7 @@ import {Subject} from "rxjs";
   selector: "sbb-base-data-dialog",
   templateUrl: "./basedata-dialog.component.html",
   styleUrls: ["./basedata-dialog.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class BaseDataDialogComponent implements OnDestroy {

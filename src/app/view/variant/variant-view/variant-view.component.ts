@@ -1,4 +1,4 @@
-import {Component, OnDestroy} from "@angular/core";
+import {Component, OnDestroy, ChangeDetectionStrategy} from "@angular/core";
 import {VersionControlService} from "../../../services/data/version-control.service";
 import {filter, mergeMap, takeUntil} from "rxjs/operators";
 import {ConfirmationDialogParameter} from "../../dialogs/confirmation-dialog/confirmation-dialog.component";
@@ -12,6 +12,7 @@ import {NavigationService} from "../../../services/ui/navigation.service";
   selector: "sbb-variant-view",
   templateUrl: "./variant-view.component.html",
   styleUrls: ["./variant-view.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class VariantViewComponent implements OnDestroy {

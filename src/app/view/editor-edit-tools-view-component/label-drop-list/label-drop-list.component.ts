@@ -1,4 +1,11 @@
-import {Component, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
 import {SbbDialog} from "@sbb-esta/angular/dialog";
@@ -19,6 +26,7 @@ import {NoteService} from "../../../services/data/note.service";
   selector: "sbb-label-drop-list-component",
   templateUrl: "./label-drop-list.component.html",
   styleUrls: ["./label-drop-list.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class LabelDropListComponent implements OnInit, OnDestroy {

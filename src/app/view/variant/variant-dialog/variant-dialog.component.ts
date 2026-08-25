@@ -1,4 +1,4 @@
-import {Component, Inject} from "@angular/core";
+import {Component, Inject, ChangeDetectionStrategy} from "@angular/core";
 import {SBB_DIALOG_DATA, SbbDialog, SbbDialogRef} from "@sbb-esta/angular/dialog";
 import {FormModel} from "../../../utils/form-model";
 import {VariantFormComponentModel} from "./variant-form/variant-form.component";
@@ -9,6 +9,7 @@ import {filter} from "rxjs/operators";
   selector: "sbb-variant-dialog",
   templateUrl: "./variant-dialog.component.html",
   styleUrls: ["./variant-dialog.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class VariantDialogComponent {

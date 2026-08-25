@@ -1,4 +1,12 @@
-import {ChangeDetectorRef, Component, Input, NgZone, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectorRef,
+  Component,
+  Input,
+  NgZone,
+  OnDestroy,
+  OnInit,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 import {SgTrainrun} from "../../model/streckengrafik-model/sg-trainrun";
 import {SgTrainrunItem} from "../../model/streckengrafik-model/sg-trainrun-item";
 import {TimeSliderService} from "../../services/time-slider.service";
@@ -19,6 +27,7 @@ import {
   selector: "[sbb-train-run-item]",
   templateUrl: "./train-run-item.component.html",
   styleUrls: ["./train-run-item.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class TrainRunItemComponent implements OnInit, OnDestroy, UpdateCounterHandler {

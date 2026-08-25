@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from "@angular/core";
+import {Component, OnDestroy, OnInit, ChangeDetectionStrategy} from "@angular/core";
 import {TrainrunService} from "../../services/data/trainrun.service";
 import {NodeService} from "../../services/data/node.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
@@ -26,6 +26,7 @@ import {environment} from "../../../environments/environment";
   selector: "sbb-editor-menu",
   templateUrl: "./editor-menu.component.html",
   styleUrls: ["./editor-menu.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class EditorMenuComponent implements OnInit, OnDestroy {

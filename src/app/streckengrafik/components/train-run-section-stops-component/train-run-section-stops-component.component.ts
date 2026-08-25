@@ -1,4 +1,4 @@
-import {Component, Input} from "@angular/core";
+import {Component, Input, ChangeDetectionStrategy} from "@angular/core";
 import {TrainDataService} from "../../services/train-data-service";
 import {SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS} from "../../../view/rastering/definitions";
 import {Vec2D} from "../../../utils/vec2D";
@@ -11,6 +11,7 @@ import {ScaledPath} from "../train-run-section/train-run-section.component";
   selector: "[sbb-train-run-section-stops-component]",
   templateUrl: "./train-run-section-stops-component.component.html",
   styleUrls: ["./train-run-section-stops-component.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class TrainRunSectionStopsComponentComponent {

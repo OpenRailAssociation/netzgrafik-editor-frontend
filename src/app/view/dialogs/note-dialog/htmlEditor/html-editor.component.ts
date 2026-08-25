@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, OnInit} from "@angular/core";
+import {Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy} from "@angular/core";
 import {Editor, Toolbar} from "ngx-editor";
 import {FormModel} from "../../../../utils/form-model";
 import {NoteFormComponentModel} from "../note-form/note-form.component";
@@ -11,6 +11,7 @@ import {StaticDomTags} from "../../../editor-main-view/data-views/static.dom.tag
   selector: "sbb-html-editor",
   templateUrl: "./html-editor.component.html",
   styleUrls: ["./html-editor.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class HtmlEditorComponent implements OnInit, OnDestroy {

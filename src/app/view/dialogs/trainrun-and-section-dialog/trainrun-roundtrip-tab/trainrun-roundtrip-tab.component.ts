@@ -6,6 +6,7 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import {Trainrun} from "../../../../models/trainrun.model";
 import {TrainrunService} from "../../../../services/data/trainrun.service";
@@ -22,6 +23,7 @@ import {Direction} from "src/app/data-structures/business.data.structures";
   selector: "sbb-trainrun-roundtrip-tab",
   templateUrl: "./trainrun-roundtrip-tab.component.html",
   styleUrls: ["./trainrun-roundtrip-tab.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class TrainrunRoundtripTabComponent implements OnInit, OnDestroy {

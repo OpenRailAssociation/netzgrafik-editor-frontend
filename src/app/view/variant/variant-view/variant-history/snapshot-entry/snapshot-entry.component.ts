@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, Output} from "@angular/core";
+import {Component, EventEmitter, Input, Output, ChangeDetectionStrategy} from "@angular/core";
 import {HistoryEntryAction} from "../history-entry/history-entry.component";
 import {DownloadVersionModel, VersionId} from "../model";
 
@@ -6,6 +6,7 @@ import {DownloadVersionModel, VersionId} from "../model";
   selector: "sbb-snapshot-entry",
   templateUrl: "./snapshot-entry.component.html",
   styleUrls: ["./snapshot-entry.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class SnapshotEntryComponent {

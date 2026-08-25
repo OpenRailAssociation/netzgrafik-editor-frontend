@@ -1,4 +1,4 @@
-import {Component, Inject, OnDestroy} from "@angular/core";
+import {Component, Inject, OnDestroy, ChangeDetectionStrategy} from "@angular/core";
 import {SBB_DIALOG_DATA, SbbDialog, SbbDialogRef} from "@sbb-esta/angular/dialog";
 import {FormModel} from "../../../utils/form-model";
 import {FilterableLabelsFormComponentModel} from "./filterable-labels-form/filterable-label-form.component";
@@ -11,6 +11,7 @@ import {UiInteractionService} from "../../../services/ui/ui.interaction.service"
   selector: "sbb-filterable-label-dialog",
   templateUrl: "./filterable-label-dialog.component.html",
   styleUrls: ["./filterable-label-dialog.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class FilterableLabelDialogComponent implements OnDestroy {

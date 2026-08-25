@@ -7,6 +7,7 @@ import {
   Input,
   OnDestroy,
   ViewChild,
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import type {SbbRadioChange} from "@sbb-esta/angular/radio-button";
 import {Subject} from "rxjs";
@@ -34,6 +35,7 @@ enum ShowTrainrunEditTab {
   selector: "sbb-perlenkette",
   templateUrl: "./perlenkette.component.html",
   styleUrls: ["./perlenkette.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class PerlenketteComponent implements AfterContentChecked, OnDestroy {

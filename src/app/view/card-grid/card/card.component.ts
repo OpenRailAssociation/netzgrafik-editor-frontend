@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, Output} from "@angular/core";
+import {Component, EventEmitter, Input, Output, ChangeDetectionStrategy} from "@angular/core";
 import {SlotAction} from "../../action-menu/action-menu/action-menu.component";
 import {Observable} from "rxjs";
 
@@ -6,6 +6,7 @@ import {Observable} from "rxjs";
   selector: "sbb-card",
   templateUrl: "./card.component.html",
   styleUrls: ["./card.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class CardComponent {

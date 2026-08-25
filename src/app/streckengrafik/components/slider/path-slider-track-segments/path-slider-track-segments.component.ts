@@ -1,4 +1,4 @@
-import {Component, Input} from "@angular/core";
+import {Component, Input, ChangeDetectionStrategy} from "@angular/core";
 import {SgPath} from "../../../model/streckengrafik-model/sg-path";
 import {TrackSegments} from "../../../model/trackData";
 
@@ -7,6 +7,7 @@ import {TrackSegments} from "../../../model/trackData";
   selector: "[sbb-path-slider-track-segments]",
   templateUrl: "./path-slider-track-segments.component.html",
   styleUrls: ["./path-slider-track-segments.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class PathSliderTrackSegmentsComponent {

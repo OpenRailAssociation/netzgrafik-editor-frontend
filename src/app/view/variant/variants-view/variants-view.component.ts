@@ -1,4 +1,4 @@
-import {Component, HostListener, OnDestroy} from "@angular/core";
+import {Component, HostListener, OnDestroy, ChangeDetectionStrategy} from "@angular/core";
 import {ActivatedRoute} from "@angular/router";
 import {BehaviorSubject, combineLatest, Observable, of, ReplaySubject, Subject} from "rxjs";
 import {debounceTime, filter, map, mergeMap, startWith, takeUntil} from "rxjs/operators";
@@ -26,6 +26,7 @@ import {NetzgrafikDto} from "../../../data-structures/business.data.structures";
   selector: "sbb-variants-view",
   templateUrl: "./variants-view.component.html",
   styleUrls: ["./variants-view.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class VariantsViewComponent implements OnDestroy {

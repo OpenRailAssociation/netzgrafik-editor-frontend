@@ -1,4 +1,4 @@
-import {Component} from "@angular/core";
+import {Component, ChangeDetectionStrategy} from "@angular/core";
 import {UiInteractionService} from "../services/ui/ui.interaction.service";
 import {map, takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
@@ -24,6 +24,7 @@ export enum IconSidebarMode {
   selector: "sbb-netzgrafik-editor",
   templateUrl: "./netzgrafik-application.component.html",
   styleUrls: ["./netzgrafik-application.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class NetzgrafikApplicationComponent {

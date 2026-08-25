@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy} from "@angular/core";
+import {Component, Input, OnDestroy, ChangeDetectionStrategy} from "@angular/core";
 import {Subject} from "rxjs";
 import {ResizeChangeInfo} from "../../../model/util/resizeChangeInfo";
 import {ViewBoxChangeInfo} from "../../../model/util/viewBoxChangeInfo";
@@ -15,6 +15,7 @@ import {FilterService} from "src/app/services/ui/filter.service";
   selector: "sbb-path-slider",
   templateUrl: "./path-slider.component.html",
   styleUrls: ["./path-slider.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class PathSliderComponent implements OnDestroy {

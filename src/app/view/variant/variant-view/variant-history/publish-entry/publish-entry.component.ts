@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, Output} from "@angular/core";
+import {Component, EventEmitter, Input, Output, ChangeDetectionStrategy} from "@angular/core";
 import {HistoryEntryAction} from "../history-entry/history-entry.component";
 import {UntypedFormControl} from "@angular/forms";
 
@@ -6,6 +6,7 @@ import {UntypedFormControl} from "@angular/forms";
   selector: "sbb-publish-entry",
   templateUrl: "./publish-entry.component.html",
   styleUrls: ["./publish-entry.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class PublishEntryComponent {

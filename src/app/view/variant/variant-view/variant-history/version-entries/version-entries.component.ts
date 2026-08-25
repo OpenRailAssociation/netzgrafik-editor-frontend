@@ -1,4 +1,11 @@
-import {Component, EventEmitter, Input, OnInit, Output} from "@angular/core";
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 import {VersionDto} from "../../../../../api/generated";
 import {ReleasedEntryModel} from "../released-entry/released-entry.component";
 import {DownloadVersionModel, VersionId} from "../model";
@@ -9,6 +16,7 @@ import {SnapshotEntryModel} from "../snapshot-entry/snapshot-entry.component";
   selector: "sbb-version-entries",
   templateUrl: "./version-entries.component.html",
   styleUrls: ["./version-entries.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class VersionEntriesComponent implements OnInit {

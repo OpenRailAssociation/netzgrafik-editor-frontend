@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, OnInit} from "@angular/core";
+import {Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy} from "@angular/core";
 import {FilterService} from "../../../services/ui/filter.service";
 import {LabelRef} from "../../../data-structures/business.data.structures";
 import {DataService} from "../../../services/data/data.service";
@@ -15,6 +15,7 @@ import {StaticDomTags} from "../../editor-main-view/data-views/static.dom.tags";
   selector: "sbb-filterable-label-filter-view",
   templateUrl: "./filterable-label-filter.component.html",
   styleUrls: ["./filterable-label-filter.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class FilterableLabelFilterComponent implements OnInit, OnDestroy {

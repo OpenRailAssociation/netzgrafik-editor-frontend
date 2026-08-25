@@ -1,10 +1,11 @@
-import {Component, Input} from "@angular/core";
+import {Component, Input, ChangeDetectionStrategy} from "@angular/core";
 import {LogService} from "../../../../../logger/log.service";
 
 @Component({
   selector: "sbb-version-entry-layout",
   templateUrl: "./version-entry-layout.component.html",
   styleUrls: ["./version-entry-layout.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class VersionEntryLayoutComponent {

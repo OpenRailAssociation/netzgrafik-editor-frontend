@@ -1,9 +1,10 @@
-import {Component, EventEmitter, Input, Output} from "@angular/core";
+import {Component, EventEmitter, Input, Output, ChangeDetectionStrategy} from "@angular/core";
 
 @Component({
   selector: "sbb-language-selector",
   templateUrl: "./language-selector.component.html",
   styleUrls: ["./language-selector.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class LanguageSelectorComponent {

@@ -1,4 +1,4 @@
-import {Component, Inject} from "@angular/core";
+import {Component, Inject, ChangeDetectionStrategy} from "@angular/core";
 import {SBB_DIALOG_DATA, SbbDialog, SbbDialogRef} from "@sbb-esta/angular/dialog";
 import {ProjectFormComponentModel} from "./project-form/project-form.component";
 import {FormModel} from "../../../utils/form-model";
@@ -9,6 +9,7 @@ import {filter} from "rxjs/operators";
   selector: "sbb-project-dialog",
   templateUrl: "./project-dialog.component.html",
   styleUrls: ["./project-dialog.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class ProjectDialogComponent {

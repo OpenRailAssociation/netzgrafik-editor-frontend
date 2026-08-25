@@ -1,4 +1,4 @@
-import {Component, OnInit} from "@angular/core";
+import {Component, OnInit, ChangeDetectionStrategy} from "@angular/core";
 import {NavigationEnd, Router} from "@angular/router";
 import {filter, map} from "rxjs/operators";
 import {Observable} from "rxjs";
@@ -12,6 +12,7 @@ import {
   selector: "sbb-navigation-bar",
   templateUrl: "./navigation-bar.component.html",
   styleUrls: ["./navigation-bar.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class NavigationBarComponent implements OnInit {

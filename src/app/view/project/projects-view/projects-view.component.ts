@@ -1,4 +1,4 @@
-import {Component, HostListener, OnDestroy} from "@angular/core";
+import {Component, HostListener, OnDestroy, ChangeDetectionStrategy} from "@angular/core";
 import {Observable, of, ReplaySubject, Subject} from "rxjs";
 import {UntypedFormControl} from "@angular/forms";
 import {ProjectsViewService} from "./projects-view.service";
@@ -20,6 +20,7 @@ import {SlotAction} from "../../action-menu/action-menu/action-menu.component";
   templateUrl: "./projects-view.component.html",
   styleUrls: ["./projects-view.component.scss"],
   providers: [ProjectsViewService],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class ProjectsViewComponent implements OnDestroy {

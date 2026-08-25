@@ -1,4 +1,12 @@
-import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {
+  Component,
+  ElementRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 import {SliderChangeInfo} from "../../../model/util/sliderChangeInfo";
 import {TimeSliderService} from "../../../services/time-slider.service";
 import {DrawingBackgroundMouseListenerService} from "../../../services/util/drawingBackgroundMouseListener.service";
@@ -19,6 +27,7 @@ import {
   selector: "[sbb-timeline]",
   templateUrl: "./timeline.component.html",
   styleUrls: ["./timeline.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class TimelineComponent implements OnInit, OnDestroy, UpdateCounterHandler {

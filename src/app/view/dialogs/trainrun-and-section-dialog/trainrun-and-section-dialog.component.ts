@@ -1,4 +1,4 @@
-import {Component, OnDestroy, TemplateRef, ViewChild} from "@angular/core";
+import {Component, OnDestroy, TemplateRef, ViewChild, ChangeDetectionStrategy} from "@angular/core";
 import {
   SbbDialog,
   SbbDialogRef,
@@ -56,6 +56,7 @@ export class TrainrunDialogParameter {
   selector: "sbb-trainrun-and-section-dialog",
   templateUrl: "./trainrun-and-section-dialog.component.html",
   styleUrls: ["./trainrun-and-section-dialog.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class TrainrunAndSectionDialogComponent implements OnDestroy {
