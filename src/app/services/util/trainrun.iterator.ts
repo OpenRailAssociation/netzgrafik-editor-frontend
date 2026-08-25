@@ -233,8 +233,8 @@ export class DirectedTrainrunSectionProxy {
  *     (n₁, ts₁)
  */
 export class TrainrunIterator {
-  protected currentElement: TrainrunSectionNodePair = null;
-  protected pointerElement: TrainrunSectionNodePair = null;
+  protected currentElement: TrainrunSectionNodePair;
+  protected pointerElement: TrainrunSectionNodePair;
 
   protected visitedNodes: TrainrunSectionNodePair[] = [];
 
