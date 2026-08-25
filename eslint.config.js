@@ -42,6 +42,7 @@ export default defineConfig([
       // TODO: enable all recommended @angular-eslint rules
       "@angular-eslint/prefer-standalone": "off",
       "@angular-eslint/prefer-inject": "off",
+      "@angular-eslint/prefer-on-push-component-change-detection": "off",
       "@typescript-eslint/no-non-null-assertion": "off",
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "@typescript-eslint/no-empty-function": [

@@ -4,15 +4,8 @@ import {DataMigration} from "../utils/data-migration";
 
 // TODO: drop once we upgrade to a newer TypeScript which ships Sanitizer types
 declare global {
-  class Sanitizer {
-    allowAttribute(name: string): void;
-    removeUnsafe(): void;
-  }
   interface HTMLElement {
     setHTML(unsafeHTML: string, options?: {sanitizer: Sanitizer}): void;
-  }
-  interface Window {
-    Sanitizer?: typeof Sanitizer;
   }
 }
 
