@@ -1001,7 +1001,6 @@ export class NodesView {
     this.editorView.moveSelectedNotes(newPosition.getX(), newPosition.getY(), round, dragEnd);
     this.editorView.updateRasterHoverCellForNodePosition(nodeId);
 
-
     // update the drag mouse position (previous for next dragging step)
     this.dragPreviousMousePosition = currentMousePosition;
   }

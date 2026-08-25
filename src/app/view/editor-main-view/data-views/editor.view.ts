@@ -68,10 +68,18 @@ export class EditorView implements SVGMouseControllerObserver {
   isMultiSelectOn = false;
   private rasterHoverCell: d3.Selection<SVGRectElement, undefined, Element, undefined> | null =
     null;
-  private rasterHoverHorizontalLine: d3.Selection<SVGLineElement, undefined, Element, undefined> | null =
-    null;
-  private rasterHoverVerticalLine: d3.Selection<SVGLineElement, undefined, Element, undefined> | null =
-    null;
+  private rasterHoverHorizontalLine: d3.Selection<
+    SVGLineElement,
+    undefined,
+    Element,
+    undefined
+  > | null = null;
+  private rasterHoverVerticalLine: d3.Selection<
+    SVGLineElement,
+    undefined,
+    Element,
+    undefined
+  > | null = null;
   private rasterGridSize: number | null = null;
 
   addNode: ((positionX: number, positionY: number) => Node) | null = null;
@@ -656,32 +664,31 @@ export class EditorView implements SVGMouseControllerObserver {
       .attr("fill", "var(--COLOR_Edit)")
       .attr("fill-opacity", "0.2");
 
-    // 1.  
+    // 1.
     pattern
-          .append("path")
-          .attr("class", "editor_raster_grid_line")
-          .attr("d", `M ${gridSize} 0 L 0 0 0 ${gridSize}`)
-          .attr("fill", "none");
+      .append("path")
+      .attr("class", "editor_raster_grid_line")
+      .attr("d", `M ${gridSize} 0 L 0 0 0 ${gridSize}`)
+      .attr("fill", "none");
 
-        hoverPattern
-          .append("path")
-          .attr("class", "editor_raster_grid_line_hover")
-          .attr("d", `M ${gridSize} 0 L 0 0 0 ${gridSize}`)
-          .attr("fill", "none");
+    hoverPattern
+      .append("path")
+      .attr("class", "editor_raster_grid_line_hover")
+      .attr("d", `M ${gridSize} 0 L 0 0 0 ${gridSize}`)
+      .attr("fill", "none");
 
-    // 2. 
+    // 2.
     pattern
-          .append("path")
-          .attr("class", "editor_raster_grid_point")
-          .attr("d", `M ${(gridSize / 2) - .5} ${(gridSize / 2) - .5} h 1 v 1 h -1 Z`)
-          .attr("fill", "none");
+      .append("path")
+      .attr("class", "editor_raster_grid_point")
+      .attr("d", `M ${gridSize / 2 - 0.5} ${gridSize / 2 - 0.5} h 1 v 1 h -1 Z`)
+      .attr("fill", "none");
 
-        hoverPattern
-          .append("path")
-          .attr("class", "editor_raster_grid_point_hover")
-          .attr("d", `M ${(gridSize / 2) - 1} ${(gridSize / 2) - 1} h 2 v 2 h -2 Z`)
-          .attr("fill", "none");
-
+    hoverPattern
+      .append("path")
+      .attr("class", "editor_raster_grid_point_hover")
+      .attr("d", `M ${gridSize / 2 - 1} ${gridSize / 2 - 1} h 2 v 2 h -2 Z`)
+      .attr("fill", "none");
 
     const rasterGridBackground = this.rootContainer
       .append("rect")
@@ -725,7 +732,6 @@ export class EditorView implements SVGMouseControllerObserver {
       .on("mouseleave.editor-raster-hover", () => {
         this.rasterHoverCell?.style("display", "none");
       });
-    
   }
 
   onEarlyReturnFromMousemove(event: MouseEvent): boolean {
@@ -996,7 +1002,11 @@ export class EditorView implements SVGMouseControllerObserver {
   }
 
   updateRasterHoverCellForDrag(mousePosition: Vec2D) {
-    if (!this.isElementDragging() || this.rasterHoverCell === null || this.rasterGridSize === null) {
+    if (
+      !this.isElementDragging() ||
+      this.rasterHoverCell === null ||
+      this.rasterGridSize === null
+    ) {
       this.hideRasterHoverCell();
       return;
     }
@@ -1014,7 +1024,11 @@ export class EditorView implements SVGMouseControllerObserver {
   }
 
   updateRasterHoverCellForNodePosition(nodeId: number) {
-    if (!this.isElementDragging() || this.rasterHoverCell === null || this.rasterGridSize === null) {
+    if (
+      !this.isElementDragging() ||
+      this.rasterHoverCell === null ||
+      this.rasterGridSize === null
+    ) {
       this.hideRasterHoverCell();
       return;
     }
@@ -1036,7 +1050,10 @@ export class EditorView implements SVGMouseControllerObserver {
 
     this.showRasterGrid();
     this.rasterHoverCell.attr("x", cellX).attr("y", cellY).style("display", null);
-    this.updateRasterHoverCrosshair(cellX + this.rasterGridSize / 2, cellY + this.rasterGridSize / 2);
+    this.updateRasterHoverCrosshair(
+      cellX + this.rasterGridSize / 2,
+      cellY + this.rasterGridSize / 2,
+    );
   }
 
   private showRasterGrid() {
@@ -1048,14 +1065,8 @@ export class EditorView implements SVGMouseControllerObserver {
   }
 
   private updateRasterHoverCrosshair(pointX: number, pointY: number) {
-    this.rasterHoverHorizontalLine
-      ?.attr("y1", pointY)
-      .attr("y2", pointY)
-      .style("display", null);
-    this.rasterHoverVerticalLine
-      ?.attr("x1", pointX)
-      .attr("x2", pointX)
-      .style("display", null);
+    this.rasterHoverHorizontalLine?.attr("y1", pointY).attr("y2", pointY).style("display", null);
+    this.rasterHoverVerticalLine?.attr("x1", pointX).attr("x2", pointX).style("display", null);
   }
 
   hideRasterHoverCell() {
