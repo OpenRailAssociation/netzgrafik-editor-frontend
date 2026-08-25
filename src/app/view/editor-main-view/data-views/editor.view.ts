@@ -45,11 +45,12 @@ import {
 } from "../../../data-structures/business.data.structures";
 import {TrainrunSectionText} from "../../../data-structures/technical.data.structures";
 import {AutoLayoutService} from "../../../services/util/auto-layout.service";
-import {RASTERING_BASIC_GRID_SIZE} from "../../rastering/definitions";
+import {NODE_POSITION_BASIC_RASTER} from "../../rastering/definitions";
 
 export class EditorView implements SVGMouseControllerObserver {
   static svgName = "graphContainer";
   private static readonly RASTER_GRID_PATTERN_ID = "editor-raster-grid-pattern";
+  private static readonly RASTER_GRID_HOVER_PATTERN_ID = "editor-raster-grid-hover-pattern";
   private static readonly RASTER_GRID_DEFS_ID = "editor-raster-grid-defs";
   private static readonly RASTER_GRID_SPAN = 100000;
   editorMode: EditorMode = EditorMode.NetzgrafikEditing;
@@ -65,6 +66,21 @@ export class EditorView implements SVGMouseControllerObserver {
   multiSelectRenderer: MultiSelectRenderer;
   notesView: NotesView;
   isMultiSelectOn = false;
+  private rasterHoverCell: d3.Selection<SVGRectElement, undefined, Element, undefined> | null =
+    null;
+  private rasterHoverHorizontalLine: d3.Selection<
+    SVGLineElement,
+    undefined,
+    Element,
+    undefined
+  > | null = null;
+  private rasterHoverVerticalLine: d3.Selection<
+    SVGLineElement,
+    undefined,
+    Element,
+    undefined
+  > | null = null;
+  private rasterGridSize: number | null = null;
 
   addNode: ((positionX: number, positionY: number) => Node) | null = null;
   getNodePathToEnd: ((node: Node, trainrunSection: TrainrunSection) => Node[]) | null = null;
@@ -620,7 +636,8 @@ export class EditorView implements SVGMouseControllerObserver {
     ownerSvgSelection.select(`defs#${EditorView.RASTER_GRID_DEFS_ID}`).remove();
 
     const defs = ownerSvgSelection.append("defs").attr("id", EditorView.RASTER_GRID_DEFS_ID);
-    const gridSize = RASTERING_BASIC_GRID_SIZE;
+    const gridSize = NODE_POSITION_BASIC_RASTER;
+    this.rasterGridSize = gridSize;
 
     const pattern = defs
       .append("pattern")
@@ -631,20 +648,90 @@ export class EditorView implements SVGMouseControllerObserver {
       .attr("x", 0)
       .attr("y", 0);
 
+    const hoverPattern = defs
+      .append("pattern")
+      .attr("id", EditorView.RASTER_GRID_HOVER_PATTERN_ID)
+      .attr("patternUnits", "userSpaceOnUse")
+      .attr("width", gridSize)
+      .attr("height", gridSize)
+      .attr("x", 0)
+      .attr("y", 0);
+
+    hoverPattern
+      .append("rect")
+      .attr("width", gridSize)
+      .attr("height", gridSize)
+      .attr("fill", "var(--COLOR_Edit)")
+      .attr("fill-opacity", "0.2");
+
+    // 1.
     pattern
       .append("path")
       .attr("class", "editor_raster_grid_line")
       .attr("d", `M ${gridSize} 0 L 0 0 0 ${gridSize}`)
       .attr("fill", "none");
 
-    this.rootContainer
+    hoverPattern
+      .append("path")
+      .attr("class", "editor_raster_grid_line_hover")
+      .attr("d", `M ${gridSize} 0 L 0 0 0 ${gridSize}`)
+      .attr("fill", "none");
+
+    // 2.
+    pattern
+      .append("path")
+      .attr("class", "editor_raster_grid_point")
+      .attr("d", `M ${gridSize / 2 - 0.5} ${gridSize / 2 - 0.5} h 1 v 1 h -1 Z`)
+      .attr("fill", "none");
+
+    hoverPattern
+      .append("path")
+      .attr("class", "editor_raster_grid_point_hover")
+      .attr("d", `M ${gridSize / 2 - 1} ${gridSize / 2 - 1} h 2 v 2 h -2 Z`)
+      .attr("fill", "none");
+
+    const rasterGridBackground = this.rootContainer
       .append("rect")
       .attr("class", "editor_raster_grid")
       .attr("x", -EditorView.RASTER_GRID_SPAN)
       .attr("y", -EditorView.RASTER_GRID_SPAN)
       .attr("width", 2 * EditorView.RASTER_GRID_SPAN)
       .attr("height", 2 * EditorView.RASTER_GRID_SPAN)
+      .attr("style", `transform: translate(${gridSize / 2}px, ${gridSize / 2}px)`)
       .attr("fill", `url(#${EditorView.RASTER_GRID_PATTERN_ID})`);
+
+    this.rasterHoverCell = this.rootContainer
+      .append("rect")
+      .attr("class", "editor_raster_grid_hover_cell")
+      .attr("width", gridSize)
+      .attr("height", gridSize)
+      .attr("fill", `url(#${EditorView.RASTER_GRID_HOVER_PATTERN_ID})`)
+      .style("pointer-events", "none")
+      .style("display", "none");
+
+    this.rasterHoverHorizontalLine = this.rootContainer
+      .append("line")
+      .attr("class", "editor_raster_grid_hover_crosshair")
+      .attr("x1", -EditorView.RASTER_GRID_SPAN)
+      .attr("x2", EditorView.RASTER_GRID_SPAN)
+      .style("display", "none");
+
+    this.rasterHoverVerticalLine = this.rootContainer
+      .append("line")
+      .attr("class", "editor_raster_grid_hover_crosshair")
+      .attr("y1", -EditorView.RASTER_GRID_SPAN)
+      .attr("y2", EditorView.RASTER_GRID_SPAN)
+      .style("display", "none");
+
+    ownerSvgSelection
+      .on("mousemove.editor-raster-hover", () => {
+        if (!this.isElementDragging()) {
+          this.rasterHoverCell?.style("display", "none");
+        }
+      })
+      .on("mouseleave.editor-raster-hover", () => {
+        this.rasterHoverCell?.style("display", "none");
+      });
   }
 
   onEarlyReturnFromMousemove(event: MouseEvent): boolean {
@@ -906,10 +993,86 @@ export class EditorView implements SVGMouseControllerObserver {
 
   disableElementDragging() {
     this.elementDragging = false;
+    this.hideRasterGrid();
+    this.hideRasterHoverCell();
   }
 
   isElementDragging(): boolean {
     return this.elementDragging;
+  }
+
+  updateRasterHoverCellForDrag(mousePosition: Vec2D) {
+    if (
+      !this.isElementDragging() ||
+      this.rasterHoverCell === null ||
+      this.rasterGridSize === null
+    ) {
+      this.hideRasterHoverCell();
+      return;
+    }
+
+    const cellX =
+      Math.floor((mousePosition.getX() - this.rasterGridSize / 2) / this.rasterGridSize) *
+        this.rasterGridSize +
+      this.rasterGridSize / 2;
+    const cellY =
+      Math.floor((mousePosition.getY() - this.rasterGridSize / 2) / this.rasterGridSize) *
+        this.rasterGridSize +
+      this.rasterGridSize / 2;
+
+    this.rasterHoverCell.attr("x", cellX).attr("y", cellY).style("display", null);
+  }
+
+  updateRasterHoverCellForNodePosition(nodeId: number) {
+    if (
+      !this.isElementDragging() ||
+      this.rasterHoverCell === null ||
+      this.rasterGridSize === null
+    ) {
+      this.hideRasterHoverCell();
+      return;
+    }
+
+    const node = this.nodeService.getNodeFromId(nodeId);
+    if (node === undefined) {
+      this.hideRasterHoverCell();
+      return;
+    }
+
+    const cellX =
+      Math.floor((node.getPositionX() - this.rasterGridSize / 2) / this.rasterGridSize) *
+        this.rasterGridSize +
+      this.rasterGridSize / 2;
+    const cellY =
+      Math.floor((node.getPositionY() - this.rasterGridSize / 2) / this.rasterGridSize) *
+        this.rasterGridSize +
+      this.rasterGridSize / 2;
+
+    this.showRasterGrid();
+    this.rasterHoverCell.attr("x", cellX).attr("y", cellY).style("display", null);
+    this.updateRasterHoverCrosshair(
+      cellX + this.rasterGridSize / 2,
+      cellY + this.rasterGridSize / 2,
+    );
+  }
+
+  private showRasterGrid() {
+    this.rootContainer.node()?.ownerSVGElement?.classList.add("editor_raster_grid_visible");
+  }
+
+  private hideRasterGrid() {
+    this.rootContainer.node()?.ownerSVGElement?.classList.remove("editor_raster_grid_visible");
+  }
+
+  private updateRasterHoverCrosshair(pointX: number, pointY: number) {
+    this.rasterHoverHorizontalLine?.attr("y1", pointY).attr("y2", pointY).style("display", null);
+    this.rasterHoverVerticalLine?.attr("x1", pointX).attr("x2", pointX).style("display", null);
+  }
+
+  hideRasterHoverCell() {
+    this.rasterHoverCell?.style("display", "none");
+    this.rasterHoverHorizontalLine?.style("display", "none");
+    this.rasterHoverVerticalLine?.style("display", "none");
   }
 
   private displayEditorMode() {
