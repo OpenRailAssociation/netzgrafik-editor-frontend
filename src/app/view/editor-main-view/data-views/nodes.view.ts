@@ -63,13 +63,13 @@ export class NodesView {
     this.dragPreviousMousePosition = this.editorView.svgMouseController.getCurrentMousePosition(
       event.sourceEvent,
     );
+    this.editorView.hideRasterHoverCell();
+    this.editorView.enableElementDragging();
     this.editorView.pauseUndoRecording();
   }
 
   onNodeDragged(event: NodeDragEvent, node: Node) {
-    this.editorView.enableElementDragging();
     this.doDrag(event, node.getId());
-    this.editorView.disableElementDragging();
   }
 
   onNodeDragEnd(event: NodeDragEvent, node: Node) {
@@ -85,6 +85,8 @@ export class NodesView {
     d3.select(domObj).classed(StaticDomTags.TAG_DRAGGING, false);
 
     this.doDrag(event, node.getId(), NODE_POSITION_BASIC_RASTER, true);
+    this.editorView.disableElementDragging();
+    this.editorView.hideRasterHoverCell();
 
     // add the delta mouse position to node's current location/position
     if (this.editorView.editorMode !== EditorMode.MultiNodeMoving) {
@@ -997,6 +999,8 @@ export class NodesView {
 
     this.editorView.moveSelectedNodes(newPosition.getX(), newPosition.getY(), round, dragEnd);
     this.editorView.moveSelectedNotes(newPosition.getX(), newPosition.getY(), round, dragEnd);
+    this.editorView.updateRasterHoverCellForNodePosition(nodeId);
+
 
     // update the drag mouse position (previous for next dragging step)
     this.dragPreviousMousePosition = currentMousePosition;

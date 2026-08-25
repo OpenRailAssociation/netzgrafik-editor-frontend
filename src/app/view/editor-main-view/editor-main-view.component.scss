@@ -32,11 +32,58 @@
   pointer-events: none;
 }
 
+::ng-deep .editor_raster_grid_hover_cell {
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+::ng-deep .editor_raster_grid_hover_crosshair {
+  stroke: var(--COLOR_Edit);
+  stroke-width: 1;
+  stroke-dasharray: 4, 4;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+  shape-rendering: crispEdges;
+}
+
 ::ng-deep .editor_raster_grid_line {
+  display: none;
   stroke: $COLOR_STRECKENGRAPHIK_LINE_GRID_X;
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
-  opacity: 0.35;
+  opacity: 0.25; 
+  stroke-dasharray: 1, 1;
+  shape-rendering: crispEdges;
+}
+
+::ng-deep .editor_raster_grid_point {
+  display: none;
+  stroke: $COLOR_STRECKENGRAPHIK_LINE_GRID_X;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.5;
+  shape-rendering: crispEdges;
+}
+
+::ng-deep svg.editor_raster_grid_visible .editor_raster_grid_line,
+::ng-deep svg.editor_raster_grid_visible .editor_raster_grid_point {
+  display: inline;
+}
+
+::ng-deep .editor_raster_grid_line_hover {
+  stroke: var(--COLOR_Edit);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  opacity: 1;
+  stroke-dasharray: 4, 4;
+  shape-rendering: crispEdges;
+}
+
+::ng-deep .editor_raster_grid_point_hover {
+  stroke: var(--COLOR_Edit);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  opacity: 1;
   shape-rendering: crispEdges;
 }
 

@@ -510,13 +510,13 @@ export class NotesView {
     this.dragPreviousMousePosition = this.editorView.svgMouseController.getCurrentMousePosition(
       event.sourceEvent,
     );
+    this.editorView.hideRasterHoverCell();
+    this.editorView.enableElementDragging();
     this.editorView.pauseUndoRecording();
   }
 
   onNoteDragged(event: NoteDragEvent, note: Note) {
-    this.editorView.enableElementDragging();
     this.doDrag(event, note.getId());
-    this.editorView.disableElementDragging();
   }
 
   onNoteDragEnd(event: NoteDragEvent, note: Note) {
@@ -526,6 +526,8 @@ export class NotesView {
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
     d3.select(domObj).classed(StaticDomTags.TAG_DRAGGING, false);
     this.doDrag(event, note.getId(), NODE_POSITION_BASIC_RASTER, true);
+    this.editorView.disableElementDragging();
+    this.editorView.hideRasterHoverCell();
   }
 
   private doDrag(event: NoteDragEvent, noteId: number, round = 1, dragEnd = false) {
@@ -538,8 +540,10 @@ export class NotesView {
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
       this.editorView.moveSelectedNodes(newPosition.getX(), newPosition.getY(), round, dragEnd);
       this.editorView.moveSelectedNotes(newPosition.getX(), newPosition.getY(), round, dragEnd);
+      this.editorView.updateRasterHoverCellForDrag(currentMousePosition);
     } else {
       this.editorView.moveNote(noteId, newPosition, round, dragEnd);
+      this.editorView.hideRasterHoverCell();
     }
 
     // update the drag mouse position (previous for next dragging step)
