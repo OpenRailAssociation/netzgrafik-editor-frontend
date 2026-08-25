@@ -6,6 +6,17 @@
       >{{ "app.view.editor-search-view-component.goto" | translate }}</sbb-expansion-panel-header
     >
 
-    <sbb-editor-node-search-view-component></sbb-editor-node-search-view-component>
+    <sbb-editor-node-search-view-component #nodeSearch></sbb-editor-node-search-view-component>
+
+    <button
+      sbb-secondary-button
+      class="sbb-mt-m"
+      type="button"
+      [disabled]="!nodeSearch.canResetSearch()"
+      [title]="'app.view.editor-search-view-component.reset' | translate"
+      (click)="nodeSearch.resetSearch()"
+    >
+      {{ "app.view.editor-search-view-component.reset" | translate }}
+    </button>
   </sbb-expansion-panel>
 </sbb-accordion>

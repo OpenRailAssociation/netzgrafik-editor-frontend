@@ -10,13 +10,18 @@
   />
 </sbb-search>
 <sbb-autocomplete #auto="sbbAutocomplete" [displayWith]="displayNode">
-  @for (option of filteredNodes; track option) {
-  <sbb-option [value]="option">{{ transformNodeName(option) }}</sbb-option>
-  }
+  <sbb-option *ngFor="let option of filteredNodes" [value]="option">
+    {{ transformNodeName(option) }}
+  </sbb-option>
 </sbb-autocomplete>
 
 @if (searchResults.length > 1) {
-<div class="search-results-list">
+<div
+  class="search-results-list"
+  [class.search-results-overflow]="searchResults.length > 8"
+  [class.search-results-dragging]="isSearchResultsDragging"
+  (mousedown)="onSearchResultsMouseDown($event)"
+>
   @for (node of searchResults; track node) {
   <br />
   <p class="alignleft" style="line-height: 10px">

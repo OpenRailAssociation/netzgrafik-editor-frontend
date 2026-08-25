@@ -1,4 +1,4 @@
-import {Component, inject} from "@angular/core";
+import {Component, HostListener, inject} from "@angular/core";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
@@ -25,6 +25,10 @@ export class EditorNodeSearchViewComponent {
   private destroyed = new Subject<void>();
   allSearchableNodes: Node[] = [];
   filteredNodes: Node[] = [];
+  isSearchResultsDragging = false;
+  private searchResultsElement: HTMLElement | null = null;
+  private searchResultsDragStartY = 0;
+  private searchResultsDragStartScrollTop = 0;
 
   constructor(
     private uiInteractionService: UiInteractionService,
@@ -32,15 +36,11 @@ export class EditorNodeSearchViewComponent {
   ) {
     this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe((nodes: Node[]) => {
       this.allSearchableNodes = nodes;
-      this.filteredNodes = this.filterNodes(this.searchControl.value).sort((a, b) =>
-        this.getNodeSearchValue(a).localeCompare(this.getNodeSearchValue(b)),
-      );
+      this.updateFilteredNodes(this.searchControl.value);
     });
 
     this.allSearchableNodes = this.nodeService.getNodes();
-    this.filteredNodes = this.filterNodes(this.searchControl.value).sort((a, b) =>
-      this.getNodeSearchValue(a).localeCompare(this.getNodeSearchValue(b)),
-    );
+    this.updateFilteredNodes(this.searchControl.value);
   }
 
   ngOnInit(): void {
@@ -56,9 +56,7 @@ export class EditorNodeSearchViewComponent {
       });
 
     this.searchControl.valueChanges.pipe(takeUntil(this.destroyed)).subscribe((value) => {
-      this.filteredNodes = this.filterNodes(value).sort((a, b) =>
-        this.getNodeSearchValue(a).localeCompare(this.getNodeSearchValue(b)),
-      );
+      this.updateFilteredNodes(value);
     });
   }
 
@@ -77,9 +75,7 @@ export class EditorNodeSearchViewComponent {
       return;
     }
 
-    this.searchResults = this.filterNodes(this.searchControl.value).sort((a, b) =>
-      this.getNodeSearchValue(a).localeCompare(this.getNodeSearchValue(b)),
-    );
+    this.searchResults = this.filterNodes(this.searchControl.value);
 
     if (this.searchResults.length === 1) {
       this.onSearchResultClick(this.searchResults[0]);
@@ -91,6 +87,45 @@ export class EditorNodeSearchViewComponent {
       EditorNodeSearchViewComponent.FILTER_PANEL_ID,
     );
     this.uiInteractionService.gotoNode(node, offset);
+  }
+
+  canResetSearch(): boolean {
+    return this.searchResults.length > 0 || this.getSearchTerm(this.searchControl.value) !== "";
+  }
+
+  resetSearch(): void {
+    this.searchResults = [];
+    this.onSearchResultsMouseUp();
+    this.searchControl.setValue("");
+  }
+
+  onSearchResultsMouseDown(event: MouseEvent): void {
+    if (event.button !== 0 || (event.target as HTMLElement).closest(".smallstation") !== null) {
+      return;
+    }
+
+    this.searchResultsElement = event.currentTarget as HTMLElement;
+    this.searchResultsDragStartY = event.clientY;
+    this.searchResultsDragStartScrollTop = this.searchResultsElement.scrollTop;
+    this.isSearchResultsDragging = true;
+    event.preventDefault();
+  }
+
+  @HostListener("document:mousemove", ["$event"])
+  onSearchResultsMouseMove(event: MouseEvent): void {
+    if (!this.isSearchResultsDragging || this.searchResultsElement === null) {
+      return;
+    }
+
+    this.searchResultsElement.scrollTop =
+      this.searchResultsDragStartScrollTop + (event.clientY - this.searchResultsDragStartY);
+    event.preventDefault();
+  }
+
+  @HostListener("document:mouseup")
+  onSearchResultsMouseUp(): void {
+    this.isSearchResultsDragging = false;
+    this.searchResultsElement = null;
   }
 
   getNodeSearchValue(node: Node): string {
@@ -120,11 +155,17 @@ export class EditorNodeSearchViewComponent {
 
   private filterNodes(value: string | Node | null): Node[] {
     const searchTerm = this.getSearchTerm(value);
-    if (!searchTerm) {
-      return this.allSearchableNodes;
-    }
+    const nodes = searchTerm
+      ? this.allSearchableNodes.filter((node) => this.matchesNode(node, searchTerm))
+      : [...this.allSearchableNodes];
 
-    return this.allSearchableNodes.filter((node) => this.matchesNode(node, searchTerm));
+    return nodes.sort((a, b) =>
+      this.getNodeSearchValue(a).localeCompare(this.getNodeSearchValue(b)),
+    );
+  }
+
+  private updateFilteredNodes(value: string | Node | null): void {
+    this.filteredNodes = this.filterNodes(value).slice(0, 10);
   }
 
   private getSearchTerm(value: string | Node | null): string {

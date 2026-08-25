@@ -427,7 +427,8 @@
       "editor-search-view-component": {
         "search": "Search",
         "goto": "Goto",
-        "search-node": "Search node"
+        "search-node": "Search node",
+        "reset": "Reset search"
       },
       "editor-menu": {
         "save-changes": "Save changes",
