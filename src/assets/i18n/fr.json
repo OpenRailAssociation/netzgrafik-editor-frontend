@@ -425,15 +425,15 @@
         }
       },
       "editor-search-view-component": {
-        "search": "Rechercher",
-        "goto": "Aller à",
-        "search-node": "Rechercher un noeud",
-        "navigate": "Naviguer",
-        "select-node": "Sélectionner un noeud",
-        "search-trainrun": "Rechercher un trajet de train",
-        "select-trainrun": "Sélectionner un trajet de train",
-        "clear-all-search-fields": "Effacer tous les champs de recherche",
-        "reset": "Réinitialiser la recherche"
+        "search": "Search",
+        "goto": "Goto",
+        "search-node": "Search node",
+        "navigate": "Navigate",
+        "select-node": "Select node",
+        "search-trainrun": "Search trainrun",
+        "select-trainrun": "Select trainrun",
+        "clear-all-search-fields": "Reset all search fields",
+        "reset": "Reset search"
       },
       "editor-menu": {
         "save-changes": "Enregistrer les modifications",
