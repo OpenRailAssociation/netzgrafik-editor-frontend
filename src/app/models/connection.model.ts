@@ -1,5 +1,4 @@
 import {ConnectionDto, WarningDto} from "../data-structures/technical.data.structures";
-import {Vec2D} from "../utils/vec2D";
 
 export class Connection {
   private static currentId = 0;
@@ -8,7 +7,6 @@ export class Connection {
   private port1Id: number;
   private port2Id: number;
 
-  private path: Vec2D[];
   private warning: WarningDto = null;
 
   private isSelected = false;
@@ -52,14 +50,6 @@ export class Connection {
 
   getPortId2(): number {
     return this.port2Id;
-  }
-
-  setPath(path: Vec2D[]) {
-    this.path = path;
-  }
-
-  getPath(): Vec2D[] {
-    return this.path;
   }
 
   setWarning(warningTitle: string, warningDescription = "") {

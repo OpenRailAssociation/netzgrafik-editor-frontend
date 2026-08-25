@@ -1,9 +1,12 @@
 import {Connection} from "../../../models/connection.model";
 import {Node} from "../../../models/node.model";
+import {SimpleTrainrunSectionRouter} from "../../../services/util/trainrunsection.routing";
+import {Vec2D} from "../../../utils/vec2D";
 import {EditorView} from "./editor.view";
 
 export class ConnectionsViewObject {
   key: string;
+  readonly path: Vec2D[];
 
   constructor(
     private editorView: EditorView,
@@ -12,51 +15,44 @@ export class ConnectionsViewObject {
     displayConnectionPin1: boolean,
     displayConnectionPin2: boolean,
   ) {
-    this.key = ConnectionsViewObject.generateKey(
-      editorView,
-      connection,
-      displayConnectionPin1,
-      displayConnectionPin2,
-    );
+    const port1 = node.getPort(connection.getPortId1());
+    const port2 = node.getPort(connection.getPortId2());
+    this.path = SimpleTrainrunSectionRouter.routeConnection(node, port1, port2);
+    this.key = this.generateKey(displayConnectionPin1, displayConnectionPin2);
   }
 
-  static generateKey(
-    editorView: EditorView,
-    connection: Connection,
-    displayConnectionPin1: boolean,
-    displayConnectionPin2: boolean,
-  ): string {
+  private generateKey(displayConnectionPin1: boolean, displayConnectionPin2: boolean): string {
     let key =
       "#" +
-      connection.getId() +
+      this.connection.getId() +
       "@" +
-      connection.hasWarning() +
+      this.connection.hasWarning() +
       "_" +
-      connection.getPortId1() +
+      this.connection.getPortId1() +
       "_" +
-      connection.getPortId2() +
+      this.connection.getPortId2() +
       "_" +
-      connection.selected() +
+      this.connection.selected() +
       "_" +
-      connection.getPath()[0] +
+      this.path[0] +
       "_" +
-      connection.getPath()[1] +
+      this.path[1] +
       "_" +
-      connection.getPath()[2] +
+      this.path[2] +
       "_" +
-      connection.getPath()[3] +
+      this.path[3] +
       "_" +
       displayConnectionPin1 +
       "_" +
       displayConnectionPin2 +
       "_" +
-      editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() +
+      this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() +
       "_" +
-      editorView.getLevelOfDetail() +
+      this.editorView.getLevelOfDetail() +
       "_" +
-      editorView.trainrunSectionPreviewLineView.getVariantIsWritable();
+      this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable();
 
-    connection.getPath().forEach((p) => {
+    this.path.forEach((p) => {
       key += p.toString();
     });
     return key;

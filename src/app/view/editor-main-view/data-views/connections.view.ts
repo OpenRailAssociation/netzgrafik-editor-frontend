@@ -132,9 +132,7 @@ export class ConnectionsView {
     drawingGroup
       .append(StaticDomTags.CONNECTION_LINE_SVG)
       .attr("class", StaticDomTags.CONNECTION_LINE_CLASS)
-      .attr("d", (c: ConnectionsViewObject) =>
-        D3Utils.getBezierCurveAsSVGString(c.connection.getPath()),
-      )
+      .attr("d", (c: ConnectionsViewObject) => D3Utils.getBezierCurveAsSVGString(c.path))
       .attr(StaticDomTags.CONNECTION_ID, (c: ConnectionsViewObject) => c.connection.getId())
       .classed(StaticDomTags.TAG_WARNING, (c: ConnectionsViewObject) => c.connection.hasWarning())
       .classed(
@@ -225,15 +223,16 @@ export class ConnectionsView {
     inputConnection.forEach((connection: Connection) => {
       const node: Node = this.editorView.getNodeFromConnection(connection);
       if (this.displayConnectionFilteredSelectedTrainrun(connection, node)) {
-        connectionsViewObjects.push(
-          new ConnectionsViewObject(
-            this.editorView,
-            connection,
-            node,
-            ConnectionsView.displayConnectionPinPort1(connection, node),
-            ConnectionsView.displayConnectionPinPort2(connection, node),
-          ),
+        const connectionViewObject = new ConnectionsViewObject(
+          this.editorView,
+          connection,
+          node,
+          ConnectionsView.displayConnectionPinPort1(connection, node),
+          ConnectionsView.displayConnectionPinPort2(connection, node),
         );
+        if (this.editorView.doCullCheckPositionsInViewport(connectionViewObject.path)) {
+          connectionsViewObjects.push(connectionViewObject);
+        }
       }
     });
     return connectionsViewObjects;
@@ -255,11 +254,7 @@ export class ConnectionsView {
   }
 
   displayConnections(inputConnections: Connection[]) {
-    const connections = inputConnections.filter(
-      (c) =>
-        this.editorView.doCullCheckPositionsInViewport(c.getPath()) &&
-        this.filterConnectionsToDisplay(c),
-    );
+    const connections = inputConnections.filter((c) => this.filterConnectionsToDisplay(c));
 
     const connectionsGroup = this.connectionsGroup
       .selectAll(StaticDomTags.CONNECTION_ROOT_CONTAINER_DOM_REF)

@@ -328,12 +328,6 @@ export class Node {
     transition.setPath(SimpleTrainrunSectionRouter.routeTransition(this, port1, port2));
   }
 
-  computeConnectionRouting(connection: Connection) {
-    const port1 = this.getPort(connection.getPortId1());
-    const port2 = this.getPort(connection.getPortId2());
-    connection.setPath(SimpleTrainrunSectionRouter.routeConnection(this, port1, port2));
-  }
-
   addPort(alignment: PortAlignment, trainrunSection: TrainrunSection): number {
     const port = new Port();
     port.setPositionAlignment(alignment);
@@ -582,7 +576,6 @@ export class Node {
     const connection: Connection = new Connection();
     connection.setPort1Id(port1.getId());
     connection.setPort2Id(port2.getId());
-    this.computeConnectionRouting(connection);
     ConnectionValidator.validateConnection(connection, this);
     this.connections.push(connection);
   }
@@ -603,7 +596,6 @@ export class Node {
 
   updateConnectionsRouting() {
     this.connections.forEach((connection) => {
-      this.computeConnectionRouting(connection);
       ConnectionValidator.validateConnection(connection, this);
     });
   }

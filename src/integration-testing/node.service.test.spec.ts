@@ -7,6 +7,7 @@ import {Node} from "../app/models/node.model";
 import {TrainrunSection} from "../app/models/trainrunsection.model";
 import {PortAlignment} from "../app/data-structures/technical.data.structures";
 import {ConnectionValidator} from "../app/services/util/connection.validator";
+import {SimpleTrainrunSectionRouter} from "../app/services/util/trainrunsection.routing";
 import {ResourceService} from "../app/services/data/resource.service";
 import {LogService} from "../app/logger/log.service";
 import {LogPublishersService} from "../app/logger/log.publishers.service";
@@ -670,9 +671,12 @@ describe("NodeService Test", () => {
   it("connection test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSections.length).toBe(8);
-    const con = nodeService.getNodeFromId(2).getConnectionFromId(1);
+    const node = nodeService.getNodeFromId(2);
+    const con = node.getConnectionFromId(1);
     expect(con.getDto().id).toBe(1);
-    expect(con.getPath().length).toBe(4);
+    const port1 = node.getPort(con.getPortId1());
+    const port2 = node.getPort(con.getPortId2());
+    expect(SimpleTrainrunSectionRouter.routeConnection(node, port1, port2).length).toBe(4);
   });
 
   it("remove connection test", () => {
