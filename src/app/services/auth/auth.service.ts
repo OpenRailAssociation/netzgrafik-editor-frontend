@@ -11,7 +11,7 @@ import {environment} from "../../../environments/environment";
 export class AuthService {
   // Promise that resolves once the login has been successful.
   // This only works for forceful logins.
-  readonly initialized: Promise<unknown>;
+  readonly initialized: Promise<unknown> | undefined;
 
   get claims(): {email: string; name: string; roles: string[]} {
     return this.oauthService.getIdentityClaims() as {
@@ -31,6 +31,7 @@ export class AuthService {
     location: Location,
   ) {
     if (environment.disableBackend) return;
+    if (!environment.authConfig) throw Error("missing authConfig from environment");
     this.oauthService.configure(environment.authConfig);
     this.oauthService.setupAutomaticSilentRefresh();
     // If the user should not be forcefully logged in (e.g. if you have pages, which can be
