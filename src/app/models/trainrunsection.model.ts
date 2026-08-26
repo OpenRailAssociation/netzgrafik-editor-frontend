@@ -49,10 +49,10 @@ export class TrainrunSection {
 
   private trainrunId: number;
   private resourceId: number;
-  private specificTrainrunSectionFrequencyId: number;
+  private specificTrainrunSectionFrequencyId: number | null;
   private path: PathDto;
   private pathVec2D: Vec2D[];
-  private warnings: WarningDto[];
+  private warnings: WarningDto[] | null;
 
   private sourceNode: Node;
   private targetNode: Node;
