@@ -10,6 +10,7 @@
     "src/app/api/**/*.ts",
     "src/app/core/**/*.ts",
     "src/app/data-structures/**/*.ts",
+    "src/app/logger/**/*.ts",
     "src/app/sample-netzgrafik/**/*.ts",
     "src/app/services/auth/**/*.ts",
     "src/app/streckengrapfik/**/*.ts",
