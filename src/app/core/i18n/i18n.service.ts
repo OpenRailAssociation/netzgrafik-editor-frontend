@@ -34,7 +34,7 @@ export class I18nService {
 
   private getLanguageFromStorage(): string | null {
     const lang = localStorage.getItem("i18nLng");
-    return this.allowedLanguages.includes(lang) ? lang : null;
+    return lang && this.allowedLanguages.includes(lang) ? lang : null;
   }
 
   private detectNavigatorLanguage(): string {
