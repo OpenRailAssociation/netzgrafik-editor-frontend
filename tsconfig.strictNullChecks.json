@@ -14,6 +14,13 @@
     "src/app/sample-netzgrafik/**/*.ts",
     "src/app/services/auth/**/*.ts",
     "src/app/streckengrapfik/**/*.ts",
+    "src/app/utils/collection.ts",
+    "src/app/utils/form-model.ts",
+    "src/app/utils/http-error-interceptor.ts",
+    "src/app/utils/math.ts",
+    "src/app/utils/navigation-parameters.ts",
+    "src/app/utils/time.ts",
+    "src/app/utils/vec2D.ts",
     "src/app/view/themes/**/*.ts"
   ],
   "exclude": ["src/test.ts", "**/*.spec.ts"]

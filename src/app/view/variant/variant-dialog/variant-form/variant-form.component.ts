@@ -17,6 +17,6 @@ export class VariantFormComponent implements OnInit {
   }
 }
 
-export interface VariantFormComponentModel {
+export type VariantFormComponentModel = {
   name: string;
-}
+};
