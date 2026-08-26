@@ -7,7 +7,7 @@ export class Connection {
   private port1Id: number;
   private port2Id: number;
 
-  private warning: WarningDto = null;
+  private warning: WarningDto | null = null;
 
   private isSelected = false;
 
