@@ -5,7 +5,8 @@ export class Vec2D {
   private y: number;
 
   constructor(x = 0.0, y = 0.0) {
-    this.setData(x, y);
+    this.x = x;
+    this.y = y;
   }
 
   static equal(a: Vec2D, b: Vec2D): boolean {

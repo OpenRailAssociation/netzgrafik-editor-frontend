@@ -38,7 +38,7 @@ export class NoteFormComponent {
   }
 }
 
-export interface NoteFormComponentModel {
+export type NoteFormComponentModel = {
   id: number;
   noteTitle: string;
   noteText: string;
@@ -55,4 +55,4 @@ export interface NoteFormComponentModel {
   ) => void;
   deleteNoteCallback: (noteId: number) => void;
   updateNoteCallback: () => void;
-}
+};

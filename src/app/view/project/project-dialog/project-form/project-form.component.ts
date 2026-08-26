@@ -68,10 +68,10 @@ export const userIdsAsEmailValidator = (control: UntypedFormControl) => {
   return {invalidUserIdAsEmails: invalidEmailPattern.join(", ")};
 };
 
-export interface ProjectFormComponentModel {
+export type ProjectFormComponentModel = {
   name: string;
   summary: string;
   description: string;
   writeUsers: string[];
   readUsers: string[];
-}
+};
