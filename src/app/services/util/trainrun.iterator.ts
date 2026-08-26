@@ -258,6 +258,10 @@ export class TrainrunIterator {
     return this.currentElement;
   }
 
+  public [Symbol.iterator](): Iterator<TrainrunSectionNodePair> {
+    return new TrainrunIteratorIterator(this);
+  }
+
   /**
    * Throws an exception if called after the end of the iteration.
    * Check for `this.hasNext()` before.
@@ -377,5 +381,13 @@ export class BackwardNonStopTrainrunIterator extends BackwardTrainrunIterator {
       return this.currentElement;
     }
     return super.next();
+  }
+}
+
+class TrainrunIteratorIterator implements Iterator<TrainrunSectionNodePair> {
+  constructor(private iterator: TrainrunIterator) {}
+
+  public next(): IteratorResult<TrainrunSectionNodePair> {
+    return this.iterator.hasNext() ? {value: this.iterator.next()} : {done: true, value: undefined};
   }
 }
