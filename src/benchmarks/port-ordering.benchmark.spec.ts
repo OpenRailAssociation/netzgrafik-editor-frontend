@@ -18,6 +18,7 @@ import {NetzgrafikColoringService} from "../app/services/data/netzgrafikColoring
 
 import {OrderingAlgorithm} from "../app/data-structures/technical.data.structures";
 import {ClutterWeights, optimizePorts} from "../app/services/util/port-ordering.algo";
+import {CandidateStats} from "../app/services/util/port-ordering.candidates";
 import {
   countAllCrossings,
   countCrossingsInNode,
@@ -27,10 +28,12 @@ import {Node} from "../app/models/node.model";
 
 import demoStandaloneGithub from "../app/sample-netzgrafik/netzgrafik_demo_standalone_github.json";
 import demoOlLz from "../app/sample-netzgrafik/Demo_OL_LZ.json";
+import benchmarkCase1 from "../app/sample-netzgrafik/netzgrafik_benchmark_case_1.json";
 
 const DATASETS: {name: string; dto: unknown}[] = [
   {name: "demo_standalone_github", dto: demoStandaloneGithub},
   {name: "Demo_OL_LZ", dto: demoOlLz},
+  {name: "Benchmark case 1", dto: benchmarkCase1},
 ];
 
 // Weight setups to compare, each steering the optimizer toward a different clutter trade-off:
@@ -180,10 +183,11 @@ describe("port-ordering benchmark", () => {
       const nodeCount = nodeService.nodesStore.nodes.length;
 
       const rows: BenchmarkRow[] = [];
+      const stats: CandidateStats = {};
       for (const setup of SETUPS) {
         // Re-optimize from a fresh alphabetical order for each setup:
         const nodes = loadAlphabetical(dataService, nodeService, dto);
-        optimizePorts(nodes, setup.weights);
+        optimizePorts(nodes, setup.weights, {stats});
         const optimized = measureClutter(nodes);
 
         rows.push({
@@ -206,10 +210,25 @@ describe("port-ordering benchmark", () => {
         rows,
       );
 
+      // Candidate stats, aggregated over all setups (gains mix the setups' weight scales):
+      const statsLog =
+        "\n\ncandidate stats (all setups):\n" +
+        formatTable<[string, CandidateStats[string]]>(
+          [
+            {header: "Candidate source", value: ([source]) => source},
+            {header: "Tried", value: ([, s]) => String(s.tried)},
+            {header: "Improved", value: ([, s]) => String(s.improved)},
+            {header: "Gain", value: ([, s]) => s.gain.toFixed(1)},
+            {header: "Deduped", value: ([, s]) => String(s.deduped)},
+          ],
+          Object.entries(stats).sort((a, b) => b[1].gain - a[1].gain),
+        );
+
       console.log(
         `\ndataset: ${name} (${nodeCount} nodes, ${trainruns} trainruns)\n` +
           `alphabetical baseline: crossings ${baseline.crossingsWithin}w/${baseline.crossingsBetween}b, separations ${baseline.separationsWithin}w/${baseline.separationsBetween}b\n\n` +
-          table,
+          table +
+          statsLog,
       );
     }
   }, 600000);
