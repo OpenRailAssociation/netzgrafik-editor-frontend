@@ -301,13 +301,7 @@ describe("Origin Destination CSV Test", () => {
 
     expect(topoVertices).toHaveSize(4);
     edges.forEach((edge) => {
-      const v1Index = topoVertices.findIndex((value) => {
-        return value === edge.v1;
-      });
-      const v2Index = topoVertices.findIndex((value) => {
-        return value === edge.v2;
-      });
-      expect(v1Index).toBeLessThan(v2Index);
+      expect(topoVertices.indexOf(edge.v1)).toBeLessThan(topoVertices.indexOf(edge.v2));
     });
 
     const distances0 = computeShortestPaths(0, neighbors, topoVertices, tsSuccessor);
@@ -361,13 +355,7 @@ describe("Origin Destination CSV Test", () => {
     const topoVertices = topoSort(neighbors);
     expect(topoVertices).toHaveSize(11);
     edges.forEach((edge) => {
-      const v1Index = topoVertices.findIndex((value) => {
-        return value === edge.v1;
-      });
-      const v2Index = topoVertices.findIndex((value) => {
-        return value === edge.v2;
-      });
-      expect(v1Index).toBeLessThan(v2Index);
+      expect(topoVertices.indexOf(edge.v1)).toBeLessThan(topoVertices.indexOf(edge.v2));
     });
 
     const distances0 = computeShortestPaths(0, neighbors, topoVertices, tsSuccessor);
