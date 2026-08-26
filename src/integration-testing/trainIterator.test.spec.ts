@@ -87,8 +87,7 @@ describe("TrainrunSection Service Test", () => {
       node1,
       node1.getTrainrunSection(startingTrainrunSection.getTrainrun()),
     );
-    while (itr.hasNext()) {
-      const iteratorObject = itr.next();
+    for (const iteratorObject of itr) {
       expect(iteratorObject.node.getId()).toBe(iteratorNodeIds.shift());
     }
     expect(itr.current().node.getId()).toBe(node2.getId());
@@ -119,8 +118,7 @@ describe("TrainrunSection Service Test", () => {
       node2,
       node2.getTrainrunSection(startingTrainrunSection.getTrainrun()),
     );
-    while (itr.hasNext()) {
-      const iteratorObject = itr.next();
+    for (const iteratorObject of itr) {
       expect(iteratorObject.node.getId()).toBe(iteratorNodeIds.shift());
     }
     expect(itr.current().node.getId()).toBe(node1.getId());
@@ -151,8 +149,7 @@ describe("TrainrunSection Service Test", () => {
       node2,
       node2.getTrainrunSection(startingTrainrunSection.getTrainrun()),
     );
-    while (itr.hasNext()) {
-      const iteratorObject = itr.next();
+    for (const iteratorObject of itr) {
       expect(iteratorObject.node.getId()).toBe(iteratorNodeIds.shift());
     }
     expect(itr.current().node.getId()).toBe(2);

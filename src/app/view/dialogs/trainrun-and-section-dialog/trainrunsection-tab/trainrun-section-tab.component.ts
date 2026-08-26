@@ -97,8 +97,7 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
       firstTrainrunSection.getSourceNode(),
       firstTrainrunSection,
     );
-    while (iterator.hasNext()) {
-      const nextPair = iterator.next();
+    for (const nextPair of iterator) {
       if (!nextPair.trainrunSection.isSymmetric()) {
         return true;
       }

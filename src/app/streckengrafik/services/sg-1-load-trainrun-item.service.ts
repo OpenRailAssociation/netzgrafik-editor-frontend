@@ -1135,8 +1135,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     }
     const iterator: TrainrunIterator = this.trainrunService.getIterator(node, startTrainrunSection);
     visitedTrainrunSections.push(startTrainrunSection);
-    while (iterator.hasNext()) {
-      const currentTrainrunSectionNodePair = iterator.next();
+    for (const currentTrainrunSectionNodePair of iterator) {
       visitedTrainrunSections.push(currentTrainrunSectionNodePair.trainrunSection);
 
       if (trainrunSectionGroup) {

@@ -540,9 +540,8 @@ export class NodeService implements OnDestroy {
 
   hasPathAnyDepartureOrArrivalTimeLock(node: Node, trainrunSection: TrainrunSection): boolean {
     const iterator = this.trainrunService.getIterator(node, trainrunSection);
-    while (iterator.hasNext()) {
-      iterator.next();
-      const currentTrainrunSection = iterator.current().trainrunSection;
+    for (const pair of iterator) {
+      const currentTrainrunSection = pair.trainrunSection;
       if (
         currentTrainrunSection.getSourceDepartureLock() ||
         currentTrainrunSection.getTargetArrivalLock()

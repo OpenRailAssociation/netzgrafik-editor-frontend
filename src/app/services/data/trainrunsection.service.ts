@@ -366,10 +366,9 @@ export class TrainrunSectionService implements OnDestroy {
     stopNodeId: number,
   ) {
     const iterator = this.trainrunService.getNonStopIterator(node, trainrunSection);
-    while (iterator.hasNext()) {
-      iterator.next();
-      if (iterator.current().node.getId() === stopNodeId) {
-        return iterator.current().trainrunSection.getId();
+    for (const pair of iterator) {
+      if (pair.node.getId() === stopNodeId) {
+        return pair.trainrunSection.getId();
       }
     }
     return undefined;
@@ -512,9 +511,7 @@ export class TrainrunSectionService implements OnDestroy {
 
     TrainrunSectionValidator.validateOneSection(previousPair.trainrunSection);
 
-    while (iterator.hasNext()) {
-      const pair = iterator.next();
-
+    for (const pair of iterator) {
       const previousSection = previousPair.getDirectedTrainrunSectionProxy();
       const section = pair.getDirectedTrainrunSectionProxy();
       this.propagateTrainrunSectionTime(previousSection, section);
@@ -905,8 +902,7 @@ export class TrainrunSectionService implements OnDestroy {
     });
 
     const iterator = this.trainrunService.getNonStopIterator(firstSourceNode, firstTrainrunSection);
-    while (iterator.hasNext()) {
-      const pair = iterator.next();
+    for (const pair of iterator) {
       this.trainrunSectionTimesUpdated(pair.trainrunSection);
     }
 
@@ -931,8 +927,7 @@ export class TrainrunSectionService implements OnDestroy {
     const travelTimeFactor = chainTravelTime / totalCumulativeTravelTime;
     let departureTime = chainDepartureTime;
     let summedTravelTime = 0;
-    while (iterator.hasNext()) {
-      const pair = iterator.next();
+    for (const pair of iterator) {
       const section = pair.getDirectedTrainrunSectionProxy();
 
       const travelTime = TrainrunsectionHelper.getTravelTime(
