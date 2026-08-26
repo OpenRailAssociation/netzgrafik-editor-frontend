@@ -6,6 +6,17 @@ import {
   TrainrunTimeCategory,
 } from "../data-structures/business.data.structures";
 
+/** FilterSettingDto but with some properties that are nullable. */
+export type FilterSettingInit = {
+  [K in keyof FilterSettingDto]: K extends
+    | "filterTrainrunCategory"
+    | "filterTrainrunFrequency"
+    | "filterTrainrunTimeCategory"
+    | "filterDirection"
+    ? FilterSettingDto[K] | null
+    : FilterSettingDto[K];
+};
+
 export class FilterSetting {
   // special field/case: isTemporaryDisableFilteringOfItemsInView should not be compared nor copied
   private static isTemporaryDisableFilteringOfItemsInViewAttribute =
@@ -27,10 +38,10 @@ export class FilterSetting {
   public filterTrainrunName: boolean;
   public filterConnections: boolean;
   public filterShowNonStopTime: boolean;
-  public filterTrainrunCategory: TrainrunCategory[];
-  public filterTrainrunFrequency: TrainrunFrequency[];
-  public filterTrainrunTimeCategory: TrainrunTimeCategory[];
-  public filterDirection: Direction[];
+  public filterTrainrunCategory: TrainrunCategory[] | null;
+  public filterTrainrunFrequency: TrainrunFrequency[] | null;
+  public filterTrainrunTimeCategory: TrainrunTimeCategory[] | null;
+  public filterDirection: Direction[] | null;
   public filterSymmetry: boolean[];
   public filterAllEmptyNodes: boolean;
   public filterAllNonStopNodes: boolean;
@@ -68,7 +79,7 @@ export class FilterSetting {
       timeDisplayPrecision,
       isTemporaryDisableFilteringOfItemsInView,
       temporaryEmptyAndNonStopFilteringSwitchedOff,
-    }: FilterSettingDto = {
+    }: FilterSettingInit = {
       id: FilterSetting.incrementId(),
       name: "Filter",
       description: "",
@@ -87,7 +98,7 @@ export class FilterSetting {
       filterTrainrunFrequency: null,
       filterTrainrunTimeCategory: null,
       filterDirection: null,
-      filterSymmetry: null,
+      filterSymmetry: [true, false],
       filterAllEmptyNodes: false,
       filterAllNonStopNodes: false,
       displayNodesFullName: false,
@@ -115,7 +126,7 @@ export class FilterSetting {
     this.filterTrainrunFrequency = filterTrainrunFrequency;
     this.filterTrainrunTimeCategory = filterTrainrunTimeCategory;
     this.filterDirection = filterDirection;
-    this.filterSymmetry = filterSymmetry ?? [true, false];
+    this.filterSymmetry = filterSymmetry;
     this.filterAllEmptyNodes = filterAllEmptyNodes;
     this.filterAllNonStopNodes = filterAllNonStopNodes;
     this.displayNodesFullName = displayNodesFullName;
@@ -172,6 +183,14 @@ export class FilterSetting {
     frainrunFrequenciesLength: number,
     trainrunTimeCategoryLength: number,
   ): boolean {
+    if (
+      this.filterTrainrunCategory === null ||
+      this.filterTrainrunFrequency === null ||
+      this.filterTrainrunTimeCategory === null ||
+      this.filterDirection === null
+    ) {
+      throw Error("FilterSetting.isEmpty() called before filter init");
+    }
     return (
       this.filterNodeLabels.length === 0 &&
       this.filterNoteLabels.length === 0 &&
@@ -200,6 +219,14 @@ export class FilterSetting {
   }
 
   getDto(): FilterSettingDto {
+    if (
+      this.filterTrainrunCategory === null ||
+      this.filterTrainrunFrequency === null ||
+      this.filterTrainrunTimeCategory === null ||
+      this.filterDirection === null
+    ) {
+      throw Error("FilterSetting.getDto() called before filter init");
+    }
     return {
       id: this.id,
       name: this.name,

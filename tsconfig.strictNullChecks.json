@@ -12,6 +12,7 @@
     "src/app/data-structures/**/*.ts",
     "src/app/logger/**/*.ts",
     "src/app/models/connection.model.ts",
+    "src/app/models/filterSettings.model.ts",
     "src/app/sample-netzgrafik/**/*.ts",
     "src/app/services/auth/**/*.ts",
     "src/app/streckengrapfik/**/*.ts",
