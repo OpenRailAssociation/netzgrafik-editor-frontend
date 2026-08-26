@@ -145,10 +145,6 @@ export class HtmlEditorComponent implements OnInit, OnDestroy {
     this.onUpdate();
   }
 
-  setActiveColor(): boolean {
-    return true;
-  }
-
   getColorStyle(color: HtmlEditorColor): string {
     if (color === undefined) {
       if (this.textBasedActiveColor.length > 0) {
