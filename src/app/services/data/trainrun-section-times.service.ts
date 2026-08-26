@@ -595,6 +595,9 @@ export class TrainrunSectionTimesService {
     const {leftSymmetry, rightSymmetry} = this.symmetryStructure;
     leftSection.setTailSymmetry(leftSymmetry);
     rightSection.setHeadSymmetry(rightSymmetry);
+    if (this.areAllSectionsSymmetric()) {
+      this.selectedTrainrunSection.getTrainrun().setSymmetric(true);
+    }
 
     // Asymmetry stops time propagation: if the right side is asymmetric and
     // times are propagated left-to-right, time propagation will stop at the
@@ -611,6 +614,12 @@ export class TrainrunSectionTimesService {
     TrainrunSectionValidator.validateOneSection(rightSection.trainrunSection);
 
     this.trainrunSectionService.trainrunSectionsUpdated();
+  }
+
+  private areAllSectionsSymmetric(): boolean {
+    return this.trainrunSectionService
+      .getAllTrainrunSectionsForTrainrun(this.selectedTrainrunSection.getTrainrun().getId())
+      .every((section) => section.isSymmetric());
   }
 
   /* Buttons in Footer */

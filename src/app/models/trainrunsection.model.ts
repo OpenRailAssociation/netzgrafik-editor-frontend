@@ -266,14 +266,10 @@ export class TrainrunSection {
     }
   }
 
-  resetSymmetry() {
-    this.sourceSymmetry = true;
-    this.targetSymmetry = true;
-  }
-
   setAsymmetry() {
     this.sourceSymmetry = false;
     this.targetSymmetry = false;
+    this.trainrun.setSymmetric(false);
   }
 
   setSourceArrivalDto(sourceArrivalDto: TimeLockDto) {
