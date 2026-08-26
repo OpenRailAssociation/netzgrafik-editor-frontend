@@ -8,6 +8,7 @@
   "files": [],
   "include": [
     "src/app/api/**/*.ts",
+    "src/app/core/**/*.ts",
     "src/app/data-structures/**/*.ts",
     "src/app/sample-netzgrafik/**/*.ts",
     "src/app/streckengrapfik/**/*.ts",
