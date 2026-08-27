@@ -5,7 +5,7 @@ import {SimpleTrainrunSectionRouter} from "src/app/services/util/trainrunsection
 
 export class TransitionViewObject {
   key: string;
-  path: Vec2D[];
+  readonly path: Vec2D[];
 
   constructor(
     private editorView: EditorView,
