@@ -9,7 +9,6 @@ import {SimpleTrainrunSectionRouter} from "../../../services/util/trainrunsectio
 import {NodeService} from "../../../services/data/node.service";
 import {FilterService} from "../../../services/ui/filter.service";
 import {VersionControlService} from "../../../services/data/version-control.service";
-import { TransitionViewObject } from "./transitionViewObject";
 
 export enum PreviewLineMode {
   NotDragging,

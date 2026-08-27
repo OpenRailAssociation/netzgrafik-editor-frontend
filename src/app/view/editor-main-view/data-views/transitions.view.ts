@@ -196,8 +196,9 @@ export class TransitionsView {
 
     const transitions = inputTransitions.filter(
       (t) =>
-        this.editorView.doCullCheckPositionsInViewport(new TransitionViewObject(this.editorView, t).path) &&
-        this.filtertransitionToDisplay(t, t.getTrainrun()),
+        this.editorView.doCullCheckPositionsInViewport(
+          new TransitionViewObject(this.editorView, t).path,
+        ) && this.filtertransitionToDisplay(t, t.getTrainrun()),
     );
 
     this.createTransitions(transitions, selectedTrainrun, connectedTrainIds, true);
@@ -325,9 +326,12 @@ export class TransitionsView {
     const port2 = node.getPort(transition.getPortId2());
     const trainrunSection1 = port1.getTrainrunSection();
     const trainrunSection2 = port2.getTrainrunSection();
-    
+
     const transitionViewObject = new TransitionViewObject(this.editorView, transition);
-    const position = Vec2D.scale(Vec2D.add(transitionViewObject.path[1], transitionViewObject.path[2]), 0.5);
+    const position = Vec2D.scale(
+      Vec2D.add(transitionViewObject.path[1], transitionViewObject.path[2]),
+      0.5,
+    );
 
     this.editorView.trainrunSectionPreviewLineView.startDragTransition(
       new DragTransitionInfo(node, trainrunSection1, trainrunSection2, transition, true, domObj),

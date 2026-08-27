@@ -18,7 +18,7 @@ import {LabelGroupService} from "../app/services/data/labelgroup.service";
 import {Direction, LabelRef} from "../app/data-structures/business.data.structures";
 import {FilterService} from "../app/services/ui/filter.service";
 import {NetzgrafikColoringService} from "../app/services/data/netzgrafikColoring.service";
-import { SimpleTrainrunSectionRouter } from "src/app/services/util/trainrunsection.routing";
+import {SimpleTrainrunSectionRouter} from "src/app/services/util/trainrunsection.routing";
 
 describe("NodeService Test", () => {
   let nodes: Node[] = null;

@@ -1,7 +1,7 @@
-import { Vec2D } from "src/app/utils/vec2D";
+import {Vec2D} from "src/app/utils/vec2D";
 import {Transition} from "../../../models/transition.model";
 import {EditorView} from "./editor.view";
-import { SimpleTrainrunSectionRouter } from "src/app/services/util/trainrunsection.routing";
+import {SimpleTrainrunSectionRouter} from "src/app/services/util/trainrunsection.routing";
 
 export class TransitionViewObject {
   key: string;
@@ -12,7 +12,7 @@ export class TransitionViewObject {
     public transition: Transition,
     private isMuted: boolean = false,
   ) {
-    const node = editorView.getNodeFromTransition(transition)
+    const node = editorView.getNodeFromTransition(transition);
     const port1 = node.getPort(transition.getPortId1());
     const port2 = node.getPort(transition.getPortId2());
     this.path = SimpleTrainrunSectionRouter.routeTransition(node, port1, port2);
