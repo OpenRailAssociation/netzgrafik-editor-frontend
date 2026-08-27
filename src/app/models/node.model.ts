@@ -12,7 +12,6 @@ import {
 import {Port} from "./port.model";
 import {TrainrunSection} from "./trainrunsection.model";
 import {Transition} from "./transition.model";
-import {SimpleTrainrunSectionRouter} from "../services/util/trainrunsection.routing";
 import {Trainrun} from "./trainrun.model";
 import {
   PortAlignment,
@@ -104,7 +103,6 @@ export class Node {
 
     DataMigration.migrateNodeLabelIds(this);
 
-    this.updateTransitionsRouting();
     this.validateConnections();
   }
 
@@ -320,12 +318,6 @@ export class Node {
       }
     });
     return currentMaxIndex;
-  }
-
-  computeTransitionRouting(transition: Transition) {
-    const port1 = this.getPort(transition.getPortId1());
-    const port2 = this.getPort(transition.getPortId2());
-    transition.setPath(SimpleTrainrunSectionRouter.routeTransition(this, port1, port2));
   }
 
   addPort(alignment: PortAlignment, trainrunSection: TrainrunSection): number {
@@ -552,12 +544,7 @@ export class Node {
     return this.ports.find((port) => port.getTrainrunSectionId() === trainrunSectionId);
   }
 
-  addTransitionAndComputeRouting(
-    port1: Port,
-    port2: Port,
-    trainrun: Trainrun,
-    isNonStop = false,
-  ): Transition {
+  addTransition(port1: Port, port2: Port, trainrun: Trainrun, isNonStop = false): Transition {
     const transition: Transition = new Transition();
     transition.setPort1Id(port1.getId());
     transition.setPort2Id(port2.getId());
@@ -567,7 +554,6 @@ export class Node {
         : this.trainrunCategoryHaltezeiten[trainrun.getTrainrunCategory().fachCategory].no_halt,
     );
     transition.setTrainrun(trainrun);
-    this.computeTransitionRouting(transition);
     this.transitions.push(transition);
     return transition;
   }
@@ -584,14 +570,7 @@ export class Node {
     orderingType: OrderingAlgorithm = OrderingAlgorithm.Alphabetical,
   ) {
     this.reorderAllPorts(orderingType);
-    this.updateTransitionsRouting();
     this.validateConnections();
-  }
-
-  updateTransitionsRouting() {
-    this.transitions.forEach((transition) => {
-      this.computeTransitionRouting(transition);
-    });
   }
 
   validateConnections() {

@@ -281,7 +281,9 @@ describe("NodeService Test", () => {
     expect(transition3.getDto().id).toBe(3);
     expect(transition4.getDto().id).toBe(4);
 
-    const transitionPath1 = transition1.getPath();
+    const port1 = nodeOL.getPort(transition1.getPortId1());
+    const port2 = nodeOL.getPort(transition1.getPortId1());
+    const transitionPath1 = SimpleTrainrunSectionRouter.routeTransition(nodeOL, port1, port2);
     expect(transitionPath1.length).toBe(4);
 
     const trainrun1 = transition1.getTrainrun();

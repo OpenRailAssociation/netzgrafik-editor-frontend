@@ -118,7 +118,7 @@ export class TransitionsView {
       .classed(StaticDomTags.TAG_SELECTED, (t: TransitionViewObject) =>
         t.transition.getTrainrun().selected(),
       )
-      .attr("d", (t: TransitionViewObject) => D3Utils.getPathAsSVGString(t.transition.getPath()));
+      .attr("d", (t: TransitionViewObject) => D3Utils.getPathAsSVGString(t.path));
   }
 
   createNonStopToggle(
@@ -147,7 +147,7 @@ export class TransitionsView {
       )
       .attr("points", (t: TransitionViewObject) =>
         D3Utils.makeHexagonSVGPoints(
-          Vec2D.scale(Vec2D.add(t.transition.getPath()[1], t.transition.getPath()[2]), 0.5),
+          Vec2D.scale(Vec2D.add(t.path[1], t.path[2]), 0.5),
           StaticDomTags.TRANSITION_BUTTON_SIZE,
         ),
       )
@@ -196,8 +196,9 @@ export class TransitionsView {
 
     const transitions = inputTransitions.filter(
       (t) =>
-        this.editorView.doCullCheckPositionsInViewport(t.getPath()) &&
-        this.filtertransitionToDisplay(t, t.getTrainrun()),
+        this.editorView.doCullCheckPositionsInViewport(
+          new TransitionViewObject(this.editorView, t).path,
+        ) && this.filtertransitionToDisplay(t, t.getTrainrun()),
     );
 
     this.createTransitions(transitions, selectedTrainrun, connectedTrainIds, true);
