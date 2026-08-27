@@ -56,10 +56,6 @@ export function getComponents(nodes: Node[]): SidesComponent[] {
     portGroupsIds.set(getPortRoot(portAId), getPortRoot(portBId));
 
   const allPorts = nodes.flatMap((node) => node.getPorts().map((port) => ({port, node})));
-  const sectionPorts = groupBy(
-    allPorts.map(({port}) => port),
-    (p) => p.getTrainrunSectionId(),
-  );
 
   // Each port is in its own group initially:
   allPorts.forEach(({port}) => portGroupsIds.set(port.getId(), port.getId()));
@@ -77,11 +73,12 @@ export function getComponents(nodes: Node[]): SidesComponent[] {
     // A link with at least two parallel sections groups all its ports together
     groupBy(node.getPorts(), (p) => getPortOppositeExpandedNodeId(p, id)).forEach((linkPorts) => {
       if (linkPorts.length < 2) return;
-      linkPorts.forEach((p) =>
-        sectionPorts
-          .get(p.getTrainrunSectionId())!
-          .forEach((q) => mergePortGroups(p.getId(), q.getId())),
-      );
+      linkPorts.forEach((p) => {
+        const matchingPort = getMatchingPortInOppositeNode(p, id);
+        if (matchingPort) {
+          mergePortGroups(p.getId(), matchingPort.getId());
+        }
+      });
     });
 
     // 2. Shared-side transition:
