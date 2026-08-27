@@ -595,7 +595,7 @@ export class TrainrunSectionTimesService {
     const {leftSymmetry, rightSymmetry} = this.symmetryStructure;
     leftSection.setTailSymmetry(leftSymmetry);
     rightSection.setHeadSymmetry(rightSymmetry);
-    if (this.areAllSectionsSymmetric()) {
+    if (leftSymmetry && rightSymmetry && this.areAllSectionsSymmetric()) {
       this.selectedTrainrunSection.getTrainrun().setSymmetric(true);
     }
 
