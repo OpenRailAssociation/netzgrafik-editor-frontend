@@ -5,7 +5,7 @@ export class TransitionViewObject {
   key: string;
 
   constructor(
-    private editorView: EditorView,
+    editorView: EditorView,
     public transition: Transition,
     isMuted: boolean,
   ) {

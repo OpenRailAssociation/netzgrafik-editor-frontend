@@ -13,14 +13,10 @@ import {TrainrunService} from "../../../services/data/trainrun.service";
 import {takeUntil} from "rxjs/operators";
 import {SgTrainrun} from "../../model/streckengrafik-model/sg-trainrun";
 import {SgTrainrunItem} from "../../model/streckengrafik-model/sg-trainrun-item";
-import {Sg6TrackService} from "../../services/sg-6-track.service";
 import {
   InformSelectedTrainrunClick,
   TrainrunSectionService,
 } from "../../../services/data/trainrunsection.service";
-import {NodeService} from "../../../services/data/node.service";
-import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
-import {StreckengrafikDisplayElementService} from "../../services/util/streckengrafik-display-element.service";
 import {SliderChangeInfo} from "../../model/util/sliderChangeInfo";
 import * as d3 from "d3";
 
@@ -57,12 +53,8 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
   constructor(
     private readonly timeSliderService: TimeSliderService,
     private readonly trainDataService: TrainDataService,
-    private readonly sg6TrackService: Sg6TrackService,
     private readonly trainrunService: TrainrunService,
-    private readonly nodeService: NodeService,
     private readonly trainrunSectionService: TrainrunSectionService,
-    private readonly uiInteractionService: UiInteractionService,
-    private readonly streckengrafikDisplayElementService: StreckengrafikDisplayElementService,
     private readonly cd: ChangeDetectorRef,
   ) {}
 

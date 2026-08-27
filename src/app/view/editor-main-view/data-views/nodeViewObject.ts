@@ -5,7 +5,7 @@ export class NodeViewObject {
   key: string;
 
   constructor(
-    private editorView: EditorView,
+    editorView: EditorView,
     public node: Node,
     isNodeStopNode: boolean,
   ) {

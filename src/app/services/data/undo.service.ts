@@ -3,8 +3,6 @@ import {Subject, Subscription} from "rxjs";
 import {DataService, NetzgrafikLoadedInfo} from "./data.service";
 import {NetzgrafikDto} from "../../data-structures/business.data.structures";
 import {takeUntil} from "rxjs/operators";
-import {NodeService} from "./node.service";
-import {NoteService} from "./note.service";
 import {TrainrunService} from "./trainrun.service";
 import {FilterService} from "../ui/filter.service";
 
@@ -25,8 +23,6 @@ export class UndoService implements OnDestroy {
 
   constructor(
     private readonly dataService: DataService,
-    private readonly nodeService: NodeService,
-    private readonly noteService: NoteService,
     private readonly trainrunService: TrainrunService,
     private readonly filterService: FilterService,
   ) {

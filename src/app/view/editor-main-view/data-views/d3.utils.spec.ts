@@ -49,20 +49,19 @@ describe("3d.Utils.tests", () => {
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
-    labelGroupService = new LabelGroupService(logService);
-    labelService = new LabelService(logService, labelGroupService);
+    labelGroupService = new LabelGroupService();
+    labelService = new LabelService(labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
     trainrunService = new TrainrunService(logService, labelService, filterService);
-    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
+    trainrunSectionService = new TrainrunSectionService(trainrunService, filterService);
     nodeService = new NodeService(
-      logService,
       resourceService,
       trainrunService,
       trainrunSectionService,
       labelService,
       filterService,
     );
-    noteService = new NoteService(logService, labelService, filterService);
+    noteService = new NoteService(labelService, filterService);
     netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
@@ -96,13 +95,7 @@ describe("3d.Utils.tests", () => {
       dataService,
     );
 
-    undoService = new UndoService(
-      dataService,
-      nodeService,
-      noteService,
-      trainrunService,
-      filterService,
-    );
+    undoService = new UndoService(dataService, trainrunService, filterService);
 
     copyService = new CopyService(
       dataService,
@@ -150,7 +143,6 @@ describe("3d.Utils.tests", () => {
       dataService,
       undoService,
       copyService,
-      logService,
       viewportCullService,
       levelOfDetailService,
       undefined,
@@ -168,7 +160,6 @@ describe("3d.Utils.tests", () => {
       uiInteractionService,
       undoService,
       copyService,
-      logService,
       viewportCullService,
       levelOfDetailService,
       undefined,

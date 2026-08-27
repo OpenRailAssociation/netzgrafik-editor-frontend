@@ -15,7 +15,6 @@ import {MathUtils} from "../../utils/math";
 import {GeneralViewFunctions} from "../../view/util/generalViewFunctions";
 import {LeftAndRightTimeStructure} from "./trainrun-section-times.service";
 import {TrainrunsectionHelper} from "../util/trainrunsection.helper";
-import {LogService} from "../../logger/log.service";
 import {Transition} from "../../models/transition.model";
 import {takeUntil} from "rxjs/operators";
 import {FilterService} from "../ui/filter.service";
@@ -57,7 +56,6 @@ export class TrainrunSectionService implements OnDestroy {
   private destroyed = new Subject<void>();
 
   constructor(
-    private logger: LogService,
     private trainrunService: TrainrunService,
     private filterService: FilterService,
   ) {

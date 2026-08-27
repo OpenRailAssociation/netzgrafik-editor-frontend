@@ -18,7 +18,6 @@ import {ResizeChangeInfo} from "../model/util/resizeChangeInfo";
 import {ResizeService} from "../services/util/resize.service";
 import {SliderChangeInfo} from "../model/util/sliderChangeInfo";
 import {TimeSliderService} from "../services/time-slider.service";
-import {UpdateCounterTriggerService} from "../services/util/update-counter.service";
 import {Sg4ToggleTrackOccupierService} from "../services/sg-4-toggle-track-occupier.service";
 import {StreckengrafikDisplayElementService} from "../services/util/streckengrafik-display-element.service";
 import {StreckengrafikDrawingContext} from "../model/util/streckengrafik.drawing.context";
@@ -45,16 +44,13 @@ export class StreckengrafikComponent implements OnInit, OnDestroy, AfterViewInit
   private readonly destroyed$ = new Subject<void>();
 
   private oldResizeChangeInfo: ResizeChangeInfo = new ResizeChangeInfo(-1, -1);
-  private oldRect: DOMRect = undefined;
 
   private doShowTrainruns = false;
-  private isLoading = true;
 
   constructor(
     private readonly timeSliderService: TimeSliderService,
     private readonly viewBoxService: ViewBoxService,
     private readonly sg4ToggleTrackOccupierService: Sg4ToggleTrackOccupierService,
-    private readonly updateCounterTriggerService: UpdateCounterTriggerService,
     private readonly cd: ChangeDetectorRef,
     private resizeService: ResizeService,
     private streckengrafikDisplayElementService: StreckengrafikDisplayElementService,
@@ -62,7 +58,6 @@ export class StreckengrafikComponent implements OnInit, OnDestroy, AfterViewInit
   ) {}
 
   ngOnInit(): void {
-    this.oldRect = undefined;
     this.oldResizeChangeInfo = new ResizeChangeInfo(-1, -1);
 
     this.viewBoxService

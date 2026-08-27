@@ -126,17 +126,12 @@ type BenchmarkRow = {setup: string; alphaScore: number; optScore: number; optimi
 
 const createServices = (): {dataService: DataService; nodeService: NodeService} => {
   const logService = new LogService(new LogPublishersService());
-  const labelGroupService = new LabelGroupService(logService);
-  const labelService = new LabelService(logService, labelGroupService);
+  const labelGroupService = new LabelGroupService();
+  const labelService = new LabelService(labelGroupService);
   const filterService = new FilterService(labelService, labelGroupService);
   const trainrunService = new TrainrunService(logService, labelService, filterService);
-  const trainrunSectionService = new TrainrunSectionService(
-    logService,
-    trainrunService,
-    filterService,
-  );
+  const trainrunSectionService = new TrainrunSectionService(trainrunService, filterService);
   const nodeService = new NodeService(
-    logService,
     new ResourceService(),
     trainrunService,
     trainrunSectionService,
@@ -149,7 +144,7 @@ const createServices = (): {dataService: DataService; nodeService: NodeService} 
     trainrunSectionService,
     trainrunService,
     new BaseDataService(),
-    new NoteService(logService, labelService, filterService),
+    new NoteService(labelService, filterService),
     labelService,
     labelGroupService,
     filterService,

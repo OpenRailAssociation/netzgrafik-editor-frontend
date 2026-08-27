@@ -21,7 +21,6 @@ import {PerlenketteNode} from "./model/perlenketteNode";
 import {EditorMode} from "../view/editor-menu/editor-mode";
 import {NodeService} from "../services/data/node.service";
 import {takeUntil} from "rxjs/operators";
-import {PerlenketteConnection} from "./model/perlenketteConnection";
 import {VersionControlService} from "../services/data/version-control.service";
 import {TrainrunSectionService} from "../services/data/trainrunsection.service";
 import {TrainrunService} from "../services/data/trainrun.service";
@@ -54,7 +53,6 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   private perlenketteRenderingElementsHeight: [PerlenketteItem, number][];
 
   private trainrunEditorVisible = false;
-  private selectedPerlenketteConnection: PerlenketteConnection = undefined;
 
   private showAllLockStates = false;
 
@@ -74,8 +72,6 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     public trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
   ) {
-    this.selectedPerlenketteConnection = undefined;
-
     this.loadPerlenketteService
       .getPerlenketteData()
       .pipe(takeUntil(this.destroyed$))

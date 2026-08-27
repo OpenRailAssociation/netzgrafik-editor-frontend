@@ -1,6 +1,5 @@
 import {Injectable, OnDestroy} from "@angular/core";
 import {BehaviorSubject, Subject} from "rxjs";
-import {LogService} from "../../logger/log.service";
 import {LabelGroupDto, LabelRef} from "../../data-structures/business.data.structures";
 import {LabelGroup} from "../../models/labelGroup.model";
 import {LabelService} from "./label.service";
@@ -16,7 +15,7 @@ export class LabelGroupService implements OnDestroy {
   private destroyed = new Subject<void>();
   private labelService: LabelService = null;
 
-  constructor(private logService: LogService) {}
+  constructor() {}
 
   setLabelService(labelService: LabelService) {
     this.labelService = labelService;

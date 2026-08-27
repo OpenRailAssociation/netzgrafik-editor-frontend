@@ -1,5 +1,4 @@
 import {Component, OnDestroy, TemplateRef, ViewChild} from "@angular/core";
-import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {SbbDialog, SbbDialogConfig} from "@sbb-esta/angular/dialog";
 import {SbbTableDataSource} from "@sbb-esta/angular/table";
@@ -44,7 +43,6 @@ export class BaseDataDialogComponent implements OnDestroy {
 
   constructor(
     public dialog: SbbDialog,
-    private trainrunSectionService: TrainrunSectionService,
     private uiInteractionService: UiInteractionService,
   ) {
     this.uiInteractionService.baseDataEditDialog

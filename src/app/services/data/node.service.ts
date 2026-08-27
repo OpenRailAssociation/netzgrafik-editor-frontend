@@ -21,7 +21,6 @@ import {Transition} from "../../models/transition.model";
 import {Connection} from "../../models/connection.model";
 import {ResourceService} from "./resource.service";
 import {Resource} from "../../models/resource.model";
-import {LogService} from "../../logger/log.service";
 import {Port} from "../../models/port.model";
 import {takeUntil} from "rxjs/operators";
 import {Vec2D} from "../../utils/vec2D";
@@ -59,7 +58,6 @@ export class NodeService implements OnDestroy {
   private currentOrderingAlgorithm: OrderingAlgorithm = OrderingAlgorithm.Alphabetical;
 
   constructor(
-    private logger: LogService,
     private resourceService: ResourceService,
     private trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,

@@ -7,7 +7,7 @@ export class TrainrunSectionViewObject {
   readonly key: string;
 
   constructor(
-    private editorView: EditorView,
+    editorView: EditorView,
     readonly trainrunSection: TrainrunSection,
   ) {
     this.key = TrainrunSectionViewObject.generateKey(editorView, trainrunSection);

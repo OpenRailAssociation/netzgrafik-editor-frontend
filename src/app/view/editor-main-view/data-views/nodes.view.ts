@@ -30,7 +30,6 @@ export class NodesView {
   nodeGroup: d3.Selection<SVGElement, undefined, Element, undefined>;
   draggable: d3.DragBehavior<SVGElement, NodeViewObject, unknown>;
   dragDomObj: SVGElement | null = null;
-  private LevelOfDetails: LevelOfDetail;
 
   constructor(private editorView: EditorView) {
     this.draggable = d3

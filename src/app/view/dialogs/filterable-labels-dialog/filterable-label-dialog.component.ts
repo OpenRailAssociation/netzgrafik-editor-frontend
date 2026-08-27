@@ -21,10 +21,6 @@ export class FilterableLabelDialogComponent implements OnDestroy {
   private transferLabelCallback: ((originalLabel: string) => void) | null = null;
   private saveLabelCallback: ((newLabel: string) => void) | null = null;
   private originalLabel: string;
-  private currentDialog: SbbDialogRef<
-    FilterableLabelDialogComponent,
-    FilterableLabelsFormComponentModel
-  > = null;
 
   constructor(
     private uiInteractionService: UiInteractionService,
@@ -52,7 +48,6 @@ export class FilterableLabelDialogComponent implements OnDestroy {
     this.deleteLabelCallback = data.deleteLabelCallback;
     this.saveLabelCallback = data.saveLabelCallback;
     this.transferLabelCallback = data.transferLabelCallback;
-    this.currentDialog = dialogRef;
 
     this.dialogRef
       .beforeClosed()

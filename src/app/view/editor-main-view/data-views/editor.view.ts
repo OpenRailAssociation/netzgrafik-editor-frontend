@@ -26,7 +26,6 @@ import {
   TrainrunSectionService,
 } from "../../../services/data/trainrunsection.service";
 import {TrainrunService} from "../../../services/data/trainrun.service";
-import {LogService} from "../../../logger/log.service";
 import {NoteService} from "../../../services/data/note.service";
 import {EditorKeyEvents} from "./editor.keyEvents";
 import {MultiSelectRenderer} from "./multiSelectRenderer";
@@ -181,17 +180,16 @@ export class EditorView implements SVGMouseControllerObserver {
   constructor(
     controller: EditorMainViewComponent,
     private nodeService: NodeService,
-    private trainrunService: TrainrunService,
+    trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
     private noteService: NoteService,
     private filterService: FilterService,
     private uiInteractionService: UiInteractionService,
-    private undoService: UndoService,
-    private copyService: CopyService,
-    private logService: LogService,
+    undoService: UndoService,
+    copyService: CopyService,
     private viewportCullService: ViewportCullService,
     private levelOfDetailService: LevelOfDetailService,
-    private versionControlService: VersionControlService,
+    versionControlService: VersionControlService,
     private positionTransformationService: PositionTransformationService,
     private autoLayoutService: AutoLayoutService,
   ) {
@@ -222,7 +220,6 @@ export class EditorView implements SVGMouseControllerObserver {
       noteService,
       filterService,
       uiInteractionService,
-      logService,
       undoService,
       copyService,
       this.svgMouseController,

@@ -1,5 +1,4 @@
 import {Component} from "@angular/core";
-import {DataService} from "../../services/data/data.service";
 import {UiInteractionService} from "../../services/ui/ui.interaction.service";
 import {SbbRadioChange} from "@sbb-esta/angular/radio-button";
 import {ThemeBase} from "../themes/theme-base";
@@ -103,10 +102,7 @@ export class EditorPropertiesViewComponent {
   activeDarkBackgroundColor = EditorPropertiesViewComponent.DEFAULT_DARK_BACKGROUNDCOLOR;
   activeBackgroundColor = EditorPropertiesViewComponent.DEFAULT_BACKGROUNDCOLOR;
 
-  constructor(
-    private dataService: DataService,
-    private uiInteractionService: UiInteractionService,
-  ) {
+  constructor(private uiInteractionService: UiInteractionService) {
     const activeTheme = this.uiInteractionService.getActiveTheme();
     this.activeColorTheme = activeTheme;
     this.activeStreckengrafikRenderingType =

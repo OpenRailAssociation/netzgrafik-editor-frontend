@@ -1,5 +1,4 @@
 import {Component} from "@angular/core";
-import {DataService} from "../services/data/data.service";
 import {UiInteractionService} from "../services/ui/ui.interaction.service";
 import {map, takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
@@ -10,7 +9,6 @@ import {NavigationParameters} from "../utils/navigation-parameters";
 import {FilterService} from "../services/ui/filter.service";
 import {DomSanitizer} from "@angular/platform-browser";
 import {EditorMode} from "../view/editor-menu/editor-mode";
-import {UndoService} from "../services/data/undo.service";
 import {EditorView} from "../view/editor-main-view/data-views/editor.view";
 import {environment} from "../../environments/environment";
 import {NodeService} from "../services/data/node.service";
@@ -37,12 +35,10 @@ export class NetzgrafikApplicationComponent {
   private readonly destroyed = new Subject<void>();
 
   constructor(
-    private dataService: DataService,
     private uiInteractionService: UiInteractionService,
     private filterService: FilterService,
-    private readonly activatedRoute: ActivatedRoute,
+    activatedRoute: ActivatedRoute,
     private readonly versionControlService: VersionControlService,
-    private readonly undoService: UndoService,
     private readonly nodeService: NodeService,
     private sanitizer: DomSanitizer,
   ) {

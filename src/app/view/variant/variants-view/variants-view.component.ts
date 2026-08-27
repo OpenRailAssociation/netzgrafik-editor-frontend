@@ -20,7 +20,6 @@ import {UntypedFormControl} from "@angular/forms";
 import {NavigationService} from "../../../services/ui/navigation.service";
 import {VersionControlService} from "../../../services/data/version-control.service";
 import {SlotAction} from "../../action-menu/action-menu/action-menu.component";
-import {DataService} from "../../../services/data/data.service";
 import {NetzgrafikDto} from "../../../data-structures/business.data.structures";
 
 @Component({
@@ -105,13 +104,12 @@ export class VariantsViewComponent implements OnDestroy {
   constructor(
     private readonly projectService: ProjectControllerBackendService,
     private readonly variantBackendService: VariantControllerBackendService,
-    private readonly activatedRoute: ActivatedRoute,
+    activatedRoute: ActivatedRoute,
     readonly navigationService: NavigationService,
     private readonly dialog: SbbDialog,
     private readonly uiInteractionService: UiInteractionService,
     private versionControlService: VersionControlService,
     private readonly versionsBackendService: VersionControllerBackendService,
-    private readonly dataService: DataService,
   ) {
     activatedRoute.params
       .pipe(

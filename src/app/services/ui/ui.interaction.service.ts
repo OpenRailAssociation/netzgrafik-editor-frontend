@@ -118,7 +118,6 @@ export class UiInteractionService implements OnDestroy {
   private windowViewboxPropertiesMap: {[key: string]: ViewboxProperties} = {};
   private destroyed = new Subject<void>();
   private filterWindowType: FilterWindowType | null = null;
-  private oldSelectedTrainrunId: number = null;
 
   constructor(
     private filterService: FilterService,
@@ -160,11 +159,9 @@ export class UiInteractionService implements OnDestroy {
     this.trainrunService.trainruns.pipe(takeUntil(this.destroyed)).subscribe(() => {
       const st = trainrunService.getSelectedTrainrun();
       if (st !== null) {
-        this.oldSelectedTrainrunId = st.getId();
         return;
       }
       this.closePerlenkette();
-      this.oldSelectedTrainrunId = null;
     });
 
     this.baseDataService.baseDataObservable
