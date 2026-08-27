@@ -65,6 +65,10 @@ export default defineConfig([
           varsIgnorePattern: "^_",
         },
       ],
+      // This rule is not in tseslint's recommended preset,
+      // so the base rule must be disabled by hand here.
+      "no-unused-private-class-members": "off",
+      "@typescript-eslint/no-unused-private-class-members": "error",
       "@typescript-eslint/no-deprecated": "warn",
       "consistent-return": "error",
       eqeqeq: "error",
