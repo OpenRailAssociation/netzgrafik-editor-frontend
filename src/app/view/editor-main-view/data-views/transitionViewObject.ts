@@ -1,53 +1,60 @@
+import { Vec2D } from "src/app/utils/vec2D";
 import {Transition} from "../../../models/transition.model";
 import {EditorView} from "./editor.view";
+import { SimpleTrainrunSectionRouter } from "src/app/services/util/trainrunsection.routing";
 
 export class TransitionViewObject {
   key: string;
+  path: Vec2D[];
 
   constructor(
     private editorView: EditorView,
     public transition: Transition,
-    isMuted: boolean,
+    private isMuted: boolean = false,
   ) {
-    this.key = TransitionViewObject.generateKey(editorView, transition, isMuted);
+    const node = editorView.getNodeFromTransition(transition)
+    const port1 = node.getPort(transition.getPortId1());
+    const port2 = node.getPort(transition.getPortId2());
+    this.path = SimpleTrainrunSectionRouter.routeTransition(node, port1, port2);
+    this.key = this.generateKey();
   }
 
-  static generateKey(editorView: EditorView, transition: Transition, isMuted: boolean): string {
+  private generateKey(): string {
     let key =
       "#" +
-      transition.getId() +
+      this.transition.getId() +
       "@" +
-      transition.getIsNonStopTransit() +
+      this.transition.getIsNonStopTransit() +
       "_" +
-      transition.getTrainrun().selected() +
+      this.transition.getTrainrun().selected() +
       "_" +
-      transition.getTrainrun().getTrainrunCategory().shortName +
+      this.transition.getTrainrun().getTrainrunCategory().shortName +
       "_" +
-      transition.getTrainrun().getTrainrunFrequency().shortName +
+      this.transition.getTrainrun().getTrainrunFrequency().shortName +
       "_" +
-      transition.getTrainrun().getTrainrunTimeCategory().shortName +
+      this.transition.getTrainrun().getTrainrunTimeCategory().shortName +
       "_" +
-      transition.getTrainrun().getTrainrunCategory().id +
+      this.transition.getTrainrun().getTrainrunCategory().id +
       "_" +
-      transition.getTrainrun().getTrainrunFrequency().id +
+      this.transition.getTrainrun().getTrainrunFrequency().id +
       "_" +
-      transition.getTrainrun().getTrainrunTimeCategory().id +
+      this.transition.getTrainrun().getTrainrunTimeCategory().id +
       "_" +
-      transition.getTrainrun().getTrainrunCategory().colorRef +
+      this.transition.getTrainrun().getTrainrunCategory().colorRef +
       "_" +
-      transition.getTrainrun().getTrainrunFrequency().linePatternRef +
+      this.transition.getTrainrun().getTrainrunFrequency().linePatternRef +
       "_" +
-      transition.getTrainrun().getTrainrunTimeCategory().linePatternRef +
+      this.transition.getTrainrun().getTrainrunTimeCategory().linePatternRef +
       "_" +
-      transition.getTrainrun().getTrainrunFrequency().frequency +
+      this.transition.getTrainrun().getTrainrunFrequency().frequency +
       "_" +
-      editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() +
+      this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() +
       "_" +
-      isMuted +
+      this.isMuted +
       "_" +
-      editorView.trainrunSectionPreviewLineView.getVariantIsWritable();
+      this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable();
 
-    transition.getPath().forEach((p) => {
+    this.path.forEach((p) => {
       key += p.toString();
     });
     return key;

@@ -1,5 +1,4 @@
 import {TransitionDto} from "../data-structures/technical.data.structures";
-import {Vec2D} from "../utils/vec2D";
 import {Trainrun} from "./trainrun.model";
 
 export class Transition {
@@ -11,7 +10,6 @@ export class Transition {
   private isNonStopTransit: boolean;
 
   private trainrun: Trainrun;
-  private path: Vec2D[];
 
   constructor(
     {id, port1Id, port2Id, isNonStopTransit}: TransitionDto = {
@@ -77,14 +75,6 @@ export class Transition {
 
   setTrainrun(trainrun: Trainrun) {
     this.trainrun = trainrun;
-  }
-
-  setPath(path: Vec2D[]) {
-    this.path = path;
-  }
-
-  getPath(): Vec2D[] {
-    return this.path;
   }
 
   getDto(): TransitionDto {
