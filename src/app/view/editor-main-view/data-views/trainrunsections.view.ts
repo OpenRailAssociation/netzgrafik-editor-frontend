@@ -31,6 +31,7 @@ import {InformSelectedTrainrunClick} from "../../../services/data/trainrunsectio
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
 import {LinePatternRefs} from "../../../data-structures/business.data.structures";
 import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helper";
+import { TransitionViewObject } from "./transitionViewObject";
 
 export class TrainrunSectionsView {
   trainrunSectionGroup: d3.Selection<SVGElement, undefined, Element, undefined>;
@@ -2224,9 +2225,9 @@ export class TrainrunSectionsView {
       );
       transformedPath = transformedPath.reverse();
 
-      const transitionObject: Transition = srcNode.getTransition(ts.getId());
+      const transitionObject: TransitionViewObject = new TransitionViewObject(this.editorView, srcNode.getTransition(ts.getId()));
       if (transitionObject !== undefined) {
-        const tPath = Object.assign([], transitionObject.getPath());
+        const tPath = Object.assign([], transitionObject.path);
         const n0 = Vec2D.norm(Vec2D.sub(element, tPath[0]));
         const n1 = Vec2D.norm(Vec2D.sub(element, tPath[3]));
         if (n0 <= n1) {
@@ -2265,9 +2266,9 @@ export class TrainrunSectionsView {
         transformedPath,
       );
 
-      const transitionObject: Transition = trgNode.getTransition(ts.getId());
+      const transitionObject: TransitionViewObject = new TransitionViewObject(this.editorView, trgNode.getTransition(ts.getId()));
       if (transitionObject !== undefined) {
-        const tPath = Object.assign([], transitionObject.getPath());
+        const tPath = Object.assign([], transitionObject.path);
         const n0 = Vec2D.norm(Vec2D.sub(element, tPath[0]));
         const n1 = Vec2D.norm(Vec2D.sub(element, tPath[3]));
         if (n0 <= n1) {
