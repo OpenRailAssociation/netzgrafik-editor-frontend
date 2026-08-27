@@ -615,7 +615,7 @@ export class NodeService implements OnDestroy {
     return !checkPort1 || !checkPort2;
   }
 
-  addTransitionAndComputeRoutingFromFreePorts(node: Node, trainrun: Trainrun, isNonStop = false) {
+  addTransition(node: Node, trainrun: Trainrun, isNonStop = false) {
     const freePorts = node.getFreePortsForTrainrun(trainrun.getId());
     if (freePorts.length <= 1) {
       return;
@@ -654,18 +654,10 @@ export class NodeService implements OnDestroy {
     targetIsNonStop = false,
   ) {
     const sourceNode = this.getNodeFromId(sourceNodeId);
-    this.addTransitionAndComputeRoutingFromFreePorts(
-      sourceNode,
-      trainrunSection.getTrainrun(),
-      sourceIsNonStop,
-    );
+    this.addTransition(sourceNode, trainrunSection.getTrainrun(), sourceIsNonStop);
 
     const targetNode = this.getNodeFromId(targetNodeId);
-    this.addTransitionAndComputeRoutingFromFreePorts(
-      targetNode,
-      trainrunSection.getTrainrun(),
-      targetIsNonStop,
-    );
+    this.addTransition(targetNode, trainrunSection.getTrainrun(), targetIsNonStop);
   }
 
   isConditionToAddTransitionFullfilled(node: Node, trainrunSection: TrainrunSection): boolean {
@@ -1088,12 +1080,12 @@ export class NodeService implements OnDestroy {
     }
     // source node
     if (this.isConditionToAddTransitionFullfilled(sourceNode, trainrunSection)) {
-      this.addTransitionAndComputeRoutingFromFreePorts(sourceNode, trainrun);
+      this.addTransition(sourceNode, trainrun);
     }
 
     // target node
     if (this.isConditionToAddTransitionFullfilled(targetNode, trainrunSection)) {
-      this.addTransitionAndComputeRoutingFromFreePorts(targetNode, trainrun);
+      this.addTransition(targetNode, trainrun);
     }
     if (enforceUpdate) {
       this.transitionsUpdated();

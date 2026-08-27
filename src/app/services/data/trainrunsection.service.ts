@@ -697,10 +697,7 @@ export class TrainrunSectionService implements OnDestroy {
     const orderingType = this.nodeService.getCurrentOrderingAlgorithm();
     nodeToNew.addPortWithRespectToOppositeNode(nodeFrom, trainrunSection, orderingType);
     if (this.nodeService.isConditionToAddTransitionFullfilled(nodeToNew, trainrunSection)) {
-      this.nodeService.addTransition(
-        nodeToNew,
-        trainrunSection.getTrainrun(),
-      );
+      this.nodeService.addTransition(nodeToNew, trainrunSection.getTrainrun());
     }
     nodeFrom.reAlignPortWithRespectToOppositeNode(nodeToNew, trainrunSection, orderingType);
 
