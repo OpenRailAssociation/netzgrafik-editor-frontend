@@ -2224,7 +2224,7 @@ export class TrainrunSectionsView {
       );
       transformedPath = transformedPath.reverse();
 
-      const transitionObject: TransitionViewObject = new TransitionViewObject(
+      const transitionObject = new TransitionViewObject(
         this.editorView,
         srcNode.getTransition(ts.getId()),
       );
@@ -2268,7 +2268,7 @@ export class TrainrunSectionsView {
         transformedPath,
       );
 
-      const transitionObject: TransitionViewObject = new TransitionViewObject(
+      const transitionObject = new TransitionViewObject(
         this.editorView,
         trgNode.getTransition(ts.getId()),
       );
