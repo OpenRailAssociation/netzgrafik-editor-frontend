@@ -105,7 +105,7 @@ export class Node {
     DataMigration.migrateNodeLabelIds(this);
 
     this.updateTransitionsRouting();
-    this.updateConnectionsRouting();
+    this.validateConnections();
   }
 
   static getDefaultHaltezeit(): TrainrunCategoryHaltezeit {
@@ -572,7 +572,7 @@ export class Node {
     return transition;
   }
 
-  addConnectionAndComputeRouting(port1: Port, port2: Port) {
+  addConnection(port1: Port, port2: Port) {
     const connection: Connection = new Connection();
     connection.setPort1Id(port1.getId());
     connection.setPort2Id(port2.getId());
@@ -585,7 +585,7 @@ export class Node {
   ) {
     this.reorderAllPorts(orderingType);
     this.updateTransitionsRouting();
-    this.updateConnectionsRouting();
+    this.validateConnections();
   }
 
   updateTransitionsRouting() {
@@ -594,7 +594,7 @@ export class Node {
     });
   }
 
-  updateConnectionsRouting() {
+  validateConnections() {
     this.connections.forEach((connection) => {
       ConnectionValidator.validateConnection(connection, this);
     });
@@ -740,12 +740,6 @@ export class Node {
     } else {
       trainrunSection.setTargetArrival(arrivalTime);
     }
-  }
-
-  validateAllConnections() {
-    this.connections.forEach((connection) => {
-      ConnectionValidator.validateConnection(connection, this);
-    });
   }
 
   select() {

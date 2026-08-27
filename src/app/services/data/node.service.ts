@@ -203,7 +203,7 @@ export class NodeService implements OnDestroy {
       optimizePorts(this.nodesStore.nodes, this.getClutterWeights());
       this.nodesStore.nodes.forEach((node) => {
         node.updateTransitionsRouting();
-        node.updateConnectionsRouting();
+        node.validateConnections();
         this.trainrunSectionService.updateTrainrunSectionRouting(node, false);
       });
     } else {
@@ -215,12 +215,12 @@ export class NodeService implements OnDestroy {
   }
 
   validateConnections(node: Node) {
-    this.getNodeFromId(node.getId()).validateAllConnections();
+    this.getNodeFromId(node.getId()).validateConnections();
   }
 
   validateAllConnections() {
     this.nodesStore.nodes.forEach((node) => {
-      node.validateAllConnections();
+      node.validateConnections();
     });
   }
 
@@ -718,7 +718,7 @@ export class NodeService implements OnDestroy {
       if (conFound !== undefined) {
         return;
       }
-      node.addConnectionAndComputeRouting(portFrom, portTo);
+      node.addConnection(portFrom, portTo);
     }
     this.connectionsUpdated();
   }
@@ -1238,7 +1238,7 @@ export class NodeService implements OnDestroy {
         optimizePorts(this.nodesStore.nodes, this.getClutterWeights());
         this.nodesStore.nodes.forEach((n) => {
           n.updateTransitionsRouting();
-          n.updateConnectionsRouting();
+          n.validateConnections();
           this.trainrunSectionService.updateTrainrunSectionRouting(n, enforceUpdate);
         });
       } else {
@@ -1253,7 +1253,7 @@ export class NodeService implements OnDestroy {
     }
 
     node.updateTransitionsRouting();
-    node.updateConnectionsRouting();
+    node.validateConnections();
     this.trainrunSectionService.updateTrainrunSectionRouting(node, enforceUpdate);
   }
 
