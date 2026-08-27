@@ -1895,7 +1895,6 @@ export class TrainrunSectionsView {
     event: MouseEvent,
     trainrunSection: TrainrunSection,
     stopIndex: number,
-    position: Vec2D,
   ) {
     if (this.editorView.editorMode === EditorMode.MultiNodeMoving) {
       event.stopPropagation();
@@ -1909,7 +1908,6 @@ export class TrainrunSectionsView {
     }
     this.editorView.trainrunSectionPreviewLineView.startDragIntermediateStop(
       new DragIntermediateStopInfo(trainrunSection, stopIndex, domObj),
-      position,
     );
 
     this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(event);
@@ -2691,7 +2689,7 @@ export class TrainrunSectionsView {
       .on("mouseover", (event: MouseEvent) => this.onIntermediateStopMouseOver(event))
       .on("mouseout", (event: MouseEvent) => this.onIntermediateStopMouseOut(event))
       .on("mousedown", (event: MouseEvent, t: TrainrunSectionViewObject) =>
-        this.onIntermediateStopMouseDown(event, t.trainrunSection, stopIndex, position),
+        this.onIntermediateStopMouseDown(event, t.trainrunSection, stopIndex),
       )
       .on("mouseup", (event: MouseEvent, t: TrainrunSectionViewObject) =>
         this.onIntermediateStopMouseUp(event, t.trainrunSection),
