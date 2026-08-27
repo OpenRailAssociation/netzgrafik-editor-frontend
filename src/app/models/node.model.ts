@@ -551,7 +551,7 @@ export class Node {
     return this.ports.find((port) => port.getTrainrunSectionId() === trainrunSectionId);
   }
 
-  addTransitionAndComputeRouting(
+  addTransition(
     port1: Port,
     port2: Port,
     trainrun: Trainrun,

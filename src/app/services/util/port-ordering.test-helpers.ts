@@ -64,7 +64,7 @@ export function buildNetwork(def: {
       const node = nodesMap.get(path[i]);
       const port1 = node.getPort(portIds.get(path[i]).get(path[i - 1]));
       const port2 = node.getPort(portIds.get(path[i]).get(path[i + 1]));
-      node.addTransitionAndComputeRouting(port1, port2, trainrun, true);
+      node.addTransition(port1, port2, trainrun, true);
     }
   }
 

@@ -621,14 +621,14 @@ export class NodeService implements OnDestroy {
       return;
     }
     if (this.checkExistsNoCycleTrainrunAfterFreePortsConnecting(freePorts[0], freePorts[1])) {
-      node.addTransitionAndComputeRouting(freePorts[0], freePorts[1], trainrun, isNonStop);
+      node.addTransition(freePorts[0], freePorts[1], trainrun, isNonStop);
     } else {
       if (freePorts.length === 3) {
         if (this.checkExistsNoCycleTrainrunAfterFreePortsConnecting(freePorts[0], freePorts[2])) {
-          node.addTransitionAndComputeRouting(freePorts[0], freePorts[2], trainrun, isNonStop);
+          node.addTransition(freePorts[0], freePorts[2], trainrun, isNonStop);
         } else {
           if (this.checkExistsNoCycleTrainrunAfterFreePortsConnecting(freePorts[1], freePorts[2])) {
-            node.addTransitionAndComputeRouting(freePorts[1], freePorts[2], trainrun, isNonStop);
+            node.addTransition(freePorts[1], freePorts[2], trainrun, isNonStop);
           }
         }
       }
@@ -643,7 +643,7 @@ export class NodeService implements OnDestroy {
     const node = this.getNodeFromId(nodeId);
     const port1 = node.getPortOfTrainrunSection(trainrunSection1.getId());
     const port2 = node.getPortOfTrainrunSection(trainrunSection2.getId());
-    node.addTransitionAndComputeRouting(port1, port2, trainrunSection1.getTrainrun());
+    node.addTransition(port1, port2, trainrunSection1.getTrainrun());
   }
 
   addTransitionToNodes(

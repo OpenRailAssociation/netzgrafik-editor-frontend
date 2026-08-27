@@ -459,7 +459,7 @@ export class TrainrunService {
     const trans1 = node.getTransitionFromPortId(port1.getId());
     const trans2 = node.getTransitionFromPortId(port2.getId());
     if (trans1 === undefined && trans2 === undefined) {
-      const trans = node.addTransitionAndComputeRouting(port1, port2, trainrun1);
+      const trans = node.addTransition(port1, port2, trainrun1);
       if (60 + arrivalTimeAtNode === departTimeAtNode + frequencyOffset) {
         trans.setIsNonStopTransit(true);
       } else {

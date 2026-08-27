@@ -518,7 +518,7 @@ describe("TrainrunSection Model Test", () => {
 
     const port1 = node2.addPort(PortAlignment.Left, ts1);
     const port2 = node2.addPort(PortAlignment.Right, ts2);
-    node2.addTransitionAndComputeRouting(node2.getPort(port1), node2.getPort(port2), tr, true);
+    node2.addTransition(node2.getPort(port1), node2.getPort(port2), tr, true);
 
     const t1 = node1.getTransition(ts1.getId());
     const t2 = node1.getTransition(ts2.getId());
@@ -557,7 +557,7 @@ describe("TrainrunSection Model Test", () => {
 
     const port1 = node2.addPort(PortAlignment.Left, ts1);
     const port2 = node2.addPort(PortAlignment.Right, ts2);
-    node2.addTransitionAndComputeRouting(node2.getPort(port1), node2.getPort(port2), tr, true);
+    node2.addTransition(node2.getPort(port1), node2.getPort(port2), tr, true);
 
     const e1 = node1.isEndNode(ts1);
     const e2 = node1.isEndNode(ts2);
@@ -588,7 +588,7 @@ describe("TrainrunSection Model Test", () => {
 
     const port1 = node2.addPort(PortAlignment.Left, ts1);
     const port2 = node2.addPort(PortAlignment.Right, ts2);
-    node2.addTransitionAndComputeRouting(node2.getPort(port1), node2.getPort(port2), tr, true);
+    node2.addTransition(node2.getPort(port1), node2.getPort(port2), tr, true);
 
     const ts001 = node1.getExtremityTrainrunSection(tr.getId());
     const ts002 = node2.getExtremityTrainrunSection(tr.getId());
