@@ -18,6 +18,7 @@ import {LabelGroupService} from "../app/services/data/labelgroup.service";
 import {Direction, LabelRef} from "../app/data-structures/business.data.structures";
 import {FilterService} from "../app/services/ui/filter.service";
 import {NetzgrafikColoringService} from "../app/services/data/netzgrafikColoring.service";
+import { SimpleTrainrunSectionRouter } from "src/app/services/util/trainrunsection.routing";
 
 describe("NodeService Test", () => {
   let nodes: Node[] = null;
@@ -281,7 +282,9 @@ describe("NodeService Test", () => {
     expect(transition3.getDto().id).toBe(3);
     expect(transition4.getDto().id).toBe(4);
 
-    const transitionPath1 = transition1.getPath();
+    const port1 = nodeOL.getPort(transition1.getPortId1());
+    const port2 = nodeOL.getPort(transition1.getPortId1());
+    const transitionPath1 = SimpleTrainrunSectionRouter.routeTransition(nodeOL, port1, port2);
     expect(transitionPath1.length).toBe(4);
 
     const trainrun1 = transition1.getTrainrun();
