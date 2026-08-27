@@ -200,8 +200,13 @@ export class TrainrunSectionPreviewLineView {
       this.hideConnectionPreviewLine();
       this.displayTrainrunSectionPreviewLine();
       if (this.dragTransitionInfo.insideNode) {
-        const startPos = this.dragTransitionInfo.transition.getPath()[0];
-        const endPos = this.dragTransitionInfo.transition.getPath()[3];
+        const node = this.dragTransitionInfo.node;
+        const transition = this.dragTransitionInfo.transition;
+        const port1 = node.getPort(transition.getPortId1());
+        const port2 = node.getPort(transition.getPortId2());
+        const path = SimpleTrainrunSectionRouter.routeTransition(node, port1, port2);
+        const startPos = path[0];
+        const endPos = path[3];
         D3Utils.updateIntermediateStopOrTransitionPreviewLine(event, startPos, endPos);
       } else {
         const node1 =

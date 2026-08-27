@@ -104,7 +104,6 @@ export class Node {
 
     DataMigration.migrateNodeLabelIds(this);
 
-    this.updateTransitionsRouting();
     this.updateConnectionsRouting();
   }
 
@@ -320,12 +319,6 @@ export class Node {
       }
     });
     return currentMaxIndex;
-  }
-
-  computeTransitionRouting(transition: Transition) {
-    const port1 = this.getPort(transition.getPortId1());
-    const port2 = this.getPort(transition.getPortId2());
-    transition.setPath(SimpleTrainrunSectionRouter.routeTransition(this, port1, port2));
   }
 
   computeConnectionRouting(connection: Connection) {
@@ -573,7 +566,6 @@ export class Node {
         : this.trainrunCategoryHaltezeiten[trainrun.getTrainrunCategory().fachCategory].no_halt,
     );
     transition.setTrainrun(trainrun);
-    this.computeTransitionRouting(transition);
     this.transitions.push(transition);
     return transition;
   }
@@ -591,14 +583,7 @@ export class Node {
     orderingType: OrderingAlgorithm = OrderingAlgorithm.Alphabetical,
   ) {
     this.reorderAllPorts(orderingType);
-    this.updateTransitionsRouting();
     this.updateConnectionsRouting();
-  }
-
-  updateTransitionsRouting() {
-    this.transitions.forEach((transition) => {
-      this.computeTransitionRouting(transition);
-    });
   }
 
   updateConnectionsRouting() {

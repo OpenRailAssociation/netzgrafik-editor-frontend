@@ -202,7 +202,6 @@ export class NodeService implements OnDestroy {
     if (this.usesOptimizePorts()) {
       optimizePorts(this.nodesStore.nodes, this.getClutterWeights());
       this.nodesStore.nodes.forEach((node) => {
-        node.updateTransitionsRouting();
         node.updateConnectionsRouting();
         this.trainrunSectionService.updateTrainrunSectionRouting(node, false);
       });
@@ -1237,7 +1236,6 @@ export class NodeService implements OnDestroy {
       if (this.usesOptimizePorts()) {
         optimizePorts(this.nodesStore.nodes, this.getClutterWeights());
         this.nodesStore.nodes.forEach((n) => {
-          n.updateTransitionsRouting();
           n.updateConnectionsRouting();
           this.trainrunSectionService.updateTrainrunSectionRouting(n, enforceUpdate);
         });
@@ -1252,7 +1250,6 @@ export class NodeService implements OnDestroy {
       this.operation.emit(new NodeOperation(OperationType.update, node));
     }
 
-    node.updateTransitionsRouting();
     node.updateConnectionsRouting();
     this.trainrunSectionService.updateTrainrunSectionRouting(node, enforceUpdate);
   }
