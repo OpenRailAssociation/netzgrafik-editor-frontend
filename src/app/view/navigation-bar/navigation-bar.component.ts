@@ -150,7 +150,7 @@ interface BreadcrumbsDefinition {
 
 interface BreadcrumbDefinition {
   name: Observable<string>;
-  route: any[];
+  route: (string | number)[];
 }
 
 class Param {

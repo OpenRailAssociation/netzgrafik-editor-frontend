@@ -44,7 +44,7 @@ export class FormModel<T> {
     this.form.markAllAsTouched();
 
     if (this.form.valid) {
-      const object: {[key: string]: any} = {};
+      const object: {[key: string]: unknown} = {};
       this.keys.forEach((key) => (object[key] = this.controls[key].value));
 
       return object as T;

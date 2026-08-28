@@ -15,7 +15,7 @@ export class D3Utils {
   static isShortestDistanceRendererEnabled = false;
 
   private static doFastRenderingUpdate = false;
-  private static isOnFront: any;
+  private static isOnFront: SVGElement;
 
   static enableFastRenderingUpdate() {
     D3Utils.doFastRenderingUpdate = true;

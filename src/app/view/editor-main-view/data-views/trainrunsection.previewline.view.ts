@@ -22,7 +22,7 @@ export class DragIntermediateStopInfo {
   constructor(
     public trainrunSection: TrainrunSection,
     public intermediateStopIndex: number,
-    public domRef: any,
+    public domRef: SVGElement,
   ) {}
 }
 
@@ -33,7 +33,7 @@ export class DragTransitionInfo {
     public trainrunSection2: TrainrunSection,
     public transition: Transition,
     public insideNode: boolean,
-    public domRef: any,
+    public domRef: SVGElement,
   ) {}
 
   setInsideNode(flag: boolean) {

@@ -174,11 +174,11 @@ export class VersionControlService implements OnDestroy {
       .subscribe(() => this.reload());
   }
 
-  archiveVariantWithId(variantId: number): Observable<any> {
+  archiveVariantWithId(variantId: number): Observable<void> {
     return this.variantsBackendService.archiveVariant(variantId).pipe(takeUntil(this.destroyed));
   }
 
-  unarchiveVariantWithId(variantId: number): Observable<any> {
+  unarchiveVariantWithId(variantId: number): Observable<void> {
     return this.variantsBackendService.unarchiveVariant(variantId).pipe(takeUntil(this.destroyed));
   }
 

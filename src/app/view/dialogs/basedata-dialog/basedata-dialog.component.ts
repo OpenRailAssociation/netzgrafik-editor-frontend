@@ -38,7 +38,7 @@ export class BaseDataDialogComponent implements OnDestroy {
     "pos",
     "create",
   ];
-  dataSource: SbbTableDataSource<any>;
+  dataSource: SbbTableDataSource<Record<string, unknown>>;
   private destroyed = new Subject<void>();
 
   constructor(

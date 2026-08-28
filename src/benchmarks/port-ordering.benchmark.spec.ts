@@ -24,13 +24,14 @@ import {
 } from "../app/services/util/port-ordering.crossings";
 import {countAllSeparations} from "../app/services/util/port-ordering.separations";
 import {Node} from "../app/models/node.model";
+import {NetzgrafikDto} from "../app/data-structures/business.data.structures";
 
 import demoStandaloneGithub from "../app/sample-netzgrafik/netzgrafik_demo_standalone_github.json";
 import demoOlLz from "../app/sample-netzgrafik/Demo_OL_LZ.json";
 
-const DATASETS: {name: string; dto: unknown}[] = [
-  {name: "demo_standalone_github", dto: demoStandaloneGithub},
-  {name: "Demo_OL_LZ", dto: demoOlLz},
+const DATASETS: {name: string; dto: NetzgrafikDto}[] = [
+  {name: "demo_standalone_github", dto: demoStandaloneGithub as NetzgrafikDto},
+  {name: "Demo_OL_LZ", dto: demoOlLz as NetzgrafikDto},
 ];
 
 // Weight setups to compare, each steering the optimizer toward a different clutter trade-off:
@@ -157,9 +158,9 @@ const createServices = (): {dataService: DataService; nodeService: NodeService} 
 const loadAlphabetical = (
   dataService: DataService,
   nodeService: NodeService,
-  dto: unknown,
+  dto: NetzgrafikDto,
 ): Node[] => {
-  dataService.loadNetzgrafikDto(structuredClone(dto) as any);
+  dataService.loadNetzgrafikDto(structuredClone(dto));
   nodeService.initPortOrdering(OrderingAlgorithm.Alphabetical);
   return nodeService.nodesStore.nodes;
 };
@@ -171,7 +172,7 @@ describe("port-ordering benchmark", () => {
 
       // Alphabetical baseline clutter (same order for every setup, only the weighting differs):
       const baseline = measureClutter(loadAlphabetical(dataService, nodeService, dto));
-      const trainruns = (dto as {trainruns?: unknown[]}).trainruns?.length ?? 0;
+      const trainruns = dto.trainruns?.length ?? 0;
       const nodeCount = nodeService.nodesStore.nodes.length;
 
       const rows: BenchmarkRow[] = [];

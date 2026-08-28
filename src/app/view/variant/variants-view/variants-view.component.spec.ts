@@ -10,7 +10,7 @@ import {
   VariantControllerBackendService,
   VersionControllerBackendService,
 } from "../../../api/generated";
-import {of} from "rxjs";
+import {Observable, of} from "rxjs";
 import {ActivatedRoute} from "@angular/router";
 import {NavigationService} from "../../../services/ui/navigation.service";
 import {VersionControlService} from "../../../services/data/version-control.service";
@@ -22,8 +22,8 @@ describe("VariantsViewComponent", () => {
   let component: VariantsViewComponent;
   let fixture: ComponentFixture<VariantsViewComponent>;
 
-  let projectControllerBackendService: Partial<ProjectControllerBackendService>;
-  let variantControllerBackendService: Partial<VariantControllerBackendService>;
+  let projectControllerBackendService: {getProject: () => Observable<ProjectDto>};
+  let variantControllerBackendService: {createVariant: () => Observable<number>};
   let activatedRoute: Partial<ActivatedRoute>;
   let versionControlService: Partial<VersionControlService>;
   let versionControllerBackendService: Partial<VersionControllerBackendService>;
@@ -46,7 +46,7 @@ describe("VariantsViewComponent", () => {
           writeUsers: [],
           readUsers: [],
         };
-        return of(project as any);
+        return of(project);
       },
     };
     activatedRoute = {
@@ -56,7 +56,7 @@ describe("VariantsViewComponent", () => {
       }),
     };
     variantControllerBackendService = {
-      createVariant: () => of(10 as any),
+      createVariant: () => of(10),
     };
 
     await TestBed.configureTestingModule({

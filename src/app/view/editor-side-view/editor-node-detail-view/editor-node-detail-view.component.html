@@ -14,7 +14,7 @@
       <input
         sbbInput
         [ngModel]="nodeProperties.nodeBetriebspunktName"
-        (change)="onBetriebspunktNameChanged($event)"
+        (change)="onBetriebspunktNameChanged($event.target.value)"
       />
     </sbb-form-field>
     <sbb-form-field
@@ -25,7 +25,7 @@
       <input
         sbbInput
         [ngModel]="nodeProperties.nodeBetriebspunktFullName"
-        (change)="onFullNameChanged($event)"
+        (change)="onFullNameChanged($event.target.value)"
       />
     </sbb-form-field>
     <sbb-form-field

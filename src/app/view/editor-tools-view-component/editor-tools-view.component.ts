@@ -80,7 +80,7 @@ export class EditorToolsViewComponent {
     const file = fileInput.files[0];
     const reader = new FileReader();
     reader.onload = () => {
-      let netzgrafikDto: any;
+      let netzgrafikDto: NetzgrafikDto;
       try {
         netzgrafikDto = JSON.parse(reader.result.toString());
       } catch {
@@ -240,7 +240,10 @@ export class EditorToolsViewComponent {
     });
     const url = window.URL.createObjectURL(blob);
 
-    const nav = window.navigator as any;
+    const nav = window.navigator as Navigator & {
+      msSaveOrOpenBlob?: unknown;
+      msSaveBlob?: (blob: Blob, filename: string) => void;
+    };
     if (nav.msSaveOrOpenBlob) {
       nav.msSaveBlob(blob, filename);
     } else {

@@ -89,13 +89,13 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
     this.destroyed.complete();
   }
 
-  onBetriebspunktNameChanged(event: any) {
-    this.nodeService.changeNodeBetriebspunktName(this.nodeProperties.nodeId, event.target.value);
+  onBetriebspunktNameChanged(name: string) {
+    this.nodeService.changeNodeBetriebspunktName(this.nodeProperties.nodeId, name);
     this.uiInteractionService.updateNodeBaseData();
   }
 
-  onFullNameChanged(event: any) {
-    this.nodeService.changeNodeFullName(this.nodeProperties.nodeId, event.target.value);
+  onFullNameChanged(name: string) {
+    this.nodeService.changeNodeFullName(this.nodeProperties.nodeId, name);
   }
 
   onConnectionTimeChanged() {

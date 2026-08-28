@@ -197,12 +197,12 @@ export class HtmlEditorComponent implements OnInit, OnDestroy {
     );
   }
 
-  private update = (view: any) => {
+  private update = (view: Editor["view"]) => {
     const {state} = view;
     this.textBasedActiveColor = this.getColorActive(state);
   };
 
-  private getColorActive(state: any): string[] {
+  private getColorActive(state: Editor["view"]["state"]): string[] {
     const {schema} = state;
     const type = schema.marks.text_color;
     if (!type) {
