@@ -50,7 +50,7 @@ export default defineConfig([
           allow: ["private-constructors"],
         },
       ],
-      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-unused-expressions": [
         "error",
         {
