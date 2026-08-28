@@ -119,7 +119,7 @@ export class TrainrunsectionHelper {
     rightSection: DirectedTrainrunSectionProxy;
   } {
     const direction = this.getDirection(trainrunSection, orderedNodes);
-    const proxies = this.getDirectedTrainrunSectionProxiesGroup(
+    const proxies = this.trainrunSectionService.getDirectedTrainrunSectionProxiesGroup(
       trainrunSection,
       direction,
       orderedNodes.length === 0,
@@ -163,7 +163,7 @@ export class TrainrunsectionHelper {
     orderedNodes: Node[],
   ): LeftAndRightLockStructure {
     const direction = this.getDirection(trainrunSection, orderedNodes);
-    const proxies = this.getDirectedTrainrunSectionProxiesGroup(
+    const proxies = this.trainrunSectionService.getDirectedTrainrunSectionProxiesGroup(
       trainrunSection,
       direction,
       orderedNodes.length === 0,
@@ -240,7 +240,7 @@ export class TrainrunsectionHelper {
     orderedNodes: Node[],
   ): LeftAndRightTimeStructure {
     const direction = this.getDirection(trainrunSection, orderedNodes);
-    const proxies = this.getDirectedTrainrunSectionProxiesGroup(
+    const proxies = this.trainrunSectionService.getDirectedTrainrunSectionProxiesGroup(
       trainrunSection,
       direction,
       orderedNodes.length === 0,
@@ -248,8 +248,8 @@ export class TrainrunsectionHelper {
     const first = proxies[0];
     const last = proxies.at(-1)!;
 
-    const travelTime = this.getTravelTimeForProxiesGroup(proxies);
-    const reverseTravelTime = this.getReverseTravelTimeForProxiesGroup(proxies);
+    const travelTime = TrainrunsectionHelper.getTravelTimeForProxiesGroup(proxies);
+    const reverseTravelTime = TrainrunsectionHelper.getReverseTravelTimeForProxiesGroup(proxies);
     const totalDuration = last.getHeadArrivalConsecutive() - first.getTailDepartureConsecutive();
     const totalReverseDuration =
       first.getTailArrivalConsecutive() - last.getHeadDepartureConsecutive();
@@ -269,7 +269,7 @@ export class TrainrunsectionHelper {
 
   getLeftAndRightSymmetries(trainrunSection: TrainrunSection, orderedNodes: Node[]) {
     const direction = this.getDirection(trainrunSection, orderedNodes);
-    const proxies = this.getDirectedTrainrunSectionProxiesGroup(
+    const proxies = this.trainrunSectionService.getDirectedTrainrunSectionProxiesGroup(
       trainrunSection,
       direction,
       orderedNodes.length === 0,
@@ -357,6 +357,7 @@ export class TrainrunsectionHelper {
       .filter((proxy) => !proxy.getTailNode().isNonStop(proxy.trainrunSection));
   }
 
+  // Note: this includes stop time at intermediate collapsed nodes
   static getTravelTimeForSectionGroup(trainrunSections: TrainrunSection[]): number {
     if (trainrunSections.length === 1) {
       return trainrunSections[0].getTravelTime();
@@ -379,6 +380,7 @@ export class TrainrunsectionHelper {
     }, 0);
   }
 
+  // Note: this includes stop time at intermediate collapsed nodes
   static getBackwardTravelTimeForSectionGroup(trainrunSections: TrainrunSection[]): number {
     if (trainrunSections.length === 1) {
       return trainrunSections[0].getBackwardTravelTime();
@@ -401,7 +403,8 @@ export class TrainrunsectionHelper {
     }, 0);
   }
 
-  private getTravelTimeForProxiesGroup(
+  // Note: this includes stop time at intermediate collapsed nodes
+  static getTravelTimeForProxiesGroup(
     proxies: DirectedTrainrunSectionProxy[],
     includeStopTime: boolean = false,
   ): number {
@@ -423,7 +426,8 @@ export class TrainrunsectionHelper {
     }, 0);
   }
 
-  private getReverseTravelTimeForProxiesGroup(
+  // Note: this includes stop time at intermediate collapsed nodes
+  static getReverseTravelTimeForProxiesGroup(
     proxies: DirectedTrainrunSectionProxy[],
     includeStopTime: boolean = false,
   ): number {
@@ -461,17 +465,5 @@ export class TrainrunsectionHelper {
           : "sourceToTarget";
     }
     return direction;
-  }
-
-  private getDirectedTrainrunSectionProxiesGroup(
-    trainrunSection: TrainrunSection,
-    direction: "sourceToTarget" | "targetToSource",
-    allowFirstAndLastToBeNonStop: boolean,
-  ) {
-    const group = this.trainrunSectionService.getTrainrunSectionGroupForSection(
-      trainrunSection,
-      allowFirstAndLastToBeNonStop,
-    );
-    return group.map((section) => new DirectedTrainrunSectionProxy(section, direction));
   }
 }
