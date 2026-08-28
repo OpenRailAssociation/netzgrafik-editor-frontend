@@ -69,7 +69,7 @@
     "@angular/compiler-cli": "^22.1.4",
     "@angular/language-service": "^22.1.4",
     "@commitlint/types": "^21.2.0",
-    "@eslint/js": "^9.39.4",
+    "@eslint/js": "^10.0.1",
     "@openapitools/openapi-generator-cli": "^2.40.1",
     "@types/d3": "^7.4.3",
     "@types/karma-jasmine": "^4.0.5",
