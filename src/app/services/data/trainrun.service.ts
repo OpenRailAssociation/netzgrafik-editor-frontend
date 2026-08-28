@@ -372,10 +372,7 @@ export class TrainrunService {
       if (trans) {
         trans.setTrainrun(newTrainrun);
       }
-      this.trainrunSectionService.updateTrainrunReference(
-        pair.trainrunSection,
-        newTrainrun,
-      );
+      this.trainrunSectionService.updateTrainrunReference(pair.trainrunSection, newTrainrun);
     }
 
     this.nodeService.checkAndFixMissingTransitions(
@@ -433,10 +430,7 @@ export class TrainrunService {
       if (trans) {
         trans.setTrainrun(trainrun1);
       }
-      this.trainrunSectionService.updateTrainrunReference(
-        pair.trainrunSection,
-        trainrun1,
-      );
+      this.trainrunSectionService.updateTrainrunReference(pair.trainrunSection, trainrun1);
       pair.trainrunSection.shiftAllTimes(
         frequencyOffset,
         node.getId() === port2.getTrainrunSection().getSourceNodeId(),
