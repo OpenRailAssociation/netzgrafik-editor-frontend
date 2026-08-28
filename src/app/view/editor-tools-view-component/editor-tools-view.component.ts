@@ -585,9 +585,6 @@ export class EditorToolsViewComponent {
       .getTrainruns()
       .filter((trainrun) => this.filterService.filterTrainrun(trainrun))
       .forEach((trainrun) => {
-        let startBetriebspunktName = "";
-        let endBetriebspunktName = "";
-
         // Retrieve start -> end with:
         // start {startNode, startTrainrunSection}
         // end {iterator.current.node, iterator.current.trainrunSection}
@@ -598,8 +595,8 @@ export class EditorToolsViewComponent {
           iterator.next();
         }
 
-        startBetriebspunktName = startNode.getBetriebspunktName();
-        endBetriebspunktName = iterator.current().node.getBetriebspunktName();
+        const startBetriebspunktName = startNode.getBetriebspunktName();
+        const endBetriebspunktName = iterator.current().node.getBetriebspunktName();
         const departureTimeAtStart =
           startTrainrunSection.getSourceNodeId() === startNode.getId()
             ? startTrainrunSection.getSourceDepartureConsecutiveTime()

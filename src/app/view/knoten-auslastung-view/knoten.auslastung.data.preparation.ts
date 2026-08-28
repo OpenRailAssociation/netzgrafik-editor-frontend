@@ -109,7 +109,7 @@ export class KnotenAuslastungDataPreparation {
     trainrunSection2: TrainrunSection,
     node: Node,
   ): number {
-    let stopTime = 0;
+    let stopTime: number;
     if (trainrunSection1.getSourceNodeId() === node.getId()) {
       if (trainrunSection2.getSourceNodeId() === node.getId()) {
         stopTime =

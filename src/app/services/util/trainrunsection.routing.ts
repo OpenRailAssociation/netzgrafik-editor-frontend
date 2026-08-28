@@ -315,15 +315,8 @@ export class SimpleTrainrunSectionRouter {
     const rDeltaS: Vec2D = Vec2D.rot90(deltaS);
 
     let deltaSt: Vec2D = Vec2D.normalize(Vec2D.sub(s1, t1));
-    let namePosOffsetDirection = Vec2D.scale(
-      Vec2D.getSouthVec2D(),
-      -TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_TOP,
-    );
-
-    let nameNumberOfStopsOffsetDirection = Vec2D.scale(
-      Vec2D.getSouthVec2D(),
-      -TRAINRUN_SECTION_LINE_TEXT_HEIGHT / 2 + TRAINRUN_SECTION_TIME_TOP,
-    );
+    let namePosOffsetDirection: Vec2D;
+    let nameNumberOfStopsOffsetDirection: Vec2D;
 
     const invertTrafficSide = SimpleTrainrunSectionRouter.trafficSideType === "leftHand" ? 1 : -1;
 

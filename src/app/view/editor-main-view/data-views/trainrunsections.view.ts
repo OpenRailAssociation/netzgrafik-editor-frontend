@@ -118,7 +118,7 @@ export class TrainrunSectionsView {
     if (Vec2D.equal(path[3], position)) {
       delta = Vec2D.sub(path[2], path[3]);
     }
-    let rotate = 0;
+    let rotate: number;
     if (delta.getX() !== 0.0) {
       if (delta.getX() < 0.0) {
         rotate = -Math.PI / 2;
@@ -714,15 +714,13 @@ export class TrainrunSectionsView {
       nextNode,
       editorView,
     );
-    let virtualTravelTime: number = info.virtualTravelTime;
-    if (virtualTravelTime === 0) {
+    if (info.virtualTravelTime === 0) {
       info = TrainrunSectionsView.calcInternalVirtualSectionTimeForHiddenJunctions(
         cumulativeTravelTimeData.reverse(),
         startNode,
         nextNode,
         editorView,
       );
-      virtualTravelTime = info.virtualTravelTime;
     }
     if (!info.isBreak) {
       return TrainrunSectionsView.filterVirtualTravelTime(startNode, info);

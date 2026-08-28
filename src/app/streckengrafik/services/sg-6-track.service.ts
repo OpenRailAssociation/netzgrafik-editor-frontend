@@ -138,10 +138,9 @@ export class Sg6TrackService implements OnDestroy {
   ): [number, number, number][] {
     // unroll the data to segments
     const tracks: [number, number, number][] = [];
-    let nbrTracks: number = undefined;
     let from = 0.0;
     for (let distCellIdx = 0; distCellIdx < nDistanceCells; distCellIdx++) {
-      nbrTracks = tracksMatrix[distCellIdx];
+      const nbrTracks = tracksMatrix[distCellIdx];
       const to = (distCellIdx + 1.0) / nDistanceCells;
       tracks.push([from, Math.min(to, 1.0), nbrTracks]);
       from = to;

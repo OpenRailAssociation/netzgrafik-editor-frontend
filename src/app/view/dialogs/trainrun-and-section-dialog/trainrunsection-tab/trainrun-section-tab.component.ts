@@ -351,7 +351,7 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   getTrafficSideClass(className: string): string {
     const trafficSide = this.dataService.getTrafficSide();
     if (trafficSide === "rightHand") {
-      return (className += "-right");
+      return className + "-right";
     }
     return className;
   }

@@ -369,7 +369,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     startBackwardNode: Node;
     visitedTrainrunSections: TrainrunSection[];
   } {
-    let visitedTrainrunSections: TrainrunSection[] = [];
+    let visitedTrainrunSections: TrainrunSection[];
     const trainrun = trainrunSection.getTrainrun();
 
     const bothEndNodes = this.trainrunService.getBothEndNodesFromTrainrunPart(trainrunSection);

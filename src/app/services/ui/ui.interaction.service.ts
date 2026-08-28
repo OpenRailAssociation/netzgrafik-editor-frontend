@@ -247,7 +247,7 @@ export class UiInteractionService implements OnDestroy {
     activeBackgroundColor: string,
     activeDarkBackgroundColor: string,
   ) {
-    let activeTheme = this.activeTheme;
+    let activeTheme: ThemeBase;
     if (themeRegistration === ThemeRegistration.ThemeDefaultUxDark) {
       activeTheme = new ThemeDefaultUxDark(activeDarkBackgroundColor, activeDarkBackgroundColor);
     } else if (themeRegistration === ThemeRegistration.ThemeDefaultUx) {

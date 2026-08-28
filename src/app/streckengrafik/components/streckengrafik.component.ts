@@ -261,7 +261,7 @@ export class StreckengrafikComponent implements OnInit, OnDestroy, AfterViewInit
     if (this.viewBoxChangeInfo.width === 0 && this.viewBoxChangeInfo.height === 0) {
       return;
     }
-    let viewBox = "";
+    let viewBox: string;
     if (this.pathAlignmentHorizontal) {
       viewBox =
         "0 " +
