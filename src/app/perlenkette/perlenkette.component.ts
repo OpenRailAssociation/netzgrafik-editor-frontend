@@ -21,7 +21,6 @@ import {PerlenketteNode} from "./model/perlenketteNode";
 import {EditorMode} from "../view/editor-menu/editor-mode";
 import {NodeService} from "../services/data/node.service";
 import {takeUntil} from "rxjs/operators";
-import {PerlenketteConnection} from "./model/perlenketteConnection";
 import {VersionControlService} from "../services/data/version-control.service";
 import {TrainrunSectionService} from "../services/data/trainrunsection.service";
 import {TrainrunService} from "../services/data/trainrun.service";
@@ -39,7 +38,7 @@ enum ShowTrainrunEditTab {
 })
 export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   perlenketteTrainrun: PerlenketteTrainrun;
-  @ViewChild("svgPerlenkette") svgPerlenkette: ElementRef<SVGSVGElement>;
+  @ViewChild("svgPerlenkette") svgPerlenkette: ElementRef<HTMLDivElement>;
   @ViewChild("drawingContainer") drawingContainer: ElementRef;
   @Input() sidebarElementHeight: number;
 
@@ -54,13 +53,14 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   private perlenketteRenderingElementsHeight: [PerlenketteItem, number][];
 
   private trainrunEditorVisible = false;
-  private selectedPerlenketteConnection: PerlenketteConnection = undefined;
 
   private showAllLockStates = false;
 
+  private lastMouseClientY: number | undefined = undefined;
+
   public showTrainrunEditTab: ShowTrainrunEditTab = ShowTrainrunEditTab.sbb_trainrun_tab;
 
-  sbbToogleValue = ShowTrainrunEditTab.sbb_trainrun_tab;
+  sbbToggleValue = ShowTrainrunEditTab.sbb_trainrun_tab;
 
   constructor(
     private readonly loadPerlenketteService: LoadPerlenketteService,
@@ -72,8 +72,6 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     public trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
   ) {
-    this.selectedPerlenketteConnection = undefined;
-
     this.loadPerlenketteService
       .getPerlenketteData()
       .pipe(takeUntil(this.destroyed$))
@@ -109,15 +107,15 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   }
 
   onSbbToggleChange(event: SbbRadioChange) {
-    this.sbbToogleValue = event.value;
+    this.sbbToggleValue = event.value;
   }
 
-  isSbbToogleRoundtrip(): boolean {
-    return this.sbbToogleValue === ShowTrainrunEditTab.sbb_trainrun_roundtrip_tab;
+  isSbbToggleRoundtrip(): boolean {
+    return this.sbbToggleValue === ShowTrainrunEditTab.sbb_trainrun_roundtrip_tab;
   }
 
-  isSbbToogleGeneral(): boolean {
-    return this.sbbToogleValue === ShowTrainrunEditTab.sbb_trainrun_tab;
+  isSbbToggleGeneral(): boolean {
+    return this.sbbToggleValue === ShowTrainrunEditTab.sbb_trainrun_tab;
   }
 
   showTrainrunEditor(): boolean {
@@ -159,7 +157,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
         pItemSection.getPerlenketteSection().trainrunSectionId,
       );
     }
-    // toogle
+    // toggle
     if (this.showTrainrunEditTab === ShowTrainrunEditTab.sbb_trainrun_tab) {
       this.showTrainrunEditTab = ShowTrainrunEditTab.sbb_trainrun_roundtrip_tab;
     } else {
@@ -211,8 +209,18 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     this.destroyed$.complete();
   }
 
-  getPerlenketteViewBox(): string {
-    return "0 " + this.svgPoint.getY() + " " + this.contentWidth + " " + this.contentHeight;
+  getViewportHeight(): number {
+    return this.contentHeight * 1.25;
+  }
+
+  getDrawingContainerTransform(): string {
+    // Scrolling used to be done by moving the viewBox of a <svg> wrapping the content inside a
+    // <foreignObject>. Safari (WebKit) does not apply that viewBox transformation reliably to
+    // (positioned) html content inside a <foreignObject> - parts of the perlenkette stayed in
+    // place while the rest scrolled. Therefore the content is now plain html, scrolled with a
+    // css transform. The additional contentHeight * 0.125 keeps the former vertical centering
+    // (viewport height is 1.25 * contentHeight, viewBox height was contentHeight).
+    return "translateY(" + (this.contentHeight * 0.125 - this.svgPoint.getY()) + "px)";
   }
 
   showTrainrunName(): boolean {
@@ -250,9 +258,16 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
 
   changeSvgMousePosition(event: MouseEvent) {
     if (event.buttons > 0) {
-      let currentY = this.svgPoint.getY();
-      currentY -= event.movementY;
-      this.updateSvgPointY(currentY);
+      // MouseEvent.movementY is not reported in the same unit by all browsers (physical,
+      // logical or css pixel). WebKit reports screen pixels, so dragging scrolls twice as
+      // fast on a retina display. Calculating the delta from clientY gives css pixels
+      // everywhere - this is also what the specification recommends.
+      const movementY =
+        this.lastMouseClientY === undefined ? 0 : event.clientY - this.lastMouseClientY;
+      this.lastMouseClientY = event.clientY;
+      this.updateSvgPointY(this.svgPoint.getY() - movementY);
+    } else {
+      this.lastMouseClientY = undefined;
     }
     event.stopPropagation();
   }

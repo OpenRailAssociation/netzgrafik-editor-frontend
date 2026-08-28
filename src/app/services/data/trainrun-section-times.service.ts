@@ -119,7 +119,6 @@ export class TrainrunSectionTimesService {
     travelTimeLock: false,
   };
   private showWarningTwoLocks = false;
-  private onLockButtonClicked = false;
 
   private symmetryStructure: LeftAndRightSymmetryStructure = {
     leftSymmetry: true,
@@ -526,19 +525,16 @@ export class TrainrunSectionTimesService {
   onButtonTravelTimeLock() {
     this.lockStructure.travelTimeLock = !this.lockStructure.travelTimeLock;
     this.setHighlightTravelTimeElement(false);
-    this.onLockButtonClicked = true;
     this.updateTrainrunSectionTimeLock();
   }
 
   onButtonNodeLeftLock() {
     this.lockStructure.leftLock = !this.lockStructure.leftLock;
-    this.onLockButtonClicked = true;
     this.updateTrainrunSectionTimeLock();
   }
 
   onButtonNodeRightLock() {
     this.lockStructure.rightLock = !this.lockStructure.rightLock;
-    this.onLockButtonClicked = true;
     this.updateTrainrunSectionTimeLock();
   }
 

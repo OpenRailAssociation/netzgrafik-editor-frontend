@@ -1,4 +1,4 @@
-FROM node:24.15-alpine as build
+FROM node:26.7-alpine as build
 
 WORKDIR /build
 COPY *.json *.js ./
@@ -8,7 +8,7 @@ RUN npm run build
 
 FROM ghcr.io/nginxinc/nginx-unprivileged:1.27.4-alpine-slim
 
-ADD --chmod=755 https://github.com/kyubisation/angular-server-side-configuration/releases/download/v17.0.2/ngssc_64bit /usr/sbin/ngssc
+ADD --chmod=755 https://github.com/kyubisation/angular-server-side-configuration/releases/download/v19.0.1/ngssc_64bit /usr/sbin/ngssc
 
 # Add ngssc script
 ADD --chmod=755 docker/99-ngssc.sh /docker-entrypoint.d/

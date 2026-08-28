@@ -367,16 +367,13 @@ export class TrainrunService {
 
     this.trainrunSectionService.updateTrainrunReference(trainrunSection2, newTrainrun);
     const iterator = this.getIterator(node, trainrunSection2);
-    while (iterator.hasNext()) {
-      iterator.next();
-      const trans = iterator
-        .current()
-        .node.getTransition(iterator.current().trainrunSection.getId());
+    for (const pair of iterator) {
+      const trans = pair.node.getTransition(pair.trainrunSection.getId());
       if (trans) {
         trans.setTrainrun(newTrainrun);
       }
       this.trainrunSectionService.updateTrainrunReference(
-        iterator.current().trainrunSection,
+        pair.trainrunSection,
         newTrainrun,
       );
     }
@@ -431,24 +428,19 @@ export class TrainrunService {
     const trainrunSection = port2.getTrainrunSection();
     this.trainrunSectionService.updateTrainrunReference(trainrunSection, trainrun1);
     const iterator = this.getIterator(node, trainrunSection);
-    while (iterator.hasNext()) {
-      iterator.next();
-      const trans = iterator
-        .current()
-        .node.getTransition(iterator.current().trainrunSection.getId());
+    for (const pair of iterator) {
+      const trans = pair.node.getTransition(pair.trainrunSection.getId());
       if (trans) {
         trans.setTrainrun(trainrun1);
       }
       this.trainrunSectionService.updateTrainrunReference(
-        iterator.current().trainrunSection,
+        pair.trainrunSection,
         trainrun1,
       );
-      iterator
-        .current()
-        .trainrunSection.shiftAllTimes(
-          frequencyOffset,
-          node.getId() === port2.getTrainrunSection().getSourceNodeId(),
-        );
+      pair.trainrunSection.shiftAllTimes(
+        frequencyOffset,
+        node.getId() === port2.getTrainrunSection().getSourceNodeId(),
+      );
     }
 
     // Enforce updating all transitions. If the train run has "holes," we must also update
@@ -688,9 +680,8 @@ export class TrainrunService {
   getNodePathToEnd(node: Node, trainrunSection: TrainrunSection): Node[] {
     const path: Node[] = [node];
     const iterator = this.getIterator(node, trainrunSection);
-    while (iterator.hasNext()) {
-      iterator.next();
-      path.push(iterator.current().node);
+    for (const pair of iterator) {
+      path.push(pair.node);
     }
     return path;
   }

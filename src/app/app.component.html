@@ -25,17 +25,13 @@
     <sbb-icon svgIcon="user-small" *sbbIcon></sbb-icon>
   </sbb-usermenu>
   <sbb-menu #menu="sbbMenu">
-    <sbb-select
-      (selectionChange)="language = $event.value"
-      [value]="currentLanguage"
-      class="language-selector language-selector-menu"
+    <sbb-language-selector
+      [currentLanguage]="currentLanguage"
+      (languageChange)="language = $event"
+      variantClass="language-selector-menu"
       (click)="$event.stopPropagation()"
       (keydown)="$event.stopPropagation()"
-    >
-      <sbb-option value="en">🇬🇧 English</sbb-option>
-      <sbb-option value="de">🇩🇪 Deutsch</sbb-option>
-      <sbb-option value="fr">🇫🇷 Français</sbb-option>
-    </sbb-select>
+    ></sbb-language-selector>
     <hr />
     <button sbb-menu-item (click)="logout()">
       <sbb-icon svgIcon="exit-small" class="sbb-icon-fit"></sbb-icon>
@@ -43,6 +39,12 @@
     </button>
   </sbb-menu>
 </sbb-header-lean>
+<sbb-language-selector
+  *ngIf="disableBackend"
+  [currentLanguage]="currentLanguage"
+  (languageChange)="language = $event"
+  variantClass="language-selector-standalone noprint"
+></sbb-language-selector>
 <ng-container *ngIf="!disableBackend">
   <sbb-navigation-bar class="noprint"></sbb-navigation-bar>
 </ng-container>

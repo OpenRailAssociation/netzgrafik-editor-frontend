@@ -33,7 +33,6 @@ import {NoteService} from "../../services/data/note.service";
 import {NoteDialogParameter, NoteDialogType} from "../dialogs/note-dialog/note-dialog.component";
 import {AnalyticsService} from "../../services/analytics/analytics.service";
 import {Note} from "../../models/note.model";
-import {LogService} from "../../logger/log.service";
 import {DataService} from "../../services/data/data.service";
 import {UndoService} from "../../services/data/undo.service";
 import {CopyService} from "../../services/data/copy.service";
@@ -76,13 +75,12 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
     private analyticsService: AnalyticsService,
     private dataService: DataService,
     private undoService: UndoService,
-    private copyService: CopyService,
-    private logService: LogService,
-    private viewportCullService: ViewportCullService,
-    private levelOfDetailService: LevelOfDetailService,
+    copyService: CopyService,
+    viewportCullService: ViewportCullService,
+    levelOfDetailService: LevelOfDetailService,
     private versionControlService: VersionControlService,
-    private positionTransformationService: PositionTransformationService,
-    private autoLayoutService: AutoLayoutService,
+    positionTransformationService: PositionTransformationService,
+    autoLayoutService: AutoLayoutService,
   ) {
     this.editorView = new EditorView(
       this,
@@ -94,7 +92,6 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       uiInteractionService,
       undoService,
       copyService,
-      logService,
       viewportCullService,
       levelOfDetailService,
       versionControlService,
@@ -118,7 +115,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       .subscribe((center: Vec2D) => this.moveNetzgrafikEditorViewFocalPoint(center));
   }
 
-  @HostListener("window:resize", ["$event"])
+  @HostListener("window:resize", [])
   getScreenSize() {
     this.editorView.svgMouseController.resize(window.innerWidth, window.innerHeight);
     StreckengrafikDrawingContext.updateDrawingContainerData();

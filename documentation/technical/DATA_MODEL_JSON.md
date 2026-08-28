@@ -179,7 +179,7 @@ More details about ports
 - **id**: Technical identifier (key), must be unique : numeric
 - **trainrunSectionId**: Reference to the trainrunsection assigned to the port : numeric
 - **positionIndex**: Position index within the port alignment sorting: numeric
-- **positionAlignment**: [Position aligment](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL.md#ports-alignment) - reference [0, 1, 2, 3] : numeric
+- **positionAlignment**: [Position alignment](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/technical/DATA_MODEL.md#ports-alignment) - reference [0, 1, 2, 3] : numeric
 
 </details>
 
@@ -538,11 +538,11 @@ The defined line pattern which can be used are
 
 ```
 LinePatternRefs {
-  "15", // four lines ; unique indentifier
-  "20", // three lines  ; unique indentifier
-  "30", // ==== ; unique indentifier
-  "60", // ----- ; unique indentifier
-  "120", // -.-.-.  ; unique indentifier
+  "15", // four lines ; unique identifier
+  "20", // three lines  ; unique identifier
+  "30", // ==== ; unique identifier
+  "60", // ----- ; unique identifier
+  "120", // -.-.-.  ; unique identifier
 }
 ```
 
@@ -622,9 +622,9 @@ The defined line pattern which can be used are
 
 ```
 LinePatternRefs {
-  TimeCat7_24 = "7/24", // . . . ; unique indentifier
-  TimeCatHVZ = "HVZ", // . : . : ; unique indentifier
-  TimeZeitweise = "ZEITWEISE", // : - : - ; unique indentifier
+  TimeCat7_24 = "7/24", // . . . ; unique identifier
+  TimeCatHVZ = "HVZ", // . : . : ; unique identifier
+  TimeZeitweise = "ZEITWEISE", // : - : - ; unique identifier
 }
 ```
 

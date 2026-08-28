@@ -325,11 +325,9 @@ export class TransitionsView {
     const port2 = node.getPort(transition.getPortId2());
     const trainrunSection1 = port1.getTrainrunSection();
     const trainrunSection2 = port2.getTrainrunSection();
-    const position = Vec2D.scale(Vec2D.add(transition.getPath()[1], transition.getPath()[2]), 0.5);
 
     this.editorView.trainrunSectionPreviewLineView.startDragTransition(
       new DragTransitionInfo(node, trainrunSection1, trainrunSection2, transition, true, domObj),
-      position,
     );
     this.editorView.trainrunSectionPreviewLineView.updatePreviewLine(event);
   }

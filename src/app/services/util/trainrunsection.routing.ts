@@ -448,7 +448,7 @@ export class SimpleTrainrunSectionRouter {
     let travelTimePosition = trainrunSectionTravelTimePos;
     let backwardTravelTimePosition = trainrunSectionBackwardTravelTimePos;
 
-    // Trainrun section name element is always positoned above the section line.
+    // Trainrun section name element is always positioned above the section line.
     // If both travel time and backward travel time are equal, only one of them is displayed.
     // This makes sure that, in this case, the travel time is displayed next to the trainrun section name.
     const section = sourcePort.getTrainrunSection();

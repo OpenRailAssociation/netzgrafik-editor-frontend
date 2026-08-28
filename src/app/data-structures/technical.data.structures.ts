@@ -44,7 +44,7 @@ export interface TrainrunSectionTextPositions {
 }
 
 /**
- * Represents a cachable object, which gets recalculated after each position update of the
+ * Represents a cacheable object, which gets recalculated after each position update of the
  * trainrunsection start and end points ( Nodes ). This recalculation is quite expensive therefore
  * during drawing/update the rendering system just reused the information from this
  * interface/object.
@@ -69,12 +69,13 @@ export enum PortAlignment {
  */
 export enum OrderingAlgorithm {
   Alphabetical, // Order by train category name (default)
-  CrossingAware, // Minimize crossings using global propagation
+  ClutterAware, // Minimize visual clutter, keeping parallel trainruns bundled within nodes
+  ClutterAwarePushCrossings, // Minimize visual clutter, pushing crossings into the nodes
 }
 
 /**
  * Represents a general warning object widely used in different objects. E.g. TrainrunSection times.
- * The WarningDto is used to build a storeable warning object with human description.
+ * The WarningDto is used to build a storable warning object with human description.
  */
 export interface WarningDto {
   title: string;
@@ -82,8 +83,8 @@ export interface WarningDto {
 }
 
 /**
- * Represents a special object which transforms numberic time data (number) into string and
- * formats the display. It can be used for user specific formating and changing rendering style
+ * Represents a special object which transforms numeric time data (number) into string and
+ * formats the display. It can be used for user specific formatting and changing rendering style
  * through html load. The TimeFormatter is optional in TimeLockDto.
  */
 export interface TimeFormatter {

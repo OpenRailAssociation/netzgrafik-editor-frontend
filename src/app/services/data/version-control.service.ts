@@ -36,7 +36,7 @@ export class VersionControlService implements OnDestroy {
     private readonly dataService: DataService,
     private readonly autoSaveService: AutoSaveService,
     private readonly undoService: UndoService,
-    private readonly logService: LogService,
+    logService: LogService,
   ) {
     if (!environment.disableBackend) {
       autoSaveService.autosaveTrigger$

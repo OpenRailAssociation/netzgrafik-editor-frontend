@@ -1,7 +1,6 @@
 import {EventEmitter, Injectable} from "@angular/core";
 import {BehaviorSubject} from "rxjs";
 import {Note} from "../../models/note.model";
-import {LogService} from "../../logger/log.service";
 import {FreeFloatingTextDto, LabelRef} from "../../data-structures/business.data.structures";
 import {Vec2D} from "../../utils/vec2D";
 import {MathUtils} from "../../utils/math";
@@ -20,7 +19,6 @@ export class NoteService {
   readonly operation = new EventEmitter<Operation>();
 
   constructor(
-    private logService: LogService,
     private labelService: LabelService,
     private filterService: FilterService,
   ) {}

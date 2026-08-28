@@ -315,16 +315,15 @@ const buildSectionEdgesFromIterator = (
   let nonStopV1TsId = -1;
   let nonStopTsIds: number[] = [];
   let previousTsId = -1;
-  while (tsIterator.hasNext()) {
-    tsIterator.next();
-    const ts = tsIterator.current().trainrunSection;
+  for (const pair of tsIterator) {
+    const ts = pair.trainrunSection;
     let tsId = ts.getId();
     const trainrunId = reverseIterator
       ? // Minus 1 so we don't conflate 0 with -0.
         -ts.getTrainrunId() - 1
       : ts.getTrainrunId();
 
-    const reverseSection = tsIterator.current().node.getId() !== ts.getTargetNodeId();
+    const reverseSection = pair.node.getId() !== ts.getTargetNodeId();
 
     const v1Time = reverseSection
       ? ts.getTargetDepartureDto().consecutiveTime

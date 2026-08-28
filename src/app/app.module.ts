@@ -31,6 +31,7 @@ import {SbbTooltipModule} from "@sbb-esta/angular/tooltip";
 import {SbbUsermenuModule} from "@sbb-esta/angular/usermenu";
 import {AppRoutingModule} from "./app-routing.module";
 import {AppComponent} from "./app.component";
+import {LanguageSelectorComponent} from "./view/language-selector/language-selector.component";
 import {EditorMainViewComponent} from "./view/editor-main-view/editor-main-view.component";
 import {ColumnLayoutComponent} from "./view/column-layout/column-layout.component";
 import {NetzgrafikApplicationComponent} from "./netzgrafik-application/netzgrafik-application.component";
@@ -113,6 +114,7 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
 @NgModule({
   declarations: [
     AppComponent,
+    LanguageSelectorComponent,
     EditorMainViewComponent,
     ColumnLayoutComponent,
     NetzgrafikApplicationComponent,
@@ -192,6 +194,8 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     BrowserModule,
     FormsModule,
     ReactiveFormsModule,
+    // TODO: migrate away from BrowserAnimationsModule
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     BrowserAnimationsModule,
     DragDropModule,
     AppRoutingModule,

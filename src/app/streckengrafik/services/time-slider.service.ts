@@ -27,7 +27,7 @@ export class TimeSliderService implements OnDestroy {
   private readonly destroyed$ = new Subject<void>();
 
   constructor(
-    private readonly drawingBackgroundMouseListenerService: DrawingBackgroundMouseListenerService,
+    drawingBackgroundMouseListenerService: DrawingBackgroundMouseListenerService,
     private readonly updateCounterTriggerService: UpdateCounterTriggerService,
     private readonly ngZone: NgZone,
   ) {

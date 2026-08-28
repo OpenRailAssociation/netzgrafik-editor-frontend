@@ -148,8 +148,7 @@ export class LoadPerlenketteService implements OnDestroy {
         );
 
         let firstSection = true;
-        while (iterator.hasNext()) {
-          const currentTrainrunSectionNodePair = iterator.next();
+        for (const currentTrainrunSectionNodePair of iterator) {
           const trainrunSection = currentTrainrunSectionNodePair.trainrunSection;
           const node = currentTrainrunSectionNodePair.node;
           // Section X

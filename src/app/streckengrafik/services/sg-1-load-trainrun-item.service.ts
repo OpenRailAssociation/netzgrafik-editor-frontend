@@ -148,7 +148,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         // not support current trains with partial cancellations.
         const ts: TrainrunSection = this.trainrunSectionService
           .getAllTrainrunSectionsForTrainrun(selectedTrainrun.getId())
-          .find(() => true);
+          .at(0);
         const loadeddata = this.loadTrainrunItem(ts, true);
         this.cachedTrainrunItems = loadeddata.trainrunItem;
       }
@@ -1135,8 +1135,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     }
     const iterator: TrainrunIterator = this.trainrunService.getIterator(node, startTrainrunSection);
     visitedTrainrunSections.push(startTrainrunSection);
-    while (iterator.hasNext()) {
-      const currentTrainrunSectionNodePair = iterator.next();
+    for (const currentTrainrunSectionNodePair of iterator) {
       visitedTrainrunSections.push(currentTrainrunSectionNodePair.trainrunSection);
 
       if (trainrunSectionGroup) {

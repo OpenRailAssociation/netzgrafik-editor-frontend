@@ -12,11 +12,10 @@
     </button>
     <ng-container *ngFor="let color of colorPresets">
       <button
-        class="NgxEditor__Color ngx-html-editor-color {{ setClassedTag(color) }}"
+        class="ngx-html-editor-color {{ setClassedTag(color) }}"
         (click)="onColor(color)"
         [title]="getColorTitle(color)"
         [style]="getColorStyle(color)"
-        [ngClass]="{'NgxEditor__Color--Active': setActiveColor()}"
       >
         {{ getColorButtonText(color) }}
       </button>

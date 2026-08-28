@@ -842,16 +842,6 @@ export class TrainRunSectionComponent implements OnDestroy, UpdateCounterHandler
     return this.showTextLabel;
   }
 
-  private isSelectedTrainrun(): boolean {
-    const selectedTrainrun = this.trainrunService.getSelectedTrainrun();
-    if (selectedTrainrun) {
-      if (this.trainrun.trainrunId === selectedTrainrun.getId()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   showArrival() {
     if (!this.showArrivalTime) {
       return false;

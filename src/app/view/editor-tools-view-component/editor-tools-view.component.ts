@@ -20,7 +20,6 @@ import {
 import {downloadBlob} from "../util/download-utils";
 import {map} from "rxjs/operators";
 import {LabelService} from "../../services/data/label.service";
-import {NetzgrafikColoringService} from "../../services/data/netzgrafikColoring.service";
 import {ViewportCullService} from "../../services/ui/viewport.cull.service";
 import {LevelOfDetailService} from "../../services/ui/level.of.detail.service";
 import {TrainrunSectionValidator} from "../../services/util/trainrunsection.validator";
@@ -62,7 +61,6 @@ export class EditorToolsViewComponent {
     private labelService: LabelService,
     private logger: LogService,
     private versionControlService: VersionControlService,
-    private netzgrafikColoringService: NetzgrafikColoringService,
     private viewportCullService: ViewportCullService,
     private levelOfDetailService: LevelOfDetailService,
     private originDestinationService: OriginDestinationService,
@@ -547,7 +545,7 @@ export class EditorToolsViewComponent {
       $localize`:@@app.view.editor-side-view.editor-tools-view-component.trafficPeriod:Traffic period`,
     );
     headers.push(
-      $localize`:@@app.view.editor-side-view.editor-tools-view-component.frequence:Frequence`,
+      $localize`:@@app.view.editor-side-view.editor-tools-view-component.frequency:Frequency`,
     );
     headers.push(
       $localize`:@@app.view.editor-side-view.editor-tools-view-component.departureMinuteAtStart:Minute of departure at start node`,

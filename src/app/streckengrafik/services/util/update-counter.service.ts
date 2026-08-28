@@ -9,7 +9,7 @@ export interface UpdateCounterHandler {
 @Directive()
 export class UpdateCounterController implements OnDestroy {
   constructor(
-    private counter: number,
+    counter: number,
     private updateCounterHandler: UpdateCounterHandler,
   ) {
     this.updateCounterHandler

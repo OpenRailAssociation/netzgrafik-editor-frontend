@@ -39,7 +39,9 @@ export default defineConfig([
           style: "kebab-case",
         },
       ],
+      // TODO: enable all recommended @angular-eslint rules
       "@angular-eslint/prefer-standalone": "off",
+      "@angular-eslint/prefer-inject": "off",
       "@typescript-eslint/no-non-null-assertion": "off",
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "@typescript-eslint/no-empty-function": [
@@ -63,6 +65,10 @@ export default defineConfig([
           varsIgnorePattern: "^_",
         },
       ],
+      // This rule is not in tseslint's recommended preset,
+      // so the base rule must be disabled by hand here.
+      "no-unused-private-class-members": "off",
+      "@typescript-eslint/no-unused-private-class-members": "error",
       "@typescript-eslint/no-deprecated": "warn",
       "consistent-return": "error",
       eqeqeq: "error",
@@ -77,6 +83,8 @@ export default defineConfig([
     extends: [...angular.configs.templateRecommended],
     rules: {
       "@typescript-eslint/ban-ts-comment": "off",
+      // TODO: enable all recommended @angular-eslint rules
+      "@angular-eslint/template/prefer-control-flow": "off",
     },
   },
 ]);

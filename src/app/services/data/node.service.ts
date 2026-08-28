@@ -21,7 +21,6 @@ import {Transition} from "../../models/transition.model";
 import {Connection} from "../../models/connection.model";
 import {ResourceService} from "./resource.service";
 import {Resource} from "../../models/resource.model";
-import {LogService} from "../../logger/log.service";
 import {Port} from "../../models/port.model";
 import {takeUntil} from "rxjs/operators";
 import {Vec2D} from "../../utils/vec2D";
@@ -30,7 +29,7 @@ import {MathUtils} from "../../utils/math";
 import {LabelService} from "./label.service";
 import {FilterService} from "../ui/filter.service";
 import {ConnectionDto, OrderingAlgorithm} from "../../data-structures/technical.data.structures";
-import {optimizePorts} from "../util/port-ordering.algo";
+import {ClutterWeights, optimizePorts} from "../util/port-ordering.algo";
 import {TrainrunSectionValidator} from "../util/trainrunsection.validator";
 import {
   NodeOperation,
@@ -59,7 +58,6 @@ export class NodeService implements OnDestroy {
   private currentOrderingAlgorithm: OrderingAlgorithm = OrderingAlgorithm.Alphabetical;
 
   constructor(
-    private logger: LogService,
     private resourceService: ResourceService,
     private trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
@@ -199,8 +197,8 @@ export class NodeService implements OnDestroy {
     });
 
     // Second pass: reorder ports and update routing
-    if (this.currentOrderingAlgorithm === OrderingAlgorithm.CrossingAware) {
-      optimizePorts(this.nodesStore.nodes);
+    if (this.usesOptimizePorts()) {
+      optimizePorts(this.nodesStore.nodes, this.getClutterWeights());
       this.nodesStore.nodes.forEach((node) => {
         node.updateTransitionsRouting();
         node.updateConnectionsRouting();
@@ -540,9 +538,8 @@ export class NodeService implements OnDestroy {
 
   hasPathAnyDepartureOrArrivalTimeLock(node: Node, trainrunSection: TrainrunSection): boolean {
     const iterator = this.trainrunService.getIterator(node, trainrunSection);
-    while (iterator.hasNext()) {
-      iterator.next();
-      const currentTrainrunSection = iterator.current().trainrunSection;
+    for (const pair of iterator) {
+      const currentTrainrunSection = pair.trainrunSection;
       if (
         currentTrainrunSection.getSourceDepartureLock() ||
         currentTrainrunSection.getTargetArrivalLock()
@@ -1128,8 +1125,30 @@ export class NodeService implements OnDestroy {
     return this.currentOrderingAlgorithm;
   }
 
+  private usesOptimizePorts(): boolean {
+    return this.currentOrderingAlgorithm !== OrderingAlgorithm.Alphabetical;
+  }
+
+  private getClutterWeights(): ClutterWeights | undefined {
+    if (!this.usesOptimizePorts()) return undefined;
+
+    const minWeight = 0.2;
+    const pushCrossings =
+      this.currentOrderingAlgorithm === OrderingAlgorithm.ClutterAwarePushCrossings;
+
+    // Boost the separations we keep low: between nodes when pushing crossings in, else within nodes.
+    return {
+      crossingsWithin: minWeight,
+      crossingsBetween: minWeight,
+      separationsWithin: minWeight + (pushCrossings ? 0 : 1),
+      separationsBetween: minWeight + (pushCrossings ? 1 : 0),
+    };
+  }
+
   setOrderingAlgorithm(portOrderingType: OrderingAlgorithm) {
-    this.currentOrderingAlgorithm = portOrderingType;
+    // Any unknown legacy value (the former crossing/separation modes) maps to ClutterAware.
+    this.currentOrderingAlgorithm =
+      portOrderingType in OrderingAlgorithm ? portOrderingType : OrderingAlgorithm.ClutterAware;
   }
 
   getNodes(): Node[] {
@@ -1213,8 +1232,8 @@ export class NodeService implements OnDestroy {
       });
 
       // Reorder ports and update routing
-      if (this.currentOrderingAlgorithm === OrderingAlgorithm.CrossingAware) {
-        optimizePorts(this.nodesStore.nodes);
+      if (this.usesOptimizePorts()) {
+        optimizePorts(this.nodesStore.nodes, this.getClutterWeights());
         this.nodesStore.nodes.forEach((n) => {
           n.updateTransitionsRouting();
           n.updateConnectionsRouting();

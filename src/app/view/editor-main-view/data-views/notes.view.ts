@@ -259,7 +259,7 @@ export class NotesView {
       .attr("class", StaticDomTags.NOTE_TITELAREA_CLASS)
       .attr(StaticDomTags.NOTE_ID, (n: NoteViewObject) => n.note.getId())
       .attr("width", (n: NoteViewObject) => NotesView.extractTextBasedWidth(n.note))
-      .attr("height", () => NOTE_TEXT_AREA_HEIGHT)
+      .attr("height", NOTE_TEXT_AREA_HEIGHT)
       .attr("x", 0)
       .attr("y", 0)
       .classed(
@@ -343,7 +343,7 @@ export class NotesView {
       .attr("class", StaticDomTags.NOTE_HOVER_DRAG_AREA_BACKGROUND_CLASS)
       .classed(StaticDomTags.TAG_SELECTED, (n: NoteViewObject) => n.note.selected())
       .attr(StaticDomTags.NOTE_ID, (n: NoteViewObject) => n.note.getId())
-      .attr("transform", () => "translate(-50,-20)")
+      .attr("transform", "translate(-50,-20)")
       .attr("width", 28)
       .attr("height", 28)
       .attr("x", 0)
@@ -379,7 +379,7 @@ export class NotesView {
           "3.5-3.5.353-.354-.353-.354-3.5-3.5-.707.708L19.043 11H12V3.967l2.997 " +
           "3.029.711-.704-3.853-3.894Z",
       )
-      .attr("transform", () => "translate(-45,-15),scale(1.0)")
+      .attr("transform", "translate(-45,-15),scale(1.0)")
       .on("mouseout", (_, n: NoteViewObject) => this.onNoteMouseoutDragButton(n.note))
       .on("mouseover", (_, n: NoteViewObject) => this.onNoteMouseoverDragButton(n.note))
       .call(this.draggable);

@@ -15,7 +15,6 @@ import {
   LeftAndRightElement,
   TrainrunsectionHelper,
 } from "../../../../services/util/trainrunsection.helper";
-import {FilterService} from "../../../../services/ui/filter.service";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
 import {LinePatternRefs} from "../../../../data-structures/business.data.structures";
@@ -97,8 +96,7 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
       firstTrainrunSection.getSourceNode(),
       firstTrainrunSection,
     );
-    while (iterator.hasNext()) {
-      const nextPair = iterator.next();
+    for (const nextPair of iterator) {
       if (!nextPair.trainrunSection.isSymmetric()) {
         return true;
       }
@@ -108,7 +106,6 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private dataService: DataService,
-    private filterService: FilterService,
     private trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
     private changeDetection: ChangeDetectorRef,

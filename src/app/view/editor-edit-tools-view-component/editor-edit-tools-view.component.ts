@@ -5,11 +5,9 @@ import {ConfirmationDialogParameter} from "../dialogs/confirmation-dialog/confir
 import {NodeService} from "../../services/data/node.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {EditorMode} from "../editor-menu/editor-mode";
-import {LogService} from "../../logger/log.service";
 import {FilterService} from "../../services/ui/filter.service";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
-import {TrainrunService} from "../../services/data/trainrun.service";
 import {NoteService} from "../../services/data/note.service";
 import {LabelRef, NetzgrafikDto} from "../../data-structures/business.data.structures";
 import {LabelService} from "../../services/data/label.service";
@@ -47,7 +45,12 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     {
       name: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwareOrdering:Crossing aware`,
       title: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwareOrderingTooltip:Minimizes crossings of trainruns within the nodes.`,
-      orderingAlgorithm: OrderingAlgorithm.CrossingAware,
+      orderingAlgorithm: OrderingAlgorithm.ClutterAware,
+    },
+    {
+      name: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwarePushOrdering:Crossing aware (push crossings into nodes)`,
+      title: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwarePushOrderingTooltip:Minimizes crossings of trainruns, moving them into the nodes to keep parallel trainruns bundled.`,
+      orderingAlgorithm: OrderingAlgorithm.ClutterAwarePushCrossings,
     },
   ];
   activeOrderingAlgorithm: OrderingAlgorithm = null;
@@ -55,12 +58,10 @@ export class EditorEditToolsViewComponent implements OnDestroy {
   constructor(
     private dataService: DataService,
     private nodeService: NodeService,
-    private trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
     private noteService: NoteService,
     public labelService: LabelService,
     public labelGroupService: LabelGroupService,
-    private logger: LogService,
     public filterService: FilterService,
     private uiInteractionService: UiInteractionService,
     private versionControlService: VersionControlService,

@@ -59,11 +59,11 @@ to remove them.
 
 #### Create/import nodes
 
-For more details have a look into [create and modifiy nodes](CREATE_NODES.md).
+For more details have a look into [create and modify nodes](CREATE_NODES.md).
 
 #### Create trainruns
 
-For more details have a look into [create and modifiy trainrun](CREATE_TRAINRUN.md).
+For more details have a look into [create and modify trainrun](CREATE_TRAINRUN.md).
 
 ## Basic Concept: Project / Variants
 

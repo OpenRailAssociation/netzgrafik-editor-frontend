@@ -42,15 +42,15 @@
   stroke: $COLOR_Warning;
 }
 
-.non_stop_toogle {
+.non_stop_toggle {
   fill: var(--NODE_DOCKABLE);
 }
 
-.non_stop_toogle.nonstop {
+.non_stop_toggle.nonstop {
   fill-opacity: 0.01;
 }
 
-.non_stop_toogle:hover {
+.non_stop_toggle:hover {
   fill: $COLOR_Edit;
   fill-opacity: 1;
 }

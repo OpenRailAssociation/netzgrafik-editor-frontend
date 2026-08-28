@@ -240,12 +240,12 @@ npm run lint:fix
 Since we use Prettier as formatter, you can freely setup you favorite IDE to support you in the way. For example, if you use VSCode, follow these steps:
 
 - install the [Prettier extension](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
-- (optionnal: install Prettier via npm `npm install --global prettier`)
+- (optional: install Prettier via npm `npm install --global prettier`)
 - now, if you try left-click and select "Format Document", you'll be able to format manually using Prettier
 
 Nice to have: Format on Save
 
-- you can enable this functionnality by opening VSCode "Settings" and activate "Editor: Format on Save" (this way, your code will be formatted each time your file is saved)
+- you can enable this functionality by opening VSCode "Settings" and activate "Editor: Format on Save" (this way, your code will be formatted each time your file is saved)
 - alternatively, you can just add these lines in `settings.json` (open using `Cmd` + `shift` + `p` and search "Open User Settings (JSON)")
 
 ```json

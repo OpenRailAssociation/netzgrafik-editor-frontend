@@ -37,20 +37,19 @@ describe("UndoService", () => {
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
-    labelGroupService = new LabelGroupService(logService);
-    labelService = new LabelService(logService, labelGroupService);
+    labelGroupService = new LabelGroupService();
+    labelService = new LabelService(labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
     trainrunService = new TrainrunService(logService, labelService, filterService);
-    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
+    trainrunSectionService = new TrainrunSectionService(trainrunService, filterService);
     nodeService = new NodeService(
-      logService,
       resourceService,
       trainrunService,
       trainrunSectionService,
       labelService,
       filterService,
     );
-    noteService = new NoteService(logService, labelService, filterService);
+    noteService = new NoteService(labelService, filterService);
     netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
@@ -68,13 +67,7 @@ describe("UndoService", () => {
 
   it("UndoService - 001", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const undoService = new UndoService(
-      dataService,
-      nodeService,
-      noteService,
-      trainrunService,
-      filterService,
-    );
+    const undoService = new UndoService(dataService, trainrunService, filterService);
     undoService.reset(0);
     undoService.pushCurrentVersion(true);
     const loaded = JSON.stringify(dataService.getNetzgrafikDto());
@@ -90,13 +83,7 @@ describe("UndoService", () => {
 
   it("UndoService - 002", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const undoService = new UndoService(
-      dataService,
-      nodeService,
-      noteService,
-      trainrunService,
-      filterService,
-    );
+    const undoService = new UndoService(dataService, trainrunService, filterService);
     expect(trainrunService.isAnyTrainrunSelected()).toBe(false);
     undoService.reset(0);
     undoService.pushCurrentVersion(true);
@@ -128,13 +115,7 @@ describe("UndoService", () => {
 
   it("UndoService - 003", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const undoService = new UndoService(
-      dataService,
-      nodeService,
-      noteService,
-      trainrunService,
-      filterService,
-    );
+    const undoService = new UndoService(dataService, trainrunService, filterService);
     expect(trainrunService.isAnyTrainrunSelected()).toBe(false);
     const preChangedNodes = trainrunService.getNodePathToEnd(
       nodeService.getNodeFromId(0),
@@ -173,13 +154,7 @@ describe("UndoService", () => {
 
   it("UndoService - 004", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const undoService = new UndoService(
-      dataService,
-      nodeService,
-      noteService,
-      trainrunService,
-      filterService,
-    );
+    const undoService = new UndoService(dataService, trainrunService, filterService);
     expect(trainrunService.isAnyTrainrunSelected()).toBe(false);
     const preChangedTrainrunSection = trainrunService.getLastNonStopTrainrunSection(
       nodeService.getNodeFromId(0),
@@ -205,13 +180,7 @@ describe("UndoService", () => {
 
   it("UndoService - 005", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const undoService = new UndoService(
-      dataService,
-      nodeService,
-      noteService,
-      trainrunService,
-      filterService,
-    );
+    const undoService = new UndoService(dataService, trainrunService, filterService);
     undoService.reset(0);
     undoService.pushCurrentVersion(true);
     const loaded = JSON.stringify(dataService.getNetzgrafikDto());
@@ -228,13 +197,7 @@ describe("UndoService", () => {
 
   it("UndoService - 006", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const undoService = new UndoService(
-      dataService,
-      nodeService,
-      noteService,
-      trainrunService,
-      filterService,
-    );
+    const undoService = new UndoService(dataService, trainrunService, filterService);
     undoService.reset(0);
     undoService.pushCurrentVersion(true);
     const loaded = JSON.stringify(dataService.getNetzgrafikDto());
@@ -251,13 +214,7 @@ describe("UndoService", () => {
 
   it("UndoService - 007", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const undoService = new UndoService(
-      dataService,
-      nodeService,
-      noteService,
-      trainrunService,
-      filterService,
-    );
+    const undoService = new UndoService(dataService, trainrunService, filterService);
     expect(trainrunService.isAnyTrainrunSelected()).toBe(false);
     undoService.reset(0);
     undoService.pushCurrentVersion(true);

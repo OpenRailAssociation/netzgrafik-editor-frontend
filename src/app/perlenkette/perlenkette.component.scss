@@ -22,7 +22,11 @@
 .svg-container {
   display: flex;
   justify-content: center;
+  align-items: flex-start;
   width: 100%;
+  // The vertical scrolling is done by translating the .drawing-container,
+  // therefore the overflowing content has to be clipped here.
+  overflow: hidden;
 
   .drawing-container {
     display: flex;
@@ -30,6 +34,8 @@
     flex-direction: column;
     align-items: center;
     padding: 24px 0;
+    flex-shrink: 0;
+    will-change: transform;
   }
 }
 

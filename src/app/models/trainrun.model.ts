@@ -16,9 +16,6 @@ export class Trainrun {
   private static currentId = 0;
   private id: number;
   private name: string;
-  private categoryId: number;
-  private frequencyId: number;
-  private trainrunTimeCategoryId: number;
   private trainrunCategory: TrainrunCategory;
   private trainrunFrequency: TrainrunFrequency;
   private trainrunTimeCategory: TrainrunTimeCategory;
@@ -30,9 +27,6 @@ export class Trainrun {
     {
       id,
       name,
-      categoryId,
-      frequencyId,
-      trainrunTimeCategoryId,
       labelIds,
       direction = Direction.ROUND_TRIP, // temporary, to allow migration of old trainruns
     }: TrainrunDto = {
@@ -47,10 +41,7 @@ export class Trainrun {
   ) {
     this.id = id;
     this.name = name;
-    this.categoryId = categoryId;
-    this.frequencyId = frequencyId;
     this.isSelected = false;
-    this.trainrunTimeCategoryId = trainrunTimeCategoryId;
     this.labelIds = labelIds;
     this.direction = direction;
 

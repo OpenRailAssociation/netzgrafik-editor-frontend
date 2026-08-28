@@ -5,7 +5,7 @@ export class NoteViewObject {
   key: string;
 
   constructor(
-    private editorView: EditorView,
+    editorView: EditorView,
     public note: Note,
   ) {
     this.key = NoteViewObject.generateKey(editorView, note);

@@ -60,11 +60,11 @@ export class MultiSelectNodeGraph {
     }
 
     visited[start] = true;
-    const childrens = this.adjList.get(start);
-    if (childrens === undefined) {
+    const children = this.adjList.get(start);
+    if (children === undefined) {
       return {path: retPath, end: false};
     }
-    for (const node of childrens) {
+    for (const node of children) {
       if (!visited[node]) {
         const result = this.getPath(node, end, {...visited}, Object.assign([], retPath));
         if (result.end) {

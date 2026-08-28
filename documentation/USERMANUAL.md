@@ -105,8 +105,8 @@ category (e.g., a regional train, an intercity train or a goods train), frequenc
 
 For more details have a look into [create and modify trainrun](CREATE_TRAINRUN.md).
 
-- [Split / Combine two trainruns](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/CREATE_TRAINRUN.md#split--combine-two-trainruns)
-- [Merge two independent Netzgrafik](https://github.com/SchweizerischeBundesbahnen/netzgrafik-editor-frontend/blob/main/documentation/CREATE_TRAINRUN.md#merge-two-indepandant-netzgrafik)
+- [Split / Combine two trainruns](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/blob/main/documentation/Split_Combine_Trainruns.md)
+- [Merge two independent Netzgrafik](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/blob/main/documentation/Merge_Netzgrafik.md)
 
 <a id="Connections"></a>
 

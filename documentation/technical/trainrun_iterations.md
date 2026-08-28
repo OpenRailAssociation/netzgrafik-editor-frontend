@@ -50,7 +50,7 @@ getForwardTrainrunPartIterator(trainrunSection : TrainrunSection) {
       const bothEndNodes =
         this.trainrunService.getBothEndNodesFromTrainrunPart(trainrunSection);
 
-      // get start / end node from Top/Left -> Botton / Right
+      // get start / end node from Top/Left -> Bottom / Right
       const startForwardNode = GeneralViewFunctions.getLeftOrTopNode(
         bothEndNodes.endNode1,
         bothEndNodes.endNode2,

@@ -1,5 +1,7 @@
 import {Node} from "../../models/node.model";
 import {Port} from "../../models/port.model";
+import {Transition} from "../../models/transition.model";
+import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {
   ALIGNMENTS_CLOCKWISE_ORDER,
   ALIGNMENTS_CLOCKWISE_SCORES,
@@ -123,67 +125,60 @@ export function countCrossingsBetweenSides(
 }
 
 /**
+ * This function detects whether two transitions cross inside a node.
+ *
+ * Here is what a node looks like:
+ *       0 1 … n
+ *     ┌─────────┐
+ *   0 │         │ 0
+ *   1 │         │ 1
+ *   … │         │ …
+ *   n │         │ n
+ *     └─────────┘
+ *       0 1 … n
+ *
+ * To detect if two transitions cross in a node, we rotate around the node and note each port
+ * when we cross them, starting from the top left, and rotating clockwise. Bottom and left
+ * ports are met backwards, so we have to reverse their position index order.
+ *
+ * Then, we end up with an array with 4 ports. The two transitions do cross when they
+ * alternate in the array, so if the first and third ports refer to the same trainrun section.
+ */
+export function transitionsCrossInNode(node: Node, t1: Transition, t2: Transition): boolean {
+  const sortedPorts = [t1, t2]
+    .flatMap((transition) =>
+      [node.getPort(transition.getPortId1()), node.getPort(transition.getPortId2())].map(
+        (port) => ({transition, port}),
+      ),
+    )
+    .sort((a, b) => {
+      const aAlignment = a.port.getPositionAlignment();
+      const bAlignment = b.port.getPositionAlignment();
+
+      if (aAlignment !== bAlignment) {
+        return (
+          ALIGNMENTS_CLOCKWISE_SCORES.get(aAlignment) - ALIGNMENTS_CLOCKWISE_SCORES.get(bAlignment)
+        );
+      }
+
+      const swap = COUNTERCLOCKWISE_ALIGNMENTS.has(aAlignment);
+      return (a.port.getPositionIndex() - b.port.getPositionIndex()) * (swap ? -1 : 1);
+    });
+
+  return sortedPorts[0].transition === sortedPorts[2].transition;
+}
+
+/**
  * This function counts all crossings within a node.
  */
 export function countCrossingsInNode(node: Node): number {
   let crossings = 0;
   const transitions = node.getTransitions();
   for (let i = 0; i < transitions.length - 1; i++) {
-    const t1 = transitions[i];
-
     for (let j = i + 1; j < transitions.length; j++) {
-      const t2 = transitions[j];
-
-      /**
-       * Here is what a node looks like:
-       *       0 1 … n
-       *     ┌─────────┐
-       *   0 │         │ 0
-       *   1 │         │ 1
-       *   … │         │ …
-       *   n │         │ n
-       *     └─────────┘
-       *       0 1 … n
-       *
-       * To detect if two transitions cross in a node, we rotate around the node and note each port
-       * when we cross them, starting from the top left, and rotating clockwise. Bottom and left
-       * ports are met backwards, so we have to reverse their position index order.
-       *
-       * Then, we end up with an array with 4 ports. The two transitions do cross when they
-       * alternate in the array, so if the first and third ports refer to the same trainrun section.
-       */
-      const sortedPorts = [t1, t2]
-        .flatMap((transition) =>
-          [node.getPort(transition.getPortId1()), node.getPort(transition.getPortId2())].map(
-            (port) => ({
-              transition,
-              port,
-            }),
-          ),
-        )
-        .sort((a, b) => {
-          const aAlignment = a.port.getPositionAlignment();
-          const bAlignment = b.port.getPositionAlignment();
-
-          if (aAlignment !== bAlignment) {
-            return (
-              ALIGNMENTS_CLOCKWISE_SCORES.get(aAlignment) -
-              ALIGNMENTS_CLOCKWISE_SCORES.get(bAlignment)
-            );
-          }
-
-          const swap = COUNTERCLOCKWISE_ALIGNMENTS.has(aAlignment);
-          const aIndex = a.port.getPositionIndex();
-          const bIndex = b.port.getPositionIndex();
-          return (aIndex - bIndex) * (swap ? -1 : 1);
-        });
-
-      if (sortedPorts[0].transition === sortedPorts[2].transition) {
-        crossings++;
-      }
+      if (transitionsCrossInNode(node, transitions[i], transitions[j])) crossings++;
     }
   }
-
   return crossings;
 }
 
@@ -195,6 +190,90 @@ interface GroupCrossing {
 interface CrossingsInfo {
   crossings: number;
   groupCrossings: GroupCrossing[];
+}
+
+/**
+ * This function returns, for one side of a node, the trainrun IDs in their order on that side
+ * (`thisSide`), and the trainrun IDs reached from that side, grouped by opposite node (sorted by
+ * the opposite node position) and ordered within each group by their position there (`oppositeSides`).
+ * These two orderings are what the between-node crossing counting compares.
+ */
+export function getBetweenSideOrderings(
+  node: Node,
+  alignment: PortAlignment,
+): {thisSide: number[]; oppositeSides: number[][]} {
+  const nodeId = node.getId();
+  const relevantDimension = isHorizontalAlignment(alignment)
+    ? ("getPositionX" as const)
+    : ("getPositionY" as const);
+
+  const ports = node
+    .getPorts()
+    .filter((port) => port.getPositionAlignment() === alignment)
+    .sort((a, b) => a.getPositionIndex() - b.getPositionIndex());
+  const oppositePortsPerNode: Record<number, {node: Node; port: Port}[]> = {};
+  ports.forEach((port) => {
+    const trainrunSectionId = port.getTrainrunSectionId();
+    const oppositeNode = port.getOppositeNode(nodeId);
+    const oppositeNodeID = oppositeNode.getId();
+    const oppositePort = oppositeNode
+      .getPorts()
+      .find((p) => p.getTrainrunSectionId() === trainrunSectionId);
+
+    oppositePortsPerNode[oppositeNodeID] = oppositePortsPerNode[oppositeNodeID] || [];
+    oppositePortsPerNode[oppositeNodeID].push({node: oppositeNode, port: oppositePort});
+  });
+  const oppositeNodes: {node: Node; ports: Port[]}[] = [];
+  for (const id in oppositePortsPerNode) {
+    oppositeNodes.push({
+      node: oppositePortsPerNode[id][0].node,
+      ports: oppositePortsPerNode[id].map(({port}) => port),
+    });
+  }
+
+  const thisSide = ports.map((port) => port.getTrainrunSection().getTrainrunId());
+  const oppositeSides = oppositeNodes
+    .toSorted((a, b) => a.node[relevantDimension]() - b.node[relevantDimension]())
+    .map(({ports}) =>
+      ports
+        .toSorted((a, b) => a.getPositionIndex() - b.getPositionIndex())
+        .map((port) => port.getTrainrunSection().getTrainrunId()),
+    );
+
+  return {thisSide, oppositeSides};
+}
+
+/**
+ * This function counts the crossings happening between `node` and its neighbors, on the links
+ * incident to it (i.e. excluding the within-node crossings). It returns both the total (direct
+ * crossings halved, as each is shared with the opposite node) and the per-side group crossings.
+ */
+export function countBetweenCrossingsAroundNode(node: Node): {
+  crossings: number;
+  groupCrossings: GroupCrossing[];
+} {
+  let crossings = 0;
+  const groupCrossings: GroupCrossing[] = [];
+
+  ALIGNMENTS_CLOCKWISE_ORDER.forEach((alignment) => {
+    const {thisSide, oppositeSides} = getBetweenSideOrderings(node, alignment);
+
+    // Count crossings:
+    const {direct, indirect} = countCrossingsBetweenSides(thisSide, oppositeSides);
+
+    // Detect contiguous groups of nodes:
+    const contiguous = groupContiguous(oppositeSides, thisSide);
+
+    if (direct + indirect) {
+      groupCrossings.push({crossings: direct + indirect, groups: contiguous});
+    }
+
+    // Add local crossings to total count
+    // (divide direct crossings by two, as these crossings will be counted twice)
+    crossings += direct / 2 + indirect;
+  });
+
+  return {crossings, groupCrossings};
 }
 
 /**
@@ -211,70 +290,10 @@ export function countAllCrossings(nodes: Node[]): CrossingsInfo {
   let crossings = 0;
 
   nodes.forEach((node) => {
-    const nodeId = node.getId();
-
     crossings += countCrossingsInNode(node);
-
-    ALIGNMENTS_CLOCKWISE_ORDER.forEach((alignment) => {
-      const relevantDimension = isHorizontalAlignment(alignment)
-        ? ("getPositionX" as const)
-        : ("getPositionY" as const);
-
-      const ports = node
-        .getPorts()
-        .filter((port) => port.getPositionAlignment() === alignment)
-        .sort((a, b) => a.getPositionIndex() - b.getPositionIndex());
-      const oppositePortsPerNode: Record<number, {node: Node; port: Port}[]> = {};
-      ports.forEach((port) => {
-        const trainrunSectionId = port.getTrainrunSectionId();
-        const oppositeNode = port.getOppositeNode(nodeId);
-        const oppositeNodeID = oppositeNode.getId();
-        const oppositePort = oppositeNode
-          .getPorts()
-          .find((p) => p.getTrainrunSectionId() === trainrunSectionId);
-
-        oppositePortsPerNode[oppositeNodeID] = oppositePortsPerNode[oppositeNodeID] || [];
-        oppositePortsPerNode[oppositeNodeID].push({
-          node: oppositeNode,
-          port: oppositePort,
-        });
-      });
-      const oppositeNodes: {node: Node; ports: Port[]}[] = [];
-      for (const nodeId in oppositePortsPerNode) {
-        const node = oppositePortsPerNode[nodeId][0].node;
-        const ports = oppositePortsPerNode[nodeId].map(({port}) => port);
-        oppositeNodes.push({node, ports});
-      }
-
-      const portsTrainrunIDs = ports.map((port) => port.getTrainrunSection().getTrainrunId());
-      const oppositePortsTrainrunIDs = oppositeNodes
-        .toSorted((a, b) => a.node[relevantDimension]() - b.node[relevantDimension]())
-        .map(({ports}) =>
-          ports
-            .toSorted((a, b) => a.getPositionIndex() - b.getPositionIndex())
-            .map((port) => port.getTrainrunSection().getTrainrunId()),
-        );
-
-      // Count crossings:
-      const {direct, indirect} = countCrossingsBetweenSides(
-        portsTrainrunIDs,
-        oppositePortsTrainrunIDs,
-      );
-
-      // Detect contiguous groups of nodes:
-      const contiguous = groupContiguous(oppositePortsTrainrunIDs, portsTrainrunIDs);
-
-      if (direct + indirect) {
-        groupCrossings.push({
-          crossings: direct + indirect,
-          groups: contiguous,
-        });
-      }
-
-      // Add local crossings to total count
-      // (divide direct crossings by two, as these crossings will be counted twice)
-      crossings += direct / 2 + indirect;
-    });
+    const between = countBetweenCrossingsAroundNode(node);
+    crossings += between.crossings;
+    groupCrossings.push(...between.groupCrossings);
   });
 
   return {crossings, groupCrossings: groupCrossings.toSorted((a, b) => b.crossings - a.crossings)};

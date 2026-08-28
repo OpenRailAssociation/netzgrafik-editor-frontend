@@ -132,7 +132,7 @@ export class Sg6TrackService implements OnDestroy {
     return nDistanceCells;
   }
 
-  private mergeDistanceCellGridResoultionToBigSegment(
+  private mergeDistanceCellGridResolutionToBigSegment(
     tracksMatrix: number[],
     nDistanceCells: number,
   ): [number, number, number][] {
@@ -212,7 +212,7 @@ export class Sg6TrackService implements OnDestroy {
             ? ts.getTrainrun().getTrainrunCategory().sectionHeadway
             : this.minimumHeadwayTime;
 
-        // iterate cell-by-cell foward
+        // iterate cell-by-cell forward
         for (let distCellIdx = 0; distCellIdx < nDistanceCells; distCellIdx++) {
           // unroll frequency to get the trains - generated out of the "template" train
           for (
@@ -230,7 +230,7 @@ export class Sg6TrackService implements OnDestroy {
                 freqLoop;
               timeCellIdx = bandOffset + Math.round(timeRes * timeCellIdx);
 
-              // ensure if the idx is to small or to big (avoid crash / expection)
+              // ensure if the idx is to small or to big (avoid crash / exception)
               if (timeCellIdx >= 0 && timeCellIdx < nTimeCells) {
                 dataMatrix[idx][timeCellIdx]++;
                 tracksMatrix[idx] = Math.max(tracksMatrix[idx], dataMatrix[idx][timeCellIdx]);
@@ -245,7 +245,7 @@ export class Sg6TrackService implements OnDestroy {
       // ------------------------------------------------------------------------------------------------------------------
       sectionsTracks.set(
         keyNodeId,
-        this.mergeDistanceCellGridResoultionToBigSegment(tracksMatrix, nDistanceCells),
+        this.mergeDistanceCellGridResolutionToBigSegment(tracksMatrix, nDistanceCells),
       );
     }
     return sectionsTracks;
@@ -366,7 +366,7 @@ export class Sg6TrackService implements OnDestroy {
     const turnaroundTime = forwardNode.departureTime - forwardNode.arrivalTime;
     const deltaTurnaroundTime = trainrun.frequency - turnaroundTime;
     if (deltaTurnaroundTime > 0 && deltaTurnaroundTime < minimumHeadwayTime) {
-      // special case - when the turnaround time is too small - enforce a second train ond a
+      // special case - when the turnaround time is too small - enforce a second train on a
       // second track
       // tag / mark for further processing
       let estimateFreqOffset =
@@ -787,8 +787,7 @@ export class Sg6TrackService implements OnDestroy {
       pn.trackNbr = trackItr;
       pn.mainTrackIdx = mainTrackIdx;
       pn.pathNodes.forEach((sgTN) => {
-        const curTrack = this.getTrackNumber(pn.trackNbr);
-        sgTN.trackData.track = 1 + curTrack;
+        sgTN.trackData.track = 1 + pn.trackNbr;
       });
       prevPn = pn;
       trackItr++;
@@ -852,7 +851,7 @@ export class Sg6TrackService implements OnDestroy {
     if (nodeTracks === undefined) {
       nodeNeighbors.pathNodes.push(node);
       nodeTracksMap.set(node.nodeId, [nodeNeighbors]);
-      return this.getTrackNumber(nodeNeighbors.trackNbr);
+      return nodeNeighbors.trackNbr;
     }
 
     // find track
@@ -864,7 +863,7 @@ export class Sg6TrackService implements OnDestroy {
       nodeNeighbors.mainTrackIdx = foundTracks === undefined ? 0 : this.createNewTrack(foundTracks);
       nodeNeighbors.pathNodes.push(node);
       nodeTracks.push(nodeNeighbors);
-      return this.getTrackNumber(nodeNeighbors.trackNbr);
+      return nodeNeighbors.trackNbr;
     }
 
     const trackData = foundTracks[trackIdx];
@@ -874,7 +873,7 @@ export class Sg6TrackService implements OnDestroy {
       trackData.nodeId2 = nodeNeighbors.nodeId2;
     }
     trackData.pathNodes.push(node);
-    return this.getTrackNumber(trackData.trackNbr);
+    return trackData.trackNbr;
   }
 
   private updateTracksForAllPathNodes(nodeTracksMap: Map<number, PathNodeNeighbour[]>) {
@@ -882,7 +881,7 @@ export class Sg6TrackService implements OnDestroy {
       const tracks = nodeTracksMap.get(keyNodeId);
       const nodeTracks: TrackData[] = [];
       tracks.forEach((pn: PathNodeNeighbour) => {
-        const track1 = new TrackData(this.getTrackNumber(pn.trackNbr), pn.nodeId1, pn.nodeId2);
+        const track1 = new TrackData(pn.trackNbr, pn.nodeId1, pn.nodeId2);
         track1.setTrackGrp(pn.trackNbr);
         nodeTracks.push(track1);
       });
@@ -894,10 +893,6 @@ export class Sg6TrackService implements OnDestroy {
         });
       });
     }
-  }
-
-  private getTrackNumber(track: number): number {
-    return track;
   }
 
   private getConnectNeighbourNodeTracks(
@@ -1005,10 +1000,10 @@ export class Sg6TrackService implements OnDestroy {
           const ps = pathItem.getTrainrunSection();
           if (ps.trainrunBranchType === TrainrunBranchType.Trainrun) {
             const sectionKey = this.getSectionKey(ps);
-            const trackSegements = sectionTrackMap.get(sectionKey.key);
-            if (trackSegements !== undefined) {
+            const trackSegments = sectionTrackMap.get(sectionKey.key);
+            if (trackSegments !== undefined) {
               const convertedTrackSegments: TrackSegments[] = this.convertTrackSegments(
-                trackSegements,
+                trackSegments,
                 false,
                 1,
               );
@@ -1082,17 +1077,17 @@ export class Sg6TrackService implements OnDestroy {
   }
 
   private convertTrackSegments(
-    trackSegements: [number, number, number][],
+    trackSegments: [number, number, number][],
     backward: boolean,
     initMaxTracks: number,
   ) {
     const convertedTrackSegments: TrackSegments[] = [];
     let maxTracks = initMaxTracks;
-    trackSegements.forEach((trackSeg) => {
+    trackSegments.forEach((trackSeg) => {
       maxTracks = Math.max(trackSeg[2], maxTracks);
     });
 
-    trackSegements.forEach((trackSeg) => {
+    trackSegments.forEach((trackSeg) => {
       convertedTrackSegments.push(
         new TrackSegments(trackSeg[0], trackSeg[1], maxTracks, trackSeg[2], backward),
       );

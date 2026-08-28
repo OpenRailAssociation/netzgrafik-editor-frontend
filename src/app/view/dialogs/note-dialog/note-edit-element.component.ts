@@ -21,15 +21,6 @@ export class NoteEditElementComponent implements OnInit, OnDestroy {
   formModel: FormModel<NoteFormComponentModel>;
   private destroyed = new Subject<void>();
   private deleteNoteCallback: ((noteId: number) => void) | null = null;
-  private saveNoteCallback:
-    | ((
-        noteId: number,
-        noteTitle: string,
-        noteText: string,
-        noteHeight: number,
-        noteWidth: number,
-      ) => void)
-    | null = null;
 
   ngOnInit(): void {
     this.formModel = new FormModel<NoteFormComponentModel>(
@@ -48,7 +39,6 @@ export class NoteEditElementComponent implements OnInit, OnDestroy {
     );
 
     this.deleteNoteCallback = this.noteDialogParameter.noteFormComponentModel.deleteNoteCallback;
-    this.saveNoteCallback = this.noteDialogParameter.noteFormComponentModel.saveNoteCallback;
   }
 
   ngOnDestroy(): void {
@@ -59,20 +49,5 @@ export class NoteEditElementComponent implements OnInit, OnDestroy {
   onDeleteNote(): void {
     this.deleteNoteCallback(this.noteDialogParameter.noteFormComponentModel.id);
     this.noteDeleted.emit();
-  }
-
-  private updateNote() {
-    this.formModel.tryGetValid();
-    const newNoteTitle: string = this.formModel.getControl("noteTitle").value;
-    const newNoteText: string = this.formModel.getControl("noteText").value;
-    const newNoteHeight: string = this.formModel.getControl("noteHeight").value;
-    const newNoteWidth: string = this.formModel.getControl("noteWidth").value;
-    this.saveNoteCallback(
-      this.noteDialogParameter.noteFormComponentModel.id,
-      newNoteTitle,
-      newNoteText,
-      Number(newNoteHeight),
-      Number(newNoteWidth),
-    );
   }
 }

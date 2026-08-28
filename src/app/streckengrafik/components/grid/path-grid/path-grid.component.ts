@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
+import {AfterViewInit, Component, Input, OnDestroy, OnInit} from "@angular/core";
 import {Subject} from "rxjs";
 import {ResizeChangeInfo} from "../../../model/util/resizeChangeInfo";
 import {ViewBoxChangeInfo} from "../../../model/util/viewBoxChangeInfo";
@@ -46,7 +46,6 @@ export class PathGridComponent implements OnInit, OnDestroy, AfterViewInit {
     private readonly resizeService: ResizeService,
     private readonly viewBoxService: ViewBoxService,
     private readonly nodeService: NodeService,
-    private readonly cd: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {

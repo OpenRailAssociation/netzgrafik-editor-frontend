@@ -3,12 +3,9 @@ import {TrainrunService} from "../../services/data/trainrun.service";
 import {NodeService} from "../../services/data/node.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {UiInteractionService} from "../../services/ui/ui.interaction.service";
-import {BaseDataService} from "../../services/data/basedata.service";
 import {FilterService} from "../../services/ui/filter.service";
-import {DataService} from "../../services/data/data.service";
 import {Vec2D} from "../../utils/vec2D";
 import {EditorMode} from "./editor-mode";
-import {LogService} from "../../logger/log.service";
 import {AutoSaveService} from "../../services/data/auto-save.service";
 import {VersionControlService} from "../../services/data/version-control.service";
 import {map, takeUntil} from "rxjs/operators";
@@ -47,7 +44,6 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
   private trainrunIdSelected: number;
 
   constructor(
-    private dataService: DataService,
     private trainrunService: TrainrunService,
     private nodeService: NodeService,
     private noteService: NoteService,
@@ -55,8 +51,6 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
     private trainrunSectionService: TrainrunSectionService,
     private isTrainrunSelectedService: IsTrainrunSelectedService,
     private uiInteractionService: UiInteractionService,
-    private baseDataService: BaseDataService,
-    private logger: LogService,
     private versionControlService: VersionControlService,
     private analyticsService: AnalyticsService,
     private autoSaveService: AutoSaveService,

@@ -40,13 +40,12 @@ describe("Origin Destination CSV Test", () => {
     resourceService = new ResourceService();
     logPublishersService = new LogPublishersService();
     logService = new LogService(logPublishersService);
-    labelGroupService = new LabelGroupService(logService);
-    labelService = new LabelService(logService, labelGroupService);
+    labelGroupService = new LabelGroupService();
+    labelService = new LabelService(labelGroupService);
     filterService = new FilterService(labelService, labelGroupService);
     trainrunService = new TrainrunService(logService, labelService, filterService);
-    trainrunSectionService = new TrainrunSectionService(logService, trainrunService, filterService);
+    trainrunSectionService = new TrainrunSectionService(trainrunService, filterService);
     nodeService = new NodeService(
-      logService,
       resourceService,
       trainrunService,
       trainrunSectionService,
@@ -54,7 +53,7 @@ describe("Origin Destination CSV Test", () => {
       filterService,
     );
     baseDataService = new BaseDataService();
-    noteService = new NoteService(logService, labelService, filterService);
+    noteService = new NoteService(labelService, filterService);
     netzgrafikColoringService = new NetzgrafikColoringService();
     dataService = new DataService(
       resourceService,
@@ -179,7 +178,7 @@ describe("Origin Destination CSV Test", () => {
     expect(end - start).toBeLessThan(100);
   });
 
-  it("trainruns with different frequences", () => {
+  it("trainruns with different frequencies", () => {
     // select nodes [11..14]
     for (let i = 11; i <= 14; i++) {
       nodeService.selectNode(i);
@@ -301,13 +300,7 @@ describe("Origin Destination CSV Test", () => {
 
     expect(topoVertices).toHaveSize(4);
     edges.forEach((edge) => {
-      const v1Index = topoVertices.findIndex((value) => {
-        return value === edge.v1;
-      });
-      const v2Index = topoVertices.findIndex((value) => {
-        return value === edge.v2;
-      });
-      expect(v1Index).toBeLessThan(v2Index);
+      expect(topoVertices.indexOf(edge.v1)).toBeLessThan(topoVertices.indexOf(edge.v2));
     });
 
     const distances0 = computeShortestPaths(0, neighbors, topoVertices, tsSuccessor);
@@ -361,13 +354,7 @@ describe("Origin Destination CSV Test", () => {
     const topoVertices = topoSort(neighbors);
     expect(topoVertices).toHaveSize(11);
     edges.forEach((edge) => {
-      const v1Index = topoVertices.findIndex((value) => {
-        return value === edge.v1;
-      });
-      const v2Index = topoVertices.findIndex((value) => {
-        return value === edge.v2;
-      });
-      expect(v1Index).toBeLessThan(v2Index);
+      expect(topoVertices.indexOf(edge.v1)).toBeLessThan(topoVertices.indexOf(edge.v2));
     });
 
     const distances0 = computeShortestPaths(0, neighbors, topoVertices, tsSuccessor);

@@ -4,7 +4,6 @@ import {NodeService} from "../../../services/data/node.service";
 import {TrainrunService} from "../../../services/data/trainrun.service";
 import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
 import {SVGMouseController} from "../../util/svg.mouse.controller";
-import {LogService} from "../../../logger/log.service";
 import {NoteService} from "../../../services/data/note.service";
 import {
   NODE_MIN_HEIGHT,
@@ -41,7 +40,6 @@ export class EditorKeyEvents {
     private noteService: NoteService,
     private filterService: FilterService,
     private uiInteractionService: UiInteractionService,
-    private logService: LogService,
     private undoService: UndoService,
     private copyService: CopyService,
     private svgMouseController: SVGMouseController,
