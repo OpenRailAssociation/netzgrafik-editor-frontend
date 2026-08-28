@@ -14,7 +14,7 @@ describe("ProjectsViewComponent", () => {
   let component: ProjectsViewComponent;
   let fixture: ComponentFixture<ProjectsViewComponent>;
   let projectViewService: Partial<ProjectsViewService>;
-  let projectControllerBackendService: Partial<ProjectControllerBackendService>;
+  const projectControllerBackendService: Partial<ProjectControllerBackendService> = undefined;
 
   beforeEach(async () => {
     projectViewService = {

@@ -16,8 +16,8 @@ describe("NavigationBarComponent", () => {
   let component: NavigationBarComponent;
   let fixture: ComponentFixture<NavigationBarComponent>;
 
-  let projectControllerBackendService: Partial<ProjectControllerBackendService>;
-  let variantControllerBackendService: Partial<VariantControllerBackendService>;
+  const projectControllerBackendService: Partial<ProjectControllerBackendService> = undefined;
+  const variantControllerBackendService: Partial<VariantControllerBackendService> = undefined;
   let router: Partial<Router>;
 
   beforeEach(async () => {

@@ -25,9 +25,9 @@ describe("VariantsViewComponent", () => {
   let projectControllerBackendService: {getProject: () => Observable<ProjectDto>};
   let variantControllerBackendService: {createVariant: () => Observable<number>};
   let activatedRoute: Partial<ActivatedRoute>;
-  let versionControlService: Partial<VersionControlService>;
-  let versionControllerBackendService: Partial<VersionControllerBackendService>;
-  let dataService: Partial<DataService>;
+  const versionControlService: Partial<VersionControlService> = undefined;
+  const versionControllerBackendService: Partial<VersionControllerBackendService> = undefined;
+  const dataService: Partial<DataService> = undefined;
 
   beforeEach(async () => {
     projectControllerBackendService = {
