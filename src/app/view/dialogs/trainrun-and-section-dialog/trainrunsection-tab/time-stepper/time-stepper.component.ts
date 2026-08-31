@@ -19,7 +19,7 @@ export class TimeStepperComponent {
   @Input() isDisplayed = true;
   @Input() containerClass: string;
   @Input() inputId: string;
-  @Input() inputClass: string | string[];
+  @Input() inputClass: string | string[] | Record<string, boolean>;
   @Input() tabIndex: number;
   @Input() value: number;
   @Input() min: number = 0;
