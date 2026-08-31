@@ -73,7 +73,7 @@
     "@openapitools/openapi-generator-cli": "^2.40.1",
     "@types/d3": "^7.4.3",
     "@types/karma-jasmine": "^4.0.5",
-    "@types/node": "^26.2.0",
+    "@types/node": "^26.3.0",
     "@types/papaparse": "^5.3.2",
     "angular-eslint": "^22.1.0",
     "browserstack-local": "^1.5.12",
