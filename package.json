@@ -13,6 +13,7 @@
     "format:check": "prettier --check .",
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
+    "lint:null": "tsc --project tsconfig.strictNullChecks.json",
     "generate:api": "openapi-generator-cli generate",
     "local-test": "ng test --watch --code-coverage",
     "extract-i18n": "ng extract-i18n",
