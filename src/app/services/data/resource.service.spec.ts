@@ -132,6 +132,24 @@ describe("ResourceService", () => {
     expect(new Resource(resource.getDto()).getDto()).toEqual(resource.getDto());
   });
 
+  it("updates and persists node infrastructure", () => {
+    const resource = resourceService.createAndGetResource(false);
+    const nodeInfrastructure = {
+      platformTrackCount: 3,
+      throughTrackCount: 1,
+      sidingTrackCount: 2,
+      openRailwayMapId: "node/456",
+      source: InfrastructureDataSource.Manual,
+      lastUpdatedAt: "2026-09-01T12:00:00.000Z",
+    };
+
+    resourceService.changeNodeInfrastructure(resource.getId(), nodeInfrastructure, false);
+
+    expect(resourceService.getResource(resource.getId()).getNodeInfrastructure()).toEqual(
+      nodeInfrastructure,
+    );
+  });
+
   it("test - resource and node 1:1 link", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const allNodeResourceIds: number[] = [];

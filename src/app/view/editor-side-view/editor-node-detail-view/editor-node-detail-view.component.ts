@@ -25,6 +25,11 @@ import {SbbChipEvent, SbbChipInputEvent} from "@sbb-esta/angular/chips";
 import {COMMA, ENTER} from "@angular/cdk/keycodes";
 import {environment} from "../../../../environments/environment";
 import {VersionControlService} from "../../../services/data/version-control.service";
+import {
+  createDefaultNodeInfrastructure,
+  InfrastructureDataSource,
+  NodeInfrastructureResource,
+} from "../../../types/infrastructure-resource.types";
 
 interface NodeProperties {
   nodeId: number;
@@ -34,6 +39,7 @@ interface NodeProperties {
   nodeTrainrunCategoryHaltezeit: TrainrunCategoryHaltezeit;
   nodeResourceId: number;
   nodeCapacity: number;
+  nodeInfrastructure: NodeInfrastructureResource;
   labels: string[];
 }
 
@@ -56,6 +62,7 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
     nodeTrainrunCategoryHaltezeit: Node.getDefaultHaltezeit(),
     nodeResourceId: null,
     nodeCapacity: 2,
+    nodeInfrastructure: createDefaultNodeInfrastructure(),
     labels: [],
   };
 
@@ -166,6 +173,24 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
     }
   }
 
+  onNodeInfrastructureChanged() {
+    this.nodeProperties.nodeInfrastructure = {
+      ...this.nodeProperties.nodeInfrastructure,
+      source: InfrastructureDataSource.Manual,
+      lastUpdatedAt: new Date().toISOString(),
+    };
+    this.resourceService.changeNodeInfrastructure(
+      this.nodeProperties.nodeResourceId,
+      this.nodeProperties.nodeInfrastructure,
+    );
+  }
+
+  isNodeInfrastructureInvalid(): boolean {
+    const {platformTrackCount, throughTrackCount, sidingTrackCount} =
+      this.nodeProperties.nodeInfrastructure;
+    return platformTrackCount < 0 || throughTrackCount < 0 || sidingTrackCount < 0;
+  }
+
   loadCapacityValue() {
     this.nodeProperties.nodeCapacity = this.resourceService
       .getResource(this.nodeProperties.nodeResourceId)
@@ -256,6 +281,8 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
         nodeTrainrunCategoryHaltezeit: selectedNode.getTrainrunCategoryHaltezeit(),
         nodeResourceId: resource.getId(),
         nodeCapacity: resource.getCapacity(),
+        nodeInfrastructure:
+          resource.getNodeInfrastructure() ?? createDefaultNodeInfrastructure(),
         labels: this.labelService.getTextLabelsFromIds(selectedNode.getLabelIds()),
       };
       this.initialNodeLabels = [...this.nodeProperties.labels]; // initialize labels
@@ -272,4 +299,5 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
       this.initialNodeLabels = [...this.nodeProperties.labels];
     }
   }
+
 }

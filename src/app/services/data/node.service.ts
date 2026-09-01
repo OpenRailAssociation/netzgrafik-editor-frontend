@@ -21,6 +21,7 @@ import {Transition} from "../../models/transition.model";
 import {Connection} from "../../models/connection.model";
 import {ResourceService} from "./resource.service";
 import {Resource} from "../../models/resource.model";
+import {createDefaultNodeInfrastructure} from "../../types/infrastructure-resource.types";
 import {Port} from "../../models/port.model";
 import {takeUntil} from "rxjs/operators";
 import {Vec2D} from "../../utils/vec2D";
@@ -249,6 +250,7 @@ export class NodeService implements OnDestroy {
     this.nodesStore.nodes.forEach((n) => n.unselect());
     const node: Node = new Node();
     const resource: Resource = this.resourceService.createAndGetResource();
+    resource.setNodeInfrastructure(createDefaultNodeInfrastructure());
     node.setResourceId(resource.getId());
     node.setPosition(alignedPosition.getX(), alignedPosition.getY());
     node.select();

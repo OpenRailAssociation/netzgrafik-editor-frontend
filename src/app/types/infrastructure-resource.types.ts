@@ -15,6 +15,16 @@ export interface NodeInfrastructureResource extends InfrastructureDataProvenance
   sidingTrackCount: number;
 }
 
+export function createDefaultNodeInfrastructure(): NodeInfrastructureResource {
+  return {
+    platformTrackCount: 2,
+    throughTrackCount: 0,
+    sidingTrackCount: 0,
+    source: InfrastructureDataSource.Manual,
+    lastUpdatedAt: new Date().toISOString(),
+  };
+}
+
 export enum SectionTrackClass {
   SingleTrack = "singleTrack",
   DoubleTrack = "doubleTrack",
