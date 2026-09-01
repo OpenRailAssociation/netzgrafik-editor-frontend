@@ -120,6 +120,10 @@
     <p class="InfrastructureError" role="alert" *ngIf="isNodeInfrastructureInvalid()">
       {{ "app.view.editor-side-view.editor-node-detail-view.invalid-track-count" | translate }}
     </p>
+    <p class="InfrastructureResourceId">
+      {{ "app.view.editor-side-view.editor-node-detail-view.resource-id" | translate }}:
+      {{ nodeProperties.nodeResourceId }}
+    </p>
   </sbb-expansion-panel>
 
   <sbb-expansion-panel [expanded]="false">

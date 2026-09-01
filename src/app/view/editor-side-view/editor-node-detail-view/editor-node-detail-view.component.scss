@@ -2,6 +2,11 @@
   color: var(--sbb-color-red125);
   margin: 0;
 }
+
+.InfrastructureResourceId {
+  color: var(--sbb-color-graphite);
+  margin: 0;
+}
 ::ng-deep .haltezeitRow {
   height: 39px;
 }
