@@ -1558,10 +1558,20 @@ export class TrainrunSectionService implements OnDestroy {
    * Groups consecutive TrainrunSections that have collapsed nodes between them
    * into chains. Each chain starts and ends with a non-collapsed node.
    * Start and end nodes can be accessed via: sections[0].getSourceNode() and sections[sections.length - 1].getTargetNode()
+   * @param allowFirstAndLastToBeNonStop Depending on:
+   * - if `allowFirstAndLastToBeNonStop === true`: the first and last
+   *   sections of the group can respectively stop or not at the first
+   *   and last non-collapsed node.
+   * - if `allowFirstAndLastToBeNonStop === false`: the first and last
+   *   sections of the group necesseraly stop respectively at the first
+   *   and last non-collapsed node.
    * @param trainrunSections List of TrainrunSections to group
    * @returns Array of section chains
    */
-  groupTrainrunSectionsIntoChains(trainrunSections: TrainrunSection[]): TrainrunSection[][] {
+  groupTrainrunSectionsIntoChains(
+    trainrunSections: TrainrunSection[],
+    allowFirstAndLastToBeNonStop: boolean, // if true, the first and last sections in the group can be non-stop at start and end nodes
+  ): TrainrunSection[][] {
     const groups: TrainrunSection[][] = [];
     const visitedSections = new Set<number>();
 
@@ -1574,7 +1584,12 @@ export class TrainrunSectionService implements OnDestroy {
         section.getTargetNode(),
         section,
       );
-      while (backwardIterator.hasNext() && backwardIterator.current().node.getIsCollapsed()) {
+      while (
+        backwardIterator.hasNext() &&
+        (backwardIterator.current().node.getIsCollapsed() ||
+          (allowFirstAndLastToBeNonStop &&
+            backwardIterator.current().node.isNonStop(backwardIterator.current().trainrunSection)))
+      ) {
         backwardIterator.next();
       }
       const startNode = backwardIterator.current().node;
@@ -1597,8 +1612,11 @@ export class TrainrunSectionService implements OnDestroy {
         chain.push(pair.trainrunSection);
         visitedSections.add(pair.trainrunSection.getId());
 
-        // Stop if we reach a non-collapsed node (end of collapsed chain)
-        if (!pair.node.getIsCollapsed()) {
+        // Stop if we reach a non-collapsed node (and optionally a non-stop node)
+        if (
+          !pair.node.getIsCollapsed() &&
+          !(allowFirstAndLastToBeNonStop && pair.node.isNonStop(pair.trainrunSection))
+        ) {
           break;
         }
       }
@@ -1644,20 +1662,41 @@ export class TrainrunSectionService implements OnDestroy {
     return numberOfCollapsedStops;
   }
 
-  getTrainrunSectionGroupForSection(section: TrainrunSection): TrainrunSection[] {
+  getTrainrunSectionGroupForSection(
+    section: TrainrunSection,
+    allowFirstAndLastToBeNonStop: boolean, // if true, the first and last sections in the group can be non-stop at start and end nodes
+  ): TrainrunSection[] {
     const sections = this.getAllTrainrunSectionsForTrainrun(section.getTrainrun().getId());
-    const groups = this.groupTrainrunSectionsIntoChains(sections);
+    const groups = this.groupTrainrunSectionsIntoChains(sections, allowFirstAndLastToBeNonStop);
     const group = groups.find((group) => group.some((trs) => trs.getId() === section.getId()));
     return group ?? [section];
   }
 
-  getTrainrunSectionsGroupOrientedBasedOnPort(port: Port): TrainrunSection[] {
-    const group = this.getTrainrunSectionGroupForSection(port.getTrainrunSection());
+  getTrainrunSectionsGroupOrientedBasedOnPort(
+    port: Port,
+    allowFirstAndLastToBeNonStop: boolean,
+  ): TrainrunSection[] {
+    const group = this.getTrainrunSectionGroupForSection(
+      port.getTrainrunSection(),
+      allowFirstAndLastToBeNonStop,
+    );
     if (group === undefined) return undefined;
     if (group[0].getSourcePortId() === port.getId()) {
       return group;
     } else {
       return [...group].reverse();
     }
+  }
+
+  getDirectedTrainrunSectionProxiesGroup(
+    trainrunSection: TrainrunSection,
+    direction: "sourceToTarget" | "targetToSource",
+    allowFirstAndLastToBeNonStop: boolean,
+  ): DirectedTrainrunSectionProxy[] {
+    const group = this.getTrainrunSectionGroupForSection(
+      trainrunSection,
+      allowFirstAndLastToBeNonStop,
+    );
+    return group.map((section) => new DirectedTrainrunSectionProxy(section, direction));
   }
 }
