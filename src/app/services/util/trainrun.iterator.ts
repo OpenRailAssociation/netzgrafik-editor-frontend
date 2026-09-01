@@ -71,10 +71,22 @@ export class DirectedTrainrunSectionProxy {
       : this.trainrunSection.getTargetDeparture();
   }
 
+  getTailDepartureConsecutive(): number {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getSourceDepartureConsecutiveTime()
+      : this.trainrunSection.getTargetDepartureConsecutiveTime();
+  }
+
   getTailArrival(): number {
     return this.direction === "sourceToTarget"
       ? this.trainrunSection.getSourceArrival()
       : this.trainrunSection.getTargetArrival();
+  }
+
+  getTailArrivalConsecutive(): number {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getSourceArrivalConsecutiveTime()
+      : this.trainrunSection.getTargetArrivalConsecutiveTime();
   }
 
   getHeadDeparture(): number {
@@ -83,10 +95,22 @@ export class DirectedTrainrunSectionProxy {
       : this.trainrunSection.getSourceDeparture();
   }
 
+  getHeadDepartureConsecutive(): number {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getTargetDepartureConsecutiveTime()
+      : this.trainrunSection.getSourceDepartureConsecutiveTime();
+  }
+
   getHeadArrival(): number {
     return this.direction === "sourceToTarget"
       ? this.trainrunSection.getTargetArrival()
       : this.trainrunSection.getSourceArrival();
+  }
+
+  getHeadArrivalConsecutive(): number {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getTargetArrivalConsecutiveTime()
+      : this.trainrunSection.getSourceArrivalConsecutiveTime();
   }
 
   getTravelTime(): number {
