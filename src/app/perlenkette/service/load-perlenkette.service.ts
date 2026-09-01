@@ -139,6 +139,7 @@ export class LoadPerlenketteService implements OnDestroy {
             startForwardNode.getTransition(startTrainrunSection.getId()),
             true,
             false,
+            startForwardNode.getIsCollapsed(),
           ),
         );
         let lastNode = startForwardNode;
@@ -151,6 +152,14 @@ export class LoadPerlenketteService implements OnDestroy {
         for (const currentTrainrunSectionNodePair of iterator) {
           const trainrunSection = currentTrainrunSectionNodePair.trainrunSection;
           const node = currentTrainrunSectionNodePair.node;
+          const group = this.trainrunSectionService.getTrainrunSectionGroupForSection(
+            trainrunSection,
+            true,
+          );
+          const nonStopSections = group.filter(
+            (section) => !section.getTargetNode().isNonStop(section),
+          );
+          const numberOfStops = nonStopSections.length ? nonStopSections.length - 1 : 0;
           // Section X
           perlenketteItem.push(
             new PerlenketteSection(
@@ -158,10 +167,12 @@ export class LoadPerlenketteService implements OnDestroy {
               trainrunSection.getTravelTime(),
               lastNode,
               node,
-              trainrunSection.getNumberOfStops(),
+              numberOfStops,
               false,
               firstSection,
               false,
+              trainrunSection,
+              group,
             ),
           );
           firstSection = false;
@@ -177,6 +188,7 @@ export class LoadPerlenketteService implements OnDestroy {
               node.getTransition(trainrunSection.getId()),
               false,
               false,
+              node.getIsCollapsed(),
             ),
           );
           lastNode = node;
