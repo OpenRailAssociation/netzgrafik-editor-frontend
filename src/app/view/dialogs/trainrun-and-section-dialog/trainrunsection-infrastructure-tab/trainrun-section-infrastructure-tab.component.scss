@@ -1,0 +1,16 @@
+.SectionInfrastructure {
+  display: grid;
+  gap: var(--sbb-spacing-fixed-2x);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.SectionInfrastructureResourceId {
+  color: var(--sbb-color-graphite);
+  grid-column: 1 / -1;
+}
+
+.SectionInfrastructureError {
+  color: var(--sbb-color-red125);
+  grid-column: 1 / -1;
+  margin: 0;
+}

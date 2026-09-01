@@ -1,0 +1,29 @@
+<div sbbDialogContent class="SectionInfrastructure">
+  <sbb-form-field [label]="'app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.track-count' | translate">
+    <input sbbInput type="number" [(ngModel)]="sectionInfrastructure.trackCount" (change)="onSectionInfrastructureChanged()" [attr.aria-invalid]="isSectionInfrastructureInvalid()" />
+  </sbb-form-field>
+  <div>
+    <sbb-label>{{ "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.track-class" | translate }}</sbb-label>
+    <sbb-select [value]="sectionInfrastructure.trackClass" (selectionChange)="onSectionTrackClassChanged($event.value)">
+      <sbb-option *ngFor="let trackClass of sectionTrackClasses" [value]="trackClass">
+        {{ "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.track-class-" + trackClass | translate }}
+      </sbb-option>
+    </sbb-select>
+  </div>
+  <sbb-form-field [label]="'app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.maximum-speed' | translate">
+    <input sbbInput type="number" [(ngModel)]="sectionInfrastructure.maximumSpeedKph" (change)="onSectionInfrastructureChanged()" [attr.aria-invalid]="isSectionInfrastructureInvalid()" />
+  </sbb-form-field>
+  <sbb-checkbox [(ngModel)]="sectionInfrastructure.electrified" (change)="onSectionInfrastructureChanged()">
+    {{ "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.electrified" | translate }}
+  </sbb-checkbox>
+  <sbb-form-field [label]="'app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.open-railway-map-id' | translate">
+    <input sbbInput [(ngModel)]="sectionInfrastructure.openRailwayMapId" (change)="onSectionInfrastructureChanged()" />
+  </sbb-form-field>
+  <p class="SectionInfrastructureError" role="alert" *ngIf="isSectionInfrastructureInvalid()">
+    {{ "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.invalid-infrastructure" | translate }}
+  </p>
+  <div class="SectionInfrastructureResourceId">
+    {{ "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.resource-id" | translate }}:
+    {{ selectedTrainrunSection.getResourceId() }}
+  </div>
+</div>

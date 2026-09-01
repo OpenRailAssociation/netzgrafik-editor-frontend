@@ -150,6 +150,24 @@ describe("ResourceService", () => {
     );
   });
 
+  it("updates and persists section infrastructure", () => {
+    const resource = resourceService.createAndGetResource(false);
+    const sectionInfrastructure = {
+      trackCount: 2,
+      trackClass: SectionTrackClass.DoubleTrack,
+      maximumSpeedKph: 160,
+      electrified: true,
+      source: InfrastructureDataSource.Manual,
+      lastUpdatedAt: "2026-09-01T12:00:00.000Z",
+    };
+
+    resourceService.changeSectionInfrastructure(resource.getId(), sectionInfrastructure, false);
+
+    expect(resourceService.getResource(resource.getId()).getSectionInfrastructure()).toEqual(
+      sectionInfrastructure,
+    );
+  });
+
   it("test - resource and node 1:1 link", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const allNodeResourceIds: number[] = [];

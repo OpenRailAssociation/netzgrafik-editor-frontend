@@ -306,7 +306,18 @@
           "trainrun-section-tab": {
             "warningTwoLocks": "Avertissement : Trop de temps sont bloqués !",
             "propagateTimesToLeft": "Propager les temps à gauche",
-            "propagateTimesToRight": "Propager les temps à droite"
+            "propagateTimesToRight": "Propager les temps à droite",
+            "infrastructure": "Infrastructure",
+            "resource-id": "ID de ressource",
+            "track-count": "Nombre de voies",
+            "track-class": "Type de voie",
+            "track-class-singleTrack": "Voie unique",
+            "track-class-doubleTrack": "Double voie",
+            "track-class-multiTrack": "Voies multiples",
+            "maximum-speed": "Vitesse maximale (km/h)",
+            "electrified": "Électrifiée",
+            "open-railway-map-id": "ID OpenRailwayMap",
+            "invalid-infrastructure": "Le nombre de voies et la vitesse maximale ne doivent pas être négatifs."
           }
         }
       },
@@ -490,6 +501,7 @@
           "occupancy": "Occupation",
           "capacity": "Capacité",
           "infrastructure": "Infrastructure",
+          "resource-id": "ID de ressource",
           "platform-tracks": "Voies à quai",
           "through-tracks": "Voies de passage",
           "siding-tracks": "Voies de garage",

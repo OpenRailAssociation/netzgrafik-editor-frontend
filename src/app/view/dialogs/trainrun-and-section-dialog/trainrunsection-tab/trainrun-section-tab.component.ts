@@ -25,6 +25,14 @@ import {TrainrunSectionTimesService} from "../../../../services/data/trainrun-se
 import {VersionControlService} from "../../../../services/data/version-control.service";
 import {ToggleSwitchButtonComponent} from "../../../toggle-switch-button/toggle-switch-button.component";
 import {TimeStepperComponent} from "./time-stepper/time-stepper.component";
+import {ResourceService} from "../../../../services/data/resource.service";
+import {Resource} from "../../../../models/resource.model";
+import {
+  createDefaultSectionInfrastructure,
+  InfrastructureDataSource,
+  SectionInfrastructureResource,
+  SectionTrackClass,
+} from "../../../../types/infrastructure-resource.types";
 
 @Component({
   selector: "sbb-trainrunsection-tab",
@@ -63,6 +71,8 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   public categoryColorRef: ColorRefType;
   public timeCategoryShortName: string;
   public timeCategoryLinePattern: LinePatternRefs;
+  public sectionInfrastructure: SectionInfrastructureResource = createDefaultSectionInfrastructure();
+  public readonly sectionTrackClasses = Object.values(SectionTrackClass);
 
   private trainrunSectionHelper: TrainrunsectionHelper;
   private destroyed = new Subject<void>();
@@ -309,18 +319,14 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
 
   getTravelTimeCssClass(className: string): string {
     if (this.isBottomTravelTimeDisplayed) {
-      // Travel time is displayed at the top
-      // (and bottom travel time at the bottom)
       return "Top" + className;
     }
-    // Travel time is displayed at the center
     return className;
   }
 
   private resetOffsetAfterTrainrunChanged() {
     if (this.trainrunSectionTimesService.getOffsetTransformationActive()) {
       this.trainrunSectionTimesService.removeOffsetAndBackTransformTimeStructure();
-
       this.selectedTrainrunSection = this.trainrunSectionService.getSelectedTrainrunSection();
       if (this.selectedTrainrunSection !== null) {
         this.frequency = this.selectedTrainrunSection.getFrequency();
