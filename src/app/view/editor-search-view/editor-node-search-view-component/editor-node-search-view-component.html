@@ -1,6 +1,6 @@
 <sbb-search
   (search)="search()"
-  aria-label="{{ 'app.view.editor-search-view-component.search-node' | translate }}"
+  aria-label="{{ 'app.view.editor-search-view-component.select-node' | translate }}"
 >
   <input
     sbbInput
@@ -17,14 +17,14 @@
 
 @if (searchResults.length > 1) {
 <div
+  #nodeResultsList
   class="search-results-list"
   [class.search-results-overflow]="searchResults.length > 8"
-  [class.search-results-dragging]="isSearchResultsDragging"
-  (mousedown)="onSearchResultsMouseDown($event)"
+  [class.dragging]="isDraggingResults"
+  (mousedown)="onResultListMouseDown($event, nodeResultsList)"
 >
   @for (node of searchResults; track node) {
-  <br />
-  <p class="alignleft" style="line-height: 10px">
+  <div class="search-result-item">
     <span
       class="smallstation"
       [title]="transformNodeName(node)"
@@ -32,7 +32,7 @@
     >
       {{ getNodeSearchValue(node) }}
     </span>
-  </p>
+  </div>
   }
 </div>
 }
