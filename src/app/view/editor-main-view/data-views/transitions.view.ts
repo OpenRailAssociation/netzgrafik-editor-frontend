@@ -340,7 +340,7 @@ export class TransitionsView {
     const allSections = this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
       transition.getTrainrun().getId(),
     );
-    const groups = this.trainrunSectionService.groupTrainrunSectionsIntoChains(allSections);
+    const groups = this.trainrunSectionService.groupTrainrunSectionsIntoChains(allSections, false);
     const port1 = node.getPort(transition.getPortId1());
     const port2 = node.getPort(transition.getPortId2());
     const trainrunSection1 = port1.getTrainrunSection();
