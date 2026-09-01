@@ -16,6 +16,11 @@ import {CopyService} from "./copy.service";
 import {UiInteractionService} from "../ui/ui.interaction.service";
 import {LoadPerlenketteService} from "../../perlenkette/service/load-perlenkette.service";
 import {NetzgrafikUnitTesting} from "../../../integration-testing/netzgrafik.unit.testing";
+import {Resource} from "../../models/resource.model";
+import {
+  InfrastructureDataSource,
+  SectionTrackClass,
+} from "../../types/infrastructure-resource.types";
 
 describe("ResourceService", () => {
   let dataService: DataService;
@@ -100,6 +105,31 @@ describe("ResourceService", () => {
       undoService,
     );
     copyService.resetLocalStorage();
+  });
+
+  it("preserves optional infrastructure data when serializing a resource", () => {
+    const resource = new Resource({
+      id: 1,
+      capacity: 2,
+      nodeInfrastructure: {
+        platformTrackCount: 4,
+        throughTrackCount: 2,
+        sidingTrackCount: 1,
+        openRailwayMapId: "node/123",
+        source: InfrastructureDataSource.OpenRailwayMap,
+        lastUpdatedAt: "2026-09-01T12:00:00.000Z",
+      },
+      sectionInfrastructure: {
+        trackCount: 2,
+        trackClass: SectionTrackClass.DoubleTrack,
+        maximumSpeedKph: 160,
+        electrified: true,
+        source: InfrastructureDataSource.Manual,
+        lastUpdatedAt: "2026-09-01T12:00:00.000Z",
+      },
+    });
+
+    expect(new Resource(resource.getDto()).getDto()).toEqual(resource.getDto());
   });
 
   it("test - resource and node 1:1 link", () => {

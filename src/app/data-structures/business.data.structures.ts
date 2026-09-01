@@ -11,6 +11,10 @@ import {
   TransitionDto,
   WarningDto,
 } from "./technical.data.structures";
+import {
+  NodeInfrastructureResource,
+  SectionInfrastructureResource,
+} from "../types/infrastructure-resource.types";
 
 /**
  * Represents the data for user defined note elements. The FreeFloatingText has a position,
@@ -283,6 +287,8 @@ export interface MetadataDto {
 export interface ResourceDto {
   id: number; // unique identifier
   capacity: number; // maximal train allowed on the resource at time
+  nodeInfrastructure?: NodeInfrastructureResource;
+  sectionInfrastructure?: SectionInfrastructureResource;
 }
 
 /**
