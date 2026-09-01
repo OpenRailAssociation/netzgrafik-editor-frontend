@@ -467,6 +467,7 @@ export class AutoLayoutService {
   private getPositionsAtNodes(section: TrainrunSection): {source: PointLike; target: PointLike} {
     const group = this.trainrunSectionService.getTrainrunSectionsGroupOrientedBasedOnPort(
       section.getSourceNode().getPort(section.getSourcePortId()),
+      false,
     );
 
     if (group === undefined || group.length < 1) {

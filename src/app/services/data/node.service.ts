@@ -1205,6 +1205,7 @@ export class NodeService implements OnDestroy {
       this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
         trainrunSection.getTrainrunId(),
       ),
+      false,
     );
     // keep only the groups which contain the given trainrun section
     const filteredGroup = groups.find(
@@ -1284,7 +1285,10 @@ export class NodeService implements OnDestroy {
   private updateNodePortPositions(node: Node) {
     if (node.getIsCollapsed()) return;
     node.getPorts().forEach((port) => {
-      const group = this.trainrunSectionService.getTrainrunSectionsGroupOrientedBasedOnPort(port);
+      const group = this.trainrunSectionService.getTrainrunSectionsGroupOrientedBasedOnPort(
+        port,
+        false,
+      );
       const oppositeExpandedNode = this.getOppositeExpandedNode(group[0], node);
       const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
         node,
