@@ -123,7 +123,6 @@ describe("Editor-DataView", () => {
     const levelOfDetailService = new LevelOfDetailService(uiInteractionService);
 
     const positionTransformationService = new PositionTransformationService(
-      trainrunSectionService,
       nodeService,
       noteService,
       uiInteractionService,
