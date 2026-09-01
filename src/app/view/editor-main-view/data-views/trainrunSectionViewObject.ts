@@ -38,11 +38,7 @@ export class TrainrunSectionViewObject {
   }
 
   getNumberOfStops(): number {
-    // Count non-stop collapsed source nodes
-    // Note: in this context, all intermediate sections are collapsed
-    return this.trainrunSections
-      .slice(1) // skip first section
-      .filter((section) => !section.getSourceNode().isNonStop(section)).length;
+    return TrainrunsectionHelper.getStopSectionsFromGroup(this.trainrunSections).length;
   }
 
   firstSectionMatchesFirstOrLastSection(tsvo: TrainrunSectionViewObject): boolean {
@@ -53,10 +49,9 @@ export class TrainrunSectionViewObject {
   }
 
   getCollapsedStopNodes(): Node[] {
-    return this.trainrunSections
-      .slice(1)
-      .filter((section) => !section.getSourceNode().isNonStop(section))
-      .map((section) => section.getSourceNode());
+    return TrainrunsectionHelper.getStopSectionsFromGroup(this.trainrunSections).map((section) =>
+      section.getSourceNode(),
+    );
   }
 
   getCollapsedStopNodeFromStopIndex(stopIndex: number): Node {
@@ -281,7 +276,7 @@ export class TrainrunSectionViewObject {
       "_" +
       this.getTrainrun().selected() +
       "_" +
-      this.firstSection.getNumberOfStops() +
+      this.getNumberOfStops() +
       "_" +
       this.getTravelTime() +
       "_" +
@@ -309,7 +304,7 @@ export class TrainrunSectionViewObject {
       "_" +
       this.firstSection.getSourceArrivalConsecutiveTime() +
       "_" +
-      this.firstSection.getNumberOfStops() +
+      this.getNumberOfStops() +
       "_" +
       this.firstSection.getSourceNode().getBetriebspunktName() +
       "_" +
