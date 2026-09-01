@@ -1558,10 +1558,15 @@ export class TrainrunSectionService implements OnDestroy {
    * Groups consecutive TrainrunSections that have collapsed nodes between them
    * into chains. Each chain starts and ends with a non-collapsed node.
    * Start and end nodes can be accessed via: sections[0].getSourceNode() and sections[sections.length - 1].getTargetNode()
-   * @param trainrunSections List of TrainrunSections to group
-   * @returns Array of section chains
+   * @param trainrunSections List of TrainrunSections
+   * @param includeExpandedNonStopNodes if true, then section groups include
+   * non-stop nodes, even when those nodes aren't collapsed.
+   * @returns Array of sections group
    */
-  groupTrainrunSectionsIntoChains(trainrunSections: TrainrunSection[]): TrainrunSection[][] {
+  groupTrainrunSectionsIntoChains(
+    trainrunSections: TrainrunSection[],
+    includeExpandedNonStopNodes: boolean,
+  ): TrainrunSection[][] {
     const groups: TrainrunSection[][] = [];
     const visitedSections = new Set<number>();
 
@@ -1574,7 +1579,12 @@ export class TrainrunSectionService implements OnDestroy {
         section.getTargetNode(),
         section,
       );
-      while (backwardIterator.hasNext() && backwardIterator.current().node.getIsCollapsed()) {
+      while (
+        backwardIterator.hasNext() &&
+        (backwardIterator.current().node.getIsCollapsed() ||
+          (includeExpandedNonStopNodes &&
+            backwardIterator.current().node.isNonStop(backwardIterator.current().trainrunSection)))
+      ) {
         backwardIterator.next();
       }
       const startNode = backwardIterator.current().node;
@@ -1597,8 +1607,11 @@ export class TrainrunSectionService implements OnDestroy {
         chain.push(pair.trainrunSection);
         visitedSections.add(pair.trainrunSection.getId());
 
-        // Stop if we reach a non-collapsed node (end of collapsed chain)
-        if (!pair.node.getIsCollapsed()) {
+        // Stop if we reach a non-collapsed node (and optionally a non-stop node)
+        if (
+          !pair.node.getIsCollapsed() &&
+          !(includeExpandedNonStopNodes && pair.node.isNonStop(pair.trainrunSection))
+        ) {
           break;
         }
       }
@@ -1644,15 +1657,24 @@ export class TrainrunSectionService implements OnDestroy {
     return numberOfCollapsedStops;
   }
 
-  getTrainrunSectionGroupForSection(section: TrainrunSection): TrainrunSection[] {
+  getTrainrunSectionGroupForSection(
+    section: TrainrunSection,
+    includeExpandedNonStopNodes: boolean, // if true, the first and last sections in the group can be non-stop at start and end nodes
+  ): TrainrunSection[] {
     const sections = this.getAllTrainrunSectionsForTrainrun(section.getTrainrun().getId());
-    const groups = this.groupTrainrunSectionsIntoChains(sections);
+    const groups = this.groupTrainrunSectionsIntoChains(sections, includeExpandedNonStopNodes);
     const group = groups.find((group) => group.some((trs) => trs.getId() === section.getId()));
     return group ?? [section];
   }
 
-  getTrainrunSectionsGroupOrientedBasedOnPort(port: Port): TrainrunSection[] {
-    const group = this.getTrainrunSectionGroupForSection(port.getTrainrunSection());
+  getTrainrunSectionsGroupOrientedBasedOnPort(
+    port: Port,
+    includeExpandedNonStopNodes: boolean,
+  ): TrainrunSection[] {
+    const group = this.getTrainrunSectionGroupForSection(
+      port.getTrainrunSection(),
+      includeExpandedNonStopNodes,
+    );
     if (group[0].getSourcePortId() === port.getId()) {
       return group;
     } else {
