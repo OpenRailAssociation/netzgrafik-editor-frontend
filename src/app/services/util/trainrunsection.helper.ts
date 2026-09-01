@@ -481,4 +481,12 @@ export class TrainrunsectionHelper {
       return sum + sectionTime;
     }, 0);
   }
+
+  static getStopSectionsFromGroup(trainrunSections: TrainrunSection[]): TrainrunSection[] {
+    // Count non-stop collapsed source nodes
+    // Note: in this context, all intermediate sections are collapsed
+    return trainrunSections
+      .slice(1) // skip first section
+      .filter((section) => !section.getSourceNode().isNonStop(section));
+  }
 }
