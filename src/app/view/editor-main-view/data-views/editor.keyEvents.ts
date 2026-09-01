@@ -29,7 +29,6 @@ import {Vec2D} from "../../../utils/vec2D";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
 import {NoteViewObject} from "./noteViewObject";
 import {NodeViewObject} from "./nodeViewObject";
-import {EditorView} from "./editor.view";
 import {SimpleTrainrunSectionRouter} from "src/app/services/util/trainrunsection.routing";
 
 export class EditorKeyEvents {
@@ -48,7 +47,6 @@ export class EditorKeyEvents {
     private trainrunSectionPreviewLineView: TrainrunSectionPreviewLineView,
     private positionTransformationService: PositionTransformationService,
     private autoLayoutService: AutoLayoutService,
-    private editorView: EditorView,
   ) {
     this.activateMousekeyDownHandler(EditorMode.NetzgrafikEditing);
   }

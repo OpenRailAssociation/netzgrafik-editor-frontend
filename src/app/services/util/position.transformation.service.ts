@@ -1,5 +1,4 @@
 import {EventEmitter, Injectable} from "@angular/core";
-import {TrainrunSectionService} from "../data/trainrunsection.service";
 import {UiInteractionService} from "../ui/ui.interaction.service";
 import {NodeService} from "../data/node.service";
 import {NoteService} from "../data/note.service";
@@ -19,7 +18,6 @@ import {Note} from "../../models/note.model";
 })
 export class PositionTransformationService {
   constructor(
-    private readonly trainrunSectionService: TrainrunSectionService,
     private readonly nodeService: NodeService,
     private readonly noteService: NoteService,
     private readonly uiInteractionService: UiInteractionService,

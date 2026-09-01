@@ -235,7 +235,6 @@ export class EditorView implements SVGMouseControllerObserver {
       this.trainrunSectionPreviewLineView,
       this.positionTransformationService,
       this.autoLayoutService,
-      this,
     );
   }
 
