@@ -44,9 +44,13 @@ import {
 } from "../../../data-structures/business.data.structures";
 import {TrainrunSectionText} from "../../../data-structures/technical.data.structures";
 import {AutoLayoutService} from "../../../services/util/auto-layout.service";
+import {RASTERING_BASIC_GRID_SIZE} from "../../rastering/definitions";
 
 export class EditorView implements SVGMouseControllerObserver {
   static svgName = "graphContainer";
+  private static readonly RASTER_GRID_PATTERN_ID = "editor-raster-grid-pattern";
+  private static readonly RASTER_GRID_DEFS_ID = "editor-raster-grid-defs";
+  private static readonly RASTER_GRID_SPAN = 100000;
   editorMode: EditorMode = EditorMode.NetzgrafikEditing;
   controller: EditorMainViewComponent;
   svgMouseController: SVGMouseController;
@@ -581,6 +585,7 @@ export class EditorView implements SVGMouseControllerObserver {
     this.rootContainer = this.svgMouseController.init(
       this.uiInteractionService.getViewboxProperties(EditorView.svgName),
     );
+    this.createVisibleRasterGrid();
     this.notesView.setGroup(this.rootContainer.append(StaticDomTags.GROUP_SVG));
     this.nodesView.setGroup(this.rootContainer.append(StaticDomTags.GROUP_SVG));
     this.transitionsView.setGroup(this.rootContainer.append(StaticDomTags.GROUP_SVG));
@@ -589,6 +594,48 @@ export class EditorView implements SVGMouseControllerObserver {
     TrainrunSectionPreviewLineView.setGroup(this.rootContainer);
     TrainrunSectionPreviewLineView.setConnectionGroup(this.rootContainer);
     MultiSelectRenderer.setGroup(this.rootContainer);
+  }
+
+  private createVisibleRasterGrid() {
+    const rootContainerNode = this.rootContainer.node();
+    if (rootContainerNode === null) {
+      return;
+    }
+
+    const ownerSvgElement = rootContainerNode.ownerSVGElement;
+    if (ownerSvgElement === null) {
+      return;
+    }
+
+    const ownerSvgSelection = d3.select(ownerSvgElement);
+    ownerSvgSelection.select(`defs#${EditorView.RASTER_GRID_DEFS_ID}`).remove();
+
+    const defs = ownerSvgSelection.append("defs").attr("id", EditorView.RASTER_GRID_DEFS_ID);
+    const gridSize = RASTERING_BASIC_GRID_SIZE;
+
+    const pattern = defs
+      .append("pattern")
+      .attr("id", EditorView.RASTER_GRID_PATTERN_ID)
+      .attr("patternUnits", "userSpaceOnUse")
+      .attr("width", gridSize)
+      .attr("height", gridSize)
+      .attr("x", 0)
+      .attr("y", 0);
+
+    pattern
+      .append("path")
+      .attr("class", "editor_raster_grid_line")
+      .attr("d", `M ${gridSize} 0 L 0 0 0 ${gridSize}`)
+      .attr("fill", "none");
+
+    this.rootContainer
+      .append("rect")
+      .attr("class", "editor_raster_grid")
+      .attr("x", -EditorView.RASTER_GRID_SPAN)
+      .attr("y", -EditorView.RASTER_GRID_SPAN)
+      .attr("width", 2 * EditorView.RASTER_GRID_SPAN)
+      .attr("height", 2 * EditorView.RASTER_GRID_SPAN)
+      .attr("fill", `url(#${EditorView.RASTER_GRID_PATTERN_ID})`);
   }
 
   onEarlyReturnFromMousemove(event: MouseEvent): boolean {
