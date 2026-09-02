@@ -107,16 +107,6 @@
         [attr.aria-invalid]="isNodeInfrastructureInvalid()"
       />
     </sbb-form-field>
-    <sbb-form-field
-      [label]="'app.view.editor-side-view.editor-node-detail-view.open-railway-map-id' | translate"
-      class="sbb-form-field-long"
-    >
-      <input
-        sbbInput
-        [(ngModel)]="nodeProperties.nodeInfrastructure.openRailwayMapId"
-        (change)="onNodeInfrastructureChanged()"
-      />
-    </sbb-form-field>
     <p class="InfrastructureError" role="alert" *ngIf="isNodeInfrastructureInvalid()">
       {{ "app.view.editor-side-view.editor-node-detail-view.invalid-track-count" | translate }}
     </p>

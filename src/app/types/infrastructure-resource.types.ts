@@ -1,10 +1,8 @@
 export enum InfrastructureDataSource {
   Manual = "manual",
-  OpenRailwayMap = "openRailwayMap",
 }
 
 export interface InfrastructureDataProvenance {
-  openRailwayMapId?: string;
   source: InfrastructureDataSource;
   lastUpdatedAt: string;
 }

@@ -316,7 +316,6 @@
             "track-class-multiTrack": "Multi-track",
             "maximum-speed": "Maximum speed (km/h)",
             "electrified": "Electrified",
-            "open-railway-map-id": "OpenRailwayMap ID",
             "invalid-infrastructure": "Track count and maximum speed must not be negative."
           }
         }
@@ -502,10 +501,11 @@
           "capacity": "Capacity",
           "infrastructure": "Infrastructure",
           "resource-id": "Resource ID",
+          "uic-code": "UIC code",
+          "city-name": "City name",
           "platform-tracks": "Platform tracks",
           "through-tracks": "Through tracks",
           "siding-tracks": "Siding tracks",
-          "open-railway-map-id": "OpenRailwayMap ID",
           "invalid-track-count": "Track counts must not be negative.",
           "filterable-labels": "Filterable labels",
           "labels": "Labels",

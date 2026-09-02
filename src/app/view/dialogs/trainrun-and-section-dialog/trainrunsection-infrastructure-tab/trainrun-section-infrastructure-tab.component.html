@@ -16,9 +16,6 @@
   <sbb-checkbox [(ngModel)]="sectionInfrastructure.electrified" (change)="onSectionInfrastructureChanged()">
     {{ "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.electrified" | translate }}
   </sbb-checkbox>
-  <sbb-form-field [label]="'app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.open-railway-map-id' | translate">
-    <input sbbInput [(ngModel)]="sectionInfrastructure.openRailwayMapId" (change)="onSectionInfrastructureChanged()" />
-  </sbb-form-field>
   <p class="SectionInfrastructureError" role="alert" *ngIf="isSectionInfrastructureInvalid()">
     {{ "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.invalid-infrastructure" | translate }}
   </p>

@@ -115,8 +115,7 @@ describe("ResourceService", () => {
         platformTrackCount: 4,
         throughTrackCount: 2,
         sidingTrackCount: 1,
-        openRailwayMapId: "node/123",
-        source: InfrastructureDataSource.OpenRailwayMap,
+        source: InfrastructureDataSource.Manual,
         lastUpdatedAt: "2026-09-01T12:00:00.000Z",
       },
       sectionInfrastructure: {
@@ -138,7 +137,6 @@ describe("ResourceService", () => {
       platformTrackCount: 3,
       throughTrackCount: 1,
       sidingTrackCount: 2,
-      openRailwayMapId: "node/456",
       source: InfrastructureDataSource.Manual,
       lastUpdatedAt: "2026-09-01T12:00:00.000Z",
     };

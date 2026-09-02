@@ -16,7 +16,7 @@ Dieses Epic schafft optionale, persistierte Daten fuer reale Kapazitaeten und de
 1. [Datenvertrag und Persistenz](01_epic_infrastructure_resources/01_feature_resource_foundation/01_story_data_contract_and_persistence.md): Fuehrt das rueckwaertskompatible Ressourcenmodell ein.
 2. [Knoten-Infrastruktur](01_epic_infrastructure_resources/01_feature_resource_foundation/02_story_node_infrastructure_panel.md): Macht Bahnhofsgleise im Knotendetail bearbeitbar.
 3. [Strecken-Infrastruktur](01_epic_infrastructure_resources/01_feature_resource_foundation/03_story_section_infrastructure_panel.md): Macht die gemeinsamen Attribute jeder physischen Kante A-B in einem eigenen Tab bearbeitbar.
-4. [Overpass-Import](01_epic_infrastructure_resources/01_feature_resource_foundation/04_story_overpass_import.md): Importiert OR-Daten nur auf explizite Benutzeraktion.
+4. [Externer Infrastrukturimport - Zurueckgestellt](01_epic_infrastructure_resources/01_feature_resource_foundation/04_story_overpass_import.md): Dokumentiert den verworfenen Overpass-Prototyp und den neutralen Stammdaten-/Backend-Nachfolger.
 
 ## 02 - Reine Streckengrafikberechnungen
 
