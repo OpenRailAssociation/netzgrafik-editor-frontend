@@ -1,7 +1,7 @@
 # Strecken-Infrastruktur
 
-**Umsetzung:** Abschnittsdialog um einen eigenen Infrastruktur-Tab mit Gleisanzahl, Klasse, Geschwindigkeit, Elektrifizierung und OR-Mapping erweitern. Infrastruktur gehoert zur physisch gerichtungsunabhaengigen Kante $\{A,B\}$: Alle Zuglaufsections von A nach B oder B nach A verwenden denselben Ressourcendatensatz. Negative oder unrealistische Geschwindigkeit markieren.
+**Umsetzung:** Der Infrastruktur-Tab einer physischen, richtungsunabhaengigen Kante $\{A,B\}$ zeigt die gemeinsame Ressourcen-ID, ihre vorhandene `capacity` und die berechnete Gleisbedarfsfolge `[(start, end, minGleise), ...]`. `start` und `end` sind auf $[0,1]$ normierte Kantenpositionen. Der Tab rendert den zugehoerigen Non-stop-Korridor als alternierende Folge `BP -> SVG-Kante -> BP`; jede direkte BP-Kante besitzt ihr eigenes Eingabefeld fuer `capacity` und fragt ihre eigene Segmentfolge lazy aus dem `InfrastructureService` in ihrer Leserichtung ab. Streckenklasse, Hoechstgeschwindigkeit und Elektrifizierung gehoeren nicht zum V1-Datenvertrag und werden nicht angezeigt oder persistiert.
 
-**Test:** Component-Bindung, Persistenz, Validierung und richtungsunabhaengige gemeinsame Ressource. **UI:** Zwei Zuglaufsections zwischen denselben Knoten oeffnen; Aenderungen der einen Section muessen in der anderen sichtbar sein.
+**Test:** Gegenrichtungen verwenden dieselbe Ressource; gleichzeitige Fahrten ergeben `[(0, 1, 2)]`; nicht ueberlappende Fahrten ergeben `[(0, 1, 1)]`. Fuer eine Gegenrichtung werden die Segmente gespiegelt zu `[(1-end, 1-start, minGleise), ...]`. Beim Oeffnen des Infrastruktur-Tabs werden fehlende Ressourcen fuer Korridor-Teilkanten einmalig zugeordnet, ohne Update-Schleife. **UI:** Jede Korridorkante zeigt ein eigenes Kapazitaetsfeld; eine Aenderung aktualisiert ihre Gleisgeometrie und Kapazitaetsmarkierung live.
 
-**Commit:** `feat(infrastructure): edit section resources in section dialog`
+**Commit:** `refactor(infrastructure): render calculated section track segments`

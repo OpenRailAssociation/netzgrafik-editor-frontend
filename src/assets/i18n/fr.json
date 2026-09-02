@@ -310,6 +310,7 @@
             "infrastructure": "Infrastructure",
             "resource-id": "ID de ressource",
             "track-count": "Nombre de voies",
+            "track-segments": "Segments de voie",
             "track-class": "Type de voie",
             "track-class-singleTrack": "Voie unique",
             "track-class-doubleTrack": "Double voie",

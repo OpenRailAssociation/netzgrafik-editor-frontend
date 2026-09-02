@@ -310,6 +310,7 @@
             "infrastructure": "Infrastructure",
             "resource-id": "Resource ID",
             "track-count": "Track count",
+            "track-segments": "Track segments",
             "track-class": "Track class",
             "track-class-singleTrack": "Single track",
             "track-class-doubleTrack": "Double track",

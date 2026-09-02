@@ -2,8 +2,6 @@ import {Injectable} from "@angular/core";
 import {BehaviorSubject} from "rxjs";
 import {Resource} from "../../models/resource.model";
 import {ResourceDto} from "../../data-structures/business.data.structures";
-import {NodeInfrastructureResource} from "../../types/infrastructure-resource.types";
-import {SectionInfrastructureResource} from "../../types/infrastructure-resource.types";
 
 @Injectable({
   providedIn: "root",
@@ -43,32 +41,6 @@ export class ResourceService {
     this.resourceStore.resources
       .find((res: Resource) => res.getId() === resourceId)
       .setCapacity(capacity);
-    if (enforceUpdate) {
-      this.resourceUpdated();
-    }
-  }
-
-  changeNodeInfrastructure(
-    resourceId: number,
-    nodeInfrastructure: NodeInfrastructureResource,
-    enforceUpdate: boolean = true,
-  ) {
-    this.resourceStore.resources
-      .find((resource) => resource.getId() === resourceId)
-      .setNodeInfrastructure(nodeInfrastructure);
-    if (enforceUpdate) {
-      this.resourceUpdated();
-    }
-  }
-
-  changeSectionInfrastructure(
-    resourceId: number,
-    sectionInfrastructure: SectionInfrastructureResource,
-    enforceUpdate: boolean = true,
-  ) {
-    this.resourceStore.resources
-      .find((resource) => resource.getId() === resourceId)
-      .setSectionInfrastructure(sectionInfrastructure);
     if (enforceUpdate) {
       this.resourceUpdated();
     }

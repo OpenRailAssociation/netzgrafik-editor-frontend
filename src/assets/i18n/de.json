@@ -310,6 +310,7 @@
             "infrastructure": "Infrastruktur",
             "resource-id": "Ressourcen-ID",
             "track-count": "Anzahl Gleise",
+            "track-segments": "Gleissegmente",
             "track-class": "Streckenklasse",
             "track-class-singleTrack": "Eingleisig",
             "track-class-doubleTrack": "Zweigleisig",

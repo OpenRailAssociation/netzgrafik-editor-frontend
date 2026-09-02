@@ -1,7 +1,7 @@
 # Gleisbelegungsrechner
 
-**Umsetzung:** Pure Funktion aus Knoten, Zuglaeufen und optionaler Knotenressource. Ergebnis: konfliktfreie zeitliche Belegungsslots, eine zeitlich sortierte Belegungsprofilfolge `von-bis -> benoetigte Spuren`, Mindestbedarf als Maximum des Profils und optional Kapazitaet, Auslastung, `sufficient`/`tight`/`overloaded`. Das Profil wird spaeter im Knoten-Infrastrukturpanel als Gleisbelegung der Streckengrafik visualisiert.
+**Umsetzung:** Pure Funktion ausschliesslich aus `Node`, `Trainrun`, `TrainrunSection` und `Resource`. Sie bestimmt aus Takt, Haltezeiten, Zugfolgezeiten, Uebergaengen und Endpunktbelegungen die zyklisch ausgerollten Reservierungen. Jede Reservierung wird dem niedrigsten freien Gleis zugeteilt. Das Ergebnis pro Knoten ist `TrainrunSection, startMinute, endMinute, trackNumber`; die Zahl verwendeter Gleise ist damit minimal und konfliktfrei. Der Analysehorizont ist mindestens 60 Minuten und erweitert sich auf die gemeinsame Taktperiode, begrenzt auf 24 Stunden.
 
-**Test:** Parallele Aufenthalte, fehlende Ressource und Kapazitaetsgrenzen. **UI:** nicht anwendbar.
+**Test:** Parallele Aufenthalte, Nicht-Halt, Endpunktbelegung, Takt-Ausrollung, fehlende Ressource und Kapazitaetsgrenzen. **UI:** nicht anwendbar.
 
-**Commit:** `refactor(analytics): extract pure node occupancy calculator`
+**Commit:** `refactor(analytics): extract domain-only node track allocator`

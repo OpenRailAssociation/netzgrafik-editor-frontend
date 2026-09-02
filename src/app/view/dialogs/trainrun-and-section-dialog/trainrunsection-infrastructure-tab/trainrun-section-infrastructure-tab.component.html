@@ -1,26 +1,113 @@
 <div sbbDialogContent class="SectionInfrastructure">
-  <sbb-form-field [label]="'app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.track-count' | translate">
-    <input sbbInput type="number" [(ngModel)]="sectionInfrastructure.trackCount" (change)="onSectionInfrastructureChanged()" [attr.aria-invalid]="isSectionInfrastructureInvalid()" />
-  </sbb-form-field>
-  <div>
-    <sbb-label>{{ "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.track-class" | translate }}</sbb-label>
-    <sbb-select [value]="sectionInfrastructure.trackClass" (selectionChange)="onSectionTrackClassChanged($event.value)">
-      <sbb-option *ngFor="let trackClass of sectionTrackClasses" [value]="trackClass">
-        {{ "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.track-class-" + trackClass | translate }}
-      </sbb-option>
-    </sbb-select>
-  </div>
-  <sbb-form-field [label]="'app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.maximum-speed' | translate">
-    <input sbbInput type="number" [(ngModel)]="sectionInfrastructure.maximumSpeedKph" (change)="onSectionInfrastructureChanged()" [attr.aria-invalid]="isSectionInfrastructureInvalid()" />
-  </sbb-form-field>
-  <sbb-checkbox [(ngModel)]="sectionInfrastructure.electrified" (change)="onSectionInfrastructureChanged()">
-    {{ "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.electrified" | translate }}
-  </sbb-checkbox>
-  <p class="SectionInfrastructureError" role="alert" *ngIf="isSectionInfrastructureInvalid()">
-    {{ "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.invalid-infrastructure" | translate }}
-  </p>
-  <div class="SectionInfrastructureResourceId">
-    {{ "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.resource-id" | translate }}:
-    {{ selectedTrainrunSection.getResourceId() }}
+  <div class="SectionInfrastructureTrackSegments">
+    {{
+      "app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.track-segments"
+        | translate
+    }}:
+    <br />
+    <br />
+    <div class="SectionInfrastructureCorridor">
+      <div class="SectionInfrastructureCorridorControls">
+        <ng-container *ngFor="let item of corridorItems">
+          <div
+            *ngIf="item.type === 'node'"
+            class="SectionInfrastructureCorridorNode SectionInfrastructureCorridorSpacer"
+            aria-hidden="true"
+          >
+            <b>{{ item.node.getBetriebspunktName() }}</b> ({{ item.node.getFullName() }})
+          </div>
+          <div *ngIf="item.type === 'section'" class="SectionInfrastructureCorridorSection">
+            <sbb-form-field
+              class="SectionInfrastructureCorridorCapacity"
+              [label]="
+                'app.view.dialogs.trainrun-and-section-dialog.trainrun-section-tab.track-count'
+                  | translate
+              "
+            >
+              <input
+                sbbInput
+                type="number"
+                min="1"
+                [(ngModel)]="item.trackCapacity"
+                (change)="onTrackCapacityChanged(item.resourceId, item.trackCapacity)"
+              />
+            </sbb-form-field>
+          </div>
+        </ng-container>
+      </div>
+      <div class="SectionInfrastructureCorridorTopology">
+        <ng-container *ngFor="let item of corridorItems">
+          <div *ngIf="item.type === 'node'" class="SectionInfrastructureCorridorNode">
+            <b>{{ item.node.getBetriebspunktName() }}</b> ({{ item.node.getFullName() }})
+          </div>
+          <div *ngIf="item.type === 'section'" class="SectionInfrastructureCorridorSection">
+            <svg
+              class="SectionInfrastructureTrackDiagram"
+              width="192"
+              height="64"
+              viewBox="0 0 192 64"
+              preserveAspectRatio="xMinYMid meet"
+              role="img"
+            >
+              <ng-container *ngFor="let segment of item.trackSegments">
+                <ng-container *ngIf="getVisibleTrackCount(segment[2]) > 1">
+                  <line
+                    class="SectionInfrastructureTrackSegmentConnector"
+                    [attr.x1]="getTrackSegmentStart(segment[0])"
+                    [attr.x2]="getTrackSegmentStart(segment[0])"
+                    [attr.y1]="getTrackSegmentTop(getVisibleTrackCount(segment[2]))"
+                    [attr.y2]="getTrackSegmentBottom(getVisibleTrackCount(segment[2]))"
+                  ></line>
+                  <line
+                    class="SectionInfrastructureTrackSegmentConnector"
+                    [attr.x1]="getTrackSegmentEnd(segment[1])"
+                    [attr.x2]="getTrackSegmentEnd(segment[1])"
+                    [attr.y1]="getTrackSegmentTop(getVisibleTrackCount(segment[2]))"
+                    [attr.y2]="getTrackSegmentBottom(getVisibleTrackCount(segment[2]))"
+                  ></line>
+                </ng-container>
+                <line
+                  *ngFor="let trackIndex of getTrackIndexes(getVisibleTrackCount(segment[2]))"
+                  [class.SectionInfrastructureTrackLineExceeded]="trackIndex >= item.trackCapacity"
+                  [attr.x1]="getTrackSegmentStart(segment[0])"
+                  [attr.x2]="getTrackSegmentEnd(segment[1])"
+                  [attr.y1]="getTrackLineY(trackIndex, getVisibleTrackCount(segment[2]))"
+                  [attr.y2]="getTrackLineY(trackIndex, getVisibleTrackCount(segment[2]))"
+                >
+                  <title>{{ segment[0] }}, {{ segment[1] }}, {{ segment[2] }}</title>
+                </line>
+                <ng-container *ngIf="segment[2] > 4">
+                  <rect
+                    class="SectionInfrastructureTrackCountBox"
+                    [class.SectionInfrastructureTrackCountExceeded]="
+                      segment[2] > item.trackCapacity
+                    "
+                    [attr.x]="getTrackSegmentStart(segment[0])"
+                    y="16"
+                    [attr.width]="getTrackSegmentWidth(segment[0], segment[1])"
+                    height="33"
+                  ></rect>
+                  <text
+                    class="SectionInfrastructureTrackCountText"
+                    [class.SectionInfrastructureTrackCountExceeded]="
+                      segment[2] > item.trackCapacity
+                    "
+                    [attr.x]="
+                      getTrackSegmentStart(segment[0]) +
+                      getTrackSegmentWidth(segment[0], segment[1]) / 2
+                    "
+                    y="32.5"
+                    dominant-baseline="middle"
+                    text-anchor="middle"
+                  >
+                    {{ segment[2] }}
+                  </text>
+                </ng-container>
+              </ng-container>
+            </svg>
+          </div>
+        </ng-container>
+      </div>
+    </div>
   </div>
 </div>

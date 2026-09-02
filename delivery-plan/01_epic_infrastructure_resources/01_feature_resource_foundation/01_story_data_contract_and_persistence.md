@@ -1,7 +1,7 @@
 # Datenvertrag und Persistenz
 
-**Umsetzung:** Optionale Knoten- und Streckenressourcen fuer Gleise, Klasse, Geschwindigkeit, Elektrifizierung, OR-Mapping, Quelle und Zeitpunkt. `ResourceDto`/`Resource` bleiben mit alten JSON-Dateien kompatibel.
+**Umsetzung:** `ResourceDto`/`Resource` enthalten in V1 ausschliesslich `id` und `capacity`. Knoten und Zuglaufsections verweisen ueber `resourceId` auf dieselbe Abstraktion. `capacity` bedeutet die Anzahl gleichzeitig nutzbarer Gleise. Alte JSON-Dateien mit weiteren Feldern bleiben lesbar; nicht mehr verwendete Felder werden nicht weiter persistiert.
 
-**Test:** DTO-Round-trip mit allen Feldern und altes DTO ohne neue Felder. **UI:** nicht anwendbar.
+**Test:** DTO-Round-trip mit `id` und `capacity`, altes DTO mit zusaetzlichen Feldern sowie Knoten- und Kantenreferenz auf eine Ressource. **UI:** nicht anwendbar.
 
-**Commit:** `feat(infrastructure): persist optional node and section resources`
+**Commit:** `refactor(infrastructure): use capacity-only resource contract`

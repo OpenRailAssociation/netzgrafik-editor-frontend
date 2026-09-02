@@ -17,10 +17,6 @@ import {UiInteractionService} from "../ui/ui.interaction.service";
 import {LoadPerlenketteService} from "../../perlenkette/service/load-perlenkette.service";
 import {NetzgrafikUnitTesting} from "../../../integration-testing/netzgrafik.unit.testing";
 import {Resource} from "../../models/resource.model";
-import {
-  InfrastructureDataSource,
-  SectionTrackClass,
-} from "../../types/infrastructure-resource.types";
 
 describe("ResourceService", () => {
   let dataService: DataService;
@@ -107,63 +103,10 @@ describe("ResourceService", () => {
     copyService.resetLocalStorage();
   });
 
-  it("preserves optional infrastructure data when serializing a resource", () => {
-    const resource = new Resource({
-      id: 1,
-      capacity: 2,
-      nodeInfrastructure: {
-        platformTrackCount: 4,
-        throughTrackCount: 2,
-        sidingTrackCount: 1,
-        source: InfrastructureDataSource.Manual,
-        lastUpdatedAt: "2026-09-01T12:00:00.000Z",
-      },
-      sectionInfrastructure: {
-        trackCount: 2,
-        trackClass: SectionTrackClass.DoubleTrack,
-        maximumSpeedKph: 160,
-        electrified: true,
-        source: InfrastructureDataSource.Manual,
-        lastUpdatedAt: "2026-09-01T12:00:00.000Z",
-      },
-    });
+  it("preserves capacity when serializing a resource", () => {
+    const resource = new Resource({id: 1, capacity: 2});
 
     expect(new Resource(resource.getDto()).getDto()).toEqual(resource.getDto());
-  });
-
-  it("updates and persists node infrastructure", () => {
-    const resource = resourceService.createAndGetResource(false);
-    const nodeInfrastructure = {
-      platformTrackCount: 3,
-      throughTrackCount: 1,
-      sidingTrackCount: 2,
-      source: InfrastructureDataSource.Manual,
-      lastUpdatedAt: "2026-09-01T12:00:00.000Z",
-    };
-
-    resourceService.changeNodeInfrastructure(resource.getId(), nodeInfrastructure, false);
-
-    expect(resourceService.getResource(resource.getId()).getNodeInfrastructure()).toEqual(
-      nodeInfrastructure,
-    );
-  });
-
-  it("updates and persists section infrastructure", () => {
-    const resource = resourceService.createAndGetResource(false);
-    const sectionInfrastructure = {
-      trackCount: 2,
-      trackClass: SectionTrackClass.DoubleTrack,
-      maximumSpeedKph: 160,
-      electrified: true,
-      source: InfrastructureDataSource.Manual,
-      lastUpdatedAt: "2026-09-01T12:00:00.000Z",
-    };
-
-    resourceService.changeSectionInfrastructure(resource.getId(), sectionInfrastructure, false);
-
-    expect(resourceService.getResource(resource.getId()).getSectionInfrastructure()).toEqual(
-      sectionInfrastructure,
-    );
   });
 
   it("test - resource and node 1:1 link", () => {

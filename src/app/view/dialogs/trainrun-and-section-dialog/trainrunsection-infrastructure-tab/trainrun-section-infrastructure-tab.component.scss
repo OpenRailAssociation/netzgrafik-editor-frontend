@@ -1,12 +1,106 @@
+@use "../../../rastering/definitions" as *;
+
 .SectionInfrastructure {
+  border-style: none;
   display: grid;
   gap: var(--sbb-spacing-fixed-2x);
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-height: 250px;
+  min-height: 250px;
+  padding-bottom: 0;
 }
 
-.SectionInfrastructureResourceId {
-  color: var(--sbb-color-graphite);
+.SectionInfrastructureTrackSegments {
   grid-column: 1 / -1;
+}
+
+.SectionInfrastructureTrackDiagram {
+  display: block;
+  height: 64px;
+  overflow: visible;
+  shape-rendering: crispEdges;
+  width: 192px;
+}
+
+.SectionInfrastructureCorridor {
+  margin: var(--sbb-spacing-fixed-1x) 0;
+  overflow-x: auto;
+  padding-bottom: var(--sbb-spacing-fixed-1x);
+  transform: translateY(-10px);
+}
+
+.SectionInfrastructureCorridorControls,
+.SectionInfrastructureCorridorTopology {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  width: max-content;
+}
+
+.SectionInfrastructureCorridorTopology {
+  min-height: 64px;
+}
+
+.SectionInfrastructureCorridorNode {
+  flex: 0 0 auto;
+  font-family: "SBBWeb Light", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  text-align: center;
+}
+
+.SectionInfrastructureCorridorSection {
+  flex: 0 0 192px;
+  margin: 0 4px;
+  min-width: 192px;
+}
+
+.SectionInfrastructureCorridorSpacer {
+  visibility: hidden;
+}
+
+.SectionInfrastructureCorridorSection .sbb-form-field {
+  display: block;
+  margin: 0 auto;
+  width: 120px;
+}
+
+::ng-deep .SectionInfrastructureCorridorCapacity .sbb-form-field-label-wrapper {
+  text-align: center;
+}
+
+.SectionInfrastructureTrackDiagram line {
+  stroke: var(--sbb-color-graphite);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.SectionInfrastructureTrackDiagram .SectionInfrastructureTrackLineExceeded {
+  stroke: $COLOR_Warning;
+}
+
+.SectionInfrastructureTrackDiagram .SectionInfrastructureTrackSegmentConnector {
+  stroke-width: 1;
+}
+
+.SectionInfrastructureTrackDiagram .SectionInfrastructureTrackCountBox {
+  fill: transparent;
+  stroke: var(--sbb-color-graphite);
+  stroke-width: 1;
+}
+
+.SectionInfrastructureTrackDiagram .SectionInfrastructureTrackCountText {
+  fill: var(--sbb-color-graphite);
+  font-size: 10px;
+}
+
+.SectionInfrastructureTrackDiagram
+  .SectionInfrastructureTrackCountBox.SectionInfrastructureTrackCountExceeded {
+  stroke: $COLOR_Warning;
+}
+
+.SectionInfrastructureTrackDiagram
+  .SectionInfrastructureTrackCountText.SectionInfrastructureTrackCountExceeded {
+  fill: $COLOR_Warning;
+  stroke: none;
 }
 
 .SectionInfrastructureError {
