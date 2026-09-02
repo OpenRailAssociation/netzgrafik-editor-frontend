@@ -855,8 +855,8 @@ export class TrainrunSectionService implements OnDestroy {
       "sourceToTarget",
     );
     this.setTimeStructureInDirection({
-      chainDepartureTime: sourceDepartureTime,
-      chainTravelTime: travelTime,
+      groupDepartureTime: sourceDepartureTime,
+      groupTravelTime: travelTime,
       iterator: this.trainrunService.getNextExpandedStopIterator(
         firstSourceNode,
         firstTrainrunSection,
@@ -871,8 +871,8 @@ export class TrainrunSectionService implements OnDestroy {
       "targetToSource",
     );
     this.setTimeStructureInDirection({
-      chainDepartureTime: targetDepartureTime,
-      chainTravelTime: backwardTravelTime,
+      groupDepartureTime: targetDepartureTime,
+      groupTravelTime: backwardTravelTime,
       iterator: this.trainrunService.getNextExpandedStopIterator(
         lastTargetNode,
         lastTrainrunSection,
@@ -895,20 +895,20 @@ export class TrainrunSectionService implements OnDestroy {
   }
 
   private setTimeStructureInDirection({
-    chainDepartureTime,
-    chainTravelTime,
+    groupDepartureTime,
+    groupTravelTime,
     iterator,
     totalCumulativeTravelTime,
     precision,
   }: {
-    chainDepartureTime: number;
-    chainTravelTime: number;
+    groupDepartureTime: number;
+    groupTravelTime: number;
     iterator: TrainrunIterator;
     totalCumulativeTravelTime: number;
     precision: number;
   }) {
-    const travelTimeFactor = chainTravelTime / totalCumulativeTravelTime;
-    let departureTime = chainDepartureTime;
+    const travelTimeFactor = groupTravelTime / totalCumulativeTravelTime;
+    let departureTime = groupDepartureTime;
     let summedTravelTime = 0;
     let stopTime = 0;
     let previousHeadArrival = null;
@@ -929,7 +929,7 @@ export class TrainrunSectionService implements OnDestroy {
             precision,
           )
         : TrainrunsectionHelper.getLastSectionTravelTime(
-            chainTravelTime,
+            groupTravelTime,
             summedTravelTime,
             precision,
           );
@@ -1122,7 +1122,7 @@ export class TrainrunSectionService implements OnDestroy {
   }
 
   removeIntermediateStopOnTrainrunSection(initialTrainrunSection: TrainrunSection): boolean {
-    // look for the end of the trainrun sections chain
+    // look for the end of the trainrun sections group
     const forwardIterator = this.trainrunService.getNextExpandedIterator(
       initialTrainrunSection.getSourceNode(),
       initialTrainrunSection,
@@ -1130,7 +1130,7 @@ export class TrainrunSectionService implements OnDestroy {
     while (forwardIterator.hasNext()) forwardIterator.next();
     const lastExpandedPair = forwardIterator.current();
 
-    // traverse the chain and look for a node to remove
+    // traverse the group and look for a node to remove
     let nodeRemoved = false;
     const backwardIterator = this.trainrunService.getBackwardNextExpandedIterator(
       lastExpandedPair.node,
@@ -1444,7 +1444,7 @@ export class TrainrunSectionService implements OnDestroy {
   }
 
   /**
-   * Ensure all sections for a trainrun sections chain is [source → target] [source → target]
+   * Ensure all sections for a trainrun sections group is [source → target] [source → target]
    * consistent and invert sections if needed.
    */
   enforceConsistentSectionDirection(trainrunId: number) {
@@ -1555,15 +1555,15 @@ export class TrainrunSectionService implements OnDestroy {
   }
 
   /**
-   * Groups consecutive TrainrunSections that have collapsed nodes between them
-   * into chains. Each chain starts and ends with a non-collapsed node.
+   * Groups consecutive TrainrunSections that have collapsed nodes between them.
+   * Each group starts and ends with a non-collapsed node.
    * Start and end nodes can be accessed via: sections[0].getSourceNode() and sections[sections.length - 1].getTargetNode()
    * @param trainrunSections List of TrainrunSections
    * @param includeExpandedNonStopNodes if true, then section groups include
    * non-stop nodes, even when those nodes aren't collapsed.
    * @returns Array of sections group
    */
-  groupTrainrunSectionsIntoChains(
+  groupTrainrunSections(
     trainrunSections: TrainrunSection[],
     includeExpandedNonStopNodes: boolean,
   ): TrainrunSection[][] {
@@ -1590,8 +1590,8 @@ export class TrainrunSectionService implements OnDestroy {
       const startNode = backwardIterator.current().node;
       const startSection = backwardIterator.current().trainrunSection;
 
-      // Build chain using TrainrunIterator to leverage existing graph traversal
-      const chain: TrainrunSection[] = [];
+      // Build group using TrainrunIterator to leverage existing graph traversal
+      const group: TrainrunSection[] = [];
       const iterator = this.trainrunService.getIterator(startNode, startSection);
 
       // Traverse the trainrun and collect sections with collapsed intermediate nodes
@@ -1600,11 +1600,11 @@ export class TrainrunSectionService implements OnDestroy {
 
         if (visitedSections.has(pair.trainrunSection.getId())) {
           throw new Error(
-            `Cycle detected in trainrun section chain: section ${pair.trainrunSection.getId()} already visited for trainrun ${pair.trainrunSection.getTrainrunId()}`,
+            `Cycle detected in trainrun section group: section ${pair.trainrunSection.getId()} already visited for trainrun ${pair.trainrunSection.getTrainrunId()}`,
           );
         }
 
-        chain.push(pair.trainrunSection);
+        group.push(pair.trainrunSection);
         visitedSections.add(pair.trainrunSection.getId());
 
         // Stop if we reach a non-collapsed node (and optionally a non-stop node)
@@ -1616,8 +1616,8 @@ export class TrainrunSectionService implements OnDestroy {
         }
       }
 
-      if (chain.length > 0) {
-        groups.push(chain);
+      if (group.length > 0) {
+        groups.push(group);
       }
     });
 
@@ -1642,7 +1642,7 @@ export class TrainrunSectionService implements OnDestroy {
     while (iterator.hasNext()) {
       const {node, trainrunSection} = iterator.next();
 
-      // Stop if we reach a non-collapsed node (end of collapsed chain)
+      // Stop if we reach an expanded node (end of group)
       if (!node.getIsCollapsed()) break;
 
       // Stop if we reach the end of the trainrunsection
@@ -1662,7 +1662,7 @@ export class TrainrunSectionService implements OnDestroy {
     includeExpandedNonStopNodes: boolean, // if true, the first and last sections in the group can be non-stop at start and end nodes
   ): TrainrunSection[] {
     const sections = this.getAllTrainrunSectionsForTrainrun(section.getTrainrun().getId());
-    const groups = this.groupTrainrunSectionsIntoChains(sections, includeExpandedNonStopNodes);
+    const groups = this.groupTrainrunSections(sections, includeExpandedNonStopNodes);
     const group = groups.find((group) => group.some((trs) => trs.getId() === section.getId()));
     return group ?? [section];
   }
