@@ -1215,7 +1215,7 @@ export class NodeService implements OnDestroy {
   }
 
   getOppositeExpandedNode(trainrunSection: TrainrunSection, currentNode: Node): Node | undefined {
-    const groups = this.trainrunSectionService.groupTrainrunSectionsIntoChains(
+    const groups = this.trainrunSectionService.groupTrainrunSections(
       this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
         trainrunSection.getTrainrunId(),
       ),
