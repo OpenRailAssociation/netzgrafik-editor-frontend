@@ -24,8 +24,9 @@ Dieses Epic trennt fachliche Berechnungen von Angular und Datenservices, damit s
 
 1. [Gleisbelegungsrechner](02_epic_pure_graph_calculations/01_feature_occupancy_and_capacity/01_story_node_occupancy_calculator.md): Berechnet zeitlichen Gleisbedarf pro Knoten.
 2. [Gleisbelegungsadapter](02_epic_pure_graph_calculations/01_feature_occupancy_and_capacity/02_story_node_occupancy_adapter.md): Erhaelt die bisherige Anzeige ueber den neuen Rechner.
-3. [Track Estimator](02_epic_pure_graph_calculations/02_feature_track_topology/01_story_track_estimator.md): Ermittelt den Gleisbedarf von Streckenabschnitten.
-4. [Kapazitaetskonflikte](02_epic_pure_graph_calculations/03_feature_conflict_detection/01_story_capacity_conflicts.md): Meldet Bedarf oberhalb vorhandener Infrastruktur.
+3. [Track Estimator](02_epic_pure_graph_calculations/02_feature_track_topology/01_story_track_estimator.md): Ermittelt die geordnete Spur-Topologie und den maximalen Gleisbedarf jeder physischen Kante.
+4. [Schematische Gleis-Topologie](02_epic_pure_graph_calculations/02_feature_track_topology/02_story_schematic_track_topology.md): Visualisiert Spursegmente und maximal erforderliche Spuren im Infrastruktur-Tab.
+5. [Kapazitaetskonflikte](02_epic_pure_graph_calculations/03_feature_conflict_detection/01_story_capacity_conflicts.md): Meldet Bedarf oberhalb vorhandener Infrastruktur.
 
 ## 03 - Delta-Core
 
