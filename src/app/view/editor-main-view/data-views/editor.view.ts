@@ -203,6 +203,7 @@ export class EditorView implements SVGMouseControllerObserver {
       nodeService,
       filterService,
       versionControlService,
+      trainrunSectionService,
     );
     this.multiSelectRenderer = new MultiSelectRenderer();
     this.notesView = new NotesView(this);
