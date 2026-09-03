@@ -23,7 +23,10 @@ export enum LeftAndRightElement {
 }
 
 export class TrainrunsectionHelper {
-  constructor(private trainrunService: TrainrunService) {}
+  constructor(
+    private trainrunService: TrainrunService,
+    private trainrunSectionService: TrainrunSectionService,
+  ) {}
 
   static getSymmetricTime(time: number) {
     return time === 0 ? 0 : 60 - time;
@@ -39,6 +42,7 @@ export class TrainrunsectionHelper {
       rightArrivalTime: 0,
       travelTime: 0,
       bottomTravelTime: 0,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     };
@@ -58,23 +62,6 @@ export class TrainrunsectionHelper {
     precision = TrainrunSectionService.TIME_PRECISION,
   ): number {
     return MathUtils.round(trsTravelTime * travelTimeFactor, precision);
-  }
-
-  static getRightArrivalTime(
-    timeStructure: LeftAndRightTimeStructure,
-    precision = TrainrunSectionService.TIME_PRECISION,
-  ): number {
-    return MathUtils.round(
-      (timeStructure.leftDepartureTime + (timeStructure.travelTime % 60)) % 60,
-      precision,
-    );
-  }
-
-  static getRightDepartureTime(
-    timeStructure: LeftAndRightTimeStructure,
-    precision = TrainrunSectionService.TIME_PRECISION,
-  ): number {
-    return MathUtils.round(this.getSymmetricTime(timeStructure.rightArrivalTime), precision);
   }
 
   getLeftBetriebspunkt(trainrunSection: TrainrunSection, orderedNodes: Node[]): string[] {
@@ -124,32 +111,22 @@ export class TrainrunsectionHelper {
     };
   }
 
-  getLeftRightDirectedSectionProxies(trainrunSection: TrainrunSection, orderedNodes: Node[]) {
-    if (orderedNodes.length > 0) {
-      const direction =
-        orderedNodes[0].getId() === trainrunSection.getSourceNode().getId()
-          ? "sourceToTarget"
-          : "targetToSource";
-      const section = new DirectedTrainrunSectionProxy(trainrunSection, direction);
-      return {leftSection: section, rightSection: section};
-    }
-
-    const {leftSection, rightSection, lastLeftNode, lastRightNode} =
-      this.getLeftRightSections(trainrunSection);
-
+  getLeftRightDirectedSectionProxies(
+    trainrunSection: TrainrunSection,
+    orderedNodes: Node[],
+  ): {
+    leftSection: DirectedTrainrunSectionProxy;
+    rightSection: DirectedTrainrunSectionProxy;
+  } {
+    const direction = this.getDirection(trainrunSection, orderedNodes);
+    const proxies = this.trainrunSectionService.getDirectedTrainrunSectionProxiesGroup(
+      trainrunSection,
+      direction,
+      orderedNodes.length === 0,
+    );
     return {
-      leftSection: new DirectedTrainrunSectionProxy(
-        leftSection,
-        leftSection.getSourceNode().getId() === lastLeftNode.getId()
-          ? "sourceToTarget"
-          : "targetToSource",
-      ),
-      rightSection: new DirectedTrainrunSectionProxy(
-        rightSection,
-        rightSection.getTargetNode().getId() === lastRightNode.getId()
-          ? "sourceToTarget"
-          : "targetToSource",
-      ),
+      leftSection: proxies[0],
+      rightSection: proxies.at(-1)!,
     };
   }
 
@@ -185,49 +162,17 @@ export class TrainrunsectionHelper {
     trainrunSection: TrainrunSection,
     orderedNodes: Node[],
   ): LeftAndRightLockStructure {
-    if (orderedNodes.length > 0) {
-      const leftIsSource = orderedNodes[0].getId() === trainrunSection.getSourceNode().getId();
-      const sourceLock =
-        trainrunSection.getSourceDepartureLock() || trainrunSection.getSourceArrivalLock();
-      const targetLock =
-        trainrunSection.getTargetDepartureLock() || trainrunSection.getTargetArrivalLock();
-      return {
-        leftLock: leftIsSource ? sourceLock : targetLock,
-        rightLock: leftIsSource ? targetLock : sourceLock,
-        travelTimeLock: trainrunSection.getTravelTimeLock(),
-      };
-    }
-
-    const lastLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
-    const lastRightNode = this.getNextStopRightNode(trainrunSection, orderedNodes);
-
-    const towardsSource = this.trainrunService.getLastNonStopTrainrunSection(
-      trainrunSection.getSourceNode(),
+    const direction = this.getDirection(trainrunSection, orderedNodes);
+    const proxies = this.trainrunSectionService.getDirectedTrainrunSectionProxiesGroup(
       trainrunSection,
+      direction,
+      orderedNodes.length === 0,
     );
-    const towradsTarget = this.trainrunService.getLastNonStopTrainrunSection(
-      trainrunSection.getTargetNode(),
-      trainrunSection,
-    );
-    let leftSection = towradsTarget;
-    let rightSection = towardsSource;
-    if (
-      towardsSource.getSourceNodeId() === lastLeftNode.getId() ||
-      towardsSource.getTargetNodeId() === lastLeftNode.getId()
-    ) {
-      leftSection = towardsSource;
-      rightSection = towradsTarget;
-    }
-
+    const first = proxies[0];
+    const last = proxies.at(-1)!;
     return {
-      leftLock:
-        leftSection.getSourceNodeId() === lastLeftNode.getId()
-          ? leftSection.getSourceArrivalLock() || leftSection.getSourceDepartureLock()
-          : leftSection.getTargetArrivalLock() || leftSection.getTargetDepartureLock(),
-      rightLock:
-        rightSection.getSourceNodeId() === lastRightNode.getId()
-          ? rightSection.getSourceArrivalLock() || rightSection.getSourceDepartureLock()
-          : rightSection.getTargetArrivalLock() || rightSection.getTargetDepartureLock(),
+      leftLock: first.getTailArrivalLock() || first.getTailDepartureLock(),
+      rightLock: last.getHeadArrivalLock() || last.getHeadDepartureLock(),
       travelTimeLock: trainrunSection.getTravelTimeLock(),
     };
   }
@@ -294,90 +239,46 @@ export class TrainrunsectionHelper {
     trainrunSection: TrainrunSection,
     orderedNodes: Node[],
   ): LeftAndRightTimeStructure {
-    if (orderedNodes.length > 0) {
-      const direction =
-        orderedNodes[0].getId() === trainrunSection.getSourceNode().getId()
-          ? "sourceToTarget"
-          : "targetToSource";
-      const section = new DirectedTrainrunSectionProxy(trainrunSection, direction);
-      return {
-        leftDepartureTime: section.getTailDeparture(),
-        leftArrivalTime: section.getTailArrival(),
-        rightDepartureTime: section.getHeadDeparture(),
-        rightArrivalTime: section.getHeadArrival(),
-        travelTime: section.getTravelTime(),
-        bottomTravelTime: section.getReverseTravelTime(),
-        stopTime: 0,
-        bottomStopTime: 0,
-      };
-    }
-
-    const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
-    const bothLastNonStopTrainrunSections =
-      this.trainrunService.getBothLastNonStopTrainrunSections(trainrunSection);
-    const lastLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
-    const lastRightNode = this.getNextStopRightNode(trainrunSection, orderedNodes);
-
-    let leftTrainrunSection =
-      lastLeftNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
-        ? bothLastNonStopTrainrunSections.lastNonStopTrainrunSection1
-        : bothLastNonStopTrainrunSections.lastNonStopTrainrunSection2;
-    let rightTrainrunSection =
-      lastRightNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
-        ? bothLastNonStopTrainrunSections.lastNonStopTrainrunSection1
-        : bothLastNonStopTrainrunSections.lastNonStopTrainrunSection2;
-
-    if (lastLeftNode.getId() === lastRightNode.getId()) {
-      // special case : when start and end node are equal and no non-stop node in between,
-      // the last non-stop trainrun section is the same for both sides, so we need to determine
-      // the left and right section based on the order of the nodes
-      leftTrainrunSection = this.trainrunService.getFirstNonStopTrainrunSection(trainrunSection);
-      rightTrainrunSection = this.trainrunService.getLastNonStopTrainrunSection(
-        leftTrainrunSection.getSourceNode(),
-        leftTrainrunSection,
-      );
-    }
-
-    const cumulativeTravelTime = this.trainrunService.getCumulativeTravelTime(
+    const direction = this.getDirection(trainrunSection, orderedNodes);
+    const proxies = this.trainrunSectionService.getDirectedTrainrunSectionProxiesGroup(
       trainrunSection,
-      lastLeftNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
-        ? "targetToSource"
-        : "sourceToTarget",
+      direction,
+      orderedNodes.length === 0,
     );
-    const cumulativeBottomTravelTime = this.trainrunService.getCumulativeTravelTime(
-      trainrunSection,
-      lastRightNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
-        ? "targetToSource"
-        : "sourceToTarget",
-    );
+    const first = proxies[0];
+    const last = proxies.at(-1)!;
 
-    const totalForwardDuration =
-      lastRightNode.getArrivalTime(rightTrainrunSection) -
-      lastLeftNode.getDepartureTime(leftTrainrunSection);
-    const totalBackwardDuration =
-      lastLeftNode.getArrivalTime(leftTrainrunSection) -
-      lastRightNode.getDepartureTime(rightTrainrunSection);
+    const travelTime = this.getTravelTimeForProxiesGroup(proxies);
+    const reverseTravelTime = this.getReverseTravelTimeForProxiesGroup(proxies);
+    const totalDuration = last.getHeadArrivalConsecutive() - first.getTailDepartureConsecutive();
+    const totalReverseDuration =
+      first.getTailArrivalConsecutive() - last.getHeadDepartureConsecutive();
 
     return {
-      leftDepartureTime: lastLeftNode.getDepartureTime(leftTrainrunSection),
-      leftArrivalTime: lastLeftNode.getArrivalTime(leftTrainrunSection),
-      rightDepartureTime: lastRightNode.getDepartureTime(rightTrainrunSection),
-      rightArrivalTime: lastRightNode.getArrivalTime(rightTrainrunSection),
-      travelTime: cumulativeTravelTime,
-      bottomTravelTime: cumulativeBottomTravelTime,
-      stopTime: MathUtils.mod60(totalForwardDuration - cumulativeTravelTime),
-      bottomStopTime: MathUtils.mod60(totalBackwardDuration - cumulativeBottomTravelTime),
+      leftDepartureTime: first.getTailDeparture(),
+      leftArrivalTime: first.getTailArrival(),
+      rightDepartureTime: last.getHeadDeparture(),
+      rightArrivalTime: last.getHeadArrival(),
+      travelTime,
+      bottomTravelTime: reverseTravelTime,
+      numberOfStops: this.getStopSectionsFromProxiesGroup(proxies).length,
+      stopTime: totalDuration - travelTime,
+      bottomStopTime: totalReverseDuration - reverseTravelTime,
     };
   }
 
   getLeftAndRightSymmetries(trainrunSection: TrainrunSection, orderedNodes: Node[]) {
-    const {leftSection, rightSection} = this.getLeftRightDirectedSectionProxies(
+    const direction = this.getDirection(trainrunSection, orderedNodes);
+    const proxies = this.trainrunSectionService.getDirectedTrainrunSectionProxiesGroup(
       trainrunSection,
-      orderedNodes,
+      direction,
+      orderedNodes.length === 0,
     );
+    const first = proxies[0];
+    const last = proxies.at(-1)!;
     return {
-      leftSymmetry: leftSection.getTailSymmetry(),
-      rightSymmetry: rightSection.getHeadSymmetry(),
+      leftSymmetry: first.getTailSymmetry(),
+      rightSymmetry: last.getHeadSymmetry(),
     };
   }
 
@@ -438,6 +339,7 @@ export class TrainrunsectionHelper {
     return GeneralViewFunctions.getRightOrBottomNode(sourceNode, targetNode) === targetNode;
   }
 
+  // Note: this includes stop time at intermediate collapsed nodes
   static getTravelTimeForSectionGroup(trainrunSections: TrainrunSection[]): number {
     if (trainrunSections.length === 1) {
       return trainrunSections[0].getTravelTime();
@@ -460,6 +362,7 @@ export class TrainrunsectionHelper {
     }, 0);
   }
 
+  // Note: this includes stop time at intermediate collapsed nodes
   static getBackwardTravelTimeForSectionGroup(trainrunSections: TrainrunSection[]): number {
     if (trainrunSections.length === 1) {
       return trainrunSections[0].getBackwardTravelTime();
@@ -482,11 +385,85 @@ export class TrainrunsectionHelper {
     }, 0);
   }
 
+  // Note: this includes stop time at intermediate collapsed nodes
+  private getTravelTimeForProxiesGroup(
+    proxies: DirectedTrainrunSectionProxy[],
+    includeStopTime: boolean = false,
+  ): number {
+    if (proxies.length === 1) return proxies[0].getTravelTime();
+
+    return proxies.reduce((sum, proxy, index) => {
+      let proxyTime = proxy.getTravelTime();
+
+      // Add stop time at intermediate nodes (all except the last proxy)
+      if (includeStopTime && index < proxies.length - 1) {
+        const nextProxy = proxies[index + 1];
+        const stopTime = Math.abs(
+          nextProxy.getTailDepartureConsecutive() - proxy.getHeadArrivalConsecutive(),
+        );
+        proxyTime += stopTime;
+      }
+
+      return sum + proxyTime;
+    }, 0);
+  }
+
+  // Note: this includes stop time at intermediate collapsed nodes
+  private getReverseTravelTimeForProxiesGroup(
+    proxies: DirectedTrainrunSectionProxy[],
+    includeStopTime: boolean = false,
+  ): number {
+    if (proxies.length === 1) return proxies[0].getReverseTravelTime();
+
+    return proxies.reduce((sum, proxy, index) => {
+      let proxyTime = proxy.getReverseTravelTime();
+
+      // Add stop time at intermediate nodes (all except the last proxy)
+      if (includeStopTime && index < proxies.length - 1) {
+        const nextProxy = proxies[index + 1];
+        const stopTime = Math.abs(
+          proxy.getHeadDepartureConsecutive() - nextProxy.getTailArrivalConsecutive(),
+        );
+        proxyTime += stopTime;
+      }
+
+      return sum + proxyTime;
+    }, 0);
+  }
+
   static getStopSectionsFromGroup(trainrunSections: TrainrunSection[]): TrainrunSection[] {
     // Count non-stop collapsed source nodes
     // Note: in this context, all intermediate sections are collapsed
     return trainrunSections
       .slice(1) // skip first section
       .filter((section) => !section.getSourceNode().isNonStop(section));
+  }
+
+  private getStopSectionsFromProxiesGroup(
+    proxies: DirectedTrainrunSectionProxy[],
+  ): DirectedTrainrunSectionProxy[] {
+    // Count non-stop collapsed tail nodes
+    // Note: in this context, all intermediate sections are collapsed
+    return proxies
+      .slice(1) // skip first
+      .filter((proxy) => !proxy.getTailNode().isNonStop(proxy.trainrunSection));
+  }
+
+  private getDirection(trainrunSection: TrainrunSection, orderedNodes: Node[]) {
+    let direction: "sourceToTarget" | "targetToSource";
+    if (orderedNodes.length > 0) {
+      direction =
+        orderedNodes[0].getId() === trainrunSection.getSourceNode().getId()
+          ? "sourceToTarget"
+          : "targetToSource";
+    } else {
+      const lastLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
+      const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
+      direction =
+        lastLeftNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
+          ? "targetToSource"
+          : "sourceToTarget";
+    }
+    return direction;
   }
 }

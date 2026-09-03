@@ -1681,4 +1681,16 @@ export class TrainrunSectionService implements OnDestroy {
       return [...group].reverse();
     }
   }
+
+  getDirectedTrainrunSectionProxiesGroup(
+    trainrunSection: TrainrunSection,
+    direction: "sourceToTarget" | "targetToSource",
+    allowFirstAndLastToBeNonStop: boolean,
+  ): DirectedTrainrunSectionProxy[] {
+    const group = this.getTrainrunSectionGroupForSection(
+      trainrunSection,
+      allowFirstAndLastToBeNonStop,
+    );
+    return group.map((section) => new DirectedTrainrunSectionProxy(section, direction));
+  }
 }
