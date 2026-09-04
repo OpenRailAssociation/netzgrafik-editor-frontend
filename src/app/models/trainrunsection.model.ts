@@ -254,20 +254,22 @@ export class TrainrunSection {
 
   setSourceSymmetry(sourceSymmetry: boolean) {
     this.sourceSymmetry = sourceSymmetry;
+    if (!sourceSymmetry) {
+      this.trainrun.setSymmetric(false);
+    }
   }
 
   setTargetSymmetry(targetSymmetry: boolean) {
     this.targetSymmetry = targetSymmetry;
-  }
-
-  resetSymmetry() {
-    this.sourceSymmetry = true;
-    this.targetSymmetry = true;
+    if (!targetSymmetry) {
+      this.trainrun.setSymmetric(false);
+    }
   }
 
   setAsymmetry() {
     this.sourceSymmetry = false;
     this.targetSymmetry = false;
+    this.trainrun.setSymmetric(false);
   }
 
   setSourceArrivalDto(sourceArrivalDto: TimeLockDto) {

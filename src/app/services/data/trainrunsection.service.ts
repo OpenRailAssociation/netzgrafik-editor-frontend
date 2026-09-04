@@ -1113,9 +1113,7 @@ export class TrainrunSectionService implements OnDestroy {
   }
 
   isTrainrunSymmetric(trainrunId: number): boolean {
-    return this.getAllTrainrunSectionsForTrainrun(trainrunId).every((section) =>
-      section.isSymmetric(),
-    );
+    return this.trainrunService.getTrainrunFromId(trainrunId).isSymmetric();
   }
 
   private copyTrainrunSection(
