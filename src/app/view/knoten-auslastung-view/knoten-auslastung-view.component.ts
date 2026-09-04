@@ -11,6 +11,7 @@ import {ResourceService} from "../../services/data/resource.service";
 import {KnotenAuslastungDataPreparation} from "./knoten.auslastung.data.preparation";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
+import {InfrastructureService} from "../../services/analytics/infrastructure.service";
 
 @Component({
   selector: "sbb-knoten-auslastung-view",
@@ -30,6 +31,7 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
     private resourceService: ResourceService,
     private trainrunSectionService: TrainrunSectionService,
     private trainrunService: TrainrunService,
+    private infrastructureService: InfrastructureService,
   ) {
     this.knotenAuslastungDataPreparation = new KnotenAuslastungDataPreparation(
       trainrunService,
@@ -120,6 +122,9 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
     this.resourceService.resourceObservable.pipe(takeUntil(this.destroyed)).subscribe(() => {
       this.update();
     });
+    this.infrastructureService.getNodeOccupations().pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.update();
+    });
   }
 
   private update() {
@@ -142,8 +147,13 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
     const height = rectHtml.height;
     const pixelRadius = (0.9 * Math.min(width, height)) / 2;
 
-    this.knotenAuslastungDataPreparation.computeAuslastungsMatrix(selectedNode);
+    this.knotenAuslastungDataPreparation.computeFromInfrastructureOccupation(
+      selectedNode,
+      this.infrastructureService.getNodeOccupation(selectedNode.getId()),
+    );
     const nbrUsedOfTrackFound = this.knotenAuslastungDataPreparation.getNrUsedTrackFound();
+    const availableTrackCount =
+      this.knotenAuslastungDataPreparation.getAvailableTrackCount(selectedNode);
     const nodeDatas = this.knotenAuslastungDataPreparation.getNodesData();
     const resourceDatas = this.knotenAuslastungDataPreparation.getResourcesData();
 
@@ -252,7 +262,7 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
     this.svgDrawingContext.selectAll("g.KnotenAuslastungNbrTrackGroup").remove();
     const nbrOfTrackGroup = this.svgDrawingContext
       .selectAll("g.KnotenAuslastungNbrTrackGroup")
-      .data([nbrUsedOfTrackFound + 1]);
+      .data([{required: nbrUsedOfTrackFound, available: availableTrackCount}]);
     nbrOfTrackGroup
       .enter()
       .append(StaticDomTags.GROUP_SVG)
@@ -263,14 +273,8 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
       .attr("x", 0)
       .attr("y", 6)
       .attr("text-anchor", "middle")
-      .html(
-        (d) =>
-          "" +
-          Math.round(
-            (100 * d) /
-              this.resourceService.getResource(selectedNode.getResourceId())?.getCapacity(),
-          ) +
-          "%",
+      .html((d) =>
+        d.available === undefined ? `${d.required}` : `${d.required} / ${d.available}`,
       );
 
     this.svgDrawingContext.selectAll("g.KnotenAuslastungTimeGroup").remove();

@@ -330,9 +330,14 @@ export class DataService implements OnDestroy {
     // avoid errors.
     // fix: https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/522
     const resIds: number[] = [];
-    // collect all resource (attached to node)
+    // Collect resources attached to nodes and trainrun sections.
     this.nodeService.getNodes().forEach((n) => {
       resIds.push(n.getResourceId());
+    });
+    this.trainrunSectionService.getTrainrunSections().forEach((section) => {
+      if (section.getResourceId() !== 0) {
+        resIds.push(section.getResourceId());
+      }
     });
     // clean / fix resource objects which have no attechment.
     this.resourceService.clearUnlinkedResources(resIds);

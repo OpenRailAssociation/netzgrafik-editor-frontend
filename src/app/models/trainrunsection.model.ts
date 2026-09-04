@@ -772,6 +772,14 @@ export class TrainrunSection {
     this.targetPortId = targetPortId;
   }
 
+  getResourceId(): number {
+    return this.resourceId;
+  }
+
+  setResourceId(resourceId: number) {
+    this.resourceId = resourceId;
+  }
+
   getDto(): TrainrunSectionDto {
     this.convertVec2DToPath();
     return {
