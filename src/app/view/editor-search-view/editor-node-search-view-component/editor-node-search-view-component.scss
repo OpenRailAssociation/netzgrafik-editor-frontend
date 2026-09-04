@@ -1,0 +1,40 @@
+@use "../../../../variables" as *;
+@use "./../../../view/editor-filter-view/editor-filter-view.component.scss";
+@use "../../rastering/definitions" as *;
+
+.search-results-list {
+  display: flow-root;
+  margin-top: 0.5rem;
+  height: auto;
+  max-height: 200px;
+  overflow-y: hidden;
+  overflow-x: hidden;
+}
+
+.search-results-list.search-results-overflow {
+  overflow-y: auto;
+}
+
+.search-results-list.dragging {
+  user-select: none;
+}
+
+.search-result-item {
+  line-height: 1.15;
+  margin: 2px 0;
+}
+
+span.smallstation {
+  cursor: pointer;
+  color: var(--sbb-form-input-color);
+  font-size: var(--sbb-font-size);
+  border: 5px solid none;
+  margin-left: 4px;
+  font-weight: light;
+  user-select: none;
+}
+
+span.smallstation:hover {
+  font-weight: bolder;
+  color: var(--COLOR_Edit);
+}
