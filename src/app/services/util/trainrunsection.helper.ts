@@ -39,28 +39,25 @@ export class TrainrunsectionHelper {
       rightArrivalTime: 0,
       travelTime: 0,
       bottomTravelTime: 0,
+      stopTime: 0,
+      bottomStopTime: 0,
     };
   }
 
-  static getTravelTime(
+  static getLastSectionTravelTime(
     totalTravelTime: number,
     summedTravelTime: number,
-    travelTimeFactor: number,
-    trsTravelTime: number,
-    isRightNodeNonStopTransit: boolean,
     precision = TrainrunSectionService.TIME_PRECISION,
   ): number {
-    if (isRightNodeNonStopTransit) {
-      return Math.max(
-        MathUtils.round(trsTravelTime * travelTimeFactor, precision),
-        1.0 / Math.pow(10, precision),
-      );
-    } else {
-      return Math.max(
-        MathUtils.round(totalTravelTime - summedTravelTime, precision),
-        1.0 / Math.pow(10, precision),
-      );
-    }
+    return MathUtils.round(totalTravelTime - summedTravelTime, precision);
+  }
+
+  static getSectionDistributedTravelTime(
+    trsTravelTime: number,
+    travelTimeFactor: number,
+    precision = TrainrunSectionService.TIME_PRECISION,
+  ): number {
+    return MathUtils.round(trsTravelTime * travelTimeFactor, precision);
   }
 
   static getRightArrivalTime(
@@ -310,6 +307,8 @@ export class TrainrunsectionHelper {
         rightArrivalTime: section.getHeadArrival(),
         travelTime: section.getTravelTime(),
         bottomTravelTime: section.getReverseTravelTime(),
+        stopTime: 0,
+        bottomStopTime: 0,
       };
     }
 
@@ -352,6 +351,13 @@ export class TrainrunsectionHelper {
         : "sourceToTarget",
     );
 
+    const totalForwardDuration =
+      lastRightNode.getArrivalTime(rightTrainrunSection) -
+      lastLeftNode.getDepartureTime(leftTrainrunSection);
+    const totalBackwardDuration =
+      lastLeftNode.getArrivalTime(leftTrainrunSection) -
+      lastRightNode.getDepartureTime(rightTrainrunSection);
+
     return {
       leftDepartureTime: lastLeftNode.getDepartureTime(leftTrainrunSection),
       leftArrivalTime: lastLeftNode.getArrivalTime(leftTrainrunSection),
@@ -359,6 +365,8 @@ export class TrainrunsectionHelper {
       rightArrivalTime: lastRightNode.getArrivalTime(rightTrainrunSection),
       travelTime: cumulativeTravelTime,
       bottomTravelTime: cumulativeBottomTravelTime,
+      stopTime: MathUtils.mod60(totalForwardDuration - cumulativeTravelTime),
+      bottomStopTime: MathUtils.mod60(totalBackwardDuration - cumulativeBottomTravelTime),
     };
   }
 
@@ -428,5 +436,57 @@ export class TrainrunsectionHelper {
     const targetNode = trainrunSection.getTargetNode();
 
     return GeneralViewFunctions.getRightOrBottomNode(sourceNode, targetNode) === targetNode;
+  }
+
+  static getTravelTimeForSectionGroup(trainrunSections: TrainrunSection[]): number {
+    if (trainrunSections.length === 1) {
+      return trainrunSections[0].getTravelTime();
+    }
+
+    return trainrunSections.reduce((sum, section, index) => {
+      let sectionTime = section.getTravelTime();
+
+      // Add stop time at intermediate nodes (all except the last section)
+      if (index < trainrunSections.length - 1) {
+        const nextSection = trainrunSections[index + 1];
+        const stopTime = Math.abs(
+          nextSection.getSourceDepartureConsecutiveTime() -
+            section.getTargetArrivalConsecutiveTime(),
+        );
+        sectionTime += stopTime;
+      }
+
+      return sum + sectionTime;
+    }, 0);
+  }
+
+  static getBackwardTravelTimeForSectionGroup(trainrunSections: TrainrunSection[]): number {
+    if (trainrunSections.length === 1) {
+      return trainrunSections[0].getBackwardTravelTime();
+    }
+
+    return trainrunSections.reduce((sum, section, index) => {
+      let sectionTime = section.getBackwardTravelTime();
+
+      // Add stop time at intermediate nodes (all except the last section)
+      if (index < trainrunSections.length - 1) {
+        const nextSection = trainrunSections[index + 1];
+        const stopTime = Math.abs(
+          section.getTargetDepartureConsecutiveTime() -
+            nextSection.getSourceArrivalConsecutiveTime(),
+        );
+        sectionTime += stopTime;
+      }
+
+      return sum + sectionTime;
+    }, 0);
+  }
+
+  static getStopSectionsFromGroup(trainrunSections: TrainrunSection[]): TrainrunSection[] {
+    // Count non-stop collapsed source nodes
+    // Note: in this context, all intermediate sections are collapsed
+    return trainrunSections
+      .slice(1) // skip first section
+      .filter((section) => !section.getSourceNode().isNonStop(section));
   }
 }

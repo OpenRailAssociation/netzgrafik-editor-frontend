@@ -44,6 +44,7 @@ import {
 } from "../../../data-structures/business.data.structures";
 import {TrainrunSectionText} from "../../../data-structures/technical.data.structures";
 import {AutoLayoutService} from "../../../services/util/auto-layout.service";
+import {SimpleTrainrunSectionRouter} from "src/app/services/util/trainrunsection.routing";
 
 export class EditorView implements SVGMouseControllerObserver {
   static svgName = "graphContainer";
@@ -71,6 +72,7 @@ export class EditorView implements SVGMouseControllerObserver {
         targetNode: Node,
         existingTrainrunSection: TrainrunSection,
         enforceUpdate?: boolean,
+        emit?: boolean,
       ) => void)
     | null = null;
   deleteTrainrunSection: ((trainrunSection: TrainrunSection) => void) | null = null;
@@ -179,12 +181,12 @@ export class EditorView implements SVGMouseControllerObserver {
 
   constructor(
     controller: EditorMainViewComponent,
-    private nodeService: NodeService,
+    public nodeService: NodeService,
     trainrunService: TrainrunService,
     private trainrunSectionService: TrainrunSectionService,
     private noteService: NoteService,
     private filterService: FilterService,
-    private uiInteractionService: UiInteractionService,
+    public uiInteractionService: UiInteractionService,
     undoService: UndoService,
     copyService: CopyService,
     private viewportCullService: ViewportCullService,
@@ -195,10 +197,10 @@ export class EditorView implements SVGMouseControllerObserver {
   ) {
     this.controller = controller;
     this.svgMouseController = new SVGMouseController(EditorView.svgName, this, undoService);
-    this.nodesView = new NodesView(this);
-    this.transitionsView = new TransitionsView(this);
+    this.nodesView = new NodesView(this, nodeService);
+    this.transitionsView = new TransitionsView(this, trainrunSectionService);
     this.connectionsView = new ConnectionsView(this);
-    this.trainrunSectionsView = new TrainrunSectionsView(this);
+    this.trainrunSectionsView = new TrainrunSectionsView(this, trainrunSectionService);
     this.trainrunSectionPreviewLineView = new TrainrunSectionPreviewLineView(
       nodeService,
       filterService,
@@ -253,6 +255,7 @@ export class EditorView implements SVGMouseControllerObserver {
       targetNode: Node,
       existingTrainrunSection: TrainrunSection,
       enforceUpdate?: boolean,
+      emit?: boolean,
     ) => void,
   ) {
     this.reconnectTrainrunSection = callback;
@@ -611,7 +614,7 @@ export class EditorView implements SVGMouseControllerObserver {
 
     const allNodesOfInterest = this.nodeService.getNodes().filter((n: Node) => {
       this.nodeService.unselectNode(n.getId(), false);
-      if (this.filterService.filterNode(n)) {
+      if (this.filterService.filterNode(n) && !n.getIsCollapsed()) {
         if (
           topLeft.getX() < n.getPositionX() &&
           n.getPositionX() + n.getNodeWidth() < bottomRight.getX()
@@ -655,14 +658,14 @@ export class EditorView implements SVGMouseControllerObserver {
       // try to use multi select trainrunsections
       this.trainrunSectionService.getTrainrunSections().forEach((ts) => {
         ts.unselect();
-        const p = ts.getPath();
+        const p = SimpleTrainrunSectionRouter.computePath(ts);
         const minX = Math.min(p[1].getX(), p[2].getX());
         const maxX = Math.max(p[1].getX(), p[2].getX());
         const minY = Math.min(p[1].getY(), p[2].getY());
         const maxY = Math.max(p[1].getY(), p[2].getY());
         const center = Vec2D.scale(Vec2D.add(p[1], p[2]), 0.5);
 
-        if (this.filterService.filterTrainrun(ts.getTrainrun())) {
+        if (this.filterService.filterTrainrun(ts.getTrainrun()) && ts.areBothNodesExpanded()) {
           if (
             topLeft.getX() < center.getX() &&
             center.getX() < bottomRight.getX() &&
@@ -757,8 +760,8 @@ export class EditorView implements SVGMouseControllerObserver {
 
     const dragTransitionInfo = this.trainrunSectionPreviewLineView.getDragTransitionInfo();
     if (dragTransitionInfo !== null) {
-      D3Utils.removeGrayout(dragTransitionInfo.trainrunSection1);
-      D3Utils.removeGrayout(dragTransitionInfo.trainrunSection2);
+      D3Utils.removeGrayout(dragTransitionInfo.tsvo1);
+      D3Utils.removeGrayout(dragTransitionInfo.tsvo2);
       this.undockTransition(dragTransitionInfo.node.getId(), dragTransitionInfo.transition.getId());
     }
 
