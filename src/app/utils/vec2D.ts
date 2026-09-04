@@ -47,6 +47,10 @@ export class Vec2D {
     return new Vec2D().setData(s * a.getX(), s * a.getY());
   }
 
+  static dot(a: Vec2D, b: Vec2D): number {
+    return a.getX() * b.getX() + a.getY() * b.getY();
+  }
+
   static norm(a: Vec2D): number {
     return Math.sqrt(a.getX() * a.getX() + a.getY() * a.getY());
   }
@@ -67,6 +71,19 @@ export class Vec2D {
       y += p.getY() / points.length;
     });
     return new Vec2D(x, y);
+  }
+
+  /** Returns true when all three points share the same X or the same Y */
+  static areOnSameAxis(a: Vec2D, b: Vec2D, c: Vec2D): boolean {
+    return (
+      (a.getX() === b.getX() && b.getX() === c.getX()) ||
+      (a.getY() === b.getY() && b.getY() === c.getY())
+    );
+  }
+
+  /** Removes consecutive duplicate points */
+  static dedupe(points: Vec2D[]): Vec2D[] {
+    return points.filter((p, i) => i === 0 || !Vec2D.equal(p, points[i - 1]));
   }
 
   public toString(): string {

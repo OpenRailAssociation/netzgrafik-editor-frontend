@@ -18,6 +18,7 @@ import {LoadPerlenketteService} from "../../../perlenkette/service/load-perlenke
 import {EditorMainViewComponent} from "../editor-main-view.component";
 import {EditorView} from "./editor.view";
 import {D3Utils} from "./d3.utils";
+import {buildPathString} from "../../../services/util/svg";
 import {NetzgrafikUnitTesting} from "../../../../integration-testing/netzgrafik.unit.testing";
 import {Vec2D} from "../../../utils/vec2D";
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
@@ -169,11 +170,9 @@ describe("3d.Utils.tests", () => {
     controller.bindViewToServices();
   });
 
-  it("NotesView.convertText", () => {
+  it("buildPathString", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const txt0 = D3Utils.getPathAsSVGString(
-      trainrunSectionService.getTrainrunSectionFromId(1).getPath(),
-    );
+    const txt0 = buildPathString(trainrunSectionService.getTrainrunSectionFromId(1).getPath(), 0);
     expect(txt0).toBe("M418,48L482,48L670,80L734,80");
   });
 
