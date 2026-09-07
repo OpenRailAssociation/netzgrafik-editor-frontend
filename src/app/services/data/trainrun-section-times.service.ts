@@ -17,6 +17,7 @@ export interface LeftAndRightTimeStructure {
   rightArrivalTime: number;
   travelTime: number;
   bottomTravelTime: number;
+  numberOfStops: number;
   stopTime: number;
   bottomStopTime: number;
 }
@@ -117,6 +118,7 @@ export class TrainrunSectionTimesService {
     rightArrivalTime: 0,
     travelTime: 0,
     bottomTravelTime: 0,
+    numberOfStops: 0,
     stopTime: 0,
     bottomStopTime: 0,
   };
@@ -149,7 +151,10 @@ export class TrainrunSectionTimesService {
     private filterService: FilterService,
     private loadPerlenketteService: LoadPerlenketteService,
   ) {
-    this.trainrunSectionHelper = new TrainrunsectionHelper(this.trainrunService);
+    this.trainrunSectionHelper = new TrainrunsectionHelper(
+      this.trainrunService,
+      this.trainrunSectionService,
+    );
   }
 
   public setTrainrunSection(trainrunSection: TrainrunSection) {

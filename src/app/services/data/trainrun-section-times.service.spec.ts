@@ -92,6 +92,7 @@ describe("TrainrunSectionTimesService", () => {
           rightArrivalTime: 22,
           travelTime: 10,
           bottomTravelTime: 10,
+          numberOfStops: 0,
           stopTime: 0,
           bottomStopTime: 0,
         },
@@ -106,6 +107,7 @@ describe("TrainrunSectionTimesService", () => {
           rightArrivalTime: 0,
           travelTime: 10,
           bottomTravelTime: 10,
+          numberOfStops: 0,
           stopTime: 0,
           bottomStopTime: 0,
         },
@@ -120,6 +122,7 @@ describe("TrainrunSectionTimesService", () => {
           rightArrivalTime: 49,
           travelTime: 49,
           bottomTravelTime: 49,
+          numberOfStops: 0,
           stopTime: 0,
           bottomStopTime: 0,
         },
@@ -145,6 +148,7 @@ describe("TrainrunSectionTimesService", () => {
       rightArrivalTime: 22,
       travelTime: 10,
       bottomTravelTime: 10,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     };
@@ -547,6 +551,7 @@ describe("TrainrunSectionTimesService", () => {
       rightDepartureTime: 52,
       bottomTravelTime: 88,
       leftArrivalTime: 20,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     });
@@ -557,6 +562,7 @@ describe("TrainrunSectionTimesService", () => {
       rightDepartureTime: 8,
       bottomTravelTime: 44,
       leftArrivalTime: 52,
+      numberOfStops: 0,
       stopTime: 0,
       bottomStopTime: 0,
     });
