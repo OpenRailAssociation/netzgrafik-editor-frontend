@@ -13,7 +13,7 @@ import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
 type ConnectionDragEvent = d3.D3DragEvent<SVGElement, ConnectionsViewObject, unknown>;
 
 export class ConnectionsView {
-  connectionsGroup: d3.Selection<SVGElement, undefined, Element, undefined>;
+  connectionsGroup: d3.Selection<SVGGElement, undefined, Element, undefined>;
   editorView: EditorView;
   dragDomObj: SVGElement | null = null;
 
@@ -69,7 +69,7 @@ export class ConnectionsView {
     return ts.getPositionAtTargetNode();
   }
 
-  setGroup(connectionsGroup: d3.Selection<SVGElement, undefined, Element, undefined>) {
+  setGroup(connectionsGroup: d3.Selection<SVGGElement, undefined, Element, undefined>) {
     this.connectionsGroup = connectionsGroup;
     this.connectionsGroup.attr("class", "ConnectionsView");
   }
@@ -127,7 +127,7 @@ export class ConnectionsView {
   }
 
   createConnectionCurve(
-    drawingGroup: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
+    drawingGroup: d3.Selection<SVGGElement, ConnectionsViewObject, Element, undefined>,
   ) {
     drawingGroup
       .append(StaticDomTags.CONNECTION_LINE_SVG)
@@ -152,11 +152,11 @@ export class ConnectionsView {
   }
 
   createConnectionSinglePin(
-    drawingGroup: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
+    drawingGroup: d3.Selection<SVGGElement, ConnectionsViewObject, Element, undefined>,
     pinPos: Vec2D,
   ) {
     const draggable = d3
-      .drag<SVGElement, ConnectionsViewObject>()
+      .drag<SVGCircleElement, ConnectionsViewObject>()
       .on("start", (event: ConnectionDragEvent) => this.onConnectionPinDragStart(event))
       .on("drag", (event: ConnectionDragEvent) => this.onConnectionPinDragged(event))
       .on("end", (_, cv: ConnectionsViewObject) =>
@@ -193,7 +193,7 @@ export class ConnectionsView {
   }
 
   createConnectionPins(
-    drawingGroup: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
+    drawingGroup: d3.Selection<SVGGElement, ConnectionsViewObject, Element, undefined>,
   ) {
     const selectedTrainrun = this.editorView.getSelectedTrainrun();
 
@@ -257,7 +257,9 @@ export class ConnectionsView {
     const connections = inputConnections.filter((c) => this.filterConnectionsToDisplay(c));
 
     const connectionsGroup = this.connectionsGroup
-      .selectAll(StaticDomTags.CONNECTION_ROOT_CONTAINER_DOM_REF)
+      .selectAll<SVGGElement, ConnectionsViewObject>(
+        StaticDomTags.CONNECTION_ROOT_CONTAINER_DOM_REF,
+      )
       .data(this.createTransitionViewObjects(connections), (c: ConnectionsViewObject) => c.key);
 
     const grpEnter = connectionsGroup
@@ -277,7 +279,7 @@ export class ConnectionsView {
   }
 
   renderConnectionObject(
-    groupEnter: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
+    groupEnter: d3.Selection<SVGGElement, ConnectionsViewObject, Element, undefined>,
   ) {
     switch (this.editorView.getLevelOfDetail()) {
       case LevelOfDetail.LEVEL3: {
@@ -308,27 +310,27 @@ export class ConnectionsView {
   }
 
   makeConnectionLODFull(
-    groupEnter: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
+    groupEnter: d3.Selection<SVGGElement, ConnectionsViewObject, Element, undefined>,
   ) {
     this.createConnectionCurve(groupEnter);
     this.createConnectionPins(groupEnter);
   }
 
   makeConnectionLOD3(
-    groupEnter: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
+    groupEnter: d3.Selection<SVGGElement, ConnectionsViewObject, Element, undefined>,
   ) {
     this.createConnectionCurve(groupEnter);
     this.createConnectionPins(groupEnter);
   }
 
   makeConnectionLOD2(
-    groupEnter: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
+    groupEnter: d3.Selection<SVGGElement, ConnectionsViewObject, Element, undefined>,
   ) {
     this.createConnectionCurve(groupEnter);
   }
 
   makeConnectionLOD1(
-    groupEnter: d3.Selection<SVGElement, ConnectionsViewObject, Element, undefined>,
+    groupEnter: d3.Selection<SVGGElement, ConnectionsViewObject, Element, undefined>,
   ) {
     this.createConnectionCurve(groupEnter);
   }
