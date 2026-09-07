@@ -215,7 +215,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
       .style("user-select", "none")
       .call((g) =>
         g
-          .selectAll("text")
+          .selectAll<SVGElement, string>("text")
           .attr("data-destination-label", (d: string) => d)
           .style("text-anchor", "start")
           .attr("dx", "-0.8em")
@@ -246,7 +246,9 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
           ),
       )
       .style("user-select", "none")
-      .call((g) => g.selectAll("text").attr("data-origin-label", (d: string) => d))
+      .call((g) =>
+        g.selectAll<SVGElement, string>("text").attr("data-origin-label", (d: string) => d),
+      )
       .select(".domain")
       .remove();
 
@@ -307,7 +309,7 @@ export class OriginDestinationComponent implements OnInit, AfterViewInit, OnDest
 
     const mouseleave = (event: MouseEvent, d: OriginDestination) => {
       tooltip.style("opacity", 0);
-      d3.select(D3Utils.getMouseEventCurrentTarget(event))
+      d3.select<SVGElement, OriginDestination>(D3Utils.getMouseEventCurrentTarget(event))
         .style("stroke", "none")
         .style("opacity", (d: OriginDestination) => (d.originId === d.destinationId ? 0 : 0.8));
 

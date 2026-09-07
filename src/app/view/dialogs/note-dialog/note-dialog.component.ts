@@ -49,7 +49,7 @@ export class NoteDialogComponent implements OnDestroy {
 
   private destroyed = new Subject<void>();
 
-  private dialogRef: SbbDialogRef<unknown, unknown> = null;
+  private dialogRef: SbbDialogRef<void, unknown> = null;
   private dialogConfig: SbbDialogConfig = null;
   private dialogPos: Record<"top" | "bottom" | "left" | "right", number> = null;
   private dialogMovementLastPosition: Vec2D = undefined;
