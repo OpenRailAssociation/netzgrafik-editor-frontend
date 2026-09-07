@@ -1334,56 +1334,72 @@ describe("TrainrunSection-View", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
 
     const v0 = TrainrunSectionsView.extractTravelTime(
-      trainrunSectionService.getTrainrunSectionFromId(0),
+      new TrainrunSectionViewObject(editorView, [
+        trainrunSectionService.getTrainrunSectionFromId(0),
+      ]),
       editorView,
       "sourceToTarget",
     );
     expect(v0).toBe("10'");
 
     const v1 = TrainrunSectionsView.extractTravelTime(
-      trainrunSectionService.getTrainrunSectionFromId(1),
+      new TrainrunSectionViewObject(editorView, [
+        trainrunSectionService.getTrainrunSectionFromId(1),
+      ]),
       editorView,
       "sourceToTarget",
     );
     expect(v1).toBe("10'");
 
     const v2 = TrainrunSectionsView.extractTravelTime(
-      trainrunSectionService.getTrainrunSectionFromId(2),
+      new TrainrunSectionViewObject(editorView, [
+        trainrunSectionService.getTrainrunSectionFromId(2),
+      ]),
       editorView,
       "sourceToTarget",
     );
     expect(v2).toBe("20'");
 
     const v3 = TrainrunSectionsView.extractTravelTime(
-      trainrunSectionService.getTrainrunSectionFromId(3),
+      new TrainrunSectionViewObject(editorView, [
+        trainrunSectionService.getTrainrunSectionFromId(3),
+      ]),
       editorView,
       "sourceToTarget",
     );
     expect(v3).toBe("49' (39')");
 
     const v4 = TrainrunSectionsView.extractTravelTime(
-      trainrunSectionService.getTrainrunSectionFromId(4),
+      new TrainrunSectionViewObject(editorView, [
+        trainrunSectionService.getTrainrunSectionFromId(4),
+      ]),
       editorView,
       "sourceToTarget",
     );
     expect(v4).toBe("49' (10')");
 
     const v5 = TrainrunSectionsView.extractTravelTime(
-      trainrunSectionService.getTrainrunSectionFromId(5),
+      new TrainrunSectionViewObject(editorView, [
+        trainrunSectionService.getTrainrunSectionFromId(5),
+      ]),
       editorView,
       "sourceToTarget",
     );
     expect(v5).toBe("51'");
 
     const v6 = TrainrunSectionsView.extractTravelTime(
-      trainrunSectionService.getTrainrunSectionFromId(6),
+      new TrainrunSectionViewObject(editorView, [
+        trainrunSectionService.getTrainrunSectionFromId(6),
+      ]),
       editorView,
       "sourceToTarget",
     );
     expect(v6).toBe("10'");
 
     const v7 = TrainrunSectionsView.extractTravelTime(
-      trainrunSectionService.getTrainrunSectionFromId(7),
+      new TrainrunSectionViewObject(editorView, [
+        trainrunSectionService.getTrainrunSectionFromId(7),
+      ]),
       editorView,
       "sourceToTarget",
     );
@@ -1399,7 +1415,11 @@ describe("TrainrunSection-View", () => {
     const t2 = n2.getTransition(ts.getId());
     t1.setIsNonStopTransit(true);
     t2.setIsNonStopTransit(true);
-    const v0 = TrainrunSectionsView.extractTravelTime(ts, editorView, "sourceToTarget");
+    const v0 = TrainrunSectionsView.extractTravelTime(
+      new TrainrunSectionViewObject(editorView, [ts]),
+      editorView,
+      "sourceToTarget",
+    );
     expect(v0).toBe("(10')");
   });
 

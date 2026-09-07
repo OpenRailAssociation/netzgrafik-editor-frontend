@@ -492,21 +492,28 @@ export class TrainrunSectionsView {
   }
 
   static extractTravelTime(
-    trainrunSection: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
     editorView: EditorView,
     direction: "sourceToTarget" | "targetToSource",
   ): string {
+    const srcNode = viewObject.firstSection.getSourceNode();
+    const trgNode = viewObject.lastSection.getTargetNode();
     const travelTime =
-      direction === "targetToSource"
-        ? trainrunSection.getBackwardTravelTime()
-        : trainrunSection.getTravelTime();
+      direction === "sourceToTarget"
+        ? viewObject.getTravelTime()
+        : viewObject.getBackwardTravelTime();
     const cumTravelTimeData = editorView.getCumulativeTravelTimeAndNodePath(
-      trainrunSection,
+      direction === "sourceToTarget" ? viewObject.firstSection : viewObject.lastSection,
       direction,
     );
-    const cumulativeTravelTime = cumTravelTimeData[cumTravelTimeData.length - 1].sumTravelTime;
+    const cumulativeTravelTime = editorView.getCumulativeTravelTime(
+      direction === "sourceToTarget" ? viewObject.firstSection : viewObject.lastSection,
+      direction,
+    );
+    const bothSideNonStop =
+      srcNode.isNonStop(viewObject.firstSection) && trgNode.isNonStop(viewObject.lastSection);
     if (
-      trainrunSection.getTrainrun().selected() === true ||
+      viewObject.getTrainrun().selected() === true ||
       editorView.isFilterShowNonStopTimeEnabled() ||
       editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()
     ) {
@@ -519,14 +526,12 @@ export class TrainrunSectionsView {
         // special case - with non stops
         if (!editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
           // might is filtering active
-          const srcNonStopNode = editorView.checkFilterNonStopNode(trainrunSection.getSourceNode());
-          const trgNonStopNode = editorView.checkFilterNonStopNode(trainrunSection.getTargetNode());
-          const srcJunction = editorView.isJunctionNode(trainrunSection.getSourceNode());
-          const trgJunction = editorView.isJunctionNode(trainrunSection.getTargetNode());
-          const srcNode = TrainrunSectionsView.getNode(trainrunSection, true);
-          const trgNode = TrainrunSectionsView.getNode(trainrunSection, false);
+          const srcNonStopNode = editorView.checkFilterNonStopNode(srcNode);
+          const trgNonStopNode = editorView.checkFilterNonStopNode(trgNode);
+          const srcJunction = editorView.isJunctionNode(srcNode);
+          const trgJunction = editorView.isJunctionNode(trgNode);
 
-          if (TrainrunSectionsView.isBothSideNonStop(trainrunSection)) {
+          if (bothSideNonStop) {
             // trainrun section has on both side a non stop (transition)
             if (!srcNonStopNode && !srcJunction && !trgNonStopNode && !trgJunction) {
               return "";
@@ -589,7 +594,7 @@ export class TrainrunSectionsView {
           } else {
             // trainrun section has on non stop (transition) only on one side
             // is non-stop at source ?
-            if (srcNode.isNonStop(trainrunSection)) {
+            if (srcNode.isNonStop(viewObject.firstSection)) {
               if (!srcNonStopNode && !srcJunction) {
                 const info = TrainrunSectionsView.calcVirtualSectionTimeForHiddenJunctions(
                   cumTravelTimeData,
@@ -620,7 +625,7 @@ export class TrainrunSectionsView {
               }
             }
             // is non-stop at target ?
-            if (trgNode.isNonStop(trainrunSection)) {
+            if (trgNode.isNonStop(viewObject.lastSection)) {
               if (!trgNonStopNode && !trgJunction) {
                 const info = TrainrunSectionsView.calcVirtualSectionTimeForHiddenJunctions(
                   cumTravelTimeData,
@@ -653,7 +658,7 @@ export class TrainrunSectionsView {
           }
         }
 
-        if (TrainrunSectionsView.isBothSideNonStop(trainrunSection)) {
+        if (bothSideNonStop) {
           return "(" + TrainrunSectionsView.formatTime(travelTime, 1) + "')";
         }
         // default case for non stops
@@ -801,17 +806,8 @@ export class TrainrunSectionsView {
         if (data !== undefined) {
           return data;
         }
-        // Special case for multiple sections: calculate total time including stop times at intermediate nodes
-        if (viewObject.trainrunSections.length > 1) {
-          return (
-            TrainrunSectionsView.formatTime(
-              isForward ? viewObject.getTravelTime() : viewObject.getBackwardTravelTime(),
-              editorView.getTimeDisplayPrecision(),
-            ) + "'"
-          );
-        }
         return TrainrunSectionsView.extractTravelTime(
-          viewObject.firstSection,
+          viewObject,
           editorView,
           isForward ? "sourceToTarget" : "targetToSource",
         );

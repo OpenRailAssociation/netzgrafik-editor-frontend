@@ -757,32 +757,18 @@ export class TrainrunService {
     return iterator.current().trainrunSection;
   }
 
+  // Note: this includes stop time at intermediate collapsed nodes
   getCumulativeTravelTime(
     trainrunSection: TrainrunSection,
     direction: "sourceToTarget" | "targetToSource",
   ): number {
-    let iterator = this.getNextExpandedStopIterator(
-      trainrunSection.getSourceNode(),
+    const extendedGroup = this.trainrunSectionService.getTrainrunSectionGroupForSection(
       trainrunSection,
+      true,
     );
-    while (iterator.hasNext()) {
-      iterator.next();
-    }
-
-    iterator = this.getNextExpandedStopIterator(
-      iterator.current().node,
-      iterator.current().trainrunSection,
-    );
-    let summedTravelTime = 0;
-    while (iterator.hasNext()) {
-      const nextPair = iterator.next();
-      if (direction === "sourceToTarget") {
-        summedTravelTime += nextPair.trainrunSection.getTravelTime();
-      } else {
-        summedTravelTime += nextPair.trainrunSection.getBackwardTravelTime();
-      }
-    }
-    return summedTravelTime;
+    return direction === "sourceToTarget"
+      ? TrainrunsectionHelper.getTravelTimeForSectionGroup(extendedGroup)
+      : TrainrunsectionHelper.getBackwardTravelTimeForSectionGroup(extendedGroup);
   }
 
   getCumulativeTravelTimeAndNodePath(
