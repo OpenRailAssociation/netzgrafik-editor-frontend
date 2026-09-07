@@ -5,7 +5,11 @@ import {Transition} from "../../models/transition.model";
 import {countAllCrossings, countCrossingsInNode} from "./port-ordering.crossings";
 import {countAllSeparations} from "./port-ordering.separations";
 import {Candidate, getCandidates} from "./port-ordering.candidates";
-import {getComponents, getPortOppositeNodeId} from "./port-ordering.components";
+import {
+  getComponents,
+  getMatchingPortInOppositeNode,
+  getPortOppositeExpandedNodeId,
+} from "./port-ordering.components";
 import {
   ALIGNMENTS_CLOCKWISE_ORDER,
   getOppositeAlignmentScore,
@@ -245,7 +249,7 @@ export function reorderNodePorts(
     ports.some(
       (port) =>
         port.getPositionAlignment() === alignment &&
-        orderedNodeIDs.has(port.getOppositeNode(node.getId()).getId()),
+        orderedNodeIDs.has(port.getOppositeExpandedNode(node.getId()).getId()),
     );
   const processingOrder = [
     ...ALIGNMENTS_CLOCKWISE_ORDER.filter(facesOrderedNeighbor),
@@ -287,8 +291,8 @@ export function reorderNodePorts(
 
     // Between-node discriminators (cases 3 & 4a): null when undecided.
     const betweenCmp = (a: Port, b: Port): number | null => {
-      const aOppositeNode = a.getOppositeNode(node.getId());
-      const bOppositeNode = b.getOppositeNode(node.getId());
+      const aOppositeNode = a.getOppositeExpandedNode(node.getId());
+      const bOppositeNode = b.getOppositeExpandedNode(node.getId());
 
       if (aOppositeNode !== bOppositeNode) {
         // Case 3
@@ -298,13 +302,8 @@ export function reorderNodePorts(
       }
       if (orderedNodeIDs.has(aOppositeNode.getId())) {
         // Case 4a
-        const oppositeNodePorts = aOppositeNode.getPorts();
-        const aPortInOppositeNode = oppositeNodePorts.find(
-          (port) => port.getTrainrunSectionId() === a.getTrainrunSectionId(),
-        );
-        const bPortInOppositeNode = oppositeNodePorts.find(
-          (port) => port.getTrainrunSectionId() === b.getTrainrunSectionId(),
-        );
+        const aPortInOppositeNode = getMatchingPortInOppositeNode(a, node.getId());
+        const bPortInOppositeNode = getMatchingPortInOppositeNode(b, node.getId());
         if (!aPortInOppositeNode || !bPortInOppositeNode) return 0;
         return aPortInOppositeNode.getPositionIndex() - bPortInOppositeNode.getPositionIndex();
       }
@@ -323,8 +322,8 @@ export function reorderNodePorts(
       if (aTransition) {
         const aOppositePort = node.getPort(aTransition.getOppositePort(a.getId()));
         if (aOppositePort.getPositionAlignment() === alignment) {
-          const aOppositeNode = a.getOppositeNode(node.getId());
-          const otherEnd = aOppositePort.getOppositeNode(node.getId());
+          const aOppositeNode = a.getOppositeExpandedNode(node.getId());
+          const otherEnd = aOppositePort.getOppositeExpandedNode(node.getId());
           const currentPos = isHorizontalAlignment(alignment)
             ? aOppositeNode.getPositionX()
             : aOppositeNode.getPositionY();
@@ -368,7 +367,12 @@ export function reorderNodePorts(
 }
 
 function getNeighborsCount(node: Node): number {
-  return new Set(node.getPorts().map((p) => getPortOppositeNodeId(p, node.getId()))).size;
+  return new Set(
+    node
+      .getPorts()
+      .map((p) => getPortOppositeExpandedNodeId(p, node.getId()))
+      .filter((id) => id !== undefined),
+  ).size;
 }
 
 /**
@@ -403,7 +407,7 @@ function reorderComponentPorts(
     const node = nodeMap.get(nodeId)!;
 
     for (const neighborId of new Set(
-      node.getPorts().map((p) => getPortOppositeNodeId(p, nodeId)),
+      node.getPorts().map((p) => getPortOppositeExpandedNodeId(p, nodeId)),
     )) {
       // A port can lead outside the component (e.g. a single-trainrun bridge whose far end belongs
       // to another reticular), so here we only follow neighbors that are part of this component:

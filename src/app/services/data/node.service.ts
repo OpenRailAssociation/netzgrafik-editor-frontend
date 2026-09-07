@@ -38,9 +38,7 @@ import {
   TrainrunOperation,
 } from "../../models/operation.model";
 
-@Injectable({
-  providedIn: "root",
-})
+@Injectable({providedIn: "root"})
 export class NodeService implements OnDestroy {
   // Description of observable data service: https://coryrylan.com/blog/angular-observable-data-services
   nodesSubject = new BehaviorSubject<Node[]>([]);
@@ -111,6 +109,7 @@ export class NodeService implements OnDestroy {
           node.betriebspunktName,
           node.fullName,
           node.labelIds,
+          node.isCollapsed,
         );
       } else {
         const existingLabels = existingNode.getLabelIds();
@@ -181,34 +180,20 @@ export class NodeService implements OnDestroy {
       this.currentOrderingAlgorithm = portOrderingType;
     }
 
-    // First pass: set port alignments based on opposite node positions
-    this.nodesStore.nodes.forEach((node) => {
-      node.getPorts().forEach((port) => {
-        const oppositeNode = node.getOppositeNode(port.getTrainrunSection());
-        const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
-          node,
-          oppositeNode,
-        );
-        port.setPositionAlignment(portAlignments.sourcePortPlacement);
-        oppositeNode
-          .getPortOfTrainrunSection(port.getTrainrunSection().getId())
-          .setPositionAlignment(portAlignments.targetPortPlacement);
-      });
-    });
+    this.nodesStore.nodes.forEach((node) => this.updateNodePortPositions(node));
 
     // Second pass: reorder ports and update routing
     if (this.usesOptimizePorts()) {
-      optimizePorts(this.nodesStore.nodes, this.getClutterWeights());
+      optimizePorts(
+        this.nodesStore.nodes.filter((n) => !n.getIsCollapsed()),
+        this.getClutterWeights(),
+      );
       this.nodesStore.nodes.forEach((node) => {
         node.updateTransitionsRouting();
         node.validateConnections();
-        this.trainrunSectionService.updateTrainrunSectionRouting(node, false);
       });
     } else {
-      this.nodesStore.nodes.forEach((node) => {
-        node.updateTransitionsAndConnections();
-        this.trainrunSectionService.updateTrainrunSectionRouting(node, false);
-      });
+      this.nodesStore.nodes.forEach((node) => node.updateTransitionsAndConnections());
     }
   }
 
@@ -243,6 +228,7 @@ export class NodeService implements OnDestroy {
     betriebspunktName?: string,
     fullName?: string,
     labelIds?: number[],
+    isCollapsed?: boolean,
     enforceUpdate = true,
   ): Node {
     const alignedPosition = NodeService.alginNodeToRaster(new Vec2D(positionX, positionY));
@@ -266,10 +252,26 @@ export class NodeService implements OnDestroy {
     if (labelIds !== undefined) {
       node.setLabelIds(labelIds);
     }
+    if (isCollapsed !== undefined) {
+      node.setIsCollapsed(isCollapsed);
+    }
     this.nodesStore.nodes.push(node);
     if (enforceUpdate) {
       this.nodesUpdated();
     }
+    this.operation.emit(new NodeOperation(OperationType.create, node));
+    return node;
+  }
+
+  addEmptyNode(positionX: number, positionY: number): Node {
+    const node: Node = new Node();
+    node.setFullName("");
+    node.setBetriebspunktName("");
+    node.setPosition(positionX, positionY);
+    node.setIsCollapsed(true);
+    const resource: Resource = this.resourceService.createAndGetResource();
+    node.setResourceId(resource.getId());
+    this.nodesStore.nodes.push(node);
     this.operation.emit(new NodeOperation(OperationType.create, node));
     return node;
   }
@@ -365,7 +367,6 @@ export class NodeService implements OnDestroy {
         newPosition.getX(),
         newPosition.getY(),
         dragEnd,
-        false,
       );
     });
     if (enforceUpdate) {
@@ -383,13 +384,7 @@ export class NodeService implements OnDestroy {
     dragEnd: boolean,
     enforceUpdate = true,
   ) {
-    this.changeNodePositionWithoutUpdate(
-      nodeId,
-      newPositionX,
-      newPositionY,
-      dragEnd,
-      enforceUpdate,
-    );
+    this.changeNodePositionWithoutUpdate(nodeId, newPositionX, newPositionY, dragEnd);
     if (enforceUpdate) {
       this.nodesUpdated();
       this.connectionsUpdated();
@@ -437,7 +432,12 @@ export class NodeService implements OnDestroy {
     if (oppNodeTrainrunSection1.getId() === oppNodeTrainrunSection2.getId()) {
       return undefined;
     }
-    this.trainrunSectionService.deleteTrainrunSection(trainrunSection2.getId(), false);
+    this.trainrunSectionService.deleteTrainrunSection(
+      trainrunSection2.getId(),
+      false,
+      false,
+      false,
+    );
 
     // temporary store the source/target node information for updating the locks
     const isTargetNodeEqToNodeId = trainrunSection1.getTargetNodeId() === node.getId();
@@ -613,7 +613,7 @@ export class NodeService implements OnDestroy {
     return !checkPort1 || !checkPort2;
   }
 
-  addTransitionAndComputeRoutingFromFreePorts(node: Node, trainrun: Trainrun, isNonStop = false) {
+  addTransitionAndComputeRoutingFromFreePorts(node: Node, trainrun: Trainrun, isNonStop?: boolean) {
     const freePorts = node.getFreePortsForTrainrun(trainrun.getId());
     if (freePorts.length <= 1) {
       return;
@@ -637,19 +637,25 @@ export class NodeService implements OnDestroy {
     nodeId: number,
     trainrunSection1: TrainrunSection,
     trainrunSection2: TrainrunSection,
+    forceStop: boolean = false,
   ) {
     const node = this.getNodeFromId(nodeId);
     const port1 = node.getPortOfTrainrunSection(trainrunSection1.getId());
     const port2 = node.getPortOfTrainrunSection(trainrunSection2.getId());
-    node.addTransitionAndComputeRouting(port1, port2, trainrunSection1.getTrainrun());
+    node.addTransitionAndComputeRouting(
+      port1,
+      port2,
+      trainrunSection1.getTrainrun(),
+      forceStop ? false : undefined,
+    );
   }
 
   addTransitionToNodes(
     sourceNodeId: number,
     targetNodeId: number,
     trainrunSection: TrainrunSection,
-    sourceIsNonStop = false,
-    targetIsNonStop = false,
+    sourceIsNonStop?: boolean,
+    targetIsNonStop?: boolean,
   ) {
     const sourceNode = this.getNodeFromId(sourceNodeId);
     this.addTransitionAndComputeRoutingFromFreePorts(
@@ -897,18 +903,32 @@ export class NodeService implements OnDestroy {
       node.setConnectionTime(baseData.getConnectionTime());
     }
     this.nodesUpdated();
+    this.trainrunSectionService.trainrunSectionsUpdated();
     this.operation.emit(new NodeOperation(OperationType.update, node));
   }
 
   changeNodeFullName(nodeId: number, name: string) {
     this.getNodeFromId(nodeId).setFullName(name);
     this.nodesUpdated();
+    this.trainrunSectionService.trainrunSectionsUpdated();
     this.operation.emit(new NodeOperation(OperationType.update, this.getNodeFromId(nodeId)));
   }
 
   changeConnectionTime(nodeId: number, connectionTime: number | null) {
     this.getNodeFromId(nodeId).setConnectionTime(connectionTime);
     this.nodesUpdated();
+    this.operation.emit(new NodeOperation(OperationType.update, this.getNodeFromId(nodeId)));
+  }
+
+  changeIsCollapsed(nodeId: number, isCollapsed: boolean, enforceUpdate: boolean = true) {
+    this.getNodeFromId(nodeId).setIsCollapsed(isCollapsed);
+    if (enforceUpdate) {
+      this.initPortOrdering();
+      this.nodesUpdated();
+      this.trainrunSectionService.trainrunSectionsUpdated();
+      this.connectionsUpdated();
+      this.transitionsUpdated();
+    }
     this.operation.emit(new NodeOperation(OperationType.update, this.getNodeFromId(nodeId)));
   }
 
@@ -975,11 +995,10 @@ export class NodeService implements OnDestroy {
     this.nodesUpdated();
   }
 
-  reorderPortsOnNodesForTrainrun(trainrun: Trainrun, enforceUpdate = true) {
+  reorderPortsOnNodesForTrainrun(trainrun: Trainrun) {
     this.nodesStore.nodes.forEach((node) => {
       if (node.containsTrainrun(trainrun)) {
         node.updateTransitionsAndConnections(this.currentOrderingAlgorithm);
-        this.trainrunSectionService.updateTrainrunSectionRouting(node, enforceUpdate);
       }
     });
   }
@@ -1195,6 +1214,31 @@ export class NodeService implements OnDestroy {
     return {minCoordX: minX, minCoordY: minY, maxCoordX: maxX, maxCoordY: maxY};
   }
 
+  getOppositeExpandedNode(trainrunSection: TrainrunSection, currentNode: Node): Node | undefined {
+    const groups = this.trainrunSectionService.groupTrainrunSections(
+      this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+        trainrunSection.getTrainrunId(),
+      ),
+      false,
+    );
+    // keep only the groups which contain the given trainrun section
+    const filteredGroup = groups.find(
+      (group) => group.find((trs) => trs.getId() === trainrunSection.getId()) !== undefined,
+    );
+    if (filteredGroup === undefined) {
+      return undefined;
+    }
+    if (currentNode.getId() === trainrunSection.getSourceNodeId()) {
+      // get target node of the last trainrun section in the group
+      const lastTrainrunSection = filteredGroup.at(-1);
+      return this.getNodeFromId(lastTrainrunSection.getTargetNodeId());
+    } else {
+      // get source node of the first trainrun section in the group
+      const firstTrainrunSection = filteredGroup.at(0);
+      return this.getNodeFromId(firstTrainrunSection.getSourceNodeId());
+    }
+  }
+
   private deleteNodeWithoutUpdate(nodeId: number, enforceUpdate = true) {
     const node = this.getNodeFromId(nodeId);
     const connectedTrainrunSections = node.getConnectedTrainrunSections();
@@ -1203,6 +1247,14 @@ export class NodeService implements OnDestroy {
         node.getConnectedTrainrunSections(),
         enforceUpdate,
       );
+      const trainruns = new Set<Trainrun>();
+      connectedTrainrunSections.forEach((trs) => trainruns.add(trs.getTrainrun()));
+      trainruns.forEach((t) => {
+        if (!this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(t.getId()).length) {
+          return;
+        }
+        this.operation.emit(new TrainrunOperation(OperationType.update, t));
+      });
     }
     this.resourceService.deleteResource(node.getResourceId(), enforceUpdate);
     this.nodesStore.nodes = this.nodesStore.nodes.filter((n) => n.getId() !== nodeId);
@@ -1213,46 +1265,17 @@ export class NodeService implements OnDestroy {
     newPositionX: number,
     newPositionY: number,
     dragEnd: boolean,
-    enforceUpdate = true,
   ) {
     const node = this.getNodeFromId(nodeId);
     node.setPosition(newPositionX, newPositionY);
 
     if (dragEnd) {
-      node.getPorts().forEach((port) => {
-        const oppositeNode = node.getOppositeNode(port.getTrainrunSection());
-        const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
-          node,
-          oppositeNode,
-        );
-        port.setPositionAlignment(portAlignments.sourcePortPlacement);
-        oppositeNode
-          .getPortOfTrainrunSection(port.getTrainrunSection().getId())
-          .setPositionAlignment(portAlignments.targetPortPlacement);
-      });
-
-      // Reorder ports and update routing
-      if (this.usesOptimizePorts()) {
-        optimizePorts(this.nodesStore.nodes, this.getClutterWeights());
-        this.nodesStore.nodes.forEach((n) => {
-          n.updateTransitionsRouting();
-          n.validateConnections();
-          this.trainrunSectionService.updateTrainrunSectionRouting(n, enforceUpdate);
-        });
-      } else {
-        node.getPorts().forEach((port) => {
-          const oppositeNode = node.getOppositeNode(port.getTrainrunSection());
-          oppositeNode.updateTransitionsAndConnections(this.currentOrderingAlgorithm);
-          this.trainrunSectionService.updateTrainrunSectionRouting(oppositeNode, enforceUpdate);
-        });
-        node.reorderAllPorts(this.currentOrderingAlgorithm);
-      }
+      this.initPortOrdering();
       this.operation.emit(new NodeOperation(OperationType.update, node));
     }
 
     node.updateTransitionsRouting();
     node.validateConnections();
-    this.trainrunSectionService.updateTrainrunSectionRouting(node, enforceUpdate);
   }
 
   private findClearedLabel(node: Node, labelIds: number[]) {
@@ -1272,5 +1295,23 @@ export class NodeService implements OnDestroy {
       });
     });
     return labelIDCauntMap;
+  }
+
+  private updateNodePortPositions(node: Node) {
+    if (node.getIsCollapsed()) return;
+    node.getPorts().forEach((port) => {
+      const group = this.trainrunSectionService.getTrainrunSectionsGroupOrientedBasedOnPort(
+        port,
+        false,
+      );
+      const oppositeExpandedNode = this.getOppositeExpandedNode(group[0], node);
+      const portAlignments = VisAVisPortPlacement.placePortsOnSourceAndTargetNode(
+        node,
+        oppositeExpandedNode,
+      );
+      port.setPositionAlignment(portAlignments.sourcePortPlacement);
+      const oppositePort = oppositeExpandedNode.getPortOfTrainrunSection(group.at(-1)!.getId());
+      oppositePort.setPositionAlignment(portAlignments.targetPortPlacement);
+    });
   }
 }

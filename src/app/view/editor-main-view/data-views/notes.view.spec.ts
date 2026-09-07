@@ -118,7 +118,6 @@ describe("Notes-View", () => {
     );
 
     const positionTransformationService = new PositionTransformationService(
-      trainrunSectionService,
       nodeService,
       noteService,
       uiInteractionService,

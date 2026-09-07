@@ -110,11 +110,11 @@ export class TrainrunSectionValidator {
     trainrunSection: TrainrunSection,
     timeDisplayPrecision: number = 1,
   ) {
-    const minimumTravelTime = 1 / Math.pow(10, timeDisplayPrecision);
-    if (trainrunSection.getBackwardTravelTime() < 1) {
+    const minimumBackwardTravelTime = 1 / Math.pow(10, timeDisplayPrecision);
+    if (trainrunSection.getBackwardTravelTime() < minimumBackwardTravelTime) {
       trainrunSection.setBackwardTravelTimeWarning(
-        $localize`:@@app.services.util.trainrunsection-validator.travel-time-less-than-1.title:Travel Time less than ${minimumTravelTime}:minimumTravelTime:`,
-        $localize`:@@app.services.util.trainrunsection-validator.travel-time-less-than-1.description:Travel time must be greater than or equal to ${minimumTravelTime}:minimumTravelTime:`,
+        $localize`:@@app.services.util.trainrunsection-validator.travel-time-less-than-1.title:Travel Time less than ${minimumBackwardTravelTime}:minimumTravelTime:`,
+        $localize`:@@app.services.util.trainrunsection-validator.travel-time-less-than-1.description:Travel time must be greater than or equal to ${minimumBackwardTravelTime}:minimumTravelTime:`,
       );
     } else {
       trainrunSection.resetBackwardTravelTimeWarning();

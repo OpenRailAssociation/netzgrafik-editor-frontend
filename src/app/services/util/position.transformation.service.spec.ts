@@ -96,7 +96,6 @@ describe("PositionTransformationService", () => {
     );
 
     positionTransformationService = new PositionTransformationService(
-      trainrunSectionService,
       nodeService,
       noteService,
       uiInteractionService,

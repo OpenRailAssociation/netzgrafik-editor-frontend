@@ -45,6 +45,25 @@
 
   <sbb-expansion-panel [expanded]="true">
     <sbb-expansion-panel-header>{{
+      "app.view.editor-side-view.editor-node-detail-view.display" | translate
+    }}</sbb-expansion-panel-header>
+    <sbb-radio-group
+      [ngModel]="nodeProperties.isCollapsed ? 'collapsed' : 'expanded'"
+      (ngModelChange)="onNodeDisplayModeChanged($event)"
+      [class.readonly]="!versionControlService.getVariantIsWritable()"
+      class="node-display-mode-radio-group"
+    >
+      <sbb-radio-button value="expanded">
+        {{ "app.view.editor-side-view.editor-node-detail-view.expanded" | translate }}
+      </sbb-radio-button>
+      <sbb-radio-button value="collapsed">
+        {{ "app.view.editor-side-view.editor-node-detail-view.collapsed" | translate }}
+      </sbb-radio-button>
+    </sbb-radio-group>
+  </sbb-expansion-panel>
+
+  <sbb-expansion-panel [expanded]="true">
+    <sbb-expansion-panel-header>{{
       "app.view.editor-side-view.editor-node-detail-view.occupancy" | translate
     }}</sbb-expansion-panel-header>
     <div class="sbb-mt-m">
