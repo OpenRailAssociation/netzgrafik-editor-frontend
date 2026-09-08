@@ -26,6 +26,9 @@ const EMPTY_TEXT_POSITIONS: TrainrunSectionTextPositions = {
   [TrainrunSectionText.TrainrunSectionNumberOfStops]: {x: 0, y: 0},
 };
 
+type TrainrunSectionOptions = Omit<TrainrunSectionDto, "id"> &
+  Partial<Pick<TrainrunSectionDto, "id">>;
+
 export class TrainrunSection {
   private static currentId = 0;
 
@@ -61,7 +64,7 @@ export class TrainrunSection {
 
   constructor(
     {
-      id,
+      id = TrainrunSection.incrementId(),
       sourceNodeId,
       sourcePortId,
       targetNodeId,
@@ -83,8 +86,7 @@ export class TrainrunSection {
         textPositions: {...EMPTY_TEXT_POSITIONS},
       },
       warnings,
-    }: TrainrunSectionDto = {
-      id: TrainrunSection.incrementId(),
+    }: TrainrunSectionOptions = {
       sourceNodeId: 0,
       sourcePortId: 0,
       targetNodeId: 0,
