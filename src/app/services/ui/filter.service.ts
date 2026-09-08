@@ -393,17 +393,13 @@ export class FilterService implements OnDestroy {
     }
     /* Implement user defined filtering */
     const filterTrainrunSection = this.checkFilterTrainrunLabels(trainrun.getLabelIds());
-    const trainrunSections = this.dataService.getTrainrunSectionsByTrainrunId(trainrun.getId());
-    const hasAsymmetricalSection = trainrunSections.some(
-      (trainrunSection: TrainrunSection) => !trainrunSection.isSymmetric(),
-    );
     return (
       filterTrainrunSection &&
       this.isFilterTrainrunFrequencyEnabled(trainrun.getTrainrunFrequency()) &&
       this.isFilterTrainrunCategoryEnabled(trainrun.getTrainrunCategory()) &&
       this.isFilterTrainrunTimeCategoryEnabled(trainrun.getTrainrunTimeCategory()) &&
       this.isFilterDirectionEnabled(trainrun.getDirection()) &&
-      this.isFilterSymmetryEnabled(!hasAsymmetricalSection)
+      this.isFilterSymmetryEnabled(trainrun.isSymmetric())
     );
   }
 
