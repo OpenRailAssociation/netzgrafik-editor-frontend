@@ -1,4 +1,4 @@
-import {TrainrunSection} from "./trainrunsection.model";
+import {TrainrunSection, _TRAINRUN_UPDATE_TOKEN} from "./trainrunsection.model";
 import {Node} from "./node.model";
 import {Trainrun} from "./trainrun.model";
 import {PortAlignment, TimeLockDto} from "../data-structures/technical.data.structures";
@@ -20,7 +20,7 @@ describe("TrainrunSection Model Test", () => {
   it("setTrainrun", () => {
     const ts = new TrainrunSection();
     const trainrun = new Trainrun();
-    ts.setTrainrun(trainrun);
+    ts.setTrainrun(trainrun, _TRAINRUN_UPDATE_TOKEN);
     expect(ts.getTrainrunId()).toBe(trainrun.getId());
     expect(ts.getTrainrun().getId()).toBe(trainrun.getId());
   });
@@ -513,8 +513,8 @@ describe("TrainrunSection Model Test", () => {
     ts1.setSourceAndTargetNodeReference(node1, node2);
     const ts2 = new TrainrunSection();
     ts2.setSourceAndTargetNodeReference(node2, node3);
-    ts1.setTrainrun(tr);
-    ts2.setTrainrun(tr);
+    ts1.setTrainrun(tr, _TRAINRUN_UPDATE_TOKEN);
+    ts2.setTrainrun(tr, _TRAINRUN_UPDATE_TOKEN);
 
     const port1 = node2.addPort(PortAlignment.Left, ts1);
     const port2 = node2.addPort(PortAlignment.Right, ts2);
@@ -552,8 +552,8 @@ describe("TrainrunSection Model Test", () => {
     ts1.setSourceAndTargetNodeReference(node1, node2);
     const ts2 = new TrainrunSection();
     ts2.setSourceAndTargetNodeReference(node2, node3);
-    ts1.setTrainrun(tr);
-    ts2.setTrainrun(tr);
+    ts1.setTrainrun(tr, _TRAINRUN_UPDATE_TOKEN);
+    ts2.setTrainrun(tr, _TRAINRUN_UPDATE_TOKEN);
 
     const port1 = node2.addPort(PortAlignment.Left, ts1);
     const port2 = node2.addPort(PortAlignment.Right, ts2);
@@ -583,8 +583,8 @@ describe("TrainrunSection Model Test", () => {
     ts1.setSourceAndTargetNodeReference(node1, node2);
     const ts2 = new TrainrunSection();
     ts2.setSourceAndTargetNodeReference(node2, node3);
-    ts1.setTrainrun(tr);
-    ts2.setTrainrun(tr);
+    ts1.setTrainrun(tr, _TRAINRUN_UPDATE_TOKEN);
+    ts2.setTrainrun(tr, _TRAINRUN_UPDATE_TOKEN);
 
     const port1 = node2.addPort(PortAlignment.Left, ts1);
     const port2 = node2.addPort(PortAlignment.Right, ts2);

@@ -1,4 +1,4 @@
-import {TrainrunSection} from "../../models/trainrunsection.model";
+import {TrainrunSection, _TRAINRUN_UPDATE_TOKEN} from "../../models/trainrunsection.model";
 import {
   NodeDto,
   TrainrunCategoryHaltezeit,
@@ -43,6 +43,8 @@ export class TrainrunSectionService implements OnDestroy {
   trainrunSectionsStore: {trainrunSections: TrainrunSection[]} = {
     trainrunSections: [],
   }; // store the data in memory
+  // Secondary lookup index: keep in sync with store updates (load/rebuild, add/insert, delete).
+  private sectionLookupByTrainrunId = new Map<number, TrainrunSection[]>();
 
   readonly operation = new EventEmitter<Operation>();
 
@@ -129,6 +131,39 @@ export class TrainrunSectionService implements OnDestroy {
   ngOnDestroy() {
     this.destroyed.next();
     this.destroyed.complete();
+  }
+
+  private rebuildSectionIndex() {
+    this.sectionLookupByTrainrunId.clear();
+    for (const section of this.trainrunSectionsStore.trainrunSections) {
+      this.addSectionToIndex(section);
+    }
+  }
+
+  private addSectionToIndex(section: TrainrunSection) {
+    const trainrunId = section.getTrainrunId();
+    if (!this.sectionLookupByTrainrunId.has(trainrunId)) {
+      this.sectionLookupByTrainrunId.set(trainrunId, []);
+    }
+    this.sectionLookupByTrainrunId.get(trainrunId)!.push(section);
+  }
+
+  private addSection(trainrunSection: TrainrunSection) {
+    this.trainrunSectionsStore.trainrunSections.push(trainrunSection);
+    this.addSectionToIndex(trainrunSection);
+  }
+
+  private removeSection(trainrunSection: TrainrunSection) {
+    this.trainrunSectionsStore.trainrunSections =
+      this.trainrunSectionsStore.trainrunSections.filter(
+        (e) => e.getId() !== trainrunSection.getId(),
+      );
+    this.rebuildSectionIndex();
+  }
+
+  updateTrainrunReference(trainrunSection: TrainrunSection, newTrainrun: Trainrun) {
+    trainrunSection.setTrainrun(newTrainrun, _TRAINRUN_UPDATE_TOKEN);
+    this.rebuildSectionIndex();
   }
 
   propagateTimesForNewTrainrunSection(trainrunSection: TrainrunSection) {
@@ -226,6 +261,7 @@ export class TrainrunSectionService implements OnDestroy {
     this.trainrunSectionsStore.trainrunSections = trainrunSections.map(
       (trainrunSectionDto) => new TrainrunSection(trainrunSectionDto),
     );
+    this.rebuildSectionIndex();
 
     this.trainrunSectionsStore.trainrunSections.forEach((trainrunSection) => {
       TrainrunSectionValidator.validateOneSection(trainrunSection);
@@ -292,7 +328,8 @@ export class TrainrunSectionService implements OnDestroy {
       ),
     );
     this.trainrunSectionsStore.trainrunSections.forEach((trainrunSection) =>
-      trainrunSection.setTrainrun(
+      this.updateTrainrunReference(
+        trainrunSection,
         this.trainrunService.getTrainrunFromId(trainrunSection.getTrainrunId()),
       ),
     );
@@ -601,7 +638,7 @@ export class TrainrunSectionService implements OnDestroy {
     const trainrunSection: TrainrunSection = new TrainrunSection();
     const initialTrainrunsLength = this.trainrunService.trainrunsStore.trainruns.length;
 
-    trainrunSection.setTrainrun(this.trainrunService.getSelectedOrNewTrainrun());
+    this.updateTrainrunReference(trainrunSection, this.trainrunService.getSelectedOrNewTrainrun());
 
     if (retrieveTravelTimeFromEdge) {
       const travelTime = this.retrieveTravelTime(
@@ -617,7 +654,7 @@ export class TrainrunSectionService implements OnDestroy {
     const targetNode = this.nodeService.getNodeFromId(targetNodeId);
 
     trainrunSection.setSourceAndTargetNodeReference(sourceNode, targetNode);
-    this.trainrunSectionsStore.trainrunSections.push(trainrunSection);
+    this.addSection(trainrunSection);
 
     this.handleNodeAndTrainrunSectionDetails(sourceNode, targetNode, trainrunSection);
 
@@ -809,13 +846,11 @@ export class TrainrunSectionService implements OnDestroy {
   }
 
   getAllTrainrunSectionsForTrainrun(trainrunID: number): TrainrunSection[] {
-    const trainrunSections = this.trainrunSectionsStore.trainrunSections.filter(
-      (t: TrainrunSection) => t.getTrainrunId() === trainrunID,
-    );
+    const trainrunSections = this.sectionLookupByTrainrunId.get(trainrunID);
     if (trainrunSections === undefined) {
       return [];
     }
-    return trainrunSections;
+    return [...trainrunSections];
   }
 
   deleteAllTrainrunSectionsOfTrainrun(trainrunId: number) {
@@ -1123,7 +1158,10 @@ export class TrainrunSectionService implements OnDestroy {
     newTrainrunId: number,
   ): TrainrunSection {
     const trainrunSection: TrainrunSection = new TrainrunSection();
-    trainrunSection.setTrainrun(this.trainrunService.getTrainrunFromId(newTrainrunId));
+    this.updateTrainrunReference(
+      trainrunSection,
+      this.trainrunService.getTrainrunFromId(newTrainrunId),
+    );
     trainrunSection.setTravelTimeDto(
       JSON.parse(JSON.stringify(existingTrainrunSection.getTravelTimeDto())),
     );
@@ -1145,7 +1183,7 @@ export class TrainrunSectionService implements OnDestroy {
       JSON.parse(JSON.stringify(existingTrainrunSection.getTargetDepartureDto())),
     );
     trainrunSection.setNumberOfStops(existingTrainrunSection.getNumberOfStops());
-    this.trainrunSectionsStore.trainrunSections.push(trainrunSection);
+    this.addSection(trainrunSection);
     return trainrunSection;
   }
 
@@ -1191,10 +1229,8 @@ export class TrainrunSectionService implements OnDestroy {
       this.nodeService.transitionsUpdated();
       this.nodeService.connectionsUpdated();
     }
-    this.trainrunSectionsStore.trainrunSections =
-      this.trainrunSectionsStore.trainrunSections.filter(
-        (e) => e.getId() !== trainrunSection.getId(),
-      );
+    this.removeSection(trainrunSection);
+
     this.reRouteAffectedTrainrunSections(
       trainrunSection.getSourceNodeId(),
       trainrunSection.getTargetNodeId(),
@@ -1340,7 +1376,7 @@ export class TrainrunSectionService implements OnDestroy {
     const trainrun = this.trainrunService.getTrainrunFromId(trainrunId);
 
     const newTrainrunSection: TrainrunSection = new TrainrunSection(trainrunSection);
-    newTrainrunSection.setTrainrun(trainrun);
+    this.updateTrainrunReference(newTrainrunSection, trainrun);
 
     const sourceNodeId = nodeMap.get(trainrunSection.sourceNodeId);
     const sourceNode = this.nodeService.getNodeFromId(sourceNodeId);
@@ -1348,7 +1384,8 @@ export class TrainrunSectionService implements OnDestroy {
     const targetNode = this.nodeService.getNodeFromId(targetNodeId);
     newTrainrunSection.setSourceAndTargetNodeReference(sourceNode, targetNode);
 
-    this.trainrunSectionsStore.trainrunSections.push(newTrainrunSection);
+    this.addSection(newTrainrunSection);
+
     const sourceIsNonStop = this.getIsNonStop(
       trainrunSection.sourceNodeId,
       trainrunSection.sourcePortId,
