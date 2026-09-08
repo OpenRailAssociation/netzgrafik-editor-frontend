@@ -129,34 +129,9 @@
           }
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "main": "src/test.ts",
-            "polyfills": ["zone.js", "@angular/localize/init"],
-            "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.cjs",
-            "assets": ["src/assets"],
-            "styles": ["src/styles.scss", "node_modules/@sbb-esta/angular/typography.css"],
-            "scripts": [],
-            "exclude": ["src/benchmarks/**"]
-          },
-          "configurations": {
-            "ci": {
-              "browsers": "ChromeHeadless",
-              "codeCoverage": true,
-              "sourceMap": false,
-              "progress": false,
-              "watch": false,
-              "reporters": ["dots", "sonarqube"]
-            },
-            "benchmark": {
-              "browsers": "ChromeHeadless",
-              "codeCoverage": false,
-              "watch": false,
-              "karmaConfig": "karma.benchmark.cjs",
-              "include": ["src/benchmarks/**/*.spec.ts"],
-              "exclude": []
-            }
+            "buildTarget": ":"
           }
         },
         "lint": {
