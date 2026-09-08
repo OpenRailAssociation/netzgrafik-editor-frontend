@@ -1336,7 +1336,10 @@ export class TrainrunSectionService implements OnDestroy {
     const trainrunId = trainrunMap.get(trainrunSection.trainrunId);
     const trainrun = this.trainrunService.getTrainrunFromId(trainrunId);
 
-    const newTrainrunSection: TrainrunSection = new TrainrunSection(trainrunSection);
+    const newTrainrunSection: TrainrunSection = new TrainrunSection({
+      ...trainrunSection,
+      id: undefined,
+    });
     newTrainrunSection.setTrainrun(trainrun);
 
     const sourceNodeId = nodeMap.get(trainrunSection.sourceNodeId);
