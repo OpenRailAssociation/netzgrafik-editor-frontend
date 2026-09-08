@@ -290,11 +290,11 @@ describe("Origin Destination CSV Test", () => {
     // v4 has no outgoing edges.
     expect(neighbors.size).toBe(3);
     expect(neighbors.get(v1).length).toBe(1);
-    expect(neighbors.get(v1)).toContain([v2, 0]);
+    expect(neighbors.get(v1)).toContainEqual([v2, 0]);
     expect(neighbors.get(v2).length).toBe(1);
-    expect(neighbors.get(v2)).toContain([v3, 15]);
+    expect(neighbors.get(v2)).toContainEqual([v3, 15]);
     expect(neighbors.get(v3).length).toBe(1);
-    expect(neighbors.get(v3)).toContain([v4, 0]);
+    expect(neighbors.get(v3)).toContainEqual([v4, 0]);
 
     const topoVertices = topoSort(neighbors);
 

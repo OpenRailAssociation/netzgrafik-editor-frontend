@@ -1,3 +1,4 @@
+import {vi, type Mock} from "vitest";
 import {DataService} from "../../services/data/data.service";
 import {NodeService} from "../../services/data/node.service";
 import {ResourceService} from "../../services/data/resource.service";
@@ -170,18 +171,18 @@ describe("AutoLayoutService", () => {
   });
 
   function prepareLayoutTest(nodes: Node[], sections: TrainrunSection[]): void {
-    spyOn(nodeService, "getNodes").and.returnValue(nodes);
-    spyOn(trainrunSectionService, "getTrainrunSections").and.returnValue(sections);
-    spyOn(nodeService, "changeNodePositionWithoutUpdate").and.stub();
-    spyOn(nodeService, "initPortOrdering").and.stub();
-    spyOn(viewportCullService, "onViewportChangeUpdateRendering").and.stub();
+    vi.spyOn(nodeService, "getNodes").mockReturnValue(nodes);
+    vi.spyOn(trainrunSectionService, "getTrainrunSections").mockReturnValue(sections);
+    vi.spyOn(nodeService, "changeNodePositionWithoutUpdate").mockImplementation(() => {});
+    vi.spyOn(nodeService, "initPortOrdering").mockImplementation(() => {});
+    vi.spyOn(viewportCullService, "onViewportChangeUpdateRendering").mockImplementation(() => {});
 
-    spyOn(uiInteractionService, "findClosestNodeToViewCenter").and.returnValue({
+    vi.spyOn(uiInteractionService, "findClosestNodeToViewCenter").mockReturnValue({
       node: undefined,
       offset: new Vec2D(0, 0),
     });
 
-    spyOn(uiInteractionService, "gotoNode").and.stub();
+    vi.spyOn(uiInteractionService, "gotoNode").mockImplementation(() => {});
   }
 
   function createNode(
@@ -222,7 +223,7 @@ describe("AutoLayoutService", () => {
         getTitle: () => "15",
         getCategoryShortName: () => "IR",
       }),
-      routeEdgeAndPlaceText: jasmine.createSpy("routeEdgeAndPlaceText"),
+      routeEdgeAndPlaceText: vi.fn(),
     } as unknown as TrainrunSection;
   }
 
@@ -234,9 +235,11 @@ describe("AutoLayoutService", () => {
   }
 
   function getMoveCalls(): Array<[string, number, number, boolean, boolean]> {
-    return (nodeService.changeNodePositionWithoutUpdate as jasmine.Spy).calls.allArgs() as Array<
-      [string, number, number, boolean, boolean]
-    >;
+    return (
+      nodeService.changeNodePositionWithoutUpdate as Mock<
+        (typeof nodeService)["changeNodePositionWithoutUpdate"]
+      >
+    ).mock.calls as unknown as Array<[string, number, number, boolean, boolean]>;
   }
 
   function getMoveCallForNode(
