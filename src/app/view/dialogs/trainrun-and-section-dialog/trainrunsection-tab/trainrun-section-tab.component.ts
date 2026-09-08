@@ -309,18 +309,14 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
 
   getTravelTimeCssClass(className: string): string {
     if (this.isBottomTravelTimeDisplayed) {
-      // Travel time is displayed at the top
-      // (and bottom travel time at the bottom)
       return "Top" + className;
     }
-    // Travel time is displayed at the center
     return className;
   }
 
   private resetOffsetAfterTrainrunChanged() {
     if (this.trainrunSectionTimesService.getOffsetTransformationActive()) {
       this.trainrunSectionTimesService.removeOffsetAndBackTransformTimeStructure();
-
       this.selectedTrainrunSection = this.trainrunSectionService.getSelectedTrainrunSection();
       if (this.selectedTrainrunSection !== null) {
         this.frequency = this.selectedTrainrunSection.getFrequency();

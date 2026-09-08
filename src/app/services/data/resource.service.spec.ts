@@ -16,6 +16,7 @@ import {CopyService} from "./copy.service";
 import {UiInteractionService} from "../ui/ui.interaction.service";
 import {LoadPerlenketteService} from "../../perlenkette/service/load-perlenkette.service";
 import {NetzgrafikUnitTesting} from "../../../integration-testing/netzgrafik.unit.testing";
+import {Resource} from "../../models/resource.model";
 
 describe("ResourceService", () => {
   let dataService: DataService;
@@ -100,6 +101,12 @@ describe("ResourceService", () => {
       undoService,
     );
     copyService.resetLocalStorage();
+  });
+
+  it("preserves capacity when serializing a resource", () => {
+    const resource = new Resource({id: 1, capacity: 2});
+
+    expect(new Resource(resource.getDto()).getDto()).toEqual(resource.getDto());
   });
 
   it("test - resource and node 1:1 link", () => {

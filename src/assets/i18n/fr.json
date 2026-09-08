@@ -306,7 +306,18 @@
           "trainrun-section-tab": {
             "warningTwoLocks": "Avertissement : Trop de temps sont bloqués !",
             "propagateTimesToLeft": "Propager les temps à gauche",
-            "propagateTimesToRight": "Propager les temps à droite"
+            "propagateTimesToRight": "Propager les temps à droite",
+            "infrastructure": "Infrastructure",
+            "resource-id": "ID de ressource",
+            "track-count": "Nombre de voies",
+            "track-segments": "Segments de voie",
+            "track-class": "Type de voie",
+            "track-class-singleTrack": "Voie unique",
+            "track-class-doubleTrack": "Double voie",
+            "track-class-multiTrack": "Voies multiples",
+            "maximum-speed": "Vitesse maximale (km/h)",
+            "electrified": "Électrifiée",
+            "invalid-infrastructure": "Le nombre de voies et la vitesse maximale ne doivent pas être négatifs."
           }
         }
       },
@@ -489,6 +500,14 @@
           "connection-time": "Temps de correspondance",
           "occupancy": "Occupation",
           "capacity": "Capacité",
+          "infrastructure": "Infrastructure",
+          "resource-id": "ID de ressource",
+          "uic-code": "Code UIC",
+          "city-name": "Nom de la ville",
+          "platform-tracks": "Voies à quai",
+          "through-tracks": "Voies de passage",
+          "siding-tracks": "Voies de garage",
+          "invalid-track-count": "Le nombre de voies ne doit pas être négatif.",
           "filterable-labels": "Labels filtrables",
           "labels": "Labels",
           "new-label-placeholder": "Nouveau label...",

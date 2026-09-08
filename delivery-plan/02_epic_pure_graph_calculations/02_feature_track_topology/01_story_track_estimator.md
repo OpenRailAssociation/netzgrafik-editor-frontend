@@ -1,0 +1,7 @@
+# Track Estimator
+
+**Umsetzung:** Pure Funktion ausschliesslich aus `TrainrunSection` und dem referenzierten `Trainrun`. Sie gruppiert nach physischer, richtungsunabhaengiger Kante und Ressource, rollt die Takte im Analysehorizont aus und diskretisiert Zeit sowie Kantenposition. Zugfolgezeit (`sectionHeadway`) wird als Nachbelegung auf derselben Raum-Zeit-Matrix gerechnet; Gegenrichtungen werden auf dieselben physischen Zellen in Gegenrichtung projiziert. Das Ergebnis ist eine geordnete, komprimierte Topologiefolge `[(start, end, minGleise), ...]`. Die maximale Zahl innerhalb der Folge ist der minimal erforderliche Ausbauwert der Kante. `InfrastructureService` stellt diese Folge allen Renderern live bereit. Er buendelt gleichzeitig eintreffende Aenderungen von `Trainrun`, `TrainrunSection`, `Node` und `Resource` pro Event-Loop-Durchlauf und verwirft den Segmentcache. Die teure Raum-Zeit-Berechnung laeuft danach lazy nur fuer Kanten, die ein Renderer abfragt.
+
+**Test:** Gegenrichtung mit lokalem Kreuzungskonflikt, zeitliche Ueberlappung, Zugfolgezeit, Takt-Ausrollung, Segmentkomprimierung und keine Ressource. Aenderungen an `Trainrun`, `TrainrunSection`, `Node` oder `Resource` werden gebuendelt verarbeitet, invalidieren den Cache und liefern bei der naechsten Kantenabfrage neue Segmente. **UI:** nicht anwendbar.
+
+**Commit:** `refactor(analytics): extract domain-only section track estimator`

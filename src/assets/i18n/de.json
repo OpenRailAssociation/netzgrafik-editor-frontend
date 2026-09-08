@@ -306,7 +306,18 @@
           "trainrun-section-tab": {
             "warningTwoLocks": "Warnung: Zu viele Zeiten sind gelockt!",
             "propagateTimesToLeft": "Zeiten nach links propagieren",
-            "propagateTimesToRight": "Zeiten nach rechts propagieren"
+            "propagateTimesToRight": "Zeiten nach rechts propagieren",
+            "infrastructure": "Infrastruktur",
+            "resource-id": "Ressourcen-ID",
+            "track-count": "Anzahl Gleise",
+            "track-segments": "Gleissegmente",
+            "track-class": "Streckenklasse",
+            "track-class-singleTrack": "Eingleisig",
+            "track-class-doubleTrack": "Zweigleisig",
+            "track-class-multiTrack": "Mehrgleisig",
+            "maximum-speed": "Höchstgeschwindigkeit (km/h)",
+            "electrified": "Elektrifiziert",
+            "invalid-infrastructure": "Gleisanzahl und Höchstgeschwindigkeit dürfen nicht negativ sein."
           }
         }
       },
@@ -489,6 +500,14 @@
           "connection-time": "Anschlusszeit",
           "occupancy": "Auslastung",
           "capacity": "Kapazität",
+          "infrastructure": "Infrastruktur",
+          "resource-id": "Ressourcen-ID",
+          "uic-code": "UIC-Code",
+          "city-name": "Stadtname",
+          "platform-tracks": "Bahnsteiggleise",
+          "through-tracks": "Durchfahrtsgleise",
+          "siding-tracks": "Abstellgleise",
+          "invalid-track-count": "Gleisanzahlen dürfen nicht negativ sein.",
           "filterable-labels": "Filterbare Labels",
           "labels": "Labels",
           "new-label-placeholder": "Neues Label...",
