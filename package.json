@@ -1,4 +1,24 @@
 {
+  "name": "@openrail/netzgrafik-editor-frontend",
+  "version": "2.11.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenRailAssociation/netzgrafik-editor-frontend.git"
+  },
+  "files": [
+    "dist/*"
+  ],
+  "type": "module",
+  "types": "dist/types/types.d.ts",
+  "exports": {
+    "./index.html": {
+      "default": "./dist/index.html"
+    },
+    ".": {
+      "types": "./dist/types/types.d.ts",
+      "default": "./dist/out-tsc/types.js"
+    }
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -9,8 +29,8 @@
     "build:standalone": "ng build --configuration=standalone && tsc --project tsconfig.defs.json",
     "build:standalonedemo": "ng build --configuration=standalonedemo",
     "test": "ng test -c ci",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
     "lint:null": "tsc --project tsconfig.strictNullChecks.json",
@@ -18,26 +38,6 @@
     "local-test": "ng test --watch --code-coverage",
     "extract-i18n": "ng extract-i18n",
     "benchmark": "ng test -c benchmark"
-  },
-  "name": "@openrail/netzgrafik-editor-frontend",
-  "version": "2.11.1",
-  "type": "module",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/OpenRailAssociation/netzgrafik-editor-frontend.git"
-  },
-  "files": [
-    "dist/*"
-  ],
-  "types": "dist/types/types.d.ts",
-  "exports": {
-    "./index.html": {
-      "default": "./dist/index.html"
-    },
-    ".": {
-      "types": "./dist/types/types.d.ts",
-      "default": "./dist/out-tsc/types.js"
-    }
   },
   "dependencies": {
     "@angular/animations": "^22.1.4",
@@ -79,7 +79,6 @@
     "browserstack-local": "^1.5.12",
     "eslint": "^10.9.1",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.6",
     "istanbul-lib-instrument": "^6.0.3",
     "jasmine-spec-reporter": "~7.0.0",
     "karma": "^6.4.4",
@@ -89,7 +88,7 @@
     "karma-jasmine": "^5.1.0",
     "karma-jasmine-html-reporter": "^2.3.0",
     "karma-sonarqube-reporter": "^1.4.0",
-    "prettier": "^3.9.6",
+    "oxfmt": "^0.67.0",
     "ts-node": "~10.9.2",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.69.0"

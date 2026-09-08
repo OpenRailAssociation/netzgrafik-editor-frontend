@@ -2,7 +2,6 @@ import {defineConfig} from "eslint/config";
 import js from "@eslint/js";
 import angular from "angular-eslint";
 import tseslint from "typescript-eslint";
-import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 
 export default defineConfig([
   {
@@ -13,7 +12,6 @@ export default defineConfig([
     extends: [
       ...tseslint.config(js.configs.recommended, ...tseslint.configs.recommended),
       angular.configs.tsRecommended,
-      eslintPluginPrettierRecommended,
     ],
     processor: angular.processInlineTemplates,
     languageOptions: {

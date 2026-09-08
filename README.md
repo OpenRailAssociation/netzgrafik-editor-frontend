@@ -237,11 +237,10 @@ npm run lint:fix
 
 ### Formatting
 
-Since we use Prettier as formatter, you can freely setup you favorite IDE to support you in the way. For example, if you use VSCode, follow these steps:
+Since we use oxfmt as formatter, you can freely setup you favorite IDE to support you in the way. For example, if you use VSCode, follow these steps:
 
-- install the [Prettier extension](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
-- (optional: install Prettier via npm `npm install --global prettier`)
-- now, if you try left-click and select "Format Document", you'll be able to format manually using Prettier
+- install the [OXC extension](https://marketplace.visualstudio.com/items?itemName=oxc.oxc-vscode)
+- now, if you try left-click and select "Format Document", you'll be able to format manually using oxfmt
 
 Nice to have: Format on Save
 
@@ -251,7 +250,7 @@ Nice to have: Format on Save
 ```json
 {
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "editor.defaultFormatter": "oxc.oxc-vscode"
 }
 ```
 
@@ -259,7 +258,7 @@ Nice to have: Format on Save
 # to check that the code is correctly formatted
 npm run format:check
 
-# to format the code according to Prettier rules
+# to format the code
 npm run format
 ```
 
