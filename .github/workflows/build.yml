@@ -58,7 +58,7 @@ jobs:
           cache: "npm"
       - run: npm clean-install
       - name: Check code formatting
-        run: npx prettier --check .
+        run: npm run format:check
       - run: npm run lint
       - name: Run partial null checks
         run: npm run lint:null
