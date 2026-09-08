@@ -230,3 +230,9 @@ Unsure where to begin contributing to Atom? You can start by looking through the
 ## Attribution
 
 This CONTRIBUTING guideline is adapted from the [sbb-design-systems/sbb-angular](https://github.com/sbb-design-systems/sbb-angular)
+
+## About generative AI and agentic coding
+
+Project policy about AI contributions is currently under discussion. AI-heavy contributions may or may not be accepted in the meantime with no consistency guarantees.
+
+AI-first pull requests closing issues tagged with good-first-issue are not accepted.
