@@ -28,6 +28,11 @@ export class SVGMouseController {
   private onPanning = false;
   private viewboxIsFixed = false;
 
+  /**
+   * True if a mouse button has been pressed over the drawing context, and is
+   * still being pressed.
+   */
+  private buttonDown = false;
   private lastMouseEventTimeStamp: number = undefined;
   private ctrlKeyPressed = false;
 
@@ -221,6 +226,8 @@ export class SVGMouseController {
   }
 
   private onGraphContainerMousedown(event: MouseEvent) {
+    this.buttonDown = true;
+
     // reset to initial value (start panning)
     if (event.shiftKey || (event.buttons === 2 && this.lastMouseEventTimeStamp === undefined)) {
       this.previousMultiSelectShiftPosition = this.getCurrentMousePosition(event);
@@ -247,7 +254,7 @@ export class SVGMouseController {
       if (this.previousMultiSelectShiftPosition === null) {
         if (this.onPanning) {
           this.panDrawingContext(event);
-        } else if (event.button === 0) {
+        } else if (event.button === 0 && this.buttonDown) {
           if (this.previousPanMousePosition !== null) {
             const delta = Vec2D.norm(
               Vec2D.sub(this.previousPanMousePosition, this.getCurrentMousePosition(event)),
@@ -282,6 +289,7 @@ export class SVGMouseController {
         this.svgMouseControllerObserver.onEndMultiSelect();
         this.previousMultiSelectShiftPosition = null;
       }
+      this.buttonDown = false;
     }
 
     event.stopPropagation();
@@ -293,6 +301,7 @@ export class SVGMouseController {
       this.getCurrentMousePosition(event),
       this.onPanning,
     );
+    this.buttonDown = false;
     this.onPanning = false;
     if (this.previousMultiSelectShiftPosition !== null) {
       this.svgMouseControllerObserver.onEndMultiSelect();
