@@ -46,28 +46,28 @@ export class D3Utils {
     bringToFront = true,
     domObj: SVGElement,
   ) {
-    d3.selectAll(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
+    d3.selectAll<SVGElement, TrainrunSectionViewObject>(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
           d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, true);
 
-    d3.selectAll(StaticDomTags.EDGE_LINE_DOM_REF)
+    d3.selectAll<SVGElement, TrainrunSectionViewObject>(StaticDomTags.EDGE_LINE_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
           d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, true);
 
-    d3.selectAll(StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF)
+    d3.selectAll<SVGElement, TrainrunSectionViewObject>(StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
           d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, true);
 
-    d3.selectAll(StaticDomTags.TRANSITION_LINE_DOM_REF)
+    d3.selectAll<SVGElement, TransitionViewObject>(StaticDomTags.TRANSITION_LINE_DOM_REF)
       .filter(
         (d: TransitionViewObject) =>
           d !== undefined && d.transition.getTrainrun().getId() === trainrunSection.getTrainrunId(),
@@ -91,27 +91,27 @@ export class D3Utils {
   }
 
   static unhoverTrainrunSection(trainrunSection: TrainrunSection) {
-    d3.selectAll(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
+    d3.selectAll<SVGElement, TrainrunSectionViewObject>(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
           d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, false);
-    d3.selectAll(StaticDomTags.EDGE_LINE_DOM_REF)
-      .filter(
-        (d: TrainrunSectionViewObject) =>
-          d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
-      )
-      .classed(StaticDomTags.TAG_HOVER, false);
-
-    d3.selectAll(StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF)
+    d3.selectAll<SVGElement, TrainrunSectionViewObject>(StaticDomTags.EDGE_LINE_DOM_REF)
       .filter(
         (d: TrainrunSectionViewObject) =>
           d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
       )
       .classed(StaticDomTags.TAG_HOVER, false);
 
-    d3.selectAll(StaticDomTags.TRANSITION_LINE_DOM_REF)
+    d3.selectAll<SVGElement, TrainrunSectionViewObject>(StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF)
+      .filter(
+        (d: TrainrunSectionViewObject) =>
+          d !== undefined && d.trainrunSection.getTrainrunId() === trainrunSection.getTrainrunId(),
+      )
+      .classed(StaticDomTags.TAG_HOVER, false);
+
+    d3.selectAll<SVGElement, TransitionViewObject>(StaticDomTags.TRANSITION_LINE_DOM_REF)
       .filter(
         (d: TransitionViewObject) =>
           d !== undefined && d.transition.getTrainrun().getId() === trainrunSection.getTrainrunId(),
@@ -249,13 +249,13 @@ export class D3Utils {
   }
 
   static highlightNode(node: Node) {
-    d3.selectAll(StaticDomTags.NODE_ROOT_DOM_REF)
+    d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_ROOT_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.NODE_HIGHLIGHT, true);
   }
 
   static unhighlightNode(node: Node) {
-    d3.selectAll(StaticDomTags.NODE_ROOT_DOM_REF)
+    d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_ROOT_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.NODE_HIGHLIGHT, false);
   }
@@ -311,7 +311,7 @@ export class D3Utils {
   }
 
   static doGrayoutTransition(transition: Transition) {
-    d3.selectAll(StaticDomTags.TRANSITION_LINE_DOM_REF)
+    d3.selectAll<SVGElement, TransitionViewObject>(StaticDomTags.TRANSITION_LINE_DOM_REF)
       .filter((d: TransitionViewObject) => {
         if (d === undefined) {
           return false;
@@ -323,7 +323,7 @@ export class D3Utils {
       .classed(StaticDomTags.TAG_WARNING, false)
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, true);
 
-    d3.selectAll(StaticDomTags.TRANSITION_BUTTON_DOM_REF)
+    d3.selectAll<SVGElement, TransitionViewObject>(StaticDomTags.TRANSITION_BUTTON_DOM_REF)
       .filter((d: TransitionViewObject) => {
         if (d === undefined) {
           return false;
@@ -337,7 +337,7 @@ export class D3Utils {
   }
 
   static removeGrayoutTransition(transition: Transition) {
-    d3.selectAll(StaticDomTags.TRANSITION_LINE_DOM_REF)
+    d3.selectAll<SVGElement, TransitionViewObject>(StaticDomTags.TRANSITION_LINE_DOM_REF)
       .filter((d: TransitionViewObject) => {
         if (d === undefined) {
           return false;
@@ -349,7 +349,7 @@ export class D3Utils {
       .classed(StaticDomTags.TAG_WARNING, false)
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);
 
-    d3.selectAll(StaticDomTags.TRANSITION_BUTTON_DOM_REF)
+    d3.selectAll<SVGElement, TransitionViewObject>(StaticDomTags.TRANSITION_BUTTON_DOM_REF)
       .filter((d: TransitionViewObject) => {
         if (d === undefined) {
           return false;
@@ -363,7 +363,7 @@ export class D3Utils {
   }
 
   static doGrayout(trainrunSection: TrainrunSection, grayoutEdgeLinePinNode: Node = undefined) {
-    d3.selectAll(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
+    d3.selectAll<SVGElement, TrainrunSectionViewObject>(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
       .filter((d: TrainrunSectionViewObject) => {
         if (d === undefined) {
           return false;
@@ -375,7 +375,7 @@ export class D3Utils {
       .classed(StaticDomTags.TAG_WARNING, false)
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, true);
 
-    d3.selectAll(StaticDomTags.EDGE_LINE_DOM_REF)
+    d3.selectAll<SVGElement, TrainrunSectionViewObject>(StaticDomTags.EDGE_LINE_DOM_REF)
       .filter((d: TrainrunSectionViewObject) => {
         if (d === undefined) {
           return false;
@@ -387,7 +387,7 @@ export class D3Utils {
       .classed(StaticDomTags.TAG_WARNING, false)
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, true);
 
-    d3.selectAll(StaticDomTags.EDGE_LINE_TEXT_DOM_REF)
+    d3.selectAll<SVGElement, TrainrunSectionViewObject>(StaticDomTags.EDGE_LINE_TEXT_DOM_REF)
       .filter((d: TrainrunSectionViewObject) => {
         if (d === undefined) {
           return false;
@@ -399,7 +399,7 @@ export class D3Utils {
       .classed(StaticDomTags.TAG_WARNING, false)
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, true);
 
-    d3.selectAll(StaticDomTags.EDGE_LINE_STOPS_DOM_REF)
+    d3.selectAll<SVGElement, TrainrunSectionViewObject>(StaticDomTags.EDGE_LINE_STOPS_DOM_REF)
       .filter((d: TrainrunSectionViewObject) => {
         if (d === undefined) {
           return false;
@@ -409,7 +409,9 @@ export class D3Utils {
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, true);
 
     if (grayoutEdgeLinePinNode !== undefined) {
-      d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF + "." + StaticDomTags.EDGE_IS_SOURCE)
+      d3.selectAll<SVGElement, TrainrunSectionViewObject>(
+        StaticDomTags.EDGE_LINE_PIN_DOM_REF + "." + StaticDomTags.EDGE_IS_SOURCE,
+      )
         .filter((d: TrainrunSectionViewObject) => {
           if (d === undefined) {
             return false;
@@ -420,7 +422,9 @@ export class D3Utils {
           );
         })
         .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, true);
-      d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF + "." + StaticDomTags.EDGE_IS_TARGET)
+      d3.selectAll<SVGElement, TrainrunSectionViewObject>(
+        StaticDomTags.EDGE_LINE_PIN_DOM_REF + "." + StaticDomTags.EDGE_IS_TARGET,
+      )
         .filter((d: TrainrunSectionViewObject) => {
           if (d === undefined) {
             return false;
@@ -435,7 +439,7 @@ export class D3Utils {
   }
 
   static removeGrayout(trainrunSection: TrainrunSection, grayoutEdgeLinePinNode: Node = undefined) {
-    d3.selectAll(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
+    d3.selectAll<SVGElement, TrainrunSectionViewObject>(StaticDomTags.EDGE_LINE_ARROW_DOM_REF)
       .filter((d: TrainrunSectionViewObject) => {
         if (d === undefined) {
           return false;
@@ -447,7 +451,7 @@ export class D3Utils {
       .classed(StaticDomTags.TAG_WARNING, false)
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);
 
-    d3.selectAll(StaticDomTags.EDGE_LINE_DOM_REF)
+    d3.selectAll<SVGElement, TrainrunSectionViewObject>(StaticDomTags.EDGE_LINE_DOM_REF)
       .filter((d: TrainrunSectionViewObject) => {
         if (d === undefined) {
           return false;
@@ -459,7 +463,7 @@ export class D3Utils {
       .classed(StaticDomTags.TAG_WARNING, false)
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);
 
-    d3.selectAll(StaticDomTags.EDGE_LINE_TEXT_DOM_REF)
+    d3.selectAll<SVGElement, TrainrunSectionViewObject>(StaticDomTags.EDGE_LINE_TEXT_DOM_REF)
       .filter((d: TrainrunSectionViewObject) => {
         if (d === undefined) {
           return false;
@@ -471,7 +475,7 @@ export class D3Utils {
       .classed(StaticDomTags.TAG_WARNING, false)
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);
 
-    d3.selectAll(StaticDomTags.EDGE_LINE_STOPS_DOM_REF)
+    d3.selectAll<SVGElement, TrainrunSectionViewObject>(StaticDomTags.EDGE_LINE_STOPS_DOM_REF)
       .filter((d: TrainrunSectionViewObject) => {
         if (d === undefined) {
           return false;
@@ -481,7 +485,9 @@ export class D3Utils {
       .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);
 
     if (grayoutEdgeLinePinNode !== undefined) {
-      d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF + "." + StaticDomTags.EDGE_IS_SOURCE)
+      d3.selectAll<SVGElement, TrainrunSectionViewObject>(
+        StaticDomTags.EDGE_LINE_PIN_DOM_REF + "." + StaticDomTags.EDGE_IS_SOURCE,
+      )
         .filter((d: TrainrunSectionViewObject) => {
           if (d === undefined) {
             return false;
@@ -492,7 +498,9 @@ export class D3Utils {
           );
         })
         .classed(StaticDomTags.EDGE_LINE_GRAYEDOUT, false);
-      d3.selectAll(StaticDomTags.EDGE_LINE_PIN_DOM_REF + "." + StaticDomTags.EDGE_IS_TARGET)
+      d3.selectAll<SVGElement, TrainrunSectionViewObject>(
+        StaticDomTags.EDGE_LINE_PIN_DOM_REF + "." + StaticDomTags.EDGE_IS_TARGET,
+      )
         .filter((d: TrainrunSectionViewObject) => {
           if (d === undefined) {
             return false;

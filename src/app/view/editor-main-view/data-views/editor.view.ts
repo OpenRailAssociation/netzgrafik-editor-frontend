@@ -51,7 +51,7 @@ export class EditorView implements SVGMouseControllerObserver {
   controller: EditorMainViewComponent;
   svgMouseController: SVGMouseController;
   editorKeyEvents: EditorKeyEvents;
-  rootContainer: d3.Selection<SVGElement, undefined, Element, undefined>;
+  rootContainer: d3.Selection<SVGGElement, undefined, Element, undefined>;
   nodesView: NodesView;
   transitionsView: TransitionsView;
   connectionsView: ConnectionsView;
