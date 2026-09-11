@@ -32,22 +32,25 @@ type MetadataDto = {
   trafficSide?: TrafficSide;
 };
 
-abstract class BaseOperation<O extends OperationObjectType> {
-  readonly type: OperationType;
+abstract class BaseOperation<O extends OperationObjectType, T extends OperationType> {
+  readonly type: T;
   readonly objectType: O;
 
   /** @internal */
-  constructor(type: OperationType, objectType: O) {
+  constructor(type: T, objectType: O) {
     this.type = type;
     this.objectType = objectType;
   }
 }
 
-abstract class TrainrunOperation extends BaseOperation<OperationObjectType.trainrun> {
+abstract class TrainrunOperation<T extends OperationType> extends BaseOperation<
+  OperationObjectType.trainrun,
+  T
+> {
   readonly trainrun: TrainrunDto;
 
   /** @internal */
-  constructor(operationType: OperationType, trainrun: Trainrun) {
+  constructor(operationType: T, trainrun: Trainrun) {
     super(operationType, OperationObjectType.trainrun);
     this.trainrun = trainrun.getDto();
   }
@@ -64,7 +67,7 @@ type TrainrunUpdateTag =
   | "labelIds"
   | "direction";
 
-class TrainrunUpdateOperation extends TrainrunOperation {
+class TrainrunUpdateOperation extends TrainrunOperation<OperationType.update> {
   readonly tags: TrainrunUpdateTag[];
   readonly oneWayDirection?: "forward" | "backward";
   constructor(
@@ -78,7 +81,7 @@ class TrainrunUpdateOperation extends TrainrunOperation {
   }
 }
 
-class TrainrunCreateOperation extends TrainrunOperation {
+class TrainrunCreateOperation extends TrainrunOperation<OperationType.create> {
   readonly duplicatedTrainrunId?: number;
   constructor(trainrun: Trainrun, duplicatedTrainrunId?: number) {
     super(OperationType.create, trainrun);
@@ -86,13 +89,13 @@ class TrainrunCreateOperation extends TrainrunOperation {
   }
 }
 
-class TrainrunDeleteOperation extends TrainrunOperation {
+class TrainrunDeleteOperation extends TrainrunOperation<OperationType.delete> {
   constructor(trainrun: Trainrun) {
     super(OperationType.delete, trainrun);
   }
 }
 
-class NodeOperation extends BaseOperation<OperationObjectType.node> {
+class NodeOperation extends BaseOperation<OperationObjectType.node, OperationType> {
   readonly node: NodeDto;
 
   /** @internal */
@@ -102,7 +105,7 @@ class NodeOperation extends BaseOperation<OperationObjectType.node> {
   }
 }
 
-class LabelOperation extends BaseOperation<OperationObjectType.label> {
+class LabelOperation extends BaseOperation<OperationObjectType.label, OperationType> {
   readonly label: LabelDto;
 
   /** @internal */
@@ -112,7 +115,7 @@ class LabelOperation extends BaseOperation<OperationObjectType.label> {
   }
 }
 
-class NoteOperation extends BaseOperation<OperationObjectType.note> {
+class NoteOperation extends BaseOperation<OperationObjectType.note, OperationType> {
   readonly note: FreeFloatingTextDto;
 
   /** @internal */
@@ -122,7 +125,7 @@ class NoteOperation extends BaseOperation<OperationObjectType.note> {
   }
 }
 
-class MetadataOperation extends BaseOperation<OperationObjectType.metadata> {
+class MetadataOperation extends BaseOperation<OperationObjectType.metadata, OperationType> {
   readonly metadata: MetadataDto;
 
   /** @internal */
@@ -132,7 +135,10 @@ class MetadataOperation extends BaseOperation<OperationObjectType.metadata> {
   }
 }
 
-class FilterSettingOperation extends BaseOperation<OperationObjectType.filterSetting> {
+class FilterSettingOperation extends BaseOperation<
+  OperationObjectType.filterSetting,
+  OperationType
+> {
   readonly filterSetting: FilterSettingDto;
 
   /** @internal */
@@ -143,7 +149,9 @@ class FilterSettingOperation extends BaseOperation<OperationObjectType.filterSet
 }
 
 type Operation =
-  | TrainrunOperation
+  | TrainrunUpdateOperation
+  | TrainrunCreateOperation
+  | TrainrunDeleteOperation
   | NodeOperation
   | LabelOperation
   | NoteOperation
