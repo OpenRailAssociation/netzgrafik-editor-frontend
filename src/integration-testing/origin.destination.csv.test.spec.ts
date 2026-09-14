@@ -288,24 +288,24 @@ describe("Origin Destination CSV Test", () => {
     const neighbors = computeNeighbors(edges);
 
     // v4 has no outgoing edges.
-    expect(neighbors).toHaveSize(3);
-    expect(neighbors.get(v1)).toHaveSize(1);
+    expect(neighbors.size).toBe(3);
+    expect(neighbors.get(v1).length).toBe(1);
     expect(neighbors.get(v1)).toContain([v2, 0]);
-    expect(neighbors.get(v2)).toHaveSize(1);
+    expect(neighbors.get(v2).length).toBe(1);
     expect(neighbors.get(v2)).toContain([v3, 15]);
-    expect(neighbors.get(v3)).toHaveSize(1);
+    expect(neighbors.get(v3).length).toBe(1);
     expect(neighbors.get(v3)).toContain([v4, 0]);
 
     const topoVertices = topoSort(neighbors);
 
-    expect(topoVertices).toHaveSize(4);
+    expect(topoVertices.length).toBe(4);
     edges.forEach((edge) => {
       expect(topoVertices.indexOf(edge.v1)).toBeLessThan(topoVertices.indexOf(edge.v2));
     });
 
     const distances0 = computeShortestPaths(0, neighbors, topoVertices, tsSuccessor);
 
-    expect(distances0).toHaveSize(1);
+    expect(distances0.size).toBe(1);
     expect(distances0.get(1)).toEqual([15, 0, [0]]);
   });
 
@@ -340,34 +340,34 @@ describe("Origin Destination CSV Test", () => {
     const tsSuccessor = new Map<number, number>([[0, 1]]);
 
     const neighbors = computeNeighbors(edges);
-    expect(neighbors).toHaveSize(9);
-    expect(neighbors.get(v1)).toHaveSize(1);
-    expect(neighbors.get(v2)).toHaveSize(1);
-    expect(neighbors.get(v3)).toHaveSize(2);
-    expect(neighbors.get(v4)).toHaveSize(1);
-    expect(neighbors.get(v5)).toHaveSize(1);
-    expect(neighbors.get(v7)).toHaveSize(1);
-    expect(neighbors.get(v8)).toHaveSize(1);
-    expect(neighbors.get(v9)).toHaveSize(2);
-    expect(neighbors.get(v11)).toHaveSize(1);
+    expect(neighbors.size).toBe(9);
+    expect(neighbors.get(v1).length).toBe(1);
+    expect(neighbors.get(v2).length).toBe(1);
+    expect(neighbors.get(v3).length).toBe(2);
+    expect(neighbors.get(v4).length).toBe(1);
+    expect(neighbors.get(v5).length).toBe(1);
+    expect(neighbors.get(v7).length).toBe(1);
+    expect(neighbors.get(v8).length).toBe(1);
+    expect(neighbors.get(v9).length).toBe(2);
+    expect(neighbors.get(v11).length).toBe(1);
 
     const topoVertices = topoSort(neighbors);
-    expect(topoVertices).toHaveSize(11);
+    expect(topoVertices.length).toBe(11);
     edges.forEach((edge) => {
       expect(topoVertices.indexOf(edge.v1)).toBeLessThan(topoVertices.indexOf(edge.v2));
     });
 
     const distances0 = computeShortestPaths(0, neighbors, topoVertices, tsSuccessor);
-    expect(distances0).toHaveSize(2);
+    expect(distances0.size).toBe(2);
     expect(distances0.get(1)).toEqual([15, 0, [0]]);
     expect(distances0.get(2)).toEqual([30, 0, [0, 1]]);
 
     const distances1 = computeShortestPaths(1, neighbors, topoVertices, tsSuccessor);
-    expect(distances1).toHaveSize(1);
+    expect(distances1.size).toBe(1);
     expect(distances1.get(2)).toEqual([14, 0, [1]]);
 
     const distances3 = computeShortestPaths(3, neighbors, topoVertices, tsSuccessor);
-    expect(distances3).toHaveSize(2);
+    expect(distances3.size).toBe(2);
     expect(distances3.get(1)).toEqual([10, 0, [2]]);
     // connection
     expect(distances3.get(2)).toEqual([30 + 5, 1, [2, 1]]);
