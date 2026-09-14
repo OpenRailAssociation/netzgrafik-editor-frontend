@@ -211,7 +211,7 @@ describe("AutoLayoutService", () => {
     targetPosition: TestPoint,
   ): TrainrunSection {
     return {
-      isPathInvalid: jasmine.createSpy("isPathInvalid").and.returnValue(false),
+      isPathInvalid: () => false,
       getSourceNode: () => sourceNode,
       getTargetNode: () => targetNode,
       getSourcePortId: () => "source-port",
