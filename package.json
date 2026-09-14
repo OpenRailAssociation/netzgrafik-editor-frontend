@@ -50,7 +50,7 @@
     "@angular/localize": "^22.1.5",
     "@angular/platform-browser": "^22.1.5",
     "@angular/router": "^22.1.5",
-    "@sbb-esta/angular": "^22.0.2",
+    "@sbb-esta/angular": "^22.1.0",
     "angular-oauth2-oidc": "^22.0.2",
     "angular-server-side-configuration": "^22.0.2",
     "d3": "^7.9.0",
