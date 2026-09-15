@@ -118,7 +118,6 @@ describe("Transitions-View", () => {
     );
 
     const positionTransformationService = new PositionTransformationService(
-      trainrunSectionService,
       nodeService,
       noteService,
       uiInteractionService,
@@ -174,7 +173,7 @@ describe("Transitions-View", () => {
 
   it("transitionsView constructor test", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    new TransitionsView(editorView);
+    new TransitionsView(editorView, trainrunSectionService);
   });
 
   it("TransitionsView.isMuted - 001", () => {
