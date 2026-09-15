@@ -253,16 +253,17 @@ describe("TrainrunSectionService", () => {
 
         for (const {id, ...expectedTimes} of expectedTrainrunSectionTimes) {
           const ts = trainrunSectionService.getTrainrunSectionFromId(id);
-          expect({
-            sourceDeparture: ts.getSourceDeparture(),
-            targetDeparture: ts.getTargetDeparture(),
-            sourceArrival: ts.getSourceArrival(),
-            targetArrival: ts.getTargetArrival(),
-            travelTime: ts.getTravelTime(),
-            backwardTravelTime: ts.getBackwardTravelTime(),
-          })
-            .withContext(`trainrun section ${id}`)
-            .toEqual(expectedTimes);
+          expect(
+            {
+              sourceDeparture: ts.getSourceDeparture(),
+              targetDeparture: ts.getTargetDeparture(),
+              sourceArrival: ts.getSourceArrival(),
+              targetArrival: ts.getTargetArrival(),
+              travelTime: ts.getTravelTime(),
+              backwardTravelTime: ts.getBackwardTravelTime(),
+            },
+            `trainrun section ${id}`,
+          ).toEqual(expectedTimes);
         }
       });
     }

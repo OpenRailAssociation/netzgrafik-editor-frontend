@@ -28,16 +28,14 @@
     "build": "ng run netzgrafik-frontend:ngsscbuild",
     "build:standalone": "ng build --configuration=standalone && tsc --project tsconfig.defs.json",
     "build:standalonedemo": "ng build --configuration=standalonedemo",
-    "test": "ng test -c ci",
+    "test": "ng test",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
     "lint:null": "tsc --project tsconfig.strictNullChecks.json",
     "generate:api": "openapi-generator-cli generate",
-    "local-test": "ng test --watch --code-coverage",
-    "extract-i18n": "ng extract-i18n",
-    "benchmark": "ng test -c benchmark"
+    "extract-i18n": "ng extract-i18n"
   },
   "dependencies": {
     "@angular/animations": "^22.1.4",
@@ -72,25 +70,17 @@
     "@eslint/js": "^10.0.1",
     "@openapitools/openapi-generator-cli": "^2.41.0",
     "@types/d3": "^7.4.3",
-    "@types/karma-jasmine": "^4.0.5",
     "@types/node": "^26.5.0",
     "@types/papaparse": "^5.3.2",
     "angular-eslint": "^22.5.0",
     "browserstack-local": "^1.5.12",
     "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",
-    "istanbul-lib-instrument": "^6.0.3",
-    "jasmine-spec-reporter": "~7.0.0",
-    "karma": "^6.4.4",
-    "karma-browserstack-launcher": "^1.6.0",
-    "karma-chrome-launcher": "^3.1.1",
-    "karma-coverage": "^2.2.1",
-    "karma-jasmine": "^5.1.0",
-    "karma-jasmine-html-reporter": "^2.3.0",
-    "karma-sonarqube-reporter": "^1.4.0",
+    "jsdom": "^30.0.1",
     "oxfmt": "^0.67.0",
     "ts-node": "~10.9.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.70.0"
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^4.1.11"
   }
 }
