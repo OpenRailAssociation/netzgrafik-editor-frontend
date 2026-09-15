@@ -347,8 +347,6 @@
         "alphabeticalOrderingTooltip": "Order ports alphabetically by train categories.",
         "crossingAwareOrdering": "Crossing aware",
         "crossingAwareOrderingTooltip": "Minimizes crossings of trainruns within the nodes.",
-        "crossingAwarePushOrdering": "Crossing aware (push crossings into nodes)",
-        "crossingAwarePushOrderingTooltip": "Minimizes crossings of trainruns, moving them into the nodes to keep parallel trainruns bundled.",
         "delete": "Delete",
         "on-clear-delete-all-non-visible-elements": "Should all non-visible elements be permanently deleted from the netzgrafik?",
         "on-clear-delete-all-visible-elements": "Should all visible elements be permanently deleted from the netzgrafik?",
@@ -425,6 +423,17 @@
           "show": "show",
           "hide": "hide"
         }
+      },
+      "editor-search-view-component": {
+        "search": "Search",
+        "goto": "Goto",
+        "search-node": "Search node",
+        "navigate": "Navigate",
+        "select-node": "Select node",
+        "search-trainrun": "Search trainrun",
+        "select-trainrun": "Select trainrun",
+        "clear-all-search-fields": "Reset all search fields",
+        "reset": "Reset search"
       },
       "editor-menu": {
         "save-changes": "Save changes",
