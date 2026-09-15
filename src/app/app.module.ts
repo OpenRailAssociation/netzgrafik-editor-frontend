@@ -157,7 +157,6 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     VersionEntryLayoutComponent,
     ErrorViewComponent,
     VariantDialogComponent,
-    VariantFormComponent,
     PreviewButtonComponent,
     NavigationBarComponent,
     EditorPropertiesViewComponent,
@@ -254,6 +253,7 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     SbbBreadcrumbModule,
     SbbAutocompleteModule,
     I18nModule,
+    VariantFormComponent,
   ],
   providers: [
     ...(environment.backendUrl
