@@ -1,16 +1,18 @@
 import {Component, HostListener, OnDestroy, ChangeDetectionStrategy} from "@angular/core";
+import {CommonModule} from "@angular/common";
 import {Observable, of, ReplaySubject, Subject} from "rxjs";
-import {UntypedFormControl} from "@angular/forms";
+import {UntypedFormControl, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {ProjectsViewService} from "./projects-view.service";
 import {debounceTime, filter, mergeMap, takeUntil} from "rxjs/operators";
-import {SbbDialog} from "@sbb-esta/angular/dialog";
+import {SbbDialog, SbbDialogModule} from "@sbb-esta/angular/dialog";
 import {ProjectDialogComponent} from "../project-dialog/project-dialog.component";
 import {
   ProjectControllerBackendService,
   ProjectDto,
   ProjectSummaryDto,
 } from "../../../api/generated";
-import {ConfirmationDialogParameter} from "../../dialogs/confirmation-dialog/confirmation-dialog.component";
+import {ConfirmationDialogComponent, ConfirmationDialogParameter} from "../../dialogs/confirmation-dialog/confirmation-dialog.component";
+import {I18nModule} from "../../../core/i18n/i18n.module";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {NavigationService} from "../../../services/ui/navigation.service";
 import {SlotAction} from "../../action-menu/action-menu/action-menu.component";
@@ -21,7 +23,14 @@ import {SlotAction} from "../../action-menu/action-menu/action-menu.component";
   styleUrls: ["./projects-view.component.scss"],
   providers: [ProjectsViewService],
   changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+  imports: [
+    CommonModule,
+    I18nModule,
+    FormsModule,
+    ReactiveFormsModule,
+    SbbDialogModule,
+    ConfirmationDialogComponent,
+  ],
 })
 export class ProjectsViewComponent implements OnDestroy {
   readonly projectSubject = new ReplaySubject<ProjectDto>(1);

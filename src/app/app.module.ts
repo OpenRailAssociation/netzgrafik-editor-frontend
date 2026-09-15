@@ -138,7 +138,6 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     ConfirmationDialogComponent,
     FilterMainSideViewComponent,
     KnotenAuslastungViewComponent,
-    ProjectsViewComponent,
     CardGridComponent,
     CardComponent,
     PageLayoutComponent,
@@ -253,6 +252,7 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     I18nModule,
     ProjectDialogComponent,
     ProjectFormComponent,
+    ProjectsViewComponent,
     VariantFormComponent,
   ],
   providers: [
