@@ -11,8 +11,8 @@ import {TransitionViewObject} from "./transitionViewObject";
 import {LinePatternRefs} from "../../../data-structures/business.data.structures";
 
 export class TransitionsView {
-  transitionsGroup: d3.Selection<SVGElement, undefined, Element, undefined>;
-  selectedTransitionsGroup: d3.Selection<SVGElement, undefined, Element, undefined>;
+  transitionsGroup: d3.Selection<SVGGElement, undefined, Element, undefined>;
+  selectedTransitionsGroup: d3.Selection<SVGGElement, undefined, Element, undefined>;
   editorView: EditorView;
 
   constructor(editorView: EditorView) {
@@ -82,7 +82,7 @@ export class TransitionsView {
   }
 
   static createTransitionLineLayer(
-    grpEnter: d3.Selection<SVGElement, TransitionViewObject, Element, undefined>,
+    grpEnter: d3.Selection<SVGGElement, TransitionViewObject, Element, undefined>,
     classRef: string,
     levelFreqFilter: LinePatternRefs[],
     selectedTrainrun: Trainrun,
@@ -122,7 +122,7 @@ export class TransitionsView {
   }
 
   createNonStopToggle(
-    grpEnter: d3.Selection<SVGElement, TransitionViewObject, Element, undefined>,
+    grpEnter: d3.Selection<SVGGElement, TransitionViewObject, Element, undefined>,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
   ) {
@@ -166,7 +166,7 @@ export class TransitionsView {
       );
   }
 
-  setGroup(transitionsGroup: d3.Selection<SVGElement, undefined, Element, undefined>) {
+  setGroup(transitionsGroup: d3.Selection<SVGGElement, undefined, Element, undefined>) {
     transitionsGroup.attr("class", "TransitionsView");
     this.transitionsGroup = transitionsGroup.append(StaticDomTags.GROUP_SVG);
     this.transitionsGroup.attr("class", "transitions");
@@ -221,7 +221,7 @@ export class TransitionsView {
     }
 
     const transitionsGroup = rootGroup
-      .selectAll(StaticDomTags.TRANSITION_ROOT_CONTAINER_DOM_REF)
+      .selectAll<SVGElement, TransitionViewObject>(StaticDomTags.TRANSITION_ROOT_CONTAINER_DOM_REF)
       .data(
         TransitionsView.createTransitionViewObjects(
           this.editorView,

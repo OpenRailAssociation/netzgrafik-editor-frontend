@@ -1,5 +1,5 @@
 import {Component, Input, OnInit, ChangeDetectionStrategy} from "@angular/core";
-import {UntypedFormControl, Validators} from "@angular/forms";
+import {Validators, ValidatorFn} from "@angular/forms";
 import {FormModel} from "../../../../utils/form-model";
 import {COMMA, ENTER} from "@angular/cdk/keycodes";
 
@@ -46,7 +46,7 @@ export class ProjectFormComponent implements OnInit {
   }
 }
 
-export const userIdsAsEmailValidator = (control: UntypedFormControl) => {
+export const userIdsAsEmailValidator: ValidatorFn = (control) => {
   if (!control) {
     return null;
   }

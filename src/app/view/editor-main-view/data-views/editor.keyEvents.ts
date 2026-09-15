@@ -360,46 +360,43 @@ export class EditorKeyEvents {
 
   private getSelectedTrainSectionId(): number {
     let selectedTrainrunSectionId: number = undefined;
-    d3.select(StaticDomTags.EDGE_LINE_DOM_REF + "." + StaticDomTags.TAG_SELECTED).classed(
-      "KeyEventHandling",
-      (tsvo: TrainrunSectionViewObject) => {
-        if (tsvo === undefined) {
-          const trainRun = this.trainrunService.getSelectedTrainrun();
-          if (trainRun !== null) {
-            selectedTrainrunSectionId = trainRun.getId();
-          }
-          return false;
-        }
-        if (tsvo.trainrunSection.getTrainrun().selected()) {
-          selectedTrainrunSectionId = tsvo.trainrunSection.getTrainrunId();
+    d3.select<SVGElement, TrainrunSectionViewObject>(
+      StaticDomTags.EDGE_LINE_DOM_REF + "." + StaticDomTags.TAG_SELECTED,
+    ).classed("KeyEventHandling", (tsvo: TrainrunSectionViewObject) => {
+      if (tsvo === undefined) {
+        const trainRun = this.trainrunService.getSelectedTrainrun();
+        if (trainRun !== null) {
+          selectedTrainrunSectionId = trainRun.getId();
         }
         return false;
-      },
-    );
+      }
+      if (tsvo.trainrunSection.getTrainrun().selected()) {
+        selectedTrainrunSectionId = tsvo.trainrunSection.getTrainrunId();
+      }
+      return false;
+    });
     return selectedTrainrunSectionId;
   }
 
   private getHoveredNoteId(): number {
     let noteHoveredId: number = undefined;
-    d3.select(StaticDomTags.NOTE_ROOT_DOM_REF + "." + StaticDomTags.TAG_HOVER).classed(
-      "KeyEventHandling",
-      (nvo: NoteViewObject) => {
-        noteHoveredId = nvo.note.getId();
-        return false;
-      },
-    );
+    d3.select<SVGElement, NoteViewObject>(
+      StaticDomTags.NOTE_ROOT_DOM_REF + "." + StaticDomTags.TAG_HOVER,
+    ).classed("KeyEventHandling", (nvo: NoteViewObject) => {
+      noteHoveredId = nvo.note.getId();
+      return false;
+    });
     return noteHoveredId;
   }
 
   private getHoveredNodeId(): number {
     let hoveredNodeId: number = undefined;
-    d3.select(StaticDomTags.NODE_ROOT_DOM_REF + "." + StaticDomTags.TAG_HOVER).classed(
-      "KeyEventHandling",
-      (nvo: NodeViewObject) => {
-        hoveredNodeId = nvo.node.getId();
-        return false;
-      },
-    );
+    d3.select<SVGElement, NodeViewObject>(
+      StaticDomTags.NODE_ROOT_DOM_REF + "." + StaticDomTags.TAG_HOVER,
+    ).classed("KeyEventHandling", (nvo: NodeViewObject) => {
+      hoveredNodeId = nvo.node.getId();
+      return false;
+    });
     return hoveredNodeId;
   }
 

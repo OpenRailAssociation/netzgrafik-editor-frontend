@@ -27,7 +27,7 @@ type NodeDragEvent = d3.D3DragEvent<SVGElement, NodeViewObject, unknown>;
 
 export class NodesView {
   dragPreviousMousePosition: Vec2D;
-  nodeGroup: d3.Selection<SVGElement, undefined, Element, undefined>;
+  nodeGroup: d3.Selection<SVGGElement, undefined, Element, undefined>;
   draggable: d3.DragBehavior<SVGElement, NodeViewObject, unknown>;
   dragDomObj: SVGElement | null = null;
 
@@ -40,7 +40,7 @@ export class NodesView {
     this.dragPreviousMousePosition = new Vec2D();
   }
 
-  setGroup(nodeGroup: d3.Selection<SVGElement, undefined, Element, undefined>) {
+  setGroup(nodeGroup: d3.Selection<SVGGElement, undefined, Element, undefined>) {
     this.nodeGroup = nodeGroup;
     this.nodeGroup.attr("class", "NodesView");
   }
@@ -116,7 +116,7 @@ export class NodesView {
     );
 
     const group = this.nodeGroup
-      .selectAll(StaticDomTags.NODE_ROOT_CONTAINER_DOM_REF)
+      .selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_ROOT_CONTAINER_DOM_REF)
       .data(this.createViewNodeDataObjects(nodes), (n: NodeViewObject) => n.key);
 
     const groupEnter2 = group
@@ -140,7 +140,7 @@ export class NodesView {
     group.exit().remove();
   }
 
-  renderNodeObject(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
+  renderNodeObject(groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>) {
     switch (this.editorView.getLevelOfDetail()) {
       case LevelOfDetail.LEVEL3: {
         //statements;
@@ -169,7 +169,7 @@ export class NodesView {
     }
   }
 
-  adjustTextWithEllipsis(text: d3.Selection<SVGTextElement, unknown, Element, unknown>) {
+  adjustTextWithEllipsis(text: d3.Selection<SVGTextElement, NodeViewObject, Element, unknown>) {
     text.each(function () {
       const text = d3.select(this);
       const chars = text.text().split("");
@@ -191,7 +191,7 @@ export class NodesView {
     });
   }
 
-  makeNodeLODFull(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
+  makeNodeLODFull(groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>) {
     this.makeNodeHoverRoot(groupEnter);
     this.makeNodeRoot(groupEnter);
     this.makeBackground(groupEnter);
@@ -208,7 +208,7 @@ export class NodesView {
     this.makeLabelConnectionText(groupEnter);
   }
 
-  makeNodeLODLevel3(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
+  makeNodeLODLevel3(groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>) {
     this.makeNodeHoverRoot(groupEnter);
     this.makeNodeRoot(groupEnter);
     this.makeBackground(groupEnter);
@@ -221,7 +221,7 @@ export class NodesView {
     this.makeLabelConnectionText(groupEnter);
   }
 
-  makeNodeLODLevel2(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
+  makeNodeLODLevel2(groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>) {
     this.makeNodeHoverRoot(groupEnter);
     this.makeNodeRoot(groupEnter);
     this.makeBackground(groupEnter);
@@ -232,7 +232,7 @@ export class NodesView {
     this.makeLabelConnectionText(groupEnter);
   }
 
-  makeNodeLODLevel1(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
+  makeNodeLODLevel1(groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>) {
     this.makeNodeHoverRoot(groupEnter);
     this.makeBackground(groupEnter);
     this.makeNodeDockable(groupEnter);
@@ -240,14 +240,14 @@ export class NodesView {
     this.makeLabelText(groupEnter);
   }
 
-  makeNodeLODLevel0(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
+  makeNodeLODLevel0(groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>) {
     this.makeNodeHoverRoot(groupEnter);
     this.makeNodeDockable(groupEnter);
     this.makeAnalyticsArea(groupEnter);
   }
 
   private makeNodeHoverRoot(
-    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+    groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>,
   ) {
     groupEnter
       .append(StaticDomTags.NODE_HOVER_ROOT_SVG)
@@ -277,7 +277,7 @@ export class NodesView {
       );
   }
 
-  private makeNodeRoot(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
+  private makeNodeRoot(groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>) {
     groupEnter
       .append(StaticDomTags.NODE_ROOT_SVG)
       .attr("class", StaticDomTags.NODE_ROOT_CLASS)
@@ -306,7 +306,9 @@ export class NodesView {
       );
   }
 
-  private makeBackground(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
+  private makeBackground(
+    groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>,
+  ) {
     groupEnter
       .append(StaticDomTags.NODE_BACKGROUND_SVG)
       .attr("class", StaticDomTags.NODE_BACKGROUND_CLASS)
@@ -335,7 +337,7 @@ export class NodesView {
       );
   }
 
-  private makeLabelArea(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
+  private makeLabelArea(groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>) {
     groupEnter
       .append(StaticDomTags.NODE_LABELAREA_SVG)
       .attr("class", StaticDomTags.NODE_LABELAREA_CLASS)
@@ -363,9 +365,9 @@ export class NodesView {
   }
 
   private makeHoverDragBackground(
-    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+    groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>,
   ) {
-    const added = groupEnter.append(StaticDomTags.NODE_HOVER_DRAG_AREA_BACKGROUND_SVG);
+    const added = groupEnter.append<SVGElement>(StaticDomTags.NODE_HOVER_DRAG_AREA_BACKGROUND_SVG);
     added
       .attr("class", StaticDomTags.NODE_HOVER_DRAG_AREA_BACKGROUND_CLASS)
       .classed(StaticDomTags.TAG_SELECTED, (n: NodeViewObject) => n.node.selected())
@@ -396,13 +398,13 @@ export class NodesView {
   }
 
   private makeHoverDragRoot(
-    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+    groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>,
   ) {
     if (!this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable()) {
       return;
     }
     groupEnter
-      .append(StaticDomTags.NODE_HOVER_DRAG_AREA_SVG)
+      .append<SVGElement>(StaticDomTags.NODE_HOVER_DRAG_AREA_SVG)
       .attr("class", StaticDomTags.NODE_HOVER_DRAG_AREA_CLASS)
       .classed(StaticDomTags.TAG_SELECTED, (n: NodeViewObject) => n.node.selected())
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
@@ -432,7 +434,7 @@ export class NodesView {
   }
 
   private makeEditButtonBackground(
-    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+    groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>,
   ) {
     groupEnter
       .append(StaticDomTags.NODE_EDIT_AREA_BACKGROUND_SVG)
@@ -455,7 +457,9 @@ export class NodesView {
       .on("mouseup", (event: MouseEvent, n: NodeViewObject) => this.onNodeMouseup(event, n.node));
   }
 
-  private makeEditButton(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
+  private makeEditButton(
+    groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>,
+  ) {
     groupEnter
       .append(StaticDomTags.NODE_EDIT_AREA_SVG)
       .attr("class", StaticDomTags.NODE_EDIT_AREA_CLASS)
@@ -492,7 +496,7 @@ export class NodesView {
   }
 
   private makeNodeDockable(
-    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+    groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>,
   ) {
     groupEnter
       .append(StaticDomTags.NODE_DOCKABLE_SVG)
@@ -528,7 +532,7 @@ export class NodesView {
   }
 
   private makeAnalyticsArea(
-    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+    groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>,
   ) {
     groupEnter
       .append(StaticDomTags.NODE_ANALYTICSAREA_SVG)
@@ -562,7 +566,7 @@ export class NodesView {
   }
 
   private makeAnalyticsTextLeftArea(
-    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+    groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>,
   ) {
     groupEnter
       .append(StaticDomTags.NODE_ANALYTICSAREA_TEXT_LEFT_SVG)
@@ -580,7 +584,7 @@ export class NodesView {
   }
 
   private makeAnalyticsTextRightArea(
-    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+    groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>,
   ) {
     groupEnter
       .append(StaticDomTags.NODE_ANALYTICSAREA_TEXT_RIGHT_SVG)
@@ -597,7 +601,7 @@ export class NodesView {
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId());
   }
 
-  private makeLabelText(groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>) {
+  private makeLabelText(groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>) {
     const added = groupEnter.append(StaticDomTags.NODE_LABELAREA_TEXT_SVG);
     added
       .attr("class", `${StaticDomTags.NODE_LABELAREA_TEXT_CLASS} node_name_text`)
@@ -626,7 +630,10 @@ export class NodesView {
       return;
     }
 
+    // Note, an awkward filter() call is required here to generalize the
+    // selection type and make TypeScript happy
     added
+      .filter<SVGElement>(() => true)
       .call(this.draggable)
       .on("mouseover", (event: MouseEvent, n: NodeViewObject) =>
         this.onNodeLabelAreaMouseover(event, n.node, {raise: true}),
@@ -639,7 +646,7 @@ export class NodesView {
   }
 
   private makeLabelConnectionText(
-    groupEnter: d3.Selection<SVGElement, NodeViewObject, Element, undefined>,
+    groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>,
   ) {
     groupEnter
       .append(StaticDomTags.NODE_CONNECTIONTIME_TEXT_SVG)
@@ -694,10 +701,10 @@ export class NodesView {
 
   onNodeLabelAreaMouseover(event: MouseEvent, node: Node, options?: {raise?: boolean}) {
     this.hoverNode(event, node, options);
-    d3.selectAll(StaticDomTags.NODE_HOVER_DRAG_AREA_DOM_REF)
+    d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_HOVER_DRAG_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_MUTED, true);
-    d3.selectAll(StaticDomTags.NODE_EDIT_AREA_DOM_REF)
+    d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_EDIT_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_MUTED, true);
   }
@@ -708,13 +715,13 @@ export class NodesView {
 
   onNodeMouseoverEditButton(event: MouseEvent, node: Node) {
     this.hoverNode(event, node, {raise: true});
-    d3.selectAll(StaticDomTags.NODE_EDIT_AREA_DOM_REF)
+    d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_EDIT_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, true);
   }
 
   onNodeMouseoutEditButton(event: MouseEvent, node: Node) {
-    d3.selectAll(StaticDomTags.NODE_EDIT_AREA_DOM_REF)
+    d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_EDIT_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, false);
     this.unhoverNode(event, node, {raise: true});
@@ -722,13 +729,13 @@ export class NodesView {
 
   onNodeMouseoverDragButton(event: MouseEvent, node: Node) {
     this.hoverNode(event, node, {raise: true});
-    d3.selectAll(StaticDomTags.NODE_HOVER_DRAG_AREA_DOM_REF)
+    d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_HOVER_DRAG_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, true);
   }
 
   onNodeMouseoutDragButton(event: MouseEvent, node: Node) {
-    d3.selectAll(StaticDomTags.NODE_HOVER_DRAG_AREA_DOM_REF)
+    d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_HOVER_DRAG_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, false);
     this.unhoverNode(event, node, {raise: true});
@@ -802,7 +809,7 @@ export class NodesView {
 
   isNodeHovered(node: Node): boolean {
     return d3
-      .selectAll(StaticDomTags.NODE_ROOT_DOM_REF)
+      .selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_ROOT_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER);
   }
@@ -812,7 +819,7 @@ export class NodesView {
       const domObj = D3Utils.getMouseEventCurrentTarget(event);
       d3.select(domObj).raise().classed(StaticDomTags.TAG_HOVER, true);
     }
-    d3.selectAll(StaticDomTags.NODE_ROOT_DOM_REF)
+    d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_ROOT_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, true);
 
@@ -824,13 +831,13 @@ export class NodesView {
       const domObj = D3Utils.getMouseEventCurrentTarget(event);
       d3.select(domObj).raise().classed(StaticDomTags.TAG_HOVER, false);
     }
-    d3.selectAll(StaticDomTags.NODE_ROOT_DOM_REF)
+    d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_ROOT_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, false);
-    d3.selectAll(StaticDomTags.NODE_HOVER_DRAG_AREA_DOM_REF)
+    d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_HOVER_DRAG_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_MUTED, false);
-    d3.selectAll(StaticDomTags.NODE_EDIT_AREA_DOM_REF)
+    d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_EDIT_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_MUTED, false);
 
@@ -838,14 +845,14 @@ export class NodesView {
   }
 
   hoverNodeDockable(event: MouseEvent, node: Node, options?: {raise?: boolean}) {
-    d3.selectAll(StaticDomTags.NODE_DOCKABLE_DOM_REF)
+    d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_DOCKABLE_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, true);
     this.hoverNode(event, node, options);
   }
 
   unhoverNodeDockable(event: MouseEvent, node: Node, options?: {raise?: boolean}) {
-    d3.selectAll(StaticDomTags.NODE_DOCKABLE_DOM_REF)
+    d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_DOCKABLE_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, false);
     this.unhoverNode(event, node, options);
