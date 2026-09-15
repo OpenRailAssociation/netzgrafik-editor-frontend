@@ -142,7 +142,6 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     CardGridComponent,
     CardComponent,
     PageLayoutComponent,
-    ProjectFormComponent,
     ProjectDialogComponent,
     VariantsViewComponent,
     SlotsViewComponent,
@@ -253,6 +252,7 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     SbbBreadcrumbModule,
     SbbAutocompleteModule,
     I18nModule,
+    ProjectFormComponent,
     VariantFormComponent,
   ],
   providers: [

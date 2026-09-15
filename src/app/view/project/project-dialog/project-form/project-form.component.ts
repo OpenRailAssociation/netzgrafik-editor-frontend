@@ -1,14 +1,31 @@
 import {Component, Input, OnInit, ChangeDetectionStrategy} from "@angular/core";
-import {UntypedFormControl, Validators} from "@angular/forms";
-import {FormModel} from "../../../../utils/form-model";
+import {CommonModule} from "@angular/common";
+import {UntypedFormControl, Validators, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {COMMA, ENTER} from "@angular/cdk/keycodes";
+import {SbbChipsModule} from "@sbb-esta/angular/chips";
+import {SbbFormFieldModule} from "@sbb-esta/angular/form-field";
+import {SbbInputModule} from "@sbb-esta/angular/input";
+import {SbbTextareaModule} from "@sbb-esta/angular/textarea";
+import {SbbTooltipModule} from "@sbb-esta/angular/tooltip";
+import {FormModel} from "../../../../utils/form-model";
+import {I18nModule} from "../../../../core/i18n/i18n.module";
 
 @Component({
   selector: "sbb-project-form",
   templateUrl: "./project-form.component.html",
   styleUrls: ["./project-form.component.scss"],
   changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+  imports: [
+    CommonModule,
+    I18nModule,
+    FormsModule,
+    ReactiveFormsModule,
+    SbbChipsModule,
+    SbbFormFieldModule,
+    SbbInputModule,
+    SbbTextareaModule,
+    SbbTooltipModule,
+  ],
 })
 export class ProjectFormComponent implements OnInit {
   @Input() model!: FormModel<ProjectFormComponentModel>;
