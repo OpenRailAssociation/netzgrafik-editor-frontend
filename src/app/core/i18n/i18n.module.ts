@@ -4,8 +4,7 @@ import {TranslatePipe} from "./translate.pipe";
 import {I18nService} from "./i18n.service";
 
 @NgModule({
-  declarations: [TranslatePipe], // Declare the pipe
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   providers: [
     I18nService,
     provideAppInitializer(() => {
@@ -22,6 +21,6 @@ import {I18nService} from "./i18n.service";
       deps: [I18nService],
     },
   ],
-  exports: [TranslatePipe], // Export the pipe
+  exports: [TranslatePipe],
 })
 export class I18nModule {}

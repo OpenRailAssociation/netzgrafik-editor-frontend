@@ -1,7 +1,4 @@
 import {ComponentFixture, TestBed} from "@angular/core/testing";
-import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {SbbChipsModule} from "@sbb-esta/angular/chips";
-import {SbbTextareaModule} from "@sbb-esta/angular/textarea";
 
 import {
   ProjectFormComponent,
@@ -9,21 +6,11 @@ import {
   userIdsAsEmailValidator,
 } from "./project-form.component";
 import {FormModel} from "../../../../utils/form-model";
-import {I18nModule} from "../../../../core/i18n/i18n.module";
 import {UntypedFormControl} from "@angular/forms";
-import {CUSTOM_ELEMENTS_SCHEMA} from "@angular/core";
 
 describe("ProjectFormComponent", () => {
   let component: ProjectFormComponent;
   let fixture: ComponentFixture<ProjectFormComponent>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [ProjectFormComponent],
-      imports: [I18nModule, FormsModule, ReactiveFormsModule, SbbChipsModule, SbbTextareaModule],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    }).compileComponents();
-  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ProjectFormComponent);

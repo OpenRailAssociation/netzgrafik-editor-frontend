@@ -1,5 +1,6 @@
 import {Component, OnDestroy, TemplateRef, ViewChild, ChangeDetectionStrategy} from "@angular/core";
-import {SbbDialog, SbbDialogConfig} from "@sbb-esta/angular/dialog";
+import {CommonModule} from "@angular/common";
+import {SbbDialog, SbbDialogModule, SbbDialogConfig} from "@sbb-esta/angular/dialog";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {Observable, Subject} from "rxjs";
 import {takeUntil} from "rxjs/operators";
@@ -34,7 +35,10 @@ export class ConfirmationDialogParameter {
   templateUrl: "./confirmation-dialog.component.html",
   styleUrls: ["./confirmation-dialog.component.scss"],
   changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+  imports: [
+    CommonModule,
+    SbbDialogModule,
+  ],
 })
 export class ConfirmationDialogComponent implements OnDestroy {
   @ViewChild("confirmationDialogTemplate", {static: true})
