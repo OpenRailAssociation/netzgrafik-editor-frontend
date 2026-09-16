@@ -41,6 +41,7 @@ export class Node {
   private warnings: WarningDto[];
   private isSelected: boolean;
   private labelIds: number[];
+  private isCollapsed: boolean;
 
   constructor(
     {
@@ -59,6 +60,7 @@ export class Node {
       symmetryAxis,
       warnings,
       labelIds,
+      isCollapsed = false, // older DTO files don't have this field
     }: NodeDto = {
       id: Node.incrementId(),
       betriebspunktName: $localize`:@@app.models.node.shortNameDefault:NEW`,
@@ -75,6 +77,7 @@ export class Node {
       symmetryAxis: null,
       warnings: null,
       labelIds: [],
+      isCollapsed: false,
     },
   ) {
     this.id = id;
@@ -96,6 +99,7 @@ export class Node {
     this.warnings = warnings;
     this.isSelected = false;
     this.labelIds = labelIds;
+    this.isCollapsed = isCollapsed;
 
     if (Node.currentId < this.id) {
       Node.currentId = this.id;
@@ -320,6 +324,14 @@ export class Node {
     return currentMaxIndex;
   }
 
+  getIsCollapsed(): boolean {
+    return this.isCollapsed;
+  }
+
+  setIsCollapsed(isCollapsed: boolean) {
+    this.isCollapsed = isCollapsed;
+  }
+
   addPort(alignment: PortAlignment, trainrunSection: TrainrunSection): number {
     const port = new Port();
     port.setPositionAlignment(alignment);
@@ -462,13 +474,13 @@ export class Node {
             a.getPositionAlignment() === PortAlignment.Right
           ) {
             if (
-              a.getOppositeNodePosition(this.getId()).getY() >
-              b.getOppositeNodePosition(this.getId()).getY()
+              a.getOppositeExpandedNodePosition(this.getId()).getY() >
+              b.getOppositeExpandedNodePosition(this.getId()).getY()
             ) {
               return 1;
             } else if (
-              a.getOppositeNodePosition(this.getId()).getY() ===
-              b.getOppositeNodePosition(this.getId()).getY()
+              a.getOppositeExpandedNodePosition(this.getId()).getY() ===
+              b.getOppositeExpandedNodePosition(this.getId()).getY()
             ) {
               return Node.orderPortsTrainCategory(a, b);
             } else {
@@ -476,13 +488,13 @@ export class Node {
             }
           } else {
             if (
-              a.getOppositeNodePosition(this.getId()).getX() >
-              b.getOppositeNodePosition(this.getId()).getX()
+              a.getOppositeExpandedNodePosition(this.getId()).getX() >
+              b.getOppositeExpandedNodePosition(this.getId()).getX()
             ) {
               return 1;
             } else if (
-              a.getOppositeNodePosition(this.getId()).getX() ===
-              b.getOppositeNodePosition(this.getId()).getX()
+              a.getOppositeExpandedNodePosition(this.getId()).getX() ===
+              b.getOppositeExpandedNodePosition(this.getId()).getX()
             ) {
               return Node.orderPortsTrainCategory(a, b);
             } else {
@@ -544,14 +556,14 @@ export class Node {
     return this.ports.find((port) => port.getTrainrunSectionId() === trainrunSectionId);
   }
 
-  addTransition(port1: Port, port2: Port, trainrun: Trainrun, isNonStop = false): Transition {
+  addTransition(port1: Port, port2: Port, trainrun: Trainrun, isNonStop?: boolean): Transition {
     const transition: Transition = new Transition();
     transition.setPort1Id(port1.getId());
     transition.setPort2Id(port2.getId());
+
     transition.setIsNonStopTransit(
-      isNonStop
-        ? true
-        : this.trainrunCategoryHaltezeiten[trainrun.getTrainrunCategory().fachCategory].no_halt,
+      isNonStop ??
+        this.trainrunCategoryHaltezeiten[trainrun.getTrainrunCategory().fachCategory].no_halt,
     );
     transition.setTrainrun(trainrun);
     this.transitions.push(transition);
@@ -733,6 +745,10 @@ export class Node {
     return this.isSelected;
   }
 
+  isEmpty(): boolean {
+    return this.getBetriebspunktName() === "" && this.getFullName() === "";
+  }
+
   isNonStop(trainrunSection: TrainrunSection): boolean {
     const port = this.getPortOfTrainrunSection(trainrunSection.getId());
     if (port === undefined) {
@@ -865,6 +881,7 @@ export class Node {
       symmetryAxis: this.symmetryAxis,
       warnings: this.warnings,
       labelIds: this.labelIds,
+      isCollapsed: this.isCollapsed,
     };
   }
 
