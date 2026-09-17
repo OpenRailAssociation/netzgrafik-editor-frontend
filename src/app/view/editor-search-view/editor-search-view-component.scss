@@ -1,0 +1,8 @@
+@use "../../../variables" as *;
+@use "./../../view/editor-filter-view/editor-filter-view.component.scss";
+@use "../rastering/definitions" as *;
+
+:host {
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
