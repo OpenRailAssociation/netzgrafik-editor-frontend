@@ -32,6 +32,7 @@ import {PathSection} from "../model/pathSection";
 import {TrackData} from "../model/trackData";
 import {PathNode} from "../model/pathNode";
 import {IsTrainrunSelectedService} from "../../services/data/is-trainrun-section.service";
+import {InfrastructureEstimatorService} from "../../services/infrastructure/infrastructure-estimator.service";
 
 describe("StreckengrafikServicesTests", () => {
   let dataService: DataService;
@@ -145,6 +146,7 @@ describe("StreckengrafikServicesTests", () => {
       nodeService,
       trainrunSectionService,
       trainrunService,
+      new InfrastructureEstimatorService(),
     );
   });
 
