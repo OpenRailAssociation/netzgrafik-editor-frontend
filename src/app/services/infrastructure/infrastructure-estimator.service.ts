@@ -1,6 +1,7 @@
 import {Injectable} from "@angular/core";
 import {Node} from "../../models/node.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
+import {Direction} from "../../data-structures/business.data.structures";
 
 interface SectionTrackEstimateInput {
   departureMinute: number;
@@ -14,17 +15,16 @@ interface SectionTrackEstimateInput {
 export class InfrastructureEstimatorService {
   static readonly DEFAULT_DISTANCE_RESOLUTION = 15;
   static readonly DEFAULT_TIME_RESOLUTION = 15;
+  static readonly DEFAULT_MINIMUM_HEADWAY_TIME = 0;
 
   estimateSectionTracks(
     fromNode: Node,
     toNode: Node,
     trainrunSections: TrainrunSection[],
-    minHeadwayTime = 2,
+    minHeadwayTime = InfrastructureEstimatorService.DEFAULT_MINIMUM_HEADWAY_TIME,
   ): [number, number, number][] {
     const matchingSections = this.findMatchingSections(fromNode, toNode, trainrunSections);
-    const maximumFrequencyWindowMinutes = this.getMaximumFrequency(matchingSections);
-
-    if (matchingSections.length === 0 || maximumFrequencyWindowMinutes <= 0) {
+    if (matchingSections.length === 0) {
       return [];
     }
 
@@ -34,7 +34,24 @@ export class InfrastructureEstimatorService {
       matchingSections,
       minHeadwayTime,
     );
-    return this.estimateTrackSegments(sections, maximumFrequencyWindowMinutes);
+    const maximumFrequencyMinutes = this.getMaximumFrequency(sections);
+    const maximumTravelTimeMinutes = this.getMaximumTravelTime(sections);
+    const maximumUnrollingWindowMinutes = Math.max(
+      maximumFrequencyMinutes,
+      maximumTravelTimeMinutes,
+    );
+    const maximumFrequencyOffsetWindowMinutes = this.getMaximumFrequencyOffsetWindow(
+      sections,
+      maximumUnrollingWindowMinutes,
+    );
+    if (maximumUnrollingWindowMinutes <= 0 || maximumFrequencyMinutes <= 0) {
+      return [];
+    }
+    return this.estimateTrackSegments(
+      sections,
+      maximumFrequencyMinutes,
+      maximumFrequencyOffsetWindowMinutes,
+    );
   }
 
   private findMatchingSections(
@@ -58,11 +75,30 @@ export class InfrastructureEstimatorService {
     );
   }
 
-  private getMaximumFrequency(trainrunSections: TrainrunSection[]): number {
-    return trainrunSections.reduce(
-      (maximum, section) => Math.max(maximum, section.getTrainrun().getFrequency()),
+  private getMaximumFrequency(sections: SectionTrackEstimateInput[]): number {
+    return sections.reduce((maximum, section) => Math.max(maximum, section.frequencyMinutes), 0);
+  }
+
+  private getMaximumTravelTime(sections: SectionTrackEstimateInput[]): number {
+    return sections.reduce(
+      (maximum, section) =>
+        Math.max(maximum, Math.round(section.arrivalMinute - section.departureMinute)),
       0,
     );
+  }
+
+  private getMaximumFrequencyOffsetWindow(
+    sections: SectionTrackEstimateInput[],
+    minimumWindowMinutes: number,
+  ): number {
+    return sections.reduce((maximum, section) => {
+      if (section.frequencyMinutes <= 0) {
+        return maximum;
+      }
+      const sectionWindow =
+        Math.ceil(minimumWindowMinutes / section.frequencyMinutes) * section.frequencyMinutes;
+      return Math.max(maximum, sectionWindow);
+    }, minimumWindowMinutes);
   }
 
   private createDirectionalTrackInputs(
@@ -76,6 +112,11 @@ export class InfrastructureEstimatorService {
         section.getSourceNodeId() === fromNode.getId() &&
         section.getTargetNodeId() === toNode.getId();
       const frequencyMinutes = section.getTrainrun().getFrequency();
+      const categorySectionHeadway = section.getTrainrun().getTrainrunCategory()?.sectionHeadway;
+      const sectionHeadwayMinutes =
+        typeof categorySectionHeadway === "number" && Number.isFinite(categorySectionHeadway)
+          ? Math.max(minHeadwayTime, categorySectionHeadway)
+          : minHeadwayTime;
       const forward = this.createTrackInput(
         isForward
           ? section.getSourceDepartureConsecutiveTime()
@@ -85,7 +126,7 @@ export class InfrastructureEstimatorService {
           : section.getSourceArrivalConsecutiveTime(),
         false,
         frequencyMinutes,
-        minHeadwayTime,
+        sectionHeadwayMinutes,
       );
       const backward = this.createTrackInput(
         isForward
@@ -96,8 +137,11 @@ export class InfrastructureEstimatorService {
           : section.getTargetArrivalConsecutiveTime(),
         true,
         frequencyMinutes,
-        minHeadwayTime,
+        sectionHeadwayMinutes,
       );
+      if (section.getTrainrun().getDirection() === Direction.ONE_WAY) {
+        return isForward ? [forward] : [backward];
+      }
       return [forward, backward];
     });
   }
@@ -120,22 +164,24 @@ export class InfrastructureEstimatorService {
 
   private estimateTrackSegments(
     sections: SectionTrackEstimateInput[],
-    maximumFrequencyWindowMinutes: number,
+    maximumFrequencyMinutes: number,
+    maximumFrequencyOffsetWindowMinutes: number,
   ): [number, number, number][] {
     const distanceResolution = InfrastructureEstimatorService.DEFAULT_DISTANCE_RESOLUTION;
     const timeResolution = InfrastructureEstimatorService.DEFAULT_TIME_RESOLUTION;
 
-    if (maximumFrequencyWindowMinutes <= 0 || distanceResolution <= 0 || timeResolution <= 0) {
+    if (
+      maximumFrequencyMinutes <= 0 ||
+      maximumFrequencyOffsetWindowMinutes <= 0 ||
+      distanceResolution <= 0 ||
+      timeResolution <= 0
+    ) {
       return [];
     }
 
-    const maximumTravelTime = sections.reduce(
-      (maximum, section) =>
-        Math.max(maximum, Math.round(section.arrivalMinute - section.departureMinute)),
-      1,
-    );
+    const maximumTravelTime = Math.max(this.getMaximumTravelTime(sections), 1);
     const distanceCells = distanceResolution * maximumTravelTime;
-    const timeCells = timeResolution * 2 * maximumFrequencyWindowMinutes;
+    const timeCells = timeResolution * 2 * maximumFrequencyOffsetWindowMinutes;
     const dataMatrix = Array.from({length: distanceCells}, () =>
       new Array<number>(timeCells).fill(0),
     );
@@ -147,7 +193,8 @@ export class InfrastructureEstimatorService {
         distanceCells,
         timeCells,
         timeResolution,
-        maximumFrequencyWindowMinutes,
+        maximumFrequencyMinutes,
+        maximumFrequencyOffsetWindowMinutes,
         dataMatrix,
         tracksMatrix,
       ),
@@ -161,7 +208,8 @@ export class InfrastructureEstimatorService {
     distanceCells: number,
     timeCells: number,
     timeResolution: number,
-    maximumFrequencyWindowMinutes: number,
+    maximumFrequencyMinutes: number,
+    maximumFrequencyOffsetWindowMinutes: number,
     dataMatrix: number[][],
     tracksMatrix: number[],
   ): void {
@@ -172,8 +220,12 @@ export class InfrastructureEstimatorService {
     const travelTime = section.arrivalMinute - section.departureMinute;
     for (let distanceCell = 0; distanceCell < distanceCells; distanceCell++) {
       for (
-        let frequencyOffset = -maximumFrequencyWindowMinutes;
-        frequencyOffset <= maximumFrequencyWindowMinutes;
+        let frequencyOffset =
+          -Math.ceil(maximumFrequencyOffsetWindowMinutes / section.frequencyMinutes) *
+          section.frequencyMinutes;
+        frequencyOffset <=
+        Math.ceil(maximumFrequencyOffsetWindowMinutes / section.frequencyMinutes) *
+          section.frequencyMinutes;
         frequencyOffset += section.frequencyMinutes
       ) {
         for (
@@ -185,7 +237,7 @@ export class InfrastructureEstimatorService {
             ? distanceCells - distanceCell - 1
             : distanceCell;
           let timeCell =
-            (section.departureMinute % maximumFrequencyWindowMinutes) +
+            (section.departureMinute % maximumFrequencyMinutes) +
             (travelTime * distanceCell) / (distanceCells - 0.5) +
             frequencyOffset;
           timeCell = bandOffset + Math.round(timeResolution * timeCell);

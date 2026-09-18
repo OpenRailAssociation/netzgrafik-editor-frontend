@@ -167,7 +167,6 @@ export class Sg6TrackService implements OnDestroy {
           fromNode,
           toNode,
           trainrunSections,
-          this.minimumHeadwayTime,
         ),
       );
     });
