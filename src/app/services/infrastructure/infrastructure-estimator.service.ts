@@ -1,6 +1,8 @@
 import {Injectable} from "@angular/core";
 import {Node} from "../../models/node.model";
+import {Trainrun} from "../../models/trainrun.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
+import {Transition} from "../../models/transition.model";
 import {Direction} from "../../data-structures/business.data.structures";
 
 interface SectionTrackEstimateInput {
@@ -9,6 +11,40 @@ interface SectionTrackEstimateInput {
   backward: boolean;
   frequencyMinutes: number;
   sectionHeadwayMinutes: number;
+}
+
+type TrainrunSectionDirection = "forward" | "backward";
+
+interface NodeTrackTrainrunOccurrence {
+  node: Node;
+  trainrun: Trainrun;
+  arrivalSection?: TrainrunSection;
+  arrivalDirection?: TrainrunSectionDirection;
+  departureSection?: TrainrunSection;
+  departureDirection?: TrainrunSectionDirection;
+  transition?: Transition;
+  occurrenceIndex: number;
+}
+
+interface NodeTrackEstimatorOptions {
+  windowMinutes?: number;
+  separateForwardBackwardTracks: boolean;
+}
+
+interface NodeTrackOccupancy {
+  arrivalMinute: number;
+  departureMinute: number;
+  headwayUntilMinute: number;
+  trainrunId: number;
+  transitionId?: number;
+  direction: Direction;
+  travelDirection?: TrainrunSectionDirection;
+  occurrenceIndex: number;
+}
+
+interface NodeTrackEstimate {
+  track: number;
+  occupancies: NodeTrackOccupancy[];
 }
 
 @Injectable({providedIn: "root"})
@@ -52,6 +88,226 @@ export class InfrastructureEstimatorService {
       maximumFrequencyMinutes,
       maximumFrequencyOffsetWindowMinutes,
     );
+  }
+
+  estimateNodeTracks(
+    occurrences: NodeTrackTrainrunOccurrence[],
+    options: NodeTrackEstimatorOptions,
+  ): NodeTrackEstimate[] {
+    const windowMinutes = options.windowMinutes ?? this.getNodeTrackWindow(occurrences);
+    if (windowMinutes <= 0) {
+      return [];
+    }
+
+    const occupancies = occurrences.flatMap((occurrence) =>
+      this.createNodeTrackOccupancies(occurrence, windowMinutes),
+    );
+    const tracks: Array<{
+      direction?: TrainrunSectionDirection;
+      occupancies: NodeTrackOccupancy[];
+    }> = [];
+
+    const occupanciesByOccurrence = new Map<number, NodeTrackOccupancy[]>();
+    occupancies.forEach((occupancy) => {
+      const occurrenceOccupancies = occupanciesByOccurrence.get(occupancy.occurrenceIndex) ?? [];
+      occurrenceOccupancies.push(occupancy);
+      occupanciesByOccurrence.set(occupancy.occurrenceIndex, occurrenceOccupancies);
+    });
+
+    Array.from(occupanciesByOccurrence.values())
+      .sort((a, b) => a[0].arrivalMinute - b[0].arrivalMinute)
+      .forEach((occurrenceOccupancies) => {
+        const occupancy = occurrenceOccupancies[0];
+        const trackIndex = tracks.findIndex((track) => {
+          if (
+            options.separateForwardBackwardTracks &&
+            occupancy.travelDirection !== undefined &&
+            track.direction !== undefined &&
+            track.direction !== occupancy.travelDirection
+          ) {
+            return false;
+          }
+          return occurrenceOccupancies.every((candidate) =>
+            track.occupancies.every(
+              (existing) =>
+                candidate.headwayUntilMinute <= existing.arrivalMinute ||
+                existing.headwayUntilMinute <= candidate.arrivalMinute,
+            ),
+          );
+        });
+        const targetTrack = trackIndex >= 0 ? tracks[trackIndex] : undefined;
+        if (targetTrack !== undefined) {
+          targetTrack.occupancies.push(...occurrenceOccupancies);
+          return;
+        }
+        tracks.push({
+          direction: options.separateForwardBackwardTracks
+            ? occupancy.travelDirection
+            : undefined,
+          occupancies: occurrenceOccupancies,
+        });
+      });
+
+    return tracks.map((track, index) => ({track: index + 1, occupancies: track.occupancies}));
+  }
+
+  private getNodeTrackWindow(occurrences: NodeTrackTrainrunOccurrence[]): number {
+    return occurrences.reduce((window, occurrence) => {
+      const frequency = occurrence.trainrun.getFrequency();
+      return frequency > 0 ? this.leastCommonMultiple(window, frequency) : window;
+    }, 1);
+  }
+
+  private leastCommonMultiple(first: number, second: number): number {
+    return (first * second) / this.greatestCommonDivisor(first, second);
+  }
+
+  private greatestCommonDivisor(first: number, second: number): number {
+    let left = Math.abs(first);
+    let right = Math.abs(second);
+    while (right !== 0) {
+      const remainder = left % right;
+      left = right;
+      right = remainder;
+    }
+    return left || 1;
+  }
+
+  private createNodeTrackOccupancies(
+    occurrence: NodeTrackTrainrunOccurrence,
+    windowMinutes: number,
+  ): NodeTrackOccupancy[] {
+    const times = this.getNodeTrackTimes(occurrence);
+    if (times === undefined) {
+      return [];
+    }
+
+    const frequency = occurrence.trainrun.getFrequency();
+    if (frequency <= 0) {
+      return [];
+    }
+
+    const occupancies: NodeTrackOccupancy[] = [];
+    const firstOffset = Math.floor(-times.headwayUntilMinute / frequency) - 1;
+    const lastOffset = Math.ceil((windowMinutes - times.arrivalMinute) / frequency) + 1;
+    for (let offset = firstOffset; offset <= lastOffset; offset++) {
+      const arrivalMinute = times.arrivalMinute + offset * frequency;
+      const headwayUntilMinute = times.headwayUntilMinute + offset * frequency;
+      const clippedArrival = Math.max(0, arrivalMinute);
+      const clippedHeadway = Math.min(windowMinutes, headwayUntilMinute);
+      if (clippedArrival < windowMinutes && clippedHeadway > 0) {
+        occupancies.push({
+          arrivalMinute: clippedArrival,
+          departureMinute: Math.min(windowMinutes, times.departureMinute + offset * frequency),
+          headwayUntilMinute: clippedHeadway,
+          trainrunId: occurrence.trainrun.getId(),
+          transitionId: occurrence.transition?.getId(),
+          direction: occurrence.trainrun.getDirection(),
+          travelDirection: occurrence.departureDirection ?? occurrence.arrivalDirection,
+          occurrenceIndex: occurrence.occurrenceIndex,
+        });
+      }
+    }
+    return occupancies;
+  }
+
+  private getNodeTrackTimes(occurrence: NodeTrackTrainrunOccurrence):
+    | {
+        arrivalMinute: number;
+        departureMinute: number;
+        headwayUntilMinute: number;
+      }
+    | undefined {
+    const arrivalMinute = this.getNodeArrivalTime(
+      occurrence.node,
+      occurrence.arrivalSection,
+      occurrence.arrivalDirection,
+    );
+    const departureMinute = this.getNodeDepartureTime(
+      occurrence.node,
+      occurrence.departureSection,
+      occurrence.departureDirection,
+    );
+    const haltezeit = this.getNodeHaltezeit(occurrence.node, occurrence.trainrun);
+    const category = occurrence.trainrun.getTrainrunCategory();
+
+    if (occurrence.trainrun.getDirection() === Direction.ONE_WAY) {
+      const startTime = departureMinute ?? (arrivalMinute === undefined ? undefined : arrivalMinute);
+      const endTime = arrivalMinute ?? (departureMinute === undefined ? undefined : departureMinute);
+      if (startTime === undefined || endTime === undefined) {
+        return undefined;
+      }
+      const isStart = occurrence.arrivalSection === undefined;
+      const isEnd = occurrence.departureSection === undefined;
+      return {
+        arrivalMinute: isStart ? startTime - haltezeit : endTime,
+        departureMinute: isEnd ? endTime + haltezeit : startTime,
+        headwayUntilMinute: isEnd ? endTime + haltezeit : startTime,
+      };
+    }
+
+    if (arrivalMinute === undefined || departureMinute === undefined) {
+      return undefined;
+    }
+    const nodeHeadway = this.getNodeHeadway(occurrence, category);
+    return {
+      arrivalMinute,
+      departureMinute,
+      headwayUntilMinute: Math.max(
+        departureMinute + nodeHeadway,
+        arrivalMinute + category.minimalTurnaroundTime,
+      ),
+    };
+  }
+
+  private getNodeArrivalTime(
+    node: Node,
+    section: TrainrunSection | undefined,
+    direction: TrainrunSectionDirection | undefined,
+  ): number | undefined {
+    if (section === undefined || direction === undefined) {
+      return undefined;
+    }
+    if (direction === "forward" && section.getTargetNodeId() === node.getId()) {
+      return section.getTargetArrivalConsecutiveTime();
+    }
+    if (direction === "backward" && section.getSourceNodeId() === node.getId()) {
+      return section.getSourceArrivalConsecutiveTime();
+    }
+    return undefined;
+  }
+
+  private getNodeDepartureTime(
+    node: Node,
+    section: TrainrunSection | undefined,
+    direction: TrainrunSectionDirection | undefined,
+  ): number | undefined {
+    if (section === undefined || direction === undefined) {
+      return undefined;
+    }
+    if (direction === "forward" && section.getSourceNodeId() === node.getId()) {
+      return section.getSourceDepartureConsecutiveTime();
+    }
+    if (direction === "backward" && section.getTargetNodeId() === node.getId()) {
+      return section.getTargetDepartureConsecutiveTime();
+    }
+    return undefined;
+  }
+
+  private getNodeHaltezeit(node: Node, trainrun: Trainrun): number {
+    const haltezeit = node
+      .getTrainrunCategoryHaltezeit()
+      [trainrun.getTrainrunCategory().fachCategory]?.haltezeit;
+    return typeof haltezeit === "number" && Number.isFinite(haltezeit) ? Math.max(0, haltezeit) : 0;
+  }
+
+  private getNodeHeadway(
+    occurrence: NodeTrackTrainrunOccurrence,
+    category: Trainrun["trainrunCategory"],
+  ): number {
+    return occurrence.transition?.getIsNonStopTransit()
+      ? category.nodeHeadwayNonStop
+      : category.nodeHeadwayStop;
   }
 
   private findMatchingSections(
