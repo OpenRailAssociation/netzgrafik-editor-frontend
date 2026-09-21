@@ -11,6 +11,16 @@ interface SectionTrackEstimateInput {
   sectionHeadwayMinutes: number;
 }
 
+interface TrackProjectionContext {
+  distanceCells: number;
+  timeCells: number;
+  timeResolution: number;
+  maximumFrequency: number;
+  frequencyOffsetWindow: number;
+  dataMatrix: number[][];
+  tracksMatrix: number[];
+}
+
 @Injectable({providedIn: "root"})
 export class InfrastructureEstimatorService {
   static readonly DEFAULT_DISTANCE_RESOLUTION = 15;
@@ -34,23 +44,23 @@ export class InfrastructureEstimatorService {
       matchingSections,
       minHeadwayTime,
     );
-    const maximumFrequencyMinutes = this.getMaximumFrequency(sections);
-    const maximumTravelTimeMinutes = this.getMaximumTravelTime(sections);
-    const maximumUnrollingWindowMinutes = Math.max(
-      maximumFrequencyMinutes,
-      maximumTravelTimeMinutes,
+    const maximumFrequency = this.getMaximumFrequency(sections);
+    const maximumTravelTime = this.getMaximumTravelTime(sections);
+    const unrollingWindow = Math.max(
+      maximumFrequency,
+      maximumTravelTime,
     );
-    const maximumFrequencyOffsetWindowMinutes = this.getMaximumFrequencyOffsetWindow(
+    const frequencyOffsetWindow = this.getMaximumFrequencyOffsetWindow(
       sections,
-      maximumUnrollingWindowMinutes,
+      unrollingWindow,
     );
-    if (maximumUnrollingWindowMinutes <= 0 || maximumFrequencyMinutes <= 0) {
+    if (unrollingWindow <= 0 || maximumFrequency <= 0) {
       return [];
     }
     return this.estimateTrackSegments(
       sections,
-      maximumFrequencyMinutes,
-      maximumFrequencyOffsetWindowMinutes,
+      maximumFrequency,
+      frequencyOffsetWindow,
     );
   }
 
@@ -64,14 +74,18 @@ export class InfrastructureEstimatorService {
     return Array.from(
       new Map(
         trainrunSections
-          .filter(
-            (section) =>
-              (section.getSourceNodeId() === fromNodeId &&
-                section.getTargetNodeId() === toNodeId) ||
-              (section.getSourceNodeId() === toNodeId && section.getTargetNodeId() === fromNodeId),
-          )
+          .filter((section) => this.connectsNodes(section, fromNodeId, toNodeId))
           .map((section) => [section.getId(), section] as const),
       ).values(),
+    );
+  }
+
+  private connectsNodes(section: TrainrunSection, fromNodeId: number, toNodeId: number): boolean {
+    const sourceNodeId = section.getSourceNodeId();
+    const targetNodeId = section.getTargetNodeId();
+    return (
+      (sourceNodeId === fromNodeId && targetNodeId === toNodeId) ||
+      (sourceNodeId === toNodeId && targetNodeId === fromNodeId)
     );
   }
 
@@ -117,28 +131,33 @@ export class InfrastructureEstimatorService {
         typeof categorySectionHeadway === "number" && Number.isFinite(categorySectionHeadway)
           ? Math.max(minHeadwayTime, categorySectionHeadway)
           : minHeadwayTime;
+      const departureAtFromNode = isForward
+        ? section.getSourceDepartureConsecutiveTime()
+        : section.getTargetDepartureConsecutiveTime();
+      const arrivalAtToNode = isForward
+        ? section.getTargetArrivalConsecutiveTime()
+        : section.getSourceArrivalConsecutiveTime();
+      const departureAtToNode = isForward
+        ? section.getTargetDepartureConsecutiveTime()
+        : section.getSourceDepartureConsecutiveTime();
+      const arrivalAtFromNode = isForward
+        ? section.getSourceArrivalConsecutiveTime()
+        : section.getTargetArrivalConsecutiveTime();
       const forward = this.createTrackInput(
-        isForward
-          ? section.getSourceDepartureConsecutiveTime()
-          : section.getTargetDepartureConsecutiveTime(),
-        isForward
-          ? section.getTargetArrivalConsecutiveTime()
-          : section.getSourceArrivalConsecutiveTime(),
+        departureAtFromNode,
+        arrivalAtToNode,
         false,
         frequencyMinutes,
         sectionHeadwayMinutes,
       );
       const backward = this.createTrackInput(
-        isForward
-          ? section.getTargetDepartureConsecutiveTime()
-          : section.getSourceDepartureConsecutiveTime(),
-        isForward
-          ? section.getSourceArrivalConsecutiveTime()
-          : section.getTargetArrivalConsecutiveTime(),
+        departureAtToNode,
+        arrivalAtFromNode,
         true,
         frequencyMinutes,
         sectionHeadwayMinutes,
       );
+      // A one-way trainrun contributes only in its actual travel direction.
       if (section.getTrainrun().getDirection() === Direction.ONE_WAY) {
         return isForward ? [forward] : [backward];
       }
@@ -188,65 +207,56 @@ export class InfrastructureEstimatorService {
     const tracksMatrix = new Array<number>(distanceCells).fill(0);
 
     sections.forEach((section) =>
-      this.projectSectionIntoMatrices(
-        section,
+      this.projectSectionIntoMatrices(section, {
         distanceCells,
         timeCells,
         timeResolution,
-        maximumFrequencyMinutes,
-        maximumFrequencyOffsetWindowMinutes,
+        maximumFrequency: maximumFrequencyMinutes,
+        frequencyOffsetWindow: maximumFrequencyOffsetWindowMinutes,
         dataMatrix,
         tracksMatrix,
-      ),
+      }),
     );
 
-    return InfrastructureEstimatorService.mergeTracks(tracksMatrix, distanceCells);
+    return InfrastructureEstimatorService.mergeTracks(tracksMatrix);
   }
 
   private projectSectionIntoMatrices(
     section: SectionTrackEstimateInput,
-    distanceCells: number,
-    timeCells: number,
-    timeResolution: number,
-    maximumFrequencyMinutes: number,
-    maximumFrequencyOffsetWindowMinutes: number,
-    dataMatrix: number[][],
-    tracksMatrix: number[],
+    context: TrackProjectionContext,
   ): void {
     if (section.frequencyMinutes <= 0) {
       return;
     }
 
     const travelTime = section.arrivalMinute - section.departureMinute;
-    for (let distanceCell = 0; distanceCell < distanceCells; distanceCell++) {
+    const maximumFrequencyOffset =
+      Math.ceil(context.frequencyOffsetWindow / section.frequencyMinutes) *
+      section.frequencyMinutes;
+    const bandWidth = context.timeResolution * section.sectionHeadwayMinutes;
+    for (let distanceCell = 0; distanceCell < context.distanceCells; distanceCell++) {
+      // Backward sections are projected from the opposite end of the section.
+      const matrixDistanceCell = section.backward
+        ? context.distanceCells - distanceCell - 1
+        : distanceCell;
+      const baseTime =
+        (section.departureMinute % context.maximumFrequency) +
+        (travelTime * distanceCell) / (context.distanceCells - 0.5);
       for (
-        let frequencyOffset =
-          -Math.ceil(maximumFrequencyOffsetWindowMinutes / section.frequencyMinutes) *
-          section.frequencyMinutes;
-        frequencyOffset <=
-        Math.ceil(maximumFrequencyOffsetWindowMinutes / section.frequencyMinutes) *
-          section.frequencyMinutes;
+        let frequencyOffset = -maximumFrequencyOffset;
+        frequencyOffset <= maximumFrequencyOffset;
         frequencyOffset += section.frequencyMinutes
       ) {
-        for (
-          let bandOffset = 0;
-          bandOffset < timeResolution * section.sectionHeadwayMinutes;
-          bandOffset++
-        ) {
-          const matrixDistanceCell = section.backward
-            ? distanceCells - distanceCell - 1
-            : distanceCell;
-          let timeCell =
-            (section.departureMinute % maximumFrequencyMinutes) +
-            (travelTime * distanceCell) / (distanceCells - 0.5) +
-            frequencyOffset;
-          timeCell = bandOffset + Math.round(timeResolution * timeCell);
+        // Repeat the trainrun over the frequency window and add its headway band.
+        for (let bandOffset = 0; bandOffset < bandWidth; bandOffset++) {
+          const timeCell =
+            bandOffset + Math.round(context.timeResolution * (baseTime + frequencyOffset));
 
-          if (timeCell >= 0 && timeCell < timeCells) {
-            dataMatrix[matrixDistanceCell][timeCell]++;
-            tracksMatrix[matrixDistanceCell] = Math.max(
-              tracksMatrix[matrixDistanceCell],
-              dataMatrix[matrixDistanceCell][timeCell],
+          if (timeCell >= 0 && timeCell < context.timeCells) {
+            context.dataMatrix[matrixDistanceCell][timeCell]++;
+            context.tracksMatrix[matrixDistanceCell] = Math.max(
+              context.tracksMatrix[matrixDistanceCell],
+              context.dataMatrix[matrixDistanceCell][timeCell],
             );
           }
         }
@@ -256,16 +266,16 @@ export class InfrastructureEstimatorService {
 
   private static mergeTracks(
     tracksMatrix: number[],
-    distanceCells: number,
   ): [number, number, number][] {
-    if (distanceCells === 0) {
+    if (tracksMatrix.length === 0) {
       return [];
     }
 
+    // Convert cell-by-cell occupancy into normalized intervals and merge equal values.
     const tracks: [number, number, number][] = [];
     let from = 0;
-    for (let distanceCell = 0; distanceCell < distanceCells; distanceCell++) {
-      const to = (distanceCell + 1) / distanceCells;
+    for (let distanceCell = 0; distanceCell < tracksMatrix.length; distanceCell++) {
+      const to = (distanceCell + 1) / tracksMatrix.length;
       tracks.push([from, Math.min(to, 1), tracksMatrix[distanceCell]]);
       from = to;
     }
