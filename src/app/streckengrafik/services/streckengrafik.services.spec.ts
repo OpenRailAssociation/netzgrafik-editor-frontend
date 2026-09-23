@@ -209,7 +209,7 @@ describe("StreckengrafikServicesTests", () => {
     sg6TrackService.getSgSelectedTrainrun().subscribe((sgSelectedTrainrun: SgSelectedTrainrun) => {
       expect(sgSelectedTrainrun.trainrunId).toBe(2);
       const pathBP: string[] = ["BN", "", "OL", "", "ZUE", "", "SG"];
-      const pathTrack: number[] = [4, undefined, 4, undefined, 6, undefined, 1];
+      const pathTrack: number[] = [3, undefined, 3, undefined, 6, undefined, 1];
       // The pathArrDepTimes holds the departure/arrival times for each item (node, section). The
       // first entry is the "start node" - which hold the trainrun turnarround time then the first second
       // follows with departure and arrival times, .... node, section .... and the last entry is the destination

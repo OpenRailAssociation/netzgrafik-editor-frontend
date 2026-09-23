@@ -4,6 +4,13 @@ import {SgTrainrunSection} from "./sg-trainrun-section";
 import {SgPathSection} from "./sg-path-section";
 import {TrackData} from "../trackData";
 
+export interface SgTrainrunNodeTrackOccupancy {
+  track: number;
+  arrivalTime: number;
+  departureTime: number;
+  headwayUntilTime: number;
+}
+
 export class SgTrainrunNode implements SgTrainrunItem {
   static currentId = 0;
   private id: number;
@@ -27,6 +34,7 @@ export class SgTrainrunNode implements SgTrainrunItem {
     public maxUnrollOnlyEvenFrequencyOffsets = 0,
     public extraTrains = false,
     public minimumHeadwayTime = 2,
+    public trackOccupancy: SgTrainrunNodeTrackOccupancy = undefined,
   ) {
     this.id = SgTrainrunNode.currentId;
     SgTrainrunNode.currentId++;
@@ -57,6 +65,7 @@ export class SgTrainrunNode implements SgTrainrunItem {
       item.maxUnrollOnlyEvenFrequencyOffsets,
       item.extraTrains,
       item.minimumHeadwayTime,
+      item.trackOccupancy === undefined ? undefined : {...item.trackOccupancy},
     );
   }
 
