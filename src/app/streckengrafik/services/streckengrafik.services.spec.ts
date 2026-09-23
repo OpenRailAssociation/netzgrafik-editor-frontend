@@ -186,6 +186,28 @@ describe("StreckengrafikServicesTests", () => {
 
       const icx = selectedTrainrun.trainruns.find((trainrun) => trainrun.trainrunId === 104);
       const sx = selectedTrainrun.trainruns.find((trainrun) => trainrun.trainrunId === 105);
+      expect(
+        icx.sgTrainrunItems
+          .filter((item) => item.isNode())
+          .map((item) => item.getTrainrunNode().nodeId),
+      ).toEqual([190, 189, 188]);
+      expect(
+        sx.sgTrainrunItems
+          .filter((item) => item.isNode())
+          .map((item) => item.getTrainrunNode().nodeId),
+      ).toEqual([189, 190]);
+      expect(icx.sgTrainrunItems.filter((item) => item.isSection()).every((item) => item.backward))
+        .toBeTrue();
+      expect(sx.sgTrainrunItems.filter((item) => item.isSection()).every((item) => !item.backward))
+        .toBeTrue();
+      const icxNodes = icx.sgTrainrunItems
+        .filter((item) => item.isNode())
+        .map((item) => item.getTrainrunNode());
+      const sxNodes = sx.sgTrainrunItems
+        .filter((item) => item.isNode())
+        .map((item) => item.getTrainrunNode());
+      expect([icxNodes[0].departureTime, icxNodes[2].arrivalTime]).toEqual([43, 59]);
+      expect([sxNodes[0].departureTime, sxNodes[1].arrivalTime]).toEqual([1, 25]);
       const icxC3 = icx.sgTrainrunItems
         .find((item) => item.isNode() && item.getTrainrunNode().nodeId === 190)
         .getTrainrunNode();
@@ -221,9 +243,35 @@ describe("StreckengrafikServicesTests", () => {
         const trackedSxC3 = trackedSx.sgTrainrunItems
           .find((item) => item.isNode() && item.getTrainrunNode().nodeId === 190)
           .getTrainrunNode();
+        expect(trackedIcxC3.trackData.track).toBe(1);
+        expect(trackedSxC3.trackData.track).toBe(3);
 
-        expect(trackedIcxC3.trackData.track).toBe(3);
-        expect(trackedSxC3.trackData.track).toBe(1);
+        const sxB2C3Segments = trackedSx.sgTrainrunItems
+          .find(
+            (item) =>
+              item.isSection() && item.getTrainrunSection().trainrunSectionId === 726,
+          )
+          .getTrainrunSection().trackData.sectionTrackSegments;
+        const selectedB2C3 = trackedTrainrun.paths.find(
+          (path) => path.isSection() && path.getPathSection().trainrunSectionId === 724,
+        );
+        expect([selectedB2C3.getPathSection().departureNodeId, selectedB2C3.getPathSection().arrivalNodeId])
+          .toEqual([189, 190]);
+        expect(
+          selectedB2C3.getPathSection().trackData.sectionTrackSegments.map((segment) => [
+            segment.startPos,
+            segment.endPos,
+            segment.nbrTracks,
+            segment.minNbrTracks,
+          ]),
+        ).toEqual(
+          sxB2C3Segments.map((segment) => [
+            segment.startPos,
+            segment.endPos,
+            segment.nbrTracks,
+            segment.minNbrTracks,
+          ]),
+        );
       });
     });
   });

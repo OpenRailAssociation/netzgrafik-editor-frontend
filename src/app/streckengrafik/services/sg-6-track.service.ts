@@ -149,17 +149,22 @@ export class Sg6TrackService implements OnDestroy {
         return;
       }
 
-      // Estimate in the normalized diagram direction so section segments keep
-      // the same visual orientation as the rendered node sequence.
+      // Estimate in the direction of the selected path so the result is rendered 1:1.
       const firstSgSection = sectionData[0].item.getTrainrunSection();
-      const sourceNode = this.nodeService.getNodeFromId(firstSgSection.departureNodeId);
-      const targetNode = this.nodeService.getNodeFromId(firstSgSection.arrivalNodeId);
-      const fromNode =
-        sourceNode.getPositionX() < targetNode.getPositionX() ||
-        (sourceNode.getPositionX() === targetNode.getPositionX() && !firstSgSection.backward)
-          ? sourceNode
-          : targetNode;
-      const toNode = fromNode === sourceNode ? targetNode : sourceNode;
+      const selectedPathSection = this.selectedTrainrun.paths.find(
+        (path) =>
+          path.isSection() &&
+          ((path.getPathSection().departureNodeId === firstSgSection.departureNodeId &&
+            path.getPathSection().arrivalNodeId === firstSgSection.arrivalNodeId) ||
+            (path.getPathSection().departureNodeId === firstSgSection.arrivalNodeId &&
+              path.getPathSection().arrivalNodeId === firstSgSection.departureNodeId)),
+      );
+      const fromNode = this.nodeService.getNodeFromId(
+        selectedPathSection?.getPathSection().departureNodeId ?? firstSgSection.departureNodeId,
+      );
+      const toNode = this.nodeService.getNodeFromId(
+        selectedPathSection?.getPathSection().arrivalNodeId ?? firstSgSection.arrivalNodeId,
+      );
 
       sectionTrackMap.set(
         sectionKey,
@@ -926,7 +931,6 @@ export class Sg6TrackService implements OnDestroy {
             if (trackSegments !== undefined) {
               const convertedTrackSegments: TrackSegments[] = this.convertTrackSegments(
                 trackSegments,
-                false,
                 1,
               );
               let maxTracks = 0;
@@ -937,8 +941,8 @@ export class Sg6TrackService implements OnDestroy {
                 t.nbrTracks = Math.ceil(t.minNbrTracks / 2) * 2;
               });
               ps.trackData.track = maxTracks;
-              ps.trackData.nodeId1 = sectionKey.node1;
-              ps.trackData.nodeId2 = sectionKey.node2;
+              ps.trackData.nodeId1 = ps.departureNodeId;
+              ps.trackData.nodeId2 = ps.arrivalNodeId;
               ps.trackData.sectionTrackSegments = convertedTrackSegments;
               maxTrackMap.set(
                 pathItem.getTrainrunSection().departureNodeId +
@@ -965,34 +969,15 @@ export class Sg6TrackService implements OnDestroy {
           }
         }
         if (path.isSection()) {
-          // This code checks if the current path section matches a specified key
-          // before copying track data to it. There are two main conditions:
-          //
-          // 1. **Common Behavior**:
-          //    - We copy the track data if the arrival and departure node IDs of the
-          //      path section match the key in the correct order (arrival:departure).
-          //
-          // 2. **One-Way Check**:
-          //    - For one-way train runs (non-round trips), we also check if the
-          //      section's departure and arrival node IDs match the key in reverse
-          //      order (departure:arrival). This allows us to handle one-way
-          //      template train runs correctly.
-          //
-          // If either condition is satisfied, the track data will be assigned to
-          // the path section.
           const ps = path.getPathSection();
           const keyCommonBehavior = ps.arrivalNodeId + ":" + ps.departureNodeId;
           const keyOneWaySpecialCase = ps.departureNodeId + ":" + ps.arrivalNodeId;
           const ts = this.trainrunSectionService.getTrainrunSectionFromId(ps.trainrunSectionId);
           if (ts) {
-            // Ensure that the trainrun section is still valid. This may no
-            // longer be the case, e.g., when a trainrun has been deleted and the
-            // graphical timetable has not yet been fully updated.
-            const isRoundTrip = ts.getTrainrun().isRoundTrip();
-            const matchesCommonKey = keyCommonBehavior === key;
-            const matchesReverseKey = !isRoundTrip && keyOneWaySpecialCase === key;
-            const matched = matchesCommonKey || matchesReverseKey;
-            if (matched) {
+            const pathKey = ts.getTrainrun().isRoundTrip()
+              ? keyCommonBehavior
+              : keyOneWaySpecialCase;
+            if (pathKey === key) {
               ps.trackData = trackData;
             }
           }
@@ -1003,7 +988,6 @@ export class Sg6TrackService implements OnDestroy {
 
   private convertTrackSegments(
     trackSegments: [number, number, number][],
-    backward: boolean,
     initMaxTracks: number,
   ) {
     const convertedTrackSegments: TrackSegments[] = [];
@@ -1014,7 +998,7 @@ export class Sg6TrackService implements OnDestroy {
 
     trackSegments.forEach((trackSeg) => {
       convertedTrackSegments.push(
-        new TrackSegments(trackSeg[0], trackSeg[1], maxTracks, trackSeg[2], backward),
+        new TrackSegments(trackSeg[0], trackSeg[1], maxTracks, trackSeg[2], false),
       );
     });
     return convertedTrackSegments;
