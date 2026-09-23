@@ -33,6 +33,7 @@ import {TrackData} from "../model/trackData";
 import {PathNode} from "../model/pathNode";
 import {IsTrainrunSelectedService} from "../../services/data/is-trainrun-section.service";
 import {InfrastructureEstimatorService} from "../../services/infrastructure/infrastructure-estimator.service";
+import {NetzgrafikTrackEstimatorTesting} from "../../../integration-testing/netzgrafik.unit.testing.track.estimator";
 
 describe("StreckengrafikServicesTests", () => {
   let dataService: DataService;
@@ -159,6 +160,72 @@ describe("StreckengrafikServicesTests", () => {
     trainrunSections.forEach((ts: TrainrunSection) =>
       expect(filterService.filterTrainrun(ts.getTrainrun())).toBe(true),
     );
+  });
+
+  it("keeps one-way trainrun sections in their actual node direction", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikTrackEstimatorTesting.getUnitTestNetzgrafik());
+    uiInteractionService.setEditorMode(EditorMode.StreckengrafikEditing);
+    trainrunService.setTrainrunAsSelected(104);
+    sg1LoadTrainrunItemService.setDataOnlyForTestPurpose();
+
+    sg3TrainrunsService.getSgSelectedTrainrun().subscribe((selectedTrainrun) => {
+      const sectionsByTrainrun = new Map(
+        selectedTrainrun.trainruns.map((trainrun) => [
+          trainrun.trainrunId,
+          trainrun.sgTrainrunItems
+            .filter((item) => item.isSection())
+            .map((item) => {
+              const section = item.getTrainrunSection();
+              return `${section.departureNodeId}->${section.arrivalNodeId}`;
+            }),
+        ]),
+      );
+
+      expect(sectionsByTrainrun.get(104)).toEqual(["190->189", "189->188"]);
+      expect(sectionsByTrainrun.get(105)).toEqual(["189->190"]);
+
+      const icx = selectedTrainrun.trainruns.find((trainrun) => trainrun.trainrunId === 104);
+      const sx = selectedTrainrun.trainruns.find((trainrun) => trainrun.trainrunId === 105);
+      const icxC3 = icx.sgTrainrunItems
+        .find((item) => item.isNode() && item.getTrainrunNode().nodeId === 190)
+        .getTrainrunNode();
+      const sxC3 = sx.sgTrainrunItems
+        .find((item) => item.isNode() && item.getTrainrunNode().nodeId === 190)
+        .getTrainrunNode();
+
+      expect(icxC3.departurePathSection?.trainrunSectionId).toBe(724);
+      expect(icxC3.arrivalPathSection).toBeUndefined();
+      expect(sxC3.arrivalPathSection?.trainrunSectionId).toBe(726);
+      expect(sxC3.departurePathSection).toBeUndefined();
+
+      const icxB2 = icx.sgTrainrunItems
+        .find((item) => item.isNode() && item.getTrainrunNode().nodeId === 189)
+        .getTrainrunNode();
+      const sxB2 = sx.sgTrainrunItems
+        .find((item) => item.isNode() && item.getTrainrunNode().nodeId === 189)
+        .getTrainrunNode();
+
+      expect(icxB2.backward).toBe(true);
+      expect(sxB2.backward).toBe(false);
+
+      sg6TrackService.getSgSelectedTrainrun().subscribe((trackedTrainrun) => {
+        const trackedIcx = trackedTrainrun.trainruns.find(
+          (trainrun) => trainrun.trainrunId === 104,
+        );
+        const trackedSx = trackedTrainrun.trainruns.find(
+          (trainrun) => trainrun.trainrunId === 105,
+        );
+        const trackedIcxC3 = trackedIcx.sgTrainrunItems
+          .find((item) => item.isNode() && item.getTrainrunNode().nodeId === 190)
+          .getTrainrunNode();
+        const trackedSxC3 = trackedSx.sgTrainrunItems
+          .find((item) => item.isNode() && item.getTrainrunNode().nodeId === 190)
+          .getTrainrunNode();
+
+        expect(trackedIcxC3.trackData.track).toBe(3);
+        expect(trackedSxC3.trackData.track).toBe(1);
+      });
+    });
   });
 
   it("Sg6TrackService Test (Trainrun ID: 1)", () => {
