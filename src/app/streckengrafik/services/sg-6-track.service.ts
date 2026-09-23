@@ -145,22 +145,32 @@ export class Sg6TrackService implements OnDestroy {
             .map((section) => [section.getId(), section] as const),
         ).values(),
       );
-      if (trainrunSections.length === 0) {
+      const firstSection = trainrunSections[0];
+      if (firstSection === undefined) {
         sectionTrackMap.set(sectionKey, []);
         return;
       }
 
-      // Estimate in the direction of the first rendered section.
+      // Estimate in the normalized diagram direction so section segments keep
+      // the same visual orientation as the rendered node sequence.
       const firstSgSection = sectionData[0].item.getTrainrunSection();
       const sourceNode = this.nodeService.getNodeFromId(firstSgSection.departureNodeId);
       const targetNode = this.nodeService.getNodeFromId(firstSgSection.arrivalNodeId);
+      const fromNode =
+        sourceNode.getPositionX() < targetNode.getPositionX() ||
+        (sourceNode.getPositionX() === targetNode.getPositionX() && !firstSgSection.backward)
+          ? sourceNode
+          : targetNode;
+      const toNode = fromNode === sourceNode ? targetNode : sourceNode;
 
-      const trackSegments = this.infrastructureEstimatorService.estimateSectionTracks(
-        sourceNode,
-        targetNode,
-        trainrunSections,
+      sectionTrackMap.set(
+        sectionKey,
+        this.infrastructureEstimatorService.estimateSectionTracks(
+          fromNode,
+          toNode,
+          trainrunSections,
+        ),
       );
-      sectionTrackMap.set(sectionKey, trackSegments);
     });
     return sectionTrackMap;
   }
