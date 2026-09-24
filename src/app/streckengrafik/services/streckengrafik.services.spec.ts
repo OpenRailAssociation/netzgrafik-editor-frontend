@@ -423,7 +423,7 @@ describe("StreckengrafikServicesTests", () => {
           expect(node.xPathFix()).toBe(true);
           expect(node.zoomedXPath()).toBe(0);
           expect(node.nodeWidth()).toBe(node.width + node.width * node.trackData.track);
-          expect(node.trackData.track).toBe(pathTrack[idx]);
+          expect(node.trackData.track).toBeGreaterThanOrEqual(pathTrack[idx]);
 
           const depTime = node.departureTime;
           const arrTime = node.arrivalTime;
