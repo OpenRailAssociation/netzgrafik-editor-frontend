@@ -1,14 +1,13 @@
+<ng-container *ngIf="isTrackOccupier()">
+  <svg:path
+    *ngFor="let path of nodePaths(); let pathIndex = index"
+    [attr.id]="getTransitLineId(pathIndex)"
+    (mouseover)="bringToFront($event, pathIndex)"
+    [class]="getClassTag('edge_line TransitLine TrackOccupier')"
+    [attr.d]="path"
+  />
+</ng-container>
 <ng-container *ngIf="unusedForTurnaround()">
-  <ng-container *ngIf="isTrackOccupier()">
-    <ng-container *ngIf="checkUnrollAllowed()">
-      <svg:path
-        [attr.id]="getId()"
-        (mouseover)="bringToFront($event)"
-        [class]="getClassTag('edge_line TransitLine TrackOccupier')"
-        [attr.d]="nodePath()"
-      />
-    </ng-container>
-  </ng-container>
   <ng-container *ngIf="!isTrackOccupier()">
     <svg:path
       *ngIf="hasTrackReservation()"
