@@ -260,7 +260,7 @@ export class InfrastructureEstimatorService {
     });
 
     // Turnarounds and one-way endpoints use the tracks created by through-trains.
-    this.appendNodeTrackBlocks(tracks, this.filterNodeTrackBlocksByPass(blocks, 2).reverse());
+    this.appendNodeTrackBlocks(tracks, this.filterNodeTrackBlocksByPass(blocks, 2));
     this.appendNodeTrackBlocks(tracks, this.filterNodeTrackBlocksByPass(blocks, 3));
     return tracks;
   }

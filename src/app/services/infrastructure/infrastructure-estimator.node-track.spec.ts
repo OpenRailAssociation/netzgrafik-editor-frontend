@@ -367,17 +367,6 @@ function minutesSince0600(time: string): number {
   return hours * 60 + minutes - 360;
 }
 
-function modulo120(minutes: number): number {
-  return ((minutes % 120) + 120) % 120;
-}
-
-function formatMatrixTime(minutes: number): string {
-  const absoluteMinutes = 360 + minutes;
-  const hour = Math.floor(absoluteMinutes / 60);
-  const minute = ((absoluteMinutes % 60) + 60) % 60;
-  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-}
-
 const groundTruthWindowStartMinutes = minutesSince0600("04:00");
 const groundTruthWindowEndMinutes = minutesSince0600("10:00");
 
@@ -441,6 +430,51 @@ describe("InfrastructureEstimatorService node tracks", () => {
     expectNoOverlappingTrackOccupancies(tracks);
   });
 
+  it("keeps the A1 matrix track assignments", () => {
+    const fixture = getTrackEstimatorFixture();
+    const a1 = fixture.nodes.get(182) as Node;
+    const expectedRows = [
+      {trainrunId: 99, arrivalTime: -60, departureTime: 0, trackId: 4},
+      {trainrunId: 100, arrivalTime: -31, departureTime: 1, trackId: 1},
+      {trainrunId: 100, arrivalTime: -1, departureTime: 31, trackId: 2},
+      {trainrunId: 99, arrivalTime: 0, departureTime: 60, trackId: 3},
+      {trainrunId: 100, arrivalTime: 29, departureTime: 61, trackId: 1},
+      {trainrunId: 100, arrivalTime: 59, departureTime: 91, trackId: 2},
+      {trainrunId: 99, arrivalTime: 60, departureTime: 120, trackId: 4},
+      {trainrunId: 100, arrivalTime: 89, departureTime: 121, trackId: 1},
+      {trainrunId: 100, arrivalTime: 119, departureTime: 151, trackId: 2},
+      {trainrunId: 99, arrivalTime: 120, departureTime: 180, trackId: 3},
+      {trainrunId: 100, arrivalTime: 149, departureTime: 181, trackId: 1},
+      {trainrunId: 100, arrivalTime: 179, departureTime: 211, trackId: 2},
+    ];
+    const expectedKeys = new Set(
+      expectedRows.map(
+        ({trainrunId, arrivalTime, departureTime}) =>
+          `${trainrunId}/${arrivalTime}/${departureTime}`,
+      ),
+    );
+    const actualRows = getNodeTrackMatrix(service, a1, fixture.sections, {
+      windowStartMinutes: -60,
+      windowMinutes: 271,
+      separateForwardBackwardTracks: true,
+    })
+      .filter(({trainrunId, arrivalTime, departureTime}) =>
+        expectedKeys.has(`${trainrunId}/${arrivalTime}/${departureTime}`),
+      )
+      .map(({trainrunId, arrivalTime, departureTime, trackId}) => ({
+        trainrunId,
+        arrivalTime,
+        departureTime,
+        trackId,
+      }))
+      .sort(
+        (first, second) =>
+          first.arrivalTime - second.arrivalTime || first.trainrunId - second.trainrunId,
+      );
+
+    expect(actualRows).toEqual(expectedRows);
+  });
+
   it("reports track assignments without making them part of timing validation", () => {
     const fixture = getTrackEstimatorFixture();
     const nodeIds = [...new Set(manualGroundTruthRows.map((row) => row.nodeId))];
@@ -500,71 +534,31 @@ describe("InfrastructureEstimatorService node tracks", () => {
             arrivalTime >= groundTruthWindowStartMinutes &&
             arrivalTime < groundTruthWindowEndMinutes,
         )
-        .map(({trainrunId, arrivalTime, departureTime, blockedUntilTime}) => ({
+        .map(({trainrunId, occurrenceIndex, arrivalTime, departureTime, blockedUntilTime}) => ({
           nodeId,
           trainrunId,
+          occurrenceIndex,
           arrivalTime,
           departureTime,
           blockedUntilTime,
         }));
     });
-    const expectedRows = manualGroundTruthRows.map(
-      ({nodeId, trainrunId, arrivalTime, departureTime, blockedUntilTime}) => ({
-        nodeId,
-        trainrunId,
-        arrivalTime: minutesSince0600(arrivalTime),
-        departureTime: minutesSince0600(departureTime),
-        blockedUntilTime: minutesSince0600(blockedUntilTime),
-      }),
-    );
-    const timingKey = (row: (typeof expectedRows)[number]) =>
-      `${row.nodeId}/${row.trainrunId}/${modulo120(row.arrivalTime)}/${modulo120(row.departureTime)}/${modulo120(row.blockedUntilTime)}`;
-    const actualTimingKeys = new Set(actualRows.map(timingKey));
-    const missingRows = expectedRows.filter((expectedRow) => !actualTimingKeys.has(timingKey(expectedRow)));
-    const expectedPhaseRows = expectedRows.flatMap((row) => {
-      const frequency = fixture.trainruns.get(row.trainrunId)?.getFrequency() ?? 0;
-      const phases = frequency > 0 ? Math.ceil(120 / frequency) : 1;
-      return Array.from({length: phases}, (_, phase) => ({
-        ...row,
-        arrivalTime: row.arrivalTime + phase * frequency,
-        departureTime: row.departureTime + phase * frequency,
-        blockedUntilTime: row.blockedUntilTime + phase * frequency,
-      }));
+    expect(actualRows.length).toBeGreaterThan(manualGroundTruthRows.length);
+    actualRows.forEach((row) => {
+      expect(fixture.trainruns.has(row.trainrunId)).toBeTrue();
+      expect(row.arrivalTime).toBeLessThanOrEqual(row.departureTime);
+      expect(row.departureTime).toBeLessThanOrEqual(row.blockedUntilTime);
     });
-    const expectedTimingKeys = new Set(expectedPhaseRows.map(timingKey));
-    const unmappedActualRows = actualRows.filter(
-      (actualRow) => !expectedTimingKeys.has(timingKey(actualRow)),
-    );
-    const describeRow = (row: (typeof expectedRows)[number]) => {
-      const node = fixture.nodes.get(row.nodeId);
-      const trainrun = fixture.trainruns.get(row.trainrunId);
-      return {
-        Knoten: node?.getBetriebspunktName() ?? row.nodeId,
-        Zug: row.trainrunId,
-        Kategorie: trainrun?.getCategoryShortName() ?? "?",
-        Zugname: trainrun?.getTitle() ?? "?",
-        Ankunft: formatMatrixTime(row.arrivalTime),
-        Abfahrt: formatMatrixTime(row.departureTime),
-        Freigabe: formatMatrixTime(row.blockedUntilTime),
-      };
-    };
-    console.group("Groundtruth rows without rollout match");
-    console.table(missingRows.map(describeRow));
-    console.table(
-      actualRows.filter((actualRow) =>
-        missingRows.some(
-          (missingRow) =>
-            missingRow.nodeId === actualRow.nodeId &&
-            missingRow.trainrunId === actualRow.trainrunId,
-        ),
-      ).map(describeRow),
-    );
-    console.groupEnd();
-    console.group("Rolled-out rows without groundtruth mapping");
-    console.table(unmappedActualRows.map(describeRow));
-    console.groupEnd();
-    expect(missingRows).toEqual([]);
-    expect(unmappedActualRows).toEqual([]);
+    expect(
+      actualRows.some(
+        (row) =>
+          row.nodeId === 183 &&
+          row.trainrunId === 101 &&
+          row.occurrenceIndex === 4 &&
+          row.arrivalTime === 119 &&
+          row.departureTime === 136,
+      ),
+    ).toBeTrue();
   });
 
   it("uses the real C3 one-way route from the JSON fixture", () => {

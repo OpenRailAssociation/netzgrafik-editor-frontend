@@ -143,14 +143,20 @@ export class TrainRunItemComponent implements OnInit, OnDestroy, UpdateCounterHa
     let toPoint = 0;
     if (item.isNode()) {
       const node = item.getTrainrunNode();
-      const arrivalTime = node.trackOccupancy?.arrivalTime ?? node.arrivalTime;
-      const departureTime = node.trackOccupancy?.departureTime ?? node.departureTime;
+      const reservation = node.trackReservations.find(
+        (candidate) =>
+          candidate.arrivalTime === node.arrivalTime + offset &&
+          candidate.departureTime === node.departureTime + offset,
+      );
+      const arrivalTime = reservation?.arrivalTime ?? node.arrivalTime;
+      const departureTime = reservation?.departureTime ?? node.departureTime;
       const headwayUntilTime =
-        node.trackOccupancy?.headwayUntilTime ?? node.departureTime + node.minimumHeadwayTime;
-      fromPoint = (Math.min(arrivalTime, departureTime) + offset) * yZoom;
-      toPoint = (Math.max(arrivalTime, departureTime, headwayUntilTime) + offset) * yZoom;
+        reservation?.headwayUntilTime ?? node.departureTime + node.minimumHeadwayTime;
+      const timeOffset = reservation === undefined ? offset : 0;
+      fromPoint = (Math.min(arrivalTime, departureTime) + timeOffset) * yZoom;
+      toPoint = (Math.max(arrivalTime, departureTime, headwayUntilTime) + timeOffset) * yZoom;
       if (node.isEndNode()) {
-        if (!item.getPathNode().trackOccupier) {
+        if (!item.getPathNode().trackOccupier && reservation === undefined) {
           return false;
         }
         if (node.unusedForTurnaround) {
@@ -159,7 +165,7 @@ export class TrainRunItemComponent implements OnInit, OnDestroy, UpdateCounterHa
         fromPoint -= 2 * this.trainrun.frequency * yZoom;
         toPoint += 2 * this.trainrun.frequency * yZoom;
       }
-      if (!item.getPathNode().trackOccupier) {
+      if (!item.getPathNode().trackOccupier && reservation === undefined) {
         if (departureTime === arrivalTime) {
           return false;
         }

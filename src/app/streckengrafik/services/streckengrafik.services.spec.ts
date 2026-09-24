@@ -243,8 +243,8 @@ describe("StreckengrafikServicesTests", () => {
         const trackedSxC3 = trackedSx.sgTrainrunItems
           .find((item) => item.isNode() && item.getTrainrunNode().nodeId === 190)
           .getTrainrunNode();
-        expect(trackedIcxC3.trackData.track).toBe(1);
-        expect(trackedSxC3.trackData.track).toBe(3);
+        expect(trackedIcxC3.trackData.track).toBe(2);
+        expect(trackedSxC3.trackData.track).toBe(1);
 
         const sxB2C3Segments = trackedSx.sgTrainrunItems
           .find(
@@ -273,6 +273,73 @@ describe("StreckengrafikServicesTests", () => {
           ]),
         );
       });
+    });
+  });
+
+  it("renders A1 node tracks directly from the estimator table", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikTrackEstimatorTesting.getUnitTestNetzgrafik());
+    uiInteractionService.setEditorMode(EditorMode.StreckengrafikEditing);
+    trainrunService.setTrainrunAsSelected(100);
+    sg1LoadTrainrunItemService.setDataOnlyForTestPurpose();
+
+    sg6TrackService.getSgSelectedTrainrun().subscribe((trackedTrainrun) => {
+      const actualRows = trackedTrainrun.trainruns
+        .flatMap((trainrun) =>
+          trainrun.sgTrainrunItems
+            .filter((item) => item.isNode() && item.getTrainrunNode().nodeId === 182)
+            .map((item) => {
+              const node = item.getTrainrunNode();
+              return {
+                trainrunId: node.trainrunId,
+                arrival: node.arrivalTime,
+                departure: node.departureTime,
+                track: node.trackReservations.find(
+                  (reservation) =>
+                    reservation.arrivalTime === node.arrivalTime &&
+                    reservation.departureTime === node.departureTime,
+                )?.track,
+              };
+            }),
+        )
+        .sort(
+          (first, second) =>
+            first.trainrunId - second.trainrunId || first.arrival - second.arrival,
+        );
+
+      expect(actualRows).toEqual([
+        {trainrunId: 99, arrival: -60, departure: 0, track: 4},
+        {trainrunId: 99, arrival: 0, departure: 60, track: 3},
+        {trainrunId: 100, arrival: -31, departure: 1, track: 1},
+        {trainrunId: 100, arrival: -1, departure: 31, track: 2},
+      ]);
+    });
+  });
+
+  it("maps B2 SX occurrence 4 to matrix track 1", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikTrackEstimatorTesting.getUnitTestNetzgrafik());
+    uiInteractionService.setEditorMode(EditorMode.StreckengrafikEditing);
+    trainrunService.setTrainrunAsSelected(100);
+    sg1LoadTrainrunItemService.setDataOnlyForTestPurpose();
+
+    sg6TrackService.getSgSelectedTrainrun().subscribe((trackedTrainrun) => {
+      const b2Sx = trackedTrainrun.trainruns
+        .filter((trainrun) => trainrun.trainrunId === 101)
+        .flatMap((trainrun) => trainrun.sgTrainrunItems)
+        .find(
+          (item) =>
+            item.isNode() &&
+            item.getTrainrunNode().nodeId === 183 &&
+            item.getTrainrunNode().arrivalTime === -1 &&
+            item.getTrainrunNode().departureTime === 16,
+        )
+        ?.getTrainrunNode();
+
+      expect(b2Sx).toBeDefined();
+      expect(
+        b2Sx?.trackReservations.find(
+          (occupancy) => occupancy.arrivalTime === 119 && occupancy.departureTime === 136,
+        )?.track,
+      ).toBe(1);
     });
   });
 
@@ -324,7 +391,7 @@ describe("StreckengrafikServicesTests", () => {
     sg6TrackService.getSgSelectedTrainrun().subscribe((sgSelectedTrainrun: SgSelectedTrainrun) => {
       expect(sgSelectedTrainrun.trainrunId).toBe(2);
       const pathBP: string[] = ["BN", "", "OL", "", "ZUE", "", "SG"];
-      const pathTrack: number[] = [3, undefined, 3, undefined, 6, undefined, 1];
+      const pathTrack: number[] = [2, undefined, 2, undefined, 2, undefined, 2];
       // The pathArrDepTimes holds the departure/arrival times for each item (node, section). The
       // first entry is the "start node" - which hold the trainrun turnarround time then the first second
       // follows with departure and arrival times, .... node, section .... and the last entry is the destination
