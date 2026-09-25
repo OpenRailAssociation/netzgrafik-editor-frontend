@@ -219,7 +219,14 @@ export class TrainRunItemComponent implements OnInit, OnDestroy, UpdateCounterHa
 
   getId(trainrun: SgTrainrun, trainrunItem: SgTrainrunItem) {
     const itemType = trainrunItem.isNode() ? "node" : "section";
-    return "streckengrafik_trainrun_item_" + trainrun.getId() + "_" + itemType + "_" + trainrunItem.getId();
+    return (
+      "streckengrafik_trainrun_item_" +
+      trainrun.getId() +
+      "_" +
+      itemType +
+      "_" +
+      trainrunItem.getId()
+    );
   }
 
   bringToFront(trainrun: SgTrainrun, trainrunItem: SgTrainrunItem, event: MouseEvent) {

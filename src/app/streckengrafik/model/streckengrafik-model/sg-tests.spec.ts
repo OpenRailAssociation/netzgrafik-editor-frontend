@@ -194,7 +194,9 @@ describe("StreckengrafikModelTests", () => {
 
     expect(node.getTrackReservation(0, 964)?.track).toBe(3);
     expect(node.getTrackReservation(0, 957)?.track).toBe(4);
-    expect(node.getTrackReservations(0, 964).map((reservation) => reservation.track)).toEqual([3, 5]);
+    expect(node.getTrackReservations(0, 964).map((reservation) => reservation.track)).toEqual([
+      3, 5,
+    ]);
   });
 
   it("Streckengrafik-Model - Test - TrainrunItem  - 001", () => {

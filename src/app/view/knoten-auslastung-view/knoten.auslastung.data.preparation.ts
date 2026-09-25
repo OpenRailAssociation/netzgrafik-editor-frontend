@@ -92,15 +92,11 @@ export class KnotenAuslastungDataPreparation {
     const sectionByTrainrunId = new Map(
       sections.map((section) => [section.getTrainrunId(), section]),
     );
-    const estimates = this.infrastructureEstimatorService.estimateNodeTracks(
-      node,
-      sections,
-      {
-        windowStartMinutes: 0,
-        windowMinutes: KnotenAuslastungDataPreparation.ESTIMATION_MINUTES,
-        separateForwardBackwardTracks: true,
-      },
-    );
+    const estimates = this.infrastructureEstimatorService.estimateNodeTracks(node, sections, {
+      windowStartMinutes: 0,
+      windowMinutes: KnotenAuslastungDataPreparation.ESTIMATION_MINUTES,
+      separateForwardBackwardTracks: true,
+    });
     this.evenHour = this.createProjection(node, 0, sectionById, sectionByTrainrunId, estimates);
     this.oddHour = this.createProjection(
       node,
@@ -144,11 +140,7 @@ export class KnotenAuslastungDataPreparation {
     estimates.forEach((estimate) => {
       usedTrackCount = Math.max(usedTrackCount, estimate.track);
       estimate.occupancies.forEach((occupancy) => {
-        const section = this.findSectionForOccupancy(
-          occupancy,
-          sectionById,
-          sectionByTrainrunId,
-        );
+        const section = this.findSectionForOccupancy(occupancy, sectionById, sectionByTrainrunId);
         const clipped = this.clipOccupancy(occupancy, projectionStart, projectionEnd);
         if (section === undefined || clipped === undefined) {
           return;
@@ -201,13 +193,18 @@ export class KnotenAuslastungDataPreparation {
     occupancy: NodeTrackOccupancy,
     projectionStart: number,
     projectionEnd: number,
-  ): {
-    occupancyStart: number;
-    occupancyEnd: number;
-    headwayStart: number;
-    headwayEnd: number;
-  } | undefined {
-    if (occupancy.arrivalMinute >= projectionEnd || occupancy.headwayUntilMinute <= projectionStart) {
+  ):
+    | {
+        occupancyStart: number;
+        occupancyEnd: number;
+        headwayStart: number;
+        headwayEnd: number;
+      }
+    | undefined {
+    if (
+      occupancy.arrivalMinute >= projectionEnd ||
+      occupancy.headwayUntilMinute <= projectionStart
+    ) {
       return undefined;
     }
     const clipped = {
@@ -216,7 +213,8 @@ export class KnotenAuslastungDataPreparation {
       headwayStart: Math.max(occupancy.departureMinute, projectionStart),
       headwayEnd: Math.min(occupancy.headwayUntilMinute, projectionEnd),
     };
-    return clipped.occupancyEnd > clipped.occupancyStart || clipped.headwayEnd > clipped.headwayStart
+    return clipped.occupancyEnd > clipped.occupancyStart ||
+      clipped.headwayEnd > clipped.headwayStart
       ? clipped
       : undefined;
   }
@@ -230,7 +228,11 @@ export class KnotenAuslastungDataPreparation {
     const resources: KnotenAuslastungResourceData[] = [];
     trackCount = Math.max(trackCount, capacity, 1);
     for (let track = 0; track < trackCount; track += 1) {
-      for (let minute = 0; minute < KnotenAuslastungDataPreparation.PROJECTION_MINUTES; minute += 5) {
+      for (
+        let minute = 0;
+        minute < KnotenAuslastungDataPreparation.PROJECTION_MINUTES;
+        minute += 5
+      ) {
         resources.push({
           startAngle: this.toAngle(minute + 0.1),
           endAngle: this.toAngle(minute + 4.9),
@@ -247,8 +249,10 @@ export class KnotenAuslastungDataPreparation {
     first: KnotenAuslastungProjection,
     second: KnotenAuslastungProjection,
   ): boolean {
-    return JSON.stringify(first.nodeDatas.map(this.projectionKey)) ===
-      JSON.stringify(second.nodeDatas.map(this.projectionKey));
+    return (
+      JSON.stringify(first.nodeDatas.map(this.projectionKey)) ===
+      JSON.stringify(second.nodeDatas.map(this.projectionKey))
+    );
   }
 
   private projectionKey(data: KnotenAuslastungData): string {

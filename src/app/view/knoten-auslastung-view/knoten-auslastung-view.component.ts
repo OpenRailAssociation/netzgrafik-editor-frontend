@@ -171,12 +171,10 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
       .startAngle((d) => d.startAngle)
       .endAngle((d) => d.endAngle)
       .innerRadius(
-        (d) =>
-          ((1 + (d.innerRadius + 0.05)) / (2 + Math.max(nbrOfTrackFound, 0))) * pixelRadius,
+        (d) => ((1 + (d.innerRadius + 0.05)) / (2 + Math.max(nbrOfTrackFound, 0))) * pixelRadius,
       )
       .outerRadius(
-        (d) =>
-          ((1 + (d.outerRadius + 0.95)) / (2 + Math.max(nbrOfTrackFound, 0))) * pixelRadius,
+        (d) => ((1 + (d.outerRadius + 0.95)) / (2 + Math.max(nbrOfTrackFound, 0))) * pixelRadius,
       );
 
     this.svgDrawingContext.selectAll("g.KnotenAuslastungResourceGroup").remove();
@@ -214,9 +212,7 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
           ),
       )
       .attr("d", arc)
-      .on("mousedown", (_, d) =>
-        this.selectTrainrun(d.trainrunSection.getTrainrunId()),
-      )
+      .on("mousedown", (_, d) => this.selectTrainrun(d.trainrunSection.getTrainrunId()))
       .append("title")
       .html((d) => d.tooltip);
 
