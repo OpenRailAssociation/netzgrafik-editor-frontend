@@ -143,8 +143,12 @@ export class TrainRunItemComponent implements OnInit, OnDestroy, UpdateCounterHa
     let toPoint = 0;
     if (item.isNode()) {
       const node = item.getTrainrunNode();
-      fromPoint = (node.departureTime + offset) * yZoom;
-      toPoint = (node.arrivalTime + offset + node.minimumHeadwayTime) * yZoom;
+      const arrivalTime = node.trackOccupancy?.arrivalTime ?? node.arrivalTime;
+      const departureTime = node.trackOccupancy?.departureTime ?? node.departureTime;
+      const headwayUntilTime =
+        node.trackOccupancy?.headwayUntilTime ?? node.departureTime + node.minimumHeadwayTime;
+      fromPoint = (Math.min(arrivalTime, departureTime) + offset) * yZoom;
+      toPoint = (Math.max(arrivalTime, departureTime, headwayUntilTime) + offset) * yZoom;
       if (node.isEndNode()) {
         if (!item.getPathNode().trackOccupier) {
           return false;
@@ -156,7 +160,7 @@ export class TrainRunItemComponent implements OnInit, OnDestroy, UpdateCounterHa
         toPoint += 2 * this.trainrun.frequency * yZoom;
       }
       if (!item.getPathNode().trackOccupier) {
-        if (node.departureTime === node.arrivalTime) {
+        if (departureTime === arrivalTime) {
           return false;
         }
       }
