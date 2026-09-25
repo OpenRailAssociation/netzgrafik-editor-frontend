@@ -153,15 +153,23 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
     const arrivalTime = reservation.arrivalTime * this.yZoom;
     const departureTime = reservation.departureTime * this.yZoom;
     const path: string[] = [];
+    const arrivalSection = this.getReservationSection(
+      reservation.arrivalSectionId,
+      node.arrivalPathSection,
+    );
+    const departureSection = this.getReservationSection(
+      reservation.departureSectionId,
+      node.departurePathSection,
+    );
 
-    if (node.arrivalPathSection !== undefined) {
-      const arrivalOnLeft = this.sectionIsOnLeft(node, node.arrivalPathSection, true);
+    if (arrivalSection !== undefined) {
+      const arrivalOnLeft = this.sectionIsOnLeft(node, arrivalSection, true);
       const arrivalX = arrivalOnLeft ? 0 : nodeWidth;
       const arrivalTrackX = arrivalOnLeft ? track - trackInset : track + trackInset;
       path.push("M " + arrivalX + " " + arrivalTime + " L " + arrivalTrackX + " " + arrivalTime);
     }
-    if (node.departurePathSection !== undefined) {
-      const departureOnLeft = this.sectionIsOnLeft(node, node.departurePathSection, false);
+    if (departureSection !== undefined) {
+      const departureOnLeft = this.sectionIsOnLeft(node, departureSection, false);
       const departureX = departureOnLeft ? 0 : nodeWidth;
       const departureTrackX = departureOnLeft ? track - trackInset : track + trackInset;
       path.push(
@@ -169,6 +177,19 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
       );
     }
     return path;
+  }
+
+  private getReservationSection(
+    sectionId: number | undefined,
+    fallback: SgTrainrunSection | undefined,
+  ): SgTrainrunSection | undefined {
+    if (sectionId === undefined) {
+      return fallback;
+    }
+    const node = this.sgTrainrunItem.getTrainrunNode();
+    return [node.arrivalPathSection, node.departurePathSection].find(
+      (section) => section?.trainrunSectionId === sectionId,
+    ) ?? fallback;
   }
 
   private sectionIsOnLeft(
