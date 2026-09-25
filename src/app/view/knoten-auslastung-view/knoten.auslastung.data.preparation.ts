@@ -105,7 +105,8 @@ export class KnotenAuslastungDataPreparation {
       sectionByTrainrunId,
       estimates,
     );
-    const trackCount = Math.max(this.evenHour.trackCount, this.oddHour.trackCount);
+    const capacity = this.resourceService.getResource(node.getResourceId())?.getCapacity() ?? 0;
+    const trackCount = Math.max(this.evenHour.trackCount, this.oddHour.trackCount, capacity, 1);
     const resourceDatas = this.createResourceData(node, trackCount);
     this.evenHour = {...this.evenHour, trackCount, resourceDatas};
     this.oddHour = {...this.oddHour, trackCount, resourceDatas};
