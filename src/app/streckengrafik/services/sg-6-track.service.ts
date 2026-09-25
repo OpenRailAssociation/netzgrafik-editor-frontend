@@ -431,6 +431,7 @@ export class Sg6TrackService implements OnDestroy {
           estimate.occupancies
             .filter((occupancy) => this.matchesNodeTrackReservation(occupancy, node))
             .map((occupancy) => ({
+              offset: occupancy.arrivalMinute - node.arrivalTime,
               trainrunId: occupancy.trainrunId,
               occurrenceIndex: occupancy.occurrenceIndex,
               arrivalSectionId: occupancy.arrivalSectionId,
