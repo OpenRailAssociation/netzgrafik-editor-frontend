@@ -571,18 +571,10 @@ export class Sg6TrackService implements OnDestroy {
   private matchesNodeTrackReservation(
     reservation: {
       trainrunId: number;
-      arrivalSectionId?: number;
-      departureSectionId?: number;
     },
     node: SgTrainrunNode,
   ): boolean {
-    return (
-      reservation.trainrunId === node.trainrunId &&
-      (node.arrivalPathSection === undefined ||
-        reservation.arrivalSectionId === node.arrivalPathSection.trainrunSectionId) &&
-      (node.departurePathSection === undefined ||
-        reservation.departureSectionId === node.departurePathSection.trainrunSectionId)
-    );
+    return reservation.trainrunId === node.trainrunId;
   }
 
   private getNodeTrackEstimationRange(nodes: SgTrainrunNode[]): {
@@ -627,7 +619,10 @@ export class Sg6TrackService implements OnDestroy {
       trainrunItem.sgTrainrunItems.forEach((pathItem) => {
         if (pathItem.isNode()) {
           const pathNode = pathItem.getTrainrunNode().sgPathNode;
-          const track = pathItem.getTrainrunNode().trackData.track;
+          const track = Math.max(
+            pathNode.trackData.track,
+            pathItem.getTrainrunNode().trackData.track,
+          );
           maxNodeTrackMap.set(pathNode, Math.max(maxNodeTrackMap.get(pathNode) ?? 0, track));
         }
         if (pathItem.isSection()) {
