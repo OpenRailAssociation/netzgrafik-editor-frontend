@@ -582,6 +582,10 @@
       "error-view": {
         "error": "Fehler"
       },
+      "knoten-auslastung-view": {
+        "even-hour": "Gerade Stunde",
+        "odd-hour": "Ungerade Stunde"
+      },
       "navigation-bar": {
         "project-name": "Projekt «{$name}»",
         "project-name-archived": "Projekt «{$name}» (archiviert)",

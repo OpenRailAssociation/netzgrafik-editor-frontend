@@ -74,6 +74,10 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
         this.yZoom = sliderChangeInfo.zoom;
         this.cd.markForCheck();
       });
+
+    this.trainrunService.trainruns
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe(() => this.cd.markForCheck());
   }
 
   ngOnDestroy(): void {
@@ -113,8 +117,20 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
   }
 
   getId() {
+    const itemType = this.sgTrainrunItem.isNode() ? "node" : "section";
+    const reservationKey =
+      this.trackReservation === undefined
+        ? "empty"
+        : `${this.trackReservation.trainrunId}_${this.trackReservation.occurrenceIndex}_${this.offset}`;
     return (
-      "streckengrafik_trainrun_item_" + this.trainrun.getId() + "_" + this.sgTrainrunItem.backward
+      "streckengrafik_trainrun_item_" +
+      this.trainrun.getId() +
+      "_" +
+      itemType +
+      "_" +
+      this.sgTrainrunItem.getId() +
+      "_" +
+      reservationKey
     );
   }
 

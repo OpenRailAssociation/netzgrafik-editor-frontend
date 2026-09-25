@@ -426,7 +426,7 @@ export class Sg6TrackService implements OnDestroy {
       nodeItems.forEach((node) => {
         const reservations = estimates.flatMap((estimate) =>
           estimate.occupancies
-            .filter((occupancy) => this.matchesNodeTrackReservation(occupancy, node))
+            .filter((occupancy) => occupancy.trainrunId === node.trainrunId)
             .map((occupancy) => ({
               offset: occupancy.arrivalMinute - node.arrivalTime,
               trainrunId: occupancy.trainrunId,
@@ -442,15 +442,6 @@ export class Sg6TrackService implements OnDestroy {
         node.trackReservations = reservations;
       });
     });
-  }
-
-  private matchesNodeTrackReservation(
-    reservation: {
-      trainrunId: number;
-    },
-    node: SgTrainrunNode,
-  ): boolean {
-    return reservation.trainrunId === node.trainrunId;
   }
 
   private getNodeTrackEstimationRange(nodes: SgTrainrunNode[]): {

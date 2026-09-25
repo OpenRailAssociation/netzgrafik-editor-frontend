@@ -46,8 +46,35 @@ export class SgTrainrunNode implements SgTrainrunItem {
 
   public trackReservations: SgTrainrunNodeTrackReservation[] = [];
 
-  getTrackReservation(offset: number): SgTrainrunNodeTrackReservation {
-    return this.trackReservations.find((reservation) => reservation.offset === offset);
+  getTrackReservations(
+    offset: number,
+    trainrunId: number = this.trainrunId,
+  ): SgTrainrunNodeTrackReservation[] {
+    return this.trackReservations.filter(
+      (reservation) =>
+        reservation.trainrunId === trainrunId && Math.abs(reservation.offset - offset) < 0.001,
+    );
+  }
+
+  getTrackReservation(
+    offset: number,
+    trainrunId: number = this.trainrunId,
+  ): SgTrainrunNodeTrackReservation {
+    const matchingReservations = this.getTrackReservations(offset, trainrunId);
+    if (matchingReservations.length <= 1) {
+      return matchingReservations[0];
+    }
+    const sectionIds = [
+      this.arrivalPathSection?.trainrunSectionId,
+      this.departurePathSection?.trainrunSectionId,
+    ].filter((sectionId): sectionId is number => sectionId !== undefined);
+    return (
+      matchingReservations.find((reservation) =>
+        [reservation.arrivalSectionId, reservation.departureSectionId].some(
+          (sectionId) => sectionId !== undefined && sectionIds.includes(sectionId),
+        ),
+      ) ?? matchingReservations[0]
+    );
   }
 
   static copy(item: SgTrainrunNode): SgTrainrunNode {
