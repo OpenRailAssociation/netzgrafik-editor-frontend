@@ -5,6 +5,7 @@ import {SgPathSection} from "./sg-path-section";
 import {TrackData} from "../trackData";
 
 export interface SgTrainrunNodeTrackReservation {
+  offset: number;
   track: number;
   arrivalTime: number;
   departureTime: number;
@@ -44,6 +45,10 @@ export class SgTrainrunNode implements SgTrainrunItem {
   }
 
   public trackReservations: SgTrainrunNodeTrackReservation[] = [];
+
+  getTrackReservation(offset: number): SgTrainrunNodeTrackReservation {
+    return this.trackReservations.find((reservation) => reservation.offset === offset);
+  }
 
   static copy(item: SgTrainrunNode): SgTrainrunNode {
     const copy = new SgTrainrunNode(

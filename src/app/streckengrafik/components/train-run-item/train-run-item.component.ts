@@ -9,6 +9,7 @@ import {
 } from "@angular/core";
 import {SgTrainrun} from "../../model/streckengrafik-model/sg-trainrun";
 import {SgTrainrunItem} from "../../model/streckengrafik-model/sg-trainrun-item";
+import {SgTrainrunNodeTrackReservation} from "../../model/streckengrafik-model/sg-trainrun-node";
 import {TimeSliderService} from "../../services/time-slider.service";
 import {takeUntil} from "rxjs/operators";
 import {SliderChangeInfo} from "../../model/util/sliderChangeInfo";
@@ -121,6 +122,13 @@ export class TrainRunItemComponent implements OnInit, OnDestroy, UpdateCounterHa
     return path.isNode();
   }
 
+  public getTrackReservation(
+    item: SgTrainrunItem,
+    offset: number,
+  ): SgTrainrunNodeTrackReservation {
+    return item.isNode() ? item.getTrainrunNode().getTrackReservation(offset) : undefined;
+  }
+
   public getTranslate(path: SgTrainrunItem): string {
     return "" + path.getStartposition();
   }
@@ -143,11 +151,7 @@ export class TrainRunItemComponent implements OnInit, OnDestroy, UpdateCounterHa
     let toPoint = 0;
     if (item.isNode()) {
       const node = item.getTrainrunNode();
-      const reservation = node.trackReservations.find(
-        (candidate) =>
-          candidate.arrivalTime === node.arrivalTime + offset &&
-          candidate.departureTime === node.departureTime + offset,
-      );
+      const reservation = this.getTrackReservation(item, offset);
       const arrivalTime = reservation?.arrivalTime ?? node.arrivalTime;
       const departureTime = reservation?.departureTime ?? node.departureTime;
       const headwayUntilTime =

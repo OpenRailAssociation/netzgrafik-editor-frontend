@@ -7,15 +7,14 @@
     [attr.d]="path"
   />
 </ng-container>
-<ng-container *ngIf="unusedForTurnaround()">
+<ng-container *ngIf="hasTrackReservation()">
   <ng-container *ngIf="!isTrackOccupier()">
     <svg:path
-      *ngIf="hasTrackReservation()"
       [class]="getClassTag('edge_line CollapsedTrackOccupancy')"
       [attr.d]="collapsedNodePath()"
     />
   </ng-container>
-  <svg:g *ngIf="isTrackOccupier() && hasTrackReservation()">
+  <svg:g *ngIf="isTrackOccupier()">
     <svg:path
       [attr.id]="getId()"
       (mouseover)="bringToFront($event)"
