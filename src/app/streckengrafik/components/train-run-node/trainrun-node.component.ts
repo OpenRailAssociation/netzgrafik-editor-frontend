@@ -44,10 +44,10 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
   trackOccupier: boolean;
 
   @Input()
-  offset: number;
+  offset = 0;
 
   @Input()
-  trackReservations: SgTrainrunNodeTrackReservation[] = [];
+  trackReservation: SgTrainrunNodeTrackReservation;
 
   @Input()
   frequency: number;
@@ -133,7 +133,7 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
   }
 
   collapsedNodePath() {
-    const reservation = this.getTrackReservation(this.sgTrainrunItem.getTrainrunNode(), this.offset);
+    const reservation = this.getTrackReservation();
     if (reservation === undefined) {
       return "";
     }
@@ -144,7 +144,7 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
 
   private directTrackConnectionPath(trackInset: number): string[] {
     const node = this.sgTrainrunItem.getTrainrunNode();
-    const reservation = this.getTrackReservation(node, this.offset);
+    const reservation = this.getTrackReservation();
     if (reservation === undefined) {
       return [];
     }
@@ -217,13 +217,12 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
   }
 
   pathGleisbelegung() {
-    const reservation = this.getTrackReservation(this.sgTrainrunItem.getTrainrunNode(), this.offset);
+    const reservation = this.getTrackReservation();
     if (reservation === undefined) {
       return "";
     }
-    const delta = reservation.departureTime - reservation.arrivalTime === 0 ? 0.1 : 0.0;
-    const departureTime = (reservation.departureTime + delta) * this.yZoom;
-    const arrivalTime = (reservation.arrivalTime - delta) * this.yZoom;
+    const departureTime = reservation.departureTime * this.yZoom;
+    const arrivalTime = reservation.arrivalTime * this.yZoom;
     const track = reservation.track * this.trackWidth;
     if (this.sgTrainrunItem.backward) {
       return "M " + track + " " + departureTime + " L " + track + " " + arrivalTime;
@@ -232,7 +231,7 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
   }
 
   pathHeadwayReservation() {
-    const reservation = this.getTrackReservation(this.sgTrainrunItem.getTrainrunNode(), this.offset);
+    const reservation = this.getTrackReservation();
     if (reservation === undefined) {
       return "";
     }
@@ -242,32 +241,20 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
     return "M " + track + " " + departureTime + " L " + track + " " + headwayTime;
   }
 
-  private getTrackReservation(node: SgTrainrunNode, offset = 0) {
-    const targetArrivalTime = node.arrivalTime + offset;
-    const targetDepartureTime = node.departureTime + offset;
-    const reservations =
-      this.trackReservations.length > 0 ? this.trackReservations : node.trackReservations;
-    const offsetOccupancy = reservations.find(
-      (occupancy) =>
-        occupancy.arrivalTime === targetArrivalTime &&
-        occupancy.departureTime === targetDepartureTime,
-    );
-    if (offsetOccupancy !== undefined) {
+  private getTrackReservation() {
+    if (this.trackReservation !== undefined) {
       return {
-        ...offsetOccupancy,
-        arrivalTime: offsetOccupancy.arrivalTime - offset,
-        departureTime: offsetOccupancy.departureTime - offset,
-        headwayUntilTime: offsetOccupancy.headwayUntilTime - offset,
+        ...this.trackReservation,
+        arrivalTime: this.trackReservation.arrivalTime - this.offset,
+        departureTime: this.trackReservation.departureTime - this.offset,
+        headwayUntilTime: this.trackReservation.headwayUntilTime - this.offset,
       };
-    }
-    if (reservations.length > 0) {
-      return undefined;
     }
     return undefined;
   }
 
   hasTrackReservation() {
-    return this.getTrackReservation(this.sgTrainrunItem.getTrainrunNode(), this.offset) !== undefined;
+    return this.trackReservation !== undefined;
   }
 
   isTrackOccupier() {
@@ -286,13 +273,6 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
       return false;
     }
     return true;
-  }
-
-  unusedForTurnaround(): boolean {
-    if (!this.sgTrainrunItem.isNode()) {
-      return false;
-    }
-    return !this.sgTrainrunItem.getTrainrunNode().unusedForTurnaround;
   }
 
   checkUnrollAllowed(): boolean {

@@ -34,6 +34,7 @@ function createNode(): SgTrainrunNode {
   pathNode.startPosition = 40;
   node.trackReservations = [
     {
+      offset: 0,
       trainrunId: 100,
       occurrenceIndex: 0,
       track: 2,
@@ -42,6 +43,7 @@ function createNode(): SgTrainrunNode {
       headwayUntilTime: 25,
     },
     {
+      offset: 120,
       trainrunId: 100,
       occurrenceIndex: 1,
       track: 1,
@@ -124,6 +126,7 @@ describe("TrainRunNodeComponent", () => {
     );
     component.sgTrainrunItem = createNode();
     component.trackOccupier = true;
+    component.trackReservation = component.sgTrainrunItem.getTrainrunNode().trackReservations[0];
 
     expect(component.pathGleisbelegung()).toBe("M 40 10 L 40 20");
     expect(component.pathHeadwayReservation()).toBe("M 40 20 L 40 25");
@@ -133,12 +136,26 @@ describe("TrainRunNodeComponent", () => {
     component.trackOccupier = false;
     expect(component.collapsedNodePath()).toBe("M 0 10 L 0 20");
 
+    component.sgTrainrunItem.getTrainrunNode().arrivalTime = 30;
+    component.sgTrainrunItem.getTrainrunNode().departureTime = 30;
+    component.sgTrainrunItem.getTrainrunNode().trackReservations[0].arrivalTime = 30;
+    component.sgTrainrunItem.getTrainrunNode().trackReservations[0].departureTime = 30;
+    component.trackReservation = component.sgTrainrunItem.getTrainrunNode().trackReservations[0];
+    expect(component.collapsedNodePath()).toBe("M 0 30 L 0 30");
+
+    component.sgTrainrunItem.getTrainrunNode().arrivalTime = 10;
+    component.sgTrainrunItem.getTrainrunNode().departureTime = 20;
+    component.sgTrainrunItem.getTrainrunNode().trackReservations[0].arrivalTime = 10;
+    component.sgTrainrunItem.getTrainrunNode().trackReservations[0].departureTime = 20;
+
     component.offset = 120;
     component.trackOccupier = true;
+    component.trackReservation = component.sgTrainrunItem.getTrainrunNode().trackReservations[1];
     expect(component.pathGleisbelegung()).toBe("M 20 10 L 20 20");
     expect(component.pathHeadwayReservation()).toBe("M 20 20 L 20 25");
 
     component.offset = 60;
+    component.trackReservation = undefined;
     expect(component.pathGleisbelegung()).toBe("");
     expect(component.pathHeadwayReservation()).toBe("");
   });
@@ -159,6 +176,7 @@ describe("TrainRunNodeComponent", () => {
     node.departurePathSection.pathSection.departurePathNode = node.sgPathNode;
     component.sgTrainrunItem = node;
     component.trackOccupier = true;
+    component.trackReservation = node.trackReservations[0];
 
     expect(component.nodePath()).toBe("M 0 10 L 34 10 M 46 20 L 60 20");
   });
@@ -184,6 +202,7 @@ describe("TrainRunNodeComponent", () => {
     node.departurePathSection.pathSection.startPosition = 20;
     component.sgTrainrunItem = node;
     component.trackOccupier = true;
+    component.trackReservation = node.trackReservations[0];
 
     expect(component.nodePath()).toBe("M 0 10 L 34 10 M 46 20 L 60 20");
   });
@@ -238,6 +257,7 @@ describe("TrainRunNodeComponent", () => {
     node.departurePathSection.arrivalPathNode = leftNeighborNode;
     component.sgTrainrunItem = node;
     component.trackOccupier = true;
+    component.trackReservation = node.trackReservations[0];
 
     expect(component.nodePath()).toBe("M 60 10 L 46 10 M 34 20 L 0 20");
   });
@@ -254,6 +274,7 @@ describe("TrainRunNodeComponent", () => {
     node.arrivalPathSection = undefined;
     component.sgTrainrunItem = node;
     component.trackOccupier = true;
+    component.trackReservation = node.trackReservations[0];
 
     expect(component.nodePaths().length).toBe(1);
     expect(component.nodePath()).toBe("M 46 20 L 60 20");
@@ -271,6 +292,7 @@ describe("TrainRunNodeComponent", () => {
     node.departurePathSection = undefined;
     component.sgTrainrunItem = node;
     component.trackOccupier = true;
+    component.trackReservation = node.trackReservations[0];
 
     expect(component.nodePaths().length).toBe(1);
     expect(component.nodePath()).toBe("M 0 10 L 34 10");
@@ -289,6 +311,7 @@ describe("TrainRunNodeComponent", () => {
     node.departureTime = 16;
     node.trackReservations = [
       {
+        offset: 120,
         trainrunId: 100,
         occurrenceIndex: 4,
         track: 1,
@@ -299,6 +322,7 @@ describe("TrainRunNodeComponent", () => {
     ];
     component.sgTrainrunItem = node;
     component.trackOccupier = true;
+    component.trackReservation = node.trackReservations[0];
     component.offset = 120;
 
     expect(component.pathGleisbelegung()).toBe("M 20 -1 L 20 16");
