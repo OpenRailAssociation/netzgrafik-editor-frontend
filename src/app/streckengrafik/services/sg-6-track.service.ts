@@ -3,6 +3,7 @@ import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {SgSelectedTrainrun} from "../model/streckengrafik-model/sg-selected-trainrun";
 import {takeUntil} from "rxjs/operators";
 import {TrackData, TrackSegments} from "../model/trackData";
+import {InfrastructureEstimatorService} from "../../services/infrastructure/infrastructure-estimator.service";
 import {SgTrainrunSection} from "../model/streckengrafik-model/sg-trainrun-section";
 import {SgTrainrunItem} from "../model/streckengrafik-model/sg-trainrun-item";
 import {SgTrainrunNode} from "../model/streckengrafik-model/sg-trainrun-node";
@@ -38,6 +39,7 @@ export class Sg6TrackService implements OnDestroy {
     private readonly nodeService: NodeService,
     private readonly trainrunSectionService: TrainrunSectionService,
     private readonly trainrunService: TrainrunService,
+    private readonly infrastructureEstimatorService: InfrastructureEstimatorService,
   ) {
     this.sg5FilterService
       .getSgSelectedTrainrun()
@@ -120,134 +122,55 @@ export class Sg6TrackService implements OnDestroy {
     return {key: sectionKey, node1: node1, node2: node2};
   }
 
-  private getDistanceGridResolutionInfo(
-    sectionData: {item: SgTrainrunItem; trainrun: SgTrainrun}[],
-  ) {
-    let nDistanceCells = 1;
-    sectionData.forEach((d) => {
-      const item: SgTrainrunItem = d.item;
-      const travelTime = item.arrivalTime - item.departureTime;
-      nDistanceCells = Math.max(nDistanceCells, Math.round(travelTime));
-    });
-    return nDistanceCells;
-  }
-
-  private mergeDistanceCellGridResolutionToBigSegment(
-    tracksMatrix: number[],
-    nDistanceCells: number,
-  ): [number, number, number][] {
-    // unroll the data to segments
-    const tracks: [number, number, number][] = [];
-    let from = 0.0;
-    for (let distCellIdx = 0; distCellIdx < nDistanceCells; distCellIdx++) {
-      const nbrTracks = tracksMatrix[distCellIdx];
-      const to = (distCellIdx + 1.0) / nDistanceCells;
-      tracks.push([from, Math.min(to, 1.0), nbrTracks]);
-      from = to;
-    }
-    if (from !== 1.0) {
-      tracks.push([from, 1.0, tracksMatrix[nDistanceCells - 1]]);
-    }
-    if (tracks.length === 0) {
-      return tracks;
-    }
-
-    // compress the number of sections
-    const compactTracks: [number, number, number][] = [];
-    let start = 0;
-    let end = 0;
-    let value = tracks[0][2];
-    tracks.forEach((d) => {
-      if (value !== d[2]) {
-        compactTracks.push([start, end, value]);
-        start = end;
-        value = d[2];
-      }
-      end = d[1];
-    });
-    compactTracks.push([start, 1.0, value]);
-
-    return compactTracks;
-  }
-
   private extractSectionTracks(
     sectionsOfInterest: Map<string, {item: SgTrainrunItem; trainrun: SgTrainrun}[]>,
-    distRes = 15, // Res 4s
-    timeRes = 15, // Res 4s
   ) {
-    const sectionsTracks = new Map<string, [number, number, number][]>();
-    for (const keyNodeId of sectionsOfInterest.keys()) {
-      // ------------------------------------------------------------------------------------------------------------------
-      // step 1 -> get trainrun data (aligned to section)
-      // ------------------------------------------------------------------------------------------------------------------
-      const sectionData = sectionsOfInterest.get(keyNodeId);
-
-      // ------------------------------------------------------------------------------------------------------------------
-      // step 2 -> get distanace grid resolution
-      // ------------------------------------------------------------------------------------------------------------------
-      const nDistanceCells = distRes * this.getDistanceGridResolutionInfo(sectionData);
-      const nTimeCells = timeRes * 2 * this.maxFrequency; // or some dynamic value
-
-      // ------------------------------------------------------------------------------------------------------------------
-      // step 3 -> create data structure
-      // ------------------------------------------------------------------------------------------------------------------
-      const dataMatrix: number[][] = new Array(nDistanceCells)
-        .fill(0)
-        .map(() => new Array(nTimeCells).fill(0));
-      const tracksMatrix: number[] = new Array(nDistanceCells).fill(0);
-
-      // ------------------------------------------------------------------------------------------------------------------
-      // step 4 -> project all trainruns onto section occupation matrix
-      // ------------------------------------------------------------------------------------------------------------------
-      sectionData.forEach((d) => {
-        const item: SgTrainrunItem = d.item;
-        const travelTime = item.arrivalTime - item.departureTime;
-
-        const ts = this.trainrunSectionService.getTrainrunSectionFromId(
-          item.getTrainrunSection().trainrunSectionId,
-        );
-        const headwayTime =
-          ts !== undefined
-            ? ts.getTrainrun().getTrainrunCategory().sectionHeadway
-            : this.minimumHeadwayTime;
-
-        // iterate cell-by-cell forward
-        for (let distCellIdx = 0; distCellIdx < nDistanceCells; distCellIdx++) {
-          // unroll frequency to get the trains - generated out of the "template" train
-          for (
-            let freqLoop = -this.maxFrequency;
-            freqLoop <= this.maxFrequency;
-            freqLoop = freqLoop + d.trainrun.frequency
-          ) {
-            // the bands of "headway" - Nachbelegung (free the occupied resource just after this "band"
-            for (let bandOffset = 0; bandOffset < timeRes * headwayTime; bandOffset++) {
-              // compute the indices to get the matrix cell's where to fill in the information
-              const idx = item.backward ? nDistanceCells - distCellIdx - 1 : distCellIdx;
-              let timeCellIdx =
-                (item.departureTime % this.maxFrequency) +
-                (travelTime * distCellIdx) / (nDistanceCells - 0.5) +
-                freqLoop;
-              timeCellIdx = bandOffset + Math.round(timeRes * timeCellIdx);
-
-              // ensure if the idx is to small or to big (avoid crash / exception)
-              if (timeCellIdx >= 0 && timeCellIdx < nTimeCells) {
-                dataMatrix[idx][timeCellIdx]++;
-                tracksMatrix[idx] = Math.max(tracksMatrix[idx], dataMatrix[idx][timeCellIdx]);
-              }
-            }
-          }
-        }
-      });
-
-      // ------------------------------------------------------------------------------------------------------------------
-      // step 5 -> Merging the same number of tracks into one "large" segment
-      // ------------------------------------------------------------------------------------------------------------------
-      sectionsTracks.set(
-        keyNodeId,
-        this.mergeDistanceCellGridResolutionToBigSegment(tracksMatrix, nDistanceCells),
+    // this methode is the wrapper that extracts section tracks from the sectionsOfInterest map and
+    // estimates the track layout for each section. The new calculation is done in the stateless
+    // InfrastructureEstimatorService.
+    const sectionTrackMap = new Map<string, [number, number, number][]>();
+    sectionsOfInterest.forEach((sectionData, sectionKey) => {
+      // Resolve the domain sections referenced by the rendered Sg items and remove duplicates.
+      const trainrunSections = Array.from(
+        new Map(
+          sectionData
+            .map(({item}) =>
+              this.trainrunSectionService.getTrainrunSectionFromId(
+                item.getTrainrunSection().trainrunSectionId,
+              ),
+            )
+            .filter((section) => section !== undefined)
+            .map((section) => [section.getId(), section] as const),
+        ).values(),
       );
-    }
-    return sectionsTracks;
+      const firstSection = trainrunSections[0];
+      if (firstSection === undefined) {
+        sectionTrackMap.set(sectionKey, []);
+        return;
+      }
+
+      // Use the rendered Sg endpoints and order them from left to right by their X position.
+      const firstSgSection = sectionData[0].item.getTrainrunSection();
+      const sourceNode = this.nodeService.getNodeFromId(firstSgSection.departureNodeId);
+      const targetNode = this.nodeService.getNodeFromId(firstSgSection.arrivalNodeId);
+      const fromNode =
+        sourceNode.getPositionX() < targetNode.getPositionX() ||
+        (sourceNode.getPositionX() === targetNode.getPositionX() && !firstSgSection.backward)
+          ? sourceNode
+          : targetNode;
+      const toNode = fromNode === sourceNode ? targetNode : sourceNode;
+
+      // Estimate section tracks for the normalized diagram direction.
+      sectionTrackMap.set(
+        sectionKey,
+        this.infrastructureEstimatorService.estimateSectionTracks(
+          fromNode,
+          toNode,
+          trainrunSections,
+        ),
+      );
+    });
+    return sectionTrackMap;
   }
 
   private getNodeKeyAlignmentsNodeData(pn: SgTrainrunNode): string {
