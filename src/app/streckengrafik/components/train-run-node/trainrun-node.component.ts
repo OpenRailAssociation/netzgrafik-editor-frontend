@@ -13,6 +13,7 @@ import {TrainrunService} from "../../../services/data/trainrun.service";
 import {takeUntil} from "rxjs/operators";
 import {SgTrainrun} from "../../model/streckengrafik-model/sg-trainrun";
 import {SgTrainrunItem} from "../../model/streckengrafik-model/sg-trainrun-item";
+import {SgTrainrunSection} from "../../model/streckengrafik-model/sg-trainrun-section";
 import {
   SgTrainrunNode,
   SgTrainrunNodeTrackReservation,
@@ -43,10 +44,10 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
   trackOccupier: boolean;
 
   @Input()
-  offset: number;
+  offset = 0;
 
   @Input()
-  trackReservations: SgTrainrunNodeTrackReservation[] = [];
+  trackReservation: SgTrainrunNodeTrackReservation;
 
   @Input()
   frequency: number;
@@ -118,13 +119,19 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
   }
 
   nodePath() {
-    return this.directTrackConnectionPath(
-      this.isTrackOccupier() ? this.halfStrokeWidth : 0,
-    );
+    return this.nodePaths().join(" ");
+  }
+
+  nodePaths(): string[] {
+    return this.directTrackConnectionPath(this.isTrackOccupier() ? this.halfStrokeWidth : 0);
+  }
+
+  getTransitLineId(pathIndex: number): string {
+    return this.getId() + "_TransitLine_" + pathIndex;
   }
 
   collapsedNodePath() {
-    const reservation = this.getTrackReservation(this.sgTrainrunItem.getTrainrunNode(), this.offset);
+    const reservation = this.getTrackReservation();
     if (reservation === undefined) {
       return "";
     }
@@ -133,45 +140,110 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
     return "M 0 " + arrivalTime + " L 0 " + departureTime;
   }
 
-  private directTrackConnectionPath(trackInset: number): string {
+  private directTrackConnectionPath(trackInset: number): string[] {
     const node = this.sgTrainrunItem.getTrainrunNode();
-    const reservation = this.getTrackReservation(node, this.offset);
+    const reservation = this.getTrackReservation();
     if (reservation === undefined) {
-      return "";
+      return [];
     }
     const nodeWidth = this.sgTrainrunItem.getPathNode().nodeWidth();
     const track = reservation.track * this.trackWidth;
     const arrivalTime = reservation.arrivalTime * this.yZoom;
     const departureTime = reservation.departureTime * this.yZoom;
     const path: string[] = [];
+    const arrivalSection = this.getReservationSection(
+      reservation.arrivalSectionId,
+      node.arrivalPathSection,
+    );
+    const departureSection = this.getReservationSection(
+      reservation.departureSectionId,
+      node.departurePathSection,
+    );
 
-    if (node.arrivalPathSection !== undefined) {
-      const arrivalX = node.arrivalPathSection.backward ? nodeWidth : 0;
-      const arrivalTrackX = node.arrivalPathSection.backward
-        ? track + trackInset
-        : track - trackInset;
+    if (arrivalSection !== undefined) {
+      const arrivalOnLeft = this.sectionIsOnLeft(node, arrivalSection, true);
+      const arrivalX = arrivalOnLeft ? 0 : nodeWidth;
+      const arrivalTrackX = arrivalOnLeft ? track - trackInset : track + trackInset;
       path.push("M " + arrivalX + " " + arrivalTime + " L " + arrivalTrackX + " " + arrivalTime);
     }
-    if (node.departurePathSection !== undefined) {
-      const departureX = node.departurePathSection.backward ? 0 : nodeWidth;
-      const departureTrackX = node.departurePathSection.backward
-        ? track - trackInset
-        : track + trackInset;
+    if (departureSection !== undefined) {
+      const departureOnLeft = this.sectionIsOnLeft(node, departureSection, false);
+      const departureX = departureOnLeft ? 0 : nodeWidth;
+      const departureTrackX = departureOnLeft ? track - trackInset : track + trackInset;
       path.push(
         "M " + departureTrackX + " " + departureTime + " L " + departureX + " " + departureTime,
       );
     }
-    return path.join(" ");
+    return path;
+  }
+
+  private getReservationSection(
+    sectionId: number | undefined,
+    fallback: SgTrainrunSection | undefined,
+  ): SgTrainrunSection | undefined {
+    if (sectionId === undefined) {
+      return fallback;
+    }
+    const node = this.sgTrainrunItem.getTrainrunNode();
+    return (
+      [node.arrivalPathSection, node.departurePathSection].find(
+        (section) => section?.trainrunSectionId === sectionId,
+      ) ?? fallback
+    );
+  }
+
+  private sectionIsOnLeft(
+    node: SgTrainrunNode,
+    section: SgTrainrunSection,
+    isArrival: boolean,
+  ): boolean {
+    const pathSection = section.pathSection;
+    const sectionStartPosition = pathSection?.startPosition;
+    const nodeStartPosition = node.sgPathNode.startPosition;
+
+    const neighborTrainrunNode = isArrival ? section.departurePathNode : section.arrivalPathNode;
+    const otherPathNode =
+      neighborTrainrunNode?.sgPathNode ??
+      (isArrival
+        ? section.backward
+          ? pathSection?.arrivalPathNode
+          : pathSection?.departurePathNode
+        : section.backward
+          ? pathSection?.departurePathNode
+          : pathSection?.arrivalPathNode);
+    if (otherPathNode?.startPosition !== undefined && nodeStartPosition !== undefined) {
+      if (otherPathNode.startPosition !== nodeStartPosition) {
+        return otherPathNode.startPosition < nodeStartPosition;
+      }
+      if (otherPathNode.index !== node.sgPathNode.index) {
+        return otherPathNode.index < node.sgPathNode.index;
+      }
+    }
+
+    if (
+      sectionStartPosition !== undefined &&
+      nodeStartPosition !== undefined &&
+      sectionStartPosition !== nodeStartPosition
+    ) {
+      return sectionStartPosition < nodeStartPosition;
+    }
+
+    if (section.pathSection?.arrivalPathNode === node.sgPathNode) {
+      return true;
+    }
+    if (section.pathSection?.departurePathNode === node.sgPathNode) {
+      return false;
+    }
+    return false;
   }
 
   pathGleisbelegung() {
-    const reservation = this.getTrackReservation(this.sgTrainrunItem.getTrainrunNode(), this.offset);
+    const reservation = this.getTrackReservation();
     if (reservation === undefined) {
       return "";
     }
-    const delta = reservation.departureTime - reservation.arrivalTime === 0 ? 0.1 : 0.0;
-    const departureTime = (reservation.departureTime + delta) * this.yZoom;
-    const arrivalTime = (reservation.arrivalTime - delta) * this.yZoom;
+    const departureTime = reservation.departureTime * this.yZoom;
+    const arrivalTime = reservation.arrivalTime * this.yZoom;
     const track = reservation.track * this.trackWidth;
     if (this.sgTrainrunItem.backward) {
       return "M " + track + " " + departureTime + " L " + track + " " + arrivalTime;
@@ -180,7 +252,7 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
   }
 
   pathHeadwayReservation() {
-    const reservation = this.getTrackReservation(this.sgTrainrunItem.getTrainrunNode(), this.offset);
+    const reservation = this.getTrackReservation();
     if (reservation === undefined) {
       return "";
     }
@@ -190,32 +262,20 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
     return "M " + track + " " + departureTime + " L " + track + " " + headwayTime;
   }
 
-  private getTrackReservation(node: SgTrainrunNode, offset = 0) {
-    const targetArrivalTime = node.arrivalTime + offset;
-    const targetDepartureTime = node.departureTime + offset;
-    const reservations =
-      this.trackReservations.length > 0 ? this.trackReservations : node.trackReservations;
-    const offsetOccupancy = reservations.find(
-      (occupancy) =>
-        occupancy.arrivalTime === targetArrivalTime &&
-        occupancy.departureTime === targetDepartureTime,
-    );
-    if (offsetOccupancy !== undefined) {
+  private getTrackReservation() {
+    if (this.trackReservation !== undefined) {
       return {
-        ...offsetOccupancy,
-        arrivalTime: offsetOccupancy.arrivalTime - offset,
-        departureTime: offsetOccupancy.departureTime - offset,
-        headwayUntilTime: offsetOccupancy.headwayUntilTime - offset,
+        ...this.trackReservation,
+        arrivalTime: this.trackReservation.arrivalTime - this.offset,
+        departureTime: this.trackReservation.departureTime - this.offset,
+        headwayUntilTime: this.trackReservation.headwayUntilTime - this.offset,
       };
-    }
-    if (reservations.length > 0) {
-      return undefined;
     }
     return undefined;
   }
 
   hasTrackReservation() {
-    return this.getTrackReservation(this.sgTrainrunItem.getTrainrunNode(), this.offset) !== undefined;
+    return this.trackReservation !== undefined;
   }
 
   isTrackOccupier() {
@@ -236,22 +296,15 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
     return true;
   }
 
-  unusedForTurnaround(): boolean {
-    if (!this.sgTrainrunItem.isNode()) {
-      return false;
-    }
-    return !this.sgTrainrunItem.getTrainrunNode().unusedForTurnaround;
-  }
-
   checkUnrollAllowed(): boolean {
     return this.sgTrainrunItem.checkUnrollAllowed(this.offset / this.frequency);
   }
 
-  bringToFront(event: MouseEvent) {
+  bringToFront(event: MouseEvent, pathIndex?: number) {
     if (event.buttons !== 0) {
       return;
     }
-    const key = "#" + this.getId();
+    const key = "#" + (pathIndex === undefined ? this.getId() : this.getTransitLineId(pathIndex));
     d3.select(key).raise();
   }
 }

@@ -21,7 +21,7 @@
                   sbb-trainrun-node
                   [offset]="offset"
                   [frequency]="trainrun.frequency"
-                  [trackReservations]="trainrunItem.getTrainrunNode().trackReservations"
+                  [trackReservation]="getTrackReservation(trainrunItem, offset)"
                   [sgTrainrunItem]="trainrunItem"
                   [trainrun]="trainrun"
                   [trackOccupier]="trainrunItem.getPathNode().trackOccupier"

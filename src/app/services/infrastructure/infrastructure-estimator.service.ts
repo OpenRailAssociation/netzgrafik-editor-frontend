@@ -87,24 +87,6 @@ interface NodeTrackTimes {
   headwayUntilMinute: number;
 }
 
-interface NodeTrackDebugDecision {
-  candidates: Array<{track: NodeTrackEstimate; conflicts: number[]}>;
-  selectedTrack: NodeTrackEstimate;
-  reason: string;
-}
-
-export interface NodeTrackAssignment {
-  trainrunId: number;
-  arrivalSectionId?: number;
-  departureSectionId?: number;
-  track: number;
-  occupancies: Array<{
-    arrivalMinute: number;
-    departureMinute: number;
-    headwayUntilMinute: number;
-  }>;
-}
-
 interface TrackProjectionContext {
   distanceCells: number;
   timeCells: number;
@@ -120,8 +102,6 @@ export class InfrastructureEstimatorService {
   static readonly DEFAULT_DISTANCE_RESOLUTION = 15;
   static readonly DEFAULT_TIME_RESOLUTION = 15;
   static readonly DEFAULT_MINIMUM_HEADWAY_TIME = 0;
-
-  private nodeTrackDebugDecisions = new Map<NodeTrackBlock, NodeTrackDebugDecision>();
 
   estimateSectionTracks(
     fromNode: Node,
@@ -322,20 +302,11 @@ export class InfrastructureEstimatorService {
       const firstFitIndex = tracks.findIndex((candidate) =>
         this.canPlaceNodeTrackBlock(candidate, block),
       );
-      const consideredTracks = tracks.slice(0, firstFitIndex >= 0 ? firstFitIndex + 1 : undefined);
       const track = firstFitIndex >= 0 ? tracks[firstFitIndex] : undefined;
       const selectedTrack = track ?? {
         track: tracks.length + 1,
         occupancies: [...block.occupancies],
       };
-      this.nodeTrackDebugDecisions.set(block, {
-        candidates: consideredTracks.map((candidate) => ({
-          track: candidate,
-          conflicts: this.getNodeTrackBlockConflicts(candidate, block),
-        })),
-        selectedTrack,
-        reason: firstFitIndex >= 0 ? "first-fit" : "new-track",
-      });
       if (track === undefined) {
         tracks.push(selectedTrack);
         return;
@@ -714,11 +685,19 @@ export class InfrastructureEstimatorService {
 
     // Step 2: align departure with arrival in the train's frequency cycle.
     const frequency = occurrence.trainrun.getFrequency();
-    const consecutiveDepartureMinute = this.getConsecutiveDepartureMinute(
-      sectionTimes.arrivalMinute,
-      sectionTimes.departureMinute,
-      frequency,
-    );
+    const consecutiveDepartureMinute =
+      this.getPeriodicTurnaroundDepartureMinute(
+        occurrence,
+        sectionTimes.arrivalMinute,
+        frequency,
+        category.minimalTurnaroundTime,
+        haltezeit,
+      ) ??
+      this.getConsecutiveDepartureMinute(
+        sectionTimes.arrivalMinute,
+        sectionTimes.departureMinute,
+        frequency,
+      );
     // Step 3: apply the turnaround rule for node-track estimation.
     return this.getTurnaroundNodeTrackTimes(
       occurrence,
@@ -729,6 +708,54 @@ export class InfrastructureEstimatorService {
       category.minimalTurnaroundTime,
       frequency,
     );
+  }
+
+  private getPeriodicTurnaroundDepartureMinute(
+    occurrence: NodeTrackTrainrunOccurrence,
+    arrivalMinute: number,
+    frequency: number,
+    categoryMinimalTurnaroundTime: number,
+    haltezeit: number,
+  ): number | undefined {
+    if (
+      occurrence.pass !== 2 ||
+      occurrence.arrivalSection === undefined ||
+      occurrence.arrivalSection !== occurrence.departureSection ||
+      frequency <= 0
+    ) {
+      return undefined;
+    }
+
+    const arrivalClockTime = this.getNodePeriodicArrivalTime(
+      occurrence.node,
+      occurrence.arrivalSection,
+      occurrence.arrivalDirection,
+    );
+    const departureClockTime = this.getNodePeriodicDepartureTime(
+      occurrence.node,
+      occurrence.departureSection,
+      occurrence.departureDirection,
+    );
+    if (arrivalClockTime === undefined || departureClockTime === undefined) {
+      return undefined;
+    }
+
+    const minimumTurnaroundTime =
+      Number.isFinite(categoryMinimalTurnaroundTime) && categoryMinimalTurnaroundTime > 0
+        ? categoryMinimalTurnaroundTime
+        : haltezeit;
+    const frequencyOverHour = frequency > 60 ? frequency - 60 : 0;
+    let consecutiveDepartureMinute =
+      arrivalMinute < departureClockTime ? departureClockTime + frequency : departureClockTime;
+    consecutiveDepartureMinute += frequencyOverHour;
+
+    while (consecutiveDepartureMinute - frequency > arrivalMinute) {
+      consecutiveDepartureMinute -= frequency;
+    }
+    if (consecutiveDepartureMinute - arrivalMinute < minimumTurnaroundTime) {
+      consecutiveDepartureMinute += frequency;
+    }
+    return consecutiveDepartureMinute;
   }
 
   private getNodeSectionTimes(occurrence: NodeTrackTrainrunOccurrence): {
@@ -877,6 +904,40 @@ export class InfrastructureEstimatorService {
     }
     if (direction === "backward" && section.getTargetNodeId() === node.getId()) {
       return section.getTargetDepartureConsecutiveTime();
+    }
+    return undefined;
+  }
+
+  private getNodePeriodicArrivalTime(
+    node: Node,
+    section: TrainrunSection | undefined,
+    direction: TrainrunSectionDirection | undefined,
+  ): number | undefined {
+    if (section === undefined || direction === undefined) {
+      return undefined;
+    }
+    if (direction === "forward" && section.getTargetNodeId() === node.getId()) {
+      return section.getTargetArrival();
+    }
+    if (direction === "backward" && section.getSourceNodeId() === node.getId()) {
+      return section.getSourceArrival();
+    }
+    return undefined;
+  }
+
+  private getNodePeriodicDepartureTime(
+    node: Node,
+    section: TrainrunSection | undefined,
+    direction: TrainrunSectionDirection | undefined,
+  ): number | undefined {
+    if (section === undefined || direction === undefined) {
+      return undefined;
+    }
+    if (direction === "forward" && section.getSourceNodeId() === node.getId()) {
+      return section.getSourceDeparture();
+    }
+    if (direction === "backward" && section.getTargetNodeId() === node.getId()) {
+      return section.getTargetDeparture();
     }
     return undefined;
   }

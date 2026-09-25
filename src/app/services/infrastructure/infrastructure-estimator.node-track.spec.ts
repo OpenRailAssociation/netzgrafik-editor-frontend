@@ -2,7 +2,11 @@ import {TrainrunCategory, TrainrunFrequency} from "../../data-structures/busines
 import {Node} from "../../models/node.model";
 import {Trainrun} from "../../models/trainrun.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
-import {InfrastructureEstimatorService} from "./infrastructure-estimator.service";
+import {
+  InfrastructureEstimatorService,
+  NodeTrackEstimate,
+  NodeTrackEstimatorOptions,
+} from "./infrastructure-estimator.service";
 import {NetzgrafikTrackEstimatorTesting} from "../../../integration-testing/netzgrafik.unit.testing.track.estimator";
 
 function getTrackEstimatorFixture() {
@@ -35,7 +39,7 @@ function getTrackEstimatorFixture() {
   return {nodes, trainruns, sections};
 }
 
-function getOccupancies(tracks: ReturnType<InfrastructureEstimatorService["estimateNodeTracks"]>) {
+function getOccupancies(tracks: NodeTrackEstimate[]) {
   return tracks.flatMap((track) => track.occupancies);
 }
 
@@ -43,7 +47,7 @@ function getNodeTrackMatrix(
   service: InfrastructureEstimatorService,
   node: Node,
   sections: TrainrunSection[],
-  options: Parameters<InfrastructureEstimatorService["estimateNodeTracks"]>[2],
+  options: NodeTrackEstimatorOptions,
 ) {
   return service.estimateNodeTracks(node, sections, options).flatMap((estimate) =>
     estimate.occupancies.map((occupancy) => ({
@@ -57,9 +61,7 @@ function getNodeTrackMatrix(
   );
 }
 
-function expectNoOverlappingTrackOccupancies(
-  tracks: ReturnType<InfrastructureEstimatorService["estimateNodeTracks"]>,
-): void {
+function expectNoOverlappingTrackOccupancies(tracks: NodeTrackEstimate[]): void {
   tracks.forEach((track) => {
     const occupancies = [...track.occupancies].sort(
       (first, second) => first.arrivalMinute - second.arrivalMinute,
@@ -486,36 +488,6 @@ describe("InfrastructureEstimatorService node tracks", () => {
         separateForwardBackwardTracks: true,
       }).map((row) => ({nodeId, ...row}));
     });
-    const actualByTiming = new Map(
-      actualRows.map((row) => [
-        `${row.nodeId}/${row.trainrunId}/${row.arrivalTime}/${row.departureTime}/${row.blockedUntilTime}`,
-        row.trackId,
-      ]),
-    );
-    const trackDifferences = manualGroundTruthRows
-      .map((expectedRow) => {
-        const arrivalTime = minutesSince0600(expectedRow.arrivalTime);
-        const departureTime = minutesSince0600(expectedRow.departureTime);
-        const blockedUntilTime = minutesSince0600(expectedRow.blockedUntilTime);
-        const actualTrack = actualByTiming.get(
-          `${expectedRow.nodeId}/${expectedRow.trainrunId}/${arrivalTime}/${departureTime}/${blockedUntilTime}`,
-        );
-        return {
-          Node: expectedRow.nodeId,
-          Trainrun: expectedRow.trainrunId,
-          Ankunft: expectedRow.arrivalTime,
-          Abfahrt: expectedRow.departureTime,
-          Freigabe: expectedRow.blockedUntilTime,
-          ErwartetesGleis: expectedRow.expectedTrackId,
-          IstGleis: actualTrack ?? "not found",
-          Status: actualTrack === expectedRow.expectedTrackId ? "OK" : "different",
-        };
-      })
-      .filter((row) => row.Status === "different");
-
-    console.group("Node track assignment differences (informational)");
-    console.table(trackDifferences);
-    console.groupEnd();
     expect(actualRows.length).toBeGreaterThan(0);
   });
 
@@ -577,4 +549,152 @@ describe("InfrastructureEstimatorService node tracks", () => {
     expect(occupancies.some((occupancy) => occupancy.direction === "one_way")).toBeTrue();
   });
 
+  it("uses one frequency cycle for a 30/30 ICX turnaround", () => {
+    const fixture = getTrackEstimatorFixture();
+    const c3 = fixture.nodes.get(184) as Node;
+    const icxSection = fixture.sections.find(
+      (section) => section.getId() === 717,
+    ) as TrainrunSection;
+
+    icxSection.setSourceArrival(30);
+    icxSection.setSourceDeparture(30);
+    icxSection.setSourceArrivalConsecutiveTime(0);
+    icxSection.setSourceDepartureConsecutiveTime(60);
+
+    const tracks = service.estimateNodeTracks(c3, [icxSection], {
+      windowStartMinutes: 0,
+      windowMinutes: 90,
+      separateForwardBackwardTracks: false,
+    });
+
+    expect(fixture.trainruns.get(100).getFrequency()).toBe(30);
+    expect(tracks.length).toBe(2);
+    const occupancy = getOccupancies(tracks).find(
+      (candidate) => candidate.arrivalMinute === 0,
+    );
+    expect(occupancy).toBeDefined();
+    expect(occupancy?.arrivalMinute).toBe(0);
+    expect(occupancy?.departureMinute).toBe(30);
+    expect(occupancy?.headwayUntilMinute).toBe(32);
+  });
+
+  it("normalizes wrapped turnaround times before calculating track strands", () => {
+    const cases = [
+      {frequency: 30, arrival: 30, departure: 30, duration: 30, tracks: 2},
+      {frequency: 15, arrival: 15, departure: 45, duration: 15, tracks: 2},
+      {frequency: 15, arrival: 45, departure: 15, duration: 15, tracks: 2},
+      {frequency: 20, arrival: 40, departure: 20, duration: 20, tracks: 2},
+    ];
+
+    cases.forEach(({frequency, arrival, departure, duration, tracks: expectedTracks}) => {
+      const fixture = getTrackEstimatorFixture();
+      const c3 = fixture.nodes.get(184) as Node;
+      const trainrun = fixture.trainruns.get(100);
+      trainrun.setTrainrunFrequency({frequency, offset: 0} as TrainrunFrequency);
+      const icxSection = fixture.sections.find(
+        (section) => section.getId() === 717,
+      ) as TrainrunSection;
+      icxSection.setSourceArrival(arrival);
+      icxSection.setSourceDeparture(departure);
+      icxSection.setSourceArrivalConsecutiveTime(0);
+      icxSection.setSourceDepartureConsecutiveTime(60);
+
+      const estimatedTracks = service.estimateNodeTracks(c3, [icxSection], {
+        windowStartMinutes: 0,
+        windowMinutes: 120,
+        separateForwardBackwardTracks: false,
+      });
+
+      expect(estimatedTracks.length).toBe(expectedTracks);
+      const occupancy = getOccupancies(estimatedTracks).find(
+        (candidate) => candidate.arrivalMinute === 0,
+      );
+      expect(occupancy).toBeDefined();
+      expect(occupancy?.arrivalMinute).toBe(0);
+      expect(occupancy?.departureMinute).toBe(duration);
+    });
+  });
+
+  it("moves a still-too-short turnaround to the following frequency cycle", () => {
+    const fixture = getTrackEstimatorFixture();
+    const c3 = fixture.nodes.get(184) as Node;
+    const trainrun = fixture.trainruns.get(100);
+    trainrun.setTrainrunFrequency({frequency: 30, offset: 0} as TrainrunFrequency);
+    trainrun.getTrainrunCategory().minimalTurnaroundTime = 35;
+    const icxSection = fixture.sections.find(
+      (section) => section.getId() === 717,
+    ) as TrainrunSection;
+    icxSection.setSourceArrival(30);
+    icxSection.setSourceDeparture(30);
+    icxSection.setSourceArrivalConsecutiveTime(0);
+    icxSection.setSourceDepartureConsecutiveTime(60);
+
+    const tracks = service.estimateNodeTracks(c3, [icxSection], {
+      windowStartMinutes: 0,
+      windowMinutes: 120,
+      separateForwardBackwardTracks: false,
+    });
+
+    const occupancy = getOccupancies(tracks).find(
+      (candidate) => candidate.arrivalMinute === 0,
+    );
+    expect(occupancy).toBeDefined();
+    expect(occupancy?.arrivalMinute).toBe(0);
+    expect(occupancy?.departureMinute).toBe(60);
+  });
+
+  it("keeps a valid five-minute turnaround in the same cycle", () => {
+    const fixture = getTrackEstimatorFixture();
+    const c3 = fixture.nodes.get(184) as Node;
+    const trainrun = fixture.trainruns.get(100);
+    trainrun.setTrainrunFrequency({frequency: 15, offset: 0} as TrainrunFrequency);
+    const icxSection = fixture.sections.find(
+      (section) => section.getId() === 717,
+    ) as TrainrunSection;
+    icxSection.setSourceArrival(5);
+    icxSection.setSourceDeparture(10);
+    icxSection.setSourceArrivalConsecutiveTime(5);
+    icxSection.setSourceDepartureConsecutiveTime(10);
+
+    const tracks = service.estimateNodeTracks(c3, [icxSection], {
+      windowStartMinutes: 0,
+      windowMinutes: 60,
+      separateForwardBackwardTracks: false,
+    });
+
+    expect(tracks.length).toBe(1);
+    const occupancy = getOccupancies(tracks).find(
+      (candidate) => candidate.arrivalMinute === 5,
+    );
+    expect(occupancy).toBeDefined();
+    expect(occupancy?.arrivalMinute).toBe(5);
+    expect(occupancy?.departureMinute).toBe(10);
+  });
+
+  it("chooses the next 15-minute departure for a 05-to-55 periodic turnaround", () => {
+    const fixture = getTrackEstimatorFixture();
+    const c3 = fixture.nodes.get(184) as Node;
+    const trainrun = fixture.trainruns.get(100);
+    trainrun.setTrainrunFrequency({frequency: 15, offset: 0} as TrainrunFrequency);
+    const icxSection = fixture.sections.find(
+      (section) => section.getId() === 717,
+    ) as TrainrunSection;
+    icxSection.setSourceArrival(5);
+    icxSection.setSourceDeparture(55);
+    icxSection.setSourceArrivalConsecutiveTime(5);
+    icxSection.setSourceDepartureConsecutiveTime(55);
+
+    const tracks = service.estimateNodeTracks(c3, [icxSection], {
+      windowStartMinutes: 0,
+      windowMinutes: 60,
+      separateForwardBackwardTracks: false,
+    });
+
+    const occupancy = getOccupancies(tracks).find(
+      (candidate) => candidate.arrivalMinute === 5,
+    );
+    expect(occupancy).toBeDefined();
+    expect(occupancy?.arrivalMinute).toBe(5);
+    expect(occupancy?.departureMinute).toBe(10);
+  });
 });
