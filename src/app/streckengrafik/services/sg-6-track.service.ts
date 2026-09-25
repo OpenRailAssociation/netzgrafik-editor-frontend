@@ -13,8 +13,6 @@ import {TrainrunBranchType} from "../model/enum/trainrun-branch-type-type";
 import {Sg5FilterService} from "./sg-5-filter.service";
 import {DataService} from "../../services/data/data.service";
 import {Direction, TrainrunFrequency} from "../../data-structures/business.data.structures";
-import {Node} from "../../models/node.model";
-import {TrainrunSection} from "../../models/trainrunsection.model";
 import {NodeService} from "../../services/data/node.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
@@ -420,7 +418,6 @@ export class Sg6TrackService implements OnDestroy {
           separateForwardBackwardTracks: this.separateForwardBackwardMainTracks,
         },
       );
-      this.logNodeTrackMatrix(businessNode, visibleTrainrunSections, estimates);
       const matrixTrackCount = Math.max(1, ...estimates.map((estimate) => estimate.track));
       const pathNodes = new Set(nodeItems.map((node) => node.sgPathNode));
       pathNodes.forEach((pathNode) => {
@@ -445,128 +442,6 @@ export class Sg6TrackService implements OnDestroy {
         node.trackReservations = reservations;
       });
     });
-  }
-
-  private logNodeTrackMatrix(
-    businessNode: Node,
-    trainrunSections: TrainrunSection[],
-    estimates: Array<{
-      track: number;
-      occupancies: Array<{
-        arrivalMinute: number;
-        departureMinute: number;
-        headwayUntilMinute: number;
-        trainrunId: number;
-        arrivalSectionId?: number;
-        departureSectionId?: number;
-        transitionId?: number;
-        direction: Direction;
-        travelDirection?: string;
-        separateByDirection: boolean;
-        trackGroupId?: string;
-        occurrenceIndex: number;
-      }>;
-    }>,
-  ): void {
-    const debugStartMinute = 6 * 60 - 6 * 60;
-    const debugEndMinute = 12 * 60 - 6 * 60;
-    const sectionById = new Map(trainrunSections.map((section) => [section.getId(), section]));
-    const rows = estimates.flatMap((estimate) =>
-      estimate.occupancies
-        .filter(
-          (occupancy) =>
-            occupancy.arrivalMinute < debugEndMinute &&
-            occupancy.headwayUntilMinute > debugStartMinute,
-        )
-        .map((occupancy) => {
-          const trainrun = this.trainrunService.getTrainrunFromId(occupancy.trainrunId);
-          const arrivalSection =
-            occupancy.arrivalSectionId === undefined
-              ? undefined
-              : sectionById.get(occupancy.arrivalSectionId);
-          const departureSection =
-            occupancy.departureSectionId === undefined
-              ? undefined
-              : sectionById.get(occupancy.departureSectionId);
-          const transition =
-            arrivalSection === undefined
-              ? undefined
-              : businessNode.getTransition(arrivalSection.getId());
-          const trainCategory = trainrun?.getCategoryShortName() ?? "undefined";
-          const trainTitle = trainrun?.getTitle() ?? "undefined";
-          return {
-            NodeId: businessNode.getId(),
-            KnotenAbk: businessNode.getBetriebspunktName(),
-            Zug: `${trainCategory} ${trainTitle}`,
-            Zugkategorie: trainCategory,
-            Zugtitel: trainTitle,
-            Zuglauf: occupancy.trainrunId,
-            Occurrence: occupancy.occurrenceIndex,
-            Ankunft: this.formatNodeTrackDebugTime(occupancy.arrivalMinute),
-            Abfahrt: this.formatNodeTrackDebugTime(occupancy.departureMinute),
-            Freigabe: this.formatNodeTrackDebugTime(occupancy.headwayUntilMinute),
-            Gleis: estimate.track,
-            "Corridor through node": this.getCorridorThroughNode(
-              businessNode,
-              arrivalSection,
-              departureSection,
-            ),
-            AnkunftSection: occupancy.arrivalSectionId,
-            AbfahrtSection: occupancy.departureSectionId,
-            Transition: occupancy.transitionId,
-            Richtung: occupancy.direction,
-            Fahrtrichtung: occupancy.travelDirection,
-            Gleisgruppe: occupancy.trackGroupId,
-            GetrennteRichtung: occupancy.separateByDirection ? "Yes" : "No",
-            "One-way": trainrun?.getDirection() === Direction.ONE_WAY ? "Yes" : "No",
-            Transit:
-              transition === undefined
-                ? "undefined"
-                : transition.getIsNonStopTransit()
-                  ? "non-stop"
-                  : "stop",
-            Start: occupancy.arrivalSectionId === undefined ? "Yes" : "No",
-            Ende: occupancy.departureSectionId === undefined ? "Yes" : "No",
-          };
-        }),
-    );
-    rows.sort(
-      (first, second) =>
-        first.Ankunft.localeCompare(second.Ankunft) ||
-        first.KnotenAbk.localeCompare(second.KnotenAbk) ||
-        first.Gleis - second.Gleis ||
-        first.Occurrence - second.Occurrence,
-    );
-    console.group(`Node matrix 06:00-12:00 (${businessNode.getBetriebspunktName()})`);
-    console.table(rows);
-    console.groupEnd();
-  }
-
-  private formatNodeTrackDebugTime(minute: number): string {
-    const normalizedMinute = (((6 * 60 + minute) % (24 * 60)) + 24 * 60) % (24 * 60);
-    return `${Math.floor(normalizedMinute / 60)
-      .toString()
-      .padStart(2, "0")}:${(normalizedMinute % 60).toString().padStart(2, "0")}`;
-  }
-
-  private getCorridorThroughNode(
-    businessNode: Node,
-    arrivalSection: TrainrunSection | undefined,
-    departureSection: TrainrunSection | undefined,
-  ): string {
-    const formatNode = (node: Node | undefined, fallback: string): string =>
-      node === undefined ? fallback : `${node.getBetriebspunktName()}(${node.getId()})`;
-    return [
-      formatNode(
-        arrivalSection === undefined ? undefined : businessNode.getOppositeNode(arrivalSection),
-        "start",
-      ),
-      `${businessNode.getBetriebspunktName()}(${businessNode.getId()})`,
-      formatNode(
-        departureSection === undefined ? undefined : businessNode.getOppositeNode(departureSection),
-        "end",
-      ),
-    ].join(" -> ");
   }
 
   private matchesNodeTrackReservation(
@@ -685,10 +560,7 @@ export class Sg6TrackService implements OnDestroy {
     });
   }
 
-  private convertTrackSegments(
-    trackSegments: [number, number, number][],
-    initMaxTracks: number,
-  ) {
+  private convertTrackSegments(trackSegments: [number, number, number][], initMaxTracks: number) {
     const convertedTrackSegments: TrackSegments[] = [];
     let maxTracks = initMaxTracks;
     trackSegments.forEach((trackSeg) => {

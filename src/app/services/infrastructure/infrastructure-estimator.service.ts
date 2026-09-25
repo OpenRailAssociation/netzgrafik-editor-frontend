@@ -89,24 +89,6 @@ interface NodeTrackTimes {
   headwayUntilMinute: number;
 }
 
-interface NodeTrackDebugDecision {
-  candidates: Array<{track: NodeTrackEstimate; conflicts: number[]}>;
-  selectedTrack: NodeTrackEstimate;
-  reason: string;
-}
-
-export interface NodeTrackAssignment {
-  trainrunId: number;
-  arrivalSectionId?: number;
-  departureSectionId?: number;
-  track: number;
-  occupancies: Array<{
-    arrivalMinute: number;
-    departureMinute: number;
-    headwayUntilMinute: number;
-  }>;
-}
-
 interface TrackProjectionContext {
   distanceCells: number;
   timeCells: number;
@@ -122,8 +104,6 @@ export class InfrastructureEstimatorService {
   static readonly DEFAULT_DISTANCE_RESOLUTION = 15;
   static readonly DEFAULT_TIME_RESOLUTION = 15;
   static readonly DEFAULT_MINIMUM_HEADWAY_TIME = 0;
-
-  private nodeTrackDebugDecisions = new Map<NodeTrackBlock, NodeTrackDebugDecision>();
 
   estimateSectionTracks(
     fromNode: Node,
@@ -326,20 +306,11 @@ export class InfrastructureEstimatorService {
       const firstFitIndex = tracks.findIndex((candidate) =>
         this.canPlaceNodeTrackBlock(candidate, block),
       );
-      const consideredTracks = tracks.slice(0, firstFitIndex >= 0 ? firstFitIndex + 1 : undefined);
       const track = firstFitIndex >= 0 ? tracks[firstFitIndex] : undefined;
       const selectedTrack = track ?? {
         track: tracks.length + 1,
         occupancies: [...block.occupancies],
       };
-      this.nodeTrackDebugDecisions.set(block, {
-        candidates: consideredTracks.map((candidate) => ({
-          track: candidate,
-          conflicts: this.getNodeTrackBlockConflicts(candidate, block),
-        })),
-        selectedTrack,
-        reason: firstFitIndex >= 0 ? "first-fit" : "new-track",
-      });
       if (track === undefined) {
         tracks.push(selectedTrack);
         return;
@@ -805,9 +776,7 @@ export class InfrastructureEstimatorService {
         : haltezeit;
     const frequencyOverHour = frequency > 60 ? frequency - 60 : 0;
     let consecutiveDepartureMinute =
-      arrivalMinute < departureClockTime
-        ? departureClockTime + frequency
-        : departureClockTime;
+      arrivalMinute < departureClockTime ? departureClockTime + frequency : departureClockTime;
     consecutiveDepartureMinute += frequencyOverHour;
 
     while (consecutiveDepartureMinute - frequency > arrivalMinute) {

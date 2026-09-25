@@ -66,21 +66,7 @@ function createNode(): SgTrainrunNode {
     false,
     0,
     new TrackData(1),
-    new SgPathSection(
-      0,
-      1,
-      0,
-      10,
-      1,
-      10,
-      "A",
-      "N",
-      new TrackData(1),
-      false,
-      false,
-      0,
-      20,
-    ),
+    new SgPathSection(0, 1, 0, 10, 1, 10, "A", "N", new TrackData(1), false, false, 0, 20),
   );
   node.departurePathSection = new SgTrainrunSection(
     2,
@@ -96,21 +82,7 @@ function createNode(): SgTrainrunNode {
     true,
     0,
     new TrackData(1),
-    new SgPathSection(
-      2,
-      2,
-      20,
-      30,
-      10,
-      20,
-      "N",
-      "B",
-      new TrackData(1),
-      false,
-      false,
-      0,
-      60,
-    ),
+    new SgPathSection(2, 2, 20, 30, 10, 20, "N", "B", new TrackData(1), false, false, 0, 60),
   );
   return node;
 }

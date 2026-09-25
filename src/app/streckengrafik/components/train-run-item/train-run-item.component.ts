@@ -122,10 +122,7 @@ export class TrainRunItemComponent implements OnInit, OnDestroy, UpdateCounterHa
     return path.isNode();
   }
 
-  public getTrackReservation(
-    item: SgTrainrunItem,
-    offset: number,
-  ): SgTrainrunNodeTrackReservation {
+  public getTrackReservation(item: SgTrainrunItem, offset: number): SgTrainrunNodeTrackReservation {
     return item.isNode() ? item.getTrainrunNode().getTrackReservation(offset) : undefined;
   }
 
