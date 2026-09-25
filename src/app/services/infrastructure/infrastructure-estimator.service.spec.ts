@@ -126,6 +126,7 @@ describe("InfrastructureEstimatorService", () => {
   it("matches the A1-B2 and B2-C3 section track calculation", () => {
     const fixture = getTrackEstimatorFixture();
     const fromNode = fixture.nodes.get(182) as Node;
+    expect(fromNode.getBetriebspunktName()).toBe("A1");
     const middleNode = fixture.nodes.get(183) as Node;
     const toNode = fixture.nodes.get(184) as Node;
     const trainrunSections = fixture.sections;
@@ -192,6 +193,9 @@ describe("InfrastructureEstimatorService", () => {
     const a1 = fixture.nodes.get(182) as Node;
     const b2 = fixture.nodes.get(183) as Node;
     const c3 = fixture.nodes.get(184) as Node;
+    expect(a1.getBetriebspunktName()).toBe("A1");
+    expect(b2.getBetriebspunktName()).toBe("B2");
+    expect(c3.getBetriebspunktName()).toBe("C3");
     const c3OneWay = fixture.nodes.get(190) as Node;
     const b2OneWay = fixture.nodes.get(189) as Node;
     const a1OneWay = fixture.nodes.get(188) as Node;
@@ -238,9 +242,7 @@ describe("InfrastructureEstimatorService", () => {
       [0.8277777777777777, 0.8388888888888889, 1],
       [0.8388888888888889, 1, 2],
     ]);
-    expect(a1OneWayToB2OneWay).toEqual([
-      [0, 1, 1],
-    ]);
+    expect(a1OneWayToB2OneWay).toEqual([[0, 1, 1]]);
     expect(b2OneWayToC3OneWay).toEqual([
       [0, 0.03611111111111111, 1],
       [0.03611111111111111, 0.16666666666666666, 2],

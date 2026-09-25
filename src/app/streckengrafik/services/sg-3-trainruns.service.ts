@@ -138,6 +138,8 @@ export class Sg3TrainrunsService implements OnDestroy {
               new TrackData(this.getTrack(pathItem)),
               matchingSelectedPathNode,
               isEndNode,
+              pathNode.departurePathSection as unknown as SgTrainrunSection,
+              pathNode.arrivalPathSection as unknown as SgTrainrunSection,
             );
             matchingSelectedPathNode.trainrunNodes.push(trainrunNode);
             trainrunItems.push(trainrunNode);

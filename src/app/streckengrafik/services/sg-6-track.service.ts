@@ -7,21 +7,22 @@ import {InfrastructureEstimatorService} from "../../services/infrastructure/infr
 import {SgTrainrunSection} from "../model/streckengrafik-model/sg-trainrun-section";
 import {SgTrainrunItem} from "../model/streckengrafik-model/sg-trainrun-item";
 import {SgTrainrunNode} from "../model/streckengrafik-model/sg-trainrun-node";
+import {SgPathNode} from "../model/streckengrafik-model/sg-path-node";
 import {SgTrainrun} from "../model/streckengrafik-model/sg-trainrun";
 import {TrainrunBranchType} from "../model/enum/trainrun-branch-type-type";
 import {Sg5FilterService} from "./sg-5-filter.service";
 import {DataService} from "../../services/data/data.service";
 import {Direction, TrainrunFrequency} from "../../data-structures/business.data.structures";
+import {Node} from "../../models/node.model";
+import {TrainrunSection} from "../../models/trainrunsection.model";
 import {NodeService} from "../../services/data/node.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
-import {TrainrunSection} from "../../models/trainrunsection.model";
 
 @Injectable({
   providedIn: "root",
 })
 export class Sg6TrackService implements OnDestroy {
-  public separateMainTracks = false;
   public separateForwardBackwardMainTracks = true;
 
   public minimumHeadwayTime = 2;
@@ -31,8 +32,6 @@ export class Sg6TrackService implements OnDestroy {
   private readonly sgSelectedTrainrun$ = this.sgSelectedTrainrunSubject.asObservable();
 
   private selectedTrainrun: SgSelectedTrainrun;
-
-  private nativeNodeTrackAssignments = new Set<SgTrainrunNode>();
 
   private readonly destroyed$ = new Subject<void>();
 
@@ -74,8 +73,7 @@ export class Sg6TrackService implements OnDestroy {
     }
 
     // calculate the track occupier (node)
-    const separateForwardBackwardTracks = this.separateForwardBackwardMainTracks;
-    this.computeTrackAlignments(this.selectedTrainrun, separateForwardBackwardTracks);
+    this.computeTrackAlignments(this.selectedTrainrun);
 
     // calculate the required tracks "blocks" (section)
     const sectionTrackMap = this.extractStreckenGleis(this.selectedTrainrun.trainruns);
@@ -146,130 +144,39 @@ export class Sg6TrackService implements OnDestroy {
             .map((section) => [section.getId(), section] as const),
         ).values(),
       );
-      if (trainrunSections.length === 0) {
+      const firstSection = trainrunSections[0];
+      if (firstSection === undefined) {
         sectionTrackMap.set(sectionKey, []);
         return;
       }
 
-      // Estimate in the direction of the first rendered section.
+      // Estimate in the direction of the selected path so the result is rendered 1:1.
       const firstSgSection = sectionData[0].item.getTrainrunSection();
-      const sourceNode = this.nodeService.getNodeFromId(firstSgSection.departureNodeId);
-      const targetNode = this.nodeService.getNodeFromId(firstSgSection.arrivalNodeId);
-
-      const trackSegments = this.infrastructureEstimatorService.estimateSectionTracks(
-        sourceNode,
-        targetNode,
-        trainrunSections,
+      const selectedPathSection = this.selectedTrainrun.paths.find(
+        (path) =>
+          path.isSection() &&
+          ((path.getPathSection().departureNodeId === firstSgSection.departureNodeId &&
+            path.getPathSection().arrivalNodeId === firstSgSection.arrivalNodeId) ||
+            (path.getPathSection().departureNodeId === firstSgSection.arrivalNodeId &&
+              path.getPathSection().arrivalNodeId === firstSgSection.departureNodeId)),
       );
-      sectionTrackMap.set(sectionKey, trackSegments);
+      const fromNode = this.nodeService.getNodeFromId(
+        selectedPathSection?.getPathSection().departureNodeId ?? firstSgSection.departureNodeId,
+      );
+      const toNode = this.nodeService.getNodeFromId(
+        selectedPathSection?.getPathSection().arrivalNodeId ?? firstSgSection.arrivalNodeId,
+      );
+
+      sectionTrackMap.set(
+        sectionKey,
+        this.infrastructureEstimatorService.estimateSectionTracks(
+          fromNode,
+          toNode,
+          trainrunSections,
+        ),
+      );
     });
     return sectionTrackMap;
-  }
-
-  private getNodeKeyAlignmentsNodeData(pn: SgTrainrunNode): string {
-    return "" + pn.getTrainrunNode().nodeId + "_" + pn.getTrainrunNode().index;
-  }
-
-  private getOrCreateTrackAlignmentsNodeData(
-    nodesOfInterest: Map<
-      string, // node id (key)
-      Map<
-        number, // track (key)
-        [number, number][]
-      >
-    >,
-    pn: SgTrainrunNode,
-  ) {
-    let nodeData = nodesOfInterest.get(this.getNodeKeyAlignmentsNodeData(pn));
-    if (nodeData === undefined) {
-      // create new nodeData
-      nodeData = new Map();
-      nodesOfInterest.set(this.getNodeKeyAlignmentsNodeData(pn), nodeData);
-    }
-    return nodesOfInterest.get(this.getNodeKeyAlignmentsNodeData(pn));
-  }
-
-  private checkOccupancyTrackAlignments(
-    trackData: [number, number][],
-    item: SgTrainrunItem,
-    arrTime: number,
-    depTime: number,
-    ts: SgTrainrun,
-    minimumHeadwayTime: number,
-  ): boolean {
-    const arrDepTimes = trackData.sort((a, b) => (a[0] < b[0] ? -1 : 1));
-    const depArrTimes = trackData.sort((a, b) => (a[1] < b[1] ? -1 : 1));
-
-    for (
-      let offset = -((4 * this.maxFrequency) / ts.frequency);
-      offset < (4 * this.maxFrequency) / ts.frequency;
-      offset++
-    ) {
-      if (item.checkUnrollAllowed(offset)) {
-        if (
-          !this.checkOccupancyTrackElement(
-            arrTime,
-            depTime,
-            offset,
-            arrDepTimes,
-            depArrTimes,
-            ts,
-            minimumHeadwayTime,
-          )
-        ) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  private checkOccupancyTrackElement(
-    arrTime: number,
-    depTime: number,
-    offset: number,
-    arrDepTimes: [number, number][],
-    depArrTimes: [number, number][],
-    ts: SgTrainrun,
-    minimumHeadwayTime: number,
-  ): boolean {
-    const at = arrTime + offset * ts.frequency;
-    const dt = depTime + offset * ts.frequency + minimumHeadwayTime;
-
-    const idxDtCase1 = arrDepTimes.findIndex((t) => t[0] > at);
-    if (idxDtCase1 >= 0) {
-      if (arrDepTimes[idxDtCase1][0] < dt) {
-        return false;
-      }
-    }
-
-    const idxDtCase2 = depArrTimes.findIndex((t) => t[1] > at);
-    if (idxDtCase2 >= 0) {
-      if (depArrTimes[idxDtCase2][0] < dt) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private extractTrainrunTrackAlignments(
-    trackData: [number, number][],
-    item: SgTrainrunItem,
-    arrTime: number,
-    depTime: number,
-    ts: SgTrainrun,
-    minimumHeadwayTime: number,
-  ) {
-    const arrDepTrackData = trackData;
-    for (let offset = 0; offset < (2 * this.maxFrequency) / ts.frequency; offset++) {
-      if (item.checkUnrollAllowed(offset)) {
-        const at = arrTime + offset * ts.frequency;
-        const dt = depTime + offset * ts.frequency + minimumHeadwayTime;
-        arrDepTrackData.push([at, dt]);
-      }
-    }
-    return arrDepTrackData;
   }
 
   private transformUmlaufNodePair(
@@ -446,73 +353,37 @@ export class Sg6TrackService implements OnDestroy {
     return trainrun.getTrainrunCategory().nodeHeadwayStop;
   }
 
-  private computeTrackAlignments(
-    selectedTrainrun: SgSelectedTrainrun,
-    separateForwardBackwardTracks = true,
-  ) {
-    const trackInfoMap = new Map<number, PathNodeNeighbour[]>();
-    this.nativeNodeTrackAssignments = new Set<SgTrainrunNode>();
-
-    // ------------------------------------------------------------------------------------------------------------------
-    // process the preparation passes for each trainrun
-    // ------------------------------------------------------------------------------------------------------------------
-    selectedTrainrun.trainruns.forEach((ts) => {
-      // ------------------------------------------------------------------------------------------------------------------
-      // pass 1 -> transform endNode ("Umlauf")
-      // ------------------------------------------------------------------------------------------------------------------
-      ts.sgTrainrunItems.forEach((item) => {
+  private computeTrackAlignments(selectedTrainrun: SgSelectedTrainrun) {
+    selectedTrainrun.trainruns.forEach((trainrun) => {
+      trainrun.sgTrainrunItems.forEach((item) => {
         if (item.isNode()) {
-          const headwayTime = this.calculateMinimumHeadwayTimeAtNode(item.getTrainrunNode());
-          item.getTrainrunNode().setMinimumHeadwayTime(headwayTime);
+          const node = item.getTrainrunNode();
+          node.setMinimumHeadwayTime(this.calculateMinimumHeadwayTimeAtNode(node));
         }
       });
-
-      // ------------------------------------------------------------------------------------------------------------------
-      // pass 2 -> transform endNode ("Umlauf")
-      // ------------------------------------------------------------------------------------------------------------------
-      ts.sgTrainrunItems.forEach((item) => {
+      trainrun.sgTrainrunItems.forEach((item) => {
         if (item.isNode()) {
-          this.transformTurnarounds(item.getTrainrunNode(), ts, item.minimumHeadwayTime);
+          this.transformTurnarounds(item.getTrainrunNode(), trainrun, item.minimumHeadwayTime);
         }
       });
-
-      // ------------------------------------------------------------------------------------------------------------------
-      // pass 3 -> detect self alignment issue
-      // ------------------------------------------------------------------------------------------------------------------
-      this.clearExtraTrains(ts);
-      const collectExtraTrainruns: SgTrainrunNode[] = [];
-      ts.sgTrainrunItems.forEach((item) => {
+      this.clearExtraTrains(trainrun);
+      const extraNodes: SgTrainrunNode[] = [];
+      trainrun.sgTrainrunItems.forEach((item) => {
         if (item.isNode()) {
           this.detectAndCreateExtraTrains(
-            ts,
+            trainrun,
             item.getTrainrunNode(),
             item.minimumHeadwayTime,
-            collectExtraTrainruns,
+            extraNodes,
           );
         }
       });
-      this.concatExtraTrains(ts, collectExtraTrainruns);
-
+      this.concatExtraTrains(trainrun, extraNodes);
     });
-
-    this.estimateNodeTracks(
-      selectedTrainrun.trainruns,
-      separateForwardBackwardTracks,
-      trackInfoMap,
-    );
-
-    // ------------------------------------------------------------------------------------------------------------------
-    // Transform data
-    // ------------------------------------------------------------------------------------------------------------------
-    this.makeTrackSymmetric(trackInfoMap, separateForwardBackwardTracks);
-    this.updateTracksForAllPathNodes(trackInfoMap);
+    this.estimateNodeTracks(selectedTrainrun.trainruns);
   }
 
-  private estimateNodeTracks(
-    trainruns: SgTrainrun[],
-    separateForwardBackwardTracks: boolean,
-    trackInfoMap: Map<number, PathNodeNeighbour[]>,
-  ) {
+  private estimateNodeTracks(trainruns: SgTrainrun[]) {
     const nodes = new Map<number, SgTrainrunNode[]>();
     trainruns.forEach((trainrun) => {
       trainrun.sgTrainrunItems.forEach((item) => {
@@ -529,280 +400,192 @@ export class Sg6TrackService implements OnDestroy {
       });
     });
 
-    nodes.forEach((nodeItems) => {
-      const occurrenceNodes: SgTrainrunNode[] = [];
-      const occurrences: Parameters<
-        InfrastructureEstimatorService["estimateNodeTracks"]
-      >[0] = [];
-
+    nodes.forEach((nodeItems, nodeId) => {
+      const businessNode = this.nodeService.getNodeFromId(nodeId);
+      if (businessNode === undefined) {
+        return;
+      }
+      // The node track estimator looks at every trainrun touching the node, not only the corridor.
+      const visibleTrainrunIds = new Set(
+        this.trainrunService.getVisibleTrainruns().map((trainrun) => trainrun.getId()),
+      );
+      const visibleTrainrunSections = this.trainrunSectionService
+        .getTrainrunSections()
+        .filter((section) => visibleTrainrunIds.has(section.getTrainrunId()));
+      const estimates = this.infrastructureEstimatorService.estimateNodeTracks(
+        businessNode,
+        visibleTrainrunSections,
+        {
+          ...this.getNodeTrackEstimationRange(nodeItems),
+          separateForwardBackwardTracks: this.separateForwardBackwardMainTracks,
+        },
+      );
+      this.logNodeTrackMatrix(businessNode, visibleTrainrunSections, estimates);
+      const matrixTrackCount = Math.max(1, ...estimates.map((estimate) => estimate.track));
+      const pathNodes = new Set(nodeItems.map((node) => node.sgPathNode));
+      pathNodes.forEach((pathNode) => {
+        pathNode.trackData.track = matrixTrackCount;
+      });
       nodeItems.forEach((node) => {
-        if (node.unusedForTurnaround) {
-          return;
-        }
-        const trainrun = this.trainrunService.getTrainrunFromId(node.trainrunId);
-        if (trainrun === undefined) {
-          return;
-        }
-        const businessNode = this.nodeService.getNodeFromId(node.nodeId);
-        if (businessNode === undefined) {
-          return;
-        }
-        const explicitArrivalSection = this.getBusinessSection(
-          node.arrivalPathSection?.trainrunSectionId,
+        const reservations = estimates.flatMap((estimate) =>
+          estimate.occupancies
+            .filter((occupancy) => this.matchesNodeTrackReservation(occupancy, node))
+            .map((occupancy) => ({
+              trainrunId: occupancy.trainrunId,
+              occurrenceIndex: occupancy.occurrenceIndex,
+              arrivalSectionId: occupancy.arrivalSectionId,
+              departureSectionId: occupancy.departureSectionId,
+              track: estimate.track,
+              arrivalTime: occupancy.arrivalMinute,
+              departureTime: occupancy.departureMinute,
+              headwayUntilTime: occupancy.headwayUntilMinute,
+            })),
         );
-        const explicitDepartureSection = this.getBusinessSection(
-          node.departurePathSection?.trainrunSectionId,
-        );
-        const isRoundTrip = trainrun.getDirection() === Direction.ROUND_TRIP;
-        const arrivalSection = explicitArrivalSection ??
-          (isRoundTrip ? explicitDepartureSection : undefined);
-        const departureSection = explicitDepartureSection ??
-          (isRoundTrip ? explicitArrivalSection : undefined);
-        const constrainedTurnaround =
-          node.maxUnrollOnlyEvenFrequencyOffsets > 0 &&
-          trainrun.getFrequency() > 0 &&
-          node.departureTime - node.arrivalTime < trainrun.getFrequency();
-        const occurrenceIndex = occurrenceNodes.length;
-        occurrenceNodes.push(node);
-        occurrences.push({
-          node: businessNode,
-          trainrun,
-          arrivalSection,
-          arrivalDirection:
-            this.getArrivalSectionDirection(explicitArrivalSection, node) ??
-            (isRoundTrip
-              ? this.getOppositeSectionDirection(
-                  this.getDepartureSectionDirection(explicitDepartureSection, node),
-                )
-              : undefined),
-          departureSection,
-          departureDirection:
-            this.getDepartureSectionDirection(explicitDepartureSection, node) ??
-            (isRoundTrip
-              ? this.getOppositeSectionDirection(
-                  this.getArrivalSectionDirection(explicitArrivalSection, node),
-                )
-              : undefined),
-          transition: businessNode.getTransition(
-            departureSection?.getId() ?? arrivalSection?.getId(),
-          ),
-          separateByDirection: !node.endNode,
-          unrollOnlyEvenFrequencyOffsets: constrainedTurnaround
-            ? node.unrollOnlyEvenFrequencyOffsets
-            : undefined,
-          maxUnrollOnlyEvenFrequencyOffsets: constrainedTurnaround
-            ? node.maxUnrollOnlyEvenFrequencyOffsets
-            : undefined,
-          occurrenceIndex,
-        });
+        node.trackReservations = reservations;
       });
-
-      const options: Parameters<
-        InfrastructureEstimatorService["estimateNodeTracks"]
-      >[1] = {
-        windowMinutes: this.getNodeTrackEstimationWindow(nodeItems),
-        separateForwardBackwardTracks,
-      };
-      const estimates = this.infrastructureEstimatorService.estimateNodeTracks(occurrences, options);
-      const trackByOccurrence = new Map<number, number>();
-      estimates.forEach((estimate) => {
-        estimate.occupancies.forEach((occupancy) => {
-          if (!trackByOccurrence.has(occupancy.occurrenceIndex)) {
-            trackByOccurrence.set(occupancy.occurrenceIndex, estimate.track);
-          }
-        });
-      });
-      const occupancyIntervalsByOccurrence = new Map<
-        number,
-        Array<{arrivalMinute: number; headwayUntilMinute: number}>
-      >();
-      estimates.forEach((estimate) => {
-        estimate.occupancies.forEach((occupancy) => {
-          const intervals = occupancyIntervalsByOccurrence.get(occupancy.occurrenceIndex) ?? [];
-          intervals.push({
-            arrivalMinute: occupancy.arrivalMinute,
-            headwayUntilMinute: occupancy.headwayUntilMinute,
-          });
-          occupancyIntervalsByOccurrence.set(occupancy.occurrenceIndex, intervals);
-        });
-      });
-
-      trackByOccurrence.forEach((track, occurrenceIndex) => {
-        const node = occurrenceNodes[occurrenceIndex];
-        const occupancyIntervals = occupancyIntervalsByOccurrence.get(occurrenceIndex) ?? [];
-        this.nativeNodeTrackAssignments.add(node);
-        node.minimumHeadwayTime = occurrences[occurrenceIndex].trainrun
-          .getTrainrunCategory()
-          .nodeHeadwayStop;
-        const requestedTrack = separateForwardBackwardTracks
-          ? (track - 1) * 2 +
-            (occurrences[occurrenceIndex].trainrun.getDirection() === Direction.ONE_WAY
-              ? node.backward
-                ? 0
-                : 1
-              : 0)
-          : track - 1;
-        const blockedTracks = new Set<number>();
-        const visualTrackIntervals = new Map<
-          number,
-          Array<{arrivalMinute: number; headwayUntilMinute: number}>
-        >();
-        trackInfoMap.get(node.nodeId)?.forEach((trackInfo) => {
-          const intervals = trackInfo.pathNodes.flatMap(
-            (pathNode) => occupancyIntervalsByOccurrence.get(
-              occurrenceNodes.indexOf(pathNode),
-            ) ?? [],
-          );
-          if (intervals.length > 0) {
-            visualTrackIntervals.set(trackInfo.trackNbr, intervals);
-          }
-        });
-        visualTrackIntervals.forEach((intervals, visualTrack) => {
-          if (
-            intervals.some((existing) =>
-              occupancyIntervals.some(
-                (candidate) =>
-                  candidate.arrivalMinute < existing.headwayUntilMinute &&
-                  existing.arrivalMinute < candidate.headwayUntilMinute,
-              ),
-            )
-          ) {
-            blockedTracks.add(visualTrack);
-          }
-        });
-        const trackNumber = this.assignNodeToTrack(
-          trackInfoMap,
-          node,
-          requestedTrack,
-          blockedTracks,
-        );
-        const assignedIntervals = visualTrackIntervals.get(trackNumber) ?? [];
-        assignedIntervals.push(...occupancyIntervals);
-        visualTrackIntervals.set(trackNumber, assignedIntervals);
-        node.trackData.track = track;
-      });
-
     });
   }
 
-  private getNodeOccupancyRole(
-    occurrence: Parameters<InfrastructureEstimatorService["estimateNodeTracks"]>[0][number],
-    sgNode?: SgTrainrunNode,
-  ): "start" | "through" | "end" {
-    const hasArrival = sgNode?.arrivalPathSection !== undefined || occurrence.arrivalSection !== undefined;
-    const hasDeparture =
-      sgNode?.departurePathSection !== undefined || occurrence.departureSection !== undefined;
-    if (!hasArrival) {
-      return "start";
-    }
-    if (!hasDeparture) {
-      return "end";
-    }
-    return "through";
-  }
-
-  private getBusinessSection(sectionId: number | undefined): TrainrunSection | undefined {
-    return sectionId === undefined
-      ? undefined
-      : this.trainrunSectionService.getTrainrunSectionFromId(sectionId);
-  }
-
-  private getSectionDirection(
-    section: TrainrunSection | undefined,
-    sgSection: SgTrainrunSection | undefined,
-  ): "forward" | "backward" | undefined {
-    if (section === undefined || sgSection === undefined) {
-      return undefined;
-    }
-    return section.getSourceNodeId() === sgSection.departureNodeId ? "forward" : "backward";
-  }
-
-  private getArrivalSectionDirection(
-    section: TrainrunSection | undefined,
-    node: SgTrainrunNode,
-  ): "forward" | "backward" | undefined {
-    if (section === undefined) {
-      return undefined;
-    }
-    if (section.getTargetNodeId() === node.nodeId) {
-      return "forward";
-    }
-    if (section.getSourceNodeId() === node.nodeId) {
-      return "backward";
-    }
-    return undefined;
-  }
-
-  private getDepartureSectionDirection(
-    section: TrainrunSection | undefined,
-    node: SgTrainrunNode,
-  ): "forward" | "backward" | undefined {
-    if (section === undefined) {
-      return undefined;
-    }
-    if (section.getSourceNodeId() === node.nodeId) {
-      return "forward";
-    }
-    if (section.getTargetNodeId() === node.nodeId) {
-      return "backward";
-    }
-    return undefined;
-  }
-
-  private getOppositeSectionDirection(
-    direction: "forward" | "backward" | undefined,
-  ): "forward" | "backward" | undefined {
-    return direction === "forward" ? "backward" : direction === "backward" ? "forward" : undefined;
-  }
-
-  private getNodeTrackEstimationWindow(nodes: SgTrainrunNode[]): number {
-    const maximumTime = nodes.reduce(
-      (maximum, node) => Math.max(maximum, node.arrivalTime, node.departureTime),
-      60,
+  private logNodeTrackMatrix(
+    businessNode: Node,
+    trainrunSections: TrainrunSection[],
+    estimates: Array<{
+      track: number;
+      occupancies: Array<{
+        arrivalMinute: number;
+        departureMinute: number;
+        headwayUntilMinute: number;
+        trainrunId: number;
+        arrivalSectionId?: number;
+        departureSectionId?: number;
+        transitionId?: number;
+        direction: Direction;
+        travelDirection?: string;
+        separateByDirection: boolean;
+        trackGroupId?: string;
+        occurrenceIndex: number;
+      }>;
+    }>,
+  ): void {
+    const debugStartMinute = 6 * 60 - 6 * 60;
+    const debugEndMinute = 12 * 60 - 6 * 60;
+    const sectionById = new Map(trainrunSections.map((section) => [section.getId(), section]));
+    const rows = estimates.flatMap((estimate) =>
+      estimate.occupancies
+        .filter(
+          (occupancy) =>
+            occupancy.arrivalMinute < debugEndMinute &&
+            occupancy.headwayUntilMinute > debugStartMinute,
+        )
+        .map((occupancy) => {
+          const trainrun = this.trainrunService.getTrainrunFromId(occupancy.trainrunId);
+          const arrivalSection =
+            occupancy.arrivalSectionId === undefined
+              ? undefined
+              : sectionById.get(occupancy.arrivalSectionId);
+          const departureSection =
+            occupancy.departureSectionId === undefined
+              ? undefined
+              : sectionById.get(occupancy.departureSectionId);
+          const transition =
+            arrivalSection === undefined
+              ? undefined
+              : businessNode.getTransition(arrivalSection.getId());
+          const trainCategory = trainrun?.getCategoryShortName() ?? "undefined";
+          const trainTitle = trainrun?.getTitle() ?? "undefined";
+          return {
+            NodeId: businessNode.getId(),
+            KnotenAbk: businessNode.getBetriebspunktName(),
+            Zug: `${trainCategory} ${trainTitle}`,
+            Zugkategorie: trainCategory,
+            Zugtitel: trainTitle,
+            Zuglauf: occupancy.trainrunId,
+            Occurrence: occupancy.occurrenceIndex,
+            Ankunft: this.formatNodeTrackDebugTime(occupancy.arrivalMinute),
+            Abfahrt: this.formatNodeTrackDebugTime(occupancy.departureMinute),
+            Freigabe: this.formatNodeTrackDebugTime(occupancy.headwayUntilMinute),
+            Gleis: estimate.track,
+            "Corridor through node": this.getCorridorThroughNode(
+              businessNode,
+              arrivalSection,
+              departureSection,
+            ),
+            AnkunftSection: occupancy.arrivalSectionId,
+            AbfahrtSection: occupancy.departureSectionId,
+            Transition: occupancy.transitionId,
+            Richtung: occupancy.direction,
+            Fahrtrichtung: occupancy.travelDirection,
+            Gleisgruppe: occupancy.trackGroupId,
+            GetrennteRichtung: occupancy.separateByDirection ? "Yes" : "No",
+            "One-way": trainrun?.getDirection() === Direction.ONE_WAY ? "Yes" : "No",
+            Transit:
+              transition === undefined
+                ? "undefined"
+                : transition.getIsNonStopTransit()
+                  ? "non-stop"
+                  : "stop",
+            Start: occupancy.arrivalSectionId === undefined ? "Yes" : "No",
+            Ende: occupancy.departureSectionId === undefined ? "Yes" : "No",
+          };
+        }),
     );
-    const maximumFrequency = nodes.reduce((maximum, node) => {
-      const trainrun = this.trainrunService.getTrainrunFromId(node.trainrunId);
-      return Math.max(maximum, trainrun?.getFrequency() ?? 0);
-    }, 0);
-    return maximumTime + maximumFrequency;
+    rows.sort(
+      (first, second) =>
+        first.Ankunft.localeCompare(second.Ankunft) ||
+        first.KnotenAbk.localeCompare(second.KnotenAbk) ||
+        first.Gleis - second.Gleis ||
+        first.Occurrence - second.Occurrence,
+    );
+    console.group(`Node matrix 06:00-12:00 (${businessNode.getBetriebspunktName()})`);
+    console.table(rows);
+    console.groupEnd();
   }
 
-  private assignNodeToTrack(
-    trackInfoMap: Map<number, PathNodeNeighbour[]>,
-    node: SgTrainrunNode,
-    requestedTrack: number,
-    blockedTracks: Set<number> = new Set(),
-  ): number {
-    const nodeTracks = trackInfoMap.get(node.nodeId) ?? [];
-    const neighbours = this.getNeighborNodeIDs(node);
-    const matchingTracks = this.getConnectNeighbourNodeTracks(nodeTracks, neighbours);
-    const matchingTrack = matchingTracks?.[requestedTrack];
-    if (matchingTrack === undefined || blockedTracks.has(matchingTrack.trackNbr)) {
-      let trackNumber = matchingTracks === undefined ? 0 : this.createNewTrack(matchingTracks);
-      while (blockedTracks.has(trackNumber)) {
-        trackNumber += 1;
-      }
-      const mainTrackIndex = matchingTracks === undefined ? 0 : this.createNewTrack(matchingTracks);
-      const trackInfo = new PathNodeNeighbour(
-        neighbours.nodeId1,
-        neighbours.nodeId2,
-        trackNumber,
-        mainTrackIndex,
-        [node],
-      );
-      nodeTracks.push(trackInfo);
-      trackInfoMap.set(node.nodeId, nodeTracks);
-      return trackNumber;
-    }
+  private formatNodeTrackDebugTime(minute: number): string {
+    const normalizedMinute = (((6 * 60 + minute) % (24 * 60)) + 24 * 60) % (24 * 60);
+    return `${Math.floor(normalizedMinute / 60)
+      .toString()
+      .padStart(2, "0")}:${(normalizedMinute % 60).toString().padStart(2, "0")}`;
+  }
 
-    const trackInfo = matchingTrack;
-    if (trackInfo.nodeId1 === undefined || trackInfo.nodeId2 === undefined) {
-      trackInfo.nodeId1 = neighbours.nodeId1;
-      trackInfo.nodeId2 = neighbours.nodeId2;
-    }
-    trackInfo.pathNodes.push(node);
-    trackInfoMap.set(node.nodeId, nodeTracks);
-    return trackInfo.trackNbr;
+  private getCorridorThroughNode(
+    businessNode: Node,
+    arrivalSection: TrainrunSection | undefined,
+    departureSection: TrainrunSection | undefined,
+  ): string {
+    const formatNode = (node: Node | undefined, fallback: string): string =>
+      node === undefined ? fallback : `${node.getBetriebspunktName()}(${node.getId()})`;
+    return [
+      formatNode(
+        arrivalSection === undefined ? undefined : businessNode.getOppositeNode(arrivalSection),
+        "start",
+      ),
+      `${businessNode.getBetriebspunktName()}(${businessNode.getId()})`,
+      formatNode(
+        departureSection === undefined ? undefined : businessNode.getOppositeNode(departureSection),
+        "end",
+      ),
+    ].join(" -> ");
+  }
+
+  private matchesNodeTrackReservation(
+    reservation: {
+      trainrunId: number;
+    },
+    node: SgTrainrunNode,
+  ): boolean {
+    return reservation.trainrunId === node.trainrunId;
+  }
+
+  private getNodeTrackEstimationRange(nodes: SgTrainrunNode[]): {
+    windowStartMinutes: number;
+    windowMinutes: number;
+  } {
+    const nodeTimes = nodes.flatMap((node) => [node.arrivalTime, node.departureTime]);
+    return {
+      windowStartMinutes: Math.min(...nodeTimes, 0),
+      windowMinutes: Math.max(...nodeTimes, 24 * 60),
+    };
   }
 
   private updateStagingDwellAtEndpoints(pn: SgTrainrunNode) {
@@ -826,346 +609,21 @@ export class Sg6TrackService implements OnDestroy {
     }
   }
 
-  private alignTrainrunNodeToTrack(
-    item: SgTrainrunItem,
-    ts: SgTrainrun,
-    nodesOfInterest: Map<
-      string, // node id (key)
-      Map<
-        number, // track (key)
-        [number, number][]
-      >
-    >,
-    trackInfoMap: Map<number, PathNodeNeighbour[]>,
-    minimumHeadwayTime: number,
-    separateForwardBackwardTracks: boolean,
-  ) {
-    const pn: SgTrainrunNode = item.getTrainrunNode();
-
-    // get or create the node alignment (per node a data set)
-    const nodeData = this.getOrCreateTrackAlignmentsNodeData(nodesOfInterest, pn);
-
-    // calculate the track occupency and create new tracks if no space is left to align a trainrun into a track
-    let trackIdx = 0;
-    let trackOfInterest = this.estimateTrackOfInterest(trackIdx, item, trackInfoMap);
-    let trackData = nodeData.get(trackOfInterest);
-    let isOccupied = true;
-    while (isOccupied) {
-      if (trackData === undefined) {
-        trackData = [];
-        nodeData.set(trackOfInterest, trackData);
-        if (separateForwardBackwardTracks) {
-          nodeData.set(trackOfInterest + 1, []);
-        }
-      }
-      if (separateForwardBackwardTracks && !pn.endNode) {
-        if (item.backward) {
-          if (trackOfInterest % 2 === 0) {
-            isOccupied = this.checkOccupancyTrackAlignments(
-              trackData,
-              item,
-              item.arrivalTime,
-              item.departureTime,
-              ts,
-              minimumHeadwayTime,
-            );
-          }
-        } else {
-          if (trackOfInterest % 2 === 1) {
-            isOccupied = this.checkOccupancyTrackAlignments(
-              trackData,
-              item,
-              item.arrivalTime,
-              item.departureTime,
-              ts,
-              minimumHeadwayTime,
-            );
-          }
-        }
-      } else {
-        isOccupied = this.checkOccupancyTrackAlignments(
-          trackData,
-          item,
-          item.arrivalTime,
-          item.departureTime,
-          ts,
-          minimumHeadwayTime,
-        );
-      }
-      if (isOccupied) {
-        trackIdx += 1;
-        trackOfInterest = this.estimateTrackOfInterest(trackIdx, item, trackInfoMap);
-        trackData = nodeData.get(trackOfInterest);
-      }
-    }
-
-    // update the track alignments
-    item.getTrainrunNode().trackData.track = 1 + trackOfInterest;
-    item.minimumHeadwayTime = minimumHeadwayTime;
-
-    nodeData.set(
-      trackOfInterest,
-      this.extractTrainrunTrackAlignments(
-        trackData,
-        item,
-        item.arrivalTime,
-        item.departureTime,
-        ts,
-        minimumHeadwayTime,
-      ),
-    );
-    nodesOfInterest.set(this.getNodeKeyAlignmentsNodeData(pn), nodeData);
-  }
-
-  private makeTrackSymmetricSortTracks(tracks: PathNodeNeighbour[]): PathNodeNeighbour[] {
-    // sort tracks (node1 < node2 < trackNbr)
-    return tracks.sort((a: PathNodeNeighbour, b: PathNodeNeighbour) => {
-      if (a.nodeId1 === undefined || b.nodeId1 === undefined) {
-        return a.trackNbr - b.trackNbr;
-      }
-      if (a.nodeId1 <= b.nodeId1) {
-        if (a.nodeId2 === undefined || b.nodeId2 === undefined) {
-          return a.trackNbr - b.trackNbr;
-        }
-        if (a.nodeId1 === b.nodeId1) {
-          if (a.nodeId2 === b.nodeId2) {
-            return a.trackNbr - b.trackNbr;
-          }
-          return a.nodeId2 - b.nodeId2;
-        }
-        return -1;
-      }
-      return 1;
-    });
-  }
-
-  private makeTrackSymmetricUpdateTrackAlignment(tracks: PathNodeNeighbour[]) {
-    let trackItr = 0;
-    let prevPn = tracks[0];
-    let mainTrackIdx = -1;
-    const mainTrackIdxMap = new Map<string, number>();
-    const mainTrackOffsetMap = new Map<string, number>();
-    tracks.forEach((pn: PathNodeNeighbour) => {
-      if (prevPn.nodeId1 === pn.nodeId1 && prevPn.nodeId2 === pn.nodeId2) {
-        mainTrackIdx += 1;
-      } else {
-        mainTrackIdx = 0;
-      }
-      mainTrackIdxMap.set("" + pn.nodeId1 + "#" + pn.nodeId2, mainTrackIdx);
-      if (mainTrackIdx === 0) {
-        mainTrackOffsetMap.set("" + pn.nodeId1 + "#" + pn.nodeId2, trackItr);
-      }
-      pn.trackNbr = trackItr;
-      pn.mainTrackIdx = mainTrackIdx;
-      pn.pathNodes.forEach((sgTN) => {
-        sgTN.trackData.track = 1 + pn.trackNbr;
-      });
-      prevPn = pn;
-      trackItr++;
-    });
-    return {
-      mainTrackIdxMap: mainTrackIdxMap,
-      mainTrackOffsetMap: mainTrackOffsetMap,
-    };
-  }
-
-  private makeTrackSymmetric(
-    nodeTracksMap: Map<number, PathNodeNeighbour[]>,
-    separateForwardBackwardTracks: boolean,
-  ) {
-    if (!separateForwardBackwardTracks) {
-      return;
-    }
-    for (const keyNodeId of nodeTracksMap.keys()) {
-      // order the tracks -> sort tracks (node1 < node2 < trackNbr)
-      const tracks = this.makeTrackSymmetricSortTracks(nodeTracksMap.get(keyNodeId));
-
-      // align train to reordered track (update track nbr)
-      const tracKInfo = this.makeTrackSymmetricUpdateTrackAlignment(tracks);
-
-      // update track map
-      nodeTracksMap.set(keyNodeId, tracks);
-
-      // create symmetric track alignment (layout)
-      tracks.forEach((pn: PathNodeNeighbour) => {
-        pn.pathNodes.forEach((sgTN) => {
-          if (!sgTN.unusedForTurnaround && !this.nativeNodeTrackAssignments.has(sgTN)) {
-            const mtr = tracKInfo.mainTrackIdxMap.get("" + pn.nodeId1 + "#" + pn.nodeId2) + 1;
-            const tracksDirectionCenter = (mtr + 1) / 2;
-            const offsetTrack = tracKInfo.mainTrackOffsetMap.get(
-              "" + pn.nodeId1 + "#" + pn.nodeId2,
-            );
-            const curTrack =
-              pn.mainTrackIdx % 2 === 0
-                ? Math.ceil(tracksDirectionCenter - (1 + pn.mainTrackIdx) / 2)
-                : Math.floor(tracksDirectionCenter + (1 + pn.mainTrackIdx) / 2);
-            const track = offsetTrack + curTrack - 1.0;
-            sgTN.trackData.track = track + 1.0;
-          }
-        });
-      });
-    }
-  }
-
-  private estimateTrackOfInterest(
-    trackIdx: number,
-    trainrunItem: SgTrainrunItem,
-    nodeTracksMap: Map<number, PathNodeNeighbour[]>,
-  ): number {
-    if (!trainrunItem.isNode()) {
-      return trackIdx;
-    }
-
-    const node = trainrunItem.getTrainrunNode();
-    const nodeNeighbors: PathNodeNeighbour = this.getNeighborNodeIDs(node);
-    const nodeTracks: PathNodeNeighbour[] = nodeTracksMap.get(node.nodeId);
-    if (nodeTracks === undefined) {
-      nodeNeighbors.pathNodes.push(node);
-      nodeTracksMap.set(node.nodeId, [nodeNeighbors]);
-      return nodeNeighbors.trackNbr;
-    }
-
-    // find track
-    const foundTracks = this.getConnectNeighbourNodeTracks(nodeTracks, nodeNeighbors);
-
-    if (foundTracks === undefined || foundTracks.length === trackIdx) {
-      // request for a new track
-      nodeNeighbors.trackNbr = foundTracks === undefined ? 0 : this.createNewTrack(nodeTracks);
-      nodeNeighbors.mainTrackIdx = foundTracks === undefined ? 0 : this.createNewTrack(foundTracks);
-      nodeNeighbors.pathNodes.push(node);
-      nodeTracks.push(nodeNeighbors);
-      return nodeNeighbors.trackNbr;
-    }
-
-    const trackData = foundTracks[trackIdx];
-    if (trackData.nodeId1 === undefined || trackData.nodeId2 === undefined) {
-      // update track from - to
-      trackData.nodeId1 = nodeNeighbors.nodeId1;
-      trackData.nodeId2 = nodeNeighbors.nodeId2;
-    }
-    trackData.pathNodes.push(node);
-    return trackData.trackNbr;
-  }
-
-  private updateTracksForAllPathNodes(nodeTracksMap: Map<number, PathNodeNeighbour[]>) {
-    for (const keyNodeId of nodeTracksMap.keys()) {
-      const tracks = nodeTracksMap.get(keyNodeId);
-      const nodeTracks: TrackData[] = [];
-      tracks.forEach((pn: PathNodeNeighbour) => {
-        const track1 = new TrackData(pn.trackNbr, pn.nodeId1, pn.nodeId2);
-        track1.setTrackGrp(pn.trackNbr);
-        nodeTracks.push(track1);
-      });
-      tracks.forEach((pn) => {
-        pn.pathNodes.forEach((node) => {
-          node.trackData.nodeId1 = pn.nodeId1;
-          node.trackData.nodeId2 = pn.nodeId2;
-          node.trackData.setNodeTracks(nodeTracks);
-        });
-      });
-    }
-  }
-
-  private getConnectNeighbourNodeTracks(
-    nodeTracks: PathNodeNeighbour[],
-    nodeNeighbors: PathNodeNeighbour,
-  ): PathNodeNeighbour[] {
-    return nodeTracks.filter((pnn: PathNodeNeighbour) => {
-      if (nodeNeighbors.nodeId2 === undefined) {
-        const ok = pnn.nodeId1 === nodeNeighbors.nodeId1 || pnn.nodeId2 === nodeNeighbors.nodeId1;
-        if (ok) {
-          return ok;
-        }
-      }
-
-      if (pnn.nodeId2 === undefined) {
-        const ok = pnn.nodeId1 === nodeNeighbors.nodeId1 || pnn.nodeId1 === nodeNeighbors.nodeId2;
-        if (ok) {
-          return ok;
-        }
-      }
-
-      return (
-        (pnn.nodeId1 === nodeNeighbors.nodeId1 && pnn.nodeId2 === nodeNeighbors.nodeId2) ||
-        (pnn.nodeId2 === nodeNeighbors.nodeId1 && pnn.nodeId1 === nodeNeighbors.nodeId2)
-      );
-    });
-  }
-
-  private createNewTrack(pnn: PathNodeNeighbour[]): number {
-    let maxTrack = 0;
-    pnn.forEach((t) => {
-      maxTrack = Math.max(t.trackNbr + 1, maxTrack);
-    });
-    return maxTrack;
-  }
-
-  private getNeighborNodeIDs(node: SgTrainrunNode): PathNodeNeighbour {
-    if (!this.separateMainTracks) {
-      return new PathNodeNeighbour(undefined, undefined, 0, 0, []);
-    }
-
-    // new starting
-    let fromNodeId = undefined;
-    if (node.arrivalPathSection !== undefined) {
-      if (node.nodeId === node.arrivalPathSection.arrivalNodeId) {
-        fromNodeId = node.arrivalPathSection.departureNodeId;
-      } else {
-        fromNodeId = node.arrivalPathSection.arrivalNodeId;
-      }
-    }
-
-    let toNodeId = undefined;
-    if (node.departurePathSection !== undefined) {
-      if (node.nodeId === node.departurePathSection.departureNodeId) {
-        toNodeId = node.departurePathSection.arrivalNodeId;
-      } else {
-        toNodeId = node.departurePathSection.departureNodeId;
-      }
-    }
-
-    if (fromNodeId === undefined) {
-      fromNodeId = toNodeId;
-      toNodeId = undefined;
-    }
-
-    if (fromNodeId !== undefined && toNodeId !== undefined) {
-      if (fromNodeId > toNodeId) {
-        const s = fromNodeId;
-        fromNodeId = toNodeId;
-        toNodeId = s;
-      }
-    }
-
-    if (fromNodeId === toNodeId) {
-      toNodeId = undefined;
-    }
-
-    return new PathNodeNeighbour(fromNodeId, toNodeId, 0, 0, []);
-  }
-
   private mapTrackToTop(
     trainrunItems: SgTrainrun[],
     sectionTrackMap: Map<string, [number, number, number][]>,
   ) {
     const maxTrackMap = new Map<string, TrackData>();
+    const maxNodeTrackMap = new Map<SgPathNode, number>();
     trainrunItems.forEach((trainrunItem) => {
       trainrunItem.sgTrainrunItems.forEach((pathItem) => {
         if (pathItem.isNode()) {
-          if (maxTrackMap.has("" + pathItem.getTrainrunNode().nodeId)) {
-            const trackData = maxTrackMap.get("" + pathItem.getTrainrunNode().nodeId);
-            if (trackData.track < pathItem.getTrainrunNode().trackData.track) {
-              maxTrackMap.set(
-                "" + pathItem.getTrainrunNode().nodeId,
-                pathItem.getTrainrunNode().trackData,
-              );
-            }
-          } else {
-            maxTrackMap.set(
-              "" + pathItem.getTrainrunNode().nodeId,
-              pathItem.getTrainrunNode().trackData,
-            );
-          }
+          const pathNode = pathItem.getTrainrunNode().sgPathNode;
+          const track = Math.max(
+            pathNode.trackData.track,
+            pathItem.getTrainrunNode().trackData.track,
+          );
+          maxNodeTrackMap.set(pathNode, Math.max(maxNodeTrackMap.get(pathNode) ?? 0, track));
         }
         if (pathItem.isSection()) {
           const ps = pathItem.getTrainrunSection();
@@ -1175,7 +633,6 @@ export class Sg6TrackService implements OnDestroy {
             if (trackSegments !== undefined) {
               const convertedTrackSegments: TrackSegments[] = this.convertTrackSegments(
                 trackSegments,
-                false,
                 1,
               );
               let maxTracks = 0;
@@ -1186,8 +643,8 @@ export class Sg6TrackService implements OnDestroy {
                 t.nbrTracks = Math.ceil(t.minNbrTracks / 2) * 2;
               });
               ps.trackData.track = maxTracks;
-              ps.trackData.nodeId1 = sectionKey.node1;
-              ps.trackData.nodeId2 = sectionKey.node2;
+              ps.trackData.nodeId1 = ps.departureNodeId;
+              ps.trackData.nodeId2 = ps.arrivalNodeId;
               ps.trackData.sectionTrackSegments = convertedTrackSegments;
               maxTrackMap.set(
                 pathItem.getTrainrunSection().departureNodeId +
@@ -1200,48 +657,25 @@ export class Sg6TrackService implements OnDestroy {
         }
       });
     });
+    maxNodeTrackMap.forEach((track, pathNode) => {
+      pathNode.trackData.track = Math.max(1, track);
+    });
     this.setMaxTrackMap(maxTrackMap);
   }
 
   private setMaxTrackMap(maxTrackMap: Map<string, TrackData>) {
     maxTrackMap.forEach((trackData, key) => {
       this.selectedTrainrun.paths.forEach((path) => {
-        if (path.isNode()) {
-          if ("" + path.getPathNode().nodeId === key) {
-            if (path.getPathNode().trackData.track !== trackData.track) {
-              path.getPathNode().trackData = trackData;
-            }
-          }
-        }
         if (path.isSection()) {
-          // This code checks if the current path section matches a specified key
-          // before copying track data to it. There are two main conditions:
-          //
-          // 1. **Common Behavior**:
-          //    - We copy the track data if the arrival and departure node IDs of the
-          //      path section match the key in the correct order (arrival:departure).
-          //
-          // 2. **One-Way Check**:
-          //    - For one-way train runs (non-round trips), we also check if the
-          //      section's departure and arrival node IDs match the key in reverse
-          //      order (departure:arrival). This allows us to handle one-way
-          //      template train runs correctly.
-          //
-          // If either condition is satisfied, the track data will be assigned to
-          // the path section.
           const ps = path.getPathSection();
           const keyCommonBehavior = ps.arrivalNodeId + ":" + ps.departureNodeId;
           const keyOneWaySpecialCase = ps.departureNodeId + ":" + ps.arrivalNodeId;
           const ts = this.trainrunSectionService.getTrainrunSectionFromId(ps.trainrunSectionId);
           if (ts) {
-            // Ensure that the trainrun section is still valid. This may no
-            // longer be the case, e.g., when a trainrun has been deleted and the
-            // graphical timetable has not yet been fully updated.
-            const isRoundTrip = ts.getTrainrun().isRoundTrip();
-            const matchesCommonKey = keyCommonBehavior === key;
-            const matchesReverseKey = !isRoundTrip && keyOneWaySpecialCase === key;
-            const matched = matchesCommonKey || matchesReverseKey;
-            if (matched) {
+            const pathKey = ts.getTrainrun().isRoundTrip()
+              ? keyCommonBehavior
+              : keyOneWaySpecialCase;
+            if (pathKey === key) {
               ps.trackData = trackData;
             }
           }
@@ -1252,7 +686,6 @@ export class Sg6TrackService implements OnDestroy {
 
   private convertTrackSegments(
     trackSegments: [number, number, number][],
-    backward: boolean,
     initMaxTracks: number,
   ) {
     const convertedTrackSegments: TrackSegments[] = [];
@@ -1263,19 +696,9 @@ export class Sg6TrackService implements OnDestroy {
 
     trackSegments.forEach((trackSeg) => {
       convertedTrackSegments.push(
-        new TrackSegments(trackSeg[0], trackSeg[1], maxTracks, trackSeg[2], backward),
+        new TrackSegments(trackSeg[0], trackSeg[1], maxTracks, trackSeg[2], false),
       );
     });
     return convertedTrackSegments;
   }
-}
-
-class PathNodeNeighbour {
-  constructor(
-    public nodeId1: number,
-    public nodeId2: number,
-    public trackNbr: number,
-    public mainTrackIdx: number,
-    public pathNodes: SgTrainrunNode[],
-  ) {}
 }

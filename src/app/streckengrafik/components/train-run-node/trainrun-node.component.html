@@ -10,29 +10,26 @@
     </ng-container>
   </ng-container>
   <ng-container *ngIf="!isTrackOccupier()">
-    <ng-container *ngIf="isStreckenTrainrunSegment()">
-      <svg:path
-        [class]="getClassTag('edge_line isStreckenTrainrunSegment')"
-        [attr.d]="nodePath()"
-      />
-    </ng-container>
+    <svg:path
+      *ngIf="hasTrackReservation()"
+      [class]="getClassTag('edge_line CollapsedTrackOccupancy')"
+      [attr.d]="collapsedNodePath()"
+    />
   </ng-container>
-  <svg:g *ngIf="isTrackOccupier()">
-    <ng-container *ngIf="checkUnrollAllowed()">
-      <svg:path
-        [attr.id]="getId()"
-        (mouseover)="bringToFront($event)"
-        [class]="getClassTag('edge_line Gleisbelegung')"
-        [attr.d]="pathGleisbelegung()"
-        (mouseup)="onEdgeLineClick($event)"
-      />
-      <svg:path
-        [attr.id]="getId()"
-        (mouseover)="bringToFront($event)"
-        [class]="getClassTag('edge_line Gleisbelegung HeadwayReservation')"
-        [attr.d]="pathHeadwayReservation()"
-        (mouseup)="onEdgeLineClick($event)"
-      />
-    </ng-container>
+  <svg:g *ngIf="isTrackOccupier() && hasTrackReservation()">
+    <svg:path
+      [attr.id]="getId()"
+      (mouseover)="bringToFront($event)"
+      [class]="getClassTag('edge_line Gleisbelegung')"
+      [attr.d]="pathGleisbelegung()"
+      (mouseup)="onEdgeLineClick($event)"
+    />
+    <svg:path
+      [attr.id]="getId()"
+      (mouseover)="bringToFront($event)"
+      [class]="getClassTag('edge_line Gleisbelegung HeadwayReservation')"
+      [attr.d]="pathHeadwayReservation()"
+      (mouseup)="onEdgeLineClick($event)"
+    />
   </svg:g>
 </ng-container>
