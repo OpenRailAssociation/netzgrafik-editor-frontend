@@ -159,9 +159,6 @@ export class TrainRunItemComponent implements OnInit, OnDestroy, UpdateCounterHa
         if (!item.getPathNode().trackOccupier && reservation === undefined) {
           return false;
         }
-        if (node.unusedForTurnaround) {
-          return false;
-        }
         fromPoint -= 2 * this.trainrun.frequency * yZoom;
         toPoint += 2 * this.trainrun.frequency * yZoom;
       }

@@ -702,4 +702,5 @@ describe("StreckengrafikServicesTests", () => {
     expect(clonedPS.getPathSection().zommedXPath(1.2)).toBe(0.02);
     expect(clonedPS1.getPathSection().zommedXPath(undefined)).toEqual(NaN);
   });
+
 });
