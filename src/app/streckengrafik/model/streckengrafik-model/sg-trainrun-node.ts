@@ -4,6 +4,17 @@ import {SgTrainrunSection} from "./sg-trainrun-section";
 import {SgPathSection} from "./sg-path-section";
 import {TrackData} from "../trackData";
 
+export interface SgTrainrunNodeTrackReservation {
+  track: number;
+  arrivalTime: number;
+  departureTime: number;
+  headwayUntilTime: number;
+  trainrunId: number;
+  occurrenceIndex: number;
+  arrivalSectionId?: number;
+  departureSectionId?: number;
+}
+
 export class SgTrainrunNode implements SgTrainrunItem {
   static currentId = 0;
   private id: number;
@@ -32,8 +43,10 @@ export class SgTrainrunNode implements SgTrainrunItem {
     SgTrainrunNode.currentId++;
   }
 
+  public trackReservations: SgTrainrunNodeTrackReservation[] = [];
+
   static copy(item: SgTrainrunNode): SgTrainrunNode {
-    return new SgTrainrunNode(
+    const copy = new SgTrainrunNode(
       item.index,
       item.nodeId,
       item.nodeShortName,
@@ -58,6 +71,8 @@ export class SgTrainrunNode implements SgTrainrunItem {
       item.extraTrains,
       item.minimumHeadwayTime,
     );
+    copy.trackReservations = item.trackReservations.map((reservation) => ({...reservation}));
+    return copy;
   }
 
   getId(): number {
