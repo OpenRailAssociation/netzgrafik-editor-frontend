@@ -486,36 +486,6 @@ describe("InfrastructureEstimatorService node tracks", () => {
         separateForwardBackwardTracks: true,
       }).map((row) => ({nodeId, ...row}));
     });
-    const actualByTiming = new Map(
-      actualRows.map((row) => [
-        `${row.nodeId}/${row.trainrunId}/${row.arrivalTime}/${row.departureTime}/${row.blockedUntilTime}`,
-        row.trackId,
-      ]),
-    );
-    const trackDifferences = manualGroundTruthRows
-      .map((expectedRow) => {
-        const arrivalTime = minutesSince0600(expectedRow.arrivalTime);
-        const departureTime = minutesSince0600(expectedRow.departureTime);
-        const blockedUntilTime = minutesSince0600(expectedRow.blockedUntilTime);
-        const actualTrack = actualByTiming.get(
-          `${expectedRow.nodeId}/${expectedRow.trainrunId}/${arrivalTime}/${departureTime}/${blockedUntilTime}`,
-        );
-        return {
-          Node: expectedRow.nodeId,
-          Trainrun: expectedRow.trainrunId,
-          Ankunft: expectedRow.arrivalTime,
-          Abfahrt: expectedRow.departureTime,
-          Freigabe: expectedRow.blockedUntilTime,
-          ErwartetesGleis: expectedRow.expectedTrackId,
-          IstGleis: actualTrack ?? "not found",
-          Status: actualTrack === expectedRow.expectedTrackId ? "OK" : "different",
-        };
-      })
-      .filter((row) => row.Status === "different");
-
-    console.group("Node track assignment differences (informational)");
-    console.table(trackDifferences);
-    console.groupEnd();
     expect(actualRows.length).toBeGreaterThan(0);
   });
 
@@ -580,7 +550,9 @@ describe("InfrastructureEstimatorService node tracks", () => {
   it("uses one frequency cycle for a 30/30 ICX turnaround", () => {
     const fixture = getTrackEstimatorFixture();
     const c3 = fixture.nodes.get(184) as Node;
-    const icxSection = fixture.sections.find((section) => section.getId() === 717) as TrainrunSection;
+    const icxSection = fixture.sections.find(
+      (section) => section.getId() === 717,
+    ) as TrainrunSection;
 
     icxSection.setSourceArrival(30);
     icxSection.setSourceDeparture(30);
@@ -619,7 +591,9 @@ describe("InfrastructureEstimatorService node tracks", () => {
       const c3 = fixture.nodes.get(184) as Node;
       const trainrun = fixture.trainruns.get(100);
       trainrun.setTrainrunFrequency({frequency, offset: 0} as TrainrunFrequency);
-      const icxSection = fixture.sections.find((section) => section.getId() === 717) as TrainrunSection;
+      const icxSection = fixture.sections.find(
+        (section) => section.getId() === 717,
+      ) as TrainrunSection;
       icxSection.setSourceArrival(arrival);
       icxSection.setSourceDeparture(departure);
       icxSection.setSourceArrivalConsecutiveTime(0);
@@ -647,7 +621,9 @@ describe("InfrastructureEstimatorService node tracks", () => {
     const trainrun = fixture.trainruns.get(100);
     trainrun.setTrainrunFrequency({frequency: 30, offset: 0} as TrainrunFrequency);
     trainrun.getTrainrunCategory().minimalTurnaroundTime = 35;
-    const icxSection = fixture.sections.find((section) => section.getId() === 717) as TrainrunSection;
+    const icxSection = fixture.sections.find(
+      (section) => section.getId() === 717,
+    ) as TrainrunSection;
     icxSection.setSourceArrival(30);
     icxSection.setSourceDeparture(30);
     icxSection.setSourceArrivalConsecutiveTime(0);
@@ -672,7 +648,9 @@ describe("InfrastructureEstimatorService node tracks", () => {
     const c3 = fixture.nodes.get(184) as Node;
     const trainrun = fixture.trainruns.get(100);
     trainrun.setTrainrunFrequency({frequency: 15, offset: 0} as TrainrunFrequency);
-    const icxSection = fixture.sections.find((section) => section.getId() === 717) as TrainrunSection;
+    const icxSection = fixture.sections.find(
+      (section) => section.getId() === 717,
+    ) as TrainrunSection;
     icxSection.setSourceArrival(5);
     icxSection.setSourceDeparture(10);
     icxSection.setSourceArrivalConsecutiveTime(5);
@@ -698,7 +676,9 @@ describe("InfrastructureEstimatorService node tracks", () => {
     const c3 = fixture.nodes.get(184) as Node;
     const trainrun = fixture.trainruns.get(100);
     trainrun.setTrainrunFrequency({frequency: 15, offset: 0} as TrainrunFrequency);
-    const icxSection = fixture.sections.find((section) => section.getId() === 717) as TrainrunSection;
+    const icxSection = fixture.sections.find(
+      (section) => section.getId() === 717,
+    ) as TrainrunSection;
     icxSection.setSourceArrival(5);
     icxSection.setSourceDeparture(55);
     icxSection.setSourceArrivalConsecutiveTime(5);
@@ -717,5 +697,4 @@ describe("InfrastructureEstimatorService node tracks", () => {
       }),
     );
   });
-
 });

@@ -89,24 +89,6 @@ interface NodeTrackTimes {
   headwayUntilMinute: number;
 }
 
-interface NodeTrackDebugDecision {
-  candidates: Array<{track: NodeTrackEstimate; conflicts: number[]}>;
-  selectedTrack: NodeTrackEstimate;
-  reason: string;
-}
-
-export interface NodeTrackAssignment {
-  trainrunId: number;
-  arrivalSectionId?: number;
-  departureSectionId?: number;
-  track: number;
-  occupancies: Array<{
-    arrivalMinute: number;
-    departureMinute: number;
-    headwayUntilMinute: number;
-  }>;
-}
-
 interface TrackProjectionContext {
   distanceCells: number;
   timeCells: number;
@@ -122,8 +104,6 @@ export class InfrastructureEstimatorService {
   static readonly DEFAULT_DISTANCE_RESOLUTION = 15;
   static readonly DEFAULT_TIME_RESOLUTION = 15;
   static readonly DEFAULT_MINIMUM_HEADWAY_TIME = 0;
-
-  private nodeTrackDebugDecisions = new Map<NodeTrackBlock, NodeTrackDebugDecision>();
 
   estimateSectionTracks(
     fromNode: Node,
@@ -326,20 +306,11 @@ export class InfrastructureEstimatorService {
       const firstFitIndex = tracks.findIndex((candidate) =>
         this.canPlaceNodeTrackBlock(candidate, block),
       );
-      const consideredTracks = tracks.slice(0, firstFitIndex >= 0 ? firstFitIndex + 1 : undefined);
       const track = firstFitIndex >= 0 ? tracks[firstFitIndex] : undefined;
       const selectedTrack = track ?? {
         track: tracks.length + 1,
         occupancies: [...block.occupancies],
       };
-      this.nodeTrackDebugDecisions.set(block, {
-        candidates: consideredTracks.map((candidate) => ({
-          track: candidate,
-          conflicts: this.getNodeTrackBlockConflicts(candidate, block),
-        })),
-        selectedTrack,
-        reason: firstFitIndex >= 0 ? "first-fit" : "new-track",
-      });
       if (track === undefined) {
         tracks.push(selectedTrack);
         return;
@@ -518,7 +489,8 @@ export class InfrastructureEstimatorService {
     departureSection: TrainrunSection | undefined,
     transition: Transition | undefined,
   ): void {
-    const pass = this.getNodeTrackOccurrencePass(trainrun, transition);
+    const sectionAtNode = arrivalSection ?? departureSection;
+    const pass = this.getNodeTrackOccurrencePass(node, trainrun, sectionAtNode);
     const arrivalDirection =
       arrivalSection === undefined
         ? undefined
@@ -543,11 +515,11 @@ export class InfrastructureEstimatorService {
   }
 
   private getNodeTrackOccurrencePass(
+    node: Node,
     trainrun: Trainrun,
-    transition: Transition | undefined,
+    sectionAtNode: TrainrunSection | undefined,
   ): NodeTrackPass {
-    // A transition means the train passes through the node.
-    if (transition !== undefined) {
+    if (sectionAtNode !== undefined && !node.isEndNode(sectionAtNode)) {
       return 1;
     }
     // Without a transition, distinguish a round-trip from a one-way endpoint.
@@ -576,7 +548,7 @@ export class InfrastructureEstimatorService {
         continue;
       }
       const transition = node.getTransitionFromPortId(port.getId());
-      if (transition === undefined) {
+      if (node.isEndNode(section1)) {
         if (section1.getTrainrun().getDirection() === Direction.ONE_WAY) {
           endingOneWay.push(section1);
         } else {
@@ -805,9 +777,7 @@ export class InfrastructureEstimatorService {
         : haltezeit;
     const frequencyOverHour = frequency > 60 ? frequency - 60 : 0;
     let consecutiveDepartureMinute =
-      arrivalMinute < departureClockTime
-        ? departureClockTime + frequency
-        : departureClockTime;
+      arrivalMinute < departureClockTime ? departureClockTime + frequency : departureClockTime;
     consecutiveDepartureMinute += frequencyOverHour;
 
     while (consecutiveDepartureMinute - frequency > arrivalMinute) {

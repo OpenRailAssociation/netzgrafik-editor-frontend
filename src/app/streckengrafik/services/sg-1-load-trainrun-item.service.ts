@@ -62,10 +62,8 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
       });
 
     this.trainrunService.trainruns.pipe(takeUntil(this.destroyed$)).subscribe((trainruns) => {
-      if (this.trainruns !== trainruns) {
-        this.trainruns = trainruns;
-        this.render();
-      }
+      this.trainruns = trainruns;
+      this.render();
     });
 
     this.trainrunSectionService.trainrunSections
@@ -601,7 +599,10 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         }
       }
       if (backwardEndNode !== undefined && forwardStartNode !== undefined) {
-        if (backwardEndNode.departureTime - backwardEndNode.arrivalTime >= trainrun.getFrequency()) {
+        if (
+          backwardEndNode.departureTime - backwardEndNode.arrivalTime >=
+          trainrun.getFrequency()
+        ) {
           backwardEndNode.arrivalTime = forwardStartNode.arrivalTime + trainrun.getFrequency();
           backwardEndNode.departureTime = forwardStartNode.departureTime + trainrun.getFrequency();
         }

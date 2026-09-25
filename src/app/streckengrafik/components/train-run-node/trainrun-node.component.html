@@ -12,6 +12,7 @@
     <svg:path
       [class]="getClassTag('edge_line CollapsedTrackOccupancy')"
       [attr.d]="collapsedNodePath()"
+      (mouseup)="onEdgeLineClick($event)"
     />
   </ng-container>
   <svg:g *ngIf="isTrackOccupier()">

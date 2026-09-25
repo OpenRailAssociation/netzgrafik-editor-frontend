@@ -74,6 +74,10 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
         this.yZoom = sliderChangeInfo.zoom;
         this.cd.markForCheck();
       });
+
+    this.trainrunService.trainruns
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe(() => this.cd.markForCheck());
   }
 
   ngOnDestroy(): void {
@@ -113,8 +117,20 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
   }
 
   getId() {
+    const itemType = this.sgTrainrunItem.isNode() ? "node" : "section";
+    const reservationKey =
+      this.trackReservation === undefined
+        ? "empty"
+        : `${this.trackReservation.trainrunId}_${this.trackReservation.occurrenceIndex}_${this.offset}`;
     return (
-      "streckengrafik_trainrun_item_" + this.trainrun.getId() + "_" + this.sgTrainrunItem.backward
+      "streckengrafik_trainrun_item_" +
+      this.trainrun.getId() +
+      "_" +
+      itemType +
+      "_" +
+      this.sgTrainrunItem.getId() +
+      "_" +
+      reservationKey
     );
   }
 
@@ -123,9 +139,7 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
   }
 
   nodePaths(): string[] {
-    return this.directTrackConnectionPath(
-      this.isTrackOccupier() ? this.halfStrokeWidth : 0,
-    );
+    return this.directTrackConnectionPath(this.isTrackOccupier() ? this.halfStrokeWidth : 0);
   }
 
   getTransitLineId(pathIndex: number): string {
@@ -187,9 +201,11 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
       return fallback;
     }
     const node = this.sgTrainrunItem.getTrainrunNode();
-    return [node.arrivalPathSection, node.departurePathSection].find(
-      (section) => section?.trainrunSectionId === sectionId,
-    ) ?? fallback;
+    return (
+      [node.arrivalPathSection, node.departurePathSection].find(
+        (section) => section?.trainrunSectionId === sectionId,
+      ) ?? fallback
+    );
   }
 
   private sectionIsOnLeft(
@@ -201,16 +217,16 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
     const sectionStartPosition = pathSection?.startPosition;
     const nodeStartPosition = node.sgPathNode.startPosition;
 
-    const neighborTrainrunNode = isArrival
-      ? section.departurePathNode
-      : section.arrivalPathNode;
-    const otherPathNode = neighborTrainrunNode?.sgPathNode ?? (isArrival
-      ? section.backward
-        ? pathSection?.arrivalPathNode
-        : pathSection?.departurePathNode
-      : section.backward
-        ? pathSection?.departurePathNode
-        : pathSection?.arrivalPathNode);
+    const neighborTrainrunNode = isArrival ? section.departurePathNode : section.arrivalPathNode;
+    const otherPathNode =
+      neighborTrainrunNode?.sgPathNode ??
+      (isArrival
+        ? section.backward
+          ? pathSection?.arrivalPathNode
+          : pathSection?.departurePathNode
+        : section.backward
+          ? pathSection?.departurePathNode
+          : pathSection?.arrivalPathNode);
     if (otherPathNode?.startPosition !== undefined && nodeStartPosition !== undefined) {
       if (otherPathNode.startPosition !== nodeStartPosition) {
         return otherPathNode.startPosition < nodeStartPosition;
