@@ -11,6 +11,9 @@ import {ResourceService} from "../../services/data/resource.service";
 import {KnotenAuslastungDataPreparation} from "./knoten.auslastung.data.preparation";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
+import {InfrastructureEstimatorService} from "../../services/infrastructure/infrastructure-estimator.service";
+import {FilterService} from "../../services/ui/filter.service";
+import {IsTrainrunSelectedService} from "../../services/data/is-trainrun-section.service";
 
 @Component({
   selector: "sbb-knoten-auslastung-view",
@@ -23,18 +26,26 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
   private svgDrawingContext: d3.Selection<SVGElement, undefined, Element, undefined>;
   private knotenAuslastungDataPreparation: KnotenAuslastungDataPreparation;
   private destroyed = new Subject<void>();
+  public showHourToggle = false;
+  public oddHour = false;
 
   constructor(
     private uiInteractionService: UiInteractionService,
     private nodeService: NodeService,
     private resourceService: ResourceService,
-    private trainrunSectionService: TrainrunSectionService,
+    trainrunSectionService: TrainrunSectionService,
     private trainrunService: TrainrunService,
+    infrastructureEstimatorService: InfrastructureEstimatorService,
+    filterService: FilterService,
+    private isTrainrunSelectedService: IsTrainrunSelectedService,
   ) {
     this.knotenAuslastungDataPreparation = new KnotenAuslastungDataPreparation(
       trainrunService,
       resourceService,
       trainrunSectionService,
+      infrastructureEstimatorService,
+      filterService,
+      nodeService,
     );
   }
 
@@ -95,9 +106,11 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
 
   init() {
     this.subscribeViewToServices();
+    this.update();
   }
 
   ngOnDestroy(): void {
+    this.knotenAuslastungDataPreparation.destroy();
     this.destroyed.next();
     this.destroyed.complete();
   }
@@ -108,21 +121,19 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
       .subscribe(() => {
         this.update();
       });
-    this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe(() => {
+    this.knotenAuslastungDataPreparation.updates.pipe(takeUntil(this.destroyed)).subscribe(() => {
       this.update();
     });
-    this.trainrunService.trainruns.pipe(takeUntil(this.destroyed)).subscribe(() => {
-      this.update();
-    });
-    this.trainrunSectionService.trainrunSections.pipe(takeUntil(this.destroyed)).subscribe(() => {
-      this.update();
-    });
+    this.isTrainrunSelectedService
+      .getTrainrunIdSelected()
+      .pipe(takeUntil(this.destroyed))
+      .subscribe(() => this.update(false));
     this.resourceService.resourceObservable.pipe(takeUntil(this.destroyed)).subscribe(() => {
       this.update();
     });
   }
 
-  private update() {
+  private update(recalculate = true) {
     const selectedNode = this.nodeService.getSelectedNode();
     if (selectedNode === null || selectedNode === undefined) {
       return;
@@ -142,22 +153,28 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
     const height = rectHtml.height;
     const pixelRadius = (0.9 * Math.min(width, height)) / 2;
 
-    this.knotenAuslastungDataPreparation.computeAuslastungsMatrix(selectedNode);
-    const nbrUsedOfTrackFound = this.knotenAuslastungDataPreparation.getNrUsedTrackFound();
-    const nodeDatas = this.knotenAuslastungDataPreparation.getNodesData();
-    const resourceDatas = this.knotenAuslastungDataPreparation.getResourcesData();
+    if (recalculate) {
+      this.knotenAuslastungDataPreparation.computeAuslastungsMatrix(selectedNode);
+      this.showHourToggle = this.knotenAuslastungDataPreparation.hasDifferentHours();
+      if (!this.showHourToggle) {
+        this.oddHour = false;
+      }
+    }
+    const projection = this.knotenAuslastungDataPreparation.getProjection(this.oddHour);
+    const nbrUsedOfTrackFound = projection.usedTrackCount - 1;
+    const nbrOfTrackFound = projection.trackCount - 1;
+    const nodeDatas = projection.nodeDatas;
+    const resourceDatas = projection.resourceDatas;
 
     const arc = d3
       .arc()
       .startAngle((d) => d.startAngle)
       .endAngle((d) => d.endAngle)
       .innerRadius(
-        (d) =>
-          ((1 + (d.innerRadius + 0.05)) / (2 + Math.max(nbrUsedOfTrackFound, 0))) * pixelRadius,
+        (d) => ((1 + (d.innerRadius + 0.05)) / (2 + Math.max(nbrOfTrackFound, 0))) * pixelRadius,
       )
       .outerRadius(
-        (d) =>
-          ((1 + (d.outerRadius + 0.95)) / (2 + Math.max(nbrUsedOfTrackFound, 0))) * pixelRadius,
+        (d) => ((1 + (d.outerRadius + 0.95)) / (2 + Math.max(nbrOfTrackFound, 0))) * pixelRadius,
       );
 
     this.svgDrawingContext.selectAll("g.KnotenAuslastungResourceGroup").remove();
@@ -195,9 +212,40 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
           ),
       )
       .attr("d", arc)
-      .on("mousedown", (_, d) =>
-        this.trainrunService.setTrainrunAsSelected(d.trainrunSection.getTrainrunId()),
+      .on("mousedown", (_, d) => this.selectTrainrun(d.trainrunSection.getTrainrunId()))
+      .append("title")
+      .html((d) => d.tooltip);
+
+    this.svgDrawingContext.selectAll("g.KnotenAuslastungHeadwayGroup").remove();
+    const headwayGroup = this.svgDrawingContext
+      .selectAll("g.KnotenAuslastungHeadwayGroup")
+      .data(nodeDatas.filter((data) => data.headwayEndAngle > data.headwayStartAngle));
+    headwayGroup
+      .enter()
+      .append(StaticDomTags.GROUP_SVG)
+      .attr("class", "KnotenAuslastungHeadwayGroup")
+      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+      .append("path")
+      .attr(
+        "class",
+        (d) =>
+          StaticDomTags.KNOTENAUSLASTUNG_DATA_GROUP +
+          " KnotenAuslastungHeadwayGroup " +
+          KnotenAuslastungViewComponent.createTrainrunSectionFrequencyClassAttribute(
+            d.trainrunSection,
+            selectedTrainrun,
+            connectedTrainIds,
+          ),
       )
+      .style("opacity", 0.25)
+      .attr("d", (d) =>
+        arc({
+          ...d,
+          startAngle: d.headwayStartAngle,
+          endAngle: d.headwayEndAngle,
+        }),
+      )
+      .on("mousedown", (_, d) => this.selectTrainrun(d.trainrunSection.getTrainrunId()))
       .append("title")
       .html((d) => d.tooltip);
 
@@ -243,9 +291,7 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
       .attr("x", 0)
       .attr("y", 0)
       .attr("text-anchor", "middle")
-      .on("mousedown", (_, d) =>
-        this.trainrunService.setTrainrunAsSelected(d.trainrunSection.getTrainrunId()),
-      )
+      .on("mousedown", (_, d) => this.selectTrainrun(d.trainrunSection.getTrainrunId()))
       .append("title")
       .html((d) => d.name + "<br>" + d.tooltip);
 
@@ -290,5 +336,15 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
       .text((d) => "" + d);
 
     this.svgDrawingContext.attr("viewBox", "0 -4 " + width + " " + (height + 8));
+  }
+
+  public onHourChanged(oddHour: boolean): void {
+    this.oddHour = oddHour;
+    this.update(false);
+  }
+
+  private selectTrainrun(trainrunId: number): void {
+    this.trainrunService.setTrainrunAsSelected(trainrunId);
+    this.isTrainrunSelectedService.setTrainrunIdSelectedByClick(trainrunId);
   }
 }

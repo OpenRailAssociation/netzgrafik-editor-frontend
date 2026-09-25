@@ -1,3 +1,11 @@
+<div *ngIf="showHourToggle">
+  <sbb-toggle-switch-button
+    labelFalse="Even Hour"
+    labelTrue="Odd Hour"
+    [checked]="oddHour"
+    (checkedChanged)="onHourChanged($event)"
+  ></sbb-toggle-switch-button>
+</div>
 <svg
   id="knotenAuslastungContainer"
   width="400px"

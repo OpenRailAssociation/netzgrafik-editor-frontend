@@ -15,6 +15,7 @@ export class TimeSliderService implements OnDestroy {
   private yZoom = this.initYZoom;
   private maxZoom = 32;
   private minZoom = 0.3;
+  private viewportSize = 0;
 
   private wheelZoomCounter = 0;
 
@@ -69,14 +70,26 @@ export class TimeSliderService implements OnDestroy {
   }
 
   yMoveChange(yMove: number) {
-    this.yMove = yMove;
+    this.yMove = this.clampYMove(yMove);
     this.sliderChangeSubject.next(new SliderChangeInfo(this.yZoom, this.yMove, false));
   }
 
   yMoveAndZoomChange(yZoom: number, yMove: number, recalc = false) {
     this.yZoom = yZoom;
-    this.yMove = yMove;
+    this.yMove = this.clampYMove(yMove);
     this.sliderChangeSubject.next(new SliderChangeInfo(this.yZoom, this.yMove, recalc));
+  }
+
+  setViewportSize(viewportSize: number) {
+    if (viewportSize <= 0 || this.viewportSize === viewportSize) {
+      return;
+    }
+    this.viewportSize = viewportSize;
+    const clampedYMove = this.clampYMove(this.yMove);
+    if (clampedYMove !== this.yMove) {
+      this.yMove = clampedYMove;
+      this.sliderChangeSubject.next(new SliderChangeInfo(this.yZoom, this.yMove, true));
+    }
   }
 
   changeZoom(yZoom: number) {
@@ -122,5 +135,13 @@ export class TimeSliderService implements OnDestroy {
 
   stopHandleZoomPanning() {
     this.updateCounterTriggerService.sendUpdateTrigger();
+  }
+
+  private clampYMove(yMove: number): number {
+    if (this.viewportSize <= 0) {
+      return yMove;
+    }
+    const maxYMove = Math.max(0, 24 * 60 * this.yZoom - this.viewportSize);
+    return Math.min(maxYMove, Math.max(0, yMove));
   }
 }
