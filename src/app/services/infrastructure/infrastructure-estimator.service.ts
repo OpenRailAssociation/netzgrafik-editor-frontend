@@ -489,7 +489,8 @@ export class InfrastructureEstimatorService {
     departureSection: TrainrunSection | undefined,
     transition: Transition | undefined,
   ): void {
-    const pass = this.getNodeTrackOccurrencePass(trainrun, transition);
+    const sectionAtNode = arrivalSection ?? departureSection;
+    const pass = this.getNodeTrackOccurrencePass(node, trainrun, sectionAtNode);
     const arrivalDirection =
       arrivalSection === undefined
         ? undefined
@@ -514,11 +515,11 @@ export class InfrastructureEstimatorService {
   }
 
   private getNodeTrackOccurrencePass(
+    node: Node,
     trainrun: Trainrun,
-    transition: Transition | undefined,
+    sectionAtNode: TrainrunSection | undefined,
   ): NodeTrackPass {
-    // A transition means the train passes through the node.
-    if (transition !== undefined) {
+    if (sectionAtNode !== undefined && !node.isEndNode(sectionAtNode)) {
       return 1;
     }
     // Without a transition, distinguish a round-trip from a one-way endpoint.
@@ -547,7 +548,7 @@ export class InfrastructureEstimatorService {
         continue;
       }
       const transition = node.getTransitionFromPortId(port.getId());
-      if (transition === undefined) {
+      if (node.isEndNode(section1)) {
         if (section1.getTrainrun().getDirection() === Direction.ONE_WAY) {
           endingOneWay.push(section1);
         } else {

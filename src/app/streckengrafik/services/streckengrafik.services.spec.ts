@@ -163,6 +163,26 @@ describe("StreckengrafikServicesTests", () => {
     );
   });
 
+  it("rebuilds trainrun items when the same trainrun array is emitted again", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    uiInteractionService.setEditorMode(EditorMode.StreckengrafikEditing);
+
+    let emissions = 0;
+    sg1LoadTrainrunItemService.getTrainrunItems().subscribe((items) => {
+      if (items !== undefined) {
+        emissions++;
+      }
+    });
+
+    trainrunService.setTrainrunAsSelected(1);
+    sg1LoadTrainrunItemService.setDataOnlyForTestPurpose();
+    const emissionsAfterInitialRender = emissions;
+
+    trainrunService.trainrunsUpdated();
+
+    expect(emissions).toBeGreaterThan(emissionsAfterInitialRender);
+  });
+
   it("keeps one-way trainrun sections in their actual node direction", () => {
     dataService.loadNetzgrafikDto(NetzgrafikTrackEstimatorTesting.getUnitTestNetzgrafik());
     uiInteractionService.setEditorMode(EditorMode.StreckengrafikEditing);

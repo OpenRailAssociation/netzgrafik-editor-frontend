@@ -17,15 +17,22 @@
                 ></svg:g>
               </ng-container>
               <ng-container *ngIf="showNode(trainrunItem)">
-                <svg:g
-                  sbb-trainrun-node
-                  [offset]="offset"
-                  [frequency]="trainrun.frequency"
-                  [trackReservation]="getTrackReservation(trainrunItem, offset)"
-                  [sgTrainrunItem]="trainrunItem"
-                  [trainrun]="trainrun"
-                  [trackOccupier]="trainrunItem.getPathNode().trackOccupier"
-                ></svg:g>
+                <ng-container
+                  *ngFor="
+                    let trackReservation of getTrackReservations(trainrunItem, offset);
+                    trackBy: trackReservationKey
+                  "
+                >
+                  <svg:g
+                    sbb-trainrun-node
+                    [offset]="offset"
+                    [frequency]="trainrun.frequency"
+                    [trackReservation]="trackReservation"
+                    [sgTrainrunItem]="trainrunItem"
+                    [trainrun]="trainrun"
+                    [trackOccupier]="trainrunItem.getPathNode().trackOccupier"
+                  ></svg:g>
+                </ng-container>
               </ng-container>
             </svg:g>
           </svg:g>

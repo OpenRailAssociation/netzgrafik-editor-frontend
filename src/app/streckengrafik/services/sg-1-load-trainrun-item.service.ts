@@ -62,10 +62,8 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
       });
 
     this.trainrunService.trainruns.pipe(takeUntil(this.destroyed$)).subscribe((trainruns) => {
-      if (this.trainruns !== trainruns) {
-        this.trainruns = trainruns;
-        this.render();
-      }
+      this.trainruns = trainruns;
+      this.render();
     });
 
     this.trainrunSectionService.trainrunSections

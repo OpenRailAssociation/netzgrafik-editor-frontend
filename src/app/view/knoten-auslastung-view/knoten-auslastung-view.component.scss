@@ -10,9 +10,22 @@
   cursor: pointer;
 }
 
+::ng-deep path.KnotenAuslastungDataGroup.selected {
+  fill: var(--COLOR_Edit) !important;
+  stroke: var(--COLOR_Edit) !important;
+}
+
+::ng-deep path.KnotenAuslastungDataGroup.KnotenAuslastungHeadwayGroup.selected {
+  stroke: var(--COLOR_Edit) !important;
+}
+
 ::ng-deep text.KnotenAuslastungDataGroup {
   font-size: 10px;
   cursor: pointer;
+}
+
+::ng-deep text.KnotenAuslastungDataGroup.selected {
+  fill: var(--COLOR_Edit) !important;
 }
 
 ::ng-deep text.KnotenAuslastungNbrTrackGroup {

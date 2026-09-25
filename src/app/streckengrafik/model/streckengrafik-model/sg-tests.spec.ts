@@ -149,6 +149,54 @@ describe("StreckengrafikModelTests", () => {
     expect(section.getMinimumHeadwayTime()).toBe(2);
   });
 
+  it("keeps same-offset reservations separate by trainrun ID", () => {
+    const node = new SgTrainrunNode(
+      0,
+      0,
+      "AA",
+      964,
+      0,
+      0,
+      false,
+      new TrackData(3),
+      undefined,
+      undefined,
+    );
+    node.trackReservations = [
+      {
+        offset: 0,
+        track: 3,
+        arrivalTime: 10,
+        departureTime: 20,
+        headwayUntilTime: 22,
+        trainrunId: 964,
+        occurrenceIndex: 0,
+      },
+      {
+        offset: 0,
+        track: 4,
+        arrivalTime: 10,
+        departureTime: 20,
+        headwayUntilTime: 22,
+        trainrunId: 957,
+        occurrenceIndex: 0,
+      },
+      {
+        offset: 0,
+        track: 5,
+        arrivalTime: 10,
+        departureTime: 20,
+        headwayUntilTime: 22,
+        trainrunId: 964,
+        occurrenceIndex: 1,
+      },
+    ];
+
+    expect(node.getTrackReservation(0, 964)?.track).toBe(3);
+    expect(node.getTrackReservation(0, 957)?.track).toBe(4);
+    expect(node.getTrackReservations(0, 964).map((reservation) => reservation.track)).toEqual([3, 5]);
+  });
+
   it("Streckengrafik-Model - Test - TrainrunItem  - 001", () => {
     const item0: TrainrunItem = new TrainrunItem(
       1,

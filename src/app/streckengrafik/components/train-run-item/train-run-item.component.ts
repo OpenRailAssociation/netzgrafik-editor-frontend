@@ -122,8 +122,26 @@ export class TrainRunItemComponent implements OnInit, OnDestroy, UpdateCounterHa
     return path.isNode();
   }
 
-  public getTrackReservation(item: SgTrainrunItem, offset: number): SgTrainrunNodeTrackReservation {
-    return item.isNode() ? item.getTrainrunNode().getTrackReservation(offset) : undefined;
+  public getTrackReservations(
+    item: SgTrainrunItem,
+    offset: number,
+  ): (SgTrainrunNodeTrackReservation | undefined)[] {
+    if (!item.isNode()) {
+      return [];
+    }
+    const reservations = item
+      .getTrainrunNode()
+      .getTrackReservations(offset, this.trainrun.trainrunId);
+    return reservations.length > 0 ? reservations : [undefined];
+  }
+
+  public trackReservationKey(
+    index: number,
+    reservation: SgTrainrunNodeTrackReservation | undefined,
+  ): string {
+    return reservation === undefined
+      ? "empty-" + index
+      : `${reservation.trainrunId}-${reservation.occurrenceIndex}-${reservation.offset}-${index}`;
   }
 
   public getTranslate(path: SgTrainrunItem): string {
@@ -144,26 +162,48 @@ export class TrainRunItemComponent implements OnInit, OnDestroy, UpdateCounterHa
     // thus must be more calculated based on pixel height !!!
     const fromTime = this.viewBoxChangeInfo.y - 2 * yZoom;
     const toTime = this.viewBoxChangeInfo.height + this.viewBoxChangeInfo.y + 2 * yZoom;
+    const isInView = (fromPoint: number, toPoint: number): boolean =>
+      (fromPoint >= fromTime && fromPoint <= toTime) ||
+      (toPoint >= fromTime && toPoint <= toTime) ||
+      (fromPoint <= fromTime && toPoint >= toTime);
     let fromPoint = 0;
     let toPoint = 0;
     if (item.isNode()) {
       const node = item.getTrainrunNode();
-      const reservation = this.getTrackReservation(item, offset);
-      const arrivalTime = reservation?.arrivalTime ?? node.arrivalTime;
-      const departureTime = reservation?.departureTime ?? node.departureTime;
-      const headwayUntilTime =
-        reservation?.headwayUntilTime ?? node.departureTime + node.minimumHeadwayTime;
-      const timeOffset = reservation === undefined ? offset : 0;
+      const reservations = this.getTrackReservations(item, offset).filter(
+        (reservation): reservation is SgTrainrunNodeTrackReservation => reservation !== undefined,
+      );
+      if (reservations.length > 0) {
+        return reservations.some((reservation) => {
+          let reservationFromPoint =
+            Math.min(reservation.arrivalTime, reservation.departureTime) * yZoom;
+          let reservationToPoint =
+            Math.max(
+              reservation.arrivalTime,
+              reservation.departureTime,
+              reservation.headwayUntilTime,
+            ) * yZoom;
+          if (node.isEndNode()) {
+            reservationFromPoint -= 2 * this.trainrun.frequency * yZoom;
+            reservationToPoint += 2 * this.trainrun.frequency * yZoom;
+          }
+          return isInView(reservationFromPoint, reservationToPoint);
+        });
+      }
+      const arrivalTime = node.arrivalTime;
+      const departureTime = node.departureTime;
+      const headwayUntilTime = node.departureTime + node.minimumHeadwayTime;
+      const timeOffset = offset;
       fromPoint = (Math.min(arrivalTime, departureTime) + timeOffset) * yZoom;
       toPoint = (Math.max(arrivalTime, departureTime, headwayUntilTime) + timeOffset) * yZoom;
       if (node.isEndNode()) {
-        if (!item.getPathNode().trackOccupier && reservation === undefined) {
+        if (!item.getPathNode().trackOccupier && reservations.length === 0) {
           return false;
         }
         fromPoint -= 2 * this.trainrun.frequency * yZoom;
         toPoint += 2 * this.trainrun.frequency * yZoom;
       }
-      if (!item.getPathNode().trackOccupier && reservation === undefined) {
+      if (!item.getPathNode().trackOccupier && reservations.length === 0) {
         if (departureTime === arrivalTime) {
           return false;
         }
@@ -174,15 +214,12 @@ export class TrainRunItemComponent implements OnInit, OnDestroy, UpdateCounterHa
       fromPoint = (ts.departureTime + offset) * yZoom;
       toPoint = (ts.arrivalTime + offset + ts.minimumHeadwayTime) * yZoom;
     }
-    return (
-      (fromPoint >= fromTime && fromPoint <= toTime) ||
-      (toPoint >= fromTime && toPoint <= toTime) ||
-      (fromPoint <= fromTime && toPoint >= toTime)
-    );
+    return isInView(fromPoint, toPoint);
   }
 
   getId(trainrun: SgTrainrun, trainrunItem: SgTrainrunItem) {
-    return "streckengrafik_trainrun_item_" + trainrun.getId() + "_" + trainrunItem.backward;
+    const itemType = trainrunItem.isNode() ? "node" : "section";
+    return "streckengrafik_trainrun_item_" + trainrun.getId() + "_" + itemType + "_" + trainrunItem.getId();
   }
 
   bringToFront(trainrun: SgTrainrun, trainrunItem: SgTrainrunItem, event: MouseEvent) {
