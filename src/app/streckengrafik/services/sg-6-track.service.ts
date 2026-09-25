@@ -4,7 +4,6 @@ import {SgSelectedTrainrun} from "../model/streckengrafik-model/sg-selected-trai
 import {takeUntil} from "rxjs/operators";
 import {TrackData, TrackSegments} from "../model/trackData";
 import {InfrastructureEstimatorService} from "../../services/infrastructure/infrastructure-estimator.service";
-import {NodeTrackAssignment} from "../../services/infrastructure/infrastructure-estimator.service";
 import {SgTrainrunSection} from "../model/streckengrafik-model/sg-trainrun-section";
 import {SgTrainrunItem} from "../model/streckengrafik-model/sg-trainrun-item";
 import {SgTrainrunNode} from "../model/streckengrafik-model/sg-trainrun-node";
@@ -145,22 +144,37 @@ export class Sg6TrackService implements OnDestroy {
             .map((section) => [section.getId(), section] as const),
         ).values(),
       );
-      if (trainrunSections.length === 0) {
+      const firstSection = trainrunSections[0];
+      if (firstSection === undefined) {
         sectionTrackMap.set(sectionKey, []);
         return;
       }
 
-      // Estimate in the direction of the first rendered section.
+      // Estimate in the direction of the selected path so the result is rendered 1:1.
       const firstSgSection = sectionData[0].item.getTrainrunSection();
-      const sourceNode = this.nodeService.getNodeFromId(firstSgSection.departureNodeId);
-      const targetNode = this.nodeService.getNodeFromId(firstSgSection.arrivalNodeId);
-
-      const trackSegments = this.infrastructureEstimatorService.estimateSectionTracks(
-        sourceNode,
-        targetNode,
-        trainrunSections,
+      const selectedPathSection = this.selectedTrainrun.paths.find(
+        (path) =>
+          path.isSection() &&
+          ((path.getPathSection().departureNodeId === firstSgSection.departureNodeId &&
+            path.getPathSection().arrivalNodeId === firstSgSection.arrivalNodeId) ||
+            (path.getPathSection().departureNodeId === firstSgSection.arrivalNodeId &&
+              path.getPathSection().arrivalNodeId === firstSgSection.departureNodeId)),
       );
-      sectionTrackMap.set(sectionKey, trackSegments);
+      const fromNode = this.nodeService.getNodeFromId(
+        selectedPathSection?.getPathSection().departureNodeId ?? firstSgSection.departureNodeId,
+      );
+      const toNode = this.nodeService.getNodeFromId(
+        selectedPathSection?.getPathSection().arrivalNodeId ?? firstSgSection.arrivalNodeId,
+      );
+
+      sectionTrackMap.set(
+        sectionKey,
+        this.infrastructureEstimatorService.estimateSectionTracks(
+          fromNode,
+          toNode,
+          trainrunSections,
+        ),
+      );
     });
     return sectionTrackMap;
   }
@@ -340,47 +354,32 @@ export class Sg6TrackService implements OnDestroy {
   }
 
   private computeTrackAlignments(selectedTrainrun: SgSelectedTrainrun) {
-    // ------------------------------------------------------------------------------------------------------------------
-    // process the preparation passes for each trainrun
-    // ------------------------------------------------------------------------------------------------------------------
-    selectedTrainrun.trainruns.forEach((ts) => {
-      // ------------------------------------------------------------------------------------------------------------------
-      // pass 1 -> transform endNode ("Umlauf")
-      // ------------------------------------------------------------------------------------------------------------------
-      ts.sgTrainrunItems.forEach((item) => {
+    selectedTrainrun.trainruns.forEach((trainrun) => {
+      trainrun.sgTrainrunItems.forEach((item) => {
         if (item.isNode()) {
-          const headwayTime = this.calculateMinimumHeadwayTimeAtNode(item.getTrainrunNode());
-          item.getTrainrunNode().setMinimumHeadwayTime(headwayTime);
+          const node = item.getTrainrunNode();
+          node.setMinimumHeadwayTime(this.calculateMinimumHeadwayTimeAtNode(node));
         }
       });
-
-      // ------------------------------------------------------------------------------------------------------------------
-      // pass 2 -> transform endNode ("Umlauf")
-      // ------------------------------------------------------------------------------------------------------------------
-      ts.sgTrainrunItems.forEach((item) => {
+      trainrun.sgTrainrunItems.forEach((item) => {
         if (item.isNode()) {
-          this.transformTurnarounds(item.getTrainrunNode(), ts, item.minimumHeadwayTime);
+          this.transformTurnarounds(item.getTrainrunNode(), trainrun, item.minimumHeadwayTime);
         }
       });
-
-      // ------------------------------------------------------------------------------------------------------------------
-      // pass 3 -> detect self alignment issue
-      // ------------------------------------------------------------------------------------------------------------------
-      this.clearExtraTrains(ts);
-      const collectExtraTrainruns: SgTrainrunNode[] = [];
-      ts.sgTrainrunItems.forEach((item) => {
+      this.clearExtraTrains(trainrun);
+      const extraNodes: SgTrainrunNode[] = [];
+      trainrun.sgTrainrunItems.forEach((item) => {
         if (item.isNode()) {
           this.detectAndCreateExtraTrains(
-            ts,
+            trainrun,
             item.getTrainrunNode(),
             item.minimumHeadwayTime,
-            collectExtraTrainruns,
+            extraNodes,
           );
         }
       });
-      this.concatExtraTrains(ts, collectExtraTrainruns);
+      this.concatExtraTrains(trainrun, extraNodes);
     });
-
     this.estimateNodeTracks(selectedTrainrun.trainruns);
   }
 
@@ -427,53 +426,22 @@ export class Sg6TrackService implements OnDestroy {
       pathNodes.forEach((pathNode) => {
         pathNode.trackData.track = matrixTrackCount;
       });
-      const assignmentByKey = new Map<string, NodeTrackAssignment[]>();
-      estimates.forEach((estimate) => {
-        estimate.occupancies.forEach((occupancy) => {
-          const key = this.getNodeTrackAssignmentKey(
-            occupancy.trainrunId,
-            occupancy.arrivalSectionId,
-            occupancy.departureSectionId,
-          );
-          const assignments = assignmentByKey.get(key) ?? [];
-          assignments.push({
-            trainrunId: occupancy.trainrunId,
-            arrivalSectionId: occupancy.arrivalSectionId,
-            departureSectionId: occupancy.departureSectionId,
-            track: estimate.track,
-            occupancies: [
-              {
-                arrivalMinute: occupancy.arrivalMinute,
-                departureMinute: occupancy.departureMinute,
-                headwayUntilMinute: occupancy.headwayUntilMinute,
-              },
-            ],
-          });
-          assignmentByKey.set(key, assignments);
-        });
-      });
       nodeItems.forEach((node) => {
-        if (node.unusedForTurnaround) {
-          return;
-        }
-        const trainrun = this.trainrunService.getTrainrunFromId(node.trainrunId);
-        if (trainrun === undefined) {
-          return;
-        }
-        const assignment = this.findNodeTrackAssignment(assignmentByKey, node);
-        if (assignment === undefined) {
-          return;
-        }
-        const track = assignment.track;
-        const occupancy = assignment.occupancies[0];
-        node.minimumHeadwayTime = trainrun.getTrainrunCategory().nodeHeadwayStop;
-        node.trackData.track = track;
-        node.trackOccupancy = {
-          track,
-          arrivalTime: occupancy.arrivalMinute,
-          departureTime: occupancy.departureMinute,
-          headwayUntilTime: occupancy.headwayUntilMinute,
-        };
+        const reservations = estimates.flatMap((estimate) =>
+          estimate.occupancies
+            .filter((occupancy) => this.matchesNodeTrackReservation(occupancy, node))
+            .map((occupancy) => ({
+              trainrunId: occupancy.trainrunId,
+              occurrenceIndex: occupancy.occurrenceIndex,
+              arrivalSectionId: occupancy.arrivalSectionId,
+              departureSectionId: occupancy.departureSectionId,
+              track: estimate.track,
+              arrivalTime: occupancy.arrivalMinute,
+              departureTime: occupancy.departureMinute,
+              headwayUntilTime: occupancy.headwayUntilMinute,
+            })),
+        );
+        node.trackReservations = reservations;
       });
     });
   }
@@ -600,69 +568,21 @@ export class Sg6TrackService implements OnDestroy {
     ].join(" -> ");
   }
 
-  private findNodeTrackAssignment(
-    assignmentByKey: Map<string, NodeTrackAssignment[]>,
+  private matchesNodeTrackReservation(
+    reservation: {
+      trainrunId: number;
+      arrivalSectionId?: number;
+      departureSectionId?: number;
+    },
     node: SgTrainrunNode,
-  ): NodeTrackAssignment | undefined {
-    const arrivalSectionId = node.arrivalPathSection?.trainrunSectionId;
-    const departureSectionId = node.departurePathSection?.trainrunSectionId;
-    const exactAssignments = assignmentByKey.get(
-      this.getNodeTrackAssignmentKey(node.trainrunId, arrivalSectionId, departureSectionId),
-    );
-    const candidates = (exactAssignments ?? Array.from(assignmentByKey.values()).flat()).filter(
-      (candidate) => this.matchesNodeTrackSections(candidate, node),
-    );
-    const exactMatch = candidates.find((candidate) => this.matchesNodeTrackTimes(candidate, node));
-    if (exactMatch !== undefined) {
-      return exactMatch;
-    }
-
-    return candidates.sort(
-      (first, second) =>
-        this.getNodeTrackTimeDistance(first, node) - this.getNodeTrackTimeDistance(second, node),
-    )[0];
-  }
-
-  private matchesNodeTrackSections(assignment: NodeTrackAssignment, node: SgTrainrunNode): boolean {
+  ): boolean {
     return (
-      assignment.trainrunId === node.trainrunId &&
+      reservation.trainrunId === node.trainrunId &&
       (node.arrivalPathSection === undefined ||
-        assignment.arrivalSectionId === node.arrivalPathSection.trainrunSectionId) &&
+        reservation.arrivalSectionId === node.arrivalPathSection.trainrunSectionId) &&
       (node.departurePathSection === undefined ||
-        assignment.departureSectionId === node.departurePathSection.trainrunSectionId)
+        reservation.departureSectionId === node.departurePathSection.trainrunSectionId)
     );
-  }
-
-  private matchesNodeTrackTimes(assignment: NodeTrackAssignment, node: SgTrainrunNode): boolean {
-    const occupancy = assignment.occupancies[0];
-    return (
-      occupancy !== undefined &&
-      (node.arrivalPathSection === undefined || occupancy.arrivalMinute === node.arrivalTime) &&
-      (node.departurePathSection === undefined || occupancy.departureMinute === node.departureTime)
-    );
-  }
-
-  private getNodeTrackTimeDistance(assignment: NodeTrackAssignment, node: SgTrainrunNode): number {
-    const occupancy = assignment.occupancies[0];
-    if (occupancy === undefined) {
-      return Number.POSITIVE_INFINITY;
-    }
-    return (
-      (node.arrivalPathSection === undefined
-        ? 0
-        : Math.abs(occupancy.arrivalMinute - node.arrivalTime)) +
-      (node.departurePathSection === undefined
-        ? 0
-        : Math.abs(occupancy.departureMinute - node.departureTime))
-    );
-  }
-
-  private getNodeTrackAssignmentKey(
-    trainrunId: number,
-    arrivalSectionId: number | undefined,
-    departureSectionId: number | undefined,
-  ): string {
-    return `${trainrunId}|${arrivalSectionId ?? "-"}|${departureSectionId ?? "-"}`;
   }
 
   private getNodeTrackEstimationRange(nodes: SgTrainrunNode[]): {
@@ -672,7 +592,7 @@ export class Sg6TrackService implements OnDestroy {
     const nodeTimes = nodes.flatMap((node) => [node.arrivalTime, node.departureTime]);
     return {
       windowStartMinutes: Math.min(...nodeTimes, 0),
-      windowMinutes: Math.max(...nodeTimes, 60),
+      windowMinutes: Math.max(...nodeTimes, 24 * 60),
     };
   }
 
@@ -718,7 +638,6 @@ export class Sg6TrackService implements OnDestroy {
             if (trackSegments !== undefined) {
               const convertedTrackSegments: TrackSegments[] = this.convertTrackSegments(
                 trackSegments,
-                false,
                 1,
               );
               let maxTracks = 0;
@@ -729,8 +648,8 @@ export class Sg6TrackService implements OnDestroy {
                 t.nbrTracks = Math.ceil(t.minNbrTracks / 2) * 2;
               });
               ps.trackData.track = maxTracks;
-              ps.trackData.nodeId1 = sectionKey.node1;
-              ps.trackData.nodeId2 = sectionKey.node2;
+              ps.trackData.nodeId1 = ps.departureNodeId;
+              ps.trackData.nodeId2 = ps.arrivalNodeId;
               ps.trackData.sectionTrackSegments = convertedTrackSegments;
               maxTrackMap.set(
                 pathItem.getTrainrunSection().departureNodeId +
@@ -753,34 +672,15 @@ export class Sg6TrackService implements OnDestroy {
     maxTrackMap.forEach((trackData, key) => {
       this.selectedTrainrun.paths.forEach((path) => {
         if (path.isSection()) {
-          // This code checks if the current path section matches a specified key
-          // before copying track data to it. There are two main conditions:
-          //
-          // 1. **Common Behavior**:
-          //    - We copy the track data if the arrival and departure node IDs of the
-          //      path section match the key in the correct order (arrival:departure).
-          //
-          // 2. **One-Way Check**:
-          //    - For one-way train runs (non-round trips), we also check if the
-          //      section's departure and arrival node IDs match the key in reverse
-          //      order (departure:arrival). This allows us to handle one-way
-          //      template train runs correctly.
-          //
-          // If either condition is satisfied, the track data will be assigned to
-          // the path section.
           const ps = path.getPathSection();
           const keyCommonBehavior = ps.arrivalNodeId + ":" + ps.departureNodeId;
           const keyOneWaySpecialCase = ps.departureNodeId + ":" + ps.arrivalNodeId;
           const ts = this.trainrunSectionService.getTrainrunSectionFromId(ps.trainrunSectionId);
           if (ts) {
-            // Ensure that the trainrun section is still valid. This may no
-            // longer be the case, e.g., when a trainrun has been deleted and the
-            // graphical timetable has not yet been fully updated.
-            const isRoundTrip = ts.getTrainrun().isRoundTrip();
-            const matchesCommonKey = keyCommonBehavior === key;
-            const matchesReverseKey = !isRoundTrip && keyOneWaySpecialCase === key;
-            const matched = matchesCommonKey || matchesReverseKey;
-            if (matched) {
+            const pathKey = ts.getTrainrun().isRoundTrip()
+              ? keyCommonBehavior
+              : keyOneWaySpecialCase;
+            if (pathKey === key) {
               ps.trackData = trackData;
             }
           }
@@ -791,7 +691,6 @@ export class Sg6TrackService implements OnDestroy {
 
   private convertTrackSegments(
     trackSegments: [number, number, number][],
-    backward: boolean,
     initMaxTracks: number,
   ) {
     const convertedTrackSegments: TrackSegments[] = [];
@@ -802,7 +701,7 @@ export class Sg6TrackService implements OnDestroy {
 
     trackSegments.forEach((trackSeg) => {
       convertedTrackSegments.push(
-        new TrackSegments(trackSeg[0], trackSeg[1], maxTracks, trackSeg[2], backward),
+        new TrackSegments(trackSeg[0], trackSeg[1], maxTracks, trackSeg[2], false),
       );
     });
     return convertedTrackSegments;

@@ -593,16 +593,18 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
       });
     }
 
-    if (forwardEndNode !== undefined && backwardStartNode !== undefined) {
-      if (forwardEndNode.departureTime - forwardEndNode.arrivalTime >= trainrun.getFrequency()) {
-        forwardEndNode.arrivalTime = backwardStartNode.arrivalTime + trainrun.getFrequency();
-        forwardEndNode.departureTime = backwardStartNode.departureTime + trainrun.getFrequency();
+    if (trainrun.getDirection() !== Direction.ONE_WAY) {
+      if (forwardEndNode !== undefined && backwardStartNode !== undefined) {
+        if (forwardEndNode.departureTime - forwardEndNode.arrivalTime >= trainrun.getFrequency()) {
+          forwardEndNode.arrivalTime = backwardStartNode.arrivalTime + trainrun.getFrequency();
+          forwardEndNode.departureTime = backwardStartNode.departureTime + trainrun.getFrequency();
+        }
       }
-    }
-    if (backwardEndNode !== undefined && forwardStartNode !== undefined) {
-      if (backwardEndNode.departureTime - backwardEndNode.arrivalTime >= trainrun.getFrequency()) {
-        backwardEndNode.arrivalTime = forwardStartNode.arrivalTime + trainrun.getFrequency();
-        backwardEndNode.departureTime = forwardStartNode.departureTime + trainrun.getFrequency();
+      if (backwardEndNode !== undefined && forwardStartNode !== undefined) {
+        if (backwardEndNode.departureTime - backwardEndNode.arrivalTime >= trainrun.getFrequency()) {
+          backwardEndNode.arrivalTime = forwardStartNode.arrivalTime + trainrun.getFrequency();
+          backwardEndNode.departureTime = forwardStartNode.departureTime + trainrun.getFrequency();
+        }
       }
     }
 
@@ -659,12 +661,13 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
           while (alltrainrunsections.length > 0) {
             const ts: TrainrunSection = alltrainrunsections.find(() => true);
             const loadeddata = this.loadTrainrunItem(ts, false);
-
             // correct projections directions
-            this.sortTrainrunItemAndRotateAlongTemplatePath(
-              loadeddata.trainrunItem,
-              templateTrainrunItem,
-            );
+            if (loadeddata.trainrunItem.direction !== Direction.ONE_WAY) {
+              this.sortTrainrunItemAndRotateAlongTemplatePath(
+                loadeddata.trainrunItem,
+                templateTrainrunItem,
+              );
+            }
             trainrunItems.push(loadeddata.trainrunItem);
 
             // filter all still visited trainrun sections

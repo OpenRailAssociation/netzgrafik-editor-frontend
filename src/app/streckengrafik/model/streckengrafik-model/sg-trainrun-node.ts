@@ -4,11 +4,15 @@ import {SgTrainrunSection} from "./sg-trainrun-section";
 import {SgPathSection} from "./sg-path-section";
 import {TrackData} from "../trackData";
 
-export interface SgTrainrunNodeTrackOccupancy {
+export interface SgTrainrunNodeTrackReservation {
   track: number;
   arrivalTime: number;
   departureTime: number;
   headwayUntilTime: number;
+  trainrunId: number;
+  occurrenceIndex: number;
+  arrivalSectionId?: number;
+  departureSectionId?: number;
 }
 
 export class SgTrainrunNode implements SgTrainrunItem {
@@ -34,14 +38,15 @@ export class SgTrainrunNode implements SgTrainrunItem {
     public maxUnrollOnlyEvenFrequencyOffsets = 0,
     public extraTrains = false,
     public minimumHeadwayTime = 2,
-    public trackOccupancy: SgTrainrunNodeTrackOccupancy = undefined,
   ) {
     this.id = SgTrainrunNode.currentId;
     SgTrainrunNode.currentId++;
   }
 
+  public trackReservations: SgTrainrunNodeTrackReservation[] = [];
+
   static copy(item: SgTrainrunNode): SgTrainrunNode {
-    return new SgTrainrunNode(
+    const copy = new SgTrainrunNode(
       item.index,
       item.nodeId,
       item.nodeShortName,
@@ -65,8 +70,9 @@ export class SgTrainrunNode implements SgTrainrunItem {
       item.maxUnrollOnlyEvenFrequencyOffsets,
       item.extraTrains,
       item.minimumHeadwayTime,
-      item.trackOccupancy === undefined ? undefined : {...item.trackOccupancy},
     );
+    copy.trackReservations = item.trackReservations.map((reservation) => ({...reservation}));
+    return copy;
   }
 
   getId(): number {
