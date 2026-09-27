@@ -312,10 +312,6 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
     return true;
   }
 
-  checkUnrollAllowed(): boolean {
-    return this.sgTrainrunItem.checkUnrollAllowed(this.offset / this.frequency);
-  }
-
   bringToFront(event: MouseEvent, pathIndex?: number) {
     if (event.buttons !== 0) {
       return;

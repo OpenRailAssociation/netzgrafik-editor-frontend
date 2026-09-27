@@ -111,6 +111,10 @@ export class InfrastructureEstimatorService {
     trainrunSections: TrainrunSection[],
     minHeadwayTime = InfrastructureEstimatorService.DEFAULT_MINIMUM_HEADWAY_TIME,
   ): [number, number, number][] {
+    // We have to pass the cooridor between two node (from -> to) node. the calcualtion is
+    // oriented - means passing from -> to is not the same as passing from to -> from.
+    // the trainrun sections could also been retrieved from the nodes (port) but as the methode
+    // must be stateless thus we have to pass the entire trainrun sections
     const matchingSections = this.findMatchingSections(fromNode, toNode, trainrunSections);
     if (matchingSections.length === 0) {
       return [];
@@ -137,6 +141,12 @@ export class InfrastructureEstimatorService {
     trainrunSections: TrainrunSection[],
     options: NodeTrackEstimatorOptions = {},
   ): NodeTrackEstimate[] {
+    // The input parameters are the node for which we want to estimate track usage,
+    // the trainrun sections that pass through this node. We could just use the node to
+    // retrieve alle trainrun sections which have a arrival or departure at this node (ports).
+    // But we like to have an stateless approach where all necessary data is passed explicitly.
+    // The NodeTrackEstimator operates purely on the provided occurrences and options,
+    // without relying on any external state.
     const occurrences = this.createNodeTrackOccurrences(node, trainrunSections);
     return this.estimateNodeTracksForNode(occurrences, options);
   }
