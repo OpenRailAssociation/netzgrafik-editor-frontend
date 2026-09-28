@@ -23,7 +23,6 @@ import {Direction} from "src/app/data-structures/business.data.structures";
 })
 export class Sg3TrainrunsService implements OnDestroy {
   private readonly sgSelectedTrainrunSubject = new BehaviorSubject<SgSelectedTrainrun>(undefined);
-  private readonly sgSelectedTrainrun$ = this.sgSelectedTrainrunSubject.asObservable();
 
   private selectedTrainrun: SgSelectedTrainrun;
   private trainrunItems: TrainrunItem[];
@@ -57,552 +56,405 @@ export class Sg3TrainrunsService implements OnDestroy {
   }
 
   public getSgSelectedTrainrun(): Observable<SgSelectedTrainrun> {
-    return this.sgSelectedTrainrun$;
+    return this.sgSelectedTrainrunSubject.asObservable();
   }
 
   private render() {
-    if (!this.selectedTrainrun) {
+    if (!this.selectedTrainrun || !this.trainrunItems) {
       return;
     }
-    if (!this.trainrunItems) {
-      return;
-    }
+
     this.selectedTrainrun.trainruns = [];
     this.trainrunItems.forEach((trainrunItem) => {
       if (trainrunItem === undefined) {
         return;
       }
-      const trainrun = new SgTrainrun(
-        trainrunItem.trainrunId,
-        trainrunItem.frequency,
-        trainrunItem.frequencyOffset,
-        trainrunItem.startTime,
-        trainrunItem.endTime,
-        trainrunItem.title,
-        trainrunItem.categoryShortName,
-        trainrunItem.colorRef,
-        [],
-        this.selectedTrainrun,
-      );
-      const trainrunItems: SgTrainrunItem[] = [];
-
-      trainrunItem.pathItems.forEach((pathItem) => {
-        if (
-          trainrunItem.direction === Direction.ONE_WAY &&
-          pathItem.backward === trainrunItem.leftToRight
-        ) {
-          return;
-        }
-        // Node items
-        if (pathItem.isNode()) {
-          const matchingSelectedPathNodes: SgPathNode[] = this.searchAllPathNodes(
-            pathItem.getPathNode(),
-          );
-
-          const isEndNode = this.checkIsEndNode(pathItem);
-          let departureTime = pathItem.departureTime;
-          let arrivalTime = pathItem.arrivalTime;
-
-          const pathNode = pathItem.getPathNode();
-          const pathNodeHaltezeit = pathNode.haltezeit;
-
-          matchingSelectedPathNodes.forEach((matchingSelectedPathNode: SgPathNode) => {
-            /**
-             * For one-way trains, adjust extremity nodes occupation times to use only the stop time
-             * (haltezeit), instead of the default 1-hour occupation time used for round-trip
-             * trains:
-             * - Departure node: occupation from (departure - haltezeit) to departure
-             * - Arrival node: occupation from arrival to (arrival + haltezeit)
-             *
-             * Also, don't use matchingSelectedPathNode (which is related to the path of
-             * selectedTrainrun), but use pathNode = pathItem.getPathNode() instead (which is
-             * related to the proper trainrunItem):
-             */
-            if (trainrunItem.direction === Direction.ONE_WAY) {
-              if (pathNode.departurePathSection === undefined) {
-                departureTime = pathNode.arrivalTime + pathNodeHaltezeit;
-              }
-              if (pathNode.arrivalPathSection === undefined) {
-                arrivalTime = pathNode.departureTime - pathNodeHaltezeit;
-              }
-            }
-
-            const trainrunNode = new SgTrainrunNode(
-              matchingSelectedPathNode.index,
-              matchingSelectedPathNode.nodeId,
-              matchingSelectedPathNode.nodeShortName,
-              trainrunItem.trainrunId,
-              departureTime,
-              arrivalTime,
-              pathItem.backward,
-              new TrackData(this.getTrack(pathItem)),
-              matchingSelectedPathNode,
-              isEndNode,
-              pathNode.departurePathSection as unknown as SgTrainrunSection,
-              pathNode.arrivalPathSection as unknown as SgTrainrunSection,
-            );
-            matchingSelectedPathNode.trainrunNodes.push(trainrunNode);
-            trainrunItems.push(trainrunNode);
-          });
-        }
-
-        // Section items
-        let isAddSection = false;
-        if (pathItem.isSection()) {
-          const pathSection = pathItem.getPathSection();
-          const pathSections: SgPathSection[] = this.searchAllPathSection(pathSection);
-          pathSections.forEach((sgpathSection) => {
-            const trainrunSection = new SgTrainrunSection(
-              sgpathSection.index,
-              pathItem.getPathSection().trainrunSectionId,
-              pathItem.departureTime,
-              pathItem.arrivalTime,
-              pathItem.getPathSection().departurePathNode.nodeId,
-              pathItem.getPathSection().arrivalPathNode.nodeId,
-              this.getNodeShortName(pathItem.getPathSection().departurePathNode),
-              this.getNodeShortName(pathItem.getPathSection().arrivalPathNode),
-              this.getNodeShortName(pathItem.getPathSection().departureBranchEndNode),
-              this.getNodeShortName(pathItem.getPathSection().arrivalBranchEndNode),
-              pathItem.backward,
-              pathItem.getPathSection().numberOfStops,
-              new TrackData(this.getTrack(pathItem)),
-              sgpathSection,
-              TrainrunBranchType.Trainrun,
-            );
-
-            /**** Adrian Egli (adrian.egli@sbb.ch)
-              TODO - This trainrunSection.changeOrientation() is might just a hot fix for special case if there is a trainrun running from
-              [ A - B - C - B - D | A - B - B - C | .... or ... ] -> passes two times same node
-              There is sill an issue in the CODE - if the trainrun passes the second time a node, the in-/out
-              branching edge will not all be rendered!
-               */
-            if (
-              this.isInDirectedPath(pathSection, sgpathSection) !==
-              this.isInPath(pathSection, sgpathSection)
-            ) {
-              trainrunSection.changeOrientation();
-            }
-            sgpathSection.trainrunSections.push(trainrunSection);
-            trainrunItems.push(trainrunSection);
-            isAddSection = true;
-          });
-          if (!isAddSection) {
-            // ----- all arrival path section with incoming section
-            const arravebelPathSectionWithSection: SgPathSection[] =
-              this.searchAllArrivalPathSectionBranchWithSection(pathSection);
-            arravebelPathSectionWithSection.forEach((pathSectionBranch) => {
-              const trainrunSection = new SgTrainrunSection(
-                pathSectionBranch.index,
-                pathItem.getPathSection().trainrunSectionId,
-                pathItem.departureTime,
-                pathItem.arrivalTime,
-                pathItem.getPathSection().departurePathNode.nodeId,
-                pathItem.getPathSection().arrivalPathNode.nodeId,
-                this.getNodeShortName(pathItem.getPathSection().departurePathNode),
-                this.getNodeShortName(pathItem.getPathSection().arrivalPathNode),
-                this.getNodeShortName(pathItem.getPathSection().departureBranchEndNode),
-                this.getNodeShortName(pathItem.getPathSection().arrivalBranchEndNode),
-                pathItem.backward,
-                pathItem.getPathSection().numberOfStops,
-                new TrackData(this.getTrack(pathItem)),
-                pathSectionBranch,
-                TrainrunBranchType.ArrivalBranchWithSection,
-              );
-
-              pathSectionBranch.trainrunSections.push(trainrunSection);
-              trainrunItems.push(trainrunSection);
-            });
-
-            // ----- all departure path section with outgoing section
-            const departurePathSectionBranchWithSection: SgPathSection[] =
-              this.searchAllDeparturePathSectionBranchWithSection(pathSection);
-            departurePathSectionBranchWithSection.forEach((pathSectionBranch) => {
-              const trainrunSection = new SgTrainrunSection(
-                pathSectionBranch.index,
-                pathItem.getPathSection().trainrunSectionId,
-                pathItem.departureTime,
-                pathItem.arrivalTime,
-                pathItem.getPathSection().departurePathNode.nodeId,
-                pathItem.getPathSection().arrivalPathNode.nodeId,
-                this.getNodeShortName(pathItem.getPathSection().departurePathNode),
-                this.getNodeShortName(pathItem.getPathSection().arrivalPathNode),
-                this.getNodeShortName(pathItem.getPathSection().departureBranchEndNode),
-                this.getNodeShortName(pathItem.getPathSection().arrivalBranchEndNode),
-                pathItem.backward,
-                pathItem.getPathSection().numberOfStops,
-                new TrackData(this.getTrack(pathItem)),
-                pathSectionBranch,
-                TrainrunBranchType.DepartureBranchWithSection,
-              );
-
-              pathSectionBranch.trainrunSections.push(trainrunSection);
-              trainrunItems.push(trainrunSection);
-            });
-
-            // ----- all arrival path section (branch only)
-            const arrivalPathSectionBranchOnly: SgPathSection[] =
-              this.searchAllArrivalPathSectionBranchOnly(pathSection);
-            arrivalPathSectionBranchOnly.forEach((pathSectionBranch) => {
-              const trainrunSection = new SgTrainrunSection(
-                pathSectionBranch.index,
-                pathItem.getPathSection().trainrunSectionId,
-                pathItem.departureTime,
-                pathItem.arrivalTime,
-                pathItem.getPathSection().departurePathNode.nodeId,
-                pathItem.getPathSection().arrivalPathNode.nodeId,
-                this.getNodeShortName(pathItem.getPathSection().departurePathNode),
-                this.getNodeShortName(pathItem.getPathSection().arrivalPathNode),
-                this.getNodeShortName(pathItem.getPathSection().departureBranchEndNode),
-                this.getNodeShortName(pathItem.getPathSection().arrivalBranchEndNode),
-                pathItem.backward,
-                pathItem.getPathSection().numberOfStops,
-                new TrackData(this.getTrack(pathItem)),
-                pathSectionBranch,
-                TrainrunBranchType.ArrivalBranchOnly,
-              );
-              pathSectionBranch.trainrunSections.push(trainrunSection);
-              trainrunItems.push(trainrunSection);
-            });
-
-            // ----- all depature path section (branch only)
-            const departurePathSectionBranchOnly: SgPathSection[] =
-              this.searchAllDeparturePathSectionBranchOnly(pathSection);
-            departurePathSectionBranchOnly.forEach((pathSectionBranch) => {
-              const trainrunSection = new SgTrainrunSection(
-                pathSectionBranch.index,
-                pathSection.trainrunSectionId,
-                pathItem.departureTime,
-                pathItem.arrivalTime,
-                pathItem.getPathSection().departurePathNode.nodeId,
-                pathItem.getPathSection().arrivalPathNode.nodeId,
-                this.getNodeShortName(pathItem.getPathSection().departurePathNode),
-                this.getNodeShortName(pathItem.getPathSection().arrivalPathNode),
-                this.getNodeShortName(pathItem.getPathSection().departureBranchEndNode),
-                this.getNodeShortName(pathItem.getPathSection().arrivalBranchEndNode),
-                pathItem.backward,
-                pathItem.getPathSection().numberOfStops,
-                new TrackData(this.getTrack(pathItem)),
-                pathSectionBranch,
-                TrainrunBranchType.DepartureBranchOnly,
-              );
-              pathSectionBranch.trainrunSections.push(trainrunSection);
-              trainrunItems.push(trainrunSection);
-            });
-          }
-        }
-      });
-      trainrunItems.forEach((trainrunItem) => {
-        trainrun.sgTrainrunItems.push(trainrunItem);
-      });
-      this.addNodesSectionRelation(trainrun);
-      this.selectedTrainrun.trainruns.push(trainrun);
+      this.selectedTrainrun.trainruns.push(this.createTrainrun(trainrunItem));
     });
     this.sgSelectedTrainrunSubject.next(this.selectedTrainrun);
   }
 
-  private getNodeShortName(pathNode: PathNode) {
-    if (pathNode) {
-      return pathNode.nodeShortName;
+  private createTrainrun(trainrunItem: TrainrunItem): SgTrainrun {
+    const trainrun = new SgTrainrun(
+      trainrunItem.trainrunId,
+      trainrunItem.frequency,
+      trainrunItem.frequencyOffset,
+      trainrunItem.startTime,
+      trainrunItem.endTime,
+      trainrunItem.title,
+      trainrunItem.categoryShortName,
+      trainrunItem.colorRef,
+      this.createTrainrunItems(trainrunItem),
+      this.selectedTrainrun,
+    );
+    this.connectTrainrunItems(trainrun);
+    return trainrun;
+  }
+
+  private createTrainrunItems(trainrunItem: TrainrunItem): SgTrainrunItem[] {
+    const trainrunItems: SgTrainrunItem[] = [];
+    trainrunItem.pathItems.forEach((pathItem) =>
+      this.addPathItem(trainrunItem, pathItem, trainrunItems),
+    );
+    return trainrunItems;
+  }
+
+  private addPathItem(
+    trainrunItem: TrainrunItem,
+    pathItem: PathItem,
+    trainrunItems: SgTrainrunItem[],
+  ): void {
+    if (!this.isPathItemInTrainrunDirection(trainrunItem, pathItem)) {
+      return;
     }
-    return undefined;
-  }
-
-  private checkIsEndNode(path: PathItem): boolean {
-    if (!path.isNode()) {
-      return false;
+    if (pathItem.isNode()) {
+      this.addTrainrunNodes(trainrunItem, pathItem, trainrunItems);
+      return;
     }
-    const pn = path.getPathNode();
-    if (pn.departurePathSection !== undefined && pn.arrivalPathSection !== undefined) {
-      return pn.departurePathSection.backward !== pn.arrivalPathSection.backward;
-    }
-    return pn.arrivalPathSection !== undefined || pn.departurePathSection !== undefined;
-  }
-
-  private getTrack(path: PathItem) {
-    if (path.backward) {
-      return 2;
-    } else {
-      return 1;
+    if (pathItem.isSection()) {
+      this.addTrainrunSections(pathItem, trainrunItems);
     }
   }
 
-  private searchAllPathNodes(pathNode: PathNode): SgPathNode[] {
-    const path: SgPathNode[] = [];
-    this.selectedTrainrun.paths.forEach((sgPath) => {
-      if (sgPath.isNode()) {
-        const sgPathNode = sgPath.getPathNode();
-        if (sgPathNode.nodeId === pathNode.getPathNode().nodeId) {
-          path.push(sgPathNode);
-        }
-      }
-    });
-    return path;
-  }
-
-  private searchAllPathSection(pathSection: PathSection): SgPathSection[] {
-    const path: SgPathSection[] = [];
-    this.selectedTrainrun.paths.forEach((sgPath) => {
-      if (sgPath.isSection()) {
-        const sgPathSection = sgPath.getPathSection();
-        if (this.isInPath(pathSection, sgPathSection)) {
-          path.push(sgPathSection);
-        }
-      }
-    });
-    return path;
-  }
-
-  isInDirectedPath(pathSection: PathSection, sgPathSection: SgPathSection): boolean {
-    return (
-      (!pathSection.backward &&
-        sgPathSection.arrivalNodeId === pathSection.arrivalPathNode.nodeId &&
-        sgPathSection.departureNodeId === pathSection.departurePathNode.nodeId) ||
-      (pathSection.backward &&
-        sgPathSection.arrivalNodeId === pathSection.departurePathNode.nodeId &&
-        sgPathSection.departureNodeId === pathSection.arrivalPathNode.nodeId)
+  private isPathItemInTrainrunDirection(trainrunItem: TrainrunItem, pathItem: PathItem): boolean {
+    return !(
+      trainrunItem.direction === Direction.ONE_WAY && pathItem.backward === trainrunItem.leftToRight
     );
   }
 
-  isInPath(pathSection: PathSection, sgPathSection: SgPathSection): boolean {
-    return (
-      (sgPathSection.arrivalNodeId === pathSection.arrivalPathNode.nodeId &&
-        sgPathSection.departureNodeId === pathSection.departurePathNode.nodeId) ||
-      (sgPathSection.arrivalNodeId === pathSection.departurePathNode.nodeId &&
-        sgPathSection.departureNodeId === pathSection.arrivalPathNode.nodeId)
-    );
-  }
+  private addTrainrunNodes(
+    trainrunItem: TrainrunItem,
+    pathItem: PathItem,
+    trainrunItems: SgTrainrunItem[],
+  ): void {
+    const pathNode = pathItem.getPathNode();
+    const {departureTime, arrivalTime} = this.getNodeTimes(trainrunItem, pathItem, pathNode);
+    const isEndNode = this.isEndNode(pathNode);
 
-  private searchAllArrivalPathSectionBranchWithSection(pathSection: PathSection): SgPathSection[] {
-    const paths: SgPathSection[] = [];
-    this.selectedTrainrun.paths.forEach((path) => {
-      if (path.isSection()) {
-        const sgPathSection = path.getPathSection();
-        if (this.isNextArrivalPathSectionBranch(pathSection, sgPathSection)) {
-          paths.push(sgPathSection);
-        }
-      }
+    this.findPathNodes(pathNode).forEach((selectedPathNode) => {
+      const trainrunNode = new SgTrainrunNode(
+        selectedPathNode.index,
+        selectedPathNode.nodeId,
+        selectedPathNode.nodeShortName,
+        trainrunItem.trainrunId,
+        departureTime,
+        arrivalTime,
+        pathItem.backward,
+        new TrackData(pathItem.backward ? 2 : 1),
+        selectedPathNode,
+        isEndNode,
+        pathNode.departurePathSection as unknown as SgTrainrunSection,
+        pathNode.arrivalPathSection as unknown as SgTrainrunSection,
+      );
+      selectedPathNode.trainrunNodes.push(trainrunNode);
+      trainrunItems.push(trainrunNode);
     });
-    return paths;
   }
 
-  isNextArrivalPathSectionBranch(pathSection: PathSection, sgPathSection: SgPathSection): boolean {
-    if (
-      !pathSection.backward &&
-      sgPathSection.arrivalNodeId === pathSection.arrivalPathNode.nodeId
-    ) {
-      if (
-        pathSection.arrivalPathNode.departurePathSection &&
-        pathSection.arrivalPathNode.departurePathSection.arrivalPathNode
-      ) {
-        if (
-          sgPathSection.arrivalPathNode.departurePathSection &&
-          sgPathSection.arrivalPathNode.departurePathSection.arrivalPathNode
-        ) {
-          if (
-            pathSection.arrivalPathNode.departurePathSection.arrivalPathNode.nodeId ===
-            sgPathSection.arrivalPathNode.departurePathSection.arrivalPathNode.nodeId
-          ) {
-            return true;
-          }
-        }
-      }
+  private getNodeTimes(
+    trainrunItem: TrainrunItem,
+    pathItem: PathItem,
+    pathNode: PathNode,
+  ): {departureTime: number; arrivalTime: number} {
+    let departureTime = pathItem.departureTime;
+    let arrivalTime = pathItem.arrivalTime;
+    if (trainrunItem.direction !== Direction.ONE_WAY) {
+      return {departureTime, arrivalTime};
     }
-    if (
-      pathSection.backward &&
-      sgPathSection.departureNodeId === pathSection.arrivalPathNode.nodeId
-    ) {
-      if (
-        pathSection.arrivalPathNode.departurePathSection &&
-        pathSection.arrivalPathNode.departurePathSection.arrivalPathNode
-      ) {
-        if (
-          sgPathSection.departurePathNode.arrivalPathSection &&
-          sgPathSection.departurePathNode.arrivalPathSection.departurePathNode
-        ) {
-          if (
-            pathSection.arrivalPathNode.departurePathSection.arrivalPathNode.nodeId ===
-            sgPathSection.departurePathNode.arrivalPathSection.departurePathNode.nodeId
-          ) {
-            return true;
-          }
-        }
-      }
+    if (pathNode.departurePathSection === undefined) {
+      departureTime = pathNode.arrivalTime + pathNode.haltezeit;
     }
-    return false;
+    if (pathNode.arrivalPathSection === undefined) {
+      arrivalTime = pathNode.departureTime - pathNode.haltezeit;
+    }
+    return {departureTime, arrivalTime};
   }
 
-  private searchAllDeparturePathSectionBranchWithSection(
+  private addTrainrunSections(pathItem: PathItem, trainrunItems: SgTrainrunItem[]): void {
+    const pathSection = pathItem.getPathSection();
+    const pathSections = this.findPathSections(pathSection);
+    if (pathSections.length > 0) {
+      this.addTrainrunPathSections(pathItem, pathSection, pathSections, trainrunItems);
+      return;
+    }
+    this.addFallbackBranchSections(pathItem, pathSection, trainrunItems);
+  }
+
+  private addFallbackBranchSections(
+    pathItem: PathItem,
     pathSection: PathSection,
-  ): SgPathSection[] {
-    const paths: SgPathSection[] = [];
-    this.selectedTrainrun.paths.forEach((path) => {
-      if (path.isSection()) {
-        const sgPathSection = path.getPathSection();
-        if (this.getNextDeparturePathSectionBranch(pathSection, sgPathSection)) {
-          paths.push(sgPathSection);
-        }
-      }
-    });
-    return paths;
+    trainrunItems: SgTrainrunItem[],
+  ): void {
+    const branches = [
+      {
+        type: TrainrunBranchType.ArrivalBranchWithSection,
+        sections: this.findArrivalBranchSectionsWithSection(pathSection),
+      },
+      {
+        type: TrainrunBranchType.DepartureBranchWithSection,
+        sections: this.findDepartureBranchSectionsWithSection(pathSection),
+      },
+      {
+        type: TrainrunBranchType.ArrivalBranchOnly,
+        sections: this.findArrivalBranchSectionsOnly(pathSection),
+      },
+      {
+        type: TrainrunBranchType.DepartureBranchOnly,
+        sections: this.findDepartureBranchSectionsOnly(pathSection),
+      },
+    ];
+
+    branches.forEach((branch) =>
+      this.addBranchSections(pathItem, pathSection, branch.sections, branch.type, trainrunItems),
+    );
   }
 
-  getNextDeparturePathSectionBranch(
+  private addTrainrunPathSections(
+    pathItem: PathItem,
+    pathSection: PathSection,
+    pathSections: SgPathSection[],
+    trainrunItems: SgTrainrunItem[],
+  ): void {
+    pathSections.forEach((sgPathSection) => {
+      const trainrunSection = this.createTrainrunSection(
+        pathItem,
+        pathSection,
+        sgPathSection,
+        TrainrunBranchType.Trainrun,
+      );
+      this.changeOrientationIfNeeded(pathSection, sgPathSection, trainrunSection);
+      sgPathSection.trainrunSections.push(trainrunSection);
+      trainrunItems.push(trainrunSection);
+    });
+  }
+
+  private addBranchSections(
+    pathItem: PathItem,
+    pathSection: PathSection,
+    pathSections: SgPathSection[],
+    branchType: TrainrunBranchType,
+    trainrunItems: SgTrainrunItem[],
+  ): void {
+    pathSections.forEach((sgPathSection) => {
+      const trainrunSection = this.createTrainrunSection(
+        pathItem,
+        pathSection,
+        sgPathSection,
+        branchType,
+      );
+      sgPathSection.trainrunSections.push(trainrunSection);
+      trainrunItems.push(trainrunSection);
+    });
+  }
+
+  private createTrainrunSection(
+    pathItem: PathItem,
+    pathSection: PathSection,
+    sgPathSection: SgPathSection,
+    branchType: TrainrunBranchType,
+  ): SgTrainrunSection {
+    return new SgTrainrunSection(
+      sgPathSection.index,
+      pathSection.trainrunSectionId,
+      pathItem.departureTime,
+      pathItem.arrivalTime,
+      pathSection.departurePathNode.nodeId,
+      pathSection.arrivalPathNode.nodeId,
+      pathSection.departurePathNode?.nodeShortName,
+      pathSection.arrivalPathNode?.nodeShortName,
+      pathSection.departureBranchEndNode?.nodeShortName,
+      pathSection.arrivalBranchEndNode?.nodeShortName,
+      pathItem.backward,
+      pathSection.numberOfStops,
+      new TrackData(pathItem.backward ? 2 : 1),
+      sgPathSection,
+      branchType,
+    );
+  }
+
+  private changeOrientationIfNeeded(
+    pathSection: PathSection,
+    sgPathSection: SgPathSection,
+    trainrunSection: SgTrainrunSection,
+  ): void {
+    if (
+      this.isSamePathDirection(pathSection, sgPathSection) !==
+      this.isSamePath(pathSection, sgPathSection)
+    ) {
+      trainrunSection.changeOrientation();
+    }
+  }
+
+  private isEndNode(pathNode: PathNode): boolean {
+    if (pathNode.departurePathSection !== undefined && pathNode.arrivalPathSection !== undefined) {
+      return pathNode.departurePathSection.backward !== pathNode.arrivalPathSection.backward;
+    }
+    return pathNode.arrivalPathSection !== undefined || pathNode.departurePathSection !== undefined;
+  }
+
+  private findPathNodes(pathNode: PathNode): SgPathNode[] {
+    return this.selectedTrainrun.paths
+      .filter((path) => path.isNode() && path.getPathNode().nodeId === pathNode.nodeId)
+      .map((path) => path.getPathNode());
+  }
+
+  private findPathSections(pathSection: PathSection): SgPathSection[] {
+    return this.getAllPathSections().filter((section) => this.isSamePath(pathSection, section));
+  }
+
+  private getAllPathSections(): SgPathSection[] {
+    return this.selectedTrainrun.paths
+      .filter((path) => path.isSection())
+      .map((path) => path.getPathSection());
+  }
+
+  private isSamePathDirection(pathSection: PathSection, sgPathSection: SgPathSection): boolean {
+    const departureNodeId = pathSection.backward
+      ? pathSection.arrivalPathNode.nodeId
+      : pathSection.departurePathNode.nodeId;
+    const arrivalNodeId = pathSection.backward
+      ? pathSection.departurePathNode.nodeId
+      : pathSection.arrivalPathNode.nodeId;
+    return this.hasEndpoints(sgPathSection, departureNodeId, arrivalNodeId);
+  }
+
+  private isSamePath(pathSection: PathSection, sgPathSection: SgPathSection): boolean {
+    const firstNodeId = pathSection.departurePathNode.nodeId;
+    const secondNodeId = pathSection.arrivalPathNode.nodeId;
+    return (
+      this.hasEndpoints(sgPathSection, firstNodeId, secondNodeId) ||
+      this.hasEndpoints(sgPathSection, secondNodeId, firstNodeId)
+    );
+  }
+
+  private hasEndpoints(
+    pathSection: SgPathSection,
+    departureNodeId: number,
+    arrivalNodeId: number,
+  ): boolean {
+    return (
+      pathSection.departureNodeId === departureNodeId && pathSection.arrivalNodeId === arrivalNodeId
+    );
+  }
+
+  private findArrivalBranchSectionsWithSection(pathSection: PathSection): SgPathSection[] {
+    return this.getAllPathSections().filter((section) =>
+      this.isNextArrivalBranchSection(pathSection, section),
+    );
+  }
+
+  private isNextArrivalBranchSection(
     pathSection: PathSection,
     sgPathSection: SgPathSection,
   ): boolean {
-    if (
-      pathSection.backward &&
-      sgPathSection.arrivalNodeId === pathSection.departurePathNode.nodeId
-    ) {
-      if (
-        pathSection.departurePathNode.arrivalPathSection &&
-        pathSection.departurePathNode.arrivalPathSection.departurePathNode
-      ) {
-        if (
-          sgPathSection.arrivalPathNode.departurePathSection &&
-          sgPathSection.arrivalPathNode.departurePathSection.arrivalPathNode
-        ) {
-          if (
-            pathSection.departurePathNode.arrivalPathSection.departurePathNode.nodeId ===
-            sgPathSection.arrivalPathNode.departurePathSection.arrivalPathNode.nodeId
-          ) {
-            return true;
-          }
-        }
-      }
-    }
-    if (
-      !pathSection.backward &&
-      sgPathSection.departureNodeId === pathSection.departurePathNode.nodeId
-    ) {
-      if (
-        pathSection.departurePathNode.arrivalPathSection &&
-        pathSection.departurePathNode.arrivalPathSection.departurePathNode
-      ) {
-        if (
-          sgPathSection.departurePathNode.arrivalPathSection &&
-          sgPathSection.departurePathNode.arrivalPathSection.departurePathNode
-        ) {
-          if (
-            pathSection.departurePathNode.arrivalPathSection.departurePathNode.nodeId ===
-            sgPathSection.departurePathNode.arrivalPathSection.departurePathNode.nodeId
-          ) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
+    const pathNode = pathSection.arrivalPathNode;
+    const sgNode = pathSection.backward
+      ? sgPathSection.departurePathNode
+      : sgPathSection.arrivalPathNode;
+    const expectedNodeId = pathNode?.departurePathSection?.arrivalPathNode?.nodeId;
+    const actualNodeId = pathSection.backward
+      ? sgNode?.arrivalPathSection?.departurePathNode?.nodeId
+      : sgNode?.departurePathSection?.arrivalPathNode?.nodeId;
+    const endpointId = pathSection.backward
+      ? sgPathSection.departureNodeId
+      : sgPathSection.arrivalNodeId;
+    return endpointId === pathNode?.nodeId && expectedNodeId === actualNodeId;
   }
 
-  private searchAllDeparturePathSectionBranchOnly(pathSection: PathSection): SgPathSection[] {
-    const paths: SgPathSection[] = [];
-    this.selectedTrainrun.paths.forEach((path) => {
-      if (path.isSection()) {
-        const sgPathSection = path.getPathSection();
-        if (this.isDeparturePathNodeInBranchOnly(pathSection, sgPathSection)) {
-          paths.push(sgPathSection);
-        }
-      }
-    });
-    return paths;
-  }
-
-  isDeparturePathNodeInBranchOnly(pathSection: PathSection, sgPathSection: SgPathSection): boolean {
-    return (
-      (pathSection.backward &&
-        sgPathSection.arrivalNodeId === pathSection.departurePathNode.nodeId) ||
-      (!pathSection.backward &&
-        sgPathSection.departureNodeId === pathSection.departurePathNode.nodeId)
+  private findDepartureBranchSectionsWithSection(pathSection: PathSection): SgPathSection[] {
+    return this.getAllPathSections().filter((section) =>
+      this.isNextDepartureBranchSection(pathSection, section),
     );
   }
 
-  private searchAllArrivalPathSectionBranchOnly(pathSection: PathSection): SgPathSection[] {
-    const paths: SgPathSection[] = [];
-    this.selectedTrainrun.paths.forEach((path) => {
-      if (path.isSection()) {
-        const sgPathSection = path.getPathSection();
-        if (this.isArrivalPathNodePathNodeInBranchOnly(pathSection, sgPathSection)) {
-          paths.push(sgPathSection);
-        }
-      }
-    });
-    return paths;
-  }
-
-  isArrivalPathNodePathNodeInBranchOnly(
+  private isNextDepartureBranchSection(
     pathSection: PathSection,
     sgPathSection: SgPathSection,
   ): boolean {
-    return (
-      (!pathSection.backward &&
-        sgPathSection.arrivalNodeId === pathSection.arrivalPathNode.nodeId) ||
-      (pathSection.backward && sgPathSection.departureNodeId === pathSection.arrivalPathNode.nodeId)
+    const pathNode = pathSection.departurePathNode;
+    const sgNode = pathSection.backward
+      ? sgPathSection.arrivalPathNode
+      : sgPathSection.departurePathNode;
+    const expectedNodeId = pathNode?.arrivalPathSection?.departurePathNode?.nodeId;
+    const actualNodeId = pathSection.backward
+      ? sgNode?.departurePathSection?.arrivalPathNode?.nodeId
+      : sgNode?.arrivalPathSection?.departurePathNode?.nodeId;
+    const endpointId = pathSection.backward
+      ? sgPathSection.arrivalNodeId
+      : sgPathSection.departureNodeId;
+    return endpointId === pathNode?.nodeId && expectedNodeId === actualNodeId;
+  }
+
+  private findDepartureBranchSectionsOnly(pathSection: PathSection): SgPathSection[] {
+    return this.getAllPathSections().filter((section) =>
+      this.isDepartureBranchOnly(pathSection, section),
     );
   }
 
-  private addNodesSectionRelation(trainrun: SgTrainrun) {
-    trainrun.sgTrainrunItems.forEach((sgTrainrunItems, index) => {
-      if (sgTrainrunItems.isNode()) {
-        const pathNode = sgTrainrunItems.getTrainrunNode();
-        pathNode.arrivalPathSection = this.getPreviousTrainrunSection(
-          trainrun.sgTrainrunItems,
-          index,
-        );
-        pathNode.departurePathSection = this.getNextTrainrunSection(
-          trainrun.sgTrainrunItems,
-          index,
-        );
-      }
-      if (sgTrainrunItems.isSection()) {
-        const pathSection = sgTrainrunItems.getTrainrunSection();
-        pathSection.departurePathNode = this.getLastPathNode(trainrun.sgTrainrunItems, index);
-        pathSection.arrivalPathNode = this.getPreviousPathNode(trainrun.sgTrainrunItems, index);
+  private isDepartureBranchOnly(pathSection: PathSection, sgPathSection: SgPathSection): boolean {
+    const endpointId = pathSection.backward
+      ? sgPathSection.arrivalNodeId
+      : sgPathSection.departureNodeId;
+    return endpointId === pathSection.departurePathNode?.nodeId;
+  }
+
+  private findArrivalBranchSectionsOnly(pathSection: PathSection): SgPathSection[] {
+    return this.getAllPathSections().filter((section) =>
+      this.isArrivalBranchOnly(pathSection, section),
+    );
+  }
+
+  private isArrivalBranchOnly(pathSection: PathSection, sgPathSection: SgPathSection): boolean {
+    const endpointId = pathSection.backward
+      ? sgPathSection.departureNodeId
+      : sgPathSection.arrivalNodeId;
+    return endpointId === pathSection.arrivalPathNode?.nodeId;
+  }
+
+  private connectTrainrunItems(trainrun: SgTrainrun) {
+    trainrun.sgTrainrunItems.forEach((item, index) => {
+      if (item.isNode()) {
+        this.connectTrainrunNode(item.getTrainrunNode(), trainrun.sgTrainrunItems, index);
+      } else if (item.isSection()) {
+        this.connectTrainrunSection(item.getTrainrunSection(), trainrun.sgTrainrunItems, index);
       }
     });
   }
 
-  private getPreviousTrainrunSection(paths: SgTrainrunItem[], i: number): SgTrainrunSection {
-    if (i > 0) {
-      const path = paths[i - 1];
+  private connectTrainrunNode(node: SgTrainrunNode, items: SgTrainrunItem[], index: number): void {
+    node.arrivalPathSection = this.findNeighborSection(items, index, -1);
+    node.departurePathSection = this.findNeighborSection(items, index, 1);
+  }
+
+  private connectTrainrunSection(
+    section: SgTrainrunSection,
+    items: SgTrainrunItem[],
+    index: number,
+  ): void {
+    section.departurePathNode = this.getNeighborNode(items, index - 1);
+    section.arrivalPathNode = this.getNeighborNode(items, index + 1);
+  }
+
+  private findNeighborSection(
+    paths: SgTrainrunItem[],
+    index: number,
+    direction: -1 | 1,
+  ): SgTrainrunSection {
+    for (
+      let currentIndex = index + direction;
+      currentIndex >= 0 && currentIndex < paths.length;
+      currentIndex += direction
+    ) {
+      const path = paths[currentIndex];
       if (path instanceof SgTrainrunSection) {
         return path;
-      } else {
-        return this.getPreviousTrainrunSection(paths, i - 1);
       }
     }
     return undefined;
   }
 
-  private getNextTrainrunSection(paths: SgTrainrunItem[], i: number): SgTrainrunSection {
-    if (i + 1 < paths.length) {
-      const path = paths[i + 1];
-      if (path instanceof SgTrainrunSection) {
-        return path;
-      } else {
-        return this.getNextTrainrunSection(paths, i + 1);
-      }
-    }
-    return undefined;
-  }
-
-  private getLastPathNode(paths: SgTrainrunItem[], i: number): SgTrainrunNode {
-    if (i > 0) {
-      const path = paths[i - 1];
-      if (path instanceof SgTrainrunNode) {
-        return path;
-      }
-    }
-    return undefined;
-  }
-
-  private getPreviousPathNode(paths: SgTrainrunItem[], i: number): SgTrainrunNode {
-    if (i + 1 < paths.length) {
-      const path = paths[i + 1];
-      if (path instanceof SgTrainrunNode) {
-        return path;
-      }
-    }
-    return undefined;
+  private getNeighborNode(paths: SgTrainrunItem[], index: number): SgTrainrunNode {
+    const path = paths[index];
+    return path instanceof SgTrainrunNode ? path : undefined;
   }
 }

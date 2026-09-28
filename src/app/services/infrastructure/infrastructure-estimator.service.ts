@@ -15,6 +15,12 @@ interface SectionTrackEstimateInput {
   sectionHeadwayMinutes: number;
 }
 
+export interface TrackSegmentEstimate {
+  start: number;
+  end: number;
+  tracks: number;
+}
+
 type TrainrunSectionDirection = "forward" | "backward";
 type NodeTrackPass = 1 | 2 | 3;
 type NodeTrackTransit = "stop" | "non-stop" | "endpoint";
@@ -110,7 +116,11 @@ export class InfrastructureEstimatorService {
     toNode: Node,
     trainrunSections: TrainrunSection[],
     minHeadwayTime = InfrastructureEstimatorService.DEFAULT_MINIMUM_HEADWAY_TIME,
-  ): [number, number, number][] {
+  ): TrackSegmentEstimate[] {
+    // We have to pass the cooridor between two node (from -> to) node. the calcualtion is
+    // oriented - means passing from -> to is not the same as passing from to -> from.
+    // the trainrun sections could also been retrieved from the nodes (port) but as the methode
+    // must be stateless thus we have to pass the entire trainrun sections
     const matchingSections = this.findMatchingSections(fromNode, toNode, trainrunSections);
     if (matchingSections.length === 0) {
       return [];
@@ -137,6 +147,12 @@ export class InfrastructureEstimatorService {
     trainrunSections: TrainrunSection[],
     options: NodeTrackEstimatorOptions = {},
   ): NodeTrackEstimate[] {
+    // The input parameters are the node for which we want to estimate track usage,
+    // the trainrun sections that pass through this node. We could just use the node to
+    // retrieve alle trainrun sections which have a arrival or departure at this node (ports).
+    // But we like to have an stateless approach where all necessary data is passed explicitly.
+    // The NodeTrackEstimator operates purely on the provided occurrences and options,
+    // without relying on any external state.
     const occurrences = this.createNodeTrackOccurrences(node, trainrunSections);
     return this.estimateNodeTracksForNode(occurrences, options);
   }
@@ -1109,7 +1125,7 @@ export class InfrastructureEstimatorService {
     sections: SectionTrackEstimateInput[],
     maximumFrequencyMinutes: number,
     maximumFrequencyOffsetWindowMinutes: number,
-  ): [number, number, number][] {
+  ): TrackSegmentEstimate[] {
     const distanceResolution = InfrastructureEstimatorService.DEFAULT_DISTANCE_RESOLUTION;
     const timeResolution = InfrastructureEstimatorService.DEFAULT_TIME_RESOLUTION;
 
@@ -1188,34 +1204,34 @@ export class InfrastructureEstimatorService {
     }
   }
 
-  private static mergeTracks(tracksMatrix: number[]): [number, number, number][] {
+  private static mergeTracks(tracksMatrix: number[]): TrackSegmentEstimate[] {
     if (tracksMatrix.length === 0) {
       return [];
     }
 
     // Convert cell-by-cell occupancy into normalized intervals and merge equal values.
-    const tracks: [number, number, number][] = [];
+    const tracks: TrackSegmentEstimate[] = [];
     let from = 0;
     for (let distanceCell = 0; distanceCell < tracksMatrix.length; distanceCell++) {
       const to = (distanceCell + 1) / tracksMatrix.length;
-      tracks.push([from, Math.min(to, 1), tracksMatrix[distanceCell]]);
+      tracks.push({start: from, end: Math.min(to, 1), tracks: tracksMatrix[distanceCell]});
       from = to;
     }
 
-    const compactTracks: [number, number, number][] = [];
+    const compactTracks: TrackSegmentEstimate[] = [];
     let start = 0;
     let end = 0;
-    let value = tracks[0][2];
+    let value = tracks[0].tracks;
 
     tracks.forEach((track) => {
-      if (track[2] !== value) {
-        compactTracks.push([start, end, value]);
+      if (track.tracks !== value) {
+        compactTracks.push({start, end, tracks: value});
         start = end;
-        value = track[2];
+        value = track.tracks;
       }
-      end = track[1];
+      end = track.end;
     });
-    compactTracks.push([start, 1, value]);
+    compactTracks.push({start, end: 1, tracks: value});
 
     return compactTracks;
   }

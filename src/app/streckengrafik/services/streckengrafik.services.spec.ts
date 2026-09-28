@@ -144,7 +144,6 @@ describe("StreckengrafikServicesTests", () => {
     sg5FilterService = new Sg5FilterService(sg4ToggleTrackOccupierService);
     sg6TrackService = new Sg6TrackService(
       sg5FilterService,
-      dataService,
       nodeService,
       trainrunSectionService,
       trainrunService,
@@ -529,19 +528,15 @@ describe("StreckengrafikServicesTests", () => {
       }
       expect(node.trainrunNodes[0].backward).toBe(false);
       expect(node.trainrunNodes[0].minimumHeadwayTime).toBe(2);
-      expect(node.trainrunNodes[0].isTurnaround).toBe(true);
       expect(node.trainrunNodes[0].isEndNode()).toBe(true);
       expect(node.trainrunNodes[0].arrivalTime).toBe(22);
       expect(node.trainrunNodes[0].departureTime).toBe(38);
-      expect(node.trainrunNodes[0].unusedForTurnaround).toBe(true);
 
       expect(node.trainrunNodes[1].backward).toBe(true);
       expect(node.trainrunNodes[1].minimumHeadwayTime).toBe(2);
-      expect(node.trainrunNodes[1].isTurnaround).toBe(true);
       expect(node.trainrunNodes[1].isEndNode()).toBe(true);
       expect(node.trainrunNodes[1].arrivalTime).toBe(22);
       expect(node.trainrunNodes[1].departureTime).toBe(38);
-      expect(node.trainrunNodes[1].unusedForTurnaround).toBe(false);
     });
   });
 
@@ -565,19 +560,15 @@ describe("StreckengrafikServicesTests", () => {
       }
       expect(node.trainrunNodes[8].backward).toBe(false);
       expect(node.trainrunNodes[8].minimumHeadwayTime).toBe(2);
-      expect(node.trainrunNodes[8].isTurnaround).toBe(true);
       expect(node.trainrunNodes[8].isEndNode()).toBe(true);
       expect(node.trainrunNodes[8].arrivalTime).toBe(10);
       expect(node.trainrunNodes[8].departureTime).toBe(50);
-      expect(node.trainrunNodes[8].unusedForTurnaround).toBe(true);
 
       expect(node.trainrunNodes[9].backward).toBe(true);
       expect(node.trainrunNodes[9].minimumHeadwayTime).toBe(2);
-      expect(node.trainrunNodes[9].isTurnaround).toBe(true);
       expect(node.trainrunNodes[9].isEndNode()).toBe(true);
       expect(node.trainrunNodes[9].arrivalTime).toBe(130);
       expect(node.trainrunNodes[9].departureTime).toBe(170);
-      expect(node.trainrunNodes[9].unusedForTurnaround).toBe(false);
     });
   });
 
@@ -618,7 +609,6 @@ describe("StreckengrafikServicesTests", () => {
 
       expect(item0.isNode()).toBe(true);
       expect(item0.isSection()).toBe(false);
-      expect(item0.checkUnrollAllowed(120)).toBe(false);
       const node: SgPathNode = item0.getPathNode();
 
       const item1: SgTrainrunItem = ts.sgTrainrunItems[1];
