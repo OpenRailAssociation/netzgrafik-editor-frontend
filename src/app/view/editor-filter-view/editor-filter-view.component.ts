@@ -341,8 +341,8 @@ export class EditorFilterViewComponent implements OnInit, OnDestroy {
   }
 
   isAsymmetryActive(): boolean {
-    for (const section of this.dataService.getTrainrunSections()) {
-      if (!section.isSymmetric()) return true;
+    for (const trainrun of this.dataService.getTrainruns()) {
+      if (!trainrun.isSymmetric()) return true;
     }
     return false;
   }
