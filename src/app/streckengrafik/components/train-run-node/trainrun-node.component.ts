@@ -156,17 +156,20 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
     return "M 0 " + arrivalTime + " L 0 " + departureTime;
   }
 
-  private directTrackConnectionPath(trackInset: number): string[] {
+  private calculateTransitLine(trackInset: number): string[] {
+    if (!this.sgTrainrunItem.isNode()) {
+      return [];
+    }
     const node = this.sgTrainrunItem.getTrainrunNode();
     const reservation = this.getTrackReservation();
     if (reservation === undefined) {
       return [];
     }
+    const path: string[] = [];
     const nodeWidth = this.sgTrainrunItem.getPathNode().nodeWidth();
     const track = reservation.track * this.trackWidth;
     const arrivalTime = reservation.arrivalTime * this.yZoom;
     const departureTime = reservation.departureTime * this.yZoom;
-    const path: string[] = [];
     const arrivalSection = this.getReservationSection(
       reservation.arrivalSectionId,
       node.arrivalPathSection,
@@ -191,6 +194,90 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
       );
     }
     return path;
+  }
+  private calculateTransitLineEdgeNodes(trackInset: number): string[] {
+    if (!this.sgTrainrunItem.isNode()) {
+      return [];
+    }
+    const node = this.sgTrainrunItem.getTrainrunNode();
+    const reservation = this.getTrackReservation();
+    if (reservation === undefined) {
+      return [];
+    }
+    if (node.arrivalPathSection === undefined && node.departurePathSection === undefined) {
+      return [];
+    }
+
+    const path: string[] = [];
+    const nodeWidth = this.sgTrainrunItem.getPathNode().nodeWidth();
+    const track = reservation.track * this.trackWidth;
+    const arrivalTime = reservation.arrivalTime * this.yZoom;
+    const departureTime = reservation.departureTime * this.yZoom;
+
+    const arrivalSection = this.getReservationSection(
+      reservation.arrivalSectionId,
+      reservation.arrivalSectionId === undefined && reservation.departureSectionId === undefined
+        ? node.arrivalPathSection
+        : undefined,
+    );
+    const departureSection = this.getReservationSection(
+      reservation.departureSectionId,
+      reservation.arrivalSectionId === undefined && reservation.departureSectionId === undefined
+        ? node.departurePathSection
+        : undefined,
+    );
+
+    const arrivalIsReal = arrivalSection !== undefined;
+    const departureIsReal = departureSection !== undefined;
+    let arrivalOnLeft = arrivalIsReal
+      ? this.sectionIsOnLeftAtProjectedEdge(node, arrivalSection, true)
+      : undefined;
+    let departureOnLeft = departureIsReal
+      ? this.sectionIsOnLeftAtProjectedEdge(node, departureSection, false)
+      : undefined;
+    if (arrivalOnLeft === undefined && departureOnLeft !== undefined) {
+      arrivalOnLeft = !departureOnLeft;
+    }
+    if (departureOnLeft === undefined && arrivalOnLeft !== undefined) {
+      departureOnLeft = !arrivalOnLeft;
+    }
+    if (arrivalOnLeft === undefined && departureOnLeft === undefined) {
+      arrivalOnLeft = node.sgPathNode.index !== 0;
+      departureOnLeft = !arrivalOnLeft;
+    }
+
+    const arrivalX = arrivalOnLeft ? 0 : nodeWidth;
+    const arrivalTrackX = arrivalOnLeft ? track - trackInset : track + trackInset;
+    path.push("M " + arrivalX + " " + arrivalTime + " L " + arrivalTrackX + " " + arrivalTime);
+    const departureX = departureOnLeft ? 0 : nodeWidth;
+    const departureTrackX = departureOnLeft ? track - trackInset : track + trackInset;
+    path.push(
+      "M " + departureTrackX + " " + departureTime + " L " + departureX + " " + departureTime,
+    );
+    return path;
+  }
+
+  private directTrackConnectionPath(trackInset: number): string[] {
+    if (!this.sgTrainrunItem.isNode()) {
+      return [];
+    }
+    const node = this.sgTrainrunItem.getTrainrunNode();
+    const reservation = this.getTrackReservation();
+    if (reservation === undefined) {
+      return [];
+    }
+
+    if (node.isEndNode()) {
+      return this.calculateTransitLine(trackInset);
+    }
+
+    const isStartOrEndNodeInStreckengrafik = this.isStreckengrafikProjectedPathEndNode(node);
+    if (!isStartOrEndNodeInStreckengrafik) {
+      return this.calculateTransitLine(trackInset);
+    }
+
+    // the first and last node in the projected path (strecke) must be handled separately
+    return this.calculateTransitLineEdgeNodes(trackInset);
   }
 
   private getReservationSection(
@@ -253,6 +340,43 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
     return false;
   }
 
+  private sectionIsOnLeftAtProjectedEdge(
+    node: SgTrainrunNode,
+    section: SgTrainrunSection,
+    isArrival: boolean,
+  ): boolean {
+    const trainrunSection = this.trainrunSectionService?.getTrainrunSectionFromId(
+      section.trainrunSectionId,
+    );
+    const sourceNodeId = trainrunSection?.getSourceNode()?.getId();
+    const targetNodeId = trainrunSection?.getTargetNode()?.getId();
+    const otherNodeId =
+      node.nodeId === sourceNodeId
+        ? targetNodeId
+        : node.nodeId === targetNodeId
+          ? sourceNodeId
+          : undefined;
+    const otherPathNode = [
+      section.pathSection?.departurePathNode,
+      section.pathSection?.arrivalPathNode,
+    ].find((pathNode) => pathNode?.nodeId === otherNodeId);
+    if (otherPathNode?.startPosition !== undefined && node.sgPathNode.startPosition !== undefined) {
+      return otherPathNode.startPosition < node.sgPathNode.startPosition;
+    }
+    if (otherPathNode !== undefined && otherPathNode.index !== node.sgPathNode.index) {
+      return otherPathNode.index < node.sgPathNode.index;
+    }
+    return this.sectionIsOnLeft(node, section, isArrival);
+  }
+
+  private isStreckengrafikProjectedPathEndNode(node: SgTrainrunNode): boolean {
+    if (!node.isNode()) {
+      return false;
+    }
+    const pathNode = node.getPathNode();
+    return pathNode.departurePathSection === undefined || pathNode.arrivalPathSection === undefined;
+  }
+
   pathGleisbelegung() {
     const reservation = this.getTrackReservation();
     if (reservation === undefined) {
@@ -310,10 +434,6 @@ export class TrainRunNodeComponent implements OnInit, OnDestroy {
       return false;
     }
     return true;
-  }
-
-  checkUnrollAllowed(): boolean {
-    return this.sgTrainrunItem.checkUnrollAllowed(this.offset / this.frequency);
   }
 
   bringToFront(event: MouseEvent, pathIndex?: number) {

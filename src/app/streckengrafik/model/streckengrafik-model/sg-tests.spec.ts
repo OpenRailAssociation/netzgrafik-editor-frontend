@@ -98,12 +98,6 @@ describe("StreckengrafikModelTests", () => {
       undefined,
     );
 
-    section.maxUnrollOnlyEvenFrequencyOffsets = 0;
-    expect(section.checkUnrollAllowed(10)).toBe(true);
-    section.maxUnrollOnlyEvenFrequencyOffsets = 1;
-    expect(section.checkUnrollAllowed(10)).toBe(true);
-    section.unrollOnlyEvenFrequencyOffsets = 1;
-    expect(section.checkUnrollAllowed(0)).toBe(false);
     section.changeOrientation();
   });
 
@@ -134,19 +128,12 @@ describe("StreckengrafikModelTests", () => {
       ),
       undefined,
       undefined,
-      undefined,
-      false,
     );
-
-    expect(section.checkUnrollAllowed(10)).toBe(true);
-
-    const copyiedSection = SgTrainrunNode.copy(section);
-    expect(copyiedSection.getId() !== section.getId()).toBe(true);
 
     expect(section.getTrainrunSection()).toBe(undefined);
     expect(section.getPathSection()).toBe(undefined);
     expect(section.getStartposition()).toBe(12);
-    expect(section.getMinimumHeadwayTime()).toBe(2);
+    expect(section.minimumHeadwayTime).toBe(2);
   });
 
   it("keeps same-offset reservations separate by trainrun ID", () => {

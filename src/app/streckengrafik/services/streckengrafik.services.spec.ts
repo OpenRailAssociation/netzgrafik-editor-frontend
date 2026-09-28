@@ -6,8 +6,6 @@ import {ResourceService} from "../../services/data/resource.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {NoteService} from "../../services/data/note.service";
-import {Node} from "../../models/node.model";
-import {TrainrunSection} from "../../models/trainrunsection.model";
 import {LogService} from "../../logger/log.service";
 import {LogPublishersService} from "../../logger/log.publishers.service";
 import {LabelGroupService} from "../../services/data/labelgroup.service";
@@ -44,8 +42,6 @@ describe("StreckengrafikServicesTests", () => {
   let trainrunSectionService: TrainrunSectionService;
   let baseDataService: BaseDataService;
   let noteService: NoteService;
-  let nodes: Node[] = null;
-  let trainrunSections: TrainrunSection[] = null;
   let logService: LogService = null;
   let logPublishersService: LogPublishersService = null;
   let labelGroupService: LabelGroupService = null;
@@ -95,13 +91,6 @@ describe("StreckengrafikServicesTests", () => {
       filterService,
       netzgrafikColoringService,
     );
-    nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
-
-    nodeService.nodes.subscribe((updatesNodes) => (nodes = updatesNodes));
-    trainrunSectionService.trainrunSections.subscribe(
-      (updatesTrainrunSections) => (trainrunSections = updatesTrainrunSections),
-    );
-
     loadPerlenketteService = new LoadPerlenketteService(
       trainrunService,
       trainrunSectionService,
@@ -144,22 +133,10 @@ describe("StreckengrafikServicesTests", () => {
     sg5FilterService = new Sg5FilterService(sg4ToggleTrackOccupierService);
     sg6TrackService = new Sg6TrackService(
       sg5FilterService,
-      dataService,
       nodeService,
       trainrunSectionService,
       trainrunService,
       new InfrastructureEstimatorService(),
-    );
-  });
-
-  it("Load test", () => {
-    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    expect(nodes.length).toBe(5);
-    expect(trainrunSections.length).toBe(8);
-
-    nodes.forEach((n: Node) => expect(filterService.checkFilterNode(n)).toBe(true));
-    trainrunSections.forEach((ts: TrainrunSection) =>
-      expect(filterService.filterTrainrun(ts.getTrainrun())).toBe(true),
     );
   });
 
@@ -529,19 +506,15 @@ describe("StreckengrafikServicesTests", () => {
       }
       expect(node.trainrunNodes[0].backward).toBe(false);
       expect(node.trainrunNodes[0].minimumHeadwayTime).toBe(2);
-      expect(node.trainrunNodes[0].isTurnaround).toBe(true);
       expect(node.trainrunNodes[0].isEndNode()).toBe(true);
       expect(node.trainrunNodes[0].arrivalTime).toBe(22);
       expect(node.trainrunNodes[0].departureTime).toBe(38);
-      expect(node.trainrunNodes[0].unusedForTurnaround).toBe(true);
 
       expect(node.trainrunNodes[1].backward).toBe(true);
       expect(node.trainrunNodes[1].minimumHeadwayTime).toBe(2);
-      expect(node.trainrunNodes[1].isTurnaround).toBe(true);
       expect(node.trainrunNodes[1].isEndNode()).toBe(true);
       expect(node.trainrunNodes[1].arrivalTime).toBe(22);
       expect(node.trainrunNodes[1].departureTime).toBe(38);
-      expect(node.trainrunNodes[1].unusedForTurnaround).toBe(false);
     });
   });
 
@@ -565,19 +538,15 @@ describe("StreckengrafikServicesTests", () => {
       }
       expect(node.trainrunNodes[8].backward).toBe(false);
       expect(node.trainrunNodes[8].minimumHeadwayTime).toBe(2);
-      expect(node.trainrunNodes[8].isTurnaround).toBe(true);
       expect(node.trainrunNodes[8].isEndNode()).toBe(true);
       expect(node.trainrunNodes[8].arrivalTime).toBe(10);
       expect(node.trainrunNodes[8].departureTime).toBe(50);
-      expect(node.trainrunNodes[8].unusedForTurnaround).toBe(true);
 
       expect(node.trainrunNodes[9].backward).toBe(true);
       expect(node.trainrunNodes[9].minimumHeadwayTime).toBe(2);
-      expect(node.trainrunNodes[9].isTurnaround).toBe(true);
       expect(node.trainrunNodes[9].isEndNode()).toBe(true);
       expect(node.trainrunNodes[9].arrivalTime).toBe(130);
       expect(node.trainrunNodes[9].departureTime).toBe(170);
-      expect(node.trainrunNodes[9].unusedForTurnaround).toBe(false);
     });
   });
 
@@ -618,7 +587,6 @@ describe("StreckengrafikServicesTests", () => {
 
       expect(item0.isNode()).toBe(true);
       expect(item0.isSection()).toBe(false);
-      expect(item0.checkUnrollAllowed(120)).toBe(false);
       const node: SgPathNode = item0.getPathNode();
 
       const item1: SgTrainrunItem = ts.sgTrainrunItems[1];

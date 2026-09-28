@@ -93,7 +93,7 @@ export class KnotenAuslastungDataPreparation {
     );
     const estimates = this.infrastructureEstimatorService.estimateNodeTracks(node, sections, {
       windowStartMinutes: 0,
-      windowMinutes: KnotenAuslastungDataPreparation.ESTIMATION_MINUTES,
+      windowEndMinutes: KnotenAuslastungDataPreparation.ESTIMATION_MINUTES,
       separateForwardBackwardTracks: true,
     });
     this.evenHour = this.createProjection(node, 0, sectionById, sectionByTrainrunId, estimates);

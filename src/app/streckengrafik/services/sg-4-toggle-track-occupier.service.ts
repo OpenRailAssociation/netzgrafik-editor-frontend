@@ -11,10 +11,8 @@ import {UiInteractionService} from "../../services/ui/ui.interaction.service";
 })
 export class Sg4ToggleTrackOccupierService implements OnDestroy {
   private readonly sgSelectedTrainrunSubject = new BehaviorSubject<SgSelectedTrainrun>(undefined);
-  private readonly sgSelectedTrainrun$ = this.sgSelectedTrainrunSubject.asObservable();
 
   private readonly trackOccupierOnOffSubject = new BehaviorSubject<void>(null);
-  private readonly trackOccupierOnOff$ = this.trackOccupierOnOffSubject.asObservable();
 
   private selectedTrainrun: SgSelectedTrainrun;
 
@@ -52,67 +50,47 @@ export class Sg4ToggleTrackOccupierService implements OnDestroy {
     }
     this.selectedTrainrun.paths.forEach((path) => {
       if (path.isNode()) {
-        if (this.nodeIdMap.has(path.getPathNode().nodeId)) {
-          path.trackOccupier = this.nodeIdMap.get(path.getPathNode().nodeId);
-        } else {
-          path.trackOccupier = false;
-        }
+        path.trackOccupier = this.nodeIdMap.get(path.getPathNode().nodeId) ?? false;
       }
     });
     this.sgSelectedTrainrunSubject.next(this.selectedTrainrun);
   }
 
   public getSgSelectedTrainrun(): Observable<SgSelectedTrainrun> {
-    return this.sgSelectedTrainrun$;
+    return this.sgSelectedTrainrunSubject.asObservable();
   }
 
   public getTrackOccupierOnOff(): Observable<void> {
-    return this.trackOccupierOnOff$;
+    return this.trackOccupierOnOffSubject.asObservable();
   }
 
   toggleTrackOccupier(nodeId: number) {
-    if (this.nodeIdMap.has(nodeId)) {
-      this.nodeIdMap.set(nodeId, !this.nodeIdMap.get(nodeId));
-    } else {
-      this.nodeIdMap.set(nodeId, true);
-    }
+    this.nodeIdMap.set(nodeId, !this.nodeIdMap.get(nodeId));
     this.render();
     this.trackOccupierOnOffSubject.next();
   }
 
   public expandAllPathNode() {
-    this.selectedTrainrun.paths.forEach((path: SgPath) => {
-      if (path.isNode()) {
-        const pathNode = path.getPathNode();
-        if (!pathNode.trackOccupier) {
-          this.toggleTrackOccupier(path.getPathNode().nodeId);
-        }
-      }
-    });
+    this.setAllPathNodes(true);
   }
 
   public collapseAllPathNode() {
+    this.setAllPathNodes(false);
+  }
+
+  private setAllPathNodes(open: boolean): void {
     if (!this.selectedTrainrun) {
       return;
     }
-    this.selectedTrainrun.paths.forEach((path: SgPath) => {
-      if (path.isNode()) {
-        const pathNode = path.getPathNode();
-        if (pathNode.trackOccupier) {
-          this.toggleTrackOccupier(path.getPathNode().nodeId);
-        }
-      }
-    });
+    this.selectedTrainrun.paths
+      .filter((path: SgPath) => path.isNode())
+      .filter((path) => path.getPathNode().trackOccupier !== open)
+      .forEach((path) => this.toggleTrackOccupier(path.getPathNode().nodeId));
   }
 
   allPathNodeClosed(): boolean {
-    let retVal = false;
-    this.selectedTrainrun.paths.forEach((path: SgPath) => {
-      if (path.isNode()) {
-        const pathNode = path.getPathNode();
-        retVal = retVal || pathNode.trackOccupier;
-      }
-    });
-    return !retVal;
+    return !this.selectedTrainrun.paths.some(
+      (path: SgPath) => path.isNode() && path.getPathNode().trackOccupier,
+    );
   }
 }

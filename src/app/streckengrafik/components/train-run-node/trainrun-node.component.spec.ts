@@ -244,6 +244,7 @@ describe("TrainRunNodeComponent", () => {
     );
     const node = createNode();
     node.arrivalPathSection = undefined;
+    node.endNode = true;
     component.sgTrainrunItem = node;
     component.trackOccupier = true;
     component.trackReservation = node.trackReservations[0];
@@ -262,6 +263,7 @@ describe("TrainRunNodeComponent", () => {
     );
     const node = createNode();
     node.departurePathSection = undefined;
+    node.endNode = true;
     component.sgTrainrunItem = node;
     component.trackOccupier = true;
     component.trackReservation = node.trackReservations[0];
