@@ -32,6 +32,12 @@ import {Connection} from "../../models/connection.model";
 import {Operation, OperationType, TrainrunOperation} from "../../models/operation.model";
 import {TrainrunsectionHelper} from "../util/trainrunsection.helper";
 
+export interface OrderedTrainrunNodeEntry {
+  nodeId: number;
+  trainrunSectionId?: number;
+  hasGapAfter: boolean;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -583,6 +589,79 @@ export class TrainrunService {
     const endNode1 = this.getEndNode(sourceNode, trainrunSection);
     const endNode2 = this.getEndNode(targetNode, trainrunSection);
     return {endNode1, endNode2};
+  }
+
+  getOrderedNodeEntriesForTrainrun(trainrun: Trainrun): OrderedTrainrunNodeEntry[] {
+    const entryGroups = this.getAllNodeEntriesForTrainrun(trainrun);
+
+    entryGroups.sort((groupA, groupB) => {
+      const startNodeA = this.nodeService.getNodeFromId(groupA[0].nodeId);
+      const startNodeB = this.nodeService.getNodeFromId(groupB[0].nodeId);
+      if (!startNodeA || !startNodeB) {
+        return 0;
+      }
+
+      const leftOrTopNode = GeneralViewFunctions.getLeftOrTopNode(startNodeA, startNodeB);
+      return leftOrTopNode.getId() === startNodeA.getId() ? -1 : 1;
+    });
+
+    entryGroups.forEach((group, index) => {
+      group[group.length - 1].hasGapAfter = index < entryGroups.length - 1;
+    });
+
+    return entryGroups.flat();
+  }
+
+  getAllNodeEntriesForTrainrun(trainrun: Trainrun): OrderedTrainrunNodeEntry[][] {
+    let allTrainrunSections = this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      trainrun.getId(),
+    );
+    const entryGroups: OrderedTrainrunNodeEntry[][] = [];
+
+    while (allTrainrunSections.length > 0) {
+      const trainrunSection = allTrainrunSections[0];
+      allTrainrunSections = allTrainrunSections.filter(
+        (section) => section.getId() !== trainrunSection.getId(),
+      );
+
+      const bothEndNodes = this.getBothEndNodesFromTrainrunPart(trainrunSection);
+      const startNode = GeneralViewFunctions.getLeftOrTopNode(
+        bothEndNodes.endNode1,
+        bothEndNodes.endNode2,
+      );
+      if (!startNode) {
+        continue;
+      }
+
+      const startSection = startNode.getExtremityTrainrunSection(trainrun.getId());
+      if (!startSection) {
+        return entryGroups;
+      }
+
+      const groupEntries: OrderedTrainrunNodeEntry[] = [
+        {
+          nodeId: startNode.getId(),
+          trainrunSectionId: startSection.getId(),
+          hasGapAfter: false,
+        },
+      ];
+
+      const iterator = this.getIterator(startNode, startSection);
+      while (iterator.hasNext()) {
+        const pair = iterator.next();
+        groupEntries.push({
+          nodeId: pair.node.getId(),
+          trainrunSectionId: pair.trainrunSection.getId(),
+          hasGapAfter: false,
+        });
+        allTrainrunSections = allTrainrunSections.filter(
+          (section) => section.getId() !== pair.trainrunSection.getId(),
+        );
+      }
+
+      entryGroups.push(groupEntries);
+    }
+    return entryGroups;
   }
 
   propagateConsecutiveTimesForTrainrun(trainrunSectionId: number) {
