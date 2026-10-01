@@ -52,7 +52,7 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   @ViewChild("leftSymmetryToggle") leftSymmetryToggle: ToggleSwitchButtonComponent;
   @ViewChild("rightSymmetryToggle") rightSymmetryToggle: ToggleSwitchButtonComponent;
 
-  public selectedTrainrunSection: TrainrunSection;
+  public selectedTrainrunSection: TrainrunSection | null = null;
   public leftBetriebspunkt: string[] = ["", ""];
   public rightBetriebspunkt: string[] = ["", ""];
   public tagNbrStopInput = false;
@@ -88,7 +88,10 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   }
 
   public get isBottomTravelTimeDisplayed(): boolean {
-    if (!this.selectedTrainrunSection.getTrainrun().isRoundTrip()) {
+    if (
+      this.selectedTrainrunSection === null ||
+      !this.selectedTrainrunSection.getTrainrun().isRoundTrip()
+    ) {
       return false;
     }
     const firstTrainrunSection = this.trainrunService.getFirstNonStopTrainrunSection(
@@ -344,8 +347,11 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  isRoundTrip() {
-    return this.selectedTrainrunSection.getTrainrun().isRoundTrip();
+  isRoundTrip(): boolean {
+    return (
+      this.selectedTrainrunSection !== null &&
+      this.selectedTrainrunSection.getTrainrun().isRoundTrip()
+    );
   }
 
   getTrafficSideClass(className: string): string {
