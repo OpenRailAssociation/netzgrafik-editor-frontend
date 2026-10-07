@@ -10,44 +10,60 @@
   />
 </sbb-search>
 <sbb-autocomplete #auto="sbbAutocomplete" [displayWith]="displayTrainrun">
-  @for (option of filteredTrainruns; track option) {
-  <sbb-option [value]="option">{{ transformTrainrunName(option) }}</sbb-option>
-  }
+  <sbb-option *ngFor="let option of filteredTrainruns" [value]="option">
+    {{ transformTrainrunName(option) }}
+  </sbb-option>
   <sbb-option-hint *ngIf="remainingTrainrunResults > 0">
-    {{
-      "app.view.editor-search-view-component.more-results"
-        | translate: {count: remainingTrainrunResults.toString()}
-    }}
+    {{ "app.view.editor-search-view-component.more-results" | translate: {count:
+    remainingTrainrunResults.toString()} }}
   </sbb-option-hint>
 </sbb-autocomplete>
 
-@if (searchResults.length === 1 && orderedNodeEntries.length > 0) {
 <div
+  *ngIf="searchResults.length === 1 && orderedNodeEntries.length > 0"
   #trainrunResultsList
   class="search-results-list"
   [class.dragging]="isDraggingResults"
   (mousedown)="onResultListMouseDown($event, trainrunResultsList)"
 >
-  @for (entry of orderedNodeEntries; track $index; let last = $last) {
-  <div class="timeline-row">
-    <div class="timeline-marker-column">
-      <span class="pearl"></span>
-    </div>
-    <span
-      class="smallstation"
-      [title]="transformNodeEntryName(entry)"
-      (click)="onOrderedNodeClick(entry)"
-    >
-      {{ transformNodeEntryName(entry) }}
-    </span>
-  </div>
+  <ng-container *ngFor="let entry of orderedNodeEntries; let first = first; let last = last">
+    <ng-container *ngIf="startNodeHidden && first">
+      <div class="timeline-hidden-endpoint" (click)="onOrderedNodeClick(startNode!)">
+        {{ transformNodeEntryName(startNode!) }}
+      </div>
+      <div class="connector-row">
+        <span class="connector timeline-hidden-connector timeline-hidden-connector-start"></span>
+      </div>
+    </ng-container>
 
-  @if (!last && !entry.hasGapAfter) {
-  <div class="connector-row">
-    <span class="connector"></span>
-  </div>
-  } @else if (entry.hasGapAfter) {
-  <div class="timeline-gap"></div>
-  } }
+    <div class="timeline-row">
+      <div class="timeline-marker-column">
+        <span class="pearl"></span>
+      </div>
+      <span
+        class="smallstation"
+        [title]="transformNodeEntryName(entry)"
+        (click)="onOrderedNodeClick(entry)"
+      >
+        {{ transformNodeEntryName(entry) }}
+      </span>
+    </div>
+
+    <div *ngIf="!last && !entry.hasGapAfter" class="connector-row">
+      <span class="connector"></span>
+    </div>
+    <div *ngIf="entry.hasGapAfter" class="timeline-gap timeline-gap-with-hidden-node">
+      <span class="connector timeline-hidden-connector timeline-hidden-connector-end"></span>
+      <span class="connector timeline-hidden-connector timeline-hidden-connector-start"></span>
+    </div>
+
+    <ng-container *ngIf="endNodeHidden && last">
+      <div class="connector-row">
+        <span class="connector timeline-hidden-connector timeline-hidden-connector-end"></span>
+      </div>
+      <div class="timeline-hidden-endpoint" (click)="onOrderedNodeClick(endNode!)">
+        {{ transformNodeEntryName(endNode!) }}
+      </div>
+    </ng-container>
+  </ng-container>
 </div>
-}
