@@ -432,6 +432,7 @@
         "select-node": "Select node",
         "search-trainrun": "Search trainrun",
         "select-trainrun": "Select trainrun",
+        "more-results": "{$count} résultats supplémentaires disponibles",
         "clear-all-search-fields": "Reset all search fields",
         "reset": "Reset search"
       },

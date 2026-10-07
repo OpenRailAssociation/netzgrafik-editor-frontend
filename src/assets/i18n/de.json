@@ -432,6 +432,7 @@
         "select-node": "Knoten auswählen",
         "search-trainrun": "Suche nach Zugfahrten",
         "select-trainrun": "Zugfahrt auswählen",
+        "more-results": "{$count} weitere Treffer verfügbar",
         "clear-all-search-fields": "Alle Suchfelder zurücksetzen",
         "reset": "Suche zurücksetzen"
       },
