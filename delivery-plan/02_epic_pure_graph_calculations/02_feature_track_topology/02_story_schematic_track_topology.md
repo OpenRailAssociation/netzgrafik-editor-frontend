@@ -1,0 +1,7 @@
+# Schematische Gleis-Topologie
+
+**Umsetzung:** Das Ergebnis des reinen Track Estimators im Infrastruktur-Tab als kompakte SVG-Skizze rendern. Ein Non-stop-Korridor wird als `BP -> SVG-Kante -> BP -> ...` gezeigt. Jedes SVG hat feste Masse `192px x 64px`, scharfe, nicht skalierte `1px`-Linien und liegt zwischen BP-Texten. Jedes Segment zeigt bis zu vier parallele horizontale Linien mit konstantem `8px`-Abstand; bei mehr als einer Spur verbinden vertikale Linien den ersten und letzten Strang an Segmentanfang und -ende. Bedarf oberhalb der vorhandenen Kapazitaet nutzt die Warning-Farbe. Bei mehr als vier benoetigten Gleisen ersetzt eine transparente, geschlossene Zaehlbox ueber die volle Segmentbreite die nicht mehr darstellbaren Linien. Die Darstellung ist rein abgeleitet; nur das Kapazitaetsfeld oberhalb einer Kante ist editierbar.
+
+**Test:** Renderer-Test mit der Folge `1-2-1-2-3-4-2-1`; Segmentgrenzen muessen exakt zusammenfallen, Linien duerfen BP-Text nicht ueberlappen. Fuer mehr als vier Gleise muss die Zaehlbox die volle Segmentbreite belegen. UI: Abschnitts-Infrastruktur oeffnen, Skizze gegen bekannte Zuglaeufe pruefen und kontrollieren, dass alle Kanten des Non-stop-Korridors eine eigene, richtungskorrekte Topologie zeigen.
+
+**Commit:** `feat(analytics): render required physical edge topology`

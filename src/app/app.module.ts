@@ -42,6 +42,7 @@ import {ColumnLayoutComponent} from "./view/column-layout/column-layout.componen
 import {NetzgrafikApplicationComponent} from "./netzgrafik-application/netzgrafik-application.component";
 import {TrainrunTabComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrun-tab/trainrun-tab.component";
 import {TrainrunSectionTabComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrunsection-tab/trainrun-section-tab.component";
+import {TrainrunSectionInfrastructureTabComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrunsection-infrastructure-tab/trainrun-section-infrastructure-tab.component";
 import {TrainrunSectionCardComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrunsection-card/trainrun-section-card.component";
 import {EditorNodeDetailViewComponent} from "./view/editor-side-view/editor-node-detail-view/editor-node-detail-view.component";
 import {EditorFilterViewComponent} from "./view/editor-filter-view/editor-filter-view.component";
@@ -127,6 +128,7 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     TrainrunFilterTabComponent,
     TrainrunRoundtripTabComponent,
     TrainrunSectionTabComponent,
+    TrainrunSectionInfrastructureTabComponent,
     TimeStepperComponent,
     TrainrunSectionCardComponent,
     EditorNodeDetailViewComponent,

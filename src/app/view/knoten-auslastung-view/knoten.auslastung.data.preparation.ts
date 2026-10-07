@@ -4,6 +4,12 @@ import {Node} from "../../models/node.model";
 import {ResourceService} from "../../services/data/resource.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
+import {
+  calculateTrackRequirementProfile,
+  TrackOccupationInterval,
+  TrackRequirementProfile,
+} from "../../services/analytics/track-requirement-profile.calculator";
+import {NodeTrackOccupation} from "../../services/analytics/infrastructure-occupation.calculator";
 
 export class KnotenAuslastungDataPreparation {
   static MAX_NR_MINUTES = 60;
@@ -28,6 +34,9 @@ export class KnotenAuslastungDataPreparation {
     capacityLimitReached: boolean;
   }[] = [];
   private matrix: number[][];
+  private occupationIntervals: TrackOccupationInterval[] = [];
+  private trackRequirementProfile: TrackRequirementProfile | undefined;
+  private availableTrackCount: number | undefined;
 
   constructor(
     private trainrunService: TrainrunService,
@@ -41,6 +50,49 @@ export class KnotenAuslastungDataPreparation {
     return trainrunName;
   }
 
+  computeFromInfrastructureOccupation(node: Node, occupation: NodeTrackOccupation | undefined) {
+    this.nbrUsedOfTrackFound = occupation?.maximumRequiredTrackCount ?? 0;
+    this.nodeDatas = [];
+    this.resourceDatas = [];
+    this.occupationIntervals = [];
+    this.trackRequirementProfile = undefined;
+    this.availableTrackCount = occupation?.capacity;
+
+    occupation?.reservations.forEach((reservation) => {
+      const targetNode =
+        reservation.trainrunSection.getSourceNodeId() === node.getId()
+          ? reservation.trainrunSection.getTargetNode()
+          : reservation.trainrunSection.getSourceNode();
+      this.nodeDatas.push({
+        trainrunSection: reservation.trainrunSection,
+        name: KnotenAuslastungDataPreparation.getTrainrunLabel(reservation.trainrunSection),
+        tooltip: this.getTrainrunTooltip(reservation.trainrunSection, targetNode),
+        color: reservation.trackNumber - 1,
+        startAngle: (reservation.startMinute / 60) * (2 * Math.PI),
+        endAngle: (reservation.endMinute / 60) * (2 * Math.PI),
+        innerRadius: reservation.trackNumber - 1,
+        outerRadius: reservation.trackNumber - 1,
+      });
+    });
+
+    const visibleTrackCount = Math.min(
+      KnotenAuslastungDataPreparation.MAX_NR_TRACKS,
+      Math.max(this.nbrUsedOfTrackFound, this.availableTrackCount ?? 0, 1),
+    );
+    for (let trackLoop = 0; trackLoop < visibleTrackCount; trackLoop += 1) {
+      for (let timeLoop = 0; timeLoop < 60; timeLoop += 5) {
+        this.resourceDatas.push({
+          startAngle: ((timeLoop + 0.1) / 60) * 2 * Math.PI,
+          endAngle: ((timeLoop + 4.9) / 60) * 2 * Math.PI,
+          innerRadius: trackLoop,
+          outerRadius: trackLoop,
+          capacityLimitReached:
+            trackLoop >= (this.availableTrackCount ?? visibleTrackCount),
+        });
+      }
+    }
+  }
+
   addExtremitySectionToMatrix(trainrunSection: TrainrunSection, node: Node, isTargetNode: boolean) {
     let directionLoops: number[] = [0, 1];
     if (!trainrunSection.getTrainrun().isRoundTrip()) {
@@ -49,9 +101,10 @@ export class KnotenAuslastungDataPreparation {
 
     for (const directionLoop of directionLoops) {
       const haltezeit = node.getTrainrunCategoryHaltezeit();
-      const delta = Math.floor(
+      const dwellTime = Math.floor(
         haltezeit[trainrunSection.getTrainrun().getTrainrunCategory().fachCategory].haltezeit,
       );
+      const delta = dwellTime + this.getNodeHeadway(trainrunSection, node);
       let arrivalTime = isTargetNode
         ? trainrunSection.getTargetArrivalConsecutiveTime()
         : trainrunSection.getSourceArrivalConsecutiveTime();
@@ -77,6 +130,10 @@ export class KnotenAuslastungDataPreparation {
       for (let freqLoop = 0; freqLoop < 60; freqLoop += freq) {
         const freqArrivalTime = Math.round(arrivalTime + freqLoop) % 60;
         const freqDeparturetime = Math.round(freqArrivalTime + delta);
+        this.occupationIntervals.push({
+          startMinute: freqArrivalTime,
+          endMinute: freqDeparturetime,
+        });
         let freeIdx = 0;
         for (let uLoop = freqArrivalTime; uLoop <= freqDeparturetime; uLoop += 1) {
           while (freeIdx < KnotenAuslastungDataPreparation.MAX_NR_TRACKS - 1) {
@@ -145,6 +202,8 @@ export class KnotenAuslastungDataPreparation {
     this.nbrUsedOfTrackFound = -1;
     this.nodeDatas = [];
     this.resourceDatas = [];
+    this.occupationIntervals = [];
+    this.trackRequirementProfile = undefined;
 
     const sortedTransitions = Object.assign([], node.getTransitions());
     sortedTransitions.sort((transition1: Transition, transition2: Transition) => {
@@ -170,10 +229,10 @@ export class KnotenAuslastungDataPreparation {
 
       const isTargetNode = tsToNode.getTargetNodeId() === node.getId();
       if (isRoundTrip || isTargetNode) {
-        this.addSectionsAtTransitionToMatrix(tsToNode, tsFromNode, node.getId());
+        this.addSectionsAtTransitionToMatrix(tsToNode, tsFromNode, node);
       }
       if (isRoundTrip || !isTargetNode) {
-        this.addSectionsAtTransitionToMatrix(tsFromNode, tsToNode, node.getId());
+        this.addSectionsAtTransitionToMatrix(tsFromNode, tsToNode, node);
       }
     });
 
@@ -188,7 +247,16 @@ export class KnotenAuslastungDataPreparation {
       }
     });
 
-    for (let trackLoop = 0; trackLoop <= Math.max(this.nbrUsedOfTrackFound, 0); trackLoop += 1) {
+    this.trackRequirementProfile = calculateTrackRequirementProfile(
+      this.occupationIntervals,
+      this.getAvailableTrackCount(node),
+    );
+
+    const visibleTrackCount = Math.min(
+      KnotenAuslastungDataPreparation.MAX_NR_TRACKS,
+      Math.max(this.getNrUsedTrackFound(), this.getAvailableTrackCount(node) ?? 0, 1),
+    );
+    for (let trackLoop = 0; trackLoop < visibleTrackCount; trackLoop += 1) {
       for (let timeLoop = 0; timeLoop < 60; timeLoop += 5) {
         this.resourceDatas.push({
           startAngle: ((timeLoop + 0.1) / 60) * 2 * Math.PI,
@@ -196,14 +264,18 @@ export class KnotenAuslastungDataPreparation {
           innerRadius: trackLoop,
           outerRadius: trackLoop,
           capacityLimitReached:
-            trackLoop >= this.resourceService.getResource(node.getResourceId())?.getCapacity(),
+            trackLoop >= (this.getAvailableTrackCount(node) ?? visibleTrackCount),
         });
       }
     }
   }
 
   getNrUsedTrackFound() {
-    return this.nbrUsedOfTrackFound;
+    return this.trackRequirementProfile?.maximumRequiredTrackCount ?? this.nbrUsedOfTrackFound;
+  }
+
+  getAvailableTrackCount(node: Node): number | undefined {
+    return this.availableTrackCount ?? this.resourceService.getResource(node.getResourceId())?.getCapacity();
   }
 
   getNodesData() {
@@ -226,20 +298,21 @@ export class KnotenAuslastungDataPreparation {
   private addSectionsAtTransitionToMatrix(
     trainrunSection1: TrainrunSection,
     trainrunSection2: TrainrunSection,
-    nodeId: number,
+    node: Node,
   ) {
     let targetNode = trainrunSection1.getSourceNode();
     let arrivalTime = trainrunSection1.getSourceArrivalConsecutiveTime();
-    if (trainrunSection1.getSourceNode().getId() !== nodeId) {
+    if (trainrunSection1.getSourceNode().getId() !== node.getId()) {
       targetNode = trainrunSection1.getTargetNode();
       arrivalTime = trainrunSection1.getTargetArrivalConsecutiveTime();
     }
     let departureTime = trainrunSection2.getSourceDepartureConsecutiveTime();
-    if (trainrunSection2.getSourceNode().getId() !== nodeId) {
+    if (trainrunSection2.getSourceNode().getId() !== node.getId()) {
       departureTime = trainrunSection2.getTargetDepartureConsecutiveTime();
     }
 
-    const delta = Math.floor(departureTime - arrivalTime);
+    const dwellTime = Math.floor(departureTime - arrivalTime);
+    const delta = dwellTime + this.getNodeHeadway(trainrunSection1, node);
 
     let freq = trainrunSection1.getFrequency();
     if (freq === null) {
@@ -252,6 +325,10 @@ export class KnotenAuslastungDataPreparation {
     ) {
       const freqArrivalTime = Math.round(arrivalTime + freqLoop) % 60;
       const freqDeparturetime = Math.round(freqArrivalTime + delta);
+      this.occupationIntervals.push({
+        startMinute: freqArrivalTime,
+        endMinute: freqDeparturetime,
+      });
 
       let freeIdx = 0;
       for (let uLoop = freqArrivalTime; uLoop <= freqDeparturetime; uLoop += 1) {
@@ -277,5 +354,11 @@ export class KnotenAuslastungDataPreparation {
         outerRadius: freeIdx,
       });
     }
+  }
+
+  private getNodeHeadway(trainrunSection: TrainrunSection, node: Node): number {
+    const category = trainrunSection.getTrainrun().getTrainrunCategory();
+    const isNonStop = node.getTransition(trainrunSection.getId())?.getIsNonStopTransit();
+    return isNonStop ? category.nodeHeadwayNonStop : category.nodeHeadwayStop;
   }
 }
