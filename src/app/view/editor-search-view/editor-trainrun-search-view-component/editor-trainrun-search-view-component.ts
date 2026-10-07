@@ -41,6 +41,10 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
   searchControl = new FormControl<string | Trainrun | null>("");
   searchResults: Trainrun[] = [];
   orderedNodeEntries: OrderedTrainrunNodeEntry[] = [];
+  startNode: OrderedTrainrunNodeEntry | undefined;
+  endNode: OrderedTrainrunNodeEntry | undefined;
+  startNodeHidden = false;
+  endNodeHidden = false;
   readonly displayTrainrun = (value: string | Trainrun | null): string =>
     this.getDisplayValue(value);
 
@@ -181,13 +185,47 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
 
   updateOrderedNodeEntries() {
     if (this.trainrunService.getSelectedTrainrun()) {
-      const data = this.trainrunService.getOrderedNodeEntriesForTrainrun(
+      const orderedEntries = this.trainrunService.getOrderedNodeEntriesForTrainrun(
         this.trainrunService.getSelectedTrainrun(),
       );
-      console.log("Ordered Node Entries for Trainrun:", data);
-      return data;
+      this.startNode = orderedEntries.at(0);
+      this.endNode = orderedEntries.at(-1);
+      this.startNodeHidden = this.isNodeEntryHidden(this.startNode);
+      this.endNodeHidden = this.isNodeEntryHidden(this.endNode);
+
+      const visibleEntries: OrderedTrainrunNodeEntry[] = [];
+      let hasHiddenNode = false;
+
+      for (const entry of orderedEntries) {
+        const node = this.nodeService.getNodeFromId(entry.nodeId);
+        if (!node || !this.filterService.isNodeVisible(node)) {
+          hasHiddenNode = true;
+          continue;
+        }
+
+        if (hasHiddenNode && visibleEntries.length > 0) {
+          const previousEntry = visibleEntries.at(-1);
+          if (previousEntry) {
+            previousEntry.hasGapAfter = true;
+          }
+        }
+
+        visibleEntries.push({...entry});
+        hasHiddenNode = false;
+      }
+
+      return visibleEntries;
     }
+    this.startNode = undefined;
+    this.endNode = undefined;
+    this.startNodeHidden = false;
+    this.endNodeHidden = false;
     return [];
+  }
+
+  private isNodeEntryHidden(entry: OrderedTrainrunNodeEntry | undefined): boolean {
+    const node = entry ? this.nodeService.getNodeFromId(entry.nodeId) : undefined;
+    return !!entry && (!node || !this.filterService.isNodeVisible(node));
   }
 
   private gotoTrainrunSection(sectionId: number): void {
@@ -338,6 +376,10 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
     this.searchControl.setValue("");
     this.searchResults = [];
     this.orderedNodeEntries = [];
+    this.startNode = undefined;
+    this.endNode = undefined;
+    this.startNodeHidden = false;
+    this.endNodeHidden = false;
     this.trainrunService.unselectAllTrainruns();
     this.updateFilteredTrainruns(this.searchControl.value);
     this.emitIsEmptyState();
