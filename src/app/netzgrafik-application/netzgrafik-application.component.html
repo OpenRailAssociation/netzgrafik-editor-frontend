@@ -1,6 +1,5 @@
 <sbb-icon-sidebar-container [class]="getSidebarClassTag()">
   <sbb-icon-sidebar [(expanded)]="expanded">
-    <!--<a sbbIconSidebarItem label="Varianten" (click)="onVariantenClicked()" class="sbb-active">-->
     <a
       *ngIf="!disableBackend"
       sbbIconSidebarItem
@@ -24,11 +23,6 @@
     >
       <sbb-icon svgIcon="filter-small"></sbb-icon>
     </a>
-    <!--
-    <a sbbIconSidebarItem [label]="'app.netzgrafik-application.analytics' | translate" (click)="onAnalyticsClicked()">
-      <sbb-icon svgIcon="bulb-on-small"></sbb-icon>
-    </a>
-    -->
     <a
       sbbIconSidebarItem
       [label]="'app.netzgrafik-application.edit' | translate"
