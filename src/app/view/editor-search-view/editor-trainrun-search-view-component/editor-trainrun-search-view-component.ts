@@ -33,6 +33,7 @@ import {Vec2D} from "../../../utils/vec2D";
 })
 export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnChanges {
   private static readonly FILTER_PANEL_ID = "cd-layout-filter";
+  private static readonly MAX_AUTOCOMPLETE_RESULTS = 10;
 
   @Input() resetSignal = 0;
   @Output() isEmptyChange = new EventEmitter<boolean>();
@@ -46,6 +47,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
   private destroyed = new Subject<void>();
   allSearchableTrainruns: Trainrun[] = [];
   filteredTrainruns: Trainrun[] = [];
+  remainingTrainrunResults = 0;
   isDraggingResults = false;
 
   private dragStartY = 0;
@@ -62,9 +64,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
     this.allSearchableTrainruns = this.trainrunService
       .getTrainruns()
       .filter((trainrun) => this.filterService.filterTrainrun(trainrun));
-    this.filteredTrainruns = this.filterTrainruns(this.searchControl.value).sort((a, b) =>
-      this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
-    );
+    this.updateFilteredTrainruns(this.searchControl.value);
   }
 
   ngOnInit(): void {
@@ -74,9 +74,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
         this.allSearchableTrainruns = trainruns.filter((trainrun) =>
           this.filterService.filterTrainrun(trainrun),
         );
-        this.filteredTrainruns = this.filterTrainruns(this.searchControl.value).sort((a, b) =>
-          this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
-        );
+        this.updateFilteredTrainruns(this.searchControl.value);
         this.orderedNodeEntries = this.updateOrderedNodeEntries();
         if (!this.trainrunService.getSelectedTrainrun()) {
           this.searchControl.setValue(null);
@@ -98,9 +96,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
       this.allSearchableTrainruns = this.trainrunService
         .getTrainruns()
         .filter((trainrun) => this.filterService.filterTrainrun(trainrun));
-      this.filteredTrainruns = this.filterTrainruns(this.searchControl.value).sort((a, b) =>
-        this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
-      );
+      this.updateFilteredTrainruns(this.searchControl.value);
       this.orderedNodeEntries = this.updateOrderedNodeEntries();
     });
 
@@ -108,16 +104,12 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
       this.allSearchableTrainruns = this.trainrunService
         .getTrainruns()
         .filter((trainrun) => this.filterService.filterTrainrun(trainrun));
-      this.filteredTrainruns = this.filterTrainruns(this.searchControl.value).sort((a, b) =>
-        this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
-      );
+      this.updateFilteredTrainruns(this.searchControl.value);
       this.orderedNodeEntries = this.updateOrderedNodeEntries();
     });
 
     this.searchControl.valueChanges.pipe(takeUntil(this.destroyed)).subscribe((value) => {
-      this.filteredTrainruns = this.filterTrainruns(value).sort((a, b) =>
-        this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
-      );
+      this.updateFilteredTrainruns(value);
       this.emitIsEmptyState();
     });
 
@@ -282,11 +274,25 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
   private filterTrainruns(value: string | Trainrun | null): Trainrun[] {
     const searchTerm = this.getSearchTerm(value);
     if (!searchTerm) {
-      return this.allSearchableTrainruns.slice(0, 10);
+      return [];
     }
 
     return this.allSearchableTrainruns.filter((trainrun) =>
       this.matchesTrainrun(trainrun, searchTerm),
+    );
+  }
+
+  private updateFilteredTrainruns(value: string | Trainrun | null): void {
+    const matchingTrainruns = this.filterTrainruns(value).sort((a, b) =>
+      this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
+    );
+    this.filteredTrainruns = matchingTrainruns.slice(
+      0,
+      EditorTrainrunSearchViewComponent.MAX_AUTOCOMPLETE_RESULTS,
+    );
+    this.remainingTrainrunResults = Math.max(
+      matchingTrainruns.length - this.filteredTrainruns.length,
+      0,
     );
   }
 
@@ -333,9 +339,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
     this.searchResults = [];
     this.orderedNodeEntries = [];
     this.trainrunService.unselectAllTrainruns();
-    this.filteredTrainruns = this.filterTrainruns(this.searchControl.value).sort((a, b) =>
-      this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
-    );
+    this.updateFilteredTrainruns(this.searchControl.value);
     this.emitIsEmptyState();
   }
 
