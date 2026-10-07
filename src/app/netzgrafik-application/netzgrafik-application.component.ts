@@ -13,13 +13,6 @@ import {EditorView} from "../view/editor-main-view/data-views/editor.view";
 import {environment} from "../../environments/environment";
 import {NodeService} from "../services/data/node.service";
 
-export enum IconSidebarMode {
-  VARIANTEN = "varianten",
-  FILTER = "filter",
-  NONE = "none",
-  PROPERTIES = "properties",
-}
-
 @Component({
   selector: "sbb-netzgrafik-editor",
   templateUrl: "./netzgrafik-application.component.html",
@@ -28,7 +21,6 @@ export enum IconSidebarMode {
   standalone: false,
 })
 export class NetzgrafikApplicationComponent {
-  mode = IconSidebarMode.NONE;
   expanded = false;
 
   readonly disableBackend = environment.disableBackend;
@@ -91,10 +83,6 @@ export class NetzgrafikApplicationComponent {
 
   onPropertiesClicked() {
     this.uiInteractionService.showOrCloseFilter(FilterWindowType.PROPERTIES);
-  }
-
-  setMode(mode: string) {
-    this.mode = mode as IconSidebarMode;
   }
 
   getFilterStyle() {
