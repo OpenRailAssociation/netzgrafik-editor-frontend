@@ -13,6 +13,12 @@
   <sbb-option *ngFor="let option of filteredNodes" [value]="option">
     {{ transformNodeName(option) }}
   </sbb-option>
+  <sbb-option-hint *ngIf="remainingNodeResults > 0">
+    {{
+      "app.view.editor-search-view-component.more-results"
+        | translate: {count: remainingNodeResults.toString()}
+    }}
+  </sbb-option-hint>
 </sbb-autocomplete>
 
 @if (searchResults.length > 1) {

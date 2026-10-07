@@ -13,6 +13,12 @@
   @for (option of filteredTrainruns; track option) {
   <sbb-option [value]="option">{{ transformTrainrunName(option) }}</sbb-option>
   }
+  <sbb-option-hint *ngIf="remainingTrainrunResults > 0">
+    {{
+      "app.view.editor-search-view-component.more-results"
+        | translate: {count: remainingTrainrunResults.toString()}
+    }}
+  </sbb-option-hint>
 </sbb-autocomplete>
 
 @if (searchResults.length === 1 && orderedNodeEntries.length > 0) {

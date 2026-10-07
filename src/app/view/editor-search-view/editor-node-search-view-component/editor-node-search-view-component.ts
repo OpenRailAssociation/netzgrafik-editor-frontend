@@ -27,6 +27,7 @@ import {Vec2D} from "../../../utils/vec2D";
 })
 export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChanges {
   private static readonly FILTER_PANEL_ID = "cd-layout-filter";
+  private static readonly MAX_AUTOCOMPLETE_RESULTS = 10;
 
   @Input() resetSignal = 0;
   @Output() isEmptyChange = new EventEmitter<boolean>();
@@ -39,6 +40,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
   private destroyed = new Subject<void>();
   allSearchableNodes: Node[] = [];
   filteredNodes: Node[] = [];
+  remainingNodeResults = 0;
   isDraggingResults = false;
 
   private dragStartY = 0;
@@ -194,7 +196,16 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
   }
 
   private updateFilteredNodes(value: string | Node | null): void {
-    this.filteredNodes = this.filterNodes(value).slice(0, 10);
+    const searchTerm = this.getSearchTerm(value);
+    const matchingNodes = searchTerm ? this.filterNodes(value) : [];
+    this.filteredNodes = matchingNodes.slice(
+      0,
+      EditorNodeSearchViewComponent.MAX_AUTOCOMPLETE_RESULTS,
+    );
+    this.remainingNodeResults = Math.max(
+      matchingNodes.length - this.filteredNodes.length,
+      0,
+    );
   }
 
   private getSearchTerm(value: string | Node | null): string {
