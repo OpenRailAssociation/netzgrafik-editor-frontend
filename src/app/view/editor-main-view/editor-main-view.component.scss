@@ -28,6 +28,18 @@
   background: $COLOR_BACKGROUND;
 }
 
+::ng-deep .editor_raster_grid {
+  pointer-events: none;
+}
+
+::ng-deep .editor_raster_grid_line {
+  stroke: $COLOR_STRECKENGRAPHIK_LINE_GRID_X;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.35;
+  shape-rendering: crispEdges;
+}
+
 ::ng-deep .enforce_disable_all_pointer_events {
   pointer-events: none;
   opacity: 0.25;
