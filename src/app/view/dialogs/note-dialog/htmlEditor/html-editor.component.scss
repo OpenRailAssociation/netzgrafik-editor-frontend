@@ -1,4 +1,5 @@
 @use "@sbb-esta/angular" as sbb;
+@use '@sbb-esta/angular/typography.css';
 @use "../../../rastering/definitions" as *;
 
 ::ng-deep .ngx-html-editor {
@@ -35,6 +36,14 @@
     overflow-y: auto;
     background: var(--sbb-header-lean-background-color);
     color: var(--NODE_TEXT_FOCUS);
+  }
+
+  .NgxEditor__Popup{
+    background: var(--sbb-color-background);
+    border: 1px solid var(--sbb-header-lean-border-bottom-color);
+    button {
+      @extend .sbb-ghost-button;
+    }
   }
 }
 
