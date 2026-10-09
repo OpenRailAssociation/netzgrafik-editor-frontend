@@ -34,7 +34,7 @@
   padding: 1px;
   text-align: center;
   height: 40px;
-  font-family: "SBBWeb Light", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: $BP_LABEL_FONT_FAMILY;
 }
 
 ::ng-deep .EditTrainrunSectionDialogHeaderCenter {
@@ -57,7 +57,7 @@
   padding: 1px;
   text-align: center;
   height: 40px;
-  font-family: "SBBWeb Light", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: $BP_LABEL_FONT_FAMILY;
 }
 
 ::ng-deep input.NumberOfStopsInputElement {
