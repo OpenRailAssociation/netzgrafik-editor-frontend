@@ -96,8 +96,7 @@ export class NoteService {
         round,
       );
       note.setPosition(newPosition.getX(), newPosition.getY());
-      this.moveNoteToFront(noteId, enforceUpdate);
-      return;
+      this.moveNoteToFront(noteId, false);
     } else {
       note.setPosition(posX, posY);
     }
