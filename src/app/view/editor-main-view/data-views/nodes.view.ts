@@ -32,6 +32,15 @@ export class NodesView {
   draggable: d3.DragBehavior<SVGElement, NodeViewObject, unknown>;
   dragDomObj: SVGElement | null = null;
 
+  // Measurement text element used to compute the length of text in the DOM.
+  private readonly measurementText = d3
+    .select("body")
+    .append("svg")
+    .style("position", "absolute")
+    .style("visibility", "hidden")
+    .append("text")
+    .attr("class", "node_text");
+
   constructor(private editorView: EditorView) {
     this.draggable = d3
       .drag<SVGElement, NodeViewObject>()
@@ -1099,17 +1108,8 @@ export class NodesView {
     );
   }
 
-  // Measured in the DOM so that the font defined in the stylesheet for text.node_text applies.
-  private measureLabelTextWidth(text: string): number {
-    const svg = d3.select("body").append("svg").style("visibility", "hidden");
-    const width = svg
-      .append("text")
-      .attr("class", "node_text")
-      .text(text)
-      .node()!
-      .getComputedTextLength();
-    svg.remove();
-    return width;
+  private getComputedTextLength(text: string): number {
+    return this.measurementText.text(text).node()!.getComputedTextLength();
   }
 
   // Words are separated by spaces or hyphens; a hyphen stays attached to the preceding word.
@@ -1125,7 +1125,7 @@ export class NodesView {
         current = word;
       } else {
         const sep = current.endsWith("-") ? "" : " ";
-        if (this.measureLabelTextWidth(current + sep + word) <= maxWidth) {
+        if (this.getComputedTextLength(current + sep + word) <= maxWidth) {
           current += sep + word;
         } else {
           lines.push(current);
@@ -1151,7 +1151,7 @@ export class NodesView {
   private updateNodeDisplayConstraints(node: Node) {
     const name = this.getDisplayedName(node);
     const longestWordWidth = this.splitLabelIntoWords(name).reduce(
-      (max, word) => Math.max(max, this.measureLabelTextWidth(word)),
+      (max, word) => Math.max(max, this.getComputedTextLength(word)),
       0,
     );
     const neededWidth =
