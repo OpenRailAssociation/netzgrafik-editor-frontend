@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.12.1](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.12.0...netzgrafik-editor-frontend-v2.12.1) (2026-10-09)
+
+
+### Bug Fixes
+
+* add style for URL popup ([0d47a86](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/0d47a86ac778682ff76478727514889a69125c0b))
+
 ## [2.12.0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.11.1...netzgrafik-editor-frontend-v2.12.0) (2026-10-08)
 
 
