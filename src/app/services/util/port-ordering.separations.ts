@@ -2,6 +2,7 @@ import {Node} from "../../models/node.model";
 import {Port} from "../../models/port.model";
 import {PortAlignment} from "../../data-structures/technical.data.structures";
 import {ALIGNMENTS_CLOCKWISE_ORDER} from "./port-ordering.helpers";
+import {getMatchingPortInOppositeNode} from "./port-ordering.components";
 
 /**
  * A "separation" happens when two trainrun sections that are drawn touching (adjacent on a node
@@ -73,16 +74,11 @@ export function getSeparationPairsBetweenNodes(node: Node): [number, number][] {
         const a = sidePorts[i];
         const b = sidePorts[j];
 
-        const oppositeNode = a.getOppositeNode(nodeId);
-        if (oppositeNode.getId() !== b.getOppositeNode(nodeId).getId()) continue;
+        const oppositeNode = a.getOppositeExpandedNode(nodeId);
+        if (oppositeNode.getId() !== b.getOppositeExpandedNode(nodeId).getId()) continue;
 
-        const oppositePorts = oppositeNode.getPorts();
-        const aOpposite = oppositePorts.find(
-          (p) => p.getTrainrunSectionId() === a.getTrainrunSectionId(),
-        );
-        const bOpposite = oppositePorts.find(
-          (p) => p.getTrainrunSectionId() === b.getTrainrunSectionId(),
-        );
+        const aOpposite = getMatchingPortInOppositeNode(a, nodeId);
+        const bOpposite = getMatchingPortInOppositeNode(b, nodeId);
         if (!aOpposite || !bOpposite) continue;
 
         if (areAdjacent(a, b) !== areAdjacent(aOpposite, bOpposite)) {
