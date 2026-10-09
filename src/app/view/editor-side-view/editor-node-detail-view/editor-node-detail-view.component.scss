@@ -1,3 +1,5 @@
+@use "../../rastering/definitions" as *;
+
 ::ng-deep .haltezeitRow {
   height: 39px;
 }
@@ -18,7 +20,7 @@
   background-color: white;
   border-color: darkgrey;
   border-style: solid;
-  font-family: "SBBWeb Light", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: $BP_LABEL_FONT_FAMILY;
 }
 
 ::ng-deep button.NetzgrafikButton:hover {

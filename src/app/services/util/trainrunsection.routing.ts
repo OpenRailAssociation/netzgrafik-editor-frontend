@@ -3,7 +3,6 @@ import {
   BEZIER_CONTROL_POINT_FACTOR,
   BEZIER_CONTROL_SAME_ALIGNMENT_DIFFERENCE,
   NODE_EDGE_WIDTH,
-  NODE_TEXT_AREA_HEIGHT,
   TRAINRUN_SECTION_LINE_AREA_SPAN,
   TRAINRUN_SECTION_LINE_TEXT_HEIGHT,
   TRAINRUN_SECTION_PORT_SPAN_HORIZONTAL,
@@ -82,7 +81,7 @@ export class SimpleTrainrunSectionRouter {
       x =
         topLeftPosition.getX() +
         TRAINRUN_SECTION_PORT_SPAN_VERTICAL * (0.5 + port.getPositionIndex());
-      y = topLeftPosition.getY() + node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT;
+      y = topLeftPosition.getY() + node.getNodeHeight() - node.getNodeTextAreaHeight();
     } else if (port.getPositionAlignment() === PortAlignment.Left) {
       x = topLeftPosition.getX();
       y =
