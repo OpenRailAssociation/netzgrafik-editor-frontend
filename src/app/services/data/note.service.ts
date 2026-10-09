@@ -124,6 +124,10 @@ export class NoteService {
     return Object.assign({}, this.notesStore).notes;
   }
 
+  getVisibleNotes(): Note[] {
+    return this.getNotes().filter((n) => this.filterService.filterNote(n));
+  }
+
   getSelectedNotes(): Note[] {
     return this.getNotes().filter((n) => n.selected());
   }

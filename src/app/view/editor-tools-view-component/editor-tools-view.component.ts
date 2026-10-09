@@ -466,7 +466,7 @@ export class EditorToolsViewComponent {
     if (htmlElementToExport === null) {
       return undefined;
     }
-    const boundingBox = this.nodeService.getNetzgrafikBoundingBox();
+    const boundingBox = this.uiInteractionService.getNetzgrafikBoundingBox();
     const param = {
       encoderOptions: 1.0,
       scale: 1.0,
