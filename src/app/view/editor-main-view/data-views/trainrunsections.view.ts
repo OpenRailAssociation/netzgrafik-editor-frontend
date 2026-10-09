@@ -2,7 +2,6 @@ import {
   DEFAULT_PIN_RADIUS,
   DEFAULT_STOP_ICON,
   NODE_EDGE_WIDTH,
-  NODE_TEXT_AREA_HEIGHT,
   RASTERING_BASIC_GRID_SIZE,
   SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS,
   TRAINRUN_SECTION_TEXT_AREA_HEIGHT,
@@ -2196,7 +2195,7 @@ export class TrainrunSectionsView {
     }
     if (port.getPositionAlignment() === PortAlignment.Bottom) {
       const v = element.copy();
-      v.setY(v.getY() - NODE_TEXT_AREA_HEIGHT - NODE_EDGE_WIDTH);
+      v.setY(v.getY() - node.getNodeTextAreaHeight() - NODE_EDGE_WIDTH);
       transformedPath.push(v);
     }
     return transformedPath;
