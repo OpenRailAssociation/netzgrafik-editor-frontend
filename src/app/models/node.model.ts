@@ -42,6 +42,10 @@ export class Node {
   private isSelected: boolean;
   private labelIds: number[];
 
+  // Display constraints for the node's text area (not persisted)
+  private minTextWidth = 0;
+  private textAreaHeight = NODE_TEXT_AREA_HEIGHT;
+
   constructor(
     {
       id,
@@ -274,6 +278,18 @@ export class Node {
     this.positionY = y;
   }
 
+  setMinTextWidth(minTextWidth: number) {
+    this.minTextWidth = minTextWidth;
+  }
+
+  setTextAreaHeight(textAreaHeight: number) {
+    this.textAreaHeight = textAreaHeight;
+  }
+
+  getNodeTextAreaHeight(): number {
+    return this.textAreaHeight;
+  }
+
   getNodeWidth(): number {
     let maxIndex = 0;
     this.ports.forEach((port) => {
@@ -286,7 +302,7 @@ export class Node {
         }
       }
     });
-    return Math.max(NODE_MIN_WIDTH, maxIndex * NODE_PIN_SPAN);
+    return Math.max(NODE_MIN_WIDTH, maxIndex * NODE_PIN_SPAN, this.minTextWidth);
   }
 
   getNodeHeight(): number {
@@ -301,7 +317,10 @@ export class Node {
         }
       }
     });
-    return Math.max(NODE_MIN_HEIGHT, maxIndex * NODE_PIN_SPAN + NODE_TEXT_AREA_HEIGHT);
+    return Math.max(
+      NODE_MIN_HEIGHT + this.textAreaHeight - NODE_TEXT_AREA_HEIGHT,
+      maxIndex * NODE_PIN_SPAN + this.textAreaHeight,
+    );
   }
 
   getPort(portId: number): Port {

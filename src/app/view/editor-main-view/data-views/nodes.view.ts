@@ -343,9 +343,9 @@ export class NodesView {
       .attr("class", StaticDomTags.NODE_LABELAREA_CLASS)
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("width", (n: NodeViewObject) => n.node.getNodeWidth())
-      .attr("height", NODE_TEXT_AREA_HEIGHT)
+      .attr("height", (n: NodeViewObject) => n.node.getNodeTextAreaHeight())
       .attr("x", 0)
-      .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT)
+      .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - n.node.getNodeTextAreaHeight())
       .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,
@@ -503,7 +503,10 @@ export class NodesView {
       .attr("class", StaticDomTags.NODE_DOCKABLE_CLASS)
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("width", (n: NodeViewObject) => n.node.getNodeWidth())
-      .attr("height", (n: NodeViewObject) => n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT)
+      .attr(
+        "height",
+        (n: NodeViewObject) => n.node.getNodeHeight() - n.node.getNodeTextAreaHeight(),
+      )
       .attr("x", 0)
       .attr("y", 0)
       .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
@@ -544,7 +547,9 @@ export class NodesView {
       .attr(
         "y",
         (n: NodeViewObject) =>
-          n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT - 0.75 * NODE_ANALYTICS_AREA_HEIGHT,
+          n.node.getNodeHeight() -
+          n.node.getNodeTextAreaHeight() -
+          0.75 * NODE_ANALYTICS_AREA_HEIGHT,
       )
       .attr("title", "test")
       .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
@@ -576,7 +581,7 @@ export class NodesView {
         "y",
         (n: NodeViewObject) =>
           n.node.getNodeHeight() -
-          NODE_TEXT_AREA_HEIGHT -
+          n.node.getNodeTextAreaHeight() -
           0.5 * NODE_ANALYTICS_AREA_HEIGHT -
           TEXT_SIZE / 2,
       )
@@ -594,7 +599,7 @@ export class NodesView {
         "y",
         (n: NodeViewObject) =>
           n.node.getNodeHeight() -
-          NODE_TEXT_AREA_HEIGHT -
+          n.node.getNodeTextAreaHeight() -
           0.5 * NODE_ANALYTICS_AREA_HEIGHT -
           TEXT_SIZE / 2,
       )
