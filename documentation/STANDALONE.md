@@ -103,6 +103,21 @@ The operations related to the NGE framework are used to handle changes to Trainr
 
 - update Label (edit sidebar, Filterable labels / Trainruns, click on a label to edit it) => LabelOperation(update)
 
+## Applying external Note changes
+
+When NGE is embedded, note changes made elsewhere can be applied through methods of the `sbb-root` element. Other notes are left untouched, and no `Operation` is emitted in return.
+
+```ts
+// NGE allocates the id of the new note and returns the complete note
+const created = nge.createNote(noteFields); // noteFields: Omit<FreeFloatingTextDto, "id">
+nge.updateNote(noteDto); // noteDto: FreeFloatingTextDto, identified by its id
+nge.deleteNote(created.id); // closes the note dialog if it is open
+```
+
+Note ids are local to an NGE instance: the host application is responsible for mapping them to its own identifiers.
+
+An error is thrown if NGE is not initialized yet or if the note to update/delete doesn't exist.
+
 ## Future work
 
 The current design can be improved by providing more information in the event payload or making the framework more generic. New ideas and suggestions are welcome. Additionally, we will learn from the practical use of this framework and iterate on its design accordingly.
