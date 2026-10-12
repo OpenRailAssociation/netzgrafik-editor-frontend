@@ -22,9 +22,9 @@ import {
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {FormControl} from "@angular/forms";
 import {OrderedTrainrunNodeEntry} from "../../../services/data/trainrun.service";
-import {Node} from "../../../models/node.model";
 import {NodeService} from "../../../services/data/node.service";
 import {Vec2D} from "../../../utils/vec2D";
+import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 
 @Component({
   selector: "sbb-editor-trainrun-search-view-component",
@@ -285,18 +285,12 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
     return this.getTrainrunSearchValue(trainrun);
   }
 
-  transformNodeName(node: Node): string {
-    const betriebspunktName = node.getBetriebspunktName() ?? "";
-    const fullName = node.getFullName() ?? "";
-    return `${betriebspunktName} (${fullName})`;
-  }
-
   transformNodeEntryName(entry: OrderedTrainrunNodeEntry): string {
     const node = this.nodeService.getNodeFromId(entry.nodeId);
     if (!node) {
       return `${entry.nodeId}`;
     }
-    return this.transformNodeName(node);
+    return GeneralViewFunctions.getNodeDisplayName(node);
   }
 
   private search() {
