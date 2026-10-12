@@ -7,10 +7,7 @@
     >
 
     <sbb-label>{{ "app.view.editor-search-view-component.select-node" | translate }}</sbb-label>
-    <sbb-editor-node-search-view-component
-      [resetSignal]="resetSignal"
-      (isEmptyChange)="onNodeSearchEmptyChange($event)"
-    ></sbb-editor-node-search-view-component>
+    <sbb-editor-node-search-view-component></sbb-editor-node-search-view-component>
   </sbb-expansion-panel>
 
   <sbb-expansion-panel [expanded]="true">
@@ -20,9 +17,6 @@
     >
 
     <sbb-label>{{ "app.view.editor-search-view-component.select-trainrun" | translate }}</sbb-label>
-    <sbb-editor-trainrun-search-view-component
-      [resetSignal]="resetSignal"
-      (isEmptyChange)="onTrainrunSearchEmptyChange($event)"
-    ></sbb-editor-trainrun-search-view-component>
+    <sbb-editor-trainrun-search-view-component></sbb-editor-trainrun-search-view-component>
   </sbb-expansion-panel>
 </sbb-accordion>
