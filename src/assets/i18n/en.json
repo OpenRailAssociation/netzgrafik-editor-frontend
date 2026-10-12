@@ -426,12 +426,10 @@
       },
       "editor-search-view-component": {
         "search": "Search",
-        "node": "Go to node",
+        "node": "Node",
         "search-node": "Search node",
-        "trainrun": "Navigate to trainrun",
-        "select-node": "Select node",
+        "trainrun": "Trainrun",
         "search-trainrun": "Search for trainruns",
-        "select-trainrun": "Select trainrun",
         "more-results": "{$count} more results available",
         "clear-all-search-fields": "Reset all search fields",
         "reset": "Reset search"
