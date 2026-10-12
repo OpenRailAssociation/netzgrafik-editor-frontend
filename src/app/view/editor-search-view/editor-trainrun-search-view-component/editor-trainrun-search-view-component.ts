@@ -129,6 +129,13 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
 
   selectTrainrun(trainrun: Trainrun): void {
     this.trainrunService.setTrainrunAsSelected(trainrun.getId());
+
+    const firstEntry = this.trainrunService
+      .getOrderedNodeEntriesForTrainrun(trainrun)
+      .at(0);
+    if (firstEntry) {
+      this.onOrderedNodeClick(firstEntry);
+    }
   }
 
   isSelectedTrainrun(trainrun: Trainrun): boolean {
