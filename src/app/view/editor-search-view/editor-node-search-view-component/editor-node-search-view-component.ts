@@ -1,7 +1,7 @@
 import {
   Component,
+  ChangeDetectionStrategy,
   EventEmitter,
-  HostListener,
   Input,
   OnChanges,
   OnDestroy,
@@ -28,7 +28,6 @@ import {Vec2D} from "../../../utils/vec2D";
 })
 export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChanges {
   private static readonly FILTER_PANEL_ID = "cd-layout-filter";
-  private static readonly MAX_AUTOCOMPLETE_RESULTS = 10;
 
   @Input() resetSignal = 0;
   @Output() isEmptyChange = new EventEmitter<boolean>();
@@ -41,12 +40,6 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
   private destroyed = new Subject<void>();
   allSearchableNodes: Node[] = [];
   filteredNodes: Node[] = [];
-  remainingNodeResults = 0;
-  isDraggingResults = false;
-
-  private dragStartY = 0;
-  private dragStartScrollTop = 0;
-  private activeResultsList: HTMLElement | null = null;
 
   constructor(
     private uiInteractionService: UiInteractionService,
@@ -98,41 +91,12 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
   }
 
   ngOnDestroy(): void {
-    this.stopDragScroll();
     this.destroyed.next();
     this.destroyed.complete();
   }
 
-  onResultListMouseDown(event: MouseEvent, listElement: HTMLElement): void {
-    if (event.button !== 0) {
-      return;
-    }
-
-    // Dragging is enabled only if the list can actually scroll.
-    if (listElement.scrollHeight <= listElement.clientHeight) {
-      return;
-    }
-
-    this.isDraggingResults = true;
-    this.activeResultsList = listElement;
-    this.dragStartY = event.clientY;
-    this.dragStartScrollTop = listElement.scrollTop;
-    event.preventDefault();
-  }
-
-  @HostListener("document:mousemove", ["$event"])
-  onDocumentMouseMove(event: MouseEvent): void {
-    if (!this.isDraggingResults || !this.activeResultsList) {
-      return;
-    }
-
-    const deltaY = event.clientY - this.dragStartY;
-    this.activeResultsList.scrollTop = this.dragStartScrollTop + deltaY;
-  }
-
-  @HostListener("document:mouseup")
-  onDocumentMouseUp(): void {
-    this.stopDragScroll();
+  get isNetzgrafikMode(): boolean {
+    return this.mainViewMode === MainViewMode.Netzgrafik;
   }
 
   search() {
@@ -194,15 +158,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
 
   private updateFilteredNodes(value: string | Node | null): void {
     const searchTerm = this.getSearchTerm(value);
-    const matchingNodes = searchTerm ? this.filterNodes(value) : [];
-    this.filteredNodes = matchingNodes.slice(
-      0,
-      EditorNodeSearchViewComponent.MAX_AUTOCOMPLETE_RESULTS,
-    );
-    this.remainingNodeResults = Math.max(
-      matchingNodes.length - this.filteredNodes.length,
-      0,
-    );
+    this.filteredNodes = searchTerm ? this.filterNodes(value) : [];
   }
 
   private getSearchTerm(value: string | Node | null): string {
@@ -244,7 +200,6 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
   }
 
   private clearSearch(): void {
-    this.stopDragScroll();
     this.searchControl.setValue("");
     this.searchResults = [];
     this.updateFilteredNodes(this.searchControl.value);
@@ -257,8 +212,4 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
     this.isEmptyChange.emit(isEmpty);
   }
 
-  private stopDragScroll(): void {
-    this.isDraggingResults = false;
-    this.activeResultsList = null;
-  }
 }

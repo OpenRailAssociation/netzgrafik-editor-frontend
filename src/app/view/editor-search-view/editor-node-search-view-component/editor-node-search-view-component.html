@@ -9,16 +9,14 @@
     [sbbAutocomplete]="auto"
   />
 </sbb-search>
-<sbb-autocomplete #auto="sbbAutocomplete" [displayWith]="displayNode">
+<sbb-autocomplete
+  #auto="sbbAutocomplete"
+  class="editor-node-search-autocomplete"
+  [displayWith]="displayNode"
+>
   <sbb-option *ngFor="let option of filteredNodes" [value]="option">
     {{ transformNodeName(option) }}
   </sbb-option>
-  <sbb-option-hint *ngIf="remainingNodeResults > 0">
-    {{
-      "app.view.editor-search-view-component.more-results"
-        | translate: {count: remainingNodeResults.toString()}
-    }}
-  </sbb-option-hint>
 </sbb-autocomplete>
 
 @if (searchResults.length > 1) {
@@ -26,8 +24,6 @@
   #nodeResultsList
   class="search-results-list"
   [class.search-results-overflow]="searchResults.length > 8"
-  [class.dragging]="isDraggingResults"
-  (mousedown)="onResultListMouseDown($event, nodeResultsList)"
 >
   @for (node of searchResults; track node) {
   <div class="search-result-item">
