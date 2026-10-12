@@ -5,6 +5,7 @@
     [formControl]="searchControl"
     [sbbAutocomplete]="auto"
     (keydown.escape)="clearSearch()"
+    (blur)="search()"
   />
 </sbb-search>
 <sbb-autocomplete
