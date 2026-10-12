@@ -427,12 +427,10 @@
       "editor-search-view-component": {
         "search": "Suchen",
         "node": "Knoten",
-        "search-node": "Suche nach Knoten",
+        "search-node": "Suche nach einem Knoten",
         "trainrun": "Zugfahrt",
-        "search-trainrun": "Suche nach Zugfahrten",
-        "more-results": "{$count} weitere Treffer verfügbar",
-        "clear-all-search-fields": "Alle Suchfelder zurücksetzen",
-        "reset": "Suche zurücksetzen"
+        "search-trainrun": "Suche nach einer Zugfahrt",
+        "more-results": "{$count} weitere Treffer verfügbar"
       },
       "editor-menu": {
         "save-changes": "Speichere Änderungen",

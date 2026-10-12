@@ -429,10 +429,8 @@
         "node": "Node",
         "search-node": "Search node",
         "trainrun": "Trainrun",
-        "search-trainrun": "Search for trainruns",
-        "more-results": "{$count} more results available",
-        "clear-all-search-fields": "Reset all search fields",
-        "reset": "Reset search"
+        "search-trainrun": "Search for a trainrun",
+        "more-results": "{$count} more results available"
       },
       "editor-menu": {
         "save-changes": "Save changes",

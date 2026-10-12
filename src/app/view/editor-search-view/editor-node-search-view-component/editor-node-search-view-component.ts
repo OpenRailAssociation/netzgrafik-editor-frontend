@@ -3,7 +3,6 @@ import {FilterService} from "../../../services/ui/filter.service";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
-import {MainViewMode} from "../../filter-main-side-view/main-view-mode";
 import {Node} from "../../../models/node.model";
 import {NodeService} from "../../../services/data/node.service";
 import {FormControl} from "@angular/forms";
@@ -26,7 +25,6 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
   readonly GeneralViewFunctions = GeneralViewFunctions;
   readonly displayNode = (value: Node | null): string => this.getDisplayValue(value);
 
-  mainViewMode: MainViewMode = MainViewMode.Netzgrafik;
   private destroyed = new Subject<void>();
   allSearchableNodes: Node[] = [];
   filteredNodes: Node[] = [];
@@ -56,17 +54,6 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.uiInteractionService.streckengrafikWindow
-      .pipe(takeUntil(this.destroyed))
-      .subscribe((mainViewMode: MainViewMode) => {
-        this.mainViewMode = mainViewMode;
-      });
-    this.uiInteractionService.originDestinationWindow
-      .pipe(takeUntil(this.destroyed))
-      .subscribe((mainViewMode: MainViewMode) => {
-        this.mainViewMode = mainViewMode;
-      });
-
     this.searchControl.valueChanges.pipe(takeUntil(this.destroyed)).subscribe((value) => {
       this.updateFilteredNodes(value);
     });
@@ -80,6 +67,14 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
   clearSearch(): void {
     this.searchControl.setValue("");
     this.searchResults = [];
+  }
+
+  onSearch(): void {
+    this.search();
+
+    if (this.searchResults.length === 1 && typeof this.searchControl.value === "string") {
+      this.onSearchResultClick(this.searchResults[0]);
+    }
   }
 
   search() {
@@ -98,12 +93,6 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
     }
 
     this.searchResults = this.filterNodes(this.searchControl.value);
-
-    if (this.searchResults.length === 1) {
-      const [node] = this.searchResults;
-      this.searchControl.setValue(node);
-      this.onSearchResultClick(node);
-    }
   }
 
   onSearchResultClick(node: Node): void {

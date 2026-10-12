@@ -1,4 +1,4 @@
-import {Component, ChangeDetectionStrategy, HostListener, OnDestroy, OnInit} from "@angular/core";
+import {Component, ChangeDetectionStrategy, OnDestroy, OnInit} from "@angular/core";
 import {FilterService} from "../../../services/ui/filter.service";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
@@ -13,7 +13,6 @@ import {FormControl} from "@angular/forms";
 import {OrderedTrainrunNodeEntry} from "../../../services/data/trainrun.service";
 import {NodeService} from "../../../services/data/node.service";
 import {Vec2D} from "../../../utils/vec2D";
-import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 
 @Component({
   selector: "sbb-editor-trainrun-search-view-component",
@@ -40,11 +39,6 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
   allSearchableTrainruns: Trainrun[] = [];
   filteredTrainruns: Trainrun[] = [];
   remainingTrainrunResults = 0;
-  isDraggingResults = false;
-
-  private dragStartY = 0;
-  private dragStartScrollTop = 0;
-  private activeResultsList: HTMLElement | null = null;
 
   constructor(
     private trainrunService: TrainrunService,
@@ -110,7 +104,6 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.stopDragScroll();
     this.destroyed.next();
     this.destroyed.complete();
   }
@@ -120,54 +113,26 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     this.searchResults = [];
   }
 
-  onResultListMouseDown(event: MouseEvent, listElement: HTMLElement): void {
-    if (event.button !== 0) {
-      return;
-    }
-
-    // Dragging is enabled only if the list can actually scroll.
-    if (listElement.scrollHeight <= listElement.clientHeight) {
-      return;
-    }
-
-    this.isDraggingResults = true;
-    this.activeResultsList = listElement;
-    this.dragStartY = event.clientY;
-    this.dragStartScrollTop = listElement.scrollTop;
-    event.preventDefault();
-  }
-
-  @HostListener("document:mousemove", ["$event"])
-  onDocumentMouseMove(event: MouseEvent): void {
-    if (!this.isDraggingResults || !this.activeResultsList) {
-      return;
-    }
-
-    const deltaY = event.clientY - this.dragStartY;
-    this.activeResultsList.scrollTop = this.dragStartScrollTop + deltaY;
-  }
-
-  @HostListener("document:mouseup")
-  onDocumentMouseUp(): void {
-    this.stopDragScroll();
-  }
-
   onSearch() {
+    const selectedTrainrun = this.searchControl.value;
     this.search();
-    if (this.searchResults.length === 1) {
-      this.onSearchResultClick(this.searchResults[0]);
+    if (selectedTrainrun instanceof Trainrun) {
+      this.selectTrainrun(selectedTrainrun);
     }
   }
 
-  onSearchResultClick(trainrun: Trainrun): void {
+  onBlur(): void {
+    if (!(this.searchControl.value instanceof Trainrun)) {
+      this.search();
+    }
+  }
+
+  selectTrainrun(trainrun: Trainrun): void {
     this.trainrunService.setTrainrunAsSelected(trainrun.getId());
-    if (this.orderedNodeEntries.length === 0) {
-      return;
-    }
-    const firstEntry = this.orderedNodeEntries.at(0);
-    if (firstEntry) {
-      this.onOrderedNodeClick(firstEntry);
-    }
+  }
+
+  isSelectedTrainrun(trainrun: Trainrun): boolean {
+    return this.trainrunService.getSelectedTrainrun()?.getId() === trainrun.getId();
   }
 
   updateOrderedNodeEntries() {
@@ -268,7 +233,9 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     if (!node) {
       return `${entry.nodeId}`;
     }
-    return GeneralViewFunctions.getNodeDisplayName(node);
+    return this.filterService.isDisplayingNodesFullName()
+      ? node.getFullName()
+      : node.getBetriebspunktName();
   }
 
   private search() {
@@ -283,7 +250,8 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
 
     if (this.searchResults.length === 1) {
       const trainrun = this.searchResults[0];
-      this.searchControl.setValue(trainrun);
+      this.searchControl.setValue(trainrun, {emitEvent: false});
+      this.selectTrainrun(trainrun);
     }
   }
 
@@ -348,10 +316,5 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     const element = document.getElementById(elementId);
     const offsetXPx = element?.getBoundingClientRect().right ?? 0;
     return this.uiInteractionService.getNetzgrafikOffsetFromScreenPx(offsetXPx, 0);
-  }
-
-  private stopDragScroll(): void {
-    this.isDraggingResults = false;
-    this.activeResultsList = null;
   }
 }
