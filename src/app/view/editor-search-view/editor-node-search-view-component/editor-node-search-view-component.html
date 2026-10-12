@@ -1,10 +1,11 @@
-<sbb-search (search)="search()">
+<sbb-search (search)="onSearch()">
   <input
     sbbInput
     [placeholder]="'app.view.editor-search-view-component.search-node' | translate"
     [formControl]="searchControl"
     [sbbAutocomplete]="auto"
     (keydown.escape)="clearSearch()"
+    (keydown.tab)="onSearch()"
     (blur)="search()"
   />
 </sbb-search>
@@ -24,11 +25,7 @@
 </sbb-autocomplete>
 
 @if (searchResults.length > 1) {
-<div
-  #nodeResultsList
-  class="search-results-list"
-  [class.search-results-overflow]="searchResults.length > 8"
->
+<div class="search-results-list" [class.search-results-overflow]="searchResults.length > 8">
   @for (node of searchResults; track node) {
   <div class="search-result-item">
     <span

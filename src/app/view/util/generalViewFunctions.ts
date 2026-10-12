@@ -10,8 +10,8 @@ export class GeneralViewFunctions {
       return "";
     }
 
-    const betriebspunktName = node.getBetriebspunktName() ?? "";
-    const fullName = node.getFullName() ?? "";
+    const betriebspunktName = node.getBetriebspunktName();
+    const fullName = node.getFullName();
 
     return `${betriebspunktName} (${fullName})`;
   }
