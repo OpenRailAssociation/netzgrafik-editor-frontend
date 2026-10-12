@@ -37,7 +37,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
   searchControl = new FormControl<string | Node | null>("");
   searchResults: Node[] = [];
   readonly GeneralViewFunctions = GeneralViewFunctions;
-  readonly displayNode = (value: string | Node | null): string => this.getDisplayValue(value);
+  readonly displayNode = (value: Node | null): string => this.getDisplayValue(value);
 
   mainViewMode: MainViewMode = MainViewMode.Netzgrafik;
   private destroyed = new Subject<void>();
