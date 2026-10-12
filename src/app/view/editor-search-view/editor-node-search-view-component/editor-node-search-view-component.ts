@@ -28,6 +28,7 @@ import {Vec2D} from "../../../utils/vec2D";
 })
 export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChanges {
   private static readonly FILTER_PANEL_ID = "cd-layout-filter";
+  private static readonly MAX_AUTOCOMPLETE_RESULTS = 20;
 
   @Input() resetSignal = 0;
   @Output() isEmptyChange = new EventEmitter<boolean>();
@@ -40,6 +41,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
   private destroyed = new Subject<void>();
   allSearchableNodes: Node[] = [];
   filteredNodes: Node[] = [];
+  remainingNodeResults = 0;
 
   constructor(
     private uiInteractionService: UiInteractionService,
@@ -95,10 +97,6 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
     this.destroyed.complete();
   }
 
-  get isNetzgrafikMode(): boolean {
-    return this.mainViewMode === MainViewMode.Netzgrafik;
-  }
-
   search() {
     if (this.searchControl.value instanceof Node) {
       this.searchResults = [this.searchControl.value];
@@ -109,7 +107,9 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
     this.searchResults = this.filterNodes(this.searchControl.value);
 
     if (this.searchResults.length === 1) {
-      this.onSearchResultClick(this.searchResults[0]);
+      const [node] = this.searchResults;
+      this.searchControl.setValue(node);
+      this.onSearchResultClick(node);
     }
   }
 
@@ -131,20 +131,6 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
     return "";
   }
 
-  transformNodeName(node: Node): string {
-    if (node) {
-      const betriebspunktName = node.getBetriebspunktName() ?? "";
-      const fullName = node.getFullName() ?? "";
-      const formattedBetriebspunktName =
-        betriebspunktName.length > 8
-          ? `${betriebspunktName.slice(0, 5)}...`
-          : betriebspunktName.padEnd(8, " ");
-
-      return `${formattedBetriebspunktName} ${fullName}`;
-    }
-    return "";
-  }
-
   private filterNodes(value: string | Node | null): Node[] {
     const searchTerm = this.getSearchTerm(value);
     const nodes = searchTerm
@@ -158,7 +144,15 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
 
   private updateFilteredNodes(value: string | Node | null): void {
     const searchTerm = this.getSearchTerm(value);
-    this.filteredNodes = searchTerm ? this.filterNodes(value) : [];
+    const matchingNodes = searchTerm ? this.filterNodes(value) : [];
+    this.filteredNodes = matchingNodes.slice(
+      0,
+      EditorNodeSearchViewComponent.MAX_AUTOCOMPLETE_RESULTS,
+    );
+    this.remainingNodeResults = Math.max(
+      matchingNodes.length - this.filteredNodes.length,
+      0,
+    );
   }
 
   private getSearchTerm(value: string | Node | null): string {
