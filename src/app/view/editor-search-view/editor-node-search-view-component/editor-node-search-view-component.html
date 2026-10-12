@@ -15,9 +15,7 @@
   [displayWith]="displayNode"
 >
   @for (option of filteredNodes; track option) {
-  <sbb-option [value]="option">
-    {{ GeneralViewFunctions.getNodeDisplayName(option) }}
-  </sbb-option>
+  <sbb-option [value]="option"> {{ GeneralViewFunctions.getNodeDisplayName(option) }} </sbb-option>
   } @if (remainingNodeResults > 0) {
   <sbb-option-hint>
     {{ "app.view.editor-search-view-component.more-results" | translate: {count:
