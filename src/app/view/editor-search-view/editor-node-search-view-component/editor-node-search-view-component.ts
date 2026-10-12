@@ -51,6 +51,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
     this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe((nodes: Node[]) => {
       this.allSearchableNodes = nodes.filter((node) => this.filterService.filterNode(node));
       this.updateFilteredNodes(this.searchControl.value);
+      this.updateSearchResults(this.searchControl.value);
     });
 
     this.filterService.filter.pipe(takeUntil(this.destroyed)).subscribe(() => {
@@ -58,6 +59,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
         .getNodes()
         .filter((node) => this.filterService.filterNode(node));
       this.updateFilteredNodes(this.searchControl.value);
+      this.updateSearchResults(this.searchControl.value);
     });
 
     this.allSearchableNodes = this.nodeService
@@ -149,10 +151,17 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
       0,
       EditorNodeSearchViewComponent.MAX_AUTOCOMPLETE_RESULTS,
     );
-    this.remainingNodeResults = Math.max(
-      matchingNodes.length - this.filteredNodes.length,
-      0,
-    );
+    this.remainingNodeResults = Math.max(matchingNodes.length - this.filteredNodes.length, 0);
+  }
+
+  private updateSearchResults(value: string | Node | null): void {
+    if (value instanceof Node) {
+      const currentNode = this.allSearchableNodes.find((node) => node.getId() === value.getId());
+      this.searchResults = currentNode ? [currentNode] : [];
+      return;
+    }
+
+    this.searchResults = typeof value === "string" && value.trim() ? this.filterNodes(value) : [];
   }
 
   private getSearchTerm(value: string | Node | null): string {
@@ -205,5 +214,4 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
     const isEmpty = value === null || (typeof value === "string" && value.trim() === "");
     this.isEmptyChange.emit(isEmpty);
   }
-
 }
