@@ -1,14 +1,4 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  EventEmitter,
-  Input,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  Output,
-  SimpleChanges,
-} from "@angular/core";
+import {Component, ChangeDetectionStrategy, OnDestroy, OnInit} from "@angular/core";
 import {FilterService} from "../../../services/ui/filter.service";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {takeUntil} from "rxjs/operators";
@@ -27,12 +17,9 @@ import {GeneralViewFunctions} from "../../util/generalViewFunctions";
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChanges {
+export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
   private static readonly FILTER_PANEL_ID = "cd-layout-filter";
   private static readonly MAX_AUTOCOMPLETE_RESULTS = 20;
-
-  @Input() resetSignal = 0;
-  @Output() isEmptyChange = new EventEmitter<boolean>();
 
   searchControl = new FormControl<string | Node | null>("");
   searchResults: Node[] = [];
@@ -53,7 +40,6 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
     this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe((nodes: Node[]) => {
       this.allSearchableNodes = nodes.filter((node) => this.filterService.filterNode(node));
       this.updateFilteredNodes(this.searchControl.value);
-      this.updateSearchResults(this.searchControl.value);
     });
 
     this.filterService.filter.pipe(takeUntil(this.destroyed)).subscribe(() => {
@@ -61,7 +47,6 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
         .getNodes()
         .filter((node) => this.filterService.filterNode(node));
       this.updateFilteredNodes(this.searchControl.value);
-      this.updateSearchResults(this.searchControl.value);
     });
 
     this.allSearchableNodes = this.nodeService
@@ -84,16 +69,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
 
     this.searchControl.valueChanges.pipe(takeUntil(this.destroyed)).subscribe((value) => {
       this.updateFilteredNodes(value);
-      this.emitIsEmptyState();
     });
-
-    this.emitIsEmptyState();
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes["resetSignal"] && !changes["resetSignal"].firstChange) {
-      this.clearSearch();
-    }
   }
 
   ngOnDestroy(): void {
@@ -101,7 +77,20 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
     this.destroyed.complete();
   }
 
+  clearSearch(): void {
+    this.searchControl.setValue("");
+    this.searchResults = [];
+  }
+
   search() {
+    if (
+      this.searchControl.value === null ||
+      (typeof this.searchControl.value === "string" && !this.searchControl.value.trim())
+    ) {
+      this.searchResults = [];
+      return;
+    }
+
     if (this.searchControl.value instanceof Node) {
       this.searchResults = [this.searchControl.value];
       this.onSearchResultClick(this.searchControl.value);
@@ -118,6 +107,8 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
   }
 
   onSearchResultClick(node: Node): void {
+    this.searchControl.setValue(node, {emitEvent: false});
+    this.searchResults = [node];
     const offset = this.getNetzgrafikOffsetForElementRightEdge(
       EditorNodeSearchViewComponent.FILTER_PANEL_ID,
     );
@@ -145,16 +136,6 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
       EditorNodeSearchViewComponent.MAX_AUTOCOMPLETE_RESULTS,
     );
     this.remainingNodeResults = Math.max(matchingNodes.length - this.filteredNodes.length, 0);
-  }
-
-  private updateSearchResults(value: string | Node | null): void {
-    if (value instanceof Node) {
-      const currentNode = this.allSearchableNodes.find((node) => node.getId() === value.getId());
-      this.searchResults = currentNode ? [currentNode] : [];
-      return;
-    }
-
-    this.searchResults = typeof value === "string" && value.trim() ? this.filterNodes(value) : [];
   }
 
   private getSearchTerm(value: string | Node | null): string {
@@ -193,18 +174,5 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
     const element = document.getElementById(elementId);
     const offsetXPx = element?.getBoundingClientRect().right ?? 0;
     return this.uiInteractionService.getNetzgrafikOffsetFromScreenPx(offsetXPx, 0);
-  }
-
-  private clearSearch(): void {
-    this.searchControl.setValue("");
-    this.searchResults = [];
-    this.updateFilteredNodes(this.searchControl.value);
-    this.emitIsEmptyState();
-  }
-
-  private emitIsEmptyState(): void {
-    const value = this.searchControl.value;
-    const isEmpty = value === null || (typeof value === "string" && value.trim() === "");
-    this.isEmptyChange.emit(isEmpty);
   }
 }

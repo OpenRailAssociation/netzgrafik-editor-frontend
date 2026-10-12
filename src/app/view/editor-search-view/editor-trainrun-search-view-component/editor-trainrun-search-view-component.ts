@@ -1,15 +1,4 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  EventEmitter,
-  HostListener,
-  Input,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  Output,
-  SimpleChanges,
-} from "@angular/core";
+import {Component, ChangeDetectionStrategy, HostListener, OnDestroy, OnInit} from "@angular/core";
 import {FilterService} from "../../../services/ui/filter.service";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
@@ -33,12 +22,9 @@ import {GeneralViewFunctions} from "../../util/generalViewFunctions";
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnChanges {
+export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
   private static readonly FILTER_PANEL_ID = "cd-layout-filter";
   private static readonly MAX_AUTOCOMPLETE_RESULTS = 10;
-
-  @Input() resetSignal = 0;
-  @Output() isEmptyChange = new EventEmitter<boolean>();
 
   searchControl = new FormControl<string | Trainrun | null>("");
   searchResults: Trainrun[] = [];
@@ -81,7 +67,6 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
           this.filterService.filterTrainrun(trainrun),
         );
         this.updateFilteredTrainruns(this.searchControl.value);
-        this.updateSearchResults(this.searchControl.value);
         this.orderedNodeEntries = this.updateOrderedNodeEntries();
         if (!this.trainrunService.getSelectedTrainrun()) {
           this.searchControl.setValue(null);
@@ -104,12 +89,10 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
         .getTrainruns()
         .filter((trainrun) => this.filterService.filterTrainrun(trainrun));
       this.updateFilteredTrainruns(this.searchControl.value);
-      this.updateSearchResults(this.searchControl.value);
       this.orderedNodeEntries = this.updateOrderedNodeEntries();
     });
 
     this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe(() => {
-      this.updateSearchResults(this.searchControl.value);
       this.orderedNodeEntries = this.updateOrderedNodeEntries();
     });
 
@@ -118,28 +101,23 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
         .getTrainruns()
         .filter((trainrun) => this.filterService.filterTrainrun(trainrun));
       this.updateFilteredTrainruns(this.searchControl.value);
-      this.updateSearchResults(this.searchControl.value);
       this.orderedNodeEntries = this.updateOrderedNodeEntries();
     });
 
     this.searchControl.valueChanges.pipe(takeUntil(this.destroyed)).subscribe((value) => {
       this.updateFilteredTrainruns(value);
-      this.emitIsEmptyState();
     });
-
-    this.emitIsEmptyState();
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes["resetSignal"] && !changes["resetSignal"].firstChange) {
-      this.clearSearch();
-    }
   }
 
   ngOnDestroy(): void {
     this.stopDragScroll();
     this.destroyed.next();
     this.destroyed.complete();
+  }
+
+  clearSearch(): void {
+    this.searchControl.setValue("");
+    this.searchResults = [];
   }
 
   onResultListMouseDown(event: MouseEvent, listElement: HTMLElement): void {
@@ -334,19 +312,6 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
     );
   }
 
-  private updateSearchResults(value: string | Trainrun | null): void {
-    if (value instanceof Trainrun) {
-      const currentTrainrun = this.allSearchableTrainruns.find(
-        (trainrun) => trainrun.getId() === value.getId(),
-      );
-      this.searchResults = currentTrainrun ? [currentTrainrun] : [];
-      return;
-    }
-
-    this.searchResults =
-      typeof value === "string" && value.trim() ? this.filterTrainruns(value) : [];
-  }
-
   private getSearchTerm(value: string | Trainrun | null): string {
     if (typeof value === "string") {
       return value.trim().toLocaleUpperCase();
@@ -383,25 +348,6 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
     const element = document.getElementById(elementId);
     const offsetXPx = element?.getBoundingClientRect().right ?? 0;
     return this.uiInteractionService.getNetzgrafikOffsetFromScreenPx(offsetXPx, 0);
-  }
-
-  private clearSearch(): void {
-    this.searchControl.setValue("");
-    this.searchResults = [];
-    this.orderedNodeEntries = [];
-    this.startNode = undefined;
-    this.endNode = undefined;
-    this.startNodeHidden = false;
-    this.endNodeHidden = false;
-    this.trainrunService.unselectAllTrainruns();
-    this.updateFilteredTrainruns(this.searchControl.value);
-    this.emitIsEmptyState();
-  }
-
-  private emitIsEmptyState(): void {
-    const value = this.searchControl.value;
-    const isEmpty = value === null || (typeof value === "string" && value.trim() === "");
-    this.isEmptyChange.emit(isEmpty);
   }
 
   private stopDragScroll(): void {

@@ -7,6 +7,7 @@
     [placeholder]="'app.view.editor-search-view-component.search-node' | translate"
     [formControl]="searchControl"
     [sbbAutocomplete]="auto"
+    (keydown.escape)="clearSearch()"
   />
 </sbb-search>
 <sbb-autocomplete
