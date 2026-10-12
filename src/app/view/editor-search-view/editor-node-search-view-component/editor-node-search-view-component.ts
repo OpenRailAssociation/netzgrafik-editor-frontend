@@ -135,10 +135,6 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
     this.stopDragScroll();
   }
 
-  get isNetzgrafikMode(): boolean {
-    return this.mainViewMode === MainViewMode.Netzgrafik;
-  }
-
   search() {
     if (this.searchControl.value instanceof Node) {
       this.searchResults = [this.searchControl.value];
