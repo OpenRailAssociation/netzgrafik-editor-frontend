@@ -426,12 +426,10 @@
       },
       "editor-search-view-component": {
         "search": "Suchen",
-        "node": "Gehe zu Knoten",
+        "node": "Knoten",
         "search-node": "Suche nach Knoten",
-        "trainrun": "Navigieren zur Zugfahrt",
-        "select-node": "Knoten auswählen",
+        "trainrun": "Zugfahrt",
         "search-trainrun": "Suche nach Zugfahrten",
-        "select-trainrun": "Zugfahrt auswählen",
         "more-results": "{$count} weitere Treffer verfügbar",
         "clear-all-search-fields": "Alle Suchfelder zurücksetzen",
         "reset": "Suche zurücksetzen"

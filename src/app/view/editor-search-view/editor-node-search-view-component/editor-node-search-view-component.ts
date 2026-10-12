@@ -108,7 +108,6 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
 
   onSearchResultClick(node: Node): void {
     this.searchControl.setValue(node, {emitEvent: false});
-    this.searchResults = [node];
     const offset = this.getNetzgrafikOffsetForElementRightEdge(
       EditorNodeSearchViewComponent.FILTER_PANEL_ID,
     );

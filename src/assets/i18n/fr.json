@@ -426,12 +426,10 @@
       },
       "editor-search-view-component": {
         "search": "Rechercher",
-        "node": "Aller à un noeud",
+        "node": "Noeud",
         "search-node": "Rechercher un noeud",
-        "trainrun": "Naviguer vers un trajet de train",
-        "select-node": "Sélectionner un noeud",
+        "trainrun": "Trajet de train",
         "search-trainrun": "Rechercher des trajets de train",
-        "select-trainrun": "Sélectionner un trajet de train",
         "more-results": "{$count} résultats supplémentaires disponibles",
         "clear-all-search-fields": "Réinitialiser tous les champs de recherche",
         "reset": "Réinitialiser la recherche"
