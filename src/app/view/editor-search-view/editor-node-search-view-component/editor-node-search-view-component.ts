@@ -23,6 +23,7 @@ import {Vec2D} from "../../../utils/vec2D";
   selector: "sbb-editor-node-search-view-component",
   templateUrl: "./editor-node-search-view-component.html",
   styleUrls: ["./editor-node-search-view-component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChanges {
