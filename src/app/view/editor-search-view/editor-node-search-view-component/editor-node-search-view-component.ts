@@ -226,8 +226,8 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
   }
 
   private matchesNode(node: Node, searchTerm: string): boolean {
-    const betriebspunktName = (node.getBetriebspunktName() ?? "").toLocaleUpperCase();
-    const fullName = (node.getFullName() ?? "").toLocaleUpperCase();
+    const betriebspunktName = node.getBetriebspunktName().toLocaleUpperCase();
+    const fullName = node.getFullName().toLocaleUpperCase();
     const compactLabel = this.getNodeSearchValue(node).toLocaleUpperCase();
 
     return (
