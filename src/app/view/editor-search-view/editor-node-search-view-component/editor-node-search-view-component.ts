@@ -18,6 +18,7 @@ import {Node} from "../../../models/node.model";
 import {NodeService} from "../../../services/data/node.service";
 import {FormControl} from "@angular/forms";
 import {Vec2D} from "../../../utils/vec2D";
+import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 
 @Component({
   selector: "sbb-editor-node-search-view-component",
@@ -35,6 +36,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
 
   searchControl = new FormControl<string | Node | null>("");
   searchResults: Node[] = [];
+  readonly GeneralViewFunctions = GeneralViewFunctions;
   readonly displayNode = (value: string | Node | null): string => this.getDisplayValue(value);
 
   mainViewMode: MainViewMode = MainViewMode.Netzgrafik;
@@ -122,17 +124,6 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
     this.uiInteractionService.gotoNode(node, offset);
   }
 
-  getNodeSearchValue(node: Node): string {
-    if (node) {
-      const betriebspunktName = node.getBetriebspunktName() ?? "";
-      const fullName = node.getFullName() ?? "";
-
-      return `${betriebspunktName} (${fullName})`;
-    }
-
-    return "";
-  }
-
   private filterNodes(value: string | Node | null): Node[] {
     const searchTerm = this.getSearchTerm(value);
     const nodes = searchTerm
@@ -140,7 +131,9 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
       : [...this.allSearchableNodes];
 
     return nodes.sort((a, b) =>
-      this.getNodeSearchValue(a).localeCompare(this.getNodeSearchValue(b)),
+      GeneralViewFunctions.getNodeDisplayName(a).localeCompare(
+        GeneralViewFunctions.getNodeDisplayName(b),
+      ),
     );
   }
 
@@ -170,7 +163,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
     }
 
     if (value instanceof Node) {
-      return this.getNodeSearchValue(value).toLocaleUpperCase();
+      return GeneralViewFunctions.getNodeDisplayName(value).toLocaleUpperCase();
     }
 
     return "";
@@ -178,7 +171,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
 
   private getDisplayValue(value: string | Node | null): string {
     if (value instanceof Node) {
-      return this.getNodeSearchValue(value);
+      return GeneralViewFunctions.getNodeDisplayName(value);
     }
 
     return value ?? "";
@@ -187,7 +180,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy, OnChang
   private matchesNode(node: Node, searchTerm: string): boolean {
     const betriebspunktName = node.getBetriebspunktName().toLocaleUpperCase();
     const fullName = node.getFullName().toLocaleUpperCase();
-    const compactLabel = this.getNodeSearchValue(node).toLocaleUpperCase();
+    const compactLabel = GeneralViewFunctions.getNodeDisplayName(node).toLocaleUpperCase();
 
     return (
       betriebspunktName.includes(searchTerm) ||
