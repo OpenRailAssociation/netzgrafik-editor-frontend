@@ -14,9 +14,19 @@
   class="editor-node-search-autocomplete"
   [displayWith]="displayNode"
 >
-  <sbb-option *ngFor="let option of filteredNodes" [value]="option">
-    {{ transformNodeName(option) }}
-  </sbb-option>
+  @for (option of filteredNodes; track option) {
+    <sbb-option [value]="option">
+      {{ getNodeSearchValue(option) }}
+    </sbb-option>
+  }
+  @if (remainingNodeResults > 0) {
+    <sbb-option-hint>
+      {{
+        "app.view.editor-search-view-component.more-results"
+          | translate: {count: remainingNodeResults.toString()}
+      }}
+    </sbb-option-hint>
+  }
 </sbb-autocomplete>
 
 @if (searchResults.length > 1) {
@@ -29,7 +39,7 @@
   <div class="search-result-item">
     <span
       class="smallstation"
-      [title]="transformNodeName(node)"
+        [title]="getNodeSearchValue(node)"
       (click)="onSearchResultClick(node)"
     >
       {{ getNodeSearchValue(node) }}
