@@ -1,5 +1,6 @@
 import {
   Component,
+  ChangeDetectionStrategy,
   EventEmitter,
   HostListener,
   Input,
@@ -29,6 +30,7 @@ import {Vec2D} from "../../../utils/vec2D";
   selector: "sbb-editor-trainrun-search-view-component",
   templateUrl: "./editor-trainrun-search-view-component.html",
   styleUrls: ["./editor-trainrun-search-view-component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnChanges {
@@ -79,6 +81,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
           this.filterService.filterTrainrun(trainrun),
         );
         this.updateFilteredTrainruns(this.searchControl.value);
+        this.updateSearchResults(this.searchControl.value);
         this.orderedNodeEntries = this.updateOrderedNodeEntries();
         if (!this.trainrunService.getSelectedTrainrun()) {
           this.searchControl.setValue(null);
@@ -101,6 +104,12 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
         .getTrainruns()
         .filter((trainrun) => this.filterService.filterTrainrun(trainrun));
       this.updateFilteredTrainruns(this.searchControl.value);
+      this.updateSearchResults(this.searchControl.value);
+      this.orderedNodeEntries = this.updateOrderedNodeEntries();
+    });
+
+    this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.updateSearchResults(this.searchControl.value);
       this.orderedNodeEntries = this.updateOrderedNodeEntries();
     });
 
@@ -109,6 +118,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
         .getTrainruns()
         .filter((trainrun) => this.filterService.filterTrainrun(trainrun));
       this.updateFilteredTrainruns(this.searchControl.value);
+      this.updateSearchResults(this.searchControl.value);
       this.orderedNodeEntries = this.updateOrderedNodeEntries();
     });
 
@@ -167,13 +177,12 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
   onSearch() {
     this.search();
     if (this.searchResults.length === 1) {
-      this.onSearchResultClick(this.searchControl.value as Trainrun);
+      this.onSearchResultClick(this.searchResults[0]);
     }
   }
 
   onSearchResultClick(trainrun: Trainrun): void {
     this.trainrunService.setTrainrunAsSelected(trainrun.getId());
-    this.orderedNodeEntries = this.updateOrderedNodeEntries();
     if (this.orderedNodeEntries.length === 0) {
       return;
     }
@@ -293,8 +302,6 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
   private search() {
     if (this.searchControl.value instanceof Trainrun) {
       this.searchResults = [this.searchControl.value];
-      this.trainrunService.setTrainrunAsSelected(this.searchResults[0].getId());
-      this.orderedNodeEntries = this.updateOrderedNodeEntries();
       return;
     }
 
@@ -304,8 +311,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
 
     if (this.searchResults.length === 1) {
       const trainrun = this.searchResults[0];
-      this.trainrunService.setTrainrunAsSelected(trainrun.getId());
-      this.orderedNodeEntries = this.updateOrderedNodeEntries();
+      this.searchControl.setValue(trainrun);
     }
   }
 
@@ -332,6 +338,19 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy, OnC
       matchingTrainruns.length - this.filteredTrainruns.length,
       0,
     );
+  }
+
+  private updateSearchResults(value: string | Trainrun | null): void {
+    if (value instanceof Trainrun) {
+      const currentTrainrun = this.allSearchableTrainruns.find(
+        (trainrun) => trainrun.getId() === value.getId(),
+      );
+      this.searchResults = currentTrainrun ? [currentTrainrun] : [];
+      return;
+    }
+
+    this.searchResults =
+      typeof value === "string" && value.trim() ? this.filterTrainruns(value) : [];
   }
 
   private getSearchTerm(value: string | Trainrun | null): string {
