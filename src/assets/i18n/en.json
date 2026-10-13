@@ -36,6 +36,7 @@
     "netzgrafik-application": {
       "variants": "Variants",
       "filter": "Filter",
+      "search": "Search",
       "analytics": "Analytics",
       "edit": "Edit",
       "more-functions": "More functions",
