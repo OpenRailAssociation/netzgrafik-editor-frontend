@@ -430,7 +430,7 @@
       "editor-search-view-component": {
         "search": "Search",
         "node": "Node",
-        "search-node": "Search node",
+        "search-node": "Search for a node",
         "trainrun": "Trainrun",
         "search-trainrun": "Search for a trainrun",
         "more-results": "{$count} more results available"
