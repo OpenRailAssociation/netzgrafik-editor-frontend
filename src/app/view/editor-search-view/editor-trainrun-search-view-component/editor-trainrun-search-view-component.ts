@@ -120,12 +120,6 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  onBlur(): void {
-    if (!(this.searchControl.value instanceof Trainrun)) {
-      this.search();
-    }
-  }
-
   selectTrainrun(trainrun: Trainrun): void {
     this.trainrunService.setTrainrunAsSelected(trainrun.getId());
 
