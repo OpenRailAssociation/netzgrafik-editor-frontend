@@ -2,9 +2,17 @@
 @use "./../../../view/editor-filter-view/editor-filter-view.component.scss";
 @use "../../rastering/definitions" as *;
 
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .search-results-list {
   margin-top: 0.5rem;
-  max-height: max(120px, calc((100vh - var(--search-reserved-height)) * 0.6));
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
   overflow-y: auto;
   overflow-x: hidden;
   padding-top: 4px;
