@@ -20,7 +20,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
   private static readonly FILTER_PANEL_ID = "cd-layout-filter";
   private static readonly MAX_AUTOCOMPLETE_RESULTS = 20;
 
-  searchControl = new FormControl<string | Node | null>("");
+  searchControl = new FormControl<string | Node>("", {nonNullable: true});
   searchResults: Node[] = [];
   readonly GeneralViewFunctions = GeneralViewFunctions;
   readonly displayNode = (value: Node | null): string => this.getDisplayValue(value);
@@ -78,21 +78,19 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
   }
 
   search() {
-    if (
-      this.searchControl.value === null ||
-      (typeof this.searchControl.value === "string" && !this.searchControl.value.trim())
-    ) {
+    const value = this.searchControl.value;
+    if (typeof value === "string" && !value.trim()) {
       this.searchResults = [];
       return;
     }
 
-    if (this.searchControl.value instanceof Node) {
-      this.searchResults = [this.searchControl.value];
-      this.onSearchResultClick(this.searchControl.value);
+    if (value instanceof Node) {
+      this.searchResults = [value];
+      this.onSearchResultClick(value);
       return;
     }
 
-    this.searchResults = this.filterNodes(this.searchControl.value);
+    this.searchResults = this.filterNodes(value);
   }
 
   onSearchResultClick(node: Node): void {
@@ -103,7 +101,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
     this.uiInteractionService.gotoNode(node, offset);
   }
 
-  private filterNodes(value: string | Node | null): Node[] {
+  private filterNodes(value: string | Node): Node[] {
     const searchTerm = this.getSearchTerm(value);
     const nodes = searchTerm
       ? this.allSearchableNodes.filter((node) => this.matchesNode(node, searchTerm))
@@ -116,7 +114,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
     );
   }
 
-  private updateFilteredNodes(value: string | Node | null): void {
+  private updateFilteredNodes(value: string | Node): void {
     const searchTerm = this.getSearchTerm(value);
     const matchingNodes = searchTerm ? this.filterNodes(value) : [];
     this.filteredNodes = matchingNodes.slice(
@@ -126,16 +124,10 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
     this.remainingNodeResults = Math.max(matchingNodes.length - this.filteredNodes.length, 0);
   }
 
-  private getSearchTerm(value: string | Node | null): string {
-    if (typeof value === "string") {
-      return value.trim().toLocaleUpperCase();
-    }
-
-    if (value instanceof Node) {
-      return GeneralViewFunctions.getNodeDisplayName(value).toLocaleUpperCase();
-    }
-
-    return "";
+  private getSearchTerm(value: string | Node): string {
+    const term =
+      typeof value === "string" ? value.trim() : GeneralViewFunctions.getNodeDisplayName(value);
+    return term.toLocaleUpperCase();
   }
 
   private getDisplayValue(value: string | Node | null): string {

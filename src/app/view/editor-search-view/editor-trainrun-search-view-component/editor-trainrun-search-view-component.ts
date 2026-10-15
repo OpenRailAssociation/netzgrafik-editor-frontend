@@ -25,7 +25,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
   private static readonly FILTER_PANEL_ID = "cd-layout-filter";
   private static readonly MAX_AUTOCOMPLETE_RESULTS = 10;
 
-  searchControl = new FormControl<string | Trainrun | null>("");
+  searchControl = new FormControl<string | Trainrun>("", {nonNullable: true});
   searchResults: Trainrun[] = [];
   orderedNodeEntries: OrderedTrainrunNodeEntry[] = [];
   startNode: OrderedTrainrunNodeEntry | undefined;
@@ -63,7 +63,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
         this.updateFilteredTrainruns(this.searchControl.value);
         this.orderedNodeEntries = this.updateOrderedNodeEntries();
         if (!this.trainrunService.getSelectedTrainrun()) {
-          this.searchControl.setValue(null);
+          this.searchControl.setValue("");
         } else {
           const currentValue = this.searchControl.value;
           if (currentValue instanceof Trainrun) {
@@ -260,7 +260,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  private filterTrainruns(value: string | Trainrun | null): Trainrun[] {
+  private filterTrainruns(value: string | Trainrun): Trainrun[] {
     const searchTerm = this.getSearchTerm(value);
     if (!searchTerm) {
       return [];
@@ -271,7 +271,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     );
   }
 
-  private updateFilteredTrainruns(value: string | Trainrun | null): void {
+  private updateFilteredTrainruns(value: string | Trainrun): void {
     const matchingTrainruns = this.filterTrainruns(value).sort((a, b) =>
       this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
     );
@@ -285,16 +285,9 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     );
   }
 
-  private getSearchTerm(value: string | Trainrun | null): string {
-    if (typeof value === "string") {
-      return value.trim().toLocaleUpperCase();
-    }
-
-    if (value instanceof Trainrun) {
-      return this.getTrainrunSearchValue(value).toLocaleUpperCase();
-    }
-
-    return "";
+  private getSearchTerm(value: string | Trainrun): string {
+    const term = typeof value === "string" ? value.trim() : this.getTrainrunSearchValue(value);
+    return term.toLocaleUpperCase();
   }
 
   private getDisplayValue(value: string | Trainrun | null): string {
