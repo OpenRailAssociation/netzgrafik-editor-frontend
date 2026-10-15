@@ -23,58 +23,59 @@
   flex: 0 0 auto;
 }
 
-:host ::ng-deep sbb-accordion > sbb-expansion-panel.sbb-expanded:has(.search-results-list) {
-  display: flex;
-  flex: 1 1 0;
-  flex-direction: column;
+:host
+  ::ng-deep
+  sbb-accordion
+  > sbb-expansion-panel.sbb-expanded:has(.search-results-list.search-results-overflow) {
+  display: block;
+  flex: 0 0 auto;
   min-height: 0;
 }
 
 :host
   ::ng-deep
   sbb-accordion
-  > sbb-expansion-panel.sbb-expanded:has(.search-results-list)
+  > sbb-expansion-panel.sbb-expanded:has(.search-results-list.search-results-overflow)
   .sbb-expansion-panel-content-wrapper,
 :host
   ::ng-deep
   sbb-accordion
-  > sbb-expansion-panel.sbb-expanded:has(.search-results-list)
+  > sbb-expansion-panel.sbb-expanded:has(.search-results-list.search-results-overflow)
   .sbb-expansion-panel-content,
 :host
   ::ng-deep
   sbb-accordion
-  > sbb-expansion-panel.sbb-expanded:has(.search-results-list)
+  > sbb-expansion-panel.sbb-expanded:has(.search-results-list.search-results-overflow)
   .sbb-expansion-panel-body,
 :host
   ::ng-deep
   sbb-accordion
-  > sbb-expansion-panel.sbb-expanded:has(.search-results-list)
+  > sbb-expansion-panel.sbb-expanded:has(.search-results-list.search-results-overflow)
   sbb-editor-node-search-view-component,
 :host
   ::ng-deep
   sbb-accordion
-  > sbb-expansion-panel.sbb-expanded:has(.search-results-list)
+  > sbb-expansion-panel.sbb-expanded:has(.search-results-list.search-results-overflow)
   sbb-editor-trainrun-search-view-component {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
+  display: block;
+  flex: 0 0 auto;
   min-height: 0;
 }
 
 :host
   ::ng-deep
   sbb-accordion
-  > sbb-expansion-panel.sbb-expanded:not(:has(.search-results-list))
+  > sbb-expansion-panel.sbb-expanded:has(.search-results-list.search-results-overflow)
   .sbb-expansion-panel-content-wrapper,
 :host
   ::ng-deep
   sbb-accordion
-  > sbb-expansion-panel.sbb-expanded:not(:has(.search-results-list))
+  > sbb-expansion-panel.sbb-expanded:has(.search-results-list.search-results-overflow)
   .sbb-expansion-panel-content,
 :host
   ::ng-deep
   sbb-accordion
-  > sbb-expansion-panel.sbb-expanded:not(:has(.search-results-list))
+  > sbb-expansion-panel.sbb-expanded:has(.search-results-list.search-results-overflow)
   .sbb-expansion-panel-body {
   height: auto !important;
 }
@@ -82,7 +83,7 @@
 :host
   ::ng-deep
   sbb-accordion
-  > sbb-expansion-panel.sbb-expanded:not(:has(.search-results-list))
+  > sbb-expansion-panel.sbb-expanded:has(.search-results-list.search-results-overflow)
   .sbb-expansion-panel-content-wrapper {
   grid-template-rows: auto !important;
 }
@@ -90,7 +91,33 @@
 :host
   ::ng-deep
   sbb-accordion
-  > sbb-expansion-panel.sbb-expanded:not(:has(.search-results-list))
+  > sbb-expansion-panel.sbb-expanded:not(:has(.search-results-list.search-results-overflow))
+  .sbb-expansion-panel-content-wrapper,
+:host
+  ::ng-deep
+  sbb-accordion
+  > sbb-expansion-panel.sbb-expanded:not(:has(.search-results-list.search-results-overflow))
+  .sbb-expansion-panel-content,
+:host
+  ::ng-deep
+  sbb-accordion
+  > sbb-expansion-panel.sbb-expanded:not(:has(.search-results-list.search-results-overflow))
+  .sbb-expansion-panel-body {
+  height: auto !important;
+}
+
+:host
+  ::ng-deep
+  sbb-accordion
+  > sbb-expansion-panel.sbb-expanded:not(:has(.search-results-list.search-results-overflow))
+  .sbb-expansion-panel-content-wrapper {
+  grid-template-rows: auto !important;
+}
+
+:host
+  ::ng-deep
+  sbb-accordion
+  > sbb-expansion-panel.sbb-expanded:not(:has(.search-results-list.search-results-overflow))
   .sbb-expansion-panel-body {
   padding-bottom: 0;
 }

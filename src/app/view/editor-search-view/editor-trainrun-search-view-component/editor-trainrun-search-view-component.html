@@ -20,7 +20,7 @@
 </sbb-autocomplete>
 
 @if (searchResults.length > 1) {
-<div class="search-results-list">
+<div class="search-results-list" [class.search-results-overflow]="searchResults.length > 8">
   @for (trainrun of searchResults; track trainrun) {
   <div class="search-result-item">
     <span class="smallstation" (click)="selectTrainrun(trainrun)">
@@ -31,7 +31,7 @@
 </div>
 } @if ( searchResults.length === 1 && isSelectedTrainrun(searchResults[0]) &&
 orderedNodeEntries.length > 0 ) {
-<div class="search-results-list">
+<div class="search-results-list" [class.search-results-overflow]="orderedNodeEntries.length > 8">
   @for (entry of orderedNodeEntries; track entry; let first = $first; let last = $last) { @if
   (startNodeHidden && first) {
   <div class="timeline-hidden-endpoint" (click)="onOrderedNodeClick(startNode!)">
