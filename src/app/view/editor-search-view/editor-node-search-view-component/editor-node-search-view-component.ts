@@ -103,20 +103,18 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
 
   private filterNodes(value: string | Node): Node[] {
     const searchTerm = this.getSearchTerm(value);
-    const nodes = searchTerm
-      ? this.allSearchableNodes.filter((node) => this.matchesNode(node, searchTerm))
-      : [...this.allSearchableNodes];
-
-    return nodes.sort((a, b) =>
-      GeneralViewFunctions.getNodeDisplayName(a).localeCompare(
-        GeneralViewFunctions.getNodeDisplayName(b),
-      ),
-    );
+    return this.allSearchableNodes
+      .filter((node) => this.matchesNode(node, searchTerm))
+      .sort((a, b) =>
+        GeneralViewFunctions.getNodeDisplayName(a).localeCompare(
+          GeneralViewFunctions.getNodeDisplayName(b),
+        ),
+      );
   }
 
   private updateFilteredNodes(value: string | Node): void {
     const searchTerm = this.getSearchTerm(value);
-    const matchingNodes = searchTerm ? this.filterNodes(value) : [];
+    const matchingNodes = searchTerm !== "" ? this.filterNodes(value) : [];
     this.filteredNodes = matchingNodes.slice(
       0,
       EditorNodeSearchViewComponent.MAX_AUTOCOMPLETE_RESULTS,
