@@ -32,8 +32,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
   endNode: OrderedTrainrunNodeEntry | undefined;
   startNodeHidden = false;
   endNodeHidden = false;
-  readonly displayTrainrun = (value: string | Trainrun | null): string =>
-    this.getDisplayValue(value);
+  readonly displayTrainrun = (value: string | Trainrun): string => this.getDisplayValue(value);
 
   private destroyed = new Subject<void>();
   allSearchableTrainruns: Trainrun[] = [];
@@ -220,8 +219,8 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
 
   getTrainrunSearchValue(trainrun: Trainrun): string {
     if (trainrun) {
-      const category = trainrun.getCategoryShortName() ?? "";
-      const title = trainrun.getTitle() ?? "";
+      const category = trainrun.getCategoryShortName();
+      const title = trainrun.getTitle();
 
       return `${category}${title}`.trim();
     }
@@ -290,17 +289,17 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     return term.toLocaleUpperCase();
   }
 
-  private getDisplayValue(value: string | Trainrun | null): string {
+  private getDisplayValue(value: string | Trainrun): string {
     if (value instanceof Trainrun) {
       return this.getTrainrunSearchValue(value);
     }
 
-    return value ?? "";
+    return value;
   }
 
   private matchesTrainrun(trainrun: Trainrun, searchTerm: string): boolean {
-    const category = (trainrun.getCategoryShortName() ?? "").toLocaleUpperCase();
-    const title = (trainrun.getTitle() ?? "").toLocaleUpperCase();
+    const category = trainrun.getCategoryShortName().toLocaleUpperCase();
+    const title = trainrun.getTitle().toLocaleUpperCase();
     const compactLabel = this.getTrainrunSearchValue(trainrun).toLocaleUpperCase();
 
     return (
