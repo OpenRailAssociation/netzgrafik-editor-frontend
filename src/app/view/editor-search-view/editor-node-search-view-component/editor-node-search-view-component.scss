@@ -6,7 +6,7 @@
   display: flow-root;
   margin-top: 0.5rem;
   height: auto;
-  max-height: 200px;
+  max-height: max(80px, calc((100vh - var(--search-reserved-height)) * 0.4));
   overflow-x: hidden;
   overflow-y: auto;
 }
