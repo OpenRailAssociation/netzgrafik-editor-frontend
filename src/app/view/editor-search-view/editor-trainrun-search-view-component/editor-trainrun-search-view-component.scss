@@ -60,6 +60,7 @@ span.smallstation {
   cursor: pointer;
   color: var(--sbb-form-input-color);
   font-size: var(--sbb-font-size);
+  font-family: $BP_LABEL_FONT_FAMILY;
   border: 5px solid none;
   margin-left: 4px;
   font-weight: light;
