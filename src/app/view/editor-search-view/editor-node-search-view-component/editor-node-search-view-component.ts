@@ -23,7 +23,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
   searchControl = new FormControl<string | Node>("", {nonNullable: true});
   searchResults: Node[] = [];
   readonly GeneralViewFunctions = GeneralViewFunctions;
-  readonly displayNode = (value: Node | null): string => this.getDisplayValue(value);
+  readonly displayNode = (value: Node): string => this.getDisplayValue(value);
 
   private destroyed = new Subject<void>();
   allSearchableNodes: Node[] = [];
@@ -123,12 +123,12 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
     return term.toLocaleUpperCase();
   }
 
-  private getDisplayValue(value: string | Node | null): string {
+  private getDisplayValue(value: string | Node): string {
     if (value instanceof Node) {
       return GeneralViewFunctions.getNodeDisplayName(value);
     }
 
-    return value ?? "";
+    return value;
   }
 
   private matchesNode(node: Node, searchTerm: string): boolean {
