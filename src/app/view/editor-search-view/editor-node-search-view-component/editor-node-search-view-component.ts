@@ -75,6 +75,8 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
     if (this.searchResults.length === 1 && typeof this.searchControl.value === "string") {
       this.onSearchResultClick(this.searchResults[0]);
     }
+  }
+
   search(): void {
     const value = this.searchControl.value;
     if (value instanceof Node) {
