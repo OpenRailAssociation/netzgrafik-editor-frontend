@@ -4,7 +4,7 @@
 
 .search-results-list {
   margin-top: 0.5rem;
-  max-height: 405px;
+  max-height: max(120px, calc((100vh - var(--search-reserved-height)) * 0.6));
   overflow-y: auto;
   overflow-x: hidden;
   padding-top: 4px;
