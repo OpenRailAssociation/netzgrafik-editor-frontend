@@ -23,7 +23,7 @@ import {Vec2D} from "../../../utils/vec2D";
 })
 export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
   private static readonly FILTER_PANEL_ID = "cd-layout-filter";
-  private static readonly MAX_AUTOCOMPLETE_RESULTS = 10;
+  private static readonly MAX_AUTOCOMPLETE_RESULTS = 20;
 
   searchControl = new FormControl<string | Trainrun>("", {nonNullable: true});
   searchResults: Trainrun[] = [];
