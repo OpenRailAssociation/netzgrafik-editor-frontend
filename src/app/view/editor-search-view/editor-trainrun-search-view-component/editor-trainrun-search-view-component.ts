@@ -242,21 +242,25 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
       : node.getBetriebspunktName();
   }
 
-  private search() {
-    if (this.searchControl.value instanceof Trainrun) {
-      this.searchResults = [this.searchControl.value];
+  private search(): void {
+    const value = this.searchControl.value;
+    if (value instanceof Trainrun) {
+      this.searchResults = [value];
       return;
     }
 
-    this.searchResults = this.filterTrainruns(this.searchControl.value).sort((a, b) =>
-      this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
-    );
+    this.searchResults = this.filterTrainruns(value);
 
     if (this.searchResults.length === 1) {
       const trainrun = this.searchResults[0];
       this.searchControl.setValue(trainrun, {emitEvent: false});
       this.selectTrainrun(trainrun);
+      return;
     }
+
+    this.searchResults.sort((a, b) =>
+      this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
+    );
   }
 
   private filterTrainruns(value: string | Trainrun): Trainrun[] {
