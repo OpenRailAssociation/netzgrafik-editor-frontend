@@ -1514,18 +1514,26 @@ export class TrainrunSectionService implements OnDestroy {
 
     // Swap Timelocks
     const oldSourceDepartureDto = trainrunSection.getSourceDepartureDto();
+    const oldTravelTime = trainrunSection.getTravelTimeDto();
     const oldTargetArrivalDto = trainrunSection.getTargetArrivalDto();
     const oldTargetDepartureDto = trainrunSection.getTargetDepartureDto();
+    const oldBackwardTravelTime = trainrunSection.getBackwardTravelTimeDto();
     const oldSourceArrivalDto = trainrunSection.getSourceArrivalDto();
 
     // Source departure becomes target departure
     trainrunSection.setSourceDepartureDto(oldTargetDepartureDto);
+
+    // Travel time becomes backward travel time
+    trainrunSection.setTravelTimeDto(oldBackwardTravelTime);
 
     // Target arrival becomes source arrival
     trainrunSection.setTargetArrivalDto(oldSourceArrivalDto);
 
     // Target departure becomes source departure
     trainrunSection.setTargetDepartureDto(oldSourceDepartureDto);
+
+    // Backward travel time becomes travel time
+    trainrunSection.setBackwardTravelTimeDto(oldTravelTime);
 
     // Source arrival becomes target arrival
     trainrunSection.setSourceArrivalDto(oldTargetArrivalDto);

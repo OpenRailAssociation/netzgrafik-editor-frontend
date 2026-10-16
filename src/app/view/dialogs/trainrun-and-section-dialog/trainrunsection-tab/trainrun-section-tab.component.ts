@@ -87,6 +87,16 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     return this.isRoundTrip() || !isTargetRightOrBottom;
   }
 
+  // As time structure is oriented left-to-right, when a one-way trainrun going
+  // right-to-left, then the actual travel time should be the "bottom" one.
+  public get isOneWayReversed(): boolean {
+    return (
+      this.selectedTrainrunSection !== null &&
+      !this.isRoundTrip() &&
+      !TrainrunsectionHelper.isTargetRightOrBottom(this.selectedTrainrunSection)
+    );
+  }
+
   public get isBottomTravelTimeDisplayed(): boolean {
     if (
       this.selectedTrainrunSection === null ||

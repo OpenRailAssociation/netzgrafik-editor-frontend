@@ -144,22 +144,43 @@
             (increment)="trainrunSectionTimesService.onNodeRightDepartureTimeButtonPlus()"
             #rightDepartureTimeInputElement
           ></sbb-time-stepper>
-          <sbb-time-stepper
-            [containerClass]="getTrafficSideClass(getTravelTimeCssClass('TravelTime'))"
-            inputId="TravelTimeTimeInputElement"
-            [inputClass]="{
-              InputTravelTimeElement: !trainrunSectionTimesService.getHighlightTravelTimeElement(),
-              InputTravelTimeElementHighlighted:
-                trainrunSectionTimesService.getHighlightTravelTimeElement(),
-            }"
-            [tabIndex]="3"
-            [(value)]="trainrunSectionTimesService.getTimeStructure().travelTime"
-            [min]="0.0001"
-            (changed)="trainrunSectionTimesService.onTravelTimeChanged()"
-            (decrement)="trainrunSectionTimesService.onTravelTimeButtonMinus()"
-            (increment)="trainrunSectionTimesService.onTravelTimeButtonPlus()"
-            #travelTimeInputElement
-          ></sbb-time-stepper>
+          @if (isOneWayReversed) {
+            <sbb-time-stepper
+              [containerClass]="getTrafficSideClass('TravelTime')"
+              inputId="BottomTravelTimeTimeInputElement"
+              [inputClass]="{
+                InputTravelTimeElement:
+                  !trainrunSectionTimesService.getHighlightBottomTravelTimeElement(),
+                InputTravelTimeElementHighlighted:
+                  trainrunSectionTimesService.getHighlightBottomTravelTimeElement(),
+              }"
+              [tabIndex]="3"
+              [(value)]="trainrunSectionTimesService.getTimeStructure().bottomTravelTime"
+              [min]="0.0001"
+              (changed)="trainrunSectionTimesService.onBottomTravelTimeChanged()"
+              (decrement)="trainrunSectionTimesService.onBottomTravelTimeButtonMinus()"
+              (increment)="trainrunSectionTimesService.onBottomTravelTimeButtonPlus()"
+              #bottomTravelTimeInputElement
+            ></sbb-time-stepper>
+          } @else {
+            <sbb-time-stepper
+              [containerClass]="getTrafficSideClass(getTravelTimeCssClass('TravelTime'))"
+              inputId="TravelTimeTimeInputElement"
+              [inputClass]="{
+                InputTravelTimeElement:
+                  !trainrunSectionTimesService.getHighlightTravelTimeElement(),
+                InputTravelTimeElementHighlighted:
+                  trainrunSectionTimesService.getHighlightTravelTimeElement(),
+              }"
+              [tabIndex]="3"
+              [(value)]="trainrunSectionTimesService.getTimeStructure().travelTime"
+              [min]="0.0001"
+              (changed)="trainrunSectionTimesService.onTravelTimeChanged()"
+              (decrement)="trainrunSectionTimesService.onTravelTimeButtonMinus()"
+              (increment)="trainrunSectionTimesService.onTravelTimeButtonPlus()"
+              #travelTimeInputElement
+            ></sbb-time-stepper>
+          }
           <sbb-time-stepper
             *ngIf="isBottomTravelTimeDisplayed"
             [containerClass]="getTrafficSideClass('BottomTravelTime')"
