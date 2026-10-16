@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.13.0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.12.0...netzgrafik-editor-frontend-v2.13.0) (2026-10-16)
+
+
+### Features
+
+* change note snap from 32px grid to 16px ([e725a36](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/e725a36c876f83d6c4f2b9691246348c1f1cf4dd))
+* fix: include notes, exclude filtered elements from export and center init viewport ([918df92](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/918df92bdd6afc326dea1277e386f8fdad321592))
+
+
+### Bug Fixes
+
+* add style for URL popup ([0d47a86](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/0d47a86ac778682ff76478727514889a69125c0b))
+* allow fonts to be loaded when exporting svg ([#1405](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1405)) ([2a52333](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/2a5233314dd339d8b8766d2224b7492a5dcf3f86))
+* harmonize font family ([8f8dfd0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/8f8dfd0ff2d1c0f4c65ae4304623a25801b7cbaf))
+* note snapping ([5c05547](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/5c055479f54d1fc98b60b4cd7d187908ce149662))
+* one way travel time position invertion ([1a9d4d3](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/1a9d4d33565b6c456679f0de23f6463e05ba69e7))
+* port ordering translations ([c4d5ed6](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/c4d5ed686a5983597360b770dcdc1352f18ea68d))
+* **view:** overlapping SummaryTitle css class ([82b85da](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/82b85daef89ce3a9053c5234b68088fd7c56d1eb))
+
 ## [2.12.0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.11.1...netzgrafik-editor-frontend-v2.12.0) (2026-10-08)
 
 
