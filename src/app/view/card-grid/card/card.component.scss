@@ -1,4 +1,4 @@
-@use "@sbb-esta/angular" as sbb;
+@use "../../rastering/definitions" as *;
 
 .card {
   border-radius: 4px;
@@ -11,12 +11,12 @@
 
 .card .title {
   font-size: 1.4rem;
-  font-family: sbb.$fontSbbLight;
+  font-family: $BP_LABEL_FONT_FAMILY;
 }
 
 .card .subtitle {
   font-size: 0.8rem;
-  color: sbb.$sbbColorMetal;
+  color: var(--sbb-header-lean-subtitle-color);
 }
 
 .card.icon {

@@ -50,7 +50,7 @@
   stroke-width: 0px;
   stroke: $NODE_TEXT_COLOR;
   fill: $NODE_TEXT_FOCUS;
-  font-family: "SBBWeb Roman";
+  font-family: $BP_LABEL_FONT_FAMILY_ROMAN;
   pointer-events: none;
 }
 
@@ -66,7 +66,7 @@
   stroke-width: 0px;
   stroke: none;
   fill: $NODE_TEXT_FOCUS;
-  font-family: "SBBWeb Light";
+  font-family: $BP_LABEL_FONT_FAMILY;
   pointer-events: none;
 }
 
