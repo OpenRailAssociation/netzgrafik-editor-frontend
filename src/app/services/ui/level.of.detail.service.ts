@@ -36,7 +36,12 @@ export class LevelOfDetailService implements OnDestroy {
     this.uiInteractionService.zoomFactorObservable
       .pipe(takeUntil(this.destroyed))
       .subscribe((changedZoomFactor) => {
-        if (this.uiInteractionService.getEditorMode() !== EditorMode.NetzgrafikEditing) {
+        const mode = this.uiInteractionService.getEditorMode();
+        if (
+          mode !== EditorMode.NetzgrafikEditing &&
+          mode !== EditorMode.MultiNodeMoving &&
+          mode !== EditorMode.NoteEditing
+        ) {
           // don't change level of detail
           return;
         }
