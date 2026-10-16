@@ -36,6 +36,7 @@
     "netzgrafik-application": {
       "variants": "Variantes",
       "filter": "Filtres",
+      "search": "Rechercher",
       "analytics": "Analyse",
       "edit": "Edition",
       "more-functions": "Plus de fonctionnalités",
@@ -425,6 +426,14 @@
           "show": "afficher",
           "hide": "masquer"
         }
+      },
+      "editor-search-view-component": {
+        "search": "Rechercher",
+        "node": "Noeud",
+        "search-node": "Rechercher un noeud",
+        "trainrun": "Trajet de train",
+        "search-trainrun": "Rechercher un trajet de train",
+        "more-results": "{$count} résultats supplémentaires disponibles"
       },
       "editor-menu": {
         "save-changes": "Enregistrer les modifications",

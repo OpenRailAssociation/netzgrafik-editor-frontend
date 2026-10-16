@@ -5,6 +5,17 @@ import {Node} from "../../models/node.model";
 import {VisAVisPortPlacement} from "../../services/util/node.port.placement";
 
 export class GeneralViewFunctions {
+  static getNodeDisplayName(node: Node | null | undefined): string {
+    if (!node) {
+      return "";
+    }
+
+    const betriebspunktName = node.getBetriebspunktName();
+    const fullName = node.getFullName();
+
+    return `${betriebspunktName} (${fullName})`;
+  }
+
   static calcDialogTopLeftScreenCoordinate(windowsPosition: Vec2D, dialogDimension: Vec2D): Vec2D {
     /*
       The SVG (netzgrafik) rendering area has its own local coordinate system and can be different
