@@ -7,7 +7,7 @@ import {environment} from "../environments/environment";
 import packageJson from "../../package.json";
 import {Observable, merge} from "rxjs";
 import {ProjectDto} from "./api/generated";
-import {NetzgrafikDto} from "./data-structures/business.data.structures";
+import {FreeFloatingTextDto, NetzgrafikDto} from "./data-structures/business.data.structures";
 import {Operation} from "./models/operation.model";
 import {LabelService} from "./services/data/label.service";
 import {NodeService} from "./services/data/node.service";
@@ -116,6 +116,15 @@ export class AppComponent implements OnInit {
     } else {
       throw new Error(`FilterSetting with id ${id} not found`);
     }
+  }
+
+  @Input()
+  get notes(): FreeFloatingTextDto[] {
+    return this.noteService.getDtos();
+  }
+
+  set notes(notes: FreeFloatingTextDto[]) {
+    this.noteService.syncNotes(notes);
   }
 
   @Output()
