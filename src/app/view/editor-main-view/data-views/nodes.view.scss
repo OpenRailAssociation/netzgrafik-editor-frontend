@@ -52,7 +52,7 @@
   fill: $NODE_TEXT_FOCUS;
   cursor: move;
   font-size: $BP_LABEL_FONT_SIZE;
-  font-family: $BP_LABEL_FONT_FAMILY;
+  font-family: $LIGHT_FONT_FAMILY;
 }
 
 ::ng-deep text.node_text.readonly {
@@ -68,7 +68,7 @@
   fill: $NODE_TEXT_FOCUS;
   text-anchor: end;
   font-size: $BP_LABEL_FONT_SIZE;
-  font-family: $BP_LABEL_FONT_FAMILY;
+  font-family: $LIGHT_FONT_FAMILY;
 }
 
 ::ng-deep text.node_connection_time:hover {
@@ -128,7 +128,7 @@
   fill: $NODE_TEXT_FOCUS;
   text-anchor: start;
   font-size: $BP_LABEL_FONT_SIZE;
-  font-family: $BP_LABEL_FONT_FAMILY;
+  font-family: $LIGHT_FONT_FAMILY;
 }
 
 ::ng-deep text.node_title_analyticsarea_right {
@@ -136,7 +136,7 @@
   fill: $NODE_TEXT_FOCUS;
   text-anchor: end;
   font-size: $BP_LABEL_FONT_SIZE;
-  font-family: $BP_LABEL_FONT_FAMILY;
+  font-family: $LIGHT_FONT_FAMILY;
 }
 
 ::ng-deep rect.node_analyticsarea.analytics_level_0 {
