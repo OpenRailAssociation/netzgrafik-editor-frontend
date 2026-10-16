@@ -714,7 +714,7 @@ export class NodesView {
   }
 
   onNodeMouseoverEditButton(event: MouseEvent, node: Node) {
-    this.hoverNode(event, node, {raise: true});
+    this.hoverNode(event, node);
     d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_EDIT_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, true);
@@ -724,11 +724,11 @@ export class NodesView {
     d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_EDIT_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, false);
-    this.unhoverNode(event, node, {raise: true});
+    this.unhoverNode(event, node);
   }
 
   onNodeMouseoverDragButton(event: MouseEvent, node: Node) {
-    this.hoverNode(event, node, {raise: true});
+    this.hoverNode(event, node);
     d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_HOVER_DRAG_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, true);
@@ -738,7 +738,7 @@ export class NodesView {
     d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_HOVER_DRAG_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, false);
-    this.unhoverNode(event, node, {raise: true});
+    this.unhoverNode(event, node);
   }
 
   onHoverNodeMouseover(event: MouseEvent, node: Node) {
