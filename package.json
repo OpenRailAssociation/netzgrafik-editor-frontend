@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@angular/animations": "22.2.1",
-    "@angular/cdk": "22.2.1",
+    "@angular/cdk": "22.2.2",
     "@angular/common": "22.2.1",
     "@angular/compiler": "22.2.1",
     "@angular/core": "22.2.1",
@@ -64,8 +64,8 @@
     "zone.js": "~0.16.3"
   },
   "devDependencies": {
-    "@angular/build": "22.2.1",
-    "@angular/cli": "22.2.1",
+    "@angular/build": "22.2.2",
+    "@angular/cli": "22.2.2",
     "@angular/compiler-cli": "22.2.1",
     "@angular/language-service": "22.2.1",
     "@commitlint/types": "^21.2.3",
@@ -76,7 +76,7 @@
     "@types/node": "^26.6.4",
     "@types/papaparse": "^5.3.2",
     "angular-eslint": "^22.5.0",
-    "browserstack-local": "^1.5.15",
+    "browserstack-local": "^1.5.16",
     "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
     "istanbul-lib-instrument": "^6.0.3",
