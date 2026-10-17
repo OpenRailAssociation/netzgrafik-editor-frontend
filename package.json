@@ -80,7 +80,7 @@
     "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
     "istanbul-lib-instrument": "^6.0.3",
-    "jasmine-core": "6.3.0",
+    "jasmine-core": "7.0.2",
     "jasmine-spec-reporter": "~7.0.0",
     "karma": "^6.4.4",
     "karma-browserstack-launcher": "^1.6.0",
