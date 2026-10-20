@@ -227,27 +227,27 @@ export class TrainrunSectionViewObject {
     );
     const hiddenTagSource = TrainrunSectionsView.getHiddenTagForTime(
       editorView,
-      this.firstSection,
+      this,
       TrainrunSectionText.SourceDeparture,
     );
     const hiddenTagTarget = TrainrunSectionsView.getHiddenTagForTime(
       editorView,
-      this.lastSection,
+      this,
       TrainrunSectionText.TargetDeparture,
     );
     const hiddenTagTravelTime = TrainrunSectionsView.getHiddenTagForTime(
       editorView,
-      this.firstSection,
+      this,
       TrainrunSectionText.TrainrunSectionTravelTime,
     );
     const hiddenTagBackwardTravelTime = TrainrunSectionsView.getHiddenTagForTime(
       editorView,
-      this.firstSection,
+      this,
       TrainrunSectionText.TrainrunSectionBackwardTravelTime,
     );
     const hiddenTagTrainrunName = TrainrunSectionsView.getHiddenTagForTime(
       editorView,
-      this.firstSection,
+      this,
       TrainrunSectionText.TrainrunSectionName,
     );
     const hiddenTagDirectionArrows =

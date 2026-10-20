@@ -479,10 +479,13 @@ export class TrainrunSectionsView {
     return MathUtils.round(value, precision);
   }
 
-  static isBothSideNonStop(trainrunSection: TrainrunSection): boolean {
+  static isBothSideNonStop(
+    trainrunSection: TrainrunSection,
+    lastTrainrunSection: TrainrunSection = trainrunSection,
+  ): boolean {
     return (
       TrainrunSectionsView.getNode(trainrunSection, true).isNonStop(trainrunSection) &&
-      TrainrunSectionsView.getNode(trainrunSection, false).isNonStop(trainrunSection)
+      TrainrunSectionsView.getNode(lastTrainrunSection, false).isNonStop(lastTrainrunSection)
     );
   }
 
@@ -918,9 +921,11 @@ export class TrainrunSectionsView {
 
   static getHiddenTagForTime(
     editorView: EditorView,
-    trainrunSection: TrainrunSection,
+    viewObject: TrainrunSectionViewObject,
     textElement: TrainrunSectionText,
   ): boolean {
+    const trainrunSection = viewObject.firstSection;
+    const lastTrainrunSection = viewObject.lastSection;
     if (
       editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
       textElement !== TrainrunSectionText.TrainrunSectionBackwardTravelTime
@@ -949,14 +954,18 @@ export class TrainrunSectionsView {
           return true;
         }
         if (
-          !editorView.checkFilterNonStopNode(TrainrunSectionsView.getNode(trainrunSection, false))
+          !editorView.checkFilterNonStopNode(
+            TrainrunSectionsView.getNode(lastTrainrunSection, false),
+          )
         ) {
           return true;
         }
         if (editorView.isFilterShowNonStopTimeEnabled()) {
           return false;
         }
-        return TrainrunSectionsView.getNode(trainrunSection, false).isNonStop(trainrunSection);
+        return TrainrunSectionsView.getNode(lastTrainrunSection, false).isNonStop(
+          lastTrainrunSection,
+        );
       case TrainrunSectionText.TrainrunSectionTravelTime:
         if (!editorView.isFilterTravelTimeEnabled()) {
           return true;
@@ -966,7 +975,7 @@ export class TrainrunSectionsView {
         }
         return (
           !trainrunSection.getTrainrun().selected() &&
-          TrainrunSectionsView.isBothSideNonStop(trainrunSection)
+          TrainrunSectionsView.isBothSideNonStop(trainrunSection, lastTrainrunSection)
         );
       case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
         if (
@@ -981,7 +990,7 @@ export class TrainrunSectionsView {
         }
         return (
           !trainrunSection.getTrainrun().selected() &&
-          TrainrunSectionsView.isBothSideNonStop(trainrunSection)
+          TrainrunSectionsView.isBothSideNonStop(trainrunSection, lastTrainrunSection)
         );
       case TrainrunSectionText.TrainrunSectionName:
         {
@@ -989,13 +998,13 @@ export class TrainrunSectionsView {
             return true;
           }
           const srcNode = TrainrunSectionsView.getNode(trainrunSection, true);
-          const trgNode = TrainrunSectionsView.getNode(trainrunSection, false);
+          const trgNode = TrainrunSectionsView.getNode(lastTrainrunSection, false);
           if (
             !editorView.checkFilterNonStopNode(srcNode) ||
             !editorView.checkFilterNonStopNode(trgNode)
           ) {
             const transSrc = srcNode.getTransition(trainrunSection.getId());
-            const transTrg = trgNode.getTransition(trainrunSection.getId());
+            const transTrg = trgNode.getTransition(lastTrainrunSection.getId());
             if (transSrc !== undefined && transTrg !== undefined) {
               if (transSrc.getIsNonStopTransit() && transTrg.getIsNonStopTransit()) {
                 return true;
@@ -1083,11 +1092,7 @@ export class TrainrunSectionsView {
       .attr("ry", NODE_ROUND_EDGE_SIZE)
       .classed(TrainrunSectionText[lineTextElement], true)
       .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) =>
-        TrainrunSectionsView.getHiddenTagForTime(
-          this.editorView,
-          d.getExtremitySection(atSource),
-          lineTextElement,
-        ),
+        TrainrunSectionsView.getHiddenTagForTime(this.editorView, d, lineTextElement),
       );
   }
 
@@ -1568,7 +1573,7 @@ export class TrainrunSectionsView {
         TrainrunSectionsView.hasWarning(d.getExtremitySection(atSource), textElement),
       )
       .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) =>
-        TrainrunSectionsView.getHiddenTagForTime(this.editorView, d.firstSection, textElement),
+        TrainrunSectionsView.getHiddenTagForTime(this.editorView, d, textElement),
       )
       .classed(StaticDomTags.TAG_EVENT_DISABLED, !enableEvents)
       .text((d: TrainrunSectionViewObject) =>
