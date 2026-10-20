@@ -1,6 +1,5 @@
 import {parse} from "papaparse";
 import {Component, ElementRef, ViewChild, ChangeDetectionStrategy} from "@angular/core";
-import {SvgExportOptions} from "save-svg-as-png";
 import {DataService} from "../../services/data/data.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
 import {NodeService} from "../../services/data/node.service";
@@ -28,6 +27,16 @@ import {EditorMode} from "../editor-menu/editor-mode";
 import {NODE_TEXT_AREA_HEIGHT, RASTERING_BASIC_GRID_SIZE} from "../rastering/definitions";
 import {ResourceService} from "../../services/data/resource.service";
 import {MathUtils} from "src/app/utils/math";
+
+interface SvgExportOptions {
+  encoderOptions?: number;
+  scale?: number;
+  left?: number;
+  top?: number;
+  width?: number;
+  height?: number;
+  backgroundColor?: string;
+}
 
 interface ContainertoExportData {
   documentToExport: HTMLElement;
