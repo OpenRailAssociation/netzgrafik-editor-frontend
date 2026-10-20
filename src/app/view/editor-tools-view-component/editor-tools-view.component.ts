@@ -1,6 +1,6 @@
 import {parse} from "papaparse";
 import {Component, ElementRef, ViewChild, ChangeDetectionStrategy} from "@angular/core";
-import {SvgExportOptions, svgAsDataUri, saveSvgAsPng} from "save-svg-as-png";
+import {SvgExportOptions, saveSvgAsPng} from "save-svg-as-png";
 import {DataService} from "../../services/data/data.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
 import {NodeService} from "../../services/data/node.service";
@@ -134,29 +134,31 @@ export class EditorToolsViewComponent {
   }
 
   onExportContainerAsSVG() {
-    // option 2: save svg as svg
-    // https://www.npmjs.com/package/save-svg-as-png
+    // option 2: serialize the SVG natively
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
 
     const containerInfo = this.getContainerToExport();
-    const clone = this.prepareStyleForExport(containerInfo);
 
     // SVG scaling does not affect resolution since SVGs are rendered as vector graphics.
     // To ensure a good initial scale, we define the target width as 2000 pixels.
     const scaleToTargetWidth = 2000 / containerInfo.exportParameter.width;
     containerInfo.exportParameter.scale = scaleToTargetWidth;
 
-    svgAsDataUri(clone, containerInfo.exportParameter).then((uri: string) => {
-      const a = document.createElement("a");
-      document.body.appendChild(a);
-      a.href = uri;
-      a.download = this.getFilenameToExport() + ".svg";
-      a.click();
-      URL.revokeObjectURL(a.href);
-      a.remove();
-      this.levelOfDetailService.enableLevelOfDetailRendering();
-    });
+    const clone = this.prepareStyleForExport(containerInfo);
+
+    const svgString = new XMLSerializer().serializeToString(clone);
+    const blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    document.body.appendChild(a);
+    a.href = url;
+    a.download = this.getFilenameToExport() + ".svg";
+    a.click();
+    URL.revokeObjectURL(url);
+    a.remove();
+    this.levelOfDetailService.enableLevelOfDetailRendering();
   }
 
   onExportContainerAsPNG() {
@@ -496,18 +498,32 @@ export class EditorToolsViewComponent {
   }
 
   // Clones the live element so inlining styles for export never mutates the working editor DOM.
-  private prepareStyleForExport(containerInfo: ContainertoExportData): SVGSVGElement {
-    const liveElement = containerInfo.documentToExport;
+  private prepareStyleForExport({
+    documentToExport,
+    exportParameter,
+    essentialProps,
+  }: ContainertoExportData): SVGSVGElement {
+    const liveElement = documentToExport;
     const clone = liveElement.cloneNode(true) as unknown as SVGSVGElement;
+
+    const left = exportParameter.left ?? 0;
+    const top = exportParameter.top ?? 0;
+    const width = exportParameter.width;
+    const height = exportParameter.height;
+    const scale = exportParameter.scale ?? 1;
+
+    clone.setAttribute("viewBox", `${left} ${top} ${width} ${height}`);
+    clone.setAttribute("width", `${width * scale}`);
+    clone.setAttribute("height", `${height * scale}`);
+    if (exportParameter.backgroundColor) {
+      clone.style.backgroundColor = exportParameter.backgroundColor;
+    }
 
     const liveElements = liveElement.querySelectorAll("*");
     const clonedElements = clone.querySelectorAll("*");
     liveElements.forEach((el, index) => {
       const style = window.getComputedStyle(el);
-      const essentialPropsArray =
-        containerInfo.essentialProps !== undefined
-          ? containerInfo.essentialProps
-          : Array.from(style);
+      const essentialPropsArray = essentialProps !== undefined ? essentialProps : Array.from(style);
       const inlineStyle = essentialPropsArray
         .map((key) => `${key}:${style.getPropertyValue(key)};`)
         .join(" ");
