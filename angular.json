@@ -32,7 +32,7 @@
             "sourceMap": true,
             "optimization": false,
             "namedChunks": true,
-            "allowedCommonJsDependencies": ["papaparse", "save-svg-as-png"],
+            "allowedCommonJsDependencies": ["papaparse"],
             "browser": "src/main.ts",
             "stylePreprocessorOptions": {
               "includePaths": ["."]
