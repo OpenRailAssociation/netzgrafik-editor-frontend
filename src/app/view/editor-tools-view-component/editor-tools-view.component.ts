@@ -1,6 +1,6 @@
 import {parse} from "papaparse";
 import {Component, ElementRef, ViewChild, ChangeDetectionStrategy} from "@angular/core";
-import {SvgExportOptions, saveSvgAsPng} from "save-svg-as-png";
+import {SvgExportOptions} from "save-svg-as-png";
 import {DataService} from "../../services/data/data.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
 import {NodeService} from "../../services/data/node.service";
@@ -162,17 +162,73 @@ export class EditorToolsViewComponent {
   }
 
   onExportContainerAsPNG() {
-    // option 1: save svg as png
-    // https://www.npmjs.com/package/save-svg-as-png
+    // option 1: rasterize the SVG to PNG natively via canvas
+    // Inspired by https://stackoverflow.com/a/74026755
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
 
     const containerInfo = this.getContainerToExport();
-    const clone = this.prepareStyleForExport(containerInfo);
 
-    saveSvgAsPng(clone, this.getFilenameToExport() + ".png", containerInfo.exportParameter);
+    this.svgElementToPngDataUrl(containerInfo)
+      .then((dataUrl: string) => {
+        const a = document.createElement("a");
+        document.body.appendChild(a);
+        a.href = dataUrl;
+        a.download = this.getFilenameToExport() + ".png";
+        a.click();
+        a.remove();
+      })
+      .catch((error: Error) => {
+        const msg = $localize`:@@app.view.editor-side-view.editor-tools-view-component.export-png-error:PNG export error`;
+        this.logger.error(msg, error);
+      })
+      .finally(() => {
+        this.levelOfDetailService.enableLevelOfDetailRendering();
+      });
+  }
 
-    this.levelOfDetailService.enableLevelOfDetailRendering();
+  // Converts an SVG element into a PNG data URL by drawing it onto a canvas.
+  private svgElementToPngDataUrl({
+    documentToExport,
+    exportParameter,
+    essentialProps,
+  }: ContainertoExportData): Promise<string> {
+    const width = exportParameter.width;
+    const height = exportParameter.height;
+    const scale = exportParameter.scale ?? 1;
+
+    const clone = this.prepareStyleForExport({documentToExport, exportParameter, essentialProps});
+
+    const svgDataUrl =
+      "data:image/svg+xml;charset=utf-8," +
+      encodeURIComponent(new XMLSerializer().serializeToString(clone));
+
+    return new Promise<string>((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = width * scale;
+          canvas.height = height * scale;
+
+          const context = canvas.getContext("2d");
+          if (context === null) {
+            throw new Error("Failed to get 2D canvas context");
+          }
+          if (exportParameter.backgroundColor) {
+            context.fillStyle = exportParameter.backgroundColor;
+            context.fillRect(0, 0, canvas.width, canvas.height);
+          }
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+          resolve(canvas.toDataURL("image/png", exportParameter.encoderOptions));
+        } catch (error) {
+          reject(error);
+        }
+      };
+      image.onerror = () => reject(new Error("Failed to rasterize SVG as PNG"));
+      image.src = svgDataUrl;
+    });
   }
 
   onLoadBaseDataButton() {

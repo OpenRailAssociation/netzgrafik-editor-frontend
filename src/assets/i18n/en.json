@@ -523,6 +523,7 @@
           "export-netzgrafik-as-json": "Export netzgrafik as JSON",
           "import-netzgrafik": "Import netzgrafik",
           "import-netzgrafik-error": "Netzgrafik could not be imported.",
+          "export-png-error": "PNG export error",
           "import-netzgrafik-as-json": "Import netzgrafik as JSON",
           "import-netzgrafik-as-json-info-3rd-party": "Third-party JSON data detected: Import heuristic applied.",
           "export-trainruns": "Export trainruns",
