@@ -141,32 +141,36 @@ export class EditorToolsViewComponent {
     }, 1500); // to allow cd-layout-filter to close
   }
 
-  onExportContainerAsSVG() {
+  async onExportContainerAsSVG() {
     // option 2: serialize the SVG natively
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
 
-    const containerInfo = this.getContainerToExport();
+    try {
+      const containerInfo = this.getContainerToExport();
 
-    // SVG scaling does not affect resolution since SVGs are rendered as vector graphics.
-    // To ensure a good initial scale, we define the target width as 2000 pixels.
-    const scaleToTargetWidth = 2000 / containerInfo.exportParameter.width;
-    containerInfo.exportParameter.scale = scaleToTargetWidth;
+      // SVG scaling does not affect resolution since SVGs are rendered as vector graphics.
+      // To ensure a good initial scale, we define the target width as 2000 pixels.
+      const scaleToTargetWidth = 2000 / containerInfo.exportParameter.width;
+      containerInfo.exportParameter.scale = scaleToTargetWidth;
 
-    const clone = this.prepareStyleForExport(containerInfo);
+      const clone = this.prepareStyleForExport(containerInfo);
+      await this.embedFontsIntoSvgClone(clone);
 
-    const svgString = new XMLSerializer().serializeToString(clone);
-    const blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"});
-    const url = URL.createObjectURL(blob);
+      const svgString = new XMLSerializer().serializeToString(clone);
+      const blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
-    document.body.appendChild(a);
-    a.href = url;
-    a.download = this.getFilenameToExport() + ".svg";
-    a.click();
-    URL.revokeObjectURL(url);
-    a.remove();
-    this.levelOfDetailService.enableLevelOfDetailRendering();
+      const a = document.createElement("a");
+      document.body.appendChild(a);
+      a.href = url;
+      a.download = this.getFilenameToExport() + ".svg";
+      a.click();
+      URL.revokeObjectURL(url);
+      a.remove();
+    } finally {
+      this.levelOfDetailService.enableLevelOfDetailRendering();
+    }
   }
 
   async onExportContainerAsPNG() {
@@ -196,7 +200,7 @@ export class EditorToolsViewComponent {
   }
 
   // Converts an SVG element into a PNG blob by drawing it onto a canvas.
-  private svgElementToPngBlob({
+  private async svgElementToPngBlob({
     documentToExport,
     exportParameter,
     essentialProps,
@@ -206,6 +210,7 @@ export class EditorToolsViewComponent {
     const scale = exportParameter.scale ?? 1;
 
     const clone = this.prepareStyleForExport({documentToExport, exportParameter, essentialProps});
+    await this.embedFontsIntoSvgClone(clone);
 
     const svgDataUrl =
       "data:image/svg+xml;charset=utf-8," +
@@ -923,5 +928,47 @@ export class EditorToolsViewComponent {
       default:
         return $localize`:@@app.view.editor-side-view.editor-tools-view-component.netzgrafikFile:netzgrafik`;
     }
+  }
+
+  /** Get the fonts to embed in the exported files since web polices are missing from the exported data.
+   *  Fetched fonts are: "SBBWeb Bold", "SBBWeb Light", "SBBWeb Roman", "SBBWeb Thin", "SBBWeb Ultralight".
+   *  This adds ~100Ko to the final exported file.
+   */
+  private async embedFontsIntoSvgClone(clone: SVGSVGElement): Promise<void> {
+    const fontFaceRules: CSSFontFaceRule[] = [];
+    for (let styleSheet of document.styleSheets) {
+      for (let rule of styleSheet.cssRules) {
+        if (rule instanceof CSSFontFaceRule) fontFaceRules.push(rule);
+      }
+    }
+    const rules = await Promise.all(
+      fontFaceRules.map(async (fontFaceRule): Promise<string | null> => {
+        const family = fontFaceRule.style.getPropertyValue("font-family"); // "SBBWeb Light"
+        const url = fontFaceRule.style.cssText.match(/url\(["']?([^"')]+\.woff2)["']?\)/i); // ['url("https://cdn.app.sbb.ch/fonts/v1_6_subset/SBBWeb-Bold.woff2")', "https://cdn.app.sbb.ch/fonts/v1_6_subset/SBBWeb-Bold.woff2"]
+
+        if (url === null) {
+          console.warn(`No woff2 URL found for ${family}`);
+          return null;
+        }
+
+        try {
+          const response = await fetch(url[1]);
+          const blob = await response.blob();
+          const dataUrl: string = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          return `@font-face{font-family:${family};src:url(${dataUrl}) format("woff2");}`;
+        } catch (error) {
+          console.warn(`Font embedding skipped for ${family}:`, error);
+        }
+      }),
+    );
+
+    const styleElement = document.createElementNS("http://www.w3.org/2000/svg", "style");
+    styleElement.textContent = rules.join("\n");
+    clone.insertBefore(styleElement, clone.firstChild);
   }
 }
