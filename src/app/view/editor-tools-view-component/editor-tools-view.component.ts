@@ -552,6 +552,8 @@ export class EditorToolsViewComponent {
       "stroke-width",
       "stroke-opacity",
       "stroke-dasharray",
+      "rx",
+      "ry",
       "font-family",
       "font-size",
       "font-weight",
@@ -598,6 +600,12 @@ export class EditorToolsViewComponent {
         .map((key) => `${key}:${style.getPropertyValue(key)};`)
         .join(" ");
       clonedElements[index].setAttribute("style", inlineStyle);
+
+      // Editors such as Inkscape do not support modern SCSS properties
+      if (el instanceof SVGRectElement) {
+        el.setAttribute("rx", style.getPropertyValue("rx"));
+        el.setAttribute("ry", style.getPropertyValue("ry"));
+      }
     });
 
     return clone;
