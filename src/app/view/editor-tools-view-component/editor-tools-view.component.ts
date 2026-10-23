@@ -429,13 +429,15 @@ export class EditorToolsViewComponent {
 
   private getStreckengrafikEditingContainerToExport(): ContainertoExportData {
     const htmlElementToExport = document.getElementById("main-streckengrafik-container");
+    // offsetWidth/offsetHeight are undefined on SVG elements; use the rendered bounding box instead.
+    const bbox = htmlElementToExport.getBoundingClientRect();
     const param = {
       encoderOptions: 1.0,
       scale: 1.0,
       left: 0,
       top: 0,
-      width: htmlElementToExport.offsetWidth,
-      height: htmlElementToExport.offsetHeight,
+      width: bbox.width,
+      height: bbox.height,
       backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
     };
 
