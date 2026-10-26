@@ -4,165 +4,224 @@
       {{ "app.view.dialogs.optimize-timetable-dialog.title" | translate }}
     </div>
     <div sbbDialogContent>
-      <div class="settings">
-        <label for="optimize-max-tracks">
-          {{ "app.view.dialogs.optimize-timetable-dialog.max-tracks" | translate }}
-        </label>
-        <input
-          id="optimize-max-tracks"
-          sbbInput
-          type="number"
-          min="1"
-          step="1"
-          [(ngModel)]="maxTracks"
-          (keydown.enter)="optimize()"
-        />
-        <button sbb-button type="button" (click)="optimize()">
-          {{ "app.view.dialogs.optimize-timetable-dialog.optimize" | translate }}
-        </button>
-      </div>
-      <div class="scope">
-        <ng-container *ngIf="selectedNodeCount > 0; else wholeNetwork">
-          {{
-            "app.view.dialogs.optimize-timetable-dialog.scope-selection"
-              | translate: {count: selectedNodeCount.toString()}
-          }}
-        </ng-container>
-        <ng-template #wholeNetwork>
-          {{ "app.view.dialogs.optimize-timetable-dialog.scope-all" | translate }}
-        </ng-template>
-      </div>
-
-      <ng-container *ngIf="result">
-        <div class="info">
-          {{
-            "app.view.dialogs.optimize-timetable-dialog.search-info"
-              | translate
-                : {
-                    iterations: result.iterations.toString(),
-                    runtime: result.runtimeMs.toString(),
-                    variables: result.freeVariables.toString(),
-                    over: result.initialEdgesOverLimit.toString(),
-                  }
-          }}
-        </div>
-        <div class="message" *ngIf="result.message">{{ result.message }}</div>
-
-        <table class="proposals" *ngIf="result.solutions.length > 0">
-          <thead>
-            <tr>
-              <th>{{ "app.view.dialogs.optimize-timetable-dialog.proposal" | translate }}</th>
-              <th>
-                {{ "app.view.dialogs.optimize-timetable-dialog.edges-over-limit" | translate }}
-              </th>
-              <th>{{ "app.view.dialogs.optimize-timetable-dialog.max-tracks-kpi" | translate }}</th>
-              <th>
-                {{ "app.view.dialogs.optimize-timetable-dialog.travel-time-delta" | translate }}
-              </th>
-              <th>{{ "app.view.dialogs.optimize-timetable-dialog.connections" | translate }}</th>
-              <th>{{ "app.view.dialogs.optimize-timetable-dialog.shift" | translate }}</th>
-              <th>{{ "app.view.dialogs.optimize-timetable-dialog.changed" | translate }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              *ngFor="let solution of result.solutions"
-              [class.selected]="solution === selectedSolution"
-              (click)="selectSolution(solution)"
-            >
-              <td>{{ solution.label }}</td>
-              <td>
-                {{ solution.kpi.edgesOverLimitBefore }} → {{ solution.kpi.edgesOverLimitAfter }}
-              </td>
-              <td>{{ solution.kpi.maxTracksBefore }} → {{ solution.kpi.maxTracksAfter }}</td>
-              <td>{{ formatSigned(solution.kpi.totalTravelTimeDelta) }}</td>
-              <td>
-                {{ solution.kpi.optionalConnectionsBefore }} →
-                {{ solution.kpi.optionalConnectionsAfter }}
-              </td>
-              <td>{{ solution.kpi.sumAbsShift }}</td>
-              <td>{{ solution.kpi.changedTrainruns }} / {{ solution.kpi.changedTimes }}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <ng-container *ngIf="selectedSolution">
-          <h4>{{ "app.view.dialogs.optimize-timetable-dialog.edges" | translate }}</h4>
-          <table class="details">
-            <thead>
-              <tr>
-                <th>{{ "app.view.dialogs.optimize-timetable-dialog.edge" | translate }}</th>
-                <th>{{ "app.view.dialogs.optimize-timetable-dialog.tracks" | translate }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                *ngFor="let edge of selectedSolution.edges"
-                [class.over-limit]="edge.tracksAfter > maxTracks"
-              >
-                <td>{{ edge.fromNodeName }} – {{ edge.toNodeName }}</td>
-                <td>{{ edge.tracksBefore }} → {{ edge.tracksAfter }}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="node-review">
-            <div class="node-changes">
-              <h4>{{ "app.view.dialogs.optimize-timetable-dialog.changes" | translate }}</h4>
-              <div
-                *ngFor="let group of nodeGroups"
-                class="node-group"
-                [class.selected]="group.nodeId === selectedNodeId"
-              >
-                <div class="node-header" (click)="selectNode(group.nodeId)">
-                  <span class="node-name">{{ group.nodeName }}</span>
-                  <span class="node-count">{{ group.changes.length }}</span>
-                </div>
-                <table class="details">
-                  <tbody>
-                    <tr *ngFor="let change of group.changes" (click)="selectNode(group.nodeId)">
-                      <td class="minute">{{ getChangeMinute(change) }}</td>
-                      <td>{{ change.trainrunName }}</td>
-                      <td>{{ getFieldLabel(change) }}</td>
-                      <td>
-                        {{ formatValue(change.oldValue) }} → {{ formatValue(change.newValue) }}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div class="node-clock" *ngIf="occupancyBefore && occupancyAfter">
-              <div class="clock-navigation">
-                <button sbb-secondary-button type="button" (click)="stepNode(-1)">◀</button>
-                <span class="clock-title">
-                  {{ occupancyAfter.node.getBetriebspunktName() }} ({{
-                    getSelectedNodeIndex() + 1
-                  }}/{{ nodeGroups.length }})
-                </span>
-                <button sbb-secondary-button type="button" (click)="stepNode(1)">▶</button>
-              </div>
-              <div class="clocks">
-                <div class="clock">
-                  <div class="clock-label">
-                    {{ "app.view.dialogs.optimize-timetable-dialog.clock-current" | translate }}
-                  </div>
-                  <sbb-knoten-auslastung-view [snapshot]="occupancyBefore">
-                  </sbb-knoten-auslastung-view>
-                </div>
-                <div class="clock">
-                  <div class="clock-label">
-                    {{ "app.view.dialogs.optimize-timetable-dialog.clock-new" | translate }}
-                  </div>
-                  <sbb-knoten-auslastung-view [snapshot]="occupancyAfter">
-                  </sbb-knoten-auslastung-view>
-                </div>
-              </div>
-            </div>
+      <div class="optimizer-layout">
+        <sbb-optimization-director
+          class="director-column"
+          [policy]="policy"
+          (policyChange)="onPolicyChange($event)"
+        ></sbb-optimization-director>
+        <div class="results-column">
+          <div class="settings">
+            <label for="optimize-max-tracks">
+              {{ "app.view.dialogs.optimize-timetable-dialog.max-tracks" | translate }}
+            </label>
+            <input
+              id="optimize-max-tracks"
+              sbbInput
+              type="number"
+              min="1"
+              step="1"
+              [(ngModel)]="maxTracks"
+              (ngModelChange)="onMaxTracksChange($event)"
+              (keydown.enter)="optimize()"
+            />
+            <button sbb-button type="button" (click)="optimize()">
+              {{ "app.view.dialogs.optimize-timetable-dialog.optimize" | translate }}
+            </button>
+            <button sbb-secondary-button type="button" (click)="resetRanking()">
+              {{ "app.view.dialogs.optimize-timetable-dialog.reset-ranking" | translate }}
+            </button>
+            <button sbb-secondary-button type="button" (click)="storePolicy()">
+              {{ "app.view.dialogs.optimize-timetable-dialog.store-policy" | translate }}
+            </button>
           </div>
-        </ng-container>
-      </ng-container>
+          <div class="policy-summary" *ngIf="enabledObjectives.length > 0">
+            <strong
+              >{{
+                "app.view.dialogs.optimize-timetable-dialog.current-policy" | translate
+              }}:</strong
+            >
+            <ol>
+              <li *ngFor="let objective of enabledObjectives">{{ objective.name | translate }}</li>
+            </ol>
+          </div>
+          <div class="scope">
+            <ng-container *ngIf="selectedNodeCount > 0; else wholeNetwork">
+              {{
+                "app.view.dialogs.optimize-timetable-dialog.scope-selection"
+                  | translate: {count: selectedNodeCount.toString()}
+              }}
+            </ng-container>
+            <ng-template #wholeNetwork>
+              {{ "app.view.dialogs.optimize-timetable-dialog.scope-all" | translate }}
+            </ng-template>
+          </div>
+
+          <ng-container *ngIf="result">
+            <div class="info">
+              {{
+                "app.view.dialogs.optimize-timetable-dialog.search-info"
+                  | translate
+                    : {
+                        iterations: result.iterations.toString(),
+                        runtime: result.runtimeMs.toString(),
+                        variables: result.freeVariables.toString(),
+                        over: result.initialEdgesOverLimit.toString(),
+                      }
+              }}
+            </div>
+            <div class="message" *ngIf="result.message">{{ result.message }}</div>
+
+            <table class="proposals" *ngIf="result.solutions.length > 0">
+              <thead>
+                <tr>
+                  <th>{{ "app.view.dialogs.optimize-timetable-dialog.proposal" | translate }}</th>
+                  <th>
+                    {{ "app.view.dialogs.optimize-timetable-dialog.edges-over-limit" | translate }}
+                  </th>
+                  <th>
+                    {{ "app.view.dialogs.optimize-timetable-dialog.max-tracks-kpi" | translate }}
+                  </th>
+                  <th>
+                    {{ "app.view.dialogs.optimize-timetable-dialog.travel-time-delta" | translate }}
+                  </th>
+                  <th>
+                    {{ "app.view.dialogs.optimize-timetable-dialog.connections" | translate }}
+                  </th>
+                  <th>{{ "app.view.dialogs.optimize-timetable-dialog.shift" | translate }}</th>
+                  <th>{{ "app.view.dialogs.optimize-timetable-dialog.changed" | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="baseline-row" (click)="selectBaseline()">
+                  <td>{{ "app.view.dialogs.optimize-timetable-dialog.baseline" | translate }}</td>
+                  <td>
+                    {{ result.baselineKpi.edgesOverLimitBefore }} →
+                    {{ result.baselineKpi.edgesOverLimitAfter }}
+                  </td>
+                  <td>
+                    {{ result.baselineKpi.maxTracksBefore }} →
+                    {{ result.baselineKpi.maxTracksAfter }}
+                  </td>
+                  <td>{{ formatSigned(result.baselineKpi.totalTravelTimeDelta) }}</td>
+                  <td>
+                    {{ result.baselineKpi.optionalConnectionsBefore }} →
+                    {{ result.baselineKpi.optionalConnectionsAfter }}
+                  </td>
+                  <td>{{ result.baselineKpi.sumAbsShift }}</td>
+                  <td>0 / 0</td>
+                </tr>
+                <tr
+                  *ngFor="let solution of rankedSolutions"
+                  [class.selected]="solution === selectedSolution"
+                  [class.invalid]="!solution.valid"
+                  (click)="selectSolution(solution)"
+                >
+                  <td>
+                    {{ solution.label }}
+                    <span class="solution-status">
+                      {{
+                        (solution.valid
+                          ? "app.view.dialogs.optimize-timetable-dialog.valid"
+                          : "app.view.dialogs.optimize-timetable-dialog.invalid"
+                        ) | translate
+                      }}
+                    </span>
+                  </td>
+                  <td>
+                    {{ solution.kpi.edgesOverLimitBefore }} → {{ solution.kpi.edgesOverLimitAfter }}
+                  </td>
+                  <td>{{ solution.kpi.maxTracksBefore }} → {{ solution.kpi.maxTracksAfter }}</td>
+                  <td>{{ formatSigned(solution.kpi.totalTravelTimeDelta) }}</td>
+                  <td>
+                    {{ solution.kpi.optionalConnectionsBefore }} →
+                    {{ solution.kpi.optionalConnectionsAfter }}
+                  </td>
+                  <td>{{ solution.kpi.sumAbsShift }}</td>
+                  <td>{{ solution.kpi.changedTrainruns }} / {{ solution.kpi.changedTimes }}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <ng-container *ngIf="selectedSolution">
+              <h4>{{ "app.view.dialogs.optimize-timetable-dialog.edges" | translate }}</h4>
+              <table class="details">
+                <thead>
+                  <tr>
+                    <th>{{ "app.view.dialogs.optimize-timetable-dialog.edge" | translate }}</th>
+                    <th>{{ "app.view.dialogs.optimize-timetable-dialog.tracks" | translate }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    *ngFor="let edge of selectedSolution.edges"
+                    [class.over-limit]="edge.tracksAfter > maxTracks"
+                  >
+                    <td>{{ edge.fromNodeName }} – {{ edge.toNodeName }}</td>
+                    <td>{{ edge.tracksBefore }} → {{ edge.tracksAfter }}</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="node-review">
+                <div class="node-changes">
+                  <h4>{{ "app.view.dialogs.optimize-timetable-dialog.changes" | translate }}</h4>
+                  <div
+                    *ngFor="let group of nodeGroups"
+                    class="node-group"
+                    [class.selected]="group.nodeId === selectedNodeId"
+                  >
+                    <div class="node-header" (click)="selectNode(group.nodeId)">
+                      <span class="node-name">{{ group.nodeName }}</span>
+                      <span class="node-count">{{ group.changes.length }}</span>
+                    </div>
+                    <table class="details">
+                      <tbody>
+                        <tr *ngFor="let change of group.changes" (click)="selectNode(group.nodeId)">
+                          <td class="minute">{{ getChangeMinute(change) }}</td>
+                          <td>{{ change.trainrunName }}</td>
+                          <td>{{ getFieldLabel(change) }}</td>
+                          <td>
+                            {{ formatValue(change.oldValue) }} → {{ formatValue(change.newValue) }}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div class="node-clock" *ngIf="occupancyBefore && occupancyAfter">
+                  <div class="clock-title">
+                    {{ occupancyAfter.node.getBetriebspunktName() }} ({{
+                      getSelectedNodeIndex() + 1
+                    }}/{{ nodeGroups.length }})
+                  </div>
+                  <div class="clocks">
+                    <div class="clock">
+                      <h4 class="clock-label">
+                        {{ "app.view.dialogs.optimize-timetable-dialog.clock-current" | translate }}
+                      </h4>
+                      <sbb-knoten-auslastung-view
+                        [snapshot]="occupancyBefore"
+                        [hasExternalLabel]="true"
+                      ></sbb-knoten-auslastung-view>
+                    </div>
+                    <div class="clock">
+                      <h4 class="clock-label">
+                        {{ "app.view.dialogs.optimize-timetable-dialog.clock-new" | translate }}
+                      </h4>
+                      <sbb-knoten-auslastung-view
+                        [snapshot]="occupancyAfter"
+                        [hasExternalLabel]="true"
+                      ></sbb-knoten-auslastung-view>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </ng-container>
+        </div>
+      </div>
     </div>
     <div sbbDialogActions>
       <button sbb-button type="button" [disabled]="!selectedSolution" (click)="apply()">

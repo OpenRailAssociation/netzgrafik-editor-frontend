@@ -321,6 +321,38 @@
         },
         "optimize-timetable-dialog": {
           "title": "Optimize timetable",
+          "baseline": "Baseline",
+          "candidate": "Candidate {$number}",
+          "store-policy": "Store policy",
+          "reset-ranking": "Reset ranking",
+          "current-policy": "Current policy",
+          "valid": "Valid",
+          "invalid": "Invalid",
+          "director": {
+            "title": "Optimization director",
+            "hard-rules": "Hard rules",
+            "soft-objectives": "Soft objectives",
+            "max-extension-value": "Maximum travel-time extension in minutes",
+            "move-up": "Move objective up",
+            "move-down": "Move objective down",
+            "reorder": "Drag to reorder objective",
+            "constraint": {
+              "track-limit": "Track limit",
+              "user-connections": "User connections",
+              "minimum-stop-time": "Minimum stop time",
+              "locks": "Locks (always active)",
+              "scope-boundary": "Scope boundary (always active)",
+              "symmetry": "Symmetry enforcement",
+              "max-travel-time-extension": "Max. travel-time extension",
+              "preserve-connection-times": "Preserve existing connection times"
+            },
+            "objective": {
+              "minimal-changes": "Minimal changes",
+              "more-connections": "More connections",
+              "lower-travel-time": "Lower travel time",
+              "lower-track-usage": "Lower track usage"
+            }
+          },
           "max-tracks": "Max. tracks per section",
           "optimize": "Optimize",
           "scope-selection": "Only the {$count} selected nodes are optimized, times at the boundary stay fixed.",

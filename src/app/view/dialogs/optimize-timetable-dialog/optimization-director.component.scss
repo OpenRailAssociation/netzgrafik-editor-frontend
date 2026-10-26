@@ -1,0 +1,90 @@
+.optimization-director {
+  min-width: 0;
+  padding-right: 16px;
+  border-right: 1px solid #dcdcdc;
+
+  h3,
+  h4 {
+    margin: 0 0 10px;
+  }
+
+  h4 {
+    margin-top: 18px;
+  }
+}
+
+.director-rule,
+.director-objective {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+}
+
+.director-rule {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid #dcdcdc;
+  background: #ffffff;
+  white-space: nowrap;
+}
+
+.director-rule span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.director-rule input[type="checkbox"],
+.director-objective input[type="checkbox"] {
+  margin: 0;
+}
+
+.constraint-value {
+  width: 64px;
+}
+
+.director-objectives {
+  margin-top: 22px;
+  padding-top: 4px;
+  border-top: 1px solid #dcdcdc;
+}
+
+.objective-list {
+  display: grid;
+  gap: 4px;
+}
+
+.director-objective {
+  grid-template-columns: 18px 20px minmax(0, 1fr);
+  padding: 4px;
+  border: 1px solid #dcdcdc;
+  background: #ffffff;
+  cursor: grab;
+}
+
+.director-objective.cdk-drag-dragging {
+  cursor: grabbing;
+}
+
+.drag-handle {
+  cursor: grab;
+  text-align: right;
+  user-select: none;
+}
+
+.objective-name {
+  min-width: 0;
+  text-align: left;
+}
+
+.cdk-drag-preview {
+  box-sizing: border-box;
+  box-shadow: 0 3px 8px #00000033;
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.35;
+}

@@ -7,6 +7,7 @@ import {
   norm60,
 } from "./optimize-timetable.chains";
 import {SRC_ARR, SRC_DEP, TGT_ARR, TGT_DEP} from "./optimize-timetable.model";
+import {HardConstraintId} from "./optimization-policy.model";
 
 /** Same time resolution as the InfrastructureEstimatorService (cells per minute). */
 const TICKS_PER_MINUTE = 15;
@@ -25,6 +26,9 @@ export interface ScoreParts {
   hard: number;
   excess: number;
   edgesOverLimit: number;
+  connectionViolations: number;
+  stopViolations: number;
+  travelTimeExtensionViolation: number;
   travelTimeDelta: number;
   optionalConnections: number;
   sumAbsShift: number;
@@ -36,6 +40,12 @@ const depB = (s: PathStep) => (s.aligned ? TGT_DEP : SRC_DEP);
 const arrB = (s: PathStep) => (s.aligned ? SRC_ARR : TGT_ARR);
 const travelA = (s: PathStep) => (s.aligned ? 0 : 1);
 const travelB = (s: PathStep) => (s.aligned ? 1 : 0);
+
+function constraintEnabled(problem: OptimizationProblem, id: HardConstraintId): boolean {
+  return (
+    problem.policy.hardConstraints.find((constraint) => constraint.id === id)?.enabled ?? false
+  );
+}
 
 /**
  * Mutable candidate state of the search. It only holds numbers; the native
@@ -52,6 +62,8 @@ export class TimetableEvaluator {
   private readonly stopDwell: Float64Array;
   private readonly stopViolation: Uint8Array;
   private readonly connectionViolation: Uint8Array;
+  private readonly travelTimeDeltaByTrainrun: Float64Array;
+  private readonly travelTimeExtensionViolationByTrainrun: Uint8Array;
   private readonly nodeOptional: Int32Array;
   private readonly edgeForward: Uint8Array[];
   private readonly edgeSamples: number[][];
@@ -63,6 +75,7 @@ export class TimetableEvaluator {
   private travelTimeDelta = 0;
   private optionalConnections = 0;
   private sumAbsShift = 0;
+  private travelTimeExtensionViolation = 0;
 
   constructor(private readonly problem: OptimizationProblem) {
     const n = problem.sections.length;
@@ -79,6 +92,8 @@ export class TimetableEvaluator {
     this.stopDwell = new Float64Array(problem.stops.length);
     this.stopViolation = new Uint8Array(problem.stops.length);
     this.connectionViolation = new Uint8Array(problem.connections.length);
+    this.travelTimeDeltaByTrainrun = new Float64Array(problem.trainrunIds.length);
+    this.travelTimeExtensionViolationByTrainrun = new Uint8Array(problem.trainrunIds.length);
     this.nodeOptional = new Int32Array(problem.nodeEvents.length);
     this.edgeForward = problem.edges.map(
       (edge) =>
@@ -120,6 +135,9 @@ export class TimetableEvaluator {
     this.travelTimeDelta = 0;
     this.optionalConnections = 0;
     this.sumAbsShift = 0;
+    this.travelTimeDeltaByTrainrun.fill(0);
+    this.travelTimeExtensionViolationByTrainrun.fill(0);
+    this.travelTimeExtensionViolation = 0;
     for (let e = 0; e < this.problem.edges.length; e++) {
       this.edgeTracks[e] = this.computeEdgeTracks(e);
       this.addEdge(e, 1);
@@ -130,7 +148,12 @@ export class TimetableEvaluator {
     }
     for (let k = 0; k < this.problem.connections.length; k++) {
       this.connectionViolation[k] = this.computeConnectionViolation(k);
-      this.hard += this.connectionViolation[k];
+      if (
+        constraintEnabled(this.problem, "userConnections") ||
+        constraintEnabled(this.problem, "preserveConnectionTimes")
+      ) {
+        this.hard += this.connectionViolation[k];
+      }
     }
     for (let k = 0; k < this.problem.nodeEvents.length; k++) {
       this.nodeOptional[k] = this.computeNodeOptional(k);
@@ -141,6 +164,15 @@ export class TimetableEvaluator {
         this.sumAbsShift += Math.abs(this.delta[v]);
       }
     });
+    this.travelTimeExtensionViolation = 0;
+    for (let trainrunIndex = 0; trainrunIndex < this.problem.trainrunIds.length; trainrunIndex++) {
+      const violation = this.getTravelTimeExtensionViolation(trainrunIndex);
+      this.travelTimeExtensionViolationByTrainrun[trainrunIndex] = violation;
+      this.travelTimeExtensionViolation += violation;
+      if (constraintEnabled(this.problem, "maxTravelTimeExtension")) {
+        this.hard += violation;
+      }
+    }
     return this.score();
   }
 
@@ -159,6 +191,9 @@ export class TimetableEvaluator {
       hard: this.hard,
       excess: this.excess,
       edgesOverLimit: this.edgesOverLimit,
+      connectionViolations: this.connectionViolation.reduce((sum, violation) => sum + violation, 0),
+      stopViolations: this.stopViolation.reduce((sum, violation) => sum + violation, 0),
+      travelTimeExtensionViolation: this.travelTimeExtensionViolation,
       travelTimeDelta: Math.round(this.travelTimeDelta * 100) / 100,
       optionalConnections: this.optionalConnections,
       sumAbsShift: this.sumAbsShift,
@@ -167,6 +202,22 @@ export class TimetableEvaluator {
 
   getEdgeTracks(e: number): number {
     return this.edgeTracks[e];
+  }
+
+  isConnectionViolated(index: number): boolean {
+    return this.connectionViolation[index] === 1;
+  }
+
+  isStopViolated(index: number): boolean {
+    return this.stopViolation[index] === 1;
+  }
+
+  getTrackOverload(edgeIndex: number): number {
+    return Math.max(0, this.edgeTracks[edgeIndex] - this.problem.maxTracks);
+  }
+
+  isTravelTimeExtensionViolated(trainrunIndex: number): boolean {
+    return this.travelTimeExtensionViolationByTrainrun[trainrunIndex] === 1;
   }
 
   // ---------------------------------------------------------------------
@@ -180,9 +231,20 @@ export class TimetableEvaluator {
       return this.score();
     }
     const p = this.problem;
+    if (constraintEnabled(p, "maxTravelTimeExtension")) {
+      p.varTrainruns[v].forEach(
+        (trainrunIndex) =>
+          (this.hard -= this.travelTimeExtensionViolationByTrainrun[trainrunIndex]),
+      );
+    }
     p.varEdges[v].forEach((e) => this.addEdge(e, -1));
     p.varStops[v].forEach((k) => this.addStop(k, -1));
-    p.varConnections[v].forEach((k) => (this.hard -= this.connectionViolation[k]));
+    if (
+      constraintEnabled(p, "userConnections") ||
+      constraintEnabled(p, "preserveConnectionTimes")
+    ) {
+      p.varConnections[v].forEach((k) => (this.hard -= this.connectionViolation[k]));
+    }
     p.varNodeEvents[v].forEach((k) => (this.optionalConnections -= this.nodeOptional[k]));
 
     this.delta[v] = value;
@@ -199,13 +261,37 @@ export class TimetableEvaluator {
     });
     p.varConnections[v].forEach((k) => {
       this.connectionViolation[k] = this.computeConnectionViolation(k);
-      this.hard += this.connectionViolation[k];
+      if (
+        constraintEnabled(p, "userConnections") ||
+        constraintEnabled(p, "preserveConnectionTimes")
+      ) {
+        this.hard += this.connectionViolation[k];
+      }
     });
     p.varNodeEvents[v].forEach((k) => {
       this.nodeOptional[k] = this.computeNodeOptional(k);
       this.optionalConnections += this.nodeOptional[k];
     });
+    if (constraintEnabled(p, "maxTravelTimeExtension")) {
+      p.varTrainruns[v].forEach((trainrunIndex) => {
+        const previous = this.travelTimeExtensionViolationByTrainrun[trainrunIndex];
+        const next = this.getTravelTimeExtensionViolation(trainrunIndex);
+        this.travelTimeExtensionViolationByTrainrun[trainrunIndex] = next;
+        this.travelTimeExtensionViolation += next - previous;
+        this.hard += next;
+      });
+    }
     return this.score();
+  }
+
+  private getTravelTimeExtensionViolation(trainrunIndex: number): number {
+    const constraint = this.problem.policy.hardConstraints.find(
+      (item) => item.id === "maxTravelTimeExtension",
+    );
+    return constraint?.enabled &&
+      this.travelTimeDeltaByTrainrun[trainrunIndex] > (constraint.value ?? 5)
+      ? 1
+      : 0;
   }
 
   isEdgeOverLimit(e: number): boolean {
@@ -298,6 +384,9 @@ export class TimetableEvaluator {
     if (over > 0) {
       this.excess += sign * over;
       this.edgesOverLimit += sign;
+      if (constraintEnabled(this.problem, "trackLimit") && this.problem.edgeInScope[e] === 1) {
+        this.hard += sign;
+      }
     }
   }
 
@@ -316,8 +405,13 @@ export class TimetableEvaluator {
   }
 
   private addStop(k: number, sign: number) {
-    this.hard += sign * this.stopViolation[k];
-    this.travelTimeDelta += sign * (this.stopDwell[k] - this.problem.stops[k].dwell0);
+    if (constraintEnabled(this.problem, "minimumStopTime")) {
+      this.hard += sign * this.stopViolation[k];
+    }
+    const stop = this.problem.stops[k];
+    const delta = sign * (this.stopDwell[k] - stop.dwell0);
+    this.travelTimeDelta += delta;
+    this.travelTimeDeltaByTrainrun[stop.trainrunIndex] += delta;
   }
 
   private computeConnectionViolation(k: number): number {

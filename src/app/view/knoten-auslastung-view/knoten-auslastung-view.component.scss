@@ -11,8 +11,13 @@ svg {
 
 // Cancels the sbb-mt-m of the hosting panel body and keeps the gap towards the graphic instead.
 .knotenAuslastungHourToggle {
+  min-height: 24px;
   margin-top: -$innerComponentSpacing;
   margin-bottom: $innerComponentSpacing;
+
+  &.has-external-label {
+    margin-top: 0;
+  }
 }
 
 ::ng-deep path.KnotenAuslastungResourceGroup {

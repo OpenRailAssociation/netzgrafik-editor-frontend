@@ -321,6 +321,38 @@
         },
         "optimize-timetable-dialog": {
           "title": "Fahrplan optimieren",
+          "baseline": "Ausgangslage",
+          "candidate": "Kandidat {$number}",
+          "store-policy": "Policy speichern",
+          "reset-ranking": "Rangfolge zurücksetzen",
+          "current-policy": "Aktuelle Policy",
+          "valid": "Gültig",
+          "invalid": "Ungültig",
+          "director": {
+            "title": "Optimierungssteuerung",
+            "hard-rules": "Harte Regeln",
+            "soft-objectives": "Weiche Ziele",
+            "max-extension-value": "Maximale Fahrzeitverlängerung in Minuten",
+            "move-up": "Ziel nach oben verschieben",
+            "move-down": "Ziel nach unten verschieben",
+            "reorder": "Ziehen, um das Ziel neu zu ordnen",
+            "constraint": {
+              "track-limit": "Streckengleis-Limit",
+              "user-connections": "Benutzerdefinierte Anschlüsse",
+              "minimum-stop-time": "Mindesthaltezeit",
+              "locks": "Locks (immer aktiv)",
+              "scope-boundary": "Auswahlgrenze (immer aktiv)",
+              "symmetry": "Symmetrie erzwingen",
+              "max-travel-time-extension": "Maximale Fahrzeitverlängerung",
+              "preserve-connection-times": "Bestehende Anschlusszeiten erhalten"
+            },
+            "objective": {
+              "minimal-changes": "Minimale Änderungen",
+              "more-connections": "Mehr Anschlüsse",
+              "lower-travel-time": "Kürzere Fahrzeit",
+              "lower-track-usage": "Geringere Streckengleisnutzung"
+            }
+          },
           "max-tracks": "Max. Gleise pro Abschnitt",
           "optimize": "Optimieren",
           "scope-selection": "Nur {$count} selektierte Knoten werden optimiert, Zeiten an den Rändern bleiben fix.",

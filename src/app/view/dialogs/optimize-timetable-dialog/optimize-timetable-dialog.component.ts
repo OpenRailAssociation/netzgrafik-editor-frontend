@@ -8,6 +8,12 @@ import {TrainrunService} from "../../../services/data/trainrun.service";
 import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
 import {UndoService} from "../../../services/data/undo.service";
 import {OptimizeTimetableService} from "../../../services/optimization/optimize-timetable.service";
+import {OptimizationPolicyService} from "../../../services/optimization/optimization-policy.service";
+import {
+  createDefaultOptimizationPolicy,
+  OptimizationPolicy,
+} from "../../../services/optimization/optimization-policy.model";
+import {compareSolutions} from "../../../services/optimization/optimization-solution-comparator";
 import {
   OptimizeTimetableResult,
   OptimizeTimetableSolution,
@@ -40,6 +46,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   optimizeTimetableDialogTemplate: TemplateRef<void>;
 
   maxTracks = 2;
+  policy: OptimizationPolicy = createDefaultOptimizationPolicy();
   selectedNodeCount = 0;
   result: OptimizeTimetableResult = undefined;
   selectedSolution: OptimizeTimetableSolution = undefined;
@@ -64,10 +71,12 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     private readonly trainrunSectionService: TrainrunSectionService,
     private readonly undoService: UndoService,
     private readonly optimizeTimetableService: OptimizeTimetableService,
+    private readonly optimizationPolicyService: OptimizationPolicyService,
     resourceService: ResourceService,
     infrastructureEstimatorService: InfrastructureEstimatorService,
     filterService: FilterService,
   ) {
+    this.policy = this.optimizationPolicyService.policy;
     this.occupancyPreparation = new KnotenAuslastungDataPreparation(
       trainrunService,
       resourceService,
@@ -85,6 +94,105 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     this.occupancyPreparation.destroy();
     this.destroyed.next();
     this.destroyed.complete();
+  }
+
+  get rankedSolutions(): OptimizeTimetableSolution[] {
+    return this.result === undefined
+      ? []
+      : [...this.result.solutions].sort((a, b) => compareSolutions(a, b, this.policy));
+  }
+
+  get enabledObjectives() {
+    return [...this.policy.objectives]
+      .filter((objective) => objective.enabled)
+      .sort((a, b) => a.priority - b.priority);
+  }
+
+  onPolicyChange(policy: OptimizationPolicy): void {
+    const hardRulesChanged = this.policy.hardConstraints.some((constraint) => {
+      const next = policy.hardConstraints.find((item) => item.id === constraint.id);
+      return next?.enabled !== constraint.enabled || next?.value !== constraint.value;
+    });
+    this.policy = policy;
+    if (hardRulesChanged) {
+      this.revalidateSolutions();
+    }
+  }
+
+  selectBaseline(): void {
+    this.revertPreview();
+    this.selectedSolution = undefined;
+    this.nodeGroups = [];
+    this.selectedNodeId = undefined;
+    this.occupancyBefore = undefined;
+    this.occupancyAfter = undefined;
+  }
+
+  storePolicy(): void {
+    this.policy = this.optimizationPolicyService.storePolicy(this.policy);
+  }
+
+  resetRanking(): void {
+    this.onPolicyChange({
+      ...this.policy,
+      objectives: createDefaultOptimizationPolicy().objectives,
+    });
+  }
+
+  onMaxTracksChange(value: number): void {
+    this.maxTracks = Math.max(1, Math.floor(value || 1));
+    this.revalidateSolutions();
+  }
+
+  private revalidateSolutions(): void {
+    if (this.result === undefined) {
+      return;
+    }
+    const selected = this.selectedSolution;
+    this.revertPreview();
+    const options = {
+      maxTracksPerSection: this.maxTracks,
+      selectedNodeIds: this.nodeService.getSelectedNodes().map((node) => node.getId()),
+      policy: this.policy,
+    };
+    this.result.baselineKpi.edgesOverLimitBefore = this.result.baselineEdges.filter(
+      (edge) => edge.inScope && edge.tracksBefore > this.maxTracks,
+    ).length;
+    this.result.baselineKpi.edgesOverLimitAfter = this.result.baselineKpi.edgesOverLimitBefore;
+    this.result.solutions.forEach((solution) => {
+      const changedEdges = new Map(solution.edges.map((edge) => [edge.edgeId, edge]));
+      const beforeOver = this.result.baselineKpi.edgesOverLimitBefore;
+      let afterOver = beforeOver;
+      this.result.baselineEdges.forEach((baseline) => {
+        if (!baseline.inScope) {
+          return;
+        }
+        const changed = changedEdges.get(baseline.edgeId);
+        if (changed !== undefined) {
+          afterOver +=
+            Number(changed.tracksAfter > this.maxTracks) -
+            Number(baseline.tracksBefore > this.maxTracks);
+        }
+      });
+      solution.kpi.edgesOverLimitBefore = beforeOver;
+      solution.kpi.edgesOverLimitAfter = Math.max(0, afterOver);
+      solution.valid = this.optimizeTimetableService.isSolutionValid(
+        solution,
+        this.nodeService.getNodes(),
+        this.trainrunSectionService.getTrainrunSections(),
+        options,
+        this.result.baselineEdges,
+      );
+    });
+    if (selected?.valid) {
+      this.selectedSolution = selected;
+      this.preview(selected);
+    } else {
+      this.selectedSolution = undefined;
+      this.nodeGroups = [];
+      this.occupancyBefore = undefined;
+      this.occupancyAfter = undefined;
+    }
   }
 
   openDialog() {
@@ -125,6 +233,9 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   }
 
   selectSolution(solution: OptimizeTimetableSolution) {
+    if (!solution.valid) {
+      return;
+    }
     this.selectedSolution = solution;
     this.preview(solution);
     this.nodeGroups = this.groupChangesByNode(solution.changes);
@@ -245,6 +356,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
         selectedNodeIds: this.nodeService.getSelectedNodes().map((n) => n.getId()),
         seed: this.seed,
         startAssignment,
+        policy: this.policy,
       },
     );
     this.selectedSolution = undefined;

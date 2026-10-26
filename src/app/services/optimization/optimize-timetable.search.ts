@@ -1,5 +1,6 @@
 import {OptimizationProblem} from "./optimize-timetable.chains";
 import {ScoreParts, TimetableEvaluator} from "./optimize-timetable.evaluator";
+import {ConflictIndex} from "./optimization-conflict-index";
 
 export interface ArchivedSolution {
   delta: Int32Array;
@@ -91,6 +92,8 @@ export function runSearch(
     score = evaluator.evaluateAll();
   }
 
+  const conflictIndex = new ConflictIndex(problem, evaluator);
+
   const archive: ArchivedSolution[] = [];
   const archiveCurrent = () => {
     const parts = evaluator.parts();
@@ -151,21 +154,13 @@ export function runSearch(
 
   while (performance.now() < deadline) {
     iteration++;
-    const overLimit: number[] = [];
-    if (evaluator.parts().excess > 0) {
-      for (let e = 0; e < problem.edges.length; e++) {
-        if (problem.edgeVars[e].length > 0 && evaluator.isEdgeOverLimit(e)) {
-          overLimit.push(e);
-        }
-      }
-    }
-
-    if (overLimit.length > 0 && random() < 0.85) {
+    let changedVariable = -1;
+    const conflict = conflictIndex.getHighestPriority();
+    if (conflict !== undefined && random() < 0.85) {
       // --- Min-Conflicts + Tabu ----------------------------------------
-      const edge = overLimit[Math.floor(random() * overLimit.length)];
-      const vars = problem.edgeVars[edge];
+      const vars = conflict.affectedVariables;
       let bestMove: {v: number; value: number; score: number} = undefined;
-      for (let n = 0; n < VARIABLES_PER_STEP; n++) {
+      for (let n = 0; n < Math.min(VARIABLES_PER_STEP, vars.length); n++) {
         const v = vars[Math.floor(random() * vars.length)];
         const old = evaluator.delta[v];
         for (const value of candidateValues(v)) {
@@ -180,6 +175,7 @@ export function runSearch(
       if (bestMove !== undefined && bestMove.score < 0.5 * Number.MAX_VALUE) {
         score = evaluator.setVariable(bestMove.v, bestMove.value);
         tabuUntil[bestMove.v] = iteration + TABU_TENURE;
+        changedVariable = bestMove.v;
       }
     } else {
       // --- Simulated Annealing -----------------------------------------
@@ -201,9 +197,14 @@ export function runSearch(
       const diff = s - score;
       if (diff <= 0 || random() < Math.exp(-diff / temperature)) {
         score = s;
+        changedVariable = v;
       } else {
         evaluator.setVariable(v, old);
       }
+    }
+
+    if (changedVariable >= 0) {
+      conflictIndex.updateVariable(changedVariable);
     }
 
     setBest();
@@ -214,13 +215,36 @@ export function runSearch(
       for (let v = 0; v < best.length; v++) {
         if (evaluator.delta[v] !== best[v]) {
           evaluator.setVariable(v, best[v]);
+          conflictIndex.updateVariable(v);
         }
       }
-      const destroy = Math.min(freeVars.length, 2 + Math.floor(random() * 4));
+      let anchor = conflictIndex.getHighestPriority();
+      if (anchor === undefined && problem.edges.length > 0) {
+        let mostUsedEdge = -1;
+        for (let edge = 0; edge < problem.edges.length; edge++) {
+          if (
+            problem.edgeInScope[edge] === 1 &&
+            (mostUsedEdge < 0 ||
+              evaluator.getEdgeTracks(edge) > evaluator.getEdgeTracks(mostUsedEdge))
+          ) {
+            mostUsedEdge = edge;
+          }
+        }
+        if (mostUsedEdge >= 0) {
+          anchor = conflictIndex.getTrackConflict(mostUsedEdge);
+        }
+      }
+      const neighborhood =
+        anchor === undefined
+          ? freeVars
+          : conflictIndex.buildCluster(anchor, Math.max(4, Math.ceil(freeVars.length * 0.2)));
+      const variablesToDestroy = neighborhood.length === 0 ? freeVars : neighborhood;
+      const destroy = Math.min(variablesToDestroy.length, 2 + Math.floor(random() * 4));
       for (let n = 0; n < destroy; n++) {
-        const v = freeVars[Math.floor(random() * freeVars.length)];
+        const v = variablesToDestroy[n];
         const domain = problem.variables[v].domain;
         evaluator.setVariable(v, Math.round((random() * 2 - 1) * domain));
+        conflictIndex.updateVariable(v);
       }
       score = evaluator.score();
       lastImprovement = iteration;

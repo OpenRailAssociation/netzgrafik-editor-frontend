@@ -1,0 +1,71 @@
+<aside class="optimization-director">
+  <h3>{{ "app.view.dialogs.optimize-timetable-dialog.director.title" | translate }}</h3>
+
+  <section aria-labelledby="optimization-hard-rules">
+    <h4 id="optimization-hard-rules">
+      {{ "app.view.dialogs.optimize-timetable-dialog.director.hard-rules" | translate }}
+    </h4>
+    <label class="director-rule" *ngFor="let constraint of policy.hardConstraints">
+      <input
+        type="checkbox"
+        [checked]="constraint.enabled"
+        [disabled]="constraint.mandatory"
+        (change)="setConstraintEnabled(constraint.id, $any($event.target).checked)"
+      />
+      <span [title]="constraint.name | translate">{{ constraint.name | translate }}</span>
+      <input
+        *ngIf="constraint.id === 'maxTravelTimeExtension' && constraint.enabled"
+        class="constraint-value"
+        type="number"
+        min="0"
+        step="1"
+        [attr.aria-label]="
+          'app.view.dialogs.optimize-timetable-dialog.director.max-extension-value' | translate
+        "
+        [ngModel]="constraint.value"
+        (ngModelChange)="setConstraintValue(constraint, $event)"
+      />
+    </label>
+  </section>
+
+  <section class="director-objectives" aria-labelledby="optimization-objectives">
+    <h4 id="optimization-objectives">
+      {{ "app.view.dialogs.optimize-timetable-dialog.director.soft-objectives" | translate }}
+    </h4>
+    <div
+      class="objective-list"
+      cdkDropList
+      [cdkDropListData]="orderedObjectives"
+      (cdkDropListDropped)="dropObjective($event)"
+    >
+      <div
+        class="director-objective"
+        *ngFor="let objective of orderedObjectives; let index = index"
+        cdkDrag
+        [cdkDragData]="objective"
+        tabindex="0"
+        role="listitem"
+        [attr.aria-label]="objective.name | translate"
+        aria-keyshortcuts="ArrowUp ArrowDown"
+        (keydown.arrowup)="moveObjective(index, -1); $event.preventDefault()"
+        (keydown.arrowdown)="moveObjective(index, 1); $event.preventDefault()"
+      >
+        <span
+          class="drag-handle"
+          [attr.aria-label]="
+            'app.view.dialogs.optimize-timetable-dialog.director.reorder' | translate
+          "
+          title="{{ 'app.view.dialogs.optimize-timetable-dialog.director.reorder' | translate }}"
+        >
+          ⋮
+        </span>
+        <input
+          type="checkbox"
+          [checked]="objective.enabled"
+          (change)="setObjectiveEnabled(objective, $any($event.target).checked)"
+        />
+        <span class="objective-name">{{ objective.name | translate }}</span>
+      </div>
+    </div>
+  </section>
+</aside>

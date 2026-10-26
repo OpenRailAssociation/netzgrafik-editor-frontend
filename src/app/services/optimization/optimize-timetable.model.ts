@@ -1,4 +1,5 @@
 import {TrainrunSection} from "../../models/trainrunsection.model";
+import {SolutionKpis} from "./optimization-policy.model";
 
 export interface OptimizeTimetableOptions {
   /** Hard limit: maximum number of tracks per edge (node - node). */
@@ -17,6 +18,8 @@ export interface OptimizeTimetableOptions {
   optionalConnectionWindow?: number;
   /** Maximum number of proposals returned (default 4). */
   maxProposals?: number;
+  /** Hard constraints and objective preferences selected in the director. */
+  policy?: import("./optimization-policy.model").OptimizationPolicy;
 }
 
 export type TimeField =
@@ -41,13 +44,15 @@ export interface TimeChange {
 }
 
 export interface EdgeTrackKpi {
+  edgeId: string;
+  inScope: boolean;
   fromNodeName: string;
   toNodeName: string;
   tracksBefore: number;
   tracksAfter: number;
 }
 
-export interface OptimizeTimetableKpi {
+export interface OptimizeTimetableKpi extends SolutionKpis {
   /** Edges exceeding the track limit (exact estimator) before / after. */
   edgesOverLimitBefore: number;
   edgesOverLimitAfter: number;
@@ -68,6 +73,7 @@ export interface OptimizeTimetableKpi {
 export interface OptimizeTimetableSolution {
   id: number;
   label: string;
+  valid: boolean;
   kpi: OptimizeTimetableKpi;
   edges: EdgeTrackKpi[];
   changes: TimeChange[];
@@ -75,6 +81,8 @@ export interface OptimizeTimetableSolution {
 }
 
 export interface OptimizeTimetableResult {
+  baselineKpi: OptimizeTimetableKpi;
+  baselineEdges: EdgeTrackKpi[];
   solutions: OptimizeTimetableSolution[];
   freeVariables: number;
   fixedChains: number;

@@ -1,4 +1,35 @@
 .optimize-timetable-dialog {
+  .optimizer-layout {
+    display: grid;
+    grid-template-columns: minmax(240px, 290px) minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  .director-column,
+  .results-column {
+    min-width: 0;
+  }
+
+  .settings {
+    flex-wrap: wrap;
+  }
+
+  .policy-summary {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: 10px;
+
+    ol {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 20px;
+      margin: 0;
+      padding-left: 20px;
+    }
+  }
+
   .settings {
     display: flex;
     align-items: center;
@@ -45,18 +76,42 @@
     }
   }
 
+  .proposals tbody tr.invalid {
+    color: #767676;
+    cursor: not-allowed;
+  }
+
+  .baseline-row {
+    font-weight: bold;
+    background-color: #f6f6f6;
+  }
+
+  .solution-status {
+    display: block;
+    color: #767676;
+    font-size: 12px;
+    font-weight: normal;
+  }
+
   .over-limit {
     color: #eb0000;
   }
 
   .node-review {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 16px;
     align-items: flex-start;
   }
 
+  .clock-title {
+    text-align: center;
+    margin-top: 12px;
+    margin-bottom: 8px;
+    font-weight: bold;
+  }
+
   .node-changes {
-    flex: 1 1 50%;
     min-width: 0;
   }
 
@@ -103,20 +158,7 @@
   .node-clock {
     position: sticky;
     top: 0;
-    flex: 1 1 50%;
     min-width: 0;
-  }
-
-  .clock-navigation {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-top: 12px;
-
-    .clock-title {
-      font-weight: bold;
-    }
   }
 
   .clocks {
@@ -133,11 +175,24 @@
 
   .clock-label {
     text-align: center;
-    margin-top: 8px;
+    margin: 8px 0;
   }
 
   sbb-knoten-auslastung-view {
     display: block;
     margin-top: 16px;
+  }
+
+  @media (max-width: 1000px) {
+    .optimizer-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .director-column {
+      padding-right: 0;
+      padding-bottom: 12px;
+      border-right: 0;
+      border-bottom: 1px solid #dcdcdc;
+    }
   }
 }

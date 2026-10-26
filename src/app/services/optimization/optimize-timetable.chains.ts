@@ -4,6 +4,11 @@ import {Trainrun} from "../../models/trainrun.model";
 import {Direction} from "../../data-structures/business.data.structures";
 import {TrainrunsectionHelper} from "../util/trainrunsection.helper";
 import {SRC_ARR, SRC_DEP, TGT_ARR, TGT_DEP} from "./optimize-timetable.model";
+import {
+  createDefaultOptimizationPolicy,
+  HardConstraintId,
+  OptimizationPolicy,
+} from "./optimization-policy.model";
 
 /** One section in travel order of its trainrun path (direction "A"). */
 export interface PathStep {
@@ -46,6 +51,7 @@ export interface Edge {
 /** Dwell at a stop between two chains of the same trainrun (one direction). */
 export interface StopConstraint {
   node: Node;
+  trainrunIndex: number;
   arrSection: number;
   arrField: number;
   depSection: number;
@@ -83,6 +89,7 @@ export interface NodeEvents {
 
 export interface OptimizationProblem {
   sections: TrainrunSection[];
+  trainrunIds: number[];
   /** Original consecutive times: 4 per section */
   origC: Float64Array;
   /** Original display times (0..60): 4 per section */
@@ -92,6 +99,7 @@ export interface OptimizationProblem {
   chains: Chain[];
   variables: Variable[];
   edges: Edge[];
+  edgeInScope: Uint8Array;
   stops: StopConstraint[];
   connections: ConnectionConstraint[];
   nodeEvents: NodeEvents[];
@@ -100,12 +108,18 @@ export interface OptimizationProblem {
   /** per variable: affected component indices */
   varEdges: number[][];
   varStops: number[][];
+  varTrainruns: number[][];
   varConnections: number[][];
   varNodeEvents: number[][];
   /** per edge: free variables touching it */
   edgeVars: number[][];
   maxTracks: number;
   optionalWindow: number;
+  policy: OptimizationPolicy;
+}
+
+function constraintEnabled(policy: OptimizationPolicy, id: HardConstraintId): boolean {
+  return policy.hardConstraints.find((constraint) => constraint.id === id)?.enabled ?? false;
 }
 
 export function mod60(t: number): number {
@@ -266,6 +280,7 @@ export function buildProblem(
   selectedNodeIds: number[],
   connectionTolerance: number,
   optionalWindow: number,
+  policy: OptimizationPolicy = createDefaultOptimizationPolicy(),
 ): OptimizationProblem {
   const sections = trainrunSections.filter(
     (s) => s.getSourceNode() !== undefined && s.getTargetNode() !== undefined,
@@ -303,6 +318,8 @@ export function buildProblem(
     list.push(s);
     byTrainrun.set(s.getTrainrunId(), list);
   });
+  const trainrunIds = [...byTrainrun.keys()];
+  const trainrunIndexById = new Map(trainrunIds.map((id, index) => [id, index]));
 
   const chains: Chain[] = [];
   const variables: Variable[] = [];
@@ -336,7 +353,7 @@ export function buildProblem(
               hasLock(sections[st.sectionIdx]) || !inScope(st.fromNode) || !inScope(st.toNode),
           );
           const varA = newVariable(key + ":A", domain, fixed);
-          const linked = isChainLinked(steps, sections);
+          const linked = constraintEnabled(policy, "symmetry") && isChainLinked(steps, sections);
           const varB = linked ? varA : newVariable(key + ":B", domain, fixed);
           const chain: Chain = {
             key,
@@ -368,7 +385,9 @@ export function buildProblem(
         const node = inStep.toNode;
         const inSec = sections[inStep.sectionIdx];
         const outSec = sections[outStep.sectionIdx];
-        const minDwell = minDwellAt(node, trainrun);
+        const minDwell = constraintEnabled(policy, "minimumStopTime")
+          ? minDwellAt(node, trainrun)
+          : 0;
         const addStop = (
           arrSec: number,
           arrSection: TrainrunSection,
@@ -383,6 +402,7 @@ export function buildProblem(
           const dwell0 = mod60(origT[depSec * 4 + depField] - origT[arrSec * 4 + arrField]);
           stops.push({
             node,
+            trainrunIndex: trainrunIndexById.get(trainrun.getId()) ?? 0,
             arrSection: arrSec,
             arrField,
             depSection: depSec,
@@ -444,9 +464,23 @@ export function buildProblem(
     sectionEdge[i] = e;
   });
 
+  const edgeInScope = new Uint8Array(edges.length);
+  edges.forEach((edge, index) => {
+    edgeInScope[index] =
+      selection.size === 0 ||
+      (selection.has(edge.fromNode.getId()) && selection.has(edge.toNode.getId()))
+        ? 1
+        : 0;
+  });
+
   // --- user connections (H13) ---------------------------------------------
   const connections: ConnectionConstraint[] = [];
+  const enforceUserConnections = constraintEnabled(policy, "userConnections");
+  const preserveConnectionTimes = constraintEnabled(policy, "preserveConnectionTimes");
   nodes.forEach((node) => {
+    if (!enforceUserConnections && !preserveConnectionTimes) {
+      return;
+    }
     const ct = node.getConnectionTime() ?? 0;
     node.getConnections().forEach((connection) => {
       const s1 = node.getPort(connection.getPortId1())?.getTrainrunSection();
@@ -478,8 +512,8 @@ export function buildProblem(
           depSection: depIdx,
           depField,
           wait0,
-          lo: Math.min(ct, wait0),
-          hi: Math.max(wait0, ct) + connectionTolerance,
+          lo: preserveConnectionTimes ? wait0 : Math.min(ct, wait0),
+          hi: preserveConnectionTimes ? wait0 : Math.max(wait0, ct) + connectionTolerance,
         });
       };
       add(i1, s1, i2, s2);
@@ -558,6 +592,9 @@ export function buildProblem(
   };
   const varEdges = variables.map((_, v) => collect(v, (i) => [sectionEdge[i]]));
   const varStops = variables.map((_, v) => collect(v, (i) => sectionStops[i]));
+  const varTrainruns = variables.map((_, v) => [
+    ...new Set(varStops[v].map((stopIndex) => stops[stopIndex].trainrunIndex)),
+  ]);
   const varConnections = variables.map((_, v) => collect(v, (i) => sectionConnections[i]));
   const varNodeEvents = variables.map((_, v) => collect(v, (i) => sectionNodeEvents[i]));
 
@@ -570,12 +607,14 @@ export function buildProblem(
 
   return {
     sections,
+    trainrunIds,
     origC,
     origT,
     active,
     chains,
     variables,
     edges,
+    edgeInScope,
     stops,
     connections,
     nodeEvents,
@@ -583,10 +622,12 @@ export function buildProblem(
     sectionEdge,
     varEdges,
     varStops,
+    varTrainruns,
     varConnections,
     varNodeEvents,
     edgeVars,
     maxTracks,
     optionalWindow,
+    policy,
   };
 }

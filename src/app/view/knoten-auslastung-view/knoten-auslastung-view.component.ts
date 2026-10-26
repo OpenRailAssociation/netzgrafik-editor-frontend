@@ -21,7 +21,7 @@ import {
   KnotenAuslastungDataPreparation,
   KnotenAuslastungSnapshot,
 } from "./knoten.auslastung.data.preparation";
-import {takeUntil} from "rxjs/operators";
+import {auditTime, takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
 import {InfrastructureEstimatorService} from "../../services/infrastructure/infrastructure-estimator.service";
 import {FilterService} from "../../services/ui/filter.service";
@@ -36,9 +36,14 @@ import {IsTrainrunSelectedService} from "../../services/data/is-trainrun-section
 })
 export class KnotenAuslastungViewComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() snapshot: KnotenAuslastungSnapshot;
+  @Input() hasExternalLabel = false;
   @ViewChild("knotenAuslastungContainer", {static: true})
   container: ElementRef<SVGElement>;
   private svgDrawingContext: d3.Selection<SVGElement, undefined, Element, undefined>;
+  private resizeObserver: ResizeObserver;
+  private intersectionObserver: IntersectionObserver;
+  private isVisible = false;
+  private hasProjection = false;
   private knotenAuslastungDataPreparation: KnotenAuslastungDataPreparation;
   private destroyed = new Subject<void>();
   public showHourToggle = false;
@@ -117,6 +122,27 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnChanges, 
       });
 
     this.init();
+
+    if (typeof ResizeObserver !== "undefined") {
+      this.resizeObserver = new ResizeObserver(() => {
+        if (this.isVisible) {
+          this.update(false);
+        }
+      });
+      this.resizeObserver.observe(this.container.nativeElement);
+    }
+    if (typeof IntersectionObserver !== "undefined") {
+      this.intersectionObserver = new IntersectionObserver((entries) => {
+        this.isVisible = entries.some((entry) => entry.isIntersecting);
+        if (this.isVisible) {
+          this.update(false);
+        }
+      });
+      this.intersectionObserver.observe(this.container.nativeElement);
+    } else {
+      this.isVisible = true;
+      this.update();
+    }
   }
 
   ngOnChanges(): void {
@@ -131,6 +157,8 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnChanges, 
   }
 
   ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+    this.intersectionObserver?.disconnect();
     this.knotenAuslastungDataPreparation.destroy();
     this.destroyed.next();
     this.destroyed.complete();
@@ -140,11 +168,13 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnChanges, 
     this.uiInteractionService.updateNodeBaseDataWindow
       .pipe(takeUntil(this.destroyed))
       .subscribe(() => {
+        this.update(false);
+      });
+    this.knotenAuslastungDataPreparation.updates
+      .pipe(auditTime(16), takeUntil(this.destroyed))
+      .subscribe(() => {
         this.update();
       });
-    this.knotenAuslastungDataPreparation.updates.pipe(takeUntil(this.destroyed)).subscribe(() => {
-      this.update();
-    });
     this.isTrainrunSelectedService
       .getTrainrunIdSelected()
       .pipe(takeUntil(this.destroyed))
@@ -157,6 +187,12 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnChanges, 
   private update(recalculate = true) {
     const selectedNode = this.snapshot?.node ?? this.nodeService.getSelectedNode();
     if (selectedNode === null || selectedNode === undefined) {
+      return;
+    }
+    if (!this.isVisible) {
+      if (recalculate) {
+        this.hasProjection = false;
+      }
       return;
     }
 
@@ -172,6 +208,10 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnChanges, 
     const rectHtml = element.getBoundingClientRect();
     const width = rectHtml.width;
     const height = rectHtml.height;
+    if (width === 0 || height === 0) {
+      this.hasProjection = false;
+      return;
+    }
     const pixelRadius = (0.9 * Math.min(width, height)) / 2;
 
     if (this.snapshot !== undefined) {
@@ -179,8 +219,9 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnChanges, 
       if (!this.showHourToggle) {
         this.oddHour = false;
       }
-    } else if (recalculate) {
+    } else if (recalculate || !this.hasProjection) {
       this.knotenAuslastungDataPreparation.computeAuslastungsMatrix(selectedNode);
+      this.hasProjection = true;
       this.showHourToggle = this.knotenAuslastungDataPreparation.hasDifferentHours();
       if (!this.showHourToggle) {
         this.oddHour = false;

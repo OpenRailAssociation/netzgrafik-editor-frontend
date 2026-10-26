@@ -321,6 +321,38 @@
         },
         "optimize-timetable-dialog": {
           "title": "Optimiser l'horaire",
+          "baseline": "Situation initiale",
+          "candidate": "Candidat {$number}",
+          "store-policy": "Enregistrer la politique",
+          "reset-ranking": "Réinitialiser le classement",
+          "current-policy": "Politique actuelle",
+          "valid": "Valide",
+          "invalid": "Invalide",
+          "director": {
+            "title": "Pilotage de l'optimisation",
+            "hard-rules": "Règles strictes",
+            "soft-objectives": "Objectifs souples",
+            "max-extension-value": "Prolongation maximale du temps de parcours en minutes",
+            "move-up": "Monter l'objectif",
+            "move-down": "Descendre l'objectif",
+            "reorder": "Faire glisser pour réordonner l'objectif",
+            "constraint": {
+              "track-limit": "Limite de voies sur le tronçon",
+              "user-connections": "Correspondances définies par l'utilisateur",
+              "minimum-stop-time": "Temps d'arrêt minimum",
+              "locks": "Verrous (toujours actifs)",
+              "scope-boundary": "Limite de sélection (toujours active)",
+              "symmetry": "Imposer la symétrie",
+              "max-travel-time-extension": "Prolongation maximale du temps de parcours",
+              "preserve-connection-times": "Conserver les temps de correspondance existants"
+            },
+            "objective": {
+              "minimal-changes": "Modifications minimales",
+              "more-connections": "Davantage de correspondances",
+              "lower-travel-time": "Temps de parcours réduit",
+              "lower-track-usage": "Moindre utilisation des voies"
+            }
+          },
           "max-tracks": "Voies max. par tronçon",
           "optimize": "Optimiser",
           "scope-selection": "Seuls les {$count} nœuds sélectionnés sont optimisés, les horaires aux bords restent fixes.",

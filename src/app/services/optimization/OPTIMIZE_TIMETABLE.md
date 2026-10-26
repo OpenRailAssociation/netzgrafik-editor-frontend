@@ -1,3 +1,11 @@
+**Abbrechen** – stellt die Ausgangslage exakt wieder her.
+
+- Der Dialog ist zweispaltig: links Regeln und sortierbare Soft-KPIs, rechts Vorschläge und Preview.
+  Das Umordnen von KPIs sortiert vorhandene Vorschläge ohne neuen Suchlauf; geänderte harte Regeln
+  markieren Kandidaten nach Revalidierung als gültig/ungültig.
+- Die Policy wird lokal im Browser gespeichert. Locks und Scope-Grenzen bleiben immer aktiv;
+  Knotengleis-Auslastung ist nur eine Ergebnisansicht und kein Optimierungs-Constraint.
+
 # Optimize Timetable – Anforderungen
 
 Status: **implementiert** (Details und getroffene Annahmen: [UMSETZUNGSVORSCHLAG.md – Abschnitt 10](./UMSETZUNGSVORSCHLAG.md#10-implementierungsstand))
@@ -20,8 +28,9 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 - Tastenkürzel **Ctrl+Q**, **q** oder **Q** im Editor (`editor.keyEvents.ts`, `case "KeyQ"`).
 - Öffnet einen Dialog mit:
   - **Maximale Gleise pro Kante** (globaler Wert, Eingabe durch User).
-  - Button **Optimieren**.
-  - (Später: Option „Fahrzeiten dürfen angepasst werden“ – aktuell nicht aktiv, siehe §9.)
+  - **Optimization Director** mit aktivierbaren harten Regeln und sortierbaren weichen Zielen.
+  - Button **Optimieren**. Abschnittsfahrzeiten bleiben fix; eine maximale Verlängerung der
+    Gesamtfahrzeit pro Zuglauf kann als harte Regel aktiviert werden (siehe §4).
 
 ### 2.2 Optimierungsbereich (Multi-Selektion)
 
@@ -38,6 +47,9 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 ### 2.3 Resultat-Dialog
 
 - Liste von **Lösungsvorschlägen** mit KPIs (siehe §6), inkl. **Ausgangslage** als Referenz.
+- Die **Ausgangslage (Baseline)** ist der Fahrplan vor der Suche. Alle Änderungen und Deltas der
+  Vorschläge beziehen sich auf diesen Zustand; er bleibt im Dialog als Vergleich und Vorschau
+  auswählbar.
 - User kann zwischen den Lösungen **umschalten**; die gewählte Lösung wird als **Vorschau**
   in der Netzgrafik angezeigt (Ausgangslage jederzeit wieder wählbar).
 - Detailansicht der gewählten Lösung: **was** wurde **wo** geändert (siehe §6.2).
@@ -68,21 +80,34 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 | H13 | **User-Connections**: alle im Netzgrafik-Editor erfassten Anschlüsse (`Connection` am `Node`) müssen eingehalten werden: Umsteigezeit ≥ Mindestumsteigezeit des Knotens (`Node.getConnectionTime()`), bei Round-Trips in beiden Richtungen. Alle übrigen (impliziten) Anschlüsse sind optional (weiches Ziel f2). |
 | H14 | **Native Objekte**: der Optimierer arbeitet ausschliesslich mit den nativen Modellobjekten der Netzgrafik (`Trainrun`, `TrainrunSection`, `Node`, `Port`, `Transition`, `Connection`) – keine eigenen Parallel-Datenmodelle.                                                                                      |
 
-## 4. Weiche Ziele (Multi-Objective)
+## 4. Weiche Ziele und Rangfolge
 
-Nur unter gültigen Lösungen (alle harten Regeln erfüllt):
+Weiche Ziele ordnen die gültigen Vorschläge. Sie lassen sich im Optimization Director aktivieren,
+deaktivieren und per Drag-and-drop priorisieren. Die Standardreihenfolge ist:
 
-- **f1 – Gesamtfahrzeit pro Zuglauf** möglichst kurz:
-  `T(A→D) = t(AB) + Halt(B) + t(BC) + Halt(C) + t(CD)`.
-  Sie darf frei gewählt werden, soll aber **nicht wesentlich länger** werden
-  (Obergrenze der Verlängerung konfigurierbar, Vorschlag +5 min).
-- **f2 – Optionale Anschlüsse**: möglichst viele zusätzliche (nicht als `Connection` erfasste)
-  Umsteigemöglichkeiten im Knoten halten/gewinnen (Umsteigezeit ≥ `connectionTime` des Knotens).
-  User-Connections sind hart (H13) und zählen hier nicht.
-- **f3 – Minimale Änderung**: kleine Verschiebungen bevorzugt gegenüber grossen (Σ|Δ|).
+1. **Minimale Änderungen**: zuerst gewinnt der Vorschlag mit weniger geänderten Δ-Ketten. Bei
+   Gleichstand gewinnt die kleinere Summe der absoluten Verschiebungen `Σ|Δ|` in Minuten. Beides
+   wird gegenüber der Baseline berechnet. Das ist nicht dasselbe wie die Anzahl geänderter Züge
+   oder einzelner Zeiten; diese Werte stehen separat in der Vorschlagstabelle.
+2. **Mehr Anschlüsse**: zählt zusätzliche, nicht explizit als User-`Connection` erfasste
+   Umsteigemöglichkeiten zwischen verschiedenen Zugläufen. Die Umsteigezeit liegt zwischen der
+   Mindestumsteigezeit des Knotens und dieser Mindestzeit plus 5 Minuten. User-Connections sind
+   separate harte Regeln und zählen nicht als optionale Anschlüsse.
+3. **Kürzere Fahrzeit**: vergleicht die Änderung der gesamten Reisezeit aller Zugläufe mit der
+   Baseline, einschliesslich der Haltezeiten zwischen den Endpunkten. Ein negatives Δ bedeutet
+   kürzer, ein positives Δ länger; Abschnittsfahrzeiten selbst bleiben fix.
+4. **Geringere Streckengleisnutzung**: vergleicht zuerst die höchste Gleiszahl auf den
+   betrachteten Kanten, danach deren durchschnittliche Gleiszahl. Das ist ein weiches Ziel; das
+   maximale Gleislimit kann zusätzlich als harte Regel aktiviert sein.
 
-Der Zielkonflikt **schnell ↔ Anschlüsse** wird über die Lösungsvorschläge (Pareto-Front)
-sichtbar gemacht.
+Die Rangfolge ist **lexikografisch**: Ein nachrangiges Ziel entscheidet erst, wenn die Vorschläge
+beim höher priorisierten Ziel gleichauf liegen. Gültigkeit nach den aktivierten harten Regeln hat
+immer Vorrang. Ändern der weichen Ziele sortiert die bereits gefundenen Vorschläge neu; es startet
+keine Suche. Für neue Kandidaten **Optimieren** wählen.
+
+Die optionale harte Regel **Maximale Fahrzeitverlängerung** begrenzt die Netto-Verlängerung pro
+Zuglauf gegenüber der Baseline; der Standardwert ist +5 Minuten. Sie verändert keine
+Abschnittsfahrzeit und begrenzt keine einzelne Haltezeit.
 
 ## 5. Zeitbudget
 
@@ -108,6 +133,48 @@ sichtbar gemacht.
 - **Zeitänderungen**: pro Zuglauf / Knoten / Richtung, alt → neu (inkl. Symmetriezeit, Rundungen markiert).
 - **Anschlüsse**: verloren / gewonnen pro Knoten.
 - **Info**: Knotengleise vorher → nachher (`estimateNodeTracks`, keine harte Regel).
+
+### 6.3 Baseline und KPIs lesen
+
+- **Ausgangslage** zeigt den Fahrplan vor der Optimierung: vorher und nachher sind identisch,
+  Deltas und Verschiebungen sind 0. Die Zeile ist eine Referenz, kein erzeugter Vorschlag.
+- **Abschnitte über Limit** und **maximale Gleise** zeigen den Zustand vorher → nachher. Gezählt
+  werden nur Kanten im Optimierungsbereich.
+- **Δ Reisezeit** ist die aufsummierte Änderung der Reisezeit über alle Zugläufe in Minuten. Sie
+  enthält die Änderungen der Haltezeiten zwischen Start und Ziel; Abschnittsfahrzeiten sind fix.
+  Ein negatives Δ bedeutet eine kürzere, ein positives Δ eine längere Reisezeit.
+- **Anschlüsse** zeigt die Anzahl optionaler Anschlussmöglichkeiten vorher → nachher.
+- **Σ |Verschiebung|** summiert die Beträge der Δ-Verschiebungen in Minuten. Gegenläufige
+  Verschiebungen heben sich dabei nicht auf.
+- **Züge / Zeiten** zählt separat die betroffenen Zugläufe und geänderten Zeitfelder. Diese Zahl
+  bestimmt nicht allein das Ziel **Minimale Änderungen**.
+
+Eine längere Haltezeit an einem einzelnen Knoten wird nicht separat bestraft, solange sie die
+aktive Mindesthaltezeitregel einhält. **Kürzere Fahrzeit** bewertet die Nettoänderung aller
+Zwischenhalte eines Zuglaufs gegenüber der Baseline: Eine Verlängerung an einem Knoten kann durch
+eine Verkürzung an einem anderen ausgeglichen werden. Die optionale Grenze von +5 Minuten gilt
+ebenfalls für diese Netto-Verlängerung pro Zuglauf, nicht für einen einzelnen Halt. Eine eigene
+maximale Haltezeit pro Knoten ist derzeit nicht konfigurierbar.
+
+### 6.4 Wie entstehen Vorschläge?
+
+Der Optimierer verschiebt ganzzahlige Minuten-Δs auf Ketten aus Abschnitten, die durch
+Durchfahrten verbunden sind. Dadurch ändern sich Zeiten an Halten, während Abschnittsfahrzeiten,
+Route, Takt, Locks und Scope-Grenzen erhalten bleiben.
+
+Innerhalb des Zeitbudgets sucht er zuerst gezielt an Konflikten wie Gleisüberlastungen,
+Anschlussverletzungen oder zu kurzen Halten. Tabu Search verhindert unmittelbare Rücksprünge;
+Simulated Annealing erlaubt gelegentlich einen zunächst schlechter bewerteten Zwischenschritt,
+damit die Suche lokale Sackgassen verlassen kann. Bei Stillstand lockert eine konfliktnahe
+Large-Neighborhood-Suche einen kleinen Bereich und startet von der besten bisherigen Lösung neu.
+Ein inkrementeller Schätzer bewertet Kandidaten schnell; die Infrastruktur-Berechnung prüft die
+ausgegebenen Gleis-KPIs exakt nach.
+
+Die Suche verwendet interne Bewertungsgewichte, um Kandidaten während des Suchlaufs zu erkunden.
+Diese Gewichte sind nicht die Reihenfolge im Director: Der Director ordnet gefundene Vorschläge
+lexikografisch nach den dort aktivierten Zielen. Harte Regeländerungen bewerten die vorhandenen
+Vorschläge neu; **Optimieren** startet einen neuen Suchlauf. **Weiterrechnen** startet einen
+weiteren Lauf ausgehend vom ausgewählten Vorschlag.
 
 ## 7. Architektur
 
@@ -175,8 +242,10 @@ interface OptimizeTimetableResult {
 - Der Gleis-Schätzer liest ausschliesslich Consecutive Times; diese werden nach jeder Verschiebung
   auf der Kopie lokal für die betroffene Kette neu berechnet.
 
-Das Problem ist eine Variante des **Periodic Event Scheduling Problem (PESP)**
-(NP-schwer) mit zusätzlicher, nicht-linearer Kapazitätsbedingung (Gleis-Schätzer).
+Das Problem ist eine **periodische Fahrplanoptimierung auf einer bestehenden Netzgrafik**:
+Kettenverschiebungen (Δ) verändern Ereigniszeiten, während Streckenabschnitte gemeinsam genutzte
+Ressourcen mit einer nicht-linearen Gleis-Kapazitätsprüfung sind. Es hat PESP-artige periodische
+Zeitbedingungen, ist aber weder ein reines PESP-Benchmarkproblem noch MAPF auf einem Raster.
 
 ### 8.2 Bewertete Verfahren
 
@@ -190,33 +259,42 @@ Das Problem ist eine Variante des **Periodic Event Scheduling Problem (PESP)**
 | Genetischer Algorithmus / NSGA-II                                       | gut für Multi-Objective           | zu wenige Generationen in 0.25 s     | ❌                       |
 | Exakt: CP-SAT / MILP / PESP-SAT                                         | optimal                           | Solver im Browser nötig, > 0.25 s    | ❌                       |
 
-### 8.3 Gewählter Ansatz (hybrid)
+### 8.3 Gewählter Ansatz (Netzgrafik Conflict Repair + LNS)
 
-1. **Vorberechnung**: Ketten bilden, freie Variablen und erlaubte Δ-Domänen bestimmen
-   (Mindesthaltezeit, Locks, Selektion); Ausgangslage bewerten, Kanten-Schätzungen cachen.
-2. **Phase 1 – Gültigkeit (Min-Conflicts + Tabu)**: überschrittene Kante (H1) oder verletzte
-   User-Connection (H13) wählen, beteiligte Kette
-   wählen, Kandidaten-Δ testen (zuerst kleine Δ, dann Takt/2), nur betroffene Kanten neu
-   schätzen; bestes Δ übernehmen, Kette tabu setzen.
-3. **Phase 2 – Ziele (LNS / Simulated Annealing)**: nur gültige Nachbarschaften (Schritte, die
-   eine harte Regel verletzen, werden verworfen); Destroy/Repair rund um einen Knoten; Seed für
-   Reproduzierbarkeit, neuer Seed bei **Weiterrechnen**.
-4. **Pareto-Archiv** nicht dominierter gültiger Lösungen (f1, f2, f3) → Vorschläge
-   (minimale Änderung, meiste Anschlüsse, schnellste, ausgewogen).
-5. **Abbruch** nach 0.25 s (`performance.now()`); Endvalidierung der Vorschläge mit den
-   bestehenden Validatoren.
+1. **Vorbereitung**: Ketten, Δ-Domänen und Abhängigkeiten zu Strecken, Halten und Anschlüssen
+   einmalig aus nativen Netzgrafik-Objekten indizieren. Locks und Scope-Grenzen bleiben zwingend.
+2. **Konfliktindex**: Streckengleis-Überlastungen, User-Connection-Verletzungen, aktivierte
+   Mindesthaltezeitregeln und optionale Fahrzeitgrenzen pro Zuglauf als Konflikte führen. Konflikte
+   verweisen auf betroffene Ketten, Knoten und Strecken; es entsteht kein zweiter Netzgrafik-Graph.
+3. **Konflikt-Reparatur**: den höchstpriorisierten aktiven Konflikt wählen, Werte der betroffenen
+   Δ-Ketten testen und nur abhängige Konflikte aktualisieren. Tabu verhindert direkte Zyklen.
+4. **Erkundung und Neustart**: Min-Conflicts/Tabu wird mit Simulated-Annealing-Schritten
+   kombiniert. Nach längerer Stagnation setzt LNS bei der besten Lösung an und verändert eine
+   begrenzte, konfliktnahe Kettengruppe.
+5. **Archiv und Anzeige**: nur nach den aktiven harten Regeln gültige, nicht dominierte Lösungen
+   kommen ins Archiv. Die UI ordnet sie separat lexikografisch nach den aktivierten Zielen;
+   weiche Ziele ändern die Suche nicht, Hard-Rule-Änderungen revalidieren ohne Suchlauf.
+6. **Zeitbudget**: deterministischer Seed und Deadline via `performance.now()`. Konflikt- und
+   Nachbarschaftsindizes werden wiederverwendet; der exakte Infrastruktur-Schätzer bestätigt die
+   Baseline einmal pro Lauf und geänderte Strecken bei Kandidaten.
+
+Flatland ist hier **Architektur-Inspiration**, kein Problem- oder Datenmodell: Die Suche bleibt
+eine periodische Netzgrafik-Fahrplanoptimierung auf bestehenden nativen Objekten mit Δ-Moves.
 
 ### 8.4 Performance
 
-- Cache pro Kante (Key: Startzeiten der Züge auf der Kante), inkrementelle Neubewertung.
+- Cache pro Kante (Key: Startzeiten der Züge auf der Kante), inkrementelle Neubewertung und
+  Prioritätsheap für aktive Konflikte.
 - Vollständige Validatoren nur auf den Endlösungen.
 - Früh messen: Anzahl Kanten-Bewertungen pro 0.25 s; falls nötig schneller Vorfilter
   (Überlappungszählung auf Minutenbasis), Bestätigung durch den Infrastruktur-Schätzer.
 
 ## 9. Später / offen
 
+- Knotengleis-/Knotenauslastungs-Constraints: nicht Teil des aktuellen Scopes; die bestehende
+  Knotenauslastungs-View bleibt eine Ergebnisvisualisierung.
+
 - **Fahrzeitänderungen** (Verlängern/Verkürzen von Abschnittsfahrzeiten): aktuell **fix**,
   Anforderung folgt später. Erweiterungspunkt in den Options vorgesehen.
-- Gewichtung der weichen Ziele (z.B. 1 Anschluss ≙ x min Fahrzeit) – Vorschlag 3 min.
-- Obergrenze sinnvoller Wartezeit für Anschlüsse – Vorschlag `connectionTime` + 10 min.
-- Obergrenze Verlängerung Gesamtfahrzeit – Vorschlag +5 min.
+- Benutzerdefinierte Obergrenze für optionale Anschluss-Wartezeiten; aktuell gilt
+  `connectionTime` bis `connectionTime + 5 min`.

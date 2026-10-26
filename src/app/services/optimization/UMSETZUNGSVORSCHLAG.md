@@ -1,3 +1,6 @@
+Implementiert: konfliktpriorisierte Netzgrafik-Reparatur mit Δ-Ketten, lokaler Policy und
+lexikografischem KPI-Ranking. Die optionale Fahrzeitverlängerung gilt pro Zuglauf, Default +5 min.
+
 # Optimize Timetable – Umsetzungsvorschlag
 
 Bezug: [OPTIMIZE_TIMETABLE.md](./OPTIMIZE_TIMETABLE.md) (Anforderungen H1–H14, f1–f3).
@@ -40,19 +43,25 @@ Vorfilter rechnet rein lesend (Getter + Δ).
 
 ## 2. Dateien
 
-| Datei                                                   | Inhalt                                                  |
-| ------------------------------------------------------- | ------------------------------------------------------- |
-| `services/optimization/optimize-timetable.service.ts`   | Stateless Service, öffentliche API `optimize(...)`      |
-| `services/optimization/optimize-timetable.model.ts`     | Typen: Options, Result, Solution, Patch, KPIs           |
-| `services/optimization/optimize-timetable.chains.ts`    | Ketten bilden (Halt → Halt) aus nativen Objekten        |
-| `services/optimization/optimize-timetable.evaluator.ts` | Bewertung: H1 (Gleise), H8, H13, f1–f3; Cache pro Kante |
-| `services/optimization/optimize-timetable.search.ts`    | Min-Conflicts + Tabu, LNS/SA, Pareto-Archiv, Zeitbudget |
-| `services/optimization/optimize-timetable.patch.ts`     | Patch anwenden / zurücksetzen auf nativen Objekten      |
-| `services/optimization/*.spec.ts`                       | Unit-Tests                                              |
-| `view/dialogs/optimize-timetable-dialog/*`              | Dialog (Eingabe, Vorschläge, Details, Übernehmen)       |
-| `view/editor-main-view/data-views/editor.keyEvents.ts`  | `case "KeyQ"` → Dialog öffnen                           |
-| `services/ui/ui.interaction.service.ts`                 | Subject zum Öffnen des Dialogs (wie bestehende Dialoge) |
-| `documentation/OPTIMIZE_TIMETABLE.md`                   | User-Doku (Bedienung) – nach Implementierung            |
+| Datei | Inhalt |
+
+| Datei                                                                      | Inhalt                                                                   |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `services/optimization/optimize-timetable.service.ts`                      | Optimierungsservice, exakte Baseline-/Finalistenprüfung, Patch-Anwendung |
+| `services/optimization/optimize-timetable.model.ts`                        | Optionen, Resultate, Lösungen, KPIs und Zeitänderungen                   |
+| `services/optimization/optimize-timetable.chains.ts`                       | Ketten, Δ-Domänen und sparse Abhängigkeiten aus nativen Objekten         |
+| `services/optimization/optimize-timetable.evaluator.ts`                    | Inkrementelle Zeit-, Streckengleis-, Halte- und Anschlussbewertung       |
+| `services/optimization/optimize-timetable.search.ts`                       | Konfliktpriorisierte Reparatur, Tabu, konfliktnahe LNS/SA, Pareto-Archiv |
+| `services/optimization/optimization-conflict-index.ts`                     | Konfliktlookups und Severity-Heap für Strecke, Knoten und Ketten         |
+| `services/optimization/optimization-policy.model.ts`                       | Regeln, Ziele und KPI-Typen mit Default-Policy                           |
+| `services/optimization/optimization-policy.service.ts`                     | Lokales Speichern und Normalisieren der Policy                           |
+| `services/optimization/optimization-solution-comparator.ts`                | Gültigkeits-vor-Soft-KPI-Rangfolge                                       |
+| `services/optimization/optimization-solution-comparator.spec.ts`           | Comparator-Regressionstests                                              |
+| `view/dialogs/optimize-timetable-dialog/*`                                 | Zweispaltiger Dialog mit Director, Vorschlägen und Preview               |
+| `view/dialogs/optimize-timetable-dialog/optimization-director.component.*` | Regeln und sortierbare KPI-Karten                                        |
+| `view/editor-main-view/data-views/editor.keyEvents.ts`                     | `case "KeyQ"` → Dialog öffnen                                            |
+| `services/ui/ui.interaction.service.ts`                                    | Subject zum Öffnen des Dialogs (wie bestehende Dialoge)                  |
+| `documentation/OPTIMIZE_TIMETABLE.md`                                      | User-Doku (Bedienung) – nach Implementierung                             |
 
 ## 3. Datenfluss
 
@@ -100,29 +109,54 @@ OptimizeTimetableDialog
 - **H13 – User-Connections**: für jede `Connection` am Knoten: Umsteigezeit über
   `ConnectionValidator.getShortestConnectionTime(node, port1, port2)` bzw. Ankunft/Abfahrt der
   Ports; muss ≥ 0 sein (d.h. ≥ `Node.getConnectionTime()`); Round-Trip: beide Richtungen.
-- **f1** Σ Verlängerung Gesamtfahrzeit pro Zuglauf (Haltezeit-Differenzen),
-  **f2** Anzahl optionaler Umsteigemöglichkeiten im Knoten, **f3** Σ|Δ|.
+- **Reisezeit-Delta**: Summe der Änderungen der Haltezeiten zwischen den Endpunkten aller
+  Zugläufe und Richtungen. Zusammen mit den fixen Abschnittsfahrzeiten entspricht dies der
+  Änderung zwischen erster Abfahrt und letzter Ankunft. Eine einzelne lange Haltezeit wird nicht
+  separat bestraft.
+- **Optionale Anschlüsse**: Anzahl möglicher Umstiege zwischen verschiedenen Zugläufen im Fenster
+  `connectionTime` bis `connectionTime + optionalWindow`.
+- **Verschiebung**: `sumAbsShift = Σ|Δ|` über die Verschiebungsvariablen; dies ist keine Anzahl
+  geänderter Zugläufe oder Zeitfelder.
+- Die aktivierte Mindesthaltezeitregel prüft Mindesthaltezeit und gültige Takt-Haltezeit. Die
+  optionale maximale Fahrzeitverlängerung prüft die Netto-Verlängerung je Zuglauf gegenüber der
+  Baseline, nicht die Dauer eines einzelnen Halts.
 - **Rücksetzen**: nach jeder Kandidaten-Bewertung bzw. spätestens im `finally`.
 
 ### 4.3 Suche (≤ 250 ms)
 
-1. **Phase 1 – Gültigkeit** (falls Baseline H1/H13 verletzt):
-   Min-Conflicts + Tabu. Verletzte Kante/Connection wählen → beteiligte Ketten →
-   Kandidaten-Δ in Reihenfolge `±1, ±2, ±3, …, Takt/2` → bestes Δ übernehmen → Kette tabu.
-2. **Phase 2 – Ziele** (nur gültige Zustände):
-   LNS: Knoten wählen (bevorzugt ITF-Knoten mit vielen Zügen), Ketten um den Knoten zurücksetzen
-   (Destroy), greedy neu setzen (Repair); Annahme per Simulated-Annealing-Kriterium.
-   Schritte, die eine harte Regel verletzen, werden verworfen.
-3. **Pareto-Archiv** (f1, f2, f3), max. ~10 Einträge → Vorschläge:
-   „Minimale Änderung“ (min f3), „Meiste Anschlüsse“ (max f2), „Schnellste“ (min f1),
-   „Ausgewogen“ (gewichtete Summe).
-4. **Zeitbudget**: `performance.now()`-Check in jeder Iteration; deterministischer Zufall (Seed),
-   bei _Weiterrechnen_ neuer Seed und Start aus den bisherigen Lösungen (`previousSolutions`).
-5. **Endvalidierung** jeder Lösung: Patch anwenden → `estimateSectionTracks` für **alle** Kanten
-   im Scope (exakt, ohne Vorfilter) + `TrainrunSectionValidator` + H13 → zurücksetzen.
-   Nur bestandene Lösungen werden zurückgegeben.
+1. **Vorbereitung**: Ketten/Δ bleiben die Move-Repräsentation. Konflikt-zu-Kette,
+   Kette-zu-Strecke/Knoten/Anschluss und Nachbarschaftsindizes werden einmalig aufgebaut. Locks
+   und Scope bleiben unveränderliche Regeln.
+2. **Konflikt-Reparatur**: den höchstpriorisierten aktiven Konflikt wählen: Streckengleis-Überlast,
+   User-Connection, aktivierte Mindesthaltezeit oder optionale maximale Netto-Fahrzeitverlängerung
+   pro Zuglauf. Nur betroffene freie Ketten und kleine Δ-Kandidaten evaluieren; den besten
+   Reparaturzug übernehmen und nur abhängige Konflikte aktualisieren. Tabu verhindert direkte
+   Zyklen.
+3. **Erkundung und Neustart**: Min-Conflicts/Tabu wird mit Simulated-Annealing-Schritten
+   kombiniert, die gelegentlich schlechtere Zwischenlösungen akzeptieren. Nach Stagnation setzt
+   LNS bei der besten Lösung an und verändert eine begrenzte, konfliktnahe Kettengruppe.
+4. **Archiv und Ranking**: nach den aktiven harten Regeln gültige, nicht dominierte Kandidaten im
+   Pareto-Archiv halten. Die UI ordnet sie separat lexikografisch nach den aktivierten Soft-KPIs;
+   deren Aktivierung oder Reihenfolge ändert den Suchlauf nicht. Geänderte Hard Rules revalidieren
+   Kandidaten; eine neue Suche startet nur mit _Optimize_.
+5. **Zeitbudget und Gültigkeit**: Deadline via `performance.now()`, deterministischer Seed und
+   Weiterrechnen vom ausgewählten Assignment. Die Baseline und geänderte Strecken werden exakt
+   mit `InfrastructureEstimatorService` geprüft; nur nach aktiven Regeln gültige Vorschläge werden
+   ausgegeben.
 
-### 4.4 Performance-Risiko
+### 4.4 Baseline und Ranking
+
+- **Baseline** ist der ursprüngliche Fahrplan vor dem Anwenden eines Such-Assignments. Zeit- und
+  KPI-Deltas werden relativ dazu berechnet; bei der Baseline sind Änderungen und Verschiebungen 0.
+- Der Comparator sortiert zuerst nach Gültigkeit und danach lexikografisch nach den aktivierten
+  Zielen in ihrer Priorität. **Minimale Änderungen** vergleicht zuerst die Anzahl geänderter
+  Δ-Ketten und bei Gleichstand die Summe `Σ|Δ|`. **Kürzere Fahrzeit** vergleicht das Netto-
+  Reisezeit-Delta aufsteigend; negative Werte sind kürzer. **Geringere Streckengleisnutzung**
+  vergleicht maximale und danach durchschnittliche Gleiszahl im Scope.
+- Der Suchlauf verwendet interne feste Bewertungsgewichte. Die Reihenfolge und Aktivierung der
+  Soft-KPIs im Director beeinflusst nur das Ranking des vorhandenen Archivs, nicht den Suchpfad.
+
+### 4.5 Performance-Risiko
 
 `estimateSectionTracks` rechnet eine Zeit/Distanz-Matrix (Auflösung 15) – pro Aufruf teuer.
 
@@ -159,6 +193,18 @@ interface OptimizeTimetableTimeChange {
 - Details der gewählten Lösung: Kanten (Gleise vorher → nachher), Zugläufe (Fahrzeit),
   Zeitänderungen (Zuglauf / Knoten / alt → neu), User-Connections (alle ✅), optionale Anschlüsse ±.
 - Buttons: _Übernehmen_ (nur bei gültiger Lösung), _Weiterrechnen_, _Abbrechen_.
+- Zweispaltig wie in der Skizze: links Optimization Director, rechts bestehende Vorschläge,
+  Streckengleis-KPIs und Preview.
+- Harte Regeln können angepasst werden; Locks und Scope bleiben unveränderliche Editorregeln.
+  „Max. Fahrzeitverlängerung“ gilt pro Zuglauf und zeigt bei Aktivierung ein Zahlenfeld in Minuten
+  (Default +5 min). Knotengleis-Auslastung ist aktuell nur eine View, kein Optimierungs-Constraint.
+- Soft-KPIs lassen sich als ganze Karten per Drag-and-drop sortieren. Die Änderung sortiert
+  vorhandene gültige Vorschläge neu, ohne den Solver erneut aufzurufen. Geänderte Hard Rules
+  revalidieren Kandidaten; _Optimize_ startet die Suche.
+- Die Baseline ist der Fahrplan vor der Suche. Reisezeit-Deltas enthalten Änderungen der
+  Zwischenhalte; Abschnittsfahrzeiten bleiben fix. Einzelne lange Halte werden nicht separat
+  bestraft.
+- _Store policy_ speichert die Konfiguration lokal im Browser, kein Backend.
 - Umsetzung analog bestehender Dialoge (`SbbDialog`, Öffnen über `UiInteractionService`).
 
 ## 7. Tests
@@ -188,32 +234,37 @@ Tests mit den bestehenden Test-Netzgrafiken (`src/integration-testing/…`).
 5. **UI**: KeyQ, Dialog, Vorschau, Übernehmen/Abbrechen, Undo.
 6. **Doku**: User-Doku unter `documentation/`.
 
-## 9. Offene Punkte
+## 9. Später / offen
 
-- Obergrenze Umsteigezeit für User-Connections (nur Minimum oder auch Maximum, z.B. bisherige
-  Umsteigezeit nicht verlängern)?
-- Gewichtung weiche Ziele (Vorschlag: 1 optionaler Anschluss ≙ 3 min).
-- Obergrenze Verlängerung Gesamtfahrzeit (Vorschlag +5 min).
-- Fahrzeitänderungen: später (Erweiterungspunkt `allowTravelTimeChanges`).
+- Begrenzung der maximalen Wartezeit für bestehende User-Connections als eigene Policy-Option.
+- Abschnittsfahrzeiten verändern (Erweiterungspunkt `allowTravelTimeChanges`).
+- Knotengleis-Auslastung als Constraint; derzeit bleibt sie eine Ergebnis-View.
 
 ## 10. Implementierungsstand
 
-Umgesetzt (ohne Unit-Tests, auf Wunsch weggelassen):
+Implementiert: konfliktpriorisierte Netzgrafik-Reparatur mit Δ-Ketten, lokaler Policy und
+lexikografischem KPI-Ranking. Der Solver läuft vollständig in TypeScript im Browser. Comparator-
+Regressionstests sind enthalten; die vollständige Frontend-Testsuite besteht.
 
-| Datei                                      | Inhalt                                                                                     |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| `optimize-timetable.model.ts`              | Typen (Options, Solution, Kpi, TimeChange …)                                               |
-| `optimize-timetable.chains.ts`             | Problem-Aufbau aus nativen Objekten: Pfade, Ketten, Variablen, Kanten, Halte, Connections  |
-| `optimize-timetable.evaluator.ts`          | Kandidaten-Zeiten, inkrementelle Kosten, Gleis-Surrogat pro Kante                          |
-| `optimize-timetable.search.ts`             | Min-Conflicts + Tabu, Simulated Annealing, LNS-Restart, Pareto-Archiv                      |
-| `optimize-timetable.service.ts`            | `optimize()`, Vorschläge, exakte Gleis-KPI, `applySolution` / `revertSolution`             |
-| `view/dialogs/optimize-timetable-dialog/*` | Dialog: max. Gleise, Vorschläge mit KPIs, Vorschau, Übernehmen / Weiterrechnen / Abbrechen |
+| Datei                                                           | Inhalt                                                                                    |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `optimize-timetable.model.ts`                                   | Typen (Options, Solution, Kpi, TimeChange …)                                              |
+| `optimize-timetable.chains.ts`                                  | Problem-Aufbau aus nativen Objekten: Pfade, Ketten, Variablen, Kanten, Halte, Connections |
+| `optimize-timetable.evaluator.ts`                               | Kandidaten-Zeiten, inkrementelle Kosten, Gleis-Surrogat pro Kante                         |
+| `optimize-timetable.search.ts`                                  | Konflikt-Repair, Tabu, konfliktnahe LNS/SA und Pareto-Archiv                              |
+| `optimize-timetable.service.ts`                                 | `optimize()`, Vorschläge, exakte Gleis-KPI, `applySolution` / `revertSolution`            |
+| `optimization-conflict-index.ts`                                | Konfliktlookups und Prioritätsheap                                                        |
+| `optimization-policy.*` / `optimization-solution-comparator.ts` | lokale Policy und KPI-Rangfolge                                                           |
+| `optimization-solution-comparator.spec.ts`                      | Comparator-Regressionstests                                                               |
+| `view/dialogs/optimize-timetable-dialog/*`                      | Zweispaltiger Dialog, Director, Vorschläge und Preview                                    |
+| `optimization-director.component.*`                             | Hard Rules und sortierbare Soft-KPI-Karten                                                |
 
 Die Änderungsliste ist nach Knoten und innerhalb eines Knotens nach neuer Minute sortiert.
-Ein Klick auf einen Knoten zeigt „Aktuell“ und „Neu“ mit der bestehenden
+Ein Klick auf eine Knotengruppe zeigt „Aktuell“ und „Neu“ mit der bestehenden
 `KnotenAuslastungViewComponent` (inklusive Gleisbelegung, Kapazität und Stundenumschaltung).
 Der aktuelle Zustand wird vor der Vorschau als Projektion gespeichert; es gibt keine eigene
-Auslastungsberechnung im Optimierer. Die Knoten-Navigation bleibt beim Vorschlagswechsel erhalten.
+Auslastungsberechnung im Optimierer. Der ausgewählte Knoten bleibt beim Vorschlagswechsel erhalten,
+sofern er auch in der neuen Lösung Änderungen hat; die Auswahl erfolgt über die Knotengruppen.
 
 Bedienung: `q`, `Q` oder `Ctrl+Q` im Editor. Sind Knoten selektiert (rechte Maustaste), werden nur
 Ketten innerhalb der Selektion optimiert, Zeiten an den Randkanten bleiben fix. Klick auf einen
@@ -250,7 +301,9 @@ Standardmodells für Taktfahrpläne (Serafini & Ukovich 1989):
   PESP-Intervallbedingungen `l ≤ (π_j − π_i) mod T ≤ u`.
 - **Nicht-lineare Constraint**: Gleise pro Kante (H1) über den Infrastruktur-Schätzer
   (Belegungsmatrix) – nicht als PESP-Intervall formulierbar.
-- **Mehrere Ziele**: f1 (Fahrzeit), f2 (optionale Anschlüsse), f3 (Änderung).
+- **Mehrere Ziele**: minimale Änderungen, optionale Anschlüsse, Reisezeit und Streckengleisnutzung.
+  Das Sucharchiv bewahrt nicht dominierte Kandidaten; die UI ordnet sie nach der aktivierten
+  lexikografischen Zielreihenfolge.
 
 PESP ist **NP-schwer** (bereits die Frage, ob überhaupt eine gültige Lösung existiert).
 Konsequenz: Eine exakte Lösung mit Optimalitätsbeweis ist in 0.25 s für reale Netze nicht
@@ -272,48 +325,67 @@ mit _Weiterrechnen_ verbessert werden kann.
 
 | Verfahren                             | Idee                                                                                        | Qualität                     | Tempo                            | In TS umsetzbar    | Blackbox H1                          | Bewertung                                        |
 | ------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------- | -------------------------------- | ------------------ | ------------------------------------ | ------------------------------------------------ |
-| **Min-Conflicts + Tabu Search**       | verletzte Regel wählen, beteiligte Variable auf besten Wert setzen, Tabu-Liste gegen Zyklen | gut für Gültigkeit           | sehr schnell, inkrementell       | ✅ einfach         | ✅                                   | **✅ Phase 1**                                   |
-| **Large Neighborhood Search (LNS)**   | Teil der Lösung (z.B. ITF-Knoten) zurücksetzen und greedy/lokal neu aufbauen                | sehr gut für Knoten-Cluster  | schnell                          | ✅ mittel          | ✅                                   | **✅ Phase 2**                                   |
-| **Simulated Annealing (SA)**          | zufällige Nachbarschritte, schlechtere mit sinkender Wahrscheinlichkeit akzeptieren         | gut, entkommt lokalen Minima | sehr schnell                     | ✅ einfach         | ✅                                   | **✅ Akzeptanzkriterium in Phase 2**             |
-| **Pareto Local Search / Archiv**      | nicht dominierte Lösungen sammeln                                                           | liefert Vorschläge           | vernachlässigbar                 | ✅ einfach         | ✅                                   | **✅ Vorschläge**                                |
+| **Min-Conflicts + Tabu Search**       | verletzte Regel wählen, beteiligte Variable auf besten Wert setzen, Tabu-Liste gegen Zyklen | gut für Gültigkeit           | sehr schnell, inkrementell       | ✅ einfach         | ✅                                   | **✅ Konfliktreparatur**                         |
+| **Large Neighborhood Search (LNS)**   | konfliktnahe Kettengruppe von der besten Lösung aus verändern                               | sehr gut für Knoten-Cluster  | schnell                          | ✅ mittel          | ✅                                   | **✅ Neustart bei Stagnation**                   |
+| **Simulated Annealing (SA)**          | zufällige Nachbarschritte, schlechtere mit sinkender Wahrscheinlichkeit akzeptieren         | gut, entkommt lokalen Minima | sehr schnell                     | ✅ einfach         | ✅                                   | **✅ ergänzende Suchschritte**                   |
+| **Pareto-Archiv**                     | nicht dominierte Lösungen sammeln                                                           | liefert Vorschläge           | vernachlässigbar                 | ✅ einfach         | ✅                                   | **✅ Kandidatenarchiv**                          |
 | Modulo-Network-Simplex (MNS)          | Spannbaum-basierte lokale Verbesserung für PESP (Nachkebel/Goerigk)                         | sehr gut für reines PESP     | mittel                           | ⚠️ aufwändig       | ❌ H1 passt nicht ins Netzwerkmodell | später als zusätzlicher Nachbarschafts-Operator  |
 | Constraint Propagation + Backtracking | Domänen einschränken, systematisch suchen                                                   | exakt bei kleinen Teilnetzen | exponentiell im Worst Case       | ✅ mittel          | ⚠️ nur als Prüfung an Blättern       | optional für kleine Selektion (z.B. ≤ 10 Ketten) |
 | Genetischer Algorithmus / NSGA-II     | Population, Kreuzung, Mutation                                                              | gut für Multi-Objective      | zu wenige Generationen in 0.25 s | ✅                 | ✅                                   | ❌                                               |
 | CP-SAT / MILP / PESP-SAT              | exakte Solver                                                                               | optimal / beweisbar          | Sekunden–Minuten                 | ❌ externer Solver | ❌                                   | ❌ (ausgeschlossen durch „nur TypeScript“)       |
 
-### A.4 Gewählter Algorithmus (Hybrid)
+### A.4 Netzgrafik Conflict-Repair-Algorithmus
 
+```text
+optimize(nativeNetzgrafik, policy, budget = 250 ms):
+  problem := buildChainsAndSparseDependencyIndexes(nativeNetzgrafik, policy)
+  x := baseline or selected previous assignment
+  evaluator := incrementalSurrogate(problem, x)
+  conflicts := indexedConflicts(problem, evaluator)
+  archive.addIfFeasibleAndNonDominated(x)
+  best := x
+  tabu := empty
+
+  while beforeDeadline():
+    conflict := conflicts.highestPriority()
+    if conflict exists and random() < 0.85:
+      neighborhood := movableChainsTouching(conflict)
+      move := bestTabuAllowedDelta(neighborhood, tabu, evaluator)
+      if move exists:
+        evaluator.apply(move)
+        conflicts.refreshOnlyAffected(move)
+        tabu.remember(move)
+    else:
+      candidate := proposeFreeVariableMove(x)
+      if acceptBySimulatedAnnealing(candidate, x):
+        x := candidate
+        conflicts.refreshOnlyAffected(candidate)
+
+    archive.addIfFeasibleAndNonDominated(x)
+    if iterationsSinceBest > 300:
+      x := perturbConflictNeighborhood(best)
+      conflicts.refreshAffectedBy(x)
+    if score(x) < score(best):
+      best := x
+
+  finalists := archive.selectByCurrentPolicy()
+  exactValidateBaselineOnceAndChangedEdges(finalists, nativeNetzgrafik)
+  return onlyExactValid(finalists)
 ```
-optimize(scope, maxTracks, budget = 250 ms):
-  vorbereiten: Ketten, Domänen Δ, Kanten-Index, Baseline, Cache
-  x := Baseline (bzw. beste bisherige Lösung bei "Weiterrechnen")
 
-  // Phase 1 – Gültigkeit (Min-Conflicts + Tabu)
-  while verletzt(x) and Zeit übrig:
-      c := zufällige verletzte Regel (H1-Kante oder H13-Connection)
-      k := beteiligte Kette, nicht tabu
-      Δ* := argmin über Domäne(k) [Verletzungsgrad, dann f3]   // Reihenfolge ±1, ±2, …, T/2
-      x[k] := Δ*; tabu(k, Tenure)
-
-  // Phase 2 – Ziele (LNS + SA, nur gültige Zustände)
-  while Zeit übrig:
-      n := Knoten (gewichtet nach Anzahl Züge / Anschlüsse)
-      y := x mit Ketten um n zurückgesetzt (Destroy) und greedy neu gesetzt (Repair)
-      if gültig(y) and SA-Akzeptanz(y, x, Temperatur): x := y
-      Pareto-Archiv.add(x)
-
-  Endvalidierung aller Archiv-Lösungen mit echtem Schätzer → Vorschläge
-```
+Konfliktpriorisierung konzentriert den Repair-Aufwand auf betroffene Netzgrafik-Komponenten.
+LNS verändert begrenzte, benachbarte und transferbezogene Zugketten statt beliebiger globaler
+Variablen. Flatland dient als Architektur-Inspiration für Replanning und LNS, nicht als Rail-
+Rastermodell oder als Codebasis.
 
 Begründung:
 
-- **Phase 1** nutzt die Struktur (viele kleine Variablen, jede Regel betrifft wenige Ketten) –
-  Min-Conflicts ist hierfür das schnellste bekannte lokale Verfahren (vgl. WalkSAT).
-- **Phase 2 / LNS** passt fachlich zum ITF: ein Vollknoten wird als Ganzes neu gelegt, statt
-  einzelne Züge isoliert zu verschieben.
-- **SA-Akzeptanz** verhindert Steckenbleiben in lokalen Minima.
-- **Pareto-Archiv** liefert direkt die Lösungsvorschläge für den Dialog.
-- Alles **anytime**: nach jeder Iteration existiert eine beste Lösung → 0.25 s-Abbruch jederzeit möglich.
+- **Conflict Repair** priorisiert konkrete Streckengleis-, Anschluss- und Haltezeitkonflikte.
+- **LNS** repariert strukturell zusammenhängende Kettencluster statt zufälliger Einzelvariablen.
+- **SA-Akzeptanz** gilt nur für weiche KPI-Verbesserungen und ersetzt keine harte Gültigkeit.
+- **Pareto-Archiv** liefert mehrere gültige Lösungsvorschläge für den Dialog.
+- Die Suche ist **anytime** und beendet sich an der Deadline; Baseline wird einmal exakt geprüft,
+  Kandidaten nur auf geänderten Strecken.
 
 ### A.5 Grenzen
 
@@ -338,8 +410,29 @@ Begründung:
 
 ### A.8 Referenzen
 
+#### Flatland als Architektur-Inspiration
+
+Die Flatland-Arbeit behandelt dynamische Multi-Agenten-Routenplanung auf einem zeitabhängigen
+Gleisnetz. Der Netzgrafik-Editor optimiert dagegen periodische Fahrpläne auf festen Zugläufen.
+Übernommen werden deshalb nur allgemeine Ideen wie konfliktpriorisierte Reparatur, strukturierte
+LNS-Neighborhoods, adaptive Priorisierung und zeitbegrenzte Replanung. Flatland-spezifische
+Rasterzustände, Zeitschritt-Aktionen, Agentenpfade und Solver-Code werden nicht übernommen.
+
+- Jiaoyang Li, Zhe Chen, Yi Zheng, Shao-Hung Chan, Daniel Harabor, Peter J. Stuckey, Hang Ma,
+  Sven Koenig. _Scalable Rail Planning and Replanning: Winning the 2020 Flatland Challenge_.
+  ICAPS 2021, pp. 477–485. [Proceedings](https://ojs.aaai.org/index.php/ICAPS/article/view/15957).
+- [Jiaoyang-Li/Flatland](https://github.com/Jiaoyang-Li/Flatland), Branch
+  `Flatland2020_solution` (README und Gewinnerlösung).
+
+Die Quellen dienen der konzeptionellen Einordnung; es wird kein Code aus dem Repository
+übernommen. Dessen README nennt eine eingeschränkte Academic/non-profit-Lizenz.
+
 - Serafini, Ukovich (1989): _A mathematical model for periodic scheduling problems_.
 - Nachtigall, Opitz: _Solving periodic timetable optimisation problems by modulo simplex calculations_.
 - Goerigk, Schöbel: _Improving the modulo simplex algorithm for large-scale periodic timetabling_.
 - Minton et al. (1992): _Minimizing conflicts: a heuristic repair method_.
 - Shaw (1998): _Using constraint programming and local search methods (LNS)_.
+
+```
+
+```

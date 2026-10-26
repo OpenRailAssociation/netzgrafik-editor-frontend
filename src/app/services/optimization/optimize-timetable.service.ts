@@ -7,6 +7,7 @@ import {TimetableEvaluator} from "./optimize-timetable.evaluator";
 import {ArchivedSolution, runSearch} from "./optimize-timetable.search";
 import {
   EdgeTrackKpi,
+  OptimizeTimetableKpi,
   OptimizeTimetableOptions,
   OptimizeTimetableResult,
   OptimizeTimetableSolution,
@@ -18,6 +19,8 @@ import {
   TimeChange,
   TimeField,
 } from "./optimize-timetable.model";
+import {createDefaultOptimizationPolicy} from "./optimization-policy.model";
+import {compareSolutions} from "./optimization-solution-comparator";
 
 const DEFAULT_TIME_BUDGET_MS = 250;
 const DEFAULT_CONNECTION_TOLERANCE = 2;
@@ -49,6 +52,7 @@ export class OptimizeTimetableService {
   ): OptimizeTimetableResult {
     const start = performance.now();
     const maxTracks = Math.max(1, Math.floor(options.maxTracksPerSection));
+    const policy = options.policy ?? createDefaultOptimizationPolicy();
     const problem = buildProblem(
       nodes,
       trainrunSections,
@@ -56,6 +60,7 @@ export class OptimizeTimetableService {
       options.selectedNodeIds ?? [],
       options.connectionTolerance ?? DEFAULT_CONNECTION_TOLERANCE,
       options.optionalConnectionWindow ?? DEFAULT_OPTIONAL_WINDOW,
+      policy,
     );
     const evaluator = new TimetableEvaluator(problem);
     const search = runSearch(
@@ -66,15 +71,60 @@ export class OptimizeTimetableService {
       options.seed ?? 1,
     );
 
+    const beforeTracks = new Map<number, number>();
+    const baselineEdges = problem.edges.map((edge, edgeIndex) => {
+      const tracks = this.estimateEdgeTracks(problem, edgeIndex);
+      beforeTracks.set(edgeIndex, tracks);
+      return {
+        edgeId: this.edgeId(edge.fromNode.getId(), edge.toNode.getId()),
+        inScope: problem.edgeInScope[edgeIndex] === 1,
+        fromNodeName: edge.fromNode.getBetriebspunktName(),
+        toNodeName: edge.toNode.getBetriebspunktName(),
+        tracksBefore: tracks,
+        tracksAfter: tracks,
+      };
+    });
+    const baselineOverLimit = baselineEdges.filter(
+      (edge) => edge.inScope && edge.tracksBefore > maxTracks,
+    ).length;
+    const scopedBaselineEdges = baselineEdges.filter((edge) => edge.inScope);
+    const baselineMaxTracks = scopedBaselineEdges.reduce(
+      (maximum, edge) => Math.max(maximum, edge.tracksBefore),
+      0,
+    );
+    const baselineTrackSum = scopedBaselineEdges.reduce((sum, edge) => sum + edge.tracksBefore, 0);
+    const baselineKpi: OptimizeTimetableKpi = {
+      changedChains: 0,
+      totalDeltaMinutes: 0,
+      travelTimeExtensionMinutes: 0,
+      optionalConnections: search.initial.parts.optionalConnections,
+      maxTrackUsage: baselineMaxTracks,
+      averageTrackUsage:
+        scopedBaselineEdges.length === 0 ? 0 : baselineTrackSum / scopedBaselineEdges.length,
+      changedNodes: 0,
+      edgesOverLimitBefore: baselineOverLimit,
+      edgesOverLimitAfter: baselineOverLimit,
+      maxTracksBefore: baselineMaxTracks,
+      maxTracksAfter: baselineMaxTracks,
+      totalTravelTimeDelta: 0,
+      optionalConnectionsBefore: search.initial.parts.optionalConnections,
+      optionalConnectionsAfter: search.initial.parts.optionalConnections,
+      sumAbsShift: 0,
+      changedTrainruns: 0,
+      changedTimes: 0,
+    };
+
     const freeVariables = problem.variables.filter((v) => !v.fixed && v.domain > 0).length;
     const fixedChains = problem.chains.filter((c) => c.fixed).length;
     const result: OptimizeTimetableResult = {
+      baselineKpi,
+      baselineEdges,
       solutions: [],
       freeVariables,
       fixedChains,
       iterations: search.iterations,
       runtimeMs: 0,
-      initialEdgesOverLimit: search.initial.parts.edgesOverLimit,
+      initialEdgesOverLimit: baselineOverLimit,
     };
 
     if (freeVariables === 0) {
@@ -86,16 +136,87 @@ export class OptimizeTimetableService {
       search.initial,
       options.maxProposals ?? DEFAULT_MAX_PROPOSALS,
     );
-    const beforeTracks = new Map<number, number>();
     result.solutions = picks.map((pick, id) =>
-      this.createSolution(id, pick.label, pick.solution, search.initial, problem, beforeTracks),
+      this.createSolution(
+        id,
+        pick.label,
+        pick.solution,
+        search.initial,
+        problem,
+        beforeTracks,
+        baselineEdges,
+        baselineKpi,
+      ),
     );
+    result.solutions.sort((first, second) => compareSolutions(first, second, policy));
+    result.solutions = result.solutions.filter((solution) => solution.valid);
 
     if (result.solutions.length === 0 && freeVariables > 0) {
       result.message = $localize`:@@app.services.optimization.no-solution:No better solution found. Restart to continue the search.`;
     }
     result.runtimeMs = Math.round(performance.now() - start);
     return result;
+  }
+
+  isSolutionValid(
+    solution: OptimizeTimetableSolution,
+    nodes: Node[],
+    trainrunSections: TrainrunSection[],
+    options: OptimizeTimetableOptions,
+    baselineEdges: EdgeTrackKpi[],
+  ): boolean {
+    const policy = options.policy ?? createDefaultOptimizationPolicy();
+    const maxTracks = Math.max(1, Math.floor(options.maxTracksPerSection));
+    const problem = buildProblem(
+      nodes,
+      trainrunSections,
+      maxTracks,
+      options.selectedNodeIds ?? [],
+      options.connectionTolerance ?? DEFAULT_CONNECTION_TOLERANCE,
+      options.optionalConnectionWindow ?? DEFAULT_OPTIONAL_WINDOW,
+      policy,
+    );
+    const evaluator = new TimetableEvaluator(problem);
+    problem.variables.forEach((variable, index) => {
+      if (!variable.fixed) {
+        evaluator.setVariable(index, solution.assignment[variable.key] ?? 0);
+      }
+    });
+    evaluator.evaluateAll();
+    const parts = evaluator.parts();
+    const userConnectionsEnabled = policy.hardConstraints.some(
+      (constraint) =>
+        (constraint.id === "userConnections" || constraint.id === "preserveConnectionTimes") &&
+        constraint.enabled,
+    );
+    const minimumStopTimeEnabled = policy.hardConstraints.some(
+      (constraint) => constraint.id === "minimumStopTime" && constraint.enabled,
+    );
+    const maxTravelTimeEnabled = policy.hardConstraints.some(
+      (constraint) => constraint.id === "maxTravelTimeExtension" && constraint.enabled,
+    );
+    const nonTrackViolations =
+      (userConnectionsEnabled ? parts.connectionViolations : 0) +
+      (minimumStopTimeEnabled ? parts.stopViolations : 0) +
+      (maxTravelTimeEnabled ? parts.travelTimeExtensionViolation : 0);
+
+    const changedEdges = new Map(solution.edges.map((edge) => [edge.edgeId, edge]));
+    const exactOverLimit = baselineEdges.some((baselineEdge) => {
+      if (!baselineEdge.inScope) {
+        return false;
+      }
+      const edge = changedEdges.get(baselineEdge.edgeId) ?? baselineEdge;
+      return edge.tracksAfter > maxTracks;
+    });
+    const trackLimitEnabled = policy.hardConstraints.some(
+      (constraint) => constraint.id === "trackLimit" && constraint.enabled,
+    );
+    const symmetryEnabled = policy.hardConstraints.some(
+      (constraint) => constraint.id === "symmetry" && constraint.enabled,
+    );
+    const symmetryValid = !symmetryEnabled || this.hasSymmetricChanges(solution, trainrunSections);
+
+    return nonTrackViolations === 0 && (!trackLimitEnabled || !exactOverLimit) && symmetryValid;
   }
 
   /** Writes the new times of a proposal into the native objects. */
@@ -148,6 +269,38 @@ export class OptimizeTimetableService {
           section.setBackwardTravelTime(v);
           break;
       }
+    });
+  }
+
+  private hasSymmetricChanges(
+    solution: OptimizeTimetableSolution,
+    trainrunSections: TrainrunSection[],
+  ): boolean {
+    const values = new Map<string, number>();
+    solution.changes.forEach((change) =>
+      values.set(`${change.trainrunSectionId}:${change.field}`, change.newValue),
+    );
+    const symmetricTime = (time: number) => ((-time % 60) + 60) % 60;
+    const isClose = (first: number, second: number) => {
+      const difference = ((((first - second) % 60) + 90) % 60) - 30;
+      return Math.abs(difference) < 1e-6;
+    };
+    return trainrunSections.every((section) => {
+      if (!section.isSymmetric()) {
+        return true;
+      }
+      const value = (field: TimeField, original: number) =>
+        values.get(`${section.getId()}:${field}`) ?? original;
+      return (
+        isClose(
+          value("sourceArrival", section.getSourceArrival()),
+          symmetricTime(value("sourceDeparture", section.getSourceDeparture())),
+        ) &&
+        isClose(
+          value("targetArrival", section.getTargetArrival()),
+          symmetricTime(value("targetDeparture", section.getTargetDeparture())),
+        )
+      );
     });
   }
 
@@ -207,6 +360,8 @@ export class OptimizeTimetableService {
     initial: ArchivedSolution,
     problem: OptimizationProblem,
     beforeTracks: Map<number, number>,
+    baselineEdges: EdgeTrackKpi[],
+    baselineKpi: OptimizeTimetableKpi,
   ): OptimizeTimetableSolution {
     const evaluator = new TimetableEvaluator(problem);
     evaluator.delta.set(archived.delta);
@@ -248,22 +403,22 @@ export class OptimizeTimetableService {
 
     // exact check with the InfrastructureEstimatorService on all changed edges
     const edges: EdgeTrackKpi[] = [];
-    let overBefore = initial.parts.edgesOverLimit;
-    let overAfter = initial.parts.edgesOverLimit;
+    const afterTracks = new Map<number, number>();
+    let overAfter = baselineKpi.edgesOverLimitAfter;
     changedEdges.forEach((e) => {
       const edge = problem.edges[e];
       const sections = edge.sections.map((i) => problem.sections[i]);
-      if (!beforeTracks.has(e)) {
-        beforeTracks.set(e, this.estimateEdgeTracks(problem, e));
-      }
-      const before = beforeTracks.get(e);
+      const before = beforeTracks.get(e) ?? 0;
       const after = this.withCandidateConsecutiveTimes(problem, evaluator, sections, () =>
         this.estimateEdgeTracks(problem, e),
       );
-      const surrogateInitiallyOver = this.surrogateInitiallyOver(problem, initial, e);
-      overBefore += (before > problem.maxTracks ? 1 : 0) - surrogateInitiallyOver;
-      overAfter += (after > problem.maxTracks ? 1 : 0) - surrogateInitiallyOver;
+      afterTracks.set(e, after);
+      if (problem.edgeInScope[e] === 1) {
+        overAfter += Number(after > problem.maxTracks) - Number(before > problem.maxTracks);
+      }
       edges.push({
+        edgeId: this.edgeId(edge.fromNode.getId(), edge.toNode.getId()),
+        inScope: problem.edgeInScope[e] === 1,
         fromNodeName: edge.fromNode.getBetriebspunktName(),
         toNodeName: edge.toNode.getBetriebspunktName(),
         tracksBefore: before,
@@ -271,6 +426,49 @@ export class OptimizeTimetableService {
       });
     });
     edges.sort((a, b) => b.tracksAfter - a.tracksAfter || b.tracksBefore - a.tracksBefore);
+
+    let maxTracksAfter = 0;
+    let maxTracksBefore = 0;
+    let totalTracksAfter = 0;
+    let scopedEdgeCount = 0;
+    for (let edgeIndex = 0; edgeIndex < baselineEdges.length; edgeIndex++) {
+      if (!baselineEdges[edgeIndex].inScope) {
+        continue;
+      }
+      scopedEdgeCount++;
+      maxTracksBefore = Math.max(maxTracksBefore, beforeTracks.get(edgeIndex) ?? 0);
+      const tracks = afterTracks.get(edgeIndex) ?? beforeTracks.get(edgeIndex) ?? 0;
+      maxTracksAfter = Math.max(maxTracksAfter, tracks);
+      totalTracksAfter += tracks;
+    }
+
+    const changedChains = new Set<number>();
+    changedSections.forEach((sectionIndex) =>
+      changedChains.add(problem.sectionChain[sectionIndex]),
+    );
+    const changedNodes = new Set<number>();
+    changes.forEach((change) => {
+      changedNodes.add(change.sourceNodeId);
+      changedNodes.add(change.targetNodeId);
+    });
+    const userConnectionsEnabled = problem.policy.hardConstraints.some(
+      (constraint) =>
+        (constraint.id === "userConnections" || constraint.id === "preserveConnectionTimes") &&
+        constraint.enabled,
+    );
+    const minimumStopTimeEnabled = problem.policy.hardConstraints.some(
+      (constraint) => constraint.id === "minimumStopTime" && constraint.enabled,
+    );
+    const maxTravelTimeEnabled = problem.policy.hardConstraints.some(
+      (constraint) => constraint.id === "maxTravelTimeExtension" && constraint.enabled,
+    );
+    const trackLimitEnabled = problem.policy.hardConstraints.some(
+      (constraint) => constraint.id === "trackLimit" && constraint.enabled,
+    );
+    const nonTrackViolations =
+      (userConnectionsEnabled ? parts.connectionViolations : 0) +
+      (minimumStopTimeEnabled ? parts.stopViolations : 0) +
+      (maxTravelTimeEnabled ? parts.travelTimeExtensionViolation : 0);
 
     const assignment: Record<string, number> = {};
     problem.variables.forEach((variable, v) => {
@@ -282,11 +480,19 @@ export class OptimizeTimetableService {
     return {
       id,
       label,
+      valid: nonTrackViolations === 0 && (!trackLimitEnabled || overAfter === 0),
       kpi: {
-        edgesOverLimitBefore: Math.max(0, overBefore),
+        changedChains: changedChains.size,
+        totalDeltaMinutes: parts.sumAbsShift,
+        travelTimeExtensionMinutes: parts.travelTimeDelta,
+        optionalConnections: parts.optionalConnections,
+        maxTrackUsage: maxTracksAfter,
+        changedNodes: changedNodes.size,
+        edgesOverLimitBefore: baselineKpi.edgesOverLimitBefore,
         edgesOverLimitAfter: Math.max(0, overAfter),
-        maxTracksBefore: edges.reduce((m, e) => Math.max(m, e.tracksBefore), 0),
-        maxTracksAfter: edges.reduce((m, e) => Math.max(m, e.tracksAfter), 0),
+        maxTracksBefore,
+        maxTracksAfter,
+        averageTrackUsage: scopedEdgeCount === 0 ? 0 : totalTracksAfter / scopedEdgeCount,
         totalTravelTimeDelta: parts.travelTimeDelta,
         optionalConnectionsBefore: initial.parts.optionalConnections,
         optionalConnectionsAfter: parts.optionalConnections,
@@ -300,16 +506,6 @@ export class OptimizeTimetableService {
     };
   }
 
-  private surrogateInitiallyOver(
-    problem: OptimizationProblem,
-    initial: ArchivedSolution,
-    e: number,
-  ): number {
-    const evaluator = new TimetableEvaluator(problem);
-    evaluator.delta.set(initial.delta);
-    return evaluator.computeEdgeTracks(e) > problem.maxTracks ? 1 : 0;
-  }
-
   private estimateEdgeTracks(problem: OptimizationProblem, e: number): number {
     const edge = problem.edges[e];
     const sections = edge.sections.map((i) => problem.sections[i]);
@@ -319,6 +515,12 @@ export class OptimizeTimetableService {
       sections,
     );
     return segments.reduce((m, s) => Math.max(m, s.tracks), 0);
+  }
+
+  private edgeId(firstNodeId: number, secondNodeId: number): string {
+    return firstNodeId < secondNodeId
+      ? `${firstNodeId}-${secondNodeId}`
+      : `${secondNodeId}-${firstNodeId}`;
   }
 
   /** Temporarily writes candidate consecutive times into the sections; always restored. */
