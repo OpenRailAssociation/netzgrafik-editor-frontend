@@ -212,7 +212,7 @@ export class NotesView {
   ) {
     const added = groupEnter.append<SVGElement>(StaticDomTags.NOTE_HOVER_ROOT_SVG);
     added
-      .attr("class", StaticDomTags.NOTE_HOVER_ROOT_CLASS)
+      .attr("class", `${StaticDomTags.NOTE_HOVER_ROOT_CLASS} ${StaticDomTags.REMOVE_ON_EXPORT}`)
       .attr(StaticDomTags.NOTE_ID, (n: NoteViewObject) => n.note.getId())
       .attr("width", (n: NoteViewObject) => NotesView.extractTextBasedWidth(n.note) + 48)
       .attr("height", (n: NoteViewObject) => NotesView.extractTextBasedHeight(n.note) + 48)
@@ -232,7 +232,7 @@ export class NotesView {
   private makeNoteRoot(groupEnter: d3.Selection<SVGGElement, NoteViewObject, Element, undefined>) {
     groupEnter
       .append(StaticDomTags.NOTE_ROOT_SVG)
-      .attr("class", StaticDomTags.NOTE_ROOT_CLASS)
+      .attr("class", `${StaticDomTags.NOTE_ROOT_CLASS} ${StaticDomTags.REMOVE_ON_EXPORT}`)
       .attr(StaticDomTags.NOTE_ID, (n: NoteViewObject) => n.note.getId())
       .attr("width", (n: NoteViewObject) => NotesView.extractTextBasedWidth(n.note) + 40)
       .attr("height", (n: NoteViewObject) => NotesView.extractTextBasedHeight(n.note) + 40)
@@ -256,7 +256,7 @@ export class NotesView {
   ) {
     groupEnter
       .append(StaticDomTags.NOTE_TITELAREA_SVG)
-      .attr("class", StaticDomTags.NOTE_TITELAREA_CLASS)
+      .attr("class", `${StaticDomTags.NOTE_TITELAREA_CLASS} ${StaticDomTags.REMOVE_ON_EXPORT}`)
       .attr(StaticDomTags.NOTE_ID, (n: NoteViewObject) => n.note.getId())
       .attr("width", (n: NoteViewObject) => NotesView.extractTextBasedWidth(n.note))
       .attr("height", NOTE_TEXT_AREA_HEIGHT)
@@ -280,7 +280,7 @@ export class NotesView {
   ) {
     groupEnter
       .append(StaticDomTags.NOTE_TEXTAREA_SVG)
-      .attr("class", StaticDomTags.NOTE_TEXTAREA_CLASS)
+      .attr("class", `${StaticDomTags.NOTE_TEXTAREA_CLASS} ${StaticDomTags.REMOVE_ON_EXPORT}`)
       .attr(StaticDomTags.NOTE_ID, (n: NoteViewObject) => n.note.getId())
       .attr("width", (n: NoteViewObject) => NotesView.extractTextBasedWidth(n.note))
       .attr(
@@ -340,7 +340,10 @@ export class NotesView {
     const added = groupEnter.append<SVGElement>(StaticDomTags.NOTE_HOVER_DRAG_AREA_BACKGROUND_SVG);
 
     added
-      .attr("class", StaticDomTags.NOTE_HOVER_DRAG_AREA_BACKGROUND_CLASS)
+      .attr(
+        "class",
+        `${StaticDomTags.NOTE_HOVER_DRAG_AREA_BACKGROUND_CLASS} ${StaticDomTags.REMOVE_ON_EXPORT}`,
+      )
       .classed(StaticDomTags.TAG_SELECTED, (n: NoteViewObject) => n.note.selected())
       .attr(StaticDomTags.NOTE_ID, (n: NoteViewObject) => n.note.getId())
       .attr("transform", "translate(-50,-20)")
@@ -367,7 +370,10 @@ export class NotesView {
     }
     groupEnter
       .append<SVGElement>(StaticDomTags.NOTE_HOVER_DRAG_AREA_SVG)
-      .attr("class", StaticDomTags.NOTE_HOVER_DRAG_AREA_CLASS)
+      .attr(
+        "class",
+        `${StaticDomTags.NOTE_HOVER_DRAG_AREA_CLASS} ${StaticDomTags.REMOVE_ON_EXPORT}`,
+      )
       .classed(StaticDomTags.TAG_SELECTED, (n: NoteViewObject) => n.note.selected())
       .attr(StaticDomTags.NOTE_ID, (n: NoteViewObject) => n.note.getId())
       .attr(
