@@ -92,6 +92,6 @@
     "oxfmt": "^0.73.0",
     "ts-node": "~10.9.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.71.1"
+    "typescript-eslint": "^8.72.0"
   }
 }
