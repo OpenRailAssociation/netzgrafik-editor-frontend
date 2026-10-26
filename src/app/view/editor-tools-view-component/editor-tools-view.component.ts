@@ -27,6 +27,7 @@ import {EditorMode} from "../editor-menu/editor-mode";
 import {NODE_TEXT_AREA_HEIGHT, RASTERING_BASIC_GRID_SIZE} from "../rastering/definitions";
 import {ResourceService} from "../../services/data/resource.service";
 import {MathUtils} from "src/app/utils/math";
+import {StaticDomTags} from "../editor-main-view/data-views/static.dom.tags";
 
 interface SvgExportOptions {
   scale?: number;
@@ -606,6 +607,9 @@ export class EditorToolsViewComponent {
         .join(" ");
       clonedElements[index].setAttribute("style", inlineStyle);
     });
+
+    // remove unecessary elements from the exported file (drag areas, preview lines, etc.)
+    clone.querySelectorAll(StaticDomTags.REMOVE_ON_EXPORT).forEach((el) => el.remove());
 
     return clone;
   }

@@ -134,13 +134,11 @@ export class TransitionsView {
       .attr(
         "class",
         (t: TransitionViewObject) =>
-          StaticDomTags.TRANSITION_BUTTON_CLASS +
-          " " +
-          TransitionsView.createTrainrunClassAttribute(
+          `${StaticDomTags.TRANSITION_BUTTON_CLASS} ${StaticDomTags.REMOVE_ON_EXPORT} ${TransitionsView.createTrainrunClassAttribute(
             t.transition.getTrainrun(),
             selectedTrainrun,
             connectedTrainIds,
-          ),
+          )}`,
       )
       .classed(StaticDomTags.TAG_SELECTED, (t: TransitionViewObject) =>
         t.transition.getTrainrun().selected(),

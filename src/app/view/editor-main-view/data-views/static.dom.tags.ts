@@ -50,6 +50,9 @@ export class StaticDomTags {
   static GROUP_SVG = "g" as const;
   static GROUP_DOM_REF = "g" as const;
 
+  // Tag for elements to remove from exported files (drag areas, preview lines, etc.)
+  static REMOVE_ON_EXPORT = "remove_on_export" as const;
+
   /*
       NODE (root group)
        |- NODE_ROOT                  : root frame (visual container)
