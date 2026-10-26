@@ -1,6 +1,14 @@
 @use "../../../variables" as *;
 @use "../rastering/definitions" as *;
 
+:host {
+  display: block;
+}
+
+svg {
+  width: 100%;
+}
+
 // Cancels the sbb-mt-m of the hosting panel body and keeps the gap towards the graphic instead.
 .knotenAuslastungHourToggle {
   margin-top: -$innerComponentSpacing;

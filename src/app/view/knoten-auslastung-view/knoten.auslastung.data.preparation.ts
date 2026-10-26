@@ -37,6 +37,13 @@ export interface KnotenAuslastungProjection {
   trackCount: number;
 }
 
+export interface KnotenAuslastungSnapshot {
+  node: Node;
+  evenHour: KnotenAuslastungProjection;
+  oddHour: KnotenAuslastungProjection;
+  hoursDiffer: boolean;
+}
+
 interface KnotenAuslastungResourceData {
   startAngle: number;
   endAngle: number;
@@ -118,6 +125,11 @@ export class KnotenAuslastungDataPreparation {
 
   hasDifferentHours(): boolean {
     return this.hoursDiffer;
+  }
+
+  getSnapshot(node: Node): KnotenAuslastungSnapshot {
+    this.computeAuslastungsMatrix(node);
+    return {node, evenHour: this.evenHour, oddHour: this.oddHour, hoursDiffer: this.hoursDiffer};
   }
 
   destroy(): void {

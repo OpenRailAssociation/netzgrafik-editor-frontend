@@ -1,0 +1,143 @@
+.optimize-timetable-dialog {
+  .settings {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    input {
+      width: 80px;
+    }
+  }
+
+  .scope,
+  .info,
+  .message {
+    margin-top: 8px;
+  }
+
+  .message {
+    font-weight: bold;
+  }
+
+  table {
+    width: 100%;
+    margin-top: 12px;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: 4px 8px;
+      text-align: left;
+      border-bottom: 1px solid #dcdcdc;
+    }
+  }
+
+  .proposals tbody tr {
+    cursor: pointer;
+
+    &:hover {
+      background-color: #f6f6f6;
+    }
+
+    &.selected {
+      background-color: #e5e5e5;
+      font-weight: bold;
+    }
+  }
+
+  .over-limit {
+    color: #eb0000;
+  }
+
+  .node-review {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .node-changes {
+    flex: 1 1 50%;
+    min-width: 0;
+  }
+
+  .node-group {
+    margin-top: 8px;
+    border: 1px solid #dcdcdc;
+
+    &.selected {
+      border-color: #eb0000;
+
+      .node-header {
+        background-color: #e5e5e5;
+      }
+    }
+
+    table {
+      margin-top: 0;
+    }
+
+    tr {
+      cursor: pointer;
+    }
+
+    .minute {
+      width: 32px;
+      font-weight: bold;
+      text-align: right;
+    }
+  }
+
+  .node-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 8px;
+    cursor: pointer;
+    background-color: #f6f6f6;
+    font-weight: bold;
+
+    &:hover {
+      background-color: #e5e5e5;
+    }
+  }
+
+  .node-clock {
+    position: sticky;
+    top: 0;
+    flex: 1 1 50%;
+    min-width: 0;
+  }
+
+  .clock-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 12px;
+
+    .clock-title {
+      font-weight: bold;
+    }
+  }
+
+  .clocks {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    max-width: none;
+  }
+
+  .clock {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .clock-label {
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  sbb-knoten-auslastung-view {
+    display: block;
+    margin-top: 16px;
+  }
+}

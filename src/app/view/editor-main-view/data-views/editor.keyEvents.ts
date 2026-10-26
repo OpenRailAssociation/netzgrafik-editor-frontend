@@ -143,6 +143,11 @@ export class EditorKeyEvents {
           this.autoLayoutService.optimizeLayout(shiftKey);
           event.preventDefault();
           break;
+        case "KeyQ":
+          // q, Q and Ctrl+Q open the timetable optimizer
+          this.uiInteractionService.showOptimizeTimetableDialogSubject.next();
+          event.preventDefault();
+          break;
         case "ArrowLeft":
           this.onArrowLeft();
           event.preventDefault();

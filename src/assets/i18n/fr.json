@@ -123,6 +123,16 @@
             "description": "L'heure de départ à destination ne peut être atteinte"
           }
         }
+      },
+      "optimization": {
+        "no-free-variables": "Aucun horaire ne peut être décalé (verrous, sélection ou aucun train).",
+        "no-solution": "Aucune meilleure solution trouvée. Relancer pour continuer la recherche.",
+        "proposal": {
+          "balanced": "Équilibrée",
+          "minimal-change": "Changement minimal",
+          "connections": "Plus de correspondances",
+          "travel-time": "Temps de parcours le plus court"
+        }
       }
     },
     "streckengrafik": {
@@ -307,6 +317,36 @@
             "warningTwoLocks": "Avertissement : Trop de temps sont bloqués !",
             "propagateTimesToLeft": "Propager les temps à gauche",
             "propagateTimesToRight": "Propager les temps à droite"
+          }
+        },
+        "optimize-timetable-dialog": {
+          "title": "Optimiser l'horaire",
+          "max-tracks": "Voies max. par tronçon",
+          "optimize": "Optimiser",
+          "scope-selection": "Seuls les {$count} nœuds sélectionnés sont optimisés, les horaires aux bords restent fixes.",
+          "scope-all": "Toute la Netzgrafik est optimisée (aucun nœud sélectionné).",
+          "search-info": "{$iterations} itérations en {$runtime} ms, {$variables} variables libres, {$over} tronçons au-dessus de la limite avant l'optimisation.",
+          "proposal": "Proposition",
+          "edges-over-limit": "Tronçons au-dessus de la limite",
+          "max-tracks-kpi": "Voies max.",
+          "travel-time-delta": "Δ temps de parcours [min]",
+          "connections": "Correspondances",
+          "shift": "Σ |décalage| [min]",
+          "changed": "Trains / horaires",
+          "edges": "Voies par tronçon",
+          "edge": "Tronçon",
+          "tracks": "Voies avant → après",
+          "changes": "Modifications",
+          "clock-current": "Actuel",
+          "clock-new": "Nouveau",
+          "apply": "Appliquer",
+          "continue": "Continuer",
+          "cancel": "Annuler",
+          "field": {
+            "departure": "Départ {$node}",
+            "arrival": "Arrivée {$node}",
+            "travel-time": "Temps de parcours",
+            "backward-travel-time": "Temps de parcours (retour)"
           }
         }
       },

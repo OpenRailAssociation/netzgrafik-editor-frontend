@@ -123,6 +123,16 @@
             "description": "Target departure time cannot be reached"
           }
         }
+      },
+      "optimization": {
+        "no-free-variables": "No times can be shifted (locks, selection or no trainruns).",
+        "no-solution": "No better solution found. Restart to continue the search.",
+        "proposal": {
+          "balanced": "Balanced",
+          "minimal-change": "Minimal change",
+          "connections": "Most connections",
+          "travel-time": "Shortest travel time"
+        }
       }
     },
     "streckengrafik": {
@@ -307,6 +317,36 @@
             "warningTwoLocks": "Warning: Too many times are locked!",
             "propagateTimesToLeft": "Propagate times to the left",
             "propagateTimesToRight": "Propagate times to the right"
+          }
+        },
+        "optimize-timetable-dialog": {
+          "title": "Optimize timetable",
+          "max-tracks": "Max. tracks per section",
+          "optimize": "Optimize",
+          "scope-selection": "Only the {$count} selected nodes are optimized, times at the boundary stay fixed.",
+          "scope-all": "The whole Netzgrafik is optimized (no nodes selected).",
+          "search-info": "{$iterations} iterations in {$runtime} ms, {$variables} free variables, {$over} sections over the limit before optimization.",
+          "proposal": "Proposal",
+          "edges-over-limit": "Sections over limit",
+          "max-tracks-kpi": "Max. tracks",
+          "travel-time-delta": "Δ travel time [min]",
+          "connections": "Connections",
+          "shift": "Σ |shift| [min]",
+          "changed": "Trainruns / times",
+          "edges": "Tracks per section",
+          "edge": "Section",
+          "tracks": "Tracks before → after",
+          "changes": "Changes",
+          "clock-current": "Current",
+          "clock-new": "New",
+          "apply": "Apply",
+          "continue": "Continue",
+          "cancel": "Cancel",
+          "field": {
+            "departure": "Departure {$node}",
+            "arrival": "Arrival {$node}",
+            "travel-time": "Travel time",
+            "backward-travel-time": "Travel time (return)"
           }
         }
       },

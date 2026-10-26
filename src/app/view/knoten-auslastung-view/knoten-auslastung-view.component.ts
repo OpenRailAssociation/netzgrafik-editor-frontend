@@ -1,5 +1,14 @@
 import * as d3 from "d3";
-import {AfterViewInit, Component, OnDestroy, ChangeDetectionStrategy} from "@angular/core";
+import {
+  AfterViewInit,
+  Component,
+  OnDestroy,
+  ChangeDetectionStrategy,
+  ElementRef,
+  Input,
+  OnChanges,
+  ViewChild,
+} from "@angular/core";
 import {NodeService} from "../../services/data/node.service";
 import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
@@ -8,7 +17,10 @@ import {StaticDomTags} from "../editor-main-view/data-views/static.dom.tags";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {Trainrun} from "../../models/trainrun.model";
 import {ResourceService} from "../../services/data/resource.service";
-import {KnotenAuslastungDataPreparation} from "./knoten.auslastung.data.preparation";
+import {
+  KnotenAuslastungDataPreparation,
+  KnotenAuslastungSnapshot,
+} from "./knoten.auslastung.data.preparation";
 import {takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
 import {InfrastructureEstimatorService} from "../../services/infrastructure/infrastructure-estimator.service";
@@ -22,7 +34,10 @@ import {IsTrainrunSelectedService} from "../../services/data/is-trainrun-section
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
+export class KnotenAuslastungViewComponent implements AfterViewInit, OnChanges, OnDestroy {
+  @Input() snapshot: KnotenAuslastungSnapshot;
+  @ViewChild("knotenAuslastungContainer", {static: true})
+  container: ElementRef<SVGElement>;
   private svgDrawingContext: d3.Selection<SVGElement, undefined, Element, undefined>;
   private knotenAuslastungDataPreparation: KnotenAuslastungDataPreparation;
   private destroyed = new Subject<void>();
@@ -96,12 +111,18 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.svgDrawingContext = d3
-      .select<SVGElement, undefined>("#knotenAuslastungContainer")
+      .select<SVGElement, undefined>(this.container.nativeElement)
       .on("contextmenu", (event: MouseEvent) => {
         event.preventDefault();
       });
 
     this.init();
+  }
+
+  ngOnChanges(): void {
+    if (this.svgDrawingContext !== undefined) {
+      this.update();
+    }
   }
 
   init() {
@@ -134,7 +155,7 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
   }
 
   private update(recalculate = true) {
-    const selectedNode = this.nodeService.getSelectedNode();
+    const selectedNode = this.snapshot?.node ?? this.nodeService.getSelectedNode();
     if (selectedNode === null || selectedNode === undefined) {
       return;
     }
@@ -153,14 +174,24 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnDestroy {
     const height = rectHtml.height;
     const pixelRadius = (0.9 * Math.min(width, height)) / 2;
 
-    if (recalculate) {
+    if (this.snapshot !== undefined) {
+      this.showHourToggle = this.snapshot.hoursDiffer;
+      if (!this.showHourToggle) {
+        this.oddHour = false;
+      }
+    } else if (recalculate) {
       this.knotenAuslastungDataPreparation.computeAuslastungsMatrix(selectedNode);
       this.showHourToggle = this.knotenAuslastungDataPreparation.hasDifferentHours();
       if (!this.showHourToggle) {
         this.oddHour = false;
       }
     }
-    const projection = this.knotenAuslastungDataPreparation.getProjection(this.oddHour);
+    const projection =
+      this.snapshot === undefined
+        ? this.knotenAuslastungDataPreparation.getProjection(this.oddHour)
+        : this.oddHour
+          ? this.snapshot.oddHour
+          : this.snapshot.evenHour;
     const nbrUsedOfTrackFound = projection.usedTrackCount - 1;
     const nbrOfTrackFound = projection.trackCount - 1;
     const nodeDatas = projection.nodeDatas;

@@ -123,6 +123,16 @@
             "description": "Zielabfahrtszeit kann nicht erreicht werden"
           }
         }
+      },
+      "optimization": {
+        "no-free-variables": "Keine Zeiten verschiebbar (Schlösser, Selektion oder keine Züge).",
+        "no-solution": "Keine bessere Lösung gefunden. Neu starten, um weiterzurechnen.",
+        "proposal": {
+          "balanced": "Ausgewogen",
+          "minimal-change": "Minimale Änderung",
+          "connections": "Meiste Anschlüsse",
+          "travel-time": "Kürzeste Reisezeit"
+        }
       }
     },
     "streckengrafik": {
@@ -307,6 +317,36 @@
             "warningTwoLocks": "Warnung: Zu viele Zeiten sind gelockt!",
             "propagateTimesToLeft": "Zeiten nach links propagieren",
             "propagateTimesToRight": "Zeiten nach rechts propagieren"
+          }
+        },
+        "optimize-timetable-dialog": {
+          "title": "Fahrplan optimieren",
+          "max-tracks": "Max. Gleise pro Abschnitt",
+          "optimize": "Optimieren",
+          "scope-selection": "Nur {$count} selektierte Knoten werden optimiert, Zeiten an den Rändern bleiben fix.",
+          "scope-all": "Ganze Netzgrafik wird optimiert (keine Knoten selektiert).",
+          "search-info": "{$iterations} Iterationen in {$runtime} ms, {$variables} freie Variablen, {$over} Abschnitte über Limit vor der Optimierung.",
+          "proposal": "Vorschlag",
+          "edges-over-limit": "Abschnitte über Limit",
+          "max-tracks-kpi": "Max. Gleise",
+          "travel-time-delta": "Δ Reisezeit [min]",
+          "connections": "Anschlüsse",
+          "shift": "Σ |Verschiebung| [min]",
+          "changed": "Züge / Zeiten",
+          "edges": "Gleise pro Abschnitt",
+          "edge": "Abschnitt",
+          "tracks": "Gleise vorher → nachher",
+          "changes": "Änderungen",
+          "clock-current": "Aktuell",
+          "clock-new": "Neu",
+          "apply": "Übernehmen",
+          "continue": "Weiterrechnen",
+          "cancel": "Abbrechen",
+          "field": {
+            "departure": "Abfahrt {$node}",
+            "arrival": "Ankunft {$node}",
+            "travel-time": "Fahrzeit",
+            "backward-travel-time": "Fahrzeit (Rückrichtung)"
           }
         }
       },
