@@ -221,17 +221,13 @@ export class EditorToolsViewComponent {
           }
           context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-          canvas.toBlob(
-            (blob) => {
-              if (blob === null) {
-                reject(new Error("Failed to create PNG blob"));
-                return;
-              }
-              resolve(blob);
-            },
-            "image/png",
-            exportParameter.encoderOptions,
-          );
+          canvas.toBlob((blob) => {
+            if (blob === null) {
+              reject(new Error("Failed to create PNG blob"));
+              return;
+            }
+            resolve(blob);
+          }, "image/png");
         } catch (error) {
           reject(error);
         }
@@ -433,10 +429,6 @@ export class EditorToolsViewComponent {
     // offsetWidth/offsetHeight are undefined on SVG elements; use the rendered bounding box instead.
     const bbox = htmlElementToExport.getBoundingClientRect();
     const param = {
-      encoderOptions: 1.0,
-      scale: 1.0,
-      left: 0,
-      top: 0,
       width: bbox.width,
       height: bbox.height,
       backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
@@ -496,8 +488,6 @@ export class EditorToolsViewComponent {
     const bbox = (htmlElementToExport as unknown as SVGGElement).getBBox();
     const padding = 10;
     const param = {
-      encoderOptions: 1.0,
-      scale: 1.0,
       left: bbox.x - padding,
       top: bbox.y - padding,
       width: bbox.width + 2 * padding,
@@ -532,8 +522,6 @@ export class EditorToolsViewComponent {
     }
     const boundingBox = this.uiInteractionService.getNetzgrafikBoundingBox();
     const param = {
-      encoderOptions: 1.0,
-      scale: 1.0,
       left: boundingBox.minCoordX - 2.0 * RASTERING_BASIC_GRID_SIZE,
       top: boundingBox.minCoordY - 2.0 * RASTERING_BASIC_GRID_SIZE,
       width: boundingBox.maxCoordX - boundingBox.minCoordX + 4.0 * RASTERING_BASIC_GRID_SIZE,
