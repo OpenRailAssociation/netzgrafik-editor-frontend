@@ -1,5 +1,6 @@
 import {ChangeDetectionStrategy, Component, OnDestroy, TemplateRef, ViewChild} from "@angular/core";
 import {SbbDialog, SbbDialogConfig, type SbbDialogRef} from "@sbb-esta/angular/dialog";
+import {SbbTableDataSource} from "@sbb-esta/angular/table";
 import {Subject} from "rxjs";
 import {takeUntil} from "rxjs/operators";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
@@ -15,6 +16,7 @@ import {
 } from "../../../services/optimization/optimization-policy.model";
 import {compareSolutions} from "../../../services/optimization/optimization-solution-comparator";
 import {
+  EdgeTrackKpi,
   OptimizeTimetableResult,
   OptimizeTimetableSolution,
   TimeChange,
@@ -55,6 +57,12 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   hoveredTrainrunId: number | null = null;
   occupancyBefore: KnotenAuslastungSnapshot = undefined;
   occupancyAfter: KnotenAuslastungSnapshot = undefined;
+  readonly trackOverviewColumns = ["fromNodeName", "toNodeName", "tracksBefore", "topology"];
+  readonly trackOverviewDataSource = new SbbTableDataSource<EdgeTrackKpi>([]);
+  private trackOverviewSort: {active: string; direction: "asc" | "desc" | ""} = {
+    active: "tracksBefore",
+    direction: "desc",
+  };
   private readonly baselineOccupancy = new Map<number, KnotenAuslastungSnapshot>();
   private readonly occupancyPreparation: KnotenAuslastungDataPreparation;
   private storedPolicy: OptimizationPolicy;
@@ -144,6 +152,12 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     if (hardRulesChanged) {
       this.revalidateSolutions();
     }
+    this.refreshTrackOverview();
+  }
+
+  sortTrackOverview(sort: {active: string; direction: "asc" | "desc" | ""}): void {
+    this.trackOverviewSort = sort;
+    this.refreshTrackOverview();
   }
 
   selectBaseline(): void {
@@ -153,6 +167,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     this.selectedNodeId = undefined;
     this.occupancyBefore = undefined;
     this.occupancyAfter = undefined;
+    this.refreshTrackOverview();
   }
 
   storePolicy(): void {
@@ -243,12 +258,15 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
           .getSelectedNodes()
           .filter((node) => this.filterService.filterNode(node))
           .map((node) => node.getId());
+    this.trackOverviewSort = {active: "tracksBefore", direction: "desc"};
     this.selectedNodeCount = this.scopeNodeIds.length;
+    this.refreshTrackOverview();
     this.undoService.pauseUndoRecording();
 
     const config = new SbbDialogConfig();
     config.width = "1600px";
     config.maxWidth = "98vw";
+    config.height = "90vh";
     config.maxHeight = "90vh";
     config.id = "OptimizeTimetableDialogId";
     this.dialogRef = this.dialog.open(this.optimizeTimetableDialogTemplate, config);
@@ -281,6 +299,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     this.nodeGroups = this.groupChangesByNode(solution.changes);
     const keep = this.nodeGroups.some((g) => g.nodeId === this.selectedNodeId);
     this.selectNode(keep ? this.selectedNodeId : this.nodeGroups[0]?.nodeId);
+    this.refreshTrackOverview();
   }
 
   selectNode(nodeId: number) {
@@ -462,6 +481,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
       },
     );
     this.selectedSolution = undefined;
+    this.refreshTrackOverview();
     this.nodeGroups = [];
     this.occupancyBefore = undefined;
     this.occupancyAfter = undefined;
@@ -507,6 +527,36 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     return this.trainrunSectionService
       .getTrainrunSections()
       .filter((section) => this.filterService.filterTrainrunsection(section));
+  }
+
+  private refreshTrackOverview(): void {
+    const baselineEdges =
+      this.result?.baselineEdges ??
+      this.optimizeTimetableService.estimateBaselineEdges(
+        this.getVisibleNodes(),
+        this.getVisibleTrainrunSections(),
+        {
+          maxTracksPerSection: this.maxTracks,
+          selectedNodeIds: this.scopeNodeIds,
+          policy: this.policy,
+        },
+      );
+    const rows = baselineEdges.map((edge) => ({...edge}));
+
+    if (this.trackOverviewSort.direction !== "") {
+      const direction = this.trackOverviewSort.direction === "asc" ? 1 : -1;
+      const key = this.trackOverviewSort.active as keyof EdgeTrackKpi;
+      rows.sort((left, right) => {
+        const leftValue = left[key];
+        const rightValue = right[key];
+        const comparison =
+          typeof leftValue === "number" && typeof rightValue === "number"
+            ? leftValue - rightValue
+            : String(leftValue).localeCompare(String(rightValue));
+        return comparison * direction;
+      });
+    }
+    this.trackOverviewDataSource.data = rows;
   }
 
   /** Shows a proposal in the Netzgrafik (reverted on cancel). */

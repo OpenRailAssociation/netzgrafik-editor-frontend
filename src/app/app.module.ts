@@ -87,6 +87,7 @@ import {EditorToolsViewComponent} from "./view/editor-tools-view-component/edito
 import {NoteDialogComponent} from "./view/dialogs/note-dialog/note-dialog.component";
 import {OptimizeTimetableDialogComponent} from "./view/dialogs/optimize-timetable-dialog/optimize-timetable-dialog.component";
 import {OptimizationDirectorComponent} from "./view/dialogs/optimize-timetable-dialog/optimization-director.component";
+import {TrackTopologyComponent} from "./view/dialogs/optimize-timetable-dialog/track-topology/track-topology.component";
 import {NoteFormComponent} from "./view/dialogs/note-dialog/note-form/note-form.component";
 import {HtmlEditorComponent} from "./view/dialogs/note-dialog/htmlEditor/html-editor.component";
 import {DragDropModule} from "@angular/cdk/drag-drop";
@@ -170,6 +171,7 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     OptimizeTimetableDialogComponent,
     OptimizeTimetableDialogComponent,
     OptimizationDirectorComponent,
+    TrackTopologyComponent,
     NoteEditElementComponent,
     NoteFormComponent,
     EditorToolsViewComponent,

@@ -54,6 +54,41 @@ interface NodeTrackMetrics {
 export class OptimizeTimetableService {
   constructor(private readonly infrastructureEstimatorService: InfrastructureEstimatorService) {}
 
+  estimateBaselineEdges(
+    nodes: Node[],
+    trainrunSections: TrainrunSection[],
+    options: OptimizeTimetableOptions,
+  ): EdgeTrackKpi[] {
+    const maxTracks = Math.max(1, Math.floor(options.maxTracksPerSection));
+    const policy = options.policy ?? createDefaultOptimizationPolicy();
+    const problem = buildProblem(
+      nodes,
+      trainrunSections,
+      maxTracks,
+      options.selectedNodeIds ?? [],
+      options.connectionTolerance ?? DEFAULT_CONNECTION_TOLERANCE,
+      options.optionalConnectionWindow ?? DEFAULT_OPTIONAL_WINDOW,
+      policy,
+    );
+
+    return problem.edges.map((edge, edgeIndex) => {
+      const trackSegments = this.estimateEdgeTrackSegments(problem, edgeIndex);
+      const tracks = trackSegments.reduce(
+        (maximum, segment) => Math.max(maximum, segment.tracks),
+        0,
+      );
+      return {
+        edgeId: this.edgeId(edge.fromNode.getId(), edge.toNode.getId()),
+        inScope: problem.edgeInScope[edgeIndex] === 1,
+        fromNodeName: edge.fromNode.getBetriebspunktName(),
+        toNodeName: edge.toNode.getBetriebspunktName(),
+        tracksBefore: tracks,
+        tracksAfter: tracks,
+        trackSegments,
+      };
+    });
+  }
+
   optimize(
     nodes: Node[],
     trainrunSections: TrainrunSection[],
@@ -86,6 +121,7 @@ export class OptimizeTimetableService {
         toNodeName: edge.toNode.getBetriebspunktName(),
         tracksBefore: tracks,
         tracksAfter: tracks,
+        trackSegments: segments,
       };
     });
     const baselineNodeMetrics = this.estimateNodeTrackMetrics(nodes, trainrunSections);

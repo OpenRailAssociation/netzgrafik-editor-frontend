@@ -52,6 +52,7 @@ export interface EdgeTrackKpi {
   toNodeName: string;
   tracksBefore: number;
   tracksAfter: number;
+  trackSegments?: {start: number; end: number; tracks: number}[];
 }
 
 export interface OptimizeTimetableKpi extends SolutionKpis {

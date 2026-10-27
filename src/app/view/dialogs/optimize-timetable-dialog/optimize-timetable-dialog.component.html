@@ -57,6 +57,72 @@
             </ng-template>
           </div>
 
+          <br />
+          <sbb-expansion-panel
+            class="track-overview-panel"
+            [class.has-result]="result !== undefined"
+            [expanded]="true"
+          >
+            <sbb-expansion-panel-header>
+              {{ "app.view.dialogs.optimize-timetable-dialog.track-overview" | translate }}
+            </sbb-expansion-panel-header>
+            <section class="track-overview">
+            <div class="track-overview-scroll" *ngIf="trackOverviewDataSource.data.length > 0">
+              <table
+                sbb-table
+                sbbSort
+                sbbSortActive="tracksBefore"
+                sbbSortDirection="desc"
+                [dataSource]="trackOverviewDataSource"
+                (sbbSortChange)="sortTrackOverview($event)"
+                class="track-overview-table"
+              >
+                <ng-container sbbColumnDef="fromNodeName">
+                  <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header="fromNodeName">
+                    {{ "app.view.dialogs.optimize-timetable-dialog.from-node" | translate }}
+                  </th>
+                  <td sbb-cell *sbbCellDef="let row">{{ row.fromNodeName }}</td>
+                </ng-container>
+                <ng-container sbbColumnDef="toNodeName">
+                  <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header="toNodeName">
+                    {{ "app.view.dialogs.optimize-timetable-dialog.to-node" | translate }}
+                  </th>
+                  <td sbb-cell *sbbCellDef="let row">{{ row.toNodeName }}</td>
+                </ng-container>
+                <ng-container sbbColumnDef="tracksBefore">
+                  <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header="tracksBefore">
+                    {{ "app.view.dialogs.optimize-timetable-dialog.track-count" | translate }}
+                  </th>
+                  <td
+                    sbb-cell
+                    *sbbCellDef="let row"
+                    [class.over-limit]="trackLimitEnabled && row.tracksBefore > maxTracks"
+                  >
+                    {{ row.tracksBefore }}
+                  </td>
+                </ng-container>
+                <ng-container sbbColumnDef="topology">
+                  <th sbb-header-cell *sbbHeaderCellDef>
+                    {{ "app.view.dialogs.optimize-timetable-dialog.track-topology" | translate }}
+                  </th>
+                  <td sbb-cell *sbbCellDef="let row">
+                    <sbb-track-topology
+                      [edge]="row"
+                      [maxTracks]="maxTracks"
+                      [trackLimitEnabled]="trackLimitEnabled"
+                    ></sbb-track-topology>
+                  </td>
+                </ng-container>
+                <tr sbb-header-row *sbbHeaderRowDef="trackOverviewColumns; sticky: true"></tr>
+                <tr sbb-row *sbbRowDef="let row; columns: trackOverviewColumns"></tr>
+              </table>
+            </div>
+            <div class="track-overview-empty" *ngIf="trackOverviewDataSource.data.length === 0">
+              {{ "app.view.dialogs.optimize-timetable-dialog.track-overview-empty" | translate }}
+            </div>
+            </section>
+          </sbb-expansion-panel>
+
           <ng-container *ngIf="result">
             <div class="info">
               {{
