@@ -511,7 +511,7 @@ export class EditorToolsViewComponent {
       const inlineStyle = essentialPropsArray
         .map((key) => `${key}:${style.getPropertyValue(key)};`)
         .join(" ");
-      clonedElements[index].setAttribute("style", inlineStyle);
+      clonedElements[index].setAttribute("style", `${inlineStyle}cursor:default;`);
     });
 
     const elementsToRemove = [
