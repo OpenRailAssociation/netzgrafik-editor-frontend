@@ -64,7 +64,12 @@
           [checked]="objective.enabled"
           (change)="setObjectiveEnabled(objective, $any($event.target).checked)"
         />
-        <span class="objective-name">{{ objective.name | translate }}</span>
+        <span
+          class="objective-name"
+          [title]="objective.name.replace('.objective.', '.objective-description.') | translate"
+        >
+          {{ objective.name | translate }}
+        </span>
       </div>
     </div>
   </section>

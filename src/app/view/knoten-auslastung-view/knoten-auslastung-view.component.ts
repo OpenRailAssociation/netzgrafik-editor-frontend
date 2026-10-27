@@ -2,11 +2,13 @@ import * as d3 from "d3";
 import {
   AfterViewInit,
   Component,
+  EventEmitter,
   OnDestroy,
   ChangeDetectionStrategy,
   ElementRef,
   Input,
   OnChanges,
+  Output,
   ViewChild,
 } from "@angular/core";
 import {NodeService} from "../../services/data/node.service";
@@ -36,7 +38,9 @@ import {IsTrainrunSelectedService} from "../../services/data/is-trainrun-section
 })
 export class KnotenAuslastungViewComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() snapshot: KnotenAuslastungSnapshot;
+  @Input() highlightedTrainrunId: number | null = null;
   @Input() hasExternalLabel = false;
+  @Output() trainrunHoverChange = new EventEmitter<number | null>();
   @ViewChild("knotenAuslastungContainer", {static: true})
   container: ElementRef<SVGElement>;
   private svgDrawingContext: d3.Selection<SVGElement, undefined, Element, undefined>;
@@ -92,6 +96,7 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnChanges, 
     trainrunSection: TrainrunSection,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
+    highlightedTrainrunId: number | null = null,
   ): string {
     let classAttribute =
       StaticDomTags.makeClassTag(
@@ -103,12 +108,18 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnChanges, 
         trainrunSection.getTrainrun().getCategoryColorRef(),
       );
 
-    if (selectedTrainrun !== null && selectedTrainrun.getId() === trainrunSection.getTrainrunId()) {
+    const isHighlighted = highlightedTrainrunId !== null;
+    if (
+      !isHighlighted &&
+      selectedTrainrun !== null &&
+      selectedTrainrun.getId() === trainrunSection.getTrainrunId()
+    ) {
       classAttribute += " " + StaticDomTags.TAG_SELECTED;
     }
-    if (
-      KnotenAuslastungViewComponent.isMuted(trainrunSection, selectedTrainrun, connectedTrainIds)
-    ) {
+    const isMuted = isHighlighted
+      ? trainrunSection.getTrainrunId() !== highlightedTrainrunId
+      : KnotenAuslastungViewComponent.isMuted(trainrunSection, selectedTrainrun, connectedTrainIds);
+    if (isMuted) {
       classAttribute += " " + StaticDomTags.TAG_MUTED;
     }
     return classAttribute;
@@ -281,10 +292,13 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnChanges, 
             d.trainrunSection,
             selectedTrainrun,
             connectedTrainIds,
+            this.highlightedTrainrunId,
           ),
       )
       .attr("d", arc)
       .on("mousedown", (_, d) => this.selectTrainrun(d.trainrunSection.getTrainrunId()))
+      .on("mouseenter", (_, d) => this.trainrunHoverChange.emit(d.trainrunId))
+      .on("mouseleave", (event) => this.clearTrainrunHover(event))
       .append("title")
       .html((d) => d.tooltip);
 
@@ -307,6 +321,7 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnChanges, 
             d.trainrunSection,
             selectedTrainrun,
             connectedTrainIds,
+            this.highlightedTrainrunId,
           ),
       )
       .style("opacity", 0.25)
@@ -318,6 +333,8 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnChanges, 
         }),
       )
       .on("mousedown", (_, d) => this.selectTrainrun(d.trainrunSection.getTrainrunId()))
+      .on("mouseenter", (_, d) => this.trainrunHoverChange.emit(d.trainrunId))
+      .on("mouseleave", (event) => this.clearTrainrunHover(event))
       .append("title")
       .html((d) => d.tooltip);
 
@@ -335,6 +352,7 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnChanges, 
             d.trainrunSection,
             selectedTrainrun,
             connectedTrainIds,
+            this.highlightedTrainrunId,
           ),
       )
       .attr("transform", (d) => {
@@ -364,6 +382,8 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnChanges, 
       .attr("y", 0)
       .attr("text-anchor", "middle")
       .on("mousedown", (_, d) => this.selectTrainrun(d.trainrunSection.getTrainrunId()))
+      .on("mouseenter", (_, d) => this.trainrunHoverChange.emit(d.trainrunId))
+      .on("mouseleave", (event) => this.clearTrainrunHover(event))
       .append("title")
       .html((d) => d.name + "<br>" + d.tooltip);
 
@@ -418,5 +438,16 @@ export class KnotenAuslastungViewComponent implements AfterViewInit, OnChanges, 
   private selectTrainrun(trainrunId: number): void {
     this.trainrunService.setTrainrunAsSelected(trainrunId);
     this.isTrainrunSelectedService.setTrainrunIdSelectedByClick(trainrunId);
+  }
+
+  private clearTrainrunHover(event: MouseEvent): void {
+    const relatedTarget = event.relatedTarget;
+    if (
+      relatedTarget instanceof Element &&
+      relatedTarget.closest(".KnotenAuslastungDataGroup") !== null
+    ) {
+      return;
+    }
+    this.trainrunHoverChange.emit(null);
   }
 }

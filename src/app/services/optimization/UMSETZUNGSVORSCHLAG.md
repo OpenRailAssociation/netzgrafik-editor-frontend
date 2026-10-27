@@ -109,14 +109,18 @@ OptimizeTimetableDialog
 - **H13 – User-Connections**: für jede `Connection` am Knoten: Umsteigezeit über
   `ConnectionValidator.getShortestConnectionTime(node, port1, port2)` bzw. Ankunft/Abfahrt der
   Ports; muss ≥ 0 sein (d.h. ≥ `Node.getConnectionTime()`); Round-Trip: beide Richtungen.
-- **Reisezeit-Delta**: Summe der Änderungen der Haltezeiten zwischen den Endpunkten aller
-  Zugläufe und Richtungen. Zusammen mit den fixen Abschnittsfahrzeiten entspricht dies der
-  Änderung zwischen erster Abfahrt und letzter Ankunft. Eine einzelne lange Haltezeit wird nicht
-  separat bestraft.
+- **Reisezeit-Delta-KPI**: Summe der Änderungen der Haltezeiten zwischen den Endpunkten aller
+  Zugläufe und Richtungen. Der Soft-Score bewertet pro Zuglauf, ob sich die Start-Ziel-Dauer
+  verlängert, und bestraft zusätzlich lange Wende-Wartezeiten quadratisch relativ zum Takt.
 - **Optionale Anschlüsse**: Anzahl möglicher Umstiege zwischen verschiedenen Zugläufen im Fenster
   `connectionTime` bis `connectionTime + optionalWindow`.
-- **Verschiebung**: `sumAbsShift = Σ|Δ|` über die Verschiebungsvariablen; dies ist keine Anzahl
-  geänderter Zugläufe oder Zeitfelder.
+- **Minimale Änderungen**: Summe der quadrierten Änderungen aller aktiven Ankunfts- und
+  Abfahrtszeiten, geteilt durch die Abschnittszahl. `sumAbsShift = Σ|Δ|` bleibt ein separates
+  Anzeige-KPI und ist keine Anzahl geänderter Zugläufe oder Zeitfelder.
+- **Mehr Anschlüsse**: erreichbare Umsteigepaarungen plus `1/(1+2^d)` für die Abweichung `d` über
+  der Mindestumsteigezeit, normiert pro Stop-Stop-Zug am Knoten und über Knoten gemittelt.
+- **Knotengleise**: exakte Node-Estimator-Gleiszahlen; das Maximum dominiert den danach
+  berücksichtigten Durchschnitt, beide werden über die Knotenzahl normiert.
 - Die aktivierte Mindesthaltezeitregel prüft Mindesthaltezeit und gültige Takt-Haltezeit. Die
   optionale maximale Fahrzeitverlängerung prüft die Netto-Verlängerung je Zuglauf gegenüber der
   Baseline, nicht die Dauer eines einzelnen Halts.
@@ -124,35 +128,50 @@ OptimizeTimetableDialog
 
 ### 4.3 Suche (≤ 250 ms)
 
-1. **Vorbereitung**: Ketten/Δ bleiben die Move-Repräsentation. Konflikt-zu-Kette,
-   Kette-zu-Strecke/Knoten/Anschluss und Nachbarschaftsindizes werden einmalig aufgebaut. Locks
-   und Scope bleiben unveränderliche Regeln.
+1. **Vorbereitung und Konfliktwert**: Ketten/Δ bleiben die Move-Repräsentation. Konflikt-zu-Kette,
+   Kette-zu-Strecke/Knoten/Anschluss und Nachbarschaftsindizes werden einmalig aufgebaut. Der exakte
+   Track-Estimator liefert Baseline-Segmente; deren Konfliktwert ist
+   `maxTracksPerSection * Σ(segment.tracks) / (2 * Segmentanzahl)`. `x` wird für die Diagnose als
+   `maxTracksPerSection` gesetzt. Harte Gleiskonflikte bleiben davon getrennt: dafür muss mindestens
+   ein Segment das Limit überschreiten. Aktive Gleiskonflikte werden primär nach dem Konfliktwert
+   sortiert. Locks und Scope bleiben unveränderliche Regeln.
 2. **Konflikt-Reparatur**: den höchstpriorisierten aktiven Konflikt wählen: Streckengleis-Überlast,
    User-Connection, aktivierte Mindesthaltezeit oder optionale maximale Netto-Fahrzeitverlängerung
-   pro Zuglauf. Nur betroffene freie Ketten und kleine Δ-Kandidaten evaluieren; den besten
-   Reparaturzug übernehmen und nur abhängige Konflikte aktualisieren. Tabu verhindert direkte
-   Zyklen.
+  pro Zuglauf. Alle betroffenen freien Ketten vergleichen und ihre Δ-Kandidaten in aufsteigenden
+  Minutenringen (±1, ±2, …) prüfen; die Deadline zwischen Kandidaten beachten. Den besten
+  konfliktverbessernden Zug aus dem ersten
+  erfolgreichen Ring übernehmen; wenn keiner den Konflikt verbessert, dient die beste
+  nicht-tabuisierte Bewertung als Fallback. Nur abhängige Konflikte aktualisieren; Tabu verhindert
+  direkte Zyklen.
 3. **Erkundung und Neustart**: Min-Conflicts/Tabu wird mit Simulated-Annealing-Schritten
-   kombiniert, die gelegentlich schlechtere Zwischenlösungen akzeptieren. Nach Stagnation setzt
-   LNS bei der besten Lösung an und verändert eine begrenzte, konfliktnahe Kettengruppe.
+  kombiniert: meist ±1 Minute, mit erweiterter Schrittweite bei Stagnation; gelegentlich werden
+  schlechtere Zwischenlösungen akzeptiert. Nach Stagnation setzt LNS bei der besten Lösung an und
+  verändert eine begrenzte, konfliktnahe Kettengruppe. Sobald eine gültige Alternative existiert,
+  werden bis zu 40 ms bzw. 20 % des Zeitbudgets reserviert, um Verschiebungen schrittweise um je
+  eine Minute Richtung Δ = 0 zu verkleinern; ein Schritt bleibt nur bei erfüllten harten Regeln.
 4. **Archiv und Ranking**: nach den aktiven harten Regeln gültige, nicht dominierte Kandidaten im
-   Pareto-Archiv halten. Die UI ordnet sie separat lexikografisch nach den aktivierten Soft-KPIs;
-   deren Aktivierung oder Reihenfolge ändert den Suchlauf nicht. Geänderte Hard Rules revalidieren
-   Kandidaten; eine neue Suche startet nur mit _Optimize_.
+  Pareto-Archiv halten. Die UI sortiert sie anhand normierter Soft-KPI-Scores; die Rangpositionen
+  erhalten Gewichte `1, 1/2, 1/4, 1/8`. Die Reihenfolge ändert nicht den zeitbegrenzten Suchpfad.
+  Geänderte Hard Rules revalidieren Kandidaten; eine neue Suche startet nur mit _Optimize_.
 5. **Zeitbudget und Gültigkeit**: Deadline via `performance.now()`, deterministischer Seed und
    Weiterrechnen vom ausgewählten Assignment. Die Baseline und geänderte Strecken werden exakt
    mit `InfrastructureEstimatorService` geprüft; nur nach aktiven Regeln gültige Vorschläge werden
    ausgegeben.
+6. **Konsolen-Trace**: der Dialog protokolliert sortierte Baseline-Segmente, getestete Minutenringe,
+  gewählte Kettenmoves, Gleis-/Haltezeit-/Anschluss- und Zeitänderungen sowie den nächsten aktiven
+  Konflikt. Suchschritte verwenden den schnellen Gleis-Surrogatwert; Vorschläge werden exakt
+  nachgeprüft. Der Trace ist auf 150 Ereignisse begrenzt.
 
 ### 4.4 Baseline und Ranking
 
 - **Baseline** ist der ursprüngliche Fahrplan vor dem Anwenden eines Such-Assignments. Zeit- und
   KPI-Deltas werden relativ dazu berechnet; bei der Baseline sind Änderungen und Verschiebungen 0.
-- Der Comparator sortiert zuerst nach Gültigkeit und danach lexikografisch nach den aktivierten
-  Zielen in ihrer Priorität. **Minimale Änderungen** vergleicht zuerst die Anzahl geänderter
-  Δ-Ketten und bei Gleichstand die Summe `Σ|Δ|`. **Kürzere Fahrzeit** vergleicht das Netto-
-  Reisezeit-Delta aufsteigend; negative Werte sind kürzer. **Geringere Streckengleisnutzung**
-  vergleicht maximale und danach durchschnittliche Gleiszahl im Scope.
+- Der Comparator sortiert zuerst nach Gültigkeit und danach nach der Summe der normierten
+  Ziel-Scores, gewichtet mit `1/2^Rang`. **Minimale Änderungen** verwendet quadrierte
+  Zeitänderungen pro Abschnitt. **Mehr Anschlüsse** enthält einen Bonus für geringe Abweichung
+  von der Mindestumsteigezeit. **Kürzere Fahrzeit** bewertet Start-Ziel-Änderungen und quadratische
+  Wende-Wartezeit. **Geringere Knotengleisnutzung** vergleicht zuerst das Maximum und danach den
+  Durchschnitt.
 - Der Suchlauf verwendet interne feste Bewertungsgewichte. Die Reihenfolge und Aktivierung der
   Soft-KPIs im Director beeinflusst nur das Ranking des vorhandenen Archivs, nicht den Suchpfad.
 
@@ -339,9 +358,10 @@ mit _Weiterrechnen_ verbessert werden kann.
 ```text
 optimize(nativeNetzgrafik, policy, budget = 250 ms):
   problem := buildChainsAndSparseDependencyIndexes(nativeNetzgrafik, policy)
+  trackPriorities := exactBaselineSegmentScores(problem)
   x := baseline or selected previous assignment
   evaluator := incrementalSurrogate(problem, x)
-  conflicts := indexedConflicts(problem, evaluator)
+  conflicts := indexedConflicts(problem, evaluator, trackPriorities)
   archive.addIfFeasibleAndNonDominated(x)
   best := x
   tabu := empty
@@ -349,14 +369,20 @@ optimize(nativeNetzgrafik, policy, budget = 250 ms):
   while beforeDeadline():
     conflict := conflicts.highestPriority()
     if conflict exists and random() < 0.85:
-      neighborhood := movableChainsTouching(conflict)
-      move := bestTabuAllowedDelta(neighborhood, tabu, evaluator)
+      variables := allMovableChainsTouching(conflict)
+      for distance := 1 to largestReachableDistance(variables):
+        move := bestTabuAllowedDelta(variables, ±distance, evaluator)
+        if move improves hard violations or conflict severity:
+          break
+      if no improving move:
+        move := bestTabuAllowedFallback(variables, evaluator)
       if move exists:
         evaluator.apply(move)
         conflicts.refreshOnlyAffected(move)
         tabu.remember(move)
+        trace.record(move, neighboringTimesAndConstraints, conflicts.highestPriority())
     else:
-      candidate := proposeFreeVariableMove(x)
+      candidate := proposeMostlyOneMinuteMove(expandRangeOnStagnation(x))
       if acceptBySimulatedAnnealing(candidate, x):
         x := candidate
         conflicts.refreshOnlyAffected(candidate)
@@ -367,6 +393,16 @@ optimize(nativeNetzgrafik, policy, budget = 250 ms):
       conflicts.refreshAffectedBy(x)
     if score(x) < score(best):
       best := x
+
+  archive.addIfFeasibleAndNonDominated(best)
+  if archive has a feasible alternative and time remains:
+    x := archive.alternativeWithSmallestSumAbsShift()
+    repeat while improved and beforeDeadline():
+      for each variable v with x[v] != 0:
+        candidate := x[v] - sign(x[v])
+        if all hard rules remain valid:
+          x[v] := candidate
+          archive.addIfFeasibleAndNonDominated(x)
 
   finalists := archive.selectByCurrentPolicy()
   exactValidateBaselineOnceAndChangedEdges(finalists, nativeNetzgrafik)

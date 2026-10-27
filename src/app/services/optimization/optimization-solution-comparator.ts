@@ -5,28 +5,15 @@ function compareNumber(a: number, b: number): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }
 
-function compareObjective(
-  id: ObjectiveId,
-  a: OptimizeTimetableSolution,
-  b: OptimizeTimetableSolution,
+function weightedObjectiveScore(
+  solution: OptimizeTimetableSolution,
+  objectives: {id: ObjectiveId}[],
 ): number {
-  switch (id) {
-    case "minimalChanges":
-      return (
-        compareNumber(a.kpi.changedChains, b.kpi.changedChains) ||
-        compareNumber(a.kpi.totalDeltaMinutes, b.kpi.totalDeltaMinutes)
-      );
-    case "moreConnections":
-      return compareNumber(b.kpi.optionalConnections, a.kpi.optionalConnections);
-    case "lowerTravelTime":
-      return compareNumber(a.kpi.travelTimeExtensionMinutes, b.kpi.travelTimeExtensionMinutes);
-    case "lowerTrackUsage":
-      return (
-        compareNumber(a.kpi.maxTrackUsage, b.kpi.maxTrackUsage) ||
-        compareNumber(a.kpi.averageTrackUsage, b.kpi.averageTrackUsage)
-      );
-  }
-  return 0;
+  return objectives.reduce(
+    (score, objective, index) =>
+      score + (solution.kpi.objectiveScores?.[objective.id] ?? 0) / 2 ** index,
+    0,
+  );
 }
 
 export function compareSolutions(
@@ -40,12 +27,11 @@ export function compareSolutions(
   const objectives = [...policy.objectives]
     .filter((objective) => objective.enabled)
     .sort((first, second) => first.priority - second.priority);
-
-  for (const objective of objectives) {
-    const comparison = compareObjective(objective.id, a, b);
-    if (comparison !== 0) {
-      return comparison;
-    }
+  const scoreA = weightedObjectiveScore(a, objectives);
+  const scoreB = weightedObjectiveScore(b, objectives);
+  const scoreComparison = compareNumber(scoreB, scoreA);
+  if (scoreComparison !== 0) {
+    return scoreComparison;
   }
 
   return compareNumber(a.id, b.id);

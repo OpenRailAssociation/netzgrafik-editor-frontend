@@ -350,7 +350,13 @@
               "minimal-changes": "Minimal changes",
               "more-connections": "More connections",
               "lower-travel-time": "Lower travel time",
-              "lower-track-usage": "Lower track usage"
+              "lower-track-usage": "Lower node track usage"
+            },
+            "objective-description": {
+              "minimal-changes": "Minimizes the sum of squared departure and arrival time changes, divided by the number of sections.",
+              "more-connections": "Counts feasible transfers and rewards waits close to the minimum with 1/(1+2^d); normalized per stop-to-stop train at each node.",
+              "lower-travel-time": "+1 per trainrun when start-to-destination duration is unchanged or shorter, -1 when longer; long turnaround waits receive a quadratic penalty. Normalized by trainrun count.",
+              "lower-track-usage": "Fewer node tracks is better: compare the maximum first, then the average; normalized by node count."
             }
           },
           "max-tracks": "Max. tracks per section",
@@ -377,6 +383,8 @@
           "field": {
             "departure": "Departure {$node}",
             "arrival": "Arrival {$node}",
+            "departure-short": "Dep.",
+            "arrival-short": "Arr.",
             "travel-time": "Travel time",
             "backward-travel-time": "Travel time (return)"
           }

@@ -18,6 +18,8 @@ export interface OptimizeTimetableOptions {
   optionalConnectionWindow?: number;
   /** Maximum number of proposals returned (default 4). */
   maxProposals?: number;
+  /** Emit a bounded step-by-step optimization trace to the browser console. */
+  debugTrace?: boolean;
   /** Hard constraints and objective preferences selected in the director. */
   policy?: import("./optimization-policy.model").OptimizationPolicy;
 }

@@ -42,6 +42,7 @@ export class ConflictIndex {
   constructor(
     private readonly problem: OptimizationProblem,
     private readonly evaluator: TimetableEvaluator,
+    private readonly trackPriorities: number[] = [],
   ) {
     this.enabledConstraints = new Set(
       problem.policy.hardConstraints
@@ -256,28 +257,37 @@ export class ConflictIndex {
           this.isEnabled("trackLimit") && this.problem.edgeInScope[conflict.componentIndex] === 1
             ? this.evaluator.getTrackOverload(conflict.componentIndex)
             : 0;
-        severity = overload > 0 ? overload * 1000 + conflict.affectedVariables.length : 0;
+        severity =
+          overload > 0
+            ? 1_000_000 +
+              Math.round((this.trackPriorities[conflict.componentIndex] ?? 0) * 1000) * 1000 +
+              overload * 10 +
+              conflict.affectedVariables.length
+            : 0;
         break;
       }
-      case "USER_CONNECTION":
+      case "USER_CONNECTION": {
+        const violation = this.evaluator.getConnectionViolationSeverity(conflict.componentIndex);
         severity =
           (this.isEnabled("userConnections") || this.isEnabled("preserveConnectionTimes")) &&
-          this.evaluator.isConnectionViolated(conflict.componentIndex)
-            ? 500 + conflict.affectedVariables.length
+          violation > 0
+            ? 500 + conflict.affectedVariables.length + violation
             : 0;
         break;
-      case "MINIMUM_STOP_TIME":
-        severity =
-          this.isEnabled("minimumStopTime") &&
-          this.evaluator.isStopViolated(conflict.componentIndex)
-            ? 250 + conflict.affectedVariables.length
-            : 0;
-        break;
-      case "MAX_TRAVEL_TIME_EXTENSION":
-        severity = this.evaluator.isTravelTimeExtensionViolated(conflict.componentIndex)
-          ? 750 + conflict.affectedVariables.length
+      }
+      case "MINIMUM_STOP_TIME": {
+        const violation = this.evaluator.getStopViolationSeverity(conflict.componentIndex);
+        severity = this.isEnabled("minimumStopTime") && violation > 0
+          ? 250 + conflict.affectedVariables.length + violation
           : 0;
         break;
+      }
+      case "MAX_TRAVEL_TIME_EXTENSION": {
+        const violation = this.evaluator.getTravelTimeExtensionExcess(conflict.componentIndex);
+        severity =
+          violation > 0 ? 750 + conflict.affectedVariables.length + violation : 0;
+        break;
+      }
     }
     conflict.severity = severity;
     this.updateHeap(index, severity > 0);

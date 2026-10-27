@@ -350,7 +350,13 @@
               "minimal-changes": "Minimale Änderungen",
               "more-connections": "Mehr Anschlüsse",
               "lower-travel-time": "Kürzere Fahrzeit",
-              "lower-track-usage": "Geringere Streckengleisnutzung"
+              "lower-track-usage": "Geringere Knotengleisnutzung"
+            },
+            "objective-description": {
+              "minimal-changes": "Minimiert die Summe der quadrierten Änderungen aller Abfahrts- und Ankunftszeiten, geteilt durch die Abschnittszahl.",
+              "more-connections": "Zählt erreichbare Umstiege und belohnt kurze Wartezeiten über dem Minimum mit 1/(1+2^d); normiert je Stop-Stop-Zug am Knoten.",
+              "lower-travel-time": "Je Zuglauf +1 bei unveränderter oder kürzerer Start-Ziel-Zeit, -1 bei Verlängerung; lange Wende-Wartezeit wird quadratisch bestraft. Normiert auf die Zahl der Zugläufe.",
+              "lower-track-usage": "Weniger Knotengleise ist besser: zuerst das Maximum, dann der Durchschnitt; normiert auf die Knotenzahl."
             }
           },
           "max-tracks": "Max. Gleise pro Abschnitt",
@@ -377,6 +383,8 @@
           "field": {
             "departure": "Abfahrt {$node}",
             "arrival": "Ankunft {$node}",
+            "departure-short": "Ab",
+            "arrival-short": "An",
             "travel-time": "Fahrzeit",
             "backward-travel-time": "Fahrzeit (Rückrichtung)"
           }

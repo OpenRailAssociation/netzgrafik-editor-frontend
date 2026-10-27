@@ -20,7 +20,7 @@ export const WEIGHT_HARD = 1e6;
 export const WEIGHT_TRACK = 1000;
 export const WEIGHT_TRAVEL_TIME = 1;
 export const WEIGHT_OPTIONAL_CONNECTION = 3;
-export const WEIGHT_SHIFT = 0.05;
+export const WEIGHT_SHIFT = 10;
 
 export interface ScoreParts {
   hard: number;
@@ -212,12 +212,103 @@ export class TimetableEvaluator {
     return this.stopViolation[index] === 1;
   }
 
+  getStopDwell(index: number): number {
+    return this.stopDwell[index];
+  }
+
+  getConnectionWait(index: number): number {
+    const connection = this.problem.connections[index];
+    return (
+      connection.wait0 +
+      norm60(
+        this.shiftOf(connection.depSection, connection.depField) -
+          this.shiftOf(connection.arrSection, connection.arrField),
+      )
+    );
+  }
+
+  getOptionalConnectionScore(): number {
+    let nodeScore = 0;
+    let scoredNodes = 0;
+    for (const nodeEvents of this.problem.nodeEvents) {
+      const departureTrainrunIds = new Set(
+        nodeEvents.departures.map((event) => event.trainrunId),
+      );
+      const trainrunIds = new Set([
+        ...nodeEvents.arrivals
+          .filter((event) => departureTrainrunIds.has(event.trainrunId))
+          .map((event) => event.trainrunId),
+      ]);
+      if (trainrunIds.size === 0) {
+        continue;
+      }
+
+      let connectionScore = 0;
+      for (const arrival of nodeEvents.arrivals) {
+        const arrivalTime = this.candT[arrival.section * 4 + arrival.field];
+        for (const departure of nodeEvents.departures) {
+          if (arrival.trainrunId === departure.trainrunId) {
+            continue;
+          }
+          const period = eventPeriod(arrival.frequency, departure.frequency);
+          const wait =
+            (((this.candT[departure.section * 4 + departure.field] - arrivalTime) % period) +
+              period) %
+            period;
+          const minimumWait = nodeEvents.connectionTime;
+          if (wait >= minimumWait && wait <= minimumWait + this.problem.optionalWindow) {
+            connectionScore += 1 + 1 / (1 + Math.pow(2, wait - minimumWait));
+          }
+        }
+      }
+      nodeScore += connectionScore / trainrunIds.size;
+      scoredNodes++;
+    }
+    if (scoredNodes === 0) {
+      return 0;
+    }
+    const normalizedScore = nodeScore / scoredNodes;
+    return normalizedScore / (1 + normalizedScore);
+  }
+
+  getTravelTimeChangeByTrainrun(trainrunIndex: number): number {
+    return this.travelTimeDeltaByTrainrun[trainrunIndex] ?? 0;
+  }
+
+  getStopViolationSeverity(index: number): number {
+    const stop = this.problem.stops[index];
+    const dwell = this.stopDwell[index];
+    return Math.max(
+      dwell < stop.minDwell - 1e-6 ? stop.minDwell - dwell - 1e-6 : 0,
+      dwell < 0 ? -dwell : 0,
+      dwell >= 60 ? dwell - 59 : 0,
+    );
+  }
+
+  getConnectionViolationSeverity(index: number): number {
+    const connection = this.problem.connections[index];
+    const wait = this.getConnectionWait(index);
+    return Math.max(0, connection.lo - wait - 1e-6, wait - connection.hi - 1e-6);
+  }
+
   getTrackOverload(edgeIndex: number): number {
     return Math.max(0, this.edgeTracks[edgeIndex] - this.problem.maxTracks);
   }
 
   isTravelTimeExtensionViolated(trainrunIndex: number): boolean {
     return this.travelTimeExtensionViolationByTrainrun[trainrunIndex] === 1;
+  }
+
+  getTravelTimeExtensionExcess(trainrunIndex: number): number {
+    const constraint = this.problem.policy.hardConstraints.find(
+      (item) => item.id === "maxTravelTimeExtension",
+    );
+    return constraint?.enabled
+      ? Math.max(
+          0,
+          this.travelTimeDeltaByTrainrun[trainrunIndex] - (constraint.value ?? 5),
+        )
+      : 0;
   }
 
   // ---------------------------------------------------------------------

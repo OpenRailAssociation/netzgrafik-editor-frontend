@@ -350,7 +350,13 @@
               "minimal-changes": "Modifications minimales",
               "more-connections": "Davantage de correspondances",
               "lower-travel-time": "Temps de parcours réduit",
-              "lower-track-usage": "Moindre utilisation des voies"
+              "lower-track-usage": "Moindre utilisation des voies aux nœuds"
+            },
+            "objective-description": {
+              "minimal-changes": "Minimise la somme des carrés des changements d'heures de départ et d'arrivée, divisée par le nombre de tronçons.",
+              "more-connections": "Compte les correspondances possibles et favorise les attentes proches du minimum avec 1/(1+2^d) ; normalisé par train avec arrêt à chaque nœud.",
+              "lower-travel-time": "+1 par train si la durée départ-destination reste identique ou diminue, -1 si elle augmente ; les longues attentes de retournement sont pénalisées au carré. Normalisé par le nombre de trains.",
+              "lower-track-usage": "Moins de voies aux nœuds est préférable : comparer d'abord le maximum, puis la moyenne ; normalisé par le nombre de nœuds."
             }
           },
           "max-tracks": "Voies max. par tronçon",
@@ -377,6 +383,8 @@
           "field": {
             "departure": "Départ {$node}",
             "arrival": "Arrivée {$node}",
+            "departure-short": "Dép.",
+            "arrival-short": "Arr.",
             "travel-time": "Temps de parcours",
             "backward-travel-time": "Temps de parcours (retour)"
           }

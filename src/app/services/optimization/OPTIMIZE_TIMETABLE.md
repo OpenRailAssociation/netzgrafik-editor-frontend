@@ -96,14 +96,14 @@ deaktivieren und per Drag-and-drop priorisieren. Die Standardreihenfolge ist:
 3. **Kürzere Fahrzeit**: vergleicht die Änderung der gesamten Reisezeit aller Zugläufe mit der
    Baseline, einschliesslich der Haltezeiten zwischen den Endpunkten. Ein negatives Δ bedeutet
    kürzer, ein positives Δ länger; Abschnittsfahrzeiten selbst bleiben fix.
-4. **Geringere Streckengleisnutzung**: vergleicht zuerst die höchste Gleiszahl auf den
-   betrachteten Kanten, danach deren durchschnittliche Gleiszahl. Das ist ein weiches Ziel; das
-   maximale Gleislimit kann zusätzlich als harte Regel aktiviert sein.
+4. **Geringere Knotengleisnutzung**: vergleicht zuerst die höchste, danach die durchschnittliche
+  Knotengleiszahl. Das ist ein weiches Ziel; das Streckengleislimit kann zusätzlich als harte
+  Regel aktiviert sein.
 
-Die Rangfolge ist **lexikografisch**: Ein nachrangiges Ziel entscheidet erst, wenn die Vorschläge
-beim höher priorisierten Ziel gleichauf liegen. Gültigkeit nach den aktivierten harten Regeln hat
-immer Vorrang. Ändern der weichen Ziele sortiert die bereits gefundenen Vorschläge neu; es startet
-keine Suche. Für neue Kandidaten **Optimieren** wählen.
+Alle vier Zielwerte werden normiert. Die Rangposition gewichtet sie geometrisch mit `1, 1/2, 1/4,
+1/8`; Drag-and-drop ändert damit den Einfluss jedes Ziels. Gültigkeit nach den aktivierten harten
+Regeln hat immer Vorrang. Ändern der weichen Ziele sortiert die bereits gefundenen Vorschläge neu;
+der Suchlauf selbst verwendet weiterhin seinen internen Suchscore.
 
 Die optionale harte Regel **Maximale Fahrzeitverlängerung** begrenzt die Netto-Verlängerung pro
 Zuglauf gegenüber der Baseline; der Standardwert ist +5 Minuten. Sie verändert keine
@@ -171,10 +171,10 @@ Ein inkrementeller Schätzer bewertet Kandidaten schnell; die Infrastruktur-Bere
 ausgegebenen Gleis-KPIs exakt nach.
 
 Die Suche verwendet interne Bewertungsgewichte, um Kandidaten während des Suchlaufs zu erkunden.
-Diese Gewichte sind nicht die Reihenfolge im Director: Der Director ordnet gefundene Vorschläge
-lexikografisch nach den dort aktivierten Zielen. Harte Regeländerungen bewerten die vorhandenen
-Vorschläge neu; **Optimieren** startet einen neuen Suchlauf. **Weiterrechnen** startet einen
-weiteren Lauf ausgehend vom ausgewählten Vorschlag.
+Der Director sortiert gefundene Vorschläge zusätzlich mit normierten Zielwerten und geometrischen
+Gewichten `1, 1/2, 1/4, 1/8` in der aktivierten Drag-and-drop-Reihenfolge. Harte Regeländerungen
+bewerten die vorhandenen Vorschläge neu; **Optimieren** startet einen neuen Suchlauf.
+**Weiterrechnen** startet einen weiteren Lauf ausgehend vom ausgewählten Vorschlag.
 
 ## 7. Architektur
 

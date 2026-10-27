@@ -1,7 +1,10 @@
 import {Injectable} from "@angular/core";
 import {Node} from "../../models/node.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
-import {InfrastructureEstimatorService} from "../infrastructure/infrastructure-estimator.service";
+import {
+  InfrastructureEstimatorService,
+  TrackSegmentEstimate,
+} from "../infrastructure/infrastructure-estimator.service";
 import {OptimizationProblem, buildProblem} from "./optimize-timetable.chains";
 import {TimetableEvaluator} from "./optimize-timetable.evaluator";
 import {ArchivedSolution, runSearch} from "./optimize-timetable.search";
@@ -19,7 +22,7 @@ import {
   TimeChange,
   TimeField,
 } from "./optimize-timetable.model";
-import {createDefaultOptimizationPolicy} from "./optimization-policy.model";
+import {createDefaultOptimizationPolicy, ObjectiveId} from "./optimization-policy.model";
 import {compareSolutions} from "./optimization-solution-comparator";
 
 const DEFAULT_TIME_BUDGET_MS = 250;
@@ -30,6 +33,12 @@ const DEFAULT_MAX_PROPOSALS = 4;
 interface ProposalPick {
   label: string;
   compare: (a: ArchivedSolution, b: ArchivedSolution) => number;
+}
+
+interface NodeTrackMetrics {
+  maxTracks: number;
+  averageTracks: number;
+  turnaroundWaitByTrainrun: Map<number, number>;
 }
 
 /**
@@ -63,17 +72,12 @@ export class OptimizeTimetableService {
       policy,
     );
     const evaluator = new TimetableEvaluator(problem);
-    const search = runSearch(
-      problem,
-      evaluator,
-      options.startAssignment,
-      options.timeBudgetMs ?? DEFAULT_TIME_BUDGET_MS,
-      options.seed ?? 1,
-    );
-
     const beforeTracks = new Map<number, number>();
+    const baselineTrackSegments = new Map<number, TrackSegmentEstimate[]>();
     const baselineEdges = problem.edges.map((edge, edgeIndex) => {
-      const tracks = this.estimateEdgeTracks(problem, edgeIndex);
+      const segments = this.estimateEdgeTrackSegments(problem, edgeIndex);
+      baselineTrackSegments.set(edgeIndex, segments);
+      const tracks = segments.reduce((maximum, segment) => Math.max(maximum, segment.tracks), 0);
       beforeTracks.set(edgeIndex, tracks);
       return {
         edgeId: this.edgeId(edge.fromNode.getId(), edge.toNode.getId()),
@@ -84,6 +88,22 @@ export class OptimizeTimetableService {
         tracksAfter: tracks,
       };
     });
+    const baselineNodeMetrics = this.estimateNodeTrackMetrics(nodes, trainrunSections);
+    const trackPriorities = problem.edges.map((_, edgeIndex) => {
+      const segments = baselineTrackSegments.get(edgeIndex) ?? [];
+      const sumTracks = segments.reduce((sum, segment) => sum + segment.tracks, 0);
+      return segments.length === 0 ? 0 : (maxTracks * sumTracks) / (2 * segments.length);
+    });
+    const search = runSearch(
+      problem,
+      evaluator,
+      options.startAssignment,
+      options.timeBudgetMs ?? DEFAULT_TIME_BUDGET_MS,
+      options.seed ?? 1,
+      options.debugTrace ?? false,
+      trackPriorities,
+    );
+
     const baselineOverLimit = baselineEdges.filter(
       (edge) => edge.inScope && edge.tracksBefore > maxTracks,
     ).length;
@@ -143,9 +163,11 @@ export class OptimizeTimetableService {
         pick.solution,
         search.initial,
         problem,
+        nodes,
         beforeTracks,
         baselineEdges,
         baselineKpi,
+        baselineNodeMetrics,
       ),
     );
     result.solutions.sort((first, second) => compareSolutions(first, second, policy));
@@ -155,6 +177,15 @@ export class OptimizeTimetableService {
       result.message = $localize`:@@app.services.optimization.no-solution:No better solution found. Restart to continue the search.`;
     }
     result.runtimeMs = Math.round(performance.now() - start);
+    if (options.debugTrace) {
+      this.logSearchTrace(
+        problem,
+        baselineTrackSegments,
+        search.trace,
+        search.omittedTraceEntries,
+        result.solutions,
+      );
+    }
     return result;
   }
 
@@ -359,14 +390,22 @@ export class OptimizeTimetableService {
     archived: ArchivedSolution,
     initial: ArchivedSolution,
     problem: OptimizationProblem,
+    nodes: Node[],
     beforeTracks: Map<number, number>,
     baselineEdges: EdgeTrackKpi[],
     baselineKpi: OptimizeTimetableKpi,
+    baselineNodeMetrics: NodeTrackMetrics,
   ): OptimizeTimetableSolution {
     const evaluator = new TimetableEvaluator(problem);
     evaluator.delta.set(archived.delta);
     evaluator.evaluateAll();
     const parts = evaluator.parts();
+    const nodeMetrics = this.withCandidateConsecutiveTimes(
+      problem,
+      evaluator,
+      problem.sections,
+      () => this.estimateNodeTrackMetrics(nodes, problem.sections),
+    );
 
     const changes: TimeChange[] = [];
     const changedEdges = new Set<number>();
@@ -482,6 +521,13 @@ export class OptimizeTimetableService {
       label,
       valid: nonTrackViolations === 0 && (!trackLimitEnabled || overAfter === 0),
       kpi: {
+        objectiveScores: this.calculateObjectiveScores(
+          problem,
+          evaluator,
+          nodes,
+          nodeMetrics,
+          baselineNodeMetrics,
+        ),
         changedChains: changedChains.size,
         totalDeltaMinutes: parts.sumAbsShift,
         travelTimeExtensionMinutes: parts.travelTimeDelta,
@@ -506,15 +552,276 @@ export class OptimizeTimetableService {
     };
   }
 
+  private calculateObjectiveScores(
+    problem: OptimizationProblem,
+    evaluator: TimetableEvaluator,
+    nodes: Node[],
+    nodeMetrics: NodeTrackMetrics,
+    baselineNodeMetrics: NodeTrackMetrics,
+  ): Record<ObjectiveId, number> {
+    let squaredTimeShift = 0;
+    problem.sections.forEach((_, sectionIndex) => {
+      for (let field = 0; field < 4; field++) {
+        const index = sectionIndex * 4 + field;
+        if (problem.active[index] === 0) {
+          continue;
+        }
+        const shift = evaluator.candC[index] - problem.origC[index];
+        squaredTimeShift += shift * shift;
+      }
+    });
+    const normalizedShiftCost = squaredTimeShift / Math.max(1, problem.sections.length);
+
+    const trainrunCount = problem.trainrunIds.length;
+    const trainrunFrequencies = new Map<number, number>();
+    problem.sections.forEach((section) =>
+      trainrunFrequencies.set(
+        section.getTrainrunId(),
+        Math.max(1, section.getTrainrun().getFrequency() || 60),
+      ),
+    );
+    let travelTimeScore = 0;
+    problem.trainrunIds.forEach((trainrunId, trainrunIndex) => {
+      const turnaroundWait = nodeMetrics.turnaroundWaitByTrainrun.get(trainrunId) ?? 0;
+      const baselineTurnaroundWait =
+        baselineNodeMetrics.turnaroundWaitByTrainrun.get(trainrunId) ?? 0;
+      const durationDelta =
+        evaluator.getTravelTimeChangeByTrainrun(trainrunIndex) +
+        turnaroundWait -
+        baselineTurnaroundWait;
+      travelTimeScore += durationDelta <= 0 ? 1 : -1;
+
+      const frequency = trainrunFrequencies.get(trainrunId) ?? 60;
+      travelTimeScore -= Math.pow(Math.min(1, turnaroundWait / frequency), 2);
+    });
+
+    const nodeCount = Math.max(1, nodes.length);
+    const maximumPossibleTracks = Math.max(1, problem.sections.length);
+    const averageTrackWeight = 1 / (nodeCount + 1);
+    const normalizedNodeTrackCost =
+      (nodeMetrics.maxTracks + nodeMetrics.averageTracks * averageTrackWeight) /
+      maximumPossibleTracks;
+
+    return {
+      minimalChanges: 1 / (1 + normalizedShiftCost),
+      moreConnections: evaluator.getOptionalConnectionScore(),
+      lowerTravelTime:
+        trainrunCount === 0 ? 0 : (travelTimeScore / trainrunCount + 2) / 3,
+      lowerTrackUsage: 1 / (1 + normalizedNodeTrackCost),
+    };
+  }
+
+  private estimateNodeTrackMetrics(
+    nodes: Node[],
+    trainrunSections: TrainrunSection[],
+  ): NodeTrackMetrics {
+    const trackCounts: number[] = [];
+    const turnaroundWaits = new Map<number, Map<string, number>>();
+    nodes.forEach((node) => {
+      const nodeTracks = this.infrastructureEstimatorService.estimateNodeTracks(
+        node,
+        trainrunSections,
+      );
+      trackCounts.push(nodeTracks.length);
+      nodeTracks.forEach((track) =>
+        track.occupancies.forEach((occupancy) => {
+          if (
+            occupancy.arrivalSectionId === undefined ||
+            occupancy.departureSectionId === undefined ||
+            occupancy.transitionId !== undefined
+          ) {
+            return;
+          }
+          const occurrences = turnaroundWaits.get(occupancy.trainrunId) ?? new Map<string, number>();
+          occurrences.set(
+            `${node.getId()}:${occupancy.occurrenceIndex}`,
+            Math.max(0, occupancy.departureMinute - occupancy.arrivalMinute),
+          );
+          turnaroundWaits.set(occupancy.trainrunId, occurrences);
+        }),
+      );
+    });
+
+    const turnaroundWaitByTrainrun = new Map<number, number>();
+    turnaroundWaits.forEach((occurrences, trainrunId) => {
+      const waits = [...occurrences.values()];
+      turnaroundWaitByTrainrun.set(
+        trainrunId,
+        waits.reduce((sum, wait) => sum + wait, 0) / waits.length,
+      );
+    });
+    return {
+      maxTracks: Math.max(0, ...trackCounts),
+      averageTracks:
+        trackCounts.length === 0
+          ? 0
+          : trackCounts.reduce((sum, tracks) => sum + tracks, 0) / trackCounts.length,
+      turnaroundWaitByTrainrun,
+    };
+  }
+
   private estimateEdgeTracks(problem: OptimizationProblem, e: number): number {
-    const edge = problem.edges[e];
+    const segments = this.estimateEdgeTrackSegments(problem, e);
+    return segments.reduce((m, s) => Math.max(m, s.tracks), 0);
+  }
+
+  private estimateEdgeTrackSegments(
+    problem: OptimizationProblem,
+    edgeIndex: number,
+  ): TrackSegmentEstimate[] {
+    const edge = problem.edges[edgeIndex];
     const sections = edge.sections.map((i) => problem.sections[i]);
-    const segments = this.infrastructureEstimatorService.estimateSectionTracks(
+    return this.infrastructureEstimatorService.estimateSectionTracks(
       edge.fromNode,
       edge.toNode,
       sections,
     );
-    return segments.reduce((m, s) => Math.max(m, s.tracks), 0);
+  }
+
+  private logSearchTrace(
+    problem: OptimizationProblem,
+    segmentsByEdge: Map<number, TrackSegmentEstimate[]>,
+    trace: ReturnType<typeof runSearch>["trace"],
+    omittedTraceEntries: number,
+    solutions: OptimizeTimetableSolution[],
+  ): void {
+    const x = problem.maxTracks;
+    const edgeRows = problem.edges
+      .map((edge, edgeIndex) => {
+        const segments = segmentsByEdge.get(edgeIndex) ?? [];
+        const sumSegmentTracks = segments.reduce((sum, segment) => sum + segment.tracks, 0);
+        const conflictValue =
+          segments.length === 0 ? 0 : (problem.maxTracks * sumSegmentTracks) / (2 * segments.length);
+        const maximumSegmentTracks = segments.reduce(
+          (maximum, segment) => Math.max(maximum, segment.tracks),
+          0,
+        );
+        return {
+          edgeIndex,
+          inScope: problem.edgeInScope[edgeIndex] === 1,
+          strecke: `${edge.fromNode.getBetriebspunktName()} -> ${edge.toNode.getBetriebspunktName()}`,
+          konfliktwert: Number(conflictValue.toFixed(2)),
+          x,
+          scoreKonflikt: conflictValue > x,
+          harteGleisverletzung: maximumSegmentTracks > x,
+          maxGleise: maximumSegmentTracks,
+          segmente: segments
+            .map(
+              (segment) =>
+                `${Math.round(segment.start * 100)}-${Math.round(segment.end * 100)}%: ${segment.tracks}`,
+            )
+            .join(" | "),
+          moeglicheZuege: this.describeEdgeChains(problem, edgeIndex),
+        };
+      })
+      .filter((row) => row.inScope)
+      .sort((first, second) => second.konfliktwert - first.konfliktwert);
+    const conflictRows = edgeRows.filter(
+      (row) => row.scoreKonflikt || row.harteGleisverletzung,
+    );
+    const chainRows = problem.chains.map((chain) => {
+      const variableIndices = [...new Set([chain.varA, chain.varB])];
+      const variables = variableIndices.map((index) => problem.variables[index]);
+      const locks = new Set<string>();
+      const outOfScopeSections = new Set<number>();
+      chain.steps.forEach((step) => {
+        const section = problem.sections[step.sectionIdx];
+        const lockFields = [
+          ["sourceDeparture", section.getSourceDepartureLock()],
+          ["sourceArrival", section.getSourceArrivalLock()],
+          ["targetDeparture", section.getTargetDepartureLock()],
+          ["targetArrival", section.getTargetArrivalLock()],
+        ] as const;
+        lockFields.forEach(([field, locked]) => {
+          if (locked) {
+            locks.add(`${section.getId()}:${field}`);
+          }
+        });
+        const edgeIndex = problem.sectionEdge[step.sectionIdx];
+        if (edgeIndex < 0 || problem.edgeInScope[edgeIndex] !== 1) {
+          outOfScopeSections.add(section.getId());
+        }
+      });
+      const frequency = chain.trainrun.getFrequency() || 60;
+      const naturalDomain = Math.floor(Math.min(frequency, 60) / 2);
+      const movable = !chain.fixed && variables.some((variable) => variable.domain > 0);
+      const reasons = [
+        locks.size > 0 ? `Zeit-Lock: ${[...locks].join(", ")}` : "",
+        outOfScopeSections.size > 0
+          ? `ausserhalb Scope: Abschnitte ${[...outOfScopeSections].join(", ")}`
+          : "",
+        chain.key.endsWith(":fixed") ? "nicht traversierbarer/zyklischer Abschnitt" : "",
+        naturalDomain === 0 ? `Δ-Domäne 0 (Frequenz ${frequency} min)` : "",
+      ].filter(Boolean);
+      return {
+        zug: `${chain.trainrun.getCategoryShortName()} ${chain.trainrun.getTitle()}`.trim(),
+        zugId: chain.trainrun.getId(),
+        kette: chain.steps.length
+          ? `${chain.steps[0].fromNode.getBetriebspunktName()} -> ${chain.steps[chain.steps.length - 1].toNode.getBetriebspunktName()}`
+          : chain.key,
+        verschiebbar: movable,
+        variableDomains: variables.map((variable) => `${variable.key}: ±${variable.domain}`).join("; "),
+        grund: movable ? "frei" : reasons.join("; ") || "fixiert",
+      };
+    });
+    const finalRows = solutions.map((solution) => ({
+      vorschlag: solution.label,
+      gueltig: solution.valid,
+      geaenderteZuege: [...new Set(solution.changes.map((change) => change.trainrunName))].join(", "),
+      gleiseMax: solution.kpi.maxTrackUsage,
+      ueberlasteteStrecken: solution.kpi.edgesOverLimitAfter,
+      verschiebungsminuten: solution.kpi.totalDeltaMinutes,
+      geaenderteKetten: solution.kpi.changedChains,
+    }));
+
+    console.groupCollapsed("Fahrplanoptimierung: Schritt-für-Schritt-Diagnose");
+    const freeVariableCount = problem.variables.filter(
+      (variable) => !variable.fixed && variable.domain > 0,
+    ).length;
+    const domainlessChainCount = problem.chains.filter(
+      (chain) =>
+        [chain.varA, chain.varB].every((index) => problem.variables[index].domain === 0) &&
+        !chain.fixed,
+    ).length;
+    console.info(
+      `Eingabemodell: ${problem.sections.length} Abschnitte, ${problem.chains.length} Ketten, ${freeVariableCount} freie Variablen, ${domainlessChainCount} Ketten ohne Δ-Domäne, ${problem.edges.length} Strecken.`,
+    );
+    console.info(
+      `Schritt 1: exakte Track-Estimator-Segmente. Konfliktwert = maxTracks * Summe(segment.tracks) / (2 * Segmentanzahl); x = maxTracksPerSection (${x}). Sortierung absteigend.`,
+    );
+    console.table(conflictRows.length > 0 ? conflictRows : edgeRows.slice(0, 20));
+    console.info("Schritt 1b: Verschiebbarkeit je Kette (Grund bei fixierten Ketten).");
+    console.table(chainRows);
+    console.info(
+      "Schritte 2-4: akzeptierte Suchmoves. Gleiswirkungen innerhalb der Suche sind Surrogatwerte; Kandidatenketten sind mögliche Verursacher, bis ein getesteter Move die Wirkung bestätigt.",
+    );
+    console.table(trace);
+    if (omittedTraceEntries > 0) {
+      console.info(`${omittedTraceEntries} weitere Suchschritte wegen des Trace-Limits ausgelassen.`);
+    }
+    console.info("Schritt 5: nach den harten Regeln exakt validierte Vorschläge.");
+    console.table(finalRows);
+    console.groupEnd();
+  }
+
+  private describeEdgeChains(problem: OptimizationProblem, edgeIndex: number): string {
+    const chainIndices = new Set<number>();
+    problem.edgeVars[edgeIndex].forEach((variableIndex) =>
+      problem.variables[variableIndex].chains.forEach((chainIndex) => chainIndices.add(chainIndex)),
+    );
+    return [...chainIndices]
+      .map((chainIndex) => {
+        const chain = problem.chains[chainIndex];
+        const trainrunName = `${chain.trainrun.getCategoryShortName()} ${chain.trainrun.getTitle()}`.trim();
+        const route = chain.steps.length
+          ? [
+              chain.steps[0].fromNode.getBetriebspunktName(),
+              ...chain.steps.map((step) => step.toNode.getBetriebspunktName()),
+            ].join(" -> ")
+          : chain.key;
+        return `Zug ${trainrunName} (#${chain.trainrun.getId()}): ${route}`;
+      })
+      .join("; ");
   }
 
   private edgeId(firstNodeId: number, secondNodeId: number): string {

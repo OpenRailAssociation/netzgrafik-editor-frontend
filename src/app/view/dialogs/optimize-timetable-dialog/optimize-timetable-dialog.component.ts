@@ -52,10 +52,12 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   selectedSolution: OptimizeTimetableSolution = undefined;
   nodeGroups: NodeChangeGroup[] = [];
   selectedNodeId: number = undefined;
+  hoveredTrainrunId: number | null = null;
   occupancyBefore: KnotenAuslastungSnapshot = undefined;
   occupancyAfter: KnotenAuslastungSnapshot = undefined;
   private readonly baselineOccupancy = new Map<number, KnotenAuslastungSnapshot>();
   private readonly occupancyPreparation: KnotenAuslastungDataPreparation;
+  private storedPolicy: OptimizationPolicy;
 
   private previewSolution: OptimizeTimetableSolution = undefined;
   private committed = false;
@@ -77,6 +79,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     filterService: FilterService,
   ) {
     this.policy = this.optimizationPolicyService.policy;
+    this.storedPolicy = this.policy;
     this.occupancyPreparation = new KnotenAuslastungDataPreparation(
       trainrunService,
       resourceService,
@@ -108,6 +111,21 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
       .sort((a, b) => a.priority - b.priority);
   }
 
+  get hasUnstoredPolicyChanges(): boolean {
+    return (
+      this.policy.hardConstraints.length !== this.storedPolicy.hardConstraints.length ||
+      this.policy.hardConstraints.some((constraint) => {
+        const stored = this.storedPolicy.hardConstraints.find((item) => item.id === constraint.id);
+        return !stored || constraint.enabled !== stored.enabled || constraint.value !== stored.value;
+      }) ||
+      this.policy.objectives.length !== this.storedPolicy.objectives.length ||
+      this.policy.objectives.some((objective) => {
+        const stored = this.storedPolicy.objectives.find((item) => item.id === objective.id);
+        return !stored || objective.enabled !== stored.enabled || objective.priority !== stored.priority;
+      })
+    );
+  }
+
   onPolicyChange(policy: OptimizationPolicy): void {
     const hardRulesChanged = this.policy.hardConstraints.some((constraint) => {
       const next = policy.hardConstraints.find((item) => item.id === constraint.id);
@@ -130,6 +148,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
 
   storePolicy(): void {
     this.policy = this.optimizationPolicyService.storePolicy(this.policy);
+    this.storedPolicy = this.policy;
   }
 
   resetRanking(): void {
@@ -213,8 +232,8 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     this.undoService.pauseUndoRecording();
 
     const config = new SbbDialogConfig();
-    config.width = "1250px";
-    config.maxWidth = "95vw";
+    config.width = "1600px";
+    config.maxWidth = "98vw";
     config.maxHeight = "90vh";
     config.id = "OptimizeTimetableDialogId";
     this.dialogRef = this.dialog.open(this.optimizeTimetableDialogTemplate, config);
@@ -223,7 +242,13 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
 
   optimize() {
     this.seed = 1;
-    this.runOptimization(undefined);
+    for (let attempt = 0; attempt < 3; attempt++) {
+      this.runOptimization(undefined);
+      if (this.result.solutions.length > 0 || this.result.freeVariables === 0) {
+        break;
+      }
+      this.seed++;
+    }
   }
 
   /** Restarts the search from the selected proposal with a new seed. */
@@ -245,6 +270,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
 
   selectNode(nodeId: number) {
     this.selectedNodeId = nodeId;
+    this.hoveredTrainrunId = null;
     const node = nodeId === undefined ? undefined : this.nodeService.getNodeFromId(nodeId);
     if (this.selectedSolution === undefined || node === undefined) {
       this.occupancyBefore = undefined;
@@ -302,8 +328,68 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     }
   }
 
+  getFieldAbbreviationKey(change: TimeChange): string | undefined {
+    switch (change.field) {
+      case "sourceDeparture":
+      case "targetDeparture":
+        return "app.view.dialogs.optimize-timetable-dialog.field.departure-short";
+      case "sourceArrival":
+      case "targetArrival":
+        return "app.view.dialogs.optimize-timetable-dialog.field.arrival-short";
+      default:
+        return undefined;
+    }
+  }
+
+  getFieldNodeName(change: TimeChange): string {
+    switch (change.field) {
+      case "sourceDeparture":
+      case "sourceArrival":
+        return change.targetNodeName;
+      case "targetDeparture":
+      case "targetArrival":
+        return change.sourceNodeName;
+      default:
+        return "";
+    }
+  }
+
   getChangeMinute(change: TimeChange): string {
     return this.isTimeField(change) ? this.formatValue(((change.newValue % 60) + 60) % 60) : "";
+  }
+
+  getChangeDelta(change: TimeChange): number {
+    const difference = change.newValue - change.oldValue;
+    if (!this.isTimeField(change)) {
+      return difference;
+    }
+    const wrapped = ((difference % 60) + 60) % 60;
+    return wrapped > 30 ? wrapped - 60 : wrapped;
+  }
+
+  getTrainrunColor(trainrunId: number): string {
+    const colorRef = this.trainrunService.getTrainrunFromId(trainrunId)?.getCategoryColorRef();
+    return colorRef ? `var(--COLOR_VARIABLE_ColorRef_${colorRef}, currentColor)` : "currentColor";
+  }
+
+  highlightTrainrun(trainrunId: number, nodeId?: number): void {
+    if (nodeId !== undefined && nodeId !== this.selectedNodeId) {
+      return;
+    }
+    this.hoveredTrainrunId = trainrunId;
+  }
+
+  setTrainrunHighlight(trainrunId: number | null): void {
+    this.hoveredTrainrunId = trainrunId;
+  }
+
+  clearTrainrunHighlight(trainrunId: number, nodeId?: number): void {
+    if (
+      (nodeId === undefined || nodeId === this.selectedNodeId) &&
+      this.hoveredTrainrunId === trainrunId
+    ) {
+      this.hoveredTrainrunId = null;
+    }
   }
 
   formatValue(value: number): string {
@@ -357,6 +443,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
         seed: this.seed,
         startAssignment,
         policy: this.policy,
+        debugTrace: true,
       },
     );
     this.selectedSolution = undefined;

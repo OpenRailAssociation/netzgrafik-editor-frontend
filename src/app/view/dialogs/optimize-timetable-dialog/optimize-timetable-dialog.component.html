@@ -31,7 +31,12 @@
             <button sbb-secondary-button type="button" (click)="resetRanking()">
               {{ "app.view.dialogs.optimize-timetable-dialog.reset-ranking" | translate }}
             </button>
-            <button sbb-secondary-button type="button" (click)="storePolicy()">
+            <button
+              *ngIf="hasUnstoredPolicyChanges"
+              sbb-secondary-button
+              type="button"
+              (click)="storePolicy()"
+            >
               {{ "app.view.dialogs.optimize-timetable-dialog.store-policy" | translate }}
             </button>
           </div>
@@ -170,20 +175,64 @@
                     *ngFor="let group of nodeGroups"
                     class="node-group"
                     [class.selected]="group.nodeId === selectedNodeId"
+                    (mouseenter)="selectNode(group.nodeId)"
                   >
                     <div class="node-header" (click)="selectNode(group.nodeId)">
                       <span class="node-name">{{ group.nodeName }}</span>
                       <span class="node-count">{{ group.changes.length }}</span>
                     </div>
                     <table class="details">
+                      <colgroup>
+                        <col class="old-time-column" />
+                        <col class="time-arrow-column" />
+                        <col class="new-time-column" />
+                        <col class="delta-column" />
+                        <col class="trainrun-column" />
+                        <col class="direction-column" />
+                        <col class="node-column" />
+                      </colgroup>
                       <tbody>
-                        <tr *ngFor="let change of group.changes" (click)="selectNode(group.nodeId)">
-                          <td class="minute">{{ getChangeMinute(change) }}</td>
-                          <td>{{ change.trainrunName }}</td>
-                          <td>{{ getFieldLabel(change) }}</td>
-                          <td>
-                            {{ formatValue(change.oldValue) }} → {{ formatValue(change.newValue) }}
+                        <tr
+                          *ngFor="let change of group.changes"
+                          tabindex="0"
+                          [class.trainrun-highlighted]="
+                            group.nodeId === selectedNodeId && hoveredTrainrunId === change.trainrunId
+                          "
+                          (click)="selectNode(group.nodeId)"
+                          (mouseenter)="highlightTrainrun(change.trainrunId, group.nodeId)"
+                          (mouseleave)="clearTrainrunHighlight(change.trainrunId, group.nodeId)"
+                          (focus)="highlightTrainrun(change.trainrunId, group.nodeId)"
+                          (blur)="clearTrainrunHighlight(change.trainrunId, group.nodeId)"
+                        >
+                          <td class="old-time">
+                            {{ formatValue(change.oldValue) }}
                           </td>
+                          <td class="time-arrow">→</td>
+                          <td class="new-time">
+                            <strong>{{ formatValue(change.newValue) }}</strong>
+                          </td>
+                          <td
+                            class="change-delta"
+                            [class.earlier]="getChangeDelta(change) < 0"
+                            [class.later]="getChangeDelta(change) > 0"
+                          >
+                            ({{ formatSigned(getChangeDelta(change)) }} min)
+                          </td>
+                          <td class="trainrun-cell">
+                            <span
+                              class="trainrun-color"
+                              [style.backgroundColor]="getTrainrunColor(change.trainrunId)"
+                              aria-hidden="true"
+                            ></span>
+                            <span>{{ change.trainrunName }}</span>
+                          </td>
+                          <ng-container *ngIf="getFieldAbbreviationKey(change) as directionKey; else travelTimeLabel">
+                            <td class="change-direction">{{ directionKey | translate }}</td>
+                            <td class="change-node">{{ getFieldNodeName(change) }}</td>
+                          </ng-container>
+                          <ng-template #travelTimeLabel>
+                            <td class="change-field" colspan="2">{{ getFieldLabel(change) }}</td>
+                          </ng-template>
                         </tr>
                       </tbody>
                     </table>
@@ -203,6 +252,8 @@
                       </h4>
                       <sbb-knoten-auslastung-view
                         [snapshot]="occupancyBefore"
+                        [highlightedTrainrunId]="hoveredTrainrunId"
+                        (trainrunHoverChange)="setTrainrunHighlight($event)"
                         [hasExternalLabel]="true"
                       ></sbb-knoten-auslastung-view>
                     </div>
@@ -212,6 +263,8 @@
                       </h4>
                       <sbb-knoten-auslastung-view
                         [snapshot]="occupancyAfter"
+                        [highlightedTrainrunId]="hoveredTrainrunId"
+                        (trainrunHoverChange)="setTrainrunHighlight($event)"
                         [hasExternalLabel]="true"
                       ></sbb-knoten-auslastung-view>
                     </div>

@@ -35,6 +35,7 @@ export interface OptimizationPolicy {
 }
 
 export interface SolutionKpis {
+  objectiveScores?: Partial<Record<ObjectiveId, number>>;
   changedChains: number;
   totalDeltaMinutes: number;
   travelTimeExtensionMinutes: number;
