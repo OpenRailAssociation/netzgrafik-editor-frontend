@@ -47,6 +47,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
 
   policy: OptimizationPolicy = createDefaultOptimizationPolicy();
   selectedNodeCount = 0;
+  scopeUsesSelectedTrainrun = false;
   result: OptimizeTimetableResult = undefined;
   selectedSolution: OptimizeTimetableSolution = undefined;
   nodeGroups: NodeChangeGroup[] = [];
@@ -59,6 +60,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   private storedPolicy: OptimizationPolicy;
 
   private previewSolution: OptimizeTimetableSolution = undefined;
+  private scopeNodeIds: number[] = [];
   private committed = false;
   private seed = 1;
   private dialogRef: SbbDialogRef<void, unknown> = undefined;
@@ -106,6 +108,10 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
 
   get maxTracks(): number {
     return this.policy.hardConstraints.find((constraint) => constraint.id === "trackLimit")?.value ?? 2;
+  }
+
+  get trackLimitEnabled(): boolean {
+    return this.policy.hardConstraints.find((constraint) => constraint.id === "trackLimit")?.enabled ?? false;
   }
 
   get enabledObjectives() {
@@ -169,7 +175,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     this.revertPreview();
     const options = {
       maxTracksPerSection: this.maxTracks,
-      selectedNodeIds: this.nodeService.getSelectedNodes().map((node) => node.getId()),
+      selectedNodeIds: this.scopeNodeIds,
       policy: this.policy,
     };
     this.result.baselineKpi.edgesOverLimitBefore = this.result.baselineEdges.filter(
@@ -226,7 +232,15 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     this.previewSolution = undefined;
     this.committed = false;
     this.seed = 1;
-    this.selectedNodeCount = this.nodeService.getSelectedNodes().length;
+    const selectedTrainrun = this.trainrunService.getSelectedTrainrun();
+    const trainrunNodeIds = selectedTrainrun
+      ? this.getTrainrunNodeIds(selectedTrainrun.getId())
+      : [];
+    this.scopeUsesSelectedTrainrun = trainrunNodeIds.length > 0;
+    this.scopeNodeIds = this.scopeUsesSelectedTrainrun
+      ? trainrunNodeIds
+      : this.nodeService.getSelectedNodes().map((node) => node.getId());
+    this.selectedNodeCount = this.scopeNodeIds.length;
     this.undoService.pauseUndoRecording();
 
     const config = new SbbDialogConfig();
@@ -437,7 +451,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
       this.trainrunSectionService.getTrainrunSections(),
       {
         maxTracksPerSection: this.maxTracks,
-        selectedNodeIds: this.nodeService.getSelectedNodes().map((n) => n.getId()),
+        selectedNodeIds: this.scopeNodeIds,
         seed: this.seed,
         startAssignment,
         policy: this.policy,
@@ -463,6 +477,23 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     if (this.result.solutions.length > 0) {
       this.selectSolution(this.result.solutions[0]);
     }
+  }
+
+  private getTrainrunNodeIds(trainrunId: number): number[] {
+    const nodeIds = new Set<number>();
+    this.trainrunSectionService
+      .getAllTrainrunSectionsForTrainrun(trainrunId)
+      .forEach((section) => {
+        const sourceNode = section.getSourceNode();
+        const targetNode = section.getTargetNode();
+        if (sourceNode !== undefined) {
+          nodeIds.add(sourceNode.getId());
+        }
+        if (targetNode !== undefined) {
+          nodeIds.add(targetNode.getId());
+        }
+      });
+    return [...nodeIds];
   }
 
   /** Shows a proposal in the Netzgrafik (reverted on cancel). */

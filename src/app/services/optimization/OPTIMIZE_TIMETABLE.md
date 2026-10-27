@@ -34,15 +34,20 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 
 ### 2.2 Optimierungsbereich (Multi-Selektion)
 
+- Ist ein **Zuglauf ausgewählt**, werden alle Quell- und Zielknoten seiner Abschnitte als
+  Optimierungsbereich verwendet. Dieser Zuglaufscope hat Vorrang vor einer Knotenauswahl.
 - Knoten können mit der **rechten Maustaste** (Rechteck aufziehen) mehrfach markiert werden
   (`NodeService.getSelectedNodes()`).
-- **Keine Knoten markiert** → das ganze Netz wird optimiert.
-- **Knoten markiert** → nur das Teilnetz wird optimiert:
+- **Kein Zuglauf und keine Knoten markiert** → das ganze Netz wird optimiert.
+- **Kein Zuglauf, aber Knoten markiert** → nur das Teilnetz wird optimiert:
   - **Innere Knoten**: markierte Knoten – dort dürfen Zeiten/Halte geändert werden.
   - **Innere Kanten**: beide Endknoten markiert – dürfen verschoben werden.
   - **Randkanten**: nur ein Endknoten markiert – Zeiten sind **fix** (wie Locks).
   - Alles ausserhalb bleibt unverändert.
-- Die Selektion wird beim Start gelesen und als Liste von Knoten-IDs an den Service übergeben.
+- Der Scope bleibt knotengestützt: Zugläufe, deren Ketten vollständig innerhalb des Bereichs liegen,
+  können ebenfalls angepasst werden.
+- Die Auswahl wird beim Öffnen des Dialogs gelesen und als Liste von Knoten-IDs an den Service
+  übergeben.
 
 ### 2.3 Resultat-Dialog
 
@@ -56,7 +61,8 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 - Buttons:
   - **Übernehmen** – lädt die gewählte Lösung definitiv (erst nachdem der User die
     Änderungen gesehen/verstanden hat).
-  - **Weiterrechnen** – startet einen weiteren Lauf (0.25 s) und ergänzt die Vorschläge.
+  - **Weiterrechnen** – startet mit einem neuen Seed einen weiteren Lauf (1 s). Eine ausgewählte
+    Lösung dient als Startpunkt; die Vorschläge des neuen Laufs ersetzen die bisherigen.
   - **Abbrechen** – stellt die Ausgangslage exakt wieder her.
 - Wird keine gültige Lösung gefunden, wird dies angezeigt (inkl. Kanten mit Überschreitung);
   **Übernehmen** ist dann deaktiviert.
@@ -114,8 +120,10 @@ Haltezeiten. Ist sie deaktiviert, bleiben Abschnittsfahrzeiten unverändert.
 
 ## 5. Zeitbudget
 
-- Ein Lauf rechnet maximal **0.25 s** und liefert die besten bis dahin gefundenen Lösungen.
-- Mit **Weiterrechnen** kann der User erneut 0.25 s starten (ausgehend von den bisherigen Lösungen).
+- Ein Lauf rechnet standardmässig maximal **1 s** und liefert die besten bis dahin gefundenen
+  Lösungen.
+- Mit **Weiterrechnen** kann der User einen weiteren Lauf mit neuem Seed und erneut bis zu **1 s**
+  starten.
 
 ## 6. Resultat / KPIs
 
@@ -252,6 +260,9 @@ Zeitbedingungen, ist aber weder ein reines PESP-Benchmarkproblem noch MAPF auf e
 
 ### 8.2 Bewertete Verfahren
 
+Die Tempoangaben der folgenden Verfahrensbewertung beziehen sich auf die ursprüngliche
+Benchmarkbasis von 0.25 s und nicht auf das aktuelle Standardbudget.
+
 | Verfahren                                                               | Qualität                          | Tempo (0.25 s)                       | Eignung                  |
 | ----------------------------------------------------------------------- | --------------------------------- | ------------------------------------ | ------------------------ |
 | **Min-Conflicts + Tabu Search**                                         | gut für Gültigkeit (H1)           | sehr schnell, inkrementell           | ✅ Phase 1               |
@@ -289,7 +300,7 @@ eine periodische Netzgrafik-Fahrplanoptimierung auf bestehenden nativen Objekten
 - Cache pro Kante (Key: Startzeiten der Züge auf der Kante), inkrementelle Neubewertung und
   Prioritätsheap für aktive Konflikte.
 - Vollständige Validatoren nur auf den Endlösungen.
-- Früh messen: Anzahl Kanten-Bewertungen pro 0.25 s; falls nötig schneller Vorfilter
+- Früh messen: Anzahl Kanten-Bewertungen pro 1 s; falls nötig schneller Vorfilter
   (Überlappungszählung auf Minutenbasis), Bestätigung durch den Infrastruktur-Schätzer.
 
 ## 9. Später / offen

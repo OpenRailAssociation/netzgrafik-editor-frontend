@@ -38,14 +38,22 @@
             </ol>
           </div>
           <div class="scope">
-            <ng-container *ngIf="selectedNodeCount > 0; else wholeNetwork">
+            <ng-container *ngIf="scopeUsesSelectedTrainrun; else nodeSelectionScope">
               {{
-                "app.view.dialogs.optimize-timetable-dialog.scope-selection"
+                "app.view.dialogs.optimize-timetable-dialog.scope-trainrun"
                   | translate: {count: selectedNodeCount.toString()}
               }}
             </ng-container>
-            <ng-template #wholeNetwork>
-              {{ "app.view.dialogs.optimize-timetable-dialog.scope-all" | translate }}
+            <ng-template #nodeSelectionScope>
+              <ng-container *ngIf="selectedNodeCount > 0; else wholeNetwork">
+                {{
+                  "app.view.dialogs.optimize-timetable-dialog.scope-selection"
+                    | translate: {count: selectedNodeCount.toString()}
+                }}
+              </ng-container>
+              <ng-template #wholeNetwork>
+                {{ "app.view.dialogs.optimize-timetable-dialog.scope-all" | translate }}
+              </ng-template>
             </ng-template>
           </div>
 
@@ -194,7 +202,7 @@
                 <tbody>
                   <tr
                     *ngFor="let edge of selectedSolution.edges"
-                    [class.over-limit]="edge.tracksAfter > maxTracks"
+                    [class.over-limit]="trackLimitEnabled && edge.tracksAfter > maxTracks"
                   >
                     <td>{{ edge.fromNodeName }} – {{ edge.toNodeName }}</td>
                     <td>{{ edge.tracksBefore }} → {{ edge.tracksAfter }}</td>

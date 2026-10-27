@@ -126,7 +126,7 @@
       },
       "optimization": {
         "no-free-variables": "Keine Zeiten verschiebbar (Schlösser, Selektion oder keine Züge).",
-        "no-solution": "Keine bessere Lösung gefunden. Neu starten, um weiterzurechnen.",
+        "no-solution": "Keine bessere Lösung gefunden. Du kannst erneut optimieren oder weiterrechnen.",
         "proposal": {
           "balanced": "Ausgewogen",
           "minimal-change": "Minimale Änderung",
@@ -374,6 +374,7 @@
           "max-tracks": "Max. Gleise pro Abschnitt",
           "optimize": "Optimieren",
           "scope-selection": "Nur {$count} selektierte Knoten werden optimiert, Zeiten an den Rändern bleiben fix.",
+          "scope-trainrun": "Alle {$count} Knoten des ausgewählten Zuglaufs werden optimiert, Zeiten an den Rändern bleiben fix.",
           "scope-all": "Ganze Netzgrafik wird optimiert (keine Knoten selektiert).",
           "search-info": "{$iterations} Iterationen in {$runtime} ms, {$over} Abschnitte über Limit vor der Optimierung.",
           "variable-breakdown": "Freie Variablen: {$variables} ({$shifts} Zeitverschiebungen, {$freeRuntimes} freie Abschnittsfahrzeiten).",

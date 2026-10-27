@@ -126,7 +126,7 @@
       },
       "optimization": {
         "no-free-variables": "No times can be shifted (locks, selection or no trainruns).",
-        "no-solution": "No better solution found. Restart to continue the search.",
+        "no-solution": "No better solution found. You can optimize again or continue searching.",
         "proposal": {
           "balanced": "Balanced",
           "minimal-change": "Minimal change",
@@ -374,6 +374,7 @@
           "max-tracks": "Max. tracks per section",
           "optimize": "Optimize",
           "scope-selection": "Only the {$count} selected nodes are optimized, times at the boundary stay fixed.",
+          "scope-trainrun": "All {$count} nodes of the selected trainrun are optimized, times at the boundary stay fixed.",
           "scope-all": "The whole Netzgrafik is optimized (no nodes selected).",
           "search-info": "{$iterations} iterations in {$runtime} ms, {$over} sections over the limit before optimization.",
           "variable-breakdown": "Free variables: {$variables} ({$shifts} time shifts, {$freeRuntimes} free section travel times).",

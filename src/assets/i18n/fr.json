@@ -126,7 +126,7 @@
       },
       "optimization": {
         "no-free-variables": "Aucun horaire ne peut être décalé (verrous, sélection ou aucun train).",
-        "no-solution": "Aucune meilleure solution trouvée. Relancer pour continuer la recherche.",
+        "no-solution": "Aucune meilleure solution trouvée. Vous pouvez relancer l'optimisation ou poursuivre la recherche.",
         "proposal": {
           "balanced": "Équilibrée",
           "minimal-change": "Changement minimal",
@@ -374,6 +374,7 @@
           "max-tracks": "Voies max. par tronçon",
           "optimize": "Optimiser",
           "scope-selection": "Seuls les {$count} nœuds sélectionnés sont optimisés, les horaires aux bords restent fixes.",
+          "scope-trainrun": "Les {$count} nœuds du train sélectionné sont optimisés, les horaires aux limites restent fixes.",
           "scope-all": "Toute la Netzgrafik est optimisée (aucun nœud sélectionné).",
           "search-info": "{$iterations} itérations en {$runtime} ms, {$over} tronçons au-dessus de la limite avant l'optimisation.",
           "variable-breakdown": "Variables libres : {$variables} ({$shifts} décalages horaires, {$freeRuntimes} durées de tronçon libres).",
