@@ -9,7 +9,7 @@
       class="director-rule"
       *ngFor="let constraint of policy.hardConstraints"
       [class.has-value]="
-        constraint.id === 'trackLimit' ||
+        (constraint.id === 'trackLimit' && constraint.enabled) ||
         (constraint.id === 'maxTravelTimeExtension' && constraint.enabled)
       "
     >
@@ -24,7 +24,7 @@
       </sbb-checkbox>
       <sbb-time-stepper
         *ngIf="
-          constraint.id === 'trackLimit' ||
+          (constraint.id === 'trackLimit' && constraint.enabled) ||
           (constraint.id === 'maxTravelTimeExtension' && constraint.enabled)
         "
         [containerClass]="'constraint-stepper'"

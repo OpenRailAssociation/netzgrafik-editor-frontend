@@ -6,7 +6,7 @@ export interface OptimizeTimetableOptions {
   maxTracksPerSection: number;
   /** Selected node ids. Empty => whole network is optimized. */
   selectedNodeIds?: number[];
-  /** Search time budget in milliseconds (default 250). */
+  /** Search time budget in milliseconds (default 1000). */
   timeBudgetMs?: number;
   /** Random seed – a different seed lets the user continue with another search path. */
   seed?: number;

@@ -25,7 +25,7 @@ import {
 import {createDefaultOptimizationPolicy, ObjectiveId} from "./optimization-policy.model";
 import {compareSolutions} from "./optimization-solution-comparator";
 
-const DEFAULT_TIME_BUDGET_MS = 250;
+const DEFAULT_TIME_BUDGET_MS = 1000;
 const DEFAULT_CONNECTION_TOLERANCE = 2;
 const DEFAULT_OPTIONAL_WINDOW = 5;
 const DEFAULT_MAX_PROPOSALS = 4;

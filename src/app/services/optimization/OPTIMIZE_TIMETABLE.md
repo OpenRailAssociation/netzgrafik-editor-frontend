@@ -203,7 +203,7 @@ optimize(
 interface OptimizeTimetableOptions {
   maxTracksPerSection: number;
   selectedNodeIds?: number[]; // leer = ganzes Netz
-  timeBudgetMs?: number; // default 250
+  timeBudgetMs?: number; // default 1000
   previousSolutions?: OptimizeTimetableSolution[]; // für "Weiterrechnen"
   // später: allowTravelTimeChanges
 }
