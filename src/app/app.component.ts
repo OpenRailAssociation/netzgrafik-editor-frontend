@@ -1,4 +1,4 @@
-import {Component, Input, Output, OnInit, ChangeDetectionStrategy} from "@angular/core";
+import {Component, Input, Output, OnInit, ChangeDetectionStrategy, ElementRef} from "@angular/core";
 import {AuthService} from "./services/auth/auth.service";
 import {TrainrunService} from "./services/data/trainrun.service";
 import {TrainrunSectionService} from "./services/data/trainrunsection.service";
@@ -34,7 +34,6 @@ export class AppComponent implements OnInit {
   protected currentLanguage: string = this.i18nService.language;
   private netzgrafikDtoIsSet = false;
   private initialized = false;
-  private pendingNotes: FreeFloatingTextDto[] | undefined;
 
   projectInMenu: Observable<ProjectDto | null>;
 
@@ -65,10 +64,18 @@ export class AppComponent implements OnInit {
     private noteService: NoteService,
     private filterService: FilterService,
     private autoLayoutService: AutoLayoutService,
+    elementRef: ElementRef<HTMLElement>,
   ) {
     if (!this.disableBackend) {
       this.authenticated = authService.initialized;
     }
+    // Angular Elements only maps inputs and outputs: expose the note methods
+    // on the host element so the embedding application can call them.
+    Object.assign(elementRef.nativeElement, {
+      createNote: this.createNote.bind(this),
+      updateNote: this.updateNote.bind(this),
+      deleteNote: this.deleteNote.bind(this),
+    });
   }
 
   ngOnInit() {
@@ -76,10 +83,6 @@ export class AppComponent implements OnInit {
       this.netzgrafikDto = NetzgrafikDefault.getDefaultNetzgrafik();
     }
     this.initialized = true;
-    if (this.pendingNotes !== undefined) {
-      this.noteService.syncNotes(this.pendingNotes);
-      this.pendingNotes = undefined;
-    }
   }
 
   logout() {
@@ -125,16 +128,26 @@ export class AppComponent implements OnInit {
     }
   }
 
-  @Input()
-  get notes(): FreeFloatingTextDto[] {
-    return this.noteService.getDtos();
+  // The note methods apply a change made by an external source and don't emit operations.
+  createNote(note: FreeFloatingTextDto) {
+    this.ensureInitialized();
+    this.noteService.syncCreatedNote(note);
   }
 
-  set notes(notes: FreeFloatingTextDto[]) {
-    if (this.initialized) {
-      this.noteService.syncNotes(notes);
-    } else {
-      this.pendingNotes = notes;
+  updateNote(note: FreeFloatingTextDto) {
+    this.ensureInitialized();
+    this.noteService.syncUpdatedNote(note);
+  }
+
+  deleteNote(noteId: number) {
+    this.ensureInitialized();
+    this.noteService.syncDeletedNote(noteId);
+    this.uiInteractionService.closeNoteDialog(noteId);
+  }
+
+  private ensureInitialized() {
+    if (!this.initialized) {
+      throw new Error("Notes can only be updated once the editor is initialized");
     }
   }
 

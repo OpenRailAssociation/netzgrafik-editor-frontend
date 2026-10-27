@@ -74,10 +74,36 @@ describe("NodeService Test", () => {
     expect(note.getDto().id).toBe(3);
   });
 
-  it("syncNotes updates existing notes, adds and removes notes without emitting operations", () => {
+  it("syncCreatedNote adds a note without emitting operations", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const existingNote = noteService.getNoteFromId(3);
-    const removedNote = noteService.addNote(new Vec2D(0, 0), "Removed", "Removed");
+    const notesBefore = [...noteService.getNotes()];
+    const addedDto = {...existingNote.getDto(), id: 42, labelIds: [4]};
+    const operationSpy = spyOn(noteService.operation, "emit");
+    let latestNotes: Note[];
+    noteService.notes.subscribe((updatedNotes) => (latestNotes = updatedNotes));
+
+    noteService.syncCreatedNote(addedDto);
+
+    const addedNote = noteService.getNoteFromId(42);
+    expect(addedNote.getDto()).toEqual(addedDto);
+    expect(noteService.getNotes()).toEqual([...notesBefore, addedNote]);
+    expect(noteService.getNoteFromId(3)).toBe(existingNote);
+    expect(latestNotes).toEqual(noteService.getNotes());
+    expect(operationSpy).not.toHaveBeenCalled();
+
+    addedDto.labelIds.push(5);
+    expect(addedNote.getLabelIds()).toEqual([4]);
+    expect(() => noteService.syncCreatedNote(addedDto)).toThrowError();
+  });
+
+  it("syncUpdatedNote only updates the targeted note without emitting operations", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const existingNote = noteService.getNoteFromId(3);
+    const otherNote = noteService.addNote(new Vec2D(0, 0), "Other", "Other");
+    const otherDto = otherNote.getDto();
+    noteService.selectNote(otherNote.getId());
+    noteService.selectNote(existingNote.getId());
 
     const updatedDto = {
       ...existingNote.getDto(),
@@ -91,33 +117,45 @@ describe("NodeService Test", () => {
       textColor: "#abcdef",
       labelIds: [4, 5],
     };
-    const addedDto = {...existingNote.getDto(), id: removedNote.getId() + 1};
     const operationSpy = spyOn(noteService.operation, "emit");
     let latestNotes: Note[];
     noteService.notes.subscribe((updatedNotes) => (latestNotes = updatedNotes));
 
-    noteService.syncNotes([updatedDto, addedDto]);
+    noteService.syncUpdatedNote(updatedDto);
 
     expect(noteService.getNoteFromId(3)).toBe(existingNote);
-    expect(noteService.getNotes().map((note) => note.getId())).toEqual([
-      existingNote.getId(),
-      addedDto.id,
-    ]);
     expect(existingNote.getDto()).toEqual(updatedDto);
-    expect(noteService.getNoteFromId(addedDto.id)).toBeDefined();
+    expect(existingNote.selected()).toBeTrue();
+    expect(otherNote.getDto()).toEqual(otherDto);
+    expect(otherNote.selected()).toBeTrue();
     expect(latestNotes).toEqual(noteService.getNotes());
     expect(operationSpy).not.toHaveBeenCalled();
 
-    const addedLabelIds = [...addedDto.labelIds];
     updatedDto.labelIds.push(6);
-    addedDto.labelIds.push(7);
     expect(existingNote.getLabelIds()).toEqual([4, 5]);
-    expect(noteService.getNoteFromId(addedDto.id).getLabelIds()).toEqual(addedLabelIds);
+    expect(() => noteService.syncUpdatedNote({...updatedDto, id: 42})).toThrowError();
   });
 
-  it("deleteNote and setLabels ignore a note removed by syncNotes", () => {
+  it("syncDeletedNote only removes the targeted note without emitting operations", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    noteService.syncNotes([]);
+    const deletedNote = noteService.getNoteFromId(3);
+    const otherNote = noteService.addNote(new Vec2D(0, 0), "Other", "Other");
+    noteService.selectNote(deletedNote.getId());
+    noteService.selectNote(otherNote.getId());
+    const operationSpy = spyOn(noteService.operation, "emit");
+
+    noteService.syncDeletedNote(3);
+
+    expect(noteService.getNoteFromId(3)).toBeUndefined();
+    expect(deletedNote.selected()).toBeFalse();
+    expect(noteService.getSelectedNotes()).toEqual([otherNote]);
+    expect(operationSpy).not.toHaveBeenCalled();
+    expect(() => noteService.syncDeletedNote(3)).toThrowError();
+  });
+
+  it("deleteNote and setLabels ignore a note removed by syncDeletedNote", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    noteService.syncDeletedNote(3);
     const operationSpy = spyOn(noteService.operation, "emit");
 
     expect(() => noteService.deleteNote(3)).not.toThrow();

@@ -33,24 +33,39 @@ export class NoteService {
     this.notesStore.notes = notesDto.map((noteDto) => new Note(noteDto));
   }
 
-  // Merges by ID, in place and without emitting operations.
-  syncNotes(notesDto: FreeFloatingTextDto[]) {
-    const existingNotes = new Map(this.notesStore.notes.map((n) => [n.getId(), n]));
-    this.notesStore.notes = notesDto.map((dto) => {
-      const note = existingNotes.get(dto.id);
-      if (note === undefined) {
-        return new Note({...dto, labelIds: [...dto.labelIds]});
-      }
-      note.setPosition(dto.x, dto.y);
-      note.setWidth(dto.width);
-      note.setHeight(dto.height);
-      note.setTitle(dto.title);
-      note.setText(dto.text);
-      note.setBackgroundColor(dto.backgroundColor);
-      note.setTextColor(dto.textColor);
-      note.setLabelIds([...dto.labelIds]);
-      return note;
-    });
+  // The syncXxxNote methods apply changes made by an external source: they
+  // only touch the targeted note and don't emit operations.
+  syncCreatedNote(noteDto: FreeFloatingTextDto) {
+    if (this.getNoteFromId(noteDto.id) !== undefined) {
+      throw new Error(`Note with id ${noteDto.id} already exists`);
+    }
+    this.notesStore.notes.push(new Note({...noteDto, labelIds: [...noteDto.labelIds]}));
+    this.notesUpdated();
+  }
+
+  syncUpdatedNote(noteDto: FreeFloatingTextDto) {
+    const note = this.getNoteFromId(noteDto.id);
+    if (note === undefined) {
+      throw new Error(`Note with id ${noteDto.id} not found`);
+    }
+    note.setPosition(noteDto.x, noteDto.y);
+    note.setWidth(noteDto.width);
+    note.setHeight(noteDto.height);
+    note.setTitle(noteDto.title);
+    note.setText(noteDto.text);
+    note.setBackgroundColor(noteDto.backgroundColor);
+    note.setTextColor(noteDto.textColor);
+    note.setLabelIds([...noteDto.labelIds]);
+    this.notesUpdated();
+  }
+
+  syncDeletedNote(noteId: number) {
+    const note = this.getNoteFromId(noteId);
+    if (note === undefined) {
+      throw new Error(`Note with id ${noteId} not found`);
+    }
+    note.unselect();
+    this.notesStore.notes = this.notesStore.notes.filter((n: Note) => n !== note);
     this.notesUpdated();
   }
 
