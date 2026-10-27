@@ -77,7 +77,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     private readonly optimizationPolicyService: OptimizationPolicyService,
     resourceService: ResourceService,
     infrastructureEstimatorService: InfrastructureEstimatorService,
-    filterService: FilterService,
+    private readonly filterService: FilterService,
   ) {
     this.policy = this.optimizationPolicyService.policy;
     this.storedPolicy = this.policy;
@@ -201,8 +201,8 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
       solution.kpi.edgesOverLimitAfter = Math.max(0, afterOver);
       solution.valid = this.optimizeTimetableService.isSolutionValid(
         solution,
-        this.nodeService.getNodes(),
-        this.trainrunSectionService.getTrainrunSections(),
+        this.getVisibleNodes(),
+        this.getVisibleTrainrunSections(),
         options,
         this.result.baselineEdges,
       );
@@ -239,7 +239,10 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     this.scopeUsesSelectedTrainrun = trainrunNodeIds.length > 0;
     this.scopeNodeIds = this.scopeUsesSelectedTrainrun
       ? trainrunNodeIds
-      : this.nodeService.getSelectedNodes().map((node) => node.getId());
+      : this.nodeService
+          .getSelectedNodes()
+          .filter((node) => this.filterService.filterNode(node))
+          .map((node) => node.getId());
     this.selectedNodeCount = this.scopeNodeIds.length;
     this.undoService.pauseUndoRecording();
 
@@ -447,8 +450,8 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   private runOptimization(startAssignment: Record<string, number>) {
     this.revertPreview();
     this.result = this.optimizeTimetableService.optimize(
-      this.nodeService.getNodes(),
-      this.trainrunSectionService.getTrainrunSections(),
+      this.getVisibleNodes(),
+      this.getVisibleTrainrunSections(),
       {
         maxTracksPerSection: this.maxTracks,
         selectedNodeIds: this.scopeNodeIds,
@@ -481,8 +484,8 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
 
   private getTrainrunNodeIds(trainrunId: number): number[] {
     const nodeIds = new Set<number>();
-    this.trainrunSectionService
-      .getAllTrainrunSectionsForTrainrun(trainrunId)
+    this.getVisibleTrainrunSections()
+      .filter((section) => section.getTrainrunId() === trainrunId)
       .forEach((section) => {
         const sourceNode = section.getSourceNode();
         const targetNode = section.getTargetNode();
@@ -494,6 +497,16 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
         }
       });
     return [...nodeIds];
+  }
+
+  private getVisibleNodes() {
+    return this.nodeService.getNodes().filter((node) => this.filterService.filterNode(node));
+  }
+
+  private getVisibleTrainrunSections() {
+    return this.trainrunSectionService
+      .getTrainrunSections()
+      .filter((section) => this.filterService.filterTrainrunsection(section));
   }
 
   /** Shows a proposal in the Netzgrafik (reverted on cancel). */

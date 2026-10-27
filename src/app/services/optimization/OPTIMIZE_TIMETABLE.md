@@ -38,7 +38,9 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
   Optimierungsbereich verwendet. Dieser Zuglaufscope hat Vorrang vor einer Knotenauswahl.
 - Knoten können mit der **rechten Maustaste** (Rechteck aufziehen) mehrfach markiert werden
   (`NodeService.getSelectedNodes()`).
-- **Kein Zuglauf und keine Knoten markiert** → das ganze Netz wird optimiert.
+- Die aktiven Editorfilter gelten für Knoten und Zugabschnitte; ausgeblendete Elemente werden
+  nicht an den Optimierer übergeben.
+- **Kein Zuglauf und keine Knoten markiert** → der gesamte sichtbare Bereich wird optimiert.
 - **Kein Zuglauf, aber Knoten markiert** → nur das Teilnetz wird optimiert:
   - **Innere Knoten**: markierte Knoten – dort dürfen Zeiten/Halte geändert werden.
   - **Innere Kanten**: beide Endknoten markiert – dürfen verschoben werden.
