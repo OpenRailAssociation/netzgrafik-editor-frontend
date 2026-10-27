@@ -1168,21 +1168,16 @@ export class TrainrunSectionsView {
   ) {
     (["BEGINNING", "ENDING"] as const).forEach((arrowLocation) => {
       groupLinesEnter
-        .append(StaticDomTags.EDGE_LINE_ARROW_SVG)
-        .attr("d", (d: TrainrunSectionViewObject) => {
+        .filter((d: TrainrunSectionViewObject) => {
           if (!d.trainrunSection.getTrainrun().isRoundTrip()) {
-            return "";
+            return false;
           }
-          if (arrowLocation === "BEGINNING") {
-            return d.trainrunSection.isSourceSymmetricOrTimesSymmetric()
-              ? ""
-              : "M-1,-6 V0 H-8 L1,6 V0 H8 Z";
-          } else {
-            return d.trainrunSection.isTargetSymmetricOrTimesSymmetric()
-              ? ""
-              : "M-1,-6 V0 H-8 L1,6 V0 H8 Z";
-          }
+          return arrowLocation === "BEGINNING"
+            ? !d.trainrunSection.isSourceSymmetricOrTimesSymmetric()
+            : !d.trainrunSection.isTargetSymmetricOrTimesSymmetric();
         })
+        .append(StaticDomTags.EDGE_LINE_ARROW_SVG)
+        .attr("d", "M-1,-6 V0 H-8 L1,6 V0 H8 Z")
         .attr("transform", (d: TrainrunSectionViewObject) =>
           this.translateAndRotateArrow(d.trainrunSection, arrowLocation, "SYMMETRY"),
         )
