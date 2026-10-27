@@ -53,6 +53,8 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 
 ### 2.3 Resultat-Dialog
 
+- Beim Öffnen des Dialogs ist die kompakte, scrollbar begrenzte **Streckengleis-Übersicht (IST)**
+  ausgeklappt. Sie zeigt die geschätzte Gleiszahl und Topologie der sichtbaren Abschnitte.
 - Liste von **Lösungsvorschlägen** mit KPIs (siehe §6), inkl. **Ausgangslage** als Referenz.
 - Die **Ausgangslage (Baseline)** ist der Fahrplan vor der Suche. Alle Änderungen und Deltas der
   Vorschläge beziehen sich auf diesen Zustand; er bleibt im Dialog als Vergleich und Vorschau
@@ -60,6 +62,8 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 - User kann zwischen den Lösungen **umschalten**; die gewählte Lösung wird als **Vorschau**
   in der Netzgrafik angezeigt (Ausgangslage jederzeit wieder wählbar).
 - Detailansicht der gewählten Lösung: **was** wurde **wo** geändert (siehe §6.2).
+- Nach dem Optimierungslauf wird **Result** ausgeklappt und die Streckengleis-Übersicht eingeklappt.
+  Die Panels sind gegenseitig exklusiv; beide bleiben über ihren Header erreichbar.
 - Buttons:
   - **Übernehmen** – lädt die gewählte Lösung definitiv (erst nachdem der User die
     Änderungen gesehen/verstanden hat).
@@ -141,11 +145,16 @@ Haltezeiten. Ist sie deaktiviert, bleiben Abschnittsfahrzeiten unverändert.
 
 ### 6.2 Details pro Lösung
 
-- **Kanten**: Gleise vorher → nachher (z.B. „B–C: 3 → 2 ✅“).
+- **Abschnitte mit Fahrplanänderung**: fünf Spalten – Abschnitt, maximale Gleise vorher,
+  Topologie vorher, maximale Gleise nachher und Topologie nachher. Die Topologien beruhen auf den
+  geschätzten Teilsegmenten der jeweiligen Ausgangslage bzw. ausgewählten Lösung. Angezeigt werden
+  nur Abschnitte mit Fahrplanänderungen; deshalb kann die Gleiszahl gleich bleiben (z.B. `2 → 2`).
+  Bei aktivem Gleislimit sind überzählige Gleise und Zahlen rot markiert.
 - **Zugläufe**: Gesamtfahrzeit vorher → nachher.
 - **Zeitänderungen**: pro Zuglauf / Knoten / Richtung, alt → neu (inkl. Symmetriezeit, Rundungen markiert).
 - **Anschlüsse**: verloren / gewonnen pro Knoten.
-- **Info**: Knotengleise vorher → nachher (`estimateNodeTracks`, keine harte Regel).
+- **Knotenanalyse**: Änderungen je Knoten; der Auslastungsanzeiger vergleicht **Vorher** und
+  **Nachher** (`estimateNodeTracks`, keine harte Regel).
 
 ### 6.3 Baseline und KPIs lesen
 

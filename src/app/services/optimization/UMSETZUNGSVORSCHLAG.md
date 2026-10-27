@@ -71,7 +71,7 @@ KeyQ ──► UiInteractionService.showOptimizeTimetableDialog()
           ▼
 OptimizeTimetableDialog
   ├─ liest: NodeService.getNodes(), getSelectedNodes(), TrainrunSectionService.getTrainrunSections()
-  ├─ ruft:  OptimizeTimetableService.optimize(nodes, sections, options)   // ≤ 250 ms
+  ├─ ruft:  OptimizeTimetableService.optimize(nodes, sections, options)   // Suchbudget default: 1000 ms
   ├─ zeigt: Vorschläge + KPIs + Details
   ├─ Vorschau:   Patch anwenden → propagateInitialConsecutiveTimes → triggerViewUpdate
   ├─ Abbrechen:  Patch zurücksetzen (exakter Originalzustand)
@@ -126,7 +126,7 @@ OptimizeTimetableDialog
   Baseline, nicht die Dauer eines einzelnen Halts.
 - **Rücksetzen**: nach jeder Kandidaten-Bewertung bzw. spätestens im `finally`.
 
-### 4.3 Suche (≤ 250 ms)
+### 4.3 Suche (Standardbudget: 1 s)
 
 1. **Vorbereitung und Konfliktwert**: Ketten/Δ bleiben die Move-Repräsentation. Konflikt-zu-Kette,
    Kette-zu-Strecke/Knoten/Anschluss und Nachbarschaftsindizes werden einmalig aufgebaut. Der exakte
@@ -179,7 +179,9 @@ OptimizeTimetableDialog
 
 `estimateSectionTracks` rechnet eine Zeit/Distanz-Matrix (Auflösung 15) – pro Aufruf teuer.
 
-- **Schritt 0 der Umsetzung**: Benchmark (Aufrufe pro 250 ms auf einer realen Netzgrafik).
+- **Historischer Benchmark**: Die erste Messbasis nutzte 250 ms. Der aktuelle Service verwendet
+  standardmässig 1000 ms Suchbudget; Vorbereitungs- und exakte Prüfschritte kommen zur Laufzeit
+  des gesamten Aufrufs hinzu.
 - Falls zu langsam: schneller **Vorfilter** in der Suche (Überlappung der Belegungsbänder auf
   Minutenbasis inkl. Headway), exakter Schätzer nur bei Kandidaten, die den Vorfilter bestehen,
   und in der Endvalidierung. Harte Regel H1 wird **immer** mit dem echten Schätzer bestätigt.
@@ -209,8 +211,15 @@ interface OptimizeTimetableTimeChange {
 
 - Eingabe: _Max. Gleise pro Kante_, Anzeige Scope („5 Knoten selektiert / ganzes Netz“).
 - Tabelle Vorschläge (Ausgangslage + Lösungen, KPIs, sortierbar); Auswahl = Vorschau.
-- Details der gewählten Lösung: Kanten (Gleise vorher → nachher), Zugläufe (Fahrzeit),
-  Zeitänderungen (Zuglauf / Knoten / alt → neu), User-Connections (alle ✅), optionale Anschlüsse ±.
+- Beim Öffnen zeigt die kompakte **Streckengleis-Übersicht (IST)** die sichtbaren Abschnitte.
+  Nach dem Optimierungslauf klappt sie zu und **Result** mit den Vorschlägen und der Analyse auf.
+  Beide Panels sind gegenseitig exklusiv; das jeweils geöffnete Panel nutzt den verfügbaren Platz.
+- Details der gewählten Lösung: Abschnitt, maximale Gleise vorher, Topologie vorher, maximale
+  Gleise nachher und Topologie nachher. Die Übersicht enthält nur Abschnitte mit
+  Fahrplanänderungen; unveränderte Gleiszahlen wie `2 → 2` sind möglich. Bei aktivem Gleislimit
+  werden überzählige Gleise und Zahlen rot markiert.
+- Weitere Details: Zugläufe (Fahrzeit), Zeitänderungen (Zuglauf / Knoten / alt → neu),
+  User-Connections (alle ✅), optionale Anschlüsse ±.
 - Buttons: _Übernehmen_ (nur bei gültiger Lösung), _Weiterrechnen_, _Abbrechen_.
 - Zweispaltig wie in der Skizze: links Optimization Director, rechts bestehende Vorschläge,
   Streckengleis-KPIs und Preview.
@@ -239,7 +248,7 @@ interface OptimizeTimetableTimeChange {
 | Frequenz / Route | Takt, Offset, Knotenfolge unverändert                          |
 | Ganze Minuten    | alle Zeiten ganzzahlig, Fahrzeiten aufgerundet                 |
 | Stateless        | nach `optimize()` sind alle nativen Objekte unverändert        |
-| Zeitbudget       | `elapsedMs ≤ 250 + ε`                                          |
+| Zeitbudget       | Suchschleife hält das konfigurierte Budget ein (Standard: 1000 ms); Vor- und Nachbereitung kommen hinzu |
 | Patch            | Anwenden + Zurücksetzen = Originalzustand                      |
 
 Tests mit den bestehenden Test-Netzgrafiken (`src/integration-testing/…`).
@@ -279,7 +288,7 @@ Regressionstests sind enthalten; die vollständige Frontend-Testsuite besteht.
 | `optimization-director.component.*`                             | Hard Rules und sortierbare Soft-KPI-Karten                                                |
 
 Die Änderungsliste ist nach Knoten und innerhalb eines Knotens nach neuer Minute sortiert.
-Ein Klick auf eine Knotengruppe zeigt „Aktuell“ und „Neu“ mit der bestehenden
+Ein Klick auf eine Knotengruppe zeigt „Vorher“ und „Nachher“ mit der bestehenden
 `KnotenAuslastungViewComponent` (inklusive Gleisbelegung, Kapazität und Stundenumschaltung).
 Der aktuelle Zustand wird vor der Vorschau als Projektion gespeichert; es gibt keine eigene
 Auslastungsberechnung im Optimierer. Der ausgewählte Knoten bleibt beim Vorschlagswechsel erhalten,
@@ -304,7 +313,8 @@ Getroffene Annahmen (offene Punkte aus Abschnitt 9):
 - Gewichte: Gleis-Überschreitung 1000, Fahrzeit 1/min, optionaler Anschluss 3, Verschiebung 0.05.
 - Gemischt symmetrisch/asymmetrische Ketten: Rückrichtung wird mit −Δ verschoben.
 
-Messung (Beispielnetz, 250 ms): max = 2 Gleise → Kanten über Limit 3 → 0; max = 3 → 1 → 0.
+Historischer Messwert für ein Beispielnetz (Suchbudget 250 ms): max = 2 Gleise → Kanten über Limit
+3 → 0; max = 3 → 1 → 0. Das ist kein Laufzeitversprechen für das aktuelle Standardbudget.
 
 ---
 
@@ -325,16 +335,19 @@ Standardmodells für Taktfahrpläne (Serafini & Ukovich 1989):
   lexikografischen Zielreihenfolge.
 
 PESP ist **NP-schwer** (bereits die Frage, ob überhaupt eine gültige Lösung existiert).
-Konsequenz: Eine exakte Lösung mit Optimalitätsbeweis ist in 0.25 s für reale Netze nicht
-garantierbar. Ziel ist daher eine **Heuristik**, die schnell gute gültige Lösungen liefert und
+Konsequenz: Eine exakte Lösung mit Optimalitätsbeweis ist im damaligen Budget von 0.25 s für
+reale Netze nicht garantierbar. Ziel ist daher eine **Heuristik**, die schnell gute gültige Lösungen liefert und
 mit _Weiterrechnen_ verbessert werden kann.
 
 ### A.2 Randbedingungen für die Wahl
 
+Die folgenden Tabellen halten die ursprüngliche Architekturabwägung fest. Das historische
+Suchbudget von 0.25 s entspricht nicht dem heutigen Standardbudget von 1.000 ms.
+
 | Randbedingung                            | Folge                                                |
 | ---------------------------------------- | ---------------------------------------------------- |
 | Reines TypeScript, keine externen Solver | exakte Verfahren müssten selbst implementiert werden |
-| ≤ 0.25 s pro Lauf                        | nur inkrementelle, „anytime“-fähige Verfahren        |
+| Historisches Suchbudget: ≤ 0.25 s        | nur inkrementelle, „anytime“-fähige Verfahren        |
 | H1 nicht linear (Schätzer = Blackbox)    | Verfahren muss mit Blackbox-Bewertung umgehen        |
 | Harte Regeln dürfen nie verletzt werden  | Endvalidierung + nur gültige Lösungen ausgeben       |
 | Mehrere Ziele, User wählt                | Pareto-Archiv statt einer einzigen Lösung            |
@@ -356,7 +369,7 @@ mit _Weiterrechnen_ verbessert werden kann.
 ### A.4 Netzgrafik Conflict-Repair-Algorithmus
 
 ```text
-optimize(nativeNetzgrafik, policy, budget = 250 ms):
+optimize(nativeNetzgrafik, policy, budget = 1000 ms):
   problem := buildChainsAndSparseDependencyIndexes(nativeNetzgrafik, policy)
   trackPriorities := exactBaselineSegmentScores(problem)
   x := baseline or selected previous assignment
