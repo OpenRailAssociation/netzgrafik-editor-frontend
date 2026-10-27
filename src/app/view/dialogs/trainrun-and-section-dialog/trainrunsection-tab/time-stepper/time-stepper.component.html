@@ -7,9 +7,11 @@
       [ngClass]="inputClass"
       type="number"
       sbbInput
+      [attr.aria-label]="ariaLabel"
       spellcheck="false"
       pattern="^[0-9.]*"
       [min]="min"
+      [max]="max"
       minlength="1"
       [(ngModel)]="value"
       (change)="onValueChanged()"

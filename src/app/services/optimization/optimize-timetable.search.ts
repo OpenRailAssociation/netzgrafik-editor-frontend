@@ -2,6 +2,7 @@ import {OptimizationProblem} from "./optimize-timetable.chains";
 import {ScoreParts, TimetableEvaluator} from "./optimize-timetable.evaluator";
 import {ConflictIndex} from "./optimization-conflict-index";
 import {SRC_ARR, SRC_DEP, TGT_ARR, TGT_DEP} from "./optimize-timetable.model";
+import {ObjectiveId} from "./optimization-policy.model";
 
 export interface ArchivedSolution {
   delta: Int32Array;
@@ -64,15 +65,33 @@ export function createRandom(seed: number): () => number {
   };
 }
 
-function dominates(a: ScoreParts, b: ScoreParts): boolean {
-  const av = [a.excess, a.travelTimeDelta, -a.optionalConnections, a.sumAbsShift];
-  const bv = [b.excess, b.travelTimeDelta, -b.optionalConnections, b.sumAbsShift];
+function objectiveEnabled(problem: OptimizationProblem, id: ObjectiveId): boolean {
+  return problem.policy.objectives.find((objective) => objective.id === id)?.enabled ?? false;
+}
+
+function dominates(a: ScoreParts, b: ScoreParts, problem: OptimizationProblem): boolean {
+  const comparisons: [number, number][] = [];
+  if (objectiveEnabled(problem, "lowerEdgeTrackUsage")) {
+    comparisons.push([a.edgeTrackCost, b.edgeTrackCost]);
+  }
+  if (objectiveEnabled(problem, "lowerTrackUsage")) {
+    comparisons.push([a.nodeTrackCost, b.nodeTrackCost]);
+  }
+  if (objectiveEnabled(problem, "lowerTravelTime")) {
+    comparisons.push([a.travelTimeDelta, b.travelTimeDelta]);
+  }
+  if (objectiveEnabled(problem, "moreConnections")) {
+    comparisons.push([-a.optionalConnections, -b.optionalConnections]);
+  }
+  if (objectiveEnabled(problem, "minimalChanges")) {
+    comparisons.push([a.sumAbsShift, b.sumAbsShift]);
+  }
   let strictly = false;
-  for (let k = 0; k < av.length; k++) {
-    if (av[k] > bv[k] + 1e-9) {
+  for (const [first, second] of comparisons) {
+    if (first > second + 1e-9) {
       return false;
     }
-    if (av[k] < bv[k] - 1e-9) {
+    if (first < second - 1e-9) {
       strictly = true;
     }
   }
@@ -339,11 +358,15 @@ export function runSearch(
     if (parts.hard > 0) {
       return;
     }
-    if (archive.some((a) => dominates(a.parts, parts) || sameDelta(a.delta, evaluator.delta))) {
+    if (
+      archive.some(
+        (a) => dominates(a.parts, parts, problem) || sameDelta(a.delta, evaluator.delta),
+      )
+    ) {
       return;
     }
     for (let k = archive.length - 1; k >= 0; k--) {
-      if (dominates(parts, archive[k].parts)) {
+      if (dominates(parts, archive[k].parts, problem)) {
         archive.splice(k, 1);
       }
     }
@@ -353,12 +376,14 @@ export function runSearch(
     }
     if (archive.length > ARCHIVE_SIZE) {
       const alternatives = archive.filter((candidate) => !sameDelta(initial.delta, candidate.delta));
-      const smallestShift = (alternatives.length > 0 ? alternatives : archive).reduce((best, item) =>
-        item.parts.sumAbsShift < best.parts.sumAbsShift ? item : best,
-      );
+      const smallestShift = objectiveEnabled(problem, "minimalChanges")
+        ? (alternatives.length > 0 ? alternatives : archive).reduce((best, item) =>
+            item.parts.sumAbsShift < best.parts.sumAbsShift ? item : best,
+          )
+        : undefined;
       archive.sort((a, b) => a.score - b.score);
       const retained = archive.slice(0, ARCHIVE_SIZE);
-      if (!retained.includes(smallestShift)) {
+      if (smallestShift !== undefined && !retained.includes(smallestShift)) {
         retained[ARCHIVE_SIZE - 1] = smallestShift;
       }
       archive.splice(0, archive.length, ...retained);
@@ -575,7 +600,15 @@ export function runSearch(
         }
       }
       let anchor = conflictIndex.getHighestPriority();
-      if (anchor === undefined && problem.edges.length > 0) {
+      const trackObjectiveEnabled = objectiveEnabled(problem, "lowerEdgeTrackUsage");
+      const trackLimitEnabled =
+        problem.policy.hardConstraints.find((constraint) => constraint.id === "trackLimit")
+          ?.enabled ?? false;
+      if (
+        anchor === undefined &&
+        (trackObjectiveEnabled || trackLimitEnabled) &&
+        problem.edges.length > 0
+      ) {
         let mostUsedEdge = -1;
         for (let edge = 0; edge < problem.edges.length; edge++) {
           if (
@@ -642,7 +675,11 @@ export function runSearch(
   score = evaluator.evaluateAll();
   archiveCurrent();
 
-  if (hasFeasibleAlternative && performance.now() < deadline) {
+  if (
+    hasFeasibleAlternative &&
+    objectiveEnabled(problem, "minimalChanges") &&
+    performance.now() < deadline
+  ) {
     const alternatives = archive.filter((candidate) => !sameDelta(initial.delta, candidate.delta));
     const smallestShift = alternatives.reduce((best, item) =>
       item.parts.sumAbsShift < best.parts.sumAbsShift ? item : best,

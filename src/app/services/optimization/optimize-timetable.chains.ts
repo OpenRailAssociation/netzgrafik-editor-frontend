@@ -38,6 +38,12 @@ export interface Variable {
   domain: number;
   chains: number[];
   fixed: boolean;
+  travelTimeTrainrunIndex?: number;
+  travelTimeFixedReason?:
+    | "scope"
+    | "travel-time-lock"
+    | "departure-time-lock"
+    | "arrival-time-lock";
 }
 
 export interface Edge {
@@ -89,6 +95,7 @@ export interface NodeEvents {
 
 export interface OptimizationProblem {
   sections: TrainrunSection[];
+  nodeTrackNodes: Node[];
   trainrunIds: number[];
   /** Original consecutive times: 4 per section */
   origC: Float64Array;
@@ -111,6 +118,9 @@ export interface OptimizationProblem {
   varTrainruns: number[][];
   varConnections: number[][];
   varNodeEvents: number[][];
+  varNodeTrackNodes: number[][];
+  /** Variable index per section and direction (forward, backward), or -1. */
+  travelTimeVariables: Int32Array;
   /** per edge: free variables touching it */
   edgeVars: number[][];
   maxTracks: number;
@@ -264,7 +274,7 @@ function isChainLinked(steps: PathStep[], sections: TrainrunSection[]): boolean 
   });
 }
 
-function hasLock(section: TrainrunSection): boolean {
+function hasTimeLock(section: TrainrunSection): boolean {
   return (
     section.getSourceDepartureLock() ||
     section.getSourceArrivalLock() ||
@@ -326,8 +336,21 @@ export function buildProblem(
   const sectionChain = new Int32Array(n).fill(-1);
   const stops: StopConstraint[] = [];
 
-  const newVariable = (key: string, domain: number, fixed: boolean): number => {
-    variables.push({key, domain: fixed ? 0 : domain, chains: [], fixed});
+  const newVariable = (
+    key: string,
+    domain: number,
+    fixed: boolean,
+    travelTimeTrainrunIndex?: number,
+    travelTimeFixedReason?: Variable["travelTimeFixedReason"],
+  ): number => {
+    variables.push({
+      key,
+      domain: fixed ? 0 : domain,
+      chains: [],
+      fixed,
+      ...(travelTimeTrainrunIndex === undefined ? {} : {travelTimeTrainrunIndex}),
+      ...(travelTimeFixedReason === undefined ? {} : {travelTimeFixedReason}),
+    });
     return variables.length - 1;
   };
 
@@ -350,18 +373,22 @@ export function buildProblem(
           const key = `${trainrun.getId()}:${sections[steps[0].sectionIdx].getId()}`;
           const fixed = steps.some(
             (st) =>
-              hasLock(sections[st.sectionIdx]) || !inScope(st.fromNode) || !inScope(st.toNode),
+              (constraintEnabled(policy, "timeLocks") && hasTimeLock(sections[st.sectionIdx])) ||
+              !inScope(st.fromNode) ||
+              !inScope(st.toNode),
           );
+          const oneWay = trainrun.getDirection() === Direction.ONE_WAY;
           const varA = newVariable(key + ":A", domain, fixed);
-          const linked = constraintEnabled(policy, "symmetry") && isChainLinked(steps, sections);
-          const varB = linked ? varA : newVariable(key + ":B", domain, fixed);
+          const linked =
+            !oneWay && constraintEnabled(policy, "symmetry") && isChainLinked(steps, sections);
+          const varB = oneWay || linked ? varA : newVariable(key + ":B", domain, fixed);
           const chain: Chain = {
             key,
             trainrun,
             steps,
             varA,
             varB,
-            signB: linked ? -1 : 1,
+            signB: linked ? -1 : oneWay ? 0 : 1,
             mirrorB: linked && isChainMirror(steps, sections, origT),
             fixed,
           };
@@ -385,9 +412,7 @@ export function buildProblem(
         const node = inStep.toNode;
         const inSec = sections[inStep.sectionIdx];
         const outSec = sections[outStep.sectionIdx];
-        const minDwell = constraintEnabled(policy, "minimumStopTime")
-          ? minDwellAt(node, trainrun)
-          : 0;
+        const minDwell = minDwellAt(node, trainrun);
         const addStop = (
           arrSec: number,
           arrSection: TrainrunSection,
@@ -439,6 +464,157 @@ export function buildProblem(
       variables[varIdx].chains.push(chains.length - 1);
     }
   });
+
+  const travelTimeChangeBlockReason = (
+    chain: Chain,
+    sectionIndex: number,
+    direction: 0 | 1,
+  ): Variable["travelTimeFixedReason"] => {
+    const section = sections[sectionIndex];
+    if (!inScope(section.getSourceNode()) || !inScope(section.getTargetNode())) {
+      return "scope";
+    }
+    const travelTimeLocked =
+      direction === 0 ? section.getTravelTimeLock() : section.getBackwardTravelTimeLock();
+    if (constraintEnabled(policy, "travelTimeLocks") && travelTimeLocked) {
+      return "travel-time-lock";
+    }
+
+    const position = chain.steps.findIndex((step) => step.sectionIdx === sectionIndex);
+    if (position < 0) {
+      return "scope";
+    }
+    const affected: Array<{section: TrainrunSection; field: number; node: Node}> = [];
+    const depAField = (step: Chain["steps"][number]) =>
+      step.aligned ? SRC_DEP : TGT_DEP;
+    const arrAField = (step: Chain["steps"][number]) =>
+      step.aligned ? TGT_ARR : SRC_ARR;
+    const depBField = (step: Chain["steps"][number]) =>
+      step.aligned ? TGT_DEP : SRC_DEP;
+    const arrBField = (step: Chain["steps"][number]) =>
+      step.aligned ? SRC_ARR : TGT_ARR;
+    const addAffected = (step: Chain["steps"][number], field: number, node: Node) => {
+      affected.push({section: sections[step.sectionIdx], field, node});
+    };
+
+    if (direction === 0 || chain.mirrorB) {
+      for (let stepIndex = position; stepIndex < chain.steps.length; stepIndex++) {
+        const step = chain.steps[stepIndex];
+        addAffected(step, arrAField(step), step.toNode);
+        if (stepIndex > position) {
+          addAffected(step, depAField(step), step.fromNode);
+        }
+        if (chain.mirrorB) {
+          addAffected(step, depBField(step), step.toNode);
+          if (stepIndex > position) {
+            addAffected(step, arrBField(step), step.fromNode);
+          }
+        }
+      }
+    } else {
+      for (let stepIndex = position; stepIndex >= 0; stepIndex--) {
+        const step = chain.steps[stepIndex];
+        addAffected(step, arrBField(step), step.fromNode);
+        if (stepIndex < position) {
+          addAffected(step, depBField(step), step.toNode);
+        }
+      }
+    }
+
+    for (const {section: affectedSection, field, node} of affected) {
+      if (!inScope(node)) {
+        return "scope";
+      }
+      if (!constraintEnabled(policy, "timeLocks")) {
+        continue;
+      }
+      switch (field) {
+        case SRC_DEP:
+          if (affectedSection.getSourceDepartureLock()) {
+            return "departure-time-lock";
+          }
+          break;
+        case SRC_ARR:
+          if (affectedSection.getSourceArrivalLock()) {
+            return "arrival-time-lock";
+          }
+          break;
+        case TGT_DEP:
+          if (affectedSection.getTargetDepartureLock()) {
+            return "departure-time-lock";
+          }
+          break;
+        case TGT_ARR:
+          if (affectedSection.getTargetArrivalLock()) {
+            return "arrival-time-lock";
+          }
+          break;
+      }
+    }
+    return undefined;
+  };
+
+  const travelTimeVariables = new Int32Array(n * 2).fill(-1);
+  const travelTimeConstraint = policy.hardConstraints.find(
+    (constraint) => constraint.id === "maxTravelTimeExtension",
+  );
+  if (travelTimeConstraint?.enabled) {
+    const maximumIncrease = Math.max(0, Math.floor(travelTimeConstraint.value ?? 5));
+    sections.forEach((section, sectionIndex) => {
+      const chainIndex = sectionChain[sectionIndex];
+      const chain = chains[chainIndex];
+      const trainrunIndex = trainrunIndexById.get(section.getTrainrunId());
+      if (chain === undefined || trainrunIndex === undefined) {
+        return;
+      }
+      const forwardActive =
+        active[sectionIndex * 4 + SRC_DEP] === 1 && active[sectionIndex * 4 + TGT_ARR] === 1;
+      const backwardActive =
+        active[sectionIndex * 4 + TGT_DEP] === 1 && active[sectionIndex * 4 + SRC_ARR] === 1;
+      const linkedDirections =
+        constraintEnabled(policy, "symmetry") &&
+        forwardActive &&
+        backwardActive &&
+        section.areTravelTimesEqual() &&
+        (section.getSourceSymmetry() || section.getTargetSymmetry());
+      const addTravelTimeVariable = (direction: 0 | 1, name: string) => {
+        const fixedReason = travelTimeChangeBlockReason(chain, sectionIndex, direction);
+        const variableIndex = newVariable(
+          `${chain.key}:travel:${name}`,
+          maximumIncrease,
+          fixedReason !== undefined,
+          trainrunIndex,
+          fixedReason,
+        );
+        variables[variableIndex].chains.push(chainIndex);
+        travelTimeVariables[sectionIndex * 2 + direction] = variableIndex;
+        return variableIndex;
+      };
+
+      if (linkedDirections) {
+        const fixedReason =
+          travelTimeChangeBlockReason(chain, sectionIndex, 0) ??
+          travelTimeChangeBlockReason(chain, sectionIndex, 1);
+        const variableIndex = newVariable(
+          `${chain.key}:travel:symmetric`,
+          maximumIncrease,
+          fixedReason !== undefined,
+          trainrunIndex,
+          fixedReason,
+        );
+        variables[variableIndex].chains.push(chainIndex);
+        travelTimeVariables[sectionIndex * 2] = variableIndex;
+        travelTimeVariables[sectionIndex * 2 + 1] = variableIndex;
+      } else {
+        if (forwardActive) {
+          addTravelTimeVariable(0, "forward");
+        }
+        if (backwardActive) {
+          addTravelTimeVariable(1, "backward");
+        }
+      }
+    });
+  }
 
   // --- edges -------------------------------------------------------------
   const edgeIndex = new Map<string, number>();
@@ -516,6 +692,7 @@ export function buildProblem(
           hi: preserveConnectionTimes ? wait0 : Math.max(wait0, ct) + connectionTolerance,
         });
       };
+
       add(i1, s1, i2, s2);
       add(i2, s2, i1, s1);
     });
@@ -592,11 +769,22 @@ export function buildProblem(
   };
   const varEdges = variables.map((_, v) => collect(v, (i) => [sectionEdge[i]]));
   const varStops = variables.map((_, v) => collect(v, (i) => sectionStops[i]));
-  const varTrainruns = variables.map((_, v) => [
-    ...new Set(varStops[v].map((stopIndex) => stops[stopIndex].trainrunIndex)),
-  ]);
+  const varTrainruns = variables.map((variable, v) => {
+    const trainruns = new Set(varStops[v].map((stopIndex) => stops[stopIndex].trainrunIndex));
+    if (variable.travelTimeTrainrunIndex !== undefined) {
+      trainruns.add(variable.travelTimeTrainrunIndex);
+    }
+    return [...trainruns];
+  });
   const varConnections = variables.map((_, v) => collect(v, (i) => sectionConnections[i]));
   const varNodeEvents = variables.map((_, v) => collect(v, (i) => sectionNodeEvents[i]));
+  const nodeTrackIndexById = new Map(nodes.map((node, index) => [node.getId(), index]));
+  const sectionNodeTracks = sections.map((section) =>
+    [section.getSourceNodeId(), section.getTargetNodeId()]
+      .map((nodeId) => nodeTrackIndexById.get(nodeId))
+      .filter((nodeIndex): nodeIndex is number => nodeIndex !== undefined),
+  );
+  const varNodeTrackNodes = variables.map((_, v) => collect(v, (i) => sectionNodeTracks[i]));
 
   const edgeVars: number[][] = edges.map((): number[] => []);
   variables.forEach((variable, v) => {
@@ -607,6 +795,7 @@ export function buildProblem(
 
   return {
     sections,
+    nodeTrackNodes: nodes,
     trainrunIds,
     origC,
     origT,
@@ -625,6 +814,8 @@ export function buildProblem(
     varTrainruns,
     varConnections,
     varNodeEvents,
+    varNodeTrackNodes,
+    travelTimeVariables,
     edgeVars,
     maxTracks,
     optionalWindow,

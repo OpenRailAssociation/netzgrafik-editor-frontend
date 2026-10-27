@@ -2,7 +2,8 @@ export type HardConstraintId =
   | "trackLimit"
   | "userConnections"
   | "minimumStopTime"
-  | "locks"
+  | "timeLocks"
+  | "travelTimeLocks"
   | "scopeBoundary"
   | "symmetry"
   | "maxTravelTimeExtension"
@@ -12,7 +13,8 @@ export type ObjectiveId =
   | "minimalChanges"
   | "moreConnections"
   | "lowerTravelTime"
-  | "lowerTrackUsage";
+  | "lowerTrackUsage"
+  | "lowerEdgeTrackUsage";
 
 export interface HardConstraintConfig {
   id: HardConstraintId;
@@ -54,6 +56,7 @@ export function createDefaultOptimizationPolicy(): OptimizationPolicy {
         id: "trackLimit",
         name: "app.view.dialogs.optimize-timetable-dialog.director.constraint.track-limit",
         enabled: true,
+        value: 2,
       },
       {
         id: "userConnections",
@@ -66,10 +69,14 @@ export function createDefaultOptimizationPolicy(): OptimizationPolicy {
         enabled: true,
       },
       {
-        id: "locks",
-        name: "app.view.dialogs.optimize-timetable-dialog.director.constraint.locks",
+        id: "timeLocks",
+        name: "app.view.dialogs.optimize-timetable-dialog.director.constraint.time-locks",
         enabled: true,
-        mandatory: true,
+      },
+      {
+        id: "travelTimeLocks",
+        name: "app.view.dialogs.optimize-timetable-dialog.director.constraint.travel-time-locks",
+        enabled: true,
       },
       {
         id: "scopeBoundary",
@@ -118,6 +125,12 @@ export function createDefaultOptimizationPolicy(): OptimizationPolicy {
         name: "app.view.dialogs.optimize-timetable-dialog.director.objective.lower-track-usage",
         enabled: true,
         priority: 3,
+      },
+      {
+        id: "lowerEdgeTrackUsage",
+        name: "app.view.dialogs.optimize-timetable-dialog.director.objective.lower-edge-track-usage",
+        enabled: true,
+        priority: 4,
       },
     ],
   };

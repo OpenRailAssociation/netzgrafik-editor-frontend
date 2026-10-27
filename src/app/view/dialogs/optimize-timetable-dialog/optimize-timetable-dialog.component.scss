@@ -46,6 +46,20 @@
     margin-top: 8px;
   }
 
+  .variable-breakdown {
+    margin-top: 4px;
+    color: var(--sbb-color-graphite);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .runtime-lock-summary {
+    margin-top: 4px;
+    color: var(--sbb-color-graphite);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
   .message {
     font-weight: bold;
   }
@@ -60,6 +74,54 @@
       padding: 4px 8px;
       text-align: left;
       border-bottom: 1px solid var(--sbb-header-lean-border-bottom-color);
+    }
+  }
+
+  .proposals-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .proposals {
+    min-width: 1040px;
+    table-layout: fixed;
+    font-size: 12px;
+
+    th {
+      padding: 9px 8px;
+      background: var(--sbb-header-lean-background-color);
+      font-size: 11px;
+      line-height: 1.2;
+      vertical-align: bottom;
+      white-space: normal;
+    }
+
+    td {
+      padding: 8px;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    td:first-child {
+      white-space: normal;
+    }
+
+    th:first-child {
+      width: 140px;
+    }
+
+    th:nth-child(2),
+    th:nth-child(5),
+    th:nth-child(8) {
+      width: 130px;
+    }
+
+    th:nth-child(3),
+    th:nth-child(4),
+    th:nth-child(6),
+    th:nth-child(7),
+    th:nth-child(9) {
+      width: 96px;
     }
   }
 

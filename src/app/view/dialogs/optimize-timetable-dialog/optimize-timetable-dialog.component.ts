@@ -45,7 +45,6 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   @ViewChild("optimizeTimetableDialogTemplate", {static: true})
   optimizeTimetableDialogTemplate: TemplateRef<void>;
 
-  maxTracks = 2;
   policy: OptimizationPolicy = createDefaultOptimizationPolicy();
   selectedNodeCount = 0;
   result: OptimizeTimetableResult = undefined;
@@ -105,6 +104,10 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
       : [...this.result.solutions].sort((a, b) => compareSolutions(a, b, this.policy));
   }
 
+  get maxTracks(): number {
+    return this.policy.hardConstraints.find((constraint) => constraint.id === "trackLimit")?.value ?? 2;
+  }
+
   get enabledObjectives() {
     return [...this.policy.objectives]
       .filter((objective) => objective.enabled)
@@ -156,11 +159,6 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
       ...this.policy,
       objectives: createDefaultOptimizationPolicy().objectives,
     });
-  }
-
-  onMaxTracksChange(value: number): void {
-    this.maxTracks = Math.max(1, Math.floor(value || 1));
-    this.revalidateSolutions();
   }
 
   private revalidateSolutions(): void {

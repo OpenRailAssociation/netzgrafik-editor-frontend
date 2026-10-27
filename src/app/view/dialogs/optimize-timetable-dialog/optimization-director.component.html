@@ -5,27 +5,43 @@
     <h4 id="optimization-hard-rules">
       {{ "app.view.dialogs.optimize-timetable-dialog.director.hard-rules" | translate }}
     </h4>
-    <label class="director-rule" *ngFor="let constraint of policy.hardConstraints">
-      <input
-        type="checkbox"
-        [checked]="constraint.enabled"
+    <div
+      class="director-rule"
+      *ngFor="let constraint of policy.hardConstraints"
+      [class.has-value]="
+        constraint.id === 'trackLimit' ||
+        (constraint.id === 'maxTravelTimeExtension' && constraint.enabled)
+      "
+    >
+      <sbb-checkbox
+        [ngModel]="constraint.enabled"
         [disabled]="constraint.mandatory"
-        (change)="setConstraintEnabled(constraint.id, $any($event.target).checked)"
-      />
-      <span [title]="constraint.name | translate">{{ constraint.name | translate }}</span>
-      <input
-        *ngIf="constraint.id === 'maxTravelTimeExtension' && constraint.enabled"
-        class="constraint-value"
-        type="number"
-        min="0"
-        step="1"
-        [attr.aria-label]="
-          'app.view.dialogs.optimize-timetable-dialog.director.max-extension-value' | translate
+        (ngModelChange)="setConstraintEnabled(constraint.id, $event)"
+      >
+        <span class="constraint-name" [title]="(constraint.name + '-tooltip') | translate">
+          {{ constraint.name | translate }}
+        </span>
+      </sbb-checkbox>
+      <sbb-time-stepper
+        *ngIf="
+          constraint.id === 'trackLimit' ||
+          (constraint.id === 'maxTravelTimeExtension' && constraint.enabled)
         "
-        [ngModel]="constraint.value"
-        (ngModelChange)="setConstraintValue(constraint, $event)"
+        [containerClass]="'constraint-stepper'"
+        [inputClass]="'constraint-value'"
+        [inputId]="'optimization-' + constraint.id"
+        [tabIndex]="0"
+        [value]="constraint.value ?? (constraint.id === 'trackLimit' ? 1 : 0)"
+        [min]="constraint.id === 'trackLimit' ? 1 : 0"
+        [max]="constraint.id === 'maxTravelTimeExtension' ? 99 : undefined"
+        [ariaLabel]="(constraint.id === 'trackLimit'
+          ? 'app.view.dialogs.optimize-timetable-dialog.max-tracks'
+          : 'app.view.dialogs.optimize-timetable-dialog.director.max-extension-value') | translate"
+        (valueChange)="setConstraintValue(constraint, $event)"
+        (decrement)="adjustConstraintValue(constraint, -1)"
+        (increment)="adjustConstraintValue(constraint, 1)"
       />
-    </label>
+    </div>
   </section>
 
   <section class="director-objectives" aria-labelledby="optimization-objectives">
@@ -52,6 +68,7 @@
       >
         <span
           class="drag-handle"
+          cdkDragHandle
           [attr.aria-label]="
             'app.view.dialogs.optimize-timetable-dialog.director.reorder' | translate
           "
@@ -59,17 +76,17 @@
         >
           ⋮
         </span>
-        <input
-          type="checkbox"
-          [checked]="objective.enabled"
-          (change)="setObjectiveEnabled(objective, $any($event.target).checked)"
-        />
-        <span
-          class="objective-name"
-          [title]="objective.name.replace('.objective.', '.objective-description.') | translate"
+        <sbb-checkbox
+          [ngModel]="objective.enabled"
+          (ngModelChange)="setObjectiveEnabled(objective, $event)"
         >
-          {{ objective.name | translate }}
-        </span>
+          <span
+            class="objective-name"
+            [title]="objective.name.replace('.objective.', '.objective-description.') | translate"
+          >
+            {{ objective.name | translate }}
+          </span>
+        </sbb-checkbox>
       </div>
     </div>
   </section>

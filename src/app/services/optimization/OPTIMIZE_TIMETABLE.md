@@ -29,8 +29,8 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 - Öffnet einen Dialog mit:
   - **Maximale Gleise pro Kante** (globaler Wert, Eingabe durch User).
   - **Optimization Director** mit aktivierbaren harten Regeln und sortierbaren weichen Zielen.
-  - Button **Optimieren**. Abschnittsfahrzeiten bleiben fix; eine maximale Verlängerung der
-    Gesamtfahrzeit pro Zuglauf kann als harte Regel aktiviert werden (siehe §4).
+  - Button **Optimieren**. Die Fahrzeit eines Abschnitts kann mit der optionalen harten Regel
+    jeweils um höchstens `n` Minuten verlängert werden (siehe §4).
 
 ### 2.2 Optimierungsbereich (Multi-Selektion)
 
@@ -71,7 +71,7 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 | H4  | **Route fix**: gleiche Knoten, Abschnitte, Reihenfolge, Ports, Transitions; Halte bleiben Halte, Durchfahrten bleiben Durchfahrten.                                                                                                                                                                               |
 | H5  | **Richtung**: alle Züge fahren hin und zurück (`ROUND_TRIP`), ausser `ONE_WAY`.                                                                                                                                                                                                                                   |
 | H6  | **Symmetrie um Minute 00**: Abfahrt von Zug A am Knoten X = :00 + x ⇒ Ankunft von Zug A (Gegenrichtung) am Knoten X = :00 − x (mod 60). Ausnahme: explizit asymmetrisch gesetzte Abschnitte. Symmetrie wird nach dem Runden berechnet.                                                                            |
-| H7  | **Abschnittsfahrzeiten fix**: Fahrzeit jedes Abschnitts wird nicht verändert (Ausnahme: Aufrunden gem. H2).                                                                                                                                                                                                       |
+| H7  | **Abschnittsfahrzeiten**: bleiben fix, ausser die optionale harte Regel erlaubt eine Verlängerung je Abschnitt um höchstens `n` Minuten. Verkürzungen sind nicht erlaubt.                                                                                                                                          |
 | H8  | **Mindesthaltezeit**: Haltezeit an Halten ≥ Mindesthaltezeit (Knoten × Zugkategorie).                                                                                                                                                                                                                             |
 | H9  | **Durchfahrt (non-stop)**: Haltezeit immer 0 min, d.h. **Ankunft = Abfahrt** (beide Richtungen).                                                                                                                                                                                                                  |
 | H10 | **Locks**: gelockte Zeiten (`TimeLockDto.lock`) bleiben unverändert.                                                                                                                                                                                                                                              |
@@ -97,17 +97,20 @@ deaktivieren und per Drag-and-drop priorisieren. Die Standardreihenfolge ist:
    Baseline, einschliesslich der Haltezeiten zwischen den Endpunkten. Ein negatives Δ bedeutet
    kürzer, ein positives Δ länger; Abschnittsfahrzeiten selbst bleiben fix.
 4. **Geringere Knotengleisnutzung**: vergleicht zuerst die höchste, danach die durchschnittliche
-  Knotengleiszahl. Das ist ein weiches Ziel; das Streckengleislimit kann zusätzlich als harte
-  Regel aktiviert sein.
+  Knotengleiszahl.
+5. **Geringere Streckengleisnutzung**: vergleicht zuerst die höchste, danach die durchschnittliche
+  Gleiszahl auf den Abschnitten im Optimierungsbereich. Das bleibt als weiches Ziel unabhängig
+  davon verfügbar, ob das Streckengleislimit als harte Regel aktiviert ist.
 
-Alle vier Zielwerte werden normiert. Die Rangposition gewichtet sie geometrisch mit `1, 1/2, 1/4,
-1/8`; Drag-and-drop ändert damit den Einfluss jedes Ziels. Gültigkeit nach den aktivierten harten
+Alle fünf Zielwerte werden normiert. Die Rangposition gewichtet sie geometrisch mit `1, 1/2, 1/4,
+1/8, 1/16`; Drag-and-drop ändert damit den Einfluss jedes Ziels. Gültigkeit nach den aktivierten harten
 Regeln hat immer Vorrang. Ändern der weichen Ziele sortiert die bereits gefundenen Vorschläge neu;
 der Suchlauf selbst verwendet weiterhin seinen internen Suchscore.
 
-Die optionale harte Regel **Maximale Fahrzeitverlängerung** begrenzt die Netto-Verlängerung pro
-Zuglauf gegenüber der Baseline; der Standardwert ist +5 Minuten. Sie verändert keine
-Abschnittsfahrzeit und begrenzt keine einzelne Haltezeit.
+Die optionale harte Regel **Fahrzeitverlängerung pro Abschnitt** erlaubt für jeden Abschnitt
+unabhängig eine Verlängerung von 0 bis `n` Minuten gegenüber der Baseline; der Standardwert ist
+`n = 5`. Es gibt dafür kein zusätzliches Gesamtlimit pro Zuglauf. Die Regel verändert keine
+Haltezeiten. Ist sie deaktiviert, bleiben Abschnittsfahrzeiten unverändert.
 
 ## 5. Zeitbudget
 
@@ -150,11 +153,11 @@ Abschnittsfahrzeit und begrenzt keine einzelne Haltezeit.
   bestimmt nicht allein das Ziel **Minimale Änderungen**.
 
 Eine längere Haltezeit an einem einzelnen Knoten wird nicht separat bestraft, solange sie die
-aktive Mindesthaltezeitregel einhält. **Kürzere Fahrzeit** bewertet die Nettoänderung aller
-Zwischenhalte eines Zuglaufs gegenüber der Baseline: Eine Verlängerung an einem Knoten kann durch
-eine Verkürzung an einem anderen ausgeglichen werden. Die optionale Grenze von +5 Minuten gilt
-ebenfalls für diese Netto-Verlängerung pro Zuglauf, nicht für einen einzelnen Halt. Eine eigene
-maximale Haltezeit pro Knoten ist derzeit nicht konfigurierbar.
+aktive Mindesthaltezeitregel einhält. **Kürzere Fahrzeit** bewertet die Änderung der gesamten
+Reisezeit eines Zuglaufs, einschliesslich geänderter Abschnittsfahrzeiten und Zwischenhalte.
+Die optionale Grenze von `+n` gilt unabhängig für jeden Abschnitt, nicht als Summengrenze pro
+Zuglauf; eine Verkürzung der Abschnittsfahrzeit ist nicht zulässig. Eine eigene maximale
+Haltezeit pro Knoten ist derzeit nicht konfigurierbar.
 
 ### 6.4 Wie entstehen Vorschläge?
 

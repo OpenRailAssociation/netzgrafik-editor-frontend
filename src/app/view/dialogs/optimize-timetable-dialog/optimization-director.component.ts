@@ -32,12 +32,19 @@ export class OptimizationDirectorComponent {
   }
 
   setConstraintValue(constraint: HardConstraintConfig, value: number): void {
+    const minimum = constraint.id === "trackLimit" ? 1 : 0;
+    const maximum = constraint.id === "maxTravelTimeExtension" ? 99 : Number.POSITIVE_INFINITY;
+    const normalizedValue = Math.min(maximum, Math.max(minimum, Math.floor(value || 0)));
     this.updatePolicy({
       ...this.policy,
       hardConstraints: this.policy.hardConstraints.map((item) =>
-        item.id === constraint.id ? {...item, value: Math.max(0, value)} : item,
+        item.id === constraint.id ? {...item, value: normalizedValue} : item,
       ),
     });
+  }
+
+  adjustConstraintValue(constraint: HardConstraintConfig, adjustment: -1 | 1): void {
+    this.setConstraintValue(constraint, (constraint.value ?? 0) + adjustment);
   }
 
   setObjectiveEnabled(objective: ObjectiveConfig, enabled: boolean): void {

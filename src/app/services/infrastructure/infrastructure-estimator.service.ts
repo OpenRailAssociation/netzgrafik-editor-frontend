@@ -30,6 +30,12 @@ export interface NodeTrackEstimatorOptions {
   windowStartMinutes?: number;
   windowEndMinutes?: number;
   separateForwardBackwardTracks?: boolean;
+  getTime?: (
+    section: TrainrunSection,
+    nodeEnd: "source" | "target",
+    kind: "arrival" | "departure",
+    scale: "consecutive" | "periodic",
+  ) => number | undefined;
 }
 
 /**
@@ -231,7 +237,7 @@ export class InfrastructureEstimatorService {
     const window = this.getNodeTrackEstimationWindow(options, maximumFrequency);
     // Build every occurrence first; allocation happens only after the order is stable.
     const blocks = occurrences
-      .flatMap((occurrence) => this.createNodeTrackBlocks(occurrence, window))
+      .flatMap((occurrence) => this.createNodeTrackBlocks(occurrence, window, options))
       .sort((first, second) => this.compareNodeTrackBlocks(first, second));
 
     const separateDirections = options.separateForwardBackwardTracks ?? true;
@@ -654,9 +660,10 @@ export class InfrastructureEstimatorService {
   private createNodeTrackBlocks(
     occurrence: NodeTrackTrainrunOccurrence,
     window: NodeTrackEstimationWindow,
+    options: NodeTrackEstimatorOptions,
   ): NodeTrackBlock[] {
     const timing = this.createNodeTimingContext(occurrence);
-    const times = this.getNodeTrackTimes(occurrence, timing);
+    const times = this.getNodeTrackTimes(occurrence, timing, options);
     if (times === undefined || timing.frequency <= 0) {
       return [];
     }
@@ -891,9 +898,10 @@ export class InfrastructureEstimatorService {
   private getNodeTrackTimes(
     occurrence: NodeTrackTrainrunOccurrence,
     timing: NodeTimingContext,
+    options: NodeTrackEstimatorOptions,
   ): NodeTrackTimes | undefined {
-    const arrival = this.getNodeTime(occurrence, "arrival", "consecutive");
-    const departure = this.getNodeTime(occurrence, "departure", "consecutive");
+    const arrival = this.getNodeTime(occurrence, "arrival", "consecutive", options);
+    const departure = this.getNodeTime(occurrence, "departure", "consecutive", options);
 
     // Step 1: a train that starts or ends here only occupies one side.
     const endpointTimes = this.getNodeEndpointTimes(occurrence, arrival, departure, timing);
@@ -906,7 +914,7 @@ export class InfrastructureEstimatorService {
 
     // Step 2: align departure with arrival inside the frequency cycle.
     const alignedDeparture =
-      this.getPeriodicTurnaroundDeparture(occurrence, arrival, timing) ??
+      this.getPeriodicTurnaroundDeparture(occurrence, arrival, timing, options) ??
       this.getConsecutiveDeparture(arrival, departure, timing.frequency);
 
     // Step 3: apply the turnaround rule.
@@ -950,6 +958,7 @@ export class InfrastructureEstimatorService {
     occurrence: NodeTrackTrainrunOccurrence,
     arrivalMinute: number,
     timing: NodeTimingContext,
+    options: NodeTrackEstimatorOptions,
   ): number | undefined {
     const isSingleSectionTurnaround =
       occurrence.occurrenceType === NodeTrackOccurrenceType.ROUND_TRIP_TURNAROUND &&
@@ -959,8 +968,8 @@ export class InfrastructureEstimatorService {
       return undefined;
     }
 
-    const periodicArrival = this.getNodeTime(occurrence, "arrival", "periodic");
-    const periodicDeparture = this.getNodeTime(occurrence, "departure", "periodic");
+    const periodicArrival = this.getNodeTime(occurrence, "arrival", "periodic", options);
+    const periodicDeparture = this.getNodeTime(occurrence, "departure", "periodic", options);
     if (periodicArrival === undefined || periodicDeparture === undefined) {
       return undefined;
     }
@@ -1081,6 +1090,7 @@ export class InfrastructureEstimatorService {
     occurrence: NodeTrackTrainrunOccurrence,
     kind: TimeKind,
     scale: TimeScale,
+    options: NodeTrackEstimatorOptions,
   ): number | undefined {
     const section = kind === "arrival" ? occurrence.arrivalSection : occurrence.departureSection;
     const direction =
@@ -1092,7 +1102,10 @@ export class InfrastructureEstimatorService {
     const accessor = InfrastructureEstimatorService.getTimeAccessor(kind, scale, direction);
     const nodeIdAtEnd =
       accessor.nodeEnd === "target" ? section.getTargetNodeId() : section.getSourceNodeId();
-    return nodeIdAtEnd === occurrence.node.getId() ? accessor.read(section) : undefined;
+    if (nodeIdAtEnd !== occurrence.node.getId()) {
+      return undefined;
+    }
+    return options.getTime?.(section, accessor.nodeEnd, kind, scale) ?? accessor.read(section);
   }
 
   // =========================================================================

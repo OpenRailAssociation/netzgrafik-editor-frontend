@@ -16,7 +16,7 @@
 .director-rule,
 .director-objective {
   display: grid;
-  grid-template-columns: 20px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: 8px;
   min-height: 30px;
@@ -25,25 +25,50 @@
 .director-rule {
   box-sizing: border-box;
   width: 100%;
-  padding: 5px 8px;
-  border: 1px solid var(--sbb-header-lean-border-bottom-color);
-  background: var(--sbb-header-lean-background-color);
-  white-space: nowrap;
+  padding: 5px 2px;
+  line-height: 1.25;
 }
 
-.director-rule span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.director-rule.has-value {
+  grid-template-columns: minmax(0, 1fr) 108px;
 }
 
-.director-rule input[type="checkbox"],
-.director-objective input[type="checkbox"] {
-  margin: 0;
+.director-rule sbb-checkbox {
+  width: 100%;
+  min-width: 0;
+}
+
+.director-rule .constraint-name {
+  display: block;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.director-objective .objective-name {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .constraint-value {
-  width: 64px;
+  box-sizing: border-box;
+  width: 42px;
+  min-width: 0;
+}
+
+:host ::ng-deep .director-rule .constraint-stepper {
+  box-sizing: border-box;
+  width: 108px;
+  min-width: 0;
+  border: 1px solid var(--sbb-header-lean-border-bottom-color);
+}
+
+:host ::ng-deep .director-rule .constraint-value {
+  box-sizing: border-box;
+  width: 42px;
+  min-width: 0;
+  border: none;
 }
 
 .director-objectives {
@@ -54,15 +79,37 @@
 
 .objective-list {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 4px;
 }
 
 .director-objective {
-  grid-template-columns: 18px 20px minmax(0, 1fr);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: 18px minmax(0, 1fr);
   padding: 4px;
   border: 1px solid var(--sbb-header-lean-border-bottom-color);
   background: var(--sbb-header-lean-background-color);
   cursor: grab;
+}
+
+.director-objective sbb-checkbox {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+:host ::ng-deep .director-objective .sbb-selection-item-label {
+  align-items: center;
+}
+
+:host ::ng-deep .director-objective .sbb-selection-container {
+  display: flex;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
 }
 
 .director-objective.cdk-drag-dragging {

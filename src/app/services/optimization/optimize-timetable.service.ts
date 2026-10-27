@@ -71,7 +71,7 @@ export class OptimizeTimetableService {
       options.optionalConnectionWindow ?? DEFAULT_OPTIONAL_WINDOW,
       policy,
     );
-    const evaluator = new TimetableEvaluator(problem);
+    const evaluator = new TimetableEvaluator(problem, this.infrastructureEstimatorService);
     const beforeTracks = new Map<number, number>();
     const baselineTrackSegments = new Map<number, TrackSegmentEstimate[]>();
     const baselineEdges = problem.edges.map((edge, edgeIndex) => {
@@ -126,6 +126,10 @@ export class OptimizeTimetableService {
       edgesOverLimitAfter: baselineOverLimit,
       maxTracksBefore: baselineMaxTracks,
       maxTracksAfter: baselineMaxTracks,
+      maxNodeTracksBefore: baselineNodeMetrics.maxTracks,
+      maxNodeTracksAfter: baselineNodeMetrics.maxTracks,
+      minimumStopViolationsBefore: search.initial.parts.stopViolations,
+      minimumStopViolationsAfter: search.initial.parts.stopViolations,
       totalTravelTimeDelta: 0,
       optionalConnectionsBefore: search.initial.parts.optionalConnections,
       optionalConnectionsAfter: search.initial.parts.optionalConnections,
@@ -135,12 +139,46 @@ export class OptimizeTimetableService {
     };
 
     const freeVariables = problem.variables.filter((v) => !v.fixed && v.domain > 0).length;
+    const freeTravelTimeVariables = problem.variables.filter(
+      (variable) =>
+        !variable.fixed && variable.domain > 0 && variable.travelTimeTrainrunIndex !== undefined,
+    ).length;
+    const fixedTravelTimeVariables = problem.variables.filter(
+      (variable) =>
+        variable.travelTimeTrainrunIndex !== undefined && (variable.fixed || variable.domain <= 0),
+    ).length;
+    const travelTimeLockBlockedVariables = problem.variables.filter(
+      (variable) => variable.travelTimeFixedReason === "travel-time-lock",
+    ).length;
+    const departureTimeLockBlockedVariables = problem.variables.filter(
+      (variable) => variable.travelTimeFixedReason === "departure-time-lock",
+    ).length;
+    const arrivalTimeLockBlockedVariables = problem.variables.filter(
+      (variable) => variable.travelTimeFixedReason === "arrival-time-lock",
+    ).length;
+    const scopeBlockedTravelTimeVariables = problem.variables.filter(
+      (variable) => variable.travelTimeFixedReason === "scope",
+    ).length;
+    const noRangeTravelTimeVariables = problem.variables.filter(
+      (variable) =>
+        variable.travelTimeTrainrunIndex !== undefined &&
+        variable.domain <= 0 &&
+        variable.travelTimeFixedReason === undefined,
+    ).length;
     const fixedChains = problem.chains.filter((c) => c.fixed).length;
     const result: OptimizeTimetableResult = {
       baselineKpi,
       baselineEdges,
       solutions: [],
       freeVariables,
+      freeShiftVariables: freeVariables - freeTravelTimeVariables,
+      freeTravelTimeVariables,
+      fixedTravelTimeVariables,
+      travelTimeLockBlockedVariables,
+      departureTimeLockBlockedVariables,
+      arrivalTimeLockBlockedVariables,
+      scopeBlockedTravelTimeVariables,
+      noRangeTravelTimeVariables,
       fixedChains,
       iterations: search.iterations,
       runtimeMs: 0,
@@ -207,7 +245,7 @@ export class OptimizeTimetableService {
       options.optionalConnectionWindow ?? DEFAULT_OPTIONAL_WINDOW,
       policy,
     );
-    const evaluator = new TimetableEvaluator(problem);
+    const evaluator = new TimetableEvaluator(problem, this.infrastructureEstimatorService);
     problem.variables.forEach((variable, index) => {
       if (!variable.fixed) {
         evaluator.setVariable(index, solution.assignment[variable.key] ?? 0);
@@ -396,7 +434,7 @@ export class OptimizeTimetableService {
     baselineKpi: OptimizeTimetableKpi,
     baselineNodeMetrics: NodeTrackMetrics,
   ): OptimizeTimetableSolution {
-    const evaluator = new TimetableEvaluator(problem);
+    const evaluator = new TimetableEvaluator(problem, this.infrastructureEstimatorService);
     evaluator.delta.set(archived.delta);
     evaluator.evaluateAll();
     const parts = evaluator.parts();
@@ -527,6 +565,9 @@ export class OptimizeTimetableService {
           nodes,
           nodeMetrics,
           baselineNodeMetrics,
+          maxTracksAfter,
+          scopedEdgeCount === 0 ? 0 : totalTracksAfter / scopedEdgeCount,
+          scopedEdgeCount,
         ),
         changedChains: changedChains.size,
         totalDeltaMinutes: parts.sumAbsShift,
@@ -538,6 +579,10 @@ export class OptimizeTimetableService {
         edgesOverLimitAfter: Math.max(0, overAfter),
         maxTracksBefore,
         maxTracksAfter,
+        maxNodeTracksBefore: baselineNodeMetrics.maxTracks,
+        maxNodeTracksAfter: nodeMetrics.maxTracks,
+        minimumStopViolationsBefore: initial.parts.stopViolations,
+        minimumStopViolationsAfter: parts.stopViolations,
         averageTrackUsage: scopedEdgeCount === 0 ? 0 : totalTracksAfter / scopedEdgeCount,
         totalTravelTimeDelta: parts.travelTimeDelta,
         optionalConnectionsBefore: initial.parts.optionalConnections,
@@ -558,6 +603,9 @@ export class OptimizeTimetableService {
     nodes: Node[],
     nodeMetrics: NodeTrackMetrics,
     baselineNodeMetrics: NodeTrackMetrics,
+    maxEdgeTracks: number,
+    averageEdgeTracks: number,
+    scopedEdgeCount: number,
   ): Record<ObjectiveId, number> {
     let squaredTimeShift = 0;
     problem.sections.forEach((_, sectionIndex) => {
@@ -601,6 +649,9 @@ export class OptimizeTimetableService {
     const normalizedNodeTrackCost =
       (nodeMetrics.maxTracks + nodeMetrics.averageTracks * averageTrackWeight) /
       maximumPossibleTracks;
+    const averageEdgeTrackWeight = 1 / (scopedEdgeCount + 1);
+    const normalizedEdgeTrackCost =
+      (maxEdgeTracks + averageEdgeTracks * averageEdgeTrackWeight) / maximumPossibleTracks;
 
     return {
       minimalChanges: 1 / (1 + normalizedShiftCost),
@@ -608,6 +659,7 @@ export class OptimizeTimetableService {
       lowerTravelTime:
         trainrunCount === 0 ? 0 : (travelTimeScore / trainrunCount + 2) / 3,
       lowerTrackUsage: 1 / (1 + normalizedNodeTrackCost),
+      lowerEdgeTrackUsage: 1 / (1 + normalizedEdgeTrackCost),
     };
   }
 
@@ -778,13 +830,17 @@ export class OptimizeTimetableService {
     const freeVariableCount = problem.variables.filter(
       (variable) => !variable.fixed && variable.domain > 0,
     ).length;
+    const freeTravelTimeVariableCount = problem.variables.filter(
+      (variable) =>
+        !variable.fixed && variable.domain > 0 && variable.travelTimeTrainrunIndex !== undefined,
+    ).length;
     const domainlessChainCount = problem.chains.filter(
       (chain) =>
         [chain.varA, chain.varB].every((index) => problem.variables[index].domain === 0) &&
         !chain.fixed,
     ).length;
     console.info(
-      `Eingabemodell: ${problem.sections.length} Abschnitte, ${problem.chains.length} Ketten, ${freeVariableCount} freie Variablen, ${domainlessChainCount} Ketten ohne Δ-Domäne, ${problem.edges.length} Strecken.`,
+      `Eingabemodell: ${problem.sections.length} Abschnitte, ${problem.chains.length} Ketten, ${freeVariableCount} freie Variablen (davon ${freeTravelTimeVariableCount} Abschnittsfahrzeiten), ${domainlessChainCount} Ketten ohne Δ-Domäne, ${problem.edges.length} Strecken.`,
     );
     console.info(
       `Schritt 1: exakte Track-Estimator-Segmente. Konfliktwert = maxTracks * Summe(segment.tracks) / (2 * Segmentanzahl); x = maxTracksPerSection (${x}). Sortierung absteigend.`,

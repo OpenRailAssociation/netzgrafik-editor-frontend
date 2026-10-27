@@ -61,6 +61,12 @@ export interface OptimizeTimetableKpi extends SolutionKpis {
   /** Highest track count over all changed edges before / after. */
   maxTracksBefore: number;
   maxTracksAfter: number;
+  /** Highest node track count before / after. */
+  maxNodeTracksBefore: number;
+  maxNodeTracksAfter: number;
+  /** Minimum stop-time violations before / after, regardless of hard-rule state. */
+  minimumStopViolationsBefore: number;
+  minimumStopViolationsAfter: number;
   /** Sum of total travel time changes (minutes, all trainruns and directions). */
   totalTravelTimeDelta: number;
   /** Number of optional connections before / after. */
@@ -87,6 +93,14 @@ export interface OptimizeTimetableResult {
   baselineEdges: EdgeTrackKpi[];
   solutions: OptimizeTimetableSolution[];
   freeVariables: number;
+  freeShiftVariables: number;
+  freeTravelTimeVariables: number;
+  fixedTravelTimeVariables: number;
+  travelTimeLockBlockedVariables: number;
+  departureTimeLockBlockedVariables: number;
+  arrivalTimeLockBlockedVariables: number;
+  scopeBlockedTravelTimeVariables: number;
+  noRangeTravelTimeVariables: number;
   fixedChains: number;
   iterations: number;
   runtimeMs: number;

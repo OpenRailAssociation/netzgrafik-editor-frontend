@@ -12,19 +12,6 @@
         ></sbb-optimization-director>
         <div class="results-column">
           <div class="settings">
-            <label for="optimize-max-tracks">
-              {{ "app.view.dialogs.optimize-timetable-dialog.max-tracks" | translate }}
-            </label>
-            <input
-              id="optimize-max-tracks"
-              sbbInput
-              type="number"
-              min="1"
-              step="1"
-              [(ngModel)]="maxTracks"
-              (ngModelChange)="onMaxTracksChange($event)"
-              (keydown.enter)="optimize()"
-            />
             <button sbb-button type="button" (click)="optimize()">
               {{ "app.view.dialogs.optimize-timetable-dialog.optimize" | translate }}
             </button>
@@ -70,14 +57,39 @@
                     : {
                         iterations: result.iterations.toString(),
                         runtime: result.runtimeMs.toString(),
-                        variables: result.freeVariables.toString(),
                         over: result.initialEdgesOverLimit.toString(),
+                      }
+              }}
+            </div>
+            <div class="variable-breakdown">
+              {{
+                "app.view.dialogs.optimize-timetable-dialog.variable-breakdown"
+                  | translate
+                    : {
+                        variables: result.freeVariables.toString(),
+                        shifts: result.freeShiftVariables.toString(),
+                        freeRuntimes: result.freeTravelTimeVariables.toString(),
+                      }
+              }}
+            </div>
+            <div class="runtime-lock-summary" *ngIf="result.fixedTravelTimeVariables > 0">
+              {{
+                "app.view.dialogs.optimize-timetable-dialog.runtime-lock-summary"
+                  | translate
+                    : {
+                        blocked: result.fixedTravelTimeVariables.toString(),
+                        travelLocks: result.travelTimeLockBlockedVariables.toString(),
+                        departureLocks: result.departureTimeLockBlockedVariables.toString(),
+                        arrivalLocks: result.arrivalTimeLockBlockedVariables.toString(),
+                        scope: result.scopeBlockedTravelTimeVariables.toString(),
+                        noRange: result.noRangeTravelTimeVariables.toString(),
                       }
               }}
             </div>
             <div class="message" *ngIf="result.message">{{ result.message }}</div>
 
-            <table class="proposals" *ngIf="result.solutions.length > 0">
+            <div class="proposals-scroll" *ngIf="result.solutions.length > 0">
+              <table class="proposals">
               <thead>
                 <tr>
                   <th>{{ "app.view.dialogs.optimize-timetable-dialog.proposal" | translate }}</th>
@@ -85,7 +97,13 @@
                     {{ "app.view.dialogs.optimize-timetable-dialog.edges-over-limit" | translate }}
                   </th>
                   <th>
-                    {{ "app.view.dialogs.optimize-timetable-dialog.max-tracks-kpi" | translate }}
+                    {{ "app.view.dialogs.optimize-timetable-dialog.section-tracks-kpi" | translate }}
+                  </th>
+                  <th>
+                    {{ "app.view.dialogs.optimize-timetable-dialog.node-tracks-kpi" | translate }}
+                  </th>
+                  <th>
+                    {{ "app.view.dialogs.optimize-timetable-dialog.minimum-stop-violations" | translate }}
                   </th>
                   <th>
                     {{ "app.view.dialogs.optimize-timetable-dialog.travel-time-delta" | translate }}
@@ -105,8 +123,14 @@
                     {{ result.baselineKpi.edgesOverLimitAfter }}
                   </td>
                   <td>
-                    {{ result.baselineKpi.maxTracksBefore }} →
-                    {{ result.baselineKpi.maxTracksAfter }}
+                    {{ result.baselineKpi.maxTracksBefore }} → {{ result.baselineKpi.maxTracksAfter }}
+                  </td>
+                  <td>
+                    {{ result.baselineKpi.maxNodeTracksBefore }} → {{ result.baselineKpi.maxNodeTracksAfter }}
+                  </td>
+                  <td>
+                    {{ result.baselineKpi.minimumStopViolationsBefore }} →
+                    {{ result.baselineKpi.minimumStopViolationsAfter }}
                   </td>
                   <td>{{ formatSigned(result.baselineKpi.totalTravelTimeDelta) }}</td>
                   <td>
@@ -136,7 +160,16 @@
                   <td>
                     {{ solution.kpi.edgesOverLimitBefore }} → {{ solution.kpi.edgesOverLimitAfter }}
                   </td>
-                  <td>{{ solution.kpi.maxTracksBefore }} → {{ solution.kpi.maxTracksAfter }}</td>
+                  <td>
+                    {{ solution.kpi.maxTracksBefore }} → {{ solution.kpi.maxTracksAfter }}
+                  </td>
+                  <td>
+                    {{ solution.kpi.maxNodeTracksBefore }} → {{ solution.kpi.maxNodeTracksAfter }}
+                  </td>
+                  <td>
+                    {{ solution.kpi.minimumStopViolationsBefore }} →
+                    {{ solution.kpi.minimumStopViolationsAfter }}
+                  </td>
                   <td>{{ formatSigned(solution.kpi.totalTravelTimeDelta) }}</td>
                   <td>
                     {{ solution.kpi.optionalConnectionsBefore }} →
@@ -146,7 +179,8 @@
                   <td>{{ solution.kpi.changedTrainruns }} / {{ solution.kpi.changedTimes }}</td>
                 </tr>
               </tbody>
-            </table>
+              </table>
+            </div>
 
             <ng-container *ngIf="selectedSolution">
               <h4>{{ "app.view.dialogs.optimize-timetable-dialog.edges" | translate }}</h4>

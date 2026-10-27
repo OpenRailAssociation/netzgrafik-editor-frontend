@@ -13,6 +13,7 @@ function solution(id: number, kpi: Partial<OptimizeTimetableKpi>): OptimizeTimet
         moreConnections: 0,
         lowerTravelTime: 0,
         lowerTrackUsage: 0,
+        lowerEdgeTrackUsage: 0,
       },
       changedChains: 0,
       totalDeltaMinutes: 0,
@@ -25,6 +26,10 @@ function solution(id: number, kpi: Partial<OptimizeTimetableKpi>): OptimizeTimet
       edgesOverLimitAfter: 0,
       maxTracksBefore: 0,
       maxTracksAfter: 0,
+      maxNodeTracksBefore: 0,
+      maxNodeTracksAfter: 0,
+      minimumStopViolationsBefore: 0,
+      minimumStopViolationsAfter: 0,
       totalTravelTimeDelta: 0,
       optionalConnectionsBefore: 0,
       optionalConnectionsAfter: 0,
@@ -72,6 +77,20 @@ describe("compareSolutions", () => {
     });
 
     expect(compareSolutions(reorderedTopObjectiveWins, topObjectiveWins, policy)).toBeLessThan(0);
+  });
+
+  it("ranks lower edge track usage when that soft objective is enabled", () => {
+    const policy = createDefaultOptimizationPolicy();
+    policy.objectives.forEach((objective) => (objective.enabled = false));
+    policy.objectives.find((objective) => objective.id === "lowerEdgeTrackUsage").enabled = true;
+    const lowerTrackUsage = solution(1, {
+      objectiveScores: {lowerEdgeTrackUsage: 1},
+    });
+    const higherTrackUsage = solution(2, {
+      objectiveScores: {lowerEdgeTrackUsage: 0},
+    });
+
+    expect(compareSolutions(lowerTrackUsage, higherTrackUsage, policy)).toBeLessThan(0);
   });
 
   it("ignores disabled objectives and uses a stable id tie-break", () => {
