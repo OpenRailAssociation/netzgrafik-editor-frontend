@@ -51,6 +51,9 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   selectedNodeCount = 0;
   scopeUsesSelectedTrainrun = false;
   result: OptimizeTimetableResult = undefined;
+  showTrackOverview = true;
+  trackOverviewExpanded = true;
+  resultsPanelExpanded = false;
   selectedSolution: OptimizeTimetableSolution = undefined;
   nodeGroups: NodeChangeGroup[] = [];
   selectedNodeId: number = undefined;
@@ -160,6 +163,16 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     this.refreshTrackOverview();
   }
 
+  openTrackOverview(): void {
+    this.trackOverviewExpanded = true;
+    this.resultsPanelExpanded = false;
+  }
+
+  openResultsPanel(): void {
+    this.resultsPanelExpanded = true;
+    this.trackOverviewExpanded = false;
+  }
+
   selectBaseline(): void {
     this.revertPreview();
     this.selectedSolution = undefined;
@@ -259,6 +272,9 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
           .filter((node) => this.filterService.filterNode(node))
           .map((node) => node.getId());
     this.trackOverviewSort = {active: "tracksBefore", direction: "desc"};
+    this.showTrackOverview = true;
+    this.trackOverviewExpanded = true;
+    this.resultsPanelExpanded = false;
     this.selectedNodeCount = this.scopeNodeIds.length;
     this.refreshTrackOverview();
     this.undoService.pauseUndoRecording();
@@ -480,6 +496,8 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
         debugTrace: true,
       },
     );
+    this.trackOverviewExpanded = false;
+    this.resultsPanelExpanded = true;
     this.selectedSolution = undefined;
     this.refreshTrackOverview();
     this.nodeGroups = [];

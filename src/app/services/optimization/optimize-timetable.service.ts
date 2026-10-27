@@ -522,9 +522,13 @@ export class OptimizeTimetableService {
       const edge = problem.edges[e];
       const sections = edge.sections.map((i) => problem.sections[i]);
       const before = beforeTracks.get(e) ?? 0;
-      const after = this.withCandidateConsecutiveTimes(problem, evaluator, sections, () =>
-        this.estimateEdgeTracks(problem, e),
+      const segmentsAfter = this.withCandidateConsecutiveTimes(
+        problem,
+        evaluator,
+        sections,
+        () => this.estimateEdgeTrackSegments(problem, e),
       );
+      const after = segmentsAfter.reduce((maximum, segment) => Math.max(maximum, segment.tracks), 0);
       afterTracks.set(e, after);
       if (problem.edgeInScope[e] === 1) {
         overAfter += Number(after > problem.maxTracks) - Number(before > problem.maxTracks);
@@ -536,6 +540,8 @@ export class OptimizeTimetableService {
         toNodeName: edge.toNode.getBetriebspunktName(),
         tracksBefore: before,
         tracksAfter: after,
+        trackSegmentsBefore: baselineEdges[e]?.trackSegments ?? [],
+        trackSegmentsAfter: segmentsAfter,
       });
     });
     edges.sort((a, b) => b.tracksAfter - a.tracksAfter || b.tracksBefore - a.tracksBefore);
@@ -746,11 +752,6 @@ export class OptimizeTimetableService {
           : trackCounts.reduce((sum, tracks) => sum + tracks, 0) / trackCounts.length,
       turnaroundWaitByTrainrun,
     };
-  }
-
-  private estimateEdgeTracks(problem: OptimizationProblem, e: number): number {
-    const segments = this.estimateEdgeTrackSegments(problem, e);
-    return segments.reduce((m, s) => Math.max(m, s.tracks), 0);
   }
 
   private estimateEdgeTrackSegments(

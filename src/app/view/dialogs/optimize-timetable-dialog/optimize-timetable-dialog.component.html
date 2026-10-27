@@ -59,9 +59,12 @@
 
           <br />
           <sbb-expansion-panel
+            *ngIf="showTrackOverview"
             class="track-overview-panel"
-            [class.has-result]="result !== undefined"
-            [expanded]="true"
+            [class.collapsed]="!trackOverviewExpanded"
+            [expanded]="trackOverviewExpanded"
+            (opened)="openTrackOverview()"
+            (closed)="trackOverviewExpanded = false"
           >
             <sbb-expansion-panel-header>
               {{ "app.view.dialogs.optimize-timetable-dialog.track-overview" | translate }}
@@ -123,7 +126,18 @@
             </section>
           </sbb-expansion-panel>
 
-          <ng-container *ngIf="result">
+          <sbb-expansion-panel
+            class="optimization-results-panel"
+            *ngIf="result"
+            [class.collapsed]="!resultsPanelExpanded"
+            [expanded]="resultsPanelExpanded"
+            (opened)="openResultsPanel()"
+            (closed)="resultsPanelExpanded = false"
+          >
+            <sbb-expansion-panel-header>
+              {{ "app.view.dialogs.optimize-timetable-dialog.results-panel" | translate }}
+            </sbb-expansion-panel-header>
+            <div class="optimization-results">
             <div class="info">
               {{
                 "app.view.dialogs.optimize-timetable-dialog.search-info"
@@ -258,23 +272,48 @@
 
             <ng-container *ngIf="selectedSolution">
               <h4>{{ "app.view.dialogs.optimize-timetable-dialog.edges" | translate }}</h4>
-              <table class="details">
+              <div class="edge-details-scroll">
+              <table class="details edge-details">
                 <thead>
                   <tr>
                     <th>{{ "app.view.dialogs.optimize-timetable-dialog.edge" | translate }}</th>
-                    <th>{{ "app.view.dialogs.optimize-timetable-dialog.tracks" | translate }}</th>
+                    <th>{{ "app.view.dialogs.optimize-timetable-dialog.tracks-before" | translate }}</th>
+                    <th>{{ "app.view.dialogs.optimize-timetable-dialog.topology-before" | translate }}</th>
+                    <th>{{ "app.view.dialogs.optimize-timetable-dialog.tracks-after" | translate }}</th>
+                    <th>{{ "app.view.dialogs.optimize-timetable-dialog.topology-after" | translate }}</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr
                     *ngFor="let edge of selectedSolution.edges"
-                    [class.over-limit]="trackLimitEnabled && edge.tracksAfter > maxTracks"
                   >
                     <td>{{ edge.fromNodeName }} – {{ edge.toNodeName }}</td>
-                    <td>{{ edge.tracksBefore }} → {{ edge.tracksAfter }}</td>
+                    <td [class.over-limit]="trackLimitEnabled && edge.tracksBefore > maxTracks">
+                      {{ edge.tracksBefore }}
+                    </td>
+                    <td>
+                      <sbb-track-topology
+                        [edge]="edge"
+                        [segments]="edge.trackSegmentsBefore"
+                        [maxTracks]="maxTracks"
+                        [trackLimitEnabled]="trackLimitEnabled"
+                      ></sbb-track-topology>
+                    </td>
+                    <td [class.over-limit]="trackLimitEnabled && edge.tracksAfter > maxTracks">
+                      {{ edge.tracksAfter }}
+                    </td>
+                    <td>
+                      <sbb-track-topology
+                        [edge]="edge"
+                        [segments]="edge.trackSegmentsAfter"
+                        [maxTracks]="maxTracks"
+                        [trackLimitEnabled]="trackLimitEnabled"
+                      ></sbb-track-topology>
+                    </td>
                   </tr>
                 </tbody>
               </table>
+              </div>
 
               <div class="node-review">
                 <div class="node-changes">
@@ -348,11 +387,6 @@
                 </div>
 
                 <div class="node-clock" *ngIf="occupancyBefore && occupancyAfter">
-                  <div class="clock-title">
-                    {{ occupancyAfter.node.getBetriebspunktName() }} ({{
-                      getSelectedNodeIndex() + 1
-                    }}/{{ nodeGroups.length }})
-                  </div>
                   <div class="clocks">
                     <div class="clock">
                       <h4 class="clock-label">
@@ -380,7 +414,8 @@
                 </div>
               </div>
             </ng-container>
-          </ng-container>
+            </div>
+          </sbb-expansion-panel>
         </div>
       </div>
     </div>

@@ -29,6 +29,7 @@ interface TrackTopologyCountBox {
 })
 export class TrackTopologyComponent implements OnChanges {
   @Input() edge: EdgeTrackKpi;
+  @Input() segments: {start: number; end: number; tracks: number}[];
   @Input() maxTracks = 0;
   @Input() trackLimitEnabled = false;
 
@@ -47,9 +48,10 @@ export class TrackTopologyComponent implements OnChanges {
     }
 
     const segments =
-      this.edge.trackSegments?.length > 0
+      this.segments ??
+      (this.edge.trackSegments?.length > 0
         ? this.edge.trackSegments
-        : [{start: 0, end: 1, tracks: this.edge.tracksBefore}];
+        : [{start: 0, end: 1, tracks: this.edge.tracksBefore}]);
     const lines: TrackTopologyLine[] = [];
     const countBoxes: TrackTopologyCountBox[] = [];
 

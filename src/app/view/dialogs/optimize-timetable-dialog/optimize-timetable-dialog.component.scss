@@ -1,4 +1,6 @@
 .optimize-timetable-dialog {
+  --COLOR_Warning: #eb0000;
+
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -8,6 +10,7 @@
     display: grid;
     flex: 1 1 0;
     grid-template-columns: 290px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
     gap: 16px;
     align-items: stretch;
     min-height: 0;
@@ -29,6 +32,43 @@
     flex-direction: column;
     min-height: 0;
     overflow-y: auto;
+  }
+
+  .optimization-results {
+    flex: 1 1 0;
+    min-height: 0;
+    min-width: 0;
+    overflow-y: auto;
+  }
+
+  .optimization-results-panel {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .optimization-results-panel.collapsed {
+    flex: 0 0 auto;
+  }
+
+  ::ng-deep .optimization-results-panel .sbb-expansion-panel-content-wrapper {
+    flex: 1 1 0;
+    height: 100%;
+    min-height: 0;
+  }
+
+  ::ng-deep .optimization-results-panel .sbb-expansion-panel-content,
+  ::ng-deep .optimization-results-panel .sbb-expansion-panel-body {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+  }
+
+  ::ng-deep .optimization-results-panel.collapsed .sbb-expansion-panel-content-wrapper {
+    display: none;
   }
 
   .settings {
@@ -73,9 +113,9 @@
     min-height: 0;
   }
 
-  .track-overview-panel.has-result {
-    flex: 0 1 32%;
-    max-height: 32%;
+  .track-overview-panel.collapsed {
+    flex: 0 0 auto;
+    max-height: none;
   }
 
   ::ng-deep .track-overview-panel .sbb-expansion-panel-content-wrapper {
@@ -91,6 +131,10 @@
     flex-direction: column;
     height: 100%;
     min-height: 0;
+  }
+
+  ::ng-deep .track-overview-panel.collapsed .sbb-expansion-panel-content-wrapper {
+    display: none;
   }
 
   .track-overview {
@@ -125,14 +169,14 @@
       position: sticky;
       top: 0;
       z-index: 1;
-      padding: 8px;
+      padding: 6px;
       background: var(--sbb-header-lean-background-color);
       white-space: normal;
       cursor: pointer;
     }
 
     td {
-      padding: 7px 8px;
+      padding: 4px 6px;
       white-space: nowrap;
     }
 
@@ -245,6 +289,19 @@
     &.selected {
       background-color: var(--sbb-menu-item-background-color-hover);
       font-weight: bold;
+
+      td {
+        border-top: 2px solid var(--COLOR_Edit);
+        border-bottom: 2px solid var(--COLOR_Edit);
+      }
+
+      td:first-child {
+        border-left: 2px solid var(--COLOR_Edit);
+      }
+
+      td:last-child {
+        border-right: 2px solid var(--COLOR_Edit);
+      }
     }
   }
 
@@ -267,6 +324,30 @@
 
   .over-limit {
     color: var(--COLOR_Warning);
+  }
+
+  .edge-details-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .edge-details {
+    min-width: 1040px;
+    table-layout: fixed;
+
+    th:nth-child(1) {
+      width: 20%;
+    }
+
+    th:nth-child(2),
+    th:nth-child(4) {
+      width: 14%;
+    }
+
+    th:nth-child(3),
+    th:nth-child(5) {
+      width: 26%;
+    }
   }
 
   .node-review {
@@ -442,6 +523,7 @@
   .node-clock {
     position: sticky;
     top: 0;
+    margin-top: 38px;
     min-width: 0;
   }
 
