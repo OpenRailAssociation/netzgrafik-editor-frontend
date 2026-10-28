@@ -246,10 +246,6 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
       this.selectTrainrun(trainrun);
       return;
     }
-
-    this.searchResults.sort((a, b) =>
-      this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
-    );
   }
 
   private filterTrainruns(value: string | Trainrun): Trainrun[] {
