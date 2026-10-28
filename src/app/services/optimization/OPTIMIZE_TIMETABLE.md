@@ -1,14 +1,12 @@
-**Abbrechen** – stellt die Ausgangslage exakt wieder her.
-
-- Der Dialog ist zweispaltig: links Regeln und sortierbare Soft-KPIs, rechts Vorschläge und Preview.
-  Das Umordnen von KPIs sortiert vorhandene Vorschläge ohne neuen Suchlauf; geänderte harte Regeln
-  markieren Kandidaten nach Revalidierung als gültig/ungültig.
-- Die Policy wird lokal im Browser gespeichert. Locks und Scope-Grenzen bleiben immer aktiv;
-  Knotengleis-Auslastung ist nur eine Ergebnisansicht und kein Optimierungs-Constraint.
-
 # Optimize Timetable – Anforderungen
 
 Status: **implementiert** (Details und getroffene Annahmen: [UMSETZUNGSVORSCHLAG.md – Abschnitt 10](./UMSETZUNGSVORSCHLAG.md#10-implementierungsstand))
+
+## Kurzüberblick
+
+- Der Dialog ist zweispaltig: links stehen harte Regeln und weiche Ziele, rechts Resultate und Vorschläge. Das Umordnen der weichen Ziele sortiert vorhandene Vorschläge neu, ohne einen Suchlauf zu starten. Eine ausgewählte Lösung wird in der Netzgrafik als Vorschau angezeigt; Änderungen an harten Regeln prüfen vorhandene Vorschläge erneut auf Gültigkeit.
+- Scope-Grenzen sind immer aktiv. Zeit- und Fahrzeit-Locks sind standardmässig aktiv, lassen sich aber in der Policy ausschalten. Änderungen an der Policy werden erst über **Policy speichern** dauerhaft im Browser abgelegt.
+- Knotengleis-Auslastung ist keine harte Regel. Das standardmässig aktive weiche Ziel dafür beeinflusst die Bewertung der Suche.
 
 ## 1. Ziel
 
@@ -253,16 +251,120 @@ interface OptimizeTimetableResult {
 
 ### 8.1 Modell
 
-- Verschiebung **Δ (ganze Minuten) pro Abschnitt**; die Fahrzeit des Abschnitts bleibt fix.
-- Abschnitte, die über eine **Durchfahrt** verbunden sind, bilden eine **Kette** (Halt → Halt)
-  mit gemeinsamem Δ (H9).
-- **Symmetrisch**: Hinrichtung +Δ ⇒ Rückrichtung −Δ (eine Variable pro Kette).
-  **Asymmetrisch**: eine Variable pro Richtung.
-- Ketten mit Locks oder an Randkanten/ausserhalb der Selektion: Δ = 0.
-- Verschiebung einer Kette um +Δ: Halt davor +Δ, Halt danach −Δ (beide ≥ Mindesthaltezeit,
-  ≤ Takt − 1). Ganzer Zuglauf um Δ ⇒ Gesamtfahrzeit unverändert.
-- Der Gleis-Schätzer liest ausschliesslich Consecutive Times; diese werden nach jeder Verschiebung
-  auf der Kopie lokal für die betroffene Kette neu berechnet.
+- Die Eingabe besteht aus den nativen **`Trainrun`**-, **`TrainrunSection`**- und **`Node`**-Objekten.
+  Für jeden Zuglauf ordnet der Algorithmus dessen Abschnitte entlang des modellierten Pfads.
+- Eine **Kette** ist eine Folge aufeinanderfolgender `TrainrunSection`s zwischen zwei Haltepunkten.
+  Abschnitte, die an einem als Durchfahrt modellierten Knoten weiterführen, gehören zur selben
+  Kette. An einem Halt wird die Folge geteilt. Auch das Ende eines Zuglaufpfads beendet eine
+  Kette. Der Algorithmus erkennt einen Halt anhand des Knotens und der jeweiligen Sektion; ein
+  Knoten kann deshalb für einen Zuglauf Durchfahrt und für einen anderen Halt sein.
+- Für jede verschiebbare Kette gibt es eine ganzzahlige **Kettenverschiebung Δ**. Δ ist nicht eine
+  unabhängig wählbare Verschiebung pro Abschnitt: Der Start der Kette wird verschoben und die
+  Zeiten werden anschliessend Abschnitt für Abschnitt mit deren Fahrzeiten fortgeschrieben. Sind
+  die Fahrzeiten unverändert, verschieben sich alle aktiven Ankunfts- und Abfahrtszeiten dieser
+  Kette um dasselbe Δ. Der Code begrenzt Δ auf ganze Werte von
+  `-floor(min(Frequenz, 60) / 2)` bis `+floor(min(Frequenz, 60) / 2)` Minuten. Bei einer Frequenz
+  von 60 Minuten ist der Variablenbereich also −30 bis +30 Minuten. Halte, Anschlüsse und weitere
+  aktive Regeln entscheiden zusätzlich, welche dieser Werte in einer gültigen Lösung zulässig sind.
+- Ist die harte Regel **Zeit-Locks** aktiv und trägt irgendeine Sektion der Kette einen gelockten
+  Ankunfts- oder Abfahrtszeitpunkt, wird die ganze Kette für Δ fixiert. Ist diese Regel
+  ausgeschaltet, werden diese Zeit-Locks bei der Verschiebbarkeit ignoriert. Ohne gesetzten
+  Zeit-Lock kann die Kette bei erfüllten übrigen Regeln verschoben werden. Das bedeutet nicht,
+  dass nur Abfahrtszeiten geändert werden: Die Verschiebung kann je nach Fahrtrichtung auch
+  Ankunftszeiten und weitere Abfahrten in der Kette anpassen.
+- Ketten ausserhalb des gewählten Scopes oder mit einem Endpunkt ausserhalb des Scopes bleiben
+  immer fix. Diese Scope-Grenze ist verpflichtend und nicht durch Ausschalten einer anderen
+  Lock-Regel übersteuerbar.
+- Zuglaufteile, die der Code nicht als linearen Pfad ordnen kann, insbesondere erkannte Zyklen,
+  werden nicht in verschiebbare Ketten aufgenommen und bleiben fix.
+- Bei Round-Trips können Hin- und Rückrichtung durch aktive Symmetrie gekoppelt sein. Dann kann
+  eine Verschiebung in der Gegenrichtung mit umgekehrtem Vorzeichen abgebildet werden. Sind die
+  Richtungen nicht gekoppelt, können sie eigene Kettenvariablen haben. One-way-Zugläufe haben
+  keine aktive Gegenrichtung.
+
+#### Beispiel: Kettenverschiebung an einem Durchfahrtsknoten
+
+Angenommen, die Netzgrafik enthält folgende Modellobjekte:
+
+| Objekt | Modellinhalt |
+| --- | --- |
+| `Node A` | Startknoten des Zuglaufs |
+| `Node B` | Durchfahrt für diesen Zuglauf; keine Wartezeit zwischen den Sektionen |
+| `Node C` | Halt beziehungsweise Ende dieses Pfads |
+| `Trainrun R7` | One-way, Takt/Frequenz 60 Minuten |
+| `TrainrunSection S1` | `A → B`, Abfahrt A 08:00, Ankunft B 08:20, Fahrzeit 20 Minuten |
+| `TrainrunSection S2` | `B → C`, Abfahrt B 08:20, Ankunft C 08:45, Fahrzeit 25 Minuten |
+
+Weil `B` für `R7` eine Durchfahrt ist, bilden `S1` und `S2` gemeinsam die Kette
+`R7: A → B → C`. Die Fahrzeiten bleiben in diesem Beispiel unverändert. Angenommen, alle
+betroffenen Ankunfts- und Abfahrts-Locks sind nicht gesetzt, die Knoten liegen im Scope und die
+übrigen harten Regeln erlauben die Verschiebung. Wählt der Suchlauf **Δ = +2 Minuten**, ergibt
+sich:
+
+| Sektion | Vorher | Nachher |
+| --- | --- | --- |
+| `S1` | A Abfahrt 08:00 → B Ankunft 08:20; Fahrzeit 20 min | A Abfahrt 08:02 → B Ankunft 08:22; Fahrzeit 20 min |
+| `S2` | B Abfahrt 08:20 → C Ankunft 08:45; Fahrzeit 25 min | B Abfahrt 08:22 → C Ankunft 08:47; Fahrzeit 25 min |
+
+Der Algorithmus wählt also nicht zwei unabhängige Änderungen „08:00 wird 08:02“ und
+„08:20 wird 08:22“. Er wählt einen Kettenwert Δ; daraus werden die Ereigniszeiten der Sektionen
+der Reihe nach berechnet. An der Durchfahrt B bleiben Ankunft und Abfahrt konsistent. Die
+Fahrzeit von `R7` wird durch eine reine Kettenverschiebung nicht länger.
+
+Wäre `B` stattdessen ein Halt, endete die erste Kette bei `B` und die zweite begänne dort. Dann
+hätten die beiden Ketten eigene Δ-Variablen. Sie dürften nicht beliebig unabhängig verschoben
+werden: Die resultierende Haltezeit zwischen Ankunft und Abfahrt muss die aktive
+Mindesthaltezeitregel sowie weitere aktive Anschlussregeln erfüllen.
+
+#### TravelTime ist eine separate Anpassung
+
+Eine TravelTime-Änderung ist **nicht** dasselbe wie Δ. Sie verändert die Fahrzeit einer
+`TrainrunSection` und wirkt sich auf die danach berechneten Zeiten in derselben Kette aus. Sie
+steht nur zur Verfügung, wenn die optionale harte Regel **maximale Fahrzeitverlängerung pro
+Abschnitt** aktiviert ist. Dann darf jede betroffene Fahrzeit einzeln um 0 bis zum eingestellten
+Wert `n` Minuten verlängert werden. In einer ausgegebenen gültigen Lösung kann eine Fahrzeit
+nicht verkürzt sein. Die heuristische Suche kann intern auch unzulässige Zwischenwerte prüfen;
+die aktive harte Regel bewertet eine Verkürzung als Verletzung und solche Kandidaten werden nicht
+als gültige Lösung ausgegeben.
+
+Zusätzlich müssen die passenden Locks und der Scope die Änderung erlauben:
+
+- Ist **TravelTime-Locks** aktiv, darf die Fahrzeit in der betreffenden Richtung nicht gelockt
+  sein. Ist die Regel ausgeschaltet, wird dieser TravelTime-Lock ignoriert.
+- Ist **Zeit-Locks** aktiv, dürfen die Ankunfts- und Abfahrtsfelder, deren Zeiten durch diese
+  Verlängerung fortgeschrieben würden, nicht gelockt sein. Die Verlängerung von `S1` verändert
+  nicht dessen Startabfahrt, aber dessen Ankunft und die nachfolgenden Zeiten der Kette.
+- Die betroffene Sektion und alle dadurch beeinflussten Knoten müssen im Scope liegen.
+
+Im Beispiel oben seien die Fahrzeitverlängerungsregel aktiv und `S1` in Fahrtrichtung nicht
+gelockt; auch die betroffenen Ankunfts- und Abfahrtszeiten seien nicht gelockt. Eine Erhöhung der
+Fahrzeit von `S1` um **3 Minuten** ergibt bei Δ = 0:
+
+| Sektion | Vorher | Nachher |
+| --- | --- | --- |
+| `S1` | A Abfahrt 08:00 → B Ankunft 08:20; Fahrzeit 20 min | A Abfahrt 08:00 → B Ankunft 08:23; Fahrzeit 23 min |
+| `S2` | B Abfahrt 08:20 → C Ankunft 08:45; Fahrzeit 25 min | B Abfahrt 08:23 → C Ankunft 08:48; Fahrzeit 25 min |
+
+Die zusätzliche Fahrzeit von `S1` verschiebt also B und die nachfolgenden Ereignisse um drei
+Minuten. Falls gleichzeitig Δ = +2 gewählt wird, fährt `R7` in A um 08:02 ab; B liegt dann bei
+08:25 und C bei 08:50. Das sind zwei getrennte Entscheidungen: **Δ verschiebt den Start der
+Kette**, die **TravelTime-Erhöhung verlängert eine Sektion** und propagiert die Änderung ab dort.
+
+Die TravelTime-Locks sind je nach Modellrichtung getrennt (`travelTime` vorwärts und
+`backwardTravelTime` rückwärts). Bei aktiver Symmetrie können beide Richtungen gekoppelt sein;
+dann muss die Änderung für beide Richtungen zulässig sein. Ohne aktivierte
+Fahrzeitverlängerungsregel gibt es keine TravelTime-Änderungsvariable, auch wenn eine Sektion
+unlocked ist.
+
+Die Suche bewertet Kandidaten mit ihren berechneten Zeiten und Fahrzeiten. Sie speichert einen
+Vorschlag zunächst als Änderungen; beim Auswählen wird er als Vorschau angezeigt. Erst **Übernehmen**
+behält ihn im Fahrplan, **Abbrechen** stellt die Ausgangslage wieder her.
+
+Im Code ordnet [`buildPaths()`](./optimize-timetable.chains.ts) die Sektionen eines Zuglaufs und
+teilt sie an Halten in Ketten. Die gleiche Datei legt Zeit-Locks, TravelTime-Locks und Scope als
+Gründe für fixierte Variablen fest. [`applyChain()`](./optimize-timetable.evaluator.ts) berechnet
+aus Δ und optionalen Fahrzeitänderungen die Kandidatenzeiten; [`isSolutionValid()`](./optimize-timetable.service.ts)
+prüft anschliessend, ob eine ausgegebene Lösung die aktiven harten Regeln einhält.
 
 Das Problem ist eine **periodische Fahrplanoptimierung auf einer bestehenden Netzgrafik**:
 Kettenverschiebungen (Δ) verändern Ereigniszeiten, während Streckenabschnitte gemeinsam genutzte
