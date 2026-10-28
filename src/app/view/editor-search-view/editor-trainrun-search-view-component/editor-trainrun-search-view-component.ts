@@ -212,14 +212,9 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
   }
 
   getTrainrunSearchValue(trainrun: Trainrun): string {
-    if (trainrun) {
       const category = trainrun.getCategoryShortName();
       const title = trainrun.getTitle();
-
       return `${category}${title}`.trim();
-    }
-
-    return "";
   }
 
   transformTrainrunName(trainrun: Trainrun): string {
