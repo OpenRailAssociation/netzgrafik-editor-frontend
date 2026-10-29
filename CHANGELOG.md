@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.12.3](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.12.2...netzgrafik-editor-frontend-v2.12.3) (2026-10-29)
+
+
+### Bug Fixes
+
+* **export:** export a clone of the live element ([#1437](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1437)) ([f2c75d3](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/f2c75d3f04e9d67b419dbc3d0ff5301fe38265fe))
+* the mouse cursor is override for all svg ([#1453](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1453)) ([667cef9](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/667cef90f7bd39fc4d6eba7d81d109ae314f12ad))
+
 ## [2.12.2](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.12.1...netzgrafik-editor-frontend-v2.12.2) (2026-10-23)
 
 
