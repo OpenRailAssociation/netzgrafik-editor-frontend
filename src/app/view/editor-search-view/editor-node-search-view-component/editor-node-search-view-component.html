@@ -1,0 +1,35 @@
+<sbb-search (search)="onSearch()">
+  <input
+    sbbInput
+    [placeholder]="'app.view.editor-search-view-component.search-node' | translate"
+    [formControl]="searchControl"
+    [sbbAutocomplete]="auto"
+    (keydown.escape)="clearSearch()"
+  />
+</sbb-search>
+<sbb-autocomplete
+  #auto="sbbAutocomplete"
+  class="editor-node-search-autocomplete"
+  [displayWith]="displayNode"
+>
+  @for (option of filteredNodes; track option) {
+  <sbb-option [value]="option"> {{ displayNode(option) }} </sbb-option>
+  } @if (remainingNodeResults > 0) {
+  <sbb-option-hint>
+    {{ "app.view.editor-search-view-component.more-results" | translate: {count:
+    remainingNodeResults.toString()} }}
+  </sbb-option-hint>
+  }
+</sbb-autocomplete>
+
+@if (searchResults.length > 1) {
+<div class="search-results-list" [class.search-results-overflow]="searchResults.length > 8">
+  @for (node of searchResults; track node) {
+  <div class="search-result-item">
+    <span class="smallstation" [title]="displayNode(node)" (click)="onSearchResultClick(node)">
+      {{ displayNode(node) }}
+    </span>
+  </div>
+  }
+</div>
+}

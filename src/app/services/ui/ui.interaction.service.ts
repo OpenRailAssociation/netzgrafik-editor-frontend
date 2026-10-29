@@ -440,6 +440,20 @@ export class UiInteractionService implements OnDestroy {
     this.moveNetzgrafikEditorFocalViewPoint(new Vec2D(x, y));
   }
 
+  getNetzgrafikOffsetFromScreenPx(offsetXPx: number, offsetYPx: number): Vec2D {
+    const viewboxProperties = this.getViewboxProperties(EditorView.svgName);
+    const xScale =
+      viewboxProperties.origWidth > 0
+        ? viewboxProperties.panZoomWidth / viewboxProperties.origWidth
+        : 100 / Math.max(viewboxProperties.zoomFactor, 1);
+    const yScale =
+      viewboxProperties.origHeight > 0
+        ? viewboxProperties.panZoomHeight / viewboxProperties.origHeight
+        : 100 / Math.max(viewboxProperties.zoomFactor, 1);
+
+    return new Vec2D(offsetXPx * xScale, offsetYPx * yScale);
+  }
+
   showOrCloseFilter(type: FilterWindowType) {
     if (this.isFilterWindowType(type)) {
       this.closeFilter();

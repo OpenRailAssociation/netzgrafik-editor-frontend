@@ -5,6 +5,9 @@ import {Node} from "../../models/node.model";
 import {VisAVisPortPlacement} from "../../services/util/node.port.placement";
 
 export class GeneralViewFunctions {
+  static getNodeDisplayName(node: Node): string {
+    return `${node.getBetriebspunktName()} (${node.getFullName()})`;
+  }
   static calcDialogTopLeftScreenCoordinate(windowsPosition: Vec2D, dialogDimension: Vec2D): Vec2D {
     /*
       The SVG (netzgrafik) rendering area has its own local coordinate system and can be different
