@@ -8,6 +8,7 @@ import {
   InformSelectedTrainrunClick,
   TrainrunSectionService,
 } from "../../../services/data/trainrunsection.service";
+import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {FormControl} from "@angular/forms";
 import {OrderedTrainrunNodeEntry} from "../../../services/data/trainrun.service";
@@ -37,7 +38,10 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
   startNodeHidden = false;
   endNodeHidden = false;
 
-  readonly displayTrainrun = (value: string | Trainrun): string => this.getDisplayValue(value);
+  readonly displayTrainrun = (value: Trainrun | null): string => this.getDisplayValue(value);
+  readonly transformTrainrunName = (value: Trainrun): string => this.getTrainrunDisplayName(value);
+  readonly transformNodeEntryName = (entry: OrderedTrainrunNodeEntry): string =>
+    GeneralViewFunctions.getNodeDisplayName(this.nodeService.getNodeFromId(entry.nodeId));
 
   private destroyed = new Subject<void>();
 
@@ -122,6 +126,23 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     }
   }
 
+  private search(): void {
+    const value = this.searchControl.value;
+    if (value instanceof Trainrun) {
+      this.searchResults = [value];
+      return;
+    }
+
+    this.searchResults = this.filterTrainruns(value);
+
+    if (this.searchResults.length === 1) {
+      const trainrun = this.searchResults[0];
+      this.searchControl.setValue(trainrun, {emitEvent: false});
+      this.selectTrainrun(trainrun);
+      return;
+    }
+  }
+
   selectTrainrun(trainrun: Trainrun): void {
     this.trainrunService.setTrainrunAsSelected(trainrun.getId());
 
@@ -136,6 +157,13 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
   }
 
   updateOrderedNodeEntries() {
+    /**
+     * View specific transformation of the ordered node entries for display the data in the
+     * search result view.
+     * If a node is hidden due to the filter - a gap will be rendered. But if the node is the
+     * start or end node of the trainrun the node is shown as final destination even if it is hidden.
+     * This must be takne into account to not diverge from the Netzgrafik-Editor Main view / behavior.
+     */
     if (this.trainrunService.getSelectedTrainrun()) {
       const orderedEntries = this.trainrunService.getOrderedNodeEntriesForTrainrun(
         this.trainrunService.getSelectedTrainrun(),
@@ -148,11 +176,11 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
       const visibleEntries: OrderedTrainrunNodeEntry[] = [];
       let hasHiddenNode = false;
 
-      for (const entry of orderedEntries) {
+      orderedEntries.forEach((entry) => {
         const node = this.nodeService.getNodeFromId(entry.nodeId);
         if (!node || !this.filterService.isNodeVisible(node)) {
           hasHiddenNode = true;
-          continue;
+          return;
         }
 
         if (hasHiddenNode && visibleEntries.length > 0) {
@@ -164,7 +192,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
 
         visibleEntries.push({...entry});
         hasHiddenNode = false;
-      }
+      });
 
       return visibleEntries;
     }
@@ -219,37 +247,6 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     const category = trainrun.getCategoryShortName();
     const title = trainrun.getTitle();
     return `${category}${title}`.trim();
-  }
-
-  transformTrainrunName(trainrun: Trainrun): string {
-    return this.getTrainrunDisplayName(trainrun);
-  }
-
-  transformNodeEntryName(entry: OrderedTrainrunNodeEntry): string {
-    const node = this.nodeService.getNodeFromId(entry.nodeId);
-    if (!node) {
-      return `${entry.nodeId}`;
-    }
-    return this.filterService.isDisplayingNodesFullName()
-      ? node.getFullName()
-      : node.getBetriebspunktName();
-  }
-
-  private search(): void {
-    const value = this.searchControl.value;
-    if (value instanceof Trainrun) {
-      this.searchResults = [value];
-      return;
-    }
-
-    this.searchResults = this.filterTrainruns(value);
-
-    if (this.searchResults.length === 1) {
-      const trainrun = this.searchResults[0];
-      this.searchControl.setValue(trainrun, {emitEvent: false});
-      this.selectTrainrun(trainrun);
-      return;
-    }
   }
 
   private filterTrainruns(value: string | Trainrun): Trainrun[] {

@@ -20,15 +20,17 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
   private static readonly FILTER_PANEL_ID = "cd-layout-filter";
   private static readonly MAX_AUTOCOMPLETE_RESULTS = 20;
 
+  readonly GeneralViewFunctions = GeneralViewFunctions;
+
   searchControl = new FormControl<string | Node>("", {nonNullable: true});
   searchResults: Node[] = [];
-  readonly GeneralViewFunctions = GeneralViewFunctions;
-  readonly displayNode = (value: Node): string => this.getDisplayValue(value);
-
-  private destroyed = new Subject<void>();
   allSearchableNodes: Node[] = [];
   filteredNodes: Node[] = [];
   remainingNodeResults = 0;
+
+  readonly displayNode = (value: Node): string => this.getDisplayValue(value);
+
+  private destroyed = new Subject<void>();
 
   constructor(
     private uiInteractionService: UiInteractionService,
@@ -77,7 +79,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  search(): void {
+  private search(): void {
     const value = this.searchControl.value;
     if (value instanceof Node) {
       this.searchResults = [value];
@@ -108,8 +110,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
   }
 
   private updateFilteredNodes(value: string | Node): void {
-    const searchTerm = this.getSearchTerm(value);
-    const matchingNodes = searchTerm !== "" ? this.filterNodes(value) : [];
+    const matchingNodes = this.getSearchTerm(value) !== "" ? this.filterNodes(value) : [];
     this.filteredNodes = matchingNodes.slice(
       0,
       EditorNodeSearchViewComponent.MAX_AUTOCOMPLETE_RESULTS,
