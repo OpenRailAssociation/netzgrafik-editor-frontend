@@ -532,10 +532,8 @@ export class EditorToolsViewComponent {
       ".note_hover_drag_root_background",
       ".note_hover_drag_root",
       // TrainrunSections
-      ".edge_line.layer_0",
       // Transitions
       ".transition_pin.transition_line",
-      ".transition_line.layer_0",
       // Connections
       // Overall
       ".preview_line_root",
