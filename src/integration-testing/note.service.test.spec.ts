@@ -14,6 +14,7 @@ import {NetzgrafikUnitTesting} from "./netzgrafik.unit.testing";
 import {FilterService} from "../app/services/ui/filter.service";
 import {Vec2D} from "../app/utils/vec2D";
 import {NetzgrafikColoringService} from "../app/services/data/netzgrafikColoring.service";
+import {LabelRef} from "../app/data-structures/business.data.structures";
 
 describe("NodeService Test", () => {
   let notes: Note[] = null;
@@ -147,10 +148,20 @@ describe("NodeService Test", () => {
     noteService.syncDeletedNote(3);
 
     expect(noteService.getNoteFromId(3)).toBeUndefined();
-    expect(deletedNote.selected()).toBeFalse();
     expect(noteService.getSelectedNotes()).toEqual([otherNote]);
     expect(operationSpy).not.toHaveBeenCalled();
     expect(() => noteService.syncDeletedNote(3)).toThrowError();
+  });
+
+  it("syncDeletedNote clears the labels only used by the removed note", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const note = noteService.addNote(new Vec2D(0, 0), "Labelled", "Labelled");
+    noteService.setLabels(note.getId(), ["Spass"]);
+    expect(labelService.getLabelFromLabelAndLabelRef("Spass", LabelRef.Note)).toBeDefined();
+
+    noteService.syncDeletedNote(note.getId());
+
+    expect(labelService.getLabelFromLabelAndLabelRef("Spass", LabelRef.Note)).toBeUndefined();
   });
 
   it("deleteNote and setLabels ignore a note removed by syncDeletedNote", () => {

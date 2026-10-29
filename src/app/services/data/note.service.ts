@@ -60,13 +60,10 @@ export class NoteService {
   }
 
   syncDeletedNote(noteId: number) {
-    const note = this.getNoteFromId(noteId);
-    if (note === undefined) {
+    const removedNote = this.removeNote(noteId);
+    if (removedNote === undefined) {
       throw new Error(`Note with id ${noteId} not found`);
     }
-    note.unselect();
-    this.notesStore.notes = this.notesStore.notes.filter((n: Note) => n !== note);
-    this.notesUpdated();
   }
 
   createNewNoteFromDtoList(freeFloatingTexts: FreeFloatingTextDto[]) {
@@ -142,20 +139,27 @@ export class NoteService {
   }
 
   deleteNote(noteId: number, enforceUpdate = true) {
+    const note = this.removeNote(noteId, enforceUpdate);
+    if (note !== undefined) {
+      this.operation.emit(new NoteOperation(OperationType.delete, note));
+    }
+  }
+
+  private removeNote(noteId: number, enforceUpdate = true): Note | undefined {
     const note = this.getNoteFromId(noteId);
     if (note === undefined) {
-      return;
+      return undefined;
     }
-    const deletetLabelIds = this.labelService.clearLabel(
+    const deletedLabelIds = this.labelService.clearLabel(
       note.getLabelIds(),
       this.makeLabelIDCounterMap(this.getNotes()),
     );
-    this.filterService.clearDeletetFilterNoteLabels(deletetLabelIds);
-    this.notesStore.notes = this.notesStore.notes.filter((n: Note) => n.getId() !== noteId);
+    this.filterService.clearDeletetFilterNoteLabels(deletedLabelIds);
+    this.notesStore.notes = this.notesStore.notes.filter((n: Note) => n !== note);
     if (enforceUpdate) {
       this.notesUpdated();
     }
-    this.operation.emit(new NoteOperation(OperationType.delete, note));
+    return note;
   }
 
   getNotes(): Note[] {
