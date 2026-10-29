@@ -35,6 +35,13 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
     private nodeService: NodeService,
     private filterService: FilterService,
   ) {
+    this.allSearchableNodes = this.nodeService
+      .getNodes()
+      .filter((node) => this.filterService.filterNode(node));
+    this.updateFilteredNodes(this.searchControl.value);
+  }
+
+  ngOnInit(): void {
     this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe((nodes: Node[]) => {
       this.allSearchableNodes = nodes.filter((node) => this.filterService.filterNode(node));
       this.updateFilteredNodes(this.searchControl.value);
@@ -47,13 +54,6 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
       this.updateFilteredNodes(this.searchControl.value);
     });
 
-    this.allSearchableNodes = this.nodeService
-      .getNodes()
-      .filter((node) => this.filterService.filterNode(node));
-    this.updateFilteredNodes(this.searchControl.value);
-  }
-
-  ngOnInit(): void {
     this.searchControl.valueChanges.pipe(takeUntil(this.destroyed)).subscribe((value) => {
       this.updateFilteredNodes(value);
     });
