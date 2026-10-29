@@ -225,10 +225,6 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     return this.getTrainrunDisplayName(trainrun);
   }
 
-  transformTrainrunName(trainrun: Trainrun): string {
-    return this.getTrainrunSearchValue(trainrun);
-  }
-
   transformNodeEntryName(entry: OrderedTrainrunNodeEntry): string {
     const node = this.nodeService.getNodeFromId(entry.nodeId);
     if (!node) {
