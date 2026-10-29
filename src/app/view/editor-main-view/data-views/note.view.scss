@@ -81,7 +81,7 @@
 }
 
 ::ng-deep rect.note_root.multi_selected {
-  fill: $COLOR-Edit;
+  fill: $COLOR_Edit;
   opacity: 0.25;
   pointer-events: none;
 }
@@ -95,7 +95,7 @@
 }
 
 ::ng-deep rect.note_root.multi_selected.hover {
-  opacity: 100;
+  opacity: 1;
   fill-opacity: 25%;
   stroke: $COLOR_Edit;
 }

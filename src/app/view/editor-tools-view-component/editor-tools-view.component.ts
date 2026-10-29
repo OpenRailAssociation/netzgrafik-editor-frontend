@@ -1,6 +1,5 @@
 import {parse} from "papaparse";
 import {Component, ElementRef, ViewChild, ChangeDetectionStrategy} from "@angular/core";
-import {SvgExportOptions, svgAsDataUri, saveSvgAsPng} from "save-svg-as-png";
 import {DataService} from "../../services/data/data.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
 import {NodeService} from "../../services/data/node.service";
@@ -28,6 +27,15 @@ import {EditorMode} from "../editor-menu/editor-mode";
 import {NODE_TEXT_AREA_HEIGHT, RASTERING_BASIC_GRID_SIZE} from "../rastering/definitions";
 import {ResourceService} from "../../services/data/resource.service";
 import {MathUtils} from "src/app/utils/math";
+
+interface SvgExportOptions {
+  scale?: number;
+  left?: number;
+  top?: number;
+  width?: number;
+  height?: number;
+  backgroundColor?: string;
+}
 
 interface ContainertoExportData {
   documentToExport: HTMLElement;
@@ -134,43 +142,107 @@ export class EditorToolsViewComponent {
   }
 
   onExportContainerAsSVG() {
-    // option 2: save svg as svg
-    // https://www.npmjs.com/package/save-svg-as-png
+    // option 2: serialize the SVG natively
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
 
     const containerInfo = this.getContainerToExport();
-    const clone = this.prepareStyleForExport(containerInfo);
 
     // SVG scaling does not affect resolution since SVGs are rendered as vector graphics.
     // To ensure a good initial scale, we define the target width as 2000 pixels.
     const scaleToTargetWidth = 2000 / containerInfo.exportParameter.width;
     containerInfo.exportParameter.scale = scaleToTargetWidth;
 
-    svgAsDataUri(clone, containerInfo.exportParameter).then((uri: string) => {
-      const a = document.createElement("a");
-      document.body.appendChild(a);
-      a.href = uri;
-      a.download = this.getFilenameToExport() + ".svg";
-      a.click();
-      URL.revokeObjectURL(a.href);
-      a.remove();
-      this.levelOfDetailService.enableLevelOfDetailRendering();
-    });
+    const clone = this.prepareStyleForExport(containerInfo);
+
+    const svgString = new XMLSerializer().serializeToString(clone);
+    const blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    document.body.appendChild(a);
+    a.href = url;
+    a.download = this.getFilenameToExport() + ".svg";
+    a.click();
+    URL.revokeObjectURL(url);
+    a.remove();
+    this.levelOfDetailService.enableLevelOfDetailRendering();
   }
 
-  onExportContainerAsPNG() {
-    // option 1: save svg as png
-    // https://www.npmjs.com/package/save-svg-as-png
+  async onExportContainerAsPNG() {
+    // option 1: rasterize the SVG to PNG natively via canvas
+    // Inspired by https://stackoverflow.com/a/74026755
     this.levelOfDetailService.disableLevelOfDetailRendering();
     this.viewportCullService.onViewportChangeUpdateRendering(false);
 
     const containerInfo = this.getContainerToExport();
-    const clone = this.prepareStyleForExport(containerInfo);
 
-    saveSvgAsPng(clone, this.getFilenameToExport() + ".png", containerInfo.exportParameter);
+    try {
+      const blob = await this.svgElementToPngBlob(containerInfo);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      document.body.appendChild(a);
+      a.href = url;
+      a.download = this.getFilenameToExport() + ".png";
+      a.click();
+      URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      const msg = $localize`:@@app.view.editor-side-view.editor-tools-view-component.export-png-error:PNG export error`;
+      this.logger.error(msg, error);
+    } finally {
+      this.levelOfDetailService.enableLevelOfDetailRendering();
+    }
+  }
 
-    this.levelOfDetailService.enableLevelOfDetailRendering();
+  // Converts an SVG element into a PNG blob by drawing it onto a canvas.
+  private svgElementToPngBlob({
+    documentToExport,
+    exportParameter,
+    essentialProps,
+  }: ContainertoExportData): Promise<Blob> {
+    const width = exportParameter.width;
+    const height = exportParameter.height;
+    const scale = exportParameter.scale ?? 1;
+
+    const clone = this.prepareStyleForExport({documentToExport, exportParameter, essentialProps});
+
+    const svgDataUrl =
+      "data:image/svg+xml;charset=utf-8," +
+      encodeURIComponent(new XMLSerializer().serializeToString(clone));
+
+    return new Promise<Blob>((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = width * scale;
+          canvas.height = height * scale;
+
+          const context = canvas.getContext("2d");
+          if (context === null) {
+            throw new Error("Failed to get 2D canvas context");
+          }
+          if (exportParameter.backgroundColor) {
+            context.fillStyle = exportParameter.backgroundColor;
+            context.fillRect(0, 0, canvas.width, canvas.height);
+          }
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+          canvas.toBlob((blob) => {
+            if (blob === null) {
+              reject(new Error("Failed to create PNG blob"));
+              return;
+            }
+            resolve(blob);
+          }, "image/png");
+        } catch (error) {
+          reject(error);
+        }
+      };
+      image.onerror = () => reject(new Error("Failed to rasterize SVG as PNG"));
+      image.src = svgDataUrl;
+    });
   }
 
   onLoadBaseDataButton() {
@@ -362,20 +434,20 @@ export class EditorToolsViewComponent {
 
   private getStreckengrafikEditingContainerToExport(): ContainertoExportData {
     const htmlElementToExport = document.getElementById("main-streckengrafik-container");
+    // offsetWidth/offsetHeight are undefined on SVG elements; use the rendered bounding box instead.
+    const bbox = htmlElementToExport.getBoundingClientRect();
     const param = {
-      encoderOptions: 1.0,
-      scale: 1.0,
-      left: 0,
-      top: 0,
-      width: htmlElementToExport.offsetWidth,
-      height: htmlElementToExport.offsetHeight,
+      width: bbox.width,
+      height: bbox.height,
       backgroundColor: this.uiInteractionService.getActiveTheme().backgroundColor,
     };
 
     const essentialProps = [
       "fill",
+      "fill-opacity",
       "stroke",
       "stroke-width",
+      "stroke-opacity",
       "stroke-dasharray",
       "font-family",
       "font-size",
@@ -426,8 +498,6 @@ export class EditorToolsViewComponent {
     const bbox = (htmlElementToExport as unknown as SVGGElement).getBBox();
     const padding = 10;
     const param = {
-      encoderOptions: 1.0,
-      scale: 1.0,
       left: bbox.x - padding,
       top: bbox.y - padding,
       width: bbox.width + 2 * padding,
@@ -437,8 +507,10 @@ export class EditorToolsViewComponent {
 
     const essentialProps = [
       "fill",
+      "fill-opacity",
       "stroke",
       "stroke-width",
+      "stroke-opacity",
       "stroke-dasharray",
       "font-family",
       "font-size",
@@ -462,8 +534,6 @@ export class EditorToolsViewComponent {
     }
     const boundingBox = this.uiInteractionService.getNetzgrafikBoundingBox();
     const param = {
-      encoderOptions: 1.0,
-      scale: 1.0,
       left: boundingBox.minCoordX - 2.0 * RASTERING_BASIC_GRID_SIZE,
       top: boundingBox.minCoordY - 2.0 * RASTERING_BASIC_GRID_SIZE,
       width: boundingBox.maxCoordX - boundingBox.minCoordX + 4.0 * RASTERING_BASIC_GRID_SIZE,
@@ -477,15 +547,23 @@ export class EditorToolsViewComponent {
 
     const essentialProps = [
       "fill",
+      "fill-opacity",
       "stroke",
       "stroke-width",
+      "stroke-opacity",
       "stroke-dasharray",
+      "rx",
+      "ry",
+      "r",
       "font-family",
       "font-size",
       "font-weight",
+      "font-style",
       "opacity",
       "text-anchor",
       "dominant-baseline",
+      "visibility",
+      "display",
     ];
 
     return {
@@ -496,22 +574,44 @@ export class EditorToolsViewComponent {
   }
 
   // Clones the live element so inlining styles for export never mutates the working editor DOM.
-  private prepareStyleForExport(containerInfo: ContainertoExportData): SVGSVGElement {
-    const liveElement = containerInfo.documentToExport;
+  private prepareStyleForExport({
+    documentToExport,
+    exportParameter,
+    essentialProps,
+  }: ContainertoExportData): SVGSVGElement {
+    const liveElement = documentToExport;
     const clone = liveElement.cloneNode(true) as unknown as SVGSVGElement;
+
+    const left = exportParameter.left ?? 0;
+    const top = exportParameter.top ?? 0;
+    const width = exportParameter.width;
+    const height = exportParameter.height;
+    const scale = exportParameter.scale ?? 1;
+
+    clone.setAttribute("viewBox", `${left} ${top} ${width} ${height}`);
+    clone.setAttribute("width", `${width * scale}`);
+    clone.setAttribute("height", `${height * scale}`);
+    if (exportParameter.backgroundColor) {
+      clone.style.backgroundColor = exportParameter.backgroundColor;
+    }
 
     const liveElements = liveElement.querySelectorAll("*");
     const clonedElements = clone.querySelectorAll("*");
     liveElements.forEach((el, index) => {
       const style = window.getComputedStyle(el);
-      const essentialPropsArray =
-        containerInfo.essentialProps !== undefined
-          ? containerInfo.essentialProps
-          : Array.from(style);
+      const essentialPropsArray = essentialProps !== undefined ? essentialProps : Array.from(style);
       const inlineStyle = essentialPropsArray
         .map((key) => `${key}:${style.getPropertyValue(key)};`)
         .join(" ");
       clonedElements[index].setAttribute("style", inlineStyle);
+
+      // Editors such as Inkscape do not support some modern SCSS properties
+      if (el instanceof SVGRectElement) {
+        el.setAttribute("rx", style.getPropertyValue("rx"));
+        el.setAttribute("ry", style.getPropertyValue("ry"));
+      } else if (el instanceof SVGCircleElement) {
+        el.setAttribute("r", style.getPropertyValue("r"));
+      }
     });
 
     return clone;

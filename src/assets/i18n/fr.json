@@ -523,6 +523,7 @@
           "export-netzgrafik-as-json": "Exporter le réticulaire au format JSON",
           "import-netzgrafik": "Importer le réticulaire",
           "import-netzgrafik-error": "Le réticulaire au format JSON n'ont pas pu être importés.",
+          "export-png-error": "Erreur lors de l'export PNG",
           "import-netzgrafik-as-json": "Importer le réticulaire au format JSON",
           "import-netzgrafik-as-json-info-3rd-party": "Réticulaire au format JSON de tiers détectées: heuristique d'importation appliquée.",
           "export-trainruns": "Exporter les trajets de train",
