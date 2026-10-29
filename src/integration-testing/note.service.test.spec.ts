@@ -75,27 +75,31 @@ describe("NodeService Test", () => {
     expect(note.getDto().id).toBe(3);
   });
 
-  it("syncCreatedNote adds a note without emitting operations", () => {
+  it("syncCreatedNote adds a note with an allocated id without emitting operations", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const existingNote = noteService.getNoteFromId(3);
     const notesBefore = [...noteService.getNotes()];
-    const addedDto = {...existingNote.getDto(), id: 42, labelIds: [4]};
+    const {id: _id, ...noteFields} = existingNote.getDto();
+    const addedFields = {...noteFields, labelIds: [4]};
     const operationSpy = spyOn(noteService.operation, "emit");
     let latestNotes: Note[];
     noteService.notes.subscribe((updatedNotes) => (latestNotes = updatedNotes));
 
-    noteService.syncCreatedNote(addedDto);
+    const createdDto = noteService.syncCreatedNote(addedFields);
 
-    const addedNote = noteService.getNoteFromId(42);
-    expect(addedNote.getDto()).toEqual(addedDto);
+    expect(notesBefore.map((n) => n.getId())).not.toContain(createdDto.id);
+    const addedNote = noteService.getNoteFromId(createdDto.id);
+    expect(createdDto).toEqual({...addedFields, id: createdDto.id});
+    expect(addedNote.getDto()).toEqual(createdDto);
     expect(noteService.getNotes()).toEqual([...notesBefore, addedNote]);
     expect(noteService.getNoteFromId(3)).toBe(existingNote);
     expect(latestNotes).toEqual(noteService.getNotes());
     expect(operationSpy).not.toHaveBeenCalled();
 
-    addedDto.labelIds.push(5);
+    addedFields.labelIds.push(5);
+    createdDto.labelIds.push(6);
     expect(addedNote.getLabelIds()).toEqual([4]);
-    expect(() => noteService.syncCreatedNote(addedDto)).toThrowError();
+    expect(noteService.syncCreatedNote(addedFields).id).not.toBe(createdDto.id);
   });
 
   it("syncUpdatedNote only updates the targeted note without emitting operations", () => {

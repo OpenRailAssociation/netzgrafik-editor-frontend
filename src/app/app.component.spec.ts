@@ -25,12 +25,16 @@ describe("AppComponent", () => {
     labelIds: [],
   };
 
+  const {id: _id, ...noteFields} = note;
+  const createdNote: FreeFloatingTextDto = {...noteFields, id: 7};
+
   beforeEach(async () => {
     noteService = jasmine.createSpyObj<NoteService>(
       "NoteService",
       ["syncCreatedNote", "syncUpdatedNote", "syncDeletedNote"],
       {operation: new EventEmitter()},
     );
+    noteService.syncCreatedNote.and.returnValue(createdNote);
     uiInteractionService = jasmine.createSpyObj<UiInteractionService>(
       "UiInteractionService",
       ["closeNoteDialog", "closeTrainrunDialog"],
@@ -53,7 +57,7 @@ describe("AppComponent", () => {
   });
 
   it("note methods throw before initialization", () => {
-    expect(() => component.createNote({...note})).toThrowError();
+    expect(() => component.createNote(noteFields)).toThrowError();
     expect(() => component.updateNote({...note})).toThrowError();
     expect(() => component.deleteNote(note.id)).toThrowError();
     expect(noteService.syncCreatedNote).not.toHaveBeenCalled();
@@ -64,9 +68,9 @@ describe("AppComponent", () => {
   describe("once initialized", () => {
     beforeEach(() => fixture.detectChanges());
 
-    it("createNote adds the note", () => {
-      component.createNote(note);
-      expect(noteService.syncCreatedNote).toHaveBeenCalledOnceWith(note);
+    it("createNote adds the note and returns it with its allocated id", () => {
+      expect(component.createNote(noteFields)).toBe(createdNote);
+      expect(noteService.syncCreatedNote).toHaveBeenCalledOnceWith(noteFields);
     });
 
     it("updateNote updates the note", () => {
@@ -75,10 +79,10 @@ describe("AppComponent", () => {
     });
 
     it("note methods are exposed on the host element", () => {
-      fixture.nativeElement.createNote(note);
+      expect(fixture.nativeElement.createNote(noteFields)).toBe(createdNote);
       fixture.nativeElement.updateNote(note);
       fixture.nativeElement.deleteNote(note.id);
-      expect(noteService.syncCreatedNote).toHaveBeenCalledOnceWith(note);
+      expect(noteService.syncCreatedNote).toHaveBeenCalledOnceWith(noteFields);
       expect(noteService.syncUpdatedNote).toHaveBeenCalledOnceWith(note);
       expect(noteService.syncDeletedNote).toHaveBeenCalledOnceWith(note.id);
     });

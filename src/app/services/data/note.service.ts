@@ -35,12 +35,12 @@ export class NoteService {
 
   // The syncXxxNote methods apply changes made by an external source: they
   // only touch the targeted note and don't emit operations.
-  syncCreatedNote(noteDto: FreeFloatingTextDto) {
-    if (this.getNoteFromId(noteDto.id) !== undefined) {
-      throw new Error(`Note with id ${noteDto.id} already exists`);
-    }
-    this.notesStore.notes.push(new Note({...noteDto, labelIds: [...noteDto.labelIds]}));
+  syncCreatedNote(noteDto: Omit<FreeFloatingTextDto, "id">): FreeFloatingTextDto {
+    const note = new Note();
+    this.applyNoteFields(note, noteDto);
+    this.notesStore.notes.push(note);
     this.notesUpdated();
+    return {...note.getDto(), labelIds: [...note.getLabelIds()]};
   }
 
   syncUpdatedNote(noteDto: FreeFloatingTextDto) {
@@ -48,14 +48,7 @@ export class NoteService {
     if (note === undefined) {
       throw new Error(`Note with id ${noteDto.id} not found`);
     }
-    note.setPosition(noteDto.x, noteDto.y);
-    note.setWidth(noteDto.width);
-    note.setHeight(noteDto.height);
-    note.setTitle(noteDto.title);
-    note.setText(noteDto.text);
-    note.setBackgroundColor(noteDto.backgroundColor);
-    note.setTextColor(noteDto.textColor);
-    note.setLabelIds([...noteDto.labelIds]);
+    this.applyNoteFields(note, noteDto);
     this.notesUpdated();
   }
 
@@ -64,6 +57,17 @@ export class NoteService {
     if (removedNote === undefined) {
       throw new Error(`Note with id ${noteId} not found`);
     }
+  }
+
+  private applyNoteFields(note: Note, noteDto: Omit<FreeFloatingTextDto, "id">) {
+    note.setPosition(noteDto.x, noteDto.y);
+    note.setWidth(noteDto.width);
+    note.setHeight(noteDto.height);
+    note.setTitle(noteDto.title);
+    note.setText(noteDto.text);
+    note.setBackgroundColor(noteDto.backgroundColor);
+    note.setTextColor(noteDto.textColor);
+    note.setLabelIds([...noteDto.labelIds]);
   }
 
   createNewNoteFromDtoList(freeFloatingTexts: FreeFloatingTextDto[]) {

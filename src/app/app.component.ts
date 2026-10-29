@@ -129,9 +129,9 @@ export class AppComponent implements OnInit {
   }
 
   // The note methods apply a change made by an external source and don't emit operations.
-  createNote(note: FreeFloatingTextDto) {
+  createNote(note: Omit<FreeFloatingTextDto, "id">): FreeFloatingTextDto {
     this.ensureInitialized();
-    this.noteService.syncCreatedNote(note);
+    return this.noteService.syncCreatedNote(note);
   }
 
   updateNote(note: FreeFloatingTextDto) {
@@ -149,6 +149,7 @@ export class AppComponent implements OnInit {
     if (!this.initialized) {
       throw new Error("Notes can only be updated once the editor is initialized");
     }
+    
   }
 
   @Output()
