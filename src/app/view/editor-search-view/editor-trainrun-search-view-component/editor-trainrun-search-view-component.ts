@@ -27,17 +27,19 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
 
   searchControl = new FormControl<string | Trainrun>("", {nonNullable: true});
   searchResults: Trainrun[] = [];
+  allSearchableTrainruns: Trainrun[] = [];
+  filteredTrainruns: Trainrun[] = [];
+  remainingTrainrunResults = 0;
+
   orderedNodeEntries: OrderedTrainrunNodeEntry[] = [];
   startNode: OrderedTrainrunNodeEntry | undefined;
   endNode: OrderedTrainrunNodeEntry | undefined;
   startNodeHidden = false;
   endNodeHidden = false;
+
   readonly displayTrainrun = (value: string | Trainrun): string => this.getDisplayValue(value);
 
   private destroyed = new Subject<void>();
-  allSearchableTrainruns: Trainrun[] = [];
-  filteredTrainruns: Trainrun[] = [];
-  remainingTrainrunResults = 0;
 
   constructor(
     private trainrunService: TrainrunService,
@@ -201,6 +203,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Select and show the corresponding trainrun section in the Perlenkette.
     if (entry.trainrunSectionId !== undefined) {
       this.gotoTrainrunSection(entry.trainrunSectionId);
     }
@@ -208,13 +211,18 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     const offset = this.getNetzgrafikOffsetForElementRightEdge(
       EditorTrainrunSearchViewComponent.FILTER_PANEL_ID,
     );
+    // Focus the network graph on the clicked node.
     this.uiInteractionService.gotoNode(node, offset);
   }
 
-  getTrainrunSearchValue(trainrun: Trainrun): string {
-      const category = trainrun.getCategoryShortName();
-      const title = trainrun.getTitle();
-      return `${category}${title}`.trim();
+  getTrainrunDisplayName(trainrun: Trainrun): string {
+    const category = trainrun.getCategoryShortName();
+    const title = trainrun.getTitle();
+    return `${category}${title}`.trim();
+  }
+
+  transformTrainrunName(trainrun: Trainrun): string {
+    return this.getTrainrunDisplayName(trainrun);
   }
 
   transformTrainrunName(trainrun: Trainrun): string {
@@ -261,7 +269,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
 
   private updateFilteredTrainruns(value: string | Trainrun): void {
     const matchingTrainruns = this.filterTrainruns(value).sort((a, b) =>
-      this.getTrainrunSearchValue(a).localeCompare(this.getTrainrunSearchValue(b)),
+      this.getTrainrunDisplayName(a).localeCompare(this.getTrainrunDisplayName(b)),
     );
     this.filteredTrainruns = matchingTrainruns.slice(
       0,
@@ -274,13 +282,13 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
   }
 
   private getSearchTerm(value: string | Trainrun): string {
-    const term = typeof value === "string" ? value.trim() : this.getTrainrunSearchValue(value);
+    const term = typeof value === "string" ? value.trim() : this.getTrainrunDisplayName(value);
     return term.toLocaleUpperCase();
   }
 
   private getDisplayValue(value: string | Trainrun): string {
     if (value instanceof Trainrun) {
-      return this.getTrainrunSearchValue(value);
+      return this.getTrainrunDisplayName(value);
     }
 
     return value;
@@ -289,7 +297,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
   private matchesTrainrun(trainrun: Trainrun, searchTerm: string): boolean {
     const category = trainrun.getCategoryShortName().toLocaleUpperCase();
     const title = trainrun.getTitle().toLocaleUpperCase();
-    const compactLabel = this.getTrainrunSearchValue(trainrun).toLocaleUpperCase();
+    const compactLabel = this.getTrainrunDisplayName(trainrun).toLocaleUpperCase();
 
     return (
       category.includes(searchTerm) ||
