@@ -37,7 +37,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
   startNodeHidden = false;
   endNodeHidden = false;
 
-  readonly displayTrainrun = (value: string | Trainrun): string => this.getDisplayValue(value);
+  readonly displayTrainrun = (value: Trainrun | null): string => this.getDisplayValue(value);
 
   private destroyed = new Subject<void>();
 
