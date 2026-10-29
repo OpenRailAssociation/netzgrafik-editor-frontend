@@ -75,6 +75,9 @@ export class UiInteractionService implements OnDestroy {
   showNoteDialogSubject = new Subject<NoteDialogParameter>();
   readonly noteDialog = this.showNoteDialogSubject.asObservable();
 
+  closeNoteDialogSubject = new Subject<number>();
+  readonly closeNoteDialogObservable = this.closeNoteDialogSubject.asObservable();
+
   showConfirmationDiagramDialogSubject = new Subject<ConfirmationDialogParameter>();
   readonly confirmationDiagramDialog = this.showConfirmationDiagramDialogSubject.asObservable();
 
@@ -471,6 +474,11 @@ export class UiInteractionService implements OnDestroy {
 
   closeTrainrunDialog() {
     this.showTrainrunDialogSubject.next(null);
+  }
+
+  // Closes the note dialog if it is currently editing the given note.
+  closeNoteDialog(noteId: number) {
+    this.closeNoteDialogSubject.next(noteId);
   }
 
   print() {
