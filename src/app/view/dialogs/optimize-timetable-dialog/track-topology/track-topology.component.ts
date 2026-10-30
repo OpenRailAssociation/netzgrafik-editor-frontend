@@ -61,9 +61,7 @@ export class TrackTopologyComponent implements OnChanges {
       const x2 = segment.end;
 
       if (trackCount > 4) {
-        const offsets = Array.from({length: trackCount}, (_, index) =>
-          this.trackOffset(index + 1),
-        );
+        const offsets = Array.from({length: trackCount}, (_, index) => this.trackOffset(index + 1));
         const minimumOffset = Math.min(...offsets);
         const maximumOffset = Math.max(...offsets);
         let boxTop = 16.5 + minimumOffset - 0.5;
@@ -95,34 +93,34 @@ export class TrackTopologyComponent implements OnChanges {
         {trackNumber: 1, y: (16.5 + this.trackOffset(1)) / 33},
         {trackNumber: 4, y: (16.5 + this.trackOffset(4)) / 33},
       ];
-      const visibleTrackNumbers = trackCount === 0
-        ? [1]
-        : trackCount === 1
-          ? [1, 2]
-          : trackCount === 2
+      const visibleTrackNumbers =
+        trackCount === 0
+          ? [1]
+          : trackCount === 1
             ? [1, 2]
-            : [1, 2, 3, 4];
+            : trackCount === 2
+              ? [1, 2]
+              : [1, 2, 3, 4];
 
       lanes
         .filter(({trackNumber}) => visibleTrackNumbers.includes(trackNumber))
         .forEach(({trackNumber, y}) => {
-        const railY = y * 33;
-        const centerY = 16.5;
-        const start = segmentIndex === 0
-          ? `M ${x1} ${railY}`
-          : `M ${x1} ${centerY} L ${x1} ${railY}`;
-        const end = segmentIndex < segments.length - 1 ? ` L ${x2} ${centerY}` : "";
-        lines.push({
-          x1,
-          x2,
-          trackNumber,
-          y,
-          d: `${start} L ${x2} ${railY}${end}`,
-          occupied: trackCount >= trackNumber,
-          overLimit:
-            this.trackLimitEnabled && trackNumber <= trackCount && trackNumber > this.maxTracks,
+          const railY = y * 33;
+          const centerY = 16.5;
+          const start =
+            segmentIndex === 0 ? `M ${x1} ${railY}` : `M ${x1} ${centerY} L ${x1} ${railY}`;
+          const end = segmentIndex < segments.length - 1 ? ` L ${x2} ${centerY}` : "";
+          lines.push({
+            x1,
+            x2,
+            trackNumber,
+            y,
+            d: `${start} L ${x2} ${railY}${end}`,
+            occupied: trackCount >= trackNumber,
+            overLimit:
+              this.trackLimitEnabled && trackNumber <= trackCount && trackNumber > this.maxTracks,
+          });
         });
-      });
     });
 
     this.topologyLines = lines;

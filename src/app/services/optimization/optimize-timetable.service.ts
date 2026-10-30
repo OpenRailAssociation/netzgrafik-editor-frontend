@@ -522,13 +522,13 @@ export class OptimizeTimetableService {
       const edge = problem.edges[e];
       const sections = edge.sections.map((i) => problem.sections[i]);
       const before = beforeTracks.get(e) ?? 0;
-      const segmentsAfter = this.withCandidateConsecutiveTimes(
-        problem,
-        evaluator,
-        sections,
-        () => this.estimateEdgeTrackSegments(problem, e),
+      const segmentsAfter = this.withCandidateConsecutiveTimes(problem, evaluator, sections, () =>
+        this.estimateEdgeTrackSegments(problem, e),
       );
-      const after = segmentsAfter.reduce((maximum, segment) => Math.max(maximum, segment.tracks), 0);
+      const after = segmentsAfter.reduce(
+        (maximum, segment) => Math.max(maximum, segment.tracks),
+        0,
+      );
       afterTracks.set(e, after);
       if (problem.edgeInScope[e] === 1) {
         overAfter += Number(after > problem.maxTracks) - Number(before > problem.maxTracks);
@@ -698,8 +698,7 @@ export class OptimizeTimetableService {
     return {
       minimalChanges: 1 / (1 + normalizedShiftCost),
       moreConnections: evaluator.getOptionalConnectionScore(),
-      lowerTravelTime:
-        trainrunCount === 0 ? 0 : (travelTimeScore / trainrunCount + 2) / 3,
+      lowerTravelTime: trainrunCount === 0 ? 0 : (travelTimeScore / trainrunCount + 2) / 3,
       lowerTrackUsage: 1 / (1 + normalizedNodeTrackCost),
       lowerEdgeTrackUsage: 1 / (1 + normalizedEdgeTrackCost),
     };
@@ -726,7 +725,8 @@ export class OptimizeTimetableService {
           ) {
             return;
           }
-          const occurrences = turnaroundWaits.get(occupancy.trainrunId) ?? new Map<string, number>();
+          const occurrences =
+            turnaroundWaits.get(occupancy.trainrunId) ?? new Map<string, number>();
           occurrences.set(
             `${node.getId()}:${occupancy.occurrenceIndex}`,
             Math.max(0, occupancy.departureMinute - occupancy.arrivalMinute),
@@ -780,7 +780,9 @@ export class OptimizeTimetableService {
         const segments = segmentsByEdge.get(edgeIndex) ?? [];
         const sumSegmentTracks = segments.reduce((sum, segment) => sum + segment.tracks, 0);
         const conflictValue =
-          segments.length === 0 ? 0 : (problem.maxTracks * sumSegmentTracks) / (2 * segments.length);
+          segments.length === 0
+            ? 0
+            : (problem.maxTracks * sumSegmentTracks) / (2 * segments.length);
         const maximumSegmentTracks = segments.reduce(
           (maximum, segment) => Math.max(maximum, segment.tracks),
           0,
@@ -805,9 +807,7 @@ export class OptimizeTimetableService {
       })
       .filter((row) => row.inScope)
       .sort((first, second) => second.konfliktwert - first.konfliktwert);
-    const conflictRows = edgeRows.filter(
-      (row) => row.scoreKonflikt || row.harteGleisverletzung,
-    );
+    const conflictRows = edgeRows.filter((row) => row.scoreKonflikt || row.harteGleisverletzung);
     const chainRows = problem.chains.map((chain) => {
       const variableIndices = [...new Set([chain.varA, chain.varB])];
       const variables = variableIndices.map((index) => problem.variables[index]);
@@ -849,14 +849,18 @@ export class OptimizeTimetableService {
           ? `${chain.steps[0].fromNode.getBetriebspunktName()} -> ${chain.steps[chain.steps.length - 1].toNode.getBetriebspunktName()}`
           : chain.key,
         verschiebbar: movable,
-        variableDomains: variables.map((variable) => `${variable.key}: ±${variable.domain}`).join("; "),
+        variableDomains: variables
+          .map((variable) => `${variable.key}: ±${variable.domain}`)
+          .join("; "),
         grund: movable ? "frei" : reasons.join("; ") || "fixiert",
       };
     });
     const finalRows = solutions.map((solution) => ({
       vorschlag: solution.label,
       gueltig: solution.valid,
-      geaenderteZuege: [...new Set(solution.changes.map((change) => change.trainrunName))].join(", "),
+      geaenderteZuege: [...new Set(solution.changes.map((change) => change.trainrunName))].join(
+        ", ",
+      ),
       gleiseMax: solution.kpi.maxTrackUsage,
       ueberlasteteStrecken: solution.kpi.edgesOverLimitAfter,
       verschiebungsminuten: solution.kpi.totalDeltaMinutes,
@@ -890,7 +894,9 @@ export class OptimizeTimetableService {
     );
     console.table(trace);
     if (omittedTraceEntries > 0) {
-      console.info(`${omittedTraceEntries} weitere Suchschritte wegen des Trace-Limits ausgelassen.`);
+      console.info(
+        `${omittedTraceEntries} weitere Suchschritte wegen des Trace-Limits ausgelassen.`,
+      );
     }
     console.info("Schritt 5: nach den harten Regeln exakt validierte Vorschläge.");
     console.table(finalRows);
@@ -905,7 +911,8 @@ export class OptimizeTimetableService {
     return [...chainIndices]
       .map((chainIndex) => {
         const chain = problem.chains[chainIndex];
-        const trainrunName = `${chain.trainrun.getCategoryShortName()} ${chain.trainrun.getTitle()}`.trim();
+        const trainrunName =
+          `${chain.trainrun.getCategoryShortName()} ${chain.trainrun.getTitle()}`.trim();
         const route = chain.steps.length
           ? [
               chain.steps[0].fromNode.getBetriebspunktName(),

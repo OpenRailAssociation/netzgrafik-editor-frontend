@@ -277,15 +277,15 @@ export class ConflictIndex {
       }
       case "MINIMUM_STOP_TIME": {
         const violation = this.evaluator.getStopViolationSeverity(conflict.componentIndex);
-        severity = this.isEnabled("minimumStopTime") && violation > 0
-          ? 250 + conflict.affectedVariables.length + violation
-          : 0;
+        severity =
+          this.isEnabled("minimumStopTime") && violation > 0
+            ? 250 + conflict.affectedVariables.length + violation
+            : 0;
         break;
       }
       case "MAX_TRAVEL_TIME_EXTENSION": {
         const violation = this.evaluator.getTravelTimeExtensionExcess(conflict.componentIndex);
-        severity =
-          violation > 0 ? 750 + conflict.affectedVariables.length + violation : 0;
+        severity = violation > 0 ? 750 + conflict.affectedVariables.length + violation : 0;
         break;
       }
     }

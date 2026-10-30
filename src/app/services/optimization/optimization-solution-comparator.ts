@@ -1,5 +1,5 @@
 import {OptimizeTimetableSolution} from "./optimize-timetable.model";
-import {ObjectiveId, OptimizationPolicy} from "./optimization-policy.model";
+import {getObjectiveWeights, ObjectiveId, OptimizationPolicy} from "./optimization-policy.model";
 
 function compareNumber(a: number, b: number): number {
   return a < b ? -1 : a > b ? 1 : 0;
@@ -8,10 +8,11 @@ function compareNumber(a: number, b: number): number {
 function weightedObjectiveScore(
   solution: OptimizeTimetableSolution,
   objectives: {id: ObjectiveId}[],
+  weights: Record<ObjectiveId, number>,
 ): number {
   return objectives.reduce(
-    (score, objective, index) =>
-      score + (solution.kpi.objectiveScores?.[objective.id] ?? 0) / 2 ** index,
+    (score, objective) =>
+      score + (solution.kpi.objectiveScores?.[objective.id] ?? 0) * weights[objective.id],
     0,
   );
 }
@@ -24,11 +25,10 @@ export function compareSolutions(
   if (a.valid !== b.valid) {
     return a.valid ? -1 : 1;
   }
-  const objectives = [...policy.objectives]
-    .filter((objective) => objective.enabled)
-    .sort((first, second) => first.priority - second.priority);
-  const scoreA = weightedObjectiveScore(a, objectives);
-  const scoreB = weightedObjectiveScore(b, objectives);
+  const weights = getObjectiveWeights(policy);
+  const objectives = [...policy.objectives].filter((objective) => weights[objective.id] > 0);
+  const scoreA = weightedObjectiveScore(a, objectives, weights);
+  const scoreB = weightedObjectiveScore(b, objectives, weights);
   const scoreComparison = compareNumber(scoreB, scoreA);
   if (scoreComparison !== 0) {
     return scoreComparison;

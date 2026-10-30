@@ -36,10 +36,7 @@ describe("TrackTopologyComponent", () => {
     expect(component.topologyLines.length).toBe(2);
     expect(component.topologyLines.map((line) => line.trackNumber)).toEqual([2, 1]);
     expect(component.topologyLines.map((line) => line.occupied)).toEqual([false, true]);
-    expect(component.topologyLines.map((line) => line.y)).toEqual([
-      13.5 / 33,
-      16.5 / 33,
-    ]);
+    expect(component.topologyLines.map((line) => line.y)).toEqual([13.5 / 33, 16.5 / 33]);
   });
 
   it("occupies tracks 1 and 2 at their numbered positions", () => {

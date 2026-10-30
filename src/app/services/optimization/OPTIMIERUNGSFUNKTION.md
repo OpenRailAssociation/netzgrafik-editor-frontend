@@ -18,20 +18,22 @@ Der Dialog öffnet sich über `Ctrl+Q`, `q` oder `Q`. Ein ausgewählter Zuglauf 
 
 Die Auswahl begrenzt, wo Zeiten verändert werden dürfen. Kanten am Rand einer Knotenauswahl und Bereiche ausserhalb der Auswahl bleiben fix. Die aktuelle Auswahl wird beim Öffnen des Dialogs übernommen.
 
-### Links: Optimization Director
+### Links: Director und benutzerdefinierte Steuerung
 
-Der Director enthält zwei Gruppen:
+Standardmässig ist **Benutzerdefiniert** ausgeschaltet. Im Director-Modus wählst du eines von drei verständlich beschriebenen Profilen: Fahrplan stabilisieren, Anschlüsse verbessern oder Gleisbedarf reduzieren. Die ausgewählte Profilkarte enthält drei SBB-Aufklappfelder: **Weiche Ziele**, **Verbindliche Leitplanken** und **Details**. Es ist immer höchstens eines geöffnet; **Weiche Ziele** ist beim ersten Anzeigen geschlossen. Die Details erläutern gruppiert die Ziele und Leitplanken.
 
-- **Harte Regeln** sind Bedingungen, die ein Vorschlag einhalten muss, wenn die Regel aktiviert ist. Die Checkbox schaltet eine Regel ein oder aus. Die Bereichsgrenze ist verpflichtend und kann nicht ausgeschaltet werden. Für die Gleisgrenze und die maximale Fahrzeitverlängerung erscheint bei aktiver Regel ein Zahlen-Stepper.
+Mit **Benutzerdefiniert** schaltest du auf die direkte Steuerung um. Hier sind die beiden Abschnitte **Verbindliche Leitplanken** und **Weiche Ziele** ohne Aufklappfelder dauerhaft sichtbar; einen zusätzlichen Details-Bereich gibt es nicht:
+
+- **Verbindliche Leitplanken** sind Bedingungen, die ein Vorschlag einhalten muss, wenn die Regel aktiviert ist. Die Checkbox schaltet eine Regel ein oder aus. Die Bereichsgrenze ist verpflichtend und kann nicht ausgeschaltet werden. Für die Gleisgrenze und die maximale Fahrzeitverlängerung erscheint bei aktiver Regel ein Zahlen-Stepper.
 - **Weiche Ziele** sagen, welche gültigen Vorschläge bevorzugt werden. Du kannst Ziele ein- und ausschalten und ihre Reihenfolge durch Ziehen verändern. Mit Pfeil hoch/runter lässt sich ein Ziel auch per Tastatur verschieben.
 
 In der Standard-Policy ist das Streckengleislimit mit **2 Gleisen** aktiv. Ebenfalls aktiv sind unter anderem User-Anschlüsse, Mindesthaltezeiten, Zeit- und Fahrzeit-Locks sowie Symmetrie. Die maximale Fahrzeitverlängerung ist standardmässig ausgeschaltet und auf 5 Minuten voreingestellt. Welche Regel tatsächlich gilt, hängt immer von der aktuellen Policy und ihrem Aktivschalter ab.
 
-Die Ziele decken minimale Zeitänderungen, mehr optionale Anschlüsse, kürzere Reisezeit sowie geringere Knoten- und Streckengleisnutzung ab. Eine Änderung der Zielreihenfolge sortiert die bereits gefundenen Vorschläge neu; sie startet für sich allein keinen neuen Suchlauf.
+Die Ziele decken minimale Zeitänderungen, mehr optionale Anschlüsse, kürzere Reisezeit sowie geringere Knoten- und Streckengleisnutzung ab. Im Director-Modus wird nach Ratings absteigend sortiert. Das Gewicht einer Rangposition ist `1 / 2^Rangposition`, beginnend bei 0. Gleiche Ratings teilen sich das Gewicht; danach wird die Rangposition um die Anzahl der gleich bewerteten Ziele übersprungen. Beispielsweise ergeben `5/10, 5/10, 3/10` die Gewichte `1, 1, 1/4`. Bei `10/10, 5/10, 3/10` sind es `1, 1/2, 1/4`. Diese Gewichte werden für die Suche und die Rangfolge der Vorschläge verwendet. In der benutzerdefinierten Steuerung sind die Prioritäten eindeutig; die Gewichte folgen der manuellen Reihenfolge mit `1, 1/2, 1/4` usw.
 
 **Policy speichern** erscheint, wenn die Einstellungen vom gespeicherten Stand abweichen. Erst dieser Knopf schreibt die Policy in den lokalen Browser-Speicher. **Ranking zurücksetzen** stellt die Standardreihenfolge und Aktivierung der weichen Ziele wieder her; es setzt nicht die harten Regeln zurück.
 
-Eine Änderung an harten Regeln prüft die vorhandenen Vorschläge erneut. Sie sucht keine neuen Vorschläge. Für eine neue Suche muss **Optimieren** gestartet werden.
+Eine Änderung an Ratings, Profil oder Regeln startet keine neue Suche. Vorhandene Ergebnisse werden als veraltet markiert; Regeländerungen prüfen zusätzlich ihre Gültigkeit erneut. Für neue Vorschläge muss **Optimieren** gestartet werden.
 
 ### Rechts oben: Streckengleis-Übersicht (IST)
 

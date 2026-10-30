@@ -2,7 +2,7 @@ import {OptimizationProblem} from "./optimize-timetable.chains";
 import {ScoreParts, TimetableEvaluator} from "./optimize-timetable.evaluator";
 import {ConflictIndex} from "./optimization-conflict-index";
 import {SRC_ARR, SRC_DEP, TGT_ARR, TGT_DEP} from "./optimize-timetable.model";
-import {ObjectiveId} from "./optimization-policy.model";
+import {getObjectiveWeights, ObjectiveId} from "./optimization-policy.model";
 
 export interface ArchivedSolution {
   delta: Int32Array;
@@ -66,7 +66,7 @@ export function createRandom(seed: number): () => number {
 }
 
 function objectiveEnabled(problem: OptimizationProblem, id: ObjectiveId): boolean {
-  return problem.policy.objectives.find((objective) => objective.id === id)?.enabled ?? false;
+  return getObjectiveWeights(problem.policy)[id] > 0;
 }
 
 function dominates(a: ScoreParts, b: ScoreParts, problem: OptimizationProblem): boolean {
@@ -138,7 +138,8 @@ function describeVariable(problem: OptimizationProblem, variableIndex: number): 
   const variable = problem.variables[variableIndex];
   const chains = variable.chains.map((chainIndex) => {
     const chain = problem.chains[chainIndex];
-    const trainrunName = `${chain.trainrun.getCategoryShortName()} ${chain.trainrun.getTitle()}`.trim();
+    const trainrunName =
+      `${chain.trainrun.getCategoryShortName()} ${chain.trainrun.getTitle()}`.trim();
     const path = [
       chain.steps[0]?.fromNode.getBetriebspunktName(),
       ...chain.steps.map((step) => step.toNode.getBetriebspunktName()),
@@ -252,14 +253,14 @@ function captureTraceSnapshot(
         );
       });
       const reverseFields = step.aligned
-        ? [
+        ? ([
             [step.toNode.getBetriebspunktName(), "Abfahrt", TGT_DEP],
             [step.fromNode.getBetriebspunktName(), "Ankunft", SRC_ARR],
-          ] as const
-        : [
+          ] as const)
+        : ([
             [step.toNode.getBetriebspunktName(), "Abfahrt", SRC_DEP],
             [step.fromNode.getBetriebspunktName(), "Ankunft", TGT_ARR],
-          ] as const;
+          ] as const);
       reverseFields.forEach(([nodeName, label, field]) => {
         timeValues.set(
           `Zug ${trainrunId} Abschnitt ${section.getId()} Gegenrichtung ${nodeName} ${label}`,
@@ -359,9 +360,7 @@ export function runSearch(
       return;
     }
     if (
-      archive.some(
-        (a) => dominates(a.parts, parts, problem) || sameDelta(a.delta, evaluator.delta),
-      )
+      archive.some((a) => dominates(a.parts, parts, problem) || sameDelta(a.delta, evaluator.delta))
     ) {
       return;
     }
@@ -375,7 +374,9 @@ export function runSearch(
       hasFeasibleAlternative = true;
     }
     if (archive.length > ARCHIVE_SIZE) {
-      const alternatives = archive.filter((candidate) => !sameDelta(initial.delta, candidate.delta));
+      const alternatives = archive.filter(
+        (candidate) => !sameDelta(initial.delta, candidate.delta),
+      );
       const smallestShift = objectiveEnabled(problem, "minimalChanges")
         ? (alternatives.length > 0 ? alternatives : archive).reduce((best, item) =>
             item.parts.sumAbsShift < best.parts.sumAbsShift ? item : best,
@@ -469,8 +470,7 @@ export function runSearch(
 
               const improvesConflict =
                 candidateParts.hard < currentParts.hard ||
-                (candidateParts.hard === currentParts.hard &&
-                  candidateSeverity < currentSeverity);
+                (candidateParts.hard === currentParts.hard && candidateSeverity < currentSeverity);
               if (improvesConflict) {
                 const isBetterAtStep =
                   bestAtStep === undefined ||
@@ -531,12 +531,12 @@ export function runSearch(
       const v = freeVars[Math.floor(random() * freeVars.length)];
       const domain = problem.variables[v].domain;
       const old = evaluator.delta[v];
-      const maxStep = Math.min(domain + Math.abs(old), 1 + Math.floor((iteration - lastImprovement) / 50));
-      const step = random() < 0.8 ? 1 : 1 + Math.floor(random() * maxStep);
-      const value = Math.max(
-        -domain,
-        Math.min(domain, old + (random() < 0.5 ? -step : step)),
+      const maxStep = Math.min(
+        domain + Math.abs(old),
+        1 + Math.floor((iteration - lastImprovement) / 50),
       );
+      const step = random() < 0.8 ? 1 : 1 + Math.floor(random() * maxStep);
+      const value = Math.max(-domain, Math.min(domain, old + (random() < 0.5 ? -step : step)));
       if (value === old) {
         continue;
       }
@@ -572,10 +572,13 @@ export function runSearch(
       recordTrace({
         iteration,
         phase: pendingTrace.phase,
-        conflict: pendingTrace.conflict ? describeConflict(problem, pendingTrace.conflict) : "Erkundung",
+        conflict: pendingTrace.conflict
+          ? describeConflict(problem, pendingTrace.conflict)
+          : "Erkundung",
         candidate: pendingTrace.variables
-          .map((v, index) =>
-            `${describeVariable(problem, v)} Δ ${pendingTrace.oldValues[index]} -> ${pendingTrace.newValues[index]}`,
+          .map(
+            (v, index) =>
+              `${describeVariable(problem, v)} Δ ${pendingTrace.oldValues[index]} -> ${pendingTrace.newValues[index]}`,
           )
           .join("; "),
         tested: pendingTrace.tested,
@@ -649,13 +652,16 @@ export function runSearch(
           phase: "LNS-Neustart",
           conflict: anchor ? describeConflict(problem, anchor) : "keine Konflikt-Verankerung",
           candidate: destroyedVariables
-            .map((v, index) =>
-              `${describeVariable(problem, v)} Δ ${oldValues[index]} -> ${evaluator.delta[v]}`,
+            .map(
+              (v, index) =>
+                `${describeVariable(problem, v)} Δ ${oldValues[index]} -> ${evaluator.delta[v]}`,
             )
             .join("; "),
           tested: "konfliktnahes Teilnetz",
           hard: `${before.parts.hard} -> ${after.parts.hard}`,
-          severity: anchor ? `${anchorSeverityBefore.toFixed(2)} -> ${anchor.severity.toFixed(2)}` : "n/a",
+          severity: anchor
+            ? `${anchorSeverityBefore.toFixed(2)} -> ${anchor.severity.toFixed(2)}`
+            : "n/a",
           nextPriority: conflictIndex.getHighestPriority()
             ? describeConflict(problem, conflictIndex.getHighestPriority())
             : "kein aktiver Konflikt",

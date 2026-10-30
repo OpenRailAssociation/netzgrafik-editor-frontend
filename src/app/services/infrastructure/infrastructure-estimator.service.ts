@@ -176,7 +176,7 @@ export class InfrastructureEstimatorService {
    * Estimates the number of tracks needed on the corridor fromNode -> toNode.
    * The calculation is oriented: from -> to is not the same as to -> from.
    * Sections are passed explicitly so the service stays stateless.
-   * 
+   *
    * @param fromNode The starting node of the corridor.
    * @param toNode The ending node of the corridor.
    * @param trainrunSections The sections of trainruns traveling through the corridor.

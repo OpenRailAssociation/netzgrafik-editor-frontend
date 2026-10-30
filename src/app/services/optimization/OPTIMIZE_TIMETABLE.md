@@ -4,7 +4,7 @@ Status: **implementiert** (Details und getroffene Annahmen: [UMSETZUNGSVORSCHLAG
 
 ## Kurzüberblick
 
-- Der Dialog ist zweispaltig: links stehen harte Regeln und weiche Ziele, rechts Resultate und Vorschläge. Das Umordnen der weichen Ziele sortiert vorhandene Vorschläge neu, ohne einen Suchlauf zu starten. Eine ausgewählte Lösung wird in der Netzgrafik als Vorschau angezeigt; Änderungen an harten Regeln prüfen vorhandene Vorschläge erneut auf Gültigkeit.
+- Der Dialog ist zweispaltig: links werden Director-Profile oder die benutzerdefinierte Policy eingestellt, rechts stehen Resultate und Vorschläge. Im Director-Modus sortiert die Wichtigkeit der weichen Ziele die Vorschläge; gleiche Wichtigkeit ergibt gleiches Gewicht. In der benutzerdefinierten Policy sortiert die manuelle Rangfolge die Vorschläge neu, ohne einen Suchlauf zu starten. Eine ausgewählte Lösung wird in der Netzgrafik als Vorschau angezeigt; Änderungen an harten Regeln prüfen vorhandene Vorschläge erneut auf Gültigkeit.
 - Scope-Grenzen sind immer aktiv. Zeit- und Fahrzeit-Locks sind standardmässig aktiv, lassen sich aber in der Policy ausschalten. Änderungen an der Policy werden erst über **Policy speichern** dauerhaft im Browser abgelegt.
 - Knotengleis-Auslastung ist keine harte Regel. Das standardmässig aktive weiche Ziel dafür beeinflusst die Bewertung der Suche.
 
@@ -26,7 +26,7 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 - Tastenkürzel **Ctrl+Q**, **q** oder **Q** im Editor (`editor.keyEvents.ts`, `case "KeyQ"`).
 - Öffnet einen Dialog mit:
   - **Maximale Gleise pro Kante** (globaler Wert, Eingabe durch User).
-  - **Optimization Director** mit aktivierbaren harten Regeln und sortierbaren weichen Zielen.
+  - **Optimization Director** mit drei Fokusprofilen sowie einer optionalen benutzerdefinierten Steuerung für harte Regeln und weiche Ziele.
   - Button **Optimieren**. Die Fahrzeit eines Abschnitts kann mit der optionalen harten Regel
     jeweils um höchstens `n` Minuten verlängert werden (siehe §4).
 
@@ -81,7 +81,7 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 | H4  | **Route fix**: gleiche Knoten, Abschnitte, Reihenfolge, Ports, Transitions; Halte bleiben Halte, Durchfahrten bleiben Durchfahrten.                                                                                                                                                                               |
 | H5  | **Richtung**: alle Züge fahren hin und zurück (`ROUND_TRIP`), ausser `ONE_WAY`.                                                                                                                                                                                                                                   |
 | H6  | **Symmetrie um Minute 00**: Abfahrt von Zug A am Knoten X = :00 + x ⇒ Ankunft von Zug A (Gegenrichtung) am Knoten X = :00 − x (mod 60). Ausnahme: explizit asymmetrisch gesetzte Abschnitte. Symmetrie wird nach dem Runden berechnet.                                                                            |
-| H7  | **Abschnittsfahrzeiten**: bleiben fix, ausser die optionale harte Regel erlaubt eine Verlängerung je Abschnitt um höchstens `n` Minuten. Verkürzungen sind nicht erlaubt.                                                                                                                                          |
+| H7  | **Abschnittsfahrzeiten**: bleiben fix, ausser die optionale harte Regel erlaubt eine Verlängerung je Abschnitt um höchstens `n` Minuten. Verkürzungen sind nicht erlaubt.                                                                                                                                         |
 | H8  | **Mindesthaltezeit**: Haltezeit an Halten ≥ Mindesthaltezeit (Knoten × Zugkategorie).                                                                                                                                                                                                                             |
 | H9  | **Durchfahrt (non-stop)**: Haltezeit immer 0 min, d.h. **Ankunft = Abfahrt** (beide Richtungen).                                                                                                                                                                                                                  |
 | H10 | **Locks**: gelockte Zeiten (`TimeLockDto.lock`) bleiben unverändert.                                                                                                                                                                                                                                              |
@@ -92,8 +92,17 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 
 ## 4. Weiche Ziele und Rangfolge
 
-Weiche Ziele ordnen die gültigen Vorschläge. Sie lassen sich im Optimization Director aktivieren,
-deaktivieren und per Drag-and-drop priorisieren. Die Standardreihenfolge ist:
+Weiche Ziele ordnen gültige Vorschläge. Im Director-Modus wählt der User eines der Profile
+**Fahrplan stabilisieren**, **Anschlüsse verbessern** oder **Gleisbedarf reduzieren** und stellt
+pro Ziel die Wichtigkeit von 1 bis 10 ein. Die Vorschlagsliste rechts ist nach Wichtigkeit
+absteigend sortiert. Bei gleicher Wichtigkeit erhalten Ziele dasselbe Gewicht; die nächste
+Rangposition wird übersprungen. Das Gewicht einer Rangposition ist `1 / 2^Rangposition`, beginnend
+bei Rangposition 0. Beispiele:
+
+- Ratings `5, 5, 3` ergeben Gewichte `1, 1, 1/4`.
+- Ratings `10, 5, 3` ergeben Gewichte `1, 1/2, 1/4`.
+
+Die Reihenfolge der fünf Ziele bei Gleichstand ist fest:
 
 1. **Minimale Änderungen**: zuerst gewinnt der Vorschlag mit weniger geänderten Δ-Ketten. Bei
    Gleichstand gewinnt die kleinere Summe der absoluten Verschiebungen `Σ|Δ|` in Minuten. Beides
@@ -107,15 +116,18 @@ deaktivieren und per Drag-and-drop priorisieren. Die Standardreihenfolge ist:
    Baseline, einschliesslich der Haltezeiten zwischen den Endpunkten. Ein negatives Δ bedeutet
    kürzer, ein positives Δ länger; Abschnittsfahrzeiten selbst bleiben fix.
 4. **Geringere Knotengleisnutzung**: vergleicht zuerst die höchste, danach die durchschnittliche
-  Knotengleiszahl.
+   Knotengleiszahl.
 5. **Geringere Streckengleisnutzung**: vergleicht zuerst die höchste, danach die durchschnittliche
-  Gleiszahl auf den Abschnitten im Optimierungsbereich. Das bleibt als weiches Ziel unabhängig
-  davon verfügbar, ob das Streckengleislimit als harte Regel aktiviert ist.
+   Gleiszahl auf den Abschnitten im Optimierungsbereich. Das bleibt als weiches Ziel unabhängig
+   davon verfügbar, ob das Streckengleislimit als harte Regel aktiviert ist.
 
-Alle fünf Zielwerte werden normiert. Die Rangposition gewichtet sie geometrisch mit `1, 1/2, 1/4,
-1/8, 1/16`; Drag-and-drop ändert damit den Einfluss jedes Ziels. Gültigkeit nach den aktivierten harten
-Regeln hat immer Vorrang. Ändern der weichen Ziele sortiert die bereits gefundenen Vorschläge neu;
-der Suchlauf selbst verwendet weiterhin seinen internen Suchscore.
+Die fünf Ziele sind **Minimale Änderungen**, **Mehr Anschlüsse**, **Kürzere Fahrzeit**,
+**Geringere Knotengleisnutzung** und **Geringere Streckengleisnutzung**. Im benutzerdefinierten
+Modus lassen sich Ziele aktivieren, deaktivieren und per Drag-and-drop priorisieren; ihr Gewicht
+ist `1 / 2^Rangposition` in der manuellen Reihenfolge. Da diese Rangfolge eindeutig ist, gibt es
+dort keine Gleichstände. Gültigkeit nach den aktivierten harten Regeln hat immer Vorrang.
+Änderungen an weichen Zielen sortieren vorhandene Vorschläge neu; **Optimieren** startet einen
+neuen Suchlauf.
 
 Die optionale harte Regel **Fahrzeitverlängerung pro Abschnitt** erlaubt für jeden Abschnitt
 unabhängig eine Verlängerung von 0 bis `n` Minuten gegenüber der Baseline; der Standardwert ist
@@ -190,10 +202,11 @@ Large-Neighborhood-Suche einen kleinen Bereich und startet von der besten bisher
 Ein inkrementeller Schätzer bewertet Kandidaten schnell; die Infrastruktur-Berechnung prüft die
 ausgegebenen Gleis-KPIs exakt nach.
 
-Die Suche verwendet interne Bewertungsgewichte, um Kandidaten während des Suchlaufs zu erkunden.
-Der Director sortiert gefundene Vorschläge zusätzlich mit normierten Zielwerten und geometrischen
-Gewichten `1, 1/2, 1/4, 1/8` in der aktivierten Drag-and-drop-Reihenfolge. Harte Regeländerungen
-bewerten die vorhandenen Vorschläge neu; **Optimieren** startet einen neuen Suchlauf.
+Die Suche verwendet die Policy-Gewichte, um Kandidaten während des Suchlaufs zu erkunden. Im
+Director-Modus werden diese aus den Ratings und Rangpositionen abgeleitet; gleiche Ratings erhalten
+das Gewicht ihrer gemeinsamen Rangposition. In der benutzerdefinierten Steuerung folgen die
+Gewichte der manuellen Reihenfolge. Harte Regeländerungen bewerten die vorhandenen Vorschläge neu;
+**Optimieren** startet einen neuen Suchlauf.
 **Weiterrechnen** startet einen weiteren Lauf ausgehend vom ausgewählten Vorschlag.
 
 ## 7. Architektur
@@ -286,14 +299,14 @@ interface OptimizeTimetableResult {
 
 Angenommen, die Netzgrafik enthält folgende Modellobjekte:
 
-| Objekt | Modellinhalt |
-| --- | --- |
-| `Node A` | Startknoten des Zuglaufs |
-| `Node B` | Durchfahrt für diesen Zuglauf; keine Wartezeit zwischen den Sektionen |
-| `Node C` | Halt beziehungsweise Ende dieses Pfads |
-| `Trainrun R7` | One-way, Takt/Frequenz 60 Minuten |
-| `TrainrunSection S1` | `A → B`, Abfahrt A 08:00, Ankunft B 08:20, Fahrzeit 20 Minuten |
-| `TrainrunSection S2` | `B → C`, Abfahrt B 08:20, Ankunft C 08:45, Fahrzeit 25 Minuten |
+| Objekt               | Modellinhalt                                                          |
+| -------------------- | --------------------------------------------------------------------- |
+| `Node A`             | Startknoten des Zuglaufs                                              |
+| `Node B`             | Durchfahrt für diesen Zuglauf; keine Wartezeit zwischen den Sektionen |
+| `Node C`             | Halt beziehungsweise Ende dieses Pfads                                |
+| `Trainrun R7`        | One-way, Takt/Frequenz 60 Minuten                                     |
+| `TrainrunSection S1` | `A → B`, Abfahrt A 08:00, Ankunft B 08:20, Fahrzeit 20 Minuten        |
+| `TrainrunSection S2` | `B → C`, Abfahrt B 08:20, Ankunft C 08:45, Fahrzeit 25 Minuten        |
 
 Weil `B` für `R7` eine Durchfahrt ist, bilden `S1` und `S2` gemeinsam die Kette
 `R7: A → B → C`. Die Fahrzeiten bleiben in diesem Beispiel unverändert. Angenommen, alle
@@ -301,10 +314,10 @@ betroffenen Ankunfts- und Abfahrts-Locks sind nicht gesetzt, die Knoten liegen i
 übrigen harten Regeln erlauben die Verschiebung. Wählt der Suchlauf **Δ = +2 Minuten**, ergibt
 sich:
 
-| Sektion | Vorher | Nachher |
-| --- | --- | --- |
-| `S1` | A Abfahrt 08:00 → B Ankunft 08:20; Fahrzeit 20 min | A Abfahrt 08:02 → B Ankunft 08:22; Fahrzeit 20 min |
-| `S2` | B Abfahrt 08:20 → C Ankunft 08:45; Fahrzeit 25 min | B Abfahrt 08:22 → C Ankunft 08:47; Fahrzeit 25 min |
+| Sektion | Vorher                                             | Nachher                                            |
+| ------- | -------------------------------------------------- | -------------------------------------------------- |
+| `S1`    | A Abfahrt 08:00 → B Ankunft 08:20; Fahrzeit 20 min | A Abfahrt 08:02 → B Ankunft 08:22; Fahrzeit 20 min |
+| `S2`    | B Abfahrt 08:20 → C Ankunft 08:45; Fahrzeit 25 min | B Abfahrt 08:22 → C Ankunft 08:47; Fahrzeit 25 min |
 
 Der Algorithmus wählt also nicht zwei unabhängige Änderungen „08:00 wird 08:02“ und
 „08:20 wird 08:22“. Er wählt einen Kettenwert Δ; daraus werden die Ereigniszeiten der Sektionen
@@ -340,10 +353,10 @@ Im Beispiel oben seien die Fahrzeitverlängerungsregel aktiv und `S1` in Fahrtri
 gelockt; auch die betroffenen Ankunfts- und Abfahrtszeiten seien nicht gelockt. Eine Erhöhung der
 Fahrzeit von `S1` um **3 Minuten** ergibt bei Δ = 0:
 
-| Sektion | Vorher | Nachher |
-| --- | --- | --- |
-| `S1` | A Abfahrt 08:00 → B Ankunft 08:20; Fahrzeit 20 min | A Abfahrt 08:00 → B Ankunft 08:23; Fahrzeit 23 min |
-| `S2` | B Abfahrt 08:20 → C Ankunft 08:45; Fahrzeit 25 min | B Abfahrt 08:23 → C Ankunft 08:48; Fahrzeit 25 min |
+| Sektion | Vorher                                             | Nachher                                            |
+| ------- | -------------------------------------------------- | -------------------------------------------------- |
+| `S1`    | A Abfahrt 08:00 → B Ankunft 08:20; Fahrzeit 20 min | A Abfahrt 08:00 → B Ankunft 08:23; Fahrzeit 23 min |
+| `S2`    | B Abfahrt 08:20 → C Ankunft 08:45; Fahrzeit 25 min | B Abfahrt 08:23 → C Ankunft 08:48; Fahrzeit 25 min |
 
 Die zusätzliche Fahrzeit von `S1` verschiebt also B und die nachfolgenden Ereignisse um drei
 Minuten. Falls gleichzeitig Δ = +2 gewählt wird, fährt `R7` in A um 08:02 ab; B liegt dann bei

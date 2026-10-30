@@ -55,6 +55,7 @@ describe("compareSolutions", () => {
 
   it("weights normalized objectives geometrically by their position", () => {
     const policy = createDefaultOptimizationPolicy();
+    policy.mode = "userDefined";
     const topObjectiveWins = solution(1, {
       objectiveScores: {minimalChanges: 1, moreConnections: 0},
     });
@@ -67,6 +68,7 @@ describe("compareSolutions", () => {
 
   it("lets drag-and-drop reorder the geometric objective weights", () => {
     const policy = createDefaultOptimizationPolicy();
+    policy.mode = "userDefined";
     policy.objectives.find((objective) => objective.id === "minimalChanges").priority = 1;
     policy.objectives.find((objective) => objective.id === "moreConnections").priority = 0;
     const topObjectiveWins = solution(1, {
@@ -81,6 +83,7 @@ describe("compareSolutions", () => {
 
   it("ranks lower edge track usage when that soft objective is enabled", () => {
     const policy = createDefaultOptimizationPolicy();
+    policy.mode = "userDefined";
     policy.objectives.forEach((objective) => (objective.enabled = false));
     policy.objectives.find((objective) => objective.id === "lowerEdgeTrackUsage").enabled = true;
     const lowerTrackUsage = solution(1, {
@@ -95,10 +98,40 @@ describe("compareSolutions", () => {
 
   it("ignores disabled objectives and uses a stable id tie-break", () => {
     const policy = createDefaultOptimizationPolicy();
+    policy.mode = "userDefined";
     policy.objectives.forEach((objective) => (objective.enabled = false));
     const first = solution(1, {changedChains: 9});
     const second = solution(2, {changedChains: 0});
 
     expect(compareSolutions(first, second, policy)).toBeLessThan(0);
+  });
+
+  it("uses director ratings as search weights instead of manual priorities", () => {
+    const policy = createDefaultOptimizationPolicy();
+    policy.objectives.forEach((objective) => (objective.rating = 0));
+    policy.objectives.find((objective) => objective.id === "minimalChanges").rating = 4;
+    policy.objectives.find((objective) => objective.id === "moreConnections").rating = 2;
+    const minimalChanges = solution(1, {
+      objectiveScores: {minimalChanges: 1, moreConnections: 0},
+    });
+    const moreConnections = solution(2, {
+      objectiveScores: {minimalChanges: 0, moreConnections: 1},
+    });
+
+    expect(compareSolutions(minimalChanges, moreConnections, policy)).toBeLessThan(0);
+  });
+
+  it("treats a zero director rating as a disabled objective", () => {
+    const policy = createDefaultOptimizationPolicy();
+    policy.objectives.forEach((objective) => (objective.rating = 0));
+    policy.objectives.find((objective) => objective.id === "lowerEdgeTrackUsage").rating = 5;
+    const lowerTrackUsage = solution(1, {
+      objectiveScores: {lowerEdgeTrackUsage: 1, minimalChanges: 0},
+    });
+    const lowerChangesOnly = solution(2, {
+      objectiveScores: {lowerEdgeTrackUsage: 0, minimalChanges: 1},
+    });
+
+    expect(compareSolutions(lowerTrackUsage, lowerChangesOnly, policy)).toBeLessThan(0);
   });
 });

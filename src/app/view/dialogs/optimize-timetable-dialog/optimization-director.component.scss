@@ -2,10 +2,14 @@
   min-width: 0;
   padding-right: 16px;
   border-right: 1px solid var(--sbb-header-lean-border-bottom-color);
+  user-select: none;
 
   h3,
   h4 {
     margin: 0 0 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.2;
   }
 
   h4 {
@@ -20,6 +24,210 @@
   align-items: center;
   gap: 8px;
   min-height: 30px;
+}
+
+.user-defined-toggle {
+  display: block;
+  margin: 0 0 14px;
+}
+
+.director-description {
+  margin: 0 0 14px;
+  color: var(--sbb-color-iron);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.director-sections {
+  display: block;
+  margin-top: 12px;
+}
+
+:host ::ng-deep .director-sections .director-panel-title {
+  font-size: 15px !important;
+  line-height: 1.25;
+}
+
+.director-mode {
+  margin-bottom: 18px;
+}
+
+.director-profiles {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
+.director-profile {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--sbb-header-lean-border-bottom-color);
+  background: var(--sbb-header-lean-background-color);
+  color: inherit;
+  text-align: left;
+}
+
+.director-profile.selected {
+  border-color: var(--sbb-color-red);
+  box-shadow: inset 3px 0 var(--sbb-color-red);
+}
+
+.director-profile-select {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.director-profile .director-profile-select strong {
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.director-profile .director-profile-select span {
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.director-profile span,
+.rating-help,
+.profile-objective-detail > span {
+  color: var(--sbb-color-iron);
+  font-size: 0.875rem;
+}
+
+.rating-help {
+  margin: 8px 0;
+  line-height: 1.4;
+}
+
+.soft-objective-description,
+.guardrail-description {
+  padding-left: 8px;
+  border-left: 3px solid;
+}
+
+.soft-objective-description {
+  border-left-color: var(--sbb-color-red);
+}
+
+.guardrail-description {
+  border-left-color: var(--sbb-color-iron);
+}
+
+.user-defined-section + .user-defined-section {
+  margin-top: 20px;
+  padding-top: 8px;
+  border-top: 1px solid var(--sbb-header-lean-border-bottom-color);
+}
+
+.user-defined-section h4 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.profile-objective-detail {
+  display: grid;
+  gap: 2px;
+  padding: 5px 0;
+}
+
+.profile-detail-group + .profile-detail-group {
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 1px solid var(--sbb-header-lean-border-bottom-color);
+}
+
+.profile-detail-group h5 {
+  margin: 8px 0 4px;
+  font-size: 0.875rem;
+}
+
+.director-ratings {
+  display: grid;
+  gap: 4px;
+}
+
+.director-rating-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px 30px;
+  align-items: center;
+  gap: 2px 4px;
+  padding: 4px 2px;
+}
+
+.director-rating-row .objective-name {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.director-rating-row .rating-control {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.director-rating-row .rating-value {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.rating-control {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.rating-point {
+  display: inline-flex;
+  flex: 0 0 11px;
+  align-items: center;
+  justify-content: center;
+  min-width: 11px;
+  min-height: 24px;
+  padding: 1px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.rating-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--sbb-color-aluminum);
+}
+
+.rating-point.selected .rating-dot {
+  background: var(--sbb-color-red);
+}
+
+.rating-point:focus-visible {
+  outline: 2px solid var(--sbb-color-red);
+  outline-offset: 1px;
+}
+
+.rating-value {
+  min-width: 28px;
+  text-align: right;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.fixed-rule {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 0.875rem;
 }
 
 .director-rule {
@@ -48,7 +256,7 @@
 .director-objective .objective-name {
   min-width: 0;
   white-space: normal;
-  overflow-wrap: anywhere; 
+  overflow-wrap: anywhere;
   user-select: none;
 }
 
@@ -70,12 +278,6 @@
   width: 42px;
   min-width: 0;
   border: none;
-}
-
-.director-objectives {
-  margin-top: 22px;
-  padding-top: 4px;
-  border-top: 1px solid var(--sbb-header-lean-border-bottom-color);
 }
 
 .objective-list {

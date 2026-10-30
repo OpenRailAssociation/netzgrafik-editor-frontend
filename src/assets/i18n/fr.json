@@ -330,12 +330,33 @@
           "invalid": "Invalide",
           "director": {
             "title": "Pilotage de l'optimisation",
+            "description": "Choisissez ce que l'horaire doit atteindre. Les objectifs souples définissent les priorités ; les règles contraignantes limitent les changements possibles.",
             "hard-rules": "Règles strictes",
             "soft-objectives": "Objectifs souples",
             "max-extension-value": "Prolongation maximale du temps de parcours par tronçon en minutes",
             "move-up": "Monter l'objectif",
             "move-down": "Descendre l'objectif",
             "reorder": "Faire glisser pour réordonner l'objectif",
+            "user-defined": "Personnalisé",
+            "choose-focus": "Objectif d'optimisation",
+            "rating-help": "1 point signifie une faible influence, 10 une forte influence. L'ordre reste fixe ; seule l'importance est réglable.",
+            "rating-level": "Importance : {$rating} sur 10",
+            "show-details": "Détails : rôle des objectifs et des règles",
+            "fixed-rules": "Règles de sécurité fixes",
+            "fixed-rules-description": "Ces règles restent identiques pour tous les objectifs Director et ne peuvent pas être modifiées ici.",
+            "editable-rules-description": "Ces règles limitent l'optimisation. Certaines valeurs peuvent être ajustées.",
+            "editable-objectives-description": "Activez et classez les objectifs selon leur importance pour l'horaire.",
+            "details-description": "Cette section explique ce que privilégie chaque objectif et quelles règles s'appliquent.",
+            "rule-active": "Activée",
+            "rule-inactive": "Désactivée",
+            "profile": {
+              "stability": "Stabiliser l'horaire",
+              "stability-description": "Privilégie de petits changements horaires et préserve l'horaire existant.",
+              "connections": "Améliorer les correspondances",
+              "connections-description": "Privilégie les correspondances possibles tout en limitant les changements.",
+              "track-usage": "Réduire l'utilisation des voies",
+              "track-usage-description": "Privilégie moins de voies aux nœuds et sur les tronçons sans changements horaires inutiles."
+            },
             "constraint": {
               "track-limit": "Limite de voies sur le tronçon",
               "track-limit-tooltip": "Limite le nombre maximal de voies utilisées simultanément sur chaque tronçon à la valeur saisie.",
@@ -371,6 +392,7 @@
               "lower-edge-track-usage": "Moins de voies sur les tronçons est préférable : évalue le maximum et la moyenne dans le périmètre d'optimisation."
             }
           },
+          "settings-changed": "Les paramètres ont changé. Ces propositions proviennent de la recherche précédente. Sélectionnez Optimiser pour calculer de nouvelles propositions.",
           "max-tracks": "Voies max. par tronçon",
           "optimize": "Optimiser",
           "scope-selection": "Seuls les {$count} nœuds sélectionnés sont optimisés, les horaires aux bords restent fixes.",

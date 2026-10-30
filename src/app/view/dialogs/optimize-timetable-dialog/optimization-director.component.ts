@@ -1,11 +1,20 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, Input, Output} from "@angular/core";
 import {CdkDragDrop, moveItemInArray} from "@angular/cdk/drag-drop";
 import {
+  DIRECTOR_OBJECTIVE_ORDER,
+  DirectorProfileId,
   HardConstraintConfig,
   HardConstraintId,
   ObjectiveConfig,
   OptimizationPolicy,
 } from "../../../services/optimization/optimization-policy.model";
+
+type DirectorProfile = {
+  id: DirectorProfileId;
+  title: string;
+  description: string;
+  ratings: Record<ObjectiveConfig["id"], number>;
+};
 
 @Component({
   selector: "sbb-optimization-director",
@@ -18,8 +27,90 @@ export class OptimizationDirectorComponent {
   @Input({required: true}) policy: OptimizationPolicy;
   @Output() policyChange = new EventEmitter<OptimizationPolicy>();
 
+  readonly ratingValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  readonly profiles: DirectorProfile[] = [
+    {
+      id: "stability",
+      title: "app.view.dialogs.optimize-timetable-dialog.director.profile.stability",
+      description:
+        "app.view.dialogs.optimize-timetable-dialog.director.profile.stability-description",
+      ratings: {
+        minimalChanges: 10,
+        moreConnections: 6,
+        lowerTravelTime: 6,
+        lowerTrackUsage: 4,
+        lowerEdgeTrackUsage: 4,
+      },
+    },
+    {
+      id: "connections",
+      title: "app.view.dialogs.optimize-timetable-dialog.director.profile.connections",
+      description:
+        "app.view.dialogs.optimize-timetable-dialog.director.profile.connections-description",
+      ratings: {
+        minimalChanges: 6,
+        moreConnections: 10,
+        lowerTravelTime: 6,
+        lowerTrackUsage: 4,
+        lowerEdgeTrackUsage: 4,
+      },
+    },
+    {
+      id: "trackUsage",
+      title: "app.view.dialogs.optimize-timetable-dialog.director.profile.track-usage",
+      description:
+        "app.view.dialogs.optimize-timetable-dialog.director.profile.track-usage-description",
+      ratings: {
+        minimalChanges: 6,
+        moreConnections: 4,
+        lowerTravelTime: 4,
+        lowerTrackUsage: 10,
+        lowerEdgeTrackUsage: 10,
+      },
+    },
+  ];
+
+  get isUserDefined(): boolean {
+    return this.policy.mode === "userDefined";
+  }
+
   get orderedObjectives(): ObjectiveConfig[] {
-    return [...this.policy.objectives].sort((a, b) => a.priority - b.priority);
+    return [...this.policy.objectives].sort((a, b) =>
+      this.isUserDefined
+        ? a.priority - b.priority
+        : DIRECTOR_OBJECTIVE_ORDER.indexOf(a.id) - DIRECTOR_OBJECTIVE_ORDER.indexOf(b.id),
+    );
+  }
+
+  setMode(userDefined: boolean): void {
+    this.updatePolicy({...this.policy, mode: userDefined ? "userDefined" : "director"});
+  }
+
+  selectProfile(profileId: DirectorProfileId): void {
+    const profile = this.profiles.find((item) => item.id === profileId);
+    if (profile === undefined) {
+      return;
+    }
+    this.updatePolicy({
+      ...this.policy,
+      directorProfile: profileId,
+      objectives: this.policy.objectives.map((objective) => ({
+        ...objective,
+        rating: profile.ratings[objective.id],
+      })),
+    });
+  }
+
+  setObjectiveRating(objective: ObjectiveConfig, rating: number): void {
+    const normalizedRating = Number.isFinite(rating)
+      ? Math.max(1, Math.min(10, Math.floor(rating)))
+      : 1;
+    this.updatePolicy({
+      ...this.policy,
+      objectives: this.policy.objectives.map((item) =>
+        item.id === objective.id ? {...item, rating: normalizedRating} : item,
+      ),
+    });
   }
 
   setConstraintEnabled(id: HardConstraintId, enabled: boolean): void {

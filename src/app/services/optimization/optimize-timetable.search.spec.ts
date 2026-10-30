@@ -8,7 +8,11 @@ describe("orderConflictVariables", () => {
 
 describe("getLocalStepCandidates", () => {
   it("orders both departure-shift directions by increasing minute distance", () => {
-    expect(getLocalStepCandidates(0, 3)).toEqual([[-1, 1], [-2, 2], [-3, 3]]);
+    expect(getLocalStepCandidates(0, 3)).toEqual([
+      [-1, 1],
+      [-2, 2],
+      [-3, 3],
+    ]);
   });
 
   it("keeps moves inside the variable domain when stepping back toward baseline", () => {

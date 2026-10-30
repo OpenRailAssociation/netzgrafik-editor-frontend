@@ -164,7 +164,7 @@ export class Sg6TrackService implements OnDestroy {
       new Set(nodes.map((node) => node.sgPathNode)).forEach((pathNode) => {
         pathNode.trackData.track = trackCount;
       });
-      nodes.forEach((node : SgTrainrunNode) => {
+      nodes.forEach((node: SgTrainrunNode) => {
         const reservations = estimates.flatMap((estimate) =>
           estimate.occupancies
             .filter((occupancy) => occupancy.trainrunId === node.trainrunId)
@@ -180,7 +180,7 @@ export class Sg6TrackService implements OnDestroy {
               headwayUntilTime: occupancy.headwayUntilMinute,
             })),
         );
-        node.trackReservations = reservations; 
+        node.trackReservations = reservations;
         if (reservations.length > 0) {
           node.minimumHeadwayTime = Math.min(
             ...reservations.map(

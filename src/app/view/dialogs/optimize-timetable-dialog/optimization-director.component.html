@@ -1,94 +1,275 @@
 <aside class="optimization-director">
   <h3>{{ "app.view.dialogs.optimize-timetable-dialog.director.title" | translate }}</h3>
+  <p class="director-description">
+    {{ "app.view.dialogs.optimize-timetable-dialog.director.description" | translate }}
+  </p>
 
-  <section aria-labelledby="optimization-hard-rules">
-    <h4 id="optimization-hard-rules">
-      {{ "app.view.dialogs.optimize-timetable-dialog.director.hard-rules" | translate }}
-    </h4>
-    <div
-      class="director-rule"
-      *ngFor="let constraint of policy.hardConstraints"
-      [class.has-value]="
-        (constraint.id === 'trackLimit' && constraint.enabled) ||
-        (constraint.id === 'maxTravelTimeExtension' && constraint.enabled)
-      "
-    >
-      <sbb-checkbox
-        [ngModel]="constraint.enabled"
-        [disabled]="constraint.mandatory"
-        (ngModelChange)="setConstraintEnabled(constraint.id, $event)"
-      >
-        <span class="constraint-name" [title]="(constraint.name + '-tooltip') | translate">
-          {{ constraint.name | translate }}
-        </span>
-      </sbb-checkbox>
-      <sbb-time-stepper
-        *ngIf="
+  <sbb-checkbox
+    class="user-defined-toggle"
+    [ngModel]="isUserDefined"
+    (ngModelChange)="setMode($event)"
+  >
+    {{ "app.view.dialogs.optimize-timetable-dialog.director.user-defined" | translate }}
+  </sbb-checkbox>
+
+  <ng-container *ngIf="!isUserDefined; else userDefinedControls">
+    <section class="director-mode" aria-labelledby="director-mode-title">
+      <h4 id="director-mode-title">
+        {{ "app.view.dialogs.optimize-timetable-dialog.director.choose-focus" | translate }}
+      </h4>
+      <div class="director-profiles" role="radiogroup">
+        <article
+          class="director-profile"
+          *ngFor="let profile of profiles"
+          [class.selected]="policy.directorProfile === profile.id"
+        >
+          <button
+            class="director-profile-select"
+            type="button"
+            role="radio"
+            [attr.aria-checked]="policy.directorProfile === profile.id"
+            (click)="selectProfile(profile.id)"
+          >
+            <strong>{{ profile.title | translate }}</strong>
+            <span>{{ profile.description | translate }}</span>
+          </button>
+
+          <ng-container *ngIf="policy.directorProfile === profile.id">
+            <sbb-accordion class="director-sections" [multi]="false">
+              <sbb-expansion-panel [expanded]="false">
+                <sbb-expansion-panel-header>
+                  <span class="director-panel-title">
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.director.soft-objectives"
+                        | translate
+                    }}
+                  </span>
+                </sbb-expansion-panel-header>
+                <p class="rating-help soft-objective-description">
+                  {{
+                    "app.view.dialogs.optimize-timetable-dialog.director.rating-help" | translate
+                  }}
+                </p>
+                <div class="director-ratings">
+                  <div class="director-rating-row" *ngFor="let objective of orderedObjectives">
+                    <span
+                      class="objective-name"
+                      [title]="
+                        objective.name.replace('.objective.', '.objective-description.') | translate
+                      "
+                    >
+                      {{ objective.name | translate }}
+                    </span>
+                    <div
+                      class="rating-control"
+                      role="group"
+                      [attr.aria-label]="objective.name | translate"
+                    >
+                      <button
+                        class="rating-point"
+                        type="button"
+                        role="radio"
+                        *ngFor="let rating of ratingValues"
+                        [class.selected]="rating <= objective.rating"
+                        [attr.aria-checked]="objective.rating === rating"
+                        [attr.aria-label]="
+                          'app.view.dialogs.optimize-timetable-dialog.director.rating-level'
+                            | translate: {rating: rating.toString()}
+                        "
+                        (click)="setObjectiveRating(objective, rating)"
+                      >
+                        <span class="rating-dot" aria-hidden="true"></span>
+                      </button>
+                    </div>
+                    <span class="rating-value">{{ objective.rating }}/10</span>
+                  </div>
+                </div>
+              </sbb-expansion-panel>
+
+              <sbb-expansion-panel>
+                <sbb-expansion-panel-header>
+                  <span class="director-panel-title">
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.director.fixed-rules" | translate
+                    }}
+                  </span>
+                </sbb-expansion-panel-header>
+                <p class="rating-help guardrail-description">
+                  {{
+                    "app.view.dialogs.optimize-timetable-dialog.director.fixed-rules-description"
+                      | translate
+                  }}
+                </p>
+                <div class="fixed-rule" *ngFor="let constraint of policy.hardConstraints">
+                  <span [title]="constraint.name + '-tooltip' | translate">
+                    {{ constraint.name | translate }}
+                  </span>
+                  <strong>
+                    {{
+                      (constraint.enabled
+                        ? "app.view.dialogs.optimize-timetable-dialog.director.rule-active"
+                        : "app.view.dialogs.optimize-timetable-dialog.director.rule-inactive"
+                      ) | translate
+                    }}
+                    <ng-container *ngIf="constraint.enabled && constraint.value !== undefined">
+                      · {{ constraint.value }}
+                    </ng-container>
+                  </strong>
+                </div>
+              </sbb-expansion-panel>
+
+              <sbb-expansion-panel>
+                <sbb-expansion-panel-header>
+                  <span class="director-panel-title">
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.director.show-details" | translate
+                    }}
+                  </span>
+                </sbb-expansion-panel-header>
+                <p>{{ profile.description | translate }}</p>
+                <section class="profile-detail-group">
+                  <h5>
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.director.soft-objectives"
+                        | translate
+                    }}
+                  </h5>
+                  <div class="profile-objective-detail" *ngFor="let objective of orderedObjectives">
+                    <strong>{{ objective.name | translate }} · {{ objective.rating }}/10</strong>
+                    <span>
+                      {{
+                        objective.name.replace(".objective.", ".objective-description.") | translate
+                      }}
+                    </span>
+                  </div>
+                </section>
+                <section class="profile-detail-group">
+                  <h5>
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.director.fixed-rules" | translate
+                    }}
+                  </h5>
+                  <div
+                    class="profile-objective-detail"
+                    *ngFor="let constraint of policy.hardConstraints"
+                  >
+                    <strong>{{ constraint.name | translate }}</strong>
+                    <span>{{ constraint.name + "-tooltip" | translate }}</span>
+                  </div>
+                </section>
+              </sbb-expansion-panel>
+            </sbb-accordion>
+          </ng-container>
+        </article>
+      </div>
+    </section>
+  </ng-container>
+
+  <ng-template #userDefinedControls>
+    <section class="user-defined-section guardrail-section">
+      <h4>
+        {{ "app.view.dialogs.optimize-timetable-dialog.director.fixed-rules" | translate }}
+      </h4>
+      <p class="rating-help guardrail-description">
+        {{
+          "app.view.dialogs.optimize-timetable-dialog.director.editable-rules-description"
+            | translate
+        }}
+      </p>
+      <div
+        class="director-rule"
+        *ngFor="let constraint of policy.hardConstraints"
+        [class.has-value]="
           (constraint.id === 'trackLimit' && constraint.enabled) ||
           (constraint.id === 'maxTravelTimeExtension' && constraint.enabled)
         "
-        [containerClass]="'constraint-stepper'"
-        [inputClass]="'constraint-value'"
-        [inputId]="'optimization-' + constraint.id"
-        [tabIndex]="0"
-        [value]="constraint.value ?? (constraint.id === 'trackLimit' ? 1 : 0)"
-        [min]="constraint.id === 'trackLimit' ? 1 : 0"
-        [max]="constraint.id === 'maxTravelTimeExtension' ? 99 : undefined"
-        [ariaLabel]="(constraint.id === 'trackLimit'
-          ? 'app.view.dialogs.optimize-timetable-dialog.max-tracks'
-          : 'app.view.dialogs.optimize-timetable-dialog.director.max-extension-value') | translate"
-        (valueChange)="setConstraintValue(constraint, $event)"
-        (decrement)="adjustConstraintValue(constraint, -1)"
-        (increment)="adjustConstraintValue(constraint, 1)"
-      />
-    </div>
-  </section>
-
-  <section class="director-objectives" aria-labelledby="optimization-objectives">
-    <h4 id="optimization-objectives">
-      {{ "app.view.dialogs.optimize-timetable-dialog.director.soft-objectives" | translate }}
-    </h4>
-    <div
-      class="objective-list"
-      cdkDropList
-      [cdkDropListData]="orderedObjectives"
-      (cdkDropListDropped)="dropObjective($event)"
-    >
-      <div
-        class="director-objective"
-        *ngFor="let objective of orderedObjectives; let index = index"
-        cdkDrag
-        [cdkDragData]="objective"
-        tabindex="0"
-        role="listitem"
-        [attr.aria-label]="objective.name | translate"
-        aria-keyshortcuts="ArrowUp ArrowDown"
-        (keydown.arrowup)="moveObjective(index, -1); $event.preventDefault()"
-        (keydown.arrowdown)="moveObjective(index, 1); $event.preventDefault()"
       >
-        <span
-          class="drag-handle"
-          [attr.aria-label]="
-            'app.view.dialogs.optimize-timetable-dialog.director.reorder' | translate
-          "
-          title="{{ 'app.view.dialogs.optimize-timetable-dialog.director.reorder' | translate }}"
-        >
-          ⋮
-        </span>
         <sbb-checkbox
-          [ngModel]="objective.enabled"
-          (ngModelChange)="setObjectiveEnabled(objective, $event)"
-          (mousedown)="preventCheckboxDrag($event)"
-          (touchstart)="preventCheckboxDrag($event)"
+          [ngModel]="constraint.enabled"
+          [disabled]="constraint.mandatory"
+          (ngModelChange)="setConstraintEnabled(constraint.id, $event)"
         >
-          <span
-            class="objective-name"
-            [title]="objective.name.replace('.objective.', '.objective-description.') | translate"
-          >
-            {{ objective.name | translate }}
+          <span class="constraint-name" [title]="constraint.name + '-tooltip' | translate">
+            {{ constraint.name | translate }}
           </span>
         </sbb-checkbox>
+        <sbb-time-stepper
+          *ngIf="
+            (constraint.id === 'trackLimit' && constraint.enabled) ||
+            (constraint.id === 'maxTravelTimeExtension' && constraint.enabled)
+          "
+          [containerClass]="'constraint-stepper'"
+          [inputClass]="'constraint-value'"
+          [inputId]="'optimization-' + constraint.id"
+          [tabIndex]="0"
+          [value]="constraint.value ?? (constraint.id === 'trackLimit' ? 1 : 0)"
+          [min]="constraint.id === 'trackLimit' ? 1 : 0"
+          [max]="constraint.id === 'maxTravelTimeExtension' ? 99 : undefined"
+          [ariaLabel]="
+            (constraint.id === 'trackLimit'
+              ? 'app.view.dialogs.optimize-timetable-dialog.max-tracks'
+              : 'app.view.dialogs.optimize-timetable-dialog.director.max-extension-value'
+            ) | translate
+          "
+          (valueChange)="setConstraintValue(constraint, $event)"
+          (decrement)="adjustConstraintValue(constraint, -1)"
+          (increment)="adjustConstraintValue(constraint, 1)"
+        />
       </div>
-    </div>
-  </section>
+    </section>
+
+    <section class="user-defined-section objective-section">
+      <h4>
+        {{ "app.view.dialogs.optimize-timetable-dialog.director.soft-objectives" | translate }}
+      </h4>
+      <p class="rating-help soft-objective-description">
+        {{
+          "app.view.dialogs.optimize-timetable-dialog.director.editable-objectives-description"
+            | translate
+        }}
+      </p>
+      <div
+        class="objective-list"
+        cdkDropList
+        [cdkDropListData]="orderedObjectives"
+        (cdkDropListDropped)="dropObjective($event)"
+      >
+        <div
+          class="director-objective"
+          *ngFor="let objective of orderedObjectives; let index = index"
+          cdkDrag
+          [cdkDragData]="objective"
+          tabindex="0"
+          role="listitem"
+          [attr.aria-label]="objective.name | translate"
+          aria-keyshortcuts="ArrowUp ArrowDown"
+          (keydown.arrowup)="moveObjective(index, -1); $event.preventDefault()"
+          (keydown.arrowdown)="moveObjective(index, 1); $event.preventDefault()"
+        >
+          <span
+            class="drag-handle"
+            [attr.aria-label]="
+              'app.view.dialogs.optimize-timetable-dialog.director.reorder' | translate
+            "
+            title="{{ 'app.view.dialogs.optimize-timetable-dialog.director.reorder' | translate }}"
+          >
+            ⋮
+          </span>
+          <sbb-checkbox
+            [ngModel]="objective.enabled"
+            (ngModelChange)="setObjectiveEnabled(objective, $event)"
+            (mousedown)="preventCheckboxDrag($event)"
+            (touchstart)="preventCheckboxDrag($event)"
+          >
+            <span
+              class="objective-name"
+              [title]="objective.name.replace('.objective.', '.objective-description.') | translate"
+            >
+              {{ objective.name | translate }}
+            </span>
+          </sbb-checkbox>
+        </div>
+      </div>
+    </section>
+  </ng-template>
 </aside>

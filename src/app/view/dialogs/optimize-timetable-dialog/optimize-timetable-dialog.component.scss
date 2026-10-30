@@ -75,6 +75,12 @@
     flex-wrap: wrap;
   }
 
+  .settings-outdated {
+    margin-top: 8px;
+    color: var(--sbb-color-red);
+    font-weight: 600;
+  }
+
   .policy-summary {
     display: flex;
     align-items: baseline;
@@ -192,7 +198,6 @@
     th:nth-child(4) {
       width: 46%;
     }
-
   }
 
   .track-overview-empty {

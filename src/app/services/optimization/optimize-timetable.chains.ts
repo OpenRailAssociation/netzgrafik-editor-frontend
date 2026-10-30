@@ -485,14 +485,10 @@ export function buildProblem(
       return "scope";
     }
     const affected: Array<{section: TrainrunSection; field: number; node: Node}> = [];
-    const depAField = (step: Chain["steps"][number]) =>
-      step.aligned ? SRC_DEP : TGT_DEP;
-    const arrAField = (step: Chain["steps"][number]) =>
-      step.aligned ? TGT_ARR : SRC_ARR;
-    const depBField = (step: Chain["steps"][number]) =>
-      step.aligned ? TGT_DEP : SRC_DEP;
-    const arrBField = (step: Chain["steps"][number]) =>
-      step.aligned ? SRC_ARR : TGT_ARR;
+    const depAField = (step: Chain["steps"][number]) => (step.aligned ? SRC_DEP : TGT_DEP);
+    const arrAField = (step: Chain["steps"][number]) => (step.aligned ? TGT_ARR : SRC_ARR);
+    const depBField = (step: Chain["steps"][number]) => (step.aligned ? TGT_DEP : SRC_DEP);
+    const arrBField = (step: Chain["steps"][number]) => (step.aligned ? SRC_ARR : TGT_ARR);
     const addAffected = (step: Chain["steps"][number], field: number, node: Node) => {
       affected.push({section: sections[step.sectionIdx], field, node});
     };

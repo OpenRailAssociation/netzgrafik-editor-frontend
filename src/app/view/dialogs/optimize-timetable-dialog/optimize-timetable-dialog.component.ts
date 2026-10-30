@@ -11,6 +11,7 @@ import {UndoService} from "../../../services/data/undo.service";
 import {OptimizeTimetableService} from "../../../services/optimization/optimize-timetable.service";
 import {OptimizationPolicyService} from "../../../services/optimization/optimization-policy.service";
 import {
+  DIRECTOR_OBJECTIVE_ORDER,
   createDefaultOptimizationPolicy,
   OptimizationPolicy,
 } from "../../../services/optimization/optimization-policy.model";
@@ -69,6 +70,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   private readonly baselineOccupancy = new Map<number, KnotenAuslastungSnapshot>();
   private readonly occupancyPreparation: KnotenAuslastungDataPreparation;
   private storedPolicy: OptimizationPolicy;
+  private resultPolicySnapshot: string;
 
   private previewSolution: OptimizeTimetableSolution = undefined;
   private scopeNodeIds: number[] = [];
@@ -118,30 +120,59 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   }
 
   get maxTracks(): number {
-    return this.policy.hardConstraints.find((constraint) => constraint.id === "trackLimit")?.value ?? 2;
+    return (
+      this.policy.hardConstraints.find((constraint) => constraint.id === "trackLimit")?.value ?? 2
+    );
   }
 
   get trackLimitEnabled(): boolean {
-    return this.policy.hardConstraints.find((constraint) => constraint.id === "trackLimit")?.enabled ?? false;
+    return (
+      this.policy.hardConstraints.find((constraint) => constraint.id === "trackLimit")?.enabled ??
+      false
+    );
   }
 
   get enabledObjectives() {
     return [...this.policy.objectives]
-      .filter((objective) => objective.enabled)
-      .sort((a, b) => a.priority - b.priority);
+      .filter((objective) =>
+        this.policy.mode === "director" ? objective.rating > 0 : objective.enabled,
+      )
+      .sort((a, b) =>
+        this.policy.mode === "director"
+          ? b.rating - a.rating ||
+            DIRECTOR_OBJECTIVE_ORDER.indexOf(a.id) - DIRECTOR_OBJECTIVE_ORDER.indexOf(b.id)
+          : a.priority - b.priority,
+      );
+  }
+
+  get hasOutdatedResults(): boolean {
+    return (
+      this.result !== undefined &&
+      this.resultPolicySnapshot !== undefined &&
+      this.resultPolicySnapshot !== JSON.stringify(this.policy)
+    );
   }
 
   get hasUnstoredPolicyChanges(): boolean {
     return (
+      this.policy.mode !== this.storedPolicy.mode ||
+      this.policy.directorProfile !== this.storedPolicy.directorProfile ||
       this.policy.hardConstraints.length !== this.storedPolicy.hardConstraints.length ||
       this.policy.hardConstraints.some((constraint) => {
         const stored = this.storedPolicy.hardConstraints.find((item) => item.id === constraint.id);
-        return !stored || constraint.enabled !== stored.enabled || constraint.value !== stored.value;
+        return (
+          !stored || constraint.enabled !== stored.enabled || constraint.value !== stored.value
+        );
       }) ||
       this.policy.objectives.length !== this.storedPolicy.objectives.length ||
       this.policy.objectives.some((objective) => {
         const stored = this.storedPolicy.objectives.find((item) => item.id === objective.id);
-        return !stored || objective.enabled !== stored.enabled || objective.priority !== stored.priority;
+        return (
+          !stored ||
+          objective.enabled !== stored.enabled ||
+          objective.priority !== stored.priority ||
+          objective.rating !== stored.rating
+        );
       })
     );
   }
@@ -189,9 +220,11 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   }
 
   resetRanking(): void {
+    const defaults = createDefaultOptimizationPolicy();
     this.onPolicyChange({
       ...this.policy,
-      objectives: createDefaultOptimizationPolicy().objectives,
+      directorProfile: defaults.directorProfile,
+      objectives: defaults.objectives,
     });
   }
 
@@ -251,6 +284,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
       return;
     }
     this.result = undefined;
+    this.resultPolicySnapshot = undefined;
     this.selectedSolution = undefined;
     this.nodeGroups = [];
     this.selectedNodeId = undefined;
@@ -484,6 +518,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
 
   private runOptimization(startAssignment: Record<string, number>) {
     this.revertPreview();
+    this.resultPolicySnapshot = JSON.stringify(this.policy);
     this.result = this.optimizeTimetableService.optimize(
       this.getVisibleNodes(),
       this.getVisibleTrainrunSections(),

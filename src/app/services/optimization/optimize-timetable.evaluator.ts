@@ -7,7 +7,7 @@ import {
   norm60,
 } from "./optimize-timetable.chains";
 import {SRC_ARR, SRC_DEP, TGT_ARR, TGT_DEP} from "./optimize-timetable.model";
-import {HardConstraintId, ObjectiveId} from "./optimization-policy.model";
+import {getObjectiveWeights, HardConstraintId, ObjectiveId} from "./optimization-policy.model";
 import {InfrastructureEstimatorService} from "../infrastructure/infrastructure-estimator.service";
 
 /** Same time resolution as the InfrastructureEstimatorService (cells per minute). */
@@ -89,10 +89,10 @@ export class TimetableEvaluator {
     private readonly problem: OptimizationProblem,
     private readonly infrastructureEstimatorService?: InfrastructureEstimatorService,
   ) {
-    [...problem.policy.objectives]
-      .filter((objective) => objective.enabled)
-      .sort((first, second) => first.priority - second.priority)
-      .forEach((objective, index) => this.objectiveWeights.set(objective.id, 1 / 2 ** index));
+    const objectiveWeights = getObjectiveWeights(problem.policy);
+    problem.policy.objectives.forEach((objective) => {
+      this.objectiveWeights.set(objective.id, objectiveWeights[objective.id]);
+    });
 
     const n = problem.sections.length;
     if (this.isNodeTrackObjectiveActive()) {
@@ -128,24 +128,28 @@ export class TimetableEvaluator {
           ),
         ),
     );
-    this.edgeSamples = this.shouldEstimateEdgeTracks() ? problem.edges.map((edge) => {
-      const maxTravel = edge.sections.reduce(
-        (m, i) => Math.max(m, this.origTravel[i * 2], this.origTravel[i * 2 + 1]),
-        0,
-      );
-      const count = Math.min(
-        MAX_SAMPLES,
-        Math.max(MIN_SAMPLES, Math.ceil(maxTravel * SAMPLES_PER_MINUTE) + 1),
-      );
-      return Array.from({length: count}, (_, k) => k / (count - 1));
-    }) : [];
-    this.edgeBuffers = this.shouldEstimateEdgeTracks() ? problem.edges.map((edge) => {
-      const capacity = edge.sections.reduce((sum, i) => {
-        const frequency = Math.max(1, problem.sections[i].getTrainrun().getFrequency() || 60);
-        return sum + 2 * 4 * Math.ceil(edge.maxFrequency / frequency);
-      }, 0);
-      return new Int32Array(capacity);
-    }) : [];
+    this.edgeSamples = this.shouldEstimateEdgeTracks()
+      ? problem.edges.map((edge) => {
+          const maxTravel = edge.sections.reduce(
+            (m, i) => Math.max(m, this.origTravel[i * 2], this.origTravel[i * 2 + 1]),
+            0,
+          );
+          const count = Math.min(
+            MAX_SAMPLES,
+            Math.max(MIN_SAMPLES, Math.ceil(maxTravel * SAMPLES_PER_MINUTE) + 1),
+          );
+          return Array.from({length: count}, (_, k) => k / (count - 1));
+        })
+      : [];
+    this.edgeBuffers = this.shouldEstimateEdgeTracks()
+      ? problem.edges.map((edge) => {
+          const capacity = edge.sections.reduce((sum, i) => {
+            const frequency = Math.max(1, problem.sections[i].getTrainrun().getFrequency() || 60);
+            return sum + 2 * 4 * Math.ceil(edge.maxFrequency / frequency);
+          }, 0);
+          return new Int32Array(capacity);
+        })
+      : [];
   }
 
   // ---------------------------------------------------------------------
@@ -223,9 +227,7 @@ export class TimetableEvaluator {
       WEIGHT_OPTIONAL_CONNECTION *
         (this.objectiveWeights.get("moreConnections") ?? 0) *
         this.optionalConnections +
-      WEIGHT_SHIFT *
-        (this.objectiveWeights.get("minimalChanges") ?? 0) *
-        this.sumAbsShift
+      WEIGHT_SHIFT * (this.objectiveWeights.get("minimalChanges") ?? 0) * this.sumAbsShift
     );
   }
 
@@ -276,9 +278,7 @@ export class TimetableEvaluator {
     let nodeScore = 0;
     let scoredNodes = 0;
     for (const nodeEvents of this.problem.nodeEvents) {
-      const departureTrainrunIds = new Set(
-        nodeEvents.departures.map((event) => event.trainrunId),
-      );
+      const departureTrainrunIds = new Set(nodeEvents.departures.map((event) => event.trainrunId));
       const trainrunIds = new Set([
         ...nodeEvents.arrivals
           .filter((event) => departureTrainrunIds.has(event.trainrunId))
@@ -356,14 +356,14 @@ export class TimetableEvaluator {
   private isNodeTrackObjectiveActive(): boolean {
     return (
       this.infrastructureEstimatorService !== undefined &&
-      this.objectiveWeights.has("lowerTrackUsage")
+      (this.objectiveWeights.get("lowerTrackUsage") ?? 0) > 0
     );
   }
 
   private shouldEstimateEdgeTracks(): boolean {
     return (
       constraintEnabled(this.problem, "trackLimit") ||
-      this.objectiveWeights.has("lowerEdgeTrackUsage")
+      (this.objectiveWeights.get("lowerEdgeTrackUsage") ?? 0) > 0
     );
   }
 

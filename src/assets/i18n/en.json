@@ -330,12 +330,33 @@
           "invalid": "Invalid",
           "director": {
             "title": "Optimization director",
+            "description": "Choose what the timetable should achieve. Soft objectives set priorities; binding guardrails limit what may be changed.",
             "hard-rules": "Hard rules",
             "soft-objectives": "Soft objectives",
             "max-extension-value": "Maximum travel-time extension per section in minutes",
             "move-up": "Move objective up",
             "move-down": "Move objective down",
             "reorder": "Drag to reorder objective",
+            "user-defined": "User-defined",
+            "choose-focus": "Optimization focus",
+            "rating-help": "1 point means low influence, 10 points means high influence. The order stays fixed; you only set importance.",
+            "rating-level": "Importance {$rating} of 10",
+            "show-details": "Details: How objectives and rules work",
+            "fixed-rules": "Fixed guardrails",
+            "fixed-rules-description": "These rules stay the same for every Director goal and cannot be changed here.",
+            "editable-rules-description": "These guardrails limit the optimization. Some values can be adjusted.",
+            "editable-objectives-description": "Enable and order objectives by how important they are for the timetable.",
+            "details-description": "This section explains what each objective prefers and which rules apply.",
+            "rule-active": "Active",
+            "rule-inactive": "Inactive",
+            "profile": {
+              "stability": "Stabilize the timetable",
+              "stability-description": "Prefers small time changes and preserves the existing timetable.",
+              "connections": "Improve connections",
+              "connections-description": "Weights reachable connections most strongly while keeping changes small.",
+              "track-usage": "Reduce track usage",
+              "track-usage-description": "Prefers fewer node and section tracks without unnecessary timetable changes."
+            },
             "constraint": {
               "track-limit": "Track limit",
               "track-limit-tooltip": "Limits the maximum number of tracks used at the same time on each section to the value entered.",
@@ -371,6 +392,7 @@
               "lower-edge-track-usage": "Fewer tracks on sections is better: scores maximum and average track usage within the optimization scope."
             }
           },
+          "settings-changed": "Settings changed. These proposals are from the previous search. Select Optimize to calculate new proposals.",
           "max-tracks": "Max. tracks per section",
           "optimize": "Optimize",
           "scope-selection": "Only the {$count} selected nodes are optimized, times at the boundary stay fixed.",

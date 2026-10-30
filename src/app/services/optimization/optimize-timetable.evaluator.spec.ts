@@ -12,7 +12,7 @@ import {
   WEIGHT_SHIFT,
   WEIGHT_TRACK,
 } from "./optimize-timetable.evaluator";
-import {createDefaultOptimizationPolicy} from "./optimization-policy.model";
+import {createDefaultOptimizationPolicy, OptimizationPolicy} from "./optimization-policy.model";
 
 function createEvaluator(
   stops: OptimizationProblem["stops"] = [],
@@ -20,12 +20,16 @@ function createEvaluator(
   variables: OptimizationProblem["variables"] = [],
   nodeEvents: OptimizationProblem["nodeEvents"] = [],
   minimumStopTimeEnabled = true,
+  policyOverride?: OptimizationPolicy,
 ): TimetableEvaluator {
   const section = {
     getTravelTime: () => 0,
     getBackwardTravelTime: () => 0,
   };
-  const policy = createDefaultOptimizationPolicy();
+  const policy = policyOverride ?? createDefaultOptimizationPolicy();
+  if (policyOverride === undefined) {
+    policy.mode = "userDefined";
+  }
   policy.hardConstraints.find((constraint) => constraint.id === "minimumStopTime").enabled =
     minimumStopTimeEnabled;
   const problem = {
@@ -71,6 +75,7 @@ function createTrackEvaluator(
     getTrainrun: () => ({getFrequency: () => 60}),
   }));
   const policy = createDefaultOptimizationPolicy();
+  policy.mode = "userDefined";
   policy.hardConstraints.find((constraint) => constraint.id === "trackLimit").enabled =
     trackLimitEnabled;
   policy.objectives.forEach((objective) => (objective.enabled = false));
@@ -124,6 +129,7 @@ function createNodeTrackEvaluator(objectiveEnabled: boolean) {
   };
   const node = {getId: () => 2} as unknown as Node;
   const policy = createDefaultOptimizationPolicy();
+  policy.mode = "userDefined";
   policy.hardConstraints.find((constraint) => constraint.id === "trackLimit").enabled = false;
   policy.objectives.forEach((objective) => (objective.enabled = false));
   policy.objectives.find((objective) => objective.id === "lowerTrackUsage").enabled =
@@ -171,10 +177,10 @@ function createNodeTrackEvaluator(objectiveEnabled: boolean) {
   estimator.estimateNodeTracks.and.callFake((_node, sections, options) => {
     const arrival = options.getTime?.(sections[0], "target", "arrival", "consecutive");
     const trackCount = arrival === 30 ? 2 : 1;
-    return Array.from(
-      {length: trackCount},
-      (_, index): NodeTrackEstimate => ({track: index + 1, occupancies: []}),
-    );
+    return Array.from({length: trackCount}, (_, index): NodeTrackEstimate => ({
+      track: index + 1,
+      occupancies: [],
+    }));
   });
   const evaluator = new TimetableEvaluator(problem, estimator);
   evaluator.evaluateAll();
@@ -187,6 +193,7 @@ function createSectionTravelTimeEvaluator(): TimetableEvaluator {
     getBackwardTravelTime: () => 10,
   }));
   const policy = createDefaultOptimizationPolicy();
+  policy.mode = "userDefined";
   policy.hardConstraints.find((constraint) => constraint.id === "trackLimit").enabled = false;
   const travelLimit = policy.hardConstraints.find(
     (constraint) => constraint.id === "maxTravelTimeExtension",
@@ -399,12 +406,14 @@ describe("TimetableEvaluator conflict severity", () => {
     const oneWay = buildSingleSectionProblem(Direction.ONE_WAY, true);
     expect(oneWay.travelTimeVariables[0]).toBeGreaterThanOrEqual(0);
     expect(oneWay.travelTimeVariables[1]).toBe(-1);
-    expect(oneWay.variables.filter((variable) => !variable.fixed && variable.domain > 0).length)
-      .toBe(2);
+    expect(
+      oneWay.variables.filter((variable) => !variable.fixed && variable.domain > 0).length,
+    ).toBe(2);
     expect(
       oneWay.variables.filter((variable) => !variable.fixed && variable.domain > 0).length -
-        withoutTravelTimeExtension.variables.filter((variable) => !variable.fixed && variable.domain > 0)
-          .length,
+        withoutTravelTimeExtension.variables.filter(
+          (variable) => !variable.fixed && variable.domain > 0,
+        ).length,
     ).toBe(1);
 
     const symmetric = buildSingleSectionProblem(Direction.ROUND_TRIP, true);
@@ -448,10 +457,12 @@ describe("TimetableEvaluator conflict severity", () => {
 
   it("defaults both lock rules to active and lets each be disabled independently", () => {
     const policy = createDefaultOptimizationPolicy();
-    expect(policy.hardConstraints.find((constraint) => constraint.id === "timeLocks").enabled)
-      .toBeTrue();
-    expect(policy.hardConstraints.find((constraint) => constraint.id === "travelTimeLocks").enabled)
-      .toBeTrue();
+    expect(
+      policy.hardConstraints.find((constraint) => constraint.id === "timeLocks").enabled,
+    ).toBeTrue();
+    expect(
+      policy.hardConstraints.find((constraint) => constraint.id === "travelTimeLocks").enabled,
+    ).toBeTrue();
 
     const travelTimeLocksDisabled = buildSingleSectionProblem(
       Direction.ONE_WAY,
@@ -507,29 +518,51 @@ describe("TimetableEvaluator conflict severity", () => {
   });
 
   it("strongly penalizes each shifted minute", () => {
-    const evaluator = createEvaluator([], [], [
-      {key: "shift", domain: 1, chains: [], fixed: false},
-    ]);
+    const evaluator = createEvaluator(
+      [],
+      [],
+      [{key: "shift", domain: 1, chains: [], fixed: false}],
+    );
 
     expect(evaluator.setVariable(0, 1)).toBe(WEIGHT_SHIFT);
     expect(WEIGHT_SHIFT).toBe(10);
   });
 
+  it("uses the Director rank-based weight while scoring each search move", () => {
+    const policy = createDefaultOptimizationPolicy();
+    policy.objectives.find((objective) => objective.id === "minimalChanges").rating = 3;
+    const evaluator = createEvaluator(
+      [],
+      [],
+      [{key: "shift", domain: 1, chains: [], fixed: false}],
+      [],
+      true,
+      policy,
+    );
+
+    expect(evaluator.setVariable(0, 1)).toBe(WEIGHT_SHIFT / 16);
+  });
+
   it("rewards feasible optional connections and shorter waits", () => {
-    const evaluator = createEvaluator([], [], [], [
-      {
-        node: undefined,
-        connectionTime: 0,
-        arrivals: [
-          {section: 0, field: 0, trainrunId: 1, frequency: 60},
-          {section: 0, field: 2, trainrunId: 2, frequency: 60},
-        ],
-        departures: [
-          {section: 0, field: 1, trainrunId: 1, frequency: 60},
-          {section: 0, field: 3, trainrunId: 2, frequency: 60},
-        ],
-      },
-    ]);
+    const evaluator = createEvaluator(
+      [],
+      [],
+      [],
+      [
+        {
+          node: undefined,
+          connectionTime: 0,
+          arrivals: [
+            {section: 0, field: 0, trainrunId: 1, frequency: 60},
+            {section: 0, field: 2, trainrunId: 2, frequency: 60},
+          ],
+          departures: [
+            {section: 0, field: 1, trainrunId: 1, frequency: 60},
+            {section: 0, field: 3, trainrunId: 2, frequency: 60},
+          ],
+        },
+      ],
+    );
 
     expect(evaluator.getOptionalConnectionScore()).toBeCloseTo(0.6);
   });

@@ -330,12 +330,33 @@
           "invalid": "Ungültig",
           "director": {
             "title": "Optimierungssteuerung",
+            "description": "Wähle, was der Fahrplan erreichen soll. Weiche Ziele legen die Prioritäten fest; verbindliche Leitplanken begrenzen, was geändert werden darf.",
             "hard-rules": "Harte Regeln",
             "soft-objectives": "Weiche Ziele",
             "max-extension-value": "Maximale Fahrzeitverlängerung pro Abschnitt in Minuten",
             "move-up": "Ziel nach oben verschieben",
             "move-down": "Ziel nach unten verschieben",
             "reorder": "Ziehen, um das Ziel neu zu ordnen",
+            "user-defined": "Benutzerdefiniert",
+            "choose-focus": "Optimierungsziel",
+            "rating-help": "1 Punkt bedeutet wenig, 10 Punkte viel Einfluss. Die Reihenfolge bleibt fest; du stellst nur die Wichtigkeit ein.",
+            "rating-level": "Wichtigkeit {$rating} von 10",
+            "show-details": "Details: So wirken Ziele und Regeln",
+            "fixed-rules": "Verbindliche Leitplanken",
+            "fixed-rules-description": "Diese Regeln bleiben für alle Director-Ziele gleich und können hier nicht geändert werden.",
+            "editable-rules-description": "Diese Leitplanken begrenzen die Optimierung. Einige Werte kannst du anpassen.",
+            "editable-objectives-description": "Aktiviere und ordne die Ziele nach ihrer Wichtigkeit für den Fahrplan.",
+            "details-description": "Hier wird erklärt, was die einzelnen Ziele bevorzugen und welche Regeln dabei gelten.",
+            "rule-active": "Aktiv",
+            "rule-inactive": "Inaktiv",
+            "profile": {
+              "stability": "Fahrplan stabilisieren",
+              "stability-description": "Bevorzugt kleine Zeitänderungen und bewahrt den bestehenden Fahrplan.",
+              "connections": "Anschlüsse verbessern",
+              "connections-description": "Gewichtet erreichbare Anschlüsse am stärksten und hält Änderungen möglichst klein.",
+              "track-usage": "Gleisbedarf reduzieren",
+              "track-usage-description": "Bevorzugt weniger Knoten- und Streckengleise, ohne unnötige Fahrplanänderungen."
+            },
             "constraint": {
               "track-limit": "Streckengleis-Limit",
               "track-limit-tooltip": "Begrenzt die maximal gleichzeitig benötigten Gleise pro Streckenabschnitt auf den eingestellten Wert.",
@@ -371,6 +392,7 @@
               "lower-edge-track-usage": "Weniger Streckengleise ist besser: bewertet maximale und durchschnittliche Gleisnutzung der Abschnitte im Optimierungsbereich."
             }
           },
+          "settings-changed": "Die Einstellungen wurden geändert. Die Vorschläge stammen noch aus dem vorherigen Suchlauf. Starte Optimieren, um neue Vorschläge zu berechnen.",
           "max-tracks": "Max. Gleise pro Abschnitt",
           "optimize": "Optimieren",
           "scope-selection": "Nur {$count} selektierte Knoten werden optimiert, Zeiten an den Rändern bleiben fix.",

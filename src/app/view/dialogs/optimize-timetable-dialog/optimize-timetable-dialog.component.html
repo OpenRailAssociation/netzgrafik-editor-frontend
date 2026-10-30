@@ -27,6 +27,9 @@
               {{ "app.view.dialogs.optimize-timetable-dialog.store-policy" | translate }}
             </button>
           </div>
+          <div class="settings-outdated" *ngIf="hasOutdatedResults" role="status">
+            {{ "app.view.dialogs.optimize-timetable-dialog.settings-changed" | translate }}
+          </div>
           <div class="policy-summary" *ngIf="enabledObjectives.length > 0">
             <strong
               >{{
@@ -70,59 +73,59 @@
               {{ "app.view.dialogs.optimize-timetable-dialog.track-overview" | translate }}
             </sbb-expansion-panel-header>
             <section class="track-overview">
-            <div class="track-overview-scroll" *ngIf="trackOverviewDataSource.data.length > 0">
-              <table
-                sbb-table
-                sbbSort
-                sbbSortActive="tracksBefore"
-                sbbSortDirection="desc"
-                [dataSource]="trackOverviewDataSource"
-                (sbbSortChange)="sortTrackOverview($event)"
-                class="track-overview-table"
-              >
-                <ng-container sbbColumnDef="fromNodeName">
-                  <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header="fromNodeName">
-                    {{ "app.view.dialogs.optimize-timetable-dialog.from-node" | translate }}
-                  </th>
-                  <td sbb-cell *sbbCellDef="let row">{{ row.fromNodeName }}</td>
-                </ng-container>
-                <ng-container sbbColumnDef="toNodeName">
-                  <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header="toNodeName">
-                    {{ "app.view.dialogs.optimize-timetable-dialog.to-node" | translate }}
-                  </th>
-                  <td sbb-cell *sbbCellDef="let row">{{ row.toNodeName }}</td>
-                </ng-container>
-                <ng-container sbbColumnDef="tracksBefore">
-                  <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header="tracksBefore">
-                    {{ "app.view.dialogs.optimize-timetable-dialog.track-count" | translate }}
-                  </th>
-                  <td
-                    sbb-cell
-                    *sbbCellDef="let row"
-                    [class.over-limit]="trackLimitEnabled && row.tracksBefore > maxTracks"
-                  >
-                    {{ row.tracksBefore }}
-                  </td>
-                </ng-container>
-                <ng-container sbbColumnDef="topology">
-                  <th sbb-header-cell *sbbHeaderCellDef>
-                    {{ "app.view.dialogs.optimize-timetable-dialog.track-topology" | translate }}
-                  </th>
-                  <td sbb-cell *sbbCellDef="let row">
-                    <sbb-track-topology
-                      [edge]="row"
-                      [maxTracks]="maxTracks"
-                      [trackLimitEnabled]="trackLimitEnabled"
-                    ></sbb-track-topology>
-                  </td>
-                </ng-container>
-                <tr sbb-header-row *sbbHeaderRowDef="trackOverviewColumns; sticky: true"></tr>
-                <tr sbb-row *sbbRowDef="let row; columns: trackOverviewColumns"></tr>
-              </table>
-            </div>
-            <div class="track-overview-empty" *ngIf="trackOverviewDataSource.data.length === 0">
-              {{ "app.view.dialogs.optimize-timetable-dialog.track-overview-empty" | translate }}
-            </div>
+              <div class="track-overview-scroll" *ngIf="trackOverviewDataSource.data.length > 0">
+                <table
+                  sbb-table
+                  sbbSort
+                  sbbSortActive="tracksBefore"
+                  sbbSortDirection="desc"
+                  [dataSource]="trackOverviewDataSource"
+                  (sbbSortChange)="sortTrackOverview($event)"
+                  class="track-overview-table"
+                >
+                  <ng-container sbbColumnDef="fromNodeName">
+                    <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header="fromNodeName">
+                      {{ "app.view.dialogs.optimize-timetable-dialog.from-node" | translate }}
+                    </th>
+                    <td sbb-cell *sbbCellDef="let row">{{ row.fromNodeName }}</td>
+                  </ng-container>
+                  <ng-container sbbColumnDef="toNodeName">
+                    <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header="toNodeName">
+                      {{ "app.view.dialogs.optimize-timetable-dialog.to-node" | translate }}
+                    </th>
+                    <td sbb-cell *sbbCellDef="let row">{{ row.toNodeName }}</td>
+                  </ng-container>
+                  <ng-container sbbColumnDef="tracksBefore">
+                    <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header="tracksBefore">
+                      {{ "app.view.dialogs.optimize-timetable-dialog.track-count" | translate }}
+                    </th>
+                    <td
+                      sbb-cell
+                      *sbbCellDef="let row"
+                      [class.over-limit]="trackLimitEnabled && row.tracksBefore > maxTracks"
+                    >
+                      {{ row.tracksBefore }}
+                    </td>
+                  </ng-container>
+                  <ng-container sbbColumnDef="topology">
+                    <th sbb-header-cell *sbbHeaderCellDef>
+                      {{ "app.view.dialogs.optimize-timetable-dialog.track-topology" | translate }}
+                    </th>
+                    <td sbb-cell *sbbCellDef="let row">
+                      <sbb-track-topology
+                        [edge]="row"
+                        [maxTracks]="maxTracks"
+                        [trackLimitEnabled]="trackLimitEnabled"
+                      ></sbb-track-topology>
+                    </td>
+                  </ng-container>
+                  <tr sbb-header-row *sbbHeaderRowDef="trackOverviewColumns; sticky: true"></tr>
+                  <tr sbb-row *sbbRowDef="let row; columns: trackOverviewColumns"></tr>
+                </table>
+              </div>
+              <div class="track-overview-empty" *ngIf="trackOverviewDataSource.data.length === 0">
+                {{ "app.view.dialogs.optimize-timetable-dialog.track-overview-empty" | translate }}
+              </div>
             </section>
           </sbb-expansion-panel>
 
@@ -138,282 +141,326 @@
               {{ "app.view.dialogs.optimize-timetable-dialog.results-panel" | translate }}
             </sbb-expansion-panel-header>
             <div class="optimization-results">
-            <div class="info">
-              {{
-                "app.view.dialogs.optimize-timetable-dialog.search-info"
-                  | translate
-                    : {
-                        iterations: result.iterations.toString(),
-                        runtime: result.runtimeMs.toString(),
-                        over: result.initialEdgesOverLimit.toString(),
-                      }
-              }}
-            </div>
-            <div class="variable-breakdown">
-              {{
-                "app.view.dialogs.optimize-timetable-dialog.variable-breakdown"
-                  | translate
-                    : {
-                        variables: result.freeVariables.toString(),
-                        shifts: result.freeShiftVariables.toString(),
-                        freeRuntimes: result.freeTravelTimeVariables.toString(),
-                      }
-              }}
-            </div>
-            <div class="runtime-lock-summary" *ngIf="result.fixedTravelTimeVariables > 0">
-              {{
-                "app.view.dialogs.optimize-timetable-dialog.runtime-lock-summary"
-                  | translate
-                    : {
-                        blocked: result.fixedTravelTimeVariables.toString(),
-                        travelLocks: result.travelTimeLockBlockedVariables.toString(),
-                        departureLocks: result.departureTimeLockBlockedVariables.toString(),
-                        arrivalLocks: result.arrivalTimeLockBlockedVariables.toString(),
-                        scope: result.scopeBlockedTravelTimeVariables.toString(),
-                        noRange: result.noRangeTravelTimeVariables.toString(),
-                      }
-              }}
-            </div>
-            <div class="message" *ngIf="result.message">{{ result.message }}</div>
+              <div class="info">
+                {{
+                  "app.view.dialogs.optimize-timetable-dialog.search-info"
+                    | translate
+                      : {
+                          iterations: result.iterations.toString(),
+                          runtime: result.runtimeMs.toString(),
+                          over: result.initialEdgesOverLimit.toString(),
+                        }
+                }}
+              </div>
+              <div class="variable-breakdown">
+                {{
+                  "app.view.dialogs.optimize-timetable-dialog.variable-breakdown"
+                    | translate
+                      : {
+                          variables: result.freeVariables.toString(),
+                          shifts: result.freeShiftVariables.toString(),
+                          freeRuntimes: result.freeTravelTimeVariables.toString(),
+                        }
+                }}
+              </div>
+              <div class="runtime-lock-summary" *ngIf="result.fixedTravelTimeVariables > 0">
+                {{
+                  "app.view.dialogs.optimize-timetable-dialog.runtime-lock-summary"
+                    | translate
+                      : {
+                          blocked: result.fixedTravelTimeVariables.toString(),
+                          travelLocks: result.travelTimeLockBlockedVariables.toString(),
+                          departureLocks: result.departureTimeLockBlockedVariables.toString(),
+                          arrivalLocks: result.arrivalTimeLockBlockedVariables.toString(),
+                          scope: result.scopeBlockedTravelTimeVariables.toString(),
+                          noRange: result.noRangeTravelTimeVariables.toString(),
+                        }
+                }}
+              </div>
+              <div class="message" *ngIf="result.message">{{ result.message }}</div>
 
-            <div class="proposals-scroll" *ngIf="result.solutions.length > 0">
-              <table class="proposals">
-              <thead>
-                <tr>
-                  <th>{{ "app.view.dialogs.optimize-timetable-dialog.proposal" | translate }}</th>
-                  <th>
-                    {{ "app.view.dialogs.optimize-timetable-dialog.edges-over-limit" | translate }}
-                  </th>
-                  <th>
-                    {{ "app.view.dialogs.optimize-timetable-dialog.section-tracks-kpi" | translate }}
-                  </th>
-                  <th>
-                    {{ "app.view.dialogs.optimize-timetable-dialog.node-tracks-kpi" | translate }}
-                  </th>
-                  <th>
-                    {{ "app.view.dialogs.optimize-timetable-dialog.minimum-stop-violations" | translate }}
-                  </th>
-                  <th>
-                    {{ "app.view.dialogs.optimize-timetable-dialog.travel-time-delta" | translate }}
-                  </th>
-                  <th>
-                    {{ "app.view.dialogs.optimize-timetable-dialog.connections" | translate }}
-                  </th>
-                  <th>{{ "app.view.dialogs.optimize-timetable-dialog.shift" | translate }}</th>
-                  <th>{{ "app.view.dialogs.optimize-timetable-dialog.changed" | translate }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr class="baseline-row" (click)="selectBaseline()">
-                  <td>{{ "app.view.dialogs.optimize-timetable-dialog.baseline" | translate }}</td>
-                  <td>
-                    {{ result.baselineKpi.edgesOverLimitBefore }} →
-                    {{ result.baselineKpi.edgesOverLimitAfter }}
-                  </td>
-                  <td>
-                    {{ result.baselineKpi.maxTracksBefore }} → {{ result.baselineKpi.maxTracksAfter }}
-                  </td>
-                  <td>
-                    {{ result.baselineKpi.maxNodeTracksBefore }} → {{ result.baselineKpi.maxNodeTracksAfter }}
-                  </td>
-                  <td>
-                    {{ result.baselineKpi.minimumStopViolationsBefore }} →
-                    {{ result.baselineKpi.minimumStopViolationsAfter }}
-                  </td>
-                  <td>{{ formatSigned(result.baselineKpi.totalTravelTimeDelta) }}</td>
-                  <td>
-                    {{ result.baselineKpi.optionalConnectionsBefore }} →
-                    {{ result.baselineKpi.optionalConnectionsAfter }}
-                  </td>
-                  <td>{{ result.baselineKpi.sumAbsShift }}</td>
-                  <td>0 / 0</td>
-                </tr>
-                <tr
-                  *ngFor="let solution of rankedSolutions"
-                  [class.selected]="solution === selectedSolution"
-                  [class.invalid]="!solution.valid"
-                  (click)="selectSolution(solution)"
-                >
-                  <td>
-                    {{ solution.label }}
-                    <span class="solution-status">
-                      {{
-                        (solution.valid
-                          ? "app.view.dialogs.optimize-timetable-dialog.valid"
-                          : "app.view.dialogs.optimize-timetable-dialog.invalid"
-                        ) | translate
-                      }}
-                    </span>
-                  </td>
-                  <td>
-                    {{ solution.kpi.edgesOverLimitBefore }} → {{ solution.kpi.edgesOverLimitAfter }}
-                  </td>
-                  <td>
-                    {{ solution.kpi.maxTracksBefore }} → {{ solution.kpi.maxTracksAfter }}
-                  </td>
-                  <td>
-                    {{ solution.kpi.maxNodeTracksBefore }} → {{ solution.kpi.maxNodeTracksAfter }}
-                  </td>
-                  <td>
-                    {{ solution.kpi.minimumStopViolationsBefore }} →
-                    {{ solution.kpi.minimumStopViolationsAfter }}
-                  </td>
-                  <td>{{ formatSigned(solution.kpi.totalTravelTimeDelta) }}</td>
-                  <td>
-                    {{ solution.kpi.optionalConnectionsBefore }} →
-                    {{ solution.kpi.optionalConnectionsAfter }}
-                  </td>
-                  <td>{{ solution.kpi.sumAbsShift }}</td>
-                  <td>{{ solution.kpi.changedTrainruns }} / {{ solution.kpi.changedTimes }}</td>
-                </tr>
-              </tbody>
-              </table>
-            </div>
-
-            <ng-container *ngIf="selectedSolution">
-              <h4>{{ "app.view.dialogs.optimize-timetable-dialog.edges" | translate }}</h4>
-              <div class="edge-details-scroll">
-              <table class="details edge-details">
-                <thead>
-                  <tr>
-                    <th>{{ "app.view.dialogs.optimize-timetable-dialog.edge" | translate }}</th>
-                    <th>{{ "app.view.dialogs.optimize-timetable-dialog.tracks-before" | translate }}</th>
-                    <th>{{ "app.view.dialogs.optimize-timetable-dialog.topology-before" | translate }}</th>
-                    <th>{{ "app.view.dialogs.optimize-timetable-dialog.tracks-after" | translate }}</th>
-                    <th>{{ "app.view.dialogs.optimize-timetable-dialog.topology-after" | translate }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    *ngFor="let edge of selectedSolution.edges"
-                  >
-                    <td>{{ edge.fromNodeName }} – {{ edge.toNodeName }}</td>
-                    <td [class.over-limit]="trackLimitEnabled && edge.tracksBefore > maxTracks">
-                      {{ edge.tracksBefore }}
-                    </td>
-                    <td>
-                      <sbb-track-topology
-                        [edge]="edge"
-                        [segments]="edge.trackSegmentsBefore"
-                        [maxTracks]="maxTracks"
-                        [trackLimitEnabled]="trackLimitEnabled"
-                      ></sbb-track-topology>
-                    </td>
-                    <td [class.over-limit]="trackLimitEnabled && edge.tracksAfter > maxTracks">
-                      {{ edge.tracksAfter }}
-                    </td>
-                    <td>
-                      <sbb-track-topology
-                        [edge]="edge"
-                        [segments]="edge.trackSegmentsAfter"
-                        [maxTracks]="maxTracks"
-                        [trackLimitEnabled]="trackLimitEnabled"
-                      ></sbb-track-topology>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="proposals-scroll" *ngIf="result.solutions.length > 0">
+                <table class="proposals">
+                  <thead>
+                    <tr>
+                      <th>
+                        {{ "app.view.dialogs.optimize-timetable-dialog.proposal" | translate }}
+                      </th>
+                      <th>
+                        {{
+                          "app.view.dialogs.optimize-timetable-dialog.edges-over-limit" | translate
+                        }}
+                      </th>
+                      <th>
+                        {{
+                          "app.view.dialogs.optimize-timetable-dialog.section-tracks-kpi"
+                            | translate
+                        }}
+                      </th>
+                      <th>
+                        {{
+                          "app.view.dialogs.optimize-timetable-dialog.node-tracks-kpi" | translate
+                        }}
+                      </th>
+                      <th>
+                        {{
+                          "app.view.dialogs.optimize-timetable-dialog.minimum-stop-violations"
+                            | translate
+                        }}
+                      </th>
+                      <th>
+                        {{
+                          "app.view.dialogs.optimize-timetable-dialog.travel-time-delta" | translate
+                        }}
+                      </th>
+                      <th>
+                        {{ "app.view.dialogs.optimize-timetable-dialog.connections" | translate }}
+                      </th>
+                      <th>{{ "app.view.dialogs.optimize-timetable-dialog.shift" | translate }}</th>
+                      <th>
+                        {{ "app.view.dialogs.optimize-timetable-dialog.changed" | translate }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="baseline-row" (click)="selectBaseline()">
+                      <td>
+                        {{ "app.view.dialogs.optimize-timetable-dialog.baseline" | translate }}
+                      </td>
+                      <td>
+                        {{ result.baselineKpi.edgesOverLimitBefore }} →
+                        {{ result.baselineKpi.edgesOverLimitAfter }}
+                      </td>
+                      <td>
+                        {{ result.baselineKpi.maxTracksBefore }} →
+                        {{ result.baselineKpi.maxTracksAfter }}
+                      </td>
+                      <td>
+                        {{ result.baselineKpi.maxNodeTracksBefore }} →
+                        {{ result.baselineKpi.maxNodeTracksAfter }}
+                      </td>
+                      <td>
+                        {{ result.baselineKpi.minimumStopViolationsBefore }} →
+                        {{ result.baselineKpi.minimumStopViolationsAfter }}
+                      </td>
+                      <td>{{ formatSigned(result.baselineKpi.totalTravelTimeDelta) }}</td>
+                      <td>
+                        {{ result.baselineKpi.optionalConnectionsBefore }} →
+                        {{ result.baselineKpi.optionalConnectionsAfter }}
+                      </td>
+                      <td>{{ result.baselineKpi.sumAbsShift }}</td>
+                      <td>0 / 0</td>
+                    </tr>
+                    <tr
+                      *ngFor="let solution of rankedSolutions"
+                      [class.selected]="solution === selectedSolution"
+                      [class.invalid]="!solution.valid"
+                      (click)="selectSolution(solution)"
+                    >
+                      <td>
+                        {{ solution.label }}
+                        <span class="solution-status">
+                          {{
+                            (solution.valid
+                              ? "app.view.dialogs.optimize-timetable-dialog.valid"
+                              : "app.view.dialogs.optimize-timetable-dialog.invalid"
+                            ) | translate
+                          }}
+                        </span>
+                      </td>
+                      <td>
+                        {{ solution.kpi.edgesOverLimitBefore }} →
+                        {{ solution.kpi.edgesOverLimitAfter }}
+                      </td>
+                      <td>
+                        {{ solution.kpi.maxTracksBefore }} → {{ solution.kpi.maxTracksAfter }}
+                      </td>
+                      <td>
+                        {{ solution.kpi.maxNodeTracksBefore }} →
+                        {{ solution.kpi.maxNodeTracksAfter }}
+                      </td>
+                      <td>
+                        {{ solution.kpi.minimumStopViolationsBefore }} →
+                        {{ solution.kpi.minimumStopViolationsAfter }}
+                      </td>
+                      <td>{{ formatSigned(solution.kpi.totalTravelTimeDelta) }}</td>
+                      <td>
+                        {{ solution.kpi.optionalConnectionsBefore }} →
+                        {{ solution.kpi.optionalConnectionsAfter }}
+                      </td>
+                      <td>{{ solution.kpi.sumAbsShift }}</td>
+                      <td>{{ solution.kpi.changedTrainruns }} / {{ solution.kpi.changedTimes }}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
 
-              <div class="node-review">
-                <div class="node-changes">
-                  <h4>{{ "app.view.dialogs.optimize-timetable-dialog.changes" | translate }}</h4>
-                  <div
-                    *ngFor="let group of nodeGroups"
-                    class="node-group"
-                    [class.selected]="group.nodeId === selectedNodeId"
-                    (mouseenter)="selectNode(group.nodeId)"
-                  >
-                    <div class="node-header" (click)="selectNode(group.nodeId)">
-                      <span class="node-name">{{ group.nodeName }}</span>
-                      <span class="node-count">{{ group.changes.length }}</span>
-                    </div>
-                    <table class="details">
-                      <colgroup>
-                        <col class="old-time-column" />
-                        <col class="time-arrow-column" />
-                        <col class="new-time-column" />
-                        <col class="delta-column" />
-                        <col class="trainrun-column" />
-                        <col class="direction-column" />
-                        <col class="node-column" />
-                      </colgroup>
-                      <tbody>
-                        <tr
-                          *ngFor="let change of group.changes"
-                          tabindex="0"
-                          [class.trainrun-highlighted]="
-                            group.nodeId === selectedNodeId && hoveredTrainrunId === change.trainrunId
-                          "
-                          (click)="selectNode(group.nodeId)"
-                          (mouseenter)="highlightTrainrun(change.trainrunId, group.nodeId)"
-                          (mouseleave)="clearTrainrunHighlight(change.trainrunId, group.nodeId)"
-                          (focus)="highlightTrainrun(change.trainrunId, group.nodeId)"
-                          (blur)="clearTrainrunHighlight(change.trainrunId, group.nodeId)"
-                        >
-                          <td class="old-time">
-                            {{ formatValue(change.oldValue) }}
-                          </td>
-                          <td class="time-arrow">→</td>
-                          <td class="new-time">
-                            <strong>{{ formatValue(change.newValue) }}</strong>
-                          </td>
-                          <td
-                            class="change-delta"
-                            [class.earlier]="getChangeDelta(change) < 0"
-                            [class.later]="getChangeDelta(change) > 0"
+              <ng-container *ngIf="selectedSolution">
+                <h4>{{ "app.view.dialogs.optimize-timetable-dialog.edges" | translate }}</h4>
+                <div class="edge-details-scroll">
+                  <table class="details edge-details">
+                    <thead>
+                      <tr>
+                        <th>{{ "app.view.dialogs.optimize-timetable-dialog.edge" | translate }}</th>
+                        <th>
+                          {{
+                            "app.view.dialogs.optimize-timetable-dialog.tracks-before" | translate
+                          }}
+                        </th>
+                        <th>
+                          {{
+                            "app.view.dialogs.optimize-timetable-dialog.topology-before" | translate
+                          }}
+                        </th>
+                        <th>
+                          {{
+                            "app.view.dialogs.optimize-timetable-dialog.tracks-after" | translate
+                          }}
+                        </th>
+                        <th>
+                          {{
+                            "app.view.dialogs.optimize-timetable-dialog.topology-after" | translate
+                          }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let edge of selectedSolution.edges">
+                        <td>{{ edge.fromNodeName }} – {{ edge.toNodeName }}</td>
+                        <td [class.over-limit]="trackLimitEnabled && edge.tracksBefore > maxTracks">
+                          {{ edge.tracksBefore }}
+                        </td>
+                        <td>
+                          <sbb-track-topology
+                            [edge]="edge"
+                            [segments]="edge.trackSegmentsBefore"
+                            [maxTracks]="maxTracks"
+                            [trackLimitEnabled]="trackLimitEnabled"
+                          ></sbb-track-topology>
+                        </td>
+                        <td [class.over-limit]="trackLimitEnabled && edge.tracksAfter > maxTracks">
+                          {{ edge.tracksAfter }}
+                        </td>
+                        <td>
+                          <sbb-track-topology
+                            [edge]="edge"
+                            [segments]="edge.trackSegmentsAfter"
+                            [maxTracks]="maxTracks"
+                            [trackLimitEnabled]="trackLimitEnabled"
+                          ></sbb-track-topology>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="node-review">
+                  <div class="node-changes">
+                    <h4>{{ "app.view.dialogs.optimize-timetable-dialog.changes" | translate }}</h4>
+                    <div
+                      *ngFor="let group of nodeGroups"
+                      class="node-group"
+                      [class.selected]="group.nodeId === selectedNodeId"
+                      (mouseenter)="selectNode(group.nodeId)"
+                    >
+                      <div class="node-header" (click)="selectNode(group.nodeId)">
+                        <span class="node-name">{{ group.nodeName }}</span>
+                        <span class="node-count">{{ group.changes.length }}</span>
+                      </div>
+                      <table class="details">
+                        <colgroup>
+                          <col class="old-time-column" />
+                          <col class="time-arrow-column" />
+                          <col class="new-time-column" />
+                          <col class="delta-column" />
+                          <col class="trainrun-column" />
+                          <col class="direction-column" />
+                          <col class="node-column" />
+                        </colgroup>
+                        <tbody>
+                          <tr
+                            *ngFor="let change of group.changes"
+                            tabindex="0"
+                            [class.trainrun-highlighted]="
+                              group.nodeId === selectedNodeId &&
+                              hoveredTrainrunId === change.trainrunId
+                            "
+                            (click)="selectNode(group.nodeId)"
+                            (mouseenter)="highlightTrainrun(change.trainrunId, group.nodeId)"
+                            (mouseleave)="clearTrainrunHighlight(change.trainrunId, group.nodeId)"
+                            (focus)="highlightTrainrun(change.trainrunId, group.nodeId)"
+                            (blur)="clearTrainrunHighlight(change.trainrunId, group.nodeId)"
                           >
-                            ({{ formatSigned(getChangeDelta(change)) }} min)
-                          </td>
-                          <td class="trainrun-cell">
-                            <span
-                              class="trainrun-color"
-                              [style.backgroundColor]="getTrainrunColor(change.trainrunId)"
-                              aria-hidden="true"
-                            ></span>
-                            <span>{{ change.trainrunName }}</span>
-                          </td>
-                          <ng-container *ngIf="getFieldAbbreviationKey(change) as directionKey; else travelTimeLabel">
-                            <td class="change-direction">{{ directionKey | translate }}</td>
-                            <td class="change-node">{{ getFieldNodeName(change) }}</td>
-                          </ng-container>
-                          <ng-template #travelTimeLabel>
-                            <td class="change-field" colspan="2">{{ getFieldLabel(change) }}</td>
-                          </ng-template>
-                        </tr>
-                      </tbody>
-                    </table>
+                            <td class="old-time">
+                              {{ formatValue(change.oldValue) }}
+                            </td>
+                            <td class="time-arrow">→</td>
+                            <td class="new-time">
+                              <strong>{{ formatValue(change.newValue) }}</strong>
+                            </td>
+                            <td
+                              class="change-delta"
+                              [class.earlier]="getChangeDelta(change) < 0"
+                              [class.later]="getChangeDelta(change) > 0"
+                            >
+                              ({{ formatSigned(getChangeDelta(change)) }} min)
+                            </td>
+                            <td class="trainrun-cell">
+                              <span
+                                class="trainrun-color"
+                                [style.backgroundColor]="getTrainrunColor(change.trainrunId)"
+                                aria-hidden="true"
+                              ></span>
+                              <span>{{ change.trainrunName }}</span>
+                            </td>
+                            <ng-container
+                              *ngIf="
+                                getFieldAbbreviationKey(change) as directionKey;
+                                else travelTimeLabel
+                              "
+                            >
+                              <td class="change-direction">{{ directionKey | translate }}</td>
+                              <td class="change-node">{{ getFieldNodeName(change) }}</td>
+                            </ng-container>
+                            <ng-template #travelTimeLabel>
+                              <td class="change-field" colspan="2">{{ getFieldLabel(change) }}</td>
+                            </ng-template>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
 
-                <div class="node-clock" *ngIf="occupancyBefore && occupancyAfter">
-                  <div class="clocks">
-                    <div class="clock">
-                      <h4 class="clock-label">
-                        {{ "app.view.dialogs.optimize-timetable-dialog.clock-current" | translate }}
-                      </h4>
-                      <sbb-knoten-auslastung-view
-                        [snapshot]="occupancyBefore"
-                        [highlightedTrainrunId]="hoveredTrainrunId"
-                        (trainrunHoverChange)="setTrainrunHighlight($event)"
-                        [hasExternalLabel]="true"
-                      ></sbb-knoten-auslastung-view>
-                    </div>
-                    <div class="clock">
-                      <h4 class="clock-label">
-                        {{ "app.view.dialogs.optimize-timetable-dialog.clock-new" | translate }}
-                      </h4>
-                      <sbb-knoten-auslastung-view
-                        [snapshot]="occupancyAfter"
-                        [highlightedTrainrunId]="hoveredTrainrunId"
-                        (trainrunHoverChange)="setTrainrunHighlight($event)"
-                        [hasExternalLabel]="true"
-                      ></sbb-knoten-auslastung-view>
+                  <div class="node-clock" *ngIf="occupancyBefore && occupancyAfter">
+                    <div class="clocks">
+                      <div class="clock">
+                        <h4 class="clock-label">
+                          {{
+                            "app.view.dialogs.optimize-timetable-dialog.clock-current" | translate
+                          }}
+                        </h4>
+                        <sbb-knoten-auslastung-view
+                          [snapshot]="occupancyBefore"
+                          [highlightedTrainrunId]="hoveredTrainrunId"
+                          (trainrunHoverChange)="setTrainrunHighlight($event)"
+                          [hasExternalLabel]="true"
+                        ></sbb-knoten-auslastung-view>
+                      </div>
+                      <div class="clock">
+                        <h4 class="clock-label">
+                          {{ "app.view.dialogs.optimize-timetable-dialog.clock-new" | translate }}
+                        </h4>
+                        <sbb-knoten-auslastung-view
+                          [snapshot]="occupancyAfter"
+                          [highlightedTrainrunId]="hoveredTrainrunId"
+                          (trainrunHoverChange)="setTrainrunHighlight($event)"
+                          [hasExternalLabel]="true"
+                        ></sbb-knoten-auslastung-view>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </ng-container>
+              </ng-container>
             </div>
           </sbb-expansion-panel>
         </div>

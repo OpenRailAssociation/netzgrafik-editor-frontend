@@ -137,30 +137,30 @@ OptimizeTimetableDialog
    sortiert. Locks und Scope bleiben unveränderliche Regeln.
 2. **Konflikt-Reparatur**: den höchstpriorisierten aktiven Konflikt wählen: Streckengleis-Überlast,
    User-Connection, aktivierte Mindesthaltezeit oder optionale maximale Netto-Fahrzeitverlängerung
-  pro Zuglauf. Alle betroffenen freien Ketten vergleichen und ihre Δ-Kandidaten in aufsteigenden
-  Minutenringen (±1, ±2, …) prüfen; die Deadline zwischen Kandidaten beachten. Den besten
-  konfliktverbessernden Zug aus dem ersten
-  erfolgreichen Ring übernehmen; wenn keiner den Konflikt verbessert, dient die beste
-  nicht-tabuisierte Bewertung als Fallback. Nur abhängige Konflikte aktualisieren; Tabu verhindert
-  direkte Zyklen.
+   pro Zuglauf. Alle betroffenen freien Ketten vergleichen und ihre Δ-Kandidaten in aufsteigenden
+   Minutenringen (±1, ±2, …) prüfen; die Deadline zwischen Kandidaten beachten. Den besten
+   konfliktverbessernden Zug aus dem ersten
+   erfolgreichen Ring übernehmen; wenn keiner den Konflikt verbessert, dient die beste
+   nicht-tabuisierte Bewertung als Fallback. Nur abhängige Konflikte aktualisieren; Tabu verhindert
+   direkte Zyklen.
 3. **Erkundung und Neustart**: Min-Conflicts/Tabu wird mit Simulated-Annealing-Schritten
-  kombiniert: meist ±1 Minute, mit erweiterter Schrittweite bei Stagnation; gelegentlich werden
-  schlechtere Zwischenlösungen akzeptiert. Nach Stagnation setzt LNS bei der besten Lösung an und
-  verändert eine begrenzte, konfliktnahe Kettengruppe. Sobald eine gültige Alternative existiert,
-  werden bis zu 40 ms bzw. 20 % des Zeitbudgets reserviert, um Verschiebungen schrittweise um je
-  eine Minute Richtung Δ = 0 zu verkleinern; ein Schritt bleibt nur bei erfüllten harten Regeln.
+   kombiniert: meist ±1 Minute, mit erweiterter Schrittweite bei Stagnation; gelegentlich werden
+   schlechtere Zwischenlösungen akzeptiert. Nach Stagnation setzt LNS bei der besten Lösung an und
+   verändert eine begrenzte, konfliktnahe Kettengruppe. Sobald eine gültige Alternative existiert,
+   werden bis zu 40 ms bzw. 20 % des Zeitbudgets reserviert, um Verschiebungen schrittweise um je
+   eine Minute Richtung Δ = 0 zu verkleinern; ein Schritt bleibt nur bei erfüllten harten Regeln.
 4. **Archiv und Ranking**: nach den aktiven harten Regeln gültige, nicht dominierte Kandidaten im
-  Pareto-Archiv halten. Die UI sortiert sie anhand normierter Soft-KPI-Scores; die Rangpositionen
-  erhalten Gewichte `1, 1/2, 1/4, 1/8`. Die Reihenfolge ändert nicht den zeitbegrenzten Suchpfad.
-  Geänderte Hard Rules revalidieren Kandidaten; eine neue Suche startet nur mit _Optimize_.
+   Pareto-Archiv halten. Die UI sortiert sie anhand normierter Soft-KPI-Scores; die Rangpositionen
+   erhalten Gewichte `1, 1/2, 1/4, 1/8`. Die Reihenfolge ändert nicht den zeitbegrenzten Suchpfad.
+   Geänderte Hard Rules revalidieren Kandidaten; eine neue Suche startet nur mit _Optimize_.
 5. **Zeitbudget und Gültigkeit**: Deadline via `performance.now()`, deterministischer Seed und
    Weiterrechnen vom ausgewählten Assignment. Die Baseline und geänderte Strecken werden exakt
    mit `InfrastructureEstimatorService` geprüft; nur nach aktiven Regeln gültige Vorschläge werden
    ausgegeben.
 6. **Konsolen-Trace**: der Dialog protokolliert sortierte Baseline-Segmente, getestete Minutenringe,
-  gewählte Kettenmoves, Gleis-/Haltezeit-/Anschluss- und Zeitänderungen sowie den nächsten aktiven
-  Konflikt. Suchschritte verwenden den schnellen Gleis-Surrogatwert; Vorschläge werden exakt
-  nachgeprüft. Der Trace ist auf 150 Ereignisse begrenzt.
+   gewählte Kettenmoves, Gleis-/Haltezeit-/Anschluss- und Zeitänderungen sowie den nächsten aktiven
+   Konflikt. Suchschritte verwenden den schnellen Gleis-Surrogatwert; Vorschläge werden exakt
+   nachgeprüft. Der Trace ist auf 150 Ereignisse begrenzt.
 
 ### 4.4 Baseline und Ranking
 
@@ -237,19 +237,19 @@ interface OptimizeTimetableTimeChange {
 
 ## 7. Tests
 
-| Test             | Prüft                                                          |
-| ---------------- | -------------------------------------------------------------- |
-| Ketten-Bildung   | Durchfahrten bilden eine Kette; Halte trennen Ketten           |
-| Symmetrie        | Δ in Hinrichtung ⇒ −Δ in Rückrichtung; Asymmetrie unabhängig   |
-| Locks / Scope    | gelockte Ketten und Randkanten bleiben unverändert             |
-| Mindesthaltezeit | keine Lösung unterschreitet Haltezeit; Durchfahrt bleibt 0 min |
-| User-Connections | jede erfasste `Connection` bleibt eingehalten                  |
-| Gleise           | Beispielnetz mit 3 Gleisen → Lösung mit ≤ 2 Gleisen pro Kante  |
-| Frequenz / Route | Takt, Offset, Knotenfolge unverändert                          |
-| Ganze Minuten    | alle Zeiten ganzzahlig, Fahrzeiten aufgerundet                 |
-| Stateless        | nach `optimize()` sind alle nativen Objekte unverändert        |
+| Test             | Prüft                                                                                                   |
+| ---------------- | ------------------------------------------------------------------------------------------------------- |
+| Ketten-Bildung   | Durchfahrten bilden eine Kette; Halte trennen Ketten                                                    |
+| Symmetrie        | Δ in Hinrichtung ⇒ −Δ in Rückrichtung; Asymmetrie unabhängig                                            |
+| Locks / Scope    | gelockte Ketten und Randkanten bleiben unverändert                                                      |
+| Mindesthaltezeit | keine Lösung unterschreitet Haltezeit; Durchfahrt bleibt 0 min                                          |
+| User-Connections | jede erfasste `Connection` bleibt eingehalten                                                           |
+| Gleise           | Beispielnetz mit 3 Gleisen → Lösung mit ≤ 2 Gleisen pro Kante                                           |
+| Frequenz / Route | Takt, Offset, Knotenfolge unverändert                                                                   |
+| Ganze Minuten    | alle Zeiten ganzzahlig, Fahrzeiten aufgerundet                                                          |
+| Stateless        | nach `optimize()` sind alle nativen Objekte unverändert                                                 |
 | Zeitbudget       | Suchschleife hält das konfigurierte Budget ein (Standard: 1000 ms); Vor- und Nachbereitung kommen hinzu |
-| Patch            | Anwenden + Zurücksetzen = Originalzustand                      |
+| Patch            | Anwenden + Zurücksetzen = Originalzustand                                                               |
 
 Tests mit den bestehenden Test-Netzgrafiken (`src/integration-testing/…`).
 
