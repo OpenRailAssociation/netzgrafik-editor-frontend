@@ -62,7 +62,7 @@
         "node": {
           "transit-modified": {
             "title": "Durchfahrt geändert",
-            "description": "Zeiten können nicht angepasst werden, beidseitger Lock gefunden"
+            "description": "Zeiten können nicht angepasst werden, beidseitiger Lock gefunden"
           }
         },
         "trainrunsection": {
@@ -564,11 +564,11 @@
           "frequency": "Takt",
           "departureMinuteAtStart": "Abfahrtsminute am Start Knoten",
           "travelTimeStartDestination": "Fahrzeit Start-Ziel",
-          "arrivalMinuteAtDestination": "Ankuntsminute am Ziel Knoten",
+          "arrivalMinuteAtDestination": "Ankunftsminute am Ziel Knoten",
           "turnaroundTimeDestination": "Wendezeit Zielbahnhof",
           "departureMinuteDeparture": "Abfahrtsminute am  Ziel Knoten",
           "travelTimeDestinationStart": "Fahrzeit Ziel-Start",
-          "arrivalMinuteAtStart": "Ankuntsminute am Start Knoten",
+          "arrivalMinuteAtStart": "Ankunftsminute am Start Knoten",
           "turnaroundTimeStart": "Wendezeit Startbahnhof",
           "turnaroundTime": "Umlaufzeit",
           "trainrunTimeCategory": "Verkehrt",
