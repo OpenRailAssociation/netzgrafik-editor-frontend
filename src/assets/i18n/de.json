@@ -123,6 +123,16 @@
             "description": "Zielabfahrtszeit kann nicht erreicht werden"
           }
         }
+      },
+      "optimization": {
+        "no-free-variables": "Keine Zeiten verschiebbar (Schlösser, Selektion oder keine Züge).",
+        "no-solution": "Keine bessere Lösung gefunden. Du kannst erneut optimieren oder weiterrechnen.",
+        "proposal": {
+          "balanced": "Ausgewogen",
+          "minimal-change": "Minimale Änderung",
+          "connections": "Meiste Anschlüsse",
+          "travel-time": "Kürzeste Reisezeit"
+        }
       }
     },
     "streckengrafik": {
@@ -307,6 +317,129 @@
             "warningTwoLocks": "Warnung: Zu viele Zeiten sind gelockt!",
             "propagateTimesToLeft": "Zeiten nach links propagieren",
             "propagateTimesToRight": "Zeiten nach rechts propagieren"
+          }
+        },
+        "optimize-timetable-dialog": {
+          "title": "Fahrplan optimieren",
+          "baseline": "Ausgangslage",
+          "candidate": "Kandidat {$number}",
+          "store-policy": "Policy speichern",
+          "reset-ranking": "Rangfolge zurücksetzen",
+          "current-policy": "Aktuelle Policy",
+          "valid": "Gültig",
+          "invalid": "Ungültig",
+          "director": {
+            "title": "Optimierungssteuerung",
+            "description": "Wähle, was der Fahrplan erreichen soll. Weiche Ziele legen die Prioritäten fest; verbindliche Leitplanken begrenzen, was geändert werden darf.",
+            "hard-rules": "Harte Regeln",
+            "soft-objectives": "Weiche Ziele",
+            "max-extension-value": "Maximale Fahrzeitverlängerung pro Abschnitt in Minuten",
+            "move-up": "Ziel nach oben verschieben",
+            "move-down": "Ziel nach unten verschieben",
+            "reorder": "Ziehen, um das Ziel neu zu ordnen",
+            "user-defined": "Benutzerdefiniert",
+            "choose-focus": "Optimierungsziel",
+            "rating-help": "1 Punkt bedeutet wenig, 10 Punkte viel Einfluss. Die Reihenfolge bleibt fest; du stellst nur die Wichtigkeit ein.",
+            "rating-level": "Wichtigkeit {$rating} von 10",
+            "show-details": "Details: So wirken Ziele und Regeln",
+            "fixed-rules": "Verbindliche Leitplanken",
+            "fixed-rules-description": "Diese Regeln bleiben für alle Director-Ziele gleich und können hier nicht geändert werden.",
+            "editable-rules-description": "Diese Leitplanken begrenzen die Optimierung. Einige Werte kannst du anpassen.",
+            "editable-objectives-description": "Aktiviere und ordne die Ziele nach ihrer Wichtigkeit für den Fahrplan.",
+            "details-description": "Hier wird erklärt, was die einzelnen Ziele bevorzugen und welche Regeln dabei gelten.",
+            "rule-active": "Aktiv",
+            "rule-inactive": "Inaktiv",
+            "profile": {
+              "stability": "Fahrplan stabilisieren",
+              "stability-description": "Bevorzugt kleine Zeitänderungen und bewahrt den bestehenden Fahrplan.",
+              "connections": "Anschlüsse verbessern",
+              "connections-description": "Gewichtet erreichbare Anschlüsse am stärksten und hält Änderungen möglichst klein.",
+              "track-usage": "Gleisbedarf reduzieren",
+              "track-usage-description": "Bevorzugt weniger Knoten- und Streckengleise, ohne unnötige Fahrplanänderungen."
+            },
+            "constraint": {
+              "track-limit": "Streckengleis-Limit",
+              "track-limit-tooltip": "Begrenzt die maximal gleichzeitig benötigten Gleise pro Streckenabschnitt auf den eingestellten Wert.",
+              "user-connections": "Benutzerdefinierte Anschlüsse",
+              "user-connections-tooltip": "Alle im Fahrplan eingetragenen Anschlüsse müssen mindestens die am Umsteigeknoten festgelegte Umsteigezeit einhalten. Ist diese Regel aktiv, sucht der Optimierer nur nach Vorschlägen, die diese Mindestzeit wahren.",
+              "minimum-stop-time": "Mindesthaltezeit",
+              "minimum-stop-time-tooltip": "Bei jedem Halt muss die für den Zug geltende Mindesthaltezeit eingehalten werden. Zu kurze Haltezeiten werden nicht vorgeschlagen.",
+              "time-locks": "Abfahrts-/Ankunfts-Locks",
+              "time-locks-tooltip": "Gesetzte Abfahrts- und Ankunftszeit-Locks halten diese Zeiten unverändert. Schalte diese Regel aus, wenn der Optimierer gelockte Zeiten anpassen darf.",
+              "travel-time-locks": "Fahrzeit-Locks",
+              "travel-time-locks-tooltip": "Gesetzte Fahrzeit-Locks halten die Abschnittsfahrzeit unverändert. Schalte diese Regel aus, wenn der Optimierer sie innerhalb des +n-Limits verlängern darf.",
+              "scope-boundary": "Auswahlgrenze (immer aktiv)",
+              "scope-boundary-tooltip": "Zeitpunkte an Auswahlgrenzen und ausserhalb der Auswahl bleiben immer unverändert. Diese Regel ist nicht abschaltbar.",
+              "symmetry": "Symmetrie erzwingen",
+              "symmetry-tooltip": "Hin- und Rückrichtung bleiben an symmetrischen Knoten gespiegelt. Explizit asymmetrische Abschnitte bleiben davon ausgenommen.",
+              "max-travel-time-extension": "Fahrzeitverlängerung pro Abschnitt",
+              "max-travel-time-extension-tooltip": "Erlaubt pro Abschnitt eine Verlängerung der Fahrzeit von 0 bis maximal +n Minuten. Fahrzeiten werden nicht verkürzt.",
+              "preserve-connection-times": "Bestehende Anschlusszeiten erhalten",
+              "preserve-connection-times-tooltip": "Eingetragene Anschlusswartezeiten bleiben exakt wie im Ausgangsfahrplan. Der Optimierer darf sie weder verkürzen noch verlängern."
+            },
+            "objective": {
+              "minimal-changes": "Minimale Änderungen",
+              "more-connections": "Mehr Anschlüsse",
+              "lower-travel-time": "Kürzere Fahrzeit",
+              "lower-track-usage": "Geringere Knotengleisnutzung",
+              "lower-edge-track-usage": "Geringere Streckengleisnutzung"
+            },
+            "objective-description": {
+              "minimal-changes": "Minimiert die Summe der quadrierten Änderungen aller Abfahrts- und Ankunftszeiten, geteilt durch die Abschnittszahl.",
+              "more-connections": "Zählt erreichbare Umstiege und belohnt kurze Wartezeiten über dem Minimum mit 1/(1+2^d); normiert je Stop-Stop-Zug am Knoten.",
+              "lower-travel-time": "Je Zuglauf +1 bei unveränderter oder kürzerer Start-Ziel-Zeit, -1 bei Verlängerung; lange Wende-Wartezeit wird quadratisch bestraft. Normiert auf die Zahl der Zugläufe.",
+              "lower-track-usage": "Weniger Knotengleise ist besser: zuerst das Maximum, dann der Durchschnitt; normiert auf die Knotenzahl.",
+              "lower-edge-track-usage": "Weniger Streckengleise ist besser: bewertet maximale und durchschnittliche Gleisnutzung der Abschnitte im Optimierungsbereich."
+            }
+          },
+          "settings-changed": "Die Einstellungen wurden geändert. Die Vorschläge stammen noch aus dem vorherigen Suchlauf. Starte Optimieren, um neue Vorschläge zu berechnen.",
+          "max-tracks": "Max. Gleise pro Abschnitt",
+          "optimize": "Optimieren",
+          "scope-selection": "Nur {$count} selektierte Knoten werden optimiert, Zeiten an den Rändern bleiben fix.",
+          "scope-trainrun": "Alle {$count} Knoten des ausgewählten Zuglaufs werden optimiert, Zeiten an den Rändern bleiben fix.",
+          "scope-all": "Ganze Netzgrafik wird optimiert (keine Knoten selektiert).",
+          "search-info": "{$iterations} Iterationen in {$runtime} ms, {$over} Abschnitte über Limit vor der Optimierung.",
+          "variable-breakdown": "Freie Variablen: {$variables} ({$shifts} Zeitverschiebungen, {$freeRuntimes} freie Abschnittsfahrzeiten).",
+          "runtime-lock-summary": "Fahrzeiten gesperrt: {$blocked} (Fahrzeit {$travelLocks}, Abfahrt {$departureLocks}, Ankunft {$arrivalLocks}, Auswahlgrenze {$scope}, kein +n {$noRange}). Deaktiviere die passende Lock-Regel.",
+          "proposal": "Vorschlag",
+          "edges-over-limit": "Abschnitte über Limit",
+          "max-tracks-kpi": "Max. Gleise",
+          "section-tracks-kpi": "Streckengleise",
+          "node-tracks-kpi": "Knotengleise",
+          "track-section": "Strecke",
+          "track-node": "Knoten",
+          "minimum-stop-violations": "Mindesthaltezeit-Verletzungen",
+          "travel-time-delta": "Δ Reisezeit [min]",
+          "connections": "Anschlüsse",
+          "shift": "Σ |Verschiebung| [min]",
+          "changed": "Züge / Zeiten",
+          "edges": "Gleise je Abschnitt mit Fahrplanänderung",
+          "track-overview": "Streckengleis-Übersicht (IST)",
+          "results-panel": "Ergebnis",
+          "from-node": "Von",
+          "to-node": "Nach",
+          "track-count": "Max. Gleise",
+          "track-topology": "Topologie",
+          "topology-before": "Topologie vorher",
+          "topology-after": "Topologie nachher",
+          "tracks-before": "Max. Gleise vorher",
+          "tracks-after": "Max. Gleise nachher",
+          "track-overview-empty": "Keine sichtbaren Streckenabschnitte.",
+          "edge": "Abschnitt",
+          "tracks": "Gleise vorher → nachher",
+          "changes": "Fahrplananpassungen je Knoten",
+          "clock-current": "Vorher",
+          "clock-new": "Nachher",
+          "apply": "Übernehmen",
+          "continue": "Weiterrechnen",
+          "cancel": "Abbrechen",
+          "field": {
+            "departure": "Abfahrt {$node}",
+            "arrival": "Ankunft {$node}",
+            "departure-short": "Ab",
+            "arrival-short": "An",
+            "travel-time": "Fahrzeit",
+            "backward-travel-time": "Fahrzeit (Rückrichtung)"
           }
         }
       },
@@ -581,6 +714,10 @@
       },
       "error-view": {
         "error": "Fehler"
+      },
+      "knoten-auslastung-view": {
+        "even-hour": "Gerade Stunde",
+        "odd-hour": "Ungerade Stunde"
       },
       "navigation-bar": {
         "project-name": "Projekt «{$name}»",

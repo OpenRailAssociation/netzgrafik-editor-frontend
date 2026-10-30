@@ -80,6 +80,9 @@ export class UiInteractionService implements OnDestroy {
 
   showBaseDataEditDialogSubject = new Subject<BaseData[]>();
   readonly baseDataEditDialog = this.showBaseDataEditDialogSubject.asObservable();
+
+  showOptimizeTimetableDialogSubject = new Subject<void>();
+  readonly optimizeTimetableDialog = this.showOptimizeTimetableDialogSubject.asObservable();
   readonly stammdatenEditDialog = this.baseDataEditDialog;
 
   zoomInSubject = new Subject<Vec2D>();

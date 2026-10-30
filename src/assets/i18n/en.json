@@ -123,6 +123,16 @@
             "description": "Target departure time cannot be reached"
           }
         }
+      },
+      "optimization": {
+        "no-free-variables": "No times can be shifted (locks, selection or no trainruns).",
+        "no-solution": "No better solution found. You can optimize again or continue searching.",
+        "proposal": {
+          "balanced": "Balanced",
+          "minimal-change": "Minimal change",
+          "connections": "Most connections",
+          "travel-time": "Shortest travel time"
+        }
       }
     },
     "streckengrafik": {
@@ -307,6 +317,129 @@
             "warningTwoLocks": "Warning: Too many times are locked!",
             "propagateTimesToLeft": "Propagate times to the left",
             "propagateTimesToRight": "Propagate times to the right"
+          }
+        },
+        "optimize-timetable-dialog": {
+          "title": "Optimize timetable",
+          "baseline": "Baseline",
+          "candidate": "Candidate {$number}",
+          "store-policy": "Store policy",
+          "reset-ranking": "Reset ranking",
+          "current-policy": "Current policy",
+          "valid": "Valid",
+          "invalid": "Invalid",
+          "director": {
+            "title": "Optimization director",
+            "description": "Choose what the timetable should achieve. Soft objectives set priorities; binding guardrails limit what may be changed.",
+            "hard-rules": "Hard rules",
+            "soft-objectives": "Soft objectives",
+            "max-extension-value": "Maximum travel-time extension per section in minutes",
+            "move-up": "Move objective up",
+            "move-down": "Move objective down",
+            "reorder": "Drag to reorder objective",
+            "user-defined": "User-defined",
+            "choose-focus": "Optimization focus",
+            "rating-help": "1 point means low influence, 10 points means high influence. The order stays fixed; you only set importance.",
+            "rating-level": "Importance {$rating} of 10",
+            "show-details": "Details: How objectives and rules work",
+            "fixed-rules": "Fixed guardrails",
+            "fixed-rules-description": "These rules stay the same for every Director goal and cannot be changed here.",
+            "editable-rules-description": "These guardrails limit the optimization. Some values can be adjusted.",
+            "editable-objectives-description": "Enable and order objectives by how important they are for the timetable.",
+            "details-description": "This section explains what each objective prefers and which rules apply.",
+            "rule-active": "Active",
+            "rule-inactive": "Inactive",
+            "profile": {
+              "stability": "Stabilize the timetable",
+              "stability-description": "Prefers small time changes and preserves the existing timetable.",
+              "connections": "Improve connections",
+              "connections-description": "Weights reachable connections most strongly while keeping changes small.",
+              "track-usage": "Reduce track usage",
+              "track-usage-description": "Prefers fewer node and section tracks without unnecessary timetable changes."
+            },
+            "constraint": {
+              "track-limit": "Track limit",
+              "track-limit-tooltip": "Limits the maximum number of tracks used at the same time on each section to the value entered.",
+              "user-connections": "User connections",
+              "user-connections-tooltip": "Every connection recorded in the timetable must meet at least the transfer time configured for its interchange node. When enabled, the optimizer only considers proposals that preserve this minimum.",
+              "minimum-stop-time": "Minimum stop time",
+              "minimum-stop-time-tooltip": "Every stop must meet the minimum dwell time configured for the train. Proposals with shorter stops are rejected.",
+              "time-locks": "Departure/arrival time locks",
+              "time-locks-tooltip": "Departure and arrival time locks keep those times unchanged. Turn this rule off to let the optimizer adjust locked times.",
+              "travel-time-locks": "Section travel-time locks",
+              "travel-time-locks-tooltip": "Travel-time locks keep a section runtime unchanged. Turn this rule off to allow extensions within the +n limit.",
+              "scope-boundary": "Scope boundary (always active)",
+              "scope-boundary-tooltip": "Times at the selection boundary and outside the selection always remain unchanged. This rule cannot be disabled.",
+              "symmetry": "Symmetry enforcement",
+              "symmetry-tooltip": "Runs in opposite directions remain mirrored at symmetric nodes. Sections explicitly marked asymmetric are not coupled.",
+              "max-travel-time-extension": "Travel-time extension per section",
+              "max-travel-time-extension-tooltip": "Allows each section runtime to increase by 0 to +n minutes. Section runtimes cannot be shortened.",
+              "preserve-connection-times": "Preserve existing connection times",
+              "preserve-connection-times-tooltip": "Recorded connection waiting times remain exactly as in the original timetable. The optimizer cannot shorten or lengthen them."
+            },
+            "objective": {
+              "minimal-changes": "Minimal changes",
+              "more-connections": "More connections",
+              "lower-travel-time": "Lower travel time",
+              "lower-track-usage": "Lower node track usage",
+              "lower-edge-track-usage": "Lower section track usage"
+            },
+            "objective-description": {
+              "minimal-changes": "Minimizes the sum of squared departure and arrival time changes, divided by the number of sections.",
+              "more-connections": "Counts feasible transfers and rewards waits close to the minimum with 1/(1+2^d); normalized per stop-to-stop train at each node.",
+              "lower-travel-time": "+1 per trainrun when start-to-destination duration is unchanged or shorter, -1 when longer; long turnaround waits receive a quadratic penalty. Normalized by trainrun count.",
+              "lower-track-usage": "Fewer node tracks is better: compare the maximum first, then the average; normalized by node count.",
+              "lower-edge-track-usage": "Fewer tracks on sections is better: scores maximum and average track usage within the optimization scope."
+            }
+          },
+          "settings-changed": "Settings changed. These proposals are from the previous search. Select Optimize to calculate new proposals.",
+          "max-tracks": "Max. tracks per section",
+          "optimize": "Optimize",
+          "scope-selection": "Only the {$count} selected nodes are optimized, times at the boundary stay fixed.",
+          "scope-trainrun": "All {$count} nodes of the selected trainrun are optimized, times at the boundary stay fixed.",
+          "scope-all": "The whole Netzgrafik is optimized (no nodes selected).",
+          "search-info": "{$iterations} iterations in {$runtime} ms, {$over} sections over the limit before optimization.",
+          "variable-breakdown": "Free variables: {$variables} ({$shifts} time shifts, {$freeRuntimes} free section travel times).",
+          "runtime-lock-summary": "Section runtimes blocked: {$blocked} (travel-time locks {$travelLocks}, departure locks {$departureLocks}, arrival locks {$arrivalLocks}, scope boundary {$scope}, no +n {$noRange}). Disable the relevant lock above.",
+          "proposal": "Proposal",
+          "edges-over-limit": "Sections over limit",
+          "max-tracks-kpi": "Max. tracks",
+          "section-tracks-kpi": "Section tracks",
+          "node-tracks-kpi": "Node tracks",
+          "track-section": "Section",
+          "track-node": "Node",
+          "minimum-stop-violations": "Minimum stop-time violations",
+          "travel-time-delta": "Δ travel time [min]",
+          "connections": "Connections",
+          "shift": "Σ |shift| [min]",
+          "changed": "Trainruns / times",
+          "edges": "Tracks per section with timetable changes",
+          "track-overview": "Section track overview (current state)",
+          "results-panel": "Result",
+          "from-node": "From",
+          "to-node": "To",
+          "track-count": "Max. tracks",
+          "track-topology": "Topology",
+          "topology-before": "Topology before",
+          "topology-after": "Topology after",
+          "tracks-before": "Max. tracks before",
+          "tracks-after": "Max. tracks after",
+          "track-overview-empty": "No visible sections.",
+          "edge": "Section",
+          "tracks": "Tracks before → after",
+          "changes": "Timetable adjustments per node",
+          "clock-current": "Before",
+          "clock-new": "After",
+          "apply": "Apply",
+          "continue": "Continue",
+          "cancel": "Cancel",
+          "field": {
+            "departure": "Departure {$node}",
+            "arrival": "Arrival {$node}",
+            "departure-short": "Dep.",
+            "arrival-short": "Arr.",
+            "travel-time": "Travel time",
+            "backward-travel-time": "Travel time (return)"
           }
         }
       },
@@ -581,6 +714,10 @@
       },
       "error-view": {
         "error": "Error"
+      },
+      "knoten-auslastung-view": {
+        "even-hour": "Even hour",
+        "odd-hour": "Odd hour"
       },
       "navigation-bar": {
         "project-name": "Project «{$name}»",

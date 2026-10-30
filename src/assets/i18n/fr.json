@@ -123,6 +123,16 @@
             "description": "L'heure de départ à destination ne peut être atteinte"
           }
         }
+      },
+      "optimization": {
+        "no-free-variables": "Aucun horaire ne peut être décalé (verrous, sélection ou aucun train).",
+        "no-solution": "Aucune meilleure solution trouvée. Vous pouvez relancer l'optimisation ou poursuivre la recherche.",
+        "proposal": {
+          "balanced": "Équilibrée",
+          "minimal-change": "Changement minimal",
+          "connections": "Plus de correspondances",
+          "travel-time": "Temps de parcours le plus court"
+        }
       }
     },
     "streckengrafik": {
@@ -307,6 +317,129 @@
             "warningTwoLocks": "Avertissement : Trop de temps sont bloqués !",
             "propagateTimesToLeft": "Propager les temps à gauche",
             "propagateTimesToRight": "Propager les temps à droite"
+          }
+        },
+        "optimize-timetable-dialog": {
+          "title": "Optimiser l'horaire",
+          "baseline": "Situation initiale",
+          "candidate": "Candidat {$number}",
+          "store-policy": "Enregistrer la politique",
+          "reset-ranking": "Réinitialiser le classement",
+          "current-policy": "Politique actuelle",
+          "valid": "Valide",
+          "invalid": "Invalide",
+          "director": {
+            "title": "Pilotage de l'optimisation",
+            "description": "Choisissez ce que l'horaire doit atteindre. Les objectifs souples définissent les priorités ; les règles contraignantes limitent les changements possibles.",
+            "hard-rules": "Règles strictes",
+            "soft-objectives": "Objectifs souples",
+            "max-extension-value": "Prolongation maximale du temps de parcours par tronçon en minutes",
+            "move-up": "Monter l'objectif",
+            "move-down": "Descendre l'objectif",
+            "reorder": "Faire glisser pour réordonner l'objectif",
+            "user-defined": "Personnalisé",
+            "choose-focus": "Objectif d'optimisation",
+            "rating-help": "1 point signifie une faible influence, 10 une forte influence. L'ordre reste fixe ; seule l'importance est réglable.",
+            "rating-level": "Importance : {$rating} sur 10",
+            "show-details": "Détails : rôle des objectifs et des règles",
+            "fixed-rules": "Règles de sécurité fixes",
+            "fixed-rules-description": "Ces règles restent identiques pour tous les objectifs Director et ne peuvent pas être modifiées ici.",
+            "editable-rules-description": "Ces règles limitent l'optimisation. Certaines valeurs peuvent être ajustées.",
+            "editable-objectives-description": "Activez et classez les objectifs selon leur importance pour l'horaire.",
+            "details-description": "Cette section explique ce que privilégie chaque objectif et quelles règles s'appliquent.",
+            "rule-active": "Activée",
+            "rule-inactive": "Désactivée",
+            "profile": {
+              "stability": "Stabiliser l'horaire",
+              "stability-description": "Privilégie de petits changements horaires et préserve l'horaire existant.",
+              "connections": "Améliorer les correspondances",
+              "connections-description": "Privilégie les correspondances possibles tout en limitant les changements.",
+              "track-usage": "Réduire l'utilisation des voies",
+              "track-usage-description": "Privilégie moins de voies aux nœuds et sur les tronçons sans changements horaires inutiles."
+            },
+            "constraint": {
+              "track-limit": "Limite de voies sur le tronçon",
+              "track-limit-tooltip": "Limite le nombre maximal de voies utilisées simultanément sur chaque tronçon à la valeur saisie.",
+              "user-connections": "Correspondances définies par l'utilisateur",
+              "user-connections-tooltip": "Chaque correspondance enregistrée dans l'horaire doit respecter au moins le temps de correspondance défini pour le nœud concerné. Lorsque cette règle est active, l'optimiseur ne propose que des solutions qui respectent ce minimum.",
+              "minimum-stop-time": "Temps d'arrêt minimum",
+              "minimum-stop-time-tooltip": "Chaque arrêt doit respecter le temps d'arrêt minimal défini pour le train. Les propositions avec des arrêts plus courts sont refusées.",
+              "time-locks": "Verrous de départ/arrivée",
+              "time-locks-tooltip": "Les verrous d'heure de départ et d'arrivée maintiennent ces heures inchangées. Désactivez cette règle pour autoriser l'optimiseur à les modifier.",
+              "travel-time-locks": "Verrous de durée des tronçons",
+              "travel-time-locks-tooltip": "Les verrous de durée maintiennent la durée d'un tronçon inchangée. Désactivez cette règle pour autoriser une prolongation dans la limite +n.",
+              "scope-boundary": "Limite de sélection (toujours active)",
+              "scope-boundary-tooltip": "Les heures aux limites de sélection et hors de la sélection restent toujours inchangées. Cette règle ne peut pas être désactivée.",
+              "symmetry": "Imposer la symétrie",
+              "symmetry-tooltip": "Les trajets aller et retour restent symétriques aux nœuds concernés. Les tronçons explicitement asymétriques ne sont pas couplés.",
+              "max-travel-time-extension": "Prolongation du temps de parcours par tronçon",
+              "max-travel-time-extension-tooltip": "La durée de chaque tronçon peut augmenter de 0 à +n minutes. Une durée de tronçon ne peut pas être raccourcie.",
+              "preserve-connection-times": "Conserver les temps de correspondance existants",
+              "preserve-connection-times-tooltip": "Les temps d'attente des correspondances enregistrées restent exactement ceux de l'horaire initial. L'optimiseur ne peut ni les réduire ni les augmenter."
+            },
+            "objective": {
+              "minimal-changes": "Modifications minimales",
+              "more-connections": "Davantage de correspondances",
+              "lower-travel-time": "Temps de parcours réduit",
+              "lower-track-usage": "Moindre utilisation des voies aux nœuds",
+              "lower-edge-track-usage": "Moindre utilisation des voies sur les tronçons"
+            },
+            "objective-description": {
+              "minimal-changes": "Minimise la somme des carrés des changements d'heures de départ et d'arrivée, divisée par le nombre de tronçons.",
+              "more-connections": "Compte les correspondances possibles et favorise les attentes proches du minimum avec 1/(1+2^d) ; normalisé par train avec arrêt à chaque nœud.",
+              "lower-travel-time": "+1 par train si la durée départ-destination reste identique ou diminue, -1 si elle augmente ; les longues attentes de retournement sont pénalisées au carré. Normalisé par le nombre de trains.",
+              "lower-track-usage": "Moins de voies aux nœuds est préférable : comparer d'abord le maximum, puis la moyenne ; normalisé par le nombre de nœuds.",
+              "lower-edge-track-usage": "Moins de voies sur les tronçons est préférable : évalue le maximum et la moyenne dans le périmètre d'optimisation."
+            }
+          },
+          "settings-changed": "Les paramètres ont changé. Ces propositions proviennent de la recherche précédente. Sélectionnez Optimiser pour calculer de nouvelles propositions.",
+          "max-tracks": "Voies max. par tronçon",
+          "optimize": "Optimiser",
+          "scope-selection": "Seuls les {$count} nœuds sélectionnés sont optimisés, les horaires aux bords restent fixes.",
+          "scope-trainrun": "Les {$count} nœuds du train sélectionné sont optimisés, les horaires aux limites restent fixes.",
+          "scope-all": "Toute la Netzgrafik est optimisée (aucun nœud sélectionné).",
+          "search-info": "{$iterations} itérations en {$runtime} ms, {$over} tronçons au-dessus de la limite avant l'optimisation.",
+          "variable-breakdown": "Variables libres : {$variables} ({$shifts} décalages horaires, {$freeRuntimes} durées de tronçon libres).",
+          "runtime-lock-summary": "Durées de tronçon bloquées : {$blocked} (verrous de durée {$travelLocks}, départ {$departureLocks}, arrivée {$arrivalLocks}, limite de sélection {$scope}, sans marge +n {$noRange}). Désactivez le verrou concerné.",
+          "proposal": "Proposition",
+          "edges-over-limit": "Tronçons au-dessus de la limite",
+          "max-tracks-kpi": "Voies max.",
+          "section-tracks-kpi": "Voies du tronçon",
+          "node-tracks-kpi": "Voies du nœud",
+          "track-section": "Tronçon",
+          "track-node": "Nœud",
+          "minimum-stop-violations": "Violations du temps d'arrêt minimal",
+          "travel-time-delta": "Δ temps de parcours [min]",
+          "connections": "Correspondances",
+          "shift": "Σ |décalage| [min]",
+          "changed": "Trains / horaires",
+          "edges": "Voies par tronçon avec changement d'horaire",
+          "track-overview": "Aperçu des voies par tronçon (état actuel)",
+          "results-panel": "Résultat",
+          "from-node": "De",
+          "to-node": "À",
+          "track-count": "Voies max.",
+          "track-topology": "Topologie",
+          "topology-before": "Topologie avant",
+          "topology-after": "Topologie après",
+          "tracks-before": "Voies max. avant",
+          "tracks-after": "Voies max. après",
+          "track-overview-empty": "Aucun tronçon visible.",
+          "edge": "Tronçon",
+          "tracks": "Voies avant → après",
+          "changes": "Ajustements horaires par nœud",
+          "clock-current": "Avant",
+          "clock-new": "Après",
+          "apply": "Appliquer",
+          "continue": "Continuer",
+          "cancel": "Annuler",
+          "field": {
+            "departure": "Départ {$node}",
+            "arrival": "Arrivée {$node}",
+            "departure-short": "Dép.",
+            "arrival-short": "Arr.",
+            "travel-time": "Temps de parcours",
+            "backward-travel-time": "Temps de parcours (retour)"
           }
         }
       },
@@ -581,6 +714,10 @@
       },
       "error-view": {
         "error": "Erreur"
+      },
+      "knoten-auslastung-view": {
+        "even-hour": "Heure paire",
+        "odd-hour": "Heure impaire"
       },
       "navigation-bar": {
         "project-name": "Projet «{$name}»",

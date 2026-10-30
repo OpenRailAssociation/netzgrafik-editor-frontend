@@ -4,6 +4,18 @@ import {SgTrainrunSection} from "./sg-trainrun-section";
 import {SgPathSection} from "./sg-path-section";
 import {TrackData} from "../trackData";
 
+export interface SgTrainrunNodeTrackReservation {
+  offset: number;
+  track: number;
+  arrivalTime: number;
+  departureTime: number;
+  headwayUntilTime: number;
+  trainrunId: number;
+  occurrenceIndex: number;
+  arrivalSectionId?: number;
+  departureSectionId?: number;
+}
+
 export class SgTrainrunNode implements SgTrainrunItem {
   static currentId = 0;
   private id: number;
@@ -21,42 +33,42 @@ export class SgTrainrunNode implements SgTrainrunItem {
     public endNode: boolean,
     public departurePathSection: SgTrainrunSection = undefined,
     public arrivalPathSection: SgTrainrunSection = undefined,
-    public unusedForTurnaround: boolean = false,
-    public isTurnaround: boolean = false,
-    public unrollOnlyEvenFrequencyOffsets = 0,
-    public maxUnrollOnlyEvenFrequencyOffsets = 0,
-    public extraTrains = false,
     public minimumHeadwayTime = 2,
   ) {
     this.id = SgTrainrunNode.currentId;
     SgTrainrunNode.currentId++;
   }
 
-  static copy(item: SgTrainrunNode): SgTrainrunNode {
-    return new SgTrainrunNode(
-      item.index,
-      item.nodeId,
-      item.nodeShortName,
-      item.trainrunId,
-      item.departureTime,
-      item.arrivalTime,
-      item.backward,
-      new TrackData(
-        item.trackData.track,
-        item.trackData.nodeId1,
-        item.trackData.nodeId2,
-        item.trackData.sectionTrackSegments,
-      ),
-      item.sgPathNode,
-      item.endNode,
-      item.departurePathSection,
-      item.arrivalPathSection,
-      item.unusedForTurnaround,
-      item.isTurnaround,
-      item.unrollOnlyEvenFrequencyOffsets,
-      item.maxUnrollOnlyEvenFrequencyOffsets,
-      item.extraTrains,
-      item.minimumHeadwayTime,
+  public trackReservations: SgTrainrunNodeTrackReservation[] = [];
+
+  getTrackReservations(
+    offset: number,
+    trainrunId: number = this.trainrunId,
+  ): SgTrainrunNodeTrackReservation[] {
+    return this.trackReservations.filter(
+      (reservation) =>
+        reservation.trainrunId === trainrunId && Math.abs(reservation.offset - offset) < 0.001,
+    );
+  }
+
+  getTrackReservation(
+    offset: number,
+    trainrunId: number = this.trainrunId,
+  ): SgTrainrunNodeTrackReservation {
+    const matchingReservations = this.getTrackReservations(offset, trainrunId);
+    if (matchingReservations.length <= 1) {
+      return matchingReservations[0];
+    }
+    const sectionIds = [
+      this.arrivalPathSection?.trainrunSectionId,
+      this.departurePathSection?.trainrunSectionId,
+    ].filter((sectionId): sectionId is number => sectionId !== undefined);
+    return (
+      matchingReservations.find((reservation) =>
+        [reservation.arrivalSectionId, reservation.departureSectionId].some(
+          (sectionId) => sectionId !== undefined && sectionIds.includes(sectionId),
+        ),
+      ) ?? matchingReservations[0]
     );
   }
 
@@ -94,28 +106,6 @@ export class SgTrainrunNode implements SgTrainrunItem {
 
   isEndNode(): boolean {
     return this.endNode;
-  }
-
-  setMinimumHeadwayTime(headway: number) {
-    this.minimumHeadwayTime = headway;
-  }
-
-  getMinimumHeadwayTime(): number {
-    return this.minimumHeadwayTime;
-  }
-
-  checkUnrollAllowed(offset: number): boolean {
-    if (this.maxUnrollOnlyEvenFrequencyOffsets < 1) {
-      return true;
-    }
-    if (
-      (offset + Math.abs(Math.floor(Math.min(0, offset) / 24) * 24)) %
-        (this.maxUnrollOnlyEvenFrequencyOffsets + 1) ===
-      this.unrollOnlyEvenFrequencyOffsets
-    ) {
-      return true;
-    }
-    return false;
   }
 
   changeOrientation(): void {}

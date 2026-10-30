@@ -1,0 +1,69 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.track-topology-container {
+  position: relative;
+  width: 100%;
+  height: 33px;
+}
+
+.track-topology {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  path {
+    fill: none;
+    pointer-events: none;
+    shape-rendering: crispEdges;
+    stroke: var(--NODE_TEXT_FOCUS);
+    stroke-width: 0.75px;
+    vector-effect: non-scaling-stroke;
+  }
+
+  path:not(.track-topology-unoccupied) {
+    stroke-width: 1px;
+  }
+
+  path.track-topology-over-limit {
+    stroke: var(--COLOR_Warning);
+  }
+
+  .track-topology-count-outline {
+    fill: var(--COLOR_BACKGROUND);
+    stroke: var(--NODE_TEXT_FOCUS);
+    stroke-width: 1px;
+    shape-rendering: crispEdges;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .track-topology-unoccupied {
+    stroke-dasharray: 2 2;
+    opacity: 0.25;
+  }
+}
+
+.track-topology-count-label {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  background: transparent;
+  color: var(--NODE_TEXT_FOCUS);
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 12px;
+  white-space: nowrap;
+}
+
+.track-topology-count-label.track-topology-over-limit {
+  color: var(--COLOR_Warning);
+}
