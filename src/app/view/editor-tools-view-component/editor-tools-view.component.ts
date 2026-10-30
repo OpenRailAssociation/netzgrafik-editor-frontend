@@ -511,8 +511,36 @@ export class EditorToolsViewComponent {
       const inlineStyle = essentialPropsArray
         .map((key) => `${key}:${style.getPropertyValue(key)};`)
         .join(" ");
-      clonedElements[index].setAttribute("style", inlineStyle);
+      clonedElements[index].setAttribute("style", `${inlineStyle}cursor:default;`);
     });
+
+    const elementsToRemove = [
+      // Nodes
+      ".node_hover_root",
+      ".node_hover_drag_root_background",
+      ".node_hover_drag_root",
+      ".node_edit_button_background",
+      ".node_edit_button",
+      ".node_analyticsarea",
+      ".node_title_analyticsarea_left",
+      ".node_title_analyticsarea_right",
+      // Notes
+      ".note_hover_root",
+      ".note_root",
+      ".note_titelarea",
+      ".note_textarea",
+      ".note_hover_drag_root_background",
+      ".note_hover_drag_root",
+      // TrainrunSections
+      // Transitions
+      ".transition_pin.transition_line",
+      // Connections
+      // Overall
+      ".preview_line_root",
+      ".connection_preview_line_root",
+      ".multi_select_box_root",
+    ].join(", ");
+    clone.querySelectorAll(elementsToRemove).forEach((el) => el.remove());
 
     return clone;
   }

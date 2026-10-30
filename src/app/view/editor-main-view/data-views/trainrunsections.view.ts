@@ -1239,9 +1239,9 @@ export class TrainrunSectionsView {
     enableEvents = true,
   ) {
     const trainrunSectionElements = groupEnter
-      .filter((d: TrainrunSectionViewObject) => {
-        return !levelFreqFilter.includes(d.trainrunSection.getFrequencyLinePatternRef());
-      })
+      .filter((d: TrainrunSectionViewObject) =>
+        levelFreqFilter.includes(d.trainrunSection.getFrequencyLinePatternRef()),
+      )
       .append(StaticDomTags.EDGE_LINE_SVG)
       .attr(
         "class",
@@ -2612,7 +2612,7 @@ export class TrainrunSectionsView {
     this.createTrainrunSection(
       groupLines,
       StaticDomTags.EDGE_LINE_LAYER_0,
-      [LinePatternRefs.Freq30], // LinePatternRefs.Freq60], (background is required to "stretch the lower area"
+      [LinePatternRefs.Freq15],
       selectedTrainrun,
       connectedTrainIds,
       enableEvents,
@@ -2620,7 +2620,12 @@ export class TrainrunSectionsView {
     this.createTrainrunSection(
       groupLines,
       StaticDomTags.EDGE_LINE_LAYER_1,
-      [LinePatternRefs.Freq30],
+      [
+        LinePatternRefs.Freq120,
+        LinePatternRefs.Freq60,
+        LinePatternRefs.Freq20,
+        LinePatternRefs.Freq15,
+      ],
       selectedTrainrun,
       connectedTrainIds,
       enableEvents,
@@ -2628,7 +2633,7 @@ export class TrainrunSectionsView {
     this.createTrainrunSection(
       groupLines,
       StaticDomTags.EDGE_LINE_LAYER_2,
-      [LinePatternRefs.Freq60, LinePatternRefs.Freq120],
+      [LinePatternRefs.Freq30, LinePatternRefs.Freq20, LinePatternRefs.Freq15],
       selectedTrainrun,
       connectedTrainIds,
       enableEvents,
@@ -2636,7 +2641,7 @@ export class TrainrunSectionsView {
     this.createTrainrunSection(
       groupLines,
       StaticDomTags.EDGE_LINE_LAYER_3,
-      [LinePatternRefs.Freq60, LinePatternRefs.Freq120],
+      [LinePatternRefs.Freq30, LinePatternRefs.Freq20, LinePatternRefs.Freq15],
       selectedTrainrun,
       connectedTrainIds,
       enableEvents,
