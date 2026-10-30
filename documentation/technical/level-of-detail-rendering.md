@@ -27,7 +27,7 @@ that LOD; a blank cell means it is not.
 
 | **Nodes** | `FULL` (`>= 50%`) | `LEVEL3` (`>= 40%`, `< 50%`) | `LEVEL2` (`>= 30%`, `< 40%`) | `LEVEL1` (`>= 20%`, `< 30%`) | `LEVEL0` (`< 20%`) |
 | --- | --- | --- | --- | --- | --- |
-| **screenshot** | ![Nodes FULL](./screenshots/lod-full-nodes.svg) | ![Nodes LEVEL3](./screenshots/lod-level3-nodes.svg) | ![Nodes LEVEL2](./screenshots/lod-level2-nodes.svg) | ![Nodes LEVEL1](./screenshots/lod-level1-nodes.svg) | ![Nodes LEVEL0](./screenshots/lod-level0-nodes.svg) |
+| **screenshot** | ![Nodes FULL](./screenshots/lod-full-nodes.png) | ![Nodes LEVEL3](./screenshots/lod-level3-nodes.png) | ![Nodes LEVEL2](./screenshots/lod-level2-nodes.png) | ![Nodes LEVEL1](./screenshots/lod-level1-nodes.png) | ![Nodes LEVEL0](./screenshots/lod-level0-nodes.png) |
 | **summary** | Complete node structure and controls. | Node structure without edit controls or hover-drag root. | Node with labels and connection label; analytics text omitted. | Node background, analytics area, and label. | Interaction, dockable, and analytics areas only. |
 | **visual elements** | `makeNodeLODFull` | `makeNodeLODLevel3` | `makeNodeLODLevel2` | `makeNodeLODLevel1` | `makeNodeLODLevel0` |
 | `makeNodeHoverRoot` | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -50,7 +50,7 @@ that LOD; a blank cell means it is not.
 
 | **Notes** | `FULL` (`>= 50%`) | `LEVEL3` (`>= 40%`, `< 50%`) | `LEVEL2` (`>= 30%`, `< 40%`) | `LEVEL1` (`>= 20%`, `< 30%`) | `LEVEL0` (`< 20%`) |
 | --- | --- | --- | --- | --- | --- |
-| **screenshot** | ![Notes FULL](./screenshots/lod-full-notes.svg) | ![Notes LEVEL3](./screenshots/lod-level3-notes.svg) | ![Notes LEVEL2](./screenshots/lod-level2-notes.svg) | ![Notes LEVEL1](./screenshots/lod-level1-notes.svg) | ![Notes LEVEL0](./screenshots/lod-level0-notes.svg) |
+| **screenshot** | ![Notes FULL](./screenshots/lod-full-notes.png) | ![Notes LEVEL3](./screenshots/lod-level3-notes.png) | ![Notes LEVEL2](./screenshots/lod-level2-notes.png) | ![Notes LEVEL1](./screenshots/lod-level1-notes.png) | ![Notes LEVEL0](./screenshots/lod-level0-notes.png) |
 | **summary** | Complete note structure and editing affordances. | Note structure without drag affordances. | Note root and text only. | Note root and title only. | Same note root and title as `LEVEL1`. |
 | **visual elements** | `makeNoteLODFull` | `makeNoteLODLevel3` | `makeNoteLODLevel2` | `makeNoteLODLevel1` | `makeNoteLODLevel0` |
 | `makeNoteHoverRoot` | ✓ | ✓ |  |  |  |
@@ -79,7 +79,7 @@ and its `makeTrainrunSection...WithFilteredEndpointNodes` methods in
 
 | **Trainrun Sections** | `FULL` (`>= 50%`) | `LEVEL3` (`>= 40%`, `< 50%`) | `LEVEL2` (`>= 30%`, `< 40%`) | `LEVEL1` (`>= 20%`, `< 30%`) | `LEVEL0` (`< 20%`) |
 | --- | --- | --- | --- | --- | --- |
-| **screenshot** | ![Trainrun Sections FULL](./screenshots/lod-full-trainrun-sections.svg) | ![Trainrun Sections LEVEL3](./screenshots/lod-level3-trainrun-sections.svg) | ![Trainrun Sections LEVEL2](./screenshots/lod-level2-trainrun-sections.svg) | ![Trainrun Sections LEVEL1](./screenshots/lod-level1-trainrun-sections.svg) | ![Trainrun Sections LEVEL0](./screenshots/lod-level0-trainrun-sections.svg) |
+| **screenshot** | ![Trainrun Sections FULL](./screenshots/lod-full-trainrun-sections.png) | ![Trainrun Sections LEVEL3](./screenshots/lod-level3-trainrun-sections.png) | ![Trainrun Sections LEVEL2](./screenshots/lod-level2-trainrun-sections.png) | ![Trainrun Sections LEVEL1](./screenshots/lod-level1-trainrun-sections.png) | ![Trainrun Sections LEVEL0](./screenshots/lod-level0-trainrun-sections.png) |
 | **summary** | Full details; includes filtered-endpoint variant. | Details without text backgrounds; includes filtered-endpoint variant. | Section name and endpoint symbols; includes filtered-endpoint variant. | Base path; filtered endpoint variant adds goto information. | Base path; filtered endpoint variant delegates to `LEVEL1`. |
 | **visual elements — regular** | `makeTrainrunSectionLODFull` | `makeTrainrunSectionLODLevel3` | `makeTrainrunSectionLODLevel2` | `makeTrainrunSectionLODLevel1` (empty) | `makeTrainrunSectionLODLevel0` (empty) |
 | **visual elements — filtered endpoints** | `makeTrainrunSectionLODFullWithFilteredEndpointNodes` | `makeTrainrunSectionLODLevel3WithFilteredEndpointNodes` | `makeTrainrunSectionLODLevel2WithFilteredEndpointNodes` | `makeTrainrunSectionLODLevel1WithFilteredEndpointNodes` | `makeTrainrunSectionLODLevel0WithFilteredEndpointNodes` |
@@ -101,7 +101,6 @@ and its `makeTrainrunSection...WithFilteredEndpointNodes` methods in
 
 | **Connections** | `FULL` (`>= 50%`) | `LEVEL3` (`>= 40%`, `< 50%`) | `LEVEL2` (`>= 30%`, `< 40%`) | `LEVEL1` (`>= 20%`, `< 30%`) | `LEVEL0` (`< 20%`) |
 | --- | --- | --- | --- | --- | --- |
-| **screenshot** | ![Connections FULL](./screenshots/lod-full-connections.svg) | ![Connections LEVEL3](./screenshots/lod-level3-connections.svg) | ![Connections LEVEL2](./screenshots/lod-level2-connections.svg) | ![Connections LEVEL1](./screenshots/lod-level1-connections.svg) | ![Connections LEVEL0](./screenshots/lod-level0-connections.svg) |
 | **summary** | Curve and pins. | Curve and pins. | Curve only. | Curve only. | No connection visuals. |
 | **visual elements** | `makeConnectionLODFull` | `makeConnectionLODLevel3` | `makeConnectionLODLevel2` | `makeConnectionLODLevel1` | `makeConnectionLODLevel0` (empty) |
 | `createConnectionCurve` | ✓ | ✓ | ✓ | ✓ |  |
