@@ -1,5 +1,5 @@
 {
-  "ignorePatterns": ["CHANGELOG.md"],
+  "ignorePatterns": ["CHANGELOG.md", "perf/rendering/datasets/*.json"],
   "bracketSpacing": false,
   "singleQuote": false,
   "endOfLine": "lf"

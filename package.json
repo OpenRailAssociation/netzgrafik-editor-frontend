@@ -37,7 +37,9 @@
     "generate:api": "openapi-generator-cli generate",
     "local-test": "ng test --watch --code-coverage",
     "extract-i18n": "ng extract-i18n",
-    "benchmark": "ng test -c benchmark"
+    "benchmark:port-ordering": "ng test -c benchmark",
+    "perf:rendering": "node perf/rendering/run.ts",
+    "perf:rendering:compare": "node perf/rendering/compare.ts"
   },
   "dependencies": {
     "@angular/animations": "22.2.3",
@@ -90,6 +92,7 @@
     "karma-jasmine-html-reporter": "^2.3.0",
     "karma-sonarqube-reporter": "^1.4.0",
     "oxfmt": "^0.74.0",
+    "playwright": "^1.64.1",
     "ts-node": "~10.9.2",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.0"
