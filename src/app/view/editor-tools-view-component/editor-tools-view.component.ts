@@ -141,6 +141,7 @@ export class EditorToolsViewComponent {
 
     const containerInfo = this.getContainerToExport();
     const clone = this.prepareStyleForExport(containerInfo);
+    this.appendBackgroundToSvgExport(clone, containerInfo);
 
     // SVG scaling does not affect resolution since SVGs are rendered as vector graphics.
     // To ensure a good initial scale, we define the target width as 2000 pixels.
@@ -515,6 +516,23 @@ export class EditorToolsViewComponent {
     });
 
     return clone;
+  }
+
+  private appendBackgroundToSvgExport(
+    svg: SVGSVGElement,
+    containerInfo: ContainertoExportData,
+  ): void {
+    const {left = 0, top = 0, width, height} = containerInfo.exportParameter;
+    const background = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    background.setAttribute("x", `${left}`);
+    background.setAttribute("y", `${top}`);
+    background.setAttribute("width", `${width}`);
+    background.setAttribute("height", `${height}`);
+    background.setAttribute(
+      "fill",
+      getComputedStyle(containerInfo.documentToExport).backgroundColor,
+    );
+    svg.prepend(background);
   }
 
   private getContainerToExport(): ContainertoExportData {
