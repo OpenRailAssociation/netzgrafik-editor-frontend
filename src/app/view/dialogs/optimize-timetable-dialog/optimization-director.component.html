@@ -68,7 +68,6 @@
       >
         <span
           class="drag-handle"
-          cdkDragHandle
           [attr.aria-label]="
             'app.view.dialogs.optimize-timetable-dialog.director.reorder' | translate
           "
@@ -79,6 +78,8 @@
         <sbb-checkbox
           [ngModel]="objective.enabled"
           (ngModelChange)="setObjectiveEnabled(objective, $event)"
+          (mousedown)="preventCheckboxDrag($event)"
+          (touchstart)="preventCheckboxDrag($event)"
         >
           <span
             class="objective-name"

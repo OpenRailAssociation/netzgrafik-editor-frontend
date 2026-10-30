@@ -56,6 +56,13 @@ export class OptimizationDirectorComponent {
     });
   }
 
+  preventCheckboxDrag(event: MouseEvent | TouchEvent): void {
+    const target = event.target;
+    if (target instanceof Element && target.closest(".sbb-selection-container")) {
+      event.stopPropagation();
+    }
+  }
+
   dropObjective(event: CdkDragDrop<ObjectiveConfig[]>): void {
     const objectives = this.orderedObjectives;
     moveItemInArray(objectives, event.previousIndex, event.currentIndex);

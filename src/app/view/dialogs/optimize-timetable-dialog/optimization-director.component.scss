@@ -48,7 +48,8 @@
 .director-objective .objective-name {
   min-width: 0;
   white-space: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: anywhere; 
+  user-select: none;
 }
 
 .constraint-value {
