@@ -141,6 +141,7 @@ export class EditorToolsViewComponent {
 
     const containerInfo = this.getContainerToExport();
     const clone = this.prepareStyleForExport(containerInfo);
+    this.prepareSvgSpecificStyles(clone, containerInfo);
     this.appendBackgroundToSvgExport(clone, containerInfo);
 
     // SVG scaling does not affect resolution since SVGs are rendered as vector graphics.
@@ -516,6 +517,26 @@ export class EditorToolsViewComponent {
     });
 
     return clone;
+  }
+
+  private prepareSvgSpecificStyles(svg: SVGSVGElement, containerInfo: ContainertoExportData): void {
+    const liveElements = containerInfo.documentToExport.querySelectorAll("*");
+    const clonedElements = svg.querySelectorAll("*");
+    liveElements.forEach((element, index) => {
+      const style = window.getComputedStyle(element);
+      clonedElements[index].setAttribute(
+        "style",
+        `${clonedElements[index].getAttribute("style") ?? ""} stroke-opacity:${style.getPropertyValue("stroke-opacity")};`,
+      );
+      if (element instanceof SVGRectElement) {
+        ["rx", "ry"].forEach((property) => {
+          const value = style.getPropertyValue(property);
+          if (value && value !== "auto") {
+            clonedElements[index].setAttribute(property, value);
+          }
+        });
+      }
+    });
   }
 
   private appendBackgroundToSvgExport(
