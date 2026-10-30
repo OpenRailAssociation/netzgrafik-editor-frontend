@@ -582,6 +582,10 @@
       "error-view": {
         "error": "Erreur"
       },
+      "knoten-auslastung-view": {
+        "even-hour": "Heure paire",
+        "odd-hour": "Heure impaire"
+      },
       "navigation-bar": {
         "project-name": "Projet «{$name}»",
         "project-name-archived": "Projet «{$name}» (archivé)",

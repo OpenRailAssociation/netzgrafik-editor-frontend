@@ -14,7 +14,6 @@ import {Sg6TrackService} from "./sg-6-track.service";
 })
 export class Sg7PathSliderService implements OnDestroy {
   private readonly sgSelectedTrainrunSubject = new BehaviorSubject<SgSelectedTrainrun>(undefined);
-  private readonly sgSelectedTrainrun$ = this.sgSelectedTrainrunSubject.asObservable();
 
   private selectedTrainrun: SgSelectedTrainrun;
 
@@ -50,14 +49,11 @@ export class Sg7PathSliderService implements OnDestroy {
   }
 
   public getSgSelectedTrainrun(): Observable<SgSelectedTrainrun> {
-    return this.sgSelectedTrainrun$;
+    return this.sgSelectedTrainrunSubject.asObservable();
   }
 
   private render() {
-    if (!this.selectedTrainrun) {
-      return;
-    }
-    if (!this.resizeChangeInfo) {
+    if (!this.selectedTrainrun || !this.resizeChangeInfo) {
       return;
     }
 
@@ -79,9 +75,9 @@ export class Sg7PathSliderService implements OnDestroy {
     let startPosition = 0;
     this.selectedTrainrun.paths.forEach((path) => {
       path.xZoom = this.getXZoom(path, xPathFix, xPathSection, xPathSectionCount);
-      const zommedXPath = path.zoomedXPath();
+      const zoomedXPath = path.zoomedXPath();
       path.startPosition = startPosition;
-      startPosition += zommedXPath;
+      startPosition += zoomedXPath;
     });
 
     this.sgSelectedTrainrunSubject.next(this.selectedTrainrun);

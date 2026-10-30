@@ -1,4 +1,11 @@
+@use "../../../variables" as *;
 @use "../rastering/definitions" as *;
+
+// Cancels the sbb-mt-m of the hosting panel body and keeps the gap towards the graphic instead.
+.knotenAuslastungHourToggle {
+  margin-top: -$innerComponentSpacing;
+  margin-bottom: $innerComponentSpacing;
+}
 
 ::ng-deep path.KnotenAuslastungResourceGroup {
   stroke: none;
@@ -10,9 +17,22 @@
   cursor: pointer;
 }
 
+::ng-deep path.KnotenAuslastungDataGroup.selected {
+  fill: var(--COLOR_Edit) !important;
+  stroke: var(--COLOR_Edit) !important;
+}
+
+::ng-deep path.KnotenAuslastungDataGroup.KnotenAuslastungHeadwayGroup.selected {
+  stroke: var(--COLOR_Edit) !important;
+}
+
 ::ng-deep text.KnotenAuslastungDataGroup {
   font-size: 10px;
   cursor: pointer;
+}
+
+::ng-deep text.KnotenAuslastungDataGroup.selected {
+  fill: var(--COLOR_Edit) !important;
 }
 
 ::ng-deep text.KnotenAuslastungNbrTrackGroup {
@@ -28,5 +48,5 @@
 
 ::ng-deep path.KnotenAuslastungResourceGroup.capacityLimitReached {
   fill: var(--sbb-header-lean-border-bottom-color);
-  opacity: 0.5;
+  opacity: 0.8;
 }

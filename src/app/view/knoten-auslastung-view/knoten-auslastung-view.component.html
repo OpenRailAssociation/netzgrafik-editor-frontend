@@ -1,3 +1,11 @@
+<div class="knotenAuslastungHourToggle" *ngIf="showHourToggle">
+  <sbb-toggle-switch-button
+    [labelFalse]="'app.view.knoten-auslastung-view.even-hour' | translate"
+    [labelTrue]="'app.view.knoten-auslastung-view.odd-hour' | translate"
+    [checked]="oddHour"
+    (checkedChanged)="onHourChanged($event)"
+  ></sbb-toggle-switch-button>
+</div>
 <svg
   id="knotenAuslastungContainer"
   width="400px"
