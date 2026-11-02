@@ -18,6 +18,7 @@ import {UiInteractionService} from "./services/ui/ui.interaction.service";
 import {NoteService} from "./services/data/note.service";
 import {FilterService} from "./services/ui/filter.service";
 import {AutoLayoutService} from "./services/util/auto-layout.service";
+import {AppElementInterface} from "./app.interface";
 
 @Component({
   selector: "sbb-root",
@@ -26,7 +27,7 @@ import {AutoLayoutService} from "./services/util/auto-layout.service";
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AppElementInterface {
   readonly disableBackend = environment.disableBackend;
   readonly version = packageJson.version;
   readonly environmentLabel = environment.label;
