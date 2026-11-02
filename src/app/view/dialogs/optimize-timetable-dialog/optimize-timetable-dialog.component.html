@@ -8,39 +8,78 @@
         <sbb-optimization-director
           class="director-column"
           [policy]="policy"
+          [hasUnstoredPolicyChanges]="hasUnstoredPolicyChanges"
           (policyChange)="onPolicyChange($event)"
+          (storePolicyRequested)="storePolicy()"
+          (resetRankingRequested)="resetRanking()"
         ></sbb-optimization-director>
         <div class="results-column">
           <div class="settings">
-            <button sbb-button type="button" (click)="optimize()">
+            <button sbb-button type="button" [disabled]="isOptimizing" (click)="optimize()">
               {{ "app.view.dialogs.optimize-timetable-dialog.optimize" | translate }}
             </button>
-            <button sbb-secondary-button type="button" (click)="resetRanking()">
-              {{ "app.view.dialogs.optimize-timetable-dialog.reset-ranking" | translate }}
-            </button>
-            <button
-              *ngIf="hasUnstoredPolicyChanges"
-              sbb-secondary-button
-              type="button"
-              (click)="storePolicy()"
-            >
-              {{ "app.view.dialogs.optimize-timetable-dialog.store-policy" | translate }}
-            </button>
+            <div class="search-effort-control">
+              <div class="search-effort-heading">
+                <label
+                  for="optimization-search-effort"
+                  [attr.title]="
+                    'app.view.dialogs.optimize-timetable-dialog.search-effort-description'
+                      | translate
+                  "
+                >
+                  {{ "app.view.dialogs.optimize-timetable-dialog.search-effort" | translate }}
+                </label>
+              </div>
+              <div class="search-effort-slider">
+                <input
+                  id="optimization-search-effort"
+                  type="range"
+                  min="0"
+                  max="4"
+                  step="1"
+                  [value]="searchEffortLevel"
+                  [style.--range-progress]="searchEffortPercent + '%'"
+                  [disabled]="isOptimizing"
+                  (input)="setSearchEffortLevel($event)"
+                />
+                <span class="search-effort-ticks" aria-hidden="true">
+                  <span *ngFor="let tick of searchEffortTicks" [style.left.%]="tick"></span>
+                </span>
+                <span
+                  class="search-effort-step-labels"
+                  role="group"
+                  [attr.aria-label]="
+                    'app.view.dialogs.optimize-timetable-dialog.search-effort' | translate
+                  "
+                >
+                  <button
+                    type="button"
+                    class="search-effort-step-label"
+                    *ngFor="let labelKey of searchEffortLevelKeys; let index = index"
+                    [class.selected]="searchEffortLevel === index"
+                    [attr.aria-pressed]="searchEffortLevel === index"
+                    [style.left.%]="searchEffortTicks[index]"
+                    [style.transform]="
+                      index === 0
+                        ? 'translateX(0)'
+                        : index === searchEffortLevelKeys.length - 1
+                          ? 'translateX(-100%)'
+                          : 'translateX(-50%)'
+                    "
+                    [disabled]="isOptimizing"
+                    (click)="setSearchEffortStep(index)"
+                  >
+                    {{ labelKey | translate }}
+                  </button>
+                </span>
+              </div>
+            </div>
           </div>
           <div class="settings-outdated" *ngIf="hasOutdatedResults" role="status">
             {{ "app.view.dialogs.optimize-timetable-dialog.settings-changed" | translate }}
           </div>
-          <div class="policy-summary" *ngIf="enabledObjectives.length > 0">
-            <strong
-              >{{
-                "app.view.dialogs.optimize-timetable-dialog.current-policy" | translate
-              }}:</strong
-            >
-            <ol>
-              <li *ngFor="let objective of enabledObjectives">{{ objective.name | translate }}</li>
-            </ol>
-          </div>
-          <div class="scope">
+          <br />
+          <div class="scope" *ngIf="scopeUsesSelectedTrainrun || selectedNodeCount > 0">
             <ng-container *ngIf="scopeUsesSelectedTrainrun; else nodeSelectionScope">
               {{
                 "app.view.dialogs.optimize-timetable-dialog.scope-trainrun"
@@ -48,15 +87,10 @@
               }}
             </ng-container>
             <ng-template #nodeSelectionScope>
-              <ng-container *ngIf="selectedNodeCount > 0; else wholeNetwork">
-                {{
-                  "app.view.dialogs.optimize-timetable-dialog.scope-selection"
-                    | translate: {count: selectedNodeCount.toString()}
-                }}
-              </ng-container>
-              <ng-template #wholeNetwork>
-                {{ "app.view.dialogs.optimize-timetable-dialog.scope-all" | translate }}
-              </ng-template>
+              {{
+                "app.view.dialogs.optimize-timetable-dialog.scope-selection"
+                  | translate: {count: selectedNodeCount.toString()}
+              }}
             </ng-template>
           </div>
 
@@ -467,13 +501,48 @@
       </div>
     </div>
     <div sbbDialogActions>
+      <div
+        class="optimization-progress"
+        *ngIf="isOptimizing || result"
+        role="status"
+        aria-live="polite"
+      >
+        <progress
+          [value]="optimizationProgressPercent"
+          max="100"
+          [attr.aria-label]="
+            (isOptimizing
+              ? 'app.view.dialogs.optimize-timetable-dialog.search-progress'
+              : 'app.view.dialogs.optimize-timetable-dialog.search-progress-complete'
+            ) | translate
+          "
+        ></progress>
+        <span>
+          {{
+            (isOptimizing
+              ? "app.view.dialogs.optimize-timetable-dialog.search-progress"
+              : "app.view.dialogs.optimize-timetable-dialog.search-progress-complete"
+            ) | translate
+          }}
+          {{
+            "app.view.dialogs.optimize-timetable-dialog.search-progress-detail"
+              | translate
+                : {
+                    percent: optimizationProgressPercent.toString(),
+                    attempt: optimizationAttempt.toString(),
+                    total: maxSearchAttempts.toString(),
+                    iteration: optimizationIterations.toString(),
+                  }
+          }}
+        </span>
+      </div>
       <button sbb-button type="button" [disabled]="!selectedSolution" (click)="apply()">
         {{ "app.view.dialogs.optimize-timetable-dialog.apply" | translate }}
       </button>
       <button
         sbb-secondary-button
         type="button"
-        [disabled]="!result"
+        [disabled]="!result || result.freeVariables === 0 || hasOutdatedResults || isOptimizing"
         (click)="continueOptimization()"
       >
         {{ "app.view.dialogs.optimize-timetable-dialog.continue" | translate }}

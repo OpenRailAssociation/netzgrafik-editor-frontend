@@ -7,7 +7,12 @@ import {
 } from "../infrastructure/infrastructure-estimator.service";
 import {OptimizationProblem, buildProblem} from "./optimize-timetable.chains";
 import {TimetableEvaluator} from "./optimize-timetable.evaluator";
-import {ArchivedSolution, runSearch} from "./optimize-timetable.search";
+import {
+  ArchivedSolution,
+  runSearch,
+  SearchProgress,
+  SearchResult,
+} from "./optimize-timetable.search";
 import {
   EdgeTrackKpi,
   OptimizeTimetableKpi,
@@ -42,7 +47,7 @@ interface NodeTrackMetrics {
 }
 
 /**
- * Stateless timetable optimizer (see OPTIMIZE_TIMETABLE.md).
+ * Timetable optimizer (see OPTIMIZE_TIMETABLE.md).
  * Shifts departure/arrival times of chains (sections between two stops) so that
  * no edge needs more tracks than allowed, while all hard Netzgrafik rules hold.
  * The search runs on numbers only; native objects are touched temporarily for the
@@ -52,6 +57,15 @@ interface NodeTrackMetrics {
   providedIn: "root",
 })
 export class OptimizeTimetableService {
+  private readonly searchSessions = new WeakMap<
+    OptimizeTimetableResult,
+    {
+      search: SearchResult;
+      buildSolutions: (search: SearchResult) => OptimizeTimetableSolution[];
+      logTrace: (search: SearchResult, solutions: OptimizeTimetableSolution[]) => void;
+    }
+  >();
+
   constructor(private readonly infrastructureEstimatorService: InfrastructureEstimatorService) {}
 
   estimateBaselineEdges(
@@ -89,11 +103,12 @@ export class OptimizeTimetableService {
     });
   }
 
-  optimize(
+  async optimize(
     nodes: Node[],
     trainrunSections: TrainrunSection[],
     options: OptimizeTimetableOptions,
-  ): OptimizeTimetableResult {
+    onProgress?: (progress: SearchProgress) => void,
+  ): Promise<OptimizeTimetableResult> {
     const start = performance.now();
     const maxTracks = Math.max(1, Math.floor(options.maxTracksPerSection));
     const policy = options.policy ?? createDefaultOptimizationPolicy();
@@ -130,7 +145,7 @@ export class OptimizeTimetableService {
       const sumTracks = segments.reduce((sum, segment) => sum + segment.tracks, 0);
       return segments.length === 0 ? 0 : (maxTracks * sumTracks) / (2 * segments.length);
     });
-    const search = runSearch(
+    const search = await runSearch(
       problem,
       evaluator,
       options.startAssignment,
@@ -138,7 +153,43 @@ export class OptimizeTimetableService {
       options.seed ?? 1,
       options.debugTrace ?? false,
       trackPriorities,
+      onProgress,
     );
+    const buildSolutions = (currentSearch: SearchResult) => {
+      const picks = this.pickProposals(
+        currentSearch.archive,
+        currentSearch.initial,
+        options.maxProposals ?? DEFAULT_MAX_PROPOSALS,
+      );
+      return picks
+        .map((pick, id) =>
+          this.createSolution(
+            id,
+            pick.label,
+            pick.solution,
+            currentSearch.initial,
+            problem,
+            nodes,
+            beforeTracks,
+            baselineEdges,
+            baselineKpi,
+            baselineNodeMetrics,
+          ),
+        )
+        .sort((first, second) => compareSolutions(first, second, policy))
+        .filter((solution) => solution.valid);
+    };
+    const logTrace = (currentSearch: SearchResult, solutions: OptimizeTimetableSolution[]) => {
+      if (options.debugTrace) {
+        this.logSearchTrace(
+          problem,
+          baselineTrackSegments,
+          currentSearch.trace,
+          currentSearch.omittedTraceEntries,
+          solutions,
+        );
+      }
+    };
 
     const baselineOverLimit = baselineEdges.filter(
       (edge) => edge.inScope && edge.tracksBefore > maxTracks,
@@ -225,41 +276,39 @@ export class OptimizeTimetableService {
       result.message = $localize`:@@app.services.optimization.no-free-variables:No times can be shifted (locks, selection or no trainruns).`;
     }
 
-    const picks = this.pickProposals(
-      search.archive,
-      search.initial,
-      options.maxProposals ?? DEFAULT_MAX_PROPOSALS,
-    );
-    result.solutions = picks.map((pick, id) =>
-      this.createSolution(
-        id,
-        pick.label,
-        pick.solution,
-        search.initial,
-        problem,
-        nodes,
-        beforeTracks,
-        baselineEdges,
-        baselineKpi,
-        baselineNodeMetrics,
-      ),
-    );
-    result.solutions.sort((first, second) => compareSolutions(first, second, policy));
-    result.solutions = result.solutions.filter((solution) => solution.valid);
+    result.solutions = buildSolutions(search);
 
     if (result.solutions.length === 0 && freeVariables > 0) {
-      result.message = $localize`:@@app.services.optimization.no-solution:No better solution found. Restart to continue the search.`;
+      result.message = $localize`:@@app.services.optimization.no-solution:No better solution found. Continue to search.`;
     }
     result.runtimeMs = Math.round(performance.now() - start);
-    if (options.debugTrace) {
-      this.logSearchTrace(
-        problem,
-        baselineTrackSegments,
-        search.trace,
-        search.omittedTraceEntries,
-        result.solutions,
-      );
+    logTrace(search, result.solutions);
+    if (search.continueFor !== undefined) {
+      this.searchSessions.set(result, {search, buildSolutions, logTrace});
     }
+    return result;
+  }
+
+  async continueSearch(
+    result: OptimizeTimetableResult,
+    additionalBudgetMs: number,
+    onProgress?: (progress: SearchProgress) => void,
+  ): Promise<OptimizeTimetableResult> {
+    const session = this.searchSessions.get(result);
+    if (session?.search.continueFor === undefined) {
+      throw new Error("The optimization search session is no longer available.");
+    }
+
+    const search = await session.search.continueFor(additionalBudgetMs, onProgress);
+    result.iterations = search.iterations;
+    result.solutions = session.buildSolutions(search);
+    result.message =
+      result.solutions.length > 0
+        ? undefined
+        : result.freeVariables === 0
+          ? $localize`:@@app.services.optimization.no-free-variables:No times can be shifted (locks, selection or no trainruns).`
+          : $localize`:@@app.services.optimization.no-solution:No better solution found. Continue to search.`;
+    session.logTrace(search, result.solutions);
     return result;
   }
 
@@ -770,7 +819,7 @@ export class OptimizeTimetableService {
   private logSearchTrace(
     problem: OptimizationProblem,
     segmentsByEdge: Map<number, TrackSegmentEstimate[]>,
-    trace: ReturnType<typeof runSearch>["trace"],
+    trace: Awaited<ReturnType<typeof runSearch>>["trace"],
     omittedTraceEntries: number,
     solutions: OptimizeTimetableSolution[],
   ): void {

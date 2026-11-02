@@ -65,8 +65,8 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 - Buttons:
   - **Übernehmen** – lädt die gewählte Lösung definitiv (erst nachdem der User die
     Änderungen gesehen/verstanden hat).
-  - **Weiterrechnen** – startet mit einem neuen Seed einen weiteren Lauf (1 s). Eine ausgewählte
-    Lösung dient als Startpunkt; die Vorschläge des neuen Laufs ersetzen die bisherigen.
+  - **Weiterrechnen** – investiert ein weiteres Zeitbudget in dieselbe Suchsession (standardmässig
+    1 s). Suchzustand und Archiv bleiben erhalten; die Vorschläge werden neu aus dem Archiv gewählt.
   - **Abbrechen** – stellt die Ausgangslage exakt wieder her.
 - Wird keine gültige Lösung gefunden, wird dies angezeigt (inkl. Kanten mit Überschreitung);
   **Übernehmen** ist dann deaktiviert.
@@ -138,8 +138,8 @@ Haltezeiten. Ist sie deaktiviert, bleiben Abschnittsfahrzeiten unverändert.
 
 - Ein Lauf rechnet standardmässig maximal **1 s** und liefert die besten bis dahin gefundenen
   Lösungen.
-- Mit **Weiterrechnen** kann der User einen weiteren Lauf mit neuem Seed und erneut bis zu **1 s**
-  starten.
+- Mit **Weiterrechnen** kann der User der bestehenden Suchsession erneut bis zu **1 s**
+  Suchzeit hinzufügen.
 
 ## 6. Resultat / KPIs
 
@@ -207,13 +207,15 @@ Director-Modus werden diese aus den Ratings und Rangpositionen abgeleitet; gleic
 das Gewicht ihrer gemeinsamen Rangposition. In der benutzerdefinierten Steuerung folgen die
 Gewichte der manuellen Reihenfolge. Harte Regeländerungen bewerten die vorhandenen Vorschläge neu;
 **Optimieren** startet einen neuen Suchlauf.
-**Weiterrechnen** startet einen weiteren Lauf ausgehend vom ausgewählten Vorschlag.
+**Weiterrechnen** verlängert die bestehende Suchsession um das gewählte Zeitbudget; der
+Suchzustand und das Kandidatenarchiv bleiben dabei erhalten.
 
 ## 7. Architektur
 
 ### 7.1 Service
 
-- Neuer **stateless** Service `OptimizeTimetableService`
+- Service `OptimizeTimetableService` verwaltet zusätzlich zur Optimierungslogik die kurzlebige
+  Suchsession für **Weiterrechnen**.
   (`src/app/services/optimization/optimize-timetable.service.ts`).
 - **Reines TypeScript** im Service: keine externen Solver, keine neuen Abhängigkeiten, kein Backend.
   Algorithmus-Diskussion: [UMSETZUNGSVORSCHLAG.md – Anhang A](./UMSETZUNGSVORSCHLAG.md#anhang-a--algorithmus-diskussion).

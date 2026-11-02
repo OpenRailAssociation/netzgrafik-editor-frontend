@@ -1,4 +1,11 @@
-import {ChangeDetectionStrategy, Component, OnDestroy, TemplateRef, ViewChild} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  TemplateRef,
+  ViewChild,
+} from "@angular/core";
 import {SbbDialog, SbbDialogConfig, type SbbDialogRef} from "@sbb-esta/angular/dialog";
 import {SbbTableDataSource} from "@sbb-esta/angular/table";
 import {Subject} from "rxjs";
@@ -11,7 +18,6 @@ import {UndoService} from "../../../services/data/undo.service";
 import {OptimizeTimetableService} from "../../../services/optimization/optimize-timetable.service";
 import {OptimizationPolicyService} from "../../../services/optimization/optimization-policy.service";
 import {
-  DIRECTOR_OBJECTIVE_ORDER,
   createDefaultOptimizationPolicy,
   OptimizationPolicy,
 } from "../../../services/optimization/optimization-policy.model";
@@ -52,6 +58,21 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   selectedNodeCount = 0;
   scopeUsesSelectedTrainrun = false;
   result: OptimizeTimetableResult = undefined;
+  isOptimizing = false;
+  optimizationProgressPercent = 0;
+  optimizationIterations = 0;
+  optimizationAttempt = 1;
+  readonly maxSearchAttempts = 3;
+  searchEffortLevel = 2;
+  readonly searchEffortTicks = [0, 25, 50, 75, 100];
+  readonly searchEffortLevelKeys = [
+    "app.view.dialogs.optimize-timetable-dialog.search-effort-very-fast",
+    "app.view.dialogs.optimize-timetable-dialog.search-effort-fast",
+    "app.view.dialogs.optimize-timetable-dialog.search-effort-balanced",
+    "app.view.dialogs.optimize-timetable-dialog.search-effort-thorough",
+    "app.view.dialogs.optimize-timetable-dialog.search-effort-very-thorough",
+  ];
+  private readonly searchTimeBudgetsMs = [250, 500, 1000, 2000, 4000];
   showTrackOverview = true;
   trackOverviewExpanded = true;
   resultsPanelExpanded = false;
@@ -91,6 +112,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     resourceService: ResourceService,
     infrastructureEstimatorService: InfrastructureEstimatorService,
     private readonly filterService: FilterService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {
     this.policy = this.optimizationPolicyService.policy;
     this.storedPolicy = this.policy;
@@ -132,19 +154,6 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     );
   }
 
-  get enabledObjectives() {
-    return [...this.policy.objectives]
-      .filter((objective) =>
-        this.policy.mode === "director" ? objective.rating > 0 : objective.enabled,
-      )
-      .sort((a, b) =>
-        this.policy.mode === "director"
-          ? b.rating - a.rating ||
-            DIRECTOR_OBJECTIVE_ORDER.indexOf(a.id) - DIRECTOR_OBJECTIVE_ORDER.indexOf(b.id)
-          : a.priority - b.priority,
-      );
-  }
-
   get hasOutdatedResults(): boolean {
     return (
       this.result !== undefined &&
@@ -175,6 +184,34 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
         );
       })
     );
+  }
+
+  get searchEffortLabelKey(): string {
+    return this.searchEffortLevelKeys[this.searchEffortLevel];
+  }
+
+  get searchEffortPercent(): number {
+    return (this.searchEffortLevel / (this.searchTimeBudgetsMs.length - 1)) * 100;
+  }
+
+  get searchTimeBudgetMs(): number {
+    return this.searchTimeBudgetsMs[this.searchEffortLevel];
+  }
+
+  setSearchEffortLevel(event: Event): void {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement)) {
+      return;
+    }
+
+    this.setSearchEffortStep(Number(target.value));
+  }
+
+  setSearchEffortStep(level: number): void {
+    if (!Number.isInteger(level) || level < 0 || level >= this.searchTimeBudgetsMs.length) {
+      return;
+    }
+    this.searchEffortLevel = level;
   }
 
   onPolicyChange(policy: OptimizationPolicy): void {
@@ -323,21 +360,57 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     this.dialogRef.afterClosed().subscribe(() => this.onClosed());
   }
 
-  optimize() {
-    this.seed = 1;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      this.runOptimization(undefined);
-      if (this.result.solutions.length > 0 || this.result.freeVariables === 0) {
-        break;
-      }
-      this.seed++;
+  async optimize(): Promise<void> {
+    if (this.isOptimizing) {
+      return;
     }
+    this.seed = 1;
+    await this.runWithProgress(async () => {
+      const startedAt = performance.now();
+      for (let attempt = 0; attempt < this.maxSearchAttempts; attempt++) {
+        await this.runOptimization(undefined, this.searchTimeBudgetMs, attempt + 1);
+        if (this.result.solutions.length > 0 || this.result.freeVariables === 0) {
+          break;
+        }
+        this.seed++;
+      }
+      if (this.result !== undefined) {
+        this.result.runtimeMs = performance.now() - startedAt;
+      }
+    });
   }
 
-  /** Restarts the search from the selected proposal with a new seed. */
-  continueOptimization() {
-    this.seed++;
-    this.runOptimization(this.selectedSolution?.assignment);
+  /** Adds another time budget to the current search session. */
+  async continueOptimization(): Promise<void> {
+    if (
+      this.isOptimizing ||
+      !this.result ||
+      this.result.freeVariables === 0 ||
+      this.hasOutdatedResults
+    ) {
+      return;
+    }
+    const result = this.result;
+    const startAssignment = this.selectedSolution?.assignment;
+    await this.runWithProgress(
+      async () => {
+        this.revertPreview();
+        const startedAt = performance.now();
+        await this.optimizeTimetableService.continueSearch(
+          result,
+          this.searchTimeBudgetMs,
+          (progress) => {
+            this.optimizationProgressPercent = Math.min(100, Math.floor(progress.fraction * 100));
+            this.optimizationIterations = progress.iterations;
+            this.changeDetectorRef.detectChanges();
+          },
+        );
+        result.runtimeMs += performance.now() - startedAt;
+        this.updateResultView(startAssignment);
+      },
+      result.iterations,
+      this.optimizationAttempt,
+    );
   }
 
   selectSolution(solution: OptimizeTimetableSolution) {
@@ -516,21 +589,58 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     return result.sort((a, b) => a.nodeName.localeCompare(b.nodeName));
   }
 
-  private runOptimization(startAssignment: Record<string, number>) {
+  private async runWithProgress(
+    operation: () => Promise<void>,
+    initialIterations = 0,
+    initialAttempt = 1,
+  ): Promise<void> {
+    this.isOptimizing = true;
+    this.optimizationProgressPercent = 0;
+    this.optimizationIterations = initialIterations;
+    this.optimizationAttempt = initialAttempt;
+    try {
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      });
+      await operation();
+      this.optimizationProgressPercent = 100;
+    } finally {
+      this.isOptimizing = false;
+    }
+  }
+
+  private async runOptimization(
+    startAssignment: Record<string, number>,
+    timeBudgetMs: number,
+    attempt = 1,
+  ): Promise<void> {
     this.revertPreview();
     this.resultPolicySnapshot = JSON.stringify(this.policy);
-    this.result = this.optimizeTimetableService.optimize(
+    this.optimizationAttempt = attempt;
+    this.optimizationProgressPercent = 0;
+    this.optimizationIterations = 0;
+    this.result = await this.optimizeTimetableService.optimize(
       this.getVisibleNodes(),
       this.getVisibleTrainrunSections(),
       {
         maxTracksPerSection: this.maxTracks,
         selectedNodeIds: this.scopeNodeIds,
+        timeBudgetMs,
         seed: this.seed,
         startAssignment,
         policy: this.policy,
         debugTrace: true,
       },
+      (progress) => {
+        this.optimizationProgressPercent = Math.min(100, Math.floor(progress.fraction * 100));
+        this.optimizationIterations = progress.iterations;
+        this.changeDetectorRef.detectChanges();
+      },
     );
+    this.updateResultView();
+  }
+
+  private updateResultView(preferredAssignment?: Record<string, number>): void {
     this.trackOverviewExpanded = false;
     this.resultsPanelExpanded = true;
     this.selectedSolution = undefined;
@@ -551,8 +661,22 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
       );
     });
     if (this.result.solutions.length > 0) {
-      this.selectSolution(this.result.solutions[0]);
+      const preferredKey =
+        preferredAssignment === undefined ? undefined : this.assignmentKey(preferredAssignment);
+      const preferredSolution =
+        preferredKey === undefined
+          ? undefined
+          : this.result.solutions.find(
+              (solution) => this.assignmentKey(solution.assignment) === preferredKey,
+            );
+      this.selectSolution(preferredSolution ?? this.result.solutions[0]);
     }
+  }
+
+  private assignmentKey(assignment: Record<string, number>): string {
+    return JSON.stringify(
+      Object.entries(assignment).sort(([first], [second]) => first.localeCompare(second)),
+    );
   }
 
   private getTrainrunNodeIds(trainrunId: number): number[] {

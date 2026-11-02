@@ -74,7 +74,7 @@ Rechts werden die bestehende Knotenauslastungs-Komponente und ihre zwei Zuständ
 ### Unten: Aktionen
 
 - **Übernehmen** lässt die ausgewählte Vorschau im Fahrplan bestehen und erstellt einen Undo-Punkt. Danach kann die Änderung mit der normalen Undo-Funktion zurückgenommen werden.
-- **Weiterrechnen** startet mit einem neuen Seed einen weiteren Suchlauf. Wenn ein Vorschlag ausgewählt ist, beginnt die Suche mit dessen Assignment.
+- **Weiterrechnen** investiert ein weiteres Zeitbudget in denselben Suchlauf. Suchzustand und bisherige Vorschläge bleiben erhalten.
 - **Abbrechen** verwirft die Vorschau und stellt die Ausgangszeiten wieder her.
 
 ## 3. Welche Komponente wofür zuständig ist
@@ -85,7 +85,8 @@ Das ist die Steuerzentrale des Dialogs. Sie lädt den Bereich, verbindet den Dir
 
 - `openDialog()` setzt Auswahl, Filterbereich und Panel-Zustand für eine neue Dialogöffnung zurück.
 - `optimize()` startet die Suche und versucht bei ausbleibenden Vorschlägen weitere Seeds.
-- `continueOptimization()` setzt die Suche mit einem neuen Seed fort.
+- `continueOptimization()` verlängert die laufende Suchsession um das gewählte Zeitbudget.
+- `runSearch()` gibt während der Suche spätestens alle 250 ms an den Browser zurück und meldet Fortschritt sowie Iterationen; dadurch kann der Dialog den Fortschrittsbalken während der Berechnung aktualisieren.
 - `selectSolution()` wählt einen gültigen Vorschlag, startet die Vorschau und bereitet die Detailanalyse vor.
 - `selectBaseline()` entfernt die Vorschau und zeigt wieder den Ausgangsfahrplan.
 - `selectNode()` aktualisiert die Vorher-/Nachher-Auslastung für einen Knoten.
@@ -126,7 +127,7 @@ Während der Suche bewertet ein inkrementeller Evaluator Kandidaten, ohne jedes 
 2. **Simulated Annealing** probiert gelegentlich auch einen zunächst schlechter bewerteten Schritt. So kann die Suche aus einer lokalen Sackgasse herauskommen.
 3. **Large-Neighborhood Search (LNS)** startet nach längerer Stagnation erneut von einer guten Lösung und verändert dafür mehrere Variablen in einem konfliktbezogenen Teilbereich.
 
-Gültige, unterschiedliche und nicht dominierte Kandidaten landen in einem begrenzten Archiv. Daraus wählt der Service höchstens vier Vorschläge mit verschiedenen Schwerpunkten. Die Dialogsteuerung versucht beim ersten Optimieren bis zu drei Seeds, stoppt aber, sobald ein Vorschlag gefunden wurde oder keine Variablen beweglich sind. Ein einzelner Suchlauf hat standardmässig ein Budget von 1.000 ms. Die gesamte Aufrufzeit kann wegen Vorbereitung und exakter Nachprüfungen länger sein. Weiterrechnen startet einen neuen Lauf mit dem nächsten Seed.
+Gültige, unterschiedliche und nicht dominierte Kandidaten landen in einem begrenzten Archiv. Daraus wählt der Service höchstens vier Vorschläge mit verschiedenen Schwerpunkten. Die Dialogsteuerung versucht beim ersten Optimieren bis zu drei Seeds, stoppt aber, sobald ein Vorschlag gefunden wurde oder keine Variablen beweglich sind. Ein einzelner Suchlauf hat standardmässig ein Budget von 1.000 ms. Die gesamte Aufrufzeit kann wegen Vorbereitung und exakter Nachprüfungen länger sein. Weiterrechnen verlängert dieselbe Suchsession um das gewählte Zeitbudget; Zufallszustand, Tabu-Liste, Iterationszähler und Kandidatenarchiv werden weiterverwendet.
 
 Vor der Anzeige prüft der Service die Lösungen erneut. Die Streckengleise werden für geänderte Abschnitte mit dem Infrastruktur-Schätzer berechnet; aktive harte Regeln und Symmetrie werden geprüft. Die Suche ist eine Heuristik und beweist nicht, dass eine Lösung global optimal ist.
 
@@ -147,7 +148,7 @@ Vor der Anzeige prüft der Service die Lösungen erneut. Die Streckengleise werd
 - Es werden höchstens vier Vorschläge angezeigt, auch wenn das Archiv weitere Kandidaten enthält.
 - Die Abschnittstabelle unter einer Lösung zeigt nur geänderte Abschnitte. Sie ist keine vollständige Liste aller unveränderten Kanten.
 - Ein aktives Gleislimit wird hart geprüft. Wenn es deaktiviert ist, kann eine Lösung weiterhin eine hohe Gleiszahl haben; die Anzeige färbt sie dann nicht als Limitverletzung.
-- „Weiterrechnen“ führt eine neue Suche aus, aber die Ergebnisse sind nicht garantiert besser.
+- „Weiterrechnen“ sucht im bestehenden Suchzustand weiter; ein besserer Vorschlag ist dennoch nicht garantiert.
 
 ## 6. Ausblick
 

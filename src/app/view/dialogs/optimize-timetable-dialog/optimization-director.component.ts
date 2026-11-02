@@ -25,7 +25,10 @@ type DirectorProfile = {
 })
 export class OptimizationDirectorComponent {
   @Input({required: true}) policy: OptimizationPolicy;
+  @Input() hasUnstoredPolicyChanges = false;
   @Output() policyChange = new EventEmitter<OptimizationPolicy>();
+  @Output() storePolicyRequested = new EventEmitter<void>();
+  @Output() resetRankingRequested = new EventEmitter<void>();
 
   readonly ratingValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   readonly profiles: DirectorProfile[] = [

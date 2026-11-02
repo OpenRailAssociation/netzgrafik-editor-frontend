@@ -272,4 +272,23 @@
       </div>
     </section>
   </ng-template>
+
+  <div class="director-actions">
+    <p class="policy-save-description">
+      {{
+        "app.view.dialogs.optimize-timetable-dialog.director.policy-save-description" | translate
+      }}
+    </p>
+    <button sbb-secondary-button type="button" (click)="resetRankingRequested.emit()">
+      {{ "app.view.dialogs.optimize-timetable-dialog.reset-ranking" | translate }}
+    </button>
+    <button
+      sbb-secondary-button
+      type="button"
+      [disabled]="!hasUnstoredPolicyChanges"
+      (click)="storePolicyRequested.emit()"
+    >
+      {{ "app.view.dialogs.optimize-timetable-dialog.store-policy" | translate }}
+    </button>
+  </div>
 </aside>
