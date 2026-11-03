@@ -331,7 +331,6 @@ function buildSingleSectionProblem(
     [section] as unknown as OptimizationProblem["sections"],
     2,
     selectedNodeIds,
-    2,
     5,
     policy,
   );
@@ -380,6 +379,9 @@ describe("TimetableEvaluator conflict severity", () => {
     expect(active.estimator.estimateNodeTracks).toHaveBeenCalledTimes(1);
     active.evaluator.setVariable(0, 1);
     expect(active.evaluator.score()).toBe(1.5 * WEIGHT_TRACK);
+    expect(active.estimator.estimateNodeTracks).toHaveBeenCalledTimes(2);
+    active.evaluator.setVariable(0, 0);
+    expect(active.evaluator.score()).toBe(3 * WEIGHT_TRACK);
     expect(active.estimator.estimateNodeTracks).toHaveBeenCalledTimes(2);
   });
 
@@ -517,6 +519,56 @@ describe("TimetableEvaluator conflict severity", () => {
     expect(evaluator.parts().hard).toBe(0);
   });
 
+  it("enforces the configured connection minimum even when the baseline wait is shorter", () => {
+    const evaluator = createEvaluator(
+      [],
+      [
+        {
+          node: undefined,
+          arrSection: 0,
+          arrField: 0,
+          depSection: 0,
+          depField: 1,
+          wait0: 2,
+          lo: 5,
+          hi: Number.POSITIVE_INFINITY,
+        },
+      ],
+    );
+
+    expect(evaluator.parts().connectionViolations).toBe(1);
+    expect(evaluator.parts().hard).toBe(1);
+
+    evaluator.candC[1] = 3;
+    evaluator.evaluateAll();
+
+    expect(evaluator.parts().connectionViolations).toBe(0);
+    expect(evaluator.parts().hard).toBe(0);
+  });
+
+  it("scores preserving an existing user-connection wait as a soft objective", () => {
+    const evaluator = createEvaluator(
+      [],
+      [
+        {
+          node: undefined,
+          arrSection: 0,
+          arrField: 0,
+          depSection: 0,
+          depField: 1,
+          wait0: 10,
+          lo: 5,
+          hi: Number.POSITIVE_INFINITY,
+        },
+      ],
+    );
+    evaluator.candC[1] = 4;
+    evaluator.evaluateAll();
+
+    expect(evaluator.getAverageConnectionWaitDeviation()).toBe(4);
+    expect(evaluator.parts().connectionWaitDeviation).toBe(4);
+  });
+
   it("strongly penalizes each shifted minute", () => {
     const evaluator = createEvaluator(
       [],
@@ -540,7 +592,7 @@ describe("TimetableEvaluator conflict severity", () => {
       policy,
     );
 
-    expect(evaluator.setVariable(0, 1)).toBe(WEIGHT_SHIFT / 16);
+    expect(evaluator.setVariable(0, 1)).toBe(WEIGHT_SHIFT / 32);
   });
 
   it("rewards feasible optional connections and shorter waits", () => {

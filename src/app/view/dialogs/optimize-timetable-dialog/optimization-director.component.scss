@@ -168,9 +168,16 @@
   line-height: 1.4;
 }
 
-.director-actions button {
+.director-actions .director-reset-button {
   box-sizing: border-box;
-  width: 210px;
+  width: 100%;
+}
+
+.director-actions .director-save-button {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 48px;
+  white-space: normal;
 }
 
 .director-ratings {

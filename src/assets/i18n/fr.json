@@ -125,8 +125,8 @@
         }
       },
       "optimization": {
-        "no-free-variables": "Aucun horaire ne peut être décalé (verrous, sélection ou aucun train).",
-        "no-solution": "Aucune meilleure solution trouvée. Vous pouvez relancer l'optimisation ou poursuivre la recherche.",
+        "no-free-variables": "Aucune nouvelle proposition possible : aucun horaire ne peut être décalé (verrous, sélection ou aucun train).",
+        "no-solution": "Aucune proposition valide n'a été trouvée dans le budget de recherche actuel. Cela ne prouve pas qu'il n'existe aucune solution. Poursuivez la recherche ou ajustez le périmètre et les règles.",
         "proposal": {
           "balanced": "Équilibrée",
           "minimal-change": "Changement minimal",
@@ -323,8 +323,8 @@
           "title": "Optimiser l'horaire",
           "baseline": "Situation initiale",
           "candidate": "Candidat {$number}",
-          "store-policy": "Enregistrer pour la prochaine optimisation",
-          "reset-ranking": "Réinitialiser le classement",
+          "store-policy": "Appliquer les paramètres à la prochaine optimisation",
+          "reset-ranking": "Rétablir les paramètres par défaut",
           "search-effort": "Intensité de recherche",
           "search-effort-description": "Une recherche plus longue peut trouver de meilleures propositions, mais prend plus de temps.",
           "search-effort-very-fast": "Recherche très courte",
@@ -352,8 +352,8 @@
             "rating-help": "1 point signifie une faible influence, 10 une forte influence. L'ordre reste fixe ; seule l'importance est réglable.",
             "rating-level": "Importance : {$rating} sur 10",
             "show-details": "Détails : rôle des objectifs et des règles",
-            "fixed-rules": "Règles de sécurité fixes",
-            "fixed-rules-description": "Ces règles restent identiques pour tous les objectifs Director et ne peuvent pas être modifiées ici.",
+            "fixed-rules": "Contraintes strictes",
+            "fixed-rules-description": "Vous pouvez aussi activer ou désactiver les contraintes strictes dans les profils Director. La limite de sélection reste toujours active. Un changement de profil réinitialise les contraintes propres au profil ; enregistrez vos modifications pour la prochaine optimisation.",
             "editable-rules-description": "Ces règles limitent l'optimisation. Certaines valeurs peuvent être ajustées.",
             "editable-objectives-description": "Activez et classez les objectifs selon leur importance pour l'horaire.",
             "details-description": "Cette section explique ce que privilégie chaque objectif et quelles règles s'appliquent.",
@@ -365,13 +365,17 @@
               "connections": "Améliorer les correspondances",
               "connections-description": "Privilégie les correspondances possibles tout en limitant les changements.",
               "track-usage": "Réduire l'utilisation des voies",
-              "track-usage-description": "Privilégie moins de voies aux nœuds et sur les tronçons sans changements horaires inutiles."
+              "track-usage-description": "Privilégie moins de voies aux nœuds et sur les tronçons sans changements horaires inutiles.",
+              "frequency-first": "Plus de flexibilité – trains fréquents d’abord",
+              "frequency-first-description": "Ignore les verrouillages de départ, d’arrivée et de temps de parcours et autorise jusqu’à 5 minutes supplémentaires par section. Optimise les trains selon un intervalle croissant ; tous restent inclus dans la détection des conflits.",
+              "category-order-first": "Plus de flexibilité – trains prioritaires d’abord",
+              "category-order-first-description": "Ignore les verrouillages de départ, d’arrivée et de temps de parcours et autorise jusqu’à 5 minutes supplémentaires par section. Optimise d’abord les catégories avec un TrainrunCategory.order plus faible ; tous les trains restent inclus dans la détection des conflits."
             },
             "constraint": {
               "track-limit": "Limite de voies sur le tronçon",
               "track-limit-tooltip": "Limite le nombre maximal de voies utilisées simultanément sur chaque tronçon à la valeur saisie.",
-              "user-connections": "Correspondances définies par l'utilisateur",
-              "user-connections-tooltip": "Chaque correspondance enregistrée dans l'horaire doit respecter au moins le temps de correspondance défini pour le nœud concerné. Lorsque cette règle est active, l'optimiseur ne propose que des solutions qui respectent ce minimum.",
+              "user-connections": "Respecter les temps de correspondance minimaux",
+              "user-connections-tooltip": "Chaque correspondance enregistrée doit respecter au moins le temps défini pour le nœud concerné. Le temps d'attente initial n'est pas une limite maximale stricte.",
               "minimum-stop-time": "Temps d'arrêt minimum",
               "minimum-stop-time-tooltip": "Chaque arrêt doit respecter le temps d'arrêt minimal défini pour le train. Les propositions avec des arrêts plus courts sont refusées.",
               "time-locks": "Verrous de départ/arrivée",
@@ -383,12 +387,11 @@
               "symmetry": "Imposer la symétrie",
               "symmetry-tooltip": "Les trajets aller et retour restent symétriques aux nœuds concernés. Les tronçons explicitement asymétriques ne sont pas couplés.",
               "max-travel-time-extension": "Prolongation du temps de parcours par tronçon",
-              "max-travel-time-extension-tooltip": "La durée de chaque tronçon peut augmenter de 0 à +n minutes. Une durée de tronçon ne peut pas être raccourcie.",
-              "preserve-connection-times": "Conserver les temps de correspondance existants",
-              "preserve-connection-times-tooltip": "Les temps d'attente des correspondances enregistrées restent exactement ceux de l'horaire initial. L'optimiseur ne peut ni les réduire ni les augmenter."
+              "max-travel-time-extension-tooltip": "La durée de chaque tronçon peut augmenter de 0 à +n minutes. Une durée de tronçon ne peut pas être raccourcie."
             },
             "objective": {
               "minimal-changes": "Modifications minimales",
+              "connection-stability": "Préserver les temps de correspondance existants",
               "more-connections": "Davantage de correspondances",
               "lower-travel-time": "Temps de parcours réduit",
               "lower-track-usage": "Moindre utilisation des voies aux nœuds",
@@ -396,6 +399,7 @@
             },
             "objective-description": {
               "minimal-changes": "Minimise la somme des carrés des changements d'heures de départ et d'arrivée, divisée par le nombre de tronçons.",
+              "connection-stability": "Privilégie les temps d'attente initiaux des correspondances enregistrées. Le minimum configuré reste une limite inférieure stricte.",
               "more-connections": "Compte les correspondances possibles et favorise les attentes proches du minimum avec 1/(1+2^d) ; normalisé par train avec arrêt à chaque nœud.",
               "lower-travel-time": "+1 par train si la durée départ-destination reste identique ou diminue, -1 si elle augmente ; les longues attentes de retournement sont pénalisées au carré. Normalisé par le nombre de trains.",
               "lower-track-usage": "Moins de voies aux nœuds est préférable : comparer d'abord le maximum, puis la moyenne ; normalisé par le nombre de nœuds.",

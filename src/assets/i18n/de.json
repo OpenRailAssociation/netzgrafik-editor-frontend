@@ -125,8 +125,8 @@
         }
       },
       "optimization": {
-        "no-free-variables": "Keine Zeiten verschiebbar (Schlösser, Selektion oder keine Züge).",
-        "no-solution": "Keine bessere Lösung gefunden. Du kannst erneut optimieren oder weiterrechnen.",
+        "no-free-variables": "Kein neuer Vorschlag möglich: Es gibt keine verschiebbaren Zeiten (Locks, Auswahl oder keine Zugläufe).",
+        "no-solution": "Im aktuellen Suchbudget wurde kein gültiger Vorschlag gefunden. Das beweist nicht, dass keine Lösung existiert. Du kannst weiterrechnen oder Bereich und Regeln anpassen.",
         "proposal": {
           "balanced": "Ausgewogen",
           "minimal-change": "Minimale Änderung",
@@ -323,8 +323,8 @@
           "title": "Fahrplan optimieren",
           "baseline": "Ausgangslage",
           "candidate": "Kandidat {$number}",
-          "store-policy": "Für nächste Optimierung speichern",
-          "reset-ranking": "Rangfolge zurücksetzen",
+          "store-policy": "Einstellungen für die nächste Optimierung übernehmen",
+          "reset-ranking": "Auf Standard zurücksetzen",
           "search-effort": "Rechenaufwand",
           "search-effort-description": "Mehr Suchzeit kann bessere Vorschläge finden, dauert aber länger.",
           "search-effort-very-fast": "Sehr kurze Suche",
@@ -352,8 +352,8 @@
             "rating-help": "1 Punkt bedeutet wenig, 10 Punkte viel Einfluss. Die Reihenfolge bleibt fest; du stellst nur die Wichtigkeit ein.",
             "rating-level": "Wichtigkeit {$rating} von 10",
             "show-details": "Details: So wirken Ziele und Regeln",
-            "fixed-rules": "Verbindliche Leitplanken",
-            "fixed-rules-description": "Diese Regeln bleiben für alle Director-Ziele gleich und können hier nicht geändert werden.",
+            "fixed-rules": "Harte Regeln",
+            "fixed-rules-description": "Du kannst harte Regeln auch im Director-Profil ein- oder ausschalten. Die Auswahlgrenze bleibt immer aktiv. Profilwechsel setzen profilspezifische Regeln zurück; speichere deine Anpassungen für die nächste Optimierung.",
             "editable-rules-description": "Diese Leitplanken begrenzen die Optimierung. Einige Werte kannst du anpassen.",
             "editable-objectives-description": "Aktiviere und ordne die Ziele nach ihrer Wichtigkeit für den Fahrplan.",
             "details-description": "Hier wird erklärt, was die einzelnen Ziele bevorzugen und welche Regeln dabei gelten.",
@@ -365,13 +365,17 @@
               "connections": "Anschlüsse verbessern",
               "connections-description": "Gewichtet erreichbare Anschlüsse am stärksten und hält Änderungen möglichst klein.",
               "track-usage": "Gleisbedarf reduzieren",
-              "track-usage-description": "Bevorzugt weniger Knoten- und Streckengleise, ohne unnötige Fahrplanänderungen."
+              "track-usage-description": "Bevorzugt weniger Knoten- und Streckengleise, ohne unnötige Fahrplanänderungen.",
+              "frequency-first": "Mehr Spielraum – Häufige zuerst",
+              "frequency-first-description": "Ignoriert Abfahrts-, Ankunfts- und Fahrzeit-Locks und erlaubt bis zu 5 Minuten zusätzliche Fahrzeit pro Abschnitt. Optimiert Zugläufe nach aufsteigendem Taktabstand; alle Züge bleiben in der Konfliktprüfung.",
+              "category-order-first": "Mehr Spielraum – Wichtige zuerst",
+              "category-order-first-description": "Ignoriert Abfahrts-, Ankunfts- und Fahrzeit-Locks und erlaubt bis zu 5 Minuten zusätzliche Fahrzeit pro Abschnitt. Optimiert zuerst Zugkategorien mit kleinerem TrainrunCategory.order; alle Züge bleiben in der Konfliktprüfung."
             },
             "constraint": {
               "track-limit": "Streckengleis-Limit",
               "track-limit-tooltip": "Begrenzt die maximal gleichzeitig benötigten Gleise pro Streckenabschnitt auf den eingestellten Wert.",
-              "user-connections": "Benutzerdefinierte Anschlüsse",
-              "user-connections-tooltip": "Alle im Fahrplan eingetragenen Anschlüsse müssen mindestens die am Umsteigeknoten festgelegte Umsteigezeit einhalten. Ist diese Regel aktiv, sucht der Optimierer nur nach Vorschlägen, die diese Mindestzeit wahren.",
+              "user-connections": "Mindestumsteigezeiten einhalten",
+              "user-connections-tooltip": "Jeder eingetragene Anschluss muss mindestens die am Umsteigeknoten festgelegte Umsteigezeit einhalten. Die bisherige Wartezeit ist keine harte Obergrenze.",
               "minimum-stop-time": "Mindesthaltezeit",
               "minimum-stop-time-tooltip": "Bei jedem Halt muss die für den Zug geltende Mindesthaltezeit eingehalten werden. Zu kurze Haltezeiten werden nicht vorgeschlagen.",
               "time-locks": "Abfahrts-/Ankunfts-Locks",
@@ -383,12 +387,11 @@
               "symmetry": "Symmetrie erzwingen",
               "symmetry-tooltip": "Hin- und Rückrichtung bleiben an symmetrischen Knoten gespiegelt. Explizit asymmetrische Abschnitte bleiben davon ausgenommen.",
               "max-travel-time-extension": "Fahrzeitverlängerung pro Abschnitt",
-              "max-travel-time-extension-tooltip": "Erlaubt pro Abschnitt eine Verlängerung der Fahrzeit von 0 bis maximal +n Minuten. Fahrzeiten werden nicht verkürzt.",
-              "preserve-connection-times": "Bestehende Anschlusszeiten erhalten",
-              "preserve-connection-times-tooltip": "Eingetragene Anschlusswartezeiten bleiben exakt wie im Ausgangsfahrplan. Der Optimierer darf sie weder verkürzen noch verlängern."
+              "max-travel-time-extension-tooltip": "Erlaubt pro Abschnitt eine Verlängerung der Fahrzeit von 0 bis maximal +n Minuten. Fahrzeiten werden nicht verkürzt."
             },
             "objective": {
               "minimal-changes": "Minimale Änderungen",
+              "connection-stability": "Bestehende Anschlusszeiten möglichst erhalten",
               "more-connections": "Mehr Anschlüsse",
               "lower-travel-time": "Kürzere Fahrzeit",
               "lower-track-usage": "Geringere Knotengleisnutzung",
@@ -396,6 +399,7 @@
             },
             "objective-description": {
               "minimal-changes": "Minimiert die Summe der quadrierten Änderungen aller Abfahrts- und Ankunftszeiten, geteilt durch die Abschnittszahl.",
+              "connection-stability": "Bevorzugt die bisherige Wartezeit eingetragener Anschlüsse. Die konfigurierte Mindestumsteigezeit bleibt unabhängig davon eine harte Untergrenze.",
               "more-connections": "Zählt erreichbare Umstiege und belohnt kurze Wartezeiten über dem Minimum mit 1/(1+2^d); normiert je Stop-Stop-Zug am Knoten.",
               "lower-travel-time": "Je Zuglauf +1 bei unveränderter oder kürzerer Start-Ziel-Zeit, -1 bei Verlängerung; lange Wende-Wartezeit wird quadratisch bestraft. Normiert auf die Zahl der Zugläufe.",
               "lower-track-usage": "Weniger Knotengleise ist besser: zuerst das Maximum, dann der Durchschnitt; normiert auf die Knotenzahl.",

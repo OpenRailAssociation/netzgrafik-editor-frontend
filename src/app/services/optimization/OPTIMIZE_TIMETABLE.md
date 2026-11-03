@@ -66,29 +66,29 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
   - **Übernehmen** – lädt die gewählte Lösung definitiv (erst nachdem der User die
     Änderungen gesehen/verstanden hat).
   - **Weiterrechnen** – investiert ein weiteres Zeitbudget in dieselbe Suchsession (standardmässig
-    1 s). Suchzustand und Archiv bleiben erhalten; die Vorschläge werden neu aus dem Archiv gewählt.
+    2 s). Suchzustand und Archiv bleiben erhalten; die Vorschläge werden neu aus dem Archiv gewählt.
   - **Abbrechen** – stellt die Ausgangslage exakt wieder her.
 - Wird keine gültige Lösung gefunden, wird dies angezeigt (inkl. Kanten mit Überschreitung);
   **Übernehmen** ist dann deaktiviert.
 
 ## 3. Harte Regeln (dürfen nie verletzt werden)
 
-| #   | Regel                                                                                                                                                                                                                                                                                                             |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| H1  | **Gleise pro Kante**: für jede Kante (AB, BC, CD, …) gilt `max(tracks) ≤ maxTracks` (User-Wert). Berechnung mit `InfrastructureEstimatorService.estimateSectionTracks`; Hin- und Rückrichtung zusammen, eine Kante pro Knotenpaar.                                                                                |
-| H2  | **Ganze Minuten**: alle Zeiten sind ganzzahlig. Optimierte Zeiten werden **gerundet**, Fahrzeiten immer auf die nächste volle Minute **aufgerundet**.                                                                                                                                                             |
-| H3  | **Mengengerüst / Frequenz fix**: Frequenz (Takt) und Frequenz-Offset werden nicht verändert; keine Zugläufe hinzufügen/entfernen.                                                                                                                                                                                 |
-| H4  | **Route fix**: gleiche Knoten, Abschnitte, Reihenfolge, Ports, Transitions; Halte bleiben Halte, Durchfahrten bleiben Durchfahrten.                                                                                                                                                                               |
-| H5  | **Richtung**: alle Züge fahren hin und zurück (`ROUND_TRIP`), ausser `ONE_WAY`.                                                                                                                                                                                                                                   |
-| H6  | **Symmetrie um Minute 00**: Abfahrt von Zug A am Knoten X = :00 + x ⇒ Ankunft von Zug A (Gegenrichtung) am Knoten X = :00 − x (mod 60). Ausnahme: explizit asymmetrisch gesetzte Abschnitte. Symmetrie wird nach dem Runden berechnet.                                                                            |
-| H7  | **Abschnittsfahrzeiten**: bleiben fix, ausser die optionale harte Regel erlaubt eine Verlängerung je Abschnitt um höchstens `n` Minuten. Verkürzungen sind nicht erlaubt.                                                                                                                                         |
-| H8  | **Mindesthaltezeit**: Haltezeit an Halten ≥ Mindesthaltezeit (Knoten × Zugkategorie).                                                                                                                                                                                                                             |
-| H9  | **Durchfahrt (non-stop)**: Haltezeit immer 0 min, d.h. **Ankunft = Abfahrt** (beide Richtungen).                                                                                                                                                                                                                  |
-| H10 | **Locks**: gelockte Zeiten (`TimeLockDto.lock`) bleiben unverändert.                                                                                                                                                                                                                                              |
-| H11 | **Optimierungsbereich**: Zeiten an Randkanten und ausserhalb der Selektion bleiben unverändert.                                                                                                                                                                                                                   |
-| H12 | **Konsistenz**: Ankunft = Abfahrt + Fahrzeit; Consecutive Times sind konsistent entlang des Zuglaufs.                                                                                                                                                                                                             |
-| H13 | **User-Connections**: alle im Netzgrafik-Editor erfassten Anschlüsse (`Connection` am `Node`) müssen eingehalten werden: Umsteigezeit ≥ Mindestumsteigezeit des Knotens (`Node.getConnectionTime()`), bei Round-Trips in beiden Richtungen. Alle übrigen (impliziten) Anschlüsse sind optional (weiches Ziel f2). |
-| H14 | **Native Objekte**: der Optimierer arbeitet ausschliesslich mit den nativen Modellobjekten der Netzgrafik (`Trainrun`, `TrainrunSection`, `Node`, `Port`, `Transition`, `Connection`) – keine eigenen Parallel-Datenmodelle.                                                                                      |
+| #   | Regel                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| H1  | **Gleise pro Kante**: für jede Kante (AB, BC, CD, …) gilt `max(tracks) ≤ maxTracks` (User-Wert). Berechnung mit `InfrastructureEstimatorService.estimateSectionTracks`; Hin- und Rückrichtung zusammen, eine Kante pro Knotenpaar.                                                                                                                                                                                               |
+| H2  | **Ganze Minuten**: alle Zeiten sind ganzzahlig. Optimierte Zeiten werden **gerundet**, Fahrzeiten immer auf die nächste volle Minute **aufgerundet**.                                                                                                                                                                                                                                                                            |
+| H3  | **Mengengerüst / Frequenz fix**: Frequenz (Takt) und Frequenz-Offset werden nicht verändert; keine Zugläufe hinzufügen/entfernen.                                                                                                                                                                                                                                                                                                |
+| H4  | **Route fix**: gleiche Knoten, Abschnitte, Reihenfolge, Ports, Transitions; Halte bleiben Halte, Durchfahrten bleiben Durchfahrten.                                                                                                                                                                                                                                                                                              |
+| H5  | **Richtung**: alle Züge fahren hin und zurück (`ROUND_TRIP`), ausser `ONE_WAY`.                                                                                                                                                                                                                                                                                                                                                  |
+| H6  | **Symmetrie um Minute 00**: Abfahrt von Zug A am Knoten X = :00 + x ⇒ Ankunft von Zug A (Gegenrichtung) am Knoten X = :00 − x (mod 60). Ausnahme: explizit asymmetrisch gesetzte Abschnitte. Symmetrie wird nach dem Runden berechnet.                                                                                                                                                                                           |
+| H7  | **Abschnittsfahrzeiten**: bleiben fix, ausser die optionale harte Regel erlaubt eine Verlängerung je Abschnitt um höchstens `n` Minuten. Verkürzungen sind nicht erlaubt.                                                                                                                                                                                                                                                        |
+| H8  | **Mindesthaltezeit**: Haltezeit an Halten ≥ Mindesthaltezeit (Knoten × Zugkategorie).                                                                                                                                                                                                                                                                                                                                            |
+| H9  | **Durchfahrt (non-stop)**: Haltezeit immer 0 min, d.h. **Ankunft = Abfahrt** (beide Richtungen).                                                                                                                                                                                                                                                                                                                                 |
+| H10 | **Locks**: gelockte Zeiten (`TimeLockDto.lock`) bleiben unverändert.                                                                                                                                                                                                                                                                                                                                                             |
+| H11 | **Optimierungsbereich**: Zeiten an Randkanten und ausserhalb der Selektion bleiben unverändert.                                                                                                                                                                                                                                                                                                                                  |
+| H12 | **Konsistenz**: Ankunft = Abfahrt + Fahrzeit; Consecutive Times sind konsistent entlang des Zuglaufs.                                                                                                                                                                                                                                                                                                                            |
+| H13 | **User-Connections**: wenn die harte Regel aktiv ist, muss jeder im Netzgrafik-Editor erfasste Anschluss (`Connection` am `Node`) in beiden Richtungen mindestens die konfigurierte Mindestumsteigezeit des Knotens (`Node.getConnectionTime()`) einhalten. Die bisherige Wartezeit ist keine harte Obergrenze; ihr Erhalt ist ein separates weiches Ziel. Alle übrigen (impliziten) Anschlüsse sind optional (weiches Ziel f2). |
+| H14 | **Native Objekte**: der Optimierer arbeitet ausschliesslich mit den nativen Modellobjekten der Netzgrafik (`Trainrun`, `TrainrunSection`, `Node`, `Port`, `Transition`, `Connection`) – keine eigenen Parallel-Datenmodelle.                                                                                                                                                                                                     |
 
 ## 4. Weiche Ziele und Rangfolge
 
@@ -108,20 +108,23 @@ Die Reihenfolge der fünf Ziele bei Gleichstand ist fest:
    Gleichstand gewinnt die kleinere Summe der absoluten Verschiebungen `Σ|Δ|` in Minuten. Beides
    wird gegenüber der Baseline berechnet. Das ist nicht dasselbe wie die Anzahl geänderter Züge
    oder einzelner Zeiten; diese Werte stehen separat in der Vorschlagstabelle.
-2. **Mehr Anschlüsse**: zählt zusätzliche, nicht explizit als User-`Connection` erfasste
+2. **Anschlusszeiten stabilisieren**: bevorzugt die bisherige Wartezeit für explizite
+   User-`Connection`s. Das ist nur ein weiches Ziel und kann die harte Mindestumsteigezeit
+   weder ersetzen noch abschwächen.
+3. **Mehr Anschlüsse**: zählt zusätzliche, nicht explizit als User-`Connection` erfasste
    Umsteigemöglichkeiten zwischen verschiedenen Zugläufen. Die Umsteigezeit liegt zwischen der
    Mindestumsteigezeit des Knotens und dieser Mindestzeit plus 5 Minuten. User-Connections sind
    separate harte Regeln und zählen nicht als optionale Anschlüsse.
-3. **Kürzere Fahrzeit**: vergleicht die Änderung der gesamten Reisezeit aller Zugläufe mit der
+4. **Kürzere Fahrzeit**: vergleicht die Änderung der gesamten Reisezeit aller Zugläufe mit der
    Baseline, einschliesslich der Haltezeiten zwischen den Endpunkten. Ein negatives Δ bedeutet
    kürzer, ein positives Δ länger; Abschnittsfahrzeiten selbst bleiben fix.
-4. **Geringere Knotengleisnutzung**: vergleicht zuerst die höchste, danach die durchschnittliche
+5. **Geringere Knotengleisnutzung**: vergleicht zuerst die höchste, danach die durchschnittliche
    Knotengleiszahl.
-5. **Geringere Streckengleisnutzung**: vergleicht zuerst die höchste, danach die durchschnittliche
+6. **Geringere Streckengleisnutzung**: vergleicht zuerst die höchste, danach die durchschnittliche
    Gleiszahl auf den Abschnitten im Optimierungsbereich. Das bleibt als weiches Ziel unabhängig
    davon verfügbar, ob das Streckengleislimit als harte Regel aktiviert ist.
 
-Die fünf Ziele sind **Minimale Änderungen**, **Mehr Anschlüsse**, **Kürzere Fahrzeit**,
+Die sechs Ziele sind **Minimale Änderungen**, **Anschlusszeiten stabilisieren**, **Mehr Anschlüsse**, **Kürzere Fahrzeit**,
 **Geringere Knotengleisnutzung** und **Geringere Streckengleisnutzung**. Im benutzerdefinierten
 Modus lassen sich Ziele aktivieren, deaktivieren und per Drag-and-drop priorisieren; ihr Gewicht
 ist `1 / 2^Rangposition` in der manuellen Reihenfolge. Da diese Rangfolge eindeutig ist, gibt es
@@ -136,9 +139,10 @@ Haltezeiten. Ist sie deaktiviert, bleiben Abschnittsfahrzeiten unverändert.
 
 ## 5. Zeitbudget
 
-- Ein Lauf rechnet standardmässig maximal **1 s** und liefert die besten bis dahin gefundenen
-  Lösungen.
-- Mit **Weiterrechnen** kann der User der bestehenden Suchsession erneut bis zu **1 s**
+- Die Suchstufen verwenden pro Versuch **0.5, 1, 2, 4 oder 8 s**. Damit dauert jede Stufe
+  doppelt so lange wie zuvor; der Standard liegt bei **2 s pro Versuch**.
+- Bis zu drei automatische Versuche können mit je einem neuen Seed und Warmstart laufen.
+- Mit **Weiterrechnen** kann der User der bestehenden Suchsession erneut bis zu **8 s**
   Suchzeit hinzufügen.
 
 ## 6. Resultat / KPIs
@@ -202,6 +206,38 @@ Large-Neighborhood-Suche einen kleinen Bereich und startet von der besten bisher
 Ein inkrementeller Schätzer bewertet Kandidaten schnell; die Infrastruktur-Berechnung prüft die
 ausgegebenen Gleis-KPIs exakt nach.
 
+Die Director-Profile **Mehr Spielraum – Häufige zuerst** und **Mehr Spielraum –
+Wichtige zuerst** schalten Variablen progressiv nach Suchbudget frei. Beim
+Kategorieprofil stammt der Rang aus `TrainrunCategory.order`; kleinere Werte
+kommen zuerst, gleiche Werte gemeinsam. Die Metadaten bestimmen die Reihenfolge,
+keine fest codierte Zugkategorienliste. Alle Zugläufe und Konflikte bleiben von
+Anfang an in der Bewertung; spätere Gruppen werden nicht aus dem Fahrplan
+entfernt. Innerhalb eines Suchversuchs sind alle Gruppen spätestens nach der
+ersten Hälfte des Budgets freigeschaltet. Wenn bis zu drei automatische Versuche
+keinen gültigen Vorschlag finden, startet jeder Folgeversuch mit dem besten
+internen Suchzustand des vorherigen Versuchs und einem neuen Seed statt erneut
+mit dem Ausgangsfahrplan. Dieser Warmstart kann weiterhin ungültig sein.
+
+Im Profil **Wichtige zuerst** bleibt die erste Gruppe bei höchstens fünf Minuten
+Abstand pro Konfliktschritt. Für spätere Gruppen prüft der Solver Kandidaten über
+die ganze zulässige `Δ`-Domäne. Bei Zeitverschiebungen entspricht diese höchstens
+einem halben Takt, abgerundet auf ganze Minuten und begrenzt auf 30 Minuten.
+Kleinere Distanzen zur aktuellen Lage werden zuerst getestet. Das Ziel
+**Minimale Änderungen** bleibt aktiv; die grössere Suchweite erweitert nicht die
+zulässige Domäne und garantiert keine kleinere Gesamtänderung. Sie kann mehr
+Kandidatenbewertungen und damit weniger Iterationen innerhalb desselben
+Zeitbudgets verursachen.
+
+Bei Konfliktschritten testet der Solver zunächst eine Verschiebung um eine
+Minute, danach gezielt die `sectionHeadway`-Zeit der betroffenen Zugkategorie
+(zum Beispiel ±3 Minuten), bevor er die übrigen nahen Schritte prüft. Dieser
+Zugfolgezeit-Schritt wird auch dann einbezogen, wenn er grösser als fünf Minuten
+ist; die zulässige Verschiebungsdomäne bleibt unverändert.
+Wenn kein direkt konfliktverbessernder Zuglauf-Schritt verfügbar ist, kann die
+Suche eine koordinierte Verschiebung als Erkundung annehmen, solange die Zahl
+harter Konflikte nicht steigt. Ein höherer Score wird dabei temperaturabhängig
+wie beim Simulated Annealing akzeptiert.
+
 Die Suche verwendet die Policy-Gewichte, um Kandidaten während des Suchlaufs zu erkunden. Im
 Director-Modus werden diese aus den Ratings und Rangpositionen abgeleitet; gleiche Ratings erhalten
 das Gewicht ihrer gemeinsamen Rangposition. In der benutzerdefinierten Steuerung folgen die
@@ -218,7 +254,8 @@ Suchzustand und das Kandidatenarchiv bleiben dabei erhalten.
   Suchsession für **Weiterrechnen**.
   (`src/app/services/optimization/optimize-timetable.service.ts`).
 - **Reines TypeScript** im Service: keine externen Solver, keine neuen Abhängigkeiten, kein Backend.
-  Algorithmus-Diskussion: [UMSETZUNGSVORSCHLAG.md – Anhang A](./UMSETZUNGSVORSCHLAG.md#anhang-a--algorithmus-diskussion).
+  Das Zielbild, die aktuelle Heuristik und die geprüften Alternativen sind in
+  [OPTIMIERER_ZIELBILD.md](./OPTIMIERER_ZIELBILD.md) dokumentiert.
 - Arbeitet auf den **nativen Modellobjekten** (H14). Zur Bewertung werden Zeiten temporär gesetzt
   und vor der Rückgabe garantiert zurückgesetzt (`try/finally`); nach aussen ist der Service
   stateless. Resultat ist ein **Zeit-Patch** pro Lösung, der erst bei **Übernehmen** angewendet
@@ -386,20 +423,20 @@ Kettenverschiebungen (Δ) verändern Ereigniszeiten, während Streckenabschnitte
 Ressourcen mit einer nicht-linearen Gleis-Kapazitätsprüfung sind. Es hat PESP-artige periodische
 Zeitbedingungen, ist aber weder ein reines PESP-Benchmarkproblem noch MAPF auf einem Raster.
 
-### 8.2 Bewertete Verfahren
+### 8.2 Verfahrensstatus
 
-Die Tempoangaben der folgenden Verfahrensbewertung beziehen sich auf die ursprüngliche
-Benchmarkbasis von 0.25 s und nicht auf das aktuelle Standardbudget.
-
-| Verfahren                                                               | Qualität                          | Tempo (0.25 s)                       | Eignung                  |
-| ----------------------------------------------------------------------- | --------------------------------- | ------------------------------------ | ------------------------ |
-| **Min-Conflicts + Tabu Search**                                         | gut für Gültigkeit (H1)           | sehr schnell, inkrementell           | ✅ Phase 1               |
-| **Simulated Annealing**                                                 | gut, einfach                      | schnell                              | ✅ Phase 2 (Alternative) |
-| **Large Neighborhood Search (LNS)** mit Destroy/Repair pro Kante/Knoten | sehr gut für ITF (Knoten-Cluster) | schnell                              | ✅ Phase 2 (Empfehlung)  |
-| **Pareto Local Search / Archiv**                                        | liefert mehrere Vorschläge        | gering Zusatzaufwand                 | ✅ Lösungsvorschläge     |
-| Modulo-Network-Simplex (PESP-Heuristik)                                 | sehr gut für reine PESP           | mittel; Gleis-Bedingung nicht linear | ⚠️ später prüfen         |
-| Genetischer Algorithmus / NSGA-II                                       | gut für Multi-Objective           | zu wenige Generationen in 0.25 s     | ❌                       |
-| Exakt: CP-SAT / MILP / PESP-SAT                                         | optimal                           | Solver im Browser nötig, > 0.25 s    | ❌                       |
+| Verfahren                        | Status im Repository                      | Einordnung                                                                                                                                                                              |
+| -------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Min-Conflicts + Tabu             | Implementiert                             | Konfliktorientierte Kandidatenwahl; normalerweise höchstens fünf Minuten Abstand, im Kategorieprofil für spätere Gruppen bis zur erlaubten Δ-Domäne.                                    |
+| Simulated Annealing              | Implementiert                             | Zufällige variable/Schritt-Auswahl und temperaturabhängige Annahme schlechterer Zwischenstände.                                                                                         |
+| LNS-inspirierte Perturbation     | Implementiert                             | Nach Stagnation kleine Variablengruppe konfliktbezogen verändern; kein adaptives ALNS und kein separater Repair-Lauf.                                                                   |
+| Mehr Spielraum – Häufige zuerst  | Implementiert als Director-Profil         | Deaktiviert Zeit-Locks, erlaubt +5 Minuten Fahrzeit und schaltet Variablen nach aufsteigendem Taktabstand frei.                                                                         |
+| Mehr Spielraum – Wichtige zuerst | Implementiert als Director-Profil         | Gleiche Flexibilitätsregeln; schaltet Kategorien nach aufsteigendem `TrainrunCategory.order` frei und erweitert für spätere Gruppen die getestete Suchweite bis zur erlaubten Δ-Domäne. |
+| Begrenztes Pareto-Archiv         | Implementiert                             | Nur Kandidaten ohne Evaluator-Hartverletzungen; Service validiert Endvorschläge erneut.                                                                                                 |
+| VNS                              | Nicht implementiert                       | Kandidat für einen isolierten Benchmark gegen die bestehende Suche.                                                                                                                     |
+| ALNS                             | Nicht implementiert                       | Erst nach Einzelbewertung einfacher Destroy-/Repair-Operatoren untersuchen.                                                                                                             |
+| CBS                              | Nicht implementiert                       | Nicht mit dem vorhandenen ConflictIndex verwechseln; allenfalls begrenzte lokale CBS-ähnliche Reparatur benchmarken.                                                                    |
+| CP-SAT / MILP / PESP-SAT         | Nicht als Browser-Produktivsolver geplant | Offline-Referenz für kleine Testfälle wäre getrennt zu prüfen; keine Laufzeit- oder Qualitätsannahme ohne Messung.                                                                      |
 
 ### 8.3 Gewählter Ansatz (Netzgrafik Conflict Repair + LNS)
 
@@ -408,14 +445,18 @@ Benchmarkbasis von 0.25 s und nicht auf das aktuelle Standardbudget.
 2. **Konfliktindex**: Streckengleis-Überlastungen, User-Connection-Verletzungen, aktivierte
    Mindesthaltezeitregeln und optionale Fahrzeitgrenzen pro Zuglauf als Konflikte führen. Konflikte
    verweisen auf betroffene Ketten, Knoten und Strecken; es entsteht kein zweiter Netzgrafik-Graph.
-3. **Konflikt-Reparatur**: den höchstpriorisierten aktiven Konflikt wählen, Werte der betroffenen
-   Δ-Ketten testen und nur abhängige Konflikte aktualisieren. Tabu verhindert direkte Zyklen.
+3. **Konflikt-Reparatur**: den höchstpriorisierten aktiven Konflikt wählen, nahe Werte der
+   betroffenen Δ-Ketten testen und nur abhängige Konflikte aktualisieren. Tabu verhindert direkte
+   Zyklen; grössere Verschiebungen können über mehrere Suchschritte entstehen.
 4. **Erkundung und Neustart**: Min-Conflicts/Tabu wird mit Simulated-Annealing-Schritten
-   kombiniert. Nach längerer Stagnation setzt LNS bei der besten Lösung an und verändert eine
-   begrenzte, konfliktnahe Kettengruppe.
+   kombiniert. Nach mehr als 50 Iterationen ohne neue beste Lösung setzt die LNS-inspirierte
+   Perturbation bei der besten Lösung an und verändert zufällig drei bis sieben Variablen ohne
+   Wiederholung aus einer begrenzten, konfliktbezogenen Gruppe. Neustarts liegen mindestens
+   50 Iterationen auseinander. Sie ist kein ALNS und führt keinen eigenen Repair-Lauf aus.
 5. **Archiv und Anzeige**: nur nach den aktiven harten Regeln gültige, nicht dominierte Lösungen
-   kommen ins Archiv. Die UI ordnet sie separat lexikografisch nach den aktivierten Zielen;
-   weiche Ziele ändern die Suche nicht, Hard-Rule-Änderungen revalidieren ohne Suchlauf.
+   kommen ins Archiv. Weiche Ziele beeinflussen die gewichtete Kandidatenbewertung und die
+   Pareto-Dominanz; eine streng lexikografische Optimierung ist das nicht. Die Endvorschläge
+   werden erneut validiert.
 6. **Zeitbudget**: deterministischer Seed und Deadline via `performance.now()`. Konflikt- und
    Nachbarschaftsindizes werden wiederverwendet; der exakte Infrastruktur-Schätzer bestätigt die
    Baseline einmal pro Lauf und geänderte Strecken bei Kandidaten.
@@ -425,11 +466,24 @@ eine periodische Netzgrafik-Fahrplanoptimierung auf bestehenden nativen Objekten
 
 ### 8.4 Performance
 
-- Cache pro Kante (Key: Startzeiten der Züge auf der Kante), inkrementelle Neubewertung und
-  Prioritätsheap für aktive Konflikte.
-- Vollständige Validatoren nur auf den Endlösungen.
-- Früh messen: Anzahl Kanten-Bewertungen pro 1 s; falls nötig schneller Vorfilter
-  (Überlappungszählung auf Minutenbasis), Bestätigung durch den Infrastruktur-Schätzer.
+- Kantenbelegungen werden inkrementell mit einem minutenbasierten Surrogat neu bewertet;
+  die Infrastruktur-Schätzung bestätigt ausgegebene Vorschläge exakt.
+- Knotengleis-Schätzungen verwenden nur die am Knoten angrenzenden Abschnitte. Sie werden
+  während der Suche erst berechnet, wenn alle harten Regeln erfüllt sind; davor tragen
+  weiche Knotengleis-Ziele nichts zur Bewertung infeasibler Zustände bei. Bei gültigen
+  Zuständen werden nur betroffene Knoten neu geschätzt. Ein begrenzter LRU-Cache pro
+  Knoten speichert exakte Ergebnisse anhand der Kandidatenzeiten.
+- Pro Konfliktschritt testet Min-Conflicts zunächst Verschiebungen bis maximal fünf Minuten.
+  Grössere Verschiebungen bleiben über aufeinanderfolgende Suchschritte erreichbar.
+- Die Suche bleibt heuristisch. Nur Kandidaten ohne harte Verletzungen werden archiviert;
+  die Endvalidierung prüft die aktiven harten Regeln unabhängig, bevor ein Vorschlag
+  ausgegeben wird.
+- Benchmarkbasis: Standalone-Demo mit 51 Knoten, 23 Zugläufen und 204 Abschnitten.
+  Bei aktivem hartem Gleislimit (2 Gleise) gab es im 3.5-s-Lauf keinen gültigen Vorschlag,
+  obwohl 675 Iterationen und 19'713 Kandidatenbewertungen ausgeführt wurden. Ohne die
+  harte Gleisregel entstanden vier Vorschläge, aber der beste hatte weiterhin 22
+  überlastete Kanten. Das belegt einen aktuellen Feasibilitätsengpass auf diesem
+  Beispieldatensatz, nicht die Unlösbarkeit oder das Verhalten auf Grossnetzen.
 
 ## 9. Später / offen
 

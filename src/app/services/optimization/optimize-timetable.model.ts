@@ -12,8 +12,6 @@ export interface OptimizeTimetableOptions {
   seed?: number;
   /** Start assignment (e.g. from a previous proposal) to continue the search. */
   startAssignment?: Record<string, number>;
-  /** Upper tolerance for user connections in minutes (default 2). */
-  connectionTolerance?: number;
   /** Window above the connection time counted as optional connection (default 5). */
   optionalConnectionWindow?: number;
   /** Maximum number of proposals returned (default 4). */
@@ -106,9 +104,12 @@ export interface OptimizeTimetableResult {
   noRangeTravelTimeVariables: number;
   fixedChains: number;
   iterations: number;
+  evaluatedCandidates: number;
   runtimeMs: number;
   /** Edges violating the limit before optimization (surrogate). */
   initialEdgesOverLimit: number;
+  /** Best internal search state for warming up another attempt; it may be infeasible. */
+  searchBestAssignment?: Record<string, number>;
   message?: string;
 }
 

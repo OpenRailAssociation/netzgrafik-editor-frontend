@@ -7,21 +7,32 @@ export type HardConstraintId =
   | "scopeBoundary"
   | "symmetry"
   | "maxTravelTimeExtension"
+  /** Legacy stored policy identifier migrated to the soft objective. */
   | "preserveConnectionTimes";
 
 export type ObjectiveId =
   | "minimalChanges"
   | "moreConnections"
+  | "connectionStability"
   | "lowerTravelTime"
   | "lowerTrackUsage"
   | "lowerEdgeTrackUsage";
 
 export type OptimizationMode = "director" | "userDefined";
 
-export type DirectorProfileId = "stability" | "connections" | "trackUsage";
+export type DirectorProfileId =
+  | "stability"
+  | "connections"
+  | "trackUsage"
+  | "flexibilityFrequencyFirst"
+  | "flexibilityCategoryFirst"
+  /** Legacy IDs normalized when loading persisted policies. */
+  | "flexibility"
+  | "frequencyFirst";
 
 export const DIRECTOR_OBJECTIVE_ORDER: ObjectiveId[] = [
   "minimalChanges",
+  "connectionStability",
   "moreConnections",
   "lowerTravelTime",
   "lowerTrackUsage",
@@ -55,6 +66,7 @@ export function getObjectiveWeights(policy: OptimizationPolicy): Record<Objectiv
   const weights: Record<ObjectiveId, number> = {
     minimalChanges: 0,
     moreConnections: 0,
+    connectionStability: 0,
     lowerTravelTime: 0,
     lowerTrackUsage: 0,
     lowerEdgeTrackUsage: 0,
@@ -146,11 +158,6 @@ export function createDefaultOptimizationPolicy(): OptimizationPolicy {
         enabled: false,
         value: 5,
       },
-      {
-        id: "preserveConnectionTimes",
-        name: "app.view.dialogs.optimize-timetable-dialog.director.constraint.preserve-connection-times",
-        enabled: false,
-      },
     ],
     objectives: [
       {
@@ -161,31 +168,38 @@ export function createDefaultOptimizationPolicy(): OptimizationPolicy {
         rating: 10,
       },
       {
+        id: "connectionStability",
+        name: "app.view.dialogs.optimize-timetable-dialog.director.objective.connection-stability",
+        enabled: true,
+        priority: 1,
+        rating: 8,
+      },
+      {
         id: "moreConnections",
         name: "app.view.dialogs.optimize-timetable-dialog.director.objective.more-connections",
         enabled: true,
-        priority: 1,
+        priority: 2,
         rating: 6,
       },
       {
         id: "lowerTravelTime",
         name: "app.view.dialogs.optimize-timetable-dialog.director.objective.lower-travel-time",
         enabled: true,
-        priority: 2,
+        priority: 3,
         rating: 6,
       },
       {
         id: "lowerTrackUsage",
         name: "app.view.dialogs.optimize-timetable-dialog.director.objective.lower-track-usage",
         enabled: true,
-        priority: 3,
+        priority: 4,
         rating: 4,
       },
       {
         id: "lowerEdgeTrackUsage",
         name: "app.view.dialogs.optimize-timetable-dialog.director.objective.lower-edge-track-usage",
         enabled: true,
-        priority: 4,
+        priority: 5,
         rating: 4,
       },
     ],

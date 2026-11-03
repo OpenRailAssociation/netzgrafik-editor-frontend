@@ -39,6 +39,7 @@ export class OptimizationDirectorComponent {
         "app.view.dialogs.optimize-timetable-dialog.director.profile.stability-description",
       ratings: {
         minimalChanges: 10,
+        connectionStability: 8,
         moreConnections: 6,
         lowerTravelTime: 6,
         lowerTrackUsage: 4,
@@ -52,6 +53,7 @@ export class OptimizationDirectorComponent {
         "app.view.dialogs.optimize-timetable-dialog.director.profile.connections-description",
       ratings: {
         minimalChanges: 6,
+        connectionStability: 6,
         moreConnections: 10,
         lowerTravelTime: 6,
         lowerTrackUsage: 4,
@@ -65,10 +67,39 @@ export class OptimizationDirectorComponent {
         "app.view.dialogs.optimize-timetable-dialog.director.profile.track-usage-description",
       ratings: {
         minimalChanges: 6,
+        connectionStability: 4,
         moreConnections: 4,
         lowerTravelTime: 4,
         lowerTrackUsage: 10,
         lowerEdgeTrackUsage: 10,
+      },
+    },
+    {
+      id: "flexibilityFrequencyFirst",
+      title: "app.view.dialogs.optimize-timetable-dialog.director.profile.frequency-first",
+      description:
+        "app.view.dialogs.optimize-timetable-dialog.director.profile.frequency-first-description",
+      ratings: {
+        minimalChanges: 10,
+        connectionStability: 8,
+        moreConnections: 6,
+        lowerTravelTime: 6,
+        lowerTrackUsage: 4,
+        lowerEdgeTrackUsage: 4,
+      },
+    },
+    {
+      id: "flexibilityCategoryFirst",
+      title: "app.view.dialogs.optimize-timetable-dialog.director.profile.category-order-first",
+      description:
+        "app.view.dialogs.optimize-timetable-dialog.director.profile.category-order-first-description",
+      ratings: {
+        minimalChanges: 10,
+        connectionStability: 8,
+        moreConnections: 6,
+        lowerTravelTime: 6,
+        lowerTrackUsage: 4,
+        lowerEdgeTrackUsage: 4,
       },
     },
   ];
@@ -94,9 +125,20 @@ export class OptimizationDirectorComponent {
     if (profile === undefined) {
       return;
     }
+    const flexible =
+      profileId === "flexibilityFrequencyFirst" || profileId === "flexibilityCategoryFirst";
     this.updatePolicy({
       ...this.policy,
       directorProfile: profileId,
+      hardConstraints: this.policy.hardConstraints.map((constraint) => {
+        if (constraint.id === "timeLocks" || constraint.id === "travelTimeLocks") {
+          return {...constraint, enabled: !flexible};
+        }
+        if (constraint.id === "maxTravelTimeExtension") {
+          return {...constraint, enabled: flexible, value: 5};
+        }
+        return constraint;
+      }),
       objectives: this.policy.objectives.map((objective) => ({
         ...objective,
         rating: profile.ratings[objective.id],

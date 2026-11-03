@@ -269,8 +269,7 @@ export class ConflictIndex {
       case "USER_CONNECTION": {
         const violation = this.evaluator.getConnectionViolationSeverity(conflict.componentIndex);
         severity =
-          (this.isEnabled("userConnections") || this.isEnabled("preserveConnectionTimes")) &&
-          violation > 0
+          this.isEnabled("userConnections") && violation > 0
             ? 500 + conflict.affectedVariables.length + violation
             : 0;
         break;

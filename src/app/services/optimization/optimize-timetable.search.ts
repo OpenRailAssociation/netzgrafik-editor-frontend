@@ -13,7 +13,9 @@ export interface ArchivedSolution {
 export interface SearchResult {
   archive: ArchivedSolution[];
   initial: ArchivedSolution;
+  bestAssignment: Record<string, number>;
   iterations: number;
+  evaluatedCandidates: number;
   trace: SearchTraceEntry[];
   omittedTraceEntries: number;
   continueFor?: (
@@ -40,9 +42,32 @@ export interface SearchTraceEntry {
   effects: string;
 }
 
+export interface ConflictStepCandidate {
+  distance: number;
+  values: number[];
+}
+
+interface TrainrunShiftGroup {
+  trainrunId: number;
+  variables: number[];
+  headway: number;
+}
+
+interface CandidateMove {
+  variables: number[];
+  values: number[];
+  score: number;
+  hard: number;
+  severity: number;
+  traceLabel?: string;
+}
+
 const ARCHIVE_SIZE = 40;
 const TABU_TENURE = 7;
 const MAX_TRACE_ENTRIES = 150;
+const MAX_CONFLICT_STEP_DISTANCE = 5;
+const PRIORITY_STAGING_FRACTION = 0.5;
+const LNS_STAGNATION_ITERATIONS = 50;
 
 interface TraceSnapshot {
   parts: ScoreParts;
@@ -75,6 +100,27 @@ export function createRandom(seed: number): () => number {
   };
 }
 
+export function getActivePriorityRank(progress: number, groupCount: number): number {
+  if (groupCount <= 0) {
+    return -1;
+  }
+  const clampedProgress = Math.max(0, Math.min(1, progress));
+  return Math.min(
+    groupCount - 1,
+    Math.floor((clampedProgress * (groupCount - 1)) / PRIORITY_STAGING_FRACTION),
+  );
+}
+
+function chooseRandomSubset(candidates: number[], count: number, random: () => number): number[] {
+  const shuffled = [...candidates];
+  const selectedCount = Math.min(shuffled.length, count);
+  for (let i = 0; i < selectedCount; i++) {
+    const swapIndex = i + Math.floor(random() * (shuffled.length - i));
+    [shuffled[i], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[i]];
+  }
+  return shuffled.slice(0, selectedCount);
+}
+
 function objectiveEnabled(problem: OptimizationProblem, id: ObjectiveId): boolean {
   return getObjectiveWeights(problem.policy)[id] > 0;
 }
@@ -92,6 +138,9 @@ function dominates(a: ScoreParts, b: ScoreParts, problem: OptimizationProblem): 
   }
   if (objectiveEnabled(problem, "moreConnections")) {
     comparisons.push([-a.optionalConnections, -b.optionalConnections]);
+  }
+  if (objectiveEnabled(problem, "connectionStability")) {
+    comparisons.push([a.connectionWaitDeviation, b.connectionWaitDeviation]);
   }
   if (objectiveEnabled(problem, "minimalChanges")) {
     comparisons.push([a.sumAbsShift, b.sumAbsShift]);
@@ -117,9 +166,27 @@ function sameDelta(a: Int32Array, b: Int32Array): boolean {
   return true;
 }
 
-export function getLocalStepCandidates(current: number, domain: number): number[][] {
+function assignmentFromDelta(
+  problem: OptimizationProblem,
+  delta: Int32Array,
+): Record<string, number> {
+  const assignment: Record<string, number> = {};
+  problem.variables.forEach((variable, index) => {
+    assignment[variable.key] = delta[index];
+  });
+  return assignment;
+}
+
+export function getLocalStepCandidates(
+  current: number,
+  domain: number,
+  maxStepDistance = Number.POSITIVE_INFINITY,
+): number[][] {
   const steps: number[][] = [];
-  const maxStep = Math.max(domain + current, domain - current);
+  const maxStep = Math.min(
+    Math.max(domain + current, domain - current),
+    Math.max(0, Math.floor(maxStepDistance)),
+  );
   for (let step = 1; step <= maxStep; step++) {
     const candidates: number[] = [];
     if (current - step >= -domain) {
@@ -135,6 +202,88 @@ export function getLocalStepCandidates(current: number, domain: number): number[
   return steps;
 }
 
+export function getConflictStepCandidates(
+  current: number,
+  domain: number,
+  priorityProfile: OptimizationProblem["policy"]["directorProfile"] | undefined,
+  priorityRank: number | undefined,
+  sectionHeadway = 0,
+): ConflictStepCandidate[] {
+  const isLaterCategory =
+    priorityProfile === "flexibilityCategoryFirst" &&
+    priorityRank !== undefined &&
+    priorityRank > 0;
+  const candidates = getLocalStepCandidates(
+    current,
+    domain,
+    isLaterCategory ? Number.POSITIVE_INFINITY : MAX_CONFLICT_STEP_DISTANCE,
+  ).map((values, index) => ({distance: index + 1, values}));
+  const headway = Math.round(sectionHeadway);
+  if (headway > 1) {
+    const headwayGroup = getLocalStepCandidates(current, domain, headway)[headway - 1];
+    if (headwayGroup !== undefined) {
+      const existingIndex = candidates.findIndex((candidate) => candidate.distance === headway);
+      if (existingIndex >= 0) {
+        candidates.splice(existingIndex, 1);
+      }
+      candidates.splice(1, 0, {distance: headway, values: headwayGroup});
+    }
+  }
+  return candidates;
+}
+
+export function shouldAcceptExploratoryMove(
+  currentHardConflicts: number,
+  candidateHardConflicts: number,
+  currentScore: number,
+  candidateScore: number,
+  temperature: number,
+  randomValue: number,
+): boolean {
+  if (candidateHardConflicts > currentHardConflicts) {
+    return false;
+  }
+  if (candidateScore <= currentScore) {
+    return true;
+  }
+  return randomValue < Math.exp((currentScore - candidateScore) / Math.max(temperature, 1e-9));
+}
+
+function getTrainrunShiftGroups(problem: OptimizationProblem): TrainrunShiftGroup[] {
+  const groups = new Map<number, {variables: Set<number>; headway: number}>();
+  problem.variables.forEach((variable, variableIndex) => {
+    if (variable.fixed || variable.domain <= 0 || variable.travelTimeTrainrunIndex !== undefined) {
+      return;
+    }
+    variable.chains.forEach((chainIndex) => {
+      const trainrun = problem.chains[chainIndex].trainrun;
+      const trainrunId = trainrun.getId();
+      const group = groups.get(trainrunId) ?? {variables: new Set<number>(), headway: 1};
+      group.variables.add(variableIndex);
+      group.headway = Math.max(
+        group.headway,
+        Math.max(1, Math.round(trainrun.getTrainrunCategory()?.sectionHeadway ?? 1)),
+      );
+      groups.set(trainrunId, group);
+    });
+  });
+  return [...groups].map(([trainrunId, group]) => ({
+    trainrunId,
+    variables: [...group.variables],
+    headway: group.headway,
+  }));
+}
+
+function getVariableSectionHeadway(problem: OptimizationProblem, variableIndex: number): number {
+  return Math.max(
+    0,
+    ...problem.variables[variableIndex].chains.map(
+      (chainIndex) =>
+        problem.chains[chainIndex].trainrun.getTrainrunCategory()?.sectionHeadway ?? 0,
+    ),
+  );
+}
+
 export function orderConflictVariables(affectedVariables: number[], startIndex = 0): number[] {
   const variables = [...new Set(affectedVariables)];
   if (variables.length === 0) {
@@ -142,6 +291,98 @@ export function orderConflictVariables(affectedVariables: number[], startIndex =
   }
   const offset = ((startIndex % variables.length) + variables.length) % variables.length;
   return [...variables.slice(offset), ...variables.slice(0, offset)];
+}
+
+function getFrequencyRanks(
+  problem: OptimizationProblem,
+  variableIndices: number[],
+): {rankByVariable: Int32Array; variablesByRank: number[][]; groupCount: number} {
+  const frequencyByTrainrunId = new Map<number, number>();
+  problem.sections.forEach((section) => {
+    const trainrun = section.getTrainrun();
+    const frequency = trainrun.getFrequency();
+    frequencyByTrainrunId.set(trainrun.getId(), frequency > 0 ? frequency : 60);
+  });
+
+  const priorityByVariable = new Map<number, number>();
+  variableIndices.forEach((variableIndex) => {
+    const variable = problem.variables[variableIndex];
+    const frequencies = variable.chains.map((chainIndex) => {
+      const frequency = problem.chains[chainIndex].trainrun.getFrequency();
+      return frequency > 0 ? frequency : 60;
+    });
+    if (variable.travelTimeTrainrunIndex !== undefined) {
+      const trainrunId = problem.trainrunIds[variable.travelTimeTrainrunIndex];
+      frequencies.push(frequencyByTrainrunId.get(trainrunId) ?? 60);
+    }
+    priorityByVariable.set(variableIndex, frequencies.length === 0 ? 60 : Math.min(...frequencies));
+  });
+
+  return getRanksByPriority(problem.variables.length, priorityByVariable);
+}
+
+export function getCategoryOrderRanks(
+  problem: Pick<OptimizationProblem, "sections" | "variables" | "chains" | "trainrunIds">,
+  variableIndices: number[],
+): {rankByVariable: Int32Array; variablesByRank: number[][]; groupCount: number} {
+  const categoryOrderByTrainrunId = new Map<number, number>();
+  problem.sections.forEach((section) => {
+    const trainrun = section.getTrainrun();
+    categoryOrderByTrainrunId.set(trainrun.getId(), trainrun.getCategoryOrder());
+  });
+
+  const priorityByVariable = new Map<number, number>();
+  variableIndices.forEach((variableIndex) => {
+    const variable = problem.variables[variableIndex];
+    const categoryOrders = variable.chains.map((chainIndex) =>
+      problem.chains[chainIndex].trainrun.getCategoryOrder(),
+    );
+    if (variable.travelTimeTrainrunIndex !== undefined) {
+      const trainrunId = problem.trainrunIds[variable.travelTimeTrainrunIndex];
+      categoryOrders.push(categoryOrderByTrainrunId.get(trainrunId) ?? Number.MAX_SAFE_INTEGER);
+    }
+    priorityByVariable.set(
+      variableIndex,
+      categoryOrders.length === 0 ? Number.MAX_SAFE_INTEGER : Math.min(...categoryOrders),
+    );
+  });
+
+  return getRanksByPriority(problem.variables.length, priorityByVariable);
+}
+
+function getRanksByPriority(
+  variableCount: number,
+  priorityByVariable: Map<number, number>,
+): {rankByVariable: Int32Array; variablesByRank: number[][]; groupCount: number} {
+  const orderedPriorities = [...new Set(priorityByVariable.values())].sort(
+    (first, second) => first - second,
+  );
+  const rankByPriority = new Map(orderedPriorities.map((priority, index) => [priority, index]));
+  const rankByVariable = new Int32Array(variableCount);
+  const variablesByRank = orderedPriorities.map(() => [] as number[]);
+  priorityByVariable.forEach((priority, variableIndex) => {
+    const rank = rankByPriority.get(priority) ?? 0;
+    rankByVariable[variableIndex] = rank;
+    variablesByRank[rank].push(variableIndex);
+  });
+  return {rankByVariable, variablesByRank, groupCount: orderedPriorities.length};
+}
+
+function orderVariablesByPriority(
+  variables: number[],
+  rankByVariable: Int32Array,
+  startIndex: number,
+): number[] {
+  const groups = new Map<number, number[]>();
+  variables.forEach((variableIndex) => {
+    const rank = rankByVariable[variableIndex];
+    const group = groups.get(rank) ?? [];
+    group.push(variableIndex);
+    groups.set(rank, group);
+  });
+  return [...groups.keys()]
+    .sort((first, second) => first - second)
+    .flatMap((rank) => orderConflictVariables(groups.get(rank) ?? [], startIndex));
 }
 
 function describeVariable(problem: OptimizationProblem, variableIndex: number): string {
@@ -336,6 +577,14 @@ export async function runSearch(
   const freeVars = problem.variables
     .map((variable, v) => (!variable.fixed && variable.domain > 0 ? v : -1))
     .filter((v) => v >= 0);
+  const priorityProfile =
+    problem.policy.mode === "director" ? problem.policy.directorProfile : undefined;
+  const priorityRanks =
+    priorityProfile === "flexibilityFrequencyFirst"
+      ? getFrequencyRanks(problem, freeVars)
+      : priorityProfile === "flexibilityCategoryFirst"
+        ? getCategoryOrderRanks(problem, freeVars)
+        : undefined;
 
   let score = evaluator.evaluateAll();
   const initial: ArchivedSolution = {
@@ -410,17 +659,38 @@ export async function runSearch(
 
   if (freeVars.length === 0) {
     onProgress?.({fraction: 1, elapsedMs: performance.now() - searchStartedAt, iterations: 0});
-    return {archive, initial, iterations: 0, trace, omittedTraceEntries};
+    return {
+      archive,
+      initial,
+      bestAssignment: assignmentFromDelta(problem, initial.delta),
+      iterations: 0,
+      evaluatedCandidates: 0,
+      trace,
+      omittedTraceEntries,
+    };
   }
 
   let best = new Int32Array(evaluator.delta);
   let bestScore = score;
   const tabuUntil = new Int32Array(problem.variables.length);
   let iteration = 0;
+  let evaluatedCandidates = 0;
+  let activePriorityRank = -1;
+  const activeFreeVars = priorityRanks === undefined ? freeVars : [];
+  const trainrunShiftGroups = getTrainrunShiftGroups(problem);
   let lastImprovement = 0;
+  let lastLnsRestart = -LNS_STAGNATION_ITERATIONS;
   const startTime = performance.now();
   let nextProgressAt = startTime + 250;
+  let nextYieldAt = startTime + 16;
   let polishReserveMs = Math.min(40, timeBudgetMs * 0.2);
+  const yieldToBrowser = () => {
+    if (performance.now() < nextYieldAt) {
+      return undefined;
+    }
+    nextYieldAt = performance.now() + 16;
+    return new Promise<void>((resolve) => setTimeout(resolve, 0));
+  };
 
   const setBest = () => {
     if (score < bestScore - 1e-9) {
@@ -432,6 +702,10 @@ export async function runSearch(
 
   const runForBudget = async () => {
     while (performance.now() < deadline) {
+      const browserYield = yieldToBrowser();
+      if (browserYield !== undefined) {
+        await browserYield;
+      }
       const now = performance.now();
       if (now >= nextProgressAt) {
         activeProgress?.({
@@ -443,51 +717,170 @@ export async function runSearch(
           iterations: iteration,
         });
         nextProgressAt = now + 250;
-        await new Promise<void>((resolve) => setTimeout(resolve, 0));
       }
       if (hasFeasibleAlternative && performance.now() >= deadline - polishReserveMs) {
         break;
       }
       iteration++;
-      let changedVariable = -1;
+      if (priorityRanks !== undefined) {
+        const progress = Math.min(1, (performance.now() - startTime) / Math.max(1, totalBudgetMs));
+        const nextPriorityRank = getActivePriorityRank(progress, priorityRanks.groupCount);
+        for (let rank = activePriorityRank + 1; rank <= nextPriorityRank; rank++) {
+          activeFreeVars.push(...priorityRanks.variablesByRank[rank]);
+        }
+        activePriorityRank = Math.max(activePriorityRank, nextPriorityRank);
+      }
+      let changedVariables: number[] = [];
       let pendingTrace: PendingTrace | undefined;
       const conflict = conflictIndex.getHighestPriority();
-      if (conflict !== undefined && random() < 0.85) {
+      const activeConflictVariables =
+        conflict === undefined || priorityRanks === undefined
+          ? (conflict?.affectedVariables ?? [])
+          : conflict.affectedVariables.filter(
+              (variableIndex) => priorityRanks.rankByVariable[variableIndex] <= activePriorityRank,
+            );
+      if (conflict !== undefined && activeConflictVariables.length > 0 && random() < 0.85) {
         // --- Min-Conflicts + Tabu ----------------------------------------
-        const vars = conflict.affectedVariables;
-        const selectedVariables = orderConflictVariables(vars, iteration - 1);
+        const selectedVariables =
+          priorityRanks === undefined
+            ? orderConflictVariables(activeConflictVariables, iteration - 1)
+            : orderVariablesByPriority(
+                activeConflictVariables,
+                priorityRanks.rankByVariable,
+                iteration - 1,
+              );
 
         const currentParts = evaluator.parts();
         const currentSeverity = conflict.severity;
         const candidatesByVariable = selectedVariables.map((v) => ({
           v,
-          groups: getLocalStepCandidates(evaluator.delta[v], problem.variables[v].domain),
+          groups: getConflictStepCandidates(
+            evaluator.delta[v],
+            problem.variables[v].domain,
+            priorityProfile,
+            priorityRanks?.rankByVariable[v],
+            getVariableSectionHeadway(problem, v),
+          ),
         }));
+        const selectedVariableSet = new Set(selectedVariables);
+        const activeTrainrunGroups = trainrunShiftGroups.filter(
+          (group) =>
+            group.variables.some((variableIndex) => selectedVariableSet.has(variableIndex)) &&
+            (priorityRanks === undefined ||
+              group.variables.every(
+                (variableIndex) =>
+                  priorityRanks.rankByVariable[variableIndex] <= activePriorityRank,
+              )),
+        );
         const maxStep = Math.max(0, ...candidatesByVariable.map(({groups}) => groups.length));
         const testedSteps: number[] = [];
-        let bestMove: {v: number; value: number; score: number} = undefined;
+        let bestMove: CandidateMove | undefined;
+        let fallbackGroupMove: CandidateMove | undefined;
         let fallbackMove: {v: number; value: number; score: number} = undefined;
+        const explorationProgress = Math.min(
+          1,
+          (performance.now() - startTime) / Math.max(1, totalBudgetMs),
+        );
+        const explorationTemperature = 5 * Math.pow(0.02, explorationProgress);
+        const isBetterMove = (candidate: CandidateMove, current: CandidateMove | undefined) =>
+          current === undefined ||
+          candidate.hard < current.hard ||
+          (candidate.hard === current.hard &&
+            (candidate.severity < current.severity ||
+              (candidate.severity === current.severity && candidate.score < current.score)));
+        const evaluateTrainrunShift = async (
+          group: TrainrunShiftGroup,
+          shift: number,
+        ): Promise<CandidateMove | undefined> => {
+          const oldValues = group.variables.map((v) => evaluator.delta[v]);
+          const values = oldValues.map((value) => value + shift);
+          if (
+            values.some(
+              (value, index) =>
+                value < -problem.variables[group.variables[index]].domain ||
+                value > problem.variables[group.variables[index]].domain,
+            )
+          ) {
+            return undefined;
+          }
+          group.variables.forEach((v, index) => evaluator.setVariable(v, values[index]));
+          group.variables.forEach((v) => conflictIndex.updateVariable(v));
+          evaluatedCandidates++;
+          const candidateScore = evaluator.score();
+          const candidateParts = evaluator.parts();
+          const candidateSeverity = conflict.severity;
+          const isTabu =
+            group.variables.some((v) => tabuUntil[v] > iteration) &&
+            candidateScore >= bestScore &&
+            candidateSeverity >= currentSeverity;
+          const improvesConflict =
+            candidateParts.hard < currentParts.hard ||
+            (candidateParts.hard === currentParts.hard && candidateSeverity < currentSeverity);
+          let improvingCandidate: CandidateMove | undefined;
+          if (!isTabu && improvesConflict) {
+            improvingCandidate = {
+              variables: group.variables,
+              values,
+              score: candidateScore,
+              hard: candidateParts.hard,
+              severity: candidateSeverity,
+              traceLabel: `Zuglauf ${group.trainrunId} ±${shift}`,
+            };
+          } else if (
+            !isTabu &&
+            shouldAcceptExploratoryMove(
+              currentParts.hard,
+              candidateParts.hard,
+              score,
+              candidateScore,
+              explorationTemperature,
+              random(),
+            )
+          ) {
+            const candidate: CandidateMove = {
+              variables: group.variables,
+              values,
+              score: candidateScore,
+              hard: candidateParts.hard,
+              severity: candidateSeverity,
+              traceLabel: `Zuglauf ${group.trainrunId} ±${shift} Erkundung`,
+            };
+            if (isBetterMove(candidate, fallbackGroupMove)) {
+              fallbackGroupMove = candidate;
+            }
+          }
+          for (let index = group.variables.length - 1; index >= 0; index--) {
+            const v = group.variables[index];
+            evaluator.setVariable(v, oldValues[index]);
+            conflictIndex.updateVariable(v);
+          }
+          const browserYield = yieldToBrowser();
+          if (browserYield !== undefined) {
+            await browserYield;
+          }
+          return improvingCandidate;
+        };
 
         for (let stepIndex = 0; stepIndex < maxStep && performance.now() < deadline; stepIndex++) {
-          testedSteps.push(stepIndex + 1);
-          let bestAtStep: {
-            v: number;
-            value: number;
-            score: number;
-            hard: number;
-            severity: number;
-          } = undefined;
+          const testedDistanceSet = new Set<number>();
+          let bestAtStep: CandidateMove | undefined;
           for (const {v, groups} of candidatesByVariable) {
             if (performance.now() >= deadline) {
               break;
             }
+            const stepCandidate = groups[stepIndex];
+            if (stepCandidate === undefined) {
+              continue;
+            }
+            testedDistanceSet.add(stepCandidate.distance);
             const old = evaluator.delta[v];
-            const values = groups[stepIndex] ?? [];
+            const values = stepCandidate.values;
             for (const value of values) {
               if (performance.now() >= deadline) {
                 break;
               }
               const candidateScore = evaluator.setVariable(v, value);
+              evaluatedCandidates++;
               conflictIndex.updateVariable(v);
               const candidateParts = evaluator.parts();
               const candidateSeverity = conflict.severity;
@@ -505,53 +898,83 @@ export async function runSearch(
                   (candidateParts.hard === currentParts.hard &&
                     candidateSeverity < currentSeverity);
                 if (improvesConflict) {
-                  const isBetterAtStep =
-                    bestAtStep === undefined ||
-                    candidateParts.hard < bestAtStep.hard ||
-                    (candidateParts.hard === bestAtStep.hard &&
-                      (candidateSeverity < bestAtStep.severity ||
-                        (candidateSeverity === bestAtStep.severity &&
-                          candidateScore < bestAtStep.score)));
-                  if (isBetterAtStep) {
-                    bestAtStep = {
-                      v,
-                      value,
-                      score: candidateScore,
-                      hard: candidateParts.hard,
-                      severity: candidateSeverity,
-                    };
+                  const candidate: CandidateMove = {
+                    variables: [v],
+                    values: [value],
+                    score: candidateScore,
+                    hard: candidateParts.hard,
+                    severity: candidateSeverity,
+                  };
+                  if (isBetterMove(candidate, bestAtStep)) {
+                    bestAtStep = candidate;
                   }
                 }
               }
               evaluator.setVariable(v, old);
               conflictIndex.updateVariable(v);
+              const browserYield = yieldToBrowser();
+              if (browserYield !== undefined) {
+                await browserYield;
+              }
             }
           }
+          const shiftIndex = stepIndex === 0 ? 0 : stepIndex === 1 ? 1 : -1;
+          if (shiftIndex >= 0) {
+            for (const group of activeTrainrunGroups) {
+              if ((group.headway > 1 ? 1 : 0) !== shiftIndex) {
+                continue;
+              }
+              testedDistanceSet.add(group.headway);
+              for (const shift of [-group.headway, group.headway]) {
+                if (performance.now() >= deadline) {
+                  break;
+                }
+                const candidate = await evaluateTrainrunShift(group, shift);
+                if (candidate !== undefined && isBetterMove(candidate, bestAtStep)) {
+                  bestAtStep = candidate;
+                }
+              }
+            }
+          }
+          testedSteps.push(...testedDistanceSet);
           if (bestAtStep !== undefined) {
             bestMove = bestAtStep;
             break;
           }
         }
 
-        if (bestMove === undefined) {
-          bestMove = fallbackMove;
-        }
-        if (bestMove !== undefined && bestMove.score < 0.5 * Number.MAX_VALUE) {
+        const usedFallback = bestMove === undefined && fallbackMove !== undefined;
+        const selectedMove: CandidateMove | undefined =
+          bestMove ??
+          fallbackGroupMove ??
+          (fallbackMove === undefined
+            ? undefined
+            : {
+                variables: [fallbackMove.v],
+                values: [fallbackMove.value],
+                score: fallbackMove.score,
+                hard: currentParts.hard,
+                severity: currentSeverity,
+              });
+        if (selectedMove !== undefined && selectedMove.score < 0.5 * Number.MAX_VALUE) {
           const before = traceEnabled
-            ? captureTraceSnapshot(problem, evaluator, [bestMove.v])
+            ? captureTraceSnapshot(problem, evaluator, selectedMove.variables)
             : undefined;
-          const oldValue = evaluator.delta[bestMove.v];
-          score = evaluator.setVariable(bestMove.v, bestMove.value);
-          tabuUntil[bestMove.v] = iteration + TABU_TENURE;
-          changedVariable = bestMove.v;
+          const oldValues = selectedMove.variables.map((v) => evaluator.delta[v]);
+          selectedMove.variables.forEach((v, index) => {
+            evaluator.setVariable(v, selectedMove.values[index]);
+            tabuUntil[v] = iteration + TABU_TENURE;
+          });
+          score = evaluator.score();
+          changedVariables = selectedMove.variables;
           if (before !== undefined) {
             pendingTrace = {
               phase: "Konfliktreparatur",
               conflict,
-              variables: [bestMove.v],
-              oldValues: [oldValue],
-              newValues: [bestMove.value],
-              tested: `${testedSteps.map((step) => `±${step}`).join(", ")}${bestMove === fallbackMove ? " (Fallback)" : ""}`,
+              variables: selectedMove.variables,
+              oldValues,
+              newValues: selectedMove.values,
+              tested: `${testedSteps.map((step) => `±${step}`).join(", ")}${selectedMove.traceLabel ? ` (${selectedMove.traceLabel})` : usedFallback ? " (Fallback)" : ""}`,
               severityBefore: currentSeverity,
               before,
             };
@@ -561,7 +984,7 @@ export async function runSearch(
         // --- Simulated Annealing -----------------------------------------
         const progress = Math.min(1, (performance.now() - startTime) / Math.max(1, totalBudgetMs));
         const temperature = 5 * Math.pow(0.02, progress);
-        const v = freeVars[Math.floor(random() * freeVars.length)];
+        const v = activeFreeVars[Math.floor(random() * activeFreeVars.length)];
         const domain = problem.variables[v].domain;
         const old = evaluator.delta[v];
         const maxStep = Math.min(
@@ -575,10 +998,11 @@ export async function runSearch(
         }
         const before = traceEnabled ? captureTraceSnapshot(problem, evaluator, [v]) : undefined;
         const s = evaluator.setVariable(v, value);
+        evaluatedCandidates++;
         const diff = s - score;
         if (diff <= 0 || random() < Math.exp(-diff / temperature)) {
           score = s;
-          changedVariable = v;
+          changedVariables = [v];
           if (before !== undefined) {
             pendingTrace = {
               phase: "Simulated Annealing",
@@ -596,9 +1020,7 @@ export async function runSearch(
         }
       }
 
-      if (changedVariable >= 0) {
-        conflictIndex.updateVariable(changedVariable);
-      }
+      changedVariables.forEach((variableIndex) => conflictIndex.updateVariable(variableIndex));
       if (pendingTrace !== undefined) {
         const after = captureTraceSnapshot(problem, evaluator, pendingTrace.variables);
         const next = conflictIndex.getHighestPriority();
@@ -628,7 +1050,11 @@ export async function runSearch(
       archiveCurrent();
 
       // --- LNS restart from best with random perturbation -----------------
-      if (iteration - lastImprovement > 300) {
+      if (
+        iteration - lastImprovement > LNS_STAGNATION_ITERATIONS &&
+        iteration - lastLnsRestart > LNS_STAGNATION_ITERATIONS
+      ) {
+        lastLnsRestart = iteration;
         for (let v = 0; v < best.length; v++) {
           if (evaluator.delta[v] !== best[v]) {
             evaluator.setVariable(v, best[v]);
@@ -661,21 +1087,33 @@ export async function runSearch(
         }
         const neighborhood =
           anchor === undefined
-            ? freeVars
+            ? activeFreeVars
             : conflictIndex.buildCluster(anchor, Math.max(4, Math.ceil(freeVars.length * 0.2)));
-        const variablesToDestroy = neighborhood.length === 0 ? freeVars : neighborhood;
-        const destroy = Math.min(variablesToDestroy.length, 2 + Math.floor(random() * 4));
-        const destroyedVariables = variablesToDestroy.slice(0, destroy);
+        const activeNeighborhood =
+          priorityRanks === undefined
+            ? neighborhood
+            : neighborhood.filter(
+                (variableIndex) =>
+                  priorityRanks.rankByVariable[variableIndex] <= activePriorityRank,
+              );
+        const variablesToDestroy =
+          activeNeighborhood.length === 0 ? activeFreeVars : activeNeighborhood;
+        const destroyCount = 3 + Math.floor(random() * 5);
+        const destroyedVariables = chooseRandomSubset(variablesToDestroy, destroyCount, random);
         const before = traceEnabled
           ? captureTraceSnapshot(problem, evaluator, destroyedVariables)
           : undefined;
         const anchorSeverityBefore = anchor?.severity ?? 0;
         const oldValues = destroyedVariables.map((v) => evaluator.delta[v]);
-        for (let n = 0; n < destroy; n++) {
+        for (let n = 0; n < destroyedVariables.length; n++) {
           const v = destroyedVariables[n];
           const domain = problem.variables[v].domain;
           evaluator.setVariable(v, Math.round((random() * 2 - 1) * domain));
           conflictIndex.updateVariable(v);
+          const browserYield = yieldToBrowser();
+          if (browserYield !== undefined) {
+            await browserYield;
+          }
         }
         score = evaluator.score();
         if (before !== undefined) {
@@ -769,6 +1207,10 @@ export async function runSearch(
           } else {
             evaluator.setVariable(v, current);
           }
+          const browserYield = yieldToBrowser();
+          if (browserYield !== undefined) {
+            await browserYield;
+          }
         }
       }
       score = evaluator.score();
@@ -786,7 +1228,9 @@ export async function runSearch(
   const result: SearchResult = {
     archive,
     initial,
+    bestAssignment: assignmentFromDelta(problem, best),
     iterations: iteration,
+    evaluatedCandidates,
     trace,
     omittedTraceEntries,
     continueFor: async (additionalBudgetMs, nextProgress) => {
@@ -799,9 +1243,12 @@ export async function runSearch(
       segmentBudgetMs = additionalBudgetMs;
       polishReserveMs = Math.min(40, totalBudgetMs * 0.2);
       nextProgressAt = segmentStartedAt + 250;
+      nextYieldAt = segmentStartedAt + 16;
       activeProgress = nextProgress;
       await runForBudget();
       result.iterations = iteration;
+      result.evaluatedCandidates = evaluatedCandidates;
+      result.bestAssignment = assignmentFromDelta(problem, best);
       return result;
     },
   };

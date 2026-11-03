@@ -13,15 +13,17 @@ import {InfrastructureEstimatorService} from "../infrastructure/infrastructure-e
 /** Same time resolution as the InfrastructureEstimatorService (cells per minute). */
 const TICKS_PER_MINUTE = 15;
 /** Sample positions per minute of travel time along an edge for the fast track surrogate. */
-const SAMPLES_PER_MINUTE = 2;
+const SAMPLES_PER_MINUTE = 0.5;
 const MIN_SAMPLES = 9;
 const MAX_SAMPLES = 121;
+const MAX_NODE_TRACK_CACHE_ENTRIES = 128;
 
 export const WEIGHT_HARD = 1e6;
 export const WEIGHT_TRACK = 1000;
 export const WEIGHT_TRAVEL_TIME = 1;
 export const WEIGHT_OPTIONAL_CONNECTION = 3;
 export const WEIGHT_SHIFT = 10;
+export const WEIGHT_CONNECTION_STABILITY = 10;
 
 export interface ScoreParts {
   hard: number;
@@ -30,6 +32,7 @@ export interface ScoreParts {
   nodeTrackCost: number;
   edgesOverLimit: number;
   connectionViolations: number;
+  connectionWaitDeviation: number;
   stopViolations: number;
   travelTimeExtensionViolation: number;
   travelTimeDelta: number;
@@ -67,23 +70,34 @@ export class TimetableEvaluator {
   private readonly stopDwell: Float64Array;
   private readonly stopViolation: Uint8Array;
   private readonly connectionViolation: Uint8Array;
+  private readonly connectionWaitDeviation: Float64Array;
   private readonly travelTimeDeltaByTrainrun: Float64Array;
   private readonly travelTimeExtensionViolationByTrainrun: Uint8Array;
   private readonly nodeOptional: Int32Array;
   private readonly edgeForward: Uint8Array[];
   private readonly edgeSamples: number[][];
   private readonly edgeBuffers: Int32Array[];
+  private readonly edgeTrackCounts = new Map<number, number>();
   private readonly objectiveWeights = new Map<ObjectiveId, number>();
+  private readonly nodeTrackSections: OptimizationProblem["sections"][];
+  private readonly nodeTrackTimeFields: number[][];
+  private readonly nodeTrackCountCaches: Map<string, number>[];
 
   private hard = 0;
   private excess = 0;
   private edgeTrackCost = 0;
+  private scopedEdgeTrackTotal = 0;
+  private readonly scopedEdgeCount: number;
   private nodeTrackCost = 0;
   private edgesOverLimit = 0;
   private travelTimeDelta = 0;
   private optionalConnections = 0;
   private sumAbsShift = 0;
+  private stopViolationCount = 0;
+  private connectionViolationCount = 0;
+  private connectionWaitDeviationTotal = 0;
   private travelTimeExtensionViolation = 0;
+  private nodeTrackCountsCurrent = false;
 
   constructor(
     private readonly problem: OptimizationProblem,
@@ -95,6 +109,7 @@ export class TimetableEvaluator {
     });
 
     const n = problem.sections.length;
+    this.scopedEdgeCount = problem.edgeInScope.reduce((sum, inScope) => sum + inScope, 0);
     if (this.isNodeTrackObjectiveActive()) {
       problem.sections.forEach((section, index) => {
         const sectionId = section.getId?.();
@@ -102,6 +117,30 @@ export class TimetableEvaluator {
           this.sectionIndexById.set(sectionId, index);
         }
       });
+      this.nodeTrackSections = problem.nodeTrackNodes.map((node) => {
+        const nodeId = node.getId();
+        return problem.sections.filter(
+          (section) => section.getSourceNodeId() === nodeId || section.getTargetNodeId() === nodeId,
+        );
+      });
+      this.nodeTrackTimeFields = problem.nodeTrackNodes.map((node, nodeIndex) =>
+        this.nodeTrackSections[nodeIndex].flatMap((section) => {
+          const sectionIndex = this.sectionIndexById.get(section.getId());
+          if (sectionIndex === undefined) {
+            return [];
+          }
+          const isSource = section.getSourceNodeId() === node.getId();
+          return [
+            sectionIndex * 4 + (isSource ? SRC_ARR : TGT_ARR),
+            sectionIndex * 4 + (isSource ? SRC_DEP : TGT_DEP),
+          ];
+        }),
+      );
+      this.nodeTrackCountCaches = problem.nodeTrackNodes.map(() => new Map<string, number>());
+    } else {
+      this.nodeTrackSections = [];
+      this.nodeTrackTimeFields = [];
+      this.nodeTrackCountCaches = [];
     }
     this.candC = new Float64Array(problem.origC);
     this.candT = new Float64Array(problem.origT);
@@ -117,6 +156,7 @@ export class TimetableEvaluator {
     this.stopDwell = new Float64Array(problem.stops.length);
     this.stopViolation = new Uint8Array(problem.stops.length);
     this.connectionViolation = new Uint8Array(problem.connections.length);
+    this.connectionWaitDeviation = new Float64Array(problem.connections.length);
     this.travelTimeDeltaByTrainrun = new Float64Array(problem.trainrunIds.length);
     this.travelTimeExtensionViolationByTrainrun = new Uint8Array(problem.trainrunIds.length);
     this.nodeOptional = new Int32Array(problem.nodeEvents.length);
@@ -158,13 +198,20 @@ export class TimetableEvaluator {
 
   evaluateAll(): number {
     this.problem.chains.forEach((chain) => this.applyChain(chain));
-    this.recomputeAllNodeTrackCounts();
     this.hard = 0;
     this.excess = 0;
     this.edgesOverLimit = 0;
+    this.edgeTrackCounts.clear();
+    this.scopedEdgeTrackTotal = 0;
     this.travelTimeDelta = 0;
     this.optionalConnections = 0;
     this.sumAbsShift = 0;
+    this.stopViolationCount = 0;
+    this.connectionViolationCount = 0;
+    this.connectionWaitDeviationTotal = 0;
+    this.stopViolation.fill(0);
+    this.connectionViolation.fill(0);
+    this.connectionWaitDeviation.fill(0);
     this.travelTimeDeltaByTrainrun.fill(0);
     this.travelTimeExtensionViolationByTrainrun.fill(0);
     this.travelTimeExtensionViolation = 0;
@@ -188,10 +235,10 @@ export class TimetableEvaluator {
     });
     for (let k = 0; k < this.problem.connections.length; k++) {
       this.connectionViolation[k] = this.computeConnectionViolation(k);
-      if (
-        constraintEnabled(this.problem, "userConnections") ||
-        constraintEnabled(this.problem, "preserveConnectionTimes")
-      ) {
+      this.connectionViolationCount += this.connectionViolation[k];
+      this.connectionWaitDeviation[k] = this.computeConnectionWaitDeviation(k);
+      this.connectionWaitDeviationTotal += this.connectionWaitDeviation[k];
+      if (constraintEnabled(this.problem, "userConnections")) {
         this.hard += this.connectionViolation[k];
       }
     }
@@ -213,6 +260,7 @@ export class TimetableEvaluator {
         this.hard += violation;
       }
     }
+    this.updateNodeTrackCounts();
     return this.score();
   }
 
@@ -227,7 +275,10 @@ export class TimetableEvaluator {
       WEIGHT_OPTIONAL_CONNECTION *
         (this.objectiveWeights.get("moreConnections") ?? 0) *
         this.optionalConnections +
-      WEIGHT_SHIFT * (this.objectiveWeights.get("minimalChanges") ?? 0) * this.sumAbsShift
+      WEIGHT_SHIFT * (this.objectiveWeights.get("minimalChanges") ?? 0) * this.sumAbsShift +
+      WEIGHT_CONNECTION_STABILITY *
+        (this.objectiveWeights.get("connectionStability") ?? 0) *
+        this.getAverageConnectionWaitDeviation()
     );
   }
 
@@ -238,8 +289,9 @@ export class TimetableEvaluator {
       edgeTrackCost: this.edgeTrackCost,
       nodeTrackCost: this.nodeTrackCost,
       edgesOverLimit: this.edgesOverLimit,
-      connectionViolations: this.connectionViolation.reduce((sum, violation) => sum + violation, 0),
-      stopViolations: this.stopViolation.reduce((sum, violation) => sum + violation, 0),
+      connectionViolations: this.connectionViolationCount,
+      connectionWaitDeviation: this.connectionWaitDeviationTotal,
+      stopViolations: this.stopViolationCount,
       travelTimeExtensionViolation: this.travelTimeExtensionViolation,
       travelTimeDelta: Math.round(this.travelTimeDelta * 100) / 100,
       optionalConnections: this.optionalConnections,
@@ -253,6 +305,10 @@ export class TimetableEvaluator {
 
   isConnectionViolated(index: number): boolean {
     return this.connectionViolation[index] === 1;
+  }
+
+  getAverageConnectionWaitDeviation(): number {
+    return this.connectionWaitDeviationTotal / Math.max(1, this.connectionWaitDeviation.length);
   }
 
   isStopViolated(index: number): boolean {
@@ -368,36 +424,74 @@ export class TimetableEvaluator {
   }
 
   private recomputeAllNodeTrackCounts(): void {
-    if (!this.isNodeTrackObjectiveActive()) {
-      this.nodeTrackCost = 0;
-      return;
-    }
     this.problem.nodeTrackNodes.forEach((_, nodeIndex) => {
       this.nodeTrackCounts[nodeIndex] = this.estimateNodeTrackCount(nodeIndex);
     });
+    this.nodeTrackCountsCurrent = true;
+    this.updateNodeTrackCost();
+  }
+
+  private updateNodeTrackCounts(variableIndex?: number): void {
+    if (!this.isNodeTrackObjectiveActive() || this.hard > 0) {
+      this.nodeTrackCost = 0;
+      this.nodeTrackCountsCurrent = false;
+      return;
+    }
+    if (!this.nodeTrackCountsCurrent) {
+      this.recomputeAllNodeTrackCounts();
+      return;
+    }
+    if (variableIndex !== undefined) {
+      (this.problem.varNodeTrackNodes?.[variableIndex] ?? []).forEach((nodeIndex) => {
+        this.nodeTrackCounts[nodeIndex] = this.estimateNodeTrackCount(nodeIndex);
+      });
+    }
     this.updateNodeTrackCost();
   }
 
   private estimateNodeTrackCount(nodeIndex: number): number {
     const node = this.problem.nodeTrackNodes[nodeIndex];
-    return this.infrastructureEstimatorService.estimateNodeTracks(node, this.problem.sections, {
-      getTime: (section, nodeEnd, kind, scale) => {
-        const sectionIndex = this.sectionIndexById.get(section.getId());
-        if (sectionIndex === undefined) {
-          return undefined;
-        }
-        const field =
-          kind === "arrival"
-            ? nodeEnd === "target"
-              ? TGT_ARR
-              : SRC_ARR
-            : nodeEnd === "source"
-              ? SRC_DEP
-              : TGT_DEP;
-        const times = scale === "consecutive" ? this.candC : this.candT;
-        return times[sectionIndex * 4 + field];
+    const cache = this.nodeTrackCountCaches[nodeIndex];
+    const signature = this.nodeTrackTimeFields[nodeIndex]
+      .map((field) => `${this.candC[field]},${this.candT[field]}`)
+      .join("|");
+    const cachedCount = cache.get(signature);
+    if (cachedCount !== undefined) {
+      cache.delete(signature);
+      cache.set(signature, cachedCount);
+      return cachedCount;
+    }
+
+    const count = this.infrastructureEstimatorService.estimateNodeTracks(
+      node,
+      this.nodeTrackSections[nodeIndex],
+      {
+        getTime: (section, nodeEnd, kind, scale) => {
+          const sectionIndex = this.sectionIndexById.get(section.getId());
+          if (sectionIndex === undefined) {
+            return undefined;
+          }
+          const field =
+            kind === "arrival"
+              ? nodeEnd === "target"
+                ? TGT_ARR
+                : SRC_ARR
+              : nodeEnd === "source"
+                ? SRC_DEP
+                : TGT_DEP;
+          const times = scale === "consecutive" ? this.candC : this.candT;
+          return times[sectionIndex * 4 + field];
+        },
       },
-    }).length;
+    ).length;
+    if (cache.size >= MAX_NODE_TRACK_CACHE_ENTRIES) {
+      const oldestKey = cache.keys().next().value;
+      if (oldestKey !== undefined) {
+        cache.delete(oldestKey);
+      }
+    }
+    cache.set(signature, count);
+    return count;
   }
 
   private updateNodeTrackCost(): void {
@@ -437,12 +531,13 @@ export class TimetableEvaluator {
       p.varEdges[v].forEach((e) => this.addEdge(e, -1));
     }
     p.varStops[v].forEach((k) => this.addStop(k, -1));
-    if (
-      constraintEnabled(p, "userConnections") ||
-      constraintEnabled(p, "preserveConnectionTimes")
-    ) {
-      p.varConnections[v].forEach((k) => (this.hard -= this.connectionViolation[k]));
-    }
+    p.varConnections[v].forEach((k) => {
+      this.connectionViolationCount -= this.connectionViolation[k];
+      this.connectionWaitDeviationTotal -= this.connectionWaitDeviation[k];
+      if (constraintEnabled(p, "userConnections")) {
+        this.hard -= this.connectionViolation[k];
+      }
+    });
     p.varNodeEvents[v].forEach((k) => (this.optionalConnections -= this.nodeOptional[k]));
 
     this.delta[v] = value;
@@ -454,13 +549,6 @@ export class TimetableEvaluator {
       this.travelTimeDeltaByTrainrun[trainrunIndex] += travelTimeDelta;
     }
     p.variables[v].chains.forEach((c) => this.applyChain(p.chains[c]));
-    if (this.isNodeTrackObjectiveActive()) {
-      (p.varNodeTrackNodes?.[v] ?? []).forEach((nodeIndex) => {
-        this.nodeTrackCounts[nodeIndex] = this.estimateNodeTrackCount(nodeIndex);
-      });
-      this.updateNodeTrackCost();
-    }
-
     if (estimateEdgeTracks) {
       p.varEdges[v].forEach((e) => {
         this.edgeTracks[e] = this.computeEdgeTracks(e);
@@ -474,10 +562,10 @@ export class TimetableEvaluator {
     });
     p.varConnections[v].forEach((k) => {
       this.connectionViolation[k] = this.computeConnectionViolation(k);
-      if (
-        constraintEnabled(p, "userConnections") ||
-        constraintEnabled(p, "preserveConnectionTimes")
-      ) {
+      this.connectionViolationCount += this.connectionViolation[k];
+      this.connectionWaitDeviation[k] = this.computeConnectionWaitDeviation(k);
+      this.connectionWaitDeviationTotal += this.connectionWaitDeviation[k];
+      if (constraintEnabled(p, "userConnections")) {
         this.hard += this.connectionViolation[k];
       }
     });
@@ -494,6 +582,7 @@ export class TimetableEvaluator {
         this.hard += next;
       });
     }
+    this.updateNodeTrackCounts(v);
     return this.score();
   }
 
@@ -503,17 +592,15 @@ export class TimetableEvaluator {
       return;
     }
     let maximum = 0;
-    let total = 0;
-    let edgeCount = 0;
-    this.problem.edges.forEach((_, edgeIndex) => {
-      if (this.problem.edgeInScope[edgeIndex] !== 1) {
-        return;
+    for (const [tracks, count] of this.edgeTrackCounts) {
+      if (count > 0) {
+        maximum = Math.max(maximum, tracks);
       }
-      maximum = Math.max(maximum, this.edgeTracks[edgeIndex]);
-      total += this.edgeTracks[edgeIndex];
-      edgeCount++;
-    });
-    this.edgeTrackCost = edgeCount === 0 ? 0 : maximum + total / edgeCount / (edgeCount + 1);
+    }
+    this.edgeTrackCost =
+      this.scopedEdgeCount === 0
+        ? 0
+        : maximum + this.scopedEdgeTrackTotal / this.scopedEdgeCount / (this.scopedEdgeCount + 1);
   }
 
   private getTravelTimeExtensionViolation(trainrunIndex: number): number {
@@ -624,6 +711,16 @@ export class TimetableEvaluator {
   // ---------------------------------------------------------------------
 
   private addEdge(e: number, sign: number) {
+    if (this.problem.edgeInScope[e] === 1 && this.objectiveWeights.has("lowerEdgeTrackUsage")) {
+      const tracks = this.edgeTracks[e];
+      this.scopedEdgeTrackTotal += sign * tracks;
+      const nextCount = (this.edgeTrackCounts.get(tracks) ?? 0) + sign;
+      if (nextCount === 0) {
+        this.edgeTrackCounts.delete(tracks);
+      } else {
+        this.edgeTrackCounts.set(tracks, nextCount);
+      }
+    }
     const over = this.edgeTracks[e] - this.problem.maxTracks;
     if (over > 0) {
       this.excess += sign * over;
@@ -649,6 +746,7 @@ export class TimetableEvaluator {
   }
 
   private addStop(k: number, sign: number) {
+    this.stopViolationCount += sign * this.stopViolation[k];
     if (constraintEnabled(this.problem, "minimumStopTime")) {
       this.hard += sign * this.stopViolation[k];
     }
@@ -660,10 +758,12 @@ export class TimetableEvaluator {
 
   private computeConnectionViolation(k: number): number {
     const c = this.problem.connections[k];
-    const wait =
-      c.wait0 +
-      norm60(this.shiftOf(c.depSection, c.depField) - this.shiftOf(c.arrSection, c.arrField));
+    const wait = this.getConnectionWait(k);
     return wait < c.lo - 1e-6 || wait > c.hi + 1e-6 ? 1 : 0;
+  }
+
+  private computeConnectionWaitDeviation(k: number): number {
+    return Math.abs(this.getConnectionWait(k) - this.problem.connections[k].wait0);
   }
 
   private computeNodeOptional(k: number): number {

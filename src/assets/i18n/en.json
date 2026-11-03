@@ -125,8 +125,8 @@
         }
       },
       "optimization": {
-        "no-free-variables": "No times can be shifted (locks, selection or no trainruns).",
-        "no-solution": "No better solution found. You can optimize again or continue searching.",
+        "no-free-variables": "No new proposal can be generated: no times are movable (locks, selection or no trainruns).",
+        "no-solution": "No valid proposal was found within the current search budget. This does not prove that none exists. Continue searching or adjust the scope and rules.",
         "proposal": {
           "balanced": "Balanced",
           "minimal-change": "Minimal change",
@@ -323,8 +323,8 @@
           "title": "Optimize timetable",
           "baseline": "Baseline",
           "candidate": "Candidate {$number}",
-          "store-policy": "Save for next optimization",
-          "reset-ranking": "Reset ranking",
+          "store-policy": "Apply settings for the next optimization",
+          "reset-ranking": "Reset to defaults",
           "search-effort": "Search effort",
           "search-effort-description": "More search time may find better proposals, but takes longer.",
           "search-effort-very-fast": "Very short search",
@@ -352,8 +352,8 @@
             "rating-help": "1 point means low influence, 10 points means high influence. The order stays fixed; you only set importance.",
             "rating-level": "Importance {$rating} of 10",
             "show-details": "Details: How objectives and rules work",
-            "fixed-rules": "Fixed guardrails",
-            "fixed-rules-description": "These rules stay the same for every Director goal and cannot be changed here.",
+            "fixed-rules": "Hard constraints",
+            "fixed-rules-description": "You can enable or disable hard constraints in Director profiles too. The selection boundary always stays active. Switching profiles resets profile-specific constraints; save your changes for the next optimization.",
             "editable-rules-description": "These guardrails limit the optimization. Some values can be adjusted.",
             "editable-objectives-description": "Enable and order objectives by how important they are for the timetable.",
             "details-description": "This section explains what each objective prefers and which rules apply.",
@@ -365,13 +365,17 @@
               "connections": "Improve connections",
               "connections-description": "Weights reachable connections most strongly while keeping changes small.",
               "track-usage": "Reduce track usage",
-              "track-usage-description": "Prefers fewer node and section tracks without unnecessary timetable changes."
+              "track-usage-description": "Prefers fewer node and section tracks without unnecessary timetable changes.",
+              "frequency-first": "More flexibility – frequent trains first",
+              "frequency-first-description": "Ignores departure, arrival, and travel-time locks and allows up to 5 minutes of additional travel time per section. Optimizes trainruns by increasing headway; all trains remain in conflict checks.",
+              "category-order-first": "More flexibility – important trains first",
+              "category-order-first-description": "Ignores departure, arrival, and travel-time locks and allows up to 5 minutes of additional travel time per section. Optimizes categories with lower TrainrunCategory.order first; all trains remain in conflict checks."
             },
             "constraint": {
               "track-limit": "Track limit",
               "track-limit-tooltip": "Limits the maximum number of tracks used at the same time on each section to the value entered.",
-              "user-connections": "User connections",
-              "user-connections-tooltip": "Every connection recorded in the timetable must meet at least the transfer time configured for its interchange node. When enabled, the optimizer only considers proposals that preserve this minimum.",
+              "user-connections": "Enforce minimum transfer times",
+              "user-connections-tooltip": "Every recorded connection must meet at least the transfer time configured for its interchange node. The previous waiting time is not a hard upper bound.",
               "minimum-stop-time": "Minimum stop time",
               "minimum-stop-time-tooltip": "Every stop must meet the minimum dwell time configured for the train. Proposals with shorter stops are rejected.",
               "time-locks": "Departure/arrival time locks",
@@ -383,12 +387,11 @@
               "symmetry": "Symmetry enforcement",
               "symmetry-tooltip": "Runs in opposite directions remain mirrored at symmetric nodes. Sections explicitly marked asymmetric are not coupled.",
               "max-travel-time-extension": "Travel-time extension per section",
-              "max-travel-time-extension-tooltip": "Allows each section runtime to increase by 0 to +n minutes. Section runtimes cannot be shortened.",
-              "preserve-connection-times": "Preserve existing connection times",
-              "preserve-connection-times-tooltip": "Recorded connection waiting times remain exactly as in the original timetable. The optimizer cannot shorten or lengthen them."
+              "max-travel-time-extension-tooltip": "Allows each section runtime to increase by 0 to +n minutes. Section runtimes cannot be shortened."
             },
             "objective": {
               "minimal-changes": "Minimal changes",
+              "connection-stability": "Preserve existing connection times",
               "more-connections": "More connections",
               "lower-travel-time": "Lower travel time",
               "lower-track-usage": "Lower node track usage",
@@ -396,6 +399,7 @@
             },
             "objective-description": {
               "minimal-changes": "Minimizes the sum of squared departure and arrival time changes, divided by the number of sections.",
+              "connection-stability": "Prefers the previous waiting times of recorded connections. The configured minimum transfer time remains a hard lower bound.",
               "more-connections": "Counts feasible transfers and rewards waits close to the minimum with 1/(1+2^d); normalized per stop-to-stop train at each node.",
               "lower-travel-time": "+1 per trainrun when start-to-destination duration is unchanged or shorter, -1 when longer; long turnaround waits receive a quadratic penalty. Normalized by trainrun count.",
               "lower-track-usage": "Fewer node tracks is better: compare the maximum first, then the average; normalized by node count.",

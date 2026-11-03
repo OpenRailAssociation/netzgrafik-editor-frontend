@@ -5,7 +5,7 @@ import {
   InfrastructureEstimatorService,
   TrackSegmentEstimate,
 } from "../infrastructure/infrastructure-estimator.service";
-import {OptimizationProblem, buildProblem} from "./optimize-timetable.chains";
+import {OptimizationProblem, buildProblem, mod60, norm60} from "./optimize-timetable.chains";
 import {TimetableEvaluator} from "./optimize-timetable.evaluator";
 import {
   ArchivedSolution,
@@ -29,9 +29,9 @@ import {
 } from "./optimize-timetable.model";
 import {createDefaultOptimizationPolicy, ObjectiveId} from "./optimization-policy.model";
 import {compareSolutions} from "./optimization-solution-comparator";
+import {isMinimumConnectionTimeSatisfied} from "./minimum-connection-time.validator";
 
 const DEFAULT_TIME_BUDGET_MS = 1000;
-const DEFAULT_CONNECTION_TOLERANCE = 2;
 const DEFAULT_OPTIONAL_WINDOW = 5;
 const DEFAULT_MAX_PROPOSALS = 4;
 
@@ -80,7 +80,6 @@ export class OptimizeTimetableService {
       trainrunSections,
       maxTracks,
       options.selectedNodeIds ?? [],
-      options.connectionTolerance ?? DEFAULT_CONNECTION_TOLERANCE,
       options.optionalConnectionWindow ?? DEFAULT_OPTIONAL_WINDOW,
       policy,
     );
@@ -117,7 +116,6 @@ export class OptimizeTimetableService {
       trainrunSections,
       maxTracks,
       options.selectedNodeIds ?? [],
-      options.connectionTolerance ?? DEFAULT_CONNECTION_TOLERANCE,
       options.optionalConnectionWindow ?? DEFAULT_OPTIONAL_WINDOW,
       policy,
     );
@@ -268,8 +266,10 @@ export class OptimizeTimetableService {
       noRangeTravelTimeVariables,
       fixedChains,
       iterations: search.iterations,
+      evaluatedCandidates: search.evaluatedCandidates,
       runtimeMs: 0,
       initialEdgesOverLimit: baselineOverLimit,
+      searchBestAssignment: search.bestAssignment,
     };
 
     if (freeVariables === 0) {
@@ -301,6 +301,8 @@ export class OptimizeTimetableService {
 
     const search = await session.search.continueFor(additionalBudgetMs, onProgress);
     result.iterations = search.iterations;
+    result.evaluatedCandidates = search.evaluatedCandidates;
+    result.searchBestAssignment = search.bestAssignment;
     result.solutions = session.buildSolutions(search);
     result.message =
       result.solutions.length > 0
@@ -326,7 +328,6 @@ export class OptimizeTimetableService {
       trainrunSections,
       maxTracks,
       options.selectedNodeIds ?? [],
-      options.connectionTolerance ?? DEFAULT_CONNECTION_TOLERANCE,
       options.optionalConnectionWindow ?? DEFAULT_OPTIONAL_WINDOW,
       policy,
     );
@@ -339,9 +340,7 @@ export class OptimizeTimetableService {
     evaluator.evaluateAll();
     const parts = evaluator.parts();
     const userConnectionsEnabled = policy.hardConstraints.some(
-      (constraint) =>
-        (constraint.id === "userConnections" || constraint.id === "preserveConnectionTimes") &&
-        constraint.enabled,
+      (constraint) => constraint.id === "userConnections" && constraint.enabled,
     );
     const minimumStopTimeEnabled = policy.hardConstraints.some(
       (constraint) => constraint.id === "minimumStopTime" && constraint.enabled,
@@ -350,7 +349,6 @@ export class OptimizeTimetableService {
       (constraint) => constraint.id === "maxTravelTimeExtension" && constraint.enabled,
     );
     const nonTrackViolations =
-      (userConnectionsEnabled ? parts.connectionViolations : 0) +
       (minimumStopTimeEnabled ? parts.stopViolations : 0) +
       (maxTravelTimeEnabled ? parts.travelTimeExtensionViolation : 0);
 
@@ -370,7 +368,71 @@ export class OptimizeTimetableService {
     );
     const symmetryValid = !symmetryEnabled || this.hasSymmetricChanges(solution, trainrunSections);
 
-    return nonTrackViolations === 0 && (!trackLimitEnabled || !exactOverLimit) && symmetryValid;
+    const connectionTimesValid =
+      !userConnectionsEnabled || this.areMinimumConnectionTimesSatisfied(solution.changes, nodes);
+    return (
+      nonTrackViolations === 0 &&
+      connectionTimesValid &&
+      (!trackLimitEnabled || !exactOverLimit) &&
+      symmetryValid
+    );
+  }
+
+  private areMinimumConnectionTimesSatisfied(
+    solutionChanges: TimeChange[],
+    nodes: Node[],
+  ): boolean {
+    const changes = new Map(
+      solutionChanges.map((change) => [`${change.trainrunSectionId}:${change.field}`, change]),
+    );
+    const timeField = (node: Node, section: TrainrunSection, departure: boolean): TimeField => {
+      const atSource = section.getSourceNodeId() === node.getId();
+      if (atSource) {
+        return departure ? "sourceDeparture" : "sourceArrival";
+      }
+      return departure ? "targetDeparture" : "targetArrival";
+    };
+    const shiftAt = (node: Node, section: TrainrunSection, departure: boolean): number => {
+      const change = changes.get(`${section.getId()}:${timeField(node, section, departure)}`);
+      return change === undefined ? 0 : norm60(change.newValue - change.oldValue);
+    };
+    const originalTime = (node: Node, section: TrainrunSection, departure: boolean): number => {
+      const change = changes.get(`${section.getId()}:${timeField(node, section, departure)}`);
+      return (
+        change?.oldValue ??
+        (departure ? node.getDepartureTime(section) : node.getArrivalTime(section))
+      );
+    };
+
+    for (const node of nodes) {
+      const minimumConnectionTime = node.getConnectionTime() ?? 0;
+      for (const connection of node.getConnections()) {
+        const first = node.getPort(connection.getPortId1())?.getTrainrunSection();
+        const second = node.getPort(connection.getPortId2())?.getTrainrunSection();
+        if (first === undefined || second === undefined) {
+          continue;
+        }
+        for (const [arrival, departure] of [
+          [first, second],
+          [second, first],
+        ] as const) {
+          const arrivalTime = originalTime(node, arrival, false);
+          const departureTime = originalTime(node, departure, true);
+          const baselineWait = mod60(departureTime - arrivalTime);
+          if (
+            !isMinimumConnectionTimeSatisfied(
+              baselineWait,
+              shiftAt(node, arrival, false),
+              shiftAt(node, departure, true),
+              minimumConnectionTime,
+            )
+          ) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
   }
 
   /** Writes the new times of a proposal into the native objects. */
@@ -620,9 +682,7 @@ export class OptimizeTimetableService {
       changedNodes.add(change.targetNodeId);
     });
     const userConnectionsEnabled = problem.policy.hardConstraints.some(
-      (constraint) =>
-        (constraint.id === "userConnections" || constraint.id === "preserveConnectionTimes") &&
-        constraint.enabled,
+      (constraint) => constraint.id === "userConnections" && constraint.enabled,
     );
     const minimumStopTimeEnabled = problem.policy.hardConstraints.some(
       (constraint) => constraint.id === "minimumStopTime" && constraint.enabled,
@@ -634,9 +694,10 @@ export class OptimizeTimetableService {
       (constraint) => constraint.id === "trackLimit" && constraint.enabled,
     );
     const nonTrackViolations =
-      (userConnectionsEnabled ? parts.connectionViolations : 0) +
       (minimumStopTimeEnabled ? parts.stopViolations : 0) +
       (maxTravelTimeEnabled ? parts.travelTimeExtensionViolation : 0);
+    const connectionTimesValid =
+      !userConnectionsEnabled || this.areMinimumConnectionTimesSatisfied(changes, nodes);
 
     const assignment: Record<string, number> = {};
     problem.variables.forEach((variable, v) => {
@@ -648,7 +709,8 @@ export class OptimizeTimetableService {
     return {
       id,
       label,
-      valid: nonTrackViolations === 0 && (!trackLimitEnabled || overAfter === 0),
+      valid:
+        nonTrackViolations === 0 && connectionTimesValid && (!trackLimitEnabled || overAfter === 0),
       kpi: {
         objectiveScores: this.calculateObjectiveScores(
           problem,
@@ -746,6 +808,7 @@ export class OptimizeTimetableService {
 
     return {
       minimalChanges: 1 / (1 + normalizedShiftCost),
+      connectionStability: 1 / (1 + evaluator.getAverageConnectionWaitDeviation()),
       moreConnections: evaluator.getOptionalConnectionScore(),
       lowerTravelTime: trainrunCount === 0 ? 0 : (travelTimeScore / trainrunCount + 2) / 3,
       lowerTrackUsage: 1 / (1 + normalizedNodeTrackCost),

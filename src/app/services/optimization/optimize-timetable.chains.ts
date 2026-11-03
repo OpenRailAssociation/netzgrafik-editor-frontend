@@ -6,6 +6,7 @@ import {TrainrunsectionHelper} from "../util/trainrunsection.helper";
 import {SRC_ARR, SRC_DEP, TGT_ARR, TGT_DEP} from "./optimize-timetable.model";
 import {
   createDefaultOptimizationPolicy,
+  getObjectiveWeights,
   HardConstraintId,
   OptimizationPolicy,
 } from "./optimization-policy.model";
@@ -288,7 +289,6 @@ export function buildProblem(
   trainrunSections: TrainrunSection[],
   maxTracks: number,
   selectedNodeIds: number[],
-  connectionTolerance: number,
   optionalWindow: number,
   policy: OptimizationPolicy = createDefaultOptimizationPolicy(),
 ): OptimizationProblem {
@@ -648,9 +648,9 @@ export function buildProblem(
   // --- user connections (H13) ---------------------------------------------
   const connections: ConnectionConstraint[] = [];
   const enforceUserConnections = constraintEnabled(policy, "userConnections");
-  const preserveConnectionTimes = constraintEnabled(policy, "preserveConnectionTimes");
+  const connectionStabilityEnabled = getObjectiveWeights(policy).connectionStability > 0;
   nodes.forEach((node) => {
-    if (!enforceUserConnections && !preserveConnectionTimes) {
+    if (!enforceUserConnections && !connectionStabilityEnabled) {
       return;
     }
     const ct = node.getConnectionTime() ?? 0;
@@ -673,9 +673,6 @@ export function buildProblem(
       ) => {
         const arrField = arrivalFieldAt(arrSec, node);
         const depField = departureFieldAt(depSec, node);
-        if (!active[arrIdx * 4 + arrField] || !active[depIdx * 4 + depField]) {
-          return;
-        }
         const wait0 = mod60(origT[depIdx * 4 + depField] - origT[arrIdx * 4 + arrField]);
         connections.push({
           node,
@@ -684,8 +681,8 @@ export function buildProblem(
           depSection: depIdx,
           depField,
           wait0,
-          lo: preserveConnectionTimes ? wait0 : Math.min(ct, wait0),
-          hi: preserveConnectionTimes ? wait0 : Math.max(wait0, ct) + connectionTolerance,
+          lo: ct,
+          hi: Number.POSITIVE_INFINITY,
         });
       };
 

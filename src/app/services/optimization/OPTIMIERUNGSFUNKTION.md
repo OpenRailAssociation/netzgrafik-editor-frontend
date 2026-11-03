@@ -86,7 +86,7 @@ Das ist die Steuerzentrale des Dialogs. Sie lädt den Bereich, verbindet den Dir
 - `openDialog()` setzt Auswahl, Filterbereich und Panel-Zustand für eine neue Dialogöffnung zurück.
 - `optimize()` startet die Suche und versucht bei ausbleibenden Vorschlägen weitere Seeds.
 - `continueOptimization()` verlängert die laufende Suchsession um das gewählte Zeitbudget.
-- `runSearch()` gibt während der Suche spätestens alle 250 ms an den Browser zurück und meldet Fortschritt sowie Iterationen; dadurch kann der Dialog den Fortschrittsbalken während der Berechnung aktualisieren.
+- `runSearch()` prüft in langen Kandidatenschleifen etwa alle 16 ms, ob es dem Browser die Kontrolle zurückgeben muss. Fortschritt und Iterationen werden weiterhin höchstens alle 250 ms gemeldet; ein einzelner langsamer Evaluator-Aufruf kann die Pause überschreiten.
 - `selectSolution()` wählt einen gültigen Vorschlag, startet die Vorschau und bereitet die Detailanalyse vor.
 - `selectBaseline()` entfernt die Vorschau und zeigt wieder den Ausgangsfahrplan.
 - `selectNode()` aktualisiert die Vorher-/Nachher-Auslastung für einen Knoten.
@@ -121,7 +121,7 @@ Quellcode: [Renderer-Logik](../../view/dialogs/optimize-timetable-dialog/track-t
 
 Der Service baut aus den bestehenden Zugläufen, Abschnitten, Knoten und Regeln ein Suchproblem. Zusammenhängende Abschnitte zwischen Halten werden zu verschiebbaren Ketten zusammengefasst. Eine Variable beschreibt, um wie viele Minuten eine solche Kette verschoben wird. Locks, Bereichsgrenzen und die übrigen aktivierten harten Regeln schränken die möglichen Verschiebungen ein.
 
-Während der Suche bewertet ein inkrementeller Evaluator Kandidaten, ohne jedes Mal das ganze Netz neu zu berechnen. Ein Konfliktindex priorisiert Probleme wie eine aktive Gleisüberschreitung oder eine verletzte Verbindung. Die Suche kombiniert drei Verfahren:
+Während der Suche bewertet ein inkrementeller Evaluator Kandidaten, ohne jedes Mal das ganze Netz neu zu berechnen. Auch die Zusammenfassung der Halte- und Anschlussverletzungen wird inkrementell gepflegt; die Suche summiert diese Arrays nicht bei jedem getesteten Kandidaten erneut. Ein Konfliktindex priorisiert Probleme wie eine aktive Gleisüberschreitung oder eine verletzte Verbindung. Die Suche kombiniert drei Verfahren:
 
 1. **Min-Conflicts mit Tabu-Suche** versucht zuerst, einen aktiven Konflikt zu verbessern. Die Tabu-Liste verhindert kurzfristige Rücksprünge in gerade verlassene Zustände.
 2. **Simulated Annealing** probiert gelegentlich auch einen zunächst schlechter bewerteten Schritt. So kann die Suche aus einer lokalen Sackgasse herauskommen.
@@ -129,7 +129,11 @@ Während der Suche bewertet ein inkrementeller Evaluator Kandidaten, ohne jedes 
 
 Gültige, unterschiedliche und nicht dominierte Kandidaten landen in einem begrenzten Archiv. Daraus wählt der Service höchstens vier Vorschläge mit verschiedenen Schwerpunkten. Die Dialogsteuerung versucht beim ersten Optimieren bis zu drei Seeds, stoppt aber, sobald ein Vorschlag gefunden wurde oder keine Variablen beweglich sind. Ein einzelner Suchlauf hat standardmässig ein Budget von 1.000 ms. Die gesamte Aufrufzeit kann wegen Vorbereitung und exakter Nachprüfungen länger sein. Weiterrechnen verlängert dieselbe Suchsession um das gewählte Zeitbudget; Zufallszustand, Tabu-Liste, Iterationszähler und Kandidatenarchiv werden weiterverwendet.
 
-Vor der Anzeige prüft der Service die Lösungen erneut. Die Streckengleise werden für geänderte Abschnitte mit dem Infrastruktur-Schätzer berechnet; aktive harte Regeln und Symmetrie werden geprüft. Die Suche ist eine Heuristik und beweist nicht, dass eine Lösung global optimal ist.
+Eine aktive Anschlussregel erzwingt die konfigurierte Mindestumsteigezeit als absolute Untergrenze. Die bisherige Wartezeit begrenzt sie nicht nach oben; sie kann stattdessen als weiches Ziel „Bestehende Anschlusszeiten möglichst erhalten“ gewichtet werden.
+
+Vor der Anzeige prüft der Service die Lösungen erneut. Die Mindestumsteigezeit wird dabei unabhängig aus den nativen Anschlussdaten und den vorgeschlagenen Zeiten validiert. Die Streckengleise werden für geänderte Abschnitte mit dem Infrastruktur-Schätzer berechnet; weitere aktive harte Regeln und Symmetrie werden geprüft. Ungültige Vorschläge werden nicht angezeigt. Die Suche ist eine Heuristik und beweist nicht, dass eine Lösung global optimal ist.
+
+Das aktuelle Suchbudget reicht je nach Einstellung von 250 ms bis 4.000 ms. Vorbereitungszeit und exakte Nachprüfungen kommen derzeit dazu. Ein End-to-End-Ziel von höchstens wenigen Sekunden für grosse Netze ist erst nach Messung auf einem festgelegten Benchmark-Korpus bestätigt; eine harte Echtzeitgarantie besteht noch nicht.
 
 ## 5. Stärken und Grenzen
 

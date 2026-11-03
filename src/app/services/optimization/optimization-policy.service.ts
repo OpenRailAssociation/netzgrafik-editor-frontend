@@ -47,11 +47,22 @@ export class OptimizationPolicyService {
 
   private normalize(policy: OptimizationPolicy): OptimizationPolicy {
     const defaults = createDefaultOptimizationPolicy();
+    const legacyConnectionTimes = policy?.hardConstraints?.find(
+      (constraint) => constraint.id === "preserveConnectionTimes",
+    );
     const mode = policy?.mode === "userDefined" ? "userDefined" : "director";
-    const directorProfile = ["stability", "connections", "trackUsage"].includes(
-      policy?.directorProfile,
-    )
-      ? policy.directorProfile
+    const savedProfile =
+      policy?.directorProfile === "flexibility" || policy?.directorProfile === "frequencyFirst"
+        ? "flexibilityFrequencyFirst"
+        : policy?.directorProfile;
+    const directorProfile = [
+      "stability",
+      "connections",
+      "trackUsage",
+      "flexibilityFrequencyFirst",
+      "flexibilityCategoryFirst",
+    ].includes(savedProfile)
+      ? savedProfile
       : defaults.directorProfile;
     const hardConstraints: HardConstraintConfig[] = defaults.hardConstraints.map((defaultItem) => {
       const saved = policy?.hardConstraints?.find((item) => item.id === defaultItem.id);
@@ -63,11 +74,16 @@ export class OptimizationPolicyService {
     });
     const objectives: ObjectiveConfig[] = defaults.objectives.map((defaultItem) => {
       const saved = policy?.objectives?.find((item) => item.id === defaultItem.id);
+      const legacyConnectionStability =
+        defaultItem.id === "connectionStability" ? legacyConnectionTimes?.enabled : undefined;
       const rating =
         typeof saved?.rating === "number" && Number.isFinite(saved.rating)
           ? Math.max(1, Math.min(10, Math.floor(saved.rating)))
           : defaultItem.rating;
-      const enabled = mode === "director" ? true : (saved?.enabled ?? defaultItem.enabled);
+      const enabled =
+        mode === "director"
+          ? true
+          : (saved?.enabled ?? legacyConnectionStability ?? defaultItem.enabled);
       return {...defaultItem, ...saved, enabled, rating};
     });
     const order = new Map(

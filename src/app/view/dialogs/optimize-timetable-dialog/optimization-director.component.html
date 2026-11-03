@@ -100,21 +100,48 @@
                       | translate
                   }}
                 </p>
-                <div class="fixed-rule" *ngFor="let constraint of policy.hardConstraints">
-                  <span [title]="constraint.name + '-tooltip' | translate">
-                    {{ constraint.name | translate }}
-                  </span>
-                  <strong>
-                    {{
-                      (constraint.enabled
-                        ? "app.view.dialogs.optimize-timetable-dialog.director.rule-active"
-                        : "app.view.dialogs.optimize-timetable-dialog.director.rule-inactive"
+                <div
+                  class="director-rule"
+                  *ngFor="let constraint of policy.hardConstraints"
+                  [class.has-value]="
+                    (constraint.id === 'trackLimit' && constraint.enabled) ||
+                    (constraint.id === 'maxTravelTimeExtension' && constraint.enabled)
+                  "
+                >
+                  <sbb-checkbox
+                    [ngModel]="constraint.enabled"
+                    [disabled]="constraint.mandatory"
+                    (ngModelChange)="setConstraintEnabled(constraint.id, $event)"
+                  >
+                    <span
+                      class="constraint-name"
+                      [title]="constraint.name + '-tooltip' | translate"
+                    >
+                      {{ constraint.name | translate }}
+                    </span>
+                  </sbb-checkbox>
+                  <sbb-time-stepper
+                    *ngIf="
+                      (constraint.id === 'trackLimit' && constraint.enabled) ||
+                      (constraint.id === 'maxTravelTimeExtension' && constraint.enabled)
+                    "
+                    [containerClass]="'constraint-stepper'"
+                    [inputClass]="'constraint-value'"
+                    [inputId]="'optimization-director-' + constraint.id"
+                    [tabIndex]="0"
+                    [value]="constraint.value ?? (constraint.id === 'trackLimit' ? 1 : 0)"
+                    [min]="constraint.id === 'trackLimit' ? 1 : 0"
+                    [max]="constraint.id === 'maxTravelTimeExtension' ? 99 : undefined"
+                    [ariaLabel]="
+                      (constraint.id === 'trackLimit'
+                        ? 'app.view.dialogs.optimize-timetable-dialog.max-tracks'
+                        : 'app.view.dialogs.optimize-timetable-dialog.director.max-extension-value'
                       ) | translate
-                    }}
-                    <ng-container *ngIf="constraint.enabled && constraint.value !== undefined">
-                      · {{ constraint.value }}
-                    </ng-container>
-                  </strong>
+                    "
+                    (valueChange)="setConstraintValue(constraint, $event)"
+                    (decrement)="adjustConstraintValue(constraint, -1)"
+                    (increment)="adjustConstraintValue(constraint, 1)"
+                  />
                 </div>
               </sbb-expansion-panel>
 
@@ -279,10 +306,16 @@
         "app.view.dialogs.optimize-timetable-dialog.director.policy-save-description" | translate
       }}
     </p>
-    <button sbb-secondary-button type="button" (click)="resetRankingRequested.emit()">
+    <button
+      class="director-reset-button"
+      sbb-secondary-button
+      type="button"
+      (click)="resetRankingRequested.emit()"
+    >
       {{ "app.view.dialogs.optimize-timetable-dialog.reset-ranking" | translate }}
     </button>
     <button
+      class="director-save-button"
       sbb-secondary-button
       type="button"
       [disabled]="!hasUnstoredPolicyChanges"

@@ -37,6 +37,8 @@ import {
   KnotenAuslastungSnapshot,
 } from "../../knoten-auslastung-view/knoten.auslastung.data.preparation";
 
+const SEARCH_TIME_BUDGETS_MS = [500, 1000, 2000, 4000, 8000] as const;
+
 export interface NodeChangeGroup {
   nodeId: number;
   nodeName: string;
@@ -72,7 +74,6 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     "app.view.dialogs.optimize-timetable-dialog.search-effort-thorough",
     "app.view.dialogs.optimize-timetable-dialog.search-effort-very-thorough",
   ];
-  private readonly searchTimeBudgetsMs = [250, 500, 1000, 2000, 4000];
   showTrackOverview = true;
   trackOverviewExpanded = true;
   resultsPanelExpanded = false;
@@ -191,11 +192,11 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   }
 
   get searchEffortPercent(): number {
-    return (this.searchEffortLevel / (this.searchTimeBudgetsMs.length - 1)) * 100;
+    return (this.searchEffortLevel / (SEARCH_TIME_BUDGETS_MS.length - 1)) * 100;
   }
 
   get searchTimeBudgetMs(): number {
-    return this.searchTimeBudgetsMs[this.searchEffortLevel];
+    return SEARCH_TIME_BUDGETS_MS[this.searchEffortLevel] ?? 1000;
   }
 
   setSearchEffortLevel(event: Event): void {
@@ -208,7 +209,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   }
 
   setSearchEffortStep(level: number): void {
-    if (!Number.isInteger(level) || level < 0 || level >= this.searchTimeBudgetsMs.length) {
+    if (!Number.isInteger(level) || level < 0 || level >= SEARCH_TIME_BUDGETS_MS.length) {
       return;
     }
     this.searchEffortLevel = level;
@@ -261,6 +262,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     this.onPolicyChange({
       ...this.policy,
       directorProfile: defaults.directorProfile,
+      hardConstraints: defaults.hardConstraints,
       objectives: defaults.objectives,
     });
   }
@@ -367,11 +369,13 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     this.seed = 1;
     await this.runWithProgress(async () => {
       const startedAt = performance.now();
+      let startAssignment: Record<string, number> | undefined;
       for (let attempt = 0; attempt < this.maxSearchAttempts; attempt++) {
-        await this.runOptimization(undefined, this.searchTimeBudgetMs, attempt + 1);
+        await this.runOptimization(startAssignment, this.searchTimeBudgetMs, attempt + 1);
         if (this.result.solutions.length > 0 || this.result.freeVariables === 0) {
           break;
         }
+        startAssignment = this.result.searchBestAssignment;
         this.seed++;
       }
       if (this.result !== undefined) {
@@ -554,8 +558,15 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   }
 
   formatSigned(value: number): string {
-    const rounded = Math.round(value * 100) / 100;
-    return rounded > 0 ? `+${rounded}` : `${rounded}`;
+    const usesFlexibilityProfile = [
+      "flexibilityFrequencyFirst",
+      "flexibilityCategoryFirst",
+    ].includes(this.policy.directorProfile);
+    const decimalPlaces = usesFlexibilityProfile ? 1 : 2;
+    const factor = 10 ** decimalPlaces;
+    const rounded = Math.round(value * factor) / factor;
+    const formatted = decimalPlaces === 1 ? rounded.toFixed(1) : `${rounded}`;
+    return rounded > 0 ? `+${formatted}` : formatted;
   }
 
   private isTimeField(change: TimeChange): boolean {
@@ -610,7 +621,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   }
 
   private async runOptimization(
-    startAssignment: Record<string, number>,
+    startAssignment: Record<string, number> | undefined,
     timeBudgetMs: number,
     attempt = 1,
   ): Promise<void> {

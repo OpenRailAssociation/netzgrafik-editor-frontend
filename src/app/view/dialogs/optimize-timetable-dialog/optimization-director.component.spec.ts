@@ -17,4 +17,133 @@ describe("OptimizationDirectorComponent", () => {
     );
     expect(component.ratingValues).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   });
+
+  it("applies the flexible profile and restores standard time rules on profile switch", () => {
+    const component = new OptimizationDirectorComponent();
+    component.policy = createDefaultOptimizationPolicy();
+    const policyChange = spyOn(component.policyChange, "emit");
+
+    component.selectProfile("flexibilityFrequencyFirst");
+    const flexiblePolicy = policyChange.calls.mostRecent().args[0];
+    expect(
+      flexiblePolicy.hardConstraints.find((constraint) => constraint.id === "timeLocks")?.enabled,
+    ).toBeFalse();
+    expect(
+      flexiblePolicy.hardConstraints.find((constraint) => constraint.id === "travelTimeLocks")
+        ?.enabled,
+    ).toBeFalse();
+    expect(
+      flexiblePolicy.hardConstraints.find(
+        (constraint) => constraint.id === "maxTravelTimeExtension",
+      ),
+    ).toEqual(
+      jasmine.objectContaining({
+        enabled: true,
+        value: 5,
+      }),
+    );
+    expect(
+      flexiblePolicy.hardConstraints.find((constraint) => constraint.id === "scopeBoundary")
+        ?.enabled,
+    ).toBeTrue();
+
+    component.policy = flexiblePolicy;
+    component.selectProfile("stability");
+    const standardPolicy = policyChange.calls.mostRecent().args[0];
+    expect(
+      standardPolicy.hardConstraints.find((constraint) => constraint.id === "timeLocks")?.enabled,
+    ).toBeTrue();
+    expect(
+      standardPolicy.hardConstraints.find((constraint) => constraint.id === "travelTimeLocks")
+        ?.enabled,
+    ).toBeTrue();
+    expect(
+      standardPolicy.hardConstraints.find(
+        (constraint) => constraint.id === "maxTravelTimeExtension",
+      ),
+    ).toEqual(
+      jasmine.objectContaining({
+        enabled: false,
+        value: 5,
+      }),
+    );
+  });
+
+  it("selects frequency-first with its flexibility rules enabled", () => {
+    const component = new OptimizationDirectorComponent();
+    component.policy = createDefaultOptimizationPolicy();
+    const policyChange = spyOn(component.policyChange, "emit");
+
+    component.selectProfile("flexibilityFrequencyFirst");
+
+    const policy = policyChange.calls.mostRecent().args[0];
+    expect(policy.directorProfile).toBe("flexibilityFrequencyFirst");
+    expect(
+      policy.hardConstraints.find((constraint) => constraint.id === "timeLocks")?.enabled,
+    ).toBeFalse();
+    expect(
+      policy.hardConstraints.find((constraint) => constraint.id === "travelTimeLocks")?.enabled,
+    ).toBeFalse();
+    expect(
+      policy.hardConstraints.find((constraint) => constraint.id === "maxTravelTimeExtension"),
+    ).toEqual(jasmine.objectContaining({enabled: true, value: 5}));
+  });
+
+  it("selects category-order priority with the same flexibility rules", () => {
+    const component = new OptimizationDirectorComponent();
+    component.policy = createDefaultOptimizationPolicy();
+    const policyChange = spyOn(component.policyChange, "emit");
+
+    component.selectProfile("flexibilityCategoryFirst");
+
+    const policy = policyChange.calls.mostRecent().args[0];
+    expect(policy.directorProfile).toBe("flexibilityCategoryFirst");
+    expect(
+      policy.hardConstraints.find((constraint) => constraint.id === "timeLocks")?.enabled,
+    ).toBeFalse();
+    expect(
+      policy.hardConstraints.find((constraint) => constraint.id === "travelTimeLocks")?.enabled,
+    ).toBeFalse();
+    expect(
+      policy.hardConstraints.find((constraint) => constraint.id === "maxTravelTimeExtension"),
+    ).toEqual(jasmine.objectContaining({enabled: true, value: 5}));
+  });
+
+  it("allows hard-rule toggles in Director mode", () => {
+    const component = new OptimizationDirectorComponent();
+    component.policy = createDefaultOptimizationPolicy();
+    const policyChange = spyOn(component.policyChange, "emit");
+
+    component.setConstraintEnabled("timeLocks", false);
+
+    expect(
+      policyChange.calls
+        .mostRecent()
+        .args[0].hardConstraints.find((constraint) => constraint.id === "timeLocks")?.enabled,
+    ).toBeFalse();
+    component.setConstraintEnabled("scopeBoundary", false);
+    expect(
+      policyChange.calls
+        .mostRecent()
+        .args[0].hardConstraints.find((constraint) => constraint.id === "scopeBoundary")?.enabled,
+    ).toBeTrue();
+  });
+
+  it("allows adjusting hard-rule values in Director mode", () => {
+    const component = new OptimizationDirectorComponent();
+    component.policy = createDefaultOptimizationPolicy();
+    const policyChange = spyOn(component.policyChange, "emit");
+    const extension = component.policy.hardConstraints.find(
+      (constraint) => constraint.id === "maxTravelTimeExtension",
+    );
+
+    component.setConstraintValue(extension, 7);
+
+    expect(
+      policyChange.calls
+        .mostRecent()
+        .args[0].hardConstraints.find((constraint) => constraint.id === "maxTravelTimeExtension")
+        ?.value,
+    ).toBe(7);
+  });
 });
