@@ -28,6 +28,7 @@ export const WEIGHT_CONNECTION_STABILITY = 10;
 export interface ScoreParts {
   hard: number;
   excess: number;
+  trackConflictCost: number;
   edgeTrackCost: number;
   nodeTrackCost: number;
   edgesOverLimit: number;
@@ -65,6 +66,8 @@ export class TimetableEvaluator {
   readonly delta: Int32Array;
 
   private readonly edgeTracks: Int32Array;
+  private readonly edgeConflictCosts: Float64Array;
+  private readonly travelTimeVariablesByTrainrun: number[][];
   private readonly nodeTrackCounts: Int32Array;
   private readonly sectionIndexById = new Map<number, number>();
   private readonly stopDwell: Float64Array;
@@ -85,6 +88,7 @@ export class TimetableEvaluator {
 
   private hard = 0;
   private excess = 0;
+  private trackConflictCost = 0;
   private edgeTrackCost = 0;
   private scopedEdgeTrackTotal = 0;
   private readonly scopedEdgeCount: number;
@@ -152,6 +156,13 @@ export class TimetableEvaluator {
     this.candTravel = new Float64Array(this.origTravel);
     this.delta = new Int32Array(problem.variables.length);
     this.edgeTracks = new Int32Array(problem.edges.length);
+    this.edgeConflictCosts = new Float64Array(problem.edges.length);
+    this.travelTimeVariablesByTrainrun = problem.trainrunIds.map((): number[] => []);
+    problem.variables.forEach((variable, index) => {
+      if (variable.travelTimeTrainrunIndex !== undefined) {
+        this.travelTimeVariablesByTrainrun[variable.travelTimeTrainrunIndex].push(index);
+      }
+    });
     this.nodeTrackCounts = new Int32Array(problem.nodeTrackNodes?.length ?? 0);
     this.stopDwell = new Float64Array(problem.stops.length);
     this.stopViolation = new Uint8Array(problem.stops.length);
@@ -200,6 +211,7 @@ export class TimetableEvaluator {
     this.problem.chains.forEach((chain) => this.applyChain(chain));
     this.hard = 0;
     this.excess = 0;
+    this.trackConflictCost = 0;
     this.edgesOverLimit = 0;
     this.edgeTrackCounts.clear();
     this.scopedEdgeTrackTotal = 0;
@@ -267,6 +279,7 @@ export class TimetableEvaluator {
   score(): number {
     return (
       WEIGHT_HARD * this.hard +
+      WEIGHT_TRACK * this.trackConflictCost +
       WEIGHT_TRACK * (this.objectiveWeights.get("lowerEdgeTrackUsage") ?? 0) * this.edgeTrackCost +
       WEIGHT_TRACK * (this.objectiveWeights.get("lowerTrackUsage") ?? 0) * this.nodeTrackCost +
       WEIGHT_TRAVEL_TIME *
@@ -286,6 +299,7 @@ export class TimetableEvaluator {
     return {
       hard: this.hard,
       excess: this.excess,
+      trackConflictCost: this.trackConflictCost,
       edgeTrackCost: this.edgeTrackCost,
       nodeTrackCost: this.nodeTrackCost,
       edgesOverLimit: this.edgesOverLimit,
@@ -396,15 +410,17 @@ export class TimetableEvaluator {
     return Math.max(0, this.edgeTracks[edgeIndex] - this.problem.maxTracks);
   }
 
+  getTrackConflictCost(edgeIndex: number): number {
+    return this.edgeConflictCosts[edgeIndex];
+  }
+
   isTravelTimeExtensionViolated(trainrunIndex: number): boolean {
     return this.travelTimeExtensionViolationByTrainrun[trainrunIndex] === 1;
   }
 
   getTravelTimeExtensionExcess(trainrunIndex: number): number {
-    return this.problem.variables.reduce((maximum, variable, index) => {
-      if (variable.travelTimeTrainrunIndex !== trainrunIndex) {
-        return maximum;
-      }
+    return this.travelTimeVariablesByTrainrun[trainrunIndex].reduce((maximum, index) => {
+      const variable = this.problem.variables[index];
       return Math.max(maximum, -this.delta[index], this.delta[index] - variable.domain, 0);
     }, 0);
   }
@@ -711,6 +727,9 @@ export class TimetableEvaluator {
   // ---------------------------------------------------------------------
 
   private addEdge(e: number, sign: number) {
+    if (this.problem.edgeInScope[e] === 1 && constraintEnabled(this.problem, "trackLimit")) {
+      this.trackConflictCost += sign * this.edgeConflictCosts[e];
+    }
     if (this.problem.edgeInScope[e] === 1 && this.objectiveWeights.has("lowerEdgeTrackUsage")) {
       const tracks = this.edgeTracks[e];
       this.scopedEdgeTrackTotal += sign * tracks;
@@ -798,6 +817,7 @@ export class TimetableEvaluator {
     const period = Math.max(1, Math.round(edge.maxFrequency * TICKS_PER_MINUTE));
     const active = this.problem.active;
     let maxTracks = 0;
+    let overloadDuration = 0;
 
     const buffer = this.edgeBuffers[e];
     for (const p of this.edgeSamples[e]) {
@@ -822,13 +842,20 @@ export class TimetableEvaluator {
       }
       const events = buffer.subarray(0, length).sort();
       let current = 0;
+      let previousTick = 0;
       for (let k = 0; k < length; k++) {
+        const tick = events[k] >> 1;
+        overloadDuration += Math.max(0, current - this.problem.maxTracks) * (tick - previousTick);
         current += (events[k] & 1) === 1 ? 1 : -1;
+        previousTick = tick;
         if (current > maxTracks) {
           maxTracks = current;
         }
       }
     }
+    this.edgeConflictCosts[e] =
+      Math.max(0, maxTracks - this.problem.maxTracks) +
+      overloadDuration / period / this.edgeSamples[e].length;
     return maxTracks;
   }
 

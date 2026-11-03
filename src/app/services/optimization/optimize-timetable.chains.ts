@@ -55,6 +55,12 @@ export interface Edge {
   maxFrequency: number;
 }
 
+export function optimizationEdgeId(firstNodeId: number, secondNodeId: number): string {
+  return firstNodeId < secondNodeId
+    ? `${firstNodeId}-${secondNodeId}`
+    : `${secondNodeId}-${firstNodeId}`;
+}
+
 /** Dwell at a stop between two chains of the same trainrun (one direction). */
 export interface StopConstraint {
   node: Node;
@@ -291,6 +297,7 @@ export function buildProblem(
   selectedNodeIds: number[],
   optionalWindow: number,
   policy: OptimizationPolicy = createDefaultOptimizationPolicy(),
+  selectedCorridorEdgeIds?: string[],
 ): OptimizationProblem {
   const sections = trainrunSections.filter(
     (s) => s.getSourceNode() !== undefined && s.getTargetNode() !== undefined,
@@ -320,6 +327,11 @@ export function buildProblem(
 
   const selection = new Set<number>(selectedNodeIds ?? []);
   const inScope = (node: Node) => selection.size === 0 || selection.has(node.getId());
+  const corridorSelection =
+    selectedCorridorEdgeIds === undefined ? undefined : new Set(selectedCorridorEdgeIds);
+  const inCorridor = (section: TrainrunSection) =>
+    corridorSelection === undefined ||
+    corridorSelection.has(optimizationEdgeId(section.getSourceNodeId(), section.getTargetNodeId()));
 
   // --- chains & variables ------------------------------------------------
   const byTrainrun = new Map<number, TrainrunSection[]>();
@@ -375,7 +387,8 @@ export function buildProblem(
             (st) =>
               (constraintEnabled(policy, "timeLocks") && hasTimeLock(sections[st.sectionIdx])) ||
               !inScope(st.fromNode) ||
-              !inScope(st.toNode),
+              !inScope(st.toNode) ||
+              !inCorridor(sections[st.sectionIdx]),
           );
           const oneWay = trainrun.getDirection() === Direction.ONE_WAY;
           const varA = newVariable(key + ":A", domain, fixed);
@@ -419,6 +432,9 @@ export function buildProblem(
           depSec: number,
           depSection: TrainrunSection,
         ) => {
+          if (!inCorridor(arrSection) && !inCorridor(depSection)) {
+            return;
+          }
           const arrField = arrivalFieldAt(arrSection, node);
           const depField = departureFieldAt(depSection, node);
           if (!active[arrSec * 4 + arrField] || !active[depSec * 4 + depField]) {
@@ -471,7 +487,11 @@ export function buildProblem(
     direction: 0 | 1,
   ): Variable["travelTimeFixedReason"] => {
     const section = sections[sectionIndex];
-    if (!inScope(section.getSourceNode()) || !inScope(section.getTargetNode())) {
+    if (
+      !inScope(section.getSourceNode()) ||
+      !inScope(section.getTargetNode()) ||
+      !inCorridor(section)
+    ) {
       return "scope";
     }
     const travelTimeLocked =
@@ -518,7 +538,7 @@ export function buildProblem(
     }
 
     for (const {section: affectedSection, field, node} of affected) {
-      if (!inScope(node)) {
+      if (!inScope(node) || !inCorridor(affectedSection)) {
         return "scope";
       }
       if (!constraintEnabled(policy, "timeLocks")) {
@@ -639,10 +659,14 @@ export function buildProblem(
   const edgeInScope = new Uint8Array(edges.length);
   edges.forEach((edge, index) => {
     edgeInScope[index] =
-      selection.size === 0 ||
-      (selection.has(edge.fromNode.getId()) && selection.has(edge.toNode.getId()))
-        ? 1
-        : 0;
+      corridorSelection !== undefined
+        ? corridorSelection.has(optimizationEdgeId(edge.fromNode.getId(), edge.toNode.getId()))
+          ? 1
+          : 0
+        : selection.size === 0 ||
+            (selection.has(edge.fromNode.getId()) && selection.has(edge.toNode.getId()))
+          ? 1
+          : 0;
   });
 
   // --- user connections (H13) ---------------------------------------------
@@ -663,6 +687,9 @@ export function buildProblem(
       const i1 = indexOf.get(s1.getId());
       const i2 = indexOf.get(s2.getId());
       if (i1 === undefined || i2 === undefined) {
+        return;
+      }
+      if (corridorSelection !== undefined && !inCorridor(s1) && !inCorridor(s2)) {
         return;
       }
       const add = (

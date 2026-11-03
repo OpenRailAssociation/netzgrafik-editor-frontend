@@ -82,6 +82,7 @@ export class OptimizeTimetableService {
       options.selectedNodeIds ?? [],
       options.optionalConnectionWindow ?? DEFAULT_OPTIONAL_WINDOW,
       policy,
+      options.selectedCorridorEdgeIds,
     );
 
     return problem.edges.map((edge, edgeIndex) => {
@@ -118,6 +119,7 @@ export class OptimizeTimetableService {
       options.selectedNodeIds ?? [],
       options.optionalConnectionWindow ?? DEFAULT_OPTIONAL_WINDOW,
       policy,
+      options.selectedCorridorEdgeIds,
     );
     const evaluator = new TimetableEvaluator(problem, this.infrastructureEstimatorService);
     const beforeTracks = new Map<number, number>();
@@ -330,6 +332,7 @@ export class OptimizeTimetableService {
       options.selectedNodeIds ?? [],
       options.optionalConnectionWindow ?? DEFAULT_OPTIONAL_WINDOW,
       policy,
+      options.selectedCorridorEdgeIds,
     );
     const evaluator = new TimetableEvaluator(problem, this.infrastructureEstimatorService);
     problem.variables.forEach((variable, index) => {

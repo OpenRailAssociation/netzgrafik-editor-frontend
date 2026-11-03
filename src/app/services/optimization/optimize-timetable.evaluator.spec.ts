@@ -263,6 +263,7 @@ function buildSingleSectionProblem(
   travelTimeLocked = false,
   timeLocksEnabled = true,
   travelTimeLocksEnabled = true,
+  selectedCorridorEdgeIds?: string[],
 ) {
   const source = {
     getId: () => 1,
@@ -333,6 +334,7 @@ function buildSingleSectionProblem(
     selectedNodeIds,
     5,
     policy,
+    selectedCorridorEdgeIds,
   );
 }
 
@@ -350,13 +352,48 @@ describe("TimetableEvaluator conflict severity", () => {
     const evaluator = createTrackEvaluator(true, false);
 
     expect(evaluator.parts().hard).toBe(1);
-    expect(evaluator.score()).toBe(WEIGHT_HARD);
+    expect(evaluator.parts().trackConflictCost).toBeCloseTo(1 + 1 / 60, 10);
+    expect(evaluator.score()).toBeCloseTo(WEIGHT_HARD + WEIGHT_TRACK * (1 + 1 / 60), 6);
+  });
+
+  it("recognizes shorter overloads before the maximum track count decreases", () => {
+    const evaluator = createTrackEvaluator(true, false);
+    const before = evaluator.score();
+    evaluator.candC[4] = 0.5;
+    evaluator.candC[7] = 30.5;
+
+    evaluator.evaluateAll();
+
+    expect(evaluator.getEdgeTracks(0)).toBe(2);
+    expect(evaluator.parts().hard).toBe(1);
+    expect(evaluator.getTrackConflictCost(0)).toBeCloseTo(1 + 7 / 900, 10);
+    expect(evaluator.score()).toBeLessThan(before);
+
+    evaluator.candC[4] = 1;
+    evaluator.candC[7] = 31;
+    evaluator.evaluateAll();
+    expect(evaluator.getEdgeTracks(0)).toBe(1);
+    expect(evaluator.parts().hard).toBe(0);
+    expect(evaluator.parts().trackConflictCost).toBeCloseTo(0, 10);
+  });
+
+  it("does not penalize overloads outside the optimization scope", () => {
+    const evaluator = createTrackEvaluator(true, false);
+    evaluator["problem"].edgeInScope[0] = 0;
+
+    evaluator.evaluateAll();
+
+    expect(evaluator.getEdgeTracks(0)).toBe(2);
+    expect(evaluator.parts().hard).toBe(0);
+    expect(evaluator.parts().trackConflictCost).toBe(0);
+    expect(evaluator.score()).toBe(0);
   });
 
   it("uses section overload as a soft cost when the edge objective is enabled", () => {
     const evaluator = createTrackEvaluator(false, true);
 
     expect(evaluator.parts().hard).toBe(0);
+    expect(evaluator.parts().trackConflictCost).toBe(0);
     expect(evaluator.score()).toBe(3 * WEIGHT_TRACK);
   });
 
@@ -455,6 +492,38 @@ describe("TimetableEvaluator conflict severity", () => {
     expect(runtimeVariable.fixed).toBeTrue();
     expect(runtimeVariable.domain).toBe(0);
     expect(runtimeVariable.travelTimeFixedReason).toBe("scope");
+  });
+
+  it("limits a selected trainrun corridor to its explicit track edges", () => {
+    const outsideCorridor = buildSingleSectionProblem(
+      Direction.ONE_WAY,
+      true,
+      true,
+      false,
+      false,
+      [],
+      false,
+      true,
+      true,
+      ["1-3"],
+    );
+    const insideCorridor = buildSingleSectionProblem(
+      Direction.ONE_WAY,
+      true,
+      true,
+      false,
+      false,
+      [],
+      false,
+      true,
+      true,
+      ["1-2"],
+    );
+
+    expect(outsideCorridor.chains[0].fixed).toBeTrue();
+    expect(outsideCorridor.edgeInScope[0]).toBe(0);
+    expect(insideCorridor.chains[0].fixed).toBeFalse();
+    expect(insideCorridor.edgeInScope[0]).toBe(1);
   });
 
   it("defaults both lock rules to active and lets each be disabled independently", () => {

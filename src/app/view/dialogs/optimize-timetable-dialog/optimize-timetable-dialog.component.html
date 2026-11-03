@@ -83,7 +83,7 @@
             <ng-container *ngIf="scopeUsesSelectedTrainrun; else nodeSelectionScope">
               {{
                 "app.view.dialogs.optimize-timetable-dialog.scope-trainrun"
-                  | translate: {count: selectedNodeCount.toString()}
+                  | translate: {count: selectedSectionCount.toString()}
               }}
             </ng-container>
             <ng-template #nodeSelectionScope>

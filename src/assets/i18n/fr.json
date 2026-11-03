@@ -410,7 +410,7 @@
           "max-tracks": "Voies max. par tronçon",
           "optimize": "Optimiser",
           "scope-selection": "Seuls les {$count} nœuds sélectionnés sont optimisés, les horaires aux bords restent fixes.",
-          "scope-trainrun": "Les {$count} nœuds du train sélectionné sont optimisés, les horaires aux limites restent fixes.",
+          "scope-trainrun": "Seuls les trains sur les {$count} sections du corridor sont optimisés ; les sections hors corridor restent fixes.",
           "scope-all": "Toute la Netzgrafik est optimisée (aucun nœud sélectionné).",
           "search-info": "{$iterations} itérations en {$runtime} ms, {$over} tronçons au-dessus de la limite avant l'optimisation.",
           "variable-breakdown": "Variables libres : {$variables} ({$shifts} décalages horaires, {$freeRuntimes} durées de tronçon libres).",

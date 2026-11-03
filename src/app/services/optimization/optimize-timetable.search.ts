@@ -672,6 +672,7 @@ export async function runSearch(
 
   let best = new Int32Array(evaluator.delta);
   let bestScore = score;
+  let bestParts = evaluator.parts();
   const tabuUntil = new Int32Array(problem.variables.length);
   let iteration = 0;
   let evaluatedCandidates = 0;
@@ -693,8 +694,18 @@ export async function runSearch(
   };
 
   const setBest = () => {
-    if (score < bestScore - 1e-9) {
+    const parts = evaluator.parts();
+    const improvesFeasibility =
+      parts.hard < bestParts.hard ||
+      (parts.hard === bestParts.hard &&
+        parts.hard > 0 &&
+        parts.trackConflictCost < bestParts.trackConflictCost - 1e-9);
+    const sameFeasibility =
+      parts.hard === bestParts.hard &&
+      (parts.hard === 0 || Math.abs(parts.trackConflictCost - bestParts.trackConflictCost) < 1e-9);
+    if (improvesFeasibility || (sameFeasibility && score < bestScore - 1e-9)) {
       bestScore = score;
+      bestParts = parts;
       best = new Int32Array(evaluator.delta);
       lastImprovement = iteration;
     }
@@ -810,9 +821,7 @@ export async function runSearch(
           const candidateParts = evaluator.parts();
           const candidateSeverity = conflict.severity;
           const isTabu =
-            group.variables.some((v) => tabuUntil[v] > iteration) &&
-            candidateScore >= bestScore &&
-            candidateSeverity >= currentSeverity;
+            group.variables.some((v) => tabuUntil[v] > iteration) && candidateScore >= bestScore;
           const improvesConflict =
             candidateParts.hard < currentParts.hard ||
             (candidateParts.hard === currentParts.hard && candidateSeverity < currentSeverity);
@@ -884,10 +893,7 @@ export async function runSearch(
               conflictIndex.updateVariable(v);
               const candidateParts = evaluator.parts();
               const candidateSeverity = conflict.severity;
-              const isTabu =
-                tabuUntil[v] > iteration &&
-                candidateScore >= bestScore &&
-                candidateSeverity >= currentSeverity;
+              const isTabu = tabuUntil[v] > iteration && candidateScore >= bestScore;
               if (!isTabu) {
                 if (fallbackMove === undefined || candidateScore < fallbackMove.score) {
                   fallbackMove = {v, value, score: candidateScore};
@@ -918,14 +924,14 @@ export async function runSearch(
               }
             }
           }
-          const shiftIndex = stepIndex === 0 ? 0 : stepIndex === 1 ? 1 : -1;
-          if (shiftIndex >= 0) {
+          if (stepIndex <= 1) {
             for (const group of activeTrainrunGroups) {
-              if ((group.headway > 1 ? 1 : 0) !== shiftIndex) {
+              if (stepIndex === 1 && group.headway <= 1) {
                 continue;
               }
-              testedDistanceSet.add(group.headway);
-              for (const shift of [-group.headway, group.headway]) {
+              const distance = stepIndex === 0 ? 1 : group.headway;
+              testedDistanceSet.add(distance);
+              for (const shift of [-distance, distance]) {
                 if (performance.now() >= deadline) {
                   break;
                 }
@@ -1217,6 +1223,8 @@ export async function runSearch(
       archiveCurrent();
     }
 
+    // Restoring the best assignment and polishing can invalidate the conflict heap.
+    conflictIndex.refreshAll();
     activeProgress?.({
       fraction: 1,
       elapsedMs: performance.now() - searchStartedAt,

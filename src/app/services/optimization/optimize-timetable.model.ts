@@ -6,6 +6,8 @@ export interface OptimizeTimetableOptions {
   maxTracksPerSection: number;
   /** Selected node ids. Empty => whole network is optimized. */
   selectedNodeIds?: number[];
+  /** Canonical edge ids restricting optimization to a selected trainrun's corridor. */
+  selectedCorridorEdgeIds?: string[];
   /** Search time budget in milliseconds (default 1000). */
   timeBudgetMs?: number;
   /** Random seed – a different seed lets the user continue with another search path. */

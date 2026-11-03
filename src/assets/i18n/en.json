@@ -410,7 +410,7 @@
           "max-tracks": "Max. tracks per section",
           "optimize": "Optimize",
           "scope-selection": "Only the {$count} selected nodes are optimized, times at the boundary stay fixed.",
-          "scope-trainrun": "All {$count} nodes of the selected trainrun are optimized, times at the boundary stay fixed.",
+          "scope-trainrun": "Only trains on the {$count} corridor sections are optimized; sections outside stay fixed.",
           "scope-all": "The whole Netzgrafik is optimized (no nodes selected).",
           "search-info": "{$iterations} iterations in {$runtime} ms, {$over} sections over the limit before optimization.",
           "variable-breakdown": "Free variables: {$variables} ({$shifts} time shifts, {$freeRuntimes} free section travel times).",

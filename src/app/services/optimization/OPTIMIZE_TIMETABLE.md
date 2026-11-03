@@ -32,8 +32,11 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 
 ### 2.2 Optimierungsbereich (Multi-Selektion)
 
-- Ist ein **Zuglauf ausgewählt**, werden alle Quell- und Zielknoten seiner Abschnitte als
-  Optimierungsbereich verwendet. Dieser Zuglaufscope hat Vorrang vor einer Knotenauswahl.
+- Ist ein **Zuglauf ausgewählt**, definieren seine sichtbaren Abschnitte den Korridor. Die
+  Gleisübersicht und die harte Gleisprüfung berücksichtigen nur diese ungerichteten Streckenkanten. Alle
+  Zugläufe auf dem Korridor dürfen angepasst werden, wenn ihre gesamte betroffene Kette innerhalb
+  des Korridors liegt; Zeiten auf Abschnitten ausserhalb bleiben fix. Dieser Scope hat Vorrang vor
+  einer Knotenauswahl.
 - Knoten können mit der **rechten Maustaste** (Rechteck aufziehen) mehrfach markiert werden
   (`NodeService.getSelectedNodes()`).
 - Die aktiven Editorfilter gelten für Knoten und Zugabschnitte; ausgeblendete Elemente werden
@@ -44,15 +47,19 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
   - **Innere Kanten**: beide Endknoten markiert – dürfen verschoben werden.
   - **Randkanten**: nur ein Endknoten markiert – Zeiten sind **fix** (wie Locks).
   - Alles ausserhalb bleibt unverändert.
-- Der Scope bleibt knotengestützt: Zugläufe, deren Ketten vollständig innerhalb des Bereichs liegen,
-  können ebenfalls angepasst werden.
+  - Die Streckengleis-Übersicht zeigt nur innere Kanten; Randkanten und Abschnitte ausserhalb
+    bleiben für die Randbedingungen im Optimierungsmodell erhalten.
+- Bei einer Knotenauswahl bleibt der Scope knotengestützt: Zugläufe, deren Ketten vollständig
+  innerhalb des Bereichs liegen, können ebenfalls angepasst werden.
 - Die Auswahl wird beim Öffnen des Dialogs gelesen und als Liste von Knoten-IDs an den Service
-  übergeben.
+  übergeben. Ein Zuglaufkorridor übergibt zusätzlich die exakten Kanten-IDs; damit werden andere
+  Verbindungen zwischen denselben Knoten nicht versehentlich in den Scope aufgenommen.
 
 ### 2.3 Resultat-Dialog
 
 - Beim Öffnen des Dialogs ist die kompakte, scrollbar begrenzte **Streckengleis-Übersicht (IST)**
-  ausgeklappt. Sie zeigt die geschätzte Gleiszahl und Topologie der sichtbaren Abschnitte.
+  ausgeklappt. Sie zeigt die geschätzte Gleiszahl und Topologie der sichtbaren Abschnitte im
+  Optimierungsbereich.
 - Liste von **Lösungsvorschlägen** mit KPIs (siehe §6), inkl. **Ausgangslage** als Referenz.
 - Die **Ausgangslage (Baseline)** ist der Fahrplan vor der Suche. Alle Änderungen und Deltas der
   Vorschläge beziehen sich auf diesen Zustand; er bleibt im Dialog als Vergleich und Vorschau
@@ -206,6 +213,18 @@ Large-Neighborhood-Suche einen kleinen Bereich und startet von der besten bisher
 Ein inkrementeller Schätzer bewertet Kandidaten schnell; die Infrastruktur-Berechnung prüft die
 ausgegebenen Gleis-KPIs exakt nach.
 
+Die Suchschleife läuft ausserhalb der Angular-Zone, damit ihre kooperativen Pausen nicht
+jedes Mal die gesamte Streckengrafik neu prüfen. Fortschrittsmeldungen aktualisieren den
+Dialog gezielt. Nach jedem Suchbudget wird der Konfliktindex mit dem zurückgesetzten
+Bestzustand synchronisiert, bevor eine Suche fortgesetzt werden kann.
+
+Für die Machbarkeit bewertet die Suche neben der Zahl verletzter harter Regeln auch die
+Überlastungshöhe und die über Zeit und Streckenposition gemittelte Überlastung. Dadurch
+erkennt sie kürzere Überlappungen auch dann als Fortschritt, wenn die maximale Gleiszahl
+noch unverändert ist. Der beste ungültige Suchzustand wird zuerst nach harten Verletzungen,
+dann nach diesem Konfliktwert ausgewählt. Gültige Vorschläge müssen weiterhin die
+unveränderte harte Gleisgrenze und die exakte Endprüfung erfüllen.
+
 Die Director-Profile **Mehr Spielraum – Häufige zuerst** und **Mehr Spielraum –
 Wichtige zuerst** schalten Variablen progressiv nach Suchbudget frei. Beim
 Kategorieprofil stammt der Rang aus `TrainrunCategory.order`; kleinere Werte
@@ -237,6 +256,10 @@ Wenn kein direkt konfliktverbessernder Zuglauf-Schritt verfügbar ist, kann die
 Suche eine koordinierte Verschiebung als Erkundung annehmen, solange die Zahl
 harter Konflikte nicht steigt. Ein höherer Score wird dabei temperaturabhängig
 wie beim Simulated Annealing akzeptiert.
+Koordinierte Zuglauf-Schritte prüfen ebenfalls zuerst ±1 Minute und danach die
+Zugfolgezeit. Ein Tabu wird nur für einen Kandidaten aufgehoben, dessen Score
+den besten bisherigen Score unterbietet; eine Verbesserung gegenüber dem
+unmittelbaren Vorgänger allein reicht nicht aus.
 
 Die Suche verwendet die Policy-Gewichte, um Kandidaten während des Suchlaufs zu erkunden. Im
 Director-Modus werden diese aus den Ratings und Rangpositionen abgeleitet; gleiche Ratings erhalten

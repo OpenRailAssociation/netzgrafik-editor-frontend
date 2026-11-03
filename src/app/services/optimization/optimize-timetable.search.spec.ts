@@ -1,6 +1,10 @@
 import {TimetableEvaluator} from "./optimize-timetable.evaluator";
 import {OptimizationProblem} from "./optimize-timetable.chains";
 import {createDefaultOptimizationPolicy} from "./optimization-policy.model";
+import {ConflictIndex} from "./optimization-conflict-index";
+import {Node} from "../../models/node.model";
+import {Trainrun} from "../../models/trainrun.model";
+import {TrainrunCategory} from "../../data-structures/business.data.structures";
 import {
   getConflictStepCandidates,
   getLocalStepCandidates,
@@ -109,37 +113,144 @@ describe("shouldAcceptExploratoryMove", () => {
   });
 });
 
+function createSearchProblem(): OptimizationProblem {
+  return {
+    sections: [],
+    nodeTrackNodes: [],
+    trainrunIds: [],
+    origC: new Float64Array(),
+    origT: new Float64Array(),
+    active: new Uint8Array(),
+    chains: [],
+    variables: [{key: "free", domain: 1, chains: [], fixed: false}],
+    edges: [],
+    edgeInScope: new Uint8Array(),
+    stops: [],
+    connections: [],
+    nodeEvents: [],
+    sectionChain: new Int32Array(),
+    sectionEdge: new Int32Array(),
+    varEdges: [[]],
+    varStops: [[]],
+    varTrainruns: [[]],
+    varConnections: [[]],
+    varNodeEvents: [[]],
+    varNodeTrackNodes: [[]],
+    travelTimeVariables: new Int32Array(),
+    edgeVars: [],
+    maxTracks: 1,
+    optionalWindow: 5,
+    policy: createDefaultOptimizationPolicy(),
+  };
+}
+
+describe("runSearch coordinated shifts", () => {
+  it("finds a one-minute trainrun shift when isolated moves and headway-sized moves cannot repair it", async () => {
+    let now = 0;
+    spyOn(performance, "now").and.callFake(() => ++now);
+    const problem = createSearchProblem();
+    const trainrun = jasmine.createSpyObj<Trainrun>("trainrun", [
+      "getId",
+      "getFrequency",
+      "getTrainrunCategory",
+    ]);
+    trainrun.getId.and.returnValue(1);
+    trainrun.getFrequency.and.returnValue(60);
+    trainrun.getTrainrunCategory.and.returnValue(
+      jasmine.createSpyObj<TrainrunCategory>("category", [], {sectionHeadway: 3}),
+    );
+    problem.variables = [0, 1].map((index) => ({
+      key: `chain-${index}`,
+      domain: 3,
+      chains: [index],
+      fixed: false,
+    }));
+    problem.chains = [0, 1].map((index): OptimizationProblem["chains"][number] => ({
+      key: `chain-${index}`,
+      trainrun,
+      steps: [],
+      varA: index,
+      varB: index,
+      signB: 0,
+      mirrorB: false,
+      fixed: false,
+    }));
+    const nodes = [1, 2].map((id) => {
+      const node = jasmine.createSpyObj<Node>("node", ["getId"]);
+      node.getId.and.returnValue(id);
+      return node;
+    });
+    problem.edges = [
+      {
+        fromNode: nodes[0],
+        toNode: nodes[1],
+        sections: [],
+        headways: [],
+        maxFrequency: 60,
+      },
+    ];
+    problem.edgeInScope = new Uint8Array([1]);
+    problem.edgeVars = [[0, 1]];
+    problem.varEdges = [[0], [0]];
+    problem.varStops = [[], []];
+    problem.varTrainruns = [[], []];
+    problem.varConnections = [[], []];
+    problem.varNodeEvents = [[], []];
+    const delta = new Int32Array(2);
+    const repaired = () => delta[0] === 1 && delta[1] === 1;
+    const hard = () => Number(!repaired()) + Number(delta[0] !== delta[1]);
+    const score = () => hard() * 1e6;
+    const evaluator = jasmine.createSpyObj<TimetableEvaluator>(
+      "evaluator",
+      [
+        "evaluateAll",
+        "setVariable",
+        "score",
+        "parts",
+        "getTrackOverload",
+        "getTrackConflictCost",
+        "getEdgeTracks",
+      ],
+      {delta},
+    );
+    evaluator.evaluateAll.and.callFake(score);
+    evaluator.score.and.callFake(score);
+    evaluator.setVariable.and.callFake((index, value) => {
+      delta[index] = value;
+      return score();
+    });
+    evaluator.getTrackOverload.and.callFake(() => Number(!repaired()));
+    evaluator.getTrackConflictCost.and.callFake(() => Number(!repaired()));
+    evaluator.getEdgeTracks.and.callFake(() => (repaired() ? 1 : 2));
+    evaluator.parts.and.callFake(() => ({
+      hard: hard(),
+      excess: Number(!repaired()),
+      trackConflictCost: Number(!repaired()),
+      edgeTrackCost: 0,
+      nodeTrackCost: 0,
+      edgesOverLimit: Number(!repaired()),
+      connectionViolations: 0,
+      connectionWaitDeviation: 0,
+      stopViolations: Number(delta[0] !== delta[1]),
+      travelTimeExtensionViolation: 0,
+      travelTimeDelta: 0,
+      optionalConnections: 0,
+      sumAbsShift: Math.abs(delta[0]) + Math.abs(delta[1]),
+    }));
+
+    const result = await runSearch(problem, evaluator, undefined, 100, 1);
+
+    expect(result.archive.some((solution) => solution.parts.hard === 0)).toBeTrue();
+    expect(result.bestAssignment).toEqual({"chain-0": 1, "chain-1": 1});
+  });
+});
+
 describe("runSearch continuation", () => {
   it("adds time to the same search state and keeps its archive", async () => {
-    const problem: OptimizationProblem = {
-      sections: [],
-      nodeTrackNodes: [],
-      trainrunIds: [],
-      origC: new Float64Array(),
-      origT: new Float64Array(),
-      active: new Uint8Array(),
-      chains: [],
-      variables: [{key: "free", domain: 1, chains: [], fixed: false}],
-      edges: [],
-      edgeInScope: new Uint8Array(),
-      stops: [],
-      connections: [],
-      nodeEvents: [],
-      sectionChain: new Int32Array(),
-      sectionEdge: new Int32Array(),
-      varEdges: [[]],
-      varStops: [[]],
-      varTrainruns: [[]],
-      varConnections: [[]],
-      varNodeEvents: [[]],
-      varNodeTrackNodes: [[]],
-      travelTimeVariables: new Int32Array(),
-      edgeVars: [],
-      maxTracks: 1,
-      optionalWindow: 5,
-      policy: createDefaultOptimizationPolicy(),
-    };
+    const refreshConflicts = spyOn(ConflictIndex.prototype, "refreshAll").and.callThrough();
+    const problem = createSearchProblem();
     const search = await runSearch(problem, new TimetableEvaluator(problem), undefined, 30, 1);
+    expect(refreshConflicts).toHaveBeenCalledTimes(2);
     expect(search.bestAssignment.free).toBeGreaterThanOrEqual(-1);
     expect(search.bestAssignment.free).toBeLessThanOrEqual(1);
     const continueFor = search.continueFor;
@@ -150,6 +261,7 @@ describe("runSearch continuation", () => {
 
     const firstIterations = search.iterations;
     const continuedSearch = await continueFor(30);
+    expect(refreshConflicts).toHaveBeenCalledTimes(3);
 
     expect(continuedSearch).toBe(search);
     expect(continuedSearch.archive).toBe(search.archive);

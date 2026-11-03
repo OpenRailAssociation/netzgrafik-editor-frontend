@@ -410,7 +410,7 @@
           "max-tracks": "Max. Gleise pro Abschnitt",
           "optimize": "Optimieren",
           "scope-selection": "Nur {$count} selektierte Knoten werden optimiert, Zeiten an den Rändern bleiben fix.",
-          "scope-trainrun": "Alle {$count} Knoten des ausgewählten Zuglaufs werden optimiert, Zeiten an den Rändern bleiben fix.",
+          "scope-trainrun": "Nur Züge auf den {$count} Korridorabschnitten werden optimiert; Abschnitte ausserhalb bleiben fix.",
           "scope-all": "Ganze Netzgrafik wird optimiert (keine Knoten selektiert).",
           "search-info": "{$iterations} Iterationen in {$runtime} ms, {$over} Abschnitte über Limit vor der Optimierung.",
           "variable-breakdown": "Freie Variablen: {$variables} ({$shifts} Zeitverschiebungen, {$freeRuntimes} freie Abschnittsfahrzeiten).",

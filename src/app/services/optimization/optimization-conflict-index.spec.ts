@@ -22,6 +22,7 @@ function createConflictIndex(overloads: number[], priorities: number[]): Conflic
   } as unknown as OptimizationProblem;
   const evaluator = {
     getTrackOverload: (edgeIndex: number) => overloads[edgeIndex],
+    getTrackConflictCost: (edgeIndex: number) => overloads[edgeIndex],
     getConnectionViolationSeverity: () => 0,
     getStopViolationSeverity: () => 0,
     getTravelTimeExtensionExcess: () => 0,
@@ -41,5 +42,20 @@ describe("ConflictIndex track priorities", () => {
     const index = createConflictIndex([1, 0], [1.25, 100]);
 
     expect(index.getHighestPriority()?.componentIndex).toBe(0);
+  });
+
+  it("rebuilds conflict priorities after restoring an earlier assignment", () => {
+    const overloads = [1, 0];
+    const index = createConflictIndex(overloads, [1.25, 1.75]);
+    overloads[0] = 0;
+    overloads[1] = 2;
+
+    index.refreshAll();
+
+    expect(index.getTrackConflict(0)?.severity).toBe(0);
+    expect(index.getHighestPriority()?.componentIndex).toBe(1);
+    overloads[1] = 0;
+    index.refreshAll();
+    expect(index.getHighestPriority()).toBeUndefined();
   });
 });

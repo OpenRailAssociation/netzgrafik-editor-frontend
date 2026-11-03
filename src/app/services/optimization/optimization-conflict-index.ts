@@ -244,7 +244,7 @@ export class ConflictIndex {
     return componentVariables;
   }
 
-  private refreshAll(): void {
+  refreshAll(): void {
     this.conflicts.forEach((_, index) => this.refresh(index));
   }
 
@@ -261,7 +261,7 @@ export class ConflictIndex {
           overload > 0
             ? 1_000_000 +
               Math.round((this.trackPriorities[conflict.componentIndex] ?? 0) * 1000) * 1000 +
-              overload * 10 +
+              this.evaluator.getTrackConflictCost(conflict.componentIndex) * 10 +
               conflict.affectedVariables.length
             : 0;
         break;

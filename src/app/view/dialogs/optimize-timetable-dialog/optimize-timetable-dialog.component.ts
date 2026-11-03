@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  NgZone,
   OnDestroy,
   TemplateRef,
   ViewChild,
@@ -15,6 +16,7 @@ import {NodeService} from "../../../services/data/node.service";
 import {TrainrunService} from "../../../services/data/trainrun.service";
 import {TrainrunSectionService} from "../../../services/data/trainrunsection.service";
 import {UndoService} from "../../../services/data/undo.service";
+import {optimizationEdgeId} from "../../../services/optimization/optimize-timetable.chains";
 import {OptimizeTimetableService} from "../../../services/optimization/optimize-timetable.service";
 import {OptimizationPolicyService} from "../../../services/optimization/optimization-policy.service";
 import {
@@ -58,6 +60,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
 
   policy: OptimizationPolicy = createDefaultOptimizationPolicy();
   selectedNodeCount = 0;
+  selectedSectionCount = 0;
   scopeUsesSelectedTrainrun = false;
   result: OptimizeTimetableResult = undefined;
   isOptimizing = false;
@@ -96,6 +99,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
 
   private previewSolution: OptimizeTimetableSolution = undefined;
   private scopeNodeIds: number[] = [];
+  private scopeCorridorEdgeIds: string[] = [];
   private committed = false;
   private seed = 1;
   private dialogRef: SbbDialogRef<void, unknown> = undefined;
@@ -113,6 +117,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     resourceService: ResourceService,
     infrastructureEstimatorService: InfrastructureEstimatorService,
     private readonly filterService: FilterService,
+    private readonly ngZone: NgZone,
     private readonly changeDetectorRef: ChangeDetectorRef,
   ) {
     this.policy = this.optimizationPolicyService.policy;
@@ -276,6 +281,9 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     const options = {
       maxTracksPerSection: this.maxTracks,
       selectedNodeIds: this.scopeNodeIds,
+      selectedCorridorEdgeIds: this.scopeUsesSelectedTrainrun
+        ? this.scopeCorridorEdgeIds
+        : undefined,
       policy: this.policy,
     };
     this.result.baselineKpi.edgesOverLimitBefore = this.result.baselineEdges.filter(
@@ -334,12 +342,13 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     this.committed = false;
     this.seed = 1;
     const selectedTrainrun = this.trainrunService.getSelectedTrainrun();
-    const trainrunNodeIds = selectedTrainrun
-      ? this.getTrainrunNodeIds(selectedTrainrun.getId())
-      : [];
-    this.scopeUsesSelectedTrainrun = trainrunNodeIds.length > 0;
+    const trainrunScope = selectedTrainrun
+      ? this.getTrainrunScope(selectedTrainrun.getId())
+      : {nodeIds: [], edgeIds: []};
+    this.scopeUsesSelectedTrainrun = trainrunScope.edgeIds.length > 0;
+    this.scopeCorridorEdgeIds = this.scopeUsesSelectedTrainrun ? trainrunScope.edgeIds : [];
     this.scopeNodeIds = this.scopeUsesSelectedTrainrun
-      ? trainrunNodeIds
+      ? trainrunScope.nodeIds
       : this.nodeService
           .getSelectedNodes()
           .filter((node) => this.filterService.filterNode(node))
@@ -349,6 +358,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     this.trackOverviewExpanded = true;
     this.resultsPanelExpanded = false;
     this.selectedNodeCount = this.scopeNodeIds.length;
+    this.selectedSectionCount = this.scopeCorridorEdgeIds.length;
     this.refreshTrackOverview();
     this.undoService.pauseUndoRecording();
 
@@ -613,10 +623,11 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
       await new Promise<void>((resolve) => {
         requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
       });
-      await operation();
+      await this.ngZone.runOutsideAngular(operation);
       this.optimizationProgressPercent = 100;
     } finally {
       this.isOptimizing = false;
+      this.changeDetectorRef.detectChanges();
     }
   }
 
@@ -636,6 +647,9 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
       {
         maxTracksPerSection: this.maxTracks,
         selectedNodeIds: this.scopeNodeIds,
+        selectedCorridorEdgeIds: this.scopeUsesSelectedTrainrun
+          ? this.scopeCorridorEdgeIds
+          : undefined,
         timeBudgetMs,
         seed: this.seed,
         startAssignment,
@@ -690,21 +704,22 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     );
   }
 
-  private getTrainrunNodeIds(trainrunId: number): number[] {
+  private getTrainrunScope(trainrunId: number): {nodeIds: number[]; edgeIds: string[]} {
     const nodeIds = new Set<number>();
+    const edgeIds = new Set<string>();
     this.getVisibleTrainrunSections()
       .filter((section) => section.getTrainrunId() === trainrunId)
       .forEach((section) => {
         const sourceNode = section.getSourceNode();
         const targetNode = section.getTargetNode();
-        if (sourceNode !== undefined) {
-          nodeIds.add(sourceNode.getId());
+        if (sourceNode === undefined || targetNode === undefined) {
+          return;
         }
-        if (targetNode !== undefined) {
-          nodeIds.add(targetNode.getId());
-        }
+        nodeIds.add(sourceNode.getId());
+        nodeIds.add(targetNode.getId());
+        edgeIds.add(optimizationEdgeId(sourceNode.getId(), targetNode.getId()));
       });
-    return [...nodeIds];
+    return {nodeIds: [...nodeIds], edgeIds: [...edgeIds]};
   }
 
   private getVisibleNodes() {
@@ -726,10 +741,13 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
         {
           maxTracksPerSection: this.maxTracks,
           selectedNodeIds: this.scopeNodeIds,
+          selectedCorridorEdgeIds: this.scopeUsesSelectedTrainrun
+            ? this.scopeCorridorEdgeIds
+            : undefined,
           policy: this.policy,
         },
       );
-    const rows = baselineEdges.map((edge) => ({...edge}));
+    const rows = baselineEdges.filter((edge) => edge.inScope).map((edge) => ({...edge}));
 
     if (this.trackOverviewSort.direction !== "") {
       const direction = this.trackOverviewSort.direction === "asc" ? 1 : -1;
