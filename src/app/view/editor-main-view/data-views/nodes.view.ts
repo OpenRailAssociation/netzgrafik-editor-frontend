@@ -558,6 +558,7 @@ export class NodesView {
   private makeAnalyticsArea(
     groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>,
   ) {
+    if (this.editorView.editorMode !== EditorMode.Analytics) return;
     groupEnter
       .append(StaticDomTags.NODE_ANALYTICSAREA_SVG)
       .attr("class", StaticDomTags.NODE_ANALYTICSAREA_CLASS)
@@ -594,6 +595,7 @@ export class NodesView {
   private makeAnalyticsTextLeftArea(
     groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>,
   ) {
+    if (this.editorView.editorMode !== EditorMode.Analytics) return;
     groupEnter
       .append(StaticDomTags.NODE_ANALYTICSAREA_TEXT_LEFT_SVG)
       .attr("class", StaticDomTags.NODE_ANALYTICSAREA_TEXT_LEFT_CLASS)
@@ -612,6 +614,7 @@ export class NodesView {
   private makeAnalyticsTextRightArea(
     groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>,
   ) {
+    if (this.editorView.editorMode !== EditorMode.Analytics) return;
     groupEnter
       .append(StaticDomTags.NODE_ANALYTICSAREA_TEXT_RIGHT_SVG)
       .attr("class", StaticDomTags.NODE_ANALYTICSAREA_TEXT_RIGHT_CLASS)
