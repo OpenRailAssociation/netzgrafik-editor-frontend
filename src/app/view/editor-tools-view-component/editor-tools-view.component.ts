@@ -38,7 +38,7 @@ interface SvgExportOptions {
 }
 
 interface ContainertoExportData {
-  documentToExport: HTMLElement;
+  documentToExport: SVGSVGElement;
   exportParameter: SvgExportOptions;
   essentialProps: string[];
 }
@@ -437,9 +437,9 @@ export class EditorToolsViewComponent {
   }
 
   private getStreckengrafikEditingContainerToExport(): ContainertoExportData {
-    const htmlElementToExport = document.getElementById("main-streckengrafik-container");
+    const documentToExport = this.getSVGElementById("main-streckengrafik-container");
     // offsetWidth/offsetHeight are undefined on SVG elements; use the rendered bounding box instead.
-    const bbox = htmlElementToExport.getBoundingClientRect();
+    const bbox = documentToExport.getBoundingClientRect();
     const param = {
       width: bbox.width,
       height: bbox.height,
@@ -488,18 +488,18 @@ export class EditorToolsViewComponent {
     ];
 
     return {
-      documentToExport: htmlElementToExport,
+      documentToExport,
       exportParameter: param,
       essentialProps: essentialProps,
     };
   }
 
   private getOriginDestinationContainerToExport(): ContainertoExportData {
-    const htmlElementToExport = document.getElementById("main-origin-destination-container");
-    if (htmlElementToExport === null) {
+    const documentToExport = this.getSVGElementById("main-origin-destination-container");
+    if (documentToExport === null) {
       return undefined;
     }
-    const bbox = (htmlElementToExport as unknown as SVGGElement).getBBox();
+    const bbox = documentToExport.getBBox();
     const padding = 10;
     const param = {
       left: bbox.x - padding,
@@ -525,15 +525,15 @@ export class EditorToolsViewComponent {
     ];
 
     return {
-      documentToExport: htmlElementToExport,
+      documentToExport,
       exportParameter: param,
       essentialProps: essentialProps,
     };
   }
 
   private getNetzgrafikEditingContainerToExport(): ContainertoExportData {
-    const htmlElementToExport = document.getElementById("graphContainer");
-    if (htmlElementToExport === null) {
+    const documentToExport = this.getSVGElementById("graphContainer");
+    if (documentToExport === null) {
       return undefined;
     }
     const boundingBox = this.uiInteractionService.getNetzgrafikBoundingBox();
@@ -568,10 +568,21 @@ export class EditorToolsViewComponent {
     ];
 
     return {
-      documentToExport: htmlElementToExport,
+      documentToExport,
       exportParameter: param,
       essentialProps: essentialProps,
     };
+  }
+
+  private getSVGElementById(id: string): SVGSVGElement | null {
+    const element = document.getElementById(id);
+    if (!element) {
+      return null;
+    }
+    if (!(element instanceof SVGSVGElement)) {
+      throw new Error("Element must be an <svg>");
+    }
+    return element;
   }
 
   // Clones the live element so inlining styles for export never mutates the working editor DOM.
