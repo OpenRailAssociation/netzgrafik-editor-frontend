@@ -297,66 +297,37 @@ export class TrainrunsectionHelper {
     trainrunSection: TrainrunSection,
     orderedNodes: Node[],
   ): LeftAndRightTimeStructure {
-    if (orderedNodes.length > 0) {
-      const direction =
-        orderedNodes[0].getId() === trainrunSection.getSourceNode().getId()
-          ? "sourceToTarget"
-          : "targetToSource";
-      const section = new DirectedTrainrunSectionProxy(trainrunSection, direction);
-      return {
-        leftDepartureTime: section.getTailDeparture(),
-        leftArrivalTime: section.getTailArrival(),
-        rightDepartureTime: section.getHeadDeparture(),
-        rightArrivalTime: section.getHeadArrival(),
-        travelTime: section.getTravelTime(),
-        bottomTravelTime: section.getReverseTravelTime(),
-      };
+    const {leftSection, rightSection} = this.getLeftRightDirectedSectionProxies(
+      trainrunSection,
+      orderedNodes,
+    );
+
+    if (leftSection.direction !== rightSection.direction) {
+      throw new Error("All sections must share the same direction");
     }
+    const direction = leftSection.direction;
 
-    const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
-    const bothLastNonStopTrainrunSections =
-      this.trainrunService.getBothLastNonStopTrainrunSections(trainrunSection);
-    const lastLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
-    const lastRightNode = this.getNextStopRightNode(trainrunSection, orderedNodes);
-
-    let leftTrainrunSection =
-      lastLeftNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
-        ? bothLastNonStopTrainrunSections.lastNonStopTrainrunSection1
-        : bothLastNonStopTrainrunSections.lastNonStopTrainrunSection2;
-    let rightTrainrunSection =
-      lastRightNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
-        ? bothLastNonStopTrainrunSections.lastNonStopTrainrunSection1
-        : bothLastNonStopTrainrunSections.lastNonStopTrainrunSection2;
-
-    if (lastLeftNode.getId() === lastRightNode.getId()) {
-      // special case : when start and end node are equal and no non-stop node in between,
-      // the last non-stop trainrun section is the same for both sides, so we need to determine
-      // the left and right section based on the order of the nodes
-      leftTrainrunSection = this.trainrunService.getFirstNonStopTrainrunSection(trainrunSection);
-      rightTrainrunSection = this.trainrunService.getLastNonStopTrainrunSection(
-        leftTrainrunSection.getSourceNode(),
-        leftTrainrunSection,
+    let cumulativeTravelTime: number;
+    let cumulativeBottomTravelTime: number;
+    if (orderedNodes.length > 0) {
+      cumulativeTravelTime = leftSection.getTravelTime();
+      cumulativeBottomTravelTime = leftSection.getReverseTravelTime();
+    } else {
+      cumulativeTravelTime = this.trainrunService.getCumulativeTravelTime(
+        trainrunSection,
+        direction,
+      );
+      cumulativeBottomTravelTime = this.trainrunService.getCumulativeTravelTime(
+        trainrunSection,
+        direction === "sourceToTarget" ? "targetToSource" : "sourceToTarget",
       );
     }
 
-    const cumulativeTravelTime = this.trainrunService.getCumulativeTravelTime(
-      trainrunSection,
-      lastLeftNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
-        ? "targetToSource"
-        : "sourceToTarget",
-    );
-    const cumulativeBottomTravelTime = this.trainrunService.getCumulativeTravelTime(
-      trainrunSection,
-      lastRightNode.getId() === bothLastNonStopNodes.lastNonStopNode1.getId()
-        ? "targetToSource"
-        : "sourceToTarget",
-    );
-
     return {
-      leftDepartureTime: lastLeftNode.getDepartureTime(leftTrainrunSection),
-      leftArrivalTime: lastLeftNode.getArrivalTime(leftTrainrunSection),
-      rightDepartureTime: lastRightNode.getDepartureTime(rightTrainrunSection),
-      rightArrivalTime: lastRightNode.getArrivalTime(rightTrainrunSection),
+      leftDepartureTime: leftSection.getTailDeparture(),
+      leftArrivalTime: leftSection.getTailArrival(),
+      rightDepartureTime: rightSection.getHeadDeparture(),
+      rightArrivalTime: rightSection.getHeadArrival(),
       travelTime: cumulativeTravelTime,
       bottomTravelTime: cumulativeBottomTravelTime,
     };
