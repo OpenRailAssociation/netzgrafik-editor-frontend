@@ -1,7 +1,7 @@
 import {TrainrunCategory, TrainrunFrequency} from "../../data-structures/business.data.structures";
 import {Node} from "../../models/node.model";
 import {Trainrun} from "../../models/trainrun.model";
-import {TrainrunSection} from "../../models/trainrunsection.model";
+import {TrainrunSection, _TRAINRUN_UPDATE_TOKEN} from "../../models/trainrunsection.model";
 import {
   InfrastructureEstimatorService,
   NodeTrackEstimate,
@@ -32,7 +32,7 @@ function getTrackEstimatorFixture() {
     const section = new TrainrunSection(sectionDto);
     section.setSourceNode(nodes.get(sectionDto.sourceNodeId) as Node);
     section.setTargetNode(nodes.get(sectionDto.targetNodeId) as Node);
-    section.setTrainrun(trainruns.get(sectionDto.trainrunId) as Trainrun);
+    section.setTrainrun(trainruns.get(sectionDto.trainrunId) as Trainrun, _TRAINRUN_UPDATE_TOKEN);
     return section;
   });
   nodes.forEach((node) => node.initializePortsWithReferencesToTrainrunSections(sections));
