@@ -6,7 +6,7 @@ RUN npm clean-install
 COPY src/ ./src
 RUN npm run build
 
-FROM ghcr.io/nginxinc/nginx-unprivileged:1.27.4-alpine-slim
+FROM ghcr.io/nginx/nginx-unprivileged:1.30.6-alpine-slim
 
 ADD --chmod=755 https://github.com/kyubisation/angular-server-side-configuration/releases/download/v22.0.2/ngssc_64bit /usr/sbin/ngssc
 
