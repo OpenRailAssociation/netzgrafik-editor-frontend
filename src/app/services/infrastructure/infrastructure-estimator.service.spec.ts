@@ -10,7 +10,7 @@ import {
 } from "../../data-structures/business.data.structures";
 import {Node} from "../../models/node.model";
 import {Trainrun} from "../../models/trainrun.model";
-import {TrainrunSection} from "../../models/trainrunsection.model";
+import {TrainrunSection, _TRAINRUN_UPDATE_TOKEN} from "../../models/trainrunsection.model";
 import {Direction} from "../../data-structures/business.data.structures";
 import {NetzgrafikTrackEstimatorTesting} from "../../../integration-testing/netzgrafik.unit.testing.track.estimator";
 
@@ -38,7 +38,7 @@ const createTrainrunSection = (
   const trainrunSection = new TrainrunSection();
   trainrunSection.setSourceNode(sourceNode);
   trainrunSection.setTargetNode(targetNode);
-  trainrunSection.setTrainrun(trainrun);
+  trainrunSection.setTrainrun(trainrun, _TRAINRUN_UPDATE_TOKEN);
   trainrunSection.setSourceDeparture(sourceDeparture);
   trainrunSection.setSourceArrival(sourceArrival);
   trainrunSection.setTargetDeparture(targetDeparture);
@@ -73,7 +73,7 @@ const getTrackEstimatorFixture = () => {
     const section = new TrainrunSection(sectionDto);
     section.setSourceNode(nodes.get(sectionDto.sourceNodeId) as Node);
     section.setTargetNode(nodes.get(sectionDto.targetNodeId) as Node);
-    section.setTrainrun(trainruns.get(sectionDto.trainrunId) as Trainrun);
+    section.setTrainrun(trainruns.get(sectionDto.trainrunId) as Trainrun, _TRAINRUN_UPDATE_TOKEN);
     return section;
   });
   return {nodes, sections};
