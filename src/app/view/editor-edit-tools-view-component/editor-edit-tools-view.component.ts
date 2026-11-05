@@ -39,18 +39,18 @@ export class EditorEditToolsViewComponent implements OnDestroy {
 
   orderingAlgorithmOptions = [
     {
-      name: $localize`:@@app.view.editor-edit-tools-view-component.alphabeticalOrdering:Alphabetical`,
-      title: $localize`:@@app.view.editor-edit-tools-view-component.alphabeticalOrderingTooltip:Order ports alphabetically by train categories.`,
+      name: "app.view.editor-edit-tools-view-component.alphabeticalOrdering",
+      title: "app.view.editor-edit-tools-view-component.alphabeticalOrderingTooltip",
       orderingAlgorithm: OrderingAlgorithm.Alphabetical,
     },
     {
-      name: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwareOrdering:Crossing aware`,
-      title: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwareOrderingTooltip:Minimizes crossings of trainruns within the nodes.`,
+      name: "app.view.editor-edit-tools-view-component.crossingAwareOrdering",
+      title: "app.view.editor-edit-tools-view-component.crossingAwareOrderingTooltip",
       orderingAlgorithm: OrderingAlgorithm.ClutterAware,
     },
     {
-      name: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwarePushOrdering:Crossing aware (push crossings into nodes)`,
-      title: $localize`:@@app.view.editor-edit-tools-view-component.crossingAwarePushOrderingTooltip:Minimizes crossings of trainruns, moving them into the nodes to keep parallel trainruns bundled.`,
+      name: "app.view.editor-edit-tools-view-component.crossingAwarePushOrdering",
+      title: "app.view.editor-edit-tools-view-component.crossingAwarePushOrderingTooltip",
       orderingAlgorithm: OrderingAlgorithm.ClutterAwarePushCrossings,
     },
   ];

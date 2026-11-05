@@ -8,10 +8,7 @@
   margin-bottom: 16px;
 }
 
-::ng-deep .TrainrunDialog.EditorToolButton:active {
-}
-
-::ng-deep .SummaryTitle {
+::ng-deep .LeftPanelTitle {
   margin-top: $interComponentSpacingSmall;
   margin-bottom: $innerComponentSpacing;
   padding: 0 $innerComponentSpacing;
@@ -26,16 +23,7 @@
   display: inline-block;
   cursor: pointer;
   border-style: solid;
-  font-family: "SBBWeb Light", "Helvetica Neue", Helvetica, Arial, sans-serif;
-}
-
-::ng-deep button.NetzgrafikButton:hover {
-}
-
-::ng-deep button.NetzgrafikButton:active {
-}
-
-::ng-deep button.NetzgrafikButton:disabled {
+  font-family: $LIGHT_FONT_FAMILY;
 }
 
 ::ng-deep .sbb-expansion-panel-body h4:first-child {
@@ -85,19 +73,10 @@
   border: 1px solid transparent;
   border-radius: 16px;
 
-  &.selected {
-  }
-
-  &.add_button {
-  }
-
   &.function {
     min-width: 40px;
     max-width: 40px;
   }
-}
-
-::ng-deep .FilterSetting:active {
 }
 
 .sbb-filtersetting-chip-group {

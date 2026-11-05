@@ -33,6 +33,43 @@ export class NoteService {
     this.notesStore.notes = notesDto.map((noteDto) => new Note(noteDto));
   }
 
+  // The syncXxxNote methods apply changes made by an external source: they
+  // only touch the targeted note and don't emit operations.
+  syncCreatedNote(noteDto: Omit<FreeFloatingTextDto, "id">): FreeFloatingTextDto {
+    const note = new Note();
+    this.applyNoteFields(note, noteDto);
+    this.notesStore.notes.push(note);
+    this.notesUpdated();
+    return {...note.getDto()};
+  }
+
+  syncUpdatedNote(noteDto: FreeFloatingTextDto) {
+    const note = this.getNoteFromId(noteDto.id);
+    if (note === undefined) {
+      throw new Error(`Note with id ${noteDto.id} not found`);
+    }
+    this.applyNoteFields(note, noteDto);
+    this.notesUpdated();
+  }
+
+  syncDeletedNote(noteId: number) {
+    const removedNote = this.removeNote(noteId);
+    if (removedNote === undefined) {
+      throw new Error(`Note with id ${noteId} not found`);
+    }
+  }
+
+  private applyNoteFields(note: Note, noteDto: Omit<FreeFloatingTextDto, "id">) {
+    note.setPosition(noteDto.x, noteDto.y);
+    note.setWidth(noteDto.width);
+    note.setHeight(noteDto.height);
+    note.setTitle(noteDto.title);
+    note.setText(noteDto.text);
+    note.setBackgroundColor(noteDto.backgroundColor);
+    note.setTextColor(noteDto.textColor);
+    note.setLabelIds([...noteDto.labelIds]);
+  }
+
   createNewNoteFromDtoList(freeFloatingTexts: FreeFloatingTextDto[]) {
     freeFloatingTexts.forEach((freeFloatingText: FreeFloatingTextDto) => {
       const note: Note = this.addNote(
@@ -96,8 +133,7 @@ export class NoteService {
         round,
       );
       note.setPosition(newPosition.getX(), newPosition.getY());
-      this.moveNoteToFront(noteId, enforceUpdate);
-      return;
+      this.moveNoteToFront(noteId, false);
     } else {
       note.setPosition(posX, posY);
     }
@@ -107,21 +143,35 @@ export class NoteService {
   }
 
   deleteNote(noteId: number, enforceUpdate = true) {
+    const note = this.removeNote(noteId, enforceUpdate);
+    if (note !== undefined) {
+      this.operation.emit(new NoteOperation(OperationType.delete, note));
+    }
+  }
+
+  private removeNote(noteId: number, enforceUpdate = true): Note | undefined {
     const note = this.getNoteFromId(noteId);
-    const deletetLabelIds = this.labelService.clearLabel(
+    if (note === undefined) {
+      return undefined;
+    }
+    const deletedLabelIds = this.labelService.clearLabel(
       note.getLabelIds(),
       this.makeLabelIDCounterMap(this.getNotes()),
     );
-    this.filterService.clearDeletetFilterNoteLabels(deletetLabelIds);
-    this.notesStore.notes = this.notesStore.notes.filter((n: Note) => n.getId() !== noteId);
+    this.filterService.clearDeletetFilterNoteLabels(deletedLabelIds);
+    this.notesStore.notes = this.notesStore.notes.filter((n: Note) => n !== note);
     if (enforceUpdate) {
       this.notesUpdated();
     }
-    this.operation.emit(new NoteOperation(OperationType.delete, note));
+    return note;
   }
 
   getNotes(): Note[] {
     return Object.assign({}, this.notesStore).notes;
+  }
+
+  getVisibleNotes(): Note[] {
+    return this.getNotes().filter((n) => this.filterService.filterNote(n));
   }
 
   getSelectedNotes(): Note[] {
@@ -174,6 +224,9 @@ export class NoteService {
 
   setLabels(noteId: number, labels: string[]) {
     const note = this.getNoteFromId(noteId);
+    if (note === undefined) {
+      return;
+    }
 
     // ensure uniqueness of input labels
     const uniqueLabels = Array.from(new Set(labels));

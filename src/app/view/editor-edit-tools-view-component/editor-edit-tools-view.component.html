@@ -1,4 +1,4 @@
-<h2 class="SummaryTitle">{{ "app.view.editor-edit-tools-view-component.edit" | translate }}</h2>
+<h2 class="LeftPanelTitle">{{ "app.view.editor-edit-tools-view-component.edit" | translate }}</h2>
 <sbb-accordion [multi]="false">
   <sbb-expansion-panel [expanded]="false" [hideToggle]="false" [disabled]="!getVariantIsWritable()">
     <sbb-expansion-panel-header>{{
@@ -148,10 +148,10 @@
       <sbb-radio-button
         *ngFor="let option of orderingAlgorithmOptions"
         [value]="option.orderingAlgorithm"
-        [title]="option.title"
+        [title]="option.title | translate"
         (change)="onUpdateOrderingAlgorithm($event)"
       >
-        {{ option.name }}
+        {{ option.name | translate }}
       </sbb-radio-button>
     </sbb-radio-group>
   </sbb-expansion-panel>

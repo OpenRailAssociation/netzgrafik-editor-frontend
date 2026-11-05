@@ -151,8 +151,8 @@
 }
 
 ::ng-deep polygon.transition_pin.selected {
-  rx: 3;
-  ry: 3;
+  rx: 3px;
+  ry: 3px;
   opacity: 1;
   stroke: $COLOR_Edit;
   pointer-events: auto;

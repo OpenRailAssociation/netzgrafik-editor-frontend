@@ -26,6 +26,10 @@ const EMPTY_TEXT_POSITIONS: TrainrunSectionTextPositions = {
   [TrainrunSectionText.TrainrunSectionNumberOfStops]: {x: 0, y: 0},
 };
 
+// --- Friend-Token / Object Capability Pattern ---
+// Only TrainrunSectionService.updateTrainrunReference() should call setTrainrun().
+// Importing this token signals intentional low-level access; prefer the service method.
+export const _TRAINRUN_UPDATE_TOKEN: unique symbol = Symbol("TrainrunSectionUpdate");
 type TrainrunSectionOptions = Omit<TrainrunSectionDto, "id"> &
   Partial<Pick<TrainrunSectionDto, "id">>;
 
@@ -249,7 +253,7 @@ export class TrainrunSection {
     this.setTargetNode(targetNode);
   }
 
-  setTrainrun(trainrun: Trainrun) {
+  setTrainrun(trainrun: Trainrun, _token: typeof _TRAINRUN_UPDATE_TOKEN) {
     this.trainrun = trainrun;
     this.trainrunId = trainrun.getId();
   }

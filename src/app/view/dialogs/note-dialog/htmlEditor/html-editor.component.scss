@@ -1,4 +1,4 @@
-@use "@sbb-esta/angular" as sbb;
+@use "@sbb-esta/angular/typography.css";
 @use "../../../rastering/definitions" as *;
 
 ::ng-deep .ngx-html-editor {
@@ -16,7 +16,7 @@
     border-top-left-radius: 0;
     border-top-right-radius: 0;
     border: none;
-    font-family: sbb.$fontSbbLight;
+    font-family: $LIGHT_FONT_FAMILY;
   }
 
   .CodeMirror {
@@ -35,6 +35,14 @@
     overflow-y: auto;
     background: var(--sbb-header-lean-background-color);
     color: var(--NODE_TEXT_FOCUS);
+  }
+
+  .NgxEditor__Popup {
+    background: var(--sbb-color-background);
+    border: 1px solid var(--sbb-header-lean-border-bottom-color);
+    button {
+      @extend .sbb-ghost-button;
+    }
   }
 }
 
@@ -58,7 +66,7 @@
   border-width: 1px;
   border: none;
   font-size: 12px;
-  font-family: sbb.$fontSbbLight;
+  font-family: $LIGHT_FONT_FAMILY;
 }
 
 ::ng-deep button.ngx-html-editor-color {
