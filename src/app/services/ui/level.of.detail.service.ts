@@ -2,7 +2,6 @@ import {Injectable, OnDestroy} from "@angular/core";
 import {Subject} from "rxjs";
 import {takeUntil} from "rxjs/operators";
 import {UiInteractionService} from "./ui.interaction.service";
-import {EditorMode} from "../../view/editor-menu/editor-mode";
 
 export enum LevelOfDetail {
   FULL, // precise >= 50%
@@ -36,10 +35,6 @@ export class LevelOfDetailService implements OnDestroy {
     this.uiInteractionService.zoomFactorObservable
       .pipe(takeUntil(this.destroyed))
       .subscribe((changedZoomFactor) => {
-        if (this.uiInteractionService.getEditorMode() !== EditorMode.NetzgrafikEditing) {
-          // don't change level of detail
-          return;
-        }
         this.levelOfDetail = LevelOfDetail.FULL;
         if (changedZoomFactor < 50) {
           this.levelOfDetail = LevelOfDetail.LEVEL3;

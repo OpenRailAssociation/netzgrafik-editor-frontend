@@ -62,6 +62,13 @@ export class NoteDialogComponent implements OnDestroy {
       this.data = parameter;
       this.openDialog(parameter);
     });
+    this.uiInteractionService.closeNoteDialogObservable
+      .pipe(takeUntil(this.destroyed))
+      .subscribe((noteId) => {
+        if (this.dialogRef !== null && this.data?.noteFormComponentModel?.id === noteId) {
+          this.closeDialog();
+        }
+      });
   }
 
   static getDialogConfig(parameter: NoteDialogParameter): SbbDialogConfig {
@@ -99,6 +106,12 @@ export class NoteDialogComponent implements OnDestroy {
   openDialog(parameter: NoteDialogParameter) {
     this.dialogConfig = NoteDialogComponent.getDialogConfig(parameter);
     this.dialogRef = this.dialog.open(this.noteEditorTabsViewTemplate, this.dialogConfig);
+    const dialogRef = this.dialogRef;
+    dialogRef.afterClosed().subscribe(() => {
+      if (this.dialogRef === dialogRef) {
+        this.dialogRef = null;
+      }
+    });
     this.dialogPos = {
       bottom: parseInt(this.dialogConfig.position.top, 10) + parseInt(this.dialogConfig.height, 10),
       left: parseInt(this.dialogConfig.position.left, 10),

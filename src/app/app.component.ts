@@ -1,4 +1,4 @@
-import {Component, Input, Output, OnInit, ChangeDetectionStrategy} from "@angular/core";
+import {Component, Input, Output, OnInit, ChangeDetectionStrategy, ElementRef} from "@angular/core";
 import {AuthService} from "./services/auth/auth.service";
 import {TrainrunService} from "./services/data/trainrun.service";
 import {TrainrunSectionService} from "./services/data/trainrunsection.service";
@@ -7,7 +7,7 @@ import {environment} from "../environments/environment";
 import packageJson from "../../package.json";
 import {Observable, merge} from "rxjs";
 import {ProjectDto} from "./api/generated";
-import {NetzgrafikDto} from "./data-structures/business.data.structures";
+import {FreeFloatingTextDto, NetzgrafikDto} from "./data-structures/business.data.structures";
 import {Operation} from "./models/operation.model";
 import {LabelService} from "./services/data/label.service";
 import {NodeService} from "./services/data/node.service";
@@ -18,6 +18,7 @@ import {UiInteractionService} from "./services/ui/ui.interaction.service";
 import {NoteService} from "./services/data/note.service";
 import {FilterService} from "./services/ui/filter.service";
 import {AutoLayoutService} from "./services/util/auto-layout.service";
+import {AppElementInterface} from "./app.interface";
 
 @Component({
   selector: "sbb-root",
@@ -26,13 +27,14 @@ import {AutoLayoutService} from "./services/util/auto-layout.service";
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AppElementInterface {
   readonly disableBackend = environment.disableBackend;
   readonly version = packageJson.version;
   readonly environmentLabel = environment.label;
   readonly authenticated: Promise<unknown>;
   protected currentLanguage: string = this.i18nService.language;
   private netzgrafikDtoIsSet = false;
+  private initialized = false;
 
   projectInMenu: Observable<ProjectDto | null>;
 
@@ -63,16 +65,25 @@ export class AppComponent implements OnInit {
     private noteService: NoteService,
     private filterService: FilterService,
     private autoLayoutService: AutoLayoutService,
+    elementRef: ElementRef<HTMLElement>,
   ) {
     if (!this.disableBackend) {
       this.authenticated = authService.initialized;
     }
+    // Angular Elements only maps inputs and outputs: expose the note methods
+    // on the host element so the embedding application can call them.
+    Object.assign(elementRef.nativeElement, {
+      createNote: this.createNote.bind(this),
+      updateNote: this.updateNote.bind(this),
+      deleteNote: this.deleteNote.bind(this),
+    });
   }
 
   ngOnInit() {
     if (this.disableBackend && !this.netzgrafikDtoIsSet) {
       this.netzgrafikDto = NetzgrafikDefault.getDefaultNetzgrafik();
     }
+    this.initialized = true;
   }
 
   logout() {
@@ -115,6 +126,29 @@ export class AppComponent implements OnInit {
       this.filterService.setActiveFilterSetting(filterSetting);
     } else {
       throw new Error(`FilterSetting with id ${id} not found`);
+    }
+  }
+
+  // The note methods apply a change made by an external source and don't emit operations.
+  createNote(note: Omit<FreeFloatingTextDto, "id">): FreeFloatingTextDto {
+    this.ensureInitialized();
+    return this.noteService.syncCreatedNote(note);
+  }
+
+  updateNote(note: FreeFloatingTextDto) {
+    this.ensureInitialized();
+    this.noteService.syncUpdatedNote(note);
+  }
+
+  deleteNote(noteId: number) {
+    this.ensureInitialized();
+    this.noteService.syncDeletedNote(noteId);
+    this.uiInteractionService.closeNoteDialog(noteId);
+  }
+
+  private ensureInitialized() {
+    if (!this.initialized) {
+      throw new Error("Notes can only be updated once the editor is initialized");
     }
   }
 

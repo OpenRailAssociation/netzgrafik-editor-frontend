@@ -5,7 +5,7 @@ import {StaticDomTags} from "./static.dom.tags";
 import {NodeViewObject} from "./nodeViewObject";
 import {NoteViewObject} from "./noteViewObject";
 import {
-  NODE_POSITION_BASIC_RASTER,
+  NOTE_POSITION_BASIC_RASTER,
   NOTE_TEXT_AREA_HEIGHT,
   NOTE_TEXT_LEFT_SPACING,
   TEXT_SIZE,
@@ -505,7 +505,7 @@ export class NotesView {
     this.dragDomObj = null;
     d3.select(domObj).classed(StaticDomTags.TAG_HOVER, false);
     d3.select(domObj).classed(StaticDomTags.TAG_DRAGGING, false);
-    this.doDrag(event, note.getId(), NODE_POSITION_BASIC_RASTER, true);
+    this.doDrag(event, note.getId(), NOTE_POSITION_BASIC_RASTER, true);
   }
 
   private doDrag(event: NoteDragEvent, noteId: number, round = 1, dragEnd = false) {

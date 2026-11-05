@@ -35,7 +35,7 @@ import {
   NodeOperation,
   Operation,
   OperationType,
-  TrainrunOperation,
+  TrainrunUpdateOperation,
 } from "../../models/operation.model";
 
 @Injectable({
@@ -221,7 +221,7 @@ export class NodeService implements OnDestroy {
     });
   }
 
-  duplicateNode(nodeId: number): Node {
+  duplicateNode(nodeId: number, enforceUpdate = true): Node {
     const node = this.getNodeFromId(nodeId);
     const newNode = this.addNodeWithPosition(
       node.getPositionX(),
@@ -229,6 +229,7 @@ export class NodeService implements OnDestroy {
       node.getBetriebspunktName(),
       node.getFullName(),
       Object.assign([], node.getLabelIds()),
+      enforceUpdate,
     );
     newNode.setHaltezeit(JSON.parse(JSON.stringify(node.getTrainrunCategoryHaltezeit())));
     newNode.setConnectionTime(node.getConnectionTime());
@@ -516,6 +517,13 @@ export class NodeService implements OnDestroy {
       this.transitionsUpdated();
       this.nodesUpdated();
     }
+    this.operation.emit(
+      new TrainrunUpdateOperation(trainrunSection1.getTrainrun(), [
+        "nodes",
+        "times",
+        "numberOfStops",
+      ]),
+    );
 
     return trainrunSection1;
   }
@@ -598,7 +606,7 @@ export class NodeService implements OnDestroy {
     this.transitionsUpdated();
     this.nodesUpdated();
     this.operation.emit(
-      new TrainrunOperation(OperationType.update, trainrunSections.trainrunSection1.getTrainrun()),
+      new TrainrunUpdateOperation(trainrunSections.trainrunSection1.getTrainrun(), ["times"]),
     );
   }
 
@@ -1164,26 +1172,6 @@ export class NodeService implements OnDestroy {
     nodeLabels = nodeLabels.filter((v, i, a) => a.indexOf(v) === i);
     nodeLabels.sort();
     return nodeLabels;
-  }
-
-  getNetzgrafikBoundingBox() {
-    let minX: number | undefined;
-    let maxX: number | undefined;
-    let minY: number | undefined;
-    let maxY: number | undefined;
-    this.nodesStore.nodes.forEach((n) => {
-      minX = minX === undefined ? n.getPositionX() : Math.min(minX, n.getPositionX());
-      maxX =
-        maxX === undefined
-          ? n.getPositionX() + n.getNodeWidth()
-          : Math.max(maxX, n.getPositionX() + n.getNodeWidth());
-      minY = minY === undefined ? n.getPositionY() : Math.min(minY, n.getPositionY());
-      maxY =
-        maxY === undefined
-          ? n.getPositionY() + n.getNodeHeight()
-          : Math.max(maxY, n.getPositionY() + n.getNodeHeight());
-    });
-    return {minCoordX: minX, minCoordY: minY, maxCoordX: maxX, maxCoordY: maxY};
   }
 
   private deleteNodeWithoutUpdate(nodeId: number, enforceUpdate = true) {

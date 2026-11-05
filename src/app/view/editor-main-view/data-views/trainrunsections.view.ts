@@ -2,7 +2,6 @@ import {
   DEFAULT_PIN_RADIUS,
   DEFAULT_STOP_ICON,
   NODE_EDGE_WIDTH,
-  NODE_TEXT_AREA_HEIGHT,
   RASTERING_BASIC_GRID_SIZE,
   SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS,
   TRAINRUN_SECTION_TEXT_AREA_HEIGHT,
@@ -1169,21 +1168,16 @@ export class TrainrunSectionsView {
   ) {
     (["BEGINNING", "ENDING"] as const).forEach((arrowLocation) => {
       groupLinesEnter
-        .append(StaticDomTags.EDGE_LINE_ARROW_SVG)
-        .attr("d", (d: TrainrunSectionViewObject) => {
+        .filter((d: TrainrunSectionViewObject) => {
           if (!d.trainrunSection.getTrainrun().isRoundTrip()) {
-            return "";
+            return false;
           }
-          if (arrowLocation === "BEGINNING") {
-            return d.trainrunSection.isSourceSymmetricOrTimesSymmetric()
-              ? ""
-              : "M-1,-6 V0 H-8 L1,6 V0 H8 Z";
-          } else {
-            return d.trainrunSection.isTargetSymmetricOrTimesSymmetric()
-              ? ""
-              : "M-1,-6 V0 H-8 L1,6 V0 H8 Z";
-          }
+          return arrowLocation === "BEGINNING"
+            ? !d.trainrunSection.isSourceSymmetricOrTimesSymmetric()
+            : !d.trainrunSection.isTargetSymmetricOrTimesSymmetric();
         })
+        .append(StaticDomTags.EDGE_LINE_ARROW_SVG)
+        .attr("d", "M-1,-6 V0 H-8 L1,6 V0 H8 Z")
         .attr("transform", (d: TrainrunSectionViewObject) =>
           this.translateAndRotateArrow(d.trainrunSection, arrowLocation, "SYMMETRY"),
         )
@@ -1803,6 +1797,8 @@ export class TrainrunSectionsView {
     if (selectedTrainrun !== null) {
       connectedTrainIds = this.editorView.getConnectedTrainrunIds(selectedTrainrun);
     }
+    // Node sizes depend on the displayed node names
+    trainrunSections.forEach((trainrunSection) => trainrunSection.routeEdgeAndPlaceText());
 
     const filteredTrainrunSections = trainrunSections.filter(
       (trainrunSection: TrainrunSection) =>
@@ -2196,7 +2192,7 @@ export class TrainrunSectionsView {
     }
     if (port.getPositionAlignment() === PortAlignment.Bottom) {
       const v = element.copy();
-      v.setY(v.getY() - NODE_TEXT_AREA_HEIGHT - NODE_EDGE_WIDTH);
+      v.setY(v.getY() - node.getNodeTextAreaHeight() - NODE_EDGE_WIDTH);
       transformedPath.push(v);
     }
     return transformedPath;

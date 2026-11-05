@@ -23,6 +23,8 @@ export class NodeViewObject {
       "_" +
       n.getBetriebspunktName() +
       "_" +
+      n.getFullName() +
+      "_" +
       n.getPorts().length +
       "_" +
       n.getConnectionTime() +

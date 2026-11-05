@@ -75,6 +75,9 @@ export class UiInteractionService implements OnDestroy {
   showNoteDialogSubject = new Subject<NoteDialogParameter>();
   readonly noteDialog = this.showNoteDialogSubject.asObservable();
 
+  closeNoteDialogSubject = new Subject<number>();
+  readonly closeNoteDialogObservable = this.closeNoteDialogSubject.asObservable();
+
   showConfirmationDiagramDialogSubject = new Subject<ConfirmationDialogParameter>();
   readonly confirmationDiagramDialog = this.showConfirmationDiagramDialogSubject.asObservable();
 
@@ -354,13 +357,44 @@ export class UiInteractionService implements OnDestroy {
     this.moveNetzgrafikEditorViewFocalPointSubject.next(center);
   }
 
+  getNetzgrafikBoundingBox(): {
+    minCoordX: number;
+    minCoordY: number;
+    maxCoordX: number;
+    maxCoordY: number;
+  } {
+    const rects = [
+      ...this.nodeService.getVisibleNodes().map((node) => ({
+        x: node.getPositionX(),
+        y: node.getPositionY(),
+        w: node.getNodeWidth(),
+        h: node.getNodeHeight(),
+      })),
+      ...this.noteService.getVisibleNotes().map((note) => ({
+        x: note.getPositionX(),
+        y: note.getPositionY(),
+        w: note.getWidth(),
+        h: note.getHeight(),
+      })),
+    ];
+
+    if (rects.length === 0) {
+      return {minCoordX: 0, minCoordY: 0, maxCoordX: 0, maxCoordY: 0};
+    }
+
+    return {
+      minCoordX: Math.min(...rects.map((r) => r.x)),
+      minCoordY: Math.min(...rects.map((r) => r.y)),
+      maxCoordX: Math.max(...rects.map((r) => r.x + r.w)),
+      maxCoordY: Math.max(...rects.map((r) => r.y + r.h)),
+    };
+  }
+
   viewportCenteringOnNodesBoundingBox() {
-    const bb = this.nodeService.getNetzgrafikBoundingBox();
-    const center = new Vec2D(
-      (bb.minCoordX + bb.maxCoordX) / 2.0,
-      (bb.minCoordY + bb.maxCoordY) / 2.0,
+    const bb = this.getNetzgrafikBoundingBox();
+    this.moveNetzgrafikEditorFocalViewPoint(
+      new Vec2D((bb.minCoordX + bb.maxCoordX) / 2.0, (bb.minCoordY + bb.maxCoordY) / 2.0),
     );
-    this.moveNetzgrafikEditorFocalViewPoint(center);
   }
 
   findClosestNodeToViewCenter(nodes: Node[]): {node: Node | undefined; offset: Vec2D} {
@@ -440,6 +474,11 @@ export class UiInteractionService implements OnDestroy {
 
   closeTrainrunDialog() {
     this.showTrainrunDialogSubject.next(null);
+  }
+
+  // Closes the note dialog if it is currently editing the given note.
+  closeNoteDialog(noteId: number) {
+    this.closeNoteDialogSubject.next(noteId);
   }
 
   print() {

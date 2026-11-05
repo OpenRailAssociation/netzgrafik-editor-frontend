@@ -48,11 +48,11 @@
 }
 
 ::ng-deep text.node_text {
-  stroke-width: 0.1px;
   stroke: $NODE_TEXT_COLOR;
   fill: $NODE_TEXT_FOCUS;
   cursor: move;
   font-size: $BP_LABEL_FONT_SIZE;
+  font-family: $LIGHT_FONT_FAMILY;
 }
 
 ::ng-deep text.node_text.readonly {
@@ -64,11 +64,11 @@
 }
 
 ::ng-deep text.node_connection_time {
-  stroke-width: 0.1px;
   stroke: $NODE_TEXT_COLOR;
   fill: $NODE_TEXT_FOCUS;
   text-anchor: end;
   font-size: $BP_LABEL_FONT_SIZE;
+  font-family: $LIGHT_FONT_FAMILY;
 }
 
 ::ng-deep text.node_connection_time:hover {
@@ -124,19 +124,19 @@
 }
 
 ::ng-deep text.node_title_analyticsarea_left {
-  stroke-width: 0.1px;
   stroke: $NODE_TEXT_COLOR;
   fill: $NODE_TEXT_FOCUS;
   text-anchor: start;
   font-size: $BP_LABEL_FONT_SIZE;
+  font-family: $LIGHT_FONT_FAMILY;
 }
 
 ::ng-deep text.node_title_analyticsarea_right {
-  stroke-width: 0.1px;
   stroke: $NODE_TEXT_COLOR;
   fill: $NODE_TEXT_FOCUS;
   text-anchor: end;
   font-size: $BP_LABEL_FONT_SIZE;
+  font-family: $LIGHT_FONT_FAMILY;
 }
 
 ::ng-deep rect.node_analyticsarea.analytics_level_0 {

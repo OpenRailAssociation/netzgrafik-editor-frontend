@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import {
   NODE_ANALYTICS_AREA_HEIGHT,
   NODE_POSITION_BASIC_RASTER,
+  RASTERING_BASIC_GRID_SIZE,
   NODE_TEXT_AREA_HEIGHT,
   NODE_TEXT_LEFT_SPACING,
   TEXT_SIZE,
@@ -30,6 +31,17 @@ export class NodesView {
   nodeGroup: d3.Selection<SVGGElement, undefined, Element, undefined>;
   draggable: d3.DragBehavior<SVGElement, NodeViewObject, unknown>;
   dragDomObj: SVGElement | null = null;
+
+  // Cache to prevent re-mesuring words that have been already computed.
+  private textWidthCache = new Map<string, number>();
+  // Measurement text element used to compute the length of text in the DOM.
+  private readonly measurementText = d3
+    .select("body")
+    .append("svg")
+    .style("position", "absolute")
+    .style("visibility", "hidden")
+    .append("text")
+    .attr("class", "node_text");
 
   constructor(private editorView: EditorView) {
     this.draggable = d3
@@ -105,6 +117,7 @@ export class NodesView {
   }
 
   displayNodes(inputNodes: Node[]) {
+    inputNodes.forEach((n) => this.updateNodeDisplayConstraints(n));
     const nodes = inputNodes.filter(
       (n) =>
         this.editorView.doCullCheckPositionsInViewport([
@@ -169,25 +182,20 @@ export class NodesView {
     }
   }
 
-  adjustTextWithEllipsis(text: d3.Selection<SVGTextElement, NodeViewObject, Element, unknown>) {
-    text.each(function () {
-      const text = d3.select(this);
-      const chars = text.text().split("");
-
-      const ellipsis = text.text("").append("tspan").attr("class", "elip").text("…");
-      const width = parseFloat(text.attr("width")) - ellipsis.node().getComputedTextLength();
-      const wordLength = chars.length;
-
-      const tspan = text.insert("tspan", ":first-child").text(chars.join(""));
-
-      while (tspan.node().getComputedTextLength() > width && chars.length) {
-        chars.pop();
-        tspan.text(chars.join(""));
-      }
-
-      if (chars.length === wordLength) {
-        ellipsis.remove();
-      }
+  // Renders text lines instead of a single line for the node label
+  private renderLabelLines(
+    text: d3.Selection<SVGTextElement, NodeViewObject, Element, unknown>,
+  ): void {
+    text.nodes().forEach((textElement) => {
+      const element = d3.select<SVGTextElement, NodeViewObject>(textElement);
+      element.text(null);
+      this.getNodeLabelLines(element.datum().node).forEach((line, index) => {
+        element
+          .append("tspan")
+          .attr("x", NODE_TEXT_LEFT_SPACING)
+          .attr("dy", index === 0 ? 0 : TEXT_SIZE)
+          .text(line);
+      });
     });
   }
 
@@ -213,6 +221,7 @@ export class NodesView {
     this.makeNodeRoot(groupEnter);
     this.makeBackground(groupEnter);
     this.makeLabelArea(groupEnter);
+    this.makeHoverDragBackground(groupEnter);
     this.makeNodeDockable(groupEnter);
     this.makeAnalyticsArea(groupEnter);
     this.makeAnalyticsTextLeftArea(groupEnter);
@@ -226,6 +235,7 @@ export class NodesView {
     this.makeNodeRoot(groupEnter);
     this.makeBackground(groupEnter);
     this.makeLabelArea(groupEnter);
+    this.makeHoverDragBackground(groupEnter);
     this.makeNodeDockable(groupEnter);
     this.makeAnalyticsArea(groupEnter);
     this.makeLabelText(groupEnter);
@@ -235,6 +245,7 @@ export class NodesView {
   makeNodeLODLevel1(groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>) {
     this.makeNodeHoverRoot(groupEnter);
     this.makeBackground(groupEnter);
+    this.makeHoverDragBackground(groupEnter);
     this.makeNodeDockable(groupEnter);
     this.makeAnalyticsArea(groupEnter);
     this.makeLabelText(groupEnter);
@@ -242,6 +253,7 @@ export class NodesView {
 
   makeNodeLODLevel0(groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>) {
     this.makeNodeHoverRoot(groupEnter);
+    this.makeHoverDragBackground(groupEnter);
     this.makeNodeDockable(groupEnter);
     this.makeAnalyticsArea(groupEnter);
   }
@@ -343,9 +355,9 @@ export class NodesView {
       .attr("class", StaticDomTags.NODE_LABELAREA_CLASS)
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("width", (n: NodeViewObject) => n.node.getNodeWidth())
-      .attr("height", NODE_TEXT_AREA_HEIGHT)
+      .attr("height", (n: NodeViewObject) => n.node.getNodeTextAreaHeight())
       .attr("x", 0)
-      .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT)
+      .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - n.node.getNodeTextAreaHeight())
       .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,
@@ -503,7 +515,10 @@ export class NodesView {
       .attr("class", StaticDomTags.NODE_DOCKABLE_CLASS)
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("width", (n: NodeViewObject) => n.node.getNodeWidth())
-      .attr("height", (n: NodeViewObject) => n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT)
+      .attr(
+        "height",
+        (n: NodeViewObject) => n.node.getNodeHeight() - n.node.getNodeTextAreaHeight(),
+      )
       .attr("x", 0)
       .attr("y", 0)
       .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
@@ -544,7 +559,9 @@ export class NodesView {
       .attr(
         "y",
         (n: NodeViewObject) =>
-          n.node.getNodeHeight() - NODE_TEXT_AREA_HEIGHT - 0.75 * NODE_ANALYTICS_AREA_HEIGHT,
+          n.node.getNodeHeight() -
+          n.node.getNodeTextAreaHeight() -
+          0.75 * NODE_ANALYTICS_AREA_HEIGHT,
       )
       .attr("title", "test")
       .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
@@ -576,7 +593,7 @@ export class NodesView {
         "y",
         (n: NodeViewObject) =>
           n.node.getNodeHeight() -
-          NODE_TEXT_AREA_HEIGHT -
+          n.node.getNodeTextAreaHeight() -
           0.5 * NODE_ANALYTICS_AREA_HEIGHT -
           TEXT_SIZE / 2,
       )
@@ -594,7 +611,7 @@ export class NodesView {
         "y",
         (n: NodeViewObject) =>
           n.node.getNodeHeight() -
-          NODE_TEXT_AREA_HEIGHT -
+          n.node.getNodeTextAreaHeight() -
           0.5 * NODE_ANALYTICS_AREA_HEIGHT -
           TEXT_SIZE / 2,
       )
@@ -608,14 +625,9 @@ export class NodesView {
       .attr("data-testid", StaticDomTags.NODE_LABELAREA_TEXT_CLASS)
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("x", NODE_TEXT_LEFT_SPACING)
-      .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - TEXT_SIZE / 2)
-      .attr("width", (n: NodeViewObject) => this.getNodeLabelTextWidth(n.node))
-      .text((n: NodeViewObject) =>
-        this.editorView.displayNodesFullName()
-          ? n.node.getFullName()
-          : n.node.getBetriebspunktName(),
-      )
-      .call(this.adjustTextWithEllipsis) // adjust node name if it exceeds the label area
+      .attr("y", (n: NodeViewObject) => this.getNodeLabelFirstLineY(n.node))
+      .attr("width", (n: NodeViewObject) => this.getNodeLabelMaxTextWidth(n.node))
+      .call((text) => this.renderLabelLines(text))
       .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,
@@ -714,7 +726,7 @@ export class NodesView {
   }
 
   onNodeMouseoverEditButton(event: MouseEvent, node: Node) {
-    this.hoverNode(event, node, {raise: true});
+    this.hoverNode(event, node);
     d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_EDIT_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, true);
@@ -724,11 +736,11 @@ export class NodesView {
     d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_EDIT_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, false);
-    this.unhoverNode(event, node, {raise: true});
+    this.unhoverNode(event, node);
   }
 
   onNodeMouseoverDragButton(event: MouseEvent, node: Node) {
-    this.hoverNode(event, node, {raise: true});
+    this.hoverNode(event, node);
     d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_HOVER_DRAG_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, true);
@@ -738,7 +750,7 @@ export class NodesView {
     d3.selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_HOVER_DRAG_AREA_DOM_REF)
       .filter((n: NodeViewObject) => n.node.getId() === node.getId())
       .classed(StaticDomTags.TAG_HOVER, false);
-    this.unhoverNode(event, node, {raise: true});
+    this.unhoverNode(event, node);
   }
 
   onHoverNodeMouseover(event: MouseEvent, node: Node) {
@@ -1079,13 +1091,88 @@ export class NodesView {
     }
   }
 
-  private getNodeLabelTextWidth(node: Node): number {
-    const connectionTime = node.getConnectionTime();
-    let width = 0;
-    if (connectionTime !== null) {
-      width = connectionTime === 0 ? 1 : Math.floor(Math.log10(connectionTime)) + 1;
+  private getDisplayedName(node: Node): string {
+    return this.editorView.displayNodesFullName()
+      ? node.getFullName()
+      : node.getBetriebspunktName();
+  }
+
+  private getNodeLabelMaxTextWidth(node: Node): number {
+    return node.getNodeWidth() - this.getConnectionTimeTextWidth(node) - NODE_TEXT_LEFT_SPACING;
+  }
+
+  private getNodeLabelLines(node: Node): string[] {
+    return this.splitLabelIntoLines(
+      this.getDisplayedName(node),
+      this.getNodeLabelMaxTextWidth(node),
+    );
+  }
+
+  private getNodeLabelFirstLineY(node: Node): number {
+    return (
+      node.getNodeHeight() - node.getNodeTextAreaHeight() + NODE_TEXT_AREA_HEIGHT - TEXT_SIZE / 2
+    );
+  }
+
+  private getComputedTextLength(text: string): number {
+    let width = this.textWidthCache.get(text);
+    if (width === undefined) {
+      width = this.measurementText.text(text).node()!.getComputedTextLength();
+      this.textWidthCache.set(text, width);
     }
-    const connectionTimeTextWidth = width * TEXT_SIZE;
-    return node.getNodeWidth() - connectionTimeTextWidth - NODE_TEXT_LEFT_SPACING;
+    return width;
+  }
+
+  // Words are separated by spaces or hyphens; a hyphen stays attached to the preceding word.
+  private splitLabelIntoWords(name: string): string[] {
+    return name.match(/[^\s-]+-?|-+/g) ?? [];
+  }
+
+  private splitLabelIntoLines(name: string, maxWidth: number): string[] {
+    const lines: string[] = [];
+    let current = "";
+    this.splitLabelIntoWords(name).forEach((word) => {
+      if (current === "") {
+        current = word;
+      } else {
+        const sep = current.endsWith("-") ? "" : " ";
+        if (this.getComputedTextLength(current + sep + word) <= maxWidth) {
+          current += sep + word;
+        } else {
+          lines.push(current);
+          current = word;
+        }
+      }
+    });
+    if (current !== "" || lines.length === 0) {
+      lines.push(current);
+    }
+    return lines;
+  }
+
+  private getConnectionTimeTextWidth(node: Node): number {
+    const connectionTime = node.getConnectionTime();
+    if (connectionTime === null) {
+      return 0;
+    }
+    return (connectionTime === 0 ? 1 : Math.floor(Math.log10(connectionTime)) + 1) * TEXT_SIZE;
+  }
+
+  // Node's width is adapted to fit its longest word, then height to fit all text lines.
+  private updateNodeDisplayConstraints(node: Node) {
+    const name = this.getDisplayedName(node);
+    const longestWordWidth = this.splitLabelIntoWords(name).reduce(
+      (max, word) => Math.max(max, this.getComputedTextLength(word)),
+      0,
+    );
+    const neededWidth =
+      longestWordWidth + this.getConnectionTimeTextWidth(node) + 2 * NODE_TEXT_LEFT_SPACING;
+    const minTextWidth =
+      Math.ceil(neededWidth / RASTERING_BASIC_GRID_SIZE) * RASTERING_BASIC_GRID_SIZE;
+
+    // The wrapped lines depend on the final node width, so the width is set first.
+    node.setMinTextWidth(minTextWidth);
+    const lines = this.getNodeLabelLines(node);
+    node.setTextAreaHeight(NODE_TEXT_AREA_HEIGHT + (lines.length - 1) * TEXT_SIZE);
   }
 }

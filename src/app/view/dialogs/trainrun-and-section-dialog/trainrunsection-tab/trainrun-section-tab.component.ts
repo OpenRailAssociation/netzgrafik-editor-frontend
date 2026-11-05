@@ -52,7 +52,7 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   @ViewChild("leftSymmetryToggle") leftSymmetryToggle: ToggleSwitchButtonComponent;
   @ViewChild("rightSymmetryToggle") rightSymmetryToggle: ToggleSwitchButtonComponent;
 
-  public selectedTrainrunSection: TrainrunSection;
+  public selectedTrainrunSection: TrainrunSection | null = null;
   public leftBetriebspunkt: string[] = ["", ""];
   public rightBetriebspunkt: string[] = ["", ""];
   public tagNbrStopInput = false;
@@ -87,8 +87,21 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     return this.isRoundTrip() || !isTargetRightOrBottom;
   }
 
+  // As time structure is oriented left-to-right, when a one-way trainrun going
+  // right-to-left, then the actual travel time should be the "bottom" one.
+  public get isOneWayReversed(): boolean {
+    return (
+      this.selectedTrainrunSection !== null &&
+      !this.isRoundTrip() &&
+      !TrainrunsectionHelper.isTargetRightOrBottom(this.selectedTrainrunSection)
+    );
+  }
+
   public get isBottomTravelTimeDisplayed(): boolean {
-    if (!this.selectedTrainrunSection.getTrainrun().isRoundTrip()) {
+    if (
+      this.selectedTrainrunSection === null ||
+      !this.selectedTrainrunSection.getTrainrun().isRoundTrip()
+    ) {
       return false;
     }
     const firstTrainrunSection = this.trainrunService.getFirstNonStopTrainrunSection(
@@ -344,8 +357,11 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  isRoundTrip() {
-    return this.selectedTrainrunSection.getTrainrun().isRoundTrip();
+  isRoundTrip(): boolean {
+    return (
+      this.selectedTrainrunSection !== null &&
+      this.selectedTrainrunSection.getTrainrun().isRoundTrip()
+    );
   }
 
   getTrafficSideClass(className: string): string {
