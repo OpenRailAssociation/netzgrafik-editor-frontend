@@ -3,10 +3,12 @@ import {CdkDragDrop, moveItemInArray} from "@angular/cdk/drag-drop";
 import {
   DIRECTOR_OBJECTIVE_ORDER,
   DirectorProfileId,
+  DirectorModeSettings,
   HardConstraintConfig,
   HardConstraintId,
   ObjectiveConfig,
   OptimizationPolicy,
+  OptimizationModeSettings,
 } from "../../../services/optimization/optimization-policy.model";
 
 type DirectorProfile = {
@@ -117,7 +119,37 @@ export class OptimizationDirectorComponent {
   }
 
   setMode(userDefined: boolean): void {
-    this.updatePolicy({...this.policy, mode: userDefined ? "userDefined" : "director"});
+    const mode = userDefined ? "userDefined" : "director";
+    if (mode === this.policy.mode) {
+      return;
+    }
+
+    const policy = this.withActiveSettingsSaved(this.policy);
+    if (mode === "director") {
+      const settings = policy.directorSettings ?? {
+        directorProfile: policy.directorProfile,
+        hardConstraints: policy.hardConstraints,
+        objectives: policy.objectives,
+      };
+      this.updatePolicy({
+        ...policy,
+        mode,
+        directorProfile: settings.directorProfile,
+        hardConstraints: settings.hardConstraints,
+        objectives: settings.objectives,
+      });
+    } else {
+      const settings = policy.userDefinedSettings ?? {
+        hardConstraints: policy.hardConstraints,
+        objectives: policy.objectives,
+      };
+      this.updatePolicy({
+        ...policy,
+        mode,
+        hardConstraints: settings.hardConstraints,
+        objectives: settings.objectives,
+      });
+    }
   }
 
   selectProfile(profileId: DirectorProfileId): void {
@@ -223,6 +255,21 @@ export class OptimizationDirectorComponent {
   }
 
   private updatePolicy(policy: OptimizationPolicy): void {
-    this.policyChange.emit(policy);
+    this.policyChange.emit(this.withActiveSettingsSaved(policy));
+  }
+
+  private withActiveSettingsSaved(policy: OptimizationPolicy): OptimizationPolicy {
+    const settings: OptimizationModeSettings = {
+      hardConstraints: policy.hardConstraints.map((constraint) => ({...constraint})),
+      objectives: policy.objectives.map((objective) => ({...objective})),
+    };
+    if (policy.mode === "director") {
+      const directorSettings: DirectorModeSettings = {
+        ...settings,
+        directorProfile: policy.directorProfile,
+      };
+      return {...policy, directorSettings};
+    }
+    return {...policy, userDefinedSettings: settings};
   }
 }

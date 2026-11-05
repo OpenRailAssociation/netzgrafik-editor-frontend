@@ -6,7 +6,7 @@ function compareNumber(a: number, b: number): number {
 }
 
 function weightedObjectiveScore(
-  solution: OptimizeTimetableSolution,
+  solution: Pick<OptimizeTimetableSolution, "kpi">,
   objectives: {id: ObjectiveId}[],
   weights: Record<ObjectiveId, number>,
 ): number {
@@ -25,14 +25,19 @@ export function compareSolutions(
   if (a.valid !== b.valid) {
     return a.valid ? -1 : 1;
   }
-  const weights = getObjectiveWeights(policy);
-  const objectives = [...policy.objectives].filter((objective) => weights[objective.id] > 0);
-  const scoreA = weightedObjectiveScore(a, objectives, weights);
-  const scoreB = weightedObjectiveScore(b, objectives, weights);
-  const scoreComparison = compareNumber(scoreB, scoreA);
+  const scoreComparison = compareNumber(solutionSoftCost(a, policy), solutionSoftCost(b, policy));
   if (scoreComparison !== 0) {
     return scoreComparison;
   }
 
   return compareNumber(a.id, b.id);
+}
+
+export function solutionSoftCost(
+  solution: Pick<OptimizeTimetableSolution, "kpi">,
+  policy: OptimizationPolicy,
+): number {
+  const weights = getObjectiveWeights(policy);
+  const objectives = policy.objectives.filter((objective) => weights[objective.id] > 0);
+  return -weightedObjectiveScore(solution, objectives, weights);
 }

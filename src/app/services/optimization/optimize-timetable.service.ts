@@ -1,12 +1,15 @@
 import {Injectable} from "@angular/core";
+import {Direction} from "../../data-structures/business.data.structures";
 import {Node} from "../../models/node.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {
   InfrastructureEstimatorService,
+  NodeTrackEstimate,
   TrackSegmentEstimate,
 } from "../infrastructure/infrastructure-estimator.service";
 import {OptimizationProblem, buildProblem, mod60, norm60} from "./optimize-timetable.chains";
 import {TimetableEvaluator} from "./optimize-timetable.evaluator";
+import {runCpSatSearch} from "./cp-sat/optimize-timetable.cp-sat";
 import {
   ArchivedSolution,
   runSearch,
@@ -15,6 +18,7 @@ import {
 } from "./optimize-timetable.search";
 import {
   EdgeTrackKpi,
+  ImmutableTrackConflict,
   OptimizeTimetableKpi,
   OptimizeTimetableOptions,
   OptimizeTimetableResult,
@@ -26,6 +30,7 @@ import {
   TIME_FIELDS,
   TimeChange,
   TimeField,
+  TrackConflictBlocker,
 } from "./optimize-timetable.model";
 import {createDefaultOptimizationPolicy, ObjectiveId} from "./optimization-policy.model";
 import {compareSolutions} from "./optimization-solution-comparator";
@@ -33,23 +38,20 @@ import {isMinimumConnectionTimeSatisfied} from "./minimum-connection-time.valida
 
 const DEFAULT_TIME_BUDGET_MS = 1000;
 const DEFAULT_OPTIONAL_WINDOW = 5;
-const DEFAULT_MAX_PROPOSALS = 4;
-
-interface ProposalPick {
-  label: string;
-  compare: (a: ArchivedSolution, b: ArchivedSolution) => number;
-}
+const DEFAULT_MAX_PROPOSALS = 5;
+const MAX_EXACT_EDGE_CACHE_SIZE = 512;
 
 interface NodeTrackMetrics {
   maxTracks: number;
   averageTracks: number;
   turnaroundWaitByTrainrun: Map<number, number>;
+  byNode: Map<number, {signature: string; tracks: NodeTrackEstimate[]}>;
 }
 
 /**
  * Timetable optimizer (see OPTIMIZE_TIMETABLE.md).
  * Shifts departure/arrival times of chains (sections between two stops) so that
- * no edge needs more tracks than allowed, while all hard Netzgrafik rules hold.
+ * feasible proposals meet the active rules; infeasible alternatives remain explicitly marked.
  * The search runs on numbers only; native objects are touched temporarily for the
  * exact track check (always restored) and when a proposal is applied.
  */
@@ -62,7 +64,12 @@ export class OptimizeTimetableService {
     {
       search: SearchResult;
       buildSolutions: (search: SearchResult) => OptimizeTimetableSolution[];
+      getInfeasibleSolutions: () => OptimizeTimetableSolution[];
       logTrace: (search: SearchResult, solutions: OptimizeTimetableSolution[]) => void;
+      reportProgress: (
+        progress: SearchProgress,
+        listener?: (progress: SearchProgress) => void,
+      ) => void;
     }
   >();
 
@@ -109,6 +116,14 @@ export class OptimizeTimetableService {
     options: OptimizeTimetableOptions,
     onProgress?: (progress: SearchProgress) => void,
   ): Promise<OptimizeTimetableResult> {
+    const timeBudgetMs = options.timeBudgetMs ?? DEFAULT_TIME_BUDGET_MS;
+    if (!Number.isFinite(timeBudgetMs) || timeBudgetMs < 0) {
+      throw new RangeError("The search budget must be finite and non-negative.");
+    }
+    const maxProposals = options.maxProposals ?? DEFAULT_MAX_PROPOSALS;
+    if (!Number.isInteger(maxProposals) || maxProposals < 0) {
+      throw new RangeError("The proposal limit must be a non-negative integer.");
+    }
     const start = performance.now();
     const maxTracks = Math.max(1, Math.floor(options.maxTracksPerSection));
     const policy = options.policy ?? createDefaultOptimizationPolicy();
@@ -122,10 +137,17 @@ export class OptimizeTimetableService {
       options.selectedCorridorEdgeIds,
     );
     const evaluator = new TimetableEvaluator(problem, this.infrastructureEstimatorService);
+    const baselineInitial: ArchivedSolution = {
+      delta: new Int32Array(evaluator.delta),
+      score: evaluator.evaluateAll(),
+      parts: evaluator.parts(),
+    };
     const beforeTracks = new Map<number, number>();
     const baselineTrackSegments = new Map<number, TrackSegmentEstimate[]>();
+    // Per-search metadata stays fixed; only candidate consecutive times vary.
+    const exactEdgeCache = new Map<string, TrackSegmentEstimate[]>();
     const baselineEdges = problem.edges.map((edge, edgeIndex) => {
-      const segments = this.estimateEdgeTrackSegments(problem, edgeIndex);
+      const segments = this.estimateEdgeTrackSegments(problem, edgeIndex, exactEdgeCache);
       baselineTrackSegments.set(edgeIndex, segments);
       const tracks = segments.reduce((maximum, segment) => Math.max(maximum, segment.tracks), 0);
       beforeTracks.set(edgeIndex, tracks);
@@ -140,33 +162,55 @@ export class OptimizeTimetableService {
       };
     });
     const baselineNodeMetrics = this.estimateNodeTrackMetrics(nodes, trainrunSections);
+    // Final KPIs estimate node occupancies separately, including turnaround waits.
+    const solutionEvaluator = new TimetableEvaluator(problem);
+    solutionEvaluator.evaluateAll();
     const trackPriorities = problem.edges.map((_, edgeIndex) => {
       const segments = baselineTrackSegments.get(edgeIndex) ?? [];
       const sumTracks = segments.reduce((sum, segment) => sum + segment.tracks, 0);
       return segments.length === 0 ? 0 : (maxTracks * sumTracks) / (2 * segments.length);
     });
-    const search = await runSearch(
-      problem,
-      evaluator,
-      options.startAssignment,
-      options.timeBudgetMs ?? DEFAULT_TIME_BUDGET_MS,
-      options.seed ?? 1,
-      options.debugTrace ?? false,
-      trackPriorities,
-      onProgress,
-    );
+    let liveSolutions: OptimizeTimetableSolution[] = [];
+    const rankSolutions = (solutions: OptimizeTimetableSolution[]) => {
+      const seen = new Set<string>();
+      const distinct = solutions
+        .filter((solution) => {
+          const key = JSON.stringify(
+            solution.changes.map((change) => [
+              change.trainrunSectionId,
+              change.field,
+              change.newValue,
+            ]),
+          );
+          if (solution.changes.length === 0 || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        })
+        .sort((first, second) => compareSolutions(first, second, policy));
+      const feasible = distinct.filter((solution) => solution.valid);
+      const limit = Math.min(DEFAULT_MAX_PROPOSALS, maxProposals);
+      return [
+        ...feasible.slice(0, limit),
+        ...distinct.filter((solution) => !solution.valid).slice(0, limit),
+      ].map((solution, index) => ({
+        ...solution,
+        id: index,
+        label: $localize`:@@app.services.optimization.proposal.candidate:Candidate ${index + 1}`,
+      }));
+    };
+    const getInfeasibleSolutions = () => liveSolutions.filter((solution) => !solution.valid);
+    const getVisibleSolutions = () => {
+      const feasible = liveSolutions.filter((solution) => solution.valid);
+      return feasible.length > 0 ? feasible : getInfeasibleSolutions();
+    };
     const buildSolutions = (currentSearch: SearchResult) => {
-      const picks = this.pickProposals(
-        currentSearch.archive,
-        currentSearch.initial,
-        options.maxProposals ?? DEFAULT_MAX_PROPOSALS,
-      );
-      return picks
-        .map((pick, id) =>
+      liveSolutions = rankSolutions([
+        ...liveSolutions,
+        ...currentSearch.archive.map((candidate, id) =>
           this.createSolution(
             id,
-            pick.label,
-            pick.solution,
+            $localize`:@@app.services.optimization.proposal.candidate:Candidate ${id + 1}`,
+            candidate,
             currentSearch.initial,
             problem,
             nodes,
@@ -174,10 +218,12 @@ export class OptimizeTimetableService {
             baselineEdges,
             baselineKpi,
             baselineNodeMetrics,
+            solutionEvaluator,
+            exactEdgeCache,
           ),
-        )
-        .sort((first, second) => compareSolutions(first, second, policy))
-        .filter((solution) => solution.valid);
+        ),
+      ]);
+      return getVisibleSolutions();
     };
     const logTrace = (currentSearch: SearchResult, solutions: OptimizeTimetableSolution[]) => {
       if (options.debugTrace) {
@@ -204,7 +250,7 @@ export class OptimizeTimetableService {
       changedChains: 0,
       totalDeltaMinutes: 0,
       travelTimeExtensionMinutes: 0,
-      optionalConnections: search.initial.parts.optionalConnections,
+      optionalConnections: baselineInitial.parts.optionalConnections,
       maxTrackUsage: baselineMaxTracks,
       averageTrackUsage:
         scopedBaselineEdges.length === 0 ? 0 : baselineTrackSum / scopedBaselineEdges.length,
@@ -215,15 +261,88 @@ export class OptimizeTimetableService {
       maxTracksAfter: baselineMaxTracks,
       maxNodeTracksBefore: baselineNodeMetrics.maxTracks,
       maxNodeTracksAfter: baselineNodeMetrics.maxTracks,
-      minimumStopViolationsBefore: search.initial.parts.stopViolations,
-      minimumStopViolationsAfter: search.initial.parts.stopViolations,
+      minimumStopViolationsBefore: baselineInitial.parts.stopViolations,
+      minimumStopViolationsAfter: baselineInitial.parts.stopViolations,
       totalTravelTimeDelta: 0,
-      optionalConnectionsBefore: search.initial.parts.optionalConnections,
-      optionalConnectionsAfter: search.initial.parts.optionalConnections,
+      optionalConnectionsBefore: baselineInitial.parts.optionalConnections,
+      optionalConnectionsAfter: baselineInitial.parts.optionalConnections,
       sumAbsShift: 0,
       changedTrainruns: 0,
       changedTimes: 0,
     };
+    baselineKpi.objectiveScores = this.calculateObjectiveScores(
+      problem,
+      evaluator,
+      nodes,
+      baselineNodeMetrics,
+      baselineNodeMetrics,
+      baselineMaxTracks,
+      baselineKpi.averageTrackUsage,
+      scopedBaselineEdges.length,
+    );
+    let firstFeasibleSolution: OptimizeTimetableSolution | undefined;
+    const reportProgress = (
+      progress: SearchProgress,
+      listener?: (progress: SearchProgress) => void,
+    ) => {
+      if (progress.candidate !== undefined) {
+        const candidate = this.createSolution(
+          -1,
+          $localize`:@@app.services.optimization.proposal.first-feasible:First feasible candidate`,
+          progress.candidate,
+          baselineInitial,
+          problem,
+          nodes,
+          beforeTracks,
+          baselineEdges,
+          baselineKpi,
+          baselineNodeMetrics,
+          solutionEvaluator,
+          exactEdgeCache,
+        );
+        liveSolutions = rankSolutions([...liveSolutions, candidate]);
+        if (firstFeasibleSolution === undefined && candidate.valid) {
+          firstFeasibleSolution = candidate;
+        }
+      }
+      listener?.({
+        ...progress,
+        phase: firstFeasibleSolution === undefined ? "feasibility" : "soft-objectives",
+        solution: firstFeasibleSolution,
+        solutions: getVisibleSolutions(),
+        infeasibleSolutions: getInfeasibleSolutions(),
+      });
+    };
+    const progress = (update: SearchProgress) => reportProgress(update, onProgress);
+    const search =
+      options.engine === "cp-sat"
+        ? await runCpSatSearch(
+            problem,
+            evaluator,
+            options.startAssignment,
+            timeBudgetMs,
+            progress,
+            (edgeIndex, candidateEvaluator) =>
+              this.withCandidateConsecutiveTimes(
+                problem,
+                candidateEvaluator,
+                problem.edges[edgeIndex].sections.map((index) => problem.sections[index]),
+                () =>
+                  this.estimateEdgeTrackSegments(problem, edgeIndex, exactEdgeCache).every(
+                    (segment) => segment.tracks <= maxTracks,
+                  ),
+              ),
+          )
+        : await runSearch(
+            problem,
+            evaluator,
+            options.startAssignment,
+            timeBudgetMs,
+            options.seed ?? 1,
+            options.debugTrace ?? false,
+            trackPriorities,
+            progress,
+          );
 
     const freeVariables = problem.variables.filter((v) => !v.fixed && v.domain > 0).length;
     const freeTravelTimeVariables = problem.variables.filter(
@@ -254,8 +373,33 @@ export class OptimizeTimetableService {
     ).length;
     const fixedChains = problem.chains.filter((c) => c.fixed).length;
     const result: OptimizeTimetableResult = {
+      engine: options.engine ?? "heuristic",
+      searchExhausted: search.exhausted,
       baselineKpi,
       baselineEdges,
+      immutableTrackConflicts: policy.hardConstraints.some(
+        (constraint) => constraint.id === "trackLimit" && constraint.enabled,
+      )
+        ? baselineEdges.flatMap((edge, index) =>
+            edge.inScope &&
+            edge.tracksBefore > maxTracks &&
+            problem.edgeVars[index].every(
+              (variable) =>
+                problem.variables[variable].fixed || problem.variables[variable].domain === 0,
+            )
+              ? [
+                  {
+                    ...edge,
+                    blockingSections: this.getImmutableTrackConflictBlockers(
+                      problem,
+                      index,
+                      options,
+                    ),
+                  },
+                ]
+              : [],
+          )
+        : [],
       solutions: [],
       freeVariables,
       freeShiftVariables: freeVariables - freeTravelTimeVariables,
@@ -279,14 +423,23 @@ export class OptimizeTimetableService {
     }
 
     result.solutions = buildSolutions(search);
+    result.infeasibleSolutions = getInfeasibleSolutions();
 
-    if (result.solutions.length === 0 && freeVariables > 0) {
-      result.message = $localize`:@@app.services.optimization.no-solution:No better solution found. Continue to search.`;
+    if (!result.solutions.some((solution) => solution.valid) && freeVariables > 0) {
+      result.message = result.searchExhausted
+        ? $localize`:@@app.services.optimization.cp-sat-exhausted:The finite CP-SAT model is exhausted. No feasible alternative was found; available infeasible candidates can be expanded.`
+        : $localize`:@@app.services.optimization.no-solution:No feasible alternative found within the search time. Available infeasible candidates can be expanded; continue searching to improve them.`;
     }
     result.runtimeMs = Math.round(performance.now() - start);
     logTrace(search, result.solutions);
     if (search.continueFor !== undefined) {
-      this.searchSessions.set(result, {search, buildSolutions, logTrace});
+      this.searchSessions.set(result, {
+        search,
+        buildSolutions,
+        getInfeasibleSolutions,
+        logTrace,
+        reportProgress,
+      });
     }
     return result;
   }
@@ -301,17 +454,23 @@ export class OptimizeTimetableService {
       throw new Error("The optimization search session is no longer available.");
     }
 
-    const search = await session.search.continueFor(additionalBudgetMs, onProgress);
+    const search = await session.search.continueFor(additionalBudgetMs, (progress) =>
+      session.reportProgress(progress, onProgress),
+    );
+    session.search = search;
     result.iterations = search.iterations;
     result.evaluatedCandidates = search.evaluatedCandidates;
     result.searchBestAssignment = search.bestAssignment;
+    result.searchExhausted = search.exhausted;
     result.solutions = session.buildSolutions(search);
-    result.message =
-      result.solutions.length > 0
-        ? undefined
-        : result.freeVariables === 0
-          ? $localize`:@@app.services.optimization.no-free-variables:No times can be shifted (locks, selection or no trainruns).`
-          : $localize`:@@app.services.optimization.no-solution:No better solution found. Continue to search.`;
+    result.infeasibleSolutions = session.getInfeasibleSolutions();
+    result.message = result.solutions.some((solution) => solution.valid)
+      ? undefined
+      : result.freeVariables === 0
+        ? $localize`:@@app.services.optimization.no-free-variables:No times can be shifted (locks, selection or no trainruns).`
+        : result.searchExhausted
+          ? $localize`:@@app.services.optimization.cp-sat-exhausted:The finite CP-SAT model is exhausted. No feasible alternative was found; available infeasible candidates can be expanded.`
+          : $localize`:@@app.services.optimization.no-solution:No feasible alternative found within the search time. Available infeasible candidates can be expanded; continue searching to improve them.`;
     session.logTrace(search, result.solutions);
     return result;
   }
@@ -492,7 +651,7 @@ export class OptimizeTimetableService {
   }
 
   private hasSymmetricChanges(
-    solution: OptimizeTimetableSolution,
+    solution: Pick<OptimizeTimetableSolution, "changes">,
     trainrunSections: TrainrunSection[],
   ): boolean {
     const values = new Map<string, number>();
@@ -505,7 +664,7 @@ export class OptimizeTimetableService {
       return Math.abs(difference) < 1e-6;
     };
     return trainrunSections.every((section) => {
-      if (!section.isSymmetric()) {
+      if (section.getTrainrun().getDirection() === Direction.ONE_WAY || !section.isSymmetric()) {
         return true;
       }
       const value = (field: TimeField, original: number) =>
@@ -523,55 +682,6 @@ export class OptimizeTimetableService {
     });
   }
 
-  private pickProposals(
-    archive: ArchivedSolution[],
-    initial: ArchivedSolution,
-    maxProposals: number,
-  ): {label: string; solution: ArchivedSolution}[] {
-    const isInitial = (s: ArchivedSolution) => s.delta.every((x, k) => x === initial.delta[k]);
-    const candidates = archive.filter(
-      (s) => !isInitial(s) && s.parts.excess <= initial.parts.excess && s.score < initial.score,
-    );
-    const picks: ProposalPick[] = [
-      {
-        label: $localize`:@@app.services.optimization.proposal.balanced:Balanced`,
-        compare: (a, b) => a.score - b.score,
-      },
-      {
-        label: $localize`:@@app.services.optimization.proposal.minimal-change:Minimal change`,
-        compare: (a, b) =>
-          a.parts.excess - b.parts.excess || a.parts.sumAbsShift - b.parts.sumAbsShift,
-      },
-      {
-        label: $localize`:@@app.services.optimization.proposal.connections:Most connections`,
-        compare: (a, b) =>
-          a.parts.excess - b.parts.excess ||
-          b.parts.optionalConnections - a.parts.optionalConnections ||
-          a.score - b.score,
-      },
-      {
-        label: $localize`:@@app.services.optimization.proposal.travel-time:Shortest travel time`,
-        compare: (a, b) =>
-          a.parts.excess - b.parts.excess ||
-          a.parts.travelTimeDelta - b.parts.travelTimeDelta ||
-          a.score - b.score,
-      },
-    ];
-    const chosen: {label: string; solution: ArchivedSolution}[] = [];
-    for (const pick of picks) {
-      if (chosen.length >= maxProposals) {
-        break;
-      }
-      const solution = [...candidates]
-        .sort(pick.compare)
-        .find((s) => !chosen.some((c) => c.solution === s));
-      if (solution !== undefined) {
-        chosen.push({label: pick.label, solution});
-      }
-    }
-    return chosen;
-  }
-
   private createSolution(
     id: number,
     label: string,
@@ -583,16 +693,20 @@ export class OptimizeTimetableService {
     baselineEdges: EdgeTrackKpi[],
     baselineKpi: OptimizeTimetableKpi,
     baselineNodeMetrics: NodeTrackMetrics,
+    evaluator: TimetableEvaluator,
+    exactEdgeCache: Map<string, TrackSegmentEstimate[]>,
   ): OptimizeTimetableSolution {
-    const evaluator = new TimetableEvaluator(problem, this.infrastructureEstimatorService);
-    evaluator.delta.set(archived.delta);
-    evaluator.evaluateAll();
+    archived.delta.forEach((value, index) => {
+      if (value !== evaluator.delta[index]) {
+        evaluator.setVariable(index, value);
+      }
+    });
     const parts = evaluator.parts();
     const nodeMetrics = this.withCandidateConsecutiveTimes(
       problem,
       evaluator,
       problem.sections,
-      () => this.estimateNodeTrackMetrics(nodes, problem.sections),
+      () => this.estimateNodeTrackMetrics(nodes, problem.sections, baselineNodeMetrics),
     );
 
     const changes: TimeChange[] = [];
@@ -637,7 +751,7 @@ export class OptimizeTimetableService {
       const sections = edge.sections.map((i) => problem.sections[i]);
       const before = beforeTracks.get(e) ?? 0;
       const segmentsAfter = this.withCandidateConsecutiveTimes(problem, evaluator, sections, () =>
-        this.estimateEdgeTrackSegments(problem, e),
+        this.estimateEdgeTrackSegments(problem, e, exactEdgeCache),
       );
       const after = segmentsAfter.reduce(
         (maximum, segment) => Math.max(maximum, segment.tracks),
@@ -713,7 +827,11 @@ export class OptimizeTimetableService {
       id,
       label,
       valid:
-        nonTrackViolations === 0 && connectionTimesValid && (!trackLimitEnabled || overAfter === 0),
+        nonTrackViolations === 0 &&
+        connectionTimesValid &&
+        (!trackLimitEnabled || overAfter === 0) &&
+        (!problem.policy.hardConstraints.some((rule) => rule.id === "symmetry" && rule.enabled) ||
+          this.hasSymmetricChanges({changes}, problem.sections)),
       kpi: {
         objectiveScores: this.calculateObjectiveScores(
           problem,
@@ -822,14 +940,34 @@ export class OptimizeTimetableService {
   private estimateNodeTrackMetrics(
     nodes: Node[],
     trainrunSections: TrainrunSection[],
+    baseline?: NodeTrackMetrics,
   ): NodeTrackMetrics {
     const trackCounts: number[] = [];
     const turnaroundWaits = new Map<number, Map<string, number>>();
+    const byNode: NodeTrackMetrics["byNode"] = new Map();
     nodes.forEach((node) => {
-      const nodeTracks = this.infrastructureEstimatorService.estimateNodeTracks(
-        node,
-        trainrunSections,
-      );
+      const signature = trainrunSections
+        .filter(
+          (section) =>
+            section.getSourceNodeId() === node.getId() ||
+            section.getTargetNodeId() === node.getId(),
+        )
+        .map((section) =>
+          [
+            section.getId(),
+            section.getSourceDepartureConsecutiveTime(),
+            section.getSourceArrivalConsecutiveTime(),
+            section.getTargetDepartureConsecutiveTime(),
+            section.getTargetArrivalConsecutiveTime(),
+          ].join(","),
+        )
+        .join("|");
+      const cached = baseline?.byNode.get(node.getId());
+      const nodeTracks =
+        cached?.signature === signature
+          ? cached.tracks
+          : this.infrastructureEstimatorService.estimateNodeTracks(node, trainrunSections);
+      byNode.set(node.getId(), {signature, tracks: nodeTracks});
       trackCounts.push(nodeTracks.length);
       nodeTracks.forEach((track) =>
         track.occupancies.forEach((occupancy) => {
@@ -866,20 +1004,44 @@ export class OptimizeTimetableService {
           ? 0
           : trackCounts.reduce((sum, tracks) => sum + tracks, 0) / trackCounts.length,
       turnaroundWaitByTrainrun,
+      byNode,
     };
   }
 
   private estimateEdgeTrackSegments(
     problem: OptimizationProblem,
     edgeIndex: number,
+    cache?: Map<string, TrackSegmentEstimate[]>,
   ): TrackSegmentEstimate[] {
     const edge = problem.edges[edgeIndex];
     const sections = edge.sections.map((i) => problem.sections[i]);
-    return this.infrastructureEstimatorService.estimateSectionTracks(
+    const signature = `${edgeIndex}:${sections
+      .map((section) =>
+        [
+          section.getSourceDepartureConsecutiveTime(),
+          section.getSourceArrivalConsecutiveTime(),
+          section.getTargetDepartureConsecutiveTime(),
+          section.getTargetArrivalConsecutiveTime(),
+        ].join(","),
+      )
+      .join("|")}`;
+    const cached = cache?.get(signature);
+    if (cached !== undefined) {
+      return cached;
+    }
+    const segments = this.infrastructureEstimatorService.estimateSectionTracks(
       edge.fromNode,
       edge.toNode,
       sections,
     );
+    if (cache !== undefined) {
+      cache.set(signature, segments);
+      if (cache.size > MAX_EXACT_EDGE_CACHE_SIZE) {
+        const oldest = cache.keys().next().value;
+        if (oldest !== undefined) cache.delete(oldest);
+      }
+    }
+    return segments;
   }
 
   private logSearchTrace(
@@ -1037,6 +1199,174 @@ export class OptimizeTimetableService {
         return `Zug ${trainrunName} (#${chain.trainrun.getId()}): ${route}`;
       })
       .join("; ");
+  }
+
+  private getImmutableTrackConflictBlockers(
+    problem: OptimizationProblem,
+    edgeIndex: number,
+    options: OptimizeTimetableOptions,
+  ): TrackConflictBlocker[] {
+    const selectedNodes = new Set(options.selectedNodeIds ?? []);
+    const selectedCorridorEdges =
+      options.selectedCorridorEdgeIds === undefined
+        ? undefined
+        : new Set(options.selectedCorridorEdgeIds);
+    const isOutsideScope = (section: TrainrunSection): boolean =>
+      (selectedNodes.size > 0 &&
+        (!selectedNodes.has(section.getSourceNodeId()) ||
+          !selectedNodes.has(section.getTargetNodeId()))) ||
+      (selectedCorridorEdges !== undefined &&
+        !selectedCorridorEdges.has(
+          this.edgeId(section.getSourceNodeId(), section.getTargetNodeId()),
+        ));
+    const blockingSections = new Map<number, TrackConflictBlocker>();
+    const getBlockingSection = (sectionIndex: number): TrackConflictBlocker => {
+      const existing = blockingSections.get(sectionIndex);
+      if (existing !== undefined) {
+        return existing;
+      }
+
+      const section = problem.sections[sectionIndex];
+      const trainrun = section.getTrainrun();
+      const displayTime = (formatted: string | undefined, value: number) =>
+        formatted ?? value.toString();
+      const blocker: TrackConflictBlocker = {
+        sectionId: section.getId(),
+        trainrunName: `${trainrun.getCategoryShortName()}${trainrun.getTitle()}`,
+        fromNodeName: section.getSourceNode().getBetriebspunktName(),
+        toNodeName: section.getTargetNode().getBetriebspunktName(),
+        times: {
+          forwardDeparture: {
+            display: displayTime(
+              section.getSourceDepartureFormattedDisplayText(),
+              section.getSourceDeparture(),
+            ),
+            locked: section.getSourceDepartureLock(),
+          },
+          forwardArrival: {
+            display: displayTime(
+              section.getTargetArrivalFormattedDisplayText(),
+              section.getTargetArrival(),
+            ),
+            locked: section.getTargetArrivalLock(),
+          },
+          forwardTravelTime: {
+            display: displayTime(
+              section.getTravelTimeFormattedDisplayText(),
+              section.getTravelTime(),
+            ),
+            locked: section.getTravelTimeLock(),
+          },
+          backwardDeparture: {
+            display: displayTime(
+              section.getTargetDepartureFormattedDisplayText(),
+              section.getTargetDeparture(),
+            ),
+            locked: section.getTargetDepartureLock(),
+          },
+          backwardArrival: {
+            display: displayTime(
+              section.getSourceArrivalFormattedDisplayText(),
+              section.getSourceArrival(),
+            ),
+            locked: section.getSourceArrivalLock(),
+          },
+          backwardTravelTime: {
+            display: displayTime(
+              section.getBackwardTravelTimeFormattedDisplayText(),
+              section.getBackwardTravelTime(),
+            ),
+            locked: section.getBackwardTravelTimeLock(),
+          },
+        },
+        reasons: [],
+      };
+      blockingSections.set(sectionIndex, blocker);
+      return blocker;
+    };
+    const addReason = (sectionIndex: number, reason: TrackConflictBlocker["reasons"][number]) => {
+      const reasons = getBlockingSection(sectionIndex).reasons;
+      if (!reasons.includes(reason)) {
+        reasons.push(reason);
+      }
+    };
+    const variableIndices = problem.varEdges.flatMap((edges, variableIndex) =>
+      edges.includes(edgeIndex) ? [variableIndex] : [],
+    );
+    const chainIndices = new Set(
+      variableIndices.flatMap((variableIndex) => problem.variables[variableIndex].chains),
+    );
+
+    chainIndices.forEach((chainIndex) => {
+      const chain = problem.chains[chainIndex];
+      chain.steps.forEach((step) => {
+        const section = problem.sections[step.sectionIdx];
+        if (
+          chain.fixed &&
+          (section.getSourceDepartureLock() ||
+            section.getSourceArrivalLock() ||
+            section.getTargetDepartureLock() ||
+            section.getTargetArrivalLock())
+        ) {
+          getBlockingSection(step.sectionIdx);
+        }
+        if (chain.fixed && isOutsideScope(section)) {
+          addReason(step.sectionIdx, "selection-boundary");
+        }
+      });
+    });
+
+    variableIndices.forEach((variableIndex) => {
+      const variable = problem.variables[variableIndex];
+      const travelTimeSections: {
+        sectionIndex: number;
+        direction: "forward" | "backward";
+      }[] = [];
+      problem.sections.forEach((_, sectionIndex) => {
+        if (problem.travelTimeVariables[sectionIndex * 2] === variableIndex) {
+          travelTimeSections.push({sectionIndex, direction: "forward"});
+        }
+        if (problem.travelTimeVariables[sectionIndex * 2 + 1] === variableIndex) {
+          travelTimeSections.push({sectionIndex, direction: "backward"});
+        }
+      });
+
+      travelTimeSections.forEach(({sectionIndex, direction}) => {
+        const section = problem.sections[sectionIndex];
+        const isLocked =
+          direction === "forward"
+            ? section.getTravelTimeLock()
+            : section.getBackwardTravelTimeLock();
+        if (isLocked) {
+          getBlockingSection(sectionIndex);
+        }
+      });
+
+      if (variable.travelTimeFixedReason === "scope") {
+        travelTimeSections
+          .filter(({sectionIndex}) => isOutsideScope(problem.sections[sectionIndex]))
+          .forEach(({sectionIndex}) => addReason(sectionIndex, "selection-boundary"));
+      }
+
+      if (!variable.fixed && variable.domain <= 0) {
+        const blockedSections =
+          travelTimeSections.length > 0
+            ? travelTimeSections.map(({sectionIndex}) => sectionIndex)
+            : (problem.chains[variable.chains[0]]?.steps.map((step) => step.sectionIdx) ?? []);
+        blockedSections.forEach((sectionIndex) => addReason(sectionIndex, "no-shift-range"));
+      }
+    });
+
+    if (blockingSections.size === 0) {
+      const sectionIndex =
+        problem.chains[[...chainIndices][0]]?.steps[0]?.sectionIdx ??
+        problem.edges[edgeIndex].sections[0];
+      if (problem.sections[sectionIndex] !== undefined) {
+        addReason(sectionIndex, "no-free-variable");
+      }
+    }
+
+    return [...blockingSections.values()];
   }
 
   private edgeId(firstNodeId: number, secondNodeId: number): string {

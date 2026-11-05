@@ -20,9 +20,11 @@ Bezug: [OPTIMIZE_TIMETABLE.md](./OPTIMIZE_TIMETABLE.md) (Anforderungen H1–H14,
    H2–H12 automatisch; aktiv geprüft werden nur H1 (Gleise), H8 (Mindesthaltezeit) und
    H13 (User-Connections).
 5. **Reines TypeScript im Service**: Der gesamte Algorithmus wird in TypeScript im Frontend-Service
-   umgesetzt. Keine externen Solver (kein CP-SAT, MILP, SAT, WASM-Solver), keine neuen
+   umgesetzt. Keine externen Solver, keine WASM-Abhängigkeit, keine neuen
    Abhängigkeiten, kein Backend-Aufruf. Die Algorithmuswahl ist in [Anhang A](#anhang-a--algorithmus-diskussion)
-   begründet.
+   begründet. Als explizite Alternative zur Heuristik ist inzwischen ein eigener
+   [TypeScript-CP-SAT-Solver](./cp-sat/) mit CDCL-Kern und lokalen Constraint-Klauseln
+   angebunden; die frühere Einzelvariablensuche wurde dadurch ersetzt.
 
 ### 1.1 Datenstruktur (native Modelle)
 
@@ -45,23 +47,23 @@ Vorfilter rechnet rein lesend (Getter + Δ).
 
 | Datei | Inhalt |
 
-| Datei                                                                      | Inhalt                                                                   |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `services/optimization/optimize-timetable.service.ts`                      | Optimierungsservice, exakte Baseline-/Finalistenprüfung, Patch-Anwendung |
-| `services/optimization/optimize-timetable.model.ts`                        | Optionen, Resultate, Lösungen, KPIs und Zeitänderungen                   |
-| `services/optimization/optimize-timetable.chains.ts`                       | Ketten, Δ-Domänen und sparse Abhängigkeiten aus nativen Objekten         |
-| `services/optimization/optimize-timetable.evaluator.ts`                    | Inkrementelle Zeit-, Streckengleis-, Halte- und Anschlussbewertung       |
-| `services/optimization/optimize-timetable.search.ts`                       | Konfliktpriorisierte Reparatur, Tabu, konfliktnahe LNS/SA, Pareto-Archiv |
-| `services/optimization/optimization-conflict-index.ts`                     | Konfliktlookups und Severity-Heap für Strecke, Knoten und Ketten         |
-| `services/optimization/optimization-policy.model.ts`                       | Regeln, Ziele und KPI-Typen mit Default-Policy                           |
-| `services/optimization/optimization-policy.service.ts`                     | Lokales Speichern und Normalisieren der Policy                           |
-| `services/optimization/optimization-solution-comparator.ts`                | Gültigkeits-vor-Soft-KPI-Rangfolge                                       |
-| `services/optimization/optimization-solution-comparator.spec.ts`           | Comparator-Regressionstests                                              |
-| `view/dialogs/optimize-timetable-dialog/*`                                 | Zweispaltiger Dialog mit Director, Vorschlägen und Preview               |
-| `view/dialogs/optimize-timetable-dialog/optimization-director.component.*` | Regeln und sortierbare KPI-Karten                                        |
-| `view/editor-main-view/data-views/editor.keyEvents.ts`                     | `case "KeyQ"` → Dialog öffnen                                            |
-| `services/ui/ui.interaction.service.ts`                                    | Subject zum Öffnen des Dialogs (wie bestehende Dialoge)                  |
-| `documentation/OPTIMIZE_TIMETABLE.md`                                      | User-Doku (Bedienung) – nach Implementierung                             |
+| Datei                                                                      | Inhalt                                                                      |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `services/optimization/optimize-timetable.service.ts`                      | Optimierungsservice, exakte Baseline-/Finalistenprüfung, Patch-Anwendung    |
+| `services/optimization/optimize-timetable.model.ts`                        | Optionen, Resultate, Lösungen, KPIs und Zeitänderungen                      |
+| `services/optimization/optimize-timetable.chains.ts`                       | Ketten, Δ-Domänen und sparse Abhängigkeiten aus nativen Objekten            |
+| `services/optimization/optimize-timetable.evaluator.ts`                    | Inkrementelle Zeit-, Streckengleis-, Halte- und Anschlussbewertung          |
+| `services/optimization/optimize-timetable.search.ts`                       | Konfliktpriorisierte Reparatur, Tabu, konfliktnahe LNS/SA, Kandidatenarchiv |
+| `services/optimization/optimization-conflict-index.ts`                     | Konfliktlookups und Severity-Heap für Strecke, Knoten und Ketten            |
+| `services/optimization/optimization-policy.model.ts`                       | Regeln, Ziele und KPI-Typen mit Default-Policy                              |
+| `services/optimization/optimization-policy.service.ts`                     | Lokales Speichern und Normalisieren der Policy                              |
+| `services/optimization/optimization-solution-comparator.ts`                | Gültigkeits-vor-Soft-KPI-Rangfolge                                          |
+| `services/optimization/optimization-solution-comparator.spec.ts`           | Comparator-Regressionstests                                                 |
+| `view/dialogs/optimize-timetable-dialog/*`                                 | Zweispaltiger Dialog mit Director, Vorschlägen und Preview                  |
+| `view/dialogs/optimize-timetable-dialog/optimization-director.component.*` | Regeln und sortierbare KPI-Karten                                           |
+| `view/editor-main-view/data-views/editor.keyEvents.ts`                     | `case "KeyQ"` → Dialog öffnen                                               |
+| `services/ui/ui.interaction.service.ts`                                    | Subject zum Öffnen des Dialogs (wie bestehende Dialoge)                     |
+| `documentation/OPTIMIZE_TIMETABLE.md`                                      | User-Doku (Bedienung) – nach Implementierung                                |
 
 ## 3. Datenfluss
 
@@ -146,17 +148,25 @@ OptimizeTimetableDialog
 3. **Erkundung und Neustart**: Min-Conflicts/Tabu wird mit Simulated-Annealing-Schritten
    kombiniert: meist ±1 Minute, mit erweiterter Schrittweite bei Stagnation; gelegentlich werden
    schlechtere Zwischenlösungen akzeptiert. Nach Stagnation setzt LNS bei der besten Lösung an und
-   verändert eine begrenzte, konfliktnahe Kettengruppe. Sobald eine gültige Alternative existiert,
-   werden bis zu 40 ms bzw. 20 % des Zeitbudgets reserviert, um Verschiebungen schrittweise um je
-   eine Minute Richtung Δ = 0 zu verkleinern; ein Schritt bleibt nur bei erfüllten harten Regeln.
-4. **Archiv und Ranking**: nach den aktiven harten Regeln gültige, nicht dominierte Kandidaten im
-   Pareto-Archiv halten. Die UI sortiert sie anhand normierter Soft-KPI-Scores; die Rangpositionen
+   verändert eine begrenzte, konfliktnahe Kettengruppe. Die Suche läuft auch nach erster
+   Machbarkeit bis zur Deadline weiter und meldet die erste exakt gültige Zuweisung sofort.
+4. **Archiv und Ranking**: bis zu 20 gültige und 20 ungültige vollständige Suchkandidaten halten.
+   Der Service bewertet alle Kandidaten exakt und gibt bis zu fünf verschiedene Varianten aus,
+   gültige automatisch, ungültige separat (bis zu fünf) hinter einem Einblendbutton. Ohne
+   gültige Alternative bleibt zunächst nur die Baseline sichtbar; ungültige Vorschläge
+   werden nie automatisch als Vorschau angewendet. Fünf Plätze
+   der ungültigen Archivklasse bleiben für Reparaturfortschritte reserviert. Beim Weiterrechnen
+   aktualisieren exakt geprüfte Fortschrittskandidaten die Liste ohne Vorschau-Mutationen;
+   eine gültige Alternative blendet den Hinweis auf fehlende Machbarkeit aus und klappt
+   ungültige Alternativen zu. Der User kann sie danach wieder einblenden.
+   Innerhalb der Gruppen sortiert die UI nach normierten Soft-KPI-Scores; die Rangpositionen
    erhalten Gewichte `1, 1/2, 1/4, 1/8`. Die Reihenfolge ändert nicht den zeitbegrenzten Suchpfad.
    Geänderte Hard Rules revalidieren Kandidaten; eine neue Suche startet nur mit _Optimize_.
 5. **Zeitbudget und Gültigkeit**: Deadline via `performance.now()`, deterministischer Seed und
    Weiterrechnen vom ausgewählten Assignment. Die Baseline und geänderte Strecken werden exakt
-   mit `InfrastructureEstimatorService` geprüft; nur nach aktiven Regeln gültige Vorschläge werden
-   ausgegeben.
+   mit `InfrastructureEstimatorService` geprüft; ungültige Varianten werden grau mit Kreuz
+   angezeigt und können nur als Vorschau betrachtet, niemals übernommen werden. Die Baseline
+   bleibt hellgrau mit Pfeil, gültige Vorschläge hellgrün mit Haken.
 6. **Konsolen-Trace**: der Dialog protokolliert sortierte Baseline-Segmente, getestete Minutenringe,
    gewählte Kettenmoves, Gleis-/Haltezeit-/Anschluss- und Zeitänderungen sowie den nächsten aktiven
    Konflikt. Suchschritte verwenden den schnellen Gleis-Surrogatwert; Vorschläge werden exakt
@@ -258,7 +268,7 @@ Tests mit den bestehenden Test-Netzgrafiken (`src/integration-testing/…`).
 1. **Benchmark** `estimateSectionTracks` (entscheidet über Vorfilter).
 2. **Modell**: Typen, Ketten, Domänen, Patch anwenden/zurücksetzen + Tests.
 3. **Evaluator**: H1 (Cache), H8, H13, f1–f3 + Tests.
-4. **Suche**: Phase 1, Phase 2, Pareto-Archiv, Zeitbudget + Tests.
+4. **Suche**: Machbarkeit, Soft-Verbesserung, Kandidatenarchiv, Zeitbudget + Tests.
 5. **UI**: KeyQ, Dialog, Vorschau, Übernehmen/Abbrechen, Undo.
 6. **Doku**: User-Doku unter `documentation/`.
 
@@ -279,7 +289,7 @@ Regressionstests sind enthalten; die vollständige Frontend-Testsuite besteht.
 | `optimize-timetable.model.ts`                                   | Typen (Options, Solution, Kpi, TimeChange …)                                              |
 | `optimize-timetable.chains.ts`                                  | Problem-Aufbau aus nativen Objekten: Pfade, Ketten, Variablen, Kanten, Halte, Connections |
 | `optimize-timetable.evaluator.ts`                               | Kandidaten-Zeiten, inkrementelle Kosten, Gleis-Surrogat pro Kante                         |
-| `optimize-timetable.search.ts`                                  | Konflikt-Repair, Tabu, konfliktnahe LNS/SA und Pareto-Archiv                              |
+| `optimize-timetable.search.ts`                                  | Konflikt-Repair, Tabu, konfliktnahe LNS/SA und Kandidatenarchiv                           |
 | `optimize-timetable.service.ts`                                 | `optimize()`, Vorschläge, exakte Gleis-KPI, `applySolution` / `revertSolution`            |
 | `optimization-conflict-index.ts`                                | Konfliktlookups und Prioritätsheap                                                        |
 | `optimization-policy.*` / `optimization-solution-comparator.ts` | lokale Policy und KPI-Rangfolge                                                           |
@@ -331,8 +341,8 @@ Standardmodells für Taktfahrpläne (Serafini & Ukovich 1989):
 - **Nicht-lineare Constraint**: Gleise pro Kante (H1) über den Infrastruktur-Schätzer
   (Belegungsmatrix) – nicht als PESP-Intervall formulierbar.
 - **Mehrere Ziele**: minimale Änderungen, optionale Anschlüsse, Reisezeit und Streckengleisnutzung.
-  Das Sucharchiv bewahrt nicht dominierte Kandidaten; die UI ordnet sie nach der aktivierten
-  lexikografischen Zielreihenfolge.
+  Das Sucharchiv bewahrt gültige und ungültige Kandidaten; die UI ordnet sie gültig-zuerst
+  nach der aktivierten gewichteten Soft-Zielfunktion.
 
 PESP ist **NP-schwer** (bereits die Frage, ob überhaupt eine gültige Lösung existiert).
 Konsequenz: Eine exakte Lösung mit Optimalitätsbeweis ist im damaligen Budget von 0.25 s für
@@ -342,7 +352,7 @@ mit _Weiterrechnen_ verbessert werden kann.
 ### A.2 Randbedingungen für die Wahl
 
 Die folgenden Tabellen halten die ursprüngliche Architekturabwägung fest. Das historische
-Suchbudget von 0.25 s entspricht nicht dem heutigen Standardbudget von 1.000 ms.
+Suchbudget von 0.25 s entspricht nicht dem heutigen Dialog-Standardbudget von 2.000 ms.
 
 | Randbedingung                            | Folge                                                |
 | ---------------------------------------- | ---------------------------------------------------- |
@@ -355,16 +365,17 @@ Suchbudget von 0.25 s entspricht nicht dem heutigen Standardbudget von 1.000 ms.
 
 ### A.3 Kandidaten
 
-| Verfahren                             | Idee                                                                                        | Qualität                     | Tempo                            | In TS umsetzbar    | Blackbox H1                          | Bewertung                                        |
-| ------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------- | -------------------------------- | ------------------ | ------------------------------------ | ------------------------------------------------ |
-| **Min-Conflicts + Tabu Search**       | verletzte Regel wählen, beteiligte Variable auf besten Wert setzen, Tabu-Liste gegen Zyklen | gut für Gültigkeit           | sehr schnell, inkrementell       | ✅ einfach         | ✅                                   | **✅ Konfliktreparatur**                         |
-| **Large Neighborhood Search (LNS)**   | konfliktnahe Kettengruppe von der besten Lösung aus verändern                               | sehr gut für Knoten-Cluster  | schnell                          | ✅ mittel          | ✅                                   | **✅ Neustart bei Stagnation**                   |
-| **Simulated Annealing (SA)**          | zufällige Nachbarschritte, schlechtere mit sinkender Wahrscheinlichkeit akzeptieren         | gut, entkommt lokalen Minima | sehr schnell                     | ✅ einfach         | ✅                                   | **✅ ergänzende Suchschritte**                   |
-| **Pareto-Archiv**                     | nicht dominierte Lösungen sammeln                                                           | liefert Vorschläge           | vernachlässigbar                 | ✅ einfach         | ✅                                   | **✅ Kandidatenarchiv**                          |
-| Modulo-Network-Simplex (MNS)          | Spannbaum-basierte lokale Verbesserung für PESP (Nachkebel/Goerigk)                         | sehr gut für reines PESP     | mittel                           | ⚠️ aufwändig       | ❌ H1 passt nicht ins Netzwerkmodell | später als zusätzlicher Nachbarschafts-Operator  |
-| Constraint Propagation + Backtracking | Domänen einschränken, systematisch suchen                                                   | exakt bei kleinen Teilnetzen | exponentiell im Worst Case       | ✅ mittel          | ⚠️ nur als Prüfung an Blättern       | optional für kleine Selektion (z.B. ≤ 10 Ketten) |
-| Genetischer Algorithmus / NSGA-II     | Population, Kreuzung, Mutation                                                              | gut für Multi-Objective      | zu wenige Generationen in 0.25 s | ✅                 | ✅                                   | ❌                                               |
-| CP-SAT / MILP / PESP-SAT              | exakte Solver                                                                               | optimal / beweisbar          | Sekunden–Minuten                 | ❌ externer Solver | ❌                                   | ❌ (ausgeschlossen durch „nur TypeScript“)       |
+| Verfahren                             | Idee                                                                                        | Qualität                                        | Tempo                                   | In TS umsetzbar       | Blackbox H1                          | Bewertung                                        |
+| ------------------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------- | --------------------------------------- | --------------------- | ------------------------------------ | ------------------------------------------------ |
+| **Min-Conflicts + Tabu Search**       | verletzte Regel wählen, beteiligte Variable auf besten Wert setzen, Tabu-Liste gegen Zyklen | gut für Gültigkeit                              | sehr schnell, inkrementell              | ✅ einfach            | ✅                                   | **✅ Konfliktreparatur**                         |
+| **Large Neighborhood Search (LNS)**   | konfliktnahe Kettengruppe von der besten Lösung aus verändern                               | sehr gut für Knoten-Cluster                     | schnell                                 | ✅ mittel             | ✅                                   | **✅ Neustart bei Stagnation**                   |
+| **Simulated Annealing (SA)**          | zufällige Nachbarschritte, schlechtere mit sinkender Wahrscheinlichkeit akzeptieren         | gut, entkommt lokalen Minima                    | sehr schnell                            | ✅ einfach            | ✅                                   | **✅ ergänzende Suchschritte**                   |
+| **Pareto-Archiv**                     | nicht dominierte Lösungen sammeln                                                           | liefert Vorschläge                              | vernachlässigbar                        | ✅ einfach            | ✅                                   | **✅ Kandidatenarchiv**                          |
+| Modulo-Network-Simplex (MNS)          | Spannbaum-basierte lokale Verbesserung für PESP (Nachkebel/Goerigk)                         | sehr gut für reines PESP                        | mittel                                  | ⚠️ aufwändig          | ❌ H1 passt nicht ins Netzwerkmodell | später als zusätzlicher Nachbarschafts-Operator  |
+| Constraint Propagation + Backtracking | Domänen einschränken, systematisch suchen                                                   | exakt bei kleinen Teilnetzen                    | exponentiell im Worst Case              | ✅ mittel             | ⚠️ nur als Prüfung an Blättern       | optional für kleine Selektion (z.B. ≤ 10 Ketten) |
+| Genetischer Algorithmus / NSGA-II     | Population, Kreuzung, Mutation                                                              | gut für Multi-Objective                         | zu wenige Generationen in 0.25 s        | ✅                    | ✅                                   | ❌                                               |
+| Nativer TypeScript-CP-SAT             | eigener CDCL-Kern mit endlichen Domänen und Constraint-Klauseln                             | vollständig nur bei Erschöpfung des Suchmodells | zeitbegrenzt; keine Skalierungsgarantie | keine externen Solver | ja                                   | alternative Browser-Suche                        |
+| OR-Tools / MILP / PESP-SAT            | externe Solver                                                                              | optimal / beweisbar im Modell                   | nicht gemessen                          | externer Solver       | nicht integriert                     | separate Integration nötig                       |
 
 ### A.4 Netzgrafik Conflict-Repair-Algorithmus
 

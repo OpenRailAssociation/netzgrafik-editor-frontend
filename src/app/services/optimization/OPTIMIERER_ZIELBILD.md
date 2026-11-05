@@ -2,17 +2,18 @@
 
 ## Ziel und unverhandelbare Regeln
 
-Der Optimierer darf ausschliesslich Vorschläge ausgeben, die alle aktiven harten
-Regeln erfüllen. Harte Regeln dürfen nicht gegen bessere weiche Zielwerte
-aufgerechnet werden. Wenn keine gültige Lösung gefunden wird, muss der Optimierer
-das klar melden und darf keinen fast gültigen Vorschlag anbieten. Erst danach
-werden gültige Vorschläge anhand der weichen Ziele verglichen und sortiert.
+Übernommen werden dürfen ausschliesslich Vorschläge, die alle aktiven harten Regeln
+erfüllen. Harte Regeln dürfen nicht gegen bessere weiche Zielwerte aufgerechnet
+werden. Ungültige Varianten bleiben ausdrücklich als solche sichtbar und können
+nur als reversible Vorschau betrachtet werden. Die Baseline ist hellgrau mit Pfeil,
+gültige Varianten hellgrün mit Haken, ungültige grau mit Kreuz. Bis zu fünf Varianten
+werden gültig-zuerst und danach je Gruppe anhand gewichteter Soft-Kosten sortiert.
 
 Der Solver verändert bestehende Zugläufe und ihre Zeiten. Er plant keine neuen
 Routen. Rechenzeit bleibt begrenzt und die Suche anytime-fähig: jeder zusätzliche
 Rechenaufwand muss innerhalb des vorgegebenen Budgets zu verwertbaren gültigen
 Vorschlägen führen. Das Produktziel ist „in wenigen Sekunden“ auch bei grossen
-Netzgrafiken im Browser. Das UI bietet aktuell bis zu 4 Sekunden Suchbudget;
+Netzgrafiken im Browser. Das UI bietet aktuell bis zu 8 Sekunden Suchbudget;
 Vorbereitung und Endprüfung kommen momentan zusätzlich dazu. Der End-to-End-
 Zielwert muss deshalb auf einem festgelegten Grossnetz-Benchmark gemessen werden.
 Eine harte Echtzeitgarantie besteht noch nicht.
@@ -25,20 +26,22 @@ Die aktuelle Suche ist bereits ein schneller TypeScript-Hybrid:
 - Konfliktorientierte Min-Conflicts-/Tabu-Schritte reparieren betroffene Variablen.
 - Simulated Annealing erkundet alternative Zustände.
 - LNS verändert nach Stagnation eine konfliktnahe Gruppe von Variablen.
-- Ein begrenztes Pareto-Archiv hält gültige, nicht dominierte Lösungen.
+- Ein begrenztes Archiv hält bis zu 20 gültige und 20 ungültige Suchkandidaten.
 - Die Suchsession kann mit demselben Zufallszustand, Tabu-Zustand und Archiv
   fortgesetzt werden.
-- Automatische Folgeversuche starten mit dem besten internen Zustand des
-  vorherigen Versuchs und einem neuen Seed, statt wieder beim Ausgangsfahrplan
-  zu beginnen. Der Warmstart ist nicht zwingend bereits gültig.
+- Ein Lauf verwendet das ganze eingestellte Budget, auch nach erster Machbarkeit.
+  Ohne freie Variablen oder bei vollständig enumeriertem endlichem Modell endet er früher.
+  Die erste exakt gültige Zuweisung wird schon im Fortschritt gemeldet.
 - Kandidatenzusammenfassungen halten Halte- und Anschlussverletzungen
   inkrementell vor; `parts()` muss dafür nicht mehr alle Einträge linear
   aufsummieren. Lange Suchschleifen geben dem Browser ungefähr alle 16 ms
   Gelegenheit zur Verarbeitung.
 
-Der Suchlauf archiviert nur Kandidaten ohne harte Verletzungen. Zusätzlich
-filtert der Service ungültige Endvorschläge und prüft Anschlüsse unabhängig aus
-den nativen Anschlussdaten. Weiche Ziele werden derzeit geometrisch gewichtet;
+Der Service bewertet alle archivierten Varianten exakt und kennzeichnet ihre Gültigkeit;
+Anschlüsse werden unabhängig aus den nativen Anschlussdaten geprüft. Auch verworfene
+Heuristik-Schritte und ungültige CP-SAT-Alternativen bleiben verfügbar. Der alternative
+SAT-Lauf entfernt nur evaluative harte Regeln, keine Locks oder Domänengrenzen.
+Weiche Ziele werden derzeit geometrisch gewichtet;
 das ist keine strikt lexikografische Rangfolge. Ein repräsentativer
 Grossnetz-Benchmark ist noch nicht vorhanden.
 
@@ -167,11 +170,10 @@ Harte Regeln und weiche Ziele haben unterschiedliche Rollen:
 - Ein Suchzustand darf vorübergehend hart ungültig sein, damit die Suche aus
   einem ungültigen Fahrplan heraus reparieren kann. Er erhält dafür einen
   grossen Strafterm (`WEIGHT_HARD`); das ist nur Suchsteuerung.
-- Ein Zustand wird nur dann ins Lösungarchiv übernommen, wenn sein
-  Evaluator-Zähler `hard === 0` ist. Anschliessend verwirft der Service jeden
-  Vorschlag, den die unabhängige Endvalidierung nicht bestätigt.
+- Das Archiv trennt gültige und ungültige Suchzustände. Die exakte Endvalidierung
+  bestimmt `valid`; ein ungültiger Vorschlag bleibt sichtbar, aber nicht übernehmbar.
 - Unter gültigen Zuständen vergleicht der gewichtete Score aktive weiche Ziele.
-  Die Archivdominanz vergleicht diese Ziele zusätzlich als Pareto-Kriterien.
+  Beide Archivklassen werden jeweils nach den weichen Zielen bewertet.
   Die gewichtete Suche ist keine streng lexikografische Optimierung.
 
 Damit darf eine weiche Verbesserung niemals eine harte Regelverletzung in
@@ -213,8 +215,7 @@ gelegentlich wird eine grössere Verschiebung gewählt. Verbesserungen werden
 übernommen, Verschlechterungen mit einer temperaturabhängigen Wahrscheinlichkeit
 `exp(-ΔScore / Temperatur)`. Die Temperatur fällt während des Zeitbudgets von
 `5` auf `0.1`. So kann die Suche zeitweise einen schlechteren Zwischenzustand
-zulassen. Es wird dabei weiterhin kein ungültiger Zustand ins Lösungarchiv
-aufgenommen.
+zulassen. Auch geprüfte ungültige Zustände bleiben im begrenzten Vergleichsarchiv.
 
 ### Stagnations-Neustart: LNS-inspiriert, nicht ALNS
 
@@ -232,8 +233,15 @@ Repair-Lauf aus – die reguläre Suche setzt danach fort.
 
 ### Archiv, Vorschläge und Weiterrechnen
 
-Nur harte-regelkonforme, nicht dominierte Zustände kommen ins begrenzte Archiv.
-Der Service wählt daraus höchstens vier Vorschläge und validiert diese erneut.
+Beide Machbarkeitsklassen kommen getrennt ins begrenzte Archiv.
+Der Service bewertet sie exakt und wählt höchstens fünf gewichtete Varianten.
+Gültige Alternativen werden automatisch angezeigt. Bis zu fünf beste ungültige Varianten
+bleiben separat gespeichert und standardmässig zugeklappt; der Einblendbutton macht sie auf
+ausdrücklichen Wunsch sichtbar. Sie werden nie automatisch als Vorschau angewendet und
+können nicht übernommen werden. Reparaturfortschritte
+erhalten reservierte Archivplätze, damit geringere Soft-Kosten keine fast behobenen Konflikte verdrängen.
+Beim Weiterrechnen wird die Liste laufend ergänzt; eine gültige Alternative entfernt den
+Hinweis auf fehlende Machbarkeit sofort und klappt ungültige Alternativen zu.
 Der Seed, die Tabu-Fristen, Iteration und das Archiv bleiben bei „Weiterrechnen“
 in derselben Suchsession erhalten. Die Schleife gibt dem Browser regelmässig
 Gelegenheit zur Verarbeitung; das ist kooperatives Yielding, keine parallele
@@ -351,18 +359,25 @@ werden.
 
 ### MILP, CP-SAT und andere exakte Verfahren
 
-**MILP, CP-SAT, PESP-SAT oder ein externer Solver werden derzeit nicht als
-Produktivsolver im Browser implementiert.** Sie würden zusätzliche
-Solver-Abhängigkeiten, Modellierungsaufwand und Laufzeit-/Paketkosten einführen;
-ein Optimalitätsbeweis ist für das interaktive Ziel nicht erforderlich und
-garantiert keine schnelle Antwort.
+**Google OR-Tools CP-SAT, MILP, PESP-SAT und externe Solver werden nicht als
+Produktivsolver im Browser verwendet.** Zum Vergleich mit der Heuristik gibt es
+jetzt einen eigenen [nativen TypeScript-CP-SAT-Solver](./cp-sat/).
+Dieser verwendet eine endliche Ganzzahlkodierung und einen CDCL-SAT-Kern
+mit Unit-Propagation, zwei beobachteten Literalen, First-UIP-Konfliktlernen
+und Backjumping. Verletzte Fahrplan-Constraints erzeugen lokale Nogood-Klauseln.
+Die bisherige Einzelvariablensuche mit zufälligen Neustarts wurde ersetzt.
 
-Falls später ein Nutzen belegt werden soll, können exakte Verfahren zunächst
-offline als Referenz für kleine Testinstanzen dienen oder als begrenzter lokaler
-Reparaturschritt untersucht werden. Ein solcher Test wäre getrennt von der
-Browser-Produktivsuche und müsste nachweislich in das Zeitbudget passen. Die
-Literaturangabe zu MILP in den Quellen ist Hintergrund, kein Implementierungs-
-auftrag.
+Die SAT-Suche enumeriert Alternativen mit der gemeinsamen Bewertungsfunktion.
+Gelernte Klauseln, Suchzustand und Kandidaten bleiben bei **Weiterrechnen**
+erhalten. Ohne vollständige Erschöpfung gibt es keinen Optimalitätsbeweis;
+die Modellprüfung nutzt den bestehenden Gleis-Surrogaten und die
+Endvalidierung weiterhin die exakte Gleisschätzung. Details und Grenzen
+stehen in [OPTIMIZE_TIMETABLE.md](./OPTIMIZE_TIMETABLE.md#72-nativer-cp-sat-solver).
+
+Das ist keine OR-Tools-Portierung: LP-Relaxation, aufwendiges Presolve und
+parallele Suchportfolios sind nicht enthalten. Ein Vorteil auf grossen Netzen
+ist nicht belegt; die vollständige Enumeration kann exponentiell wachsen.
+Google OR-Tools würde eine separate WASM-Integration oder Portierung benötigen.
 
 ## Umsetzung in Etappen
 
@@ -441,8 +456,8 @@ getrennt berichtet werden.
 - **CBS — Conflict-Based Search:** Suchverfahren, das Konflikte in einem Suchbaum durch
   Verzweigungen mit zusätzlichen Einschränkungen auflöst. Die vorhandene Konfliktsuche ist
   kein CBS.
-- **CP-SAT:** Constraint-Programming-Solver mit SAT-basierter Suche; hier nur als möglicher
-  Offline-Vergleich erwähnt.
+- **CP-SAT:** Constraint-Programming-Solver mit SAT-basierter Suche; hier als eigener
+  TypeScript-Solver implementiert, nicht als Portierung von Google OR-Tools.
 - **ICAPS — International Conference on Automated Planning and Scheduling:** Konferenz, auf
   der die erwähnte Flatland-Arbeit publiziert wurde.
 - **LNS — Large Neighborhood Search:** Grossnachbarschaftssuche. „Large“ bedeutet, dass pro

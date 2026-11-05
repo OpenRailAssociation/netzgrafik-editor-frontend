@@ -15,9 +15,19 @@
         ></sbb-optimization-director>
         <div class="results-column">
           <div class="settings">
-            <button sbb-button type="button" [disabled]="isOptimizing" (click)="optimize()">
-              {{ "app.view.dialogs.optimize-timetable-dialog.optimize" | translate }}
-            </button>
+            <div class="optimizer-actions">
+              <button sbb-button type="button" [disabled]="isOptimizing" (click)="optimize()">
+                {{ "app.view.dialogs.optimize-timetable-dialog.optimize" | translate }}
+              </button>
+              <button
+                sbb-secondary-button
+                type="button"
+                [disabled]="isOptimizing"
+                (click)="optimizeCpSat()"
+              >
+                {{ "app.view.dialogs.optimize-timetable-dialog.optimize-cp-sat" | translate }}
+              </button>
+            </div>
             <div class="search-effort-control">
               <div class="search-effort-heading">
                 <label
@@ -175,15 +185,29 @@
               {{ "app.view.dialogs.optimize-timetable-dialog.results-panel" | translate }}
             </sbb-expansion-panel-header>
             <div class="optimization-results">
+              <div class="solution-count">
+                {{
+                  "app.view.dialogs.optimize-timetable-dialog.solutions-found"
+                    | translate: {count: feasibleSolutionCount.toString()}
+                }}
+              </div>
               <div class="info">
                 {{
                   "app.view.dialogs.optimize-timetable-dialog.search-info"
                     | translate
                       : {
                           iterations: result.iterations.toString(),
-                          runtime: result.runtimeMs.toString(),
+                          runtime: (result.runtimeMs / 1000 | number: "1.3-3"),
                           over: result.initialEdgesOverLimit.toString(),
                         }
+                }}
+              </div>
+              <div class="engine-info" *ngIf="result.engine">
+                {{
+                  (result.engine === "cp-sat"
+                    ? "app.view.dialogs.optimize-timetable-dialog.engine-cp-sat"
+                    : "app.view.dialogs.optimize-timetable-dialog.engine-heuristic"
+                  ) | translate
                 }}
               </div>
               <div class="variable-breakdown">
@@ -197,28 +221,290 @@
                         }
                 }}
               </div>
-              <div class="runtime-lock-summary" *ngIf="result.fixedTravelTimeVariables > 0">
-                {{
-                  "app.view.dialogs.optimize-timetable-dialog.runtime-lock-summary"
-                    | translate
-                      : {
-                          blocked: result.fixedTravelTimeVariables.toString(),
-                          travelLocks: result.travelTimeLockBlockedVariables.toString(),
-                          departureLocks: result.departureTimeLockBlockedVariables.toString(),
-                          arrivalLocks: result.arrivalTimeLockBlockedVariables.toString(),
-                          scope: result.scopeBlockedTravelTimeVariables.toString(),
-                          noRange: result.noRangeTravelTimeVariables.toString(),
-                        }
-                }}
-              </div>
-              <div class="message" *ngIf="result.message">{{ result.message }}</div>
+              <details *ngIf="!hasFeasibleSolution" class="optimization-analysis">
+                <summary>
+                  {{ "app.view.dialogs.optimize-timetable-dialog.analysis.title" | translate }}
+                </summary>
+                <div class="optimization-analysis-content">
+                  <div class="runtime-lock-summary" *ngIf="result.fixedTravelTimeVariables > 0">
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.runtime-lock-summary"
+                        | translate
+                          : {
+                              blocked: result.fixedTravelTimeVariables.toString(),
+                              travelLocks: result.travelTimeLockBlockedVariables.toString(),
+                              departureLocks: result.departureTimeLockBlockedVariables.toString(),
+                              arrivalLocks: result.arrivalTimeLockBlockedVariables.toString(),
+                              scope: result.scopeBlockedTravelTimeVariables.toString(),
+                              noRange: result.noRangeTravelTimeVariables.toString(),
+                            }
+                    }}
+                  </div>
+                  <div *ngIf="immutableTrackConflicts.length > 0">
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.immutable-track-conflicts"
+                        | translate: {count: immutableTrackConflicts.length.toString()}
+                    }}
+                    <ul>
+                      <li *ngFor="let edge of immutableTrackConflicts">
+                        <strong>
+                          {{ edge.fromNodeName }} – {{ edge.toNodeName }}:
+                          {{
+                            "app.view.dialogs.optimize-timetable-dialog.analysis.track-limit-violation"
+                              | translate
+                                : {
+                                    tracks: edge.tracksBefore.toString(),
+                                    limit: maxTracks.toString(),
+                                  }
+                          }}
+                        </strong>
+                        <div class="conflict-table-scroll" *ngIf="edge.blockingSections.length > 0">
+                          <table class="conflict-sections">
+                            <thead>
+                              <tr>
+                                <th>
+                                  {{
+                                    "app.view.dialogs.optimize-timetable-dialog.analysis.columns.train"
+                                      | translate
+                                  }}
+                                </th>
+                                <th>
+                                  {{
+                                    "app.view.dialogs.optimize-timetable-dialog.analysis.columns.section"
+                                      | translate
+                                  }}
+                                </th>
+                                <th>
+                                  {{
+                                    "app.view.dialogs.optimize-timetable-dialog.analysis.columns.departure"
+                                      | translate
+                                  }}
+                                </th>
+                                <th>
+                                  {{
+                                    "app.view.dialogs.optimize-timetable-dialog.analysis.columns.arrival"
+                                      | translate
+                                  }}
+                                </th>
+                                <th>
+                                  {{
+                                    "app.view.dialogs.optimize-timetable-dialog.analysis.columns.travel-time"
+                                      | translate
+                                  }}
+                                </th>
+                                <th>
+                                  {{
+                                    "app.view.dialogs.optimize-timetable-dialog.analysis.columns.return-departure"
+                                      | translate
+                                  }}
+                                </th>
+                                <th>
+                                  {{
+                                    "app.view.dialogs.optimize-timetable-dialog.analysis.columns.return-arrival"
+                                      | translate
+                                  }}
+                                </th>
+                                <th>
+                                  {{
+                                    "app.view.dialogs.optimize-timetable-dialog.analysis.columns.return-travel-time"
+                                      | translate
+                                  }}
+                                </th>
+                                <th>
+                                  {{
+                                    "app.view.dialogs.optimize-timetable-dialog.analysis.columns.blockers"
+                                      | translate
+                                  }}
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr *ngFor="let blocker of edge.blockingSections">
+                                <th scope="row">{{ blocker.trainrunName }}</th>
+                                <td>
+                                  {{ blocker.fromNodeName }} – {{ blocker.toNodeName }}
+                                  <small>(#{{ blocker.sectionId }})</small>
+                                </td>
+                                <td>
+                                  <span class="conflict-time-value">
+                                    {{ blocker.times.forwardDeparture.display }}
+                                  </span>
+                                  <sbb-icon
+                                    *ngIf="blocker.times.forwardDeparture.locked"
+                                    svgIcon="lock-closed-small"
+                                    class="lock-indicator"
+                                    height="16px"
+                                    width="16px"
+                                    [attr.aria-label]="
+                                      'app.view.dialogs.optimize-timetable-dialog.analysis.time-lock-label'
+                                        | translate
+                                    "
+                                    [title]="
+                                      'app.view.dialogs.optimize-timetable-dialog.analysis.time-lock-label'
+                                        | translate
+                                    "
+                                  ></sbb-icon>
+                                </td>
+                                <td>
+                                  <span class="conflict-time-value">
+                                    {{ blocker.times.forwardArrival.display }}
+                                  </span>
+                                  <sbb-icon
+                                    *ngIf="blocker.times.forwardArrival.locked"
+                                    svgIcon="lock-closed-small"
+                                    class="lock-indicator"
+                                    height="16px"
+                                    width="16px"
+                                    [attr.aria-label]="
+                                      'app.view.dialogs.optimize-timetable-dialog.analysis.time-lock-label'
+                                        | translate
+                                    "
+                                    [title]="
+                                      'app.view.dialogs.optimize-timetable-dialog.analysis.time-lock-label'
+                                        | translate
+                                    "
+                                  ></sbb-icon>
+                                </td>
+                                <td>
+                                  <span class="conflict-time-value">
+                                    {{ blocker.times.forwardTravelTime.display }}
+                                  </span>
+                                  <sbb-icon
+                                    *ngIf="blocker.times.forwardTravelTime.locked"
+                                    svgIcon="lock-closed-small"
+                                    class="lock-indicator"
+                                    height="16px"
+                                    width="16px"
+                                    [attr.aria-label]="
+                                      'app.view.dialogs.optimize-timetable-dialog.analysis.travel-time-lock-label'
+                                        | translate
+                                    "
+                                    [title]="
+                                      'app.view.dialogs.optimize-timetable-dialog.analysis.travel-time-lock-label'
+                                        | translate
+                                    "
+                                  ></sbb-icon>
+                                </td>
+                                <td>
+                                  <span class="conflict-time-value">
+                                    {{ blocker.times.backwardDeparture.display }}
+                                  </span>
+                                  <sbb-icon
+                                    *ngIf="blocker.times.backwardDeparture.locked"
+                                    svgIcon="lock-closed-small"
+                                    class="lock-indicator"
+                                    height="16px"
+                                    width="16px"
+                                    [attr.aria-label]="
+                                      'app.view.dialogs.optimize-timetable-dialog.analysis.time-lock-label'
+                                        | translate
+                                    "
+                                    [title]="
+                                      'app.view.dialogs.optimize-timetable-dialog.analysis.time-lock-label'
+                                        | translate
+                                    "
+                                  ></sbb-icon>
+                                </td>
+                                <td>
+                                  <span class="conflict-time-value">
+                                    {{ blocker.times.backwardArrival.display }}
+                                  </span>
+                                  <sbb-icon
+                                    *ngIf="blocker.times.backwardArrival.locked"
+                                    svgIcon="lock-closed-small"
+                                    class="lock-indicator"
+                                    height="16px"
+                                    width="16px"
+                                    [attr.aria-label]="
+                                      'app.view.dialogs.optimize-timetable-dialog.analysis.time-lock-label'
+                                        | translate
+                                    "
+                                    [title]="
+                                      'app.view.dialogs.optimize-timetable-dialog.analysis.time-lock-label'
+                                        | translate
+                                    "
+                                  ></sbb-icon>
+                                </td>
+                                <td>
+                                  <span class="conflict-time-value">
+                                    {{ blocker.times.backwardTravelTime.display }}
+                                  </span>
+                                  <sbb-icon
+                                    *ngIf="blocker.times.backwardTravelTime.locked"
+                                    svgIcon="lock-closed-small"
+                                    class="lock-indicator"
+                                    height="16px"
+                                    width="16px"
+                                    [attr.aria-label]="
+                                      'app.view.dialogs.optimize-timetable-dialog.analysis.travel-time-lock-label'
+                                        | translate
+                                    "
+                                    [title]="
+                                      'app.view.dialogs.optimize-timetable-dialog.analysis.travel-time-lock-label'
+                                        | translate
+                                    "
+                                  ></sbb-icon>
+                                </td>
+                                <td>
+                                  <ul *ngIf="blocker.reasons.length > 0">
+                                    <li *ngFor="let reason of blocker.reasons">
+                                      {{ getTrackConflictReasonLabel(reason) }}
+                                    </li>
+                                  </ul>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                  <div
+                    class="message"
+                    *ngIf="result.message && immutableTrackConflicts.length === 0"
+                  >
+                    {{ result.message }}
+                  </div>
+                  <div class="message" *ngIf="result.diagnosticSolutions?.length > 0">
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.diagnostic-candidates-warning"
+                        | translate
+                    }}
+                  </div>
+                  <p class="analysis-note" *ngIf="immutableTrackConflicts.length > 0">
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.analysis.rule-distinction"
+                        | translate
+                    }}
+                  </p>
+                </div>
+              </details>
 
-              <div class="proposals-scroll" *ngIf="result.solutions.length > 0">
+              <sbb-checkbox
+                class="infeasible-alternatives-toggle"
+                [disabled]="infeasibleSolutions.length === 0"
+                aria-controls="infeasible-timetable-alternatives"
+                [ngModel]="infeasibleSolutionsExpanded"
+                (ngModelChange)="setInfeasibleSolutionsExpanded($event)"
+              >
+                {{
+                  "app.view.dialogs.optimize-timetable-dialog.show-infeasible-alternatives"
+                    | translate
+                }}
+              </sbb-checkbox>
+
+              <div class="proposals-scroll" id="infeasible-timetable-alternatives">
                 <table class="proposals">
                   <thead>
                     <tr>
+                      <th class="feasibility-icon">
+                        {{ "app.view.dialogs.optimize-timetable-dialog.status" | translate }}
+                      </th>
                       <th>
                         {{ "app.view.dialogs.optimize-timetable-dialog.proposal" | translate }}
+                      </th>
+                      <th>
+                        {{ "app.view.dialogs.optimize-timetable-dialog.soft-cost" | translate }}
                       </th>
                       <th>
                         {{
@@ -257,10 +543,20 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr class="baseline-row" (click)="selectBaseline()">
+                    <tr class="baseline-row" (click)="!isOptimizing && selectBaseline()">
+                      <td class="feasibility-icon">
+                        <sbb-icon
+                          svgIcon="arrow-right-medium"
+                          [attr.aria-label]="
+                            'app.view.dialogs.optimize-timetable-dialog.baseline' | translate
+                          "
+                        >
+                        </sbb-icon>
+                      </td>
                       <td>
                         {{ "app.view.dialogs.optimize-timetable-dialog.baseline" | translate }}
                       </td>
+                      <td>{{ getSoftCost(result.baselineKpi) | number: "1.3-3" }}</td>
                       <td>
                         {{ result.baselineKpi.edgesOverLimitBefore }} →
                         {{ result.baselineKpi.edgesOverLimitAfter }}
@@ -288,11 +584,28 @@
                     <tr
                       *ngFor="let solution of rankedSolutions"
                       [class.selected]="solution === selectedSolution"
-                      [class.invalid]="!solution.valid"
-                      (click)="selectSolution(solution)"
+                      (click)="!isOptimizing && selectSolution(solution)"
                     >
+                      <td class="feasibility-icon">
+                        <sbb-icon
+                          [svgIcon]="solution.valid ? 'tick-medium' : 'cross-tiny-small'"
+                          [attr.aria-label]="
+                            (solution.valid
+                              ? 'app.view.dialogs.optimize-timetable-dialog.valid'
+                              : 'app.view.dialogs.optimize-timetable-dialog.invalid'
+                            ) | translate
+                          "
+                        >
+                        </sbb-icon>
+                      </td>
                       <td>
                         {{ solution.label }}
+                        <span class="solution-status" *ngIf="solution.diagnosticOnly">
+                          {{
+                            "app.view.dialogs.optimize-timetable-dialog.diagnostic-candidate"
+                              | translate
+                          }}
+                        </span>
                         <span class="solution-status">
                           {{
                             (solution.valid
@@ -302,6 +615,7 @@
                           }}
                         </span>
                       </td>
+                      <td>{{ getSoftCost(solution.kpi) | number: "1.3-3" }}</td>
                       <td>
                         {{ solution.kpi.edgesOverLimitBefore }} →
                         {{ solution.kpi.edgesOverLimitAfter }}
@@ -391,16 +705,20 @@
                 <div class="node-review">
                   <div class="node-changes">
                     <h4>{{ "app.view.dialogs.optimize-timetable-dialog.changes" | translate }}</h4>
-                    <div
+                    <sbb-expansion-panel
                       *ngFor="let group of nodeGroups"
                       class="node-group"
                       [class.selected]="group.nodeId === selectedNodeId"
+                      [class.collapsed]="!group.expanded"
+                      [expanded]="group.expanded"
+                      (opened)="group.expanded = true"
+                      (closed)="group.expanded = false"
                       (mouseenter)="selectNode(group.nodeId)"
                     >
-                      <div class="node-header" (click)="selectNode(group.nodeId)">
+                      <sbb-expansion-panel-header class="node-header">
                         <span class="node-name">{{ group.nodeName }}</span>
-                        <span class="node-count">{{ group.changes.length }}</span>
-                      </div>
+                        <span class="node-count">{{ group.changedTrainrunCount }}</span>
+                      </sbb-expansion-panel-header>
                       <table class="details">
                         <colgroup>
                           <col class="old-time-column" />
@@ -462,7 +780,7 @@
                           </tr>
                         </tbody>
                       </table>
-                    </div>
+                    </sbb-expansion-panel>
                   </div>
 
                   <div class="node-clock" *ngIf="occupancyBefore && occupancyAfter">
@@ -501,48 +819,80 @@
       </div>
     </div>
     <div sbbDialogActions>
-      <div
-        class="optimization-progress"
-        *ngIf="isOptimizing || result"
-        role="status"
-        aria-live="polite"
-      >
-        <progress
-          [value]="optimizationProgressPercent"
-          max="100"
+      <div class="optimization-progress" *ngIf="isOptimizing" role="status" aria-live="polite">
+        <div
+          class="optimization-progress-bar"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          [attr.aria-valuenow]="optimizationProgressPercent"
           [attr.aria-label]="
-            (isOptimizing
-              ? 'app.view.dialogs.optimize-timetable-dialog.search-progress'
-              : 'app.view.dialogs.optimize-timetable-dialog.search-progress-complete'
-            ) | translate
+            'app.view.dialogs.optimize-timetable-dialog.search-progress' | translate
           "
-        ></progress>
-        <span>
-          {{
-            (isOptimizing
-              ? "app.view.dialogs.optimize-timetable-dialog.search-progress"
-              : "app.view.dialogs.optimize-timetable-dialog.search-progress-complete"
-            ) | translate
-          }}
+        >
+          <div
+            class="optimization-progress-fill"
+            [style.width.%]="optimizationProgressPercent"
+          ></div>
+        </div>
+        <span class="optimization-progress-copy">
+          {{ "app.view.dialogs.optimize-timetable-dialog.search-progress" | translate }}
           {{
             "app.view.dialogs.optimize-timetable-dialog.search-progress-detail"
               | translate
                 : {
                     percent: optimizationProgressPercent.toString(),
-                    attempt: optimizationAttempt.toString(),
-                    total: maxSearchAttempts.toString(),
                     iteration: optimizationIterations.toString(),
                   }
           }}
+          <span class="search-phase">
+            {{
+              (isGeneratingDiagnostics
+                ? "app.view.dialogs.optimize-timetable-dialog.diagnostic-search-progress"
+                : liveSolution
+                  ? "app.view.dialogs.optimize-timetable-dialog.search-soft-objectives"
+                  : "app.view.dialogs.optimize-timetable-dialog.search-feasibility"
+              ) | translate
+            }}
+          </span>
+          <span class="live-candidate" *ngIf="liveSolution">
+            {{
+              "app.view.dialogs.optimize-timetable-dialog.live-candidate"
+                | translate
+                  : {
+                      trains: liveSolution.kpi.changedTrainruns.toString(),
+                      times: liveSolution.kpi.changedTimes.toString(),
+                      shift: formatSigned(liveSolution.kpi.sumAbsShift),
+                    }
+            }}
+          </span>
         </span>
       </div>
-      <button sbb-button type="button" [disabled]="!selectedSolution" (click)="apply()">
-        {{ "app.view.dialogs.optimize-timetable-dialog.apply" | translate }}
+      <button
+        sbb-button
+        type="button"
+        [disabled]="
+          !selectedSolution || hasOutdatedResults || isOptimizing || isConfirmingInvalidApply
+        "
+        (click)="apply()"
+      >
+        {{
+          (selectedSolution && !selectedSolution.valid
+            ? "app.view.dialogs.optimize-timetable-dialog.apply-invalid"
+            : "app.view.dialogs.optimize-timetable-dialog.apply"
+          ) | translate
+        }}
       </button>
       <button
         sbb-secondary-button
         type="button"
-        [disabled]="!result || result.freeVariables === 0 || hasOutdatedResults || isOptimizing"
+        [disabled]="
+          !result ||
+          result.freeVariables === 0 ||
+          result.searchExhausted ||
+          hasOutdatedResults ||
+          isOptimizing
+        "
         (click)="continueOptimization()"
       >
         {{ "app.view.dialogs.optimize-timetable-dialog.continue" | translate }}
