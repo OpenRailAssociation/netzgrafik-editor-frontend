@@ -3,6 +3,8 @@ import {ScoreParts, TimetableEvaluator} from "./optimize-timetable.evaluator";
 import {ConflictIndex} from "./optimization-conflict-index";
 import {SRC_ARR, SRC_DEP, TGT_ARR, TGT_DEP} from "./optimize-timetable.model";
 import {getObjectiveWeights, ObjectiveId} from "./optimization-policy.model";
+import {retainCandidate} from "./optimization-candidate-archive";
+import type {OptimizeTimetableSolution} from "./optimize-timetable.model";
 
 export interface ArchivedSolution {
   delta: Int32Array;
@@ -18,6 +20,8 @@ export interface SearchResult {
   evaluatedCandidates: number;
   trace: SearchTraceEntry[];
   omittedTraceEntries: number;
+  /** All finite-domain assignments have been considered by a complete search. */
+  exhausted?: boolean;
   continueFor?: (
     additionalBudgetMs: number,
     onProgress?: (progress: SearchProgress) => void,
@@ -28,6 +32,11 @@ export interface SearchProgress {
   fraction: number;
   elapsedMs: number;
   iterations: number;
+  candidate?: ArchivedSolution;
+  phase?: "feasibility" | "soft-objectives";
+  solution?: OptimizeTimetableSolution;
+  solutions?: OptimizeTimetableSolution[];
+  infeasibleSolutions?: OptimizeTimetableSolution[];
 }
 
 export interface SearchTraceEntry {
@@ -62,7 +71,6 @@ interface CandidateMove {
   traceLabel?: string;
 }
 
-const ARCHIVE_SIZE = 40;
 const TABU_TENURE = 7;
 const MAX_TRACE_ENTRIES = 150;
 const MAX_CONFLICT_STEP_DISTANCE = 5;
@@ -123,47 +131,6 @@ function chooseRandomSubset(candidates: number[], count: number, random: () => n
 
 function objectiveEnabled(problem: OptimizationProblem, id: ObjectiveId): boolean {
   return getObjectiveWeights(problem.policy)[id] > 0;
-}
-
-function dominates(a: ScoreParts, b: ScoreParts, problem: OptimizationProblem): boolean {
-  const comparisons: [number, number][] = [];
-  if (objectiveEnabled(problem, "lowerEdgeTrackUsage")) {
-    comparisons.push([a.edgeTrackCost, b.edgeTrackCost]);
-  }
-  if (objectiveEnabled(problem, "lowerTrackUsage")) {
-    comparisons.push([a.nodeTrackCost, b.nodeTrackCost]);
-  }
-  if (objectiveEnabled(problem, "lowerTravelTime")) {
-    comparisons.push([a.travelTimeDelta, b.travelTimeDelta]);
-  }
-  if (objectiveEnabled(problem, "moreConnections")) {
-    comparisons.push([-a.optionalConnections, -b.optionalConnections]);
-  }
-  if (objectiveEnabled(problem, "connectionStability")) {
-    comparisons.push([a.connectionWaitDeviation, b.connectionWaitDeviation]);
-  }
-  if (objectiveEnabled(problem, "minimalChanges")) {
-    comparisons.push([a.sumAbsShift, b.sumAbsShift]);
-  }
-  let strictly = false;
-  for (const [first, second] of comparisons) {
-    if (first > second + 1e-9) {
-      return false;
-    }
-    if (first < second - 1e-9) {
-      strictly = true;
-    }
-  }
-  return strictly;
-}
-
-function sameDelta(a: Int32Array, b: Int32Array): boolean {
-  for (let k = 0; k < a.length; k++) {
-    if (a[k] !== b[k]) {
-      return false;
-    }
-  }
-  return true;
 }
 
 function assignmentFromDelta(
@@ -555,7 +522,7 @@ function describeEffects(before: TraceSnapshot, after: TraceSnapshot): string {
  * 1. Min-Conflicts + Tabu on edges violating the track limit,
  * 2. Simulated Annealing on the soft objectives,
  * 3. LNS restarts from the best solution when stagnating,
- * all solutions without hard violations go into a Pareto archive.
+ * feasible and infeasible candidates are retained for weighted soft-objective ranking.
  */
 export async function runSearch(
   problem: OptimizationProblem,
@@ -577,6 +544,8 @@ export async function runSearch(
   const freeVars = problem.variables
     .map((variable, v) => (!variable.fixed && variable.domain > 0 ? v : -1))
     .filter((v) => v >= 0);
+  const lowerBound = (v: number) =>
+    problem.variables[v].travelTimeTrainrunIndex === undefined ? -problem.variables[v].domain : 0;
   const priorityProfile =
     problem.policy.mode === "director" ? problem.policy.directorProfile : undefined;
   const priorityRanks =
@@ -596,7 +565,11 @@ export async function runSearch(
   if (startAssignment) {
     freeVars.forEach((v) => {
       const value = startAssignment[problem.variables[v].key];
-      if (typeof value === "number" && Math.abs(value) <= problem.variables[v].domain) {
+      if (
+        typeof value === "number" &&
+        value >= lowerBound(v) &&
+        value <= problem.variables[v].domain
+      ) {
         evaluator.setVariable(v, value);
       }
     });
@@ -618,41 +591,25 @@ export async function runSearch(
       omittedTraceEntries++;
     }
   };
-  let hasFeasibleAlternative = false;
+  let iteration = 0;
+  let nextFeasibleReportAt = 0;
+  let reportedFeasible = false;
   const archiveCurrent = () => {
     const parts = evaluator.parts();
-    if (parts.hard > 0) {
-      return;
-    }
-    if (
-      archive.some((a) => dominates(a.parts, parts, problem) || sameDelta(a.delta, evaluator.delta))
-    ) {
-      return;
-    }
-    for (let k = archive.length - 1; k >= 0; k--) {
-      if (dominates(parts, archive[k].parts, problem)) {
-        archive.splice(k, 1);
-      }
-    }
-    archive.push({delta: new Int32Array(evaluator.delta), score, parts});
-    if (!sameDelta(initial.delta, evaluator.delta)) {
-      hasFeasibleAlternative = true;
-    }
-    if (archive.length > ARCHIVE_SIZE) {
-      const alternatives = archive.filter(
-        (candidate) => !sameDelta(initial.delta, candidate.delta),
-      );
-      const smallestShift = objectiveEnabled(problem, "minimalChanges")
-        ? (alternatives.length > 0 ? alternatives : archive).reduce((best, item) =>
-            item.parts.sumAbsShift < best.parts.sumAbsShift ? item : best,
-          )
-        : undefined;
-      archive.sort((a, b) => a.score - b.score);
-      const retained = archive.slice(0, ARCHIVE_SIZE);
-      if (smallestShift !== undefined && !retained.includes(smallestShift)) {
-        retained[ARCHIVE_SIZE - 1] = smallestShift;
-      }
-      archive.splice(0, archive.length, ...retained);
+    const candidate = {delta: new Int32Array(evaluator.delta), score: evaluator.score(), parts};
+    retainCandidate(archive, candidate, initial.delta);
+    if ((!reportedFeasible && parts.hard === 0) || performance.now() >= nextFeasibleReportAt) {
+      reportedFeasible ||= parts.hard === 0;
+      nextFeasibleReportAt = performance.now() + 250;
+      activeProgress?.({
+        fraction: Math.min(
+          0.99,
+          (performance.now() - segmentStartedAt) / Math.max(1, segmentBudgetMs),
+        ),
+        elapsedMs: performance.now() - searchStartedAt,
+        iterations: iteration,
+        candidate,
+      });
     }
   };
   archiveCurrent();
@@ -674,7 +631,6 @@ export async function runSearch(
   let bestScore = score;
   let bestParts = evaluator.parts();
   const tabuUntil = new Int32Array(problem.variables.length);
-  let iteration = 0;
   let evaluatedCandidates = 0;
   let activePriorityRank = -1;
   const activeFreeVars = priorityRanks === undefined ? freeVars : [];
@@ -684,7 +640,6 @@ export async function runSearch(
   const startTime = performance.now();
   let nextProgressAt = startTime + 250;
   let nextYieldAt = startTime + 16;
-  let polishReserveMs = Math.min(40, timeBudgetMs * 0.2);
   const yieldToBrowser = () => {
     if (performance.now() < nextYieldAt) {
       return undefined;
@@ -729,9 +684,6 @@ export async function runSearch(
         });
         nextProgressAt = now + 250;
       }
-      if (hasFeasibleAlternative && performance.now() >= deadline - polishReserveMs) {
-        break;
-      }
       iteration++;
       if (priorityRanks !== undefined) {
         const progress = Math.min(1, (performance.now() - startTime) / Math.max(1, totalBudgetMs));
@@ -771,7 +723,10 @@ export async function runSearch(
             priorityProfile,
             priorityRanks?.rankByVariable[v],
             getVariableSectionHeadway(problem, v),
-          ),
+          ).map((group) => ({
+            ...group,
+            values: group.values.filter((value) => value >= lowerBound(v)),
+          })),
         }));
         const selectedVariableSet = new Set(selectedVariables);
         const activeTrainrunGroups = trainrunShiftGroups.filter(
@@ -808,7 +763,7 @@ export async function runSearch(
           if (
             values.some(
               (value, index) =>
-                value < -problem.variables[group.variables[index]].domain ||
+                value < lowerBound(group.variables[index]) ||
                 value > problem.variables[group.variables[index]].domain,
             )
           ) {
@@ -817,6 +772,7 @@ export async function runSearch(
           group.variables.forEach((v, index) => evaluator.setVariable(v, values[index]));
           group.variables.forEach((v) => conflictIndex.updateVariable(v));
           evaluatedCandidates++;
+          archiveCurrent();
           const candidateScore = evaluator.score();
           const candidateParts = evaluator.parts();
           const candidateSeverity = conflict.severity;
@@ -890,6 +846,7 @@ export async function runSearch(
               }
               const candidateScore = evaluator.setVariable(v, value);
               evaluatedCandidates++;
+              archiveCurrent();
               conflictIndex.updateVariable(v);
               const candidateParts = evaluator.parts();
               const candidateSeverity = conflict.severity;
@@ -998,13 +955,17 @@ export async function runSearch(
           1 + Math.floor((iteration - lastImprovement) / 50),
         );
         const step = random() < 0.8 ? 1 : 1 + Math.floor(random() * maxStep);
-        const value = Math.max(-domain, Math.min(domain, old + (random() < 0.5 ? -step : step)));
+        const value = Math.max(
+          lowerBound(v),
+          Math.min(domain, old + (random() < 0.5 ? -step : step)),
+        );
         if (value === old) {
           continue;
         }
         const before = traceEnabled ? captureTraceSnapshot(problem, evaluator, [v]) : undefined;
         const s = evaluator.setVariable(v, value);
         evaluatedCandidates++;
+        archiveCurrent();
         const diff = s - score;
         if (diff <= 0 || random() < Math.exp(-diff / temperature)) {
           score = s;
@@ -1114,7 +1075,7 @@ export async function runSearch(
         for (let n = 0; n < destroyedVariables.length; n++) {
           const v = destroyedVariables[n];
           const domain = problem.variables[v].domain;
-          evaluator.setVariable(v, Math.round((random() * 2 - 1) * domain));
+          evaluator.setVariable(v, Math.round(lowerBound(v) + random() * (domain - lowerBound(v))));
           conflictIndex.updateVariable(v);
           const browserYield = yieldToBrowser();
           if (browserYield !== undefined) {
@@ -1158,72 +1119,7 @@ export async function runSearch(
     score = evaluator.evaluateAll();
     archiveCurrent();
 
-    if (
-      hasFeasibleAlternative &&
-      objectiveEnabled(problem, "minimalChanges") &&
-      performance.now() < deadline
-    ) {
-      const alternatives = archive.filter(
-        (candidate) => !sameDelta(initial.delta, candidate.delta),
-      );
-      const smallestShift = alternatives.reduce((best, item) =>
-        item.parts.sumAbsShift < best.parts.sumAbsShift ? item : best,
-      );
-      for (let v = 0; v < smallestShift.delta.length; v++) {
-        if (evaluator.delta[v] !== smallestShift.delta[v]) {
-          score = evaluator.setVariable(v, smallestShift.delta[v]);
-          conflictIndex.updateVariable(v);
-        }
-      }
-
-      let improved = true;
-      while (improved && performance.now() < deadline) {
-        improved = false;
-        for (const v of freeVars) {
-          if (performance.now() >= deadline) {
-            break;
-          }
-          const current = evaluator.delta[v];
-          if (current === 0) {
-            continue;
-          }
-          const before = traceEnabled ? captureTraceSnapshot(problem, evaluator, [v]) : undefined;
-          const candidateScore = evaluator.setVariable(v, current - Math.sign(current));
-          if (evaluator.parts().hard === 0) {
-            score = candidateScore;
-            conflictIndex.updateVariable(v);
-            archiveCurrent();
-            if (before !== undefined) {
-              const after = captureTraceSnapshot(problem, evaluator, [v]);
-              recordTrace({
-                iteration,
-                phase: "Feasibility-Politur",
-                conflict: "Richtung Baseline",
-                candidate: `${describeVariable(problem, v)} Δ ${current} -> ${evaluator.delta[v]}`,
-                tested: "±1 Minute",
-                hard: `${before.parts.hard} -> ${after.parts.hard}`,
-                severity: "gültig",
-                nextPriority: conflictIndex.getHighestPriority()
-                  ? describeConflict(problem, conflictIndex.getHighestPriority())
-                  : "kein aktiver Konflikt",
-                effects: describeEffects(before, after),
-              });
-            }
-            improved = true;
-          } else {
-            evaluator.setVariable(v, current);
-          }
-          const browserYield = yieldToBrowser();
-          if (browserYield !== undefined) {
-            await browserYield;
-          }
-        }
-      }
-      score = evaluator.score();
-      archiveCurrent();
-    }
-
-    // Restoring the best assignment and polishing can invalidate the conflict heap.
+    // Restoring the best assignment can invalidate the conflict heap.
     conflictIndex.refreshAll();
     activeProgress?.({
       fraction: 1,
@@ -1249,7 +1145,6 @@ export async function runSearch(
       deadline = segmentStartedAt + additionalBudgetMs;
       totalBudgetMs += additionalBudgetMs;
       segmentBudgetMs = additionalBudgetMs;
-      polishReserveMs = Math.min(40, totalBudgetMs * 0.2);
       nextProgressAt = segmentStartedAt + 250;
       nextYieldAt = segmentStartedAt + 16;
       activeProgress = nextProgress;

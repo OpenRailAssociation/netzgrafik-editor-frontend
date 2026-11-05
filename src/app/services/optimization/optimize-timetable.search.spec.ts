@@ -246,6 +246,28 @@ describe("runSearch coordinated shifts", () => {
 });
 
 describe("runSearch continuation", () => {
+  it("reports feasibility immediately but keeps improving for the full configured budget", async () => {
+    const problem = createSearchProblem();
+    const budget = 60;
+    const startedAt = performance.now();
+    const updates: {fraction: number; elapsedMs: number}[] = [];
+    const result = await runSearch(
+      problem,
+      new TimetableEvaluator(problem),
+      undefined,
+      budget,
+      1,
+      false,
+      [],
+      (progress) => updates.push(progress),
+    );
+    expect(performance.now() - startedAt).toBeGreaterThanOrEqual(budget);
+    expect(updates[0].fraction).toBeLessThan(1);
+    expect(updates[updates.length - 1].fraction).toBe(1);
+    expect(result.evaluatedCandidates).toBeGreaterThan(0);
+    expect(result.archive.length).toBe(2);
+  });
+
   it("adds time to the same search state and keeps its archive", async () => {
     const refreshConflicts = spyOn(ConflictIndex.prototype, "refreshAll").and.callThrough();
     const problem = createSearchProblem();

@@ -89,6 +89,61 @@ describe("OptimizationDirectorComponent", () => {
     ).toEqual(jasmine.objectContaining({enabled: true, value: 5}));
   });
 
+  it("keeps Director and User-defined settings independent when switching modes", () => {
+    const component = new OptimizationDirectorComponent();
+    component.policy = createDefaultOptimizationPolicy();
+    const policyChange = spyOn(component.policyChange, "emit");
+
+    component.selectProfile("flexibilityFrequencyFirst");
+    component.policy = policyChange.calls.mostRecent().args[0];
+    component.setMode(true);
+    let userDefinedPolicy = policyChange.calls.mostRecent().args[0];
+    expect(
+      userDefinedPolicy.hardConstraints.find((constraint) => constraint.id === "timeLocks")
+        ?.enabled,
+    ).toBeTrue();
+    expect(
+      userDefinedPolicy.hardConstraints.find(
+        (constraint) => constraint.id === "maxTravelTimeExtension",
+      )?.enabled,
+    ).toBeFalse();
+
+    component.policy = userDefinedPolicy;
+    component.setConstraintEnabled("timeLocks", false);
+    component.policy = policyChange.calls.mostRecent().args[0];
+    const trackLimit = component.policy.hardConstraints.find(
+      (constraint) => constraint.id === "trackLimit",
+    );
+    component.setConstraintValue(trackLimit, 4);
+    component.policy = policyChange.calls.mostRecent().args[0];
+    component.setMode(false);
+
+    const directorPolicy = policyChange.calls.mostRecent().args[0];
+    expect(directorPolicy.directorProfile).toBe("flexibilityFrequencyFirst");
+    expect(
+      directorPolicy.hardConstraints.find((constraint) => constraint.id === "timeLocks")?.enabled,
+    ).toBeFalse();
+    expect(
+      directorPolicy.hardConstraints.find(
+        (constraint) => constraint.id === "maxTravelTimeExtension",
+      ),
+    ).toEqual(jasmine.objectContaining({enabled: true, value: 5}));
+    expect(
+      directorPolicy.hardConstraints.find((constraint) => constraint.id === "trackLimit")?.value,
+    ).toBe(2);
+
+    component.policy = directorPolicy;
+    component.setMode(true);
+    userDefinedPolicy = policyChange.calls.mostRecent().args[0];
+    expect(
+      userDefinedPolicy.hardConstraints.find((constraint) => constraint.id === "timeLocks")
+        ?.enabled,
+    ).toBeFalse();
+    expect(
+      userDefinedPolicy.hardConstraints.find((constraint) => constraint.id === "trackLimit")?.value,
+    ).toBe(4);
+  });
+
   it("selects category-order priority with the same flexibility rules", () => {
     const component = new OptimizationDirectorComponent();
     component.policy = createDefaultOptimizationPolicy();

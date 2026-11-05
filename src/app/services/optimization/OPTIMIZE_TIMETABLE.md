@@ -16,7 +16,7 @@ finden, sodass auf **keiner Kante** (Abschnitt Knoten–Knoten) die vom User vor
 **maximale Anzahl Gleise** überschritten wird.
 
 Es handelt sich um eine **Multi-Objective-Optimierung unter harten Nebenbedingungen**:
-harte Regeln dürfen nie verletzt werden; innerhalb der gültigen Lösungen werden mehrere
+übernehmbare Vorschläge müssen alle harten Regeln erfüllen; innerhalb der gültigen Lösungen werden mehrere
 weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 
 ## 2. Bedienung
@@ -27,7 +27,10 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 - Öffnet einen Dialog mit:
   - **Maximale Gleise pro Kante** (globaler Wert, Eingabe durch User).
   - **Optimization Director** mit drei Fokusprofilen sowie einer optionalen benutzerdefinierten Steuerung für harte Regeln und weiche Ziele.
-  - Button **Optimieren**. Die Fahrzeit eines Abschnitts kann mit der optionalen harten Regel
+  - Buttons **Optimieren** und **Mit CP-SAT optimieren (TypeScript)**. Beide verwenden dieselben
+    Fahrplandaten, Bereiche, Regeln, Ziele und Ergebnis-KPIs. Die zweite Suche ist ein
+    eigener SAT-basierter Constraint-Solver, keine Google-OR-Tools-CP-SAT-Portierung.
+    Die Fahrzeit eines Abschnitts kann mit der optionalen harten Regel
     jeweils um höchstens `n` Minuten verlängert werden (siehe §4).
 
 ### 2.2 Optimierungsbereich (Multi-Selektion)
@@ -146,9 +149,12 @@ Haltezeiten. Ist sie deaktiviert, bleiben Abschnittsfahrzeiten unverändert.
 
 ## 5. Zeitbudget
 
-- Die Suchstufen verwenden pro Versuch **0.5, 1, 2, 4 oder 8 s**. Damit dauert jede Stufe
-  doppelt so lange wie zuvor; der Standard liegt bei **2 s pro Versuch**.
-- Bis zu drei automatische Versuche können mit je einem neuen Seed und Warmstart laufen.
+- Die Suchstufen verwenden pro Lauf **0.5, 1, 2, 4 oder 8 s**, standardmässig **2 s**.
+- Beide Verfahren suchen bis zur Deadline weiter, auch nach erster Machbarkeit oder bei
+  bereits gültiger Baseline. Nur ohne freie Variablen oder bei vollständig enumeriertem
+  endlichem Modell endet die Suche früher; es gibt keine künstliche Wartezeit.
+- Eine erste exakt geprüfte gültige Zuweisung und ihre Änderungs-KPIs werden sofort im
+  Fortschritt gemeldet. Vorbereitungszeit und exakte Endbewertung kommen zum Suchbudget hinzu.
 - Mit **Weiterrechnen** kann der User der bestehenden Suchsession erneut bis zu **8 s**
   Suchzeit hinzufügen.
 
@@ -232,10 +238,9 @@ kommen zuerst, gleiche Werte gemeinsam. Die Metadaten bestimmen die Reihenfolge,
 keine fest codierte Zugkategorienliste. Alle Zugläufe und Konflikte bleiben von
 Anfang an in der Bewertung; spätere Gruppen werden nicht aus dem Fahrplan
 entfernt. Innerhalb eines Suchversuchs sind alle Gruppen spätestens nach der
-ersten Hälfte des Budgets freigeschaltet. Wenn bis zu drei automatische Versuche
-keinen gültigen Vorschlag finden, startet jeder Folgeversuch mit dem besten
-internen Suchzustand des vorherigen Versuchs und einem neuen Seed statt erneut
-mit dem Ausgangsfahrplan. Dieser Warmstart kann weiterhin ungültig sein.
+ersten Hälfte des Budgets freigeschaltet. Ein Dialoglauf nutzt genau das gewählte
+Budget. Weiterrechnen bewahrt den bisherigen Suchzustand und das Kandidatenarchiv;
+ein optionaler Warmstart darf weiterhin ungültig sein.
 
 Im Profil **Wichtige zuerst** bleibt die erste Gruppe bei höchstens fünf Minuten
 Abstand pro Konfliktschritt. Für spätere Gruppen prüft der Solver Kandidaten über
@@ -277,12 +282,55 @@ Suchzustand und das Kandidatenarchiv bleiben dabei erhalten.
   Suchsession für **Weiterrechnen**.
   (`src/app/services/optimization/optimize-timetable.service.ts`).
 - **Reines TypeScript** im Service: keine externen Solver, keine neuen Abhängigkeiten, kein Backend.
+  Neben der konfliktpriorisierten Heuristik gibt es einen eigenen nativen CP-SAT-Solver im
+  Unterordner [cp-sat](./cp-sat/). Er ersetzt die frühere Einzelvariablensuche und benötigt
+  weder WASM noch ein Backend.
   Das Zielbild, die aktuelle Heuristik und die geprüften Alternativen sind in
   [OPTIMIERER_ZIELBILD.md](./OPTIMIERER_ZIELBILD.md) dokumentiert.
 - Arbeitet auf den **nativen Modellobjekten** (H14). Zur Bewertung werden Zeiten temporär gesetzt
   und vor der Rückgabe garantiert zurückgesetzt (`try/finally`); nach aussen ist der Service
   stateless. Resultat ist ein **Zeit-Patch** pro Lösung, der erst bei **Übernehmen** angewendet
   wird (Details: [UMSETZUNGSVORSCHLAG.md](./UMSETZUNGSVORSCHLAG.md)).
+
+### 7.2 Nativer CP-SAT-Solver
+
+- [SatSolver](./cp-sat/sat-solver.ts) implementiert CDCL mit zwei beobachteten Literalen,
+  Unit-Propagation, First-UIP-Konfliktlernen und nichtchronologischem Backtracking.
+- [CpSatSolver](./cp-sat/cp-sat-solver.ts) kodiert endliche ganzzahlige Domänen mit genau
+  einem Wert pro Variable und linear grosser At-most-one-Kodierung. Vollständig bestimmte
+  Constraint-Scopes werden auch vor einer vollständigen Fahrplanzuweisung geprüft.
+  Verletzte Relationen erzeugen lokale Nogood-Klauseln, die anschliessend durch SAT
+  propagiert und beim Konfliktlernen berücksichtigt werden.
+- [Die Fahrplananbindung](./cp-sat/optimize-timetable.cp-sat.ts) verwendet dieselben
+  Ketten, Symmetriebindungen, Locks, Auswahlgrenzen und aktivierten harten Regeln wie die
+  Heuristik. Verschiebungen bleiben in `[-domain, +domain]`, Fahrzeitverlängerungen in
+  `[0, domain]`. Gleis-, Halte- und Anschlusskonflikte werden anhand ihrer Variablen-
+  Abhängigkeiten geprüft. Ziele und endgültige Vorschläge verwenden die vorhandene
+  Bewertung, exakte Gleisprüfung und das gemeinsame Zeit-Patch-Format.
+- Wenn das harte Gleislimit aktiv ist, nutzt CP-SAT bis zu 90 % je Suchbudget und insgesamt
+  höchstens neun Sekunden für einen heuristischen Feasibility-Warmstart, sofern kein
+  unveränderbarer Gleiskonflikt vorliegt. Der Warmstart wird bei „Weiterrechnen“ fortgesetzt.
+  Ein gefundener gültiger Vorschlag dient als SAT-Hinweis und bleibt im gemeinsamen
+  Kandidatenarchiv; das verbleibende Budget sucht mit CP-SAT weiter.
+- Die Optimierung enumeriert SAT-zulässige Alternativen innerhalb des Zeitbudgets und
+  behält die besten Kandidaten. Jede vollständige Zuweisung wird danach blockiert; es
+  werden keine unbewiesenen Schranken für die nichtlinearen KPI-Funktionen benutzt.
+  Es gibt keine LP-Relaxation, kein OR-Tools-Presolve und keine parallele Portfolio-Suche.
+  Insbesondere ist keine OR-Tools-ähnliche Skalierbarkeit oder bessere Qualität belegt.
+- Nach Erschöpfung des harten Suchmodells verwendet ein zweites SAT-Modell die verbleibende
+  Zeit für Soft-Alternativen ohne evaluative harte Regeln. Variablendomänen, Locks, Scope
+  und Symmetriebindungen bleiben unverändert. Auch vollständige Zuweisungen, die beim
+  Prüfen eines Constraint-Scopes entstehen, werden bewertet und archiviert.
+- Nur nach vollständiger Erschöpfung beweist der generische Solver ein Optimum bzw.
+  Unerfüllbarkeit **seines endlichen Modells**. Der Fahrplandialog gibt daraus keinen
+  globalen Optimalitätsbeweis für den exakten Infrastruktur-Schätzer ab: die Suchprüfung
+  verwendet weiterhin den gemeinsamen Gleis-Surrogaten, Endkandidaten die exakte Prüfung.
+  Bei Zeitablauf bleibt der Status offen; ein leerer Vorschlagssatz beweist nichts.
+- **Weiterrechnen** setzt beide SAT-Zustände, gelernte Klauseln und das Archiv fort.
+  Erst wenn auch das alternative Modell ausgeschöpft ist, wird Weiterrechnen deaktiviert.
+  Die native Suche ist deterministisch; der Heuristik-Parameter `seed` hat hier keinen Effekt.
+  Etwa alle 16 ms wird an den Browser abgegeben; einzelne Modellprüfungen können länger dauern.
+
 - Signatur (Entwurf):
 
 ```ts
@@ -302,7 +350,7 @@ interface OptimizeTimetableOptions {
 
 interface OptimizeTimetableResult {
   baseline: {kpis: OptimizeTimetableKpis};
-  solutions: OptimizeTimetableSolution[]; // nur gültige Lösungen
+  solutions: OptimizeTimetableSolution[]; // bis zu fünf Varianten, gültige zuerst; valid prüfen
   feasibleFound: boolean;
   elapsedMs: number;
 }
@@ -448,18 +496,19 @@ Zeitbedingungen, ist aber weder ein reines PESP-Benchmarkproblem noch MAPF auf e
 
 ### 8.2 Verfahrensstatus
 
-| Verfahren                        | Status im Repository                      | Einordnung                                                                                                                                                                              |
-| -------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Min-Conflicts + Tabu             | Implementiert                             | Konfliktorientierte Kandidatenwahl; normalerweise höchstens fünf Minuten Abstand, im Kategorieprofil für spätere Gruppen bis zur erlaubten Δ-Domäne.                                    |
-| Simulated Annealing              | Implementiert                             | Zufällige variable/Schritt-Auswahl und temperaturabhängige Annahme schlechterer Zwischenstände.                                                                                         |
-| LNS-inspirierte Perturbation     | Implementiert                             | Nach Stagnation kleine Variablengruppe konfliktbezogen verändern; kein adaptives ALNS und kein separater Repair-Lauf.                                                                   |
-| Mehr Spielraum – Häufige zuerst  | Implementiert als Director-Profil         | Deaktiviert Zeit-Locks, erlaubt +5 Minuten Fahrzeit und schaltet Variablen nach aufsteigendem Taktabstand frei.                                                                         |
-| Mehr Spielraum – Wichtige zuerst | Implementiert als Director-Profil         | Gleiche Flexibilitätsregeln; schaltet Kategorien nach aufsteigendem `TrainrunCategory.order` frei und erweitert für spätere Gruppen die getestete Suchweite bis zur erlaubten Δ-Domäne. |
-| Begrenztes Pareto-Archiv         | Implementiert                             | Nur Kandidaten ohne Evaluator-Hartverletzungen; Service validiert Endvorschläge erneut.                                                                                                 |
-| VNS                              | Nicht implementiert                       | Kandidat für einen isolierten Benchmark gegen die bestehende Suche.                                                                                                                     |
-| ALNS                             | Nicht implementiert                       | Erst nach Einzelbewertung einfacher Destroy-/Repair-Operatoren untersuchen.                                                                                                             |
-| CBS                              | Nicht implementiert                       | Nicht mit dem vorhandenen ConflictIndex verwechseln; allenfalls begrenzte lokale CBS-ähnliche Reparatur benchmarken.                                                                    |
-| CP-SAT / MILP / PESP-SAT         | Nicht als Browser-Produktivsolver geplant | Offline-Referenz für kleine Testfälle wäre getrennt zu prüfen; keine Laufzeit- oder Qualitätsannahme ohne Messung.                                                                      |
+| Verfahren                        | Status im Repository                | Einordnung                                                                                                                                                                              |
+| -------------------------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Min-Conflicts + Tabu             | Implementiert                       | Konfliktorientierte Kandidatenwahl; normalerweise höchstens fünf Minuten Abstand, im Kategorieprofil für spätere Gruppen bis zur erlaubten Δ-Domäne.                                    |
+| Simulated Annealing              | Implementiert                       | Zufällige variable/Schritt-Auswahl und temperaturabhängige Annahme schlechterer Zwischenstände.                                                                                         |
+| LNS-inspirierte Perturbation     | Implementiert                       | Nach Stagnation kleine Variablengruppe konfliktbezogen verändern; kein adaptives ALNS und kein separater Repair-Lauf.                                                                   |
+| Mehr Spielraum – Häufige zuerst  | Implementiert als Director-Profil   | Deaktiviert Zeit-Locks, erlaubt +5 Minuten Fahrzeit und schaltet Variablen nach aufsteigendem Taktabstand frei.                                                                         |
+| Mehr Spielraum – Wichtige zuerst | Implementiert als Director-Profil   | Gleiche Flexibilitätsregeln; schaltet Kategorien nach aufsteigendem `TrainrunCategory.order` frei und erweitert für spätere Gruppen die getestete Suchweite bis zur erlaubten Δ-Domäne. |
+| Begrenztes Kandidatenarchiv      | Implementiert                       | Bis zu 20 gültige und 20 ungültige Suchkandidaten; exakte Endbewertung und bis zu fünf gewichtete Varianten.                                                                            |
+| VNS                              | Nicht implementiert                 | Kandidat für einen isolierten Benchmark gegen die bestehende Suche.                                                                                                                     |
+| ALNS                             | Nicht implementiert                 | Erst nach Einzelbewertung einfacher Destroy-/Repair-Operatoren untersuchen.                                                                                                             |
+| CBS                              | Nicht implementiert                 | Nicht mit dem vorhandenen ConflictIndex verwechseln; allenfalls begrenzte lokale CBS-ähnliche Reparatur benchmarken.                                                                    |
+| Nativer TypeScript-CP-SAT        | Alternativer Browser-Solver         | Eigener CDCL-Kern mit endlichen Domänen und Constraint-Klauseln; keine OR-Tools-Portierung. Gleiche Ergebnisvalidierung, kein belegter Qualitätsvorteil.                                |
+| OR-Tools / MILP / PESP-SAT       | Nicht als Browser-Solver integriert | Eine externe Solver-Integration wäre separat zu prüfen; keine Laufzeit- oder Qualitätsannahme ohne Messung.                                                                             |
 
 ### 8.3 Gewählter Ansatz (Netzgrafik Conflict Repair + LNS)
 
@@ -476,10 +525,20 @@ Zeitbedingungen, ist aber weder ein reines PESP-Benchmarkproblem noch MAPF auf e
    Perturbation bei der besten Lösung an und verändert zufällig drei bis sieben Variablen ohne
    Wiederholung aus einer begrenzten, konfliktbezogenen Gruppe. Neustarts liegen mindestens
    50 Iterationen auseinander. Sie ist kein ALNS und führt keinen eigenen Repair-Lauf aus.
-5. **Archiv und Anzeige**: nur nach den aktiven harten Regeln gültige, nicht dominierte Lösungen
-   kommen ins Archiv. Weiche Ziele beeinflussen die gewichtete Kandidatenbewertung und die
-   Pareto-Dominanz; eine streng lexikografische Optimierung ist das nicht. Die Endvorschläge
-   werden erneut validiert.
+5. **Archiv und Anzeige**: beide Machbarkeitsklassen behalten je bis zu 20 verschiedene
+   Zuweisungen, auch verworfene Suchschritte. Exakte Bewertung, Gültigkeitskennzeichnung und
+   gemeinsame gewichtete Soft-Kosten bestimmen bis zu fünf Endvarianten. Sobald gültige
+   Alternativen vorliegen, werden diese automatisch angezeigt. Bis zu fünf beste ungültige
+   Alternativen bleiben separat über einen Einblendbutton verfügbar, auch ohne gültige Lösung.
+   Sie sind standardmässig zugeklappt und werden niemals automatisch als Vorschau angewendet.
+   Fünf Archivplätze der ungültigen Klasse erhalten Reparaturfortschritte unabhängig vom
+   Soft-Score. Exakt geprüfte Fortschrittskandidaten bleiben ebenfalls erhalten.
+   Die Baseline bleibt separat sichtbar; ungültige Varianten sind nicht übernehmbar.
+   Beim Weiterrechnen aktualisiert sich die Liste bereits während der Suche; der Hinweis
+   auf fehlende Machbarkeit verschwindet mit der ersten gültigen Alternative; dabei werden
+   ungültige Alternativen zugeklappt. Der User kann sie anschliessend erneut einblenden.
+   Exakt überlastete Strecken ohne freie abhängige Variable werden als unveränderbare
+   Konflikte erklärt. Strg+A erweitert nur die Auswahl, nicht die erlaubten Zeitänderungen.
 6. **Zeitbudget**: deterministischer Seed und Deadline via `performance.now()`. Konflikt- und
    Nachbarschaftsindizes werden wiederverwendet; der exakte Infrastruktur-Schätzer bestätigt die
    Baseline einmal pro Lauf und geänderte Strecken bei Kandidaten.

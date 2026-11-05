@@ -277,9 +277,11 @@ export class TimetableEvaluator {
   }
 
   score(): number {
+    return WEIGHT_HARD * this.hard + WEIGHT_TRACK * this.trackConflictCost + this.softScore();
+  }
+
+  softScore(): number {
     return (
-      WEIGHT_HARD * this.hard +
-      WEIGHT_TRACK * this.trackConflictCost +
       WEIGHT_TRACK * (this.objectiveWeights.get("lowerEdgeTrackUsage") ?? 0) * this.edgeTrackCost +
       WEIGHT_TRACK * (this.objectiveWeights.get("lowerTrackUsage") ?? 0) * this.nodeTrackCost +
       WEIGHT_TRAVEL_TIME *

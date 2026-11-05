@@ -29,11 +29,22 @@ Mit **Benutzerdefiniert** schaltest du auf die direkte Steuerung um. Hier sind d
 
 In der Standard-Policy ist das Streckengleislimit mit **2 Gleisen** aktiv. Ebenfalls aktiv sind unter anderem User-Anschlüsse, Mindesthaltezeiten, Zeit- und Fahrzeit-Locks sowie Symmetrie. Die maximale Fahrzeitverlängerung ist standardmässig ausgeschaltet und auf 5 Minuten voreingestellt. Welche Regel tatsächlich gilt, hängt immer von der aktuellen Policy und ihrem Aktivschalter ab.
 
+Die Symmetrieprüfung gilt für Hin- und Rückfahrten, nicht für Einwegzüge. Deren ungenutzte Gegenrichtungszeiten dürfen eine sonst gültige Verschiebung nicht ungültig machen, auch wenn am Abschnitt Symmetrieflags gesetzt sind.
+
 Die Ziele decken minimale Zeitänderungen, mehr optionale Anschlüsse, kürzere Reisezeit sowie geringere Knoten- und Streckengleisnutzung ab. Im Director-Modus wird nach Ratings absteigend sortiert. Das Gewicht einer Rangposition ist `1 / 2^Rangposition`, beginnend bei 0. Gleiche Ratings teilen sich das Gewicht; danach wird die Rangposition um die Anzahl der gleich bewerteten Ziele übersprungen. Beispielsweise ergeben `5/10, 5/10, 3/10` die Gewichte `1, 1, 1/4`. Bei `10/10, 5/10, 3/10` sind es `1, 1/2, 1/4`. Diese Gewichte werden für die Suche und die Rangfolge der Vorschläge verwendet. In der benutzerdefinierten Steuerung sind die Prioritäten eindeutig; die Gewichte folgen der manuellen Reihenfolge mit `1, 1/2, 1/4` usw.
 
-**Policy speichern** erscheint, wenn die Einstellungen vom gespeicherten Stand abweichen. Erst dieser Knopf schreibt die Policy in den lokalen Browser-Speicher. **Ranking zurücksetzen** stellt die Standardreihenfolge und Aktivierung der weichen Ziele wieder her; es setzt nicht die harten Regeln zurück.
+Director-Voreinstellung und benutzerdefinierte Steuerung haben getrennte Einstellungen für Leitplanken und Ziele. Ein Wechsel zwischen den Modi übernimmt keine Änderungen in den jeweils anderen Modus. Die ausgewählte Director-Voreinstellung, ihre angepassten Leitplanken und Ziele bleiben erhalten, wenn du zu **Benutzerdefiniert** wechselst und zurückkehrst.
+
+**Auf Standard zurücksetzen** setzt beide Modi einschliesslich aller Profile, Leitplanken und Ziele zurück. **Einstellungen für die nächste Optimierung übernehmen** speichert anschliessend beide Konfigurationen gemeinsam im lokalen Browser-Speicher. Nach erneutem Öffnen oder Neuladen bleiben beide Stände erhalten.
 
 Eine Änderung an Ratings, Profil oder Regeln startet keine neue Suche. Vorhandene Ergebnisse werden als veraltet markiert; Regeländerungen prüfen zusätzlich ihre Gültigkeit erneut. Für neue Vorschläge muss **Optimieren** gestartet werden.
+
+Neben **Optimieren** startet **Mit CP-SAT optimieren (TypeScript)** den alternativen
+SAT-basierten Constraint-Solver. Beide verwenden dieselben Eingaben, Regeln und
+Ergebnis-KPIs; das Result-Panel nennt das verwendete Verfahren. Die native Alternative
+braucht weder WASM noch einen Server. Sie ist keine Google-OR-Tools-Portierung.
+**Weiterrechnen** setzt die jeweilige Suchsession fort und ist nach vollständiger
+Erschöpfung des endlichen CP-SAT-Modells deaktiviert.
 
 ### Rechts oben: Streckengleis-Übersicht (IST)
 
@@ -47,9 +58,13 @@ Eine Zahl oder Linie wird rot markiert, wenn das Streckengleislimit aktiv ist un
 
 Das Result-Panel zeigt zuerst Informationen zum Lauf, zum Beispiel Iterationen, Laufzeit, Anzahl der Variablen und gegebenenfalls Gründe, warum Variablen fixiert sind. Wenn keine Lösung gefunden wurde, erscheint dort eine Meldung.
 
-Die Vorschlagstabelle enthält eine eigene Baseline-Zeile und bis zu vier erzeugte Vorschläge. Die Baseline ist nur der Vergleich mit dem ursprünglichen Fahrplan, kein Optimierungsvorschlag. Die erzeugten Vorschläge werden unter anderem als ausgewogen, mit minimaler Änderung, mit mehr Anschlüssen oder mit kürzerer Reisezeit ausgewählt. Es können weniger als vier erscheinen, wenn nicht genügend verschiedene passende Vorschläge gefunden wurden.
+Wenn keine gültige Lösung vorliegt, fasst der standardmässig zugeklappte Analysebereich die Gründe zusammen. Überlastete Strecken zeigen das verletzte Streckengleislimit und eine Tabelle mit Zugkategorie/-nummer, Abschnitt von–nach, Hin- und Rückfahrzeiten sowie Markierungen für Zeit-Locks und Fahrzeit-Locks. Auswahlgrenzen und fehlender Verschiebungsspielraum werden als weitere Blockierungsursachen pro Abschnitt aufgeführt. Locks und Auswahlgrenzen sind Blockierungsursachen, keine Regelverletzungen. Strg+A wählt alle vom Filter erfassten Knoten, nicht nur den sichtbaren Bildschirmausschnitt.
 
-Der erste gültige Vorschlag wird nach dem Lauf automatisch ausgewählt. Ein Klick auf eine andere gültige Zeile wählt sie ebenfalls aus. Die ausgewählte Zeile ist mit `COLOR_Edit` umrandet. Sie wird als Vorschau in der Netzgrafik angezeigt; die Vorschau ist noch keine endgültige Übernahme.
+Wenn solche unveränderbaren Konflikte keine gültige Lösung zulassen, startet zusätzlich eine zeitlich begrenzte Diagnosesuche über das gesamte sichtbare Netz. Sie lockert Zeit-Locks, Fahrzeit-Locks und Auswahlgrenzen, lässt die übrigen Regeln aber aktiv. Gefundene Vorschläge sind in der Tabelle als Diagnose gekennzeichnet und bleiben gegenüber dem ursprünglichen Suchmodell ungültig.
+
+Die Vorschlagstabelle zeigt immer die Baseline (`arrow-right-medium`) und bis zu fünf gültige Varianten (`tick-medium`). Gültige und ungültige Varianten werden nicht durch Hintergrundfarben unterschieden. Bis zu fünf ungültige Alternativen bleiben standardmässig zugeklappt und lassen sich über „Ungültige Alternativen anzeigen“ zusätzlich anzeigen (`cross-tiny-small`); Diagnosevorschläge werden dabei priorisiert. Ohne gültige Lösung bleibt zunächst nur die Baseline sichtbar. Es entscheidet die gewichtete Soft-Zielfunktion; kleinere angezeigte Soft-Kosten sind besser. Die Baseline dient nur als Vergleich, nicht als zusätzlicher Vorschlag.
+
+Der erste gültige Vorschlag wird nach dem Lauf automatisch ausgewählt. Ungültige Varianten werden niemals automatisch als Vorschau angewendet. Nach dem Einblenden und expliziten Auswählen können sie zum Vergleich angesehen werden. Das Übernehmen einer ungültigen Variante erfordert eine zusätzliche Bestätigung; die Verantwortung für die Abweichung vom Suchmodell liegt beim Anwender. Zuklappen einer ungültigen Vorschau stellt die Baseline wieder her. Die Auswahl ist mit `COLOR_Edit` umrandet, ohne die Statusfarbe zu überschreiben; Abbrechen stellt die Ausgangslage wieder her.
 
 ### Details: fünf Spalten pro Abschnitt
 
@@ -85,6 +100,10 @@ Das ist die Steuerzentrale des Dialogs. Sie lädt den Bereich, verbindet den Dir
 
 - `openDialog()` setzt Auswahl, Filterbereich und Panel-Zustand für eine neue Dialogöffnung zurück.
 - `optimize()` startet die Suche und versucht bei ausbleibenden Vorschlägen weitere Seeds.
+- `optimizeCpSat()` startet den alternativen nativen TypeScript-CP-SAT-Solver im
+  Unterordner [cp-sat](./cp-sat/). Er nutzt einen eigenen CDCL-Kern mit Constraint-Klauseln,
+  keine OR-Tools-Portierung. Weitere Budgets und **Weiterrechnen** behalten die SAT-Session
+  samt gelernten Klauseln. Eingaben, Policy, Endvalidierung und Ausgabe bleiben gemeinsam.
 - `continueOptimization()` verlängert die laufende Suchsession um das gewählte Zeitbudget.
 - `runSearch()` prüft in langen Kandidatenschleifen etwa alle 16 ms, ob es dem Browser die Kontrolle zurückgeben muss. Fortschritt und Iterationen werden weiterhin höchstens alle 250 ms gemeldet; ein einzelner langsamer Evaluator-Aufruf kann die Pause überschreiten.
 - `selectSolution()` wählt einen gültigen Vorschlag, startet die Vorschau und bereitet die Detailanalyse vor.
@@ -127,13 +146,17 @@ Während der Suche bewertet ein inkrementeller Evaluator Kandidaten, ohne jedes 
 2. **Simulated Annealing** probiert gelegentlich auch einen zunächst schlechter bewerteten Schritt. So kann die Suche aus einer lokalen Sackgasse herauskommen.
 3. **Large-Neighborhood Search (LNS)** startet nach längerer Stagnation erneut von einer guten Lösung und verändert dafür mehrere Variablen in einem konfliktbezogenen Teilbereich.
 
-Gültige, unterschiedliche und nicht dominierte Kandidaten landen in einem begrenzten Archiv. Daraus wählt der Service höchstens vier Vorschläge mit verschiedenen Schwerpunkten. Die Dialogsteuerung versucht beim ersten Optimieren bis zu drei Seeds, stoppt aber, sobald ein Vorschlag gefunden wurde oder keine Variablen beweglich sind. Ein einzelner Suchlauf hat standardmässig ein Budget von 1.000 ms. Die gesamte Aufrufzeit kann wegen Vorbereitung und exakter Nachprüfungen länger sein. Weiterrechnen verlängert dieselbe Suchsession um das gewählte Zeitbudget; Zufallszustand, Tabu-Liste, Iterationszähler und Kandidatenarchiv werden weiterverwendet.
+Beide Verfahren sammeln geprüfte vollständige Zuweisungen in einem begrenzten Archiv mit bis zu 20 gültigen und 20 ungültigen Suchkandidaten. Auch verworfene Heuristik-Schritte bleiben für die Auswahl verfügbar. Alle archivierten Varianten werden exakt bewertet und höchstens fünf davon nach den gemeinsamen Soft-Kosten ausgegeben. Ein erster exakt gültiger Fahrplan wird bereits im Fortschritt gemeldet. Auch bei gültiger Baseline wird weiter nach besseren Soft-Zielen gesucht. Der Dialog verwendet genau ein konfiguriertes Budget, standardmässig 2.000 ms; Vorbereitung und Endprüfungen kommen dazu. Nur ohne freie Variablen oder bei vollständiger Enumeration endet die Suche früher. Weiterrechnen setzt Suchzustand und Archiv fort.
+
+Gültige Alternativen stehen automatisch in der Tabelle; ungültige bleiben über den Einblendbutton verfügbar. Reparaturfortschritte erhalten fünf reservierte Plätze innerhalb der ungültigen Archivklasse. Exakt geprüfte Fortschrittskandidaten beider Klassen werden zusätzlich bis zur Endauswahl behalten. Beim Weiterrechnen aktualisiert sich die Liste während der Suche, ohne die Vorschau anzuwenden; mit der ersten gültigen Alternative verschwinden der Hinweis auf fehlende Machbarkeit und die ausgeklappten ungültigen Zeilen. Der User kann sie danach wieder explizit einblenden.
+
+CP-SAT sucht zunächst mit den aktivierten harten Bewertungsregeln. Die harten Gleisrelationen verwenden denselben exakten Infrastruktur-Schätzer wie die Endvalidierung, nicht die näherungsweise Suchbewertung. Kandidaten werden inkrementell ausgewertet. Ist dieses Modell ausgeschöpft, enumeriert ein zweites Modell mit dem verbleibenden Budget auch ungültige Varianten. Locks, Auswahlgrenzen, Symmetriebindungen und Variablendomänen bleiben dabei erhalten. Ein Zeitablauf beweist keine Unlösbarkeit.
 
 Eine aktive Anschlussregel erzwingt die konfigurierte Mindestumsteigezeit als absolute Untergrenze. Die bisherige Wartezeit begrenzt sie nicht nach oben; sie kann stattdessen als weiches Ziel „Bestehende Anschlusszeiten möglichst erhalten“ gewichtet werden.
 
-Vor der Anzeige prüft der Service die Lösungen erneut. Die Mindestumsteigezeit wird dabei unabhängig aus den nativen Anschlussdaten und den vorgeschlagenen Zeiten validiert. Die Streckengleise werden für geänderte Abschnitte mit dem Infrastruktur-Schätzer berechnet; weitere aktive harte Regeln und Symmetrie werden geprüft. Ungültige Vorschläge werden nicht angezeigt. Die Suche ist eine Heuristik und beweist nicht, dass eine Lösung global optimal ist.
+Vor der Anzeige prüft der Service die Varianten erneut. Die Mindestumsteigezeit wird unabhängig aus den nativen Anschlussdaten und den vorgeschlagenen Zeiten validiert. Die Streckengleise werden für geänderte Abschnitte mit dem Infrastruktur-Schätzer berechnet; weitere aktive harte Regeln und Symmetrie werden geprüft. Verletzungen setzen `valid: false`, statt die Variante zu verwerfen. Nur gültige Varianten dürfen übernommen werden. Das Ranking beweist kein globales Optimum.
 
-Das aktuelle Suchbudget reicht je nach Einstellung von 250 ms bis 4.000 ms. Vorbereitungszeit und exakte Nachprüfungen kommen derzeit dazu. Ein End-to-End-Ziel von höchstens wenigen Sekunden für grosse Netze ist erst nach Messung auf einem festgelegten Benchmark-Korpus bestätigt; eine harte Echtzeitgarantie besteht noch nicht.
+Das Suchbudget der fünf Stufen beträgt 4, 8, 16, 32 und 64 Sekunden. Eine automatische Diagnosesuche kann zusätzlich bis zur Hälfte des gewählten Budgets benötigen; Vorbereitungszeit und exakte Nachprüfungen kommen ebenfalls dazu. Ein End-to-End-Ziel ist nicht garantiert.
 
 ## 5. Stärken und Grenzen
 
@@ -148,8 +171,8 @@ Das aktuelle Suchbudget reicht je nach Einstellung von 250 ms bis 4.000 ms. Vorb
 ### Was die Suche nicht verspricht
 
 - Sie ist heuristisch: Sie garantiert weder die beste mögliche Lösung noch, dass in jedem Lauf eine Lösung gefunden wird.
-- Ein Lauf hat standardmässig 1.000 ms Suchbudget. Grössere oder schwierige Netze können mehr Zeit benötigen oder weniger Vorschläge liefern.
-- Es werden höchstens vier Vorschläge angezeigt, auch wenn das Archiv weitere Kandidaten enthält.
+- Ein Dialoglauf hat standardmässig 2.000 ms Suchbudget. Grössere oder schwierige Netze können mehr Zeit benötigen oder weniger Vorschläge liefern.
+- Es werden höchstens fünf gültige Vorschläge automatisch und bis zu fünf ungültige Alternativen auf ausdrücklichen Wunsch angezeigt.
 - Die Abschnittstabelle unter einer Lösung zeigt nur geänderte Abschnitte. Sie ist keine vollständige Liste aller unveränderten Kanten.
 - Ein aktives Gleislimit wird hart geprüft. Wenn es deaktiviert ist, kann eine Lösung weiterhin eine hohe Gleiszahl haben; die Anzeige färbt sie dann nicht als Limitverletzung.
 - „Weiterrechnen“ sucht im bestehenden Suchzustand weiter; ein besserer Vorschlag ist dennoch nicht garantiert.
