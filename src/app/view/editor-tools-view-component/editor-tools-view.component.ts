@@ -558,6 +558,7 @@ export class EditorToolsViewComponent {
       "stroke-dasharray",
       "rx",
       "ry",
+      "r",
       "font-family",
       "font-size",
       "font-weight",

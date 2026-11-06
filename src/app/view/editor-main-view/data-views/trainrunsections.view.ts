@@ -3,8 +3,10 @@ import {
   DEFAULT_STOP_ICON,
   NODE_EDGE_WIDTH,
   NODE_ROUND_EDGE_SIZE,
+  PIN_RADIUS_HOVER,
   RASTERING_BASIC_GRID_SIZE,
   SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS,
+  TRAINRUN_SECTION_STOP_RADIUS,
   TRAINRUN_SECTION_TEXT_AREA_HEIGHT,
   TRAINRUN_SECTION_TEXT_AREA_WIDTH,
 } from "../../rastering/definitions";
@@ -1447,15 +1449,17 @@ export class TrainrunSectionsView {
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
         d.trainrunSection.getTrainrun().selected(),
       )
-      .on("mouseover", (event: MouseEvent, d: TrainrunSectionViewObject) =>
+      .on("mouseover", (event: MouseEvent, d: TrainrunSectionViewObject) => {
+        d3.select(event.currentTarget as SVGCircleElement).attr("r", 11);
         this.onTrainrunSectionMouseoverPin(
           event,
           TrainrunSectionsView.getNode(d.trainrunSection, atSource),
-        ),
-      )
-      .on("mouseout", (event: MouseEvent, d: TrainrunSectionViewObject) =>
-        this.onTrainrunSectionMouseoutPin(event, d.trainrunSection, atSource),
-      )
+        );
+      })
+      .on("mouseout", (event: MouseEvent, d: TrainrunSectionViewObject) => {
+        d3.select(event.currentTarget as SVGCircleElement).attr("r", DEFAULT_PIN_RADIUS);
+        this.onTrainrunSectionMouseoutPin(event, d.trainrunSection, atSource);
+      })
       .on("mousedown", (event: MouseEvent) => event.stopPropagation())
       .on("mousemove", (event: MouseEvent) => event.stopPropagation())
       .on("mouseup", (event: MouseEvent, d: TrainrunSectionViewObject) =>
@@ -2678,7 +2682,7 @@ export class TrainrunSectionsView {
       )
       .attr("cx", position.getX())
       .attr("cy", position.getY())
-      .attr("r", 1.0)
+      .attr("r", TRAINRUN_SECTION_STOP_RADIUS)
       .attr(StaticDomTags.EDGE_LINE_STOPS_INDEX, stopIndex)
       .attr("numberOfStops", numberOfStops)
       .classed(StaticDomTags.TAG_MUTED, (t: TrainrunSectionViewObject) =>
@@ -2688,8 +2692,16 @@ export class TrainrunSectionsView {
         TrainrunSectionsView.isSectionSelected(t.trainrunSection),
       )
       .classed(StaticDomTags.EDGE_LINE_STOPS_FILL, !collapsedStops)
-      .on("mouseover", (event: MouseEvent) => this.onIntermediateStopMouseOver(event))
-      .on("mouseout", (event: MouseEvent) => this.onIntermediateStopMouseOut(event))
+      .on("mouseover", (event: MouseEvent, t: TrainrunSectionViewObject) => {
+        if (TrainrunSectionsView.isSectionSelected(t.trainrunSection)) {
+          d3.select(event.currentTarget as SVGCircleElement).attr("r", PIN_RADIUS_HOVER);
+        }
+        this.onIntermediateStopMouseOver(event);
+      })
+      .on("mouseout", (event: MouseEvent) => {
+        d3.select(event.currentTarget as SVGCircleElement).attr("r", TRAINRUN_SECTION_STOP_RADIUS);
+        this.onIntermediateStopMouseOut(event);
+      })
       .on("mousedown", (event: MouseEvent, t: TrainrunSectionViewObject) =>
         this.onIntermediateStopMouseDown(event, t.trainrunSection, stopIndex),
       )
