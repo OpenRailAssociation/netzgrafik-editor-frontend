@@ -64,13 +64,16 @@ export class TrainrunSectionPreviewLineView {
   static setGroup(nodeGroup: d3.Selection<SVGGElement, undefined, Element, undefined>) {
     nodeGroup
       .append(StaticDomTags.PREVIEW_LINE_ROOT_SVG)
-      .attr("class", StaticDomTags.PREVIEW_LINE_ROOT_CLASS);
+      .attr("class", `${StaticDomTags.PREVIEW_LINE_ROOT_CLASS} ${StaticDomTags.REMOVE_ON_EXPORT}`);
   }
 
   static setConnectionGroup(nodeGroup: d3.Selection<SVGGElement, undefined, Element, undefined>) {
     nodeGroup
       .append(StaticDomTags.PREVIEW_CONNECTION_LINE_ROOT_SVG)
-      .attr("class", StaticDomTags.PREVIEW_CONNECTION_LINE_ROOT_CLASS);
+      .attr(
+        "class",
+        `${StaticDomTags.PREVIEW_CONNECTION_LINE_ROOT_CLASS} ${StaticDomTags.REMOVE_ON_EXPORT}`,
+      );
   }
 
   getVariantIsWritable(): boolean {

@@ -90,9 +90,9 @@ export class TransitionsView {
     editorView: EditorView,
   ) {
     grpEnter
-      .filter((d: TransitionViewObject) => {
-        return !levelFreqFilter.includes(d.transition.getTrainrun().getFrequencyLinePatternRef());
-      })
+      .filter((d: TransitionViewObject) =>
+        levelFreqFilter.includes(d.transition.getTrainrun().getFrequencyLinePatternRef()),
+      )
       .append(StaticDomTags.TRANSITION_LINE_SVG)
       .attr(
         "class",
@@ -134,13 +134,11 @@ export class TransitionsView {
       .attr(
         "class",
         (t: TransitionViewObject) =>
-          StaticDomTags.TRANSITION_BUTTON_CLASS +
-          " " +
-          TransitionsView.createTrainrunClassAttribute(
+          `${StaticDomTags.TRANSITION_BUTTON_CLASS} ${StaticDomTags.REMOVE_ON_EXPORT} ${TransitionsView.createTrainrunClassAttribute(
             t.transition.getTrainrun(),
             selectedTrainrun,
             connectedTrainIds,
-          ),
+          )}`,
       )
       .classed(StaticDomTags.TAG_SELECTED, (t: TransitionViewObject) =>
         t.transition.getTrainrun().selected(),
@@ -240,7 +238,7 @@ export class TransitionsView {
     TransitionsView.createTransitionLineLayer(
       grpEnter,
       StaticDomTags.TRANSITION_LINE_CLASS_0,
-      [LinePatternRefs.Freq30], // LinePatternRefs.Freq60], (background is required to "stretch the lower area"
+      [LinePatternRefs.Freq15],
       selectedTrainrun,
       connectedTrainIds,
       this.editorView,
@@ -248,7 +246,12 @@ export class TransitionsView {
     TransitionsView.createTransitionLineLayer(
       grpEnter,
       StaticDomTags.TRANSITION_LINE_CLASS_1,
-      [LinePatternRefs.Freq30],
+      [
+        LinePatternRefs.Freq120,
+        LinePatternRefs.Freq60,
+        LinePatternRefs.Freq20,
+        LinePatternRefs.Freq15,
+      ],
       selectedTrainrun,
       connectedTrainIds,
       this.editorView,
@@ -256,7 +259,7 @@ export class TransitionsView {
     TransitionsView.createTransitionLineLayer(
       grpEnter,
       StaticDomTags.TRANSITION_LINE_CLASS_2,
-      [LinePatternRefs.Freq60, LinePatternRefs.Freq120],
+      [LinePatternRefs.Freq30, LinePatternRefs.Freq20, LinePatternRefs.Freq15],
       selectedTrainrun,
       connectedTrainIds,
       this.editorView,
@@ -264,7 +267,7 @@ export class TransitionsView {
     TransitionsView.createTransitionLineLayer(
       grpEnter,
       StaticDomTags.TRANSITION_LINE_CLASS_3,
-      [LinePatternRefs.Freq60, LinePatternRefs.Freq120],
+      [LinePatternRefs.Freq30, LinePatternRefs.Freq20, LinePatternRefs.Freq15],
       selectedTrainrun,
       connectedTrainIds,
       this.editorView,

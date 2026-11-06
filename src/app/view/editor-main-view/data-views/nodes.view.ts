@@ -263,7 +263,7 @@ export class NodesView {
   ) {
     groupEnter
       .append(StaticDomTags.NODE_HOVER_ROOT_SVG)
-      .attr("class", StaticDomTags.NODE_HOVER_ROOT_CLASS)
+      .attr("class", `${StaticDomTags.NODE_HOVER_ROOT_CLASS} ${StaticDomTags.REMOVE_ON_EXPORT}`)
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("width", (n: NodeViewObject) => n.node.getNodeWidth() + 24)
       .attr("height", (n: NodeViewObject) => n.node.getNodeHeight() + 24)
@@ -381,7 +381,10 @@ export class NodesView {
   ) {
     const added = groupEnter.append<SVGElement>(StaticDomTags.NODE_HOVER_DRAG_AREA_BACKGROUND_SVG);
     added
-      .attr("class", StaticDomTags.NODE_HOVER_DRAG_AREA_BACKGROUND_CLASS)
+      .attr(
+        "class",
+        `${StaticDomTags.NODE_HOVER_DRAG_AREA_BACKGROUND_CLASS} ${StaticDomTags.REMOVE_ON_EXPORT}`,
+      )
       .classed(StaticDomTags.TAG_SELECTED, (n: NodeViewObject) => n.node.selected())
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("transform", "translate(-32.5,1)")
@@ -417,7 +420,10 @@ export class NodesView {
     }
     groupEnter
       .append<SVGElement>(StaticDomTags.NODE_HOVER_DRAG_AREA_SVG)
-      .attr("class", StaticDomTags.NODE_HOVER_DRAG_AREA_CLASS)
+      .attr(
+        "class",
+        `${StaticDomTags.NODE_HOVER_DRAG_AREA_CLASS} ${StaticDomTags.REMOVE_ON_EXPORT}`,
+      )
       .classed(StaticDomTags.TAG_SELECTED, (n: NodeViewObject) => n.node.selected())
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr(
@@ -450,7 +456,10 @@ export class NodesView {
   ) {
     groupEnter
       .append(StaticDomTags.NODE_EDIT_AREA_BACKGROUND_SVG)
-      .attr("class", StaticDomTags.NODE_EDIT_AREA_BACKGROUND_CLASS)
+      .attr(
+        "class",
+        `${StaticDomTags.NODE_EDIT_AREA_BACKGROUND_CLASS} ${StaticDomTags.REMOVE_ON_EXPORT}`,
+      )
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr("transform", (n: NodeViewObject) => "translate(" + (n.node.getNodeWidth() + 1) + ",1)")
       .attr("width", 28)
@@ -474,7 +483,7 @@ export class NodesView {
   ) {
     groupEnter
       .append(StaticDomTags.NODE_EDIT_AREA_SVG)
-      .attr("class", StaticDomTags.NODE_EDIT_AREA_CLASS)
+      .attr("class", `${StaticDomTags.NODE_EDIT_AREA_CLASS} ${StaticDomTags.REMOVE_ON_EXPORT}`)
       .classed(StaticDomTags.TAG_SELECTED, (n: NodeViewObject) => n.node.selected())
       .attr(StaticDomTags.NODE_ID, (n: NodeViewObject) => n.node.getId())
       .attr(
@@ -549,6 +558,7 @@ export class NodesView {
   private makeAnalyticsArea(
     groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>,
   ) {
+    if (this.editorView.editorMode !== EditorMode.Analytics) return;
     groupEnter
       .append(StaticDomTags.NODE_ANALYTICSAREA_SVG)
       .attr("class", StaticDomTags.NODE_ANALYTICSAREA_CLASS)
@@ -585,6 +595,7 @@ export class NodesView {
   private makeAnalyticsTextLeftArea(
     groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>,
   ) {
+    if (this.editorView.editorMode !== EditorMode.Analytics) return;
     groupEnter
       .append(StaticDomTags.NODE_ANALYTICSAREA_TEXT_LEFT_SVG)
       .attr("class", StaticDomTags.NODE_ANALYTICSAREA_TEXT_LEFT_CLASS)
@@ -603,6 +614,7 @@ export class NodesView {
   private makeAnalyticsTextRightArea(
     groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>,
   ) {
+    if (this.editorView.editorMode !== EditorMode.Analytics) return;
     groupEnter
       .append(StaticDomTags.NODE_ANALYTICSAREA_TEXT_RIGHT_SVG)
       .attr("class", StaticDomTags.NODE_ANALYTICSAREA_TEXT_RIGHT_CLASS)
