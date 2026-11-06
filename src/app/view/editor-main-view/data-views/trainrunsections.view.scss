@@ -71,7 +71,6 @@
 ::ng-deep circle.edge_line_pin {
   stroke: none;
   fill: none;
-  r: $PIN_RADIUS_HIDDEN;
   cursor: pointer;
 }
 
@@ -79,32 +78,27 @@
   cursor: move;
   stroke: $COLOR_Edit;
   fill: white;
-  r: $PIN_RADIUS_SELECTED;
 }
 
 ::ng-deep circle.edge_line_pin.selected.grayedout {
   cursor: move;
   stroke: $COLOR_Default;
   fill: $COLOR_GRAYEDOUT;
-  r: $PIN_RADIUS_SELECTED;
 }
 
 ::ng-deep circle.edge_line_pin.hover {
   cursor: move;
   stroke: $COLOR_Edit;
   fill: white;
-  r: $PIN_RADIUS_HOVER;
 }
 
 ::ng-deep circle.edge_line_pin.connection_pin {
   stroke: $COLOR_Default;
   fill: $COLOR_MUTED_SILVER;
-  r: $PIN_RADIUS_DOCKABLE;
   cursor: move;
 }
 
 ::ng-deep circle.edge_line_pin.connection_pin.hover {
-  r: $PIN_RADIUS_HOVER;
   fill: $COLOR_Edit;
   stroke: $COLOR_Default;
   cursor: pointer;
@@ -295,7 +289,6 @@
 ::ng-deep circle.edge_line_pin.is_not_end_node.ctrlKey {
   stroke: none;
   fill: none;
-  r: $PIN_RADIUS_HIDDEN;
   cursor: pointer;
 }
 

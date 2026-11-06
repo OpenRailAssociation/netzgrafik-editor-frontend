@@ -52,12 +52,10 @@
 ::ng-deep circle.connection_line_pin.connection_pin_dragging {
   stroke: $COLOR_Default;
   fill: $COLOR_Edit;
-  r: $PIN_RADIUS_HOVER;
   pointer-events: none;
 }
 
 ::ng-deep circle.connection_line_pin.hover {
-  r: $PIN_RADIUS_HOVER;
   fill: $COLOR_Edit;
 }
 
@@ -72,6 +70,5 @@
 ::ng-deep circle.connection_line_pin.ctrlKey {
   stroke: none;
   fill: none;
-  r: $PIN_RADIUS_HIDDEN;
   cursor: pointer;
 }
