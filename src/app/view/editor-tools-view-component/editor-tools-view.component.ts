@@ -611,10 +611,8 @@ export class EditorToolsViewComponent {
     // remove unecessary elements from the exported file (drag areas, preview lines, etc.)
     clone.querySelectorAll(StaticDomTags.REMOVE_ON_EXPORT).forEach((el) => el.remove());
 
-    // override cursor state to default, no matter interactivness (hover, drag)
-    const styleEl = clone.ownerDocument.createElementNS("http://www.w3.org/2000/svg", "style");
-    styleEl.textContent = "* { cursor: default !important; }";
-    clone.insertBefore(styleEl, clone.firstChild);
+    // override cursor to default for all exported elements
+    clone.style.cursor = "default";
 
     return clone;
   }
