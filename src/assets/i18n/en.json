@@ -36,6 +36,7 @@
     "netzgrafik-application": {
       "variants": "Variants",
       "filter": "Filter",
+      "search": "Search",
       "analytics": "Analytics",
       "edit": "Edit",
       "more-functions": "More functions",
@@ -425,6 +426,14 @@
           "show": "show",
           "hide": "hide"
         }
+      },
+      "editor-search-view-component": {
+        "search": "Search",
+        "node": "Node",
+        "search-node": "Search for a node",
+        "trainrun": "Trainrun",
+        "search-trainrun": "Search for a trainrun",
+        "more-results": "{$count} more results available"
       },
       "editor-menu": {
         "save-changes": "Save changes",
