@@ -85,6 +85,9 @@ import {FilterableLabelFormComponent} from "./view/dialogs/filterable-labels-dia
 import {FilterableLabelDialogComponent} from "./view/dialogs/filterable-labels-dialog/filterable-label-dialog.component";
 import {EditorToolsViewComponent} from "./view/editor-tools-view-component/editor-tools-view.component";
 import {NoteDialogComponent} from "./view/dialogs/note-dialog/note-dialog.component";
+import {OptimizeTimetableDialogComponent} from "./view/dialogs/optimize-timetable-dialog/optimize-timetable-dialog.component";
+import {OptimizationDirectorComponent} from "./view/dialogs/optimize-timetable-dialog/optimization-director.component";
+import {TrackTopologyComponent} from "./view/dialogs/optimize-timetable-dialog/track-topology/track-topology.component";
 import {NoteFormComponent} from "./view/dialogs/note-dialog/note-form/note-form.component";
 import {HtmlEditorComponent} from "./view/dialogs/note-dialog/htmlEditor/html-editor.component";
 import {DragDropModule} from "@angular/cdk/drag-drop";
@@ -165,6 +168,10 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     FilterableLabelDialogComponent,
     FilterableLabelFormComponent,
     NoteDialogComponent,
+    OptimizeTimetableDialogComponent,
+    OptimizeTimetableDialogComponent,
+    OptimizationDirectorComponent,
+    TrackTopologyComponent,
     NoteEditElementComponent,
     NoteFormComponent,
     EditorToolsViewComponent,
