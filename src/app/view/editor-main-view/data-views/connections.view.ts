@@ -284,22 +284,22 @@ export class ConnectionsView {
     switch (this.editorView.getLevelOfDetail()) {
       case LevelOfDetail.LEVEL3: {
         //statements;
-        this.makeConnectionLOD3(groupEnter);
+        this.makeConnectionLODLevel3(groupEnter);
         break;
       }
       case LevelOfDetail.LEVEL2: {
         //statements;
-        this.makeConnectionLOD2(groupEnter);
+        this.makeConnectionLODLevel2(groupEnter);
         break;
       }
       case LevelOfDetail.LEVEL1: {
         //statements;
-        this.makeConnectionLOD1(groupEnter);
+        this.makeConnectionLODLevel1(groupEnter);
         break;
       }
       case LevelOfDetail.LEVEL0: {
         //statements;
-        this.makeConnectionLOD0();
+        this.makeConnectionLODLevel0();
         break;
       }
       default: {
@@ -316,26 +316,26 @@ export class ConnectionsView {
     this.createConnectionPins(groupEnter);
   }
 
-  makeConnectionLOD3(
+  makeConnectionLODLevel3(
     groupEnter: d3.Selection<SVGGElement, ConnectionsViewObject, Element, undefined>,
   ) {
     this.createConnectionCurve(groupEnter);
     this.createConnectionPins(groupEnter);
   }
 
-  makeConnectionLOD2(
+  makeConnectionLODLevel2(
     groupEnter: d3.Selection<SVGGElement, ConnectionsViewObject, Element, undefined>,
   ) {
     this.createConnectionCurve(groupEnter);
   }
 
-  makeConnectionLOD1(
+  makeConnectionLODLevel1(
     groupEnter: d3.Selection<SVGGElement, ConnectionsViewObject, Element, undefined>,
   ) {
     this.createConnectionCurve(groupEnter);
   }
 
-  makeConnectionLOD0() {}
+  makeConnectionLODLevel0() {}
 
   onConnectionMouseup(event: MouseEvent, node: Node) {
     event.stopPropagation();
