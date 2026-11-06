@@ -118,7 +118,6 @@
   stroke-width: 1px;
   stroke: $COLOR_BACKGROUND;
   fill: $COLOR_BACKGROUND;
-  ry: $NODE_ROUND_EDGE_SIZE;
 }
 
 ::ng-deep rect.edge_text_background.SourceArrival {
@@ -205,7 +204,6 @@
   stroke: $COLOR_BACKGROUND;
   fill: $COLOR_BACKGROUND;
   opacity: 0;
-  ry: $NODE_ROUND_EDGE_SIZE;
 }
 
 ::ng-deep text.edge_text.no_event {

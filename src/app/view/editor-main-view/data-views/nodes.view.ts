@@ -361,6 +361,7 @@ export class NodesView {
       .attr("height", (n: NodeViewObject) => n.node.getNodeTextAreaHeight())
       .attr("x", 0)
       .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - n.node.getNodeTextAreaHeight())
+      .attr("ry", NODE_ROUND_EDGE_SIZE)
       .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,
