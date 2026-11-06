@@ -7,6 +7,7 @@ import {
   NODE_TEXT_AREA_HEIGHT,
   NODE_TEXT_LEFT_SPACING,
   TEXT_SIZE,
+  NODE_ROUND_EDGE_SIZE,
 } from "../../rastering/definitions";
 import {Node} from "../../../models/node.model";
 import {StaticDomTags} from "./static.dom.tags";
@@ -298,6 +299,7 @@ export class NodesView {
       .attr("height", (n: NodeViewObject) => n.node.getNodeHeight())
       .attr("x", 0)
       .attr("y", 0)
+      .attr("rx", NODE_ROUND_EDGE_SIZE)
       .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,
@@ -329,6 +331,7 @@ export class NodesView {
       .attr("height", (n: NodeViewObject) => n.node.getNodeHeight())
       .attr("x", 0)
       .attr("y", 0)
+      .attr("rx", NODE_ROUND_EDGE_SIZE)
       .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,
@@ -358,6 +361,7 @@ export class NodesView {
       .attr("height", (n: NodeViewObject) => n.node.getNodeTextAreaHeight())
       .attr("x", 0)
       .attr("y", (n: NodeViewObject) => n.node.getNodeHeight() - n.node.getNodeTextAreaHeight())
+      .attr("ry", NODE_ROUND_EDGE_SIZE)
       .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,
@@ -521,6 +525,7 @@ export class NodesView {
       )
       .attr("x", 0)
       .attr("y", 0)
+      .attr("rx", NODE_ROUND_EDGE_SIZE)
       .classed(StaticDomTags.NODE_TAG_JUNCTION_ONLY, (n: NodeViewObject) => n.node.isNonStopNode())
       .classed(
         StaticDomTags.NODE_HAS_CONNECTIONS,

@@ -5,7 +5,7 @@ import {StaticDomTags} from "./static.dom.tags";
 import {D3Utils} from "./d3.utils";
 import {Connection} from "../../../models/connection.model";
 import {TrainrunSection} from "../../../models/trainrunsection.model";
-import {DEFAULT_PIN_RADIUS} from "../../rastering/definitions";
+import {DEFAULT_PIN_RADIUS, PIN_RADIUS_HOVER} from "../../rastering/definitions";
 import {Vec2D} from "../../../utils/vec2D";
 import {ConnectionsViewObject} from "./connectionViewObject";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
@@ -177,12 +177,14 @@ export class ConnectionsView {
         ConnectionsView.getSelectedTrainrunId(cv.connection, cv.node),
       )
       .classed(StaticDomTags.TAG_SELECTED, (c: ConnectionsViewObject) => c.connection.selected())
-      .on("mouseover", (event: MouseEvent, cv: ConnectionsViewObject) =>
-        this.onConnectionPinMouseover(event, cv.node),
-      )
-      .on("mouseout", (event: MouseEvent, cv: ConnectionsViewObject) =>
-        this.onConnectionPinMouseout(event, cv.node),
-      )
+      .on("mouseover", (event: MouseEvent, cv: ConnectionsViewObject) => {
+        d3.select(event.currentTarget as SVGCircleElement).attr("r", PIN_RADIUS_HOVER);
+        this.onConnectionPinMouseover(event, cv.node);
+      })
+      .on("mouseout", (event: MouseEvent, cv: ConnectionsViewObject) => {
+        d3.select(event.currentTarget as SVGCircleElement).attr("r", DEFAULT_PIN_RADIUS);
+        this.onConnectionPinMouseout(event, cv.node);
+      })
       .on("mouseup", (event: MouseEvent, cv: ConnectionsViewObject) =>
         this.onConnectionMouseup(event, cv.node),
       )
