@@ -557,6 +557,7 @@ export class EditorToolsViewComponent {
       "stroke-opacity",
       "stroke-dasharray",
       "rx",
+      "ry",
       "font-family",
       "font-size",
       "font-weight",

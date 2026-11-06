@@ -1040,6 +1040,7 @@ export class TrainrunSectionsView {
         );
       })
       .attr("height", TRAINRUN_SECTION_TEXT_AREA_HEIGHT)
+      .attr("ry", NODE_ROUND_EDGE_SIZE)
       .classed(TrainrunSectionText[lineTextElement], true)
       .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.getHiddenTagForTime(
