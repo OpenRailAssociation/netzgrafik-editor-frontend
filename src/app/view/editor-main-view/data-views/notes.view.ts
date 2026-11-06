@@ -5,6 +5,7 @@ import {StaticDomTags} from "./static.dom.tags";
 import {NodeViewObject} from "./nodeViewObject";
 import {NoteViewObject} from "./noteViewObject";
 import {
+  NOTE_ROUND_EDGE_SIZE,
   NOTE_POSITION_BASIC_RASTER,
   NOTE_TEXT_AREA_HEIGHT,
   NOTE_TEXT_LEFT_SPACING,
@@ -217,7 +218,8 @@ export class NotesView {
       .attr("width", (n: NoteViewObject) => NotesView.extractTextBasedWidth(n.note) + 48)
       .attr("height", (n: NoteViewObject) => NotesView.extractTextBasedHeight(n.note) + 48)
       .attr("x", -24)
-      .attr("y", -24);
+      .attr("y", -24)
+      .attr("rx", NOTE_ROUND_EDGE_SIZE);
 
     if (!this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable()) {
       return;
@@ -238,6 +240,7 @@ export class NotesView {
       .attr("height", (n: NoteViewObject) => NotesView.extractTextBasedHeight(n.note) + 40)
       .attr("x", -20)
       .attr("y", -20)
+      .attr("rx", NOTE_ROUND_EDGE_SIZE)
       .classed(
         StaticDomTags.TAG_MULTI_SELECTED,
         (n: NoteViewObject) =>
@@ -262,6 +265,7 @@ export class NotesView {
       .attr("height", NOTE_TEXT_AREA_HEIGHT)
       .attr("x", 0)
       .attr("y", 0)
+      .attr("rx", NOTE_ROUND_EDGE_SIZE)
       .classed(
         StaticDomTags.TAG_MULTI_SELECTED,
         (n: NoteViewObject) =>
@@ -289,6 +293,7 @@ export class NotesView {
       )
       .attr("x", 0)
       .attr("y", NOTE_TEXT_AREA_HEIGHT)
+      .attr("rx", NOTE_ROUND_EDGE_SIZE)
       .classed(
         StaticDomTags.TAG_MULTI_SELECTED,
         (n: NoteViewObject) =>
@@ -347,7 +352,8 @@ export class NotesView {
       .attr("width", 28)
       .attr("height", 28)
       .attr("x", 0)
-      .attr("y", 0);
+      .attr("y", 0)
+      .attr("rx", NOTE_ROUND_EDGE_SIZE);
 
     if (!this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable()) {
       return;
