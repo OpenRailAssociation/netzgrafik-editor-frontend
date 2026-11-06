@@ -313,6 +313,7 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
     } else {
       editorMode = EditorMode.NetzgrafikEditing;
       this.uiInteractionService.setEditorMode(editorMode);
+      this.nodeService.nodesUpdated();
     }
   }
 }
