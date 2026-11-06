@@ -359,6 +359,7 @@ describe("StreckengrafikModelTests", () => {
       false,
       undefined,
       false,
+      false,
       true,
     );
     expect(node0.xPath()).toBe(60);
