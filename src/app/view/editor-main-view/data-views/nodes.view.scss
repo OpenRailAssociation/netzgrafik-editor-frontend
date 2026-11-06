@@ -10,7 +10,6 @@
 ::ng-deep rect.node_root {
   stroke-width: 4px;
   stroke: $COLOR_Default;
-  rx: $NODE_ROUND_EDGE_SIZE;
 }
 
 ::ng-deep rect.node_root.hover {
@@ -26,14 +25,12 @@
   stroke-width: 1px;
   stroke: $NODE_COLOR_BACKGROUND;
   fill: $NODE_COLOR_BACKGROUND;
-  rx: $NODE_ROUND_EDGE_SIZE;
 }
 
 ::ng-deep rect.node_dockable {
   stroke-width: 0px;
   cursor: pointer;
   fill: $NODE_DOCKABLE;
-  rx: $NODE_ROUND_EDGE_SIZE;
 }
 
 ::ng-deep rect.node_dockable.hover {

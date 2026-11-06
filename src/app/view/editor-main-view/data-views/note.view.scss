@@ -3,7 +3,6 @@
 ::ng-deep rect.note_hover_root {
   stroke-width: 0px;
   opacity: 0;
-  rx: $NODE_ROUND_EDGE_SIZE;
   cursor: move;
 }
 
@@ -15,7 +14,6 @@
 
 ::ng-deep path.note_hover_drag_root {
   fill: $NODE_COLOR;
-  rx: $NODE_ROUND_EDGE_SIZE;
   stroke-opacity: 0;
   opacity: 0;
   cursor: move;
@@ -41,7 +39,6 @@
   opacity: 0;
   stroke-width: 2px;
   cursor: pointer;
-  rx: $NODE_ROUND_EDGE_SIZE;
 }
 
 ::ng-deep text.titel_text {
@@ -56,7 +53,6 @@
   opacity: 0;
   stroke: none;
   stroke-width: 2px;
-  rx: $NODE_ROUND_EDGE_SIZE;
   cursor: pointer;
 }
 
@@ -70,7 +66,6 @@
 
 ::ng-deep rect.note_root.hover {
   stroke: $COLOR_Edit;
-  rx: $NODE_ROUND_EDGE_SIZE;
   stroke-width: 2px;
 }
 
