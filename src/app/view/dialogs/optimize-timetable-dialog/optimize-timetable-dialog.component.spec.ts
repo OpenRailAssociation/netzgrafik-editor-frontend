@@ -595,30 +595,63 @@ describe("OptimizeTimetableDialogComponent track overview scope", () => {
         trackSegmentsBefore: [{start: 0, end: 1, tracks: 3}],
         trackSegmentsAfter: [{start: 0, end: 1, tracks: 1}],
       };
+      const timetableOnlyChanged: EdgeTrackKpi = {
+        edgeId: "3-4",
+        inScope: true,
+        fromNodeName: "C",
+        toNodeName: "D",
+        tracksBefore: 1,
+        tracksAfter: 1,
+        trackSegmentsBefore: [{start: 0, end: 1, tracks: 1}],
+        trackSegmentsAfter: [{start: 0, end: 1, tracks: 1}],
+      };
+      const topologyChanged: EdgeTrackKpi = {
+        edgeId: "4-5",
+        inScope: true,
+        fromNodeName: "D",
+        toNodeName: "E",
+        tracksBefore: 2,
+        tracksAfter: 2,
+        trackSegmentsBefore: [
+          {start: 0, end: 0.5, tracks: 2},
+          {start: 0.5, end: 1, tracks: 1},
+        ],
+        trackSegmentsAfter: [{start: 0, end: 1, tracks: 2}],
+      };
       const component = Object.create(
         OptimizeTimetableDialogComponent.prototype,
       ) as OptimizeTimetableDialogComponent;
       Object.assign(component, {
-        result: {baselineEdges: [unchanged, changed]} as OptimizeTimetableResult,
-        selectedSolution: {edges: [changed]} as OptimizeTimetableSolution,
+        result: {
+          baselineEdges: [unchanged, changed, timetableOnlyChanged, topologyChanged],
+        } as OptimizeTimetableResult,
+        selectedSolution: {
+          edges: [changed, timetableOnlyChanged, topologyChanged],
+        } as OptimizeTimetableSolution,
         showAllSectionTracks: false,
         sectionTrackSort: {active: "tracksAfter", direction: "desc"},
         sectionTrackDataSource: new SbbTableDataSource<EdgeTrackKpi & {changed: boolean}>([]),
       });
 
       component["refreshSectionTrackOverview"]();
-      expect(component.sectionTrackDataSource.data.map((edge) => edge.edgeId)).toEqual(["2-3"]);
+      expect(component.sectionTrackDataSource.data.map((edge) => edge.edgeId)).toEqual([
+        "4-5",
+        "2-3",
+      ]);
       expect(component.sectionTrackColumns).not.toContain("changed");
 
       component.setShowAllSectionTracks(true);
 
-      expect(component.sectionTrackDataSource.data.map((edge) => edge.edgeId)).toEqual([
-        "2-3",
-        "1-2",
-      ]);
+      expect(component.sectionTrackDataSource.data.length).toBe(4);
       expect(component.sectionTrackColumns).toContain("changed");
       const unchangedRow = component.sectionTrackDataSource.data.find(
         (edge) => edge.edgeId === "1-2",
+      );
+      const timetableOnlyRow = component.sectionTrackDataSource.data.find(
+        (edge) => edge.edgeId === "3-4",
+      );
+      const topologyChangedRow = component.sectionTrackDataSource.data.find(
+        (edge) => edge.edgeId === "4-5",
       );
       expect(unchangedRow).toEqual(
         jasmine.objectContaining({
@@ -629,7 +662,11 @@ describe("OptimizeTimetableDialogComponent track overview scope", () => {
           trackSegmentsAfter: unchanged.trackSegments,
         }),
       );
-      expect(component.sectionTrackDataSource.data[0].changed).toBeTrue();
+      expect(timetableOnlyRow?.changed).toBeFalse();
+      expect(topologyChangedRow?.changed).toBeTrue();
+      expect(
+        component.sectionTrackDataSource.data.find((edge) => edge.edgeId === "2-3")?.changed,
+      ).toBeTrue();
 
       component.sortSectionTrackOverview({active: "changed", direction: "asc"});
 

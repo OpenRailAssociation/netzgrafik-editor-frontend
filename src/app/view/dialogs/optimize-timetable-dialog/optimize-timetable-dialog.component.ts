@@ -1001,24 +1001,32 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     const solutionEdges = this.selectedSolution?.edges ?? [];
     const solutionEdgesById = new Map(solutionEdges.map((edge) => [edge.edgeId, edge]));
     const baselineById = new Map(baselineEdges.map((edge) => [edge.edgeId, edge]));
-    const sourceEdges = this.showAllSectionTracks ? baselineEdges : solutionEdges;
+    const sourceEdges = [
+      ...new Map([...baselineEdges, ...solutionEdges].map((edge) => [edge.edgeId, edge])).values(),
+    ];
     const rows: SectionTrackEdgeRow[] = sourceEdges.map((source) => {
       const baseline = baselineById.get(source.edgeId) ?? source;
-      const changed = solutionEdgesById.get(source.edgeId);
+      const candidate = solutionEdgesById.get(source.edgeId);
+      const trackSegmentsBefore = candidate?.trackSegmentsBefore ?? baseline.trackSegments ?? [];
+      const trackSegmentsAfter = candidate?.trackSegmentsAfter ?? baseline.trackSegments ?? [];
+      const tracksAfter = candidate?.tracksAfter ?? baseline.tracksBefore;
       return {
         ...baseline,
-        ...changed,
-        tracksAfter: changed?.tracksAfter ?? baseline.tracksBefore,
-        trackSegmentsBefore: changed?.trackSegmentsBefore ?? baseline.trackSegments ?? [],
-        trackSegmentsAfter: changed?.trackSegmentsAfter ?? baseline.trackSegments ?? [],
-        changed: changed !== undefined,
+        ...candidate,
+        tracksAfter,
+        trackSegmentsBefore,
+        trackSegmentsAfter,
+        changed:
+          baseline.tracksBefore !== tracksAfter ||
+          this.trackSegmentsDiffer(trackSegmentsBefore, trackSegmentsAfter),
       };
     });
+    const visibleRows = this.showAllSectionTracks ? rows : rows.filter((row) => row.changed);
 
     if (this.sectionTrackSort.direction !== "") {
       const direction = this.sectionTrackSort.direction === "asc" ? 1 : -1;
       const key = this.sectionTrackSort.active;
-      rows.sort((left, right) => {
+      visibleRows.sort((left, right) => {
         const leftValue =
           key === "changed"
             ? Number(left.changed)
@@ -1039,7 +1047,22 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
       });
     }
 
-    this.sectionTrackDataSource.data = rows;
+    this.sectionTrackDataSource.data = visibleRows;
+  }
+
+  private trackSegmentsDiffer(
+    before: {start: number; end: number; tracks: number}[],
+    after: {start: number; end: number; tracks: number}[],
+  ): boolean {
+    return (
+      before.length !== after.length ||
+      before.some(
+        (segment, index) =>
+          segment.start !== after[index].start ||
+          segment.end !== after[index].end ||
+          segment.tracks !== after[index].tracks,
+      )
+    );
   }
 
   /** Shows a proposal in the Netzgrafik (reverted on cancel). */

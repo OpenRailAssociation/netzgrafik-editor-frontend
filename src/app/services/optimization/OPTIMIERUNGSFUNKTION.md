@@ -69,8 +69,10 @@ Der erste gültige Vorschlag wird nach dem Lauf automatisch ausgewählt. Ungült
 ### Details: fünf Spalten pro Abschnitt
 
 Die Vergleichstabelle **Streckengleis-Übersicht (IST) vs. NEU** zeigt standardmässig nur
-Abschnitte mit Fahrplanänderungen. **Alle Abschnitte anzeigen** ergänzt auch unveränderte
-Abschnitte und eine sortierbare, deaktivierte Checkbox-Spalte **Geändert**.
+Abschnitte mit veränderter Gleisbelegung. Dafür muss sich die maximale Gleiszahl oder die
+Topologie mindestens eines Teilsegments unterscheiden. **Alle Abschnitte anzeigen** ergänzt
+auch Abschnitte mit unveränderter Gleisbelegung und eine sortierbare, deaktivierte Checkbox-Spalte
+**Gleisbelegung geändert**.
 
 Die Tabelle enthält diese Spalten:
 
@@ -80,7 +82,7 @@ Die Tabelle enthält diese Spalten:
 4. Maximale Gleise nachher
 5. Topologie nachher
 
-Die Topologien stellen die vom Infrastruktur-Schätzer ermittelten Teilsegmente dar. Die Zahl „maximale Gleise“ ist die höchste Gleiszahl dieser Segmente. Bei einem geänderten Abschnitt kann die Gleiszahl trotzdem gleich bleiben, zum Beispiel `2 → 2`: Der Fahrplan hat sich geändert, nicht aber der Spitzenwert der Gleise.
+Die Topologien stellen die vom Infrastruktur-Schätzer ermittelten Teilsegmente dar. Die Zahl „maximale Gleise“ ist die höchste Gleiszahl dieser Segmente. Eine Fahrplanänderung allein reicht nicht aus, um einen Abschnitt hier standardmässig anzuzeigen: Die Gleiszahl oder mindestens ein Teilsegment muss sich ebenfalls ändern.
 
 Bei aktivem Streckengleislimit werden nur die überzähligen Gleislinien und die dazugehörige Zahl rot gezeichnet. Die Topologie nutzt sonst die zum Theme passende Standardfarbe. Für mehr als vier Gleise wird eine Zählbox statt vieler einzelner Linien verwendet.
 
