@@ -263,6 +263,17 @@ export class TrainrunIterator {
   }
 
   /**
+   * Consume this iterator and return its last element.
+   * This method may be called twice on the same iterator.
+   */
+  public last(): TrainrunSectionNodePair {
+    for (const _ of this) {
+      // Intentionally left blank
+    }
+    return this.current();
+  }
+
+  /**
    * Throws an exception if called after the end of the iteration.
    * Check for `this.hasNext()` before.
    */
