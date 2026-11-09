@@ -38,6 +38,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
   endNodeHidden = false;
 
   readonly displayTrainrun = (value: Trainrun | null): string => this.getDisplayValue(value);
+  readonly transformTrainrunName = (value: Trainrun): string => this.getTrainrunDisplayName(value);
 
   private destroyed = new Subject<void>();
 
@@ -137,10 +138,10 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
 
   updateOrderedNodeEntries() {
     /**
-     * View specific transformation of the ordered node entries for display the data in the 
-     * search result view. 
-     * If a node is hidden due to the filter - a gap will be rendered. But if the node is the 
-     * start or end node of the trainrun the node is shown as final destination even if it is hidden. 
+     * View specific transformation of the ordered node entries for display the data in the
+     * search result view.
+     * If a node is hidden due to the filter - a gap will be rendered. But if the node is the
+     * start or end node of the trainrun the node is shown as final destination even if it is hidden.
      * This must be takne into account to not diverge from the Netzgrafik-Editor Main view / behavior.
      */
     if (this.trainrunService.getSelectedTrainrun()) {
@@ -228,15 +229,8 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     return `${category}${title}`.trim();
   }
 
-  transformTrainrunName(trainrun: Trainrun): string {
-    return this.getTrainrunDisplayName(trainrun);
-  }
-
   transformNodeEntryName(entry: OrderedTrainrunNodeEntry): string {
     const node = this.nodeService.getNodeFromId(entry.nodeId);
-    if (!node) {
-      return `${entry.nodeId}`;
-    }
     return this.filterService.isDisplayingNodesFullName()
       ? node.getFullName()
       : node.getBetriebspunktName();
