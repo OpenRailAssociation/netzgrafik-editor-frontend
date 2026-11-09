@@ -111,7 +111,7 @@ export class TrainrunSectionTimesService {
     bottomTravelTime: 0,
   };
 
-  private nodesOrdered: Node[] = [];
+  private nodesOrdered: [] | [Node, Node] = [];
 
   private lockStructure: LeftAndRightLockStructure = {
     leftLock: false,
@@ -171,11 +171,11 @@ export class TrainrunSectionTimesService {
     return this.showWarningTwoLocks;
   }
 
-  public getNodesOrdered(): Node[] {
+  public getNodesOrdered(): [] | [Node, Node] {
     return this.nodesOrdered;
   }
 
-  public setNodesOrdered(nodesOrdered: Node[]) {
+  public setNodesOrdered(nodesOrdered: [] | [Node, Node]) {
     this.nodesOrdered = nodesOrdered;
   }
 
