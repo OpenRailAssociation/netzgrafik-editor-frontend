@@ -997,8 +997,12 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   }
 
   private refreshSectionTrackOverview(): void {
-    const baselineEdges = (this.result?.baselineEdges ?? []).filter((edge) => edge.inScope);
-    const solutionEdges = (this.selectedSolution?.edges ?? []).filter((edge) => edge.inScope);
+    const baselineEdges = (this.result?.baselineEdges ?? []).filter((edge) =>
+      this.isInSelectedSectionScope(edge),
+    );
+    const solutionEdges = (this.selectedSolution?.edges ?? []).filter((edge) =>
+      this.isInSelectedSectionScope(edge),
+    );
     const solutionEdgesById = new Map(solutionEdges.map((edge) => [edge.edgeId, edge]));
     const baselineById = new Map(baselineEdges.map((edge) => [edge.edgeId, edge]));
     const sourceEdges = [
@@ -1048,6 +1052,27 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     }
 
     this.sectionTrackDataSource.data = visibleRows;
+  }
+
+  private isInSelectedSectionScope(edge: EdgeTrackKpi): boolean {
+    if (!edge.inScope) {
+      return false;
+    }
+    if (this.scopeUsesSelectedTrainrun) {
+      return this.scopeCorridorEdgeIds.includes(edge.edgeId);
+    }
+
+    const selectedNodeIds = this.scopeNodeIds ?? [];
+    if (selectedNodeIds.length === 0) {
+      return true;
+    }
+
+    const endpointIds = /^(\d+)-(\d+)$/.exec(edge.edgeId);
+    if (endpointIds === null) {
+      return false;
+    }
+    const selected = new Set(selectedNodeIds);
+    return selected.has(Number(endpointIds[1])) && selected.has(Number(endpointIds[2]));
   }
 
   private trackSegmentsDiffer(

@@ -575,6 +575,35 @@ describe("OptimizeTimetableDialogComponent track overview scope", () => {
   });
 
   describe("OptimizeTimetableDialogComponent section track details", () => {
+    it("limits the all-sections view to edges whose two endpoints are selected", () => {
+      const edges: EdgeTrackKpi[] = ["1-2", "2-3", "3-4"].map((edgeId) => ({
+        edgeId,
+        inScope: true,
+        fromNodeName: edgeId.split("-")[0],
+        toNodeName: edgeId.split("-")[1],
+        tracksBefore: 1,
+        tracksAfter: 1,
+        trackSegments: [{start: 0, end: 1, tracks: 1}],
+      }));
+      const component = Object.create(
+        OptimizeTimetableDialogComponent.prototype,
+      ) as OptimizeTimetableDialogComponent;
+      Object.assign(component, {
+        result: {baselineEdges: edges} as OptimizeTimetableResult,
+        selectedSolution: {edges: []} as OptimizeTimetableSolution,
+        showAllSectionTracks: true,
+        scopeNodeIds: [2, 3],
+        scopeUsesSelectedTrainrun: false,
+        scopeCorridorEdgeIds: [],
+        sectionTrackSort: {active: "tracksAfter", direction: "desc"},
+        sectionTrackDataSource: new SbbTableDataSource<EdgeTrackKpi & {changed: boolean}>([]),
+      });
+
+      component["refreshSectionTrackOverview"]();
+
+      expect(component.sectionTrackDataSource.data.map((edge) => edge.edgeId)).toEqual(["2-3"]);
+    });
+
     it("shows changed sections by default and includes unchanged sections with a sortable marker on request", () => {
       const unchanged: EdgeTrackKpi = {
         edgeId: "1-2",
