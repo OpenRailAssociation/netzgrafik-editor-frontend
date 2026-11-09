@@ -189,14 +189,12 @@ export class LoadPerlenketteService implements OnDestroy {
 
         if (perlenketteItem.length > 1) {
           const itemSec = perlenketteItem[perlenketteItem.length - 2];
-          if (itemSec.isPerlenketteSection()) {
-            const pn = itemSec.getPerlenketteSection();
-            pn.setLastTrainrunPartSection(true);
+          if (itemSec instanceof PerlenketteSection) {
+            itemSec.setLastTrainrunPartSection(true);
           }
           const itemNode = perlenketteItem[perlenketteItem.length - 1];
-          if (itemNode.isPerlenketteNode()) {
-            const pn = itemNode.getPerlenketteNode();
-            pn.setLastTrainrunPartNode(true);
+          if (itemNode instanceof PerlenketteNode) {
+            itemNode.setLastTrainrunPartNode(true);
           }
         }
       }
