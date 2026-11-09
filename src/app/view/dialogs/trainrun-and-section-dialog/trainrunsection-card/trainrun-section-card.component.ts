@@ -41,7 +41,7 @@ export class TrainrunSectionCardComponent implements OnInit, AfterViewInit, OnDe
 
   private destroyed = new Subject<void>();
 
-  public get nodesOrdered(): Node[] {
+  public get nodesOrdered(): [] | [Node, Node] {
     return this.trainrunSectionTimesService.getNodesOrdered();
   }
 
