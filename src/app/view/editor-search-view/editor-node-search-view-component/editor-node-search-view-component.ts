@@ -79,7 +79,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  search(): void {
+  private search(): void {
     const value = this.searchControl.value;
     if (value instanceof Node) {
       this.searchResults = [value];
@@ -110,8 +110,7 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
   }
 
   private updateFilteredNodes(value: string | Node): void {
-    const searchTerm = this.getSearchTerm(value);
-    const matchingNodes = searchTerm !== "" ? this.filterNodes(value) : [];
+    const matchingNodes = this.getSearchTerm(value) !== "" ? this.filterNodes(value) : [];
     this.filteredNodes = matchingNodes.slice(
       0,
       EditorNodeSearchViewComponent.MAX_AUTOCOMPLETE_RESULTS,

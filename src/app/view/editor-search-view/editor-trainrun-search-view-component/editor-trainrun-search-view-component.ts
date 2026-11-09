@@ -136,6 +136,13 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
   }
 
   updateOrderedNodeEntries() {
+    /**
+     * View specific transformation of the ordered node entries for display the data in the 
+     * search result view. 
+     * If a node is hidden due to the filter - a gap will be rendered. But if the node is the 
+     * start or end node of the trainrun the node is shown as final destination even if it is hidden. 
+     * This must be takne into account to not diverge from the Netzgrafik-Editor Main view / behavior.
+     */
     if (this.trainrunService.getSelectedTrainrun()) {
       const orderedEntries = this.trainrunService.getOrderedNodeEntriesForTrainrun(
         this.trainrunService.getSelectedTrainrun(),
@@ -148,11 +155,11 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
       const visibleEntries: OrderedTrainrunNodeEntry[] = [];
       let hasHiddenNode = false;
 
-      for (const entry of orderedEntries) {
+      orderedEntries.forEach((entry) => {
         const node = this.nodeService.getNodeFromId(entry.nodeId);
         if (!node || !this.filterService.isNodeVisible(node)) {
           hasHiddenNode = true;
-          continue;
+          return;
         }
 
         if (hasHiddenNode && visibleEntries.length > 0) {
@@ -164,7 +171,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
 
         visibleEntries.push({...entry});
         hasHiddenNode = false;
-      }
+      });
 
       return visibleEntries;
     }
