@@ -50,7 +50,7 @@
                 class="station"
                 (click)="trainrunNameClicked($event)"
                 style="transform: translateY(-2px)"
-                >{{ perlenketteTrainrun.pathItems.at(0).getPerlenketteNode().fullName }}</span
+                >{{ perlenketteTrainrun.getTopNode().fullName }}</span
               >
               @if (trainrunService.getSbbArrowForTrainrunDirection() !== null) {
                 <sbb-icon
@@ -67,7 +67,7 @@
                 class="station"
                 (click)="trainrunNameClicked($event)"
                 style="transform: translateY(-2px)"
-                >{{ perlenketteTrainrun.pathItems.at(-1).getPerlenketteNode().fullName }}</span
+                >{{ perlenketteTrainrun.getBottomNode().fullName }}</span
               >
             </span>
           </ng-container>
@@ -75,7 +75,7 @@
           <ng-container *ngIf="!showTrainrunName()">
             <span class="trainrun-od alignleft">
               <span class="station" (click)="scrollFirst($event)">{{
-                perlenketteTrainrun.pathItems.at(0).getPerlenketteNode().fullName
+                perlenketteTrainrun.getTopNode().fullName
               }}</span>
               @if (trainrunService.getSbbArrowForTrainrunDirection() !== null) {
                 <sbb-icon
@@ -88,7 +88,7 @@
                 <span class="arrow">-</span>
               }
               <span class="station" (click)="scrollLast($event)">{{
-                perlenketteTrainrun.pathItems.at(-1).getPerlenketteNode().fullName
+                perlenketteTrainrun.getBottomNode().fullName
               }}</span>
             </span>
           </ng-container>
@@ -152,10 +152,10 @@
 
     <!--- Station List (navigation) --->
     <ng-container *ngFor="let pathItem of perlenketteTrainrun.pathItems">
-      <div *ngIf="pathItem.isPerlenketteNode()">
+      <div *ngIf="pathItem instanceof PerlenketteNode">
         <p class="alignleft" style="line-height: 10px">
           <span [class]="getSmallstationClassTag(pathItem)" (click)="goto(pathItem)">{{
-            pathItem.getPerlenketteNode().shortName
+            pathItem.shortName
           }}</span>
 
           <ng-container *ngIf="isLastNodeButNotVeryLast(pathItem)">
@@ -181,19 +181,19 @@
     >
       <ng-container *ngFor="let pathItem of perlenketteTrainrun.pathItems; index as idx">
         <sbb-perlenkette-node
-          *ngIf="pathItem.isPerlenketteNode()"
+          *ngIf="pathItem instanceof PerlenketteNode"
           [perlenketteTrainrun]="perlenketteTrainrun"
           (signalIsBeingEdited)="signalIsBeingEdited($event)"
           (signalHeightChanged)="signalHeightChanged($event, pathItem)"
-          [perlenketteNode]="pathItem.getPerlenketteNode()"
+          [perlenketteNode]="$any(pathItem)"
           [isTopNode]="idx === 0"
           [isBottomNode]="idx === perlenketteTrainrun.pathItems.length - 1"
         >
         </sbb-perlenkette-node>
         <div *ngIf="doSplitTrainrun(perlenketteTrainrun.pathItems, idx)" style="height: 16px"></div>
         <sbb-perlenkette-section
-          *ngIf="pathItem.isPerlenketteSection()"
-          [perlenketteSection]="pathItem.getPerlenketteSection()"
+          *ngIf="pathItem instanceof PerlenketteSection"
+          [perlenketteSection]="$any(pathItem)"
           [perlenketteTrainrun]="perlenketteTrainrun"
           (signalIsBeingEdited)="signalIsBeingEdited($event)"
           (signalHeightChanged)="signalHeightChanged($event, pathItem)"
