@@ -40,7 +40,8 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
 
   readonly displayTrainrun = (value: Trainrun | null): string => this.getDisplayValue(value);
   readonly transformTrainrunName = (value: Trainrun): string => this.getTrainrunDisplayName(value);
-  readonly transformNodeEntryName = (entry: OrderedTrainrunNodeEntry): string => GeneralViewFunctions.getNodeDisplayName(this.nodeService.getNodeFromId(entry.nodeId));
+  readonly transformNodeEntryName = (entry: OrderedTrainrunNodeEntry): string =>
+    GeneralViewFunctions.getNodeDisplayName(this.nodeService.getNodeFromId(entry.nodeId));
 
   private destroyed = new Subject<void>();
 
@@ -122,6 +123,23 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     this.search();
     if (selectedTrainrun instanceof Trainrun) {
       this.selectTrainrun(selectedTrainrun);
+    }
+  }
+
+  private search(): void {
+    const value = this.searchControl.value;
+    if (value instanceof Trainrun) {
+      this.searchResults = [value];
+      return;
+    }
+
+    this.searchResults = this.filterTrainruns(value);
+
+    if (this.searchResults.length === 1) {
+      const trainrun = this.searchResults[0];
+      this.searchControl.setValue(trainrun, {emitEvent: false});
+      this.selectTrainrun(trainrun);
+      return;
     }
   }
 
@@ -229,23 +247,6 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     const category = trainrun.getCategoryShortName();
     const title = trainrun.getTitle();
     return `${category}${title}`.trim();
-  }
-
-  private search(): void {
-    const value = this.searchControl.value;
-    if (value instanceof Trainrun) {
-      this.searchResults = [value];
-      return;
-    }
-
-    this.searchResults = this.filterTrainruns(value);
-
-    if (this.searchResults.length === 1) {
-      const trainrun = this.searchResults[0];
-      this.searchControl.setValue(trainrun, {emitEvent: false});
-      this.selectTrainrun(trainrun);
-      return;
-    }
   }
 
   private filterTrainruns(value: string | Trainrun): Trainrun[] {
