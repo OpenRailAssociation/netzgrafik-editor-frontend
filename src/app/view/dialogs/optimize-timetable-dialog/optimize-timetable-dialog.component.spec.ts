@@ -573,4 +573,67 @@ describe("OptimizeTimetableDialogComponent track overview scope", () => {
       expect(edges.map((edge) => edge.edgeId)).toEqual(["1-2", "2-3", "3-4"]);
     });
   });
+
+  describe("OptimizeTimetableDialogComponent section track details", () => {
+    it("shows changed sections by default and includes unchanged sections with a sortable marker on request", () => {
+      const unchanged: EdgeTrackKpi = {
+        edgeId: "1-2",
+        inScope: true,
+        fromNodeName: "A",
+        toNodeName: "B",
+        tracksBefore: 2,
+        tracksAfter: 2,
+        trackSegments: [{start: 0, end: 1, tracks: 2}],
+      };
+      const changed: EdgeTrackKpi = {
+        edgeId: "2-3",
+        inScope: true,
+        fromNodeName: "B",
+        toNodeName: "C",
+        tracksBefore: 3,
+        tracksAfter: 1,
+        trackSegmentsBefore: [{start: 0, end: 1, tracks: 3}],
+        trackSegmentsAfter: [{start: 0, end: 1, tracks: 1}],
+      };
+      const component = Object.create(
+        OptimizeTimetableDialogComponent.prototype,
+      ) as OptimizeTimetableDialogComponent;
+      Object.assign(component, {
+        result: {baselineEdges: [unchanged, changed]} as OptimizeTimetableResult,
+        selectedSolution: {edges: [changed]} as OptimizeTimetableSolution,
+        showAllSectionTracks: false,
+        sectionTrackSort: {active: "tracksAfter", direction: "desc"},
+        sectionTrackDataSource: new SbbTableDataSource<EdgeTrackKpi & {changed: boolean}>([]),
+      });
+
+      component["refreshSectionTrackOverview"]();
+      expect(component.sectionTrackDataSource.data.map((edge) => edge.edgeId)).toEqual(["2-3"]);
+      expect(component.sectionTrackColumns).not.toContain("changed");
+
+      component.setShowAllSectionTracks(true);
+
+      expect(component.sectionTrackDataSource.data.map((edge) => edge.edgeId)).toEqual([
+        "2-3",
+        "1-2",
+      ]);
+      expect(component.sectionTrackColumns).toContain("changed");
+      const unchangedRow = component.sectionTrackDataSource.data.find(
+        (edge) => edge.edgeId === "1-2",
+      );
+      expect(unchangedRow).toEqual(
+        jasmine.objectContaining({
+          tracksBefore: 2,
+          tracksAfter: 2,
+          changed: false,
+          trackSegmentsBefore: unchanged.trackSegments,
+          trackSegmentsAfter: unchanged.trackSegments,
+        }),
+      );
+      expect(component.sectionTrackDataSource.data[0].changed).toBeTrue();
+
+      component.sortSectionTrackOverview({active: "changed", direction: "asc"});
+
+      expect(component.sectionTrackDataSource.data[0].changed).toBeFalse();
+    });
+  });
 });

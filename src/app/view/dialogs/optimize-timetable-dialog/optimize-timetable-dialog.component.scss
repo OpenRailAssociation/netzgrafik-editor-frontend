@@ -636,6 +636,11 @@
     overflow-x: auto;
   }
 
+  .show-all-sections-toggle {
+    display: block;
+    margin-bottom: 8px;
+  }
+
   .edge-details {
     min-width: 1040px;
     table-layout: fixed;
@@ -652,6 +657,26 @@
     th:nth-child(3),
     th:nth-child(5) {
       width: 26%;
+    }
+
+    &.with-changed-column {
+      th:nth-child(1) {
+        width: 19%;
+      }
+
+      th:nth-child(2),
+      th:nth-child(4) {
+        width: 12%;
+      }
+
+      th:nth-child(3),
+      th:nth-child(5) {
+        width: 22%;
+      }
+
+      th:nth-child(6) {
+        width: 13%;
+      }
     }
   }
 

@@ -644,61 +644,111 @@
               </div>
 
               <ng-container *ngIf="selectedSolution">
+                <h3>
+                  {{
+                    "app.view.dialogs.optimize-timetable-dialog.track-overview-comparison"
+                      | translate
+                  }}
+                </h3>
                 <h4>{{ "app.view.dialogs.optimize-timetable-dialog.edges" | translate }}</h4>
+                <sbb-checkbox
+                  class="show-all-sections-toggle"
+                  [ngModel]="showAllSectionTracks"
+                  (ngModelChange)="setShowAllSectionTracks($event)"
+                >
+                  {{ "app.view.dialogs.optimize-timetable-dialog.show-all-sections" | translate }}
+                </sbb-checkbox>
                 <div class="edge-details-scroll">
-                  <table class="details edge-details">
-                    <thead>
-                      <tr>
-                        <th>{{ "app.view.dialogs.optimize-timetable-dialog.edge" | translate }}</th>
-                        <th>
-                          {{
-                            "app.view.dialogs.optimize-timetable-dialog.tracks-before" | translate
-                          }}
-                        </th>
-                        <th>
-                          {{
-                            "app.view.dialogs.optimize-timetable-dialog.topology-before" | translate
-                          }}
-                        </th>
-                        <th>
-                          {{
-                            "app.view.dialogs.optimize-timetable-dialog.tracks-after" | translate
-                          }}
-                        </th>
-                        <th>
-                          {{
-                            "app.view.dialogs.optimize-timetable-dialog.topology-after" | translate
-                          }}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr *ngFor="let edge of selectedSolution.edges">
-                        <td>{{ edge.fromNodeName }} – {{ edge.toNodeName }}</td>
-                        <td [class.over-limit]="trackLimitEnabled && edge.tracksBefore > maxTracks">
-                          {{ edge.tracksBefore }}
-                        </td>
-                        <td>
-                          <sbb-track-topology
-                            [edge]="edge"
-                            [segments]="edge.trackSegmentsBefore"
-                            [maxTracks]="maxTracks"
-                            [trackLimitEnabled]="trackLimitEnabled"
-                          ></sbb-track-topology>
-                        </td>
-                        <td [class.over-limit]="trackLimitEnabled && edge.tracksAfter > maxTracks">
-                          {{ edge.tracksAfter }}
-                        </td>
-                        <td>
-                          <sbb-track-topology
-                            [edge]="edge"
-                            [segments]="edge.trackSegmentsAfter"
-                            [maxTracks]="maxTracks"
-                            [trackLimitEnabled]="trackLimitEnabled"
-                          ></sbb-track-topology>
-                        </td>
-                      </tr>
-                    </tbody>
+                  <table
+                    sbb-table
+                    sbbSort
+                    [class.with-changed-column]="showAllSectionTracks"
+                    [sbbSortActive]="sectionTrackSort.active"
+                    [sbbSortDirection]="sectionTrackSort.direction"
+                    [dataSource]="sectionTrackDataSource"
+                    (sbbSortChange)="sortSectionTrackOverview($event)"
+                    class="details edge-details"
+                  >
+                    <ng-container sbbColumnDef="section">
+                      <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header="section">
+                        {{ "app.view.dialogs.optimize-timetable-dialog.edge" | translate }}
+                      </th>
+                      <td sbb-cell *sbbCellDef="let edge">
+                        {{ edge.fromNodeName }} – {{ edge.toNodeName }}
+                      </td>
+                    </ng-container>
+                    <ng-container sbbColumnDef="tracksBefore">
+                      <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header="tracksBefore">
+                        {{ "app.view.dialogs.optimize-timetable-dialog.tracks-before" | translate }}
+                      </th>
+                      <td
+                        sbb-cell
+                        *sbbCellDef="let edge"
+                        [class.over-limit]="trackLimitEnabled && edge.tracksBefore > maxTracks"
+                      >
+                        {{ edge.tracksBefore }}
+                      </td>
+                    </ng-container>
+                    <ng-container sbbColumnDef="topologyBefore">
+                      <th sbb-header-cell *sbbHeaderCellDef>
+                        {{
+                          "app.view.dialogs.optimize-timetable-dialog.topology-before" | translate
+                        }}
+                      </th>
+                      <td sbb-cell *sbbCellDef="let edge">
+                        <sbb-track-topology
+                          [edge]="edge"
+                          [segments]="edge.trackSegmentsBefore"
+                          [maxTracks]="maxTracks"
+                          [trackLimitEnabled]="trackLimitEnabled"
+                        ></sbb-track-topology>
+                      </td>
+                    </ng-container>
+                    <ng-container sbbColumnDef="tracksAfter">
+                      <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header="tracksAfter">
+                        {{ "app.view.dialogs.optimize-timetable-dialog.tracks-after" | translate }}
+                      </th>
+                      <td
+                        sbb-cell
+                        *sbbCellDef="let edge"
+                        [class.over-limit]="trackLimitEnabled && edge.tracksAfter > maxTracks"
+                      >
+                        {{ edge.tracksAfter }}
+                      </td>
+                    </ng-container>
+                    <ng-container sbbColumnDef="topologyAfter">
+                      <th sbb-header-cell *sbbHeaderCellDef>
+                        {{
+                          "app.view.dialogs.optimize-timetable-dialog.topology-after" | translate
+                        }}
+                      </th>
+                      <td sbb-cell *sbbCellDef="let edge">
+                        <sbb-track-topology
+                          [edge]="edge"
+                          [segments]="edge.trackSegmentsAfter"
+                          [maxTracks]="maxTracks"
+                          [trackLimitEnabled]="trackLimitEnabled"
+                        ></sbb-track-topology>
+                      </td>
+                    </ng-container>
+                    <ng-container *ngIf="showAllSectionTracks" sbbColumnDef="changed">
+                      <th sbb-header-cell *sbbHeaderCellDef sbb-sort-header="changed">
+                        {{
+                          "app.view.dialogs.optimize-timetable-dialog.section-changed" | translate
+                        }}
+                      </th>
+                      <td sbb-cell *sbbCellDef="let edge">
+                        <sbb-checkbox
+                          [ngModel]="edge.changed"
+                          [disabled]="true"
+                          [attr.aria-label]="
+                            'app.view.dialogs.optimize-timetable-dialog.section-changed' | translate
+                          "
+                        ></sbb-checkbox>
+                      </td>
+                    </ng-container>
+                    <tr sbb-header-row *sbbHeaderRowDef="sectionTrackColumns; sticky: true"></tr>
+                    <tr sbb-row *sbbRowDef="let row; columns: sectionTrackColumns"></tr>
                   </table>
                 </div>
 

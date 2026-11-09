@@ -59,6 +59,10 @@ export interface NodeChangeGroup {
   expanded: boolean;
 }
 
+interface SectionTrackEdgeRow extends EdgeTrackKpi {
+  changed: boolean;
+}
+
 @Component({
   selector: "sbb-optimize-timetable-dialog",
   templateUrl: "./optimize-timetable-dialog.component.html",
@@ -93,6 +97,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   trackOverviewExpanded = true;
   resultsPanelExpanded = false;
   infeasibleSolutionsExpanded = false;
+  showAllSectionTracks = false;
   isConfirmingInvalidApply = false;
   selectedSolution: OptimizeTimetableSolution = undefined;
   nodeGroups: NodeChangeGroup[] = [];
@@ -101,6 +106,11 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   occupancyBefore: KnotenAuslastungSnapshot = undefined;
   occupancyAfter: KnotenAuslastungSnapshot = undefined;
   readonly trackOverviewColumns = ["fromNodeName", "toNodeName", "tracksBefore", "topology"];
+  readonly sectionTrackDataSource = new SbbTableDataSource<SectionTrackEdgeRow>([]);
+  sectionTrackSort: {active: string; direction: "asc" | "desc" | ""} = {
+    active: "tracksAfter",
+    direction: "desc",
+  };
   readonly trackOverviewDataSource = new SbbTableDataSource<EdgeTrackKpi>([]);
   private trackOverviewSort: {active: string; direction: "asc" | "desc" | ""} = {
     active: "tracksBefore",
@@ -173,6 +183,30 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
           compareSolutions(a, b, this.policy),
       )
       .slice(0, 5);
+  }
+
+  get sectionTrackColumns(): string[] {
+    return [
+      "section",
+      "tracksBefore",
+      "topologyBefore",
+      "tracksAfter",
+      "topologyAfter",
+      ...(this.showAllSectionTracks ? ["changed"] : []),
+    ];
+  }
+
+  sortSectionTrackOverview(sort: {active: string; direction: "asc" | "desc" | ""}): void {
+    this.sectionTrackSort = sort;
+    this.refreshSectionTrackOverview();
+  }
+
+  setShowAllSectionTracks(showAll: boolean): void {
+    this.showAllSectionTracks = showAll;
+    this.sectionTrackSort = showAll
+      ? {active: "changed", direction: "desc"}
+      : {active: "tracksAfter", direction: "desc"};
+    this.refreshSectionTrackOverview();
   }
 
   get hasFeasibleSolution(): boolean {
@@ -297,6 +331,9 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     this.selectedNodeId = undefined;
     this.occupancyBefore = undefined;
     this.occupancyAfter = undefined;
+    this.showAllSectionTracks = false;
+    this.sectionTrackSort = {active: "tracksAfter", direction: "desc"};
+    this.refreshSectionTrackOverview();
     this.refreshTrackOverview();
   }
 
@@ -467,6 +504,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
 
   selectSolution(solution: OptimizeTimetableSolution) {
     this.selectedSolution = solution;
+    this.refreshSectionTrackOverview();
     this.preview(solution);
     this.nodeGroups = this.groupChangesByNode(solution.changes);
     const keep = this.nodeGroups.some((g) => g.nodeId === this.selectedNodeId);
@@ -956,6 +994,52 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
       });
     }
     this.trackOverviewDataSource.data = rows;
+  }
+
+  private refreshSectionTrackOverview(): void {
+    const baselineEdges = this.result?.baselineEdges ?? [];
+    const solutionEdges = this.selectedSolution?.edges ?? [];
+    const solutionEdgesById = new Map(solutionEdges.map((edge) => [edge.edgeId, edge]));
+    const baselineById = new Map(baselineEdges.map((edge) => [edge.edgeId, edge]));
+    const sourceEdges = this.showAllSectionTracks ? baselineEdges : solutionEdges;
+    const rows: SectionTrackEdgeRow[] = sourceEdges.map((source) => {
+      const baseline = baselineById.get(source.edgeId) ?? source;
+      const changed = solutionEdgesById.get(source.edgeId);
+      return {
+        ...baseline,
+        ...changed,
+        tracksAfter: changed?.tracksAfter ?? baseline.tracksBefore,
+        trackSegmentsBefore: changed?.trackSegmentsBefore ?? baseline.trackSegments ?? [],
+        trackSegmentsAfter: changed?.trackSegmentsAfter ?? baseline.trackSegments ?? [],
+        changed: changed !== undefined,
+      };
+    });
+
+    if (this.sectionTrackSort.direction !== "") {
+      const direction = this.sectionTrackSort.direction === "asc" ? 1 : -1;
+      const key = this.sectionTrackSort.active;
+      rows.sort((left, right) => {
+        const leftValue =
+          key === "changed"
+            ? Number(left.changed)
+            : key === "section"
+              ? `${left.fromNodeName} – ${left.toNodeName}`
+              : left[key as keyof SectionTrackEdgeRow];
+        const rightValue =
+          key === "changed"
+            ? Number(right.changed)
+            : key === "section"
+              ? `${right.fromNodeName} – ${right.toNodeName}`
+              : right[key as keyof SectionTrackEdgeRow];
+        const comparison =
+          typeof leftValue === "number" && typeof rightValue === "number"
+            ? leftValue - rightValue
+            : String(leftValue).localeCompare(String(rightValue));
+        return comparison * direction;
+      });
+    }
+
+    this.sectionTrackDataSource.data = rows;
   }
 
   /** Shows a proposal in the Netzgrafik (reverted on cancel). */
