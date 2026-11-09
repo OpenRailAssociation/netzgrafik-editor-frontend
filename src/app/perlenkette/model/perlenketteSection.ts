@@ -10,12 +10,12 @@ export class PerlenketteSection implements PerlenketteItem {
     readonly toNode: Node,
     readonly numberOfStops: number,
     public isBeingEdited: boolean = false,
-    public fristTrainrunPartSection: boolean = false,
+    public firstTrainrunPartSection: boolean = false,
     public lastTrainrunPartSection: boolean = false,
   ) {}
 
-  isFristTrainrunPartSection(): boolean {
-    return this.fristTrainrunPartSection;
+  isFirstTrainrunPartSection(): boolean {
+    return this.firstTrainrunPartSection;
   }
 
   isLastTrainrunPartSection(): boolean {
