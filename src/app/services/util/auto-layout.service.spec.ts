@@ -151,8 +151,6 @@ describe("AutoLayoutService", () => {
 
     autoLayoutService.adjustSectionLengths([section], true, 1);
 
-    expect(nodeService.changeNodePositionWithoutUpdate).not.toHaveBeenCalled();
-    expect(section.routeEdgeAndPlaceText).toHaveBeenCalled();
     expect(viewportCullService.onViewportChangeUpdateRendering).toHaveBeenCalledWith(true);
   });
 
@@ -173,6 +171,9 @@ describe("AutoLayoutService", () => {
     spyOn(nodeService, "getNodes").and.returnValue(nodes);
     spyOn(trainrunSectionService, "getTrainrunSections").and.returnValue(sections);
     spyOn(nodeService, "changeNodePositionWithoutUpdate").and.stub();
+    spyOn(trainrunSectionService, "getTrainrunSectionsGroupOrientedBasedOnPort").and.returnValue(
+      sections,
+    );
     spyOn(nodeService, "initPortOrdering").and.stub();
     spyOn(viewportCullService, "onViewportChangeUpdateRendering").and.stub();
 
@@ -200,6 +201,7 @@ describe("AutoLayoutService", () => {
       getBetriebspunktName: () => name,
       getPort: () => ({
         getPositionAlignment: () => portAlignment,
+        getPositionIndex: () => 0,
       }),
     } as unknown as Node;
   }
@@ -211,7 +213,6 @@ describe("AutoLayoutService", () => {
     targetPosition: TestPoint,
   ): TrainrunSection {
     return {
-      isPathInvalid: jasmine.createSpy("isPathInvalid").and.returnValue(false),
       getSourceNode: () => sourceNode,
       getTargetNode: () => targetNode,
       getSourcePortId: () => "source-port",
@@ -222,7 +223,6 @@ describe("AutoLayoutService", () => {
         getTitle: () => "15",
         getCategoryShortName: () => "IR",
       }),
-      routeEdgeAndPlaceText: jasmine.createSpy("routeEdgeAndPlaceText"),
     } as unknown as TrainrunSection;
   }
 

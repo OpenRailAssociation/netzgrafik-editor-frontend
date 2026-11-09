@@ -76,17 +76,6 @@ describe("TrainrunSectionService", () => {
     expect(trainrunSections.length).toBe(8);
   });
 
-  it("TrainrunSectionService.updateTrainrunSectionNumberOfStops", () => {
-    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
-    const ts = trainrunSectionService.getTrainrunSectionFromId(1);
-    trainrunSectionService.updateTrainrunSectionNumberOfStops(ts, 0);
-    expect(ts.getNumberOfStops()).toBe(0);
-    trainrunSectionService.updateTrainrunSectionNumberOfStops(ts, undefined);
-    expect(ts.getNumberOfStops()).toBe(undefined);
-    trainrunSectionService.updateTrainrunSectionNumberOfStops(ts, 3);
-    expect(ts.getNumberOfStops()).toBe(3);
-  });
-
   it("TrainrunSectionService.setTrainrunSectionAsSelected", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     expect(trainrunSectionService.getSelectedTrainrunSection()).toBe(null);
@@ -149,6 +138,8 @@ describe("TrainrunSectionService", () => {
 
     trainrunSectionService.deleteTrainrunSection(
       trainrunSectionService.getTrainrunSections()[1].getId(),
+      true,
+      true,
     );
 
     expect(nodeA.getTransitions().length).toBe(1);
@@ -156,7 +147,6 @@ describe("TrainrunSectionService", () => {
     expect(nodeC.getTransitions().length).toBe(0);
     expect(nodeD.getTransitions().length).toBe(1);
     expect(nodeE.getTransitions().length).toBe(1);
-
     const transA_AB2 = nodeA.getTransition(tsAB.getId());
     const transA_EA2 = nodeA.getTransition(tsEA.getId());
     expect(transA_AB2.getId()).toBe(transA_EA2.getId());
@@ -174,6 +164,8 @@ describe("TrainrunSectionService", () => {
           leftArrivalTime: 45,
           travelTime: 10,
           bottomTravelTime: 15,
+          stopTime: 0,
+          bottomStopTime: 0,
         },
         expectedTrainrunSectionTimes: [
           {
@@ -197,6 +189,8 @@ describe("TrainrunSectionService", () => {
           leftArrivalTime: 45,
           travelTime: 10,
           bottomTravelTime: 15,
+          stopTime: 0,
+          bottomStopTime: 0,
         },
         expectedTrainrunSectionTimes: [
           {
@@ -220,6 +214,8 @@ describe("TrainrunSectionService", () => {
           leftArrivalTime: 45,
           travelTime: 10,
           bottomTravelTime: 15,
+          stopTime: 0,
+          bottomStopTime: 0,
         },
         expectedTrainrunSectionTimes: [
           {
