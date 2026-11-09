@@ -20,15 +20,17 @@ export class EditorNodeSearchViewComponent implements OnInit, OnDestroy {
   private static readonly FILTER_PANEL_ID = "cd-layout-filter";
   private static readonly MAX_AUTOCOMPLETE_RESULTS = 20;
 
+  readonly GeneralViewFunctions = GeneralViewFunctions;
+
   searchControl = new FormControl<string | Node>("", {nonNullable: true});
   searchResults: Node[] = [];
-  readonly GeneralViewFunctions = GeneralViewFunctions;
-  readonly displayNode = (value: Node): string => this.getDisplayValue(value);
-
-  private destroyed = new Subject<void>();
   allSearchableNodes: Node[] = [];
   filteredNodes: Node[] = [];
   remainingNodeResults = 0;
+
+  readonly displayNode = (value: Node): string => this.getDisplayValue(value);
+
+  private destroyed = new Subject<void>();
 
   constructor(
     private uiInteractionService: UiInteractionService,
