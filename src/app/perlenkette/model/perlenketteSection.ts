@@ -1,8 +1,6 @@
-import {PerlenketteItem} from "./perlenketteItem";
-import {PerlenketteNode} from "./perlenketteNode";
 import {Node} from "../../models/node.model";
 
-export class PerlenketteSection implements PerlenketteItem {
+export class PerlenketteSection {
   constructor(
     public trainrunSectionId: number,
     public travelTime: number,
@@ -24,21 +22,5 @@ export class PerlenketteSection implements PerlenketteItem {
 
   setLastTrainrunPartSection(flag: boolean) {
     this.lastTrainrunPartSection = flag;
-  }
-
-  isPerlenketteNode(): boolean {
-    return false;
-  }
-
-  getPerlenketteNode(): PerlenketteNode {
-    return undefined;
-  }
-
-  isPerlenketteSection(): boolean {
-    return true;
-  }
-
-  getPerlenketteSection(): PerlenketteSection {
-    return this;
   }
 }
