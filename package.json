@@ -59,7 +59,7 @@
     "ngx-editor": "^19.1.1",
     "papaparse": "^5.7.0",
     "rxjs": "^7.8.2",
-    "tslib": "^2.5.3",
+    "tslib": "^2.9.1",
     "zone.js": "~0.16.3"
   },
   "devDependencies": {
