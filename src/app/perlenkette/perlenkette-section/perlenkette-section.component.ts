@@ -17,6 +17,7 @@ import {TrainrunSectionService} from "../../services/data/trainrunsection.servic
 import {takeUntil} from "rxjs/operators";
 import {UiInteractionService} from "../../services/ui/ui.interaction.service";
 import {Observable, Subject} from "rxjs";
+import {Trainrun} from "../../models/trainrun.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {TrainrunSectionTimesService} from "../../services/data/trainrun-section-times.service";
 import {TrainrunSectionsView} from "../../view/editor-main-view/data-views/trainrunsections.view";
@@ -154,8 +155,12 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     this.destroyed$.complete();
   }
 
+  getTrainrun(): Trainrun {
+    return this.trainrunSection.getTrainrun();
+  }
+
   getEdgeLineArrowClass() {
-    const trainrun = this.trainrunSection.getTrainrun();
+    const trainrun = this.getTrainrun();
     return (
       StaticDomTags.EDGE_LINE_ARROW_CLASS +
       StaticDomTags.makeClassTag(
@@ -174,7 +179,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   shouldDisplayDirectionArrow(): boolean {
-    return !this.trainrunSection.getTrainrun().isRoundTrip();
+    return !this.getTrainrun().isRoundTrip();
   }
 
   getDirectionArrowTranslateAndRotate(y: number) {
@@ -194,27 +199,17 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   isLeftSideDisplayed(): boolean {
-    if (this.trainrunSection === null) {
-      return false;
-    }
     return (
-      this.trainrunSection.getTrainrun().isRoundTrip() ||
-      !this.trainrunService.isTrainrunTargetRightOrBottom()
+      this.getTrainrun().isRoundTrip() || !this.trainrunService.isTrainrunTargetRightOrBottom()
     );
   }
 
   isRightSideDisplayed(): boolean {
-    if (this.trainrunSection === null) {
-      return false;
-    }
-    return (
-      this.trainrunSection.getTrainrun().isRoundTrip() ||
-      this.trainrunService.isTrainrunTargetRightOrBottom()
-    );
+    return this.getTrainrun().isRoundTrip() || this.trainrunService.isTrainrunTargetRightOrBottom();
   }
 
   shouldDisplayAsymmetryArrow(arrowLocation: "top" | "bottom"): boolean {
-    if (!this.trainrunSection.getTrainrun().isRoundTrip()) return false;
+    if (!this.getTrainrun().isRoundTrip()) return false;
     if (this.getLeftToRightDirection(arrowLocation) === "sourceToTarget") {
       return !this.trainrunSection.isSourceSymmetricOrTimesSymmetric();
     } else {
@@ -362,7 +357,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
         " " +
         TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
           this.trainrunSection.getTargetDepartureConsecutiveTime(),
-          this.trainrunSection.getTrainrun(),
+          this.getTrainrun(),
         ) +
         (this.trainrunSection.hasTargetDepartureWarning() ? " " + StaticDomTags.TAG_WARNING : "")
       );
@@ -371,7 +366,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
       " " +
       TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
         this.trainrunSection.getSourceDepartureConsecutiveTime(),
-        this.trainrunSection.getTrainrun(),
+        this.getTrainrun(),
       ) +
       (this.trainrunSection.hasSourceDepartureWarning() ? " " + StaticDomTags.TAG_WARNING : "")
     );
@@ -390,7 +385,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
         " " +
         TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
           this.trainrunSection.getTargetArrivalConsecutiveTime(),
-          this.trainrunSection.getTrainrun(),
+          this.getTrainrun(),
         ) +
         (this.trainrunSection.hasTargetArrivalWarning() ? " " + StaticDomTags.TAG_WARNING : "")
       );
@@ -399,7 +394,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
       " " +
       TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
         this.trainrunSection.getSourceArrivalConsecutiveTime(),
-        this.trainrunSection.getTrainrun(),
+        this.getTrainrun(),
       ) +
       (this.trainrunSection.hasSourceArrivalWarning() ? " " + StaticDomTags.TAG_WARNING : "")
     );
@@ -462,7 +457,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
         " " +
         TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
           this.trainrunSection.getSourceDepartureConsecutiveTime(),
-          this.trainrunSection.getTrainrun(),
+          this.getTrainrun(),
         ) +
         (this.trainrunSection.hasSourceDepartureWarning() ? " " + StaticDomTags.TAG_WARNING : "")
       );
@@ -471,7 +466,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
       " " +
       TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
         this.trainrunSection.getTargetDepartureConsecutiveTime(),
-        this.trainrunSection.getTrainrun(),
+        this.getTrainrun(),
       ) +
       (this.trainrunSection.hasTargetDepartureWarning() ? " " + StaticDomTags.TAG_WARNING : "")
     );
@@ -490,7 +485,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
         " " +
         TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
           this.trainrunSection.getSourceArrivalConsecutiveTime(),
-          this.trainrunSection.getTrainrun(),
+          this.getTrainrun(),
         ) +
         (this.trainrunSection.hasSourceArrivalWarning() ? " " + StaticDomTags.TAG_WARNING : "")
       );
@@ -499,7 +494,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
       " " +
       TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
         this.trainrunSection.getTargetArrivalConsecutiveTime(),
-        this.trainrunSection.getTrainrun(),
+        this.getTrainrun(),
       ) +
       (this.trainrunSection.hasTargetArrivalWarning() ? " " + StaticDomTags.TAG_WARNING : "")
     );
@@ -536,7 +531,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
       return true;
     }
     return (
-      this.trainrunSection.getTrainrun().isRoundTrip() &&
+      this.getTrainrun().isRoundTrip() &&
       !this.trainrunSection.isSymmetric() &&
       this.filterService.isFilterBackwardTravelTimeEnabled()
     );
@@ -830,7 +825,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   isTrainrunSymmetric() {
-    return this.trainrunSectionService.isTrainrunSymmetric(this.trainrunSection.getTrainrunId());
+    return this.trainrunSectionService.isTrainrunSymmetric(this.getTrainrun().getId());
   }
 
   private getLockOpenSvgPath(): string {

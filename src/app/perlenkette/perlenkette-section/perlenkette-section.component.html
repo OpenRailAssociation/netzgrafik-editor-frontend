@@ -423,7 +423,7 @@
 
             <sbb-toggle-switch-button
               class="LeftSymmetryToggle"
-              *ngIf="trainrunSection.getTrainrun().isRoundTrip()"
+              *ngIf="getTrainrun().isRoundTrip()"
               [checked]="!trainrunSectionTimesService.getSymmetryStructure().leftSymmetry"
               (checkedChanged)="onLeftNodeSymmetryToggle(!$event)"
               #leftSymmetryToggle
@@ -663,7 +663,7 @@
             </div>
             <sbb-toggle-switch-button
               class="RightSymmetryToggle"
-              *ngIf="trainrunSection.getTrainrun().isRoundTrip()"
+              *ngIf="getTrainrun().isRoundTrip()"
               [checked]="!trainrunSectionTimesService.getSymmetryStructure().rightSymmetry"
               (checkedChanged)="onRightNodeSymmetryToggle(!$event)"
               #rightSymmetryToggle
@@ -676,9 +676,7 @@
 
       <svg
         width="45px"
-        [style.transform]="
-          trainrunSection.getTrainrun().isRoundTrip() ? 'translateX(30px)' : 'none'
-        "
+        [style.transform]="getTrainrun().isRoundTrip() ? 'translateX(30px)' : 'none'"
       >
         <foreignObject height="192px" width="45px">
           <div class="propagationButtonContainer">
