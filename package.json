@@ -76,7 +76,7 @@
     "@types/papaparse": "^5.3.2",
     "angular-eslint": "^22.6.0",
     "browserstack-local": "^1.5.16",
-    "eslint": "^10.13.0",
+    "eslint": "^10.14.0",
     "eslint-config-prettier": "^10.1.8",
     "istanbul-lib-instrument": "^6.0.3",
     "jasmine-core": "6.3.0",
