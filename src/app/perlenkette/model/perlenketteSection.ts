@@ -4,11 +4,11 @@ import {Node} from "../../models/node.model";
 
 export class PerlenketteSection implements PerlenketteItem {
   constructor(
-    public trainrunSectionId: number,
-    public travelTime: number,
-    public fromNode: Node,
-    public toNode: Node,
-    public numberOfStops: number,
+    readonly trainrunSectionId: number,
+    readonly travelTime: number,
+    readonly fromNode: Node,
+    readonly toNode: Node,
+    readonly numberOfStops: number,
     public isBeingEdited: boolean = false,
     public fristTrainrunPartSection: boolean = false,
     public lastTrainrunPartSection: boolean = false,
