@@ -14,12 +14,9 @@
   flex: 1 1 auto;
   min-height: 0;
   max-height: none;
+  overflow-y: auto;
   overflow-x: hidden;
-  overflow-y: auto;
-}
-
-.search-results-list.search-results-overflow {
-  overflow-y: auto;
+  padding-top: 4px;
 }
 
 .search-result-item {
