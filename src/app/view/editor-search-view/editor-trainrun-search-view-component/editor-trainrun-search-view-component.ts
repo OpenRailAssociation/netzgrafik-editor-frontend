@@ -8,6 +8,7 @@ import {
   InformSelectedTrainrunClick,
   TrainrunSectionService,
 } from "../../../services/data/trainrunsection.service";
+import {GeneralViewFunctions} from "../../util/generalViewFunctions";
 import {UiInteractionService} from "../../../services/ui/ui.interaction.service";
 import {FormControl} from "@angular/forms";
 import {OrderedTrainrunNodeEntry} from "../../../services/data/trainrun.service";
@@ -39,6 +40,7 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
 
   readonly displayTrainrun = (value: Trainrun | null): string => this.getDisplayValue(value);
   readonly transformTrainrunName = (value: Trainrun): string => this.getTrainrunDisplayName(value);
+  readonly transformNodeEntryName = (entry: OrderedTrainrunNodeEntry): string => GeneralViewFunctions.getNodeDisplayName(this.nodeService.getNodeFromId(entry.nodeId));
 
   private destroyed = new Subject<void>();
 
@@ -227,13 +229,6 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     const category = trainrun.getCategoryShortName();
     const title = trainrun.getTitle();
     return `${category}${title}`.trim();
-  }
-
-  transformNodeEntryName(entry: OrderedTrainrunNodeEntry): string {
-    const node = this.nodeService.getNodeFromId(entry.nodeId);
-    return this.filterService.isDisplayingNodesFullName()
-      ? node.getFullName()
-      : node.getBetriebspunktName();
   }
 
   private search(): void {
