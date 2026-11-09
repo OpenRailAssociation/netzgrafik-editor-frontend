@@ -99,8 +99,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   stationNumberArray: number[];
   public trainrunSection: TrainrunSection;
 
-  public numberOfStops: number;
-
   private destroyed$ = new Subject<void>();
 
   private trafficSide: TrafficSide;
@@ -117,7 +115,6 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
 
   ngOnInit() {
     this.trafficSide = this.uiInteractionService.getActiveTrafficSideType();
-    this.numberOfStops = this.perlenketteSection.numberOfStops;
     this.stationNumberArray = Array(this.perlenketteSection.numberOfStops)
       .fill(1)
       .map((_, i) => i + 1);
@@ -763,19 +760,12 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   /* number of stops */
   onInputNbrStopsElementButtonMinus(event: MouseEvent) {
     event.stopPropagation();
-    const nos = Math.max(0, this.trainrunSection.getNumberOfStops() - 1);
-    this.trainrunSectionService.updateTrainrunSectionNumberOfStops(this.trainrunSection, nos);
-  }
-
-  onInputNbrStopsChanged() {
-    const nos = Math.max(this.numberOfStops);
-    this.trainrunSectionService.updateTrainrunSectionNumberOfStops(this.trainrunSection, nos);
+    this.trainrunSectionTimesService.onNumberOfStopsButtonMinus();
   }
 
   onInputNbrStopsElementButtonPlus(event: MouseEvent) {
     event.stopPropagation();
-    const nos = Math.max(0, this.trainrunSection.getNumberOfStops() + 1);
-    this.trainrunSectionService.updateTrainrunSectionNumberOfStops(this.trainrunSection, nos);
+    this.trainrunSectionTimesService.onNumberOfStopsButtonPlus();
   }
 
   onEdgeLineClick() {
