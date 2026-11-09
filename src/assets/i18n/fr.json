@@ -473,7 +473,7 @@
           "shift": "Σ |décalage| [min]",
           "changed": "Trains / horaires",
           "edges": "Voies par tronçon avec occupation modifiée",
-          "track-overview-comparison": "Voies par tronçon : avant / après",
+          "track-overview-comparison": "Aperçu des voies par tronçon (état actuel)",
           "track-overview": "Aperçu des voies par tronçon (état actuel)",
           "results-panel": "Résultat",
           "from-node": "De",

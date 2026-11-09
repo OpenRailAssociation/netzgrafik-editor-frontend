@@ -68,11 +68,11 @@ Der erste gültige Vorschlag wird nach dem Lauf automatisch ausgewählt. Ungült
 
 ### Details: fünf Spalten pro Abschnitt
 
-Die Vergleichstabelle **Streckengleis-Übersicht (IST) vs. NEU** zeigt standardmässig nur
+Die Streckengleis-Übersicht zeigt Abschnitte im Optimierungsbereich und standardmässig nur
 Abschnitte mit veränderter Gleisbelegung. Dafür muss sich die maximale Gleiszahl oder die
 Topologie mindestens eines Teilsegments unterscheiden. **Alle Abschnitte anzeigen** ergänzt
-auch Abschnitte mit unveränderter Gleisbelegung und eine sortierbare, deaktivierte Checkbox-Spalte
-**Gleisbelegung geändert**.
+auch unveränderte Abschnitte innerhalb des Optimierungsbereichs und eine sortierbare, deaktivierte
+Checkbox-Spalte **Gleisbelegung geändert**.
 
 Die Tabelle enthält diese Spalten:
 

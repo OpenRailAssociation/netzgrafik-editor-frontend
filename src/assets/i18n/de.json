@@ -473,7 +473,7 @@
           "shift": "Σ |Verschiebung| [min]",
           "changed": "Züge / Zeiten",
           "edges": "Gleise je Abschnitt mit geänderter Belegung",
-          "track-overview-comparison": "Streckengleis-Übersicht (IST) vs. NEU",
+          "track-overview-comparison": "Streckengleis-Übersicht (IST)",
           "track-overview": "Streckengleis-Übersicht (IST)",
           "results-panel": "Ergebnis",
           "from-node": "Von",

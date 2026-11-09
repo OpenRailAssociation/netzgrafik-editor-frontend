@@ -997,8 +997,8 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   }
 
   private refreshSectionTrackOverview(): void {
-    const baselineEdges = this.result?.baselineEdges ?? [];
-    const solutionEdges = this.selectedSolution?.edges ?? [];
+    const baselineEdges = (this.result?.baselineEdges ?? []).filter((edge) => edge.inScope);
+    const solutionEdges = (this.selectedSolution?.edges ?? []).filter((edge) => edge.inScope);
     const solutionEdgesById = new Map(solutionEdges.map((edge) => [edge.edgeId, edge]));
     const baselineById = new Map(baselineEdges.map((edge) => [edge.edgeId, edge]));
     const sourceEdges = [

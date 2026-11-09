@@ -618,15 +618,25 @@ describe("OptimizeTimetableDialogComponent track overview scope", () => {
         ],
         trackSegmentsAfter: [{start: 0, end: 1, tracks: 2}],
       };
+      const outsideScope: EdgeTrackKpi = {
+        edgeId: "5-6",
+        inScope: false,
+        fromNodeName: "E",
+        toNodeName: "F",
+        tracksBefore: 4,
+        tracksAfter: 1,
+        trackSegmentsBefore: [{start: 0, end: 1, tracks: 4}],
+        trackSegmentsAfter: [{start: 0, end: 1, tracks: 1}],
+      };
       const component = Object.create(
         OptimizeTimetableDialogComponent.prototype,
       ) as OptimizeTimetableDialogComponent;
       Object.assign(component, {
         result: {
-          baselineEdges: [unchanged, changed, timetableOnlyChanged, topologyChanged],
+          baselineEdges: [unchanged, changed, timetableOnlyChanged, topologyChanged, outsideScope],
         } as OptimizeTimetableResult,
         selectedSolution: {
-          edges: [changed, timetableOnlyChanged, topologyChanged],
+          edges: [changed, timetableOnlyChanged, topologyChanged, outsideScope],
         } as OptimizeTimetableSolution,
         showAllSectionTracks: false,
         sectionTrackSort: {active: "tracksAfter", direction: "desc"},
@@ -643,6 +653,9 @@ describe("OptimizeTimetableDialogComponent track overview scope", () => {
       component.setShowAllSectionTracks(true);
 
       expect(component.sectionTrackDataSource.data.length).toBe(4);
+      expect(
+        component.sectionTrackDataSource.data.some((edge) => edge.edgeId === "5-6"),
+      ).toBeFalse();
       expect(component.sectionTrackColumns).toContain("changed");
       const unchangedRow = component.sectionTrackDataSource.data.find(
         (edge) => edge.edgeId === "1-2",

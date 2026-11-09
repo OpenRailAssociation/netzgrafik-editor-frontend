@@ -473,7 +473,7 @@
           "shift": "Σ |shift| [min]",
           "changed": "Trainruns / times",
           "edges": "Tracks per section with changed occupancy",
-          "track-overview-comparison": "Section tracks: before vs. after",
+          "track-overview-comparison": "Section track overview (current state)",
           "track-overview": "Section track overview (current state)",
           "results-panel": "Result",
           "from-node": "From",
