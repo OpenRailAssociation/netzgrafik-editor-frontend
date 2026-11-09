@@ -298,7 +298,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   isFirstSection(item: PerlenketteItem): boolean {
     if (item.isPerlenketteSection()) {
       const psi = item.getPerlenketteSection();
-      return psi.isFristTrainrunPartSection();
+      return psi.isFirstTrainrunPartSection();
     }
     return false;
   }
