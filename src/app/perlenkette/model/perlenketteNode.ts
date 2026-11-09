@@ -6,12 +6,12 @@ import {PerlenketteTrainrun} from "./perlenketteTrainrun";
 
 export class PerlenketteNode implements PerlenketteItem {
   constructor(
-    public nodeId: number,
-    public shortName: string,
-    public fullName: string,
-    public connectionTime: number,
-    public connections: PerlenketteConnection[],
-    public transition: Transition,
+    readonly nodeId: number,
+    readonly shortName: string,
+    readonly fullName: string,
+    readonly connectionTime: number,
+    readonly connections: PerlenketteConnection[],
+    readonly transition: Transition,
     public fristTrainrunPartNode: boolean,
     public lastTrainrunPartNode: boolean,
   ) {}

@@ -3,14 +3,14 @@ import {Direction, TrainrunTimeCategory} from "../../data-structures/business.da
 
 export class PerlenketteTrainrun {
   constructor(
-    public trainrunId: number,
-    public frequency: number,
-    public frequencyOffset: number,
-    public trainrunTimeCategory: TrainrunTimeCategory,
-    public title: string,
-    public categoryShortName: string,
-    public colorRef: string,
-    public pathItems: PerlenketteItem[] = [],
-    public direction: Direction,
+    readonly trainrunId: number,
+    readonly frequency: number,
+    readonly frequencyOffset: number,
+    readonly trainrunTimeCategory: TrainrunTimeCategory,
+    readonly title: string,
+    readonly categoryShortName: string,
+    readonly colorRef: string,
+    readonly pathItems: PerlenketteItem[] = [],
+    readonly direction: Direction,
   ) {}
 }
