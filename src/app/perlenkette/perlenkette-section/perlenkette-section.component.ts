@@ -34,6 +34,7 @@ import {MathUtils} from "../../utils/math";
 import {VersionControlService} from "../../services/data/version-control.service";
 import {ToggleSwitchButtonComponent} from "../../view/toggle-switch-button/toggle-switch-button.component";
 import {TrafficSide} from "src/app/data-structures/business.data.structures";
+import {DirectedTrainrunSectionProxy} from "src/app/services/util/trainrun.iterator";
 
 const timeCoordinates = {
   leftHand: {
@@ -354,27 +355,39 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     return this.roundTime(this.trainrunSectionTimesService.getTimeStructure().rightDepartureTime);
   }
 
-  getRightDepartureTimeClassTag(): string {
-    const targetId = this.trainrunSection.getTargetNodeId();
-    const toId = this.perlenketteSection.toNode.getId();
-    if (targetId === toId) {
-      return (
-        " " +
-        TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
-          this.trainrunSection.getTargetDepartureConsecutiveTime(),
-          this.trainrunSection.getTrainrun(),
-        ) +
-        (this.trainrunSection.hasTargetDepartureWarning() ? " " + StaticDomTags.TAG_WARNING : "")
-      );
-    }
+  private getTimeClassTag({
+    consecutiveTime,
+    hasWarning,
+  }: {
+    consecutiveTime: number;
+    hasWarning: boolean;
+  }): string {
     return (
       " " +
       TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
-        this.trainrunSection.getSourceDepartureConsecutiveTime(),
+        consecutiveTime,
         this.trainrunSection.getTrainrun(),
       ) +
-      (this.trainrunSection.hasSourceDepartureWarning() ? " " + StaticDomTags.TAG_WARNING : "")
+      (hasWarning ? " " + StaticDomTags.TAG_WARNING : "")
     );
+  }
+
+  private getTailDepartureTimeClassTag(section: DirectedTrainrunSectionProxy): string {
+    return this.getTimeClassTag({
+      consecutiveTime: section.getTailDepartureDto().consecutiveTime,
+      hasWarning: Boolean(section.getTailDepartureDto().warning),
+    });
+  }
+
+  private getHeadArrivalTimeClassTag(section: DirectedTrainrunSectionProxy): string {
+    return this.getTimeClassTag({
+      consecutiveTime: section.getHeadArrivalDto().consecutiveTime,
+      hasWarning: Boolean(section.getHeadArrivalDto().warning),
+    });
+  }
+
+  getRightDepartureTimeClassTag(): string {
+    return this.getTailDepartureTimeClassTag(this.getDirectedTrainrunSectionProxy("bottom"));
   }
 
   /* right arrival time */
@@ -383,26 +396,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   getRightArrivalTimeClassTag(): string {
-    const targetId = this.trainrunSection.getTargetNodeId();
-    const toId = this.perlenketteSection.toNode.getId();
-    if (targetId === toId) {
-      return (
-        " " +
-        TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
-          this.trainrunSection.getTargetArrivalConsecutiveTime(),
-          this.trainrunSection.getTrainrun(),
-        ) +
-        (this.trainrunSection.hasTargetArrivalWarning() ? " " + StaticDomTags.TAG_WARNING : "")
-      );
-    }
-    return (
-      " " +
-      TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
-        this.trainrunSection.getSourceArrivalConsecutiveTime(),
-        this.trainrunSection.getTrainrun(),
-      ) +
-      (this.trainrunSection.hasSourceArrivalWarning() ? " " + StaticDomTags.TAG_WARNING : "")
-    );
+    return this.getHeadArrivalTimeClassTag(this.getDirectedTrainrunSectionProxy("top"));
   }
 
   showStopArcStart(): boolean {
@@ -455,26 +449,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   getLeftDepartureTimeClassTag(): string {
-    const sourceId = this.trainrunSection.getSourceNodeId();
-    const fromId = this.perlenketteSection.fromNode.getId();
-    if (sourceId === fromId) {
-      return (
-        " " +
-        TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
-          this.trainrunSection.getSourceDepartureConsecutiveTime(),
-          this.trainrunSection.getTrainrun(),
-        ) +
-        (this.trainrunSection.hasSourceDepartureWarning() ? " " + StaticDomTags.TAG_WARNING : "")
-      );
-    }
-    return (
-      " " +
-      TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
-        this.trainrunSection.getTargetDepartureConsecutiveTime(),
-        this.trainrunSection.getTrainrun(),
-      ) +
-      (this.trainrunSection.hasTargetDepartureWarning() ? " " + StaticDomTags.TAG_WARNING : "")
-    );
+    return this.getTailDepartureTimeClassTag(this.getDirectedTrainrunSectionProxy("top"));
   }
 
   /* left arrival time */
@@ -483,26 +458,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   getLeftArrivalTimeClassTag(): string {
-    const sourceId = this.trainrunSection.getSourceNodeId();
-    const fromId = this.perlenketteSection.fromNode.getId();
-    if (sourceId === fromId) {
-      return (
-        " " +
-        TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
-          this.trainrunSection.getSourceArrivalConsecutiveTime(),
-          this.trainrunSection.getTrainrun(),
-        ) +
-        (this.trainrunSection.hasSourceArrivalWarning() ? " " + StaticDomTags.TAG_WARNING : "")
-      );
-    }
-    return (
-      " " +
-      TrainrunSectionsView.getTrainrunSectionTimeElementOddOffsetTag(
-        this.trainrunSection.getTargetArrivalConsecutiveTime(),
-        this.trainrunSection.getTrainrun(),
-      ) +
-      (this.trainrunSection.hasTargetArrivalWarning() ? " " + StaticDomTags.TAG_WARNING : "")
-    );
+    return this.getHeadArrivalTimeClassTag(this.getDirectedTrainrunSectionProxy("bottom"));
   }
 
   showLeftArrivalTime() {
@@ -861,6 +817,13 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     } else {
       return direction === "sourceToTarget" ? "targetToSource" : "sourceToTarget";
     }
+  }
+
+  private getDirectedTrainrunSectionProxy(side: "top" | "bottom"): DirectedTrainrunSectionProxy {
+    return new DirectedTrainrunSectionProxy(
+      this.trainrunSection,
+      this.getLeftToRightDirection(side),
+    );
   }
 
   getTextAnchorForTimeElement(element: KeyOfTimeCoordinates): "anchor_start" | "anchor_end" {
