@@ -398,12 +398,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   showStopArcStart(): boolean {
-    const targetId = this.trainrunSection.getTargetNodeId();
-    const fromId = this.perlenketteSection.fromNode.getId();
-    let trans = this.trainrunSection.getSourceNode().getTransition(this.trainrunSection.getId());
-    if (targetId === fromId) {
-      trans = this.trainrunSection.getTargetNode().getTransition(this.trainrunSection.getId());
-    }
+    const trans = this.perlenketteSection.fromNode.getTransition(this.trainrunSection.getId());
     if (trans === undefined) {
       return true;
     }
@@ -411,12 +406,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   showStopArcEnd(): boolean {
-    const targetId = this.trainrunSection.getTargetNodeId();
-    const toId = this.perlenketteSection.toNode.getId();
-    let trans = this.trainrunSection.getSourceNode().getTransition(this.trainrunSection.getId());
-    if (targetId === toId) {
-      trans = this.trainrunSection.getTargetNode().getTransition(this.trainrunSection.getId());
-    }
+    const trans = this.perlenketteSection.toNode.getTransition(this.trainrunSection.getId());
     if (trans === undefined) {
       return true;
     }
@@ -424,17 +414,12 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   showRightArrivalTime() {
-    const targetId = this.trainrunSection.getTargetNodeId();
-    const toId = this.perlenketteSection.toNode.getId();
     if (!this.filterService.isFilterArrivalDepartureTimeEnabled()) {
       if (!this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
         return false;
       }
     }
-    let trans = this.trainrunSection.getSourceNode().getTransition(this.trainrunSection.getId());
-    if (targetId === toId) {
-      trans = this.trainrunSection.getTargetNode().getTransition(this.trainrunSection.getId());
-    }
+    const trans = this.perlenketteSection.toNode.getTransition(this.trainrunSection.getId());
     if (trans === undefined) {
       return true;
     }
@@ -498,17 +483,12 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   showLeftArrivalTime() {
-    const sourceId = this.trainrunSection.getSourceNodeId();
-    const fromId = this.perlenketteSection.fromNode.getId();
     if (!this.filterService.isFilterArrivalDepartureTimeEnabled()) {
       if (!this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
         return false;
       }
     }
-    let trans = this.trainrunSection.getTargetNode().getTransition(this.trainrunSection.getId());
-    if (sourceId === fromId) {
-      trans = this.trainrunSection.getSourceNode().getTransition(this.trainrunSection.getId());
-    }
+    const trans = this.perlenketteSection.fromNode.getTransition(this.trainrunSection.getId());
     if (trans === undefined) {
       return true;
     }
