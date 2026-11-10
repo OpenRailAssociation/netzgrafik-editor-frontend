@@ -1,3 +1,4 @@
+import {TimeLockDto} from "../../data-structures/technical.data.structures";
 import {Node} from "../../models/node.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {LogService} from "../../logger/log.service";
@@ -87,6 +88,30 @@ export class DirectedTrainrunSectionProxy {
     return this.direction === "sourceToTarget"
       ? this.trainrunSection.getTargetArrival()
       : this.trainrunSection.getSourceArrival();
+  }
+
+  getTailDepartureDto(): TimeLockDto {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getSourceDepartureDto()
+      : this.trainrunSection.getTargetDepartureDto();
+  }
+
+  getTailArrivalDto(): TimeLockDto {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getSourceArrivalDto()
+      : this.trainrunSection.getTargetArrivalDto();
+  }
+
+  getHeadDepartureDto(): TimeLockDto {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getTargetDepartureDto()
+      : this.trainrunSection.getSourceDepartureDto();
+  }
+
+  getHeadArrivalDto(): TimeLockDto {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getTargetArrivalDto()
+      : this.trainrunSection.getSourceArrivalDto();
   }
 
   getTravelTime(): number {
