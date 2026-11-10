@@ -37,7 +37,6 @@ export class NoteFilterTabComponent implements OnInit, OnDestroy {
   noteLabelsAutoCompleteOptions: string[] = [];
   readonly separatorKeysCodes = [ENTER, COMMA];
   private destroyed = new Subject<void>();
-  private isLabelBeingEdited = false;
 
   constructor(
     public dataService: DataService,
@@ -70,9 +69,7 @@ export class NoteFilterTabComponent implements OnInit, OnDestroy {
       return;
     }
     this.noteLabels = this.noteLabels.filter((labels) => labels !== valueDelete);
-    this.isLabelBeingEdited = true;
     this.checkAndSetLabels();
-    this.isLabelBeingEdited = false;
   }
 
   add(chipInputEvent: SbbChipInputEvent): void {
@@ -81,25 +78,8 @@ export class NoteFilterTabComponent implements OnInit, OnDestroy {
       return;
     }
     this.noteLabels.push(value);
-    this.isLabelBeingEdited = true;
     this.checkAndSetLabels();
-    this.isLabelBeingEdited = false;
     chipInputEvent.chipInput!.clear();
-  }
-
-  onLabelsFocusout() {
-    if (this.isLabelBeingEdited) return;
-
-    const keyboardEvent = new KeyboardEvent("keydown", {
-      code: "Enter",
-      key: "Enter",
-      charCode: 13,
-      keyCode: 13,
-      view: window,
-      bubbles: true,
-    });
-    document.getElementById("noteLabelsInput").dispatchEvent(keyboardEvent);
-    this.checkAndSetLabels();
   }
 
   onDeleteNote(): void {

@@ -3,7 +3,7 @@
     class="sbb-form-field-long"
     [label]="'app.view.dialogs.note-dialog.note-filter-tab.labels' | translate"
   >
-    <sbb-chip-list [value]="noteLabels" (focusout)="onLabelsFocusout()">
+    <sbb-chip-list [value]="noteLabels">
       <sbb-chip *ngFor="let element of noteLabels" [value]="element" (removed)="remove($event)">
         {{ element }}
       </sbb-chip>
@@ -11,6 +11,7 @@
         id="noteLabelsInput"
         [placeholder]="'app.view.dialogs.note-dialog.note-filter-tab.label-placeholder' | translate"
         sbbChipInput
+        sbbChipInputAddOnBlur
         cdkFocusInitial
         [sbbChipInputSeparatorKeyCodes]="separatorKeysCodes"
         (sbbChipInputTokenEnd)="add($event)"
