@@ -16,7 +16,8 @@ export class AutoSaveService implements OnDestroy {
 
   private changesSubscription: Subscription;
 
-  private currentNetzgrafikJSON: string;
+  // Model state which is known to be persisted (loaded from or saved to the backend).
+  private savedNetzgrafikJSON: string;
 
   constructor(private readonly dataService: DataService) {
     this.modifiedSubject = new BehaviorSubject(false);
@@ -38,16 +39,11 @@ export class AutoSaveService implements OnDestroy {
     if (this.changesSubscription) {
       this.changesSubscription.unsubscribe();
     }
+    this.savedNetzgrafikJSON = this.getCurrentNetzgrafikJson();
     this.modifiedSubject.next(false);
-    this.currentNetzgrafikJSON = JSON.stringify(this.dataService.getNetzgrafikDto());
     this.changesSubscription = this.dataService
       .getNetzgrafikChangesObservable(300)
-      .subscribe(() => {
-        const newNetzgrafikJson = JSON.stringify(this.dataService.getNetzgrafikDto());
-        const modified = newNetzgrafikJson !== this.currentNetzgrafikJSON;
-        this.currentNetzgrafikJSON = newNetzgrafikJson;
-        this.modifiedSubject.next(modified);
-      });
+      .subscribe(() => this.updateModified());
   }
 
   disable() {
@@ -55,5 +51,28 @@ export class AutoSaveService implements OnDestroy {
       this.changesSubscription.unsubscribe();
     }
     this.modifiedSubject.next(false);
+  }
+
+  isModified(): boolean {
+    return this.modifiedSubject.value;
+  }
+
+  getCurrentNetzgrafikJson(): string {
+    return JSON.stringify(this.dataService.getNetzgrafikDto());
+  }
+
+  /**
+   * Marks the given model state as persisted. Changes made after this state was serialized
+   * (e.g. while the save request was running) stay "modified" and are saved later.
+   */
+  markSaved(savedNetzgrafikJson: string) {
+    this.savedNetzgrafikJSON = savedNetzgrafikJson;
+    if (this.changesSubscription && !this.changesSubscription.closed) {
+      this.updateModified();
+    }
+  }
+
+  private updateModified() {
+    this.modifiedSubject.next(this.getCurrentNetzgrafikJson() !== this.savedNetzgrafikJSON);
   }
 }

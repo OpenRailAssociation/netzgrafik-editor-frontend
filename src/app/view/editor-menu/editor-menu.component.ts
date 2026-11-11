@@ -9,7 +9,7 @@ import {EditorMode} from "./editor-mode";
 import {AutoSaveService} from "../../services/data/auto-save.service";
 import {VersionControlService} from "../../services/data/version-control.service";
 import {map, takeUntil} from "rxjs/operators";
-import {Subject} from "rxjs";
+import {combineLatest, Observable, Subject} from "rxjs";
 import {AnalyticsService} from "../../services/analytics/analytics.service";
 import {D3Utils} from "../editor-main-view/data-views/d3.utils";
 import {ShortestDistanceNode} from "../../services/analytics/algorithms/shortest-distance-node";
@@ -38,7 +38,17 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
   public mainZoomFactor = 100;
 
   public isWritable$ = this.versionControlService.variant$.pipe(map((v) => v?.isWritable));
-  public modified$ = this.autoSaveService.modified$;
+  public saveStatus$: Observable<"saving" | "saved" | "error"> = combineLatest([
+    this.versionControlService.saveState$,
+    this.autoSaveService.modified$,
+  ]).pipe(
+    map(([saveState, modified]) => {
+      if (saveState === "error") {
+        return "error";
+      }
+      return saveState === "saving" || modified ? "saving" : "saved";
+    }),
+  );
   public label$ = this.versionControlService.variant$.pipe(map((v) => v?.latestVersion.name));
   private destroyed = new Subject<void>();
 
@@ -96,6 +106,10 @@ export class EditorMenuComponent implements OnInit, OnDestroy {
 
   getVariantIsWritable(): boolean {
     return this.versionControlService.getVariantIsWritable();
+  }
+
+  onRetrySaveClicked(): void {
+    this.versionControlService.retrySave();
   }
 
   onZoomIn() {

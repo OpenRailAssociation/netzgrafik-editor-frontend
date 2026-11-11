@@ -39,7 +39,8 @@
       "analytics": "Analytics",
       "edit": "Edit",
       "more-functions": "More functions",
-      "settings": "Settings"
+      "settings": "Settings",
+      "unsaved-changes": "There are unsaved changes. Do you really want to leave this page?"
     },
     "perlenkette": {
       "perlenkette-node": {
@@ -72,7 +73,8 @@
           }
         },
         "version-control": {
-          "new-name-comment": "New name: {$PH}"
+          "new-name-comment": "New name: {$PH}",
+          "save-failed": "Changes could not be saved. Saving will be retried with the next change."
         }
       },
       "ui": {
@@ -446,7 +448,8 @@
         "errorOriginDestination": "Origin-destination matrix cannot be displayed because at least 2 nodes have to have been selected.",
         "displayGraphicTimetable": "Display graphic timetable",
         "closeGraphicTimetable": "Close graphic timetable",
-        "errorGraphicTimetable": "Graphic timetable cannot be displayed because no trainrun or no nodes have been selected."
+        "errorGraphicTimetable": "Graphic timetable cannot be displayed because no trainrun or no nodes have been selected.",
+        "save-failed-retry": "Saving failed – try again"
       },
       "editor-properties-view-component": {
         "settings": "Settings",

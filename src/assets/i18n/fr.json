@@ -39,7 +39,8 @@
       "analytics": "Analyse",
       "edit": "Edition",
       "more-functions": "Plus de fonctionnalités",
-      "settings": "Paramètres"
+      "settings": "Paramètres",
+      "unsaved-changes": "Des modifications ne sont pas enregistrées. Voulez-vous vraiment quitter cette page ?"
     },
     "perlenkette": {
       "perlenkette-node": {
@@ -72,7 +73,8 @@
           }
         },
         "version-control": {
-          "new-name-comment": "Nouveau nom : {$PH}"
+          "new-name-comment": "Nouveau nom : {$PH}",
+          "save-failed": "Les modifications n'ont pas pu être enregistrées. L'enregistrement sera réessayé lors de la prochaine modification."
         }
       },
       "ui": {
@@ -446,7 +448,8 @@
         "errorOriginDestination": "La matrice origine-destination ne peut être affichée car il faut un minimum de 2 noeuds sélectionnés.",
         "displayGraphicTimetable": "Afficher le graphique espace-temps",
         "closeGraphicTimetable": "Fermer le graphique espace-temps",
-        "errorGraphicTimetable": "Le graphique espace-temps ne peut pas être affiché parce qu'aucun trajet de train ou aucun noeud n'a été sélectionné."
+        "errorGraphicTimetable": "Le graphique espace-temps ne peut pas être affiché parce qu'aucun trajet de train ou aucun noeud n'a été sélectionné.",
+        "save-failed-retry": "Échec de l'enregistrement – réessayer"
       },
       "editor-properties-view-component": {
         "settings": "Paramètres",

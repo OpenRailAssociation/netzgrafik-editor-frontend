@@ -67,6 +67,21 @@ $COLOR_TOPO_EDITOR_ACTIVE: #eb0000;
     margin-right: 0.5rem;
     animation: spin 1s linear infinite;
   }
+
+  button.SaveFailed {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    color: var(--sbb-color-red, #eb0000);
+    cursor: pointer;
+
+    &:hover span {
+      text-decoration: underline;
+    }
+  }
 }
 
 @-webkit-keyframes spin {

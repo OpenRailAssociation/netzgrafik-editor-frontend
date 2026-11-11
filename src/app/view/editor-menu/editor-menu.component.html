@@ -6,14 +6,26 @@
       </div>
       <div class="LabelNetzgrafikVarianteSaveStatus">
         <ng-container *ngIf="isWritable$ | async; else readonly">
-          <ng-container *ngIf="modified$ | async; else saved">
-            <span>{{ "app.view.editor-menu.save-changes" | translate }}</span>
-            <sbb-icon svgIcon="arrows-circle-small" class="spinning"></sbb-icon>
+          <ng-container [ngSwitch]="saveStatus$ | async">
+            <ng-container *ngSwitchCase="'saving'">
+              <span>{{ "app.view.editor-menu.save-changes" | translate }}</span>
+              <sbb-icon svgIcon="arrows-circle-small" class="spinning"></sbb-icon>
+            </ng-container>
+            <button
+              *ngSwitchCase="'error'"
+              type="button"
+              class="SaveFailed"
+              (click)="onRetrySaveClicked()"
+              title="{{ 'app.view.editor-menu.save-failed-retry' | translate }}"
+            >
+              <span>{{ "app.view.editor-menu.save-failed-retry" | translate }}</span>
+              <sbb-icon svgIcon="circle-exclamation-point-small"></sbb-icon>
+            </button>
+            <ng-container *ngSwitchDefault>
+              <span>{{ "app.view.editor-menu.changes-saved" | translate }}</span>
+              <sbb-icon svgIcon="circle-tick-small"></sbb-icon>
+            </ng-container>
           </ng-container>
-          <ng-template #saved>
-            <span>{{ "app.view.editor-menu.changes-saved" | translate }}</span>
-            <sbb-icon svgIcon="circle-tick-small"></sbb-icon>
-          </ng-template>
         </ng-container>
         <ng-template #readonly>
           <span>{{ "app.view.editor-menu.read-mode" | translate }}</span>

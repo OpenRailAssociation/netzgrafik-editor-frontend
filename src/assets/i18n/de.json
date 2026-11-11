@@ -39,7 +39,8 @@
       "analytics": "Analytics",
       "edit": "Bearbeiten",
       "more-functions": "Weitere Funktionen",
-      "settings": "Einstellungen"
+      "settings": "Einstellungen",
+      "unsaved-changes": "Es gibt ungespeicherte Änderungen. Möchten Sie die Seite trotzdem verlassen?"
     },
     "perlenkette": {
       "perlenkette-node": {
@@ -72,7 +73,8 @@
           }
         },
         "version-control": {
-          "new-name-comment": "Neuer Name: {$name}"
+          "new-name-comment": "Neuer Name: {$name}",
+          "save-failed": "Änderungen konnten nicht gespeichert werden. Das Speichern wird bei der nächsten Änderung erneut versucht."
         }
       },
       "ui": {
@@ -446,7 +448,8 @@
         "errorOriginDestination": "Origin-Destination Matrix kann nicht angezeigt werden, da mindestens 2 Knoten ausgewählt worden sein müssen.",
         "displayGraphicTimetable": "Streckengrafik anzeigen",
         "closeGraphicTimetable": "Streckengrafik schliessen",
-        "errorGraphicTimetable": "Streckengrafik kann nicht angezeigt werden, da keine Zugfahrt oder keine Knoten ausgewählt wurden."
+        "errorGraphicTimetable": "Streckengrafik kann nicht angezeigt werden, da keine Zugfahrt oder keine Knoten ausgewählt wurden.",
+        "save-failed-retry": "Speichern fehlgeschlagen – erneut versuchen"
       },
       "editor-properties-view-component": {
         "settings": "Einstellungen",

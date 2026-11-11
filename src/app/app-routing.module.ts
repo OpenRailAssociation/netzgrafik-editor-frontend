@@ -4,6 +4,7 @@ import {NetzgrafikApplicationComponent} from "./netzgrafik-application/netzgrafi
 import {ProjectsViewComponent} from "./view/project/projects-view/projects-view.component";
 import {VariantsViewComponent} from "./view/variant/variants-view/variants-view.component";
 import {ErrorViewComponent} from "./view/error-view/error-view.component";
+import {UnsavedChangesGuard} from "./utils/unsaved-changes.guard";
 
 // Use the AuthGuard in routes that should require a logged in user.
 // Do NOT use it for the root route. If the user should always be logged in,
@@ -18,6 +19,7 @@ const routes: Routes = [
       {
         path: ":projectId/variants/:variantId",
         component: NetzgrafikApplicationComponent,
+        canDeactivate: [UnsavedChangesGuard],
       },
     ],
   },

@@ -1,4 +1,4 @@
-import {Component, ChangeDetectionStrategy} from "@angular/core";
+import {Component, ChangeDetectionStrategy, HostListener} from "@angular/core";
 import {UiInteractionService} from "../services/ui/ui.interaction.service";
 import {map, takeUntil} from "rxjs/operators";
 import {Subject} from "rxjs";
@@ -52,6 +52,14 @@ export class NetzgrafikApplicationComponent {
           uiInteractionService.getDefaultViewProperties(),
         );
       });
+  }
+
+  @HostListener("window:beforeunload", ["$event"])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (!this.disableBackend && this.versionControlService.hasUnsavedChanges()) {
+      // shows the browser's native "leave site?" dialog
+      event.preventDefault();
+    }
   }
 
   getSidebarClassTag(): string {
