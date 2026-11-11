@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {HttpClient, HttpContext, HttpHeaders} from "@angular/common/http";
-import {Observable} from "rxjs";
+import {defer, from, Observable, switchMap, tap} from "rxjs";
 import {
   Configuration,
   VariantDto,
@@ -8,6 +8,8 @@ import {
   VersionCreateSnapshotDto,
 } from "../../api/generated";
 import {SKIP_ERROR_NAVIGATION} from "../../utils/http-error-interceptor";
+import {encodeJsonBody} from "../../utils/gzip-json";
+import {LogService} from "../../logger/log.service";
 import {VersionId} from "../../view/variant/variant-view/variant-history/model";
 
 /**
@@ -22,16 +24,36 @@ export class AutosaveBackendService {
   constructor(
     private readonly httpClient: HttpClient,
     private readonly versionsBackendService: VersionControllerBackendService,
+    private readonly logService: LogService,
   ) {}
 
   createSnapshotVersion(
     baseVersionId: VersionId,
     dto: VersionCreateSnapshotDto,
   ): Observable<VersionId> {
-    return this.httpClient.post<VersionId>(
-      `${this.configuration.basePath}/v1/versions/${encodeURIComponent(String(baseVersionId))}/snapshot`,
-      dto,
-      this.requestOptions(),
+    const url = `${this.configuration.basePath}/v1/versions/${encodeURIComponent(String(baseVersionId))}/snapshot`;
+    const options = this.requestOptions();
+    // defer: serialize + compress at subscription time (and again on resubscribe)
+    return defer(() => {
+      const startTime = Date.now();
+      return from(encodeJsonBody(dto)).pipe(
+        tap((body) => {
+          if (body.gzipped) {
+            this.logService.debug(
+              `snapshot request gzip: ${body.originalSize} -> ${body.data.size} bytes ` +
+                `in ${Date.now() - startTime} ms`,
+            );
+          }
+        }),
+      );
+    }).pipe(
+      switchMap((body) => {
+        let headers = options.headers.set("Content-Type", "application/json");
+        if (body.gzipped) {
+          headers = headers.set("Content-Encoding", "gzip");
+        }
+        return this.httpClient.post<VersionId>(url, body.data, {...options, headers});
+      }),
     );
   }
 
