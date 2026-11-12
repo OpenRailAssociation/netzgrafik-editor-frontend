@@ -64,6 +64,10 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
 
   sbbToggleValue = ShowTrainrunEditTab.sbb_trainrun_tab;
 
+  // Needed for the "instanceof" checks in the template
+  public PerlenketteNode = PerlenketteNode;
+  public PerlenketteSection = PerlenketteSection;
+
   constructor(
     private readonly loadPerlenketteService: LoadPerlenketteService,
     readonly filterService: FilterService,
@@ -95,9 +99,8 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
       }
       if (!this.trainrunSectionService.getSelectedTrainrunSection()) {
         this.trainrunSectionService.setTrainrunSectionAsSelected(
-          this.perlenketteTrainrun.pathItems
-            .find((s) => s.isPerlenketteSection())
-            .getPerlenketteSection().trainrunSectionId,
+          this.perlenketteTrainrun.pathItems.find((s) => s instanceof PerlenketteSection)
+            .trainrunSectionId,
         );
       }
       if (!trainrunList.length) {
@@ -152,12 +155,10 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
       return;
     }
     if (!this.trainrunSectionService.getSelectedTrainrunSection()) {
-      const pItemSection = this.perlenketteTrainrun.pathItems.find((item) =>
-        item.isPerlenketteSection(),
+      const pItemSection = this.perlenketteTrainrun.pathItems.find(
+        (item) => item instanceof PerlenketteSection,
       );
-      this.trainrunSectionService.setTrainrunSectionAsSelected(
-        pItemSection.getPerlenketteSection().trainrunSectionId,
-      );
+      this.trainrunSectionService.setTrainrunSectionAsSelected(pItemSection.trainrunSectionId);
     }
     // toggle
     if (this.showTrainrunEditTab === ShowTrainrunEditTab.sbb_trainrun_tab) {
@@ -182,14 +183,15 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     if (originalPathItems) {
       this.perlenketteTrainrun.pathItems.forEach((pathItem) => {
         originalPathItems.forEach((originalPathItem) => {
-          if (pathItem.isPerlenketteSection() && originalPathItem.isPerlenketteSection()) {
+          if (
+            pathItem instanceof PerlenketteSection &&
+            originalPathItem instanceof PerlenketteSection
+          ) {
             if (
-              pathItem.getPerlenketteSection().trainrunSectionId ===
-                originalPathItem.getPerlenketteSection().trainrunSectionId &&
-              originalPathItem.getPerlenketteSection().isBeingEdited
+              pathItem.trainrunSectionId === originalPathItem.trainrunSectionId &&
+              originalPathItem.isBeingEdited
             ) {
-              pathItem.getPerlenketteSection().isBeingEdited =
-                originalPathItem.getPerlenketteSection().isBeingEdited;
+              pathItem.isBeingEdited = originalPathItem.isBeingEdited;
             }
           }
         });
@@ -234,10 +236,10 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
 
   getSmallstationClassTag(pathItem: PerlenketteItem): string {
     let ret = "smallstation";
-    if (pathItem.isPerlenketteNode()) {
+    if (pathItem instanceof PerlenketteNode) {
       const r = this.getClosestPerlenketteItem();
       if (r !== undefined) {
-        if (r.nodeId === pathItem.getPerlenketteNode().nodeId) {
+        if (r.nodeId === pathItem.nodeId) {
           ret += " closest";
         }
       }
@@ -250,8 +252,8 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     let currentY = 0;
     this.perlenketteRenderingElementsHeight.forEach(([el, height]) => {
       const offY = this.svgPoint.getY() + this.contentHeight / 4;
-      if (el.isPerlenketteNode() && currentY < Math.max(0, offY) + height) {
-        retEl = el.getPerlenketteNode();
+      if (el instanceof PerlenketteNode && currentY < Math.max(0, offY) + height) {
+        retEl = el;
       }
       currentY += height;
     });
@@ -284,7 +286,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
     }
     const item = pathItems[idx];
     const previousItem = pathItems[idx + 1];
-    return item.isPerlenketteNode() === previousItem.isPerlenketteNode();
+    return item instanceof PerlenketteNode === previousItem instanceof PerlenketteNode;
   }
 
   signalHeightChanged(height: number, pathItem: PerlenketteItem) {
@@ -296,25 +298,22 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   }
 
   isFirstSection(item: PerlenketteItem): boolean {
-    if (item.isPerlenketteSection()) {
-      const psi = item.getPerlenketteSection();
-      return psi.isFristTrainrunPartSection();
+    if (item instanceof PerlenketteSection) {
+      return item.isFristTrainrunPartSection();
     }
     return false;
   }
 
   isLastSection(item: PerlenketteItem): boolean {
-    if (item.isPerlenketteSection()) {
-      const psi = item.getPerlenketteSection();
-      return psi.isLastTrainrunPartSection();
+    if (item instanceof PerlenketteSection) {
+      return item.isLastTrainrunPartSection();
     }
     return false;
   }
 
   isLastNode(item: PerlenketteItem): boolean {
-    if (item.isPerlenketteNode()) {
-      const pni = item.getPerlenketteNode();
-      return pni.isLastTrainrunPartNode();
+    if (item instanceof PerlenketteNode) {
+      return item.isLastTrainrunPartNode();
     }
     return false;
   }
@@ -375,12 +374,8 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
 
   gotoTrainrunSection(trainrunSectionId: number) {
     const pathItem: PerlenketteItem = this.perlenketteTrainrun.pathItems.find(
-      (item: PerlenketteItem) => {
-        if (item.isPerlenketteSection()) {
-          return item.getPerlenketteSection().trainrunSectionId === trainrunSectionId;
-        }
-        return false;
-      },
+      (item: PerlenketteItem) =>
+        item instanceof PerlenketteSection && item.trainrunSectionId === trainrunSectionId,
     );
     if (pathItem !== undefined) {
       const pItemHeight = this.perlenketteRenderingElementsHeight.find((pItem) => {
@@ -394,9 +389,8 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
 
   moveNetzgrafikEditorFocalViewPoint(pathItem: PerlenketteItem, offset = new Vec2D(0, 0)) {
     if (this.uiInteractionService.getEditorMode() === EditorMode.NetzgrafikEditing) {
-      if (pathItem.isPerlenketteNode()) {
-        const pNode = pathItem.getPerlenketteNode();
-        const node = this.nodeService.getNodeFromId(pNode.nodeId);
+      if (pathItem instanceof PerlenketteNode) {
+        const node = this.nodeService.getNodeFromId(pathItem.nodeId);
         if (node !== undefined) {
           const x = node.getPositionX() + node.getNodeWidth() / 2.0 + offset.getX();
           const y = node.getPositionY() + node.getNodeHeight() / 2.0 + offset.getY();

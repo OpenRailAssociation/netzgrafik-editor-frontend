@@ -325,8 +325,8 @@ export class PerlenketteNodeComponent implements OnInit, AfterViewInit {
   getExpandedNodeWith(): number {
     let maxTrainrunNameLen = 0;
     this.perlenketteTrainrun.pathItems.forEach((item: PerlenketteItem) => {
-      if (item.isPerlenketteNode()) {
-        item.getPerlenketteNode().connections.forEach((connection: PerlenketteConnection) => {
+      if (item instanceof PerlenketteNode) {
+        item.connections.forEach((connection: PerlenketteConnection) => {
           const name = connection.categoryShortName + "" + connection.title;
           maxTrainrunNameLen = Math.max(
             3 + connection.terminalStationBackward.length,

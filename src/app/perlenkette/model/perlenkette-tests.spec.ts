@@ -7,10 +7,7 @@ describe("PerlenketteModelTests", () => {
 
     expect(node.isFristTrainrunPartNode()).toBe(false);
     expect(node.isLastTrainrunPartNode()).toBe(true);
-    expect(node.isPerlenketteNode()).toBe(true);
-    expect(node.isPerlenketteSection()).toBe(false);
-    expect(node.getPerlenketteNode()).toEqual(node);
-    expect(node.getPerlenketteSection()).toEqual(undefined);
+    expect(node instanceof PerlenketteSection).toBe(false); // make sure one class does not extend the other
   });
 
   it("Perlenkette-Model - Test - PerlenketteSection - 001", () => {
@@ -18,9 +15,6 @@ describe("PerlenketteModelTests", () => {
 
     expect(section.isFristTrainrunPartSection()).toBe(false);
     expect(section.isLastTrainrunPartSection()).toBe(true);
-    expect(section.isPerlenketteNode()).toBe(false);
-    expect(section.isPerlenketteSection()).toBe(true);
-    expect(section.getPerlenketteNode()).toEqual(undefined);
-    expect(section.getPerlenketteSection()).toEqual(section);
+    expect(section instanceof PerlenketteNode).toBe(false); // make sure one class does not extend the other
   });
 });
