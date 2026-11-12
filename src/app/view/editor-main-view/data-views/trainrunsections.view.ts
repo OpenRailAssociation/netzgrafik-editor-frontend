@@ -910,46 +910,37 @@ export class TrainrunSectionsView {
     editorView: EditorView,
     trainrunSection: TrainrunSection,
   ): boolean {
-    if (editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
-      // disable filtering in view (render all objects)
-      return false;
-    }
-    
-    if (!editorView.isFilterArrivalDepartureTimeEnabled()) {
-      return true;
-    }
-    if (
-      !editorView.checkFilterNonStopNode(TrainrunSectionsView.getNode(trainrunSection, true))
-    ) {
-      return true;
-    }
-    if (editorView.isFilterShowNonStopTimeEnabled()) {
-      return false;
-    }
-    return TrainrunSectionsView.getNode(trainrunSection, true).isNonStop(trainrunSection);
+    return TrainrunSectionsView.isArrivalDepartureTimeHidden(editorView, trainrunSection, true);
   }
 
   private static isTargetArrivalDepartureTimeHidden(
     editorView: EditorView,
     trainrunSection: TrainrunSection,
   ): boolean {
+    return TrainrunSectionsView.isArrivalDepartureTimeHidden(editorView, trainrunSection, false);
+  }
+
+  private static isArrivalDepartureTimeHidden(
+    editorView: EditorView,
+    trainrunSection: TrainrunSection,
+    atSource: boolean,
+  ): boolean {
     if (editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       // disable filtering in view (render all objects)
       return false;
     }
-    
+
     if (!editorView.isFilterArrivalDepartureTimeEnabled()) {
       return true;
     }
-    if (
-      !editorView.checkFilterNonStopNode(TrainrunSectionsView.getNode(trainrunSection, false))
-    ) {
+    const node = TrainrunSectionsView.getNode(trainrunSection, atSource);
+    if (!editorView.checkFilterNonStopNode(node)) {
       return true;
     }
     if (editorView.isFilterShowNonStopTimeEnabled()) {
       return false;
     }
-    return TrainrunSectionsView.getNode(trainrunSection, false).isNonStop(trainrunSection);
+    return node.isNonStop(trainrunSection);
   }
 
   private static isTrainrunSectionTravelTimeHidden(
@@ -960,7 +951,7 @@ export class TrainrunSectionsView {
       // disable filtering in view (render all objects)
       return false;
     }
-    
+
     if (!editorView.isFilterTravelTimeEnabled()) {
       return true;
     }
@@ -981,7 +972,7 @@ export class TrainrunSectionsView {
       // disable filtering in view (render all objects)
       return false;
     }
-    
+
     if (
       !editorView.isFilterBackwardTravelTimeEnabled() ||
       !trainrunSection.getTrainrun().isRoundTrip() ||
@@ -1006,7 +997,7 @@ export class TrainrunSectionsView {
       // disable filtering in view (render all objects)
       return false;
     }
-    
+
     if (!editorView.isFilterTrainrunNameEnabled()) {
       return true;
     }
