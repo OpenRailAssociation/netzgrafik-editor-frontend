@@ -885,89 +885,147 @@ export class TrainrunSectionsView {
     trainrunSection: TrainrunSection,
     textElement: TrainrunSectionText,
   ): boolean {
+    switch (textElement) {
+      case TrainrunSectionText.SourceDeparture:
+      case TrainrunSectionText.SourceArrival:
+        return TrainrunSectionsView.isSourceArrivalDepartureTimeHidden(editorView, trainrunSection);
+      case TrainrunSectionText.TargetDeparture:
+      case TrainrunSectionText.TargetArrival:
+        return TrainrunSectionsView.isTargetArrivalDepartureTimeHidden(editorView, trainrunSection);
+      case TrainrunSectionText.TrainrunSectionTravelTime:
+        return TrainrunSectionsView.isTrainrunSectionTravelTimeHidden(editorView, trainrunSection);
+      case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
+        return TrainrunSectionsView.isTrainrunSectionBackwardTravelTimeHidden(
+          editorView,
+          trainrunSection,
+        );
+      case TrainrunSectionText.TrainrunSectionName:
+        return TrainrunSectionsView.isTrainrunSectionNameHidden(editorView, trainrunSection);
+      default:
+        return false;
+    }
+  }
+
+  private static isSourceArrivalDepartureTimeHidden(
+    editorView: EditorView,
+    trainrunSection: TrainrunSection,
+  ): boolean {
     if (editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
       // disable filtering in view (render all objects)
       return false;
     }
-    switch (textElement) {
-      case TrainrunSectionText.SourceDeparture:
-      case TrainrunSectionText.SourceArrival:
-        if (!editorView.isFilterArrivalDepartureTimeEnabled()) {
-          return true;
-        }
-        if (
-          !editorView.checkFilterNonStopNode(TrainrunSectionsView.getNode(trainrunSection, true))
-        ) {
-          return true;
-        }
-        if (editorView.isFilterShowNonStopTimeEnabled()) {
-          return false;
-        }
-        return TrainrunSectionsView.getNode(trainrunSection, true).isNonStop(trainrunSection);
-      case TrainrunSectionText.TargetDeparture:
-      case TrainrunSectionText.TargetArrival:
-        if (!editorView.isFilterArrivalDepartureTimeEnabled()) {
-          return true;
-        }
-        if (
-          !editorView.checkFilterNonStopNode(TrainrunSectionsView.getNode(trainrunSection, false))
-        ) {
-          return true;
-        }
-        if (editorView.isFilterShowNonStopTimeEnabled()) {
-          return false;
-        }
-        return TrainrunSectionsView.getNode(trainrunSection, false).isNonStop(trainrunSection);
-      case TrainrunSectionText.TrainrunSectionTravelTime:
-        if (!editorView.isFilterTravelTimeEnabled()) {
-          return true;
-        }
-        if (editorView.isFilterShowNonStopTimeEnabled()) {
-          return false;
-        }
-        return (
-          !trainrunSection.getTrainrun().selected() &&
-          TrainrunSectionsView.isBothSideNonStop(trainrunSection)
-        );
-      case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
-        if (
-          !editorView.isFilterBackwardTravelTimeEnabled() ||
-          !trainrunSection.getTrainrun().isRoundTrip() ||
-          trainrunSection.areTravelTimesEqual()
-        ) {
-          return true;
-        }
-        if (editorView.isFilterShowNonStopTimeEnabled()) {
-          return false;
-        }
-        return (
-          !trainrunSection.getTrainrun().selected() &&
-          TrainrunSectionsView.isBothSideNonStop(trainrunSection)
-        );
-      case TrainrunSectionText.TrainrunSectionName:
-        {
-          if (!editorView.isFilterTrainrunNameEnabled()) {
-            return true;
-          }
-          const srcNode = TrainrunSectionsView.getNode(trainrunSection, true);
-          const trgNode = TrainrunSectionsView.getNode(trainrunSection, false);
-          if (
-            !editorView.checkFilterNonStopNode(srcNode) ||
-            !editorView.checkFilterNonStopNode(trgNode)
-          ) {
-            const transSrc = srcNode.getTransition(trainrunSection.getId());
-            const transTrg = trgNode.getTransition(trainrunSection.getId());
-            if (transSrc !== undefined && transTrg !== undefined) {
-              if (transSrc.getIsNonStopTransit() && transTrg.getIsNonStopTransit()) {
-                return true;
-              }
-            }
-          }
-        }
-        return false;
-      default:
-        return false;
+    
+    if (!editorView.isFilterArrivalDepartureTimeEnabled()) {
+      return true;
     }
+    if (
+      !editorView.checkFilterNonStopNode(TrainrunSectionsView.getNode(trainrunSection, true))
+    ) {
+      return true;
+    }
+    if (editorView.isFilterShowNonStopTimeEnabled()) {
+      return false;
+    }
+    return TrainrunSectionsView.getNode(trainrunSection, true).isNonStop(trainrunSection);
+  }
+
+  private static isTargetArrivalDepartureTimeHidden(
+    editorView: EditorView,
+    trainrunSection: TrainrunSection,
+  ): boolean {
+    if (editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
+      // disable filtering in view (render all objects)
+      return false;
+    }
+    
+    if (!editorView.isFilterArrivalDepartureTimeEnabled()) {
+      return true;
+    }
+    if (
+      !editorView.checkFilterNonStopNode(TrainrunSectionsView.getNode(trainrunSection, false))
+    ) {
+      return true;
+    }
+    if (editorView.isFilterShowNonStopTimeEnabled()) {
+      return false;
+    }
+    return TrainrunSectionsView.getNode(trainrunSection, false).isNonStop(trainrunSection);
+  }
+
+  private static isTrainrunSectionTravelTimeHidden(
+    editorView: EditorView,
+    trainrunSection: TrainrunSection,
+  ) {
+    if (editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
+      // disable filtering in view (render all objects)
+      return false;
+    }
+    
+    if (!editorView.isFilterTravelTimeEnabled()) {
+      return true;
+    }
+    if (editorView.isFilterShowNonStopTimeEnabled()) {
+      return false;
+    }
+    return (
+      !trainrunSection.getTrainrun().selected() &&
+      TrainrunSectionsView.isBothSideNonStop(trainrunSection)
+    );
+  }
+
+  private static isTrainrunSectionBackwardTravelTimeHidden(
+    editorView: EditorView,
+    trainrunSection: TrainrunSection,
+  ) {
+    if (editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
+      // disable filtering in view (render all objects)
+      return false;
+    }
+    
+    if (
+      !editorView.isFilterBackwardTravelTimeEnabled() ||
+      !trainrunSection.getTrainrun().isRoundTrip() ||
+      trainrunSection.areTravelTimesEqual()
+    ) {
+      return true;
+    }
+    if (editorView.isFilterShowNonStopTimeEnabled()) {
+      return false;
+    }
+    return (
+      !trainrunSection.getTrainrun().selected() &&
+      TrainrunSectionsView.isBothSideNonStop(trainrunSection)
+    );
+  }
+
+  private static isTrainrunSectionNameHidden(
+    editorView: EditorView,
+    trainrunSection: TrainrunSection,
+  ) {
+    if (editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
+      // disable filtering in view (render all objects)
+      return false;
+    }
+    
+    if (!editorView.isFilterTrainrunNameEnabled()) {
+      return true;
+    }
+    const srcNode = TrainrunSectionsView.getNode(trainrunSection, true);
+    const trgNode = TrainrunSectionsView.getNode(trainrunSection, false);
+    if (
+      !editorView.checkFilterNonStopNode(srcNode) ||
+      !editorView.checkFilterNonStopNode(trgNode)
+    ) {
+      const transSrc = srcNode.getTransition(trainrunSection.getId());
+      const transTrg = trgNode.getTransition(trainrunSection.getId());
+      if (transSrc !== undefined && transTrg !== undefined) {
+        if (transSrc.getIsNonStopTransit() && transTrg.getIsNonStopTransit()) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   setGroup(trainrunSectionGroup: d3.Selection<SVGGElement, undefined, Element, undefined>) {
