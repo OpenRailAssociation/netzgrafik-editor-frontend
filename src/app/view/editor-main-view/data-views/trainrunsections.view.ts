@@ -885,8 +885,11 @@ export class TrainrunSectionsView {
     trainrunSection: TrainrunSection,
     textElement: TrainrunSectionText,
   ): boolean {
-    if (editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
-      // disable filtering in view (render all objects)
+    if (
+      editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
+      textElement !== TrainrunSectionText.TrainrunSectionBackwardTravelTime
+    ) {
+      // disable filtering in view (render all objects, except backward travel time)
       return false;
     }
     switch (textElement) {
