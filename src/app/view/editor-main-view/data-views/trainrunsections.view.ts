@@ -968,18 +968,21 @@ export class TrainrunSectionsView {
     editorView: EditorView,
     trainrunSection: TrainrunSection,
   ) {
-    if (editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
-      // disable filtering in view (render all objects)
-      return false;
-    }
-
     if (
+      // if one of those conditions is true, the backward travel time should be hidden (nevertheless,
+      // a filter is active or not)
       !editorView.isFilterBackwardTravelTimeEnabled() ||
       !trainrunSection.getTrainrun().isRoundTrip() ||
       trainrunSection.areTravelTimesEqual()
     ) {
       return true;
     }
+
+    if (editorView.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
+      // disable filtering in view (render all objects)
+      return false;
+    }
+
     if (editorView.isFilterShowNonStopTimeEnabled()) {
       return false;
     }
