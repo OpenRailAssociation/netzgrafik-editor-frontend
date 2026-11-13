@@ -700,21 +700,18 @@ export class EditorToolsViewComponent {
         // end {iterator.current.node, iterator.current.trainrunSection}
         const startNode = this.trainrunService.getLeftOrTopNodeWithTrainrunId(trainrun.getId());
         const startTrainrunSection = startNode.getExtremityTrainrunSection(trainrun.getId());
-        const iterator = this.trainrunService.getIterator(startNode, startTrainrunSection);
-        while (iterator.hasNext()) {
-          iterator.next();
-        }
+        const lastPair = this.trainrunService.getIterator(startNode, startTrainrunSection).last();
 
         const startBetriebspunktName = startNode.getBetriebspunktName();
-        const endBetriebspunktName = iterator.current().node.getBetriebspunktName();
+        const endBetriebspunktName = lastPair.node.getBetriebspunktName();
         const departureTimeAtStart =
           startTrainrunSection.getSourceNodeId() === startNode.getId()
             ? startTrainrunSection.getSourceDepartureConsecutiveTime()
             : startTrainrunSection.getTargetDepartureConsecutiveTime();
         const arrivalTimeAtEnd =
-          iterator.current().trainrunSection.getSourceNodeId() === iterator.current().node.getId()
-            ? iterator.current().trainrunSection.getSourceArrivalConsecutiveTime()
-            : iterator.current().trainrunSection.getTargetArrivalConsecutiveTime();
+          lastPair.trainrunSection.getSourceNodeId() === lastPair.node.getId()
+            ? lastPair.trainrunSection.getSourceArrivalConsecutiveTime()
+            : lastPair.trainrunSection.getTargetArrivalConsecutiveTime();
         const travelTime = arrivalTimeAtEnd - departureTimeAtStart;
 
         const startNodeDeparture =
@@ -722,14 +719,14 @@ export class EditorToolsViewComponent {
             ? startTrainrunSection.getSourceDeparture()
             : startTrainrunSection.getTargetDeparture();
         const endNodeArrival =
-          iterator.current().trainrunSection.getSourceNodeId() === iterator.current().node.getId()
-            ? iterator.current().trainrunSection.getSourceArrival()
-            : iterator.current().trainrunSection.getTargetArrival();
+          lastPair.trainrunSection.getSourceNodeId() === lastPair.node.getId()
+            ? lastPair.trainrunSection.getSourceArrival()
+            : lastPair.trainrunSection.getTargetArrival();
 
         const endNodeDeparture =
-          iterator.current().trainrunSection.getSourceNodeId() === iterator.current().node.getId()
-            ? iterator.current().trainrunSection.getSourceDeparture()
-            : iterator.current().trainrunSection.getTargetDeparture();
+          lastPair.trainrunSection.getSourceNodeId() === lastPair.node.getId()
+            ? lastPair.trainrunSection.getSourceDeparture()
+            : lastPair.trainrunSection.getTargetDeparture();
         const startNodeArrival =
           startTrainrunSection.getSourceNodeId() === startNode.getId()
             ? startTrainrunSection.getSourceArrival()
