@@ -63,12 +63,18 @@ export class TrainrunsectionHelper {
     }
   }
 
-  getLeftBetriebspunkt(trainrunSection: TrainrunSection, orderedNodes: Node[]): string[] {
+  getLeftBetriebspunkt(
+    trainrunSection: TrainrunSection,
+    orderedNodes: [] | [Node, Node],
+  ): string[] {
     const nextStopLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
     return [nextStopLeftNode.getBetriebspunktName(), "(" + nextStopLeftNode.getFullName() + ")"];
   }
 
-  getRightBetriebspunkt(trainrunSection: TrainrunSection, orderedNodes: Node[]): string[] {
+  getRightBetriebspunkt(
+    trainrunSection: TrainrunSection,
+    orderedNodes: [] | [Node, Node],
+  ): string[] {
     const nextStopRightNode = this.getNextStopRightNode(trainrunSection, orderedNodes);
     return [nextStopRightNode.getBetriebspunktName(), "(" + nextStopRightNode.getFullName() + ")"];
   }
@@ -110,7 +116,10 @@ export class TrainrunsectionHelper {
     };
   }
 
-  getLeftRightDirectedSectionProxies(trainrunSection: TrainrunSection, orderedNodes: Node[]) {
+  getLeftRightDirectedSectionProxies(
+    trainrunSection: TrainrunSection,
+    orderedNodes: [] | [Node, Node],
+  ) {
     if (orderedNodes.length > 0) {
       const direction =
         orderedNodes[0].getId() === trainrunSection.getSourceNode().getId()
@@ -169,7 +178,7 @@ export class TrainrunsectionHelper {
 
   getLeftAndRightLock(
     trainrunSection: TrainrunSection,
-    orderedNodes: Node[],
+    orderedNodes: [] | [Node, Node],
   ): LeftAndRightLockStructure {
     if (orderedNodes.length > 0) {
       const leftIsSource = orderedNodes[0].getId() === trainrunSection.getSourceNode().getId();
@@ -221,7 +230,7 @@ export class TrainrunsectionHelper {
   mapSelectedTimeElement(
     trainrunSectionSelectedText: TrainrunSectionText,
     trainrunSection: TrainrunSection,
-    orderedNodes: Node[],
+    orderedNodes: [] | [Node, Node],
     forward: boolean,
   ): LeftAndRightElement | undefined {
     const nextStopLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
@@ -278,7 +287,7 @@ export class TrainrunsectionHelper {
 
   getLeftAndRightTimes(
     trainrunSection: TrainrunSection,
-    orderedNodes: Node[],
+    orderedNodes: [] | [Node, Node],
   ): LeftAndRightTimeStructure {
     if (orderedNodes.length > 0) {
       const direction =
@@ -345,7 +354,7 @@ export class TrainrunsectionHelper {
     };
   }
 
-  getLeftAndRightSymmetries(trainrunSection: TrainrunSection, orderedNodes: Node[]) {
+  getLeftAndRightSymmetries(trainrunSection: TrainrunSection, orderedNodes: [] | [Node, Node]) {
     const {leftSection, rightSection} = this.getLeftRightDirectedSectionProxies(
       trainrunSection,
       orderedNodes,
@@ -356,7 +365,7 @@ export class TrainrunsectionHelper {
     };
   }
 
-  getNextStopLeftNode(trainrunSection: TrainrunSection, orderedNodes: Node[]): Node {
+  getNextStopLeftNode(trainrunSection: TrainrunSection, orderedNodes: [] | [Node, Node]): Node {
     const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
     const bothNodesFound =
       orderedNodes.find(
@@ -381,7 +390,7 @@ export class TrainrunsectionHelper {
     return leftNode;
   }
 
-  getNextStopRightNode(trainrunSection: TrainrunSection, orderedNodes: Node[]): Node {
+  getNextStopRightNode(trainrunSection: TrainrunSection, orderedNodes: [] | [Node, Node]): Node {
     const bothLastNonStopNodes = this.trainrunService.getBothLastNonStopNodes(trainrunSection);
     const bothNodesFound =
       orderedNodes.find(
