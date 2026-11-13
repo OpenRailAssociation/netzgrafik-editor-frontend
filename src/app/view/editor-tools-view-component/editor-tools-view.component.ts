@@ -623,7 +623,7 @@ export class EditorToolsViewComponent {
     });
 
     // remove unecessary elements from the exported file (drag areas, preview lines, etc.)
-    clone.querySelectorAll(StaticDomTags.REMOVE_ON_EXPORT).forEach((el) => el.remove());
+    clone.querySelectorAll(`.${StaticDomTags.REMOVE_ON_EXPORT}`).forEach((el) => el.remove());
 
     return clone;
   }
