@@ -1,5 +1,30 @@
 # Changelog
 
+## [2.13.0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.12.2...netzgrafik-editor-frontend-v2.13.0) (2026-11-13)
+
+
+### Features
+
+* **export:** export PNG natively without save-svg-as-png ([78ee4eb](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/78ee4ebc1562fa9d72b40d68cf4299dd3f83c110))
+* **export:** export SVG natively without save-svg-as-png ([4d1e5a0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/4d1e5a0f5aadb690de2aea4cb29966fd6fec600b))
+* **export:** remove unnecessary options for export ([cad239b](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/cad239be17538b79092f3463a8badb554e1f30cc))
+* expose note methods to sync notes from external apps ([1819703](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/1819703ced1e34731c122b8e14b8b1d3f4dff5cc))
+* introduce AppElementInterface ([7bb6788](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/7bb6788c9908e3ac194038a4b9a754237547ee0d))
+
+
+### Bug Fixes
+
+* display analytics layer only if appropriate editorMode ([67f56ee](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/67f56eefde25d37be358514e6dbc297be951194b))
+* **export:** avoid thick line in SVG/PNG export ([738f239](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/738f239bf0cdb82dba3c4c5f7a73eb78e00402f8))
+* **export:** export a clone of the live element ([#1437](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1437)) ([f2c75d3](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/f2c75d3f04e9d67b419dbc3d0ff5301fe38265fe))
+* make note background transparent instead of same color as background ([2c042de](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/2c042dea7766ae571a7cf6d9df42c8c129909902))
+* remove on export using css selector ([5c20d08](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/5c20d08e78f4dea8de14d8ac34f576875cd9ca2a))
+* the mouse cursor is override for all svg ([#1453](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1453)) ([667cef9](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/667cef90f7bd39fc4d6eba7d81d109ae314f12ad))
+* transition rx/ry css value ([45b993c](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/45b993c355827aaad90c260d7bdc3133d168b1ce))
+* typos in note.view.scss ([853b680](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/853b68060f4f15dcbd47ea4b520cf5b74a629e8b))
+* Update de.json spelling ([7a33e32](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/7a33e324c8bf6090a530346d15b0df96f3ae7a53))
+* use correct type for ContainertoExportData.documentToExport ([b8cd2ff](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/b8cd2ff4b8d053f8d8faf6f282581859a0787fcc))
+
 ## [2.12.2](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.12.1...netzgrafik-editor-frontend-v2.12.2) (2026-10-23)
 
 
