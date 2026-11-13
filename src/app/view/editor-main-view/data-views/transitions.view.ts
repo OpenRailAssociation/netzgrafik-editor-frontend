@@ -238,7 +238,7 @@ export class TransitionsView {
     TransitionsView.createTransitionLineLayer(
       grpEnter,
       StaticDomTags.TRANSITION_LINE_CLASS_0,
-      [LinePatternRefs.Freq15],
+      Object.values(LinePatternRefs), // used for selection snapping
       selectedTrainrun,
       connectedTrainIds,
       this.editorView,
