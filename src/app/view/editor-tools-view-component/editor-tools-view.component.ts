@@ -4,16 +4,13 @@ import {DataService} from "../../services/data/data.service";
 import {TrainrunService} from "../../services/data/trainrun.service";
 import {NodeService} from "../../services/data/node.service";
 import {FilterService} from "../../services/ui/filter.service";
-import {TrainrunSectionService} from "../../services/data/trainrunsection.service";
 import {UiInteractionService} from "../../services/ui/ui.interaction.service";
 import {BaseDataService} from "../../services/data/basedata.service";
 import {LogService} from "../../logger/log.service";
 import {VersionControlService} from "../../services/data/version-control.service";
 import {
-  Direction,
   HaltezeitFachCategories,
   NetzgrafikDto,
-  NodeDto,
   TrainrunCategoryHaltezeit,
 } from "../../data-structures/business.data.structures";
 import {downloadBlob} from "../util/download-utils";
@@ -21,11 +18,10 @@ import {map} from "rxjs/operators";
 import {LabelService} from "../../services/data/label.service";
 import {ViewportCullService} from "../../services/ui/viewport.cull.service";
 import {LevelOfDetailService} from "../../services/ui/level.of.detail.service";
-import {TrainrunSectionValidator} from "../../services/util/trainrunsection.validator";
 import {OriginDestinationService} from "src/app/services/analytics/origin-destination/components/origin-destination.service";
 import {EditorMode} from "../editor-menu/editor-mode";
 import {NODE_TEXT_AREA_HEIGHT, RASTERING_BASIC_GRID_SIZE} from "../rastering/definitions";
-import {ResourceService} from "../../services/data/resource.service";
+import {NetzgrafikImportService} from "../../services/data/netzgrafik-import.service";
 import {MathUtils} from "src/app/utils/math";
 import {StaticDomTags} from "../editor-main-view/data-views/static.dom.tags";
 
@@ -65,7 +61,6 @@ export class EditorToolsViewComponent {
     private trainrunService: TrainrunService,
     private nodeService: NodeService,
     public filterService: FilterService,
-    private trainrunSectionService: TrainrunSectionService,
     private uiInteractionService: UiInteractionService,
     private baseDataService: BaseDataService,
     private labelService: LabelService,
@@ -74,7 +69,7 @@ export class EditorToolsViewComponent {
     private viewportCullService: ViewportCullService,
     private levelOfDetailService: LevelOfDetailService,
     private originDestinationService: OriginDestinationService,
-    private resourceService: ResourceService,
+    private netzgrafikImportService: NetzgrafikImportService,
   ) {}
 
   onLoadButton() {
@@ -90,34 +85,7 @@ export class EditorToolsViewComponent {
     const file = fileInput.files[0];
     const reader = new FileReader();
     reader.onload = () => {
-      let netzgrafikDto: NetzgrafikDto;
-      try {
-        netzgrafikDto = JSON.parse(reader.result.toString());
-      } catch {
-        const msg = $localize`:@@app.view.editor-side-view.editor-tools-view-component.import-netzgrafik-error:JSON error`;
-        this.logger.error(msg);
-        return;
-      }
-
-      if (netzgrafikDto === undefined) {
-        const msg = $localize`:@@app.view.editor-side-view.editor-tools-view-component.import-netzgrafik-error:JSON error`;
-        this.logger.error(msg);
-        return;
-      }
-
-      if (
-        "nodes" in netzgrafikDto &&
-        "trainrunSections" in netzgrafikDto &&
-        "trainruns" in netzgrafikDto &&
-        "resources" in netzgrafikDto &&
-        "metadata" in netzgrafikDto
-      ) {
-        this.processNetzgrafikJSON(netzgrafikDto);
-        return;
-      }
-
-      const msg = $localize`:@@app.view.editor-side-view.editor-tools-view-component.import-netzgrafik-error:JSON error`;
-      this.logger.error(msg);
+      this.netzgrafikImportService.importNetzgrafikJson(reader.result.toString());
     };
     reader.readAsText(file);
 
@@ -828,100 +796,6 @@ export class EditorToolsViewComponent {
     });
 
     return this.buildCSVString(headers, rows);
-  }
-
-  private detectNetzgrafikJSON3rdParty(netzgrafikDto: NetzgrafikDto): boolean {
-    return (
-      netzgrafikDto.nodes.find((n: NodeDto) => n.ports === undefined) !== undefined ||
-      netzgrafikDto.nodes.filter((n: NodeDto) => n.ports?.length === 0).length ===
-        netzgrafikDto.nodes.length
-    );
-  }
-
-  private processNetzgrafikJSON3rdParty(netzgrafikDto: NetzgrafikDto) {
-    // --------------------------------------------------------------------------------
-    // 3rd party generated JSON detected
-    // --------------------------------------------------------------------------------
-    const msg = $localize`:@@app.view.editor-side-view.editor-tools-view-component.import-netzgrafik-as-json-info-3rd-party:3rd party import`;
-    this.logger.info(msg);
-
-    // --------------------------------------------------------------------------------
-    // (Step 1) Import only nodes
-    const netzgrafikOnlyNodeDto: NetzgrafikDto = Object.assign({}, netzgrafikDto);
-    netzgrafikOnlyNodeDto.trainruns = [];
-    netzgrafikOnlyNodeDto.trainrunSections = [];
-    this.dataService.loadNetzgrafikDto(netzgrafikOnlyNodeDto);
-
-    // (Step 2) Import nodes and trainrunSectiosn by trainrun inseration (copy => create)
-    this.dataService.insertCopyNetzgrafikDto(netzgrafikDto, false);
-
-    // step(3) Check whether a transitions object was given when not
-    //         departureTime - arrivatelTime == 0 => non-stop
-    this.nodeService.getNodes().forEach((n) => {
-      n.getTransitions().forEach((trans) => {
-        const p1 = n.getPort(trans.getPortId1());
-        const p2 = n.getPort(trans.getPortId2());
-        let arrivalTime = p1.getTrainrunSection().getTargetArrival();
-        if (p1.getTrainrunSection().getSourceNodeId() === n.getId()) {
-          arrivalTime = p1.getTrainrunSection().getSourceArrival();
-        }
-        let departureTime = p2.getTrainrunSection().getTargetDeparture();
-        if (p2.getTrainrunSection().getSourceNodeId() === n.getId()) {
-          departureTime = p2.getTrainrunSection().getSourceDeparture();
-        }
-        trans.setIsNonStopTransit(arrivalTime - departureTime === 0);
-      });
-
-      const res = this.resourceService.createAndGetResource(false);
-      n.setResourceId(res.getId());
-    });
-
-    // step(4) Migrate 3rd party imported trainruns/node/resource to ensure direction is set
-    this.dataService.ensureAllResourcesLinkedToNetzgrafikObjects();
-    this.trainrunService.getTrainruns().forEach((t) => {
-      const currentDirection = t.getDirection();
-      if (currentDirection === undefined) {
-        t.setDirection(Direction.ROUND_TRIP);
-      }
-    });
-
-    // step(5) Recalc/propagate consecutive times
-    this.trainrunService.propagateInitialConsecutiveTimes();
-
-    // step(6) Validate all trainrun sections
-    this.trainrunSectionService.getTrainrunSections().forEach((ts) => {
-      TrainrunSectionValidator.validateOneSection(ts);
-      TrainrunSectionValidator.validateTravelTime(ts, this.filterService.getTimeDisplayPrecision());
-    });
-  }
-
-  private processNetzgrafikJSON(netzgrafikDto: NetzgrafikDto) {
-    // prepare JSON import
-    this.uiInteractionService.showNetzgrafik();
-    this.uiInteractionService.closeNodeBaseData();
-    this.uiInteractionService.closePerlenkette();
-    this.uiInteractionService.resetEditorMode();
-    this.nodeService.unselectAllNodes();
-
-    // import data
-    if (
-      netzgrafikDto.trainrunSections.length === 0 ||
-      !this.detectNetzgrafikJSON3rdParty(netzgrafikDto)
-    ) {
-      // -----------------------------------------------
-      // Default: Netzgrafik-Editor exported JSON
-      // -----------------------------------------------
-      this.dataService.loadNetzgrafikDto(netzgrafikDto);
-      // -----------------------------------------------
-    } else {
-      // -----------------------------------------------
-      // 3rd Party: Netzgrafik-Editor exported JSON
-      // -----------------------------------------------
-      this.processNetzgrafikJSON3rdParty(netzgrafikDto);
-    }
-
-    // recompute viewport
-    this.uiInteractionService.viewportCenteringOnNodesBoundingBox();
   }
 
   private getFilenameToExport() {
