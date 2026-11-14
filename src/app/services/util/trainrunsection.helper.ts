@@ -171,49 +171,13 @@ export class TrainrunsectionHelper {
     trainrunSection: TrainrunSection,
     orderedNodes: Node[],
   ): LeftAndRightLockStructure {
-    if (orderedNodes.length > 0) {
-      const leftIsSource = orderedNodes[0].getId() === trainrunSection.getSourceNode().getId();
-      const sourceLock =
-        trainrunSection.getSourceDepartureLock() || trainrunSection.getSourceArrivalLock();
-      const targetLock =
-        trainrunSection.getTargetDepartureLock() || trainrunSection.getTargetArrivalLock();
-      return {
-        leftLock: leftIsSource ? sourceLock : targetLock,
-        rightLock: leftIsSource ? targetLock : sourceLock,
-        travelTimeLock: trainrunSection.getTravelTimeLock(),
-      };
-    }
-
-    const lastLeftNode = this.getNextStopLeftNode(trainrunSection, orderedNodes);
-    const lastRightNode = this.getNextStopRightNode(trainrunSection, orderedNodes);
-
-    const towardsSource = this.trainrunService.getLastNonStopTrainrunSection(
-      trainrunSection.getSourceNode(),
+    const {leftSection, rightSection} = this.getLeftRightDirectedSectionProxies(
       trainrunSection,
+      orderedNodes,
     );
-    const towradsTarget = this.trainrunService.getLastNonStopTrainrunSection(
-      trainrunSection.getTargetNode(),
-      trainrunSection,
-    );
-    let leftSection = towradsTarget;
-    let rightSection = towardsSource;
-    if (
-      towardsSource.getSourceNodeId() === lastLeftNode.getId() ||
-      towardsSource.getTargetNodeId() === lastLeftNode.getId()
-    ) {
-      leftSection = towardsSource;
-      rightSection = towradsTarget;
-    }
-
     return {
-      leftLock:
-        leftSection.getSourceNodeId() === lastLeftNode.getId()
-          ? leftSection.getSourceArrivalLock() || leftSection.getSourceDepartureLock()
-          : leftSection.getTargetArrivalLock() || leftSection.getTargetDepartureLock(),
-      rightLock:
-        rightSection.getSourceNodeId() === lastRightNode.getId()
-          ? rightSection.getSourceArrivalLock() || rightSection.getSourceDepartureLock()
-          : rightSection.getTargetArrivalLock() || rightSection.getTargetDepartureLock(),
+      leftLock: leftSection.getTailDepartureLock() || leftSection.getTailArrivalLock(),
+      rightLock: rightSection.getHeadDepartureLock() || rightSection.getHeadArrivalLock(),
       travelTimeLock: trainrunSection.getTravelTimeLock(),
     };
   }
