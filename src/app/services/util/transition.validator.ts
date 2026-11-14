@@ -25,40 +25,40 @@ export class TransitionValidator {
       ) {
         if (trainrunSections.trainrunSection1.getSourceNodeId() === node.getId()) {
           trainrunSections.trainrunSection1.setSourceArrivalWarning(
-            $localize`:@@app.services.util.transition-validator.source-arrival-not-reacheable.title:Source Arrival Warning`,
-            $localize`:@@app.services.util.transition-validator.source-arrival-not-reacheable.description:Source arrival time cannot be reached`,
+            $localize`:@@app.services.util.transition-validator.source-arrival-not-reachable.title:Source Arrival Warning`,
+            $localize`:@@app.services.util.transition-validator.source-arrival-not-reachable.description:Source arrival time cannot be reached`,
           );
           trainrunSections.trainrunSection1.setSourceDepartureWarning(
-            $localize`:@@app.services.util.transition-validator.source-departure-not-reacheable.title:Source Departure Warning`,
-            $localize`:@@app.services.util.transition-validator.source-departure-not-reacheable.description:Source departure time cannot be reached`,
+            $localize`:@@app.services.util.transition-validator.source-departure-not-reachable.title:Source Departure Warning`,
+            $localize`:@@app.services.util.transition-validator.source-departure-not-reachable.description:Source departure time cannot be reached`,
           );
         } else {
           trainrunSections.trainrunSection1.setTargetArrivalWarning(
-            $localize`:@@app.services.util.transition-validator.target-arrival-not-reacheable.title:Target Arrival Warning`,
-            $localize`:@@app.services.util.transition-validator.target-arrival-not-reacheable.description:Target arrival time cannot be reached`,
+            $localize`:@@app.services.util.transition-validator.target-arrival-not-reachable.title:Target Arrival Warning`,
+            $localize`:@@app.services.util.transition-validator.target-arrival-not-reachable.description:Target arrival time cannot be reached`,
           );
           trainrunSections.trainrunSection1.setTargetDepartureWarning(
-            $localize`:@@app.services.util.transition-validator.target-departure-not-reacheable.title:Target Departure Warning`,
-            $localize`:@@app.services.util.transition-validator.target-departure-not-reacheable.description:Target departure time cannot be reached`,
+            $localize`:@@app.services.util.transition-validator.target-departure-not-reachable.title:Target Departure Warning`,
+            $localize`:@@app.services.util.transition-validator.target-departure-not-reachable.description:Target departure time cannot be reached`,
           );
         }
         if (trainrunSections.trainrunSection2.getSourceNodeId() === node.getId()) {
           trainrunSections.trainrunSection2.setSourceArrivalWarning(
-            $localize`:@@app.services.util.transition-validator.source-arrival-not-reacheable.title:Source Arrival Warning`,
-            $localize`:@@app.services.util.transition-validator.source-arrival-not-reacheable.description:Source arrival time cannot be reached`,
+            $localize`:@@app.services.util.transition-validator.source-arrival-not-reachable.title:Source Arrival Warning`,
+            $localize`:@@app.services.util.transition-validator.source-arrival-not-reachable.description:Source arrival time cannot be reached`,
           );
           trainrunSections.trainrunSection2.setSourceDepartureWarning(
-            $localize`:@@app.services.util.transition-validator.source-departure-not-reacheable.title:Source Departure Warning`,
-            $localize`:@@app.services.util.transition-validator.source-departure-not-reacheable.description:Source departure time cannot be reached`,
+            $localize`:@@app.services.util.transition-validator.source-departure-not-reachable.title:Source Departure Warning`,
+            $localize`:@@app.services.util.transition-validator.source-departure-not-reachable.description:Source departure time cannot be reached`,
           );
         } else {
           trainrunSections.trainrunSection2.setTargetArrivalWarning(
-            $localize`:@@app.services.util.transition-validator.target-arrival-not-reacheable.title:Target Arrival Warning`,
-            $localize`:@@app.services.util.transition-validator.target-arrival-not-reacheable.description:Target arrival time cannot be reached`,
+            $localize`:@@app.services.util.transition-validator.target-arrival-not-reachable.title:Target Arrival Warning`,
+            $localize`:@@app.services.util.transition-validator.target-arrival-not-reachable.description:Target arrival time cannot be reached`,
           );
           trainrunSections.trainrunSection2.setTargetDepartureWarning(
-            $localize`:@@app.services.util.transition-validator.target-departure-not-reacheable.title:Target Departure Warning`,
-            $localize`:@@app.services.util.transition-validator.target-departure-not-reacheable.description:Target departure time cannot be reached`,
+            $localize`:@@app.services.util.transition-validator.target-departure-not-reachable.title:Target Departure Warning`,
+            $localize`:@@app.services.util.transition-validator.target-departure-not-reachable.description:Target departure time cannot be reached`,
           );
         }
       } else {

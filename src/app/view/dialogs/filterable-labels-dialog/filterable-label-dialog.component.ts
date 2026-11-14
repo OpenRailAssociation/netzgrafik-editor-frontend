@@ -86,7 +86,7 @@ export class FilterableLabelDialogComponent implements OnDestroy {
 
   onDeleteClicked(): void {
     const dialogTitle = $localize`:@@app.view.dialogs.filterable-labels-dialog.filterable-label-dialog-component.delete.title:Delete`;
-    const dialogContent = $localize`:@@app.view.dialogs.filterable-labels-dialog.filterable-label-dialog-component.delete.content:Should the label ${this.originalLabel}:label: be definitely delete on all visible ${dialogTitle}:element:?`;
+    const dialogContent = $localize`:@@app.view.dialogs.filterable-labels-dialog.filterable-label-dialog-component.delete.content:Should the label ${this.originalLabel}:label: be permanently deleted from all visible ${dialogTitle}:element:?`;
     const confirmationDialogParameter = new ConfirmationDialogParameter(dialogTitle, dialogContent);
     this.uiInteractionService
       .showConfirmationDiagramDialog(confirmationDialogParameter)
