@@ -338,10 +338,10 @@
         "align-elements-top": "Aligner le haut",
         "align-elements-bottom": "Aligner le bas",
         "node-optimization-disposition-title": "Réticulaire – Positions des nœuds",
-        "optimization-netzgrafik-tooltip": "Étirez le netzgrafik de sorte qu’aucun bord ne soit plus court que la longueur minimale des bords des trajets de train.",
-        "optimize-layout": "Étirez le netzgrafik",
-        "inverse_optimization-netzgrafik-tooltip": "Compressez le netzgrafik de sorte qu’aucun bord ne soit inutilement plus long que la longueur minimale des bords.",
-        "inverse_optimization-netzgrafik": "Compressez le netzgrafik",
+        "optimization-netzgrafik-tooltip": "Étirer le réticulaire de sorte qu’aucun bord ne soit plus court que la longueur minimale des bords des trajets de train.",
+        "optimize-layout": "Étirer le réticulaire",
+        "inverse_optimization-netzgrafik-tooltip": "Compresser le réticulaire de sorte qu’aucun bord ne soit inutilement plus long que la longueur minimale des bords.",
+        "inverse_optimization-netzgrafik": "Compresser le réticulaire",
         "node-optimization-title": "Réticulaire – Algorithme de tri des ports des nœuds",
         "alphabeticalOrdering": "Alphabétique",
         "alphabeticalOrderingTooltip": "Ordonne les ports par ordre alphabétique des catégories de train.",
@@ -736,6 +736,6 @@
   "sbbSidebarCloseSidebar": "Fermer la barre latérale",
   "sbbSidebarOpenSidebar": "Ouvrir la barre latérale",
   "sbbTextareaCounterText": "{$PH} caractères restants",
-  "sbbUsermenuLogin": "Login",
+  "sbbUsermenuLogin": "Connexion",
   "sbbUsermenuOpenPanel": "Connecté en tant que {$PH}. Cliquez ou appuyez sur la touche Entrée pour ouvrir le menu utilisateur."
 }

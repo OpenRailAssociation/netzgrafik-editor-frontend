@@ -14,7 +14,7 @@
     "version": "Version {$version}",
     "user-guide": "Benutzeranleitung",
     "user-manual": "Benutzerhandbuch",
-    "logout": "Logout",
+    "logout": "Abmelden",
     "login": "Sie werden angemeldet…",
     "logger": {
       "title": "Titel"
@@ -72,7 +72,7 @@
           }
         },
         "version-control": {
-          "new-name-comment": "Neuer Name: {$name}"
+          "new-name-comment": "Neuer Name: {$PH}"
         }
       },
       "ui": {
@@ -228,16 +228,16 @@
                 "title": "Verwende die Farbe des Farbschemas für G"
               },
               "green": {
-                "title": "green"
+                "title": "grün"
               },
               "blue": {
-                "title": "blue"
+                "title": "blau"
               },
               "magenta": {
                 "title": "magenta"
               },
               "red": {
-                "title": "red"
+                "title": "rot"
               },
               "warning": {
                 "title": "Warnfarbe"
@@ -252,7 +252,7 @@
             "label-placeholder": "Neues Label…"
           },
           "note-form": {
-            "title": "Title",
+            "title": "Titel",
             "name": "Name"
           }
         },
@@ -451,7 +451,7 @@
       "editor-properties-view-component": {
         "settings": "Einstellungen",
         "color-scheme": "Farbschema",
-        "theme": "Theme",
+        "theme": "Design",
         "background-color": "Hintergrundfarbe",
         "set-color-to-white": "Hintergrundfarbe auf «weiss» setzen",
         "reset-background-color-to-default": "Hintergrundfarbe auf Standard zurücksetzen",
@@ -518,7 +518,7 @@
           "print": "Drucken",
           "netzgrafik": "Netzgrafik",
           "spaceTimeChart": "Streckengrafik",
-          "originDestination": "Origin-destination matrix",
+          "originDestination": "Origin-Destination-Matrix",
           "export-netzgrafik": "Netzgrafik exportieren",
           "export-netzgrafik-as-json": "Netzgrafik als JSON exportieren",
           "import-netzgrafik": "Netzgrafik importieren",
@@ -528,9 +528,9 @@
           "import-netzgrafik-as-json-info-3rd-party": "Drittanbieter-JSON-Daten erkannt: Import-Heuristik angewandt.",
           "export-trainruns": "Zugfahrten exportieren",
           "export-trainruns-as-csv": "Zugfahrten als CSV exportieren",
-          "export-trainruns-as-csv-excel": "In Excel: Daten -> Aus Text/CSV -> Filename … importieren",
-          "export-origin-destination": "Export origin-destination",
-          "export-origin-destination-as-csv": "Export origin-destination as CSV",
+          "export-trainruns-as-csv-excel": "In Excel: Daten -> Aus Text/CSV -> Dateiname … importieren",
+          "export-origin-destination": "Origin-Destination exportieren",
+          "export-origin-destination-as-csv": "Origin-Destination als CSV exportieren",
           "import-basedata-legacy-info": "Veraltetes Stammdatenformat importiert – bitte beachten Sie die Dokumentation und aktualisieren Sie Ihre Stammdatendateien, um sicherzustellen, dass zukünftige Versionen den Datenimport weiterhin unterstützen",
           "base-data": "Stammdaten",
           "import-base-data": "Stammdaten importieren",
@@ -576,7 +576,7 @@
           "origin": "Start",
           "destination": "Ziel",
           "travelTime": "Fahrzeit",
-          "transfers": "Transfers",
+          "transfers": "Umstiege",
           "totalCost": "Gesamtkosten"
         }
       },
@@ -598,7 +598,7 @@
           "cancel": "Abbrechen",
           "project-form": {
             "name": "Name",
-            "mandatory": "Pflichtfeld",
+            "mandatory-field": "Pflichtfeld",
             "summary": "Zusammenfassung",
             "description": "Beschreibung",
             "tooltip": "Benutzer müssen mit ihrer E-Mail angegeben werden. Eingabe pro E-Mail jeweils mit «Enter» bestätigen.",
@@ -634,7 +634,7 @@
           "cancel": "Abbrechen",
           "variant-form": {
             "name": "Name",
-            "mandatory": "Pflichtfeld"
+            "mandatory-field": "Pflichtfeld"
           }
         },
         "variant-view": {
@@ -736,6 +736,6 @@
   "sbbSidebarCloseSidebar": "Sidebar schliessen",
   "sbbSidebarOpenSidebar": "Sidebar öffnen",
   "sbbTextareaCounterText": "{$PH} verbleibende Zeichen",
-  "sbbUsermenuLogin": "Login",
+  "sbbUsermenuLogin": "Anmelden",
   "sbbUsermenuOpenPanel": "Eingeloggt als {$PH}. Klicken Sie oder drücken Sie die Eingabetaste, um das Benutzermenü zu öffnen."
 }
