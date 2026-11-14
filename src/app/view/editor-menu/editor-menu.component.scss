@@ -53,6 +53,17 @@ $COLOR_TOPO_EDITOR_ACTIVE: #eb0000;
   display: flex;
   align-items: center;
 
+  .RetrySaveButton {
+    display: inline-flex;
+    align-items: center;
+    color: red;
+    font: inherit;
+    padding: 0;
+    border: 0;
+    background: none;
+    white-space: nowrap;
+  }
+
   span {
     padding-right: 0.2rem;
   }

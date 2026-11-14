@@ -429,6 +429,7 @@
       "editor-menu": {
         "save-changes": "Speichere Änderungen",
         "changes-saved": "Änderungen gespeichert",
+        "retry-save-changes": "Wiederholen",
         "read-mode": "Lese-Modus",
         "show-hide-filter": "Filter ein-/ausblenden",
         "zoom-out": "Herauszoomen",
