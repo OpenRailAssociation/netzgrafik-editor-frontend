@@ -15,7 +15,7 @@
     "user-guide": "Benutzeranleitung",
     "user-manual": "Benutzerhandbuch",
     "logout": "Logout",
-    "login": "Sie werden angemeldet...",
+    "login": "Sie werden angemeldet…",
     "logger": {
       "title": "Titel"
     },
@@ -93,11 +93,11 @@
         "trainrunsection-validator": {
           "broken-symmetry": "Symmetrie gebrochen",
           "target-arrival-not-reachable": {
-            "title": "Ziel Ankunft Warnung",
+            "title": "Zielankunft-Warnung",
             "description": "Zielankunftszeit kann nicht erreicht werden"
           },
           "source-arrival-not-reachable": {
-            "title": "Quelle Ankunft Warnung",
+            "title": "Quellankunft-Warnung",
             "description": "Quellankunftszeit kann nicht erreicht werden"
           },
           "travel-time-less-than-1": {
@@ -107,19 +107,19 @@
         },
         "transition-validator": {
           "source-arrival-not-reachable": {
-            "title": "Quelle Ankunft Warnung",
+            "title": "Quellankunft-Warnung",
             "description": "Quellankunftszeit kann nicht erreicht werden"
           },
           "source-departure-not-reachable": {
-            "title": "Quelle Abfahrt Warnung",
+            "title": "Quellabfahrt-Warnung",
             "description": "Quellabfahrtszeit kann nicht erreicht werden"
           },
           "target-arrival-not-reachable": {
-            "title": "Ziel Ankunft Warnung",
+            "title": "Zielankunft-Warnung",
             "description": "Zielankunftszeit kann nicht erreicht werden"
           },
           "target-departure-not-reachable": {
-            "title": "Ziel Abfahrt Warnung",
+            "title": "Zielabfahrt-Warnung",
             "description": "Zielabfahrtszeit kann nicht erreicht werden"
           }
         }
@@ -203,7 +203,7 @@
         "note-dialog": {
           "html-editor": {
             "reset-color": "Farbe zurücksetzen",
-            "editor-placeholder": "Kommentar hier eingeben...",
+            "editor-placeholder": "Kommentar hier eingeben…",
             "mandatory-field": "Pflichtfeld",
             "color-presets": {
               "ec": {
@@ -249,7 +249,7 @@
           "delete-note": "Kommentar löschen",
           "note-filter-tab": {
             "labels": "Labels",
-            "label-placeholder": "Neues Label..."
+            "label-placeholder": "Neues Label…"
           },
           "note-form": {
             "title": "Title",
@@ -283,7 +283,7 @@
           "filterableLabels": "Filterbare Labels",
           "trainrun-filter-tab": {
             "labels": "Labels",
-            "newLabels": "Neues Label...",
+            "newLabels": "Neues Label…",
             "trainrunDuplicate": "Zuglauf duplizieren",
             "trainrunDelete": "Zuglauf löschen",
             "delete": "Löschen",
@@ -316,7 +316,7 @@
         "trainruns": "Zugfahrten",
         "nodes": "Knoten",
         "notes": "Kommentare",
-        "delete-netzgrafik-title": "Netzgrafik - Löschen",
+        "delete-netzgrafik-title": "Netzgrafik – Löschen",
         "non-visible-elements": "Nicht sichtbare Elemente",
         "delete-all-non-visible-elements-tooltip": "Alle nicht sichtbaren Elemente, wie Knoten, Zugfahrten und Kommentare löschen",
         "delete-all-non-visible-elements": "Alle nicht sichtbaren Elemente löschen",
@@ -327,7 +327,7 @@
         "delete-all-visible-notes": "Alle sichtbaren Kommentare löschen",
         "delete-all-visible-elements-tooltip": "Alle sichtbaren Elemente, wie Knoten, Zugfahrten und Kommentare löschen",
         "delete-all-visible-elements": "Alle sichtbaren Elemente löschen",
-        "merge-netzgrafik-title": "Netzgrafik - Zusammenführen",
+        "merge-netzgrafik-title": "Netzgrafik – Zusammenführen",
         "add-netzgrafik-as-copy-tooltip": "Netzgrafik als Kopie einfügen (Zugfahrten, Knoten, Kommentare)",
         "add-netzgrafik-as-copy": "Netzgrafik als Kopie einfügen",
         "merge-netzgrafik-tooltip": "Netzgrafik zusammenführen (Zugfahrten, Knoten, Kommentare)",
@@ -337,12 +337,12 @@
         "align-elements-right": "Rechtsbündig ausrichten",
         "align-elements-top": "Oben ausrichten",
         "align-elements-bottom": "Unten ausrichten",
-        "node-optimization-disposition-title": "Netzgrafik - Knotenpositionen",
+        "node-optimization-disposition-title": "Netzgrafik – Knotenpositionen",
         "optimization-netzgrafik-tooltip": "Strecke die Netzgrafik, so dass keine Kante kürzer als die minimale Kantenlänge der Zugfahrten ist.",
         "optimize-layout": "Strecke die Netzgrafik",
         "inverse_optimization-netzgrafik-tooltip": "Komprimiere die Netzgrafik so weit, dass keine Kante unnötigerweise länger als die minimale Kantenlänge ist.",
         "inverse_optimization-netzgrafik": "Komprimiere die Netzgrafik",
-        "node-optimization-title": "Netzgrafik - Algorithmus zur Sortierung der Ports der Knoten",
+        "node-optimization-title": "Netzgrafik – Algorithmus zur Sortierung der Ports der Knoten",
         "alphabeticalOrdering": "Alphabetisch",
         "alphabeticalOrderingTooltip": "Ports anhand der Zugkategorien alphabetisch anordnen.",
         "crossingAwareOrdering": "Kreuzungsbewusst",
@@ -433,17 +433,17 @@
         "show-hide-filter": "Filter ein-/ausblenden",
         "zoom-out": "Herauszoomen",
         "zoom-in": "Hereinzoomen",
-        "topology-editor-disabled": "Topologie Editor deaktiviert",
-        "topology-editor-enabled": "Topologie Editor aktiviert",
+        "topology-editor-disabled": "Topologie-Editor deaktiviert",
+        "topology-editor-enabled": "Topologie-Editor aktiviert",
         "multiple-selection-tool-disabled": "Mehrfachauswahl-Tool ist deaktiviert",
         "multiple-selection-tool-enabled": "Mehrfachauswahl-Tool ist aktiviert",
-        "note-editor-disabled": "Notiz Editor deaktiviert",
-        "note-editor-enabled": "Notiz Editor aktiviert",
+        "note-editor-disabled": "Notiz-Editor deaktiviert",
+        "note-editor-enabled": "Notiz-Editor aktiviert",
         "analytics-disabled": "Analytics deaktiviert",
         "analytics-enabled": "Analytics aktiviert",
-        "displayOriginDestination": "Origin-Destination Matrix anzeigen",
-        "closeOriginDestination": "Origin-Destination Matrix schliessen",
-        "errorOriginDestination": "Origin-Destination Matrix kann nicht angezeigt werden, da mindestens 2 Knoten ausgewählt worden sein müssen.",
+        "displayOriginDestination": "Origin-Destination-Matrix anzeigen",
+        "closeOriginDestination": "Origin-Destination-Matrix schliessen",
+        "errorOriginDestination": "Origin-Destination-Matrix kann nicht angezeigt werden, da mindestens 2 Knoten ausgewählt worden sein müssen.",
         "displayGraphicTimetable": "Streckengrafik anzeigen",
         "closeGraphicTimetable": "Streckengrafik schliessen",
         "errorGraphicTimetable": "Streckengrafik kann nicht angezeigt werden, da keine Zugfahrt oder keine Knoten ausgewählt wurden."
@@ -453,7 +453,7 @@
         "color-scheme": "Farbschema",
         "theme": "Theme",
         "background-color": "Hintergrundfarbe",
-        "set-color-to-white": "Hintergrundfarbe auf 'weiss' setzen",
+        "set-color-to-white": "Hintergrundfarbe auf «weiss» setzen",
         "reset-background-color-to-default": "Hintergrundfarbe auf Standard zurücksetzen",
         "background-color-black": "Hintergrundfarbe (dunkel)",
         "editor": "Editor",
@@ -462,19 +462,19 @@
         "travel-time-presetting-default": "Fahrzeitvoreinstellung (Heuristik)",
         "graphicTimetable": "Streckengrafik",
         "axis-scaling-distance": "Achsenskalierung (Distanz)",
-        "standardColorTheme": "Standard Farbschema",
+        "standardColorTheme": "Standard-Farbschema",
         "specialColorTheme": "Spezielles Farbschema",
-        "grayscaleColorTheme": "Graustufen Farbschema",
+        "grayscaleColorTheme": "Graustufen-Farbschema",
         "optimizedPrintColorTheme": "Optimiertes Farbschema zum Drucken/Exportieren",
-        "standardDarkColorTheme": "Standard Farbschema (dunkel)",
+        "standardDarkColorTheme": "Standard-Farbschema (dunkel)",
         "specialDarkColorTheme": "Spezielles Farbschema (dunkel)",
-        "grayscaleDarkColorTheme": "Graustufen Farbschema (dunkel)",
+        "grayscaleDarkColorTheme": "Graustufen-Farbschema (dunkel)",
         "timeScaledDistance": "fahrzeitskaliert",
         "timeScaledDistanceTooltip": "Die Streckengrafikabschnitte werden fahrzeitskaliert dargestellt, d.h. es wird angenommen, dass der ausgewählte Zug mit konstanter Geschwindigkeit verkehrt.",
         "uniformDistance": "gleichmässig",
         "uniformDistanceTooltip": "Die Streckengrafikabschnitte werden gleichmässig skaliert dargestellt.",
-        "fixed": "Konstant 1min.",
-        "fixedTooltip": "Übernimmt die Fahrzeit mit konstant 1min (Default).",
+        "fixed": "Konstant 1 min",
+        "fixedTooltip": "Übernimmt die Fahrzeit mit konstant 1 min (Default).",
         "retrieveFromEdge": "Abschnittsfahrzeit",
         "retrieveFromEdgeTooltip": "Übernimmt die max. Fahrzeit auf demselben Abschnitt aller Züge gleicher Kategorie, sonst max. Fahrzeit aller Züge, sonst 1 Min.",
         "trafficSide": "Verkehrsseite",
@@ -491,7 +491,7 @@
           "capacity": "Kapazität",
           "filterable-labels": "Filterbare Labels",
           "labels": "Labels",
-          "new-label-placeholder": "Neues Label...",
+          "new-label-placeholder": "Neues Label…",
           "stopping-times": "Haltezeiten",
           "stopping-time-per-product": "Haltezeit pro Produkt",
           "no-stop": "Kein Halt",
@@ -501,7 +501,7 @@
           "c": "C",
           "d": "D",
           "links": "Links",
-          "platform-information": "Perron Informationen",
+          "platform-information": "Perron-Informationen",
           "platform-length": "Perron-Länge",
           "delete-node": "Knoten löschen",
           "delete": "Löschen",
@@ -525,16 +525,16 @@
           "import-netzgrafik-error": "Netzgrafik konnte nicht importiert werden.",
           "export-png-error": "Fehler beim PNG-Export",
           "import-netzgrafik-as-json": "Netzgrafik aus JSON importieren",
-          "import-netzgrafik-as-json-info-3rd-party": "Drittanbieter JSON Daten erkannt: Import Heuristik angewandt.",
+          "import-netzgrafik-as-json-info-3rd-party": "Drittanbieter-JSON-Daten erkannt: Import-Heuristik angewandt.",
           "export-trainruns": "Zugfahrten exportieren",
           "export-trainruns-as-csv": "Zugfahrten als CSV exportieren",
-          "export-trainruns-as-csv-excel": "In Excel: Daten -> Aus Text/CSV -> Filename ... importieren",
+          "export-trainruns-as-csv-excel": "In Excel: Daten -> Aus Text/CSV -> Filename … importieren",
           "export-origin-destination": "Export origin-destination",
           "export-origin-destination-as-csv": "Export origin-destination as CSV",
-          "import-basedata-legacy-info": "Veraltetes Stammdatenformat importiert - bitte beachten Sie die Dokumentation und aktualisieren Sie Ihre Stammdatendateien, um sicherzustellen, dass zukünftige Versionen den Datenimport weiterhin unterstützen",
+          "import-basedata-legacy-info": "Veraltetes Stammdatenformat importiert – bitte beachten Sie die Dokumentation und aktualisieren Sie Ihre Stammdatendateien, um sicherzustellen, dass zukünftige Versionen den Datenimport weiterhin unterstützen",
           "base-data": "Stammdaten",
           "import-base-data": "Stammdaten importieren",
-          "help-csv-data": "Hilfe: CSV - Datei",
+          "help-csv-data": "Hilfe: CSV – Datei",
           "export-base-data": "Stammdaten exportieren",
           "bp": "BP",
           "station": "Bahnhof",
@@ -563,13 +563,13 @@
           "destinationStation": "Zielbahnhof",
           "trafficPeriod": "Verkehrsperiode",
           "frequency": "Takt",
-          "departureMinuteAtStart": "Abfahrtsminute am Start Knoten",
+          "departureMinuteAtStart": "Abfahrtsminute am Startknoten",
           "travelTimeStartDestination": "Fahrzeit Start-Ziel",
-          "arrivalMinuteAtDestination": "Ankunftsminute am Ziel Knoten",
+          "arrivalMinuteAtDestination": "Ankunftsminute am Zielknoten",
           "turnaroundTimeDestination": "Wendezeit Zielbahnhof",
-          "departureMinuteDeparture": "Abfahrtsminute am  Ziel Knoten",
+          "departureMinuteDeparture": "Abfahrtsminute am Zielknoten",
           "travelTimeDestinationStart": "Fahrzeit Ziel-Start",
-          "arrivalMinuteAtStart": "Ankunftsminute am Start Knoten",
+          "arrivalMinuteAtStart": "Ankunftsminute am Startknoten",
           "turnaroundTimeStart": "Wendezeit Startbahnhof",
           "turnaroundTime": "Umlaufzeit",
           "trainrunTimeCategory": "Verkehrt",
@@ -601,10 +601,10 @@
             "mandatory": "Pflichtfeld",
             "summary": "Zusammenfassung",
             "description": "Beschreibung",
-            "tooltip": "Benutzer müssen mit ihrer E-Mail angegeben werden. Eingabe pro E-Mail jeweils mit 'Enter' bestätigen.",
+            "tooltip": "Benutzer müssen mit ihrer E-Mail angegeben werden. Eingabe pro E-Mail jeweils mit «Enter» bestätigen.",
             "user-with-write-access": "Benutzer mit Schreibzugriff",
-            "new-user-placeholder": "Neuer Benutzer...",
-            "invalid-values": "Ungültige Werte (keine E-Mail Adresse)",
+            "new-user-placeholder": "Neuer Benutzer…",
+            "invalid-values": "Ungültige Werte (keine E-Mail-Adresse)",
             "user-with-read-access": "Benutzer mit Lesezugriff"
           }
         },
@@ -694,7 +694,7 @@
           "variants": "Varianten",
           "search-variants": "Varianten suchen",
           "show-archive": "Archiv anzeigen",
-          "project-description": "Projekt Beschreibung",
+          "project-description": "Projektbeschreibung",
           "edit-project": "Projekt bearbeiten",
           "archive-project": {
             "title": "Projekt archivieren",
