@@ -292,7 +292,7 @@ export class TrainrunIterator {
       this.pointerElement = undefined;
       // log the issue
       this.logService.error(
-        $localize`:@@app.services.util.trainrun-iteration.error.infinity-loop:Iterator has detected an infinity loop. The iteration terminated early!`,
+        $localize`:@@app.services.util.trainrun-iteration.error.infinity-loop:Iterator has detected an infinite loop. The iteration terminated early!`,
         new Error().stack,
       );
       return this.currentElement;
@@ -339,7 +339,7 @@ export class BackwardTrainrunIterator extends TrainrunIterator {
       this.pointerElement = undefined;
       // log the issue
       this.logService.error(
-        $localize`:@@app.services.util.trainrun-iteration.error.infinity-loop:Iterator has detected an infinity loop. The iteration terminated early!`,
+        $localize`:@@app.services.util.trainrun-iteration.error.infinity-loop:Iterator has detected an infinite loop. The iteration terminated early!`,
         new Error().stack,
       );
       return this.currentElement;

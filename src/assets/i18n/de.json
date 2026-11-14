@@ -4,7 +4,7 @@
       "path": {
         "404": "Die gesuchte Seite wurde nicht gefunden.",
         "401": "Sie sind nicht autorisiert, bitte laden Sie die Seite neu.",
-        "403": "Sie sind nicht berechtigt diese Aktion durchzuführen.",
+        "403": "Sie sind nicht berechtigt, diese Aktion durchzuführen.",
         "409": "Es gab einen Konflikt bei der Ausführung Ihrer Aktion, bitte versuchen Sie es erneut.",
         "error": "Es ist ein Fehler aufgetreten."
       }
@@ -68,7 +68,7 @@
         "trainrunsection": {
           "intermediate-stop-replacement": {
             "title": "Zwischenhalteumwandlung",
-            "description": "Zwischenhalteumwandlung führte bei der Vergabe der Zeiten zu inkonsistenzen!"
+            "description": "Zwischenhalteumwandlung führte bei der Vergabe der Zeiten zu Inkonsistenzen!"
           }
         },
         "version-control": {
@@ -92,33 +92,33 @@
         },
         "trainrunsection-validator": {
           "broken-symmetry": "Symmetrie gebrochen",
-          "target-arrival-not-reacheable": {
+          "target-arrival-not-reachable": {
             "title": "Ziel Ankunft Warnung",
             "description": "Zielankunftszeit kann nicht erreicht werden"
           },
-          "source-arrival-not-reacheable": {
+          "source-arrival-not-reachable": {
             "title": "Quelle Ankunft Warnung",
             "description": "Quellankunftszeit kann nicht erreicht werden"
           },
           "travel-time-less-than-1": {
             "title": "Reisezeit weniger als {$minimumTravelTime}",
-            "description": "Die Reisezeit muss größer oder gleich {$minimumTravelTime} sein."
+            "description": "Die Reisezeit muss grösser oder gleich {$minimumTravelTime} sein."
           }
         },
         "transition-validator": {
-          "source-arrival-not-reacheable": {
+          "source-arrival-not-reachable": {
             "title": "Quelle Ankunft Warnung",
             "description": "Quellankunftszeit kann nicht erreicht werden"
           },
-          "source-departure-not-reacheable": {
+          "source-departure-not-reachable": {
             "title": "Quelle Abfahrt Warnung",
             "description": "Quellabfahrtszeit kann nicht erreicht werden"
           },
-          "target-arrival-not-reacheable": {
+          "target-arrival-not-reachable": {
             "title": "Ziel Ankunft Warnung",
             "description": "Zielankunftszeit kann nicht erreicht werden"
           },
-          "target-departure-not-reacheable": {
+          "target-departure-not-reachable": {
             "title": "Ziel Abfahrt Warnung",
             "description": "Zielabfahrtszeit kann nicht erreicht werden"
           }
@@ -168,7 +168,7 @@
       "navigation-parameters": {
         "no-project-id": "Keine Projekt-ID vorhanden",
         "no-variant-id": "Keine Varianten-ID vorhanden",
-        "no-version-id": "Keine Version-ID vorhanden"
+        "no-version-id": "Keine Versions-ID vorhanden"
       }
     },
     "view": {
@@ -318,20 +318,20 @@
         "notes": "Kommentare",
         "delete-netzgrafik-title": "Netzgrafik - Löschen",
         "non-visible-elements": "Nicht sichtbare Elemente",
-        "delete-all-non-visible-elements-tooltip": "Alle nicht sichtbare Elemente, wie Knoten, Zugfahrten und Kommentare löschen",
-        "delete-all-non-visible-elements": "Alle nicht sichtbare Elemente löschen",
+        "delete-all-non-visible-elements-tooltip": "Alle nicht sichtbaren Elemente, wie Knoten, Zugfahrten und Kommentare löschen",
+        "delete-all-non-visible-elements": "Alle nicht sichtbaren Elemente löschen",
         "visible-elements": "Sichtbare Elemente",
-        "delete-all-visible-trainruns-tooltip": "Alle sichtbare Zugfahrten löschen",
-        "delete-all-visible-trainruns": "Alle sichtbare Zugfahrten löschen",
-        "delete-all-visible-notes-tooltip": "Alle sichtbare Kommentare löschen",
-        "delete-all-visible-notes": "Alle sichtbare Kommentare löschen",
-        "delete-all-visible-elements-tooltip": "Alle sichtbare Elemente, wie Knoten, Zugfahrten und Kommentare löschen",
-        "delete-all-visible-elements": "Alle sichtbare Elemente löschen",
+        "delete-all-visible-trainruns-tooltip": "Alle sichtbaren Zugfahrten löschen",
+        "delete-all-visible-trainruns": "Alle sichtbaren Zugfahrten löschen",
+        "delete-all-visible-notes-tooltip": "Alle sichtbaren Kommentare löschen",
+        "delete-all-visible-notes": "Alle sichtbaren Kommentare löschen",
+        "delete-all-visible-elements-tooltip": "Alle sichtbaren Elemente, wie Knoten, Zugfahrten und Kommentare löschen",
+        "delete-all-visible-elements": "Alle sichtbaren Elemente löschen",
         "merge-netzgrafik-title": "Netzgrafik - Zusammenführen",
         "add-netzgrafik-as-copy-tooltip": "Netzgrafik als Kopie einfügen (Zugfahrten, Knoten, Kommentare)",
         "add-netzgrafik-as-copy": "Netzgrafik als Kopie einfügen",
         "merge-netzgrafik-tooltip": "Netzgrafik zusammenführen (Zugfahrten, Knoten, Kommentare)",
-        "merge-netzgrafik": "Netzgrafik durch zusammenführen",
+        "merge-netzgrafik": "Netzgrafik zusammenführen",
         "align-elements-netzgrafik-title": "Elemente ausrichten",
         "align-elements-left": "Linksbündig ausrichten",
         "align-elements-right": "Rechtsbündig ausrichten",
@@ -340,7 +340,7 @@
         "node-optimization-disposition-title": "Netzgrafik - Knotenpositionen",
         "optimization-netzgrafik-tooltip": "Strecke die Netzgrafik, so dass keine Kante kürzer als die minimale Kantenlänge der Zugfahrten ist.",
         "optimize-layout": "Strecke die Netzgrafik",
-        "inverse_optimization-netzgrafik-tooltip": "Komprimiere Netzgrafik soweit, dass keine Kante unnötigerweise länger als die minimale Kantelänge ist.",
+        "inverse_optimization-netzgrafik-tooltip": "Komprimiere die Netzgrafik so weit, dass keine Kante unnötigerweise länger als die minimale Kantenlänge ist.",
         "inverse_optimization-netzgrafik": "Komprimiere die Netzgrafik",
         "node-optimization-title": "Netzgrafik - Algorithmus zur Sortierung der Ports der Knoten",
         "alphabeticalOrdering": "Alphabetisch",
@@ -350,10 +350,10 @@
         "crossingAwarePushOrdering": "Kreuzungsbewusst (Kreuzungen in die Knoten verschieben)",
         "crossingAwarePushOrderingTooltip": "Minimiert Kreuzungen von Zugfahrten und verschiebt sie in die Knoten, damit parallele Zugfahrten gebündelt bleiben.",
         "delete": "Löschen",
-        "on-clear-delete-all-non-visible-elements": "Sollen alle nicht sichtbare Elemente aus der Netzgrafik definitiv gelöscht werden?",
-        "on-clear-delete-all-visible-elements": "Sollen alle sichtbare Elemente aus der Netzgrafik definitiv gelöscht werden?",
-        "on-clear-delete-all-visible-trainruns": "Sollen alle sichtbare Zugfahrten aus der Netzgrafik definitiv gelöscht werden?",
-        "on-clear-delete-all-visible-notes": "Sollen alle sichtbare Kommentare aus der Netzgrafik definitiv gelöscht werden?",
+        "on-clear-delete-all-non-visible-elements": "Sollen alle nicht sichtbaren Elemente aus der Netzgrafik definitiv gelöscht werden?",
+        "on-clear-delete-all-visible-elements": "Sollen alle sichtbaren Elemente aus der Netzgrafik definitiv gelöscht werden?",
+        "on-clear-delete-all-visible-trainruns": "Sollen alle sichtbaren Zugfahrten aus der Netzgrafik definitiv gelöscht werden?",
+        "on-clear-delete-all-visible-notes": "Sollen alle sichtbaren Kommentare aus der Netzgrafik definitiv gelöscht werden?",
         "label-drop-list": {
           "no-labels-available": "Keine Labels vorhanden",
           "delete-group": "Gruppe löschen",
@@ -382,9 +382,9 @@
         "display-asymmetry-arrows": "Zugfahrt-Knoten-Asymmetrie-Pfeile anzeigen",
         "display-backward-travel-times": "Rückwärtsfahrzeiten anzeigen (Asymmetrie)",
         "times": "Zeiten",
-        "decimal-displayed": "Anzahl Nachkommastellenanzeigen",
-        "display-arrival-departure-times": "Abfahrt- und Ankuftszeiten anzeigen",
-        "display-arrival-departure-times-for-connections": "Abfahrt- und Ankuftszeiten für Durchfahrten anzeigen",
+        "decimal-displayed": "Anzahl angezeigter Nachkommastellen",
+        "display-arrival-departure-times": "Abfahrts- und Ankunftszeiten anzeigen",
+        "display-arrival-departure-times-for-connections": "Abfahrts- und Ankunftszeiten für Durchfahrten anzeigen",
         "display-travel-times": "Fahrzeiten anzeigen",
         "display-trainrun-name": "Zugname anzeigen",
         "connections": "Anschlüsse",
@@ -435,8 +435,8 @@
         "zoom-in": "Hereinzoomen",
         "topology-editor-disabled": "Topologie Editor deaktiviert",
         "topology-editor-enabled": "Topologie Editor aktiviert",
-        "multiple-selection-tool-disabled": "Mehrfachauswahlstool ist deaktiviert",
-        "multiple-selection-tool-enabled": "Mehrfachauswahlstool ist aktiviert",
+        "multiple-selection-tool-disabled": "Mehrfachauswahl-Tool ist deaktiviert",
+        "multiple-selection-tool-enabled": "Mehrfachauswahl-Tool ist aktiviert",
         "note-editor-disabled": "Notiz Editor deaktiviert",
         "note-editor-enabled": "Notiz Editor aktiviert",
         "analytics-disabled": "Analytics deaktiviert",
@@ -453,13 +453,13 @@
         "color-scheme": "Farbschema",
         "theme": "Theme",
         "background-color": "Hintergrundfarbe",
-        "set-color-to-white": "Hintergrundfarbe auf 'weiss' setzten",
+        "set-color-to-white": "Hintergrundfarbe auf 'weiss' setzen",
         "reset-background-color-to-default": "Hintergrundfarbe auf Standard zurücksetzen",
         "background-color-black": "Hintergrundfarbe (dunkel)",
         "editor": "Editor",
-        "useDefaultBrowserColorTheme": "Verwenden Sie das Standard-Browser-Farbschema",
+        "useDefaultBrowserColorTheme": "Standard-Browser-Farbschema verwenden",
         "defaultBrowserColorTheme": "Standard-Browser-Farbschema",
-        "travel-time-presetting-default": "Fahrzeitvoreinstellungs (Heuristik)",
+        "travel-time-presetting-default": "Fahrzeitvoreinstellung (Heuristik)",
         "graphicTimetable": "Streckengrafik",
         "axis-scaling-distance": "Achsenskalierung (Distanz)",
         "standardColorTheme": "Standard Farbschema",
@@ -476,7 +476,7 @@
         "fixed": "Konstant 1min.",
         "fixedTooltip": "Übernimmt die Fahrzeit mit konstant 1min (Default).",
         "retrieveFromEdge": "Abschnittsfahrzeit",
-        "retrieveFromEdgeTooltip": "Übernimmt die max. Fahrzeit auf dem selben Abschnitt aller Züge gleicher Kategorie, sonst max. Fahrzeit aller Züge, sonst 1 Min.",
+        "retrieveFromEdgeTooltip": "Übernimmt die max. Fahrzeit auf demselben Abschnitt aller Züge gleicher Kategorie, sonst max. Fahrzeit aller Züge, sonst 1 Min.",
         "trafficSide": "Verkehrsseite",
         "leftTrafficSideTooltip": "Die Züge verkehren nach den Regeln für Linksverkehr.",
         "rightTrafficSideTooltip": "Die Züge verkehren nach den Regeln für Rechtsverkehr."
@@ -643,11 +643,11 @@
               "comment": "Kommentar",
               "publish": "Publizieren",
               "local-changes": "Lokale Änderungen müssen zuerst gespeichert werden",
-              "discard-changes": "Änderungen Verwerfen"
+              "discard-changes": "Änderungen verwerfen"
             },
             "released-entry": {
               "download": "Herunterladen",
-              "discard-changes": "Änderungen Verwerfen",
+              "discard-changes": "Änderungen verwerfen",
               "ignore-conflict": "Konflikt ignorieren",
               "restore": "Wiederherstellen",
               "as-new-variant": "Als neue Variante",
@@ -725,7 +725,7 @@
     }
   },
   "sbbBreadcrumbExpand": "Gesamten Pfad anzeigen",
-  "sbbDialogCloseDialog": "Dialog schließen",
+  "sbbDialogCloseDialog": "Dialog schliessen",
   "sbbFileSelectorUploadFile": "Datei hochladen",
   "sbbFileSelectorRemoveFile": "Datei löschen",
   "sbbHeaderMenuBack": "Zurück",
@@ -733,9 +733,9 @@
   "sbbHeaderCloseMenu": "Menü schliessen",
   "sbbSidebarCollapse": "Zusammenklappen",
   "sbbSidebarExpand": "Erweitern",
-  "sbbSidebarCloseSidebar": "Sidebar schließen",
+  "sbbSidebarCloseSidebar": "Sidebar schliessen",
   "sbbSidebarOpenSidebar": "Sidebar öffnen",
   "sbbTextareaCounterText": "{$PH} verbleibende Zeichen",
   "sbbUsermenuLogin": "Login",
-  "sbbUsermenuOpenPanel": "Eingeloggt als {$PH}. Klicken Sie auf oder drücken Sie die Eingabetaste, um das Benutzermenü zu öffnen."
+  "sbbUsermenuOpenPanel": "Eingeloggt als {$PH}. Klicken Sie oder drücken Sie die Eingabetaste, um das Benutzermenü zu öffnen."
 }

@@ -24,7 +24,7 @@
     "models": {
       "node": {
         "shortNameDefault": "NEW",
-        "full-name-default": "Nouveau noeud"
+        "full-name-default": "Nouveau nœud"
       },
       "note": {
         "title-default": "Titre de la note",
@@ -37,7 +37,7 @@
       "variants": "Variantes",
       "filter": "Filtres",
       "analytics": "Analyse",
-      "edit": "Edition",
+      "edit": "Édition",
       "more-functions": "Plus de fonctionnalités",
       "settings": "Paramètres"
     },
@@ -92,11 +92,11 @@
         },
         "trainrunsection-validator": {
           "broken-symmetry": "Symétrie brisée",
-          "target-arrival-not-reacheable": {
+          "target-arrival-not-reachable": {
             "title": "Avertissement d'arrivée à destination",
             "description": "L'heure d'arrivée à destination ne peut être atteinte"
           },
-          "source-arrival-not-reacheable": {
+          "source-arrival-not-reachable": {
             "title": "Avertissement d'arrivée à l'origine",
             "description": "L'heure d'arrivée à l'origine ne peut être atteinte"
           },
@@ -106,19 +106,19 @@
           }
         },
         "transition-validator": {
-          "source-arrival-not-reacheable": {
+          "source-arrival-not-reachable": {
             "title": "Avertissement d'arrivée à l'origine",
             "description": "L'heure d'arrivée à l'origine ne peut être atteinte"
           },
-          "source-departure-not-reacheable": {
+          "source-departure-not-reachable": {
             "title": "Avertissement de départ à l'origine",
             "description": "L'heure de départ à l'origine ne peut être atteinte"
           },
-          "target-arrival-not-reacheable": {
+          "target-arrival-not-reachable": {
             "title": "Avertissement d'arrivée à destination",
             "description": "L'heure d'arrivée à destination ne peut être atteinte"
           },
-          "target-departure-not-reacheable": {
+          "target-departure-not-reachable": {
             "title": "Avertissement de départ à destination",
             "description": "L'heure de départ à destination ne peut être atteinte"
           }
@@ -128,8 +128,8 @@
     "streckengrafik": {
       "components": {
         "reset": "Réinitialiser",
-        "close-all-path-nodes": "Fermer tous les noeuds du chemin",
-        "open-all-path-nodes": "Ouvrir tous les noeuds du chemin",
+        "close-all-path-nodes": "Fermer tous les nœuds du chemin",
+        "open-all-path-nodes": "Ouvrir tous les nœuds du chemin",
         "show-advanced-display-functions": "Afficher les fonctionnalités d'affichage avancées",
         "show-or-hide-time-for-non-selected-trainruns": "Afficher/masquer le temps des trajets de train non sélectionnés",
         "show-or-hide": "Activer/Désactiver {$component}",
@@ -311,44 +311,44 @@
         }
       },
       "editor-edit-tools-view-component": {
-        "edit": "Editer",
+        "edit": "Éditer",
         "filterable-labels": "Labels filtrables",
         "trainruns": "Trajets de train",
-        "nodes": "Noeuds",
+        "nodes": "Nœuds",
         "notes": "Notes",
         "delete-netzgrafik-title": "Réticulaire - Supprimer",
         "non-visible-elements": "Éléments non visibles",
-        "delete-all-non-visible-elements-tooltip": "Supprimer tous les éléments non visibles, tels que les noeuds, les trajets de train et les notes",
+        "delete-all-non-visible-elements-tooltip": "Supprimer tous les éléments non visibles, tels que les nœuds, les trajets de train et les notes",
         "delete-all-non-visible-elements": "Supprimer tous les éléments non visibles",
         "visible-elements": "Éléments visibles",
         "delete-all-visible-trainruns-tooltip": "Supprimer tous les trajets de trains visibles",
         "delete-all-visible-trainruns": "Supprimer tous les trajets de trains visibles",
         "delete-all-visible-notes-tooltip": "Supprimer toutes les notes visibles",
         "delete-all-visible-notes": "Supprimer toutes les notes visibles",
-        "delete-all-visible-elements-tooltip": "Supprimer tous les éléments visibles, tels que les noeuds, les trajets de train et les notes",
+        "delete-all-visible-elements-tooltip": "Supprimer tous les éléments visibles, tels que les nœuds, les trajets de train et les notes",
         "delete-all-visible-elements": "Supprimer tous les éléments visibles",
         "merge-netzgrafik-title": "Réticulaire - Fusionner",
-        "add-netzgrafik-as-copy-tooltip": "Ajouter un réticulaire en tant que copie (trajets de train, noeuds, notes)",
+        "add-netzgrafik-as-copy-tooltip": "Ajouter un réticulaire en tant que copie (trajets de train, nœuds, notes)",
         "add-netzgrafik-as-copy": "Ajouter un réticulaire en tant que copie",
-        "merge-netzgrafik-tooltip": "Fusionner les réticulaires (trajets de train, noeuds, notes)",
+        "merge-netzgrafik-tooltip": "Fusionner les réticulaires (trajets de train, nœuds, notes)",
         "merge-netzgrafik": "Fusionner un réticulaire",
-        "align-elements-netzgrafik-title": "Aligner plusieurs objets (noeuds)",
+        "align-elements-netzgrafik-title": "Aligner plusieurs objets (nœuds)",
         "align-elements-left": "Aligner à gauche",
         "align-elements-right": "Aligner à droite",
         "align-elements-top": "Aligner le haut",
         "align-elements-bottom": "Aligner le bas",
-        "node-optimization-disposition-title": "Réticulaire - Positions des noeuds",
+        "node-optimization-disposition-title": "Réticulaire - Positions des nœuds",
         "optimization-netzgrafik-tooltip": "Étirez le netzgrafik de sorte qu'aucun bord ne soit plus court que la longueur minimale des bords des trajets de train.",
         "optimize-layout": "Étirez le netzgrafik",
         "inverse_optimization-netzgrafik-tooltip": "Compressez le netzgrafik de sorte qu'aucun bord ne soit inutilement plus long que la longueur minimale des bords.",
         "inverse_optimization-netzgrafik": "Compressez le netzgrafik",
-        "node-optimization-title": "Réticulaire - Algorithme de tri des ports des noeuds",
+        "node-optimization-title": "Réticulaire - Algorithme de tri des ports des nœuds",
         "alphabeticalOrdering": "Alphabétique",
         "alphabeticalOrderingTooltip": "Ordonne les ports par ordre alphabétique des catégories de train.",
         "crossingAwareOrdering": "Réduction des croisements",
-        "crossingAwareOrderingTooltip": "Minimise les croisements des trajets à l'intérieur des noeuds.",
-        "crossingAwarePushOrdering": "Réduction des croisements (concentrés dans les noeuds)",
-        "crossingAwarePushOrderingTooltip": "Minimise les croisements des trajets en les concentrant dans les noeuds pour garder les trajets parallèles groupés.",
+        "crossingAwareOrderingTooltip": "Minimise les croisements des trajets à l'intérieur des nœuds.",
+        "crossingAwarePushOrdering": "Réduction des croisements (concentrés dans les nœuds)",
+        "crossingAwarePushOrderingTooltip": "Minimise les croisements des trajets en les concentrant dans les nœuds pour garder les trajets parallèles groupés.",
         "delete": "Supprimer",
         "on-clear-delete-all-non-visible-elements": "Tous les éléments non visibles doivent-ils être définitivement supprimés du réticulaire ?",
         "on-clear-delete-all-visible-elements": "Tous les éléments visibles doivent-ils être définitivement supprimés du réticulaire ?",
@@ -360,7 +360,7 @@
           "add-new-group": "Ajouter un nouveau groupe",
           "trainruns": "Trajets de train",
           "notes": "Notes",
-          "nodes": "Noeuds"
+          "nodes": "Nœuds"
         }
       },
       "editor-filter-view": {
@@ -372,14 +372,14 @@
         "display-all-trainruns": "Afficher tous les trajets de train",
         "reset-trainrun-filter": "Réinitialiser les filtres sur les trajets de train",
         "filterable-labels-trainruns": "Labels filtrables: Trajets de train",
-        "filterable-labels-nodes": "Labels filtrables: Noeuds",
+        "filterable-labels-nodes": "Labels filtrables: Nœuds",
         "filterable-labels-notes": "Labels filtrables: Notes",
         "display": "Affichage",
-        "Round-trips": "Aller-retours",
-        "round-trips": "aller-retours",
+        "Round-trips": "Allers-retours",
+        "round-trips": "allers-retours",
         "one-ways": "allers simples",
         "display-direction-arrows": "Afficher les flèches de direction des trains",
-        "display-asymmetry-arrows": "Afficher les flèches d'asymétrie au niveau des noeuds des trains",
+        "display-asymmetry-arrows": "Afficher les flèches d'asymétrie au niveau des nœuds des trains",
         "display-backward-travel-times": "Afficher les temps de parcours retour (asymétrie)",
         "times": "Temps",
         "decimal-displayed": "Nombre de décimales affichées",
@@ -389,10 +389,10 @@
         "display-trainrun-name": "Afficher le nom du trajet de train",
         "connections": "Correspondances",
         "display-connections": "Afficher les correspondances",
-        "nodes": "Noeuds",
-        "display-nodes-without-visible-trainruns": "Afficher les noeuds sans trajets de train (visibles)",
-        "display-nodes-with-only-stopping-trainruns": "Afficher les noeuds où les trains s'arrêtent",
-        "display-nodes-full-name": "Afficher les noms complets des noeuds",
+        "nodes": "Nœuds",
+        "display-nodes-without-visible-trainruns": "Afficher les nœuds sans trajets de train (visibles)",
+        "display-nodes-with-only-stopping-trainruns": "Afficher les nœuds où les trains s'arrêtent",
+        "display-nodes-full-name": "Afficher les noms complets des nœuds",
         "notes": "Notes",
         "display-notes": "Afficher les notes",
         "reset-display-filter": "Réinitialiser l'affichage des filtres",
@@ -433,20 +433,20 @@
         "show-hide-filter": "Filtres",
         "zoom-out": "Zoom arrière",
         "zoom-in": "Zoom avant",
-        "topology-editor-disabled": "Editeur de topologie désactivé",
-        "topology-editor-enabled": "Editeur de topologie activé",
+        "topology-editor-disabled": "Éditeur de topologie désactivé",
+        "topology-editor-enabled": "Éditeur de topologie activé",
         "multiple-selection-tool-disabled": "Outil de sélection multiple désactivé",
         "multiple-selection-tool-enabled": "Outil de sélection multiple activé",
-        "note-editor-disabled": "Editeur de notes désactivé",
-        "note-editor-enabled": "Editeur de notes activé",
+        "note-editor-disabled": "Éditeur de notes désactivé",
+        "note-editor-enabled": "Éditeur de notes activé",
         "analytics-disabled": "Analyse désactivée",
         "analytics-enabled": "Analyse activée",
         "displayOriginDestination": "Afficher la matrice origine-destination",
         "closeOriginDestination": "Fermer la matrice origine-destination",
-        "errorOriginDestination": "La matrice origine-destination ne peut être affichée car il faut un minimum de 2 noeuds sélectionnés.",
+        "errorOriginDestination": "La matrice origine-destination ne peut être affichée car il faut un minimum de 2 nœuds sélectionnés.",
         "displayGraphicTimetable": "Afficher le graphique espace-temps",
         "closeGraphicTimetable": "Fermer le graphique espace-temps",
-        "errorGraphicTimetable": "Le graphique espace-temps ne peut pas être affiché parce qu'aucun trajet de train ou aucun noeud n'a été sélectionné."
+        "errorGraphicTimetable": "Le graphique espace-temps ne peut pas être affiché parce qu'aucun trajet de train ou aucun nœud n'a été sélectionné."
       },
       "editor-properties-view-component": {
         "settings": "Paramètres",
@@ -456,7 +456,7 @@
         "set-color-to-white": "Définir la couleur à 'blanc'",
         "reset-background-color-to-default": "Réinitialiser la couleur d'arrière-plan par défaut",
         "background-color-black": "Couleur d'arrière-plan (noir)",
-        "editor": "Editeur",
+        "editor": "Éditeur",
         "useDefaultBrowserColorTheme": "Utiliser le thème de couleur par défaut du navigateur",
         "defaultBrowserColorTheme": "Thème de couleur par défaut du navigateur",
         "travel-time-presetting-default": "Prédétermination du temps de parcours (heuristique)",
@@ -465,7 +465,7 @@
         "standardColorTheme": "Thème de couleur standard",
         "specialColorTheme": "Thème de couleur spécial",
         "grayscaleColorTheme": "Thème de couleurs en niveaux de gris",
-        "optimizedPrintColorTheme": "Thème de couleurs optimisé pour l'import/export",
+        "optimizedPrintColorTheme": "Thème de couleurs optimisé pour l'impression/l'exportation",
         "standardDarkColorTheme": "Thème de couleur standard (sombre)",
         "specialDarkColorTheme": "Thème de couleur spécial (sombre)",
         "grayscaleDarkColorTheme": "Thème de couleurs en niveaux de gris (sombre)",
@@ -503,9 +503,9 @@
           "links": "Liens",
           "platform-information": "Informations sur les quais",
           "platform-length": "Longueur des quais",
-          "delete-node": "Supprimer le noeud",
+          "delete-node": "Supprimer le nœud",
           "delete": "Supprimer",
-          "deleteNodeDialog": "Le noeud {$operationalPointShortName} ({$operationalPointName}) doit-il être définitivement supprimé ?"
+          "deleteNodeDialog": "Le nœud {$operationalPointShortName} ({$operationalPointName}) doit-il être définitivement supprimé ?"
         },
         "editor-tools-view-component": {
           "more-functions": "Plus de fonctionnalités",
@@ -522,10 +522,10 @@
           "export-netzgrafik": "Exporter le réticulaire",
           "export-netzgrafik-as-json": "Exporter le réticulaire au format JSON",
           "import-netzgrafik": "Importer le réticulaire",
-          "import-netzgrafik-error": "Le réticulaire au format JSON n'ont pas pu être importés.",
+          "import-netzgrafik-error": "Le réticulaire n'a pas pu être importé.",
           "export-png-error": "Erreur lors de l'export PNG",
           "import-netzgrafik-as-json": "Importer le réticulaire au format JSON",
-          "import-netzgrafik-as-json-info-3rd-party": "Réticulaire au format JSON de tiers détectées: heuristique d'importation appliquée.",
+          "import-netzgrafik-as-json-info-3rd-party": "Réticulaire au format JSON de tiers détecté: heuristique d'importation appliquée.",
           "export-trainruns": "Exporter les trajets de train",
           "export-trainruns-as-csv": "Exporter les trajets de train au format CSV",
           "export-trainruns-as-csv-excel": "Dans Excel : Données -> txt/CSV -> Importer ... nom de fichier",
@@ -563,13 +563,13 @@
           "destinationStation": "Gare de destination",
           "trafficPeriod": "Période de circulation",
           "frequency": "Fréquence",
-          "departureMinuteAtStart": "Minute de départ au noeud de départ",
+          "departureMinuteAtStart": "Minute de départ au nœud de départ",
           "travelTimeStartDestination": "Temps de parcours origine-destination",
-          "arrivalMinuteAtDestination": "Minute d'arrivée au noeud de destination",
+          "arrivalMinuteAtDestination": "Minute d'arrivée au nœud de destination",
           "turnaroundTimeDestination": "Durée de retournement à la gare de destination",
-          "departureMinuteDeparture": "Minute de départ au noeud de destination",
+          "departureMinuteDeparture": "Minute de départ au nœud de destination",
           "travelTimeDestinationStart": "Temps de parcours destination-origine",
-          "arrivalMinuteAtStart": "Minute d'arrivée au noeud d'origine",
+          "arrivalMinuteAtStart": "Minute d'arrivée au nœud d'origine",
           "turnaroundTimeStart": "Durée de retournement à la gare d'origine",
           "turnaroundTime": "Durée de retournement",
           "trainrunTimeCategory": "Catégorie temporelle d'opération",
@@ -592,7 +592,7 @@
       "project": {
         "project-dialog": {
           "create-project": "Créer un projet",
-          "edit-project": "Editer un projet",
+          "edit-project": "Éditer un projet",
           "create": "Créer",
           "save": "Sauvegarder",
           "cancel": "Annuler",
@@ -622,14 +622,14 @@
             "content": "Voulez-vous annuler l'archivage du projet maintenant ?"
           },
           "undo-archiving": "Annuler l'archivage",
-          "edit": "Editer",
+          "edit": "Éditer",
           "archive": "Archiver"
         }
       },
       "variant": {
         "variant-dialog": {
           "create-variant": "Créer une variante",
-          "edit-variant": "Editer une variante",
+          "edit-variant": "Éditer une variante",
           "save": "Sauvegarder",
           "cancel": "Annuler",
           "variant-form": {
@@ -673,7 +673,7 @@
               "content": "Voulez-vous annuler définitivement vos modifications personnelles ?"
             },
             "restore-version": {
-              "title": "Restaurer version",
+              "title": "Restaurer la version",
               "content": "Voulez-vous restaurer cette version ?"
             },
             "ignore-conflict": {
@@ -682,7 +682,7 @@
             }
           },
           "archived": "(archivée)",
-          "edit-variant": "Editer la variante",
+          "edit-variant": "Éditer la variante",
           "delete-variant": {
             "title": "Supprimer la variante",
             "content": "Voulez-vous supprimer définitivement la variante et toutes les versions qu'elle contient ? Cette action ne peut pas être annulée."
@@ -695,7 +695,7 @@
           "search-variants": "Rechercher des variantes",
           "show-archive": "Afficher les archives",
           "project-description": "Description du projet",
-          "edit-project": "Editer le projet",
+          "edit-project": "Éditer le projet",
           "archive-project": {
             "title": "Archiver un projet",
             "content": "Voulez-vous archiver le projet maintenant ?"
@@ -715,7 +715,7 @@
             "content": "Souhaitez-vous annuler l'archivage de la variante ?"
           },
           "undo-archiving-project": {
-            "title": "Archiver la variante",
+            "title": "Annuler l'archivage",
             "content": "Voulez-vous annuler l'archivage du projet ?"
           },
           "error-unexpected-data": "Données inattendues : Pas de snapshot ni de version publiée.",

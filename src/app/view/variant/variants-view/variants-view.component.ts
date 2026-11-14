@@ -285,7 +285,7 @@ export class VariantsViewComponent implements OnDestroy {
     this.uiInteractionService
       .showConfirmationDiagramDialog(
         new ConfirmationDialogParameter(
-          $localize`:@@app.view.variant.variants-view.undo-archiving-project.title:Archive variant`,
+          $localize`:@@app.view.variant.variants-view.undo-archiving-project.title:Undo archiving`,
           $localize`:@@app.view.variant.variants-view.undo-archiving-project.content:Would you like to undo the archiving of the project?`,
         ),
       )

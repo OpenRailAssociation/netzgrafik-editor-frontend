@@ -87,16 +87,16 @@
         },
         "trainrun-iteration": {
           "error": {
-            "infinity-loop": "Iterator has detected an infinity loop. The iteration terminated early!"
+            "infinity-loop": "Iterator has detected an infinite loop. The iteration terminated early!"
           }
         },
         "trainrunsection-validator": {
           "broken-symmetry": "Broken symmetry",
-          "target-arrival-not-reacheable": {
+          "target-arrival-not-reachable": {
             "title": "Target Arrival Warning",
             "description": "Target arrival time cannot be reached"
           },
-          "source-arrival-not-reacheable": {
+          "source-arrival-not-reachable": {
             "title": "Source Arrival Warning",
             "description": "Source arrival time cannot be reached"
           },
@@ -106,19 +106,19 @@
           }
         },
         "transition-validator": {
-          "source-arrival-not-reacheable": {
+          "source-arrival-not-reachable": {
             "title": "Source Arrival Warning",
             "description": "Source arrival time cannot be reached"
           },
-          "source-departure-not-reacheable": {
+          "source-departure-not-reachable": {
             "title": "Source Departure Warning",
             "description": "Source departure time cannot be reached"
           },
-          "target-arrival-not-reacheable": {
+          "target-arrival-not-reachable": {
             "title": "Target Arrival Warning",
             "description": "Target arrival time cannot be reached"
           },
-          "target-departure-not-reacheable": {
+          "target-departure-not-reachable": {
             "title": "Target Departure Warning",
             "description": "Target departure time cannot be reached"
           }
@@ -193,7 +193,7 @@
             },
             "delete": {
               "title": "Delete",
-              "content": "Should the label {$label} be definitely delete on all visible {$element}?"
+              "content": "Should the label {$label} be permanently deleted from all visible {$element}?"
             }
           },
           "filterable-labels-form": {
@@ -317,7 +317,7 @@
         "nodes": "Nodes",
         "notes": "Notes",
         "delete-netzgrafik-title": "Netzgrafik - Delete",
-        "non-visible-elements": "Non visible elements",
+        "non-visible-elements": "Non-visible elements",
         "delete-all-non-visible-elements-tooltip": "Delete all non-visible elements, such as nodes, trainruns and notes",
         "delete-all-non-visible-elements": "Delete all non-visible elements",
         "visible-elements": "Visible elements",
@@ -382,7 +382,7 @@
         "display-asymmetry-arrows": "Display trainrun section asymmetry arrows at nodes",
         "display-backward-travel-times": "Display backward travel times (asymmetry)",
         "times": "Times",
-        "decimal-displayed": "Number of decimal place displayed",
+        "decimal-displayed": "Number of decimal places displayed",
         "display-arrival-departure-times": "Display departure and arrival times",
         "display-arrival-departure-times-for-connections": "Display departure and arrival times for connections",
         "display-travel-times": "Display travel times",
@@ -392,7 +392,7 @@
         "nodes": "Nodes",
         "display-nodes-without-visible-trainruns": "Display nodes without (visible) trainruns",
         "display-nodes-with-only-stopping-trainruns": "Display nodes with only stopping trainruns",
-        "display-nodes-full-name": "Display nodes full name",
+        "display-nodes-full-name": "Display full node names",
         "notes": "Notes",
         "display-notes": "Display notes",
         "reset-display-filter": "Reset display filter",
@@ -505,7 +505,7 @@
           "platform-length": "Platform length",
           "delete-node": "Delete node",
           "delete": "Delete",
-          "deleteNodeDialog": "Should the node {$operationalPointShortName} ({$operationalPointName}) be definitely deleted?"
+          "deleteNodeDialog": "Should the node {$operationalPointShortName} ({$operationalPointName}) be permanently deleted?"
         },
         "editor-tools-view-component": {
           "more-functions": "More functions",
@@ -531,7 +531,7 @@
           "export-trainruns-as-csv-excel": "In Excel: Data -> From Text/CSV -> Import ... filename",
           "export-origin-destination": "Export origin-destination",
           "export-origin-destination-as-csv": "Export origin-destination as CSV",
-          "import-basedata-legacy-info": "Legacy base data imported - please have a look into the documentation and update your stammdaten files to ensure that future version still supports the data import",
+          "import-basedata-legacy-info": "Legacy base data imported - please have a look into the documentation and update your stammdaten files to ensure that future versions still support the data import",
           "base-data": "Base data",
           "import-base-data": "Import base data",
           "help-csv-data": "Help: CSV - Data",
@@ -619,7 +619,7 @@
           },
           "undo-archiving-project": {
             "title": "Undo archiving",
-            "content": "Would you like to undo the archiving the project now?"
+            "content": "Would you like to undo the archiving of the project now?"
           },
           "undo-archiving": "Undo archiving",
           "edit": "Edit",
@@ -715,7 +715,7 @@
             "content": "Would you like to undo the archiving of the variant?"
           },
           "undo-archiving-project": {
-            "title": "Archive variant",
+            "title": "Undo archiving",
             "content": "Would you like to undo the archiving of the project?"
           },
           "error-unexpected-data": "Unexpected data: No snapshot and no released version.",

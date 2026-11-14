@@ -156,7 +156,7 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
     const node = this.nodeService.getSelectedNode();
     const confirmationDialogParameter = new ConfirmationDialogParameter(
       $localize`:@@app.view.editor-side-view.editor-node-detail-view.delete:Delete`,
-      $localize`:@@app.view.editor-side-view.editor-node-detail-view.deleteNodeDialog:Should the node ${node.getBetriebspunktName()}:operationalPointShortName: (${node.getFullName()}:operationalPointName:) be definitely deleted?`,
+      $localize`:@@app.view.editor-side-view.editor-node-detail-view.deleteNodeDialog:Should the node ${node.getBetriebspunktName()}:operationalPointShortName: (${node.getFullName()}:operationalPointName:) be permanently deleted?`,
     );
     this.uiInteractionService
       .showConfirmationDiagramDialog(confirmationDialogParameter)
