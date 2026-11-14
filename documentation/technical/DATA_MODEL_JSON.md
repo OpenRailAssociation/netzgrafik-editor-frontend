@@ -22,6 +22,22 @@ To export the current Netzgrafik use the `Export netzgrafik as JSON` button.
 
 The exported data in JSON format can be imported again using the `Import netzgrafik as JSON` button.
 
+##### Import via link (standalone)
+
+The standalone version also opens a Netzgrafik given in the URL fragment, so other applications can link
+directly to their data, e.g. `https://openrailassociation.github.io/netzgrafik-editor-frontend/#netzgrafik=<data>`.
+`<data>` is the Netzgrafik JSON, compressed with `deflate-raw` and encoded as base64url (no padding). The fragment is
+never sent to a server, so no hosting, CORS or Content-Security-Policy changes are needed. After the import, the
+fragment is removed from the address bar. Encoding in the browser:
+
+```javascript
+const stream = new Blob([json]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+const bytes = new Uint8Array(await new Response(stream).arrayBuffer());
+const data = btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+```
+
+For large Netzgrafiken, build the binary string in chunks instead of spreading all bytes at once.
+
 ##### JSON-Based Data Import from 3rd Party Data Providers
 
 If nodes have no port objects or if no TrainrunSection has a defined path element, the import process will automatically adjust,
@@ -33,7 +49,7 @@ thus no complex calculation must be reimplemented by the 3rd party provider.
 
 ###### Detection of Third-Party Data
 
-The function [detectNetzgrafikJSON3rdParty](./../../src/app/view/editor-tools-view-component/editor-tools-view.component.ts#:~:text=detectNetzgrafikJSON3rdParty) checks if the imported data comes from a third party and if it needs to be adjusted accordingly.
+The function [detectNetzgrafikJSON3rdParty](./../../src/app/services/data/netzgrafik-import.service.ts#:~:text=detectNetzgrafikJSON3rdParty) checks if the imported data comes from a third party and if it needs to be adjusted accordingly.
 
 ```typescript
 private detectNetzgrafikJSON3rdParty(netzgrafikDto: NetzgrafikDto): boolean {
