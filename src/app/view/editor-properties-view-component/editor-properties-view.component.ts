@@ -74,8 +74,8 @@ export class EditorPropertiesViewComponent {
 
   travelTimeCreationEstimatorTypeOptions = [
     {
-      name: $localize`:@@app.view.editor-properties-view-component.fixed:Constant 1min`,
-      title: $localize`:@@app.view.editor-properties-view-component.fixedTooltip:Adopts the travel time with a constant 1min (default).`,
+      name: $localize`:@@app.view.editor-properties-view-component.fixed:Constant 1 min`,
+      title: $localize`:@@app.view.editor-properties-view-component.fixedTooltip:Adopts the travel time with a constant 1 min (default).`,
       travelTimeCreationEstimatorType: TravelTimeCreationEstimatorType.Fixed,
     },
     {

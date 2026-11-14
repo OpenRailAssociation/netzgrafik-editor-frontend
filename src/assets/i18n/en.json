@@ -15,7 +15,7 @@
     "user-guide": "User guide",
     "user-manual": "User manual",
     "logout": "Logout",
-    "login": "You are getting logged in...",
+    "login": "You are getting logged in…",
     "logger": {
       "title": "Title"
     },
@@ -87,16 +87,16 @@
         },
         "trainrun-iteration": {
           "error": {
-            "infinity-loop": "Iterator has detected an infinity loop. The iteration terminated early!"
+            "infinity-loop": "Iterator has detected an infinite loop. The iteration terminated early!"
           }
         },
         "trainrunsection-validator": {
           "broken-symmetry": "Broken symmetry",
-          "target-arrival-not-reacheable": {
+          "target-arrival-not-reachable": {
             "title": "Target Arrival Warning",
             "description": "Target arrival time cannot be reached"
           },
-          "source-arrival-not-reacheable": {
+          "source-arrival-not-reachable": {
             "title": "Source Arrival Warning",
             "description": "Source arrival time cannot be reached"
           },
@@ -106,19 +106,19 @@
           }
         },
         "transition-validator": {
-          "source-arrival-not-reacheable": {
+          "source-arrival-not-reachable": {
             "title": "Source Arrival Warning",
             "description": "Source arrival time cannot be reached"
           },
-          "source-departure-not-reacheable": {
+          "source-departure-not-reachable": {
             "title": "Source Departure Warning",
             "description": "Source departure time cannot be reached"
           },
-          "target-arrival-not-reacheable": {
+          "target-arrival-not-reachable": {
             "title": "Target Arrival Warning",
             "description": "Target arrival time cannot be reached"
           },
-          "target-departure-not-reacheable": {
+          "target-departure-not-reachable": {
             "title": "Target Departure Warning",
             "description": "Target departure time cannot be reached"
           }
@@ -193,7 +193,7 @@
             },
             "delete": {
               "title": "Delete",
-              "content": "Should the label {$label} be definitely delete on all visible {$element}?"
+              "content": "Should the label {$label} be permanently deleted from all visible {$element}?"
             }
           },
           "filterable-labels-form": {
@@ -203,7 +203,7 @@
         "note-dialog": {
           "html-editor": {
             "reset-color": "Reset color",
-            "editor-placeholder": "Enter comment here...",
+            "editor-placeholder": "Enter comment here…",
             "mandatory-field": "Mandatory field",
             "color-presets": {
               "ec": {
@@ -249,7 +249,7 @@
           "delete-note": "Delete note",
           "note-filter-tab": {
             "labels": "Labels",
-            "label-placeholder": "New label..."
+            "label-placeholder": "New label…"
           },
           "note-form": {
             "title": "Title",
@@ -283,7 +283,7 @@
           "filterableLabels": "Filterable Labels",
           "trainrun-filter-tab": {
             "labels": "Labels",
-            "newLabels": "New label...",
+            "newLabels": "New label…",
             "trainrunDuplicate": "Duplicate trainrun",
             "trainrunDelete": "Delete trainrun",
             "delete": "Delete",
@@ -316,8 +316,8 @@
         "trainruns": "Trainruns",
         "nodes": "Nodes",
         "notes": "Notes",
-        "delete-netzgrafik-title": "Netzgrafik - Delete",
-        "non-visible-elements": "Non visible elements",
+        "delete-netzgrafik-title": "Netzgrafik – Delete",
+        "non-visible-elements": "Non-visible elements",
         "delete-all-non-visible-elements-tooltip": "Delete all non-visible elements, such as nodes, trainruns and notes",
         "delete-all-non-visible-elements": "Delete all non-visible elements",
         "visible-elements": "Visible elements",
@@ -327,7 +327,7 @@
         "delete-all-visible-notes": "Delete all visible notes",
         "delete-all-visible-elements-tooltip": "Delete all visible elements, such as nodes, trainruns and notes",
         "delete-all-visible-elements": "Delete all visible elements",
-        "merge-netzgrafik-title": "Netzgrafik - Merge",
+        "merge-netzgrafik-title": "Netzgrafik – Merge",
         "add-netzgrafik-as-copy-tooltip": "Add netzgrafik as a copy (trainruns, nodes, notes)",
         "add-netzgrafik-as-copy": "Add netzgrafik as a copy",
         "merge-netzgrafik-tooltip": "Merge netzgrafik (trainruns, nodes, notes)",
@@ -337,12 +337,12 @@
         "align-elements-right": "Align right",
         "align-elements-top": "Align top",
         "align-elements-bottom": "Align bottom",
-        "node-optimization-disposition-title": "Netzgrafik - Node positions",
+        "node-optimization-disposition-title": "Netzgrafik – Node positions",
         "optimization-netzgrafik-tooltip": "Stretch the netzgrafik so that no edge is shorter than the minimum edge length of the trainruns.",
         "optimize-layout": "Stretch the netzgrafik",
         "inverse_optimization-netzgrafik-tooltip": "Compress the netzgrafik so that no edge is unnecessarily longer than the minimum edge length.",
         "inverse_optimization-netzgrafik": "Compress the netzgrafik",
-        "node-optimization-title": "Netzgrafik - Node port ordering algorithm",
+        "node-optimization-title": "Netzgrafik – Node port ordering algorithm",
         "alphabeticalOrdering": "Alphabetical",
         "alphabeticalOrderingTooltip": "Order ports alphabetically by train categories.",
         "crossingAwareOrdering": "Crossing aware",
@@ -382,7 +382,7 @@
         "display-asymmetry-arrows": "Display trainrun section asymmetry arrows at nodes",
         "display-backward-travel-times": "Display backward travel times (asymmetry)",
         "times": "Times",
-        "decimal-displayed": "Number of decimal place displayed",
+        "decimal-displayed": "Number of decimal places displayed",
         "display-arrival-departure-times": "Display departure and arrival times",
         "display-arrival-departure-times-for-connections": "Display departure and arrival times for connections",
         "display-travel-times": "Display travel times",
@@ -392,7 +392,7 @@
         "nodes": "Nodes",
         "display-nodes-without-visible-trainruns": "Display nodes without (visible) trainruns",
         "display-nodes-with-only-stopping-trainruns": "Display nodes with only stopping trainruns",
-        "display-nodes-full-name": "Display nodes full name",
+        "display-nodes-full-name": "Display full node names",
         "notes": "Notes",
         "display-notes": "Display notes",
         "reset-display-filter": "Reset display filter",
@@ -453,7 +453,7 @@
         "color-scheme": "Color scheme",
         "theme": "Theme",
         "background-color": "Background color",
-        "set-color-to-white": "Set color to 'white'",
+        "set-color-to-white": "Set color to “white”",
         "reset-background-color-to-default": "Reset background color to default",
         "background-color-black": "Background color (black)",
         "editor": "Editor",
@@ -473,8 +473,8 @@
         "timeScaledDistanceTooltip": "The route graphic sections are displayed with travel time scaling, i.e. it is assumed that the selected train travels at a constant speed.",
         "uniformDistance": "Uniform",
         "uniformDistanceTooltip": "The route graphic sections are uniformly displayed.",
-        "fixed": "Constant 1min",
-        "fixedTooltip": "Adopts the travel time with a constant 1min (default).",
+        "fixed": "Constant 1 min",
+        "fixedTooltip": "Adopts the travel time with a constant 1 min (default).",
         "retrieveFromEdge": "Section travel time",
         "retrieveFromEdgeTooltip": "Takes over the max. travel time on the same section of all trains of the same category, otherwise max. travel time of all trains, otherwise 1 min.",
         "trafficSide": "Traffic side",
@@ -491,7 +491,7 @@
           "capacity": "Capacity",
           "filterable-labels": "Filterable labels",
           "labels": "Labels",
-          "new-label-placeholder": "New label...",
+          "new-label-placeholder": "New label…",
           "stopping-times": "Stopping times",
           "stopping-time-per-product": "Stopping time per product",
           "no-stop": "No stop",
@@ -505,7 +505,7 @@
           "platform-length": "Platform length",
           "delete-node": "Delete node",
           "delete": "Delete",
-          "deleteNodeDialog": "Should the node {$operationalPointShortName} ({$operationalPointName}) be definitely deleted?"
+          "deleteNodeDialog": "Should the node {$operationalPointShortName} ({$operationalPointName}) be permanently deleted?"
         },
         "editor-tools-view-component": {
           "more-functions": "More functions",
@@ -528,13 +528,13 @@
           "import-netzgrafik-as-json-info-3rd-party": "Third-party JSON data detected: Import heuristic applied.",
           "export-trainruns": "Export trainruns",
           "export-trainruns-as-csv": "Export trainruns as CSV",
-          "export-trainruns-as-csv-excel": "In Excel: Data -> From Text/CSV -> Import ... filename",
+          "export-trainruns-as-csv-excel": "In Excel: Data -> From Text/CSV -> Import … filename",
           "export-origin-destination": "Export origin-destination",
           "export-origin-destination-as-csv": "Export origin-destination as CSV",
-          "import-basedata-legacy-info": "Legacy base data imported - please have a look into the documentation and update your stammdaten files to ensure that future version still supports the data import",
+          "import-basedata-legacy-info": "Legacy base data imported – please have a look into the documentation and update your stammdaten files to ensure that future versions still support the data import",
           "base-data": "Base data",
           "import-base-data": "Import base data",
-          "help-csv-data": "Help: CSV - Data",
+          "help-csv-data": "Help: CSV – Data",
           "export-base-data": "Export base data",
           "bp": "BP",
           "station": "Station",
@@ -601,9 +601,9 @@
             "mandatory-field": "Mandatory field",
             "summary": "Summary",
             "description": "Description",
-            "tooltip": "Users must be entered with their e-mail address. Confirm the entry for each e-mail with 'Enter'.",
+            "tooltip": "Users must be entered with their e-mail address. Confirm the entry for each e-mail with “Enter”.",
             "user-with-write-access": "User with write access",
-            "new-user-placeholder": "New user...",
+            "new-user-placeholder": "New user…",
             "invalid-values": "Invalid values (no e-mail address)",
             "user-with-read-access": "User with read access"
           }
@@ -619,7 +619,7 @@
           },
           "undo-archiving-project": {
             "title": "Undo archiving",
-            "content": "Would you like to undo the archiving the project now?"
+            "content": "Would you like to undo the archiving of the project now?"
           },
           "undo-archiving": "Undo archiving",
           "edit": "Edit",
@@ -715,7 +715,7 @@
             "content": "Would you like to undo the archiving of the variant?"
           },
           "undo-archiving-project": {
-            "title": "Archive variant",
+            "title": "Undo archiving",
             "content": "Would you like to undo the archiving of the project?"
           },
           "error-unexpected-data": "Unexpected data: No snapshot and no released version.",
