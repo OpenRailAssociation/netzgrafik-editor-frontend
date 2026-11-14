@@ -16,7 +16,6 @@ import {SgStopService} from "./sg-stop-.service";
 })
 export class Sg2TrainrunPathService implements OnDestroy {
   private readonly sgSelectedTrainrunSubject = new BehaviorSubject<SgSelectedTrainrun>(undefined);
-  private readonly sgSelectedTrainrun$ = this.sgSelectedTrainrunSubject.asObservable();
 
   private trainrunItem: TrainrunItem;
 
@@ -41,7 +40,7 @@ export class Sg2TrainrunPathService implements OnDestroy {
   }
 
   public getSgSelectedTrainrun(): Observable<SgSelectedTrainrun> {
-    return this.sgSelectedTrainrun$;
+    return this.sgSelectedTrainrunSubject.asObservable();
   }
 
   private render() {
@@ -73,115 +72,80 @@ export class Sg2TrainrunPathService implements OnDestroy {
   }
 
   private getPaths(trainrunItem: TrainrunItem) {
-    const returnSgPath: SgPath[] = [];
-
-    trainrunItem.pathItems.forEach((pathItem, index) => {
-      if (pathItem.isSection()) {
-        const pathSection = pathItem.getPathSection();
-        returnSgPath.push(
-          new SgPathSection(
-            index,
-            pathSection.trainrunSectionId,
-            pathSection.arrivalTime,
-            pathSection.departureTime,
-            pathSection.departurePathNode.nodeId,
-            pathSection.arrivalPathNode.nodeId,
-            pathSection.departurePathNode.nodeShortName,
-            pathSection.arrivalPathNode.nodeShortName,
-            new TrackData(this.getTrack(pathSection)),
-            pathSection.isFilterOnOneNode(),
-          ),
-        );
-      }
-      if (pathItem.isNode()) {
-        const pathNode = pathItem.getPathNode();
-        const sgPathNode = new SgPathNode(
-          index,
-          pathNode.nodeId,
-          pathNode.nodeShortName,
-          pathNode.nodeFullName,
-          pathNode.arrivalTime,
-          pathNode.departureTime,
-          undefined,
-          undefined,
-          new TrackData(this.getTrack(pathNode)),
-          pathNode.filter,
-        ); // backward
-        if (pathNode.arrivalPathSection) {
-          sgPathNode.arrivalTrainrunSectionId = pathNode.arrivalPathSection.trainrunSectionId;
-        }
-        if (pathNode.departurePathSection) {
-          sgPathNode.departureTrainrunSectionId = pathNode.departurePathSection.trainrunSectionId;
-        }
-
-        returnSgPath.push(sgPathNode);
-      }
-    });
-    return returnSgPath;
+    return trainrunItem.pathItems
+      .map((pathItem, index) => this.createPath(pathItem, index))
+      .filter((path): path is SgPath => path !== undefined);
   }
 
-  private getTrack(pathItem: PathItem) {
-    if (pathItem.backward) {
-      return 2;
-    } else {
-      return 1;
+  private createPath(pathItem: PathItem, index: number): SgPath {
+    if (pathItem.isSection()) {
+      return this.createPathSection(pathItem, index);
     }
+    if (pathItem.isNode()) {
+      return this.createPathNode(pathItem, index);
+    }
+    return undefined;
+  }
+
+  private createPathSection(pathItem: PathItem, index: number): SgPathSection {
+    const pathSection = pathItem.getPathSection();
+    return new SgPathSection(
+      index,
+      pathSection.trainrunSectionId,
+      pathSection.arrivalTime,
+      pathSection.departureTime,
+      pathSection.departurePathNode.nodeId,
+      pathSection.arrivalPathNode.nodeId,
+      pathSection.departurePathNode.nodeShortName,
+      pathSection.arrivalPathNode.nodeShortName,
+      new TrackData(pathSection.backward ? 2 : 1),
+      pathSection.isFilterOnOneNode(),
+    );
+  }
+
+  private createPathNode(pathItem: PathItem, index: number): SgPathNode {
+    const pathNode = pathItem.getPathNode();
+    const sgPathNode = new SgPathNode(
+      index,
+      pathNode.nodeId,
+      pathNode.nodeShortName,
+      pathNode.nodeFullName,
+      pathNode.arrivalTime,
+      pathNode.departureTime,
+      undefined,
+      undefined,
+      new TrackData(pathNode.backward ? 2 : 1),
+      pathNode.filter,
+    );
+    sgPathNode.arrivalTrainrunSectionId = pathNode.arrivalPathSection?.trainrunSectionId;
+    sgPathNode.departureTrainrunSectionId = pathNode.departurePathSection?.trainrunSectionId;
+    return sgPathNode;
   }
 
   private addNodesSegmentRelation(paths: SgPath[]) {
     paths.forEach((path, index) => {
       if (path.isNode()) {
         const pathNode = path.getPathNode();
-        pathNode.arrivalPathSection = this.getPreviousPathSection(paths, index);
-        pathNode.departurePathSection = this.getNextPathSection(paths, index);
+        pathNode.arrivalPathSection = this.getPathSection(paths, index, -1);
+        pathNode.departurePathSection = this.getPathSection(paths, index, 1);
       }
       if (path.isSection()) {
         const pathSection = path.getPathSection();
-        pathSection.departurePathNode = this.getPreviousPathNode(paths, index);
-        pathSection.arrivalPathNode = this.getNextPathNode(paths, index);
+        pathSection.departurePathNode = this.getPathNode(paths, index, -1);
+        pathSection.arrivalPathNode = this.getPathNode(paths, index, 1);
       }
     });
     return paths;
   }
 
-  private getPreviousPathSection(paths: SgPath[], i: number): SgPathSection {
-    if (i > 0) {
-      const path = paths[i - 1];
-      if (path instanceof SgPathSection) {
-        return path;
-      }
-    }
-    return undefined;
+  private getPathSection(paths: SgPath[], index: number, direction: -1 | 1): SgPathSection {
+    const path = paths[index + direction];
+    return path instanceof SgPathSection ? path : undefined;
   }
 
-  private getNextPathSection(paths: SgPath[], i: number): SgPathSection {
-    if (i + 1 < paths.length) {
-      const path = paths[i + 1];
-      if (path instanceof SgPathSection) {
-        return path;
-      }
-    }
-    return undefined;
-  }
-
-  private getPreviousPathNode(paths: SgPath[], i: number): SgPathNode {
-    if (i > 0) {
-      const path = paths[i - 1];
-      if (path instanceof SgPathNode) {
-        return path;
-      }
-    }
-    return undefined;
-  }
-
-  private getNextPathNode(paths: SgPath[], i: number): SgPathNode {
-    if (i + 1 < paths.length) {
-      const path = paths[i + 1];
-      if (path instanceof SgPathNode) {
-        return path;
-      }
-    }
-    return undefined;
+  private getPathNode(paths: SgPath[], index: number, direction: -1 | 1): SgPathNode {
+    const path = paths[index + direction];
+    return path instanceof SgPathNode ? path : undefined;
   }
 
   private addSelectedTrainrunsToPath(trainrun: SgSelectedTrainrun) {

@@ -20,9 +20,11 @@ export class TimeStepperComponent {
   @Input() containerClass: string;
   @Input() inputId: string;
   @Input() inputClass: string | string[] | Record<string, boolean>;
+  @Input() ariaLabel: string;
   @Input() tabIndex: number;
   @Input() value: number;
   @Input() min: number = 0;
+  @Input() max?: number;
 
   @Output() valueChange = new EventEmitter<number>();
   @Output() changed = new EventEmitter<void>();
