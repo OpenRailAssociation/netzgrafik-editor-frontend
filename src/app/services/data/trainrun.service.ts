@@ -37,6 +37,15 @@ import {
 } from "../../models/operation.model";
 import {TrainrunsectionHelper} from "../util/trainrunsection.helper";
 
+export interface OrderedTrainrunNodeEntry {
+  /** ID of the node represented by this entry. */
+  nodeId: number;
+  /** ID of a trainrun section associated with this node; every entry has one. */
+  trainrunSectionId: number;
+  /** True when another disconnected trainrun part follows this entry. */
+  hasGapAfter: boolean;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -607,6 +616,99 @@ export class TrainrunService {
     const endNode1 = this.getEndNode(sourceNode, trainrunSection);
     const endNode2 = this.getEndNode(targetNode, trainrunSection);
     return {endNode1, endNode2};
+  }
+
+  getOrderedNodeEntriesForTrainrun(trainrun: Trainrun): OrderedTrainrunNodeEntry[] {
+    /**
+     * Returns all trainrun-parts in top-left order: each part is traversed from its left/top end,
+     * and the parts are ordered by their left/top start node. A gap separates disconnected parts.
+     * When the trainrun has disconnected part the gaps is set to true and the section is undefined(null)
+     * The last node entry has no section, because it represents the end of the trainrun.
+     *
+     * TODO - Refactor the LoadPerlenketteService.getPerlenketteItem and integrate this getOrderedNodeEntriesForTrainrun
+     * to unify the trainrun node and section order.
+     */
+    const entryGroups = this.getAllNodeEntriesForTrainrun(trainrun);
+
+    entryGroups.sort((groupA, groupB) => {
+      const startNodeA = this.nodeService.getNodeFromId(groupA[0].nodeId);
+      const startNodeB = this.nodeService.getNodeFromId(groupB[0].nodeId);
+      if (!startNodeA || !startNodeB) {
+        return 0;
+      }
+
+      const leftOrTopNode = GeneralViewFunctions.getLeftOrTopNode(startNodeA, startNodeB);
+      return leftOrTopNode.getId() === startNodeA.getId() ? -1 : 1;
+    });
+
+    entryGroups.forEach((group, index) => {
+      group[group.length - 1].hasGapAfter = index < entryGroups.length - 1;
+    });
+
+    return entryGroups.flat();
+  }
+
+  getAllNodeEntriesForTrainrun(trainrun: Trainrun): OrderedTrainrunNodeEntry[][] {
+    /**
+     * This method iterates over all trainrunSections for a given trainrun. It further groups
+     * tests the Netzgrafik-Editor "key-concept" that we start a traversal at top-left towards
+     * botton-right. This means that the main direction for a trainin is allway from top-left towards
+     * bottom-right.
+     * This mehtod returns a list of node with trainrunSection traversed in the order determined
+     * by the top-left to bottom-right traversal approach. Last entry don't have a trainrunSection
+     * because the end has no trainrunSection associated with it. If the trainrun has "block" - hole
+     * between parts, it the method returns n trainrun parts, with (node, section) tubple, for last
+     * node at part (endNode) the section is undefined.
+     */
+    let allTrainrunSections = this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      trainrun.getId(),
+    );
+    const entryGroups: OrderedTrainrunNodeEntry[][] = [];
+
+    while (allTrainrunSections.length > 0) {
+      const trainrunSection = allTrainrunSections[0];
+      allTrainrunSections = allTrainrunSections.filter(
+        (section) => section.getId() !== trainrunSection.getId(),
+      );
+
+      const bothEndNodes = this.getBothEndNodesFromTrainrunPart(trainrunSection);
+      const startNode = GeneralViewFunctions.getLeftOrTopNode(
+        bothEndNodes.endNode1,
+        bothEndNodes.endNode2,
+      );
+      if (!startNode) {
+        continue;
+      }
+
+      const startSection = startNode.getExtremityTrainrunSection(trainrun.getId());
+      if (!startSection) {
+        return entryGroups;
+      }
+
+      const groupEntries: OrderedTrainrunNodeEntry[] = [
+        {
+          nodeId: startNode.getId(),
+          trainrunSectionId: startSection.getId(),
+          hasGapAfter: false,
+        },
+      ];
+
+      const iterator = this.getIterator(startNode, startSection);
+      while (iterator.hasNext()) {
+        const pair = iterator.next();
+        groupEntries.push({
+          nodeId: pair.node.getId(),
+          trainrunSectionId: pair.trainrunSection.getId(),
+          hasGapAfter: false,
+        });
+        allTrainrunSections = allTrainrunSections.filter(
+          (section) => section.getId() !== pair.trainrunSection.getId(),
+        );
+      }
+
+      entryGroups.push(groupEntries);
+    }
+    return entryGroups;
   }
 
   propagateConsecutiveTimesForTrainrun(trainrunSectionId: number) {

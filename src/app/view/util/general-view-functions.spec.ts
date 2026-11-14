@@ -3,6 +3,14 @@ import {GeneralViewFunctions} from "./generalViewFunctions";
 import {Vec2D} from "../../utils/vec2D";
 
 describe("general view functions", () => {
+  it("getNodeDisplayName", () => {
+    const node = new Node();
+    node.setBetriebspunktName("BNWD");
+    node.setFullName("Bern Wankdorf");
+
+    expect(GeneralViewFunctions.getNodeDisplayName(node)).toBe("BNWD (Bern Wankdorf)");
+  });
+
   it("calcDialogTopLeftScreenCoordinate", () => {
     // not testable
   });
