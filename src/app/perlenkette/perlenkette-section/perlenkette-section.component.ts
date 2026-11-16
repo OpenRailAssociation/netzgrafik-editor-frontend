@@ -414,10 +414,8 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   showRightArrivalTime() {
-    if (!this.filterService.isFilterArrivalDepartureTimeEnabled()) {
-      if (!this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
-        return false;
-      }
+    if (!this.showArrivalAndDepartureTime()) {
+      return false;
     }
     const trans = this.perlenketteSection.toNode.getTransition(this.trainrunSection.getId());
     if (trans === undefined) {
@@ -483,10 +481,8 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   showLeftArrivalTime() {
-    if (!this.filterService.isFilterArrivalDepartureTimeEnabled()) {
-      if (!this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
-        return false;
-      }
+    if (!this.showArrivalAndDepartureTime()) {
+      return false;
     }
     const trans = this.perlenketteSection.fromNode.getTransition(this.trainrunSection.getId());
     if (trans === undefined) {
