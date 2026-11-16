@@ -397,7 +397,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     );
   }
 
-  showStopArcStart(): boolean {
+  isFromNodeStop(): boolean {
     const trans = this.perlenketteSection.fromNode.getTransition(this.trainrunSection.getId());
     if (trans === undefined) {
       return true;
@@ -405,7 +405,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     return !trans.getIsNonStopTransit();
   }
 
-  showStopArcEnd(): boolean {
+  isToNodeStop(): boolean {
     const trans = this.perlenketteSection.toNode.getTransition(this.trainrunSection.getId());
     if (trans === undefined) {
       return true;
