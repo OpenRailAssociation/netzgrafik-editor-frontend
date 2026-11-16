@@ -515,10 +515,10 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   showArrivalAndDepartureTime(): boolean {
-    if (this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled()) {
-      return true;
-    }
-    return this.filterService.isFilterArrivalDepartureTimeEnabled();
+    return (
+      this.filterService.isTemporaryDisableFilteringOfItemsInViewEnabled() ||
+      this.filterService.isFilterArrivalDepartureTimeEnabled()
+    );
   }
 
   getTimeTransform(element: KeyOfTimeCoordinates) {
