@@ -5,8 +5,8 @@ import {
   VersionControllerBackendService,
   VersionDto,
 } from "../../api/generated";
-import {filter, map, takeUntil} from "rxjs/operators";
-import {BehaviorSubject, Observable, Subject} from "rxjs";
+import {filter, map, takeUntil, timeout} from "rxjs/operators";
+import {BehaviorSubject, Observable, Subject, Subscription, timer} from "rxjs";
 import {DataService} from "./data.service";
 import {NetzgrafikDto} from "../../data-structures/business.data.structures";
 import {AutoSaveService} from "./auto-save.service";
@@ -14,21 +14,33 @@ import {LogService} from "../../logger/log.service";
 import {VersionId} from "../../view/variant/variant-view/variant-history/model";
 import {UndoService} from "./undo.service";
 import {environment} from "../../../environments/environment";
+import {HttpErrorResponse} from "@angular/common/http";
+import {TimeoutError} from "rxjs";
 
 @Injectable({
   providedIn: "root",
 })
 export class VersionControlService implements OnDestroy {
+  private static readonly SNAPSHOT_TIMEOUT_MS = 180000;
+  private static readonly RETRY_DELAY_MS = 5000;
+
   readonly variantSubject = new BehaviorSubject<VariantDto | null>(null);
   readonly variant$ = this.variantSubject.asObservable();
 
   readonly versionCreatedSubject = new Subject<VersionId>();
   readonly versionCreated$ = this.versionCreatedSubject.asObservable();
+  readonly isUploading$ = new BehaviorSubject(false);
+  readonly saveError$ = new BehaviorSubject<string | null>(null);
 
   private readonly destroyed = new Subject<void>();
+  private retryTimer?: Subscription;
 
   private previousVariantDto: VariantDto = undefined;
   private variantChanged = false;
+  private pendingSave = false;
+  private retryPending = false;
+  private pendingSnapshotName?: string;
+  private retryName?: string;
 
   constructor(
     private readonly variantsBackendService: VariantControllerBackendService,
@@ -36,16 +48,15 @@ export class VersionControlService implements OnDestroy {
     private readonly dataService: DataService,
     private readonly autoSaveService: AutoSaveService,
     private readonly undoService: UndoService,
-    logService: LogService,
+    private readonly logService: LogService,
   ) {
     if (!environment.disableBackend) {
       autoSaveService.autosaveTrigger$
         .pipe(
           takeUntil(this.destroyed),
-          filter(() => this.variant.isWritable),
+          filter(() => this.variant?.isWritable),
         )
         .subscribe(() => {
-          logService.debug("auto saving changes");
           this.createSnapshot();
         });
     }
@@ -94,6 +105,39 @@ export class VersionControlService implements OnDestroy {
   }
 
   createSnapshot(newName?: string): void {
+    if (this.isUploading$.value || this.retryPending || this.saveError$.value) {
+      this.pendingSave = true;
+      this.pendingSnapshotName = newName || this.pendingSnapshotName;
+      return;
+    }
+    this.uploadSnapshot(newName);
+  }
+
+  retrySave(): void {
+    if (this.isUploading$.value || !this.retryPending) {
+      return;
+    }
+    this.retryTimer?.unsubscribe();
+    this.retryTimer = undefined;
+    this.isUploading$.next(true);
+    this.retryPending = false;
+    this.variantsBackendService
+      .getVariant(this.variant.id)
+      .pipe(takeUntil(this.destroyed))
+      .subscribe({
+        next: (variant) => {
+          this.updateVarianteChangedInfo(variant);
+          this.variantSubject.next(variant);
+          this.uploadSnapshot(this.retryName);
+        },
+        error: (error) => this.handleSnapshotError(error, this.retryName),
+      });
+  }
+
+  private uploadSnapshot(newName?: string): void {
+    this.isUploading$.next(true);
+    this.pendingSave = false;
+    this.autoSaveService.reset();
     const name = newName || this.variant.latestVersion.name;
     this.versionsBackendService
       .createSnapshotVersion(this.variant.latestVersion.id, {
@@ -103,10 +147,55 @@ export class VersionControlService implements OnDestroy {
           : "",
         model: JSON.stringify(this.dataService.getNetzgrafikDto()),
       })
+      .pipe(timeout(VersionControlService.SNAPSHOT_TIMEOUT_MS), takeUntil(this.destroyed))
+      .subscribe({
+        next: (versionId) => {
+          this.versionCreatedSubject.next(versionId);
+          this.variantSubject.next({
+            ...this.variant,
+            latestVersion: {...this.variant.latestVersion, id: versionId},
+          });
+          this.finishSnapshot();
+          this.variantsBackendService
+            .getVariant(this.variant.id)
+            .pipe(takeUntil(this.destroyed))
+            .subscribe({
+              next: (variant) => this.variantSubject.next(variant),
+              error: (error) =>
+                this.logService.error("Failed to refresh variant after snapshot", error),
+            });
+        },
+        error: (error) => this.handleSnapshotError(error, newName),
+      });
+  }
+
+  private finishSnapshot(): void {
+    this.isUploading$.next(false);
+    this.saveError$.next(null);
+    const name = this.pendingSnapshotName;
+    this.pendingSnapshotName = undefined;
+    if (this.pendingSave) {
+      this.pendingSave = false;
+      this.createSnapshot(name);
+    }
+  }
+
+  private handleSnapshotError(error: unknown, name?: string): void {
+    this.isUploading$.next(false);
+    this.retryPending = true;
+    this.retryName = name;
+    this.saveError$.next(
+      error instanceof TimeoutError
+        ? "Timeout"
+        : `HTTP ${error instanceof HttpErrorResponse ? error.status : 0}`,
+    );
+    this.logService.error("Snapshot upload failed", error);
+    this.retryTimer?.unsubscribe();
+    this.retryTimer = timer(VersionControlService.RETRY_DELAY_MS)
       .pipe(takeUntil(this.destroyed))
-      .subscribe((versionId) => {
-        this.versionCreatedSubject.next(versionId);
-        this.reload();
+      .subscribe(() => {
+        this.retryTimer = undefined;
+        this.retrySave();
       });
   }
 
