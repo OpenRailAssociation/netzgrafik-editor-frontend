@@ -414,14 +414,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   showRightArrivalTime() {
-    if (!this.showArrivalAndDepartureTime()) {
-      return false;
-    }
-    const trans = this.perlenketteSection.toNode.getTransition(this.trainrunSection.getId());
-    if (trans === undefined) {
-      return true;
-    }
-    return !trans.getIsNonStopTransit();
+    return this.showArrivalAndDepartureTime() && this.isToNodeStop();
   }
 
   /* left departure time */
@@ -481,14 +474,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   showLeftArrivalTime() {
-    if (!this.showArrivalAndDepartureTime()) {
-      return false;
-    }
-    const trans = this.perlenketteSection.fromNode.getTransition(this.trainrunSection.getId());
-    if (trans === undefined) {
-      return true;
-    }
-    return !trans.getIsNonStopTransit();
+    return this.showArrivalAndDepartureTime() && this.isFromNodeStop();
   }
 
   /* travel time */
