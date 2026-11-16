@@ -47,6 +47,7 @@
         <circle
           *ngFor="let stationNumber of stationNumberArray"
           cx="137px"
+          r="4"
           [attr.cy]="
             192 / 4 + ((192 - 8) / (perlenketteSection.numberOfStops + 1)) * 0.5 * stationNumber + 4
           "
