@@ -1,0 +1,155 @@
+import {Injectable} from "@angular/core";
+import {Direction, NetzgrafikDto, NodeDto} from "../../data-structures/business.data.structures";
+import {LogService} from "../../logger/log.service";
+import {FilterService} from "../ui/filter.service";
+import {UiInteractionService} from "../ui/ui.interaction.service";
+import {TrainrunSectionValidator} from "../util/trainrunsection.validator";
+import {DataService} from "./data.service";
+import {NodeService} from "./node.service";
+import {ResourceService} from "./resource.service";
+import {TrainrunService} from "./trainrun.service";
+import {TrainrunSectionService} from "./trainrunsection.service";
+
+/** Imports Netzgrafik JSON (Netzgrafik-Editor exports as well as 3rd-party generated JSON). */
+@Injectable({
+  providedIn: "root",
+})
+export class NetzgrafikImportService {
+  constructor(
+    private dataService: DataService,
+    private nodeService: NodeService,
+    private trainrunService: TrainrunService,
+    private trainrunSectionService: TrainrunSectionService,
+    private resourceService: ResourceService,
+    private filterService: FilterService,
+    private uiInteractionService: UiInteractionService,
+    private logger: LogService,
+  ) {}
+
+  /** Whether the value has the top-level structure of a Netzgrafik JSON. */
+  static isNetzgrafikDto(value: unknown): value is NetzgrafikDto {
+    return (
+      typeof value === "object" &&
+      value !== null &&
+      "nodes" in value &&
+      "trainrunSections" in value &&
+      "trainruns" in value &&
+      "resources" in value &&
+      "metadata" in value
+    );
+  }
+
+  /**
+   * Parses and imports a Netzgrafik JSON string. Logs an error and returns false if the text is
+   * not a Netzgrafik JSON.
+   */
+  importNetzgrafikJson(text: string): boolean {
+    let netzgrafikDto: unknown;
+    try {
+      netzgrafikDto = JSON.parse(text);
+    } catch {
+      netzgrafikDto = undefined;
+    }
+    if (!NetzgrafikImportService.isNetzgrafikDto(netzgrafikDto)) {
+      const msg = $localize`:@@app.view.editor-side-view.editor-tools-view-component.import-netzgrafik-error:JSON error`;
+      this.logger.error(msg);
+      return false;
+    }
+    this.importNetzgrafikDto(netzgrafikDto);
+    return true;
+  }
+
+  /** Imports a parsed Netzgrafik JSON, replacing the current Netzgrafik. */
+  importNetzgrafikDto(netzgrafikDto: NetzgrafikDto) {
+    // prepare JSON import
+    this.uiInteractionService.showNetzgrafik();
+    this.uiInteractionService.closeNodeBaseData();
+    this.uiInteractionService.closePerlenkette();
+    this.uiInteractionService.resetEditorMode();
+    this.nodeService.unselectAllNodes();
+
+    // import data
+    if (
+      netzgrafikDto.trainrunSections.length === 0 ||
+      !this.detectNetzgrafikJSON3rdParty(netzgrafikDto)
+    ) {
+      // -----------------------------------------------
+      // Default: Netzgrafik-Editor exported JSON
+      // -----------------------------------------------
+      this.dataService.loadNetzgrafikDto(netzgrafikDto);
+      // -----------------------------------------------
+    } else {
+      // -----------------------------------------------
+      // 3rd Party: Netzgrafik-Editor exported JSON
+      // -----------------------------------------------
+      this.processNetzgrafikJSON3rdParty(netzgrafikDto);
+    }
+
+    // recompute viewport
+    this.uiInteractionService.viewportCenteringOnNodesBoundingBox();
+  }
+
+  private detectNetzgrafikJSON3rdParty(netzgrafikDto: NetzgrafikDto): boolean {
+    return (
+      netzgrafikDto.nodes.find((n: NodeDto) => n.ports === undefined) !== undefined ||
+      netzgrafikDto.nodes.filter((n: NodeDto) => n.ports?.length === 0).length ===
+        netzgrafikDto.nodes.length
+    );
+  }
+  private processNetzgrafikJSON3rdParty(netzgrafikDto: NetzgrafikDto) {
+    // --------------------------------------------------------------------------------
+    // 3rd party generated JSON detected
+    // --------------------------------------------------------------------------------
+    const msg = $localize`:@@app.view.editor-side-view.editor-tools-view-component.import-netzgrafik-as-json-info-3rd-party:3rd party import`;
+    this.logger.info(msg);
+
+    // --------------------------------------------------------------------------------
+    // (Step 1) Import only nodes
+    const netzgrafikOnlyNodeDto: NetzgrafikDto = Object.assign({}, netzgrafikDto);
+    netzgrafikOnlyNodeDto.trainruns = [];
+    netzgrafikOnlyNodeDto.trainrunSections = [];
+    this.dataService.loadNetzgrafikDto(netzgrafikOnlyNodeDto);
+
+    // (Step 2) Import nodes and trainrunSectiosn by trainrun inseration (copy => create)
+    this.dataService.insertCopyNetzgrafikDto(netzgrafikDto, false);
+
+    // step(3) Check whether a transitions object was given when not
+    //         departureTime - arrivatelTime == 0 => non-stop
+    this.nodeService.getNodes().forEach((n) => {
+      n.getTransitions().forEach((trans) => {
+        const p1 = n.getPort(trans.getPortId1());
+        const p2 = n.getPort(trans.getPortId2());
+        let arrivalTime = p1.getTrainrunSection().getTargetArrival();
+        if (p1.getTrainrunSection().getSourceNodeId() === n.getId()) {
+          arrivalTime = p1.getTrainrunSection().getSourceArrival();
+        }
+        let departureTime = p2.getTrainrunSection().getTargetDeparture();
+        if (p2.getTrainrunSection().getSourceNodeId() === n.getId()) {
+          departureTime = p2.getTrainrunSection().getSourceDeparture();
+        }
+        trans.setIsNonStopTransit(arrivalTime - departureTime === 0);
+      });
+
+      const res = this.resourceService.createAndGetResource(false);
+      n.setResourceId(res.getId());
+    });
+
+    // step(4) Migrate 3rd party imported trainruns/node/resource to ensure direction is set
+    this.dataService.ensureAllResourcesLinkedToNetzgrafikObjects();
+    this.trainrunService.getTrainruns().forEach((t) => {
+      const currentDirection = t.getDirection();
+      if (currentDirection === undefined) {
+        t.setDirection(Direction.ROUND_TRIP);
+      }
+    });
+
+    // step(5) Recalc/propagate consecutive times
+    this.trainrunService.propagateInitialConsecutiveTimes();
+
+    // step(6) Validate all trainrun sections
+    this.trainrunSectionService.getTrainrunSections().forEach((ts) => {
+      TrainrunSectionValidator.validateOneSection(ts);
+      TrainrunSectionValidator.validateTravelTime(ts, this.filterService.getTimeDisplayPrecision());
+    });
+  }
+}
