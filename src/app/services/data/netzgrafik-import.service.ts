@@ -10,6 +10,47 @@ import {ResourceService} from "./resource.service";
 import {TrainrunService} from "./trainrun.service";
 import {TrainrunSectionService} from "./trainrunsection.service";
 
+/** Name of the URL fragment parameter holding a compressed Netzgrafik JSON to import on startup. */
+export const FRAGMENT_PARAMETER = "netzgrafik";
+
+/**
+ * Returns the encoded Netzgrafik of a URL fragment such as `#netzgrafik=<data>`, or null.
+ * `<data>` is the Netzgrafik JSON, compressed with deflate-raw and encoded as base64url.
+ * The fragment is never sent to a server, so a link can carry a whole Netzgrafik without any
+ * hosting, CORS or Content-Security-Policy changes.
+ */
+export function getFragmentNetzgrafik(hash: string): string | null {
+  const value = new URLSearchParams(hash.replace(/^#/, "")).get(FRAGMENT_PARAMETER);
+  return value ? value : null;
+}
+
+const base64UrlToBytes = (value: string): Uint8Array<ArrayBuffer> => {
+  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+  return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+};
+
+const bytesToBase64Url = (bytes: Uint8Array): string => {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+};
+
+/** Decodes the `<data>` of `#netzgrafik=<data>` into the Netzgrafik JSON text. */
+export async function decodeNetzgrafikFragment(value: string): Promise<string> {
+  const stream = new Blob([base64UrlToBytes(value)])
+    .stream()
+    .pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Response(stream).text();
+}
+
+/** Encodes a Netzgrafik JSON text for `#netzgrafik=<data>` (inverse of decodeNetzgrafikFragment). */
+export async function encodeNetzgrafikFragment(json: string): Promise<string> {
+  const stream = new Blob([json]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+  return bytesToBase64Url(new Uint8Array(await new Response(stream).arrayBuffer()));
+}
+
 /** Imports Netzgrafik JSON (Netzgrafik-Editor exports as well as 3rd-party generated JSON). */
 @Injectable({
   providedIn: "root",
@@ -57,6 +98,22 @@ export class NetzgrafikImportService {
     }
     this.importNetzgrafikDto(netzgrafikDto);
     return true;
+  }
+
+  /**
+   * Imports the Netzgrafik of a `#netzgrafik=<data>` URL fragment (see getFragmentNetzgrafik).
+   * Logs an error and returns false if it cannot be decoded or is not a Netzgrafik JSON.
+   */
+  async importNetzgrafikFromFragment(value: string): Promise<boolean> {
+    let text: string;
+    try {
+      text = await decodeNetzgrafikFragment(value);
+    } catch (e) {
+      const msg = $localize`:@@app.view.editor-side-view.editor-tools-view-component.import-netzgrafik-error:JSON error`;
+      this.logger.error(msg, e);
+      return false;
+    }
+    return this.importNetzgrafikJson(text);
   }
 
   /** Imports a parsed Netzgrafik JSON, replacing the current Netzgrafik. */
