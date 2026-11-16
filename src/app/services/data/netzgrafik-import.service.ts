@@ -24,22 +24,9 @@ export function getFragmentNetzgrafik(hash: string): string | null {
   return value ? value : null;
 }
 
-const base64UrlToBytes = (value: string): Uint8Array<ArrayBuffer> => {
-  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
-  return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-};
-
-const bytesToBase64Url = (bytes: Uint8Array): string => {
-  let binary = "";
-  for (let i = 0; i < bytes.length; i += 0x8000) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-  }
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-};
-
 /** Decodes the `<data>` of `#netzgrafik=<data>` into the Netzgrafik JSON text. */
 export async function decodeNetzgrafikFragment(value: string): Promise<string> {
-  const stream = new Blob([base64UrlToBytes(value)])
+  const stream = new Blob([Uint8Array.fromBase64(value, {alphabet: "base64url"})])
     .stream()
     .pipeThrough(new DecompressionStream("deflate-raw"));
   return new Response(stream).text();
@@ -48,7 +35,8 @@ export async function decodeNetzgrafikFragment(value: string): Promise<string> {
 /** Encodes a Netzgrafik JSON text for `#netzgrafik=<data>` (inverse of decodeNetzgrafikFragment). */
 export async function encodeNetzgrafikFragment(json: string): Promise<string> {
   const stream = new Blob([json]).stream().pipeThrough(new CompressionStream("deflate-raw"));
-  return bytesToBase64Url(new Uint8Array(await new Response(stream).arrayBuffer()));
+  const bytes = new Uint8Array(await new Response(stream).arrayBuffer());
+  return bytes.toBase64({alphabet: "base64url", omitPadding: true});
 }
 
 /** Imports Netzgrafik JSON (Netzgrafik-Editor exports as well as 3rd-party generated JSON). */

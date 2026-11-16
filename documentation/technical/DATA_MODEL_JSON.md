@@ -33,10 +33,8 @@ fragment is removed from the address bar. Encoding in the browser:
 ```javascript
 const stream = new Blob([json]).stream().pipeThrough(new CompressionStream("deflate-raw"));
 const bytes = new Uint8Array(await new Response(stream).arrayBuffer());
-const data = btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const data = bytes.toBase64({alphabet: "base64url", omitPadding: true});
 ```
-
-For large Netzgrafiken, build the binary string in chunks instead of spreading all bytes at once.
 
 ##### JSON-Based Data Import from 3rd Party Data Providers
 
