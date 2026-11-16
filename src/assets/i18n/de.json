@@ -15,7 +15,7 @@
     "user-guide": "Benutzeranleitung",
     "user-manual": "Benutzerhandbuch",
     "logout": "Abmelden",
-    "login": "Sie werden angemeldet…",
+    "login": "Sie werden angemeldet...",
     "logger": {
       "title": "Titel"
     },
@@ -203,7 +203,7 @@
         "note-dialog": {
           "html-editor": {
             "reset-color": "Farbe zurücksetzen",
-            "editor-placeholder": "Kommentar hier eingeben…",
+            "editor-placeholder": "Kommentar hier eingeben...",
             "mandatory-field": "Pflichtfeld",
             "color-presets": {
               "ec": {
@@ -249,7 +249,7 @@
           "delete-note": "Kommentar löschen",
           "note-filter-tab": {
             "labels": "Labels",
-            "label-placeholder": "Neues Label…"
+            "label-placeholder": "Neues Label..."
           },
           "note-form": {
             "title": "Titel",
@@ -283,7 +283,7 @@
           "filterableLabels": "Filterbare Labels",
           "trainrun-filter-tab": {
             "labels": "Labels",
-            "newLabels": "Neues Label…",
+            "newLabels": "Neues Label...",
             "trainrunDuplicate": "Zuglauf duplizieren",
             "trainrunDelete": "Zuglauf löschen",
             "delete": "Löschen",
@@ -316,7 +316,7 @@
         "trainruns": "Zugfahrten",
         "nodes": "Knoten",
         "notes": "Kommentare",
-        "delete-netzgrafik-title": "Netzgrafik – Löschen",
+        "delete-netzgrafik-title": "Netzgrafik - Löschen",
         "non-visible-elements": "Nicht sichtbare Elemente",
         "delete-all-non-visible-elements-tooltip": "Alle nicht sichtbaren Elemente, wie Knoten, Zugfahrten und Kommentare löschen",
         "delete-all-non-visible-elements": "Alle nicht sichtbaren Elemente löschen",
@@ -327,7 +327,7 @@
         "delete-all-visible-notes": "Alle sichtbaren Kommentare löschen",
         "delete-all-visible-elements-tooltip": "Alle sichtbaren Elemente, wie Knoten, Zugfahrten und Kommentare löschen",
         "delete-all-visible-elements": "Alle sichtbaren Elemente löschen",
-        "merge-netzgrafik-title": "Netzgrafik – Zusammenführen",
+        "merge-netzgrafik-title": "Netzgrafik - Zusammenführen",
         "add-netzgrafik-as-copy-tooltip": "Netzgrafik als Kopie einfügen (Zugfahrten, Knoten, Kommentare)",
         "add-netzgrafik-as-copy": "Netzgrafik als Kopie einfügen",
         "merge-netzgrafik-tooltip": "Netzgrafik zusammenführen (Zugfahrten, Knoten, Kommentare)",
@@ -337,12 +337,12 @@
         "align-elements-right": "Rechtsbündig ausrichten",
         "align-elements-top": "Oben ausrichten",
         "align-elements-bottom": "Unten ausrichten",
-        "node-optimization-disposition-title": "Netzgrafik – Knotenpositionen",
+        "node-optimization-disposition-title": "Netzgrafik - Knotenpositionen",
         "optimization-netzgrafik-tooltip": "Strecke die Netzgrafik, so dass keine Kante kürzer als die minimale Kantenlänge der Zugfahrten ist.",
         "optimize-layout": "Strecke die Netzgrafik",
         "inverse_optimization-netzgrafik-tooltip": "Komprimiere die Netzgrafik so weit, dass keine Kante unnötigerweise länger als die minimale Kantenlänge ist.",
         "inverse_optimization-netzgrafik": "Komprimiere die Netzgrafik",
-        "node-optimization-title": "Netzgrafik – Algorithmus zur Sortierung der Ports der Knoten",
+        "node-optimization-title": "Netzgrafik - Algorithmus zur Sortierung der Ports der Knoten",
         "alphabeticalOrdering": "Alphabetisch",
         "alphabeticalOrderingTooltip": "Ports anhand der Zugkategorien alphabetisch anordnen.",
         "crossingAwareOrdering": "Kreuzungsbewusst",
@@ -492,7 +492,7 @@
           "capacity": "Kapazität",
           "filterable-labels": "Filterbare Labels",
           "labels": "Labels",
-          "new-label-placeholder": "Neues Label…",
+          "new-label-placeholder": "Neues Label...",
           "stopping-times": "Haltezeiten",
           "stopping-time-per-product": "Haltezeit pro Produkt",
           "no-stop": "Kein Halt",
@@ -529,13 +529,13 @@
           "import-netzgrafik-as-json-info-3rd-party": "Drittanbieter-JSON-Daten erkannt: Import-Heuristik angewandt.",
           "export-trainruns": "Zugfahrten exportieren",
           "export-trainruns-as-csv": "Zugfahrten als CSV exportieren",
-          "export-trainruns-as-csv-excel": "In Excel: Daten -> Aus Text/CSV -> Dateiname … importieren",
+          "export-trainruns-as-csv-excel": "In Excel: Daten -> Aus Text/CSV -> Dateiname ... importieren",
           "export-origin-destination": "Quelle-Ziel-Matrix exportieren",
           "export-origin-destination-as-csv": "Quelle-Ziel-Matrix als CSV exportieren",
-          "import-basedata-legacy-info": "Veraltetes Stammdatenformat importiert – bitte beachten Sie die Dokumentation und aktualisieren Sie Ihre Stammdatendateien, um sicherzustellen, dass zukünftige Versionen den Datenimport weiterhin unterstützen",
+          "import-basedata-legacy-info": "Veraltetes Stammdatenformat importiert - bitte beachten Sie die Dokumentation und aktualisieren Sie Ihre Stammdatendateien, um sicherzustellen, dass zukünftige Versionen den Datenimport weiterhin unterstützen",
           "base-data": "Stammdaten",
           "import-base-data": "Stammdaten importieren",
-          "help-csv-data": "Hilfe: CSV – Datei",
+          "help-csv-data": "Hilfe: CSV - Datei",
           "export-base-data": "Stammdaten exportieren",
           "bp": "BP",
           "station": "Bahnhof",
@@ -604,7 +604,7 @@
             "description": "Beschreibung",
             "tooltip": "Benutzer müssen mit ihrer E-Mail angegeben werden. Eingabe pro E-Mail jeweils mit «Enter» bestätigen.",
             "user-with-write-access": "Benutzer mit Schreibzugriff",
-            "new-user-placeholder": "Neuer Benutzer…",
+            "new-user-placeholder": "Neuer Benutzer...",
             "invalid-values": "Ungültige Werte (keine E-Mail-Adresse)",
             "user-with-read-access": "Benutzer mit Lesezugriff"
           }
