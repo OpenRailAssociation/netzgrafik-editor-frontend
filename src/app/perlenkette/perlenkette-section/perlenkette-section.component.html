@@ -87,7 +87,7 @@
     <g>
       <g
         transform="translate(137, 0)"
-        *ngIf="!showArrivalAndDepartureTime() && showStopArcStart() && isRightSideDisplayed()"
+        *ngIf="!showArrivalAndDepartureTime() && isFromNodeStop() && isRightSideDisplayed()"
       >
         <path
           d="M4,0A4,4,0,1,1,-4,4.898587196589413e-16L0,0Z"
@@ -95,7 +95,7 @@
           class="edge_line_stop_arcs fill"
         />
       </g>
-      <g transform="translate(137, 192)" *ngIf="!showArrivalAndDepartureTime() && showStopArcEnd()">
+      <g transform="translate(137, 192)" *ngIf="!showArrivalAndDepartureTime() && isToNodeStop()">
         <path
           d="M-4,-4.898587196589413e-16A4,4,0,1,1,4,0L0,0Z"
           [ngClass]="[getPathClassTag()]"
