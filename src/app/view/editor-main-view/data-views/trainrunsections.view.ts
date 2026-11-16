@@ -2618,7 +2618,7 @@ export class TrainrunSectionsView {
     this.createTrainrunSection(
       groupLines,
       StaticDomTags.EDGE_LINE_LAYER_0,
-      [LinePatternRefs.Freq15],
+      Object.values(LinePatternRefs), // used for selection snapping
       selectedTrainrun,
       connectedTrainIds,
       enableEvents,
