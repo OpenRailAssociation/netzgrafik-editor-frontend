@@ -117,6 +117,24 @@ export const getBackgroundPoint = (page: Page, area?: Box): Promise<Vector> =>
   );
 
 /**
+ * A point of the container where a click hits a trainrun section.
+ */
+export const getVisibleSectionPoint = (page: Page): Promise<Vector> =>
+  page.evaluate((container) => {
+    const element = document.querySelector(container);
+    if (!element) throw new Error("Graph container not found");
+    const c = element.getBoundingClientRect();
+    for (const path of element.querySelectorAll("path.edge_line")) {
+      const r = path.getBoundingClientRect();
+      const p = {x: r.x + r.width / 2, y: r.y + r.height / 2};
+      const inside = p.x > c.left && p.y > c.top && p.x < c.right && p.y < c.bottom;
+      // The section must be on top at that point: not hidden by another element
+      if (inside && document.elementFromPoint(p.x, p.y) === path) return p;
+    }
+    throw new Error("No visible trainrun section found");
+  }, CONTAINER);
+
+/**
  * Number of DOM elements in the graph: shows how much is drawn.
  */
 export const getGraphElementCount = (page: Page) =>
