@@ -16,9 +16,14 @@ export type Box = {x: number; y: number; width: number; height: number};
 export type RunStep = (action: () => Promise<unknown>) => Promise<void>;
 
 /**
+ * A network, as exported by the editor. Only the fields read by these scripts are typed.
+ */
+export type Dataset = {nodes: {positionX: number; positionY: number}[]};
+
+/**
  * What each scenario gets: the browser page, and the dataset to load in it.
  */
-export type Env = {page: Page; dataset: unknown};
+export type Env = {page: Page; dataset: Dataset};
 
 /**
  * A collection of metric name / metric value pairs.
