@@ -1,8 +1,11 @@
 import type {Page} from "playwright";
-import type {Dataset, Vector} from "./types.ts";
+import type {Dataset, RunStep, Vector} from "./types.ts";
 import {getBackgroundPoint, getContainerBox, getGraphBox, getScreenCoordinates} from "./editor.ts";
 import {waitForRender} from "./browser.ts";
 import {getBoxCenter, getMoveStartArea} from "./math.ts";
+
+// Each wheel step is +/-10%, clamped at 10%: 9 steps go exactly from 100% to the minimum and back
+const ZOOM_STEPS = 9;
 
 /**
  * Presses the mouse on `from`, so that the next mouse moves pan the view.
@@ -48,4 +51,16 @@ export const centerGraph = async (page: Page, dataset: Dataset) => {
   const center = getBoxCenter(await getContainerBox(page));
   const graph = await getScreenCoordinates(page, getBoxCenter(getGraphBox(dataset)));
   await panBy(page, {x: center.x - graph.x, y: center.y - graph.y});
+};
+
+/**
+ * Prepares a zoom around the middle of the container (not measured), and returns it: ZOOM_STEPS
+ * wheel steps, each one a step. A positive deltaY zooms out, a negative one zooms in.
+ */
+export const prepareZoom = async (page: Page, deltaY: number) => {
+  const center = getBoxCenter(await getContainerBox(page));
+  await page.mouse.move(center.x, center.y);
+  return async (runStep: RunStep) => {
+    for (let i = 0; i < ZOOM_STEPS; i++) await runStep(() => page.mouse.wheel(0, deltaY));
+  };
 };
