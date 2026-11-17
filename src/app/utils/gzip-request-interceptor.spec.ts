@@ -7,10 +7,7 @@ import {
   withXhr,
 } from "@angular/common/http";
 import {HttpTestingController, provideHttpClientTesting} from "@angular/common/http/testing";
-import {
-  GZIP_MIN_SIZE_BYTES,
-  GzipRequestInterceptor,
-} from "./gzip-request-interceptor";
+import {GZIP_MIN_SIZE_BYTES, GzipRequestInterceptor} from "./gzip-request-interceptor";
 
 async function gunzip(blob: Blob): Promise<string> {
   return new Response(blob.stream().pipeThrough(new DecompressionStream("gzip"))).text();
