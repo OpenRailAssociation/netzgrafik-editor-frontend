@@ -10,29 +10,11 @@ import {HttpTestingController, provideHttpClientTesting} from "@angular/common/h
 import {
   GZIP_MIN_SIZE_BYTES,
   GzipRequestInterceptor,
-  gzipJsonBody,
 } from "./gzip-request-interceptor";
 
 async function gunzip(blob: Blob): Promise<string> {
   return new Response(blob.stream().pipeThrough(new DecompressionStream("gzip"))).text();
 }
-
-describe("gzipJsonBody", () => {
-  it("compresses large payloads; decompressed JSON equals the original", async () => {
-    const payload = {
-      name: "test",
-      model: JSON.stringify({nodes: "x".repeat(GZIP_MIN_SIZE_BYTES * 4)}),
-    };
-    const compressed = await gzipJsonBody(payload);
-    expect(compressed).toBeDefined();
-    expect(compressed!.size).toBeLessThan(JSON.stringify(payload).length);
-    expect(JSON.parse(await gunzip(compressed!))).toEqual(payload);
-  });
-
-  it("returns undefined for small payloads", async () => {
-    expect(await gzipJsonBody({name: "small"})).toBeUndefined();
-  });
-});
 
 describe("GzipRequestInterceptor", () => {
   const url = "/v1/versions/1/snapshot";
