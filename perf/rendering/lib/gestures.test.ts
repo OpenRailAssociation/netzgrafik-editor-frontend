@@ -2,7 +2,7 @@ import {describe, it} from "node:test";
 import assert from "node:assert/strict";
 import type {Page} from "playwright";
 import type {Box, Vector} from "./types.ts";
-import {centerGraph, panBy} from "./gestures.ts";
+import {centerGraph, panBy, prepareZoom} from "./gestures.ts";
 
 const BOX: Box = {x: 0, y: 0, width: 1000, height: 600};
 
@@ -23,6 +23,9 @@ const fakePage = () => {
       },
       up: async () => {
         calls.push(["up"]);
+      },
+      wheel: async (...args: unknown[]) => {
+        calls.push(["wheel", ...args]);
       },
     },
     /**
@@ -96,5 +99,25 @@ describe("centerGraph", () => {
       ["move", 310, 160, {steps: 10}],
       ["up"],
     ]);
+  });
+});
+
+describe("prepareZoom", () => {
+  it("moves the mouse to the middle of the container while preparing", async () => {
+    const {page, calls} = fakePage();
+    await prepareZoom(page, 100);
+    assert.deepEqual(calls, [["move", 500, 300]]);
+  });
+
+  it("scrolls 9 times, one step per wheel move", async () => {
+    const {page, calls} = fakePage();
+    const run = await prepareZoom(page, -100);
+    calls.length = 0;
+    let steps = 0;
+    await run(async (action) => {
+      steps++;
+      await action();
+    });
+    assert.deepEqual({steps, calls}, {steps: 9, calls: Array(9).fill(["wheel", 0, -100])});
   });
 });
