@@ -7,6 +7,7 @@ import {relative} from "node:path";
 import {parseArgs} from "node:util";
 import {measure} from "./lib/measure.ts";
 import {aggregate, type Results} from "./lib/report.ts";
+import type {Dataset} from "./lib/types.ts";
 import {VIEWPORT} from "./lib/browser.ts";
 import {openEditor} from "./lib/editor.ts";
 import {SCENARIOS} from "./scenarios/index.ts";
@@ -29,7 +30,7 @@ const runs = Number(args.runs);
 const getSeconds = (start: number) => `${((performance.now() - start) / 1000).toFixed(1)}s`;
 
 // Runs each scenario once, each one on a fresh page, and logs their durations
-const runScenarios = async (browser: Browser, dataset: unknown, run: string) => {
+const runScenarios = async (browser: Browser, dataset: Dataset, run: string) => {
   const results: Results = {};
   for (const scenario of SCENARIOS) {
     const start = performance.now();
