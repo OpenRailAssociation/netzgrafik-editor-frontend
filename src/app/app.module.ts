@@ -75,6 +75,7 @@ import {VariantDialogComponent} from "./view/variant/variant-dialog/variant-dial
 import {VariantFormComponent} from "./view/variant/variant-dialog/variant-form/variant-form.component";
 import {ErrorViewComponent} from "./view/error-view/error-view.component";
 import {HttpErrorInterceptor} from "./utils/http-error-interceptor";
+import {GzipRequestInterceptor} from "./utils/gzip-request-interceptor";
 import {PreviewButtonComponent} from "./view/variant/variant-view/variant-history/preview-button/preview-button.component";
 import {NavigationBarComponent} from "./view/navigation-bar/navigation-bar.component";
 import {EditorPropertiesViewComponent} from "./view/editor-properties-view-component/editor-properties-view.component";
@@ -259,6 +260,7 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     ...(environment.backendUrl
       ? [{provide: BASE_PATH, useValue: environment.backendUrl}]
       : [{provide: LocationStrategy, useClass: HashLocationStrategy}]),
+    {provide: HTTP_INTERCEPTORS, useClass: GzipRequestInterceptor, multi: true},
     {provide: HTTP_INTERCEPTORS, useClass: HttpErrorInterceptor, multi: true},
     provideHttpClient(withXhr(), withInterceptorsFromDi()),
   ],
