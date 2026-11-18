@@ -26,6 +26,7 @@ import {DragIntermediateStopInfo, PreviewLineMode} from "./trainrunsection.previ
 import {MathUtils} from "../../../utils/math";
 import {Trainrun} from "../../../models/trainrun.model";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
+import {createTrainrunSectionKeyContext} from "./trainrunsection.key.context";
 import {Node} from "../../../models/node.model";
 import {EditorMode} from "../../editor-menu/editor-mode";
 import {InformSelectedTrainrunClick} from "../../../services/data/trainrunsection.service";
@@ -1794,8 +1795,9 @@ export class TrainrunSectionsView {
     inputTrainrunSections: TrainrunSection[],
   ): TrainrunSectionViewObject[] {
     const viewTrainrunSectionDataObjects: TrainrunSectionViewObject[] = [];
+    const ctx = createTrainrunSectionKeyContext(editorView);
     inputTrainrunSections.forEach((d: TrainrunSection) => {
-      viewTrainrunSectionDataObjects.push(new TrainrunSectionViewObject(editorView, d));
+      viewTrainrunSectionDataObjects.push(new TrainrunSectionViewObject(editorView, d, ctx));
     });
     return viewTrainrunSectionDataObjects;
   }
