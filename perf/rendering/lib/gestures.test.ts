@@ -2,7 +2,7 @@ import {describe, it} from "node:test";
 import assert from "node:assert/strict";
 import type {Page} from "playwright";
 import type {Box, Vector} from "./types.ts";
-import {centerGraph, panBy, prepareZoom} from "./gestures.ts";
+import {centerGraph, panBy, preparePanBackAndForth, prepareZoom} from "./gestures.ts";
 
 const BOX: Box = {x: 0, y: 0, width: 1000, height: 600};
 
@@ -99,6 +99,35 @@ describe("centerGraph", () => {
       ["move", 310, 160, {steps: 10}],
       ["up"],
     ]);
+  });
+});
+
+describe("preparePanBackAndForth", () => {
+  it("presses the mouse where the move to the right fits, while preparing", async () => {
+    const {page, calls} = fakePage();
+    await preparePanBackAndForth(page);
+    assert.deepEqual(calls, [["move", 10, 10], ["down"], ["move", 13, 10], ["move", 10, 10]]);
+  });
+
+  it("moves 450px to the right and back, one step per move, without releasing", async () => {
+    const {page, calls} = fakePage();
+    const run = await preparePanBackAndForth(page);
+    calls.length = 0;
+    let steps = 0;
+    await run(async (action) => {
+      steps++;
+      await action();
+    });
+    assert.deepEqual(
+      {steps, count: calls.length, first: calls[0], farthest: calls[29], last: calls[59]},
+      {
+        steps: 60,
+        count: 60,
+        first: ["move", 25, 10],
+        farthest: ["move", 460, 10],
+        last: ["move", 10, 10],
+      },
+    );
   });
 });
 

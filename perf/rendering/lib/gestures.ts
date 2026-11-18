@@ -4,6 +4,8 @@ import {getBackgroundPoint, getContainerBox, getGraphBox, getScreenCoordinates} 
 import {waitForRender} from "./browser.ts";
 import {getBoxCenter, getMoveStartArea} from "./math.ts";
 
+const PAN_STEPS = 30;
+const PAN_STEP_PX = 15;
 // Each wheel step is +/-10%, clamped at 10%: 9 steps go exactly from 100% to the minimum and back
 const ZOOM_STEPS = 9;
 
@@ -62,5 +64,26 @@ export const prepareZoom = async (page: Page, deltaY: number) => {
   await page.mouse.move(center.x, center.y);
   return async (runStep: RunStep) => {
     for (let i = 0; i < ZOOM_STEPS; i++) await runStep(() => page.mouse.wheel(0, deltaY));
+  };
+};
+
+/**
+ * Prepares a pan back and forth (not measured), and returns it: it drags the background PAN_STEPS
+ * times PAN_STEP_PX to the right, then back. The mouse is not released, so that the release and its
+ * consequences are not measured.
+ */
+export const preparePanBackAndForth = async (page: Page) => {
+  const box = await getContainerBox(page);
+  const area = getMoveStartArea(box, {x: PAN_STEPS * PAN_STEP_PX, y: 0});
+  const from = await getBackgroundPoint(page, area);
+  await startDrag(page, from);
+  return async (runStep: RunStep) => {
+    const xs = [
+      // Going right: from.x + 15, + 30, ..., + 450
+      ...Array.from({length: PAN_STEPS}, (_, i) => from.x + PAN_STEP_PX * (i + 1)),
+      // Going back: from.x + 435, + 420, ..., + 0
+      ...Array.from({length: PAN_STEPS}, (_, i) => from.x + PAN_STEP_PX * (PAN_STEPS - i - 1)),
+    ];
+    for (const x of xs) await runStep(() => page.mouse.move(x, from.y));
   };
 };
