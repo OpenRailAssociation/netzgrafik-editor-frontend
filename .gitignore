@@ -47,3 +47,6 @@ src/environments/*.tmp
 # direnv
 .envrc
 .direnv
+
+# rendering performance results
+/perf/rendering/results
