@@ -3,6 +3,9 @@ import type {RunStep} from "./types.ts";
 
 export const VIEWPORT = {width: 1600, height: 1000};
 
+// Exposes `gc`, for collectGarbage
+export const BROWSER_ARGS = ["--js-flags=--expose-gc"];
+
 /**
  * Resolves once the next frame is rendered.
  * Since a rAF callback runs before its frame renders, we have to call rAF once more, to make sure
@@ -13,6 +16,12 @@ export const waitForRender = (page: Page) =>
   page.evaluate(
     () => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))),
   );
+
+/**
+ * Runs the garbage collector, so that it does not run at a random time later. Needs BROWSER_ARGS.
+ */
+export const collectGarbage = (page: Page) =>
+  page.evaluate(() => (window as unknown as {gc: () => void}).gc());
 
 /**
  * Creates a RunStep for the page.

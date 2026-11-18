@@ -6,9 +6,9 @@ import {mkdirSync, readFileSync, writeFileSync} from "node:fs";
 import {relative} from "node:path";
 import {parseArgs} from "node:util";
 import {measure} from "./lib/measure.ts";
-import {aggregate, type Results} from "./lib/report.ts";
+import {aggregate, formatResults, formatTable, getSpread, type Results} from "./lib/report.ts";
 import type {Dataset} from "./lib/types.ts";
-import {VIEWPORT} from "./lib/browser.ts";
+import {BROWSER_ARGS, VIEWPORT} from "./lib/browser.ts";
 import {openEditor} from "./lib/editor.ts";
 import {SCENARIOS} from "./scenarios/index.ts";
 
@@ -45,7 +45,7 @@ const runScenarios = async (browser: Browser, dataset: Dataset, run: string) => 
 
 const main = async () => {
   const dataset = JSON.parse(readFileSync(args.dataset, "utf8"));
-  const browser = await chromium.launch({headless: !args.headed});
+  const browser = await chromium.launch({headless: !args.headed, args: BROWSER_ARGS});
   const all: Results[] = [];
 
   try {
@@ -60,14 +60,24 @@ const main = async () => {
   }
 
   const results = aggregate(all);
+  const spread = getSpread(all);
 
   // Log results:
-  console.table(results);
+  console.log("Median across runs, and its spread: (max - min) / median");
+  console.log(formatTable(formatResults(results, spread)));
   if (!args.save) return;
 
   // Save them in a new file as well:
   const date = new Date().toISOString();
-  const report = {label: args.label, date, dataset: relative(DIR, args.dataset), runs, results};
+  const report = {
+    label: args.label,
+    date,
+    dataset: relative(DIR, args.dataset),
+    runs,
+    results,
+    spread,
+    runResults: all,
+  };
   mkdirSync(`${DIR}/results`, {recursive: true});
   const file = `${DIR}/results/${date.replace(/[:.]/g, "-")}-${args.label}.json`;
   writeFileSync(file, JSON.stringify(report, null, 2));
