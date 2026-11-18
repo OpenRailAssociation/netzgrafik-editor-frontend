@@ -56,6 +56,8 @@ Each scenario (see `scenarios/`) is a series of steps. A step is one user action
 - `taskPerStepMs` is `taskMs` divided by the number of steps (`stepCount`).
 - `graphElements` is the number of elements drawn at the end.
 
+Each scenario except `load` is played once before being measured, so that the measures do not include the first time costs. The report has the median of each metric across runs, its spread (`(max - min) / median`, in percent), and the values of each run.
+
 ## Unit tests
 
 ```sh

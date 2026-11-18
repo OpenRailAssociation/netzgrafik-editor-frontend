@@ -1,7 +1,7 @@
 import type {CDPSession} from "playwright";
 import type {Env, Metrics, Scenario, RunStep} from "./types.ts";
 import {getGraphElementCount} from "./editor.ts";
-import {createRunStep, waitForRender} from "./browser.ts";
+import {collectGarbage, createRunStep, waitForRender} from "./browser.ts";
 
 // Report key -> Chrome metric name. Chrome gives them in seconds.
 const CDP_METRICS = {
@@ -36,6 +36,10 @@ export const measure = async (env: Env, scenario: Scenario): Promise<Metrics> =>
   await cdp.send("Performance.enable");
   const run = await scenario.prepare(env);
   const runStep = createRunStep(page);
+  // Plays the measured part once first, so that the measures do not include the first time costs
+  // (such as the JIT compilation)
+  if (scenario.warmUp !== false) await run(runStep);
+  await collectGarbage(page);
   await waitForRender(page);
   let stepCount = 0;
   const countedRunStep: RunStep = (action) => {

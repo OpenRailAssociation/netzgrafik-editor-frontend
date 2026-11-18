@@ -35,6 +35,8 @@ export type Metrics = Record<string, number>;
  * - `name` identifies the scenario in the final report
  * - `prepare` prepares the page (not measured), then returns the measured part, which runs the
  *   steps one after the other, one `runStep` call each
+ * - `warmUp` (true by default) plays the measured part once, unmeasured, before measuring it. The
+ *   measured part must then leave the page as it found it
  *
  * Example, with two steps:
  * ```ts
@@ -49,5 +51,6 @@ export type Metrics = Record<string, number>;
  */
 export type Scenario = {
   name: string;
+  warmUp?: boolean;
   prepare(env: Env): Promise<(runStep: RunStep) => Promise<void>>;
 };
