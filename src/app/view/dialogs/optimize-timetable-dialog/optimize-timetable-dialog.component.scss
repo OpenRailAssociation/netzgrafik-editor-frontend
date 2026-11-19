@@ -541,7 +541,7 @@
   }
 
   .proposals {
-    min-width: 1040px;
+    min-width: 1200px;
     table-layout: fixed;
     font-size: 12px;
 
@@ -565,7 +565,7 @@
     }
 
     th:nth-child(2) {
-      width: 140px;
+      width: 130px;
     }
 
     th:nth-child(4),
@@ -612,6 +612,22 @@
   .proposals .feasibility-icon {
     width: 48px;
     text-align: center;
+  }
+
+  .proposals .rule-status {
+    width: 70px;
+    text-align: center;
+    cursor: default;
+  }
+
+  .rule-violation-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
   }
 
   .search-phase,
@@ -917,5 +933,119 @@
     .node-review {
       grid-template-columns: minmax(0, 1fr);
     }
+  }
+}
+
+.rule-violation-dialog {
+  --COLOR_Warning: #eb0000;
+
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 80vh;
+  max-height: 85vh;
+  min-height: 200px;
+
+  .rule-violation-content {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .rule-violation-content > p {
+    margin-top: 0;
+  }
+
+  .rule-violation-train-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 12px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .rule-violation-train-button {
+    display: inline-flex;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+  }
+
+  .rule-violation-train-button .train-label {
+    font-weight: 400;
+  }
+
+  .rule-violation-train-button.selected .train-label {
+    color: var(--COLOR_Edit);
+    font-weight: 700;
+  }
+
+  .rule-violation-train-button:hover .train-label {
+    font-weight: 700;
+  }
+
+  .rule-violation-train-button:focus-visible {
+    outline: 2px solid var(--COLOR_Edit);
+    outline-offset: 2px;
+  }
+
+  .rule-violation-train-title {
+    margin: 8px 0;
+  }
+
+  .rule-violation-separate-toggle {
+    margin-bottom: 8px;
+  }
+
+  .rule-violation-journey-title {
+    margin: 12px 0 4px;
+  }
+
+  .rule-violation-table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .rule-violation-times {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+
+    th,
+    td {
+      padding: 6px 10px;
+      border-bottom: 1px solid #d8d8d8;
+    }
+  }
+
+  .violation-time {
+    color: var(--COLOR_Warning);
+  }
+
+  .adjustable-time {
+    font-weight: 700;
+  }
+
+  .adjustable-time-cell {
+    background-color: rgba(128, 128, 128, 0.15);
+  }
+
+  .return-journey-column {
+    border-left: 2px solid #9a9a9a;
+  }
+
+  .rule-violation-dialog-actions {
+    display: flex;
+    flex: 0 0 auto;
+    justify-content: flex-end;
+    border-top: 1px solid var(--sbb-header-lean-border-bottom-color);
+    padding: 8px 16px;
   }
 }

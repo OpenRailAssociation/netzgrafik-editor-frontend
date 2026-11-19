@@ -1,5 +1,5 @@
 import {OptimizationProblem} from "../optimize-timetable.chains";
-import {HardConstraintId} from "../optimization-policy.model";
+import {AdjustableParameterId, HardConstraintId} from "../optimization-policy.model";
 import {TimetableEvaluator, WEIGHT_HARD} from "../optimize-timetable.evaluator";
 import {
   ArchivedSolution,
@@ -92,6 +92,10 @@ export async function runCpSatSearch(
   };
   const enabled = (id: HardConstraintId) =>
     problem.policy.hardConstraints.some((constraint) => constraint.id === id && constraint.enabled);
+  const adjustmentEnabled = (id: AdjustableParameterId) =>
+    problem.policy.adjustableParameters.some(
+      (parameter) => parameter.id === id && parameter.enabled,
+    );
   const constraints: CpSatConstraint[] = [];
   const addConstraint = (variables: number[], accepts: () => boolean) => {
     constraints.push({
@@ -121,12 +125,15 @@ export async function runCpSatSearch(
       addConstraint(variables, () => !evaluator.isStopViolated(index)),
     );
   }
+  componentScopes(problem.varStops, problem.stops.length).forEach((variables, index) =>
+    addConstraint(variables, () => !evaluator.isStopOrderViolated(index)),
+  );
   if (enabled("userConnections")) {
     componentScopes(problem.varConnections, problem.connections.length).forEach(
       (variables, index) => addConstraint(variables, () => !evaluator.isConnectionViolated(index)),
     );
   }
-  if (enabled("maxTravelTimeExtension")) {
+  if (adjustmentEnabled("maxTravelTimeExtension")) {
     componentScopes(problem.varTrainruns, problem.trainrunIds.length).forEach((variables, index) =>
       addConstraint(variables, () => !evaluator.isTravelTimeExtensionViolated(index)),
     );

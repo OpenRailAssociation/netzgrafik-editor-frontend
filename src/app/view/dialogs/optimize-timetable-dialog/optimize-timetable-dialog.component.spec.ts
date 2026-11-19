@@ -11,12 +11,177 @@ import {
   OptimizeTimetableOptions,
   OptimizeTimetableResult,
   OptimizeTimetableSolution,
+  RuleViolationTrainrunDetails,
   TimeChange,
 } from "../../../services/optimization/optimize-timetable.model";
 import {NgZone} from "@angular/core";
 import {of, Subject} from "rxjs";
 
 describe("OptimizeTimetableDialogComponent search execution", () => {
+  it("shows a separate status column for every active rule and the arrival-order invariant", () => {
+    const component = createFormatter("stability");
+
+    expect(component.ruleStatusColumns).toEqual([
+      "track-limit",
+      "minimum-connections",
+      "minimum-stop-time",
+      "scope-boundary",
+      "arrival-before-departure",
+      "symmetry",
+    ]);
+
+    component.policy.hardConstraints.find((constraint) => constraint.id === "symmetry")!.enabled =
+      false;
+    component.policy.adjustableParameters.find(
+      (parameter) => parameter.id === "maxTravelTimeExtension",
+    )!.enabled = true;
+    expect(component.ruleStatusColumns).toEqual([
+      "track-limit",
+      "minimum-connections",
+      "minimum-stop-time",
+      "scope-boundary",
+      "arrival-before-departure",
+      "travel-time-extension",
+    ]);
+  });
+
+  it("supports interactive details for the requested violation rules and preserves elapsed hours", () => {
+    const component = createFormatter("stability");
+
+    expect(component.hasRuleViolationDetails("minimum-stop-time")).toBeTrue();
+    expect(component.hasRuleViolationDetails("scope-boundary")).toBeTrue();
+    expect(component.hasRuleViolationDetails("arrival-before-departure")).toBeTrue();
+    expect(component.hasRuleViolationDetails("symmetry")).toBeTrue();
+    expect(component.hasRuleViolationDetails("track-limit")).toBeFalse();
+    expect(component.formatConsecutiveTime(65)).toBe("01:05");
+    expect(component.formatConsecutiveTime(1505)).toBe("25:05");
+  });
+
+  it("aligns reverse journey times with the forward route and preserves editable markers", () => {
+    const component = createFormatter("stability");
+    const trainrun: RuleViolationTrainrunDetails = {
+      trainrunId: 1,
+      category: "IR",
+      name: "123",
+      journeys: [
+        {
+          direction: "forward",
+          rows: [
+            {
+              nodeId: 1,
+              nodeName: "A",
+              arrivalConsecutiveTime: null,
+              arrivalViolated: false,
+              arrivalEditable: false,
+              departureConsecutiveTime: 0,
+              departureViolated: false,
+              departureEditable: true,
+            },
+            {
+              nodeId: 2,
+              nodeName: "B",
+              arrivalConsecutiveTime: 10,
+              arrivalViolated: false,
+              arrivalEditable: false,
+              departureConsecutiveTime: 12,
+              departureViolated: false,
+              departureEditable: true,
+            },
+          ],
+        },
+        {
+          direction: "backward",
+          rows: [
+            {
+              nodeId: 2,
+              nodeName: "B",
+              arrivalConsecutiveTime: 22,
+              arrivalViolated: false,
+              arrivalEditable: true,
+              departureConsecutiveTime: 24,
+              departureViolated: false,
+              departureEditable: false,
+            },
+            {
+              nodeId: 1,
+              nodeName: "A",
+              arrivalConsecutiveTime: 30,
+              arrivalViolated: false,
+              arrivalEditable: true,
+              departureConsecutiveTime: null,
+              departureViolated: false,
+              departureEditable: false,
+            },
+          ],
+        },
+      ],
+    };
+
+    const rows = component.getCombinedRuleViolationRows(trainrun);
+
+    expect(rows.map((row) => row.nodeName)).toEqual(["A", "B"]);
+    expect(rows[1].forward.departureEditable).toBeTrue();
+    expect(rows[1].backward.arrivalEditable).toBeTrue();
+  });
+
+  it("keeps one-way trains free of backward journey times", () => {
+    const component = createFormatter("stability");
+    const trainrun: RuleViolationTrainrunDetails = {
+      trainrunId: 1,
+      category: "IR",
+      name: "123",
+      journeys: [
+        {
+          direction: "forward",
+          rows: [
+            {
+              nodeId: 1,
+              nodeName: "A",
+              arrivalConsecutiveTime: null,
+              arrivalViolated: false,
+              arrivalEditable: false,
+              departureConsecutiveTime: 0,
+              departureViolated: false,
+              departureEditable: true,
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(component.hasBackwardRuleViolationJourney(trainrun)).toBeFalse();
+    expect(component.getCombinedRuleViolationRows(trainrun)[0].backward).toEqual({
+      arrivalConsecutiveTime: null,
+      arrivalViolated: false,
+      arrivalEditable: false,
+      departureConsecutiveTime: null,
+      departureViolated: false,
+      departureEditable: false,
+    });
+  });
+
+  it("calculates baseline rule issues through the same solution validator", () => {
+    const component = createFormatter("stability");
+    const getSolutionRuleViolations = jasmine
+      .createSpy("getSolutionRuleViolations")
+      .and.returnValue(["minimum-stop-time"]);
+    Object.assign(component, {
+      result: createResult(),
+      scopeNodeIds: [],
+      scopeCorridorEdgeIds: [],
+      scopeUsesSelectedTrainrun: false,
+      getVisibleNodes: (): never[] => [],
+      getVisibleTrainrunSections: (): never[] => [],
+      optimizeTimetableService: {getSolutionRuleViolations},
+    });
+
+    component["updateBaselineRuleSolution"]();
+
+    expect(getSolutionRuleViolations).toHaveBeenCalled();
+    expect(component.baselineRuleSolution.ruleViolations).toEqual(["minimum-stop-time"]);
+    expect(component.baselineRuleSolution.valid).toBeFalse();
+  });
+
   it("does not present immutable conflicts from an outdated rule selection", () => {
     const component = createFormatter("stability");
     const edge: ImmutableTrackConflict = {
@@ -34,8 +199,9 @@ describe("OptimizeTimetableDialogComponent search execution", () => {
     });
 
     expect(component.immutableTrackConflicts).toEqual([edge]);
-    component.policy.hardConstraints.find((constraint) => constraint.id === "timeLocks").enabled =
-      false;
+    component.policy.adjustableParameters.find(
+      (parameter) => parameter.id === "allowTimeShifts",
+    ).enabled = false;
     expect(component.immutableTrackConflicts).toEqual([]);
   });
 
@@ -304,7 +470,12 @@ describe("OptimizeTimetableDialogComponent diagnostic search", () => {
       revertPreview: jasmine.createSpy("revertPreview"),
       getVisibleNodes: (): never[] => [],
       getVisibleTrainrunSections: (): never[] => [],
-      optimizeTimetableService: {optimize},
+      optimizeTimetableService: {
+        optimize,
+        getSolutionRuleViolations: jasmine
+          .createSpy("getSolutionRuleViolations")
+          .and.returnValue([]),
+      },
       updateResultView: jasmine.createSpy("updateResultView"),
       changeDetectorRef: {detectChanges: jasmine.createSpy("detectChanges")},
     });
@@ -318,14 +489,25 @@ describe("OptimizeTimetableDialogComponent diagnostic search", () => {
     expect(diagnosticOptions.startAssignment).toEqual({departure: 0});
     expect(diagnosticOptions.seed).toBe(2);
     expect(
-      diagnosticOptions.policy?.hardConstraints.find((constraint) => constraint.id === "timeLocks")
-        ?.enabled,
-    ).toBeFalse();
-    expect(
-      diagnosticOptions.policy?.hardConstraints.find(
-        (constraint) => constraint.id === "travelTimeLocks",
+      diagnosticOptions.policy?.adjustableParameters.find(
+        (parameter) => parameter.id === "allowTimeShifts",
       )?.enabled,
-    ).toBeFalse();
+    ).toBeTrue();
+    expect(
+      diagnosticOptions.policy?.adjustableParameters.find(
+        (parameter) => parameter.id === "ignoreDepartureLocks",
+      )?.enabled,
+    ).toBeTrue();
+    expect(
+      diagnosticOptions.policy?.adjustableParameters.find(
+        (parameter) => parameter.id === "ignoreArrivalLocks",
+      )?.enabled,
+    ).toBeTrue();
+    expect(
+      diagnosticOptions.policy?.adjustableParameters.find(
+        (parameter) => parameter.id === "ignoreTravelTimeLocks",
+      )?.enabled,
+    ).toBeTrue();
     expect(
       diagnosticOptions.policy?.hardConstraints.find((constraint) => constraint.id === "trackLimit")
         ?.enabled,
@@ -336,7 +518,7 @@ describe("OptimizeTimetableDialogComponent diagnostic search", () => {
       )?.enabled,
     ).toBeTrue();
     expect(
-      policy.hardConstraints.find((constraint) => constraint.id === "timeLocks").enabled,
+      policy.adjustableParameters.find((parameter) => parameter.id === "allowTimeShifts").enabled,
     ).toBeTrue();
     expect(component.result.diagnosticSolutions).toEqual([
       jasmine.objectContaining({valid: false, diagnosticOnly: true}),
@@ -345,13 +527,15 @@ describe("OptimizeTimetableDialogComponent diagnostic search", () => {
     expect(component.result.evaluatedCandidates).toBe(2);
   });
 
-  it("keeps diagnostic candidates invalid during policy revalidation", () => {
+  it("keeps diagnostic candidates invalid and reports their current rule results", () => {
     const component = Object.create(
       OptimizeTimetableDialogComponent.prototype,
     ) as OptimizeTimetableDialogComponent;
     const policy = createDefaultOptimizationPolicy();
     const diagnostic = createSolution({diagnosticOnly: true});
-    const isSolutionValid = jasmine.createSpy("isSolutionValid").and.returnValue(true);
+    const getSolutionRuleViolations = jasmine
+      .createSpy("getSolutionRuleViolations")
+      .and.returnValue(["scope-boundary"]);
     Object.assign(component, {
       policy,
       result: createResult({diagnosticSolutions: [diagnostic]}),
@@ -363,13 +547,14 @@ describe("OptimizeTimetableDialogComponent diagnostic search", () => {
       revertPreview: jasmine.createSpy("revertPreview"),
       getVisibleNodes: (): never[] => [],
       getVisibleTrainrunSections: (): never[] => [],
-      optimizeTimetableService: {isSolutionValid},
+      optimizeTimetableService: {getSolutionRuleViolations},
     });
 
     component["revalidateSolutions"]();
 
-    expect(isSolutionValid).not.toHaveBeenCalled();
+    expect(getSolutionRuleViolations).toHaveBeenCalled();
     expect(diagnostic.valid).toBeFalse();
+    expect(diagnostic.ruleViolations).toEqual(["diagnostic-only", "scope-boundary"]);
   });
 
   it("prioritizes diagnostic candidates in the five visible invalid alternatives", () => {

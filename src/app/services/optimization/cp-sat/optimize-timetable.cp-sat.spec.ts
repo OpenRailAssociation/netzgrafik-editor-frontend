@@ -249,8 +249,8 @@ describe("CP-SAT timetable integration", () => {
   it("never shortens travel times and honors per-section extension bounds", async () => {
     const {nodes, sections, policy} = createNetwork();
     sections.forEach((section) => section.setTravelTimeLock(false));
-    const extension = policy.hardConstraints.find(
-      (constraint) => constraint.id === "maxTravelTimeExtension",
+    const extension = policy.adjustableParameters.find(
+      (parameter) => parameter.id === "maxTravelTimeExtension",
     );
     extension.enabled = true;
     extension.value = 2;
@@ -320,7 +320,9 @@ describe("CP-SAT timetable integration", () => {
         )
           .withContext(`${rule}: enabled=${enabled}`)
           .toEqual(expectedFeasible);
-        expect(result.archive.some((candidate) => candidate.parts.hard > 0)).toBe(enabled);
+        expect(result.archive.some((candidate) => candidate.parts.hard > 0)).toBe(
+          enabled || rule === "minimumStopTime",
+        );
       }
     });
   }
@@ -328,8 +330,8 @@ describe("CP-SAT timetable integration", () => {
   for (const engine of ["heuristic", "cp-sat"] as const) {
     it(`${engine} explains immutable exact conflicts even when every node is selected`, async () => {
       const {nodes, sections, policy, optimizer} = createNetwork();
-      policy.hardConstraints.find(
-        (constraint) => constraint.id === "maxTravelTimeExtension",
+      policy.adjustableParameters.find(
+        (parameter) => parameter.id === "maxTravelTimeExtension",
       ).enabled = true;
       sections.forEach((section) => {
         section.setSourceDepartureLock(true);
@@ -447,13 +449,14 @@ describe("CP-SAT timetable integration", () => {
       });
       sections[1].setSourceDepartureLock(true);
       const before = sections.map((section) => structuredClone(section.getDto()));
-      const options = {engine, maxTracksPerSection: 1, timeBudgetMs: 80, policy};
+      const options = {engine, maxTracksPerSection: 1, timeBudgetMs: 300, policy};
       const result = await optimizer.optimize(nodes, sections, options);
       expect(result.solutions.length).toBeGreaterThan(0);
       expect(result.solutions.length).toBeLessThanOrEqual(5);
       expect(result.solutions.every((candidate) => !candidate.valid)).toBeTrue();
       expect(result.message).toBeDefined();
       result.solutions.forEach((candidate) => {
+        expect(candidate.ruleViolations).toContain("track-limit");
         expect(
           optimizer.isSolutionValid(candidate, nodes, sections, options, result.baselineEdges),
         ).toBeFalse();

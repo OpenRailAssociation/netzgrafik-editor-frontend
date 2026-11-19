@@ -7,7 +7,12 @@ import {
   norm60,
 } from "./optimize-timetable.chains";
 import {SRC_ARR, SRC_DEP, TGT_ARR, TGT_DEP} from "./optimize-timetable.model";
-import {getObjectiveWeights, HardConstraintId, ObjectiveId} from "./optimization-policy.model";
+import {
+  AdjustableParameterId,
+  getObjectiveWeights,
+  HardConstraintId,
+  ObjectiveId,
+} from "./optimization-policy.model";
 import {InfrastructureEstimatorService} from "../infrastructure/infrastructure-estimator.service";
 
 /** Same time resolution as the InfrastructureEstimatorService (cells per minute). */
@@ -54,6 +59,12 @@ function constraintEnabled(problem: OptimizationProblem, id: HardConstraintId): 
   );
 }
 
+function adjustmentEnabled(problem: OptimizationProblem, id: AdjustableParameterId): boolean {
+  return (
+    problem.policy.adjustableParameters.find((parameter) => parameter.id === id)?.enabled ?? false
+  );
+}
+
 /**
  * Mutable candidate state of the search. It only holds numbers; the native
  * objects are never touched here.
@@ -72,6 +83,7 @@ export class TimetableEvaluator {
   private readonly sectionIndexById = new Map<number, number>();
   private readonly stopDwell: Float64Array;
   private readonly stopViolation: Uint8Array;
+  private readonly stopOrderViolation: Uint8Array;
   private readonly connectionViolation: Uint8Array;
   private readonly connectionWaitDeviation: Float64Array;
   private readonly travelTimeDeltaByTrainrun: Float64Array;
@@ -166,6 +178,7 @@ export class TimetableEvaluator {
     this.nodeTrackCounts = new Int32Array(problem.nodeTrackNodes?.length ?? 0);
     this.stopDwell = new Float64Array(problem.stops.length);
     this.stopViolation = new Uint8Array(problem.stops.length);
+    this.stopOrderViolation = new Uint8Array(problem.stops.length);
     this.connectionViolation = new Uint8Array(problem.connections.length);
     this.connectionWaitDeviation = new Float64Array(problem.connections.length);
     this.travelTimeDeltaByTrainrun = new Float64Array(problem.trainrunIds.length);
@@ -222,6 +235,7 @@ export class TimetableEvaluator {
     this.connectionViolationCount = 0;
     this.connectionWaitDeviationTotal = 0;
     this.stopViolation.fill(0);
+    this.stopOrderViolation.fill(0);
     this.connectionViolation.fill(0);
     this.connectionWaitDeviation.fill(0);
     this.travelTimeDeltaByTrainrun.fill(0);
@@ -268,7 +282,7 @@ export class TimetableEvaluator {
       const violation = this.getTravelTimeExtensionViolation(trainrunIndex);
       this.travelTimeExtensionViolationByTrainrun[trainrunIndex] = violation;
       this.travelTimeExtensionViolation += violation;
-      if (constraintEnabled(this.problem, "maxTravelTimeExtension")) {
+      if (adjustmentEnabled(this.problem, "maxTravelTimeExtension")) {
         this.hard += violation;
       }
     }
@@ -329,6 +343,10 @@ export class TimetableEvaluator {
 
   isStopViolated(index: number): boolean {
     return this.stopViolation[index] === 1;
+  }
+
+  isStopOrderViolated(index: number): boolean {
+    return this.stopOrderViolation[index] === 1;
   }
 
   getStopDwell(index: number): number {
@@ -538,7 +556,7 @@ export class TimetableEvaluator {
       return this.score();
     }
     const p = this.problem;
-    if (constraintEnabled(p, "maxTravelTimeExtension")) {
+    if (adjustmentEnabled(p, "maxTravelTimeExtension")) {
       p.varTrainruns[v].forEach(
         (trainrunIndex) =>
           (this.hard -= this.travelTimeExtensionViolationByTrainrun[trainrunIndex]),
@@ -591,7 +609,7 @@ export class TimetableEvaluator {
       this.nodeOptional[k] = this.computeNodeOptional(k);
       this.optionalConnections += this.nodeOptional[k];
     });
-    if (constraintEnabled(p, "maxTravelTimeExtension")) {
+    if (adjustmentEnabled(p, "maxTravelTimeExtension")) {
       p.varTrainruns[v].forEach((trainrunIndex) => {
         const previous = this.travelTimeExtensionViolationByTrainrun[trainrunIndex];
         const next = this.getTravelTimeExtensionViolation(trainrunIndex);
@@ -655,8 +673,10 @@ export class TimetableEvaluator {
 
   /** Recomputes all candidate times of a chain from its variable values. */
   private applyChain(chain: Chain) {
-    const shiftA = chain.fixed ? 0 : this.delta[chain.varA];
-    const shiftB = chain.fixed ? 0 : chain.signB * this.delta[chain.varB];
+    const shiftA = this.problem.variables[chain.varA].fixed ? 0 : this.delta[chain.varA];
+    const shiftB = this.problem.variables[chain.varB].fixed
+      ? 0
+      : chain.signB * this.delta[chain.varB];
     const oC = this.problem.origC;
     const changedTravelTimeA = chain.steps.some(
       (step) => this.getTravelTimeIncrease(step.sectionIdx, travelA(step)) > 0,
@@ -763,11 +783,13 @@ export class TimetableEvaluator {
       st.dwell0 +
       norm60(this.shiftOf(st.depSection, st.depField) - this.shiftOf(st.arrSection, st.arrField));
     this.stopDwell[k] = dwell;
-    this.stopViolation[k] = dwell < st.minDwell - 1e-6 || dwell < 0 || dwell >= 60 ? 1 : 0;
+    this.stopViolation[k] = dwell < st.minDwell - 1e-6 ? 1 : 0;
+    this.stopOrderViolation[k] = dwell < 0 || dwell >= 60 ? 1 : 0;
   }
 
   private addStop(k: number, sign: number) {
     this.stopViolationCount += sign * this.stopViolation[k];
+    this.hard += sign * this.stopOrderViolation[k];
     if (constraintEnabled(this.problem, "minimumStopTime")) {
       this.hard += sign * this.stopViolation[k];
     }

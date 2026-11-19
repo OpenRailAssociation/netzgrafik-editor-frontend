@@ -2,13 +2,17 @@ export type HardConstraintId =
   | "trackLimit"
   | "userConnections"
   | "minimumStopTime"
-  | "timeLocks"
-  | "travelTimeLocks"
   | "scopeBoundary"
   | "symmetry"
-  | "maxTravelTimeExtension"
   /** Legacy stored policy identifier migrated to the soft objective. */
   | "preserveConnectionTimes";
+
+export type AdjustableParameterId =
+  | "allowTimeShifts"
+  | "ignoreDepartureLocks"
+  | "ignoreArrivalLocks"
+  | "ignoreTravelTimeLocks"
+  | "maxTravelTimeExtension";
 
 export type ObjectiveId =
   | "minimalChanges"
@@ -47,6 +51,13 @@ export interface HardConstraintConfig {
   value?: number;
 }
 
+export interface AdjustableParameterConfig {
+  id: AdjustableParameterId;
+  name: string;
+  enabled: boolean;
+  value?: number;
+}
+
 export interface ObjectiveConfig {
   id: ObjectiveId;
   name: string;
@@ -57,6 +68,7 @@ export interface ObjectiveConfig {
 
 export interface OptimizationModeSettings {
   hardConstraints: HardConstraintConfig[];
+  adjustableParameters: AdjustableParameterConfig[];
   objectives: ObjectiveConfig[];
 }
 
@@ -68,6 +80,7 @@ export interface OptimizationPolicy {
   mode: OptimizationMode;
   directorProfile: DirectorProfileId;
   hardConstraints: HardConstraintConfig[];
+  adjustableParameters: AdjustableParameterConfig[];
   objectives: ObjectiveConfig[];
   directorSettings?: DirectorModeSettings;
   userDefinedSettings?: OptimizationModeSettings;
@@ -140,16 +153,6 @@ export function createDefaultOptimizationPolicy(): OptimizationPolicy {
       enabled: true,
     },
     {
-      id: "timeLocks",
-      name: "app.view.dialogs.optimize-timetable-dialog.director.constraint.time-locks",
-      enabled: true,
-    },
-    {
-      id: "travelTimeLocks",
-      name: "app.view.dialogs.optimize-timetable-dialog.director.constraint.travel-time-locks",
-      enabled: true,
-    },
-    {
       id: "scopeBoundary",
       name: "app.view.dialogs.optimize-timetable-dialog.director.constraint.scope-boundary",
       enabled: true,
@@ -160,9 +163,31 @@ export function createDefaultOptimizationPolicy(): OptimizationPolicy {
       name: "app.view.dialogs.optimize-timetable-dialog.director.constraint.symmetry",
       enabled: true,
     },
+  ];
+  const adjustableParameters: AdjustableParameterConfig[] = [
+    {
+      id: "allowTimeShifts",
+      name: "app.view.dialogs.optimize-timetable-dialog.director.adjustment.allow-time-shifts",
+      enabled: true,
+    },
+    {
+      id: "ignoreDepartureLocks",
+      name: "app.view.dialogs.optimize-timetable-dialog.director.adjustment.ignore-departure-locks",
+      enabled: false,
+    },
+    {
+      id: "ignoreArrivalLocks",
+      name: "app.view.dialogs.optimize-timetable-dialog.director.adjustment.ignore-arrival-locks",
+      enabled: false,
+    },
+    {
+      id: "ignoreTravelTimeLocks",
+      name: "app.view.dialogs.optimize-timetable-dialog.director.adjustment.ignore-travel-time-locks",
+      enabled: false,
+    },
     {
       id: "maxTravelTimeExtension",
-      name: "app.view.dialogs.optimize-timetable-dialog.director.constraint.max-travel-time-extension",
+      name: "app.view.dialogs.optimize-timetable-dialog.director.adjustment.max-travel-time-extension",
       enabled: false,
       value: 5,
     },
@@ -213,6 +238,7 @@ export function createDefaultOptimizationPolicy(): OptimizationPolicy {
   ];
   const createSettings = (): OptimizationModeSettings => ({
     hardConstraints: hardConstraints.map((constraint) => ({...constraint})),
+    adjustableParameters: adjustableParameters.map((parameter) => ({...parameter})),
     objectives: objectives.map((objective) => ({...objective})),
   });
   const directorSettings: DirectorModeSettings = {

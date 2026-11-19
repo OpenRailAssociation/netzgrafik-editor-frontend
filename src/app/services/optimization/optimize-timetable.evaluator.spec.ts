@@ -195,8 +195,8 @@ function createSectionTravelTimeEvaluator(): TimetableEvaluator {
   const policy = createDefaultOptimizationPolicy();
   policy.mode = "userDefined";
   policy.hardConstraints.find((constraint) => constraint.id === "trackLimit").enabled = false;
-  const travelLimit = policy.hardConstraints.find(
-    (constraint) => constraint.id === "maxTravelTimeExtension",
+  const travelLimit = policy.adjustableParameters.find(
+    (parameter) => parameter.id === "maxTravelTimeExtension",
   );
   travelLimit.enabled = true;
   travelLimit.value = 5;
@@ -261,8 +261,10 @@ function buildSingleSectionProblem(
   targetArrivalLocked = false,
   selectedNodeIds: number[] = [],
   travelTimeLocked = false,
-  timeLocksEnabled = true,
-  travelTimeLocksEnabled = true,
+  allowTimeShifts = true,
+  ignoreDepartureLocks = false,
+  ignoreArrivalLocks = false,
+  ignoreTravelTimeLocks = false,
   selectedCorridorEdgeIds?: string[],
 ) {
   const source = {
@@ -315,14 +317,19 @@ function buildSingleSectionProblem(
     areTravelTimesEqual: () => true,
   };
   const policy = createDefaultOptimizationPolicy();
-  policy.hardConstraints.find((constraint) => constraint.id === "timeLocks").enabled =
-    timeLocksEnabled;
-  policy.hardConstraints.find((constraint) => constraint.id === "travelTimeLocks").enabled =
-    travelTimeLocksEnabled;
+  policy.adjustableParameters.find((parameter) => parameter.id === "allowTimeShifts").enabled =
+    allowTimeShifts;
+  policy.adjustableParameters.find((parameter) => parameter.id === "ignoreDepartureLocks").enabled =
+    ignoreDepartureLocks;
+  policy.adjustableParameters.find((parameter) => parameter.id === "ignoreArrivalLocks").enabled =
+    ignoreArrivalLocks;
+  policy.adjustableParameters.find(
+    (parameter) => parameter.id === "ignoreTravelTimeLocks",
+  ).enabled = ignoreTravelTimeLocks;
   policy.hardConstraints.find((constraint) => constraint.id === "symmetry").enabled =
     symmetryEnabled;
-  const travelLimit = policy.hardConstraints.find(
-    (constraint) => constraint.id === "maxTravelTimeExtension",
+  const travelLimit = policy.adjustableParameters.find(
+    (parameter) => parameter.id === "maxTravelTimeExtension",
   );
   travelLimit.enabled = travelTimeExtensionEnabled;
   travelLimit.value = 5;
@@ -505,6 +512,8 @@ describe("TimetableEvaluator conflict severity", () => {
       false,
       true,
       true,
+      false,
+      false,
       ["1-3"],
     );
     const insideCorridor = buildSingleSectionProblem(
@@ -517,6 +526,8 @@ describe("TimetableEvaluator conflict severity", () => {
       false,
       true,
       true,
+      false,
+      false,
       ["1-2"],
     );
 
@@ -526,14 +537,20 @@ describe("TimetableEvaluator conflict severity", () => {
     expect(insideCorridor.edgeInScope[0]).toBe(1);
   });
 
-  it("defaults both lock rules to active and lets each be disabled independently", () => {
+  it("defaults lock overrides to disabled and lets them be enabled independently", () => {
     const policy = createDefaultOptimizationPolicy();
     expect(
-      policy.hardConstraints.find((constraint) => constraint.id === "timeLocks").enabled,
-    ).toBeTrue();
+      policy.adjustableParameters.find((parameter) => parameter.id === "ignoreDepartureLocks")
+        .enabled,
+    ).toBeFalse();
     expect(
-      policy.hardConstraints.find((constraint) => constraint.id === "travelTimeLocks").enabled,
-    ).toBeTrue();
+      policy.adjustableParameters.find((parameter) => parameter.id === "ignoreArrivalLocks")
+        .enabled,
+    ).toBeFalse();
+    expect(
+      policy.adjustableParameters.find((parameter) => parameter.id === "ignoreTravelTimeLocks")
+        .enabled,
+    ).toBeFalse();
 
     const travelTimeLocksDisabled = buildSingleSectionProblem(
       Direction.ONE_WAY,
@@ -545,6 +562,8 @@ describe("TimetableEvaluator conflict severity", () => {
       true,
       true,
       false,
+      false,
+      true,
     );
     expect(
       travelTimeLocksDisabled.variables[travelTimeLocksDisabled.travelTimeVariables[0]].fixed,
@@ -558,10 +577,42 @@ describe("TimetableEvaluator conflict severity", () => {
       true,
       [],
       false,
+      true,
       false,
       true,
+      false,
     );
     expect(timeLocksDisabled.variables[timeLocksDisabled.travelTimeVariables[0]].fixed).toBeFalse();
+  });
+
+  it("applies departure-lock and general time-shift permissions independently", () => {
+    const departureLocked = buildSingleSectionProblem(Direction.ONE_WAY, true, true, true);
+    const departureLockIgnored = buildSingleSectionProblem(
+      Direction.ONE_WAY,
+      true,
+      true,
+      true,
+      false,
+      [],
+      false,
+      true,
+      true,
+    );
+    const shiftsDisabled = buildSingleSectionProblem(
+      Direction.ONE_WAY,
+      true,
+      true,
+      false,
+      false,
+      [],
+      false,
+      false,
+    );
+
+    expect(departureLocked.variables[departureLocked.chains[0].varA].fixed).toBeTrue();
+    expect(departureLockIgnored.variables[departureLockIgnored.chains[0].varA].fixed).toBeFalse();
+    expect(shiftsDisabled.variables[shiftsDisabled.chains[0].varA].fixed).toBeTrue();
+    expect(shiftsDisabled.variables[shiftsDisabled.travelTimeVariables[0]].fixed).toBeFalse();
   });
 
   it("reports stop violations when the hard minimum stop-time rule is disabled", () => {
@@ -586,6 +637,30 @@ describe("TimetableEvaluator conflict severity", () => {
 
     expect(evaluator.parts().stopViolations).toBe(1);
     expect(evaluator.parts().hard).toBe(0);
+  });
+
+  it("always enforces arrival before the following departure", () => {
+    const evaluator = createEvaluator(
+      [
+        {
+          node: undefined,
+          trainrunIndex: 0,
+          arrSection: 0,
+          arrField: 0,
+          depSection: 0,
+          depField: 1,
+          dwell0: -1,
+          minDwell: 0,
+        },
+      ],
+      [],
+      [],
+      [],
+      false,
+    );
+
+    expect(evaluator.isStopOrderViolated(0)).toBeTrue();
+    expect(evaluator.parts().hard).toBe(1);
   });
 
   it("enforces the configured connection minimum even when the baseline wait is shorter", () => {

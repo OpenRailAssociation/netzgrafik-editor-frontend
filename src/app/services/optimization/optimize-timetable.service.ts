@@ -7,7 +7,13 @@ import {
   NodeTrackEstimate,
   TrackSegmentEstimate,
 } from "../infrastructure/infrastructure-estimator.service";
-import {OptimizationProblem, buildProblem, mod60, norm60} from "./optimize-timetable.chains";
+import {
+  OptimizationProblem,
+  buildProblem,
+  mod60,
+  norm60,
+  optimizationEdgeId,
+} from "./optimize-timetable.chains";
 import {TimetableEvaluator} from "./optimize-timetable.evaluator";
 import {runCpSatSearch} from "./cp-sat/optimize-timetable.cp-sat";
 import {
@@ -23,6 +29,9 @@ import {
   OptimizeTimetableOptions,
   OptimizeTimetableResult,
   OptimizeTimetableSolution,
+  RuleViolationTimetableRow,
+  RuleViolationTrainrunDetails,
+  SolutionRuleViolation,
   SRC_ARR,
   SRC_DEP,
   TGT_ARR,
@@ -46,6 +55,19 @@ interface NodeTrackMetrics {
   averageTracks: number;
   turnaroundWaitByTrainrun: Map<number, number>;
   byNode: Map<number, {signature: string; tracks: NodeTrackEstimate[]}>;
+}
+
+interface RuleViolationJourneyLeg {
+  fromNodeId: number;
+  fromNodeName: string;
+  departureConsecutiveTime: number;
+  departureViolated: boolean;
+  departureEditable: boolean;
+  toNodeId: number;
+  toNodeName: string;
+  arrivalConsecutiveTime: number;
+  arrivalViolated: boolean;
+  arrivalEditable: boolean;
 }
 
 /**
@@ -214,6 +236,7 @@ export class OptimizeTimetableService {
             currentSearch.initial,
             problem,
             nodes,
+            options,
             beforeTracks,
             baselineEdges,
             baselineKpi,
@@ -293,6 +316,7 @@ export class OptimizeTimetableService {
           baselineInitial,
           problem,
           nodes,
+          options,
           beforeTracks,
           baselineEdges,
           baselineKpi,
@@ -482,6 +506,19 @@ export class OptimizeTimetableService {
     options: OptimizeTimetableOptions,
     baselineEdges: EdgeTrackKpi[],
   ): boolean {
+    return (
+      this.getSolutionRuleViolations(solution, nodes, trainrunSections, options, baselineEdges)
+        .length === 0
+    );
+  }
+
+  getSolutionRuleViolations(
+    solution: OptimizeTimetableSolution,
+    nodes: Node[],
+    trainrunSections: TrainrunSection[],
+    options: OptimizeTimetableOptions,
+    baselineEdges: EdgeTrackKpi[],
+  ): SolutionRuleViolation[] {
     const policy = options.policy ?? createDefaultOptimizationPolicy();
     const maxTracks = Math.max(1, Math.floor(options.maxTracksPerSection));
     const problem = buildProblem(
@@ -507,12 +544,10 @@ export class OptimizeTimetableService {
     const minimumStopTimeEnabled = policy.hardConstraints.some(
       (constraint) => constraint.id === "minimumStopTime" && constraint.enabled,
     );
-    const maxTravelTimeEnabled = policy.hardConstraints.some(
-      (constraint) => constraint.id === "maxTravelTimeExtension" && constraint.enabled,
+    const maxTravelTimeEnabled = policy.adjustableParameters.some(
+      (parameter) => parameter.id === "maxTravelTimeExtension" && parameter.enabled,
     );
-    const nonTrackViolations =
-      (minimumStopTimeEnabled ? parts.stopViolations : 0) +
-      (maxTravelTimeEnabled ? parts.travelTimeExtensionViolation : 0);
+    const stopOrderValid = problem.stops.every((_, index) => !evaluator.isStopOrderViolated(index));
 
     const changedEdges = new Map(solution.edges.map((edge) => [edge.edgeId, edge]));
     const exactOverLimit = baselineEdges.some((baselineEdge) => {
@@ -529,14 +564,440 @@ export class OptimizeTimetableService {
       (constraint) => constraint.id === "symmetry" && constraint.enabled,
     );
     const symmetryValid = !symmetryEnabled || this.hasSymmetricChanges(solution, trainrunSections);
+    const scopeBoundaryViolated = this.hasScopeBoundaryViolation(solution.changes, options);
 
     const connectionTimesValid =
       !userConnectionsEnabled || this.areMinimumConnectionTimesSatisfied(solution.changes, nodes);
-    return (
-      nonTrackViolations === 0 &&
-      connectionTimesValid &&
-      (!trackLimitEnabled || !exactOverLimit) &&
-      symmetryValid
+    return this.collectRuleViolations(
+      policy,
+      parts.stopViolations,
+      maxTravelTimeEnabled ? parts.travelTimeExtensionViolation : 0,
+      stopOrderValid,
+      connectionTimesValid,
+      scopeBoundaryViolated,
+      trackLimitEnabled && exactOverLimit,
+      symmetryValid,
+    );
+  }
+
+  getRuleViolationTrainruns(
+    rule: SolutionRuleViolation,
+    solution: OptimizeTimetableSolution,
+    nodes: Node[],
+    trainrunSections: TrainrunSection[],
+    options: OptimizeTimetableOptions,
+  ): RuleViolationTrainrunDetails[] {
+    const policy = options.policy ?? createDefaultOptimizationPolicy();
+    const problem = buildProblem(
+      nodes,
+      trainrunSections,
+      Math.max(1, Math.floor(options.maxTracksPerSection)),
+      options.selectedNodeIds ?? [],
+      options.optionalConnectionWindow ?? DEFAULT_OPTIONAL_WINDOW,
+      policy,
+      options.selectedCorridorEdgeIds,
+    );
+    const evaluator = new TimetableEvaluator(problem);
+    problem.variables.forEach((variable, index) => {
+      if (!variable.fixed) {
+        evaluator.setVariable(index, solution.assignment[variable.key] ?? 0);
+      }
+    });
+    evaluator.evaluateAll();
+
+    const fieldForIndex: (TimeField | undefined)[] = [
+      "sourceDeparture",
+      "sourceArrival",
+      "targetDeparture",
+      "targetArrival",
+    ];
+    const sectionIndexById = new Map(
+      problem.sections.map((section, index) => [section.getId(), index]),
+    );
+    const changeByField = new Map(
+      solution.changes.map((change) => [`${change.trainrunSectionId}:${change.field}`, change]),
+    );
+    const affectedTrainrunIds = new Set<number>();
+    const violatedFields = new Set<string>();
+    const markField = (sectionIndex: number, field: TimeField) => {
+      const section = problem.sections[sectionIndex];
+      if (section === undefined) return;
+      affectedTrainrunIds.add(section.getTrainrunId());
+      violatedFields.add(`${section.getId()}:${field}`);
+    };
+    const isVariableAdjustable = (variableIndex: number) => {
+      const variable = problem.variables[variableIndex];
+      return variable !== undefined && !variable.fixed && variable.domain > 0;
+    };
+    const isTimeFieldAdjustable = (sectionIndex: number, fieldIndex: number) => {
+      const chainIndex = problem.sectionChain[sectionIndex];
+      const chain = problem.chains[chainIndex];
+      if (chain === undefined) return false;
+      const stepPosition = chain.steps.findIndex((step) => step.sectionIdx === sectionIndex);
+      if (stepPosition < 0) return false;
+      const step = chain.steps[stepPosition];
+      const departureA = step.aligned ? SRC_DEP : TGT_DEP;
+      const arrivalA = step.aligned ? TGT_ARR : SRC_ARR;
+      const departureB = step.aligned ? TGT_DEP : SRC_DEP;
+      const arrivalB = step.aligned ? SRC_ARR : TGT_ARR;
+      let direction: 0 | 1;
+      let isArrival: boolean;
+      if (fieldIndex === departureA) {
+        direction = 0;
+        isArrival = false;
+      } else if (fieldIndex === arrivalA) {
+        direction = 0;
+        isArrival = true;
+      } else if (fieldIndex === departureB) {
+        direction = 1;
+        isArrival = false;
+      } else if (fieldIndex === arrivalB) {
+        direction = 1;
+        isArrival = true;
+      } else {
+        return false;
+      }
+      if (chain.mirrorB && direction === 1) {
+        direction = 0;
+        isArrival = !isArrival;
+      }
+
+      if (isVariableAdjustable(direction === 0 ? chain.varA : chain.varB)) return true;
+      return chain.steps.some((candidateStep, candidatePosition) => {
+        const affectsEvent =
+          direction === 0
+            ? isArrival
+              ? candidatePosition <= stepPosition
+              : candidatePosition < stepPosition
+            : isArrival
+              ? candidatePosition >= stepPosition
+              : candidatePosition > stepPosition;
+        if (!affectsEvent) return false;
+        const travelDirection =
+          direction === 0 ? (candidateStep.aligned ? 0 : 1) : candidateStep.aligned ? 1 : 0;
+        const variableIndex =
+          problem.travelTimeVariables[candidateStep.sectionIdx * 2 + travelDirection];
+        return variableIndex >= 0 && isVariableAdjustable(variableIndex);
+      });
+    };
+    const candidatePeriodicTime = (sectionIndex: number, fieldIndex: number) => {
+      const section = problem.sections[sectionIndex];
+      const field = fieldForIndex[fieldIndex];
+      const change =
+        section === undefined || field === undefined
+          ? undefined
+          : changeByField.get(`${section.getId()}:${field}`);
+      return change?.newValue ?? evaluator.candT[sectionIndex * 4 + fieldIndex];
+    };
+    const candidateConsecutiveTime = (sectionIndex: number, fieldIndex: number) => {
+      const section = problem.sections[sectionIndex];
+      const field = fieldForIndex[fieldIndex];
+      const change =
+        section === undefined || field === undefined
+          ? undefined
+          : changeByField.get(`${section.getId()}:${field}`);
+      const candidate = evaluator.candC[sectionIndex * 4 + fieldIndex];
+      if (change === undefined || Math.abs(norm60(mod60(candidate) - change.newValue)) < 1e-6) {
+        return candidate;
+      }
+      return (
+        problem.origC[sectionIndex * 4 + fieldIndex] + norm60(change.newValue - change.oldValue)
+      );
+    };
+    const stopDwell = (stop: OptimizationProblem["stops"][number]) => {
+      const arrTime = candidatePeriodicTime(stop.arrSection, stop.arrField);
+      const depTime = candidatePeriodicTime(stop.depSection, stop.depField);
+      const arrShift = norm60(arrTime - problem.origT[stop.arrSection * 4 + stop.arrField]);
+      const depShift = norm60(depTime - problem.origT[stop.depSection * 4 + stop.depField]);
+      return stop.dwell0 + norm60(depShift - arrShift);
+    };
+    const markStop = (
+      arrSection: number,
+      arrField: number,
+      depSection: number,
+      depField: number,
+    ) => {
+      const arrivalField = fieldForIndex[arrField];
+      const departureField = fieldForIndex[depField];
+      if (arrivalField !== undefined) markField(arrSection, arrivalField);
+      if (departureField !== undefined) markField(depSection, departureField);
+    };
+
+    switch (rule) {
+      case "minimum-stop-time":
+        problem.stops.forEach((stop) => {
+          if (stopDwell(stop) < stop.minDwell - 1e-6) {
+            markStop(stop.arrSection, stop.arrField, stop.depSection, stop.depField);
+          }
+        });
+        break;
+      case "arrival-before-departure":
+        problem.stops.forEach((stop) => {
+          const dwell = stopDwell(stop);
+          if (dwell < 0 || dwell >= 60) {
+            markStop(stop.arrSection, stop.arrField, stop.depSection, stop.depField);
+          }
+        });
+        break;
+      case "scope-boundary":
+        solution.changes.forEach((change) => {
+          if (!this.hasScopeBoundaryViolation([change], options)) return;
+          const sectionIndex = sectionIndexById.get(change.trainrunSectionId);
+          if (sectionIndex === undefined) return;
+          switch (change.field) {
+            case "sourceDeparture":
+            case "sourceArrival":
+            case "targetDeparture":
+            case "targetArrival":
+              markField(sectionIndex, change.field);
+              break;
+            case "travelTime":
+              markField(sectionIndex, "sourceDeparture");
+              markField(sectionIndex, "targetArrival");
+              break;
+            case "backwardTravelTime":
+              markField(sectionIndex, "targetDeparture");
+              markField(sectionIndex, "sourceArrival");
+              break;
+          }
+        });
+        break;
+      case "symmetry": {
+        const symmetricTime = (time: number) => mod60(-time);
+        const isClose = (first: number, second: number) => Math.abs(norm60(first - second)) < 1e-6;
+        problem.sections.forEach((section, sectionIndex) => {
+          if (
+            section.getTrainrun().getDirection() === Direction.ONE_WAY ||
+            !section.isSymmetric()
+          ) {
+            return;
+          }
+          if (
+            !isClose(
+              candidatePeriodicTime(sectionIndex, SRC_ARR),
+              symmetricTime(candidatePeriodicTime(sectionIndex, SRC_DEP)),
+            )
+          ) {
+            markField(sectionIndex, "sourceDeparture");
+            markField(sectionIndex, "sourceArrival");
+          }
+          if (
+            !isClose(
+              candidatePeriodicTime(sectionIndex, TGT_ARR),
+              symmetricTime(candidatePeriodicTime(sectionIndex, TGT_DEP)),
+            )
+          ) {
+            markField(sectionIndex, "targetDeparture");
+            markField(sectionIndex, "targetArrival");
+          }
+        });
+        break;
+      }
+      default:
+        return [];
+    }
+
+    const detailsByTrainrun = new Map<
+      number,
+      {forward: RuleViolationJourneyLeg[]; backward: RuleViolationJourneyLeg[]}
+    >();
+    problem.sections.forEach((section, sectionIndex) => {
+      if (!affectedTrainrunIds.has(section.getTrainrunId())) return;
+      const journeys = detailsByTrainrun.get(section.getTrainrunId()) ?? {
+        forward: [],
+        backward: [],
+      };
+      const offset = sectionIndex * 4;
+      const addRow = (
+        rows: RuleViolationJourneyLeg[],
+        fromNode: Node,
+        depFieldIndex: number,
+        depField: TimeField,
+        toNode: Node,
+        arrFieldIndex: number,
+        arrField: TimeField,
+      ) => {
+        if (
+          problem.active[offset + depFieldIndex] === 0 ||
+          problem.active[offset + arrFieldIndex] === 0
+        ) {
+          return;
+        }
+        rows.push({
+          fromNodeId: fromNode.getId(),
+          fromNodeName: fromNode.getBetriebspunktName(),
+          departureConsecutiveTime: candidateConsecutiveTime(sectionIndex, depFieldIndex),
+          departureViolated: violatedFields.has(`${section.getId()}:${depField}`),
+          departureEditable: isTimeFieldAdjustable(sectionIndex, depFieldIndex),
+          toNodeId: toNode.getId(),
+          toNodeName: toNode.getBetriebspunktName(),
+          arrivalConsecutiveTime: candidateConsecutiveTime(sectionIndex, arrFieldIndex),
+          arrivalViolated: violatedFields.has(`${section.getId()}:${arrField}`),
+          arrivalEditable: isTimeFieldAdjustable(sectionIndex, arrFieldIndex),
+        });
+      };
+      addRow(
+        journeys.forward,
+        section.getSourceNode(),
+        SRC_DEP,
+        "sourceDeparture",
+        section.getTargetNode(),
+        TGT_ARR,
+        "targetArrival",
+      );
+      addRow(
+        journeys.backward,
+        section.getTargetNode(),
+        TGT_DEP,
+        "targetDeparture",
+        section.getSourceNode(),
+        SRC_ARR,
+        "sourceArrival",
+      );
+      detailsByTrainrun.set(section.getTrainrunId(), journeys);
+    });
+
+    return problem.trainrunIds
+      .filter((trainrunId) => affectedTrainrunIds.has(trainrunId))
+      .map((trainrunId) => {
+        const section = problem.sections.find((item) => item.getTrainrunId() === trainrunId);
+        if (section === undefined) return undefined;
+        return {
+          trainrunId,
+          category: section.getTrainrun().getCategoryShortName(),
+          name: section.getTrainrun().getTitle(),
+          journeys: (["forward", "backward"] as const)
+            .map((direction) => ({
+              direction,
+              rows: this.buildJourneyTimetableRows(
+                detailsByTrainrun.get(trainrunId)?.[direction] ?? [],
+              ),
+            }))
+            .filter((journey) => journey.rows.length > 0),
+        };
+      })
+      .filter((details): details is RuleViolationTrainrunDetails => details !== undefined);
+  }
+
+  private buildJourneyTimetableRows(legs: RuleViolationJourneyLeg[]): RuleViolationTimetableRow[] {
+    const rows: RuleViolationTimetableRow[] = [];
+    legs
+      .sort((first, second) => first.departureConsecutiveTime - second.departureConsecutiveTime)
+      .forEach((leg) => {
+        const previousStop = rows[rows.length - 1];
+        if (
+          previousStop?.nodeId === leg.fromNodeId &&
+          previousStop.departureConsecutiveTime === null
+        ) {
+          previousStop.departureConsecutiveTime = leg.departureConsecutiveTime;
+          previousStop.departureViolated = leg.departureViolated;
+          previousStop.departureEditable = leg.departureEditable;
+        } else {
+          rows.push({
+            nodeId: leg.fromNodeId,
+            nodeName: leg.fromNodeName,
+            arrivalConsecutiveTime: null,
+            arrivalViolated: false,
+            arrivalEditable: false,
+            departureConsecutiveTime: leg.departureConsecutiveTime,
+            departureViolated: leg.departureViolated,
+            departureEditable: leg.departureEditable,
+          });
+        }
+        rows.push({
+          nodeId: leg.toNodeId,
+          nodeName: leg.toNodeName,
+          arrivalConsecutiveTime: leg.arrivalConsecutiveTime,
+          arrivalViolated: leg.arrivalViolated,
+          arrivalEditable: leg.arrivalEditable,
+          departureConsecutiveTime: null,
+          departureViolated: false,
+          departureEditable: false,
+        });
+      });
+    return rows;
+  }
+
+  private collectRuleViolations(
+    policy: NonNullable<OptimizeTimetableOptions["policy"]>,
+    stopViolations: number,
+    travelTimeExtensionViolations: number,
+    stopOrderValid: boolean,
+    connectionTimesValid: boolean,
+    scopeBoundaryViolated: boolean,
+    trackLimitExceeded: boolean,
+    symmetryValid: boolean,
+  ): SolutionRuleViolation[] {
+    const violations: SolutionRuleViolation[] = [];
+    if (
+      policy.hardConstraints.some(
+        (constraint) => constraint.id === "trackLimit" && constraint.enabled,
+      ) &&
+      trackLimitExceeded
+    ) {
+      violations.push("track-limit");
+    }
+    if (
+      policy.hardConstraints.some(
+        (constraint) => constraint.id === "userConnections" && constraint.enabled,
+      ) &&
+      !connectionTimesValid
+    ) {
+      violations.push("minimum-connections");
+    }
+    if (
+      policy.hardConstraints.some(
+        (constraint) => constraint.id === "minimumStopTime" && constraint.enabled,
+      ) &&
+      stopViolations > 0
+    ) {
+      violations.push("minimum-stop-time");
+    }
+    if (
+      policy.hardConstraints.some(
+        (constraint) => constraint.id === "scopeBoundary" && constraint.enabled,
+      ) &&
+      scopeBoundaryViolated
+    ) {
+      violations.push("scope-boundary");
+    }
+    if (!stopOrderValid) {
+      violations.push("arrival-before-departure");
+    }
+    if (
+      policy.adjustableParameters.some(
+        (parameter) => parameter.id === "maxTravelTimeExtension" && parameter.enabled,
+      ) &&
+      travelTimeExtensionViolations > 0
+    ) {
+      violations.push("travel-time-extension");
+    }
+    if (
+      policy.hardConstraints.some(
+        (constraint) => constraint.id === "symmetry" && constraint.enabled,
+      ) &&
+      !symmetryValid
+    ) {
+      violations.push("symmetry");
+    }
+    return violations;
+  }
+
+  private hasScopeBoundaryViolation(
+    changes: TimeChange[],
+    options: OptimizeTimetableOptions,
+  ): boolean {
+    const selectedNodes = new Set(options.selectedNodeIds ?? []);
+    const selectedEdges =
+      options.selectedCorridorEdgeIds === undefined
+        ? undefined
+        : new Set(options.selectedCorridorEdgeIds);
+    return changes.some(
+      (change) =>
+        (selectedNodes.size > 0 &&
+          (!selectedNodes.has(change.sourceNodeId) || !selectedNodes.has(change.targetNodeId))) ||
+        (selectedEdges !== undefined &&
+          !selectedEdges.has(optimizationEdgeId(change.sourceNodeId, change.targetNodeId))),
     );
   }
 
@@ -689,6 +1150,7 @@ export class OptimizeTimetableService {
     initial: ArchivedSolution,
     problem: OptimizationProblem,
     nodes: Node[],
+    options: OptimizeTimetableOptions,
     beforeTracks: Map<number, number>,
     baselineEdges: EdgeTrackKpi[],
     baselineKpi: OptimizeTimetableKpi,
@@ -801,20 +1263,22 @@ export class OptimizeTimetableService {
     const userConnectionsEnabled = problem.policy.hardConstraints.some(
       (constraint) => constraint.id === "userConnections" && constraint.enabled,
     );
-    const minimumStopTimeEnabled = problem.policy.hardConstraints.some(
-      (constraint) => constraint.id === "minimumStopTime" && constraint.enabled,
-    );
-    const maxTravelTimeEnabled = problem.policy.hardConstraints.some(
-      (constraint) => constraint.id === "maxTravelTimeExtension" && constraint.enabled,
-    );
-    const trackLimitEnabled = problem.policy.hardConstraints.some(
-      (constraint) => constraint.id === "trackLimit" && constraint.enabled,
-    );
-    const nonTrackViolations =
-      (minimumStopTimeEnabled ? parts.stopViolations : 0) +
-      (maxTravelTimeEnabled ? parts.travelTimeExtensionViolation : 0);
     const connectionTimesValid =
       !userConnectionsEnabled || this.areMinimumConnectionTimesSatisfied(changes, nodes);
+    const stopOrderValid = problem.stops.every((_, index) => !evaluator.isStopOrderViolated(index));
+    const symmetryEnabled = problem.policy.hardConstraints.some(
+      (constraint) => constraint.id === "symmetry" && constraint.enabled,
+    );
+    const ruleViolations = this.collectRuleViolations(
+      problem.policy,
+      parts.stopViolations,
+      parts.travelTimeExtensionViolation,
+      stopOrderValid,
+      connectionTimesValid,
+      this.hasScopeBoundaryViolation(changes, options),
+      overAfter > 0,
+      !symmetryEnabled || this.hasSymmetricChanges({changes}, problem.sections),
+    );
 
     const assignment: Record<string, number> = {};
     problem.variables.forEach((variable, v) => {
@@ -826,12 +1290,8 @@ export class OptimizeTimetableService {
     return {
       id,
       label,
-      valid:
-        nonTrackViolations === 0 &&
-        connectionTimesValid &&
-        (!trackLimitEnabled || overAfter === 0) &&
-        (!problem.policy.hardConstraints.some((rule) => rule.id === "symmetry" && rule.enabled) ||
-          this.hasSymmetricChanges({changes}, problem.sections)),
+      valid: ruleViolations.length === 0,
+      ruleViolations,
       kpi: {
         objectiveScores: this.calculateObjectiveScores(
           problem,

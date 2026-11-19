@@ -6,6 +6,7 @@ import {TrainrunsectionHelper} from "../util/trainrunsection.helper";
 import {SRC_ARR, SRC_DEP, TGT_ARR, TGT_DEP} from "./optimize-timetable.model";
 import {
   createDefaultOptimizationPolicy,
+  AdjustableParameterId,
   getObjectiveWeights,
   HardConstraintId,
   OptimizationPolicy,
@@ -137,6 +138,10 @@ export interface OptimizationProblem {
 
 function constraintEnabled(policy: OptimizationPolicy, id: HardConstraintId): boolean {
   return policy.hardConstraints.find((constraint) => constraint.id === id)?.enabled ?? false;
+}
+
+function adjustmentEnabled(policy: OptimizationPolicy, id: AdjustableParameterId): boolean {
+  return policy.adjustableParameters.find((parameter) => parameter.id === id)?.enabled ?? false;
 }
 
 export function mod60(t: number): number {
@@ -281,13 +286,19 @@ function isChainLinked(steps: PathStep[], sections: TrainrunSection[]): boolean 
   });
 }
 
-function hasTimeLock(section: TrainrunSection): boolean {
-  return (
-    section.getSourceDepartureLock() ||
-    section.getSourceArrivalLock() ||
-    section.getTargetDepartureLock() ||
-    section.getTargetArrivalLock()
-  );
+function isTimeLocked(section: TrainrunSection, field: number): boolean {
+  switch (field) {
+    case SRC_DEP:
+      return section.getSourceDepartureLock();
+    case SRC_ARR:
+      return section.getSourceArrivalLock();
+    case TGT_DEP:
+      return section.getTargetDepartureLock();
+    case TGT_ARR:
+      return section.getTargetArrivalLock();
+    default:
+      return false;
+  }
 }
 
 export function buildProblem(
@@ -383,18 +394,49 @@ export function buildProblem(
           const steps = current;
           current = [];
           const key = `${trainrun.getId()}:${sections[steps[0].sectionIdx].getId()}`;
-          const fixed = steps.some(
-            (st) =>
-              (constraintEnabled(policy, "timeLocks") && hasTimeLock(sections[st.sectionIdx])) ||
-              !inScope(st.fromNode) ||
-              !inScope(st.toNode) ||
-              !inCorridor(sections[st.sectionIdx]),
-          );
           const oneWay = trainrun.getDirection() === Direction.ONE_WAY;
-          const varA = newVariable(key + ":A", domain, fixed);
           const linked =
             !oneWay && constraintEnabled(policy, "symmetry") && isChainLinked(steps, sections);
-          const varB = oneWay || linked ? varA : newVariable(key + ":B", domain, fixed);
+          const fixedForDirection = (direction: 0 | 1) =>
+            !adjustmentEnabled(policy, "allowTimeShifts") ||
+            steps.some((step) => {
+              const section = sections[step.sectionIdx];
+              if (!inScope(step.fromNode) || !inScope(step.toNode) || !inCorridor(section)) {
+                return true;
+              }
+              const departureField =
+                direction === 0
+                  ? step.aligned
+                    ? SRC_DEP
+                    : TGT_DEP
+                  : step.aligned
+                    ? TGT_DEP
+                    : SRC_DEP;
+              const arrivalField =
+                direction === 0
+                  ? step.aligned
+                    ? TGT_ARR
+                    : SRC_ARR
+                  : step.aligned
+                    ? SRC_ARR
+                    : TGT_ARR;
+              return (
+                (!adjustmentEnabled(policy, "ignoreDepartureLocks") &&
+                  isTimeLocked(section, departureField)) ||
+                (!adjustmentEnabled(policy, "ignoreArrivalLocks") &&
+                  isTimeLocked(section, arrivalField))
+              );
+            });
+          const fixedA = fixedForDirection(0);
+          const fixedB = fixedForDirection(1);
+          const sharedVariableFixed = oneWay ? fixedA : fixedA || fixedB;
+          const varA = newVariable(
+            key + ":A",
+            domain,
+            oneWay || linked ? sharedVariableFixed : fixedA,
+          );
+          const varB = oneWay || linked ? varA : newVariable(key + ":B", domain, fixedB);
+          const fixed = oneWay ? fixedA : linked ? sharedVariableFixed : fixedA && fixedB;
           const chain: Chain = {
             key,
             trainrun,
@@ -496,7 +538,7 @@ export function buildProblem(
     }
     const travelTimeLocked =
       direction === 0 ? section.getTravelTimeLock() : section.getBackwardTravelTimeLock();
-    if (constraintEnabled(policy, "travelTimeLocks") && travelTimeLocked) {
+    if (!adjustmentEnabled(policy, "ignoreTravelTimeLocks") && travelTimeLocked) {
       return "travel-time-lock";
     }
 
@@ -541,41 +583,30 @@ export function buildProblem(
       if (!inScope(node) || !inCorridor(affectedSection)) {
         return "scope";
       }
-      if (!constraintEnabled(policy, "timeLocks")) {
-        continue;
+      if (
+        !adjustmentEnabled(policy, "ignoreDepartureLocks") &&
+        (field === SRC_DEP || field === TGT_DEP) &&
+        isTimeLocked(affectedSection, field)
+      ) {
+        return "departure-time-lock";
       }
-      switch (field) {
-        case SRC_DEP:
-          if (affectedSection.getSourceDepartureLock()) {
-            return "departure-time-lock";
-          }
-          break;
-        case SRC_ARR:
-          if (affectedSection.getSourceArrivalLock()) {
-            return "arrival-time-lock";
-          }
-          break;
-        case TGT_DEP:
-          if (affectedSection.getTargetDepartureLock()) {
-            return "departure-time-lock";
-          }
-          break;
-        case TGT_ARR:
-          if (affectedSection.getTargetArrivalLock()) {
-            return "arrival-time-lock";
-          }
-          break;
+      if (
+        !adjustmentEnabled(policy, "ignoreArrivalLocks") &&
+        (field === SRC_ARR || field === TGT_ARR) &&
+        isTimeLocked(affectedSection, field)
+      ) {
+        return "arrival-time-lock";
       }
     }
     return undefined;
   };
 
   const travelTimeVariables = new Int32Array(n * 2).fill(-1);
-  const travelTimeConstraint = policy.hardConstraints.find(
-    (constraint) => constraint.id === "maxTravelTimeExtension",
+  const maxTravelTimeExtension = policy.adjustableParameters.find(
+    (parameter) => parameter.id === "maxTravelTimeExtension",
   );
-  if (travelTimeConstraint?.enabled) {
-    const maximumIncrease = Math.max(0, Math.floor(travelTimeConstraint.value ?? 5));
+  if (maxTravelTimeExtension?.enabled) {
+    const maximumIncrease = Math.max(0, Math.floor(maxTravelTimeExtension.value ?? 5));
     sections.forEach((section, sectionIndex) => {
       const chainIndex = sectionChain[sectionIndex];
       const chain = chains[chainIndex];

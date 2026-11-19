@@ -36,6 +36,8 @@ import {
   OptimizeTimetableOptions,
   OptimizeTimetableResult,
   OptimizeTimetableSolution,
+  RuleViolationTrainrunDetails,
+  SolutionRuleViolation,
   TimeChange,
   TrackConflictBlockerReason,
 } from "../../../services/optimization/optimize-timetable.model";
@@ -63,6 +65,24 @@ interface SectionTrackEdgeRow extends EdgeTrackKpi {
   changed: boolean;
 }
 
+type RuleStatusColumn = Exclude<SolutionRuleViolation, "diagnostic-only">;
+
+interface RuleViolationJourneyTimes {
+  arrivalConsecutiveTime: number | null;
+  arrivalViolated: boolean;
+  arrivalEditable: boolean;
+  departureConsecutiveTime: number | null;
+  departureViolated: boolean;
+  departureEditable: boolean;
+}
+
+interface CombinedRuleViolationTimetableRow {
+  nodeId: number;
+  nodeName: string;
+  forward: RuleViolationJourneyTimes;
+  backward: RuleViolationJourneyTimes;
+}
+
 @Component({
   selector: "sbb-optimize-timetable-dialog",
   templateUrl: "./optimize-timetable-dialog.component.html",
@@ -73,6 +93,8 @@ interface SectionTrackEdgeRow extends EdgeTrackKpi {
 export class OptimizeTimetableDialogComponent implements OnDestroy {
   @ViewChild("optimizeTimetableDialogTemplate", {static: true})
   optimizeTimetableDialogTemplate: TemplateRef<void>;
+  @ViewChild("ruleViolationDialogTemplate", {static: true})
+  ruleViolationDialogTemplate: TemplateRef<void>;
 
   policy: OptimizationPolicy = createDefaultOptimizationPolicy();
   selectedNodeCount = 0;
@@ -100,6 +122,11 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   showAllSectionTracks = false;
   isConfirmingInvalidApply = false;
   selectedSolution: OptimizeTimetableSolution = undefined;
+  baselineRuleSolution: OptimizeTimetableSolution = undefined;
+  ruleViolationTrainruns: RuleViolationTrainrunDetails[] = [];
+  selectedRuleViolationTrainrunId: number | null = null;
+  selectedRuleViolation: RuleStatusColumn = undefined;
+  showSeparateRuleViolationJourneys = false;
   nodeGroups: NodeChangeGroup[] = [];
   selectedNodeId: number = undefined;
   hoveredTrainrunId: number | null = null;
@@ -127,6 +154,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   private committed = false;
   private seed = 1;
   private dialogRef: SbbDialogRef<void, unknown> = undefined;
+  private ruleViolationDialogRef: SbbDialogRef<void, unknown> = undefined;
   private readonly destroyed = new Subject<void>();
 
   constructor(
@@ -161,6 +189,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
+    this.ruleViolationDialogRef?.close();
     this.occupancyPreparation.destroy();
     this.destroyed.next();
     this.destroyed.complete();
@@ -215,6 +244,163 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
 
   get feasibleSolutionCount(): number {
     return this.allSolutions.filter((solution) => solution.valid).length;
+  }
+
+  get ruleStatusColumns(): RuleStatusColumn[] {
+    const enabled = (id: string) =>
+      this.policy.hardConstraints.some((constraint) => constraint.id === id && constraint.enabled);
+    const columns: RuleStatusColumn[] = [];
+    if (enabled("trackLimit")) columns.push("track-limit");
+    if (enabled("userConnections")) columns.push("minimum-connections");
+    if (enabled("minimumStopTime")) columns.push("minimum-stop-time");
+    if (enabled("scopeBoundary")) columns.push("scope-boundary");
+    columns.push("arrival-before-departure");
+    if (enabled("symmetry")) columns.push("symmetry");
+    if (
+      this.policy.adjustableParameters.some(
+        (parameter) => parameter.id === "maxTravelTimeExtension" && parameter.enabled,
+      )
+    ) {
+      columns.push("travel-time-extension");
+    }
+    return columns;
+  }
+
+  getRuleColumnLabel(rule: RuleStatusColumn): string {
+    return this.translateService.translate(
+      `app.view.dialogs.optimize-timetable-dialog.rule-column.${rule}`,
+    );
+  }
+
+  getRuleStatusDescription(solution: OptimizeTimetableSolution, rule: RuleStatusColumn): string {
+    if (!solution.ruleViolations && !solution.valid) {
+      return this.translateService.translate(
+        "app.view.dialogs.optimize-timetable-dialog.rule-violation-unknown",
+      );
+    }
+    const violated = solution.ruleViolations?.includes(rule) ?? false;
+    return this.translateService.translate(
+      `app.view.dialogs.optimize-timetable-dialog.rule-status-${violated ? "violated" : "satisfied"}`,
+      {rule: this.getRuleColumnLabel(rule)},
+    );
+  }
+
+  hasRuleViolationDetails(rule: RuleStatusColumn): boolean {
+    return (
+      rule === "minimum-stop-time" ||
+      rule === "scope-boundary" ||
+      rule === "arrival-before-departure" ||
+      rule === "symmetry"
+    );
+  }
+
+  openRuleViolationDialog(
+    solution: OptimizeTimetableSolution,
+    rule: RuleStatusColumn,
+    event: MouseEvent,
+  ): void {
+    event.stopPropagation();
+    if (!this.result || !this.hasRuleViolationDetails(rule)) return;
+
+    const options: OptimizeTimetableOptions = {
+      maxTracksPerSection: this.maxTracks,
+      selectedNodeIds: this.scopeNodeIds,
+      selectedCorridorEdgeIds: this.scopeUsesSelectedTrainrun
+        ? this.scopeCorridorEdgeIds
+        : undefined,
+      policy: this.policy,
+    };
+    this.ruleViolationTrainruns = this.optimizeTimetableService.getRuleViolationTrainruns(
+      rule,
+      solution,
+      this.getVisibleNodes(),
+      this.getVisibleTrainrunSections(),
+      options,
+    );
+    this.selectedRuleViolation = rule;
+    this.selectedRuleViolationTrainrunId = this.ruleViolationTrainruns[0]?.trainrunId ?? null;
+    this.showSeparateRuleViolationJourneys = false;
+
+    const config = new SbbDialogConfig();
+    config.width = "760px";
+    config.maxWidth = "92vw";
+    config.maxHeight = "85vh";
+    this.ruleViolationDialogRef?.close();
+    this.ruleViolationDialogRef = this.dialog.open(this.ruleViolationDialogTemplate, config);
+  }
+
+  selectRuleViolationTrainrun(trainrunId: number): void {
+    this.selectedRuleViolationTrainrunId = trainrunId;
+  }
+
+  get selectedRuleViolationTrainrun(): RuleViolationTrainrunDetails | undefined {
+    return this.ruleViolationTrainruns.find(
+      (trainrun) => trainrun.trainrunId === this.selectedRuleViolationTrainrunId,
+    );
+  }
+
+  hasBackwardRuleViolationJourney(trainrun: RuleViolationTrainrunDetails): boolean {
+    return trainrun.journeys.some((journey) => journey.direction === "backward");
+  }
+
+  getCombinedRuleViolationRows(
+    trainrun: RuleViolationTrainrunDetails,
+  ): CombinedRuleViolationTimetableRow[] {
+    const forward = trainrun.journeys.find((journey) => journey.direction === "forward");
+    const backward = trainrun.journeys.find((journey) => journey.direction === "backward");
+    if (forward === undefined) return [];
+
+    const backwardRows = backward?.rows ?? [];
+    const reverseIsAligned =
+      backward !== undefined &&
+      backwardRows.length === forward.rows.length &&
+      forward.rows.every(
+        (row, index) => row.nodeId === backwardRows[backwardRows.length - 1 - index]?.nodeId,
+      );
+    const unmatchedBackward = [...backwardRows];
+    return forward.rows.map((row, index) => {
+      const backwardIndex = reverseIsAligned
+        ? backwardRows.length - 1 - index
+        : unmatchedBackward.findIndex((candidate) => candidate.nodeId === row.nodeId);
+      const backwardRow =
+        backwardIndex < 0
+          ? undefined
+          : reverseIsAligned
+            ? backwardRows[backwardIndex]
+            : unmatchedBackward.splice(backwardIndex, 1)[0];
+      return {
+        nodeId: row.nodeId,
+        nodeName: row.nodeName,
+        forward: {
+          arrivalConsecutiveTime: row.arrivalConsecutiveTime,
+          arrivalViolated: row.arrivalViolated,
+          arrivalEditable: row.arrivalEditable,
+          departureConsecutiveTime: row.departureConsecutiveTime,
+          departureViolated: row.departureViolated,
+          departureEditable: row.departureEditable,
+        },
+        backward: {
+          arrivalConsecutiveTime: backwardRow?.arrivalConsecutiveTime ?? null,
+          arrivalViolated: backwardRow?.arrivalViolated ?? false,
+          arrivalEditable: backwardRow?.arrivalEditable ?? false,
+          departureConsecutiveTime: backwardRow?.departureConsecutiveTime ?? null,
+          departureViolated: backwardRow?.departureViolated ?? false,
+          departureEditable: backwardRow?.departureEditable ?? false,
+        },
+      };
+    });
+  }
+
+  formatConsecutiveTime(minutes: number): string {
+    const totalMinutes = Math.round(minutes);
+    const hours = Math.floor(totalMinutes / 60);
+    const minute = totalMinutes - hours * 60;
+    return `${hours.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+  }
+
+  closeRuleViolationDialog(): void {
+    this.ruleViolationDialogRef?.close();
+    this.ruleViolationDialogRef = undefined;
   }
 
   private get allSolutions(): OptimizeTimetableSolution[] {
@@ -298,12 +484,12 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   }
 
   onPolicyChange(policy: OptimizationPolicy): void {
-    const hardRulesChanged = this.policy.hardConstraints.some((constraint) => {
-      const next = policy.hardConstraints.find((item) => item.id === constraint.id);
-      return next?.enabled !== constraint.enabled || next?.value !== constraint.value;
-    });
+    const solverRulesChanged =
+      JSON.stringify(this.policy.hardConstraints) !== JSON.stringify(policy.hardConstraints) ||
+      JSON.stringify(this.policy.adjustableParameters) !==
+        JSON.stringify(policy.adjustableParameters);
     this.policy = policy;
-    if (hardRulesChanged) {
+    if (solverRulesChanged) {
       this.revalidateSolutions();
     }
     this.refreshTrackOverview();
@@ -364,6 +550,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
       (edge) => edge.inScope && edge.tracksBefore > this.maxTracks,
     ).length;
     this.result.baselineKpi.edgesOverLimitAfter = this.result.baselineKpi.edgesOverLimitBefore;
+    this.updateBaselineRuleSolution();
     const hadFeasible = this.allSolutions.some((solution) => solution.valid);
     this.allSolutions.forEach((solution) => {
       const changedEdges = new Map(solution.edges.map((edge) => [edge.edgeId, edge]));
@@ -382,15 +569,17 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
       });
       solution.kpi.edgesOverLimitBefore = beforeOver;
       solution.kpi.edgesOverLimitAfter = Math.max(0, afterOver);
-      solution.valid =
-        !solution.diagnosticOnly &&
-        this.optimizeTimetableService.isSolutionValid(
-          solution,
-          this.getVisibleNodes(),
-          this.getVisibleTrainrunSections(),
-          options,
-          this.result.baselineEdges,
-        );
+      const ruleViolations = this.optimizeTimetableService.getSolutionRuleViolations(
+        solution,
+        this.getVisibleNodes(),
+        this.getVisibleTrainrunSections(),
+        options,
+        this.result.baselineEdges,
+      );
+      solution.ruleViolations = solution.diagnosticOnly
+        ? ["diagnostic-only", ...ruleViolations]
+        : ruleViolations;
+      solution.valid = !solution.diagnosticOnly && ruleViolations.length === 0;
     });
     if (this.allSolutions.some((solution) => solution.valid)) {
       this.result.message = undefined;
@@ -412,6 +601,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
       return;
     }
     this.result = undefined;
+    this.baselineRuleSolution = undefined;
     this.infeasibleSolutionsExpanded = false;
     this.resultPolicySnapshot = undefined;
     this.selectedSolution = undefined;
@@ -771,6 +961,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
     this.optimizationProgressPercent = 0;
     this.optimizationIterations = 0;
     this.result = undefined;
+    this.baselineRuleSolution = undefined;
     this.infeasibleSolutionsExpanded = false;
     const nodes = this.getVisibleNodes();
     const trainrunSections = this.getVisibleTrainrunSections();
@@ -793,6 +984,7 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
       options,
       (progress) => this.updateProgress(progress),
     );
+    this.updateBaselineRuleSolution();
     this.updateResultView();
 
     if (
@@ -808,12 +1000,16 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
 
       const diagnosticPolicy: OptimizationPolicy = {
         ...this.policy,
-        hardConstraints: this.policy.hardConstraints.map((constraint) => ({
-          ...constraint,
-          enabled:
-            constraint.id === "timeLocks" || constraint.id === "travelTimeLocks"
-              ? false
-              : constraint.enabled,
+        adjustableParameters: this.policy.adjustableParameters.map((parameter) => ({
+          ...parameter,
+          enabled: [
+            "allowTimeShifts",
+            "ignoreDepartureLocks",
+            "ignoreArrivalLocks",
+            "ignoreTravelTimeLocks",
+          ].includes(parameter.id)
+            ? true
+            : parameter.enabled,
         })),
       };
       const diagnosticResult = await this.optimizeTimetableService.optimize(
@@ -895,6 +1091,42 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
       }
     }
     this.changeDetectorRef.detectChanges();
+  }
+
+  private updateBaselineRuleSolution(): void {
+    if (this.result === undefined) {
+      this.baselineRuleSolution = undefined;
+      return;
+    }
+
+    const solution: OptimizeTimetableSolution = {
+      id: -1,
+      label: "Baseline",
+      valid: true,
+      kpi: this.result.baselineKpi,
+      edges: this.result.baselineEdges,
+      changes: [],
+      assignment: {},
+    };
+    const ruleViolations = this.optimizeTimetableService.getSolutionRuleViolations(
+      solution,
+      this.getVisibleNodes(),
+      this.getVisibleTrainrunSections(),
+      {
+        maxTracksPerSection: this.maxTracks,
+        selectedNodeIds: this.scopeNodeIds,
+        selectedCorridorEdgeIds: this.scopeUsesSelectedTrainrun
+          ? this.scopeCorridorEdgeIds
+          : undefined,
+        policy: this.policy,
+      },
+      this.result.baselineEdges,
+    );
+    this.baselineRuleSolution = {
+      ...solution,
+      valid: ruleViolations.length === 0,
+      ruleViolations,
+    };
   }
 
   private updateResultView(preferredAssignment?: Record<string, number>): void {
@@ -1126,11 +1358,13 @@ export class OptimizeTimetableDialogComponent implements OnDestroy {
   }
 
   private onClosed() {
+    this.closeRuleViolationDialog();
     if (!this.committed) {
       this.revertPreview();
       this.undoService.startUndoRecording();
     }
     this.previewSolution = undefined;
     this.dialogRef = undefined;
+    this.baselineRuleSolution = undefined;
   }
 }

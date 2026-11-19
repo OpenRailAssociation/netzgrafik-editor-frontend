@@ -44,9 +44,11 @@ describe("OptimizationPolicyService legacy connection preference", () => {
     );
   });
 
-  it("persists hard-rule changes made in Director mode", () => {
+  it("persists adjustable-parameter changes made in Director mode", () => {
     const policy = createDefaultOptimizationPolicy();
-    policy.hardConstraints.find((constraint) => constraint.id === "timeLocks").enabled = false;
+    policy.adjustableParameters.find(
+      (parameter) => parameter.id === "ignoreDepartureLocks",
+    ).enabled = true;
     const setItem = spyOn(localStorage, "setItem");
     const getItem = spyOn(localStorage, "getItem").and.returnValue(null);
     const service = new OptimizationPolicyService();
@@ -56,10 +58,44 @@ describe("OptimizationPolicyService legacy connection preference", () => {
     getItem.and.returnValue(savedPolicy);
 
     expect(
-      new OptimizationPolicyService().policy.hardConstraints.find(
-        (constraint) => constraint.id === "timeLocks",
+      new OptimizationPolicyService().policy.adjustableParameters.find(
+        (parameter) => parameter.id === "ignoreDepartureLocks",
       )?.enabled,
-    ).toBeFalse();
+    ).toBeTrue();
+  });
+
+  it("replaces stale saved translation keys with current policy labels", () => {
+    const policy = createDefaultOptimizationPolicy();
+    const savedName =
+      "app.view.dialogs.optimize-timetable-dialog.director.constraint.max-travel-time-extension";
+    const settings = [policy, policy.directorSettings!, policy.userDefinedSettings!];
+    settings.forEach((modeSettings) => {
+      modeSettings.adjustableParameters.find(
+        (parameter) => parameter.id === "maxTravelTimeExtension",
+      )!.name = savedName;
+    });
+    spyOn(localStorage, "getItem").and.returnValue(JSON.stringify(policy));
+
+    const loadedPolicy = new OptimizationPolicyService().policy;
+    const expectedName = createDefaultOptimizationPolicy().adjustableParameters.find(
+      (parameter) => parameter.id === "maxTravelTimeExtension",
+    )!.name;
+
+    expect(
+      loadedPolicy.adjustableParameters.find(
+        (parameter) => parameter.id === "maxTravelTimeExtension",
+      )?.name,
+    ).toBe(expectedName);
+    expect(
+      loadedPolicy.directorSettings?.adjustableParameters.find(
+        (parameter) => parameter.id === "maxTravelTimeExtension",
+      )?.name,
+    ).toBe(expectedName);
+    expect(
+      loadedPolicy.userDefinedSettings?.adjustableParameters.find(
+        (parameter) => parameter.id === "maxTravelTimeExtension",
+      )?.name,
+    ).toBe(expectedName);
   });
 
   it("persists both mode configurations across reloads", () => {
@@ -68,17 +104,20 @@ describe("OptimizationPolicyService legacy connection preference", () => {
     const service = new OptimizationPolicyService();
     const policy = createDefaultOptimizationPolicy();
     policy.directorProfile = "flexibilityFrequencyFirst";
-    policy.hardConstraints.find((constraint) => constraint.id === "timeLocks").enabled = false;
+    policy.adjustableParameters.find(
+      (parameter) => parameter.id === "ignoreDepartureLocks",
+    ).enabled = true;
     policy.directorSettings = {
       directorProfile: policy.directorProfile,
       hardConstraints: policy.hardConstraints.map((constraint) => ({...constraint})),
+      adjustableParameters: policy.adjustableParameters.map((parameter) => ({...parameter})),
       objectives: policy.objectives.map((objective) => ({...objective})),
     };
     policy.userDefinedSettings!.hardConstraints.find(
       (constraint) => constraint.id === "trackLimit",
     ).value = 4;
-    policy.userDefinedSettings!.hardConstraints.find(
-      (constraint) => constraint.id === "timeLocks",
+    policy.userDefinedSettings!.adjustableParameters.find(
+      (parameter) => parameter.id === "ignoreDepartureLocks",
     ).enabled = true;
     policy.userDefinedSettings!.objectives.find(
       (objective) => objective.id === "moreConnections",
@@ -90,24 +129,90 @@ describe("OptimizationPolicyService legacy connection preference", () => {
     const loadedPolicy = new OptimizationPolicyService().policy;
     expect(loadedPolicy.directorSettings?.directorProfile).toBe("flexibilityFrequencyFirst");
     expect(
-      loadedPolicy.directorSettings?.hardConstraints.find(
-        (constraint) => constraint.id === "timeLocks",
+      loadedPolicy.directorSettings?.adjustableParameters.find(
+        (parameter) => parameter.id === "ignoreDepartureLocks",
       )?.enabled,
-    ).toBeFalse();
+    ).toBeTrue();
     expect(
       loadedPolicy.userDefinedSettings?.hardConstraints.find(
         (constraint) => constraint.id === "trackLimit",
       )?.value,
     ).toBe(4);
     expect(
-      loadedPolicy.userDefinedSettings?.hardConstraints.find(
-        (constraint) => constraint.id === "timeLocks",
+      loadedPolicy.userDefinedSettings?.adjustableParameters.find(
+        (parameter) => parameter.id === "ignoreDepartureLocks",
       )?.enabled,
     ).toBeTrue();
     expect(
       loadedPolicy.userDefinedSettings?.objectives.find(
         (objective) => objective.id === "moreConnections",
       )?.enabled,
+    ).toBeFalse();
+  });
+
+  it("migrates lock and travel-time settings from saved hard constraints", () => {
+    const policy = createDefaultOptimizationPolicy();
+    const toLegacySettings = (settings: {
+      hardConstraints: Array<{id: string; name: string; enabled: boolean; value?: number}>;
+      adjustableParameters: Array<{id: string; name: string; enabled: boolean; value?: number}>;
+      objectives: typeof policy.objectives;
+    }) => {
+      const maxExtension = settings.adjustableParameters.find(
+        (parameter) => parameter.id === "maxTravelTimeExtension",
+      );
+      const departureLock = settings.adjustableParameters.find(
+        (parameter) => parameter.id === "ignoreDepartureLocks",
+      );
+      const travelTimeLock = settings.adjustableParameters.find(
+        (parameter) => parameter.id === "ignoreTravelTimeLocks",
+      );
+      return {
+        hardConstraints: [
+          ...settings.hardConstraints,
+          {id: "timeLocks", name: "legacy", enabled: !(departureLock?.enabled ?? false)},
+          {id: "travelTimeLocks", name: "legacy", enabled: !(travelTimeLock?.enabled ?? false)},
+          ...(maxExtension === undefined ? [] : [{...maxExtension}]),
+        ],
+        objectives: settings.objectives,
+      };
+    };
+    const legacyUserSettings = {
+      ...policy.userDefinedSettings!,
+      adjustableParameters: policy.userDefinedSettings!.adjustableParameters.map((parameter) =>
+        parameter.id === "maxTravelTimeExtension"
+          ? {...parameter, enabled: true, value: 8}
+          : parameter.id === "ignoreTravelTimeLocks"
+            ? {...parameter, enabled: true}
+            : parameter,
+      ),
+    };
+    const legacyPolicy = {
+      mode: "userDefined",
+      directorProfile: policy.directorProfile,
+      ...toLegacySettings(legacyUserSettings),
+      directorSettings: {
+        directorProfile: policy.directorProfile,
+        ...toLegacySettings(policy.directorSettings!),
+      },
+      userDefinedSettings: toLegacySettings(legacyUserSettings),
+    };
+    spyOn(localStorage, "getItem").and.returnValue(JSON.stringify(legacyPolicy));
+
+    const migrated = new OptimizationPolicyService().policy;
+
+    expect(
+      migrated.adjustableParameters.find((parameter) => parameter.id === "maxTravelTimeExtension"),
+    ).toEqual(jasmine.objectContaining({enabled: true, value: 8}));
+    expect(
+      migrated.adjustableParameters.find((parameter) => parameter.id === "ignoreDepartureLocks"),
+    ).toEqual(jasmine.objectContaining({enabled: false}));
+    expect(
+      migrated.adjustableParameters.find((parameter) => parameter.id === "ignoreTravelTimeLocks"),
+    ).toEqual(jasmine.objectContaining({enabled: true}));
+    expect(
+      migrated.hardConstraints.some(
+        (constraint) => constraint.id === ("maxTravelTimeExtension" as string),
+      ),
     ).toBeFalse();
   });
 

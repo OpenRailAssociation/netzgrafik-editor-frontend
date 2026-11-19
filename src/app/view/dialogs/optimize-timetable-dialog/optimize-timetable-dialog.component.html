@@ -540,6 +540,9 @@
                       <th>
                         {{ "app.view.dialogs.optimize-timetable-dialog.changed" | translate }}
                       </th>
+                      <th class="rule-status" *ngFor="let rule of ruleStatusColumns">
+                        {{ getRuleColumnLabel(rule) }}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -580,6 +583,44 @@
                       </td>
                       <td>{{ result.baselineKpi.sumAbsShift }}</td>
                       <td>0 / 0</td>
+                      <td class="rule-status" *ngFor="let rule of ruleStatusColumns">
+                        <ng-container *ngIf="baselineRuleSolution as baseline">
+                          <ng-container
+                            *ngIf="
+                              baseline.ruleViolations?.includes(rule);
+                              else baselineSatisfiedRule
+                            "
+                          >
+                            <button
+                              *ngIf="
+                                hasRuleViolationDetails(rule);
+                                else baselineNonInteractiveViolation
+                              "
+                              type="button"
+                              class="rule-violation-trigger"
+                              [attr.aria-label]="getRuleStatusDescription(baseline, rule)"
+                              [attr.title]="getRuleStatusDescription(baseline, rule)"
+                              (click)="openRuleViolationDialog(baseline, rule, $event)"
+                            >
+                              <sbb-icon svgIcon="cross-tiny-small"></sbb-icon>
+                            </button>
+                            <ng-template #baselineNonInteractiveViolation>
+                              <sbb-icon
+                                svgIcon="cross-tiny-small"
+                                [attr.aria-label]="getRuleStatusDescription(baseline, rule)"
+                                [attr.title]="getRuleStatusDescription(baseline, rule)"
+                              ></sbb-icon>
+                            </ng-template>
+                          </ng-container>
+                          <ng-template #baselineSatisfiedRule>
+                            <sbb-icon
+                              svgIcon="tick-medium"
+                              [attr.aria-label]="getRuleStatusDescription(baseline, rule)"
+                              [attr.title]="getRuleStatusDescription(baseline, rule)"
+                            ></sbb-icon>
+                          </ng-template>
+                        </ng-container>
+                      </td>
                     </tr>
                     <tr
                       *ngFor="let solution of rankedSolutions"
@@ -638,6 +679,36 @@
                       </td>
                       <td>{{ solution.kpi.sumAbsShift }}</td>
                       <td>{{ solution.kpi.changedTrainruns }} / {{ solution.kpi.changedTimes }}</td>
+                      <td class="rule-status" *ngFor="let rule of ruleStatusColumns">
+                        <ng-container
+                          *ngIf="solution.ruleViolations?.includes(rule); else satisfiedRule"
+                        >
+                          <button
+                            *ngIf="hasRuleViolationDetails(rule); else nonInteractiveViolation"
+                            type="button"
+                            class="rule-violation-trigger"
+                            [attr.aria-label]="getRuleStatusDescription(solution, rule)"
+                            [attr.title]="getRuleStatusDescription(solution, rule)"
+                            (click)="openRuleViolationDialog(solution, rule, $event)"
+                          >
+                            <sbb-icon svgIcon="cross-tiny-small"></sbb-icon>
+                          </button>
+                          <ng-template #nonInteractiveViolation>
+                            <sbb-icon
+                              svgIcon="cross-tiny-small"
+                              [attr.aria-label]="getRuleStatusDescription(solution, rule)"
+                              [attr.title]="getRuleStatusDescription(solution, rule)"
+                            ></sbb-icon>
+                          </ng-template>
+                        </ng-container>
+                        <ng-template #satisfiedRule>
+                          <sbb-icon
+                            svgIcon="tick-medium"
+                            [attr.aria-label]="getRuleStatusDescription(solution, rule)"
+                            [attr.title]="getRuleStatusDescription(solution, rule)"
+                          ></sbb-icon>
+                        </ng-template>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -949,6 +1020,216 @@
       </button>
       <button sbb-secondary-button type="button" (click)="cancel()">
         {{ "app.view.dialogs.optimize-timetable-dialog.cancel" | translate }}
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #ruleViolationDialogTemplate>
+  <div class="rule-violation-dialog">
+    <div sbbDialogTitle>
+      {{
+        "app.view.dialogs.optimize-timetable-dialog.rule-details-title"
+          | translate: {rule: getRuleColumnLabel(selectedRuleViolation)}
+      }}
+    </div>
+    <div sbbDialogContent class="rule-violation-content">
+      <p>
+        {{ "app.view.dialogs.optimize-timetable-dialog.rule-details-instructions" | translate }}
+      </p>
+      <div *ngIf="ruleViolationTrainruns.length === 0" role="status">
+        {{ "app.view.dialogs.optimize-timetable-dialog.rule-details-empty" | translate }}
+      </div>
+      <ng-container *ngIf="selectedRuleViolationTrainrun as trainrun">
+        <ul class="rule-violation-train-list">
+          <li *ngFor="let affectedTrainrun of ruleViolationTrainruns">
+            <button
+              type="button"
+              class="rule-violation-train-button"
+              [class.selected]="affectedTrainrun.trainrunId === selectedRuleViolationTrainrunId"
+              [attr.aria-pressed]="affectedTrainrun.trainrunId === selectedRuleViolationTrainrunId"
+              (click)="selectRuleViolationTrainrun(affectedTrainrun.trainrunId)"
+            >
+              <span class="train-label">{{ affectedTrainrun.category }}</span>
+              <span class="train-label">{{ affectedTrainrun.name }}</span>
+            </button>
+          </li>
+        </ul>
+        <h3 class="rule-violation-train-title">{{ trainrun.category }} {{ trainrun.name }}</h3>
+        <sbb-checkbox
+          *ngIf="hasBackwardRuleViolationJourney(trainrun)"
+          class="rule-violation-separate-toggle"
+          [(ngModel)]="showSeparateRuleViolationJourneys"
+        >
+          {{
+            "app.view.dialogs.optimize-timetable-dialog.rule-details-separate-journeys" | translate
+          }}
+        </sbb-checkbox>
+        <ng-container
+          *ngIf="
+            hasBackwardRuleViolationJourney(trainrun) && !showSeparateRuleViolationJourneys;
+            else separateRuleViolationJourneys
+          "
+        >
+          <div class="rule-violation-table-scroll">
+            <table class="rule-violation-times">
+              <thead>
+                <tr>
+                  <th rowspan="2">
+                    {{ "app.view.dialogs.optimize-timetable-dialog.rule-details-node" | translate }}
+                  </th>
+                  <th colspan="2">
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.rule-details-outbound" | translate
+                    }}
+                  </th>
+                  <th colspan="2" class="return-journey-column">
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.rule-details-return" | translate
+                    }}
+                  </th>
+                </tr>
+                <tr>
+                  <th>
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.rule-details-arrival" | translate
+                    }}
+                  </th>
+                  <th>
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.rule-details-departure"
+                        | translate
+                    }}
+                  </th>
+                  <th class="return-journey-column">
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.rule-details-departure"
+                        | translate
+                    }}
+                  </th>
+                  <th>
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.rule-details-arrival" | translate
+                    }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of getCombinedRuleViolationRows(trainrun)">
+                  <td>{{ row.nodeName }}</td>
+                  <td
+                    [class.adjustable-time-cell]="row.forward.arrivalEditable"
+                    [class.violation-time]="row.forward.arrivalViolated"
+                  >
+                    <ng-container *ngIf="row.forward.arrivalConsecutiveTime !== null">
+                      <span [class.adjustable-time]="row.forward.arrivalEditable">
+                        {{ formatConsecutiveTime(row.forward.arrivalConsecutiveTime) }}
+                      </span>
+                    </ng-container>
+                  </td>
+                  <td
+                    [class.adjustable-time-cell]="row.forward.departureEditable"
+                    [class.violation-time]="row.forward.departureViolated"
+                  >
+                    <ng-container *ngIf="row.forward.departureConsecutiveTime !== null">
+                      <span [class.adjustable-time]="row.forward.departureEditable">
+                        {{ formatConsecutiveTime(row.forward.departureConsecutiveTime) }}
+                      </span>
+                    </ng-container>
+                  </td>
+                  <td
+                    class="return-journey-column"
+                    [class.adjustable-time-cell]="row.backward.departureEditable"
+                    [class.violation-time]="row.backward.departureViolated"
+                  >
+                    <ng-container *ngIf="row.backward.departureConsecutiveTime !== null">
+                      <span [class.adjustable-time]="row.backward.departureEditable">
+                        {{ formatConsecutiveTime(row.backward.departureConsecutiveTime) }}
+                      </span>
+                    </ng-container>
+                  </td>
+                  <td
+                    [class.adjustable-time-cell]="row.backward.arrivalEditable"
+                    [class.violation-time]="row.backward.arrivalViolated"
+                  >
+                    <ng-container *ngIf="row.backward.arrivalConsecutiveTime !== null">
+                      <span [class.adjustable-time]="row.backward.arrivalEditable">
+                        {{ formatConsecutiveTime(row.backward.arrivalConsecutiveTime) }}
+                      </span>
+                    </ng-container>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </ng-container>
+        <ng-template #separateRuleViolationJourneys>
+          <ng-container *ngFor="let journey of trainrun.journeys">
+            <h4 class="rule-violation-journey-title" *ngIf="trainrun.journeys.length > 1">
+              {{
+                (journey.direction === "forward"
+                  ? "app.view.dialogs.optimize-timetable-dialog.rule-details-outbound"
+                  : "app.view.dialogs.optimize-timetable-dialog.rule-details-return"
+                ) | translate
+              }}
+            </h4>
+            <div class="rule-violation-table-scroll">
+              <table class="rule-violation-times">
+                <thead>
+                  <tr>
+                    <th>
+                      {{
+                        "app.view.dialogs.optimize-timetable-dialog.rule-details-node" | translate
+                      }}
+                    </th>
+                    <th>
+                      {{
+                        "app.view.dialogs.optimize-timetable-dialog.rule-details-arrival"
+                          | translate
+                      }}
+                    </th>
+                    <th>
+                      {{
+                        "app.view.dialogs.optimize-timetable-dialog.rule-details-departure"
+                          | translate
+                      }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let row of journey.rows">
+                    <td>{{ row.nodeName }}</td>
+                    <td
+                      [class.adjustable-time-cell]="row.arrivalEditable"
+                      [class.violation-time]="row.arrivalViolated"
+                    >
+                      <ng-container *ngIf="row.arrivalConsecutiveTime !== null">
+                        <span [class.adjustable-time]="row.arrivalEditable">
+                          {{ formatConsecutiveTime(row.arrivalConsecutiveTime) }}
+                        </span>
+                      </ng-container>
+                    </td>
+                    <td
+                      [class.adjustable-time-cell]="row.departureEditable"
+                      [class.violation-time]="row.departureViolated"
+                    >
+                      <ng-container *ngIf="row.departureConsecutiveTime !== null">
+                        <span [class.adjustable-time]="row.departureEditable">
+                          {{ formatConsecutiveTime(row.departureConsecutiveTime) }}
+                        </span>
+                      </ng-container>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </ng-container>
+        </ng-template>
+      </ng-container>
+    </div>
+    <div sbbDialogActions class="rule-violation-dialog-actions">
+      <button sbb-button type="button" (click)="closeRuleViolationDialog()">
+        {{ "app.view.dialogs.optimize-timetable-dialog.rule-details-close" | translate }}
       </button>
     </div>
   </div>

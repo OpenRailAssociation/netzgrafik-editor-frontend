@@ -1,5 +1,6 @@
 import {OptimizationProblem} from "./optimize-timetable.chains";
 import {TimetableEvaluator} from "./optimize-timetable.evaluator";
+import {AdjustableParameterId, HardConstraintId} from "./optimization-policy.model";
 
 export type OptimizationConflictType =
   | "TRACK_OVERLOAD"
@@ -35,7 +36,8 @@ export class ConflictIndex {
   private readonly edgeVariables = new Map<string, number[]>();
   private readonly nodeVariables = new Map<number, number[]>();
   private readonly clusterMarks: Uint32Array;
-  private readonly enabledConstraints: Set<string>;
+  private readonly enabledConstraints: Set<HardConstraintId>;
+  private readonly enabledAdjustments: Set<AdjustableParameterId>;
   private readonly cluster: number[] = [];
   private clusterEpoch = 0;
 
@@ -48,6 +50,11 @@ export class ConflictIndex {
       problem.policy.hardConstraints
         .filter((constraint) => constraint.enabled)
         .map((constraint) => constraint.id),
+    );
+    this.enabledAdjustments = new Set(
+      problem.policy.adjustableParameters
+        .filter((parameter) => parameter.enabled)
+        .map((parameter) => parameter.id),
     );
     this.byVariable = Array.from({length: problem.variables.length}, () => [] as number[]);
     this.heapPosition = new Int32Array(0);
@@ -101,7 +108,7 @@ export class ConflictIndex {
       );
     });
 
-    if (this.isEnabled("maxTravelTimeExtension")) {
+    if (this.isAdjustmentEnabled("maxTravelTimeExtension")) {
       const variablesByTrainrun = Array.from(
         {length: problem.trainrunIds.length},
         () => [] as number[],
@@ -277,7 +284,9 @@ export class ConflictIndex {
       case "MINIMUM_STOP_TIME": {
         const violation = this.evaluator.getStopViolationSeverity(conflict.componentIndex);
         severity =
-          this.isEnabled("minimumStopTime") && violation > 0
+          (this.isEnabled("minimumStopTime") ||
+            this.evaluator.isStopOrderViolated(conflict.componentIndex)) &&
+          violation > 0
             ? 250 + conflict.affectedVariables.length + violation
             : 0;
         break;
@@ -292,8 +301,12 @@ export class ConflictIndex {
     this.updateHeap(index, severity > 0);
   }
 
-  private isEnabled(id: string): boolean {
+  private isEnabled(id: HardConstraintId): boolean {
     return this.enabledConstraints.has(id);
+  }
+
+  private isAdjustmentEnabled(id: AdjustableParameterId): boolean {
+    return this.enabledAdjustments.has(id);
   }
 
   private updateHeap(index: number, active: boolean): void {

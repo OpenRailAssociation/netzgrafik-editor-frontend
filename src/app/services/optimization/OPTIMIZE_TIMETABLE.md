@@ -81,7 +81,7 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 - Wird keine gültige Lösung gefunden, wird dies angezeigt (inkl. Kanten mit Überschreitung);
   **Übernehmen** ist dann deaktiviert.
 
-## 3. Harte Regeln (dürfen nie verletzt werden)
+## 3. Harte Bedingungen und feste Invarianten
 
 | #   | Regel                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -91,10 +91,10 @@ weiche Ziele optimiert und dem User als Lösungsvorschläge präsentiert.
 | H4  | **Route fix**: gleiche Knoten, Abschnitte, Reihenfolge, Ports, Transitions; Halte bleiben Halte, Durchfahrten bleiben Durchfahrten.                                                                                                                                                                                                                                                                                              |
 | H5  | **Richtung**: alle Züge fahren hin und zurück (`ROUND_TRIP`), ausser `ONE_WAY`.                                                                                                                                                                                                                                                                                                                                                  |
 | H6  | **Symmetrie um Minute 00**: Abfahrt von Zug A am Knoten X = :00 + x ⇒ Ankunft von Zug A (Gegenrichtung) am Knoten X = :00 − x (mod 60). Ausnahme: explizit asymmetrisch gesetzte Abschnitte. Symmetrie wird nach dem Runden berechnet.                                                                                                                                                                                           |
-| H7  | **Abschnittsfahrzeiten**: bleiben fix, ausser die optionale harte Regel erlaubt eine Verlängerung je Abschnitt um höchstens `n` Minuten. Verkürzungen sind nicht erlaubt.                                                                                                                                                                                                                                                        |
-| H8  | **Mindesthaltezeit**: Haltezeit an Halten ≥ Mindesthaltezeit (Knoten × Zugkategorie).                                                                                                                                                                                                                                                                                                                                            |
+| H7  | **Abschnittsfahrzeiten**: bleiben fix, ausser der veränderbare Parameter Fahrzeitverlängerung ist aktiv; dann darf sie je Abschnitt um höchstens `n` Minuten verlängert werden. Verkürzungen sind nicht erlaubt.                                                                                                                                                                                                                 |
+| H8  | **Chronologie am Halt**: Ankunft muss vor der folgenden Abfahrt liegen. Diese Invariante gilt immer und kann nicht ausgeschaltet werden. Ist die Mindesthaltezeit aktiv, gilt zusätzlich Haltezeit ≥ Mindesthaltezeit (Knoten × Zugkategorie).                                                                                                                                                                                   |
 | H9  | **Durchfahrt (non-stop)**: Haltezeit immer 0 min, d.h. **Ankunft = Abfahrt** (beide Richtungen).                                                                                                                                                                                                                                                                                                                                 |
-| H10 | **Locks**: gelockte Zeiten (`TimeLockDto.lock`) bleiben unverändert.                                                                                                                                                                                                                                                                                                                                                             |
+| H10 | **Locks**: gelockte Zeiten (`TimeLockDto.lock`) bleiben unverändert, wenn der jeweilige veränderbare Parameter zum Respektieren der Locks aktiv ist.                                                                                                                                                                                                                                                                             |
 | H11 | **Optimierungsbereich**: Zeiten an Randkanten und ausserhalb der Selektion bleiben unverändert.                                                                                                                                                                                                                                                                                                                                  |
 | H12 | **Konsistenz**: Ankunft = Abfahrt + Fahrzeit; Consecutive Times sind konsistent entlang des Zuglaufs.                                                                                                                                                                                                                                                                                                                            |
 | H13 | **User-Connections**: wenn die harte Regel aktiv ist, muss jeder im Netzgrafik-Editor erfasste Anschluss (`Connection` am `Node`) in beiden Richtungen mindestens die konfigurierte Mindestumsteigezeit des Knotens (`Node.getConnectionTime()`) einhalten. Die bisherige Wartezeit ist keine harte Obergrenze; ihr Erhalt ist ein separates weiches Ziel. Alle übrigen (impliziten) Anschlüsse sind optional (weiches Ziel f2). |
@@ -142,10 +142,10 @@ dort keine Gleichstände. Gültigkeit nach den aktivierten harten Regeln hat imm
 Änderungen an weichen Zielen sortieren vorhandene Vorschläge neu; **Optimieren** startet einen
 neuen Suchlauf.
 
-Die optionale harte Regel **Fahrzeitverlängerung pro Abschnitt** erlaubt für jeden Abschnitt
+Der veränderbare Parameter **Fahrzeitverlängerung pro Abschnitt** erlaubt für jeden Abschnitt
 unabhängig eine Verlängerung von 0 bis `n` Minuten gegenüber der Baseline; der Standardwert ist
-`n = 5`. Es gibt dafür kein zusätzliches Gesamtlimit pro Zuglauf. Die Regel verändert keine
-Haltezeiten. Ist sie deaktiviert, bleiben Abschnittsfahrzeiten unverändert.
+`n = 5`. Es gibt dafür kein zusätzliches Gesamtlimit pro Zuglauf. Der Parameter verändert keine
+Haltezeiten. Ist er deaktiviert, bleiben Abschnittsfahrzeiten unverändert.
 
 ## 5. Zeitbudget
 
@@ -488,6 +488,8 @@ teilt sie an Halten in Ketten. Die gleiche Datei legt Zeit-Locks, TravelTime-Loc
 Gründe für fixierte Variablen fest. [`applyChain()`](./optimize-timetable.evaluator.ts) berechnet
 aus Δ und optionalen Fahrzeitänderungen die Kandidatenzeiten; [`isSolutionValid()`](./optimize-timetable.service.ts)
 prüft anschliessend, ob eine ausgegebene Lösung die aktiven harten Regeln einhält.
+Am Ende der Vorschlagstabelle zeigt je eine Spalte pro aktiver Regel den Prüfstatus als Häkchen
+oder Kreuz. Der Tooltip nennt den jeweiligen Regeltext; deaktivierte Regeln erhalten keine Spalte.
 
 Das Problem ist eine **periodische Fahrplanoptimierung auf einer bestehenden Netzgrafik**:
 Kettenverschiebungen (Δ) verändern Ereigniszeiten, während Streckenabschnitte gemeinsam genutzte

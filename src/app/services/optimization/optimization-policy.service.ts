@@ -1,6 +1,7 @@
 import {Injectable} from "@angular/core";
 import {
   createDefaultOptimizationPolicy,
+  AdjustableParameterConfig,
   DirectorModeSettings,
   DirectorProfileId,
   HardConstraintConfig,
@@ -89,8 +90,35 @@ export class OptimizationPolicyService {
         return {
           ...defaultItem,
           ...saved,
+          name: defaultItem.name,
           enabled: defaultItem.mandatory ? true : (saved?.enabled ?? defaultItem.enabled),
         };
+      });
+    const normalizeAdjustableParameters = (
+      settings: OptimizationModeSettings,
+    ): AdjustableParameterConfig[] =>
+      defaults.adjustableParameters.map((defaultItem) => {
+        const saved = settings?.adjustableParameters?.find((item) => item.id === defaultItem.id);
+        const legacyConstraints =
+          (settings?.hardConstraints as Array<{
+            id: string;
+            enabled: boolean;
+            value?: number;
+          }>) ?? [];
+        const legacySaved = legacyConstraints.find((item) => item.id === defaultItem.id);
+        const legacyLocks = legacyConstraints.find((item) => item.id === "timeLocks");
+        const legacyTravelLocks = legacyConstraints.find((item) => item.id === "travelTimeLocks");
+        const migratedLegacy =
+          defaultItem.id === "ignoreDepartureLocks" || defaultItem.id === "ignoreArrivalLocks"
+            ? legacyLocks === undefined
+              ? undefined
+              : {enabled: !legacyLocks.enabled}
+            : defaultItem.id === "ignoreTravelTimeLocks"
+              ? legacyTravelLocks === undefined
+                ? undefined
+                : {enabled: !legacyTravelLocks.enabled}
+              : legacySaved;
+        return {...defaultItem, ...migratedLegacy, ...saved, name: defaultItem.name};
       });
     const normalizeObjectives = (
       settings: OptimizationModeSettings,
@@ -109,7 +137,7 @@ export class OptimizationPolicyService {
           settingsMode === "director"
             ? true
             : (saved?.enabled ?? legacyConnectionStability ?? defaultItem.enabled);
-        return {...defaultItem, ...saved, enabled, rating};
+        return {...defaultItem, ...saved, name: defaultItem.name, enabled, rating};
       });
       const order = new Map(
         [...objectives]
@@ -123,10 +151,12 @@ export class OptimizationPolicyService {
     const directorSettings: DirectorModeSettings = {
       directorProfile: normalizeProfile(directorSource?.directorProfile),
       hardConstraints: normalizeHardConstraints(directorSource),
+      adjustableParameters: normalizeAdjustableParameters(directorSource),
       objectives: normalizeObjectives(directorSource, "director"),
     };
     const userDefinedSettings: OptimizationModeSettings = {
       hardConstraints: normalizeHardConstraints(userDefinedSource),
+      adjustableParameters: normalizeAdjustableParameters(userDefinedSource),
       objectives: normalizeObjectives(
         userDefinedSource,
         "userDefined",
@@ -138,6 +168,9 @@ export class OptimizationPolicyService {
       mode,
       directorProfile: directorSettings.directorProfile,
       hardConstraints: activeSettings.hardConstraints.map((constraint) => ({...constraint})),
+      adjustableParameters: activeSettings.adjustableParameters.map((parameter) => ({
+        ...parameter,
+      })),
       objectives: activeSettings.objectives.map((objective) => ({...objective})),
       directorSettings,
       userDefinedSettings,
@@ -149,6 +182,7 @@ export class OptimizationPolicyService {
       mode: policy.mode,
       directorProfile: policy.directorProfile,
       hardConstraints: policy.hardConstraints.map((constraint) => ({...constraint})),
+      adjustableParameters: policy.adjustableParameters.map((parameter) => ({...parameter})),
       objectives: policy.objectives.map((objective) => ({...objective})),
       directorSettings:
         policy.directorSettings === undefined
@@ -158,6 +192,11 @@ export class OptimizationPolicyService {
               hardConstraints: policy.directorSettings.hardConstraints.map((constraint) => ({
                 ...constraint,
               })),
+              adjustableParameters: policy.directorSettings.adjustableParameters.map(
+                (parameter) => ({
+                  ...parameter,
+                }),
+              ),
               objectives: policy.directorSettings.objectives.map((objective) => ({...objective})),
             },
       userDefinedSettings:
@@ -167,6 +206,9 @@ export class OptimizationPolicyService {
               hardConstraints: policy.userDefinedSettings.hardConstraints.map((constraint) => ({
                 ...constraint,
               })),
+              adjustableParameters: policy.userDefinedSettings.adjustableParameters.map(
+                (parameter) => ({...parameter}),
+              ),
               objectives: policy.userDefinedSettings.objectives.map((objective) => ({
                 ...objective,
               })),

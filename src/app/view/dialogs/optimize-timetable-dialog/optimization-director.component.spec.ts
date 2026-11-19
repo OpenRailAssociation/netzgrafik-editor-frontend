@@ -18,7 +18,7 @@ describe("OptimizationDirectorComponent", () => {
     expect(component.ratingValues).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   });
 
-  it("applies the flexible profile and restores standard time rules on profile switch", () => {
+  it("applies and restores the flexible profile parameters", () => {
     const component = new OptimizationDirectorComponent();
     component.policy = createDefaultOptimizationPolicy();
     const policyChange = spyOn(component.policyChange, "emit");
@@ -26,15 +26,22 @@ describe("OptimizationDirectorComponent", () => {
     component.selectProfile("flexibilityFrequencyFirst");
     const flexiblePolicy = policyChange.calls.mostRecent().args[0];
     expect(
-      flexiblePolicy.hardConstraints.find((constraint) => constraint.id === "timeLocks")?.enabled,
-    ).toBeFalse();
+      flexiblePolicy.adjustableParameters.find(
+        (parameter) => parameter.id === "ignoreDepartureLocks",
+      )?.enabled,
+    ).toBeTrue();
     expect(
-      flexiblePolicy.hardConstraints.find((constraint) => constraint.id === "travelTimeLocks")
+      flexiblePolicy.adjustableParameters.find((parameter) => parameter.id === "ignoreArrivalLocks")
         ?.enabled,
-    ).toBeFalse();
+    ).toBeTrue();
     expect(
-      flexiblePolicy.hardConstraints.find(
-        (constraint) => constraint.id === "maxTravelTimeExtension",
+      flexiblePolicy.adjustableParameters.find(
+        (parameter) => parameter.id === "ignoreTravelTimeLocks",
+      )?.enabled,
+    ).toBeTrue();
+    expect(
+      flexiblePolicy.adjustableParameters.find(
+        (parameter) => parameter.id === "maxTravelTimeExtension",
       ),
     ).toEqual(
       jasmine.objectContaining({
@@ -51,15 +58,22 @@ describe("OptimizationDirectorComponent", () => {
     component.selectProfile("stability");
     const standardPolicy = policyChange.calls.mostRecent().args[0];
     expect(
-      standardPolicy.hardConstraints.find((constraint) => constraint.id === "timeLocks")?.enabled,
-    ).toBeTrue();
+      standardPolicy.adjustableParameters.find(
+        (parameter) => parameter.id === "ignoreDepartureLocks",
+      )?.enabled,
+    ).toBeFalse();
     expect(
-      standardPolicy.hardConstraints.find((constraint) => constraint.id === "travelTimeLocks")
+      standardPolicy.adjustableParameters.find((parameter) => parameter.id === "ignoreArrivalLocks")
         ?.enabled,
-    ).toBeTrue();
+    ).toBeFalse();
     expect(
-      standardPolicy.hardConstraints.find(
-        (constraint) => constraint.id === "maxTravelTimeExtension",
+      standardPolicy.adjustableParameters.find(
+        (parameter) => parameter.id === "ignoreTravelTimeLocks",
+      )?.enabled,
+    ).toBeFalse();
+    expect(
+      standardPolicy.adjustableParameters.find(
+        (parameter) => parameter.id === "maxTravelTimeExtension",
       ),
     ).toEqual(
       jasmine.objectContaining({
@@ -79,13 +93,19 @@ describe("OptimizationDirectorComponent", () => {
     const policy = policyChange.calls.mostRecent().args[0];
     expect(policy.directorProfile).toBe("flexibilityFrequencyFirst");
     expect(
-      policy.hardConstraints.find((constraint) => constraint.id === "timeLocks")?.enabled,
-    ).toBeFalse();
+      policy.adjustableParameters.find((parameter) => parameter.id === "ignoreDepartureLocks")
+        ?.enabled,
+    ).toBeTrue();
     expect(
-      policy.hardConstraints.find((constraint) => constraint.id === "travelTimeLocks")?.enabled,
-    ).toBeFalse();
+      policy.adjustableParameters.find((parameter) => parameter.id === "ignoreArrivalLocks")
+        ?.enabled,
+    ).toBeTrue();
     expect(
-      policy.hardConstraints.find((constraint) => constraint.id === "maxTravelTimeExtension"),
+      policy.adjustableParameters.find((parameter) => parameter.id === "ignoreTravelTimeLocks")
+        ?.enabled,
+    ).toBeTrue();
+    expect(
+      policy.adjustableParameters.find((parameter) => parameter.id === "maxTravelTimeExtension"),
     ).toEqual(jasmine.objectContaining({enabled: true, value: 5}));
   });
 
@@ -99,17 +119,18 @@ describe("OptimizationDirectorComponent", () => {
     component.setMode(true);
     let userDefinedPolicy = policyChange.calls.mostRecent().args[0];
     expect(
-      userDefinedPolicy.hardConstraints.find((constraint) => constraint.id === "timeLocks")
-        ?.enabled,
-    ).toBeTrue();
+      userDefinedPolicy.adjustableParameters.find(
+        (parameter) => parameter.id === "ignoreDepartureLocks",
+      )?.enabled,
+    ).toBeFalse();
     expect(
-      userDefinedPolicy.hardConstraints.find(
-        (constraint) => constraint.id === "maxTravelTimeExtension",
+      userDefinedPolicy.adjustableParameters.find(
+        (parameter) => parameter.id === "maxTravelTimeExtension",
       )?.enabled,
     ).toBeFalse();
 
     component.policy = userDefinedPolicy;
-    component.setConstraintEnabled("timeLocks", false);
+    component.setAdjustmentEnabled("ignoreDepartureLocks", true);
     component.policy = policyChange.calls.mostRecent().args[0];
     const trackLimit = component.policy.hardConstraints.find(
       (constraint) => constraint.id === "trackLimit",
@@ -121,11 +142,13 @@ describe("OptimizationDirectorComponent", () => {
     const directorPolicy = policyChange.calls.mostRecent().args[0];
     expect(directorPolicy.directorProfile).toBe("flexibilityFrequencyFirst");
     expect(
-      directorPolicy.hardConstraints.find((constraint) => constraint.id === "timeLocks")?.enabled,
-    ).toBeFalse();
+      directorPolicy.adjustableParameters.find(
+        (parameter) => parameter.id === "ignoreDepartureLocks",
+      )?.enabled,
+    ).toBeTrue();
     expect(
-      directorPolicy.hardConstraints.find(
-        (constraint) => constraint.id === "maxTravelTimeExtension",
+      directorPolicy.adjustableParameters.find(
+        (parameter) => parameter.id === "maxTravelTimeExtension",
       ),
     ).toEqual(jasmine.objectContaining({enabled: true, value: 5}));
     expect(
@@ -136,9 +159,10 @@ describe("OptimizationDirectorComponent", () => {
     component.setMode(true);
     userDefinedPolicy = policyChange.calls.mostRecent().args[0];
     expect(
-      userDefinedPolicy.hardConstraints.find((constraint) => constraint.id === "timeLocks")
-        ?.enabled,
-    ).toBeFalse();
+      userDefinedPolicy.adjustableParameters.find(
+        (parameter) => parameter.id === "ignoreDepartureLocks",
+      )?.enabled,
+    ).toBeTrue();
     expect(
       userDefinedPolicy.hardConstraints.find((constraint) => constraint.id === "trackLimit")?.value,
     ).toBe(4);
@@ -154,28 +178,35 @@ describe("OptimizationDirectorComponent", () => {
     const policy = policyChange.calls.mostRecent().args[0];
     expect(policy.directorProfile).toBe("flexibilityCategoryFirst");
     expect(
-      policy.hardConstraints.find((constraint) => constraint.id === "timeLocks")?.enabled,
-    ).toBeFalse();
+      policy.adjustableParameters.find((parameter) => parameter.id === "ignoreDepartureLocks")
+        ?.enabled,
+    ).toBeTrue();
     expect(
-      policy.hardConstraints.find((constraint) => constraint.id === "travelTimeLocks")?.enabled,
-    ).toBeFalse();
+      policy.adjustableParameters.find((parameter) => parameter.id === "ignoreArrivalLocks")
+        ?.enabled,
+    ).toBeTrue();
     expect(
-      policy.hardConstraints.find((constraint) => constraint.id === "maxTravelTimeExtension"),
+      policy.adjustableParameters.find((parameter) => parameter.id === "ignoreTravelTimeLocks")
+        ?.enabled,
+    ).toBeTrue();
+    expect(
+      policy.adjustableParameters.find((parameter) => parameter.id === "maxTravelTimeExtension"),
     ).toEqual(jasmine.objectContaining({enabled: true, value: 5}));
   });
 
-  it("allows hard-rule toggles in Director mode", () => {
+  it("allows adjustable-parameter toggles in Director mode", () => {
     const component = new OptimizationDirectorComponent();
     component.policy = createDefaultOptimizationPolicy();
     const policyChange = spyOn(component.policyChange, "emit");
 
-    component.setConstraintEnabled("timeLocks", false);
+    component.setAdjustmentEnabled("ignoreDepartureLocks", true);
 
     expect(
       policyChange.calls
         .mostRecent()
-        .args[0].hardConstraints.find((constraint) => constraint.id === "timeLocks")?.enabled,
-    ).toBeFalse();
+        .args[0].adjustableParameters.find((parameter) => parameter.id === "ignoreDepartureLocks")
+        ?.enabled,
+    ).toBeTrue();
     component.setConstraintEnabled("scopeBoundary", false);
     expect(
       policyChange.calls
@@ -184,20 +215,20 @@ describe("OptimizationDirectorComponent", () => {
     ).toBeTrue();
   });
 
-  it("allows adjusting hard-rule values in Director mode", () => {
+  it("allows adjusting adjustable-parameter values in Director mode", () => {
     const component = new OptimizationDirectorComponent();
     component.policy = createDefaultOptimizationPolicy();
     const policyChange = spyOn(component.policyChange, "emit");
-    const extension = component.policy.hardConstraints.find(
-      (constraint) => constraint.id === "maxTravelTimeExtension",
+    const extension = component.policy.adjustableParameters.find(
+      (parameter) => parameter.id === "maxTravelTimeExtension",
     );
 
-    component.setConstraintValue(extension, 7);
+    component.setAdjustmentValue(extension, 7);
 
     expect(
       policyChange.calls
         .mostRecent()
-        .args[0].hardConstraints.find((constraint) => constraint.id === "maxTravelTimeExtension")
+        .args[0].adjustableParameters.find((parameter) => parameter.id === "maxTravelTimeExtension")
         ?.value,
     ).toBe(7);
   });

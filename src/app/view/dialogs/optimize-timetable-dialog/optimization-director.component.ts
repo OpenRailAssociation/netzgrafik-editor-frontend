@@ -1,6 +1,8 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, Input, Output} from "@angular/core";
 import {CdkDragDrop, moveItemInArray} from "@angular/cdk/drag-drop";
 import {
+  AdjustableParameterConfig,
+  AdjustableParameterId,
   DIRECTOR_OBJECTIVE_ORDER,
   DirectorProfileId,
   DirectorModeSettings,
@@ -129,6 +131,7 @@ export class OptimizationDirectorComponent {
       const settings = policy.directorSettings ?? {
         directorProfile: policy.directorProfile,
         hardConstraints: policy.hardConstraints,
+        adjustableParameters: policy.adjustableParameters,
         objectives: policy.objectives,
       };
       this.updatePolicy({
@@ -136,17 +139,20 @@ export class OptimizationDirectorComponent {
         mode,
         directorProfile: settings.directorProfile,
         hardConstraints: settings.hardConstraints,
+        adjustableParameters: settings.adjustableParameters,
         objectives: settings.objectives,
       });
     } else {
       const settings = policy.userDefinedSettings ?? {
         hardConstraints: policy.hardConstraints,
+        adjustableParameters: policy.adjustableParameters,
         objectives: policy.objectives,
       };
       this.updatePolicy({
         ...policy,
         mode,
         hardConstraints: settings.hardConstraints,
+        adjustableParameters: settings.adjustableParameters,
         objectives: settings.objectives,
       });
     }
@@ -162,14 +168,21 @@ export class OptimizationDirectorComponent {
     this.updatePolicy({
       ...this.policy,
       directorProfile: profileId,
-      hardConstraints: this.policy.hardConstraints.map((constraint) => {
-        if (constraint.id === "timeLocks" || constraint.id === "travelTimeLocks") {
-          return {...constraint, enabled: !flexible};
+      adjustableParameters: this.policy.adjustableParameters.map((parameter) => {
+        if (parameter.id === "allowTimeShifts") {
+          return {...parameter, enabled: true};
         }
-        if (constraint.id === "maxTravelTimeExtension") {
-          return {...constraint, enabled: flexible, value: 5};
+        if (
+          parameter.id === "ignoreDepartureLocks" ||
+          parameter.id === "ignoreArrivalLocks" ||
+          parameter.id === "ignoreTravelTimeLocks"
+        ) {
+          return {...parameter, enabled: flexible};
         }
-        return constraint;
+        if (parameter.id === "maxTravelTimeExtension") {
+          return {...parameter, enabled: flexible, value: 5};
+        }
+        return parameter;
       }),
       objectives: this.policy.objectives.map((objective) => ({
         ...objective,
@@ -200,8 +213,8 @@ export class OptimizationDirectorComponent {
   }
 
   setConstraintValue(constraint: HardConstraintConfig, value: number): void {
-    const minimum = constraint.id === "trackLimit" ? 1 : 0;
-    const maximum = constraint.id === "maxTravelTimeExtension" ? 99 : Number.POSITIVE_INFINITY;
+    const minimum = 1;
+    const maximum = Number.POSITIVE_INFINITY;
     const normalizedValue = Math.min(maximum, Math.max(minimum, Math.floor(value || 0)));
     this.updatePolicy({
       ...this.policy,
@@ -209,6 +222,29 @@ export class OptimizationDirectorComponent {
         item.id === constraint.id ? {...item, value: normalizedValue} : item,
       ),
     });
+  }
+
+  setAdjustmentEnabled(id: AdjustableParameterId, enabled: boolean): void {
+    this.updatePolicy({
+      ...this.policy,
+      adjustableParameters: this.policy.adjustableParameters.map((parameter) =>
+        parameter.id === id ? {...parameter, enabled} : parameter,
+      ),
+    });
+  }
+
+  setAdjustmentValue(parameter: AdjustableParameterConfig, value: number): void {
+    const normalizedValue = Math.min(99, Math.max(0, Math.floor(value || 0)));
+    this.updatePolicy({
+      ...this.policy,
+      adjustableParameters: this.policy.adjustableParameters.map((item) =>
+        item.id === parameter.id ? {...item, value: normalizedValue} : item,
+      ),
+    });
+  }
+
+  adjustAdjustmentValue(parameter: AdjustableParameterConfig, adjustment: -1 | 1): void {
+    this.setAdjustmentValue(parameter, (parameter.value ?? 0) + adjustment);
   }
 
   adjustConstraintValue(constraint: HardConstraintConfig, adjustment: -1 | 1): void {
@@ -261,6 +297,7 @@ export class OptimizationDirectorComponent {
   private withActiveSettingsSaved(policy: OptimizationPolicy): OptimizationPolicy {
     const settings: OptimizationModeSettings = {
       hardConstraints: policy.hardConstraints.map((constraint) => ({...constraint})),
+      adjustableParameters: policy.adjustableParameters.map((parameter) => ({...parameter})),
       objectives: policy.objectives.map((objective) => ({...objective})),
     };
     if (policy.mode === "director") {

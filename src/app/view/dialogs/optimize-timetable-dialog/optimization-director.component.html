@@ -40,6 +40,104 @@
                 <sbb-expansion-panel-header>
                   <span class="director-panel-title">
                     {{
+                      "app.view.dialogs.optimize-timetable-dialog.director.hard-conditions"
+                        | translate
+                    }}
+                  </span>
+                </sbb-expansion-panel-header>
+                <p class="rating-help guardrail-description">
+                  {{
+                    "app.view.dialogs.optimize-timetable-dialog.director.hard-conditions-description"
+                      | translate
+                  }}
+                </p>
+                <div
+                  class="director-rule"
+                  *ngFor="let constraint of policy.hardConstraints"
+                  [class.has-value]="constraint.id === 'trackLimit' && constraint.enabled"
+                >
+                  <sbb-checkbox
+                    [ngModel]="constraint.enabled"
+                    [disabled]="constraint.mandatory"
+                    (ngModelChange)="setConstraintEnabled(constraint.id, $event)"
+                  >
+                    <span
+                      class="constraint-name"
+                      [title]="constraint.name + '-tooltip' | translate"
+                    >
+                      {{ constraint.name | translate }}
+                    </span>
+                  </sbb-checkbox>
+                  <sbb-time-stepper
+                    *ngIf="constraint.id === 'trackLimit' && constraint.enabled"
+                    [containerClass]="'constraint-stepper'"
+                    [inputClass]="'constraint-value'"
+                    [inputId]="'optimization-director-' + constraint.id"
+                    [tabIndex]="0"
+                    [value]="constraint.value ?? 1"
+                    [min]="1"
+                    [ariaLabel]="
+                      'app.view.dialogs.optimize-timetable-dialog.max-tracks' | translate
+                    "
+                    (valueChange)="setConstraintValue(constraint, $event)"
+                    (decrement)="adjustConstraintValue(constraint, -1)"
+                    (increment)="adjustConstraintValue(constraint, 1)"
+                  />
+                </div>
+              </sbb-expansion-panel>
+
+              <sbb-expansion-panel>
+                <sbb-expansion-panel-header>
+                  <span class="director-panel-title">
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.director.adjustable-parameters"
+                        | translate
+                    }}
+                  </span>
+                </sbb-expansion-panel-header>
+                <p class="rating-help guardrail-description">
+                  {{
+                    "app.view.dialogs.optimize-timetable-dialog.director.adjustable-parameters-description"
+                      | translate
+                  }}
+                </p>
+                <div
+                  class="director-rule"
+                  *ngFor="let parameter of policy.adjustableParameters"
+                  [class.has-value]="parameter.id === 'maxTravelTimeExtension' && parameter.enabled"
+                >
+                  <sbb-checkbox
+                    [ngModel]="parameter.enabled"
+                    (ngModelChange)="setAdjustmentEnabled(parameter.id, $event)"
+                  >
+                    <span class="constraint-name" [title]="parameter.name + '-tooltip' | translate">
+                      {{ parameter.name | translate }}
+                    </span>
+                  </sbb-checkbox>
+                  <sbb-time-stepper
+                    *ngIf="parameter.id === 'maxTravelTimeExtension' && parameter.enabled"
+                    [containerClass]="'constraint-stepper'"
+                    [inputClass]="'constraint-value'"
+                    [inputId]="'optimization-director-' + parameter.id"
+                    [tabIndex]="0"
+                    [value]="parameter.value ?? 5"
+                    [min]="0"
+                    [max]="99"
+                    [ariaLabel]="
+                      'app.view.dialogs.optimize-timetable-dialog.director.max-extension-value'
+                        | translate
+                    "
+                    (valueChange)="setAdjustmentValue(parameter, $event)"
+                    (decrement)="adjustAdjustmentValue(parameter, -1)"
+                    (increment)="adjustAdjustmentValue(parameter, 1)"
+                  />
+                </div>
+              </sbb-expansion-panel>
+
+              <sbb-expansion-panel [expanded]="false">
+                <sbb-expansion-panel-header>
+                  <span class="director-panel-title">
+                    {{
                       "app.view.dialogs.optimize-timetable-dialog.director.soft-objectives"
                         | translate
                     }}
@@ -90,65 +188,6 @@
                 <sbb-expansion-panel-header>
                   <span class="director-panel-title">
                     {{
-                      "app.view.dialogs.optimize-timetable-dialog.director.fixed-rules" | translate
-                    }}
-                  </span>
-                </sbb-expansion-panel-header>
-                <p class="rating-help guardrail-description">
-                  {{
-                    "app.view.dialogs.optimize-timetable-dialog.director.fixed-rules-description"
-                      | translate
-                  }}
-                </p>
-                <div
-                  class="director-rule"
-                  *ngFor="let constraint of policy.hardConstraints"
-                  [class.has-value]="
-                    (constraint.id === 'trackLimit' && constraint.enabled) ||
-                    (constraint.id === 'maxTravelTimeExtension' && constraint.enabled)
-                  "
-                >
-                  <sbb-checkbox
-                    [ngModel]="constraint.enabled"
-                    [disabled]="constraint.mandatory"
-                    (ngModelChange)="setConstraintEnabled(constraint.id, $event)"
-                  >
-                    <span
-                      class="constraint-name"
-                      [title]="constraint.name + '-tooltip' | translate"
-                    >
-                      {{ constraint.name | translate }}
-                    </span>
-                  </sbb-checkbox>
-                  <sbb-time-stepper
-                    *ngIf="
-                      (constraint.id === 'trackLimit' && constraint.enabled) ||
-                      (constraint.id === 'maxTravelTimeExtension' && constraint.enabled)
-                    "
-                    [containerClass]="'constraint-stepper'"
-                    [inputClass]="'constraint-value'"
-                    [inputId]="'optimization-director-' + constraint.id"
-                    [tabIndex]="0"
-                    [value]="constraint.value ?? (constraint.id === 'trackLimit' ? 1 : 0)"
-                    [min]="constraint.id === 'trackLimit' ? 1 : 0"
-                    [max]="constraint.id === 'maxTravelTimeExtension' ? 99 : undefined"
-                    [ariaLabel]="
-                      (constraint.id === 'trackLimit'
-                        ? 'app.view.dialogs.optimize-timetable-dialog.max-tracks'
-                        : 'app.view.dialogs.optimize-timetable-dialog.director.max-extension-value'
-                      ) | translate
-                    "
-                    (valueChange)="setConstraintValue(constraint, $event)"
-                    (decrement)="adjustConstraintValue(constraint, -1)"
-                    (increment)="adjustConstraintValue(constraint, 1)"
-                  />
-                </div>
-              </sbb-expansion-panel>
-
-              <sbb-expansion-panel>
-                <sbb-expansion-panel-header>
-                  <span class="director-panel-title">
-                    {{
                       "app.view.dialogs.optimize-timetable-dialog.director.show-details" | translate
                     }}
                   </span>
@@ -173,7 +212,8 @@
                 <section class="profile-detail-group">
                   <h5>
                     {{
-                      "app.view.dialogs.optimize-timetable-dialog.director.fixed-rules" | translate
+                      "app.view.dialogs.optimize-timetable-dialog.director.hard-conditions"
+                        | translate
                     }}
                   </h5>
                   <div
@@ -182,6 +222,37 @@
                   >
                     <strong>{{ constraint.name | translate }}</strong>
                     <span>{{ constraint.name + "-tooltip" | translate }}</span>
+                  </div>
+                </section>
+                <section class="profile-detail-group">
+                  <h5>
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.director.adjustable-parameters"
+                        | translate
+                    }}
+                  </h5>
+                  <div
+                    class="profile-objective-detail"
+                    *ngFor="let parameter of policy.adjustableParameters"
+                  >
+                    <strong>{{ parameter.name | translate }}</strong>
+                    <span>{{ parameter.name + "-tooltip" | translate }}</span>
+                  </div>
+                </section>
+                <section class="profile-detail-group">
+                  <h5>
+                    {{
+                      "app.view.dialogs.optimize-timetable-dialog.director.soft-objectives"
+                        | translate
+                    }}
+                  </h5>
+                  <div class="profile-objective-detail" *ngFor="let objective of orderedObjectives">
+                    <strong>{{ objective.name | translate }} · {{ objective.rating }}/10</strong>
+                    <span>
+                      {{
+                        objective.name.replace(".objective.", ".objective-description.") | translate
+                      }}
+                    </span>
                   </div>
                 </section>
               </sbb-expansion-panel>
@@ -195,21 +266,18 @@
   <ng-template #userDefinedControls>
     <section class="user-defined-section guardrail-section">
       <h4>
-        {{ "app.view.dialogs.optimize-timetable-dialog.director.fixed-rules" | translate }}
+        {{ "app.view.dialogs.optimize-timetable-dialog.director.hard-conditions" | translate }}
       </h4>
       <p class="rating-help guardrail-description">
         {{
-          "app.view.dialogs.optimize-timetable-dialog.director.editable-rules-description"
+          "app.view.dialogs.optimize-timetable-dialog.director.hard-conditions-description"
             | translate
         }}
       </p>
       <div
         class="director-rule"
         *ngFor="let constraint of policy.hardConstraints"
-        [class.has-value]="
-          (constraint.id === 'trackLimit' && constraint.enabled) ||
-          (constraint.id === 'maxTravelTimeExtension' && constraint.enabled)
-        "
+        [class.has-value]="constraint.id === 'trackLimit' && constraint.enabled"
       >
         <sbb-checkbox
           [ngModel]="constraint.enabled"
@@ -221,26 +289,61 @@
           </span>
         </sbb-checkbox>
         <sbb-time-stepper
-          *ngIf="
-            (constraint.id === 'trackLimit' && constraint.enabled) ||
-            (constraint.id === 'maxTravelTimeExtension' && constraint.enabled)
-          "
+          *ngIf="constraint.id === 'trackLimit' && constraint.enabled"
           [containerClass]="'constraint-stepper'"
           [inputClass]="'constraint-value'"
           [inputId]="'optimization-' + constraint.id"
           [tabIndex]="0"
-          [value]="constraint.value ?? (constraint.id === 'trackLimit' ? 1 : 0)"
-          [min]="constraint.id === 'trackLimit' ? 1 : 0"
-          [max]="constraint.id === 'maxTravelTimeExtension' ? 99 : undefined"
-          [ariaLabel]="
-            (constraint.id === 'trackLimit'
-              ? 'app.view.dialogs.optimize-timetable-dialog.max-tracks'
-              : 'app.view.dialogs.optimize-timetable-dialog.director.max-extension-value'
-            ) | translate
-          "
+          [value]="constraint.value ?? 1"
+          [min]="1"
+          [ariaLabel]="'app.view.dialogs.optimize-timetable-dialog.max-tracks' | translate"
           (valueChange)="setConstraintValue(constraint, $event)"
           (decrement)="adjustConstraintValue(constraint, -1)"
           (increment)="adjustConstraintValue(constraint, 1)"
+        />
+      </div>
+    </section>
+
+    <section class="user-defined-section adjustable-parameter-section">
+      <h4>
+        {{
+          "app.view.dialogs.optimize-timetable-dialog.director.adjustable-parameters" | translate
+        }}
+      </h4>
+      <p class="rating-help guardrail-description">
+        {{
+          "app.view.dialogs.optimize-timetable-dialog.director.adjustable-parameters-description"
+            | translate
+        }}
+      </p>
+      <div
+        class="director-rule"
+        *ngFor="let parameter of policy.adjustableParameters"
+        [class.has-value]="parameter.id === 'maxTravelTimeExtension' && parameter.enabled"
+      >
+        <sbb-checkbox
+          [ngModel]="parameter.enabled"
+          (ngModelChange)="setAdjustmentEnabled(parameter.id, $event)"
+        >
+          <span class="constraint-name" [title]="parameter.name + '-tooltip' | translate">
+            {{ parameter.name | translate }}
+          </span>
+        </sbb-checkbox>
+        <sbb-time-stepper
+          *ngIf="parameter.id === 'maxTravelTimeExtension' && parameter.enabled"
+          [containerClass]="'constraint-stepper'"
+          [inputClass]="'constraint-value'"
+          [inputId]="'optimization-' + parameter.id"
+          [tabIndex]="0"
+          [value]="parameter.value ?? 5"
+          [min]="0"
+          [max]="99"
+          [ariaLabel]="
+            'app.view.dialogs.optimize-timetable-dialog.director.max-extension-value' | translate
+          "
+          (valueChange)="setAdjustmentValue(parameter, $event)"
+          (decrement)="adjustAdjustmentValue(parameter, -1)"
+          (increment)="adjustAdjustmentValue(parameter, 1)"
         />
       </div>
     </section>
