@@ -1,0 +1,23 @@
+<h2 class="LeftPanelTitle">{{ "app.view.editor-search-view-component.search" | translate }}</h2>
+
+<sbb-accordion [multi]="true">
+  <sbb-expansion-panel [expanded]="true">
+    <sbb-expansion-panel-header
+      >{{ "app.view.editor-search-view-component.node" | translate }}</sbb-expansion-panel-header
+    >
+
+    <sbb-editor-node-search-view-component></sbb-editor-node-search-view-component>
+
+    <br />
+  </sbb-expansion-panel>
+
+  <sbb-expansion-panel [expanded]="true">
+    <sbb-expansion-panel-header
+      >{{ "app.view.editor-search-view-component.trainrun" | translate
+      }}</sbb-expansion-panel-header
+    >
+
+    <sbb-editor-trainrun-search-view-component></sbb-editor-trainrun-search-view-component>
+    <br />
+  </sbb-expansion-panel>
+</sbb-accordion>

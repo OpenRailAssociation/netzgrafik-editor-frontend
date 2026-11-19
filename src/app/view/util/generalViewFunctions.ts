@@ -5,6 +5,14 @@ import {Node} from "../../models/node.model";
 import {VisAVisPortPlacement} from "../../services/util/node.port.placement";
 
 export class GeneralViewFunctions {
+  /**
+   * Returns a display name for a node, combining its short name and full name.
+   * For instance: "ZUE (Zürich)"
+   */
+  static getNodeDisplayName(node: Node): string {
+    return `${node.getBetriebspunktName()} (${node.getFullName()})`;
+  }
+
   static calcDialogTopLeftScreenCoordinate(windowsPosition: Vec2D, dialogDimension: Vec2D): Vec2D {
     /*
       The SVG (netzgrafik) rendering area has its own local coordinate system and can be different
