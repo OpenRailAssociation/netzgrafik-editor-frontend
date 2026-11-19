@@ -38,7 +38,7 @@ import {
 import {TrainrunsectionHelper} from "../util/trainrunsection.helper";
 
 export interface OrderedTrainrunNodeEntry {
-  /** ID of the node represented by this entry. */
+  /** ID of the source node represented by this entry. */
   nodeId: number;
   /** ID of a trainrun section associated with this node; every entry has one. */
   trainrunSectionId: number;
@@ -618,16 +618,16 @@ export class TrainrunService {
     return {endNode1, endNode2};
   }
 
+  /**
+   * Returns all trainrun-parts in top-left order: each part is traversed from its left/top end,
+   * and the parts are ordered by their left/top start node. A gap separates disconnected parts.
+   * When the trainrun has disconnected part the gaps is set to true and the section is undefined(null)
+   * The last node entry has no section, because it represents the end of the trainrun.
+   *
+   * TODO - Refactor the LoadPerlenketteService.getPerlenketteItem and integrate this getOrderedNodeEntriesForTrainrun
+   * to unify the trainrun node and section order.
+   */
   getOrderedNodeEntriesForTrainrun(trainrun: Trainrun): OrderedTrainrunNodeEntry[] {
-    /**
-     * Returns all trainrun-parts in top-left order: each part is traversed from its left/top end,
-     * and the parts are ordered by their left/top start node. A gap separates disconnected parts.
-     * When the trainrun has disconnected part the gaps is set to true and the section is undefined(null)
-     * The last node entry has no section, because it represents the end of the trainrun.
-     *
-     * TODO - Refactor the LoadPerlenketteService.getPerlenketteItem and integrate this getOrderedNodeEntriesForTrainrun
-     * to unify the trainrun node and section order.
-     */
     const entryGroups = this.getAllNodeEntriesForTrainrun(trainrun);
 
     entryGroups.sort((groupA, groupB) => {
@@ -648,18 +648,17 @@ export class TrainrunService {
     return entryGroups.flat();
   }
 
+  /**
+   * This method iterates over all trainrunSections for a given trainrun. It further
+   * tests the Netzgrafik-Editor "key-concept" that we start a traversal at top-left towards
+   * botton-right. This means that the main direction for a trainrun is always from top-left towards
+   * bottom-right.
+   *
+   * This method returns a list of node with trainrunSection traversed in the order determined
+   * by the top-left to bottom-right traversal approach. Last entry doesn't have a trainrunSection
+   * because the end has no trainrunSection associated with it.
+   */
   getAllNodeEntriesForTrainrun(trainrun: Trainrun): OrderedTrainrunNodeEntry[][] {
-    /**
-     * This method iterates over all trainrunSections for a given trainrun. It further groups
-     * tests the Netzgrafik-Editor "key-concept" that we start a traversal at top-left towards
-     * botton-right. This means that the main direction for a trainin is allway from top-left towards
-     * bottom-right.
-     * This mehtod returns a list of node with trainrunSection traversed in the order determined
-     * by the top-left to bottom-right traversal approach. Last entry don't have a trainrunSection
-     * because the end has no trainrunSection associated with it. If the trainrun has "block" - hole
-     * between parts, it the method returns n trainrun parts, with (node, section) tubple, for last
-     * node at part (endNode) the section is undefined.
-     */
     let allTrainrunSections = this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
       trainrun.getId(),
     );
@@ -692,10 +691,8 @@ export class TrainrunService {
           hasGapAfter: false,
         },
       ];
-
       const iterator = this.getIterator(startNode, startSection);
-      while (iterator.hasNext()) {
-        const pair = iterator.next();
+      for (const pair of iterator) {
         groupEntries.push({
           nodeId: pair.node.getId(),
           trainrunSectionId: pair.trainrunSection.getId(),

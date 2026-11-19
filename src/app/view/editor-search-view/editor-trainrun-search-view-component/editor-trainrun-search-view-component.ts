@@ -1,7 +1,7 @@
 import {Component, ChangeDetectionStrategy, OnDestroy, OnInit} from "@angular/core";
 import {FilterService} from "../../../services/ui/filter.service";
-import {takeUntil} from "rxjs/operators";
-import {Subject} from "rxjs";
+import {auditTime, takeUntil} from "rxjs/operators";
+import {combineLatest, Subject} from "rxjs";
 import {Trainrun} from "../../../models/trainrun.model";
 import {TrainrunService} from "../../../services/data/trainrun.service";
 import {
@@ -59,53 +59,22 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.trainrunService.trainruns
-      .pipe(takeUntil(this.destroyed))
-      .subscribe((trainruns: Trainrun[]) => {
-        this.allSearchableTrainruns = trainruns.filter((trainrun) =>
-          this.filterService.filterTrainrun(trainrun),
-        );
+    combineLatest([
+      this.trainrunService.trainruns,
+      this.trainrunSectionService.trainrunSections,
+      this.nodeService.nodes,
+      this.filterService.filter,
+    ])
+      .pipe(auditTime(0), takeUntil(this.destroyed))
+      .subscribe(([trainruns]) => {
+        this.allSearchableTrainruns = trainruns.filter((t) => this.filterService.filterTrainrun(t));
         this.updateFilteredTrainruns(this.searchControl.value);
         this.orderedNodeEntries = this.updateOrderedNodeEntries();
-        if (!this.trainrunService.getSelectedTrainrun()) {
-          this.searchControl.setValue("");
-        } else {
-          const currentValue = this.searchControl.value;
-          if (currentValue instanceof Trainrun) {
-            if (this.trainrunService.getSelectedTrainrun().getId() !== currentValue.getId()) {
-              this.searchControl.setValue(this.trainrunService.getSelectedTrainrun());
-              this.search();
-            }
-          } else {
-            this.searchControl.setValue(this.trainrunService.getSelectedTrainrun());
-            this.search();
-          }
-        }
       });
 
-    this.trainrunSectionService.trainrunSections.pipe(takeUntil(this.destroyed)).subscribe(() => {
-      this.allSearchableTrainruns = this.trainrunService
-        .getTrainruns()
-        .filter((trainrun) => this.filterService.filterTrainrun(trainrun));
-      this.updateFilteredTrainruns(this.searchControl.value);
-      this.orderedNodeEntries = this.updateOrderedNodeEntries();
-    });
-
-    this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe(() => {
-      this.orderedNodeEntries = this.updateOrderedNodeEntries();
-    });
-
-    this.filterService.filter.pipe(takeUntil(this.destroyed)).subscribe(() => {
-      this.allSearchableTrainruns = this.trainrunService
-        .getTrainruns()
-        .filter((trainrun) => this.filterService.filterTrainrun(trainrun));
-      this.updateFilteredTrainruns(this.searchControl.value);
-      this.orderedNodeEntries = this.updateOrderedNodeEntries();
-    });
-
-    this.searchControl.valueChanges.pipe(takeUntil(this.destroyed)).subscribe((value) => {
-      this.updateFilteredTrainruns(value);
-    });
+    this.searchControl.valueChanges
+      .pipe(takeUntil(this.destroyed))
+      .subscribe((value) => this.updateFilteredTrainruns(value));
   }
 
   ngOnDestroy(): void {
@@ -156,18 +125,19 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     return this.trainrunService.getSelectedTrainrun()?.getId() === trainrun.getId();
   }
 
+  /**
+   * View specific transformation of the ordered node entries for display the data in the
+   * search result view.
+   * If a node is hidden due to the filter - a gap will be rendered. But if the node is the
+   * start or end node of the trainrun the node is shown as final destination even if it is hidden.
+   * This must be takne into account to not diverge from the Netzgrafik-Editor Main view / behavior.
+   */
   updateOrderedNodeEntries() {
-    /**
-     * View specific transformation of the ordered node entries for display the data in the
-     * search result view.
-     * If a node is hidden due to the filter - a gap will be rendered. But if the node is the
-     * start or end node of the trainrun the node is shown as final destination even if it is hidden.
-     * This must be takne into account to not diverge from the Netzgrafik-Editor Main view / behavior.
-     */
-    if (this.trainrunService.getSelectedTrainrun()) {
-      const orderedEntries = this.trainrunService.getOrderedNodeEntriesForTrainrun(
-        this.trainrunService.getSelectedTrainrun(),
-      );
+    const selectedTrainrun = this.trainrunService.getSelectedTrainrun();
+    if (selectedTrainrun) {
+      const orderedEntries =
+        this.trainrunService.getOrderedNodeEntriesForTrainrun(selectedTrainrun);
+      console.log(orderedEntries);
       this.startNode = orderedEntries.at(0);
       this.endNode = orderedEntries.at(-1);
       this.startNodeHidden = this.isNodeEntryHidden(this.startNode);
