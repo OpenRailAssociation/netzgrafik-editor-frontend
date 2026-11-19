@@ -35,6 +35,7 @@ import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helpe
 import {TransitionViewObject} from "./transitionViewObject";
 
 export class TrainrunSectionsView {
+  private static readonly ASYMMETRY_ARROW_PATH = "M-1,-6 V0 H-8 L1,6 V0 H8 Z";
   trainrunSectionGroup: d3.Selection<SVGGElement, undefined, Element, undefined>;
 
   constructor(private editorView: EditorView) {}
@@ -1184,7 +1185,7 @@ export class TrainrunSectionsView {
             : !d.trainrunSection.isTargetSymmetricOrTimesSymmetric();
         })
         .append(StaticDomTags.EDGE_LINE_ARROW_SVG)
-        .attr("d", "M-1,-6 V0 H-8 L1,6 V0 H8 Z")
+        .attr("d", TrainrunSectionsView.ASYMMETRY_ARROW_PATH)
         .attr("transform", (d: TrainrunSectionViewObject) =>
           this.translateAndRotateArrow(d.trainrunSection, arrowLocation, "SYMMETRY"),
         )
@@ -1607,6 +1608,62 @@ export class TrainrunSectionsView {
       enableEvents,
       true,
     );
+  }
+
+  private groupAsymmetricTravelTimes(
+    labels: d3.Selection<SVGGElement, TrainrunSectionViewObject, Element, undefined>,
+    selectedTrainrun: Trainrun,
+    connectedTrainIds: number[],
+  ): void {
+    labels.each(function ({trainrunSection}) {
+      const group = d3.select(this);
+      const visibleTime = (element: TrainrunSectionText) =>
+        group.select<SVGTextElement>(
+          `text[${StaticDomTags.EDGE_LINE_TEXT_INDEX}="${element}"]:not(.${StaticDomTags.TAG_HIDDEN})`,
+        );
+      const forward = visibleTime(TrainrunSectionText.TrainrunSectionTravelTime);
+      const backward = visibleTime(TrainrunSectionText.TrainrunSectionBackwardTravelTime);
+      if (forward.empty() || backward.empty()) {
+        return;
+      }
+
+      const [, start, end] = trainrunSection.getPath();
+      const dx = end.getX() - start.getX();
+      const dy = end.getY() - start.getY();
+      // Match the reading direction of the rotated label (bottom to top when vertical).
+      const forwardPointsRight = Math.abs(dx) < 1 && Math.abs(dy) >= 1 ? dy < 0 : dx >= 0;
+      const [left, right] = forwardPointsRight ? [backward, forward] : [forward, backward];
+      const transform = TrainrunSectionsView.translateAndRotateText(
+        trainrunSection,
+        TrainrunSectionText.TrainrunSectionName,
+      );
+      const iconX = Number(left.attr("x")) + left.node()!.getComputedTextLength() + 12;
+      left.attr("transform", transform);
+      right.attr("transform", transform).attr("x", iconX + 12);
+      group
+        .append("path")
+        .attr("d", TrainrunSectionsView.ASYMMETRY_ARROW_PATH)
+        .attr("transform", `${transform} translate(${iconX},0)`)
+        .attr("pointer-events", "none")
+        .attr("aria-hidden", "true")
+        .attr(
+          "class",
+          StaticDomTags.EDGE_LINE_ARROW_CLASS +
+            TrainrunSectionsView.createTrainrunSectionFrequencyClassAttribute(
+              trainrunSection,
+              selectedTrainrun,
+              connectedTrainIds,
+            ),
+        )
+        .classed(
+          StaticDomTags.TAG_SELECTED,
+          TrainrunSectionsView.isSectionSelected(trainrunSection),
+        )
+        .classed(
+          StaticDomTags.TAG_MUTED,
+          TrainrunSectionsView.isMuted(trainrunSection, selectedTrainrun, connectedTrainIds),
+        );
+    });
   }
 
   createTrainrunSectionGotoInfoElement(
@@ -2574,6 +2631,7 @@ export class TrainrunSectionsView {
           connectedTrainIds,
           TrainrunSectionText.TrainrunSectionBackwardTravelTime,
         );
+        this.groupAsymmetricTravelTimes(groupLabels, selectedTrainrun, connectedTrainIds);
       }
 
       if (
