@@ -66,15 +66,39 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
       this.filterService.filter,
     ])
       .pipe(auditTime(0), takeUntil(this.destroyed))
-      .subscribe(([trainruns]) => {
-        this.allSearchableTrainruns = trainruns.filter((t) => this.filterService.filterTrainrun(t));
+      .subscribe(() => {
+        this.allSearchableTrainruns = this.trainrunService
+          .getTrainruns()
+          .filter((trainrun) => this.filterService.filterTrainrun(trainrun));
         this.updateFilteredTrainruns(this.searchControl.value);
         this.orderedNodeEntries = this.updateOrderedNodeEntries();
+        this.syncSearchInputWithSelectedTrainrun();
       });
 
     this.searchControl.valueChanges
       .pipe(takeUntil(this.destroyed))
       .subscribe((value) => this.updateFilteredTrainruns(value));
+  }
+
+  /**
+   * If a trainrun got selected elsewhere in the app, update the search input to that
+   * trainrun and show it in the search results. Clears the input when no trainrun is selected.
+   */
+  private syncSearchInputWithSelectedTrainrun(): void {
+    const selectedTrainrun = this.trainrunService.getSelectedTrainrun();
+    const currentValue = this.searchControl.value;
+
+    if (!selectedTrainrun) {
+      if (currentValue !== "") {
+        this.searchControl.setValue("");
+      }
+      return;
+    }
+
+    if (!(currentValue instanceof Trainrun) || currentValue.getId() !== selectedTrainrun.getId()) {
+      this.searchControl.setValue(selectedTrainrun);
+      this.search();
+    }
   }
 
   ngOnDestroy(): void {
@@ -137,7 +161,6 @@ export class EditorTrainrunSearchViewComponent implements OnInit, OnDestroy {
     if (selectedTrainrun) {
       const orderedEntries =
         this.trainrunService.getOrderedNodeEntriesForTrainrun(selectedTrainrun);
-      console.log(orderedEntries);
       this.startNode = orderedEntries.at(0);
       this.endNode = orderedEntries.at(-1);
       this.startNodeHidden = this.isNodeEntryHidden(this.startNode);
