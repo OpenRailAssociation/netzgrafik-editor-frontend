@@ -7,6 +7,7 @@ import {
   OrderingAlgorithm,
   PathDto,
   PortDto,
+  SectionRenderingStyle,
   TimeLockDto,
   TransitionDto,
   WarningDto,
@@ -275,6 +276,7 @@ export interface MetadataDto {
   analyticsSettings?: AnalyticsSettingsDto;
   orderingAlgorithm?: OrderingAlgorithm;
   trafficSide?: TrafficSide;
+  sectionRenderingStyle: SectionRenderingStyle;
 }
 
 /**

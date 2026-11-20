@@ -21,6 +21,13 @@
     },
     "left": "Gauche",
     "right": "Droite",
+    "sectionRenderingStyle": {
+      "title": "Style de tracé des sections",
+      "oblique": "Oblique",
+      "orthogonal": "Angles droits",
+      "obliqueTooltip": "Les sections sont dessinées en lignes directes d'un noeud à l'autre.",
+      "orthogonalTooltip": "Les sections sont dessinées en lignes horizontales et verticales d'un noeud à l'autre."
+    },
     "models": {
       "node": {
         "shortNameDefault": "NEW",

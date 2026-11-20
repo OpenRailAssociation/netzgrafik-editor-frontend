@@ -21,6 +21,13 @@
     },
     "left": "Left",
     "right": "Right",
+    "sectionRenderingStyle": {
+      "title": "Section rendering style",
+      "oblique": "Oblique",
+      "orthogonal": "Orthogonal",
+      "obliqueTooltip": "Sections are drawn as direct lines between nodes.",
+      "orthogonalTooltip": "Sections are drawn with horizontal and vertical segments only."
+    },
     "models": {
       "node": {
         "shortNameDefault": "NEW",

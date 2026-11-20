@@ -154,7 +154,21 @@
       </sbb-radio-button>
     </sbb-radio-group>
   </sbb-expansion-panel>
-
+  <sbb-expansion-panel [expanded]="true">
+    <sbb-expansion-panel-header>{{
+      "app.sectionRenderingStyle.title" | translate
+    }}</sbb-expansion-panel-header>
+    <sbb-radio-group [(ngModel)]="activeSectionRenderingStyle" class="sbb-radio-group-vertical">
+      <sbb-radio-button
+        *ngFor="let option of sectionRenderingStyleOptions"
+        [value]="option.sectionRenderingStyle"
+        [title]="option.title"
+        (change)="onUpdateSectionRenderingStyle($event)"
+      >
+        {{ option.name }}
+      </sbb-radio-button>
+    </sbb-radio-group>
+  </sbb-expansion-panel>
   <sbb-expansion-panel [expanded]="true">
     <sbb-expansion-panel-header>{{
       "app.view.editor-properties-view-component.graphicTimetable" | translate
