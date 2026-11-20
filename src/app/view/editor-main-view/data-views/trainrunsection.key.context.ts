@@ -1,5 +1,4 @@
 import {Node} from "../../../models/node.model";
-import {Trainrun} from "../../../models/trainrun.model";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
 import {TrafficSide} from "../../../data-structures/business.data.structures";
 import {EditorView} from "./editor.view";
@@ -11,8 +10,6 @@ export interface NodeFilters {
 }
 
 export interface TrainrunSectionKeyContext {
-  selectedTrainrun: Trainrun | null;
-  connectedTrainIds: number[];
   timeDisplayPrecision: number;
   hiddenTagDirectionArrows: boolean;
   hiddenTagAsymmetryArrows: boolean;
@@ -30,16 +27,12 @@ export interface TrainrunSectionKeyContext {
 export const createTrainrunSectionKeyContext = (
   editorView: EditorView,
 ): TrainrunSectionKeyContext => {
-  const selectedTrainrun = editorView.getSelectedTrainrun();
   const isTemporaryDisableFilteringOfItemsInViewEnabled =
     editorView.isTemporaryDisableFilteringOfItemsInViewEnabled();
   const isFilterDirectionArrowsEnabled = editorView.isFilterDirectionArrowsEnabled();
   const nodeFilters = new Map<number, NodeFilters>();
 
   return {
-    selectedTrainrun,
-    connectedTrainIds:
-      selectedTrainrun !== null ? editorView.getConnectedTrainrunIds(selectedTrainrun) : [],
     timeDisplayPrecision: editorView.getTimeDisplayPrecision(),
     hiddenTagDirectionArrows:
       !isTemporaryDisableFilteringOfItemsInViewEnabled && !isFilterDirectionArrowsEnabled,

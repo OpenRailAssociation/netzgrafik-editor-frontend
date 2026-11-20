@@ -10,7 +10,6 @@ export class TransitionViewObject {
   constructor(
     private editorView: EditorView,
     public transition: Transition,
-    private isMuted: boolean = false,
   ) {
     const node = editorView.getNodeFromTransition(transition);
     const port1 = node.getPort(transition.getPortId1());
@@ -49,8 +48,6 @@ export class TransitionViewObject {
       this.transition.getTrainrun().getTrainrunFrequency().frequency +
       "_" +
       this.editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() +
-      "_" +
-      this.isMuted +
       "_" +
       this.editorView.trainrunSectionPreviewLineView.getVariantIsWritable();
 
