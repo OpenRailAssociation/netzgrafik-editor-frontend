@@ -9,6 +9,7 @@ import {DragTransitionInfo, PreviewLineMode} from "./trainrunsection.previewline
 import {Vec2D} from "../../../utils/vec2D";
 import {TransitionViewObject} from "./transitionViewObject";
 import {LinePatternRefs} from "../../../data-structures/business.data.structures";
+import {MUTEABLE_CLASS, updateMuted} from "./muted.update";
 
 export class TransitionsView {
   transitionsGroup: d3.Selection<SVGGElement, undefined, Element, undefined>;
@@ -65,18 +66,10 @@ export class TransitionsView {
   static createTransitionViewObjects(
     editorView: EditorView,
     inputTransitions: Transition[],
-    selectedTrainrun: Trainrun,
-    connectedTrainrunIds: number[],
   ): TransitionViewObject[] {
     const viewTransitionViewObjects: TransitionViewObject[] = [];
     inputTransitions.forEach((transition: Transition) => {
-      viewTransitionViewObjects.push(
-        new TransitionViewObject(
-          editorView,
-          transition,
-          TransitionsView.isMuted(transition.getTrainrun(), selectedTrainrun, connectedTrainrunIds),
-        ),
-      );
+      viewTransitionViewObjects.push(new TransitionViewObject(editorView, transition));
     });
     return viewTransitionViewObjects;
   }
@@ -107,6 +100,7 @@ export class TransitionsView {
             connectedTrainIds,
           ),
       )
+      .classed(MUTEABLE_CLASS, true)
       .attr(StaticDomTags.TRANSITION_TRAINRUNSECTION_ID1, (t: TransitionViewObject) => {
         const n: Node = editorView.getNodeFromTransition(t.transition);
         return "" + n.getPort(t.transition.getPortId1()).getTrainrunSection().getId();
@@ -140,6 +134,7 @@ export class TransitionsView {
             connectedTrainIds,
           )}`,
       )
+      .classed(MUTEABLE_CLASS, true)
       .classed(StaticDomTags.TAG_SELECTED, (t: TransitionViewObject) =>
         t.transition.getTrainrun().selected(),
       )
@@ -185,7 +180,14 @@ export class TransitionsView {
     return this.editorView.filterTrainrun(trainrun) && this.editorView.checkFilterNode(node);
   }
 
+  private lastTransitions: Transition[] = [];
+
+  displayForViewport() {
+    this.displayTransitions(this.lastTransitions);
+  }
+
   displayTransitions(inputTransitions: Transition[]) {
+    this.lastTransitions = inputTransitions;
     const selectedTrainrun: Trainrun = this.editorView.getSelectedTrainrun();
     let connectedTrainIds: number[] = [];
     if (selectedTrainrun !== null) {
@@ -221,14 +223,12 @@ export class TransitionsView {
     const transitionsGroup = rootGroup
       .selectAll<SVGElement, TransitionViewObject>(StaticDomTags.TRANSITION_ROOT_CONTAINER_DOM_REF)
       .data(
-        TransitionsView.createTransitionViewObjects(
-          this.editorView,
-          transitions,
-          selectedTrainrun,
-          connectedTrainIds,
-        ),
+        TransitionsView.createTransitionViewObjects(this.editorView, transitions),
         (t: TransitionViewObject) => t.key,
       );
+    updateMuted(transitionsGroup, (t) =>
+      TransitionsView.isMuted(t.transition.getTrainrun(), selectedTrainrun, connectedTrainIds),
+    );
 
     const grpEnter = transitionsGroup
       .enter()

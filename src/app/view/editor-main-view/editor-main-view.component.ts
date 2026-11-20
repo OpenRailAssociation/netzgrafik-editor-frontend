@@ -535,29 +535,29 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
   private subscribeViewToServices() {
     this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe((updatedNodes) => {
       this.editorView.nodesView.displayNodes(updatedNodes);
-      this.editorView.postDisplayRendering();
+      this.editorView.requestPostDisplayRendering();
     });
 
     this.nodeService.transitions.pipe(takeUntil(this.destroyed)).subscribe((updatedTransitions) => {
       this.editorView.transitionsView.displayTransitions(updatedTransitions);
-      this.editorView.postDisplayRendering();
+      this.editorView.requestPostDisplayRendering();
     });
 
     this.nodeService.connections.pipe(takeUntil(this.destroyed)).subscribe((updatedConnections) => {
       this.editorView.connectionsView.displayConnections(updatedConnections);
-      this.editorView.postDisplayRendering();
+      this.editorView.requestPostDisplayRendering();
     });
 
     this.trainrunSectionService.trainrunSections
       .pipe(takeUntil(this.destroyed))
       .subscribe((updatedTrainrunSections) => {
         this.editorView.trainrunSectionsView.displayTrainrunSection(updatedTrainrunSections);
-        this.editorView.postDisplayRendering();
+        this.editorView.requestPostDisplayRendering();
       });
 
     this.noteService.notes.pipe(takeUntil(this.destroyed)).subscribe((updatedNotes) => {
       this.editorView.notesView.displayNotes(updatedNotes);
-      this.editorView.postDisplayRendering();
+      this.editorView.requestPostDisplayRendering();
     });
 
     this.nodeService.nodes.pipe(takeUntil(this.destroyed)).subscribe(() => {

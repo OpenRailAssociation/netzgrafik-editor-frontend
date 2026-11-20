@@ -5,6 +5,7 @@ import {PreviewLineMode, TrainrunSectionPreviewLineView} from "./trainrunsection
 import {StaticDomTags} from "./static.dom.tags";
 import {TransitionsView} from "./transitions.view";
 import {Vec2D} from "../../../utils/vec2D";
+import {batchToMicrotask} from "../../../utils/microtask";
 import {EditorMainViewComponent} from "../editor-main-view.component";
 import {UiInteractionService, ViewboxProperties} from "../../../services/ui/ui.interaction.service";
 import {EditorMode} from "../../editor-menu/editor-mode";
@@ -182,6 +183,21 @@ export class EditorView implements SVGMouseControllerObserver {
   startUndoRecording: (() => void) | null = null;
 
   private elementDragging = false;
+  // A zoom step changes both the viewbox and the zoom factor: render once for both.
+  // Data did not change: each layer only displays again what it last displayed.
+  private requestViewportRendering = batchToMicrotask(() => {
+    this.viewportCullService.enableViewportCheck();
+    [
+      this.nodesView,
+      this.transitionsView,
+      this.connectionsView,
+      this.trainrunSectionsView,
+      this.notesView,
+    ].forEach((view) => view.displayForViewport());
+    this.requestPostDisplayRendering();
+  });
+  // Each layer rendering asks for it: run it once per rendering pass, to read the layout once
+  requestPostDisplayRendering = batchToMicrotask(() => this.postDisplayRendering());
 
   constructor(
     controller: EditorMainViewComponent,
@@ -789,12 +805,12 @@ export class EditorView implements SVGMouseControllerObserver {
 
   zoomFactorChanged(newZoomFactor: number) {
     this.controller.zoomFactorChanged(newZoomFactor);
-    this.viewportCullService.onViewportChangeUpdateRendering(true);
+    this.requestViewportRendering();
   }
 
   onViewboxChanged(viewboxProperties: ViewboxProperties) {
     this.uiInteractionService.setViewboxProperties(EditorView.svgName, viewboxProperties);
-    this.viewportCullService.onViewportChangeUpdateRendering(true);
+    this.requestViewportRendering();
   }
 
   doCullCheckPositionsInViewport(positions: Vec2D[], extraPixelsIn = 32): boolean {
