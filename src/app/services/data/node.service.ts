@@ -880,9 +880,7 @@ export class NodeService implements OnDestroy {
   }
 
   getNodeForConnection(connection: Connection): Node {
-    return this.nodesStore.nodes.find(
-      (n: Node) => n.getConnectionFromId(connection.getId()) !== undefined,
-    );
+    return connection.ownerNode;
   }
 
   changeNodeBetriebspunktName(nodeId: number, name: string) {

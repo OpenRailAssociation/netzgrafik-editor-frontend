@@ -88,7 +88,7 @@ export class Node {
     this.positionY = positionY;
     this.ports = ports.map((portDto) => new Port(portDto));
     this.transitions = transitions.map((transitionDto) => new Transition(this, transitionDto));
-    this.connections = connections.map((connectionDto) => new Connection(connectionDto));
+    this.connections = connections.map((connectionDto) => new Connection(this, connectionDto));
     this.resourceId = resourceId;
     this.perronkanten = perronkanten;
     this.connectionTime = connectionTime;
@@ -578,7 +578,7 @@ export class Node {
   }
 
   addConnection(port1: Port, port2: Port) {
-    const connection: Connection = new Connection();
+    const connection: Connection = new Connection(this);
     connection.setPort1Id(port1.getId());
     connection.setPort2Id(port2.getId());
     ConnectionValidator.validateConnection(connection, this);
