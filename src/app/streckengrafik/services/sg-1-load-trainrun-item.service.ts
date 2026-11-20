@@ -62,10 +62,8 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
       });
 
     this.trainrunService.trainruns.pipe(takeUntil(this.destroyed$)).subscribe((trainruns) => {
-      if (this.trainruns !== trainruns) {
-        this.trainruns = trainruns;
-        this.render();
-      }
+      this.trainruns = trainruns;
+      this.render();
     });
 
     this.trainrunSectionService.trainrunSections
@@ -100,23 +98,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
   }
 
   private render() {
-    if (this.uiInteractionService.getEditorMode() !== EditorMode.StreckengrafikEditing) {
-      return;
-    }
-
-    if (!this.trainruns) {
-      return;
-    }
-
-    if (this.trainruns.length === 0) {
-      return;
-    }
-
-    if (!this.trainrunSections) {
-      return;
-    }
-
-    if (this.trainrunSections.length === 0) {
+    if (!this.canRender()) {
       return;
     }
 
@@ -138,6 +120,14 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
       this.trainrunItemSubject.next(this.cachedTrainrunItems);
       this.trainrunItemsSubject.next(this.loadTrainrunItems(this.cachedTrainrunItems));
     }
+  }
+
+  private canRender(): boolean {
+    return (
+      this.uiInteractionService.getEditorMode() === EditorMode.StreckengrafikEditing &&
+      this.trainruns?.length > 0 &&
+      this.trainrunSections?.length > 0
+    );
   }
 
   private createCorridorFromSelectedTrainrun() {
@@ -345,22 +335,6 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
     return arrTime + wendeTime;
   }
 
-  private getTurnaroundStartNodeBackward(
-    fromNode: Node,
-    trainrunSection: TrainrunSection,
-    trainrun: Trainrun,
-  ): number {
-    return this.getTurnaroundStartNodeForward(fromNode, trainrunSection, trainrun);
-  }
-
-  private getTurnaroundEndNodeBackward(
-    fromNode: Node,
-    trainrunSection: TrainrunSection,
-    trainrun: Trainrun,
-  ): number {
-    return this.getTurnaroundEndNodeForward(fromNode, trainrunSection, trainrun);
-  }
-
   private determineForwardBackwardNodes(
     trainrunSection: TrainrunSection,
     onlyForward: boolean,
@@ -538,7 +512,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         if (fromNode.getId() === forwardBackwardNodes.startBackwardNode.getId()) {
           const sourcePathNode = new PathNode(
             fromNode.getDepartureConsecutiveTime(trainrunSection),
-            this.getTurnaroundStartNodeBackward(fromNode, trainrunSection, trainrun),
+            this.getTurnaroundStartNodeForward(fromNode, trainrunSection, trainrun),
             fromNode.getId(),
             fromNode.getBetriebspunktName(),
             fromNode.getFullName(),
@@ -581,7 +555,7 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
         );
 
         if (toNode.getId() === forwardBackwardNodes.startForwardNode.getId()) {
-          targetPathNode.departureTime = this.getTurnaroundEndNodeBackward(
+          targetPathNode.departureTime = this.getTurnaroundEndNodeForward(
             toNode,
             trainrunSection,
             trainrun,
@@ -593,31 +567,36 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
       });
     }
 
-    if (forwardEndNode !== undefined && backwardStartNode !== undefined) {
-      if (forwardEndNode.departureTime - forwardEndNode.arrivalTime >= trainrun.getFrequency()) {
-        forwardEndNode.arrivalTime = backwardStartNode.arrivalTime + trainrun.getFrequency();
-        forwardEndNode.departureTime = backwardStartNode.departureTime + trainrun.getFrequency();
+    if (trainrun.getDirection() !== Direction.ONE_WAY) {
+      if (forwardEndNode !== undefined && backwardStartNode !== undefined) {
+        if (forwardEndNode.departureTime - forwardEndNode.arrivalTime >= trainrun.getFrequency()) {
+          forwardEndNode.arrivalTime = backwardStartNode.arrivalTime + trainrun.getFrequency();
+          forwardEndNode.departureTime = backwardStartNode.departureTime + trainrun.getFrequency();
+        }
       }
-    }
-    if (backwardEndNode !== undefined && forwardStartNode !== undefined) {
-      if (backwardEndNode.departureTime - backwardEndNode.arrivalTime >= trainrun.getFrequency()) {
-        backwardEndNode.arrivalTime = forwardStartNode.arrivalTime + trainrun.getFrequency();
-        backwardEndNode.departureTime = forwardStartNode.departureTime + trainrun.getFrequency();
+      if (backwardEndNode !== undefined && forwardStartNode !== undefined) {
+        if (
+          backwardEndNode.departureTime - backwardEndNode.arrivalTime >=
+          trainrun.getFrequency()
+        ) {
+          backwardEndNode.arrivalTime = forwardStartNode.arrivalTime + trainrun.getFrequency();
+          backwardEndNode.departureTime = forwardStartNode.departureTime + trainrun.getFrequency();
+        }
       }
     }
 
     pathItems.forEach((pathItem, i) => {
       if (pathItem.isNode()) {
         const pathNode = pathItem.getPathNode();
-        pathNode.arrivalPathSection = this.getPreviousPathSection(pathItems, i);
-        pathNode.departurePathSection = this.getNextPathSection(pathItems, i);
+        pathNode.arrivalPathSection = this.getPathSection(pathItems, i, -1);
+        pathNode.departurePathSection = this.getPathSection(pathItems, i, 1);
       }
       if (pathItem.isSection()) {
         const pathSection = pathItem.getPathSection();
-        pathSection.departurePathNode = this.getPreviousPathNode(pathItems, i);
-        pathSection.arrivalPathNode = this.getNextPathNode(pathItems, i);
-        pathSection.isFilteredDepartureNode = this.getDepartureNodeIsFilterd(pathItems, i);
-        pathSection.isFilteredArrivalNode = this.getArrivalNodeIsFilterdr(pathItems, i);
+        pathSection.departurePathNode = this.getPathNode(pathItems, i, -1);
+        pathSection.arrivalPathNode = this.getPathNode(pathItems, i, 1);
+        pathSection.isFilteredDepartureNode = this.isAdjacentNodeFiltered(pathItems, i, -1);
+        pathSection.isFilteredArrivalNode = this.isAdjacentNodeFiltered(pathItems, i, 1);
         pathSection.arrivalBranchEndNode = this.getFirstPathNode(pathItems);
         pathSection.departureBranchEndNode = this.getLastPathNode(pathItems);
       }
@@ -641,40 +620,35 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
   }
 
   public loadTrainrunItems(templateTrainrunItem: TrainrunItem): TrainrunItem[] {
-    // Extract for all trainruns the sections which are part of the
-    // template path (along which the graphical timetable is projected) and it does
-    // support current for those trains with partial cancellations.
-    const trainrunItems: TrainrunItem[] = [];
-    if (this.trainruns) {
-      this.trainruns.forEach((trainrun: Trainrun) => {
-        if (this.filterService.filterTrainrun(trainrun)) {
-          // get all trainrun section for given trainrun
-          let alltrainrunsections = this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
-            trainrun.getId(),
-          );
-
-          // As long not all trainrun section are visited (process) continue
-          // this part of code supports partial cancellations, e.g., trainrun runs from
-          // A - B - C [ partial canceled ] D - E
-          while (alltrainrunsections.length > 0) {
-            const ts: TrainrunSection = alltrainrunsections.find(() => true);
-            const loadeddata = this.loadTrainrunItem(ts, false);
-
-            // correct projections directions
-            this.sortTrainrunItemAndRotateAlongTemplatePath(
-              loadeddata.trainrunItem,
-              templateTrainrunItem,
-            );
-            trainrunItems.push(loadeddata.trainrunItem);
-
-            // filter all still visited trainrun sections
-            alltrainrunsections = alltrainrunsections.filter(
-              (ts) => loadeddata.visitedTrainrunSections.indexOf(ts) === -1,
-            );
-          }
-        }
-      });
+    if (!this.trainruns) {
+      return [];
     }
+
+    return this.trainruns
+      .filter((trainrun) => this.filterService.filterTrainrun(trainrun))
+      .flatMap((trainrun) => this.loadItemsForTrainrun(trainrun, templateTrainrunItem));
+  }
+
+  private loadItemsForTrainrun(
+    trainrun: Trainrun,
+    templateTrainrunItem: TrainrunItem,
+  ): TrainrunItem[] {
+    const trainrunItems: TrainrunItem[] = [];
+    let remainingSections = this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      trainrun.getId(),
+    );
+
+    while (remainingSections.length > 0) {
+      const loaded = this.loadTrainrunItem(remainingSections[0], false);
+      if (loaded.trainrunItem.direction !== Direction.ONE_WAY) {
+        this.sortTrainrunItemAndRotateAlongTemplatePath(loaded.trainrunItem, templateTrainrunItem);
+      }
+      trainrunItems.push(loaded.trainrunItem);
+      remainingSections = remainingSections.filter(
+        (section) => !loaded.visitedTrainrunSections.includes(section),
+      );
+    }
+
     return trainrunItems;
   }
 
@@ -954,47 +928,24 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
   }
 
   private removeNoMatchinNodeName(selectedPaths: string[], paths: string[]) {
-    const returnPaths: string[] = [];
-    paths.forEach((path) => {
-      let isInPaths = false;
-      selectedPaths.forEach((selectedPath) => {
-        if (path === selectedPath) {
-          isInPaths = true;
-        }
-      });
-      if (isInPaths) {
-        returnPaths.push(path);
-      }
-    });
-    return returnPaths;
+    return paths.filter((path) => selectedPaths.includes(path));
   }
 
   private addStartEnde(paths: string[]) {
-    const returnPaths = [];
-    returnPaths.push("#St#");
-    paths.forEach((path) => {
-      returnPaths.push(path);
-    });
-    returnPaths.push("#En#");
-    return returnPaths;
+    return ["#St#", ...paths, "#En#"];
   }
 
   private ratePath(selectedPaths: string[], paths: string[]) {
-    let returnValue = 0;
     for (let pathSize = paths.length; pathSize > 0; pathSize--) {
-      const selectedPathCombos = this.pathCombination(selectedPaths, pathSize);
-      const pathCombos = this.pathCombination(paths, pathSize);
-      pathCombos.forEach((pathCombo) => {
-        selectedPathCombos.forEach((selectedPathCombo) => {
-          if (selectedPathCombo === pathCombo) {
-            if (pathSize > returnValue) {
-              returnValue = pathSize;
-            }
-          }
-        });
-      });
+      const selectedPathCombos = new Set(this.pathCombination(selectedPaths, pathSize));
+      const hasMatchingCombination = this.pathCombination(paths, pathSize).some((pathCombo) =>
+        selectedPathCombos.has(pathCombo),
+      );
+      if (hasMatchingCombination) {
+        return pathSize;
+      }
     }
-    return returnValue;
+    return 0;
   }
 
   private pathCombination(paths: string[], size: number) {
@@ -1015,98 +966,31 @@ export class Sg1LoadTrainrunItemService implements OnDestroy {
   }
 
   private getSelectedTrainrun(): Trainrun {
-    let selectedTrainrun: Trainrun = undefined;
-    if (this.trainruns) {
-      this.trainruns.forEach((trainrun) => {
-        if (trainrun.getId() === this.trainrunIdSelectedByClick) {
-          selectedTrainrun = trainrun;
-        }
-      });
-    }
-    return selectedTrainrun;
+    return this.trainruns?.find((trainrun) => trainrun.getId() === this.trainrunIdSelectedByClick);
   }
 
-  private getPreviousPathSection(pathItems: PathItem[], i: number): PathSection {
-    if (i > 0) {
-      const pathItem = pathItems[i - 1];
-      if (pathItem instanceof PathSection) {
-        return pathItem;
-      }
-    }
-    return undefined;
+  private getPathSection(pathItems: PathItem[], index: number, direction: -1 | 1): PathSection {
+    const pathItem = pathItems[index + direction];
+    return pathItem instanceof PathSection ? pathItem : undefined;
   }
 
-  private getNextPathSection(pathItems: PathItem[], i: number): PathSection {
-    if (i + 1 < pathItems.length) {
-      const pathItem = pathItems[i + 1];
-      if (pathItem instanceof PathSection) {
-        return pathItem;
-      }
-    }
-    return undefined;
-  }
-
-  private getPreviousPathNode(pathItems: PathItem[], i: number): PathNode {
-    if (i > 0) {
-      const pathItem = pathItems[i - 1];
-      if (pathItem instanceof PathNode) {
-        return pathItem;
-      }
-    }
-    return undefined;
-  }
-
-  private getNextPathNode(pathItems: PathItem[], i: number): PathNode {
-    if (i + 1 < pathItems.length) {
-      const pathItem = pathItems[i + 1];
-      if (pathItem instanceof PathNode) {
-        return pathItem;
-      }
-    }
-    return undefined;
+  private getPathNode(pathItems: PathItem[], index: number, direction: -1 | 1): PathNode {
+    const pathItem = pathItems[index + direction];
+    return pathItem instanceof PathNode ? pathItem : undefined;
   }
 
   private getLastPathNode(pathItems: PathItem[]): PathNode {
-    if (pathItems.length > 0) {
-      const onlyForwardPathItems = pathItems.filter((pathItems) => !pathItems.backward);
-      if (onlyForwardPathItems.length > 0) {
-        const pathItem = onlyForwardPathItems[onlyForwardPathItems.length - 1];
-        if (pathItem instanceof PathNode) {
-          return pathItem;
-        }
-      }
-    }
-    return undefined;
+    const pathItem = pathItems.filter((item) => !item.backward).at(-1);
+    return pathItem instanceof PathNode ? pathItem : undefined;
   }
 
   private getFirstPathNode(pathItems: PathItem[]): PathNode {
-    if (pathItems.length > 0) {
-      const pathItem = pathItems[0];
-      if (pathItem instanceof PathNode) {
-        return pathItem;
-      }
-    }
-    return undefined;
+    return pathItems[0] instanceof PathNode ? pathItems[0] : undefined;
   }
 
-  private getDepartureNodeIsFilterd(pathItems: PathItem[], i: number): boolean {
-    if (i > 0) {
-      const pathItem = pathItems[i - 1];
-      if (pathItem instanceof PathNode) {
-        return pathItem.filter;
-      }
-    }
-    return false;
-  }
-
-  private getArrivalNodeIsFilterdr(pathItems: PathItem[], i: number): boolean {
-    if (i + 1 < pathItems.length) {
-      const pathItem = pathItems[i + 1];
-      if (pathItem instanceof PathNode) {
-        return pathItem.filter;
-      }
-    }
-    return false;
+  private isAdjacentNodeFiltered(pathItems: PathItem[], index: number, direction: -1 | 1): boolean {
+    const pathItem = pathItems[index + direction];
+    return pathItem instanceof PathNode && pathItem.filter;
   }
 
   private trainrunSectionGroup(
