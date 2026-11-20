@@ -28,6 +28,7 @@ import {Trainrun} from "../../../models/trainrun.model";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
 import {createTrainrunSectionKeyContext} from "./trainrunsection.key.context";
 import {createLayerCache} from "./viewport.render.cache";
+import {MUTEABLE_CLASS, updateMuted} from "./muted.update";
 import {Node} from "../../../models/node.model";
 import {EditorMode} from "../../editor-menu/editor-mode";
 import {InformSelectedTrainrunClick} from "../../../services/data/trainrunsection.service";
@@ -1019,6 +1020,7 @@ export class TrainrunSectionsView {
             connectedTrainIds,
           ),
       )
+      .classed(MUTEABLE_CLASS, true)
       .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
         d.trainrunSection.getTrainrun().getId(),
@@ -1153,6 +1155,7 @@ export class TrainrunSectionsView {
           TrainrunSectionsView.isSectionSelected(d.trainrunSection),
         )
         .classed(StaticDomTags.TAG_LINE_ARROW_EDITOR, true)
+        .classed(MUTEABLE_CLASS, true)
         .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
           TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
         )
@@ -1223,6 +1226,7 @@ export class TrainrunSectionsView {
           d.trainrunSection.getTrainrun().selected(),
         )
         .classed(StaticDomTags.TAG_LINE_ARROW_EDITOR, true)
+        .classed(MUTEABLE_CLASS, true)
         .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
           TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
         )
@@ -1262,6 +1266,7 @@ export class TrainrunSectionsView {
             connectedTrainIds,
           ),
       )
+      .classed(MUTEABLE_CLASS, true)
       .attr(StaticDomTags.EDGE_ID, (d: TrainrunSectionViewObject) => d.trainrunSection.getId())
       .attr(StaticDomTags.EDGE_LINE_LINE_ID, (d: TrainrunSectionViewObject) =>
         d.trainrunSection.getTrainrun().getId(),
@@ -1353,6 +1358,7 @@ export class TrainrunSectionsView {
       .classed(StaticDomTags.TAG_HIDDEN, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.getNode(d.trainrunSection, atSource).isNonStop(d.trainrunSection),
       )
+      .classed(MUTEABLE_CLASS, true)
       .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
       )
@@ -1447,7 +1453,7 @@ export class TrainrunSectionsView {
         const trans = node.getTransitionFromPortId(port.getId());
         return trans !== undefined;
       })
-
+      .classed(MUTEABLE_CLASS, true)
       .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
       )
@@ -1536,6 +1542,7 @@ export class TrainrunSectionsView {
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isSectionSelected(d.trainrunSection),
       )
+      .classed(MUTEABLE_CLASS, true)
       .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
       )
@@ -1647,6 +1654,7 @@ export class TrainrunSectionsView {
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isSectionSelected(d.trainrunSection),
       )
+      .classed(MUTEABLE_CLASS, true)
       .classed(StaticDomTags.TAG_MUTED, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
       )
@@ -1701,6 +1709,7 @@ export class TrainrunSectionsView {
         ),
       )
       .text(numberOfStops)
+      .classed(MUTEABLE_CLASS, true)
       .classed(
         StaticDomTags.TAG_MUTED,
         TrainrunSectionsView.isMuted(trainrunSection, selectedTrainrun, connectedTrainIds),
@@ -1835,6 +1844,9 @@ export class TrainrunSectionsView {
         ),
         (d: TrainrunSectionViewObject) => d.key,
       );
+    updateMuted(group, (d) =>
+      TrainrunSectionsView.isMuted(d.trainrunSection, selectedTrainrun, connectedTrainIds),
+    );
 
     const edgeRootContainerEnter = group
       .enter()
@@ -2707,6 +2719,7 @@ export class TrainrunSectionsView {
       .attr("r", TRAINRUN_SECTION_STOP_RADIUS)
       .attr(StaticDomTags.EDGE_LINE_STOPS_INDEX, stopIndex)
       .attr("numberOfStops", numberOfStops)
+      .classed(MUTEABLE_CLASS, true)
       .classed(StaticDomTags.TAG_MUTED, (t: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isMuted(t.trainrunSection, selectedTrainrun, connectedTrainIds),
       )

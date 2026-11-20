@@ -222,7 +222,7 @@ describe("Editor-DataView", () => {
     const ts = trainrunSectionService.getTrainrunSectionFromId(3);
     const cvo1 = new TrainrunSectionViewObject(editorView, ts);
     expect(cvo1.key).toBe(
-      "#3@1234_false_false_0_39_49_39_49_1_21_39_0_0_141_39_0_180_0_S_20_7/24_4_1_0_S_20_7/24_20_0_round_trip_false_true_false_false_false_false_true_false_false_false_leftHand_false_true_true_true_false_false_true_true_true_false_0_false_2_true_true_true_1_false_true_true_0_false_true_true(130,80)(194,80)(254,80)(318,80)",
+      "#3@1234_false_false_0_39_49_39_49_1_21_39_0_0_141_39_0_180_0_S_20_7/24_4_1_0_S_20_7/24_20_0_round_trip_false_true_false_false_false_true_false_false_false_leftHand_false_true_true_true_false_false_true_true_true_false_0_false_2_true_true_true_1_false_true_true_0_false_true_true(130,80)(194,80)(254,80)(318,80)",
     );
   });
 
@@ -250,9 +250,9 @@ describe("Editor-DataView", () => {
   it("TransitionViewObject - 001", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const trans = nodeService.getNodeFromId(1).getTransitions()[0];
-    const cvo1 = new TransitionViewObject(editorView, trans, false);
+    const cvo1 = new TransitionViewObject(editorView, trans);
     expect(cvo1.key).toBe(
-      "#0@false_false_IC_60_7/24_1_3_0_IC_60_7/24_60_false_false_false(320,48)(324,48)(412,48)(416,48)",
+      "#0@false_false_IC_60_7/24_1_3_0_IC_60_7/24_60_false_false(320,48)(324,48)(412,48)(416,48)",
     );
   });
 

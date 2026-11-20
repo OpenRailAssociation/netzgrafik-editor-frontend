@@ -26,7 +26,6 @@ export class TrainrunSectionViewObject {
   ): string {
     const isNonStopAtSource = d.getSourceNode().isNonStop(d);
     const isNonStopAtTarget = d.getTargetNode().isNonStop(d);
-    const isMuted = TrainrunSectionsView.isMuted(d, ctx.selectedTrainrun, ctx.connectedTrainIds);
     const hiddenTagSource = TrainrunSectionsView.getHiddenTagForTime(
       editorView,
       d,
@@ -129,8 +128,6 @@ export class TrainrunSectionViewObject {
       isNonStopAtSource +
       "_" +
       isNonStopAtTarget +
-      "_" +
-      isMuted +
       "_" +
       hiddenTagSource +
       "_" +
