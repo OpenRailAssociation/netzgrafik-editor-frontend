@@ -187,6 +187,8 @@ export class EditorView implements SVGMouseControllerObserver {
   private requestViewportRendering = batchToMicrotask(() =>
     this.viewportCullService.onViewportChangeUpdateRendering(true),
   );
+  // Each layer rendering asks for it: run it once per rendering pass, to read the layout once
+  requestPostDisplayRendering = batchToMicrotask(() => this.postDisplayRendering());
 
   constructor(
     controller: EditorMainViewComponent,
