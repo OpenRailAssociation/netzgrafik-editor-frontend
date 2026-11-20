@@ -87,7 +87,7 @@ export class Node {
     this.positionX = positionX;
     this.positionY = positionY;
     this.ports = ports.map((portDto) => new Port(portDto));
-    this.transitions = transitions.map((transitionDto) => new Transition(transitionDto));
+    this.transitions = transitions.map((transitionDto) => new Transition(this, transitionDto));
     this.connections = connections.map((connectionDto) => new Connection(connectionDto));
     this.resourceId = resourceId;
     this.perronkanten = perronkanten;
@@ -564,7 +564,7 @@ export class Node {
   }
 
   addTransition(port1: Port, port2: Port, trainrun: Trainrun, isNonStop = false): Transition {
-    const transition: Transition = new Transition();
+    const transition = new Transition(this);
     transition.setPort1Id(port1.getId());
     transition.setPort2Id(port2.getId());
     transition.setIsNonStopTransit(

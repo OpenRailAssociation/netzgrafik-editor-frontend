@@ -876,9 +876,7 @@ export class NodeService implements OnDestroy {
   }
 
   getNodeFromTransition(transition: Transition): Node {
-    return this.nodesStore.nodes.find(
-      (n: Node) => n.getTransitionFromId(transition.getId()) !== undefined,
-    );
+    return transition.ownerNode;
   }
 
   getNodeForConnection(connection: Connection): Node {
