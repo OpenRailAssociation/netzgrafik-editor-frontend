@@ -185,7 +185,14 @@ export class TransitionsView {
     return this.editorView.filterTrainrun(trainrun) && this.editorView.checkFilterNode(node);
   }
 
+  private lastTransitions: Transition[] = [];
+
+  displayForViewport() {
+    this.displayTransitions(this.lastTransitions);
+  }
+
   displayTransitions(inputTransitions: Transition[]) {
+    this.lastTransitions = inputTransitions;
     const selectedTrainrun: Trainrun = this.editorView.getSelectedTrainrun();
     let connectedTrainIds: number[] = [];
     if (selectedTrainrun !== null) {

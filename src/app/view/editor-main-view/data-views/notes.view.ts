@@ -4,6 +4,7 @@ import {EditorView} from "./editor.view";
 import {StaticDomTags} from "./static.dom.tags";
 import {NodeViewObject} from "./nodeViewObject";
 import {NoteViewObject} from "./noteViewObject";
+import {createLayerCache} from "./viewport.render.cache";
 import {
   NOTE_ROUND_EDGE_SIZE,
   NOTE_POSITION_BASIC_RASTER,
@@ -108,7 +109,14 @@ export class NotesView {
     return viewNoteDataObjects;
   }
 
-  displayNotes(inputNotes: Note[]) {
+  private cache = createLayerCache<Note, NoteViewObject>();
+
+  displayForViewport() {
+    this.displayNotes(this.cache.items(), true);
+  }
+
+  displayNotes(inputNotes: Note[], viewportOnly = false) {
+    this.cache.start(inputNotes, viewportOnly, this.editorView.getLevelOfDetail());
     const notes = inputNotes.filter(
       (n) =>
         this.editorView.doCullCheckPositionsInViewport([
@@ -121,7 +129,10 @@ export class NotesView {
 
     const group = this.notesGroup
       .selectAll<SVGElement, NoteViewObject>(StaticDomTags.NOTE_ROOT_CONTAINER_DOM_REF)
-      .data(this.createViewNoteDataObjects(notes), (n: NoteViewObject) => n.key);
+      .data(
+        this.cache.getAll(notes, (missing) => this.createViewNoteDataObjects(missing)),
+        (n: NoteViewObject) => n.key,
+      );
 
     const groupEnter2 = group
       .enter()

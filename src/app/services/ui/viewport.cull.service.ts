@@ -45,6 +45,10 @@ export class ViewportCullService implements OnDestroy {
     this.trainrunSectionService.trainrunSectionsUpdated();
   }
 
+  enableViewportCheck() {
+    this.doCheckIsInViewport = true;
+  }
+
   private checkIsElementPositionInViewport(
     pos: Vec2D,
     strSvgName: string,

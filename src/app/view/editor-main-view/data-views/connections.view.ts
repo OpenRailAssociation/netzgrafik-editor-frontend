@@ -255,7 +255,14 @@ export class ConnectionsView {
     return filterNode && filterTrainrun1 && filterTrainrun2;
   }
 
+  private lastConnections: Connection[] = [];
+
+  displayForViewport() {
+    this.displayConnections(this.lastConnections);
+  }
+
   displayConnections(inputConnections: Connection[]) {
+    this.lastConnections = inputConnections;
     const connections = inputConnections.filter((c) => this.filterConnectionsToDisplay(c));
 
     const connectionsGroup = this.connectionsGroup
