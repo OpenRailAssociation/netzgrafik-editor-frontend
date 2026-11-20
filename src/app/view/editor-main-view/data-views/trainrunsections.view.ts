@@ -27,6 +27,7 @@ import {MathUtils} from "../../../utils/math";
 import {Trainrun} from "../../../models/trainrun.model";
 import {TrainrunSectionViewObject} from "./trainrunSectionViewObject";
 import {createTrainrunSectionKeyContext} from "./trainrunsection.key.context";
+import {createLayerCache} from "./viewport.render.cache";
 import {Node} from "../../../models/node.model";
 import {EditorMode} from "../../editor-menu/editor-mode";
 import {InformSelectedTrainrunClick} from "../../../services/data/trainrunsection.service";
@@ -1802,14 +1803,23 @@ export class TrainrunSectionsView {
     return viewTrainrunSectionDataObjects;
   }
 
-  displayTrainrunSection(trainrunSections: TrainrunSection[]) {
+  private cache = createLayerCache<TrainrunSection, TrainrunSectionViewObject>();
+
+  displayForViewport() {
+    this.displayTrainrunSection(this.cache.items(), true);
+  }
+
+  displayTrainrunSection(trainrunSections: TrainrunSection[], viewportOnly = false) {
+    this.cache.start(trainrunSections, viewportOnly, this.editorView.getLevelOfDetail());
     const selectedTrainrun: Trainrun = this.editorView.getSelectedTrainrun();
     let connectedTrainIds: number[] = [];
     if (selectedTrainrun !== null) {
       connectedTrainIds = this.editorView.getConnectedTrainrunIds(selectedTrainrun);
     }
     // Node sizes depend on the displayed node names
-    trainrunSections.forEach((trainrunSection) => trainrunSection.routeEdgeAndPlaceText());
+    if (!viewportOnly) {
+      trainrunSections.forEach((trainrunSection) => trainrunSection.routeEdgeAndPlaceText());
+    }
 
     const filteredTrainrunSections = trainrunSections.filter(
       (trainrunSection: TrainrunSection) =>
@@ -1820,7 +1830,9 @@ export class TrainrunSectionsView {
     const group = this.trainrunSectionGroup
       .selectAll<SVGElement, TrainrunSectionViewObject>(StaticDomTags.EDGE_ROOT_CONTAINER_DOM_REF)
       .data(
-        this.createViewTrainrunSectionDataObjects(this.editorView, filteredTrainrunSections),
+        this.cache.getAll(filteredTrainrunSections, (missing) =>
+          this.createViewTrainrunSectionDataObjects(this.editorView, missing),
+        ),
         (d: TrainrunSectionViewObject) => d.key,
       );
 

@@ -183,10 +183,19 @@ export class EditorView implements SVGMouseControllerObserver {
   startUndoRecording: (() => void) | null = null;
 
   private elementDragging = false;
-  // A zoom step changes both the viewbox and the zoom factor: render once for both
-  private requestViewportRendering = batchToMicrotask(() =>
-    this.viewportCullService.onViewportChangeUpdateRendering(true),
-  );
+  // A zoom step changes both the viewbox and the zoom factor: render once for both.
+  // Data did not change: each layer only displays again what it last displayed.
+  private requestViewportRendering = batchToMicrotask(() => {
+    this.viewportCullService.enableViewportCheck();
+    [
+      this.nodesView,
+      this.transitionsView,
+      this.connectionsView,
+      this.trainrunSectionsView,
+      this.notesView,
+    ].forEach((view) => view.displayForViewport());
+    this.requestPostDisplayRendering();
+  });
   // Each layer rendering asks for it: run it once per rendering pass, to read the layout once
   requestPostDisplayRendering = batchToMicrotask(() => this.postDisplayRendering());
 
