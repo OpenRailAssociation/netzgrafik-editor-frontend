@@ -1,4 +1,5 @@
 import {TransitionDto} from "../data-structures/technical.data.structures";
+import {Node} from "./node.model";
 import {Trainrun} from "./trainrun.model";
 
 export class Transition {
@@ -12,6 +13,7 @@ export class Transition {
   private trainrun: Trainrun;
 
   constructor(
+    readonly ownerNode: Node, // invariant: a transition always belongs to a single node - this reference improve lookUp speed from transtion to node
     {id, port1Id, port2Id, isNonStopTransit}: TransitionDto = {
       id: Transition.incrementId(),
       port1Id: 0,
