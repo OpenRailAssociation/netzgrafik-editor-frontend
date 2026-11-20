@@ -74,6 +74,13 @@ export enum OrderingAlgorithm {
 }
 
 /**
+ * Represents the style in which trainrun sections are rendered.
+ */
+export type SectionRenderingStyle = "oblique" | "orthogonal";
+
+export const DEFAULT_SECTION_RENDERING_STYLE: SectionRenderingStyle = "oblique";
+
+/**
  * Represents a general warning object widely used in different objects. E.g. TrainrunSection times.
  * The WarningDto is used to build a storable warning object with human description.
  */

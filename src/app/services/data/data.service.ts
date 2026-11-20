@@ -26,6 +26,10 @@ import {FilterService} from "../ui/filter.service";
 import {NetzgrafikColoringService} from "./netzgrafikColoring.service";
 import {Trainrun} from "src/app/models/trainrun.model";
 import {SimpleTrainrunSectionRouter} from "../util/trainrunsection.routing";
+import {
+  DEFAULT_SECTION_RENDERING_STYLE,
+  SectionRenderingStyle,
+} from "src/app/data-structures/technical.data.structures";
 
 export class NetzgrafikLoadedInfo {
   constructor(
@@ -198,6 +202,7 @@ export class DataService implements OnDestroy {
       netzgrafikColors: this.netzgrafikColoringService.getDtos(),
       orderingAlgorithm: this.nodeService.getCurrentOrderingAlgorithm(),
       trafficSide: this.getTrafficSide(),
+      sectionRenderingStyle: this.getSectionRenderingStyle(),
     };
     this.netzgrafikDtoStore.netzgrafikDto.metadata = metadata;
 
@@ -287,6 +292,18 @@ export class DataService implements OnDestroy {
   setTrafficSide(trafficSideType: TrafficSide) {
     this.netzgrafikDtoStore.netzgrafikDto.metadata.trafficSide = trafficSideType || "leftHand";
     SimpleTrainrunSectionRouter.setTrafficSideType(trafficSideType);
+  }
+
+  getSectionRenderingStyle(): SectionRenderingStyle {
+    return (
+      this.netzgrafikDtoStore.netzgrafikDto.metadata.sectionRenderingStyle ||
+      DEFAULT_SECTION_RENDERING_STYLE
+    );
+  }
+
+  setSectionRenderingStyle(sectionRenderingStyleType: SectionRenderingStyle) {
+    this.netzgrafikDtoStore.netzgrafikDto.metadata.sectionRenderingStyle =
+      sectionRenderingStyleType || DEFAULT_SECTION_RENDERING_STYLE;
   }
 
   getDirections(): Direction[] {

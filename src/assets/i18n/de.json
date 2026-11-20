@@ -21,6 +21,13 @@
     },
     "left": "Links",
     "right": "Rechts",
+    "sectionRenderingStyle": {
+      "title": "Darstellungsstil der Strecken",
+      "oblique": "Schräg",
+      "orthogonal": "Orthogonal",
+      "obliqueTooltip": "Abschnitte werden als direkte Linien zwischen den Knoten gezeichnet.",
+      "orthogonalTooltip": "Abschnitte werden nur mit horizontalen und vertikalen Segmenten gezeichnet."
+    },
     "models": {
       "node": {
         "shortNameDefault": "NEW",

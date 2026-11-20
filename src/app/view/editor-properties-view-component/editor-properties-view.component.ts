@@ -6,6 +6,7 @@ import {ThemeRegistration} from "../themes/theme-registration";
 import {StreckengrafikRenderingType} from "../themes/streckengrafik-rendering-type";
 import {TravelTimeCreationEstimatorType} from "../themes/editor-trainrun-traveltime-creator-type";
 import {TrafficSide} from "src/app/data-structures/business.data.structures";
+import {SectionRenderingStyle} from "src/app/data-structures/technical.data.structures";
 
 @Component({
   selector: "sbb-editor-properties-view-component",
@@ -98,7 +99,22 @@ export class EditorPropertiesViewComponent {
       trafficSide: "rightHand" as const,
     },
   ];
+
+  sectionRenderingStyleOptions = [
+    {
+      name: $localize`:@@app.sectionRenderingStyle.oblique:Oblique`,
+      title: $localize`:@@app.sectionRenderingStyle.obliqueTooltip:Sections are drawn as direct lines between nodes.`,
+      sectionRenderingStyle: "oblique" as const,
+    },
+    {
+      name: $localize`:@@app.sectionRenderingStyle.orthogonal:Orthogonal`,
+      title: $localize`:@@app.sectionRenderingStyle.orthogonalTooltip:Sections are drawn with horizontal and vertical segments only.`,
+      sectionRenderingStyle: "orthogonal" as const,
+    },
+  ];
+
   activeTrafficSideType: TrafficSide = null;
+  activeSectionRenderingStyle: SectionRenderingStyle = null;
 
   activeDarkBackgroundColor = EditorPropertiesViewComponent.DEFAULT_DARK_BACKGROUNDCOLOR;
   activeBackgroundColor = EditorPropertiesViewComponent.DEFAULT_BACKGROUNDCOLOR;
@@ -111,6 +127,8 @@ export class EditorPropertiesViewComponent {
     this.activeTravelTimeCreationEstimatorType =
       this.uiInteractionService.getActiveTravelTimeCreationEstimatorType();
     this.activeTrafficSideType = this.uiInteractionService.getActiveTrafficSideType();
+    this.activeSectionRenderingStyle =
+      this.uiInteractionService.getActiveSectionRenderingStyleType();
     if (activeTheme.isDark) {
       this.activeDarkBackgroundColor = this.getHexColor(activeTheme.backgroundColor);
     } else {
@@ -141,6 +159,11 @@ export class EditorPropertiesViewComponent {
   onUpdateTrafficSideType(event: SbbRadioChange) {
     this.uiInteractionService.setActiveTrafficSideType(event.value);
     this.activeTrafficSideType = event.value;
+  }
+
+  onUpdateSectionRenderingStyle(event: SbbRadioChange) {
+    this.uiInteractionService.setActiveSectionRenderingStyleType(event.value);
+    this.activeSectionRenderingStyle = event.value;
   }
 
   colorPicked() {
