@@ -12,10 +12,8 @@ import {UpdateCounterTriggerService} from "./util/update-counter.service";
 })
 export class Sg8RenderService implements OnDestroy {
   private readonly selectedTrainrunSubject = new BehaviorSubject<SgSelectedTrainrun>(undefined);
-  private readonly selectedTrainrun$ = this.selectedTrainrunSubject.asObservable();
 
   private readonly trainrunSubject = new BehaviorSubject<SgTrainrun[]>([]);
-  private readonly trainrun$ = this.trainrunSubject.asObservable();
 
   private selectedTrainrun: SgSelectedTrainrun;
 
@@ -41,11 +39,11 @@ export class Sg8RenderService implements OnDestroy {
   }
 
   public getSgSelectedTrainrun(): Observable<SgSelectedTrainrun> {
-    return this.selectedTrainrun$;
+    return this.selectedTrainrunSubject.asObservable();
   }
 
   getTrainrun() {
-    return this.trainrun$;
+    return this.trainrunSubject.asObservable();
   }
 
   public doRender() {

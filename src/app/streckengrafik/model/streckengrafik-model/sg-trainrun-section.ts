@@ -27,8 +27,6 @@ export class SgTrainrunSection implements SgTrainrunItem {
     public trainrunBranchType: TrainrunBranchType = TrainrunBranchType.Trainrun,
     public arrivalPathNode: SgTrainrunNode = undefined,
     public departurePathNode: SgTrainrunNode = undefined,
-    public unrollOnlyEvenFrequencyOffsets = 0,
-    public maxUnrollOnlyEvenFrequencyOffsets = 0,
     public minimumHeadwayTime = 2,
   ) {
     this.id = SgTrainrunSection.currentId;
@@ -65,20 +63,6 @@ export class SgTrainrunSection implements SgTrainrunItem {
 
   getStartposition(): number {
     return this.pathSection.startPosition;
-  }
-
-  checkUnrollAllowed(offset: number): boolean {
-    if (this.maxUnrollOnlyEvenFrequencyOffsets < 1) {
-      return true;
-    }
-    if (
-      (offset + Math.abs(Math.floor(Math.min(0, offset) / 24) * 24)) %
-        (this.maxUnrollOnlyEvenFrequencyOffsets + 1) ===
-      this.unrollOnlyEvenFrequencyOffsets
-    ) {
-      return true;
-    }
-    return false;
   }
 
   changeOrientation(): void {
