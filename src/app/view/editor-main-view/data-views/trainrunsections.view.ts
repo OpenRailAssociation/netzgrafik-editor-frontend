@@ -14,7 +14,9 @@ import * as d3 from "d3";
 import {Vec2D} from "../../../utils/vec2D";
 import {
   ColorRefType,
+  DEFAULT_SECTION_RENDERING_STYLE,
   PortAlignment,
+  SectionRenderingStyle,
   TrainrunSectionText,
   WarningDto,
 } from "../../../data-structures/technical.data.structures";
@@ -33,6 +35,7 @@ import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
 import {LinePatternRefs} from "../../../data-structures/business.data.structures";
 import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helper";
 import {TransitionViewObject} from "./transitionViewObject";
+import {OrthogonalTrainrunSectionRouter} from "src/app/services/util/trainrunsection.orthogonal";
 
 export class TrainrunSectionsView {
   trainrunSectionGroup: d3.Selection<SVGGElement, undefined, Element, undefined>;
@@ -42,14 +45,21 @@ export class TrainrunSectionsView {
   static translateAndRotateText(
     trainrunSection: TrainrunSection,
     trainrunSectionText: TrainrunSectionText,
+    style: SectionRenderingStyle = DEFAULT_SECTION_RENDERING_STYLE,
   ) {
-    const x = trainrunSection.getTextPositionX(trainrunSectionText);
-    const y = trainrunSection.getTextPositionY(trainrunSectionText);
+    const orthogonal = style === "orthogonal";
+    const textPosition = orthogonal
+      ? OrthogonalTrainrunSectionRouter.getTextPositions(trainrunSection)[trainrunSectionText]
+      : undefined;
+    const x = textPosition?.x ?? trainrunSection.getTextPositionX(trainrunSectionText);
+    const y = textPosition?.y ?? trainrunSection.getTextPositionY(trainrunSectionText);
 
-    const pathVec2D: Vec2D[] = trainrunSection.getPath();
-    const s1: Vec2D = pathVec2D[1];
-    const t1: Vec2D = pathVec2D[2];
+    const path = trainrunSection.getPath();
+    const [s1, t1] = orthogonal
+      ? OrthogonalTrainrunSectionRouter.getMainSegment(trainrunSection)
+      : [path[1], path[2]];
     const diff: Vec2D = Vec2D.sub(t1, s1);
+
     let a: number = (Math.atan2(diff.getY(), diff.getX()) / Math.PI) * 180.0;
     if (Math.abs(a) > 90) {
       a = a + 180;
@@ -355,6 +365,7 @@ export class TrainrunSectionsView {
   static getAdditionPositioningValue(
     trainrunSection: TrainrunSection,
     textElement: TrainrunSectionText,
+    style: SectionRenderingStyle = DEFAULT_SECTION_RENDERING_STYLE,
   ) {
     switch (textElement) {
       case TrainrunSectionText.SourceDeparture:
@@ -365,7 +376,7 @@ export class TrainrunSectionsView {
       case TrainrunSectionText.TrainrunSectionTravelTime:
       case TrainrunSectionText.TrainrunSectionBackwardTravelTime:
       case TrainrunSectionText.TrainrunSectionName:
-        return TrainrunSectionsView.translateAndRotateText(trainrunSection, textElement);
+        return TrainrunSectionsView.translateAndRotateText(trainrunSection, textElement, style);
       default:
         return 0;
     }
@@ -1529,7 +1540,11 @@ export class TrainrunSectionsView {
       .attr(
         TrainrunSectionsView.getAdditionPositioningAttr(textElement),
         (d: TrainrunSectionViewObject) =>
-          TrainrunSectionsView.getAdditionPositioningValue(d.trainrunSection, textElement),
+          TrainrunSectionsView.getAdditionPositioningValue(
+            d.trainrunSection,
+            textElement,
+            this.editorView.getActiveSectionRenderingStyle(),
+          ),
       )
       .classed(StaticDomTags.TAG_SELECTED, (d: TrainrunSectionViewObject) =>
         TrainrunSectionsView.isSectionSelected(d.trainrunSection),
@@ -1696,6 +1711,7 @@ export class TrainrunSectionsView {
         TrainrunSectionsView.translateAndRotateText(
           trainrunSection,
           TrainrunSectionText.TrainrunSectionNumberOfStops,
+          this.editorView.getActiveSectionRenderingStyle(),
         ),
       )
       .text(numberOfStops)
@@ -1714,11 +1730,18 @@ export class TrainrunSectionsView {
     trainrunSection: TrainrunSection,
     selectedTrainrun: Trainrun,
     connectedTrainIds: number[],
+    style: SectionRenderingStyle = DEFAULT_SECTION_RENDERING_STYLE,
   ) {
+    const orthogonal = style === "orthogonal";
     const numberOfStops = trainrunSection.getNumberOfStops();
     const path = trainrunSection.getPath();
-    let startPosition = path[1];
-    let lineOrientationVector = Vec2D.sub(path[2], startPosition);
+
+    const [s1, t1] = orthogonal
+      ? OrthogonalTrainrunSectionRouter.getMainSegment(trainrunSection)
+      : [path[1], path[2]];
+
+    let startPosition = s1;
+    let lineOrientationVector = Vec2D.sub(t1, startPosition);
     const maxNumberOfStops = Math.min(
       SHOW_MAX_SINGLE_TRAINRUN_SECTIONS_STOPS,
       Vec2D.norm(lineOrientationVector) / 20,
@@ -1781,7 +1804,13 @@ export class TrainrunSectionsView {
         .select<SVGGElement, undefined>(a[i])
         .append(StaticDomTags.EDGE_LINE_STOPS_GROUP_SVG)
         .attr("class", StaticDomTags.EDGE_LINE_STOPS_GROUP_CLASS);
-      this.createIntermediateStops(grp, t.trainrunSection, selectedTrainrun, connectedTrainIds);
+      this.createIntermediateStops(
+        grp,
+        t.trainrunSection,
+        selectedTrainrun,
+        connectedTrainIds,
+        this.editorView.getActiveSectionRenderingStyle(),
+      );
     });
   }
 
@@ -2304,10 +2333,18 @@ export class TrainrunSectionsView {
     }
 
     const path = ts.getPath();
+    const useOrthogonal =
+      this.editorView.getActiveSectionRenderingStyle() === "orthogonal" &&
+      notFilteringSourceNode &&
+      notFilteringTargetNode;
+
     let retPath: Vec2D[] = [];
     if (notFilteringSourceNode) {
       retPath.push(path[0].copy());
       retPath.push(path[1].copy());
+    }
+    if (useOrthogonal) {
+      retPath.push(...OrthogonalTrainrunSectionRouter.getCorners(ts));
     }
     if (notFilteringTargetNode) {
       retPath.push(path[2].copy());
