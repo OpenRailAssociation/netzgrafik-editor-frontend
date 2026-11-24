@@ -589,6 +589,33 @@ export class EditorToolsViewComponent {
     return element;
   }
 
+  // Some CSS properties do not pass the some Content-Security-Policy (such as GitHub
+  // that serves uploaded SVG files with Content-Security-Policy: default-src 'none',
+  // which blocks inline style attributes, leaving the export completely missing styles.
+  // These CSS properties have SVG presentation-attribute equivalents, which CSP does not restrict.
+  private static readonly CSS_PROPERTY_TO_ATTRIBUTE_MAP: Record<string, string> = {
+    fill: "fill",
+    "fill-opacity": "fill-opacity",
+    stroke: "stroke",
+    "stroke-width": "stroke-width",
+    "stroke-opacity": "stroke-opacity",
+    "stroke-dasharray": "stroke-dasharray",
+    "font-family": "font-family",
+    "font-size": "font-size",
+    "font-weight": "font-weight",
+    "font-style": "font-style",
+    opacity: "opacity",
+    "text-anchor": "text-anchor",
+    "dominant-baseline": "dominant-baseline",
+    r: "r",
+    rx: "rx",
+    ry: "ry",
+    "paint-order": "paint-order",
+    visibility: "visibility",
+    display: "display",
+    overflow: "overflow",
+  };
+
   // Clones the live element so inlining styles for export never mutates the working editor DOM.
   private prepareStyleForExport({
     documentToExport,
@@ -616,10 +643,20 @@ export class EditorToolsViewComponent {
     liveElements.forEach((el, index) => {
       const style = window.getComputedStyle(el);
       const essentialPropsArray = essentialProps !== undefined ? essentialProps : Array.from(style);
-      const inlineStyle = essentialPropsArray
-        .map((key) => `${key}:${style.getPropertyValue(key)};`)
-        .join(" ");
-      clonedElements[index].setAttribute("style", inlineStyle);
+      const clonedElement = clonedElements[index];
+      const inlineStyles: string[] = [];
+      // Required for HTML elements that are not SVG elements, such as <foreignObject> and <div> inside a SVG (Streckengrafik).
+      const isSvgElement = el.namespaceURI === "http://www.w3.org/2000/svg";
+      essentialPropsArray.forEach((key) => {
+        const value = style.getPropertyValue(key);
+        const presentationAttribute = EditorToolsViewComponent.CSS_PROPERTY_TO_ATTRIBUTE_MAP[key];
+        if (isSvgElement && presentationAttribute !== undefined) {
+          clonedElement.setAttribute(presentationAttribute, value);
+        } else {
+          inlineStyles.push(`${key}:${value};`);
+        }
+      });
+      clonedElement.setAttribute("style", inlineStyles.join(" "));
     });
 
     // remove unecessary elements from the exported file (drag areas, preview lines, etc.)
