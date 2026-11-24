@@ -885,11 +885,13 @@ export class NodeService implements OnDestroy {
 
   private getOwnerNode(owned: Connection | Transition): Node {
     if (!(owned.ownerNode instanceof Node)) {
-      console.log("Connection or transition owner must be a Node", 
+      console.log(
+        "Connection or transition owner must be a Node",
         owned.ownerNode.getId(),
         owned.ownerNode.getBetriebspunktName(),
-        owned.ownerNode.getFullName());
-        return undefined; 
+        owned.ownerNode.getFullName(),
+      );
+      return undefined;
     }
     return owned.ownerNode;
   }

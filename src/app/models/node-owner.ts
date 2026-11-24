@@ -1,6 +1,6 @@
 /**
  * Every connection and transition belongs to one node. Keeping a direct reference
- * to that node allows fast lookup without searching the list of nodes. This allows 
+ * to that node allows fast lookup without searching the list of nodes. This allows
  * to improve the overall Netzgrafik-Editor performance, e.g. paning.
  *
  * This interface breaks the Node -> Connection/Transition -> Node import cycle:
