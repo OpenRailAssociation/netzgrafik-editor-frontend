@@ -6,7 +6,10 @@ import {ThemeRegistration} from "../themes/theme-registration";
 import {StreckengrafikRenderingType} from "../themes/streckengrafik-rendering-type";
 import {TravelTimeCreationEstimatorType} from "../themes/editor-trainrun-traveltime-creator-type";
 import {TrafficSide} from "src/app/data-structures/business.data.structures";
-import {SectionRenderingStyle} from "src/app/data-structures/technical.data.structures";
+import {
+  DEFAULT_SECTION_RENDERING_STYLE,
+  SectionRenderingStyle,
+} from "src/app/data-structures/technical.data.structures";
 
 @Component({
   selector: "sbb-editor-properties-view-component",
@@ -114,7 +117,7 @@ export class EditorPropertiesViewComponent {
   ];
 
   activeTrafficSideType: TrafficSide = null;
-  activeSectionRenderingStyle: SectionRenderingStyle = null;
+  activeSectionRenderingStyle: SectionRenderingStyle = DEFAULT_SECTION_RENDERING_STYLE;
 
   activeDarkBackgroundColor = EditorPropertiesViewComponent.DEFAULT_DARK_BACKGROUNDCOLOR;
   activeBackgroundColor = EditorPropertiesViewComponent.DEFAULT_BACKGROUNDCOLOR;
