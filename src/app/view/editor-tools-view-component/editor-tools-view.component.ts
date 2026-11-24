@@ -634,9 +634,6 @@ export class EditorToolsViewComponent {
     clone.setAttribute("viewBox", `${left} ${top} ${width} ${height}`);
     clone.setAttribute("width", `${width * scale}`);
     clone.setAttribute("height", `${height * scale}`);
-    if (exportParameter.backgroundColor) {
-      clone.style.backgroundColor = exportParameter.backgroundColor;
-    }
 
     const liveElements = liveElement.querySelectorAll("*");
     const clonedElements = clone.querySelectorAll("*");
@@ -658,6 +655,17 @@ export class EditorToolsViewComponent {
       });
       clonedElement.setAttribute("style", inlineStyles.join(" "));
     });
+
+    // Background color is not supported, its needs to be replaced by "fill"
+    if (exportParameter.backgroundColor) {
+      const backgroundRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      backgroundRect.setAttribute("x", `${left}`);
+      backgroundRect.setAttribute("y", `${top}`);
+      backgroundRect.setAttribute("width", `${width}`);
+      backgroundRect.setAttribute("height", `${height}`);
+      backgroundRect.setAttribute("fill", exportParameter.backgroundColor);
+      clone.insertBefore(backgroundRect, clone.firstChild);
+    }
 
     // remove unecessary elements from the exported file (drag areas, preview lines, etc.)
     clone.querySelectorAll(`.${StaticDomTags.REMOVE_ON_EXPORT}`).forEach((el) => el.remove());
