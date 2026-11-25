@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.13.2](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.13.1...netzgrafik-editor-frontend-v2.13.2) (2026-11-25)
+
+
+### Bug Fixes
+
+* **services:** fix nodesOrdered type errors in tests ([0a12bf3](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/0a12bf34f1e0617c146b243c46b0312c8357ef41))
+
 ## [2.13.1](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.13.0...netzgrafik-editor-frontend-v2.13.1) (2026-11-25)
 
 
