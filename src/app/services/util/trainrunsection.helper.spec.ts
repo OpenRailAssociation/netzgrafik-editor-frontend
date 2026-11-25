@@ -222,4 +222,55 @@ describe("TrainrunsectionHelper", () => {
     );
     expect(d1).toBe(false);
   });
+
+  describe("getLeftAndRightTimes", () => {
+    it("multiple sections across a non-stop node", () => {
+      dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+      const ts = trainrunSectionService.getTrainrunSectionFromId(3); // S1234 BN - OL
+
+      const timeStructure = trainrunsectionHelper.getLeftAndRightTimes(ts, []);
+      expect(timeStructure).toEqual({
+        leftDepartureTime: 0,
+        leftArrivalTime: 0,
+        rightDepartureTime: 11,
+        rightArrivalTime: 49,
+        travelTime: 49,
+        bottomTravelTime: 49,
+      });
+    });
+
+    describe("single section on non-stop node", () => {
+      let ts: TrainrunSection;
+      beforeAll(() => {
+        dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+        ts = trainrunSectionService.getTrainrunSectionFromId(4); // S1234 OL - ZUE
+      });
+
+      it("source on left", () => {
+        const orderedNodes = [ts.getSourceNode(), ts.getTargetNode()];
+        const timeStructure = trainrunsectionHelper.getLeftAndRightTimes(ts, orderedNodes);
+        expect(timeStructure).toEqual({
+          leftDepartureTime: 39,
+          leftArrivalTime: 21,
+          rightDepartureTime: 11,
+          rightArrivalTime: 49,
+          travelTime: 10,
+          bottomTravelTime: 10,
+        });
+      });
+
+      it("source on right", () => {
+        const orderedNodes = [ts.getTargetNode(), ts.getSourceNode()];
+        const timeStructure = trainrunsectionHelper.getLeftAndRightTimes(ts, orderedNodes);
+        expect(timeStructure).toEqual({
+          leftDepartureTime: 11,
+          leftArrivalTime: 49,
+          rightDepartureTime: 39,
+          rightArrivalTime: 21,
+          travelTime: 10,
+          bottomTravelTime: 10,
+        });
+      });
+    });
+  });
 });
