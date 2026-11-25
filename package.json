@@ -1,6 +1,6 @@
 {
   "name": "@openrail/netzgrafik-editor-frontend",
-  "version": "2.13.1",
+  "version": "2.13.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/OpenRailAssociation/netzgrafik-editor-frontend.git"
