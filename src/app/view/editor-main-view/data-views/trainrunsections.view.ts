@@ -2717,7 +2717,7 @@ export class TrainrunSectionsView {
       )
       .classed(StaticDomTags.EDGE_LINE_STOPS_FILL, !collapsedStops)
       .on("mouseover", (event: MouseEvent, t: TrainrunSectionViewObject) => {
-        if (TrainrunSectionsView.isSectionSelected(t.trainrunSection)) {
+        if (TrainrunSectionsView.isSectionSelected(t)) {
           d3.select(D3Utils.getMouseEventCurrentTarget(event)).attr("r", PIN_RADIUS_HOVER);
         }
         this.onIntermediateStopMouseOver(event);
