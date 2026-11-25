@@ -828,8 +828,8 @@
                   sbbInput
                   spellcheck="false"
                   pattern="^[0-9]*"
-                  [(ngModel)]="trainrunSectionTimesService.numberOfStops"
-                  (change)="trainrunSectionTimesService.onNumberOfStopsChanged()"
+                  [(ngModel)]="numberOfStops"
+                  (change)="onInputNbrStopsChanged()"
                 />
               </div>
               <div class="nodePlus">
