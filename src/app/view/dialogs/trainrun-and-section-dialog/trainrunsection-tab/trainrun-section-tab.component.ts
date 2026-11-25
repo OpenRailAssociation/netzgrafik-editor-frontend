@@ -56,6 +56,7 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   public leftBetriebspunkt: string[] = ["", ""];
   public rightBetriebspunkt: string[] = ["", ""];
   public tagNbrStopInput = false;
+  public numberOfStops: number;
   public frequency: number;
   public frequencyLinePattern: LinePatternRefs;
   public categoryShortName: string;
@@ -161,6 +162,7 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
       .getTimeCategoryLinePatternRef();
     this.trainrunSectionTimesService.setHighlightTravelTimeElement(false);
     this.trainrunSectionTimesService.setHighlightBottomTravelTimeElement(false);
+    this.numberOfStops = this.selectedTrainrunSection.getNumberOfStops();
     this.trainrunSectionTimesService.applyOffsetAndTransformTimeStructure();
 
     this.leftBetriebspunkt = this.trainrunSectionHelper.getLeftBetriebspunkt(
@@ -279,6 +281,27 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
   }
 
   /* number of stops */
+  onNumberOfStopsChanged() {
+    this.numberOfStops = Math.max(0, this.numberOfStops);
+    this.trainrunSectionService.updateTrainrunSectionNumberOfStops(
+      this.selectedTrainrunSection,
+      this.numberOfStops,
+    );
+  }
+
+  onInputNumberOfStopsElementButtonPlus() {
+    this.numberOfStops += 1;
+    this.trainrunSectionTimesService.setHighlightTravelTimeElement(false);
+    this.trainrunSectionTimesService.setHighlightBottomTravelTimeElement(false);
+    this.onNumberOfStopsChanged();
+  }
+
+  onInputNumberOfStopsElementButtonMinus() {
+    this.numberOfStops -= 1;
+    this.numberOfStops = Math.max(0, this.numberOfStops);
+    this.onNumberOfStopsChanged();
+  }
+
   onMouseEnterNbrStopInput() {
     this.tagNbrStopInput = true;
   }
@@ -289,7 +312,7 @@ export class TrainrunSectionTabComponent implements AfterViewInit, OnDestroy {
 
   getNumberOfStopsInputElementClass() {
     const activeTag = this.tagNbrStopInput ? " IsActive" : " NotActive";
-    if (this.trainrunSectionTimesService.numberOfStops > 0) {
+    if (this.numberOfStops > 0) {
       return "NumberOfStopsInputElement show" + activeTag;
     }
     return "NumberOfStopsInputElement" + activeTag;
