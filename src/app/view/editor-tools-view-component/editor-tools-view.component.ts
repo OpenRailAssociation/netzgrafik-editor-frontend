@@ -155,6 +155,7 @@ export class EditorToolsViewComponent {
     containerInfo.exportParameter.scale = scaleToTargetWidth;
 
     const clone = this.prepareStyleForExport(containerInfo);
+    this.embedFontsIntoSvgClone(clone);
 
     const svgString = new XMLSerializer().serializeToString(clone);
     const blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"});
@@ -207,6 +208,7 @@ export class EditorToolsViewComponent {
     const scale = exportParameter.scale ?? 1;
 
     const clone = this.prepareStyleForExport({documentToExport, exportParameter, essentialProps});
+    this.embedFontsIntoSvgClone(clone);
 
     const svgString = new XMLSerializer().serializeToString(clone);
     const blob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"});
@@ -931,5 +933,19 @@ export class EditorToolsViewComponent {
       default:
         return $localize`:@@app.view.editor-side-view.editor-tools-view-component.netzgrafikFile:netzgrafik`;
     }
+  }
+
+  /** Get the font-faces to embed them in the exported SVG and allow user to fetch them.
+   */
+  private embedFontsIntoSvgClone(clone: SVGSVGElement): void {
+    const fontFaceRules: CSSFontFaceRule[] = [];
+    for (const styleSheet of document.styleSheets) {
+      for (const rule of styleSheet.cssRules) {
+        if (rule instanceof CSSFontFaceRule) fontFaceRules.push(rule);
+      }
+    }
+    const styleElement = document.createElementNS("http://www.w3.org/2000/svg", "style");
+    styleElement.textContent = fontFaceRules.map((fontFaceRule) => fontFaceRule.cssText).join("\n");
+    clone.insertBefore(styleElement, clone.firstChild);
   }
 }
