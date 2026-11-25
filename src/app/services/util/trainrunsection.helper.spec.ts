@@ -233,7 +233,7 @@ describe("TrainrunsectionHelper", () => {
 
     // By default, we look at all sections in-between stop nodes (ie, we cross
     // non-stop nodes)
-    const defaultNodesOrdered: Node[] = [];
+    const defaultNodesOrdered: [] = [];
 
     it("travel time lock with single section", () => {
       dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
@@ -440,13 +440,13 @@ describe("TrainrunsectionHelper", () => {
       });
 
       it("source on left", () => {
-        const nodesOrdered = [ts.getSourceNode(), ts.getTargetNode()];
+        const nodesOrdered: [Node, Node] = [ts.getSourceNode(), ts.getTargetNode()];
         const lockStructure = trainrunsectionHelper.getLeftAndRightLock(ts, nodesOrdered);
         expect(lockStructure).toEqual({...defaultLockStructure, leftLock: true});
       });
 
       it("source on right", () => {
-        const nodesOrdered = [ts.getTargetNode(), ts.getSourceNode()];
+        const nodesOrdered: [Node, Node] = [ts.getTargetNode(), ts.getSourceNode()];
         const lockStructure = trainrunsectionHelper.getLeftAndRightLock(ts, nodesOrdered);
         expect(lockStructure).toEqual({...defaultLockStructure, rightLock: true});
       });
@@ -463,13 +463,13 @@ describe("TrainrunsectionHelper", () => {
       });
 
       it("target on left", () => {
-        const nodesOrdered = [ts.getTargetNode(), ts.getSourceNode()];
+        const nodesOrdered: [Node, Node] = [ts.getTargetNode(), ts.getSourceNode()];
         const lockStructure = trainrunsectionHelper.getLeftAndRightLock(ts, nodesOrdered);
         expect(lockStructure).toEqual({...defaultLockStructure, leftLock: true});
       });
 
       it("target on right", () => {
-        const nodesOrdered = [ts.getSourceNode(), ts.getTargetNode()];
+        const nodesOrdered: [Node, Node] = [ts.getSourceNode(), ts.getTargetNode()];
         const lockStructure = trainrunsectionHelper.getLeftAndRightLock(ts, nodesOrdered);
         expect(lockStructure).toEqual({...defaultLockStructure, rightLock: true});
       });
