@@ -35,6 +35,8 @@ import {TrainrunsectionHelper} from "src/app/services/util/trainrunsection.helpe
 import {TransitionViewObject} from "./transitionViewObject";
 
 export class TrainrunSectionsView {
+  private static readonly ASYMMETRY_ARROW_PATH = "M-1,-6 V0 H-8 L1,6 V0 H8 Z";
+  private static readonly ASYMMETRY_ARROW_SPACING = 12;
   trainrunSectionGroup: d3.Selection<SVGGElement, undefined, Element, undefined>;
 
   constructor(private editorView: EditorView) {}
@@ -45,23 +47,30 @@ export class TrainrunSectionsView {
   ) {
     const x = trainrunSection.getTextPositionX(trainrunSectionText);
     const y = trainrunSection.getTextPositionY(trainrunSectionText);
+    const {a} = TrainrunSectionsView.getTextOrientation(trainrunSection);
+    return "translate(" + x + "," + y + ") rotate(" + a + ", 0,0) ";
+  }
 
+  private static getTextOrientation(trainrunSection: TrainrunSection) {
     const pathVec2D: Vec2D[] = trainrunSection.getPath();
     const s1: Vec2D = pathVec2D[1];
     const t1: Vec2D = pathVec2D[2];
     const diff: Vec2D = Vec2D.sub(t1, s1);
     let a: number = (Math.atan2(diff.getY(), diff.getX()) / Math.PI) * 180.0;
+    let forwardPointsRight = diff.getX() >= 0;
     if (Math.abs(a) > 90) {
       a = a + 180;
     }
     // Math.atan2 -> edge cases -> correct manually
     if (Math.abs(diff.getX()) < 1) {
       a = -90;
+      forwardPointsRight = diff.getY() < 0;
     }
     if (Math.abs(diff.getY()) < 1) {
       a = 0;
+      forwardPointsRight = diff.getX() >= 0;
     }
-    return "translate(" + x + "," + y + ") rotate(" + a + ", 0,0) ";
+    return {a, forwardPointsRight};
   }
 
   static isSectionSelected(trainrunSection: TrainrunSection): boolean {
@@ -1184,7 +1193,7 @@ export class TrainrunSectionsView {
             : !d.trainrunSection.isTargetSymmetricOrTimesSymmetric();
         })
         .append(StaticDomTags.EDGE_LINE_ARROW_SVG)
-        .attr("d", "M-1,-6 V0 H-8 L1,6 V0 H8 Z")
+        .attr("d", TrainrunSectionsView.ASYMMETRY_ARROW_PATH)
         .attr("transform", (d: TrainrunSectionViewObject) =>
           this.translateAndRotateArrow(d.trainrunSection, arrowLocation, "SYMMETRY"),
         )
@@ -1607,6 +1616,58 @@ export class TrainrunSectionsView {
       enableEvents,
       true,
     );
+  }
+
+  private groupAsymmetricTravelTimes(
+    labels: d3.Selection<SVGGElement, TrainrunSectionViewObject, Element, undefined>,
+    selectedTrainrun: Trainrun,
+    connectedTrainIds: number[],
+  ): void {
+    labels.each(function ({trainrunSection}) {
+      const group = d3.select(this);
+      const visibleTime = (element: TrainrunSectionText) =>
+        this.querySelector<SVGTextElement>(
+          `text[${StaticDomTags.EDGE_LINE_TEXT_INDEX}="${element}"]:not(.${StaticDomTags.TAG_HIDDEN})`,
+        );
+      const forward = visibleTime(TrainrunSectionText.TrainrunSectionTravelTime);
+      const backward = visibleTime(TrainrunSectionText.TrainrunSectionBackwardTravelTime);
+      if (!forward || !backward) {
+        return;
+      }
+
+      const {forwardPointsRight} = TrainrunSectionsView.getTextOrientation(trainrunSection);
+      const [left, right] = forwardPointsRight ? [backward, forward] : [forward, backward];
+      const transform = TrainrunSectionsView.translateAndRotateText(
+        trainrunSection,
+        TrainrunSectionText.TrainrunSectionName,
+      );
+      const iconX =
+        Number(left.getAttribute("x")) +
+        left.getComputedTextLength() +
+        TrainrunSectionsView.ASYMMETRY_ARROW_SPACING;
+      left.setAttribute("transform", transform);
+      right.setAttribute("transform", transform);
+      right.setAttribute("x", String(iconX + TrainrunSectionsView.ASYMMETRY_ARROW_SPACING));
+      group
+        .append("path")
+        .attr("d", TrainrunSectionsView.ASYMMETRY_ARROW_PATH)
+        .attr("transform", `${transform} translate(${iconX},0)`)
+        .attr("pointer-events", "none")
+        .attr("aria-hidden", "true")
+        .attr(
+          "class",
+          StaticDomTags.EDGE_LINE_ARROW_CLASS +
+            TrainrunSectionsView.createTrainrunSectionFrequencyClassAttribute(
+              trainrunSection,
+              selectedTrainrun,
+              connectedTrainIds,
+            ),
+        )
+        .classed(
+          StaticDomTags.TAG_SELECTED,
+          TrainrunSectionsView.isSectionSelected(trainrunSection),
+        );
+    });
   }
 
   createTrainrunSectionGotoInfoElement(
@@ -2574,6 +2635,7 @@ export class TrainrunSectionsView {
           connectedTrainIds,
           TrainrunSectionText.TrainrunSectionBackwardTravelTime,
         );
+        this.groupAsymmetricTravelTimes(groupLabels, selectedTrainrun, connectedTrainIds);
       }
 
       if (
