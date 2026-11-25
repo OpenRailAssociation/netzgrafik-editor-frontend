@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.13.1](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.13.0...netzgrafik-editor-frontend-v2.13.1) (2026-11-25)
+
+
+### Bug Fixes
+
+* update version ([#1528](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1528)) ([234684f](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/234684f41821a2d24bfd46b529841af541c8c1e3))
+
 ## [2.13.0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.12.2...netzgrafik-editor-frontend-v2.13.0) (2026-11-19)
 
 
