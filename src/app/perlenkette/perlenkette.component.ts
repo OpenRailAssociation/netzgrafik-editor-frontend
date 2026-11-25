@@ -100,7 +100,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
       if (!this.trainrunSectionService.getSelectedTrainrunSection()) {
         this.trainrunSectionService.setTrainrunSectionAsSelected(
           this.perlenketteTrainrun.pathItems.find((s) => s instanceof PerlenketteSection)
-            .trainrunSectionId,
+            .trainrunSectionIds[0],
         );
       }
       if (!trainrunList.length) {
@@ -158,7 +158,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
       const pItemSection = this.perlenketteTrainrun.pathItems.find(
         (item) => item instanceof PerlenketteSection,
       );
-      this.trainrunSectionService.setTrainrunSectionAsSelected(pItemSection.trainrunSectionId);
+      this.trainrunSectionService.setTrainrunSectionAsSelected(pItemSection.trainrunSectionIds[0]);
     }
     // toggle
     if (this.showTrainrunEditTab === ShowTrainrunEditTab.sbb_trainrun_tab) {
@@ -188,7 +188,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
             originalPathItem instanceof PerlenketteSection
           ) {
             if (
-              pathItem.trainrunSectionId === originalPathItem.trainrunSectionId &&
+              pathItem.trainrunSectionIds[0] === originalPathItem.trainrunSectionIds[0] &&
               originalPathItem.isBeingEdited
             ) {
               pathItem.isBeingEdited = originalPathItem.isBeingEdited;
@@ -375,7 +375,7 @@ export class PerlenketteComponent implements AfterContentChecked, OnDestroy {
   gotoTrainrunSection(trainrunSectionId: number) {
     const pathItem: PerlenketteItem = this.perlenketteTrainrun.pathItems.find(
       (item: PerlenketteItem) =>
-        item instanceof PerlenketteSection && item.trainrunSectionId === trainrunSectionId,
+        item instanceof PerlenketteSection && item.trainrunSectionIds.includes(trainrunSectionId),
     );
     if (pathItem !== undefined) {
       const pItemHeight = this.perlenketteRenderingElementsHeight.find((pItem) => {

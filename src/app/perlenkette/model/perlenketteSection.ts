@@ -2,7 +2,8 @@ import {Node} from "../../models/node.model";
 
 export class PerlenketteSection {
   constructor(
-    readonly trainrunSectionId: number,
+    /** Trainrun section IDs, ordered starting at fromNode and ending at toNode */
+    readonly trainrunSectionIds: number[],
     readonly travelTime: number,
     readonly fromNode: Node,
     readonly toNode: Node,

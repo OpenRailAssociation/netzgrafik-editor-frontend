@@ -35,7 +35,10 @@ import {MathUtils} from "../../utils/math";
 import {VersionControlService} from "../../services/data/version-control.service";
 import {ToggleSwitchButtonComponent} from "../../view/toggle-switch-button/toggle-switch-button.component";
 import {TrafficSide} from "src/app/data-structures/business.data.structures";
-import {DirectedTrainrunSectionProxy} from "src/app/services/util/trainrun.iterator";
+import {
+  DirectedTrainrunSectionProxy,
+  NextExpandedStopIterator,
+} from "src/app/services/util/trainrun.iterator";
 
 const timeCoordinates = {
   leftHand: {
@@ -99,7 +102,9 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   private static timeEditor = true;
 
   stationNumberArray: number[];
-  public trainrunSection: TrainrunSection;
+
+  /** Trainrun sections, ordered starting at fromNode and ending at toNode */
+  public trainrunSections: TrainrunSection[];
 
   public numberOfStops: number;
 
@@ -123,14 +128,14 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     this.stationNumberArray = Array(this.perlenketteSection.numberOfStops)
       .fill(1)
       .map((_, i) => i + 1);
-    this.trainrunSection = this.trainrunSectionService.getTrainrunSectionFromId(
-      this.perlenketteSection.trainrunSectionId,
+    this.trainrunSections = this.perlenketteSection.trainrunSectionIds.map((id) =>
+      this.trainrunSectionService.getTrainrunSectionFromId(id),
     );
     this.trainrunSectionTimesService.setNodesOrdered([
       this.perlenketteSection.fromNode,
       this.perlenketteSection.toNode,
     ]);
-    this.trainrunSectionTimesService.setTrainrunSection(this.trainrunSection);
+    this.trainrunSectionTimesService.setTrainrunSection(this.trainrunSections[0]);
   }
 
   ngAfterContentInit() {
@@ -141,7 +146,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
           this.perlenketteSection.isBeingEdited = false;
           return;
         }
-        if (ps.trainrunSectionId !== this.perlenketteSection.trainrunSectionId) {
+        if (ps.trainrunSectionIds[0] !== this.perlenketteSection.trainrunSectionIds[0]) {
           if (this.perlenketteSection.isBeingEdited) {
             this.perlenketteSection.isBeingEdited = false;
           }
@@ -157,7 +162,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   getTrainrun(): Trainrun {
-    return this.trainrunSection.getTrainrun();
+    return this.trainrunSections[0].getTrainrun();
   }
 
   getEdgeLineArrowClass() {
@@ -211,10 +216,11 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
 
   shouldDisplayAsymmetryArrow(arrowLocation: "top" | "bottom"): boolean {
     if (!this.getTrainrun().isRoundTrip()) return false;
+    const trainrunSection = this.getTrainrunSection(arrowLocation);
     if (this.getLeftToRightDirection(arrowLocation) === "sourceToTarget") {
-      return !this.trainrunSection.isSourceSymmetricOrTimesSymmetric();
+      return !trainrunSection.isSourceSymmetricOrTimesSymmetric();
     } else {
-      return !this.trainrunSection.isTargetSymmetricOrTimesSymmetric();
+      return !trainrunSection.isTargetSymmetricOrTimesSymmetric();
     }
   }
 
@@ -395,7 +401,8 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   isFromNodeStop(): boolean {
-    const trans = this.perlenketteSection.fromNode.getTransition(this.trainrunSection.getId());
+    const trainrunSection = this.getTrainrunSection("top");
+    const trans = this.perlenketteSection.fromNode.getTransition(trainrunSection.getId());
     if (trans === undefined) {
       return true;
     }
@@ -403,7 +410,8 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   isToNodeStop(): boolean {
-    const trans = this.perlenketteSection.toNode.getTransition(this.trainrunSection.getId());
+    const trainrunSection = this.getTrainrunSection("bottom");
+    const trans = this.perlenketteSection.toNode.getTransition(trainrunSection.getId());
     if (trans === undefined) {
       return true;
     }
@@ -450,7 +458,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     }
     return (
       this.getTrainrun().isRoundTrip() &&
-      !this.trainrunSection.isSymmetric() &&
+      !this.isSymmetric() &&
       this.filterService.isFilterBackwardTravelTimeEnabled()
     );
   }
@@ -463,7 +471,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   getTimeTransform(element: KeyOfTimeCoordinates) {
-    if (element === "travelTime" && !this.trainrunSection.isSymmetric()) {
+    if (element === "travelTime" && !this.isSymmetric()) {
       element += "Asymmetry";
     }
     const {x, y} = timeCoordinates[this.trafficSide][element as KeyOfTimeCoordinates];
@@ -471,7 +479,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   getNodeBorderContainerClassSuffix(): "" | "Right" {
-    if (this.trainrunSection.isSymmetric()) {
+    if (this.isSymmetric()) {
       return "";
     }
     // show travel time on the right side
@@ -497,7 +505,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
 
   getTravelTimeLockClassTag(): string {
     let tag = "TravelTimeLock";
-    if (!this.showTravelTime() || !this.trainrunSection.isSymmetric()) {
+    if (!this.showTravelTime() || !this.isSymmetric()) {
       // lock in center when trainrun is asymmetric or travel time is not shown
       tag += " Center";
     }
@@ -508,10 +516,10 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     if (this.stationNumberArray.length > 0) {
       if (this.stationNumberArray.length <= 5) {
         // move a bit to the right when some stops are shown
-        return this.trainrunSection.isSymmetric() ? "translate(142, 82)" : "translate(159, 82)";
+        return this.isSymmetric() ? "translate(142, 82)" : "translate(159, 82)";
       } else {
         // move a bit more to the right when many stops are shown
-        return this.trainrunSection.isSymmetric() ? "translate(155, 82)" : "translate(168, 82)";
+        return this.isSymmetric() ? "translate(155, 82)" : "translate(168, 82)";
       }
     } else {
       // default position
@@ -532,11 +540,11 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     const travelTime = side === "top" ? timeStructure.travelTime : timeStructure.bottomTravelTime;
 
     if (
-      TrainrunSectionsView.getNode(this.trainrunSection, true).isNonStop(this.trainrunSection) ||
-      TrainrunSectionsView.getNode(this.trainrunSection, false).isNonStop(this.trainrunSection)
+      this.perlenketteSection.fromNode.isNonStop(this.getTrainrunSection("top")) ||
+      this.perlenketteSection.toNode.isNonStop(this.getTrainrunSection("bottom"))
     ) {
       const cumulativeTravelTime = this.trainrunService.getCumulativeTravelTime(
-        this.trainrunSection,
+        this.trainrunSections[0],
         this.getLeftToRightDirection(side),
       );
       return "" + this.roundTime(cumulativeTravelTime) + "' (" + this.roundTime(travelTime) + "')";
@@ -658,14 +666,16 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   onPropagateTimeLeft(event: MouseEvent) {
     this.stopPropagation(event);
     const toId = this.perlenketteSection.toNode.getId();
-    this.trainrunSectionService.propagateTimeAlongTrainrun(this.trainrunSection.getId(), toId);
+    const trainrunSection = this.getTrainrunSection("top");
+    this.trainrunSectionService.propagateTimeAlongTrainrun(trainrunSection.getId(), toId);
     this.loadPerlenketteService.render();
   }
 
   onPropagateTimeRight(event: MouseEvent) {
     this.stopPropagation(event);
     const fromId = this.perlenketteSection.fromNode.getId();
-    this.trainrunSectionService.propagateTimeAlongTrainrun(this.trainrunSection.getId(), fromId);
+    const trainrunSection = this.getTrainrunSection("bottom");
+    this.trainrunSectionService.propagateTimeAlongTrainrun(trainrunSection.getId(), fromId);
     this.loadPerlenketteService.render();
   }
 
@@ -692,8 +702,8 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     const fromNode = this.perlenketteSection.toNode;
     const toNode = this.perlenketteSection.fromNode;
     if (this.uiInteractionService.getEditorMode() === EditorMode.NetzgrafikEditing) {
-      const fromPort = fromNode.getPortOfTrainrunSection(this.perlenketteSection.trainrunSectionId);
-      const toPort = toNode.getPortOfTrainrunSection(this.perlenketteSection.trainrunSectionId);
+      const fromPort = fromNode.getPortOfTrainrunSection(this.getTrainrunSection("top").getId());
+      const toPort = toNode.getPortOfTrainrunSection(this.getTrainrunSection("bottom").getId());
       let fromX = fromNode.getPositionX();
       let fromY = fromNode.getPositionY();
       let toX = toNode.getPositionX();
@@ -763,7 +773,8 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
 
   private getLeftToRightDirection(side: "top" | "bottom"): "sourceToTarget" | "targetToSource" {
     const direction =
-      this.perlenketteSection.fromNode.getId() === this.trainrunSection.getSourceNode().getId()
+      this.perlenketteSection.fromNode.getId() ===
+      this.getTrainrunSection("top").getSourceNode().getId()
         ? "sourceToTarget"
         : "targetToSource";
     if (side === "top") {
@@ -774,10 +785,29 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
   }
 
   private getDirectedTrainrunSectionProxy(side: "top" | "bottom"): DirectedTrainrunSectionProxy {
-    return new DirectedTrainrunSectionProxy(
-      this.trainrunSection,
-      this.getLeftToRightDirection(side),
-    );
+    const section = this.getTrainrunSection(side);
+    const direction = this.getLeftToRightDirection(side);
+    return new DirectedTrainrunSectionProxy(section, direction);
+  }
+
+  private getTrainrunSectionIterator(side: "top" | "bottom") {
+    const startSection = this.getTrainrunSection(side);
+    const startNode =
+      side === "top" ? this.perlenketteSection.fromNode : this.perlenketteSection.toNode;
+    return new NextExpandedStopIterator(null, startNode, startSection);
+  }
+
+  private getTrainrunSection(side: "top" | "bottom"): TrainrunSection {
+    return this.trainrunSections.at(side === "top" ? 0 : -1)!;
+  }
+
+  private isSymmetric(): boolean {
+    for (const trainrunSection of this.trainrunSections) {
+      if (!trainrunSection.isSymmetric()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   getTextAnchorForTimeElement(element: KeyOfTimeCoordinates): "anchor_start" | "anchor_end" {
