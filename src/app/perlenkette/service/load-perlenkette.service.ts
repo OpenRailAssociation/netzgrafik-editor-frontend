@@ -154,7 +154,7 @@ export class LoadPerlenketteService implements OnDestroy {
           // Section X
           perlenketteItem.push(
             new PerlenketteSection(
-              trainrunSection.getId(),
+              [trainrunSection.getId()],
               trainrunSection.getTravelTime(),
               lastNode,
               node,

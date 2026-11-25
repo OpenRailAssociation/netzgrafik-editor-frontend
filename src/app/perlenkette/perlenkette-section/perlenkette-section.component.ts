@@ -128,11 +128,9 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
     this.stationNumberArray = Array(this.perlenketteSection.numberOfStops)
       .fill(1)
       .map((_, i) => i + 1);
-    this.trainrunSections = [
-      this.trainrunSectionService.getTrainrunSectionFromId(
-        this.perlenketteSection.trainrunSectionId,
-      ),
-    ];
+    this.trainrunSections = this.perlenketteSection.trainrunSectionIds.map((id) =>
+      this.trainrunSectionService.getTrainrunSectionFromId(id),
+    );
     this.trainrunSectionTimesService.setNodesOrdered([
       this.perlenketteSection.fromNode,
       this.perlenketteSection.toNode,
@@ -148,7 +146,7 @@ export class PerlenketteSectionComponent implements OnInit, AfterContentInit, On
           this.perlenketteSection.isBeingEdited = false;
           return;
         }
-        if (ps.trainrunSectionId !== this.perlenketteSection.trainrunSectionId) {
+        if (ps.trainrunSectionIds[0] !== this.perlenketteSection.trainrunSectionIds[0]) {
           if (this.perlenketteSection.isBeingEdited) {
             this.perlenketteSection.isBeingEdited = false;
           }
