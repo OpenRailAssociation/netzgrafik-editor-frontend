@@ -1,0 +1,25 @@
+<div class="track-topology-container">
+  <svg class="track-topology" viewBox="0 0 1 33" preserveAspectRatio="none" aria-hidden="true">
+    <path
+      *ngFor="let line of topologyLines"
+      [attr.d]="line.d"
+      [class.track-topology-unoccupied]="!line.occupied"
+      [class.track-topology-over-limit]="line.overLimit"
+    />
+    <path
+      *ngFor="let box of topologyCountBoxes"
+      [attr.d]="box.d"
+      class="track-topology-count-outline"
+    />
+  </svg>
+  <span
+    *ngFor="let box of topologyCountBoxes"
+    class="track-topology-count-label"
+    [class.track-topology-over-limit]="box.overLimit"
+    [style.left.%]="box.x * 100"
+    [style.top.px]="box.centerY"
+    [style.height.px]="box.height"
+  >
+    {{ box.value }}
+  </span>
+</div>

@@ -289,6 +289,7 @@ export class StreckengrafikComponent implements OnInit, OnDestroy, AfterViewInit
   private render(width: number, height: number) {
     if (this.oldResizeChangeInfo.width !== width || this.oldResizeChangeInfo.height !== height) {
       this.oldResizeChangeInfo = new ResizeChangeInfo(width, height);
+      this.timeSliderService.setViewportSize(this.pathAlignmentHorizontal ? height : width);
       this.resizeService.resizeChange(this.oldResizeChangeInfo);
     }
   }
