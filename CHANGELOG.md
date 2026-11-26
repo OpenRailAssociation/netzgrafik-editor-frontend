@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.13.4](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.13.3...netzgrafik-editor-frontend-v2.13.4) (2026-11-26)
+
+
+### Features
+
+* **import:** open a Netzgrafik given in a #netzgrafik= link (standalone) ([1b128d3](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/1b128d32fca34ce93c66bf864e194722dccf9c81))
+* **ui:** add section rendering style setting ([3595de2](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/3595de280866e50580e7104b1dd9f4aa3606c00d))
+* **view:** compute orthogonal section path ([7302009](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/7302009799dc46fb02f699b6a0334827053cf0fe))
+
+
+### Bug Fixes
+
+* correct turnaround times for 120-minute intervals ([#1542](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1542)) ([819cd04](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/819cd04616053b200dd89f6aa5d544a3995bbb65))
+
 ## [2.13.3](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.13.2...netzgrafik-editor-frontend-v2.13.3) (2026-11-26)
 
 
