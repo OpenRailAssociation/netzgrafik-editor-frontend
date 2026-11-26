@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.13.3](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.13.2...netzgrafik-editor-frontend-v2.13.3) (2026-11-26)
+
+
+### Bug Fixes
+
+* include fonts to exported files (svg/png) ([2fb321b](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/2fb321bd4deec3569021fcfde7d66db823cebae8)), closes [#1432](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1432)
+* trainrun line pattern in section edit dialog ([#1538](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1538)) ([49d8a92](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/49d8a92dbba4adede7493ef8e234c66c4d3e011a))
+
 ## [2.13.2](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.13.1...netzgrafik-editor-frontend-v2.13.2) (2026-11-25)
 
 
