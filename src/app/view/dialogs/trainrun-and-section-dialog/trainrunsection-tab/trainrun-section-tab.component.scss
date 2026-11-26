@@ -206,9 +206,18 @@ input.NumberOfStopsInputElement.IsActive {
   grid-row: 2;
 }
 
+::ng-deep .TravelFreqCenter {
+  grid-column: 7/12;
+  grid-row: 2;
+}
+
 ::ng-deep .TravelFreqRight {
   grid-column: 12/15;
   grid-row: 2;
+}
+
+::ng-deep .TravelFreqRight path.edge_line {
+  stroke-dashoffset: 176px;
 }
 
 ::ng-deep .renderer {
