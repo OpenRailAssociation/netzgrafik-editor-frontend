@@ -21,6 +21,7 @@ import {
 import {Vec2D} from "../../../utils/vec2D";
 import {D3Utils} from "./d3.utils";
 import {NodeViewObject} from "./nodeViewObject";
+import {createLayerCache} from "./viewport.render.cache";
 import {ConnectionsView} from "./connections.view";
 import {EditorMode} from "../../editor-menu/editor-mode";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
@@ -117,8 +118,15 @@ export class NodesView {
     return this.editorView.isNodeVisible(node);
   }
 
-  displayNodes(inputNodes: Node[]) {
-    inputNodes.forEach((n) => this.updateNodeDisplayConstraints(n));
+  private cache = createLayerCache<Node, NodeViewObject>();
+
+  displayForViewport() {
+    this.displayNodes(this.cache.items(), true);
+  }
+
+  displayNodes(inputNodes: Node[], viewportOnly = false) {
+    this.cache.start(inputNodes, viewportOnly, this.editorView.getLevelOfDetail());
+    if (!viewportOnly) inputNodes.forEach((n) => this.updateNodeDisplayConstraints(n));
     const nodes = inputNodes.filter(
       (n) =>
         this.editorView.doCullCheckPositionsInViewport([
@@ -131,7 +139,10 @@ export class NodesView {
 
     const group = this.nodeGroup
       .selectAll<SVGElement, NodeViewObject>(StaticDomTags.NODE_ROOT_CONTAINER_DOM_REF)
-      .data(this.createViewNodeDataObjects(nodes), (n: NodeViewObject) => n.key);
+      .data(
+        this.cache.getAll(nodes, (missing) => this.createViewNodeDataObjects(missing)),
+        (n: NodeViewObject) => n.key,
+      );
 
     const groupEnter2 = group
       .enter()

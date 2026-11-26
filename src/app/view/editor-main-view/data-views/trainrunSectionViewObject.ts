@@ -2,6 +2,10 @@ import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {TrainrunSectionText} from "../../../data-structures/technical.data.structures";
 import {EditorView} from "./editor.view";
 import {TrainrunSectionsView} from "./trainrunsections.view";
+import {
+  createTrainrunSectionKeyContext,
+  TrainrunSectionKeyContext,
+} from "./trainrunsection.key.context";
 
 export class TrainrunSectionViewObject {
   readonly key: string;
@@ -9,20 +13,18 @@ export class TrainrunSectionViewObject {
   constructor(
     editorView: EditorView,
     readonly trainrunSection: TrainrunSection,
+    ctx?: TrainrunSectionKeyContext,
   ) {
-    this.key = TrainrunSectionViewObject.generateKey(editorView, trainrunSection);
+    this.key = TrainrunSectionViewObject.generateKey(editorView, trainrunSection, ctx);
   }
 
-  static generateKey(editorView: EditorView, d: TrainrunSection): string {
-    const selectedTrainrun = editorView.getSelectedTrainrun();
-    let connectedTrainIds: number[] = [];
-    if (selectedTrainrun !== null) {
-      connectedTrainIds = editorView.getConnectedTrainrunIds(selectedTrainrun);
-    }
-
+  static generateKey(
+    editorView: EditorView,
+    d: TrainrunSection,
+    ctx: TrainrunSectionKeyContext = createTrainrunSectionKeyContext(editorView),
+  ): string {
     const isNonStopAtSource = d.getSourceNode().isNonStop(d);
     const isNonStopAtTarget = d.getTargetNode().isNonStop(d);
-    const isMuted = TrainrunSectionsView.isMuted(d, selectedTrainrun, connectedTrainIds);
     const hiddenTagSource = TrainrunSectionsView.getHiddenTagForTime(
       editorView,
       d,
@@ -48,18 +50,15 @@ export class TrainrunSectionViewObject {
       d,
       TrainrunSectionText.TrainrunSectionName,
     );
-    const hiddenTagDirectionArrows =
-      !editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() &&
-      !editorView.isFilterDirectionArrowsEnabled();
-    const hiddenTagAsymmetryArrows = !editorView.isFilterAsymmetryArrowsEnabled();
     const cumulativeTravelTimeData = editorView.getCumulativeTravelTimeAndNodePath(
       d,
       "sourceToTarget",
     );
-    const activeTrafficSideType = editorView.getActiveTrafficSideType();
     const cumulativeTravelTime =
       cumulativeTravelTimeData[cumulativeTravelTimeData.length - 1].sumTravelTime;
     const cumulativeBackwardTravelTime = editorView.getCumulativeTravelTime(d, "targetToSource");
+    const sourceFilters = ctx.getNodeFilters(d.getSourceNode());
+    const targetFilters = ctx.getNodeFilters(d.getTargetNode());
 
     let key =
       "#" +
@@ -81,7 +80,7 @@ export class TrainrunSectionViewObject {
       "_" +
       cumulativeBackwardTravelTime +
       "_" +
-      editorView.getTimeDisplayPrecision() +
+      ctx.timeDisplayPrecision +
       "_" +
       d.getTargetDeparture() +
       "_" +
@@ -129,8 +128,6 @@ export class TrainrunSectionViewObject {
       "_" +
       isNonStopAtTarget +
       "_" +
-      isMuted +
-      "_" +
       hiddenTagSource +
       "_" +
       hiddenTagTarget +
@@ -141,41 +138,42 @@ export class TrainrunSectionViewObject {
       "_" +
       hiddenTagTrainrunName +
       "_" +
-      hiddenTagDirectionArrows +
+      ctx.hiddenTagDirectionArrows +
       "_" +
-      hiddenTagAsymmetryArrows +
+      ctx.hiddenTagAsymmetryArrows +
       "_" +
-      activeTrafficSideType +
+      ctx.activeTrafficSideType +
       "_" +
-      editorView.isTemporaryDisableFilteringOfItemsInViewEnabled() +
+      ctx.isTemporaryDisableFilteringOfItemsInViewEnabled +
       "_" +
-      editorView.isFilterShowNonStopTimeEnabled() +
+      ctx.isFilterShowNonStopTimeEnabled +
       "_" +
-      editorView.checkFilterNonStopNode(d.getSourceNode()) +
+      sourceFilters.checkFilterNonStop +
       "_" +
-      editorView.checkFilterNonStopNode(d.getTargetNode()) +
+      targetFilters.checkFilterNonStop +
       "_" +
-      editorView.isJunctionNode(d.getSourceNode()) +
+      sourceFilters.isJunction +
       "_" +
-      editorView.isJunctionNode(d.getTargetNode()) +
+      targetFilters.isJunction +
       "_" +
-      editorView.checkFilterNode(d.getSourceNode()) +
+      sourceFilters.checkFilter +
       "_" +
-      editorView.checkFilterNode(d.getTargetNode()) +
+      targetFilters.checkFilter +
       "_" +
-      editorView.isFilterDirectionArrowsEnabled() +
+      ctx.isFilterDirectionArrowsEnabled +
       "_" +
-      editorView.displayNodesFullName() +
+      ctx.displayNodesFullName +
       "_" +
-      editorView.getLevelOfDetail() +
+      ctx.levelOfDetail +
       "_" +
-      editorView.trainrunSectionPreviewLineView.getVariantIsWritable();
+      ctx.variantIsWritable;
 
     cumulativeTravelTimeData.forEach((data) => {
+      const filters = ctx.getNodeFilters(data.node);
       key += "_" + data.node.getId();
-      key += "_" + editorView.isJunctionNode(data.node);
-      key += "_" + editorView.checkFilterNonStopNode(data.node);
-      key += "_" + editorView.checkFilterNode(data.node);
+      key += "_" + filters.isJunction;
+      key += "_" + filters.checkFilterNonStop;
+      key += "_" + filters.checkFilter;
     });
 
     d.getPath().forEach((p) => {
