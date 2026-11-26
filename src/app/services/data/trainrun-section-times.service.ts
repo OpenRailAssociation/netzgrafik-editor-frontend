@@ -17,6 +17,8 @@ export interface LeftAndRightTimeStructure {
   rightArrivalTime: number;
   travelTime: number;
   bottomTravelTime: number;
+  stopTime: number;
+  bottomStopTime: number;
 }
 
 export interface LeftAndRightLockStructure {
@@ -41,6 +43,8 @@ const leftToRightStructureKeys = {
   headSymmetry: "rightSymmetry",
   travelTime: "travelTime",
   reverseTravelTime: "bottomTravelTime",
+  stopTime: "stopTime",
+  reverseStopTime: "bottomStopTime",
 } as const;
 const rightToLeftStructureKeys = {
   tailDepartureTime: "rightDepartureTime",
@@ -53,9 +57,13 @@ const rightToLeftStructureKeys = {
   headSymmetry: "leftSymmetry",
   travelTime: "bottomTravelTime",
   reverseTravelTime: "travelTime",
+  stopTime: "bottomStopTime",
+  reverseStopTime: "stopTime",
 } as const;
 
 type LeftAndRightStructureKeys = typeof leftToRightStructureKeys | typeof rightToLeftStructureKeys;
+
+type Warning = null | "too-many-locks" | "cannot-delete-not-empty-node";
 
 /**
  * A service responsible for updating times for one or more trainrun sections.
@@ -109,6 +117,8 @@ export class TrainrunSectionTimesService {
     rightArrivalTime: 0,
     travelTime: 0,
     bottomTravelTime: 0,
+    stopTime: 0,
+    bottomStopTime: 0,
   };
 
   private nodesOrdered: [] | [Node, Node] = [];
@@ -118,14 +128,12 @@ export class TrainrunSectionTimesService {
     rightLock: false,
     travelTimeLock: false,
   };
-  private showWarningTwoLocks = false;
+  private warning: Warning = null;
 
   private symmetryStructure: LeftAndRightSymmetryStructure = {
     leftSymmetry: true,
     rightSymmetry: true,
   };
-
-  public numberOfStops = 0;
 
   private offset = 0;
   private offsetTransformationActive = false;
@@ -159,7 +167,6 @@ export class TrainrunSectionTimesService {
       this.selectedTrainrunSection,
       this.nodesOrdered,
     );
-    this.numberOfStops = trainrunSection.getNumberOfStops();
   }
 
   public getTimeStructure(): LeftAndRightTimeStructure {
@@ -170,8 +177,19 @@ export class TrainrunSectionTimesService {
     return this.offsetTransformationActive;
   }
 
-  public getShowWarningTwoLocks(): boolean {
-    return this.showWarningTwoLocks;
+  public getWarning(): Warning {
+    return this.warning;
+  }
+
+  public setOutsideWarning(newWarning: null | "cannot-delete-not-empty-node" | "too-many-locks") {
+    // if new warning is not null, update warning and override a potential too-many-locks warning
+    if (newWarning !== null) this.warning = newWarning;
+    // else reset warning without overrinding too-many-locks warning
+    else if (this.warning !== "too-many-locks") this.warning = newWarning;
+  }
+
+  resetTooManyLocksWarning() {
+    if (this.warning === "too-many-locks") this.warning = null;
   }
 
   public getNodesOrdered(): [] | [Node, Node] {
@@ -232,13 +250,19 @@ export class TrainrunSectionTimesService {
   }
 
   private updateTravelTimeMinutes(key: "travelTime" | "bottomTravelTime", minutes: number) {
-    const extraHour = this.timeStructure[key] - (this.timeStructure[key] % 60);
+    const stopTime =
+      this.timeStructure[
+        key === "travelTime"
+          ? leftToRightStructureKeys.stopTime
+          : leftToRightStructureKeys.reverseStopTime
+      ];
+    const extraHour = this.timeStructure[key] - ((this.timeStructure[key] + stopTime) % 60);
     this.timeStructure[key] = MathUtils.mod60(minutes);
     this.timeStructure[key] += extraHour;
   }
 
   private onNodeTailDepartureTimeChanged(keys: LeftAndRightStructureKeys) {
-    this.showWarningTwoLocks = false;
+    this.resetTooManyLocksWarning();
     this.roundAllTimes();
     this.removeOffsetAndBackTransformTimeStructure();
 
@@ -251,7 +275,9 @@ export class TrainrunSectionTimesService {
     }
     if (!this.lockStructure[keys.headLock]) {
       this.timeStructure[keys.headArrivalTime] = MathUtils.mod60(
-        this.timeStructure[keys.tailDepartureTime] + this.timeStructure[keys.travelTime],
+        this.timeStructure[keys.tailDepartureTime] +
+          this.timeStructure[keys.travelTime] +
+          this.timeStructure[keys.stopTime],
       );
       if (this.symmetryStructure[keys.headSymmetry]) {
         this.timeStructure[keys.headDepartureTime] = TrainrunsectionHelper.getSymmetricTime(
@@ -269,7 +295,7 @@ export class TrainrunSectionTimesService {
               this.timeStructure[keys.tailArrivalTime] - this.timeStructure[keys.headDepartureTime],
             );
           } else {
-            this.showWarningTwoLocks = true;
+            this.setOutsideWarning("too-many-locks");
           }
         }
       } else {
@@ -280,14 +306,16 @@ export class TrainrunSectionTimesService {
     } else if (!this.lockStructure.travelTimeLock) {
       this.updateTravelTimeMinutes(
         keys.travelTime,
-        this.timeStructure[keys.headArrivalTime] - this.timeStructure[keys.tailDepartureTime],
+        this.timeStructure[keys.headArrivalTime] -
+          this.timeStructure[keys.tailDepartureTime] -
+          this.timeStructure[keys.stopTime],
       );
       this.updateTravelTimeMinutes(
         keys.reverseTravelTime,
         this.timeStructure[keys.tailArrivalTime] - this.timeStructure[keys.headDepartureTime],
       );
     } else {
-      this.showWarningTwoLocks = true;
+      this.setOutsideWarning("too-many-locks");
     }
 
     this.updateTrainrunSectionTime();
@@ -295,7 +323,7 @@ export class TrainrunSectionTimesService {
   }
 
   private onNodeTailArrivalTimeChanged(keys: LeftAndRightStructureKeys) {
-    this.showWarningTwoLocks = false;
+    this.resetTooManyLocksWarning();
     this.roundAllTimes();
     this.removeOffsetAndBackTransformTimeStructure();
 
@@ -308,7 +336,9 @@ export class TrainrunSectionTimesService {
     }
     if (!this.lockStructure[keys.headLock]) {
       this.timeStructure[keys.headDepartureTime] = MathUtils.mod60(
-        this.timeStructure[keys.tailArrivalTime] - this.timeStructure[keys.reverseTravelTime],
+        this.timeStructure[keys.tailArrivalTime] -
+          this.timeStructure[keys.reverseTravelTime] -
+          this.timeStructure[keys.stopTime],
       );
       if (this.symmetryStructure[keys.headSymmetry]) {
         this.timeStructure[keys.headArrivalTime] = TrainrunsectionHelper.getSymmetricTime(
@@ -325,7 +355,7 @@ export class TrainrunSectionTimesService {
               this.timeStructure[keys.headArrivalTime] - this.timeStructure[keys.tailDepartureTime],
             );
           } else {
-            this.showWarningTwoLocks = true;
+            this.setOutsideWarning("too-many-locks");
           }
         }
       } else {
@@ -336,14 +366,18 @@ export class TrainrunSectionTimesService {
     } else if (!this.lockStructure.travelTimeLock) {
       this.updateTravelTimeMinutes(
         keys.travelTime,
-        this.timeStructure[keys.headArrivalTime] - this.timeStructure[keys.tailDepartureTime],
+        this.timeStructure[keys.headArrivalTime] -
+          this.timeStructure[keys.tailDepartureTime] -
+          this.timeStructure[keys.stopTime],
       );
       this.updateTravelTimeMinutes(
         keys.reverseTravelTime,
-        this.timeStructure[keys.tailArrivalTime] - this.timeStructure[keys.headDepartureTime],
+        this.timeStructure[keys.tailArrivalTime] -
+          this.timeStructure[keys.headDepartureTime] -
+          this.timeStructure[keys.reverseStopTime],
       );
     } else {
-      this.showWarningTwoLocks = true;
+      this.setOutsideWarning("too-many-locks");
     }
 
     this.updateTrainrunSectionTime();
@@ -474,7 +508,12 @@ export class TrainrunSectionTimesService {
   }
 
   private onDirectTravelTimeChanged(keys: LeftAndRightStructureKeys) {
-    this.showWarningTwoLocks = false;
+    this.timeStructure[keys.travelTime] = Math.max(
+      this.timeStructure[keys.travelTime],
+      1.0 / Math.pow(10, this.filterService.getTimeDisplayPrecision()),
+    );
+
+    this.resetTooManyLocksWarning();
     this.roundAllTimes();
     this.removeOffsetAndBackTransformTimeStructure();
 
@@ -501,7 +540,7 @@ export class TrainrunSectionTimesService {
           this.timeStructure[keys.tailArrivalTime] - this.timeStructure[keys.headDepartureTime],
         );
       } else {
-        this.showWarningTwoLocks = true;
+        this.setOutsideWarning("too-many-locks");
       }
     } else if (!this.lockStructure[keys.tailLock]) {
       this.timeStructure[keys.tailDepartureTime] = MathUtils.mod60(
@@ -517,7 +556,7 @@ export class TrainrunSectionTimesService {
         );
       }
     } else {
-      this.showWarningTwoLocks = true;
+      this.setOutsideWarning("too-many-locks");
     }
 
     this.updateTrainrunSectionTime();
@@ -610,28 +649,6 @@ export class TrainrunSectionTimesService {
     TrainrunSectionValidator.validateOneSection(rightSection.trainrunSection);
 
     this.trainrunSectionService.trainrunSectionsUpdated();
-  }
-
-  /* Number of stops */
-  onNumberOfStopsChanged() {
-    this.numberOfStops = Math.max(0, this.numberOfStops);
-    this.trainrunSectionService.updateTrainrunSectionNumberOfStops(
-      this.selectedTrainrunSection,
-      this.numberOfStops,
-    );
-  }
-
-  onNumberOfStopsButtonPlus() {
-    this.numberOfStops += 1;
-    this.setHighlightTravelTimeElement(false);
-    this.setHighlightBottomTravelTimeElement(false);
-    this.onNumberOfStopsChanged();
-  }
-
-  onNumberOfStopsButtonMinus() {
-    this.numberOfStops -= 1;
-    this.numberOfStops = Math.max(0, this.numberOfStops);
-    this.onNumberOfStopsChanged();
   }
 
   /* Buttons in Footer */

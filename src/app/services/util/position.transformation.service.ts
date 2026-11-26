@@ -1,5 +1,4 @@
 import {EventEmitter, Injectable} from "@angular/core";
-import {TrainrunSectionService} from "../data/trainrunsection.service";
 import {UiInteractionService} from "../ui/ui.interaction.service";
 import {NodeService} from "../data/node.service";
 import {NoteService} from "../data/note.service";
@@ -19,7 +18,6 @@ import {Note} from "../../models/note.model";
 })
 export class PositionTransformationService {
   constructor(
-    private readonly trainrunSectionService: TrainrunSectionService,
     private readonly nodeService: NodeService,
     private readonly noteService: NoteService,
     private readonly uiInteractionService: UiInteractionService,
@@ -171,13 +169,6 @@ export class PositionTransformationService {
 
   private updateRendering() {
     this.nodeService.initPortOrdering();
-
-    this.trainrunSectionService.getTrainrunSections().forEach((ts) => {
-      ts.routeEdgeAndPlaceText();
-      // Note: don't call updateTransitionsAndConnections() here as it would
-      // re-apply spatial port ordering, undoing the optimized ordering from
-      // initPortOrdering().
-    });
 
     this.viewportCullService.onViewportChangeUpdateRendering(true);
   }
