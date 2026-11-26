@@ -69,6 +69,14 @@
     <tr>
       <td>
         <div class="mainGridLayout">
+          <div class="TravelFreqCenter" *ngIf="isBottomTravelTimeDisplayed">
+            <svg class="renderer" width="160px" height="32px" border="0" viewBox="96 6 80 16">
+              <path [class]="getEdgeLineClassAttrString(0)" d="M0,16L192,16"></path>
+              <path [class]="getEdgeLineClassAttrString(1)" d="M0,16L192,16"></path>
+              <path [class]="getEdgeLineClassAttrString(2)" d="M0,16L192,16"></path>
+              <path [class]="getEdgeLineClassAttrString(3)" d="M0,16L192,16"></path>
+            </svg>
+          </div>
           <div class="TravelFreqLeft">
             <svg class="renderer" width="192px" height="32px" border="0" viewBox="0 6 96 16">
               <path [class]="getEdgeLineClassAttrString(0)" d="M0,16L192,16"></path>
