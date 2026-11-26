@@ -237,16 +237,17 @@ export class NodesView {
 
     group.exit().remove();
     this.degreeNodes = nodes;
-    this.degreeGraphNodes = this.editorView.isNodeDegreeVisible()
-      ? inputNodes.filter((node) => this.filterNodesToDisplay(node))
-      : [];
+    this.degreeGraphNodes =
+      this.editorView.isNodeDegreeVisible() || this.editorView.areCorridorsVisible()
+        ? inputNodes.filter((node) => this.filterNodesToDisplay(node))
+        : [];
     this.displayNodeDegrees();
   }
 
   refreshNodeDegrees() {
     if (this.editorView.isNodeDegreeTwoHidden()) {
       this.displayNodes(this.inputNodes);
-    } else if (this.editorView.isNodeDegreeVisible()) {
+    } else if (this.editorView.isNodeDegreeVisible() || this.editorView.areCorridorsVisible()) {
       this.displayNodeDegrees();
     }
   }
@@ -271,7 +272,7 @@ export class NodesView {
   }
 
   private displayNodeDegrees() {
-    this.degreeEdgeGroup.classed("reduced", this.editorView.isNodeDegreeTwoHidden());
+    this.degreeEdgeGroup.classed("reduced", this.editorView.areCorridorsVisible());
     const edges: {key: string; path: Vec2D[]; order: number; color: string}[] = [];
     const corridors = new Map<string, typeof edges>();
     const addPath = (corridorKey: string, edge: (typeof edges)[number]) => {
@@ -282,9 +283,9 @@ export class NodesView {
         edges.push(edge);
       }
     };
-    if (this.editorView.isNodeDegreeVisible()) {
+    if (this.editorView.isNodeDegreeVisible() || this.editorView.areCorridorsVisible()) {
       const visibleIds = new Set(this.degreeGraphNodes.map((node) => node.getId()));
-      const reducedColors = this.editorView.isNodeDegreeTwoHidden()
+      const reducedColors = this.editorView.areCorridorsVisible()
         ? getReducedCorridorColors(
             this.degreeGraphNodes.flatMap((node) =>
               node

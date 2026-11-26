@@ -116,6 +116,7 @@ export class UiInteractionService implements OnDestroy {
   readonly operation = new EventEmitter<Operation>();
 
   showNodeDegree = false;
+  showCorridors = false;
   hideNodeDegreeTwo = false;
 
   private activeTheme: ThemeBase = null;
@@ -324,6 +325,11 @@ export class UiInteractionService implements OnDestroy {
 
   setShowNodeDegree(show: boolean) {
     this.showNodeDegree = show;
+    this.nodeService.nodesUpdated();
+  }
+
+  setShowCorridors(show: boolean) {
+    this.showCorridors = show;
     this.nodeService.nodesUpdated();
   }
 

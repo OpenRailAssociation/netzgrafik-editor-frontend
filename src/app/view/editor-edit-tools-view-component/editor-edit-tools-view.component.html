@@ -110,6 +110,12 @@
       {{ "app.view.editor-edit-tools-view-component.node-degree-show" | translate }}
     </sbb-checkbox>
     <sbb-checkbox
+      [ngModel]="uiInteractionService.showCorridors"
+      (ngModelChange)="onCorridorVisibilityChange($event)"
+    >
+      {{ "app.view.editor-edit-tools-view-component.corridor-show" | translate }}
+    </sbb-checkbox>
+    <sbb-checkbox
       [ngModel]="uiInteractionService.hideNodeDegreeTwo"
       (ngModelChange)="onHideNodeDegreeTwoChange($event)"
     >

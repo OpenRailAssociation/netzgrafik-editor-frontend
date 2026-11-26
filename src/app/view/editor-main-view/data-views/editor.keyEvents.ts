@@ -90,6 +90,11 @@ export class EditorKeyEvents {
           return;
         }
         if (event.key.toLowerCase() === "z") {
+          this.uiInteractionService.setShowCorridors(!this.uiInteractionService.showCorridors);
+          event.preventDefault();
+          return;
+        }
+        if (event.key.toLowerCase() === "r") {
           this.uiInteractionService.setHideNodeDegreeTwo(
             !this.uiInteractionService.hideNodeDegreeTwo,
           );

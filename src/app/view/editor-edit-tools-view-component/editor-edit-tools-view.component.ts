@@ -197,6 +197,10 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     this.uiInteractionService.setShowNodeDegree(show);
   }
 
+  onCorridorVisibilityChange(show: boolean) {
+    this.uiInteractionService.setShowCorridors(show);
+  }
+
   onHideNodeDegreeTwoChange(hide: boolean) {
     this.uiInteractionService.setHideNodeDegreeTwo(hide);
   }

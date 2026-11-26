@@ -822,6 +822,10 @@ export class EditorView implements SVGMouseControllerObserver {
     return this.uiInteractionService.showNodeDegree;
   }
 
+  areCorridorsVisible(): boolean {
+    return this.uiInteractionService.showCorridors;
+  }
+
   isNodeDegreeTwoHidden(): boolean {
     return this.uiInteractionService.hideNodeDegreeTwo;
   }

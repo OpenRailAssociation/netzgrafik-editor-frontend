@@ -23,6 +23,7 @@ import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
 import {AutoLayoutService} from "../../../services/util/auto-layout.service";
+import * as d3 from "d3";
 
 describe("reduced corridor colors", () => {
   it("keeps a chain one color and distinguishes adjacent corridors", () => {
@@ -205,5 +206,89 @@ describe("Nodes-View", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const nodesView = new NodesView(editorView);
     nodesView.createViewNodeDataObjects(nodeService.getNodes());
+  });
+
+  it("shows colored corridors without degree markers when only Z is enabled", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const middle = nodeService.getNodeFromId(1);
+    const endingPort = middle
+      .getPorts()
+      .find((port) => middle.isEndNode(port.getTrainrunSection()));
+    const otherPort = middle
+      .getPorts()
+      .find(
+        (port) =>
+          port.getOppositeNode(middle.getId()).getId() !==
+          endingPort.getOppositeNode(middle.getId()).getId(),
+      );
+    middle.addTransition(
+      endingPort,
+      otherPort,
+      endingPort.getTrainrunSection().getTrainrun(),
+      true,
+    );
+    trainrunSectionService
+      .getTrainrunSections()
+      .forEach((section) => section.routeEdgeAndPlaceText());
+    spyOn(editorView, "doCullCheckPositionsInViewport").and.returnValue(true);
+    const svg = d3
+      .select<HTMLDivElement, undefined>(document.createElement("div"))
+      .selectAll<SVGSVGElement, undefined>("svg")
+      .data([undefined])
+      .join("svg");
+    const nodesView = new NodesView(editorView);
+    nodesView.setGroup(svg.append("g"));
+    nodesView.setDegreeEdgeGroup(svg.append("g"));
+    nodesView.setDegreeGroup(svg.append("g"));
+
+    nodesView.displayNodes(nodeService.getNodes());
+    const nodeCount = svg.selectAll("g.node").size();
+
+    uiInteractionService.setShowCorridors(true);
+    nodesView.displayNodes(nodeService.getNodes());
+    expect(svg.selectAll(".corridor-paths path").size()).toBeGreaterThan(0);
+    expect(svg.node().querySelector<SVGPathElement>(".corridor-paths path").style.stroke).not.toBe(
+      "rgb(34, 34, 34)",
+    );
+    expect(svg.selectAll(".node-degree-overlay g").size()).toBe(0);
+    expect(svg.selectAll("g.node").size()).toBe(nodeCount);
+
+    uiInteractionService.setHideNodeDegreeTwo(true);
+    nodesView.displayNodes(nodeService.getNodes());
+    const hiddenCount = nodeService.getNodes().filter((node) => {
+      const neighbors = new Set(
+        node.getPorts().map((port) => port.getOppositeNode(node.getId()).getId()),
+      );
+      neighbors.delete(node.getId());
+      return (
+        neighbors.size === 2 &&
+        node
+          .getPorts()
+          .every((port) =>
+            node
+              .getTransitions()
+              .some(
+                (transition) =>
+                  transition.getPortId1() === port.getId() ||
+                  transition.getPortId2() === port.getId(),
+              ),
+          )
+      );
+    }).length;
+    expect(hiddenCount).toBeGreaterThan(0);
+    expect(svg.selectAll("g.node").size()).toBe(nodeCount - hiddenCount);
+
+    uiInteractionService.setShowNodeDegree(true);
+    nodesView.displayNodes(nodeService.getNodes());
+    expect(svg.selectAll("g.node").size()).toBe(nodeCount - hiddenCount);
+    expect(svg.selectAll(".node-degree-overlay g").size()).toBeGreaterThan(0);
+
+    uiInteractionService.setHideNodeDegreeTwo(false);
+    nodesView.displayNodes(nodeService.getNodes());
+    expect(svg.selectAll("g.node").size()).toBe(nodeCount);
+    uiInteractionService.setShowNodeDegree(false);
+    uiInteractionService.setShowCorridors(false);
+    nodesView.displayNodes(nodeService.getNodes());
+    expect(svg.selectAll(".corridor-paths path").size()).toBe(0);
   });
 });
