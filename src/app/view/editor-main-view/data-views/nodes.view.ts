@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import {
   NODE_ANALYTICS_AREA_HEIGHT,
   NODE_POSITION_BASIC_RASTER,
+  NODE_PIN_SPAN,
   RASTERING_BASIC_GRID_SIZE,
   NODE_TEXT_AREA_HEIGHT,
   NODE_TEXT_LEFT_SPACING,
@@ -24,12 +25,18 @@ import {NodeViewObject} from "./nodeViewObject";
 import {ConnectionsView} from "./connections.view";
 import {EditorMode} from "../../editor-menu/editor-mode";
 import {LevelOfDetail} from "../../../services/ui/level.of.detail.service";
+import {SimpleTrainrunSectionRouter} from "../../../services/util/trainrunsection.routing";
 
 type NodeDragEvent = d3.D3DragEvent<SVGElement, NodeViewObject, unknown>;
 
 export class NodesView {
   dragPreviousMousePosition: Vec2D;
   nodeGroup: d3.Selection<SVGGElement, undefined, Element, undefined>;
+  private degreeGroup: d3.Selection<SVGGElement, undefined, Element, undefined>;
+  private degreeEdgeGroup: d3.Selection<SVGGElement, undefined, Element, undefined>;
+  private inputNodes: Node[] = [];
+  private degreeNodes: Node[] = [];
+  private degreeGraphNodes: Node[] = [];
   draggable: d3.DragBehavior<SVGElement, NodeViewObject, unknown>;
   dragDomObj: SVGElement | null = null;
 
@@ -56,6 +63,19 @@ export class NodesView {
   setGroup(nodeGroup: d3.Selection<SVGGElement, undefined, Element, undefined>) {
     this.nodeGroup = nodeGroup;
     this.nodeGroup.attr("class", "NodesView");
+  }
+
+  setDegreeGroup(group: d3.Selection<SVGGElement, undefined, Element, undefined>) {
+    this.degreeGroup = group.attr("class", `node-degree-overlay ${StaticDomTags.REMOVE_ON_EXPORT}`);
+  }
+
+  setDegreeEdgeGroup(group: d3.Selection<SVGGElement, undefined, Element, undefined>) {
+    this.degreeEdgeGroup = group.attr(
+      "class",
+      `node-degree-edges ${StaticDomTags.REMOVE_ON_EXPORT}`,
+    );
+    this.degreeEdgeGroup.append("g").attr("class", "corridor-fills");
+    this.degreeEdgeGroup.append("g").attr("class", "corridor-paths");
   }
 
   onNodeDragStart(event: NodeDragEvent, _node: Node) {
@@ -118,6 +138,7 @@ export class NodesView {
   }
 
   displayNodes(inputNodes: Node[]) {
+    this.inputNodes = inputNodes;
     inputNodes.forEach((n) => this.updateNodeDisplayConstraints(n));
     const nodes = inputNodes.filter(
       (n) =>
@@ -126,7 +147,9 @@ export class NodesView {
           new Vec2D(n.getPositionX() + n.getNodeWidth(), n.getPositionY()),
           new Vec2D(n.getPositionX(), n.getPositionY() + n.getNodeHeight()),
           new Vec2D(n.getPositionX() + n.getNodeWidth(), n.getPositionY() + n.getNodeHeight()),
-        ]) && this.filterNodesToDisplay(n),
+        ]) &&
+        this.filterNodesToDisplay(n) &&
+        (!this.editorView.isNodeDegreeTwoHidden() || !this.isDegreeTwoWithoutEnd(n)),
     );
 
     const group = this.nodeGroup
@@ -152,6 +175,190 @@ export class NodesView {
     this.renderNodeObject(groupEnter);
 
     group.exit().remove();
+    this.degreeNodes = nodes;
+    this.degreeGraphNodes = this.editorView.isNodeDegreeVisible()
+      ? inputNodes.filter((node) => this.filterNodesToDisplay(node))
+      : [];
+    this.displayNodeDegrees();
+  }
+
+  refreshNodeDegrees() {
+    if (this.editorView.isNodeDegreeTwoHidden()) {
+      this.displayNodes(this.inputNodes);
+    } else if (this.editorView.isNodeDegreeVisible()) {
+      this.displayNodeDegrees();
+    }
+  }
+
+  private classifyNode(node: Node) {
+    const ports = node.getPorts();
+    const neighbors = new Set(ports.map((port) => port.getOppositeNode(node.getId()).getId()));
+    neighbors.delete(node.getId());
+    const connectedPorts = new Set(
+      node.getTransitions().flatMap((t) => [t.getPortId1(), t.getPortId2()]),
+    );
+    return {
+      node,
+      degree: neighbors.size,
+      hasEnd: ports.some((port) => !connectedPorts.has(port.getId())),
+    };
+  }
+
+  private isDegreeTwoWithoutEnd(node: Node): boolean {
+    const {degree, hasEnd} = this.classifyNode(node);
+    return degree === 2 && !hasEnd;
+  }
+
+  private displayNodeDegrees() {
+    const edges: {key: string; path: Vec2D[]; order: number}[] = [];
+    const corridors = new Map<string, typeof edges>();
+    const addPath = (corridorKey: string, edge: (typeof edges)[number]) => {
+      const corridor = corridors.get(corridorKey);
+      if (corridor) corridor.push(edge);
+      else corridors.set(corridorKey, [edge]);
+      if (this.editorView.doCullCheckPositionsInViewport(edge.path, NODE_PIN_SPAN)) {
+        edges.push(edge);
+      }
+    };
+    if (this.editorView.isNodeDegreeVisible()) {
+      const visibleIds = new Set(this.degreeGraphNodes.map((node) => node.getId()));
+      this.degreeGraphNodes.forEach((source) => {
+        source.getPorts().forEach((port) => {
+          const section = port.getTrainrunSection();
+          const target = section.getTargetNode();
+          if (
+            section.getSourceNodeId() === source.getId() &&
+            section.getTargetNodeId() !== source.getId() &&
+            visibleIds.has(section.getTargetNodeId()) &&
+            section.getPath().length === 4 &&
+            this.editorView.trainrunSectionsView.filterTrainrunSectionToDisplay(section)
+          ) {
+            const targetPort = target.getPortOfTrainrunSection(section.getId());
+            const forward = source.getId() < target.getId();
+            const firstPort = forward ? port : targetPort;
+            const lastPort = forward ? targetPort : port;
+            const path = this.editorView.trainrunSectionsView.transformPath(section);
+            if (!forward) path.reverse();
+            const edge = {
+              key: `section:${section.getId()}`,
+              path,
+              order: firstPort.getPositionIndex(),
+            };
+            const key = `${Math.min(source.getId(), target.getId())}:${Math.max(source.getId(), target.getId())}:${firstPort.getPositionAlignment()}:${lastPort.getPositionAlignment()}`;
+            addPath(key, edge);
+          }
+        });
+      });
+      if (this.editorView.isNodeDegreeTwoHidden()) {
+        this.degreeGraphNodes
+          .filter((node) => this.isDegreeTwoWithoutEnd(node))
+          .forEach((node) => {
+            node.getTransitions().forEach((transition) => {
+              const port1 = node.getPort(transition.getPortId1());
+              const port2 = node.getPort(transition.getPortId2());
+              const section1 = port1.getTrainrunSection();
+              const section2 = port2.getTrainrunSection();
+              const neighbor1 = port1.getOppositeNode(node.getId());
+              const neighbor2 = port2.getOppositeNode(node.getId());
+              if (
+                !visibleIds.has(neighbor1.getId()) ||
+                !visibleIds.has(neighbor2.getId()) ||
+                section1.getPath().length !== 4 ||
+                section2.getPath().length !== 4 ||
+                !this.editorView.trainrunSectionsView.filterTrainrunSectionToDisplay(section1) ||
+                !this.editorView.trainrunSectionsView.filterTrainrunSectionToDisplay(section2)
+              ) {
+                return;
+              }
+              const endpoint = (section: TrainrunSection) =>
+                section.getPath()[section.getSourceNodeId() === node.getId() ? 0 : 3];
+              const path = [
+                endpoint(section1),
+                ...SimpleTrainrunSectionRouter.routeTransition(node, port1, port2),
+                endpoint(section2),
+              ];
+              const forward = neighbor1.getId() <= neighbor2.getId();
+              const firstPort = forward ? port1 : port2;
+              const lastPort = forward ? port2 : port1;
+              if (!forward) path.reverse();
+              const key = `node:${node.getId()}:${Math.min(neighbor1.getId(), neighbor2.getId())}:${Math.max(neighbor1.getId(), neighbor2.getId())}:${firstPort.getPositionAlignment()}:${lastPort.getPositionAlignment()}`;
+              addPath(key, {
+                key: `transition:${node.getId()}:${transition.getId()}`,
+                path,
+                order: firstPort.getPositionIndex(),
+              });
+            });
+          });
+      }
+    }
+    const fills: {key: string; path: Vec2D[]}[] = [];
+    corridors.forEach((corridor) => {
+      corridor.sort((a, b) => a.order - b.order);
+      for (let i = 1; i < corridor.length; i++) {
+        const first = corridor[i - 1];
+        const second = corridor[i];
+        const path = [...first.path, ...second.path.slice().reverse()];
+        if (this.editorView.doCullCheckPositionsInViewport(path, NODE_PIN_SPAN)) {
+          fills.push({key: `${first.key}:${second.key}`, path});
+        }
+      }
+    });
+    this.degreeEdgeGroup
+      .select("g.corridor-fills")
+      .selectAll<SVGPathElement, (typeof fills)[number]>("path")
+      .data(fills, (fill) => fill.key)
+      .join("path")
+      .attr("d", ({path}) => `${D3Utils.getPathAsSVGString(path)}Z`);
+    this.degreeEdgeGroup
+      .select("g.corridor-paths")
+      .selectAll<SVGPathElement, (typeof edges)[number]>("path")
+      .data(edges, ({key}) => key)
+      .join("path")
+      .attr("d", ({path}) => D3Utils.getPathAsSVGString(path))
+      .attr("stroke-width", NODE_PIN_SPAN * 0.9);
+
+    const data = this.editorView.isNodeDegreeVisible()
+      ? this.degreeNodes.map((node) => this.classifyNode(node))
+      : [];
+    const scale = 100 / this.editorView.getZoomFactor();
+    const markers = this.degreeGroup
+      .selectAll<SVGGElement, (typeof data)[number]>("g")
+      .data(data, (d) => d.node.getId())
+      .join((enter) => {
+        const group = enter.append("g");
+        group.append("circle").attr("class", "degree-end-ring-background").attr("r", 13);
+        group.append("circle").attr("class", "degree-end-ring").attr("r", 13);
+        group.append("circle").attr("class", "degree-marker").attr("r", 10);
+        group.append("text").attr("text-anchor", "middle").attr("dy", "0.35em");
+        return group;
+      })
+      .classed("has-end", ({hasEnd}) => hasEnd)
+      .attr(
+        "transform",
+        ({node}) =>
+          `translate(${node.getPositionX() + node.getNodeWidth() / 2},${node.getPositionY() + node.getNodeHeight() / 2}) scale(${scale})`,
+      );
+
+    markers
+      .select("circle.degree-marker")
+      .attr(
+        "class",
+        ({degree, hasEnd}) =>
+          `degree-marker ${
+            degree === 1
+              ? "degree-1"
+              : degree === 2 && hasEnd
+                ? "degree-end"
+                : degree === 3
+                  ? "degree-3"
+                  : degree === 4
+                    ? "degree-4"
+                    : degree > 4
+                      ? "degree-many"
+                      : "degree-other"
+          }`,
+      );
+    markers.select("text").text(({degree}) => `${degree}`);
   }
 
   renderNodeObject(groupEnter: d3.Selection<SVGGElement, NodeViewObject, Element, undefined>) {

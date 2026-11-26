@@ -1,5 +1,75 @@
 @use "../../rastering/definitions" as *;
 
+::ng-deep .node-degree-edges {
+  pointer-events: none;
+  opacity: 0.18;
+
+  .corridor-fills path {
+    fill: #222222;
+    stroke: none;
+  }
+
+  .corridor-paths path {
+    fill: none;
+    stroke: #222222;
+    stroke-linejoin: round;
+  }
+}
+
+::ng-deep .node-degree-overlay {
+  pointer-events: none;
+
+  circle {
+    stroke: white;
+    stroke-width: 1px;
+  }
+
+  .degree-end-ring-background,
+  .degree-end-ring {
+    display: none;
+    fill: none;
+  }
+
+  .has-end .degree-end-ring-background,
+  .has-end .degree-end-ring {
+    display: inline;
+  }
+
+  .degree-end-ring-background {
+    stroke: white;
+    stroke-width: 4px;
+  }
+
+  .degree-end-ring {
+    stroke: black;
+    stroke-width: 2px;
+  }
+
+  text {
+    fill: white;
+    font: bold 10px sans-serif;
+  }
+
+  .degree-1 {
+    fill: #078334;
+  }
+  .degree-end {
+    fill: #005dcc;
+  }
+  .degree-3 {
+    fill: #c90083;
+  }
+  .degree-4 {
+    fill: #ad4b00;
+  }
+  .degree-many {
+    fill: #cc1111;
+  }
+  .degree-other {
+    fill: #666666;
+  }
+}
+
 ::ng-deep g.node {
   stroke-width: 0.5px;
   cursor: pointer;

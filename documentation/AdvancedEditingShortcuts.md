@@ -10,6 +10,10 @@ easier to manage and edit complex network structures.
 
 ### Short-cuts
 
+The node classification can also be toggled with `t`. Press `z` to hide or restore degree-2 nodes
+where no trainrun starts or ends. These view options are also available under **Edit → Netzgrafik -
+Node classification** and do not change the network data.
+
 |                                                     Keyboard                                                     |                                                                                                                                                           description                                                                                                                                                           |
 | :--------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 |                                                                                                                  |                                                                                                                                                                                                                                                                                                                                 |

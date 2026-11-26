@@ -193,6 +193,14 @@ export class EditorEditToolsViewComponent implements OnDestroy {
     this.uiInteractionService.setActiveOrderingAlgorithm(event.value);
   }
 
+  onNodeDegreeVisibilityChange(show: boolean) {
+    this.uiInteractionService.setShowNodeDegree(show);
+  }
+
+  onHideNodeDegreeTwoChange(hide: boolean) {
+    this.uiInteractionService.setHideNodeDegreeTwo(hide);
+  }
+
   onAlignElementsLeft() {
     this.positionTransformationService.alignSelectedElementsToLeftBorder();
   }

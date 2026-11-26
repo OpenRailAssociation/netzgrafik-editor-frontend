@@ -540,6 +540,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
 
     this.nodeService.transitions.pipe(takeUntil(this.destroyed)).subscribe((updatedTransitions) => {
       this.editorView.transitionsView.displayTransitions(updatedTransitions);
+      this.editorView.nodesView.refreshNodeDegrees();
       this.editorView.postDisplayRendering();
     });
 
@@ -552,6 +553,7 @@ export class EditorMainViewComponent implements AfterViewInit, OnDestroy {
       .pipe(takeUntil(this.destroyed))
       .subscribe((updatedTrainrunSections) => {
         this.editorView.trainrunSectionsView.displayTrainrunSection(updatedTrainrunSections);
+        this.editorView.nodesView.refreshNodeDegrees();
         this.editorView.postDisplayRendering();
       });
 
