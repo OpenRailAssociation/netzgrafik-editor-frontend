@@ -1,16 +1,8 @@
 <ng-template #trainrunAndSectionEditorTabsViewTemplate>
-  <div
-    class="trainrun-dialog-container"
-    sbbDialog
-    (mouseup)="onMouseUp()"
-    (mousemove)="onMouseMove($event)"
-    (mousedown)="onMouseDown($event)"
-  >
+  <div class="trainrun-dialog-container" sbbDialog (mousedown)="onMouseDown($event)">
     <div
       data-testid="train-run-tab-group"
       class="trainrun-dialog-tab-group"
-      (mouseup)="onMouseUp()"
-      (mousemove)="onMouseMove($event)"
       (mousedown)="onMouseDown($event)"
     >
       <sbb-tab-group [selectedIndex]="data.type">
@@ -55,12 +47,7 @@
     </div>
   </div>
 
-  <div
-    class="dialog-drag-and-close-handle-area"
-    (mouseup)="onMouseUp()"
-    (mousemove)="onMouseMove($event)"
-    (mousedown)="onMouseDown($event)"
-  >
+  <div class="dialog-drag-and-close-handle-area" (mousedown)="onMouseDown($event)">
     <sbb-icon
       class="dialog-close-button-icon"
       svgIcon="cross-small"
