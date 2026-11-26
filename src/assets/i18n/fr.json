@@ -354,7 +354,7 @@
         "node-degree-title": "Réticulaire - Classification des nœuds",
         "node-degree-show": "Afficher le degré des nœuds (T)",
         "node-degree-hide-two": "Masquer les nœuds de degré 2 sans début ni fin de parcours (Z)",
-        "node-degree-legend": "Gris : 0 ou 2 voisins ; vert : 1 ; bleu : 2 avec début ou fin de parcours ; rose : 3 ; orange : 4 ; rouge : plus de 4. Un anneau indique un début ou une fin de parcours. Les bandes transparentes montrent les liaisons entre les nœuds.",
+        "node-degree-legend": "Gris : 0 ou 2 voisins ; vert : 1 ; bleu : 2 avec début ou fin de parcours ; rose : 3 ; orange : 4 ; rouge : plus de 4. Un anneau indique un début ou une fin de parcours. Les bandes transparentes montrent les liaisons ; les couleurs distinguent les corridors lorsque les nœuds de degré 2 sont masqués.",
         "alphabeticalOrdering": "Alphabétique",
         "alphabeticalOrderingTooltip": "Ordonne les ports par ordre alphabétique des catégories de train.",
         "crossingAwareOrdering": "Réduction des croisements",

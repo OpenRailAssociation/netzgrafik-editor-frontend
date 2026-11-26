@@ -18,11 +18,40 @@ import {LoadPerlenketteService} from "../../../perlenkette/service/load-perlenke
 import {NetzgrafikUnitTesting} from "../../../../integration-testing/netzgrafik.unit.testing";
 import {EditorMainViewComponent} from "../editor-main-view.component";
 import {EditorView} from "./editor.view";
-import {NodesView} from "./nodes.view";
+import {getReducedCorridorColors, NodesView} from "./nodes.view";
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
 import {AutoLayoutService} from "../../../services/util/auto-layout.service";
+
+describe("reduced corridor colors", () => {
+  it("keeps a chain one color and distinguishes adjacent corridors", () => {
+    const links = [
+      {source: 1, target: 2},
+      {source: 2, target: 3},
+      {source: 3, target: 4},
+      {source: 3, target: 5},
+      {source: 2, target: 1},
+    ];
+    const colors = getReducedCorridorColors(links, new Set([2]));
+    expect(colors.get("1:2")).toBe(colors.get("2:3"));
+    expect(new Set([colors.get("2:3"), colors.get("3:4"), colors.get("3:5")]).size).toBe(3);
+    expect(getReducedCorridorColors(links.slice().reverse(), new Set([2]))).toEqual(colors);
+  });
+
+  it("keeps an isolated cycle one color", () => {
+    const colors = getReducedCorridorColors(
+      [
+        {source: 1, target: 2},
+        {source: 2, target: 3},
+        {source: 3, target: 1},
+      ],
+      new Set([1, 2, 3]),
+    );
+    expect(new Set(colors.values()).size).toBe(1);
+    expect(colors.size).toBe(3);
+  });
+});
 
 describe("Nodes-View", () => {
   let dataService: DataService;

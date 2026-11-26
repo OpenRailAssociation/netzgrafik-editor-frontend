@@ -354,7 +354,7 @@
         "node-degree-title": "Netzgrafik - Knotenklassifizierung",
         "node-degree-show": "Knotengrad anzeigen (T)",
         "node-degree-hide-two": "Grad-2-Knoten ohne Zuganfang oder -ende ausblenden (Z)",
-        "node-degree-legend": "Grau: 0 oder 2 Nachbarn; Grün: 1; Blau: 2 mit Zuganfang oder -ende; Pink: 3; Orange: 4; Rot: mehr als 4. Ein Ring kennzeichnet einen Zuganfang oder ein Zugende. Transparente Bänder zeigen die Verbindungen zwischen Knoten.",
+        "node-degree-legend": "Grau: 0 oder 2 Nachbarn; Grün: 1; Blau: 2 mit Zuganfang oder -ende; Pink: 3; Orange: 4; Rot: mehr als 4. Ein Ring kennzeichnet einen Zuganfang oder ein Zugende. Transparente Bänder zeigen Verbindungen; bei ausgeblendeten Grad-2-Knoten unterscheiden Farben die Korridore.",
         "alphabeticalOrdering": "Alphabetisch",
         "alphabeticalOrderingTooltip": "Ports anhand der Zugkategorien alphabetisch anordnen.",
         "crossingAwareOrdering": "Kreuzungsbewusst",

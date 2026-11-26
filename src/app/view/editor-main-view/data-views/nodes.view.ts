@@ -29,6 +29,67 @@ import {SimpleTrainrunSectionRouter} from "../../../services/util/trainrunsectio
 
 type NodeDragEvent = d3.D3DragEvent<SVGElement, NodeViewObject, unknown>;
 
+const CORRIDOR_COLORS = ["#1869b3", "#008558", "#a53a91", "#bb7000", "#6252b5", "#b94c43"];
+
+function corridorLinkKey(a: number, b: number): string {
+  return a < b ? `${a}:${b}` : `${b}:${a}`;
+}
+
+export function getReducedCorridorColors(
+  links: {source: number; target: number}[],
+  hiddenNodes: Set<number>,
+): Map<string, string> {
+  const adjacency = new Map<number, string[]>();
+  const endpoints = new Map<string, [number, number]>();
+  links.forEach(({source, target}) => {
+    if (source === target) return;
+    const key = corridorLinkKey(source, target);
+    if (endpoints.has(key)) return;
+    endpoints.set(key, [source, target]);
+    for (const id of [source, target]) {
+      const incident = adjacency.get(id);
+      if (incident) incident.push(key);
+      else adjacency.set(id, [key]);
+    }
+  });
+
+  const colors = new Map<string, string>();
+  const colorsAtNode = new Map<number, Set<string>>();
+  for (const start of [...endpoints.keys()].sort()) {
+    if (colors.has(start)) continue;
+    const pending = [start];
+    const visited = new Set([start]);
+    const boundary = new Set<number>();
+    while (pending.length) {
+      const key = pending.pop()!;
+      for (const id of endpoints.get(key)!) {
+        const incident = adjacency.get(id)!;
+        if (hiddenNodes.has(id) && incident.length === 2) {
+          for (const next of incident) {
+            if (!visited.has(next)) {
+              visited.add(next);
+              pending.push(next);
+            }
+          }
+        } else {
+          boundary.add(id);
+        }
+      }
+    }
+    const used = new Set([...boundary].flatMap((id) => [...(colorsAtNode.get(id) ?? [])]));
+    const color =
+      CORRIDOR_COLORS.find((candidate) => !used.has(candidate)) ??
+      CORRIDOR_COLORS[colors.size % CORRIDOR_COLORS.length];
+    visited.forEach((key) => colors.set(key, color));
+    boundary.forEach((id) => {
+      const nodeColors = colorsAtNode.get(id);
+      if (nodeColors) nodeColors.add(color);
+      else colorsAtNode.set(id, new Set([color]));
+    });
+  }
+  return colors;
+}
+
 export class NodesView {
   dragPreviousMousePosition: Vec2D;
   nodeGroup: d3.Selection<SVGGElement, undefined, Element, undefined>;
@@ -210,7 +271,8 @@ export class NodesView {
   }
 
   private displayNodeDegrees() {
-    const edges: {key: string; path: Vec2D[]; order: number}[] = [];
+    this.degreeEdgeGroup.classed("reduced", this.editorView.isNodeDegreeTwoHidden());
+    const edges: {key: string; path: Vec2D[]; order: number; color: string}[] = [];
     const corridors = new Map<string, typeof edges>();
     const addPath = (corridorKey: string, edge: (typeof edges)[number]) => {
       const corridor = corridors.get(corridorKey);
@@ -222,6 +284,26 @@ export class NodesView {
     };
     if (this.editorView.isNodeDegreeVisible()) {
       const visibleIds = new Set(this.degreeGraphNodes.map((node) => node.getId()));
+      const reducedColors = this.editorView.isNodeDegreeTwoHidden()
+        ? getReducedCorridorColors(
+            this.degreeGraphNodes.flatMap((node) =>
+              node
+                .getPorts()
+                .map((port) => ({
+                  source: node.getId(),
+                  target: port.getOppositeNode(node.getId()).getId(),
+                }))
+                .filter(({target}) => visibleIds.has(target)),
+            ),
+            new Set(
+              this.degreeGraphNodes
+                .filter((node) => this.isDegreeTwoWithoutEnd(node))
+                .map((node) => node.getId()),
+            ),
+          )
+        : new Map<string, string>();
+      const colorForLink = (a: number, b: number) =>
+        reducedColors.get(corridorLinkKey(a, b)) ?? "#222222";
       this.degreeGraphNodes.forEach((source) => {
         source.getPorts().forEach((port) => {
           const section = port.getTrainrunSection();
@@ -243,6 +325,7 @@ export class NodesView {
               key: `section:${section.getId()}`,
               path,
               order: firstPort.getPositionIndex(),
+              color: colorForLink(source.getId(), target.getId()),
             };
             const key = `${Math.min(source.getId(), target.getId())}:${Math.max(source.getId(), target.getId())}:${firstPort.getPositionAlignment()}:${lastPort.getPositionAlignment()}`;
             addPath(key, edge);
@@ -286,12 +369,13 @@ export class NodesView {
                 key: `transition:${node.getId()}:${transition.getId()}`,
                 path,
                 order: firstPort.getPositionIndex(),
+                color: colorForLink(node.getId(), neighbor1.getId()),
               });
             });
           });
       }
     }
-    const fills: {key: string; path: Vec2D[]}[] = [];
+    const fills: {key: string; path: Vec2D[]; color: string}[] = [];
     corridors.forEach((corridor) => {
       corridor.sort((a, b) => a.order - b.order);
       for (let i = 1; i < corridor.length; i++) {
@@ -299,7 +383,7 @@ export class NodesView {
         const second = corridor[i];
         const path = [...first.path, ...second.path.slice().reverse()];
         if (this.editorView.doCullCheckPositionsInViewport(path, NODE_PIN_SPAN)) {
-          fills.push({key: `${first.key}:${second.key}`, path});
+          fills.push({key: `${first.key}:${second.key}`, path, color: first.color});
         }
       }
     });
@@ -308,13 +392,15 @@ export class NodesView {
       .selectAll<SVGPathElement, (typeof fills)[number]>("path")
       .data(fills, (fill) => fill.key)
       .join("path")
-      .attr("d", ({path}) => `${D3Utils.getPathAsSVGString(path)}Z`);
+      .attr("d", ({path}) => `${D3Utils.getPathAsSVGString(path)}Z`)
+      .style("fill", ({color}) => color);
     this.degreeEdgeGroup
       .select("g.corridor-paths")
       .selectAll<SVGPathElement, (typeof edges)[number]>("path")
       .data(edges, ({key}) => key)
       .join("path")
       .attr("d", ({path}) => D3Utils.getPathAsSVGString(path))
+      .style("stroke", ({color}) => color)
       .attr("stroke-width", NODE_PIN_SPAN * 0.9);
 
     const data = this.editorView.isNodeDegreeVisible()

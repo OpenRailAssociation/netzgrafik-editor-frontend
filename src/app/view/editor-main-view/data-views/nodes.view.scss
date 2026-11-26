@@ -16,6 +16,10 @@
   }
 }
 
+::ng-deep .node-degree-edges.reduced {
+  opacity: 0.1575;
+}
+
 ::ng-deep .node-degree-overlay {
   pointer-events: none;
 
