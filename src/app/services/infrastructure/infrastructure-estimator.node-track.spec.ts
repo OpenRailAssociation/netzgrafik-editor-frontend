@@ -267,4 +267,49 @@ describe("InfrastructureEstimatorService node tracks", () => {
     expect(occupancy?.arrivalMinute).toBe(5);
     expect(occupancy?.departureMinute).toBe(10);
   });
+
+  it("uses consecutive times for 120 and 120+ turnaround reservations at both endpoints", () => {
+    [0, 60].forEach((offset) => {
+      const fixture = getTrackEstimatorFixture();
+      const trainrun = fixture.trainruns.get(100);
+      trainrun.setTrainrunFrequency({frequency: 120, offset} as TrainrunFrequency);
+      trainrun.getTrainrunCategory().minimalTurnaroundTime = 5;
+      const startSection = fixture.sections.find((section) => section.getId() === 717);
+      const endSection = fixture.sections.find((section) => section.getId() === 718);
+      startSection.setSourceArrival(55);
+      startSection.setSourceDeparture(5);
+      startSection.setSourceArrivalConsecutiveTime(55);
+      startSection.setSourceDepartureConsecutiveTime(65);
+      endSection.setTargetArrival(50);
+      endSection.setTargetDeparture(10);
+      endSection.setTargetArrivalConsecutiveTime(110);
+      endSection.setTargetDepartureConsecutiveTime(130);
+
+      [
+        {nodeId: 184, section: startSection, arrival: 55, departure: 65},
+        {nodeId: 182, section: endSection, arrival: 110, departure: 130},
+      ].forEach(({nodeId, section, arrival, departure}) => {
+        const occupancies = getOccupancies(
+          service.estimateNodeTracks(fixture.nodes.get(nodeId), [section], {
+            windowStartMinutes: 0,
+            windowEndMinutes: 240,
+            separateForwardBackwardTracks: false,
+          }),
+        );
+        const occupancy = occupancies.find((candidate) => candidate.arrivalMinute === arrival);
+        expect(occupancy?.departureMinute)
+          .withContext(`offset ${offset}, node ${nodeId}`)
+          .toBe(departure);
+      });
+
+      endSection.setTargetDepartureConsecutiveTime(70);
+      const wrapped = getOccupancies(
+        service.estimateNodeTracks(fixture.nodes.get(182), [endSection], {
+          windowStartMinutes: 0,
+          windowEndMinutes: 240,
+        }),
+      ).find((candidate) => candidate.arrivalMinute === 110);
+      expect(wrapped?.departureMinute).withContext(`wrapped departure, offset ${offset}`).toBe(190);
+    });
+  });
 });

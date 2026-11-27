@@ -170,7 +170,7 @@ export class InfrastructureEstimatorService {
    * Estimates the number of tracks needed on the corridor fromNode -> toNode.
    * The calculation is oriented: from -> to is not the same as to -> from.
    * Sections are passed explicitly so the service stays stateless.
-   * 
+   *
    * @param fromNode The starting node of the corridor.
    * @param toNode The ending node of the corridor.
    * @param trainrunSections The sections of trainruns traveling through the corridor.
@@ -941,11 +941,7 @@ export class InfrastructureEstimatorService {
     };
   }
 
-  /**
-   * Round-trip turnaround on a single section: the train leaves on the periodic
-   * departure slot of a later cycle. Frequencies above 60 min need an extra
-   * correction because the periodic times are hour-based.
-   */
+  /** Round-trip turnaround on a single section, aligned to the next departure slot. */
   private getPeriodicTurnaroundDeparture(
     occurrence: NodeTrackTrainrunOccurrence,
     arrivalMinute: number,
@@ -959,17 +955,21 @@ export class InfrastructureEstimatorService {
       return undefined;
     }
 
+    if (timing.frequency > 60) {
+      const departure = this.getNodeTime(occurrence, "departure", "consecutive");
+      return departure === undefined
+        ? undefined
+        : arrivalMinute + MathUtils.modulo(departure - arrivalMinute, timing.frequency);
+    }
+
     const periodicArrival = this.getNodeTime(occurrence, "arrival", "periodic");
     const periodicDeparture = this.getNodeTime(occurrence, "departure", "periodic");
     if (periodicArrival === undefined || periodicDeparture === undefined) {
       return undefined;
     }
 
-    const frequencyOverHour = timing.frequency > 60 ? timing.frequency - 60 : 0;
     let departure =
-      (arrivalMinute < periodicDeparture
-        ? periodicDeparture + timing.frequency
-        : periodicDeparture) + frequencyOverHour;
+      arrivalMinute < periodicDeparture ? periodicDeparture + timing.frequency : periodicDeparture;
 
     while (departure - timing.frequency > arrivalMinute) {
       departure -= timing.frequency;
