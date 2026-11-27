@@ -2,6 +2,10 @@ import {Injectable, OnDestroy} from "@angular/core";
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {SgSelectedTrainrun} from "../model/streckengrafik-model/sg-selected-trainrun";
 import {Sg4ToggleTrackOccupierService} from "./sg-4-toggle-track-occupier.service";
+import {SgPath} from "../model/streckengrafik-model/sg-path";
+import {SgPathNode} from "../model/streckengrafik-model/sg-path-node";
+import {SgTrainrunItem} from "../model/streckengrafik-model/sg-trainrun-item";
+import {SgTrainrunNode} from "../model/streckengrafik-model/sg-trainrun-node";
 import {takeUntil} from "rxjs/operators";
 import {TrainrunBranchType} from "../model/enum/trainrun-branch-type-type";
 
@@ -10,7 +14,6 @@ import {TrainrunBranchType} from "../model/enum/trainrun-branch-type-type";
 })
 export class Sg5FilterService implements OnDestroy {
   private readonly sgSelectedTrainrunSubject = new BehaviorSubject<SgSelectedTrainrun>(undefined);
-  private readonly sgSelectedTrainrun$ = this.sgSelectedTrainrunSubject.asObservable();
 
   private selectedTrainrun: SgSelectedTrainrun;
 
@@ -32,7 +35,7 @@ export class Sg5FilterService implements OnDestroy {
   }
 
   public getSgSelectedTrainrun(): Observable<SgSelectedTrainrun> {
-    return this.sgSelectedTrainrun$;
+    return this.sgSelectedTrainrunSubject.asObservable();
   }
 
   private render() {
@@ -42,86 +45,66 @@ export class Sg5FilterService implements OnDestroy {
 
     this.selectedTrainrun.trainruns.forEach((trainrun) => {
       trainrun.sgTrainrunItems.forEach((trainrunItem) => {
-        if (trainrunItem.isNode()) {
-          if (trainrunItem.getPathNode().filter) {
-            const trainrunNode = trainrunItem.getTrainrunNode();
-            if (trainrunNode.departurePathSection) {
-              if (trainrunNode.departurePathSection.arrivalPathNode) {
-                if (!trainrunNode.departurePathSection.arrivalPathNode.getPathNode().filter) {
-                  if (
-                    trainrunNode.departurePathSection.trainrunBranchType ===
-                    TrainrunBranchType.Trainrun
-                  ) {
-                    trainrunNode.departurePathSection.trainrunBranchType =
-                      TrainrunBranchType.ArrivalBranchFilter;
-                  }
-                }
-              }
-            }
-            if (trainrunNode.arrivalPathSection) {
-              if (trainrunNode.arrivalPathSection.departurePathNode) {
-                if (!trainrunNode.arrivalPathSection.departurePathNode.getPathNode().filter) {
-                  if (
-                    trainrunNode.arrivalPathSection.trainrunBranchType ===
-                    TrainrunBranchType.Trainrun
-                  ) {
-                    trainrunNode.arrivalPathSection.trainrunBranchType =
-                      TrainrunBranchType.DepartureBranchFilter;
-                  }
-                }
-              }
-            }
-          }
+        if (!trainrunItem.isNode() || !trainrunItem.getPathNode().filter) {
+          return;
         }
-      });
-    });
-
-    this.selectedTrainrun.trainruns.forEach((trainrun) => {
-      // Node ausfiltern
-      trainrun.sgTrainrunItems = trainrun.sgTrainrunItems.filter((trainrunItem) => {
-        if (trainrunItem.isNode()) {
-          if (trainrunItem.getPathNode().filter) {
-            return false;
-          }
-        }
-        return true;
-      });
-
-      // Section iltern
-      trainrun.sgTrainrunItems = trainrun.sgTrainrunItems.filter((trainrunItem) => {
-        if (trainrunItem.isSection()) {
-          const trainrunSection = trainrunItem.getTrainrunSection();
-          if (
-            trainrunSection.departurePathNode &&
-            trainrunSection.departurePathNode.getPathNode() &&
-            trainrunSection.departurePathNode.getPathNode().filter &&
-            trainrunSection.arrivalPathNode &&
-            trainrunSection.arrivalPathNode.getPathNode() &&
-            trainrunSection.arrivalPathNode.getPathNode().filter
-          ) {
-            return false;
-          }
-        }
-        return true;
-      });
-    });
-    this.selectedTrainrun.paths = this.selectedTrainrun.paths.filter((path) => {
-      if (path.isNode()) {
-        if (path.getPathNode().filter) {
-          return false;
-        }
-      }
-      if (path.isSection()) {
+        const node = trainrunItem.getTrainrunNode();
+        const departureSection = node.departurePathSection;
         if (
-          path.getPathSection().departurePathNode.getPathNode().filter &&
-          path.getPathSection().arrivalPathNode.getPathNode().filter
+          departureSection?.arrivalPathNode &&
+          !departureSection.arrivalPathNode.getPathNode().filter &&
+          departureSection.trainrunBranchType === TrainrunBranchType.Trainrun
         ) {
-          return false;
+          departureSection.trainrunBranchType = TrainrunBranchType.ArrivalBranchFilter;
         }
-      }
-      return true;
+        const arrivalSection = node.arrivalPathSection;
+        if (
+          arrivalSection?.departurePathNode &&
+          !arrivalSection.departurePathNode.getPathNode().filter &&
+          arrivalSection.trainrunBranchType === TrainrunBranchType.Trainrun
+        ) {
+          arrivalSection.trainrunBranchType = TrainrunBranchType.DepartureBranchFilter;
+        }
+      });
+      trainrun.sgTrainrunItems = trainrun.sgTrainrunItems.filter((item) =>
+        this.isTrainrunItemVisible(item),
+      );
     });
+    this.selectedTrainrun.paths = this.selectedTrainrun.paths.filter((path) =>
+      this.isPathVisible(path),
+    );
 
     this.sgSelectedTrainrunSubject.next(this.selectedTrainrun);
+  }
+
+  private isTrainrunItemVisible(item: SgTrainrunItem): boolean {
+    if (item.isNode()) {
+      return !item.getPathNode().filter;
+    }
+    if (item.isSection()) {
+      const section = item.getTrainrunSection();
+      return !this.areBothNodesFiltered(section.departurePathNode, section.arrivalPathNode);
+    }
+    return true;
+  }
+
+  private isPathVisible(path: SgPath): boolean {
+    if (path.isNode()) {
+      return !path.getPathNode().filter;
+    }
+    if (path.isSection()) {
+      const section = path.getPathSection();
+      return !this.areBothNodesFiltered(section.departurePathNode, section.arrivalPathNode);
+    }
+    return true;
+  }
+
+  private areBothNodesFiltered(
+    departurePathNode: SgTrainrunNode | SgPathNode,
+    arrivalPathNode: SgTrainrunNode | SgPathNode,
+  ): boolean {
+    return Boolean(
+      departurePathNode?.getPathNode()?.filter && arrivalPathNode?.getPathNode()?.filter,
+    );
   }
 }
