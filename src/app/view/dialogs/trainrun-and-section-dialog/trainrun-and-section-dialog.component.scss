@@ -93,10 +93,11 @@
 }
 
 .dialog-drag-and-close-handle-area {
-  transform: translate(616px, 58px);
   position: absolute;
+  top: 58px;
+  bottom: 0;
+  left: 616px;
   width: 20px;
-  height: 326px;
   border: 16px solid var(--sbb-header-lean-background-color);
   cursor: move;
 

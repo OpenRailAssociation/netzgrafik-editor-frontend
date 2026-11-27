@@ -45,14 +45,17 @@
         </sbb-tab>
       </sbb-tab-group>
     </div>
-  </div>
 
-  <div class="dialog-drag-and-close-handle-area" (mousedown)="onMouseDown($event)">
-    <sbb-icon
-      class="dialog-close-button-icon"
-      svgIcon="cross-small"
-      (click)="closeDialog()"
-    ></sbb-icon>
-    <sbb-icon class="dialog-drag-handle-icon" svgIcon="arrows-left-right-down-up-small"></sbb-icon>
+    <div class="dialog-drag-and-close-handle-area" (mousedown)="onMouseDown($event)">
+      <sbb-icon
+        class="dialog-close-button-icon"
+        svgIcon="cross-small"
+        (click)="closeDialog()"
+      ></sbb-icon>
+      <sbb-icon
+        class="dialog-drag-handle-icon"
+        svgIcon="arrows-left-right-down-up-small"
+      ></sbb-icon>
+    </div>
   </div>
 </ng-template>
