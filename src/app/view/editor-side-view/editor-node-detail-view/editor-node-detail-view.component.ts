@@ -67,7 +67,6 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
   readonly disableBackend = environment.disableBackend;
 
   private destroyed = new Subject<void>();
-  private isLabelBeingEdited = false;
 
   constructor(
     private uiInteractionService: UiInteractionService,
@@ -120,9 +119,7 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
       return;
     }
     this.nodeProperties.labels.push(value);
-    this.isLabelBeingEdited = true;
     this.checkAndSetLabels();
-    this.isLabelBeingEdited = false;
     chipInputEvent.chipInput!.clear();
   }
 
@@ -135,23 +132,6 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
     this.nodeProperties.labels = this.nodeProperties.labels.filter(
       (labels) => labels !== valueDelete,
     );
-    this.isLabelBeingEdited = true;
-    this.checkAndSetLabels();
-    this.isLabelBeingEdited = false;
-  }
-
-  onLabelsFocusout() {
-    if (this.isLabelBeingEdited) return;
-
-    const keyboardEvent = new KeyboardEvent("keydown", {
-      code: "Enter",
-      key: "Enter",
-      charCode: 13,
-      keyCode: 13,
-      view: window,
-      bubbles: true,
-    });
-    document.getElementById("nodeLabelsInput").dispatchEvent(keyboardEvent);
     this.checkAndSetLabels();
   }
 
@@ -176,7 +156,7 @@ export class EditorNodeDetailViewComponent implements OnInit, OnDestroy {
     const node = this.nodeService.getSelectedNode();
     const confirmationDialogParameter = new ConfirmationDialogParameter(
       $localize`:@@app.view.editor-side-view.editor-node-detail-view.delete:Delete`,
-      $localize`:@@app.view.editor-side-view.editor-node-detail-view.deleteNodeDialog:Should the node ${node.getBetriebspunktName()}:operationalPointShortName: (${node.getFullName()}:operationalPointName:) be definitely deleted?`,
+      $localize`:@@app.view.editor-side-view.editor-node-detail-view.deleteNodeDialog:Should the node ${node.getBetriebspunktName()}:operationalPointShortName: (${node.getFullName()}:operationalPointName:) be permanently deleted?`,
     );
     this.uiInteractionService
       .showConfirmationDiagramDialog(confirmationDialogParameter)

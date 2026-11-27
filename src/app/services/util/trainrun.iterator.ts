@@ -1,3 +1,4 @@
+import {TimeLockDto} from "../../data-structures/technical.data.structures";
 import {Node} from "../../models/node.model";
 import {TrainrunSection} from "../../models/trainrunsection.model";
 import {LogService} from "../../logger/log.service";
@@ -87,6 +88,30 @@ export class DirectedTrainrunSectionProxy {
     return this.direction === "sourceToTarget"
       ? this.trainrunSection.getTargetArrival()
       : this.trainrunSection.getSourceArrival();
+  }
+
+  getTailDepartureDto(): TimeLockDto {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getSourceDepartureDto()
+      : this.trainrunSection.getTargetDepartureDto();
+  }
+
+  getTailArrivalDto(): TimeLockDto {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getSourceArrivalDto()
+      : this.trainrunSection.getTargetArrivalDto();
+  }
+
+  getHeadDepartureDto(): TimeLockDto {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getTargetDepartureDto()
+      : this.trainrunSection.getSourceDepartureDto();
+  }
+
+  getHeadArrivalDto(): TimeLockDto {
+    return this.direction === "sourceToTarget"
+      ? this.trainrunSection.getTargetArrivalDto()
+      : this.trainrunSection.getSourceArrivalDto();
   }
 
   getTravelTime(): number {
@@ -263,6 +288,17 @@ export class TrainrunIterator {
   }
 
   /**
+   * Consume this iterator and return its last element.
+   * This method may be called twice on the same iterator.
+   */
+  public last(): TrainrunSectionNodePair {
+    for (const _ of this) {
+      // Intentionally left blank
+    }
+    return this.current();
+  }
+
+  /**
    * Throws an exception if called after the end of the iteration.
    * Check for `this.hasNext()` before.
    */
@@ -292,7 +328,7 @@ export class TrainrunIterator {
       this.pointerElement = undefined;
       // log the issue
       this.logService.error(
-        $localize`:@@app.services.util.trainrun-iteration.error.infinity-loop:Iterator has detected an infinity loop. The iteration terminated early!`,
+        $localize`:@@app.services.util.trainrun-iteration.error.infinity-loop:Iterator has detected an infinite loop. The iteration terminated early!`,
         new Error().stack,
       );
       return this.currentElement;
@@ -339,7 +375,7 @@ export class BackwardTrainrunIterator extends TrainrunIterator {
       this.pointerElement = undefined;
       // log the issue
       this.logService.error(
-        $localize`:@@app.services.util.trainrun-iteration.error.infinity-loop:Iterator has detected an infinity loop. The iteration terminated early!`,
+        $localize`:@@app.services.util.trainrun-iteration.error.infinity-loop:Iterator has detected an infinite loop. The iteration terminated early!`,
         new Error().stack,
       );
       return this.currentElement;

@@ -111,7 +111,7 @@ export class TrainrunSectionTimesService {
     bottomTravelTime: 0,
   };
 
-  private nodesOrdered: Node[] = [];
+  private nodesOrdered: [] | [Node, Node] = [];
 
   private lockStructure: LeftAndRightLockStructure = {
     leftLock: false,
@@ -124,6 +124,8 @@ export class TrainrunSectionTimesService {
     leftSymmetry: true,
     rightSymmetry: true,
   };
+
+  public numberOfStops = 0;
 
   private offset = 0;
   private offsetTransformationActive = false;
@@ -157,6 +159,7 @@ export class TrainrunSectionTimesService {
       this.selectedTrainrunSection,
       this.nodesOrdered,
     );
+    this.numberOfStops = trainrunSection.getNumberOfStops();
   }
 
   public getTimeStructure(): LeftAndRightTimeStructure {
@@ -171,11 +174,11 @@ export class TrainrunSectionTimesService {
     return this.showWarningTwoLocks;
   }
 
-  public getNodesOrdered(): Node[] {
+  public getNodesOrdered(): [] | [Node, Node] {
     return this.nodesOrdered;
   }
 
-  public setNodesOrdered(nodesOrdered: Node[]) {
+  public setNodesOrdered(nodesOrdered: [] | [Node, Node]) {
     this.nodesOrdered = nodesOrdered;
   }
 
@@ -607,6 +610,28 @@ export class TrainrunSectionTimesService {
     TrainrunSectionValidator.validateOneSection(rightSection.trainrunSection);
 
     this.trainrunSectionService.trainrunSectionsUpdated();
+  }
+
+  /* Number of stops */
+  onNumberOfStopsChanged() {
+    this.numberOfStops = Math.max(0, this.numberOfStops);
+    this.trainrunSectionService.updateTrainrunSectionNumberOfStops(
+      this.selectedTrainrunSection,
+      this.numberOfStops,
+    );
+  }
+
+  onNumberOfStopsButtonPlus() {
+    this.numberOfStops += 1;
+    this.setHighlightTravelTimeElement(false);
+    this.setHighlightBottomTravelTimeElement(false);
+    this.onNumberOfStopsChanged();
+  }
+
+  onNumberOfStopsButtonMinus() {
+    this.numberOfStops -= 1;
+    this.numberOfStops = Math.max(0, this.numberOfStops);
+    this.onNumberOfStopsChanged();
   }
 
   /* Buttons in Footer */

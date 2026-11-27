@@ -15,8 +15,8 @@ export class TrainrunSectionValidator {
       (trainrunSection.getSourceDeparture() + trainrunSection.getTravelTime()) % 60;
     if (Math.abs(calculatedTargetArrivalTime - trainrunSection.getTargetArrival()) > 1 / 60) {
       trainrunSection.setTargetArrivalWarning(
-        $localize`:@@app.services.util.trainrunsection-validator.target-arrival-not-reacheable.title:Target Arrival Warning`,
-        $localize`:@@app.services.util.trainrunsection-validator.target-arrival-not-reacheable.description:Target arrival time cannot be reached`,
+        $localize`:@@app.services.util.trainrunsection-validator.target-arrival-not-reachable.title:Target Arrival Warning`,
+        $localize`:@@app.services.util.trainrunsection-validator.target-arrival-not-reachable.description:Target arrival time cannot be reached`,
       );
     } else {
       trainrunSection.resetTargetArrivalWarning();
@@ -26,8 +26,8 @@ export class TrainrunSectionValidator {
       (trainrunSection.getTargetDeparture() + trainrunSection.getBackwardTravelTime()) % 60;
     if (Math.abs(calculatedSourceArrivalTime - trainrunSection.getSourceArrival()) > 1 / 60) {
       trainrunSection.setSourceArrivalWarning(
-        $localize`:@@app.services.util.trainrunsection-validator.source-arrival-not-reacheable.title:Source Arrival Warning`,
-        $localize`:@@app.services.util.trainrunsection-validator.source-arrival-not-reacheable.description:Source arrival time cannot be reached`,
+        $localize`:@@app.services.util.trainrunsection-validator.source-arrival-not-reachable.title:Source Arrival Warning`,
+        $localize`:@@app.services.util.trainrunsection-validator.source-arrival-not-reachable.description:Source arrival time cannot be reached`,
       );
     } else {
       trainrunSection.resetSourceArrivalWarning();

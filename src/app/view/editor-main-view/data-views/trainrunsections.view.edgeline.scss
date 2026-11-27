@@ -139,7 +139,6 @@
 
 /// trainrun section stops
 ::ng-deep circle.edge_line_stops {
-  r: $TRAINRUN_SECTION_STOP_RADIUS;
   fill: $COLOR_BACKGROUND;
   stroke-width: 1px;
 }
@@ -185,14 +184,12 @@
 ::ng-deep circle.edge_line_stops.fill.selected.hover {
   fill: white;
   stroke: $COLOR_Edit;
-  r: $PIN_RADIUS_HOVER;
   cursor: move;
 }
 
 ::ng-deep circle.edge_line_stops.selected.hover {
   fill: white;
   stroke: $COLOR_Edit;
-  r: $PIN_RADIUS_HOVER;
   cursor: move;
 }
 
@@ -201,6 +198,5 @@
 }
 
 ::ng-deep circle.edge_line_pin.selected.hidden {
-  r: 0px;
   pointer-events: none;
 }

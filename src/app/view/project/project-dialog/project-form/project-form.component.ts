@@ -20,30 +20,6 @@ export class ProjectFormComponent implements OnInit {
     this.model.registerValidator("writeUsers", userIdsAsEmailValidator);
     this.model.registerValidator("readUsers", userIdsAsEmailValidator);
   }
-
-  onLabelsFocusoutWrite() {
-    const keyboardEvent = new KeyboardEvent("keydown", {
-      code: "Enter",
-      key: "Enter",
-      charCode: 13,
-      keyCode: 13,
-      view: window,
-      bubbles: true,
-    });
-    document.getElementById("userWriteInput").dispatchEvent(keyboardEvent);
-  }
-
-  onLabelsFocusoutRead() {
-    const keyboardEvent = new KeyboardEvent("keydown", {
-      code: "Enter",
-      key: "Enter",
-      charCode: 13,
-      keyCode: 13,
-      view: window,
-      bubbles: true,
-    });
-    document.getElementById("userReadeInput").dispatchEvent(keyboardEvent);
-  }
 }
 
 export const userIdsAsEmailValidator: ValidatorFn = (control) => {

@@ -47,6 +47,8 @@ export class NodeViewObject {
       "_" +
       editorView.getLevelOfDetail() +
       "_" +
+      editorView.editorMode +
+      "_" +
       editorView.trainrunSectionPreviewLineView.getVariantIsWritable()
     );
   }

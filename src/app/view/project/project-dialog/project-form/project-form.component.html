@@ -44,10 +44,7 @@
       {{ "app.view.project.project-dialog.project-form.user-with-write-access" | translate }}
       <ng-container *ngTemplateOutlet="userTooltip"></ng-container>
     </sbb-label>
-    <sbb-chip-list
-      [formControl]="model.getControl('writeUsers')"
-      (focusout)="onLabelsFocusoutWrite()"
-    >
+    <sbb-chip-list [formControl]="model.getControl('writeUsers')">
       <sbb-chip *ngFor="let element of model.getControl('writeUsers').value" [value]="element"
         >{{ element }}
       </sbb-chip>
@@ -57,6 +54,7 @@
           'app.view.project.project-dialog.project-form.new-user-placeholder' | translate
         "
         sbbChipInput
+        sbbChipInputAddOnBlur
         [sbbChipInputSeparatorKeyCodes]="separatorKeysCodes"
       />
     </sbb-chip-list>
@@ -70,10 +68,7 @@
       {{ "app.view.project.project-dialog.project-form.user-with-read-access" | translate }}
       <ng-container *ngTemplateOutlet="userTooltip"></ng-container>
     </sbb-label>
-    <sbb-chip-list
-      [formControl]="model.getControl('readUsers')"
-      (focusout)="onLabelsFocusoutRead()"
-    >
+    <sbb-chip-list [formControl]="model.getControl('readUsers')">
       <sbb-chip *ngFor="let element of model.getControl('readUsers').value" [value]="element">
         {{ element }}
       </sbb-chip>
@@ -83,6 +78,7 @@
           'app.view.project.project-dialog.project-form.new-user-placeholder' | translate
         "
         sbbChipInput
+        sbbChipInputAddOnBlur
         [sbbChipInputSeparatorKeyCodes]="separatorKeysCodes"
       />
     </sbb-chip-list>

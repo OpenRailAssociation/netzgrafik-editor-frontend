@@ -37,6 +37,15 @@ import {
 } from "../../models/operation.model";
 import {TrainrunsectionHelper} from "../util/trainrunsection.helper";
 
+export interface OrderedTrainrunNodeEntry {
+  /** ID of the source node represented by this entry. */
+  nodeId: number;
+  /** ID of a trainrun section associated with this node; every entry has one. */
+  trainrunSectionId: number;
+  /** True when another disconnected trainrun part follows this entry. */
+  hasGapAfter: boolean;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -609,6 +618,96 @@ export class TrainrunService {
     return {endNode1, endNode2};
   }
 
+  /**
+   * Returns all trainrun-parts in top-left order: each part is traversed from its left/top end,
+   * and the parts are ordered by their left/top start node. A gap separates disconnected parts.
+   * When the trainrun has disconnected part the gaps is set to true and the section is undefined(null)
+   * The last node entry has no section, because it represents the end of the trainrun.
+   *
+   * TODO - Refactor the LoadPerlenketteService.getPerlenketteItem and integrate this getOrderedNodeEntriesForTrainrun
+   * to unify the trainrun node and section order.
+   */
+  getOrderedNodeEntriesForTrainrun(trainrun: Trainrun): OrderedTrainrunNodeEntry[] {
+    const entryGroups = this.getAllNodeEntriesForTrainrun(trainrun);
+
+    entryGroups.sort((groupA, groupB) => {
+      const startNodeA = this.nodeService.getNodeFromId(groupA[0].nodeId);
+      const startNodeB = this.nodeService.getNodeFromId(groupB[0].nodeId);
+      if (!startNodeA || !startNodeB) {
+        return 0;
+      }
+
+      const leftOrTopNode = GeneralViewFunctions.getLeftOrTopNode(startNodeA, startNodeB);
+      return leftOrTopNode.getId() === startNodeA.getId() ? -1 : 1;
+    });
+
+    entryGroups.forEach((group, index) => {
+      group[group.length - 1].hasGapAfter = index < entryGroups.length - 1;
+    });
+
+    return entryGroups.flat();
+  }
+
+  /**
+   * This method iterates over all trainrunSections for a given trainrun. It further
+   * tests the Netzgrafik-Editor "key-concept" that we start a traversal at top-left towards
+   * botton-right. This means that the main direction for a trainrun is always from top-left towards
+   * bottom-right.
+   *
+   * This method returns a list of node with trainrunSection traversed in the order determined
+   * by the top-left to bottom-right traversal approach. Last entry doesn't have a trainrunSection
+   * because the end has no trainrunSection associated with it.
+   */
+  getAllNodeEntriesForTrainrun(trainrun: Trainrun): OrderedTrainrunNodeEntry[][] {
+    let allTrainrunSections = this.trainrunSectionService.getAllTrainrunSectionsForTrainrun(
+      trainrun.getId(),
+    );
+    const entryGroups: OrderedTrainrunNodeEntry[][] = [];
+
+    while (allTrainrunSections.length > 0) {
+      const trainrunSection = allTrainrunSections[0];
+      allTrainrunSections = allTrainrunSections.filter(
+        (section) => section.getId() !== trainrunSection.getId(),
+      );
+
+      const bothEndNodes = this.getBothEndNodesFromTrainrunPart(trainrunSection);
+      const startNode = GeneralViewFunctions.getLeftOrTopNode(
+        bothEndNodes.endNode1,
+        bothEndNodes.endNode2,
+      );
+      if (!startNode) {
+        continue;
+      }
+
+      const startSection = startNode.getExtremityTrainrunSection(trainrun.getId());
+      if (!startSection) {
+        return entryGroups;
+      }
+
+      const groupEntries: OrderedTrainrunNodeEntry[] = [
+        {
+          nodeId: startNode.getId(),
+          trainrunSectionId: startSection.getId(),
+          hasGapAfter: false,
+        },
+      ];
+      const iterator = this.getIterator(startNode, startSection);
+      for (const pair of iterator) {
+        groupEntries.push({
+          nodeId: pair.node.getId(),
+          trainrunSectionId: pair.trainrunSection.getId(),
+          hasGapAfter: false,
+        });
+        allTrainrunSections = allTrainrunSections.filter(
+          (section) => section.getId() !== pair.trainrunSection.getId(),
+        );
+      }
+
+      entryGroups.push(groupEntries);
+    }
+    return entryGroups;
+  }
+
   propagateConsecutiveTimesForTrainrun(trainrunSectionId: number) {
     const inTrainrunSection =
       this.trainrunSectionService.getTrainrunSectionFromId(trainrunSectionId);
@@ -686,11 +785,7 @@ export class TrainrunService {
   }
 
   getEndNode(node: Node, trainrunSection: TrainrunSection): Node {
-    const iterator = this.getIterator(node, trainrunSection);
-    while (iterator.hasNext()) {
-      iterator.next();
-    }
-    return iterator.current().node;
+    return this.getIterator(node, trainrunSection).last().node;
   }
 
   getNodePathToEnd(node: Node, trainrunSection: TrainrunSection): Node[] {
@@ -703,11 +798,7 @@ export class TrainrunService {
   }
 
   getLastNonStopNode(node: Node, trainrunSection: TrainrunSection): Node {
-    const iterator = this.getNonStopIterator(node, trainrunSection);
-    while (iterator.hasNext()) {
-      iterator.next();
-    }
-    return iterator.current().node;
+    return this.getNonStopIterator(node, trainrunSection).last().node;
   }
 
   getBothLastNonStopNodes(trainrunSection: TrainrunSection) {
@@ -720,11 +811,7 @@ export class TrainrunService {
   }
 
   getLastNonStopTrainrunSection(node: Node, trainrunSection: TrainrunSection): TrainrunSection {
-    const iterator = this.getNonStopIterator(node, trainrunSection);
-    while (iterator.hasNext()) {
-      iterator.next();
-    }
-    return iterator.current().trainrunSection;
+    return this.getNonStopIterator(node, trainrunSection).last().trainrunSection;
   }
 
   getBothLastNonStopTrainrunSections(trainrunSection: TrainrunSection) {
@@ -744,23 +831,14 @@ export class TrainrunService {
       return undefined;
     }
     // sections[0] does not ensure to be the first section in the trainrun
-    const iterator = this.getBackwardIterator(sections[0].getTargetNode(), sections[0]);
-    while (iterator.hasNext()) {
-      iterator.next();
-    }
-    return iterator.current().trainrunSection;
+    return this.getBackwardIterator(sections[0].getTargetNode(), sections[0]).last()
+      .trainrunSection;
   }
 
   getFirstNonStopTrainrunSection(trainrunSection: TrainrunSection): TrainrunSection {
     // starts at the target node, goes backwards to find the first section that is not a non-stop section
-    const iterator = this.getBackwardNonStopIterator(
-      trainrunSection.getTargetNode(),
-      trainrunSection,
-    );
-    while (iterator.hasNext()) {
-      iterator.next();
-    }
-    return iterator.current().trainrunSection;
+    return this.getBackwardNonStopIterator(trainrunSection.getTargetNode(), trainrunSection).last()
+      .trainrunSection;
   }
 
   getLastTrainrunSection(trainrun: Trainrun): TrainrunSection | undefined {
@@ -771,30 +849,25 @@ export class TrainrunService {
       return undefined;
     }
     // sections[0] does not ensure to be the first section in the trainrun
-    const iterator = this.getIterator(sections[0].getSourceNode(), sections[0]);
-    while (iterator.hasNext()) {
-      iterator.next();
-    }
-    return iterator.current().trainrunSection;
+    return this.getIterator(sections[0].getSourceNode(), sections[0]).last().trainrunSection;
   }
 
   getCumulativeTravelTime(
     trainrunSection: TrainrunSection,
     direction: "sourceToTarget" | "targetToSource",
   ): number {
-    let iterator = this.getNonStopIterator(trainrunSection.getSourceNode(), trainrunSection);
-    while (iterator.hasNext()) {
-      iterator.next();
-    }
+    const lastPair = this.getNonStopIterator(
+      trainrunSection.getSourceNode(),
+      trainrunSection,
+    ).last();
 
-    iterator = this.getNonStopIterator(iterator.current().node, iterator.current().trainrunSection);
+    const iterator = this.getNonStopIterator(lastPair.node, lastPair.trainrunSection);
     let summedTravelTime = 0;
-    while (iterator.hasNext()) {
-      const nextPair = iterator.next();
+    for (const pair of iterator) {
       if (direction === "sourceToTarget") {
-        summedTravelTime += nextPair.trainrunSection.getTravelTime();
+        summedTravelTime += pair.trainrunSection.getTravelTime();
       } else {
-        summedTravelTime += nextPair.trainrunSection.getBackwardTravelTime();
+        summedTravelTime += pair.trainrunSection.getBackwardTravelTime();
       }
     }
     return summedTravelTime;
@@ -804,14 +877,14 @@ export class TrainrunService {
     trainrunSection: TrainrunSection,
     direction: "sourceToTarget" | "targetToSource",
   ) {
-    let iterator = this.getNonStopIterator(trainrunSection.getSourceNode(), trainrunSection);
-    while (iterator.hasNext()) {
-      iterator.next();
-    }
-    const n = iterator.current().node;
-    const ts = iterator.current().trainrunSection;
+    const lastPair = this.getNonStopIterator(
+      trainrunSection.getSourceNode(),
+      trainrunSection,
+    ).last();
+    const n = lastPair.node;
+    const ts = lastPair.trainrunSection;
 
-    iterator = this.getNonStopIterator(n, ts);
+    const iterator = this.getNonStopIterator(n, ts);
     const data = [
       {
         node: n,
@@ -820,17 +893,16 @@ export class TrainrunService {
       },
     ];
     let summedTravelTime = 0;
-    while (iterator.hasNext()) {
-      const nextPair = iterator.next();
+    for (const pair of iterator) {
       if (direction === "sourceToTarget") {
-        summedTravelTime += nextPair.trainrunSection.getTravelTime();
+        summedTravelTime += pair.trainrunSection.getTravelTime();
       } else {
-        summedTravelTime += nextPair.trainrunSection.getBackwardTravelTime();
+        summedTravelTime += pair.trainrunSection.getBackwardTravelTime();
       }
       data.push({
-        node: nextPair.node,
+        node: pair.node,
         sumTravelTime: summedTravelTime,
-        trainrunSection: nextPair.trainrunSection,
+        trainrunSection: pair.trainrunSection,
       });
     }
     return data;
@@ -913,39 +985,37 @@ export class TrainrunService {
       };
     }
     let accumulatedTime = node.getDepartureTime(trainrunSection) + offset;
-    const iterator = this.getIterator(node, trainrunSection);
-    while (iterator.hasNext()) {
-      const nextPair = iterator.next();
-      nextPair.node
-        .getOppositeNode(nextPair.trainrunSection)
-        .setDepartureConsecutiveTime(nextPair.trainrunSection, accumulatedTime);
+    for (const pair of this.getIterator(node, trainrunSection)) {
+      pair.node
+        .getOppositeNode(pair.trainrunSection)
+        .setDepartureConsecutiveTime(pair.trainrunSection, accumulatedTime);
 
-      const oppositeNodeDepartureTime = nextPair.node
-        .getOppositeNode(nextPair.trainrunSection)
-        .getDepartureTime(nextPair.trainrunSection);
-      const arrivalTime = nextPair.node.getArrivalTime(nextPair.trainrunSection);
+      const oppositeNodeDepartureTime = pair.node
+        .getOppositeNode(pair.trainrunSection)
+        .getDepartureTime(pair.trainrunSection);
+      const arrivalTime = pair.node.getArrivalTime(pair.trainrunSection);
       const travelTime =
         arrivalTime < oppositeNodeDepartureTime
           ? arrivalTime + 60 - oppositeNodeDepartureTime
           : arrivalTime - oppositeNodeDepartureTime;
       accumulatedTime += travelTime;
 
-      const directedTravelTime = nextPair.getDirectedTrainrunSectionProxy().getTravelTime();
+      const directedTravelTime = pair.getDirectedTrainrunSectionProxy().getTravelTime();
       const travelTimeOffset = directedTravelTime - (directedTravelTime % 60);
       accumulatedTime += travelTimeOffset;
 
-      nextPair.node.setArrivalConsecutiveTime(nextPair.trainrunSection, accumulatedTime);
+      pair.node.setArrivalConsecutiveTime(pair.trainrunSection, accumulatedTime);
 
       let halteZeit = 0;
-      if (!nextPair.node.isEndNode(nextPair.trainrunSection)) {
-        const oldArrival = nextPair.node.getArrivalTime(nextPair.trainrunSection);
-        const trs = nextPair.node.getNextTrainrunSection(nextPair.trainrunSection);
-        const nextDeparture = nextPair.node.getDepartureTime(trs);
+      if (!pair.node.isEndNode(pair.trainrunSection)) {
+        const oldArrival = pair.node.getArrivalTime(pair.trainrunSection);
+        const trs = pair.node.getNextTrainrunSection(pair.trainrunSection);
+        const nextDeparture = pair.node.getDepartureTime(trs);
         halteZeit =
           nextDeparture < oldArrival ? nextDeparture + 60 - oldArrival : nextDeparture - oldArrival;
       }
       accumulatedTime += halteZeit;
-      visitedTrainrunSections.push(nextPair.trainrunSection);
+      visitedTrainrunSections.push(pair.trainrunSection);
     }
     return {
       cumTime: accumulatedTime,

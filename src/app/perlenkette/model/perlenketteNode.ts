@@ -1,23 +1,21 @@
-import {PerlenketteItem} from "./perlenketteItem";
-import {PerlenketteSection} from "./perlenketteSection";
 import {PerlenketteConnection} from "./perlenketteConnection";
 import {Transition} from "../../models/transition.model";
 import {PerlenketteTrainrun} from "./perlenketteTrainrun";
 
-export class PerlenketteNode implements PerlenketteItem {
+export class PerlenketteNode {
   constructor(
-    public nodeId: number,
-    public shortName: string,
-    public fullName: string,
-    public connectionTime: number,
-    public connections: PerlenketteConnection[],
-    public transition: Transition,
-    public fristTrainrunPartNode: boolean,
+    readonly nodeId: number,
+    readonly shortName: string,
+    readonly fullName: string,
+    readonly connectionTime: number,
+    readonly connections: PerlenketteConnection[],
+    readonly transition: Transition,
+    public firstTrainrunPartNode: boolean,
     public lastTrainrunPartNode: boolean,
   ) {}
 
-  isFristTrainrunPartNode(): boolean {
-    return this.fristTrainrunPartNode;
+  isFirstTrainrunPartNode(): boolean {
+    return this.firstTrainrunPartNode;
   }
 
   isLastTrainrunPartNode(): boolean {
@@ -28,53 +26,35 @@ export class PerlenketteNode implements PerlenketteItem {
     this.lastTrainrunPartNode = flag;
   }
 
-  isPerlenketteNode(): boolean {
-    return true;
-  }
-
-  getPerlenketteNode(): PerlenketteNode {
-    return this;
-  }
-
-  isPerlenketteSection(): boolean {
-    return false;
-  }
-
-  getPerlenketteSection(): PerlenketteSection {
-    return undefined;
-  }
-
   getConnectionOrderGroup(perlenketteTrainrun: PerlenketteTrainrun): number[] {
-    const nodeTopStartNode = perlenketteTrainrun.pathItems.at(0).getPerlenketteNode();
+    const topNode = perlenketteTrainrun.getTopNode();
     return [
       null,
       this.connections.filter((a) => {
-        return a.beginningStationId === nodeTopStartNode.nodeId;
+        return a.beginningStationId === topNode.nodeId;
       }).length,
     ];
   }
 
   getConnectionsTopNodes(perlenketteTrainrun: PerlenketteTrainrun): PerlenketteConnection[] {
     return this.connections.filter((a: PerlenketteConnection) => {
-      const nodeTopStartNode = perlenketteTrainrun.pathItems.at(0).getPerlenketteNode();
-      return a.beginningStationId === nodeTopStartNode.nodeId;
+      return a.beginningStationId === perlenketteTrainrun.getTopNode().nodeId;
     });
   }
 
+  /** Whether this node is the top node of the given perlenkette trainrun. */
   isTopNode(perlenketteTrainrun: PerlenketteTrainrun) {
-    const nodeTopStartNode = perlenketteTrainrun.pathItems.at(0).getPerlenketteNode();
-    return this.nodeId === nodeTopStartNode.nodeId;
+    return this.nodeId === perlenketteTrainrun.getTopNode().nodeId;
   }
 
+  /** Whether this node is the bottom node of the given perlenkette trainrun. */
   isBottomNode(perlenketteTrainrun: PerlenketteTrainrun) {
-    const nodeTopStartNode = perlenketteTrainrun.pathItems.at(-1).getPerlenketteNode();
-    return this.nodeId === nodeTopStartNode.nodeId;
+    return this.nodeId === perlenketteTrainrun.getBottomNode().nodeId;
   }
 
   getConnectionsBottomNodes(perlenketteTrainrun: PerlenketteTrainrun): PerlenketteConnection[] {
     return this.connections.filter((a: PerlenketteConnection) => {
-      const nodeTopStartNode = perlenketteTrainrun.pathItems.at(0).getPerlenketteNode();
-      return a.beginningStationId !== nodeTopStartNode.nodeId;
+      return a.beginningStationId !== perlenketteTrainrun.getTopNode().nodeId;
     });
   }
 
@@ -96,9 +76,9 @@ export class PerlenketteNode implements PerlenketteItem {
     b: PerlenketteConnection,
     perlenketteTrainrun: PerlenketteTrainrun,
   ): number {
-    const nodeTopStartNode = perlenketteTrainrun.pathItems.at(0).getPerlenketteNode();
-    const check1 = a.beginningStationId === nodeTopStartNode.nodeId;
-    const check2 = b.beginningStationId === nodeTopStartNode.nodeId;
+    const topNode = perlenketteTrainrun.getTopNode();
+    const check1 = a.beginningStationId === topNode.nodeId;
+    const check2 = b.beginningStationId === topNode.nodeId;
     if (check1 === check2) {
       return this.sortLevel1CategoryOrder(a, b);
     }

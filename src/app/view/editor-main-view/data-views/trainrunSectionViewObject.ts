@@ -169,7 +169,13 @@ export class TrainrunSectionViewObject {
       "_" +
       editorView.getLevelOfDetail() +
       "_" +
-      editorView.trainrunSectionPreviewLineView.getVariantIsWritable();
+      editorView.trainrunSectionPreviewLineView.getVariantIsWritable() +
+      "_" +
+      editorView.getActiveSectionRenderingStyle() +
+      "_" +
+      d.getSourceNode().getNodeHeight() +
+      "_" +
+      d.getSourceNode().getNodeWidth();
 
     cumulativeTravelTimeData.forEach((data) => {
       key += "_" + data.node.getId();

@@ -29,7 +29,10 @@ import {TrainrunService} from "../data/trainrun.service";
 import {Node} from "../../models/node.model";
 import {LoadPerlenketteService} from "../../perlenkette/service/load-perlenkette.service";
 import {TravelTimeCreationEstimatorType} from "../../view/themes/editor-trainrun-traveltime-creator-type";
-import {OrderingAlgorithm} from "../../data-structures/technical.data.structures";
+import {
+  OrderingAlgorithm,
+  SectionRenderingStyle,
+} from "../../data-structures/technical.data.structures";
 import {TrafficSide} from "src/app/data-structures/business.data.structures";
 import {DataService} from "../data/data.service";
 import {Operation, MetadataOperation} from "../../models/operation.model";
@@ -328,6 +331,16 @@ export class UiInteractionService implements OnDestroy {
     this.operation.emit(new MetadataOperation({orderingAlgorithm}));
   }
 
+  getActiveSectionRenderingStyleType(): SectionRenderingStyle {
+    return this.dataService.getSectionRenderingStyle();
+  }
+
+  setActiveSectionRenderingStyleType(sectionRenderingStyleType: SectionRenderingStyle) {
+    this.dataService.setSectionRenderingStyle(sectionRenderingStyleType);
+    this.trainrunSectionService.trainrunSectionsUpdated();
+    this.operation.emit(new MetadataOperation({sectionRenderingStyle: sectionRenderingStyleType}));
+  }
+
   updateNodeBaseData() {
     this.updateNodeBaseDataSubject.next();
   }
@@ -441,6 +454,20 @@ export class UiInteractionService implements OnDestroy {
     const x = node.getPositionX() + node.getNodeWidth() / 2.0 + offset.getX();
     const y = node.getPositionY() + node.getNodeHeight() / 2.0 + offset.getY();
     this.moveNetzgrafikEditorFocalViewPoint(new Vec2D(x, y));
+  }
+
+  getNetzgrafikOffsetFromScreenPx(offsetXPx: number, offsetYPx: number): Vec2D {
+    const viewboxProperties = this.getViewboxProperties(EditorView.svgName);
+    const xScale =
+      viewboxProperties.origWidth > 0
+        ? viewboxProperties.panZoomWidth / viewboxProperties.origWidth
+        : 100 / Math.max(viewboxProperties.zoomFactor, 1);
+    const yScale =
+      viewboxProperties.origHeight > 0
+        ? viewboxProperties.panZoomHeight / viewboxProperties.origHeight
+        : 100 / Math.max(viewboxProperties.zoomFactor, 1);
+
+    return new Vec2D(offsetXPx * xScale, offsetYPx * yScale);
   }
 
   showOrCloseFilter(type: FilterWindowType) {

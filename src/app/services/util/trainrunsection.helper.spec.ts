@@ -16,6 +16,7 @@ import {NetzgrafikUnitTesting} from "../../../integration-testing/netzgrafik.uni
 import {FilterService} from "../ui/filter.service";
 import {NetzgrafikColoringService} from "../data/netzgrafikColoring.service";
 import {TrainrunsectionHelper} from "./trainrunsection.helper";
+import {LeftAndRightLockStructure} from "../data/trainrun-section-times.service";
 
 describe("TrainrunsectionHelper", () => {
   let dataService: DataService;
@@ -118,94 +119,6 @@ describe("TrainrunsectionHelper", () => {
     expect(tt).toBe(1);
   });
 
-  it("getRightArrivalTime - 001", () => {
-    const larts: LeftAndRightTimeStructure = {
-      leftDepartureTime: 10,
-      leftArrivalTime: 50,
-      rightDepartureTime: 20,
-      rightArrivalTime: 40,
-      travelTime: 10,
-      bottomTravelTime: 10,
-    };
-    const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
-    const a = TrainrunsectionHelper.getRightArrivalTime(d);
-    expect(a).toBe(10);
-  });
-
-  it("getRightArrivalTime - 002", () => {
-    const larts: LeftAndRightTimeStructure = {
-      leftDepartureTime: 10,
-      leftArrivalTime: 50,
-      rightDepartureTime: 20,
-      rightArrivalTime: 40,
-      travelTime: 10,
-      bottomTravelTime: 10,
-    };
-    const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
-    d.leftArrivalTime = -10;
-    const a = TrainrunsectionHelper.getRightArrivalTime(d);
-    expect(a).toBe(10);
-  });
-
-  it("getRightArrivalTime - 003", () => {
-    const larts: LeftAndRightTimeStructure = {
-      leftDepartureTime: 10,
-      leftArrivalTime: 50,
-      rightDepartureTime: 20,
-      rightArrivalTime: 40,
-      travelTime: 10,
-      bottomTravelTime: 10,
-    };
-    const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
-    d.leftDepartureTime = undefined;
-    const a = TrainrunsectionHelper.getRightArrivalTime(d);
-    expect(a).toEqual(NaN);
-  });
-
-  it("getRightDepartureTime - 001", () => {
-    const larts: LeftAndRightTimeStructure = {
-      leftDepartureTime: 10,
-      leftArrivalTime: 50,
-      rightDepartureTime: 20,
-      rightArrivalTime: 40,
-      travelTime: 10,
-      bottomTravelTime: 10,
-    };
-    const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
-    const a = TrainrunsectionHelper.getRightDepartureTime(d);
-    expect(a).toBe(0);
-  });
-
-  it("getRightDepartureTime - 002", () => {
-    const larts: LeftAndRightTimeStructure = {
-      leftDepartureTime: 10,
-      leftArrivalTime: 50,
-      rightDepartureTime: 20,
-      rightArrivalTime: 40,
-      travelTime: 10,
-      bottomTravelTime: 10,
-    };
-    const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
-    d.rightArrivalTime = -10;
-    const a = TrainrunsectionHelper.getRightDepartureTime(d);
-    expect(a).toBe(70);
-  });
-
-  it("getRightDepartureTime - 003", () => {
-    const larts: LeftAndRightTimeStructure = {
-      leftDepartureTime: 10,
-      leftArrivalTime: 50,
-      rightDepartureTime: 20,
-      rightArrivalTime: 40,
-      travelTime: 10,
-      bottomTravelTime: 10,
-    };
-    const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
-    d.rightArrivalTime = undefined;
-    const a = TrainrunsectionHelper.getRightDepartureTime(d);
-    expect(a).toEqual(NaN);
-  });
-
   it("getDefaultTimeStructure", () => {
     const larts: LeftAndRightTimeStructure = {
       leftDepartureTime: 10,
@@ -241,94 +154,6 @@ describe("TrainrunsectionHelper", () => {
   it("getTravelTime -- 2 -- 004", () => {
     const tt = TrainrunsectionHelper.getTravelTime(8, 10, 2, 12, false, 0);
     expect(tt).toBe(1);
-  });
-
-  it("getRightArrivalTime - 001", () => {
-    const larts: LeftAndRightTimeStructure = {
-      leftDepartureTime: 10,
-      leftArrivalTime: 50,
-      rightDepartureTime: 20,
-      rightArrivalTime: 40,
-      travelTime: 10,
-      bottomTravelTime: 10,
-    };
-    const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
-    const a = TrainrunsectionHelper.getRightArrivalTime(d);
-    expect(a).toBe(10);
-  });
-
-  it("getRightArrivalTime - 002", () => {
-    const larts: LeftAndRightTimeStructure = {
-      leftDepartureTime: 10,
-      leftArrivalTime: 50,
-      rightDepartureTime: 20,
-      rightArrivalTime: 40,
-      travelTime: 10,
-      bottomTravelTime: 10,
-    };
-    const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
-    d.leftArrivalTime = -10;
-    const a = TrainrunsectionHelper.getRightArrivalTime(d);
-    expect(a).toBe(10);
-  });
-
-  it("getRightArrivalTime - 003", () => {
-    const larts: LeftAndRightTimeStructure = {
-      leftDepartureTime: 10,
-      leftArrivalTime: 50,
-      rightDepartureTime: 20,
-      rightArrivalTime: 40,
-      travelTime: 10,
-      bottomTravelTime: 10,
-    };
-    const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
-    d.leftDepartureTime = undefined;
-    const a = TrainrunsectionHelper.getRightArrivalTime(d);
-    expect(a).toEqual(NaN);
-  });
-
-  it("getRightDepartureTime - 001", () => {
-    const larts: LeftAndRightTimeStructure = {
-      leftDepartureTime: 10,
-      leftArrivalTime: 50,
-      rightDepartureTime: 20,
-      rightArrivalTime: 40,
-      travelTime: 10,
-      bottomTravelTime: 10,
-    };
-    const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
-    const a = TrainrunsectionHelper.getRightDepartureTime(d);
-    expect(a).toBe(0);
-  });
-
-  it("getRightDepartureTime - 002", () => {
-    const larts: LeftAndRightTimeStructure = {
-      leftDepartureTime: 10,
-      leftArrivalTime: 50,
-      rightDepartureTime: 20,
-      rightArrivalTime: 40,
-      travelTime: 10,
-      bottomTravelTime: 10,
-    };
-    const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
-    d.rightArrivalTime = -10;
-    const a = TrainrunsectionHelper.getRightDepartureTime(d);
-    expect(a).toBe(70);
-  });
-
-  it("getRightDepartureTime - 003", () => {
-    const larts: LeftAndRightTimeStructure = {
-      leftDepartureTime: 10,
-      leftArrivalTime: 50,
-      rightDepartureTime: 20,
-      rightArrivalTime: 40,
-      travelTime: 10,
-      bottomTravelTime: 10,
-    };
-    const d = TrainrunsectionHelper.getDefaultTimeStructure(larts);
-    d.rightArrivalTime = undefined;
-    const a = TrainrunsectionHelper.getRightDepartureTime(d);
-    expect(a).toEqual(NaN);
   });
 
   it("trainrunSectionService.getTrainrunSectionFromId", () => {
@@ -397,5 +222,257 @@ describe("TrainrunsectionHelper", () => {
       ts,
     );
     expect(d1).toBe(false);
+  });
+
+  describe("getLeftAndRightLock", () => {
+    const defaultLockStructure: LeftAndRightLockStructure = {
+      leftLock: false,
+      rightLock: false,
+      travelTimeLock: false,
+    };
+
+    // By default, we look at all sections in-between stop nodes (ie, we cross
+    // non-stop nodes)
+    const defaultNodesOrdered: [] = [];
+
+    it("travel time lock with single section", () => {
+      dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+      const ts = trainrunSectionService.getTrainrunSectionFromId(1); // IC1 BN - OL
+
+      const lockStructure = trainrunsectionHelper.getLeftAndRightLock(ts, defaultNodesOrdered);
+      expect(lockStructure).toEqual({...defaultLockStructure, travelTimeLock: true});
+    });
+
+    it("source departure lock with single section, source on left", () => {
+      dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+      const ts = trainrunSectionService.getTrainrunSectionFromId(1); // IC1 BN - OL
+
+      ts.setTravelTimeLock(false);
+      ts.setSourceDepartureLock(true);
+
+      const lockStructure = trainrunsectionHelper.getLeftAndRightLock(ts, defaultNodesOrdered);
+      expect(lockStructure).toEqual({...defaultLockStructure, leftLock: true});
+    });
+
+    it("source arrival lock with single section, source on left", () => {
+      dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+      const ts = trainrunSectionService.getTrainrunSectionFromId(1); // IC1 BN - OL
+
+      ts.setTravelTimeLock(false);
+      ts.setSourceArrivalLock(true);
+
+      const lockStructure = trainrunsectionHelper.getLeftAndRightLock(ts, defaultNodesOrdered);
+      expect(lockStructure).toEqual({...defaultLockStructure, leftLock: true});
+    });
+
+    it("target arrival lock with single section, source on left", () => {
+      dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+      const ts = trainrunSectionService.getTrainrunSectionFromId(1); // IC1 BN - OL
+
+      ts.setTravelTimeLock(false);
+      ts.setTargetArrivalLock(true);
+
+      const lockStructure = trainrunsectionHelper.getLeftAndRightLock(ts, defaultNodesOrdered);
+      expect(lockStructure).toEqual({...defaultLockStructure, rightLock: true});
+    });
+
+    it("source arrival lock with single section, source on right", () => {
+      dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+      const ts = trainrunSectionService.getTrainrunSectionFromId(6); // RE5678 ZUE - CH
+
+      ts.setTravelTimeLock(false);
+      ts.setSourceArrivalLock(true);
+
+      const lockStructure = trainrunsectionHelper.getLeftAndRightLock(ts, defaultNodesOrdered);
+      expect(lockStructure).toEqual({...defaultLockStructure, rightLock: true});
+    });
+
+    it("target arrival lock with single section, source on right", () => {
+      dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+      const ts = trainrunSectionService.getTrainrunSectionFromId(6); // RE5678 ZUE - CH
+
+      ts.setTravelTimeLock(false);
+      ts.setTargetArrivalLock(true);
+
+      const lockStructure = trainrunsectionHelper.getLeftAndRightLock(ts, defaultNodesOrdered);
+      expect(lockStructure).toEqual({...defaultLockStructure, leftLock: true});
+    });
+
+    it("all locks with single section", () => {
+      dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+      const ts = trainrunSectionService.getTrainrunSectionFromId(6); // RE5678 ZUE - CH
+
+      ts.setSourceDepartureLock(true);
+      ts.setSourceArrivalLock(true);
+      ts.setTargetDepartureLock(true);
+      ts.setTargetArrivalLock(true);
+
+      const lockStructure = trainrunsectionHelper.getLeftAndRightLock(ts, defaultNodesOrdered);
+      expect(lockStructure).toEqual({
+        ...defaultLockStructure,
+        leftLock: true,
+        rightLock: true,
+        travelTimeLock: true,
+      });
+    });
+
+    it("travel time lock with multiple sections across a non-stop node", () => {
+      dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+      const leftSection = trainrunSectionService.getTrainrunSectionFromId(3); // S1234 BN - OL
+      const rightSection = trainrunSectionService.getTrainrunSectionFromId(4); // S1234 OL - ZUE
+
+      leftSection.setTravelTimeLock(false);
+      rightSection.setTravelTimeLock(true);
+
+      const leftLockStructure = trainrunsectionHelper.getLeftAndRightLock(
+        leftSection,
+        defaultNodesOrdered,
+      );
+      expect(leftLockStructure).toEqual(defaultLockStructure);
+
+      const rightLockStructure = trainrunsectionHelper.getLeftAndRightLock(
+        rightSection,
+        defaultNodesOrdered,
+      );
+      expect(rightLockStructure).toEqual({...defaultLockStructure, travelTimeLock: true});
+    });
+
+    it("source arrival lock with multiple sections on stop node", () => {
+      dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+      const leftSection = trainrunSectionService.getTrainrunSectionFromId(3); // S1234 BN - OL
+      const rightSection = trainrunSectionService.getTrainrunSectionFromId(4); // S1234 OL - ZUE
+
+      leftSection.setTravelTimeLock(false);
+      rightSection.setTravelTimeLock(false);
+      leftSection.setSourceArrivalLock(true);
+
+      const expectedLockStructure = {...defaultLockStructure, leftLock: true};
+
+      const leftLockStructure = trainrunsectionHelper.getLeftAndRightLock(
+        leftSection,
+        defaultNodesOrdered,
+      );
+      expect(leftLockStructure).toEqual(expectedLockStructure);
+
+      const rightLockStructure = trainrunsectionHelper.getLeftAndRightLock(
+        rightSection,
+        defaultNodesOrdered,
+      );
+      expect(rightLockStructure).toEqual(expectedLockStructure);
+    });
+
+    it("source arrival lock with multiple sections on non-stop node", () => {
+      dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+      const leftSection = trainrunSectionService.getTrainrunSectionFromId(3); // S1234 BN - OL
+      const rightSection = trainrunSectionService.getTrainrunSectionFromId(4); // S1234 OL - ZUE
+
+      leftSection.setTravelTimeLock(false);
+      rightSection.setTravelTimeLock(false);
+      rightSection.setSourceArrivalLock(true);
+
+      const leftLockStructure = trainrunsectionHelper.getLeftAndRightLock(
+        leftSection,
+        defaultNodesOrdered,
+      );
+      expect(leftLockStructure).toEqual(defaultLockStructure);
+
+      const rightLockStructure = trainrunsectionHelper.getLeftAndRightLock(
+        rightSection,
+        defaultNodesOrdered,
+      );
+      expect(rightLockStructure).toEqual(defaultLockStructure);
+    });
+
+    it("target departure lock with multiple sections on stop node", () => {
+      dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+      const leftSection = trainrunSectionService.getTrainrunSectionFromId(3); // S1234 BN - OL
+      const rightSection = trainrunSectionService.getTrainrunSectionFromId(4); // S1234 OL - ZUE
+
+      leftSection.setTravelTimeLock(false);
+      rightSection.setTravelTimeLock(false);
+      rightSection.setTargetDepartureLock(true);
+
+      const expectedLockStructure = {...defaultLockStructure, rightLock: true};
+
+      const leftLockStructure = trainrunsectionHelper.getLeftAndRightLock(
+        leftSection,
+        defaultNodesOrdered,
+      );
+      expect(leftLockStructure).toEqual(expectedLockStructure);
+
+      const rightLockStructure = trainrunsectionHelper.getLeftAndRightLock(
+        rightSection,
+        defaultNodesOrdered,
+      );
+      expect(rightLockStructure).toEqual(expectedLockStructure);
+    });
+
+    it("target departure lock with multiple sections on non-stop node", () => {
+      dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+      const leftSection = trainrunSectionService.getTrainrunSectionFromId(3); // S1234 BN - OL
+      const rightSection = trainrunSectionService.getTrainrunSectionFromId(4); // S1234 OL - ZUE
+
+      leftSection.setTravelTimeLock(false);
+      rightSection.setTravelTimeLock(false);
+      leftSection.setTargetDepartureLock(true);
+
+      const leftLockStructure = trainrunsectionHelper.getLeftAndRightLock(
+        leftSection,
+        defaultNodesOrdered,
+      );
+      expect(leftLockStructure).toEqual(defaultLockStructure);
+
+      const rightLockStructure = trainrunsectionHelper.getLeftAndRightLock(
+        rightSection,
+        defaultNodesOrdered,
+      );
+      expect(rightLockStructure).toEqual(defaultLockStructure);
+    });
+
+    describe("source arrival lock with single section on non-stop node", () => {
+      let ts: TrainrunSection;
+      beforeEach(() => {
+        dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+        ts = trainrunSectionService.getTrainrunSectionFromId(4); // S1234 OL - ZUE
+
+        ts.setTravelTimeLock(false);
+        ts.setSourceArrivalLock(true);
+      });
+
+      it("source on left", () => {
+        const nodesOrdered: [Node, Node] = [ts.getSourceNode(), ts.getTargetNode()];
+        const lockStructure = trainrunsectionHelper.getLeftAndRightLock(ts, nodesOrdered);
+        expect(lockStructure).toEqual({...defaultLockStructure, leftLock: true});
+      });
+
+      it("source on right", () => {
+        const nodesOrdered: [Node, Node] = [ts.getTargetNode(), ts.getSourceNode()];
+        const lockStructure = trainrunsectionHelper.getLeftAndRightLock(ts, nodesOrdered);
+        expect(lockStructure).toEqual({...defaultLockStructure, rightLock: true});
+      });
+    });
+
+    describe("target arrival lock with single section on non-stop node", () => {
+      let ts: TrainrunSection;
+      beforeEach(() => {
+        dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+        ts = trainrunSectionService.getTrainrunSectionFromId(3); // S1234 BN - OL
+
+        ts.setTravelTimeLock(false);
+        ts.setTargetArrivalLock(true);
+      });
+
+      it("target on left", () => {
+        const nodesOrdered: [Node, Node] = [ts.getTargetNode(), ts.getSourceNode()];
+        const lockStructure = trainrunsectionHelper.getLeftAndRightLock(ts, nodesOrdered);
+        expect(lockStructure).toEqual({...defaultLockStructure, leftLock: true});
+      });
+
+      it("target on right", () => {
+        const nodesOrdered: [Node, Node] = [ts.getSourceNode(), ts.getTargetNode()];
+        const lockStructure = trainrunsectionHelper.getLeftAndRightLock(ts, nodesOrdered);
+        expect(lockStructure).toEqual({...defaultLockStructure, rightLock: true});
+      });
+    });
   });
 });

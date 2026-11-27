@@ -47,6 +47,7 @@
         <circle
           *ngFor="let stationNumber of stationNumberArray"
           cx="137px"
+          r="4"
           [attr.cy]="
             192 / 4 + ((192 - 8) / (perlenketteSection.numberOfStops + 1)) * 0.5 * stationNumber + 4
           "
@@ -87,7 +88,7 @@
     <g>
       <g
         transform="translate(137, 0)"
-        *ngIf="!showArrivalAndDepartureTime() && showStopArcStart() && isRightSideDisplayed()"
+        *ngIf="!showArrivalAndDepartureTime() && isFromNodeStop() && isRightSideDisplayed()"
       >
         <path
           d="M4,0A4,4,0,1,1,-4,4.898587196589413e-16L0,0Z"
@@ -95,7 +96,7 @@
           class="edge_line_stop_arcs fill"
         />
       </g>
-      <g transform="translate(137, 192)" *ngIf="!showArrivalAndDepartureTime() && showStopArcEnd()">
+      <g transform="translate(137, 192)" *ngIf="!showArrivalAndDepartureTime() && isToNodeStop()">
         <path
           d="M-4,-4.898587196589413e-16A4,4,0,1,1,4,0L0,0Z"
           [ngClass]="[getPathClassTag()]"
@@ -423,7 +424,7 @@
 
             <sbb-toggle-switch-button
               class="LeftSymmetryToggle"
-              *ngIf="trainrunSection.getTrainrun().isRoundTrip()"
+              *ngIf="getTrainrun().isRoundTrip()"
               [checked]="!trainrunSectionTimesService.getSymmetryStructure().leftSymmetry"
               (checkedChanged)="onLeftNodeSymmetryToggle(!$event)"
               #leftSymmetryToggle
@@ -663,7 +664,7 @@
             </div>
             <sbb-toggle-switch-button
               class="RightSymmetryToggle"
-              *ngIf="trainrunSection.getTrainrun().isRoundTrip()"
+              *ngIf="getTrainrun().isRoundTrip()"
               [checked]="!trainrunSectionTimesService.getSymmetryStructure().rightSymmetry"
               (checkedChanged)="onRightNodeSymmetryToggle(!$event)"
               #rightSymmetryToggle
@@ -676,9 +677,7 @@
 
       <svg
         width="45px"
-        [style.transform]="
-          trainrunSection.getTrainrun().isRoundTrip() ? 'translateX(30px)' : 'none'
-        "
+        [style.transform]="getTrainrun().isRoundTrip() ? 'translateX(30px)' : 'none'"
       >
         <foreignObject height="192px" width="45px">
           <div class="propagationButtonContainer">
@@ -829,8 +828,8 @@
                   sbbInput
                   spellcheck="false"
                   pattern="^[0-9]*"
-                  [(ngModel)]="numberOfStops"
-                  (change)="onInputNbrStopsChanged()"
+                  [(ngModel)]="trainrunSectionTimesService.numberOfStops"
+                  (change)="trainrunSectionTimesService.onNumberOfStopsChanged()"
                 />
               </div>
               <div class="nodePlus">

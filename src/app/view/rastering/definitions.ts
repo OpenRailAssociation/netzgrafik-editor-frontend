@@ -8,6 +8,8 @@ export const NODE_MIN_WIDTH = 3 * RASTERING_BASIC_GRID_SIZE;
 export const NODE_MIN_HEIGHT = 2 * RASTERING_BASIC_GRID_SIZE;
 export const NODE_EDGE_WIDTH = 2;
 export const NODE_PIN_SPAN = RASTERING_BASIC_GRID_SIZE;
+export const NODE_ROUND_EDGE_SIZE = 4;
+export const NOTE_ROUND_EDGE_SIZE = 4;
 
 export const NODE_TEXT_AREA_HEIGHT = 28; // ( NODE_EDGE_WIDTH * 2 + NODE_TEXT_AREA_HEIGHT ) = 2 * RASTERING_BASIC_GRID_SIZE
 export const NODE_TEXT_LEFT_SPACING = 8;
@@ -20,6 +22,8 @@ export const NOTE_TEXT_LEFT_SPACING = 8;
 export const TEXT_SIZE = 16;
 export const DEFAULT_PIN_RADIUS = 6;
 export const DEFAULT_STOP_ICON = 4;
+export const TRAINRUN_SECTION_STOP_RADIUS = 4;
+export const PIN_RADIUS_HOVER = 11;
 
 /*
   https://xd.adobe.com/view/e4664ae0-be8f-40e4-6a55-88aec9eafd8d-9257/screen/b5ed9deb-0306-4d66-96cf-43dae05dd2ee/

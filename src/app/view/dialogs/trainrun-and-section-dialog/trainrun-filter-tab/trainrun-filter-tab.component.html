@@ -3,7 +3,7 @@
     class="sbb-form-field-long"
     [label]="'app.view.dialogs.trainrun-and-section-dialog.trainrun-filter-tab.labels' | translate"
   >
-    <sbb-chip-list [value]="trainrunLabels" (focusout)="onLabelsFocusout()">
+    <sbb-chip-list [value]="trainrunLabels">
       <sbb-chip *ngFor="let element of trainrunLabels" [value]="element" (removed)="remove($event)">
         {{ element }}
       </sbb-chip>
@@ -13,6 +13,7 @@
           'app.view.dialogs.trainrun-and-section-dialog.trainrun-filter-tab.newLabels' | translate
         "
         sbbChipInput
+        sbbChipInputAddOnBlur
         cdkFocusInitial
         [sbbChipInputSeparatorKeyCodes]="separatorKeysCodes"
         (sbbChipInputTokenEnd)="add($event)"

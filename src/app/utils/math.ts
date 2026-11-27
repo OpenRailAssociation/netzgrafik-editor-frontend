@@ -27,4 +27,8 @@ export class MathUtils {
   static isPositiveNumber(value: unknown): value is number {
     return this.isFiniteNumber(value) && value > 0;
   }
+
+  static clamp(value: number, a: number, b: number): number {
+    return Math.min(Math.max(value, Math.min(a, b)), Math.max(a, b));
+  }
 }

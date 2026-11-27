@@ -8,7 +8,10 @@ export class MultiSelectRenderer {
   static setGroup(nodeGroup: d3.Selection<SVGGElement, undefined, Element, undefined>) {
     nodeGroup
       .append(StaticDomTags.PREVIEW_MULTISELECT_ROOT_BOX_SVG)
-      .attr("class", StaticDomTags.PREVIEW_MULTISELECT_ROOT_BOX_CLASS);
+      .attr(
+        "class",
+        `${StaticDomTags.PREVIEW_MULTISELECT_ROOT_BOX_CLASS} ${StaticDomTags.REMOVE_ON_EXPORT}`,
+      );
   }
 
   displayBox() {
@@ -19,7 +22,10 @@ export class MultiSelectRenderer {
     this.isBoxDrawing = true;
     d3.selectAll(StaticDomTags.PREVIEW_MULTISELECT_ROOT_BOX_DOM_REF)
       .append(StaticDomTags.PREVIEW_MULTISELECT_BOX_SVG)
-      .attr("class", StaticDomTags.PREVIEW_MULTISELECT_BOX_CLASS);
+      .attr(
+        "class",
+        `${StaticDomTags.PREVIEW_MULTISELECT_BOX_CLASS} ${StaticDomTags.REMOVE_ON_EXPORT}`,
+      );
   }
 
   updateBox(topLeft: Vec2D, bottomRight: Vec2D) {

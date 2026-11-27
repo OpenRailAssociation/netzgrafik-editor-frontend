@@ -27,6 +27,7 @@ import {SbbLoadingIndicatorModule} from "@sbb-esta/angular/loading-indicator";
 import {SbbMenuModule} from "@sbb-esta/angular/menu";
 import {SbbNotificationToastModule} from "@sbb-esta/angular/notification-toast";
 import {SbbRadioButtonModule} from "@sbb-esta/angular/radio-button";
+import {SbbSearchModule} from "@sbb-esta/angular/search";
 import {SbbSelectModule} from "@sbb-esta/angular/select";
 import {SbbSidebarModule} from "@sbb-esta/angular/sidebar";
 import {SbbTableModule} from "@sbb-esta/angular/table";
@@ -45,6 +46,9 @@ import {TrainrunSectionTabComponent} from "./view/dialogs/trainrun-and-section-d
 import {TrainrunSectionCardComponent} from "./view/dialogs/trainrun-and-section-dialog/trainrunsection-card/trainrun-section-card.component";
 import {EditorNodeDetailViewComponent} from "./view/editor-side-view/editor-node-detail-view/editor-node-detail-view.component";
 import {EditorFilterViewComponent} from "./view/editor-filter-view/editor-filter-view.component";
+import {EditorSearchViewComponent} from "./view/editor-search-view/editor-search-view-component";
+import {EditorNodeSearchViewComponent} from "./view/editor-search-view/editor-node-search-view-component/editor-node-search-view-component";
+import {EditorTrainrunSearchViewComponent} from "./view/editor-search-view/editor-trainrun-search-view-component/editor-trainrun-search-view-component";
 import {EditorMenuComponent} from "./view/editor-menu/editor-menu.component";
 import {EditorSideViewComponent} from "./view/editor-side-view/editor-side-view.component";
 import {BaseDataDialogComponent} from "./view/dialogs/basedata-dialog/basedata-dialog.component";
@@ -75,6 +79,7 @@ import {VariantDialogComponent} from "./view/variant/variant-dialog/variant-dial
 import {VariantFormComponent} from "./view/variant/variant-dialog/variant-form/variant-form.component";
 import {ErrorViewComponent} from "./view/error-view/error-view.component";
 import {HttpErrorInterceptor} from "./utils/http-error-interceptor";
+import {GzipRequestInterceptor} from "./utils/gzip-request-interceptor";
 import {PreviewButtonComponent} from "./view/variant/variant-view/variant-history/preview-button/preview-button.component";
 import {NavigationBarComponent} from "./view/navigation-bar/navigation-bar.component";
 import {EditorPropertiesViewComponent} from "./view/editor-properties-view-component/editor-properties-view.component";
@@ -131,6 +136,9 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     TrainrunSectionCardComponent,
     EditorNodeDetailViewComponent,
     EditorFilterViewComponent,
+    EditorSearchViewComponent,
+    EditorNodeSearchViewComponent,
+    EditorTrainrunSearchViewComponent,
     BaseDataDialogComponent,
     EditorMenuComponent,
     EditorSideViewComponent,
@@ -244,6 +252,7 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     SbbUsermenuModule,
     SbbButtonModule,
     SbbInputModule,
+    SbbSearchModule,
     SbbFileSelectorModule,
     SbbMenuModule,
     SbbSidebarModule,
@@ -259,6 +268,7 @@ import {TimeStepperComponent} from "./view/dialogs/trainrun-and-section-dialog/t
     ...(environment.backendUrl
       ? [{provide: BASE_PATH, useValue: environment.backendUrl}]
       : [{provide: LocationStrategy, useClass: HashLocationStrategy}]),
+    {provide: HTTP_INTERCEPTORS, useClass: GzipRequestInterceptor, multi: true},
     {provide: HTTP_INTERCEPTORS, useClass: HttpErrorInterceptor, multi: true},
     provideHttpClient(withXhr(), withInterceptorsFromDi()),
   ],

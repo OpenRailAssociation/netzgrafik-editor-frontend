@@ -6,13 +6,36 @@
       </div>
       <div class="LabelNetzgrafikVarianteSaveStatus">
         <ng-container *ngIf="isWritable$ | async; else readonly">
-          <ng-container *ngIf="modified$ | async; else saved">
-            <span>{{ "app.view.editor-menu.save-changes" | translate }}</span>
-            <sbb-icon svgIcon="arrows-circle-small" class="spinning"></sbb-icon>
+          <ng-container
+            *ngIf="versionControlService.saveError$ | async as saveError; else saveStatus"
+          >
+            <button
+              class="RetrySaveButton"
+              [disabled]="versionControlService.isUploading$ | async"
+              (click)="versionControlService.retrySave()"
+            >
+              {{ "app.view.editor-menu.retry-save-changes" | translate }} ({{ saveError }})
+              <sbb-icon
+                *ngIf="versionControlService.isUploading$ | async"
+                svgIcon="arrows-circle-small"
+                class="spinning"
+              ></sbb-icon>
+            </button>
           </ng-container>
-          <ng-template #saved>
-            <span>{{ "app.view.editor-menu.changes-saved" | translate }}</span>
-            <sbb-icon svgIcon="circle-tick-small"></sbb-icon>
+          <ng-template #saveStatus>
+            <ng-container
+              *ngIf="
+                (modified$ | async) || (versionControlService.isUploading$ | async);
+                else saved
+              "
+            >
+              <span>{{ "app.view.editor-menu.save-changes" | translate }}</span>
+              <sbb-icon svgIcon="arrows-circle-small" class="spinning"></sbb-icon>
+            </ng-container>
+            <ng-template #saved>
+              <span>{{ "app.view.editor-menu.changes-saved" | translate }}</span>
+              <sbb-icon svgIcon="circle-tick-small"></sbb-icon>
+            </ng-template>
           </ng-template>
         </ng-container>
         <ng-template #readonly>

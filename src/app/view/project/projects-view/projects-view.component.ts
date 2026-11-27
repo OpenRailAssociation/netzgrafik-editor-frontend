@@ -110,7 +110,7 @@ export class ProjectsViewComponent implements OnDestroy {
       .showConfirmationDiagramDialog(
         new ConfirmationDialogParameter(
           $localize`:@@app.view.project.projects-view.undo-archiving-project.title:Undo archiving`,
-          $localize`:@@app.view.project.projects-view.undo-archiving-project.content:Would you like to undo the archiving the project now?`,
+          $localize`:@@app.view.project.projects-view.undo-archiving-project.content:Would you like to undo the archiving of the project now?`,
         ),
       )
       .pipe(

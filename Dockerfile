@@ -1,4 +1,4 @@
-FROM node:26.12-alpine as build
+FROM node:26.13-alpine AS build
 
 WORKDIR /build
 COPY *.json *.js ./
@@ -6,7 +6,7 @@ RUN npm clean-install
 COPY src/ ./src
 RUN npm run build
 
-FROM ghcr.io/nginxinc/nginx-unprivileged:1.27.4-alpine-slim
+FROM ghcr.io/nginx/nginx-unprivileged:1.31.9-alpine-slim
 
 ADD --chmod=755 https://github.com/kyubisation/angular-server-side-configuration/releases/download/v22.0.2/ngssc_64bit /usr/sbin/ngssc
 

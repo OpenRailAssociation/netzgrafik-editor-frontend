@@ -16,6 +16,15 @@
     </a>
     <a
       sbbIconSidebarItem
+      [label]="'app.netzgrafik-application.search' | translate"
+      [class]="getSearchActivatedTag()"
+      [style]="getSearchStyle()"
+      (click)="onSearchClicked()"
+    >
+      <sbb-icon svgIcon="magnifying-glass-small"></sbb-icon>
+    </a>
+    <a
+      sbbIconSidebarItem
       [label]="'app.netzgrafik-application.filter' | translate"
       [class]="getFilterActivatedTag()"
       [style]="getFilterStyle()"

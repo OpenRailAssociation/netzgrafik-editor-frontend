@@ -287,8 +287,8 @@ const buildSectionEdges = (
     edges.push(...forwardEdges);
     if (!trainrun.isRoundTrip()) return;
     // Don't forget the reverse direction for round trip trainruns.
-    const ts = tsIterator.current().trainrunSection;
-    const nextIterator = trainrunService.getIterator(tsIterator.current().node, ts);
+    const ts = tsIterator.last().trainrunSection;
+    const nextIterator = trainrunService.getIterator(tsIterator.last().node, ts);
     edges.push(
       ...buildSectionEdgesFromIterator(
         nextIterator,

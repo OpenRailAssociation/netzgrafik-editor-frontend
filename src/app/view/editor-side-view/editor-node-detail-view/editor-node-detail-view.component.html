@@ -76,7 +76,7 @@
       class="sbb-form-field-long"
       [class.readonly]="!versionControlService.getVariantIsWritable()"
     >
-      <sbb-chip-list [value]="nodeProperties.labels" (focusout)="onLabelsFocusout()">
+      <sbb-chip-list [value]="nodeProperties.labels">
         <sbb-chip
           *ngFor="let element of nodeProperties.labels"
           [value]="element"
@@ -90,6 +90,7 @@
             'app.view.editor-side-view.editor-node-detail-view.new-label-placeholder' | translate
           "
           sbbChipInput
+          sbbChipInputAddOnBlur
           [sbbChipInputSeparatorKeyCodes]="separatorKeysCodes"
           (sbbChipInputTokenEnd)="add($event)"
           [sbbAutocomplete]="nodeLabelsAutoComplete"

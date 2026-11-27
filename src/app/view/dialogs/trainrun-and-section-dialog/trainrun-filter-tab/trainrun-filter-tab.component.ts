@@ -38,7 +38,6 @@ export class TrainrunFilterTabComponent implements OnInit, OnDestroy {
   trainrunLabelsAutoCompleteOptions: string[] = [];
   readonly separatorKeysCodes = [ENTER, COMMA];
   private destroyed = new Subject<void>();
-  private isLabelBeingEdited = false;
 
   constructor(
     public dataService: DataService,
@@ -93,9 +92,7 @@ export class TrainrunFilterTabComponent implements OnInit, OnDestroy {
       return;
     }
     this.trainrunLabels = this.trainrunLabels.filter((labels) => labels !== valueDelete);
-    this.isLabelBeingEdited = true;
     this.checkAndSetLabels();
-    this.isLabelBeingEdited = false;
   }
 
   add(inputEvent: SbbChipInputEvent): void {
@@ -104,9 +101,7 @@ export class TrainrunFilterTabComponent implements OnInit, OnDestroy {
       return;
     }
     this.trainrunLabels.push(value);
-    this.isLabelBeingEdited = true;
     this.checkAndSetLabels();
-    this.isLabelBeingEdited = false;
     inputEvent.chipInput!.clear();
   }
 
@@ -129,21 +124,6 @@ export class TrainrunFilterTabComponent implements OnInit, OnDestroy {
   onDuplicateTrainrun() {
     this.trainrunService.duplicateTrainrunAndSections(this.selectedTrainrun.getId());
     this.initializeWithCurrentSelectedTrainrun();
-  }
-
-  onLabelsFocusout() {
-    if (this.isLabelBeingEdited) return;
-
-    const keyboardEvent = new KeyboardEvent("keydown", {
-      code: "Enter",
-      key: "Enter",
-      charCode: 13,
-      keyCode: 13,
-      view: window,
-      bubbles: true,
-    });
-    document.getElementById("trainrunLabelsInput").dispatchEvent(keyboardEvent);
-    this.checkAndSetLabels();
   }
 
   getAutoCompleteLabels(): string[] {

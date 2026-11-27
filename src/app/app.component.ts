@@ -18,6 +18,10 @@ import {UiInteractionService} from "./services/ui/ui.interaction.service";
 import {NoteService} from "./services/data/note.service";
 import {FilterService} from "./services/ui/filter.service";
 import {AutoLayoutService} from "./services/util/auto-layout.service";
+import {
+  getFragmentNetzgrafik,
+  NetzgrafikImportService,
+} from "./services/data/netzgrafik-import.service";
 import {AppElementInterface} from "./app.interface";
 
 @Component({
@@ -65,6 +69,7 @@ export class AppComponent implements OnInit, AppElementInterface {
     private noteService: NoteService,
     private filterService: FilterService,
     private autoLayoutService: AutoLayoutService,
+    private netzgrafikImportService: NetzgrafikImportService,
     elementRef: ElementRef<HTMLElement>,
   ) {
     if (!this.disableBackend) {
@@ -82,6 +87,13 @@ export class AppComponent implements OnInit, AppElementInterface {
   ngOnInit() {
     if (this.disableBackend && !this.netzgrafikDtoIsSet) {
       this.netzgrafikDto = NetzgrafikDefault.getDefaultNetzgrafik();
+      // standalone: a link with `#netzgrafik=<data>` opens that Netzgrafik (e.g. from other apps)
+      const fragmentNetzgrafik = getFragmentNetzgrafik(window.location.hash);
+      if (fragmentNetzgrafik !== null) {
+        // drop the data from the address bar, so a reload doesn't overwrite later changes
+        history.replaceState(history.state, "", window.location.pathname + window.location.search);
+        void this.netzgrafikImportService.importNetzgrafikFromFragment(fragmentNetzgrafik);
+      }
     }
     this.initialized = true;
   }

@@ -1,5 +1,89 @@
 # Changelog
 
+## [2.13.4](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.13.3...netzgrafik-editor-frontend-v2.13.4) (2026-11-26)
+
+
+### Features
+
+* **import:** open a Netzgrafik given in a #netzgrafik= link (standalone) ([1b128d3](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/1b128d32fca34ce93c66bf864e194722dccf9c81))
+* **ui:** add section rendering style setting ([3595de2](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/3595de280866e50580e7104b1dd9f4aa3606c00d))
+* **view:** compute orthogonal section path ([7302009](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/7302009799dc46fb02f699b6a0334827053cf0fe))
+
+
+### Bug Fixes
+
+* correct turnaround times for 120-minute intervals ([#1542](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1542)) ([819cd04](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/819cd04616053b200dd89f6aa5d544a3995bbb65))
+
+## [2.13.3](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.13.2...netzgrafik-editor-frontend-v2.13.3) (2026-11-26)
+
+
+### Bug Fixes
+
+* include fonts to exported files (svg/png) ([2fb321b](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/2fb321bd4deec3569021fcfde7d66db823cebae8)), closes [#1432](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1432)
+* trainrun line pattern in section edit dialog ([#1538](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1538)) ([49d8a92](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/49d8a92dbba4adede7493ef8e234c66c4d3e011a))
+
+## [2.13.2](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.13.1...netzgrafik-editor-frontend-v2.13.2) (2026-11-25)
+
+
+### Bug Fixes
+
+* **services:** fix nodesOrdered type errors in tests ([0a12bf3](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/0a12bf34f1e0617c146b243c46b0312c8357ef41))
+
+## [2.13.1](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.13.0...netzgrafik-editor-frontend-v2.13.1) (2026-11-25)
+
+
+### Bug Fixes
+
+* update version ([#1528](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1528)) ([234684f](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/234684f41821a2d24bfd46b529841af541c8c1e3))
+
+## [2.13.0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.12.2...netzgrafik-editor-frontend-v2.13.0) (2026-11-19)
+
+
+### Features
+
+* **export:** export PNG natively without save-svg-as-png ([78ee4eb](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/78ee4ebc1562fa9d72b40d68cf4299dd3f83c110))
+* **export:** export SVG natively without save-svg-as-png ([4d1e5a0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/4d1e5a0f5aadb690de2aea4cb29966fd6fec600b))
+* **export:** remove unnecessary options for export ([cad239b](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/cad239be17538b79092f3463a8badb554e1f30cc))
+* expose note methods to sync notes from external apps ([1819703](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/1819703ced1e34731c122b8e14b8b1d3f4dff5cc))
+* introduce AppElementInterface ([7bb6788](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/7bb6788c9908e3ac194038a4b9a754237547ee0d))
+* **search:** add and improve node search ([cc1b8db](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/cc1b8db31e61438cee9e1fd69aa46ba9e2fa9d95))
+* **search:** improve node search results and reset ([cc1b8db](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/cc1b8db31e61438cee9e1fd69aa46ba9e2fa9d95))
+* **search:** Quicksearch goto navigation for nodes   ([#1287](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1287)) ([cc1b8db](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/cc1b8db31e61438cee9e1fd69aa46ba9e2fa9d95))
+
+
+### Bug Fixes
+
+* add missing translations ([70a3ab6](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/70a3ab6a4c3ec1d3e5ad32e093890cfc61b895a2))
+* correct spelling mistakes in translations ([de86ed0](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/de86ed0f334e3261522ff32f9fbf873924e070ab))
+* display analytics layer only if appropriate editorMode ([67f56ee](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/67f56eefde25d37be358514e6dbc297be951194b))
+* **export:** avoid thick line in SVG/PNG export ([738f239](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/738f239bf0cdb82dba3c4c5f7a73eb78e00402f8))
+* **export:** export a clone of the live element ([#1437](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1437)) ([f2c75d3](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/f2c75d3f04e9d67b419dbc3d0ff5301fe38265fe))
+* improve typography in translations ([96fc33a](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/96fc33aaa7edca42e6a85935e29e195d1e44671c))
+* init (load) data enforced ([cc1b8db](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/cc1b8db31e61438cee9e1fd69aa46ba9e2fa9d95))
+* keep wording of display-nodes-full-name close to the key name ([01d0c67](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/01d0c678bed15a3ce00e8fb8dce8a67d7e4fd3fd))
+* make note background transparent instead of same color as background ([2c042de](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/2c042dea7766ae571a7cf6d9df42c8c129909902))
+* npm run format fixes ([cc1b8db](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/cc1b8db31e61438cee9e1fd69aa46ba9e2fa9d95))
+* **perlenkette:** fix invisible stop circle ([44e7c72](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/44e7c7228591154747ed2efa04c0fe8565fd19bc))
+* remove on export using css selector ([5c20d08](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/5c20d08e78f4dea8de14d8ac34f576875cd9ca2a))
+* result list sort and visual element fixed size 200px ([cc1b8db](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/cc1b8db31e61438cee9e1fd69aa46ba9e2fa9d95))
+* revert typographic ellipsis, en dashes and apostrophes ([de65979](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/de659790ab0c11ae649d0f2cb258e37501bddbe2))
+* **search:** implement lifecycle interfaces ([cc1b8db](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/cc1b8db31e61438cee9e1fd69aa46ba9e2fa9d95))
+* Serialize uploads and retry failed uploads ([#1506](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1506)) ([ca5c747](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/ca5c747fd401d7b9944f791a4d4747d5b2c4845a))
+* snap trainrun selection with edge line layer_0 ([#1494](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1494)) ([1736603](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/17366031684280bd5341cf9151c603e6ca518421))
+* temporary filtering backward travel time ([1f18fce](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/1f18fced960b4396f43abc8cf261f620fc5e62a6))
+* the mouse cursor is override for all svg ([#1453](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1453)) ([667cef9](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/667cef90f7bd39fc4d6eba7d81d109ae314f12ad))
+* trainrun search ([#1517](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1517)) ([bd57587](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/bd575874613640d707e4ab8d6981893462c16661))
+* transition rx/ry css value ([45b993c](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/45b993c355827aaad90c260d7bdc3133d168b1ce))
+* translate origin-destination matrix as Quelle-Ziel-Matrix in German ([8b6039a](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/8b6039a5308f2d06da4408121e6d8cc978a9ae8d))
+* typos in note.view.scss ([853b680](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/853b68060f4f15dcbd47ea4b520cf5b74a629e8b))
+* Update de.json spelling ([7a33e32](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/7a33e324c8bf6090a530346d15b0df96f3ae7a53))
+* use correct type for ContainertoExportData.documentToExport ([b8cd2ff](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/b8cd2ff4b8d053f8d8faf6f282581859a0787fcc))
+
+
+### Performance Improvements
+
+* send large snapshot uploads gzip-compressed (Content-Encoding: gzip) ([#1513](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/issues/1513)) ([40aa7cf](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/commit/40aa7cff47f1c90146f4c1ffbdcdbc6976c66ce2))
+
 ## [2.12.2](https://github.com/OpenRailAssociation/netzgrafik-editor-frontend/compare/netzgrafik-editor-frontend-v2.12.1...netzgrafik-editor-frontend-v2.12.2) (2026-10-23)
 
 
