@@ -54,9 +54,9 @@ geklärt werden.
 
 Stand dieses Plans am 27. November 2026:
 
-| Stand | Commit | Bedeutung |
-| --- | --- | --- |
-| `main` | `e942a81bec8d71b46455a721220b4777bebc47db` | Ausgangspunkt der Aufteilung zum Zeitpunkt der Planung. |
+| Stand    | Commit                                     | Bedeutung                                                        |
+| -------- | ------------------------------------------ | ---------------------------------------------------------------- |
+| `main`   | `e942a81bec8d71b46455a721220b4777bebc47db` | Ausgangspunkt der Aufteilung zum Zeitpunkt der Planung.          |
 | Referenz | `5eda0ac0d94ac984c76dd06e07b6a42902c6f211` | Heutige Gesamtlösung inklusive 120/120+-Wendezeit-Fix und Tests. |
 
 Der Referenzcommit ist bereits gepusht. Er ist der feste Vergleichsstand,
