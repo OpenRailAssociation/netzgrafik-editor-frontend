@@ -26,9 +26,9 @@ Momentaufnahme vom 27. November 2026:
 - `main` auf `e942a81b` wurde mit `9ed5c17a` in den Referenzbranch gemergt.
   Der frühere Hinweis, `main` sei 55 Commits entfernt, ist überholt.
 - Der Wendezeit-Fix `819cd046` aus `main` ist enthalten. Eine weitere
-  Korrektur der **Knotengleisbelegung bei 120 und 120+** samt Test liegt
-  aktuell nur im lokalen Arbeitsbaum. Sie gehört noch nicht zu einem Commit;
-  das gemeldete Beispiel ist visuell noch zu prüfen.
+  Korrektur der **Knotengleisbelegung bei 120 und 120+** samt Test ist in
+  Commit `5eda0ac0` enthalten; das gemeldete Beispiel ist visuell noch zu
+  prüfen.
 - Die vier gezielt ausgeführten Estimator-/Streckengrafik-Testdateien
   bestanden mit 38 Tests; der Build bestand. Das ist kein Nachweis, dass
   sämtliche Tests oder alle manuellen Fälle geprüft wurden.
@@ -37,13 +37,15 @@ Vor Beginn:
 
 1. `main` und den Referenzbranch aktualisieren; deren Commit-IDs festhalten.
 2. `git status --short --branch` prüfen. Lokale, gestagte und ungestagte
-   Änderungen ausdrücklich erfassen und erhalten. Die 120/120+-Korrektur
-   nach Prüfung in einen nachvollziehbaren Referenzstand übernehmen; nichts
-   verwerfen oder als bereits veröffentlicht voraussetzen.
+   Änderungen ausdrücklich erfassen und erhalten. Die 120/120+-Korrektur aus
+   `5eda0ac0` beim Aufteilen berücksichtigen.
 3. Bestehende Tests und manuelle Prüfungen mit Ergebnis dokumentieren.
    Fehlende Nachweise und offene Fehler als solche kennzeichnen.
 4. Mit den Maintainern Review-Vorgehen, Merge-Strategie und Rolle von #1379
    abstimmen. Bis dahin keine neuen Issues oder PRs voraussetzen.
+
+Die konkrete Anleitung für Variante B steht in
+[ISSUE-1358-SCHRITT-FUER-SCHRITT.md](./ISSUE-1358-SCHRITT-FUER-SCHRITT.md).
 
 ## 2. Bestehende Änderung verstehen
 
