@@ -69,6 +69,40 @@ export class EditorKeyEvents {
     });
 
     d3.select("body").on("keydown", (event: KeyboardEvent) => {
+      const target = event.target;
+      const isEditingText =
+        target instanceof Element &&
+        target.closest(
+          "input:not([type=checkbox]):not([type=radio]), textarea, select, [contenteditable]:not([contenteditable=false]), [role=textbox], [role=dialog]",
+        );
+      if (
+        !isEditingText &&
+        !event.repeat &&
+        !event.ctrlKey &&
+        !event.shiftKey &&
+        !event.altKey &&
+        !event.metaKey &&
+        this.trainrunSectionPreviewLineView.getMode() === PreviewLineMode.NotDragging
+      ) {
+        if (event.key.toLowerCase() === "t") {
+          this.uiInteractionService.setShowNodeDegree(!this.uiInteractionService.showNodeDegree);
+          event.preventDefault();
+          return;
+        }
+        if (event.key.toLowerCase() === "z") {
+          this.uiInteractionService.setShowCorridors(!this.uiInteractionService.showCorridors);
+          event.preventDefault();
+          return;
+        }
+        if (event.key.toLowerCase() === "r") {
+          this.uiInteractionService.setHideNodeDegreeTwo(
+            !this.uiInteractionService.hideNodeDegreeTwo,
+          );
+          event.preventDefault();
+          return;
+        }
+      }
+
       if (this.ignoreKeyEvent(event)) {
         return;
       }

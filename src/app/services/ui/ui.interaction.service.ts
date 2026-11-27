@@ -115,6 +115,10 @@ export class UiInteractionService implements OnDestroy {
 
   readonly operation = new EventEmitter<Operation>();
 
+  showNodeDegree = false;
+  showCorridors = false;
+  hideNodeDegreeTwo = false;
+
   private activeTheme: ThemeBase = null;
   private activeStreckengrafikRenderingType: StreckengrafikRenderingType = null;
   private activeTravelTimeCreationEstimatorType: TravelTimeCreationEstimatorType = null;
@@ -317,6 +321,21 @@ export class UiInteractionService implements OnDestroy {
 
   getActiveOrderingAlgorithm(): OrderingAlgorithm {
     return this.nodeService.getCurrentOrderingAlgorithm();
+  }
+
+  setShowNodeDegree(show: boolean) {
+    this.showNodeDegree = show;
+    this.nodeService.nodesUpdated();
+  }
+
+  setShowCorridors(show: boolean) {
+    this.showCorridors = show;
+    this.nodeService.nodesUpdated();
+  }
+
+  setHideNodeDegreeTwo(hide: boolean) {
+    this.hideNodeDegreeTwo = hide;
+    this.nodeService.nodesUpdated();
   }
 
   setActiveOrderingAlgorithm(orderingAlgorithm: OrderingAlgorithm) {

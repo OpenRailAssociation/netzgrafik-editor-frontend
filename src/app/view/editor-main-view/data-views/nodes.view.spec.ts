@@ -18,11 +18,42 @@ import {LoadPerlenketteService} from "../../../perlenkette/service/load-perlenke
 import {NetzgrafikUnitTesting} from "../../../../integration-testing/netzgrafik.unit.testing";
 import {EditorMainViewComponent} from "../editor-main-view.component";
 import {EditorView} from "./editor.view";
-import {NodesView} from "./nodes.view";
+import {getReducedCorridorColors, NodesView} from "./nodes.view";
 import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service";
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
 import {AutoLayoutService} from "../../../services/util/auto-layout.service";
+import {Node} from "../../../models/node.model";
+import * as d3 from "d3";
+
+describe("reduced corridor colors", () => {
+  it("keeps a chain one color and distinguishes adjacent corridors", () => {
+    const links = [
+      {source: 1, target: 2},
+      {source: 2, target: 3},
+      {source: 3, target: 4},
+      {source: 3, target: 5},
+      {source: 2, target: 1},
+    ];
+    const colors = getReducedCorridorColors(links, new Set([2]));
+    expect(colors.get("1:2")).toBe(colors.get("2:3"));
+    expect(new Set([colors.get("2:3"), colors.get("3:4"), colors.get("3:5")]).size).toBe(3);
+    expect(getReducedCorridorColors(links.slice().reverse(), new Set([2]))).toEqual(colors);
+  });
+
+  it("keeps an isolated cycle one color", () => {
+    const colors = getReducedCorridorColors(
+      [
+        {source: 1, target: 2},
+        {source: 2, target: 3},
+        {source: 3, target: 1},
+      ],
+      new Set([1, 2, 3]),
+    );
+    expect(new Set(colors.values()).size).toBe(1);
+    expect(colors.size).toBe(3);
+  });
+});
 
 describe("Nodes-View", () => {
   let dataService: DataService;
@@ -176,5 +207,151 @@ describe("Nodes-View", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const nodesView = new NodesView(editorView);
     nodesView.createViewNodeDataObjects(nodeService.getNodes());
+  });
+
+  it("classifies and reduces only the filtered graph, including visible endpoints", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    trainrunSectionService
+      .getTrainrunSections()
+      .forEach((section) => section.routeEdgeAndPlaceText());
+    spyOn(editorView, "doCullCheckPositionsInViewport").and.returnValue(true);
+    const svg = d3
+      .select<HTMLDivElement, undefined>(document.createElement("div"))
+      .selectAll<SVGSVGElement, undefined>("svg")
+      .data([undefined])
+      .join("svg");
+    const nodesView = new NodesView(editorView);
+    nodesView.setGroup(svg.append("g"));
+    nodesView.setDegreeEdgeGroup(svg.append("g"));
+    nodesView.setDegreeGroup(svg.append("g"));
+    uiInteractionService.setShowNodeDegree(true);
+    uiInteractionService.setShowCorridors(true);
+
+    const marker = (id: number) =>
+      svg
+        .selectAll<SVGGElement, {node: Node; degree: number; hasEnd: boolean}>(
+          ".node-degree-overlay g",
+        )
+        .filter((d) => d.node.getId() === id);
+    const sectionIds = () =>
+      svg
+        .selectAll<SVGPathElement, {key: string}>(".corridor-paths path")
+        .data()
+        .map((edge) => edge.key);
+
+    nodesView.displayNodes(nodeService.getNodes());
+    expect(marker(1).datum().degree).toBe(2);
+    expect(marker(1).datum().hasEnd).toBeTrue();
+    expect(sectionIds()).toContain("section:2");
+
+    filterService.disableFilterTrainrunFrequency(dataService.getTrainrunFrequency(2));
+    nodesView.refreshNodeDegrees();
+    expect(marker(1).datum().degree).toBe(2);
+    expect(marker(1).datum().hasEnd).toBeFalse();
+    expect(sectionIds()).not.toContain("section:2");
+
+    uiInteractionService.setHideNodeDegreeTwo(true);
+    nodesView.displayNodes(nodeService.getNodes());
+    expect(marker(1).empty()).toBeTrue();
+    expect(sectionIds()).toContain("transition:1:0");
+
+    filterService.setFilterNodeLabels([3]);
+    nodesView.refreshNodeDegrees();
+    expect(marker(0).empty()).toBeTrue();
+    expect(marker(1).datum().degree).toBe(1);
+    expect(marker(1).datum().hasEnd).toBeTrue();
+    expect(sectionIds()).not.toContain("transition:1:0");
+    expect(sectionIds()).not.toContain("section:0");
+
+    filterService.toggleTemporaryDisableFilteringOfItemsInView();
+    nodesView.refreshNodeDegrees();
+    expect(marker(0).empty()).toBeFalse();
+    expect(marker(1).datum().degree).toBe(2);
+    expect(marker(1).datum().hasEnd).toBeTrue();
+    expect(sectionIds()).toContain("section:2");
+  });
+
+  it("shows colored corridors without degree markers when only Z is enabled", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    const middle = nodeService.getNodeFromId(1);
+    const endingPort = middle
+      .getPorts()
+      .find((port) => middle.isEndNode(port.getTrainrunSection()));
+    const otherPort = middle
+      .getPorts()
+      .find(
+        (port) =>
+          port.getOppositeNode(middle.getId()).getId() !==
+          endingPort.getOppositeNode(middle.getId()).getId(),
+      );
+    middle.addTransition(
+      endingPort,
+      otherPort,
+      endingPort.getTrainrunSection().getTrainrun(),
+      true,
+    );
+    trainrunSectionService
+      .getTrainrunSections()
+      .forEach((section) => section.routeEdgeAndPlaceText());
+    spyOn(editorView, "doCullCheckPositionsInViewport").and.returnValue(true);
+    const svg = d3
+      .select<HTMLDivElement, undefined>(document.createElement("div"))
+      .selectAll<SVGSVGElement, undefined>("svg")
+      .data([undefined])
+      .join("svg");
+    const nodesView = new NodesView(editorView);
+    nodesView.setGroup(svg.append("g"));
+    nodesView.setDegreeEdgeGroup(svg.append("g"));
+    nodesView.setDegreeGroup(svg.append("g"));
+
+    nodesView.displayNodes(nodeService.getNodes());
+    const nodeCount = svg.selectAll("g.node").size();
+
+    uiInteractionService.setShowCorridors(true);
+    nodesView.displayNodes(nodeService.getNodes());
+    expect(svg.selectAll(".corridor-paths path").size()).toBeGreaterThan(0);
+    expect(svg.node().querySelector<SVGPathElement>(".corridor-paths path").style.stroke).not.toBe(
+      "rgb(34, 34, 34)",
+    );
+    expect(svg.selectAll(".node-degree-overlay g").size()).toBe(0);
+    expect(svg.selectAll("g.node").size()).toBe(nodeCount);
+
+    uiInteractionService.setHideNodeDegreeTwo(true);
+    nodesView.displayNodes(nodeService.getNodes());
+    const hiddenCount = nodeService.getNodes().filter((node) => {
+      const neighbors = new Set(
+        node.getPorts().map((port) => port.getOppositeNode(node.getId()).getId()),
+      );
+      neighbors.delete(node.getId());
+      return (
+        neighbors.size === 2 &&
+        node
+          .getPorts()
+          .every((port) =>
+            node
+              .getTransitions()
+              .some(
+                (transition) =>
+                  transition.getPortId1() === port.getId() ||
+                  transition.getPortId2() === port.getId(),
+              ),
+          )
+      );
+    }).length;
+    expect(hiddenCount).toBeGreaterThan(0);
+    expect(svg.selectAll("g.node").size()).toBe(nodeCount - hiddenCount);
+
+    uiInteractionService.setShowNodeDegree(true);
+    nodesView.displayNodes(nodeService.getNodes());
+    expect(svg.selectAll("g.node").size()).toBe(nodeCount - hiddenCount);
+    expect(svg.selectAll(".node-degree-overlay g").size()).toBeGreaterThan(0);
+
+    uiInteractionService.setHideNodeDegreeTwo(false);
+    nodesView.displayNodes(nodeService.getNodes());
+    expect(svg.selectAll("g.node").size()).toBe(nodeCount);
+    uiInteractionService.setShowNodeDegree(false);
+    uiInteractionService.setShowCorridors(false);
+    nodesView.displayNodes(nodeService.getNodes());
+    expect(svg.selectAll(".corridor-paths path").size()).toBe(0);
   });
 });

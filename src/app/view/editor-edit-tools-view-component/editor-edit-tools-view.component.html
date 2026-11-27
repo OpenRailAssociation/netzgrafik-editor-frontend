@@ -99,6 +99,31 @@
     </button>
     {{ "app.view.editor-edit-tools-view-component.delete-all-visible-elements" | translate }}
   </sbb-expansion-panel>
+  <sbb-expansion-panel [expanded]="false">
+    <sbb-expansion-panel-header>
+      {{ "app.view.editor-edit-tools-view-component.node-degree-title" | translate }}
+    </sbb-expansion-panel-header>
+    <sbb-checkbox
+      [ngModel]="uiInteractionService.showNodeDegree"
+      (ngModelChange)="onNodeDegreeVisibilityChange($event)"
+    >
+      {{ "app.view.editor-edit-tools-view-component.node-degree-show" | translate }}
+    </sbb-checkbox>
+    <sbb-checkbox
+      [ngModel]="uiInteractionService.showCorridors"
+      (ngModelChange)="onCorridorVisibilityChange($event)"
+    >
+      {{ "app.view.editor-edit-tools-view-component.corridor-show" | translate }}
+    </sbb-checkbox>
+    <sbb-checkbox
+      [ngModel]="uiInteractionService.hideNodeDegreeTwo"
+      (ngModelChange)="onHideNodeDegreeTwoChange($event)"
+    >
+      {{ "app.view.editor-edit-tools-view-component.node-degree-hide-two" | translate }}
+    </sbb-checkbox>
+    <p>{{ "app.view.editor-edit-tools-view-component.node-degree-legend" | translate }}</p>
+  </sbb-expansion-panel>
+
   <sbb-expansion-panel [expanded]="false" [disabled]="!getVariantIsWritable()">
     <sbb-expansion-panel-header>
       {{ "app.view.editor-edit-tools-view-component.merge-netzgrafik-title" | translate }}

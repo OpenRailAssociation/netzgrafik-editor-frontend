@@ -596,10 +596,12 @@ export class EditorView implements SVGMouseControllerObserver {
       this.uiInteractionService.getViewboxProperties(EditorView.svgName),
     );
     this.notesView.setGroup(this.rootContainer.append(StaticDomTags.GROUP_SVG));
+    this.nodesView.setDegreeEdgeGroup(this.rootContainer.append(StaticDomTags.GROUP_SVG));
     this.nodesView.setGroup(this.rootContainer.append(StaticDomTags.GROUP_SVG));
     this.transitionsView.setGroup(this.rootContainer.append(StaticDomTags.GROUP_SVG));
     this.trainrunSectionsView.setGroup(this.rootContainer.append(StaticDomTags.GROUP_SVG));
     this.connectionsView.setGroup(this.rootContainer.append(StaticDomTags.GROUP_SVG));
+    this.nodesView.setDegreeGroup(this.rootContainer.append(StaticDomTags.GROUP_SVG));
     TrainrunSectionPreviewLineView.setGroup(this.rootContainer);
     TrainrunSectionPreviewLineView.setConnectionGroup(this.rootContainer);
     MultiSelectRenderer.setGroup(this.rootContainer);
@@ -814,6 +816,22 @@ export class EditorView implements SVGMouseControllerObserver {
 
   getLevelOfDetail() {
     return this.levelOfDetailService.getLevelOfDetail();
+  }
+
+  isNodeDegreeVisible(): boolean {
+    return this.uiInteractionService.showNodeDegree;
+  }
+
+  areCorridorsVisible(): boolean {
+    return this.uiInteractionService.showCorridors;
+  }
+
+  isNodeDegreeTwoHidden(): boolean {
+    return this.uiInteractionService.hideNodeDegreeTwo;
+  }
+
+  getZoomFactor(): number {
+    return this.uiInteractionService.getViewboxProperties(EditorView.svgName).zoomFactor;
   }
 
   skipElementLevelOfDetail(lod: LevelOfDetail): boolean {

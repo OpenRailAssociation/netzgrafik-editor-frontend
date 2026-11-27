@@ -2322,7 +2322,7 @@ export class TrainrunSectionsView {
     return transformedPath;
   }
 
-  private transformPath(ts: TrainrunSection): Vec2D[] {
+  transformPath(ts: TrainrunSection): Vec2D[] {
     const srcNode = ts.getSourceNode();
     const trgNode = ts.getTargetNode();
     let notFilteringSourceNode = this.editorView.checkFilterNode(srcNode);
