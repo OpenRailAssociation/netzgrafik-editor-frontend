@@ -23,6 +23,7 @@ import {LevelOfDetailService} from "../../../services/ui/level.of.detail.service
 import {ViewportCullService} from "../../../services/ui/viewport.cull.service";
 import {PositionTransformationService} from "../../../services/util/position.transformation.service";
 import {AutoLayoutService} from "../../../services/util/auto-layout.service";
+import {Node} from "../../../models/node.model";
 import * as d3 from "d3";
 
 describe("reduced corridor colors", () => {
@@ -206,6 +207,68 @@ describe("Nodes-View", () => {
     dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
     const nodesView = new NodesView(editorView);
     nodesView.createViewNodeDataObjects(nodeService.getNodes());
+  });
+
+  it("classifies and reduces only the filtered graph, including visible endpoints", () => {
+    dataService.loadNetzgrafikDto(NetzgrafikUnitTesting.getUnitTestNetzgrafik());
+    trainrunSectionService
+      .getTrainrunSections()
+      .forEach((section) => section.routeEdgeAndPlaceText());
+    spyOn(editorView, "doCullCheckPositionsInViewport").and.returnValue(true);
+    const svg = d3
+      .select<HTMLDivElement, undefined>(document.createElement("div"))
+      .selectAll<SVGSVGElement, undefined>("svg")
+      .data([undefined])
+      .join("svg");
+    const nodesView = new NodesView(editorView);
+    nodesView.setGroup(svg.append("g"));
+    nodesView.setDegreeEdgeGroup(svg.append("g"));
+    nodesView.setDegreeGroup(svg.append("g"));
+    uiInteractionService.setShowNodeDegree(true);
+    uiInteractionService.setShowCorridors(true);
+
+    const marker = (id: number) =>
+      svg
+        .selectAll<SVGGElement, {node: Node; degree: number; hasEnd: boolean}>(
+          ".node-degree-overlay g",
+        )
+        .filter((d) => d.node.getId() === id);
+    const sectionIds = () =>
+      svg
+        .selectAll<SVGPathElement, {key: string}>(".corridor-paths path")
+        .data()
+        .map((edge) => edge.key);
+
+    nodesView.displayNodes(nodeService.getNodes());
+    expect(marker(1).datum().degree).toBe(2);
+    expect(marker(1).datum().hasEnd).toBeTrue();
+    expect(sectionIds()).toContain("section:2");
+
+    filterService.disableFilterTrainrunFrequency(dataService.getTrainrunFrequency(2));
+    nodesView.refreshNodeDegrees();
+    expect(marker(1).datum().degree).toBe(2);
+    expect(marker(1).datum().hasEnd).toBeFalse();
+    expect(sectionIds()).not.toContain("section:2");
+
+    uiInteractionService.setHideNodeDegreeTwo(true);
+    nodesView.displayNodes(nodeService.getNodes());
+    expect(marker(1).empty()).toBeTrue();
+    expect(sectionIds()).toContain("transition:1:0");
+
+    filterService.setFilterNodeLabels([3]);
+    nodesView.refreshNodeDegrees();
+    expect(marker(0).empty()).toBeTrue();
+    expect(marker(1).datum().degree).toBe(1);
+    expect(marker(1).datum().hasEnd).toBeTrue();
+    expect(sectionIds()).not.toContain("transition:1:0");
+    expect(sectionIds()).not.toContain("section:0");
+
+    filterService.toggleTemporaryDisableFilteringOfItemsInView();
+    nodesView.refreshNodeDegrees();
+    expect(marker(0).empty()).toBeFalse();
+    expect(marker(1).datum().degree).toBe(2);
+    expect(marker(1).datum().hasEnd).toBeTrue();
+    expect(sectionIds()).toContain("section:2");
   });
 
   it("shows colored corridors without degree markers when only Z is enabled", () => {

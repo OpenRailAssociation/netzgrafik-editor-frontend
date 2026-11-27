@@ -11,6 +11,7 @@ import {
   NODE_ROUND_EDGE_SIZE,
 } from "../../rastering/definitions";
 import {Node} from "../../../models/node.model";
+import {Port} from "../../../models/port.model";
 import {StaticDomTags} from "./static.dom.tags";
 import {TrainrunSection} from "../../../models/trainrunsection.model";
 import {EditorView} from "./editor.view";
@@ -98,6 +99,7 @@ export class NodesView {
   private inputNodes: Node[] = [];
   private degreeNodes: Node[] = [];
   private degreeGraphNodes: Node[] = [];
+  private degreeGraphPorts = new Map<number, Port[]>();
   draggable: d3.DragBehavior<SVGElement, NodeViewObject, unknown>;
   dragDomObj: SVGElement | null = null;
 
@@ -201,6 +203,26 @@ export class NodesView {
   displayNodes(inputNodes: Node[]) {
     this.inputNodes = inputNodes;
     inputNodes.forEach((n) => this.updateNodeDisplayConstraints(n));
+    const analyze =
+      this.editorView.isNodeDegreeVisible() ||
+      this.editorView.areCorridorsVisible() ||
+      this.editorView.isNodeDegreeTwoHidden();
+    this.degreeGraphNodes = analyze
+      ? inputNodes.filter((node) => this.filterNodesToDisplay(node))
+      : [];
+    const visibleIds = new Set(this.degreeGraphNodes.map((node) => node.getId()));
+    this.degreeGraphPorts = new Map(
+      this.degreeGraphNodes.map((node) => [
+        node.getId(),
+        node.getPorts().filter((port) => {
+          const section = port.getTrainrunSection();
+          return (
+            visibleIds.has(port.getOppositeNode(node.getId()).getId()) &&
+            this.editorView.trainrunSectionsView.filterTrainrunSectionToDisplay(section)
+          );
+        }),
+      ]),
+    );
     const nodes = inputNodes.filter(
       (n) =>
         this.editorView.doCullCheckPositionsInViewport([
@@ -237,27 +259,29 @@ export class NodesView {
 
     group.exit().remove();
     this.degreeNodes = nodes;
-    this.degreeGraphNodes =
-      this.editorView.isNodeDegreeVisible() || this.editorView.areCorridorsVisible()
-        ? inputNodes.filter((node) => this.filterNodesToDisplay(node))
-        : [];
     this.displayNodeDegrees();
   }
 
   refreshNodeDegrees() {
-    if (this.editorView.isNodeDegreeTwoHidden()) {
+    if (
+      this.editorView.isNodeDegreeTwoHidden() ||
+      this.editorView.isNodeDegreeVisible() ||
+      this.editorView.areCorridorsVisible()
+    ) {
       this.displayNodes(this.inputNodes);
-    } else if (this.editorView.isNodeDegreeVisible() || this.editorView.areCorridorsVisible()) {
-      this.displayNodeDegrees();
     }
   }
 
   private classifyNode(node: Node) {
-    const ports = node.getPorts();
+    const ports = this.degreeGraphPorts.get(node.getId()) ?? [];
     const neighbors = new Set(ports.map((port) => port.getOppositeNode(node.getId()).getId()));
     neighbors.delete(node.getId());
+    const portIds = new Set(ports.map((port) => port.getId()));
     const connectedPorts = new Set(
-      node.getTransitions().flatMap((t) => [t.getPortId1(), t.getPortId2()]),
+      node
+        .getTransitions()
+        .filter((t) => portIds.has(t.getPortId1()) && portIds.has(t.getPortId2()))
+        .flatMap((t) => [t.getPortId1(), t.getPortId2()]),
     );
     return {
       node,
@@ -284,17 +308,13 @@ export class NodesView {
       }
     };
     if (this.editorView.isNodeDegreeVisible() || this.editorView.areCorridorsVisible()) {
-      const visibleIds = new Set(this.degreeGraphNodes.map((node) => node.getId()));
       const reducedColors = this.editorView.areCorridorsVisible()
         ? getReducedCorridorColors(
             this.degreeGraphNodes.flatMap((node) =>
-              node
-                .getPorts()
-                .map((port) => ({
-                  source: node.getId(),
-                  target: port.getOppositeNode(node.getId()).getId(),
-                }))
-                .filter(({target}) => visibleIds.has(target)),
+              this.degreeGraphPorts.get(node.getId()).map((port) => ({
+                source: node.getId(),
+                target: port.getOppositeNode(node.getId()).getId(),
+              })),
             ),
             new Set(
               this.degreeGraphNodes
@@ -306,15 +326,13 @@ export class NodesView {
       const colorForLink = (a: number, b: number) =>
         reducedColors.get(corridorLinkKey(a, b)) ?? "#222222";
       this.degreeGraphNodes.forEach((source) => {
-        source.getPorts().forEach((port) => {
+        this.degreeGraphPorts.get(source.getId()).forEach((port) => {
           const section = port.getTrainrunSection();
           const target = section.getTargetNode();
           if (
             section.getSourceNodeId() === source.getId() &&
             section.getTargetNodeId() !== source.getId() &&
-            visibleIds.has(section.getTargetNodeId()) &&
-            section.getPath().length === 4 &&
-            this.editorView.trainrunSectionsView.filterTrainrunSectionToDisplay(section)
+            section.getPath().length === 4
           ) {
             const targetPort = target.getPortOfTrainrunSection(section.getId());
             const forward = source.getId() < target.getId();
@@ -337,21 +355,23 @@ export class NodesView {
         this.degreeGraphNodes
           .filter((node) => this.isDegreeTwoWithoutEnd(node))
           .forEach((node) => {
+            const visiblePortIds = new Set(
+              this.degreeGraphPorts.get(node.getId()).map((port) => port.getId()),
+            );
             node.getTransitions().forEach((transition) => {
+              if (
+                !visiblePortIds.has(transition.getPortId1()) ||
+                !visiblePortIds.has(transition.getPortId2())
+              ) {
+                return;
+              }
               const port1 = node.getPort(transition.getPortId1());
               const port2 = node.getPort(transition.getPortId2());
               const section1 = port1.getTrainrunSection();
               const section2 = port2.getTrainrunSection();
               const neighbor1 = port1.getOppositeNode(node.getId());
               const neighbor2 = port2.getOppositeNode(node.getId());
-              if (
-                !visibleIds.has(neighbor1.getId()) ||
-                !visibleIds.has(neighbor2.getId()) ||
-                section1.getPath().length !== 4 ||
-                section2.getPath().length !== 4 ||
-                !this.editorView.trainrunSectionsView.filterTrainrunSectionToDisplay(section1) ||
-                !this.editorView.trainrunSectionsView.filterTrainrunSectionToDisplay(section2)
-              ) {
+              if (section1.getPath().length !== 4 || section2.getPath().length !== 4) {
                 return;
               }
               const endpoint = (section: TrainrunSection) =>
