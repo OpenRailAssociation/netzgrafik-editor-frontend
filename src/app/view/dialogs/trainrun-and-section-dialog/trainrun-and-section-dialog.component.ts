@@ -1,4 +1,11 @@
-import {Component, OnDestroy, TemplateRef, ViewChild, ChangeDetectionStrategy} from "@angular/core";
+import {
+  Component,
+  HostListener,
+  OnDestroy,
+  TemplateRef,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 import {
   SbbDialog,
   SbbDialogRef,
@@ -176,6 +183,7 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
     };
   }
 
+  @HostListener("document:mouseup")
   onMouseUp() {
     this.dialogMovementLastPosition = undefined;
   }
@@ -196,6 +204,7 @@ export class TrainrunAndSectionDialogComponent implements OnDestroy {
     }
   }
 
+  @HostListener("document:mousemove", ["$event"])
   onMouseMove(event: MouseEvent) {
     if (event.buttons === 1) {
       if (this.dialogMovementLastPosition !== undefined) {

@@ -1,11 +1,5 @@
 <ng-template #noteEditorTabsViewTemplate>
-  <div
-    class="MainNoteTabViewDialog"
-    sbbDialog
-    (mouseup)="onMouseUp()"
-    (mousemove)="onMouseMove($event)"
-    (mousedown)="onMouseDown($event)"
-  >
+  <div class="MainNoteTabViewDialog" sbbDialog (mousedown)="onMouseDown($event)">
     <sbb-icon
       class="closeDialog"
       svgIcon="cross-small"
