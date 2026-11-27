@@ -876,15 +876,24 @@ export class NodeService implements OnDestroy {
   }
 
   getNodeFromTransition(transition: Transition): Node {
-    return this.nodesStore.nodes.find(
-      (n: Node) => n.getTransitionFromId(transition.getId()) !== undefined,
-    );
+    return this.getOwnerNode(transition);
   }
 
   getNodeForConnection(connection: Connection): Node {
-    return this.nodesStore.nodes.find(
-      (n: Node) => n.getConnectionFromId(connection.getId()) !== undefined,
-    );
+    return this.getOwnerNode(connection);
+  }
+
+  private getOwnerNode(owned: Connection | Transition): Node {
+    if (!(owned.ownerNode instanceof Node)) {
+      console.log(
+        "Connection or transition owner must be a Node",
+        owned.ownerNode.getId(),
+        owned.ownerNode.getBetriebspunktName(),
+        owned.ownerNode.getFullName(),
+      );
+      return undefined;
+    }
+    return owned.ownerNode;
   }
 
   changeNodeBetriebspunktName(nodeId: number, name: string) {

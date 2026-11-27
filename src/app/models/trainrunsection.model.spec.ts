@@ -460,7 +460,7 @@ describe("TrainrunSection Model Test", () => {
   });
 
   it("Connection - select check", () => {
-    const nc1 = new Connection();
+    const nc1 = new Connection(new Node());
     expect(nc1.selected()).toBe(false);
     nc1.select();
     expect(nc1.selected()).toBe(true);
@@ -469,14 +469,14 @@ describe("TrainrunSection Model Test", () => {
   });
 
   it("Connection - setWarning check 001", () => {
-    const nc1 = new Connection();
+    const nc1 = new Connection(new Node());
     expect(nc1.hasWarning()).toBe(false);
     nc1.setWarning("Title");
     expect(nc1.hasWarning()).toBe(true);
   });
 
   it("Connection - setWarning check 002", () => {
-    const nc1 = new Connection();
+    const nc1 = new Connection(new Node());
     expect(nc1.hasWarning()).toBe(false);
     nc1.setWarning("Title", "MSG");
     expect(nc1.hasWarning()).toBe(true);

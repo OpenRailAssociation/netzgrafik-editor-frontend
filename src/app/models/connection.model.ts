@@ -1,4 +1,5 @@
 import {ConnectionDto, WarningDto} from "../data-structures/technical.data.structures";
+import type {NodeOwner} from "./node-owner";
 
 export class Connection {
   private static currentId = 0;
@@ -12,6 +13,7 @@ export class Connection {
   private isSelected = false;
 
   constructor(
+    readonly ownerNode: NodeOwner, // A connection belongs to one node; the reference allows direct lookup.
     {id, port1Id, port2Id}: ConnectionDto = {
       id: Connection.incrementId(),
       port1Id: 0,
